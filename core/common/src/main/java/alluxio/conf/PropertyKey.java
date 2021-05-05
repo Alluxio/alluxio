@@ -719,6 +719,41 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.SERVER)
           .build();
+  public static final PropertyKey UNDERFS_RETRY_INITIAL_DELAY_MS =
+      new Builder(Name.UNDERFS_RETRY_INITIAL_DELAY_MS)
+          .setDefaultValue(1000)
+          .setDescription("Initial delay before attempting the retry on the ufs")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.SERVER)
+          .build();
+  public static final PropertyKey UNDERFS_RETRY_MAX_DELAY_MS =
+      new Builder(Name.UNDERFS_RETRY_MAX_DELAY_MS)
+          .setDefaultValue(1000 * 60)  // 1 min
+          .setDescription("Maximum delay before attempting the retry on the ufs")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.SERVER)
+          .build();
+  public static final PropertyKey UNDERFS_RETRY_DELAY_MULTIPLIER =
+      new Builder(Name.UNDERFS_RETRY_DELAY_MULTIPLIER)
+          .setDefaultValue(2)
+          .setDescription("Delay multiplier while retrying requests on the ufs")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.SERVER)
+          .build();
+  public static final PropertyKey UNDERFS_RETRY_TOTAL_DURATION_MS =
+      new Builder(Name.UNDERFS_RETRY_TOTAL_DURATION_MS)
+          .setDefaultValue(5 * 1000 * 60) // 5 mins
+          .setDescription("Maximum retry duration on the ufs")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.SERVER)
+          .build();
+  public static final PropertyKey UNDERFS_RETRY_MAX =
+      new Builder(Name.UNDERFS_RETRY_MAX)
+          .setDefaultValue(60)
+          .setDescription("Maximum Number of retries on the ufs")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.SERVER)
+          .build();
   public static final PropertyKey UNDERFS_WEB_HEADER_LAST_MODIFIED =
       new Builder(Name.UNDERFS_WEB_HEADER_LAST_MODIFIED)
           .setDefaultValue("EEE, dd MMM yyyy HH:mm:ss zzz")
@@ -5192,6 +5227,16 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String UNDERFS_HDFS_IMPL = "alluxio.underfs.hdfs.impl";
     public static final String UNDERFS_HDFS_PREFIXES = "alluxio.underfs.hdfs.prefixes";
     public static final String UNDERFS_HDFS_REMOTE = "alluxio.underfs.hdfs.remote";
+    public static final String UNDERFS_RETRY_INITIAL_DELAY_MS =
+        "alluxio.underfs.retry.initial.delay";
+    public static final String UNDERFS_RETRY_MAX_DELAY_MS =
+        "alluxio.underfs.retry.max.delay";
+    public static final String UNDERFS_RETRY_DELAY_MULTIPLIER =
+        "alluxio.underfs.retry.delay.multiplier";
+    public static final String UNDERFS_RETRY_TOTAL_DURATION_MS =
+        "alluxio.underfs.retry.total.duration";
+    public static final String UNDERFS_RETRY_MAX =
+        "alluxio.underfs.retry.max";
     public static final String UNDERFS_WEB_HEADER_LAST_MODIFIED =
         "alluxio.underfs.web.header.last.modified";
     public static final String UNDERFS_WEB_CONNECTION_TIMEOUT =
