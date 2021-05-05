@@ -82,7 +82,7 @@ public final class ConfigurationDocGenerator {
       String fileNameTemp = TEMP_PREFIX.concat(fileName);
       return new FileWriter(PathUtils.concatPath(filePath, fileNameTemp));
     } else {
-      return new FileWriter((PathUtils.concatPath(filePath, fileName)));
+      return new FileWriter(PathUtils.concatPath(filePath, fileName));
     }
   }
 
