@@ -21,6 +21,7 @@ import alluxio.exception.ExceptionMessage;
 import alluxio.exception.InvalidWorkerStateException;
 import alluxio.exception.WorkerOutOfSpaceException;
 import alluxio.worker.block.allocator.Allocator;
+import alluxio.worker.block.annotator.EmulatingBlockIterator;
 import alluxio.worker.block.evictor.Evictor;
 import alluxio.worker.block.meta.BlockMeta;
 import alluxio.worker.block.meta.DefaultBlockMeta;
@@ -38,6 +39,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -79,13 +81,53 @@ public final class BlockMetadataManager {
         mTiers.add(tier);
         mAliasToTiers.put(tier.getTierAlias(), tier);
       }
-
+      // Create the block iterator.
       if (ServerConfiguration.isSet(PropertyKey.WORKER_EVICTOR_CLASS)) {
-        LOG.warn(String.format("Evictor is being emulated. Please use %s instead.",
+        LOG.warn(String.format("Evictor is being emulated. Please use %s instead. Currently, ",
             PropertyKey.Name.WORKER_BLOCK_ANNOTATOR_CLASS));
+        String evictorType = ServerConfiguration.get(PropertyKey.WORKER_EVICTOR_CLASS);
+        switch (evictorType) {
+          case "alluxio.worker.block.evictor.LRUEvictor":
+            LOG.warn("LRUEvictor is deprecated, LRUAnnotator is set instead");
+            ServerConfiguration.set(PropertyKey.WORKER_BLOCK_ANNOTATOR_CLASS,
+                "alluxio.worker.block.annotator.LRUAnnotator");
+            mBlockIterator = new DefaultBlockIterator(this, BlockAnnotator.Factory.create());
+            break;
+          case "alluxio.worker.block.evictor.PartialLRUEvictor":
+            LOG.warn("PartialLRUEvictor is deprecated, LRUAnnotator is set instead");
+            ServerConfiguration.set(PropertyKey.WORKER_BLOCK_ANNOTATOR_CLASS,
+                "alluxio.worker.block.annotator.LRUAnnotator");
+            mBlockIterator = new DefaultBlockIterator(this, BlockAnnotator.Factory.create());
+            break;
+          case "alluxio.worker.block.evictor.LRFUEvictor":
+            LOG.warn("LRFUEvictor is deprecated, LRFUAnnotator is set instead");
+            final double defaultLRFUAttenuationFactor = 2.0;
+            final double defaultLRFUStepFactor = 0.25;
+            ServerConfiguration.set(PropertyKey.WORKER_BLOCK_ANNOTATOR_LRFU_ATTENUATION_FACTOR,
+                defaultLRFUAttenuationFactor);
+            ServerConfiguration.set(PropertyKey.WORKER_BLOCK_ANNOTATOR_LRFU_STEP_FACTOR,
+                defaultLRFUStepFactor);
+            ServerConfiguration.set(PropertyKey.WORKER_BLOCK_ANNOTATOR_CLASS,
+                "alluxio.worker.block.annotator.LRFUAnnotator");
+            mBlockIterator = new DefaultBlockIterator(this, BlockAnnotator.Factory.create());
+            break;
+          case "alluxio.worker.block.evictor.GreedyEvictor":
+            LOG.warn("GreedyEvictor is deprecated, LRUAnnotator is set instead");
+            ServerConfiguration.set(PropertyKey.WORKER_BLOCK_ANNOTATOR_CLASS,
+                "alluxio.worker.block.annotator.LRUAnnotator");
+            mBlockIterator = new DefaultBlockIterator(this, BlockAnnotator.Factory.create());
+            break;
+          default:
+            //For user defined evictor
+            BlockMetadataEvictorView initManagerView = new BlockMetadataEvictorView(this,
+                Collections.<Long>emptySet(), Collections.<Long>emptySet());
+            mBlockIterator = new EmulatingBlockIterator(this,
+            Evictor.Factory.create(initManagerView, Allocator.Factory.create(initManagerView)));
+        }
+      } else {
+        // Create default block iterator when no evictor specified
+        mBlockIterator = new DefaultBlockIterator(this, BlockAnnotator.Factory.create());
       }
-      // Create default block iterator.
-      mBlockIterator = new DefaultBlockIterator(this, BlockAnnotator.Factory.create());
     } catch (BlockAlreadyExistsException | IOException | WorkerOutOfSpaceException e) {
       throw new RuntimeException(e);
     }
