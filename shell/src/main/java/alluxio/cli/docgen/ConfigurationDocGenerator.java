@@ -271,8 +271,18 @@ public final class ConfigurationDocGenerator {
 
     for (String fileName : fileNames) {
       String fileNameTemp = TEMP_PREFIX.concat(fileName);
-      if (!FileUtils.contentEquals(new File(filePath, fileName),
-          new File(filePath, fileNameTemp))) {
+      File committedFile = new File(filePath, fileName);
+      File tempFile = new File(filePath, fileNameTemp);
+      if (!committedFile.exists()) {
+        System.out.println("Committed file does not exists");
+        continue;
+      }
+      if (!tempFile.exists()) {
+        System.out.println("Temporary generated file does not exists");
+        continue;
+      }
+      if (!FileUtils.contentEquals(committedFile,
+          tempFile)) {
         hasDiff = true;
         System.out.println("Config file " + fileName + " changed.");
       }
