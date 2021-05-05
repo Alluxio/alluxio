@@ -44,14 +44,19 @@ import javax.annotation.concurrent.ThreadSafe;
 @PublicApi
 public final class MetricsDocGenerator {
   private static final Logger LOG = LoggerFactory.getLogger(MetricsDocGenerator.class);
-  private static final String[] CATEGORIES =
-      new String[]{"cluster", "master", "worker", "client", "fuse"};
+  private static final String[] CATEGORIES = new String[]{
+      "client",
+      "cluster",
+      "fuse",
+      "master",
+      "worker",
+      };
   private static final String CSV_FILE_DIR = "docs/_data/table/";
   private static final String YML_FILE_DIR = "docs/_data/table/en/";
   private static final String CSV_SUFFIX = "csv";
   private static final String YML_SUFFIX = "yml";
   private static final String CSV_FILE_HEADER = "metricName,metricType";
-  public static final String TEMP_PREFIX = "temp-";
+  private static final String TEMP_PREFIX = "temp-";
 
   /**
    * Compare the temp files and the committed files if validate flag is set.
@@ -144,13 +149,13 @@ public final class MetricsDocGenerator {
       }
     }
     if (validate) {
-      boolean hasDiff = false;
-
+      boolean hasDiffCSV = false;
+      boolean hasDiffYML = false;
       for (String category : CATEGORIES) {
-        hasDiff = compareFiles(csvFolder, CSV_SUFFIX, category, hasDiff);
-        hasDiff = compareFiles(ymlFolder, YML_SUFFIX, category, hasDiff);
+        hasDiffCSV = compareFiles(csvFolder, CSV_SUFFIX, category, hasDiffCSV);
+        hasDiffYML = compareFiles(ymlFolder, YML_SUFFIX, category, hasDiffYML);
       }
-      if (!hasDiff) {
+      if (!hasDiffCSV && !hasDiffYML) {
         System.out.println("No change in metric file detected.");
       }
     }

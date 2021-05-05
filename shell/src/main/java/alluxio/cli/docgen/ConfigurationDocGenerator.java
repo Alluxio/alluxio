@@ -46,17 +46,24 @@ public final class ConfigurationDocGenerator {
   private static final String CSV_FILE_DIR = "docs/_data/table/";
   private static final String YML_FILE_DIR = "docs/_data/table/en/";
   public static final String CSV_FILE_HEADER = "propertyName,defaultValue";
-  public static final String TEMP_PREFIX = "temp-";
+  private static final String TEMP_PREFIX = "temp-";
 
-  public static final String[] CSV_FILE_NAMES = {"user-configuration.csv",
-      "master-configuration.csv", "worker-configuration.csv",
-      "security-configuration.csv", "common-configuration.csv",
-      "cluster-management-configuration.csv"};
+  public static final String[] CSV_FILE_NAMES = {
+      "cluster-management-configuration.csv",
+      "common-configuration.csv",
+      "master-configuration.csv",
+      "security-configuration.csv",
+      "user-configuration.csv",
+      "worker-configuration.csv"
+  };
 
-  public static final String[] YML_FILE_NAMES = {"user-configuration.yml",
-      "master-configuration.yml", "worker-configuration.yml",
-      "security-configuration.yml", "common-configuration.yml",
-      "cluster-management-configuration.yml"
+  public static final String[] YML_FILE_NAMES = {
+      "cluster-management-configuration.yml",
+      "common-configuration.yml",
+      "master-configuration.yml",
+      "security-configuration.yml",
+      "user-configuration.yml",
+      "worker-configuration.yml"
   };
 
   private ConfigurationDocGenerator() {} // prevent instantiation
@@ -149,16 +156,16 @@ public final class ConfigurationDocGenerator {
       try {
         closer.close();
         if (validate) {
-          compareFiles(CSV_FILE_NAMES, filePath);
+          compareFiles(CSV_FILE_NAMES, filePath, "CSV");
         }
       } catch (IOException e) {
         LOG.error("Error while flushing/closing Property Key CSV FileWriter", e);
-        for (String fileName : CSV_FILE_NAMES) {
-          String fileNameTemp = TEMP_PREFIX.concat(fileName);
-          File tempFile = new File(PathUtils.concatPath(filePath , fileNameTemp));
-          if (tempFile.exists()) {
-            tempFile.delete();
-          }
+      }
+      for (String fileName : CSV_FILE_NAMES) {
+        String fileNameTemp = TEMP_PREFIX.concat(fileName);
+        File tempFile = new File(PathUtils.concatPath(filePath , fileNameTemp));
+        if (tempFile.exists()) {
+          tempFile.delete();
         }
       }
     }
@@ -235,17 +242,17 @@ public final class ConfigurationDocGenerator {
       try {
         closer.close();
         if (validate) {
-          compareFiles(YML_FILE_NAMES, filePath);
+          compareFiles(YML_FILE_NAMES, filePath, "YML");
         }
       } catch (IOException e) {
         LOG.error("Error while flushing/closing YML files for description of Property Keys "
             + "FileWriter", e);
-        for (String fileName : CSV_FILE_NAMES) {
-          String fileNameTemp = TEMP_PREFIX.concat(fileName);
-          File tempFile = new File(PathUtils.concatPath(filePath , fileNameTemp));
-          if (tempFile.exists()) {
-            tempFile.delete();
-          }
+      }
+      for (String fileName : YML_FILE_NAMES) {
+        String fileNameTemp = TEMP_PREFIX.concat(fileName);
+        File tempFile = new File(PathUtils.concatPath(filePath , fileNameTemp));
+        if (tempFile.exists()) {
+          tempFile.delete();
         }
       }
     }
@@ -256,8 +263,10 @@ public final class ConfigurationDocGenerator {
    *
    * @param fileNames the name of the file
    * @param filePath the path to the file
+   * @param fileType the type of the file that we are comparing (CSV/YML)
    */
-  public static void compareFiles(String[] fileNames, String filePath) throws IOException {
+  public static void compareFiles(String[] fileNames, String filePath, String fileType)
+      throws IOException {
     boolean hasDiff = false;
 
     for (String fileName : fileNames) {
@@ -267,11 +276,9 @@ public final class ConfigurationDocGenerator {
         hasDiff = true;
         System.out.println("Config file " + fileName + " changed.");
       }
-      File tempFile = new File(PathUtils.concatPath(filePath , fileNameTemp));
-      tempFile.delete();
     }
     if (!hasDiff) {
-      System.out.println("No change in config CSV file detected.");
+      System.out.println("No change in config " + fileType + " files detected.");
     }
   }
 
