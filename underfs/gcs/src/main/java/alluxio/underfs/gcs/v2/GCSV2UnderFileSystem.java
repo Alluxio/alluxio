@@ -100,7 +100,7 @@ public class GCSV2UnderFileSystem extends ObjectUnderFileSystem {
             .setMaxAttempts(conf.getInt(PropertyKey.UNDERFS_RETRY_MAX))
             .setTotalTimeout(
                 Duration.ofMillis(conf.getInt(PropertyKey.UNDERFS_RETRY_TOTAL_DURATION_MS)))
-            .setJittered(true)
+            .setJittered(conf.getBoolean(PropertyKey.UNDERFS_RETRY_JITTER))
             .build())
         .setCredentials(credentials).build().getService();
     return new GCSV2UnderFileSystem(uri, storage, bucketName, conf);

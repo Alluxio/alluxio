@@ -740,6 +740,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.SERVER)
           .build();
+  public static final PropertyKey UNDERFS_RETRY_JITTER =
+      new Builder(Name.UNDERFS_RETRY_JITTER)
+          .setDefaultValue(true)
+          .setDescription("Enable delay jitter while retrying requests on the ufs")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.SERVER)
+          .build();
   public static final PropertyKey UNDERFS_RETRY_TOTAL_DURATION_MS =
       new Builder(Name.UNDERFS_RETRY_TOTAL_DURATION_MS)
           .setDefaultValue(5 * 1000 * 60) // 5 mins
@@ -5233,6 +5240,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.underfs.retry.max.delay";
     public static final String UNDERFS_RETRY_DELAY_MULTIPLIER =
         "alluxio.underfs.retry.delay.multiplier";
+    public static final String UNDERFS_RETRY_JITTER =
+        "alluxio.underfs.retry.jitter";
     public static final String UNDERFS_RETRY_TOTAL_DURATION_MS =
         "alluxio.underfs.retry.total.duration";
     public static final String UNDERFS_RETRY_MAX =
