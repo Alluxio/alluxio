@@ -64,6 +64,15 @@ spec:
       {{- include "alluxio.hostAliases" . | nindent 6 }}
       {{ end }}
       hostNetwork: {{ $hostNetwork }}
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - topologyKey: "kubernetes.io/hostname"
+              labelSelector:
+                matchLabels:
+                  app: {{ $name }}
+                  role: alluxio-master
+                  name: {{ $fullName }}-master
       dnsPolicy: {{ .Values.master.dnsPolicy | default ($hostNetwork | ternary "ClusterFirstWithHostNet" "ClusterFirst") }}
       nodeSelector:
       {{- if .Values.master.nodeSelector }}
