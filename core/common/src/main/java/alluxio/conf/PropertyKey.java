@@ -671,6 +671,48 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.SERVER)
           .build();
+  public static final PropertyKey UNDERFS_GCS_RETRY_INITIAL_DELAY_MS =
+      new Builder(Name.UNDERFS_GCS_RETRY_INITIAL_DELAY_MS)
+          .setDefaultValue(1000)
+          .setDescription("Initial delay before attempting the retry on the ufs")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.SERVER)
+          .build();
+  public static final PropertyKey UNDERFS_GCS_RETRY_MAX_DELAY_MS =
+      new Builder(Name.UNDERFS_GCS_RETRY_MAX_DELAY_MS)
+          .setDefaultValue(1000 * 60)  // 1 min
+          .setDescription("Maximum delay before attempting the retry on the ufs")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.SERVER)
+          .build();
+  public static final PropertyKey UNDERFS_GCS_RETRY_DELAY_MULTIPLIER =
+      new Builder(Name.UNDERFS_GCS_RETRY_DELAY_MULTIPLIER)
+          .setDefaultValue(2)
+          .setDescription("Delay multiplier while retrying requests on the ufs")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.SERVER)
+          .build();
+  public static final PropertyKey UNDERFS_GCS_RETRY_JITTER =
+      new Builder(Name.UNDERFS_GCS_RETRY_JITTER)
+          .setDefaultValue(true)
+          .setDescription("Enable delay jitter while retrying requests on the ufs")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.SERVER)
+          .build();
+  public static final PropertyKey UNDERFS_GCS_RETRY_TOTAL_DURATION_MS =
+      new Builder(Name.UNDERFS_GCS_RETRY_TOTAL_DURATION_MS)
+          .setDefaultValue(5 * 1000 * 60) // 5 mins
+          .setDescription("Maximum retry duration on the ufs")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.SERVER)
+          .build();
+  public static final PropertyKey UNDERFS_GCS_RETRY_MAX =
+      new Builder(Name.UNDERFS_GCS_RETRY_MAX)
+          .setDefaultValue(60)
+          .setDescription("Maximum Number of retries on the ufs")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.SERVER)
+          .build();
   public static final PropertyKey UNDERFS_GCS_VERSION =
       new Builder(Name.UNDERFS_GCS_VERSION)
           .setDefaultValue(2)
@@ -5187,6 +5229,18 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.underfs.gcs.directory.suffix";
     public static final String UNDERFS_GCS_OWNER_ID_TO_USERNAME_MAPPING =
         "alluxio.underfs.gcs.owner.id.to.username.mapping";
+    public static final String UNDERFS_GCS_RETRY_INITIAL_DELAY_MS =
+        "alluxio.underfs.gcs.retry.initial.delay";
+    public static final String UNDERFS_GCS_RETRY_MAX_DELAY_MS =
+        "alluxio.underfs.gcs.retry.max.delay";
+    public static final String UNDERFS_GCS_RETRY_DELAY_MULTIPLIER =
+        "alluxio.underfs.gcs.retry.delay.multiplier";
+    public static final String UNDERFS_GCS_RETRY_JITTER =
+        "alluxio.underfs.gcs.retry.jitter";
+    public static final String UNDERFS_GCS_RETRY_TOTAL_DURATION_MS =
+        "alluxio.underfs.gcs.retry.total.duration";
+    public static final String UNDERFS_GCS_RETRY_MAX =
+        "alluxio.underfs.gcs.retry.max";
     public static final String UNDERFS_GCS_VERSION = "alluxio.underfs.gcs.version";
     public static final String UNDERFS_HDFS_CONFIGURATION = "alluxio.underfs.hdfs.configuration";
     public static final String UNDERFS_HDFS_IMPL = "alluxio.underfs.hdfs.impl";
