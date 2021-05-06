@@ -71,8 +71,8 @@ public final class MetricsDocGenerator {
    */
   public static boolean compareFiles(String folder, String suffix, String category,
                                      boolean hasDiff) throws IOException {
-    if (!FileUtils.contentEquals(new File(folder, String.format("%s%s-metrics.%s", TEMP_PREFIX, category, suffix)),
-        new File(folder, (category + "-metrics." + suffix)))) {
+    if (!FileUtils.contentEquals(new File(folder, String.format("%s%s-metrics.%s", TEMP_PREFIX,
+        category, suffix)), new File(folder, (category + "-metrics." + suffix)))) {
       hasDiff = true;
       System.out.println("Metrics file " + category + "-metrics." + suffix + " changed.");
     }

@@ -161,8 +161,8 @@ public final class ConfigurationDocGenerator {
           compareFiles(CSV_FILE_NAMES, filePath, CSV_SUFFIX);
         }
       } catch (IOException e) {
-        LOG.error("Error while flushing/closing Property Key CSV FileWriter " +
-            "or compiling generated files to the existing files if validate flag is set", e);
+        LOG.error("Error while flushing/closing Property Key CSV FileWriter "
+            + "or compiling generated files to the existing files if validate flag is set", e);
       }
       if (validate) {
         for (String fileName : CSV_FILE_NAMES) {
@@ -251,7 +251,8 @@ public final class ConfigurationDocGenerator {
         }
       } catch (IOException e) {
         LOG.error("Error while flushing/closing YML files for description of Property Keys "
-            + "FileWriter or compiling generated files to the existing files if validate flag is set", e);
+            + "FileWriter or compiling generated files to the existing files if validate flag "
+            + "is set", e);
       }
       if (validate) {
         for (String fileName : YML_FILE_NAMES) {
