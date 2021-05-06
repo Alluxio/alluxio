@@ -92,15 +92,15 @@ public class GCSV2UnderFileSystem extends ObjectUnderFileSystem {
     Storage storage = StorageOptions.newBuilder().setRetrySettings(
         RetrySettings.newBuilder()
             .setInitialRetryDelay(
-                Duration.ofMillis(conf.getInt(PropertyKey.UNDERFS_RETRY_INITIAL_DELAY_MS)))
+                Duration.ofMillis(conf.getInt(PropertyKey.UNDERFS_GCS_RETRY_INITIAL_DELAY_MS)))
             .setMaxRetryDelay(
-                Duration.ofMillis(conf.getInt(PropertyKey.UNDERFS_RETRY_MAX_DELAY_MS)))
+                Duration.ofMillis(conf.getInt(PropertyKey.UNDERFS_GCS_RETRY_MAX_DELAY_MS)))
             .setRetryDelayMultiplier(
-                conf.getInt(PropertyKey.UNDERFS_RETRY_DELAY_MULTIPLIER))
-            .setMaxAttempts(conf.getInt(PropertyKey.UNDERFS_RETRY_MAX))
+                conf.getInt(PropertyKey.UNDERFS_GCS_RETRY_DELAY_MULTIPLIER))
+            .setMaxAttempts(conf.getInt(PropertyKey.UNDERFS_GCS_RETRY_MAX))
             .setTotalTimeout(
-                Duration.ofMillis(conf.getInt(PropertyKey.UNDERFS_RETRY_TOTAL_DURATION_MS)))
-            .setJittered(conf.getBoolean(PropertyKey.UNDERFS_RETRY_JITTER))
+                Duration.ofMillis(conf.getInt(PropertyKey.UNDERFS_GCS_RETRY_TOTAL_DURATION_MS)))
+            .setJittered(conf.getBoolean(PropertyKey.UNDERFS_GCS_RETRY_JITTER))
             .build())
         .setCredentials(credentials).build().getService();
     return new GCSV2UnderFileSystem(uri, storage, bucketName, conf);
