@@ -25,6 +25,7 @@ import alluxio.util.io.PathUtils;
 
 import com.google.api.client.util.Base64;
 import com.google.api.gax.paging.Page;
+import com.google.api.gax.retrying.RetrySettings;
 import com.google.auth.oauth2.GoogleCredentials;
 import com.google.cloud.storage.Blob;
 import com.google.cloud.storage.BlobId;
@@ -36,6 +37,7 @@ import com.google.common.collect.Lists;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.threeten.bp.Duration;
 
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -87,8 +89,20 @@ public class GCSV2UnderFileSystem extends ObjectUnderFileSystem {
       credentials = GoogleCredentials.getApplicationDefault();
       LOG.info("Created GCSV2UnderFileSystem with default Google application credentials");
     }
-
-    Storage storage = StorageOptions.newBuilder().setCredentials(credentials).build().getService();
+    Storage storage = StorageOptions.newBuilder().setRetrySettings(
+        RetrySettings.newBuilder()
+            .setInitialRetryDelay(
+                Duration.ofMillis(conf.getInt(PropertyKey.UNDERFS_GCS_RETRY_INITIAL_DELAY_MS)))
+            .setMaxRetryDelay(
+                Duration.ofMillis(conf.getInt(PropertyKey.UNDERFS_GCS_RETRY_MAX_DELAY_MS)))
+            .setRetryDelayMultiplier(
+                conf.getInt(PropertyKey.UNDERFS_GCS_RETRY_DELAY_MULTIPLIER))
+            .setMaxAttempts(conf.getInt(PropertyKey.UNDERFS_GCS_RETRY_MAX))
+            .setTotalTimeout(
+                Duration.ofMillis(conf.getInt(PropertyKey.UNDERFS_GCS_RETRY_TOTAL_DURATION_MS)))
+            .setJittered(conf.getBoolean(PropertyKey.UNDERFS_GCS_RETRY_JITTER))
+            .build())
+        .setCredentials(credentials).build().getService();
     return new GCSV2UnderFileSystem(uri, storage, bucketName, conf);
   }
 
