@@ -83,7 +83,7 @@ public final class BlockMetadataManager {
       }
       // Create the block iterator.
       if (ServerConfiguration.isSet(PropertyKey.WORKER_EVICTOR_CLASS)) {
-        LOG.warn(String.format("Evictor is being emulated. Please use %s instead. Currently, ",
+        LOG.warn(String.format("Evictor is being emulated. Please use %s instead.",
             PropertyKey.Name.WORKER_BLOCK_ANNOTATOR_CLASS));
         String evictorType = ServerConfiguration.get(PropertyKey.WORKER_EVICTOR_CLASS);
         switch (evictorType) {
