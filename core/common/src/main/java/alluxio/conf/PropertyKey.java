@@ -4052,6 +4052,17 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
+  public static final PropertyKey USER_CLIENT_CACHE_SHADOW_ENABLED =
+      new Builder(Name.USER_CLIENT_CACHE_SHADOW_ENABLED).setDefaultValue(false).setDescription(
+          "If this is enabled, a shadow cache will be created to tracking the working set of "
+              + "a past time window, and measure the hit ratio if the working set fits the cache")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN).setScope(Scope.CLIENT).build();
+  public static final PropertyKey USER_CLIENT_CACHE_SHADOW_WINDOW =
+      new Builder(Name.USER_CLIENT_CACHE_SHADOW_WINDOW).setDefaultValue(86400)
+          .setDescription(
+              "The past time window for the shadow cache to tracking the working set, and it is "
+                  + "in the unit of second")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN).setScope(Scope.CLIENT).build();
   public static final PropertyKey USER_CLIENT_CACHE_DIR =
       new Builder(Name.USER_CLIENT_CACHE_DIR)
           .setDefaultValue("/tmp/alluxio_cache")
@@ -6008,6 +6019,10 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.user.client.cache.evictor.lfu.logbase";
     public static final String USER_CLIENT_CACHE_EVICTOR_NONDETERMINISTIC_ENABLED =
         "alluxio.user.client.cache.evictor.nondeterministic.enabled";
+    public static final String USER_CLIENT_CACHE_SHADOW_ENABLED =
+        "alluxio.user.client.cache.shadow.enabled";
+    public static final String USER_CLIENT_CACHE_SHADOW_WINDOW =
+        "alluxio.user.client.cache.shadow.window";
     public static final String USER_CLIENT_CACHE_DIR =
         "alluxio.user.client.cache.dir";
     public static final String USER_CLIENT_CACHE_LOCAL_STORE_FILE_BUCKETS =
