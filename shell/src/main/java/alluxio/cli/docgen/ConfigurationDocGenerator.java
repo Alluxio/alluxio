@@ -47,6 +47,8 @@ public final class ConfigurationDocGenerator {
   private static final String YML_FILE_DIR = "docs/_data/table/en/";
   public static final String CSV_FILE_HEADER = "propertyName,defaultValue";
   private static final String TEMP_PREFIX = "temp-";
+  private static final String CSV_SUFFIX = "csv";
+  private static final String YML_SUFFIX = "yml";
 
   private static final String[] CSV_FILE_NAMES = {
       "cluster-management-configuration.csv",
@@ -76,7 +78,7 @@ public final class ConfigurationDocGenerator {
    * @param validate the validate flag of the command
    * @return a FileWriter associated with the file
    */
-  public static FileWriter createFileWriter(String filePath , String fileName , boolean validate)
+  public static FileWriter createFileWriter(String filePath, String fileName, boolean validate)
       throws IOException {
     if (validate) {
       String fileNameTemp = TEMP_PREFIX.concat(fileName);
@@ -156,16 +158,19 @@ public final class ConfigurationDocGenerator {
       try {
         closer.close();
         if (validate) {
-          compareFiles(CSV_FILE_NAMES, filePath, "CSV");
+          compareFiles(CSV_FILE_NAMES, filePath, CSV_SUFFIX);
         }
       } catch (IOException e) {
-        LOG.error("Error while flushing/closing Property Key CSV FileWriter", e);
+        LOG.error("Error while flushing/closing Property Key CSV FileWriter " +
+            "or compiling generated files to the existing files if validate flag is set", e);
       }
-      for (String fileName : CSV_FILE_NAMES) {
-        String fileNameTemp = TEMP_PREFIX.concat(fileName);
-        File tempFile = new File(PathUtils.concatPath(filePath , fileNameTemp));
-        if (tempFile.exists()) {
-          tempFile.delete();
+      if (validate) {
+        for (String fileName : CSV_FILE_NAMES) {
+          String fileNameTemp = TEMP_PREFIX.concat(fileName);
+          File tempFile = new File(PathUtils.concatPath(filePath, fileNameTemp));
+          if (tempFile.exists()) {
+            tempFile.delete();
+          }
         }
       }
     }
@@ -242,17 +247,19 @@ public final class ConfigurationDocGenerator {
       try {
         closer.close();
         if (validate) {
-          compareFiles(YML_FILE_NAMES, filePath, "YML");
+          compareFiles(YML_FILE_NAMES, filePath, YML_SUFFIX);
         }
       } catch (IOException e) {
         LOG.error("Error while flushing/closing YML files for description of Property Keys "
-            + "FileWriter", e);
+            + "FileWriter or compiling generated files to the existing files if validate flag is set", e);
       }
-      for (String fileName : YML_FILE_NAMES) {
-        String fileNameTemp = TEMP_PREFIX.concat(fileName);
-        File tempFile = new File(PathUtils.concatPath(filePath , fileNameTemp));
-        if (tempFile.exists()) {
-          tempFile.delete();
+      if (validate) {
+        for (String fileName : YML_FILE_NAMES) {
+          String fileNameTemp = TEMP_PREFIX.concat(fileName);
+          File tempFile = new File(PathUtils.concatPath(filePath, fileNameTemp));
+          if (tempFile.exists()) {
+            tempFile.delete();
+          }
         }
       }
     }
@@ -274,17 +281,14 @@ public final class ConfigurationDocGenerator {
       File committedFile = new File(filePath, fileName);
       File tempFile = new File(filePath, fileNameTemp);
       if (!committedFile.exists()) {
-        System.out.println("Committed file does not exists");
-        continue;
+        throw new IOException("Committed file does not exists");
       }
       if (!tempFile.exists()) {
-        System.out.println("Temporary generated file does not exists");
-        continue;
+        throw new IOException("Temporary generated file does not exists");
       }
-      if (!FileUtils.contentEquals(committedFile,
-          tempFile)) {
+      if (!FileUtils.contentEquals(committedFile, tempFile)) {
         hasDiff = true;
-        System.out.println("Config file " + fileName + " changed.");
+        System.out.printf("Config file %s changed.%n", fileName);
       }
     }
     if (!hasDiff) {

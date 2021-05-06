@@ -69,7 +69,7 @@ public class DocGenerator {
       if (cmd.hasOption(VALIDATE_OPTION_NAME)) {
         validate = true;
       }
-      if ((!cmd.hasOption(METRIC_OPTION_NAME)) && (!cmd.hasOption(CONF_OPTION_NAME))) {
+      if (!cmd.hasOption(METRIC_OPTION_NAME) && !cmd.hasOption(CONF_OPTION_NAME)) {
         MetricsDocGenerator.generate(validate);
         ConfigurationDocGenerator.generate(validate);
       }

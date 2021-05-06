@@ -50,7 +50,7 @@ public final class MetricsDocGenerator {
       "fuse",
       "master",
       "worker",
-      };
+  };
   private static final String CSV_FILE_DIR = "docs/_data/table/";
   private static final String YML_FILE_DIR = "docs/_data/table/en/";
   private static final String CSV_SUFFIX = "csv";
@@ -71,7 +71,7 @@ public final class MetricsDocGenerator {
    */
   public static boolean compareFiles(String folder, String suffix, String category,
                                      boolean hasDiff) throws IOException {
-    if (!FileUtils.contentEquals(new File(folder, (TEMP_PREFIX + category + "-metrics." + suffix)),
+    if (!FileUtils.contentEquals(new File(folder, String.format("%s%s-metrics.%s", TEMP_PREFIX, category, suffix)),
         new File(folder, (category + "-metrics." + suffix)))) {
       hasDiff = true;
       System.out.println("Metrics file " + category + "-metrics." + suffix + " changed.");
@@ -156,7 +156,7 @@ public final class MetricsDocGenerator {
         hasDiffYML = compareFiles(ymlFolder, YML_SUFFIX, category, hasDiffYML);
       }
       if (!hasDiffCSV && !hasDiffYML) {
-        System.out.println("No change in metric file detected.");
+        System.out.println("No change in metric files detected.");
       }
     }
     LOG.info("Metrics CSV/YML files were created successfully.");
