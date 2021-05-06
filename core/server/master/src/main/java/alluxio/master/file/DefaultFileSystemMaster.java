@@ -1349,7 +1349,9 @@ public final class DefaultFileSystemMaster extends CoreMaster
       } else {
         String ufsFingerprint = Fingerprint.create(ufs.getUnderFSType(), ufsStatus).serialize();
         return ufsStatus.isFile()
-            && (ufsFingerprint.equals(inode.asFile().getUfsFingerprint()));
+            && (ufsFingerprint.equals(inode.asFile().getUfsFingerprint()))
+            && ufsStatus instanceof UfsFileStatus
+            && ((UfsFileStatus) ufsStatus).getContentLength() == inode.asFile().getLength();
       }
     }
   }
