@@ -151,6 +151,8 @@ public class RocksBlockStore implements BlockStore {
     byte[] startKey = RocksUtils.toByteArray(id, 0);
     byte[] endKey = RocksUtils.toByteArray(id, Long.MAX_VALUE);
 
+    // Explicitly hold a reference to the ReadOptions object from the discussion in
+    // https://groups.google.com/g/rocksdb/c/PwapmWwyBbc/m/ecl7oW3AAgAJ
     final ReadOptions readOptions = new ReadOptions().setIterateUpperBound(new Slice(endKey));
     try (RocksIterator iter = db().newIterator(mBlockLocationsColumn.get(), readOptions)) {
       iter.seek(startKey);
