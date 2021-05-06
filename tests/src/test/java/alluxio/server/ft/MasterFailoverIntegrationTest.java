@@ -33,6 +33,7 @@ import com.google.common.io.Files;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.ClassRule;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TestName;
@@ -95,6 +96,7 @@ public final class MasterFailoverIntegrationTest extends BaseIntegrationTest {
     mMultiMasterLocalAlluxioCluster.stop();
   }
 
+  @Ignore
   @Test
   public void failoverJournalFencingTest() throws Exception {
     // This test verifies that when a master fails over due to Zookeeper disconnection, outstanding
