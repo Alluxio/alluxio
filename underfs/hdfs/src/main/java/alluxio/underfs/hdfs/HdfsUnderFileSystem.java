@@ -280,7 +280,7 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
         }
         return outputStream;
       } catch (IOException e) {
-        LOG.warn("Attempt count {} : {} ", retryPolicy.getAttemptCount(), e.getMessage());
+        LOG.warn("Attempt count {} : {} ", retryPolicy.getAttemptCount(), e.toString());
         te = e;
       }
     }
@@ -365,7 +365,7 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
         Collections.addAll(ret, names);
       }
     } catch (IOException e) {
-      LOG.debug("Unable to get file location for {} : {}", path, e.getMessage());
+      LOG.debug("Unable to get file location for {}", path, e);
     }
     return ret;
   }
@@ -689,7 +689,7 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
       FileStatus fileStatus = hdfs.getFileStatus(new Path(path));
       hdfs.setPermission(fileStatus.getPath(), new FsPermission(mode));
     } catch (IOException e) {
-      LOG.warn("Fail to set permission for {} with perm {} : {}", path, mode, e.getMessage());
+      LOG.warn("Fail to set permission for {} with perm {} : {}", path, mode, e.toString());
       throw e;
     }
   }
@@ -744,7 +744,7 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
       try {
         return hdfs.delete(new Path(path), recursive);
       } catch (IOException e) {
-        LOG.warn("Attempt count {} : {}", retryPolicy.getAttemptCount(), e.getMessage());
+        LOG.warn("Attempt count {} : {}", retryPolicy.getAttemptCount(), e.toString());
         te = e;
       }
     }

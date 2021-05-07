@@ -50,7 +50,7 @@ public abstract class BaseUserState implements UserState {
       tryLogin();
     } catch (UnauthenticatedException e) {
       if (!LOG.isDebugEnabled()) {
-        LOG.warn("Subject login failed from {}: {}", this.getClass().getName(), e.getMessage());
+        LOG.warn("Subject login failed from {}: {}", this.getClass().getName(), e.toString());
       } else {
         LOG.error(String.format("Subject login failed from %s: ", this.getClass().getName()), e);
       }

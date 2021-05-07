@@ -174,7 +174,7 @@ public class AsyncCacheRequestManager {
       try {
         mBlockWorker.abortBlock(Sessions.ASYNC_CACHE_WORKER_SESSION_ID, blockId);
       } catch (AlluxioException | IOException ee) {
-        LOG.warn("Failed to abort block {}: {}", blockId, ee.getMessage());
+        LOG.warn("Failed to abort block {}: {}", blockId, ee.toString());
       }
       return false;
     }

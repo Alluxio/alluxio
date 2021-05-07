@@ -1834,13 +1834,10 @@ public final class DefaultFileSystemMaster extends CoreMaster
                 checkUfsMode(alluxioUriToDelete, OperationType.WRITE);
                 // Attempt to delete node if all children were deleted successfully
                 ufsDeleter.delete(alluxioUriToDelete, inodeToDelete);
-              } catch (AccessControlException e) {
+              } catch (AccessControlException | IOException e) {
                 // In case ufs is not writable, we will still attempt to delete other entries
                 // if any as they may be from a different mount point
-                LOG.warn(e.getMessage());
-                failureReason = e.getMessage();
-              } catch (IOException e) {
-                LOG.warn(e.getMessage());
+                LOG.warn("Failed to delete {}: {}", alluxioUriToDelete, e.toString());
                 failureReason = e.getMessage();
               }
             }
@@ -3913,7 +3910,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
           try {
             checkUfsMode(uri, OperationType.WRITE);
           } catch (Exception e) {
-            LOG.warn("Unable to schedule persist request for path {}: {}", uri, e.getMessage());
+            LOG.warn("Unable to schedule persist request for path {}: {}", uri, e.toString());
             // Retry when ufs mode permits operation
             remove = false;
             continue;

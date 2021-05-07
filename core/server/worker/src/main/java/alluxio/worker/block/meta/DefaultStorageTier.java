@@ -110,7 +110,7 @@ public final class DefaultStorageTier implements StorageTier {
         totalCapacity += capacity;
         mDirs.put(i, dir);
       } catch (IOException | InvalidPathException e) {
-        LOG.error("Unable to initialize storage directory at {}: {}", dirPaths[i], e.getMessage());
+        LOG.error("Unable to initialize storage directory at {}", dirPaths[i], e);
         mLostStorage.add(dirPaths[i]);
         continue;
       }

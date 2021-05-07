@@ -240,7 +240,7 @@ public final class ReplicationChecker implements HeartbeatExecutor {
             // Cannot find this block in Alluxio from BlockMaster, possibly persisted in UFS
           } catch (UnavailableException e) {
             // The block master is not available, wait for the next heartbeat
-            LOG.warn("The block master is not available: {}", e.getMessage());
+            LOG.warn("The block master is not available: {}", e.toString());
             return;
           }
           if (blockInfo == null) {
@@ -265,7 +265,7 @@ public final class ReplicationChecker implements HeartbeatExecutor {
           }
         }
       } catch (FileDoesNotExistException e) {
-        LOG.warn("Failed to check replication level for inode id {} : {}", inodeId, e.getMessage());
+        LOG.warn("Failed to check replication level for inode id {} : {}", inodeId, e.toString());
       }
     }
   }
@@ -298,7 +298,7 @@ public final class ReplicationChecker implements HeartbeatExecutor {
             // Cannot find this block in Alluxio from BlockMaster, possibly persisted in UFS
           } catch (UnavailableException e) {
             // The block master is not available, wait for the next heartbeat
-            LOG.warn("The block master is not available: {}", e.getMessage());
+            LOG.warn("The block master is not available: {}", e.toString());
             return;
           }
           int currentReplicas = (blockInfo == null) ? 0 : blockInfo.getLocations().size();
@@ -334,7 +334,7 @@ public final class ReplicationChecker implements HeartbeatExecutor {
           }
         }
       } catch (FileDoesNotExistException e) {
-        LOG.warn("Failed to check replication level for inode id {} : {}", inodeId, e.getMessage());
+        LOG.warn("Failed to check replication level for inode id {} : {}", inodeId, e.toString());
       }
 
       for (Triple<AlluxioURI, Long, Integer> entry : requests) {

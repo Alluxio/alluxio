@@ -96,7 +96,7 @@ public abstract class AbstractFileSystemCommand implements Command {
         runPlainPath(path, cl);
       } catch (AlluxioException | IOException e) {
         LOG.error(String.format("error processing path: %s", path), e);
-        errorMessages.add(e.getMessage() != null ? e.getMessage() : e.toString());
+        errorMessages.add(e.toString());
       }
     }
 
