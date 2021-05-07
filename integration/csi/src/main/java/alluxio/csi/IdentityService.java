@@ -11,6 +11,10 @@
 
 package alluxio.csi;
 
+import static csi.v1.Csi.PluginCapability.Service.Type.CONTROLLER_SERVICE;
+
+import alluxio.ProjectConstants;
+
 import com.google.protobuf.BoolValue;
 import csi.v1.Csi.GetPluginCapabilitiesResponse;
 import csi.v1.Csi.GetPluginInfoResponse;
@@ -19,8 +23,6 @@ import csi.v1.Csi.PluginCapability.Service;
 import csi.v1.Csi.ProbeResponse;
 import csi.v1.IdentityGrpc.IdentityImplBase;
 import io.grpc.stub.StreamObserver;
-
-import static csi.v1.Csi.PluginCapability.Service.Type.CONTROLLER_SERVICE;
 
 /**
  * Implementation of the CSI identity service.
@@ -31,8 +33,8 @@ public class IdentityService extends IdentityImplBase {
   public void getPluginInfo(csi.v1.Csi.GetPluginInfoRequest request,
       StreamObserver<GetPluginInfoResponse> responseObserver) {
     GetPluginInfoResponse response = GetPluginInfoResponse.newBuilder()
-        .setName("alluxio")
-        .setVendorVersion("1.0.0")
+        .setName("org.alluxio")
+        .setVendorVersion(ProjectConstants.VERSION)
         .build();
     responseObserver.onNext(response);
     responseObserver.onCompleted();

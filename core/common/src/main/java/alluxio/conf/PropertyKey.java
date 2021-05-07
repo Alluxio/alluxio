@@ -4605,6 +4605,31 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   //
   // FUSE integration related properties
   //
+  public static final PropertyKey CSI_DOMAIN_SOCKET_ADDRESS =
+      new Builder(Name.CSI_DOMAIN_SOCKET_ADDRESS)
+          .setDefaultValue("/var/lib/csi/csi.sock")
+          .setDescription("The socket where all the CSI services will listen (file name).")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
+          .setScope(Scope.CLIENT)
+          .build();
+  public static final PropertyKey CSI_DEFAULT_VOLUME_SIZE =
+      new Builder(Name.CSI_DEFAULT_VOLUME_SIZE)
+          .setDefaultValue("1GB")
+          .setDescription("The default size of the create volumes (if not specified).")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
+          .setScope(Scope.CLIENT)
+          .build();
+  public static final PropertyKey CSI_MOUNT_COMMAND =
+      new Builder(Name.CSI_MOUNT_COMMAND)
+          .setDefaultValue("integration/fuse/bin/alluxio-fuse mount %s /%s")
+          .setDescription("This is the mount command which is used to publish volume.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
+          .setScope(Scope.CLIENT)
+          .build();
+
+  //
+  // FUSE integration related properties
+  //
   public static final PropertyKey FUSE_CACHED_PATHS_MAX =
       new Builder(Name.FUSE_CACHED_PATHS_MAX)
           .setDefaultValue(500)
@@ -5984,6 +6009,12 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.user.short.circuit.preferred";
     public static final String USER_WORKER_LIST_REFRESH_INTERVAL =
         "alluxio.user.worker.list.refresh.interval";
+    //
+    // CSI integration related properties
+    //
+    public static final String CSI_DOMAIN_SOCKET_ADDRESS = "alluxio.csi.domain.socket.address";
+    public static final String CSI_DEFAULT_VOLUME_SIZE = "alluxio.csi.volume.size";
+    public static final String CSI_MOUNT_COMMAND = "alluxio.csi.mount.command";
 
     //
     // FUSE integration related properties

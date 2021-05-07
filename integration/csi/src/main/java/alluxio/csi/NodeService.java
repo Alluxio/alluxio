@@ -12,6 +12,7 @@
 package alluxio.csi;
 
 import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.PropertyKey;
 
 import csi.v1.Csi.NodeGetCapabilitiesRequest;
 import csi.v1.Csi.NodeGetCapabilitiesResponse;
@@ -47,10 +48,10 @@ public class NodeService extends NodeImplBase {
   private final String mMountCommand;
 
   /**
-   * @param conf x
+   * @param conf Alluxio configuration
    */
   public NodeService(AlluxioConfiguration conf) {
-    mMountCommand = "integration/fuse/bin/alluxio-fuse mount %s %s";
+    mMountCommand = conf.get(PropertyKey.CSI_MOUNT_COMMAND);
   }
 
   @Override
@@ -61,8 +62,8 @@ public class NodeService extends NodeImplBase {
       Files.createDirectories(Paths.get(request.getTargetPath()));
       String command =
           String.format(mMountCommand,
-              request.getVolumeId(),
-              request.getTargetPath());
+              request.getTargetPath(),
+              request.getVolumeId());
       LOG.info("Executing {}", command);
 
       executeCommand(command);

@@ -15,6 +15,7 @@ import alluxio.ProjectConstants;
 import alluxio.RuntimeConstants;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.PropertyKey;
 
 import io.grpc.Server;
 import io.grpc.netty.NettyServerBuilder;
@@ -38,12 +39,12 @@ public class CsiServer {
 
     Server server =
         NettyServerBuilder
-            .forAddress(new DomainSocketAddress("/var/lib/csi/csi.sock"))
+            .forAddress(new DomainSocketAddress(conf.get(PropertyKey.CSI_DOMAIN_SOCKET_ADDRESS)))
             .channelType(EpollServerDomainSocketChannel.class)
             .workerEventLoopGroup(group)
             .bossEventLoopGroup(group)
             .addService(new IdentityService())
-            .addService(new ControllerService(1 * 1024 * 1024 * 1024L))
+            .addService(new ControllerService(conf.getBytes(PropertyKey.CSI_DEFAULT_VOLUME_SIZE)))
             .addService(new NodeService(conf))
             .build();
 
