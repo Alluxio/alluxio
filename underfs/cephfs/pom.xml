@@ -28,7 +28,7 @@
   <dependencies>
     <!-- External dependencies -->
     <dependency>
-      <groupId>com.ceph</groupId>
+      <groupId>io.github.opendataio</groupId>
       <artifactId>libcephfs</artifactId>
     </dependency>
 
