@@ -147,7 +147,7 @@ public final class JobUtils {
     }
     // TODO(bin): remove the following case when we consolidate tier and medium
     // since there is only one element in the set, we take the first element in the set
-    String medium = pinnedLocation.iterator().next();
+    String medium = pinnedLocation.isEmpty() ? "" : pinnedLocation.iterator().next();
 
     OpenFilePOptions openOptions =
         OpenFilePOptions.newBuilder().setReadType(ReadPType.NO_CACHE).build();
