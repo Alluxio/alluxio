@@ -130,7 +130,8 @@ public final class JobUtils {
           ExceptionMessage.PINNED_TO_MULTIPLE_MEDIUMTYPES.getMessage(status.getPath()));
     }
 
-    if (pinnedLocation.isEmpty()) {
+    // when the data to load is persisted, simply use local worker to load from UFS
+    if (pinnedLocation.isEmpty() && status.isPersisted()) {
       OpenFilePOptions openOptions =
           OpenFilePOptions.newBuilder().setReadType(ReadPType.CACHE_PROMOTE).build();
       InStreamOptions inOptions = new InStreamOptions(status, openOptions, conf);
