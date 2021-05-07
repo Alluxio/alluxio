@@ -86,7 +86,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * Logic: {@link DefaultBlockWorker} (Logic for all block related storage operations)
  */
 @NotThreadSafe
-public final class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
+public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
   private static final Logger LOG = LoggerFactory.getLogger(DefaultBlockWorker.class);
   private static final long UFS_BLOCK_OPEN_TIMEOUT_MS =
       ServerConfiguration.getMs(PropertyKey.WORKER_UFS_BLOCK_OPEN_TIMEOUT_MS);
@@ -162,7 +162,7 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
    * @param ufsManager ufs manager
    */
   @VisibleForTesting
-  DefaultBlockWorker(BlockMasterClientPool blockMasterClientPool,
+  public DefaultBlockWorker(BlockMasterClientPool blockMasterClientPool,
       FileSystemMasterClient fileSystemMasterClient, Sessions sessions, BlockStore blockStore,
       UfsManager ufsManager) {
     super(ExecutorServiceFactories.fixedThreadPool("block-worker-executor", 5));

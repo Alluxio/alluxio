@@ -51,7 +51,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * <p/>
  */
 @ThreadSafe
-public final class BlockMasterClient extends AbstractMasterClient {
+public class BlockMasterClient extends AbstractMasterClient {
   private static final Logger LOG = LoggerFactory.getLogger(BlockMasterClient.class);
   private BlockMasterWorkerServiceGrpc.BlockMasterWorkerServiceBlockingStub mClient = null;
 
