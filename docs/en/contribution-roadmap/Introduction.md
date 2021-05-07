@@ -24,7 +24,7 @@ Many Alluxio experts in the channel may have gone through the same learning proc
 ## Catalog
 
 - Prerequisites
-  - [Environment Setup]({{ '/en/roadmap/Environment-Setup.html' | relativize_url }})
-  - [Knowledge Required]({{ '/en/roadmap/Knowledge.html' | relativize_url }})
-- [Getting Started with Alluxio]({{ '/en/roadmap/Getting-Started-With-Alluxio.html' | relativize_url }})
-- [Getting Started with Alluxio contribution]({{ '/en/roadmap/Getting-Started-With-Alluxio-Contribution.html' | relativize_url }})
+  - [Environment Setup]({{ '/en/contribution-roadmap/Environment-Setup.html' | relativize_url }})
+  - [Knowledge Required]({{ '/en/contribution-roadmap/Knowledge.html' | relativize_url }})
+- [Getting Started with Alluxio]({{ '/en/contribution-roadmap/Getting-Started-With-Alluxio.html' | relativize_url }})
+- [Getting Started with Alluxio contribution]({{ '/en/contribution-roadmap/Getting-Started-With-Alluxio-Contribution.html' | relativize_url }})
