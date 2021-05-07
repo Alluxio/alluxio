@@ -36,6 +36,7 @@ declare -a ALLUXIO_ENV_VARS=(
   ALLUXIO_JOB_MASTER_JAVA_OPTS
   ALLUXIO_JOB_WORKER_JAVA_OPTS
   ALLUXIO_FUSE_JAVA_OPTS
+  ALLUXIO_CSI_JAVA_OPTS
 )
 declare -A ALLUXIO_ENV_MAP
 for key in "${!ALLUXIO_ENV_VARS[@]}"; do ALLUXIO_ENV_MAP[${ALLUXIO_ENV_VARS[$key]}]="$key"; done
@@ -52,6 +53,7 @@ function printUsage {
   echo -e " job-worker                   \t Start Alluxio job worker"
   echo -e " proxy                        \t Start Alluxio proxy"
   echo -e " fuse [--fuse-opts=opt1,...]  \t Start Alluxio FUSE file system, option --fuse-opts expects a list of fuse options separated by comma"
+  echo -e " csi                          \t Start Alluxio CSI"
   echo -e " logserver                    \t Start Alluxio log server"
 }
 
@@ -102,6 +104,10 @@ function mountAlluxioRootFSWithFuseOption {
   ! umount ${MOUNT_POINT}
   #! integration/fuse/bin/alluxio-fuse unmount ${MOUNT_POINT}
   exec integration/fuse/bin/alluxio-fuse mount -n ${fuseOptions} ${MOUNT_POINT} /
+}
+
+function launchAlluxioCsi {
+  exec integration/csi/bin/alluxio-csi
 }
 
 # Sends a signal to each of the running background processes
@@ -232,6 +238,9 @@ function main {
       ;;
     fuse)
       mountAlluxioRootFSWithFuseOption
+      ;;
+    csi)
+      launchAlluxioCsi
       ;;
     logserver)
       processes+=("logserver")

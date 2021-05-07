@@ -224,6 +224,7 @@ func addAdditionalFiles(srcPath, dstPath string, hadoopVersion version, version 
 		"integration/docker/Dockerfile.fuse",
 		"integration/docker/entrypoint.sh",
 		"integration/fuse/bin/alluxio-fuse",
+		"integration/csi/bin/alluxio-csi",
 		"libexec/alluxio-config.sh",
 		"LICENSE",
 	}
@@ -300,6 +301,7 @@ func generateTarball(hadoopClients []string, skipUI bool, skipHelm bool) error {
 	replace("libexec/alluxio-config.sh", "assembly/server/target/alluxio-assembly-server-${VERSION}-jar-with-dependencies.jar", "assembly/alluxio-server-${VERSION}.jar")
 	// Update the FUSE jar path
 	replace("integration/fuse/bin/alluxio-fuse", "target/alluxio-integration-fuse-${VERSION}-jar-with-dependencies.jar", "alluxio-fuse-${VERSION}.jar")
+	replace("integration/csi/bin/alluxio-csi", "target/alluxio-integration-csi-${VERSION}-jar-with-dependencies.jar", "alluxio-csi-${VERSION}.jar")
 
 	mvnArgs := getCommonMvnArgs(hadoopVersion)
 	if skipUI {
@@ -328,7 +330,7 @@ func generateTarball(hadoopClients []string, skipUI bool, skipHelm bool) error {
 	fmt.Printf("Creating %s:\n", tarball)
 
 	for _, dir := range []string{
-		"assembly", "client", "logs", "integration/fuse", "integration/kubernetes", "logs/user",
+		"assembly", "client", "logs", "integration/csi", "integration/fuse", "integration/kubernetes", "logs/user",
 	} {
 		mkdir(filepath.Join(dstPath, dir))
 	}
@@ -340,6 +342,7 @@ func generateTarball(hadoopClients []string, skipUI bool, skipHelm bool) error {
 	run("adding Alluxio client assembly jar", "mv", fmt.Sprintf("assembly/client/target/alluxio-assembly-client-%v-jar-with-dependencies.jar", version), filepath.Join(dstPath, "assembly", fmt.Sprintf("alluxio-client-%v.jar", version)))
 	run("adding Alluxio server assembly jar", "mv", fmt.Sprintf("assembly/server/target/alluxio-assembly-server-%v-jar-with-dependencies.jar", version), filepath.Join(dstPath, "assembly", fmt.Sprintf("alluxio-server-%v.jar", version)))
 	run("adding Alluxio FUSE jar", "mv", fmt.Sprintf("integration/fuse/target/alluxio-integration-fuse-%v-jar-with-dependencies.jar", version), filepath.Join(dstPath, "integration", "fuse", fmt.Sprintf("alluxio-fuse-%v.jar", version)))
+	run("adding Alluxio CSI jar", "mv", fmt.Sprintf("integration/csi/target/alluxio-integration-csi-%v-jar-with-dependencies.jar", version), filepath.Join(dstPath, "integration", "csi", fmt.Sprintf("alluxio-csi-%v.jar", version)))
 
 	// Generate Helm templates in the dstPath
 	run("adding Helm chart", "cp", "-r", filepath.Join(srcPath, "integration/kubernetes/helm-chart"), filepath.Join(dstPath, "integration/kubernetes/helm-chart"))
