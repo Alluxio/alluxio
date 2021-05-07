@@ -1,7 +1,7 @@
 ---
 layout: global
 title: Alluxio Contribution Roadmap
-group: Roadmap
+group: Contribution Roadmap
 priority: 0
 ---
 # Alluxio Contribution Roadmap (In Progress)
@@ -13,8 +13,8 @@ and become a qualified independent contributor eventually.
 This guide is not a quick start guide but provides a comprehensive roadmap of how to grow from a person beginning with only passion and motivation 
 to a qualified independent contributor that can make useful contributions to open source projects like Alluxio.
 
-If you are a student, considering this to be an internship with industry training.
-If you are a new grad, considering this to be the onboarding guide provided by your company to train you to be an independent contributor.
+If you are a student, consider this to be an internship with industry training.
+If you are a new grad, consider this to be the onboarding guide provided by your company to train you to be an independent contributor.
 If you want to contribute to an open-source project and expand your capability zone, this guide introduces you to an industry-level project while learning about java, git, distributed system, and much more.
 If you are an experienced engineer who wants to understand Alluxio better, this guide helps you to speed up this process with resources that you can pick from.
 

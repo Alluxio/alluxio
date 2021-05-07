@@ -1,7 +1,7 @@
 ---
 layout: global
 title: Environment Setup
-group: Roadmap
+group: Contribution Roadmap
 priority: 1
 ---
 # Environment Setup (To be added)
