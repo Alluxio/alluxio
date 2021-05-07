@@ -48,6 +48,7 @@ categoryList:
   - Operations
   - Client APIs
   - Contributor Resources
+  - Contribution Roadmap
   - Reference
 
 # Each language has a particular version of category names
@@ -81,6 +82,9 @@ categoryInfo:
   Contributor Resources:
     en: Contributor Resources
     cn: 开发者资源
+  Contribution Roadmap:
+    en: Contribution Roadmap
+    cn: 开发者成长计划
   Reference:
     en: Reference
     cn: 参考
