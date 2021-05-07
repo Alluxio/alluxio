@@ -30,7 +30,13 @@ check_csi_jar() {
   fi
 }
 
-start_csi() {
+start_csi_client() {
+  local cmd="${JAVA} -cp ${CLASSPATH} ${JAVA_OPTS} ${ALLUXIO_CSI_JAVA_OPTS} \
+    alluxio.csi.client.CsiClientImpl $@"
+  exec ${cmd}
+}
+
+start_csi_server() {
   if [[ ${NO_DAEMON} -eq "1" ]]; then
     ALLUXIO_CSI_JAVA_OPTS+=" -Dalluxio.logger.type=CSI_LOGGER,Console"
   fi
@@ -71,9 +77,13 @@ if [[ $? -ne 0 ]]; then
 fi
 
 case $1 in
-  start)
+  server)
     shift
-    start_csi
+    start_csi_server "$@"
+    ;;
+  client)
+    shift
+    start_csi_client "$@"
     ;;
   *)
     echo -e "${USAGE_MSG}" >&2
