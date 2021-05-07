@@ -103,7 +103,6 @@ public final class ReplicateDefinitionTest {
   private FileSystem mMockFileSystem;
   private JobServerContext mMockJobServerContext;
   private UfsManager mMockUfsManager;
-  private BlockInStream mBlockInStream;
   private BlockInfo mTestBlockInfo;
   private URIStatus mTestStatus;
 
@@ -126,6 +125,7 @@ public final class ReplicateDefinitionTest {
     when(mMockBlockStore.getInfo(TEST_BLOCK_ID)).thenReturn(mTestBlockInfo);
     mTestStatus = new URIStatus(
         new FileInfo().setPath(TEST_PATH).setBlockIds(Lists.newArrayList(TEST_BLOCK_ID))
+            .setPersisted(true)
             .setFileBlockInfos(Lists.newArrayList(
                 new FileBlockInfo().setBlockInfo(mTestBlockInfo))));
   }

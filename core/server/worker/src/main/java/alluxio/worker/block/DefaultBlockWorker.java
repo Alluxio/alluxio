@@ -515,9 +515,9 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
       } catch (Exception ee) {
         LOG.warn("Failed to close UFS block", ee);
       }
-      throw new IOException(String.format("Failed to get UFS block reader, sessionId=%d, "
-              + "blockId=%d, offset=%d, positionShort=%s, options=%s",
-          sessionId, blockId, offset, positionShort, options), e);
+      throw new IOException(String.format("Failed to read from UFS, sessionId=%d, "
+              + "blockId=%d, offset=%d, positionShort=%s, options=%s: %s",
+          sessionId, blockId, offset, positionShort, options, e.toString()), e);
     }
   }
 
@@ -643,8 +643,8 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
             request.isPositionShort(), request.getOpenUfsBlockOptions());
       } catch (Exception e) {
         throw new UnavailableException(
-            String.format("Failed to read block ID=%s from tiered " + "storage and UFS tier: %s",
-                request.getId(), e.getMessage()));
+            String.format("Failed to read block ID=%s from tiered storage and UFS tier: %s",
+                request.getId(), e.toString()));
       }
     }
     throw new UnavailableException(ExceptionMessage.UFS_BLOCK_ACCESS_TOKEN_UNAVAILABLE
