@@ -28,6 +28,7 @@ import alluxio.grpc.LocationBlockIdListEntry;
 import alluxio.grpc.Metric;
 import alluxio.grpc.RegisterWorkerPOptions;
 import alluxio.grpc.RegisterWorkerPRequest;
+import alluxio.grpc.RegisterWorkerPResponse;
 import alluxio.grpc.ServiceType;
 import alluxio.grpc.StorageList;
 import alluxio.master.MasterClientContext;
@@ -35,6 +36,7 @@ import alluxio.grpc.GrpcUtils;
 import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.annotations.VisibleForTesting;
+import io.grpc.stub.StreamObserver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -43,6 +45,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -56,6 +59,7 @@ import javax.annotation.concurrent.ThreadSafe;
 public class BlockMasterClient extends AbstractMasterClient {
   private static final Logger LOG = LoggerFactory.getLogger(BlockMasterClient.class);
   private BlockMasterWorkerServiceGrpc.BlockMasterWorkerServiceBlockingStub mClient = null;
+  private BlockMasterWorkerServiceGrpc.BlockMasterWorkerServiceStub mStreamClient = null;
 
   /**
    * Creates a new instance of {@link BlockMasterClient} for the worker.
@@ -245,15 +249,70 @@ public class BlockMasterClient extends AbstractMasterClient {
         .collect(Collectors.toMap(Map.Entry::getKey,
             e -> StorageList.newBuilder().addAllStorage(e.getValue()).build()));
 
+    // TODO(jiacheng): break this into chunks?
     final RegisterWorkerPRequest request = RegisterWorkerPRequest.newBuilder().setWorkerId(workerId)
         .addAllStorageTiers(storageTierAliases).putAllTotalBytesOnTiers(totalBytesOnTiers)
         .putAllUsedBytesOnTiers(usedBytesOnTiers)
         .addAllCurrentBlocks(currentBlocks)
         .putAllLostStorage(lostStorageMap)
         .setOptions(options).build();
+    // This is what the code used to be
+//    retryRPC(() -> {
+//                    mClient.registerWorker(request);
+//            }
 
+    final CountDownLatch finishLatch = new CountDownLatch(1);
     retryRPC(() -> {
-      mClient.registerWorker(request);
+      // TODO(jiacheng): change to streaming
+      StreamObserver<RegisterWorkerPResponse> responseObserver = new StreamObserver<RegisterWorkerPResponse>() {
+        @Override
+        public void onNext(RegisterWorkerPResponse response) {
+          // The response is empty
+          LOG.info("Received worker registration response, waiting to complete.");
+          // If the complete never comes, do we set a timeout and assume to complete?
+        }
+
+        @Override
+        public void onError(Throwable t) {
+          // TODO(jiacheng): how do i propagate this to the retryRPC?
+          throw t;
+        }
+
+        @Override
+        public void onCompleted() {
+          // TODO(jiacheng)
+          LOG.info("Worker registration completed.");
+          finishLatch.countDown();
+        }
+      };
+
+      StreamObserver<RegisterWorkerPRequest> requestObserver = mStreamClient.registerWorker(responseObserver);
+
+      try {
+        // Build a series of RegisterWorkerPRequests and stream to the master
+        // The 1st request is all the metadata except blocks
+        // The lost storage field is the StorageDir paths that fail to initialize
+        // or errs out on storage checks
+        // The size should be small despite being a list, so it can go with the 1st request
+        // On the following requests, send the block locations in chunks
+
+      } catch (Throwable e) {
+        // Cancel RPC
+        requestObserver.onError(e);
+        throw e;
+      }
+      // Mark the end of requests
+      requestObserver.onCompleted();
+
+      // Receiving happens asynchronously
+      try {
+        // Set timeout
+        // TODO(jiacheng): make configurable
+        finishLatch.await(10, TimeUnit.MINUTES);
+      } catch (InterruptedException e) {
+        // TODO(jiacheng)
+      }
+
       return null;
     }, LOG, "Register", "workerId=%d", workerId);
   }

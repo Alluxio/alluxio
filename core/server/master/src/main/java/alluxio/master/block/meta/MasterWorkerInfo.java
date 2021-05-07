@@ -35,6 +35,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.stream.Collectors;
 
 import javax.annotation.concurrent.NotThreadSafe;
@@ -49,33 +50,45 @@ public final class MasterWorkerInfo {
   private static final String LOST_WORKER_STATE = "Out of Service";
   private static final int BLOCK_SIZE_LIMIT = 100;
 
-  /** Worker's address. */
-  private final WorkerNetAddress mWorkerAddress;
-  /** The id of the worker. */
-  private final long mId;
-  /** Start time of the worker in ms. */
-  private final long mStartTimeMs;
-  /** Capacity of worker in bytes. */
-  private long mCapacityBytes;
-  /** Worker's used bytes. */
-  private long mUsedBytes;
-  /** Worker's last updated time in ms. */
-  private long mLastUpdatedTimeMs;
-  /** If true, the worker is considered registered. */
-  private boolean mIsRegistered;
-  /** Worker-specific mapping between storage tier alias and storage tier ordinal. */
-  private StorageTierAssoc mStorageTierAssoc;
-  /** Mapping from storage tier alias to total bytes. */
-  private Map<String, Long> mTotalBytesOnTiers;
-  /** Mapping from storage tier alias to used bytes. */
-  private Map<String, Long> mUsedBytesOnTiers;
+//  /** Worker's address. */
+//  private final WorkerNetAddress mWorkerAddress;
+//  /** The id of the worker. */
+//  private final long mId;
+//  /** Start time of the worker in ms. */
+//  private final long mStartTimeMs;
+//  /** Capacity of worker in bytes. */
+//  private long mCapacityBytes;
+//  /** Worker's used bytes. */
+//  private long mUsedBytes;
+//  /** Worker's last updated time in ms. */
+//  private long mLastUpdatedTimeMs;
+//  /** If true, the worker is considered registered. */
+//  private boolean mIsRegistered;
+//  /** Worker-specific mapping between storage tier alias and storage tier ordinal. */
+//  private StorageTierAssoc mStorageTierAssoc;
+//  /** Mapping from storage tier alias to total bytes. */
+//  private Map<String, Long> mTotalBytesOnTiers;
+//  /** Mapping from storage tier alias to used bytes. */
+//  private Map<String, Long> mUsedBytesOnTiers;
+//
+//  /** ids of blocks the worker contains. */
+//  private Set<Long> mBlocks;
+//  /** ids of blocks the worker should remove. */
+//  private Set<Long> mToRemoveBlocks;
+//  /** Mapping from tier alias to lost storage paths. */
+//  private Map<String, List<String>> mLostStorage;
 
+  public ReentrantReadWriteLock mUsageLock;
+  private WorkerUsageMeta mUsage;
+
+  public ReentrantReadWriteLock mMetaLock;
+  private WorkerMeta mMeta;
+
+  public ReentrantReadWriteLock mBlockListLock;
   /** ids of blocks the worker contains. */
   private Set<Long> mBlocks;
   /** ids of blocks the worker should remove. */
   private Set<Long> mToRemoveBlocks;
-  /** Mapping from tier alias to lost storage paths. */
-  private Map<String, List<String>> mLostStorage;
 
   /**
    * Creates a new instance of {@link MasterWorkerInfo}.
@@ -108,6 +121,7 @@ public final class MasterWorkerInfo {
    * @param blocks set of block ids on this worker
    * @return A Set of blocks removed (or lost) from this worker
    */
+  // TODO(jiacheng): lock this before entering
   public Set<Long> register(final StorageTierAssoc globalStorageTierAssoc,
       final List<String> storageTierAliases, final Map<String, Long> totalBytesOnTiers,
       final Map<String, Long> usedBytesOnTiers, final Set<Long> blocks) {
@@ -214,6 +228,7 @@ public final class MasterWorkerInfo {
    * @param isLiveWorker the worker is live or not
    * @return generated worker information
    */
+  // TODO(jiacheng): this will be rewritten because some fields will be regrouped
   public WorkerInfo generateWorkerInfo(Set<WorkerInfoField> fieldRange, boolean isLiveWorker) {
     WorkerInfo info = new WorkerInfo();
     Set<WorkerInfoField> checkedFieldRange = fieldRange != null ? fieldRange :

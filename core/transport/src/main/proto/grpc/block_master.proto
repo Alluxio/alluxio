@@ -283,5 +283,5 @@ service BlockMasterWorkerService {
   /**
    * Registers a worker.
    */
-  rpc RegisterWorker(RegisterWorkerPRequest) returns (RegisterWorkerPResponse);
+  rpc RegisterWorker(stream RegisterWorkerPRequest) returns (RegisterWorkerPResponse);
 }

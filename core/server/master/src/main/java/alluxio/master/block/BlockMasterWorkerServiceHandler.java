@@ -39,6 +39,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import static io.grpc.stub.ServerCalls.asyncUnimplementedStreamingCall;
+
 /**
  * This class is a gRPC handler for block master RPCs invoked by an Alluxio worker.
  */
@@ -128,6 +130,33 @@ public final class BlockMasterWorkerServiceHandler extends
   }
 
   @Override
+  public StreamObserver<alluxio.grpc.RegisterWorkerPRequest> registerWorker(
+          StreamObserver<alluxio.grpc.RegisterWorkerPResponse> responseObserver) {
+    // TODO(jiacheng): implement this call
+
+    return new StreamObserver<alluxio.grpc.RegisterWorkerPRequest>() {
+      @Override
+      public void onNext(RegisterWorkerPRequest point) {
+        // If the worker is not in register streaming,
+        // init for this worker and process the metadata in the 1st RPC
+
+        // Otherwise, this is not the 1st RPC
+        // process the block chunks
+      }
+
+      @Override
+      public void onError(Throwable t) {
+        LOG.error();
+      }
+
+      @Override
+      public void onCompleted() {
+        // mark the worker as registered
+      }
+    };
+  }
+
+//  @Override
   public void registerWorker(RegisterWorkerPRequest request,
       StreamObserver<RegisterWorkerPResponse> responseObserver) {
     if (LOG.isDebugEnabled()) {
@@ -146,6 +175,7 @@ public final class BlockMasterWorkerServiceHandler extends
             reconstructBlocksOnLocationMap(request.getCurrentBlocksList());
 
     RegisterWorkerPOptions options = request.getOptions();
+    // TODO(jiacheng): receive a stream here
     RpcUtils.call(LOG,
         (RpcUtils.RpcCallableThrowsIOException<RegisterWorkerPResponse>) () -> {
           mBlockMaster.workerRegister(workerId, storageTiers, totalBytesOnTiers, usedBytesOnTiers,
