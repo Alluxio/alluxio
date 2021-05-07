@@ -29,7 +29,6 @@ import alluxio.util.logging.SamplingLogger;
 import com.codahale.metrics.Counter;
 import com.codahale.metrics.Meter;
 import com.google.common.base.Preconditions;
-import com.google.common.base.Throwables;
 import com.google.protobuf.ByteString;
 import io.grpc.Status;
 import io.grpc.StatusRuntimeException;
@@ -192,8 +191,7 @@ abstract class AbstractWriteHandler<T extends WriteRequestContext<?>> {
       } catch (Exception e) {
         LogUtils.warnWithException(LOG, "Exception occurred while completing write request {}.",
             mContext.getRequest(), e);
-        Throwables.throwIfUnchecked(e);
-        abort(new Error(AlluxioStatusException.fromCheckedException(e), true));
+        abort(new Error(AlluxioStatusException.fromThrowable(e), true));
       }
     });
   }
@@ -209,8 +207,7 @@ abstract class AbstractWriteHandler<T extends WriteRequestContext<?>> {
       } catch (Exception e) {
         LogUtils.warnWithException(LOG, "Exception occurred while cancelling write request {}.",
             mContext.getRequest(), e);
-        Throwables.throwIfUnchecked(e);
-        abort(new Error(AlluxioStatusException.fromCheckedException(e), true));
+        abort(new Error(AlluxioStatusException.fromThrowable(e), true));
       }
     });
   }
@@ -291,8 +288,7 @@ abstract class AbstractWriteHandler<T extends WriteRequestContext<?>> {
       incrementMetrics(readableBytes);
     } catch (Exception e) {
       LOG.error("Failed to write data for request {}", mContext.getRequest(), e);
-      Throwables.throwIfUnchecked(e);
-      abort(new Error(AlluxioStatusException.fromCheckedException(e), true));
+      abort(new Error(AlluxioStatusException.fromThrowable(e), true));
     } finally {
       buf.release();
     }
@@ -304,8 +300,7 @@ abstract class AbstractWriteHandler<T extends WriteRequestContext<?>> {
       replyFlush();
     } catch (Exception e) {
       LOG.error("Failed to flush for write request {}", mContext.getRequest(), e);
-      Throwables.throwIfUnchecked(e);
-      abort(new Error(AlluxioStatusException.fromCheckedException(e), true));
+      abort(new Error(AlluxioStatusException.fromThrowable(e), true));
     }
   }
 

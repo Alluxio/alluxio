@@ -671,6 +671,48 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.SERVER)
           .build();
+  public static final PropertyKey UNDERFS_GCS_RETRY_INITIAL_DELAY_MS =
+      new Builder(Name.UNDERFS_GCS_RETRY_INITIAL_DELAY_MS)
+          .setDefaultValue(1000)
+          .setDescription("Initial delay before attempting the retry on the ufs")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.SERVER)
+          .build();
+  public static final PropertyKey UNDERFS_GCS_RETRY_MAX_DELAY_MS =
+      new Builder(Name.UNDERFS_GCS_RETRY_MAX_DELAY_MS)
+          .setDefaultValue(1000 * 60)  // 1 min
+          .setDescription("Maximum delay before attempting the retry on the ufs")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.SERVER)
+          .build();
+  public static final PropertyKey UNDERFS_GCS_RETRY_DELAY_MULTIPLIER =
+      new Builder(Name.UNDERFS_GCS_RETRY_DELAY_MULTIPLIER)
+          .setDefaultValue(2)
+          .setDescription("Delay multiplier while retrying requests on the ufs")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.SERVER)
+          .build();
+  public static final PropertyKey UNDERFS_GCS_RETRY_JITTER =
+      new Builder(Name.UNDERFS_GCS_RETRY_JITTER)
+          .setDefaultValue(true)
+          .setDescription("Enable delay jitter while retrying requests on the ufs")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.SERVER)
+          .build();
+  public static final PropertyKey UNDERFS_GCS_RETRY_TOTAL_DURATION_MS =
+      new Builder(Name.UNDERFS_GCS_RETRY_TOTAL_DURATION_MS)
+          .setDefaultValue(5 * 1000 * 60) // 5 mins
+          .setDescription("Maximum retry duration on the ufs")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.SERVER)
+          .build();
+  public static final PropertyKey UNDERFS_GCS_RETRY_MAX =
+      new Builder(Name.UNDERFS_GCS_RETRY_MAX)
+          .setDefaultValue(60)
+          .setDescription("Maximum Number of retries on the ufs")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.SERVER)
+          .build();
   public static final PropertyKey UNDERFS_GCS_VERSION =
       new Builder(Name.UNDERFS_GCS_VERSION)
           .setDefaultValue(2)
@@ -1074,91 +1116,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       new Builder(Name.UNDERFS_KODO_CONNECT_TIMEOUT)
           .setDefaultValue("50sec")
           .setDescription("The connect timeout of kodo.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.SERVER)
-          .build();
-
-  public static final PropertyKey UNDERFS_CEPHFS_AUTH_ID =
-      new Builder(Name.UNDERFS_CEPHFS_AUTH_ID)
-          .setDefaultValue("admin")
-          .setDescription("Ceph client id for authentication.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.SERVER)
-          .build();
-  public static final PropertyKey UNDERFS_CEPHFS_CONF_FILE =
-      new Builder(Name.UNDERFS_CEPHFS_CONF_FILE)
-          .setDefaultValue("/etc/ceph/ceph.conf")
-          .setDescription("Path to Ceph configuration file.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.SERVER)
-          .build();
-  public static final PropertyKey UNDERFS_CEPHFS_CONF_OPTS =
-      new Builder(Name.UNDERFS_CEPHFS_CONF_OPTS)
-          .setDefaultValue("opts")
-          .setDescription("Extra configuration options for CephFS client.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.SERVER)
-          .build();
-  public static final PropertyKey UNDERFS_CEPHFS_AUTH_KEY =
-      new Builder(Name.UNDERFS_CEPHFS_AUTH_KEY)
-          .setDefaultValue("key")
-          .setDescription("CephX authentication key, base64 encoded.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.SERVER)
-          .build();
-  public static final PropertyKey UNDERFS_CEPHFS_AUTH_KEYFILE =
-      new Builder(Name.UNDERFS_CEPHFS_AUTH_KEYFILE)
-          .setDefaultValue("/etc/ceph/keyfile")
-          .setDescription("Path to CephX authentication key file.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.SERVER)
-          .build();
-  public static final PropertyKey UNDERFS_CEPHFS_AUTH_KEYRING =
-      new Builder(Name.UNDERFS_CEPHFS_AUTH_KEYRING)
-          .setDefaultValue("/etc/ceph/ceph.client.admin.keyring")
-          .setDescription("Path to CephX authentication keyring file.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.SERVER)
-          .build();
-  public static final PropertyKey UNDERFS_CEPHFS_MON_HOST =
-      new Builder(Name.UNDERFS_CEPHFS_MON_HOST)
-          .setDefaultValue("0.0.0.0")
-          .setDescription("List of hosts or addresses to search for a Ceph monitor.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.SERVER)
-          .build();
-  public static final PropertyKey UNDERFS_CEPHFS_MDS_NAMESPACE =
-      new Builder(Name.UNDERFS_CEPHFS_MDS_NAMESPACE)
-          .setDefaultValue("cephfs")
-          .setDescription("CephFS filesystem to mount.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.SERVER)
-          .build();
-  public static final PropertyKey UNDERFS_CEPHFS_MOUNT_UID =
-      new Builder(Name.UNDERFS_CEPHFS_MOUNT_UID)
-          .setDefaultValue(0)
-          .setDescription("The user ID of CephFS mount.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.SERVER)
-          .build();
-  public static final PropertyKey UNDERFS_CEPHFS_MOUNT_GID =
-      new Builder(Name.UNDERFS_CEPHFS_MOUNT_GID)
-          .setDefaultValue(0)
-          .setDescription("The group ID of CephFS mount.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.SERVER)
-          .build();
-  public static final PropertyKey UNDERFS_CEPHFS_MOUNT_POINT =
-      new Builder(Name.UNDERFS_CEPHFS_MOUNT_POINT)
-          .setDefaultValue("/")
-          .setDescription("Directory to mount on the CephFS filesystem.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.SERVER)
-          .build();
-  public static final PropertyKey UNDERFS_CEPHFS_LOCALIZE_READS =
-      new Builder(Name.UNDERFS_CEPHFS_LOCALIZE_READS)
-          .setDefaultValue(false)
-          .setDescription("Utilize Ceph localized reads feature.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.SERVER)
           .build();
@@ -2599,7 +2556,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey MASTER_METADATA_SYNC_UFS_PREFETCH_POOL_SIZE =
       new Builder(Name.MASTER_METADATA_SYNC_UFS_PREFETCH_POOL_SIZE)
-          .setDefaultSupplier(() -> Runtime.getRuntime().availableProcessors(),
+          .setDefaultSupplier(() -> 10 * Runtime.getRuntime().availableProcessors(),
               "The number of threads which can concurrently fetch metadata from UFSes during a "
                   + "metadata sync operations")
           .setDescription("The number of threads used to fetch UFS objects for all metadata sync"
@@ -5272,6 +5229,18 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.underfs.gcs.directory.suffix";
     public static final String UNDERFS_GCS_OWNER_ID_TO_USERNAME_MAPPING =
         "alluxio.underfs.gcs.owner.id.to.username.mapping";
+    public static final String UNDERFS_GCS_RETRY_INITIAL_DELAY_MS =
+        "alluxio.underfs.gcs.retry.initial.delay";
+    public static final String UNDERFS_GCS_RETRY_MAX_DELAY_MS =
+        "alluxio.underfs.gcs.retry.max.delay";
+    public static final String UNDERFS_GCS_RETRY_DELAY_MULTIPLIER =
+        "alluxio.underfs.gcs.retry.delay.multiplier";
+    public static final String UNDERFS_GCS_RETRY_JITTER =
+        "alluxio.underfs.gcs.retry.jitter";
+    public static final String UNDERFS_GCS_RETRY_TOTAL_DURATION_MS =
+        "alluxio.underfs.gcs.retry.total.duration";
+    public static final String UNDERFS_GCS_RETRY_MAX =
+        "alluxio.underfs.gcs.retry.max";
     public static final String UNDERFS_GCS_VERSION = "alluxio.underfs.gcs.version";
     public static final String UNDERFS_HDFS_CONFIGURATION = "alluxio.underfs.hdfs.configuration";
     public static final String UNDERFS_HDFS_IMPL = "alluxio.underfs.hdfs.impl";
@@ -5344,30 +5313,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String UNDERFS_KODO_CONNECT_TIMEOUT =
         "alluxio.underfs.kodo.connect.timeout";
     public static final String UNDERFS_KODO_REQUESTS_MAX = "alluxio.underfs.kodo.requests.max";
-    public static final String UNDERFS_CEPHFS_AUTH_ID =
-        "alluxio.underfs.cephfs.auth.id";
-    public static final String UNDERFS_CEPHFS_CONF_FILE =
-        "alluxio.underfs.cephfs.conf.file";
-    public static final String UNDERFS_CEPHFS_CONF_OPTS =
-        "alluxio.underfs.cephfs.conf.options";
-    public static final String UNDERFS_CEPHFS_AUTH_KEY =
-        "alluxio.underfs.cephfs.auth.key";
-    public static final String UNDERFS_CEPHFS_AUTH_KEYFILE =
-        "alluxio.underfs.cephfs.auth.keyfile";
-    public static final String UNDERFS_CEPHFS_AUTH_KEYRING =
-        "alluxio.underfs.cephfs.auth.keyring";
-    public static final String UNDERFS_CEPHFS_MON_HOST =
-        "alluxio.underfs.cephfs.mon.host";
-    public static final String UNDERFS_CEPHFS_MDS_NAMESPACE =
-        "alluxio.underfs.cephfs.mds.namespce";
-    public static final String UNDERFS_CEPHFS_MOUNT_UID =
-        "alluxio.underfs.cephfs.mount.uid";
-    public static final String UNDERFS_CEPHFS_MOUNT_GID =
-        "alluxio.underfs.cephfs.mount.gid";
-    public static final String UNDERFS_CEPHFS_MOUNT_POINT =
-        "alluxio.underfs.cephfs.mount.point";
-    public static final String UNDERFS_CEPHFS_LOCALIZE_READS =
-        "alluxio.underfs.cephfs.localize.reads";
 
     //
     // UFS access control related properties

@@ -39,6 +39,7 @@ spec:
       role: alluxio-master
       name: {{ $fullName }}-master
   serviceName: {{ $fullName }}-master
+  podManagementPolicy: Parallel
   replicas: {{ $masterCount }}
   template:
     metadata:

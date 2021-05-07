@@ -11,11 +11,13 @@
 
 package alluxio.job.util;
 
+import alluxio.Constants;
 import alluxio.client.Cancelable;
 import alluxio.client.block.AlluxioBlockStore;
 import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.block.policy.BlockLocationPolicy;
 import alluxio.client.block.policy.LocalFirstPolicy;
+import alluxio.client.block.stream.BlockInStream;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.URIStatus;
 import alluxio.client.file.options.InStreamOptions;
@@ -51,6 +53,8 @@ import java.util.concurrent.ConcurrentMap;
  * Utility class to make it easier to write jobs.
  */
 public final class JobUtils {
+  // a read buffer that should be ignored
+  private static byte[] sIgnoredReadBuf = new byte[8 * Constants.MB];
   private static final IndexDefinition<BlockWorkerInfo, WorkerNetAddress> WORKER_ADDRESS_INDEX =
       new IndexDefinition<BlockWorkerInfo, WorkerNetAddress>(true) {
         @Override
@@ -106,13 +110,10 @@ public final class JobUtils {
   public static void loadBlock(URIStatus status, FileSystemContext context, long blockId)
       throws AlluxioException, IOException {
     AlluxioBlockStore blockStore = AlluxioBlockStore.create(context);
-
-    String localHostName = NetworkAddressUtils.getConnectHost(ServiceType.WORKER_RPC,
-        ServerConfiguration.global());
-    List<BlockWorkerInfo> workerInfoList = context.getCachedWorkers();
+    AlluxioConfiguration conf = ServerConfiguration.global();
+    String localHostName = NetworkAddressUtils.getConnectHost(ServiceType.WORKER_RPC, conf);
     WorkerNetAddress localNetAddress = null;
-
-    for (BlockWorkerInfo workerInfo : workerInfoList) {
+    for (BlockWorkerInfo workerInfo : context.getCachedWorkers()) {
       if (workerInfo.getNetAddress().getHost().equals(localHostName)) {
         localNetAddress = workerInfo.getNetAddress();
         break;
@@ -128,13 +129,28 @@ public final class JobUtils {
       throw new AlluxioException(
           ExceptionMessage.PINNED_TO_MULTIPLE_MEDIUMTYPES.getMessage(status.getPath()));
     }
+
+    if (pinnedLocation.isEmpty()) {
+      OpenFilePOptions openOptions =
+          OpenFilePOptions.newBuilder().setReadType(ReadPType.CACHE_PROMOTE).build();
+      InStreamOptions inOptions = new InStreamOptions(status, openOptions, conf);
+      BlockInfo info = Preconditions.checkNotNull(status.getBlockInfo(blockId));
+      try (InputStream inputStream = BlockInStream.create(context, info, localNetAddress,
+          BlockInStream.BlockInStreamSource.UFS, inOptions)) {
+        while (inputStream.read(sIgnoredReadBuf) != -1) {
+        }
+      } catch (Throwable t) {
+        throw t;
+      }
+      return;
+    }
+    // TODO(bin): remove the following case when we consolidate tier and medium
     // since there is only one element in the set, we take the first element in the set
-    String medium = pinnedLocation.isEmpty() ? "" : pinnedLocation.iterator().next();
+    String medium = pinnedLocation.iterator().next();
 
     OpenFilePOptions openOptions =
         OpenFilePOptions.newBuilder().setReadType(ReadPType.NO_CACHE).build();
 
-    AlluxioConfiguration conf = ServerConfiguration.global();
     InStreamOptions inOptions = new InStreamOptions(status, openOptions, conf);
     // Set read location policy always to local first for loading blocks for job tasks
     inOptions.setUfsReadLocationPolicy(BlockLocationPolicy.Factory.create(
