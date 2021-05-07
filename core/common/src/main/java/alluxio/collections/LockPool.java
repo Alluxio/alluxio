@@ -93,7 +93,7 @@ public class LockPool<K> implements Closeable {
       }
 
       @Override
-      protected Resource createNewResource() {
+      public Resource createNewResource() {
         return new Resource(mDefaultLoader.get());
       }
     };

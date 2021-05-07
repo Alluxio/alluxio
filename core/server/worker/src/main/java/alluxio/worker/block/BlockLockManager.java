@@ -59,7 +59,7 @@ public final class BlockLockManager {
     public void close() {}
 
     @Override
-    protected ClientRWLock createNewResource() {
+    public ClientRWLock createNewResource() {
       return new ClientRWLock();
     }
   };
