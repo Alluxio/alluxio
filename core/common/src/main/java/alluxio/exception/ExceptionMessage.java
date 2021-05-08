@@ -85,8 +85,6 @@ public enum ExceptionMessage {
       "Failed to allocate {0,number,#} bytes on {1} to create blockId {2,number,#}"),
   NO_SPACE_FOR_BLOCK_MOVE(
       "Failed to find space in {0} to move blockId {1,number,#}"),
-  NO_SPACE_FOR_BLOCK_MOVE_RETRIES_EXCEEDED(
-      "Failed to find space in {0} to move blockId {1,number,#} after {2} attempts"),
   REMOVE_UNCOMMITTED_BLOCK("Cannot remove uncommitted blockId {0,number,#}"),
   TEMP_BLOCK_ID_COMMITTED(
       "Temp blockId {0,number,#} is not available, because it is already committed"),
