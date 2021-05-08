@@ -70,6 +70,7 @@ import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
@@ -269,32 +270,28 @@ public final class ReplicateDefinitionTest {
   }
 
   @Test
-  public void runTaskLocalBlockWorkerPinnedMedium() throws Exception {
-    // file is pinned on a medium
-    mTestStatus.getFileInfo().setMediumTypes(Sets.newHashSet("MEM"));
-    byte[] input = BufferUtils.getIncreasingByteArray(0, (int) TEST_BLOCK_SIZE);
-    TestBlockInStream mockInStream =
-        new TestBlockInStream(input, TEST_BLOCK_ID, input.length, false,
-            BlockInStreamSource.NODE_LOCAL);
-    TestBlockOutStream mockOutStream =
-        new TestBlockOutStream(ByteBuffer.allocate(MAX_BYTES), TEST_BLOCK_SIZE);
-    BlockWorkerInfo localBlockWorker = new BlockWorkerInfo(LOCAL_ADDRESS, TEST_BLOCK_SIZE, 0);
-    runTaskReplicateTestHelper(Lists.newArrayList(localBlockWorker), mockInStream, mockOutStream);
-    assertArrayEquals(input, mockOutStream.getWrittenData());
-  }
-
-  @Test
-  public void runTaskLocalBlockWorker() throws Exception {
-    byte[] input = BufferUtils.getIncreasingByteArray(0, (int) TEST_BLOCK_SIZE);
-
-    TestBlockInStream mockInStream =
-        new TestBlockInStream(input, TEST_BLOCK_ID, input.length, false,
-            BlockInStreamSource.NODE_LOCAL);
-    BlockOutStream unusedBlockOutStream = mock(BlockOutStream.class);
-    BlockWorkerInfo localBlockWorker = new BlockWorkerInfo(LOCAL_ADDRESS, TEST_BLOCK_SIZE, 0);
-    runTaskReplicateTestHelper(
-        Lists.newArrayList(localBlockWorker), mockInStream, unusedBlockOutStream);
-    assertEquals(TEST_BLOCK_SIZE, mockInStream.getBytesRead());
+  public void runTaskLocalBlockWorkerDifferentFileStatus() throws Exception {
+    for (boolean persisted : new boolean[] {true, false}) {
+      for (boolean pinned : new boolean[] {true, false}) {
+        mTestStatus.getFileInfo().setPersisted(persisted)
+            .setMediumTypes(pinned ? Sets.newHashSet("MEM") : Collections.emptySet());
+        byte[] input = BufferUtils.getIncreasingByteArray(0, (int) TEST_BLOCK_SIZE);
+        TestBlockInStream mockInStream =
+            new TestBlockInStream(input, TEST_BLOCK_ID, input.length, false,
+                BlockInStreamSource.NODE_LOCAL);
+        TestBlockOutStream mockOutStream =
+            new TestBlockOutStream(ByteBuffer.allocate(MAX_BYTES), TEST_BLOCK_SIZE);
+        BlockWorkerInfo localBlockWorker = new BlockWorkerInfo(LOCAL_ADDRESS, TEST_BLOCK_SIZE, 0);
+        runTaskReplicateTestHelper(Lists.newArrayList(localBlockWorker), mockInStream,
+            mockOutStream);
+        assertEquals(TEST_BLOCK_SIZE, mockInStream.getBytesRead());
+        if (!persisted || pinned) {
+          assertArrayEquals(
+              String.format("input-output mismatched: pinned=%s, persisted=%s", pinned, persisted),
+              input, mockOutStream.getWrittenData());
+        }
+      }
+    }
   }
 
   @Test
