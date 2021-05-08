@@ -37,8 +37,11 @@ import alluxio.exception.status.DeadlineExceededException;
 import alluxio.grpc.ReadRequest;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.underfs.UfsManager;
+import alluxio.util.io.BufferUtils;
 import alluxio.wire.BlockReadRequest;
 import alluxio.worker.block.io.BlockReader;
+import alluxio.worker.block.io.BlockWriter;
+import alluxio.worker.block.meta.TempBlockMeta;
 import alluxio.worker.file.FileSystemMasterClient;
 
 import com.google.common.collect.ImmutableMap;
@@ -56,19 +59,19 @@ import java.util.Set;
  * Unit tests for {@link DefaultBlockWorker}.
  */
 public class DefaultBlockWorkerTest {
-
-  @Rule
-  public TemporaryFolder mTestFolder = new TemporaryFolder();
   private BlockMasterClient mBlockMasterClient;
   private BlockMasterClientPool mBlockMasterClientPool;
   private TieredBlockStore mBlockStore;
+  private DefaultBlockWorker mBlockWorker;
   private FileSystemMasterClient mFileSystemMasterClient;
   private Random mRandom;
   private Sessions mSessions;
-  private DefaultBlockWorker mBlockWorker;
   private UfsManager mUfsManager;
   private String mMemDir = AlluxioTestDirectory.createTemporaryDirectory("mem").getAbsolutePath();
   private String mHddDir = AlluxioTestDirectory.createTemporaryDirectory("hdd").getAbsolutePath();
+
+  @Rule
+  public TemporaryFolder mTestFolder = new TemporaryFolder();
   @Rule
   public ConfigurationRule mConfigurationRule =
       new ConfigurationRule(new ImmutableMap.Builder<PropertyKey, String>()
@@ -79,9 +82,10 @@ public class DefaultBlockWorkerTest {
           .put(PropertyKey.WORKER_TIERED_STORE_LEVEL0_DIRS_PATH, mMemDir)
           .put(PropertyKey.WORKER_TIERED_STORE_LEVEL1_ALIAS, "HDD")
           .put(PropertyKey.WORKER_TIERED_STORE_LEVEL1_DIRS_MEDIUMTYPE, "HDD")
-          .put(PropertyKey.WORKER_TIERED_STORE_LEVEL1_DIRS_QUOTA, "2GB")
+          .put(PropertyKey.WORKER_TIERED_STORE_LEVEL1_DIRS_QUOTA, "1GB")
           .put(PropertyKey.WORKER_TIERED_STORE_LEVEL1_DIRS_PATH, mHddDir)
           .put(PropertyKey.WORKER_RPC_PORT, "0")
+          .put(PropertyKey.WORKER_MANAGEMENT_TIER_ALIGN_RESERVED_BYTES, "0")
           .build(), ServerConfiguration.global());
 
   /**
@@ -192,8 +196,12 @@ public class DefaultBlockWorkerTest {
     long blockId = mRandom.nextLong();
     long sessionId = mRandom.nextLong();
     mBlockWorker.createBlock(sessionId, blockId, 0, "MEM", 1);
-    mBlockWorker.createBlockWriter(sessionId, blockId);
-    verify(mBlockStore).getBlockWriter(sessionId, blockId);
+    try (BlockWriter blockWriter = mBlockWorker.createBlockWriter(sessionId, blockId)) {
+      blockWriter.append(BufferUtils.getIncreasingByteBuffer(10));
+      TempBlockMeta meta = mBlockWorker.getTempBlockMeta(sessionId, blockId);
+      assertEquals("MEM", meta.getBlockLocation().mediumType());
+    }
+    mBlockWorker.abortBlock(sessionId, blockId);
   }
 
   @Test
