@@ -37,7 +37,6 @@ import alluxio.exception.status.DeadlineExceededException;
 import alluxio.grpc.ReadRequest;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.underfs.UfsManager;
-import alluxio.underfs.UnderFileSystem;
 import alluxio.wire.BlockReadRequest;
 import alluxio.worker.block.io.BlockReader;
 import alluxio.worker.file.FileSystemMasterClient;
@@ -47,10 +46,6 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-import org.junit.runner.RunWith;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.io.IOException;
 import java.util.HashSet;
@@ -60,9 +55,6 @@ import java.util.Set;
 /**
  * Unit tests for {@link DefaultBlockWorker}.
  */
-@RunWith(PowerMockRunner.class)
-@PrepareForTest({BlockMasterClient.class, BlockMasterClientPool.class, FileSystemMasterClient.class,
-    UnderFileSystem.class})
 public class DefaultBlockWorkerTest {
 
   @Rule
@@ -98,11 +90,11 @@ public class DefaultBlockWorkerTest {
   @Before
   public void before() throws IOException {
     mRandom = new Random();
-    mBlockMasterClient = PowerMockito.mock(BlockMasterClient.class);
+    mBlockMasterClient = mock(BlockMasterClient.class);
     mBlockMasterClientPool = spy(new BlockMasterClientPool());
     when(mBlockMasterClientPool.createNewResource()).thenReturn(mBlockMasterClient);
     mBlockStore = spy(new TieredBlockStore());
-    mFileSystemMasterClient = PowerMockito.mock(FileSystemMasterClient.class);
+    mFileSystemMasterClient = mock(FileSystemMasterClient.class);
     mSessions = mock(Sessions.class);
     mUfsManager = mock(UfsManager.class);
 
