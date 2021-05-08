@@ -116,7 +116,6 @@ public enum ExceptionMessage {
   JOURNAL_WRITE_AFTER_CLOSE("Cannot write entry after closing the stream"),
   JOURNAL_WRITE_FAILURE("Failed to write to journal file ({0}): {1}"),
   JOURNAL_FLUSH_FAILURE("Failed to flush journal file ({0}): {1}"),
-  UNEXPECTED_JOURNAL_ENTRY("Unexpected entry in journal: {0}"),
 
   // Raft journal
   FAILED_RAFT_BOOTSTRAP("Failed to bootstrap raft cluster with addresses {0}: {1}"),
