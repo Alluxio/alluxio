@@ -62,7 +62,6 @@ public enum ExceptionMessage {
 
   // instream/outstream
   FAILED_CACHE("Failed to cache: {0}"),
-  FAILED_SKIP("Failed to skip {0}"),
   INSTREAM_CANNOT_SKIP("The underlying BlockInStream could not skip {0}"),
   READ_CLOSED_STREAM("Cannot read from a closed stream"),
 
