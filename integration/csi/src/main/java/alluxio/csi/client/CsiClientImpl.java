@@ -11,8 +11,6 @@
 
 package alluxio.csi.client;
 
-import alluxio.ProjectConstants;
-import alluxio.RuntimeConstants;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
@@ -142,8 +140,6 @@ public class CsiClientImpl implements CsiClient {
    * @param args arguments to run the command line
    */
   public static void main(String[] args) throws IOException {
-    System.out.println(String.format("Alluxio version: {}-{}",
-        RuntimeConstants.VERSION, ProjectConstants.REVISION));
     AlluxioConfiguration conf = InstancedConfiguration.defaults();
     CsiClientOptions opts = parseOptions(args, conf);
     if (opts == null) {
