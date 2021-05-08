@@ -83,8 +83,6 @@ public enum ExceptionMessage {
       "Failed to free {0,number,#} bytes space at location {1}"),
   NO_SPACE_FOR_BLOCK_ALLOCATION(
       "Failed to allocate {0,number,#} bytes on {1} to create blockId {2,number,#}"),
-  NO_SPACE_FOR_BLOCK_ALLOCATION_RETRIES_EXCEEDED(
-      "Failed to allocate {0,number,#} bytes on {1} after {2} attempts for blockId {3,number,#}"),
   NO_SPACE_FOR_BLOCK_REQUEST_SPACE_TIMEOUT(
       "Failed to request {0,number,#} bytes after {1}ms to create blockId {2,number,#}"),
   NO_SPACE_FOR_BLOCK_REQUEST_SPACE_RETRIES_EXCEEDED(
