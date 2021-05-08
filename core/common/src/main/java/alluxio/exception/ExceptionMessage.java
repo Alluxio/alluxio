@@ -49,8 +49,6 @@ public enum ExceptionMessage {
   LOCK_ID_FOR_DIFFERENT_BLOCK("lockId {0,number,#} is for blockId {1,number,#}, not {2,number,#}"),
   LOCK_ID_FOR_DIFFERENT_SESSION(
       "lockId {0,number,#} is owned by sessionId {1,number,#} not {2,number,#}"),
-  LOCK_RECORD_NOT_FOUND_FOR_BLOCK_AND_SESSION(
-      "no lock is found for blockId {0,number,#} for sessionId {1,number,#}"),
   LOCK_RECORD_NOT_FOUND_FOR_LOCK_ID("lockId {0,number,#} has no lock record"),
   LOCK_NOT_RELEASED("lockId {0,number,#} is not released."),
   SESSION_NOT_CLOSED("session {0,number,#} is not closed."),
