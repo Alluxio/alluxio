@@ -13,6 +13,8 @@ package alluxio.csi;
 
 import alluxio.ProjectConstants;
 import alluxio.RuntimeConstants;
+import alluxio.client.file.FileSystem;
+import alluxio.client.file.FileSystemContext;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
@@ -35,21 +37,26 @@ public class CsiServer {
       CsiServer.class);
 
   private void run(AlluxioConfiguration conf) throws Exception {
-    EpollEventLoopGroup group = new EpollEventLoopGroup();
+    FileSystemContext fsContext = FileSystemContext.create(conf);
+    try (FileSystem fs = FileSystem.Factory.create(fsContext)) {
+      EpollEventLoopGroup group = new EpollEventLoopGroup();
 
-    Server server =
-        NettyServerBuilder
-            .forAddress(new DomainSocketAddress(conf.get(PropertyKey.CSI_DOMAIN_SOCKET_ADDRESS)))
-            .channelType(EpollServerDomainSocketChannel.class)
-            .workerEventLoopGroup(group)
-            .bossEventLoopGroup(group)
-            .addService(new IdentityService())
-            .addService(new ControllerService(conf.getBytes(PropertyKey.CSI_DEFAULT_VOLUME_SIZE)))
-            .addService(new NodeService(conf))
-            .build();
+      Server server =
+          NettyServerBuilder
+              .forAddress(new DomainSocketAddress(
+                  conf.get(PropertyKey.CSI_DOMAIN_SOCKET_ADDRESS)))
+              .channelType(EpollServerDomainSocketChannel.class)
+              .workerEventLoopGroup(group)
+              .bossEventLoopGroup(group)
+              .addService(new IdentityService())
+              .addService(new ControllerService(
+                  conf.getBytes(PropertyKey.CSI_DEFAULT_VOLUME_SIZE)))
+              .addService(new NodeService(fs, conf))
+              .build();
 
-    server.start();
-    server.awaitTermination();
+      server.start();
+      server.awaitTermination();
+    }
   }
 
   /**

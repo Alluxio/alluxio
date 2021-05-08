@@ -155,7 +155,7 @@ public class CsiClientImpl implements CsiClient {
         Csi.NodePublishVolumeRequest request =
             Csi.NodePublishVolumeRequest.newBuilder()
                 .setTargetPath(opts.getTarget())
-                .setVolumeId(opts.getTarget())
+                .setVolumeId(opts.getVolumeId())
                 .build();
         client.nodePublishVolume(request);
         break;

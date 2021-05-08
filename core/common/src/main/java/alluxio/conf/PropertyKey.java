@@ -4603,12 +4603,12 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
 
   //
-  // FUSE integration related properties
+  // CSI integration related properties
   //
-  public static final PropertyKey CSI_DOMAIN_SOCKET_ADDRESS =
-      new Builder(Name.CSI_DOMAIN_SOCKET_ADDRESS)
-          .setDefaultValue("/var/lib/csi/csi.sock")
-          .setDescription("The socket where all the CSI services will listen (file name).")
+  public static final PropertyKey CSI_ALLUXIO_ROOT =
+      new Builder(Name.CSI_ALLUXIO_ROOT)
+          .setDefaultValue("/")
+          .setDescription("Alluxio root path for csi.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
           .setScope(Scope.CLIENT)
           .build();
@@ -4619,9 +4619,16 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
           .setScope(Scope.CLIENT)
           .build();
+  public static final PropertyKey CSI_DOMAIN_SOCKET_ADDRESS =
+      new Builder(Name.CSI_DOMAIN_SOCKET_ADDRESS)
+          .setDefaultValue("/var/lib/csi/csi.sock")
+          .setDescription("The socket where all the CSI services will listen (file name).")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
+          .setScope(Scope.CLIENT)
+          .build();
   public static final PropertyKey CSI_MOUNT_COMMAND =
       new Builder(Name.CSI_MOUNT_COMMAND)
-          .setDefaultValue("integration/fuse/bin/alluxio-fuse mount %s /%s")
+          .setDefaultValue("integration/fuse/bin/alluxio-fuse mount %s %s")
           .setDescription("This is the mount command which is used to publish volume.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
           .setScope(Scope.CLIENT)
@@ -6012,8 +6019,9 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     //
     // CSI integration related properties
     //
-    public static final String CSI_DOMAIN_SOCKET_ADDRESS = "alluxio.csi.domain.socket.address";
+    public static final String CSI_ALLUXIO_ROOT = "alluxio.csi.alluxio.root";
     public static final String CSI_DEFAULT_VOLUME_SIZE = "alluxio.csi.volume.size";
+    public static final String CSI_DOMAIN_SOCKET_ADDRESS = "alluxio.csi.domain.socket.address";
     public static final String CSI_MOUNT_COMMAND = "alluxio.csi.mount.command";
 
     //

@@ -63,7 +63,7 @@ start_csi_server() {
   fi
 }
 
-USAGE_MSG="Usage:\n\talluxio-csi [start]"
+USAGE_MSG="Usage:\n\talluxio-csi [server|client]"
 
 if [[ $# -lt 1 ]]; then
   echo -e "${USAGE_MSG}" >&2

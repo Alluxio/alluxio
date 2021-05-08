@@ -27,19 +27,21 @@ public final class GrpcHelper {
     // hide constructor for utility class
   }
 
+  /**
+   * @param value socket address
+   * @return SocketAddress
+   */
   public static SocketAddress getSocketAddress(String value) {
+    String filePath = value;
     if (value.startsWith(UNIX_DOMAIN_SOCKET_PREFIX)) {
-      String filePath = value.substring(UNIX_DOMAIN_SOCKET_PREFIX.length());
-      File file = new File(filePath);
-      if (!file.isAbsolute()) {
-        throw new IllegalArgumentException(
-            "Unix domain socket file path must be absolute, file: " + value);
-      }
-      // Create the SocketAddress referencing the file.
-      return new DomainSocketAddress(file);
-    } else {
-      throw new IllegalArgumentException("Given address " + value
-          + " is not a valid unix domain socket path");
+      filePath = value.substring(UNIX_DOMAIN_SOCKET_PREFIX.length());
     }
+    File file = new File(filePath);
+    if (!file.isAbsolute()) {
+      throw new IllegalArgumentException(
+          "Unix domain socket file path must be absolute, file: " + value);
+    }
+    // Create the SocketAddress referencing the file.
+    return new DomainSocketAddress(file);
   }
 }

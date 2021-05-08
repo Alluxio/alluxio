@@ -11,8 +11,11 @@
 
 package alluxio.csi;
 
+import alluxio.AlluxioURI;
+import alluxio.client.file.FileSystem;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
+import alluxio.grpc.CreateDirectoryPOptions;
 
 import csi.v1.Csi.NodeGetCapabilitiesRequest;
 import csi.v1.Csi.NodeGetCapabilitiesResponse;
@@ -46,12 +49,17 @@ public class NodeService extends NodeImplBase {
       NodeService.class);
 
   private final String mMountCommand;
+  private final String mAlluxioRoot;
+  private final FileSystem mFileSystem;
 
   /**
+   * @param fs Alluxio file system
    * @param conf Alluxio configuration
    */
-  public NodeService(AlluxioConfiguration conf) {
+  public NodeService(FileSystem fs, AlluxioConfiguration conf) {
     mMountCommand = conf.get(PropertyKey.CSI_MOUNT_COMMAND);
+    mAlluxioRoot = conf.get(PropertyKey.CSI_ALLUXIO_ROOT);
+    mFileSystem = fs;
   }
 
   @Override
@@ -60,10 +68,17 @@ public class NodeService extends NodeImplBase {
 
     try {
       Files.createDirectories(Paths.get(request.getTargetPath()));
+      AlluxioURI alluxioVolumePath =
+          new AlluxioURI(mAlluxioRoot).join(request.getVolumeId());
+      mFileSystem.createDirectory(new AlluxioURI("/" + request.getVolumeId()),
+          CreateDirectoryPOptions.newBuilder()
+              .setAllowExists(true)
+              .build());
+      // TODO(maobaolong): mount an ufs as volume directory on the alluxio filesystem dynamically.
       String command =
           String.format(mMountCommand,
               request.getTargetPath(),
-              request.getVolumeId());
+              alluxioVolumePath.toString());
       LOG.info("Executing {}", command);
 
       executeCommand(command);
@@ -98,6 +113,7 @@ public class NodeService extends NodeImplBase {
         String.format("fusermount -u %s", request.getTargetPath());
     LOG.info("Executing {}", umountCommand);
 
+    // TODO(maobaolong): cleanup the volume directory.
     try {
       executeCommand(umountCommand);
 
@@ -122,7 +138,7 @@ public class NodeService extends NodeImplBase {
   @Override
   public void nodeGetInfo(NodeGetInfoRequest request,
       StreamObserver<NodeGetInfoResponse> responseObserver) {
-    NodeGetInfoResponse response = null;
+    NodeGetInfoResponse response;
     try {
       response = NodeGetInfoResponse.newBuilder()
           .setNodeId(InetAddress.getLocalHost().getHostName())
