@@ -27,7 +27,7 @@
     <!-- run properly from sub-project directories -->
     <build.path>${project.parent.parent.basedir}/build</build.path>
     <ufs.ozone.version>1.0.0</ufs.ozone.version>
-    <shading.prefix>alluxio.shaded.hdfs</shading.prefix>
+    <shading.prefix>alluxio.shaded.ozone</shading.prefix>
   </properties>
 
   <dependencies>
