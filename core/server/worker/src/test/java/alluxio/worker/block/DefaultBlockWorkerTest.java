@@ -82,7 +82,7 @@ public class DefaultBlockWorkerTest {
           .put(PropertyKey.WORKER_TIERED_STORE_LEVEL0_DIRS_PATH, mMemDir)
           .put(PropertyKey.WORKER_TIERED_STORE_LEVEL1_ALIAS, "HDD")
           .put(PropertyKey.WORKER_TIERED_STORE_LEVEL1_DIRS_MEDIUMTYPE, "HDD")
-          .put(PropertyKey.WORKER_TIERED_STORE_LEVEL1_DIRS_QUOTA, "1GB")
+          .put(PropertyKey.WORKER_TIERED_STORE_LEVEL1_DIRS_QUOTA, "2GB")
           .put(PropertyKey.WORKER_TIERED_STORE_LEVEL1_DIRS_PATH, mHddDir)
           .put(PropertyKey.WORKER_RPC_PORT, "0")
           .put(PropertyKey.WORKER_MANAGEMENT_TIER_ALIGN_RESERVED_BYTES, "0")
@@ -178,8 +178,8 @@ public class DefaultBlockWorkerTest {
     long sessionId = mRandom.nextLong();
     long initialBytes = 1;
     String path = mBlockWorker.createBlock(sessionId, blockId, 0, "", initialBytes);
-    // because allocator by default is MaxFreeFirst
-    assertTrue(path.startsWith(mHddDir));
+    // use tier 0 by default
+    assertTrue(path.startsWith(mMemDir));
   }
 
   @Test
