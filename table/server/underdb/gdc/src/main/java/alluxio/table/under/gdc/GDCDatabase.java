@@ -12,6 +12,7 @@
 package alluxio.table.under.gdc;
 
 import alluxio.grpc.table.FieldSchema;
+import alluxio.grpc.table.Layout;
 import alluxio.grpc.table.Schema;
 import alluxio.master.table.DatabaseInfo;
 import alluxio.table.common.udb.UdbConfiguration;
@@ -129,10 +130,10 @@ public class GDCDatabase implements UnderDatabase {
 
     return new GDCTable(tableName,
         schema,
-        null,
+        new ArrayList<>(), // placeholder instead of null
         schema.getColsList(),
-        null,
-        null
+        new ArrayList<>(), // placeholder instead of null
+        Layout.newBuilder().build()
     );
   }
 

@@ -11,13 +11,18 @@
 
 package alluxio.table.under.gdc;
 
+import alluxio.master.table.DatabaseInfo;
 import alluxio.table.common.udb.UdbConfiguration;
 import alluxio.table.common.udb.UdbContext;
 
+import com.google.common.collect.ImmutableMap;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
+import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -35,51 +40,51 @@ public class GDCDatabaseTest {
   @Before
   public void before() {
     mUdbContext =
-            new UdbContext(null, null, "gdc", "thrift://not_running:9083", DB_NAME, DB_NAME);
+        new UdbContext(null, null, "gdc", "thrift://not_running:9083", DB_NAME, DB_NAME);
     mUdbConf = new UdbConfiguration(CONF);
   }
 
-//  @Test
-//  public void testGetDbInfo() throws IOException {
-//    UdbContext udbContext =
-//            new UdbContext(null, null, "gdc", "", DB_NAME, DB_NAME);
-//    UdbConfiguration udbConfig = new UdbConfiguration(ImmutableMap.of());
-//    GDCDatabase db = GDCDatabase.create(udbContext, udbConfig);
-//
-//    DatabaseInfo dbInfo = db.getDatabaseInfo();
-//    Assert.assertEquals(dbInfo.getLocation(), "alluxio-internal:" + DB_NAME);
-//  }
-//
-//  @Test
-//  public void testGetTable() throws IOException {
-//    UdbContext udbContext =
-//        new UdbContext(null, null, "gdc", "", DB_NAME, DB_NAME);
-//    UdbConfiguration udbConfig = new UdbConfiguration(ImmutableMap.of());
-//    GDCDatabase db = GDCDatabase.create(udbContext, udbConfig);
-//
-//    db.getTable("test");
-//  }
+  @Test
+  public void testGetDbInfo() throws IOException {
+    UdbContext udbContext =
+        new UdbContext(null, null, "gdc", "", DB_NAME, DB_NAME);
+    UdbConfiguration udbConfig = new UdbConfiguration(ImmutableMap.of());
+    GDCDatabase db = GDCDatabase.create(udbContext, udbConfig);
 
-//  @Test
-//  public void create() {
-//    Assert.assertEquals(DB_NAME, GDCDatabase.create(mUdbContext, mUdbConf).getName());
-//  }
-//
-//  @Test
-//  public void createEmptyName() {
-//    mExpection.expect(IllegalArgumentException.class);
-//    UdbContext udbContext =
-//            new UdbContext(null, null, "gdc", "thrift://not_running:9083", "", DB_NAME);
-//    Assert.assertEquals(DB_NAME,
-//            GDCDatabase.create(udbContext, new UdbConfiguration(ImmutableMap.of())).getName());
-//  }
-//
-//  @Test
-//  public void createNullName() {
-//    mExpection.expect(IllegalArgumentException.class);
-//    UdbContext udbContext =
-//            new UdbContext(null, null, "gdc", "thrift://not_running:9083", null, DB_NAME);
-//    Assert.assertEquals(DB_NAME,
-//            GDCDatabase.create(udbContext, new UdbConfiguration(ImmutableMap.of())).getName());
-//  }
+    DatabaseInfo dbInfo = db.getDatabaseInfo();
+    Assert.assertEquals(dbInfo.getLocation(), "alluxio-internal:" + DB_NAME);
+  }
+
+  @Test
+  public void testGetTable() throws IOException {
+    UdbContext udbContext =
+        new UdbContext(null, null, "gdc", "", DB_NAME, DB_NAME);
+    UdbConfiguration udbConfig = new UdbConfiguration(ImmutableMap.of());
+    GDCDatabase db = GDCDatabase.create(udbContext, udbConfig);
+
+    db.getTable("test");
+  }
+
+  @Test
+  public void create() {
+    Assert.assertEquals(DB_NAME, GDCDatabase.create(mUdbContext, mUdbConf).getName());
+  }
+
+  @Test
+  public void createEmptyName() {
+    mExpection.expect(IllegalArgumentException.class);
+    UdbContext udbContext =
+        new UdbContext(null, null, "gdc", "thrift://not_running:9083", "", DB_NAME);
+    Assert.assertEquals(DB_NAME,
+        GDCDatabase.create(udbContext, new UdbConfiguration(ImmutableMap.of())).getName());
+  }
+
+  @Test
+  public void createNullName() {
+    mExpection.expect(IllegalArgumentException.class);
+    UdbContext udbContext =
+        new UdbContext(null, null, "gdc", "thrift://not_running:9083", null, DB_NAME);
+    Assert.assertEquals(DB_NAME,
+        GDCDatabase.create(udbContext, new UdbConfiguration(ImmutableMap.of())).getName());
+  }
 }
