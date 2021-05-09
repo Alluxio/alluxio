@@ -178,8 +178,7 @@ public class DefaultBlockWorkerTest {
     long sessionId = mRandom.nextLong();
     long initialBytes = 1;
     String path = mBlockWorker.createBlock(sessionId, blockId, 0, "", initialBytes);
-    // use tier 0 by default
-    assertTrue(path.startsWith(mMemDir));
+    assertTrue(path.startsWith(mMemDir)); // tier 0 is mem
   }
 
   @Test
