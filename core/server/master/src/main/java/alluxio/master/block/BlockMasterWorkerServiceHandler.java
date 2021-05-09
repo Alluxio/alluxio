@@ -64,10 +64,11 @@ public final class BlockMasterWorkerServiceHandler extends
   public void blockHeartbeat(BlockHeartbeatPRequest request,
       StreamObserver<BlockHeartbeatPResponse> responseObserver) {
     if (LOG.isDebugEnabled()) {
-      LOG.debug("blockHeartbeat request is {} bytes, {} added blocks and {} removed blocks",
+      LOG.debug("blockHeartbeat request is {} bytes, {} added blocks, {} removed blocks and {} metrics",
               request.getSerializedSize(),
               request.getAddedBlocksCount(),
-              request.getRemovedBlockIdsCount());
+              request.getRemovedBlockIdsCount(),
+              request.getOptions().getMetricsCount());
     }
 
     final long workerId = request.getWorkerId();
