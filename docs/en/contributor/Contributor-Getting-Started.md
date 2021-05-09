@@ -125,6 +125,8 @@ In order to assign an issue to yourself, leave a comment in the issue like `/ass
 to indicate that you are working on the issue.
 You should always assign a ticket to yourself this way before you start working on it, so others
 in the community know you are working on the ticket.
+The New Contributor issues are created for new contributors to try the whole contribution process, 
+so please take only one of them. 
 
 Notice that all New Contributor issues on Github are assigned with a number. The number can be
 found after the issue title, like `#123`.
