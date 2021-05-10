@@ -596,8 +596,7 @@ public final class GrpcUtils {
         .setCapacityBytes(workerInfo.getCapacityBytes()).setUsedBytes(workerInfo.getUsedBytes())
         .setStartTimeMs(workerInfo.getStartTimeMs())
         .putAllCapacityBytesOnTiers(workerInfo.getCapacityBytesOnTiers())
-        .putAllUsedBytesOnTiers(workerInfo.getUsedBytesOnTiers())
-        .build();
+        .putAllUsedBytesOnTiers(workerInfo.getUsedBytesOnTiers()).build();
   }
 
   /**

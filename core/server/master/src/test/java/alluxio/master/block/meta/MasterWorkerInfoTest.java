@@ -29,7 +29,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -58,7 +57,7 @@ public final class MasterWorkerInfoTest {
   @Before
   public void before() {
     // register
-    mInfo = new MasterWorkerInfo(0, new WorkerNetAddress(), new HashMap<>());
+    mInfo = new MasterWorkerInfo(0, new WorkerNetAddress());
     mInfo.register(GLOBAL_STORAGE_TIER_ASSOC, STORAGE_TIER_ALIASES, TOTAL_BYTES_ON_TIERS,
         USED_BYTES_ON_TIERS, NEW_BLOCKS);
   }
