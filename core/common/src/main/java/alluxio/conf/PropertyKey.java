@@ -2561,20 +2561,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
-  public static final PropertyKey MASTER_WORKER_LABEL_ENABLED =
-      new Builder(Name.MASTER_WORKER_LABEL_ENABLED)
-          .setDefaultValue(false)
-          .setDescription("Whether to read labels from worker labels file.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.MASTER)
-          .build();
-  public static final PropertyKey MASTER_WORKER_LABEL_PATH =
-      new Builder(Name.MASTER_WORKER_LABEL_PATH)
-          .setDefaultValue(String.format("${%s}/worker-label.json", Name.CONF_DIR))
-          .setDescription("Read worker labels from the given file.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.MASTER)
-          .build();
   public static final PropertyKey MASTER_WORKER_TIMEOUT_MS =
       new Builder(Name.MASTER_WORKER_TIMEOUT_MS)
           .setAlias("alluxio.master.worker.timeout.ms")
@@ -5686,8 +5672,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.worker.connect.wait.time";
     public static final String MASTER_WORKER_INFO_CACHE_REFRESH_TIME
         = "alluxio.master.worker.info.cache.refresh.time";
-    public static final String MASTER_WORKER_LABEL_ENABLED = "alluxio.master.worker.label.enabled";
-    public static final String MASTER_WORKER_LABEL_PATH = "alluxio.master.worker.label.path";
     public static final String MASTER_WORKER_TIMEOUT_MS = "alluxio.master.worker.timeout";
     public static final String MASTER_JOURNAL_CHECKPOINT_PERIOD_ENTRIES =
         "alluxio.master.journal.checkpoint.period.entries";

@@ -36,8 +36,6 @@ import org.apache.commons.lang3.StringUtils;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Set;
 import java.util.HashSet;
 
@@ -50,7 +48,7 @@ import javax.annotation.concurrent.ThreadSafe;
 @PublicApi
 public final class DistributedLoadCommand extends AbstractDistributedJobCommand {
   private static final int DEFAULT_REPLICATION = 1;
-  private static final String LABEL_PREFIX = "LABEL:";
+  private static final String LOCALITY_PREFIX = "LOCALITY_ID:";
   private static final Option REPLICATION_OPTION =
       Option.builder()
           .longOpt("replication")
@@ -91,7 +89,7 @@ public final class DistributedLoadCommand extends AbstractDistributedJobCommand 
           .numberOfArgs(1)
           .argName("hosts")
           .desc("A list of worker hosts separated by comma,"
-              + "if a host starts with " + LABEL_PREFIX + ", it will be treated as label")
+              + "if a host starts with " + LOCALITY_PREFIX + ", treated as locality id")
           .build();
   private static final Option HOST_FILE_OPTION =
       Option.builder()
@@ -101,7 +99,7 @@ public final class DistributedLoadCommand extends AbstractDistributedJobCommand 
           .numberOfArgs(1)
           .argName("host-file")
           .desc("Host File contains worker hosts, every line has a worker host,"
-              + "if a host starts with " + LABEL_PREFIX + ", it will be treated as label")
+              + "if a host starts with " + LOCALITY_PREFIX + ", treated as locality id")
           .build();
 
   /**
@@ -151,29 +149,29 @@ public final class DistributedLoadCommand extends AbstractDistributedJobCommand 
     String[] args = cl.getArgs();
     int replication = FileSystemShellUtils.getIntArg(cl, REPLICATION_OPTION, DEFAULT_REPLICATION);
     Set<String> workerSet = new HashSet<>();
-    Map<String, String> labelMap = new HashMap<>();
+    Set<String> localityIds = new HashSet<>();
     if (cl.hasOption(HOST_FILE_OPTION.getLongOpt())) {
       String hostFile = cl.getOptionValue(HOST_FILE_OPTION.getLongOpt()).trim();
       try (BufferedReader reader = new BufferedReader(new FileReader(hostFile))) {
         for (String worker; (worker = reader.readLine()) != null; ) {
-          normalizeWorkrHost(workerSet, labelMap, worker);
+          normalizeWorkrHost(workerSet, localityIds, worker);
         }
       }
     } else if (cl.hasOption(HOSTS_OPTION.getLongOpt())) {
       String argOption = cl.getOptionValue(HOSTS_OPTION.getLongOpt()).trim();
       for (String worker: StringUtils.split(argOption, ",")) {
-        normalizeWorkrHost(workerSet, labelMap, worker);
+        normalizeWorkrHost(workerSet, localityIds, worker);
       }
     }
 
     if (!cl.hasOption(INDEX_FILE.getLongOpt())) {
       AlluxioURI path = new AlluxioURI(args[0]);
-      distributedLoad(path, replication, workerSet, labelMap);
+      distributedLoad(path, replication, workerSet, localityIds);
     } else {
       try (BufferedReader reader = new BufferedReader(new FileReader(args[0]))) {
         for (String filename; (filename = reader.readLine()) != null; ) {
           AlluxioURI path = new AlluxioURI(filename);
-          distributedLoad(path, replication, workerSet, labelMap);
+          distributedLoad(path, replication, workerSet, localityIds);
         }
       }
     }
@@ -181,11 +179,10 @@ public final class DistributedLoadCommand extends AbstractDistributedJobCommand 
   }
 
   private void normalizeWorkrHost(Set<String> workerSet,
-      Map<String, String> labelMap, String host) {
+      Set<String> localityIds, String host) {
     host = host.trim().toUpperCase();
-    if (host.startsWith(LABEL_PREFIX) && host.contains("=")) {
-      String[] labelPair = host.substring(LABEL_PREFIX.length()).split("=");
-      labelMap.put(labelPair[0], labelPair[1]);
+    if (host.startsWith(LOCALITY_PREFIX)) {
+      localityIds.add(host.substring(LOCALITY_PREFIX.length()).trim());
     } else if (!host.isEmpty()) {
       workerSet.add(host);
     }
@@ -202,12 +199,12 @@ public final class DistributedLoadCommand extends AbstractDistributedJobCommand 
    * @param filePath The {@link AlluxioURI} path to load into Alluxio memory
    * @param replication The replication of file to load into Alluxio memory
    * @param workerSet The worker set for executing the task of new job
-   * @param workerLabelMap The worker label for executing the task of new job
+   * @param localityIds The locality identify set
    */
   private LoadJobAttempt newJob(AlluxioURI filePath, int replication, Set<String> workerSet,
-      Map<String, String> workerLabelMap) {
+      Set<String> localityIds) {
     LoadJobAttempt jobAttempt = new LoadJobAttempt(mClient,
-        new LoadConfig(filePath.getPath(), replication, workerSet, workerLabelMap),
+        new LoadConfig(filePath.getPath(), replication, workerSet, localityIds),
         new CountingRetry(3));
 
     jobAttempt.run();
@@ -219,7 +216,7 @@ public final class DistributedLoadCommand extends AbstractDistributedJobCommand 
    * Add one job.
    */
   private void addJob(URIStatus status, int replication, Set<String> workerSet,
-      Map<String, String> workerLabelMap) {
+      Set<String> localityIds) {
     AlluxioURI filePath = new AlluxioURI(status.getPath());
     if (status.getInAlluxioPercentage() == 100) {
       // The file has already been fully loaded into Alluxio.
@@ -231,7 +228,7 @@ public final class DistributedLoadCommand extends AbstractDistributedJobCommand 
       waitJob();
     }
     System.out.println(filePath + " loading");
-    mSubmittedJobAttempts.add(newJob(filePath, replication, workerSet, workerLabelMap));
+    mSubmittedJobAttempts.add(newJob(filePath, replication, workerSet, localityIds));
   }
 
   /**
@@ -241,9 +238,9 @@ public final class DistributedLoadCommand extends AbstractDistributedJobCommand 
    * @param replication The replication of file to load into Alluxio memory
    */
   private void distributedLoad(AlluxioURI filePath, int replication, Set<String> workerSet,
-      Map<String, String> workerLabelMap)
+      Set<String> localityIds)
       throws AlluxioException, IOException {
-    load(filePath, replication, workerSet, workerLabelMap);
+    load(filePath, replication, workerSet, localityIds);
     // Wait remaining jobs to complete.
     drain();
   }
@@ -256,12 +253,12 @@ public final class DistributedLoadCommand extends AbstractDistributedJobCommand 
    * @throws IOException      when non-Alluxio exception occurs
    */
   private void load(AlluxioURI filePath, int replication, Set<String> workerSet,
-      Map<String, String> workerLabelMap)
+      Set<String> localityIds)
       throws IOException, AlluxioException {
     ListStatusPOptions options = ListStatusPOptions.newBuilder().setRecursive(true).build();
     mFileSystem.iterateStatus(filePath, options, uriStatus -> {
       if (!uriStatus.isFolder()) {
-        addJob(uriStatus, replication, workerSet, workerLabelMap);
+        addJob(uriStatus, replication, workerSet, localityIds);
       }
     });
   }

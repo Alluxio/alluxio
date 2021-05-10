@@ -244,8 +244,6 @@ public final class DefaultBlockMaster extends CoreMaster implements BlockMaster 
    */
   private LoadingCache<String, List<WorkerInfo>> mWorkerInfoCache;
 
-  private Map<String, Map<String, String>> mWorkerLabels;
-
   /**
    * Creates a new instance of {@link DefaultBlockMaster}.
    *
@@ -284,21 +282,6 @@ public final class DefaultBlockMaster extends CoreMaster implements BlockMaster 
             return constructWorkerInfoList();
           }
         });
-    mWorkerLabels = new HashMap<>();
-    if (ServerConfiguration.getBoolean(PropertyKey.MASTER_WORKER_LABEL_ENABLED)) {
-      String labelPath =
-          ServerConfiguration.get(PropertyKey.MASTER_WORKER_LABEL_PATH);
-      ObjectMapper mapper = new ObjectMapper();
-      try {
-        WorkerWithLabels[] workerWithLabelsArray =
-            mapper.readValue(new File(labelPath), WorkerWithLabels[].class);
-        for (WorkerWithLabels wwl : workerWithLabelsArray) {
-          mWorkerLabels.put(wwl.getHost(), wwl.getLabels());
-        }
-      } catch (IOException e) {
-        throw new IllegalStateException(e);
-      }
-    }
   }
 
   @Override
@@ -876,8 +859,7 @@ public final class DefaultBlockMaster extends CoreMaster implements BlockMaster 
 
     // Generate a new worker id.
     long workerId = IdUtils.getRandomNonNegativeLong();
-    while (!mTempWorkers.add(new MasterWorkerInfo(
-        workerId, workerNetAddress, mWorkerLabels.get(workerNetAddress.getHost())))) {
+    while (!mTempWorkers.add(new MasterWorkerInfo(workerId, workerNetAddress))) {
       workerId = IdUtils.getRandomNonNegativeLong();
     }
 

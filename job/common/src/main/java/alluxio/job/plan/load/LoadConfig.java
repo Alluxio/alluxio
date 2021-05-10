@@ -22,9 +22,7 @@ import com.google.common.collect.ImmutableList;
 import javax.annotation.concurrent.ThreadSafe;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
 
 /**
@@ -38,22 +36,22 @@ public class LoadConfig implements PlanConfig {
   private final String mFilePath;
   private final int mReplication;
   private final Set<String> mWorkerSet;
-  private final Map<String, String> mWorkerLabelMap;
+  private final Set<String> mLocalityIds;
 
   /**
    * @param filePath the file path
    * @param replication the number of workers to store each block on, defaults to 1
    * @param workerSet the worker set
-   * @param workerLabelMap the worker label map
+   * @param localityIds the locality identify set
    */
   public LoadConfig(@JsonProperty("filePath") String filePath,
       @JsonProperty("replication") Integer replication,
       @JsonProperty("workerSet") Set<String> workerSet,
-      @JsonProperty("workerLabelMap") Map<String, String> workerLabelMap) {
+      @JsonProperty("localityIds") Set<String> localityIds) {
     mFilePath = Preconditions.checkNotNull(filePath, "The file path cannot be null");
     mReplication = replication == null ? 1 : replication;
     mWorkerSet = workerSet == null ? Collections.EMPTY_SET : new HashSet(workerSet);
-    mWorkerLabelMap = workerLabelMap == null ? Collections.EMPTY_MAP : new HashMap(workerLabelMap);
+    mLocalityIds = localityIds == null ? Collections.EMPTY_SET : new HashSet(localityIds);
   }
 
   /**
@@ -116,9 +114,9 @@ public class LoadConfig implements PlanConfig {
   }
 
   /**
-   * @return worker label set
+   * @return locality identify set
    */
-  public Map<String, String> getWorkerLabelMap() {
-    return mWorkerLabelMap;
+  public Set<String> getLocalityIds() {
+    return mLocalityIds;
   }
 }

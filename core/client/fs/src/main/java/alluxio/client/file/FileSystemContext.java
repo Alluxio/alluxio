@@ -647,7 +647,7 @@ public class FileSystemContext implements Closeable {
              acquireBlockMasterClientResource()) {
       return masterClientResource.get().getWorkerInfoList().stream()
           .map(w -> new BlockWorkerInfo(
-              w.getAddress(), w.getCapacityBytes(), w.getUsedBytes(), w.getLabels()))
+              w.getAddress(), w.getCapacityBytes(), w.getUsedBytes()))
           .collect(toList());
     }
   }

@@ -40,7 +40,6 @@ public final class WorkerInfo implements Serializable {
   private long mStartTimeMs;
   private Map<String, Long> mCapacityBytesOnTiers;
   private Map<String, Long> mUsedBytesOnTiers;
-  private Map<String, String> mLabels = Collections.EMPTY_MAP;
 
   /**
    * Creates a new instance of {@link WorkerInfo}.
@@ -117,14 +116,6 @@ public final class WorkerInfo implements Serializable {
   @ApiModelProperty(value = "The number of bytes currently used on each of the worker's tiers")
   public Map<String, Long> getUsedBytesOnTiers() {
     return mUsedBytesOnTiers;
-  }
-
-  /**
-   * @return the worker labels
-   */
-  @ApiModelProperty(value = "The worker labels")
-  public Map<String, String> getLabels() {
-    return mLabels;
   }
 
   /**
@@ -207,15 +198,6 @@ public final class WorkerInfo implements Serializable {
    */
   public WorkerInfo setUsedBytesOnTiers(Map<String, Long> usedBytesOnTiers) {
     mUsedBytesOnTiers = new HashMap<>(usedBytesOnTiers);
-    return this;
-  }
-
-  /**
-   * @param labels the worker labels
-   * @return the worker information
-   */
-  public WorkerInfo setLabels(Map<String, String> labels) {
-    mLabels = new HashMap<>(labels);
     return this;
   }
 
