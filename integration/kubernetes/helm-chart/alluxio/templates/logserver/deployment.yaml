@@ -41,6 +41,13 @@ spec:
         heritage: {{ .Release.Service }}
         role: alluxio-logserver
     spec:
+      tolerations:
+      {{- if .Values.logserver.tolerations }}
+{{ toYaml .Values.logserver.tolerations | trim | indent 8  }}
+      {{- end }}
+      {{- if .Values.tolerations }}
+{{ toYaml .Values.tolerations | trim | indent 8  }}
+      {{- end }}
       containers:
         - name: alluxio-logserver
           image: {{ .Values.image }}:{{ .Values.imageTag }}
