@@ -50,45 +50,20 @@ public final class MasterWorkerInfo {
   private static final String LOST_WORKER_STATE = "Out of Service";
   private static final int BLOCK_SIZE_LIMIT = 100;
 
-//  /** Worker's address. */
-//  private final WorkerNetAddress mWorkerAddress;
-//  /** The id of the worker. */
-//  private final long mId;
-//  /** Start time of the worker in ms. */
-//  private final long mStartTimeMs;
-//  /** Capacity of worker in bytes. */
-//  private long mCapacityBytes;
-//  /** Worker's used bytes. */
-//  private long mUsedBytes;
-//  /** Worker's last updated time in ms. */
-//  private long mLastUpdatedTimeMs;
-//  /** If true, the worker is considered registered. */
-//  private boolean mIsRegistered;
-//  /** Worker-specific mapping between storage tier alias and storage tier ordinal. */
-//  private StorageTierAssoc mStorageTierAssoc;
-//  /** Mapping from storage tier alias to total bytes. */
-//  private Map<String, Long> mTotalBytesOnTiers;
-//  /** Mapping from storage tier alias to used bytes. */
-//  private Map<String, Long> mUsedBytesOnTiers;
-//
-//  /** ids of blocks the worker contains. */
-//  private Set<Long> mBlocks;
-//  /** ids of blocks the worker should remove. */
-//  private Set<Long> mToRemoveBlocks;
-//  /** Mapping from tier alias to lost storage paths. */
-//  private Map<String, List<String>> mLostStorage;
-
-  public ReentrantReadWriteLock mUsageLock;
-  private WorkerUsageMeta mUsage;
-
+  /** worker metadata */
+  private final WorkerMeta mMeta;
+  /** lock the worker metadata */
   public ReentrantReadWriteLock mMetaLock;
-  private WorkerMeta mMeta;
+  /** worker usage data */
+  private WorkerUsageMeta mUsage;
+  /** lock the worker usage data */
+  public ReentrantReadWriteLock mUsageLock;
 
-  public ReentrantReadWriteLock mBlockListLock;
   /** ids of blocks the worker contains. */
   private Set<Long> mBlocks;
   /** ids of blocks the worker should remove. */
   private Set<Long> mToRemoveBlocks;
+  public ReentrantReadWriteLock mBlockListLock;
 
   /**
    * Creates a new instance of {@link MasterWorkerInfo}.
@@ -97,17 +72,11 @@ public final class MasterWorkerInfo {
    * @param address the worker address to use
    */
   public MasterWorkerInfo(long id, WorkerNetAddress address) {
-    mWorkerAddress = Preconditions.checkNotNull(address, "address");
-    mId = id;
-    mStartTimeMs = System.currentTimeMillis();
-    mLastUpdatedTimeMs = System.currentTimeMillis();
-    mIsRegistered = false;
-    mStorageTierAssoc = null;
-    mTotalBytesOnTiers = new HashMap<>();
-    mUsedBytesOnTiers = new HashMap<>();
+    // TODO(jiacheng): do I lock here? Or do I wrap the lock into the object?
+    mMeta = new WorkerMeta(id, address);
+    mUsage = new WorkerUsageMeta();
     mBlocks = new HashSet<>();
     mToRemoveBlocks = new HashSet<>();
-    mLostStorage = new HashMap<>();
   }
 
   /**
@@ -121,48 +90,19 @@ public final class MasterWorkerInfo {
    * @param blocks set of block ids on this worker
    * @return A Set of blocks removed (or lost) from this worker
    */
-  // TODO(jiacheng): lock this before entering
+  // TODO(jiacheng): All the locks are already locked before reaching here
   public Set<Long> register(final StorageTierAssoc globalStorageTierAssoc,
       final List<String> storageTierAliases, final Map<String, Long> totalBytesOnTiers,
       final Map<String, Long> usedBytesOnTiers, final Set<Long> blocks) {
-    // If the storage aliases do not have strictly increasing ordinal value based on the total
-    // ordering, throw an error
-    for (int i = 0; i < storageTierAliases.size() - 1; i++) {
-      if (globalStorageTierAssoc.getOrdinal(storageTierAliases.get(i)) >= globalStorageTierAssoc
-          .getOrdinal(storageTierAliases.get(i + 1))) {
-        throw new IllegalArgumentException(
-            "Worker cannot place storage tier " + storageTierAliases.get(i) + " above "
-                + storageTierAliases.get(i + 1) + " in the hierarchy");
-      }
-    }
-    mStorageTierAssoc = new WorkerStorageTierAssoc(storageTierAliases);
-    // validate the number of tiers
-    if (mStorageTierAssoc.size() != totalBytesOnTiers.size()
-        || mStorageTierAssoc.size() != usedBytesOnTiers.size()) {
-      throw new IllegalArgumentException(
-          "totalBytesOnTiers and usedBytesOnTiers should have the same number of tiers as "
-              + "storageTierAliases, but storageTierAliases has " + mStorageTierAssoc.size()
-              + " tiers, while totalBytesOnTiers has " + totalBytesOnTiers.size()
-              + " tiers and usedBytesOnTiers has " + usedBytesOnTiers.size() + " tiers");
-    }
-
-    // defensive copy
-    mTotalBytesOnTiers = new HashMap<>(totalBytesOnTiers);
-    mUsedBytesOnTiers = new HashMap<>(usedBytesOnTiers);
-    mCapacityBytes = 0;
-    for (long bytes : mTotalBytesOnTiers.values()) {
-      mCapacityBytes += bytes;
-    }
-    mUsedBytes = 0;
-    for (long bytes : mUsedBytesOnTiers.values()) {
-      mUsedBytes += bytes;
-    }
+    // TODO(jiacheng): IllegalArgumentException?
+    mUsage.update(globalStorageTierAssoc, storageTierAliases,
+            totalBytesOnTiers, usedBytesOnTiers);
 
     Set<Long> removedBlocks;
-    if (mIsRegistered) {
+    if (mMeta.mIsRegistered) {
       // This is a re-register of an existing worker. Assume the new block ownership data is more
       // up-to-date and update the existing block information.
-      LOG.info("re-registering an existing workerId: {}", mId);
+      LOG.info("re-registering an existing workerId: {}", mMeta.mId);
 
       // Compute the difference between the existing block data, and the new data.
       removedBlocks = Sets.difference(mBlocks, blocks);
@@ -203,9 +143,9 @@ public final class MasterWorkerInfo {
    * @param dirPath the lost storage path
    */
   public void addLostStorage(String tierAlias, String dirPath) {
-    List<String> paths = mLostStorage.getOrDefault(tierAlias, new ArrayList<>());
+    List<String> paths = mUsage.mLostStorage.getOrDefault(tierAlias, new ArrayList<>());
     paths.add(dirPath);
-    mLostStorage.put(tierAlias, paths);
+    mUsage.mLostStorage.put(tierAlias, paths);
   }
 
   /**
@@ -215,9 +155,9 @@ public final class MasterWorkerInfo {
    */
   public void addLostStorage(Map<String, StorageList> lostStorage) {
     for (Map.Entry<String, StorageList> entry : lostStorage.entrySet()) {
-      List<String> paths = mLostStorage.getOrDefault(entry.getKey(), new ArrayList<>());
+      List<String> paths = mUsage.mLostStorage.getOrDefault(entry.getKey(), new ArrayList<>());
       paths.addAll(entry.getValue().getStorageList());
-      mLostStorage.put(entry.getKey(), paths);
+      mUsage.mLostStorage.put(entry.getKey(), paths);
     }
   }
 
@@ -236,23 +176,23 @@ public final class MasterWorkerInfo {
     for (WorkerInfoField field : checkedFieldRange) {
       switch (field) {
         case ADDRESS:
-          info.setAddress(mWorkerAddress);
+          info.setAddress(mMeta.mWorkerAddress);
           break;
         case WORKER_CAPACITY_BYTES:
-          info.setCapacityBytes(mCapacityBytes);
+          info.setCapacityBytes(mUsage.mCapacityBytes);
           break;
         case WORKER_CAPACITY_BYTES_ON_TIERS:
-          info.setCapacityBytesOnTiers(mTotalBytesOnTiers);
+          info.setCapacityBytesOnTiers(mUsage.mTotalBytesOnTiers);
           break;
         case ID:
-          info.setId(mId);
+          info.setId(mMeta.mId);
           break;
         case LAST_CONTACT_SEC:
           info.setLastContactSec(
-              (int) ((CommonUtils.getCurrentMs() - mLastUpdatedTimeMs) / Constants.SECOND_MS));
+              (int) ((CommonUtils.getCurrentMs() - mMeta.mLastUpdatedTimeMs) / Constants.SECOND_MS));
           break;
         case START_TIME_MS:
-          info.setStartTimeMs(mStartTimeMs);
+          info.setStartTimeMs(mMeta.mStartTimeMs);
           break;
         case STATE:
           if (isLiveWorker) {
@@ -262,10 +202,10 @@ public final class MasterWorkerInfo {
           }
           break;
         case WORKER_USED_BYTES:
-          info.setUsedBytes(mUsedBytes);
+          info.setUsedBytes(mUsage.mUsedBytes);
           break;
         case WORKER_USED_BYTES_ON_TIERS:
-          info.setUsedBytesOnTiers(mUsedBytesOnTiers);
+          info.setUsedBytesOnTiers(mUsage.mUsedBytesOnTiers);
           break;
         default:
           LOG.warn("Unrecognized worker info field: " + field);
@@ -275,17 +215,19 @@ public final class MasterWorkerInfo {
   }
 
   /**
+   * {@link WorkerMeta#mWorkerAddress is final} so the value can be read without locking
+   *
    * @return the worker's address
    */
   public WorkerNetAddress getWorkerAddress() {
-    return mWorkerAddress;
+    return mMeta.mWorkerAddress;
   }
 
   /**
    * @return the available space of the worker in bytes
    */
   public long getAvailableBytes() {
-    return mCapacityBytes - mUsedBytes;
+    return mUsage.getAvailableBytes();
   }
 
   /**
@@ -299,21 +241,21 @@ public final class MasterWorkerInfo {
    * @return the capacity of the worker in bytes
    */
   public long getCapacityBytes() {
-    return mCapacityBytes;
+    return mUsage.mCapacityBytes;
   }
 
   /**
    * @return the id of the worker
    */
   public long getId() {
-    return mId;
+    return mMeta.mId;
   }
 
   /**
    * @return the last updated time of the worker in ms
    */
   public long getLastUpdatedTimeMs() {
-    return mLastUpdatedTimeMs;
+    return mMeta.mLastUpdatedTimeMs;
   }
 
   /**
@@ -327,42 +269,42 @@ public final class MasterWorkerInfo {
    * @return used space of the worker in bytes
    */
   public long getUsedBytes() {
-    return mUsedBytes;
+    return mUsage.mUsedBytes;
   }
 
   /**
    * @return the storage tier mapping for the worker
    */
   public StorageTierAssoc getStorageTierAssoc() {
-    return mStorageTierAssoc;
+    return mUsage.mStorageTierAssoc;
   }
 
   /**
    * @return the total bytes on each storage tier
    */
   public Map<String, Long> getTotalBytesOnTiers() {
-    return mTotalBytesOnTiers;
+    return mUsage.mTotalBytesOnTiers;
   }
 
   /**
    * @return the used bytes on each storage tier
    */
   public Map<String, Long> getUsedBytesOnTiers() {
-    return mUsedBytesOnTiers;
+    return mUsage.mUsedBytesOnTiers;
   }
 
   /**
    * @return the start time in milliseconds
    */
   public long getStartTime() {
-    return mStartTimeMs;
+    return mMeta.mStartTimeMs;
   }
 
   /**
    * @return whether the worker has been registered yet
    */
   public boolean isRegistered() {
-    return mIsRegistered;
+    return mMeta.mIsRegistered;
   }
 
   /**
@@ -370,9 +312,9 @@ public final class MasterWorkerInfo {
    */
   public Map<String, Long> getFreeBytesOnTiers() {
     Map<String, Long> freeCapacityBytes = new HashMap<>();
-    for (Map.Entry<String, Long> entry : mTotalBytesOnTiers.entrySet()) {
+    for (Map.Entry<String, Long> entry : mUsage.mTotalBytesOnTiers.entrySet()) {
       freeCapacityBytes.put(entry.getKey(),
-          entry.getValue() - mUsedBytesOnTiers.get(entry.getKey()));
+          entry.getValue() - mUsage.mUsedBytesOnTiers.get(entry.getKey()));
     }
     return freeCapacityBytes;
   }
@@ -381,14 +323,14 @@ public final class MasterWorkerInfo {
    * @return the map from tier alias to lost storage paths in this worker
    */
   public Map<String, List<String>> getLostStorage() {
-    return new HashMap<>(mLostStorage);
+    return new HashMap<>(mUsage.mLostStorage);
   }
 
   /**
    * @return true if this worker has lost storage, false otherwise
    */
   public boolean hasLostStorage() {
-    return mLostStorage.size() > 0;
+    return mUsage.mLostStorage.size() > 0;
   }
 
   @Override
@@ -401,21 +343,21 @@ public final class MasterWorkerInfo {
       blocks = mBlocks.stream().limit(BLOCK_SIZE_LIMIT).collect(Collectors.toList());
     }
     return MoreObjects.toStringHelper(this)
-        .add("id", mId)
-        .add("workerAddress", mWorkerAddress)
-        .add("capacityBytes", mCapacityBytes)
-        .add("usedBytes", mUsedBytes)
-        .add("lastUpdatedTimeMs", mLastUpdatedTimeMs)
+        .add("id", mMeta.mId)
+        .add("workerAddress", mMeta.mWorkerAddress)
+        .add("capacityBytes", mUsage.mCapacityBytes)
+        .add("usedBytes", mUsage.mUsedBytes)
+        .add("lastUpdatedTimeMs", mMeta.mLastUpdatedTimeMs)
         .add("blockCount", mBlocks.size())
         .add(blockFieldName, blocks)
-        .add("lostStorage", mLostStorage).toString();
+        .add("lostStorage", mUsage.mLostStorage).toString();
   }
 
   /**
    * Updates the last updated time of the worker in ms.
    */
   public void updateLastUpdatedTimeMs() {
-    mLastUpdatedTimeMs = System.currentTimeMillis();
+    mMeta.mLastUpdatedTimeMs = CommonUtils.getCurrentMs();
   }
 
   /**
@@ -440,11 +382,12 @@ public final class MasterWorkerInfo {
    * @param capacityBytesOnTiers used bytes on each storage tier
    */
   public void updateCapacityBytes(Map<String, Long> capacityBytesOnTiers) {
-    mCapacityBytes = 0;
-    mTotalBytesOnTiers = capacityBytesOnTiers;
-    for (long t : mTotalBytesOnTiers.values()) {
-      mCapacityBytes += t;
+    long capacityBytes = 0;
+    mUsage.mTotalBytesOnTiers = capacityBytesOnTiers;
+    for (long t : mUsage.mTotalBytesOnTiers.values()) {
+      capacityBytes += t;
     }
+    mUsage.mCapacityBytes = capacityBytes;
   }
 
   /**
@@ -453,11 +396,12 @@ public final class MasterWorkerInfo {
    * @param usedBytesOnTiers used bytes on each storage tier
    */
   public void updateUsedBytes(Map<String, Long> usedBytesOnTiers) {
-    mUsedBytes = 0;
-    mUsedBytesOnTiers = new HashMap<>(usedBytesOnTiers);
-    for (long t : mUsedBytesOnTiers.values()) {
-      mUsedBytes += t;
+    long usedBytes = 0;
+    mUsage.mUsedBytesOnTiers = new HashMap<>(usedBytesOnTiers);
+    for (long t : mUsage.mUsedBytesOnTiers.values()) {
+      usedBytes += t;
     }
+    mUsage.mUsedBytes = usedBytes;
   }
 
   /**
@@ -467,7 +411,7 @@ public final class MasterWorkerInfo {
    * @param usedBytesOnTier used bytes on certain storage tier
    */
   public void updateUsedBytes(String tierAlias, long usedBytesOnTier) {
-    mUsedBytes += usedBytesOnTier - mUsedBytesOnTiers.get(tierAlias);
-    mUsedBytesOnTiers.put(tierAlias, usedBytesOnTier);
+    mUsage.mUsedBytes += usedBytesOnTier - mUsage.mUsedBytesOnTiers.get(tierAlias);
+    mUsage.mUsedBytesOnTiers.put(tierAlias, usedBytesOnTier);
   }
 }

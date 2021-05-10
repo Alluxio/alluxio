@@ -1,22 +1,78 @@
 package alluxio.master.block.meta;
 
 import alluxio.StorageTierAssoc;
+import alluxio.WorkerStorageTierAssoc;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 public class WorkerUsageMeta {
   /** Capacity of worker in bytes. */
-  private long mCapacityBytes;
+  public long mCapacityBytes;
   /** Worker's used bytes. */
-  private long mUsedBytes;
+  public long mUsedBytes;
   /** Worker-specific mapping between storage tier alias and storage tier ordinal. */
-  private StorageTierAssoc mStorageTierAssoc;
+  public StorageTierAssoc mStorageTierAssoc;
   /** Mapping from storage tier alias to total bytes. */
-  private Map<String, Long> mTotalBytesOnTiers;
+  public Map<String, Long> mTotalBytesOnTiers;
   /** Mapping from storage tier alias to used bytes. */
-  private Map<String, Long> mUsedBytesOnTiers;
+  public Map<String, Long> mUsedBytesOnTiers;
 
   /** Mapping from tier alias to lost storage paths. */
-  private Map<String, List<String>> mLostStorage;
+  public Map<String, List<String>> mLostStorage;
+
+  public WorkerUsageMeta() {
+    mStorageTierAssoc = null;
+    mTotalBytesOnTiers = new HashMap<>();
+    mUsedBytesOnTiers = new HashMap<>();
+    mLostStorage = new HashMap<>();
+  }
+
+  public void update(final StorageTierAssoc globalStorageTierAssoc,
+                     final List<String> storageTierAliases,
+                     final Map<String, Long> totalBytesOnTiers,
+                     final Map<String, Long> usedBytesOnTiers) throws IllegalArgumentException {
+    // If the storage aliases do not have strictly increasing ordinal value based on the total
+    // ordering, throw an error
+    for (int i = 0; i < storageTierAliases.size() - 1; i++) {
+      if (globalStorageTierAssoc.getOrdinal(storageTierAliases.get(i)) >= globalStorageTierAssoc
+              .getOrdinal(storageTierAliases.get(i + 1))) {
+        throw new IllegalArgumentException(
+                "Worker cannot place storage tier " + storageTierAliases.get(i) + " above "
+                        + storageTierAliases.get(i + 1) + " in the hierarchy");
+      }
+    }
+
+    WorkerStorageTierAssoc storageTierAssoc = new WorkerStorageTierAssoc(storageTierAliases);
+    // validate the number of tiers
+    if (storageTierAssoc.size() != totalBytesOnTiers.size()
+            || storageTierAssoc.size() != usedBytesOnTiers.size()) {
+      throw new IllegalArgumentException(
+              "totalBytesOnTiers and usedBytesOnTiers should have the same number of tiers as "
+                      + "storageTierAliases, but storageTierAliases has " + storageTierAssoc.size()
+                      + " tiers, while totalBytesOnTiers has " + totalBytesOnTiers.size()
+                      + " tiers and usedBytesOnTiers has " + usedBytesOnTiers.size() + " tiers");
+    }
+
+    mStorageTierAssoc = storageTierAssoc;
+    // defensive copy
+    mTotalBytesOnTiers = new HashMap<>(totalBytesOnTiers);
+    mUsedBytesOnTiers = new HashMap<>(usedBytesOnTiers);
+    mCapacityBytes = 0;
+    for (long bytes : mTotalBytesOnTiers.values()) {
+      mCapacityBytes += bytes;
+    }
+    mUsedBytes = 0;
+    for (long bytes : mUsedBytesOnTiers.values()) {
+      mUsedBytes += bytes;
+    }
+  }
+
+  /**
+   * @return the available space of the worker in bytes
+   */
+  public long getAvailableBytes() {
+    return mCapacityBytes - mUsedBytes;
+  }
 }
