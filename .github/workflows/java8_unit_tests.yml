@@ -44,8 +44,8 @@ jobs:
           ALLUXIO_DOCKER_NO_TTY=true \
           ALLUXIO_DOCKER_GIT_CLEAN=true \
           ALLUXIO_DOCKER_MVN_RUNTOEND=true \
-          ALLUXIO_DOCKER_MVN_PROJECT_LIST=!webui,!shaded/client,!assembly/client,!assembly/server \
-          dev/github/run_docker.sh "\"-Dtest=${{ matrix.modules }}\"" -pl '!tests,!webui'
+          ALLUXIO_DOCKER_MVN_PROJECT_LIST=!shaded/client,!assembly/client,!assembly/server \
+          dev/github/run_docker.sh "\"-Dtest=${{ matrix.modules }}\"" -pl '!tests'
         timeout-minutes: 60
       - name: Generate coverage report
         id: cov0
