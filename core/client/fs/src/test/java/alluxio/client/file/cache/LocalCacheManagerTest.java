@@ -15,13 +15,14 @@ import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
 import alluxio.client.file.cache.evictor.CacheEvictor;
-import alluxio.client.file.cache.evictor.FIFOEvictor;
+import alluxio.client.file.cache.evictor.FIFOCacheEvictor;
 import alluxio.client.file.cache.evictor.UnevictableCacheEvictor;
 import alluxio.client.file.cache.store.LocalPageStore;
 import alluxio.client.file.cache.store.PageStoreOptions;
@@ -43,7 +44,6 @@ import com.google.common.collect.Streams;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
 
 import java.io.File;
@@ -78,9 +78,6 @@ public final class LocalCacheManagerTest {
   @Rule
   public TemporaryFolder mTemp = new TemporaryFolder();
 
-  @Rule
-  public ExpectedException mThrown = ExpectedException.none();
-
   @Before
   public void before() throws Exception {
     mConf.set(PropertyKey.USER_CLIENT_CACHE_PAGE_SIZE, PAGE_SIZE_BYTES);
@@ -95,7 +92,7 @@ public final class LocalCacheManagerTest {
     mConf.set(PropertyKey.USER_CLIENT_CACHE_TIMEOUT_DURATION, "60s");
     mPageStoreOptions = PageStoreOptions.create(mConf);
     mPageStore = PageStore.create(mPageStoreOptions);
-    mEvictor = new FIFOEvictor(mConf);
+    mEvictor = new FIFOCacheEvictor(mConf);
     mMetaStore = new DefaultMetaStore(mEvictor);
     mCacheManager = createLocalCacheManager();
   }
@@ -487,8 +484,8 @@ public final class LocalCacheManagerTest {
   @Test
   public void getNotEnoughSpaceException() throws Exception {
     byte[] buf = new byte[PAGE1.length - 1];
-    mThrown.expect(IllegalArgumentException.class);
-    mCacheManager.get(PAGE_ID1, PAGE1.length, buf, 0);
+    assertThrows(IllegalArgumentException.class, () ->
+        mCacheManager.get(PAGE_ID1, PAGE1.length, buf, 0));
   }
 
   @Test

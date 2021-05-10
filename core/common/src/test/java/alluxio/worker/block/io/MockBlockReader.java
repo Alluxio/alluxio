@@ -23,6 +23,7 @@ import java.nio.channels.ReadableByteChannel;
  */
 public final class MockBlockReader extends BlockReader {
   private final byte[] mBytes;
+  private boolean mClosed;
 
   /**
    * Constructs a mock block reader which will read the given data.
@@ -31,11 +32,12 @@ public final class MockBlockReader extends BlockReader {
    */
   public MockBlockReader(byte[] bytes) {
     mBytes = bytes;
+    mClosed = false;
   }
 
   @Override
   public void close() {
-    // no-op
+    mClosed = true;
   }
 
   @Override
@@ -51,7 +53,7 @@ public final class MockBlockReader extends BlockReader {
 
   @Override
   public boolean isClosed() {
-    return false;
+    return mClosed;
   }
 
   @Override

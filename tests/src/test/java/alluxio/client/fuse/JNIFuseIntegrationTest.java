@@ -17,8 +17,6 @@ import alluxio.conf.ServerConfiguration;
 import alluxio.fuse.AlluxioJniFuseFileSystem;
 import alluxio.fuse.FuseMountOptions;
 
-import org.junit.Ignore;
-
 import java.util.ArrayList;
 
 /**
@@ -44,11 +42,5 @@ public class JNIFuseIntegrationTest extends AbstractFuseIntegrationTest {
   @Override
   public void umountFuse(String mountPath) throws Exception {
     mFuseFileSystem.umount();
-  }
-
-  @Ignore
-  @Override
-  public void touchAndLs() throws Exception {
-    // TODO(lu) Enable the test after https://github.com/Alluxio/alluxio/issues/13090 solved
   }
 }

@@ -62,6 +62,9 @@ Here are the documentation to configure individual application logs including
 [Apache Hive]({{ '/en/compute/Hive.html' | relativize_url }}#logging-configuration),
 [Apache Spark]({{ '/en/compute/Spark.html' | relativize_url }}#logging-configuration).
 
+For [Alluxio commandline]({{ '/en/operation/User-CLI.html' | relativize_url }}),
+the user log is located at `${ALLUXIO_HOME}/logs/user/user_${user_name}.log`.
+
 ## Configuring Log Levels
 
 Alluxio uses the following five logging levels:

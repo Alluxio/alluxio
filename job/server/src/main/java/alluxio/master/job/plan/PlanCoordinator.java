@@ -255,7 +255,8 @@ public final class PlanCoordinator {
           if (mPlanInfo.getErrorMessage().isEmpty()) {
             mPlanInfo.setErrorType(info.getErrorType());
             mPlanInfo.setErrorMessage("Task execution failed: " + info.getErrorMessage());
-            LOG.info("Job failed Id={} Error={}", mPlanInfo.getId(), info.getErrorMessage());
+            LOG.info("Job failed Id={} Config={} Error={}", mPlanInfo.getId(),
+                mPlanInfo.getJobConfig(), info.getErrorMessage());
           }
           // setStatus after setting the message to propagate error message up
           // through statusChangeCallback
@@ -264,7 +265,8 @@ public final class PlanCoordinator {
         case CANCELED:
           if (mPlanInfo.getStatus() != Status.FAILED) {
             if (mPlanInfo.getStatus() != Status.CANCELED) {
-              LOG.info("Job cancelled Id={}", mPlanInfo.getId());
+              LOG.info("Job cancelled Id={} Config={}",
+                  mPlanInfo.getId(), mPlanInfo.getJobConfig());
             }
             mPlanInfo.setStatus(Status.CANCELED);
           }
@@ -275,6 +277,7 @@ public final class PlanCoordinator {
           }
           break;
         case COMPLETED:
+          LOG.info("Job completed Id={} Config={}", mPlanInfo.getId(), mPlanInfo.getJobConfig());
           completed++;
           break;
         case CREATED:
