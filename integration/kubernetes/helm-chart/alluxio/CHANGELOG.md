@@ -175,3 +175,7 @@
 0.6.20
 
 - Add Master StatefulSet podManagementPolicy Parallel (see Issue [#13323](https://github.com/Alluxio/alluxio/issues/13323))
+
+0.6.21
+
+- Add Master StatefulSet podAntiAffinity so that master pods will not be running on one node.
