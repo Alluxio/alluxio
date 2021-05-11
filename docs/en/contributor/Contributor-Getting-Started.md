@@ -115,7 +115,7 @@ tasks typically only need to modify a single file. **Intermediate** tasks typica
 multiple files, but in the same package. **Advanced** tasks typically need to modify multiple files
 from multiple packages.
 
-All new contributors are recommended to resolve two **New Contributor** tasks before taking on
+All new contributors are recommended to resolve one and only one **New Contributor** tasks before taking on
 larger tasks. This is a good way to familiarize yourself with the entire process of contributing to
 the Alluxio project.
 
@@ -125,8 +125,6 @@ In order to assign an issue to yourself, leave a comment in the issue like `/ass
 to indicate that you are working on the issue.
 You should always assign a ticket to yourself this way before you start working on it, so others
 in the community know you are working on the ticket.
-The New Contributor issues are created for new contributors to try the whole contribution process, 
-please take only **one** of them. 
 
 Notice that all New Contributor issues on Github are assigned with a number. The number can be
 found after the issue title, like `#123`.
