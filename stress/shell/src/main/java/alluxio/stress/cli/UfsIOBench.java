@@ -20,10 +20,9 @@ import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.util.CommonUtils;
 import alluxio.util.FormatUtils;
 import alluxio.util.executor.ExecutorServiceFactories;
-
 import alluxio.util.io.PathUtils;
+
 import com.beust.jcommander.ParametersDelegate;
-import com.google.common.annotations.VisibleForTesting;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -314,7 +313,7 @@ public class UfsIOBench extends Benchmark<IOTaskResult> {
     return IOTaskResult.reduceList(results);
   }
 
-  public static String getDataDirPath(String path) {
+  private static String getDataDirPath(String path) {
     return PathUtils.concatPath(path, TEST_DIR_NAME);
   }
 }
