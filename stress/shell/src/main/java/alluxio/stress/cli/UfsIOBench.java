@@ -45,7 +45,7 @@ import java.util.stream.Collectors;
 public class UfsIOBench extends Benchmark<IOTaskResult> {
   private static final Logger LOG = LoggerFactory.getLogger(UfsIOBench.class);
   private static final int BUFFER_SIZE = 1024 * 1024;
-  private static final String TEST_DIR_NAME = "iotest";
+  private static final String TEST_DIR_NAME = "UfsIOTest";
 
   @ParametersDelegate
   private UfsIOParameters mParameters = new UfsIOParameters();
