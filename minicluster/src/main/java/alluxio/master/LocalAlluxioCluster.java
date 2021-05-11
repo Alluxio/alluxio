@@ -60,6 +60,7 @@ public final class LocalAlluxioCluster extends AbstractLocalAlluxioCluster {
 
   /**
    * @param numWorkers the number of workers to run
+   * @param includeSecondary weather to include the secondary master
    */
   public LocalAlluxioCluster(int numWorkers, boolean includeSecondary) {
     super(numWorkers);
