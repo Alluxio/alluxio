@@ -139,6 +139,10 @@ public class BlockMasterClient extends AbstractMasterClient {
     }, LOG, "GetId", "address=%s", address);
   }
 
+  /**
+   * Converts the block list map to proto.
+   * The output list will not contain duplicate keys.
+   * */
   private List<LocationBlockIdListEntry> convertBlockListMapToProto(
       Map<BlockStoreLocation, List<Long>> blockListOnLocation) {
     final List<LocationBlockIdListEntry> entryList = new ArrayList<>();

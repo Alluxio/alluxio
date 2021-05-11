@@ -84,10 +84,14 @@ public final class BlockMasterWorkerServiceHandler extends
                     e -> Block.BlockLocation.newBuilder().setTier(e.getKey().getTierAlias())
                         .setMediumType(e.getKey().getMediumType()).build(),
                     e -> e.getValue().getBlockIdList(),
+                    /**
+                     * The merger function is invoked on key collisions to merge the values.
+                     * In fact this merger should never be invoked because the list is deduplicated
+                     * by {@link BlockMasterClient#heartbeat} before sending to the master.
+                     */
                     (e1, e2) -> {
-                      List<Long> e3 = new ArrayList<>(e1);
-                      e3.addAll(e2);
-                      return e3;
+                      e1.addAll(e2);
+                      return e1;
                     }));
 
     final List<Metric> metrics = request.getOptions().getMetricsList()
