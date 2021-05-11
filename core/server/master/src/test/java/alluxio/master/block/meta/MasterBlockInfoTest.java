@@ -37,13 +37,13 @@ public final class MasterBlockInfoTest {
 
   @Test
   public void addWorker() {
-    mInfo.addWorker(1, "MEM");
+    mInfo.addWorker(1, Constants.MEDIUM_MEM);
     assertTrue(mInfo.getWorkers().contains(1L));
   }
 
   @Test
   public void removeWorker() {
-    mInfo.addWorker(1, "MEM");
+    mInfo.addWorker(1, Constants.MEDIUM_MEM);
     mInfo.removeWorker(1);
     assertEquals(0, mInfo.getWorkers().size());
   }
@@ -55,36 +55,36 @@ public final class MasterBlockInfoTest {
 
   @Test
   public void getNumLocations() {
-    mInfo.addWorker(1, "MEM");
-    mInfo.addWorker(2, "MEM");
-    mInfo.addWorker(3, "HDD");
+    mInfo.addWorker(1, Constants.MEDIUM_MEM);
+    mInfo.addWorker(2, Constants.MEDIUM_MEM);
+    mInfo.addWorker(3, Constants.MEDIUM_HDD);
     assertEquals(3, mInfo.getNumLocations());
   }
 
   @Test
   public void getBlockLocations() {
-    mInfo.addWorker(1, "MEM");
-    mInfo.addWorker(2, "MEM");
-    mInfo.addWorker(3, "HDD");
+    mInfo.addWorker(1, Constants.MEDIUM_MEM);
+    mInfo.addWorker(2, Constants.MEDIUM_MEM);
+    mInfo.addWorker(3, Constants.MEDIUM_HDD);
 
     List<MasterBlockLocation> locations = mInfo.getBlockLocations();
     Set<MasterBlockLocation> expectedLocations = ImmutableSet.of(
-        new MasterBlockLocation(1, "MEM"),
-        new MasterBlockLocation(2, "MEM"),
-        new MasterBlockLocation(3, "HDD"));
+        new MasterBlockLocation(1, Constants.MEDIUM_MEM),
+        new MasterBlockLocation(2, Constants.MEDIUM_MEM),
+        new MasterBlockLocation(3, Constants.MEDIUM_HDD));
     assertEquals(expectedLocations, ImmutableSet.copyOf(locations));
   }
 
   @Test
   public void isInTier() {
-    mInfo.addWorker(1, "HDD");
-    assertTrue(mInfo.isInTier("HDD"));
+    mInfo.addWorker(1, Constants.MEDIUM_HDD);
+    assertTrue(mInfo.isInTier(Constants.MEDIUM_HDD));
   }
 
   @Test
   public void isNotInTier() {
-    mInfo.addWorker(1, "HDD");
-    assertFalse(mInfo.isInTier("MEM"));
+    mInfo.addWorker(1, Constants.MEDIUM_HDD);
+    assertFalse(mInfo.isInTier(Constants.MEDIUM_MEM));
   }
 
   @Test
