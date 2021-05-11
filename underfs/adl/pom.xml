@@ -22,20 +22,21 @@
   <description>Microsoft Azure DataLake Under File System implementation</description>
 
   <properties>
-    <!-- The hadoop client version adl-hadoop depends on -->
-    <adl.hadoop.version>2.10.0</adl.hadoop.version>
     <!-- The following paths need to be defined here as well as in the parent pom so that mvn can -->
     <!-- run properly from sub-project directories -->
     <build.path>${project.parent.parent.basedir}/build</build.path>
+    <ufs.hadoop.version>3.3.0</ufs.hadoop.version>
   </properties>
 
   <dependencies>
-    <!-- Internal dependencies -->
+    <!-- External dependencies -->
     <dependency>
-      <groupId>org.alluxio</groupId>
-      <artifactId>alluxio-shaded-adl</artifactId>
-      <version>${project.version}</version>
+      <groupId>org.apache.hadoop</groupId>
+      <artifactId>hadoop-azure-datalake</artifactId>
+      <version>${ufs.hadoop.version}</version>
     </dependency>
+
+    <!-- Internal dependencies -->
     <dependency>
       <groupId>org.alluxio</groupId>
       <artifactId>alluxio-core-common</artifactId>
