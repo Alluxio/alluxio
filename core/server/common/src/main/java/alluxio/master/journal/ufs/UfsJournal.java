@@ -26,6 +26,8 @@ import alluxio.master.journal.JournalReader;
 import alluxio.master.journal.JournalUtils;
 import alluxio.master.journal.MasterJournalContext;
 import alluxio.master.journal.sink.JournalSink;
+import alluxio.metrics.MetricKey;
+import alluxio.metrics.MetricsSystem;
 import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.retry.ExponentialTimeBoundedRetry;
 import alluxio.retry.RetryPolicy;
@@ -116,6 +118,9 @@ public class UfsJournal implements Journal {
   /** Used to stop catching up when cancellation requested.  */
   private volatile boolean mStopCatchingUp = false;
 
+  private long mLastCheckPointTime = -1;
+  private long mEntriesSinceLastCheckPoint = 0;
+
   private enum State {
     SECONDARY, PRIMARY, CLOSED;
   }
@@ -174,6 +179,12 @@ public class UfsJournal implements Journal {
     mTmpDir = URIUtils.appendPathOrDie(mLocation, TMP_DIRNAME);
     mState.set(State.SECONDARY);
     mJournalSinks = journalSinks;
+    MetricsSystem.registerGaugeIfAbsent(
+        MetricKey.MASTER_JOURNAL_ENTRIES_SINCE_CHECKPOINT.getName() + "." + mMaster.getName(),
+        () -> mEntriesSinceLastCheckPoint);
+    MetricsSystem.registerGaugeIfAbsent(
+        MetricKey.MASTER_JOURNAL_LAST_CHECKPOINT_TIME.getName()+ "." + mMaster.getName(),
+        () -> mLastCheckPointTime);
   }
 
   @Override
@@ -187,6 +198,7 @@ public class UfsJournal implements Journal {
   @VisibleForTesting
   synchronized void write(JournalEntry entry) throws IOException, JournalClosedException {
     writer().write(entry);
+    mEntriesSinceLastCheckPoint++;
   }
 
   /**
@@ -462,6 +474,8 @@ public class UfsJournal implements Journal {
       mMaster.writeToCheckpoint(journalWriter);
       LOG.info("{}: Finished checkpoint [sequence number {}].",
           mMaster.getName(), nextSequenceNumber);
+      mEntriesSinceLastCheckPoint = 0;
+      mLastCheckPointTime = System.currentTimeMillis();
     } catch (InterruptedException e) {
       Thread.currentThread().interrupt();
       throw new CancelledException(mMaster.getName() + ": Checkpoint is interrupted");

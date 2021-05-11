@@ -151,6 +151,9 @@ public class JournalStateMachine extends BaseStateMachine {
     MetricsSystem.registerGaugeIfAbsent(
         MetricKey.MASTER_EMBEDDED_JOURNAL_SNAPSHOT_LAST_INDEX.getName(),
         () -> mSnapshotLastIndex);
+    MetricsSystem.registerGaugeIfAbsent(
+        MetricKey.MASTER_JOURNAL_ENTRIES_SINCE_CHECKPOINT.getName(),
+        () -> getLastAppliedTermIndex().getIndex() - mSnapshotLastIndex);
   }
 
   @Override

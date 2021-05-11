@@ -559,6 +559,22 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setDescription("The timer statistics of journal flush")
           .setMetricType(MetricType.TIMER)
           .build();
+  public static final MetricKey MASTER_JOURNAL_SEQUENCE_NUMBER =
+      new Builder(Name.MASTER_JOURNAL_SEQUENCE_NUMBER)
+          .setDescription("Current journal sequence number")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey MASTER_JOURNAL_LAST_CHECKPOINT_TIME =
+      new Builder(Name.MASTER_JOURNAL_LAST_CHECKPOINT_TIME)
+          .setDescription("Last Journal Checkpoint Time")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey MASTER_JOURNAL_ENTRIES_SINCE_CHECKPOINT =
+      new Builder(Name.MASTER_JOURNAL_ENTRIES_SINCE_CHECKPOINT)
+          .setDescription("Journal entries since last checkpoint")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+
   public static final MetricKey MASTER_JOURNAL_GAIN_PRIMACY_TIMER =
       new Builder(Name.MASTER_JOURNAL_GAIN_PRIMACY_TIMER)
           .setDescription("The timer statistics of journal gain primacy")
@@ -1434,6 +1450,10 @@ public final class MetricKey implements Comparable<MetricKey> {
     public static final String MASTER_JOURNAL_FLUSH_FAILURE = "Master.JournalFlushFailure";
     public static final String MASTER_JOURNAL_FLUSH_TIMER = "Master.JournalFlushTimer";
     public static final String MASTER_JOURNAL_GAIN_PRIMACY_TIMER = "Master.JournalGainPrimacyTimer";
+    public static final String MASTER_JOURNAL_SEQUENCE_NUMBER = "Master.JournalSequenceNumber";
+    public static final String MASTER_JOURNAL_ENTRIES_SINCE_CHECKPOINT = "Master.JournalEntriesSinceCheckpoint";
+    public static final String MASTER_JOURNAL_LAST_CHECKPOINT_TIME = "Master.JournalLastCheckpointTime";
+
     public static final String MASTER_UFS_JOURNAL_CATCHUP_TIMER
         = "Master.UfsJournalCatchupTimer";
     public static final String MASTER_UFS_JOURNAL_FAILURE_RECOVER_TIMER
