@@ -739,6 +739,11 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setDescription("Total number of active workers inside the cluster")
           .setMetricType(MetricType.GAUGE)
           .build();
+  public static final MetricKey CLUSTER_LOST_WORKERS =
+      new Builder(Name.CLUSTER_LOST_WORKERS)
+          .setDescription("Total number of lost workers inside the cluster")
+          .setMetricType(MetricType.GAUGE)
+          .build();
 
   // Worker metrics
   public static final MetricKey WORKER_ASYNC_CACHE_DUPLICATE_REQUESTS =
@@ -1473,6 +1478,7 @@ public final class MetricKey implements Comparable<MetricKey> {
     public static final String CLUSTER_ROOT_UFS_CAPACITY_USED = "Cluster.RootUfsCapacityUsed";
     public static final String CLUSTER_ROOT_UFS_CAPACITY_FREE = "Cluster.RootUfsCapacityFree";
     public static final String CLUSTER_WORKERS = "Cluster.Workers";
+    public static final String CLUSTER_LOST_WORKERS = "Cluster.Lost.Workers";
 
     // Worker metrics
     public static final String WORKER_ASYNC_CACHE_DUPLICATE_REQUESTS

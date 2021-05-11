@@ -1252,6 +1252,13 @@ public final class DefaultBlockMaster extends CoreMaster implements BlockMaster 
               return master.getWorkerCount();
             }
           });
+      MetricsSystem.registerGaugeIfAbsent(MetricKey.CLUSTER_LOST_WORKERS.getName(),
+          new Gauge<Integer>() {
+            @Override
+            public Integer getValue() {
+              return master.getLostWorkerCount();
+            }
+          });
     }
 
     private Metrics() {} // prevent instantiation
