@@ -66,9 +66,9 @@ jobs:
         with:
           name: artifact
           path: |
+            **/target/surefire-reports/*
             **/target/artifacts/*
             **/target/logs/*
-            log*
           retention-days: 7
       - name: "Upload Code Coverage Report"
         uses: codecov/codecov-action@v1
