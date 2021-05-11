@@ -603,7 +603,7 @@ public final class DefaultBlockMaster extends CoreMaster implements BlockMaster 
         for (long workerId : workerIds) {
           MasterWorkerInfo worker = mWorkers.getFirstByField(ID_INDEX, workerId);
           if (worker != null) {
-            // TODO(jiacheng): we read the mBlocks and write the mToRemoveBlocks
+            // We read the mBlocks and write the mToRemoveBlocks
             worker.mBlockListLock.writeLock().lock();
             try {
               worker.updateToRemovedBlock(true, blockId);
@@ -733,17 +733,14 @@ public final class DefaultBlockMaster extends CoreMaster implements BlockMaster 
 //          // Update the worker information for this new block.
 //          // TODO(binfan): when retry commitBlock on master is expected, make sure metrics are not
 //          // double counted.
-//          // TODO(jiacheng): write lock on the worker.mBlockListLock and worker.mUsageLock
 //          worker.addBlock(blockId);
 //          worker.updateUsedBytes(tierAlias, usedBytesOnTier);
 //          worker.updateLastUpdatedTimeMs();
 //        }
 //      }
 
-      // TODO(jiacheng): write lock on all 3
       // TODO(jiacheng): we lock the worker first to maintain the lock order?
       //  otherwise we don't need to lock this early
-      worker.mMetaLock.writeLock().lock();
       worker.mUsageLock.writeLock().lock();
       worker.mBlockListLock.writeLock().lock();
       try {
@@ -774,11 +771,16 @@ public final class DefaultBlockMaster extends CoreMaster implements BlockMaster 
           // double counted.
           worker.addBlock(blockId);
           worker.updateUsedBytes(tierAlias, usedBytesOnTier);
-          worker.updateLastUpdatedTimeMs();
         }
       } finally {
         worker.mBlockListLock.writeLock().unlock();
         worker.mUsageLock.writeLock().unlock();
+      }
+
+      worker.mMetaLock.writeLock().lock();
+      try {
+        worker.updateLastUpdatedTimeMs();
+      } finally {
         worker.mMetaLock.writeLock().unlock();
       }
     }
@@ -889,30 +891,23 @@ public final class DefaultBlockMaster extends CoreMaster implements BlockMaster 
    * @param workerId the worker id to register
    */
   @Nullable
-  private MasterWorkerInfo registerWorkerInternal(long workerId) {
+  private MasterWorkerInfo recordWorkerRegistration(long workerId) {
     for (IndexedSet<MasterWorkerInfo> workers: Arrays.asList(mTempWorkers, mLostWorkers)) {
       MasterWorkerInfo worker = workers.getFirstByField(ID_INDEX, workerId);
       if (worker == null) {
         continue;
       }
 
-      // TODO(jiacheng): write lock on worker.mMetaLock
-      worker.mMetaLock.writeLock().lock();
-      try {
-        // TODO(jiacheng): why do we update the TS here?
-        worker.updateLastUpdatedTimeMs();
-        mWorkers.add(worker);
-        workers.remove(worker);
-        if (workers == mLostWorkers) {
-          for (Consumer<Address> function : mLostWorkerFoundListeners) {
-            function.accept(new Address(worker.getWorkerAddress().getHost(),
-                    worker.getWorkerAddress().getRpcPort()));
-          }
-          LOG.warn("A lost worker {} has requested its old id {}.",
-                  worker.getWorkerAddress(), worker.getId());
+      mWorkers.add(worker);
+      workers.remove(worker);
+      if (workers == mLostWorkers) {
+        for (Consumer<Address> function : mLostWorkerFoundListeners) {
+          // The worker address is final, no need for locking here
+          function.accept(new Address(worker.getWorkerAddress().getHost(),
+                  worker.getWorkerAddress().getRpcPort()));
         }
-      } finally {
-        worker.mMetaLock.writeLock().unlock();
+        LOG.warn("A lost worker {} has requested its old id {}.",
+                worker.getWorkerAddress(), worker.getId());
       }
 
       return worker;
@@ -990,7 +985,6 @@ public final class DefaultBlockMaster extends CoreMaster implements BlockMaster 
     worker.mUsageLock.writeLock().lock();
     worker.mBlockListLock.writeLock().lock();
     try {
-      worker.updateLastUpdatedTimeMs();
       // Detect any lost blocks on this worker.
       Set<Long> removedBlocks = worker.register(mGlobalStorageTierAssoc, storageTiers,
           totalBytesOnTiers, usedBytesOnTiers, blocks);
@@ -1013,12 +1007,19 @@ public final class DefaultBlockMaster extends CoreMaster implements BlockMaster 
       }
     }
 
-    // This takes locks too
-    registerWorkerInternal(workerId);
+    /**
+     * No locking on the {@link MasterWorkerInfo} is required in this method
+     * as it does not update the object fields.
+     * */
+    recordWorkerRegistration(workerId);
 
-    // TODO(jiacheng): Can't I just update the updateTs here in the end?
-    // The
-
+    // Update the TS at the end of the process
+    worker.mMetaLock.writeLock().lock();
+    try {
+      worker.updateLastUpdatedTimeMs();
+    } finally {
+      worker.mMetaLock.writeLock().unlock();
+    }
 
     // Invalidate cache to trigger new build of worker info list
     mWorkerInfoCache.invalidate(WORKER_INFO_CACHE_KEY);
@@ -1066,12 +1067,12 @@ public final class DefaultBlockMaster extends CoreMaster implements BlockMaster 
      * Refactored
      */
 
-    // TODO(jiacheng): no worker.lock needed here
+    // The address is final, no need for locking
     processWorkerMetrics(worker.getWorkerAddress().getHost(), metrics);
 
     // TODO(jiacheng): what are the race conditions by locking separately?
+    worker.mMetaLock.writeLock().lock();
     worker.mUsageLock.writeLock().lock();
-    // TODO(jiacheng): cannot downgrade to read lock as the process methods update the MasterWorkerInfo
     worker.mBlockListLock.writeLock().lock();
     Command workerCommand = null;
     try {
@@ -1099,10 +1100,16 @@ public final class DefaultBlockMaster extends CoreMaster implements BlockMaster 
                 .build();
       }
     } finally {
-      worker.mUsageLock.writeLock().unlock();
       worker.mBlockListLock.writeLock().unlock();
+      worker.mUsageLock.writeLock().unlock();
+      worker.mMetaLock.writeLock().unlock();
     }
-    // TODO(jiacheng): what if this is null?
+
+    if (workerCommand == null) {
+      // TODO(jiacheng): what if this is null?
+
+    }
+
     return workerCommand;
   }
 
@@ -1120,6 +1127,7 @@ public final class DefaultBlockMaster extends CoreMaster implements BlockMaster 
    * @param removedBlockIds A list of block ids removed from the worker
    */
   @GuardedBy("workerInfo")
+  // TODO(jiacheng): Update all GuardedBy
   private void processWorkerRemovedBlocks(MasterWorkerInfo workerInfo,
       Collection<Long> removedBlockIds) {
     for (long removedBlockId : removedBlockIds) {

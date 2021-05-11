@@ -13,7 +13,6 @@ package alluxio.master.block.meta;
 
 import alluxio.Constants;
 import alluxio.StorageTierAssoc;
-import alluxio.WorkerStorageTierAssoc;
 import alluxio.client.block.options.GetWorkerReportOptions.WorkerInfoField;
 import alluxio.grpc.StorageList;
 import alluxio.util.CommonUtils;
@@ -21,7 +20,6 @@ import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.base.MoreObjects;
-import com.google.common.base.Preconditions;
 import com.google.common.collect.Sets;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -81,6 +79,8 @@ public final class MasterWorkerInfo {
 
   /**
    * Marks the worker as registered, while updating all of its metadata.
+   * Write locks on {@link MasterWorkerInfo#mUsageLock} and {@link MasterWorkerInfo#mBlockListLock}
+   * are required.
    *
    * @param globalStorageTierAssoc global mapping between storage aliases and ordinal position
    * @param storageTierAliases list of storage tier aliases in order of their position in the
@@ -95,7 +95,7 @@ public final class MasterWorkerInfo {
       final List<String> storageTierAliases, final Map<String, Long> totalBytesOnTiers,
       final Map<String, Long> usedBytesOnTiers, final Set<Long> blocks) {
     // TODO(jiacheng): IllegalArgumentException?
-    mUsage.update(globalStorageTierAssoc, storageTierAliases,
+    mUsage.updateUsage(globalStorageTierAssoc, storageTierAliases,
             totalBytesOnTiers, usedBytesOnTiers);
 
     Set<Long> removedBlocks;

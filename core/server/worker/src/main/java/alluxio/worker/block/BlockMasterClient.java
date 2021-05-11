@@ -242,6 +242,7 @@ public class BlockMasterClient extends AbstractMasterClient {
     final RegisterWorkerPOptions options =
         RegisterWorkerPOptions.newBuilder().addAllConfigs(configList).build();
 
+    // TODO(jiacheng): this part of logic needs to update
     final List<LocationBlockIdListEntry> currentBlocks
         = convertBlockListMapToProto(currentBlocksOnLocation);
 
@@ -250,12 +251,14 @@ public class BlockMasterClient extends AbstractMasterClient {
             e -> StorageList.newBuilder().addAllStorage(e.getValue()).build()));
 
     // TODO(jiacheng): break this into chunks?
+    // 1st request, all but blocks
     final RegisterWorkerPRequest request = RegisterWorkerPRequest.newBuilder().setWorkerId(workerId)
         .addAllStorageTiers(storageTierAliases).putAllTotalBytesOnTiers(totalBytesOnTiers)
         .putAllUsedBytesOnTiers(usedBytesOnTiers)
-        .addAllCurrentBlocks(currentBlocks)
+//        .addAllCurrentBlocks(currentBlocks)
         .putAllLostStorage(lostStorageMap)
         .setOptions(options).build();
+
     // This is what the code used to be
 //    retryRPC(() -> {
 //                    mClient.registerWorker(request);
@@ -280,8 +283,7 @@ public class BlockMasterClient extends AbstractMasterClient {
 
         @Override
         public void onCompleted() {
-          // TODO(jiacheng)
-          LOG.info("Worker registration completed.");
+          LOG.info("Worker registration received success message from master.");
           finishLatch.countDown();
         }
       };
@@ -297,7 +299,7 @@ public class BlockMasterClient extends AbstractMasterClient {
         // On the following requests, send the block locations in chunks
 
       } catch (Throwable e) {
-        // Cancel RPC
+        // TODO(jiacheng): Cancel RPC
         requestObserver.onError(e);
         throw e;
       }
@@ -308,12 +310,19 @@ public class BlockMasterClient extends AbstractMasterClient {
       try {
         // Set timeout
         // TODO(jiacheng): make configurable
-        finishLatch.await(10, TimeUnit.MINUTES);
+        if (finishLatch.await(10, TimeUnit.MINUTES)) {
+          // If the return is true, then the countdown has finished
+          LOG.info("Finished register");
+          return null;
+        } else {
+          // If the return is false, then the countdown has timed out
+          // TODO(jiacheng)
+          LOG.error("Failed to finish register in 10 minutes!");
+          throw new RuntimeException("Failed to finish register in 10 min.");
+        }
       } catch (InterruptedException e) {
         // TODO(jiacheng)
       }
-
-      return null;
     }, LOG, "Register", "workerId=%d", workerId);
   }
 }

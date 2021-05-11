@@ -29,10 +29,14 @@ public class WorkerUsageMeta {
     mLostStorage = new HashMap<>();
   }
 
-  public void update(final StorageTierAssoc globalStorageTierAssoc,
-                     final List<String> storageTierAliases,
-                     final Map<String, Long> totalBytesOnTiers,
-                     final Map<String, Long> usedBytesOnTiers) throws IllegalArgumentException {
+  /**
+   * Update the worker resource usage.
+   * Locking on the {@link WorkerUsageMeta} is required.
+   * */
+  public void updateUsage(final StorageTierAssoc globalStorageTierAssoc,
+                          final List<String> storageTierAliases,
+                          final Map<String, Long> totalBytesOnTiers,
+                          final Map<String, Long> usedBytesOnTiers) throws IllegalArgumentException {
     // If the storage aliases do not have strictly increasing ordinal value based on the total
     // ordering, throw an error
     for (int i = 0; i < storageTierAliases.size() - 1; i++) {
