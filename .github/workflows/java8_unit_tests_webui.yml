@@ -30,7 +30,7 @@ jobs:
         uses: actions/cache@v2
         with:
           path: ~/.m2/repository
-          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          key: ${{ runner.os }}-maven-java8-${{ hashFiles('**/pom.xml') }}
 
       - name: Run tests
         id: test0
