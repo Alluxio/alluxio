@@ -114,6 +114,7 @@ public final class LocalAlluxioClusterResource implements TestRule {
     mIncludeSecondary = includeSecondary;
     mNumWorkers = numWorkers;
     mConfiguration.putAll(configuration);
+    
     MetricsSystem.resetCountersAndGauges();
   }
 
