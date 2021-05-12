@@ -109,7 +109,7 @@ public final class LocalAlluxioClusterResource implements TestRule {
    * @param configuration configuration for configuring the cluster
    */
   private LocalAlluxioClusterResource(boolean startCluster, boolean includeSecondary,
-                                      int numWorkers, Map<PropertyKey, String> configuration) {
+      int numWorkers, Map<PropertyKey, String> configuration) {
     mStartCluster = startCluster;
     mIncludeSecondary = includeSecondary;
     mNumWorkers = numWorkers;
