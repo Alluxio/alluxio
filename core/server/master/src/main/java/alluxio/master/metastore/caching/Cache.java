@@ -11,8 +11,6 @@
 
 package alluxio.master.metastore.caching;
 
-import static alluxio.metrics.MetricKey.MASTER_INODE_CACHE_HIT_RATIO;
-
 import alluxio.Constants;
 import alluxio.master.metastore.ReadOption;
 import alluxio.metrics.MetricKey;
@@ -117,7 +115,7 @@ public abstract class Cache<K, V> implements Closeable {
    */
   public Optional<V> get(K key, ReadOption option) {
     try (Timer.Context ctx = MetricsSystem
-        .timer(MetricKey.MASTER_INODE_CACHE_LOAD_LATENCY.getName()).time()) {
+        .timer(MetricKey.MASTER_INODE_CACHE_LOAD_TIMER.getName()).time()) {
       if (option.shouldSkipCache() || cacheIsFull()) {
         return getSkipCache(key);
       }

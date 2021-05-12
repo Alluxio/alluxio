@@ -17,8 +17,6 @@ import alluxio.master.journal.Journal;
 import alluxio.master.journal.JournalContext;
 import alluxio.master.journal.Journaled;
 import alluxio.master.journal.MasterJournalContext;
-import alluxio.metrics.MetricKey;
-import alluxio.metrics.MetricsSystem;
 
 import java.io.IOException;
 import java.net.URI;

@@ -183,7 +183,7 @@ public class UfsJournal implements Journal {
         MetricKey.MASTER_JOURNAL_ENTRIES_SINCE_CHECKPOINT.getName() + "." + mMaster.getName(),
         () -> mEntriesSinceLastCheckPoint);
     MetricsSystem.registerGaugeIfAbsent(
-        MetricKey.MASTER_JOURNAL_LAST_CHECKPOINT_TIME.getName()+ "." + mMaster.getName(),
+        MetricKey.MASTER_JOURNAL_LAST_CHECKPOINT_TIME.getName() + "." + mMaster.getName(),
         () -> mLastCheckPointTime);
   }
 

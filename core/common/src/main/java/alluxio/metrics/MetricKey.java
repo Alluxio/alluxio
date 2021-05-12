@@ -1478,8 +1478,10 @@ public final class MetricKey implements Comparable<MetricKey> {
     public static final String MASTER_JOURNAL_FLUSH_TIMER = "Master.JournalFlushTimer";
     public static final String MASTER_JOURNAL_GAIN_PRIMACY_TIMER = "Master.JournalGainPrimacyTimer";
     public static final String MASTER_JOURNAL_SEQUENCE_NUMBER = "Master.JournalSequenceNumber";
-    public static final String MASTER_JOURNAL_ENTRIES_SINCE_CHECKPOINT = "Master.JournalEntriesSinceCheckpoint";
-    public static final String MASTER_JOURNAL_LAST_CHECKPOINT_TIME = "Master.JournalLastCheckpointTime";
+    public static final String MASTER_JOURNAL_ENTRIES_SINCE_CHECKPOINT
+        = "Master.JournalEntriesSinceCheckpoint";
+    public static final String MASTER_JOURNAL_LAST_CHECKPOINT_TIME
+        = "Master.JournalLastCheckpointTime";
 
     public static final String MASTER_UFS_JOURNAL_CATCHUP_TIMER
         = "Master.UfsJournalCatchupTimer";
