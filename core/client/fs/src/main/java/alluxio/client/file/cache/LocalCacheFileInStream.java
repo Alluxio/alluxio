@@ -25,6 +25,7 @@ import alluxio.util.io.BufferUtils;
 import com.codahale.metrics.Meter;
 import com.google.common.base.Preconditions;
 import com.google.common.io.Closer;
+import java.nio.ByteBuffer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -345,5 +346,81 @@ public class LocalCacheFileInStream extends FileInStream {
             return 0;
           });
     }
+  }
+
+  private synchronized byte[] readBufferFromExternalPage(long pos) throws IOException {
+    long pageStart = pos - (pos % mPageSize);
+    FileInStream stream = getExternalFileInStream(pageStart);
+    int pageSize = (int) Math.min(mPageSize, mStatus.getLength() - pageStart);
+    byte[] page = new byte[pageSize];
+    ByteBuffer buffer = ByteBuffer.wrap(page);
+    int totalBytesRead = stream.read(buffer);
+    while (totalBytesRead < pageSize) {
+      int bytesRead = stream.read(buffer);
+      if (bytesRead <= 0) {
+        break;
+      }
+      totalBytesRead += bytesRead;
+    }
+
+    Metrics.BYTES_READ_EXTERNAL.mark(totalBytesRead);
+    if (totalBytesRead != pageSize) {
+      throw new IOException("Failed to read complete page from external storage. Bytes read: "
+          + totalBytesRead + " Page size: " + pageSize);
+    }
+    return page;
+  }
+
+  /**
+   * This function actually implements the read(ByteBuffer buf) method
+   */
+  @Override
+  public int read(ByteBuffer buf) throws IOException {
+    byte[] b = new byte[buf.remaining()];
+    int len = buf.remaining();
+    int off = buf.position();
+    Preconditions.checkArgument(len >= 0, "length should be non-negative");
+    Preconditions.checkArgument(off >= 0, "offset should be non-negative");
+    if (len == 0) {
+      return 0;
+    }
+    if (mPosition >= mStatus.getLength()) { // at end of file
+      return -1;
+    }
+    int totalBytesRead = 0;
+    long lengthToRead = Math.min(len, mStatus.getLength() - mPosition);
+    // for each page, check if it is available in the cache
+    while (totalBytesRead < lengthToRead) {
+      long currentPage = mPosition / mPageSize;
+      int currentPageOffset = (int) (mPosition % mPageSize);
+      int bytesLeftInPage =
+          (int) Math.min(mPageSize - currentPageOffset, lengthToRead - totalBytesRead);
+      PageId pageId = new PageId(mStatus.getFileIdentifier(), currentPage);
+      int bytesRead =
+          mCacheManager.get(pageId, currentPageOffset, bytesLeftInPage, b, off + totalBytesRead);
+      if (bytesRead > 0) {
+        totalBytesRead += bytesRead;
+        mPosition += bytesRead;
+        Metrics.BYTES_READ_CACHE.mark(bytesRead);
+      } else {
+        // on local cache miss, read a complete page from external storage. This will always make
+        // progress or throw an exception
+        byte[] page = readBufferFromExternalPage(mPosition);
+        if (page.length > 0) {
+          System.arraycopy(page, currentPageOffset, b, off + totalBytesRead, bytesLeftInPage);
+          totalBytesRead += bytesLeftInPage;
+          mPosition += bytesLeftInPage;
+          Metrics.BYTES_REQUESTED_EXTERNAL.mark(bytesLeftInPage);
+          mCacheManager.put(pageId, page, mCacheScope, mCacheQuota);
+        }
+      }
+    }
+    if (totalBytesRead > len || (totalBytesRead < len && remaining() > 0)) {
+      throw new IOException(String.format("Invalid number of bytes read - "
+              + "bytes to read = %d, actual bytes read = %d, bytes remains in file %d",
+          len, totalBytesRead, remaining()));
+    }
+    buf.put(b, off, len);
+    return totalBytesRead;
   }
 }

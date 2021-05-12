@@ -461,4 +461,9 @@ public class AlluxioFileInStream extends FileInStream {
 
     mFailedWorkers.put(workerAddress, System.currentTimeMillis());
   }
+
+  @Override
+  public int read(ByteBuffer buf) throws IOException {
+    throw new UnsupportedOperationException("read(ByteBuffer buf) not implemented for AlluxioFileInStream");
+  }
 }

@@ -13,6 +13,7 @@ package alluxio.client.file;
 
 import alluxio.Seekable;
 import alluxio.client.BoundedStream;
+import alluxio.client.ByteBufferReadable;
 import alluxio.client.PositionedReadable;
 
 import java.io.InputStream;
@@ -23,5 +24,5 @@ import java.io.InputStream;
  * into a given offset of the stream to read.
  */
 public abstract class FileInStream extends InputStream implements BoundedStream, PositionedReadable,
-    Seekable {
+    Seekable, ByteBufferReadable {
 }

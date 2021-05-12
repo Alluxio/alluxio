@@ -57,6 +57,7 @@ import alluxio.wire.MountPointInfo;
 import alluxio.wire.SyncPointInfo;
 
 import com.google.common.io.ByteStreams;
+import java.nio.ByteBuffer;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -683,6 +684,11 @@ public class LocalCacheFileInStreamTest {
     public int positionedRead(long position, byte[] buffer, int offset, int length)
         throws IOException {
       return mIn.positionedRead(position, buffer, offset, length);
+    }
+
+    @Override
+    public int read(ByteBuffer buf) throws IOException {
+      throw new UnsupportedOperationException("read(ByteBuffer buf) not implemented for MultiReadFileInStream");
     }
   }
 }

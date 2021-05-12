@@ -13,6 +13,7 @@ package alluxio.client.file;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.nio.ByteBuffer;
 
 /**
  * Mock implementation of {@link FileInStream} which delegates to a {@link ByteArrayInputStream}.
@@ -74,5 +75,10 @@ public final class MockFileInStream extends FileInStream {
   @Override
   public long remaining() {
     return mStream.available();
+  }
+
+  @Override
+  public int read(ByteBuffer buf) throws IOException {
+    throw new UnsupportedOperationException("read(ByteBuffer buf) not implemented for mock FileInStream");
   }
 }
