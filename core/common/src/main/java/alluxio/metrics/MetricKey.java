@@ -312,11 +312,21 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setDescription("Total number of hits in the inodes (inode metadata) cache.")
           .setMetricType(MetricType.GAUGE)
           .build();
+  public static final MetricKey MASTER_INODE_CACHE_HIT_RATIO =
+      new Builder(Name.MASTER_INODE_CACHE_HIT_RATIO)
+          .setDescription("Inode Cache hit ratio")
+          .setMetricType(MetricType.GAUGE)
+          .build();
   public static final MetricKey MASTER_INODE_CACHE_LOAD_TIMES =
       new Builder(Name.MASTER_INODE_CACHE_LOAD_TIMES)
           .setDescription("Total load times in the inodes (inode metadata) cache "
               + "that resulted from a cache miss.")
           .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey MASTER_INODE_CACHE_LOAD_TIMER =
+      new Builder(Name.MASTER_INODE_CACHE_LOAD_TIMER)
+          .setDescription("Total load latency in the inodes (inode metadata) cache")
+          .setMetricType(MetricType.TIMER)
           .build();
   public static final MetricKey MASTER_INODE_CACHE_MISSES =
       new Builder(Name.MASTER_INODE_CACHE_MISSES)
@@ -1399,7 +1409,9 @@ public final class MetricKey implements Comparable<MetricKey> {
 
     public static final String MASTER_INODE_CACHE_EVICTIONS = "Master.InodeCacheEvictions";
     public static final String MASTER_INODE_CACHE_HITS = "Master.InodeCacheHits";
+    public static final String MASTER_INODE_CACHE_HIT_RATIO = "Master.InodeCacheHitRatio";
     public static final String MASTER_INODE_CACHE_LOAD_TIMES = "Master.InodeCacheLoadTimes";
+    public static final String MASTER_INODE_CACHE_LOAD_TIMER = "Master.InodeCacheLoadTimer";
     public static final String MASTER_INODE_CACHE_MISSES = "Master.InodeCacheMisses";
     public static final String MASTER_INODE_CACHE_SIZE = "Master.InodeCacheSize";
 
