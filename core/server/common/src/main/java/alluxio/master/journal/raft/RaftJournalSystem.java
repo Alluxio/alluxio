@@ -387,7 +387,7 @@ public class RaftJournalSystem extends AbstractJournalSystem {
    * @return current raft group
    */
   @VisibleForTesting
-  public RaftGroup getCurrentGroup() {
+  public synchronized RaftGroup getCurrentGroup() {
     try {
       Iterator<RaftGroup> groupIter = mServer.getGroups().iterator();
       Preconditions.checkState(groupIter.hasNext(), "no group info found");

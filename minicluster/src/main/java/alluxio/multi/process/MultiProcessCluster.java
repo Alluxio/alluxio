@@ -200,7 +200,7 @@ public final class MultiProcessCluster {
     }
     List<MasterNetAddress> masterAddresses = generateMasterAddresses(count);
     mMasterAddresses.addAll(masterAddresses);
-    mNumMasters += count;
+    mNumMasters = mMasterAddresses.size();
 
     LOG.info("Master addresses: {}", mMasterAddresses);
     switch (mDeployMode) {
