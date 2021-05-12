@@ -688,7 +688,7 @@ public class LocalCacheFileInStreamTest {
 
     @Override
     public int read(ByteBuffer buf) throws IOException {
-      throw new UnsupportedOperationException("read(ByteBuffer buf) not implemented for MultiReadFileInStream");
+      return mIn.read(buf);
     }
   }
 }
