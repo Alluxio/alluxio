@@ -290,6 +290,8 @@ public final class MetricKey implements Comparable<MetricKey> {
               + "from (parentId, childName) to childId.")
           .setMetricType(MetricType.GAUGE)
           .build();
+
+  // Master file statistics
   public static final MetricKey MASTER_FILES_PINNED =
       new Builder(Name.MASTER_FILES_PINNED)
           .setDescription("Total number of currently pinned files")
@@ -342,6 +344,12 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setDescription("Total number of files and directory in Alluxio namespace")
           .setMetricType(MetricType.GAUGE)
           .build();
+  public static final MetricKey MASTER_TOTAL_BLOCKS =
+      new Builder(Name.MASTER_TOTAL_BLOCKS)
+          .setDescription("Total number of blocks in Alluxio")
+          .setMetricType(MetricType.COUNTER)
+          .build();
+
   // Backup Restore
   public static final MetricKey MASTER_LAST_BACKUP_ENTRIES_COUNT =
       new Builder(Name.MASTER_LAST_BACKUP_ENTRIES_COUNT)
@@ -1399,6 +1407,7 @@ public final class MetricKey implements Comparable<MetricKey> {
     public static final String MASTER_JOURNAL_SPACE_FREE_PERCENT = "Master.JournalFreePercent";
 
     public static final String MASTER_TOTAL_PATHS = "Master.TotalPaths";
+    public static final String MASTER_TOTAL_BLOCKS = "Master.TotalBlocks";
 
     // metrics names for BackupManager
     public static final String MASTER_LAST_BACKUP_ENTRIES_COUNT = "Master.LastBackupEntriesCount";
