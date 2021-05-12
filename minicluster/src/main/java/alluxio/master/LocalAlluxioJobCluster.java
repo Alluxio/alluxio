@@ -162,6 +162,8 @@ public final class LocalAlluxioJobCluster {
 
     ServerConfiguration
         .set(PropertyKey.JOB_MASTER_RPC_PORT, String.valueOf(mMaster.getRpcAddress().getPort()));
+    ServerConfiguration
+        .set(PropertyKey.JOB_MASTER_WEB_PORT, String.valueOf(mMaster.getWebAddress().getPort()));
     Runnable runMaster = new Runnable() {
       @Override
       public void run() {
