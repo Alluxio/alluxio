@@ -175,3 +175,7 @@
 0.6.20
 
 - Add Master StatefulSet podManagementPolicy Parallel (see Issue [#13323](https://github.com/Alluxio/alluxio/issues/13323))
+
+0.6.21
+
+- Change logserver PVC default selectors to empty, so dynamic provisioning works by default configuration.

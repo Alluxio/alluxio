@@ -224,6 +224,12 @@ func addAdditionalFiles(srcPath, dstPath string, hadoopVersion version, version 
 		"integration/docker/Dockerfile.fuse",
 		"integration/docker/entrypoint.sh",
 		"integration/fuse/bin/alluxio-fuse",
+		"integration/metrics/docker-compose-master.yaml",
+		"integration/metrics/docker-compose-worker.yaml",
+		"integration/metrics/otel-agent-config.yaml",
+		"integration/metrics/otel-agent-config-worker.yaml",
+		"integration/metrics/otel-collector-config.yaml",
+		"integration/metrics/prometheus.yaml",
 		"libexec/alluxio-config.sh",
 		"LICENSE",
 	}
