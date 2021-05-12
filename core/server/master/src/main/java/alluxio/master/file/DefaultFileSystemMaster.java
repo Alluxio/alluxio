@@ -1687,6 +1687,11 @@ public final class DefaultFileSystemMaster extends CoreMaster
   }
 
   @Override
+  public int getToBePersistedFileCount() {
+    return mPersistRequests.size();
+  }
+
+  @Override
   public void delete(AlluxioURI path, DeleteContext context)
       throws IOException, FileDoesNotExistException, DirectoryNotEmptyException,
       InvalidPathException, AccessControlException {
@@ -4492,9 +4497,10 @@ public final class DefaultFileSystemMaster extends CoreMaster
         final FileSystemMaster master, final UfsManager ufsManager) {
       MetricsSystem.registerGaugeIfAbsent(MetricKey.MASTER_FILES_PINNED.getName(),
           master::getNumberOfPinnedFiles);
-
+      MetricsSystem.registerGaugeIfAbsent(MetricKey.MASTER_FILES_TO_PERSIST.getName(),
+          master::getToBePersistedFileCount);
       MetricsSystem.registerGaugeIfAbsent(MetricKey.MASTER_TOTAL_PATHS.getName(),
-          () -> master.getInodeCount());
+          master::getInodeCount);
 
       final String ufsDataFolder = ServerConfiguration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
 

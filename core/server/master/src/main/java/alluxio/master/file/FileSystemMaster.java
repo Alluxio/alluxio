@@ -269,6 +269,11 @@ public interface FileSystemMaster extends Master {
   int getNumberOfPinnedFiles();
 
   /**
+   * @return the number of to be persisted files
+   */
+  int getToBePersistedFileCount();
+
+  /**
    * Deletes a given path.
    * <p>
    * This operation requires user to have WRITE permission on the parent of the path.

@@ -295,6 +295,11 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setDescription("Total number of currently pinned files")
           .setMetricType(MetricType.GAUGE)
           .build();
+  public static final MetricKey MASTER_FILES_TO_PERSIST =
+      new Builder(Name.MASTER_FILES_TO_PERSIST)
+          .setDescription("Total number of currently to be persisted files")
+          .setMetricType(MetricType.GAUGE)
+          .build();
   public static final MetricKey MASTER_INODE_CACHE_EVICTIONS =
       new Builder(Name.MASTER_INODE_CACHE_EVICTIONS)
           .setDescription("Total number of inodes that was evicted from the cache.")
@@ -1382,6 +1387,7 @@ public final class MetricKey implements Comparable<MetricKey> {
     public static final String MASTER_EDGE_CACHE_SIZE = "Master.EdgeCacheSize";
 
     public static final String MASTER_FILES_PINNED = "Master.FilesPinned";
+    public static final String MASTER_FILES_TO_PERSIST = "Master.FilesToBePersisted";
 
     public static final String MASTER_INODE_CACHE_EVICTIONS = "Master.InodeCacheEvictions";
     public static final String MASTER_INODE_CACHE_HITS = "Master.InodeCacheHits";
