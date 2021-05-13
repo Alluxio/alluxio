@@ -119,7 +119,7 @@ public class SummaryCommandTest {
     // Skip checking startTime which relies on system time zone
     String startTime =  CommonUtils.convertMsToDate(1131242343122L, dateFormatPattern);
     List<String> expectedOutput = Arrays.asList("Alluxio cluster summary: ",
-        "    Leader Master Address: testAddress",
+        "    Leader Master Address: testAddress:8462",
         "    Live Masters Addresses: [testAddress:8462, testAddress2:975, testAddress3:976]",
         "    Web Port: 1231",
         "    Rpc Port: 8462",
