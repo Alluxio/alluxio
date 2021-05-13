@@ -86,7 +86,7 @@ public class SummaryCommand {
           MasterInfoField.SAFE_MODE, MasterInfoField.ZOOKEEPER_ADDRESSES));
     MasterInfo masterInfo = mMetaMasterClient.getMasterInfo(masterInfoFilter);
 
-    print("Master Address: " + masterInfo.getLeaderMasterAddress());
+    print("Leader Master Address: " + masterInfo.getLeaderMasterAddress());
     print("Live Masters Addresses: " + masterInfo.getMasterAddressesList().stream().map(netAddress
         -> netAddress.getHost() + ":" + netAddress.getRpcPort()).collect(Collectors.toList()));
     print("Web Port: " + masterInfo.getWebPort());
