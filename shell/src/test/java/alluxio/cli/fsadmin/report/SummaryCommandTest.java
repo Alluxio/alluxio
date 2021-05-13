@@ -21,6 +21,7 @@ import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.grpc.MasterInfo;
+import alluxio.grpc.NetAddress;
 import alluxio.util.CommonUtils;
 import alluxio.util.ConfigurationUtils;
 import alluxio.wire.BlockMasterInfo;
@@ -56,7 +57,10 @@ public class SummaryCommandTest {
     // Prepare mock meta master client
     mMetaMasterClient = mock(MetaMasterClient.class);
     MasterInfo masterInfo = MasterInfo.newBuilder()
-        .setLeaderMasterAddress("testAddress")
+        .setLeaderMasterAddress("testAddress:8462")
+        .addMasterAddresses(NetAddress.newBuilder().setHost("testAddress").setRpcPort(8462).build())
+        .addMasterAddresses(NetAddress.newBuilder().setHost("testAddress2").setRpcPort(975).build())
+        .addMasterAddresses(NetAddress.newBuilder().setHost("testAddress3").setRpcPort(976).build())
         .setWebPort(1231)
         .setRpcPort(8462)
         .setStartTimeMs(1131242343122L)
@@ -115,7 +119,8 @@ public class SummaryCommandTest {
     // Skip checking startTime which relies on system time zone
     String startTime =  CommonUtils.convertMsToDate(1131242343122L, dateFormatPattern);
     List<String> expectedOutput = Arrays.asList("Alluxio cluster summary: ",
-        "    Master Address: testAddress",
+        "    Leader Master Address: testAddress:8462",
+        "    Live Masters Addresses: [testAddress:8462, testAddress2:975, testAddress3:976]",
         "    Web Port: 1231",
         "    Rpc Port: 8462",
         "    Started: " + startTime,
