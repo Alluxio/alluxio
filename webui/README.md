@@ -58,7 +58,7 @@ NOTE: `coverage-ci` is meant to run tests once and quit (for continuous integrat
 #### Developing within the webui project
 
 1. Follow the prerequisite instructions above.
-1. Enable CORS for the alluxio RESTful api endpoints by setting `alluxio.webui.enable.cors=true` in `conf/alluxio-site.properties`
+1. Enable CORS for the alluxio RESTful api endpoints by setting `alluxio.web.cors.enabled=true` in `conf/alluxio-site.properties`
 1. Start a development server in one of the following ways:
     1. For all packages: `npm run start`
     1. For each package independently:

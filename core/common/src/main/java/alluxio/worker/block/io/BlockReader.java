@@ -35,7 +35,7 @@ public abstract class BlockReader extends BlockClient {
    * Reads data from the block.
    *
    * @param offset the offset from starting of the block file in bytes
-   * @param length the length of data to read in bytes, -1 for the rest of the block
+   * @param length the length of data to read in bytes
    * @return {@link ByteBuffer} the data that was read
    */
   public abstract ByteBuffer read(long offset, long length) throws IOException;

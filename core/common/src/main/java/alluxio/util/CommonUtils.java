@@ -44,6 +44,7 @@ import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
@@ -119,7 +120,7 @@ public final class CommonUtils {
    * @return current time in milliseconds
    */
   public static long getCurrentMs() {
-    return System.currentTimeMillis();
+    return Instant.now().toEpochMilli();
   }
 
   /**
@@ -373,11 +374,11 @@ public final class CommonUtils {
                                     Function<T, Boolean> condition, WaitForOptions options)
       throws TimeoutException, InterruptedException {
     T value;
-    long start = System.currentTimeMillis();
+    long start = getCurrentMs();
     int interval = options.getInterval();
     int timeout = options.getTimeoutMs();
     while (condition.apply(value = objectSupplier.get()) != true) {
-      if (timeout != WaitForOptions.NEVER && System.currentTimeMillis() - start > timeout) {
+      if (timeout != WaitForOptions.NEVER && getCurrentMs() - start > timeout) {
         throw new TimeoutException("Timed out waiting for " + description + " options: " + options
             + " last value: " + ObjectUtils.toString(value));
       }
@@ -571,7 +572,7 @@ public final class CommonUtils {
    */
   public static <T> void invokeAll(ExecutorService service, List<Callable<T>> callables,
       long timeoutMs) throws TimeoutException, ExecutionException {
-    long endMs = System.currentTimeMillis() + timeoutMs;
+    long endMs = getCurrentMs() + timeoutMs;
     List<Future<T>> pending = new ArrayList<>();
     for (Callable<T> c : callables) {
       pending.add(service.submit(c));
@@ -601,7 +602,7 @@ public final class CommonUtils {
       if (pending.isEmpty()) {
         break;
       }
-      long remainingMs = endMs - System.currentTimeMillis();
+      long remainingMs = endMs - getCurrentMs();
       if (remainingMs <= 0) {
         // Cancel the pending futures
         for (Future<T> future : pending) {

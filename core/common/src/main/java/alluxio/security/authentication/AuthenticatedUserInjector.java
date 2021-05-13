@@ -93,6 +93,8 @@ public final class AuthenticatedUserInjector implements ServerInterceptor {
       try {
         // Fetch authenticated username for this channel and set it.
         AuthenticatedUserInfo userInfo = mAuthenticationServer.getUserInfoForChannel(channelId);
+        LOG.debug("Acquiring credentials for service-method: {} on channel: {}",
+            call.getMethodDescriptor().getFullMethodName(), channelId);
         if (userInfo != null) {
           AuthenticatedClientUser.set(userInfo.getAuthorizedUserName());
           AuthenticatedClientUser.setConnectionUser(userInfo.getConnectionUserName());

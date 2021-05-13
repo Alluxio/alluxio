@@ -16,12 +16,16 @@ Worker.BlocksDeleted,COUNTER
 Worker.BlocksEvicted,COUNTER
 Worker.BlocksLost,COUNTER
 Worker.BlocksPromoted,COUNTER
+Worker.BytesReadDirect,COUNTER
+Worker.BytesReadDirectThroughput,METER
 Worker.BytesReadDomain,COUNTER
 Worker.BytesReadDomainThroughput,METER
 Worker.BytesReadPerUfs,COUNTER
 Worker.BytesReadRemote,COUNTER
 Worker.BytesReadRemoteThroughput,METER
 Worker.BytesReadUfsThroughput,METER
+Worker.BytesWrittenDirect,COUNTER
+Worker.BytesWrittenDirectThroughput,METER
 Worker.BytesWrittenDomain,COUNTER
 Worker.BytesWrittenDomainThroughput,METER
 Worker.BytesWrittenPerUfs,COUNTER

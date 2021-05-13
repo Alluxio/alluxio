@@ -39,6 +39,7 @@ spec:
       role: alluxio-master
       name: {{ $fullName }}-master
   serviceName: {{ $fullName }}-master
+  podManagementPolicy: Parallel
   replicas: {{ $masterCount }}
   template:
     metadata:
@@ -59,6 +60,9 @@ spec:
       {{- end }}
     {{- end }}
     spec:
+      {{ if .Values.hostAliases }}
+      {{- include "alluxio.hostAliases" . | nindent 6 }}
+      {{ end }}
       hostNetwork: {{ $hostNetwork }}
       dnsPolicy: {{ .Values.master.dnsPolicy | default ($hostNetwork | ternary "ClusterFirstWithHostNet" "ClusterFirst") }}
       nodeSelector:
@@ -67,10 +71,22 @@ spec:
       {{- else if .Values.nodeSelector }}
 {{ toYaml .Values.nodeSelector | trim | indent 8  }}
       {{- end }}
+      tolerations:
+      {{- if .Values.master.tolerations }}
+{{ toYaml .Values.master.tolerations | trim | indent 8  }}
+      {{- end }}
+      {{- if .Values.tolerations }}
+{{ toYaml .Values.tolerations | trim | indent 8  }}
+      {{- end }}
       securityContext:
         runAsUser: {{ .Values.user }}
         runAsGroup: {{ .Values.group }}
         fsGroup: {{ .Values.fsGroup }}
+    {{- if .Values.master.serviceAccount }}
+      serviceAccountName: {{ .Values.master.serviceAccount }}
+    {{- else if .Values.serviceAccount }}
+      serviceAccountName: {{ .Values.serviceAccount }}
+    {{- end }}
       initContainers:
       {{- if .Values.journal.format.runFormat}}
       - name: journal-format
@@ -107,8 +123,8 @@ spec:
                 fieldPath: status.podIP
           {{- end }}
           {{- range $key, $value := .Values.master.env }}
-            - name: "{{ $key }}"
-              value: "{{ $value }}"
+          - name: "{{ $key }}"
+            value: "{{ $value }}"
           {{- end }}
           envFrom:
           - configMapRef:

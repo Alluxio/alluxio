@@ -16,6 +16,7 @@ import alluxio.client.file.cache.store.PageStoreOptions;
 import alluxio.client.file.cache.store.PageStoreType;
 import alluxio.client.file.cache.store.RocksPageStore;
 import alluxio.exception.PageNotFoundException;
+import alluxio.exception.status.ResourceExhaustedException;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.util.io.FileUtils;
@@ -57,7 +58,7 @@ public interface PageStore extends AutoCloseable {
    * @throws IOException if I/O error happens
    */
   static PageStore open(PageStoreOptions options) throws IOException {
-    LOG.info("Creating PageStore with option={}", options.toString());
+    LOG.info("Opening PageStore with option={}", options.toString());
     final PageStore pageStore;
     switch (options.getType()) {
       case LOCAL:
@@ -97,7 +98,7 @@ public interface PageStore extends AutoCloseable {
   static void initialize(PageStoreOptions options) throws IOException {
     String rootPath = options.getRootDir();
     Files.createDirectories(Paths.get(rootPath));
-    LOG.debug("Clean cache directory {}", rootPath);
+    LOG.info("Cleaning cache directory {}", rootPath);
     try (Stream<Path> stream = Files.list(Paths.get(rootPath))) {
       stream.forEach(path -> {
         try {
@@ -115,8 +116,10 @@ public interface PageStore extends AutoCloseable {
    *
    * @param pageId page identifier
    * @param page page data
+   * @throws ResourceExhaustedException when there is not enough space found on disk
+   * @throws IOException when the store fails to write this page
    */
-  void put(PageId pageId, byte[] page) throws IOException;
+  void put(PageId pageId, byte[] page) throws ResourceExhaustedException, IOException;
 
   /**
    * Gets a page from the store to the destination buffer.

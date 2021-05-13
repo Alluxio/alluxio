@@ -67,6 +67,7 @@ export class OverviewPresenter extends React.Component<AllProps> {
               </tr>
               {this.renderConfigurationIssues(data.configCheckErrors, 'text-error')}
               {this.renderConfigurationIssues(data.configCheckWarns, 'text-warning')}
+              {this.renderJournalDiskWarnings(data.journalDiskWarnings, 'text-warning')}
             </tbody>
           </Table>
         </div>
@@ -131,6 +132,30 @@ export class OverviewPresenter extends React.Component<AllProps> {
         </div>
       </React.Fragment>
     );
+  }
+
+  private renderJournalDiskWarnings(warnings: string[], className: string): JSX.Element | null {
+    if (!warnings || !warnings.length) {
+      return null;
+    }
+
+    const warningRender = warnings.map((warning: string, idx: number) => (
+      <tr key={idx}>
+        <td colSpan={2} className={className}>
+          {warning}
+        </td>
+      </tr>
+    ));
+    const header = (
+      <tr key="-1">
+        <th colSpan={2} scope="row" className={className}>
+          Journal Disk Warning{warnings.length > 1 ? 's' : ''}
+        </th>
+      </tr>
+    );
+    warningRender.unshift(header);
+
+    return <React.Fragment>{warningRender}</React.Fragment>;
   }
 
   private renderConfigurationIssues(issues: IScopedPropertyInfo[], className: string): JSX.Element | null {

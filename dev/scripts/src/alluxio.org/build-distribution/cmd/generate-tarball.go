@@ -67,9 +67,19 @@ func Single(args []string) error {
 	if err := checkRootFlags(); err != nil {
 		return err
 	}
+	if includedLibJarsFlag != "all" {
+		uncheckedJars := strings.Split(includedLibJarsFlag, ",")
+		for _, jar := range uncheckedJars {
+			_, ok := libJars[jar]
+			if !ok {
+				return fmt.Errorf("lib jar %v not recognized", jar)
+			}
+		}
+	}
 	if debugFlag {
 		fmt.Fprintf(os.Stdout, "hadoopDistributionFlag=: %s\n", hadoopDistributionFlag)
 		fmt.Fprintf(os.Stdout, "customUfsModuleFlag=: %s\n", customUfsModuleFlag)
+		fmt.Fprintf(os.Stdout, "includedLibJarsFlag=: %s\n", includedLibJarsFlag)
 		fmt.Fprintf(os.Stdout, "mvnArgsFlag=: %s\n", mvnArgsFlag)
 		fmt.Fprintf(os.Stdout, "targetFlag=: %s\n", targetFlag)
 		fmt.Fprintf(os.Stdout, "ufs-modules=: %s\n", ufsModulesFlag)
@@ -231,6 +241,17 @@ func addAdditionalFiles(srcPath, dstPath string, hadoopVersion version, version 
 		"libexec/alluxio-config.sh",
 		"LICENSE",
 	}
+
+	if includedLibJarsFlag == "all" {
+		for jar := range libJars {
+			pathsToCopy = append(pathsToCopy, fmt.Sprintf("lib/alluxio-%v-%v.jar", jar, version))
+		}
+	} else {
+		for _, jar := range strings.Split(includedLibJarsFlag, ",") {
+			pathsToCopy = append(pathsToCopy, fmt.Sprintf("lib/alluxio-%v-%v.jar", jar, version))
+		}
+	}
+
 	if includeYarnIntegration(hadoopVersion) {
 		pathsToCopy = append(pathsToCopy, []string{
 			"integration/yarn/bin/alluxio-application-master.sh",

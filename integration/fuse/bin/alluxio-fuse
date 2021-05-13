@@ -101,6 +101,15 @@ fuse_stat() {
     echo -e "$(ps aux | grep [A]lluxioFuse | awk -F' ' '{print $2 "\t" $(NF-2) "\t" $NF}')"
     return 0
   fi
+  fuse_info=$(ps aux | grep [A]lluxioWorker | grep alluxio\.worker\.fuse\.enabled=true)
+  if [[ -n ${fuse_info} ]]; then
+    fuse_worker_pid="$(echo ${fuse_info} | awk '{print $2}')"
+    fuse_mount_point="$(echo ${fuse_info} | grep -Po '(?<=alluxio\.worker\.fuse\.mount\.point=)\S+(?=\s)')"
+    fuse_alluxio_path="$(echo ${fuse_info} | grep -Po '(?<=alluxio\.worker\.fuse\.mount\.alluxio\.path=)\S+(?=\s)')"
+    echo -e "pid\tmount_point\talluxio_path"
+    echo -e "${fuse_worker_pid}\t${fuse_mount_point}\t${fuse_alluxio_path}"
+    return 0
+  fi
   fuse_info=$(ps aux | grep [S]tackMain)
   if [[ -n ${fuse_info} ]]; then
     echo -e "pid\tmount_point\tsource_path"

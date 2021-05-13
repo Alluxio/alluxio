@@ -11,8 +11,8 @@
 
 package alluxio.job.plan.replicate;
 
+import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyInt;
@@ -70,7 +70,6 @@ import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 
@@ -78,7 +77,8 @@ import java.util.Set;
  * Tests {@link ReplicateConfig}.
  */
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({AlluxioBlockStore.class, FileSystemContext.class, JobServerContext.class})
+@PrepareForTest({AlluxioBlockStore.class, FileSystemContext.class, JobServerContext.class,
+    BlockInStream.class})
 public final class ReplicateDefinitionTest {
   private static final long TEST_BLOCK_ID = 1L;
   private static final long TEST_BLOCK_SIZE = 512L;
@@ -96,18 +96,22 @@ public final class ReplicateDefinitionTest {
   private static final WorkerInfo WORKER_INFO_1 = new WorkerInfo().setAddress(ADDRESS_1);
   private static final WorkerInfo WORKER_INFO_2 = new WorkerInfo().setAddress(ADDRESS_2);
   private static final WorkerInfo WORKER_INFO_3 = new WorkerInfo().setAddress(ADDRESS_3);
+  private static final String TEST_PATH = "/test";
 
   private FileSystemContext mMockFileSystemContext;
   private AlluxioBlockStore mMockBlockStore;
   private FileSystem mMockFileSystem;
   private JobServerContext mMockJobServerContext;
   private UfsManager mMockUfsManager;
+  private BlockInStream mBlockInStream;
+  private BlockInfo mTestBlockInfo;
+  private URIStatus mTestStatus;
 
   @Rule
   public final ExpectedException mThrown = ExpectedException.none();
 
   @Before
-  public void before() {
+  public void before() throws Exception {
     mMockFileSystemContext = PowerMockito.mock(FileSystemContext.class);
     when(mMockFileSystemContext.getClientContext())
         .thenReturn(ClientContext.create(ServerConfiguration.global()));
@@ -116,27 +120,27 @@ public final class ReplicateDefinitionTest {
     mMockUfsManager = mock(UfsManager.class);
     mMockJobServerContext =
         new JobServerContext(mMockFileSystem, mMockFileSystemContext, mMockUfsManager);
+    PowerMockito.mockStatic(AlluxioBlockStore.class);
+    when(AlluxioBlockStore.create(mMockFileSystemContext)).thenReturn(mMockBlockStore);
+    mTestBlockInfo = new BlockInfo().setBlockId(TEST_BLOCK_ID).setLength(TEST_BLOCK_SIZE);
+    when(mMockBlockStore.getInfo(TEST_BLOCK_ID)).thenReturn(mTestBlockInfo);
+    mTestStatus = new URIStatus(
+        new FileInfo().setPath(TEST_PATH).setBlockIds(Lists.newArrayList(TEST_BLOCK_ID))
+            .setFileBlockInfos(Lists.newArrayList(
+                new FileBlockInfo().setBlockInfo(mTestBlockInfo))));
   }
 
   /**
    * Helper function to select executors.
    *
-   * @param blockLocations where the block is store currently
    * @param numReplicas how many replicas to replicate or evict
    * @param workerInfoList a list of current available job workers
    * @return the selection result
    */
   private Set<Pair<WorkerInfo, SerializableVoid>> selectExecutorsTestHelper(
-      List<BlockLocation> blockLocations, int numReplicas, List<WorkerInfo> workerInfoList)
+      int numReplicas, List<WorkerInfo> workerInfoList)
       throws Exception {
-    BlockInfo blockInfo = new BlockInfo().setBlockId(TEST_BLOCK_ID);
-    blockInfo.setLocations(blockLocations);
-    when(mMockBlockStore.getInfo(TEST_BLOCK_ID)).thenReturn(blockInfo);
-    PowerMockito.mockStatic(AlluxioBlockStore.class);
-    when(AlluxioBlockStore.create(mMockFileSystemContext)).thenReturn(mMockBlockStore);
-
-    String path = "/test";
-    ReplicateConfig config = new ReplicateConfig(path, TEST_BLOCK_ID, numReplicas);
+    ReplicateConfig config = new ReplicateConfig(TEST_PATH, TEST_BLOCK_ID, numReplicas);
     ReplicateDefinition definition = new ReplicateDefinition();
     return definition.selectExecutors(config, workerInfoList,
         new SelectExecutorsContext(1, mMockJobServerContext));
@@ -151,35 +155,33 @@ public final class ReplicateDefinitionTest {
    */
   private void runTaskReplicateTestHelper(List<BlockWorkerInfo> blockWorkers,
       BlockInStream mockInStream, BlockOutStream mockOutStream) throws Exception {
-    String path = "/test";
-    URIStatus status = new URIStatus(
-        new FileInfo().setPath(path).setBlockIds(Lists.newArrayList(TEST_BLOCK_ID))
-            .setFileBlockInfos(Lists.newArrayList(
-                new FileBlockInfo().setBlockInfo(
-                    new BlockInfo().setBlockId(TEST_BLOCK_ID).setLength(TEST_BLOCK_SIZE)))));
-    when(mMockFileSystem.getStatus(any(AlluxioURI.class))).thenReturn(status);
-
+    when(mMockFileSystem.getStatus(any(AlluxioURI.class))).thenReturn(mTestStatus);
     when(mMockFileSystemContext.getCachedWorkers()).thenReturn(blockWorkers);
     when(mMockBlockStore.getInStream(anyLong(),
             any(InStreamOptions.class))).thenReturn(mockInStream);
+    PowerMockito.mockStatic(BlockInStream.class);
+    when(BlockInStream.create(any(FileSystemContext.class), any(BlockInfo.class),
+        any(WorkerNetAddress.class), any(BlockInStreamSource.class), any(InStreamOptions.class)))
+        .thenReturn(mockInStream);
     when(
         mMockBlockStore.getOutStream(eq(TEST_BLOCK_ID), eq(TEST_BLOCK_SIZE), eq(LOCAL_ADDRESS),
             any(OutStreamOptions.class))).thenReturn(mockOutStream);
     when(mMockBlockStore.getInfo(TEST_BLOCK_ID))
-        .thenReturn(new BlockInfo().setBlockId(TEST_BLOCK_ID)
+        .thenReturn(mTestBlockInfo
             .setLocations(Lists.newArrayList(new BlockLocation().setWorkerAddress(ADDRESS_1))));
     PowerMockito.mockStatic(AlluxioBlockStore.class);
     when(AlluxioBlockStore.create(mMockFileSystemContext)).thenReturn(mMockBlockStore);
 
-    ReplicateConfig config = new ReplicateConfig(path, TEST_BLOCK_ID, 1 /* value not used */);
+    ReplicateConfig config = new ReplicateConfig(TEST_PATH, TEST_BLOCK_ID, 1 /* value not used */);
     ReplicateDefinition definition = new ReplicateDefinition();
     definition.runTask(config, null, new RunTaskContext(1, 1, mMockJobServerContext));
   }
 
   @Test
   public void selectExecutorsOnlyOneWorkerAvailable() throws Exception {
+    mTestBlockInfo.setLocations(Lists.newArrayList());
     Set<Pair<WorkerInfo, SerializableVoid>> result =
-        selectExecutorsTestHelper(Lists.<BlockLocation>newArrayList(), 1,
+        selectExecutorsTestHelper(1,
             Lists.newArrayList(WORKER_INFO_1));
     Set<Pair<WorkerInfo, SerializableVoid>> expected = Sets.newHashSet();
     expected.add(new Pair<>(WORKER_INFO_1, null));
@@ -189,8 +191,10 @@ public final class ReplicateDefinitionTest {
 
   @Test
   public void selectExecutorsOnlyOneWorkerValid() throws Exception {
+    mTestBlockInfo.setLocations(
+        Lists.newArrayList(new BlockLocation().setWorkerAddress(ADDRESS_1)));
     Set<Pair<WorkerInfo, SerializableVoid>> result = selectExecutorsTestHelper(
-        Lists.newArrayList(new BlockLocation().setWorkerAddress(ADDRESS_1)), 1,
+        1,
         Lists.newArrayList(WORKER_INFO_1, WORKER_INFO_2));
     Set<Pair<WorkerInfo, SerializableVoid>> expected = Sets.newHashSet();
     expected.add(new Pair<>(WORKER_INFO_2, null));
@@ -200,8 +204,10 @@ public final class ReplicateDefinitionTest {
 
   @Test
   public void selectExecutorsTwoWorkersValid() throws Exception {
+    mTestBlockInfo.setLocations(
+        Lists.newArrayList(new BlockLocation().setWorkerAddress(ADDRESS_1)));
     Set<Pair<WorkerInfo, SerializableVoid>> result = selectExecutorsTestHelper(
-        Lists.newArrayList(new BlockLocation().setWorkerAddress(ADDRESS_1)), 2,
+        2,
         Lists.newArrayList(WORKER_INFO_1, WORKER_INFO_2, WORKER_INFO_3));
     Set<Pair<WorkerInfo, SerializableVoid>> expected = Sets.newHashSet();
     expected.add(new Pair<>(WORKER_INFO_2, null));
@@ -212,8 +218,10 @@ public final class ReplicateDefinitionTest {
 
   @Test
   public void selectExecutorsOneOutOFTwoWorkersValid() throws Exception {
+    mTestBlockInfo.setLocations(
+        Lists.newArrayList(new BlockLocation().setWorkerAddress(ADDRESS_1)));
     Set<Pair<WorkerInfo, SerializableVoid>> result = selectExecutorsTestHelper(
-        Lists.newArrayList(new BlockLocation().setWorkerAddress(ADDRESS_1)), 1,
+        1,
         Lists.newArrayList(WORKER_INFO_1, WORKER_INFO_2, WORKER_INFO_3));
     // select one worker out of two
     assertEquals(1, result.size());
@@ -222,8 +230,10 @@ public final class ReplicateDefinitionTest {
 
   @Test
   public void selectExecutorsNoWorkerValid() throws Exception {
+    mTestBlockInfo.setLocations(
+        Lists.newArrayList(new BlockLocation().setWorkerAddress(ADDRESS_1)));
     Set<Pair<WorkerInfo, SerializableVoid>> result = selectExecutorsTestHelper(
-        Lists.newArrayList(new BlockLocation().setWorkerAddress(ADDRESS_1)), 1,
+        1,
         Lists.newArrayList(WORKER_INFO_1));
     Set<Pair<WorkerInfo, SerializableVoid>> expected = ImmutableSet.of();
     // select none as no choice left
@@ -232,8 +242,10 @@ public final class ReplicateDefinitionTest {
 
   @Test
   public void selectExecutorsInsufficientWorkerValid() throws Exception {
+    mTestBlockInfo.setLocations(
+        Lists.newArrayList(new BlockLocation().setWorkerAddress(ADDRESS_1)));
     Set<Pair<WorkerInfo, SerializableVoid>> result = selectExecutorsTestHelper(
-        Lists.newArrayList(new BlockLocation().setWorkerAddress(ADDRESS_1)), 2,
+        2,
         Lists.newArrayList(WORKER_INFO_1, WORKER_INFO_2));
     Set<Pair<WorkerInfo, SerializableVoid>> expected = Sets.newHashSet();
     expected.add(new Pair<>(WORKER_INFO_2, null));
@@ -257,9 +269,10 @@ public final class ReplicateDefinitionTest {
   }
 
   @Test
-  public void runTaskLocalBlockWorker() throws Exception {
+  public void runTaskLocalBlockWorkerPinnedMedium() throws Exception {
+    // file is pinned on a medium
+    mTestStatus.getFileInfo().setMediumTypes(Sets.newHashSet("MEM"));
     byte[] input = BufferUtils.getIncreasingByteArray(0, (int) TEST_BLOCK_SIZE);
-
     TestBlockInStream mockInStream =
         new TestBlockInStream(input, TEST_BLOCK_ID, input.length, false,
             BlockInStreamSource.NODE_LOCAL);
@@ -267,11 +280,27 @@ public final class ReplicateDefinitionTest {
         new TestBlockOutStream(ByteBuffer.allocate(MAX_BYTES), TEST_BLOCK_SIZE);
     BlockWorkerInfo localBlockWorker = new BlockWorkerInfo(LOCAL_ADDRESS, TEST_BLOCK_SIZE, 0);
     runTaskReplicateTestHelper(Lists.newArrayList(localBlockWorker), mockInStream, mockOutStream);
-    assertTrue(Arrays.equals(input, mockOutStream.getWrittenData()));
+    assertArrayEquals(input, mockOutStream.getWrittenData());
+  }
+
+  @Test
+  public void runTaskLocalBlockWorker() throws Exception {
+    byte[] input = BufferUtils.getIncreasingByteArray(0, (int) TEST_BLOCK_SIZE);
+
+    TestBlockInStream mockInStream =
+        new TestBlockInStream(input, TEST_BLOCK_ID, input.length, false,
+            BlockInStreamSource.NODE_LOCAL);
+    BlockOutStream unusedBlockOutStream = mock(BlockOutStream.class);
+    BlockWorkerInfo localBlockWorker = new BlockWorkerInfo(LOCAL_ADDRESS, TEST_BLOCK_SIZE, 0);
+    runTaskReplicateTestHelper(
+        Lists.newArrayList(localBlockWorker), mockInStream, unusedBlockOutStream);
+    assertEquals(TEST_BLOCK_SIZE, mockInStream.getBytesRead());
   }
 
   @Test
   public void runTaskInputIOException() throws Exception {
+    // file is pinned on a medium
+    mTestStatus.getFileInfo().setMediumTypes(Sets.newHashSet("MEM"));
     BlockInStream mockInStream = mock(BlockInStream.class);
     BlockOutStream mockOutStream = mock(BlockOutStream.class);
 

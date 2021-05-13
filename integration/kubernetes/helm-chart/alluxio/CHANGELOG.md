@@ -151,3 +151,27 @@
 0.6.14
 
 - Migrate master StatefulSet and worker DaemonSet securityContext to Pod-level (see Issue [#13096](https://github.com/Alluxio/alluxio/issues/13096))
+
+0.6.15
+
+- Fix incorrect indentation in logserver secret volume mount
+
+0.6.16
+
+- Change helm-chart fuse hostPath type from File to CharDevice
+
+0.6.17
+
+- Add hostAliases in Master and Worker Pods
+
+0.6.18
+
+- Add support for Node tolerations
+
+0.6.19
+
+- Add serviceAccountName in Master, Worker, and FUSE Pods
+
+0.6.20
+
+- Add Master StatefulSet podManagementPolicy Parallel (see Issue [#13323](https://github.com/Alluxio/alluxio/issues/13323))

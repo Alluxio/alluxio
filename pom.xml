@@ -124,12 +124,13 @@
   <properties>
     <argLine></argLine>
     <apache.curator.version>4.2.0</apache.curator.version>
-    <aws.amazonaws.version>1.11.215</aws.amazonaws.version>
+    <aws.amazonaws.version>1.11.815</aws.amazonaws.version>
     <build.path>build</build.path>
     <catalyst.version>1.2.1</catalyst.version>
     <glusterfs-hadoop.version>2.3.13</glusterfs-hadoop.version>
-    <grpc.version>1.28.1</grpc.version>
-    <netty.version>4.1.51.Final</netty.version>
+    <grpc.version>1.37.0</grpc.version>
+    <gson.version>2.8.6</gson.version>
+    <netty.version>4.1.52.Final</netty.version>
     <rocksdb.version>6.15.2</rocksdb.version>
     <hadoop.version>3.3.0</hadoop.version>
     <jacoco.version>0.8.5</jacoco.version>
@@ -165,6 +166,8 @@
     <update.check.host>https://diagnostics.alluxio.io</update.check.host>
     <findbugs.skip>false</findbugs.skip>
     <create.dependency.reduced.pom>false</create.dependency.reduced.pom>
+    <cephfs-hadoop.version>0.0.1</cephfs-hadoop.version>
+    <libcephfs.version>0.0.1</libcephfs.version>
   </properties>
 
   <modules>
@@ -199,6 +202,11 @@
       </dependency>
       <dependency>
         <groupId>com.amazonaws</groupId>
+        <artifactId>aws-java-sdk-sts</artifactId>
+        <version>${aws.amazonaws.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.amazonaws</groupId>
         <artifactId>aws-java-sdk-s3</artifactId>
         <version>${aws.amazonaws.version}</version>
       </dependency>
@@ -206,6 +214,16 @@
         <groupId>com.beust</groupId>
         <artifactId>jcommander</artifactId>
         <version>1.78</version>
+      </dependency>
+      <dependency>
+        <groupId>io.github.opendataio</groupId>
+        <artifactId>cephfs-hadoop</artifactId>
+        <version>${cephfs-hadoop.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.github.opendataio</groupId>
+        <artifactId>libcephfs</artifactId>
+        <version>${libcephfs.version}</version>
       </dependency>
       <dependency>
         <groupId>com.esotericsoftware</groupId>
@@ -240,7 +258,7 @@
       <dependency>
         <groupId>com.google.code.gson</groupId>
         <artifactId>gson</artifactId>
-        <version>2.8.6</version>
+        <version>${gson.version}</version>
       </dependency>
       <dependency>
         <groupId>com.google.guava</groupId>
@@ -787,7 +805,7 @@
       <dependency>
         <artifactId>xstream</artifactId>
         <groupId>com.thoughtworks.xstream</groupId>
-        <version>1.4.15</version>
+        <version>1.4.16</version>
         <scope>test</scope>
       </dependency>
 

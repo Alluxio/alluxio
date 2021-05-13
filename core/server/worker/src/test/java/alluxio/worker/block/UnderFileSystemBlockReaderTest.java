@@ -58,7 +58,6 @@ public final class UnderFileSystemBlockReaderTest {
   private UfsInputStreamCache mUfsInstreamCache;
   private Protocol.OpenUfsBlockOptions mOpenUfsBlockOptions;
 
-  /** Rule to create a new temporary folder during each test. */
   @Rule
   public TemporaryFolder mFolder = new TemporaryFolder();
 
@@ -88,7 +87,7 @@ public final class UnderFileSystemBlockReaderTest {
     mUfsManager = mock(UfsManager.class);
     mUfsInstreamCache = new UfsInputStreamCache();
     UfsClient ufsClient = new UfsClient(
-        () -> UnderFileSystem.Factory.create(testFilePath.toString(),
+        () -> UnderFileSystem.Factory.create(testFilePath,
             UnderFileSystemConfiguration.defaults(ServerConfiguration.global())),
         new AlluxioURI(testFilePath));
     when(mUfsManager.get(anyLong())).thenReturn(ufsClient);

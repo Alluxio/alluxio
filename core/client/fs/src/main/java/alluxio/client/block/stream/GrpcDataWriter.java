@@ -123,7 +123,7 @@ public final class GrpcDataWriter implements DataWriter {
     mAddress = address;
     mLength = length;
     AlluxioConfiguration conf = context.getClusterConf();
-    mDataTimeoutMs = conf.getMs(PropertyKey.USER_STREAMING_DATA_TIMEOUT);
+    mDataTimeoutMs = conf.getMs(PropertyKey.USER_STREAMING_DATA_WRITE_TIMEOUT);
     mWriterBufferSizeMessages = conf.getInt(PropertyKey.USER_STREAMING_WRITER_BUFFER_SIZE_MESSAGES);
     mWriterCloseTimeoutMs = conf.getMs(PropertyKey.USER_STREAMING_WRITER_CLOSE_TIMEOUT);
     mWriterFlushTimeoutMs = conf.getMs(PropertyKey.USER_STREAMING_WRITER_FLUSH_TIMEOUT);

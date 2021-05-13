@@ -46,6 +46,12 @@ ARG ALLUXIO_UID=1000
 ARG ALLUXIO_GID=1000
 ARG ENABLE_DYNAMIC_USER=false
 
+# Add Tini since it isn't included in Ubuntu by default
+# - https://github.com/krallin/tini
+ENV TINI_VERSION v0.18.0
+ADD https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini /usr/local/bin/tini
+RUN chmod +x /usr/local/bin/tini
+
 RUN apt-get update && apt-get install -y --no-install-recommends software-properties-common && \
     add-apt-repository -y ppa:openjdk-r/ppa && \
 	apt-get update && \

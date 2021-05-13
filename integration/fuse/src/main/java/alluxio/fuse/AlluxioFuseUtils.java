@@ -24,6 +24,7 @@ import alluxio.exception.FileAlreadyCompletedException;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
+import alluxio.metrics.MetricsSystem;
 import alluxio.util.CommonUtils;
 import alluxio.util.ConfigurationUtils;
 import alluxio.util.OSUtils;
@@ -36,6 +37,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -277,7 +279,11 @@ public final class AlluxioFuseUtils {
     long startMs = System.currentTimeMillis();
     int ret = callable.call();
     long durationMs = System.currentTimeMillis() - startMs;
+    MetricsSystem.timer(methodName).update(durationMs, TimeUnit.MILLISECONDS);
     logger.debug("Exit ({}): {}({}) in {} ms", ret, methodName, debugDesc, durationMs);
+    if (ret < 0) {
+      MetricsSystem.counter(methodName + "Failures").inc();
+    }
     if (durationMs >= THRESHOLD) {
       logger.warn("{}({}) returned {} in {} ms (>={} ms)", methodName,
           String.format(description, args), ret, durationMs, THRESHOLD);
