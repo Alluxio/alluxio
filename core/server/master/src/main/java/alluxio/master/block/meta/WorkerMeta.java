@@ -15,7 +15,9 @@ public class WorkerMeta {
   /** Start time of the worker in ms. */
   public final long mStartTimeMs;
   /** Worker's last updated time in ms. */
+  // TODO(jiacheng): update this in a separate method
   public long mLastUpdatedTimeMs;
+  // TODO(jiacheng): update this in a separate method
   /** If true, the worker is considered registered. */
   public boolean mIsRegistered;
 

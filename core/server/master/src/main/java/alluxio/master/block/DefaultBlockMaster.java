@@ -449,6 +449,7 @@ public final class DefaultBlockMaster extends CoreMaster implements BlockMaster 
   private List<WorkerInfo> constructWorkerInfoList() {
     List<WorkerInfo> workerInfoList = new ArrayList<>(mWorkers.size());
     for (MasterWorkerInfo worker : mWorkers) {
+      // extractWorkerInfo handles the locking internally
       workerInfoList.add(extractWorkerInfo(worker, null, true));
     }
     return workerInfoList;
@@ -461,6 +462,7 @@ public final class DefaultBlockMaster extends CoreMaster implements BlockMaster 
     }
     List<WorkerInfo> workerInfoList = new ArrayList<>(mLostWorkers.size());
     for (MasterWorkerInfo worker : mLostWorkers) {
+      // extractWorkerInfo handles the locking internally
       workerInfoList.add(extractWorkerInfo(worker, null, false));
     }
     Collections.sort(workerInfoList, new WorkerInfo.LastContactSecComparator());
@@ -521,9 +523,11 @@ public final class DefaultBlockMaster extends CoreMaster implements BlockMaster 
 
     List<WorkerInfo> workerInfoList = new ArrayList<>();
     for (MasterWorkerInfo worker : selectedLiveWorkers) {
+      // extractWorkerInfo handles the locking internally
       workerInfoList.add(extractWorkerInfo(worker, options.getFieldRange(), true));
     }
     for (MasterWorkerInfo worker : selectedLostWorkers) {
+      // extractWorkerInfo handles the locking internally
       workerInfoList.add(extractWorkerInfo(worker, options.getFieldRange(), false));
     }
     return workerInfoList;
@@ -532,9 +536,9 @@ public final class DefaultBlockMaster extends CoreMaster implements BlockMaster 
   /**
    * Lock the {@link MasterWorkerInfo} properly and convert it to a {@link WorkerInfo}
    * */
-  public WorkerInfo extractWorkerInfo(MasterWorkerInfo worker,
-                                      Set<GetWorkerReportOptions.WorkerInfoField> fieldRange,
-                                      boolean isLiveWorker) {
+  private WorkerInfo extractWorkerInfo(MasterWorkerInfo worker,
+                                       Set<GetWorkerReportOptions.WorkerInfoField> fieldRange,
+                                       boolean isLiveWorker) {
     worker.mMetaLock.readLock().lock();
     worker.mUsageLock.readLock().lock();
     try {
@@ -703,44 +707,9 @@ public final class DefaultBlockMaster extends CoreMaster implements BlockMaster 
       throw new NotFoundException(ExceptionMessage.NO_WORKER_FOUND.getMessage(workerId));
     }
 
-    // Lock the worker metadata first.
     try (JournalContext journalContext = createJournalContext()) {
-//      // TODO(jiacheng): we lock the worker first to maintain the lock order?
-//      //  otherwise we don't need to lock this early
-//      synchronized (worker) {
-//        try (LockResource lr = lockBlock(blockId)) {
-//          Optional<BlockMeta> block = mBlockStore.getBlock(blockId);
-//          if (!block.isPresent() || block.get().getLength() != length) {
-//            if (block.isPresent() && block.get().getLength() != Constants.UNKNOWN_SIZE) {
-//              LOG.warn("Rejecting attempt to change block length from {} to {}",
-//                  block.get().getLength(), length);
-//            } else {
-//              mBlockStore.putBlock(blockId, BlockMeta.newBuilder().setLength(length).build());
-//              BlockInfoEntry blockInfo =
-//                  BlockInfoEntry.newBuilder().setBlockId(blockId).setLength(length).build();
-//              journalContext.append(JournalEntry.newBuilder().setBlockInfo(blockInfo).build());
-//            }
-//          }
-//          // Update the block metadata with the new worker location.
-//          mBlockStore.addLocation(blockId, BlockLocation.newBuilder()
-//              .setWorkerId(workerId)
-//              .setTier(tierAlias)
-//              .setMediumType(mediumType)
-//              .build());
-//          // This worker has this block, so it is no longer lost.
-//          mLostBlocks.remove(blockId);
-//
-//          // Update the worker information for this new block.
-//          // TODO(binfan): when retry commitBlock on master is expected, make sure metrics are not
-//          // double counted.
-//          worker.addBlock(blockId);
-//          worker.updateUsedBytes(tierAlias, usedBytesOnTier);
-//          worker.updateLastUpdatedTimeMs();
-//        }
-//      }
-
-      // TODO(jiacheng): we lock the worker first to maintain the lock order?
-      //  otherwise we don't need to lock this early
+      // Lock the worker metadata here to preserve the lock order
+      // The worker metadata must be locked before the blocks
       worker.mUsageLock.writeLock().lock();
       worker.mBlockListLock.writeLock().lock();
       try {
@@ -963,24 +932,6 @@ public final class DefaultBlockMaster extends CoreMaster implements BlockMaster 
       blocks.addAll(blockIds);
     }
 
-    // TODO(jiacheng): It's actually fine to take all the locks here,
-    //  because the worker is not supposed to be doing anything else here
-//    synchronized (worker) {
-//      // TODO(jiacheng): write lock on worker.mMetaLock
-//      worker.updateLastUpdatedTimeMs();
-//      // Detect any lost blocks on this worker.
-//      // TODO(jiacheng): this one actually needs all locks
-//      Set<Long> removedBlocks = worker.register(mGlobalStorageTierAssoc, storageTiers,
-//          totalBytesOnTiers, usedBytesOnTiers, blocks);
-//      processWorkerRemovedBlocks(worker, removedBlocks);
-//      processWorkerAddedBlocks(worker, currentBlocksOnLocation);
-//      processWorkerOrphanedBlocks(worker);
-//      worker.addLostStorage(lostStorage);
-//    }
-
-    /**
-     * Refactored
-     * */
     worker.mMetaLock.writeLock().lock();
     worker.mUsageLock.writeLock().lock();
     worker.mBlockListLock.writeLock().lock();
@@ -1039,34 +990,6 @@ public final class DefaultBlockMaster extends CoreMaster implements BlockMaster 
       return Command.newBuilder().setCommandType(CommandType.Register).build();
     }
 
-//    synchronized (worker) {
-//      processWorkerMetrics(worker.getWorkerAddress().getHost(), metrics);
-//
-//      worker.addLostStorage(lostStorage);
-//
-//      if (capacityBytesOnTiers != null) {
-//        worker.updateCapacityBytes(capacityBytesOnTiers);
-//      }
-//      worker.updateUsedBytes(usedBytesOnTiers);
-//      worker.updateLastUpdatedTimeMs();
-//
-//      // Technically, 'worker' should be confirmed to still be in the data structure. Lost worker
-//      // detection can remove it. However, we are intentionally ignoring this race, since the worker
-//      // will just re-register regardless.
-//      processWorkerRemovedBlocks(worker, removedBlockIds);
-//      processWorkerAddedBlocks(worker, addedBlocks);
-//      List<Long> toRemoveBlocks = worker.getToRemoveBlocks();
-//      if (toRemoveBlocks.isEmpty()) {
-//        return Command.newBuilder().setCommandType(CommandType.Nothing).build();
-//      }
-//      return Command.newBuilder().setCommandType(CommandType.Free).addAllData(toRemoveBlocks)
-//          .build();
-//    }
-
-    /**
-     * Refactored
-     */
-
     // The address is final, no need for locking
     processWorkerMetrics(worker.getWorkerAddress().getHost(), metrics);
 
@@ -1100,6 +1023,7 @@ public final class DefaultBlockMaster extends CoreMaster implements BlockMaster 
                 .build();
       }
     } finally {
+      // Release in the reverse order of acquisition
       worker.mBlockListLock.writeLock().unlock();
       worker.mUsageLock.writeLock().unlock();
       worker.mMetaLock.writeLock().unlock();
