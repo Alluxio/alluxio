@@ -373,7 +373,7 @@ public final class EmbeddedJournalIntegrationTest extends BaseIntegrationTest {
   @Test
   public void updateRaftGroup() throws Exception {
     int masterCount = 2;
-    mCluster = MultiProcessCluster.newBuilder(PortCoordination.EMBEDDED_JOURNAL_GROW)
+    mCluster = MultiProcessCluster.newBuilder(PortCoordination.EMBEDDED_JOURNAL_UPDATE_RAFT_GROUP)
         .setClusterName("EmbeddedJournalAddMaster").setNumMasters(masterCount).setNumWorkers(0)
         .addProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.EMBEDDED.toString())
         .addProperty(PropertyKey.MASTER_JOURNAL_FLUSH_TIMEOUT_MS, "5min")
