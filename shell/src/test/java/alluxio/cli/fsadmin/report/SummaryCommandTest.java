@@ -21,6 +21,7 @@ import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.grpc.MasterInfo;
+import alluxio.grpc.NetAddress;
 import alluxio.util.CommonUtils;
 import alluxio.util.ConfigurationUtils;
 import alluxio.wire.BlockMasterInfo;
@@ -57,6 +58,9 @@ public class SummaryCommandTest {
     mMetaMasterClient = mock(MetaMasterClient.class);
     MasterInfo masterInfo = MasterInfo.newBuilder()
         .setLeaderMasterAddress("testAddress")
+        .addMasterAddresses(NetAddress.newBuilder().setHost("testAddress").build())
+        .addMasterAddresses(NetAddress.newBuilder().setHost("testAddress2").build())
+        .addMasterAddresses(NetAddress.newBuilder().setHost("testAddress3").build())
         .setWebPort(1231)
         .setRpcPort(8462)
         .setStartTimeMs(1131242343122L)
@@ -116,6 +120,7 @@ public class SummaryCommandTest {
     String startTime =  CommonUtils.convertMsToDate(1131242343122L, dateFormatPattern);
     List<String> expectedOutput = Arrays.asList("Alluxio cluster summary: ",
         "    Master Address: testAddress",
+        "    Live Masters Addresses: [testAddress:0, testAddress2:0, testAddress3:0]",
         "    Web Port: 1231",
         "    Rpc Port: 8462",
         "    Started: " + startTime,
