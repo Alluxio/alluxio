@@ -217,9 +217,6 @@ public final class S3RestServiceHandler {
         }
 
         String delimiter = delimiterParam;
-        if (delimiter == null) {
-          delimiter = AlluxioURI.SEPARATOR;
-        }
 
         int maxKeys = maxKeysParam;
         if (maxKeys <= 0) {
@@ -235,6 +232,7 @@ public final class S3RestServiceHandler {
         ListBucketOptions listBucketOptions = ListBucketOptions.defaults()
             .setMarker(marker)
             .setPrefix(prefix)
+            .setDelimiter(delimiter)
             .setMaxKeys(maxKeys);
         try {
           children = fs.listStatus(new AlluxioURI(path));

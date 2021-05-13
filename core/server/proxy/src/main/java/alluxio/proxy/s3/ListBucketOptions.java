@@ -23,6 +23,7 @@ public final class ListBucketOptions {
 
   private String mMarker;
   private String mPrefix;
+  private String mDelimiter;
   private int mMaxKeys;
 
   /**
@@ -40,6 +41,7 @@ public final class ListBucketOptions {
   private ListBucketOptions() {
     mMarker = "";
     mPrefix = "";
+    mDelimiter = "";
     mMaxKeys = DEFAULT_MAX_KEYS;
   }
 
@@ -55,6 +57,13 @@ public final class ListBucketOptions {
    */
   public String getPrefix() {
     return mPrefix;
+  }
+
+  /**
+   * @return the delimiter
+   */
+  public String getDelimiter() {
+    return mDelimiter;
   }
 
   /**
@@ -79,6 +88,15 @@ public final class ListBucketOptions {
    */
   public ListBucketOptions setPrefix(String prefix) {
     mPrefix = prefix;
+    return this;
+  }
+
+  /**
+   * @param delimiter the delimiter to set
+   * @return the updated object
+   */
+  public ListBucketOptions setDelimiter(String delimiter) {
+    mDelimiter = delimiter;
     return this;
   }
 

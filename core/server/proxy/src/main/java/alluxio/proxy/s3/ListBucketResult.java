@@ -24,6 +24,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -61,7 +62,7 @@ public class ListBucketResult {
   private List<Content> mContents;
 
   // List of common prefixes (aka. folders)
-  private CommonPrefixes mCommonPrefixes;
+  private List<Prefix> mCommonPrefixes;
 
   /**
    * Creates an {@link ListBucketResult}.
@@ -89,6 +90,7 @@ public class ListBucketResult {
         .limit(mMaxKeys)
         .collect(Collectors.toList());
 
+
     mKeyCount = keys.size();
     mIsTruncated = mKeyCount == mMaxKeys;
 
@@ -104,19 +106,20 @@ public class ListBucketResult {
     mContents = new ArrayList<>();
     for (URIStatus status : objectsList) {
       mContents.add(new Content(
-          status.getPath().substring(mName.length() + 2), // remove both ends of "/" character
+          status.getPath().substring(mName.length() + 2), // remove "/" character
           S3RestUtils.toS3Date(status.getLastModificationTimeMs()),
           String.valueOf(status.getLength())
       ));
     }
 
-    final ArrayList<String> commonPrefixes = new ArrayList<>();
+    final ArrayList<Prefix> commonPrefixes = new ArrayList<>();
     for (URIStatus status : prefixList) {
       final String path = status.getPath();
-      commonPrefixes.add(path.substring(mName.length() + 2)); // remove both ends of "/" character
+      // remove "/" character, add "/" at end
+      commonPrefixes.add(new Prefix(path.substring(mName.length() + 2) + "/"));
     }
 
-    mCommonPrefixes = new CommonPrefixes(commonPrefixes);
+    mCommonPrefixes = commonPrefixes;
   }
 
   /**
@@ -180,27 +183,40 @@ public class ListBucketResult {
    * @return the common prefixes
    */
   @JacksonXmlProperty(localName = "CommonPrefixes")
-  public CommonPrefixes getCommonPrefixes() {
+  @JacksonXmlElementWrapper(useWrapping = false)
+  public List<Prefix> getCommonPrefixes() {
     return mCommonPrefixes;
   }
 
   /**
-   * Common Prefixes list placeholder object.
+   * Prefix Object.
    */
-  public class CommonPrefixes {
-    private final List<String> mCommonPrefixes;
+  public class Prefix {
+    private final String mPrefix;
 
-    private CommonPrefixes(List<String> commonPrefixes) {
-      mCommonPrefixes = commonPrefixes;
+    private Prefix(String prefix) {
+      mPrefix = prefix;
     }
 
     /**
-     * @return the list of common prefixes
+     * @return the prefix string
      */
     @JacksonXmlProperty(localName = "Prefix")
-    @JacksonXmlElementWrapper(useWrapping = false)
-    public List<String> getCommonPrefixes() {
-      return mCommonPrefixes;
+    public String getPrefix() {
+      return mPrefix;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+      if (this == o) return true;
+      if (o == null || getClass() != o.getClass()) return false;
+      Prefix prefix = (Prefix) o;
+      return Objects.equals(mPrefix, prefix.mPrefix);
+    }
+
+    @Override
+    public int hashCode() {
+      return Objects.hash(mPrefix);
     }
   }
 
@@ -250,6 +266,16 @@ public class ListBucketResult {
     @JacksonXmlProperty(localName = "Size")
     public String getSize() {
       return mSize;
+    }
+
+    @JacksonXmlProperty(localName = "ETag")
+    public String getETag() {
+      return "";
+    }
+
+    @JacksonXmlProperty(localName = "StorageClass")
+    public String getStorageClass() {
+      return "STANDARD";
     }
   }
 
