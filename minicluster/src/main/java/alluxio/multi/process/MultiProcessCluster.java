@@ -326,12 +326,13 @@ public final class MultiProcessCluster {
   public synchronized void waitForAllNodesRegistered(int timeoutMs)
       throws TimeoutException, InterruptedException {
     MetaMasterClient metaMasterClient = getMetaMasterClient();
+    int nodeCount = mNumMasters + mNumWorkers;
     CommonUtils.waitFor("all nodes registered", () -> {
       try {
         MasterInfo masterInfo = metaMasterClient.getMasterInfo(Collections.emptySet());
         int liveNodeNum = masterInfo.getMasterAddressesList().size()
             + masterInfo.getWorkerAddressesList().size();
-        if (liveNodeNum == (mNumMasters + mNumWorkers)) {
+        if (liveNodeNum == nodeCount) {
           return true;
         } else {
           LOG.info("Master addresses: {}. Worker addresses: {}",
