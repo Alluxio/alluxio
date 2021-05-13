@@ -28,9 +28,10 @@
   <dependencies>
     <!-- External dependencies -->
     <dependency>
-      <groupId>com.ceph</groupId>
+      <groupId>io.github.opendataio</groupId>
       <artifactId>libcephfs</artifactId>
-      <version>0.80.5</version>
+      <version>0.0.1</version>
+      <scope>provided</scope>
     </dependency>
 
     <!-- Internal dependencies -->
@@ -50,28 +51,6 @@
       <scope>test</scope>
     </dependency>
   </dependencies>
-
-  <profiles>
-    <profile>
-      <id>ufsContractTest</id>
-      <activation>
-        <property>
-          <name>testCephFSBaseDir</name>
-        </property>
-      </activation>
-      <build>
-        <plugins>
-          <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-compiler-plugin</artifactId>
-            <configuration>
-              <testExcludes combine.self="override" />
-            </configuration>
-          </plugin>
-        </plugins>
-      </build>
-    </profile>
-  </profiles>
 
   <build>
     <plugins>

@@ -34,6 +34,7 @@ public final class CephInputStream extends InputStream {
 
   /**
    * Create a new CephInputStream.
+   *
    * @param mount CephFileSystem mount
    * @param fh The filehandle provided by Ceph to reference
    * @param flength The current length of the file. If the length changes
@@ -52,6 +53,7 @@ public final class CephInputStream extends InputStream {
 
   /**
    * Seek.
+   *
    * @param targetPos Position
    * @throws IOException throws
    */

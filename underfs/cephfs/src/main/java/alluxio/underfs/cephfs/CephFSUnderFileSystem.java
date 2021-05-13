@@ -19,7 +19,7 @@ import alluxio.retry.CountingRetry;
 import alluxio.retry.RetryPolicy;
 import alluxio.underfs.AtomicFileOutputStream;
 import alluxio.underfs.AtomicFileOutputStreamCallback;
-import alluxio.underfs.BaseUnderFileSystem;
+import alluxio.underfs.ConsistentUnderFileSystem;
 import alluxio.underfs.UfsDirectoryStatus;
 import alluxio.underfs.UfsFileStatus;
 import alluxio.underfs.UfsStatus;
@@ -45,6 +45,7 @@ import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.io.File;
 import java.util.List;
 import java.util.Stack;
 
@@ -55,19 +56,19 @@ import javax.annotation.concurrent.ThreadSafe;
  * CephFS {@link UnderFileSystem} implementation.
  */
 @ThreadSafe
-public class CephFSUnderFileSystem extends BaseUnderFileSystem
+public class CephFSUnderFileSystem extends ConsistentUnderFileSystem
     implements AtomicFileOutputStreamCallback {
   private static final Logger LOG = LoggerFactory.getLogger(CephFSUnderFileSystem.class);
   private static final int MAX_TRY = 5;
 
   private CephMount mMount;
-  private static final String KEY = "key";
-  private static final String KEYFILE = "keyfile";
-  private static final String KEYRING = "keyring";
-  private static final String MON_HOST = "mon_host";
-  private static final String CLIENT_MDS_NAMESPACE = "client_mds_namespace";
-  private static final String CLIENT_MOUNT_UID = "client_mount_uid";
-  private static final String CLIENT_MOUNT_GID = "client_mount_gid";
+  private static final String CEPH_AUTH_KEY = "key";
+  private static final String CEPH_AUTH_KEYFILE = "keyfile";
+  private static final String CEPH_AUTH_KEYRING = "keyring";
+  private static final String CEPH_MON_HOST = "mon_host";
+  private static final String CEPH_CLIENT_MDS_NAMESPACE = "client_mds_namespace";
+  private static final String CEPH_CLIENT_MOUNT_UID = "client_mount_uid";
+  private static final String CEPH_CLIENT_MOUNT_GID = "client_mount_gid";
 
   /**
    * Factory method to constructs a new CephFS {@link UnderFileSystem} instance.
@@ -81,122 +82,134 @@ public class CephFSUnderFileSystem extends BaseUnderFileSystem
     LOG.info("CephFS URI: {}", ufsUri.toString());
 
     // Create mount with auth user id
-    String userId = conf.get(PropertyKey.UNDERFS_CEPHFS_AUTH_ID);
-    LOG.info("CephFS config: {} = {}", PropertyKey.UNDERFS_CEPHFS_AUTH_ID, userId);
-    if (userId != null && userId.isEmpty()) {
-      userId = null;
+    String userId = null;
+    if (conf.isSetByUser(PropertyKey.UNDERFS_CEPHFS_AUTH_ID))
+    {
+      userId = conf.get(PropertyKey.UNDERFS_CEPHFS_AUTH_ID);
+      LOG.info("CephFS config: {} = {}", PropertyKey.UNDERFS_CEPHFS_AUTH_ID, userId);
+      if (userId != null && userId.isEmpty()) {
+        userId = null;
+      }
     }
     CephMount mount = new CephMount(userId);
 
-    /*
-     * Load a configuration file if specified
-     */
-    if (conf.isSet(PropertyKey.UNDERFS_CEPHFS_CONF_FILE)) {
-      String configfile = conf.get(PropertyKey.UNDERFS_CEPHFS_CONF_FILE);
-      LOG.info("CephFS config: {} = {}", PropertyKey.UNDERFS_CEPHFS_CONF_FILE, configfile);
-      mount.conf_read_file(configfile);
+    // Load a configuration file if specified
+    if (conf.isSetByUser(PropertyKey.UNDERFS_CEPHFS_CONF_FILE)) {
+      String confFile = conf.get(PropertyKey.UNDERFS_CEPHFS_CONF_FILE);
+      LOG.info("CephFS config: {} = {}", PropertyKey.UNDERFS_CEPHFS_CONF_FILE, confFile);
+      if (confFile != null && !confFile.isEmpty()) {
+        File file = new File(confFile);
+        if (file.exists() && file.isFile())
+          mount.conf_read_file(confFile);
+      }
     }
 
-    /*
-     * Parse and set Ceph configuration options
-     */
-    String configopts = conf.get(PropertyKey.UNDERFS_CEPHFS_CONF_OPTS);
-    LOG.info("CephFS config: {} = {}", PropertyKey.UNDERFS_CEPHFS_CONF_OPTS, configopts);
-    if (configopts != null && !configopts.isEmpty()) {
-      String[] options = configopts.split(";");
-      for (String option : options) {
-        String[] keyval = option.split("=");
-        if (keyval.length != 2) {
-          throw new IllegalArgumentException("Invalid Ceph option: " + option);
-        }
-        String k = keyval[0];
-        String v = keyval[1];
-        try {
-          mount.conf_set(k, v);
-        } catch (Exception e) {
-          throw new IOException("Error setting Ceph option " + k + " = " + v);
+    // Parse and set Ceph configuration options
+    if (conf.isSetByUser(PropertyKey.UNDERFS_CEPHFS_CONF_OPTS)) {
+      String confOpts = conf.get(PropertyKey.UNDERFS_CEPHFS_CONF_OPTS);
+      LOG.info("CephFS config: {} = {}", PropertyKey.UNDERFS_CEPHFS_CONF_OPTS, confOpts);
+      if (confOpts != null && !confOpts.isEmpty()) {
+        String[] options = confOpts.split(";");
+        for (String option : options) {
+          String[] keyval = option.split("=");
+          if (keyval.length != 2) {
+            throw new IllegalArgumentException("Invalid Ceph option: " + option);
+          }
+          String k = keyval[0];
+          String v = keyval[1];
+          try {
+            mount.conf_set(k, v);
+          } catch (Exception e) {
+            throw new IOException("Error setting Ceph option " + k + " = " + v);
+          }
         }
       }
     }
 
-    /*
-     * Set auth key
-     */
-    String key = conf.get(PropertyKey.UNDERFS_CEPHFS_AUTH_KEY);
-    if (key != null && !key.isEmpty()) {
-      mount.conf_set(KEY, key);
+    // Set auth key
+    if (conf.isSetByUser(PropertyKey.UNDERFS_CEPHFS_AUTH_KEY)) {
+      String key = conf.get(PropertyKey.UNDERFS_CEPHFS_AUTH_KEY);
+      if (key != null && !key.isEmpty()) {
+        mount.conf_set(CEPH_AUTH_KEY, key);
+      }
     }
 
-    /*
-     * Set auth keyfile
-     */
-    String keyfile = conf.get(PropertyKey.UNDERFS_CEPHFS_AUTH_KEYFILE);
-    LOG.info("CephFS config: {} = {}", PropertyKey.UNDERFS_CEPHFS_AUTH_KEYFILE, keyfile);
-    if (keyfile != null && !keyfile.isEmpty()) {
-      mount.conf_set(KEYFILE, keyfile);
+    // Set auth keyfile
+    if (conf.isSetByUser(PropertyKey.UNDERFS_CEPHFS_AUTH_KEYFILE)) {
+      String keyfile = conf.get(PropertyKey.UNDERFS_CEPHFS_AUTH_KEYFILE);
+      LOG.info("CephFS config: {} = {}", PropertyKey.UNDERFS_CEPHFS_AUTH_KEYFILE, keyfile);
+      if (keyfile != null && !keyfile.isEmpty()) {
+        mount.conf_set(CEPH_AUTH_KEYFILE, keyfile);
+      }
     }
 
-    /*
-     * Set auth keyring
-     */
-    String keyring = conf.get(PropertyKey.UNDERFS_CEPHFS_AUTH_KEYRING);
-    LOG.info("CephFS config: {} = {}", PropertyKey.UNDERFS_CEPHFS_AUTH_KEYRING, keyring);
-    if (keyring != null && !keyring.isEmpty()) {
-      mount.conf_set(KEYRING, keyring);
+    // Set auth keyring
+    if (conf.isSetByUser(PropertyKey.UNDERFS_CEPHFS_AUTH_KEYRING)) {
+      String keyring = conf.get(PropertyKey.UNDERFS_CEPHFS_AUTH_KEYRING);
+      LOG.info("CephFS config: {} = {}", PropertyKey.UNDERFS_CEPHFS_AUTH_KEYRING, keyring);
+      if (keyring != null && !keyring.isEmpty()) {
+        mount.conf_set(CEPH_AUTH_KEYRING, keyring);
+      }
     }
 
-    /*
-     * Set monitor hosts
-     */
+    // Set monitor hosts
     String monHost = ufsUri.getAuthority().toString();
     if (monHost == null || monHost.isEmpty()) {
-      monHost = conf.get(PropertyKey.UNDERFS_CEPHFS_MON_HOST);
-      LOG.info("CephFS config: {} = {}", PropertyKey.UNDERFS_CEPHFS_MON_HOST, monHost);
+        if (conf.isSetByUser(PropertyKey.UNDERFS_CEPHFS_MON_HOST)) {
+          monHost = conf.get(PropertyKey.UNDERFS_CEPHFS_MON_HOST);
+          LOG.info("CephFS config: {} = {}", PropertyKey.UNDERFS_CEPHFS_MON_HOST, monHost);
+        }
     }
 
     if (monHost != null && !monHost.isEmpty()) {
-      mount.conf_set(MON_HOST, monHost);
+      mount.conf_set(CEPH_MON_HOST, monHost);
     }
 
-    /*
-     * Set filesystem to mount
-     */
-    String namespace = conf.get(PropertyKey.UNDERFS_CEPHFS_MDS_NAMESPACE);
-    LOG.info("CephFS config: {} = {}", PropertyKey.UNDERFS_CEPHFS_MDS_NAMESPACE, namespace);
-    if (namespace != null && !namespace.isEmpty()) {
-      mount.conf_set(CLIENT_MDS_NAMESPACE, namespace);
+    // Set filesystem to mount
+    if (conf.isSetByUser(PropertyKey.UNDERFS_CEPHFS_MDS_NAMESPACE)) {
+      String namespace = conf.get(PropertyKey.UNDERFS_CEPHFS_MDS_NAMESPACE);
+      LOG.info("CephFS config: {} = {}", PropertyKey.UNDERFS_CEPHFS_MDS_NAMESPACE, namespace);
+      if (namespace != null && !namespace.isEmpty()) {
+        mount.conf_set(CEPH_CLIENT_MDS_NAMESPACE, namespace);
+      }
     }
 
-    /*
-     * Set uid/gid to mount
-     */
-    String uid = conf.get(PropertyKey.UNDERFS_CEPHFS_MOUNT_UID);
-    LOG.info("CephFS config: {} = {}", PropertyKey.UNDERFS_CEPHFS_MOUNT_UID, uid);
-    if (uid != null && !uid.isEmpty()) {
-      mount.conf_set(CLIENT_MOUNT_UID, uid);
+    // Set uid/gid to mount
+    if (conf.isSetByUser(PropertyKey.UNDERFS_CEPHFS_MOUNT_UID)) {
+      String uid = conf.get(PropertyKey.UNDERFS_CEPHFS_MOUNT_UID);
+      LOG.info("CephFS config: {} = {}", PropertyKey.UNDERFS_CEPHFS_MOUNT_UID, uid);
+      if (uid != null && !uid.isEmpty()) {
+        mount.conf_set(CEPH_CLIENT_MOUNT_UID, uid);
+      }
     }
 
-    String gid = conf.get(PropertyKey.UNDERFS_CEPHFS_MOUNT_GID);
-    LOG.info("CephFS config: {} = {}", PropertyKey.UNDERFS_CEPHFS_MOUNT_GID, gid);
-    if (gid != null && !gid.isEmpty()) {
-      mount.conf_set(CLIENT_MOUNT_GID, gid);
+    if (conf.isSetByUser(PropertyKey.UNDERFS_CEPHFS_MOUNT_GID)) {
+      String gid = conf.get(PropertyKey.UNDERFS_CEPHFS_MOUNT_GID);
+      LOG.info("CephFS config: {} = {}", PropertyKey.UNDERFS_CEPHFS_MOUNT_GID, gid);
+      if (gid != null && !gid.isEmpty()) {
+        mount.conf_set(CEPH_CLIENT_MOUNT_GID, gid);
+      }
     }
 
-    /*
-     * Actually mount the file system
-     */
-    String root = conf.get(PropertyKey.UNDERFS_CEPHFS_MOUNT_POINT);
-    LOG.info("CephFS config: {} = {}", PropertyKey.UNDERFS_CEPHFS_MOUNT_POINT, root);
+    // Actually mount the file system
+    String root = null;
+    if (conf.isSetByUser(PropertyKey.UNDERFS_CEPHFS_MOUNT_POINT)) {
+      root = conf.get(PropertyKey.UNDERFS_CEPHFS_MOUNT_POINT);
+      LOG.info("CephFS config: {} = {}", PropertyKey.UNDERFS_CEPHFS_MOUNT_POINT, root);
+      if (root !=null && root.isEmpty()) {
+        root = null;
+      }
+    }
     mount.mount(root);
 
-    /*
-     * Allow reads from replica objects?
-     */
-    String localizeReads = conf.get(PropertyKey.UNDERFS_CEPHFS_LOCALIZE_READS);
-    LOG.info("CephFS config: {} = {}", PropertyKey.UNDERFS_CEPHFS_LOCALIZE_READS, localizeReads);
-    if (localizeReads != null && !localizeReads.isEmpty()) {
-      boolean bLocalize = Boolean.parseBoolean(localizeReads);
-      mount.localize_reads(bLocalize);
+    // Allow reads from replica objects
+    if (conf.isSetByUser(PropertyKey.UNDERFS_CEPHFS_LOCALIZE_READS)) {
+      String localizeReads = conf.get(PropertyKey.UNDERFS_CEPHFS_LOCALIZE_READS);
+      LOG.info("CephFS config: {} = {}", PropertyKey.UNDERFS_CEPHFS_LOCALIZE_READS, localizeReads);
+      if (localizeReads != null && !localizeReads.isEmpty()) {
+        boolean bLocalize = Boolean.parseBoolean(localizeReads);
+        mount.localize_reads(bLocalize);
+      }
     }
 
     return new CephFSUnderFileSystem(ufsUri, mount, conf);
@@ -241,16 +254,6 @@ public class CephFSUnderFileSystem extends BaseUnderFileSystem
   }
 
   @Override
-  public OutputStream createNonexistingFile(String path) throws IOException {
-    return create(path);
-  }
-
-  @Override
-  public OutputStream createNonexistingFile(String path, CreateOptions options) throws IOException {
-    return create(path, options);
-  }
-
-  @Override
   public OutputStream createDirect(String path, CreateOptions options) throws IOException {
     path = stripPath(path);
     String parentPath;
@@ -264,7 +267,7 @@ public class CephFSUnderFileSystem extends BaseUnderFileSystem
     RetryPolicy retryPolicy = new CountingRetry(MAX_TRY);
     while (retryPolicy.attempt()) {
       try {
-        // TODO(runsisi): support creating CephFS files with specified block size and replication.
+        //  support creating CephFS files with specified block size and replication.
         if (options.getCreateParent()) {
           if (mkdirs(parentPath, MkdirsOptions.defaults(mUfsConf)) && !isDirectory(parentPath)) {
             throw new IOException(ExceptionMessage.PARENT_CREATION_FAILED.getMessage(path));
@@ -304,16 +307,6 @@ public class CephFSUnderFileSystem extends BaseUnderFileSystem
   }
 
   @Override
-  public boolean deleteExistingDirectory(String path) throws IOException {
-    return deleteDirectory(path);
-  }
-
-  @Override
-  public boolean deleteExistingDirectory(String path, DeleteOptions options) throws IOException {
-    return deleteDirectory(path, options);
-  }
-
-  @Override
   public boolean deleteFile(String path) throws IOException {
     path = stripPath(path);
     if (isFile(path)) {
@@ -330,11 +323,6 @@ public class CephFSUnderFileSystem extends BaseUnderFileSystem
       throw te;
     }
     return false;
-  }
-
-  @Override
-  public boolean deleteExistingFile(String path) throws IOException {
-    return deleteFile(path);
   }
 
   @Override
@@ -368,11 +356,6 @@ public class CephFSUnderFileSystem extends BaseUnderFileSystem
   }
 
   @Override
-  public UfsDirectoryStatus getExistingDirectoryStatus(String path) throws IOException {
-    return getDirectoryStatus(path);
-  }
-
-  @Override
   public UfsStatus getStatus(String path) throws IOException {
     path = stripPath(path);
     CephStat stat = new CephStat();
@@ -384,11 +367,6 @@ public class CephFSUnderFileSystem extends BaseUnderFileSystem
     }
 
     throw new IOException("Failed to getStatus: " + path);
-  }
-
-  @Override
-  public UfsStatus getExistingStatus(String path) throws IOException {
-    return getStatus(path);
   }
 
   @Override
@@ -404,8 +382,9 @@ public class CephFSUnderFileSystem extends BaseUnderFileSystem
   }
 
   /**
-   * Get stat information on a file. This does not fill owner or group, as
+   * Gets stat information on a file. This does not fill owner or group, as
    * Ceph's support for these is a bit different.
+   *
    * @param path The path to stat
    * @return FileStatus object containing the stat information
    * @throws FileNotFoundException if the path could not be resolved
@@ -420,11 +399,6 @@ public class CephFSUnderFileSystem extends BaseUnderFileSystem
 
     return new UfsFileStatus(path, contentHash, stat.size, stat.m_time,
         "", "", (short) stat.mode);
-  }
-
-  @Override
-  public UfsFileStatus getExistingFileStatus(String path) throws IOException {
-    return getFileStatus(path);
   }
 
   @Override
@@ -473,6 +447,7 @@ public class CephFSUnderFileSystem extends BaseUnderFileSystem
 
   /**
    * Each string is a name rather than a complete path.
+   *
    * @param path the path to list
    * @return An array with the statuses of the files and directories in the directory
    * denoted by this path. The array will be empty if the directory is empty. Returns
@@ -589,27 +564,12 @@ public class CephFSUnderFileSystem extends BaseUnderFileSystem
   }
 
   @Override
-  public InputStream openExistingFile(String path, OpenOptions options) throws IOException {
-    return open(path, options);
-  }
-
-  @Override
-  public InputStream openExistingFile(String path) throws IOException {
-    return open(path);
-  }
-
-  @Override
   public boolean renameDirectory(String src, String dst) throws IOException {
     if (!isDirectory(src)) {
       LOG.warn("Unable to rename {} to {} because source does not exist or is a file", src, dst);
       return false;
     }
     return rename(src, dst);
-  }
-
-  @Override
-  public boolean isExistingDirectory(String path) throws IOException {
-    return isDirectory(path);
   }
 
   @Override
@@ -649,6 +609,8 @@ public class CephFSUnderFileSystem extends BaseUnderFileSystem
   }
 
   /**
+   * To strip the path
+   *
    * @param path the path to strip the scheme from
    * @return the path, with the optional scheme stripped away
    */
@@ -705,13 +667,13 @@ public class CephFSUnderFileSystem extends BaseUnderFileSystem
       return false;
     }
 
-    /* we're done if it's a file */
+    // we're done if it's a file
     if (stat.isFile()) {
       mMount.unlink(path);
       return true;
     }
 
-    /* get directory contents */
+    // get directory contents
     String[] lst = listDirectory(path);
     if (lst == null) {
       return false;

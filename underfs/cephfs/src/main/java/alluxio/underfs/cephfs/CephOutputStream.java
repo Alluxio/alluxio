@@ -35,6 +35,7 @@ public final class CephOutputStream extends OutputStream {
 
   /**
    * Construct the CephOutputStream.
+   *
    * @param mount CephFileSystem mount
    * @param fh The Ceph filehandle to connect to
    */
