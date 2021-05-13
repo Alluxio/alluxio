@@ -106,7 +106,7 @@ public class ListBucketResult {
     mContents = new ArrayList<>();
     for (URIStatus status : objectsList) {
       mContents.add(new Content(
-          status.getPath().substring(mName.length() + 2), // remove "/" character
+          status.getPath().substring(mName.length() + 2), // remove both ends of "/" character
           S3RestUtils.toS3Date(status.getLastModificationTimeMs()),
           String.valueOf(status.getLength())
       ));
@@ -115,7 +115,7 @@ public class ListBucketResult {
     final ArrayList<Prefix> commonPrefixes = new ArrayList<>();
     for (URIStatus status : prefixList) {
       final String path = status.getPath();
-      // remove "/" character, add "/" at end
+      // remove both ends of "/" character, add "/" at end to show it's prefix
       commonPrefixes.add(new Prefix(path.substring(mName.length() + 2) + "/"));
     }
 
@@ -205,19 +205,6 @@ public class ListBucketResult {
     public String getPrefix() {
       return mPrefix;
     }
-
-    @Override
-    public boolean equals(Object o) {
-      if (this == o) return true;
-      if (o == null || getClass() != o.getClass()) return false;
-      Prefix prefix = (Prefix) o;
-      return Objects.equals(mPrefix, prefix.mPrefix);
-    }
-
-    @Override
-    public int hashCode() {
-      return Objects.hash(mPrefix);
-    }
   }
 
   /**
@@ -266,16 +253,6 @@ public class ListBucketResult {
     @JacksonXmlProperty(localName = "Size")
     public String getSize() {
       return mSize;
-    }
-
-    @JacksonXmlProperty(localName = "ETag")
-    public String getETag() {
-      return "";
-    }
-
-    @JacksonXmlProperty(localName = "StorageClass")
-    public String getStorageClass() {
-      return "STANDARD";
     }
   }
 
