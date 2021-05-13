@@ -72,7 +72,7 @@ public class UfsFileStatus extends UfsStatus {
   /**
    * Creates new instance of {@link UfsFileStatus}.
    *
-   * @deprecated As of 2.1.0, use
+   * @deprecated as of 2.1.0, use
    * {@link #UfsFileStatus(String, String, long, long, String, String, short, Map, long)}
    *
    * @param name relative path of file
