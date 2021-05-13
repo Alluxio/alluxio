@@ -136,7 +136,7 @@ public final class MultiProcessCluster {
       List<PortCoordination.ReservedPort> ports) {
     if (System.getenv(ALLUXIO_USE_FIXED_TEST_PORTS) != null) {
       Preconditions.checkState(
-          ports.size() == numMasters * PORTS_PER_MASTER + numWorkers * PORTS_PER_WORKER,
+          ports.size() >= numMasters * PORTS_PER_MASTER + numWorkers * PORTS_PER_WORKER,
           "We require %s ports per master and %s ports per worker, but there are %s masters, "
               + "%s workers, and %s ports",
           PORTS_PER_MASTER, PORTS_PER_WORKER, numMasters, numWorkers, ports.size());
