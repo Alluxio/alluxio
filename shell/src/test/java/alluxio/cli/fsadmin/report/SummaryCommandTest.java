@@ -57,10 +57,10 @@ public class SummaryCommandTest {
     // Prepare mock meta master client
     mMetaMasterClient = mock(MetaMasterClient.class);
     MasterInfo masterInfo = MasterInfo.newBuilder()
-        .setLeaderMasterAddress("testAddress")
-        .addMasterAddresses(NetAddress.newBuilder().setHost("testAddress").build())
-        .addMasterAddresses(NetAddress.newBuilder().setHost("testAddress2").build())
-        .addMasterAddresses(NetAddress.newBuilder().setHost("testAddress3").build())
+        .setLeaderMasterAddress("testAddress:8462")
+        .addMasterAddresses(NetAddress.newBuilder().setHost("testAddress").setRpcPort(8462).build())
+        .addMasterAddresses(NetAddress.newBuilder().setHost("testAddress2").setRpcPort(975).build())
+        .addMasterAddresses(NetAddress.newBuilder().setHost("testAddress3").setRpcPort(976).build())
         .setWebPort(1231)
         .setRpcPort(8462)
         .setStartTimeMs(1131242343122L)
@@ -120,7 +120,7 @@ public class SummaryCommandTest {
     String startTime =  CommonUtils.convertMsToDate(1131242343122L, dateFormatPattern);
     List<String> expectedOutput = Arrays.asList("Alluxio cluster summary: ",
         "    Leader Master Address: testAddress",
-        "    Live Masters Addresses: [testAddress:0, testAddress2:0, testAddress3:0]",
+        "    Live Masters Addresses: [testAddress:8462, testAddress2:975, testAddress3:976]",
         "    Web Port: 1231",
         "    Rpc Port: 8462",
         "    Started: " + startTime,
