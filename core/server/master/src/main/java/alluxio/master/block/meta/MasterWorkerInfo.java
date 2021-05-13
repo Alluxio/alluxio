@@ -75,6 +75,11 @@ public final class MasterWorkerInfo {
     mUsage = new WorkerUsageMeta();
     mBlocks = new HashSet<>();
     mToRemoveBlocks = new HashSet<>();
+
+    // Init all locks
+    mMetaLock = new ReentrantReadWriteLock();
+    mUsageLock = new ReentrantReadWriteLock();
+    mBlockListLock = new ReentrantReadWriteLock();
   }
 
   /**

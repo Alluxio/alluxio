@@ -242,7 +242,6 @@ public class BlockMasterClient extends AbstractMasterClient {
     final RegisterWorkerPOptions options =
         RegisterWorkerPOptions.newBuilder().addAllConfigs(configList).build();
 
-    // TODO(jiacheng): this part of logic needs to update
     final List<LocationBlockIdListEntry> currentBlocks
         = convertBlockListMapToProto(currentBlocksOnLocation);
 
@@ -250,79 +249,17 @@ public class BlockMasterClient extends AbstractMasterClient {
         .collect(Collectors.toMap(Map.Entry::getKey,
             e -> StorageList.newBuilder().addAllStorage(e.getValue()).build()));
 
-    // TODO(jiacheng): break this into chunks?
-    // 1st request, all but blocks
     final RegisterWorkerPRequest request = RegisterWorkerPRequest.newBuilder().setWorkerId(workerId)
         .addAllStorageTiers(storageTierAliases).putAllTotalBytesOnTiers(totalBytesOnTiers)
         .putAllUsedBytesOnTiers(usedBytesOnTiers)
-//        .addAllCurrentBlocks(currentBlocks)
+        .addAllCurrentBlocks(currentBlocks)
         .putAllLostStorage(lostStorageMap)
         .setOptions(options).build();
 
     // This is what the code used to be
-//    retryRPC(() -> {
-//                    mClient.registerWorker(request);
-//            }
-
-    final CountDownLatch finishLatch = new CountDownLatch(1);
     retryRPC(() -> {
-      // TODO(jiacheng): change to streaming
-      StreamObserver<RegisterWorkerPResponse> responseObserver = new StreamObserver<RegisterWorkerPResponse>() {
-        @Override
-        public void onNext(RegisterWorkerPResponse response) {
-          // The response is empty
-          LOG.info("Received worker registration response, waiting to complete.");
-          // If the complete never comes, do we set a timeout and assume to complete?
-        }
-
-        @Override
-        public void onError(Throwable t) {
-          // TODO(jiacheng): how do i propagate this to the retryRPC?
-          throw t;
-        }
-
-        @Override
-        public void onCompleted() {
-          LOG.info("Worker registration received success message from master.");
-          finishLatch.countDown();
-        }
-      };
-
-      StreamObserver<RegisterWorkerPRequest> requestObserver = mStreamClient.registerWorker(responseObserver);
-
-      try {
-        // Build a series of RegisterWorkerPRequests and stream to the master
-        // The 1st request is all the metadata except blocks
-        // The lost storage field is the StorageDir paths that fail to initialize
-        // or errs out on storage checks
-        // The size should be small despite being a list, so it can go with the 1st request
-        // On the following requests, send the block locations in chunks
-
-      } catch (Throwable e) {
-        // TODO(jiacheng): Cancel RPC
-        requestObserver.onError(e);
-        throw e;
-      }
-      // Mark the end of requests
-      requestObserver.onCompleted();
-
-      // Receiving happens asynchronously
-      try {
-        // Set timeout
-        // TODO(jiacheng): make configurable
-        if (finishLatch.await(10, TimeUnit.MINUTES)) {
-          // If the return is true, then the countdown has finished
-          LOG.info("Finished register");
-          return null;
-        } else {
-          // If the return is false, then the countdown has timed out
-          // TODO(jiacheng)
-          LOG.error("Failed to finish register in 10 minutes!");
-          throw new RuntimeException("Failed to finish register in 10 min.");
-        }
-      } catch (InterruptedException e) {
-        // TODO(jiacheng)
-      }
+            mClient.registerWorker(request);
+            return null;
     }, LOG, "Register", "workerId=%d", workerId);
   }
 }
