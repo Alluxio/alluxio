@@ -12,6 +12,7 @@
 package alluxio.cli.fsadmin;
 
 import alluxio.Constants;
+
 import org.junit.Assert;
 import org.junit.Test;
 

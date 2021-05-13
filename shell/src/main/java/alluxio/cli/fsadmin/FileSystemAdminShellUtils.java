@@ -80,7 +80,8 @@ public final class FileSystemAdminShellUtils {
     // MEM, SSD, and HDD are the most commonly used Alluxio tier alias,
     // so we want them to show before other tier names
     // MEM, SSD, and HDD are sorted according to the speed of access
-    List<String> tierOrder = Arrays.asList(Constants.MEDIUM_MEM, Constants.MEDIUM_SSD, Constants.MEDIUM_HDD);
+    List<String> tierOrder = Arrays.asList(Constants.MEDIUM_MEM, Constants.MEDIUM_SSD,
+            Constants.MEDIUM_HDD);
     int rank = tierOrder.indexOf(input);
     if (rank == -1) {
       return Integer.MAX_VALUE;
