@@ -115,7 +115,7 @@ tasks typically only need to modify a single file. **Intermediate** tasks typica
 multiple files, but in the same package. **Advanced** tasks typically need to modify multiple files
 from multiple packages.
 
-All new contributors are recommended to resolve two **New Contributor** tasks before taking on
+All new contributors are recommended to resolve one and only one **New Contributor** task before taking on
 larger tasks. This is a good way to familiarize yourself with the entire process of contributing to
 the Alluxio project.
 

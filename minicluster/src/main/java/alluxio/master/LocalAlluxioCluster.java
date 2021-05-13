@@ -47,20 +47,24 @@ public final class LocalAlluxioCluster extends AbstractLocalAlluxioCluster {
 
   private static final Logger LOG = LoggerFactory.getLogger(LocalAlluxioCluster.class);
 
+  private boolean mIncludeSecondary;
+
   private LocalAlluxioMaster mMaster;
 
   /**
    * Runs a test Alluxio cluster with a single Alluxio worker.
    */
   public LocalAlluxioCluster() {
-    this(1);
+    this(1, false);
   }
 
   /**
    * @param numWorkers the number of workers to run
+   * @param includeSecondary weather to include the secondary master
    */
-  public LocalAlluxioCluster(int numWorkers) {
+  public LocalAlluxioCluster(int numWorkers, boolean includeSecondary) {
     super(numWorkers);
+    mIncludeSecondary = includeSecondary;
   }
 
   @Override
@@ -138,7 +142,7 @@ public final class LocalAlluxioCluster extends AbstractLocalAlluxioCluster {
 
   @Override
   public void startMasters() throws Exception {
-    mMaster = LocalAlluxioMaster.create(mWorkDirectory, true);
+    mMaster = LocalAlluxioMaster.create(mWorkDirectory, mIncludeSecondary);
     mMaster.start();
   }
 
