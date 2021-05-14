@@ -1136,12 +1136,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey UNDERFS_CEPHFS_CONF_OPTS =
       new Builder(Name.UNDERFS_CEPHFS_CONF_OPTS)
+          .setDefaultValue("opts")
           .setDescription("Extra configuration options for CephFS client.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.SERVER)
           .build();
   public static final PropertyKey UNDERFS_CEPHFS_AUTH_KEY =
       new Builder(Name.UNDERFS_CEPHFS_AUTH_KEY)
+          .setDefaultValue("key")
           .setDescription("CephX authentication key, base64 encoded.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.SERVER)
@@ -1169,6 +1171,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey UNDERFS_CEPHFS_MDS_NAMESPACE =
       new Builder(Name.UNDERFS_CEPHFS_MDS_NAMESPACE)
+          .setDefaultValue("cephfs")
           .setDescription("CephFS filesystem to mount.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.SERVER)
