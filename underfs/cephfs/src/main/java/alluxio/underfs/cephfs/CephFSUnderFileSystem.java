@@ -83,8 +83,7 @@ public class CephFSUnderFileSystem extends ConsistentUnderFileSystem
 
     // Create mount with auth user id
     String userId = null;
-    if (conf.isSetByUser(PropertyKey.UNDERFS_CEPHFS_AUTH_ID))
-    {
+    if (conf.isSetByUser(PropertyKey.UNDERFS_CEPHFS_AUTH_ID)) {
       userId = conf.get(PropertyKey.UNDERFS_CEPHFS_AUTH_ID);
       LOG.info("CephFS config: {} = {}", PropertyKey.UNDERFS_CEPHFS_AUTH_ID, userId);
       if (userId != null && userId.isEmpty()) {
@@ -99,8 +98,9 @@ public class CephFSUnderFileSystem extends ConsistentUnderFileSystem
       LOG.info("CephFS config: {} = {}", PropertyKey.UNDERFS_CEPHFS_CONF_FILE, confFile);
       if (confFile != null && !confFile.isEmpty()) {
         File file = new File(confFile);
-        if (file.exists() && file.isFile())
+        if (file.exists() && file.isFile()) {
           mount.conf_read_file(confFile);
+        }
       }
     }
 
@@ -155,10 +155,10 @@ public class CephFSUnderFileSystem extends ConsistentUnderFileSystem
     // Set monitor hosts
     String monHost = ufsUri.getAuthority().toString();
     if (monHost == null || monHost.isEmpty()) {
-        if (conf.isSetByUser(PropertyKey.UNDERFS_CEPHFS_MON_HOST)) {
-          monHost = conf.get(PropertyKey.UNDERFS_CEPHFS_MON_HOST);
-          LOG.info("CephFS config: {} = {}", PropertyKey.UNDERFS_CEPHFS_MON_HOST, monHost);
-        }
+      if (conf.isSetByUser(PropertyKey.UNDERFS_CEPHFS_MON_HOST)) {
+        monHost = conf.get(PropertyKey.UNDERFS_CEPHFS_MON_HOST);
+        LOG.info("CephFS config: {} = {}", PropertyKey.UNDERFS_CEPHFS_MON_HOST, monHost);
+      }
     }
 
     if (monHost != null && !monHost.isEmpty()) {
@@ -196,7 +196,7 @@ public class CephFSUnderFileSystem extends ConsistentUnderFileSystem
     if (conf.isSetByUser(PropertyKey.UNDERFS_CEPHFS_MOUNT_POINT)) {
       root = conf.get(PropertyKey.UNDERFS_CEPHFS_MOUNT_POINT);
       LOG.info("CephFS config: {} = {}", PropertyKey.UNDERFS_CEPHFS_MOUNT_POINT, root);
-      if (root !=null && root.isEmpty()) {
+      if (root != null && root.isEmpty()) {
         root = null;
       }
     }
@@ -609,7 +609,7 @@ public class CephFSUnderFileSystem extends ConsistentUnderFileSystem
   }
 
   /**
-   * To strip the path
+   * To strip the path.
    *
    * @param path the path to strip the scheme from
    * @return the path, with the optional scheme stripped away
