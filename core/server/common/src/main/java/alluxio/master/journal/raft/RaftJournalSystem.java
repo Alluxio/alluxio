@@ -218,8 +218,6 @@ public class RaftJournalSystem extends AbstractJournalSystem {
   private RaftGroup mRaftGroup;
   private RaftPeerId mPeerId;
 
-  private long mLastCheckPointTime = -1;
-
   static long nextCallId() {
     return CALL_ID_COUNTER.getAndIncrement() & Long.MAX_VALUE;
   }
@@ -233,9 +231,6 @@ public class RaftJournalSystem extends AbstractJournalSystem {
     mSnapshotAllowed = new AtomicBoolean(true);
     mPrimarySelector = new RaftPrimarySelector();
     mAsyncJournalWriter = new AtomicReference<>();
-    MetricsSystem.registerGaugeIfAbsent(
-        MetricKey.MASTER_JOURNAL_LAST_CHECKPOINT_TIME.getName(),
-        () -> mLastCheckPointTime);
   }
 
   private void maybeMigrateOldJournal() {
@@ -548,7 +543,6 @@ public class RaftJournalSystem extends AbstractJournalSystem {
       mSnapshotAllowed.set(true);
       catchUp(mStateMachine, client);
       mStateMachine.takeLocalSnapshot();
-      mLastCheckPointTime = System.currentTimeMillis();
       // TODO(feng): maybe prune logs after snapshot
     } catch (TimeoutException e) {
       LOG.warn("Timeout while performing snapshot: {}", e.toString());
