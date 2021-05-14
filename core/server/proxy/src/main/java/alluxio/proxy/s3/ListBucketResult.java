@@ -113,7 +113,8 @@ public class ListBucketResult {
     final ArrayList<Prefix> commonPrefixes = new ArrayList<>();
     for (URIStatus status : prefixList) {
       final String path = status.getPath();
-      // remove both ends of "/" character, add "/" at end to show it's prefix
+      // remove both ends of "/" character in the path as well as bucket name
+      // add "/" at end to show it's a folder (or else, aws cli crashes with index out of bounds)
       commonPrefixes.add(new Prefix(path.substring(mName.length() + 2) + "/"));
     }
 
