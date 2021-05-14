@@ -266,7 +266,7 @@ public final class EmbeddedJournalIntegrationTest extends BaseIntegrationTest {
         .addProperty(PropertyKey.MASTER_EMBEDDED_JOURNAL_HEARTBEAT_INTERVAL, "250ms").build();
     mCluster.start();
 
-    AlluxioURI testDir = new AlluxioURI("/test");
+    AlluxioURI testDir = new AlluxioURI("/" + CommonUtils.randomAlphaNumString(10));
     FileSystem fs = mCluster.getFileSystemClient();
     fs.createDirectory(testDir);
     Assert.assertTrue(fs.exists(testDir));
@@ -383,7 +383,7 @@ public final class EmbeddedJournalIntegrationTest extends BaseIntegrationTest {
         .addProperty(PropertyKey.MASTER_EMBEDDED_JOURNAL_HEARTBEAT_INTERVAL, "250ms").build();
     mCluster.start();
 
-    AlluxioURI testDir = new AlluxioURI("/test");
+    AlluxioURI testDir = new AlluxioURI("/" + CommonUtils.randomAlphaNumString(10));
     FileSystem fs = mCluster.getFileSystemClient();
     fs.createDirectory(testDir);
     Assert.assertTrue(fs.exists(testDir));
