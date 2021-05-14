@@ -401,7 +401,7 @@ public class RaftJournalSystem extends AbstractJournalSystem {
     }
   }
 
-  private RaftClient createClient() {
+  private RaftClient createClient(boolean updateGroup) {
     RaftProperties properties = new RaftProperties();
     Parameters parameters = new Parameters();
     RaftClientConfigKeys.Rpc.setRequestTimeout(properties,
@@ -412,7 +412,7 @@ public class RaftJournalSystem extends AbstractJournalSystem {
         .setMaxSleepTime(TimeDuration.valueOf(mConf.getElectionTimeoutMs(), TimeUnit.MILLISECONDS))
         .build();
     return RaftClient.newBuilder()
-        .setRaftGroup(getCurrentGroup())
+        .setRaftGroup(updateGroup ? getCurrentGroup() : mInitialRaftGroup)
         .setClientId(mClientId)
         .setLeaderId(null)
         .setProperties(properties)
@@ -431,7 +431,7 @@ public class RaftJournalSystem extends AbstractJournalSystem {
   @Override
   public synchronized void gainPrimacy() {
     mSnapshotAllowed.set(false);
-    LocalFirstRaftClient client = new LocalFirstRaftClient(mServer, this::createClient,
+    LocalFirstRaftClient client = new LocalFirstRaftClient(mServer, () -> createClient(true),
         mRawClientId, ServerConfiguration.global());
 
     Runnable closeClient = () -> {
@@ -555,7 +555,7 @@ public class RaftJournalSystem extends AbstractJournalSystem {
   public synchronized void checkpoint() throws IOException {
     // TODO(feng): consider removing this once we can automatically propagate
     //             snapshots from secondary master
-    try (LocalFirstRaftClient client = new LocalFirstRaftClient(mServer, this::createClient,
+    try (LocalFirstRaftClient client = new LocalFirstRaftClient(mServer, () -> createClient(true),
         mRawClientId, ServerConfiguration.global())) {
       mSnapshotAllowed.set(true);
       catchUp(mStateMachine, client);
@@ -720,7 +720,7 @@ public class RaftJournalSystem extends AbstractJournalSystem {
             .setHost(localAddress.getHostString())
             .setRpcPort(localAddress.getPort()))
         .build();
-    RaftClient client = createClient();
+    RaftClient client = createClient(false);
     client.sendReadOnlyAsync(Message.valueOf(
         UnsafeByteOperations.unsafeWrap(
             JournalQueryRequest
@@ -808,7 +808,7 @@ public class RaftJournalSystem extends AbstractJournalSystem {
    */
   public synchronized CompletableFuture<RaftClientReply> sendMessageAsync(
       RaftPeerId server, Message message) {
-    RaftClient client = createClient();
+    RaftClient client = createClient(true);
     return client.getClientRpc().sendRequestAsync(
         new RaftClientRequest(mRawClientId, server, RAFT_GROUP_ID, nextCallId(), message,
             RaftClientRequest.staleReadRequestType(0), null)
@@ -848,7 +848,7 @@ public class RaftJournalSystem extends AbstractJournalSystem {
     InetSocketAddress serverAddress = InetSocketAddress
         .createUnresolved(serverNetAddress.getHost(), serverNetAddress.getRpcPort());
     RaftPeerId peerId = RaftJournalUtils.getPeerId(serverAddress);
-    try (RaftClient client = createClient()) {
+    try (RaftClient client = createClient(true)) {
       Collection<RaftPeer> peers = mServer.getGroups().iterator().next().getPeers();
       RaftClientReply reply = client.setConfiguration(peers.stream()
           .filter(peer -> !peer.getId().equals(peerId))
