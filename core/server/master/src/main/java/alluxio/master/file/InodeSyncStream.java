@@ -137,11 +137,6 @@ public class InodeSyncStream {
 
   private static final Logger LOG = LoggerFactory.getLogger(InodeSyncStream.class);
 
-  private static final FileSystemMasterCommonPOptions NO_TTL_OPTION =
-      FileSystemMasterCommonPOptions.newBuilder()
-          .setTtl(-1)
-          .build();
-
   /** The root path. Should be locked with a write lock. */
   private final LockingScheme mRootScheme;
 
@@ -720,7 +715,7 @@ public class InodeSyncStream {
     }
     LoadMetadataContext ctx = LoadMetadataContext.mergeFrom(
         LoadMetadataPOptions.newBuilder()
-            .setCommonOptions(NO_TTL_OPTION)
+            .setCommonOptions(mSyncOptions)
             .setCreateAncestors(true)
             .setLoadDescendantType(GrpcUtils.toProto(descendantType)))
         .setUfsStatus(status);
@@ -779,8 +774,8 @@ public class InodeSyncStream {
             LoadMetadataContext loadMetadataContext =
                 LoadMetadataContext.mergeFrom(LoadMetadataPOptions.newBuilder()
                     .setLoadDescendantType(LoadDescendantPType.NONE)
-                    // No Ttl on loaded files
-                    .setCommonOptions(NO_TTL_OPTION)
+                    // inherit Ttl from the parent
+                    .setCommonOptions(context.getOptions().getCommonOptions())
                     .setCreateAncestors(false))
                 .setUfsStatus(childStatus);
             try (LockedInodePath descendant = inodePath
