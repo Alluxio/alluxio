@@ -177,8 +177,8 @@ public final class S3ClientRestApiTest extends RestApiTest {
 
     final List<ListBucketResult.Prefix> commonPrefixes = expected.getCommonPrefixes();
     assertEquals(2, commonPrefixes.size());
-    assertEquals("folder0", commonPrefixes.get(0).getPrefix());
-    assertEquals("folder1", commonPrefixes.get(1).getPrefix());
+    assertEquals("folder0/", commonPrefixes.get(0).getPrefix());
+    assertEquals("folder1/", commonPrefixes.get(1).getPrefix());
 
     statuses = mFileSystem.listStatus(new AlluxioURI("/bucket/folder0"));
 
@@ -253,7 +253,7 @@ public final class S3ClientRestApiTest extends RestApiTest {
 
     final List<ListBucketResult.Prefix> commonPrefixes = expected.getCommonPrefixes();
     assertEquals(1, commonPrefixes.size());
-    assertEquals("folder0", commonPrefixes.get(0).getPrefix());
+    assertEquals("folder0/", commonPrefixes.get(0).getPrefix());
   }
 
   @Test
