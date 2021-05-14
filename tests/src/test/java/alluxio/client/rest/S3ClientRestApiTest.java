@@ -174,8 +174,11 @@ public final class S3ClientRestApiTest extends RestApiTest {
 
     assertEquals("file0", expected.getContents().get(0).getKey());
     assertEquals("file1", expected.getContents().get(1).getKey());
-    assertEquals(Lists.newArrayList("folder0", "folder1"),
-        expected.getCommonPrefixes().getCommonPrefixes());
+
+    final List<ListBucketResult.Prefix> commonPrefixes = expected.getCommonPrefixes();
+    assertEquals(2, commonPrefixes.size());
+    assertEquals("folder0/", commonPrefixes.get(0).getPrefix());
+    assertEquals("folder1/", commonPrefixes.get(1).getPrefix());
 
     statuses = mFileSystem.listStatus(new AlluxioURI("/bucket/folder0"));
 
@@ -191,7 +194,7 @@ public final class S3ClientRestApiTest extends RestApiTest {
 
     assertEquals("folder0/file0", expected.getContents().get(0).getKey());
     assertEquals("folder0/file1", expected.getContents().get(1).getKey());
-    assertEquals(0, expected.getCommonPrefixes().getCommonPrefixes().size());
+    assertEquals(0, expected.getCommonPrefixes().size());
   }
 
   @Test
@@ -221,7 +224,7 @@ public final class S3ClientRestApiTest extends RestApiTest {
         TestCaseOptions.defaults().setContentType(TestCaseOptions.XML_CONTENT_TYPE)).run();
 
     assertEquals("file0", expected.getContents().get(0).getKey());
-    assertEquals(0, expected.getCommonPrefixes().getCommonPrefixes().size());
+    assertEquals(0, expected.getCommonPrefixes().size());
 
     parameters.put("marker", nextMarker);
 
@@ -234,7 +237,7 @@ public final class S3ClientRestApiTest extends RestApiTest {
         TestCaseOptions.defaults().setContentType(TestCaseOptions.XML_CONTENT_TYPE)).run();
 
     assertEquals("file1", expected.getContents().get(0).getKey());
-    assertEquals(0, expected.getCommonPrefixes().getCommonPrefixes().size());
+    assertEquals(0, expected.getCommonPrefixes().size());
 
     parameters.put("marker", nextMarker);
 
@@ -247,8 +250,10 @@ public final class S3ClientRestApiTest extends RestApiTest {
         TestCaseOptions.defaults().setContentType(TestCaseOptions.XML_CONTENT_TYPE)).run();
 
     assertEquals(0, expected.getContents().size());
-    assertEquals(Lists.newArrayList("folder0"),
-        expected.getCommonPrefixes().getCommonPrefixes());
+
+    final List<ListBucketResult.Prefix> commonPrefixes = expected.getCommonPrefixes();
+    assertEquals(1, commonPrefixes.size());
+    assertEquals("folder0/", commonPrefixes.get(0).getPrefix());
   }
 
   @Test
