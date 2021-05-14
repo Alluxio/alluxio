@@ -14,31 +14,51 @@ package alluxio.master.block;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
+import alluxio.Server;
+import alluxio.StorageTierAssoc;
+import alluxio.client.block.options.GetWorkerReportOptions;
 import alluxio.conf.ServerConfiguration;
 import alluxio.Constants;
 import alluxio.conf.PropertyKey;
 import alluxio.clock.ManualClock;
+import alluxio.exception.BlockInfoException;
+import alluxio.exception.status.InvalidArgumentException;
+import alluxio.exception.status.NotFoundException;
+import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.Command;
 import alluxio.grpc.CommandType;
+import alluxio.grpc.ConfigProperty;
+import alluxio.grpc.GrpcService;
 import alluxio.grpc.RegisterWorkerPOptions;
+import alluxio.grpc.ServiceType;
 import alluxio.grpc.StorageList;
 import alluxio.grpc.WorkerLostStorageInfo;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatScheduler;
 import alluxio.heartbeat.ManuallyScheduleHeartbeat;
+import alluxio.master.CoreMaster;
 import alluxio.master.CoreMasterContext;
+import alluxio.master.MasterContext;
 import alluxio.master.MasterRegistry;
 import alluxio.master.MasterTestUtils;
 import alluxio.master.SafeModeManager;
 import alluxio.master.TestSafeModeManager;
+import alluxio.master.journal.JournalContext;
 import alluxio.master.journal.JournalSystem;
+import alluxio.master.journal.checkpoint.CheckpointName;
 import alluxio.master.journal.noop.NoopJournalSystem;
 import alluxio.master.metrics.MetricsMaster;
 import alluxio.master.metrics.MetricsMasterFactory;
 import alluxio.metrics.Metric;
+import alluxio.proto.journal.Journal;
 import alluxio.proto.meta.Block;
+import alluxio.resource.CloseableIterator;
+import alluxio.util.CommonUtils;
+import alluxio.util.SleepUtils;
 import alluxio.util.ThreadFactoryUtils;
 import alluxio.util.executor.ExecutorServiceFactories;
+import alluxio.util.executor.ExecutorServiceFactory;
+import alluxio.wire.Address;
 import alluxio.wire.BlockInfo;
 import alluxio.wire.BlockLocation;
 import alluxio.wire.WorkerInfo;
@@ -56,12 +76,22 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
 
+import java.io.IOException;
+import java.time.Clock;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Queue;
+import java.util.Set;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
+import java.util.function.Function;
 
 /**
  * Unit tests for {@link BlockMaster}.
@@ -83,6 +113,7 @@ public class BlockMasterTest {
   private MasterRegistry mRegistry;
   private ManualClock mClock;
   private ExecutorService mExecutorService;
+  private ExecutorService mClientExecutorService;
   private SafeModeManager mSafeModeManager;
   private long mStartTimeMs;
   private int mPort;
@@ -117,6 +148,7 @@ public class BlockMasterTest {
     mClock = new ManualClock();
     mExecutorService =
         Executors.newFixedThreadPool(2, ThreadFactoryUtils.build("TestBlockMaster-%d", true));
+    mClientExecutorService = Executors.newFixedThreadPool(2, ThreadFactoryUtils.build("TestBlockMaster-%d", true));
     mBlockMaster = new DefaultBlockMaster(mMetricsMaster, masterContext, mClock,
         ExecutorServiceFactories.constantExecutorServiceFactory(mExecutorService));
     mRegistry.add(BlockMaster.class, mBlockMaster);
@@ -129,6 +161,9 @@ public class BlockMasterTest {
   @After
   public void after() throws Exception {
     mRegistry.stop();
+
+    // TODO(jiacheng): where is the mExecutorService closed?
+    mClientExecutorService.shutdown();
   }
 
   @Test
@@ -402,10 +437,101 @@ public class BlockMasterTest {
     assertEquals(expectedBlockInfo, mBlockMaster.getBlockInfo(blockId));
   }
 
+  // write happens first
+  // 1. write finished before read starts
+  // 2. write not finished before read starts
+
+  // read happens first
+  // 1. read finished before write starts
+  // 2. read not finished before write starts
+  @Test
+  public void rwMasterMock() throws Exception {
+    JournalSystem journalSystem = new NoopJournalSystem();
+    CoreMasterContext masterContext = MasterTestUtils.testMasterContext();
+
+    CountDownLatch readerLatch = new CountDownLatch(1);
+
+    SignalBlockMaster testMaster = new SignalBlockMaster(mMetricsMaster, masterContext, mClock,
+            ExecutorServiceFactories.constantExecutorServiceFactory(mExecutorService), readerLatch);
+
+    // Prepare worker
+    long worker1 = testMaster.getWorkerId(NET_ADDRESS_1);
+    long blockId = 1L;
+    long blockLength = 49L;
+    testMaster.workerRegister(worker1, Arrays.asList("MEM"), ImmutableMap.of("MEM", 100L),
+            ImmutableMap.of("MEM", 0L), NO_BLOCKS_ON_LOCATION, NO_LOST_STORAGE,
+            RegisterWorkerPOptions.getDefaultInstance());
+
+    // clients keep reading the blockInfo
+    // Each client is constantly checking the worker status
+    int threadCount = 20;
+    Queue<Throwable> uncaughtThrowables = new ConcurrentLinkedQueue<>();
+    CountDownLatch allClientFinished = new CountDownLatch(threadCount);
+    for (int i = 0; i < threadCount; i++) {
+      int finalI = i;
+      mClientExecutorService.submit(() -> {
+        try {
+          // Wait until the commit is already running
+          readerLatch.await();
+
+          // If the block is not committed yet, a BlockInfoException will be thrown
+          BlockInfo blockInfo = testMaster.getBlockInfo(blockId);
+          List<WorkerInfo> workerInfoList = testMaster.getWorkerReport(GetWorkerReportOptions.defaults());
+
+          BlockLocation blockLocation = new BlockLocation()
+                  .setTierAlias("MEM")
+                  .setWorkerAddress(NET_ADDRESS_1)
+                  .setWorkerId(worker1)
+                  .setMediumType("MEM");
+          BlockInfo expectedBlockInfo = new BlockInfo()
+                  .setBlockId(blockId)
+                  .setLength(blockLength)
+                  .setLocations(ImmutableList.of(blockLocation));
+          assertEquals(expectedBlockInfo, blockInfo);
+          assertEquals(1, workerInfoList.size());
+          WorkerInfo worker = workerInfoList.get(0);
+          assertEquals(49L, worker.getUsedBytes());
+        } catch (BlockInfoException e) {
+          // The reader came in before the writer started the commit
+          // This is unfortunate
+        } catch (Throwable t) {
+          uncaughtThrowables.add(t);
+        } finally {
+          allClientFinished.countDown();
+        }
+      });
+    }
+
+    // Sometime in the middle, a block is committed
+    System.out.println("Worker " + worker1 + " committing block " + blockId);
+    testMaster.commitBlock(worker1, 49L, "MEM", "MEM", blockId, blockLength);
+
+    allClientFinished.await();
+    // If any assertion failed, the failed assertion will throw an AssertError
+    System.out.println("All clients finished, checking errors");
+    while (!uncaughtThrowables.isEmpty()) {
+      Throwable t = uncaughtThrowables.poll();
+      t.printStackTrace();
+    }
+    assertEquals(0, uncaughtThrowables.size());
+  }
+
+  /**
+   * Read-write contention: commit with getWorkerReport
+   *
+   * the capacity and used bytes are matching
+   * the numbers divide the block size
+   *
+   * */
+
+
   @Test
   public void stop() throws Exception {
     mRegistry.stop();
     assertTrue(mExecutorService.isShutdown());
     assertTrue(mExecutorService.isTerminated());
+
+    assertTrue(mClientExecutorService.isShutdown());
+    assertTrue(mClientExecutorService.isTerminated());
   }
 }

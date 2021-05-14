@@ -173,7 +173,6 @@ public final class MasterWorkerInfo {
    * @param isLiveWorker the worker is live or not
    * @return generated worker information
    */
-  // TODO(jiacheng): this will be rewritten because some fields will be regrouped
   public WorkerInfo generateWorkerInfo(Set<WorkerInfoField> fieldRange, boolean isLiveWorker) {
     WorkerInfo info = new WorkerInfo();
     Set<WorkerInfoField> checkedFieldRange = fieldRange != null ? fieldRange :

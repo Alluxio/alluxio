@@ -117,7 +117,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * This block master manages the metadata for all the blocks and block workers in Alluxio.
  */
 @NotThreadSafe // TODO(jiri): make thread-safe (c.f. ALLUXIO-1664)
-public final class DefaultBlockMaster extends CoreMaster implements BlockMaster {
+public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
   private static final Logger LOG = LoggerFactory.getLogger(DefaultBlockMaster.class);
   private static final Set<Class<? extends Server>> DEPS =
       ImmutableSet.<Class<? extends Server>>of(MetricsMaster.class);
@@ -542,7 +542,6 @@ public final class DefaultBlockMaster extends CoreMaster implements BlockMaster 
     worker.mMetaLock.readLock().lock();
     worker.mUsageLock.readLock().lock();
     try {
-      // TODO(jiacheng): rewrite generateWorkerInfo?
       return worker.generateWorkerInfo(fieldRange, isLiveWorker);
     } finally {
       worker.mUsageLock.readLock().unlock();
@@ -713,6 +712,7 @@ public final class DefaultBlockMaster extends CoreMaster implements BlockMaster 
       worker.mUsageLock.writeLock().lock();
       worker.mBlockListLock.writeLock().lock();
       try {
+        System.out.println("All locked " + CommonUtils.getCurrentMs());
         try (LockResource lr = lockBlock(blockId)) {
           Optional<BlockMeta> block = mBlockStore.getBlock(blockId);
           if (!block.isPresent() || block.get().getLength() != length) {
@@ -828,6 +828,7 @@ public final class DefaultBlockMaster extends CoreMaster implements BlockMaster 
    */
   @Nullable
   private MasterWorkerInfo findUnregisteredWorker(WorkerNetAddress workerNetAddress) {
+    // TODO(jiacheng): Is this causing mem usage? Arrays.asList(mTempWorkers, mLostWorkers)
     for (IndexedSet<MasterWorkerInfo> workers: Arrays.asList(mTempWorkers, mLostWorkers)) {
       MasterWorkerInfo worker = workers.getFirstByField(ADDRESS_INDEX, workerNetAddress);
       if (worker != null) {
@@ -993,7 +994,6 @@ public final class DefaultBlockMaster extends CoreMaster implements BlockMaster 
     // The address is final, no need for locking
     processWorkerMetrics(worker.getWorkerAddress().getHost(), metrics);
 
-    // TODO(jiacheng): what are the race conditions by locking separately?
     worker.mMetaLock.writeLock().lock();
     worker.mUsageLock.writeLock().lock();
     worker.mBlockListLock.writeLock().lock();
@@ -1029,9 +1029,9 @@ public final class DefaultBlockMaster extends CoreMaster implements BlockMaster 
       worker.mMetaLock.writeLock().unlock();
     }
 
+    // Should not reach here
     if (workerCommand == null) {
-      // TODO(jiacheng): what if this is null?
-
+      LOG.error("Worker heartbeat response command is null!");
     }
 
     return workerCommand;
