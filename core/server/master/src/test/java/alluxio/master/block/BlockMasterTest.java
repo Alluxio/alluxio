@@ -162,7 +162,8 @@ public class BlockMasterTest {
   public void after() throws Exception {
     mRegistry.stop();
 
-    // TODO(jiacheng): where is the mExecutorService closed?
+    // When the registry is stopped, the BlockMaster will stop the given ExecutorService
+    // We need to manually shutdown this client thread pool
     mClientExecutorService.shutdown();
   }
 
@@ -438,10 +439,12 @@ public class BlockMasterTest {
   }
 
   /**
-   * While multiple readers keep reading metadata, commit a block.
+   * RW contention
+   * Concurrent commit and readers
+   * Signal in commit and the readers inquire the state
    * */
   @Test
-  public void commitWhenReading() throws Exception {
+  public void concurrentCommitWithReaders() throws Exception {
     JournalSystem journalSystem = new NoopJournalSystem();
     CoreMasterContext masterContext = MasterTestUtils.testMasterContext();
 
@@ -508,12 +511,10 @@ public class BlockMasterTest {
     }
 
     // Sometime in the middle, a block is committed
-    System.out.println("Worker " + worker1 + " committing block " + blockId);
     testMaster.commitBlock(worker1, 49L, "MEM", "MEM", blockId, blockLength);
 
     allClientFinished.await();
     // If any assertion failed, the failed assertion will throw an AssertError
-    System.out.println("All clients finished, checking errors");
     while (!uncaughtThrowables.isEmpty()) {
       Throwable t = uncaughtThrowables.poll();
       t.printStackTrace();
@@ -522,13 +523,34 @@ public class BlockMasterTest {
   }
 
   /**
-   * Read-write contention: commit with getWorkerReport
-   *
-   * the capacity and used bytes are matching
-   * the numbers divide the block size
-   *
+   * RW contention
+   * Concurrent remove and readers
+   * Signal in remove and the readers inquire the state
    * */
 
+  /**
+   * WW contention
+   * Write operations are:
+   * 1. commit
+   * 2. remove
+   * 3. workerRegister
+   * 4. workerHeartbeat
+   *
+   * It's hard to trigger a signal in workerRegister and workerHeartbeat
+   *
+   * Test W1 race condition with W2 where W1 will send a signal in the middle of run and trigger W2
+   * W1 is commit/remove
+   * W2 is commit/remove/workerRegister/workerHeartbeat
+   *
+   * When W1 is operating on block B, if W2 is commit/remove:
+   * 1. W2 is on the same block
+   * 2. W2 is on a different block
+   *
+   * When W1 is operating on block B, if W2 is workerRegister/workerHeartbeat,
+   * the options are:
+   * Opt1: W2 may be from the same worker or a different worker
+   * Opt2: W2 may contain the same block or not
+   * */
 
   @Test
   public void stop() throws Exception {
