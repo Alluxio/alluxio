@@ -419,7 +419,7 @@ public class LoadMetadataIntegrationTest extends BaseIntegrationTest {
   }
 
   @Test
-  public void testNoTtlOnLoadedFiles() throws Exception {
+  public void testTtlOnLoadedFiles() throws Exception {
     int created = createUfsFiles(2);
     ServerConfiguration.set(PropertyKey.USER_FILE_METADATA_LOAD_TYPE,
         LoadMetadataType.ONCE.toString());
@@ -435,7 +435,13 @@ public class LoadMetadataIntegrationTest extends BaseIntegrationTest {
     List<URIStatus> list = mFileSystem.listStatus(new AlluxioURI("/mnt"), options);
     assertEquals(created + EXTRA_DIR_FILES, list.size());
     list.forEach(stat -> {
-      assertEquals(-1, stat.getTtl());
+      if (stat.getPath().startsWith("/mnt/mustcache")) {
+        assertEquals(-1, stat.getTtl());
+        assertEquals(TtlAction.DELETE, stat.getTtlAction());
+      } else {
+        assertEquals(10000, stat.getTtl());
+        assertEquals(TtlAction.FREE, stat.getTtlAction());
+      }
     });
   }
 
