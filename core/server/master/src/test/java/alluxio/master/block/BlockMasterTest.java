@@ -463,6 +463,9 @@ public class BlockMasterTest {
 
     // clients keep reading the blockInfo
     // Each client is constantly checking the worker status
+    // This thread count is intentionally larger than the client thread pool
+    // In the hope that even if the first batch of clients all read the state before commit really happens
+    // The following batch will capture the state after the commit
     int threadCount = 20;
     Queue<Throwable> uncaughtThrowables = new ConcurrentLinkedQueue<>();
     CountDownLatch allClientFinished = new CountDownLatch(threadCount);
