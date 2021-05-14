@@ -762,13 +762,15 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
   private FileStatus[] listStatusInternal(String path) throws IOException {
     FileStatus[] files;
     FileSystem hdfs = getFs();
+    Path thePath = new Path(path);
     try {
-      files = hdfs.listStatus(new Path(path));
+      files = hdfs.listStatus(thePath);
     } catch (FileNotFoundException e) {
       return null;
     }
     // Check if path is a file
-    if (files != null && files.length == 1 && files[0].getPath().toString().equals(path)) {
+    if (files != null && files.length == 1
+        && files[0].getPath().toUri().getPath().equals(thePath.toUri().getPath())) {
       return null;
     }
     return files;
