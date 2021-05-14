@@ -437,15 +437,11 @@ public class BlockMasterTest {
     assertEquals(expectedBlockInfo, mBlockMaster.getBlockInfo(blockId));
   }
 
-  // write happens first
-  // 1. write finished before read starts
-  // 2. write not finished before read starts
-
-  // read happens first
-  // 1. read finished before write starts
-  // 2. read not finished before write starts
+  /**
+   * While multiple readers keep reading metadata, commit a block.
+   * */
   @Test
-  public void rwMasterMock() throws Exception {
+  public void commitWhenReading() throws Exception {
     JournalSystem journalSystem = new NoopJournalSystem();
     CoreMasterContext masterContext = MasterTestUtils.testMasterContext();
 
@@ -493,7 +489,16 @@ public class BlockMasterTest {
           assertEquals(49L, worker.getUsedBytes());
         } catch (BlockInfoException e) {
           // The reader came in before the writer started the commit
-          // This is unfortunate
+          try {
+            List<WorkerInfo> workerInfoList = testMaster.getWorkerReport(GetWorkerReportOptions.defaults());
+            assertEquals(1, workerInfoList.size());
+            WorkerInfo worker = workerInfoList.get(0);
+            // We may just see the result before or after the commit
+            // But other values should be illegal
+            assertTrue(49L == worker.getUsedBytes() || 100L == worker.getUsedBytes());
+          } catch (Throwable t) {
+            uncaughtThrowables.add(t);
+          }
         } catch (Throwable t) {
           uncaughtThrowables.add(t);
         } finally {
