@@ -15,6 +15,7 @@ import alluxio.RpcUtils;
 import alluxio.grpc.BlockHeartbeatPRequest;
 import alluxio.grpc.BlockHeartbeatPResponse;
 import alluxio.grpc.BlockMasterWorkerServiceGrpc;
+import alluxio.grpc.BlockStoreLocationProto;
 import alluxio.grpc.CommitBlockInUfsPRequest;
 import alluxio.grpc.CommitBlockInUfsPResponse;
 import alluxio.grpc.CommitBlockPRequest;
@@ -174,12 +175,18 @@ public final class BlockMasterWorkerServiceHandler extends
                  * Therefore we just fail on merging.
                  */
                 (e1, e2) -> {
-                  throw new AssertionError(
-                      String.format(
-                          "One registerWorker request contains two block id lists for the "
-                                  + "same BlockLocation.%n"
-                                  + "Existing: %s%n New: %s",
-                          e1, e2));
+//                  System.out.println(entries);
+//                  LocationBlockIdListEntry k1 = entries.get(0);
+//                  LocationBlockIdListEntry k2 = entries.get(1);
+//                  BlockStoreLocationProto p1 = k1.getKey();
+//                  throw new AssertionError(
+//                      String.format(
+//                          "One registerWorker request contains two block id lists for the "
+//                                  + "same BlockLocation.%n"
+//                                  + "Existing: %s%n New: %s",
+//                          e1, e2));
+                  e1.addAll(e2);
+                  return e1;
                 }));
   }
 }

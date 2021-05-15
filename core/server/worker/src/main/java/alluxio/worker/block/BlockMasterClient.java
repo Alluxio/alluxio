@@ -146,6 +146,7 @@ public class BlockMasterClient extends AbstractMasterClient {
    * */
   private List<LocationBlockIdListEntry> convertBlockListMapToProto(
       Map<BlockStoreLocation, List<Long>> blockListOnLocation) {
+    // TODO(jiacheng): This doesn't really do dedup because BlockStoreLocation dirIndex is lost
     final List<LocationBlockIdListEntry> entryList = new ArrayList<>();
     for (Map.Entry<BlockStoreLocation, List<Long>> entry : blockListOnLocation.entrySet()) {
       BlockStoreLocation loc = entry.getKey();
