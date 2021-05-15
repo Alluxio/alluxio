@@ -40,6 +40,12 @@ import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * Metadata for an Alluxio worker. This class is not thread safe, so external locking is required.
+ *
+ * There are multiple locks in this object, each guarding a group of metadata.
+ * When multiple fields need to be read or updated, locks must be acquired on each.
+ * Locking order must be preserved when multiple locks are acquired:
+ * mMetaLock -> mUsageLock -> mBlockListLock
+ * The locks should be released in the opposite order to avoid deadlock.
  */
 @NotThreadSafe
 public final class MasterWorkerInfo {
@@ -51,17 +57,17 @@ public final class MasterWorkerInfo {
   /** worker metadata */
   private final WorkerMeta mMeta;
   /** lock the worker metadata */
-  public ReentrantReadWriteLock mMetaLock;
+  private final ReentrantReadWriteLock mMetaLock;
   /** worker usage data */
-  private WorkerUsageMeta mUsage;
+  private final WorkerUsageMeta mUsage;
   /** lock the worker usage data */
-  public ReentrantReadWriteLock mUsageLock;
+  private final ReentrantReadWriteLock mUsageLock;
 
   /** ids of blocks the worker contains. */
-  private Set<Long> mBlocks;
+  private final Set<Long> mBlocks;
   /** ids of blocks the worker should remove. */
-  private Set<Long> mToRemoveBlocks;
-  public ReentrantReadWriteLock mBlockListLock;
+  private final Set<Long> mToRemoveBlocks;
+  private final ReentrantReadWriteLock mBlockListLock;
 
   /**
    * Creates a new instance of {@link MasterWorkerInfo}.
@@ -70,7 +76,6 @@ public final class MasterWorkerInfo {
    * @param address the worker address to use
    */
   public MasterWorkerInfo(long id, WorkerNetAddress address) {
-    // TODO(jiacheng): do I lock here? Or do I wrap the lock into the object?
     mMeta = new WorkerMeta(id, address);
     mUsage = new WorkerUsageMeta();
     mBlocks = new HashSet<>();
@@ -84,8 +89,8 @@ public final class MasterWorkerInfo {
 
   /**
    * Marks the worker as registered, while updating all of its metadata.
-   * Write locks on {@link MasterWorkerInfo#mUsageLock} and {@link MasterWorkerInfo#mBlockListLock}
-   * are required.
+   * Write locks on {@link MasterWorkerInfo#mMetaLock}, {@link MasterWorkerInfo#mUsageLock}
+   * and {@link MasterWorkerInfo#mBlockListLock} are required.
    *
    * @param globalStorageTierAssoc global mapping between storage aliases and ordinal position
    * @param storageTierAliases list of storage tier aliases in order of their position in the
@@ -95,11 +100,10 @@ public final class MasterWorkerInfo {
    * @param blocks set of block ids on this worker
    * @return A Set of blocks removed (or lost) from this worker
    */
-  // TODO(jiacheng): All the locks are already locked before reaching here
+  // TODO(jiacheng): Do I need to write GuardedBy for member methods like this?
   public Set<Long> register(final StorageTierAssoc globalStorageTierAssoc,
       final List<String> storageTierAliases, final Map<String, Long> totalBytesOnTiers,
       final Map<String, Long> usedBytesOnTiers, final Set<Long> blocks) {
-    // TODO(jiacheng): IllegalArgumentException?
     mUsage.updateUsage(globalStorageTierAssoc, storageTierAliases,
             totalBytesOnTiers, usedBytesOnTiers);
 
@@ -219,7 +223,7 @@ public final class MasterWorkerInfo {
   }
 
   /**
-   * {@link WorkerMeta#mWorkerAddress is final} so the value can be read without locking
+   * {@link WorkerMeta#mWorkerAddress} is final so the value can be read without locking
    *
    * @return the worker's address
    */
@@ -417,5 +421,17 @@ public final class MasterWorkerInfo {
   public void updateUsedBytes(String tierAlias, long usedBytesOnTier) {
     mUsage.mUsedBytes += usedBytesOnTier - mUsage.mUsedBytesOnTiers.get(tierAlias);
     mUsage.mUsedBytesOnTiers.put(tierAlias, usedBytesOnTier);
+  }
+
+  public ReentrantReadWriteLock getMetaLock() {
+    return mMetaLock;
+  }
+
+  public ReentrantReadWriteLock getUsageLock() {
+    return mUsageLock;
+  }
+
+  public ReentrantReadWriteLock getBlockListLock() {
+    return mBlockListLock;
   }
 }

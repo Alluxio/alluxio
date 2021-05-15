@@ -405,11 +405,11 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
   public long getCapacityBytes() {
     long ret = 0;
     for (MasterWorkerInfo worker : mWorkers) {
-      worker.mUsageLock.readLock().lock();
+      worker.getUsageLock().readLock().lock();
       try {
         ret += worker.getCapacityBytes();
       } finally {
-        worker.mUsageLock.readLock().unlock();
+        worker.getUsageLock().readLock().unlock();
       }
     }
     return ret;
@@ -424,11 +424,11 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
   public long getUsedBytes() {
     long ret = 0;
     for (MasterWorkerInfo worker : mWorkers) {
-      worker.mUsageLock.readLock().lock();
+      worker.getUsageLock().readLock().lock();
       try {
         ret += worker.getUsedBytes();
       } finally {
-        worker.mUsageLock.readLock().unlock();
+        worker.getUsageLock().readLock().unlock();
       }
     }
     return ret;
@@ -539,13 +539,13 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
   private WorkerInfo extractWorkerInfo(MasterWorkerInfo worker,
                                        Set<GetWorkerReportOptions.WorkerInfoField> fieldRange,
                                        boolean isLiveWorker) {
-    worker.mMetaLock.readLock().lock();
-    worker.mUsageLock.readLock().lock();
+    worker.getMetaLock().readLock().lock();
+    worker.getUsageLock().readLock().lock();
     try {
       return worker.generateWorkerInfo(fieldRange, isLiveWorker);
     } finally {
-      worker.mUsageLock.readLock().unlock();
-      worker.mMetaLock.readLock().unlock();
+      worker.getUsageLock().readLock().unlock();
+      worker.getMetaLock().readLock().unlock();
     }
   }
 
@@ -553,7 +553,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
   public List<WorkerLostStorageInfo> getWorkerLostStorage() {
     List<WorkerLostStorageInfo> workerLostStorageList = new ArrayList<>();
     for (MasterWorkerInfo worker : mWorkers) {
-      worker.mUsageLock.readLock().lock();
+      worker.getUsageLock().readLock().lock();
       try {
         if (worker.hasLostStorage()) {
           Map<String, StorageList> lostStorage = worker.getLostStorage().entrySet()
@@ -564,7 +564,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
                   .putAllLostStorage(lostStorage).build());
         }
       } finally {
-        worker.mUsageLock.readLock().unlock();
+        worker.getUsageLock().readLock().unlock();
       }
 
     }
@@ -607,11 +607,11 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
           MasterWorkerInfo worker = mWorkers.getFirstByField(ID_INDEX, workerId);
           if (worker != null) {
             // We read the mBlocks and write the mToRemoveBlocks
-            worker.mBlockListLock.writeLock().lock();
+            worker.getBlockListLock().writeLock().lock();
             try {
               worker.updateToRemovedBlock(true, blockId);
             } finally {
-              worker.mBlockListLock.writeLock().unlock();
+              worker.getBlockListLock().writeLock().unlock();
             }
           }
         }
@@ -709,10 +709,9 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
     try (JournalContext journalContext = createJournalContext()) {
       // Lock the worker metadata here to preserve the lock order
       // The worker metadata must be locked before the blocks
-      worker.mUsageLock.writeLock().lock();
-      worker.mBlockListLock.writeLock().lock();
+      worker.getUsageLock().writeLock().lock();
+      worker.getBlockListLock().writeLock().lock();
       try {
-        System.out.println("All locked " + CommonUtils.getCurrentMs());
         try (LockResource lr = lockBlock(blockId)) {
           Optional<BlockMeta> block = mBlockStore.getBlock(blockId);
           if (!block.isPresent() || block.get().getLength() != length) {
@@ -742,15 +741,15 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
           worker.updateUsedBytes(tierAlias, usedBytesOnTier);
         }
       } finally {
-        worker.mBlockListLock.writeLock().unlock();
-        worker.mUsageLock.writeLock().unlock();
+        worker.getBlockListLock().writeLock().unlock();
+        worker.getUsageLock().writeLock().unlock();
       }
 
-      worker.mMetaLock.writeLock().lock();
+      worker.getMetaLock().writeLock().lock();
       try {
         worker.updateLastUpdatedTimeMs();
       } finally {
-        worker.mMetaLock.writeLock().unlock();
+        worker.getMetaLock().writeLock().unlock();
       }
     }
   }
@@ -790,14 +789,14 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
   public Map<String, Long> getTotalBytesOnTiers() {
     Map<String, Long> ret = new HashMap<>();
     for (MasterWorkerInfo worker : mWorkers) {
-      worker.mUsageLock.readLock().lock();
+      worker.getUsageLock().readLock().lock();
       try {
         for (Map.Entry<String, Long> entry : worker.getTotalBytesOnTiers().entrySet()) {
           Long total = ret.get(entry.getKey());
           ret.put(entry.getKey(), (total == null ? 0L : total) + entry.getValue());
         }
       } finally {
-        worker.mUsageLock.readLock().unlock();
+        worker.getUsageLock().readLock().unlock();
       }
     }
     return ret;
@@ -807,14 +806,14 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
   public Map<String, Long> getUsedBytesOnTiers() {
     Map<String, Long> ret = new HashMap<>();
     for (MasterWorkerInfo worker : mWorkers) {
-      worker.mUsageLock.readLock().lock();
+      worker.getUsageLock().readLock().lock();
       try {
         for (Map.Entry<String, Long> entry : worker.getUsedBytesOnTiers().entrySet()) {
           Long used = ret.get(entry.getKey());
           ret.put(entry.getKey(), (used == null ? 0L : used) + entry.getValue());
         }
       } finally {
-        worker.mUsageLock.readLock().unlock();
+        worker.getUsageLock().readLock().unlock();
       }
     }
     return ret;
@@ -857,6 +856,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
 
   /**
    * Re-register a lost worker or complete registration after getting a worker id.
+   * This method requires no locking on {@link MasterWorkerInfo} because it is only reading final fields.
    *
    * @param workerId the worker id to register
    */
@@ -933,9 +933,9 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
       blocks.addAll(blockIds);
     }
 
-    worker.mMetaLock.writeLock().lock();
-    worker.mUsageLock.writeLock().lock();
-    worker.mBlockListLock.writeLock().lock();
+    worker.getMetaLock().writeLock().lock();
+    worker.getUsageLock().writeLock().lock();
+    worker.getBlockListLock().writeLock().lock();
     try {
       // Detect any lost blocks on this worker.
       Set<Long> removedBlocks = worker.register(mGlobalStorageTierAssoc, storageTiers,
@@ -946,9 +946,9 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
       worker.addLostStorage(lostStorage);
     } finally {
       // Release in the reverse order of acquisition
-      worker.mBlockListLock.writeLock().unlock();
-      worker.mUsageLock.writeLock().unlock();
-      worker.mMetaLock.writeLock().unlock();
+      worker.getBlockListLock().writeLock().unlock();
+      worker.getUsageLock().writeLock().unlock();
+      worker.getMetaLock().writeLock().unlock();
     }
 
     if (options.getConfigsCount() > 0) {
@@ -966,11 +966,11 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
     recordWorkerRegistration(workerId);
 
     // Update the TS at the end of the process
-    worker.mMetaLock.writeLock().lock();
+    worker.getMetaLock().writeLock().lock();
     try {
       worker.updateLastUpdatedTimeMs();
     } finally {
-      worker.mMetaLock.writeLock().unlock();
+      worker.getMetaLock().writeLock().unlock();
     }
 
     // Invalidate cache to trigger new build of worker info list
@@ -994,9 +994,9 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
     // The address is final, no need for locking
     processWorkerMetrics(worker.getWorkerAddress().getHost(), metrics);
 
-    worker.mMetaLock.writeLock().lock();
-    worker.mUsageLock.writeLock().lock();
-    worker.mBlockListLock.writeLock().lock();
+    worker.getMetaLock().writeLock().lock();
+    worker.getUsageLock().writeLock().lock();
+    worker.getBlockListLock().writeLock().lock();
     Command workerCommand = null;
     try {
       worker.addLostStorage(lostStorage);
@@ -1024,9 +1024,9 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
       }
     } finally {
       // Release in the reverse order of acquisition
-      worker.mBlockListLock.writeLock().unlock();
-      worker.mUsageLock.writeLock().unlock();
-      worker.mMetaLock.writeLock().unlock();
+      worker.getBlockListLock().writeLock().unlock();
+      worker.getUsageLock().writeLock().unlock();
+      worker.getMetaLock().writeLock().unlock();
     }
 
     // Should not reach here
@@ -1050,8 +1050,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
    * @param workerInfo The worker metadata object
    * @param removedBlockIds A list of block ids removed from the worker
    */
-  @GuardedBy("workerInfo")
-  // TODO(jiacheng): Update all GuardedBy
+  @GuardedBy("workerInfo.mBlockListLock")
   private void processWorkerRemovedBlocks(MasterWorkerInfo workerInfo,
       Collection<Long> removedBlockIds) {
     for (long removedBlockId : removedBlockIds) {
@@ -1076,7 +1075,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
    *  @param workerInfo The worker metadata object
    * @param addedBlockIds A mapping from storage tier alias to a list of block ids added
    */
-  @GuardedBy("workerInfo")
+  @GuardedBy("workerInfo.mBlockListLock")
   private void processWorkerAddedBlocks(MasterWorkerInfo workerInfo,
       Map<BlockLocation, List<Long>> addedBlockIds) {
     for (Map.Entry<BlockLocation, List<Long>> entry : addedBlockIds.entrySet()) {
@@ -1101,7 +1100,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
     }
   }
 
-  @GuardedBy("workerInfo")
+  @GuardedBy("workerInfo.mBlockListLock")
   private void processWorkerOrphanedBlocks(MasterWorkerInfo workerInfo) {
     for (long block : workerInfo.getBlocks()) {
       if (!mBlockStore.getBlock(block).isPresent()) {
@@ -1129,11 +1128,12 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
 
   /**
    * Generates block info, including worker locations, for a block id.
+   * This requires no locks on the {@link MasterWorkerInfo} because it is only reading
+   * final fields.
    *
    * @param blockId a block id
    * @return optional block info, empty if the block does not exist
    */
-  @GuardedBy("masterBlockInfo")
   private Optional<BlockInfo> generateBlockInfo(long blockId) throws UnavailableException {
     if (mSafeModeManager.isInSafeMode()) {
       throw new UnavailableException(ExceptionMessage.MASTER_IN_SAFEMODE.getMessage());
@@ -1195,19 +1195,19 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
     public void heartbeat() {
       long masterWorkerTimeoutMs = ServerConfiguration.getMs(PropertyKey.MASTER_WORKER_TIMEOUT_MS);
       for (MasterWorkerInfo worker : mWorkers) {
-        worker.mMetaLock.readLock().lock();
-        worker.mBlockListLock.writeLock().lock();
+        // TOOD(jiacheng): make worker.getLastUpdatedTimeMs() not locking
+        worker.getMetaLock().readLock().lock();
+        worker.getBlockListLock().writeLock().lock();
         try {
           final long lastUpdate = mClock.millis() - worker.getLastUpdatedTimeMs();
           if (lastUpdate > masterWorkerTimeoutMs) {
             LOG.error("The worker {}({}) timed out after {}ms without a heartbeat!", worker.getId(),
                     worker.getWorkerAddress(), lastUpdate);
-            // TODO(jiacheng): what do we lock here?
             processLostWorker(worker);
           }
         } finally {
-          worker.mBlockListLock.writeLock().unlock();
-          worker.mMetaLock.readLock().unlock();
+          worker.getBlockListLock().writeLock().unlock();
+          worker.getMetaLock().readLock().unlock();
         }
       }
     }
@@ -1224,11 +1224,11 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
   @VisibleForTesting
   public void forgetAllWorkers() {
     for (MasterWorkerInfo worker : mWorkers) {
-      worker.mBlockListLock.writeLock().lock();
+      worker.getBlockListLock().writeLock().lock();
       try {
         processLostWorker(worker);
       } finally {
-        worker.mBlockListLock.writeLock().unlock();
+        worker.getBlockListLock().writeLock().unlock();
       }
     }
   }
@@ -1238,6 +1238,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
    *
    * @param worker the worker metadata
    */
+  @GuardedBy("worker.mBlockListLock")
   private void processLostWorker(MasterWorkerInfo worker) {
     mLostWorkers.add(worker);
     mWorkers.remove(worker);
