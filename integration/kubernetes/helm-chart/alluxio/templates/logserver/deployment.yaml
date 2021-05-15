@@ -26,6 +26,8 @@ metadata:
     role: alluxio-logserver
 spec:
   replicas: 1
+  strategy:
+    type: Recreate
   selector:
     matchLabels:
       app: {{ $name }}
