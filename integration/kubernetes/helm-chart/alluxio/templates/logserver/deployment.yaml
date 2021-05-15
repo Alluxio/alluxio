@@ -27,6 +27,7 @@ metadata:
 spec:
   replicas: 1
   strategy:
+    {{/* The PV is RWO. Use Recreate strategy to dispose the pod first before creating another. */ -}}
     type: Recreate
   selector:
     matchLabels:
