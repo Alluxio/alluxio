@@ -70,7 +70,7 @@ public abstract class BaseTierManagementTaskTest {
 
     File tempFolder = mTestFolder.newFolder();
     TieredBlockStoreTestUtils.setupDefaultConf(tempFolder.getAbsolutePath());
-    mBlockStore = new TieredBlockStore();
+    mBlockStore = TieredBlockStore.create();
     Field field = mBlockStore.getClass().getDeclaredField("mMetaManager");
     field.setAccessible(true);
     mMetaManager = (BlockMetadataManager) field.get(mBlockStore);

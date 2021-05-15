@@ -149,7 +149,7 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
     this(new BlockMasterClientPool(),
         new FileSystemMasterClient(MasterClientContext
             .newBuilder(ClientContext.create(ServerConfiguration.global())).build()),
-        new Sessions(), new TieredBlockStore(), ufsManager);
+        new Sessions(), TieredBlockStore.create(), ufsManager);
   }
 
   /**

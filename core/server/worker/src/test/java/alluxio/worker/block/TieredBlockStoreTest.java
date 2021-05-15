@@ -50,7 +50,6 @@ import org.junit.rules.TemporaryFolder;
 import org.mockito.invocation.InvocationOnMock;
 
 import java.io.File;
-import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -101,15 +100,9 @@ public final class TieredBlockStoreTest {
 
     File tempFolder = mTestFolder.newFolder();
     TieredBlockStoreTestUtils.setupDefaultConf(tempFolder.getAbsolutePath());
-    mBlockStore = new TieredBlockStore();
-
-    // TODO(bin): Avoid using reflection to get private members.
-    Field field = mBlockStore.getClass().getDeclaredField("mMetaManager");
-    field.setAccessible(true);
-    mMetaManager = (BlockMetadataManager) field.get(mBlockStore);
-    field = mBlockStore.getClass().getDeclaredField("mLockManager");
-    field.setAccessible(true);
-    mLockManager = (BlockLockManager) field.get(mBlockStore);
+    mMetaManager = BlockMetadataManager.createBlockMetadataManager();
+    mLockManager = new BlockLockManager();
+    mBlockStore = TieredBlockStore.create(mMetaManager, mLockManager);
     mBlockIterator = mMetaManager.getBlockIterator();
 
     mTestDir1 = mMetaManager.getTier(FIRST_TIER_ALIAS).getDir(0);

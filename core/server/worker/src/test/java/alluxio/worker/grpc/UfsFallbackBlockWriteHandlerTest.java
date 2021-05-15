@@ -96,7 +96,7 @@ public class UfsFallbackBlockWriteHandlerTest extends AbstractWriteHandlerTest {
   public void before() throws Exception {
     mFile = mTestFolder.newFile();
     mOutputStream = new FileOutputStream(mFile);
-    mBlockStore = new TieredBlockStore();
+    mBlockStore = TieredBlockStore.create();
     mBlockWorker = new MockBlockWorker();
     UnderFileSystem mockUfs = Mockito.mock(UnderFileSystem.class);
     UfsManager ufsManager = Mockito.mock(UfsManager.class);
