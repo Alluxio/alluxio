@@ -176,9 +176,15 @@ public class DefaultBlockWorkerTest {
   public void createBlock() throws Exception {
     long blockId = mRandom.nextLong();
     long sessionId = mRandom.nextLong();
-    long initialBytes = 1;
+    long initialBytes = 1L;
     String path = mBlockWorker.createBlock(sessionId, blockId, 0, "", initialBytes);
-    assertTrue(path.startsWith(mMemDir)); // tier 0 is mem
+    assertTrue(path.startsWith(mMemDir));
+
+    long blockId2 = mRandom.nextLong();
+    long initialBytes2 = 1L * Constants.GB;
+    String path2 = mBlockWorker.createBlock(sessionId, blockId2, 0, "", initialBytes2);
+    // The available space in MEM is not enough. Allocator will allocate in HDD.
+    assertTrue(path2.startsWith(mHddDir));
   }
 
   @Test
@@ -211,11 +217,26 @@ public class DefaultBlockWorkerTest {
   }
 
   @Test
-  public void getStoreMeta() {
+  public void getStoreMeta() throws Exception {
     mBlockWorker.getStoreMeta();
-    mBlockWorker.getStoreMetaFull();
     verify(mBlockStore, times(2)).getBlockStoreMeta(); // 1 is called at metrics registration
-    verify(mBlockStore).getBlockStoreMetaFull();
+    long blockId1 = mRandom.nextLong();
+    long blockId2 = mRandom.nextLong();
+    long sessionId = mRandom.nextLong();
+    mBlockWorker.createBlock(sessionId, blockId1, 0, "", 1L);
+    // Available space in MEM is not enough. Block will be allocated in HDD.
+    mBlockWorker.createBlock(sessionId, blockId2, 0, "", 2L * Constants.GB);
+    BlockStoreMeta storeMeta = mBlockWorker.getStoreMetaFull();
+    assertEquals(2, storeMeta.getBlockList().size());
+    assertEquals(2, storeMeta.getBlockListByStorageLocation().size());
+    assertEquals(0, storeMeta.getBlockList().get("MEM").size());
+    assertEquals(3L * Constants.GB, storeMeta.getCapacityBytes());
+    assertEquals(1L + 2L * Constants.GB, storeMeta.getUsedBytes());
+    mBlockWorker.commitBlock(sessionId, blockId1, true);
+    mBlockWorker.commitBlock(sessionId, blockId2, true);
+    storeMeta = mBlockWorker.getStoreMetaFull();
+    assertEquals(1, storeMeta.getBlockList().get("MEM").size());
+    assertEquals(1, storeMeta.getBlockList().get("HDD").size());
   }
 
   @Test

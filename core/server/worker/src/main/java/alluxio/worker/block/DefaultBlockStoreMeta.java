@@ -61,6 +61,11 @@ public final class DefaultBlockStoreMeta implements BlockStoreMeta {
 
   @Override
   public Map<String, List<Long>> getBlockList() {
+    /**
+     * This method is only available when using method
+     * `DefaultBlockStoreMeta(manager, true)` to init, otherwise `mBlockIdsOnTiers`
+     * will not be initialized and be `NULL` value.
+     */
     Preconditions.checkNotNull(mBlockIdsOnTiers, "mBlockIdsOnTiers");
 
     return mBlockIdsOnTiers;
@@ -68,6 +73,11 @@ public final class DefaultBlockStoreMeta implements BlockStoreMeta {
 
   @Override
   public Map<BlockStoreLocation, List<Long>> getBlockListByStorageLocation() {
+    /**
+     * This method is only available when using method
+     * `DefaultBlockStoreMeta(manager, true)` to init, otherwise `mBlockIdsOnLocations`
+     * will not be initialized and be `NULL` value.
+     */
     Preconditions.checkNotNull(mBlockIdsOnLocations, "mBlockIdsOnLocations");
 
     return mBlockIdsOnLocations;
