@@ -39,8 +39,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import static io.grpc.stub.ServerCalls.asyncUnimplementedStreamingCall;
-
 /**
  * This class is a gRPC handler for block master RPCs invoked by an Alluxio worker.
  */

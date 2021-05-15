@@ -933,6 +933,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
       blocks.addAll(blockIds);
     }
 
+    // We need the write lock on meta because of worker.register()
     worker.getMetaLock().writeLock().lock();
     worker.getUsageLock().writeLock().lock();
     worker.getBlockListLock().writeLock().lock();
@@ -966,12 +967,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
     recordWorkerRegistration(workerId);
 
     // Update the TS at the end of the process
-    worker.getMetaLock().writeLock().lock();
-    try {
-      worker.updateLastUpdatedTimeMs();
-    } finally {
-      worker.getMetaLock().writeLock().unlock();
-    }
+    worker.updateLastUpdatedTimeMs();
 
     // Invalidate cache to trigger new build of worker info list
     mWorkerInfoCache.invalidate(WORKER_INFO_CACHE_KEY);
@@ -991,10 +987,14 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
       return Command.newBuilder().setCommandType(CommandType.Register).build();
     }
 
+    // Update the TS before the heartbeat so even if the worker heartbeat processing
+    // is time-consuming or triggers GC, the worker does not get marked as lost
+    // by the LostWorkerDetectionHeartbeatExecutor.
+    worker.updateLastUpdatedTimeMs();
+
     // The address is final, no need for locking
     processWorkerMetrics(worker.getWorkerAddress().getHost(), metrics);
 
-    worker.getMetaLock().writeLock().lock();
     worker.getUsageLock().writeLock().lock();
     worker.getBlockListLock().writeLock().lock();
     Command workerCommand = null;
@@ -1005,7 +1005,6 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
         worker.updateCapacityBytes(capacityBytesOnTiers);
       }
       worker.updateUsedBytes(usedBytesOnTiers);
-      worker.updateLastUpdatedTimeMs();
 
       // Technically, 'worker' should be confirmed to still be in the data structure. Lost worker
       // detection can remove it. However, we are intentionally ignoring this race, since the worker
@@ -1026,8 +1025,10 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
       // Release in the reverse order of acquisition
       worker.getBlockListLock().writeLock().unlock();
       worker.getUsageLock().writeLock().unlock();
-      worker.getMetaLock().writeLock().unlock();
     }
+
+    // Update the TS again
+    worker.updateLastUpdatedTimeMs();
 
     // Should not reach here
     if (workerCommand == null) {

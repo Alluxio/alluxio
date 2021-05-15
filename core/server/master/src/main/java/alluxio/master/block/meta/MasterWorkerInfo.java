@@ -67,6 +67,7 @@ public final class MasterWorkerInfo {
   private final Set<Long> mBlocks;
   /** ids of blocks the worker should remove. */
   private final Set<Long> mToRemoveBlocks;
+  /** lock the 2 block sets above */
   private final ReentrantReadWriteLock mBlockListLock;
 
   /**
@@ -342,7 +343,7 @@ public final class MasterWorkerInfo {
   }
 
   @Override
-  // TODO(jiacheng): is this locking
+  // TODO(jiacheng): is this locking?
   public String toString() {
     Collection<Long> blocks = mBlocks;
     String blockFieldName = "blocks";

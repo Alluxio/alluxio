@@ -28,7 +28,6 @@ import alluxio.grpc.LocationBlockIdListEntry;
 import alluxio.grpc.Metric;
 import alluxio.grpc.RegisterWorkerPOptions;
 import alluxio.grpc.RegisterWorkerPRequest;
-import alluxio.grpc.RegisterWorkerPResponse;
 import alluxio.grpc.ServiceType;
 import alluxio.grpc.StorageList;
 import alluxio.master.MasterClientContext;
@@ -45,7 +44,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -59,7 +57,6 @@ import javax.annotation.concurrent.ThreadSafe;
 public class BlockMasterClient extends AbstractMasterClient {
   private static final Logger LOG = LoggerFactory.getLogger(BlockMasterClient.class);
   private BlockMasterWorkerServiceGrpc.BlockMasterWorkerServiceBlockingStub mClient = null;
-  private BlockMasterWorkerServiceGrpc.BlockMasterWorkerServiceStub mStreamClient = null;
 
   /**
    * Creates a new instance of {@link BlockMasterClient} for the worker.
@@ -256,10 +253,9 @@ public class BlockMasterClient extends AbstractMasterClient {
         .putAllLostStorage(lostStorageMap)
         .setOptions(options).build();
 
-    // This is what the code used to be
     retryRPC(() -> {
-            mClient.registerWorker(request);
-            return null;
+        mClient.registerWorker(request);
+        return null;
     }, LOG, "Register", "workerId=%d", workerId);
   }
 }
