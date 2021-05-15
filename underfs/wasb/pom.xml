@@ -22,11 +22,10 @@
   <description>Microsoft Azure Blob Storage Under File System implementation</description>
 
   <properties>
-    <!-- The hadoop client version wasb-hadoop depends on -->
-    <wasb.hadoop.version>2.10.0</wasb.hadoop.version>
     <!-- The following paths need to be defined here as well as in the parent pom so that mvn can -->
     <!-- run properly from sub-project directories -->
     <build.path>${project.parent.parent.basedir}/build</build.path>
+    <ufs.hadoop.version>3.3.0</ufs.hadoop.version>
   </properties>
 
   <dependencies>
@@ -34,17 +33,7 @@
     <dependency>
       <groupId>org.apache.hadoop</groupId>
       <artifactId>hadoop-azure</artifactId>
-      <version>${wasb.hadoop.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.hadoop</groupId>
-      <artifactId>hadoop-common</artifactId>
-      <version>${wasb.hadoop.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.hadoop</groupId>
-      <artifactId>hadoop-hdfs</artifactId>
-      <version>${wasb.hadoop.version}</version>
+      <version>${ufs.hadoop.version}</version>
     </dependency>
 
     <!-- Internal dependencies -->
