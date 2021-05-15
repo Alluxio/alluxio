@@ -12,29 +12,20 @@
 package alluxio.client.file.cache;
 
 import alluxio.ConfigurationTestUtils;
-import alluxio.client.file.cache.evictor.FIFOEvictor;
+import alluxio.client.file.cache.evictor.FIFOCacheEvictor;
 
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.Test;
 
 /**
- * Tests for the {@link FIFOEvictor} class.
+ * Tests for the {@link FIFOCacheEvictor} class.
  */
-public final class FIFOEvictorTest {
-  private FIFOEvictor mEvictor;
+public final class FIFOCacheEvictorTest {
+  private final FIFOCacheEvictor mEvictor = new FIFOCacheEvictor(ConfigurationTestUtils.defaults());
   private final PageId mFirst = new PageId("1L", 2L);
   private final PageId mSecond = new PageId("3L", 4L);
   private final PageId mThird = new PageId("5L", 6L);
   private final PageId mFourth = new PageId("7L", 8L);
-
-  /**
-   * Sets up the instances.
-   */
-  @Before
-  public void before() {
-    mEvictor = new FIFOEvictor(ConfigurationTestUtils.defaults());
-  }
 
   @Test
   public void evictPutOrder() {

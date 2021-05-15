@@ -28,6 +28,7 @@
     <cosn.hadoop-cos.version>3.1.0-5.8.5</cosn.hadoop-cos.version>
     <cosn.cos_api.version>5.6.19</cosn.cos_api.version>
     <cosn.hadoop.version>3.1.0</cosn.hadoop.version>
+    <shading.prefix>alluxio.shaded.cosn</shading.prefix>
   </properties>
 
   <dependencies>

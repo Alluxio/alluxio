@@ -62,7 +62,7 @@ import java.util.Set;
  */
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({BlockMasterClient.class, BlockMasterClientPool.class, FileSystemMasterClient.class,
-    UnderFileSystem.class, Sessions.class})
+    UnderFileSystem.class})
 public class DefaultBlockWorkerTest {
 
   @Rule
@@ -103,7 +103,7 @@ public class DefaultBlockWorkerTest {
     when(mBlockMasterClientPool.createNewResource()).thenReturn(mBlockMasterClient);
     mBlockStore = spy(new TieredBlockStore());
     mFileSystemMasterClient = PowerMockito.mock(FileSystemMasterClient.class);
-    mSessions = PowerMockito.mock(Sessions.class);
+    mSessions = mock(Sessions.class);
     mUfsManager = mock(UfsManager.class);
 
     mBlockWorker = new DefaultBlockWorker(mBlockMasterClientPool, mFileSystemMasterClient,
