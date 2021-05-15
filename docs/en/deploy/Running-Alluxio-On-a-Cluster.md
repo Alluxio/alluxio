@@ -29,7 +29,7 @@ To deploy Alluxio in production, we highly recommend running Alluxio masters in
   $ tar -xvzpf alluxio-{{site.ALLUXIO_VERSION_STRING}}-bin.tar.gz
   ```
   
-* Enable SSH login without password from the master node to worker nodes.
+* Enable SSH login without password from the master node to worker nodes and from the master node to itself.
   You can add a public SSH key for the host into `~/.ssh/authorized_keys`.
   See [this tutorial](http://www.linuxproblem.org/art_9.html) for more details.
 * TCP traffic across all nodes is allowed.
@@ -60,11 +60,17 @@ alluxio.master.mount.table.root.ufs=<STORAGE_URI>
   mount to the Alluxio root.
   This shared storage system must be accessible by the master node and all worker nodes.
   Examples include `alluxio.master.mount.table.root.ufs=hdfs://1.2.3.4:9000/alluxio/root/`, or 
-  `alluxio.master.mount.table.root.ufs=s3://bucket/dir/`.
+  `alluxio.master.mount.table.root.ufs=s3://bucket/dir/`
+  (See [this tutorial](https://docs.alluxio.io/os/user/stable/en/ufs/S3.html#running-alluxio-locally-with-s3) 
+  for more details about configuring Amazon S3 as Alluxio's under storage system).
+
+Then, append the host name of all the Alluxio master nodes into `conf/masters` 
+and the host name of all the Alluxio workers node into `conf/workers`.
 
 Next, copy the configuration file to all the Alluxio worker nodes.
 The following built-in utility will copy the configuration files to all master and worker
 nodes specified in the `conf/masters` and `conf/workers` files respectively.
+Note that the inbound rules and ports of each node need to allow access from all the other nodes in the cluster.
 
 ```console
 $ ./bin/alluxio copyDir conf/
