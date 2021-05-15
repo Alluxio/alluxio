@@ -6,6 +6,7 @@ import alluxio.wire.WorkerNetAddress;
 import com.google.common.base.Preconditions;
 
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicLong;
 
 public class WorkerMeta {
   /** Worker's address. */
@@ -15,10 +16,7 @@ public class WorkerMeta {
   /** Start time of the worker in ms. */
   public final long mStartTimeMs;
   /** Worker's last updated time in ms. */
-  // TODO(jiacheng): update this in a separate method
-          // atomically update this with isRegistered?
-  public long mLastUpdatedTimeMs;
-  // TODO(jiacheng): update this in a separate method
+  public final AtomicLong mLastUpdatedTimeMs;
   /** If true, the worker is considered registered. */
   public boolean mIsRegistered;
 
@@ -27,6 +25,10 @@ public class WorkerMeta {
     mWorkerAddress = Preconditions.checkNotNull(address, "address");
     mIsRegistered = false;
     mStartTimeMs = CommonUtils.getCurrentMs();
-    mLastUpdatedTimeMs = CommonUtils.getCurrentMs();
+    mLastUpdatedTimeMs = new AtomicLong(CommonUtils.getCurrentMs());
+  }
+
+  public void updateLastUpdatedTimeMs() {
+    mLastUpdatedTimeMs.set(CommonUtils.getCurrentMs());
   }
 }

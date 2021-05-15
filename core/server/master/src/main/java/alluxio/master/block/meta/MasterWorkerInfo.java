@@ -197,7 +197,7 @@ public final class MasterWorkerInfo {
           break;
         case LAST_CONTACT_SEC:
           info.setLastContactSec(
-              (int) ((CommonUtils.getCurrentMs() - mMeta.mLastUpdatedTimeMs) / Constants.SECOND_MS));
+              (int) ((CommonUtils.getCurrentMs() - mMeta.mLastUpdatedTimeMs.get()) / Constants.SECOND_MS));
           break;
         case START_TIME_MS:
           info.setStartTimeMs(mMeta.mStartTimeMs);
@@ -263,7 +263,7 @@ public final class MasterWorkerInfo {
    * @return the last updated time of the worker in ms
    */
   public long getLastUpdatedTimeMs() {
-    return mMeta.mLastUpdatedTimeMs;
+    return mMeta.mLastUpdatedTimeMs.get();
   }
 
   /**
@@ -342,6 +342,7 @@ public final class MasterWorkerInfo {
   }
 
   @Override
+  // TODO(jiacheng): is this locking
   public String toString() {
     Collection<Long> blocks = mBlocks;
     String blockFieldName = "blocks";
@@ -355,7 +356,7 @@ public final class MasterWorkerInfo {
         .add("workerAddress", mMeta.mWorkerAddress)
         .add("capacityBytes", mUsage.mCapacityBytes)
         .add("usedBytes", mUsage.mUsedBytes)
-        .add("lastUpdatedTimeMs", mMeta.mLastUpdatedTimeMs)
+        .add("lastUpdatedTimeMs", mMeta.mLastUpdatedTimeMs.get())
         .add("blockCount", mBlocks.size())
         .add(blockFieldName, blocks)
         .add("lostStorage", mUsage.mLostStorage).toString();
@@ -365,7 +366,7 @@ public final class MasterWorkerInfo {
    * Updates the last updated time of the worker in ms.
    */
   public void updateLastUpdatedTimeMs() {
-    mMeta.mLastUpdatedTimeMs = CommonUtils.getCurrentMs();
+    mMeta.updateLastUpdatedTimeMs();
   }
 
   /**

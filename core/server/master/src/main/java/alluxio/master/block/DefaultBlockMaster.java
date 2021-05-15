@@ -1195,10 +1195,9 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
     public void heartbeat() {
       long masterWorkerTimeoutMs = ServerConfiguration.getMs(PropertyKey.MASTER_WORKER_TIMEOUT_MS);
       for (MasterWorkerInfo worker : mWorkers) {
-        // TOOD(jiacheng): make worker.getLastUpdatedTimeMs() not locking
-        worker.getMetaLock().readLock().lock();
         worker.getBlockListLock().writeLock().lock();
         try {
+          // This is not locking because the field is atomic
           final long lastUpdate = mClock.millis() - worker.getLastUpdatedTimeMs();
           if (lastUpdate > masterWorkerTimeoutMs) {
             LOG.error("The worker {}({}) timed out after {}ms without a heartbeat!", worker.getId(),
@@ -1207,7 +1206,6 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
           }
         } finally {
           worker.getBlockListLock().writeLock().unlock();
-          worker.getMetaLock().readLock().unlock();
         }
       }
     }
