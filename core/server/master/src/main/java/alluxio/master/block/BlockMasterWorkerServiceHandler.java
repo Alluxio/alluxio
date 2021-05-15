@@ -76,24 +76,7 @@ public final class BlockMasterWorkerServiceHandler extends
     final Map<String, StorageList> lostStorageMap = request.getLostStorageMap();
 
     final Map<Block.BlockLocation, List<Long>> addedBlocksMap =
-        request
-            .getAddedBlocksList()
-            .stream()
-            .collect(
-                Collectors.toMap(
-                    e -> Block.BlockLocation.newBuilder().setTier(e.getKey().getTierAlias())
-                        .setMediumType(e.getKey().getMediumType()).build(),
-                    e -> e.getValue().getBlockIdList(),
-                    /**
-                     * The merger function is invoked on key collisions to merge the values.
-                     * In fact this merger should never be invoked because the list is deduplicated
-                     * by {@link BlockMasterClient#heartbeat} before sending to the master.
-                     * Therefore we just fail on merging.
-                     */
-                    (e1, e2) -> {
-                      failOnDuplicateKeys(e1, e2);
-                      return null;
-                    }));
+            reconstructBlocksOnLocationMap(request.getAddedBlocksList());
 
     final List<Metric> metrics = request.getOptions().getMetricsList()
         .stream().map(Metric::fromProto).collect(Collectors.toList());
@@ -160,25 +143,7 @@ public final class BlockMasterWorkerServiceHandler extends
     final Map<String, StorageList> lostStorageMap = request.getLostStorageMap();
 
     final Map<Block.BlockLocation, List<Long>> currBlocksOnLocationMap =
-        request
-            .getCurrentBlocksList()
-            .stream()
-            .collect(
-                Collectors.toMap(
-                    e -> Block.BlockLocation.newBuilder().setTier(e.getKey().getTierAlias())
-                        .setMediumType(e.getKey().getMediumType()).build(),
-                    e -> e.getValue().getBlockIdList(),
-                    /**
-                     * The merger function is invoked on key collisions to merge the values.
-                     * In fact this merger should never be invoked because the list is deduplicated
-                     * by {@link BlockMasterClient#heartbeat} before sending to the master.
-                     * Therefore we just fail on merging.
-                     */
-                    (e1, e2) -> {
-                      List<LocationBlockIdListEntry> entries = request.getCurrentBlocksList();
-                      failOnDuplicateKeys(e1, e2);
-                      return null;
-                    }));
+            reconstructBlocksOnLocationMap(request.getCurrentBlocksList());
 
     RegisterWorkerPOptions options = request.getOptions();
     RpcUtils.call(LOG,
@@ -189,11 +154,32 @@ public final class BlockMasterWorkerServiceHandler extends
         }, "registerWorker", "request=%s", responseObserver, request);
   }
 
-  private void failOnDuplicateKeys(List<Long> e1, List<Long> e2) throws AssertionError {
-    throw new AssertionError(
-        String.format(
-            "One registerWorker request contains two block id lists for the same BlockLocation.%n"
-                    + "Existing: %s%n New: %s",
-            e1, e2));
+  /**
+   * This converts the flattened list of block locations back to a map.
+   * This relies on the unique guarantee from
+   * {@link alluxio.worker.block.BlockMasterClient#heartbeat}.
+   * If a duplicated key is seen, an AssertionError will be thrown.
+   * */
+  private Map<Block.BlockLocation, List<Long>> reconstructBlocksOnLocationMap(
+          List<LocationBlockIdListEntry> entries) {
+    return entries.stream().collect(
+            Collectors.toMap(
+                e -> Block.BlockLocation.newBuilder().setTier(e.getKey().getTierAlias())
+                        .setMediumType(e.getKey().getMediumType()).build(),
+                e -> e.getValue().getBlockIdList(),
+                /**
+                 * The merger function is invoked on key collisions to merge the values.
+                 * In fact this merger should never be invoked because the list is deduplicated
+                 * by {@link BlockMasterClient#heartbeat} before sending to the master.
+                 * Therefore we just fail on merging.
+                 */
+                (e1, e2) -> {
+                  throw new AssertionError(
+                      String.format(
+                          "One registerWorker request contains two block id lists for the "
+                                  + "same BlockLocation.%n"
+                                  + "Existing: %s%n New: %s",
+                          e1, e2));
+                }));
   }
 }
