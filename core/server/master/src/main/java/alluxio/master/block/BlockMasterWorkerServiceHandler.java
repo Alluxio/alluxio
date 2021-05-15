@@ -22,6 +22,7 @@ import alluxio.grpc.CommitBlockPResponse;
 import alluxio.grpc.GetWorkerIdPRequest;
 import alluxio.grpc.GetWorkerIdPResponse;
 import alluxio.grpc.GrpcUtils;
+import alluxio.grpc.LocationBlockIdListEntry;
 import alluxio.grpc.RegisterWorkerPOptions;
 import alluxio.grpc.RegisterWorkerPRequest;
 import alluxio.grpc.RegisterWorkerPResponse;
@@ -34,7 +35,6 @@ import io.grpc.stub.StreamObserver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -88,10 +88,11 @@ public final class BlockMasterWorkerServiceHandler extends
                      * The merger function is invoked on key collisions to merge the values.
                      * In fact this merger should never be invoked because the list is deduplicated
                      * by {@link BlockMasterClient#heartbeat} before sending to the master.
+                     * Therefore we just fail on merging.
                      */
                     (e1, e2) -> {
-                      e1.addAll(e2);
-                      return e1;
+                      failOnDuplicateKeys(e1, e2);
+                      return null;
                     }));
 
     final List<Metric> metrics = request.getOptions().getMetricsList()
@@ -167,10 +168,16 @@ public final class BlockMasterWorkerServiceHandler extends
                     e -> Block.BlockLocation.newBuilder().setTier(e.getKey().getTierAlias())
                         .setMediumType(e.getKey().getMediumType()).build(),
                     e -> e.getValue().getBlockIdList(),
+                    /**
+                     * The merger function is invoked on key collisions to merge the values.
+                     * In fact this merger should never be invoked because the list is deduplicated
+                     * by {@link BlockMasterClient#heartbeat} before sending to the master.
+                     * Therefore we just fail on merging.
+                     */
                     (e1, e2) -> {
-                      List<Long> e3 = new ArrayList<>(e1);
-                      e3.addAll(e2);
-                      return e3;
+                      List<LocationBlockIdListEntry> entries = request.getCurrentBlocksList();
+                      failOnDuplicateKeys(e1, e2);
+                      return null;
                     }));
 
     RegisterWorkerPOptions options = request.getOptions();
@@ -180,5 +187,13 @@ public final class BlockMasterWorkerServiceHandler extends
               currBlocksOnLocationMap, lostStorageMap, options);
           return RegisterWorkerPResponse.getDefaultInstance();
         }, "registerWorker", "request=%s", responseObserver, request);
+  }
+
+  private void failOnDuplicateKeys(List<Long> e1, List<Long> e2) throws AssertionError {
+    throw new AssertionError(
+        String.format(
+            "One registerWorker request contains two block id lists for the same BlockLocation.%n"
+                    + "Existing: %s%n New: %s",
+            e1, e2));
   }
 }
