@@ -224,30 +224,12 @@ func addAdditionalFiles(srcPath, dstPath string, hadoopVersion version, version 
 		"integration/docker/Dockerfile.fuse",
 		"integration/docker/entrypoint.sh",
 		"integration/fuse/bin/alluxio-fuse",
-<<<<<<< HEAD
-		fmt.Sprintf("lib/alluxio-underfs-adl-%v.jar", version),
-		fmt.Sprintf("lib/alluxio-underfs-cephfs-%v.jar", version),
-		fmt.Sprintf("lib/alluxio-underfs-cos-%v.jar", version),
-		fmt.Sprintf("lib/alluxio-underfs-gcs-%v.jar", version),
-		fmt.Sprintf("lib/alluxio-underfs-local-%v.jar", version),
-		fmt.Sprintf("lib/alluxio-underfs-oss-%v.jar", version),
-		fmt.Sprintf("lib/alluxio-underfs-s3a-%v.jar", version),
-		fmt.Sprintf("lib/alluxio-underfs-swift-%v.jar", version),
-		fmt.Sprintf("lib/alluxio-underfs-wasb-%v.jar", version),
-		fmt.Sprintf("lib/alluxio-underfs-web-%v.jar", version),
-		fmt.Sprintf("lib/alluxio-table-server-underdb-glue-%v.jar", version),
-		fmt.Sprintf("lib/alluxio-table-server-underdb-hive-%v.jar", version),
-		fmt.Sprintf("lib/alluxio-integration-tools-hms-%v.jar", version),
-		fmt.Sprintf("lib/alluxio-integration-tools-validation-%v.jar", version),
-||||||| e18198d861
-=======
 		"integration/metrics/docker-compose-master.yaml",
 		"integration/metrics/docker-compose-worker.yaml",
 		"integration/metrics/otel-agent-config.yaml",
 		"integration/metrics/otel-agent-config-worker.yaml",
 		"integration/metrics/otel-collector-config.yaml",
 		"integration/metrics/prometheus.yaml",
->>>>>>> upstream/master
 		"libexec/alluxio-config.sh",
 		"LICENSE",
 	}
