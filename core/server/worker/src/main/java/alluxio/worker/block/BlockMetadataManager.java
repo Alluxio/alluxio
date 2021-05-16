@@ -70,6 +70,14 @@ public final class BlockMetadataManager {
   /** Used to get iterators per locations. */
   private BlockIterator mBlockIterator;
 
+  /** Deprecated evictors. */
+  private static final String DEPRECATED_LRU_EVICTOR = "alluxio.worker.block.evictor.LRUEvictor";
+  private static final String DEPRECATED_PARTIAL_LRUEVICTOR =
+      "alluxio.worker.block.evictor.PartialLRUEvictor";
+  private static final String DEPRECATED_LRFU_EVICTOR = "alluxio.worker.block.evictor.LRFUEvictor";
+  private static final String DEPRECATED_GREEDY_EVICTOR =
+      "alluxio.worker.block.evictor.GreedyEvictor";
+
   private BlockMetadataManager() {
     try {
       mStorageTierAssoc = new WorkerStorageTierAssoc();
@@ -87,34 +95,18 @@ public final class BlockMetadataManager {
             PropertyKey.Name.WORKER_BLOCK_ANNOTATOR_CLASS));
         String evictorType = ServerConfiguration.get(PropertyKey.WORKER_EVICTOR_CLASS);
         switch (evictorType) {
-          case "alluxio.worker.block.evictor.LRUEvictor":
-            LOG.warn("LRUEvictor is deprecated, LRUAnnotator is set instead");
+          case DEPRECATED_LRU_EVICTOR:
+          case DEPRECATED_PARTIAL_LRUEVICTOR:
+          case DEPRECATED_GREEDY_EVICTOR:
+            LOG.warn("Evictor is deprecated, switching to LRUAnnotator");
             ServerConfiguration.set(PropertyKey.WORKER_BLOCK_ANNOTATOR_CLASS,
                 "alluxio.worker.block.annotator.LRUAnnotator");
             mBlockIterator = new DefaultBlockIterator(this, BlockAnnotator.Factory.create());
             break;
-          case "alluxio.worker.block.evictor.PartialLRUEvictor":
-            LOG.warn("PartialLRUEvictor is deprecated, LRUAnnotator is set instead");
-            ServerConfiguration.set(PropertyKey.WORKER_BLOCK_ANNOTATOR_CLASS,
-                "alluxio.worker.block.annotator.LRUAnnotator");
-            mBlockIterator = new DefaultBlockIterator(this, BlockAnnotator.Factory.create());
-            break;
-          case "alluxio.worker.block.evictor.LRFUEvictor":
-            LOG.warn("LRFUEvictor is deprecated, LRFUAnnotator is set instead");
-            final double defaultLRFUAttenuationFactor = 2.0;
-            final double defaultLRFUStepFactor = 0.25;
-            ServerConfiguration.set(PropertyKey.WORKER_BLOCK_ANNOTATOR_LRFU_ATTENUATION_FACTOR,
-                defaultLRFUAttenuationFactor);
-            ServerConfiguration.set(PropertyKey.WORKER_BLOCK_ANNOTATOR_LRFU_STEP_FACTOR,
-                defaultLRFUStepFactor);
+          case DEPRECATED_LRFU_EVICTOR:
+            LOG.warn("Evictor is deprecated, switching to LRFUAnnotator");
             ServerConfiguration.set(PropertyKey.WORKER_BLOCK_ANNOTATOR_CLASS,
                 "alluxio.worker.block.annotator.LRFUAnnotator");
-            mBlockIterator = new DefaultBlockIterator(this, BlockAnnotator.Factory.create());
-            break;
-          case "alluxio.worker.block.evictor.GreedyEvictor":
-            LOG.warn("GreedyEvictor is deprecated, LRUAnnotator is set instead");
-            ServerConfiguration.set(PropertyKey.WORKER_BLOCK_ANNOTATOR_CLASS,
-                "alluxio.worker.block.annotator.LRUAnnotator");
             mBlockIterator = new DefaultBlockIterator(this, BlockAnnotator.Factory.create());
             break;
           default:
@@ -125,7 +117,7 @@ public final class BlockMetadataManager {
             Evictor.Factory.create(initManagerView, Allocator.Factory.create(initManagerView)));
         }
       } else {
-        // Create default block iterator when no evictor specified
+        // Create default block iterator
         mBlockIterator = new DefaultBlockIterator(this, BlockAnnotator.Factory.create());
       }
     } catch (BlockAlreadyExistsException | IOException | WorkerOutOfSpaceException e) {
