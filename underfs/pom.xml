@@ -25,6 +25,8 @@
   <modules>
     <module>abfs</module>
     <module>adl</module>
+    <module>cephfs</module>
+    <module>cephfs-hadoop</module>
     <module>cos</module>
     <module>cosn</module>
     <module>gcs</module>

@@ -9,4 +9,4 @@
 # See the NOTICE file distributed with this work for information regarding copyright ownership.
 #
 
-alluxio.underfs.hdfs.HdfsUnderFileSystemFactory
+alluxio.underfs.cephfshadoop.CephfsHadoopUnderFileSystemFactory
