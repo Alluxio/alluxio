@@ -70,6 +70,8 @@ var libJars = map[string]struct{}{
 	"table-server-underdb-hive":    {},
 	"underfs-abfs":                 {},
 	"underfs-adl":                  {},
+	"underfs-cephfs":               {},
+	"underfs-cephfs-hadoop":        {},
 	"underfs-cos":                  {},
 	"underfs-cosn":                 {},
 	"underfs-gcs":                  {},
