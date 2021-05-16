@@ -12,7 +12,11 @@
 package alluxio.stress.cli;
 
 import alluxio.ClientContext;
+import alluxio.client.block.BlockMasterClient;
 import alluxio.conf.InstancedConfiguration;
+import alluxio.grpc.BlockIdList;
+import alluxio.grpc.BlockStoreLocationProto;
+import alluxio.grpc.LocationBlockIdListEntry;
 import alluxio.grpc.StorageList;
 import alluxio.master.MasterClientContext;
 import alluxio.stress.worker.RpcParameters;
@@ -20,7 +24,6 @@ import alluxio.stress.worker.RpcTaskResult;
 import alluxio.util.FormatUtils;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.wire.WorkerNetAddress;
-import alluxio.worker.block.BlockMasterClient;
 import alluxio.util.executor.ExecutorServiceFactories;
 
 import alluxio.worker.block.BlockStoreLocation;
@@ -34,6 +37,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -57,6 +61,7 @@ public class RpcBench extends Benchmark<RpcTaskResult> {
   private final InstancedConfiguration mConf = InstancedConfiguration.defaults();
 
   private final List<Long> mBlockIds = new ArrayList<>();
+  private List<LocationBlockIdListEntry> mLocationBlockIdList;
   private AtomicInteger mPortToAssign = new AtomicInteger(50000);
 
   @Override
@@ -94,7 +99,8 @@ public class RpcBench extends Benchmark<RpcTaskResult> {
                       .map(CompletableFuture::join)
                       .collect(Collectors.toList())
               ).get();
-      LOG.info("{} futures collected", results.size());
+      LOG.info("{} futures collected: {}", results.size(),
+              results.size() > 0 ? results.get(0) : "[]");
       return RpcTaskResult.reduceList(results);
     } catch (Exception e) {
       LOG.error("Failed to execute RPC in pool", e);
@@ -113,12 +119,67 @@ public class RpcBench extends Benchmark<RpcTaskResult> {
 
   @Override
   public void prepare() {
-    // Generate this may random block IDs
-    for (int i = 0; i < mParameters.mBlockCount; i++) {
-      long r = ThreadLocalRandom.current().nextLong(0, 1_000_000_000L);
-      mBlockIds.add(r);
+    Map<BlockStoreLocation, List<Long>> blockMap = generateBlockIdOnTiers();
+    flattenMap(blockMap);
+  }
+
+  private void flattenMap(Map<BlockStoreLocation, List<Long>> blockMap) {
+    final List<LocationBlockIdListEntry> entryList = new ArrayList<>();
+    for (Map.Entry<BlockStoreLocation, List<Long>> entry : blockMap.entrySet()) {
+      BlockStoreLocation loc = entry.getKey();
+      List<Long> entryValue = entry.getValue();
+      BlockStoreLocationProto locationProto = BlockStoreLocationProto.newBuilder()
+              .setTierAlias(loc.tierAlias())
+              .setMediumType(loc.mediumType())
+              .build();
+
+      BlockIdList blockIdList = BlockIdList.newBuilder().addAllBlockId(entryValue).build();
+      LocationBlockIdListEntry listEntry = LocationBlockIdListEntry.newBuilder()
+              .setKey(locationProto).setValue(blockIdList).build();
+      entryList.add(listEntry);
     }
-    LOG.info("Generated {} random block IDs", mBlockIds.size());
+    LOG.info("Flattened map to {} items", entryList.size());
+    mLocationBlockIdList = entryList;
+  }
+
+  private List<Long> generateBlockIds(long start, long count) {
+    LOG.info("Generating block Ids [{}, {})", start, start + count);
+    List<Long> list = new ArrayList<>();
+    for (long i = 0; i < count; i++) {
+      list.add(start + i);
+    }
+    return list;
+  }
+
+  private Map<BlockStoreLocation, List<Long>> generateBlockIdOnTiers() {
+    Map<BlockStoreLocation, List<Long>> blockMap = new HashMap<>();
+
+    String config = mParameters.mTiers;
+    LOG.info("Tier and dir config is {}", config);
+    long blockIdStart = 1000L;
+    String[] tierNames = new String[]{"MEM", "SSD", "HDD"};
+    String[] tiers = config.split(";");
+
+    for (int i = 0; i < tiers.length; i++) {
+      String tierConfig = tiers[i];
+      LOG.info("Found tier {}", tierNames[i]);
+
+      String[] dirConfigs = tierConfig.split(",");
+      for (int j = 0; j < dirConfigs.length; j++) {
+        String dir = dirConfigs[j];
+        BlockStoreLocation loc = new BlockStoreLocation(tierNames[i], j);
+
+        LOG.info("Found dir with {} blocks", dir);
+        long num = Long.parseLong(dir);
+        List<Long> blockIds = generateBlockIds(blockIdStart, num);
+
+        blockMap.put(loc, blockIds);
+
+        blockIdStart += num;
+      }
+    }
+
+    return blockMap;
   }
 
   /**
@@ -144,7 +205,7 @@ public class RpcBench extends Benchmark<RpcTaskResult> {
    *
    * 3. TODO: Simulate contention over block lock DefaultBlockMaster.mBlockLocks
    * */
-  private RpcTaskResult fakeRegisterWorker(BlockMasterClient client, Instant endTime) {
+  private RpcTaskResult fakeRegisterWorker(alluxio.worker.block.BlockMasterClient client, Instant endTime) {
     RpcTaskResult result = new RpcTaskResult();
 
     // Stop after certain time has elapsed
@@ -211,8 +272,7 @@ public class RpcBench extends Benchmark<RpcTaskResult> {
     return result;
   }
 
-  // TODO(jiacheng): test this
-  private RpcTaskResult fakeBlockHeartbeat(BlockMasterClient client, Instant endTime) {
+  private RpcTaskResult fakeBlockHeartbeat(alluxio.worker.block.BlockMasterClient client, Instant endTime) {
     RpcTaskResult result = new RpcTaskResult();
     // prepare a worker ID
     int startPort = 9999;
@@ -277,9 +337,12 @@ public class RpcBench extends Benchmark<RpcTaskResult> {
   }
 
   private RpcTaskResult runRPC() throws Exception {
-    BlockMasterClient client = new BlockMasterClient(MasterClientContext
-            .newBuilder(ClientContext.create(mConf))
-            .build());
+
+    // Use a mocked client to save conversion
+    MockBlockMasterClient client =
+            new MockBlockMasterClient(MasterClientContext
+                    .newBuilder(ClientContext.create(mConf))
+                    .build(), mLocationBlockIdList);
 
     long durationMs = FormatUtils.parseTimeSize(mParameters.mDuration);
     Instant startTime = Instant.now();
@@ -308,5 +371,32 @@ public class RpcBench extends Benchmark<RpcTaskResult> {
 
     LOG.info("Run finished");
     return result;
+  }
+
+  /**
+   * Use this class to avoid map-list conversion at the client side
+   * So if you are running all processes on the same machine,
+   * the client side work affect the performance less.
+   * */
+  public static class MockBlockMasterClient extends alluxio.worker.block.BlockMasterClient {
+    private List<LocationBlockIdListEntry> mLocationBlockIdList;
+
+    /**
+     * Creates a new instance of {@link BlockMasterClient} for the worker.
+     *
+     * @param conf master client configuration
+     */
+    public MockBlockMasterClient(MasterClientContext conf, List<LocationBlockIdListEntry> locationBlockIdList) {
+      super(conf);
+      mLocationBlockIdList = locationBlockIdList;
+    }
+
+    @Override
+    public List<LocationBlockIdListEntry> convertBlockListMapToProto(
+            Map<BlockStoreLocation, List<Long>> blockListOnLocation) {
+      LOG.info("Using the prepared mLocationBlockIdList");
+      return mLocationBlockIdList;
+    }
+
   }
 }

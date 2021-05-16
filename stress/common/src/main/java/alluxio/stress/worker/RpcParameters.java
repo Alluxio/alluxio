@@ -31,5 +31,12 @@ public class RpcParameters extends Parameters {
   @Parameter(names = {"--rpc"},
           description = "The RPC to simulate")
   public String mRpc = "registerWorker";
+
+  @Parameter(names = {"--tiers"})
+  /**
+   * Examples: "100,200,300;1000,1500;2000"
+   * Use semi-colon to separate tiers, use commas to separate dirs
+   * */
+  public String mTiers;
 }
 

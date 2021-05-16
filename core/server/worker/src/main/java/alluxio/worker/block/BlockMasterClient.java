@@ -55,7 +55,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * <p/>
  */
 @ThreadSafe
-public final class BlockMasterClient extends AbstractMasterClient {
+public class BlockMasterClient extends AbstractMasterClient {
   private static final Logger LOG = LoggerFactory.getLogger(BlockMasterClient.class);
   private BlockMasterWorkerServiceGrpc.BlockMasterWorkerServiceBlockingStub mClient = null;
 
@@ -156,7 +156,7 @@ public final class BlockMasterClient extends AbstractMasterClient {
     }, LOG, "GetId", "address=%s", address);
   }
 
-  private List<LocationBlockIdListEntry> convertBlockListMapToProto(
+  public List<LocationBlockIdListEntry> convertBlockListMapToProto(
       Map<BlockStoreLocation, List<Long>> blockListOnLocation) {
     final List<LocationBlockIdListEntry> entryList = new ArrayList<>();
     for (Map.Entry<BlockStoreLocation, List<Long>> entry : blockListOnLocation.entrySet()) {

@@ -179,7 +179,7 @@ public final class BlockMasterWorkerServiceHandler extends
     if (LOG.isDebugEnabled()) {
       StringBuilder sb = new StringBuilder();
       for (Map.Entry<Block.BlockLocation, List<Long>> e : currBlocksOnLocationMap.entrySet()) {
-        sb.append(String.format("location: %s, blockCount: %s, ", e.getKey(), e.getValue().size()));
+        sb.append(String.format("[location: %s, blockCount: %s], ", e.getKey(), e.getValue().size()));
       }
       LOG.debug("registerWorker request is {} bytes, Locations: [{}]",
               request.getSerializedSize(),
