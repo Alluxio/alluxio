@@ -44,6 +44,9 @@ import alluxio.util.StreamUtils;
 import alluxio.util.proto.ProtoUtils;
 
 import com.google.common.base.Preconditions;
+import org.HdrHistogram.ConcurrentHistogram;
+import org.HdrHistogram.Histogram;
+import org.HdrHistogram.Recorder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -99,6 +102,12 @@ public class InodeTreePersistentState implements Journaled {
   // TODO(andrew): Move ownership of the ttl bucket list to this class
   private final TtlBucketList mTtlBuckets;
 
+  private Histogram mCreatedFileHistogram;
+  private Histogram mRemovedFileHistogram;
+  private final Histogram mFileSizeHistogram;
+  private final Recorder mCreatedFileRecorder;
+  private final Recorder mRemovedFileRecorder;
+
   /**
    * @param inodeStore file store which holds inode metadata
    * @param lockManager manager for inode locks
@@ -110,6 +119,11 @@ public class InodeTreePersistentState implements Journaled {
     mInodeStore = inodeStore;
     mInodeLockManager = lockManager;
     mTtlBuckets = ttlBucketList;
+    mCreatedFileHistogram = null;
+    mRemovedFileHistogram = null;
+    mFileSizeHistogram = new Histogram(2);
+    mRemovedFileRecorder = new Recorder(2);
+    mCreatedFileRecorder = new Recorder(2);
   }
 
   /**
@@ -138,6 +152,16 @@ public class InodeTreePersistentState implements Journaled {
    */
   public long getInodeCount() {
     return mInodeCounter.get();
+  }
+
+  public Histogram getFileSizeHistogram() {
+    synchronized (mFileSizeHistogram) {
+      mRemovedFileHistogram = mRemovedFileRecorder.getIntervalHistogram(mRemovedFileHistogram);
+      mCreatedFileHistogram = mCreatedFileRecorder.getIntervalHistogram(mCreatedFileHistogram);
+      mFileSizeHistogram.add(mCreatedFileHistogram);
+      mFileSizeHistogram.subtract(mRemovedFileHistogram);
+      return mFileSizeHistogram.copy();
+    }
   }
 
   /**
@@ -335,6 +359,7 @@ public class InodeTreePersistentState implements Journaled {
     } else {
       mInodeStore.removeInodeAndParentEdge(inode);
       mInodeCounter.decrementAndGet();
+      mRemovedFileRecorder.recordValue(inode.asFile().getLength());
     }
 
     updateTimestampsAndChildCount(inode.getParentId(), entry.getOpTimeMs(), -1);
@@ -469,6 +494,7 @@ public class InodeTreePersistentState implements Journaled {
     }
     inode.asFile().updateFromEntry(entry);
     mInodeStore.writeInode(inode);
+    mCreatedFileRecorder.recordValue(inode.asFile().getLength());
   }
 
   ////

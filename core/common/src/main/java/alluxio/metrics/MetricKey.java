@@ -302,6 +302,16 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setDescription("Total number of currently to be persisted files")
           .setMetricType(MetricType.GAUGE)
           .build();
+  public static final MetricKey MASTER_FILE_SIZE =
+      new Builder(Name.MASTER_FILE_SIZE)
+          .setDescription("File size distribution")
+          .setMetricType(MetricType.HISTOGRAM)
+          .build();
+  public static final MetricKey MASTER_BLOCK_SIZE =
+      new Builder(Name.MASTER_BLOCK_SIZE)
+          .setDescription("Block size distribution")
+          .setMetricType(MetricType.HISTOGRAM)
+          .build();
   public static final MetricKey MASTER_INODE_CACHE_EVICTIONS =
       new Builder(Name.MASTER_INODE_CACHE_EVICTIONS)
           .setDescription("Total number of inodes that was evicted from the cache.")
@@ -1430,9 +1440,11 @@ public final class MetricKey implements Comparable<MetricKey> {
         = "Master.LastBackupRestoreTimeMs";
 
     // metrics names for FileSystemMaster
+    public static final String MASTER_BLOCK_SIZE = "Master.BlockSize";
     public static final String MASTER_DIRECTORIES_CREATED = "Master.DirectoriesCreated";
     public static final String MASTER_FILE_BLOCK_INFOS_GOT = "Master.FileBlockInfosGot";
     public static final String MASTER_FILE_INFOS_GOT = "Master.FileInfosGot";
+    public static final String MASTER_FILE_SIZE = "Master.FileSize";
     public static final String MASTER_FILES_COMPLETED = "Master.FilesCompleted";
     public static final String MASTER_FILES_CREATED = "Master.FilesCreated";
     public static final String MASTER_FILES_FREED = "Master.FilesFreed";

@@ -185,6 +185,7 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
 import io.grpc.ServerInterceptors;
+import org.HdrHistogram.Histogram;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -4445,6 +4446,12 @@ public final class DefaultFileSystemMaster extends CoreMaster
         = MetricsSystem.counter(MetricKey.MASTER_UNMOUNT_OPS.getName());
     private static final Map<AlluxioURI, Map<UFSOps, Counter>> SAVED_UFS_OPS
         = new ConcurrentHashMap<>();
+
+    private static final Histogram CREATED_FILES
+        = new Histogram(2);
+    private static final Histogram REMOVED_FILES
+        = new Histogram(2);
+
 
     /**
      * UFS operations enum.
