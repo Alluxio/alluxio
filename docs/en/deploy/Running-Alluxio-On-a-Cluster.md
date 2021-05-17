@@ -68,9 +68,57 @@ alluxio.master.mount.table.root.ufs=<STORAGE_URI>
   is used as the under storage system, the value can be set to
   `alluxio.master.mount.table.root.ufs=s3://bucket/dir/`
 
+Append thehost name of each node into conf/masters and conf/workers accordingly.
+{% accordian nodeconfig % }
+{% collapsible Example: master node from Amazon S3 % }
 Append the hostname of each Alluxio master node to a new line into `conf/masters` 
-and the hostname of each Alluxio worker node to a new line into `conf/workers`.
-Each host name should have its own line.
+Comment out `localhost` if necessary.
+```
+#
+# The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
+# (the "License"). You may not use this work except in compliance with the License, which is
+# available at www.apache.org/licenses/LICENSE-2.0
+#
+# This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+# either express or implied, as more fully set forth in the License.
+#
+# See the NOTICE file distributed with this work for information regarding copyright ownership.
+#
+
+# An Alluxio master will be started on each of the machines listed below.
+#
+# In HA mode, Alluxio will use internal leader election or Zookeeper leader election
+# to decide which of the masters should act as the primary. In non-HA mode, the master started
+# on the host identified by the first entry in this file will act as the primary; the remaining hosts
+# will be used to start a secondary; which are responsible for journal compaction.
+#
+# The multi-master Zookeeper HA mode requires that all the masters can access
+# the same journal through a shared medium (e.g. HDFS or NFS).
+# localhost
+ec2-1-234-56-789.compute-1.amazonaws.com
+```
+{% endcollapsible % }
+{% collapsible Example: worker node from Amazon S3 % }
+Append the hostname of each Alluxio worker node to a new line into `conf/workers`
+Comment out `localhost` if necessary.
+```
+#
+# The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
+# (the "License"). You may not use this work except in compliance with the License, which is
+# available at www.apache.org/licenses/LICENSE-2.0
+#
+# This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+# either express or implied, as more fully set forth in the License.
+#
+# See the NOTICE file distributed with this work for information regarding copyright ownership.
+#
+
+# An Alluxio Worker will be started on each of the machines listed below.
+# localhost
+ec2-9-876-54-321.compute-1.amazonaws.com
+```
+{% endcollapsible % }
+{% endaccordion %}
 
 Next, copy the configuration file to all the Alluxio worker nodes.
 The following built-in utility will copy the configuration files to all master and worker
