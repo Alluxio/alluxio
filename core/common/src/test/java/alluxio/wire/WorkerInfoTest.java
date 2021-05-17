@@ -11,6 +11,7 @@
 
 package alluxio.wire;
 
+import alluxio.Constants;
 import alluxio.grpc.GrpcUtils;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -82,9 +83,9 @@ public class WorkerInfoTest {
     long usedBytes = random.nextLong();
     long startTimeMs = random.nextLong();
     Map<String, Long> capacityBytesOnTiers = new HashMap<>();
-    capacityBytesOnTiers.put("MEM", capacityBytes);
+    capacityBytesOnTiers.put(Constants.MEDIUM_MEM, capacityBytes);
     Map<String, Long> usedBytesOnTiers = new HashMap<>();
-    usedBytesOnTiers.put("MEM", usedBytes);
+    usedBytesOnTiers.put(Constants.MEDIUM_MEM, usedBytes);
     String state = random.nextInt(1) == 1 ? "In Service" : "Out of Service";
 
     result.setId(id);

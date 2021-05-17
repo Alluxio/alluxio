@@ -15,6 +15,7 @@ import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import alluxio.Constants;
 import alluxio.client.meta.MetaMasterClient;
 import alluxio.client.block.BlockMasterClient;
 import alluxio.conf.AlluxioConfiguration;
@@ -76,10 +77,10 @@ public class SummaryCommandTest {
     mBlockMasterClient = mock(BlockMasterClient.class);
     Map<String, Long> capacityBytesOnTiers = new HashMap<>();
     Map<String, Long> usedBytesOnTiers = new HashMap<>();
-    capacityBytesOnTiers.put("MEM", 1341353L);
+    capacityBytesOnTiers.put(Constants.MEDIUM_MEM, 1341353L);
     capacityBytesOnTiers.put("RAM", 23112L);
     capacityBytesOnTiers.put("DOM", 236501L);
-    usedBytesOnTiers.put("MEM", 62434L);
+    usedBytesOnTiers.put(Constants.MEDIUM_MEM, 62434L);
     usedBytesOnTiers.put("RAM", 6243L);
     usedBytesOnTiers.put("DOM", 74235L);
     BlockMasterInfo blockMasterInfo = new BlockMasterInfo()

@@ -11,6 +11,7 @@
 
 package alluxio.client.rest;
 
+import alluxio.Constants;
 import alluxio.RuntimeConstants;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
@@ -100,14 +101,14 @@ public final class AlluxioWorkerRestApiTest extends RestApiTest {
   @Test
   public void getTierCapacity() throws Exception {
     long total = ServerConfiguration.getBytes(PropertyKey.WORKER_RAMDISK_SIZE);
-    Capacity capacity = getInfo().getTierCapacity().get("MEM");
+    Capacity capacity = getInfo().getTierCapacity().get(Constants.MEDIUM_MEM);
     Assert.assertEquals(total, capacity.getTotal());
     Assert.assertEquals(0, capacity.getUsed());
   }
 
   @Test
   public void getTierPaths() throws Exception {
-    Assert.assertTrue(getInfo().getTierPaths().containsKey("MEM"));
+    Assert.assertTrue(getInfo().getTierPaths().containsKey(Constants.MEDIUM_MEM));
   }
 
   @Test
