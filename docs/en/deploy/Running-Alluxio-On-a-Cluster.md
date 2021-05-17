@@ -71,7 +71,7 @@ alluxio.master.mount.table.root.ufs=<STORAGE_URI>
 Append thehost name of each node into conf/masters and conf/workers accordingly.
 {% accordian nodeconfig % }
 {% collapsible Example: master node from Amazon S3 % }
-Append the hostname of each Alluxio master node to a new line into `conf/masters` 
+Append the hostname of each Alluxio master node to a new line into `conf/masters`. 
 Comment out `localhost` if necessary.
 ```
 #
@@ -99,7 +99,7 @@ ec2-1-234-56-789.compute-1.amazonaws.com
 ```
 {% endcollapsible % }
 {% collapsible Example: worker node from Amazon S3 % }
-Append the hostname of each Alluxio worker node to a new line into `conf/workers`
+Append the hostname of each Alluxio worker node to a new line into `conf/workers`.
 Comment out `localhost` if necessary.
 ```
 #
