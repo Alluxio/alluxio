@@ -55,7 +55,7 @@ public class GDCDatabase implements UnderDatabase {
   private final String mGdcProjectId;
 
   /* placeholder values */
-  private final String mOwnerName = "PUBLIC_OWNER";
+  private final String mOwnerName = "";
   private final alluxio.grpc.table.PrincipalType mOwnerType = alluxio.grpc.table.PrincipalType.ROLE;
 
   @VisibleForTesting

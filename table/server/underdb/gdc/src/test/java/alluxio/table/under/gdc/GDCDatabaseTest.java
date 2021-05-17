@@ -21,7 +21,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -45,15 +44,6 @@ public class GDCDatabaseTest {
   }
 
   @Test
-  public void getTable() throws IOException {
-    UdbContext udbContext = new UdbContext(null, null, "gdc", null, "sds_test2", "sds_test2");
-    UdbConfiguration udbConf = new UdbConfiguration(CONF);
-    GDCDatabase db = GDCDatabase.create(udbContext, udbConf);
-
-    db.getTable("test_no_partition");
-  }
-
-  @Test
   public void create() {
     Assert.assertEquals(DB_NAME, new GDCDatabase(mUdbContext, mUdbConf, PROJECT_NAME).getName());
   }
@@ -74,15 +64,5 @@ public class GDCDatabaseTest {
         new UdbContext(null, null, "gdc", null, null, DB_NAME);
     Assert.assertEquals(DB_NAME,
         GDCDatabase.create(udbContext, new UdbConfiguration(ImmutableMap.of())).getName());
-  }
-
-  @Test
-  public void createNoCredentials() {
-    mExpection.expect(IllegalArgumentException.class);
-    String credentialsFilename = System.getenv("GOOGLE_APPLICATION_CREDENTIALS");
-    if (!credentialsFilename.isEmpty()) {
-      throw new IllegalArgumentException("credentials already set in env");
-    }
-    Assert.assertEquals(DB_NAME, GDCDatabase.create(mUdbContext, mUdbConf).getName());
   }
 }
