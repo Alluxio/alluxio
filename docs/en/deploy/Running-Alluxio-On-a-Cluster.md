@@ -69,7 +69,7 @@ alluxio.master.mount.table.root.ufs=<STORAGE_URI>
   `alluxio.master.mount.table.root.ufs=s3://bucket/dir/`
 
 Append thehost name of each node into conf/masters and conf/workers accordingly.
-{% accordian nodeconfig % }
+{% accordion nodeconfig % }
 {% collapsible Example: master node from Amazon S3 % }
 Append the hostname of each Alluxio master node to a new line into `conf/masters`. 
 Comment out `localhost` if necessary.
