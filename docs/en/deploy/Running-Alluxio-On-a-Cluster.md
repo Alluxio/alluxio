@@ -59,18 +59,22 @@ alluxio.master.mount.table.root.ufs=<STORAGE_URI>
 - The second property `alluxio.master.mount.table.root.ufs` sets to the URI of the under store to
   mount to the Alluxio root.
   This shared storage system must be accessible by the master node and all worker nodes.
-  Examples include `alluxio.master.mount.table.root.ufs=hdfs://1.2.3.4:9000/alluxio/root/`, or 
+  
+  For example, when [HDFS]({{ '/en/ufs/HDFS.html#basic-setup' | relativize_url }})
+  is used as the under storage system, the value of this property can be set to
+  `alluxio.master.mount.table.root.ufs=hdfs://1.2.3.4:9000/alluxio/root/`
+  
+  When [Amazon S3]({{ '/en/ufs/S3.html#basic-setup' | relativize_url }})
+  is used as the under storage system, the value can be set to
   `alluxio.master.mount.table.root.ufs=s3://bucket/dir/`
-  (See [this tutorial](https://docs.alluxio.io/os/user/stable/en/ufs/S3.html#running-alluxio-locally-with-s3) 
-  for more details about configuring Amazon S3 as Alluxio's under storage system).
 
-Then, append the host name of all the Alluxio master nodes into `conf/masters` 
-and the host name of all the Alluxio workers node into `conf/workers`.
+Append the hostname of each Alluxio master node to a new line into `conf/masters` 
+and the hostname of each Alluxio worker node to a new line into `conf/workers`.
+Each host name should have its own line.
 
 Next, copy the configuration file to all the Alluxio worker nodes.
 The following built-in utility will copy the configuration files to all master and worker
 nodes specified in the `conf/masters` and `conf/workers` files respectively.
-Note that the inbound rules and ports of each node need to allow access from all the other nodes in the cluster.
 
 ```console
 $ ./bin/alluxio copyDir conf/
