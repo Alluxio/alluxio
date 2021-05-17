@@ -440,20 +440,22 @@ logserver:
   accessModes:
     - ReadWriteOnce
   storageClass: standard
-  selector:
-    matchLabels:
-      role: alluxio-logserver
-      # If you need, you can specify more selectors like below to provide better separation
-      # app: alluxio
-      # chart: alluxio-<chart version>
-      # release: alluxio
-      # heritage: Helm
-      # dc: data-center-1
-      # region: us-east
   # If you are dynamically provisioning PVs, the selector on the PVC should be empty.
   # Ref: https://kubernetes.io/docs/concepts/storage/persistent-volumes/#class-1
+  selector: {}
+  # If you are manually allocating PV for the logserver,
+  # it is recommended to use selectors to make sure the PV and PVC match as expected.
+  # You can specify selectors like below:
   # Example:
-  # selector: {}
+  # selector:
+  #   matchLabels:
+  #     role: alluxio-logserver
+  #     app: alluxio
+  #     chart: alluxio-<chart version>
+  #     release: alluxio
+  #     heritage: Helm
+  #     dc: data-center-1
+  #     region: us-east
 
   # Attributes to use if the log volume is hostPath
   hostPath: "/tmp/alluxio-logs" # The hostPath directory to use
