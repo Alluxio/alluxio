@@ -37,9 +37,11 @@ import alluxio.exception.status.DeadlineExceededException;
 import alluxio.grpc.ReadRequest;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.underfs.UfsManager;
-import alluxio.underfs.UnderFileSystem;
+import alluxio.util.io.BufferUtils;
 import alluxio.wire.BlockReadRequest;
 import alluxio.worker.block.io.BlockReader;
+import alluxio.worker.block.io.BlockWriter;
+import alluxio.worker.block.meta.TempBlockMeta;
 import alluxio.worker.file.FileSystemMasterClient;
 
 import com.google.common.collect.ImmutableMap;
@@ -47,10 +49,6 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-import org.junit.runner.RunWith;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.io.IOException;
 import java.util.HashSet;
@@ -60,23 +58,20 @@ import java.util.Set;
 /**
  * Unit tests for {@link DefaultBlockWorker}.
  */
-@RunWith(PowerMockRunner.class)
-@PrepareForTest({BlockMasterClient.class, BlockMasterClientPool.class, FileSystemMasterClient.class,
-    UnderFileSystem.class})
 public class DefaultBlockWorkerTest {
-
-  @Rule
-  public TemporaryFolder mTestFolder = new TemporaryFolder();
   private BlockMasterClient mBlockMasterClient;
   private BlockMasterClientPool mBlockMasterClientPool;
   private TieredBlockStore mBlockStore;
+  private DefaultBlockWorker mBlockWorker;
   private FileSystemMasterClient mFileSystemMasterClient;
   private Random mRandom;
   private Sessions mSessions;
-  private DefaultBlockWorker mBlockWorker;
   private UfsManager mUfsManager;
   private String mMemDir = AlluxioTestDirectory.createTemporaryDirectory("mem").getAbsolutePath();
   private String mHddDir = AlluxioTestDirectory.createTemporaryDirectory("hdd").getAbsolutePath();
+
+  @Rule
+  public TemporaryFolder mTestFolder = new TemporaryFolder();
   @Rule
   public ConfigurationRule mConfigurationRule =
       new ConfigurationRule(new ImmutableMap.Builder<PropertyKey, String>()
@@ -90,6 +85,7 @@ public class DefaultBlockWorkerTest {
           .put(PropertyKey.WORKER_TIERED_STORE_LEVEL1_DIRS_QUOTA, "2GB")
           .put(PropertyKey.WORKER_TIERED_STORE_LEVEL1_DIRS_PATH, mHddDir)
           .put(PropertyKey.WORKER_RPC_PORT, "0")
+          .put(PropertyKey.WORKER_MANAGEMENT_TIER_ALIGN_RESERVED_BYTES, "0")
           .build(), ServerConfiguration.global());
 
   /**
@@ -98,11 +94,11 @@ public class DefaultBlockWorkerTest {
   @Before
   public void before() throws IOException {
     mRandom = new Random();
-    mBlockMasterClient = PowerMockito.mock(BlockMasterClient.class);
+    mBlockMasterClient = mock(BlockMasterClient.class);
     mBlockMasterClientPool = spy(new BlockMasterClientPool());
     when(mBlockMasterClientPool.createNewResource()).thenReturn(mBlockMasterClient);
     mBlockStore = spy(new TieredBlockStore());
-    mFileSystemMasterClient = PowerMockito.mock(FileSystemMasterClient.class);
+    mFileSystemMasterClient = mock(FileSystemMasterClient.class);
     mSessions = mock(Sessions.class);
     mUfsManager = mock(UfsManager.class);
 
@@ -182,8 +178,7 @@ public class DefaultBlockWorkerTest {
     long sessionId = mRandom.nextLong();
     long initialBytes = 1;
     String path = mBlockWorker.createBlock(sessionId, blockId, 0, "", initialBytes);
-    // because allocator by default is MaxFreeFirst
-    assertTrue(path.startsWith(mHddDir));
+    assertTrue(path.startsWith(mMemDir)); // tier 0 is mem
   }
 
   @Test
@@ -200,8 +195,12 @@ public class DefaultBlockWorkerTest {
     long blockId = mRandom.nextLong();
     long sessionId = mRandom.nextLong();
     mBlockWorker.createBlock(sessionId, blockId, 0, "MEM", 1);
-    mBlockWorker.createBlockWriter(sessionId, blockId);
-    verify(mBlockStore).getBlockWriter(sessionId, blockId);
+    try (BlockWriter blockWriter = mBlockWorker.createBlockWriter(sessionId, blockId)) {
+      blockWriter.append(BufferUtils.getIncreasingByteBuffer(10));
+      TempBlockMeta meta = mBlockWorker.getTempBlockMeta(sessionId, blockId);
+      assertEquals("MEM", meta.getBlockLocation().mediumType());
+    }
+    mBlockWorker.abortBlock(sessionId, blockId);
   }
 
   @Test
