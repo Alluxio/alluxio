@@ -21,6 +21,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -41,6 +42,15 @@ public class GDCDatabaseTest {
     mUdbContext =
         new UdbContext(null, null, "gdc", null, DB_NAME, DB_NAME);
     mUdbConf = new UdbConfiguration(CONF);
+  }
+
+  @Test
+  public void getTable() throws IOException {
+    UdbContext udbContext = new UdbContext(null, null, "gdc", null, "sds_test2", "sds_test2");
+    UdbConfiguration udbConf = new UdbConfiguration(CONF);
+    GDCDatabase db = GDCDatabase.create(udbContext, udbConf);
+
+    db.getTable("test_no_partition");
   }
 
   @Test

@@ -11,10 +11,12 @@
 
 package alluxio.table.under.gdc;
 
-import alluxio.grpc.table.FieldSchema;
 import alluxio.grpc.table.Layout;
 import alluxio.grpc.table.Schema;
+import alluxio.grpc.table.layout.hive.PartitionInfo;
 import alluxio.master.table.DatabaseInfo;
+import alluxio.table.common.UdbPartition;
+import alluxio.table.common.layout.HiveLayout;
 import alluxio.table.common.udb.UdbConfiguration;
 import alluxio.table.common.udb.UdbContext;
 import alluxio.table.common.udb.UdbTable;
@@ -22,8 +24,8 @@ import alluxio.table.common.udb.UnderDatabase;
 
 import com.google.api.gax.paging.Page;
 import com.google.cloud.bigquery.BigQuery;
-import com.google.cloud.bigquery.BigQueryOptions;
 import com.google.cloud.bigquery.BigQueryException;
+import com.google.cloud.bigquery.BigQueryOptions;
 import com.google.cloud.bigquery.Dataset;
 import com.google.cloud.bigquery.Table;
 import com.google.cloud.bigquery.TableId;
@@ -37,9 +39,9 @@ import org.slf4j.LoggerFactory;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 /**
  * Google Data Catalog database implementation.
@@ -67,7 +69,7 @@ public class GDCDatabase implements UnderDatabase {
   /**
    * Creates an instance of the GDC database UDB.
    *
-   * @param udbContext the db context
+   * @param udbContext    the db context
    * @param configuration the configuration
    * @return the new instance
    */
@@ -79,11 +81,11 @@ public class GDCDatabase implements UnderDatabase {
     String credentialsFilename = System.getenv("GOOGLE_APPLICATION_CREDENTIALS");
     if (credentialsFilename.isEmpty()) {
       throw new IllegalArgumentException(
-              "GOOGLE_APPLICATION_CREDENTIALS environment variable not set");
+          "GOOGLE_APPLICATION_CREDENTIALS environment variable not set");
     }
     try {
       Map<String, String> a = new Gson().fromJson(
-              new JsonReader(new FileReader(credentialsFilename)), Map.class);
+          new JsonReader(new FileReader(credentialsFilename)), Map.class);
       String projectId = a.get("project_id");
       return new GDCDatabase(udbContext, configuration, projectId);
     } catch (Exception e) {
@@ -117,23 +119,52 @@ public class GDCDatabase implements UnderDatabase {
     BigQuery bigQuery = BigQueryOptions.getDefaultInstance().getService();
     Table table = bigQuery.getTable(mGdcDatasetName, tableName);
     Schema schema = GDCUtils.toProtoSchema(table.getDefinition().getSchema());
-    List<String> columnNames = schema.getColsList().stream().map(FieldSchema::getName)
-        .collect(Collectors.toList());
 
-    List<String> partitions;
+    Map<String, String> tableParameters = Collections.emptyMap();
+    PartitionInfo partitionInfo = PartitionInfo.newBuilder()
+        // Database name is not required for glue table, use mGlueDbName
+        .setDbName(mGdcDatasetName)
+        .setTableName(tableName)
+        .addAllDataCols(GDCUtils.toProto(table.getDefinition().getSchema()))
+//        .setStorage() // don't know what to do with this one
+        .putAllParameters(tableParameters)
+        .build();
+
+//        .setStorage(GlueUtils.toProto(table.getStorageDescriptor(), pathTranslator))
+//        .putAllParameters(tableParameters)
+
+    Layout layout = Layout.newBuilder()
+        .setLayoutType(HiveLayout.TYPE)
+        .setLayoutData(partitionInfo.toByteString())
+        .build();
+
+    List<UdbPartition> udbPartitions = new ArrayList<>();
     try {
-      partitions = bigQuery.listPartitions(TableId.of(mGdcProjectId, mGdcDatasetName, tableName));
-      partitions.forEach(partition -> System.out.println(partition));
+      // table has partitions
+      List<String> partitions = bigQuery.listPartitions(
+          TableId.of(mGdcProjectId, mGdcDatasetName, tableName));
+      partitions.forEach(partition -> System.out.println(partition)); // for debugging
+      // TODO(jenoudet): implement table having partitions
+      throw new BigQueryException(new IOException("partitions not implemented"));
     } catch (BigQueryException e) {
-      LOG.debug("table '" + tableName + "' does not have partitions");
+      // table does not have partitions
+      PartitionInfo.Builder pib = PartitionInfo.newBuilder()
+          .setDbName(getUdbContext().getDbName())
+          .setTableName(tableName)
+          .addAllDataCols(GDCUtils.toProto(table.getDefinition().getSchema()))
+//          .setStorage(HiveUtils.toProto(table.getSd(), pathTranslator))
+          .setPartitionName(tableName)
+          .putAllParameters(tableParameters);
+      udbPartitions.add(new GDCPartition(
+          new HiveLayout(pib.build(), Collections.emptyList())));
     }
 
     return new GDCTable(tableName,
         schema,
         new ArrayList<>(), // placeholder instead of null
         schema.getColsList(),
-        new ArrayList<>(), // placeholder instead of null
-        Layout.newBuilder().build()
+        udbPartitions, // placeholder instead of null
+        layout
     );
   }
 
@@ -150,6 +181,6 @@ public class GDCDatabase implements UnderDatabase {
     String comments = dataset.getDescription();
 
     return new DatabaseInfo(mGdcProjectId + ":" + mGdcDatasetName,
-            mOwnerName, mOwnerType, comments, null);
+        mOwnerName, mOwnerType, comments, null);
   }
 }

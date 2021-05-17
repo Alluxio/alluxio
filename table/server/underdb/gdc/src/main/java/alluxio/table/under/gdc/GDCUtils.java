@@ -33,8 +33,19 @@ public class GDCUtils {
    * @return alluxio proto of schema
    */
   public static Schema toProtoSchema(com.google.cloud.bigquery.Schema schema) {
+    Schema.Builder schemaBuilder = Schema.newBuilder();
+    schemaBuilder.addAllCols(toProto(schema));
+    return schemaBuilder.build();
+  }
+
+  /**
+   * @param gdcSchema the hive schema
+   * @return the proto representation
+   */
+  public static List<alluxio.grpc.table.FieldSchema> toProto(
+      com.google.cloud.bigquery.Schema gdcSchema) {
     List<FieldSchema> list = new ArrayList<>();
-    for (Field field : schema.getFields()) {
+    for (Field field : gdcSchema.getFields()) {
       FieldSchema.Builder builder = FieldSchema.newBuilder()
           .setName(field.getName())
           .setType(field.getType().toString());
@@ -43,6 +54,6 @@ public class GDCUtils {
       }
       list.add(builder.build());
     }
-    return Schema.newBuilder().addAllCols(list).build();
+    return list;
   }
 }
