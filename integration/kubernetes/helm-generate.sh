@@ -37,6 +37,9 @@ function generateTemplates {
   if [[ ! -d "${dir}/logserver" ]]; then
     mkdir -p ${dir}/logserver
   fi
+  if [[ ! -d "${dir}/csi" ]]; then
+    mkdir -p ${dir}/csi
+  fi
 
   config=./$dir/config.yaml
   if [[ ! -f "$config" ]]; then
@@ -57,6 +60,7 @@ EOF
   generateWorkerTemplates
   generateFuseTemplates
   generateLoggingTemplates
+  generateCsiTemplates
 }
 
 function generateConfigTemplates {
@@ -91,6 +95,16 @@ function generateLoggingTemplates {
 
 function generateMasterServiceTemplates {
   helm template --name-template ${RELEASE_NAME} helm-chart/alluxio/ --show-only templates/master/service.yaml -f $dir/config.yaml > "$dir/alluxio-master-service.yaml.template"
+}
+
+function generateCsiTemplates {
+  echo "Genertating csi templates"
+  helm template --name-template ${RELEASE_NAME} helm-chart/alluxio/ --set csi.enabled=true --show-only templates/csi/controller-rbac.yaml -f $dir/config.yaml > "$dir/csi/alluxio-csi-controller-rbac.yaml.template"
+  helm template --name-template ${RELEASE_NAME} helm-chart/alluxio/ --set csi.enabled=true --show-only templates/csi/controller.yaml -f $dir/config.yaml > "$dir/csi/alluxio-csi-controller.yaml.template"
+  helm template --name-template ${RELEASE_NAME} helm-chart/alluxio/ --set csi.enabled=true --show-only templates/csi/driver.yaml -f $dir/config.yaml > "$dir/csi/alluxio-csi-driver.yaml.template"
+  helm template --name-template ${RELEASE_NAME} helm-chart/alluxio/ --set csi.enabled=true --show-only templates/csi/nodeplugin.yaml -f $dir/config.yaml > "$dir/csi/alluxio-csi-nodeplugin.yaml.template"
+  helm template --name-template ${RELEASE_NAME} helm-chart/alluxio/ --set csi.clientEnabled=true --show-only templates/csi/client-pv-nginx.yaml -f $dir/config.yaml > "$dir/csi/alluxio-csi-client-pv-nginx.yaml.template"
+  helm template --name-template ${RELEASE_NAME} helm-chart/alluxio/ --set csi.clientEnabled=true --show-only templates/csi/client-sc-nginx.yaml -f $dir/config.yaml > "$dir/csi/alluxio-csi-client-sc-nginx.yaml.template"
 }
 
 function generateSingleUfsTemplates {

@@ -9,15 +9,17 @@
 # See the NOTICE file distributed with this work for information regarding copyright ownership.
 #
 
-name: alluxio
-apiVersion: v1
-description: Open source data orchestration for analytics and machine learning in any cloud.
-version: 0.6.22
-home: https://www.alluxio.io/
-maintainers:
-- name: Adit Madan
-  email: adit@alluxio.com
-- name: Jiacheng Liu
-  email: jiacheng@alluxio.com
-- name: Yang Che
-  email: cheyang@163.com
+FROM golang:1.14.3-alpine as dev
+
+ENV GO111MODULE=on
+
+RUN mkdir -p $GOPATH/src/github.com/Alluxio/alluxio-csi
+COPY . $GOPATH/src/github.com/Alluxio/alluxio-csi
+
+FROM dev as build
+
+RUN cd $GOPATH/src/github.com/Alluxio/alluxio-csi && \
+    CGO_ENABLED=0 go build -o /usr/local/bin/alluxio-csi
+
+FROM alluxio/alluxio-fuse:latest as final
+COPY --from=build /usr/local/bin/alluxio-csi /usr/local/bin/

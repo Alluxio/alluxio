@@ -179,3 +179,6 @@
 0.6.21
 
 - Change logserver PVC default selectors to empty, so dynamic provisioning works by default configuration.
+
+0.6.22
+- Add Alluxio CSI support

@@ -9,15 +9,12 @@
 # See the NOTICE file distributed with this work for information regarding copyright ownership.
 #
 
-name: alluxio
-apiVersion: v1
-description: Open source data orchestration for analytics and machine learning in any cloud.
-version: 0.6.22
-home: https://www.alluxio.io/
-maintainers:
-- name: Adit Madan
-  email: adit@alluxio.com
-- name: Jiacheng Liu
-  email: jiacheng@alluxio.com
-- name: Yang Che
-  email: cheyang@163.com
+{{ if .Values.csi.enabled -}}
+apiVersion: storage.k8s.io/v1beta1
+kind: CSIDriver
+metadata:
+  name: alluxio
+spec:
+  attachRequired: false
+  podInfoOnMount: true
+{{- end }}

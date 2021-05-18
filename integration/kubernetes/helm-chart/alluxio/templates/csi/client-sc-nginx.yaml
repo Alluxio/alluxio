@@ -1,0 +1,61 @@
+#
+# The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
+# (the "License"). You may not use this work except in compliance with the License, which is
+# available at www.apache.org/licenses/LICENSE-2.0
+#
+# This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+# either express or implied, as more fully set forth in the License.
+#
+# See the NOTICE file distributed with this work for information regarding copyright ownership.
+#
+
+{{ if .Values.csi.clientEnabled -}}
+---
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: alluxio
+provisioner: alluxio
+parameters:
+  alluxioPath: {{ .Values.csi.alluxioPath }}
+  javaOptions: {{ .Values.csi.javaOptions }}
+volumeBindingMode: Immediate
+mountOptions:
+  {{- range .Values.csi.mountOptions }}
+  - "{{ . }}"
+  {{- end }}
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: alluxio-pvc
+spec:
+  accessModes:
+  - ReadWriteMany
+  resources:
+    requests:
+      storage: 100Gi
+  storageClassName: alluxio
+
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: nginx
+spec:
+  containers:
+  - image: nginx
+    imagePullPolicy: Always
+    name: nginx
+    ports:
+    - containerPort: 80
+      protocol: TCP
+    volumeMounts:
+      - mountPath: {{ .Values.csi.mountPath }}
+        name: alluxio-pvc
+  volumes:
+  - name: alluxio-pvc
+    persistentVolumeClaim:
+      claimName: alluxio-pvc
+{{- end }}

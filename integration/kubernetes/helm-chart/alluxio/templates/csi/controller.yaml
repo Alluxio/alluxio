@@ -1,0 +1,109 @@
+#
+# The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
+# (the "License"). You may not use this work except in compliance with the License, which is
+# available at www.apache.org/licenses/LICENSE-2.0
+#
+# This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+# either express or implied, as more fully set forth in the License.
+#
+# See the NOTICE file distributed with this work for information regarding copyright ownership.
+#
+
+{{ if .Values.csi.enabled -}}
+{{- $name := include "alluxio.name" . }}
+{{- $fullName := include "alluxio.fullname" . }}
+{{- $chart := include "alluxio.chart" . }}
+
+---
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: {{ $fullName }}-csi-controller
+  labels:
+    name: {{ $fullName }}-csi-controller
+    app: {{ $name }}
+    chart: {{ $chart }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+    role: alluxio-csi-controller
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ $name }}
+      role: alluxio-csi-controller
+      name: {{ $fullName }}-csi-controller
+  template:
+    metadata:
+      labels:
+        name: {{ $fullName }}-csi-controller
+        app: {{ $name }}
+        chart: {{ $chart }}
+        release: {{ .Release.Name }}
+        heritage: {{ .Release.Service }}
+        role: alluxio-csi-controller
+    spec:
+      hostNetwork: true
+      serviceAccountName: csi-controller-sa
+      containers:
+        - name: csi-provisioner
+          # For kubernetes 1.13 or above
+          image: quay.io/k8scsi/csi-provisioner:v1.4.0
+          args:
+            - "-v=5"
+            - "--csi-address=$(ADDRESS)"
+            - "--timeout=60s"
+            - "--volume-name-prefix=alluxio"
+          env:
+            - name: ADDRESS
+              value: /csi/csi.sock
+          volumeMounts:
+            - mountPath: /csi
+              name: socket-dir
+          {{- if .Values.csi.provisioner.resources  }}
+          resources:
+            {{- if .Values.csi.provisioner.resources.limits }}
+            limits:
+              cpu: {{ .Values.csi.provisioner.resources.limits.cpu }}
+              memory: {{ .Values.csi.provisioner.resources.limits.memory }}
+            {{- end }}
+            {{- if .Values.csi.provisioner.resources.requests }}
+            requests:
+              cpu: {{ .Values.csi.provisioner.resources.requests.cpu }}
+              memory: {{ .Values.csi.provisioner.resources.requests.memory }}
+            {{- end }}
+          {{- end }}
+        - name: csi-controller
+          image: {{ .Values.csi.image }}:{{ .Values.csi.imageTag }}
+          imagePullPolicy: {{ .Values.csi.imagePullPolicy }}
+          command: ["/usr/local/bin/alluxio-csi"]
+          args:
+            - "--nodeid=$(NODE_ID)"
+            - "--endpoint=$(CSI_ENDPOINT)"
+          env:
+            - name: NODE_ID
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName
+            - name: CSI_ENDPOINT
+              value: unix://csi/csi.sock
+          volumeMounts:
+            - mountPath: /csi
+              name: socket-dir
+          {{- if .Values.csi.controller.resources  }}
+          resources:
+            {{- if .Values.csi.controller.resources.limits }}
+            limits:
+              cpu: {{ .Values.csi.controller.resources.limits.cpu }}
+              memory: {{ .Values.csi.controller.resources.limits.memory }}
+            {{- end }}
+            {{- if .Values.csi.controller.resources.requests }}
+            requests:
+              cpu: {{ .Values.csi.controller.resources.requests.cpu }}
+              memory: {{ .Values.csi.controller.resources.requests.memory }}
+            {{- end }}
+          {{- end }}
+      volumes:
+        - name: socket-dir
+          emptyDir: {}
+{{- end }}
