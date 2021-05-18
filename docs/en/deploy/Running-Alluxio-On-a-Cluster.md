@@ -29,7 +29,7 @@ To deploy Alluxio in production, we highly recommend running Alluxio masters in
   $ tar -xvzpf alluxio-{{site.ALLUXIO_VERSION_STRING}}-bin.tar.gz
   ```
   
-* Enable SSH login without password from the master node to worker nodes.
+* Enable SSH login without password from the master node to worker nodes and from the master node to itself.
   You can add a public SSH key for the host into `~/.ssh/authorized_keys`.
   See [this tutorial](http://www.linuxproblem.org/art_9.html) for more details.
 * TCP traffic across all nodes is allowed.
@@ -59,8 +59,27 @@ alluxio.master.mount.table.root.ufs=<STORAGE_URI>
 - The second property `alluxio.master.mount.table.root.ufs` sets to the URI of the under store to
   mount to the Alluxio root.
   This shared storage system must be accessible by the master node and all worker nodes.
-  Examples include `alluxio.master.mount.table.root.ufs=hdfs://1.2.3.4:9000/alluxio/root/`, or 
-  `alluxio.master.mount.table.root.ufs=s3://bucket/dir/`.
+  
+  For example, when [HDFS]({{ '/en/ufs/HDFS.html#basic-setup' | relativize_url }})
+  is used as the under storage system, the value of this property can be set to
+  `alluxio.master.mount.table.root.ufs=hdfs://1.2.3.4:9000/alluxio/root/`
+  
+  When [Amazon S3]({{ '/en/ufs/S3.html#basic-setup' | relativize_url }})
+  is used as the under storage system, the value can be set to
+  `alluxio.master.mount.table.root.ufs=s3://bucket/dir/`
+
+Append the hostname of each node into `conf/masters` and `conf/workers` accordingly.
+Append the hostname of each Alluxio master node to a new line into `conf/masters`,
+and the hostname of each worker node to a new line into `conf/worers`.
+Comment out `localhost` if necessary.
+For example, in `conf/masters`, we can add the hostnames of two master nodes in the following format:
+```
+# The multi-master Zookeeper HA mode requires that all the masters can access
+# the same journal through a shared medium (e.g. HDFS or NFS).
+# localhost
+ec2-1-111-11-111.compute-1.amazonaws.com
+ec2-2-222-22-222.compute-2.amazonaws.com
+```
 
 Next, copy the configuration file to all the Alluxio worker nodes.
 The following built-in utility will copy the configuration files to all master and worker
