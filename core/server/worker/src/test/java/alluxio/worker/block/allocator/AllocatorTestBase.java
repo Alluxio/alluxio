@@ -15,6 +15,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
+import alluxio.Constants;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.worker.block.BlockMetadataEvictorView;
@@ -47,13 +48,16 @@ public class AllocatorTestBase {
   public static final long DEFAULT_SSD_SIZE = 2000;
   public static final long DEFAULT_HDD_SIZE = 3000;
 
-  public static final String[] MEDIA_TYPES = {"MEM", "SSD", "HDD"};
+  public static final String[] MEDIA_TYPES =
+      {Constants.MEDIUM_MEM, Constants.MEDIUM_SSD, Constants.MEDIUM_HDD};
   public static final int[] TIER_LEVEL = {0, 1, 2};
-  public static final String[] TIER_ALIAS = {"MEM", "SSD", "HDD"};
+  public static final String[] TIER_ALIAS =
+      {Constants.MEDIUM_MEM, Constants.MEDIUM_SSD, Constants.MEDIUM_HDD};
   public static final String[][] TIER_PATH = {{"/ramdisk"}, {"/ssd1", "/ssd2"},
       {"/disk1", "/disk2", "/disk3"}};
-  public static final String[][] TIER_MEDIA_TYPE = {{"MEM"}, {"SSD", "SSD"},
-      {"HDD", "HDD", "HDD"}};
+  public static final String[][] TIER_MEDIA_TYPE = {{Constants.MEDIUM_MEM},
+      {Constants.MEDIUM_SSD, Constants.MEDIUM_SSD},
+      {Constants.MEDIUM_HDD, Constants.MEDIUM_HDD, Constants.MEDIUM_HDD}};
   public static final long[][] TIER_CAPACITY_BYTES = {{DEFAULT_RAM_SIZE},
       {DEFAULT_SSD_SIZE, DEFAULT_SSD_SIZE},
       {DEFAULT_HDD_SIZE, DEFAULT_HDD_SIZE, DEFAULT_HDD_SIZE}};
@@ -66,9 +70,12 @@ public class AllocatorTestBase {
   protected Allocator mAllocator = null;
 
   protected BlockStoreLocation mAnyTierLoc = BlockStoreLocation.anyTier();
-  protected BlockStoreLocation mAnyDirInTierLoc1 = BlockStoreLocation.anyDirInTier("MEM");
-  protected BlockStoreLocation mAnyDirInTierLoc2 = BlockStoreLocation.anyDirInTier("SSD");
-  protected BlockStoreLocation mAnyDirInTierLoc3 = BlockStoreLocation.anyDirInTier("HDD");
+  protected BlockStoreLocation mAnyDirInTierLoc1 =
+      BlockStoreLocation.anyDirInTier(Constants.MEDIUM_MEM);
+  protected BlockStoreLocation mAnyDirInTierLoc2 =
+      BlockStoreLocation.anyDirInTier(Constants.MEDIUM_SSD);
+  protected BlockStoreLocation mAnyDirInTierLoc3 =
+      BlockStoreLocation.anyDirInTier(Constants.MEDIUM_HDD);
 
   /** Rule to create a new temporary folder during each test. */
   @Rule

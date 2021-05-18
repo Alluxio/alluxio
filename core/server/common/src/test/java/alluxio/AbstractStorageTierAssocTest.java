@@ -74,7 +74,8 @@ public final class AbstractStorageTierAssocTest {
    */
   @Test
   public void storageAliasListConstructor() {
-    List<String> orderedAliases = Arrays.asList("MEM", "HDD", "SOMETHINGELSE", "SSD");
+    List<String> orderedAliases = Arrays.asList(Constants.MEDIUM_MEM,
+        Constants.MEDIUM_HDD, "SOMETHINGELSE", Constants.MEDIUM_SSD);
 
     MasterStorageTierAssoc masterAssoc = new MasterStorageTierAssoc(orderedAliases);
     WorkerStorageTierAssoc workerAssoc = new WorkerStorageTierAssoc(orderedAliases);
@@ -95,14 +96,18 @@ public final class AbstractStorageTierAssocTest {
     // Validate intersections.
     List<Pair<BlockStoreLocation, BlockStoreLocation>> intersections =
         workerAssoc.intersectionList();
-    Assert.assertEquals(intersections.get(0).getFirst(), BlockStoreLocation.anyDirInTier("MEM"));
-    Assert.assertEquals(intersections.get(0).getSecond(), BlockStoreLocation.anyDirInTier("HDD"));
-    Assert.assertEquals(intersections.get(1).getFirst(), BlockStoreLocation.anyDirInTier("HDD"));
+    Assert.assertEquals(intersections.get(0).getFirst(),
+        BlockStoreLocation.anyDirInTier(Constants.MEDIUM_MEM));
+    Assert.assertEquals(intersections.get(0).getSecond(),
+        BlockStoreLocation.anyDirInTier(Constants.MEDIUM_HDD));
+    Assert.assertEquals(intersections.get(1).getFirst(),
+        BlockStoreLocation.anyDirInTier(Constants.MEDIUM_HDD));
     Assert.assertEquals(intersections.get(1).getSecond(),
         BlockStoreLocation.anyDirInTier("SOMETHINGELSE"));
     Assert.assertEquals(intersections.get(2).getFirst(),
         BlockStoreLocation.anyDirInTier("SOMETHINGELSE"));
-    Assert.assertEquals(intersections.get(2).getSecond(), BlockStoreLocation.anyDirInTier("SSD"));
+    Assert.assertEquals(intersections.get(2).getSecond(),
+        BlockStoreLocation.anyDirInTier(Constants.MEDIUM_SSD));
   }
 
   @Test

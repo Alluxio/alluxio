@@ -11,6 +11,7 @@
 
 package alluxio.worker.block.meta;
 
+import alluxio.Constants;
 import alluxio.WorkerStorageTierAssoc;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
@@ -125,7 +126,7 @@ public final class DefaultStorageTier implements StorageTier {
       }
     }
     mCapacityBytes = totalCapacity;
-    if (mTierAlias.equals("MEM") && mDirs.size() == 1) {
+    if (mTierAlias.equals(Constants.MEDIUM_MEM) && mDirs.size() == 1) {
       checkEnoughMemSpace(mDirs.values().iterator().next());
     }
   }

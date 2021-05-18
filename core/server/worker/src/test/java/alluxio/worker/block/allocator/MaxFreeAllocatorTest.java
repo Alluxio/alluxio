@@ -11,6 +11,7 @@
 
 package alluxio.worker.block.allocator;
 
+import alluxio.Constants;
 import alluxio.conf.ServerConfiguration;
 import alluxio.conf.PropertyKey;
 
@@ -47,7 +48,7 @@ public final class MaxFreeAllocatorTest extends AllocatorTestBase {
     //  1               ├─── 3000
     //  2               └─── 3000
     //
-    assertTempBlockMeta(mAllocator, mAnyTierLoc, 1500, true, "SSD", 0);
+    assertTempBlockMeta(mAllocator, mAnyTierLoc, 1500, true, Constants.MEDIUM_SSD, 0);
     //
     // idx | tier1 | tier2 | tier3
     //  0    1000
@@ -57,7 +58,7 @@ public final class MaxFreeAllocatorTest extends AllocatorTestBase {
     //  1               ├─── 3000
     //  2               └─── 3000
     //
-    assertTempBlockMeta(mAllocator, mAnyTierLoc, 2000, true, "SSD", 1);
+    assertTempBlockMeta(mAllocator, mAnyTierLoc, 2000, true, Constants.MEDIUM_SSD, 1);
     //
     // idx | tier1 | tier2 | tier3
     //  0    1000
@@ -67,7 +68,7 @@ public final class MaxFreeAllocatorTest extends AllocatorTestBase {
     //  1               ├─── 3000
     //  2               └─── 3000
     //
-    assertTempBlockMeta(mAllocator, mAnyTierLoc, 300, true, "MEM", 0);
+    assertTempBlockMeta(mAllocator, mAnyTierLoc, 300, true, Constants.MEDIUM_MEM, 0);
     //
     // idx | tier1 | tier2 | tier3
     //  0     700   <--- alloc
@@ -77,7 +78,7 @@ public final class MaxFreeAllocatorTest extends AllocatorTestBase {
     //  1               ├─── 3000
     //  2               └─── 3000
     //
-    assertTempBlockMeta(mAllocator, mAnyDirInTierLoc2, 300, true, "SSD", 0);
+    assertTempBlockMeta(mAllocator, mAnyDirInTierLoc2, 300, true, Constants.MEDIUM_SSD, 0);
     //
     // idx | tier1 | tier2 | tier3
     //  0     700

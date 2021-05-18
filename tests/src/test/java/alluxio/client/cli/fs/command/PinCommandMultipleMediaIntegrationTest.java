@@ -52,7 +52,8 @@ public final class PinCommandMultipleMediaIntegrationTest extends BaseIntegratio
           .setProperty(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, "CACHE_THROUGH")
           // multiple media
           .setProperty(PropertyKey.WORKER_TIERED_STORE_LEVELS, "2")
-          .setProperty(PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_ALIAS.format(1), "SSD")
+          .setProperty(PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_ALIAS
+              .format(1), Constants.MEDIUM_SSD)
           .setProperty(PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_DIRS_PATH.format(0),
               Files.createTempDir().getAbsolutePath())
           .setProperty(PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_DIRS_PATH.format(1),
@@ -62,9 +63,11 @@ public final class PinCommandMultipleMediaIntegrationTest extends BaseIntegratio
           .setProperty(PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_DIRS_QUOTA.format(1),
               String.valueOf(SIZE_BYTES))
           .setProperty(
-              PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_DIRS_MEDIUMTYPE.format(0), "SSD")
+              PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_DIRS_MEDIUMTYPE
+                  .format(0), Constants.MEDIUM_SSD)
           .setProperty(
-              PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_DIRS_MEDIUMTYPE.format(1), "SSD")
+              PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_DIRS_MEDIUMTYPE
+                  .format(1), Constants.MEDIUM_SSD)
           .build();
 
   @Rule
@@ -84,11 +87,11 @@ public final class PinCommandMultipleMediaIntegrationTest extends BaseIntegratio
         fileSize);
     assertTrue(fileSystem.exists(filePathA));
 
-    assertEquals(0, fsShell.run("pin", filePathA.toString(), "SSD"));
+    assertEquals(0, fsShell.run("pin", filePathA.toString(), Constants.MEDIUM_SSD));
     int ret = fsShell.run("setReplication", "-min", "2", filePathA.toString());
     assertEquals(0, ret);
 
-    assertEquals("SSD", fileSystem.getStatus(filePathA).getFileBlockInfos()
+    assertEquals(Constants.MEDIUM_SSD, fileSystem.getStatus(filePathA).getFileBlockInfos()
         .get(0).getBlockInfo().getLocations().get(0).getMediumType());
 
     assertEquals(-1, fsShell.run("pin", filePathB.toString(), "NVRAM"));

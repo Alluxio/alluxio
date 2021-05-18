@@ -18,6 +18,7 @@ import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
+import alluxio.Constants;
 import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.master.block.BlockId;
@@ -147,7 +148,7 @@ public final class BlockMetadataViewTest {
    */
   @Test
   public void getTierNotExisting() {
-    String badTierAlias = "HDD";
+    String badTierAlias = Constants.MEDIUM_HDD;
     mThrown.expect(IllegalArgumentException.class);
     mThrown.expectMessage(ExceptionMessage.TIER_VIEW_ALIAS_NOT_FOUND.getMessage(badTierAlias));
     mMetadataView.getTierView(badTierAlias);
