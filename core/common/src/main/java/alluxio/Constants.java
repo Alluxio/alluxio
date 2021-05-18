@@ -208,5 +208,10 @@ public final class Constants {
   public static final String TABLE_MASTER_CLIENT_SERVICE_NAME = "TableMasterClient";
   public static final long TABLE_MASTER_CLIENT_SERVICE_VERSION = 1;
 
+  // Medium name
+  public static final String MEDIUM_MEM = "MEM";
+  public static final String MEDIUM_HDD = "HDD";
+  public static final String MEDIUM_SSD = "SSD";
+
   private Constants() {} // prevent instantiation
 }

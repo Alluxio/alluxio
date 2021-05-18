@@ -11,6 +11,7 @@
 
 package alluxio.worker.block.meta;
 
+import alluxio.Constants;
 import alluxio.conf.ServerConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.util.io.PathUtils;
@@ -35,11 +36,12 @@ public class DefaultStorageTierTest {
   private static final long TEST_DIR1_CAPACITY = 2000;
   private static final long TEST_DIR2_CAPACITY = 3000;
   private static final int TEST_TIER_ORDINAL = 0;
-  private static final String TEST_TIER_ALIAS = "MEM";
+  private static final String TEST_TIER_ALIAS = Constants.MEDIUM_MEM;
   private static final String TEST_WORKER_DATA_DIR = "testworker";
 
   private static final long[] TIER_CAPACITY_BYTES = {TEST_DIR1_CAPACITY, TEST_DIR2_CAPACITY};
-  private static final String[] TEST_TIER_MEDIUM_TYPES = {"MEM", "MEM"};
+  private static final String[] TEST_TIER_MEDIUM_TYPES =
+      {Constants.MEDIUM_MEM, Constants.MEDIUM_MEM};
   private StorageTier mTier;
   private StorageDir mDir1;
   private TempBlockMeta mTempBlockMeta;
@@ -71,7 +73,7 @@ public class DefaultStorageTierTest {
 
     mTestBlockDirPath1 = PathUtils.concatPath(mTestDirPath1,  TEST_WORKER_DATA_DIR);
     mTestBlockDirPath2 = PathUtils.concatPath(mTestDirPath2,  TEST_WORKER_DATA_DIR);
-    mTier = DefaultStorageTier.newStorageTier("MEM", false);
+    mTier = DefaultStorageTier.newStorageTier(Constants.MEDIUM_MEM, false);
     mDir1 = mTier.getDir(0);
     mTempBlockMeta =
         new DefaultTempBlockMeta(TEST_SESSION_ID, TEST_TEMP_BLOCK_ID, TEST_BLOCK_SIZE, mDir1);
@@ -147,7 +149,7 @@ public class DefaultStorageTierTest {
     PropertyKey tierDirPathConf =
         PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_DIRS_PATH.format(0);
     ServerConfiguration.set(tierDirPathConf, "/dev/null/invalid," + mTestDirPath1);
-    mTier = DefaultStorageTier.newStorageTier("MEM", false);
+    mTier = DefaultStorageTier.newStorageTier(Constants.MEDIUM_MEM, false);
     List<StorageDir> dirs = mTier.getStorageDirs();
     Assert.assertEquals(1, dirs.size());
     Assert.assertEquals(mTestBlockDirPath1, dirs.get(0).getDirPath());
@@ -157,11 +159,11 @@ public class DefaultStorageTierTest {
   public void tolerantMisconfigurationInStorageDir() throws Exception {
     ServerConfiguration
         .set(PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_DIRS_MEDIUMTYPE.format(0),
-            "MEM");
+            Constants.MEDIUM_MEM);
     ServerConfiguration
         .set(PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_DIRS_QUOTA.format(0),
             2000);
-    mTier = DefaultStorageTier.newStorageTier("MEM", false);
+    mTier = DefaultStorageTier.newStorageTier(Constants.MEDIUM_MEM, false);
     List<StorageDir> dirs = mTier.getStorageDirs();
     Assert.assertEquals(2, dirs.size());
     Assert.assertEquals(mTestBlockDirPath1, dirs.get(0).getDirPath());

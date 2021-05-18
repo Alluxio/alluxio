@@ -61,8 +61,10 @@ public class SpecificTierWriteIntegrationTest extends BaseIntegrationTest {
           .setProperty(PropertyKey.WORKER_MANAGEMENT_TIER_PROMOTE_ENABLED, "false")
           .setProperty(PropertyKey.WORKER_MANAGEMENT_TIER_ALIGN_ENABLED, "false")
           .setProperty(PropertyKey.WORKER_TIERED_STORE_LEVELS, "3")
-          .setProperty(PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_ALIAS.format(1), "SSD")
-          .setProperty(PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_ALIAS.format(2), "HDD")
+          .setProperty(PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_ALIAS
+              .format(1), Constants.MEDIUM_SSD)
+          .setProperty(PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_ALIAS
+              .format(2), Constants.MEDIUM_HDD)
           .setProperty(PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_DIRS_PATH.format(0),
               Files.createTempDir().getAbsolutePath())
           .setProperty(PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_DIRS_PATH.format(1),
@@ -145,9 +147,12 @@ public class SpecificTierWriteIntegrationTest extends BaseIntegrationTest {
     Map<String, Long> bytesOnTiers =
             mLocalAlluxioClusterResource.get().getLocalAlluxioMaster().getMasterProcess()
                     .getMaster(BlockMaster.class).getUsedBytesOnTiers();
-    Assert.assertEquals("MEM tier usage", memBytes, bytesOnTiers.get("MEM").longValue());
-    Assert.assertEquals("SSD tier usage", ssdBytes, bytesOnTiers.get("SSD").longValue());
-    Assert.assertEquals("HDD tier usage", hddBytes, bytesOnTiers.get("HDD").longValue());
+    Assert.assertEquals("MEM tier usage", memBytes,
+        bytesOnTiers.get(Constants.MEDIUM_MEM).longValue());
+    Assert.assertEquals("SSD tier usage", ssdBytes,
+        bytesOnTiers.get(Constants.MEDIUM_SSD).longValue());
+    Assert.assertEquals("HDD tier usage",
+        hddBytes, bytesOnTiers.get(Constants.MEDIUM_HDD).longValue());
   }
 
   private void deleteAllFiles() throws Exception {

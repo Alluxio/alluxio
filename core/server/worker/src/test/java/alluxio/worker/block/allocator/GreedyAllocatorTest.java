@@ -11,6 +11,7 @@
 
 package alluxio.worker.block.allocator;
 
+import alluxio.Constants;
 import alluxio.conf.ServerConfiguration;
 import alluxio.conf.PropertyKey;
 
@@ -47,7 +48,7 @@ public final class GreedyAllocatorTest extends AllocatorTestBase {
     //  1               ├─── 3000
     //  2               └─── 3000
     //
-    assertTempBlockMeta(mAllocator, mAnyTierLoc, 500, true, "MEM", 0);
+    assertTempBlockMeta(mAllocator, mAnyTierLoc, 500, true, Constants.MEDIUM_MEM, 0);
     //
     // idx | tier1 | tier2 | tier3
     //  0     500   <--- alloc
@@ -57,7 +58,7 @@ public final class GreedyAllocatorTest extends AllocatorTestBase {
     //  1               ├─── 3000
     //  2               └─── 3000
     //
-    assertTempBlockMeta(mAllocator, mAnyDirInTierLoc2, 1000, true, "SSD", 0);
+    assertTempBlockMeta(mAllocator, mAnyDirInTierLoc2, 1000, true, Constants.MEDIUM_SSD, 0);
     //
     // idx | tier1 | tier2 | tier3
     //  0     500
@@ -67,7 +68,7 @@ public final class GreedyAllocatorTest extends AllocatorTestBase {
     //  1               ├─── 3000
     //  2               └─── 3000
     //
-    assertTempBlockMeta(mAllocator, mAnyDirInTierLoc2, 1500, true, "SSD", 1);
+    assertTempBlockMeta(mAllocator, mAnyDirInTierLoc2, 1500, true, Constants.MEDIUM_SSD, 1);
     //
     // idx | tier1 | tier2 | tier3
     //  0     500
@@ -77,7 +78,7 @@ public final class GreedyAllocatorTest extends AllocatorTestBase {
     //  1               ├─── 3000
     //  2               └─── 3000
     //
-    assertTempBlockMeta(mAllocator, mAnyTierLoc, 1000, true, "SSD", 0);
+    assertTempBlockMeta(mAllocator, mAnyTierLoc, 1000, true, Constants.MEDIUM_SSD, 0);
     //
     // idx | tier1 | tier2 | tier3
     //  0     500
@@ -87,7 +88,7 @@ public final class GreedyAllocatorTest extends AllocatorTestBase {
     //  1               ├─── 3000
     //  2               └─── 3000
     //
-    assertTempBlockMeta(mAllocator, mAnyTierLoc, 1000, true, "HDD", 0);
+    assertTempBlockMeta(mAllocator, mAnyTierLoc, 1000, true, Constants.MEDIUM_HDD, 0);
     //
     // idx | tier1 | tier2 | tier3
     //  0     500
@@ -97,7 +98,7 @@ public final class GreedyAllocatorTest extends AllocatorTestBase {
     //  1               ├─── 3000
     //  2               └─── 3000
     //
-    assertTempBlockMeta(mAllocator, mAnyTierLoc, 2000, true, "HDD", 0);
+    assertTempBlockMeta(mAllocator, mAnyTierLoc, 2000, true, Constants.MEDIUM_HDD, 0);
     //
     // idx | tier1 | tier2 | tier3
     //  0     500
@@ -107,7 +108,7 @@ public final class GreedyAllocatorTest extends AllocatorTestBase {
     //  1               ├─── 3000
     //  2               └─── 3000
     //
-    assertTempBlockMeta(mAllocator, mAnyTierLoc, 500, true, "MEM", 0);
+    assertTempBlockMeta(mAllocator, mAnyTierLoc, 500, true, Constants.MEDIUM_MEM, 0);
     //
     // idx | tier1 | tier2 | tier3
     //  0      0   <--- alloc
@@ -117,7 +118,7 @@ public final class GreedyAllocatorTest extends AllocatorTestBase {
     //  1               ├─── 3000
     //  2               └─── 3000
     //
-    assertTempBlockMeta(mAllocator, mAnyTierLoc, 500, true, "SSD", 1);
+    assertTempBlockMeta(mAllocator, mAnyTierLoc, 500, true, Constants.MEDIUM_SSD, 1);
     //
     // idx | tier1 | tier2 | tier3
     //  0      0
@@ -127,7 +128,7 @@ public final class GreedyAllocatorTest extends AllocatorTestBase {
     //  1               ├─── 3000
     //  2               └─── 3000
     //
-    assertTempBlockMeta(mAllocator, mAnyDirInTierLoc3, 1000, true, "HDD", 1);
+    assertTempBlockMeta(mAllocator, mAnyDirInTierLoc3, 1000, true, Constants.MEDIUM_HDD, 1);
     //
     // idx | tier1 | tier2 | tier3
     //  0      0
@@ -137,7 +138,7 @@ public final class GreedyAllocatorTest extends AllocatorTestBase {
     //  1               ├─── 2000   <--- alloc
     //  2               └─── 3000
     //
-    assertTempBlockMeta(mAllocator, mAnyTierLoc, 700, true, "HDD", 1);
+    assertTempBlockMeta(mAllocator, mAnyTierLoc, 700, true, Constants.MEDIUM_HDD, 1);
     //
     // idx | tier1 | tier2 | tier3
     //  0      0
