@@ -1,55 +1,80 @@
-## What is Alluxio
-[Alluxio](https://www.alluxio.io) (formerly known as Tachyon)
-is a virtual distributed storage system. It bridges the gap between
-computation frameworks and storage systems, enabling computation applications to connect to
-numerous storage systems through a common interface. Read more about
-[Alluxio Overview](https://docs.alluxio.io/os/user/stable/en/Overview.html).
+# Alluxio CSI
 
-The Alluxio project originated from a research project called Tachyon at AMPLab, UC Berkeley,
-which was the data layer of the Berkeley Data Analytics Stack ([BDAS](https://amplab.cs.berkeley.edu/bdas/)).
-For more details, please refer to Haoyuan Li's PhD dissertation
-[Alluxio: A Virtual Distributed File System](https://www2.eecs.berkeley.edu/Pubs/TechRpts/2018/EECS-2018-29.html).
+This project implement contienr storage interface(https://github.com/container-storage-interface/spec) for Alluxio.
 
-## Container Storage Interface for Alluxio
+## Requirements
 
-This repository contains the CSI implementation to provide POSIX access to Alluxio in
-containerized environments such as Kubernetes.
+Kubernetes 1.14 or higher, RBAC enbaled in API server.
 
-## How to build
-
-Build alluxio-csi docker image
-
-`docker build . -t alluxio/alluxio-csi:<version_tag>`
-
-## Example
+## Usage
 
 ### Deploy
+Please use `helm-generate.sh` to generate related templates. All CSI related templates should under `integration/kubernetes/<deploy-mode>/csi` folder.
 
-Go to `deploy` folder, Run following commands:
-```bash
-kubectl apply -f csi-alluxio-driver.yml
-kubectl apply -f csi-alluxio-daemon.yml
-kubectl apply -f csi-alluxio-controller.yml
-``` 
+You need to deploy `alluxio-csi-controller`, `alluxio-csi-nodeplugin`, `alluxio-csi-driver` before mount volume via CSI.
 
-### Example Nginx application
-The `/examples` folder contains `PersistentVolume`, `PersistentVolumeClaim`, `StorageClass` and an nginx `Pod` mounting the alluxio volume under `/data`.
+We provide two types of provisioning methods. For static provisioning, you need to create `PersistentVolume` and `PersistentVolumeClaim` first.
+For dynamic provisioning, you need to create `StorageClass` and  `PersistentVolumeClaim`.
 
-You will need to update the alluxio `MASTER_HOST_NAME` and the share information under `volumeAttributes` in `alluxio-pv.yml` file to match your alluxio master configuration.
+All these examples will be gernerated after run `helm-generate.sh`.
 
-If you want to use dynamic provisioning, please update the alluxio `MASTER_HOST_NAME` under `parameters` in `alluxio-storageclass.yml`.
+### Configuration
 
-Run following commands to create nginx pod mounted with alluxio volume:
-```bash
-kubectl apply -f alluxio-pv.yml
-kubectl apply -f alluxio-pvc.yml
-kubectl apply -f nginx.yml
+You can custmomize alluxio volumes via serveral configurations.
+
+The options you can customized:
+| Options | Description |
+| --- | --- |
+| `alluxioPath` | The path in alluxio |
+| `javaOptions` | The customized options which pass to fuse daemon |
+| `mountOptions` | Alluxio fuse mount options |
+
+If you use dynamic provisioning, please put your cutomized parameters under `StorageClass.parameters` and `StorageClass.mountOptions`.
+
+An example of Alluxio StorageClass Spec:
+```yaml
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: alluxio
+provisioner: alluxio
+parameters:
+  alluxioPath: /data
+  javaOptions: "-Dalluxio.user.metadata.cache.enabled=true "
+volumeBindingMode: Immediate
+mountOptions:
+  - kernel_cache
+  - allow_other
+  - entry_timeout=36000
+  - attr_timeout=36000
+  - max_readahead=0
 ```
 
-For dynamic provisioning, please run following commands:
-```bash
-kubectl apply -f alluxio-storageclass.yml
-kubectl apply -f alluxio-pvc-storageclass.yml
-kubectl apply -f nginx.yml
+If you use static provisioning, you can customize these options in `PersistentVolume.spec.csi.volumeAttributes` and `PersistentVolume.spec.mountOptions`
+
+An example of Alluxio PersistentVolume Spec:
+```yaml
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: alluxio-pv
+  labels:
+    name: alluxio-pv
+spec:
+  accessModes:
+  - ReadWriteMany
+  capacity:
+    storage: 100Gi
+  csi:
+    driver: alluxio
+    volumeHandle: alluxio
+    volumeAttributes:
+      alluxioPath: /data
+      javaOptions: "-Dalluxio.user.metadata.cache.enabled=true "
+  mountOptions:
+    - kernel_cache
+    - allow_other
+    - entry_timeout=36000
+    - attr_timeout=36000
 ```
 
