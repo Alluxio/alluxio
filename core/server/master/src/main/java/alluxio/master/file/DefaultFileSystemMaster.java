@@ -4488,7 +4488,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
           inodeTree::getInodeCount);
       MetricsSystem.registerGaugeIfAbsent(MetricKey.MASTER_FILE_SIZE.getName(),
           () -> StreamSupport.stream(
-              inodeTree.getFileSizeHistogram().logarithmicBucketValues(1, 1024).spliterator(),
+              inodeTree.getFileSizeHistogram().logarithmicBucketValues(1024, 1024).spliterator(),
               false)
               .map(x -> new Pair<>(
                   new Pair<>(x.getDoubleValueIteratedFrom(), x.getDoubleValueIteratedTo()),
