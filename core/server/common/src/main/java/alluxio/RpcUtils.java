@@ -22,7 +22,6 @@ import alluxio.security.authentication.AuthenticatedClientUser;
 import com.codahale.metrics.Timer;
 import io.grpc.StatusException;
 import io.grpc.stub.StreamObserver;
-import org.apache.logging.log4j.util.Strings;
 import org.slf4j.Logger;
 
 import java.io.IOException;
