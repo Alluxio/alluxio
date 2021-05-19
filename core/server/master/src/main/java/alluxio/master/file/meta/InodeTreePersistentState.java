@@ -361,9 +361,10 @@ public class InodeTreePersistentState implements Journaled {
     } else {
       mInodeStore.removeInodeAndParentEdge(inode);
       mInodeCounter.decrementAndGet();
+    }
+    if (inode.isFile()) {
       mRemovedFileRecorder.recordValue(inode.asFile().getLength());
     }
-
     updateTimestampsAndChildCount(inode.getParentId(), entry.getOpTimeMs(), -1);
     mPinnedInodeFileIds.remove(id);
     mReplicationLimitedFileIds.remove(id);
