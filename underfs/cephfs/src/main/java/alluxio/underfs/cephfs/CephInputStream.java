@@ -27,8 +27,11 @@ public final class CephInputStream extends InputStream {
   private CephMount mMount;
   private final int mFileHandle;
   private final long mFileLength;
-  private long mPos = 0;
-  private byte[] mBuf = new byte[1];
+  private long mCephPos = 0;
+  private byte[] mBuf;
+  private int mBufPos = 0;
+  private int mBufValid = 0;
+  private byte[] mOneByteBuf = new byte[1];
   /** Flag to indicate this stream has been closed, to ensure close is only done once. */
   private final AtomicBoolean mClosed = new AtomicBoolean(false);
 
@@ -44,11 +47,24 @@ public final class CephInputStream extends InputStream {
     mFileLength = flength;
     mFileHandle = fh;
     mMount = mount;
+    mBuf = new byte[1 << 21];
+  }
+
+  /**
+   * Gets the current position of the stream.
+   *
+   * @return current positon of the stream
+   */
+  public synchronized long getPos() throws IOException {
+    return mCephPos - mBufValid + mBufPos;
   }
 
   @Override
-  public int available() throws IOException {
-    return (int) (mFileLength - mPos);
+  public synchronized int available() throws IOException {
+    if (mClosed.get()) {
+      throw new IOException("file is closed");
+    }
+    return (int) (mFileLength - getPos());
   }
 
   /**
@@ -57,67 +73,96 @@ public final class CephInputStream extends InputStream {
    * @param targetPos Position
    * @throws IOException throws
    */
-  public void seek(long targetPos) throws IOException {
+  public synchronized void seek(long targetPos) throws IOException {
     if (targetPos > mFileLength) {
       throw new IOException(
-          "CephInputStream.seek: failed seek to position " + targetPos
-          + " on fd " + mFileHandle + ": Cannot seek after EOF " + mFileLength);
+        String.format("CephInputStream.seek: failed seek to position %d "
+          + "on fd %d : Cannot seek after EOF fileSize %d",
+          targetPos, mFileHandle, mFileLength));
     }
 
-    long oldPos = mPos;
-    mPos = mMount.lseek(mFileHandle, targetPos, CephMount.SEEK_SET);
-    if (mPos < 0) {
-      int ret = (int) mPos;
-      mPos = oldPos;
-      throw new IOException("ceph.lseek: ret = " + ret);
+    long oldPos = mCephPos;
+    mCephPos = mMount.lseek(mFileHandle, targetPos, CephMount.SEEK_SET);
+    if (mCephPos < 0) {
+      int ret = (int) mCephPos;
+      mCephPos = oldPos;
+      throw new IOException(String.format("ceph.lseek: failed ret = %d", ret));
     }
+    mBufValid = 0;
+    mBufPos = 0;
   }
 
   @Override
-  public long skip(long n) throws IOException {
+  public synchronized long skip(long n) throws IOException {
     if (n <= 0) {
       return 0;
     }
-    long targetPos = mPos + n;
+    long targetPos = getPos() + n;
     seek(targetPos);
     return n;
   }
 
   @Override
-  public int read() throws IOException {
-    if (-1 == read(mBuf, 0, 1)) {
+  public synchronized int read() throws IOException {
+    if (getPos() >= mFileLength) {
       return -1;
     }
-    if (mBuf[0] < 0) {
-      return 256 + (int) mBuf[0];
+    if (-1 == read(mOneByteBuf, 0, 1)) {
+      return -1;
+    }
+    if (mOneByteBuf[0] < 0) {
+      return 256 + (int) mOneByteBuf[0];
     } else {
-      return mBuf[0];
+      return mOneByteBuf[0];
     }
   }
 
   @Override
-  public int read(byte[] b, int off, int len) throws IOException {
-    if (b == null) {
+  public synchronized int read(byte[] buf, int off, int len) throws IOException {
+    if (mClosed.get()) {
+      throw new IOException(String.format("CephInputStream.read: cannot read %d "
+        + "bytes from fd %d : stream closed",
+        len, mFileHandle));
+    }
+    if (buf == null) {
       throw new NullPointerException();
-    } else if (off < 0 || len < 0 || len > b.length - off) {
+    } else if (off < 0 || len < 0 || len > buf.length - off) {
       throw new IndexOutOfBoundsException();
     } else if (len == 0) {
       return 0;
     }
 
     // ensure we're not past the end of the file
-    if (mPos >= mFileLength) {
+    if (getPos() >= mFileLength) {
       return -1;
     }
+    int totalRead = 0;
+    int initialLen = len;
+    int read;
 
-    int ret = (int) mMount.read(mFileHandle, b, len, -1);
-    if (ret < 0) {
-      // attempt to reset to old position.
-      mMount.lseek(mFileHandle, mPos, CephMount.SEEK_SET);
-      throw new IOException("ceph.read: ret = " + ret);
-    }
-    mPos += ret;
-    return ret;
+    do {
+      read = Math.min(len, mBufValid - mBufPos);
+      try {
+        System.arraycopy(mBuf, mBufPos, buf, off, read);
+      } catch (IndexOutOfBoundsException ie) {
+        throw new IOException(String.format("CephInputStream.read: Indices out of bounds: "
+          + "read length is %d, buffer offset is %d, and buffer size is %d",
+          len, off, buf.length));
+      } catch (ArrayStoreException ae) {
+        throw new IOException(String.format("CephInputStream.read: failed to do an array"
+          + "copy due to type mismatch..."));
+      } catch (NullPointerException ne) {
+        throw new IOException(String.format("CephInputStream.read: cannot read %d "
+          + "bytes from fd %d: mBuf is null",
+          len, mFileHandle));
+      }
+      mBufPos += read;
+      len -= read;
+      off += read;
+      totalRead += read;
+    } while (len > 0 && fillBuffer());
+
+    return totalRead;
   }
 
   @Override
@@ -126,6 +171,20 @@ public final class CephInputStream extends InputStream {
       return;
     }
     mMount.close(mFileHandle);
+  }
+
+  private synchronized boolean fillBuffer() throws IOException {
+    mBufValid = (int) mMount.read(mFileHandle, mBuf, mBuf.length, -1);
+    mBufPos = 0;
+    if (mBufValid < 0) {
+      int err = mBufValid;
+      mBufValid = 0;
+      // attempt to reset to old position. If it fails, too bad.
+      mMount.lseek(mFileHandle, mCephPos, CephMount.SEEK_SET);
+      throw new IOException(String.format("Failed to fill read buffer! Error code: %d", err));
+    }
+    mCephPos += mBufValid;
+    return (mBufValid != 0);
   }
 }
 

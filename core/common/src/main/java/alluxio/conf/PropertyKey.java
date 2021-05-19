@@ -1148,7 +1148,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey UNDERFS_CEPHFS_AUTH_KEYFILE =
       new Builder(Name.UNDERFS_CEPHFS_AUTH_KEYFILE)
-          .setDefaultValue("/etc/ceph/keyfile")
           .setDescription("Path to CephX authentication key file.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.SERVER)
@@ -5410,7 +5409,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String UNDERFS_CEPHFS_MON_HOST =
         "alluxio.underfs.cephfs.mon.host";
     public static final String UNDERFS_CEPHFS_MDS_NAMESPACE =
-        "alluxio.underfs.cephfs.mds.namespce";
+        "alluxio.underfs.cephfs.mds.namespace";
     public static final String UNDERFS_CEPHFS_MOUNT_UID =
         "alluxio.underfs.cephfs.mount.uid";
     public static final String UNDERFS_CEPHFS_MOUNT_GID =
