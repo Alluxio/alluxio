@@ -6830,9 +6830,9 @@ public final class PropertyKey implements Comparable<PropertyKey> {
    *
    * @param key the property key to check
    * @return true this property key is removed, false otherwise
-   * @see RemovedKey
    * @see #isDeprecated(alluxio.conf.PropertyKey)
    * @see Deprecated
+   * @see RemovedKey
    */
   public static boolean isRemoved(String key) {
     return RemovedKey.isRemoved(key);
