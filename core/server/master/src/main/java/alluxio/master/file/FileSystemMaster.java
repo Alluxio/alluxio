@@ -259,21 +259,6 @@ public interface FileSystemMaster extends Master {
   MountPointInfo getDisplayMountPointInfo(AlluxioURI path) throws InvalidPathException;
 
   /**
-   * @return the number of files and directories
-   */
-  long getInodeCount();
-
-  /**
-   * @return the number of pinned files and directories
-   */
-  int getNumberOfPinnedFiles();
-
-  /**
-   * @return the number of to be persisted files
-   */
-  int getToBePersistedFileCount();
-
-  /**
    * Deletes a given path.
    * <p>
    * This operation requires user to have WRITE permission on the parent of the path.

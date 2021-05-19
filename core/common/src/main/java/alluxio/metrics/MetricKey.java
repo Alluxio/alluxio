@@ -305,12 +305,12 @@ public final class MetricKey implements Comparable<MetricKey> {
   public static final MetricKey MASTER_FILE_SIZE =
       new Builder(Name.MASTER_FILE_SIZE)
           .setDescription("File size distribution")
-          .setMetricType(MetricType.HISTOGRAM)
+          .setMetricType(MetricType.GAUGE)
           .build();
   public static final MetricKey MASTER_BLOCK_SIZE =
       new Builder(Name.MASTER_BLOCK_SIZE)
           .setDescription("Block size distribution")
-          .setMetricType(MetricType.HISTOGRAM)
+          .setMetricType(MetricType.GAUGE)
           .build();
   public static final MetricKey MASTER_INODE_CACHE_EVICTIONS =
       new Builder(Name.MASTER_INODE_CACHE_EVICTIONS)

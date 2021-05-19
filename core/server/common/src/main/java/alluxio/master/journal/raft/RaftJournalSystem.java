@@ -30,8 +30,6 @@ import alluxio.master.journal.AbstractJournalSystem;
 import alluxio.master.journal.AsyncJournalWriter;
 import alluxio.master.journal.CatchupFuture;
 import alluxio.master.journal.Journal;
-import alluxio.metrics.MetricKey;
-import alluxio.metrics.MetricsSystem;
 import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.util.CommonUtils;
 import alluxio.util.LogUtils;

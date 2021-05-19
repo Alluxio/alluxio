@@ -44,7 +44,6 @@ import alluxio.util.StreamUtils;
 import alluxio.util.proto.ProtoUtils;
 
 import com.google.common.base.Preconditions;
-import org.HdrHistogram.ConcurrentHistogram;
 import org.HdrHistogram.Histogram;
 import org.HdrHistogram.Recorder;
 import org.slf4j.Logger;
@@ -154,6 +153,9 @@ public class InodeTreePersistentState implements Journaled {
     return mInodeCounter.get();
   }
 
+  /**
+   * @return the file size distribution in the tree
+   */
   public Histogram getFileSizeHistogram() {
     synchronized (mFileSizeHistogram) {
       mRemovedFileHistogram = mRemovedFileRecorder.getIntervalHistogram(mRemovedFileHistogram);
