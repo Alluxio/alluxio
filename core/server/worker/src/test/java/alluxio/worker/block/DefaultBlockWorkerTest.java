@@ -21,7 +21,6 @@ import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -52,6 +51,8 @@ import org.junit.rules.TemporaryFolder;
 
 import java.io.IOException;
 import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 import java.util.Random;
 import java.util.Set;
 
@@ -176,15 +177,9 @@ public class DefaultBlockWorkerTest {
   public void createBlock() throws Exception {
     long blockId = mRandom.nextLong();
     long sessionId = mRandom.nextLong();
-    long initialBytes = 1L;
+    long initialBytes = 1;
     String path = mBlockWorker.createBlock(sessionId, blockId, 0, "", initialBytes);
-    assertTrue(path.startsWith(mMemDir));
-
-    long blockId2 = mRandom.nextLong();
-    long initialBytes2 = 1L * Constants.GB;
-    String path2 = mBlockWorker.createBlock(sessionId, blockId2, 0, "", initialBytes2);
-    // The available space in MEM is not enough. Allocator will allocate in HDD.
-    assertTrue(path2.startsWith(mHddDir));
+    assertTrue(path.startsWith(mMemDir)); // tier 0 is mem
   }
 
   @Test
@@ -218,25 +213,37 @@ public class DefaultBlockWorkerTest {
 
   @Test
   public void getStoreMeta() throws Exception {
-    mBlockWorker.getStoreMeta();
-    verify(mBlockStore, times(2)).getBlockStoreMeta(); // 1 is called at metrics registration
     long blockId1 = mRandom.nextLong();
     long blockId2 = mRandom.nextLong();
     long sessionId = mRandom.nextLong();
     mBlockWorker.createBlock(sessionId, blockId1, 0, "", 1L);
-    // Available space in MEM is not enough. Block will be allocated in HDD.
-    mBlockWorker.createBlock(sessionId, blockId2, 0, "", 2L * Constants.GB);
+    mBlockWorker.createBlock(sessionId, blockId2, 1, "", 1L);
+
     BlockStoreMeta storeMeta = mBlockWorker.getStoreMetaFull();
     assertEquals(2, storeMeta.getBlockList().size());
     assertEquals(2, storeMeta.getBlockListByStorageLocation().size());
     assertEquals(0, storeMeta.getBlockList().get("MEM").size());
     assertEquals(3L * Constants.GB, storeMeta.getCapacityBytes());
-    assertEquals(1L + 2L * Constants.GB, storeMeta.getUsedBytes());
+    assertEquals(2L, storeMeta.getUsedBytes());
+    assertEquals(1L, storeMeta.getUsedBytesOnTiers().get("MEM").longValue());
+    assertEquals(1L, storeMeta.getUsedBytesOnTiers().get("HDD").longValue());
+
+    BlockStoreMeta storeMeta2 = mBlockWorker.getStoreMeta();
+    assertEquals(3L * Constants.GB, storeMeta2.getCapacityBytes());
+    assertEquals(2L, storeMeta2.getUsedBytes());
+
     mBlockWorker.commitBlock(sessionId, blockId1, true);
     mBlockWorker.commitBlock(sessionId, blockId2, true);
+
     storeMeta = mBlockWorker.getStoreMetaFull();
     assertEquals(1, storeMeta.getBlockList().get("MEM").size());
     assertEquals(1, storeMeta.getBlockList().get("HDD").size());
+    Map<BlockStoreLocation, List<Long>> blockLocations = storeMeta.getBlockListByStorageLocation();
+    assertEquals(1, blockLocations.get(
+            new BlockStoreLocation("MEM", 0, "MEM")).size());
+    assertEquals(1, blockLocations.get(
+            new BlockStoreLocation("HDD", 0, "HDD")).size());
+    assertEquals(2, storeMeta.getNumberOfBlocks());
   }
 
   @Test
