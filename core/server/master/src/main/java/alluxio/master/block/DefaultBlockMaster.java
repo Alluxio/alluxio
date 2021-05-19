@@ -982,6 +982,7 @@ public final class DefaultBlockMaster extends CoreMaster implements BlockMaster 
         workerInfo.removeBlock(removedBlockId);
       }
     }
+    Metrics.TOTAL_BLOCKS.dec(removedBlockIds.size());
   }
 
   /**

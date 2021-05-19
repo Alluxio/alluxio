@@ -22,6 +22,7 @@ import alluxio.security.authentication.AuthenticatedClientUser;
 import com.codahale.metrics.Timer;
 import io.grpc.StatusException;
 import io.grpc.stub.StreamObserver;
+import org.apache.logging.log4j.util.Strings;
 import org.slf4j.Logger;
 
 import java.io.IOException;
@@ -190,19 +191,19 @@ public final class RpcUtils {
   }
 
   private static String getQualifiedFailureMetricName(String methodName) {
-    return getQualifiedMetricNameInternal(methodName + "Failures");
+    return getQualifiedMetricNameInternal(methodName , "Failures");
   }
 
   private static String getQualifiedInProgressMetricName(String methodName) {
-    return getQualifiedMetricNameInternal(methodName + "InProgress");
+    return getQualifiedMetricNameInternal(methodName, "InProgress");
   }
 
-  private static String getQualifiedMetricNameInternal(String name) {
+  private static String getQualifiedMetricNameInternal(String ... components) {
     User user = AuthenticatedClientUser.getOrNull();
     if (user != null) {
-      return Metric.getMetricNameWithUserTag(name, user.getName());
+      return Metric.getMetricNameWithUserTag(String.join("", components), user.getName());
     }
-    return name;
+    return String.join("", components);
   }
 
   /**
