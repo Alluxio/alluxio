@@ -183,6 +183,7 @@ public class AlluxioFileInStream extends FileInStream {
    * @return the total number of bytes read into the buffer, or -1 if there is no more data because
    *         the end of the stream has been reached
    */
+  @Override
   public int read(ByteBuffer byteBuffer, int off, int len) throws IOException {
     Preconditions.checkArgument(off >= 0 && len >= 0 && len + off <= byteBuffer.capacity(),
         PreconditionMessage.ERR_BUFFER_STATE.toString(), byteBuffer.capacity(), off, len);
