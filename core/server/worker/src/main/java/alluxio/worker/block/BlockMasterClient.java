@@ -139,6 +139,21 @@ public class BlockMasterClient extends AbstractMasterClient {
     }, LOG, "GetId", "address=%s", address);
   }
 
+  /**
+   * Tell the master the worker old id, update address if changed.
+   *
+   * @param address the worker net address
+   * @param workerId the worker old id
+   * @return a worker id
+   */
+  public long getId(final WorkerNetAddress address, final long workerId) throws IOException {
+    return retryRPC(() -> {
+      GetWorkerIdPRequest request = GetWorkerIdPRequest.newBuilder()
+          .setWorkerNetAddress(GrpcUtils.toProto(address)).setWorkerId(workerId).build();
+      return mClient.getWorkerId(request).getWorkerId();
+    }, LOG, "GetId", "address=%s", address);
+  }
+
   private List<LocationBlockIdListEntry> convertBlockListMapToProto(
       Map<BlockStoreLocation, List<Long>> blockListOnLocation) {
     final List<LocationBlockIdListEntry> entryList = new ArrayList<>();

@@ -11,6 +11,7 @@
 
 package alluxio.worker.block;
 
+import alluxio.proto.worker.WorkerMeta;
 import alluxio.ClientContext;
 import alluxio.Constants;
 import alluxio.RuntimeConstants;
@@ -63,6 +64,9 @@ import com.google.common.io.Closer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.channels.FileChannel;
@@ -90,6 +94,8 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
   private static final Logger LOG = LoggerFactory.getLogger(DefaultBlockWorker.class);
   private static final long UFS_BLOCK_OPEN_TIMEOUT_MS =
       ServerConfiguration.getMs(PropertyKey.WORKER_UFS_BLOCK_OPEN_TIMEOUT_MS);
+  private static final String INFOFILE =
+      System.getProperty("user.dir") + File.separator + "workerInfo.properties";
 
   /** Runnable responsible for heartbeating and registration with master. */
   private BlockMasterSync mBlockMasterSync;
@@ -220,13 +226,27 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
 
     // Acquire worker Id.
     BlockMasterClient blockMasterClient = mBlockMasterClientPool.acquire();
-    try {
-      RetryUtils.retry("create worker id", () -> mWorkerId.set(blockMasterClient.getId(address)),
-          RetryUtils.defaultWorkerMasterClientRetry(ServerConfiguration
-              .getDuration(PropertyKey.WORKER_MASTER_CONNECT_RETRY_TIMEOUT)));
+    try (FileInputStream input = new FileInputStream(INFOFILE);
+         FileOutputStream output = new FileOutputStream(INFOFILE)) {
+      File file = new File(INFOFILE);
+      if (file.exists()) {
+        WorkerMeta.Info infoFile = WorkerMeta.Info.parseFrom(input);
+        RetryUtils.retry("create worker id",
+            () -> mWorkerId.set(blockMasterClient.getId(address, infoFile.getWorkerId())),
+            RetryUtils.defaultWorkerMasterClientRetry(ServerConfiguration
+                .getDuration(PropertyKey.WORKER_MASTER_CONNECT_RETRY_TIMEOUT)));
+      } else {
+        file.createNewFile();
+        RetryUtils.retry("create worker id", () -> mWorkerId.set(blockMasterClient.getId(address)),
+            RetryUtils.defaultWorkerMasterClientRetry(
+                ServerConfiguration.getDuration(PropertyKey.WORKER_MASTER_CONNECT_RETRY_TIMEOUT)));
+        WorkerMeta.Info infoFile =
+            WorkerMeta.Info.newBuilder().setWorkerId(mWorkerId.get()).build();
+        infoFile.writeTo(output);
+      }
     } catch (Exception e) {
-      throw new RuntimeException("Failed to create a worker id from block master: "
-          + e.getMessage());
+      throw new RuntimeException(
+          "Failed to create a worker id from block master: " + e.getMessage());
     } finally {
       mBlockMasterClientPool.release(blockMasterClient);
     }
@@ -620,8 +640,8 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
   }
 
   @Override
-  public BlockReader createBlockReader(BlockReadRequest request) throws
-      BlockDoesNotExistException, IOException {
+  public BlockReader createBlockReader(BlockReadRequest request)
+      throws BlockDoesNotExistException, IOException {
     long sessionId = request.getSessionId();
     long blockId = request.getId();
     RetryPolicy retryPolicy = new TimeoutRetry(UFS_BLOCK_OPEN_TIMEOUT_MS, Constants.SECOND_MS);
@@ -642,8 +662,8 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
         return createUfsBlockReader(request.getSessionId(), request.getId(), request.getStart(),
             request.isPositionShort(), request.getOpenUfsBlockOptions());
       } catch (Exception e) {
-        throw new UnavailableException(
-            String.format("Failed to read block ID=%s from tiered storage and UFS tier: %s",
+        throw new UnavailableException(String
+            .format("Failed to read block ID=%s from tiered storage and UFS tier: %s",
                 request.getId(), e.toString()));
       }
     }

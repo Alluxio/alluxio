@@ -1,0 +1,7 @@
+syntax = "proto2";
+
+package alluxio.proto.worker;
+
+message Info{
+    optional int64 worker_id = 1;
+}

@@ -866,6 +866,13 @@ public final class DefaultBlockMaster extends CoreMaster implements BlockMaster 
   }
 
   @Override
+  public long getWorkerId(WorkerNetAddress workerNetAddress, long workerId) {
+    MasterWorkerInfo worker = mWorkers.getFirstByField(ID_INDEX, workerId);
+    worker.updateWorkerNetAddress(workerNetAddress);
+    return workerId;
+  }
+
+  @Override
   public void workerRegister(long workerId, List<String> storageTiers,
       Map<String, Long> totalBytesOnTiers, Map<String, Long> usedBytesOnTiers,
       Map<BlockLocation, List<Long>> currentBlocksOnLocation,

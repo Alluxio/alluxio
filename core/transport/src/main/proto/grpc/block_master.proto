@@ -228,6 +228,7 @@ message GetWorkerIdPRequest {
   /** the worker network address */
   optional grpc.WorkerNetAddress workerNetAddress = 1;
   optional GetWorkerIdPOptions options = 2;
+  optional int64 workerId = 3;
 }
 message GetWorkerIdPResponse {
   optional int64 workerId = 1;

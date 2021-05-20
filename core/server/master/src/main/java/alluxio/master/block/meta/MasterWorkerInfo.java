@@ -49,12 +49,12 @@ public final class MasterWorkerInfo {
   private static final String LOST_WORKER_STATE = "Out of Service";
   private static final int BLOCK_SIZE_LIMIT = 100;
 
-  /** Worker's address. */
-  private final WorkerNetAddress mWorkerAddress;
   /** The id of the worker. */
   private final long mId;
   /** Start time of the worker in ms. */
   private final long mStartTimeMs;
+  /** Worker's address. */
+  private WorkerNetAddress mWorkerAddress;
   /** Capacity of worker in bytes. */
   private long mCapacityBytes;
   /** Worker's used bytes. */
@@ -454,5 +454,14 @@ public final class MasterWorkerInfo {
   public void updateUsedBytes(String tierAlias, long usedBytesOnTier) {
     mUsedBytes += usedBytesOnTier - mUsedBytesOnTiers.get(tierAlias);
     mUsedBytesOnTiers.put(tierAlias, usedBytesOnTier);
+  }
+
+  /**
+   * Sets the address of the worker.
+   *
+   * @param workerAddress new address
+   */
+  public void updateWorkerNetAddress(WorkerNetAddress workerAddress) {
+    mWorkerAddress = workerAddress;
   }
 }
