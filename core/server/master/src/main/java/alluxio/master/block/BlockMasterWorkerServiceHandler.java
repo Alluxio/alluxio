@@ -136,7 +136,7 @@ public final class BlockMasterWorkerServiceHandler extends
       RpcUtils.call(LOG, (RpcUtils.RpcCallableThrowsIOException<GetWorkerIdPResponse>) () -> {
         return GetWorkerIdPResponse.newBuilder().setWorkerId(mBlockMaster
             .getWorkerId(GrpcUtils.fromProto(request.getWorkerNetAddress()),
-                GrpcUtils.fromProto(request.getWorkerId()))).build();
+                request.getWorkerId())).build();
       }, "getWorkerId", "request=%s", responseObserver, request);
     } else {
       RpcUtils.call(LOG, (RpcUtils.RpcCallableThrowsIOException<GetWorkerIdPResponse>) () -> {

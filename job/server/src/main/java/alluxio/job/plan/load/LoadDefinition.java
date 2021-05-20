@@ -25,6 +25,7 @@ import alluxio.job.util.JobUtils;
 import alluxio.job.util.SerializableVoid;
 import alluxio.util.CommonUtils;
 import alluxio.wire.FileBlockInfo;
+import alluxio.wire.TieredIdentity.LocalityTier;
 import alluxio.wire.WorkerInfo;
 
 import com.google.common.base.MoreObjects;
@@ -73,9 +74,26 @@ public final class LoadDefinition
     List<BlockWorkerInfo> workers = new ArrayList<>();
     for (BlockWorkerInfo worker : context.getFsContext().getCachedWorkers()) {
       if (jobWorkersByAddress.containsKey(worker.getNetAddress().getHost())) {
-        if (config.getWorkerSet() == null
-            || config.getWorkerSet().isEmpty()
-            || config.getWorkerSet().contains(worker.getNetAddress().getHost().toLowerCase())) {
+        // If specified the locality id, the candidate worker must match one at least
+        boolean match = false;
+        if (!isEmptySet(config.getLocalityIds())) {
+          if (worker.getNetAddress().getTieredIdentity().getTiers() != null) {
+            for (LocalityTier tier : worker.getNetAddress().getTieredIdentity().getTiers()) {
+              if (config.getLocalityIds().contains(tier.getValue().toUpperCase())) {
+                match = true;
+                break;
+              }
+            }
+          }
+        }
+        // Add current worker as candidate worker
+        // if it matches the given locality id or contained in the given worker set
+        // Or user specified neither worker-set nor locality id
+        String workerHost = worker.getNetAddress().getHost().toUpperCase();
+        if ((isEmptySet(config.getWorkerSet()) && isEmptySet(config.getLocalityIds()))
+            || match
+            || (!isEmptySet(config.getWorkerSet())
+                && config.getWorkerSet().contains(workerHost))) {
           workers.add(worker);
         }
       } else {
@@ -155,6 +173,10 @@ public final class LoadDefinition
       LOG.info("Loaded file " + config.getFilePath() + " block " + task.getBlockId());
     }
     return null;
+  }
+
+  private boolean isEmptySet(Set s) {
+    return s == null || s.isEmpty();
   }
 
   /**

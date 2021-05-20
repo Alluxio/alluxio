@@ -168,6 +168,7 @@
     <create.dependency.reduced.pom>false</create.dependency.reduced.pom>
     <cephfs-hadoop.version>0.0.1</cephfs-hadoop.version>
     <libcephfs.version>0.0.1</libcephfs.version>
+    <jnr-fuse.version>0.5.5</jnr-fuse.version>
   </properties>
 
   <modules>
@@ -253,7 +254,7 @@
       <dependency>
         <groupId>com.github.serceman</groupId>
         <artifactId>jnr-fuse</artifactId>
-        <version>0.5.3</version>
+        <version>${jnr-fuse.version}</version>
       </dependency>
       <dependency>
         <groupId>com.google.code.gson</groupId>
