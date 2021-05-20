@@ -374,7 +374,7 @@ public final class EmbeddedJournalIntegrationTest extends BaseIntegrationTest {
   public void updateRaftGroup() throws Exception {
     int masterCount = 2;
     mCluster = MultiProcessCluster.newBuilder(PortCoordination.EMBEDDED_JOURNAL_UPDATE_RAFT_GROUP)
-        .setClusterName("EmbeddedJournalAddMaster").setNumMasters(masterCount).setNumWorkers(0)
+        .setClusterName("EmbeddedJournalUpdateGroup").setNumMasters(masterCount).setNumWorkers(0)
         .addProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.EMBEDDED.toString())
         .addProperty(PropertyKey.MASTER_JOURNAL_FLUSH_TIMEOUT_MS, "5min")
         .addProperty(PropertyKey.MASTER_METASTORE, "HEAP")
@@ -412,7 +412,7 @@ public final class EmbeddedJournalIntegrationTest extends BaseIntegrationTest {
 
     // Create a separate working dir for the new master.
     File newMasterWorkDir =
-        AlluxioTestDirectory.createTemporaryDirectory("EmbeddedJournalAddMaster-NewMaster");
+        AlluxioTestDirectory.createTemporaryDirectory("EmbeddedJournalUpdateGroup-NewMaster");
     newMasterWorkDir.deleteOnExit();
 
     // Create journal dir for the new master and update configuration.
