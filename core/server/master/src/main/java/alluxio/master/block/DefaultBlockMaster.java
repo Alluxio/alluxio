@@ -1024,7 +1024,7 @@ public final class DefaultBlockMaster extends CoreMaster implements BlockMaster 
 
   @Override
   public Set<Long> getLostBlocks() {
-    return ImmutableSet.copyOf(mLostBlocks);
+    return Collections.unmodifiableSet(mLostBlocks);
   }
 
   /**
