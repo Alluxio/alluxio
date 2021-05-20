@@ -254,7 +254,7 @@
       <dependency>
         <groupId>com.github.serceman</groupId>
         <artifactId>jnr-fuse</artifactId>
-	<version>${jnr-fuse.version}</version>
+        <version>${jnr-fuse.version}</version>
       </dependency>
       <dependency>
         <groupId>com.google.code.gson</groupId>
