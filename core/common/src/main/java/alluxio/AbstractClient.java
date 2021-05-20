@@ -264,7 +264,7 @@ public abstract class AbstractClient implements Client {
               retryPolicy.getAttemptCount()));
     }
 
-    /**
+    /*
      * Throw as-is if {@link UnauthenticatedException} occurred.
      */
     if (lastConnectFailure instanceof UnauthenticatedException) {
@@ -275,10 +275,12 @@ public abstract class AbstractClient implements Client {
           new ServiceNotFoundException(lastConnectFailure.getMessage(), lastConnectFailure));
     }
 
-    throw new UnavailableException(String.format(
-        "Failed to connect to master (%s) after %s attempts." +
-        "Please check if Alluxio master is currently running on \"%s\". Service=\"%s\"",
-        mAddress, retryPolicy.getAttemptCount(), mAddress, getServiceName()), lastConnectFailure);
+    throw new UnavailableException(
+        String.format(
+            "Failed to connect to master (%s) after %s attempts."
+                + "Please check if Alluxio master is currently running on \"%s\". Service=\"%s\"",
+            mAddress, retryPolicy.getAttemptCount(), mAddress, getServiceName()),
+        lastConnectFailure);
   }
 
   /**
