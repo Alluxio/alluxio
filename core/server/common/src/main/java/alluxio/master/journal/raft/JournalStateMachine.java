@@ -35,6 +35,7 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.apache.ratis.io.MD5Hash;
 import org.apache.ratis.proto.RaftProtos;
 import org.apache.ratis.protocol.Message;
+import org.apache.ratis.protocol.RaftGroup;
 import org.apache.ratis.protocol.RaftGroupId;
 import org.apache.ratis.protocol.RaftGroupMemberId;
 import org.apache.ratis.protocol.RaftPeerId;
@@ -196,6 +197,18 @@ public class JournalStateMachine extends BaseStateMachine {
   @Override
   public long takeSnapshot() {
     if (mIsLeader) {
+      try {
+        Preconditions.checkState(mServer.getGroups().iterator().hasNext());
+        RaftGroup group = mServer.getGroups().iterator().next();
+        Preconditions.checkState(group.getGroupId().equals(mRaftGroupId));
+        if (group.getPeers().size() < 2) {
+          SAMPLING_LOG.warn("No follower to perform delegated snapshot. Please add more masters " +
+              "to the quorum or manually take snapshot using 'alluxio fsadmin journal checkpoint'");
+          return RaftLog.INVALID_LOG_INDEX;
+        }
+      } catch (IOException e) {
+        SAMPLING_LOG.warn("Failed to get raft group info: {}", e.getMessage());
+      }
       return mSnapshotManager.maybeCopySnapshotFromFollower();
     } else {
       return takeLocalSnapshot();
