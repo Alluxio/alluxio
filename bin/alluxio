@@ -293,7 +293,8 @@ function main {
     CLASS=$1
     CLASSPATH=${ALLUXIO_CLIENT_CLASSPATH} # this should be the common case
     shift
-    runJavaClass "$@"
+    runJavaClass "-javaagent:./bin/opentelemetry-javaagent-all.jar" "$@"
+#    runJavaClass "$@"
   ;;
   "runTest")
     CLASS="alluxio.cli.TestRunner"

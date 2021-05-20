@@ -173,6 +173,8 @@ public final class BlockMasterWorkerServiceHandler extends
                     (e1, e2) -> {
                       List<Long> e3 = new ArrayList<>(e1);
                       e3.addAll(e2);
+                      LOG.info("Merging two lists of {} and {}", e1.size(), e2.size());
+
                       return e3;
                     }));
 

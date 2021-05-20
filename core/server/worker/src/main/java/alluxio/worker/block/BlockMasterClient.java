@@ -42,6 +42,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -158,6 +160,7 @@ public class BlockMasterClient extends AbstractMasterClient {
 
   public List<LocationBlockIdListEntry> convertBlockListMapToProto(
       Map<BlockStoreLocation, List<Long>> blockListOnLocation) {
+    LOG.info("BlockMasterClient is running the conversion, the mocking didnt work.");
     final List<LocationBlockIdListEntry> entryList = new ArrayList<>();
     for (Map.Entry<BlockStoreLocation, List<Long>> entry : blockListOnLocation.entrySet()) {
       BlockStoreLocation loc = entry.getKey();
@@ -254,11 +257,14 @@ public class BlockMasterClient extends AbstractMasterClient {
         .setOptions(options).build();
 
     retryRPC(() -> {
+      Instant s = Instant.now();
       RegisterWorkerPResponse response = mClient.registerWorker(request);
       if (LOG.isDebugEnabled()) {
         LOG.debug("registerWorker response is {} bytes",
                 response.getSerializedSize());
       }
+      Instant e = Instant.now();
+      LOG.info("{} elapsed before receiving the response", Duration.between(s, e).toMillis());
       return null;
     }, LOG, "Register", "workerId=%d", workerId);
   }
