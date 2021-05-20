@@ -181,15 +181,23 @@ public class UfsJournal implements Journal {
     mJournalSinks = journalSinks;
     MetricsSystem.registerGaugeIfAbsent(
         MetricKey.MASTER_JOURNAL_ENTRIES_SINCE_CHECKPOINT.getName() + "." + mMaster.getName(),
-        () -> mEntriesSinceLastCheckPoint);
+        this::getEntriesSinceLastCheckPoint);
     MetricsSystem.registerGaugeIfAbsent(
         MetricKey.MASTER_JOURNAL_LAST_CHECKPOINT_TIME.getName() + "." + mMaster.getName(),
-        () -> mLastCheckPointTime);
+        this::getLastCheckPointTime);
   }
 
   @Override
   public URI getLocation() {
     return mLocation;
+  }
+
+  private synchronized long getEntriesSinceLastCheckPoint() {
+    return mEntriesSinceLastCheckPoint;
+  }
+
+  private synchronized long getLastCheckPointTime() {
+    return mLastCheckPointTime;
   }
 
   /**
