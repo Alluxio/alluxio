@@ -202,8 +202,8 @@ public class JournalStateMachine extends BaseStateMachine {
         RaftGroup group = mServer.getGroups().iterator().next();
         Preconditions.checkState(group.getGroupId().equals(mRaftGroupId));
         if (group.getPeers().size() < 2) {
-          SAMPLING_LOG.warn("No follower to perform delegated snapshot. Please add more masters " +
-              "to the quorum or manually take snapshot using 'alluxio fsadmin journal checkpoint'");
+          SAMPLING_LOG.warn("No follower to perform delegated snapshot. Please add more masters to "
+              + "the quorum or manually take snapshot using 'alluxio fsadmin journal checkpoint'");
           return RaftLog.INVALID_LOG_INDEX;
         }
       } catch (IOException e) {
