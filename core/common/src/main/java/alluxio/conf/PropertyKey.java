@@ -6807,8 +6807,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
    *
    * @param key the property key to check
    * @return if this property key is deprecated
-   * @see Deprecated
    * @see #getDeprecationMessage(PropertyKey)
+   * @see Deprecated
    */
   public static boolean isDeprecated(PropertyKey key) {
     return DEPRECATED_CHECKER.hasAnnotation(key);
