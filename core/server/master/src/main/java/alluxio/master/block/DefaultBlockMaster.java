@@ -1011,19 +1011,36 @@ public final class DefaultBlockMaster extends CoreMaster implements BlockMaster 
       for (long blockId : entry.getValue()) {
         try (LockResource lr = lockBlock(blockId)) {
           Optional<BlockMeta> block = mBlockStore.getBlock(blockId);
+//          if (block.isPresent()) {
+//            workerInfo.addBlock(blockId);
+//            BlockLocation blockLocation = BlockLocation.newBuilder()
+//                .setWorkerId(workerInfo.getId())
+//                .setTier(entry.getKey().getTier())
+//                .setMediumType(entry.getKey().getMediumType())
+//                .build();
+//            mBlockStore.addLocation(blockId, blockLocation);
+//            mLostBlocks.remove(blockId);
+//          } else {
+//            LOG.warn("Invalid block: {} from worker {}.", blockId,
+//                workerInfo.getWorkerAddress().getHost());
+//          }
+
           if (block.isPresent()) {
-            workerInfo.addBlock(blockId);
-            BlockLocation blockLocation = BlockLocation.newBuilder()
-                .setWorkerId(workerInfo.getId())
-                .setTier(entry.getKey().getTier())
-                .setMediumType(entry.getKey().getMediumType())
-                .build();
-            mBlockStore.addLocation(blockId, blockLocation);
-            mLostBlocks.remove(blockId);
+            // Skip
           } else {
-            LOG.warn("Invalid block: {} from worker {}.", blockId,
-                workerInfo.getWorkerAddress().getHost());
+            // Only for the test purpose, add this block to the block store
+            mBlockStore.putBlock(blockId, BlockMeta.newBuilder().setLength(67_108_864).build());
+//            LOG.warn("Invalid block: {} from worker {}.", blockId,
+//                workerInfo.getWorkerAddress().getHost());
           }
+          workerInfo.addBlock(blockId);
+          BlockLocation blockLocation = BlockLocation.newBuilder()
+                  .setWorkerId(workerInfo.getId())
+                  .setTier(entry.getKey().getTier())
+                  .setMediumType(entry.getKey().getMediumType())
+                  .build();
+          mBlockStore.addLocation(blockId, blockLocation);
+          mLostBlocks.remove(blockId);
         }
       }
     }
@@ -1041,8 +1058,10 @@ public final class DefaultBlockMaster extends CoreMaster implements BlockMaster 
   }
 
   @Override
+  // TODO(jiacheng): change this to unmodifiableSet?
   public Set<Long> getLostBlocks() {
     return ImmutableSet.copyOf(mLostBlocks);
+//    return Collections.unmodifiableSet(mLostBlocks);
   }
 
   /**
