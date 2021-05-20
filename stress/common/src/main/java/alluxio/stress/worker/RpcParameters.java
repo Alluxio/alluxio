@@ -38,5 +38,8 @@ public class RpcParameters extends Parameters {
    * Use semi-colon to separate tiers, use commas to separate dirs
    * */
   public String mTiers;
+
+  @Parameter(names = {"--once"})
+  public boolean mOnce = false;
 }
 

@@ -6,6 +6,7 @@ import alluxio.stress.TaskResult;
 import alluxio.util.JsonSerializable;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.google.common.base.MoreObjects;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -124,6 +125,13 @@ public class RpcTaskResult implements TaskResult {
     public String toString() {
       return String.format("Point: {duration: %sms}", mDurationMs);
     }
+  }
+
+  @Override
+  public String toString() {
+    return MoreObjects.toStringHelper(this)
+            .add("mPoints", mPoints)
+            .add("mErrors", mErrors).toString();
   }
 
   public static RpcTaskResult reduceList(Iterable<RpcTaskResult> results) {

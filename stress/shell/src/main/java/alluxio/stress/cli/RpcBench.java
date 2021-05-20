@@ -217,6 +217,7 @@ public class RpcBench extends Benchmark<RpcTaskResult> {
     String hostname = NetworkAddressUtils.getLocalHostName(500);
     LOG.info("Detected local hostname {}", hostname);
     if (mParameters.mSameWorker) {
+      LOG.info("Simulating the same worker registering again.");
       address = new WorkerNetAddress().setHost(hostname)
               .setDataPort(mPortToAssign.getAndIncrement())
               .setRpcPort(mPortToAssign.getAndIncrement());
@@ -228,48 +229,61 @@ public class RpcBench extends Benchmark<RpcTaskResult> {
         result.addError(e.getMessage());
         return result;
       }
+    } else {
+      LOG.info("Simulating a new worker each time");
     }
-    while (Instant.now().isBefore(endTime)) {
-      Instant s = Instant.now();
 
-      // TODO(jiacheng): The 1st reported RPC time is always very long, this does
-      // not match with the time recorded by Jaeger.
-      // I suspect it's the time spend in establishing the connection.
-      // The easiest way out is just to ignore the 1st point.
-      try {
-        if (!mParameters.mSameWorker) {
-          // If use different worker, get a different address and workerId every time
-          address = new WorkerNetAddress().setHost(hostname).setDataPort(mPortToAssign.getAndIncrement()).setRpcPort(mPortToAssign.getAndIncrement());
-          workerId = client.getId(address);
-          LOG.info("Got new worker ID {}", workerId);
-        }
-
-        List<String> tierAliases = new ArrayList<>();
-        tierAliases.add("MEM");
-        long cap = 20L * 1024 * 1024 * 1024; // 20GB
-        Map<String, Long> capMap = ImmutableMap.of("MEM", cap);
-        Map<String, Long> usedMap = ImmutableMap.of("MEM", 0L);
-
-        client.register(workerId,
-                tierAliases,
-                capMap,
-                usedMap,
-                ImmutableMap.of(new BlockStoreLocation("MEM", 0, "MEM"),
-                        mBlockIds),
-                ImmutableMap.of("MEM", new ArrayList<>()), // lost storage
-                ImmutableList.of()); // extra config
-
-        Instant e = Instant.now();
-        RpcTaskResult.Point p = new RpcTaskResult.Point(Duration.between(s, e).toMillis());
-        result.addPoint(p);
-        LOG.info("Iter {} took {}", i, Duration.between(s, e).toMillis());
-      } catch (Exception e) {
-        LOG.error("Failed to run iter {}", i, e);
-        result.addError(e.getMessage());
+    if (mParameters.mOnce) {
+      LOG.info("Only run once");
+      // If specified to run once, ignore the time stamp and run once
+      runOnce(client, result, i, workerId, hostname);
+    } else {
+      // Otherwise, keep running for as many times as possible
+      while (Instant.now().isBefore(endTime)) {
+        runOnce(client, result, i, workerId, hostname);
       }
     }
 
     return result;
+  }
+
+  private void runOnce(alluxio.worker.block.BlockMasterClient client, RpcTaskResult result, long i, long workerId, String hostname) {
+    WorkerNetAddress address;// TODO(jiacheng): The 1st reported RPC time is always very long, this does
+    // not match with the time recorded by Jaeger.
+    // I suspect it's the time spend in establishing the connection.
+    // The easiest way out is just to ignore the 1st point.
+    try {
+      if (!mParameters.mSameWorker) {
+        // If use different worker, get a different address and workerId every time
+        address = new WorkerNetAddress().setHost(hostname).setDataPort(mPortToAssign.getAndIncrement()).setRpcPort(mPortToAssign.getAndIncrement());
+        workerId = client.getId(address);
+        LOG.info("Got new worker ID {}", workerId);
+      }
+
+      List<String> tierAliases = new ArrayList<>();
+      tierAliases.add("MEM");
+      long cap = 20L * 1024 * 1024 * 1024; // 20GB
+      Map<String, Long> capMap = ImmutableMap.of("MEM", cap);
+      Map<String, Long> usedMap = ImmutableMap.of("MEM", 0L);
+
+      Instant s = Instant.now();
+      client.register(workerId,
+              tierAliases,
+              capMap,
+              usedMap,
+              // Will use the prepared block list instead of converting this one
+              ImmutableMap.of(),
+              ImmutableMap.of("MEM", new ArrayList<>()), // lost storage
+              ImmutableList.of()); // extra config
+
+      Instant e = Instant.now();
+      RpcTaskResult.Point p = new RpcTaskResult.Point(Duration.between(s, e).toMillis());
+      result.addPoint(p);
+      LOG.info("Iter {} took {}", i, Duration.between(s, e).toMillis());
+    } catch (Exception e) {
+      LOG.error("Failed to run iter {}", i, e);
+      result.addError(e.getMessage());
+    }
   }
 
   private RpcTaskResult fakeBlockHeartbeat(alluxio.worker.block.BlockMasterClient client, Instant endTime) {
@@ -337,8 +351,8 @@ public class RpcBench extends Benchmark<RpcTaskResult> {
   }
 
   private RpcTaskResult runRPC() throws Exception {
-
     // Use a mocked client to save conversion
+    LOG.info("Using the MockBlockMasterClient");
     MockBlockMasterClient client =
             new MockBlockMasterClient(MasterClientContext
                     .newBuilder(ClientContext.create(mConf))
@@ -388,6 +402,7 @@ public class RpcBench extends Benchmark<RpcTaskResult> {
      */
     public MockBlockMasterClient(MasterClientContext conf, List<LocationBlockIdListEntry> locationBlockIdList) {
       super(conf);
+      LOG.info("Init MockBlockMasterClient");
       mLocationBlockIdList = locationBlockIdList;
     }
 
@@ -397,6 +412,5 @@ public class RpcBench extends Benchmark<RpcTaskResult> {
       LOG.info("Using the prepared mLocationBlockIdList");
       return mLocationBlockIdList;
     }
-
   }
 }
