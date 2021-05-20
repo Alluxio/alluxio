@@ -331,7 +331,7 @@ public class GlueDatabase implements UnderDatabase {
   }
 
   @Override
-  public UdbTable getTable(String tableName) throws IOException {
+  public UdbTable getTable(String tableName, boolean bypass) throws IOException {
     Table table;
     List<Partition> partitions;
     try {
