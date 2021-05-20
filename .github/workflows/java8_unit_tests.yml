@@ -35,7 +35,7 @@ jobs:
         uses: actions/cache@v2
         with:
           path: ~/.m2/repository
-          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          key: ${{ runner.os }}-maven-java8-${{ hashFiles('**/pom.xml') }}
 
       - name: Run tests
         id: test0
@@ -66,9 +66,9 @@ jobs:
         with:
           name: artifact
           path: |
+            **/target/surefire-reports/*
             **/target/artifacts/*
             **/target/logs/*
-            log*
           retention-days: 7
       - name: "Upload Code Coverage Report"
         uses: codecov/codecov-action@v1

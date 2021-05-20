@@ -28,7 +28,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * {@code Sessions} represents and manages all sessions contacting a worker.
  */
 @ThreadSafe
-public final class Sessions {
+public class Sessions {
   private static final Logger LOG = LoggerFactory.getLogger(Sessions.class);
 
   public static final int MIGRATE_DATA_SESSION_ID = -3;

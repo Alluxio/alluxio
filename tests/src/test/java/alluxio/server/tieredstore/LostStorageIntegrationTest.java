@@ -58,8 +58,8 @@ import java.util.Map;
 @PowerMockIgnore({"javax.*.*", "com.sun.*", "org.xml.*"})
 public class LostStorageIntegrationTest extends BaseIntegrationTest {
   private static final int CAPACITY_BYTES = Constants.KB;
-  private static final String SSD_TIER = "SSD";
-  private static final String HDD_TIER = "HDD";
+  private static final String SSD_TIER = Constants.MEDIUM_SSD;
+  private static final String HDD_TIER = Constants.MEDIUM_HDD;
   private static final String WORKER_STORAGE_SUFFIX = "/alluxioworker";
 
   @Rule
