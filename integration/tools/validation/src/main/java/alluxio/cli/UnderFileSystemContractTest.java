@@ -60,7 +60,7 @@ public final class UnderFileSystemContractTest {
   private String mUfsPath;
 
   @Parameter(names = {"--test"}, required = false,
-      description = "Test name, use this option multiply time to run multiply test")
+      description = "Test name, this option can be passed multiple times to indicate multiply tests")
   private List<String> mTestList = new ArrayList<>();
 
   @Parameter(names = {"--help"}, help = true)
