@@ -16,9 +16,9 @@ services:
     image: otel/opentelemetry-collector-dev:latest
     environment:
       MASTER_IP: "${MASTER_IP}"
-    command: ["--config=/etc/otel-agent-configi-worker.yaml"]
+    command: ["--config=/etc/otel-agent-config-worker.yaml"]
     volumes:
-      - ./otel-agent-config.yaml:/etc/otel-agent-config.yaml
+      - ./otel-agent-config-worker.yaml:/etc/otel-agent-config-worker.yaml
     ports:
       - "1777:1777"   # pprof extension
       - "4317:4317"   # OTLP gRPC receiver
