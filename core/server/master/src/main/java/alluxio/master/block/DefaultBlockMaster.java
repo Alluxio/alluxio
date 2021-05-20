@@ -1024,6 +1024,7 @@ public final class DefaultBlockMaster extends CoreMaster implements BlockMaster 
 
   @Override
   public Set<Long> getLostBlocks() {
+    // The mLostBlocks is thread safe, we only guard unintended modification here
     return Collections.unmodifiableSet(mLostBlocks);
   }
 
