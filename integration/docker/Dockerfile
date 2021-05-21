@@ -40,7 +40,7 @@ ARG ALLUXIO_USERNAME=alluxio
 ARG ALLUXIO_GROUP=alluxio
 ARG ALLUXIO_UID=1000
 ARG ALLUXIO_GID=1000
-ARG ENABLE_DYNAMIC_USER=false
+ARG ENABLE_DYNAMIC_USER=true
 
 # Specify versions for known vulnerabilities reported by trivy scan
 # RUN apk --no-cache --update add bash libc6-compat shadow tini 'libbz2>=1.0.6-r7' 'sqlite-libs>=3.28.0-r3' && \
@@ -93,8 +93,6 @@ RUN if [ ${ALLUXIO_USERNAME} != "root" ] \
       chmod -R g=u /journal && \
       mkdir /mnt/alluxio-fuse && \
       chown -R ${ALLUXIO_UID}:${ALLUXIO_GID} /mnt/alluxio-fuse; \
-      mkdir /mnt/alluxio-fuse2 && \
-      chown -R ${ALLUXIO_UID}:${ALLUXIO_GID} /mnt/alluxio-fuse2; \
     fi
 
 # Docker 19.03+ required to expand variables in --chown argument

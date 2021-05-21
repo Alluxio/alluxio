@@ -44,7 +44,7 @@ ARG ALLUXIO_USERNAME=alluxio
 ARG ALLUXIO_GROUP=alluxio
 ARG ALLUXIO_UID=1000
 ARG ALLUXIO_GID=1000
-ARG ENABLE_DYNAMIC_USER=false
+ARG ENABLE_DYNAMIC_USER=true
 
 # Add Tini since it isn't included in Ubuntu by default
 # - https://github.com/krallin/tini
