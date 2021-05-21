@@ -26,9 +26,10 @@ metadata:
     role: alluxio-logserver
 spec:
   replicas: 1
+  {{ with .Values.logserver.strategy -}}
   strategy:
-    {{/* The PV is RWO. Use Recreate strategy to dispose the pod first before creating another. */ -}}
-    type: Recreate
+{{ toYaml . | nindent 4 }}
+  {{ end -}}
   selector:
     matchLabels:
       app: {{ $name }}
