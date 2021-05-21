@@ -245,7 +245,7 @@
       <dependency>
         <groupId>com.github.serceman</groupId>
         <artifactId>jnr-fuse</artifactId>
-        <version>0.5.3</version>
+        <version>0.5.5</version>
       </dependency>
       <dependency>
         <groupId>com.google.code.gson</groupId>
