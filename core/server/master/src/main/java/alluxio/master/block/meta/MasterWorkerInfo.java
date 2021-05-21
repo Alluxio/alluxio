@@ -157,7 +157,7 @@ public final class MasterWorkerInfo {
     }
 
     // Set the new block information.
-    mBlocks = new HashSet<>(blocks);
+    mBlocks = blocks;
 
     mIsRegistered = true;
     return removedBlocks;

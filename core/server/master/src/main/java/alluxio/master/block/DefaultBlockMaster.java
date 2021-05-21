@@ -867,8 +867,24 @@ public final class DefaultBlockMaster extends CoreMaster implements BlockMaster 
 
   @Override
   public long getWorkerId(WorkerNetAddress workerNetAddress, long workerId) {
-    MasterWorkerInfo worker = mWorkers.getFirstByField(ID_INDEX, workerId);
-    worker.updateWorkerNetAddress(workerNetAddress);
+    MasterWorkerInfo existingWorker = mWorkers.getFirstByField(ID_INDEX, workerId);
+    if (existingWorker != null) {
+      existingWorker.updateWorkerNetAddress(workerNetAddress);
+      return workerId;
+    }
+
+    existingWorker = findUnregisteredWorker(workerNetAddress);
+    if (existingWorker != null) {
+      return existingWorker.getId();
+    }
+
+    // Generate a new worker id.
+    workerId = IdUtils.getRandomNonNegativeLong();
+    while (!mTempWorkers.add(new MasterWorkerInfo(workerId, workerNetAddress))) {
+      workerId = IdUtils.getRandomNonNegativeLong();
+    }
+
+    LOG.info("getWorkerId(): WorkerNetAddress: {} id: {}", workerNetAddress, workerId);
     return workerId;
   }
 

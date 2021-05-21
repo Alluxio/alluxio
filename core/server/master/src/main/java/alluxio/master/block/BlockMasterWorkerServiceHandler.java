@@ -134,8 +134,8 @@ public final class BlockMasterWorkerServiceHandler extends
       StreamObserver<GetWorkerIdPResponse> responseObserver) {
     if (request.hasWorkerId()) {
       RpcUtils.call(LOG, (RpcUtils.RpcCallableThrowsIOException<GetWorkerIdPResponse>) () -> {
-        return GetWorkerIdPResponse.newBuilder().setWorkerId(mBlockMaster
-            .getWorkerId(GrpcUtils.fromProto(request.getWorkerNetAddress()),
+        return GetWorkerIdPResponse.newBuilder().setWorkerId(
+            mBlockMaster.getWorkerId(GrpcUtils.fromProto(request.getWorkerNetAddress()),
                 request.getWorkerId())).build();
       }, "getWorkerId", "request=%s", responseObserver, request);
     } else {

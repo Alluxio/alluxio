@@ -226,17 +226,21 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
 
     // Acquire worker Id.
     BlockMasterClient blockMasterClient = mBlockMasterClientPool.acquire();
+    File file = new File(INFOFILE);
+    boolean flag = true;
+    if (!file.exists()) {
+      file.createNewFile();
+      flag = false;
+    }
     try (FileInputStream input = new FileInputStream(INFOFILE);
          FileOutputStream output = new FileOutputStream(INFOFILE)) {
-      File file = new File(INFOFILE);
-      if (file.exists()) {
+      if (flag) {
         WorkerMeta.Info infoFile = WorkerMeta.Info.parseFrom(input);
-        RetryUtils.retry("create worker id",
+        RetryUtils.retry("get worker id",
             () -> mWorkerId.set(blockMasterClient.getId(address, infoFile.getWorkerId())),
-            RetryUtils.defaultWorkerMasterClientRetry(ServerConfiguration
-                .getDuration(PropertyKey.WORKER_MASTER_CONNECT_RETRY_TIMEOUT)));
+            RetryUtils.defaultWorkerMasterClientRetry(
+                ServerConfiguration.getDuration(PropertyKey.WORKER_MASTER_CONNECT_RETRY_TIMEOUT)));
       } else {
-        file.createNewFile();
         RetryUtils.retry("create worker id", () -> mWorkerId.set(blockMasterClient.getId(address)),
             RetryUtils.defaultWorkerMasterClientRetry(
                 ServerConfiguration.getDuration(PropertyKey.WORKER_MASTER_CONNECT_RETRY_TIMEOUT)));
