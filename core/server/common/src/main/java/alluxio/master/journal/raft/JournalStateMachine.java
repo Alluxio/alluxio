@@ -133,6 +133,7 @@ public class JournalStateMachine extends BaseStateMachine {
   private final SimpleStateMachineStorage mStorage = new SimpleStateMachineStorage();
   private RaftGroupId mRaftGroupId;
   private RaftServer mServer;
+  private long mLastCheckPointTime = -1;
 
   /**
    * @param journals      master journals; these journals are still owned by the caller, not by the
@@ -151,6 +152,12 @@ public class JournalStateMachine extends BaseStateMachine {
     MetricsSystem.registerGaugeIfAbsent(
         MetricKey.MASTER_EMBEDDED_JOURNAL_SNAPSHOT_LAST_INDEX.getName(),
         () -> mSnapshotLastIndex);
+    MetricsSystem.registerGaugeIfAbsent(
+        MetricKey.MASTER_JOURNAL_ENTRIES_SINCE_CHECKPOINT.getName(),
+        () -> getLastAppliedTermIndex().getIndex() - mSnapshotLastIndex);
+    MetricsSystem.registerGaugeIfAbsent(
+        MetricKey.MASTER_JOURNAL_LAST_CHECKPOINT_TIME.getName(),
+        () -> mLastCheckPointTime);
   }
 
   @Override
@@ -196,7 +203,9 @@ public class JournalStateMachine extends BaseStateMachine {
   @Override
   public long takeSnapshot() {
     if (mIsLeader) {
-      return mSnapshotManager.maybeCopySnapshotFromFollower();
+      long index = mSnapshotManager.maybeCopySnapshotFromFollower();
+      mLastCheckPointTime = System.currentTimeMillis();
+      return index;
     } else {
       return takeLocalSnapshot();
     }
@@ -494,6 +503,7 @@ public class JournalStateMachine extends BaseStateMachine {
         return RaftLog.INVALID_LOG_INDEX;
       }
       mSnapshotLastIndex = last.getIndex();
+      mLastCheckPointTime = System.currentTimeMillis();
       return last.getIndex();
     } finally {
       mSnapshotting = false;

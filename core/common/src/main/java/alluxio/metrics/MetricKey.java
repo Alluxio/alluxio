@@ -290,9 +290,21 @@ public final class MetricKey implements Comparable<MetricKey> {
               + "from (parentId, childName) to childId.")
           .setMetricType(MetricType.GAUGE)
           .build();
+
+  // Master file statistics
   public static final MetricKey MASTER_FILES_PINNED =
       new Builder("Master.FilesPinned")
           .setDescription("Total number of currently pinned files")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey MASTER_FILES_TO_PERSIST =
+      new Builder("Master.FilesToBePersisted")
+          .setDescription("Total number of currently to be persisted files")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey MASTER_FILE_SIZE =
+      new Builder("Master.FileSize")
+          .setDescription("File size distribution")
           .setMetricType(MetricType.GAUGE)
           .build();
   public static final MetricKey MASTER_INODE_CACHE_EVICTIONS =
@@ -305,11 +317,21 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setDescription("Total number of hits in the inodes (inode metadata) cache.")
           .setMetricType(MetricType.GAUGE)
           .build();
+  public static final MetricKey MASTER_INODE_CACHE_HIT_RATIO =
+      new Builder("Master.InodeCacheHitRatio")
+          .setDescription("Inode Cache hit ratio")
+          .setMetricType(MetricType.GAUGE)
+          .build();
   public static final MetricKey MASTER_INODE_CACHE_LOAD_TIMES =
       new Builder("Master.InodeCacheLoadTimes")
           .setDescription("Total load times in the inodes (inode metadata) cache "
               + "that resulted from a cache miss.")
           .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey MASTER_INODE_CACHE_LOAD_TIMER =
+      new Builder("Master.InodeCacheLoadTimer")
+          .setDescription("Total load latency in the inodes (inode metadata) cache")
+          .setMetricType(MetricType.TIMER)
           .build();
   public static final MetricKey MASTER_INODE_CACHE_MISSES =
       new Builder("Master.InodeCacheMisses")
@@ -337,6 +359,12 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setDescription("Total number of files and directory in Alluxio namespace")
           .setMetricType(MetricType.GAUGE)
           .build();
+  public static final MetricKey MASTER_TOTAL_BLOCKS =
+      new Builder("Master.TotalBlocks")
+          .setDescription("Total number of blocks in Alluxio")
+          .setMetricType(MetricType.COUNTER)
+          .build();
+
   // Backup Restore
   public static final MetricKey MASTER_LAST_BACKUP_ENTRIES_COUNT =
       new Builder("Master.LastBackupEntriesCount")
@@ -559,6 +587,22 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setDescription("The timer statistics of journal flush")
           .setMetricType(MetricType.TIMER)
           .build();
+  public static final MetricKey MASTER_JOURNAL_SEQUENCE_NUMBER =
+      new Builder("Master.JournalSequenceNumber")
+          .setDescription("Current journal sequence number")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey MASTER_JOURNAL_LAST_CHECKPOINT_TIME =
+      new Builder("Master.JournalLastCheckPointTime")
+          .setDescription("Last Journal Checkpoint Time")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey MASTER_JOURNAL_ENTRIES_SINCE_CHECKPOINT =
+      new Builder("Master.JournalEntriesSinceCheckPoint")
+          .setDescription("Journal entries since last checkpoint")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+
   public static final MetricKey MASTER_JOURNAL_GAIN_PRIMACY_TIMER =
       new Builder("Master.JournalGainPrimacyTimer")
           .setDescription("The timer statistics of journal gain primacy")
@@ -737,6 +781,11 @@ public final class MetricKey implements Comparable<MetricKey> {
   public static final MetricKey CLUSTER_WORKERS =
       new Builder("Cluster.Workers")
           .setDescription("Total number of active workers inside the cluster")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey CLUSTER_LOST_WORKERS =
+      new Builder("Cluster.LostWorkers")
+          .setDescription("Total number of lost workers inside the cluster")
           .setMetricType(MetricType.GAUGE)
           .build();
 

@@ -70,6 +70,7 @@ import alluxio.wire.BlockInfo;
 import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
 
+import com.codahale.metrics.Counter;
 import com.codahale.metrics.Gauge;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
@@ -909,6 +910,7 @@ public final class DefaultBlockMaster extends CoreMaster implements BlockMaster 
     registerWorkerInternal(workerId);
     // Invalidate cache to trigger new build of worker info list
     mWorkerInfoCache.invalidate(WORKER_INFO_CACHE_KEY);
+    Metrics.TOTAL_BLOCKS.inc(currentBlocksOnLocation.size());
     LOG.info("registerWorker(): {}", worker);
   }
 
@@ -941,6 +943,7 @@ public final class DefaultBlockMaster extends CoreMaster implements BlockMaster 
       worker.updateLastUpdatedTimeMs();
 
       List<Long> toRemoveBlocks = worker.getToRemoveBlocks();
+      Metrics.TOTAL_BLOCKS.inc(addedBlocks.size() - removedBlockIds.size());
       if (toRemoveBlocks.isEmpty()) {
         return Command.newBuilder().setCommandType(CommandType.Nothing).build();
       }
@@ -979,6 +982,7 @@ public final class DefaultBlockMaster extends CoreMaster implements BlockMaster 
         workerInfo.removeBlock(removedBlockId);
       }
     }
+    Metrics.TOTAL_BLOCKS.dec(removedBlockIds.size());
   }
 
   /**
@@ -1199,6 +1203,8 @@ public final class DefaultBlockMaster extends CoreMaster implements BlockMaster 
    * Class that contains metrics related to BlockMaster.
    */
   public static final class Metrics {
+    private static final Counter TOTAL_BLOCKS =
+        MetricsSystem.counter(MetricKey.MASTER_TOTAL_BLOCKS.getName());
 
     /**
      * Registers metric gauges.
@@ -1250,6 +1256,13 @@ public final class DefaultBlockMaster extends CoreMaster implements BlockMaster 
             @Override
             public Integer getValue() {
               return master.getWorkerCount();
+            }
+          });
+      MetricsSystem.registerGaugeIfAbsent(MetricKey.CLUSTER_LOST_WORKERS.getName(),
+          new Gauge<Integer>() {
+            @Override
+            public Integer getValue() {
+              return master.getLostWorkerCount();
             }
           });
     }
