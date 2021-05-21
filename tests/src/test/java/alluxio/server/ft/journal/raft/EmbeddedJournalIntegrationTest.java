@@ -397,9 +397,9 @@ public final class EmbeddedJournalIntegrationTest extends BaseIntegrationTest {
     MasterNetAddress newMasterAddress = new MasterNetAddress(
         NetworkAddressUtils.getLocalHostName(
             (int) ServerConfiguration.getMs(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS)),
-        PortCoordination.EMBEDDED_JOURNAL_GROW_NEWMASTER.get(0).getPort(),
-        PortCoordination.EMBEDDED_JOURNAL_GROW_NEWMASTER.get(1).getPort(),
-        PortCoordination.EMBEDDED_JOURNAL_GROW_NEWMASTER.get(2).getPort());
+        PortCoordination.EMBEDDED_JOURNAL_UPDATE_RAFT_GROUP_NEW.get(0).getPort(),
+        PortCoordination.EMBEDDED_JOURNAL_UPDATE_RAFT_GROUP_NEW.get(1).getPort(),
+        PortCoordination.EMBEDDED_JOURNAL_UPDATE_RAFT_GROUP_NEW.get(2).getPort());
 
     // Update RPC and EmbeddedJournal addresses with the new master address.
     String newBootstrapList = ServerConfiguration.get(PropertyKey.MASTER_EMBEDDED_JOURNAL_ADDRESSES)
