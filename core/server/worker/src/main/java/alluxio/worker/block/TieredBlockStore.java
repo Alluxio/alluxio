@@ -449,8 +449,7 @@ public class TieredBlockStore implements BlockStore {
             sessionId);
         abortBlockInternal(sessionId, tempBlockMeta.getBlockId());
       } catch (Exception e) {
-        LOG.error("Failed to cleanup tempBlock {} due to {}", tempBlockMeta.getBlockId(),
-            e.getMessage());
+        LOG.error("Failed to cleanup tempBlock {}", tempBlockMeta.getBlockId(), e);
       }
     }
   }

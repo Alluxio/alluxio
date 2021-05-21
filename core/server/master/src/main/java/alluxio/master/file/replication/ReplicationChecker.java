@@ -259,7 +259,7 @@ public final class ReplicationChecker implements HeartbeatExecutor {
               LOG.warn(
                   "Unexpected exception encountered when starting a migration job (uri={},"
                       + " block ID={}, workerHost= {}) : {}",
-                  inodePath.getUri(), blockId, entry.getKey(), e.getMessage());
+                  inodePath.getUri(), blockId, entry.getKey(), e.toString());
               LOG.debug("Exception: ", e);
             }
           }
@@ -358,14 +358,13 @@ public final class ReplicationChecker implements HeartbeatExecutor {
           LOG.warn("The job service is busy, will retry later. {}", e.toString());
           return;
         } catch (UnavailableException e) {
-          LOG.warn("Unable to complete the replication check: {}, will retry later.",
-              e.getMessage());
+          LOG.warn("Unable to complete the replication check: {}, will retry later.", e.toString());
           return;
         } catch (Exception e) {
           SAMPLING_LOG.warn(
               "Unexpected exception encountered when starting a {} job (uri={},"
                   + " block ID={}, num replicas={}) : {}",
-              mode, uri, blockId, numReplicas, e.getMessage());
+              mode, uri, blockId, numReplicas, e.toString());
           LOG.debug("Job service unexpected exception: ", e);
         }
       }

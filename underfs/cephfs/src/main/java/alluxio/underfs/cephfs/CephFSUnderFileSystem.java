@@ -280,7 +280,7 @@ public class CephFSUnderFileSystem extends ConsistentUnderFileSystem
         int fd = openInternal(path, flags, mode);
         return new CephOutputStream(mMount, fd);
       } catch (IOException e) {
-        LOG.warn("Retry count {} : {}", retryPolicy.getAttemptCount(), e.getMessage());
+        LOG.warn("Retry count {} : {}", retryPolicy.getAttemptCount(), e.toString());
         te = e;
       }
     }
@@ -297,7 +297,7 @@ public class CephFSUnderFileSystem extends ConsistentUnderFileSystem
         try {
           return deleteInternal(path, options.isRecursive());
         } catch (IOException e) {
-          LOG.warn("Retry count {} : {}", retryPolicy.getAttemptCount(), e.getMessage());
+          LOG.warn("Retry count {} : {}", retryPolicy.getAttemptCount(), e.toString());
           te = e;
         }
       }
@@ -316,7 +316,7 @@ public class CephFSUnderFileSystem extends ConsistentUnderFileSystem
         try {
           return deleteInternal(path, false);
         } catch (IOException e) {
-          LOG.warn("Retry count {} : {}", retryPolicy.getAttemptCount(), e.getMessage());
+          LOG.warn("Retry count {} : {}", retryPolicy.getAttemptCount(), e.toString());
           te = e;
         }
       }
@@ -529,7 +529,7 @@ public class CephFSUnderFileSystem extends ConsistentUnderFileSystem
         return true;
       } catch (IOException e) {
         LOG.warn("{} try to make directory for {} : {}", retryPolicy.getAttemptCount(), path,
-            e.getMessage());
+            e.toString());
         te = e;
       }
     }
@@ -556,7 +556,7 @@ public class CephFSUnderFileSystem extends ConsistentUnderFileSystem
         }
         return inputStream;
       } catch (IOException e) {
-        LOG.warn("{} try to open {} : {}", retryPolicy.getAttemptCount(), path, e.getMessage());
+        LOG.warn("{} try to open {} : {}", retryPolicy.getAttemptCount(), path, e.toString());
         te = e;
       }
     }
@@ -725,7 +725,7 @@ public class CephFSUnderFileSystem extends ConsistentUnderFileSystem
         return true;
       } catch (IOException e) {
         LOG.warn("{} try to rename {} to {} : {}", retryPolicy.getAttemptCount(), src, dst,
-            e.getMessage());
+            e.toString());
         te = e;
       }
     }

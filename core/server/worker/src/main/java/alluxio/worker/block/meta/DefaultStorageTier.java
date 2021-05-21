@@ -147,8 +147,7 @@ public final class DefaultStorageTier implements StorageTier {
     try {
       info = ShellUtils.getUnixMountInfo();
     } catch (IOException e) {
-      LOG.warn("Failed to get mount information for verifying memory capacity: {}",
-          e.getMessage());
+      LOG.warn("Failed to get mount information for verifying memory capacity: {}", e.toString());
       return;
     }
     boolean foundMountInfo = false;

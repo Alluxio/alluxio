@@ -333,7 +333,7 @@ public class GCSUnderFileSystem extends ObjectUnderFileSystem {
       }
     } catch (ServiceException e) {
       LOG.warn("Failed to get Google account owner, proceeding with defaults owner {}. {}",
-          accountOwner, e.getMessage());
+          accountOwner, e.toString());
     }
 
     short bucketMode =

@@ -3904,7 +3904,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
             uri = inodePath.getUri();
           } catch (FileDoesNotExistException e) {
             LOG.debug("The file (id={}) to be persisted was not found. Likely this file has been "
-                + "removed by users : {}", fileId, e.getMessage());
+                + "removed by users", fileId, e);
             continue;
           }
           try {
@@ -3927,7 +3927,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
           }
         } catch (FileDoesNotExistException | InvalidPathException e) {
           LOG.warn("The file {} (id={}) to be persisted was not found : {}", uri, fileId,
-              e.getMessage());
+              e.toString());
           LOG.debug("Exception: ", e);
         } catch (UnavailableException e) {
           LOG.warn("Failed to persist file {}, will retry later: {}", uri, e.toString());
@@ -3943,7 +3943,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
           return;
         } catch (Exception e) {
           LOG.warn("Unexpected exception encountered when scheduling the persist job for file {} "
-              + "(id={}) : {}", uri, fileId, e.getMessage());
+              + "(id={}) : {}", uri, fileId, e.toString());
           LOG.debug("Exception: ", e);
         } finally {
           if (remove) {
@@ -4059,7 +4059,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
         }
       } catch (FileDoesNotExistException | InvalidPathException e) {
         LOG.warn("The file {} (id={}) to be persisted was not found: {}", job.getUri(), fileId,
-            e.getMessage());
+            e.toString());
         LOG.debug("Exception: ", e);
         // Cleanup the temporary file.
         if (ufsClient != null) {
@@ -4071,7 +4071,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
         LOG.warn(
             "Unexpected exception encountered when trying to complete persistence of a file {} "
                 + "(id={}) : {}",
-            job.getUri(), fileId, e.getMessage());
+            job.getUri(), fileId, e.toString());
         LOG.debug("Exception: ", e);
         if (ufsClient != null) {
           try (CloseableResource<UnderFileSystem> ufsResource = ufsClient.acquireUfsResource()) {
@@ -4185,13 +4185,13 @@ public final class DefaultFileSystemMaster extends CoreMaster
               job.setCancelState(PersistJob.CancelState.CANCELING);
             } catch (alluxio.exception.status.NotFoundException e) {
               LOG.warn("Persist job (id={}) for file {} (id={}) to cancel was not found: {}",
-                  job.getId(), job.getUri(), fileId, e.getMessage());
+                  job.getId(), job.getUri(), fileId, e.toString());
               LOG.debug("Exception: ", e);
               mPersistJobs.remove(fileId);
               continue;
             } catch (Exception e) {
               LOG.warn("Unexpected exception encountered when cancelling a persist job (id={}) for "
-                  + "file {} (id={}) : {}", job.getId(), job.getUri(), fileId, e.getMessage());
+                  + "file {} (id={}) : {}", job.getId(), job.getUri(), fileId, e.toString());
               LOG.debug("Exception: ", e);
             } finally {
               mJobMasterClientPool.release(client);
@@ -4234,7 +4234,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
         } catch (Exception e) {
           LOG.warn("Exception encountered when trying to retrieve the status of a "
                   + " persist job (id={}) for file {} (id={}): {}.", jobId, job.getUri(), fileId,
-              e.getMessage());
+              e.toString());
           LOG.debug("Exception: ", e);
           mPersistJobs.remove(fileId);
           mPersistRequests.put(fileId, job.getTimer());
@@ -4316,14 +4316,13 @@ public final class DefaultFileSystemMaster extends CoreMaster
   }
 
   private static void cleanup(UnderFileSystem ufs, String ufsPath) {
-    final String errMessage = "Failed to delete UFS file {}.";
     if (!ufsPath.isEmpty()) {
       try {
         if (!ufs.deleteExistingFile(ufsPath)) {
-          LOG.warn(errMessage, ufsPath);
+          LOG.warn("Failed to delete UFS file {}.", ufsPath);
         }
       } catch (IOException e) {
-        LOG.warn(errMessage, ufsPath, e);
+        LOG.warn("Failed to delete UFS file {}: {}", ufsPath, e.toString());
       }
     }
   }
