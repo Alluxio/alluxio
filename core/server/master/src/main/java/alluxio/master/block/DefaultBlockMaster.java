@@ -999,12 +999,7 @@ public final class DefaultBlockMaster extends CoreMaster implements BlockMaster 
           Optional<BlockMeta> block = mBlockStore.getBlock(blockId);
           if (block.isPresent()) {
             workerInfo.addBlock(blockId);
-            BlockLocation blockLocation = BlockLocation.newBuilder()
-                .setWorkerId(workerInfo.getId())
-                .setTier(entry.getKey().getTier())
-                .setMediumType(entry.getKey().getMediumType())
-                .build();
-            mBlockStore.addLocation(blockId, blockLocation);
+            mBlockStore.addLocation(blockId, entry.getKey());
             mLostBlocks.remove(blockId);
           } else {
             LOG.warn("Invalid block: {} from worker {}.", blockId,
