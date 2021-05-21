@@ -177,7 +177,7 @@ public interface BlockMaster extends Master, ContainerIdGenerable {
    * update the masterWorkerInfo if the worker get old id and change address.
    * @param workerNetAddress new address
    * @param workerId old id
-   * @return
+   * @return the worker id for this worker
    */
   long getWorkerId(WorkerNetAddress workerNetAddress, long workerId);
 
