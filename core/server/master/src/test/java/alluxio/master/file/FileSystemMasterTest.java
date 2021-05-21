@@ -78,6 +78,7 @@ import alluxio.master.file.contexts.ScheduleAsyncPersistenceContext;
 import alluxio.master.file.contexts.SetAclContext;
 import alluxio.master.file.contexts.SetAttributeContext;
 import alluxio.master.file.contexts.WorkerHeartbeatContext;
+import alluxio.master.file.meta.InodeTree;
 import alluxio.master.file.meta.PersistenceState;
 import alluxio.master.file.meta.TtlIntervalRule;
 import alluxio.master.journal.JournalSystem;
@@ -163,6 +164,7 @@ public final class FileSystemMasterTest {
   private BlockMaster mBlockMaster;
   private ExecutorService mExecutorService;
   private DefaultFileSystemMaster mFileSystemMaster;
+  private InodeTree mInodeTree;
   private ReadOnlyInodeStore mInodeStore;
   private MetricsMaster mMetricsMaster;
   private List<Metric> mMetrics;
@@ -843,7 +845,7 @@ public final class FileSystemMasterTest {
   }
 
   private long countPaths() throws Exception {
-    return mFileSystemMaster.getInodeCount();
+    return mInodeTree.getInodeCount();
   }
 
   @Test
@@ -2702,6 +2704,7 @@ public final class FileSystemMasterTest {
     mFileSystemMaster = new DefaultFileSystemMaster(mBlockMaster, masterContext,
         ExecutorServiceFactories.constantExecutorServiceFactory(mExecutorService));
     mInodeStore = mFileSystemMaster.getInodeStore();
+    mInodeTree = mFileSystemMaster.getInodeTree();
     mRegistry.add(FileSystemMaster.class, mFileSystemMaster);
     mJournalSystem.start();
     mJournalSystem.gainPrimacy();
