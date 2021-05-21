@@ -18,7 +18,7 @@ import com.google.common.collect.Sets;
 import java.util.Set;
 
 /**
- * An implementation of {@link Reviewer}. This is used to Reviewer unit test.
+ * An implementation of {@link Reviewer}. This is used for Reviewer unit test.
  * If a directory's `availableBytes` matches the bytes in `BYTES_TO_REJECT`,
  * allocation will be rejected.
  */
