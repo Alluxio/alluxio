@@ -227,32 +227,32 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
     // Acquire worker Id.
     BlockMasterClient blockMasterClient = mBlockMasterClientPool.acquire();
     File file = new File(INFOFILE);
-    boolean flag = true;
-    if (!file.exists()) {
-      file.createNewFile();
-      flag = false;
-    }
-    try (FileInputStream input = new FileInputStream(INFOFILE);
-         FileOutputStream output = new FileOutputStream(INFOFILE)) {
-      if (flag) {
+    if (file.exists()) {
+      try (FileInputStream input = new FileInputStream(file)) {
         WorkerMeta.Info infoFile = WorkerMeta.Info.parseFrom(input);
         RetryUtils.retry("get worker id",
             () -> mWorkerId.set(blockMasterClient.getId(address, infoFile.getWorkerId())),
             RetryUtils.defaultWorkerMasterClientRetry(
                 ServerConfiguration.getDuration(PropertyKey.WORKER_MASTER_CONNECT_RETRY_TIMEOUT)));
-      } else {
+      } catch (Exception e) {
+        throw new RuntimeException(
+            "Failed to create a worker id from block master: " + e.getMessage());
+      } finally {
+        mBlockMasterClientPool.release(blockMasterClient);
+      }
+    } else {
+      file.createNewFile();
+      try (FileOutputStream output = new FileOutputStream(file)) {
         RetryUtils.retry("create worker id", () -> mWorkerId.set(blockMasterClient.getId(address)),
             RetryUtils.defaultWorkerMasterClientRetry(
                 ServerConfiguration.getDuration(PropertyKey.WORKER_MASTER_CONNECT_RETRY_TIMEOUT)));
-        WorkerMeta.Info infoFile =
-            WorkerMeta.Info.newBuilder().setWorkerId(mWorkerId.get()).build();
-        infoFile.writeTo(output);
+        WorkerMeta.Info.newBuilder().setWorkerId(mWorkerId.get()).build().writeTo(output);
+      } catch (Exception e) {
+        throw new RuntimeException(
+            "Failed to create a worker id from block master: " + e.getMessage());
+      } finally {
+        mBlockMasterClientPool.release(blockMasterClient);
       }
-    } catch (Exception e) {
-      throw new RuntimeException(
-          "Failed to create a worker id from block master: " + e.getMessage());
-    } finally {
-      mBlockMasterClientPool.release(blockMasterClient);
     }
 
     Preconditions.checkNotNull(mWorkerId, "mWorkerId");
