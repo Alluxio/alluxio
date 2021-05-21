@@ -23,6 +23,7 @@ import static org.mockito.Mockito.when;
 
 import alluxio.AlluxioURI;
 import alluxio.ConfigurationRule;
+import alluxio.Constants;
 import alluxio.RuntimeConstants;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
@@ -90,14 +91,18 @@ public final class AlluxioMasterRestServiceHandlerTest {
   private static final long UFS_SPACE_USED = 25L;
   private static final long UFS_SPACE_FREE = 75L;
   private static final String TEST_PATH = "test://test/";
-  private static final Map<String, Long> WORKER1_TOTAL_BYTES_ON_TIERS = ImmutableMap.of("MEM", 10L,
-      "SSD", 20L);
-  private static final Map<String, Long> WORKER2_TOTAL_BYTES_ON_TIERS = ImmutableMap.of("MEM",
-      1000L, "SSD", 2000L);
-  private static final Map<String, Long> WORKER1_USED_BYTES_ON_TIERS = ImmutableMap.of("MEM", 1L,
-      "SSD", 2L);
-  private static final Map<String, Long> WORKER2_USED_BYTES_ON_TIERS = ImmutableMap.of("MEM", 100L,
-      "SSD", 200L);
+  private static final Map<String, Long> WORKER1_TOTAL_BYTES_ON_TIERS =
+      ImmutableMap.of(Constants.MEDIUM_MEM, 10L,
+      Constants.MEDIUM_SSD, 20L);
+  private static final Map<String, Long> WORKER2_TOTAL_BYTES_ON_TIERS =
+      ImmutableMap.of(Constants.MEDIUM_MEM,
+      1000L, Constants.MEDIUM_SSD, 2000L);
+  private static final Map<String, Long> WORKER1_USED_BYTES_ON_TIERS =
+      ImmutableMap.of(Constants.MEDIUM_MEM, 1L,
+      Constants.MEDIUM_SSD, 2L);
+  private static final Map<String, Long> WORKER2_USED_BYTES_ON_TIERS =
+      ImmutableMap.of(Constants.MEDIUM_MEM, 100L,
+      Constants.MEDIUM_SSD, 200L);
 
   private AlluxioMasterProcess mMasterProcess;
   private BlockMaster mBlockMaster;
@@ -136,7 +141,7 @@ public final class AlluxioMasterRestServiceHandlerTest {
     // Register two workers
     long worker1 = mBlockMaster.getWorkerId(NET_ADDRESS_1);
     long worker2 = mBlockMaster.getWorkerId(NET_ADDRESS_2);
-    List<String> tiers = Arrays.asList("MEM", "SSD");
+    List<String> tiers = Arrays.asList(Constants.MEDIUM_MEM, Constants.MEDIUM_SSD);
 
     mBlockMaster.workerRegister(worker1, tiers, WORKER1_TOTAL_BYTES_ON_TIERS,
         WORKER1_USED_BYTES_ON_TIERS, NO_BLOCKS_ON_LOCATIONS, NO_LOST_STORAGE,

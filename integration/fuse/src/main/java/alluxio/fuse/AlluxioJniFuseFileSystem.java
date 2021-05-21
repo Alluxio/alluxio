@@ -12,7 +12,6 @@
 package alluxio.fuse;
 
 import alluxio.AlluxioURI;
-import alluxio.client.file.AlluxioFileInStream;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
@@ -426,7 +425,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
         if (offset - is.getPos() < is.remaining()) {
           is.seek(offset);
           while (rd >= 0 && nread < sz) {
-            rd = ((AlluxioFileInStream) is).read(buf, nread, sz - nread);
+            rd = is.read(buf, nread, sz - nread);
             if (rd >= 0) {
               nread += rd;
             }

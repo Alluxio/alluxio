@@ -22,7 +22,7 @@ import static org.junit.Assert.fail;
 import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
 import alluxio.client.file.cache.evictor.CacheEvictor;
-import alluxio.client.file.cache.evictor.FIFOEvictor;
+import alluxio.client.file.cache.evictor.FIFOCacheEvictor;
 import alluxio.client.file.cache.evictor.UnevictableCacheEvictor;
 import alluxio.client.file.cache.store.LocalPageStore;
 import alluxio.client.file.cache.store.PageStoreOptions;
@@ -92,7 +92,7 @@ public final class LocalCacheManagerTest {
     mConf.set(PropertyKey.USER_CLIENT_CACHE_TIMEOUT_DURATION, "60s");
     mPageStoreOptions = PageStoreOptions.create(mConf);
     mPageStore = PageStore.create(mPageStoreOptions);
-    mEvictor = new FIFOEvictor(mConf);
+    mEvictor = new FIFOCacheEvictor(mConf);
     mMetaStore = new DefaultMetaStore(mEvictor);
     mCacheManager = createLocalCacheManager();
   }

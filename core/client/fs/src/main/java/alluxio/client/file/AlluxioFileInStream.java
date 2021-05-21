@@ -174,15 +174,7 @@ public class AlluxioFileInStream extends FileInStream {
     return read(ByteBuffer.wrap(b), off, len);
   }
 
-  /**
-   * Reads up to len bytes of data from the input stream into the byte buffer.
-   *
-   * @param byteBuffer the buffer into which the data is read
-   * @param off the start offset in the buffer at which the data is written
-   * @param len the maximum number of bytes to read
-   * @return the total number of bytes read into the buffer, or -1 if there is no more data because
-   *         the end of the stream has been reached
-   */
+  @Override
   public int read(ByteBuffer byteBuffer, int off, int len) throws IOException {
     Preconditions.checkArgument(off >= 0 && len >= 0 && len + off <= byteBuffer.capacity(),
         PreconditionMessage.ERR_BUFFER_STATE.toString(), byteBuffer.capacity(), off, len);

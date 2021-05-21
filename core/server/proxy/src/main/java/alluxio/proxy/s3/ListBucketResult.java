@@ -61,7 +61,7 @@ public class ListBucketResult {
   private List<Content> mContents;
 
   // List of common prefixes (aka. folders)
-  private CommonPrefixes mCommonPrefixes;
+  private List<Prefix> mCommonPrefixes;
 
   /**
    * Creates an {@link ListBucketResult}.
@@ -110,13 +110,15 @@ public class ListBucketResult {
       ));
     }
 
-    final ArrayList<String> commonPrefixes = new ArrayList<>();
+    final ArrayList<Prefix> commonPrefixes = new ArrayList<>();
     for (URIStatus status : prefixList) {
       final String path = status.getPath();
-      commonPrefixes.add(path.substring(mName.length() + 2)); // remove both ends of "/" character
+      // remove both ends of "/" character in the path as well as bucket name
+      // add "/" at end to show it's a folder (or else, aws cli crashes with index out of bounds)
+      commonPrefixes.add(new Prefix(path.substring(mName.length() + 2) + "/"));
     }
 
-    mCommonPrefixes = new CommonPrefixes(commonPrefixes);
+    mCommonPrefixes = commonPrefixes;
   }
 
   /**
@@ -180,27 +182,27 @@ public class ListBucketResult {
    * @return the common prefixes
    */
   @JacksonXmlProperty(localName = "CommonPrefixes")
-  public CommonPrefixes getCommonPrefixes() {
+  @JacksonXmlElementWrapper(useWrapping = false)
+  public List<Prefix> getCommonPrefixes() {
     return mCommonPrefixes;
   }
 
   /**
-   * Common Prefixes list placeholder object.
+   * Prefix Object.
    */
-  public class CommonPrefixes {
-    private final List<String> mCommonPrefixes;
+  public class Prefix {
+    private final String mPrefix;
 
-    private CommonPrefixes(List<String> commonPrefixes) {
-      mCommonPrefixes = commonPrefixes;
+    private Prefix(String prefix) {
+      mPrefix = prefix;
     }
 
     /**
-     * @return the list of common prefixes
+     * @return the prefix string
      */
     @JacksonXmlProperty(localName = "Prefix")
-    @JacksonXmlElementWrapper(useWrapping = false)
-    public List<String> getCommonPrefixes() {
-      return mCommonPrefixes;
+    public String getPrefix() {
+      return mPrefix;
     }
   }
 

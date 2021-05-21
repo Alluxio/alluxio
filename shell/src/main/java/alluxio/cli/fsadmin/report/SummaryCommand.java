@@ -31,6 +31,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
+import java.util.stream.Collectors;
 
 /**
  * Prints Alluxio cluster summarized information.
@@ -78,13 +79,16 @@ public class SummaryCommand {
   private void printMetaMasterInfo() throws IOException {
     mIndentationLevel++;
     Set<MasterInfoField> masterInfoFilter = new HashSet<>(Arrays
-        .asList(MasterInfoField.LEADER_MASTER_ADDRESS, MasterInfoField.WEB_PORT,
-            MasterInfoField.RPC_PORT, MasterInfoField.START_TIME_MS,
-            MasterInfoField.UP_TIME_MS, MasterInfoField.VERSION,
-            MasterInfoField.SAFE_MODE, MasterInfoField.ZOOKEEPER_ADDRESSES));
+        .asList(MasterInfoField.LEADER_MASTER_ADDRESS,
+          MasterInfoField.MASTER_ADDRESSES, MasterInfoField.WEB_PORT,
+          MasterInfoField.RPC_PORT, MasterInfoField.START_TIME_MS,
+          MasterInfoField.UP_TIME_MS, MasterInfoField.VERSION,
+          MasterInfoField.SAFE_MODE, MasterInfoField.ZOOKEEPER_ADDRESSES));
     MasterInfo masterInfo = mMetaMasterClient.getMasterInfo(masterInfoFilter);
 
-    print("Master Address: " + masterInfo.getLeaderMasterAddress());
+    print("Leader Master Address: " + masterInfo.getLeaderMasterAddress());
+    print("Live Masters Addresses: " + masterInfo.getMasterAddressesList().stream().map(netAddress
+        -> netAddress.getHost() + ":" + netAddress.getRpcPort()).collect(Collectors.toList()));
     print("Web Port: " + masterInfo.getWebPort());
     print("Rpc Port: " + masterInfo.getRpcPort());
     print("Started: " + CommonUtils.convertMsToDate(masterInfo.getStartTimeMs(),

@@ -212,6 +212,7 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
@@ -493,7 +494,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
     mJournaledGroup = new JournaledGroup(journaledComponents, CheckpointName.FILE_SYSTEM_MASTER);
 
     resetState();
-    Metrics.registerGauges(this, mUfsManager);
+    Metrics.registerGauges(mUfsManager, mInodeTree);
   }
 
   private static MountInfo getRootMountInfo(MasterUfsManager ufsManager) {
@@ -1676,16 +1677,6 @@ public final class DefaultFileSystemMaster extends CoreMaster
       LOG.error("No UFS cached for {}", info, e);
     }
     return info;
-  }
-
-  @Override
-  public long getInodeCount() {
-    return mInodeTree.getInodeCount();
-  }
-
-  @Override
-  public int getNumberOfPinnedFiles() {
-    return mInodeTree.getPinnedSize();
   }
 
   @Override
@@ -4486,17 +4477,25 @@ public final class DefaultFileSystemMaster extends CoreMaster
     /**
      * Register some file system master related gauges.
      *
-     * @param master the file system master
      * @param ufsManager the under filesystem manager
+     * @param inodeTree the inodeTree
      */
     @VisibleForTesting
-    public static void registerGauges(
-        final FileSystemMaster master, final UfsManager ufsManager) {
+    public static void registerGauges(final UfsManager ufsManager, final InodeTree inodeTree) {
       MetricsSystem.registerGaugeIfAbsent(MetricKey.MASTER_FILES_PINNED.getName(),
-          master::getNumberOfPinnedFiles);
-
+          inodeTree::getPinnedSize);
+      MetricsSystem.registerGaugeIfAbsent(MetricKey.MASTER_FILES_TO_PERSIST.getName(),
+          () -> inodeTree.getToBePersistedIds().size());
       MetricsSystem.registerGaugeIfAbsent(MetricKey.MASTER_TOTAL_PATHS.getName(),
-          () -> master.getInodeCount());
+          inodeTree::getInodeCount);
+      MetricsSystem.registerGaugeIfAbsent(MetricKey.MASTER_FILE_SIZE.getName(),
+          () -> StreamSupport.stream(
+              inodeTree.getFileSizeHistogram().logarithmicBucketValues(1024, 1024).spliterator(),
+              false)
+              .map(x -> new Pair<>(
+                  new Pair<>(x.getDoubleValueIteratedFrom(), x.getDoubleValueIteratedTo()),
+                  x.getCountAddedInThisIterationStep()))
+              .collect(Collectors.toMap(Pair::getFirst, Pair::getSecond)));
 
       final String ufsDataFolder = ServerConfiguration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
 
