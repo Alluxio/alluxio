@@ -64,13 +64,13 @@ public final class MountCommand extends AbstractFileSystemCommand {
           .valueSeparator('=')
           .desc("options associated with this mount point")
           .build();
-  private static final Option CONFIG_FILE_OPTION =
+  private static final Option HDFS_CONF_OPTION =
       Option.builder()
-          .longOpt("cfgfile")
+          .longOpt("hdfsconf")
           .required(false)
           .hasArg(true)
           .numberOfArgs(1)
-          .desc("config file path associated with this mount point")
+          .desc("path to its config files for an HDFS mount point")
           .build();
 
   /**
@@ -88,7 +88,7 @@ public final class MountCommand extends AbstractFileSystemCommand {
   @Override
   public Options getOptions() {
     return new Options().addOption(READONLY_OPTION).addOption(SHARED_OPTION)
-        .addOption(OPTION_OPTION).addOption(CONFIG_FILE_OPTION);
+        .addOption(OPTION_OPTION).addOption(HDFS_CONF_OPTION);
   }
 
   @Override
@@ -109,8 +109,8 @@ public final class MountCommand extends AbstractFileSystemCommand {
     if (cl.hasOption(SHARED_OPTION.getLongOpt())) {
       optionsBuilder.setShared(true);
     }
-    if (cl.hasOption(CONFIG_FILE_OPTION.getLongOpt())) {
-      String[] cfgFiles = cl.getOptionValues(CONFIG_FILE_OPTION.getLongOpt());
+    if (cl.hasOption(HDFS_CONF_OPTION.getLongOpt())) {
+      String[] cfgFiles = cl.getOptionValues(HDFS_CONF_OPTION.getLongOpt());
       Configuration hdfsConf = new Configuration(false);
       for (String path : cfgFiles) {
         if (!path.isEmpty()) {
@@ -130,7 +130,7 @@ public final class MountCommand extends AbstractFileSystemCommand {
 
   @Override
   public String getUsage() {
-    return "mount [--readonly] [--shared] [--option <key=val>] [--cfgfile <cfgFilePath>] "
+    return "mount [--readonly] [--shared] [--option <key=val>] [--hdfsconf <hdfsConfigFilePath>] "
         + "<alluxioPath> <ufsURI>";
   }
 
