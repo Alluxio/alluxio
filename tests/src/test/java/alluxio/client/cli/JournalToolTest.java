@@ -70,6 +70,7 @@ public class JournalToolTest extends BaseIntegrationTest {
   @Rule
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
       new LocalAlluxioClusterResource.Builder()
+          .setIncludeSecondary(true)
           .setProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.UFS.toString())
           .setProperty(PropertyKey.MASTER_JOURNAL_CHECKPOINT_PERIOD_ENTRIES,
               Integer.toString(CHECKPOINT_SIZE))

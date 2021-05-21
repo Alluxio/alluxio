@@ -46,7 +46,7 @@ if [[ -z "${JAVA}" ]]; then
   elif [[ -n "$(which java 2>/dev/null)" ]]; then
     JAVA=$(which java)
   else
-    echo "Error: Cannot find 'java' on path or under \$JAVA_HOME/bin/."
+    echo "Error: Cannot find 'java' on path or under \$JAVA_HOME/bin/. Please set JAVA_HOME in alluxio-env.sh or user bash profile."
     exit 1
   fi
 fi

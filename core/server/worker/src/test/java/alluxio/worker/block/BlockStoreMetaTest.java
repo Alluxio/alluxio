@@ -11,6 +11,7 @@
 
 package alluxio.worker.block;
 
+import alluxio.Constants;
 import alluxio.collections.Pair;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
@@ -58,7 +59,7 @@ public final class BlockStoreMetaTest {
     mMetadataManager = TieredBlockStoreTestUtils.defaultMetadataManager(alluxioHome);
 
     // Add and commit COMMITTED_BLOCKS_NUM temp blocks repeatedly
-    StorageDir dir = mMetadataManager.getTier("MEM").getDir(0);
+    StorageDir dir = mMetadataManager.getTier(Constants.MEDIUM_MEM).getDir(0);
     for (long blockId = 0L; blockId < COMMITTED_BLOCKS_NUM; blockId++) {
       TieredBlockStoreTestUtils.cache(TEST_SESSION_ID, blockId, TEST_BLOCK_SIZE, dir,
           mMetadataManager, null);
@@ -116,7 +117,8 @@ public final class BlockStoreMetaTest {
    */
   @Test
   public void getCapacityBytesOnTiers() {
-    Map<String, Long> expectedCapacityBytesOnTiers = ImmutableMap.of("MEM", 5000L, "SSD", 60000L);
+    Map<String, Long> expectedCapacityBytesOnTiers =
+        ImmutableMap.of(Constants.MEDIUM_MEM, 5000L, Constants.MEDIUM_SSD, 60000L);
     Assert.assertEquals(expectedCapacityBytesOnTiers, mBlockStoreMeta.getCapacityBytesOnTiers());
   }
 
@@ -158,7 +160,8 @@ public final class BlockStoreMetaTest {
   @Test
   public void getUsedBytesOnTiers() {
     long usedBytes = TEST_BLOCK_SIZE * COMMITTED_BLOCKS_NUM;
-    Map<String, Long> usedBytesOnTiers = ImmutableMap.of("MEM", usedBytes, "SSD", 0L);
+    Map<String, Long> usedBytesOnTiers =
+        ImmutableMap.of(Constants.MEDIUM_MEM, usedBytes, Constants.MEDIUM_SSD, 0L);
     Assert.assertEquals(usedBytesOnTiers, mBlockStoreMeta.getUsedBytesOnTiers());
   }
 }

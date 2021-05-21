@@ -23,7 +23,6 @@
   <description>Parent POM for different shaded Libraries</description>
 
   <modules>
-    <module>adl</module>
     <module>client</module>
     <module>cosn</module>
     <module>hadoop</module>

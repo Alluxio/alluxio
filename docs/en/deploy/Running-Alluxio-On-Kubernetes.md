@@ -845,6 +845,10 @@ logserver:
 ```
 
 For a production environment, you should always persist the logs with a Persistent Volume.
+When you specify the `logserver.volumeType` to be `persistentVolumeClaim`, 
+the Helm Chart will create a PVC.
+If you are not using dynamic provisioning for PVs, you will need to manually create the PV.
+Remember to make sure the selectors for PVC and PV match with each other.
 ```properties
 logserver:
   enabled: true
@@ -856,20 +860,22 @@ logserver:
   accessModes:
     - ReadWriteOnce
   storageClass: standard
-  selector:
-    matchLabels:
-      role: alluxio-logserver
-      # If you need, you can specify more selectors like below to provide better separation
-      # app: alluxio
-      # chart: alluxio-<chart version>
-      # release: alluxio
-      # heritage: Helm
-      # dc: data-center-1
-      # region: us-east
   # If you are dynamically provisioning PVs, the selector on the PVC should be empty.
   # Ref: https://kubernetes.io/docs/concepts/storage/persistent-volumes/#class-1
+  selector: {}
+  # If you are manually allocating PV for the logserver,
+  # it is recommended to use selectors to make sure the PV and PVC match as expected.
+  # You can specify selectors like below:
   # Example:
-  # selector: {}
+  # selector:
+  #   matchLabels:
+  #     role: alluxio-logserver
+  #     app: alluxio
+  #     chart: alluxio-<chart version>
+  #     release: alluxio
+  #     heritage: Helm
+  #     dc: data-center-1
+  #     region: us-east
 ```
 
 **Step 2: Helm install with the updated configuration**
@@ -951,15 +957,29 @@ spec:
   accessModes:
     - ReadWriteOnce
   # If you are using dynamic provisioning, leave the selector empty.
-  selector:
-    matchLabels:
-      role: alluxio-logserver
+  selector: {}
+  # If you are manually allocating PV for the logserver,
+  # it is recommended to use selectors to make sure the PV and PVC match as expected.
+  # You can specify selectors like below:
+  # Example:
+  # selector:
+  #   matchLabels:
+  #     role: alluxio-logserver
+  #     app: alluxio
+  #     chart: alluxio-<chart version>
+  #     release: alluxio
+  #     heritage: Helm
+  #     dc: data-center-1
+  #     region: us-east
 ```
 
 Create the PVC when you are ready.
 ```console
 $ kubectl create -f alluxio-logserver-pvc.yaml
 ```
+
+(Optional) If you are not using dynamic provisioning, you need to prepare the PV yourself.
+Remember to make sure the selectors on the PVC and PV match with each other.
 
 After you configure the volume in the Deployment, you can go ahead to create it.
 ```console

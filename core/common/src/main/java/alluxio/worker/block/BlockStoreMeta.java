@@ -22,14 +22,16 @@ import java.util.Map;
  */
 public interface BlockStoreMeta {
   /**
-   * Note: This is only available when blocks are included.
+   * Note: This method is only available when users initialize
+   * the blockStoreMeta with full block meta requirement.
    *
    * @return A mapping from storage tier alias to blocks
    */
   Map<String, List<Long>> getBlockList();
 
   /**
-   * Note: This is only available when blocks are included.
+   * Note: This method is only available when users initialize
+   * the blockStoreMeta with full block meta requirement.
    *
    * @return A mapping from storage location alias to blocks
    */

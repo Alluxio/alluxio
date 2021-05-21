@@ -25,6 +25,7 @@ import static org.mockito.Mockito.when;
 
 import alluxio.AlluxioURI;
 import alluxio.ClientContext;
+import alluxio.Constants;
 import alluxio.client.block.AlluxioBlockStore;
 import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.block.stream.BlockInStream;
@@ -274,7 +275,8 @@ public final class ReplicateDefinitionTest {
     for (boolean persisted : new boolean[] {true, false}) {
       for (boolean pinned : new boolean[] {true, false}) {
         mTestStatus.getFileInfo().setPersisted(persisted)
-            .setMediumTypes(pinned ? Sets.newHashSet("MEM") : Collections.emptySet());
+            .setMediumTypes(pinned ? Sets.newHashSet(Constants.MEDIUM_MEM)
+                : Collections.emptySet());
         byte[] input = BufferUtils.getIncreasingByteArray(0, (int) TEST_BLOCK_SIZE);
         TestBlockInStream mockInStream =
             new TestBlockInStream(input, TEST_BLOCK_ID, input.length, false,
@@ -297,7 +299,7 @@ public final class ReplicateDefinitionTest {
   @Test
   public void runTaskInputIOException() throws Exception {
     // file is pinned on a medium
-    mTestStatus.getFileInfo().setMediumTypes(Sets.newHashSet("MEM"));
+    mTestStatus.getFileInfo().setMediumTypes(Sets.newHashSet(Constants.MEDIUM_MEM));
     BlockInStream mockInStream = mock(BlockInStream.class);
     BlockOutStream mockOutStream = mock(BlockOutStream.class);
 
