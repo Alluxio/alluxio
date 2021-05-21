@@ -1248,7 +1248,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
     processWorkerRemovedBlocks(worker, worker.getBlocks());
   }
 
-  private LockResource lockBlock(long blockId) {
+  LockResource lockBlock(long blockId) {
     return new LockResource(mBlockLocks.get(blockId));
   }
 

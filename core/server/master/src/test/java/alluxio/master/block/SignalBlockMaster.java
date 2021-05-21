@@ -24,6 +24,7 @@ import alluxio.metrics.Metric;
 import alluxio.proto.journal.Journal;
 import alluxio.proto.meta.Block;
 import alluxio.resource.CloseableIterator;
+import alluxio.resource.LockResource;
 import alluxio.util.CommonUtils;
 import alluxio.util.executor.ExecutorServiceFactory;
 import alluxio.wire.Address;
@@ -55,32 +56,21 @@ class SignalBlockMaster extends DefaultBlockMaster {
     mLatch = readerLatch;
   }
 
-  public SignalBlockMaster(MetricsMaster mMetricsMaster, CoreMasterContext masterContext, ManualClock mClock, ExecutorServiceFactory constantExecutorServiceFactory, CountDownLatch readerLatch) {
+  public SignalBlockMaster(MetricsMaster mMetricsMaster, CoreMasterContext masterContext, ManualClock mClock, ExecutorServiceFactory constantExecutorServiceFactory, CountDownLatch targetLatch) {
     super(mMetricsMaster, masterContext, mClock, constantExecutorServiceFactory);
-    mLatch = readerLatch;
+    mLatch = targetLatch;
+  }
+
+  public void setLatch(CountDownLatch newLatch) {
+    mLatch = newLatch;
   }
 
   @Override
-  public void removeBlocks(List<Long> blockIds, boolean delete) throws UnavailableException {
-    super.removeBlocks(blockIds, delete);
-  }
-
-  @Override
-  public void commitBlock(long workerId, long usedBytesOnTier, String tierAlias, String mediumType, long blockId, long length) throws NotFoundException, UnavailableException {
-    super.commitBlock(workerId, usedBytesOnTier, tierAlias, mediumType, blockId, length);
-  }
-
-  @Override
-  public JournalContext createJournalContext() throws UnavailableException {
-    JournalContext context = super.createJournalContext();
-
-    // The reader will wait for this signal and start to read
+  LockResource lockBlock(long blockId) {
+    LockResource res = super.lockBlock(blockId);
+    // The latch can receive more signals than the countdown number
+    // But the CountdownLatch guarantees nothing happens if the countdown is already 0
     mLatch.countDown();
-
-    return context;
+    return res;
   }
-
-  // TODO(jiacheng): registerWorker and workerHeartbeat do not create journal
-  //  context, where do I inject?
-
 }

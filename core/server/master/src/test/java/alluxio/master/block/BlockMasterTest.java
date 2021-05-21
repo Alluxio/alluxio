@@ -14,51 +14,29 @@ package alluxio.master.block;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
-import alluxio.Server;
-import alluxio.StorageTierAssoc;
 import alluxio.client.block.options.GetWorkerReportOptions;
-import alluxio.conf.ServerConfiguration;
 import alluxio.Constants;
-import alluxio.conf.PropertyKey;
 import alluxio.clock.ManualClock;
 import alluxio.exception.BlockInfoException;
-import alluxio.exception.status.InvalidArgumentException;
-import alluxio.exception.status.NotFoundException;
-import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.Command;
 import alluxio.grpc.CommandType;
-import alluxio.grpc.ConfigProperty;
-import alluxio.grpc.GrpcService;
 import alluxio.grpc.RegisterWorkerPOptions;
-import alluxio.grpc.ServiceType;
 import alluxio.grpc.StorageList;
 import alluxio.grpc.WorkerLostStorageInfo;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatScheduler;
 import alluxio.heartbeat.ManuallyScheduleHeartbeat;
-import alluxio.master.CoreMaster;
 import alluxio.master.CoreMasterContext;
-import alluxio.master.MasterContext;
 import alluxio.master.MasterRegistry;
 import alluxio.master.MasterTestUtils;
-import alluxio.master.SafeModeManager;
-import alluxio.master.TestSafeModeManager;
-import alluxio.master.journal.JournalContext;
 import alluxio.master.journal.JournalSystem;
-import alluxio.master.journal.checkpoint.CheckpointName;
 import alluxio.master.journal.noop.NoopJournalSystem;
 import alluxio.master.metrics.MetricsMaster;
 import alluxio.master.metrics.MetricsMasterFactory;
 import alluxio.metrics.Metric;
-import alluxio.proto.journal.Journal;
 import alluxio.proto.meta.Block;
-import alluxio.resource.CloseableIterator;
-import alluxio.util.CommonUtils;
-import alluxio.util.SleepUtils;
 import alluxio.util.ThreadFactoryUtils;
 import alluxio.util.executor.ExecutorServiceFactories;
-import alluxio.util.executor.ExecutorServiceFactory;
-import alluxio.wire.Address;
 import alluxio.wire.BlockInfo;
 import alluxio.wire.BlockLocation;
 import alluxio.wire.WorkerInfo;
@@ -76,22 +54,18 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
 
-import java.io.IOException;
-import java.time.Clock;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
+import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
-import java.util.function.BiConsumer;
-import java.util.function.Consumer;
-import java.util.function.Function;
 
 /**
  * Unit tests for {@link BlockMaster}.
@@ -114,9 +88,6 @@ public class BlockMasterTest {
   private ManualClock mClock;
   private ExecutorService mExecutorService;
   private ExecutorService mClientExecutorService;
-  private SafeModeManager mSafeModeManager;
-  private long mStartTimeMs;
-  private int mPort;
   private MetricsMaster mMetricsMaster;
   private List<Metric> mMetrics;
 
@@ -138,9 +109,6 @@ public class BlockMasterTest {
   @Before
   public void before() throws Exception {
     mRegistry = new MasterRegistry();
-    mSafeModeManager = new TestSafeModeManager();
-    mStartTimeMs = System.currentTimeMillis();
-    mPort = ServerConfiguration.getInt(PropertyKey.MASTER_RPC_PORT);
     mMetrics = Lists.newArrayList();
     JournalSystem journalSystem = new NoopJournalSystem();
     CoreMasterContext masterContext = MasterTestUtils.testMasterContext();
@@ -437,123 +405,6 @@ public class BlockMasterTest {
         .setLocations(ImmutableList.of(blockLocation));
     assertEquals(expectedBlockInfo, mBlockMaster.getBlockInfo(blockId));
   }
-
-  /**
-   * RW contention
-   * Concurrent commit and readers
-   * Signal in commit and the readers inquire the state
-   * */
-  @Test
-  public void concurrentCommitWithReaders() throws Exception {
-    JournalSystem journalSystem = new NoopJournalSystem();
-    CoreMasterContext masterContext = MasterTestUtils.testMasterContext();
-
-    CountDownLatch readerLatch = new CountDownLatch(1);
-
-    SignalBlockMaster testMaster = new SignalBlockMaster(mMetricsMaster, masterContext, mClock,
-            ExecutorServiceFactories.constantExecutorServiceFactory(mExecutorService), readerLatch);
-
-    // Prepare worker
-    long worker1 = testMaster.getWorkerId(NET_ADDRESS_1);
-    long blockId = 1L;
-    long blockLength = 49L;
-    testMaster.workerRegister(worker1, Arrays.asList("MEM"), ImmutableMap.of("MEM", 100L),
-            ImmutableMap.of("MEM", 0L), NO_BLOCKS_ON_LOCATION, NO_LOST_STORAGE,
-            RegisterWorkerPOptions.getDefaultInstance());
-
-    // clients keep reading the blockInfo
-    // Each client is constantly checking the worker status
-    // This thread count is intentionally larger than the client thread pool
-    // In the hope that even if the first batch of clients all read the state before commit really happens
-    // The following batch will capture the state after the commit
-    int threadCount = 20;
-    Queue<Throwable> uncaughtThrowables = new ConcurrentLinkedQueue<>();
-    CountDownLatch allClientFinished = new CountDownLatch(threadCount);
-    for (int i = 0; i < threadCount; i++) {
-      int finalI = i;
-      mClientExecutorService.submit(() -> {
-        try {
-          // Wait until the commit is already running
-          readerLatch.await();
-
-          // If the block is not committed yet, a BlockInfoException will be thrown
-          BlockInfo blockInfo = testMaster.getBlockInfo(blockId);
-          List<WorkerInfo> workerInfoList = testMaster.getWorkerReport(GetWorkerReportOptions.defaults());
-
-          BlockLocation blockLocation = new BlockLocation()
-                  .setTierAlias("MEM")
-                  .setWorkerAddress(NET_ADDRESS_1)
-                  .setWorkerId(worker1)
-                  .setMediumType("MEM");
-          BlockInfo expectedBlockInfo = new BlockInfo()
-                  .setBlockId(blockId)
-                  .setLength(blockLength)
-                  .setLocations(ImmutableList.of(blockLocation));
-          assertEquals(expectedBlockInfo, blockInfo);
-          assertEquals(1, workerInfoList.size());
-          WorkerInfo worker = workerInfoList.get(0);
-          assertEquals(49L, worker.getUsedBytes());
-        } catch (BlockInfoException e) {
-          // The reader came in before the writer started the commit
-          try {
-            List<WorkerInfo> workerInfoList = testMaster.getWorkerReport(GetWorkerReportOptions.defaults());
-            assertEquals(1, workerInfoList.size());
-            WorkerInfo worker = workerInfoList.get(0);
-            // We may just see the result before or after the commit
-            // But other values should be illegal
-            assertTrue(49L == worker.getUsedBytes() || 100L == worker.getUsedBytes());
-          } catch (Throwable t) {
-            uncaughtThrowables.add(t);
-          }
-        } catch (Throwable t) {
-          uncaughtThrowables.add(t);
-        } finally {
-          allClientFinished.countDown();
-        }
-      });
-    }
-
-    // Sometime in the middle, a block is committed
-    testMaster.commitBlock(worker1, 49L, "MEM", "MEM", blockId, blockLength);
-
-    allClientFinished.await();
-    // If any assertion failed, the failed assertion will throw an AssertError
-    while (!uncaughtThrowables.isEmpty()) {
-      Throwable t = uncaughtThrowables.poll();
-      t.printStackTrace();
-    }
-    assertEquals(0, uncaughtThrowables.size());
-  }
-
-  /**
-   * RW contention
-   * Concurrent remove and readers
-   * Signal in remove and the readers inquire the state
-   * */
-
-  /**
-   * WW contention
-   * Write operations are:
-   * 1. commit
-   * 2. remove
-   * 3. workerRegister
-   * 4. workerHeartbeat
-   *
-   * It's hard to trigger a signal in workerRegister and workerHeartbeat
-   *
-   * Test W1 race condition with W2 where W1 will send a signal in the middle of run and trigger W2
-   * W1 is commit/remove
-   * W2 is commit/remove/workerRegister/workerHeartbeat
-   *
-   * When W1 is operating on block B, if W2 is commit/remove:
-   * 1. W2 is on the same block
-   * 2. W2 is on a different block
-   *
-   * When W1 is operating on block B, if W2 is workerRegister/workerHeartbeat,
-   * the options are:
-   * Opt1: W2 may be from the same worker or a different worker
-   * Opt2: W2 may contain the same block or not
-   * */
 
   @Test
   public void stop() throws Exception {
