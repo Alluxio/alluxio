@@ -182,4 +182,4 @@
 
 0.6.22
 
-- Change logserver Deployment strategy to Recreate [#13422](https://github.com/Alluxio/alluxio/issues/13422)
+- Enable configuring logserver Deployment strategy to address [#13422](https://github.com/Alluxio/alluxio/issues/13422)
