@@ -131,7 +131,8 @@ public final class JobUtils {
           ExceptionMessage.PINNED_TO_MULTIPLE_MEDIUMTYPES.getMessage(status.getPath()));
     }
 
-    // when the data to load is persisted, simply use local worker to load from UFS or an worker
+    // when the data to load is persisted, simply use local worker to load
+    // from ufs (e.g. distributed load) or from a remote worker (e.g. setReplication)
     if (pinnedLocation.isEmpty() && status.isPersisted()) {
       OpenFilePOptions openOptions =
           OpenFilePOptions.newBuilder().setReadType(ReadPType.CACHE_PROMOTE).build();
