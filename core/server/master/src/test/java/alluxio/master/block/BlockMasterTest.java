@@ -242,8 +242,9 @@ public class BlockMasterTest {
     List<Long> orphanedBlocks = Arrays.asList(1L, 2L);
     Map<String, Long> memUsage = ImmutableMap.of(Constants.MEDIUM_MEM, 10L);
 
-    Block.BlockLocation blockLoc = Block.BlockLocation.newBuilder().setWorkerId(workerId)
-            .setTier(Constants.MEDIUM_MEM).setMediumType(Constants.MEDIUM_MEM).build();
+    Block.BlockLocation blockLoc = Block.BlockLocation.newBuilder()
+        .setWorkerId(workerId).setTier(Constants.MEDIUM_MEM)
+        .setMediumType(Constants.MEDIUM_MEM).build();
     mBlockMaster.workerRegister(workerId, Arrays.asList(Constants.MEDIUM_MEM),
         ImmutableMap.of(Constants.MEDIUM_MEM, 100L),
         memUsage, ImmutableMap.of(blockLoc, orphanedBlocks), NO_LOST_STORAGE,
@@ -315,10 +316,8 @@ public class BlockMasterTest {
     // Send a heartbeat from worker2 saying that it's added blockId.
     List<Long> addedBlocks = ImmutableList.of(blockId);
     Block.BlockLocation blockOnWorker2 = Block.BlockLocation.newBuilder()
-            .setWorkerId(worker2)
-            .setTier(Constants.MEDIUM_MEM)
-            .setMediumType(Constants.MEDIUM_MEM)
-            .build();
+        .setWorkerId(worker2).setTier(Constants.MEDIUM_MEM)
+        .setMediumType(Constants.MEDIUM_MEM).build();
     mBlockMaster.workerHeartbeat(worker2, null,
         ImmutableMap.of(Constants.MEDIUM_MEM, 0L), NO_BLOCKS,
         ImmutableMap.of(blockOnWorker2, addedBlocks),

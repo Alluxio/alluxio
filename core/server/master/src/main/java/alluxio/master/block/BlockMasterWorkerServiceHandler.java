@@ -143,7 +143,8 @@ public final class BlockMasterWorkerServiceHandler extends
     final Map<String, StorageList> lostStorageMap = request.getLostStorageMap();
 
     final Map<Block.BlockLocation, List<Long>> currBlocksOnLocationMap =
-            reconstructBlocksOnLocationMap(request.getCurrentBlocksList(), workerId);
+        reconstructBlocksOnLocationMap(request.getCurrentBlocksList(), workerId);
+
 
     RegisterWorkerPOptions options = request.getOptions();
     RpcUtils.call(LOG,
