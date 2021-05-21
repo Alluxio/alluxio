@@ -437,7 +437,7 @@ logserver:
   # https://kubernetes.io/docs/concepts/workloads/controllers/deployment/#strategy
   # The default is Recreate which kills the existing Pod before creating a new one
   # Note: When using RWO PVCs, the strategy MUST be Recreate, because the PVC cannot
-  # bew passed from the old Pod to the new one.
+  # be passed from the old Pod to the new one
   # When using RWX PVCs, you can use RollingUpdate strategy to ensure zero down time
   # Example:
   # strategy:
