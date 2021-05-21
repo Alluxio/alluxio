@@ -40,5 +40,5 @@ public class CatalogProperty extends BaseProperty {
           Integer.toString(DEFAULT_DB_SYNC_THREADS));
   public static final CatalogProperty DB_CONFIG_FILE =
       new CatalogProperty("catalog.db.config.file",
-          "The config file for the UDB.", "");
+          "The config file for the UDB.", "<catalog.db.config.file>");
 }
