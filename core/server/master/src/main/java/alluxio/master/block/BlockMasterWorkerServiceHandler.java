@@ -157,8 +157,7 @@ public final class BlockMasterWorkerServiceHandler extends
 
   /**
    * This converts the flattened list of block locations back to a map.
-   * This relies on the unique guarantee from
-   * {@link alluxio.worker.block.BlockMasterClient#heartbeat}.
+   * This relies on the unique guarantee from the worker-side serialization.
    * If a duplicated key is seen, an AssertionError will be thrown.
    * */
   private Map<Block.BlockLocation, List<Long>> reconstructBlocksOnLocationMap(
@@ -175,18 +174,11 @@ public final class BlockMasterWorkerServiceHandler extends
                  * Therefore we just fail on merging.
                  */
                 (e1, e2) -> {
-//                  System.out.println(entries);
-//                  LocationBlockIdListEntry k1 = entries.get(0);
-//                  LocationBlockIdListEntry k2 = entries.get(1);
-//                  BlockStoreLocationProto p1 = k1.getKey();
-//                  throw new AssertionError(
-//                      String.format(
-//                          "One registerWorker request contains two block id lists for the "
-//                                  + "same BlockLocation.%n"
-//                                  + "Existing: %s%n New: %s",
-//                          e1, e2));
-                  e1.addAll(e2);
-                  return e1;
+                  throw new AssertionError(
+                      String.format(
+                          "Request contains two block id lists for the "
+                              + "same BlockLocation.%nExisting: %s%n New: %s",
+                          e1, e2));
                 }));
   }
 }

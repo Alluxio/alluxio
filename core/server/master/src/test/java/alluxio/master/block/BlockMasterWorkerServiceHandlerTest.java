@@ -106,16 +106,13 @@ public class BlockMasterWorkerServiceHandlerTest {
     StreamObserver<RegisterWorkerPResponse> noopResponseObserver =
         new StreamObserver<RegisterWorkerPResponse>() {
           @Override
-          public void onNext(RegisterWorkerPResponse response) {
-          }
+          public void onNext(RegisterWorkerPResponse response) {}
 
           @Override
-          public void onError(Throwable t) {
-          }
+          public void onError(Throwable t) {}
 
           @Override
-          public void onCompleted() {
-          }
+          public void onCompleted() {}
         };
 
     assertThrows(AssertionError.class, () -> {
@@ -154,16 +151,13 @@ public class BlockMasterWorkerServiceHandlerTest {
     StreamObserver<BlockHeartbeatPResponse> noopResponseObserver =
         new StreamObserver<BlockHeartbeatPResponse>() {
           @Override
-          public void onNext(BlockHeartbeatPResponse response) {
-          }
+          public void onNext(BlockHeartbeatPResponse response) {}
 
           @Override
-          public void onError(Throwable t) {
-          }
+          public void onError(Throwable t) {}
 
           @Override
-          public void onCompleted() {
-          }
+          public void onCompleted() {}
         };
 
     assertThrows(AssertionError.class, () -> {

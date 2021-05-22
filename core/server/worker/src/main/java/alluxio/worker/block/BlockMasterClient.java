@@ -34,11 +34,14 @@ import alluxio.master.MasterClientContext;
 import alluxio.grpc.GrpcUtils;
 import alluxio.wire.WorkerNetAddress;
 
+import com.google.common.annotations.VisibleForTesting;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -144,21 +147,29 @@ public class BlockMasterClient extends AbstractMasterClient {
    * Because the list is flattened from a map, in the list no two LocationBlockIdListEntry items
    * have the same BlockStoreLocation.
    * */
-  private List<LocationBlockIdListEntry> convertBlockListMapToProto(
+  @VisibleForTesting
+  public List<LocationBlockIdListEntry> convertBlockListMapToProto(
       Map<BlockStoreLocation, List<Long>> blockListOnLocation) {
-    // TODO(jiacheng): This doesn't really do dedup because BlockStoreLocation dirIndex is lost
     final List<LocationBlockIdListEntry> entryList = new ArrayList<>();
+
+    Map<BlockStoreLocationProto, List<Long>> tierToBlocks = new HashMap<>();
     for (Map.Entry<BlockStoreLocation, List<Long>> entry : blockListOnLocation.entrySet()) {
       BlockStoreLocation loc = entry.getKey();
-      List<Long> entryValue = entry.getValue();
       BlockStoreLocationProto locationProto = BlockStoreLocationProto.newBuilder()
           .setTierAlias(loc.tierAlias())
           .setMediumType(loc.mediumType())
           .build();
-
-      BlockIdList blockIdList = BlockIdList.newBuilder().addAllBlockId(entryValue).build();
+      if (tierToBlocks.containsKey(locationProto)) {
+        tierToBlocks.get(locationProto).addAll(entry.getValue());
+      } else {
+        List<Long> blockList = new ArrayList<>(entry.getValue());
+        tierToBlocks.put(locationProto, blockList);
+      }
+    }
+    for (Map.Entry<BlockStoreLocationProto, List<Long>> entry : tierToBlocks.entrySet()) {
+      BlockIdList blockIdList = BlockIdList.newBuilder().addAllBlockId(entry.getValue()).build();
       LocationBlockIdListEntry listEntry = LocationBlockIdListEntry.newBuilder()
-          .setKey(locationProto).setValue(blockIdList).build();
+          .setKey(entry.getKey()).setValue(blockIdList).build();
       entryList.add(listEntry);
     }
 
