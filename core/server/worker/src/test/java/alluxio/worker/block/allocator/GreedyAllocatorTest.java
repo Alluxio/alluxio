@@ -14,7 +14,9 @@ package alluxio.worker.block.allocator;
 import alluxio.Constants;
 import alluxio.conf.ServerConfiguration;
 import alluxio.conf.PropertyKey;
+import alluxio.worker.block.reviewer.MockReviewer;
 
+import com.google.common.collect.Sets;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -146,6 +148,30 @@ public final class GreedyAllocatorTest extends AllocatorTestBase {
     //  1      └───── 500
     //  0               ├─── 0
     //  1               ├─── 1300   <--- alloc
+    //  2               └─── 3000
+    //
+
+    /** Reviewer's opinion affects the test */
+    MockReviewer.resetBytesToReject(Sets.newHashSet(500L));
+
+    assertTempBlockMeta(mAllocator, mAnyTierLoc, 100, true, "HDD", 1);
+    //
+    // idx | tier1 | tier2 | tier3
+    //  0      0
+    //  0      ├───── 0
+    //  1      └───── 500
+    //  0               ├─── 0
+    //  1               ├─── 1200   <--- alloc
+    //  2               └─── 3000
+    //
+    assertTempBlockMeta(mAllocator, mAnyDirInTierLoc2, 100, false, "", 0);
+    //
+    // idx | tier1 | tier2 | tier3
+    //  0      0
+    //  0      ├───── 0
+    //  1      └───── 500
+    //  0               ├─── 0
+    //  1               ├─── 1200
     //  2               └─── 3000
     //
   }
