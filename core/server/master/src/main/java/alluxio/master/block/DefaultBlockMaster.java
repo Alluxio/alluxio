@@ -1023,7 +1023,7 @@ public final class DefaultBlockMaster extends CoreMaster implements BlockMaster 
   }
 
   @Override
-  public boolean hasLostBlock(long blockId) {
+  public boolean isBlockLost(long blockId) {
     return mLostBlocks.contains(blockId);
   }
 

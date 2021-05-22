@@ -321,7 +321,7 @@ public final class ReplicationChecker implements HeartbeatExecutor {
               }
               if (currentReplicas < minReplicas) {
                 // if this file is not persisted and block master thinks it is lost, no effort made
-                if (!file.isPersisted() && mBlockMaster.hasLostBlock(blockId)) {
+                if (!file.isPersisted() && mBlockMaster.isBlockLost(blockId)) {
                   continue;
                 }
                 requests.add(new ImmutableTriple<>(inodePath.getUri(), blockId,
