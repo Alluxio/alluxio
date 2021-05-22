@@ -73,7 +73,7 @@ public class BlockMasterClientTest {
     } else {
       LocationBlockIdListEntry memTierEntry = protoList.get(1);
       List<Long> memProtoBlockList = memTierEntry.getValue().getBlockIdList();
-      assertEquals(Arrays.asList(1L, 2L, 3L, 4L, 5L, 6L, 7L),
+      assertEquals(ImmutableSet.of(1L, 2L, 3L, 4L, 5L, 6L, 7L),
               new HashSet<>(memProtoBlockList));
       LocationBlockIdListEntry ssdTierEntry = protoList.get(0);
       List<Long> ssdProtoBlockList = ssdTierEntry.getValue().getBlockIdList();
