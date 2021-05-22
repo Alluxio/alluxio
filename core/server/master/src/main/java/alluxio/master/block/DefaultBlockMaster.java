@@ -999,7 +999,14 @@ public final class DefaultBlockMaster extends CoreMaster implements BlockMaster 
           Optional<BlockMeta> block = mBlockStore.getBlock(blockId);
           if (block.isPresent()) {
             workerInfo.addBlock(blockId);
-            mBlockStore.addLocation(blockId, entry.getKey());
+            BlockLocation location = entry.getKey();
+            if (location.getWorkerId() != workerInfo.getId()) {
+              throw new IllegalArgumentException(
+                String.format("BlockLocation has different workerId %s from "
+                  + "the request sender workerId %s!",
+                  location.getWorkerId(), workerInfo.getId()));
+            }
+            mBlockStore.addLocation(blockId, location);
             mLostBlocks.remove(blockId);
           } else {
             LOG.warn("Invalid block: {} from worker {}.", blockId,
