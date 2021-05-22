@@ -212,6 +212,7 @@ public interface BlockMaster extends Master, ContainerIdGenerable {
       List<Metric> metrics);
 
   /**
+   * @param blockId the block ID
    * @return whether the block is considered lost in Alluxio
    * */
   boolean hasLostBlock(long blockId);
