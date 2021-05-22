@@ -73,6 +73,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -161,6 +162,8 @@ public final class ReplicateDefinitionTest {
     when(mMockFileSystemContext.getCachedWorkers()).thenReturn(blockWorkers);
     when(mMockBlockStore.getInStream(anyLong(),
             any(InStreamOptions.class))).thenReturn(mockInStream);
+    when(mMockBlockStore.getInStream(any(BlockInfo.class),
+        any(InStreamOptions.class), any(Map.class))).thenReturn(mockInStream);
     PowerMockito.mockStatic(BlockInStream.class);
     when(BlockInStream.create(any(FileSystemContext.class), any(BlockInfo.class),
         any(WorkerNetAddress.class), any(BlockInStreamSource.class), any(InStreamOptions.class)))
