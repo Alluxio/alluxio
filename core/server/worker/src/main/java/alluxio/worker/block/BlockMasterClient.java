@@ -41,7 +41,6 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -144,12 +143,15 @@ public class BlockMasterClient extends AbstractMasterClient {
 
   /**
    * Converts the block list map to proto.
-   * Because the list is flattened from a map, in the list no two LocationBlockIdListEntry items
-   * have the same BlockStoreLocation.
-   * */
+   * Because the list is flattened from a map, in the list no two
+   * {@link LocationBlockIdListEntry} items have the same BlockStoreLocation.
+   *
+   * @param blockListOnLocation a map from block location to the block list
+   * @return a flattened and deduplicated list
+   */
   @VisibleForTesting
-  public List<LocationBlockIdListEntry> convertBlockListMapToProto(
-      Map<BlockStoreLocation, List<Long>> blockListOnLocation) {
+  List<LocationBlockIdListEntry> convertBlockListMapToProto(
+          Map<BlockStoreLocation, List<Long>> blockListOnLocation) {
     final List<LocationBlockIdListEntry> entryList = new ArrayList<>();
 
     Map<BlockStoreLocationProto, List<Long>> tierToBlocks = new HashMap<>();
@@ -175,6 +177,7 @@ public class BlockMasterClient extends AbstractMasterClient {
 
     return entryList;
   }
+
   /**
    * The method the worker should periodically execute to heartbeat back to the master.
    *
