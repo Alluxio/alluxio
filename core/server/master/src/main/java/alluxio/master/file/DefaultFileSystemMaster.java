@@ -2694,12 +2694,6 @@ public final class DefaultFileSystemMaster extends CoreMaster
       long fileId = IdUtils.createFileId(containerId);
       lostFiles.add(fileId);
     }
-//    for (long blockId : mBlockMaster.getLostBlocks()) {
-//      // the file id is the container id of the block id
-//      long containerId = BlockId.getContainerId(blockId);
-//      long fileId = IdUtils.createFileId(containerId);
-//      lostFiles.add(fileId);
-//    }
     return new ArrayList<>(lostFiles);
   }
 
