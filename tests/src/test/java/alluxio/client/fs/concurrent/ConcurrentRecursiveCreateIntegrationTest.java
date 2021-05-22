@@ -42,7 +42,7 @@ import java.util.concurrent.TimeUnit;
 /**
  * Tests the correctness of concurrent recursive creates.
  */
-public class ConcurrentRecursiveCreateTest extends BaseIntegrationTest {
+public class ConcurrentRecursiveCreateIntegrationTest extends BaseIntegrationTest {
   private static final int NUM_TOP_LEVEL_DIRS = 10;
 
   @Rule
