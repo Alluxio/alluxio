@@ -29,6 +29,7 @@ import alluxio.wire.Address;
 import alluxio.wire.BlockInfo;
 import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
+
 import com.google.common.annotations.VisibleForTesting;
 
 import java.util.Iterator;
