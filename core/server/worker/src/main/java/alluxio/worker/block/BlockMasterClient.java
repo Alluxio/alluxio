@@ -142,9 +142,12 @@ public class BlockMasterClient extends AbstractMasterClient {
   }
 
   /**
-   * Converts the block list map to proto.
-   * Because the list is flattened from a map, in the list no two
-   * {@link LocationBlockIdListEntry} items have the same BlockStoreLocation.
+   * Converts the block list map to a proto list.
+   * Because the list is flattened from a map, in the list no two {@link LocationBlockIdListEntry}
+   * instances shall have the same {@link BlockStoreLocationProto}.
+   * The uniqueness of {@link BlockStoreLocationProto} is determined by tier alias and medium type.
+   * That means directories with the same tier alias and medium type will be merged into the same
+   * {@link LocationBlockIdListEntry}.
    *
    * @param blockListOnLocation a map from block location to the block list
    * @return a flattened and deduplicated list

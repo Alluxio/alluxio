@@ -49,6 +49,7 @@ public class BlockMasterClientTest {
     BlockStoreLocation ssdDir1 = new BlockStoreLocation("SSD", 1);
     blockMap.put(ssdDir1, Arrays.asList(15L, 16L, 17L, 18L, 19L));
 
+    // Directories on the same tier will be merged together
     List<LocationBlockIdListEntry> protoList = client.convertBlockListMapToProto(blockMap);
     assertEquals(2, protoList.size());
     BlockStoreLocationProto memLocationProto = BlockStoreLocationProto.newBuilder()

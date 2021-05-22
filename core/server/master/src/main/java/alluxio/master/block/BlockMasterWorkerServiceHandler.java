@@ -76,7 +76,7 @@ public final class BlockMasterWorkerServiceHandler extends
     final Map<String, StorageList> lostStorageMap = request.getLostStorageMap();
 
     final Map<Block.BlockLocation, List<Long>> addedBlocksMap =
-            reconstructBlocksOnLocationMap(request.getAddedBlocksList());
+        reconstructBlocksOnLocationMap(request.getAddedBlocksList());
 
     final List<Metric> metrics = request.getOptions().getMetricsList()
         .stream().map(Metric::fromProto).collect(Collectors.toList());
@@ -158,26 +158,26 @@ public final class BlockMasterWorkerServiceHandler extends
    * This converts the flattened list of block locations back to a map.
    * This relies on the unique guarantee from the worker-side serialization.
    * If a duplicated key is seen, an AssertionError will be thrown.
+   * The key is {@link Block.BlockLocation}, where the hash code is determined by
+   * tier alias and medium type.
    * */
   private Map<Block.BlockLocation, List<Long>> reconstructBlocksOnLocationMap(
           List<LocationBlockIdListEntry> entries) {
     return entries.stream().collect(
-            Collectors.toMap(
-                e -> Block.BlockLocation.newBuilder().setTier(e.getKey().getTierAlias())
-                        .setMediumType(e.getKey().getMediumType()).build(),
-                e -> e.getValue().getBlockIdList(),
-                /**
-                 * The merger function is invoked on key collisions to merge the values.
-                 * In fact this merger should never be invoked because the list is deduplicated
-                 * by {@link BlockMasterClient#heartbeat} before sending to the master.
-                 * Therefore we just fail on merging.
-                 */
-                (e1, e2) -> {
-                  throw new AssertionError(
-                      String.format(
-                          "Request contains two block id lists for the "
-                              + "same BlockLocation.%nExisting: %s%n New: %s",
-                          e1, e2));
-                }));
+        Collectors.toMap(
+            e -> Block.BlockLocation.newBuilder().setTier(e.getKey().getTierAlias())
+                .setMediumType(e.getKey().getMediumType()).build(),
+            e -> e.getValue().getBlockIdList(),
+            /**
+             * The merger function is invoked on key collisions to merge the values.
+             * In fact this merger should never be invoked because the list is deduplicated
+             * by {@link BlockMasterClient#heartbeat} before sending to the master.
+             * Therefore we just fail on merging.
+             */
+            (e1, e2) -> {
+              throw new AssertionError(
+                String.format("Request contains two block id lists for the "
+                  + "same BlockLocation.%nExisting: %s%n New: %s", e1, e2));
+            }));
   }
 }
