@@ -11,12 +11,17 @@
 
 package alluxio.util;
 
+import alluxio.metrics.MetricsSystem;
+
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.collect.Sets;
+import com.google.common.util.concurrent.ExecutionError;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.lang.management.ManagementFactory;
 import java.lang.management.MemoryPoolMXBean;
@@ -44,6 +49,7 @@ import java.util.Set;
  * behavior.
  */
 public class ObjectSizeCalculator {
+  private static final Logger LOG = LoggerFactory.getLogger(ObjectSizeCalculator.class);
 
   /**
    * Describes constant memory overheads for various constructs in a JVM implementation.
@@ -195,7 +201,16 @@ public class ObjectSizeCalculator {
       if (clazz.isArray()) {
         visitArray(obj);
       } else {
-        mClassInfos.getUnchecked(clazz).visit(obj, this);
+        try {
+          mClassInfos.getUnchecked(clazz).visit(obj, this);
+        } catch (ExecutionError e) {
+          if (!(e.getCause() instanceof NoClassDefFoundError)) {
+            LOG.info("Exception occurred while calculating heap size: " + e.getMessage());
+          } else {
+            LOG.debug("ClassNotFound Exception occurred while calculating heap size: "
+                + e.getMessage());
+          }
+        }
       }
     }
   }

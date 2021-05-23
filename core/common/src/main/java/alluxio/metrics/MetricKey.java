@@ -364,6 +364,17 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setDescription("Total number of blocks in Alluxio")
           .setMetricType(MetricType.COUNTER)
           .build();
+  public static final MetricKey MASTER_INODE_HEAP_SIZE =
+      new Builder("Master.InodeHeapSize")
+          .setDescription("An estimate of the inode heap size")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey MASTER_BLOCK_HEAP_SIZE =
+      new Builder("Master.BlockHeapSize")
+          .setDescription("An estimate of the blocks heap size")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+
 
   // Backup Restore
   public static final MetricKey MASTER_LAST_BACKUP_ENTRIES_COUNT =

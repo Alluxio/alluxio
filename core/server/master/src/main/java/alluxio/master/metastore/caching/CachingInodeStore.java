@@ -34,6 +34,7 @@ import alluxio.metrics.MetricsSystem;
 import alluxio.resource.LockResource;
 import alluxio.resource.RWLockResource;
 import alluxio.util.ConfigurationUtils;
+import alluxio.util.ObjectSizeCalculator;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
@@ -144,6 +145,10 @@ public final class CachingInodeStore implements InodeStore, Closeable {
     mInodeCache = new InodeCache(cacheConf);
     mEdgeCache = new EdgeCache(cacheConf);
     mListingCache = new ListingCache(cacheConf);
+    MetricsSystem.registerCachedGaugeIfAbsent(MetricKey.MASTER_INODE_HEAP_SIZE.getName(),
+        () -> ObjectSizeCalculator.getObjectSize(mInodeCache)
+            + ObjectSizeCalculator.getObjectSize(mEdgeCache)
+            + ObjectSizeCalculator.getObjectSize(mListingCache));
   }
 
   @Override
