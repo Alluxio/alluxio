@@ -116,6 +116,11 @@
       </snapshots>
     </repository>
     <repository>
+      <id>aliyunmaven</id>
+      <name>spring-plugin</name>
+      <url>https://maven.aliyun.com/repository/spring-plugin</url>
+    </repository>
+    <repository>
       <id>alluxio.artifacts</id>
       <url>http://alluxio.artifacts.s3-website-us-east-1.amazonaws.com/release</url>
     </repository>
