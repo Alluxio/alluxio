@@ -64,6 +64,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   private static final Cache<String, Boolean> REGEXP_CACHE = CacheBuilder.newBuilder()
       .maximumSize(1024)
       .build();
+
   /**
    * The consistency check level to apply to a certain property key.
    * User can run "alluxio validateEnv all cluster.conf.consistent" to validate the consistency of
@@ -4728,6 +4729,27 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   //
   // FUSE integration related properties
   //
+  public static final PropertyKey FUSE_AUTH_POLICY_CLASS =
+      new Builder(Name.FUSE_AUTH_POLICY_CLASS)
+          .setDefaultValue("alluxio.fuse.auth.DefaultAuthPolicy")
+          .setDescription("The fuse auth policy class.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
+          .setScope(Scope.CLIENT)
+          .build();
+  public static final PropertyKey FUSE_AUTH_POLICY_CUSTOM_USER =
+      new Builder(Name.FUSE_AUTH_POLICY_CUSTOM_USER)
+          .setDefaultValue("")
+          .setDescription("The fuse user name for custom auth policy.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
+          .setScope(Scope.CLIENT)
+          .build();
+  public static final PropertyKey FUSE_AUTH_POLICY_CUSTOM_GROUP =
+      new Builder(Name.FUSE_AUTH_POLICY_CUSTOM_GROUP)
+          .setDefaultValue("")
+          .setDescription("The fuse group name for custom auth policy.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
+          .setScope(Scope.CLIENT)
+          .build();
   public static final PropertyKey FUSE_CACHED_PATHS_MAX =
       new Builder(Name.FUSE_CACHED_PATHS_MAX)
           .setDefaultValue(500)
@@ -6147,6 +6169,11 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     //
     // FUSE integration related properties
     //
+    public static final String FUSE_AUTH_POLICY_CLASS = "alluxio.fuse.auth.policy.class";
+    public static final String FUSE_AUTH_POLICY_CUSTOM_USER =
+        "alluxio.fuse.auth.policy.custom.user";
+    public static final String FUSE_AUTH_POLICY_CUSTOM_GROUP =
+        "alluxio.fuse.auth.policy.custom.group";
     public static final String FUSE_CACHED_PATHS_MAX = "alluxio.fuse.cached.paths.max";
     public static final String FUSE_DEBUG_ENABLED = "alluxio.fuse.debug.enabled";
     public static final String FUSE_FS_NAME = "alluxio.fuse.fs.name";
