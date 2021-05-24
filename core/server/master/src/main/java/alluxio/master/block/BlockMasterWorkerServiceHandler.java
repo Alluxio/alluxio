@@ -132,7 +132,7 @@ public final class BlockMasterWorkerServiceHandler extends
   @Override
   public void getWorkerId(GetWorkerIdPRequest request,
       StreamObserver<GetWorkerIdPResponse> responseObserver) {
-    if (request.hasWorkerId() && request.getWorkerId() != 0) {
+    if (request.hasWorkerId()) {
       RpcUtils.call(LOG, (RpcUtils.RpcCallableThrowsIOException<GetWorkerIdPResponse>) () -> {
         return GetWorkerIdPResponse.newBuilder().setWorkerId(
             mBlockMaster.getWorkerId(GrpcUtils.fromProto(request.getWorkerNetAddress()),
