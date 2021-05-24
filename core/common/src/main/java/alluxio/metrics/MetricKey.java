@@ -1035,6 +1035,18 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setMetricType(MetricType.GAUGE)
           .setIsClusterAggregated(false)
           .build();
+  public static final MetricKey WORKER_RPC_READ_COUNT =
+      new Builder("Worker.RpcReadCount")
+          .setDescription("The number of active read-RPCs managed by this worker")
+          .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggregated(true)
+          .build();
+  public static final MetricKey WORKER_RPC_WRITE_COUNT =
+      new Builder("Worker.RpcWriteCount")
+          .setDescription("The number of active write-RPCs managed by this worker")
+          .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggregated(true)
+          .build();
 
   // Client metrics
   public static final MetricKey CLIENT_BLOCK_READ_CHUNK =
