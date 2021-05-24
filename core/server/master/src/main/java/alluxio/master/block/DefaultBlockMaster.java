@@ -405,11 +405,8 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
   public long getCapacityBytes() {
     long ret = 0;
     for (MasterWorkerInfo worker : mWorkers) {
-      worker.getUsageLock().readLock().lock();
-      try {
+      try (LockResource lr = new LockResource(worker.getUsageLock().readLock())){
         ret += worker.getCapacityBytes();
-      } finally {
-        worker.getUsageLock().readLock().unlock();
       }
     }
     return ret;
@@ -424,11 +421,8 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
   public long getUsedBytes() {
     long ret = 0;
     for (MasterWorkerInfo worker : mWorkers) {
-      worker.getUsageLock().readLock().lock();
-      try {
+      try (LockResource lr = new LockResource(worker.getUsageLock().readLock())){
         ret += worker.getUsedBytes();
-      } finally {
-        worker.getUsageLock().readLock().unlock();
       }
     }
     return ret;
@@ -553,8 +547,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
   public List<WorkerLostStorageInfo> getWorkerLostStorage() {
     List<WorkerLostStorageInfo> workerLostStorageList = new ArrayList<>();
     for (MasterWorkerInfo worker : mWorkers) {
-      worker.getUsageLock().readLock().lock();
-      try {
+      try (LockResource lr = new LockResource(worker.getUsageLock().readLock())){
         if (worker.hasLostStorage()) {
           Map<String, StorageList> lostStorage = worker.getLostStorage().entrySet()
                   .stream().collect(Collectors.toMap(Map.Entry::getKey,
@@ -563,10 +556,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
                   .setAddress(GrpcUtils.toProto(worker.getWorkerAddress()))
                   .putAllLostStorage(lostStorage).build());
         }
-      } finally {
-        worker.getUsageLock().readLock().unlock();
       }
-
     }
     return workerLostStorageList;
   }
@@ -607,11 +597,8 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
           MasterWorkerInfo worker = mWorkers.getFirstByField(ID_INDEX, workerId);
           if (worker != null) {
             // We read the mBlocks and write the mToRemoveBlocks
-            worker.getBlockListLock().writeLock().lock();
-            try {
+            try (LockResource lr = new LockResource(worker.getBlockListLock().writeLock())) {
               worker.updateToRemovedBlock(true, blockId);
-            } finally {
-              worker.getBlockListLock().writeLock().unlock();
             }
           }
         }
@@ -745,11 +732,8 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
         worker.getUsageLock().writeLock().unlock();
       }
 
-      worker.getMetaLock().writeLock().lock();
-      try {
+      try (LockResource lr = new LockResource(worker.getMetaLock().writeLock())){
         worker.updateLastUpdatedTimeMs();
-      } finally {
-        worker.getMetaLock().writeLock().unlock();
       }
     }
   }
@@ -789,14 +773,11 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
   public Map<String, Long> getTotalBytesOnTiers() {
     Map<String, Long> ret = new HashMap<>();
     for (MasterWorkerInfo worker : mWorkers) {
-      worker.getUsageLock().readLock().lock();
-      try {
+      try (LockResource lr = new LockResource(worker.getUsageLock().readLock())){
         for (Map.Entry<String, Long> entry : worker.getTotalBytesOnTiers().entrySet()) {
           Long total = ret.get(entry.getKey());
           ret.put(entry.getKey(), (total == null ? 0L : total) + entry.getValue());
         }
-      } finally {
-        worker.getUsageLock().readLock().unlock();
       }
     }
     return ret;
@@ -806,14 +787,11 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
   public Map<String, Long> getUsedBytesOnTiers() {
     Map<String, Long> ret = new HashMap<>();
     for (MasterWorkerInfo worker : mWorkers) {
-      worker.getUsageLock().readLock().lock();
-      try {
+      try (LockResource lr = new LockResource(worker.getUsageLock().readLock())){
         for (Map.Entry<String, Long> entry : worker.getUsedBytesOnTiers().entrySet()) {
           Long used = ret.get(entry.getKey());
           ret.put(entry.getKey(), (used == null ? 0L : used) + entry.getValue());
         }
-      } finally {
-        worker.getUsageLock().readLock().unlock();
       }
     }
     return ret;
@@ -1197,8 +1175,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
     public void heartbeat() {
       long masterWorkerTimeoutMs = ServerConfiguration.getMs(PropertyKey.MASTER_WORKER_TIMEOUT_MS);
       for (MasterWorkerInfo worker : mWorkers) {
-        worker.getBlockListLock().writeLock().lock();
-        try {
+        try (LockResource lr = new LockResource(worker.getBlockListLock().writeLock())){
           // This is not locking because the field is atomic
           final long lastUpdate = mClock.millis() - worker.getLastUpdatedTimeMs();
           if (lastUpdate > masterWorkerTimeoutMs) {
@@ -1206,8 +1183,6 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
                     worker.getWorkerAddress(), lastUpdate);
             processLostWorker(worker);
           }
-        } finally {
-          worker.getBlockListLock().writeLock().unlock();
         }
       }
     }
@@ -1224,11 +1199,8 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
   @VisibleForTesting
   public void forgetAllWorkers() {
     for (MasterWorkerInfo worker : mWorkers) {
-      worker.getBlockListLock().writeLock().lock();
-      try {
+      try (LockResource lr = new LockResource(worker.getBlockListLock().writeLock())){
         processLostWorker(worker);
-      } finally {
-        worker.getBlockListLock().writeLock().unlock();
       }
     }
   }
