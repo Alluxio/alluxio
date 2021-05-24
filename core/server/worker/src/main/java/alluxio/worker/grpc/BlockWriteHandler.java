@@ -36,7 +36,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 public final class BlockWriteHandler extends AbstractWriteHandler<BlockWriteRequestContext> {
   private static final Logger LOG = LoggerFactory.getLogger(BlockWriteHandler.class);
-  /** Metrics */
+  /** Metrics. */
   private static final Counter RPC_WRITE_COUNT =
       MetricsSystem.counter(MetricKey.WORKER_RPC_WRITE_COUNT.getName());
 
