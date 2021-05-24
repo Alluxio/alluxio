@@ -35,6 +35,8 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -56,6 +58,11 @@ public final class UnderFileSystemContractTest {
   @Parameter(names = {"--path"}, required = true,
       description = "The under filesystem path to run tests against.")
   private String mUfsPath;
+
+  @Parameter(names = {"--test"}, required = false,
+      description = "Test name, this option can be passed multiple times to "
+          + "indicate multiply tests")
+  private List<String> mTestList = new ArrayList<>();
 
   @Parameter(names = {"--help"}, help = true)
   private boolean mHelp = false;
@@ -228,6 +235,9 @@ public final class UnderFileSystemContractTest {
       for (Method test : tests) {
         String testName = test.getName();
         if (testName.endsWith("Test")) {
+          if (!(mTestList.isEmpty() || mTestList.contains(testName))) {
+            continue;
+          }
           msgStream.format("Running test: %s...%n", testName);
           boolean passed = false;
           try {

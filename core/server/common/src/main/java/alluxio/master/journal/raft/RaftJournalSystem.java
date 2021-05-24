@@ -685,7 +685,8 @@ public class RaftJournalSystem extends AbstractJournalSystem {
       mServer.start();
     } catch (IOException e) {
       String errorMessage = ExceptionMessage.FAILED_RAFT_BOOTSTRAP
-          .getMessage(Arrays.toString(clusterAddresses.toArray()), e.getCause().toString());
+          .getMessage(Arrays.toString(clusterAddresses.toArray()),
+              e.getCause() == null ? e : e.getCause().toString());
       throw new IOException(errorMessage, e.getCause());
     }
     LOG.info("Started Raft Journal System in {}ms", System.currentTimeMillis() - startTime);

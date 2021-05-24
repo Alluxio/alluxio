@@ -229,7 +229,8 @@ public final class ReplicationCheckerTest {
    */
   private void addBlockLocationHelper(long blockId, int numLocations) throws Exception {
     // Commit blockId to the first worker.
-    mBlockMaster.commitBlock(createWorkerHelper(0), 50L, "MEM", "MEM", blockId, 20L);
+    mBlockMaster.commitBlock(createWorkerHelper(0), 50L,
+        Constants.MEDIUM_MEM, Constants.MEDIUM_MEM, blockId, 20L);
 
     // Send a heartbeat from other workers saying that it's added blockId.
     for (int i = 1; i < numLocations; i++) {
@@ -249,8 +250,9 @@ public final class ReplicationCheckerTest {
     long workerId = mBlockMaster.getWorkerId(address);
     if (!mKnownWorkers.contains(workerId)) {
       // Do not re-register works, otherwise added block will be removed
-      mBlockMaster.workerRegister(workerId, ImmutableList.of("MEM"), ImmutableMap.of("MEM", 100L),
-          ImmutableMap.of("MEM", 0L), NO_BLOCKS_ON_LOCATION, NO_LOST_STORAGE,
+      mBlockMaster.workerRegister(workerId, ImmutableList.of(Constants.MEDIUM_MEM),
+          ImmutableMap.of(Constants.MEDIUM_MEM, 100L),
+          ImmutableMap.of(Constants.MEDIUM_MEM, 0L), NO_BLOCKS_ON_LOCATION, NO_LOST_STORAGE,
           RegisterWorkerPOptions.getDefaultInstance());
       mKnownWorkers.add(workerId);
     }
@@ -266,9 +268,11 @@ public final class ReplicationCheckerTest {
   private void heartbeatToAddLocationHelper(long blockId, long workerId) throws Exception {
     List<Long> addedBlocks = ImmutableList.of(blockId);
     Block.BlockLocation blockLocation =
-        Block.BlockLocation.newBuilder().setTier("MEM").setMediumType("MEM").build();
+        Block.BlockLocation.newBuilder().setTier(Constants.MEDIUM_MEM)
+            .setMediumType(Constants.MEDIUM_MEM).build();
 
-    mBlockMaster.workerHeartbeat(workerId, null, ImmutableMap.of("MEM", 0L), NO_BLOCKS,
+    mBlockMaster.workerHeartbeat(workerId, null,
+        ImmutableMap.of(Constants.MEDIUM_MEM, 0L), NO_BLOCKS,
         ImmutableMap.of(blockLocation, addedBlocks), NO_LOST_STORAGE, NO_METRICS);
   }
 
@@ -317,11 +321,12 @@ public final class ReplicationCheckerTest {
   @Test
   public void heartbeatFileNeedsMove() throws Exception {
     mFileContext.getOptions().setReplicationMin(1);
-    long blockId = createBlockHelper(TEST_FILE_1, mFileContext, "SSD");
+    long blockId = createBlockHelper(TEST_FILE_1, mFileContext, Constants.MEDIUM_SSD);
     addBlockLocationHelper(blockId, 1);
 
     mReplicationChecker.heartbeat();
-    Map<Long, Pair<String, String>> expected = ImmutableMap.of(blockId, new Pair<>("host0", "SSD"));
+    Map<Long, Pair<String, String>> expected =
+        ImmutableMap.of(blockId, new Pair<>("host0", Constants.MEDIUM_SSD));
     Assert.assertEquals(EMPTY, mMockReplicationHandler.getEvictRequests());
     Assert.assertEquals(EMPTY, mMockReplicationHandler.getReplicateRequests());
     Assert.assertEquals(expected, mMockReplicationHandler.getMigrateRequests());
@@ -330,7 +335,7 @@ public final class ReplicationCheckerTest {
   @Test
   public void heartbeatFileDoesnotNeedMove() throws Exception {
     mFileContext.getOptions().setReplicationMin(1);
-    long blockId = createBlockHelper(TEST_FILE_1, mFileContext, "MEM");
+    long blockId = createBlockHelper(TEST_FILE_1, mFileContext, Constants.MEDIUM_MEM);
     addBlockLocationHelper(blockId, 1);
 
     mReplicationChecker.heartbeat();
@@ -371,13 +376,16 @@ public final class ReplicationCheckerTest {
     // Create a worker.
     long workerId = mBlockMaster.getWorkerId(new WorkerNetAddress().setHost("localhost")
         .setRpcPort(80).setDataPort(81).setWebPort(82));
-    mBlockMaster.workerRegister(workerId, Collections.singletonList("MEM"),
-        ImmutableMap.of("MEM", 100L), ImmutableMap.of("MEM", 0L), NO_BLOCKS_ON_LOCATION,
+    mBlockMaster.workerRegister(workerId, Collections.singletonList(Constants.MEDIUM_MEM),
+        ImmutableMap.of(Constants.MEDIUM_MEM, 100L),
+        ImmutableMap.of(Constants.MEDIUM_MEM, 0L), NO_BLOCKS_ON_LOCATION,
         NO_LOST_STORAGE, RegisterWorkerPOptions.getDefaultInstance());
-    mBlockMaster.commitBlock(workerId, 50L, "MEM", "MEM", blockId, 20L);
+    mBlockMaster.commitBlock(workerId, 50L,
+        Constants.MEDIUM_MEM, Constants.MEDIUM_MEM, blockId, 20L);
 
     // Indicate that blockId is removed on the worker.
-    mBlockMaster.workerHeartbeat(workerId, null, ImmutableMap.of("MEM", 0L),
+    mBlockMaster.workerHeartbeat(workerId, null,
+        ImmutableMap.of(Constants.MEDIUM_MEM, 0L),
         ImmutableList.of(blockId), NO_BLOCKS_ON_LOCATION, NO_LOST_STORAGE, NO_METRICS);
 
     mReplicationChecker.heartbeat();

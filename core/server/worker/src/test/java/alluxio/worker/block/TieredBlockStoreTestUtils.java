@@ -11,6 +11,7 @@
 
 package alluxio.worker.block;
 
+import alluxio.Constants;
 import alluxio.conf.ServerConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.util.io.BufferUtils;
@@ -42,10 +43,12 @@ public final class TieredBlockStoreTestUtils {
    * 20000, 30000 bytes separately in the SSD tier.
    */
   public static final int[] TIER_ORDINAL = {0, 1};
-  public static final String[] TIER_ALIAS = {"MEM", "SSD"};
+  public static final String[] TIER_ALIAS = {Constants.MEDIUM_MEM, Constants.MEDIUM_SSD};
   public static final String[][] TIER_PATH = {{"/mem/0", "/mem/1"}, {"/ssd/0", "/ssd/1", "/ssd/2"}};
   public static final long[][] TIER_CAPACITY_BYTES = {{2000, 3000}, {10000, 20000, 30000}};
-  public static final String[][] TIER_MEDIA_TYPES = {{"MEM", "MEM"}, {"SSD", "SSD", "SSD"}};
+  public static final String[][] TIER_MEDIA_TYPES =
+      {{Constants.MEDIUM_MEM, Constants.MEDIUM_MEM},
+          {Constants.MEDIUM_SSD, Constants.MEDIUM_SSD, Constants.MEDIUM_SSD}};
   public static final String WORKER_DATA_FOLDER = "/alluxioworker/";
 
   /**
