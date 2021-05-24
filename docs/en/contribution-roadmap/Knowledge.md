@@ -10,10 +10,10 @@ priority: 10
 
 ## Java
 
-This roadmap assumes you have the basic knowledge about Java:
-* You understand the Java basics e.g. classes, objects, primitives, references, methods, 
-inheritance, interfaces, abstract classes, constructors.
-* You can use the basic Java commands. Part of the most important commands are listed below:
+This roadmap assumes you have some basic knowledge about Java:
+* You understand Java constructs such as classes, objects, primitives, references, methods, 
+inheritance, interfaces, abstract classes, and constructors.
+* You can use Java commands, such as the ones listed below:
 ```
 # Gets the version of the current java package 
 $ java -version 
@@ -22,14 +22,10 @@ $ jps
 # Gets the stacktraces from the running processes
 $ jstack -l <pid>
 ```
-* You can follow an operation from end to end in source code if no RPC framework is involved
-(RPC framework adds some complexities, but the
-[Getting started with Alluxio contribution docs]({{ '/en/contribution-roadmap/Getting-Started-With-Alluxio-Contribution.html' | relativize_url }})
-will help you get through it). 
-This can be achieved by manually following the code or by running operations with
-[remote debugger]({{ '/en/operation/Troubleshooting.html' | relativize_url }}#alluxio-remote-debug)
-or by running unit tests in debug mode via IDEs.
-* You have a familiar IDE to view Java source codes, run tests, and enable debugger if needed.
+* After running a command or unit test, you can follow the code that gets executed while running within the same process. 
+Some commands may involve communication across different processes that could be located on a different instance; 
+these remote procedure calls or RPCs require a deeper level of understanding that is not expected of most contributors.
+* You have a familiar IDE to view Java source code, run tests, and enable debugger if needed.
 * You **do not** need to understand all the Java API packages, but know how to search for API descriptions when needed.
 * You **do not** need to understand all the Java concepts, but know how to search for materials online to help you understand.
 
