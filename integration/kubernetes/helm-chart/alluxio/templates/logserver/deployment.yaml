@@ -26,6 +26,10 @@ metadata:
     role: alluxio-logserver
 spec:
   replicas: 1
+  {{ with .Values.logserver.strategy -}}
+  strategy:
+{{ toYaml . | nindent 4 }}
+  {{ end -}}
   selector:
     matchLabels:
       app: {{ $name }}

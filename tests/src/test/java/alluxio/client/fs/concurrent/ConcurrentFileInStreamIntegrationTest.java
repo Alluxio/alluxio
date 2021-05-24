@@ -35,7 +35,7 @@ import java.util.List;
 /**
  * Tests the concurrency of {@link FileInStream}.
  */
-public final class FileInStreamConcurrencyIntegrationTest extends BaseIntegrationTest {
+public final class ConcurrentFileInStreamIntegrationTest extends BaseIntegrationTest {
   private static final int BLOCK_SIZE = 30;
   private static int sNumReadThreads =
       ServerConfiguration.getInt(PropertyKey.USER_BLOCK_MASTER_CLIENT_POOL_SIZE_MAX) * 10;

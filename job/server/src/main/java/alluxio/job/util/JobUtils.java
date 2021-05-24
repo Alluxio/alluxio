@@ -17,7 +17,6 @@ import alluxio.client.block.AlluxioBlockStore;
 import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.block.policy.BlockLocationPolicy;
 import alluxio.client.block.policy.LocalFirstPolicy;
-import alluxio.client.block.stream.BlockInStream;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.URIStatus;
 import alluxio.client.file.options.InStreamOptions;
@@ -39,6 +38,7 @@ import alluxio.wire.FileBlockInfo;
 import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import com.google.common.io.ByteStreams;
 
@@ -130,14 +130,16 @@ public final class JobUtils {
           ExceptionMessage.PINNED_TO_MULTIPLE_MEDIUMTYPES.getMessage(status.getPath()));
     }
 
-    // when the data to load is persisted, simply use local worker to load from UFS
+    // when the data to load is persisted, simply use local worker to load
+    // from ufs (e.g. distributed load) or from a remote worker (e.g. setReplication)
     if (pinnedLocation.isEmpty() && status.isPersisted()) {
       OpenFilePOptions openOptions =
           OpenFilePOptions.newBuilder().setReadType(ReadPType.CACHE_PROMOTE).build();
       InStreamOptions inOptions = new InStreamOptions(status, openOptions, conf);
+      inOptions.setUfsReadLocationPolicy(BlockLocationPolicy.Factory.create(
+          LocalFirstPolicy.class.getCanonicalName(), conf));
       BlockInfo info = Preconditions.checkNotNull(status.getBlockInfo(blockId));
-      try (InputStream inputStream = BlockInStream.create(context, info, localNetAddress,
-          BlockInStream.BlockInStreamSource.UFS, inOptions)) {
+      try (InputStream inputStream = blockStore.getInStream(info, inOptions, ImmutableMap.of())) {
         while (inputStream.read(sIgnoredReadBuf) != -1) {
         }
       } catch (Throwable t) {
@@ -145,6 +147,7 @@ public final class JobUtils {
       }
       return;
     }
+
     // TODO(bin): remove the following case when we consolidate tier and medium
     // since there is only one element in the set, we take the first element in the set
     String medium = pinnedLocation.isEmpty() ? "" : pinnedLocation.iterator().next();
