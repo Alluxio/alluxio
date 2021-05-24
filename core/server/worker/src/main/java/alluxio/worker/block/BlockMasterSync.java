@@ -83,7 +83,7 @@ public final class BlockMasterSync implements HeartbeatExecutor {
    * @param masterClientPool the Alluxio master client pool
    */
   BlockMasterSync(BlockWorker blockWorker, AtomicReference<Long> workerId,
-      WorkerNetAddress workerAddress, BlockMasterClientPool masterClientPool) throws IOException {
+      WorkerNetAddress workerAddress, BlockMasterClientPool masterClientPool, boolean isNewWorker) throws IOException {
     mBlockWorker = blockWorker;
     mWorkerId = workerId;
     mWorkerAddress = workerAddress;
@@ -92,8 +92,9 @@ public final class BlockMasterSync implements HeartbeatExecutor {
     mHeartbeatTimeoutMs = (int) ServerConfiguration
         .getMs(PropertyKey.WORKER_BLOCK_HEARTBEAT_TIMEOUT_MS);
     mAsyncBlockRemover = new AsyncBlockRemover(mBlockWorker);
-
-    registerWithMaster();
+    if (isNewWorker) {
+      registerWithMaster();
+    }
     mLastSuccessfulHeartbeatMs = System.currentTimeMillis();
   }
 

@@ -34,6 +34,7 @@ import com.sun.management.OperatingSystemMXBean;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.lang.management.ManagementFactory;
 import java.util.Arrays;
 import java.util.Collection;
@@ -2887,6 +2888,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDefaultValue("/mnt/alluxio-fuse")
           .setDescription("The absolute local filesystem path that this worker will "
               + "mount Alluxio path to.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.WORKER)
+          .build();
+  public static final PropertyKey WORKER_INFO_FILE =
+      new Builder(Name.WORKER_INFO_FILE)
+          .setDefaultValue(WORKER_DATA_FOLDER + File.separator + "workerInfo.properties")
+          .setDescription("The infofile that this worker stored.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
@@ -5780,6 +5788,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.worker.fuse.mount.options";
     public static final String WORKER_FUSE_MOUNT_POINT =
         "alluxio.worker.fuse.mount.point";
+    public static final String WORKER_INFO_FILE = "alluxio.work.info.file";
     public static final String WORKER_MANAGEMENT_TIER_ALIGN_RESERVED_BYTES =
         "alluxio.worker.management.tier.align.reserved.bytes";
     public static final String WORKER_MANAGEMENT_BACKOFF_STRATEGY =

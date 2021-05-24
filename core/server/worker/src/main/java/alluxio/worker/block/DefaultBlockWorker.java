@@ -94,8 +94,7 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
   private static final Logger LOG = LoggerFactory.getLogger(DefaultBlockWorker.class);
   private static final long UFS_BLOCK_OPEN_TIMEOUT_MS =
       ServerConfiguration.getMs(PropertyKey.WORKER_UFS_BLOCK_OPEN_TIMEOUT_MS);
-  private static final String INFOFILE =
-      System.getProperty("user.dir") + File.separator + "workerInfo.properties";
+  private static final String INFOFILE = ServerConfiguration.get(PropertyKey.WORKER_INFO_FILE);
 
   /** Runnable responsible for heartbeating and registration with master. */
   private BlockMasterSync mBlockMasterSync;
@@ -183,10 +182,10 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
     mLocalBlockStore.registerBlockStoreEventListener(mHeartbeatReporter);
     mLocalBlockStore.registerBlockStoreEventListener(mMetricsReporter);
     mUfsManager = ufsManager;
-    mFsContext = mResourceCloser.register(
-        FileSystemContext.create(null, ServerConfiguration.global(), this));
-    mAsyncCacheManager = new AsyncCacheRequestManager(
-        GrpcExecutors.ASYNC_CACHE_MANAGER_EXECUTOR, this, mFsContext);
+    mFsContext = mResourceCloser
+        .register(FileSystemContext.create(null, ServerConfiguration.global(), this));
+    mAsyncCacheManager =
+        new AsyncCacheRequestManager(GrpcExecutors.ASYNC_CACHE_MANAGER_EXECUTOR, this, mFsContext);
     mFuseManager = mResourceCloser.register(new FuseManager(mFsContext));
     mUnderFileSystemBlockStore = new UnderFileSystemBlockStore(mLocalBlockStore, ufsManager);
 
@@ -227,7 +226,11 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
     // Acquire worker Id.
     BlockMasterClient blockMasterClient = mBlockMasterClientPool.acquire();
     File file = new File(INFOFILE);
+    boolean isNewWorker = true;
     if (file.exists()) {
+      isNewWorker = false;
+    }
+    if (!isNewWorker) {
       try (FileInputStream input = new FileInputStream(file)) {
         WorkerMeta.Info infoFile = WorkerMeta.Info.parseFrom(input);
         RetryUtils.retry("get worker id",
@@ -259,10 +262,10 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
     Preconditions.checkNotNull(mAddress, "mAddress");
 
     // Setup BlockMasterSync
-    mBlockMasterSync = mResourceCloser
-        .register(new BlockMasterSync(this, mWorkerId, mAddress, mBlockMasterClientPool));
-    getExecutorService()
-        .submit(new HeartbeatThread(HeartbeatContext.WORKER_BLOCK_SYNC, mBlockMasterSync,
+    mBlockMasterSync = mResourceCloser.register(
+        new BlockMasterSync(this, mWorkerId, mAddress, mBlockMasterClientPool, isNewWorker));
+    getExecutorService().submit(
+        new HeartbeatThread(HeartbeatContext.WORKER_BLOCK_SYNC, mBlockMasterSync,
             (int) ServerConfiguration.getMs(PropertyKey.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS),
             ServerConfiguration.global(), ServerUserState.global()));
 
