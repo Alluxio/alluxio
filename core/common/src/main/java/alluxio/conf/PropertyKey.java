@@ -2893,10 +2893,11 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey WORKER_INFO_FILE =
       new Builder(Name.WORKER_INFO_FILE)
-          .setDefaultValue(WORKER_DATA_FOLDER + File.separator + "workerInfo.properties")
+          .setDefaultValue(System.getProperty("user.dir")
+              + File.separator + "workerInfo.properties")
           .setDescription("The infofile that this worker stored.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.WORKER)
+          .setScope(Scope.ALL)
           .build();
   public static final PropertyKey WORKER_MANAGEMENT_BACKOFF_STRATEGY =
       new Builder(Name.WORKER_MANAGEMENT_BACKOFF_STRATEGY)
