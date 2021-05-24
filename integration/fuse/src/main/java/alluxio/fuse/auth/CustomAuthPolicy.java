@@ -18,6 +18,7 @@ import alluxio.conf.PropertyKey;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.jnifuse.FuseFileSystem;
 
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -46,7 +47,7 @@ public class CustomAuthPolicy implements AuthPolicy {
 
   @Override
   public void setUserGroupIfNeeded(AlluxioURI uri) throws Exception {
-    if (mUname == null || mGname == null) {
+    if (StringUtils.isEmpty(mUname) || StringUtils.isEmpty(mGname)) {
       return;
     }
     SetAttributePOptions attributeOptions = SetAttributePOptions.newBuilder()
