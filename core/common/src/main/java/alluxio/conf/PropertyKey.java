@@ -4738,14 +4738,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey FUSE_AUTH_POLICY_CUSTOM_USER =
       new Builder(Name.FUSE_AUTH_POLICY_CUSTOM_USER)
-          .setDefaultValue("")
+          .setDefaultValue("<FUSE_AUTH_POLICY_CUSTOM_USER>")
           .setDescription("The fuse user name for custom auth policy.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
           .setScope(Scope.CLIENT)
           .build();
   public static final PropertyKey FUSE_AUTH_POLICY_CUSTOM_GROUP =
       new Builder(Name.FUSE_AUTH_POLICY_CUSTOM_GROUP)
-          .setDefaultValue("")
+          .setDefaultValue("<FUSE_AUTH_POLICY_CUSTOM_GROUP>")
           .setDescription("The fuse group name for custom auth policy.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
           .setScope(Scope.CLIENT)
