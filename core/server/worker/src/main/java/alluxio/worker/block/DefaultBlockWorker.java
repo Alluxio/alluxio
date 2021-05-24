@@ -236,7 +236,7 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
                 ServerConfiguration.getDuration(PropertyKey.WORKER_MASTER_CONNECT_RETRY_TIMEOUT)));
       } catch (Exception e) {
         throw new RuntimeException(
-            "Failed to create a worker id from block master: " + e.getMessage());
+            "Failed to create or get old worker id: " + e.getMessage());
       } finally {
         mBlockMasterClientPool.release(blockMasterClient);
       }
