@@ -37,6 +37,7 @@ import java.util.concurrent.locks.ReentrantLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.stream.Collectors;
 
+import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -56,18 +57,23 @@ public final class MasterWorkerInfo {
   private static final int BLOCK_SIZE_LIMIT = 100;
 
   /** If true, the worker is considered registered. */
+  @GuardedBy("mRegisterLock")
   public boolean mIsRegistered;
+  /** lock the worker register status*/
   private final ReentrantLock mRegisterLock;
-  /** worker metadata */
+  /** worker metadata, this field is thread safe */
   private final WorkerMeta mMeta;
   /** worker usage data */
+  @GuardedBy("mUsageLock")
   private final WorkerUsageMeta mUsage;
   /** lock the worker usage data */
   private final ReentrantReadWriteLock mUsageLock;
 
   /** ids of blocks the worker contains. */
+  @GuardedBy("mBlockListLock")
   private final Set<Long> mBlocks;
   /** ids of blocks the worker should remove. */
+  @GuardedBy("mBlockListLock")
   private final Set<Long> mToRemoveBlocks;
   /** lock the 2 block sets above */
   private final ReentrantReadWriteLock mBlockListLock;
@@ -226,7 +232,7 @@ public final class MasterWorkerInfo {
   }
 
   /**
-   * {@link WorkerMeta#mWorkerAddress} is final so the value can be read without locking
+   * {@link WorkerMeta#mWorkerAddress} is final so the value can be read without locking.
    *
    * @return the worker's address
    */
@@ -256,6 +262,8 @@ public final class MasterWorkerInfo {
   }
 
   /**
+   * No locking required.
+   *
    * @return the id of the worker
    */
   public long getId() {
@@ -263,6 +271,8 @@ public final class MasterWorkerInfo {
   }
 
   /**
+   * No locking required.
+   *
    * @return the last updated time of the worker in ms
    */
   public long getLastUpdatedTimeMs() {
@@ -305,6 +315,8 @@ public final class MasterWorkerInfo {
   }
 
   /**
+   * No locking required.
+   *
    * @return the start time in milliseconds
    */
   public long getStartTime() {
@@ -367,6 +379,7 @@ public final class MasterWorkerInfo {
 
   /**
    * Updates the last updated time of the worker in ms.
+   * No locking required.
    */
   public void updateLastUpdatedTimeMs() {
     mMeta.updateLastUpdatedTimeMs();
