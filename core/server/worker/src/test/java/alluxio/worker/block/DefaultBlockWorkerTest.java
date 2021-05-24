@@ -101,7 +101,7 @@ public class DefaultBlockWorkerTest {
     mBlockMasterClient = PowerMockito.mock(BlockMasterClient.class);
     mBlockMasterClientPool = spy(new BlockMasterClientPool());
     when(mBlockMasterClientPool.createNewResource()).thenReturn(mBlockMasterClient);
-    mBlockStore = spy(TieredBlockStore.create());
+    mBlockStore = spy(new TieredBlockStore(null, null));
     mFileSystemMasterClient = PowerMockito.mock(FileSystemMasterClient.class);
     mSessions = mock(Sessions.class);
     mUfsManager = mock(UfsManager.class);

@@ -85,7 +85,7 @@ public class BlockWorkerDataReaderTest {
     mBlockMasterClient = mock(BlockMasterClient.class);
     mBlockMasterClientPool = spy(new BlockMasterClientPool());
     when(mBlockMasterClientPool.createNewResource()).thenReturn(mBlockMasterClient);
-    mBlockStore = TieredBlockStore.create();
+    mBlockStore = new TieredBlockStore(null, null);
     mFileSystemMasterClient = mock(FileSystemMasterClient.class);
     mSessions = mock(Sessions.class);
     mUfsManager = mock(UfsManager.class);

@@ -57,6 +57,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -117,37 +118,16 @@ public class TieredBlockStore implements BlockStore {
   private ManagementTaskCoordinator mTaskCoordinator;
 
   /**
-   * Creates a {@link TieredBlockStore}.
-   *
-   * @return an instance of tiered block store
-   */
-  public static TieredBlockStore create() {
-    BlockMetadataManager metaManager = BlockMetadataManager.createBlockMetadataManager();
-    BlockLockManager lockManager = new BlockLockManager();
-    return new TieredBlockStore(metaManager, lockManager);
-  }
-
-  /**
-   * Creates a {@link TieredBlockStore} with metadata manager and lock manager.
-   *
-   * @param metaManager the block metadata manager
-   * @param lockManager the block lock manager
-   * @return an instance of tiered block store with created meta manager and lock manager
-   */
-  public static TieredBlockStore create(BlockMetadataManager metaManager,
-      BlockLockManager lockManager) {
-    return new TieredBlockStore(metaManager, lockManager);
-  }
-
-  /**
    * Creates a new instance of {@link TieredBlockStore}.
    *
    * @param metaManager the block metadata manager
    * @param lockManager the lock manager
    */
-  private TieredBlockStore(BlockMetadataManager metaManager, BlockLockManager lockManager) {
-    mMetaManager = metaManager;
-    mLockManager = lockManager;
+  public TieredBlockStore(@Nullable  BlockMetadataManager metaManager,
+      @Nullable BlockLockManager lockManager) {
+    mMetaManager = metaManager == null
+        ? BlockMetadataManager.createBlockMetadataManager() : metaManager;
+    mLockManager = lockManager == null ? new BlockLockManager() : lockManager;
 
     mBlockIterator = mMetaManager.getBlockIterator();
     // Register listeners required by the block iterator.
