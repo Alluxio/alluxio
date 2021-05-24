@@ -43,10 +43,12 @@ import alluxio.heartbeat.HeartbeatThread;
 import alluxio.master.CoreMaster;
 import alluxio.master.CoreMasterContext;
 import alluxio.master.block.meta.MasterWorkerInfo;
+import alluxio.master.block.meta.WorkerMeta;
 import alluxio.master.journal.JournalContext;
 import alluxio.master.journal.checkpoint.CheckpointName;
 import alluxio.master.metastore.BlockStore;
 import alluxio.master.metastore.BlockStore.Block;
+import alluxio.master.block.meta.WorkerUsageMeta;
 import alluxio.master.metrics.MetricsMaster;
 import alluxio.metrics.Metric;
 import alluxio.metrics.MetricInfo;
@@ -108,6 +110,7 @@ import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.GuardedBy;
@@ -154,15 +157,53 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
    *
    * The block master uses concurrent data structures to allow non-conflicting concurrent access.
    * This means each piece of metadata should be locked individually. There are two types of
-   * metadata in the {@link DefaultBlockMaster}; block metadata and worker metadata.
+   * metadata in the {@link DefaultBlockMaster}: block metadata and worker metadata.
+   *
+   * The worker metadata is in the {@link MasterWorkerInfo} object. The metadata fields are
+   * separated into a few different groups. Each group has the corresponding lock.
+   * The {@link MasterWorkerInfo} has the following groups of metadata:
+   *  1. Metadata like ID, address etc, represented by a {@link WorkerMeta} object.
+   *     This group is thread safe, meaning no locking is required.
+   *  2. Worker register status. This is guarded by {@link MasterWorkerInfo#getRegisterLock()}.
+   *     The lock is exclusive. The lock is currently ONLY used in worker registration process.
+   *  3. Worker resource usage, represented by a {@link WorkerUsageMeta} object.
+   *     This is guarded by {@link MasterWorkerInfo#getUsageLock()}.
+   *     The lock is a {@link ReentrantReadWriteLock}.
+   *  4. Worker block lists, including the present blocks and blocks to be removed from the worker.
+   *     This is guarded by {@link MasterWorkerInfo#getBlockListLock()}.
+   *     The lock is a {@link ReentrantReadWriteLock}.
+   *
+   * While accessing or updating the fields in the {@link MasterWorkerInfo}, relevant locks must
+   * be acquired first. When multiple locks are needed, the locks must be acquired in order
+   * and released in the opposite order. The acquisition order is the order above (1 to 4).
+   * For example, if you need to check the worker register status then update the worker
+   * resource usage and block list, the usage will look like:
+   *
+   * <p><blockquote><pre>
+   *    MasterWorkerInfo worker = ...;
+   *    worker.getRegisterLock().lock();
+   *    worker.getUsageLock.writeLock().lock();
+   *    worker.getBlockListLock.writeLock().lock();
+   *    try {
+   *      ...
+   *    } finally {
+   *      worker.getBlockListLock.writeLock().lock();
+   *      worker.getUsageLock.writeLock().lock();
+   *      worker.getRegisterLock().lock();
+   *    }
+   * </pre></blockquote>
    *
    * To modify or read a modifiable piece of worker metadata, the {@link MasterWorkerInfo} for the
-   * worker must be locked. For block metadata, the id of the block must be locked. This will
-   * protect the internal integrity of the block and worker metadata.
+   * worker must be locked following the section above. For block metadata, the id of the block
+   * must be locked. This will protect the internal integrity of the block and worker metadata.
    *
-   * A worker's lock must be held to
-   * - Write mutable state in the worker's MasterWorkerInfo
-   * - Modify a block location on the worker
+   * A worker's relevant locks must be held to
+   * - Check the worker register status
+   * - Update the worker register status
+   * - Read the worker usage
+   * - Update the worker usage
+   * - Read the worker present/to-be-removed blocks
+   * - Update the worker present/to-be-removed blocks
    *
    * A block's lock must be held to
    * - Perform any BlockStore operations on the block
@@ -170,7 +211,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
    *
    * Lock ordering must be preserved in order to prevent deadlock. If both worker and block
    * metadata must be locked at the same time, the worker metadata must be locked before the block
-   * metadata
+   * metadata. When the locks are released, they must be released in the opposite order.
    *
    * It should not be the case that multiple worker metadata must be locked at the same time, or
    * multiple block metadata must be locked at the same time. Operations involving different workers
