@@ -100,16 +100,8 @@ public class DefaultBlockWorkerTest {
     mBlockMasterClient = mock(BlockMasterClient.class);
     mBlockMasterClientPool = spy(new BlockMasterClientPool());
     when(mBlockMasterClientPool.createNewResource()).thenReturn(mBlockMasterClient);
-<<<<<<< HEAD
     mBlockStore = spy(new TieredBlockStore(null, null));
-    mFileSystemMasterClient = PowerMockito.mock(FileSystemMasterClient.class);
-||||||| 9f5673eccf
-    mBlockStore = spy(new TieredBlockStore());
-    mFileSystemMasterClient = PowerMockito.mock(FileSystemMasterClient.class);
-=======
-    mBlockStore = spy(new TieredBlockStore());
     mFileSystemMasterClient = mock(FileSystemMasterClient.class);
->>>>>>> d6d7e78a3e5fe5de0e26ea129e44c12d3d9181bc
     mSessions = mock(Sessions.class);
     mUfsManager = mock(UfsManager.class);
 
