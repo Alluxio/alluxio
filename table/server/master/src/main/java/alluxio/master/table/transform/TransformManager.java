@@ -332,7 +332,7 @@ public class TransformManager implements DelegatingJournaled {
           }
         } catch (NotFoundException e) {
           String error = ExceptionMessage.TRANSFORM_JOB_ID_NOT_FOUND_IN_JOB_SERVICE.getMessage(
-              jobId, job.getDb(), job.getTable(), e.toString());
+              jobId, job.getDb(), job.getTable(), e.getMessage());
           LOG.warn(error);
           handleJobError(job, Status.FAILED, error);
         } catch (IOException e) {
