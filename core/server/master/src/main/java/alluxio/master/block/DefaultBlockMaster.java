@@ -1013,6 +1013,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
       // This changes the block list
       processWorkerRemovedBlocks(worker, removedBlockIds);
       processWorkerAddedBlocks(worker, addedBlocks);
+      // TODO(jiacheng): If the worker registers after the blocks are removed, this will be empty
       List<Long> toRemoveBlocks = worker.getToRemoveBlocks();
       Metrics.TOTAL_BLOCKS.inc(addedBlocks.size() - removedBlockIds.size());
       if (toRemoveBlocks.isEmpty()) {
