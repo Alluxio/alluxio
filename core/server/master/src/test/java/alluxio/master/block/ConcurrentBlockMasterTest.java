@@ -894,7 +894,7 @@ public class ConcurrentBlockMasterTest {
 
     assertEquals(blockLength, blockInfo.getLength());
     assertEquals(expectedLocations.size(), blockInfo.getLocations().size());
-    assertEquals(expectedLocations, new HashSet<>(blockInfo.getLocations()));
+    assertEquals(new HashSet<>(expectedLocations), new HashSet<>(blockInfo.getLocations()));
   }
 
   private void verifyBlockNotExisting(SignalBlockMaster blockMaster, long blockId) {
