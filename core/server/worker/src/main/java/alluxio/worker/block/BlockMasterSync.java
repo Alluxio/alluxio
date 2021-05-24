@@ -83,7 +83,8 @@ public final class BlockMasterSync implements HeartbeatExecutor {
    * @param masterClientPool the Alluxio master client pool
    */
   BlockMasterSync(BlockWorker blockWorker, AtomicReference<Long> workerId,
-      WorkerNetAddress workerAddress, BlockMasterClientPool masterClientPool, boolean isNewWorker) throws IOException {
+      WorkerNetAddress workerAddress, BlockMasterClientPool masterClientPool, boolean isNewWorker)
+      throws IOException {
     mBlockWorker = blockWorker;
     mWorkerId = workerId;
     mWorkerAddress = workerAddress;
