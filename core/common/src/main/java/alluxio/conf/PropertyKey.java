@@ -5207,7 +5207,20 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
-
+  public static final PropertyKey TABLE_UDB_HIVE_CLIENTPOOL_MIN =
+      new Builder(Name.TABLE_UDB_HIVE_CLIENTPOOL_MIN)
+          .setDefaultValue("16")
+          .setDescription("The minimum capacity of the hive client pool per hive metastore")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.MASTER)
+          .build();
+  public static final PropertyKey TABLE_UDB_HIVE_CLIENTPOOL_MAX =
+      new Builder(Name.TABLE_UDB_HIVE_CLIENTPOOL_MAX)
+          .setDefaultValue("256")
+          .setDescription("The maximum capacity of the hive client pool per hive metastore")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.MASTER)
+          .build();
   /**
    * @deprecated This key is used for testing. It is always deprecated.
    */
@@ -6250,6 +6263,10 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.table.transform.manager.job.monitor.interval";
     public static final String TABLE_TRANSFORM_MANAGER_JOB_HISTORY_RETENTION_TIME =
         "alluxio.table.transform.manager.job.history.retention.time";
+    public static final String TABLE_UDB_HIVE_CLIENTPOOL_MIN =
+        "alluxio.table.udb.hive.clientpool.min";
+    public static final String TABLE_UDB_HIVE_CLIENTPOOL_MAX =
+        "alluxio.table.udb.hive.clientpool.MAX";
 
     private Name() {} // prevent instantiation
   }
