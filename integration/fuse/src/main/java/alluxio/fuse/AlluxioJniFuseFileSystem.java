@@ -754,6 +754,12 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
     return 0;
   }
 
+  @Override
+  public int symlink(String linkname, String path) {
+    LOG.debug("Ignore unsupported symlink operation, linkname {}, path{}", linkname, path);
+    return 0;
+  }
+
   /**
    * @return Name of the file system
    */

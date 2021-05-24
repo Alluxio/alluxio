@@ -62,6 +62,7 @@ JniFuseFileSystem::JniFuseFileSystem(JNIEnv *env, jobject obj) {
   this->renameOper = new RenameOperation(this);
   this->rmdirOper = new RmdirOperation(this);
   this->setxattrOper = new SetxattrOperation(this);
+  this->symlinkOper = new SymlinkOperation(this);
   this->truncateOper = new TruncateOperation(this);
   this->unlinkOper = new UnlinkOperation(this);
   this->utimensOper = new UtimensOperation(this);
