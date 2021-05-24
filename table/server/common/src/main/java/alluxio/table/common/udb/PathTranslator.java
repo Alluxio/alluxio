@@ -68,7 +68,7 @@ public class PathTranslator {
   public String toAlluxioPath(String ufsPath) throws IOException {
     for (BiMap.Entry<String, String> entry : mPathMap.entrySet()) {
       if (ufsPath.startsWith(entry.getValue())) {
-        // return ufsPath if key and value are same.
+        // return ufsPath if set the key and value to be same when bypass path.
         if (entry.getKey().equals(entry.getValue())) {
           return ufsPath;
         }
