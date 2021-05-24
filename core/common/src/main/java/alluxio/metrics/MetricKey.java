@@ -988,18 +988,10 @@ public final class MetricKey implements Comparable<MetricKey> {
           .build();
 
   // Client metrics
-  public static final MetricKey CLIENT_BLOCK_READ_CHUNK =
-      new Builder(Name.CLIENT_BLOCK_READ_CHUNK)
+  public static final MetricKey CLIENT_BLOCK_READ_CHUNK_REMOTE =
+      new Builder(Name.CLIENT_BLOCK_READ_CHUNK_REMOTE)
           .setDescription(String.format("The timer statistics of reading block data in chunks "
-              + "from Alluxio workers. This metrics will only be recorded when %s is set to true",
-              PropertyKey.USER_BLOCK_READ_METRICS_ENABLED.getName()))
-          .setMetricType(MetricType.TIMER)
-          .setIsClusterAggregated(false)
-          .build();
-  public static final MetricKey CLIENT_BLOCK_READ_FROM_CHUNK =
-      new Builder(Name.CLIENT_BLOCK_READ_FROM_CHUNK)
-          .setDescription(String.format("The timer statistics of reading data from data chunks "
-              + "which have already fetched from Alluxio workers. "
+              + "from remote Alluxio workers via RPC frameworks. "
               + "This metrics will only be recorded when %s is set to true",
               PropertyKey.USER_BLOCK_READ_METRICS_ENABLED.getName()))
           .setMetricType(MetricType.TIMER)
@@ -1527,8 +1519,7 @@ public final class MetricKey implements Comparable<MetricKey> {
         = "Worker.BlockRemoverRemovingBlocksSize";
 
     // Client metrics
-    public static final String CLIENT_BLOCK_READ_CHUNK = "Client.BlockReadDataChunk";
-    public static final String CLIENT_BLOCK_READ_FROM_CHUNK = "Client.BlockReadDataFromChunk";
+    public static final String CLIENT_BLOCK_READ_CHUNK_REMOTE = "Client.BlockReadChunkRemote";
     public static final String CLIENT_BYTES_READ_LOCAL = "Client.BytesReadLocal";
     public static final String CLIENT_BYTES_READ_LOCAL_THROUGHPUT
         = "Client.BytesReadLocalThroughput";
