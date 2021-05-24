@@ -1120,6 +1120,87 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.SERVER)
           .build();
 
+  public static final PropertyKey UNDERFS_CEPHFS_AUTH_ID =
+      new Builder(Name.UNDERFS_CEPHFS_AUTH_ID)
+          .setDefaultValue("admin")
+          .setDescription("Ceph client id for authentication.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.SERVER)
+          .build();
+  public static final PropertyKey UNDERFS_CEPHFS_CONF_FILE =
+      new Builder(Name.UNDERFS_CEPHFS_CONF_FILE)
+          .setDefaultValue("/etc/ceph/ceph.conf")
+          .setDescription("Path to Ceph configuration file.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.SERVER)
+          .build();
+  public static final PropertyKey UNDERFS_CEPHFS_CONF_OPTS =
+      new Builder(Name.UNDERFS_CEPHFS_CONF_OPTS)
+          .setDescription("Extra configuration options for CephFS client.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.SERVER)
+          .build();
+  public static final PropertyKey UNDERFS_CEPHFS_AUTH_KEY =
+      new Builder(Name.UNDERFS_CEPHFS_AUTH_KEY)
+          .setDescription("CephX authentication key, base64 encoded.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.SERVER)
+          .build();
+  public static final PropertyKey UNDERFS_CEPHFS_AUTH_KEYFILE =
+      new Builder(Name.UNDERFS_CEPHFS_AUTH_KEYFILE)
+          .setDescription("Path to CephX authentication key file.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.SERVER)
+          .build();
+  public static final PropertyKey UNDERFS_CEPHFS_AUTH_KEYRING =
+      new Builder(Name.UNDERFS_CEPHFS_AUTH_KEYRING)
+          .setDefaultValue("/etc/ceph/ceph.client.admin.keyring")
+          .setDescription("Path to CephX authentication keyring file.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.SERVER)
+          .build();
+  public static final PropertyKey UNDERFS_CEPHFS_MON_HOST =
+      new Builder(Name.UNDERFS_CEPHFS_MON_HOST)
+          .setDefaultValue("0.0.0.0")
+          .setDescription("List of hosts or addresses to search for a Ceph monitor.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.SERVER)
+          .build();
+  public static final PropertyKey UNDERFS_CEPHFS_MDS_NAMESPACE =
+      new Builder(Name.UNDERFS_CEPHFS_MDS_NAMESPACE)
+          .setDescription("CephFS filesystem to mount.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.SERVER)
+          .build();
+  public static final PropertyKey UNDERFS_CEPHFS_MOUNT_UID =
+      new Builder(Name.UNDERFS_CEPHFS_MOUNT_UID)
+          .setDefaultValue(0)
+          .setDescription("The user ID of CephFS mount.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.SERVER)
+          .build();
+  public static final PropertyKey UNDERFS_CEPHFS_MOUNT_GID =
+      new Builder(Name.UNDERFS_CEPHFS_MOUNT_GID)
+          .setDefaultValue(0)
+          .setDescription("The group ID of CephFS mount.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.SERVER)
+          .build();
+  public static final PropertyKey UNDERFS_CEPHFS_MOUNT_POINT =
+      new Builder(Name.UNDERFS_CEPHFS_MOUNT_POINT)
+          .setDefaultValue("/")
+          .setDescription("Directory to mount on the CephFS filesystem.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.SERVER)
+          .build();
+  public static final PropertyKey UNDERFS_CEPHFS_LOCALIZE_READS =
+      new Builder(Name.UNDERFS_CEPHFS_LOCALIZE_READS)
+          .setDefaultValue(false)
+          .setDescription("Utilize Ceph localized reads feature.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.SERVER)
+          .build();
+
   // UFS access control related properties
   //
   // Not prefixed with fs, the s3a property names mirror the aws-sdk property names for ease of use
@@ -2281,21 +2362,21 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey MASTER_TIERED_STORE_GLOBAL_LEVEL0_ALIAS =
       new Builder(Name.MASTER_TIERED_STORE_GLOBAL_LEVEL0_ALIAS)
-          .setDefaultValue("MEM")
+          .setDefaultValue(Constants.MEDIUM_MEM)
           .setDescription("The name of the highest storage tier in the entire system.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey MASTER_TIERED_STORE_GLOBAL_LEVEL1_ALIAS =
       new Builder(Name.MASTER_TIERED_STORE_GLOBAL_LEVEL1_ALIAS)
-          .setDefaultValue("SSD")
+          .setDefaultValue(Constants.MEDIUM_SSD)
           .setDescription("The name of the second highest storage tier in the entire system.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey MASTER_TIERED_STORE_GLOBAL_LEVEL2_ALIAS =
       new Builder(Name.MASTER_TIERED_STORE_GLOBAL_LEVEL2_ALIAS)
-          .setDefaultValue("HDD")
+          .setDefaultValue(Constants.MEDIUM_HDD)
           .setDescription("The name of the third highest storage tier in the entire system.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.MASTER)
@@ -3228,7 +3309,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   // TODO(binfan): Use alluxio.worker.tieredstore.level0.dirs.mediumtype instead
   public static final PropertyKey WORKER_TIERED_STORE_LEVEL0_ALIAS =
       new Builder(Template.WORKER_TIERED_STORE_LEVEL_ALIAS, 0)
-          .setDefaultValue("MEM")
+          .setDefaultValue(Constants.MEDIUM_MEM)
           .setDescription("The alias of the top storage tier on this worker. It must "
               + "match one of the global storage tiers from the master configuration. We "
               + "disable placing an alias lower in the global hierarchy before an alias with "
@@ -5126,7 +5207,20 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
-
+  public static final PropertyKey TABLE_UDB_HIVE_CLIENTPOOL_MIN =
+      new Builder(Name.TABLE_UDB_HIVE_CLIENTPOOL_MIN)
+          .setDefaultValue("16")
+          .setDescription("The minimum capacity of the hive client pool per hive metastore")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.MASTER)
+          .build();
+  public static final PropertyKey TABLE_UDB_HIVE_CLIENTPOOL_MAX =
+      new Builder(Name.TABLE_UDB_HIVE_CLIENTPOOL_MAX)
+          .setDefaultValue("256")
+          .setDescription("The maximum capacity of the hive client pool per hive metastore")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.MASTER)
+          .build();
   /**
    * @deprecated This key is used for testing. It is always deprecated.
    */
@@ -5313,6 +5407,30 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String UNDERFS_KODO_CONNECT_TIMEOUT =
         "alluxio.underfs.kodo.connect.timeout";
     public static final String UNDERFS_KODO_REQUESTS_MAX = "alluxio.underfs.kodo.requests.max";
+    public static final String UNDERFS_CEPHFS_AUTH_ID =
+        "alluxio.underfs.cephfs.auth.id";
+    public static final String UNDERFS_CEPHFS_CONF_FILE =
+        "alluxio.underfs.cephfs.conf.file";
+    public static final String UNDERFS_CEPHFS_CONF_OPTS =
+        "alluxio.underfs.cephfs.conf.options";
+    public static final String UNDERFS_CEPHFS_AUTH_KEY =
+        "alluxio.underfs.cephfs.auth.key";
+    public static final String UNDERFS_CEPHFS_AUTH_KEYFILE =
+        "alluxio.underfs.cephfs.auth.keyfile";
+    public static final String UNDERFS_CEPHFS_AUTH_KEYRING =
+        "alluxio.underfs.cephfs.auth.keyring";
+    public static final String UNDERFS_CEPHFS_MON_HOST =
+        "alluxio.underfs.cephfs.mon.host";
+    public static final String UNDERFS_CEPHFS_MDS_NAMESPACE =
+        "alluxio.underfs.cephfs.mds.namespace";
+    public static final String UNDERFS_CEPHFS_MOUNT_UID =
+        "alluxio.underfs.cephfs.mount.uid";
+    public static final String UNDERFS_CEPHFS_MOUNT_GID =
+        "alluxio.underfs.cephfs.mount.gid";
+    public static final String UNDERFS_CEPHFS_MOUNT_POINT =
+        "alluxio.underfs.cephfs.mount.point";
+    public static final String UNDERFS_CEPHFS_LOCALIZE_READS =
+        "alluxio.underfs.cephfs.localize.reads";
 
     //
     // UFS access control related properties
@@ -6145,6 +6263,10 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.table.transform.manager.job.monitor.interval";
     public static final String TABLE_TRANSFORM_MANAGER_JOB_HISTORY_RETENTION_TIME =
         "alluxio.table.transform.manager.job.history.retention.time";
+    public static final String TABLE_UDB_HIVE_CLIENTPOOL_MIN =
+        "alluxio.table.udb.hive.clientpool.min";
+    public static final String TABLE_UDB_HIVE_CLIENTPOOL_MAX =
+        "alluxio.table.udb.hive.clientpool.MAX";
 
     private Name() {} // prevent instantiation
   }
@@ -6701,8 +6823,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
    *
    * @param key the property key to check
    * @return if this property key is deprecated
-   * @see Deprecated
    * @see #getDeprecationMessage(PropertyKey)
+   * @see Deprecated
    */
   public static boolean isDeprecated(PropertyKey key) {
     return DEPRECATED_CHECKER.hasAnnotation(key);
@@ -6724,9 +6846,9 @@ public final class PropertyKey implements Comparable<PropertyKey> {
    *
    * @param key the property key to check
    * @return true this property key is removed, false otherwise
-   * @see RemovedKey
    * @see #isDeprecated(alluxio.conf.PropertyKey)
    * @see Deprecated
+   * @see RemovedKey
    */
   public static boolean isRemoved(String key) {
     return RemovedKey.isRemoved(key);

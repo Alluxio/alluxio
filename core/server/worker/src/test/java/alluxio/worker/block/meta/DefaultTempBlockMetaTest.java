@@ -11,6 +11,7 @@
 
 package alluxio.worker.block.meta;
 
+import alluxio.Constants;
 import alluxio.util.io.PathUtils;
 import alluxio.worker.block.TieredBlockStoreTestUtils;
 
@@ -28,9 +29,9 @@ public class DefaultTempBlockMetaTest {
   private static final long TEST_BLOCK_ID = 9;
   private static final long TEST_BLOCK_SIZE = 100;
   private static final int TEST_TIER_ORDINAL = 0;
-  private static final String TEST_TIER_ALIAS = "MEM";
+  private static final String TEST_TIER_ALIAS = Constants.MEDIUM_MEM;
   private static final long[] TEST_TIER_CAPACITY_BYTES = {100};
-  private static final String[] TEST_TIER_MEDIUM_TYPES = {"MEM"};
+  private static final String[] TEST_TIER_MEDIUM_TYPES = {Constants.MEDIUM_MEM};
   private static final String TEST_WORKER_DATA_FOLDER = "workertest";
   private String mTestDirPath;
   private String mTestBlockDirPath;

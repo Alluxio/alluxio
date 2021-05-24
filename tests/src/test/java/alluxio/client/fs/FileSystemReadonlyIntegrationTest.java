@@ -34,7 +34,7 @@ import java.util.Map;
 /**
  * Test behavior of {@link FileSystemMaster}, when the paths are readonly.
  */
-public class FileSystemReadonlyTest {
+public class FileSystemReadonlyIntegrationTest {
   @ClassRule
   public static LocalAlluxioClusterResource sLocalAlluxioClusterResource =
           new LocalAlluxioClusterResource.Builder()

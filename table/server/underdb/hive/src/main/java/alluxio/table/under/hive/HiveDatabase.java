@@ -27,6 +27,7 @@ import alluxio.table.common.udb.UdbContext;
 import alluxio.table.common.udb.UdbTable;
 import alluxio.table.common.udb.UdbUtils;
 import alluxio.table.common.udb.UnderDatabase;
+import alluxio.table.under.hive.util.HiveClientPoolCache;
 import alluxio.table.under.hive.util.HiveClientPool;
 import alluxio.util.io.PathUtils;
 
@@ -69,6 +70,8 @@ public class HiveDatabase implements UnderDatabase {
   private final String mConnectionUri;
   /** the name of the hive db. */
   private final String mHiveDbName;
+
+  private static final HiveClientPoolCache CLIENT_POOL_CACHE = new HiveClientPoolCache();
   /** Hive client is not thread-safe, so use a client pool for concurrency. */
   private final HiveClientPool mClientPool;
 
@@ -78,7 +81,7 @@ public class HiveDatabase implements UnderDatabase {
     mConfiguration = configuration;
     mConnectionUri = connectionUri;
     mHiveDbName = hiveDbName;
-    mClientPool = new HiveClientPool(mConnectionUri, mHiveDbName);
+    mClientPool = CLIENT_POOL_CACHE.getPool(connectionUri);
   }
 
   /**

@@ -116,6 +116,11 @@
       </snapshots>
     </repository>
     <repository>
+      <id>aliyunmaven</id>
+      <name>spring-plugin</name>
+      <url>https://maven.aliyun.com/repository/spring-plugin</url>
+    </repository>
+    <repository>
       <id>alluxio.artifacts</id>
       <url>http://alluxio.artifacts.s3-website-us-east-1.amazonaws.com/release</url>
     </repository>
@@ -137,7 +142,7 @@
     <java.version>1.8</java.version>
     <jaxb.version>2.3.3</jaxb.version>
     <jersey.version>2.29.1</jersey.version>
-    <jetty.version>9.4.35.v20201120</jetty.version>
+    <jetty.version>9.4.40.v20210413</jetty.version>
     <junit.version>4.13</junit.version>
     <log4j.version>2.13.3</log4j.version>
     <maven.version>3.3.9</maven.version>
@@ -166,6 +171,9 @@
     <update.check.host>https://diagnostics.alluxio.io</update.check.host>
     <findbugs.skip>false</findbugs.skip>
     <create.dependency.reduced.pom>false</create.dependency.reduced.pom>
+    <cephfs-hadoop.version>0.0.1</cephfs-hadoop.version>
+    <libcephfs.version>0.0.1</libcephfs.version>
+    <jnr-fuse.version>0.5.5</jnr-fuse.version>
   </properties>
 
   <modules>
@@ -214,6 +222,16 @@
         <version>1.78</version>
       </dependency>
       <dependency>
+        <groupId>io.github.opendataio</groupId>
+        <artifactId>cephfs-hadoop</artifactId>
+        <version>${cephfs-hadoop.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.github.opendataio</groupId>
+        <artifactId>libcephfs</artifactId>
+        <version>${libcephfs.version}</version>
+      </dependency>
+      <dependency>
         <groupId>com.esotericsoftware</groupId>
         <artifactId>kryo</artifactId>
         <version>4.0.2</version>
@@ -241,7 +259,7 @@
       <dependency>
         <groupId>com.github.serceman</groupId>
         <artifactId>jnr-fuse</artifactId>
-        <version>0.5.3</version>
+        <version>${jnr-fuse.version}</version>
       </dependency>
       <dependency>
         <groupId>com.google.code.gson</groupId>
@@ -793,7 +811,7 @@
       <dependency>
         <artifactId>xstream</artifactId>
         <groupId>com.thoughtworks.xstream</groupId>
-        <version>1.4.16</version>
+        <version>1.4.17</version>
         <scope>test</scope>
       </dependency>
 

@@ -272,7 +272,6 @@ public final class ReplicationChecker implements HeartbeatExecutor {
 
   private void check(Set<Long> inodes, ReplicationHandler handler, Mode mode)
       throws InterruptedException {
-    Set<Long> lostBlocks = mBlockMaster.getLostBlocks();
     for (long inodeId : inodes) {
       if (mActiveJobToInodeID.size() >= mMaxActiveJobs) {
         return;
@@ -322,7 +321,7 @@ public final class ReplicationChecker implements HeartbeatExecutor {
               }
               if (currentReplicas < minReplicas) {
                 // if this file is not persisted and block master thinks it is lost, no effort made
-                if (!file.isPersisted() && lostBlocks.contains(blockId)) {
+                if (!file.isPersisted() && mBlockMaster.isBlockLost(blockId)) {
                   continue;
                 }
                 requests.add(new ImmutableTriple<>(inodePath.getUri(), blockId,

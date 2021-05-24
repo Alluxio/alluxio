@@ -26,7 +26,7 @@ import org.junit.Test;
 /**
  * Tests the correctness of concurrent operations.
  */
-public final class FileSystemConcurrencyTest extends BaseIntegrationTest {
+public final class ConcurrentFileSystemIntegrationTest extends BaseIntegrationTest {
   @Rule
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
       new LocalAlluxioClusterResource.Builder().build();
