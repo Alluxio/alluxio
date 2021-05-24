@@ -47,6 +47,8 @@ import java.util.Set;
  * switch, it can not detect
  * this fact and will report incorrect sizes, as it will presume the default JVM
  * behavior.
+ *
+ * Adapted from https://github.com/twitter-archive/commons/blob/master/src/java/com/twitter/common/objectsize/ObjectSizeCalculator.java
  */
 public class ObjectSizeCalculator {
   private static final Logger LOG = LoggerFactory.getLogger(ObjectSizeCalculator.class);
