@@ -17,13 +17,10 @@ public class WorkerMeta {
   public final long mStartTimeMs;
   /** Worker's last updated time in ms. */
   public final AtomicLong mLastUpdatedTimeMs;
-  /** If true, the worker is considered registered. */
-  public boolean mIsRegistered;
 
   public WorkerMeta(long id, WorkerNetAddress address) {
     mId = id;
     mWorkerAddress = Preconditions.checkNotNull(address, "address");
-    mIsRegistered = false;
     mStartTimeMs = CommonUtils.getCurrentMs();
     mLastUpdatedTimeMs = new AtomicLong(CommonUtils.getCurrentMs());
   }

@@ -33,6 +33,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.stream.Collectors;
 
@@ -54,10 +55,11 @@ public final class MasterWorkerInfo {
   private static final String LOST_WORKER_STATE = "Out of Service";
   private static final int BLOCK_SIZE_LIMIT = 100;
 
+  /** If true, the worker is considered registered. */
+  public boolean mIsRegistered;
+  private final ReentrantLock mRegisterLock;
   /** worker metadata */
   private final WorkerMeta mMeta;
-  /** lock the worker metadata */
-  private final ReentrantReadWriteLock mMetaLock;
   /** worker usage data */
   private final WorkerUsageMeta mUsage;
   /** lock the worker usage data */
@@ -83,14 +85,14 @@ public final class MasterWorkerInfo {
     mToRemoveBlocks = new HashSet<>();
 
     // Init all locks
-    mMetaLock = new ReentrantReadWriteLock();
+    mRegisterLock = new ReentrantLock();
     mUsageLock = new ReentrantReadWriteLock();
     mBlockListLock = new ReentrantReadWriteLock();
   }
 
   /**
    * Marks the worker as registered, while updating all of its metadata.
-   * Write locks on {@link MasterWorkerInfo#mMetaLock}, {@link MasterWorkerInfo#mUsageLock}
+   * Write locks on {@link MasterWorkerInfo#mRegisterLock}, {@link MasterWorkerInfo#mUsageLock}
    * and {@link MasterWorkerInfo#mBlockListLock} are required.
    *
    * @param globalStorageTierAssoc global mapping between storage aliases and ordinal position
@@ -109,7 +111,7 @@ public final class MasterWorkerInfo {
             totalBytesOnTiers, usedBytesOnTiers);
 
     Set<Long> removedBlocks;
-    if (mMeta.mIsRegistered) {
+    if (mIsRegistered) {
       // This is a re-register of an existing worker. Assume the new block ownership data is more
       // up-to-date and update the existing block information.
       LOG.info("re-registering an existing workerId: {}", mMeta.mId);
@@ -313,7 +315,7 @@ public final class MasterWorkerInfo {
    * @return whether the worker has been registered yet
    */
   public boolean isRegistered() {
-    return mMeta.mIsRegistered;
+    return mIsRegistered;
   }
 
   /**
@@ -343,7 +345,7 @@ public final class MasterWorkerInfo {
   }
 
   @Override
-  // TODO(jiacheng): is this locking?
+  // TODO(jiacheng): Should this be locking?
   public String toString() {
     Collection<Long> blocks = mBlocks;
     String blockFieldName = "blocks";
@@ -425,8 +427,8 @@ public final class MasterWorkerInfo {
     mUsage.mUsedBytesOnTiers.put(tierAlias, usedBytesOnTier);
   }
 
-  public ReentrantReadWriteLock getMetaLock() {
-    return mMetaLock;
+  public ReentrantLock getRegisterLock() {
+    return mRegisterLock;
   }
 
   public ReentrantReadWriteLock getUsageLock() {

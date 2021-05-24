@@ -533,13 +533,8 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
   private WorkerInfo extractWorkerInfo(MasterWorkerInfo worker,
                                        Set<GetWorkerReportOptions.WorkerInfoField> fieldRange,
                                        boolean isLiveWorker) {
-    worker.getMetaLock().readLock().lock();
-    worker.getUsageLock().readLock().lock();
-    try {
+    try (LockResource lr = new LockResource(worker.getUsageLock().readLock())) {
       return worker.generateWorkerInfo(fieldRange, isLiveWorker);
-    } finally {
-      worker.getUsageLock().readLock().unlock();
-      worker.getMetaLock().readLock().unlock();
     }
   }
 
@@ -732,9 +727,8 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
         worker.getUsageLock().writeLock().unlock();
       }
 
-      try (LockResource lr = new LockResource(worker.getMetaLock().writeLock())){
-        worker.updateLastUpdatedTimeMs();
-      }
+      // This operation is atomic, no need for locking
+      worker.updateLastUpdatedTimeMs();
     }
   }
 
@@ -911,8 +905,8 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
       blocks.addAll(blockIds);
     }
 
-    // We need the write lock on meta because of worker.register()
-    worker.getMetaLock().writeLock().lock();
+    // Lock all the locks
+    worker.getRegisterLock().lock();
     worker.getUsageLock().writeLock().lock();
     worker.getBlockListLock().writeLock().lock();
     try {
@@ -927,7 +921,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
       // Release in the reverse order of acquisition
       worker.getBlockListLock().writeLock().unlock();
       worker.getUsageLock().writeLock().unlock();
-      worker.getMetaLock().writeLock().unlock();
+      worker.getRegisterLock().unlock();
     }
 
     if (options.getConfigsCount() > 0) {
@@ -945,6 +939,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
     recordWorkerRegistration(workerId);
 
     // Update the TS at the end of the process
+    // This operation is atomic, no need for locking
     worker.updateLastUpdatedTimeMs();
 
     // Invalidate cache to trigger new build of worker info list
@@ -991,7 +986,8 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
       // This changes the block list
       processWorkerRemovedBlocks(worker, removedBlockIds);
       processWorkerAddedBlocks(worker, addedBlocks);
-      // TODO(jiacheng): If the worker registers after the blocks are removed, this will be empty
+      // TODO(jiacheng): If the worker registers with a after the block is freed, the copy will not be removed
+      //  from this worker.
       List<Long> toRemoveBlocks = worker.getToRemoveBlocks();
       Metrics.TOTAL_BLOCKS.inc(addedBlocks.size() - removedBlockIds.size());
       if (toRemoveBlocks.isEmpty()) {
