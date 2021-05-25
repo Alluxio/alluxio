@@ -266,7 +266,6 @@ public class ConcurrentBlockMasterTest {
         try {
           reader.call();
         } catch (Throwable t) {
-          System.out.println("Reader throws an error: " + t.getMessage());
           uncaughtThrowables.add(t);
         } finally {
           allClientFinished.countDown();
@@ -279,10 +278,6 @@ public class ConcurrentBlockMasterTest {
 
     allClientFinished.await();
     // If any assertion failed, the failed assertion will throw an AssertError
-    // TODO(jiacheng): remove once all the tests are finished
-    for (Throwable t : uncaughtThrowables) {
-      t.printStackTrace();
-    }
     assertEquals(0, uncaughtThrowables.size());
   }
 
@@ -429,7 +424,6 @@ public class ConcurrentBlockMasterTest {
               ImmutableMap.of(),
               NO_LOST_STORAGE,
               ImmutableList.of());
-          System.out.println("worker heartbeat finished with command returned: " + cmd);
 
           // The block has been removed, nothing from command
           assertEquals(EMPTY_CMD, cmd);
@@ -480,7 +474,6 @@ public class ConcurrentBlockMasterTest {
               ImmutableMap.of(),
               NO_LOST_STORAGE,
               ImmutableList.of());
-          System.out.println("worker heartbeat finished with command returned: " + cmd);
 
           // The block has been removed, nothing from command
           assertEquals(EMPTY_CMD, cmd);
@@ -532,7 +525,6 @@ public class ConcurrentBlockMasterTest {
               ImmutableMap.of(),
               NO_LOST_STORAGE,
               ImmutableList.of());
-          System.out.println("worker heartbeat finished with command returned: " + cmd);
 
           // The block has been removed, nothing from command
           assertEquals(EMPTY_CMD, cmd);
@@ -624,14 +616,12 @@ public class ConcurrentBlockMasterTest {
   @Test
   public void concurrentRemoveWithRegisterNewWorkerSameBlock() throws Exception {
     for (boolean deleteMetadata : ImmutableList.of(true, false)) {
-      System.out.println("Delete metadata? " + deleteMetadata);
       // Prepare worker
       long worker1 = registerEmptyWorker(NET_ADDRESS_1);
       // Prepare block on the worker
       mBlockMaster.commitBlock(worker1, BLOCK1_LENGTH, "MEM", "MEM", BLOCK1_ID, BLOCK1_LENGTH);
       CountDownLatch w1Latch = new CountDownLatch(1);
       mBlockMaster.setLatch(w1Latch);
-      System.out.println("Test start");
 
       // A new worker as the W2
       long worker2 = mBlockMaster.getWorkerId(NET_ADDRESS_2);
@@ -762,7 +752,6 @@ public class ConcurrentBlockMasterTest {
                     ImmutableList.of(BLOCK2_ID)),
                 NO_LOST_STORAGE,
                 RegisterWorkerPOptions.getDefaultInstance());
-            System.out.println("New worker register finished");
             return null;
           },
           // Verifier
@@ -798,7 +787,6 @@ public class ConcurrentBlockMasterTest {
                 ImmutableMap.of(),
                 NO_LOST_STORAGE,
                 ImmutableList.of());
-            System.out.println("Worker 1 heartbeat gets " + worker1HeartbeatCmd);
             assertEquals(FREE_BLOCK1_CMD, worker1HeartbeatCmd);
 
             Command worker2HeartbeatCmd = mBlockMaster.workerHeartbeat(worker2,
@@ -810,7 +798,6 @@ public class ConcurrentBlockMasterTest {
                 ImmutableMap.of(),
                 NO_LOST_STORAGE,
                 ImmutableList.of());
-            System.out.println("Worker 2 heartbeat gets " + worker2HeartbeatCmd);
             // Blocks on worker 2 are unaffected
             assertEquals(EMPTY_CMD, worker2HeartbeatCmd);
             return null;
@@ -848,7 +835,6 @@ public class ConcurrentBlockMasterTest {
                 ImmutableMap.of(),
                 NO_LOST_STORAGE,
                 ImmutableList.of());
-            System.out.println("worker heartbeat finished with command returned: " + cmd);
 
             // The block has been removed, nothing from command
             assertEquals(EMPTY_CMD, cmd);
@@ -915,7 +901,6 @@ public class ConcurrentBlockMasterTest {
                 ImmutableMap.of(),
                 NO_LOST_STORAGE,
                 ImmutableList.of());
-            System.out.println("worker heartbeat finished with command returned: " + cmd);
 
             // The heartbeat contends on the block lock of block 2, worker usage lock and
             // worker block list lock
@@ -956,7 +941,6 @@ public class ConcurrentBlockMasterTest {
             // because the verifier is run after W1 fully finished
             // and updated the to-be-removed list
             if (!freeCommandSeen.get()) {
-              System.out.println("The 1st heartbeat does not see the free cmd, check again");
               Command cmd = mBlockMaster.workerHeartbeat(worker1,
                   MEM_CAPACITY,
                   // Block 2 is removed but 1 is still on the worker
@@ -1004,7 +988,6 @@ public class ConcurrentBlockMasterTest {
                 ImmutableMap.of(),
                 NO_LOST_STORAGE,
                 ImmutableList.of());
-            System.out.println("worker heartbeat finished with command returned: " + cmd);
 
             // The block has been removed, nothing from command
             assertEquals(EMPTY_CMD, cmd);
@@ -1078,7 +1061,6 @@ public class ConcurrentBlockMasterTest {
                 ImmutableMap.of(),
                 NO_LOST_STORAGE,
                 ImmutableList.of());
-            System.out.println("worker heartbeat finished with command returned: " + cmd);
 
             // Nothing for worker 2 to do because it does not have block 1
             assertEquals(EMPTY_CMD, cmd);
@@ -1120,7 +1102,6 @@ public class ConcurrentBlockMasterTest {
   private void verifyBlockOnWorkers(long blockId, long blockLength,
                                     List<WorkerInfo> workers) throws Exception {
     BlockInfo blockInfo = mBlockMaster.getBlockInfo(blockId);
-    System.out.println("Found BlockInfo " + blockInfo);
     assertEquals(blockLength, blockInfo.getLength());
     assertEquals(workers.size(), blockInfo.getLocations().size());
 
@@ -1180,9 +1161,7 @@ public class ConcurrentBlockMasterTest {
       // Wait until the writer enters the critical section and sends a signal
       try {
         w1Latch.await();
-        System.out.println("Writer 2 can run now");
       } catch (Throwable t) {
-        System.out.println("Error waiting for W1: " + t.getMessage());
         uncaughtThrowables.add(t);
         // Fail to wait for the signal, just give up
         writerFinished.countDown();
@@ -1190,10 +1169,8 @@ public class ConcurrentBlockMasterTest {
       }
       // Trigger the other writer
       try {
-        System.out.println("Calling W2");
         w2.call();
       } catch (Throwable t) {
-        System.out.println("W2 throws an error: " + t.getMessage());
         uncaughtThrowables.add(t);
       } finally {
         writerFinished.countDown();
@@ -1207,10 +1184,6 @@ public class ConcurrentBlockMasterTest {
     verifier.call();
     // W2 has finished, verify here
     // If any assertion failed, the failed assertion will throw an AssertError
-    // TODO(jiacheng): remove this
-    for (Throwable t : uncaughtThrowables) {
-      t.printStackTrace();
-    }
     assertEquals(0, uncaughtThrowables.size());
   }
 }
