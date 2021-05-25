@@ -16,17 +16,16 @@ import alluxio.client.file.FileSystem;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.grpc.SetAttributePOptions;
-import alluxio.jnifuse.FuseFileSystem;
+import alluxio.jnifuse.AbstractFuseFileSystem;
 
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Custom Fuse Auth Policy.
+ * A Fuse authentication policy supports user-defined user and group.
  */
 public class CustomAuthPolicy implements AuthPolicy {
-
   private static final Logger LOG =
       LoggerFactory.getLogger(CustomAuthPolicy.class);
   private final FileSystem mFileSystem;
@@ -34,12 +33,12 @@ public class CustomAuthPolicy implements AuthPolicy {
   private final String mGname;
 
   /**
-   * @param fileSystem     - FileSystem
-   * @param conf           - AlluxioConfiguration
-   * @param fuseFileSystem - FuseFileSystem
+   * @param fileSystem     the Alluxio file system
+   * @param conf           alluxio configuration
+   * @param fuseFileSystem the FuseFileSystem
    */
   public CustomAuthPolicy(FileSystem fileSystem, AlluxioConfiguration conf,
-      FuseFileSystem fuseFileSystem) {
+      AbstractFuseFileSystem fuseFileSystem) {
     mFileSystem = fileSystem;
     mUname = conf.get(PropertyKey.FUSE_AUTH_POLICY_CUSTOM_USER);
     mGname = conf.get(PropertyKey.FUSE_AUTH_POLICY_CUSTOM_GROUP);
@@ -54,7 +53,7 @@ public class CustomAuthPolicy implements AuthPolicy {
         .setGroup(mUname)
         .setOwner(mGname)
         .build();
-    LOG.debug("Set attributes of path {} to {}", uri, attributeOptions);
     mFileSystem.setAttribute(uri, attributeOptions);
+    LOG.debug("Set attributes of path {} to {}", uri, attributeOptions);
   }
 }

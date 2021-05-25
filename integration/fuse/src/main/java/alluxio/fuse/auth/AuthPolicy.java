@@ -18,8 +18,8 @@ import alluxio.AlluxioURI;
  */
 public interface AuthPolicy {
   /**
-   * set use and group.
-   * @param uri - path url
+   * Sets user and group if needed.
+   * @param uri the path uri
    */
   void setUserGroupIfNeeded(AlluxioURI uri) throws Exception;
 }

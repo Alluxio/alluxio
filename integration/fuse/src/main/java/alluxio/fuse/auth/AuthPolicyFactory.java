@@ -22,12 +22,12 @@ import alluxio.jnifuse.AbstractFuseFileSystem;
 public class AuthPolicyFactory {
 
   /**
-   * @param filesystem     - FileSystem
-   * @param conf           - Configuration
-   * @param fuseFileSystem - FuseFileSystem
+   * @param fileSystem     the Alluxio file system
+   * @param conf           alluxio configuration
+   * @param fuseFileSystem the FuseFileSystem
    * @return AuthPolicy
    */
-  public static AuthPolicy create(FileSystem filesystem,
+  public static AuthPolicy create(FileSystem fileSystem,
       AlluxioConfiguration conf,
       AbstractFuseFileSystem fuseFileSystem) {
     Class authPolicyClazz = conf.getClass(PropertyKey.FUSE_AUTH_POLICY_CLASS);
@@ -35,7 +35,7 @@ public class AuthPolicyFactory {
       return (AuthPolicy) authPolicyClazz.getConstructor(
           new Class[] {FileSystem.class, AlluxioConfiguration.class,
               AbstractFuseFileSystem.class})
-          .newInstance(filesystem, conf, fuseFileSystem);
+          .newInstance(fileSystem, conf, fuseFileSystem);
     } catch (ReflectiveOperationException e) {
       throw new IllegalStateException(
           PropertyKey.FUSE_AUTH_POLICY_CLASS.getName() + " configured to "

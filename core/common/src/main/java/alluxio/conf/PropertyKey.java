@@ -4731,22 +4731,25 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   //
   public static final PropertyKey FUSE_AUTH_POLICY_CLASS =
       new Builder(Name.FUSE_AUTH_POLICY_CLASS)
-          .setDefaultValue("alluxio.fuse.auth.DefaultAuthPolicy")
-          .setDescription("The fuse auth policy class.")
+          .setDefaultValue("alluxio.fuse.auth.SystemUserGroupAuthPolicy")
+          .setDescription("The fuse auth policy class. "
+              + " Valid options include: "
+              + "`alluxio.fuse.auth.SystemUserGroupAuthPolicy`, "
+              + "`alluxio.fuse.auth.CustomAuthPolicy`.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
           .setScope(Scope.CLIENT)
           .build();
   public static final PropertyKey FUSE_AUTH_POLICY_CUSTOM_USER =
       new Builder(Name.FUSE_AUTH_POLICY_CUSTOM_USER)
-          .setDefaultValue("<FUSE_AUTH_POLICY_CUSTOM_USER>")
-          .setDescription("The fuse user name for custom auth policy.")
+          .setDescription("The fuse user name for custom auth policy. Only valid if the "
+              + Name.FUSE_AUTH_POLICY_CLASS + " is alluxio.fuse.auth.CustomAuthPolicy")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
           .setScope(Scope.CLIENT)
           .build();
   public static final PropertyKey FUSE_AUTH_POLICY_CUSTOM_GROUP =
       new Builder(Name.FUSE_AUTH_POLICY_CUSTOM_GROUP)
-          .setDefaultValue("<FUSE_AUTH_POLICY_CUSTOM_GROUP>")
-          .setDescription("The fuse group name for custom auth policy.")
+          .setDescription("The fuse group name for custom auth policy. Only valid if the "
+              + Name.FUSE_AUTH_POLICY_CLASS + " is alluxio.fuse.auth.CustomAuthPolicy")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
           .setScope(Scope.CLIENT)
           .build();

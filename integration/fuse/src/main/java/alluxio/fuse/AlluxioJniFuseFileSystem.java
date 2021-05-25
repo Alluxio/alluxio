@@ -24,7 +24,7 @@ import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.FileIncompleteException;
 import alluxio.fuse.auth.AuthPolicy;
 import alluxio.fuse.auth.AuthPolicyFactory;
-import alluxio.fuse.auth.DefaultAuthPolicy;
+import alluxio.fuse.auth.SystemUserGroupAuthPolicy;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.SetAttributePOptions;
@@ -164,7 +164,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
           @Override
           public Long load(String userName) {
             long uid = AlluxioFuseUtils.getUid(userName);
-            return uid == -1 ? DefaultAuthPolicy.DEFAULT_UID : uid;
+            return uid == -1 ? SystemUserGroupAuthPolicy.DEFAULT_UID : uid;
           }
         });
     mGidCache = CacheBuilder.newBuilder()
@@ -173,7 +173,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
           @Override
           public Long load(String groupName) {
             long gid = AlluxioFuseUtils.getGidFromGroupName(groupName);
-            return gid == -1 ? DefaultAuthPolicy.DEFAULT_GID : gid;
+            return gid == -1 ? SystemUserGroupAuthPolicy.DEFAULT_GID : gid;
           }
         });
     mIsUserGroupTranslation = conf.getBoolean(PropertyKey.FUSE_USER_GROUP_TRANSLATION_ENABLED);
@@ -255,8 +255,8 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
         stat.st_uid.set(mUidCache.get(status.getOwner()));
         stat.st_gid.set(mGidCache.get(status.getGroup()));
       } else {
-        stat.st_uid.set(DefaultAuthPolicy.DEFAULT_UID);
-        stat.st_gid.set(DefaultAuthPolicy.DEFAULT_GID);
+        stat.st_uid.set(SystemUserGroupAuthPolicy.DEFAULT_UID);
+        stat.st_gid.set(SystemUserGroupAuthPolicy.DEFAULT_GID);
       }
 
       int mode = status.getMode();

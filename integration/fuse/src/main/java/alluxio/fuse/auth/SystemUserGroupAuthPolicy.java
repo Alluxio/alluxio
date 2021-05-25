@@ -17,7 +17,7 @@ import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.fuse.AlluxioFuseUtils;
 import alluxio.grpc.SetAttributePOptions;
-import alluxio.jnifuse.FuseFileSystem;
+import alluxio.jnifuse.AbstractFuseFileSystem;
 import alluxio.jnifuse.struct.FuseContext;
 
 import com.google.common.cache.CacheBuilder;
@@ -31,26 +31,27 @@ import java.io.IOException;
 /**
  * Default Fuse Auth Policy.
  */
-public final class DefaultAuthPolicy  implements AuthPolicy {
-  private static final Logger LOG = LoggerFactory.getLogger(DefaultAuthPolicy.class);
+public final class SystemUserGroupAuthPolicy implements AuthPolicy {
+  private static final Logger LOG = LoggerFactory.getLogger(
+      SystemUserGroupAuthPolicy.class);
   private static final String DEFAULT_USER_NAME = System.getProperty("user.name");
   private static final String DEFAULT_GROUP_NAME = System.getProperty("user.name");
   public static final long DEFAULT_UID = AlluxioFuseUtils.getUid(DEFAULT_USER_NAME);
   public static final long DEFAULT_GID = AlluxioFuseUtils.getGid(DEFAULT_GROUP_NAME);
 
   private final FileSystem mFileSystem;
-  private final FuseFileSystem mFuseFileSystem;
+  private final AbstractFuseFileSystem mFuseFileSystem;
   private final boolean mIsUserGroupTranslation;
   private final LoadingCache<Long, String> mUsernameCache;
   private final LoadingCache<Long, String> mGroupnameCache;
 
   /**
-   * @param fileSystem - FileSystem
-   * @param conf - AlluxioConfiguration
-   * @param fuseFileSystem - FuseFileSystem
+   * @param fileSystem     the Alluxio file system
+   * @param conf           alluxio configuration
+   * @param fuseFileSystem AbstractFuseFileSystem
    */
-  public DefaultAuthPolicy(
-      FileSystem fileSystem, AlluxioConfiguration conf, FuseFileSystem fuseFileSystem) {
+  public SystemUserGroupAuthPolicy(
+      FileSystem fileSystem, AlluxioConfiguration conf, AbstractFuseFileSystem fuseFileSystem) {
     mFileSystem = fileSystem;
     mFuseFileSystem = fuseFileSystem;
 
