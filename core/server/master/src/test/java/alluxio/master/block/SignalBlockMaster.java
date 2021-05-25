@@ -23,7 +23,7 @@ import java.util.concurrent.CountDownLatch;
  * When the writer is writing, issue a signal so other readers/writers know when to start.
  * A {@link CountDownLatch} will be used to pass the signal.
  * Other readers/writers will wait on the signal to execute.
- * */
+ */
 class SignalBlockMaster extends DefaultBlockMaster {
   CountDownLatch mLatch;
 

@@ -108,8 +108,6 @@ public class BlockMasterTest {
     mClock = new ManualClock();
     mExecutorService =
         Executors.newFixedThreadPool(2, ThreadFactoryUtils.build("TestBlockMaster-%d", true));
-    mClientExecutorService = Executors.newFixedThreadPool(2,
-        ThreadFactoryUtils.build("TestBlockMaster-%d", true));
     mBlockMaster = new DefaultBlockMaster(mMetricsMaster, masterContext, mClock,
         ExecutorServiceFactories.constantExecutorServiceFactory(mExecutorService));
     mRegistry.add(BlockMaster.class, mBlockMaster);
@@ -122,10 +120,6 @@ public class BlockMasterTest {
   @After
   public void after() throws Exception {
     mRegistry.stop();
-
-    // When the registry is stopped, the BlockMaster will stop the given ExecutorService
-    // We need to manually shutdown this client thread pool
-    mClientExecutorService.shutdown();
   }
 
   @Test
@@ -404,8 +398,5 @@ public class BlockMasterTest {
     mRegistry.stop();
     assertTrue(mExecutorService.isShutdown());
     assertTrue(mExecutorService.isTerminated());
-
-    assertTrue(mClientExecutorService.isShutdown());
-    assertTrue(mClientExecutorService.isTerminated());
   }
 }

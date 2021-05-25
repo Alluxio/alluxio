@@ -46,7 +46,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * There are multiple locks in this object, each guarding a group of metadata.
  * When multiple fields need to be read or updated, locks must be acquired on each.
  * Locking order must be preserved when multiple locks are acquired:
- * mMetaLock -> mUsageLock -> mBlockListLock
+ * mRegisterLock -> mUsageLock -> mBlockListLock
  * The locks should be released in the opposite order to avoid deadlock.
  */
 @NotThreadSafe
