@@ -69,7 +69,7 @@ public class SwiftMockOutputStream extends OutputStream {
       mFile = new File(PathUtils.concatPath(CommonUtils.getTmpDir(tmpDirs), UUID.randomUUID()));
       mOutputStream  = new BufferedOutputStream(new FileOutputStream(mFile));
     } catch (Exception e) {
-      LOG.error(e.getMessage());
+      LOG.error("Failed to construct SwiftMockOutputStream", e);
       throw new IOException(e);
     }
   }

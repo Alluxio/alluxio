@@ -280,7 +280,7 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
         }
         return outputStream;
       } catch (IOException e) {
-        LOG.warn("Attempt count {} : {} ", retryPolicy.getAttemptCount(), e.getMessage());
+        LOG.warn("Attempt count {} : {} ", retryPolicy.getAttemptCount(), e.toString());
         te = e;
       }
     }
@@ -365,7 +365,7 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
         Collections.addAll(ret, names);
       }
     } catch (IOException e) {
-      LOG.debug("Unable to get file location for {} : {}", path, e.getMessage());
+      LOG.debug("Unable to get file location for {}", path, e);
     }
     return ret;
   }
@@ -548,7 +548,7 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
         return true;
       } catch (IOException e) {
         LOG.warn("{} try to make directory for {} : {}", retryPolicy.getAttemptCount(), path,
-            e.getMessage());
+            e.toString());
         te = e;
       }
     }
@@ -610,7 +610,7 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
         LOG.debug("Using original API to HDFS");
         return new HdfsUnderFileInputStream(inputStream);
       } catch (IOException e) {
-        LOG.warn("{} try to open {} : {}", retryPolicy.getAttemptCount(), path, e.getMessage());
+        LOG.warn("{} try to open {} : {}", retryPolicy.getAttemptCount(), path, e.toString());
         te = e;
         if (options.getRecoverFailedOpen() && dfs != null && e.getMessage().toLowerCase()
             .startsWith("cannot obtain block length for")) {
@@ -669,15 +669,16 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
       FileStatus fileStatus = hdfs.getFileStatus(new Path(path));
       hdfs.setOwner(fileStatus.getPath(), user, group);
     } catch (IOException e) {
-      LOG.warn("Failed to set owner for {} with user: {}, group: {}", path, user, group);
-      LOG.debug("Exception : ", e);
-      LOG.warn("In order for Alluxio to modify ownership of local files, "
-          + "Alluxio should be running as an HDFS superuser.");
-      if (!Boolean.valueOf(mUfsConf.get(PropertyKey.UNDERFS_ALLOW_SET_OWNER_FAILURE))) {
+      LOG.debug("Exception: ", e);
+      if (!mUfsConf.getBoolean(PropertyKey.UNDERFS_ALLOW_SET_OWNER_FAILURE)) {
+        LOG.warn("Failed to set owner for {} with user: {}, group: {}: {}. "
+            + "Running Alluxio as superuser is required to modify ownership of local files",
+            path, user, group, e.toString());
         throw e;
       } else {
-        LOG.warn("Failure is ignored, which may cause permission inconsistency between "
-            + "Alluxio and HDFS.");
+        LOG.warn("Failed to set owner for {} with user: {}, group: {}: {}. "
+            + "This failure is ignored but may cause permission inconsistency between Alluxio "
+            + "and local under file system", path, user, group, e.toString());
       }
     }
   }
@@ -689,7 +690,7 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
       FileStatus fileStatus = hdfs.getFileStatus(new Path(path));
       hdfs.setPermission(fileStatus.getPath(), new FsPermission(mode));
     } catch (IOException e) {
-      LOG.warn("Fail to set permission for {} with perm {} : {}", path, mode, e.getMessage());
+      LOG.warn("Fail to set permission for {} with perm {} : {}", path, mode, e.toString());
       throw e;
     }
   }
@@ -744,7 +745,7 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
       try {
         return hdfs.delete(new Path(path), recursive);
       } catch (IOException e) {
-        LOG.warn("Attempt count {} : {}", retryPolicy.getAttemptCount(), e.getMessage());
+        LOG.warn("Attempt count {} : {}", retryPolicy.getAttemptCount(), e.toString());
         te = e;
       }
     }
@@ -790,7 +791,7 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
         return hdfs.rename(new Path(src), new Path(dst));
       } catch (IOException e) {
         LOG.warn("{} try to rename {} to {} : {}", retryPolicy.getAttemptCount(), src, dst,
-            e.getMessage());
+            e.toString());
         te = e;
       }
     }

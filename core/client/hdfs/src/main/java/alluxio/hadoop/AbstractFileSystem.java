@@ -261,7 +261,7 @@ public abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem
       mFileSystem.delete(uri, options);
       return true;
     } catch (InvalidPathException | FileDoesNotExistException e) {
-      LOG.warn("delete failed: {}", e.getMessage());
+      LOG.warn("delete failed: {}", e.toString());
       return false;
     } catch (AlluxioException e) {
       throw new IOException(e);
@@ -657,7 +657,7 @@ public abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem
     try {
       mFileSystem.rename(srcPath, dstPath);
     } catch (FileDoesNotExistException e) {
-      LOG.warn("rename failed: {}", e.getMessage());
+      LOG.warn("rename failed: {}", e.toString());
       return false;
     } catch (AlluxioException e) {
       ensureExists(srcPath);
@@ -665,14 +665,14 @@ public abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem
       try {
         dstStatus = mFileSystem.getStatus(dstPath);
       } catch (IOException | AlluxioException e2) {
-        LOG.warn("rename failed: {}", e.getMessage());
+        LOG.warn("rename failed: {}", e.toString());
         return false;
       }
       // If the destination is an existing folder, try to move the src into the folder
       if (dstStatus != null && dstStatus.isFolder()) {
         dstPath = dstPath.joinUnsafe(srcPath.getName());
       } else {
-        LOG.warn("rename failed: {}", e.getMessage());
+        LOG.warn("rename failed: {}", e.toString());
         return false;
       }
       try {
