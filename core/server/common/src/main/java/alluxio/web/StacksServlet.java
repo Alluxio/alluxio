@@ -28,6 +28,8 @@ import java.io.PrintStream;
  */
 public class StacksServlet extends HttpServlet {
   private static final Logger LOG = LoggerFactory.getLogger(StacksServlet.class);
+
+  @Override
   protected void doGet(HttpServletRequest req, HttpServletResponse resp)
       throws ServletException, IOException {
     resp.setContentType("text/plain; charset=UTF-8");
