@@ -14,10 +14,8 @@ package alluxio.master.block;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
-import alluxio.client.block.options.GetWorkerReportOptions;
 import alluxio.Constants;
 import alluxio.clock.ManualClock;
-import alluxio.exception.BlockInfoException;
 import alluxio.grpc.Command;
 import alluxio.grpc.CommandType;
 import alluxio.grpc.RegisterWorkerPOptions;
@@ -54,16 +52,10 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Queue;
-import java.util.Set;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 

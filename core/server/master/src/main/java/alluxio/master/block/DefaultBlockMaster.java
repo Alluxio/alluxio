@@ -43,12 +43,10 @@ import alluxio.heartbeat.HeartbeatThread;
 import alluxio.master.CoreMaster;
 import alluxio.master.CoreMasterContext;
 import alluxio.master.block.meta.MasterWorkerInfo;
-import alluxio.master.block.meta.WorkerMeta;
 import alluxio.master.journal.JournalContext;
 import alluxio.master.journal.checkpoint.CheckpointName;
 import alluxio.master.metastore.BlockStore;
 import alluxio.master.metastore.BlockStore.Block;
-import alluxio.master.block.meta.WorkerUsageMeta;
 import alluxio.master.metrics.MetricsMaster;
 import alluxio.metrics.Metric;
 import alluxio.metrics.MetricInfo;
@@ -110,7 +108,6 @@ import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.GuardedBy;
@@ -446,7 +443,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
   public long getCapacityBytes() {
     long ret = 0;
     for (MasterWorkerInfo worker : mWorkers) {
-      try (LockResource lr = new LockResource(worker.getUsageLock().readLock())){
+      try (LockResource lr = new LockResource(worker.getUsageLock().readLock())) {
         ret += worker.getCapacityBytes();
       }
     }
@@ -462,7 +459,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
   public long getUsedBytes() {
     long ret = 0;
     for (MasterWorkerInfo worker : mWorkers) {
-      try (LockResource lr = new LockResource(worker.getUsageLock().readLock())){
+      try (LockResource lr = new LockResource(worker.getUsageLock().readLock())) {
         ret += worker.getUsedBytes();
       }
     }
@@ -604,6 +601,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
         HashSet<Long> workerIds = new HashSet<>();
 
         try (LockResource lr = lockBlock(blockId)) {
+          System.out.println("Locked block " + blockId + " for removal");
           Optional<BlockMeta> block = mBlockStore.getBlock(blockId);
           if (!block.isPresent()) {
             continue;
@@ -634,6 +632,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
           if (worker != null) {
             // We read the mBlocks and write the mToRemoveBlocks
             try (LockResource lr = new LockResource(worker.getBlockListLock().writeLock())) {
+              System.out.println("Updating worker metadata here");
               worker.updateToRemovedBlock(true, blockId);
             }
           }
@@ -951,6 +950,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
     worker.getUsageLock().writeLock().lock();
     worker.getBlockListLock().writeLock().lock();
     try {
+      System.out.println("Register worker got the locks here");
       // Detect any lost blocks on this worker.
       Set<Long> removedBlocks = worker.register(mGlobalStorageTierAssoc, storageTiers,
           totalBytesOnTiers, usedBytesOnTiers, blocks);
