@@ -122,7 +122,7 @@ public class CsvSink implements Sink {
       try {
         dir.mkdirs();
       } catch (SecurityException e) {
-        LOG.warn("Fail to create directory {} for CSV sink, {}", dir, e.getMessage());
+        LOG.warn("Fail to create directory {} for CSV sink, {}", dir, e.toString());
       }
     }
   }

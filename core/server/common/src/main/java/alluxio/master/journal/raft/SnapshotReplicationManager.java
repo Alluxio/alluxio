@@ -455,7 +455,7 @@ public class SnapshotReplicationManager {
         try {
           reply = job.getValue().get();
         } catch (Exception e) {
-          LOG.warn("Exception thrown while requesting snapshot info {}", e.getMessage());
+          LOG.warn("Exception thrown while requesting snapshot info {}", e.toString());
           continue;
         }
         if (reply.getException() != null) {
@@ -468,7 +468,7 @@ public class SnapshotReplicationManager {
           response = JournalQueryResponse.parseFrom(
               reply.getMessage().getContent().asReadOnlyByteBuffer());
         } catch (InvalidProtocolBufferException e) {
-          LOG.warn("Failed to parse response {}", e.getMessage());
+          LOG.warn("Failed to parse response {}", e.toString());
           continue;
         }
         LOG.debug("Received snapshot info from follower {} - {}", peerId, response);

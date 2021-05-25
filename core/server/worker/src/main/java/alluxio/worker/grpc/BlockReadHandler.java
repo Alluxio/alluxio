@@ -554,10 +554,9 @@ public class BlockReadHandler implements StreamObserver<alluxio.grpc.ReadRequest
         try {
           mWorker.moveBlock(request.getSessionId(), request.getId(), 0);
         } catch (BlockDoesNotExistException e) {
-          LOG.debug("Block {} to promote does not exist in Alluxio: {}", request.getId(),
-              e.getMessage());
+          LOG.debug("Block {} to promote does not exist in Alluxio", request.getId(), e);
         } catch (Exception e) {
-          LOG.warn("Failed to promote block {}: {}", request.getId(), e.getMessage());
+          LOG.warn("Failed to promote block {}: {}", request.getId(), e.toString());
         }
       }
       BlockReader reader = mWorker.createBlockReader(request);

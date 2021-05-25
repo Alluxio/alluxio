@@ -310,7 +310,7 @@ public class GlueDatabase implements UnderDatabase {
           .getColumnStatisticsList().stream().map(GlueUtils::toProto).collect(Collectors.toList());
     } catch (AmazonClientException e) {
       LOG.warn("Cannot get the table column statistics info for table {}.{} with error {}.",
-          dbName, tableName, e.getMessage());
+          dbName, tableName, e.toString());
     }
     return Collections.emptyList();
   }
@@ -325,7 +325,7 @@ public class GlueDatabase implements UnderDatabase {
       return partColumnStatistic;
     } catch (AmazonClientException e) {
       LOG.warn("Cannot get the partition column statistics info for table {}.{} with error {}.",
-          dbName, tableName, e.getMessage());
+          dbName, tableName, e.toString());
     }
     return Collections.emptyList();
   }

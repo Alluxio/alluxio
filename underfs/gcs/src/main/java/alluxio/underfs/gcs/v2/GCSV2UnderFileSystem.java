@@ -210,7 +210,7 @@ public class GCSV2UnderFileSystem extends ObjectUnderFileSystem {
             Storage.BlobListOption.currentDirectory());
       }
     } catch (StorageException e) {
-      LOG.error("Failed to get object listing result of {}: {}", key, e.toString());
+      LOG.error("Failed to get object listing result of {}", key, e);
       throw new IOException(e);
     }
     if (blobPage != null && blobPage.getValues().iterator().hasNext()) {
