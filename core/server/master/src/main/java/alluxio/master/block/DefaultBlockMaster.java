@@ -851,19 +851,7 @@ public final class DefaultBlockMaster extends CoreMaster implements BlockMaster 
       return oldWorkerId;
     }
 
-    existingWorker = findUnregisteredWorker(workerNetAddress);
-    if (existingWorker != null) {
-      return existingWorker.getId();
-    }
-
-    // Generate a new worker id.
-    long workerId = IdUtils.getRandomNonNegativeLong();
-    while (!mTempWorkers.add(new MasterWorkerInfo(workerId, workerNetAddress))) {
-      workerId = IdUtils.getRandomNonNegativeLong();
-    }
-
-    LOG.info("getWorkerId(): WorkerNetAddress: {} id: {}", workerNetAddress, workerId);
-    return workerId;
+    return _getWorkerId(workerNetAddress);
   }
 
   @Override
@@ -871,22 +859,13 @@ public final class DefaultBlockMaster extends CoreMaster implements BlockMaster 
     MasterWorkerInfo existingWorker = mWorkers.getFirstByField(ID_INDEX, workerId);
     if (existingWorker != null) {
       existingWorker.updateWorkerNetAddress(workerNetAddress);
+      existingWorker.updateLastUpdatedTimeMs();
+      LOG.info("getWorkerId(): Update the worker: {} WorkerNetAddress: {}",
+          workerId, workerNetAddress);
       return workerId;
     }
 
-    existingWorker = findUnregisteredWorker(workerNetAddress);
-    if (existingWorker != null) {
-      return existingWorker.getId();
-    }
-
-    // Generate a new worker id.
-    workerId = IdUtils.getRandomNonNegativeLong();
-    while (!mTempWorkers.add(new MasterWorkerInfo(workerId, workerNetAddress))) {
-      workerId = IdUtils.getRandomNonNegativeLong();
-    }
-
-    LOG.info("getWorkerId(): WorkerNetAddress: {} id: {}", workerNetAddress, workerId);
-    return workerId;
+    return _getWorkerId(workerNetAddress);
   }
 
   @Override
@@ -973,6 +952,22 @@ public final class DefaultBlockMaster extends CoreMaster implements BlockMaster 
       return Command.newBuilder().setCommandType(CommandType.Free).addAllData(toRemoveBlocks)
           .build();
     }
+  }
+
+  private long _getWorkerId(WorkerNetAddress workerNetAddress) {
+    MasterWorkerInfo existingWorker = findUnregisteredWorker(workerNetAddress);
+    if (existingWorker != null) {
+      return existingWorker.getId();
+    }
+
+    // Generate a new worker id.
+    long workerId = IdUtils.getRandomNonNegativeLong();
+    while (!mTempWorkers.add(new MasterWorkerInfo(workerId, workerNetAddress))) {
+      workerId = IdUtils.getRandomNonNegativeLong();
+    }
+
+    LOG.info("getWorkerId(): WorkerNetAddress: {} id: {}", workerNetAddress, workerId);
+    return workerId;
   }
 
   private void processWorkerMetrics(String hostname, List<Metric> metrics) {

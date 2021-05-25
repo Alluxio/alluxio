@@ -5789,7 +5789,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.worker.fuse.mount.options";
     public static final String WORKER_FUSE_MOUNT_POINT =
         "alluxio.worker.fuse.mount.point";
-    public static final String WORKER_INFO_FILE = "alluxio.work.info.file";
+    public static final String WORKER_INFO_FILE = "alluxio.worker.info.file";
     public static final String WORKER_MANAGEMENT_TIER_ALIGN_RESERVED_BYTES =
         "alluxio.worker.management.tier.align.reserved.bytes";
     public static final String WORKER_MANAGEMENT_BACKOFF_STRATEGY =

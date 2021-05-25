@@ -237,6 +237,9 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
             () -> mWorkerId.set(blockMasterClient.getId(address, infoFile.getWorkerId())),
             RetryUtils.defaultWorkerMasterClientRetry(
                 ServerConfiguration.getDuration(PropertyKey.WORKER_MASTER_CONNECT_RETRY_TIMEOUT)));
+        if (mWorkerId.get() != infoFile.getWorkerId()) {
+          isNewWorker = true;
+        }
       } catch (Exception e) {
         throw new RuntimeException(
             "Failed to create or get old worker id: " + e.getMessage());
@@ -264,8 +267,8 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
     // Setup BlockMasterSync
     mBlockMasterSync = mResourceCloser.register(
         new BlockMasterSync(this, mWorkerId, mAddress, mBlockMasterClientPool, isNewWorker));
-    getExecutorService().submit(
-        new HeartbeatThread(HeartbeatContext.WORKER_BLOCK_SYNC, mBlockMasterSync,
+    getExecutorService()
+        .submit(new HeartbeatThread(HeartbeatContext.WORKER_BLOCK_SYNC, mBlockMasterSync,
             (int) ServerConfiguration.getMs(PropertyKey.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS),
             ServerConfiguration.global(), ServerUserState.global()));
 
@@ -647,8 +650,8 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
   }
 
   @Override
-  public BlockReader createBlockReader(BlockReadRequest request)
-      throws BlockDoesNotExistException, IOException {
+  public BlockReader createBlockReader(BlockReadRequest request) throws
+      BlockDoesNotExistException, IOException {
     long sessionId = request.getSessionId();
     long blockId = request.getId();
     RetryPolicy retryPolicy = new TimeoutRetry(UFS_BLOCK_OPEN_TIMEOUT_MS, Constants.SECOND_MS);
@@ -669,8 +672,8 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
         return createUfsBlockReader(request.getSessionId(), request.getId(), request.getStart(),
             request.isPositionShort(), request.getOpenUfsBlockOptions());
       } catch (Exception e) {
-        throw new UnavailableException(String
-            .format("Failed to read block ID=%s from tiered storage and UFS tier: %s",
+        throw new UnavailableException(
+            String.format("Failed to read block ID=%s from tiered storage and UFS tier: %s",
                 request.getId(), e.toString()));
       }
     }
