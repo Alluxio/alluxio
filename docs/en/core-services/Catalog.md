@@ -102,10 +102,22 @@ $ ${ALLUXIO_HOME}/bin/alluxio table attachdb --db alluxio_db hive \
     thrift://metastore_host:9083 default
 ```
 
+If you want specify config file for the UDB, please add `attachdb` option `-o catalog.db.config.file`.
+Each time you want to affect the config file, you can use `alluxio table sync`.
+
+If you want to write a configuration file for the UDB, please configure it like the following given example.
+It must contain an array `bypassSet`, the comma-separated table names will be bypassed.
+
+```json
+{
+  "bypassSet" : ["table1", "table2"]
+}
+```
+
 > **Note:** When databases are attached, all tables are synced from the configured UDB.
 If out-of-band updates occur to the database or table and the user wants query results to reflect
 the updates, the database must be synced. See [Syncing Databases](#syncing-databases) for more
-information.
+information. 
 
 ### Exploring Attached Databases
 
@@ -212,7 +224,7 @@ $ ${ALLUXIO_HOME}/bin/alluxio table sync alluxio_db
 ```
 
 This sync command will update the Alluxio catalog metadata according to the updates, deletions,
-and additions in the UDB tables.
+and additions in the UDB tables, it will update db config as well.
 
 ## Using Alluxio Structured Data with Presto
 

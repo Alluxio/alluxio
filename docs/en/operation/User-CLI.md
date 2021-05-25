@@ -1433,6 +1433,7 @@ Here are the additional properties possible for the `-o` options:
     * `<UDB_TYPE>`: the UDB type
     * `<UFS_PREFIX>`: the UFS path prefix that the mount properties are for
     * `<MOUNT_PROPERTY>`: an Alluxio mount property
+  * `catalog.db.config.file`: the config file for the UDB, you can specify bypass table by this option.
   * `catalog.db.ignore.udb.tables`: comma-separated list of table names to ignore from the UDB
   * `catalog.db.sync.threads`: number of parallel threads to use to sync with the UDB. If too large,
   the sync may overload the UDB, and if set too low, syncing a database with many tables make take
