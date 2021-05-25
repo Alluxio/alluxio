@@ -38,4 +38,7 @@ public class CatalogProperty extends BaseProperty {
               + "overload the UDB, and if set too low, syncing a database with many tables may "
               + "take a long time.",
           Integer.toString(DEFAULT_DB_SYNC_THREADS));
+  public static final CatalogProperty DB_CONFIG_FILE =
+      new CatalogProperty("catalog.db.config.file",
+          "The config file for the UDB.", "<catalog.db.config.file>");
 }
