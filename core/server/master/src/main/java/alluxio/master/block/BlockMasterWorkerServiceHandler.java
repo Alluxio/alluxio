@@ -76,7 +76,7 @@ public final class BlockMasterWorkerServiceHandler extends
     final Map<String, StorageList> lostStorageMap = request.getLostStorageMap();
 
     final Map<Block.BlockLocation, List<Long>> addedBlocksMap =
-        reconstructBlocksOnLocationMap(request.getAddedBlocksList());
+        reconstructBlocksOnLocationMap(request.getAddedBlocksList(), workerId);
 
     final List<Metric> metrics = request.getOptions().getMetricsList()
         .stream().map(Metric::fromProto).collect(Collectors.toList());
@@ -143,7 +143,7 @@ public final class BlockMasterWorkerServiceHandler extends
     final Map<String, StorageList> lostStorageMap = request.getLostStorageMap();
 
     final Map<Block.BlockLocation, List<Long>> currBlocksOnLocationMap =
-            reconstructBlocksOnLocationMap(request.getCurrentBlocksList());
+        reconstructBlocksOnLocationMap(request.getCurrentBlocksList(), workerId);
 
     RegisterWorkerPOptions options = request.getOptions();
     RpcUtils.call(LOG,
@@ -162,11 +162,11 @@ public final class BlockMasterWorkerServiceHandler extends
    * tier alias and medium type.
    * */
   private Map<Block.BlockLocation, List<Long>> reconstructBlocksOnLocationMap(
-          List<LocationBlockIdListEntry> entries) {
+          List<LocationBlockIdListEntry> entries, long workerId) {
     return entries.stream().collect(
         Collectors.toMap(
             e -> Block.BlockLocation.newBuilder().setTier(e.getKey().getTierAlias())
-                .setMediumType(e.getKey().getMediumType()).build(),
+                .setMediumType(e.getKey().getMediumType()).setWorkerId(workerId).build(),
             e -> e.getValue().getBlockIdList(),
             /**
              * The merger function is invoked on key collisions to merge the values.

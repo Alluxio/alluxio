@@ -268,8 +268,8 @@ public final class ReplicationCheckerTest {
   private void heartbeatToAddLocationHelper(long blockId, long workerId) throws Exception {
     List<Long> addedBlocks = ImmutableList.of(blockId);
     Block.BlockLocation blockLocation =
-        Block.BlockLocation.newBuilder().setTier(Constants.MEDIUM_MEM)
-            .setMediumType(Constants.MEDIUM_MEM).build();
+        Block.BlockLocation.newBuilder().setWorkerId(workerId)
+            .setTier(Constants.MEDIUM_MEM).setMediumType(Constants.MEDIUM_MEM).build();
 
     mBlockMaster.workerHeartbeat(workerId, null,
         ImmutableMap.of(Constants.MEDIUM_MEM, 0L), NO_BLOCKS,
