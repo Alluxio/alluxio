@@ -17,6 +17,7 @@ import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 
 import com.codahale.metrics.Counter;
+import com.codahale.metrics.Meter;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -35,6 +36,8 @@ public final class BlockMetricsReporter extends AbstractBlockStoreEventListener 
       = MetricsSystem.counter(MetricKey.WORKER_BLOCKS_DELETED.getName());
   private static final Counter BLOCKS_EVICTED
       = MetricsSystem.counter(MetricKey.WORKER_BLOCKS_EVICTED.getName());
+  private static final Meter BLOCKS_EVICTION_RATE
+      = MetricsSystem.meter(MetricKey.WORKER_BLOCKS_EVICTION_RATE.getName());
   private static final Counter BLOCKS_CANCELLED
       = MetricsSystem.counter(MetricKey.WORKER_BLOCKS_CANCELLED.getName());
   private static final Counter BLOCKS_LOST
@@ -80,6 +83,7 @@ public final class BlockMetricsReporter extends AbstractBlockStoreEventListener 
   @Override
   public void onRemoveBlockByWorker(long sessionId, long blockId) {
     BLOCKS_EVICTED.inc();
+    BLOCKS_EVICTION_RATE.mark();
   }
 
   @Override
