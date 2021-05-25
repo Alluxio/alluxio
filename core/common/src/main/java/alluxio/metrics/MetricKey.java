@@ -856,6 +856,12 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setMetricType(MetricType.COUNTER)
           .setIsClusterAggregated(false)
           .build();
+  public static final MetricKey WORKER_BLOCKS_EVICTION_RATE =
+      new Builder("Worker.BlocksEvictionRate")
+          .setDescription("Block eviction rate in this worker.")
+          .setMetricType(MetricType.METER)
+          .setIsClusterAggregated(true)
+          .build();
   public static final MetricKey WORKER_BLOCKS_LOST =
       new Builder("Worker.BlocksLost")
           .setDescription("Total number of lost blocks in this worker.")
