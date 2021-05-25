@@ -1000,12 +1000,10 @@ public final class DefaultBlockMaster extends CoreMaster implements BlockMaster 
           if (block.isPresent()) {
             workerInfo.addBlock(blockId);
             BlockLocation location = entry.getKey();
-            if (location.getWorkerId() != workerInfo.getId()) {
-              throw new IllegalArgumentException(
-                String.format("BlockLocation has different workerId %s from "
-                  + "the request sender workerId %s!",
-                  location.getWorkerId(), workerInfo.getId()));
-            }
+            Preconditions.checkState(location.getWorkerId() == workerInfo.getId(),
+                String.format("BlockLocation has a different workerId %s from "
+                    + "the request sender's workerId %s!",
+                        location.getWorkerId(), workerInfo.getId()));
             mBlockStore.addLocation(blockId, location);
             mLostBlocks.remove(blockId);
           } else {
