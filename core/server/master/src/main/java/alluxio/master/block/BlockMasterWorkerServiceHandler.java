@@ -145,7 +145,6 @@ public final class BlockMasterWorkerServiceHandler extends
     final Map<Block.BlockLocation, List<Long>> currBlocksOnLocationMap =
         reconstructBlocksOnLocationMap(request.getCurrentBlocksList(), workerId);
 
-
     RegisterWorkerPOptions options = request.getOptions();
     RpcUtils.call(LOG,
         (RpcUtils.RpcCallableThrowsIOException<RegisterWorkerPResponse>) () -> {
