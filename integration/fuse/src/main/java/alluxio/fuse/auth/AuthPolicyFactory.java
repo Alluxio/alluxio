@@ -38,8 +38,8 @@ public class AuthPolicyFactory {
           .newInstance(fileSystem, conf, fuseFileSystem);
     } catch (ReflectiveOperationException e) {
       throw new IllegalStateException(
-          PropertyKey.FUSE_AUTH_POLICY_CLASS.getName() + " configured to "
-              + authPolicyClazz + ", cannot be constructed.", e);
+          PropertyKey.FUSE_AUTH_POLICY_CLASS.getName() + " configured to invalid policy "
+              + authPolicyClazz + ". Cannot create authenticate policy.", e);
     }
   }
 }
