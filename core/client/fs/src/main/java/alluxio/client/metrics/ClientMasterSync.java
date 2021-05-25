@@ -122,11 +122,10 @@ public final class ClientMasterSync {
       InetSocketAddress masterAddr = mInquireClient.getPrimaryRpcAddress();
       mContext.loadConf(masterAddr, true, false);
     } catch (UnavailableException e) {
-      SAMPLING_LOG.error("Failed to get master address during initialization: {}", e.toString());
+      SAMPLING_LOG.error("Failed to get master address during initialization", e);
       return false;
     } catch (AlluxioStatusException ae) {
-      SAMPLING_LOG.error("Failed to load configuration from "
-          + "meta master during initialization: {}", ae.toString());
+      SAMPLING_LOG.error("Failed to load configuration from meta master during initialization", ae);
       return false;
     }
     return true;

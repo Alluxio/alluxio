@@ -60,7 +60,7 @@ function bootstrapConf {
   local usage="Usage: $0 bootstrapConf <alluxio_master_hostname>"
   if [[ $# -lt 1 ]]; then
     echo ${usage} >&2
-    exit 1
+    exit 2
   fi
   local master=${1}
 
@@ -81,7 +81,7 @@ EOF
 function killAll {
   if [[ $# -ne 1 ]]; then
     echo "Usage: alluxio killAll <WORD>"
-    exit
+    exit 2
   fi
 
   keyword=$1
@@ -109,7 +109,7 @@ function killAll {
 function copyDir {
   if [[ $# -ne 1 ]]; then
     echo "Usage: alluxio copyDir <path>" >&2
-    exit 1
+    exit 2
   fi
 
   ABS_PATH_COMMAND="readlink -f"
@@ -223,11 +223,11 @@ function main {
           shift # remove -s param
         fi
       else
-        echo "${Usage} $0 format [-s]"
+        echo "Usage: alluxio format [-s]"
         exit 2
       fi
     elif [[ $# -gt 1 ]]; then
-      echo "${Usage} $0 format [-s]"
+      echo "Usage: alluxio format [-s]"
       exit 2
     fi
 

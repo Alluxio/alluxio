@@ -121,7 +121,7 @@ public class LocalFirstRaftClient implements Closeable {
       try {
         mClient.close();
       } catch (IOException e) {
-        LogUtils.warnWithException(LOG, "Failed to close client: {}", e.getMessage());
+        LogUtils.warnWithException(LOG, "Failed to close client: {}", e.toString());
       }
       mClient = mClientSupplier.get();
     }

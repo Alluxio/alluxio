@@ -121,7 +121,7 @@ public final class PlanCoordinator {
       taskAddressToArgs =
           definition.selectExecutors(mPlanInfo.getJobConfig(), workersInfoListCopy, context);
     } catch (Exception e) {
-      LOG.warn("Failed to select executor. {})", e.getMessage());
+      LOG.warn("Failed to select executor. {})", e.toString());
       LOG.info("Exception: ", e);
       mPlanInfo.setStatus(Status.FAILED);
       mPlanInfo.setErrorType(ErrorUtils.getErrorType(e));

@@ -132,9 +132,9 @@ public final class GCSV2OutputStream extends OutputStream {
         }
       }
     } catch (ClosedChannelException e) {
-      LOG.error("Channel already closed, possible duplicate close call.", e.toString());
+      LOG.error("Channel already closed, possible duplicate close call.", e);
     } catch (IOException e) {
-      LOG.error("Failed to upload {} to {}: {}", mKey, mBucketName, e.toString());
+      LOG.error("Failed to upload {} to {}", mKey, mBucketName, e);
       throw e;
     }
   }

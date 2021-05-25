@@ -144,8 +144,8 @@ public class BufferCachingGrpcDataReader {
       mStream.send(mReadRequest.toBuilder().setOffsetReceived(mPosToRead).build());
     } catch (Exception e) {
       // nothing is done as the receipt is sent at best effort
-      LOG.debug("Failed to send receipt of data to worker {} for request {}: {}.", mAddress,
-          mReadRequest, e.getMessage());
+      LOG.debug("Failed to send receipt of data to worker {} for request {}", mAddress,
+          mReadRequest, e);
     }
     Preconditions.checkState(mPosToRead - mReadRequest.getOffset() <= mReadRequest.getLength());
     return buffer;
