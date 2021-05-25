@@ -254,8 +254,8 @@ public class BlockMasterClient extends AbstractMasterClient {
         .setOptions(options).build();
 
     retryRPC(() -> {
-        mClient.registerWorker(request);
-        return null;
+      mClient.registerWorker(request);
+      return null;
     }, LOG, "Register", "workerId=%d", workerId);
   }
 }

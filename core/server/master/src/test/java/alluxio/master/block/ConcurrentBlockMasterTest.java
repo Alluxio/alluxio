@@ -1,4 +1,19 @@
+/*
+ * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
+ * (the "License"). You may not use this work except in compliance with the License, which is
+ * available at www.apache.org/licenses/LICENSE-2.0
+ *
+ * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+ * either express or implied, as more fully set forth in the License.
+ *
+ * See the NOTICE file distributed with this work for information regarding copyright ownership.
+ */
+
 package alluxio.master.block;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThrows;
+import static org.junit.Assert.assertTrue;
 
 import alluxio.client.block.options.GetWorkerReportOptions;
 import alluxio.clock.ManualClock;
@@ -21,6 +36,7 @@ import alluxio.wire.BlockInfo;
 import alluxio.wire.BlockLocation;
 import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
+
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import org.junit.After;
@@ -44,10 +60,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThrows;
-import static org.junit.Assert.assertTrue;
-
 public class ConcurrentBlockMasterTest {
   private static final WorkerNetAddress NET_ADDRESS_1 = new WorkerNetAddress().setHost("localhost")
       .setRpcPort(80).setDataPort(81).setWebPort(82);
@@ -64,8 +76,10 @@ public class ConcurrentBlockMasterTest {
   private static final long BLOCK2_LENGTH = 59L;
   private static final Map<String, Long> MEM_CAPACITY = ImmutableMap.of("MEM", 100L);
   private static final Map<String, Long> MEM_USAGE_EMPTY = ImmutableMap.of("MEM", 0L);
-  private static final Command FREE_BLOCK1_CMD = Command.newBuilder().setCommandType(CommandType.Free).addData(1).build();
-  private static final Command EMPTY_CMD = Command.newBuilder().setCommandType(CommandType.Nothing).build();
+  private static final Command FREE_BLOCK1_CMD = Command.newBuilder()
+      .setCommandType(CommandType.Free).addData(1).build();
+  private static final Command EMPTY_CMD = Command.newBuilder()
+      .setCommandType(CommandType.Nothing).build();
 
   private SignalBlockMaster mBlockMaster;
   private MasterRegistry mRegistry;
@@ -97,12 +111,13 @@ public class ConcurrentBlockMasterTest {
     mMetricsMaster = new MetricsMasterFactory().create(mRegistry, mMasterContext);
     mClock = new ManualClock();
     mExecutorService =
-            Executors.newFixedThreadPool(2, ThreadFactoryUtils.build("TestBlockMaster-%d", true));
-    mClientExecutorService = Executors.newFixedThreadPool(2, ThreadFactoryUtils.build("TestBlockMaster-%d", true));
+        Executors.newFixedThreadPool(2, ThreadFactoryUtils.build("TestBlockMaster-%d", true));
+    mClientExecutorService = Executors.newFixedThreadPool(2,
+        ThreadFactoryUtils.build("TestBlockMaster-%d", true));
     // No one is listening to this latch, so do any preparation for the test
     CountDownLatch voidLatch = new CountDownLatch(1);
     mBlockMaster = new SignalBlockMaster(mMetricsMaster, mMasterContext, mClock,
-            ExecutorServiceFactories.constantExecutorServiceFactory(mExecutorService), voidLatch);
+        ExecutorServiceFactories.constantExecutorServiceFactory(mExecutorService), voidLatch);
     mRegistry.add(BlockMaster.class, mBlockMaster);
     mRegistry.start(true);
   }
@@ -119,12 +134,10 @@ public class ConcurrentBlockMasterTest {
     mClientExecutorService.shutdown();
   }
 
-
   /**
-   * RW contention
-   * Concurrent commit and readers
+   * RW contention: Concurrent commit and readers.
    * Signal in commit and the readers inquire the state
-   * */
+   */
   @Test
   public void concurrentCommitWithReaders() throws Exception {
     // Prepare worker
@@ -134,102 +147,51 @@ public class ConcurrentBlockMasterTest {
     mBlockMaster.setLatch(readerLatch);
 
     concurrentWriterWithReaders(
-            readerLatch,
-            // Writer
-            () -> {
-              mBlockMaster.commitBlock(worker1, BLOCK1_LENGTH, "MEM", "MEM", BLOCK1_ID, BLOCK1_LENGTH);
-              return null;
-            },
-            // Reader
-            () -> {
-              try {
-                // If the block is not committed yet, a BlockInfoException will be thrown
-                BlockInfo blockInfo = mBlockMaster.getBlockInfo(BLOCK1_ID);
-                List<WorkerInfo> workerInfoList = mBlockMaster.getWorkerReport(GetWorkerReportOptions.defaults());
-                WorkerInfo worker = findWorkerInfo(workerInfoList, worker1);
-                assertEquals(BLOCK1_LENGTH, worker.getUsedBytes());
+        readerLatch,
+        // Writer
+        () -> {
+          mBlockMaster.commitBlock(worker1, BLOCK1_LENGTH, "MEM", "MEM", BLOCK1_ID, BLOCK1_LENGTH);
+          return null;
+        },
+        // Reader
+        () -> {
+          try {
+            // If the block is not committed yet, a BlockInfoException will be thrown
+            BlockInfo blockInfo = mBlockMaster.getBlockInfo(BLOCK1_ID);
+            List<WorkerInfo> workerInfoList = mBlockMaster
+                .getWorkerReport(GetWorkerReportOptions.defaults());
+            WorkerInfo worker = findWorkerInfo(workerInfoList, worker1);
+            assertEquals(BLOCK1_LENGTH, worker.getUsedBytes());
 
-                BlockLocation blockLocation = new BlockLocation()
-                    .setTierAlias("MEM")
-                    .setWorkerAddress(NET_ADDRESS_1)
-                    .setWorkerId(worker1)
-                    .setMediumType("MEM");
-                BlockInfo expectedBlockInfo = new BlockInfo()
-                    .setBlockId(BLOCK1_ID)
-                    .setLength(BLOCK1_LENGTH)
-                    .setLocations(ImmutableList.of(blockLocation));
-                assertEquals(expectedBlockInfo, blockInfo);
-                assertEquals(1, workerInfoList.size());
-              } catch (BlockInfoException e) {
-                // The reader came in before the writer started the commit
-                List<WorkerInfo> workerInfoList = mBlockMaster.getWorkerReport(GetWorkerReportOptions.defaults());
-                assertEquals(1, workerInfoList.size());
-                WorkerInfo worker = workerInfoList.get(0);
-                // We may just see the result before or after the commit
-                // But other values should be illegal
-                assertTrue(BLOCK1_LENGTH == worker.getUsedBytes() || 100L == worker.getUsedBytes());
-              }
-              return null;
-            });
+            BlockLocation blockLocation = new BlockLocation()
+                .setTierAlias("MEM")
+                .setWorkerAddress(NET_ADDRESS_1)
+                .setWorkerId(worker1)
+                .setMediumType("MEM");
+            BlockInfo expectedBlockInfo = new BlockInfo()
+                .setBlockId(BLOCK1_ID)
+                .setLength(BLOCK1_LENGTH)
+                .setLocations(ImmutableList.of(blockLocation));
+            assertEquals(expectedBlockInfo, blockInfo);
+            assertEquals(1, workerInfoList.size());
+          } catch (BlockInfoException e) {
+            // The reader came in before the writer started the commit
+            List<WorkerInfo> workerInfoList = mBlockMaster
+                .getWorkerReport(GetWorkerReportOptions.defaults());
+            assertEquals(1, workerInfoList.size());
+            WorkerInfo worker = workerInfoList.get(0);
+            // We may just see the result before or after the commit
+            // But other values should be illegal
+            assertTrue(BLOCK1_LENGTH == worker.getUsedBytes() || 100L == worker.getUsedBytes());
+          }
+          return null;
+        });
   }
 
   /**
-   *  Concurrently run writer with a bunch of readers.
-   *  The readers and the writer use a {@link CountDownLatch} for signal passing.
-   *  The writer will release the latch in the middle or the write.
-   *  The readers will wait on the latch and start to read on seeing the latch released.
-   *
-   * @param readerLatch the latch that writer releases and readers wait on
-   * @param writer the writer function, nothing will be returned
-   * @param reader the reader function, nothing will be returned
+   * RW contention: Concurrent remove operation and readers.
+   * Readers should read the state either before or after the removal.
    */
-  private void concurrentWriterWithReaders(CountDownLatch readerLatch, Callable writer, Callable reader) throws Exception {
-    // This thread count is intentionally larger than the client thread pool
-    // In the hope that even if the first batch of clients all read the state before commit really happens
-    // The following batch will capture the state after the commit
-    Queue<Throwable> uncaughtThrowables = new ConcurrentLinkedQueue<>();
-    CountDownLatch allClientFinished = new CountDownLatch(CONCURRENT_CLIENT_COUNT);
-    for (int i = 0; i < CONCURRENT_CLIENT_COUNT; i++) {
-      mClientExecutorService.submit(() -> {
-        // Wait until the writer enters the critical section and sends a signal
-        try {
-          readerLatch.await();
-        } catch (Throwable t) {
-          uncaughtThrowables.add(t);
-          // Fail to wait for the signal, just give up
-          allClientFinished.countDown();
-          return;
-        }
-        // Trigger the reader
-        try {
-          reader.call();
-        } catch (Throwable t) {
-          System.out.println("Reader throws an error: " + t.getMessage());
-          uncaughtThrowables.add(t);
-        } finally {
-          allClientFinished.countDown();
-        }
-      });
-    }
-
-    // The readers should be waiting for the writer to send the signal
-    writer.call();
-
-    allClientFinished.await();
-    // If any assertion failed, the failed assertion will throw an AssertError
-    // TODO(jiacheng): remove once all the tests are finished
-    for (Throwable t : uncaughtThrowables) {
-      t.printStackTrace();
-    }
-    assertEquals(0, uncaughtThrowables.size());
-  }
-
-
-  /**
-   * RW contention
-   * Concurrent remove operation and readers
-   * Readers should read the state either before or after the removal
-   * */
   @Test
   public void concurrentRemoveWithReaders() throws Exception {
     for (boolean deleteMetadata : ImmutableList.of(true, false)) {
@@ -272,7 +234,61 @@ public class ConcurrentBlockMasterTest {
   }
 
   /**
-   * Tests on WW contentions
+   *  Concurrently run writer with a bunch of readers.
+   *  The readers and the writer use a {@link CountDownLatch} for signal passing.
+   *  The writer will release the latch in the middle or the write.
+   *  The readers will wait on the latch and start to read on seeing the latch released.
+   *
+   * @param readerLatch the latch that writer releases and readers wait on
+   * @param writer the writer function, nothing will be returned
+   * @param reader the reader function, nothing will be returned
+   */
+  private void concurrentWriterWithReaders(CountDownLatch readerLatch,
+                                           Callable writer, Callable reader) throws Exception {
+    // This thread count is intentionally larger than the client thread pool
+    // In the hope that even if the first batch of clients all read the state before
+    // the commit really happens
+    // The following batch will capture the state after the commit
+    Queue<Throwable> uncaughtThrowables = new ConcurrentLinkedQueue<>();
+    CountDownLatch allClientFinished = new CountDownLatch(CONCURRENT_CLIENT_COUNT);
+    for (int i = 0; i < CONCURRENT_CLIENT_COUNT; i++) {
+      mClientExecutorService.submit(() -> {
+        // Wait until the writer enters the critical section and sends a signal
+        try {
+          readerLatch.await();
+        } catch (Throwable t) {
+          uncaughtThrowables.add(t);
+          // Fail to wait for the signal, just give up
+          allClientFinished.countDown();
+          return;
+        }
+        // Trigger the reader
+        try {
+          reader.call();
+        } catch (Throwable t) {
+          System.out.println("Reader throws an error: " + t.getMessage());
+          uncaughtThrowables.add(t);
+        } finally {
+          allClientFinished.countDown();
+        }
+      });
+    }
+
+    // The readers should be waiting for the writer to send the signal
+    writer.call();
+
+    allClientFinished.await();
+    // If any assertion failed, the failed assertion will throw an AssertError
+    // TODO(jiacheng): remove once all the tests are finished
+    for (Throwable t : uncaughtThrowables) {
+      t.printStackTrace();
+    }
+    assertEquals(0, uncaughtThrowables.size());
+  }
+
+  /**
+   * Tests on WW contentions.
+   *
    * Write operations are:
    * 1. commit
    * 2. remove
@@ -291,7 +307,7 @@ public class ConcurrentBlockMasterTest {
    * the options are:
    * Opt1: W2 may be from the same worker or a different worker
    * Opt2: W2 may contain the same block or not
-   * */
+   */
   @Test
   public void concurrentCommitWithRegisterNewWorkerSameBlock() throws Exception {
     // Prepare worker
@@ -359,7 +375,8 @@ public class ConcurrentBlockMasterTest {
           mBlockMaster.workerRegister(worker2, Arrays.asList("MEM"),
               MEM_CAPACITY,
               ImmutableMap.of("MEM", BLOCK2_LENGTH),
-              ImmutableMap.of(newBlockLocationOnWorkerMemTier(worker2), ImmutableList.of(BLOCK2_ID)),
+              ImmutableMap.of(newBlockLocationOnWorkerMemTier(worker2),
+                  ImmutableList.of(BLOCK2_ID)),
               NO_LOST_STORAGE,
               RegisterWorkerPOptions.getDefaultInstance());
           return null;
@@ -367,7 +384,8 @@ public class ConcurrentBlockMasterTest {
         // Verifier
         () -> {
           // After registration, verify the worker info
-          List<WorkerInfo> workerInfoList = mBlockMaster.getWorkerReport(GetWorkerReportOptions.defaults());
+          List<WorkerInfo> workerInfoList = mBlockMaster
+              .getWorkerReport(GetWorkerReportOptions.defaults());
           assertEquals(2, workerInfoList.size());
           WorkerInfo worker1Info = findWorkerInfo(workerInfoList, worker1);
           assertEquals(BLOCK1_LENGTH, worker1Info.getUsedBytes());
@@ -392,46 +410,46 @@ public class ConcurrentBlockMasterTest {
     mBlockMaster.setLatch(w1Latch);
 
     concurrentWriterWithWriter(w1Latch,
-            // W1
-            () -> {
-              mBlockMaster.commitBlock(worker1, 49L, "MEM", "MEM", BLOCK1_ID, BLOCK1_LENGTH);
-              return null;
-            },
-            // W2
-            () -> {
-              // The same block is removed on worker in this heartbeat
-              // This should succeed as commit locks the block exclusively and finishes first
-              // When the block heartbeat processes the same block, it has been committed
-              Command cmd = mBlockMaster.workerHeartbeat(worker1,
-                  MEM_CAPACITY,
-                  // 0 used because the block removed on this worker
-                  MEM_USAGE_EMPTY,
-                  // list of removed blockIds
-                  ImmutableList.of(BLOCK1_ID),
-                  ImmutableMap.of(),
-                  NO_LOST_STORAGE,
-                  ImmutableList.of());
-              System.out.println("worker heartbeat finished with command returned: " + cmd);
+        // W1
+        () -> {
+          mBlockMaster.commitBlock(worker1, 49L, "MEM", "MEM", BLOCK1_ID, BLOCK1_LENGTH);
+          return null;
+        },
+        // W2
+        () -> {
+          // The same block is removed on worker in this heartbeat
+          // This should succeed as commit locks the block exclusively and finishes first
+          // When the block heartbeat processes the same block, it has been committed
+          Command cmd = mBlockMaster.workerHeartbeat(worker1,
+              MEM_CAPACITY,
+              // 0 used because the block removed on this worker
+              MEM_USAGE_EMPTY,
+              // list of removed blockIds
+              ImmutableList.of(BLOCK1_ID),
+              ImmutableMap.of(),
+              NO_LOST_STORAGE,
+              ImmutableList.of());
+          System.out.println("worker heartbeat finished with command returned: " + cmd);
 
-              // The block has been removed, nothing from command
-              assertEquals(EMPTY_CMD, cmd);
+          // The block has been removed, nothing from command
+          assertEquals(EMPTY_CMD, cmd);
 
-              return null;
-            },
-            // Verifier
-            () -> {
-              // After heartbeat, verify the worker info
-              List<WorkerInfo> workerInfoList = mBlockMaster.getWorkerReport(
-                  GetWorkerReportOptions.defaults());
-              assertEquals(1, workerInfoList.size());
-              WorkerInfo worker1Info = findWorkerInfo(workerInfoList, worker1);
-              assertEquals(0L, worker1Info.getUsedBytes());
+          return null;
+        },
+        // Verifier
+        () -> {
+          // After heartbeat, verify the worker info
+          List<WorkerInfo> workerInfoList = mBlockMaster.getWorkerReport(
+              GetWorkerReportOptions.defaults());
+          assertEquals(1, workerInfoList.size());
+          WorkerInfo worker1Info = findWorkerInfo(workerInfoList, worker1);
+          assertEquals(0L, worker1Info.getUsedBytes());
 
-              // The block has no locations now because the last location is removed
-              verifyBlockOnWorkers(BLOCK1_ID, BLOCK1_LENGTH, Arrays.asList());
+          // The block has no locations now because the last location is removed
+          verifyBlockOnWorkers(BLOCK1_ID, BLOCK1_LENGTH, Arrays.asList());
 
-              return null;
-            });
+          return null;
+        });
   }
 
   @Test
@@ -524,7 +542,8 @@ public class ConcurrentBlockMasterTest {
         // Verifier
         () -> {
           // After heartbeat, verify the worker info
-          List<WorkerInfo> workerInfoList = mBlockMaster.getWorkerReport(GetWorkerReportOptions.defaults());
+          List<WorkerInfo> workerInfoList = mBlockMaster
+              .getWorkerReport(GetWorkerReportOptions.defaults());
           assertEquals(2, workerInfoList.size());
           WorkerInfo worker1Info = findWorkerInfo(workerInfoList, worker1);
           assertEquals(BLOCK1_LENGTH, worker1Info.getUsedBytes());
@@ -560,7 +579,7 @@ public class ConcurrentBlockMasterTest {
         () -> {
           // worker 1 has block 1 and block 2 now
           mBlockMaster.commitBlock(worker1, BLOCK1_LENGTH + BLOCK2_LENGTH,
-      "MEM", "MEM", BLOCK1_ID, BLOCK1_LENGTH);
+              "MEM", "MEM", BLOCK1_ID, BLOCK1_LENGTH);
           return null;
         },
         // W2
@@ -585,7 +604,8 @@ public class ConcurrentBlockMasterTest {
         // Verifier
         () -> {
           // After heartbeat, verify the worker info
-          List<WorkerInfo> workerInfoList = mBlockMaster.getWorkerReport(GetWorkerReportOptions.defaults());
+          List<WorkerInfo> workerInfoList = mBlockMaster
+              .getWorkerReport(GetWorkerReportOptions.defaults());
           assertEquals(2, workerInfoList.size());
           WorkerInfo worker1Info = findWorkerInfo(workerInfoList, worker1);
           assertEquals(BLOCK1_LENGTH + BLOCK2_LENGTH, worker1Info.getUsedBytes());
@@ -630,7 +650,8 @@ public class ConcurrentBlockMasterTest {
             mBlockMaster.workerRegister(worker2, Arrays.asList("MEM"),
                 MEM_CAPACITY,
                 ImmutableMap.of("MEM", BLOCK1_LENGTH),
-                ImmutableMap.of(newBlockLocationOnWorkerMemTier(worker2), ImmutableList.of(BLOCK1_ID)),
+                ImmutableMap.of(newBlockLocationOnWorkerMemTier(worker2),
+                    ImmutableList.of(BLOCK1_ID)),
                 NO_LOST_STORAGE,
                 RegisterWorkerPOptions.getDefaultInstance());
             return null;
@@ -638,7 +659,8 @@ public class ConcurrentBlockMasterTest {
           // Verifier
           () -> {
             // After registration, verify the worker info
-            List<WorkerInfo> workerInfoList = mBlockMaster.getWorkerReport(GetWorkerReportOptions.defaults());
+            List<WorkerInfo> workerInfoList = mBlockMaster
+                .getWorkerReport(GetWorkerReportOptions.defaults());
             assertEquals(2, workerInfoList.size());
             WorkerInfo worker1Info = findWorkerInfo(workerInfoList, worker1);
             assertEquals(BLOCK1_LENGTH, worker1Info.getUsedBytes());
@@ -836,7 +858,8 @@ public class ConcurrentBlockMasterTest {
           // Verifier
           () -> {
             // After heartbeat, verify the worker info
-            List<WorkerInfo> workerInfoList = mBlockMaster.getWorkerReport(GetWorkerReportOptions.defaults());
+            List<WorkerInfo> workerInfoList = mBlockMaster
+                .getWorkerReport(GetWorkerReportOptions.defaults());
             assertEquals(1, workerInfoList.size());
             WorkerInfo worker1Info = findWorkerInfo(workerInfoList, worker1);
             assertEquals(0L, worker1Info.getUsedBytes());
@@ -867,10 +890,8 @@ public class ConcurrentBlockMasterTest {
       // Prepare block 1 and 2 on the worker
       long worker1 = registerEmptyWorker(NET_ADDRESS_1);
       mBlockMaster.commitBlock(worker1, BLOCK1_LENGTH, "MEM", "MEM", BLOCK1_ID, BLOCK1_LENGTH);
-      mBlockMaster.commitBlock(worker1, BLOCK1_LENGTH + BLOCK2_LENGTH, "MEM", "MEM", BLOCK2_ID, BLOCK2_LENGTH);
-      System.out.println("Preparation step block 1" + mBlockMaster.getBlockInfo(BLOCK1_ID));
-      System.out.println("Preparation step block 2" + mBlockMaster.getBlockInfo(BLOCK2_ID));
-
+      mBlockMaster.commitBlock(worker1, BLOCK1_LENGTH + BLOCK2_LENGTH, "MEM", "MEM",
+          BLOCK2_ID, BLOCK2_LENGTH);
       CountDownLatch w1Latch = new CountDownLatch(1);
       mBlockMaster.setLatch(w1Latch);
 
@@ -916,7 +937,8 @@ public class ConcurrentBlockMasterTest {
           // Verifier
           () -> {
             // After heartbeat, verify the worker info
-            List<WorkerInfo> workerInfoList = mBlockMaster.getWorkerReport(GetWorkerReportOptions.defaults());
+            List<WorkerInfo> workerInfoList = mBlockMaster
+                .getWorkerReport(GetWorkerReportOptions.defaults());
             assertEquals(1, workerInfoList.size());
             WorkerInfo worker1Info = findWorkerInfo(workerInfoList, worker1);
             assertEquals(BLOCK1_LENGTH, worker1Info.getUsedBytes());
@@ -992,7 +1014,8 @@ public class ConcurrentBlockMasterTest {
           // Verifier
           () -> {
             // After heartbeat, verify the worker info
-            List<WorkerInfo> workerInfoList = mBlockMaster.getWorkerReport(GetWorkerReportOptions.defaults());
+            List<WorkerInfo> workerInfoList = mBlockMaster
+                .getWorkerReport(GetWorkerReportOptions.defaults());
             assertEquals(2, workerInfoList.size());
             // The block is still on worker 1, will be removed on the next heartbeat
             WorkerInfo worker1Info = findWorkerInfo(workerInfoList, worker1);
@@ -1065,7 +1088,8 @@ public class ConcurrentBlockMasterTest {
           // Verifier
           () -> {
             // After heartbeat, verify the worker info
-            List<WorkerInfo> workerInfoList = mBlockMaster.getWorkerReport(GetWorkerReportOptions.defaults());
+            List<WorkerInfo> workerInfoList = mBlockMaster
+                .getWorkerReport(GetWorkerReportOptions.defaults());
             assertEquals(2, workerInfoList.size());
             WorkerInfo worker1Info = findWorkerInfo(workerInfoList, worker1);
             assertEquals(BLOCK1_LENGTH, worker1Info.getUsedBytes());
@@ -1087,7 +1111,7 @@ public class ConcurrentBlockMasterTest {
   }
 
   /**
-   * Verifies the {@link BlockInfo} including the length and locations
+   * Verifies the {@link BlockInfo} including the length and locations.
    *
    * @param blockId the target block id
    * @param blockLength the block should have this length
@@ -1146,7 +1170,8 @@ public class ConcurrentBlockMasterTest {
                                           Callable w2,
                                           Callable verifier) throws Exception {
     // This thread count is intentionally larger than the client thread pool
-    // In the hope that even if the first batch of clients all read the state before commit really happens
+    // In the hope that even if the first batch of clients all read the state before
+    // the commit really happens
     // The following batch will capture the state after the commit
     Queue<Throwable> uncaughtThrowables = new ConcurrentLinkedQueue<>();
     CountDownLatch writerFinished = new CountDownLatch(1);

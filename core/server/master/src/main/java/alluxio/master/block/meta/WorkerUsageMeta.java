@@ -1,3 +1,14 @@
+/*
+ * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
+ * (the "License"). You may not use this work except in compliance with the License, which is
+ * available at www.apache.org/licenses/LICENSE-2.0
+ *
+ * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+ * either express or implied, as more fully set forth in the License.
+ *
+ * See the NOTICE file distributed with this work for information regarding copyright ownership.
+ */
+
 package alluxio.master.block.meta;
 
 import alluxio.StorageTierAssoc;
@@ -7,21 +18,28 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * An object representation of fields relevant to worker usage and capacity.
+ * Reading or updating the fields will require {@link MasterWorkerInfo#getUsageLock()}.
+ */
 public class WorkerUsageMeta {
   /** Capacity of worker in bytes. */
-  public long mCapacityBytes;
+  long mCapacityBytes;
   /** Worker's used bytes. */
-  public long mUsedBytes;
+  long mUsedBytes;
   /** Worker-specific mapping between storage tier alias and storage tier ordinal. */
-  public StorageTierAssoc mStorageTierAssoc;
+  StorageTierAssoc mStorageTierAssoc;
   /** Mapping from storage tier alias to total bytes. */
-  public Map<String, Long> mTotalBytesOnTiers;
+  Map<String, Long> mTotalBytesOnTiers;
   /** Mapping from storage tier alias to used bytes. */
-  public Map<String, Long> mUsedBytesOnTiers;
+  Map<String, Long> mUsedBytesOnTiers;
 
   /** Mapping from tier alias to lost storage paths. */
-  public Map<String, List<String>> mLostStorage;
+  Map<String, List<String>> mLostStorage;
 
+  /**
+   * Constructor.
+   */
   public WorkerUsageMeta() {
     mStorageTierAssoc = null;
     mTotalBytesOnTiers = new HashMap<>();
@@ -31,12 +49,13 @@ public class WorkerUsageMeta {
 
   /**
    * Update the worker resource usage.
-   * Locking on the {@link WorkerUsageMeta} is required.
-   * */
-  public void updateUsage(final StorageTierAssoc globalStorageTierAssoc,
-                          final List<String> storageTierAliases,
-                          final Map<String, Long> totalBytesOnTiers,
-                          final Map<String, Long> usedBytesOnTiers) throws IllegalArgumentException {
+   * Write lock on the {@link MasterWorkerInfo#getUsageLock()} is required.
+   */
+  void updateUsage(final StorageTierAssoc globalStorageTierAssoc,
+                   final List<String> storageTierAliases,
+                   final Map<String, Long> totalBytesOnTiers,
+                   final Map<String, Long> usedBytesOnTiers)
+      throws IllegalArgumentException {
     // If the storage aliases do not have strictly increasing ordinal value based on the total
     // ordering, throw an error
     for (int i = 0; i < storageTierAliases.size() - 1; i++) {
@@ -53,10 +72,10 @@ public class WorkerUsageMeta {
     if (storageTierAssoc.size() != totalBytesOnTiers.size()
             || storageTierAssoc.size() != usedBytesOnTiers.size()) {
       throw new IllegalArgumentException(
-              "totalBytesOnTiers and usedBytesOnTiers should have the same number of tiers as "
-                      + "storageTierAliases, but storageTierAliases has " + storageTierAssoc.size()
-                      + " tiers, while totalBytesOnTiers has " + totalBytesOnTiers.size()
-                      + " tiers and usedBytesOnTiers has " + usedBytesOnTiers.size() + " tiers");
+          "totalBytesOnTiers and usedBytesOnTiers should have the same number of tiers as "
+              + "storageTierAliases, but storageTierAliases has " + storageTierAssoc.size()
+              + " tiers, while totalBytesOnTiers has " + totalBytesOnTiers.size()
+              + " tiers and usedBytesOnTiers has " + usedBytesOnTiers.size() + " tiers");
     }
 
     mStorageTierAssoc = storageTierAssoc;
@@ -76,7 +95,7 @@ public class WorkerUsageMeta {
   /**
    * @return the available space of the worker in bytes
    */
-  public long getAvailableBytes() {
+  long getAvailableBytes() {
     return mCapacityBytes - mUsedBytes;
   }
 }

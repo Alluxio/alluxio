@@ -59,23 +59,23 @@ public final class MasterWorkerInfo {
   /** If true, the worker is considered registered. */
   @GuardedBy("mRegisterLock")
   public boolean mIsRegistered;
-  /** lock the worker register status*/
+  /** Locks the worker register status. */
   private final ReentrantLock mRegisterLock;
-  /** worker metadata, this field is thread safe */
+  /** Worker metadata, this field is thread safe. */
   private final WorkerMeta mMeta;
-  /** worker usage data */
+  /** Worker usage data. */
   @GuardedBy("mUsageLock")
   private final WorkerUsageMeta mUsage;
-  /** lock the worker usage data */
+  /** Locks the worker usage data. */
   private final ReentrantReadWriteLock mUsageLock;
 
-  /** ids of blocks the worker contains. */
+  /** Ids of blocks the worker contains. */
   @GuardedBy("mBlockListLock")
   private final Set<Long> mBlocks;
-  /** ids of blocks the worker should remove. */
+  /** Ids of blocks the worker should remove. */
   @GuardedBy("mBlockListLock")
   private final Set<Long> mToRemoveBlocks;
-  /** lock the 2 block sets above */
+  /** Locks the 2 block sets above. */
   private final ReentrantReadWriteLock mBlockListLock;
 
   /**
@@ -205,8 +205,8 @@ public final class MasterWorkerInfo {
           info.setId(mMeta.mId);
           break;
         case LAST_CONTACT_SEC:
-          info.setLastContactSec(
-              (int) ((CommonUtils.getCurrentMs() - mMeta.mLastUpdatedTimeMs.get()) / Constants.SECOND_MS));
+          info.setLastContactSec((int) ((CommonUtils.getCurrentMs()
+              - mMeta.mLastUpdatedTimeMs.get()) / Constants.SECOND_MS));
           break;
         case START_TIME_MS:
           info.setStartTimeMs(mMeta.mStartTimeMs);
@@ -440,14 +440,29 @@ public final class MasterWorkerInfo {
     mUsage.mUsedBytesOnTiers.put(tierAlias, usedBytesOnTier);
   }
 
+  /**
+   * Returns the lock for worker register status.
+   *
+   * @return a mutex lock
+   */
   public ReentrantLock getRegisterLock() {
     return mRegisterLock;
   }
 
+  /**
+   * Returns the lock for worker usage metadata.
+   *
+   * @return an RW lock
+   */
   public ReentrantReadWriteLock getUsageLock() {
     return mUsageLock;
   }
 
+  /**
+   * Returns the lock for worker present block list and to-be-removed block list.
+   *
+   * @return an RW lock
+   */
   public ReentrantReadWriteLock getBlockListLock() {
     return mBlockListLock;
   }
