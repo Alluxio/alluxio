@@ -27,6 +27,7 @@ import java.io.PrintStream;
  * Stacks servlet to display the stacks of this process.
  */
 public class StacksServlet extends HttpServlet {
+  private static final long serialVersionUID = 4190506509049119126L;
   private static final Logger LOG = LoggerFactory.getLogger(StacksServlet.class);
 
   @Override
