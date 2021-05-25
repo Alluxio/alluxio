@@ -1032,7 +1032,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
       List<Long> toRemoveBlocks = worker.getToRemoveBlocks();
       Metrics.TOTAL_BLOCKS.inc(addedBlocks.size() - removedBlockIds.size());
       if (toRemoveBlocks.isEmpty()) {
-        workerCommand =  Command.newBuilder().setCommandType(CommandType.Nothing).build();
+        workerCommand = Command.newBuilder().setCommandType(CommandType.Nothing).build();
       } else {
         workerCommand = Command.newBuilder().setCommandType(CommandType.Free).addAllData(toRemoveBlocks)
                 .build();

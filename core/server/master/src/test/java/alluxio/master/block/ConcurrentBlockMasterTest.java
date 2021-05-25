@@ -30,6 +30,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
+import sun.misc.Signal;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -42,6 +43,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThrows;
@@ -242,10 +244,9 @@ public class ConcurrentBlockMasterTest {
    * @param delete when true, delete the metadata too
    * */
   private void testRemoveWithReaders(boolean delete) throws Exception {
-    CoreMasterContext masterContext = MasterTestUtils.testMasterContext();
     CountDownLatch voidLatch = new CountDownLatch(1);
 
-    SignalBlockMaster testMaster = new SignalBlockMaster(mMetricsMaster, masterContext, mClock,
+    SignalBlockMaster testMaster = new SignalBlockMaster(mMetricsMaster, mMasterContext, mClock,
             ExecutorServiceFactories.constantExecutorServiceFactory(mExecutorService), voidLatch);
 
     // Prepare worker
@@ -315,11 +316,10 @@ public class ConcurrentBlockMasterTest {
    * */
   @Test
   public void concurrentCommitWithRegisterNewWorkerSameBlock() throws Exception {
-    CoreMasterContext masterContext = MasterTestUtils.testMasterContext();
     // To be replaced with the real latch W2 waits on
     CountDownLatch tempLatch = new CountDownLatch(1);
 
-    SignalBlockMaster testMaster = new SignalBlockMaster(mMetricsMaster, masterContext, mClock,
+    SignalBlockMaster testMaster = new SignalBlockMaster(mMetricsMaster, mMasterContext, mClock,
             ExecutorServiceFactories.constantExecutorServiceFactory(mExecutorService), tempLatch);
 
     // Prepare worker
@@ -341,19 +341,13 @@ public class ConcurrentBlockMasterTest {
             },
             // W2
             () -> {
-              // The new worker contains the block
-              Block.BlockLocation blockLocation = Block.BlockLocation
-                      .newBuilder().setTier("MEM")
-                      .setMediumType("MEM")
-                      .setWorkerId(worker2).build();
-              List<Long> blockList = ImmutableList.of(BLOCK1_ID);
-              // W1 will commit the block exclusively before worker2 registers with the same block.
+              // W1 will commit the block exclusively before worker 2 registers with the same block.
               // So when worker 2 comes in, the block should be committed already.
               // So the block on worker 2 should be recognized.
               testMaster.workerRegister(worker2, Arrays.asList("MEM"),
                       MEM_CAPACITY,
                       ImmutableMap.of("MEM", BLOCK1_LENGTH),
-                      ImmutableMap.of(blockLocation, blockList),
+                      ImmutableMap.of(newBlockLocationOnWorkerMemTier(worker2), ImmutableList.of(BLOCK1_ID)),
                       NO_LOST_STORAGE,
                       RegisterWorkerPOptions.getDefaultInstance());
               System.out.println("New worker register finished");
@@ -377,11 +371,10 @@ public class ConcurrentBlockMasterTest {
 
   @Test
   public void concurrentCommitWithRegisterNewWorkerDifferentBlock() throws Exception {
-    CoreMasterContext masterContext = MasterTestUtils.testMasterContext();
     // To be replaced with the real latch W2 waits on
     CountDownLatch tempLatch = new CountDownLatch(1);
 
-    SignalBlockMaster testMaster = new SignalBlockMaster(mMetricsMaster, masterContext, mClock,
+    SignalBlockMaster testMaster = new SignalBlockMaster(mMetricsMaster, mMasterContext, mClock,
             ExecutorServiceFactories.constantExecutorServiceFactory(mExecutorService), tempLatch);
 
     // Prepare worker
@@ -404,16 +397,12 @@ public class ConcurrentBlockMasterTest {
             // W2
             () -> {
               // The new worker contains another block
-              Block.BlockLocation blockLocation = Block.BlockLocation
-                      .newBuilder().setTier("MEM")
-                      .setMediumType("MEM")
-                      .setWorkerId(worker2).build();
-              List<Long> blockList = ImmutableList.of(BLOCK2_ID);
-              // The new block on worker 2 is not recognized
+              // The new block on worker 2 is not recognized and will be ignored by master
+              // because the block metadata is not in alluxio
               testMaster.workerRegister(worker2, Arrays.asList("MEM"),
                       MEM_CAPACITY,
                       ImmutableMap.of("MEM", BLOCK2_LENGTH),
-                      ImmutableMap.of(blockLocation, blockList),
+                      ImmutableMap.of(newBlockLocationOnWorkerMemTier(worker2), ImmutableList.of(BLOCK2_ID)),
                       NO_LOST_STORAGE,
                       RegisterWorkerPOptions.getDefaultInstance());
               System.out.println("New worker register finished");
@@ -441,11 +430,10 @@ public class ConcurrentBlockMasterTest {
 
   @Test
   public void concurrentCommitWithSameWorkerHeartbeatSameBlock() throws Exception {
-    CoreMasterContext masterContext = MasterTestUtils.testMasterContext();
     // To be replaced with the real latch W2 waits on
     CountDownLatch tempLatch = new CountDownLatch(1);
 
-    SignalBlockMaster testMaster = new SignalBlockMaster(mMetricsMaster, masterContext, mClock,
+    SignalBlockMaster testMaster = new SignalBlockMaster(mMetricsMaster, mMasterContext, mClock,
             ExecutorServiceFactories.constantExecutorServiceFactory(mExecutorService), tempLatch);
 
     // Prepare worker
@@ -501,11 +489,10 @@ public class ConcurrentBlockMasterTest {
 
   @Test
   public void concurrentCommitWithSameWorkerHeartbeatDifferentBlock() throws Exception {
-    CoreMasterContext masterContext = MasterTestUtils.testMasterContext();
     // To be replaced with the real latch W2 waits on
     CountDownLatch tempLatch = new CountDownLatch(1);
 
-    SignalBlockMaster testMaster = new SignalBlockMaster(mMetricsMaster, masterContext, mClock,
+    SignalBlockMaster testMaster = new SignalBlockMaster(mMetricsMaster, mMasterContext, mClock,
             ExecutorServiceFactories.constantExecutorServiceFactory(mExecutorService), tempLatch);
 
     // Prepare worker
@@ -566,11 +553,10 @@ public class ConcurrentBlockMasterTest {
 
   @Test
   public void concurrentCommitWithDifferentWorkerHeartbeatSameBlock() throws Exception {
-    CoreMasterContext masterContext = MasterTestUtils.testMasterContext();
     // To be replaced with the real latch W2 waits on
     CountDownLatch tempLatch = new CountDownLatch(1);
 
-    SignalBlockMaster testMaster = new SignalBlockMaster(mMetricsMaster, masterContext, mClock,
+    SignalBlockMaster testMaster = new SignalBlockMaster(mMetricsMaster, mMasterContext, mClock,
             ExecutorServiceFactories.constantExecutorServiceFactory(mExecutorService), tempLatch);
 
     // Prepare worker
@@ -639,7 +625,7 @@ public class ConcurrentBlockMasterTest {
             });
   }
 
-  private Block.BlockLocation createBlockOnWorkerMemTier(long workerId) {
+  private Block.BlockLocation newBlockLocationOnWorkerMemTier(long workerId) {
     return Block.BlockLocation
             .newBuilder().setTier("MEM")
             .setMediumType("MEM")
@@ -649,40 +635,28 @@ public class ConcurrentBlockMasterTest {
   @Test
   // TODO(jiacheng)
   public void concurrentCommitWithDifferentWorkerHeartbeatDifferentBlock() throws Exception {
-    CoreMasterContext masterContext = MasterTestUtils.testMasterContext();
     // To be replaced with the real latch W2 waits on
     CountDownLatch tempLatch = new CountDownLatch(1);
 
-    SignalBlockMaster testMaster = new SignalBlockMaster(mMetricsMaster, masterContext, mClock,
+    SignalBlockMaster testMaster = new SignalBlockMaster(mMetricsMaster, mMasterContext, mClock,
             ExecutorServiceFactories.constantExecutorServiceFactory(mExecutorService), tempLatch);
 
     // Prepare worker
     long worker1 = testMaster.getWorkerId(NET_ADDRESS_1);
     long worker2 = testMaster.getWorkerId(NET_ADDRESS_2);
 
-    // Register with block 2 on both worker
-    // Block 2 exists in alluxio but not on these 2 workers
+    // Prepare block metadata in alluxio so the block from worker register will be accepted
     testMaster.commitBlockInUFS(BLOCK2_ID, BLOCK2_LENGTH);
-
-    Block.BlockLocation block2Worker1Location = Block.BlockLocation
-            .newBuilder().setTier("MEM")
-            .setMediumType("MEM")
-            .setWorkerId(worker1).build();
+    // Register with block 2 on both workers
     List<Long> existingBlocks = ImmutableList.of(BLOCK2_ID);
     testMaster.workerRegister(worker1, Arrays.asList("MEM"), ImmutableMap.of("MEM", 100L),
             ImmutableMap.of("MEM", BLOCK2_LENGTH),
-            ImmutableMap.of(block2Worker1Location, existingBlocks),
+            ImmutableMap.of(newBlockLocationOnWorkerMemTier(worker1), existingBlocks),
             NO_LOST_STORAGE,
             RegisterWorkerPOptions.getDefaultInstance());
-
-    // TODO(jiacheng): extract this
-    Block.BlockLocation block2Worker2Location = Block.BlockLocation
-            .newBuilder().setTier("MEM")
-            .setMediumType("MEM")
-            .setWorkerId(worker2).build();
     testMaster.workerRegister(worker2, Arrays.asList("MEM"), ImmutableMap.of("MEM", 100L),
             ImmutableMap.of("MEM", BLOCK2_LENGTH),
-            ImmutableMap.of(block2Worker2Location, existingBlocks),
+            ImmutableMap.of(newBlockLocationOnWorkerMemTier(worker2), existingBlocks),
             NO_LOST_STORAGE,
             RegisterWorkerPOptions.getDefaultInstance());
     CountDownLatch w1Latch = new CountDownLatch(1);
@@ -691,6 +665,7 @@ public class ConcurrentBlockMasterTest {
     concurrentWriterWithWriter(w1Latch,
             // W1
             () -> {
+              // worker 1 has block 1 and block 2 now
               testMaster.commitBlock(worker1, BLOCK1_LENGTH + BLOCK2_LENGTH,
                       "MEM", "MEM", BLOCK1_ID, BLOCK1_LENGTH);
               return null;
@@ -729,143 +704,552 @@ public class ConcurrentBlockMasterTest {
               verifyBlockOnWorkers(testMaster, BLOCK1_ID, BLOCK1_LENGTH, Arrays.asList(worker1Info));
 
               // Block 2 should exist on master 1
-              BlockInfo block2Info = testMaster.getBlockInfo(BLOCK2_ID);
-              System.out.println("Found block 2 BlockInfo " + block2Info);
-              // The block has no locations now because the last location is removed
               verifyBlockOnWorkers(testMaster, BLOCK2_ID, BLOCK2_LENGTH, Arrays.asList(worker1Info));
               return null;
             });
   }
 
   @Test
-  // TODO(jiacheng)
   public void concurrentRemoveWithRegisterNewWorkerSameBlock() throws Exception {
-    boolean deleteMetadata = false;
+    for (boolean deleteMetadata : ImmutableList.of(true, false)) {
+      // To be replaced with the real latch W2 waits on
+      // TODO(jiacheng): change all to voidLatch?
+      CountDownLatch tempLatch = new CountDownLatch(1);
 
-    CoreMasterContext masterContext = MasterTestUtils.testMasterContext();
-    // To be replaced with the real latch W2 waits on
-    CountDownLatch tempLatch = new CountDownLatch(1);
+      // TODO(jiacheng): move to @before?
+      SignalBlockMaster testMaster = new SignalBlockMaster(mMetricsMaster, mMasterContext, mClock,
+              ExecutorServiceFactories.constantExecutorServiceFactory(mExecutorService), tempLatch);
 
-    SignalBlockMaster testMaster = new SignalBlockMaster(mMetricsMaster, masterContext, mClock,
-            ExecutorServiceFactories.constantExecutorServiceFactory(mExecutorService), tempLatch);
+      // Prepare worker
+      long worker1 = testMaster.getWorkerId(NET_ADDRESS_1);
+      testMaster.workerRegister(worker1, Arrays.asList("MEM"), MEM_CAPACITY,
+              MEM_USAGE_EMPTY, NO_BLOCKS_ON_LOCATION, NO_LOST_STORAGE,
+              RegisterWorkerPOptions.getDefaultInstance());
+      // Prepare block on the worker
+      testMaster.commitBlock(worker1, BLOCK1_LENGTH, "MEM", "MEM", BLOCK1_ID, BLOCK1_LENGTH);
+      CountDownLatch w1Latch = new CountDownLatch(1);
+      testMaster.setLatch(w1Latch);
 
-    long blockId = 1L;
-    long blockLength = 49L;
-    // Prepare worker
-    long worker1 = testMaster.getWorkerId(NET_ADDRESS_1);
-    testMaster.workerRegister(worker1, Arrays.asList("MEM"), ImmutableMap.of("MEM", 100L),
-            ImmutableMap.of("MEM", 0L), NO_BLOCKS_ON_LOCATION, NO_LOST_STORAGE,
-            RegisterWorkerPOptions.getDefaultInstance());
-    // Prepare block on the worker
-    testMaster.commitBlock(worker1, blockLength, "MEM", "MEM", blockId, blockLength);
-    CountDownLatch w1Latch = new CountDownLatch(1);
-    testMaster.setLatch(w1Latch);
+      // A new worker as the W2
+      long worker2 = testMaster.getWorkerId(NET_ADDRESS_2);
+      concurrentWriterWithWriter(w1Latch,
+              // W1
+              () -> {
+                testMaster.removeBlocks(ImmutableList.of(BLOCK1_ID), deleteMetadata);
+                return null;
+              },
+              // W2
+              () -> {
+                // The new worker contains the block
+                // W1 will remove the block exclusively before worker2 registers with the same block
+                // So when worker 2 comes in, the block should be removed already
+                // So the block on worker 2 should be ignored
+                testMaster.workerRegister(worker2, Arrays.asList("MEM"),
+                        MEM_CAPACITY,
+                        ImmutableMap.of("MEM", BLOCK1_LENGTH),
+                        ImmutableMap.of(newBlockLocationOnWorkerMemTier(worker2), ImmutableList.of(BLOCK1_ID)),
+                        NO_LOST_STORAGE,
+                        RegisterWorkerPOptions.getDefaultInstance());
+                System.out.println("New worker register finished");
+                return null;
+              },
+              // Verifier
+              () -> {
+                // After registration, verify the worker info
+                List<WorkerInfo> workerInfoList = testMaster.getWorkerReport(GetWorkerReportOptions.defaults());
+                assertEquals(2, workerInfoList.size());
+                WorkerInfo worker1Info = findWorkerInfo(workerInfoList, worker1);
+                assertEquals(BLOCK1_LENGTH, worker1Info.getUsedBytes());
+                WorkerInfo worker2Info = findWorkerInfo(workerInfoList, worker2);
+                assertEquals(BLOCK1_LENGTH, worker2Info.getUsedBytes());
 
-    // A new worker as the W2
-    long worker2 = testMaster.getWorkerId(NET_ADDRESS_2);
-    concurrentWriterWithWriter(w1Latch,
-            // W1
-            () -> {
-              // TODO(jiacheng): true?
-              testMaster.removeBlocks(ImmutableList.of(blockId), false);
-              return null;
-            },
-            // W2
-            () -> {
-              // The new worker contains the block
-              Block.BlockLocation blockLocation = Block.BlockLocation
-                      .newBuilder().setTier("MEM")
-                      .setMediumType("MEM")
-                      .setWorkerId(worker2).build();
-              List<Long> blockList = ImmutableList.of(blockId);
-              // W1 will remove the block exclusively before worker2 registers with the same block
-              // So when worker 2 comes in, the block should be removed already
-              // So the block on worker 2 should be ignored
-              testMaster.workerRegister(worker2, Arrays.asList("MEM"),
-                      ImmutableMap.of("MEM", 100L),
-                      ImmutableMap.of("MEM", blockLength),
-                      ImmutableMap.of(blockLocation, blockList),
-                      NO_LOST_STORAGE,
-                      RegisterWorkerPOptions.getDefaultInstance());
-              System.out.println("New worker register finished");
-              return null;
-            },
-            // Verifier
-            () -> {
-              // After registration, verify the worker info
-              List<WorkerInfo> workerInfoList = testMaster.getWorkerReport(GetWorkerReportOptions.defaults());
-              assertEquals(2, workerInfoList.size());
-              WorkerInfo worker1Info = findWorkerInfo(workerInfoList, worker1);
-              assertEquals(blockLength, worker1Info.getUsedBytes());
-              WorkerInfo worker2Info = findWorkerInfo(workerInfoList, worker2);
-              assertEquals(blockLength, worker2Info.getUsedBytes());
+                // Verify the block metadata
+                if (deleteMetadata) {
+                  // If the block metadata has been removed, getting that will get an exception
+                  assertThrows(BlockInfoException.class, () -> {
+                    testMaster.getBlockInfo(BLOCK1_ID);
+                  });
+                } else {
+                  // The master will issue commands to remove blocks on the next heartbeat
+                  // So now the locations are still there
+                  verifyBlockOnWorkers(testMaster, BLOCK1_ID, BLOCK1_LENGTH, workerInfoList);
+                }
 
-              // Verify the block metadata
-              if (!deleteMetadata) {
-                // The master will issue commands to remove blocks on the next heartbeat
-                // So now the locations are still there
-                verifyBlockOnWorkers(testMaster, blockId, blockLength, workerInfoList);
-              } else {
-                // If the block metadata has been removed, getting that will get an exception
-                assertThrows(BlockInfoException.class, () -> {
-                  testMaster.getBlockInfo(blockId);
-                });
-              }
+                // Verify the heartbeat from worker will get a command to remove the block
+                Command freeBlock = Command.newBuilder().setCommandType(CommandType.Free).addData(1).build();
+                Command worker1HeartbeatCmd = testMaster.workerHeartbeat(worker1,
+                        MEM_CAPACITY,
+                        // the block has not yet been removed
+                        ImmutableMap.of("MEM", BLOCK1_LENGTH),
+                        // an empty list of removed blockIds
+                        ImmutableList.of(),
+                        ImmutableMap.of(),
+                        NO_LOST_STORAGE,
+                        ImmutableList.of());
+                System.out.println("Worker 1 heartbeat gets " + worker1HeartbeatCmd);
+                assertEquals(freeBlock, worker1HeartbeatCmd);
 
-              // Verify the heartbeat from worker will get a command to remove the block
-              Command worker1HeartbeatCmd = testMaster.workerHeartbeat(worker1,
-                      ImmutableMap.of("MEM", 100L),
-                      // the block has not yet been removed
-                      ImmutableMap.of("MEM", blockLength),
-                      // an empty list of removed blockIds
-                      ImmutableList.of(),
-                      ImmutableMap.of(),
-                      NO_LOST_STORAGE,
-                      ImmutableList.of());
-              System.out.println("Worker 1 heartbeat gets " + worker1HeartbeatCmd);
-              Command expectedCmd = Command.newBuilder().setCommandType(CommandType.Free).addData(1).build();
-              assertEquals(expectedCmd, worker1HeartbeatCmd);
+                if (deleteMetadata) {
+                  // Block on worker 2 will be freed because the block is already removed
+                  Command worker2HeartbeatCmd = testMaster.workerHeartbeat(worker2,
+                          MEM_CAPACITY,
+                          // the block has not yet been removed
+                          ImmutableMap.of("MEM", BLOCK1_LENGTH),
+                          // an empty list of removed blockIds
+                          ImmutableList.of(),
+                          ImmutableMap.of(),
+                          NO_LOST_STORAGE,
+                          ImmutableList.of());
+                  System.out.println("Worker 2 heartbeat gets " + worker2HeartbeatCmd);
+                  // Block on worker 2 will be freed because the block is already removed
+                  assertEquals(freeBlock, worker2HeartbeatCmd);
+                } else {
+                  // Block on worker 2 will not be freed because worker 2 registered after the free
+                  Command worker2HeartbeatCmd = testMaster.workerHeartbeat(worker2,
+                          MEM_CAPACITY,
+                          // the block has not yet been removed
+                          ImmutableMap.of("MEM", BLOCK1_LENGTH),
+                          // an empty list of removed blockIds
+                          ImmutableList.of(),
+                          ImmutableMap.of(),
+                          NO_LOST_STORAGE,
+                          ImmutableList.of());
+                  System.out.println("Worker 2 heartbeat gets " + worker2HeartbeatCmd);
+                  assertTrue(worker2HeartbeatCmd.getCommandType().equals(CommandType.Nothing));
+                }
 
-              Command worker2HeartbeatCmd = testMaster.workerHeartbeat(worker2,
-                      ImmutableMap.of("MEM", 100L),
-                      // the block has not yet been removed
-                      ImmutableMap.of("MEM", blockLength),
-                      // an empty list of removed blockIds
-                      ImmutableList.of(),
-                      ImmutableMap.of(),
-                      NO_LOST_STORAGE,
-                      ImmutableList.of());
-              System.out.println("Worker 2 heartbeat gets " + worker2HeartbeatCmd);
-              // Block on worker 2 will not be freed because worker 2 registered after the free
-              assertTrue(worker2HeartbeatCmd.getCommandType().equals(CommandType.Nothing));
-
-              return null;
-            });
+                return null;
+              });
+    }
   }
 
   @Test
-  // TODO(jiacheng)
   public void concurrentRemoveWithRegisterNewWorkerDifferentBlock() throws Exception {
+    for (boolean deleteMetadata : ImmutableList.of(true, false)) {
+      // To be replaced with the real latch W2 waits on
+      // TODO(jiacheng): change all to voidLatch?
+      CountDownLatch tempLatch = new CountDownLatch(1);
+
+      // TODO(jiacheng): move to @before?
+      SignalBlockMaster testMaster = new SignalBlockMaster(mMetricsMaster, mMasterContext, mClock,
+              ExecutorServiceFactories.constantExecutorServiceFactory(mExecutorService), tempLatch);
+
+      // Prepare worker
+      long worker1 = testMaster.getWorkerId(NET_ADDRESS_1);
+      testMaster.workerRegister(worker1, Arrays.asList("MEM"), MEM_CAPACITY,
+              MEM_USAGE_EMPTY, NO_BLOCKS_ON_LOCATION, NO_LOST_STORAGE,
+              RegisterWorkerPOptions.getDefaultInstance());
+      // Prepare block on the worker
+      testMaster.commitBlock(worker1, BLOCK1_LENGTH, "MEM", "MEM", BLOCK1_ID, BLOCK1_LENGTH);
+      // Prepare block 2 so it is recognized at worker register
+      testMaster.commitBlockInUFS(BLOCK2_ID, BLOCK2_LENGTH);
+      CountDownLatch w1Latch = new CountDownLatch(1);
+      testMaster.setLatch(w1Latch);
+
+      // A new worker as the W2
+      long worker2 = testMaster.getWorkerId(NET_ADDRESS_2);
+      concurrentWriterWithWriter(w1Latch,
+              // W1
+              () -> {
+                testMaster.removeBlocks(ImmutableList.of(BLOCK1_ID), deleteMetadata);
+                return null;
+              },
+              // W2
+              () -> {
+                // The new worker contains the block
+                // W1 will remove the block exclusively before worker2 registers with the same block
+                // So when worker 2 comes in, the block should be removed already
+                // So the block on worker 2 should be ignored
+                testMaster.workerRegister(worker2, Arrays.asList("MEM"),
+                        MEM_CAPACITY,
+                        ImmutableMap.of("MEM", BLOCK2_LENGTH),
+                        ImmutableMap.of(newBlockLocationOnWorkerMemTier(worker2), ImmutableList.of(BLOCK2_ID)),
+                        NO_LOST_STORAGE,
+                        RegisterWorkerPOptions.getDefaultInstance());
+                System.out.println("New worker register finished");
+                return null;
+              },
+              // Verifier
+              () -> {
+                // After registration, verify the worker info
+                List<WorkerInfo> workerInfoList = testMaster.getWorkerReport(GetWorkerReportOptions.defaults());
+                assertEquals(2, workerInfoList.size());
+                // Block 1 has not been removed from the workers yet
+                WorkerInfo worker1Info = findWorkerInfo(workerInfoList, worker1);
+                assertEquals(BLOCK1_LENGTH, worker1Info.getUsedBytes());
+                WorkerInfo worker2Info = findWorkerInfo(workerInfoList, worker2);
+                assertEquals(BLOCK2_LENGTH, worker2Info.getUsedBytes());
+
+                // Verify the block metadata
+                if (deleteMetadata) {
+                  verifyBlockNotExisting(testMaster, BLOCK1_ID);
+                } else {
+                  // The master will issue commands to remove blocks on the next heartbeat
+                  // So now the locations are still there
+                  verifyBlockOnWorkers(testMaster, BLOCK1_ID, BLOCK1_LENGTH, ImmutableList.of(worker1Info));
+                }
+                // Block 2 is unaffected
+                verifyBlockOnWorkers(testMaster, BLOCK2_ID, BLOCK2_LENGTH, ImmutableList.of(worker2Info));
+
+                // Regardless of whether the metadata is removed, the existing block will be freed
+                Command worker1HeartbeatCmd = testMaster.workerHeartbeat(worker1,
+                        MEM_CAPACITY,
+                        // the block has not yet been removed
+                        ImmutableMap.of("MEM", BLOCK1_LENGTH),
+                        // an empty list of removed blockIds
+                        ImmutableList.of(),
+                        ImmutableMap.of(),
+                        NO_LOST_STORAGE,
+                        ImmutableList.of());
+                System.out.println("Worker 1 heartbeat gets " + worker1HeartbeatCmd);
+                Command freeBlock = Command.newBuilder().setCommandType(CommandType.Free).addData(1).build();
+                assertEquals(freeBlock, worker1HeartbeatCmd);
+
+                Command worker2HeartbeatCmd = testMaster.workerHeartbeat(worker2,
+                        MEM_CAPACITY,
+                        // the block has not yet been removed
+                        ImmutableMap.of("MEM", BLOCK1_LENGTH),
+                        // an empty list of removed blockIds
+                        ImmutableList.of(),
+                        ImmutableMap.of(),
+                        NO_LOST_STORAGE,
+                        ImmutableList.of());
+                System.out.println("Worker 2 heartbeat gets " + worker2HeartbeatCmd);
+                // Blocks on worker 2 are unaffected
+                assertTrue(worker2HeartbeatCmd.getCommandType().equals(CommandType.Nothing));
+
+                return null;
+              });
+    }
   }
 
   @Test
-  // TODO(jiacheng)
   public void concurrentRemoveWithSameWorkerHeartbeatSameBlock() throws Exception {
+    for (boolean deleteMetadata : ImmutableList.of(true, false)) {
+
+      // To be replaced with the real latch W2 waits on
+      CountDownLatch tempLatch = new CountDownLatch(1);
+
+      SignalBlockMaster testMaster = new SignalBlockMaster(mMetricsMaster, mMasterContext, mClock,
+              ExecutorServiceFactories.constantExecutorServiceFactory(mExecutorService), tempLatch);
+
+      // Prepare worker
+      long worker1 = testMaster.getWorkerId(NET_ADDRESS_1);
+      testMaster.workerRegister(worker1, Arrays.asList("MEM"), ImmutableMap.of("MEM", 100L),
+              ImmutableMap.of("MEM", 0L), NO_BLOCKS_ON_LOCATION, NO_LOST_STORAGE,
+              RegisterWorkerPOptions.getDefaultInstance());
+      // Prepare block in alluxio
+      testMaster.commitBlockInUFS(BLOCK1_ID, BLOCK1_LENGTH);
+      CountDownLatch w1Latch = new CountDownLatch(1);
+      testMaster.setLatch(w1Latch);
+
+      concurrentWriterWithWriter(w1Latch,
+              // W1
+              () -> {
+                testMaster.removeBlocks(ImmutableList.of(BLOCK1_ID), deleteMetadata);
+                return null;
+              },
+              // W2
+              () -> {
+                // The same block is removed on worker in this heartbeat
+                // This should succeed as commit locks the block exclusively and finishes first
+                // When the block heartbeat processes the same block, it has been committed
+                Command cmd = testMaster.workerHeartbeat(worker1,
+                        MEM_CAPACITY,
+                        // 0 used because the block is already removed
+                        MEM_USAGE_EMPTY,
+                        // list of removed blockIds
+                        ImmutableList.of(BLOCK1_ID),
+                        ImmutableMap.of(),
+                        NO_LOST_STORAGE,
+                        ImmutableList.of());
+                System.out.println("worker heartbeat finished with command returned: " + cmd);
+
+                // The block has been removed, nothing from command
+                assertTrue(cmd.getCommandType().equals(CommandType.Nothing));
+
+                return null;
+              },
+              // Verifier
+              () -> {
+                // After heartbeat, verify the worker info
+                List<WorkerInfo> workerInfoList = testMaster.getWorkerReport(GetWorkerReportOptions.defaults());
+                assertEquals(1, workerInfoList.size());
+                WorkerInfo worker1Info = findWorkerInfo(workerInfoList, worker1);
+                assertEquals(0L, worker1Info.getUsedBytes());
+
+                if (deleteMetadata) {
+                  verifyBlockNotExisting(testMaster, BLOCK1_ID);
+                } else {
+                  // The block has no locations now because the last location is removed
+                  verifyBlockOnWorkers(testMaster, BLOCK1_ID, BLOCK1_LENGTH, Arrays.asList());
+                }
+
+                return null;
+              });
+    }
   }
 
+  private long registerEmptyWorker(SignalBlockMaster blockMaster, WorkerNetAddress address) throws Exception {
+    long workerId = blockMaster.getWorkerId(address);
+    blockMaster.workerRegister(workerId, Arrays.asList("MEM"), MEM_CAPACITY,
+            MEM_USAGE_EMPTY,
+            NO_BLOCKS_ON_LOCATION,
+            NO_LOST_STORAGE,
+            RegisterWorkerPOptions.getDefaultInstance());
+    return workerId;
+  }
+
+
   @Test
-  // TODO(jiacheng)
   public void concurrentRemoveWithSameWorkerHeartbeatDifferentBlock() throws Exception {
+    for (boolean deleteMetadata : ImmutableList.of(true)) {
+      System.out.println("Delete metadata? " + deleteMetadata);
+
+      // To be replaced with the real latch W2 waits on
+      CountDownLatch tempLatch = new CountDownLatch(1);
+
+      SignalBlockMaster testMaster = new SignalBlockMaster(mMetricsMaster, mMasterContext, mClock,
+              ExecutorServiceFactories.constantExecutorServiceFactory(mExecutorService), tempLatch);
+
+      // Prepare block 1 and 2 on the worker
+      long worker1 = registerEmptyWorker(testMaster, NET_ADDRESS_1);
+      testMaster.commitBlock(worker1, BLOCK1_LENGTH, "MEM", "MEM", BLOCK1_ID, BLOCK1_LENGTH);
+      testMaster.commitBlock(worker1, BLOCK1_LENGTH + BLOCK2_LENGTH, "MEM", "MEM", BLOCK2_ID, BLOCK2_LENGTH);
+      System.out.println("Preparation step block 1" + testMaster.getBlockInfo(BLOCK1_ID));
+      System.out.println("Preparation step block 2" + testMaster.getBlockInfo(BLOCK2_ID));
+
+      CountDownLatch w1Latch = new CountDownLatch(1);
+      testMaster.setLatch(w1Latch);
+
+      AtomicBoolean freeCommandSeen = new AtomicBoolean(false);
+      Command freeBlock = Command.newBuilder().setCommandType(CommandType.Free).addData(1).build();
+      concurrentWriterWithWriter(w1Latch,
+              // W1
+              () -> {
+                testMaster.removeBlocks(ImmutableList.of(BLOCK1_ID), deleteMetadata);
+                return null;
+              },
+              // W2
+              () -> {
+                // A different block is removed on the same worker
+                // This should contend on the worker metadata
+                // TODO(jiacheng): extract this to a call
+                Command cmd = testMaster.workerHeartbeat(worker1,
+                        MEM_CAPACITY,
+                        // Block 2 is removed but 1 is still on the worker
+                        ImmutableMap.of("MEM", BLOCK1_LENGTH),
+                        // list of removed blockIds
+                        ImmutableList.of(BLOCK2_ID),
+                        ImmutableMap.of(),
+                        NO_LOST_STORAGE,
+                        ImmutableList.of());
+                System.out.println("worker heartbeat finished with command returned: " + cmd);
+
+                // The heartbeat contends on the block lock of block 2, worker usage lock and
+                // worker block list lock
+                // The remove operation will first remove the block metadata with the block lock,
+                // then update the worker to-be-removed list with the block list lock
+                // There are two possible outcomes:
+                // 1. Remove gets the block list lock first and updates the to-be-removed list
+                //    In this case the returned value will be a free command.
+                // 2. Worker heartbeat gets the block list lock first before the remove operation
+                //    adds to the to-be-removed list. In this case the return command has nothing.
+                if (cmd.equals(freeBlock)) {
+                  freeCommandSeen.set(true);
+                } else {
+                  assertTrue(cmd.getCommandType().equals(CommandType.Nothing));
+                }
+
+                return null;
+              },
+              // Verifier
+              () -> {
+                // After heartbeat, verify the worker info
+                List<WorkerInfo> workerInfoList = testMaster.getWorkerReport(GetWorkerReportOptions.defaults());
+                assertEquals(1, workerInfoList.size());
+                WorkerInfo worker1Info = findWorkerInfo(workerInfoList, worker1);
+                assertEquals(BLOCK1_LENGTH, worker1Info.getUsedBytes());
+
+                if (deleteMetadata) {
+                  verifyBlockNotExisting(testMaster, BLOCK1_ID);
+                } else {
+                  // All locations of block 1 are freed in metadata
+                  verifyBlockOnWorkers(testMaster, BLOCK1_ID, BLOCK1_LENGTH, workerInfoList);
+                }
+                verifyBlockOnWorkers(testMaster, BLOCK2_ID, BLOCK2_LENGTH, ImmutableList.of());
+
+                // If the 1st heartbeat does not see the free command
+                // This heartbeat should definitely see it,
+                // because the verifier is run after W1 fully finished
+                // and updated the to-be-removed list
+                if (!freeCommandSeen.get()) {
+                  System.out.println("The 1st heartbeat does not see the free cmd, check again");
+                  Command cmd = testMaster.workerHeartbeat(worker1,
+                          MEM_CAPACITY,
+                          // Block 2 is removed but 1 is still on the worker
+                          ImmutableMap.of("MEM", BLOCK1_LENGTH),
+                          // list of removed blockIds
+                          ImmutableList.of(BLOCK2_ID),
+                          ImmutableMap.of(),
+                          NO_LOST_STORAGE,
+                          ImmutableList.of());
+                  assertEquals(freeBlock, cmd);
+                }
+                return null;
+              });
+    }
   }
 
   @Test
-  // TODO(jiacheng)
   public void concurrentRemoveWithDifferentWorkerHeartbeatSameBlock() throws Exception {
+    for (boolean deleteMetadata : ImmutableList.of(true, false)) {
+      System.out.println("Delete metadata? " + deleteMetadata);
+
+      // To be replaced with the real latch W2 waits on
+      CountDownLatch tempLatch = new CountDownLatch(1);
+
+      SignalBlockMaster testMaster = new SignalBlockMaster(mMetricsMaster, mMasterContext, mClock,
+              ExecutorServiceFactories.constantExecutorServiceFactory(mExecutorService), tempLatch);
+
+      // Prepare worker
+      long worker1 = registerEmptyWorker(testMaster, NET_ADDRESS_1);
+      long worker2 = registerEmptyWorker(testMaster, NET_ADDRESS_2);
+      testMaster.commitBlock(worker1, BLOCK1_LENGTH, "MEM", "MEM", BLOCK1_ID, BLOCK1_LENGTH);
+      testMaster.commitBlock(worker2, BLOCK1_LENGTH, "MEM", "MEM", BLOCK1_ID, BLOCK1_LENGTH);
+      CountDownLatch w1Latch = new CountDownLatch(1);
+      testMaster.setLatch(w1Latch);
+
+      concurrentWriterWithWriter(w1Latch,
+              // W1
+              () -> {
+                testMaster.removeBlocks(ImmutableList.of(BLOCK1_ID), deleteMetadata);
+                return null;
+              },
+              // W2
+              () -> {
+                // The same block is removed on another worker
+                // This should succeed as commit locks the block exclusively and finishes first
+                // When the block heartbeat processes the same block, it has been committed
+                Command cmd = testMaster.workerHeartbeat(worker2,
+                        MEM_CAPACITY,
+                        // 0 used because the block is already removed
+                        MEM_USAGE_EMPTY,
+                        // list of removed blockIds
+                        ImmutableList.of(BLOCK1_ID),
+                        ImmutableMap.of(),
+                        NO_LOST_STORAGE,
+                        ImmutableList.of());
+                System.out.println("worker heartbeat finished with command returned: " + cmd);
+
+                // The block has been removed, nothing from command
+                assertTrue(cmd.getCommandType().equals(CommandType.Nothing));
+
+                return null;
+              },
+              // Verifier
+              () -> {
+                // After heartbeat, verify the worker info
+                List<WorkerInfo> workerInfoList = testMaster.getWorkerReport(GetWorkerReportOptions.defaults());
+                assertEquals(2, workerInfoList.size());
+                // The block is still on worker 1, will be removed on the next heartbeat
+                WorkerInfo worker1Info = findWorkerInfo(workerInfoList, worker1);
+                assertEquals(BLOCK1_LENGTH, worker1Info.getUsedBytes());
+                WorkerInfo worker2Info = findWorkerInfo(workerInfoList, worker2);
+                assertEquals(0L, worker2Info.getUsedBytes());
+
+                if (deleteMetadata) {
+                  verifyBlockNotExisting(testMaster, BLOCK1_ID);
+                } else {
+                  // The location is still on worker 1, until it is removed after the next heartbeat
+                  verifyBlockOnWorkers(testMaster, BLOCK1_ID, BLOCK1_LENGTH, ImmutableList.of(worker1Info));
+                }
+
+                // On the heartbeat worker 1 block will be removed
+                Command freeBlock = Command.newBuilder().setCommandType(CommandType.Free).addData(1).build();
+                Command cmd = testMaster.workerHeartbeat(worker1,
+                        MEM_CAPACITY,
+                        // Block 1 is still on worker 1
+                        ImmutableMap.of("MEM", BLOCK1_LENGTH),
+                        // list of removed blockIds
+                        ImmutableList.of(),
+                        ImmutableMap.of(),
+                        NO_LOST_STORAGE,
+                        ImmutableList.of());
+                assertEquals(freeBlock, cmd);
+                return null;
+              });
+    }
   }
 
   @Test
   // TODO(jiacheng)
   public void concurrentRemoveWithDifferentWorkerHeartbeatDifferentBlock() throws Exception {
+    for (boolean deleteMetadata : ImmutableList.of(true, false)) {
+      // To be replaced with the real latch W2 waits on
+      CountDownLatch tempLatch = new CountDownLatch(1);
+
+      SignalBlockMaster testMaster = new SignalBlockMaster(mMetricsMaster, mMasterContext, mClock,
+              ExecutorServiceFactories.constantExecutorServiceFactory(mExecutorService), tempLatch);
+
+      // Prepare worker
+      long worker1 = registerEmptyWorker(testMaster, NET_ADDRESS_1);
+      long worker2 = registerEmptyWorker(testMaster, NET_ADDRESS_2);
+      // Worker 1 has block 1
+      testMaster.commitBlock(worker1, BLOCK1_LENGTH, "MEM", "MEM", BLOCK1_ID, BLOCK1_LENGTH);
+      // Worker 2 has block 2
+      testMaster.commitBlock(worker2, BLOCK2_LENGTH, "MEM", "MEM", BLOCK2_ID, BLOCK2_LENGTH);
+
+      CountDownLatch w1Latch = new CountDownLatch(1);
+      testMaster.setLatch(w1Latch);
+
+      concurrentWriterWithWriter(w1Latch,
+              // W1
+              () -> {
+                testMaster.removeBlocks(ImmutableList.of(BLOCK1_ID), deleteMetadata);
+                return null;
+              },
+              // W2
+              () -> {
+                // A different block is removed on another worker
+                Command cmd = testMaster.workerHeartbeat(worker2,
+                        MEM_CAPACITY,
+                        // 0 used because the block is already removed
+                        MEM_USAGE_EMPTY,
+                        // list of removed blockIds
+                        ImmutableList.of(BLOCK2_ID),
+                        ImmutableMap.of(),
+                        NO_LOST_STORAGE,
+                        ImmutableList.of());
+                System.out.println("worker heartbeat finished with command returned: " + cmd);
+
+                // Nothing for worker 2 to do because it does not have block 1
+                assertTrue(cmd.getCommandType().equals(CommandType.Nothing));
+
+                return null;
+              },
+              // Verifier
+              () -> {
+                // After heartbeat, verify the worker info
+                List<WorkerInfo> workerInfoList = testMaster.getWorkerReport(GetWorkerReportOptions.defaults());
+                assertEquals(2, workerInfoList.size());
+                WorkerInfo worker1Info = findWorkerInfo(workerInfoList, worker1);
+                assertEquals(BLOCK1_LENGTH, worker1Info.getUsedBytes());
+                WorkerInfo worker2Info = findWorkerInfo(workerInfoList, worker2);
+                assertEquals(0L, worker2Info.getUsedBytes());
+
+                if (deleteMetadata) {
+                  verifyBlockNotExisting(testMaster, BLOCK1_ID);
+                } else {
+                  // Block 1 should still exist on worker 1 until the next heartbeat frees it
+                  verifyBlockOnWorkers(testMaster, BLOCK1_ID, BLOCK1_LENGTH, Arrays.asList(worker1Info));
+                }
+
+                // No copies for block 2
+                verifyBlockOnWorkers(testMaster, BLOCK2_ID, BLOCK2_LENGTH, Arrays.asList());
+                return null;
+              });
+    }
   }
 
   /**
