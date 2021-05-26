@@ -11,12 +11,16 @@
 
 package alluxio.master.file;
 
+import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.GrpcUtils;
 import alluxio.grpc.ListStatusPResponse;
 import alluxio.wire.FileInfo;
 
 import com.google.common.base.Preconditions;
 import io.grpc.stub.StreamObserver;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.annotation.concurrent.ThreadSafe;
 import java.util.ArrayList;
@@ -28,6 +32,9 @@ import java.util.stream.Collectors;
  */
 @ThreadSafe
 public class ListStatusResultStream implements ResultStream<FileInfo> {
+  private static final Logger LOG = LoggerFactory.getLogger(ListStatusResultStream.class);
+  private static final long RPC_RESPONSE_SIZE_WARNING_THRESHOLD = ServerConfiguration.getBytes(PropertyKey.MASTER_RPC_RESPONSE_SIZE_WARNING_THRESHOLD);
+
   /** List of file infos. */
   private List<FileInfo> mInfos;
   /** Batch size. */
@@ -103,9 +110,13 @@ public class ListStatusResultStream implements ResultStream<FileInfo> {
    * @return the proto representation of currently batched items
    */
   private ListStatusPResponse toProto() {
-    return ListStatusPResponse.newBuilder()
+    ListStatusPResponse response = ListStatusPResponse.newBuilder()
         .addAllFileInfos(
             mInfos.stream().map((info) -> GrpcUtils.toProto(info)).collect(Collectors.toList()))
         .build();
+    if (response.getSerializedSize() > RPC_RESPONSE_SIZE_WARNING_THRESHOLD) {
+      LOG.warn("listStatus batch response is {} bytes, {} FileInfo", response.getSerializedSize(), mInfos.size());
+    }
+    return response;
   }
 }

@@ -48,6 +48,7 @@ public final class BlockMasterWorkerServiceHandler extends
     BlockMasterWorkerServiceGrpc.BlockMasterWorkerServiceImplBase {
   private static final Logger LOG = LoggerFactory.getLogger(BlockMasterWorkerServiceHandler.class);
   private static final long RPC_REQUEST_SIZE_WARNING_THRESHOLD = ServerConfiguration.getBytes(PropertyKey.MASTER_RPC_REQUEST_SIZE_WARNING_THRESHOLD);
+  private static final long RPC_RESPONSE_SIZE_WARNING_THRESHOLD = ServerConfiguration.getBytes(PropertyKey.MASTER_RPC_RESPONSE_SIZE_WARNING_THRESHOLD);
 
   private final BlockMaster mBlockMaster;
 
@@ -85,10 +86,17 @@ public final class BlockMasterWorkerServiceHandler extends
     final List<Metric> metrics = request.getOptions().getMetricsList()
         .stream().map(Metric::fromProto).collect(Collectors.toList());
 
-    ServerRpcUtils.call(LOG, (ServerRpcUtils.RpcCallableThrowsIOException<BlockHeartbeatPResponse>) () ->
-        BlockHeartbeatPResponse.newBuilder().setCommand(mBlockMaster.workerHeartbeat(workerId,
-          capacityBytesOnTiers, usedBytesOnTiers, removedBlockIds, addedBlocksMap,
-            lostStorageMap, metrics)).build(),
+    ServerRpcUtils.call(LOG, (ServerRpcUtils.RpcCallableThrowsIOException<BlockHeartbeatPResponse>) () -> {
+              BlockHeartbeatPResponse response = BlockHeartbeatPResponse.newBuilder().setCommand(mBlockMaster.workerHeartbeat(workerId,
+                      capacityBytesOnTiers, usedBytesOnTiers, removedBlockIds, addedBlocksMap,
+                      lostStorageMap, metrics)).build();
+              if (response.getSerializedSize() > RPC_RESPONSE_SIZE_WARNING_THRESHOLD) {
+                LOG.warn("blockHeartbeat response is {} bytes, command contains {} blocks",
+                        response.getSerializedSize(),
+                        response.getCommand().getDataCount());
+              }
+              return response;
+            },
         "blockHeartbeat", "request=%s", responseObserver, request);
   }
 

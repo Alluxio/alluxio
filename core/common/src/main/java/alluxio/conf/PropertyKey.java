@@ -1863,6 +1863,12 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.MASTER)
           .setDefaultValue("1MB")
           .build();
+  public static final PropertyKey MASTER_RPC_RESPONSE_SIZE_WARNING_THRESHOLD =
+          new Builder(Name.MASTER_RPC_RESPONSE_SIZE_WARNING_THRESHOLD)
+          .setDescription("RPCs responses that are larger than this will log a warning message.")
+          .setScope(Scope.MASTER)
+          .setDefaultValue("1MB")
+          .build();
   public static final PropertyKey MASTER_FILE_ACCESS_TIME_JOURNAL_FLUSH_INTERVAL =
       new Builder(Name.MASTER_FILE_ACCESS_TIME_JOURNAL_FLUSH_INTERVAL)
           .setDefaultValue("1h")
@@ -5590,6 +5596,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.rpc.warning.threshold";
     public static final String MASTER_RPC_REQUEST_SIZE_WARNING_THRESHOLD =
         "alluxio.master.rpc.request.size.warning.threshold";
+    public static final String MASTER_RPC_RESPONSE_SIZE_WARNING_THRESHOLD =
+        "alluxio.master.rpc.response.size.warning.threshold";
     public static final String MASTER_EMBEDDED_JOURNAL_PROXY_HOST =
         "alluxio.master.embedded.journal.bind.host";
     public static final String MASTER_EMBEDDED_JOURNAL_ADDRESSES =

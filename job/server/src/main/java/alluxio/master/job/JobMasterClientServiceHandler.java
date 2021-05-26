@@ -12,6 +12,8 @@
 package alluxio.master.job;
 
 import alluxio.ServerRpcUtils;
+import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.grpc.CancelPRequest;
 import alluxio.grpc.CancelPResponse;
@@ -46,6 +48,7 @@ import java.util.List;
 public class JobMasterClientServiceHandler
     extends JobMasterClientServiceGrpc.JobMasterClientServiceImplBase {
   private static final Logger LOG = LoggerFactory.getLogger(JobMasterClientServiceHandler.class);
+  private static final long RPC_RESPONSE_SIZE_WARNING_THRESHOLD = ServerConfiguration.getBytes(PropertyKey.MASTER_RPC_RESPONSE_SIZE_WARNING_THRESHOLD);
   private JobMaster mJobMaster;
 
   /**
@@ -104,7 +107,14 @@ public class JobMasterClientServiceHandler
       for (JobInfo jobInfo : mJobMaster.listDetailed()) {
         builder.addJobInfos(jobInfo.toProto());
       }
-      return builder.build();
+      ListAllPResponse response = builder.build();
+      if (response.getSerializedSize() > RPC_RESPONSE_SIZE_WARNING_THRESHOLD) {
+        LOG.warn("listAll response is {} bytes, {} jobId, {} jobs",
+                response.getSerializedSize(),
+                response.getJobIdsCount(),
+                response.getJobInfosCount());
+      }
+      return response;
     }, "listAll", "request=%s", responseObserver, request);
   }
 
@@ -134,7 +144,13 @@ public class JobMasterClientServiceHandler
         builder.addWorkerHealths(workerHealth.toProto());
       }
 
-      return builder.build();
+      GetAllWorkerHealthPResponse response = builder.build();
+      if (response.getSerializedSize() > RPC_RESPONSE_SIZE_WARNING_THRESHOLD) {
+        LOG.warn("getAllWorkerHealth response is {} bytes, {} workers",
+                response.getSerializedSize(),
+                workerHealths.size());
+      }
+      return response;
     }, "getAllWorkerHealth", "request=%s", responseObserver, request);
   }
 }

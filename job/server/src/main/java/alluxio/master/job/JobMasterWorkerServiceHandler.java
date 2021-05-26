@@ -43,6 +43,7 @@ public final class JobMasterWorkerServiceHandler
     extends JobMasterWorkerServiceGrpc.JobMasterWorkerServiceImplBase {
   private static final Logger LOG = LoggerFactory.getLogger(JobMasterWorkerServiceHandler.class);
   private static final long RPC_REQUEST_SIZE_WARNING_THRESHOLD = ServerConfiguration.getBytes(PropertyKey.MASTER_RPC_REQUEST_SIZE_WARNING_THRESHOLD);
+  private static final long RPC_RESPONSE_SIZE_WARNING_THRESHOLD = ServerConfiguration.getBytes(PropertyKey.MASTER_RPC_RESPONSE_SIZE_WARNING_THRESHOLD);
   private final JobMaster mJobMaster;
 
   /**
@@ -60,7 +61,7 @@ public final class JobMasterWorkerServiceHandler
 
     ServerRpcUtils.call(LOG, (ServerRpcUtils.RpcCallableThrowsIOException<JobHeartbeatPResponse>) () -> {
       if (request.getSerializedSize() > RPC_REQUEST_SIZE_WARNING_THRESHOLD) {
-        LOG.warn("heartbeat request is {} bytes, {} TaskInfo",
+        LOG.warn("jobHeartbeat request is {} bytes, {} TaskInfo",
                 request.getSerializedSize(),
                 request.getTaskInfosCount());
       }
@@ -73,9 +74,15 @@ public final class JobMasterWorkerServiceHandler
         }
       }
       JobWorkerHealth jobWorkerHealth = new JobWorkerHealth(request.getJobWorkerHealth());
-      return JobHeartbeatPResponse.newBuilder()
+      JobHeartbeatPResponse response = JobHeartbeatPResponse.newBuilder()
               .addAllCommands(mJobMaster.workerHeartbeat(jobWorkerHealth, wireTaskInfoList))
               .build();
+      if (response.getSerializedSize() > RPC_RESPONSE_SIZE_WARNING_THRESHOLD) {
+        LOG.warn("jobHeartbeat response is {} bytes, {} commands",
+                response.getSerializedSize(),
+                response.getCommandsCount());
+      }
+      return response;
     }, "heartbeat", "request=%s", responseObserver, request);
   }
 
