@@ -301,8 +301,8 @@ public final class FileSystemMasterClientServiceHandler
           .addAllSyncPaths(syncPointInfoList).build();
       if (response.getSerializedSize() > RPC_RESPONSE_SIZE_WARNING_THRESHOLD) {
         LOG.warn("getSyncPathList response is {} bytes, {} paths",
-                response.getSerializedSize(),
-                response.getSyncPathsCount());
+            response.getSerializedSize(),
+            response.getSyncPathsCount());
       }
       return response;
     }, "getSyncPathList", "request=%s", responseObserver, request);
@@ -430,7 +430,7 @@ public final class FileSystemMasterClientServiceHandler
           GetStateLockHoldersPResponse.newBuilder().addAllThreads(holders).build();
       if (response.getSerializedSize() > RPC_RESPONSE_SIZE_WARNING_THRESHOLD) {
         LOG.warn("getStateLockHolders response has {} bytes, {} threads",
-                response.getSerializedSize(), response.getThreadsCount());
+            response.getSerializedSize(), response.getThreadsCount());
       }
       return response;
     }, "getStateLockHolders", "request=%s", responseObserver, request);
