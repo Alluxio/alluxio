@@ -625,6 +625,16 @@ public final class MetricKey implements Comparable<MetricKey> {
           .build();
 
   // Cluster metrics
+  public static final MetricKey CLUSTER_ACTIVE_RPC_READ_COUNT =
+      new Builder("Cluster.ActiveRpcReadCount")
+          .setDescription("The number of active read-RPCs managed by workers")
+          .setMetricType(MetricType.COUNTER)
+          .build();
+  public static final MetricKey CLUSTER_ACTIVE_RPC_WRITE_COUNT =
+      new Builder("Cluster.ActiveRpcWriteCount")
+          .setDescription("The number of active write-RPCs managed by workers")
+          .setMetricType(MetricType.COUNTER)
+          .build();
   public static final MetricKey CLUSTER_BYTES_READ_DIRECT =
       new Builder("Cluster.BytesReadDirect")
           .setDescription("Total number of bytes read from Alluxio storage managed by workers "
@@ -790,6 +800,18 @@ public final class MetricKey implements Comparable<MetricKey> {
           .build();
 
   // Worker metrics
+  public static final MetricKey WORKER_ACTIVE_RPC_READ_COUNT =
+      new Builder("Worker.ActiveRpcReadCount")
+          .setDescription("The number of active read-RPCs managed by this worker")
+          .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggregated(true)
+          .build();
+  public static final MetricKey WORKER_ACTIVE_RPC_WRITE_COUNT =
+      new Builder("Worker.ActiveRpcWriteCount")
+          .setDescription("The number of active write-RPCs managed by this worker")
+          .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggregated(true)
+          .build();
   public static final MetricKey WORKER_ASYNC_CACHE_DUPLICATE_REQUESTS =
       new Builder("Worker.AsyncCacheDuplicateRequests")
           .setDescription("Total number of duplicated async cache request received by this worker")
@@ -1034,18 +1056,6 @@ public final class MetricKey implements Comparable<MetricKey> {
               + "by asynchronous block remover.")
           .setMetricType(MetricType.GAUGE)
           .setIsClusterAggregated(false)
-          .build();
-  public static final MetricKey WORKER_RPC_READ_COUNT =
-      new Builder("Worker.RpcReadCount")
-          .setDescription("The number of active read-RPCs managed by this worker")
-          .setMetricType(MetricType.COUNTER)
-          .setIsClusterAggregated(true)
-          .build();
-  public static final MetricKey WORKER_RPC_WRITE_COUNT =
-      new Builder("Worker.RpcWriteCount")
-          .setDescription("The number of active write-RPCs managed by this worker")
-          .setMetricType(MetricType.COUNTER)
-          .setIsClusterAggregated(true)
           .build();
 
   // Client metrics

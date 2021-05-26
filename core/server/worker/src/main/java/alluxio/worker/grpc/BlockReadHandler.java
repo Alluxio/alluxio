@@ -92,8 +92,8 @@ public class BlockReadHandler implements StreamObserver<alluxio.grpc.ReadRequest
       ServerConfiguration.getMs(PropertyKey.WORKER_REMOTE_IO_SLOW_THRESHOLD);
   /** Metrics. */
   private static final Counter RPC_READ_COUNT =
-      MetricsSystem.counterWithTags(MetricKey.WORKER_RPC_READ_COUNT.getName(),
-            MetricKey.WORKER_RPC_READ_COUNT.isClusterAggregated());
+      MetricsSystem.counterWithTags(MetricKey.WORKER_ACTIVE_RPC_READ_COUNT.getName(),
+            MetricKey.WORKER_ACTIVE_RPC_READ_COUNT.isClusterAggregated());
 
   /** The executor to run {@link DataReader}. */
   private final ExecutorService mDataReaderExecutor;
