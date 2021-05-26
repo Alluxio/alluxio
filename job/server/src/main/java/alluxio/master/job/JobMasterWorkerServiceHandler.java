@@ -11,7 +11,9 @@
 
 package alluxio.master.job;
 
-import alluxio.RpcUtils;
+import alluxio.ServerRpcUtils;
+import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.JobHeartbeatPRequest;
 import alluxio.grpc.JobHeartbeatPResponse;
 import alluxio.grpc.JobMasterWorkerServiceGrpc;
@@ -24,6 +26,7 @@ import alluxio.job.wire.TaskInfo;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 import io.grpc.stub.StreamObserver;
+import org.apache.hadoop.ipc.RPC;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -39,6 +42,7 @@ import javax.annotation.concurrent.ThreadSafe;
 public final class JobMasterWorkerServiceHandler
     extends JobMasterWorkerServiceGrpc.JobMasterWorkerServiceImplBase {
   private static final Logger LOG = LoggerFactory.getLogger(JobMasterWorkerServiceHandler.class);
+  private static final long RPC_REQUEST_SIZE_WARNING_THRESHOLD = ServerConfiguration.getBytes(PropertyKey.MASTER_RPC_REQUEST_SIZE_WARNING_THRESHOLD);
   private final JobMaster mJobMaster;
 
   /**
@@ -54,7 +58,12 @@ public final class JobMasterWorkerServiceHandler
   public void heartbeat(JobHeartbeatPRequest request,
                         StreamObserver<JobHeartbeatPResponse> responseObserver) {
 
-    RpcUtils.call(LOG, (RpcUtils.RpcCallableThrowsIOException<JobHeartbeatPResponse>) () -> {
+    ServerRpcUtils.call(LOG, (ServerRpcUtils.RpcCallableThrowsIOException<JobHeartbeatPResponse>) () -> {
+      if (request.getSerializedSize() > RPC_REQUEST_SIZE_WARNING_THRESHOLD) {
+        LOG.warn("heartbeat request is {} bytes, {} TaskInfo",
+                request.getSerializedSize(),
+                request.getTaskInfosCount());
+      }
       List<TaskInfo> wireTaskInfoList = Lists.newArrayList();
       for (alluxio.grpc.JobInfo taskInfo : request.getTaskInfosList()) {
         try {
@@ -74,8 +83,8 @@ public final class JobMasterWorkerServiceHandler
   public void registerJobWorker(RegisterJobWorkerPRequest request,
       StreamObserver<RegisterJobWorkerPResponse> responseObserver) {
 
-    RpcUtils.call(LOG,
-        (RpcUtils.RpcCallableThrowsIOException<RegisterJobWorkerPResponse>) () -> {
+    ServerRpcUtils.call(LOG,
+        (ServerRpcUtils.RpcCallableThrowsIOException<RegisterJobWorkerPResponse>) () -> {
           return RegisterJobWorkerPResponse.newBuilder()
               .setId(mJobMaster.registerWorker(GrpcUtils.fromProto(request.getWorkerNetAddress())))
               .build();

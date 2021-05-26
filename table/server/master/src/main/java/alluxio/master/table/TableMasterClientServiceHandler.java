@@ -11,7 +11,9 @@
 
 package alluxio.master.table;
 
-import alluxio.RpcUtils;
+import alluxio.ServerRpcUtils;
+import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.table.AttachDatabasePRequest;
 import alluxio.grpc.table.AttachDatabasePResponse;
 import alluxio.grpc.table.DetachDatabasePRequest;
@@ -53,7 +55,7 @@ import java.util.stream.Collectors;
 public class TableMasterClientServiceHandler
     extends TableMasterClientServiceGrpc.TableMasterClientServiceImplBase {
   private static final Logger LOG = LoggerFactory.getLogger(TableMasterClientServiceHandler.class);
-
+  private static final long RPC_REQUEST_SIZE_WARNING_THRESHOLD = ServerConfiguration.getBytes(PropertyKey.MASTER_RPC_REQUEST_SIZE_WARNING_THRESHOLD);
   private final TableMaster mTableMaster;
 
   /**
@@ -69,7 +71,12 @@ public class TableMasterClientServiceHandler
   @Override
   public void attachDatabase(AttachDatabasePRequest request,
       StreamObserver<AttachDatabasePResponse> responseObserver) {
-    RpcUtils.call(LOG, () -> {
+    ServerRpcUtils.call(LOG, () -> {
+      if (request.getSerializedSize() > RPC_REQUEST_SIZE_WARNING_THRESHOLD) {
+        LOG.warn("attachDatabase request is {} bytes, {} options",
+                request.getSerializedSize(),
+                request.getOptionsCount());
+      }
       SyncStatus status = mTableMaster
           .attachDatabase(request.getUdbType(), request.getUdbConnectionUri(),
               request.getUdbDbName(), request.getDbName(), request.getOptionsMap(),
@@ -82,7 +89,7 @@ public class TableMasterClientServiceHandler
   @Override
   public void detachDatabase(DetachDatabasePRequest request,
       StreamObserver<DetachDatabasePResponse> responseObserver) {
-    RpcUtils.call(LOG, () -> DetachDatabasePResponse.newBuilder().setSuccess(mTableMaster
+    ServerRpcUtils.call(LOG, () -> DetachDatabasePResponse.newBuilder().setSuccess(mTableMaster
             .detachDatabase(request.getDbName())).build(), "detachDatabase", "",
         responseObserver);
   }
@@ -90,7 +97,7 @@ public class TableMasterClientServiceHandler
   @Override
   public void getAllDatabases(GetAllDatabasesPRequest request,
       StreamObserver<GetAllDatabasesPResponse> responseObserver) {
-    RpcUtils.call(LOG, () -> GetAllDatabasesPResponse.newBuilder()
+    ServerRpcUtils.call(LOG, () -> GetAllDatabasesPResponse.newBuilder()
         .addAllDatabase(mTableMaster.getAllDatabases()).build(),
         "getAllDatabases", "", responseObserver);
   }
@@ -98,7 +105,7 @@ public class TableMasterClientServiceHandler
   @Override
   public void getAllTables(GetAllTablesPRequest request,
       StreamObserver<GetAllTablesPResponse> responseObserver) {
-    RpcUtils.call(LOG, () -> GetAllTablesPResponse.newBuilder()
+    ServerRpcUtils.call(LOG, () -> GetAllTablesPResponse.newBuilder()
         .addAllTable(mTableMaster.getAllTables(request.getDatabase())).build(),
         "getAllTables", "", responseObserver);
   }
@@ -106,7 +113,7 @@ public class TableMasterClientServiceHandler
   @Override
   public void getDatabase(GetDatabasePRequest request,
       StreamObserver<GetDatabasePResponse> responseObserver) {
-    RpcUtils.call(LOG, () -> GetDatabasePResponse.newBuilder().setDb(
+    ServerRpcUtils.call(LOG, () -> GetDatabasePResponse.newBuilder().setDb(
         mTableMaster.getDatabase(request.getDbName())).build(),
         "getDatabase", "", responseObserver);
   }
@@ -114,7 +121,7 @@ public class TableMasterClientServiceHandler
   @Override
   public void getTable(GetTablePRequest request,
       StreamObserver<GetTablePResponse> responseObserver) {
-    RpcUtils.call(LOG, () -> {
+    ServerRpcUtils.call(LOG, () -> {
       Table table = mTableMaster.getTable(request.getDbName(), request.getTableName());
       if (table != null) {
         return GetTablePResponse.newBuilder().setTableInfo(table.toProto()).build();
@@ -126,7 +133,7 @@ public class TableMasterClientServiceHandler
   @Override
   public void getTableColumnStatistics(GetTableColumnStatisticsPRequest request,
       StreamObserver<GetTableColumnStatisticsPResponse> responseObserver) {
-    RpcUtils.call(LOG, () -> GetTableColumnStatisticsPResponse.newBuilder().addAllStatistics(
+    ServerRpcUtils.call(LOG, () -> GetTableColumnStatisticsPResponse.newBuilder().addAllStatistics(
         mTableMaster.getTableColumnStatistics(request.getDbName(),
             request.getTableName(), request.getColNamesList())).build(),
         "getTableColumnStatistics", "", responseObserver);
@@ -135,7 +142,7 @@ public class TableMasterClientServiceHandler
   @Override
   public void getPartitionColumnStatistics(GetPartitionColumnStatisticsPRequest request,
       StreamObserver<GetPartitionColumnStatisticsPResponse> responseObserver) {
-    RpcUtils.call(LOG, () -> GetPartitionColumnStatisticsPResponse.newBuilder()
+    ServerRpcUtils.call(LOG, () -> GetPartitionColumnStatisticsPResponse.newBuilder()
             .putAllPartitionStatistics(mTableMaster.getPartitionColumnStatistics(
                 request.getDbName(), request.getTableName(), request.getPartNamesList(),
                 request.getColNamesList())).build(),
@@ -145,7 +152,7 @@ public class TableMasterClientServiceHandler
   @Override
   public void readTable(ReadTablePRequest request,
       StreamObserver<ReadTablePResponse> responseObserver) {
-    RpcUtils.call(LOG, () -> ReadTablePResponse.newBuilder().addAllPartitions(mTableMaster
+    ServerRpcUtils.call(LOG, () -> ReadTablePResponse.newBuilder().addAllPartitions(mTableMaster
         .readTable(request.getDbName(), request.getTableName(), request.getConstraint()))
         .build(), "readTable", "", responseObserver);
   }
@@ -153,7 +160,7 @@ public class TableMasterClientServiceHandler
   @Override
   public void transformTable(TransformTablePRequest request,
       StreamObserver<TransformTablePResponse> responseObserver) {
-    RpcUtils.call(LOG, () -> TransformTablePResponse.newBuilder().setJobId(mTableMaster
+    ServerRpcUtils.call(LOG, () -> TransformTablePResponse.newBuilder().setJobId(mTableMaster
         .transformTable(request.getDbName(), request.getTableName(), request.getDefinition()))
         .build(), "transformTable", "", responseObserver);
   }
@@ -161,7 +168,7 @@ public class TableMasterClientServiceHandler
   @Override
   public void syncDatabase(SyncDatabasePRequest request,
       StreamObserver<SyncDatabasePResponse> responseObserver) {
-    RpcUtils.call(LOG, () -> {
+    ServerRpcUtils.call(LOG, () -> {
       SyncStatus status = mTableMaster.syncDatabase(request.getDbName());
       return SyncDatabasePResponse.newBuilder().setSuccess(status.getTablesErrorsCount() == 0)
           .setStatus(status).build();
@@ -172,11 +179,11 @@ public class TableMasterClientServiceHandler
   public void getTransformJobInfo(GetTransformJobInfoPRequest request,
       StreamObserver<GetTransformJobInfoPResponse> responseObserver) {
     if (request.hasJobId()) {
-      RpcUtils.call(LOG, () -> GetTransformJobInfoPResponse.newBuilder().addInfo(mTableMaster
+      ServerRpcUtils.call(LOG, () -> GetTransformJobInfoPResponse.newBuilder().addInfo(mTableMaster
           .getTransformJobInfo(request.getJobId()).toProto()).build(),
           "getTransformJobInfo", "", responseObserver);
     } else {
-      RpcUtils.call(LOG, () -> GetTransformJobInfoPResponse.newBuilder().addAllInfo(mTableMaster
+      ServerRpcUtils.call(LOG, () -> GetTransformJobInfoPResponse.newBuilder().addAllInfo(mTableMaster
               .getAllTransformJobInfo().stream().map(TransformJobInfo::toProto)
               .collect(Collectors.toList())).build(),
           "getTransformJobInfo", "", responseObserver);

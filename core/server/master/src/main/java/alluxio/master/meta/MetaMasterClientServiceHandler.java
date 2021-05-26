@@ -11,7 +11,7 @@
 
 package alluxio.master.meta;
 
-import alluxio.RpcUtils;
+import alluxio.ServerRpcUtils;
 import alluxio.RuntimeConstants;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
@@ -55,7 +55,7 @@ public final class MetaMasterClientServiceHandler
 
   @Override
   public void backup(BackupPRequest request, StreamObserver<BackupPStatus> responseObserver) {
-    RpcUtils.call(LOG,
+    ServerRpcUtils.call(LOG,
         () -> mMetaMaster.backup(request, StateLockOptions.defaultsForShellBackup()).toProto(),
         "backup", "request=%s", responseObserver, request);
   }
@@ -63,15 +63,15 @@ public final class MetaMasterClientServiceHandler
   @Override
   public void getBackupStatus(BackupStatusPRequest request,
       StreamObserver<BackupPStatus> responseObserver) {
-    RpcUtils.call(LOG, () -> mMetaMaster.getBackupStatus(request).toProto(),
+    ServerRpcUtils.call(LOG, () -> mMetaMaster.getBackupStatus(request).toProto(),
         "getBackupStatus", "request=%s", responseObserver, request);
   }
 
   @Override
   public void getConfigReport(GetConfigReportPOptions options,
       StreamObserver<GetConfigReportPResponse> responseObserver) {
-    RpcUtils.call(LOG,
-        (RpcUtils.RpcCallableThrowsIOException<GetConfigReportPResponse>) () -> {
+    ServerRpcUtils.call(LOG,
+        (ServerRpcUtils.RpcCallableThrowsIOException<GetConfigReportPResponse>) () -> {
 
           return GetConfigReportPResponse.newBuilder()
               .setReport(mMetaMaster.getConfigCheckReport().toProto()).build();
@@ -81,7 +81,7 @@ public final class MetaMasterClientServiceHandler
   @Override
   public void getMasterInfo(GetMasterInfoPOptions options,
       StreamObserver<GetMasterInfoPResponse> responseObserver) {
-    RpcUtils.call(LOG, (RpcUtils.RpcCallableThrowsIOException<GetMasterInfoPResponse>) () -> {
+    ServerRpcUtils.call(LOG, (ServerRpcUtils.RpcCallableThrowsIOException<GetMasterInfoPResponse>) () -> {
       MasterInfo.Builder masterInfo = MasterInfo.newBuilder();
       for (MasterInfoField field : options.getFilterCount() > 0 ? options.getFilterList()
           : Arrays.asList(MasterInfoField.values())) {
@@ -132,7 +132,7 @@ public final class MetaMasterClientServiceHandler
   @Override
   public void checkpoint(CheckpointPOptions options,
       StreamObserver<CheckpointPResponse> responseObserver) {
-    RpcUtils.call(LOG, (RpcUtils.RpcCallableThrowsIOException<CheckpointPResponse>) () ->
+    ServerRpcUtils.call(LOG, (ServerRpcUtils.RpcCallableThrowsIOException<CheckpointPResponse>) () ->
         CheckpointPResponse.newBuilder().setMasterHostname(mMetaMaster.checkpoint()).build(),
         "checkpoint", "options=%s", responseObserver, options);
   }

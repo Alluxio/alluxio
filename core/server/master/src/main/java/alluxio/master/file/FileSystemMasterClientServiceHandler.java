@@ -12,7 +12,7 @@
 package alluxio.master.file;
 
 import alluxio.AlluxioURI;
-import alluxio.RpcUtils;
+import alluxio.ServerRpcUtils;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.exception.InvalidPathException;
@@ -123,7 +123,7 @@ public final class FileSystemMasterClientServiceHandler
   @Override
   public void checkAccess(CheckAccessPRequest request,
       StreamObserver<CheckAccessPResponse> responseObserver) {
-    RpcUtils.call(LOG,
+    ServerRpcUtils.call(LOG,
         () -> {
           AlluxioURI pathUri = getAlluxioURI(request.getPath());
           mFileSystemMaster.checkAccess(pathUri,
@@ -136,7 +136,7 @@ public final class FileSystemMasterClientServiceHandler
   public void checkConsistency(CheckConsistencyPRequest request,
       StreamObserver<CheckConsistencyPResponse> responseObserver) {
     CheckConsistencyPOptions options = request.getOptions();
-    RpcUtils.call(LOG, () -> {
+    ServerRpcUtils.call(LOG, () -> {
       AlluxioURI pathUri = getAlluxioURI(request.getPath());
       List<AlluxioURI> inconsistentUris = mFileSystemMaster.checkConsistency(pathUri,
           CheckConsistencyContext.create(options.toBuilder()));
@@ -151,7 +151,7 @@ public final class FileSystemMasterClientServiceHandler
   @Override
   public void completeFile(CompleteFilePRequest request,
       StreamObserver<CompleteFilePResponse> responseObserver) {
-    RpcUtils.call(LOG, () -> {
+    ServerRpcUtils.call(LOG, () -> {
       AlluxioURI pathUri = getAlluxioURI(request.getPath());
       mFileSystemMaster.completeFile(pathUri,
           CompleteFileContext.create(request.getOptions().toBuilder()));
@@ -163,7 +163,7 @@ public final class FileSystemMasterClientServiceHandler
   public void createDirectory(CreateDirectoryPRequest request,
       StreamObserver<CreateDirectoryPResponse> responseObserver) {
     CreateDirectoryPOptions options = request.getOptions();
-    RpcUtils.call(LOG, () -> {
+    ServerRpcUtils.call(LOG, () -> {
       AlluxioURI pathUri = getAlluxioURI(request.getPath());
       mFileSystemMaster.createDirectory(pathUri, CreateDirectoryContext.create(options.toBuilder())
           .withTracker(new GrpcCallTracker(responseObserver)));
@@ -174,7 +174,7 @@ public final class FileSystemMasterClientServiceHandler
   @Override
   public void createFile(CreateFilePRequest request,
       StreamObserver<CreateFilePResponse> responseObserver) {
-    RpcUtils.call(LOG, () -> {
+    ServerRpcUtils.call(LOG, () -> {
       AlluxioURI pathUri = getAlluxioURI(request.getPath());
       return CreateFilePResponse.newBuilder()
           .setFileInfo(GrpcUtils.toProto(mFileSystemMaster.createFile(pathUri,
@@ -186,7 +186,7 @@ public final class FileSystemMasterClientServiceHandler
 
   @Override
   public void free(FreePRequest request, StreamObserver<FreePResponse> responseObserver) {
-    RpcUtils.call(LOG, () -> {
+    ServerRpcUtils.call(LOG, () -> {
       AlluxioURI pathUri = getAlluxioURI(request.getPath());
       mFileSystemMaster.free(pathUri, FreeContext.create(request.getOptions().toBuilder()));
       return FreePResponse.newBuilder().build();
@@ -196,7 +196,7 @@ public final class FileSystemMasterClientServiceHandler
   @Override
   public void getNewBlockIdForFile(GetNewBlockIdForFilePRequest request,
       StreamObserver<GetNewBlockIdForFilePResponse> responseObserver) {
-    RpcUtils.call(LOG, () -> {
+    ServerRpcUtils.call(LOG, () -> {
       AlluxioURI pathUri = getAlluxioURI(request.getPath());
       return GetNewBlockIdForFilePResponse.newBuilder()
           .setId(mFileSystemMaster.getNewBlockIdForFile(pathUri)).build();
@@ -207,7 +207,7 @@ public final class FileSystemMasterClientServiceHandler
   public void getFilePath(GetFilePathPRequest request,
       StreamObserver<GetFilePathPResponse> responseObserver) {
     long fileId = request.getFileId();
-    RpcUtils.call(LOG,
+    ServerRpcUtils.call(LOG,
         () -> GetFilePathPResponse.newBuilder()
             .setPath(mFileSystemMaster.getPath(fileId).toString()).build(),
         "GetFilePath", true, "request=%s", responseObserver, request);
@@ -218,7 +218,7 @@ public final class FileSystemMasterClientServiceHandler
       StreamObserver<GetStatusPResponse> responseObserver) {
     String path = request.getPath();
     GetStatusPOptions options = request.getOptions();
-    RpcUtils.call(LOG, () -> {
+    ServerRpcUtils.call(LOG, () -> {
       AlluxioURI pathUri = getAlluxioURI(request.getPath());
       return GetStatusPResponse.newBuilder()
           .setFileInfo(GrpcUtils.toProto(mFileSystemMaster.getFileInfo(pathUri, GetStatusContext
@@ -238,7 +238,7 @@ public final class FileSystemMasterClientServiceHandler
         new ListStatusResultStream(listStatusBatchSize, responseObserver);
 
     try {
-      RpcUtils.callAndReturn(LOG, () -> {
+      ServerRpcUtils.callAndReturn(LOG, () -> {
         AlluxioURI pathUri = getAlluxioURI(request.getPath());
         mFileSystemMaster.listStatus(pathUri,
             ListStatusContext.create(request.getOptions().toBuilder())
@@ -256,7 +256,7 @@ public final class FileSystemMasterClientServiceHandler
 
   @Override
   public void mount(MountPRequest request, StreamObserver<MountPResponse> responseObserver) {
-    RpcUtils.call(LOG, () -> {
+    ServerRpcUtils.call(LOG, () -> {
       mFileSystemMaster.mount(new AlluxioURI(request.getAlluxioPath()),
           new AlluxioURI(request.getUfsPath()),
           MountContext.create(request.getOptions().toBuilder())
@@ -268,7 +268,7 @@ public final class FileSystemMasterClientServiceHandler
   @Override
   public void updateMount(UpdateMountPRequest request,
       StreamObserver<UpdateMountPResponse> responseObserver) {
-    RpcUtils.call(LOG, () -> {
+    ServerRpcUtils.call(LOG, () -> {
       mFileSystemMaster.updateMount(new AlluxioURI(request.getAlluxioPath()),
           MountContext.create(request.getOptions().toBuilder())
               .withTracker(new GrpcCallTracker(responseObserver)));
@@ -279,7 +279,7 @@ public final class FileSystemMasterClientServiceHandler
   @Override
   public void getMountTable(GetMountTablePRequest request,
       StreamObserver<GetMountTablePResponse> responseObserver) {
-    RpcUtils.call(LOG, () -> {
+    ServerRpcUtils.call(LOG, () -> {
       Map<String, MountPointInfo> mountTableWire = mFileSystemMaster.getMountPointInfoSummary();
       Map<String, alluxio.grpc.MountPointInfo> mountTableProto = new HashMap<>();
       for (Map.Entry<String, MountPointInfo> entry : mountTableWire.entrySet()) {
@@ -292,7 +292,7 @@ public final class FileSystemMasterClientServiceHandler
   @Override
   public void getSyncPathList(GetSyncPathListPRequest request,
       StreamObserver<GetSyncPathListPResponse> responseObserver) {
-    RpcUtils.call(LOG, () -> {
+    ServerRpcUtils.call(LOG, () -> {
       List<SyncPointInfo> pathList = mFileSystemMaster.getSyncPathList();
       List<alluxio.grpc.SyncPointInfo> syncPointInfoList =
           pathList.stream().map(SyncPointInfo::toProto).collect(Collectors.toList());
@@ -302,7 +302,7 @@ public final class FileSystemMasterClientServiceHandler
 
   @Override
   public void remove(DeletePRequest request, StreamObserver<DeletePResponse> responseObserver) {
-    RpcUtils.call(LOG, () -> {
+    ServerRpcUtils.call(LOG, () -> {
       AlluxioURI pathUri = getAlluxioURI(request.getPath());
       mFileSystemMaster.delete(pathUri, DeleteContext.create(request.getOptions().toBuilder())
           .withTracker(new GrpcCallTracker(responseObserver)));
@@ -312,7 +312,7 @@ public final class FileSystemMasterClientServiceHandler
 
   @Override
   public void rename(RenamePRequest request, StreamObserver<RenamePResponse> responseObserver) {
-    RpcUtils.call(LOG, () -> {
+    ServerRpcUtils.call(LOG, () -> {
       AlluxioURI srcPathUri = getAlluxioURI(request.getPath());
       AlluxioURI dstPathUri = getAlluxioURI(request.getDstPath());
       mFileSystemMaster.rename(srcPathUri, dstPathUri,
@@ -325,7 +325,7 @@ public final class FileSystemMasterClientServiceHandler
   @Override
   public void reverseResolve(ReverseResolvePRequest request,
       StreamObserver<ReverseResolvePResponse> responseObserver) {
-    RpcUtils.call(LOG, () -> {
+    ServerRpcUtils.call(LOG, () -> {
       AlluxioURI ufsUri = new AlluxioURI(request.getUfsUri());
       AlluxioURI alluxioPath = mFileSystemMaster.reverseResolve(ufsUri);
       return ReverseResolvePResponse.newBuilder().setAlluxioPath(alluxioPath.getPath()).build();
@@ -335,7 +335,7 @@ public final class FileSystemMasterClientServiceHandler
   @Override
   public void scheduleAsyncPersistence(ScheduleAsyncPersistencePRequest request,
       StreamObserver<ScheduleAsyncPersistencePResponse> responseObserver) {
-    RpcUtils.call(LOG, () -> {
+    ServerRpcUtils.call(LOG, () -> {
       mFileSystemMaster.scheduleAsyncPersistence(new AlluxioURI(request.getPath()),
           ScheduleAsyncPersistenceContext.create(request.getOptions().toBuilder()));
       return ScheduleAsyncPersistencePResponse.newBuilder().build();
@@ -345,7 +345,7 @@ public final class FileSystemMasterClientServiceHandler
   @Override
   public void setAttribute(SetAttributePRequest request,
       StreamObserver<SetAttributePResponse> responseObserver) {
-    RpcUtils.call(LOG, () -> {
+    ServerRpcUtils.call(LOG, () -> {
       AlluxioURI pathUri = getAlluxioURI(request.getPath());
       mFileSystemMaster.setAttribute(pathUri,
           SetAttributeContext.create(request.getOptions().toBuilder())
@@ -357,7 +357,7 @@ public final class FileSystemMasterClientServiceHandler
   @Override
   public void startSync(StartSyncPRequest request,
       StreamObserver<StartSyncPResponse> responseObserver) {
-    RpcUtils.call(LOG, () -> {
+    ServerRpcUtils.call(LOG, () -> {
       mFileSystemMaster.startSync(new AlluxioURI(request.getPath()));
       return StartSyncPResponse.newBuilder().build();
     }, "startSync", "request=%s", responseObserver, request);
@@ -366,7 +366,7 @@ public final class FileSystemMasterClientServiceHandler
   @Override
   public void stopSync(StopSyncPRequest request,
       StreamObserver<StopSyncPResponse> responseObserver) {
-    RpcUtils.call(LOG, () -> {
+    ServerRpcUtils.call(LOG, () -> {
       mFileSystemMaster.stopSync(new AlluxioURI(request.getPath()));
       return StopSyncPResponse.newBuilder().build();
     }, "stopSync", "request=%s", responseObserver, request);
@@ -374,7 +374,7 @@ public final class FileSystemMasterClientServiceHandler
 
   @Override
   public void unmount(UnmountPRequest request, StreamObserver<UnmountPResponse> responseObserver) {
-    RpcUtils.call(LOG, () -> {
+    ServerRpcUtils.call(LOG, () -> {
       mFileSystemMaster.unmount(new AlluxioURI(request.getAlluxioPath()));
       return UnmountPResponse.newBuilder().build();
     }, "Unmount", "request=%s", responseObserver, request);
@@ -383,7 +383,7 @@ public final class FileSystemMasterClientServiceHandler
   @Override
   public void updateUfsMode(UpdateUfsModePRequest request,
       StreamObserver<UpdateUfsModePResponse> responseObserver) {
-    RpcUtils.call(LOG, () -> {
+    ServerRpcUtils.call(LOG, () -> {
       UfsMode ufsMode;
       switch (request.getOptions().getUfsMode()) {
         case NO_ACCESS:
@@ -403,7 +403,7 @@ public final class FileSystemMasterClientServiceHandler
 
   @Override
   public void setAcl(SetAclPRequest request, StreamObserver<SetAclPResponse> responseObserver) {
-    RpcUtils.call(LOG, () -> {
+    ServerRpcUtils.call(LOG, () -> {
       AlluxioURI pathUri = getAlluxioURI(request.getPath());
       mFileSystemMaster.setAcl(pathUri, request.getAction(),
           request.getEntriesList().stream().map(GrpcUtils::fromProto).collect(Collectors.toList()),
@@ -416,7 +416,7 @@ public final class FileSystemMasterClientServiceHandler
   @Override
   public void getStateLockHolders(GetStateLockHoldersPRequest request,
                                   StreamObserver<GetStateLockHoldersPResponse> responseObserver) {
-    RpcUtils.call(LOG, () -> {
+    ServerRpcUtils.call(LOG, () -> {
       final List<String> holders = mFileSystemMaster.getStateLockSharedWaitersAndHolders();
       return GetStateLockHoldersPResponse.newBuilder().addAllThreads(holders).build();
     }, "getStateLockHolders", "request=%s", responseObserver, request);
