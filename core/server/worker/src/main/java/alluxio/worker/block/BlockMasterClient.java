@@ -153,7 +153,7 @@ public class BlockMasterClient extends AbstractMasterClient {
    * @return a flattened and deduplicated list
    */
   @VisibleForTesting
-  public List<LocationBlockIdListEntry> convertBlockListMapToProto(
+  List<LocationBlockIdListEntry> convertBlockListMapToProto(
           Map<BlockStoreLocation, List<Long>> blockListOnLocation) {
     final List<LocationBlockIdListEntry> entryList = new ArrayList<>();
 
