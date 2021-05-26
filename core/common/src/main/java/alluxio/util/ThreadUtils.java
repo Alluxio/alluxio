@@ -105,7 +105,6 @@ public final class ThreadUtils {
     return id + " (" + name + ")";
   }
 
-
   /**
    * Prints the information and stack traces of all threads.
    *
