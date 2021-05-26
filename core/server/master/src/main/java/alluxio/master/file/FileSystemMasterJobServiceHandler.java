@@ -11,7 +11,7 @@
 
 package alluxio.master.file;
 
-import alluxio.RpcUtils;
+import alluxio.ServerRpcUtils;
 import alluxio.grpc.FileSystemMasterJobServiceGrpc;
 import alluxio.grpc.GetFileInfoPOptions;
 import alluxio.grpc.GetFileInfoPRequest;
@@ -53,8 +53,8 @@ public final class FileSystemMasterJobServiceHandler
     final long fileId = request.getFileId();
     GetFileInfoPOptions options = request.getOptions();
 
-    RpcUtils.call(LOG,
-        (RpcUtils.RpcCallableThrowsIOException<GetFileInfoPResponse>) () -> GetFileInfoPResponse
+    ServerRpcUtils.call(LOG,
+        (ServerRpcUtils.RpcCallableThrowsIOException<GetFileInfoPResponse>) () -> GetFileInfoPResponse
             .newBuilder().setFileInfo(GrpcUtils.toProto(mFileSystemMaster.getFileInfo(fileId)))
             .build(),
         "getFileInfo", "fileId=%s, options=%s", responseObserver, fileId, options);
@@ -67,8 +67,8 @@ public final class FileSystemMasterJobServiceHandler
     final long mountId = request.getMountId();
     GetUfsInfoPOptions options = request.getOptions();
 
-    RpcUtils.call(LOG,
-        (RpcUtils.RpcCallableThrowsIOException<GetUfsInfoPResponse>) () -> GetUfsInfoPResponse
+    ServerRpcUtils.call(LOG,
+        (ServerRpcUtils.RpcCallableThrowsIOException<GetUfsInfoPResponse>) () -> GetUfsInfoPResponse
             .newBuilder().setUfsInfo(GrpcUtils.toProto(mFileSystemMaster.getUfsInfo(mountId)))
             .build(),
         "getUfsInfo", "mountId=%s, options=%s", responseObserver, mountId, options);

@@ -11,7 +11,7 @@
 
 package alluxio.master.job;
 
-import alluxio.RpcUtils;
+import alluxio.ServerRpcUtils;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.grpc.CancelPRequest;
 import alluxio.grpc.CancelPResponse;
@@ -60,7 +60,7 @@ public class JobMasterClientServiceHandler
 
   @Override
   public void cancel(CancelPRequest request, StreamObserver<CancelPResponse> responseObserver) {
-    RpcUtils.call(LOG, (RpcUtils.RpcCallableThrowsIOException<CancelPResponse>) () -> {
+    ServerRpcUtils.call(LOG, (ServerRpcUtils.RpcCallableThrowsIOException<CancelPResponse>) () -> {
       mJobMaster.cancel(request.getJobId());
       return CancelPResponse.getDefaultInstance();
     }, "cancel", "request=%s", responseObserver, request);
@@ -69,7 +69,7 @@ public class JobMasterClientServiceHandler
   @Override
   public void getJobStatus(GetJobStatusPRequest request,
                            StreamObserver<GetJobStatusPResponse> responseObserver) {
-    RpcUtils.call(LOG, (RpcUtils.RpcCallableThrowsIOException<GetJobStatusPResponse>) () -> {
+    ServerRpcUtils.call(LOG, (ServerRpcUtils.RpcCallableThrowsIOException<GetJobStatusPResponse>) () -> {
       return GetJobStatusPResponse.newBuilder()
           .setJobInfo(mJobMaster.getStatus(request.getJobId(), false).toProto()).build();
     }, "getJobStatus", "request=%s", responseObserver, request);
@@ -79,7 +79,7 @@ public class JobMasterClientServiceHandler
   public void getJobStatusDetailed(GetJobStatusDetailedPRequest request,
                                    StreamObserver<GetJobStatusDetailedPResponse>
                                        responseObserver) {
-    RpcUtils.call(LOG, (RpcUtils.RpcCallableThrowsIOException<GetJobStatusDetailedPResponse>) () ->
+    ServerRpcUtils.call(LOG, (ServerRpcUtils.RpcCallableThrowsIOException<GetJobStatusDetailedPResponse>) () ->
     {
       return GetJobStatusDetailedPResponse.newBuilder()
           .setJobInfo(mJobMaster.getStatus(request.getJobId(), true).toProto()).build();
@@ -89,8 +89,8 @@ public class JobMasterClientServiceHandler
   @Override
   public void getJobServiceSummary(GetJobServiceSummaryPRequest request,
       StreamObserver<GetJobServiceSummaryPResponse> responseObserver) {
-    RpcUtils.call(LOG,
-        (RpcUtils.RpcCallableThrowsIOException<GetJobServiceSummaryPResponse>) () -> {
+    ServerRpcUtils.call(LOG,
+        (ServerRpcUtils.RpcCallableThrowsIOException<GetJobServiceSummaryPResponse>) () -> {
           return GetJobServiceSummaryPResponse.newBuilder()
                 .setSummary(mJobMaster.getSummary().toProto()).build();
         }, "getJobServiceSummary", "request=%s", responseObserver, request);
@@ -98,7 +98,7 @@ public class JobMasterClientServiceHandler
 
   @Override
   public void listAll(ListAllPRequest request, StreamObserver<ListAllPResponse> responseObserver) {
-    RpcUtils.call(LOG, (RpcUtils.RpcCallableThrowsIOException<ListAllPResponse>) () -> {
+    ServerRpcUtils.call(LOG, (ServerRpcUtils.RpcCallableThrowsIOException<ListAllPResponse>) () -> {
       ListAllPResponse.Builder builder = ListAllPResponse.newBuilder()
           .addAllJobIds(mJobMaster.list());
       for (JobInfo jobInfo : mJobMaster.listDetailed()) {
@@ -110,7 +110,7 @@ public class JobMasterClientServiceHandler
 
   @Override
   public void run(RunPRequest request, StreamObserver<RunPResponse> responseObserver) {
-    RpcUtils.call(LOG, (RpcUtils.RpcCallableThrowsIOException<RunPResponse>) () -> {
+    ServerRpcUtils.call(LOG, (ServerRpcUtils.RpcCallableThrowsIOException<RunPResponse>) () -> {
       try {
         byte[] jobConfigBytes = request.getJobConfig().toByteArray();
         return RunPResponse.newBuilder()
@@ -125,7 +125,7 @@ public class JobMasterClientServiceHandler
   @Override
   public void getAllWorkerHealth(GetAllWorkerHealthPRequest request,
                                  StreamObserver<GetAllWorkerHealthPResponse> responseObserver) {
-    RpcUtils.call(LOG, (RpcUtils.RpcCallableThrowsIOException<GetAllWorkerHealthPResponse>) () -> {
+    ServerRpcUtils.call(LOG, (ServerRpcUtils.RpcCallableThrowsIOException<GetAllWorkerHealthPResponse>) () -> {
       GetAllWorkerHealthPResponse.Builder builder = GetAllWorkerHealthPResponse.newBuilder();
 
       List<JobWorkerHealth> workerHealths = mJobMaster.getAllWorkerHealth();

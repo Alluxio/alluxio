@@ -11,7 +11,9 @@
 
 package alluxio.master.block;
 
-import alluxio.RpcUtils;
+import alluxio.ServerRpcUtils;
+import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.BlockHeartbeatPRequest;
 import alluxio.grpc.BlockHeartbeatPResponse;
 import alluxio.grpc.BlockMasterWorkerServiceGrpc;
@@ -45,6 +47,7 @@ import java.util.stream.Collectors;
 public final class BlockMasterWorkerServiceHandler extends
     BlockMasterWorkerServiceGrpc.BlockMasterWorkerServiceImplBase {
   private static final Logger LOG = LoggerFactory.getLogger(BlockMasterWorkerServiceHandler.class);
+  private static final long RPC_REQUEST_SIZE_WARNING_THRESHOLD = ServerConfiguration.getBytes(PropertyKey.MASTER_RPC_REQUEST_SIZE_WARNING_THRESHOLD);
 
   private final BlockMaster mBlockMaster;
 
@@ -61,11 +64,12 @@ public final class BlockMasterWorkerServiceHandler extends
   @Override
   public void blockHeartbeat(BlockHeartbeatPRequest request,
       StreamObserver<BlockHeartbeatPResponse> responseObserver) {
-    if (LOG.isDebugEnabled()) {
-      LOG.debug("Block heartbeat request is {} bytes, {} added blocks and {} removed blocks",
-              request.getSerializedSize(),
-              request.getAddedBlocksCount(),
-              request.getRemovedBlockIdsCount());
+    if (request.getSerializedSize() > RPC_REQUEST_SIZE_WARNING_THRESHOLD) {
+      LOG.debug("blockHeartbeat request is {} bytes, {} added blocks, {} removed blocks, {} metrics",
+          request.getSerializedSize(),
+          request.getAddedBlocksCount(),
+          request.getRemovedBlockIdsCount(),
+          request.getOptions().getMetricsCount());
     }
 
     final long workerId = request.getWorkerId();
@@ -81,7 +85,7 @@ public final class BlockMasterWorkerServiceHandler extends
     final List<Metric> metrics = request.getOptions().getMetricsList()
         .stream().map(Metric::fromProto).collect(Collectors.toList());
 
-    RpcUtils.call(LOG, (RpcUtils.RpcCallableThrowsIOException<BlockHeartbeatPResponse>) () ->
+    ServerRpcUtils.call(LOG, (ServerRpcUtils.RpcCallableThrowsIOException<BlockHeartbeatPResponse>) () ->
         BlockHeartbeatPResponse.newBuilder().setCommand(mBlockMaster.workerHeartbeat(workerId,
           capacityBytesOnTiers, usedBytesOnTiers, removedBlockIds, addedBlocksMap,
             lostStorageMap, metrics)).build(),
@@ -99,7 +103,7 @@ public final class BlockMasterWorkerServiceHandler extends
     final String mediumType = request.getMediumType();
     final long length = request.getLength();
 
-    RpcUtils.call(LOG, (RpcUtils.RpcCallableThrowsIOException<CommitBlockPResponse>) () -> {
+    ServerRpcUtils.call(LOG, (ServerRpcUtils.RpcCallableThrowsIOException<CommitBlockPResponse>) () -> {
       mBlockMaster.commitBlock(workerId, usedBytesOnTier, tierAlias,
           mediumType, blockId, length);
       return CommitBlockPResponse.getDefaultInstance();
@@ -110,8 +114,8 @@ public final class BlockMasterWorkerServiceHandler extends
   public void commitBlockInUfs(CommitBlockInUfsPRequest request,
       StreamObserver<CommitBlockInUfsPResponse> responseObserver) {
 
-    RpcUtils.call(LOG,
-        (RpcUtils.RpcCallableThrowsIOException<CommitBlockInUfsPResponse>) () -> {
+    ServerRpcUtils.call(LOG,
+        (ServerRpcUtils.RpcCallableThrowsIOException<CommitBlockInUfsPResponse>) () -> {
           mBlockMaster.commitBlockInUFS(request.getBlockId(), request.getLength());
           return CommitBlockInUfsPResponse.getDefaultInstance();
         }, "commitBlock", "request=%s", responseObserver, request);
@@ -120,7 +124,7 @@ public final class BlockMasterWorkerServiceHandler extends
   @Override
   public void getWorkerId(GetWorkerIdPRequest request,
       StreamObserver<GetWorkerIdPResponse> responseObserver) {
-    RpcUtils.call(LOG, (RpcUtils.RpcCallableThrowsIOException<GetWorkerIdPResponse>) () -> {
+    ServerRpcUtils.call(LOG, (ServerRpcUtils.RpcCallableThrowsIOException<GetWorkerIdPResponse>) () -> {
       return GetWorkerIdPResponse.newBuilder()
           .setWorkerId(mBlockMaster.getWorkerId(GrpcUtils.fromProto(request.getWorkerNetAddress())))
           .build();
@@ -130,12 +134,6 @@ public final class BlockMasterWorkerServiceHandler extends
   @Override
   public void registerWorker(RegisterWorkerPRequest request,
       StreamObserver<RegisterWorkerPResponse> responseObserver) {
-    if (LOG.isDebugEnabled()) {
-      LOG.debug("Register worker request is {} bytes, containing {} blocks",
-              request.getSerializedSize(),
-              request.getCurrentBlocksCount());
-    }
-
     final long workerId = request.getWorkerId();
     final List<String> storageTiers = request.getStorageTiersList();
     final Map<String, Long> totalBytesOnTiers = request.getTotalBytesOnTiersMap();
@@ -144,10 +142,25 @@ public final class BlockMasterWorkerServiceHandler extends
 
     final Map<Block.BlockLocation, List<Long>> currBlocksOnLocationMap =
             reconstructBlocksOnLocationMap(request.getCurrentBlocksList());
+    if (request.getSerializedSize() > RPC_REQUEST_SIZE_WARNING_THRESHOLD) {
+      StringBuilder sb = new StringBuilder();
+      for (Map.Entry<Block.BlockLocation, List<Long>> e : currBlocksOnLocationMap.entrySet()) {
+        sb.append(String.format(", [%s : %s blocks]", e.getKey(), e.getValue()));
+      }
+      LOG.warn("Register worker request is {} bytes\npresent blocks: {}\nlost storage: {}",
+          request.getSerializedSize(),
+          currBlocksOnLocationMap.keySet().stream().map(key -> {
+            return String.format("[%s : %s blocks]", key, currBlocksOnLocationMap.get(key).size());
+          }).collect(Collectors.joining(", ")),
+          lostStorageMap.keySet().stream().map(key -> {
+            return String.format("[%s : %s]", key, lostStorageMap.get(key));
+          }).collect(Collectors.joining(", "))
+      );
+    }
 
     RegisterWorkerPOptions options = request.getOptions();
-    RpcUtils.call(LOG,
-        (RpcUtils.RpcCallableThrowsIOException<RegisterWorkerPResponse>) () -> {
+    ServerRpcUtils.call(LOG,
+        (ServerRpcUtils.RpcCallableThrowsIOException<RegisterWorkerPResponse>) () -> {
           mBlockMaster.workerRegister(workerId, storageTiers, totalBytesOnTiers, usedBytesOnTiers,
               currBlocksOnLocationMap, lostStorageMap, options);
           return RegisterWorkerPResponse.getDefaultInstance();

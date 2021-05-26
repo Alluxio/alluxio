@@ -11,7 +11,7 @@
 
 package alluxio.worker.grpc;
 
-import alluxio.RpcUtils;
+import alluxio.ServerRpcUtils;
 import alluxio.StorageTierAssoc;
 import alluxio.WorkerStorageTierAssoc;
 import alluxio.exception.ExceptionMessage;
@@ -76,7 +76,7 @@ class ShortCircuitBlockWriteHandler implements StreamObserver<CreateLocalBlockRe
   @Override
   public void onNext(CreateLocalBlockRequest request) {
     final String methodName = request.getOnlyReserveSpace() ? "ReserveSpace" : "CreateBlock";
-    RpcUtils.streamingRPCAndLog(LOG, new RpcUtils.StreamingRpcCallable<CreateLocalBlockResponse>() {
+    ServerRpcUtils.streamingRPCAndLog(LOG, new ServerRpcUtils.StreamingRpcCallable<CreateLocalBlockResponse>() {
       @Override
       public CreateLocalBlockResponse call() throws Exception {
         if (request.getOnlyReserveSpace()) {
@@ -154,7 +154,7 @@ class ShortCircuitBlockWriteHandler implements StreamObserver<CreateLocalBlockRe
    */
   public void handleBlockCompleteRequest(boolean isCanceled) {
     final String methodName = isCanceled ? "AbortBlock" : "CommitBlock";
-    RpcUtils.streamingRPCAndLog(LOG, new RpcUtils.StreamingRpcCallable<CreateLocalBlockResponse>() {
+    ServerRpcUtils.streamingRPCAndLog(LOG, new ServerRpcUtils.StreamingRpcCallable<CreateLocalBlockResponse>() {
       @Override
       public CreateLocalBlockResponse call() throws Exception {
         if (mRequest == null) {

@@ -11,7 +11,7 @@
 
 package alluxio.master.meta;
 
-import alluxio.RpcUtils;
+import alluxio.ServerRpcUtils;
 import alluxio.grpc.GetMasterIdPRequest;
 import alluxio.grpc.GetMasterIdPResponse;
 import alluxio.grpc.MasterHeartbeatPRequest;
@@ -51,7 +51,7 @@ public final class MetaMasterMasterServiceHandler
   public void getMasterId(GetMasterIdPRequest request,
       StreamObserver<GetMasterIdPResponse> responseObserver) {
     NetAddress masterAddress = request.getMasterAddress();
-    RpcUtils.call(LOG, (RpcUtils.RpcCallableThrowsIOException<GetMasterIdPResponse>) () -> {
+    ServerRpcUtils.call(LOG, (ServerRpcUtils.RpcCallableThrowsIOException<GetMasterIdPResponse>) () -> {
       return GetMasterIdPResponse.newBuilder()
           .setMasterId(mMetaMaster.getMasterId(Address.fromProto(masterAddress))).build();
     }, "getMasterId", "request=%s", responseObserver, request);
@@ -60,8 +60,8 @@ public final class MetaMasterMasterServiceHandler
   @Override
   public void registerMaster(RegisterMasterPRequest request,
       StreamObserver<RegisterMasterPResponse> responseObserver) {
-    RpcUtils.call(LOG,
-        (RpcUtils.RpcCallableThrowsIOException<RegisterMasterPResponse>) () -> {
+    ServerRpcUtils.call(LOG,
+        (ServerRpcUtils.RpcCallableThrowsIOException<RegisterMasterPResponse>) () -> {
           mMetaMaster.masterRegister(request.getMasterId(), request.getOptions());
           return RegisterMasterPResponse.getDefaultInstance();
         }, "registerMaster", "request=%s", responseObserver, request);
@@ -70,8 +70,8 @@ public final class MetaMasterMasterServiceHandler
   @Override
   public void masterHeartbeat(MasterHeartbeatPRequest request,
       StreamObserver<MasterHeartbeatPResponse> responseObserver) {
-    RpcUtils.call(LOG,
-        (RpcUtils.RpcCallableThrowsIOException<MasterHeartbeatPResponse>) () -> {
+    ServerRpcUtils.call(LOG,
+        (ServerRpcUtils.RpcCallableThrowsIOException<MasterHeartbeatPResponse>) () -> {
           return MasterHeartbeatPResponse.newBuilder()
               .setCommand(mMetaMaster.masterHeartbeat(request.getMasterId())).build();
         }, "masterHeartbeat", "request=%s", responseObserver, request);

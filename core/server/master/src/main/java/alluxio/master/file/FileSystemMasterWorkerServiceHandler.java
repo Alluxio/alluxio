@@ -11,7 +11,9 @@
 
 package alluxio.master.file;
 
-import alluxio.RpcUtils;
+import alluxio.ServerRpcUtils;
+import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.FileSystemHeartbeatPOptions;
 import alluxio.grpc.FileSystemHeartbeatPRequest;
 import alluxio.grpc.FileSystemHeartbeatPResponse;
@@ -42,6 +44,7 @@ public final class FileSystemMasterWorkerServiceHandler
     extends FileSystemMasterWorkerServiceGrpc.FileSystemMasterWorkerServiceImplBase {
   private static final Logger LOG =
       LoggerFactory.getLogger(FileSystemMasterWorkerServiceHandler.class);
+  private static final long RPC_REQUEST_SIZE_WARNING_THRESHOLD = ServerConfiguration.getBytes(PropertyKey.MASTER_RPC_REQUEST_SIZE_WARNING_THRESHOLD);
 
   private final FileSystemMaster mFileSystemMaster;
 
@@ -56,15 +59,22 @@ public final class FileSystemMasterWorkerServiceHandler
   }
 
   @Override
+  // TODO(jiacheng): what is this?
   public void fileSystemHeartbeat(FileSystemHeartbeatPRequest request,
       StreamObserver<FileSystemHeartbeatPResponse> responseObserver) {
 
     final long workerId = request.getWorkerId();
     final List<Long> persistedFiles = request.getPersistedFilesList();
     FileSystemHeartbeatPOptions options = request.getOptions();
+    if (request.getSerializedSize() > RPC_REQUEST_SIZE_WARNING_THRESHOLD) {
+      LOG.warn("fileSystemHeartbeat request is {} bytes, {} persisted files, {} persisted file fingerprints",
+              request.getSerializedSize(),
+              persistedFiles.size(),
+              options.getPersistedFileFingerprintsCount());
+    }
 
-    RpcUtils.call(LOG,
-        (RpcUtils.RpcCallableThrowsIOException<FileSystemHeartbeatPResponse>)
+    ServerRpcUtils.call(LOG,
+        (ServerRpcUtils.RpcCallableThrowsIOException<FileSystemHeartbeatPResponse>)
         () -> FileSystemHeartbeatPResponse
             .newBuilder()
             .setCommand(GrpcUtils.toProto(mFileSystemMaster.workerHeartbeat(workerId,
@@ -81,8 +91,8 @@ public final class FileSystemMasterWorkerServiceHandler
     final long fileId = request.getFileId();
     GetFileInfoPOptions options = request.getOptions();
 
-    RpcUtils.call(LOG,
-        (RpcUtils.RpcCallableThrowsIOException<GetFileInfoPResponse>) () -> GetFileInfoPResponse
+    ServerRpcUtils.call(LOG,
+        (ServerRpcUtils.RpcCallableThrowsIOException<GetFileInfoPResponse>) () -> GetFileInfoPResponse
             .newBuilder().setFileInfo(GrpcUtils.toProto(mFileSystemMaster.getFileInfo(fileId)))
             .build(),
         "getFileInfo", "fileId=%s, options=%s", responseObserver, fileId, options);
@@ -94,8 +104,8 @@ public final class FileSystemMasterWorkerServiceHandler
 
     GetPinnedFileIdsPOptions options = request.getOptions();
 
-    RpcUtils.call(LOG,
-        (RpcUtils.RpcCallableThrowsIOException<GetPinnedFileIdsPResponse>)
+    ServerRpcUtils.call(LOG,
+        (ServerRpcUtils.RpcCallableThrowsIOException<GetPinnedFileIdsPResponse>)
         () -> GetPinnedFileIdsPResponse
             .newBuilder().addAllPinnedFileIds(mFileSystemMaster.getPinIdList()).build(),
         "getPinnedFileIds", "options=%s", responseObserver, options);
@@ -108,8 +118,8 @@ public final class FileSystemMasterWorkerServiceHandler
     final long mountId = request.getMountId();
     GetUfsInfoPOptions options = request.getOptions();
 
-    RpcUtils.call(LOG,
-        (RpcUtils.RpcCallableThrowsIOException<GetUfsInfoPResponse>) () -> GetUfsInfoPResponse
+    ServerRpcUtils.call(LOG,
+        (ServerRpcUtils.RpcCallableThrowsIOException<GetUfsInfoPResponse>) () -> GetUfsInfoPResponse
             .newBuilder().setUfsInfo(GrpcUtils.toProto(mFileSystemMaster.getUfsInfo(mountId)))
             .build(),
         "getUfsInfo", "mountId=%s, options=%s", responseObserver, mountId, options);

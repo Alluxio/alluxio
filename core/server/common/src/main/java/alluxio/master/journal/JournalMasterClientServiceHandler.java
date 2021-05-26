@@ -11,7 +11,7 @@
 
 package alluxio.master.journal;
 
-import alluxio.RpcUtils;
+import alluxio.ServerRpcUtils;
 import alluxio.grpc.GetQuorumInfoPRequest;
 import alluxio.grpc.GetQuorumInfoPResponse;
 import alluxio.grpc.JournalMasterClientServiceGrpc;
@@ -44,14 +44,14 @@ public class JournalMasterClientServiceHandler
   @Override
   public void getQuorumInfo(GetQuorumInfoPRequest request,
       StreamObserver<GetQuorumInfoPResponse> responseObserver) {
-    RpcUtils.call(LOG, () -> mJournalMaster.getQuorumInfo(), "getQuorumInfo", "request=%s",
+    ServerRpcUtils.call(LOG, () -> mJournalMaster.getQuorumInfo(), "getQuorumInfo", "request=%s",
         responseObserver, request);
   }
 
   @Override
   public void removeQuorumServer(RemoveQuorumServerPRequest request,
       StreamObserver<RemoveQuorumServerPResponse> responseObserver) {
-    RpcUtils.call(LOG, () -> {
+    ServerRpcUtils.call(LOG, () -> {
       mJournalMaster.removeQuorumServer(request.getServerAddress());
       return RemoveQuorumServerPResponse.getDefaultInstance();
     }, "removeQuorumServer", "request=%s", responseObserver, request);
