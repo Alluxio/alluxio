@@ -39,7 +39,7 @@ import java.time.Instant;
  */
 public final class ServerRpcUtils {
   private static final int RPC_TIME_WARNING_THESHOLD =
-      ServerConfiguration.getInt(PropertyKey.MASTER_RPC_TIME_WARNING_THRESHOLD);
+      ServerConfiguration.getInt(PropertyKey.MASTER_RPC_TIME_WARNING_THRESHOLD_MS);
 
   private ServerRpcUtils() {} // prevent instantiation
 
