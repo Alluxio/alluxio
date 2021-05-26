@@ -48,7 +48,8 @@ import java.util.List;
 public class JobMasterClientServiceHandler
     extends JobMasterClientServiceGrpc.JobMasterClientServiceImplBase {
   private static final Logger LOG = LoggerFactory.getLogger(JobMasterClientServiceHandler.class);
-  private static final long RPC_RESPONSE_SIZE_WARNING_THRESHOLD = ServerConfiguration.getBytes(PropertyKey.MASTER_RPC_RESPONSE_SIZE_WARNING_THRESHOLD);
+  private static final long RPC_RESPONSE_SIZE_WARNING_THRESHOLD =
+      ServerConfiguration.getBytes(PropertyKey.MASTER_RPC_RESPONSE_SIZE_WARNING_THRESHOLD);
   private JobMaster mJobMaster;
 
   /**
@@ -63,30 +64,32 @@ public class JobMasterClientServiceHandler
 
   @Override
   public void cancel(CancelPRequest request, StreamObserver<CancelPResponse> responseObserver) {
-    ServerRpcUtils.call(LOG, (ServerRpcUtils.RpcCallableThrowsIOException<CancelPResponse>) () -> {
-      mJobMaster.cancel(request.getJobId());
-      return CancelPResponse.getDefaultInstance();
-    }, "cancel", "request=%s", responseObserver, request);
+    ServerRpcUtils.call(LOG,
+        (ServerRpcUtils.RpcCallableThrowsIOException<CancelPResponse>) () -> {
+          mJobMaster.cancel(request.getJobId());
+          return CancelPResponse.getDefaultInstance();
+        }, "cancel", "request=%s", responseObserver, request);
   }
 
   @Override
   public void getJobStatus(GetJobStatusPRequest request,
                            StreamObserver<GetJobStatusPResponse> responseObserver) {
-    ServerRpcUtils.call(LOG, (ServerRpcUtils.RpcCallableThrowsIOException<GetJobStatusPResponse>) () -> {
-      return GetJobStatusPResponse.newBuilder()
-          .setJobInfo(mJobMaster.getStatus(request.getJobId(), false).toProto()).build();
-    }, "getJobStatus", "request=%s", responseObserver, request);
+    ServerRpcUtils.call(LOG,
+        (ServerRpcUtils.RpcCallableThrowsIOException<GetJobStatusPResponse>) () -> {
+          return GetJobStatusPResponse.newBuilder()
+              .setJobInfo(mJobMaster.getStatus(request.getJobId(), false).toProto()).build();
+        }, "getJobStatus", "request=%s", responseObserver, request);
   }
 
   @Override
   public void getJobStatusDetailed(GetJobStatusDetailedPRequest request,
                                    StreamObserver<GetJobStatusDetailedPResponse>
                                        responseObserver) {
-    ServerRpcUtils.call(LOG, (ServerRpcUtils.RpcCallableThrowsIOException<GetJobStatusDetailedPResponse>) () ->
-    {
-      return GetJobStatusDetailedPResponse.newBuilder()
-          .setJobInfo(mJobMaster.getStatus(request.getJobId(), true).toProto()).build();
-    }, "getJobStatusDetailed", "request=%s", responseObserver, request);
+    ServerRpcUtils.call(LOG,
+        (ServerRpcUtils.RpcCallableThrowsIOException<GetJobStatusDetailedPResponse>) () -> {
+          return GetJobStatusDetailedPResponse.newBuilder()
+              .setJobInfo(mJobMaster.getStatus(request.getJobId(), true).toProto()).build();
+        }, "getJobStatusDetailed", "request=%s", responseObserver, request);
   }
 
   @Override
@@ -101,21 +104,22 @@ public class JobMasterClientServiceHandler
 
   @Override
   public void listAll(ListAllPRequest request, StreamObserver<ListAllPResponse> responseObserver) {
-    ServerRpcUtils.call(LOG, (ServerRpcUtils.RpcCallableThrowsIOException<ListAllPResponse>) () -> {
-      ListAllPResponse.Builder builder = ListAllPResponse.newBuilder()
-          .addAllJobIds(mJobMaster.list());
-      for (JobInfo jobInfo : mJobMaster.listDetailed()) {
-        builder.addJobInfos(jobInfo.toProto());
-      }
-      ListAllPResponse response = builder.build();
-      if (response.getSerializedSize() > RPC_RESPONSE_SIZE_WARNING_THRESHOLD) {
-        LOG.warn("listAll response is {} bytes, {} jobId, {} jobs",
+    ServerRpcUtils.call(LOG,
+        (ServerRpcUtils.RpcCallableThrowsIOException<ListAllPResponse>) () -> {
+          ListAllPResponse.Builder builder = ListAllPResponse.newBuilder()
+              .addAllJobIds(mJobMaster.list());
+          for (JobInfo jobInfo : mJobMaster.listDetailed()) {
+            builder.addJobInfos(jobInfo.toProto());
+          }
+          ListAllPResponse response = builder.build();
+          if (response.getSerializedSize() > RPC_RESPONSE_SIZE_WARNING_THRESHOLD) {
+            LOG.warn("listAll response is {} bytes, {} jobId, {} jobs",
                 response.getSerializedSize(),
                 response.getJobIdsCount(),
                 response.getJobInfosCount());
-      }
-      return response;
-    }, "listAll", "request=%s", responseObserver, request);
+          }
+          return response;
+        }, "listAll", "request=%s", responseObserver, request);
   }
 
   @Override
@@ -135,22 +139,23 @@ public class JobMasterClientServiceHandler
   @Override
   public void getAllWorkerHealth(GetAllWorkerHealthPRequest request,
                                  StreamObserver<GetAllWorkerHealthPResponse> responseObserver) {
-    ServerRpcUtils.call(LOG, (ServerRpcUtils.RpcCallableThrowsIOException<GetAllWorkerHealthPResponse>) () -> {
-      GetAllWorkerHealthPResponse.Builder builder = GetAllWorkerHealthPResponse.newBuilder();
+    ServerRpcUtils.call(LOG,
+        (ServerRpcUtils.RpcCallableThrowsIOException<GetAllWorkerHealthPResponse>) () -> {
+          GetAllWorkerHealthPResponse.Builder builder = GetAllWorkerHealthPResponse.newBuilder();
 
-      List<JobWorkerHealth> workerHealths = mJobMaster.getAllWorkerHealth();
+          List<JobWorkerHealth> workerHealths = mJobMaster.getAllWorkerHealth();
 
-      for (JobWorkerHealth workerHealth : workerHealths) {
-        builder.addWorkerHealths(workerHealth.toProto());
-      }
+          for (JobWorkerHealth workerHealth : workerHealths) {
+            builder.addWorkerHealths(workerHealth.toProto());
+          }
 
-      GetAllWorkerHealthPResponse response = builder.build();
-      if (response.getSerializedSize() > RPC_RESPONSE_SIZE_WARNING_THRESHOLD) {
-        LOG.warn("getAllWorkerHealth response is {} bytes, {} workers",
-                response.getSerializedSize(),
-                workerHealths.size());
-      }
-      return response;
-    }, "getAllWorkerHealth", "request=%s", responseObserver, request);
+          GetAllWorkerHealthPResponse response = builder.build();
+          if (response.getSerializedSize() > RPC_RESPONSE_SIZE_WARNING_THRESHOLD) {
+            LOG.warn("getAllWorkerHealth response is {} bytes, {} workers",
+                    response.getSerializedSize(),
+                    workerHealths.size());
+          }
+          return response;
+        }, "getAllWorkerHealth", "request=%s", responseObserver, request);
   }
 }

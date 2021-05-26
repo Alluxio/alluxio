@@ -26,7 +26,6 @@ import alluxio.job.wire.TaskInfo;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 import io.grpc.stub.StreamObserver;
-import org.apache.hadoop.ipc.RPC;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -42,8 +41,10 @@ import javax.annotation.concurrent.ThreadSafe;
 public final class JobMasterWorkerServiceHandler
     extends JobMasterWorkerServiceGrpc.JobMasterWorkerServiceImplBase {
   private static final Logger LOG = LoggerFactory.getLogger(JobMasterWorkerServiceHandler.class);
-  private static final long RPC_REQUEST_SIZE_WARNING_THRESHOLD = ServerConfiguration.getBytes(PropertyKey.MASTER_RPC_REQUEST_SIZE_WARNING_THRESHOLD);
-  private static final long RPC_RESPONSE_SIZE_WARNING_THRESHOLD = ServerConfiguration.getBytes(PropertyKey.MASTER_RPC_RESPONSE_SIZE_WARNING_THRESHOLD);
+  private static final long RPC_REQUEST_SIZE_WARNING_THRESHOLD =
+      ServerConfiguration.getBytes(PropertyKey.MASTER_RPC_REQUEST_SIZE_WARNING_THRESHOLD);
+  private static final long RPC_RESPONSE_SIZE_WARNING_THRESHOLD =
+      ServerConfiguration.getBytes(PropertyKey.MASTER_RPC_RESPONSE_SIZE_WARNING_THRESHOLD);
   private final JobMaster mJobMaster;
 
   /**
@@ -59,31 +60,32 @@ public final class JobMasterWorkerServiceHandler
   public void heartbeat(JobHeartbeatPRequest request,
                         StreamObserver<JobHeartbeatPResponse> responseObserver) {
 
-    ServerRpcUtils.call(LOG, (ServerRpcUtils.RpcCallableThrowsIOException<JobHeartbeatPResponse>) () -> {
-      if (request.getSerializedSize() > RPC_REQUEST_SIZE_WARNING_THRESHOLD) {
-        LOG.warn("jobHeartbeat request is {} bytes, {} TaskInfo",
+    ServerRpcUtils.call(LOG,
+        (ServerRpcUtils.RpcCallableThrowsIOException<JobHeartbeatPResponse>) () -> {
+          if (request.getSerializedSize() > RPC_REQUEST_SIZE_WARNING_THRESHOLD) {
+            LOG.warn("jobHeartbeat request is {} bytes, {} TaskInfo",
                 request.getSerializedSize(),
                 request.getTaskInfosCount());
-      }
-      List<TaskInfo> wireTaskInfoList = Lists.newArrayList();
-      for (alluxio.grpc.JobInfo taskInfo : request.getTaskInfosList()) {
-        try {
-          wireTaskInfoList.add(new TaskInfo(taskInfo));
-        } catch (IOException e) {
-          LOG.error("task info deserialization failed " + e);
-        }
-      }
-      JobWorkerHealth jobWorkerHealth = new JobWorkerHealth(request.getJobWorkerHealth());
-      JobHeartbeatPResponse response = JobHeartbeatPResponse.newBuilder()
+          }
+          List<TaskInfo> wireTaskInfoList = Lists.newArrayList();
+          for (alluxio.grpc.JobInfo taskInfo : request.getTaskInfosList()) {
+            try {
+              wireTaskInfoList.add(new TaskInfo(taskInfo));
+            } catch (IOException e) {
+              LOG.error("task info deserialization failed " + e);
+            }
+          }
+          JobWorkerHealth jobWorkerHealth = new JobWorkerHealth(request.getJobWorkerHealth());
+          JobHeartbeatPResponse response = JobHeartbeatPResponse.newBuilder()
               .addAllCommands(mJobMaster.workerHeartbeat(jobWorkerHealth, wireTaskInfoList))
               .build();
-      if (response.getSerializedSize() > RPC_RESPONSE_SIZE_WARNING_THRESHOLD) {
-        LOG.warn("jobHeartbeat response is {} bytes, {} commands",
+          if (response.getSerializedSize() > RPC_RESPONSE_SIZE_WARNING_THRESHOLD) {
+            LOG.warn("jobHeartbeat response is {} bytes, {} commands",
                 response.getSerializedSize(),
                 response.getCommandsCount());
-      }
-      return response;
-    }, "heartbeat", "request=%s", responseObserver, request);
+          }
+          return response;
+        }, "heartbeat", "request=%s", responseObserver, request);
   }
 
   @Override
