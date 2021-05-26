@@ -33,7 +33,8 @@ import java.util.stream.Collectors;
 @ThreadSafe
 public class ListStatusResultStream implements ResultStream<FileInfo> {
   private static final Logger LOG = LoggerFactory.getLogger(ListStatusResultStream.class);
-  private static final long RPC_RESPONSE_SIZE_WARNING_THRESHOLD = ServerConfiguration.getBytes(PropertyKey.MASTER_RPC_RESPONSE_SIZE_WARNING_THRESHOLD);
+  private static final long RPC_RESPONSE_SIZE_WARNING_THRESHOLD =
+      ServerConfiguration.getBytes(PropertyKey.MASTER_RPC_RESPONSE_SIZE_WARNING_THRESHOLD);
 
   /** List of file infos. */
   private List<FileInfo> mInfos;
@@ -115,7 +116,8 @@ public class ListStatusResultStream implements ResultStream<FileInfo> {
             mInfos.stream().map((info) -> GrpcUtils.toProto(info)).collect(Collectors.toList()))
         .build();
     if (response.getSerializedSize() > RPC_RESPONSE_SIZE_WARNING_THRESHOLD) {
-      LOG.warn("listStatus batch response is {} bytes, {} FileInfo", response.getSerializedSize(), mInfos.size());
+      LOG.warn("listStatus batch response is {} bytes, {} FileInfo",
+          response.getSerializedSize(), mInfos.size());
     }
     return response;
   }

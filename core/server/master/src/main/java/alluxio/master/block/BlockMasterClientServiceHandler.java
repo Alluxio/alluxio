@@ -48,7 +48,8 @@ import java.util.stream.Collectors;
 public final class BlockMasterClientServiceHandler
     extends BlockMasterClientServiceGrpc.BlockMasterClientServiceImplBase {
   private static final Logger LOG = LoggerFactory.getLogger(BlockMasterClientServiceHandler.class);
-  private static final long RPC_RESPONSE_SIZE_WARNING_THRESHOLD = ServerConfiguration.getBytes(PropertyKey.MASTER_RPC_RESPONSE_SIZE_WARNING_THRESHOLD);
+  private static final long RPC_RESPONSE_SIZE_WARNING_THRESHOLD =
+      ServerConfiguration.getBytes(PropertyKey.MASTER_RPC_RESPONSE_SIZE_WARNING_THRESHOLD);
 
   private final BlockMaster mBlockMaster;
 
@@ -134,15 +135,14 @@ public final class BlockMasterClientServiceHandler
     ServerRpcUtils.call(LOG,
         () -> {
           GetWorkerInfoListPResponse response = GetWorkerInfoListPResponse.newBuilder()
-                  .addAllWorkerInfos(mBlockMaster.getWorkerInfoList().stream().map(GrpcUtils::toProto)
-                          .collect(Collectors.toList())).build();
+              .addAllWorkerInfos(mBlockMaster.getWorkerInfoList().stream().map(GrpcUtils::toProto)
+                  .collect(Collectors.toList())).build();
           if (response.getSerializedSize() > RPC_RESPONSE_SIZE_WARNING_THRESHOLD) {
             LOG.warn("getWorkerInfoList response has size {}, {} WorkerInfo",
-                    response.getSerializedSize(), response.getWorkerInfosCount());
+                response.getSerializedSize(), response.getWorkerInfosCount());
           }
           return response;
-        },
-        "GetWorkerInfoList", "options=%s", responseObserver, options);
+        }, "GetWorkerInfoList", "options=%s", responseObserver, options);
   }
 
   @Override
@@ -151,15 +151,14 @@ public final class BlockMasterClientServiceHandler
     ServerRpcUtils.call(LOG,
         () -> {
           GetWorkerInfoListPResponse response = GetWorkerInfoListPResponse.newBuilder()
-            .addAllWorkerInfos(mBlockMaster.getWorkerReport(new GetWorkerReportOptions(options))
-                .stream().map(GrpcUtils::toProto).collect(Collectors.toList())).build();
+              .addAllWorkerInfos(mBlockMaster.getWorkerReport(new GetWorkerReportOptions(options))
+                  .stream().map(GrpcUtils::toProto).collect(Collectors.toList())).build();
           if (response.getSerializedSize() > RPC_RESPONSE_SIZE_WARNING_THRESHOLD) {
             LOG.warn("getWorkerReport response has size {}, {} WorkerInfo",
-                    response.getSerializedSize(), response.getWorkerInfosCount());
+                response.getSerializedSize(), response.getWorkerInfosCount());
           }
           return response;
-        },
-        "GetWorkerReport", "options=%s", responseObserver, options);
+        }, "GetWorkerReport", "options=%s", responseObserver, options);
   }
 
   @Override

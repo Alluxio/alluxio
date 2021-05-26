@@ -108,7 +108,8 @@ public final class FileSystemMasterClientServiceHandler
     extends FileSystemMasterClientServiceGrpc.FileSystemMasterClientServiceImplBase {
   private static final Logger LOG =
       LoggerFactory.getLogger(FileSystemMasterClientServiceHandler.class);
-  private static final long RPC_RESPONSE_SIZE_WARNING_THRESHOLD = ServerConfiguration.getBytes(PropertyKey.MASTER_RPC_RESPONSE_SIZE_WARNING_THRESHOLD);
+  private static final long RPC_RESPONSE_SIZE_WARNING_THRESHOLD =
+      ServerConfiguration.getBytes(PropertyKey.MASTER_RPC_RESPONSE_SIZE_WARNING_THRESHOLD);
   private final FileSystemMaster mFileSystemMaster;
 
   /**
@@ -296,7 +297,8 @@ public final class FileSystemMasterClientServiceHandler
       List<SyncPointInfo> pathList = mFileSystemMaster.getSyncPathList();
       List<alluxio.grpc.SyncPointInfo> syncPointInfoList =
           pathList.stream().map(SyncPointInfo::toProto).collect(Collectors.toList());
-      GetSyncPathListPResponse response = GetSyncPathListPResponse.newBuilder().addAllSyncPaths(syncPointInfoList).build();
+      GetSyncPathListPResponse response = GetSyncPathListPResponse.newBuilder()
+          .addAllSyncPaths(syncPointInfoList).build();
       if (response.getSerializedSize() > RPC_RESPONSE_SIZE_WARNING_THRESHOLD) {
         LOG.warn("getSyncPathList response is {} bytes, {} paths",
                 response.getSerializedSize(),
@@ -424,7 +426,8 @@ public final class FileSystemMasterClientServiceHandler
                                   StreamObserver<GetStateLockHoldersPResponse> responseObserver) {
     ServerRpcUtils.call(LOG, () -> {
       final List<String> holders = mFileSystemMaster.getStateLockSharedWaitersAndHolders();
-      GetStateLockHoldersPResponse response = GetStateLockHoldersPResponse.newBuilder().addAllThreads(holders).build();
+      GetStateLockHoldersPResponse response =
+          GetStateLockHoldersPResponse.newBuilder().addAllThreads(holders).build();
       if (response.getSerializedSize() > RPC_RESPONSE_SIZE_WARNING_THRESHOLD) {
         LOG.warn("getStateLockHolders response has {} bytes, {} threads",
                 response.getSerializedSize(), response.getThreadsCount());

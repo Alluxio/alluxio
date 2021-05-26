@@ -42,7 +42,8 @@ public final class MetricsMasterClientServiceHandler
     extends MetricsMasterClientServiceGrpc.MetricsMasterClientServiceImplBase {
   private static final Logger LOG =
       LoggerFactory.getLogger(MetricsMasterClientServiceHandler.class);
-  private static final long RPC_REQUEST_SIZE_WARNING_THRESHOLD = ServerConfiguration.getBytes(PropertyKey.MASTER_RPC_REQUEST_SIZE_WARNING_THRESHOLD);
+  private static final long RPC_REQUEST_SIZE_WARNING_THRESHOLD =
+      ServerConfiguration.getBytes(PropertyKey.MASTER_RPC_REQUEST_SIZE_WARNING_THRESHOLD);
   private final MetricsMaster mMetricsMaster;
 
   /**
@@ -69,8 +70,8 @@ public final class MetricsMasterClientServiceHandler
         (ServerRpcUtils.RpcCallableThrowsIOException<MetricsHeartbeatPResponse>) () -> {
           if (request.getSerializedSize() > RPC_REQUEST_SIZE_WARNING_THRESHOLD) {
             LOG.warn("metricsHeartbeat request is {} bytes, {} client metrics",
-                    request.getSerializedSize(),
-                    request.getOptions().getClientMetricsCount());
+                request.getSerializedSize(),
+                request.getOptions().getClientMetricsCount());
           }
           for (alluxio.grpc.ClientMetrics clientMetric :
               request.getOptions().getClientMetricsList()) {
@@ -88,8 +89,9 @@ public final class MetricsMasterClientServiceHandler
   @Override
   public void getMetrics(GetMetricsPOptions options,
       StreamObserver<GetMetricsPResponse> responseObserver) {
-    ServerRpcUtils.call(LOG, (ServerRpcUtils.RpcCallableThrowsIOException<GetMetricsPResponse>) () ->
-        GetMetricsPResponse.newBuilder().putAllMetrics(mMetricsMaster.getMetrics()).build(),
+    ServerRpcUtils.call(LOG,
+        (ServerRpcUtils.RpcCallableThrowsIOException<GetMetricsPResponse>) () ->
+          GetMetricsPResponse.newBuilder().putAllMetrics(mMetricsMaster.getMetrics()).build(),
         "getMetrics", "options=%s", responseObserver, options);
   }
 }

@@ -59,40 +59,42 @@ public final class MetaMasterConfigurationServiceHandler
   @Override
   public void getConfiguration(GetConfigurationPOptions options,
       StreamObserver<GetConfigurationPResponse> responseObserver) {
-    ServerRpcUtils.call(LOG, (ServerRpcUtils.RpcCallableThrowsIOException<GetConfigurationPResponse>) () -> {
-      GetConfigurationPResponse clusterConf = mClusterConf;
-      GetConfigurationPResponse pathConf = mPathConf;
-      GetConfigurationPResponse.Builder builder = GetConfigurationPResponse.newBuilder();
-      ConfigHash hash = mMetaMaster.getConfigHash();
-      if (!options.getIgnoreClusterConf()) {
-        if (clusterConf == null
-            || !clusterConf.getClusterConfigHash().equals(hash.getClusterConfigHash())) {
-          clusterConf = mMetaMaster.getConfiguration(options.toBuilder()
-              .setIgnorePathConf(true).build()).toProto();
-          mClusterConf = clusterConf;
-        }
-        builder.addAllClusterConfigs(clusterConf.getClusterConfigsList());
-        builder.setClusterConfigHash(clusterConf.getClusterConfigHash());
-      }
-      if (!options.getIgnorePathConf()) {
-        if (pathConf == null
-            || !pathConf.getPathConfigHash().equals(hash.getPathConfigHash())) {
-          pathConf = mMetaMaster.getConfiguration(options.toBuilder()
-              .setIgnoreClusterConf(true).build()).toProto();
-          mPathConf = pathConf;
-        }
-        builder.putAllPathConfigs(pathConf.getPathConfigsMap());
-        builder.setPathConfigHash(pathConf.getPathConfigHash());
-      }
-      return builder.build();
-    }, "getConfiguration", "resquest=%s", responseObserver, options);
+    ServerRpcUtils.call(LOG,
+        (ServerRpcUtils.RpcCallableThrowsIOException<GetConfigurationPResponse>) () -> {
+          GetConfigurationPResponse clusterConf = mClusterConf;
+          GetConfigurationPResponse pathConf = mPathConf;
+          GetConfigurationPResponse.Builder builder = GetConfigurationPResponse.newBuilder();
+          ConfigHash hash = mMetaMaster.getConfigHash();
+          if (!options.getIgnoreClusterConf()) {
+            if (clusterConf == null
+                || !clusterConf.getClusterConfigHash().equals(hash.getClusterConfigHash())) {
+              clusterConf = mMetaMaster.getConfiguration(options.toBuilder()
+                  .setIgnorePathConf(true).build()).toProto();
+              mClusterConf = clusterConf;
+            }
+            builder.addAllClusterConfigs(clusterConf.getClusterConfigsList());
+            builder.setClusterConfigHash(clusterConf.getClusterConfigHash());
+          }
+          if (!options.getIgnorePathConf()) {
+            if (pathConf == null
+                || !pathConf.getPathConfigHash().equals(hash.getPathConfigHash())) {
+              pathConf = mMetaMaster.getConfiguration(options.toBuilder()
+                  .setIgnoreClusterConf(true).build()).toProto();
+              mPathConf = pathConf;
+            }
+            builder.putAllPathConfigs(pathConf.getPathConfigsMap());
+            builder.setPathConfigHash(pathConf.getPathConfigHash());
+          }
+          return builder.build();
+        }, "getConfiguration", "resquest=%s", responseObserver, options);
   }
 
   @Override
   public void getConfigHash(GetConfigHashPOptions request,
       StreamObserver<GetConfigHashPResponse> responseObserver) {
-    ServerRpcUtils.call(LOG, (ServerRpcUtils.RpcCallableThrowsIOException<GetConfigHashPResponse>) () ->
-        mMetaMaster.getConfigHash().toProto(), "getConfigHash", "request=%s", responseObserver,
+    ServerRpcUtils.call(LOG,
+        (ServerRpcUtils.RpcCallableThrowsIOException<GetConfigHashPResponse>) () ->
+          mMetaMaster.getConfigHash().toProto(), "getConfigHash", "request=%s", responseObserver,
         request);
   }
 
@@ -102,13 +104,13 @@ public final class MetaMasterConfigurationServiceHandler
     String path = request.getPath();
     Map<String, String> properties = request.getPropertiesMap();
 
-    ServerRpcUtils.call(LOG, (ServerRpcUtils.RpcCallableThrowsIOException<SetPathConfigurationPResponse>) () ->
-    {
-      Map<PropertyKey, String> props = new HashMap<>();
-      properties.forEach((key, value) -> props.put(PropertyKey.fromString(key), value));
-      mMetaMaster.setPathConfiguration(path, props);
-      return SetPathConfigurationPResponse.getDefaultInstance();
-    }, "setPathConfiguration", "request=%s", responseObserver, request);
+    ServerRpcUtils.call(LOG,
+        (ServerRpcUtils.RpcCallableThrowsIOException<SetPathConfigurationPResponse>) () -> {
+          Map<PropertyKey, String> props = new HashMap<>();
+          properties.forEach((key, value) -> props.put(PropertyKey.fromString(key), value));
+          mMetaMaster.setPathConfiguration(path, props);
+          return SetPathConfigurationPResponse.getDefaultInstance();
+        }, "setPathConfiguration", "request=%s", responseObserver, request);
   }
 
   @Override
@@ -119,12 +121,12 @@ public final class MetaMasterConfigurationServiceHandler
 
     ServerRpcUtils.call(LOG,
         (ServerRpcUtils.RpcCallableThrowsIOException<RemovePathConfigurationPResponse>) () -> {
-        if (keys.isEmpty()) {
-          mMetaMaster.removePathConfiguration(path);
-        } else {
-          mMetaMaster.removePathConfiguration(path, new HashSet<>(keys));
-        }
-        return RemovePathConfigurationPResponse.getDefaultInstance();
-      }, "removePathConfiguration", "request=%s", responseObserver, request);
+          if (keys.isEmpty()) {
+            mMetaMaster.removePathConfiguration(path);
+          } else {
+            mMetaMaster.removePathConfiguration(path, new HashSet<>(keys));
+          }
+          return RemovePathConfigurationPResponse.getDefaultInstance();
+        }, "removePathConfiguration", "request=%s", responseObserver, request);
   }
 }

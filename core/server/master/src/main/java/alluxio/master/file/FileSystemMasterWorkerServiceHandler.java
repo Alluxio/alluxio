@@ -44,8 +44,10 @@ public final class FileSystemMasterWorkerServiceHandler
     extends FileSystemMasterWorkerServiceGrpc.FileSystemMasterWorkerServiceImplBase {
   private static final Logger LOG =
       LoggerFactory.getLogger(FileSystemMasterWorkerServiceHandler.class);
-  private static final long RPC_REQUEST_SIZE_WARNING_THRESHOLD = ServerConfiguration.getBytes(PropertyKey.MASTER_RPC_REQUEST_SIZE_WARNING_THRESHOLD);
-  private static final long RPC_RESPONSE_SIZE_WARNING_THRESHOLD = ServerConfiguration.getBytes(PropertyKey.MASTER_RPC_RESPONSE_SIZE_WARNING_THRESHOLD);
+  private static final long RPC_REQUEST_SIZE_WARNING_THRESHOLD =
+      ServerConfiguration.getBytes(PropertyKey.MASTER_RPC_REQUEST_SIZE_WARNING_THRESHOLD);
+  private static final long RPC_RESPONSE_SIZE_WARNING_THRESHOLD =
+      ServerConfiguration.getBytes(PropertyKey.MASTER_RPC_RESPONSE_SIZE_WARNING_THRESHOLD);
   private final FileSystemMaster mFileSystemMaster;
 
   /**
@@ -66,29 +68,30 @@ public final class FileSystemMasterWorkerServiceHandler
     final List<Long> persistedFiles = request.getPersistedFilesList();
     FileSystemHeartbeatPOptions options = request.getOptions();
     if (request.getSerializedSize() > RPC_REQUEST_SIZE_WARNING_THRESHOLD) {
-      LOG.warn("fileSystemHeartbeat request is {} bytes, {} persisted files, {} persisted file fingerprints",
-              request.getSerializedSize(),
-              persistedFiles.size(),
-              options.getPersistedFileFingerprintsCount());
+      LOG.warn("fileSystemHeartbeat request is {} bytes, {} persisted files, "
+                    + "{} persisted file fingerprints",
+          request.getSerializedSize(),
+          persistedFiles.size(),
+          options.getPersistedFileFingerprintsCount());
     }
 
     ServerRpcUtils.call(LOG,
-        (ServerRpcUtils.RpcCallableThrowsIOException<FileSystemHeartbeatPResponse>)
-        () -> {
+        (ServerRpcUtils.RpcCallableThrowsIOException<FileSystemHeartbeatPResponse>) () -> {
           FileSystemHeartbeatPResponse response = FileSystemHeartbeatPResponse
-                  .newBuilder()
-                  .setCommand(GrpcUtils.toProto(mFileSystemMaster.workerHeartbeat(workerId,
-                          persistedFiles, WorkerHeartbeatContext.create(options.toBuilder()))))
-                  .build();
+              .newBuilder()
+              .setCommand(GrpcUtils.toProto(mFileSystemMaster.workerHeartbeat(workerId,
+                  persistedFiles, WorkerHeartbeatContext.create(options.toBuilder()))))
+              .build();
           if (response.getSerializedSize() > RPC_RESPONSE_SIZE_WARNING_THRESHOLD) {
             LOG.warn("fileSystemHeartbeat response is {} bytes, {} files to persist",
-                    response.getSerializedSize(),
-                    response.getCommand().getCommandOptions().getPersistOptions().getPersistFilesCount());
+                response.getSerializedSize(),
+                response.getCommand().getCommandOptions().getPersistOptions()
+                    .getPersistFilesCount());
           }
           return response;
         },
-        "workerHeartbeat", "workerId=%s, persistedFiles=%s, options=%s", responseObserver, workerId,
-        persistedFiles, options);
+        "workerHeartbeat", "workerId=%s, persistedFiles=%s, options=%s", responseObserver,
+        workerId, persistedFiles, options);
   }
 
   @Override
@@ -99,9 +102,10 @@ public final class FileSystemMasterWorkerServiceHandler
     GetFileInfoPOptions options = request.getOptions();
 
     ServerRpcUtils.call(LOG,
-        (ServerRpcUtils.RpcCallableThrowsIOException<GetFileInfoPResponse>) () -> GetFileInfoPResponse
-            .newBuilder().setFileInfo(GrpcUtils.toProto(mFileSystemMaster.getFileInfo(fileId)))
-            .build(),
+        (ServerRpcUtils.RpcCallableThrowsIOException<GetFileInfoPResponse>) () ->
+            GetFileInfoPResponse.newBuilder()
+                .setFileInfo(GrpcUtils.toProto(mFileSystemMaster.getFileInfo(fileId)))
+                .build(),
         "getFileInfo", "fileId=%s, options=%s", responseObserver, fileId, options);
   }
 
@@ -113,11 +117,12 @@ public final class FileSystemMasterWorkerServiceHandler
     ServerRpcUtils.call(LOG,
         (ServerRpcUtils.RpcCallableThrowsIOException<GetPinnedFileIdsPResponse>)
         () -> {
-          GetPinnedFileIdsPResponse response = GetPinnedFileIdsPResponse.newBuilder().addAllPinnedFileIds(mFileSystemMaster.getPinIdList()).build();
+          GetPinnedFileIdsPResponse response = GetPinnedFileIdsPResponse.newBuilder()
+              .addAllPinnedFileIds(mFileSystemMaster.getPinIdList()).build();
           if (response.getSerializedSize() > RPC_RESPONSE_SIZE_WARNING_THRESHOLD) {
             LOG.warn("getPinnedFileIds response is {} bytes, {} FileId",
-                    response.getSerializedSize(),
-                    response.getPinnedFileIdsCount());
+                response.getSerializedSize(),
+                response.getPinnedFileIdsCount());
           }
           return response;
         },

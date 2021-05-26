@@ -47,8 +47,10 @@ import java.util.stream.Collectors;
 public final class BlockMasterWorkerServiceHandler extends
     BlockMasterWorkerServiceGrpc.BlockMasterWorkerServiceImplBase {
   private static final Logger LOG = LoggerFactory.getLogger(BlockMasterWorkerServiceHandler.class);
-  private static final long RPC_REQUEST_SIZE_WARNING_THRESHOLD = ServerConfiguration.getBytes(PropertyKey.MASTER_RPC_REQUEST_SIZE_WARNING_THRESHOLD);
-  private static final long RPC_RESPONSE_SIZE_WARNING_THRESHOLD = ServerConfiguration.getBytes(PropertyKey.MASTER_RPC_RESPONSE_SIZE_WARNING_THRESHOLD);
+  private static final long RPC_REQUEST_SIZE_WARNING_THRESHOLD =
+      ServerConfiguration.getBytes(PropertyKey.MASTER_RPC_REQUEST_SIZE_WARNING_THRESHOLD);
+  private static final long RPC_RESPONSE_SIZE_WARNING_THRESHOLD =
+      ServerConfiguration.getBytes(PropertyKey.MASTER_RPC_RESPONSE_SIZE_WARNING_THRESHOLD);
 
   private final BlockMaster mBlockMaster;
 
@@ -66,7 +68,8 @@ public final class BlockMasterWorkerServiceHandler extends
   public void blockHeartbeat(BlockHeartbeatPRequest request,
       StreamObserver<BlockHeartbeatPResponse> responseObserver) {
     if (request.getSerializedSize() > RPC_REQUEST_SIZE_WARNING_THRESHOLD) {
-      LOG.debug("blockHeartbeat request is {} bytes, {} added blocks, {} removed blocks, {} metrics",
+      LOG.debug("blockHeartbeat request is {} bytes, {} added blocks, "
+                    + "{} removed blocks, {} metrics",
           request.getSerializedSize(),
           request.getAddedBlocksCount(),
           request.getRemovedBlockIdsCount(),
@@ -86,18 +89,19 @@ public final class BlockMasterWorkerServiceHandler extends
     final List<Metric> metrics = request.getOptions().getMetricsList()
         .stream().map(Metric::fromProto).collect(Collectors.toList());
 
-    ServerRpcUtils.call(LOG, (ServerRpcUtils.RpcCallableThrowsIOException<BlockHeartbeatPResponse>) () -> {
-              BlockHeartbeatPResponse response = BlockHeartbeatPResponse.newBuilder().setCommand(mBlockMaster.workerHeartbeat(workerId,
-                      capacityBytesOnTiers, usedBytesOnTiers, removedBlockIds, addedBlocksMap,
-                      lostStorageMap, metrics)).build();
-              if (response.getSerializedSize() > RPC_RESPONSE_SIZE_WARNING_THRESHOLD) {
-                LOG.warn("blockHeartbeat response is {} bytes, command contains {} blocks",
-                        response.getSerializedSize(),
-                        response.getCommand().getDataCount());
-              }
-              return response;
-            },
-        "blockHeartbeat", "request=%s", responseObserver, request);
+    ServerRpcUtils.call(LOG,
+        (ServerRpcUtils.RpcCallableThrowsIOException<BlockHeartbeatPResponse>) () -> {
+            BlockHeartbeatPResponse response = BlockHeartbeatPResponse.newBuilder()
+                .setCommand(mBlockMaster.workerHeartbeat(workerId, capacityBytesOnTiers,
+                    usedBytesOnTiers, removedBlockIds, addedBlocksMap, lostStorageMap, metrics))
+                .build();
+            if (response.getSerializedSize() > RPC_RESPONSE_SIZE_WARNING_THRESHOLD) {
+              LOG.warn("blockHeartbeat response is {} bytes, command contains {} blocks",
+                  response.getSerializedSize(),
+                  response.getCommand().getDataCount());
+            }
+            return response;
+        }, "blockHeartbeat", "request=%s", responseObserver, request);
   }
 
   @Override
@@ -111,11 +115,12 @@ public final class BlockMasterWorkerServiceHandler extends
     final String mediumType = request.getMediumType();
     final long length = request.getLength();
 
-    ServerRpcUtils.call(LOG, (ServerRpcUtils.RpcCallableThrowsIOException<CommitBlockPResponse>) () -> {
-      mBlockMaster.commitBlock(workerId, usedBytesOnTier, tierAlias,
-          mediumType, blockId, length);
-      return CommitBlockPResponse.getDefaultInstance();
-    }, "commitBlock", "request=%s", responseObserver, request);
+    ServerRpcUtils.call(LOG,
+        (ServerRpcUtils.RpcCallableThrowsIOException<CommitBlockPResponse>) () -> {
+          mBlockMaster.commitBlock(workerId, usedBytesOnTier, tierAlias,
+              mediumType, blockId, length);
+          return CommitBlockPResponse.getDefaultInstance();
+        }, "commitBlock", "request=%s", responseObserver, request);
   }
 
   @Override
@@ -132,11 +137,13 @@ public final class BlockMasterWorkerServiceHandler extends
   @Override
   public void getWorkerId(GetWorkerIdPRequest request,
       StreamObserver<GetWorkerIdPResponse> responseObserver) {
-    ServerRpcUtils.call(LOG, (ServerRpcUtils.RpcCallableThrowsIOException<GetWorkerIdPResponse>) () -> {
-      return GetWorkerIdPResponse.newBuilder()
-          .setWorkerId(mBlockMaster.getWorkerId(GrpcUtils.fromProto(request.getWorkerNetAddress())))
-          .build();
-    }, "getWorkerId", "request=%s", responseObserver, request);
+    ServerRpcUtils.call(LOG,
+        (ServerRpcUtils.RpcCallableThrowsIOException<GetWorkerIdPResponse>) () -> {
+          return GetWorkerIdPResponse.newBuilder()
+              .setWorkerId(mBlockMaster.getWorkerId(
+                  GrpcUtils.fromProto(request.getWorkerNetAddress())))
+              .build();
+        }, "getWorkerId", "request=%s", responseObserver, request);
   }
 
   @Override

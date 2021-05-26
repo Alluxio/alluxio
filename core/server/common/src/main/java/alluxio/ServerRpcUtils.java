@@ -38,7 +38,8 @@ import java.time.Instant;
  * level and failure metrics will not be recorded.
  */
 public final class ServerRpcUtils {
-  private static int RPC_TIME_WARNING_THESHOLD = ServerConfiguration.getInt(PropertyKey.MASTER_RPC_TIME_WARNING_THRESHOLD);
+  private static final int RPC_TIME_WARNING_THESHOLD =
+      ServerConfiguration.getInt(PropertyKey.MASTER_RPC_TIME_WARNING_THRESHOLD);
 
   private ServerRpcUtils() {} // prevent instantiation
 

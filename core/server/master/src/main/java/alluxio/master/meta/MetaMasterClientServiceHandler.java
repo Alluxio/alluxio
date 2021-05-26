@@ -81,59 +81,62 @@ public final class MetaMasterClientServiceHandler
   @Override
   public void getMasterInfo(GetMasterInfoPOptions options,
       StreamObserver<GetMasterInfoPResponse> responseObserver) {
-    ServerRpcUtils.call(LOG, (ServerRpcUtils.RpcCallableThrowsIOException<GetMasterInfoPResponse>) () -> {
-      MasterInfo.Builder masterInfo = MasterInfo.newBuilder();
-      for (MasterInfoField field : options.getFilterCount() > 0 ? options.getFilterList()
-          : Arrays.asList(MasterInfoField.values())) {
-        switch (field) {
-          case LEADER_MASTER_ADDRESS:
-            masterInfo.setLeaderMasterAddress(mMetaMaster.getRpcAddress().toString());
-            break;
-          case MASTER_ADDRESSES:
-            masterInfo.addAllMasterAddresses(mMetaMaster.getMasterAddresses().stream()
-                .map(Address::toProto).collect(Collectors.toList()));
-            break;
-          case RPC_PORT:
-            masterInfo.setRpcPort(mMetaMaster.getRpcAddress().getPort());
-            break;
-          case SAFE_MODE:
-            masterInfo.setSafeMode(mMetaMaster.isInSafeMode());
-            break;
-          case START_TIME_MS:
-            masterInfo.setStartTimeMs(mMetaMaster.getStartTimeMs());
-            break;
-          case UP_TIME_MS:
-            masterInfo.setUpTimeMs(mMetaMaster.getUptimeMs());
-            break;
-          case VERSION:
-            masterInfo.setVersion(RuntimeConstants.VERSION);
-            break;
-          case WEB_PORT:
-            masterInfo.setWebPort(mMetaMaster.getWebPort());
-            break;
-          case WORKER_ADDRESSES:
-            masterInfo.addAllWorkerAddresses(mMetaMaster.getWorkerAddresses().stream()
-                .map(Address::toProto).collect(Collectors.toList()));
-            break;
-          case ZOOKEEPER_ADDRESSES:
-            if (ServerConfiguration.isSet(PropertyKey.ZOOKEEPER_ADDRESS)) {
-              masterInfo.addAllZookeeperAddresses(
-                  Arrays.asList(ServerConfiguration.get(PropertyKey.ZOOKEEPER_ADDRESS).split(",")));
+    ServerRpcUtils.call(LOG,
+        (ServerRpcUtils.RpcCallableThrowsIOException<GetMasterInfoPResponse>) () -> {
+          MasterInfo.Builder masterInfo = MasterInfo.newBuilder();
+          for (MasterInfoField field : options.getFilterCount() > 0 ? options.getFilterList()
+              : Arrays.asList(MasterInfoField.values())) {
+            switch (field) {
+              case LEADER_MASTER_ADDRESS:
+                masterInfo.setLeaderMasterAddress(mMetaMaster.getRpcAddress().toString());
+                break;
+              case MASTER_ADDRESSES:
+                masterInfo.addAllMasterAddresses(mMetaMaster.getMasterAddresses().stream()
+                    .map(Address::toProto).collect(Collectors.toList()));
+                break;
+              case RPC_PORT:
+                masterInfo.setRpcPort(mMetaMaster.getRpcAddress().getPort());
+                break;
+              case SAFE_MODE:
+                masterInfo.setSafeMode(mMetaMaster.isInSafeMode());
+                break;
+              case START_TIME_MS:
+                masterInfo.setStartTimeMs(mMetaMaster.getStartTimeMs());
+                break;
+              case UP_TIME_MS:
+                masterInfo.setUpTimeMs(mMetaMaster.getUptimeMs());
+                break;
+              case VERSION:
+                masterInfo.setVersion(RuntimeConstants.VERSION);
+                break;
+              case WEB_PORT:
+                masterInfo.setWebPort(mMetaMaster.getWebPort());
+                break;
+              case WORKER_ADDRESSES:
+                masterInfo.addAllWorkerAddresses(mMetaMaster.getWorkerAddresses().stream()
+                    .map(Address::toProto).collect(Collectors.toList()));
+                break;
+              case ZOOKEEPER_ADDRESSES:
+                if (ServerConfiguration.isSet(PropertyKey.ZOOKEEPER_ADDRESS)) {
+                  masterInfo.addAllZookeeperAddresses(
+                      Arrays.asList(ServerConfiguration.get(PropertyKey.ZOOKEEPER_ADDRESS)
+                          .split(",")));
+                }
+                break;
+              default:
+                LOG.warn("Unrecognized meta master info field: " + field);
             }
-            break;
-          default:
-            LOG.warn("Unrecognized meta master info field: " + field);
         }
-      }
-      return GetMasterInfoPResponse.newBuilder().setMasterInfo(masterInfo).build();
-    }, "getMasterInfo", "options=%s", responseObserver, options);
+        return GetMasterInfoPResponse.newBuilder().setMasterInfo(masterInfo).build();
+      }, "getMasterInfo", "options=%s", responseObserver, options);
   }
 
   @Override
   public void checkpoint(CheckpointPOptions options,
       StreamObserver<CheckpointPResponse> responseObserver) {
-    ServerRpcUtils.call(LOG, (ServerRpcUtils.RpcCallableThrowsIOException<CheckpointPResponse>) () ->
-        CheckpointPResponse.newBuilder().setMasterHostname(mMetaMaster.checkpoint()).build(),
+    ServerRpcUtils.call(LOG,
+        (ServerRpcUtils.RpcCallableThrowsIOException<CheckpointPResponse>) () ->
+          CheckpointPResponse.newBuilder().setMasterHostname(mMetaMaster.checkpoint()).build(),
         "checkpoint", "options=%s", responseObserver, options);
   }
 }
