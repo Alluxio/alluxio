@@ -80,8 +80,7 @@ class ShortCircuitBlockWriteHandler implements StreamObserver<CreateLocalBlockRe
       @Override
       public CreateLocalBlockResponse call() throws Exception {
         if (request.getOnlyReserveSpace()) {
-          mBlockWorker.requestSpace(mSessionId, request.getBlockId(),
-              request.getSpaceToReserve());
+          mBlockWorker.requestSpace(mSessionId, request.getBlockId(), request.getSpaceToReserve());
           return CreateLocalBlockResponse.newBuilder().build();
         } else {
           Preconditions.checkState(mRequest == null);
@@ -116,8 +115,7 @@ class ShortCircuitBlockWriteHandler implements StreamObserver<CreateLocalBlockRe
         }
         mResponseObserver.onError(GrpcExceptionUtils.fromThrowable(throwable));
       }
-    }, methodName, true, false, mResponseObserver, "Session=%d, Request=%s",
-        mSessionId, request);
+    }, methodName, true, false, mResponseObserver, "Session=%d, Request=%s", mSessionId, request);
   }
 
   @Override
@@ -168,8 +166,7 @@ class ShortCircuitBlockWriteHandler implements StreamObserver<CreateLocalBlockRe
           if (isCanceled) {
             mBlockWorker.abortBlock(mSessionId, mRequest.getBlockId());
           } else {
-            mBlockWorker.commitBlock(mSessionId, mRequest.getBlockId(),
-                mRequest.getPinOnCreate());
+            mBlockWorker.commitBlock(mSessionId, mRequest.getBlockId(), mRequest.getPinOnCreate());
           }
         } finally {
           newContext.detach(previousContext);
@@ -183,7 +180,7 @@ class ShortCircuitBlockWriteHandler implements StreamObserver<CreateLocalBlockRe
         mResponseObserver.onError(GrpcExceptionUtils.fromThrowable(throwable));
         mSessionId = INVALID_SESSION_ID;
       }
-    }, methodName, false, !isCanceled, mResponseObserver, "Session=%d, Request=%s",
-        mSessionId, mRequest);
+    }, methodName, false, !isCanceled, mResponseObserver, "Session=%d, Request=%s", mSessionId,
+        mRequest);
   }
 }

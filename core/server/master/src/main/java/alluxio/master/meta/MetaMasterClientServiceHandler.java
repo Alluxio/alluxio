@@ -118,15 +118,14 @@ public final class MetaMasterClientServiceHandler
           case ZOOKEEPER_ADDRESSES:
             if (ServerConfiguration.isSet(PropertyKey.ZOOKEEPER_ADDRESS)) {
               masterInfo.addAllZookeeperAddresses(
-                  Arrays.asList(ServerConfiguration.get(PropertyKey.ZOOKEEPER_ADDRESS)
-                      .split(",")));
+                  Arrays.asList(ServerConfiguration.get(PropertyKey.ZOOKEEPER_ADDRESS).split(",")));
             }
             break;
           default:
             LOG.warn("Unrecognized meta master info field: " + field);
         }
-    }
-    return GetMasterInfoPResponse.newBuilder().setMasterInfo(masterInfo).build();
+      }
+      return GetMasterInfoPResponse.newBuilder().setMasterInfo(masterInfo).build();
     }, "getMasterInfo", "options=%s", responseObserver, options);
   }
 

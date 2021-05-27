@@ -78,8 +78,7 @@ class ShortCircuitBlockReadHandler implements StreamObserver<OpenLocalBlockReque
             try {
               mWorker.moveBlock(mSessionId, mRequest.getBlockId(), 0);
             } catch (BlockDoesNotExistException e) {
-              LOG.debug("Block {} to promote does not exist in Alluxio",
-                  mRequest.getBlockId(), e);
+              LOG.debug("Block {} to promote does not exist in Alluxio", mRequest.getBlockId(), e);
             } catch (Exception e) {
               LOG.warn("Failed to promote block {}: {}", mRequest.getBlockId(), e.toString());
             }
@@ -97,8 +96,7 @@ class ShortCircuitBlockReadHandler implements StreamObserver<OpenLocalBlockReque
               ExceptionMessage.LOCK_NOT_RELEASED.getMessage(mLockId));
         }
         OpenLocalBlockResponse response = OpenLocalBlockResponse.newBuilder()
-            .setPath(mWorker.getBlockMeta(mSessionId, mRequest.getBlockId(), mLockId)
-                .getPath())
+            .setPath(mWorker.getBlockMeta(mSessionId, mRequest.getBlockId(), mLockId).getPath())
             .build();
         return response;
       }

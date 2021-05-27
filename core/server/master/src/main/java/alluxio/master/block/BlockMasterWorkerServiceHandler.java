@@ -89,19 +89,18 @@ public final class BlockMasterWorkerServiceHandler extends
     final List<Metric> metrics = request.getOptions().getMetricsList()
         .stream().map(Metric::fromProto).collect(Collectors.toList());
 
-    RpcUtils.call(LOG,
-        (RpcUtils.RpcCallableThrowsIOException<BlockHeartbeatPResponse>) () -> {
-            BlockHeartbeatPResponse response = BlockHeartbeatPResponse.newBuilder()
-                .setCommand(mBlockMaster.workerHeartbeat(workerId, capacityBytesOnTiers,
-                    usedBytesOnTiers, removedBlockIds, addedBlocksMap, lostStorageMap, metrics))
-                .build();
-            if (response.getSerializedSize() > RPC_RESPONSE_SIZE_WARNING_THRESHOLD) {
-              LOG.warn("blockHeartbeat response is {} bytes, command contains {} blocks",
-                  response.getSerializedSize(),
-                  response.getCommand().getDataCount());
-            }
-            return response;
-        }, "blockHeartbeat", "request=%s", responseObserver, request);
+    RpcUtils.call(LOG, (RpcUtils.RpcCallableThrowsIOException<BlockHeartbeatPResponse>) () -> {
+        BlockHeartbeatPResponse response = BlockHeartbeatPResponse.newBuilder()
+            .setCommand(mBlockMaster.workerHeartbeat(workerId, capacityBytesOnTiers,
+                usedBytesOnTiers, removedBlockIds, addedBlocksMap, lostStorageMap, metrics))
+            .build();
+        if (response.getSerializedSize() > RPC_RESPONSE_SIZE_WARNING_THRESHOLD) {
+          LOG.warn("blockHeartbeat response is {} bytes, command contains {} blocks",
+              response.getSerializedSize(),
+              response.getCommand().getDataCount());
+        }
+        return response;
+    }, "blockHeartbeat", "request=%s", responseObserver, request);
   }
 
   @Override
@@ -126,22 +125,22 @@ public final class BlockMasterWorkerServiceHandler extends
   public void commitBlockInUfs(CommitBlockInUfsPRequest request,
       StreamObserver<CommitBlockInUfsPResponse> responseObserver) {
 
-    RpcUtils.call(LOG, (RpcUtils.RpcCallableThrowsIOException<CommitBlockInUfsPResponse>) () -> {
-      mBlockMaster.commitBlockInUFS(request.getBlockId(), request.getLength());
-      return CommitBlockInUfsPResponse.getDefaultInstance();
-    }, "commitBlock", "request=%s", responseObserver, request);
+    RpcUtils.call(LOG,
+        (RpcUtils.RpcCallableThrowsIOException<CommitBlockInUfsPResponse>) () -> {
+          mBlockMaster.commitBlockInUFS(request.getBlockId(), request.getLength());
+          return CommitBlockInUfsPResponse.getDefaultInstance();
+        }, "commitBlock", "request=%s", responseObserver, request);
   }
 
   @Override
   public void getWorkerId(GetWorkerIdPRequest request,
       StreamObserver<GetWorkerIdPResponse> responseObserver) {
-    RpcUtils.call(LOG,
-        (RpcUtils.RpcCallableThrowsIOException<GetWorkerIdPResponse>) () -> {
-          return GetWorkerIdPResponse.newBuilder()
-              .setWorkerId(mBlockMaster.getWorkerId(
-                  GrpcUtils.fromProto(request.getWorkerNetAddress())))
-              .build();
-        }, "getWorkerId", "request=%s", responseObserver, request);
+    RpcUtils.call(LOG, (RpcUtils.RpcCallableThrowsIOException<GetWorkerIdPResponse>) () -> {
+      return GetWorkerIdPResponse.newBuilder()
+          .setWorkerId(mBlockMaster.getWorkerId(
+              GrpcUtils.fromProto(request.getWorkerNetAddress())))
+          .build();
+    }, "getWorkerId", "request=%s", responseObserver, request);
   }
 
   @Override

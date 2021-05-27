@@ -102,7 +102,8 @@ public final class MetaMasterConfigurationServiceHandler
     String path = request.getPath();
     Map<String, String> properties = request.getPropertiesMap();
 
-    RpcUtils.call(LOG, (RpcUtils.RpcCallableThrowsIOException<SetPathConfigurationPResponse>) () -> {
+    RpcUtils.call(LOG, (RpcUtils.RpcCallableThrowsIOException<SetPathConfigurationPResponse>) () ->
+    {
       Map<PropertyKey, String> props = new HashMap<>();
       properties.forEach((key, value) -> props.put(PropertyKey.fromString(key), value));
       mMetaMaster.setPathConfiguration(path, props);
@@ -116,13 +117,14 @@ public final class MetaMasterConfigurationServiceHandler
     String path = request.getPath();
     List<String> keys = request.getKeysList();
 
-    RpcUtils.call(LOG, (RpcUtils.RpcCallableThrowsIOException<RemovePathConfigurationPResponse>) () -> {
-      if (keys.isEmpty()) {
-        mMetaMaster.removePathConfiguration(path);
-      } else {
-        mMetaMaster.removePathConfiguration(path, new HashSet<>(keys));
-      }
-      return RemovePathConfigurationPResponse.getDefaultInstance();
-    }, "removePathConfiguration", "request=%s", responseObserver, request);
+    RpcUtils.call(LOG,
+        (RpcUtils.RpcCallableThrowsIOException<RemovePathConfigurationPResponse>) () -> {
+        if (keys.isEmpty()) {
+          mMetaMaster.removePathConfiguration(path);
+        } else {
+          mMetaMaster.removePathConfiguration(path, new HashSet<>(keys));
+        }
+        return RemovePathConfigurationPResponse.getDefaultInstance();
+      }, "removePathConfiguration", "request=%s", responseObserver, request);
   }
 }
