@@ -90,16 +90,16 @@ public final class BlockMasterWorkerServiceHandler extends
         .stream().map(Metric::fromProto).collect(Collectors.toList());
 
     RpcUtils.call(LOG, (RpcUtils.RpcCallableThrowsIOException<BlockHeartbeatPResponse>) () -> {
-        BlockHeartbeatPResponse response = BlockHeartbeatPResponse.newBuilder()
-            .setCommand(mBlockMaster.workerHeartbeat(workerId, capacityBytesOnTiers,
-                usedBytesOnTiers, removedBlockIds, addedBlocksMap, lostStorageMap, metrics))
-            .build();
-        if (response.getSerializedSize() > RPC_RESPONSE_SIZE_WARNING_THRESHOLD) {
-          LOG.warn("blockHeartbeat response is {} bytes, command contains {} blocks",
-              response.getSerializedSize(),
-              response.getCommand().getDataCount());
-        }
-        return response;
+      BlockHeartbeatPResponse response = BlockHeartbeatPResponse.newBuilder()
+          .setCommand(mBlockMaster.workerHeartbeat(workerId, capacityBytesOnTiers,
+              usedBytesOnTiers, removedBlockIds, addedBlocksMap, lostStorageMap, metrics))
+          .build();
+      if (response.getSerializedSize() > RPC_RESPONSE_SIZE_WARNING_THRESHOLD) {
+        LOG.warn("blockHeartbeat response is {} bytes, command contains {} blocks",
+            response.getSerializedSize(),
+            response.getCommand().getDataCount());
+      }
+      return response;
     }, "blockHeartbeat", "request=%s", responseObserver, request);
   }
 
