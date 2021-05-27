@@ -498,7 +498,7 @@ public final class MasterWorkerInfo {
   }
 
   @Override
-  // TODO(jiacheng): Should this be locking?
+  // TODO(jiacheng): Read lock on the conversion
   public String toString() {
     Collection<Long> blocks = mBlocks;
     String blockFieldName = "blocks";
