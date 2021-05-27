@@ -1043,10 +1043,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
     worker.updateLastUpdatedTimeMs();
 
     // Should not reach here
-    if (workerCommand == null) {
-      Preconditions.checkNotNull(workerCommand,
-          "Worker heartbeat response command is null!");
-    }
+    Preconditions.checkNotNull(workerCommand, "Worker heartbeat response command is null!");
 
     return workerCommand;
   }
