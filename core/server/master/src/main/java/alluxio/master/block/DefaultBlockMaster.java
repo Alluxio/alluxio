@@ -1026,8 +1026,6 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
 
       processWorkerRemovedBlocks(worker, removedBlockIds);
       processWorkerAddedBlocks(worker, addedBlocks);
-      // TODO(jiacheng): If the worker registers with a after the block is freed,
-      //  the copy will not be removed from this worker.
       List<Long> toRemoveBlocks = worker.getToRemoveBlocks();
       Metrics.TOTAL_BLOCKS.inc(addedBlocks.size() - removedBlockIds.size());
       if (toRemoveBlocks.isEmpty()) {
