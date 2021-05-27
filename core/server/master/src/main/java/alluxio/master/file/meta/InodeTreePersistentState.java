@@ -164,7 +164,8 @@ public class InodeTreePersistentState implements Journaled {
         mRemovedFileHistogram = mRemovedFileRecorder.getIntervalHistogram(mRemovedFileHistogram);
         mCreatedFileHistogram = mCreatedFileRecorder.getIntervalHistogram(mCreatedFileHistogram);
         mFileSizeHistogram.add(mCreatedFileHistogram);
-        if (mRemovedFileHistogram.getTotalCount() != 0) {
+        if (mFileSizeHistogram.getTotalCount() != 0
+            && mRemovedFileHistogram.getTotalCount() != 0) {
           mFileSizeHistogram.subtract(mRemovedFileHistogram);
         }
         return mFileSizeHistogram.copy();
