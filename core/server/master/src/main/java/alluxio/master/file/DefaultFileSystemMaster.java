@@ -24,6 +24,7 @@ import alluxio.client.job.JobMasterClientPool;
 import alluxio.clock.SystemClock;
 import alluxio.collections.Pair;
 import alluxio.collections.PrefixList;
+import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.exception.AccessControlException;
@@ -150,6 +151,7 @@ import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.underfs.options.MkdirsOptions;
 import alluxio.util.CommonUtils;
+import alluxio.util.ConfigurationUtils;
 import alluxio.util.IdUtils;
 import alluxio.util.LogUtils;
 import alluxio.util.ModeUtils;
@@ -226,6 +228,9 @@ public final class DefaultFileSystemMaster extends CoreMaster
     implements FileSystemMaster, DelegatingJournaled {
   private static final Logger LOG = LoggerFactory.getLogger(DefaultFileSystemMaster.class);
   private static final Set<Class<? extends Server>> DEPS = ImmutableSet.of(BlockMaster.class);
+  private static final boolean READ_ACCESSTIME_UPDATE =
+      new InstancedConfiguration(ConfigurationUtils.defaults())
+      .getBoolean(PropertyKey.MASTER_READ_ACCESSTIME_UPDATE);
 
   /** The number of threads to use in the {@link #mPersistCheckerPool}. */
   private static final int PERSIST_CHECKER_POOL_THREADS = 128;
@@ -886,7 +891,8 @@ public final class DefaultFileSystemMaster extends CoreMaster
           }
           Mode.Bits accessMode = Mode.Bits.fromProto(context.getOptions().getAccessMode());
           if (context.getOptions().getUpdateTimestamps() && context.getOptions().hasAccessMode()
-              && (accessMode.imply(Mode.Bits.READ) || accessMode.imply(Mode.Bits.WRITE))) {
+              && (accessMode.imply(Mode.Bits.READ) && READ_ACCESSTIME_UPDATE
+              || accessMode.imply(Mode.Bits.WRITE))) {
             mAccessTimeUpdater.updateAccessTime(rpcContext.getJournalContext(),
                 inodePath.getInode(), opTimeMs);
           }
@@ -1133,8 +1139,10 @@ public final class DefaultFileSystemMaster extends CoreMaster
           throw e;
         }
       }
-      mAccessTimeUpdater.updateAccessTime(rpcContext.getJournalContext(), inode,
-          CommonUtils.getCurrentMs());
+      if (READ_ACCESSTIME_UPDATE) {
+        mAccessTimeUpdater.updateAccessTime(rpcContext.getJournalContext(), inode,
+            CommonUtils.getCurrentMs());
+      }
       DescendantType nextDescendantType = (descendantType == DescendantType.ALL)
           ? DescendantType.ALL : DescendantType.NONE;
       // This is to generate a parsed child path components to be passed to lockChildPath

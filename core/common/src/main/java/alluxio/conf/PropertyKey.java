@@ -1573,6 +1573,12 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.MASTER)
           .build();
+  public static final PropertyKey MASTER_READ_ACCESSTIME_UPDATE =
+      new Builder(Name.MASTER_READ_ACCESSTIME_UPDATE)
+          .setDefaultValue(true)
+          .setDescription("Whether master update file accesstime when read it.")
+          .setScope(Scope.MASTER)
+          .build();
   public static final PropertyKey MASTER_SHELL_BACKUP_STATE_LOCK_GRACE_MODE =
       new Builder(Name.MASTER_SHELL_BACKUP_STATE_LOCK_GRACE_MODE)
           .setDefaultValue("TIMEOUT")
@@ -5498,6 +5504,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.backup.state.lock.interrupt.cycle.interval";
     public static final String MASTER_BACKUP_SUSPEND_TIMEOUT =
         "alluxio.master.backup.suspend.timeout";
+    public static final String MASTER_READ_ACCESSTIME_UPDATE =
+        "alluxio.master.read.accesstime.update";
     public static final String MASTER_SHELL_BACKUP_STATE_LOCK_GRACE_MODE =
         "alluxio.master.shell.backup.state.lock.grace.mode";
     public static final String MASTER_SHELL_BACKUP_STATE_LOCK_TRY_DURATION =
