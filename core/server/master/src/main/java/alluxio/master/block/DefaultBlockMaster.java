@@ -160,48 +160,16 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
    * The worker metadata is represented by the {@link MasterWorkerInfo} object.
    * See javadoc of {@link MasterWorkerInfo} for details.
    *
-   * While accessing or updating the fields in the {@link MasterWorkerInfo}, relevant locks must
-   * be acquired first.
-   *
-   * When there is only one lock, {@link LockResource} can be used to simplify the lock management:
-   * <blockquote><pre>
-   *   MasterWorkerInfo worker = ...;
-   *   try (LockResource r = new LockResource(worker.getUsageLock().readLock()) {
-   *     ...
-   *   }
-   * </pre></blockquote>
-   *
-   * When multiple locks are needed, the locks must be acquired in order
-   * and released in the opposite order. The acquisition order is the order above (1 to 4).
-   * For example, if you need to check the worker register status then update the worker
-   * resource usage and block list, the usage will look like:
-   *
-   * <blockquote><pre>
-   *    MasterWorkerInfo worker = ...;
-   *    worker.getRegisterLock().lock();
-   *    worker.getUsageLock.writeLock().lock();
-   *    worker.getBlockListLock.writeLock().lock();
-   *    try {
-   *      ...
-   *    } finally {
-   *      worker.getBlockListLock.writeLock().lock();
-   *      worker.getUsageLock.writeLock().lock();
-   *      worker.getRegisterLock().lock();
-   *    }
-   * </pre></blockquote>
-   *
    * To modify or read a modifiable piece of worker metadata, the {@link MasterWorkerInfo} for the
-   * worker must be locked following the instructions in the above section.
+   * worker must be locked following the instructions in {@link MasterWorkerInfo}.
    * For block metadata, the id of the block must be locked.
    * This will protect the internal integrity of the block and worker metadata.
    *
    * A worker's relevant locks must be held to
-   * - Check the worker register status
-   * - Update the worker register status
-   * - Read the worker usage
-   * - Update the worker usage
-   * - Read the worker present/to-be-removed blocks
-   * - Update the worker present/to-be-removed blocks
+   * - Check/Update the worker register status
+   * - Read/Update the worker usage
+   * - Read/Update the worker present/to-be-removed blocks
+   * - Any combinations of the above
    *
    * A block's lock must be held to
    * - Perform any BlockStore operations on the block
@@ -210,6 +178,13 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
    * Lock ordering must be preserved in order to prevent deadlock. If both worker and block
    * metadata must be locked at the same time, the worker metadata must be locked before the block
    * metadata. When the locks are released, they must be released in the opposite order.
+   *
+   * When multiple parts of the worker metadata should be locked, locking order is guaranteed by
+   * {@link MasterWorkerInfo}. You should guarantee that the same arguments are passed to
+   * {@link MasterWorkerInfo#lock(EnumSet, boolean)} and
+   * {@link MasterWorkerInfo#unlock(EnumSet, boolean)}.
+   * {@link MasterWorkerInfo} will then guarantee that locks are acquired in order and released
+   * in the opposite one.
    *
    * It should not be the case that multiple worker metadata must be locked at the same time, or
    * multiple block metadata must be locked at the same time. Operations involving different workers

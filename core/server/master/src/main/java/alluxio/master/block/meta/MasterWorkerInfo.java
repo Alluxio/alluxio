@@ -609,6 +609,8 @@ public final class MasterWorkerInfo {
 
   /**
    * Locks the corresponding locks on the metadata groups.
+   * See the javadoc for this class for example usage.
+   *
    * The locks will be acquired in order.
    * The locks can either be shared or exclusive.
    * The isShared flag will apply to all the locks acquired here.
@@ -632,6 +634,8 @@ public final class MasterWorkerInfo {
 
   /**
    * Unlocks the corresponding locks.
+   * See the javadoc for this class for example usage.
+   *
    * The arguments must match with the {@link #lock(EnumSet, boolean)} method.
    * The locks will be released in the opposite order to {@link #lock(EnumSet, boolean)},
    * in order to prevent deadlock.
