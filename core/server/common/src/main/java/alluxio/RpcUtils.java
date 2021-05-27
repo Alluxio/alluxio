@@ -37,11 +37,11 @@ import java.time.Instant;
  * For each of these, if failureOk is set, non-fatal errors will only be logged at the DEBUG
  * level and failure metrics will not be recorded.
  */
-public final class ServerRpcUtils {
+public final class RpcUtils {
   private static final int RPC_TIME_WARNING_THESHOLD =
       ServerConfiguration.getInt(PropertyKey.MASTER_RPC_TIME_WARNING_THRESHOLD_MS);
 
-  private ServerRpcUtils() {} // prevent instantiation
+  private RpcUtils() {} // prevent instantiation
 
   /**
    * Calls the given {@link RpcCallableThrowsIOException} and handles any exceptions thrown. If the

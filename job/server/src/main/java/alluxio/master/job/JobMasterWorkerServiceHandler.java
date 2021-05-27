@@ -11,7 +11,7 @@
 
 package alluxio.master.job;
 
-import alluxio.ServerRpcUtils;
+import alluxio.RpcUtils;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.JobHeartbeatPRequest;
@@ -60,8 +60,8 @@ public final class JobMasterWorkerServiceHandler
   public void heartbeat(JobHeartbeatPRequest request,
                         StreamObserver<JobHeartbeatPResponse> responseObserver) {
 
-    ServerRpcUtils.call(LOG,
-        (ServerRpcUtils.RpcCallableThrowsIOException<JobHeartbeatPResponse>) () -> {
+    RpcUtils.call(LOG,
+        (RpcUtils.RpcCallableThrowsIOException<JobHeartbeatPResponse>) () -> {
           if (request.getSerializedSize() > RPC_REQUEST_SIZE_WARNING_THRESHOLD) {
             LOG.warn("jobHeartbeat request is {} bytes, {} TaskInfo",
                 request.getSerializedSize(),
@@ -92,8 +92,8 @@ public final class JobMasterWorkerServiceHandler
   public void registerJobWorker(RegisterJobWorkerPRequest request,
       StreamObserver<RegisterJobWorkerPResponse> responseObserver) {
 
-    ServerRpcUtils.call(LOG,
-        (ServerRpcUtils.RpcCallableThrowsIOException<RegisterJobWorkerPResponse>) () -> {
+    RpcUtils.call(LOG,
+        (RpcUtils.RpcCallableThrowsIOException<RegisterJobWorkerPResponse>) () -> {
           return RegisterJobWorkerPResponse.newBuilder()
               .setId(mJobMaster.registerWorker(GrpcUtils.fromProto(request.getWorkerNetAddress())))
               .build();

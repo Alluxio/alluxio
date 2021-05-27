@@ -11,7 +11,7 @@
 
 package alluxio.worker.grpc;
 
-import alluxio.ServerRpcUtils;
+import alluxio.RpcUtils;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.client.file.FileSystemContext;
@@ -149,7 +149,7 @@ public class BlockWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorker
   @Override
   public void asyncCache(AsyncCacheRequest request,
       StreamObserver<AsyncCacheResponse> responseObserver) {
-    ServerRpcUtils.call(LOG, () -> {
+    RpcUtils.call(LOG, () -> {
       mBlockWorker.asyncCache(request);
       return AsyncCacheResponse.getDefaultInstance();
     }, "asyncCache", "request=%s", responseObserver, request);
@@ -159,7 +159,7 @@ public class BlockWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorker
   public void removeBlock(RemoveBlockRequest request,
       StreamObserver<RemoveBlockResponse> responseObserver) {
     long sessionId = IdUtils.createSessionId();
-    ServerRpcUtils.call(LOG, () -> {
+    RpcUtils.call(LOG, () -> {
       mBlockWorker.removeBlock(sessionId, request.getBlockId());
       return RemoveBlockResponse.getDefaultInstance();
     }, "removeBlock", "request=%s", responseObserver, request);
@@ -169,7 +169,7 @@ public class BlockWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorker
   public void moveBlock(MoveBlockRequest request,
       StreamObserver<MoveBlockResponse> responseObserver) {
     long sessionId = IdUtils.createSessionId();
-    ServerRpcUtils.call(LOG, () -> {
+    RpcUtils.call(LOG, () -> {
       mWorkerProcess.getWorker(BlockWorker.class).moveBlockToMedium(sessionId,
           request.getBlockId(), request.getMediumType());
       return MoveBlockResponse.getDefaultInstance();
@@ -179,7 +179,7 @@ public class BlockWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorker
   @Override
   public void clearMetrics(ClearMetricsRequest request,
       StreamObserver<ClearMetricsResponse> responseObserver) {
-    ServerRpcUtils.call(LOG, () -> {
+    RpcUtils.call(LOG, () -> {
       mWorkerProcess.getWorker(BlockWorker.class).clearMetrics();
       return ClearMetricsResponse.getDefaultInstance();
     }, "clearMetrics", "request=%s", responseObserver, request);

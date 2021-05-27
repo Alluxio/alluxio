@@ -11,7 +11,7 @@
 
 package alluxio.master.meta;
 
-import alluxio.ServerRpcUtils;
+import alluxio.RpcUtils;
 import alluxio.conf.PropertyKey;
 import alluxio.grpc.GetConfigHashPOptions;
 import alluxio.grpc.GetConfigHashPResponse;
@@ -59,8 +59,8 @@ public final class MetaMasterConfigurationServiceHandler
   @Override
   public void getConfiguration(GetConfigurationPOptions options,
       StreamObserver<GetConfigurationPResponse> responseObserver) {
-    ServerRpcUtils.call(LOG,
-        (ServerRpcUtils.RpcCallableThrowsIOException<GetConfigurationPResponse>) () -> {
+    RpcUtils.call(LOG,
+        (RpcUtils.RpcCallableThrowsIOException<GetConfigurationPResponse>) () -> {
           GetConfigurationPResponse clusterConf = mClusterConf;
           GetConfigurationPResponse pathConf = mPathConf;
           GetConfigurationPResponse.Builder builder = GetConfigurationPResponse.newBuilder();
@@ -92,8 +92,8 @@ public final class MetaMasterConfigurationServiceHandler
   @Override
   public void getConfigHash(GetConfigHashPOptions request,
       StreamObserver<GetConfigHashPResponse> responseObserver) {
-    ServerRpcUtils.call(LOG,
-        (ServerRpcUtils.RpcCallableThrowsIOException<GetConfigHashPResponse>) () ->
+    RpcUtils.call(LOG,
+        (RpcUtils.RpcCallableThrowsIOException<GetConfigHashPResponse>) () ->
           mMetaMaster.getConfigHash().toProto(), "getConfigHash", "request=%s", responseObserver,
         request);
   }
@@ -104,8 +104,8 @@ public final class MetaMasterConfigurationServiceHandler
     String path = request.getPath();
     Map<String, String> properties = request.getPropertiesMap();
 
-    ServerRpcUtils.call(LOG,
-        (ServerRpcUtils.RpcCallableThrowsIOException<SetPathConfigurationPResponse>) () -> {
+    RpcUtils.call(LOG,
+        (RpcUtils.RpcCallableThrowsIOException<SetPathConfigurationPResponse>) () -> {
           Map<PropertyKey, String> props = new HashMap<>();
           properties.forEach((key, value) -> props.put(PropertyKey.fromString(key), value));
           mMetaMaster.setPathConfiguration(path, props);
@@ -119,8 +119,8 @@ public final class MetaMasterConfigurationServiceHandler
     String path = request.getPath();
     List<String> keys = request.getKeysList();
 
-    ServerRpcUtils.call(LOG,
-        (ServerRpcUtils.RpcCallableThrowsIOException<RemovePathConfigurationPResponse>) () -> {
+    RpcUtils.call(LOG,
+        (RpcUtils.RpcCallableThrowsIOException<RemovePathConfigurationPResponse>) () -> {
           if (keys.isEmpty()) {
             mMetaMaster.removePathConfiguration(path);
           } else {

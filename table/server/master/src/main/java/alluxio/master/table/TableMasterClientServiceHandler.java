@@ -11,7 +11,7 @@
 
 package alluxio.master.table;
 
-import alluxio.ServerRpcUtils;
+import alluxio.RpcUtils;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.table.AttachDatabasePRequest;
@@ -74,7 +74,7 @@ public class TableMasterClientServiceHandler
   @Override
   public void attachDatabase(AttachDatabasePRequest request,
       StreamObserver<AttachDatabasePResponse> responseObserver) {
-    ServerRpcUtils.call(LOG, () -> {
+    RpcUtils.call(LOG, () -> {
       if (request.getSerializedSize() > RPC_REQUEST_SIZE_WARNING_THRESHOLD) {
         LOG.warn("attachDatabase request is {} bytes, {} options",
                 request.getSerializedSize(),
@@ -92,7 +92,7 @@ public class TableMasterClientServiceHandler
   @Override
   public void detachDatabase(DetachDatabasePRequest request,
       StreamObserver<DetachDatabasePResponse> responseObserver) {
-    ServerRpcUtils.call(LOG, () -> DetachDatabasePResponse.newBuilder().setSuccess(mTableMaster
+    RpcUtils.call(LOG, () -> DetachDatabasePResponse.newBuilder().setSuccess(mTableMaster
             .detachDatabase(request.getDbName())).build(), "detachDatabase", "",
         responseObserver);
   }
@@ -100,7 +100,7 @@ public class TableMasterClientServiceHandler
   @Override
   public void getAllDatabases(GetAllDatabasesPRequest request,
       StreamObserver<GetAllDatabasesPResponse> responseObserver) {
-    ServerRpcUtils.call(LOG, () -> {
+    RpcUtils.call(LOG, () -> {
       GetAllDatabasesPResponse response = GetAllDatabasesPResponse.newBuilder()
           .addAllDatabase(mTableMaster.getAllDatabases()).build();
       if (response.getSerializedSize() > RPC_RESPONSE_SIZE_WARNING_THRESHOLD) {
@@ -115,7 +115,7 @@ public class TableMasterClientServiceHandler
   @Override
   public void getAllTables(GetAllTablesPRequest request,
       StreamObserver<GetAllTablesPResponse> responseObserver) {
-    ServerRpcUtils.call(LOG, () -> {
+    RpcUtils.call(LOG, () -> {
       GetAllTablesPResponse response = GetAllTablesPResponse.newBuilder()
           .addAllTable(mTableMaster.getAllTables(request.getDatabase())).build();
       if (response.getSerializedSize() > RPC_RESPONSE_SIZE_WARNING_THRESHOLD) {
@@ -130,7 +130,7 @@ public class TableMasterClientServiceHandler
   @Override
   public void getDatabase(GetDatabasePRequest request,
       StreamObserver<GetDatabasePResponse> responseObserver) {
-    ServerRpcUtils.call(LOG, () -> GetDatabasePResponse.newBuilder().setDb(
+    RpcUtils.call(LOG, () -> GetDatabasePResponse.newBuilder().setDb(
         mTableMaster.getDatabase(request.getDbName())).build(),
         "getDatabase", "", responseObserver);
   }
@@ -138,7 +138,7 @@ public class TableMasterClientServiceHandler
   @Override
   public void getTable(GetTablePRequest request,
       StreamObserver<GetTablePResponse> responseObserver) {
-    ServerRpcUtils.call(LOG, () -> {
+    RpcUtils.call(LOG, () -> {
       Table table = mTableMaster.getTable(request.getDbName(), request.getTableName());
       if (table != null) {
         return GetTablePResponse.newBuilder().setTableInfo(table.toProto()).build();
@@ -150,7 +150,7 @@ public class TableMasterClientServiceHandler
   @Override
   public void getTableColumnStatistics(GetTableColumnStatisticsPRequest request,
       StreamObserver<GetTableColumnStatisticsPResponse> responseObserver) {
-    ServerRpcUtils.call(LOG, () -> {
+    RpcUtils.call(LOG, () -> {
       GetTableColumnStatisticsPResponse response = GetTableColumnStatisticsPResponse.newBuilder()
           .addAllStatistics(mTableMaster.getTableColumnStatistics(request.getDbName(),
               request.getTableName(), request.getColNamesList())).build();
@@ -166,7 +166,7 @@ public class TableMasterClientServiceHandler
   @Override
   public void getPartitionColumnStatistics(GetPartitionColumnStatisticsPRequest request,
       StreamObserver<GetPartitionColumnStatisticsPResponse> responseObserver) {
-    ServerRpcUtils.call(LOG, () -> {
+    RpcUtils.call(LOG, () -> {
       GetPartitionColumnStatisticsPResponse response =
           GetPartitionColumnStatisticsPResponse.newBuilder()
               .putAllPartitionStatistics(mTableMaster.getPartitionColumnStatistics(
@@ -184,7 +184,7 @@ public class TableMasterClientServiceHandler
   @Override
   public void readTable(ReadTablePRequest request,
       StreamObserver<ReadTablePResponse> responseObserver) {
-    ServerRpcUtils.call(LOG, () -> ReadTablePResponse.newBuilder().addAllPartitions(mTableMaster
+    RpcUtils.call(LOG, () -> ReadTablePResponse.newBuilder().addAllPartitions(mTableMaster
         .readTable(request.getDbName(), request.getTableName(), request.getConstraint()))
         .build(), "readTable", "", responseObserver);
   }
@@ -192,7 +192,7 @@ public class TableMasterClientServiceHandler
   @Override
   public void transformTable(TransformTablePRequest request,
       StreamObserver<TransformTablePResponse> responseObserver) {
-    ServerRpcUtils.call(LOG, () -> TransformTablePResponse.newBuilder().setJobId(mTableMaster
+    RpcUtils.call(LOG, () -> TransformTablePResponse.newBuilder().setJobId(mTableMaster
         .transformTable(request.getDbName(), request.getTableName(), request.getDefinition()))
         .build(), "transformTable", "", responseObserver);
   }
@@ -200,7 +200,7 @@ public class TableMasterClientServiceHandler
   @Override
   public void syncDatabase(SyncDatabasePRequest request,
       StreamObserver<SyncDatabasePResponse> responseObserver) {
-    ServerRpcUtils.call(LOG, () -> {
+    RpcUtils.call(LOG, () -> {
       SyncStatus status = mTableMaster.syncDatabase(request.getDbName());
       return SyncDatabasePResponse.newBuilder().setSuccess(status.getTablesErrorsCount() == 0)
           .setStatus(status).build();
@@ -211,11 +211,11 @@ public class TableMasterClientServiceHandler
   public void getTransformJobInfo(GetTransformJobInfoPRequest request,
       StreamObserver<GetTransformJobInfoPResponse> responseObserver) {
     if (request.hasJobId()) {
-      ServerRpcUtils.call(LOG, () -> GetTransformJobInfoPResponse.newBuilder().addInfo(mTableMaster
+      RpcUtils.call(LOG, () -> GetTransformJobInfoPResponse.newBuilder().addInfo(mTableMaster
           .getTransformJobInfo(request.getJobId()).toProto()).build(),
           "getTransformJobInfo", "", responseObserver);
     } else {
-      ServerRpcUtils.call(LOG, () -> GetTransformJobInfoPResponse.newBuilder()
+      RpcUtils.call(LOG, () -> GetTransformJobInfoPResponse.newBuilder()
           .addAllInfo(mTableMaster.getAllTransformJobInfo().stream()
               .map(TransformJobInfo::toProto).collect(Collectors.toList())).build(),
           "getTransformJobInfo", "", responseObserver);

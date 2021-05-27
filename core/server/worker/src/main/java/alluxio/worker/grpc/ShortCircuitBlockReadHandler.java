@@ -11,7 +11,7 @@
 
 package alluxio.worker.grpc;
 
-import alluxio.ServerRpcUtils;
+import alluxio.RpcUtils;
 import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.InvalidWorkerStateException;
@@ -66,8 +66,8 @@ class ShortCircuitBlockReadHandler implements StreamObserver<OpenLocalBlockReque
    */
   @Override
   public void onNext(OpenLocalBlockRequest request) {
-    ServerRpcUtils.streamingRPCAndLog(LOG,
-        new ServerRpcUtils.StreamingRpcCallable<OpenLocalBlockResponse>() {
+    RpcUtils.streamingRPCAndLog(LOG,
+        new RpcUtils.StreamingRpcCallable<OpenLocalBlockResponse>() {
           @Override
           public OpenLocalBlockResponse call() throws Exception {
             Preconditions.checkState(mRequest == null);
@@ -141,8 +141,8 @@ class ShortCircuitBlockReadHandler implements StreamObserver<OpenLocalBlockReque
    */
   @Override
   public void onCompleted() {
-    ServerRpcUtils.streamingRPCAndLog(LOG,
-        new ServerRpcUtils.StreamingRpcCallable<OpenLocalBlockResponse>() {
+    RpcUtils.streamingRPCAndLog(LOG,
+        new RpcUtils.StreamingRpcCallable<OpenLocalBlockResponse>() {
           @Override
           public OpenLocalBlockResponse call() throws Exception {
             if (mLockId != BlockWorker.INVALID_LOCK_ID) {

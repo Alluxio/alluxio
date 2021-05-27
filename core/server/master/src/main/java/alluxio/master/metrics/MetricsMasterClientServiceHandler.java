@@ -11,7 +11,7 @@
 
 package alluxio.master.metrics;
 
-import alluxio.ServerRpcUtils;
+import alluxio.RpcUtils;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.ClearMetricsPRequest;
@@ -57,7 +57,7 @@ public final class MetricsMasterClientServiceHandler
   @Override
   public void clearMetrics(ClearMetricsPRequest request,
       StreamObserver<ClearMetricsPResponse> responseObserver) {
-    ServerRpcUtils.call(LOG, () -> {
+    RpcUtils.call(LOG, () -> {
       mMetricsMaster.clearMetrics();
       return ClearMetricsPResponse.newBuilder().build();
     }, "clearMetrics", "request=%s", responseObserver, request);
@@ -66,8 +66,8 @@ public final class MetricsMasterClientServiceHandler
   @Override
   public void metricsHeartbeat(MetricsHeartbeatPRequest request,
       StreamObserver<MetricsHeartbeatPResponse> responseObserver) {
-    ServerRpcUtils.call(LOG,
-        (ServerRpcUtils.RpcCallableThrowsIOException<MetricsHeartbeatPResponse>) () -> {
+    RpcUtils.call(LOG,
+        (RpcUtils.RpcCallableThrowsIOException<MetricsHeartbeatPResponse>) () -> {
           if (request.getSerializedSize() > RPC_REQUEST_SIZE_WARNING_THRESHOLD) {
             LOG.warn("metricsHeartbeat request is {} bytes, {} client metrics",
                 request.getSerializedSize(),
@@ -89,8 +89,8 @@ public final class MetricsMasterClientServiceHandler
   @Override
   public void getMetrics(GetMetricsPOptions options,
       StreamObserver<GetMetricsPResponse> responseObserver) {
-    ServerRpcUtils.call(LOG,
-        (ServerRpcUtils.RpcCallableThrowsIOException<GetMetricsPResponse>) () ->
+    RpcUtils.call(LOG,
+        (RpcUtils.RpcCallableThrowsIOException<GetMetricsPResponse>) () ->
           GetMetricsPResponse.newBuilder().putAllMetrics(mMetricsMaster.getMetrics()).build(),
         "getMetrics", "options=%s", responseObserver, options);
   }
