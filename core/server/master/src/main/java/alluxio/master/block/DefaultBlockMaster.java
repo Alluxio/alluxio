@@ -1111,7 +1111,6 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
    * @param workerInfo The worker metadata object
    * @param removedBlockIds A list of block ids removed from the worker
    */
-  @GuardedBy("workerInfo.mBlockListLock")
   private void processWorkerRemovedBlocks(MasterWorkerInfo workerInfo,
       Collection<Long> removedBlockIds) {
     for (long removedBlockId : removedBlockIds) {
@@ -1136,7 +1135,6 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
    *  @param workerInfo The worker metadata object
    * @param addedBlockIds A mapping from storage tier alias to a list of block ids added
    */
-  @GuardedBy("workerInfo.mBlockListLock")
   private void processWorkerAddedBlocks(MasterWorkerInfo workerInfo,
       Map<BlockLocation, List<Long>> addedBlockIds) {
     for (Map.Entry<BlockLocation, List<Long>> entry : addedBlockIds.entrySet()) {
@@ -1161,7 +1159,6 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
     }
   }
 
-  @GuardedBy("workerInfo.mBlockListLock")
   private void processWorkerOrphanedBlocks(MasterWorkerInfo workerInfo) {
     for (long block : workerInfo.getBlocks()) {
       if (!mBlockStore.getBlock(block).isPresent()) {
@@ -1301,7 +1298,6 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
    *
    * @param worker the worker metadata
    */
-  @GuardedBy("worker.mBlockListLock")
   private void processLostWorker(MasterWorkerInfo worker) {
     mLostWorkers.add(worker);
     mWorkers.remove(worker);

@@ -32,8 +32,6 @@ public class WorkerMeta {
   final long mId;
   /** Start time of the worker in ms. */
   final long mStartTimeMs;
-  /** Worker's last updated time in ms. */
-  final AtomicLong mLastUpdatedTimeMs;
 
   /**
    * Constructor.
@@ -45,10 +43,5 @@ public class WorkerMeta {
     mId = id;
     mWorkerAddress = Preconditions.checkNotNull(address, "address");
     mStartTimeMs = CommonUtils.getCurrentMs();
-    mLastUpdatedTimeMs = new AtomicLong(CommonUtils.getCurrentMs());
-  }
-
-  void updateLastUpdatedTimeMs() {
-    mLastUpdatedTimeMs.set(CommonUtils.getCurrentMs());
   }
 }

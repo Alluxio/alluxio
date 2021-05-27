@@ -36,6 +36,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.stream.Collectors;
 
@@ -59,12 +60,16 @@ public final class MasterWorkerInfo {
   private static final int BLOCK_SIZE_LIMIT = 100;
 
   /** If true, the worker is considered registered. */
-  @GuardedBy("mRegisterLock")
+  @GuardedBy("mStatusLock")
   public boolean mIsRegistered;
   /** Locks the worker register status. */
   private final ReentrantReadWriteLock mStatusLock;
+
   /** Worker metadata, this field is thread safe. */
   private final WorkerMeta mMeta;
+  /** Worker's last updated time in ms. */
+  private final AtomicLong mLastUpdatedTimeMs;
+
   /** Worker usage data. */
   @GuardedBy("mUsageLock")
   private final WorkerUsageMeta mUsage;
@@ -79,8 +84,9 @@ public final class MasterWorkerInfo {
   private final Set<Long> mToRemoveBlocks;
   /** Locks the 2 block sets above. */
   private final ReentrantReadWriteLock mBlockListLock;
+
   /** Stores the mapping from LockType to the lock. */
-  private final Map<LockType, ReentrantReadWriteLock> mLockMap;
+  private final Map<LockType, ReentrantReadWriteLock> mLockTypeToLock;
 
   /**
    * Creates a new instance of {@link MasterWorkerInfo}.
@@ -93,12 +99,13 @@ public final class MasterWorkerInfo {
     mUsage = new WorkerUsageMeta();
     mBlocks = new HashSet<>();
     mToRemoveBlocks = new HashSet<>();
+    mLastUpdatedTimeMs = new AtomicLong(CommonUtils.getCurrentMs());
 
     // Init all locks
     mStatusLock = new ReentrantReadWriteLock();
     mUsageLock = new ReentrantReadWriteLock();
     mBlockListLock = new ReentrantReadWriteLock();
-    mLockMap = ImmutableMap.of(
+    mLockTypeToLock = ImmutableMap.of(
         LockType.STATUS_LOCK, mStatusLock,
         LockType.USAGE_LOCK, mUsageLock,
         LockType.BLOCKS_LOCK, mBlockListLock);
@@ -117,7 +124,6 @@ public final class MasterWorkerInfo {
    * @param blocks set of block ids on this worker
    * @return A Set of blocks removed (or lost) from this worker
    */
-  // TODO(jiacheng): Do I need to write GuardedBy for member methods like this?
   public Set<Long> register(final StorageTierAssoc globalStorageTierAssoc,
       final List<String> storageTierAliases, final Map<String, Long> totalBytesOnTiers,
       final Map<String, Long> usedBytesOnTiers, final Set<Long> blocks) {
@@ -214,7 +220,7 @@ public final class MasterWorkerInfo {
           break;
         case LAST_CONTACT_SEC:
           info.setLastContactSec((int) ((CommonUtils.getCurrentMs()
-              - mMeta.mLastUpdatedTimeMs.get()) / Constants.SECOND_MS));
+              - mLastUpdatedTimeMs.get()) / Constants.SECOND_MS));
           break;
         case START_TIME_MS:
           info.setStartTimeMs(mMeta.mStartTimeMs);
@@ -284,7 +290,7 @@ public final class MasterWorkerInfo {
    * @return the last updated time of the worker in ms
    */
   public long getLastUpdatedTimeMs() {
-    return mMeta.mLastUpdatedTimeMs.get();
+    return mLastUpdatedTimeMs.get();
   }
 
   /**
@@ -379,7 +385,7 @@ public final class MasterWorkerInfo {
         .add("workerAddress", mMeta.mWorkerAddress)
         .add("capacityBytes", mUsage.mCapacityBytes)
         .add("usedBytes", mUsage.mUsedBytes)
-        .add("lastUpdatedTimeMs", mMeta.mLastUpdatedTimeMs.get())
+        .add("lastUpdatedTimeMs", mLastUpdatedTimeMs.get())
         .add("blockCount", mBlocks.size())
         .add(blockFieldName, blocks)
         .add("lostStorage", mUsage.mLostStorage).toString();
@@ -390,7 +396,7 @@ public final class MasterWorkerInfo {
    * No locking required.
    */
   public void updateLastUpdatedTimeMs() {
-    mMeta.updateLastUpdatedTimeMs();
+    mLastUpdatedTimeMs.set(CommonUtils.getCurrentMs());
   }
 
   /**
@@ -468,9 +474,9 @@ public final class MasterWorkerInfo {
         LockType.USAGE_LOCK, LockType.BLOCKS_LOCK)) {
       if (lockTypes.contains(t)) {
         if (isShared) {
-          mLockMap.get(t).readLock().lock();
+          mLockTypeToLock.get(t).readLock().lock();
         } else {
-          mLockMap.get(t).writeLock().lock();
+          mLockTypeToLock.get(t).writeLock().lock();
         }
       }
     }
@@ -487,9 +493,9 @@ public final class MasterWorkerInfo {
         LockType.USAGE_LOCK, LockType.STATUS_LOCK)) {
       if (lockTypes.contains(t)) {
         if (isShared) {
-          mLockMap.get(t).readLock().unlock();
+          mLockTypeToLock.get(t).readLock().unlock();
         } else {
-          mLockMap.get(t).writeLock().unlock();
+          mLockTypeToLock.get(t).writeLock().unlock();
         }
       }
     }
