@@ -1064,6 +1064,10 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
   /**
    * Updates the worker and block metadata for blocks removed from a worker.
    *
+   * You should lock externally with {@link MasterWorkerInfo#lock(EnumSet, boolean)}
+   * with {@link MasterWorkerInfo.LockType#BLOCKS_LOCK} specified.
+   * An exclusive lock is required.
+   *
    * @param workerInfo The worker metadata object
    * @param removedBlockIds A list of block ids removed from the worker
    */
@@ -1088,7 +1092,12 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
 
   /**
    * Updates the worker and block metadata for blocks added to a worker.
-   *  @param workerInfo The worker metadata object
+   *
+   * You should lock externally with {@link MasterWorkerInfo#lock(EnumSet, boolean)}
+   * with {@link MasterWorkerInfo.LockType#BLOCKS_LOCK} specified.
+   * An exclusive lock is required.
+   *
+   * @param workerInfo The worker metadata object
    * @param addedBlockIds A mapping from storage tier alias to a list of block ids added
    */
   private void processWorkerAddedBlocks(MasterWorkerInfo workerInfo,
@@ -1115,6 +1124,16 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
     }
   }
 
+  /**
+   * Checks the blocks on the worker. For blocks not present in Alluxio anymore,
+   * they will be marked to-be-removed from the worker.
+   *
+   * You should lock externally with {@link MasterWorkerInfo#lock(EnumSet, boolean)}
+   * with {@link MasterWorkerInfo.LockType#USAGE_LOCK} specified.
+   * A shared lock is required.
+   *
+   * @param workerInfo The worker metadata object
+   */
   private void processWorkerOrphanedBlocks(MasterWorkerInfo workerInfo) {
     for (long block : workerInfo.getBlocks()) {
       if (!mBlockStore.getBlock(block).isPresent()) {
@@ -1251,6 +1270,10 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
 
   /**
    * Updates the metadata for the specified lost worker.
+   *
+   * You should lock externally with {@link MasterWorkerInfo#lock(EnumSet, boolean)}
+   * with {@link MasterWorkerInfo.LockType#BLOCKS_LOCK} specified.
+   * An exclusive lock is required.
    *
    * @param worker the worker metadata
    */
