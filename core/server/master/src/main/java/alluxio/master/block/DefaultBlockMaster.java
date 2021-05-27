@@ -555,8 +555,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
    * Locks the {@link MasterWorkerInfo} properly and convert it to a {@link WorkerInfo}.
    */
   private WorkerInfo extractWorkerInfo(MasterWorkerInfo worker,
-                                       Set<GetWorkerReportOptions.WorkerInfoField> fieldRange,
-                                       boolean isLiveWorker) {
+      Set<GetWorkerReportOptions.WorkerInfoField> fieldRange, boolean isLiveWorker) {
     EnumSet<MasterWorkerInfo.LockType> lockTypes =
         EnumSet.of(MasterWorkerInfo.LockType.USAGE_LOCK);
     worker.lock(lockTypes, true);
