@@ -151,7 +151,7 @@ public final class RpcUtils {
       Instant endTime = Instant.now();
       long timeElapsed = Duration.between(startTime, endTime).toMillis();
       if (timeElapsed > RPC_TIME_WARNING_THESHOLD) {
-        logger.warn("RPC {} took {} to complete: {}", methodName, timeElapsed, debugDesc);
+        logger.warn("RPC {} took {}ms to complete: {}", methodName, timeElapsed, debugDesc);
       }
     }
   }
