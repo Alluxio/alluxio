@@ -849,7 +849,6 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
    */
   @Nullable
   private MasterWorkerInfo findUnregisteredWorker(WorkerNetAddress workerNetAddress) {
-    // TODO(jiacheng): the list can potentially be large, consider avoiding this copy
     for (IndexedSet<MasterWorkerInfo> workers: Arrays.asList(mTempWorkers, mLostWorkers)) {
       MasterWorkerInfo worker = workers.getFirstByField(ADDRESS_INDEX, workerNetAddress);
       if (worker != null) {
@@ -897,10 +896,10 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
         for (Consumer<Address> function : mLostWorkerFoundListeners) {
           // The worker address is final, no need for locking here
           function.accept(new Address(worker.getWorkerAddress().getHost(),
-                  worker.getWorkerAddress().getRpcPort()));
+              worker.getWorkerAddress().getRpcPort()));
         }
         LOG.warn("A lost worker {} has requested its old id {}.",
-                worker.getWorkerAddress(), worker.getId());
+            worker.getWorkerAddress(), worker.getId());
       }
 
       return worker;
@@ -957,7 +956,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
     }
 
     // Lock all the locks
-    worker.getRegisterLock().lock();
+    worker.getRegisterLock().writeLock().lock();
     worker.getUsageLock().writeLock().lock();
     worker.getBlockListLock().writeLock().lock();
     try {
@@ -972,7 +971,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
       // Release in the reverse order of acquisition
       worker.getBlockListLock().writeLock().unlock();
       worker.getUsageLock().writeLock().unlock();
-      worker.getRegisterLock().unlock();
+      worker.getRegisterLock().writeLock().unlock();
     }
 
     if (options.getConfigsCount() > 0) {
@@ -1058,7 +1057,8 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
 
     // Should not reach here
     if (workerCommand == null) {
-      LOG.error("Worker heartbeat response command is null!");
+      Preconditions.checkNotNull(workerCommand,
+          "Worker heartbeat response command is null!");
     }
 
     return workerCommand;
