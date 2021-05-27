@@ -215,9 +215,9 @@ public class TableMasterClientServiceHandler
           .getTransformJobInfo(request.getJobId()).toProto()).build(),
           "getTransformJobInfo", "", responseObserver);
     } else {
-      RpcUtils.call(LOG, () -> GetTransformJobInfoPResponse.newBuilder()
-          .addAllInfo(mTableMaster.getAllTransformJobInfo().stream()
-              .map(TransformJobInfo::toProto).collect(Collectors.toList())).build(),
+      RpcUtils.call(LOG, () -> GetTransformJobInfoPResponse.newBuilder().addAllInfo(mTableMaster
+              .getAllTransformJobInfo().stream().map(TransformJobInfo::toProto)
+              .collect(Collectors.toList())).build(),
           "getTransformJobInfo", "", responseObserver);
     }
   }

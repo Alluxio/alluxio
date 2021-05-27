@@ -66,59 +66,58 @@ class ShortCircuitBlockReadHandler implements StreamObserver<OpenLocalBlockReque
    */
   @Override
   public void onNext(OpenLocalBlockRequest request) {
-    RpcUtils.streamingRPCAndLog(LOG,
-        new RpcUtils.StreamingRpcCallable<OpenLocalBlockResponse>() {
-          @Override
-          public OpenLocalBlockResponse call() throws Exception {
-            Preconditions.checkState(mRequest == null);
-            mRequest = request;
-            if (mLockId == BlockWorker.INVALID_LOCK_ID) {
-              mSessionId = IdUtils.createSessionId();
-              // TODO(calvin): Update the locking logic so this can be done better
-              if (mRequest.getPromote()) {
-                try {
-                  mWorker.moveBlock(mSessionId, mRequest.getBlockId(), 0);
-                } catch (BlockDoesNotExistException e) {
-                  LOG.debug("Block {} to promote does not exist in Alluxio",
-                      mRequest.getBlockId(), e);
-                } catch (Exception e) {
-                  LOG.warn("Failed to promote block {}: {}", mRequest.getBlockId(), e.toString());
-                }
-              }
-              mLockId = mWorker.lockBlock(mSessionId, mRequest.getBlockId());
-              if (mLockId == BlockWorker.INVALID_LOCK_ID) {
-                throw new BlockDoesNotExistException(ExceptionMessage.NO_BLOCK_ID_FOUND,
-                    mRequest.getBlockId());
-              }
-              mWorker.accessBlock(mSessionId, mRequest.getBlockId());
-            } else {
-              LOG.warn("Lock block {} without releasing previous block lock {}.",
-                  mRequest.getBlockId(), mLockId);
-              throw new InvalidWorkerStateException(
-                  ExceptionMessage.LOCK_NOT_RELEASED.getMessage(mLockId));
+    RpcUtils.streamingRPCAndLog(LOG, new RpcUtils.StreamingRpcCallable<OpenLocalBlockResponse>() {
+      @Override
+      public OpenLocalBlockResponse call() throws Exception {
+        Preconditions.checkState(mRequest == null);
+        mRequest = request;
+        if (mLockId == BlockWorker.INVALID_LOCK_ID) {
+          mSessionId = IdUtils.createSessionId();
+          // TODO(calvin): Update the locking logic so this can be done better
+          if (mRequest.getPromote()) {
+            try {
+              mWorker.moveBlock(mSessionId, mRequest.getBlockId(), 0);
+            } catch (BlockDoesNotExistException e) {
+              LOG.debug("Block {} to promote does not exist in Alluxio",
+                  mRequest.getBlockId(), e);
+            } catch (Exception e) {
+              LOG.warn("Failed to promote block {}: {}", mRequest.getBlockId(), e.toString());
             }
-            OpenLocalBlockResponse response = OpenLocalBlockResponse.newBuilder()
-                .setPath(mWorker.getBlockMeta(mSessionId, mRequest.getBlockId(), mLockId)
-                    .getPath())
-                .build();
-            return response;
           }
+          mLockId = mWorker.lockBlock(mSessionId, mRequest.getBlockId());
+          if (mLockId == BlockWorker.INVALID_LOCK_ID) {
+            throw new BlockDoesNotExistException(ExceptionMessage.NO_BLOCK_ID_FOUND,
+                mRequest.getBlockId());
+          }
+          mWorker.accessBlock(mSessionId, mRequest.getBlockId());
+        } else {
+          LOG.warn("Lock block {} without releasing previous block lock {}.",
+              mRequest.getBlockId(), mLockId);
+          throw new InvalidWorkerStateException(
+              ExceptionMessage.LOCK_NOT_RELEASED.getMessage(mLockId));
+        }
+        OpenLocalBlockResponse response = OpenLocalBlockResponse.newBuilder()
+            .setPath(mWorker.getBlockMeta(mSessionId, mRequest.getBlockId(), mLockId)
+                .getPath())
+            .build();
+        return response;
+      }
 
-          @Override
-          public void exceptionCaught(Throwable e) {
-            if (mLockId != BlockWorker.INVALID_LOCK_ID) {
-              try {
-                mWorker.unlockBlock(mLockId);
-              } catch (BlockDoesNotExistException ee) {
-                LOG.warn("Failed to unlock lock {} of block {} with error {}.",
-                    mLockId, mRequest.getBlockId(), e.toString());
-              }
-              mLockId = BlockWorker.INVALID_LOCK_ID;
-            }
-            mResponseObserver.onError(GrpcExceptionUtils.fromThrowable(e));
+      @Override
+      public void exceptionCaught(Throwable e) {
+        if (mLockId != BlockWorker.INVALID_LOCK_ID) {
+          try {
+            mWorker.unlockBlock(mLockId);
+          } catch (BlockDoesNotExistException ee) {
+            LOG.warn("Failed to unlock lock {} of block {} with error {}.",
+                mLockId, mRequest.getBlockId(), e.toString());
           }
-        }, "OpenBlock", true, false, mResponseObserver, "Session=%d, Request=%s",
-            mSessionId, mRequest);
+          mLockId = BlockWorker.INVALID_LOCK_ID;
+        }
+        mResponseObserver.onError(GrpcExceptionUtils.fromThrowable(e));
+      }
+    }, "OpenBlock", true, false, mResponseObserver, "Session=%d, Request=%s",
+        mSessionId, mRequest);
   }
 
   @Override
@@ -141,30 +140,29 @@ class ShortCircuitBlockReadHandler implements StreamObserver<OpenLocalBlockReque
    */
   @Override
   public void onCompleted() {
-    RpcUtils.streamingRPCAndLog(LOG,
-        new RpcUtils.StreamingRpcCallable<OpenLocalBlockResponse>() {
-          @Override
-          public OpenLocalBlockResponse call() throws Exception {
-            if (mLockId != BlockWorker.INVALID_LOCK_ID) {
-              try {
-                mWorker.unlockBlock(mLockId);
-              } catch (BlockDoesNotExistException e) {
-                LOG.warn("Failed to unlock lock {} of block {} with error {}.",
-                    mLockId, mRequest.getBlockId(), e.toString());
-              }
-              mLockId = BlockWorker.INVALID_LOCK_ID;
-            } else if (mRequest != null) {
-              LOG.warn("Close a closed block {}.", mRequest.getBlockId());
-            }
-            return null;
+    RpcUtils.streamingRPCAndLog(LOG, new RpcUtils.StreamingRpcCallable<OpenLocalBlockResponse>() {
+      @Override
+      public OpenLocalBlockResponse call() throws Exception {
+        if (mLockId != BlockWorker.INVALID_LOCK_ID) {
+          try {
+            mWorker.unlockBlock(mLockId);
+          } catch (BlockDoesNotExistException e) {
+            LOG.warn("Failed to unlock lock {} of block {} with error {}.",
+                mLockId, mRequest.getBlockId(), e.toString());
           }
+          mLockId = BlockWorker.INVALID_LOCK_ID;
+        } else if (mRequest != null) {
+          LOG.warn("Close a closed block {}.", mRequest.getBlockId());
+        }
+        return null;
+      }
 
-          @Override
-          public void exceptionCaught(Throwable e) {
-            mResponseObserver.onError(GrpcExceptionUtils.fromThrowable(e));
-            mLockId = BlockWorker.INVALID_LOCK_ID;
-          }
-        }, "CloseBlock", false, true, mResponseObserver, "Session=%d, Request=%s",
-            mSessionId, mRequest);
+      @Override
+      public void exceptionCaught(Throwable e) {
+        mResponseObserver.onError(GrpcExceptionUtils.fromThrowable(e));
+        mLockId = BlockWorker.INVALID_LOCK_ID;
+      }
+    }, "CloseBlock", false, true, mResponseObserver, "Session=%d, Request=%s",
+        mSessionId, mRequest);
   }
 }

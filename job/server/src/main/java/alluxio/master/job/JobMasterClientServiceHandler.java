@@ -64,32 +64,29 @@ public class JobMasterClientServiceHandler
 
   @Override
   public void cancel(CancelPRequest request, StreamObserver<CancelPResponse> responseObserver) {
-    RpcUtils.call(LOG,
-        (RpcUtils.RpcCallableThrowsIOException<CancelPResponse>) () -> {
-          mJobMaster.cancel(request.getJobId());
-          return CancelPResponse.getDefaultInstance();
-        }, "cancel", "request=%s", responseObserver, request);
+    RpcUtils.call(LOG, (RpcUtils.RpcCallableThrowsIOException<CancelPResponse>) () -> {
+      mJobMaster.cancel(request.getJobId());
+      return CancelPResponse.getDefaultInstance();
+    }, "cancel", "request=%s", responseObserver, request);
   }
 
   @Override
   public void getJobStatus(GetJobStatusPRequest request,
                            StreamObserver<GetJobStatusPResponse> responseObserver) {
-    RpcUtils.call(LOG,
-        (RpcUtils.RpcCallableThrowsIOException<GetJobStatusPResponse>) () -> {
-          return GetJobStatusPResponse.newBuilder()
-              .setJobInfo(mJobMaster.getStatus(request.getJobId(), false).toProto()).build();
-        }, "getJobStatus", "request=%s", responseObserver, request);
+    RpcUtils.call(LOG, (RpcUtils.RpcCallableThrowsIOException<GetJobStatusPResponse>) () -> {
+      return GetJobStatusPResponse.newBuilder()
+          .setJobInfo(mJobMaster.getStatus(request.getJobId(), false).toProto()).build();
+    }, "getJobStatus", "request=%s", responseObserver, request);
   }
 
   @Override
   public void getJobStatusDetailed(GetJobStatusDetailedPRequest request,
                                    StreamObserver<GetJobStatusDetailedPResponse>
                                        responseObserver) {
-    RpcUtils.call(LOG,
-        (RpcUtils.RpcCallableThrowsIOException<GetJobStatusDetailedPResponse>) () -> {
-          return GetJobStatusDetailedPResponse.newBuilder()
-              .setJobInfo(mJobMaster.getStatus(request.getJobId(), true).toProto()).build();
-        }, "getJobStatusDetailed", "request=%s", responseObserver, request);
+    RpcUtils.call(LOG, (RpcUtils.RpcCallableThrowsIOException<GetJobStatusDetailedPResponse>) () -> {
+      return GetJobStatusDetailedPResponse.newBuilder()
+          .setJobInfo(mJobMaster.getStatus(request.getJobId(), true).toProto()).build();
+    }, "getJobStatusDetailed", "request=%s", responseObserver, request);
   }
 
   @Override

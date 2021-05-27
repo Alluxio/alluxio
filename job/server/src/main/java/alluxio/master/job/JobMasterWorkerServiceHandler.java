@@ -60,32 +60,31 @@ public final class JobMasterWorkerServiceHandler
   public void heartbeat(JobHeartbeatPRequest request,
                         StreamObserver<JobHeartbeatPResponse> responseObserver) {
 
-    RpcUtils.call(LOG,
-        (RpcUtils.RpcCallableThrowsIOException<JobHeartbeatPResponse>) () -> {
-          if (request.getSerializedSize() > RPC_REQUEST_SIZE_WARNING_THRESHOLD) {
-            LOG.warn("jobHeartbeat request is {} bytes, {} TaskInfo",
-                request.getSerializedSize(),
-                request.getTaskInfosCount());
-          }
-          List<TaskInfo> wireTaskInfoList = Lists.newArrayList();
-          for (alluxio.grpc.JobInfo taskInfo : request.getTaskInfosList()) {
-            try {
-              wireTaskInfoList.add(new TaskInfo(taskInfo));
-            } catch (IOException e) {
-              LOG.error("task info deserialization failed " + e);
-            }
-          }
-          JobWorkerHealth jobWorkerHealth = new JobWorkerHealth(request.getJobWorkerHealth());
-          JobHeartbeatPResponse response = JobHeartbeatPResponse.newBuilder()
-              .addAllCommands(mJobMaster.workerHeartbeat(jobWorkerHealth, wireTaskInfoList))
-              .build();
-          if (response.getSerializedSize() > RPC_RESPONSE_SIZE_WARNING_THRESHOLD) {
-            LOG.warn("jobHeartbeat response is {} bytes, {} commands",
-                response.getSerializedSize(),
-                response.getCommandsCount());
-          }
-          return response;
-        }, "heartbeat", "request=%s", responseObserver, request);
+    RpcUtils.call(LOG, (RpcUtils.RpcCallableThrowsIOException<JobHeartbeatPResponse>) () -> {
+      if (request.getSerializedSize() > RPC_REQUEST_SIZE_WARNING_THRESHOLD) {
+        LOG.warn("jobHeartbeat request is {} bytes, {} TaskInfo",
+            request.getSerializedSize(),
+            request.getTaskInfosCount());
+      }
+      List<TaskInfo> wireTaskInfoList = Lists.newArrayList();
+      for (alluxio.grpc.JobInfo taskInfo : request.getTaskInfosList()) {
+        try {
+          wireTaskInfoList.add(new TaskInfo(taskInfo));
+        } catch (IOException e) {
+          LOG.error("task info deserialization failed " + e);
+        }
+      }
+      JobWorkerHealth jobWorkerHealth = new JobWorkerHealth(request.getJobWorkerHealth());
+      JobHeartbeatPResponse response = JobHeartbeatPResponse.newBuilder()
+          .addAllCommands(mJobMaster.workerHeartbeat(jobWorkerHealth, wireTaskInfoList))
+          .build();
+      if (response.getSerializedSize() > RPC_RESPONSE_SIZE_WARNING_THRESHOLD) {
+        LOG.warn("jobHeartbeat response is {} bytes, {} commands",
+            response.getSerializedSize(),
+            response.getCommandsCount());
+      }
+      return response;
+    }, "heartbeat", "request=%s", responseObserver, request);
   }
 
   @Override
