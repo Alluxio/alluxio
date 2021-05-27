@@ -34,6 +34,7 @@ import alluxio.master.MasterClientContext;
 import alluxio.grpc.GrpcUtils;
 import alluxio.wire.WorkerNetAddress;
 
+import com.google.common.annotations.VisibleForTesting;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -139,8 +140,20 @@ public final class BlockMasterClient extends AbstractMasterClient {
     }, LOG, "GetId", "address=%s", address);
   }
 
-  private List<LocationBlockIdListEntry> convertBlockListMapToProto(
-      Map<BlockStoreLocation, List<Long>> blockListOnLocation) {
+  /**
+   * Converts the block list map to a proto list.
+   * Because the list is flattened from a map, in the list no two {@link LocationBlockIdListEntry}
+   * instances shall have the same {@link BlockStoreLocationProto}.
+   * The uniqueness of {@link BlockStoreLocationProto} is determined by tier alias and medium type.
+   * That means directories with the same tier alias and medium type will be merged into the same
+   * {@link LocationBlockIdListEntry}.
+   *
+   * @param blockListOnLocation a map from block location to the block list
+   * @return a flattened and deduplicated list
+   */
+  @VisibleForTesting
+  public List<LocationBlockIdListEntry> convertBlockListMapToProto(
+          Map<BlockStoreLocation, List<Long>> blockListOnLocation) {
     final List<LocationBlockIdListEntry> entryList = new ArrayList<>();
     for (Map.Entry<BlockStoreLocation, List<Long>> entry : blockListOnLocation.entrySet()) {
       BlockStoreLocation loc = entry.getKey();
