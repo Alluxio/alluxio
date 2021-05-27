@@ -22,6 +22,8 @@ import alluxio.jnifuse.AbstractFuseFileSystem;
 public class AuthPolicyFactory {
 
   /**
+   * Creates a new instance of {@link AuthPolicy}.
+   *
    * @param fileSystem     the Alluxio file system
    * @param conf           alluxio configuration
    * @param fuseFileSystem the FuseFileSystem

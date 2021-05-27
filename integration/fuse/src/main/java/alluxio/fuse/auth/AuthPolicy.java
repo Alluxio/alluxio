@@ -19,6 +19,7 @@ import alluxio.AlluxioURI;
 public interface AuthPolicy {
   /**
    * Sets user and group if needed.
+   *
    * @param uri the path uri
    */
   void setUserGroupIfNeeded(AlluxioURI uri) throws Exception;
