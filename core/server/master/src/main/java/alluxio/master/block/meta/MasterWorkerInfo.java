@@ -20,6 +20,8 @@ import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.base.MoreObjects;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Sets;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,12 +30,12 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.locks.ReentrantLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.stream.Collectors;
 
@@ -60,7 +62,7 @@ public final class MasterWorkerInfo {
   @GuardedBy("mRegisterLock")
   public boolean mIsRegistered;
   /** Locks the worker register status. */
-  private final ReentrantLock mRegisterLock;
+  private final ReentrantReadWriteLock mStatusLock;
   /** Worker metadata, this field is thread safe. */
   private final WorkerMeta mMeta;
   /** Worker usage data. */
@@ -77,6 +79,8 @@ public final class MasterWorkerInfo {
   private final Set<Long> mToRemoveBlocks;
   /** Locks the 2 block sets above. */
   private final ReentrantReadWriteLock mBlockListLock;
+  /** Stores the mapping from LockType to the lock. */
+  private final Map<LockType, ReentrantReadWriteLock> mLockMap;
 
   /**
    * Creates a new instance of {@link MasterWorkerInfo}.
@@ -91,14 +95,18 @@ public final class MasterWorkerInfo {
     mToRemoveBlocks = new HashSet<>();
 
     // Init all locks
-    mRegisterLock = new ReentrantLock();
+    mStatusLock = new ReentrantReadWriteLock();
     mUsageLock = new ReentrantReadWriteLock();
     mBlockListLock = new ReentrantReadWriteLock();
+    mLockMap = ImmutableMap.of(
+        LockType.STATUS_LOCK, mStatusLock,
+        LockType.USAGE_LOCK, mUsageLock,
+        LockType.BLOCKS_LOCK, mBlockListLock);
   }
 
   /**
    * Marks the worker as registered, while updating all of its metadata.
-   * Write locks on {@link MasterWorkerInfo#mRegisterLock}, {@link MasterWorkerInfo#mUsageLock}
+   * Write locks on {@link MasterWorkerInfo#mStatusLock}, {@link MasterWorkerInfo#mUsageLock}
    * and {@link MasterWorkerInfo#mBlockListLock} are required.
    *
    * @param globalStorageTierAssoc global mapping between storage aliases and ordinal position
@@ -441,29 +449,49 @@ public final class MasterWorkerInfo {
   }
 
   /**
-   * Returns the lock for worker register status.
-   *
-   * @return a mutex lock
+   * Enum for the locks in {@link MasterWorkerInfo}.
    */
-  public ReentrantLock getRegisterLock() {
-    return mRegisterLock;
+  public enum LockType {
+    STATUS_LOCK,
+    USAGE_LOCK,
+    BLOCKS_LOCK;
   }
 
   /**
-   * Returns the lock for worker usage metadata.
+   * Locks the corresponding locks.
    *
-   * @return an RW lock
+   * @param isShared if false, the locking is exclusive
+   * @param lockTypes the locks
    */
-  public ReentrantReadWriteLock getUsageLock() {
-    return mUsageLock;
+  public void lock(boolean isShared, EnumSet<LockType> lockTypes) {
+    for (LockType t : ImmutableList.of(LockType.STATUS_LOCK,
+        LockType.USAGE_LOCK, LockType.BLOCKS_LOCK)) {
+      if (lockTypes.contains(t)) {
+        if (isShared) {
+          mLockMap.get(t).readLock().lock();
+        } else {
+          mLockMap.get(t).writeLock().lock();
+        }
+      }
+    }
   }
 
   /**
-   * Returns the lock for worker present block list and to-be-removed block list.
+   * Unlocks the corresponding locks.
    *
-   * @return an RW lock
+   * @param isShared if false, the locking is exclusive
+   * @param lockTypes the locks
    */
-  public ReentrantReadWriteLock getBlockListLock() {
-    return mBlockListLock;
+  public void unlock(boolean isShared, EnumSet<LockType> lockTypes) {
+    for (LockType t : ImmutableList.of(LockType.BLOCKS_LOCK,
+        LockType.USAGE_LOCK, LockType.STATUS_LOCK)) {
+      if (lockTypes.contains(t)) {
+        if (isShared) {
+          mLockMap.get(t).readLock().unlock();
+        } else {
+          mLockMap.get(t).writeLock().unlock();
+        }
+      }
+    }
   }
 }

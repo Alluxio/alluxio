@@ -92,6 +92,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -455,8 +456,13 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
   public long getCapacityBytes() {
     long ret = 0;
     for (MasterWorkerInfo worker : mWorkers) {
-      try (LockResource r = new LockResource(worker.getUsageLock().readLock())) {
+      EnumSet<MasterWorkerInfo.LockType> lockTypes =
+          EnumSet.of(MasterWorkerInfo.LockType.USAGE_LOCK);
+      worker.lock(true, lockTypes);
+      try {
         ret += worker.getCapacityBytes();
+      } finally {
+        worker.unlock(true, lockTypes);
       }
     }
     return ret;
@@ -471,8 +477,13 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
   public long getUsedBytes() {
     long ret = 0;
     for (MasterWorkerInfo worker : mWorkers) {
-      try (LockResource r = new LockResource(worker.getUsageLock().readLock())) {
+      EnumSet<MasterWorkerInfo.LockType> lockTypes =
+              EnumSet.of(MasterWorkerInfo.LockType.USAGE_LOCK);
+      worker.lock(true, lockTypes);
+      try {
         ret += worker.getUsedBytes();
+      } finally {
+        worker.unlock(true, lockTypes);
       }
     }
     return ret;
@@ -583,8 +594,13 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
   private WorkerInfo extractWorkerInfo(MasterWorkerInfo worker,
                                        Set<GetWorkerReportOptions.WorkerInfoField> fieldRange,
                                        boolean isLiveWorker) {
-    try (LockResource r = new LockResource(worker.getUsageLock().readLock())) {
+    EnumSet<MasterWorkerInfo.LockType> lockTypes =
+        EnumSet.of(MasterWorkerInfo.LockType.USAGE_LOCK);
+    worker.lock(true, lockTypes);
+    try {
       return worker.generateWorkerInfo(fieldRange, isLiveWorker);
+    } finally {
+      worker.unlock(true, lockTypes);
     }
   }
 
@@ -592,7 +608,10 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
   public List<WorkerLostStorageInfo> getWorkerLostStorage() {
     List<WorkerLostStorageInfo> workerLostStorageList = new ArrayList<>();
     for (MasterWorkerInfo worker : mWorkers) {
-      try (LockResource r = new LockResource(worker.getUsageLock().readLock())) {
+      EnumSet<MasterWorkerInfo.LockType> lockTypes =
+          EnumSet.of(MasterWorkerInfo.LockType.USAGE_LOCK);
+      worker.lock(true, lockTypes);
+      try {
         if (worker.hasLostStorage()) {
           Map<String, StorageList> lostStorage = worker.getLostStorage().entrySet()
               .stream().collect(Collectors.toMap(Map.Entry::getKey,
@@ -601,6 +620,8 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
               .setAddress(GrpcUtils.toProto(worker.getWorkerAddress()))
               .putAllLostStorage(lostStorage).build());
         }
+      } finally {
+        worker.unlock(true, lockTypes);
       }
     }
     return workerLostStorageList;
@@ -641,9 +662,13 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
         for (long workerId : workerIds) {
           MasterWorkerInfo worker = mWorkers.getFirstByField(ID_INDEX, workerId);
           if (worker != null) {
-            // We read the mBlocks and write the mToRemoveBlocks
-            try (LockResource r = new LockResource(worker.getBlockListLock().writeLock())) {
+            EnumSet<MasterWorkerInfo.LockType> lockTypes =
+                EnumSet.of(MasterWorkerInfo.LockType.BLOCKS_LOCK);
+            worker.lock(false, lockTypes);
+            try {
               worker.updateToRemovedBlock(true, blockId);
+            } finally {
+              worker.unlock(false, lockTypes);
             }
           }
         }
@@ -741,8 +766,9 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
     try (JournalContext journalContext = createJournalContext()) {
       // Lock the worker metadata here to preserve the lock order
       // The worker metadata must be locked before the blocks
-      worker.getUsageLock().writeLock().lock();
-      worker.getBlockListLock().writeLock().lock();
+      EnumSet<MasterWorkerInfo.LockType> lockTypes =
+          EnumSet.of(MasterWorkerInfo.LockType.USAGE_LOCK, MasterWorkerInfo.LockType.BLOCKS_LOCK);
+      worker.lock(false, lockTypes);
       try {
         try (LockResource r = lockBlock(blockId)) {
           Optional<BlockMeta> block = mBlockStore.getBlock(blockId);
@@ -773,8 +799,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
           worker.updateUsedBytes(tierAlias, usedBytesOnTier);
         }
       } finally {
-        worker.getBlockListLock().writeLock().unlock();
-        worker.getUsageLock().writeLock().unlock();
+        worker.unlock(false, lockTypes);
       }
 
       // This operation is atomic, no need for locking
@@ -817,11 +842,16 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
   public Map<String, Long> getTotalBytesOnTiers() {
     Map<String, Long> ret = new HashMap<>();
     for (MasterWorkerInfo worker : mWorkers) {
-      try (LockResource r = new LockResource(worker.getUsageLock().readLock())) {
+      EnumSet<MasterWorkerInfo.LockType> lockTypes =
+          EnumSet.of(MasterWorkerInfo.LockType.USAGE_LOCK);
+      worker.lock(true, lockTypes);
+      try {
         for (Map.Entry<String, Long> entry : worker.getTotalBytesOnTiers().entrySet()) {
           Long total = ret.get(entry.getKey());
           ret.put(entry.getKey(), (total == null ? 0L : total) + entry.getValue());
         }
+      } finally {
+        worker.unlock(true, lockTypes);
       }
     }
     return ret;
@@ -831,11 +861,16 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
   public Map<String, Long> getUsedBytesOnTiers() {
     Map<String, Long> ret = new HashMap<>();
     for (MasterWorkerInfo worker : mWorkers) {
-      try (LockResource r = new LockResource(worker.getUsageLock().readLock())) {
+      EnumSet<MasterWorkerInfo.LockType> lockTypes =
+              EnumSet.of(MasterWorkerInfo.LockType.USAGE_LOCK);
+      worker.lock(true, lockTypes);
+      try {
         for (Map.Entry<String, Long> entry : worker.getUsedBytesOnTiers().entrySet()) {
           Long used = ret.get(entry.getKey());
           ret.put(entry.getKey(), (used == null ? 0L : used) + entry.getValue());
         }
+      } finally {
+        worker.unlock(true, lockTypes);
       }
     }
     return ret;
@@ -956,9 +991,11 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
     }
 
     // Lock all the locks
-    worker.getRegisterLock().writeLock().lock();
-    worker.getUsageLock().writeLock().lock();
-    worker.getBlockListLock().writeLock().lock();
+    EnumSet<MasterWorkerInfo.LockType> lockTypes = EnumSet.of(
+        MasterWorkerInfo.LockType.STATUS_LOCK,
+        MasterWorkerInfo.LockType.USAGE_LOCK,
+        MasterWorkerInfo.LockType.BLOCKS_LOCK);
+    worker.lock(false, lockTypes);
     try {
       // Detect any lost blocks on this worker.
       Set<Long> removedBlocks = worker.register(mGlobalStorageTierAssoc, storageTiers,
@@ -968,10 +1005,8 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
       processWorkerOrphanedBlocks(worker);
       worker.addLostStorage(lostStorage);
     } finally {
-      // Release in the reverse order of acquisition
-      worker.getBlockListLock().writeLock().unlock();
-      worker.getUsageLock().writeLock().unlock();
-      worker.getRegisterLock().writeLock().unlock();
+      // Unlock the same set of locks
+      worker.unlock(false, lockTypes);
     }
 
     if (options.getConfigsCount() > 0) {
@@ -1017,9 +1052,9 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
 
     // The address is final, no need for locking
     processWorkerMetrics(worker.getWorkerAddress().getHost(), metrics);
-
-    worker.getUsageLock().writeLock().lock();
-    worker.getBlockListLock().writeLock().lock();
+    EnumSet<MasterWorkerInfo.LockType> lockTypes =
+        EnumSet.of(MasterWorkerInfo.LockType.USAGE_LOCK, MasterWorkerInfo.LockType.BLOCKS_LOCK);
+    worker.lock(false, lockTypes);
     Command workerCommand = null;
     try {
       worker.addLostStorage(lostStorage);
@@ -1047,9 +1082,8 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
             .addAllData(toRemoveBlocks).build();
       }
     } finally {
-      // Release in the reverse order of acquisition
-      worker.getBlockListLock().writeLock().unlock();
-      worker.getUsageLock().writeLock().unlock();
+      // Unlock the same set of locks
+      worker.unlock(false, lockTypes);
     }
 
     // Update the TS again
@@ -1222,7 +1256,10 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
     public void heartbeat() {
       long masterWorkerTimeoutMs = ServerConfiguration.getMs(PropertyKey.MASTER_WORKER_TIMEOUT_MS);
       for (MasterWorkerInfo worker : mWorkers) {
-        try (LockResource r = new LockResource(worker.getBlockListLock().writeLock())) {
+        EnumSet<MasterWorkerInfo.LockType> lockTypes =
+            EnumSet.of(MasterWorkerInfo.LockType.BLOCKS_LOCK);
+        worker.lock(false, lockTypes);
+        try {
           // This is not locking because the field is atomic
           final long lastUpdate = mClock.millis() - worker.getLastUpdatedTimeMs();
           if (lastUpdate > masterWorkerTimeoutMs) {
@@ -1230,6 +1267,8 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
                 worker.getWorkerAddress(), lastUpdate);
             processLostWorker(worker);
           }
+        } finally {
+          worker.unlock(false, lockTypes);
         }
       }
     }
@@ -1246,8 +1285,13 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
   @VisibleForTesting
   public void forgetAllWorkers() {
     for (MasterWorkerInfo worker : mWorkers) {
-      try (LockResource r = new LockResource(worker.getBlockListLock().writeLock())) {
+      EnumSet<MasterWorkerInfo.LockType> lockTypes =
+          EnumSet.of(MasterWorkerInfo.LockType.BLOCKS_LOCK);
+      worker.lock(false, lockTypes);
+      try {
         processLostWorker(worker);
+      } finally {
+        worker.unlock(false, lockTypes);
       }
     }
   }
