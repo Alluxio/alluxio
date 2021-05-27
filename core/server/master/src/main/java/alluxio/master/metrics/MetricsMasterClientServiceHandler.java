@@ -89,9 +89,8 @@ public final class MetricsMasterClientServiceHandler
   @Override
   public void getMetrics(GetMetricsPOptions options,
       StreamObserver<GetMetricsPResponse> responseObserver) {
-    RpcUtils.call(LOG,
-        (RpcUtils.RpcCallableThrowsIOException<GetMetricsPResponse>) () ->
-          GetMetricsPResponse.newBuilder().putAllMetrics(mMetricsMaster.getMetrics()).build(),
+    RpcUtils.call(LOG, (RpcUtils.RpcCallableThrowsIOException<GetMetricsPResponse>) () ->
+        GetMetricsPResponse.newBuilder().putAllMetrics(mMetricsMaster.getMetrics()).build(),
         "getMetrics", "options=%s", responseObserver, options);
   }
 }

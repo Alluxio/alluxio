@@ -51,11 +51,10 @@ public final class MetaMasterMasterServiceHandler
   public void getMasterId(GetMasterIdPRequest request,
       StreamObserver<GetMasterIdPResponse> responseObserver) {
     NetAddress masterAddress = request.getMasterAddress();
-    RpcUtils.call(LOG,
-        (RpcUtils.RpcCallableThrowsIOException<GetMasterIdPResponse>) () -> {
-          return GetMasterIdPResponse.newBuilder()
-              .setMasterId(mMetaMaster.getMasterId(Address.fromProto(masterAddress))).build();
-        }, "getMasterId", "request=%s", responseObserver, request);
+    RpcUtils.call(LOG, (RpcUtils.RpcCallableThrowsIOException<GetMasterIdPResponse>) () -> {
+      return GetMasterIdPResponse.newBuilder()
+          .setMasterId(mMetaMaster.getMasterId(Address.fromProto(masterAddress))).build();
+    }, "getMasterId", "request=%s", responseObserver, request);
   }
 
   @Override

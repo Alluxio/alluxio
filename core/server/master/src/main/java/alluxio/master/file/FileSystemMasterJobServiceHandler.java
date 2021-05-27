@@ -54,10 +54,9 @@ public final class FileSystemMasterJobServiceHandler
     GetFileInfoPOptions options = request.getOptions();
 
     RpcUtils.call(LOG,
-        (RpcUtils.RpcCallableThrowsIOException<GetFileInfoPResponse>) () ->
-            GetFileInfoPResponse.newBuilder()
-                .setFileInfo(GrpcUtils.toProto(mFileSystemMaster.getFileInfo(fileId)))
-                .build(),
+        (RpcUtils.RpcCallableThrowsIOException<GetFileInfoPResponse>) () -> GetFileInfoPResponse
+            .newBuilder().setFileInfo(GrpcUtils.toProto(mFileSystemMaster.getFileInfo(fileId)))
+            .build(),
         "getFileInfo", "fileId=%s, options=%s", responseObserver, fileId, options);
   }
 

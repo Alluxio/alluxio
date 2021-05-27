@@ -115,23 +115,21 @@ public final class BlockMasterWorkerServiceHandler extends
     final String mediumType = request.getMediumType();
     final long length = request.getLength();
 
-    RpcUtils.call(LOG,
-        (RpcUtils.RpcCallableThrowsIOException<CommitBlockPResponse>) () -> {
-          mBlockMaster.commitBlock(workerId, usedBytesOnTier, tierAlias,
-              mediumType, blockId, length);
-          return CommitBlockPResponse.getDefaultInstance();
-        }, "commitBlock", "request=%s", responseObserver, request);
+    RpcUtils.call(LOG, (RpcUtils.RpcCallableThrowsIOException<CommitBlockPResponse>) () -> {
+      mBlockMaster.commitBlock(workerId, usedBytesOnTier, tierAlias,
+          mediumType, blockId, length);
+      return CommitBlockPResponse.getDefaultInstance();
+    }, "commitBlock", "request=%s", responseObserver, request);
   }
 
   @Override
   public void commitBlockInUfs(CommitBlockInUfsPRequest request,
       StreamObserver<CommitBlockInUfsPResponse> responseObserver) {
 
-    RpcUtils.call(LOG,
-        (RpcUtils.RpcCallableThrowsIOException<CommitBlockInUfsPResponse>) () -> {
-          mBlockMaster.commitBlockInUFS(request.getBlockId(), request.getLength());
-          return CommitBlockInUfsPResponse.getDefaultInstance();
-        }, "commitBlock", "request=%s", responseObserver, request);
+    RpcUtils.call(LOG, (RpcUtils.RpcCallableThrowsIOException<CommitBlockInUfsPResponse>) () -> {
+      mBlockMaster.commitBlockInUFS(request.getBlockId(), request.getLength());
+      return CommitBlockInUfsPResponse.getDefaultInstance();
+    }, "commitBlock", "request=%s", responseObserver, request);
   }
 
   @Override
