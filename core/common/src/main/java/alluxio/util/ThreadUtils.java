@@ -149,6 +149,9 @@ public final class ThreadUtils {
     stream.flush();
   }
 
+  /**
+   * The value of the previous log time, unit is ms.
+   */
   @GuardedBy("ThreadUtils.class")
   private static long sPreviousLogTime = 0;
 
@@ -156,7 +159,7 @@ public final class ThreadUtils {
    * Log the current thread stacks at INFO level.
    * @param log the logger that logs the stack trace
    * @param title a descriptive title for the call stacks
-   * @param minInterval the minimum time from the last, unit is minute
+   * @param minInterval the minimum time from the last, unit is second
    */
   public static void logThreadInfo(Logger log,
       String title,
