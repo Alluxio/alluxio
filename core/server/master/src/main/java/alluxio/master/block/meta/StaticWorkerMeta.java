@@ -17,15 +17,12 @@ import alluxio.wire.WorkerNetAddress;
 import com.google.common.base.Preconditions;
 import net.jcip.annotations.ThreadSafe;
 
-import java.util.concurrent.atomic.AtomicLong;
-
 /**
- * An object representation of the worker metadata.
+ * An object representation of the worker metadata. All fields are final in this object.
  * This class is thread safe so accessing or updating the fields do not require locking.
- * The only mutable field is the last updated timestamp.
  */
 @ThreadSafe
-public class WorkerMeta {
+public class StaticWorkerMeta {
   /** Worker's address. */
   final WorkerNetAddress mWorkerAddress;
   /** The id of the worker. */
@@ -39,7 +36,7 @@ public class WorkerMeta {
    * @param id the worker ID
    * @param address the worker address
    */
-  public WorkerMeta(long id, WorkerNetAddress address) {
+  public StaticWorkerMeta(long id, WorkerNetAddress address) {
     mId = id;
     mWorkerAddress = Preconditions.checkNotNull(address, "address");
     mStartTimeMs = CommonUtils.getCurrentMs();

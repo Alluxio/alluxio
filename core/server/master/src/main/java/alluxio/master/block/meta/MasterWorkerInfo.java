@@ -44,13 +44,54 @@ import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
- * Metadata for an Alluxio worker. This class is not thread safe, so external locking is required.
+ * This class embeds all metadata for an Alluxio worker.
+ * This class is not thread safe, so external locking is required.
  *
  * There are multiple locks in this object, each guarding a group of metadata.
- * When multiple fields need to be read or updated, locks must be acquired on each.
- * Locking order must be preserved when multiple locks are acquired:
- * mRegisterLock -> mUsageLock -> mBlockListLock
- * The locks should be released in the opposite order to avoid deadlock.
+ *
+ * The metadata fields are separated into a few different groups.
+ * Each group has its corresponding locking mechanism.
+ * The {@link MasterWorkerInfo} has the following groups of metadata:
+ *  1. Metadata like ID, address etc, represented by a {@link StaticWorkerMeta} object.
+ *     This group is thread safe, meaning no locking is required.
+ *  2. Worker last updated timestamp. This is thread safe, meaning no locking is required.
+ *  3. Worker register status. This is guarded by a {@link ReentrantReadWriteLock}.
+ *  4. Worker resource usage, represented by a {@link WorkerUsageMeta} object.
+ *     This is guarded by a {@link ReentrantReadWriteLock}.
+ *  5. Worker block lists, including the present blocks and blocks to be removed from the worker.
+ *     This is guarded by a {@link ReentrantReadWriteLock}.
+ *
+ * When accessing certain fields in this object, external locking is required.
+ * As listed above, group 1 and 2 are thread safe and do not require external locking.
+ * Group 3, 4, and 5 require external locking.
+ *
+ * Locking can be done with {@link #lock(EnumSet, boolean)}.
+ *
+ * If the fields are only read, shared locks should be acquired and released as below:
+ * <blockquote><pre>
+ *   EnumSet<MasterWorkerInfo.LockType> lockTypes =
+ *       EnumSet.of(MasterWorkerInfo.LockType.USAGE_LOCK);
+ *   worker.lock(lockTypes, true);
+ *   try {
+ *     ...
+ *   } finally {
+ *     worker.unlock(lockTypes, true);
+ *   }
+ * </pre></blockquote>
+ *
+ * If the fields are updated, exclusive locks should be acquired and released as below:
+ * <blockquote><pre>
+ *   EnumSet<MasterWorkerInfo.LockType> lockTypes = EnumSet.of(
+ *       MasterWorkerInfo.LockType.STATUS_LOCK,
+ *       MasterWorkerInfo.LockType.USAGE_LOCK,
+ *       MasterWorkerInfo.LockType.BLOCKS_LOCK);
+ *   worker.lock(lockTypes, false);
+ *   try {
+ *     ...
+ *   } finally {
+ *     worker.unlock(lockTypes, false);
+ *   }
+ * </pre></blockquote>
  */
 @NotThreadSafe
 public final class MasterWorkerInfo {
@@ -59,16 +100,16 @@ public final class MasterWorkerInfo {
   private static final String LOST_WORKER_STATE = "Out of Service";
   private static final int BLOCK_SIZE_LIMIT = 100;
 
+  /** Worker's last updated time in ms. */
+  private final AtomicLong mLastUpdatedTimeMs;
+  /** Worker metadata, this field is thread safe. */
+  private final StaticWorkerMeta mMeta;
+
   /** If true, the worker is considered registered. */
   @GuardedBy("mStatusLock")
   public boolean mIsRegistered;
   /** Locks the worker register status. */
   private final ReentrantReadWriteLock mStatusLock;
-
-  /** Worker metadata, this field is thread safe. */
-  private final WorkerMeta mMeta;
-  /** Worker's last updated time in ms. */
-  private final AtomicLong mLastUpdatedTimeMs;
 
   /** Worker usage data. */
   @GuardedBy("mUsageLock")
@@ -95,7 +136,7 @@ public final class MasterWorkerInfo {
    * @param address the worker address to use
    */
   public MasterWorkerInfo(long id, WorkerNetAddress address) {
-    mMeta = new WorkerMeta(id, address);
+    mMeta = new StaticWorkerMeta(id, address);
     mUsage = new WorkerUsageMeta();
     mBlocks = new HashSet<>();
     mToRemoveBlocks = new HashSet<>();
@@ -115,6 +156,22 @@ public final class MasterWorkerInfo {
    * Marks the worker as registered, while updating all of its metadata.
    * Write locks on {@link MasterWorkerInfo#mStatusLock}, {@link MasterWorkerInfo#mUsageLock}
    * and {@link MasterWorkerInfo#mBlockListLock} are required.
+   *
+   * You should lock externally with {@link MasterWorkerInfo#lock(EnumSet, boolean)}
+   * with all three lock types specified:
+   *
+   * <blockquote><pre>
+   *   EnumSet<MasterWorkerInfo.LockType> lockTypes = EnumSet.of(
+   *       MasterWorkerInfo.LockType.STATUS_LOCK,
+   *       MasterWorkerInfo.LockType.USAGE_LOCK,
+   *       MasterWorkerInfo.LockType.BLOCKS_LOCK);
+   *   worker.lock(false, lockTypes);
+   *   try {
+   *     register(...);
+   *   } finally {
+   *     worker.unlock(false, lockTypes);
+   *   }
+   * </pre></blockquote>
    *
    * @param globalStorageTierAssoc global mapping between storage aliases and ordinal position
    * @param storageTierAliases list of storage tier aliases in order of their position in the
@@ -152,6 +209,10 @@ public final class MasterWorkerInfo {
   /**
    * Adds a block to the worker.
    *
+   * You should lock externally with {@link MasterWorkerInfo#lock(EnumSet, boolean)}
+   * with {@link MasterWorkerInfo.LockType#BLOCKS_LOCK} specified.
+   * An exclusive lock is required.
+   *
    * @param blockId the id of the block to be added
    */
   public void addBlock(long blockId) {
@@ -160,6 +221,10 @@ public final class MasterWorkerInfo {
 
   /**
    * Removes a block from the worker.
+   *
+   * You should lock externally with {@link MasterWorkerInfo#lock(EnumSet, boolean)}
+   * with {@link MasterWorkerInfo.LockType#BLOCKS_LOCK} specified.
+   * An exclusive lock is required.
    *
    * @param blockId the id of the block to be removed
    */
@@ -170,6 +235,10 @@ public final class MasterWorkerInfo {
 
   /**
    * Adds a new worker lost storage path.
+   *
+   * You should lock externally with {@link MasterWorkerInfo#lock(EnumSet, boolean)}
+   * with {@link MasterWorkerInfo.LockType#USAGE_LOCK} specified.
+   * An exclusive lock is required.
    *
    * @param tierAlias the tier alias
    * @param dirPath the lost storage path
@@ -183,6 +252,10 @@ public final class MasterWorkerInfo {
   /**
    * Adds new worker lost storage paths.
    *
+   * You should lock externally with {@link MasterWorkerInfo#lock(EnumSet, boolean)}
+   * with {@link MasterWorkerInfo.LockType#USAGE_LOCK} specified.
+   * An exclusive lock is required.
+   *
    * @param lostStorage the lost storage to add
    */
   public void addLostStorage(Map<String, StorageList> lostStorage) {
@@ -195,6 +268,10 @@ public final class MasterWorkerInfo {
 
   /**
    * Gets the selected field information for this worker.
+   *
+   * You should lock externally with {@link MasterWorkerInfo#lock(EnumSet, boolean)}
+   * with {@link MasterWorkerInfo.LockType#USAGE_LOCK} specified.
+   * A shared lock is required.
    *
    * @param fieldRange the client selected fields
    * @param isLiveWorker the worker is live or not
@@ -246,7 +323,7 @@ public final class MasterWorkerInfo {
   }
 
   /**
-   * {@link WorkerMeta#mWorkerAddress} is final so the value can be read without locking.
+   * {@link StaticWorkerMeta} is thread safe so the value can be read without locking.
    *
    * @return the worker's address
    */
@@ -255,6 +332,10 @@ public final class MasterWorkerInfo {
   }
 
   /**
+   * You should lock externally with {@link MasterWorkerInfo#lock(EnumSet, boolean)}
+   * with {@link MasterWorkerInfo.LockType#USAGE_LOCK} specified.
+   * A shared lock is required.
+   *
    * @return the available space of the worker in bytes
    */
   public long getAvailableBytes() {
@@ -262,6 +343,12 @@ public final class MasterWorkerInfo {
   }
 
   /**
+   * You should lock externally with {@link MasterWorkerInfo#lock(EnumSet, boolean)}
+   * with {@link MasterWorkerInfo.LockType#BLOCKS_LOCK} specified.
+   * A shared lock is required.
+   *
+   * This returns a copy so the lock can be released when this method returns.
+   *
    * @return ids of all blocks the worker contains
    */
   public Set<Long> getBlocks() {
@@ -269,6 +356,10 @@ public final class MasterWorkerInfo {
   }
 
   /**
+   * You should lock externally with {@link MasterWorkerInfo#lock(EnumSet, boolean)}
+   * with {@link MasterWorkerInfo.LockType#USAGE_LOCK} specified.
+   * A shared lock is required.
+   *
    * @return the capacity of the worker in bytes
    */
   public long getCapacityBytes() {
@@ -294,6 +385,12 @@ public final class MasterWorkerInfo {
   }
 
   /**
+   * You should lock externally with {@link MasterWorkerInfo#lock(EnumSet, boolean)}
+   * with {@link MasterWorkerInfo.LockType#BLOCKS_LOCK} specified.
+   * A shared lock is required.
+   *
+   * This returns a copy so the lock can be released after this method returns.
+   *
    * @return ids of blocks the worker should remove
    */
   public List<Long> getToRemoveBlocks() {
@@ -308,6 +405,10 @@ public final class MasterWorkerInfo {
   }
 
   /**
+   * You should lock externally with {@link MasterWorkerInfo#lock(EnumSet, boolean)}
+   * with {@link MasterWorkerInfo.LockType#USAGE_LOCK} specified.
+   * A shared lock is required.
+   *
    * @return the storage tier mapping for the worker
    */
   public StorageTierAssoc getStorageTierAssoc() {
@@ -315,6 +416,10 @@ public final class MasterWorkerInfo {
   }
 
   /**
+   * You should lock externally with {@link MasterWorkerInfo#lock(EnumSet, boolean)}
+   * with {@link MasterWorkerInfo.LockType#USAGE_LOCK} specified.
+   * A shared lock is required.
+   *
    * @return the total bytes on each storage tier
    */
   public Map<String, Long> getTotalBytesOnTiers() {
@@ -322,6 +427,10 @@ public final class MasterWorkerInfo {
   }
 
   /**
+   * You should lock externally with {@link MasterWorkerInfo#lock(EnumSet, boolean)}
+   * with {@link MasterWorkerInfo.LockType#USAGE_LOCK} specified.
+   * A shared lock is required.
+   *
    * @return the used bytes on each storage tier
    */
   public Map<String, Long> getUsedBytesOnTiers() {
@@ -338,6 +447,10 @@ public final class MasterWorkerInfo {
   }
 
   /**
+   * You should lock externally with {@link MasterWorkerInfo#lock(EnumSet, boolean)}
+   * with {@link MasterWorkerInfo.LockType#STATUS_LOCK} specified.
+   * A shared lock is required.
+   *
    * @return whether the worker has been registered yet
    */
   public boolean isRegistered() {
@@ -345,6 +458,10 @@ public final class MasterWorkerInfo {
   }
 
   /**
+   * You should lock externally with {@link MasterWorkerInfo#lock(EnumSet, boolean)}
+   * with {@link MasterWorkerInfo.LockType#USAGE_LOCK} specified.
+   * A shared lock is required.
+   *
    * @return the free bytes on each storage tier
    */
   public Map<String, Long> getFreeBytesOnTiers() {
@@ -357,6 +474,12 @@ public final class MasterWorkerInfo {
   }
 
   /**
+   * You should lock externally with {@link MasterWorkerInfo#lock(EnumSet, boolean)}
+   * with {@link MasterWorkerInfo.LockType#USAGE_LOCK} specified.
+   * A shared lock is required.
+   *
+   * This returns a copy so the lock can be released after the map is returned.
+   *
    * @return the map from tier alias to lost storage paths in this worker
    */
   public Map<String, List<String>> getLostStorage() {
@@ -364,6 +487,10 @@ public final class MasterWorkerInfo {
   }
 
   /**
+   * You should lock externally with {@link MasterWorkerInfo#lock(EnumSet, boolean)}
+   * with {@link MasterWorkerInfo.LockType#USAGE_LOCK} specified.
+   * A shared lock is required.
+   *
    * @return true if this worker has lost storage, false otherwise
    */
   public boolean hasLostStorage() {
@@ -393,7 +520,7 @@ public final class MasterWorkerInfo {
 
   /**
    * Updates the last updated time of the worker in ms.
-   * No locking required.
+   * No locking is required.
    */
   public void updateLastUpdatedTimeMs() {
     mLastUpdatedTimeMs.set(CommonUtils.getCurrentMs());
@@ -401,6 +528,10 @@ public final class MasterWorkerInfo {
 
   /**
    * Adds or removes a block from the to-be-removed blocks set of the worker.
+   *
+   * You should lock externally with {@link MasterWorkerInfo#lock(EnumSet, boolean)}
+   * with {@link MasterWorkerInfo.LockType#BLOCKS_LOCK} specified.
+   * An exclusive lock is required.
    *
    * @param add true if to add, to remove otherwise
    * @param blockId the id of the block to be added or removed
@@ -418,6 +549,10 @@ public final class MasterWorkerInfo {
   /**
    * Sets the capacity of the worker in bytes.
    *
+   * You should lock externally with {@link MasterWorkerInfo#lock(EnumSet, boolean)}
+   * with {@link MasterWorkerInfo.LockType#USAGE_LOCK} specified.
+   * An exclusive lock is required.
+   *
    * @param capacityBytesOnTiers used bytes on each storage tier
    */
   public void updateCapacityBytes(Map<String, Long> capacityBytesOnTiers) {
@@ -431,6 +566,10 @@ public final class MasterWorkerInfo {
 
   /**
    * Sets the used space of the worker in bytes.
+   *
+   * You should lock externally with {@link MasterWorkerInfo#lock(EnumSet, boolean)}
+   * with {@link MasterWorkerInfo.LockType#USAGE_LOCK} specified.
+   * An exclusive lock is required.
    *
    * @param usedBytesOnTiers used bytes on each storage tier
    */
@@ -446,6 +585,10 @@ public final class MasterWorkerInfo {
   /**
    * Sets the used space of the worker in bytes.
    *
+   * You should lock externally with {@link MasterWorkerInfo#lock(EnumSet, boolean)}
+   * with {@link MasterWorkerInfo.LockType#USAGE_LOCK} specified.
+   * An exclusive lock is required.
+   *
    * @param tierAlias alias of storage tier
    * @param usedBytesOnTier used bytes on certain storage tier
    */
@@ -456,6 +599,7 @@ public final class MasterWorkerInfo {
 
   /**
    * Enum for the locks in {@link MasterWorkerInfo}.
+   * Each lock type corresponds to one group of metadata in the object.
    */
   public enum LockType {
     STATUS_LOCK,
@@ -464,12 +608,16 @@ public final class MasterWorkerInfo {
   }
 
   /**
-   * Locks the corresponding locks.
+   * Locks the corresponding locks on the metadata groups.
+   * The locks will be acquired in order.
+   * The locks can either be shared or exclusive.
+   * The isShared flag will apply to all the locks acquired here.
    *
-   * @param isShared if false, the locking is exclusive
    * @param lockTypes the locks
+   * @param isShared if false, the locking is exclusive
    */
-  public void lock(boolean isShared, EnumSet<LockType> lockTypes) {
+  // TODO(jiacheng): refactor this to support LockResource instead of try-finally
+  public void lock(EnumSet<LockType> lockTypes, boolean isShared) {
     for (LockType t : ImmutableList.of(LockType.STATUS_LOCK,
         LockType.USAGE_LOCK, LockType.BLOCKS_LOCK)) {
       if (lockTypes.contains(t)) {
@@ -484,11 +632,14 @@ public final class MasterWorkerInfo {
 
   /**
    * Unlocks the corresponding locks.
+   * The arguments must match with the {@link #lock(EnumSet, boolean)} method.
+   * The locks will be released in the opposite order to {@link #lock(EnumSet, boolean)},
+   * in order to prevent deadlock.
    *
-   * @param isShared if false, the locking is exclusive
    * @param lockTypes the locks
+   * @param isShared if false, the locking is exclusive
    */
-  public void unlock(boolean isShared, EnumSet<LockType> lockTypes) {
+  public void unlock(EnumSet<LockType> lockTypes, boolean isShared) {
     for (LockType t : ImmutableList.of(LockType.BLOCKS_LOCK,
         LockType.USAGE_LOCK, LockType.STATUS_LOCK)) {
       if (lockTypes.contains(t)) {

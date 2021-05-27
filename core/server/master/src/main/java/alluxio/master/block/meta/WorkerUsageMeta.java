@@ -14,14 +14,19 @@ package alluxio.master.block.meta;
 import alluxio.StorageTierAssoc;
 import alluxio.WorkerStorageTierAssoc;
 
+import javax.annotation.concurrent.NotThreadSafe;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 /**
  * An object representation of fields relevant to worker usage and capacity.
- * Reading or updating the fields will require {@link MasterWorkerInfo#getUsageLock()}.
+ * This class is not thread safe so external locking is required.
+ * You should lock externally with {@link MasterWorkerInfo#lock(EnumSet, boolean)}
+ * with {@link MasterWorkerInfo.LockType#USAGE_LOCK} specified.
  */
+@NotThreadSafe
 public class WorkerUsageMeta {
   /** Capacity of worker in bytes. */
   long mCapacityBytes;
@@ -33,7 +38,6 @@ public class WorkerUsageMeta {
   Map<String, Long> mTotalBytesOnTiers;
   /** Mapping from storage tier alias to used bytes. */
   Map<String, Long> mUsedBytesOnTiers;
-
   /** Mapping from tier alias to lost storage paths. */
   Map<String, List<String>> mLostStorage;
 
@@ -48,8 +52,19 @@ public class WorkerUsageMeta {
   }
 
   /**
-   * Update the worker resource usage.
-   * Write lock on the {@link MasterWorkerInfo#getUsageLock()} is required.
+   * Update the worker resource usage. An exclusive lock is required.
+   *
+   * Example:
+   * <blockquote><pre>
+   *   EnumSet<MasterWorkerInfo.LockType> lockTypes =
+   *       EnumSet.of(MasterWorkerInfo.LockType.USAGE_LOCK);
+   *   worker.lock(lockTypes, false);
+   *   try {
+   *     updateUsage(..);
+   *   } finally {
+   *     worker.unlock(lockTypes, false);
+   *   }
+   * </pre></blockquote>
    */
   void updateUsage(final StorageTierAssoc globalStorageTierAssoc,
                    final List<String> storageTierAliases,
@@ -93,6 +108,20 @@ public class WorkerUsageMeta {
   }
 
   /**
+   * A shared lock is required.
+   *
+   * Example:
+   * <blockquote><pre>
+   *   EnumSet<MasterWorkerInfo.LockType> lockTypes =
+   *       EnumSet.of(MasterWorkerInfo.LockType.USAGE_LOCK);
+   *   worker.lock(lockTypes, true);
+   *   try {
+   *     getAvailableBytes();
+   *   } finally {
+   *     worker.unlock(lockTypes, true);
+   *   }
+   * </pre></blockquote>
+   *
    * @return the available space of the worker in bytes
    */
   long getAvailableBytes() {
