@@ -68,7 +68,7 @@ public final class BlockMasterWorkerServiceHandler extends
   public void blockHeartbeat(BlockHeartbeatPRequest request,
       StreamObserver<BlockHeartbeatPResponse> responseObserver) {
     if (request.getSerializedSize() > RPC_REQUEST_SIZE_WARNING_THRESHOLD) {
-      LOG.debug("blockHeartbeat request is {} bytes, {} added blocks, "
+      LOG.warn("blockHeartbeat request is {} bytes, {} added blocks, "
                     + "{} removed blocks, {} metrics",
           request.getSerializedSize(),
           request.getAddedBlocksCount(),

@@ -2691,11 +2691,11 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
-  public static final PropertyKey MASTER_RPC_TIME_WARNING_THRESHOLD_MS =
-      new Builder(Name.MASTER_RPC_TIME_WARNING_THRESHOLD_MS)
+  public static final PropertyKey MASTER_RPC_TIME_WARNING_THRESHOLD =
+      new Builder(Name.MASTER_RPC_TIME_WARNING_THRESHOLD)
           .setDescription("RPCs that take more than this to finish will log a warning message.")
           .setScope(Scope.MASTER)
-          .setDefaultValue(1000)
+          .setDefaultValue("1s")
           .build();
   public static final PropertyKey MASTER_RPC_REQUEST_SIZE_WARNING_THRESHOLD =
       new Builder(Name.MASTER_RPC_REQUEST_SIZE_WARNING_THRESHOLD)
@@ -5699,8 +5699,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.rpc.response.size.warning.threshold";
     public static final String MASTER_RPC_REQUEST_SIZE_WARNING_THRESHOLD =
         "alluxio.master.rpc.request.size.warning.threshold";
-    public static final String MASTER_RPC_TIME_WARNING_THRESHOLD_MS =
-        "alluxio.master.rpc.time.warning.threshold.ms";
+    public static final String MASTER_RPC_TIME_WARNING_THRESHOLD =
+        "alluxio.master.rpc.time.warning.threshold";
     public static final String MASTER_SERVING_THREAD_TIMEOUT =
         "alluxio.master.serving.thread.timeout";
     public static final String MASTER_SKIP_ROOT_ACL_CHECK =
