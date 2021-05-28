@@ -40,7 +40,6 @@ import alluxio.resource.CloseableIterator;
 import alluxio.resource.LockResource;
 import alluxio.security.authorization.AclEntry;
 import alluxio.security.authorization.DefaultAccessControlList;
-import alluxio.util.CommonUtils;
 import alluxio.util.StreamUtils;
 import alluxio.util.proto.ProtoUtils;
 

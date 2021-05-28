@@ -375,7 +375,6 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setMetricType(MetricType.GAUGE)
           .build();
 
-
   // Backup Restore
   public static final MetricKey MASTER_LAST_BACKUP_ENTRIES_COUNT =
       new Builder("Master.LastBackupEntriesCount")

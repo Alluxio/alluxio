@@ -43,6 +43,10 @@ public class HeapBlockStore implements BlockStore {
   public final TwoKeyConcurrentMap<Long, Long, BlockLocation, Map<Long, BlockLocation>>
       mBlockLocations = new TwoKeyConcurrentMap<>(() -> new HashMap<>(4));
 
+  /**
+   * constructor a HeapBlockStore.
+   *
+   */
   public HeapBlockStore() {
     super();
     MetricsSystem.registerCachedGaugeIfAbsent(MetricKey.MASTER_BLOCK_HEAP_SIZE.getName(),

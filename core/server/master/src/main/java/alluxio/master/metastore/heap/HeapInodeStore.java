@@ -52,6 +52,9 @@ public class HeapInodeStore implements InodeStore {
   private final TwoKeyConcurrentMap<Long, String, Long, Map<String, Long>> mEdges =
       new TwoKeyConcurrentMap<>(() -> new ConcurrentHashMap<>(4));
 
+  /**
+   * Construct a heap inode store.
+   */
   public HeapInodeStore() {
     super();
     MetricsSystem.registerCachedGaugeIfAbsent(MetricKey.MASTER_INODE_HEAP_SIZE.getName(),

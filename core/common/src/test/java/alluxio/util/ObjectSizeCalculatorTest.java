@@ -17,6 +17,13 @@ import alluxio.util.ObjectSizeCalculator.MemoryLayoutSpecification;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class ObjectSizeCalculatorTest {
   private int mArrayHeaderSize;
@@ -25,42 +32,45 @@ public class ObjectSizeCalculatorTest {
   private int mSuperClassPaddingSize;
   private ObjectSizeCalculator mObjectSizeCalculator;
 
+  private static final Logger LOG = LoggerFactory.getLogger(ObjectSizeCalculatorTest.class);
+
+  private static final MemoryLayoutSpecification MEMORY_LAYOUT_SPECIFICATION =
+      new MemoryLayoutSpecification() {
+        @Override
+        public int getArrayHeaderSize() {
+          return 16;
+        }
+
+        @Override
+        public int getObjectHeaderSize() {
+          return 12;
+        }
+
+        @Override
+        public int getObjectPadding() {
+          return 8;
+        }
+
+        @Override
+        public int getReferenceSize() {
+          return 4;
+        }
+
+        @Override
+        public int getSuperclassFieldPadding() {
+          return 4;
+        }
+      };
+
   @Before
   public void setUp() {
-    MemoryLayoutSpecification memoryLayoutSpecification =
-        new MemoryLayoutSpecification() {
-          @Override
-          public int getArrayHeaderSize() {
-            return 16;
-          }
 
-          @Override
-          public int getObjectHeaderSize() {
-            return 12;
-          }
+    mArrayHeaderSize = MEMORY_LAYOUT_SPECIFICATION.getArrayHeaderSize();
+    mObjectHeaderSize = MEMORY_LAYOUT_SPECIFICATION.getObjectHeaderSize();
+    mReferenceHeaderSize = MEMORY_LAYOUT_SPECIFICATION.getReferenceSize();
+    mSuperClassPaddingSize = MEMORY_LAYOUT_SPECIFICATION.getSuperclassFieldPadding();
 
-          @Override
-          public int getObjectPadding() {
-            return 8;
-          }
-
-          @Override
-          public int getReferenceSize() {
-            return 4;
-          }
-
-          @Override
-          public int getSuperclassFieldPadding() {
-            return 4;
-          }
-        };
-
-    mArrayHeaderSize = memoryLayoutSpecification.getArrayHeaderSize();
-    mObjectHeaderSize = memoryLayoutSpecification.getObjectHeaderSize();
-    mReferenceHeaderSize = memoryLayoutSpecification.getReferenceSize();
-    mSuperClassPaddingSize = memoryLayoutSpecification.getSuperclassFieldPadding();
-
-    mObjectSizeCalculator = new ObjectSizeCalculator(memoryLayoutSpecification);
+    mObjectSizeCalculator = new ObjectSizeCalculator(MEMORY_LAYOUT_SPECIFICATION);
   }
 
   @Test
@@ -167,6 +177,48 @@ public class ObjectSizeCalculatorTest {
     long size = mObjectSizeCalculator.calculateObjectSize(c1);
     c1.mCircular = c1;
     assertEquals(size, mObjectSizeCalculator.calculateObjectSize(c1));
+  }
+
+  static class ConstantObject {
+    private int mFirst;
+    private int mSecond;
+    private int mThird;
+    private String mString;
+  }
+
+  static class CompositeObject {
+    private ConstantObject mObj;
+    private Long mLong;
+  }
+
+  @Test
+  public void testConstant() {
+    CompositeObject [] test = new CompositeObject[4];
+    for (int i = 0; i < test.length; i++) {
+      test[i] = new CompositeObject();
+    }
+    long size = mObjectSizeCalculator.calculateObjectSize(test);
+    Set<Class<?>> testSet = new HashSet<>();
+    testSet.add(ConstantObject.class);
+    testSet.add(Long.class);
+    ObjectSizeCalculator constantCalc = new ObjectSizeCalculator(
+        MEMORY_LAYOUT_SPECIFICATION, testSet);
+    assertEquals(size, constantCalc.calculateObjectSize(test));
+  }
+
+  @Test
+  public void testConstantMap() {
+    Map<Long, CompositeObject> test = new ConcurrentHashMap<>();
+    for (long i = 0; i < 4; i++) {
+      test.put(i, new CompositeObject());
+    }
+    long size = mObjectSizeCalculator.calculateObjectSize(test);
+    Set<Class<?>> testSet = new HashSet<>();
+    testSet.add(CompositeObject.class);
+    testSet.add(Long.class);
+    ObjectSizeCalculator constantCalc = new ObjectSizeCalculator(
+        MEMORY_LAYOUT_SPECIFICATION, testSet);
+    assertEquals(size, constantCalc.calculateObjectSize(test));
   }
 
   static class ComplexObject<T> {
