@@ -11,9 +11,11 @@
 
 package alluxio.master.block.meta;
 
-import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
 
+import java.util.Arrays;
 import java.util.EnumSet;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
@@ -32,6 +34,11 @@ import java.util.concurrent.locks.Lock;
  * {@link alluxio.resource.LockResource}. Callers do not need to lock and unlock explicitly.
  */
 public class WorkerMetaLock implements Lock {
+  // The order for acquiring locks
+  private static final List<WorkerMetaLockSection> NATURAL_ORDER = Arrays.asList(WorkerMetaLockSection.values());
+  // The order for releasing locks
+  private static final List<WorkerMetaLockSection> REVERSE_ORDER = Lists.reverse(NATURAL_ORDER);
+
   private final EnumSet<WorkerMetaLockSection> mLockTypes;
   private final boolean mIsShared;
   private final MasterWorkerInfo mWorker;
@@ -51,8 +58,7 @@ public class WorkerMetaLock implements Lock {
 
   @Override
   public void lock() {
-    for (WorkerMetaLockSection t : ImmutableList.of(WorkerMetaLockSection.STATUS,
-            WorkerMetaLockSection.USAGE, WorkerMetaLockSection.BLOCKS)) {
+    for (WorkerMetaLockSection t : NATURAL_ORDER) {
       if (mLockTypes.contains(t)) {
         if (mIsShared) {
           mWorker.getLock(t).readLock().lock();
@@ -65,8 +71,7 @@ public class WorkerMetaLock implements Lock {
 
   @Override
   public void unlock() {
-    for (WorkerMetaLockSection t : ImmutableList.of(WorkerMetaLockSection.BLOCKS,
-            WorkerMetaLockSection.USAGE, WorkerMetaLockSection.STATUS)) {
+    for (WorkerMetaLockSection t : REVERSE_ORDER) {
       if (mLockTypes.contains(t)) {
         if (mIsShared) {
           mWorker.getLock(t).readLock().unlock();
