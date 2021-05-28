@@ -48,6 +48,7 @@ import org.apache.ratis.statemachine.impl.SimpleStateMachineStorage;
 import org.apache.ratis.statemachine.impl.SingleFileSnapshotInfo;
 import org.junit.After;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -370,6 +371,7 @@ public final class EmbeddedJournalIntegrationTest extends BaseIntegrationTest {
     mCluster.notifySuccess();
   }
 
+  @Ignore
   @Test
   public void updateRaftGroup() throws Exception {
     int masterCount = 2;
