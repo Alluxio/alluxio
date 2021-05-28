@@ -124,7 +124,7 @@ public class LoadDefinitionTest {
     int numBlocks = 7;
     int replication = 3;
     createFileWithNoLocations(TEST_URI, numBlocks);
-    LoadConfig config = new LoadConfig(TEST_URI, replication,
+    LoadConfig config = new LoadConfig(TEST_URI, replication, Collections.EMPTY_SET,
         Collections.EMPTY_SET, Collections.EMPTY_SET);
     Set<Pair<WorkerInfo, ArrayList<LoadTask>>> assignments =
         new LoadDefinition().selectExecutors(config,
@@ -145,7 +145,7 @@ public class LoadDefinitionTest {
     Mockito.when(mMockFsContext.getCachedWorkers()).thenReturn(blockWorkers);
     createFileWithNoLocations(TEST_URI, 10);
     LoadConfig config = new LoadConfig(TEST_URI, 1, Collections.EMPTY_SET,
-        Collections.EMPTY_SET);
+        Collections.EMPTY_SET, Collections.EMPTY_SET);
     Set<Pair<WorkerInfo, ArrayList<LoadTask>>> assignments =
         new LoadDefinition().selectExecutors(config, JOB_WORKERS,
             new SelectExecutorsContext(1, mJobServerContext));
@@ -157,7 +157,7 @@ public class LoadDefinitionTest {
   public void notEnoughWorkersForReplication() throws Exception {
     createFileWithNoLocations(TEST_URI, 1);
     LoadConfig config = new LoadConfig(TEST_URI, 5, Collections.EMPTY_SET,
-        Collections.EMPTY_SET); // set replication to 5
+        Collections.EMPTY_SET, Collections.EMPTY_SET); // set replication to 5
     try {
       new LoadDefinition().selectExecutors(config, JOB_WORKERS,
           new SelectExecutorsContext(1, mJobServerContext));
@@ -176,7 +176,7 @@ public class LoadDefinitionTest {
     Mockito.when(mMockFsContext.getCachedWorkers()).thenReturn(blockWorkers);
     createFileWithNoLocations(TEST_URI, 1);
     LoadConfig config = new LoadConfig(TEST_URI, 2, Collections.EMPTY_SET,
-        Collections.EMPTY_SET); // set replication to 2
+        Collections.EMPTY_SET, Collections.EMPTY_SET); // set replication to 2
     try {
       new LoadDefinition().selectExecutors(config,
           JOB_WORKERS, new SelectExecutorsContext(1, mJobServerContext));
@@ -195,7 +195,7 @@ public class LoadDefinitionTest {
     Set<Long> workerIds = new HashSet<>();
     workerIds.add(0L);
     workerIds.add(1L);
-    loadedBySpecifiedHost(Collections.EMPTY_SET,
+    loadedBySpecifiedHost(Collections.EMPTY_SET, Collections.EMPTY_SET,
         Collections.singleton("RACK1"), workerIds);
   }
 
@@ -204,7 +204,7 @@ public class LoadDefinitionTest {
     Set<Long> workerIds = new HashSet<>();
     workerIds.add(2L);
     workerIds.add(3L);
-    loadedBySpecifiedHost(Collections.EMPTY_SET,
+    loadedBySpecifiedHost(Collections.EMPTY_SET, Collections.EMPTY_SET,
         Collections.singleton("RACK2"), workerIds);
   }
 
@@ -212,7 +212,7 @@ public class LoadDefinitionTest {
   public void loadedBySpecifiedWorker() throws Exception {
     Set<Long> workerIds = new HashSet<>();
     workerIds.add(2L);
-    loadedBySpecifiedHost(Collections.singleton("HOST2"),
+    loadedBySpecifiedHost(Collections.singleton("HOST2"), Collections.EMPTY_SET,
         Collections.EMPTY_SET, workerIds);
   }
 
@@ -220,16 +220,24 @@ public class LoadDefinitionTest {
   public void loadedBySpecifiedWorker2() throws Exception {
     Set<Long> workerIds = new HashSet<>();
     workerIds.add(3L);
-    loadedBySpecifiedHost(Collections.singleton("HOST3"),
+    loadedBySpecifiedHost(Collections.singleton("HOST3"), Collections.EMPTY_SET,
         Collections.EMPTY_SET, workerIds);
   }
 
-  private void loadedBySpecifiedHost(Set<String> workerSet,
+  @Test
+  public void loadedByExcludedWorker() throws Exception {
+    Set<Long> workerIds = new HashSet<>();
+    workerIds.add(2L);
+    workerIds.add(3L);
+    loadedBySpecifiedHost(Collections.EMPTY_SET, Collections.singleton("HOST3"),
+        Collections.EMPTY_SET, workerIds);
+  }
+
+  private void loadedBySpecifiedHost(Set<String> workerSet, Set<String> excludeWorkerSet,
       Set<String> localityIds, Set<Long> workerIds) throws Exception {
     int numBlocks = 10;
     createFileWithNoLocations(TEST_URI, numBlocks);
-    LoadConfig config = new LoadConfig(TEST_URI, 1,
-        workerSet, localityIds);
+    LoadConfig config = new LoadConfig(TEST_URI, 1, workerSet, excludeWorkerSet, localityIds);
     Set<Pair<WorkerInfo, ArrayList<LoadTask>>> assignments =
         new LoadDefinition().selectExecutors(config,
             JOB_WORKERS, new SelectExecutorsContext(1, mJobServerContext));

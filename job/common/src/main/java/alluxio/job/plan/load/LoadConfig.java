@@ -36,21 +36,26 @@ public class LoadConfig implements PlanConfig {
   private final String mFilePath;
   private final int mReplication;
   private final Set<String> mWorkerSet;
+  private final Set<String> mExcludeWorkerSet;
   private final Set<String> mLocalityIds;
 
   /**
    * @param filePath the file path
    * @param replication the number of workers to store each block on, defaults to 1
    * @param workerSet the worker set
+   * @param excludeWorkerSet the exclude worker set
    * @param localityIds the locality identify set
    */
   public LoadConfig(@JsonProperty("filePath") String filePath,
       @JsonProperty("replication") Integer replication,
       @JsonProperty("workerSet") Set<String> workerSet,
+      @JsonProperty("excludeWorkerSet") Set<String> excludeWorkerSet,
       @JsonProperty("localityIds") Set<String> localityIds) {
     mFilePath = Preconditions.checkNotNull(filePath, "The file path cannot be null");
     mReplication = replication == null ? 1 : replication;
     mWorkerSet = workerSet == null ? Collections.EMPTY_SET : new HashSet(workerSet);
+    mExcludeWorkerSet = excludeWorkerSet == null ? Collections.EMPTY_SET
+        : new HashSet(excludeWorkerSet);
     mLocalityIds = localityIds == null ? Collections.EMPTY_SET : new HashSet(localityIds);
   }
 
@@ -111,6 +116,13 @@ public class LoadConfig implements PlanConfig {
    */
   public Set<String> getWorkerSet() {
     return mWorkerSet;
+  }
+
+  /**
+   * @return exclude worker set
+   */
+  public Set<String> getExcludeWorkerSet() {
+    return mExcludeWorkerSet;
   }
 
   /**

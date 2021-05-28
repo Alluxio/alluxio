@@ -89,6 +89,24 @@ public final class DistributedLoadCommand extends AbstractDistributedJobCommand 
           .argName("host-file")
           .desc("Host File contains worker hosts, each line has a worker host")
           .build();
+  private static final Option EXCLUDE_HOSTS_OPTION =
+      Option.builder()
+          .longOpt("exclude-hosts")
+          .required(false)
+          .hasArg(true)
+          .numberOfArgs(1)
+          .argName("exclude-hosts")
+          .desc("A list of excluded worker hosts separated by comma")
+          .build();
+  private static final Option EXCLUDE_HOSTS_FILE_OPTION =
+      Option.builder()
+          .longOpt("exclude-hosts-file")
+          .required(false)
+          .hasArg(true)
+          .numberOfArgs(1)
+          .argName("exclude-hosts-file")
+          .desc("Host File contains excluded worker hosts, each line has a worker host")
+          .build();
   private static final Option LOCALITY_OPTION =
       Option.builder()
           .longOpt("locality")
@@ -127,7 +145,9 @@ public final class DistributedLoadCommand extends AbstractDistributedJobCommand 
     return new Options().addOption(REPLICATION_OPTION).addOption(ACTIVE_JOB_COUNT_OPTION)
         .addOption(INDEX_FILE)
         .addOption(HOSTS_OPTION)
-        .addOption(HOST_FILE_OPTION);
+        .addOption(HOST_FILE_OPTION)
+        .addOption(EXCLUDE_HOSTS_OPTION)
+        .addOption(EXCLUDE_HOSTS_FILE_OPTION);
   }
 
   @Override
@@ -139,6 +159,8 @@ public final class DistributedLoadCommand extends AbstractDistributedJobCommand 
   public String getUsage() {
     return "distributedLoad [--replication <num>] [--active-jobs <num>] [--index] "
         + "[--hosts <host1,host2,...,hostN>] [--host-file <hostFilePath>] "
+        + "[--exclude-hosts <exclHost1,exclHost2,...,exclHostN>]"
+        + "[--exclude-hosts-file <exclHostFilePath>]"
         + "[--locality <locality1,locality2,...,localityN>] [--locality-file <localityFilePath>] "
         + "<path>";
   }
@@ -157,6 +179,7 @@ public final class DistributedLoadCommand extends AbstractDistributedJobCommand 
     String[] args = cl.getArgs();
     int replication = FileSystemShellUtils.getIntArg(cl, REPLICATION_OPTION, DEFAULT_REPLICATION);
     Set<String> workerSet = new HashSet<>();
+    Set<String> excludeWorkerSet = new HashSet<>();
     Set<String> localityIds = new HashSet<>();
     if (cl.hasOption(HOST_FILE_OPTION.getLongOpt())) {
       String hostFile = cl.getOptionValue(HOST_FILE_OPTION.getLongOpt()).trim();
@@ -164,6 +187,13 @@ public final class DistributedLoadCommand extends AbstractDistributedJobCommand 
     } else if (cl.hasOption(HOSTS_OPTION.getLongOpt())) {
       String argOption = cl.getOptionValue(HOSTS_OPTION.getLongOpt()).trim();
       readItemsFromOptionString(workerSet, argOption);
+    }
+    if (cl.hasOption(EXCLUDE_HOSTS_FILE_OPTION.getLongOpt())) {
+      String hostFile = cl.getOptionValue(EXCLUDE_HOSTS_FILE_OPTION.getLongOpt()).trim();
+      readLinesToSet(excludeWorkerSet, hostFile);
+    } else if (cl.hasOption(EXCLUDE_HOSTS_OPTION.getLongOpt())) {
+      String argOption = cl.getOptionValue(EXCLUDE_HOSTS_OPTION.getLongOpt()).trim();
+      readItemsFromOptionString(excludeWorkerSet, argOption);
     }
     if (cl.hasOption(LOCALITY_FILE_OPTION.getLongOpt())) {
       String localityFile = cl.getOptionValue(LOCALITY_FILE_OPTION.getLongOpt()).trim();
@@ -175,12 +205,14 @@ public final class DistributedLoadCommand extends AbstractDistributedJobCommand 
 
     if (!cl.hasOption(INDEX_FILE.getLongOpt())) {
       AlluxioURI path = new AlluxioURI(args[0]);
-      DistributedLoadUtils.distributedLoad(this, path, replication, workerSet, localityIds);
+      DistributedLoadUtils.distributedLoad(this, path, replication, workerSet,
+          excludeWorkerSet, localityIds);
     } else {
       try (BufferedReader reader = new BufferedReader(new FileReader(args[0]))) {
         for (String filename; (filename = reader.readLine()) != null; ) {
           AlluxioURI path = new AlluxioURI(filename);
-          DistributedLoadUtils.distributedLoad(this, path, replication, workerSet, localityIds);
+          DistributedLoadUtils.distributedLoad(this, path, replication, workerSet,
+              excludeWorkerSet, localityIds);
         }
       }
     }
