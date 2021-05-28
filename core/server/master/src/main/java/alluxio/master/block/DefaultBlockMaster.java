@@ -605,6 +605,9 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
         // Outside of locking the block. This does not have to be synchronized with the block
         // metadata, since it is essentially an asynchronous signal to the worker to remove the
         // block.
+        // TODO(jiacheng): if the block locations are changed (like a new worker is registered
+        //  with the block), the block will not be freed ever. The locking logic in
+        //  workerRegister should be changed to address this race condition.
         for (long workerId : workerIds) {
           MasterWorkerInfo worker = mWorkers.getFirstByField(ID_INDEX, workerId);
           if (worker != null) {

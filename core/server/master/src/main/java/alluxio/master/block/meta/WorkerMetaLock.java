@@ -33,6 +33,7 @@ import java.util.concurrent.locks.Lock;
  * This class implements {@link Lock} so it can be managed by
  * {@link alluxio.resource.LockResource}. Callers do not need to lock and unlock explicitly.
  */
+// TODO(jiacheng): Make LockResource support multiple locks so we don't need this wrapper anymore
 public class WorkerMetaLock implements Lock {
   // The order for acquiring locks
   private static final List<WorkerMetaLockSection> NATURAL_ORDER = Arrays.asList(WorkerMetaLockSection.values());
