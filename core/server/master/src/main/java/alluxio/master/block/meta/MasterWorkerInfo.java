@@ -15,6 +15,7 @@ import alluxio.Constants;
 import alluxio.StorageTierAssoc;
 import alluxio.client.block.options.GetWorkerReportOptions.WorkerInfoField;
 import alluxio.grpc.StorageList;
+import alluxio.resource.LockResource;
 import alluxio.util.CommonUtils;
 import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
@@ -36,7 +37,11 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.stream.Collectors;
 
@@ -597,52 +602,11 @@ public final class MasterWorkerInfo {
     mUsage.mUsedBytesOnTiers.put(tierAlias, usedBytesOnTier);
   }
 
-  /**
-   * Locks the corresponding locks on the metadata groups.
-   * See the javadoc for this class for example usage.
-   *
-   * The locks will be acquired in order.
-   * The locks can either be shared or exclusive.
-   * The isShared flag will apply to all the locks acquired here.
-   *
-   * @param lockTypes the locks
-   * @param isShared if false, the locking is exclusive
-   */
-  // TODO(jiacheng): refactor this to support LockResource instead of try-finally
-  public void lock(EnumSet<WorkerMetaLockType> lockTypes, boolean isShared) {
-    for (WorkerMetaLockType t : ImmutableList.of(WorkerMetaLockType.STATUS_LOCK,
-        WorkerMetaLockType.USAGE_LOCK, WorkerMetaLockType.BLOCKS_LOCK)) {
-      if (lockTypes.contains(t)) {
-        if (isShared) {
-          mLockTypeToLock.get(t).readLock().lock();
-        } else {
-          mLockTypeToLock.get(t).writeLock().lock();
-        }
-      }
-    }
+  ReentrantReadWriteLock getLock(WorkerMetaLockType lockType) {
+    return mLockTypeToLock.get(lockType);
   }
 
-  /**
-   * Unlocks the corresponding locks.
-   * See the javadoc for this class for example usage.
-   *
-   * The arguments must match with the {@link #lock(EnumSet, boolean)} method.
-   * The locks will be released in the opposite order to {@link #lock(EnumSet, boolean)},
-   * in order to prevent deadlock.
-   *
-   * @param lockTypes the locks
-   * @param isShared if false, the locking is exclusive
-   */
-  public void unlock(EnumSet<WorkerMetaLockType> lockTypes, boolean isShared) {
-    for (WorkerMetaLockType t : ImmutableList.of(WorkerMetaLockType.BLOCKS_LOCK,
-        WorkerMetaLockType.USAGE_LOCK, WorkerMetaLockType.STATUS_LOCK)) {
-      if (lockTypes.contains(t)) {
-        if (isShared) {
-          mLockTypeToLock.get(t).readLock().unlock();
-        } else {
-          mLockTypeToLock.get(t).writeLock().unlock();
-        }
-      }
-    }
+  public LockResource lockWorkerMeta(EnumSet<WorkerMetaLockType> lockTypes, boolean isShared) {
+    return new LockResource(new WorkerMetaLock(lockTypes, isShared, this));
   }
 }
