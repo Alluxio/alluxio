@@ -46,6 +46,9 @@ public final class BlockWriteHandler extends AbstractWriteHandler<BlockWriteRequ
 
   private final boolean mDomainSocketEnabled;
 
+  /** Flags for counter metric management. */
+  private boolean mRpcCompleted;
+
   /**
    * Creates an instance of {@link BlockWriteHandler}.
    *
@@ -59,6 +62,7 @@ public final class BlockWriteHandler extends AbstractWriteHandler<BlockWriteRequ
     super(responseObserver, userInfo);
     mWorker = blockWorker;
     mDomainSocketEnabled = domainSocketEnabled;
+    mRpcCompleted = false;
   }
 
   @Override
@@ -92,7 +96,11 @@ public final class BlockWriteHandler extends AbstractWriteHandler<BlockWriteRequ
       context.getBlockWriter().close();
     }
     mWorker.commitBlock(request.getSessionId(), request.getId(), request.getPinOnCreate());
-    RPC_WRITE_COUNT.dec();
+
+    if (!mRpcCompleted) {
+      mRpcCompleted = true;
+      RPC_WRITE_COUNT.dec();
+    }
   }
 
   @Override
@@ -102,7 +110,11 @@ public final class BlockWriteHandler extends AbstractWriteHandler<BlockWriteRequ
       context.getBlockWriter().close();
     }
     mWorker.abortBlock(request.getSessionId(), request.getId());
-    RPC_WRITE_COUNT.dec();
+
+    if (!mRpcCompleted) {
+      mRpcCompleted = true;
+      RPC_WRITE_COUNT.dec();
+    }
   }
 
   @Override
@@ -111,7 +123,11 @@ public final class BlockWriteHandler extends AbstractWriteHandler<BlockWriteRequ
       context.getBlockWriter().close();
     }
     mWorker.cleanupSession(context.getRequest().getSessionId());
-    RPC_WRITE_COUNT.dec();
+
+    if (!mRpcCompleted) {
+      mRpcCompleted = true;
+      RPC_WRITE_COUNT.dec();
+    }
   }
 
   @Override
