@@ -21,7 +21,6 @@ import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.base.MoreObjects;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Sets;
 import org.slf4j.Logger;
@@ -37,11 +36,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.concurrent.locks.Condition;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.stream.Collectors;
 
@@ -70,31 +65,27 @@ import javax.annotation.concurrent.NotThreadSafe;
  * As listed above, group 1 and 2 are thread safe and do not require external locking.
  * Group 3, 4, and 5 require external locking.
  *
- * Locking can be done with {@link #lock(EnumSet, boolean)}.
+ * Locking can be done with {@link #lockWorkerMeta(EnumSet, boolean)}.
+ * This method returns a {@link LockResource} which can be managed by try-finally.
+ * Internally, {@link WorkerMetaLock} is used to manage the corresponding internal locks
+ * with an order and unlocking them properly on close.
  *
  * If the fields are only read, shared locks should be acquired and released as below:
  * <blockquote><pre>
- *   EnumSet<WorkerMetaLockType> lockTypes =
- *       EnumSet.of(WorkerMetaLockType.USAGE_LOCK);
- *   worker.lock(lockTypes, true);
- *   try {
+ *   try (LockResource r = lockWorkerMeta(
+ *       EnumSet.of(WorkerMetaLockSection.USAGE), true)) {
  *     ...
- *   } finally {
- *     worker.unlock(lockTypes, true);
  *   }
  * </pre></blockquote>
  *
  * If the fields are updated, exclusive locks should be acquired and released as below:
  * <blockquote><pre>
- *   EnumSet<WorkerMetaLockType> lockTypes = EnumSet.of(
- *       WorkerMetaLockType.STATUS_LOCK,
- *       WorkerMetaLockType.USAGE_LOCK,
- *       WorkerMetaLockType.BLOCKS_LOCK);
- *   worker.lock(lockTypes, false);
- *   try {
+ *   try (LockResource r = lockWorkerMeta(
+ *       EnumSet.of(
+ *           WorkerMetaLockSection.STATUS,
+ *           WorkerMetaLockSection.USAGE,
+ *           WorkerMetaLockSection.BLOCKS)), true)) {
  *     ...
- *   } finally {
- *     worker.unlock(lockTypes, false);
  *   }
  * </pre></blockquote>
  */
@@ -131,8 +122,8 @@ public final class MasterWorkerInfo {
   /** Locks the 2 block sets above. */
   private final ReentrantReadWriteLock mBlockListLock;
 
-  /** Stores the mapping from WorkerMetaLockType to the lock. */
-  private final Map<WorkerMetaLockType, ReentrantReadWriteLock> mLockTypeToLock;
+  /** Stores the mapping from WorkerMetaLockSection to the lock. */
+  private final Map<WorkerMetaLockSection, ReentrantReadWriteLock> mLockTypeToLock;
 
   /**
    * Creates a new instance of {@link MasterWorkerInfo}.
@@ -152,9 +143,9 @@ public final class MasterWorkerInfo {
     mUsageLock = new ReentrantReadWriteLock();
     mBlockListLock = new ReentrantReadWriteLock();
     mLockTypeToLock = ImmutableMap.of(
-        WorkerMetaLockType.STATUS_LOCK, mStatusLock,
-        WorkerMetaLockType.USAGE_LOCK, mUsageLock,
-        WorkerMetaLockType.BLOCKS_LOCK, mBlockListLock);
+        WorkerMetaLockSection.STATUS, mStatusLock,
+        WorkerMetaLockSection.USAGE, mUsageLock,
+        WorkerMetaLockSection.BLOCKS, mBlockListLock);
   }
 
   /**
@@ -162,19 +153,15 @@ public final class MasterWorkerInfo {
    * Write locks on {@link MasterWorkerInfo#mStatusLock}, {@link MasterWorkerInfo#mUsageLock}
    * and {@link MasterWorkerInfo#mBlockListLock} are required.
    *
-   * You should lock externally with {@link MasterWorkerInfo#lock(EnumSet, boolean)}
+   * You should lock externally with {@link MasterWorkerInfo#lockWorkerMeta(EnumSet, boolean)}
    * with all three lock types specified:
    *
    * <blockquote><pre>
-   *   EnumSet<WorkerMetaLockType> lockTypes = EnumSet.of(
-   *       WorkerMetaLockType.STATUS_LOCK,
-   *       WorkerMetaLockType.USAGE_LOCK,
-   *       WorkerMetaLockType.BLOCKS_LOCK);
-   *   worker.lock(false, lockTypes);
-   *   try {
+   *   try (LockResource r = worker.lockWorkerMeta(EnumSet.of(
+   *       WorkerMetaLockSection.STATUS, 
+   *       WorkerMetaLockSection.USAGE, 
+   *       WorkerMetaLockSection.BLOCKS))) {
    *     register(...);
-   *   } finally {
-   *     worker.unlock(false, lockTypes);
    *   }
    * </pre></blockquote>
    *
@@ -214,8 +201,8 @@ public final class MasterWorkerInfo {
   /**
    * Adds a block to the worker.
    *
-   * You should lock externally with {@link MasterWorkerInfo#lock(EnumSet, boolean)}
-   * with {@link WorkerMetaLockType#BLOCKS_LOCK} specified.
+   * You should lock externally with {@link MasterWorkerInfo#lockWorkerMeta(EnumSet, boolean)}
+   * with {@link WorkerMetaLockSection#BLOCKS} specified.
    * An exclusive lock is required.
    *
    * @param blockId the id of the block to be added
@@ -227,8 +214,8 @@ public final class MasterWorkerInfo {
   /**
    * Removes a block from the worker.
    *
-   * You should lock externally with {@link MasterWorkerInfo#lock(EnumSet, boolean)}
-   * with {@link WorkerMetaLockType#BLOCKS_LOCK} specified.
+   * You should lock externally with {@link MasterWorkerInfo#lockWorkerMeta(EnumSet, boolean)}
+   * with {@link WorkerMetaLockSection#BLOCKS} specified.
    * An exclusive lock is required.
    *
    * @param blockId the id of the block to be removed
@@ -241,8 +228,8 @@ public final class MasterWorkerInfo {
   /**
    * Adds a new worker lost storage path.
    *
-   * You should lock externally with {@link MasterWorkerInfo#lock(EnumSet, boolean)}
-   * with {@link WorkerMetaLockType#USAGE_LOCK} specified.
+   * You should lock externally with {@link MasterWorkerInfo#lockWorkerMeta(EnumSet, boolean)}
+   * with {@link WorkerMetaLockSection#USAGE} specified.
    * An exclusive lock is required.
    *
    * @param tierAlias the tier alias
@@ -257,8 +244,8 @@ public final class MasterWorkerInfo {
   /**
    * Adds new worker lost storage paths.
    *
-   * You should lock externally with {@link MasterWorkerInfo#lock(EnumSet, boolean)}
-   * with {@link WorkerMetaLockType#USAGE_LOCK} specified.
+   * You should lock externally with {@link MasterWorkerInfo#lockWorkerMeta(EnumSet, boolean)}
+   * with {@link WorkerMetaLockSection#USAGE} specified.
    * An exclusive lock is required.
    *
    * @param lostStorage the lost storage to add
@@ -274,8 +261,8 @@ public final class MasterWorkerInfo {
   /**
    * Gets the selected field information for this worker.
    *
-   * You should lock externally with {@link MasterWorkerInfo#lock(EnumSet, boolean)}
-   * with {@link WorkerMetaLockType#USAGE_LOCK} specified.
+   * You should lock externally with {@link MasterWorkerInfo#lockWorkerMeta(EnumSet, boolean)}
+   * with {@link WorkerMetaLockSection#USAGE} specified.
    * A shared lock is required.
    *
    * @param fieldRange the client selected fields
@@ -337,8 +324,8 @@ public final class MasterWorkerInfo {
   }
 
   /**
-   * You should lock externally with {@link MasterWorkerInfo#lock(EnumSet, boolean)}
-   * with {@link WorkerMetaLockType#USAGE_LOCK} specified.
+   * You should lock externally with {@link MasterWorkerInfo#lockWorkerMeta(EnumSet, boolean)}
+   * with {@link WorkerMetaLockSection#USAGE} specified.
    * A shared lock is required.
    *
    * @return the available space of the worker in bytes
@@ -348,8 +335,8 @@ public final class MasterWorkerInfo {
   }
 
   /**
-   * You should lock externally with {@link MasterWorkerInfo#lock(EnumSet, boolean)}
-   * with {@link WorkerMetaLockType#BLOCKS_LOCK} specified.
+   * You should lock externally with {@link MasterWorkerInfo#lockWorkerMeta(EnumSet, boolean)}
+   * with {@link WorkerMetaLockSection#BLOCKS} specified.
    * A shared lock is required.
    *
    * This returns a copy so the lock can be released when this method returns.
@@ -361,8 +348,8 @@ public final class MasterWorkerInfo {
   }
 
   /**
-   * You should lock externally with {@link MasterWorkerInfo#lock(EnumSet, boolean)}
-   * with {@link WorkerMetaLockType#USAGE_LOCK} specified.
+   * You should lock externally with {@link MasterWorkerInfo#lockWorkerMeta(EnumSet, boolean)}
+   * with {@link WorkerMetaLockSection#USAGE} specified.
    * A shared lock is required.
    *
    * @return the capacity of the worker in bytes
@@ -390,8 +377,8 @@ public final class MasterWorkerInfo {
   }
 
   /**
-   * You should lock externally with {@link MasterWorkerInfo#lock(EnumSet, boolean)}
-   * with {@link WorkerMetaLockType#BLOCKS_LOCK} specified.
+   * You should lock externally with {@link MasterWorkerInfo#lockWorkerMeta(EnumSet, boolean)}
+   * with {@link WorkerMetaLockSection#BLOCKS} specified.
    * A shared lock is required.
    *
    * This returns a copy so the lock can be released after this method returns.
@@ -410,8 +397,8 @@ public final class MasterWorkerInfo {
   }
 
   /**
-   * You should lock externally with {@link MasterWorkerInfo#lock(EnumSet, boolean)}
-   * with {@link WorkerMetaLockType#USAGE_LOCK} specified.
+   * You should lock externally with {@link MasterWorkerInfo#lockWorkerMeta(EnumSet, boolean)}
+   * with {@link WorkerMetaLockSection#USAGE} specified.
    * A shared lock is required.
    *
    * @return the storage tier mapping for the worker
@@ -421,8 +408,8 @@ public final class MasterWorkerInfo {
   }
 
   /**
-   * You should lock externally with {@link MasterWorkerInfo#lock(EnumSet, boolean)}
-   * with {@link WorkerMetaLockType#USAGE_LOCK} specified.
+   * You should lock externally with {@link MasterWorkerInfo#lockWorkerMeta(EnumSet, boolean)}
+   * with {@link WorkerMetaLockSection#USAGE} specified.
    * A shared lock is required.
    *
    * @return the total bytes on each storage tier
@@ -432,8 +419,8 @@ public final class MasterWorkerInfo {
   }
 
   /**
-   * You should lock externally with {@link MasterWorkerInfo#lock(EnumSet, boolean)}
-   * with {@link WorkerMetaLockType#USAGE_LOCK} specified.
+   * You should lock externally with {@link MasterWorkerInfo#lockWorkerMeta(EnumSet, boolean)}
+   * with {@link WorkerMetaLockSection#USAGE} specified.
    * A shared lock is required.
    *
    * @return the used bytes on each storage tier
@@ -452,8 +439,8 @@ public final class MasterWorkerInfo {
   }
 
   /**
-   * You should lock externally with {@link MasterWorkerInfo#lock(EnumSet, boolean)}
-   * with {@link WorkerMetaLockType#STATUS_LOCK} specified.
+   * You should lock externally with {@link MasterWorkerInfo#lockWorkerMeta(EnumSet, boolean)}
+   * with {@link WorkerMetaLockSection#STATUS} specified.
    * A shared lock is required.
    *
    * @return whether the worker has been registered yet
@@ -463,8 +450,8 @@ public final class MasterWorkerInfo {
   }
 
   /**
-   * You should lock externally with {@link MasterWorkerInfo#lock(EnumSet, boolean)}
-   * with {@link WorkerMetaLockType#USAGE_LOCK} specified.
+   * You should lock externally with {@link MasterWorkerInfo#lockWorkerMeta(EnumSet, boolean)}
+   * with {@link WorkerMetaLockSection#USAGE} specified.
    * A shared lock is required.
    *
    * @return the free bytes on each storage tier
@@ -479,8 +466,8 @@ public final class MasterWorkerInfo {
   }
 
   /**
-   * You should lock externally with {@link MasterWorkerInfo#lock(EnumSet, boolean)}
-   * with {@link WorkerMetaLockType#USAGE_LOCK} specified.
+   * You should lock externally with {@link MasterWorkerInfo#lockWorkerMeta(EnumSet, boolean)}
+   * with {@link WorkerMetaLockSection#USAGE} specified.
    * A shared lock is required.
    *
    * This returns a copy so the lock can be released after the map is returned.
@@ -492,8 +479,8 @@ public final class MasterWorkerInfo {
   }
 
   /**
-   * You should lock externally with {@link MasterWorkerInfo#lock(EnumSet, boolean)}
-   * with {@link WorkerMetaLockType#USAGE_LOCK} specified.
+   * You should lock externally with {@link MasterWorkerInfo#lockWorkerMeta(EnumSet, boolean)}
+   * with {@link WorkerMetaLockSection#USAGE} specified.
    * A shared lock is required.
    *
    * @return true if this worker has lost storage, false otherwise
@@ -534,8 +521,8 @@ public final class MasterWorkerInfo {
   /**
    * Adds or removes a block from the to-be-removed blocks set of the worker.
    *
-   * You should lock externally with {@link MasterWorkerInfo#lock(EnumSet, boolean)}
-   * with {@link WorkerMetaLockType#BLOCKS_LOCK} specified.
+   * You should lock externally with {@link MasterWorkerInfo#lockWorkerMeta(EnumSet, boolean)}
+   * with {@link WorkerMetaLockSection#BLOCKS} specified.
    * An exclusive lock is required.
    *
    * @param add true if to add, to remove otherwise
@@ -554,8 +541,8 @@ public final class MasterWorkerInfo {
   /**
    * Sets the capacity of the worker in bytes.
    *
-   * You should lock externally with {@link MasterWorkerInfo#lock(EnumSet, boolean)}
-   * with {@link WorkerMetaLockType#USAGE_LOCK} specified.
+   * You should lock externally with {@link MasterWorkerInfo#lockWorkerMeta(EnumSet, boolean)}
+   * with {@link WorkerMetaLockSection#USAGE} specified.
    * An exclusive lock is required.
    *
    * @param capacityBytesOnTiers used bytes on each storage tier
@@ -572,8 +559,8 @@ public final class MasterWorkerInfo {
   /**
    * Sets the used space of the worker in bytes.
    *
-   * You should lock externally with {@link MasterWorkerInfo#lock(EnumSet, boolean)}
-   * with {@link WorkerMetaLockType#USAGE_LOCK} specified.
+   * You should lock externally with {@link MasterWorkerInfo#lockWorkerMeta(EnumSet, boolean)}
+   * with {@link WorkerMetaLockSection#USAGE} specified.
    * An exclusive lock is required.
    *
    * @param usedBytesOnTiers used bytes on each storage tier
@@ -590,8 +577,8 @@ public final class MasterWorkerInfo {
   /**
    * Sets the used space of the worker in bytes.
    *
-   * You should lock externally with {@link MasterWorkerInfo#lock(EnumSet, boolean)}
-   * with {@link WorkerMetaLockType#USAGE_LOCK} specified.
+   * You should lock externally with {@link MasterWorkerInfo#lockWorkerMeta(EnumSet, boolean)}
+   * with {@link WorkerMetaLockSection#USAGE} specified.
    * An exclusive lock is required.
    *
    * @param tierAlias alias of storage tier
@@ -602,11 +589,26 @@ public final class MasterWorkerInfo {
     mUsage.mUsedBytesOnTiers.put(tierAlias, usedBytesOnTier);
   }
 
-  ReentrantReadWriteLock getLock(WorkerMetaLockType lockType) {
+  ReentrantReadWriteLock getLock(WorkerMetaLockSection lockType) {
     return mLockTypeToLock.get(lockType);
   }
 
-  public LockResource lockWorkerMeta(EnumSet<WorkerMetaLockType> lockTypes, boolean isShared) {
+  /**
+   * Locks the corresponding locks on the metadata groups.
+   * See the javadoc for this class for example usage.
+   *
+   * The locks will be acquired in order and later released in the opposite order.
+   * The locks can either be shared or exclusive.
+   * The isShared flag will apply to all the locks acquired here.
+   * 
+   * This returns a {@link LockResource} which can be managed by a try-finally block.
+   * See javadoc for {@link WorkerMetaLock} for more details about the internals.
+   *
+   * @param lockTypes the locks
+   * @param isShared if false, the locking is exclusive
+   * @return a {@link LockResource} of the {@link WorkerMetaLock}
+   */
+  public LockResource lockWorkerMeta(EnumSet<WorkerMetaLockSection> lockTypes, boolean isShared) {
     return new LockResource(new WorkerMetaLock(lockTypes, isShared, this));
   }
 }

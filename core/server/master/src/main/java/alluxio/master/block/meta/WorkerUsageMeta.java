@@ -24,7 +24,7 @@ import java.util.Map;
  * An object representation of fields relevant to worker usage and capacity.
  * This class is not thread safe so external locking is required.
  * You should lock externally with {@link MasterWorkerInfo#lock(EnumSet, boolean)}
- * with {@link WorkerMetaLockType#USAGE_LOCK} specified.
+ * with {@link WorkerMetaLockSection#USAGE} specified.
  */
 @NotThreadSafe
 public class WorkerUsageMeta {
@@ -56,8 +56,8 @@ public class WorkerUsageMeta {
    *
    * Example:
    * <blockquote><pre>
-   *   EnumSet<WorkerMetaLockType> lockTypes =
-   *       EnumSet.of(WorkerMetaLockType.USAGE_LOCK);
+   *   EnumSet<WorkerMetaLockSection> lockTypes =
+   *       EnumSet.of(WorkerMetaLockSection.USAGE_LOCK);
    *   worker.lock(lockTypes, false);
    *   try {
    *     updateUsage(..);
@@ -112,8 +112,8 @@ public class WorkerUsageMeta {
    *
    * Example:
    * <blockquote><pre>
-   *   EnumSet<WorkerMetaLockType> lockTypes =
-   *       EnumSet.of(WorkerMetaLockType.USAGE_LOCK);
+   *   EnumSet<WorkerMetaLockSection> lockTypes =
+   *       EnumSet.of(WorkerMetaLockSection.USAGE_LOCK);
    *   worker.lock(lockTypes, true);
    *   try {
    *     getAvailableBytes();
