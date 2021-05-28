@@ -26,6 +26,7 @@ import org.eclipse.jetty.server.handler.AbstractHandler;
 import org.eclipse.jetty.server.handler.DefaultHandler;
 import org.eclipse.jetty.server.handler.HandlerList;
 import org.eclipse.jetty.servlet.ServletContextHandler;
+import org.eclipse.jetty.servlet.ServletHolder;
 import org.eclipse.jetty.util.security.Constraint;
 import org.eclipse.jetty.util.thread.QueuedThreadPool;
 import org.slf4j.Logger;
@@ -104,6 +105,10 @@ public abstract class WebServer {
     HandlerList handlers = new HandlerList();
     handlers.setHandlers(new Handler[] {mServletContextHandler, new DefaultHandler()});
     mServer.setHandler(handlers);
+    ServletHolder stacksServletHolder =
+        new ServletHolder("Alluxio Master Web Service", new StacksServlet());
+    mServletContextHandler
+        .addServlet(stacksServletHolder, "/stacks");
   }
 
   /**
