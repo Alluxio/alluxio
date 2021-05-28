@@ -38,8 +38,7 @@ public class DelegatingBlockReader extends BlockReader {
   }
 
   /**
-   * Return the delegate.
-   * @return return the delegate
+   * @return the delegate
    */
   public BlockReader getDelegate() {
     return mBlockReader;
