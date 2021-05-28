@@ -568,13 +568,10 @@ public class BlockReadHandler implements StreamObserver<alluxio.grpc.ReadRequest
           instanceof UnderFileSystemBlockReader)) {
         AlluxioURI ufsMountPointUri;
         if (reader instanceof DelegatingBlockReader) {
-          ufsMountPointUri =
-              ((UnderFileSystemBlockReader) ((DelegatingBlockReader) reader).getDelegate())
-                  .getUfsMountPointUri();
-        } else {
-          ufsMountPointUri =
-              ((UnderFileSystemBlockReader) reader).getUfsMountPointUri();
+          reader = ((DelegatingBlockReader) reader).getDelegate();
         }
+        ufsMountPointUri =
+            ((UnderFileSystemBlockReader) reader).getUfsMountPointUri();
 
         String ufsString = MetricsSystem.escape(ufsMountPointUri);
         MetricKey counterKey = MetricKey.WORKER_BYTES_READ_UFS;
