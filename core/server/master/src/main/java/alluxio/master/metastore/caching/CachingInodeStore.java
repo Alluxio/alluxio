@@ -149,20 +149,22 @@ public final class CachingInodeStore implements InodeStore, Closeable {
     mInodeCache = new InodeCache(cacheConf);
     mEdgeCache = new EdgeCache(cacheConf);
     mListingCache = new ListingCache(cacheConf);
-    MetricsSystem.registerCachedGaugeIfAbsent(MetricKey.MASTER_INODE_HEAP_SIZE.getName(),
-        () -> {
-          try {
-            return ObjectSizeCalculator.getObjectSize(mInodeCache.mMap,
-                ImmutableSet.of(Long.class, MutableInodeFile.class, MutableInodeDirectory.class))
-                + ObjectSizeCalculator.getObjectSize(mEdgeCache.mMap,
-                ImmutableSet.of(Long.class, Edge.class))
-                + ObjectSizeCalculator.getObjectSize(mListingCache.mMap,
-                ImmutableSet.of(Long.class, ListingCache.ListingCacheEntry.class));
-          } catch (NullPointerException e) {
-            LOG.info(Throwables.getStackTraceAsString(e));
-            throw e;
-          }
-        });
+    if (conf.getBoolean(PropertyKey.MASTER_METRICS_HEAP_ENABLED)) {
+      MetricsSystem.registerCachedGaugeIfAbsent(MetricKey.MASTER_INODE_HEAP_SIZE.getName(),
+          () -> {
+            try {
+              return ObjectSizeCalculator.getObjectSize(mInodeCache.mMap,
+                  ImmutableSet.of(Long.class, MutableInodeFile.class, MutableInodeDirectory.class))
+                  + ObjectSizeCalculator.getObjectSize(mEdgeCache.mMap,
+                  ImmutableSet.of(Long.class, Edge.class))
+                  + ObjectSizeCalculator.getObjectSize(mListingCache.mMap,
+                  ImmutableSet.of(Long.class, ListingCache.ListingCacheEntry.class));
+            } catch (NullPointerException e) {
+              LOG.info(Throwables.getStackTraceAsString(e));
+              throw e;
+            }
+          });
+    }
   }
 
   @Override

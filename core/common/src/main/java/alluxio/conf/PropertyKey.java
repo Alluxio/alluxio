@@ -64,6 +64,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   private static final Cache<String, Boolean> REGEXP_CACHE = CacheBuilder.newBuilder()
       .maximumSize(1024)
       .build();
+
   /**
    * The consistency check level to apply to a certain property key.
    * User can run "alluxio validateEnv all cluster.conf.consistent" to validate the consistency of
@@ -2034,6 +2035,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
+  public static final PropertyKey MASTER_METRICS_HEAP_ENABLED =
+      new Builder(Name.MASTER_METRICS_HEAP_ENABLED)
+          .setDefaultValue(true)
+          .setDescription("Enable master heap estimate metrics")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.MASTER)
+          .build();
+
   public static final PropertyKey MASTER_HOSTNAME =
       new Builder(Name.MASTER_HOSTNAME)
           .setDescription("The hostname of Alluxio master.")
@@ -5641,6 +5650,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.metastore.inode.inherit.owner.and.group";
     public static final String MASTER_PERSISTENCE_CHECKER_INTERVAL_MS =
         "alluxio.master.persistence.checker.interval";
+    public static final String MASTER_METRICS_HEAP_ENABLED =
+        "alluxio.master.metrics.heap.enabled";
     public static final String MASTER_METRICS_SERVICE_THREADS =
         "alluxio.master.metrics.service.threads";
     public static final String MASTER_METRICS_TIME_SERIES_INTERVAL =

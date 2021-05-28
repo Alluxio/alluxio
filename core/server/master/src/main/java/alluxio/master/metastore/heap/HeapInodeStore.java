@@ -14,6 +14,8 @@ package alluxio.master.metastore.heap;
 import static java.util.stream.Collectors.toList;
 
 import alluxio.collections.TwoKeyConcurrentMap;
+import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
 import alluxio.master.file.meta.EdgeEntry;
 import alluxio.master.file.meta.Inode;
 import alluxio.master.file.meta.InodeDirectoryView;
@@ -57,8 +59,10 @@ public class HeapInodeStore implements InodeStore {
    */
   public HeapInodeStore() {
     super();
-    MetricsSystem.registerCachedGaugeIfAbsent(MetricKey.MASTER_INODE_HEAP_SIZE.getName(),
-        () -> ObjectSizeCalculator.getObjectSize(this));
+    if (ServerConfiguration.getBoolean(PropertyKey.MASTER_METRICS_HEAP_ENABLED)) {
+      MetricsSystem.registerCachedGaugeIfAbsent(MetricKey.MASTER_INODE_HEAP_SIZE.getName(),
+          () -> ObjectSizeCalculator.getObjectSize(this));
+    }
   }
 
   @Override
