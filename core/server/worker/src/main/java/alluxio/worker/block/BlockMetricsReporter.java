@@ -36,12 +36,14 @@ public final class BlockMetricsReporter extends AbstractBlockStoreEventListener 
       = MetricsSystem.counter(MetricKey.WORKER_BLOCKS_DELETED.getName());
   private static final Counter BLOCKS_EVICTED
       = MetricsSystem.counter(MetricKey.WORKER_BLOCKS_EVICTED.getName());
-  private static final Meter BLOCKS_EVICTION_RATE
-      = MetricsSystem.meter(MetricKey.WORKER_BLOCKS_EVICTION_RATE.getName());
   private static final Counter BLOCKS_CANCELLED
       = MetricsSystem.counter(MetricKey.WORKER_BLOCKS_CANCELLED.getName());
   private static final Counter BLOCKS_LOST
       = MetricsSystem.counter(MetricKey.WORKER_BLOCKS_LOST.getName());
+
+  private static final Meter BLOCKS_EVICTION_RATE =
+      MetricsSystem.meterWithTags(MetricKey.WORKER_BLOCKS_EVICTION_RATE.getName(),
+        MetricKey.WORKER_BLOCKS_EVICTION_RATE.isClusterAggregated());
 
   /**
    * Creates a new instance of {@link BlockMetricsReporter}.
