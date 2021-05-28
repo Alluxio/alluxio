@@ -36,7 +36,8 @@ import java.util.concurrent.locks.Lock;
 // TODO(jiacheng): Make LockResource support multiple locks so we don't need this wrapper anymore
 public class WorkerMetaLock implements Lock {
   // The order for acquiring locks
-  private static final List<WorkerMetaLockSection> NATURAL_ORDER = Arrays.asList(WorkerMetaLockSection.values());
+  private static final List<WorkerMetaLockSection> NATURAL_ORDER =
+      Arrays.asList(WorkerMetaLockSection.values());
   // The order for releasing locks
   private static final List<WorkerMetaLockSection> REVERSE_ORDER = Lists.reverse(NATURAL_ORDER);
 
@@ -51,7 +52,8 @@ public class WorkerMetaLock implements Lock {
    * @param isShared if false, the lock is exclusive
    * @param worker the {@link MasterWorkerInfo} to lock
    */
-  WorkerMetaLock(EnumSet<WorkerMetaLockSection> lockTypes, boolean isShared, MasterWorkerInfo worker) {
+  WorkerMetaLock(EnumSet<WorkerMetaLockSection> lockTypes, boolean isShared,
+       MasterWorkerInfo worker) {
     mLockTypes = lockTypes;
     mIsShared = isShared;
     mWorker = worker;

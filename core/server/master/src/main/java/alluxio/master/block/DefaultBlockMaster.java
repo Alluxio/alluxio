@@ -438,7 +438,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
     long ret = 0;
     for (MasterWorkerInfo worker : mWorkers) {
       try (LockResource r = worker.lockWorkerMeta(
-          EnumSet.of(WorkerMetaLockSection.USAGE), true)){
+          EnumSet.of(WorkerMetaLockSection.USAGE), true)) {
         ret += worker.getUsedBytes();
       }
     }
@@ -611,7 +611,8 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
         for (long workerId : workerIds) {
           MasterWorkerInfo worker = mWorkers.getFirstByField(ID_INDEX, workerId);
           if (worker != null) {
-            try (LockResource r = worker.lockWorkerMeta(EnumSet.of(WorkerMetaLockSection.BLOCKS), false)){
+            try (LockResource r = worker.lockWorkerMeta(
+                EnumSet.of(WorkerMetaLockSection.BLOCKS), false)) {
               worker.updateToRemovedBlock(true, blockId);
             }
           }
@@ -710,7 +711,8 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
     try (JournalContext journalContext = createJournalContext()) {
       // Lock the worker metadata here to preserve the lock order
       // The worker metadata must be locked before the blocks
-      try (LockResource lr = worker.lockWorkerMeta(EnumSet.of(WorkerMetaLockSection.USAGE, WorkerMetaLockSection.BLOCKS), false)) {
+      try (LockResource lr = worker.lockWorkerMeta(
+          EnumSet.of(WorkerMetaLockSection.USAGE, WorkerMetaLockSection.BLOCKS), false)) {
         try (LockResource r = lockBlock(blockId)) {
           Optional<BlockMeta> block = mBlockStore.getBlock(blockId);
           if (!block.isPresent() || block.get().getLength() != length) {
@@ -794,7 +796,8 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
   public Map<String, Long> getUsedBytesOnTiers() {
     Map<String, Long> ret = new HashMap<>();
     for (MasterWorkerInfo worker : mWorkers) {
-      try (LockResource r = worker.lockWorkerMeta(EnumSet.of(WorkerMetaLockSection.USAGE), true)){
+      try (LockResource r = worker.lockWorkerMeta(
+          EnumSet.of(WorkerMetaLockSection.USAGE), true)) {
         for (Map.Entry<String, Long> entry : worker.getUsedBytesOnTiers().entrySet()) {
           Long used = ret.get(entry.getKey());
           ret.put(entry.getKey(), (used == null ? 0L : used) + entry.getValue());

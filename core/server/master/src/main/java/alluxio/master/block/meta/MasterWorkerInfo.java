@@ -158,9 +158,9 @@ public final class MasterWorkerInfo {
    *
    * <blockquote><pre>
    *   try (LockResource r = worker.lockWorkerMeta(EnumSet.of(
-   *       WorkerMetaLockSection.STATUS, 
-   *       WorkerMetaLockSection.USAGE, 
-   *       WorkerMetaLockSection.BLOCKS))) {
+   *       WorkerMetaLockSection.STATUS,
+   *       WorkerMetaLockSection.USAGE,
+   *       WorkerMetaLockSection.BLOCKS), false)) {
    *     register(...);
    *   }
    * </pre></blockquote>
@@ -600,7 +600,7 @@ public final class MasterWorkerInfo {
    * The locks will be acquired in order and later released in the opposite order.
    * The locks can either be shared or exclusive.
    * The isShared flag will apply to all the locks acquired here.
-   * 
+   *
    * This returns a {@link LockResource} which can be managed by a try-finally block.
    * See javadoc for {@link WorkerMetaLock} for more details about the internals.
    *
