@@ -1049,6 +1049,9 @@ public final class AlluxioMasterRestServiceHandler {
         }
         return response;
       });
+      if (response.getJournalDiskMetrics() == null) {
+        response.setJournalDiskMetrics(Collections.EMPTY_LIST);
+      }
 
       return response;
     }, ServerConfiguration.global());
