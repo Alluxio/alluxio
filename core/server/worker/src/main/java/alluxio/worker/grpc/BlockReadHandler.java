@@ -562,9 +562,10 @@ public class BlockReadHandler implements StreamObserver<alluxio.grpc.ReadRequest
       }
       BlockReader reader = mWorker.createBlockReader(request);
       context.setBlockReader(reader);
-      if (reader instanceof DelegatingBlockReader
+      if (reader instanceof UnderFileSystemBlockReader
+          || (reader instanceof DelegatingBlockReader
           && ((DelegatingBlockReader) reader).getDelegate()
-          instanceof UnderFileSystemBlockReader) {
+          instanceof UnderFileSystemBlockReader)) {
         AlluxioURI ufsMountPointUri =
             ((UnderFileSystemBlockReader) ((DelegatingBlockReader) reader).getDelegate())
                 .getUfsMountPointUri();
