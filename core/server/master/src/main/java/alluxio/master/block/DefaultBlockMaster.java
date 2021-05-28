@@ -43,6 +43,7 @@ import alluxio.heartbeat.HeartbeatThread;
 import alluxio.master.CoreMaster;
 import alluxio.master.CoreMasterContext;
 import alluxio.master.block.meta.MasterWorkerInfo;
+import alluxio.master.block.meta.WorkerMetaLockType;
 import alluxio.master.journal.JournalContext;
 import alluxio.master.journal.checkpoint.CheckpointName;
 import alluxio.master.metastore.BlockStore;
@@ -419,8 +420,8 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
   public long getCapacityBytes() {
     long ret = 0;
     for (MasterWorkerInfo worker : mWorkers) {
-      EnumSet<MasterWorkerInfo.LockType> lockTypes =
-          EnumSet.of(MasterWorkerInfo.LockType.USAGE_LOCK);
+      EnumSet<WorkerMetaLockType> lockTypes =
+          EnumSet.of(WorkerMetaLockType.USAGE_LOCK);
       worker.lock(lockTypes, true);
       try {
         ret += worker.getCapacityBytes();
@@ -440,8 +441,8 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
   public long getUsedBytes() {
     long ret = 0;
     for (MasterWorkerInfo worker : mWorkers) {
-      EnumSet<MasterWorkerInfo.LockType> lockTypes =
-              EnumSet.of(MasterWorkerInfo.LockType.USAGE_LOCK);
+      EnumSet<WorkerMetaLockType> lockTypes =
+              EnumSet.of(WorkerMetaLockType.USAGE_LOCK);
       worker.lock(lockTypes, true);
       try {
         ret += worker.getUsedBytes();
@@ -556,8 +557,8 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
    */
   private WorkerInfo extractWorkerInfo(MasterWorkerInfo worker,
       Set<GetWorkerReportOptions.WorkerInfoField> fieldRange, boolean isLiveWorker) {
-    EnumSet<MasterWorkerInfo.LockType> lockTypes =
-        EnumSet.of(MasterWorkerInfo.LockType.USAGE_LOCK);
+    EnumSet<WorkerMetaLockType> lockTypes =
+        EnumSet.of(WorkerMetaLockType.USAGE_LOCK);
     worker.lock(lockTypes, true);
     try {
       return worker.generateWorkerInfo(fieldRange, isLiveWorker);
@@ -570,8 +571,8 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
   public List<WorkerLostStorageInfo> getWorkerLostStorage() {
     List<WorkerLostStorageInfo> workerLostStorageList = new ArrayList<>();
     for (MasterWorkerInfo worker : mWorkers) {
-      EnumSet<MasterWorkerInfo.LockType> lockTypes =
-          EnumSet.of(MasterWorkerInfo.LockType.USAGE_LOCK);
+      EnumSet<WorkerMetaLockType> lockTypes =
+          EnumSet.of(WorkerMetaLockType.USAGE_LOCK);
       worker.lock(lockTypes, true);
       try {
         if (worker.hasLostStorage()) {
@@ -624,8 +625,8 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
         for (long workerId : workerIds) {
           MasterWorkerInfo worker = mWorkers.getFirstByField(ID_INDEX, workerId);
           if (worker != null) {
-            EnumSet<MasterWorkerInfo.LockType> lockTypes =
-                EnumSet.of(MasterWorkerInfo.LockType.BLOCKS_LOCK);
+            EnumSet<WorkerMetaLockType> lockTypes =
+                EnumSet.of(WorkerMetaLockType.BLOCKS_LOCK);
             worker.lock(lockTypes, false);
             try {
               worker.updateToRemovedBlock(true, blockId);
@@ -728,8 +729,8 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
     try (JournalContext journalContext = createJournalContext()) {
       // Lock the worker metadata here to preserve the lock order
       // The worker metadata must be locked before the blocks
-      EnumSet<MasterWorkerInfo.LockType> lockTypes =
-          EnumSet.of(MasterWorkerInfo.LockType.USAGE_LOCK, MasterWorkerInfo.LockType.BLOCKS_LOCK);
+      EnumSet<WorkerMetaLockType> lockTypes =
+          EnumSet.of(WorkerMetaLockType.USAGE_LOCK, WorkerMetaLockType.BLOCKS_LOCK);
       worker.lock(lockTypes, false);
       try {
         try (LockResource r = lockBlock(blockId)) {
@@ -803,8 +804,8 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
   public Map<String, Long> getTotalBytesOnTiers() {
     Map<String, Long> ret = new HashMap<>();
     for (MasterWorkerInfo worker : mWorkers) {
-      EnumSet<MasterWorkerInfo.LockType> lockTypes =
-          EnumSet.of(MasterWorkerInfo.LockType.USAGE_LOCK);
+      EnumSet<WorkerMetaLockType> lockTypes =
+          EnumSet.of(WorkerMetaLockType.USAGE_LOCK);
       worker.lock(lockTypes, true);
       try {
         for (Map.Entry<String, Long> entry : worker.getTotalBytesOnTiers().entrySet()) {
@@ -822,8 +823,8 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
   public Map<String, Long> getUsedBytesOnTiers() {
     Map<String, Long> ret = new HashMap<>();
     for (MasterWorkerInfo worker : mWorkers) {
-      EnumSet<MasterWorkerInfo.LockType> lockTypes =
-              EnumSet.of(MasterWorkerInfo.LockType.USAGE_LOCK);
+      EnumSet<WorkerMetaLockType> lockTypes =
+              EnumSet.of(WorkerMetaLockType.USAGE_LOCK);
       worker.lock(lockTypes, true);
       try {
         for (Map.Entry<String, Long> entry : worker.getUsedBytesOnTiers().entrySet()) {
@@ -952,10 +953,10 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
     }
 
     // Lock all the locks
-    EnumSet<MasterWorkerInfo.LockType> lockTypes = EnumSet.of(
-        MasterWorkerInfo.LockType.STATUS_LOCK,
-        MasterWorkerInfo.LockType.USAGE_LOCK,
-        MasterWorkerInfo.LockType.BLOCKS_LOCK);
+    EnumSet<WorkerMetaLockType> lockTypes = EnumSet.of(
+        WorkerMetaLockType.STATUS_LOCK,
+        WorkerMetaLockType.USAGE_LOCK,
+        WorkerMetaLockType.BLOCKS_LOCK);
     worker.lock(lockTypes, false);
     try {
       // Detect any lost blocks on this worker.
@@ -1008,8 +1009,8 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
 
     // The address is final, no need for locking
     processWorkerMetrics(worker.getWorkerAddress().getHost(), metrics);
-    EnumSet<MasterWorkerInfo.LockType> lockTypes =
-        EnumSet.of(MasterWorkerInfo.LockType.USAGE_LOCK, MasterWorkerInfo.LockType.BLOCKS_LOCK);
+    EnumSet<WorkerMetaLockType> lockTypes =
+        EnumSet.of(WorkerMetaLockType.USAGE_LOCK, WorkerMetaLockType.BLOCKS_LOCK);
     worker.lock(lockTypes, false);
     Command workerCommand = null;
     try {
@@ -1059,7 +1060,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
    * Updates the worker and block metadata for blocks removed from a worker.
    *
    * You should lock externally with {@link MasterWorkerInfo#lock(EnumSet, boolean)}
-   * with {@link MasterWorkerInfo.LockType#BLOCKS_LOCK} specified.
+   * with {@link WorkerMetaLockType#BLOCKS_LOCK} specified.
    * An exclusive lock is required.
    *
    * @param workerInfo The worker metadata object
@@ -1088,7 +1089,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
    * Updates the worker and block metadata for blocks added to a worker.
    *
    * You should lock externally with {@link MasterWorkerInfo#lock(EnumSet, boolean)}
-   * with {@link MasterWorkerInfo.LockType#BLOCKS_LOCK} specified.
+   * with {@link WorkerMetaLockType#BLOCKS_LOCK} specified.
    * An exclusive lock is required.
    *
    * @param workerInfo The worker metadata object
@@ -1123,7 +1124,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
    * they will be marked to-be-removed from the worker.
    *
    * You should lock externally with {@link MasterWorkerInfo#lock(EnumSet, boolean)}
-   * with {@link MasterWorkerInfo.LockType#USAGE_LOCK} specified.
+   * with {@link WorkerMetaLockType#USAGE_LOCK} specified.
    * A shared lock is required.
    *
    * @param workerInfo The worker metadata object
@@ -1222,8 +1223,8 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
     public void heartbeat() {
       long masterWorkerTimeoutMs = ServerConfiguration.getMs(PropertyKey.MASTER_WORKER_TIMEOUT_MS);
       for (MasterWorkerInfo worker : mWorkers) {
-        EnumSet<MasterWorkerInfo.LockType> lockTypes =
-            EnumSet.of(MasterWorkerInfo.LockType.BLOCKS_LOCK);
+        EnumSet<WorkerMetaLockType> lockTypes =
+            EnumSet.of(WorkerMetaLockType.BLOCKS_LOCK);
         worker.lock(lockTypes, false);
         try {
           // This is not locking because the field is atomic
@@ -1251,8 +1252,8 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
   @VisibleForTesting
   public void forgetAllWorkers() {
     for (MasterWorkerInfo worker : mWorkers) {
-      EnumSet<MasterWorkerInfo.LockType> lockTypes =
-          EnumSet.of(MasterWorkerInfo.LockType.BLOCKS_LOCK);
+      EnumSet<WorkerMetaLockType> lockTypes =
+          EnumSet.of(WorkerMetaLockType.BLOCKS_LOCK);
       worker.lock(lockTypes, false);
       try {
         processLostWorker(worker);
@@ -1266,7 +1267,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
    * Updates the metadata for the specified lost worker.
    *
    * You should lock externally with {@link MasterWorkerInfo#lock(EnumSet, boolean)}
-   * with {@link MasterWorkerInfo.LockType#BLOCKS_LOCK} specified.
+   * with {@link WorkerMetaLockType#BLOCKS_LOCK} specified.
    * An exclusive lock is required.
    *
    * @param worker the worker metadata
