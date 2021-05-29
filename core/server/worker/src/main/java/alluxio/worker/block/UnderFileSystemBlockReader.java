@@ -20,6 +20,8 @@ import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.InvalidWorkerStateException;
 import alluxio.exception.PreconditionMessage;
 import alluxio.exception.status.AlluxioStatusException;
+import alluxio.metrics.MetricKey;
+import alluxio.metrics.MetricsSystem;
 import alluxio.resource.CloseableResource;
 import alluxio.underfs.UfsManager;
 import alluxio.underfs.UnderFileSystem;
@@ -29,6 +31,7 @@ import alluxio.worker.block.io.BlockReader;
 import alluxio.worker.block.io.BlockWriter;
 import alluxio.worker.block.meta.UnderFileSystemBlockMeta;
 
+import com.codahale.metrics.Counter;
 import com.google.common.base.Preconditions;
 import io.netty.buffer.ByteBuf;
 import org.slf4j.Logger;
@@ -48,6 +51,10 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 public final class UnderFileSystemBlockReader extends BlockReader {
   private static final Logger LOG = LoggerFactory.getLogger(UnderFileSystemBlockReader.class);
+
+  /** Metrics. */
+  private static final Counter BLOCKS_READ_UFS =
+      MetricsSystem.counter(MetricKey.WORKER_BLOCKS_READ_UFS.getName());
 
   /** An object storing the mapping of tier aliases to ordinals. */
   private final StorageTierAssoc mStorageTierAssoc = new WorkerStorageTierAssoc();
@@ -276,6 +283,7 @@ public final class UnderFileSystemBlockReader extends BlockReader {
       mUfsResource.close();
     } finally {
       mClosed = true;
+      BLOCKS_READ_UFS.inc();
     }
   }
 
