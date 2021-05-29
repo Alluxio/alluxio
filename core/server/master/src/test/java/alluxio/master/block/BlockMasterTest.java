@@ -14,9 +14,7 @@ package alluxio.master.block;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
-import alluxio.conf.ServerConfiguration;
 import alluxio.Constants;
-import alluxio.conf.PropertyKey;
 import alluxio.clock.ManualClock;
 import alluxio.grpc.Command;
 import alluxio.grpc.CommandType;
@@ -29,8 +27,6 @@ import alluxio.heartbeat.ManuallyScheduleHeartbeat;
 import alluxio.master.CoreMasterContext;
 import alluxio.master.MasterRegistry;
 import alluxio.master.MasterTestUtils;
-import alluxio.master.SafeModeManager;
-import alluxio.master.TestSafeModeManager;
 import alluxio.master.journal.JournalSystem;
 import alluxio.master.journal.noop.NoopJournalSystem;
 import alluxio.master.metrics.MetricsMaster;
@@ -81,9 +77,7 @@ public class BlockMasterTest {
   private MasterRegistry mRegistry;
   private ManualClock mClock;
   private ExecutorService mExecutorService;
-  private SafeModeManager mSafeModeManager;
-  private long mStartTimeMs;
-  private int mPort;
+  private ExecutorService mClientExecutorService;
   private MetricsMaster mMetricsMaster;
   private List<Metric> mMetrics;
 
@@ -105,9 +99,6 @@ public class BlockMasterTest {
   @Before
   public void before() throws Exception {
     mRegistry = new MasterRegistry();
-    mSafeModeManager = new TestSafeModeManager();
-    mStartTimeMs = System.currentTimeMillis();
-    mPort = ServerConfiguration.getInt(PropertyKey.MASTER_RPC_PORT);
     mMetrics = Lists.newArrayList();
     JournalSystem journalSystem = new NoopJournalSystem();
     CoreMasterContext masterContext = MasterTestUtils.testMasterContext();
