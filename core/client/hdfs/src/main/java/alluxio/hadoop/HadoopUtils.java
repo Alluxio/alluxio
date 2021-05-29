@@ -126,25 +126,8 @@ public final class HadoopUtils {
     return sb.toString();
   }
 
-  /**
-   * Returns a string representation of a {@link InputSplit}.
-   *
-   * @param is Hadoop {@link InputSplit}
-   * @return its string representation
-   */
-  public static String toStringHadoopInputSplit(InputSplit is) {
-    StringBuilder sb = new StringBuilder("HadoopInputSplit: ");
-    try {
-      sb.append(" Length: ").append(is.getLength());
-      sb.append(" , Locations: ");
-      for (String loc : is.getLocations()) {
-        sb.append(loc).append(" ; ");
-      }
-    } catch (IOException e) {
-      LOG.error(e.getMessage());
-    }
-    return sb.toString();
-  }
+
+ 
 
   /**
    * Adds Swift keys to the given Hadoop Configuration object if the user has specified them using
