@@ -907,6 +907,24 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setMetricType(MetricType.COUNTER)
           .setIsClusterAggregated(false)
           .build();
+  public static final MetricKey WORKER_BLOCKS_READ_LOCAL =
+      new Builder("Worker.BlocksReadLocal")
+          .setDescription("Total number of local blocks read by this worker.")
+          .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggregated(false)
+          .build();
+  public static final MetricKey WORKER_BLOCKS_READ_REMOTE =
+      new Builder("Worker.BlocksReadRemote")
+          .setDescription("Total number of a remote blocks read by this worker.")
+          .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggregated(false)
+          .build();
+  public static final MetricKey WORKER_BLOCKS_READ_UFS =
+      new Builder("Worker.BlocksReadUfs")
+          .setDescription("Total number of a UFS blocks read by this worker.")
+          .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggregated(false)
+          .build();
   public static final MetricKey WORKER_BYTES_READ_DIRECT =
       new Builder("Worker.BytesReadDirect")
           .setDescription("Total number of bytes read from Alluxio storage managed by this worker "
