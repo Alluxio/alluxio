@@ -229,7 +229,10 @@ public class LoadDefinitionTest {
     Set<Long> workerIds = new HashSet<>();
     workerIds.add(2L);
     workerIds.add(3L);
-    loadedBySpecifiedHost(Collections.EMPTY_SET, Collections.singleton("HOST3"),
+    Set<String> workerSet = new HashSet<>();
+    workerSet.add("HOST2");
+    workerSet.add("HOST3");
+    loadedBySpecifiedHost(workerSet, Collections.singleton("HOST3"),
         Collections.EMPTY_SET, workerIds);
   }
 
