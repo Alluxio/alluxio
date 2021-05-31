@@ -225,7 +225,7 @@ public class LoadDefinitionTest {
   }
 
   @Test
-  public void loadedByExcludedWorker() throws Exception {
+  public void loadedByNotExcludedWorker() throws Exception {
     Set<Long> workerIds = new HashSet<>();
     workerIds.add(2L);
     workerIds.add(3L);
