@@ -118,6 +118,11 @@ class MockFileSystemMasterClient implements FileSystemMasterClient {
   }
 
   @Override
+  public void updateConfig(Map<String, String> propertiesMap)
+      throws AlluxioStatusException {
+  }
+
+  @Override
   public void updateMount(AlluxioURI alluxioPath, MountPOptions options)
       throws AlluxioStatusException {
   }
