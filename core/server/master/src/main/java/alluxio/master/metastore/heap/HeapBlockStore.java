@@ -12,9 +12,14 @@
 package alluxio.master.metastore.heap;
 
 import alluxio.collections.TwoKeyConcurrentMap;
+import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
 import alluxio.master.metastore.BlockStore;
+import alluxio.metrics.MetricKey;
+import alluxio.metrics.MetricsSystem;
 import alluxio.proto.meta.Block.BlockLocation;
 import alluxio.proto.meta.Block.BlockMeta;
+import alluxio.util.ObjectSizeCalculator;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -39,6 +44,18 @@ public class HeapBlockStore implements BlockStore {
   // Map from block id to block locations.
   public final TwoKeyConcurrentMap<Long, Long, BlockLocation, Map<Long, BlockLocation>>
       mBlockLocations = new TwoKeyConcurrentMap<>(() -> new HashMap<>(4));
+
+  /**
+   * constructor a HeapBlockStore.
+   *
+   */
+  public HeapBlockStore() {
+    super();
+    if (ServerConfiguration.getBoolean(PropertyKey.MASTER_METRICS_HEAP_ENABLED)) {
+      MetricsSystem.registerCachedGaugeIfAbsent(MetricKey.MASTER_BLOCK_HEAP_SIZE.getName(),
+          () -> ObjectSizeCalculator.getObjectSize(this));
+    }
+  }
 
   @Override
   public Optional<BlockMeta> getBlock(long id) {

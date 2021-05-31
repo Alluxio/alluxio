@@ -78,6 +78,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -288,14 +289,6 @@ public class RaftJournalSystem extends AbstractJournalSystem {
     }
     mStateMachine = new JournalStateMachine(mJournals, this);
 
-    List<InetSocketAddress> addresses = mConf.getClusterAddresses();
-    InetSocketAddress localAddress = mConf.getLocalAddress();
-    mPeerId = RaftJournalUtils.getPeerId(localAddress);
-    Set<RaftPeer> peers = addresses.stream()
-        .map(addr -> new RaftPeer(RaftJournalUtils.getPeerId(addr), addr))
-        .collect(Collectors.toSet());
-    mRaftGroup = RaftGroup.valueOf(RAFT_GROUP_ID, peers);
-
     RaftProperties properties = new RaftProperties();
     Parameters parameters = new Parameters();
 
@@ -303,7 +296,7 @@ public class RaftJournalSystem extends AbstractJournalSystem {
     RaftConfigKeys.Rpc.setType(properties, SupportedRpcType.GRPC);
 
     // RPC port
-    GrpcConfigKeys.Server.setPort(properties, localAddress.getPort());
+    GrpcConfigKeys.Server.setPort(properties, mConf.getLocalAddress().getPort());
 
     // storage path
     maybeMigrateOldJournal();
@@ -380,6 +373,24 @@ public class RaftJournalSystem extends AbstractJournalSystem {
         .setProperties(properties)
         .setParameters(parameters)
         .build();
+  }
+
+  /**
+   * @return current raft group
+   */
+  @VisibleForTesting
+  public synchronized RaftGroup getCurrentGroup() {
+    try {
+      Iterator<RaftGroup> groupIter = mServer.getGroups().iterator();
+      Preconditions.checkState(groupIter.hasNext(), "no group info found");
+      RaftGroup group = groupIter.next();
+      Preconditions.checkState(group.getGroupId() == RAFT_GROUP_ID,
+          String.format("Invalid group id %s, expecting %s", group.getGroupId(), RAFT_GROUP_ID));
+      return group;
+    } catch (IOException | IllegalStateException e) {
+      LogUtils.warnWithException(LOG, "Failed to get raft group, falling back to initial group", e);
+      return mRaftGroup;
+    }
   }
 
   private RaftClient createClient() {
@@ -676,6 +687,13 @@ public class RaftJournalSystem extends AbstractJournalSystem {
   @Override
   public synchronized void startInternal() throws InterruptedException, IOException {
     LOG.info("Initializing Raft Journal System");
+    InetSocketAddress localAddress = mConf.getLocalAddress();
+    mPeerId = RaftJournalUtils.getPeerId(localAddress);
+    List<InetSocketAddress> addresses = mConf.getClusterAddresses();
+    Set<RaftPeer> peers = addresses.stream()
+        .map(addr -> new RaftPeer(RaftJournalUtils.getPeerId(addr), addr))
+        .collect(Collectors.toSet());
+    mRaftGroup = RaftGroup.valueOf(RAFT_GROUP_ID, peers);
     initServer();
     List<InetSocketAddress> clusterAddresses = mConf.getClusterAddresses();
     LOG.info("Starting Raft journal system. Cluster addresses: {}. Local address: {}",
@@ -914,5 +932,16 @@ public class RaftJournalSystem extends AbstractJournalSystem {
   @VisibleForTesting
   synchronized RaftServer getRaftServer() {
     return mServer;
+  }
+
+  /**
+   * Updates raft group with the current values from raft server.
+   */
+  public synchronized void updateGroup() {
+    RaftGroup newGroup = getCurrentGroup();
+    if (!newGroup.equals(mRaftGroup)) {
+      LOG.info("Raft group updated: old {}, new {}", mRaftGroup, newGroup);
+      mRaftGroup = newGroup;
+    }
   }
 }

@@ -22,6 +22,9 @@ import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.FileIncompleteException;
+import alluxio.fuse.auth.AuthPolicy;
+import alluxio.fuse.auth.AuthPolicyFactory;
+import alluxio.fuse.auth.SystemUserGroupAuthPolicy;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.SetAttributePOptions;
@@ -29,7 +32,6 @@ import alluxio.jnifuse.AbstractFuseFileSystem;
 import alluxio.jnifuse.ErrorCodes;
 import alluxio.jnifuse.FuseFillDir;
 import alluxio.jnifuse.struct.FileStat;
-import alluxio.jnifuse.struct.FuseContext;
 import alluxio.jnifuse.struct.FuseFileInfo;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
@@ -80,8 +82,6 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
   // Cache Uid<->Username and Gid<->Groupname mapping for local OS
   private final LoadingCache<String, Long> mUidCache;
   private final LoadingCache<String, Long> mGidCache;
-  private final LoadingCache<Long, String> mUsernameCache;
-  private final LoadingCache<Long, String> mGroupnameCache;
   private final int mMaxUmountWaitTime;
   private final AtomicLong mNextOpenFileId = new AtomicLong(0);
 
@@ -108,6 +108,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
   private final IndexedSet<CreateFileEntry<FileOutStream>> mCreateFileEntries
       = new IndexedSet<>(ID_INDEX, PATH_INDEX);
   private final boolean mIsUserGroupTranslation;
+  private final AuthPolicy mAuthPolicy;
 
   // Map for holding the async releasing entries for proper umount
   private final Map<Long, FileInStream> mReleasingReadEntries = new ConcurrentHashMap<>();
@@ -129,11 +130,6 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
    */
   @VisibleForTesting
   public static final int MAX_NAME_LENGTH = 255;
-
-  private static final String DEFAULT_USER_NAME = System.getProperty("user.name");
-  private static final String DEFAULT_GROUP_NAME = System.getProperty("user.name");
-  private static final long DEFAULT_UID = AlluxioFuseUtils.getUid(DEFAULT_USER_NAME);
-  private static final long DEFAULT_GID = AlluxioFuseUtils.getGid(DEFAULT_GROUP_NAME);
 
   /**
    * Creates a new instance of {@link AlluxioJniFuseFileSystem}.
@@ -168,7 +164,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
           @Override
           public Long load(String userName) {
             long uid = AlluxioFuseUtils.getUid(userName);
-            return uid == -1 ? DEFAULT_UID : uid;
+            return uid == -1 ? SystemUserGroupAuthPolicy.DEFAULT_UID : uid;
           }
         });
     mGidCache = CacheBuilder.newBuilder()
@@ -177,59 +173,12 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
           @Override
           public Long load(String groupName) {
             long gid = AlluxioFuseUtils.getGidFromGroupName(groupName);
-            return gid == -1 ? DEFAULT_GID : gid;
-          }
-        });
-    mUsernameCache = CacheBuilder.newBuilder()
-        .maximumSize(100)
-        .build(new CacheLoader<Long, String>() {
-          @Override
-          public String load(Long uid) {
-            try {
-              String userName = AlluxioFuseUtils.getGroupName(uid);
-              return userName.isEmpty() ? DEFAULT_USER_NAME : userName;
-            } catch (IOException e) {
-              // This should never be reached since input uid is always valid
-              LOG.error("Failed to get user name from uid {}, fallback to {}",
-                  uid, DEFAULT_USER_NAME);
-              return DEFAULT_USER_NAME;
-            }
-          }
-        });
-    mGroupnameCache = CacheBuilder.newBuilder()
-        .maximumSize(100)
-        .build(new CacheLoader<Long, String>() {
-          @Override
-          public String load(Long gid) {
-            try {
-              String groupName = AlluxioFuseUtils.getGroupName(gid);
-              return groupName.isEmpty() ? DEFAULT_GROUP_NAME : groupName;
-            } catch (IOException e) {
-              // This should never be reached since input gid is always valid
-              LOG.error("Failed to get group name from gid {}, fallback to {}.",
-                  gid, DEFAULT_GROUP_NAME);
-              return DEFAULT_GROUP_NAME;
-            }
+            return gid == -1 ? SystemUserGroupAuthPolicy.DEFAULT_GID : gid;
           }
         });
     mIsUserGroupTranslation = conf.getBoolean(PropertyKey.FUSE_USER_GROUP_TRANSLATION_ENABLED);
     mMaxUmountWaitTime = (int) conf.getMs(PropertyKey.FUSE_UMOUNT_TIMEOUT);
-  }
-
-  private void setUserGroupIfNeeded(AlluxioURI uri) throws Exception {
-    FuseContext fc = getContext();
-    long uid = mIsUserGroupTranslation ? fc.uid.get() : DEFAULT_UID;
-    long gid = mIsUserGroupTranslation ? fc.gid.get() : DEFAULT_GID;
-    if (gid != DEFAULT_GID || uid != DEFAULT_UID) {
-      String groupName = gid != DEFAULT_GID ? mGroupnameCache.get(gid) : DEFAULT_GROUP_NAME;
-      String userName = uid != DEFAULT_UID ? mUsernameCache.get(uid) : DEFAULT_USER_NAME;
-      SetAttributePOptions attributeOptions = SetAttributePOptions.newBuilder()
-          .setGroup(groupName)
-          .setOwner(userName)
-          .build();
-      LOG.debug("Set attributes of path {} to {}", uri, attributeOptions);
-      mFileSystem.setAttribute(uri, attributeOptions);
-    }
+    mAuthPolicy = AuthPolicyFactory.create(mFileSystem, conf, this);
   }
 
   @Override
@@ -253,7 +202,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
       long fid = mNextOpenFileId.getAndIncrement();
       mCreateFileEntries.add(new CreateFileEntry(fid, path, os));
       fi.fh.set(fid);
-      setUserGroupIfNeeded(uri);
+      mAuthPolicy.setUserGroupIfNeeded(uri);
     } catch (Throwable e) {
       LOG.error("Failed to create {}: ", path, e);
       return -ErrorCodes.EIO();
@@ -306,8 +255,8 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
         stat.st_uid.set(mUidCache.get(status.getOwner()));
         stat.st_gid.set(mGidCache.get(status.getGroup()));
       } else {
-        stat.st_uid.set(DEFAULT_UID);
-        stat.st_gid.set(DEFAULT_GID);
+        stat.st_uid.set(SystemUserGroupAuthPolicy.DEFAULT_UID);
+        stat.st_gid.set(SystemUserGroupAuthPolicy.DEFAULT_GID);
       }
 
       int mode = status.getMode();
@@ -375,7 +324,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
         long fid = mNextOpenFileId.getAndIncrement();
         mCreateFileEntries.add(new CreateFileEntry(fid, path, os));
         fi.fh.set(fid);
-        setUserGroupIfNeeded(uri);
+        mAuthPolicy.setUserGroupIfNeeded(uri);
       } else {
         FileInStream is;
         try {
@@ -569,7 +518,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
           CreateDirectoryPOptions.newBuilder()
               .setMode(new Mode((short) mode).toProto())
               .build());
-      setUserGroupIfNeeded(uri);
+      mAuthPolicy.setUserGroupIfNeeded(uri);
     } catch (Throwable e) {
       LOG.error("Failed to mkdir {}: ", path, e);
       return -ErrorCodes.EIO();
