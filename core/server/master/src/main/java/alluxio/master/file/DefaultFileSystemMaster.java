@@ -4581,7 +4581,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
           .setIp(ClientIpAddressInjector.getIpAddress())
           .setCommand(command).setSrcPath(srcPath).setDstPath(dstPath)
           .setSrcInode(srcInode).setAllowed(true)
-          .setCreateTimeMillis(System.currentTimeMillis());
+          .setExecutionTime(System.nanoTime());
     }
     return auditContext;
   }

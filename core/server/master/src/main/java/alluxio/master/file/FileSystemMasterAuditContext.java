@@ -35,8 +35,7 @@ public final class FileSystemMasterAuditContext implements AuditContext {
   private AuthType mAuthType;
   private String mIp;
   private Inode mSrcInode;
-  private long mCreateTimeMillis;
-  private long mUseTimeMillis;
+  private long mExecutionTime;
 
   @Override
   public FileSystemMasterAuditContext setAllowed(boolean allowed) {
@@ -128,13 +127,13 @@ public final class FileSystemMasterAuditContext implements AuditContext {
   }
 
   /**
-   * Sets mCreateTimeMillis field.
+   * Sets mExecutionTime field when create audit operation.
    *
-   * @param createTimeMillis the start time of this operation
+   * @param executionTime the System.nanoTime() when this operation create
    * @return this {@link AuditContext} instance
    */
-  public FileSystemMasterAuditContext setCreateTimeMillis(Long createTimeMillis) {
-    mCreateTimeMillis = createTimeMillis;
+  public FileSystemMasterAuditContext setExecutionTime(long executionTime) {
+    mExecutionTime = executionTime;
     return this;
   }
 
@@ -153,7 +152,7 @@ public final class FileSystemMasterAuditContext implements AuditContext {
     if (mAsyncAuditLogWriter == null) {
       return;
     }
-    mUseTimeMillis = System.currentTimeMillis() - mCreateTimeMillis;
+    mExecutionTime = System.nanoTime() - mExecutionTime;
     mAsyncAuditLogWriter.append(this);
   }
 
@@ -163,16 +162,16 @@ public final class FileSystemMasterAuditContext implements AuditContext {
       short mode = mSrcInode.getMode();
       return String.format(
           "succeeded=%b\tallowed=%b\tugi=%s (AUTH=%s)\tip=%s\tcmd=%s\tsrc=%s\tdst=%s\t"
-              + "perm=%s:%s:%s%s%s\tuseTimeMills=%d",
+              + "perm=%s:%s:%s%s%s\texecutionTime=%d",
           mSucceeded, mAllowed, mUgi, mAuthType, mIp, mCommand, mSrcPath, mDstPath,
           mSrcInode.getOwner(), mSrcInode.getGroup(),
           Mode.extractOwnerBits(mode), Mode.extractGroupBits(mode), Mode.extractOtherBits(mode),
-          mUseTimeMillis);
+          mExecutionTime);
     } else {
       return String.format(
           "succeeded=%b\tallowed=%b\tugi=%s (AUTH=%s)\tip=%s\tcmd=%s\tsrc=%s\tdst=%s\t"
-              + "perm=null\tuseTimeMills=%d",
-          mSucceeded, mAllowed, mUgi, mAuthType, mIp, mCommand, mSrcPath, mDstPath, mUseTimeMillis);
+              + "perm=null\texecutionTime=%d",
+          mSucceeded, mAllowed, mUgi, mAuthType, mIp, mCommand, mSrcPath, mDstPath, mExecutionTime);
     }
   }
 }
