@@ -35,6 +35,8 @@ public final class FileSystemMasterAuditContext implements AuditContext {
   private AuthType mAuthType;
   private String mIp;
   private Inode mSrcInode;
+  private long mCreateTimeMillis;
+  private long mUseTimeMillis;
 
   @Override
   public FileSystemMasterAuditContext setAllowed(boolean allowed) {
@@ -126,6 +128,17 @@ public final class FileSystemMasterAuditContext implements AuditContext {
   }
 
   /**
+   * Sets mCreateTimeMillis field.
+   *
+   * @param createTimeMillis the start time of this operation
+   * @return this {@link AuditContext} instance
+   */
+  public FileSystemMasterAuditContext setCreateTimeMillis(Long createTimeMillis) {
+    mCreateTimeMillis = createTimeMillis;
+    return this;
+  }
+
+  /**
    * Constructor of {@link FileSystemMasterAuditContext}.
    *
    * @param asyncAuditLogWriter
@@ -140,6 +153,7 @@ public final class FileSystemMasterAuditContext implements AuditContext {
     if (mAsyncAuditLogWriter == null) {
       return;
     }
+    mUseTimeMillis = System.currentTimeMillis() - mCreateTimeMillis;
     mAsyncAuditLogWriter.append(this);
   }
 
@@ -149,15 +163,16 @@ public final class FileSystemMasterAuditContext implements AuditContext {
       short mode = mSrcInode.getMode();
       return String.format(
           "succeeded=%b\tallowed=%b\tugi=%s (AUTH=%s)\tip=%s\tcmd=%s\tsrc=%s\tdst=%s\t"
-              + "perm=%s:%s:%s%s%s",
+              + "perm=%s:%s:%s%s%s\tuseTimeMills=%d",
           mSucceeded, mAllowed, mUgi, mAuthType, mIp, mCommand, mSrcPath, mDstPath,
           mSrcInode.getOwner(), mSrcInode.getGroup(),
-          Mode.extractOwnerBits(mode), Mode.extractGroupBits(mode), Mode.extractOtherBits(mode));
+          Mode.extractOwnerBits(mode), Mode.extractGroupBits(mode), Mode.extractOtherBits(mode),
+          mUseTimeMillis);
     } else {
       return String.format(
           "succeeded=%b\tallowed=%b\tugi=%s (AUTH=%s)\tip=%s\tcmd=%s\tsrc=%s\tdst=%s\t"
-              + "perm=null",
-          mSucceeded, mAllowed, mUgi, mAuthType, mIp, mCommand, mSrcPath, mDstPath);
+              + "perm=null\tuseTimeMills=%d",
+          mSucceeded, mAllowed, mUgi, mAuthType, mIp, mCommand, mSrcPath, mDstPath, mUseTimeMillis);
     }
   }
 }
