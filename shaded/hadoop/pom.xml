@@ -189,6 +189,7 @@
                   <include>com.google.guava:*</include>
                   <include>com.google.protobuf:*</include>
                   <include>com.google.code.findbugs:*</include>
+                  <include>com.google.re2j:*</include>
                   <include>asm:asm</include>
                   <include>io.netty:netty:*</include>
                   <include>io.netty:netty-all:*</include>
