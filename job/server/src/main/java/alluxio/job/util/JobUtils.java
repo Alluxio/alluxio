@@ -161,7 +161,14 @@ public final class JobUtils {
         LocalFirstPolicy.class.getCanonicalName(), conf));
 
     OutStreamOptions outOptions = OutStreamOptions.defaults(context.getClientContext());
-    outOptions.setMediumType(medium);
+
+    // Check if this medium has already been populated
+    if ((!medium.isEmpty())
+        && status.getBlockInfo(blockId).getLocations().stream()
+            .noneMatch(x -> x.getMediumType().equals(medium))) {
+      outOptions.setMediumType(medium);
+    }
+
     // Set write location policy always to local first for loading blocks for job tasks
     outOptions.setLocationPolicy(BlockLocationPolicy.Factory.create(
         LocalFirstPolicy.class.getCanonicalName(), conf));

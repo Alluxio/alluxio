@@ -39,6 +39,7 @@ import com.google.common.net.HostAndPort;
 import com.google.protobuf.ByteString;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -234,6 +235,7 @@ public final class GrpcUtils {
         .setBlockSizeBytes(pInfo.getBlockSizeBytes()).setCreationTimeMs(pInfo.getCreationTimeMs())
         .setCompleted(pInfo.getCompleted()).setFolder(pInfo.getFolder())
         .setPinned(pInfo.getPinned()).setCacheable(pInfo.getCacheable())
+        .setMediumTypes(new HashSet<>(pInfo.getMediumTypeList()))
         .setPersisted(pInfo.getPersisted()).setBlockIds(pInfo.getBlockIdsList())
         .setLastModificationTimeMs(pInfo.getLastModificationTimeMs()).setTtl(pInfo.getTtl())
         .setLastAccessTimeMs(pInfo.getLastAccessTimeMs())
@@ -496,6 +498,9 @@ public final class GrpcUtils {
       for (Map.Entry<String, byte[]> entry : fileInfo.getXAttr().entrySet()) {
         builder.putXattr(entry.getKey(), ByteString.copyFrom(entry.getValue()));
       }
+    }
+    if (!fileInfo.getMediumTypes().isEmpty()) {
+      builder.addAllMediumType(fileInfo.getMediumTypes());
     }
     return builder.build();
   }

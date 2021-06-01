@@ -604,7 +604,8 @@ public abstract class MutableInode<T extends MutableInode> implements InodeView 
     if (entry.getXAttrCount() > 0) {
       setXAttr(CommonUtils.convertFromByteString(entry.getXAttrMap()));
     }
-    if (entry.getMediumTypeCount() != 0) {
+    if (entry.hasPinned()) {
+      // pinning status has changed, therefore we change the medium list with it.
       setMediumTypes(new HashSet<>(entry.getMediumTypeList()));
     }
   }

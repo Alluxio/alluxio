@@ -37,6 +37,7 @@ import alluxio.wire.BlockInfo;
 import alluxio.wire.BlockLocation;
 
 import com.google.common.collect.HashBiMap;
+import com.google.common.collect.Sets;
 import org.apache.commons.lang3.tuple.ImmutableTriple;
 import org.apache.commons.lang3.tuple.Triple;
 import org.slf4j.Logger;
@@ -155,14 +156,14 @@ public final class ReplicationChecker implements HeartbeatExecutor {
 
     // Check the set of files that could possibly be under-replicated
     inodes = mInodeTree.getPinIdSet();
-    check(inodes, mReplicationHandler, Mode.REPLICATE);
+    Set<Long> inProgress = check(inodes, mReplicationHandler, Mode.REPLICATE);
 
     // Check the set of files that could possibly be over-replicated
     inodes = mInodeTree.getReplicationLimitedFileIds();
     check(inodes, mReplicationHandler, Mode.EVICT);
 
     // Check the set of files that could possibly be mis-replicated
-    inodes = mInodeTree.getPinIdSet();
+    inodes = Sets.difference(mInodeTree.getPinIdSet(), inProgress);
     checkMisreplicated(inodes, mReplicationHandler);
   }
 
@@ -182,11 +183,11 @@ public final class ReplicationChecker implements HeartbeatExecutor {
   private Map<String, String> findMisplacedBlock(
       InodeFile file, BlockInfo blockInfo) {
     Set<String> pinnedMediumTypes = file.getMediumTypes();
-    Map<String, String> movement = new HashMap<>();
     if (pinnedMediumTypes.isEmpty()) {
       // nothing needs to be moved
       return Collections.emptyMap();
     }
+    Map<String, String> movement = new HashMap<>();
     // at least pinned to one medium type
     String firstPinnedMedium = pinnedMediumTypes.iterator().next();
     int minReplication = file.getReplicationMin();
@@ -270,11 +271,12 @@ public final class ReplicationChecker implements HeartbeatExecutor {
     }
   }
 
-  private void check(Set<Long> inodes, ReplicationHandler handler, Mode mode)
+  private Set<Long> check(Set<Long> inodes, ReplicationHandler handler, Mode mode)
       throws InterruptedException {
+    Set<Long> processedFileIds = new HashSet<>();
     for (long inodeId : inodes) {
       if (mActiveJobToInodeID.size() >= mMaxActiveJobs) {
-        return;
+        return processedFileIds;
       }
       if (mActiveJobToInodeID.containsValue(inodeId)) {
         continue;
@@ -298,7 +300,7 @@ public final class ReplicationChecker implements HeartbeatExecutor {
           } catch (UnavailableException e) {
             // The block master is not available, wait for the next heartbeat
             LOG.warn("The block master is not available: {}", e.toString());
-            return;
+            return processedFileIds;
           }
           int currentReplicas = (blockInfo == null) ? 0 : blockInfo.getLocations().size();
           switch (mode) {
@@ -352,13 +354,14 @@ public final class ReplicationChecker implements HeartbeatExecutor {
             default:
               throw new RuntimeException(String.format("Unexpected replication mode {}.", mode));
           }
+          processedFileIds.add(inodeId);
           mActiveJobToInodeID.put(jobId, inodeId);
         } catch (JobDoesNotExistException | ResourceExhaustedException e) {
           LOG.warn("The job service is busy, will retry later. {}", e.toString());
-          return;
+          return processedFileIds;
         } catch (UnavailableException e) {
           LOG.warn("Unable to complete the replication check: {}, will retry later.", e.toString());
-          return;
+          return processedFileIds;
         } catch (Exception e) {
           SAMPLING_LOG.warn(
               "Unexpected exception encountered when starting a {} job (uri={},"
@@ -368,5 +371,6 @@ public final class ReplicationChecker implements HeartbeatExecutor {
         }
       }
     }
+    return processedFileIds;
   }
 }

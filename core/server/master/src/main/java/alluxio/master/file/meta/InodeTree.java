@@ -789,7 +789,7 @@ public class InodeTree implements DelegatingJournaled {
           currentInodeDirectory.getId(), pathComponents[k], missingDirContext);
 
       newDir.setPinned(currentInodeDirectory.isPinned());
-
+      newDir.setMediumTypes(new HashSet<>(currentInodeDirectory.getMediumTypes()));
       inheritOwnerAndGroupIfEmpty(newDir, currentInodeDirectory);
 
       // if the parent has default ACL, copy that default ACL as the new directory's default
@@ -893,6 +893,7 @@ public class InodeTree implements DelegatingJournaled {
       throw new IllegalStateException(String.format("Unrecognized create options: %s", context));
     }
     newInode.setPinned(currentInodeDirectory.isPinned());
+    newInode.setMediumTypes(new HashSet<>(currentInodeDirectory.getMediumTypes()));
 
     mState.applyAndJournal(rpcContext, newInode,
         inodePath.getUri().getPath());
@@ -1059,7 +1060,7 @@ public class InodeTree implements DelegatingJournaled {
       Preconditions.checkArgument(newMax == alluxio.Constants.REPLICATION_MAX_INFINITY
           || newMax >= newMin,
           PreconditionMessage.INVALID_REPLICATION_MAX_SMALLER_THAN_MIN.toString(),
-          replicationMax, replicationMax);
+          newMin, newMax);
 
       mState.applyAndJournal(rpcContext, UpdateInodeFileEntry.newBuilder()
           .setId(inode.getId())
