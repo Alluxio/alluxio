@@ -124,6 +124,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     private ConsistencyCheckLevel mConsistencyCheckLevel = ConsistencyCheckLevel.IGNORE;
     private Scope mScope = Scope.ALL;
     private DisplayType mDisplayType = DisplayType.DEFAULT;
+    private boolean mDynamic = true;
 
     /**
      * @param name name of the property
@@ -250,6 +251,15 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     }
 
     /**
+     * @param dynamic whether the property could be updated dynamically
+     * @return the updated builder instance
+     */
+    public Builder setDynamic(boolean dynamic) {
+      mDynamic = dynamic;
+      return this;
+    }
+
+    /**
      * Creates and registers the property key.
      *
      * @return the created property key instance
@@ -277,7 +287,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
 
       PropertyKey key = new PropertyKey(mName, mDescription, defaultSupplier, mAlias,
           mIgnoredSiteProperty, mIsHidden, mConsistencyCheckLevel, mScope, mDisplayType,
-          mIsBuiltIn);
+          mIsBuiltIn, mDynamic);
       return key;
     }
 
@@ -4823,6 +4833,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "authentication is enabled. Server trusts whoever the client claims to be.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.ALL)
+          .setDynamic(false)
           .build();
   public static final PropertyKey SECURITY_AUTHORIZATION_PERMISSION_ENABLED =
       new Builder(Name.SECURITY_AUTHORIZATION_PERMISSION_ENABLED)
@@ -4830,6 +4841,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDescription("Whether to enable access control based on file permission.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.ALL)
+          .setDynamic(false)
           .build();
   public static final PropertyKey SECURITY_AUTHORIZATION_PERMISSION_SUPERGROUP =
       new Builder(Name.SECURITY_AUTHORIZATION_PERMISSION_SUPERGROUP)
@@ -6598,6 +6610,9 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   /** The displayType which indicates how the property value should be displayed. **/
   private final DisplayType mDisplayType;
 
+  /** Whether the property could be updated dynamically. */
+  private final boolean mDynamic;
+
   /**
    * @param name String of this property
    * @param description String description of this property key
@@ -6614,7 +6629,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   private PropertyKey(String name, String description, DefaultSupplier defaultSupplier,
       String[] aliases, boolean ignoredSiteProperty, boolean isHidden,
       ConsistencyCheckLevel consistencyCheckLevel, Scope scope, DisplayType displayType,
-      boolean isBuiltIn) {
+      boolean isBuiltIn, boolean dynamic) {
     mName = Preconditions.checkNotNull(name, "name");
     // TODO(binfan): null check after we add description for each property key
     mDescription = Strings.isNullOrEmpty(description) ? "N/A" : description;
@@ -6626,6 +6641,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     mScope = scope;
     mDisplayType = displayType;
     mIsBuiltIn = isBuiltIn;
+    mDynamic = dynamic;
   }
 
   /**
@@ -6633,7 +6649,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
    */
   private PropertyKey(String name) {
     this(name, null, new DefaultSupplier(() -> null, "null"), null, false, false,
-        ConsistencyCheckLevel.IGNORE, Scope.ALL, DisplayType.DEFAULT, true);
+        ConsistencyCheckLevel.IGNORE, Scope.ALL, DisplayType.DEFAULT, true, true);
   }
 
   /**
@@ -6781,6 +6797,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
    */
   public boolean isBuiltIn() {
     return mIsBuiltIn;
+  }
+
+  /**
+   * @return true if this property support updated dynamically
+   */
+  public boolean isDynamic() {
+    return mDynamic;
   }
 
   /**

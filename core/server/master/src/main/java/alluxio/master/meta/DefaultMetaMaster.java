@@ -609,7 +609,10 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
   @Override
   public void updateConfig(Map<String, String> propertiesMap) {
     for (Map.Entry<String, String> entry : propertiesMap.entrySet()) {
-      ServerConfiguration.set(PropertyKey.fromString(entry.getKey()), entry.getValue());
+      PropertyKey propertyKey = PropertyKey.fromString(entry.getKey());
+      if (propertyKey.isDynamic()) {
+        ServerConfiguration.set(propertyKey, entry.getValue());
+      }
     }
   }
 
