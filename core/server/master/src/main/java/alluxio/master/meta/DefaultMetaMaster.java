@@ -606,6 +606,13 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
     mPathProperties.resetState();
   }
 
+  @Override
+  public void updateConfig(Map<String, String> propertiesMap) {
+    for (Map.Entry<String, String> entry : propertiesMap.entrySet()) {
+      ServerConfiguration.set(PropertyKey.fromString(entry.getKey()), entry.getValue());
+    }
+  }
+
   /**
    * Lost master periodic check.
    */

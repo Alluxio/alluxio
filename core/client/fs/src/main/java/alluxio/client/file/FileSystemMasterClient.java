@@ -191,13 +191,6 @@ public interface FileSystemMasterClient extends Client {
       throws AlluxioStatusException;
 
   /**
-   * Update properties.
-   *
-   * @param propertiesMap the properties map to be updated
-   */
-  void updateConfig(Map<String, String> propertiesMap) throws AlluxioStatusException;
-
-  /**
    * Updates options of a mount point for the given Alluxio path.
    *
    * @param alluxioPath the Alluxio path

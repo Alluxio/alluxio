@@ -13,6 +13,7 @@ package alluxio.client.meta;
 
 import alluxio.AbstractMasterClient;
 import alluxio.Constants;
+import alluxio.exception.status.AlluxioStatusException;
 import alluxio.grpc.BackupPRequest;
 import alluxio.grpc.BackupStatusPRequest;
 import alluxio.grpc.CheckpointPOptions;
@@ -22,6 +23,7 @@ import alluxio.grpc.MasterInfo;
 import alluxio.grpc.MasterInfoField;
 import alluxio.grpc.MetaMasterClientServiceGrpc;
 import alluxio.grpc.ServiceType;
+import alluxio.grpc.UpdateConfigPRequest;
 import alluxio.master.MasterClientContext;
 import alluxio.wire.BackupStatus;
 import alluxio.wire.ConfigCheckReport;
@@ -30,6 +32,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
@@ -106,5 +109,14 @@ public class RetryHandlingMetaMasterClient extends AbstractMasterClient
     return retryRPC(() -> mClient
         .checkpoint(CheckpointPOptions.newBuilder().build()).getMasterHostname(),
         RPC_LOG, "Checkpoint", "");
+  }
+
+  @Override
+  public void updateConfig(Map<String, String> propertiesMap)
+      throws AlluxioStatusException {
+    retryRPC(
+        () -> mClient.updateConfig(UpdateConfigPRequest.newBuilder().putAllProperties(propertiesMap)
+            .build()),
+        RPC_LOG, "updateConfig", "propertiesMap=%s", propertiesMap);
   }
 }

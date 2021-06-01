@@ -2777,13 +2777,6 @@ public final class DefaultFileSystemMaster extends CoreMaster
   }
 
   @Override
-  public void updateConfig(Map<String, String> propertiesMap) {
-    for (Map.Entry<String, String> entry : propertiesMap.entrySet()) {
-      ServerConfiguration.set(PropertyKey.fromString(entry.getKey()), entry.getValue());
-    }
-  }
-
-  @Override
   public void updateMount(AlluxioURI alluxioPath, MountContext context)
       throws FileAlreadyExistsException, FileDoesNotExistException, InvalidPathException,
       IOException, AccessControlException {

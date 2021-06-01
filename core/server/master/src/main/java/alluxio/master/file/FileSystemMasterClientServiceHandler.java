@@ -67,8 +67,6 @@ import alluxio.grpc.StopSyncPRequest;
 import alluxio.grpc.StopSyncPResponse;
 import alluxio.grpc.UnmountPRequest;
 import alluxio.grpc.UnmountPResponse;
-import alluxio.grpc.UpdateConfigPRequest;
-import alluxio.grpc.UpdateConfigPResponse;
 import alluxio.grpc.UpdateMountPRequest;
 import alluxio.grpc.UpdateMountPResponse;
 import alluxio.grpc.UpdateUfsModePRequest;
@@ -265,15 +263,6 @@ public final class FileSystemMasterClientServiceHandler
               .withTracker(new GrpcCallTracker(responseObserver)));
       return MountPResponse.newBuilder().build();
     }, "Mount", "request=%s", responseObserver, request);
-  }
-
-  @Override
-  public void updateConfig(UpdateConfigPRequest request,
-      StreamObserver<UpdateConfigPResponse> responseObserver) {
-    RpcUtils.call(LOG, () -> {
-      mFileSystemMaster.updateConfig(request.getPropertiesMap());
-      return UpdateConfigPResponse.newBuilder().build();
-    }, "updateConfig", "request=%s", responseObserver, request);
   }
 
   @Override

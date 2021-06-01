@@ -19,6 +19,7 @@ import alluxio.wire.BackupStatus;
 import alluxio.wire.ConfigCheckReport;
 
 import java.io.IOException;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
@@ -71,4 +72,11 @@ public interface MetaMasterClient extends Client {
    * @return the hostname of the master that did the checkpoint
    */
   String checkpoint() throws IOException;
+
+  /**
+   * Update properties.
+   *
+   * @param propertiesMap the properties map to be updated
+   */
+  void updateConfig(Map<String, String> propertiesMap) throws IOException;
 }

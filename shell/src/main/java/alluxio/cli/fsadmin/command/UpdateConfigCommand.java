@@ -66,7 +66,7 @@ public final class UpdateConfigCommand extends AbstractFsAdminCommand {
       Map<String, String> properties = new HashMap<>();
       cl.getOptionProperties(OPTION_OPTION.getLongOpt())
           .forEach((k, v) -> properties.put((String) k, (String) v));
-      mFsClient.updateConfig(properties);
+      mMetaClient.updateConfig(properties);
       System.out.println("Updated " + properties.size() + " configs");
     } else {
       System.out.println("No config to update");

@@ -600,9 +600,4 @@ public interface FileSystemMaster extends Master {
    * @return the list of thread identifiers that are waiting and holding the state lock
    */
   List<String> getStateLockSharedWaitersAndHolders();
-
-  /**
-   * @param propertiesMap properties to update
-   */
-  void updateConfig(Map<String, String> propertiesMap);
 }

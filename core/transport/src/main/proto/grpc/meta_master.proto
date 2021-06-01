@@ -244,6 +244,12 @@ message MasterHeartbeatPResponse {
   optional MetaCommand command = 1;
 }
 
+message UpdateConfigPRequest {
+  map<string, string> properties = 1;
+}
+
+message UpdateConfigPResponse {}
+
 /**
   * This interface contains meta master service endpoints for Alluxio standby masters.
   */
@@ -263,4 +269,6 @@ service MetaMasterMasterService {
    * Heartbeats to indicate the master is lost or not.
    */
   rpc MasterHeartbeat(MasterHeartbeatPRequest) returns (MasterHeartbeatPResponse);
+
+  rpc UpdateConfig(UpdateConfigPRequest) returns (UpdateConfigPResponse);
 }
