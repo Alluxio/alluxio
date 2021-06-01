@@ -35,7 +35,7 @@ public final class FileSystemMasterAuditContext implements AuditContext {
   private AuthType mAuthType;
   private String mIp;
   private Inode mSrcInode;
-  private long mExecutionTime;
+  private long mCreationTime;
 
   @Override
   public FileSystemMasterAuditContext setAllowed(boolean allowed) {
@@ -127,13 +127,14 @@ public final class FileSystemMasterAuditContext implements AuditContext {
   }
 
   /**
-   * Sets mExecutionTime field when create audit operation.
+   * Sets mCreationTime field.
    *
-   * @param executionTime the System.nanoTime() when this operation create
+   * @param creationTime the System.nanoTime() when this operation create,
+   *                     it only can be used to compute operation useTime
    * @return this {@link AuditContext} instance
    */
-  public FileSystemMasterAuditContext setExecutionTime(long executionTime) {
-    mExecutionTime = executionTime;
+  public FileSystemMasterAuditContext setCreationTime(long creationTime) {
+    mCreationTime = creationTime;
     return this;
   }
 
@@ -152,7 +153,7 @@ public final class FileSystemMasterAuditContext implements AuditContext {
     if (mAsyncAuditLogWriter == null) {
       return;
     }
-    mExecutionTime = System.nanoTime() - mExecutionTime;
+    mCreationTime = System.nanoTime() - mCreationTime;
     mAsyncAuditLogWriter.append(this);
   }
 
@@ -166,12 +167,12 @@ public final class FileSystemMasterAuditContext implements AuditContext {
           mSucceeded, mAllowed, mUgi, mAuthType, mIp, mCommand, mSrcPath, mDstPath,
           mSrcInode.getOwner(), mSrcInode.getGroup(),
           Mode.extractOwnerBits(mode), Mode.extractGroupBits(mode), Mode.extractOtherBits(mode),
-          mExecutionTime);
+          mCreationTime);
     } else {
       return String.format(
           "succeeded=%b\tallowed=%b\tugi=%s (AUTH=%s)\tip=%s\tcmd=%s\tsrc=%s\tdst=%s\t"
               + "perm=null\texecutionTime=%d",
-          mSucceeded, mAllowed, mUgi, mAuthType, mIp, mCommand, mSrcPath, mDstPath, mExecutionTime);
+          mSucceeded, mAllowed, mUgi, mAuthType, mIp, mCommand, mSrcPath, mDstPath, mCreationTime);
     }
   }
 }
