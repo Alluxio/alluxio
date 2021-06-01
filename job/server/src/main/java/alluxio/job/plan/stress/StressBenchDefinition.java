@@ -88,6 +88,7 @@ public final class StressBenchDefinition
     workerList = workerList.subList(0, clusterLimit);
 
     for (WorkerInfo worker : workerList) {
+      LOG.info("Generating job for worker {}", worker.getId());
       ArrayList<String> args = new ArrayList<>(2);
       // Add the worker hostname + worker id as the unique task id for each distributed task.
       // The worker id is used since there may be multiple workers on a single host.

@@ -28,7 +28,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * Config for the stress test.
  */
 @ThreadSafe
-public final class StressBenchConfig implements PlanConfig {
+public class StressBenchConfig implements PlanConfig {
   private static final long serialVersionUID = 7883915266950426997L;
   private static final String NAME = "StressBench";
 
