@@ -122,7 +122,7 @@ public final class AlluxioJobWorkerProcess implements JobWorkerProcess {
       mRpcConnectAddress = NetworkAddressUtils.getConnectAddress(ServiceType.JOB_WORKER_RPC,
           ServerConfiguration.global());
     } catch (Exception e) {
-      LOG.error(e.getMessage(), e);
+      LOG.error("Failed to create JobWorkerProcess", e);
       throw Throwables.propagate(e);
     }
   }

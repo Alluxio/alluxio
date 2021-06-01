@@ -13,6 +13,8 @@ package alluxio.client.file.cache.store;
 
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 import alluxio.client.file.cache.PageId;
 import alluxio.client.file.cache.PageStore;
@@ -23,6 +25,7 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
 
@@ -70,6 +73,18 @@ public class LocalPageStoreTest {
     }
     assertEquals(10, Files.list(
         Paths.get(mOptions.getRootDir(), Long.toString(mOptions.getPageSize()))).count());
+  }
+
+  @Test
+  public void cleanFileAndDirectory() throws Exception {
+    LocalPageStore pageStore = new LocalPageStore(mOptions);
+    PageId pageId = new PageId("0", 0);
+    pageStore.put(pageId, "test".getBytes());
+    Path p = pageStore.getFilePath(pageId);
+    assertTrue(Files.exists(p));
+    pageStore.delete(pageId);
+    assertFalse(Files.exists(p));
+    assertFalse(Files.exists(p.getParent()));
   }
 
   private void helloWorldTest(PageStore store) throws Exception {

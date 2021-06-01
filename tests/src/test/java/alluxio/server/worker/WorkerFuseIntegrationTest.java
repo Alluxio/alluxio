@@ -36,9 +36,4 @@ public class WorkerFuseIntegrationTest extends AbstractFuseIntegrationTest {
   public void umountFuse(String mountPath) throws Exception {
     // Fuse application is unmounted automatically when stopping the worker
   }
-
-  @Override
-  public void touchAndLs() throws Exception {
-    // TODO(lu) Enable the test after https://github.com/Alluxio/alluxio/issues/13090 solved
-  }
 }

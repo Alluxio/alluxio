@@ -22,7 +22,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * Implementation of Evictor using FIFO eviction policy.
  */
 @NotThreadSafe
-public class FIFOEvictor implements CacheEvictor {
+public class FIFOCacheEvictor implements CacheEvictor {
   private final LinkedList<PageId> mQueue = new LinkedList<>();
 
   /**
@@ -30,7 +30,7 @@ public class FIFOEvictor implements CacheEvictor {
    *
    * @param conf Alluxio configuration
    */
-  public FIFOEvictor(AlluxioConfiguration conf) {}
+  public FIFOCacheEvictor(AlluxioConfiguration conf) {}
 
   @Override
   public void updateOnGet(PageId pageId) {

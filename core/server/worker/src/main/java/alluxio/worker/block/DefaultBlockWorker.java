@@ -86,7 +86,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * Logic: {@link DefaultBlockWorker} (Logic for all block related storage operations)
  */
 @NotThreadSafe
-public final class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
+public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
   private static final Logger LOG = LoggerFactory.getLogger(DefaultBlockWorker.class);
   private static final long UFS_BLOCK_OPEN_TIMEOUT_MS =
       ServerConfiguration.getMs(PropertyKey.WORKER_UFS_BLOCK_OPEN_TIMEOUT_MS);
@@ -162,7 +162,7 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
    * @param ufsManager ufs manager
    */
   @VisibleForTesting
-  DefaultBlockWorker(BlockMasterClientPool blockMasterClientPool,
+  public DefaultBlockWorker(BlockMasterClientPool blockMasterClientPool,
       FileSystemMasterClient fileSystemMasterClient, Sessions sessions, BlockStore blockStore,
       UfsManager ufsManager) {
     super(ExecutorServiceFactories.fixedThreadPool("block-worker-executor", 5));
@@ -515,9 +515,9 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
       } catch (Exception ee) {
         LOG.warn("Failed to close UFS block", ee);
       }
-      throw new IOException(String.format("Failed to get UFS block reader, sessionId=%d, "
-              + "blockId=%d, offset=%d, positionShort=%s, options=%s",
-          sessionId, blockId, offset, positionShort, options), e);
+      throw new IOException(String.format("Failed to read from UFS, sessionId=%d, "
+              + "blockId=%d, offset=%d, positionShort=%s, options=%s: %s",
+          sessionId, blockId, offset, positionShort, options, e.toString()), e);
     }
   }
 
@@ -643,8 +643,8 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
             request.isPositionShort(), request.getOpenUfsBlockOptions());
       } catch (Exception e) {
         throw new UnavailableException(
-            String.format("Failed to read block ID=%s from tiered " + "storage and UFS tier: %s",
-                request.getId(), e.getMessage()));
+            String.format("Failed to read block ID=%s from tiered storage and UFS tier: %s",
+                request.getId(), e.toString()));
       }
     }
     throw new UnavailableException(ExceptionMessage.UFS_BLOCK_ACCESS_TOKEN_UNAVAILABLE

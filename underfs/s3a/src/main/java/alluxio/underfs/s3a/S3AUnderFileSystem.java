@@ -156,7 +156,8 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
         .setSocketTimeout((int) conf.getMs(PropertyKey.UNDERFS_S3_SOCKET_TIMEOUT));
 
     // HTTP protocol
-    if (Boolean.parseBoolean(conf.get(PropertyKey.UNDERFS_S3_SECURE_HTTP_ENABLED))) {
+    if (Boolean.parseBoolean(conf.get(PropertyKey.UNDERFS_S3_SECURE_HTTP_ENABLED))
+        || Boolean.parseBoolean(conf.get(PropertyKey.UNDERFS_S3_SERVER_SIDE_ENCRYPTION_ENABLED))) {
       clientConf.setProtocol(Protocol.HTTPS);
     } else {
       clientConf.setProtocol(Protocol.HTTP);
@@ -563,7 +564,7 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
           accountOwner = owner.getDisplayName() != null ? owner.getDisplayName() : owner.getId();
         }
       } catch (AmazonClientException e) {
-        LOG.warn("Failed to inherit bucket ACLs, proceeding with defaults. {}", e.getMessage());
+        LOG.warn("Failed to inherit bucket ACLs, proceeding with defaults. {}", e.toString());
       }
     }
 

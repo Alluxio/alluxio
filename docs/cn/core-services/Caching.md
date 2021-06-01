@@ -196,8 +196,7 @@ Alluxio从v2.3开始使用块注释策略来维护存储中数据块的严格顺
 
 workers选择使用的注释策略由Alluxio属性
 [alluxio.worker.block.annotator.class]({{ '/en/reference/Properties-List.html' | relativize_url}}#alluxio.worker.block.annotator.class)决定。
-该属性应在配置中指定完全验证的策略名称。当前
-可用的选项有:
+该属性应在配置中指定完全验证的策略名称。当前可用的选项有:
 
 - `alluxio.worker.block.annotator.LRUAnnotator`
 - `alluxio.worker.block.annotator.LRFUAnnotator`
@@ -206,6 +205,7 @@ workers选择使用的注释策略由Alluxio属性
 旧的释放空间策略和Alluxio提供的实施现在已去掉了，并用适当的注释策略替换。
 配置旧的Alluxio释放空间策略将导致worker启动失败，并报错`java.lang.ClassNotFoundException`。
 同样，旧的基于水位标记配置已失效。因此，以下配置选项是无效的:
+
 -`alluxio.worker.tieredstore.levelX.watermark.low.ratio`
 -`alluxio.worker.tieredstore.levelX.watermark.high.ratio`
 

@@ -97,7 +97,7 @@ public final class LoadCommand extends AbstractFileSystemCommand {
       }
     } else {
       OpenFilePOptions options =
-          OpenFilePOptions.newBuilder().setReadType(ReadPType.CACHE_PROMOTE).build();
+          OpenFilePOptions.newBuilder().setReadType(ReadPType.CACHE).build();
       if (local) {
         if (!mFsContext.hasNodeLocalWorker()) {
           System.out.println("When local option is specified,"

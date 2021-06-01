@@ -27,6 +27,7 @@ import alluxio.table.common.udb.UdbContext;
 import alluxio.table.common.udb.UdbTable;
 import alluxio.table.common.udb.UdbUtils;
 import alluxio.table.common.udb.UnderDatabase;
+import alluxio.table.under.hive.util.HiveClientPoolCache;
 import alluxio.table.under.hive.util.HiveClientPool;
 import alluxio.util.io.PathUtils;
 
@@ -69,6 +70,8 @@ public class HiveDatabase implements UnderDatabase {
   private final String mConnectionUri;
   /** the name of the hive db. */
   private final String mHiveDbName;
+
+  private static final HiveClientPoolCache CLIENT_POOL_CACHE = new HiveClientPoolCache();
   /** Hive client is not thread-safe, so use a client pool for concurrency. */
   private final HiveClientPool mClientPool;
 
@@ -78,7 +81,7 @@ public class HiveDatabase implements UnderDatabase {
     mConfiguration = configuration;
     mConnectionUri = connectionUri;
     mHiveDbName = hiveDbName;
-    mClientPool = new HiveClientPool(mConnectionUri, mHiveDbName);
+    mClientPool = CLIENT_POOL_CACHE.getPool(connectionUri);
   }
 
   /**
@@ -142,7 +145,8 @@ public class HiveDatabase implements UnderDatabase {
     }
   }
 
-  private PathTranslator mountAlluxioPaths(Table table, List<Partition> partitions)
+  private PathTranslator mountAlluxioPaths(Table table, List<Partition> partitions,
+      boolean bypass)
       throws IOException {
     String tableName = table.getTableName();
     AlluxioURI ufsUri;
@@ -151,6 +155,10 @@ public class HiveDatabase implements UnderDatabase {
 
     try {
       PathTranslator pathTranslator = new PathTranslator();
+      if (bypass) {
+        pathTranslator.addMapping(hiveUfsUri, hiveUfsUri);
+        return pathTranslator;
+      }
       ufsUri = new AlluxioURI(table.getSd().getLocation());
       pathTranslator.addMapping(
           UdbUtils.mountAlluxioPath(tableName,
@@ -200,7 +208,7 @@ public class HiveDatabase implements UnderDatabase {
   }
 
   @Override
-  public UdbTable getTable(String tableName) throws IOException {
+  public UdbTable getTable(String tableName, boolean bypass) throws IOException {
     try {
       Table table;
       List<Partition> partitions;
@@ -240,7 +248,7 @@ public class HiveDatabase implements UnderDatabase {
         }
       }
 
-      PathTranslator pathTranslator = mountAlluxioPaths(table, partitions);
+      PathTranslator pathTranslator = mountAlluxioPaths(table, partitions, bypass);
       List<ColumnStatisticsInfo> colStats =
           columnStats.stream().map(HiveUtils::toProto).collect(Collectors.toList());
       // construct table layout

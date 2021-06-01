@@ -110,7 +110,7 @@ alluxio.master.hostname=localhost
 ```
 
 Then, mount GCS:
-{% navtabs rootMount %}
+{% navtabs nestedMount %}
 {% navtab GCS version 1 %}
 ```console
 $ ./bin/alluxio fs mount \
