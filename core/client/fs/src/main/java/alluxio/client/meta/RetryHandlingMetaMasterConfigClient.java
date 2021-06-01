@@ -15,12 +15,14 @@ import alluxio.AbstractMasterClient;
 import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.conf.PropertyKey;
+import alluxio.exception.status.AlluxioStatusException;
 import alluxio.grpc.GetConfigHashPOptions;
 import alluxio.grpc.GetConfigurationPOptions;
 import alluxio.grpc.MetaMasterConfigurationServiceGrpc;
 import alluxio.grpc.RemovePathConfigurationPRequest;
 import alluxio.grpc.ServiceType;
 import alluxio.grpc.SetPathConfigurationPRequest;
+import alluxio.grpc.UpdateConfigPRequest;
 import alluxio.master.MasterClientContext;
 import alluxio.wire.ConfigHash;
 import alluxio.wire.Configuration;
@@ -117,5 +119,14 @@ public class RetryHandlingMetaMasterConfigClient extends AbstractMasterClient
   public void removePathConfiguration(AlluxioURI path) throws IOException {
     retryRPC(() -> mClient.removePathConfiguration(RemovePathConfigurationPRequest.newBuilder()
         .setPath(path.getPath()).build()), RPC_LOG, "removePathConfiguration", "path=%s", path);
+  }
+
+  @Override
+  public void updateConfig(Map<String, String> propertiesMap)
+      throws AlluxioStatusException {
+    retryRPC(
+        () -> mClient.updateConfig(UpdateConfigPRequest.newBuilder().putAllProperties(propertiesMap)
+            .build()),
+        RPC_LOG, "updateConfig", "propertiesMap=%s", propertiesMap);
   }
 }
