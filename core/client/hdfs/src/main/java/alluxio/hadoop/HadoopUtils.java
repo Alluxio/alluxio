@@ -126,9 +126,6 @@ public final class HadoopUtils {
     return sb.toString();
   }
 
-
- 
-
   /**
    * Adds Swift keys to the given Hadoop Configuration object if the user has specified them using
    * System properties, and they're not already set.
