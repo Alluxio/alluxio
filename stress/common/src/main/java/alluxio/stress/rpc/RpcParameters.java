@@ -13,12 +13,8 @@ import java.util.Map;
  * */
 public class RpcParameters extends Parameters {
   @Parameter(names = {"--concurrency"},
-          description = "this many workers on one machine")
+          description = "simulate this many workers on one machine")
   public int mConcurrency = 2;
-
-  @Parameter(names = {"--block-count"},
-          description = "fake this many blocks")
-  public long mBlockCount = 100;
 
   @Parameter(names = {"--fake-same-worker"},
           description = "For each registerWorker RPC, should this be same worker or different worker.")
@@ -39,6 +35,7 @@ public class RpcParameters extends Parameters {
    * */
   public String mTiers;
 
-  @Parameter(names = {"--once"})
+  @Parameter(names = {"--once"}, description = "If this is set to true, --duration will be "
+          + "ignored and each simulated worker will send the request once.")
   public boolean mOnce = false;
 }
