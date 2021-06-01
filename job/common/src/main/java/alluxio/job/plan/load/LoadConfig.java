@@ -38,6 +38,7 @@ public class LoadConfig implements PlanConfig {
   private final Set<String> mWorkerSet;
   private final Set<String> mExcludeWorkerSet;
   private final Set<String> mLocalityIds;
+  private final Set<String> mExcludeLocalityIds;
 
   /**
    * @param filePath the file path
@@ -45,18 +46,22 @@ public class LoadConfig implements PlanConfig {
    * @param workerSet the worker set
    * @param excludeWorkerSet the exclude worker set
    * @param localityIds the locality identify set
+   * @param excludeLocalityIds the exclude locality identify set
    */
   public LoadConfig(@JsonProperty("filePath") String filePath,
       @JsonProperty("replication") Integer replication,
       @JsonProperty("workerSet") Set<String> workerSet,
       @JsonProperty("excludeWorkerSet") Set<String> excludeWorkerSet,
-      @JsonProperty("localityIds") Set<String> localityIds) {
+      @JsonProperty("localityIds") Set<String> localityIds,
+      @JsonProperty("excludeLocalityIds") Set<String> excludeLocalityIds) {
     mFilePath = Preconditions.checkNotNull(filePath, "The file path cannot be null");
     mReplication = replication == null ? 1 : replication;
     mWorkerSet = workerSet == null ? Collections.EMPTY_SET : new HashSet(workerSet);
     mExcludeWorkerSet = excludeWorkerSet == null ? Collections.EMPTY_SET
         : new HashSet(excludeWorkerSet);
     mLocalityIds = localityIds == null ? Collections.EMPTY_SET : new HashSet(localityIds);
+    mExcludeLocalityIds = excludeLocalityIds == null ? Collections.EMPTY_SET
+        : new HashSet(excludeLocalityIds);
   }
 
   /**
@@ -130,5 +135,12 @@ public class LoadConfig implements PlanConfig {
    */
   public Set<String> getLocalityIds() {
     return mLocalityIds;
+  }
+
+  /**
+   * @return excluded locality identify set
+   */
+  public Set<String> getExcludeLocalityIds() {
+    return mExcludeLocalityIds;
   }
 }

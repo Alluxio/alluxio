@@ -83,11 +83,19 @@ public final class LoadDefinition
         boolean match = false;
         if (!isEmptySet(config.getLocalityIds())) {
           if (worker.getNetAddress().getTieredIdentity().getTiers() != null) {
+            boolean exclude = false;
             for (LocalityTier tier : worker.getNetAddress().getTieredIdentity().getTiers()) {
+              if (config.getExcludeLocalityIds().contains(tier.getValue().toUpperCase())) {
+                exclude = true;
+                break;
+              }
               if (config.getLocalityIds().contains(tier.getValue().toUpperCase())) {
                 match = true;
                 break;
               }
+            }
+            if (exclude) {
+              continue;
             }
           }
         }

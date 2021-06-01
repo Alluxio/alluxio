@@ -98,7 +98,8 @@ public final class DistributedLoadCommand extends AbstractDistributedJobCommand 
           .hasArg(true)
           .numberOfArgs(1)
           .argName("locality")
-          .desc("A list of worker locality separated by comma")
+          .desc("A list of worker locality separated by comma, and add ! before locality to"
+              + " exclude the worker")
           .build();
   private static final Option LOCALITY_FILE_OPTION =
       Option.builder()
@@ -107,7 +108,8 @@ public final class DistributedLoadCommand extends AbstractDistributedJobCommand 
           .hasArg(true)
           .numberOfArgs(1)
           .argName("locality-file")
-          .desc("Locality File contains worker localities, each line has a worker locality")
+          .desc("Locality File contains worker localities, each line has a worker locality,"
+              + " and add ! before locality to exclude the worker")
           .build();
 
   /**
@@ -141,7 +143,8 @@ public final class DistributedLoadCommand extends AbstractDistributedJobCommand 
   public String getUsage() {
     return "distributedLoad [--replication <num>] [--active-jobs <num>] [--index] "
         + "[--hosts <host1>,!<excludedHost2>,...,<hostN>] [--host-file <hostFilePath>] "
-        + "[--locality <locality1,locality2,...,localityN>] [--locality-file <localityFilePath>] "
+        + "[--locality <locality1>,!<locality2>,...,<localityN>] "
+        + "[--locality-file <localityFilePath>] "
         + "<path>";
   }
 
@@ -161,6 +164,7 @@ public final class DistributedLoadCommand extends AbstractDistributedJobCommand 
     Set<String> workerSet = new HashSet<>();
     Set<String> excludeWorkerSet = new HashSet<>();
     Set<String> localityIds = new HashSet<>();
+    Set<String> excludeLocalityIds = new HashSet<>();
     if (cl.hasOption(HOST_FILE_OPTION.getLongOpt())) {
       String hostFile = cl.getOptionValue(HOST_FILE_OPTION.getLongOpt()).trim();
       readLinesToSet(workerSet, excludeWorkerSet, hostFile);
@@ -170,22 +174,22 @@ public final class DistributedLoadCommand extends AbstractDistributedJobCommand 
     }
     if (cl.hasOption(LOCALITY_FILE_OPTION.getLongOpt())) {
       String localityFile = cl.getOptionValue(LOCALITY_FILE_OPTION.getLongOpt()).trim();
-      readLinesToSet(localityIds, null, localityFile);
+      readLinesToSet(localityIds, excludeLocalityIds, localityFile);
     } else if (cl.hasOption(LOCALITY_OPTION.getLongOpt())) {
       String argOption = cl.getOptionValue(LOCALITY_OPTION.getLongOpt()).trim();
-      readItemsFromOptionString(localityIds, null, argOption);
+      readItemsFromOptionString(localityIds, excludeLocalityIds, argOption);
     }
 
     if (!cl.hasOption(INDEX_FILE.getLongOpt())) {
       AlluxioURI path = new AlluxioURI(args[0]);
       DistributedLoadUtils.distributedLoad(this, path, replication, workerSet,
-          excludeWorkerSet, localityIds);
+          excludeWorkerSet, localityIds, excludeLocalityIds);
     } else {
       try (BufferedReader reader = new BufferedReader(new FileReader(args[0]))) {
         for (String filename; (filename = reader.readLine()) != null; ) {
           AlluxioURI path = new AlluxioURI(filename);
           DistributedLoadUtils.distributedLoad(this, path, replication, workerSet,
-              excludeWorkerSet, localityIds);
+              excludeWorkerSet, localityIds, excludeLocalityIds);
         }
       }
     }
@@ -197,8 +201,8 @@ public final class DistributedLoadCommand extends AbstractDistributedJobCommand 
     for (String locality : StringUtils.split(argOption, ",")) {
       locality = locality.trim().toUpperCase();
       if (!locality.isEmpty()) {
-        if (locality.charAt(0) == '!' && excludedSet != null) {
-          excludedSet.add(locality);
+        if (locality.charAt(0) == '!') {
+          excludedSet.add(locality.substring(1));
         } else {
           localityIds.add(locality);
         }
@@ -213,7 +217,7 @@ public final class DistributedLoadCommand extends AbstractDistributedJobCommand 
         worker = worker.trim().toUpperCase();
         if (!worker.isEmpty()) {
           if (worker.charAt(0) == '!') {
-            excludedWorkerSet.add(worker);
+            excludedWorkerSet.add(worker.substring(1));
           } else {
             workerSet.add(worker);
           }
