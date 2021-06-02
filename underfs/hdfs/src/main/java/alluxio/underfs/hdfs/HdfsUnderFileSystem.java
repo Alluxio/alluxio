@@ -90,6 +90,10 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
   private static final String HDFS_ACTIVESYNC_PROVIDER_CLASS =
       "alluxio.underfs.hdfs.activesync.SupportedHdfsActiveSyncProvider";
 
+  /** Name of the class for the Hdfs EC Codec Registry. **/
+  private static final String HDFS_EC_CODEC_REGISTRY_CLASS =
+      "org.apache.hadoop.io.erasurecode.CodecRegistry";
+
   private final LoadingCache<String, FileSystem> mUserFs;
   private final HdfsAclProvider mHdfsAclProvider;
 
@@ -148,6 +152,9 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
       // Set Hadoop UGI configuration to ensure UGI can be initialized by the shaded classes for
       // group service.
       UserGroupInformation.setConfiguration(hdfsConf);
+      Class.forName(HDFS_EC_CODEC_REGISTRY_CLASS);
+    } catch (ClassNotFoundException e) {
+      LOG.warn("Cannot initialize HDFS EC CodecRegistry. HDFS EC will not be supported.");
     } finally {
       Thread.currentThread().setContextClassLoader(currentClassLoader);
     }
