@@ -164,7 +164,7 @@ public final class FileSystemMasterAuditContext implements AuditContext {
       short mode = mSrcInode.getMode();
       return String.format(
           "succeeded=%b\tallowed=%b\tugi=%s (AUTH=%s)\tip=%s\tcmd=%s\tsrc=%s\tdst=%s\t"
-              + "perm=%s:%s:%s%s%s\texecutionTime=%d",
+              + "perm=%s:%s:%s%s%s\texecutionTimeUs=%d",
           mSucceeded, mAllowed, mUgi, mAuthType, mIp, mCommand, mSrcPath, mDstPath,
           mSrcInode.getOwner(), mSrcInode.getGroup(),
           Mode.extractOwnerBits(mode), Mode.extractGroupBits(mode), Mode.extractOtherBits(mode),
@@ -172,7 +172,7 @@ public final class FileSystemMasterAuditContext implements AuditContext {
     } else {
       return String.format(
           "succeeded=%b\tallowed=%b\tugi=%s (AUTH=%s)\tip=%s\tcmd=%s\tsrc=%s\tdst=%s\t"
-              + "perm=null\texecutionTime=%d",
+              + "perm=null\texecutionTimeUs=%d",
           mSucceeded, mAllowed, mUgi, mAuthType, mIp, mCommand, mSrcPath, mDstPath,
           mExecutionTimeNs / 1000);
     }
