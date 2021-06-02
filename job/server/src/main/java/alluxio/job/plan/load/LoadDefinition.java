@@ -81,15 +81,18 @@ public final class LoadDefinition
         }
         // If specified the locality id, the candidate worker must match one at least
         boolean match = false;
-        if (!isEmptySet(config.getLocalityIds())) {
-          if (worker.getNetAddress().getTieredIdentity().getTiers() != null) {
+        if (worker.getNetAddress().getTieredIdentity().getTiers() != null) {
+          if (!(isEmptySet(config.getLocalityIds())
+              && isEmptySet(config.getExcludeLocalityIds()))) {
             boolean exclude = false;
             for (LocalityTier tier : worker.getNetAddress().getTieredIdentity().getTiers()) {
-              if (config.getExcludeLocalityIds().contains(tier.getValue().toUpperCase())) {
+              if (!isEmptySet(config.getExcludeLocalityIds())
+                  && config.getExcludeLocalityIds().contains(tier.getValue().toUpperCase())) {
                 exclude = true;
                 break;
               }
-              if (config.getLocalityIds().contains(tier.getValue().toUpperCase())) {
+              if (!isEmptySet(config.getLocalityIds())
+                  && config.getLocalityIds().contains(tier.getValue().toUpperCase())) {
                 match = true;
                 break;
               }
