@@ -35,7 +35,8 @@ public final class FileSystemMasterAuditContext implements AuditContext {
   private AuthType mAuthType;
   private String mIp;
   private Inode mSrcInode;
-  private long mCreationTime;
+  private long mCreationTimeNs;
+  private long mExecutionTimeNs;
 
   @Override
   public FileSystemMasterAuditContext setAllowed(boolean allowed) {
@@ -127,14 +128,14 @@ public final class FileSystemMasterAuditContext implements AuditContext {
   }
 
   /**
-   * Sets mCreationTime field.
+   * Sets mCreationTimeNs field.
    *
-   * @param creationTime the System.nanoTime() when this operation create,
-   *                     it only can be used to compute operation useTime
+   * @param creationTimeNs the System.nanoTime() when this operation create,
+   *                     it only can be used to compute operation mExecutionTime
    * @return this {@link AuditContext} instance
    */
-  public FileSystemMasterAuditContext setCreationTime(long creationTime) {
-    mCreationTime = creationTime;
+  public FileSystemMasterAuditContext setCreationTimeNs(long creationTimeNs) {
+    mCreationTimeNs = creationTimeNs;
     return this;
   }
 
@@ -153,7 +154,7 @@ public final class FileSystemMasterAuditContext implements AuditContext {
     if (mAsyncAuditLogWriter == null) {
       return;
     }
-    mCreationTime = System.nanoTime() - mCreationTime;
+    mExecutionTimeNs = System.nanoTime() - mCreationTimeNs;
     mAsyncAuditLogWriter.append(this);
   }
 
@@ -167,12 +168,13 @@ public final class FileSystemMasterAuditContext implements AuditContext {
           mSucceeded, mAllowed, mUgi, mAuthType, mIp, mCommand, mSrcPath, mDstPath,
           mSrcInode.getOwner(), mSrcInode.getGroup(),
           Mode.extractOwnerBits(mode), Mode.extractGroupBits(mode), Mode.extractOtherBits(mode),
-          mCreationTime);
+          mExecutionTimeNs / 1000);
     } else {
       return String.format(
           "succeeded=%b\tallowed=%b\tugi=%s (AUTH=%s)\tip=%s\tcmd=%s\tsrc=%s\tdst=%s\t"
               + "perm=null\texecutionTime=%d",
-          mSucceeded, mAllowed, mUgi, mAuthType, mIp, mCommand, mSrcPath, mDstPath, mCreationTime);
+          mSucceeded, mAllowed, mUgi, mAuthType, mIp, mCommand, mSrcPath, mDstPath,
+          mExecutionTimeNs / 1000);
     }
   }
 }
