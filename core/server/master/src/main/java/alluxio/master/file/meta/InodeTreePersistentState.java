@@ -117,7 +117,8 @@ public class InodeTreePersistentState implements Journaled {
     mInodeLockManager = lockManager;
     mTtlBuckets = ttlBucketList;
     mBucketCounter = new BucketCounter(
-        ImmutableList.<Long>builder().add(1024L, 1024L ^ 2, 1024L ^ 3, 1024L ^ 4).build());
+        ImmutableList.<Long>builder().add(1024L, 1024L * 1024L, 1024L * 1024L * 1024L,
+            1024L * 1024L * 1024L * 1024L).build());
   }
 
   /**
@@ -484,6 +485,9 @@ public class InodeTreePersistentState implements Journaled {
         mReplicationLimitedFileIds.add(inode.getId());
       }
     }
+    if (inode.asFile().isCompleted()) {
+      mBucketCounter.remove(inode.asFile().getLength());
+    }
     inode.asFile().updateFromEntry(entry);
     mInodeStore.writeInode(inode);
     mBucketCounter.insert(inode.asFile().getLength());
@@ -594,6 +598,9 @@ public class InodeTreePersistentState implements Journaled {
     // Add the file to TTL buckets, the insert automatically rejects files w/ Constants.NO_TTL
     mTtlBuckets.insert(Inode.wrap(inode));
     updateToBePersistedIds(inode);
+    if (inode.isFile() && inode.asFile().isCompleted()) {
+      mBucketCounter.insert(inode.asFile().getLength());
+    }
   }
 
   private void applyRename(RenameEntry entry) {
