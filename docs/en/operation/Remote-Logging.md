@@ -67,7 +67,7 @@ The following lines would need to be added to `conf/alluxio-env.sh` to enable re
 
 ```bash
 ALLUXIO_LOGSERVER_HOSTNAME=AlluxioLogServer
-ALLUXIO_LOGSERVER_PORT=45600
+ALLUXIO_LOGSERVER_PORT="45600"
 ```
 > Note: You MUST set BOTH variables.
 
@@ -154,5 +154,13 @@ configuration:
 log4j.rootLogger=DEBUG, CLIENT_REMOTE_LOGGER
 ```
 
-Again, refer to the documentation for the corresponding framework linked in the previous section
-to locate the log4j configuration file.
+> Note: refer to the documentation for the corresponding framework to locate the log4j configuration file.
+
+## Advanced Setup
+
+### Remote Logging in K8s
+
+Enabling remote logging in K8s is different from that in a physical cluster.
+
+See [Enable Remote Logging in K8s]({{ '/en/deploy/Running-Alluxio-On-Kubernetes.html#enable-remote-logging' | relativize_url }})
+for detailed instructions.
