@@ -231,11 +231,13 @@ Increase the interval to reduce the number of heartbeat checks.
 
 ### Heap Size
 
-Alluxio workers require modest amounts of memory because off-heap storage is used for data storage.
-Therefore, a 4 GB heap is sufficient for Alluxio workers.
+Alluxio workers require modest amounts of memory for metadata because off-heap storage is used for data storage.
+However, data transfer will create buffers that consume heap or direct memory.
+We recommend about 64MB (from the heap or direct memory) per expected concurrent client.
 
+As a beginning, you can set both to 32G and tune up when you see the worker running out of heap/direct memory. 
 ```properties
-ALLUXIO_WORKER_JAVA_OPTS+=" -Xms4g -Xmx4g"
+ALLUXIO_WORKER_JAVA_OPTS+=" -Xms32g -Xmx32g -XX:MaxDirectMemorySize=32g"
 ```
 
 ### Number of Cores
