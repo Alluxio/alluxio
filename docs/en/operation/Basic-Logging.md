@@ -314,3 +314,20 @@ log4j.appender.State_LOCK_LOGGER.MaxBackupIndex=100
 log4j.appender.State_LOCK_LOGGER.layout=org.apache.log4j.PatternLayout
 log4j.appender.State_LOCK_LOGGER.layout.ConversionPattern=%d{ISO8601} %-5p %c{1} - %m%n
 ```
+
+### Disable certain log files
+
+Sometimes it makes sense to disable certain logs files.
+
+One example use cases is, Alluxio is running in a containerized environment,
+where logs are written to the writable layer. This has performance penalties
+and the writable layer may grow indefinitely and cause disk pressure on the host.
+In that case you can either mount a volume to the log directory so logs are written to the volume,
+or rely on the [Remote Logging]({{ '/en/operation/Remote-Logging.html' | relativize_url }})
+and disable local logs.
+
+To disable local log output, you can set the corresponding logger(s) as below:
+```properties
+# Appender for Master
+log4j.appender.MASTER_LOGGER=org.apache.log4j.varia.NullAppender
+```
