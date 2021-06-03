@@ -113,11 +113,8 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
           return null;
         });
       }
-      // In the worst case, each worker factory is blocked waiting for the dependent servers to be
-      // registered at worker registry, so the maximum timeout here is set to the multiply of
-      // the number of factories by the default timeout of getting a worker from the registry.
       CommonUtils.invokeAll(callables,
-          (long) callables.size() * Constants.DEFAULT_REGISTRY_GET_TIMEOUT_MS);
+          ServerConfiguration.getMs(PropertyKey.WORKER_REGISTRY_START_TIMEOUT));
 
       // Setup web server
       mWebServer =

@@ -3212,6 +3212,16 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
+  public static final PropertyKey WORKER_REGISTRY_START_TIMEOUT =
+      new Builder(Name.WORKER_REGISTRY_START_TIMEOUT)
+          .setDefaultValue("1min")
+          .setDescription("Timeout if the worker registry startup takes longer than the "
+              + "specified time. The worker registry contains all worker factory classes "
+              + "that implements alluxio.worker.workerFactory. During the startup, the "
+              + "worker registry will use the worker factories to create worker processes.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.WORKER)
+          .build();
   // The default is set to 11. One client is reserved for some light weight operations such as
   // heartbeat. The other 10 clients are used by commitBlock issued from the worker to the block
   // master.
@@ -5902,6 +5912,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.worker.block.master.client.pool.size";
     public static final String WORKER_PRINCIPAL = "alluxio.worker.principal";
     public static final String WORKER_RAMDISK_SIZE = "alluxio.worker.ramdisk.size";
+    public static final String WORKER_REGISTRY_START_TIMEOUT =
+        "alluxio.worker.registry.start.timeout";
     public static final String WORKER_REVIEWER_PROBABILISTIC_HARDLIMIT_BYTES =
             "alluxio.worker.reviewer.probabilistic.hardlimit.bytes";
     public static final String WORKER_REVIEWER_PROBABILISTIC_SOFTLIMIT_BYTES =
