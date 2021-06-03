@@ -15,6 +15,7 @@ import alluxio.annotation.PublicApi;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.grpc.UpdateConfigurationPResponse.UpdatePropertyPStatus;
 
+import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
@@ -87,8 +88,16 @@ public final class UpdateConfCommand extends AbstractFsAdminCommand {
     return "updateConf [--option <key=val>] ";
   }
 
+  /**
+   * @return command's description
+   */
+  @VisibleForTesting
+  public static String description() {
+    return "Update config for alluxio master.";
+  }
+
   @Override
   public String getDescription() {
-    return "Update config for alluxio master.";
+    return description();
   }
 }
