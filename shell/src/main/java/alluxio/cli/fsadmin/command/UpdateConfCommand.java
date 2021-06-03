@@ -13,7 +13,7 @@ package alluxio.cli.fsadmin.command;
 
 import alluxio.annotation.PublicApi;
 import alluxio.conf.AlluxioConfiguration;
-import alluxio.exception.AlluxioException;
+import alluxio.grpc.UpdateConfigurationPResponse.UpdatePropertyPStatus;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
@@ -23,13 +23,14 @@ import javax.annotation.concurrent.ThreadSafe;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 
 /**
  * Update config for an existing service.
  */
 @ThreadSafe
 @PublicApi
-public final class UpdateConfigCommand extends AbstractFsAdminCommand {
+public final class UpdateConfCommand extends AbstractFsAdminCommand {
 
   private static final Option OPTION_OPTION =
       Option.builder()
@@ -46,7 +47,7 @@ public final class UpdateConfigCommand extends AbstractFsAdminCommand {
    * @param context fsadmin command context
    * @param alluxioConf Alluxio configuration
    */
-  public UpdateConfigCommand(Context context, AlluxioConfiguration alluxioConf) {
+  public UpdateConfCommand(Context context, AlluxioConfiguration alluxioConf) {
     super(context);
   }
 
@@ -57,17 +58,24 @@ public final class UpdateConfigCommand extends AbstractFsAdminCommand {
 
   @Override
   public String getCommandName() {
-    return "updateConfig";
+    return "updateConf";
   }
 
   @Override
-  public int run(CommandLine cl) throws AlluxioException, IOException {
+  public int run(CommandLine cl) throws IOException {
     if (cl.hasOption(OPTION_OPTION.getLongOpt())) {
       Map<String, String> properties = new HashMap<>();
       cl.getOptionProperties(OPTION_OPTION.getLongOpt())
           .forEach((k, v) -> properties.put((String) k, (String) v));
-      mMetaConfigClient.updateConfig(properties);
+      Map<String, UpdatePropertyPStatus> result
+          = mMetaConfigClient.updateConfiguration(properties);
       System.out.println("Updated " + properties.size() + " configs");
+      for (Entry<String, UpdatePropertyPStatus> entry : result.entrySet()) {
+        if (entry.getValue() != UpdatePropertyPStatus.SUCCESS) {
+          System.out.println("Failed to Update " + entry.getKey()
+              + " , status is " + entry.getValue());
+        }
+      }
     } else {
       System.out.println("No config to update");
     }
@@ -76,11 +84,11 @@ public final class UpdateConfigCommand extends AbstractFsAdminCommand {
 
   @Override
   public String getUsage() {
-    return "updateConfig [--option <key=val>] ";
+    return "updateConf [--option <key=val>] ";
   }
 
   @Override
   public String getDescription() {
-    return "Update attributes for a ufs path.";
+    return "Update config for alluxio master.";
   }
 }

@@ -22,8 +22,9 @@ import alluxio.grpc.RemovePathConfigurationPRequest;
 import alluxio.grpc.RemovePathConfigurationPResponse;
 import alluxio.grpc.SetPathConfigurationPRequest;
 import alluxio.grpc.SetPathConfigurationPResponse;
-import alluxio.grpc.UpdateConfigPRequest;
-import alluxio.grpc.UpdateConfigPResponse;
+import alluxio.grpc.UpdateConfigurationPRequest;
+import alluxio.grpc.UpdateConfigurationPResponse;
+import alluxio.grpc.UpdateConfigurationPResponse.UpdatePropertyPStatus;
 import alluxio.wire.ConfigHash;
 
 import io.grpc.stub.StreamObserver;
@@ -131,11 +132,15 @@ public final class MetaMasterConfigurationServiceHandler
   }
 
   @Override
-  public void updateConfig(UpdateConfigPRequest request,
-      StreamObserver<UpdateConfigPResponse> responseObserver) {
+  public void updateConfiguration(
+      UpdateConfigurationPRequest request,
+      StreamObserver<UpdateConfigurationPResponse> responseObserver) {
     RpcUtils.call(LOG, () -> {
-      mMetaMaster.updateConfig(request.getPropertiesMap());
-      return UpdateConfigPResponse.newBuilder().build();
+      Map<String, UpdatePropertyPStatus> result
+          = mMetaMaster.updateConfiguration(request.getPropertiesMap());
+      return UpdateConfigurationPResponse.newBuilder()
+          .putAllStatus(result)
+          .build();
     }, "updateConfig", "request=%s", responseObserver, request);
   }
 }

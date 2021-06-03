@@ -15,6 +15,7 @@ import alluxio.AlluxioURI;
 import alluxio.Client;
 import alluxio.conf.PropertyKey;
 import alluxio.grpc.GetConfigurationPOptions;
+import alluxio.grpc.UpdateConfigurationPResponse.UpdatePropertyPStatus;
 import alluxio.wire.ConfigHash;
 import alluxio.wire.Configuration;
 
@@ -81,5 +82,6 @@ public interface MetaMasterConfigClient extends Client {
    *
    * @param propertiesMap the properties map to be updated
    */
-  void updateConfig(Map<String, String> propertiesMap) throws IOException;
+  Map<String, UpdatePropertyPStatus> updateConfiguration(
+      Map<String, String> propertiesMap) throws IOException;
 }

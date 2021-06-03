@@ -124,7 +124,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     private ConsistencyCheckLevel mConsistencyCheckLevel = ConsistencyCheckLevel.IGNORE;
     private Scope mScope = Scope.ALL;
     private DisplayType mDisplayType = DisplayType.DEFAULT;
-    private boolean mDynamic = true;
+    private boolean mIsDynamic = true;
 
     /**
      * @param name name of the property
@@ -254,8 +254,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
      * @param dynamic whether the property could be updated dynamically
      * @return the updated builder instance
      */
-    public Builder setDynamic(boolean dynamic) {
-      mDynamic = dynamic;
+    public Builder setIsDynamic(boolean dynamic) {
+      mIsDynamic = dynamic;
       return this;
     }
 
@@ -287,7 +287,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
 
       PropertyKey key = new PropertyKey(mName, mDescription, defaultSupplier, mAlias,
           mIgnoredSiteProperty, mIsHidden, mConsistencyCheckLevel, mScope, mDisplayType,
-          mIsBuiltIn, mDynamic);
+          mIsBuiltIn, mIsDynamic);
       return key;
     }
 
@@ -4833,7 +4833,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "authentication is enabled. Server trusts whoever the client claims to be.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.ALL)
-          .setDynamic(false)
+          .setIsDynamic(false)
           .build();
   public static final PropertyKey SECURITY_AUTHORIZATION_PERMISSION_ENABLED =
       new Builder(Name.SECURITY_AUTHORIZATION_PERMISSION_ENABLED)
@@ -4841,7 +4841,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDescription("Whether to enable access control based on file permission.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.ALL)
-          .setDynamic(false)
+          .setIsDynamic(false)
           .build();
   public static final PropertyKey SECURITY_AUTHORIZATION_PERMISSION_SUPERGROUP =
       new Builder(Name.SECURITY_AUTHORIZATION_PERMISSION_SUPERGROUP)
@@ -6800,7 +6800,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   }
 
   /**
-   * @return true if this property support updated dynamically
+   * @return true if this property can be updated dynamically during runtime
    */
   public boolean isDynamic() {
     return mDynamic;

@@ -210,7 +210,7 @@ service MetaMasterConfigurationService {
    */
   rpc GetConfigHash (GetConfigHashPOptions) returns (GetConfigHashPResponse);
 
-  rpc UpdateConfig(UpdateConfigPRequest) returns (UpdateConfigPResponse);
+  rpc UpdateConfiguration(UpdateConfigurationPRequest) returns (UpdateConfigurationPResponse);
 }
 
 message GetMasterIdPOptions {}
@@ -246,11 +246,18 @@ message MasterHeartbeatPResponse {
   optional MetaCommand command = 1;
 }
 
-message UpdateConfigPRequest {
+message UpdateConfigurationPRequest {
   map<string, string> properties = 1;
 }
 
-message UpdateConfigPResponse {}
+message UpdateConfigurationPResponse {
+  enum UpdatePropertyPStatus {
+    SUCCESS = 0;
+    BANNED = 1;
+    Exception = 2;
+  }
+  map<string, UpdatePropertyPStatus> status = 1;
+}
 
 /**
   * This interface contains meta master service endpoints for Alluxio standby masters.
