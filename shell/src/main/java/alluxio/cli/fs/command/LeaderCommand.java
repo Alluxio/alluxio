@@ -31,9 +31,12 @@ import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Prints the current leader master host name.
+ *
+ * @deprecated  This command will be deprecated as of v3.0, use {@link MasterInfoCommand}
  */
 @ThreadSafe
 @PublicApi
+@Deprecated
 public final class LeaderCommand extends AbstractFileSystemCommand {
 
   /**
