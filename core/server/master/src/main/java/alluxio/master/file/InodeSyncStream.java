@@ -15,6 +15,8 @@ import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.client.WriteType;
 import alluxio.collections.Pair;
+import alluxio.concurrent.ForkJoinPoolHelper;
+import alluxio.concurrent.jsr.ForkJoinPool;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.exception.AccessControlException;
@@ -93,6 +95,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 
 import javax.annotation.Nullable;
@@ -294,9 +297,80 @@ public class InodeSyncStream {
   /**
    * Sync the metadata according the the root path the stream was created with.
    *
+   * Actual sync work is carried out by {@link #syncInternal()}.
+   * This entry method ensures liveness when it's executed by a ForkJoinPool thread.
+   * When the calling thread is not a ForkJoinPool thread, this method is effectively reduced
+   * to directly calling syncInternal().
+   *
    * @return SyncStatus object
    */
   public SyncStatus sync() throws AccessControlException, InvalidPathException {
+    // Used to get sync status out of managed block.
+    AtomicReference<SyncStatus> status = new AtomicReference<>();
+    // Used to get error out of managed block.
+    AtomicReference<Throwable> error = new AtomicReference<>();
+    try {
+      ForkJoinPoolHelper.safeManagedBlock(new ForkJoinPool.ManagedBlocker() {
+        @Override
+        public boolean block() throws InterruptedException {
+          try {
+            status.set(syncInternal());
+          } catch (Throwable t) {
+            error.set(t);
+          }
+          return true;
+        }
+
+        @Override
+        public boolean isReleasable() {
+          if (isSyncNeeded()) {
+            return false;
+          }
+
+          try {
+            return block();
+          } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new RuntimeException("Interrupted while running sync.");
+          }
+        }
+      });
+    } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
+      throw new RuntimeException("Interrupted while running sync.", e);
+    }
+
+    if (status.get() != null) {
+      return status.get();
+    }
+
+    Throwable th = error.get();
+    if (th == null) {
+      throw new IllegalStateException("Sync didn't return a value or an error");
+    }
+
+    if (th instanceof AccessControlException) {
+      throw (AccessControlException) th;
+    } else if (th instanceof InvalidPathException) {
+      throw (InvalidPathException) th;
+    } else {
+      throw new IllegalStateException("Unexpected error during sync.", th);
+    }
+  }
+
+  /**
+   * @return {@code false} if sync is not needed
+   */
+  private boolean isSyncNeeded() {
+    return mRootScheme.shouldSync() || mForceSync;
+  }
+
+  /**
+   * Sync the metadata according the the root path the stream was created with.
+   *
+   * @return SyncStatus object
+   */
+  private SyncStatus syncInternal() throws AccessControlException, InvalidPathException {
     // The high-level process for the syncing is:
     // 1. Given an Alluxio path, determine if it is not consistent with the corresponding UFS path.
     //     this means the UFS path does not exist, or has metadata which differs from Alluxio
