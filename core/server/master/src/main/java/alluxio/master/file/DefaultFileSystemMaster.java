@@ -4580,7 +4580,8 @@ public final class DefaultFileSystemMaster extends CoreMaster
           .setAuthType(authType)
           .setIp(ClientIpAddressInjector.getIpAddress())
           .setCommand(command).setSrcPath(srcPath).setDstPath(dstPath)
-          .setSrcInode(srcInode).setAllowed(true);
+          .setSrcInode(srcInode).setAllowed(true)
+          .setCreationTimeNs(System.nanoTime());
     }
     return auditContext;
   }
