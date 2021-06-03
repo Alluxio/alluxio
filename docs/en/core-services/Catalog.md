@@ -21,8 +21,8 @@ services to determine which, and how much data to read when executing queries.
 They store information about different database catalogs, tables, storage formats, data
 location, and more.
 The Alluxio Catalog Service is designed to make it simple and straightforward to retrieve and
-serve structured table metadata to Presto query engines, e.g. [PrestoSQL](https://prestosql.io/),
-[PrestoDB](https://prestodb.io/), and [Starburst Presto](https://starburstdata.com).
+serve structured table metadata to Presto query engines, e.g.[PrestoDB](https://prestodb.io/), 
+[Trino](https://trino.io/) and [Starburst Presto](https://starburstdata.com).
 
 
 ## Architecture
@@ -228,13 +228,13 @@ and additions in the UDB tables, it will update db config as well.
 
 ## Using Alluxio Structured Data with Presto
 
-PrestoSQL version 332 or above and PrestoDB version 0.232 or above has built-in support for the
+PrestoDB version 0.232 or above and Trino version 332 or above has built-in support for the
 Alluxio Catalog Service in their hive-hadoop2 connector.
-For instructions to setup Alluxio Catalog Service with those versions of PrestoSQL or PrestoDB,
-please consult PrestoSQL's [documentation](https://prestosql.io/docs/current/connector/hive.html#alluxio-configuration) 
-or PrestoDB's [documentation](https://prestodb.io/docs/current/connector/hive.html#alluxio-configuration).
+For instructions to setup Alluxio Catalog Service with those versions of PrestoDB or Trino,
+please consult PrestoDB's [documentation](https://prestodb.io/docs/current/connector/hive.html#alluxio-configuration)
+Trino's [documentation](https://trino.io/docs/current/connector/hive-alluxio.html).
 
-If you are using PrestoSQL or PrestoDB's earlier versions, you can use the `hive-alluxio` connector
+If you are using PrestoDB and Trino's earlier versions, you can use the `hive-alluxio` connector
 included in the Alluxio distribution.
 The latest Alluxio distribution contains a presto connector jar which can be dropped into the
 `${PRESTO_HOME}/plugins` directory to enable connectivity to the catalog service via Presto.
@@ -245,16 +245,16 @@ Assuming you have Alluxio and Presto installation on your local machine at `${AL
 `${PRESTO_HOME}` respectively, you need to copy the Alluxio connector files into the
 Presto installation as a new plugin. This must be done on all Presto nodes. 
 
-For PrestoSQL installations, run the following. 
-
-```console
-$ cp -R ${ALLUXIO_HOME}/client/presto/plugins/presto-hive-alluxio-319/ ${PRESTO_HOME}/plugin/hive-alluxio/
-```
-
-For PrestoDB installations, run the following. 
+For PrestoDB installations, run the following.
 
 ```console
 $ cp -R ${ALLUXIO_HOME}/client/presto/plugins/prestodb-hive-alluxio-227/ ${PRESTO_HOME}/plugin/hive-alluxio/
+```
+
+For Trino installations, run the following. 
+
+```console
+$ cp -R ${ALLUXIO_HOME}/client/presto/plugins/presto-hive-alluxio-319/ ${PRESTO_HOME}/plugin/hive-alluxio/
 ```
 
 Additionally, you'll need to create a new catalog to use the Alluxio connector and
@@ -271,7 +271,7 @@ Creating the `catalog_alluxio.properties` file means a new catalog named `catalo
 to Presto.
 Setting `connector.name=hive-alluxio` sets the connector type to the name of the
 new Alluxio connector for Presto, which is `hive-alluxio`.
-If you are using PrestoSQL version 332 or above and PrestoDB version 0.232 or above, support for Alluxio Catalog Service is built into
+If you are using PrestoDB version 0.232 or above and Trino version 332 or above, support for Alluxio Catalog Service is built into
 the `hive-hadoop2` connector, so you should set `connector.name=hive-hadoop2` here.
 The `hive.metastore=alluxio` means Hive metastore connection will use the `alluxio` type, in order
 to communicate with the Alluxio Catalog service.
@@ -280,7 +280,7 @@ Alluxio catalog service, which is the same host and port as the Alluxio master.
 Once configured on each node, restart all presto coordinators and workers.
 
 ### JAVA 11 Support
-PrestoSQL 330 or above will only run with Java 11. Starting with the 2.4 version, Alluxio also supports Java 11.
+Trino 330 or above will only run with Java 11. Starting with the 2.4 version, Alluxio also supports Java 11.
 If you have both Java 8 and 11 installed on the same node, you will need to modify JAVA_HOME environment variable to point to the correct Java installation directory.
 The following is an example of launching presto 
 
@@ -289,7 +289,7 @@ $ JAVA_HOME="/usr/lib/jvm/java-11-openjdk-amd64" ${PRESTO_HOME}/bin/launcher sta
 ```
 
 ### Update Alluxio client library to the lastest version
-Both PrestoSQL and PrestoDb now includes Alluxio's client library in their release. 
+Both PrestoDb and Trino now includes Alluxio's client library in their release. 
 However, the version included in those releases may not be the latest version.
 To update the client library to the latest version, first remove the old alluxio client library from `${PRESTO_HOME}/plugin/hive-hadoop2/` directory.
 Then you can follow 
