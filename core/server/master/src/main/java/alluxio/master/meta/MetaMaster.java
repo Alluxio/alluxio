@@ -168,6 +168,7 @@ public interface MetaMaster extends BackupOps, Master {
 
   /**
    * @param propertiesMap properties to update
+   * @return the update properties status map
    */
   Map<String, UpdatePropertyPStatus> updateConfiguration(Map<String, String> propertiesMap);
 }

@@ -23,10 +23,22 @@ public final class UpdateConfIntegrationTest extends AbstractFsAdminShellTest {
 
   @Test
   public void unknownOption() {
-    int ret = mFsAdminShell.run("updateConf", "unknown");
+    int ret = mFsAdminShell.run("updateConf", "--unknown");
     Assert.assertEquals(-1, ret);
     String output = mOutput.toString();
-    Assert.assertEquals(PathConfCommand.description(), lastLine(output));
+    Assert.assertEquals(UpdateConfCommand.description(), lastLine(output));
+  }
+
+  @Test
+  public void unknownKey() {
+    int ret = mFsAdminShell.run("updateConf", "--option", "unknown-key=unknown-value");
+    Assert.assertEquals(-1, ret);
+  }
+
+  @Test
+  public void updateNormal() {
+    int ret = mFsAdminShell.run("updateConf", "--option", "alluxio.master.worker.timeout=4min");
+    Assert.assertEquals(0, ret);
   }
 
   private String lastLine(String output) {
