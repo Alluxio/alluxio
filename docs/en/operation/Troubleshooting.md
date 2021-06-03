@@ -352,7 +352,7 @@ the property `alluxio.master.journal.folder` setting. There can be multiple reas
 some HDFS datanodes serving the journal files are under heavy load or running out of disk space. Please ensure the
 HDFS deployment is connected and healthy for Alluxio to store journals when the journal directory is set to be in HDFS.
 
-If you do not find the answer above, please post a question following [here]({{ '#posting-questions' | relativize_url }}).
+If you do not find the answer above, please post a question following [here](#posting-questions).
 
 ### Q: I added some files in under file system. How can I reveal the files in Alluxio?
 
@@ -400,7 +400,7 @@ A: One possible cause is the RPC request is not recognized by the server side.
 This typically happens when you are running the Alluxio client and master/worker with different versions where the RPCs are incompatible.
 Please double check and make sure all components are running the same Alluxio version.
 
-If you do not find the answer above, please post a question following [here]({{ '#posting-questions' | relativize_url }}).
+If you do not find the answer above, please post a question following [here](#posting-questions).
 
 ## Performance FAQ
 
