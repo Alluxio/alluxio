@@ -213,8 +213,11 @@ public class LoadDefinitionTest {
     Set<Long> workerIds = new HashSet<>();
     workerIds.add(2L);
     workerIds.add(3L);
+    Set<String> localityIdentities = new HashSet<>();
+    localityIdentities.add("RACK2");
+    localityIdentities.add("RACK3");
     loadedBySpecifiedHost(Collections.EMPTY_SET, Collections.EMPTY_SET,
-        Collections.EMPTY_SET, Collections.singleton("RACK3"), workerIds);
+        localityIdentities, Collections.singleton("RACK3"), workerIds);
   }
 
   @Test
