@@ -17,14 +17,11 @@ import alluxio.conf.ServerConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.InvalidPathException;
 import alluxio.master.file.meta.options.MountInfo;
-import alluxio.metrics.MetricKey;
-import alluxio.metrics.MetricsSystem;
 import alluxio.resource.CloseableResource;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.ThreadFactoryUtils;
 import alluxio.util.io.PathUtils;
 
-import com.codahale.metrics.Counter;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
@@ -88,8 +85,6 @@ public final class AsyncUfsAbsentPathCache implements UfsAbsentPathCache {
         TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>(),
         ThreadFactoryUtils.build("UFS-Absent-Path-Cache-%d", true));
     mPool.allowCoreThreadTimeOut(true);
-    MetricsSystem.registerGaugeIfAbsent(MetricKey.MASTER_ABSENT_CACHE_SIZE.getName(),
-        mCache::size);
   }
 
   @Override
@@ -131,7 +126,6 @@ public final class AsyncUfsAbsentPathCache implements UfsAbsentPathCache {
   public boolean isAbsentSince(AlluxioURI path, long absentSince) {
     MountInfo mountInfo = getMountInfo(path);
     if (mountInfo == null) {
-      Metrics.ABSENT_CACHE_MISSES.inc();
       return false;
     }
     AlluxioURI mountBaseUri = mountInfo.getAlluxioUri();
@@ -143,13 +137,11 @@ public final class AsyncUfsAbsentPathCache implements UfsAbsentPathCache {
           && cacheResult.getSecond() != null
           && cacheResult.getFirst() >= absentSince
           && cacheResult.getSecond() == mountInfo.getMountId()) {
-        Metrics.ABSENT_CACHE_HITS.inc();
         return true;
       }
       path = path.getParent();
     }
     // Reached the root, without finding anything in the cache.
-    Metrics.ABSENT_CACHE_MISSES.inc();
     return false;
   }
 
@@ -318,7 +310,6 @@ public final class AsyncUfsAbsentPathCache implements UfsAbsentPathCache {
 
   private void removeCacheEntry(String path) {
     LOG.debug("Remove cacheEntry={}", path);
-    Metrics.ABSENT_CACHE_INVALIDATIONS.inc();
     mCache.invalidate(path);
   }
 
@@ -350,21 +341,5 @@ public final class AsyncUfsAbsentPathCache implements UfsAbsentPathCache {
         break;
       }
     }
-  }
-
-  private static final class Metrics {
-    /** Number of absent cache hits. */
-    private static final Counter ABSENT_CACHE_HITS =
-        MetricsSystem.counter(MetricKey.MASTER_ABSENT_CACHE_HITS.getName());
-
-    /** Number of absent cache misses. */
-    private static final Counter ABSENT_CACHE_MISSES =
-        MetricsSystem.counter(MetricKey.MASTER_ABSENT_CACHE_MISSES.getName());
-
-    /** Number of absent cache invalidations. */
-    private static final Counter ABSENT_CACHE_INVALIDATIONS =
-        MetricsSystem.counter(MetricKey.MASTER_ABSENT_CACHE_INVALIDATIONS.getName());
-
-    private Metrics() {} // prevent instantiation
   }
 }
