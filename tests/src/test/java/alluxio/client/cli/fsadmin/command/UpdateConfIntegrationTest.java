@@ -13,6 +13,7 @@ package alluxio.client.cli.fsadmin.command;
 
 import alluxio.cli.fsadmin.command.UpdateConfCommand;
 import alluxio.client.cli.fsadmin.AbstractFsAdminShellTest;
+
 import org.junit.Assert;
 import org.junit.Test;
 
