@@ -182,10 +182,10 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
     mLocalBlockStore.registerBlockStoreEventListener(mHeartbeatReporter);
     mLocalBlockStore.registerBlockStoreEventListener(mMetricsReporter);
     mUfsManager = ufsManager;
-    mFsContext = mResourceCloser
-        .register(FileSystemContext.create(null, ServerConfiguration.global(), this));
-    mAsyncCacheManager =
-        new AsyncCacheRequestManager(GrpcExecutors.ASYNC_CACHE_MANAGER_EXECUTOR, this, mFsContext);
+    mFsContext = mResourceCloser.register(
+        FileSystemContext.create(null, ServerConfiguration.global(), this));
+    mAsyncCacheManager = new AsyncCacheRequestManager(
+        GrpcExecutors.ASYNC_CACHE_MANAGER_EXECUTOR, this, mFsContext);
     mFuseManager = mResourceCloser.register(new FuseManager(mFsContext));
     mUnderFileSystemBlockStore = new UnderFileSystemBlockStore(mLocalBlockStore, ufsManager);
 
