@@ -3704,11 +3704,6 @@ public final class DefaultFileSystemMaster extends CoreMaster
     return mBlockMaster.getWorkerInfoList();
   }
 
-  @Override
-  public long getInodeCount() {
-    return mInodeTree.getInodeCount();
-  }
-
   /**
    * @param fileId file ID
    * @param jobId persist job ID
