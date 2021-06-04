@@ -15,6 +15,8 @@ import alluxio.util.FormatUtils;
 import alluxio.wire.MountPointInfo;
 
 import javax.annotation.concurrent.ThreadSafe;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Contains information about a mount point to be displayed in the UI.
@@ -28,6 +30,7 @@ public class UIMountPointInfo {
   private long mUfsUsedBytes;
   private boolean mReadOnly;
   private boolean mShared;
+  private Map<String,String> mProperties;
 
   /**
    * Instantiates a new instance of {@link UIMountPointInfo}.
@@ -43,6 +46,7 @@ public class UIMountPointInfo {
     mUfsUsedBytes = mountPointInfo.getUfsUsedBytes();
     mReadOnly = mountPointInfo.getReadOnly();
     mShared = mountPointInfo.getShared();
+    mProperties=mountPointInfo.getProperties();
   }
 
   /**
@@ -107,4 +111,10 @@ public class UIMountPointInfo {
   public boolean isShared() {
     return mShared;
   }
+
+  /**
+   *
+   * @return the properties
+   */
+  public Map<String,String> getProperties(){return mProperties;}
 }
