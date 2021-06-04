@@ -58,6 +58,7 @@ public final class LeaderCommand extends AbstractFileSystemCommand {
 
   @Override
   public int run(CommandLine cl) {
+    System.out.println("This command will be deprecated as of v3.0, please use masterInfo command");
     try (CloseableResource<FileSystemMasterClient> client =
         mFsContext.acquireMasterClientResource()) {
       try {
