@@ -148,7 +148,7 @@ public class InodeTreePersistentState implements Journaled {
    * @return the number of inodes in the tree
    */
   public long getInodeCount() {
-    return mInodeCounter.get();
+    return mInodeCounter.longValue();
   }
 
   /**
@@ -340,19 +340,19 @@ public class InodeTreePersistentState implements Journaled {
       while (!dirsToDelete.isEmpty()) {
         InodeDirectory dir = dirsToDelete.poll();
         mInodeStore.removeInodeAndParentEdge(inode);
-        mInodeCounter.decrementAndGet();
+        mInodeCounter.decrement();
         for (Inode child : mInodeStore.getChildren(dir)) {
           if (child.isDirectory()) {
             dirsToDelete.add(child.asDirectory());
           } else {
             mInodeStore.removeInodeAndParentEdge(inode);
-            mInodeCounter.decrementAndGet();
+            mInodeCounter.decrement();
           }
         }
       }
     } else {
       mInodeStore.removeInodeAndParentEdge(inode);
-      mInodeCounter.decrementAndGet();
+      mInodeCounter.decrement();
     }
     if (inode.isFile()) {
       mBucketCounter.remove(inode.asFile().getLength());
@@ -568,7 +568,8 @@ public class InodeTreePersistentState implements Journaled {
       // This is the root inode. Clear all the state, and set the root.
       mInodeStore.clear();
       mInodeStore.writeNewInode(inode);
-      mInodeCounter.set(1);
+      mInodeCounter.reset();
+      mInodeCounter.increment();
       mPinnedInodeFileIds.clear();
       mReplicationLimitedFileIds.clear();
       mToBePersistedIds.clear();
@@ -579,7 +580,7 @@ public class InodeTreePersistentState implements Journaled {
     // inode should be added to the inode store before getting added to its parent list, because it
     // becomes visible at this point.
     mInodeStore.writeNewInode(inode);
-    mInodeCounter.incrementAndGet();
+    mInodeCounter.increment();
     mInodeStore.addChild(inode.getParentId(), inode);
     // Only update size, last modified time is updated separately.
     updateTimestampsAndChildCount(inode.getParentId(), Long.MIN_VALUE, 1);
