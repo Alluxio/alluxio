@@ -12,7 +12,7 @@ priority: 14
 This page is a collection of high-level guides and tips regarding how to diagnose issues encountered in
 Alluxio.
 
-Note: this doc is not intended to be the full list of Alluxio questions.
+> Note: this doc is not intended to be the full list of Alluxio questions.
 Join the [Alluxio community Slack Channel](https://www.alluxio.io/slack) to chat with users and
 developers, or post questions on the [Alluxio Mailing List](https://groups.google.com/forum/#!forum/alluxio-users).
 
@@ -80,7 +80,7 @@ In the end of execution the collected information will be written to files and t
 Each individual tarball will be collected to the issuing node.
 Then all the tarballs will be bundled into the final tarball, which contains all information about the Alluxio cluster.
 
->NOTE: Be careful if your configuration contains credentials like AWS keys!
+> NOTE: Be careful if your configuration contains credentials like AWS keys!
 You should ALWAYS CHECK what is in the tarball and REMOVE the sensitive information from the tarball before sharing it with someone!
 
 ### Collect Alluxio cluster information
@@ -96,13 +96,17 @@ From Alluxio 2.4, the `alluxio-site.properties` file will not be copied,
 as many users tend to put their plaintext credentials to the UFS in this file.
 Instead, the `collectAlluxioInfo` will run a `alluxio getConf` command
 which prints all the configuration properties, with the credential fields masked.
+The [getConf command]({{ '/en/operation/User-CLI.html#getconf' | relativize_url }}) will collect all the current node configuration.
+
 So in order to collect Alluxio configuration in the tarball,
 please make sure `collectAlluxioInfo` sub-command is run.
+
 > WARNING: If you put credential fields in the configuration files except alluxio-site.properties (eg. `alluxio-env.sh`), 
-> DO NOT share the collected tarball with anybody unless you have manually obfuscated them in the tarball!
+DO NOT share the collected tarball with anybody unless you have manually obfuscated them in the tarball!
 
 ### Collect Alluxio logs
 `collectLog` will collect all the logs under `${alluxio.work.dir}/logs`.
+
 > NOTE: Roughly estimate how much log you are collecting before executing this command!
 
 ### Collect Alluxio metrics
@@ -117,6 +121,7 @@ This will be done multiple times to see if the JVMs are making progress.
 ### Collect system information
 `collectEnv` will run a set of bash commands to collect information about the running node.
 This runs system troubleshooting commands like `env`, `hostname`, `top`, `ps` etc.
+
 > WARNING: If you stored credential fields in environment variables like AWS_ACCESS_KEY or in process start parameters
 like -Daws.access.key=XXX, DO NOT share the collected tarball with anybody unless you have manually obfuscated them in the tarball!
 
@@ -148,7 +153,11 @@ When the cluster has a large number of nodes, or large log files, the network IO
 Use this parameter to constrain the resource usage of this command.
 
 1. `--local` option specifies the `collectInfo` command to run only on `localhost`.
-That means the command will only collect information about the `localhost`.
+That means the command will only collect information about the `localhost`. 
+If your cluster does not have password-less SSH across nodes, you will need to run with `--local`
+option locally on each node in the cluster, and manually gather all outputs.
+If your cluster has password-less SSH across nodes, you can run without `--local` command,
+which will essentially distribute the task to each node and gather the locally collected tarballs for you. 
 
 1. `--help` option asks the command to print the help message and exit.
 
@@ -218,12 +227,12 @@ Typical issues:
 ### Q: I'm trying to deploy Alluxio in a cluster with Spark and HDFS. Are there any suggestions?
 
 A: Please follow [Running-Alluxio-on-a-Cluster]({{ '/en/deploy/Running-Alluxio-On-a-Cluster.html' | relativize_url }}),
-[Configuring-Alluxio-with-HDFS]({{ '/en/ufs/HDFS.html' | relativize_url }}).
+[Configuring-Alluxio-with-HDFS]({{ '/en/ufs/HDFS.html' | relativize_url }}),
+and [Configuring-Spark-with-Alluxio]({{ '/en/compute/Spark.html' | relativize_url }}).
 
 Tips:
 
 - The best performance gains occur when Alluxio workers are co-located with the nodes of the computation frameworks.
-- You can use Mesos and Yarn integration if you are already using Mesos or Yarn to manage your cluster.
 - If the under storage is remote (like S3 or remote HDFS), using Alluxio can be especially beneficial.
 
 ### Q: What Java version should I use when I deploy Alluxio?
@@ -249,6 +258,8 @@ installation or `spark/conf/` if you customize this file for Spark) has the foll
 </configuration>
 ```
 
+See the doc page for your specific compute framework for detailed setup instructions.
+
 ### Q: Why do I see exceptions like "java.lang.RuntimeException: java.lang.ClassNotFoundException: Class alluxio.hadoop.FileSystem not found"?
 
 A: This error message is seen when your applications (e.g., MapReduce, Spark) try to access
@@ -263,12 +274,14 @@ properties on all nodes running this framework. Here are some examples:
 ```console
 $ export HADOOP_CLASSPATH={{site.ALLUXIO_CLIENT_JAR_PATH}}:${HADOOP_CLASSPATH}
 ```
+See [MapReduce on Alluxio]({{ '/en/compute/Hadoop-MapReduce.html' | relativize_url }}) for more details.
 
 - For Spark jobs, you can append the client jar to `$SPARK_CLASSPATH`:
 
 ```console
 $ export SPARK_CLASSPATH={{site.ALLUXIO_CLIENT_JAR_PATH}}:${SPARK_CLASSPATH}
 ```
+See [Spark on Alluxio]({{ '/en/compute/Spark.html' | relativize_url }}) for more details.
 
 Alternatively, add the following lines to `spark/conf/spark-defaults.conf`:
 
@@ -280,6 +293,7 @@ spark.executor.extraClassPath {{site.ALLUXIO_CLIENT_JAR_PATH}}
 - For Presto, put Alluxio client jar `{{site.ALLUXIO_CLIENT_JAR_PATH}}` into the directory
 `${PRESTO_HOME}/plugin/hive-hadoop2/`
 Since Presto has long running processes, ensure they are restarted after the jar has been added.
+See [Presto on Alluxio]({{ '/en/compute/Presto.html' | relativize_url }}) for more details.
 
 - For Hive, set `HIVE_AUX_JARS_PATH` in `conf/hive-env.sh`:
 
@@ -294,6 +308,7 @@ whether the path is valid by:
 ```console
 $ ls {{site.ALLUXIO_CLIENT_JAR_PATH}}
 ```
+See [Hive on Alluxio]({{ '/en/compute/Hive.html' | relativize_url }}) for more details.
 
 ### Q: I'm seeing error messages like "Frame size (67108864) larger than max length (16777216)". What is wrong?
 
@@ -310,29 +325,44 @@ Please read [Configuration-Settings]({{ '/en/operation/Configuration.html' | rel
 ### Q: I'm copying or writing data to Alluxio while seeing error messages like "Failed to cache: Not enough space to store block on worker". Why?
 
 A: This error indicates insufficient space left on Alluxio workers to complete your write request.
+This is either because the worker fails to evict enough space or the block size is too large to fit in any of the worker's storage directories.
 
 - Check if you have any files unnecessarily pinned in memory and unpin them to release space.
 See [Command-Line-Interface]({{ '/en/operation/User-CLI.html#pin' | relativize_url }}) for more details.
-- Increase the capacity of workers by changing `alluxio.worker.ramdisk.size` property.
-See [Configuration]({{ '/en/reference/Properties-List.html' | relativize_url }}#common-configuration) for more description.
+- Increase the capacity of workers by updating the
+[worker tier storage configurations]({{ '/en/core-services/Caching.html#configuring-alluxio-storage' | relativize_url }}).
 
 ### Q: I'm writing a new file/directory to Alluxio and seeing journal errors in my application
 
-A: When you see errors like "Failed to replace a bad datanode on the existing pipeline due to no more good datanodes being available to try",
+A: First you should check if you are running Alluxio with UFS journal or Embedded journal.
+See the difference [here]({{ '/en/operation/Journal.html#embedded-journal-vs-ufs-journal' | relativize_url }}).
+
+Also you should verify that the journal you are using is compatible with the current configuration.
+There are a few scenarios where the journal compatibility is not guaranteed and you need to either
+[restore from a backup]({{ '/en/operation/Journal.html#restoring-from-a-backup' | relativize_url }}) or
+[format the journal]({{ '/en/operation/Journal.html#formatting-the-journal' | relativize_url }}):
+
+1. Alluxio 2.X is not compatible with 1.X journals.
+1. UFS journal and embedded journal files are not compatible.
+1. Journals for `ROCKS` and `HEAP` metastore are not compatible.
+
+If you are using UFS journal and see errors like "Failed to replace a bad datanode on the existing pipeline due to no more good datanodes being available to try",
 it is because Alluxio master failed to update journal files stored in a HDFS directory according to
 the property `alluxio.master.journal.folder` setting. There can be multiple reasons for this type of errors, typically because
 some HDFS datanodes serving the journal files are under heavy load or running out of disk space. Please ensure the
 HDFS deployment is connected and healthy for Alluxio to store journals when the journal directory is set to be in HDFS.
 
+If you do not find the answer above, please post a question following [here](#posting-questions).
+
 ### Q: I added some files in under file system. How can I reveal the files in Alluxio?
 
-By default, Alluxio loads the list of files the first time a directory is visited.
+A: By default, Alluxio loads the list of files the first time a directory is visited.
 Alluxio will keep using the cached file list regardless of the changes in the under file system.
 To reveal new files from under file system, you can use the command
 `alluxio fs ls -R -Dalluxio.user.file.metadata.sync.interval=${SOME_INTERVAL} /path` or by setting the same
 configuration property in masters' `alluxio-site.properties`.
 The value for the configuration property is used to determine the minimum interval between two syncs.
-You can read more about loading files from underfile system
+You can read more about metadata sync from under file systems
 [here]({{ '/en/core-services/Unified-Namespace.html' | relativize_url }}#ufs-metadata-sync).
 
 ### Q: I see an error "Block ?????? is unavailable in both Alluxio and UFS" while reading some file. Where is my file?
@@ -362,6 +392,16 @@ execute, such as persisting a large file on a slow UFS. If you want to know what
 as `${ALLUXIO_HOME}/logs/user_${USER_NAME}.log` by default) or master log (stored as `${ALLUXIO_HOME}/logs/master.log` on the master
 node by default).
 
+If the logs are not sufficient to reveal the problem, you can [enable more verbose logging]({{ '/en/operation/Basic-Logging.html#enabling-advanced-logging' | relativize_url }}).
+
+### Q: I'm getting unknown gRPC errors like "io.grpc.StatusRuntimeException: UNKNOWN"
+
+A: One possible cause is the RPC request is not recognized by the server side.
+This typically happens when you are running the Alluxio client and master/worker with different versions where the RPCs are incompatible.
+Please double check and make sure all components are running the same Alluxio version.
+
+If you do not find the answer above, please post a question following [here](#posting-questions).
+
 ## Performance FAQ
 
 ### Q: I tested Alluxio/Spark against HDFS/Spark (running simple word count of GBs of files). Why is there no discernible performance difference?
@@ -376,11 +416,16 @@ A: Alluxio accelerates your system performance by leveraging temporal or spatial
 Alluxio can be configured under a variety of modes, in different production environments.
 Please make sure the Alluxio version being deployed is update-to-date and supported.
 
+## Posting Questions
+
 When posting questions on the [Mailing List](https://groups.google.com/forum/#!forum/alluxio-users)
-or [Slack channel](https://slackin.alluxio.io/), please attach the full environment information, including
+or [Slack channel](https://alluxio.io/slack), please attach the full environment information, including
 - Alluxio version
 - OS version
 - Java version
 - UnderFileSystem type and version
 - Computing framework type and version
 - Cluster information, e.g. the number of nodes, memory size in each node, intra-datacenter or cross-datacenter
+- Relevant Alluxio configurations like `alluxio-site.properties` and `alluxio-env.sh`
+- Relevant Alluxio logs and logs from compute/storage engines
+- If you face a problem, please try to include clear steps to reproduce it
