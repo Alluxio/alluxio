@@ -630,7 +630,7 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
         LOG.error("Update property {} to {} met exception", e);
       }
     }
-    LOG.info("Update {} properties, succeed {}.", propertiesMap.size(), successCount);
+    LOG.debug("Update {} properties, succeed {}.", propertiesMap.size(), successCount);
     return result;
   }
 
