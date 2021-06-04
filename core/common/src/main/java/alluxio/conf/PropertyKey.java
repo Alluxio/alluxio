@@ -2901,8 +2901,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey WORKER_INFO_FILE =
       new Builder(Name.WORKER_INFO_FILE)
-          .setDefaultValue(String.format("${%s}/workerInfo", Name.WORKER_DATA_FOLDER))
-          .setDescription("The infofile that this worker stored.")
+          .setDefaultValue(String.format("%s/workerInfo", System.getProperty("user.dir")))
+          .setDescription("The infoFile that this worker stored.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.ALL)
           .build();
