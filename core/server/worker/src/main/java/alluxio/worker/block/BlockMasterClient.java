@@ -175,7 +175,6 @@ public class BlockMasterClient extends AbstractMasterClient {
     Map<BlockStoreLocationProto, List<Long>> tierToBlocks = new HashMap<>();
     for (Map.Entry<BlockStoreLocation, List<Long>> entry : blockListOnLocation.entrySet()) {
       BlockStoreLocation loc = entry.getKey();
-      List<Long> entryValue = entry.getValue();
       BlockStoreLocationProto locationProto = BlockStoreLocationProto.newBuilder()
           .setTierAlias(loc.tierAlias())
           .setMediumType(loc.mediumType())
