@@ -11,8 +11,6 @@
 
 package alluxio.master.metastore.caching;
 
-import static alluxio.metrics.MetricKey.MASTER_INODE_CACHE_HIT_RATIO;
-
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 
@@ -34,9 +32,6 @@ final class StatsCounter {
     mMissCount = MetricsSystem.counter(missesKey.getName());
     mTotalLoadTime = MetricsSystem.counter(loadTimesKey.getName());
     mEvictionCount = MetricsSystem.counter(evictionsKey.getName());
-    MetricsSystem.registerGaugeIfAbsent(MASTER_INODE_CACHE_HIT_RATIO.getName(),
-        () -> mHitCount.getCount() * 1.0
-            / mHitCount.getCount() + mMissCount.getCount());
   }
 
   /**

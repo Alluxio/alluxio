@@ -17,7 +17,6 @@ import static org.mockito.Mockito.when;
 import alluxio.conf.ServerConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.master.file.DefaultFileSystemMaster.Metrics;
-import alluxio.master.file.meta.InodeTree;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.resource.CloseableResource;
@@ -32,26 +31,26 @@ import org.mockito.Mockito;
  * Unit tests for {@link DefaultFileSystemMaster.Metrics}.
  */
 public class FileSystemMasterMetricsTest {
+  private FileSystemMaster mFileSystemMaster;
   private UfsManager mUfsManager;
-  private InodeTree mInodeTree;
 
   @Before
   public void before() throws Exception {
     MetricsSystem.clearAllMetrics();
+    mFileSystemMaster = Mockito.mock(FileSystemMaster.class);
     mUfsManager = Mockito.mock(UfsManager.class);
-    mInodeTree = Mockito.mock(InodeTree.class);
-    Metrics.registerGauges(mUfsManager, mInodeTree);
+    Metrics.registerGauges(mFileSystemMaster, mUfsManager);
   }
 
   @Test
   public void testMetricsFilesPinned() {
-    when(mInodeTree.getPinnedSize()).thenReturn(100);
+    when(mFileSystemMaster.getNumberOfPinnedFiles()).thenReturn(100);
     assertEquals(100, getGauge(MetricKey.MASTER_FILES_PINNED.getName()));
   }
 
   @Test
   public void testMetricsPathsTotal() {
-    when(mInodeTree.getInodeCount()).thenReturn(90L);
+    when(mFileSystemMaster.getInodeCount()).thenReturn(90L);
     assertEquals(90L, getGauge(MetricKey.MASTER_TOTAL_PATHS.getName()));
   }
 

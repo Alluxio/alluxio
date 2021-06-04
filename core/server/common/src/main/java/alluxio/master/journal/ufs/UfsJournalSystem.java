@@ -68,7 +68,6 @@ public class UfsJournalSystem extends AbstractJournalSystem {
    *        this duration has passed without any journal entries being written.
    */
   public UfsJournalSystem(URI base, long quietTimeMs) {
-    super();
     mBase = base;
     mQuietTimeMs = quietTimeMs;
     mJournals = new ConcurrentHashMap<>();

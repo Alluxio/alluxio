@@ -58,7 +58,6 @@ import alluxio.util.CommonUtils;
 import alluxio.util.interfaces.Scoped;
 
 import com.google.common.base.Preconditions;
-import org.HdrHistogram.Histogram;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -256,13 +255,6 @@ public class InodeTree implements DelegatingJournaled {
    */
   public long getInodeCount() {
     return mState.getInodeCount();
-  }
-
-  /**
-   * @return the file size histogram of the inode tree
-   */
-  public Histogram getFileSizeHistogram() {
-    return mState.getFileSizeHistogram();
   }
 
   /**
