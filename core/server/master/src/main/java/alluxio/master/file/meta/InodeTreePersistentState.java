@@ -11,6 +11,8 @@
 
 package alluxio.master.file.meta;
 
+import static alluxio.conf.PropertyKey.MASTER_METRICS_FILE_SIZE_BUCKET;
+
 import alluxio.ProcessUtils;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
@@ -41,11 +43,11 @@ import alluxio.resource.LockResource;
 import alluxio.security.authorization.AclEntry;
 import alluxio.security.authorization.DefaultAccessControlList;
 import alluxio.util.BucketCounter;
+import alluxio.util.FormatUtils;
 import alluxio.util.StreamUtils;
 import alluxio.util.proto.ProtoUtils;
 
 import com.google.common.base.Preconditions;
-import com.google.common.collect.ImmutableList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -63,6 +65,7 @@ import java.util.Optional;
 import java.util.Queue;
 import java.util.Set;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 /**
  * Class for managing persistent inode tree state.
@@ -116,8 +119,8 @@ public class InodeTreePersistentState implements Journaled {
     mInodeLockManager = lockManager;
     mTtlBuckets = ttlBucketList;
     mBucketCounter = new BucketCounter(
-        ImmutableList.<Long>builder().add(1024L, 1024L * 1024L, 1024L * 1024L * 1024L,
-            1024L * 1024L * 1024L * 1024L).build());
+        ServerConfiguration.getList(MASTER_METRICS_FILE_SIZE_BUCKET, ",")
+            .stream().map(FormatUtils::parseSpaceSize).collect(Collectors.toList()));
   }
 
   /**

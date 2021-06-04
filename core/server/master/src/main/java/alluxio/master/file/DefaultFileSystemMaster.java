@@ -878,7 +878,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
           ensureFullPathAndUpdateCache(inodePath);
 
           FileInfo fileInfo = getFileInfoInternal(inodePath);
-          if (!fileInfo.isFolder() && (!fileInfo.isCompleted())) {
+          if (!fileInfo.isCompleted()) {
             LOG.warn("File {} is not yet completed. getStatus will see incomplete metadata.",
                 fileInfo.getPath());
           }
@@ -4488,7 +4488,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
       MetricsSystem.registerGaugeIfAbsent(MetricKey.MASTER_FILES_PINNED.getName(),
           inodeTree::getPinnedSize);
       MetricsSystem.registerGaugeIfAbsent(MetricKey.MASTER_FILES_TO_PERSIST.getName(),
-          inodeTree.getToBePersistedIds()::size);
+          () -> inodeTree.getToBePersistedIds().size());
       MetricsSystem.registerGaugeIfAbsent(MetricKey.MASTER_TOTAL_PATHS.getName(),
           inodeTree::getInodeCount);
       MetricsSystem.registerGaugeIfAbsent(MetricKey.MASTER_FILE_SIZE.getName(),

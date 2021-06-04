@@ -328,11 +328,6 @@ public final class MetricKey implements Comparable<MetricKey> {
               + "that resulted from a cache miss.")
           .setMetricType(MetricType.GAUGE)
           .build();
-  public static final MetricKey MASTER_INODE_CACHE_LOAD_TIMER =
-      new Builder("Master.InodeCacheLoadTimer")
-          .setDescription("Total load latency in the inodes (inode metadata) cache")
-          .setMetricType(MetricType.TIMER)
-          .build();
   public static final MetricKey MASTER_INODE_CACHE_MISSES =
       new Builder("Master.InodeCacheMisses")
           .setDescription("Total number of misses in the inodes (inode metadata) cache.")

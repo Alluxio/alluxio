@@ -35,5 +35,9 @@ public final class BucketCounterTest {
     counter.remove(6L);
     assertEquals(1, counter.getCounters().get(4L).intValue());
     assertEquals(1, counter.getCounters().get(8L).intValue());
+    counter.insert(Long.MAX_VALUE);
+    assertEquals(1, counter.getCounters().get(4L).intValue());
+    assertEquals(1, counter.getCounters().get(8L).intValue());
+    assertEquals(1, counter.getCounters().get(Long.MAX_VALUE).intValue());
   }
 }
