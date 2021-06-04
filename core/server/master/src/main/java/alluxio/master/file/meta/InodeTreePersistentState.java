@@ -44,15 +44,6 @@ import alluxio.util.StreamUtils;
 import alluxio.util.proto.ProtoUtils;
 
 import com.google.common.base.Preconditions;
-<<<<<<< HEAD
-import org.HdrHistogram.Histogram;
-import org.HdrHistogram.Recorder;
-import org.apache.commons.lang3.exception.ExceptionUtils;
-||||||| 696647645c... Add additional metrics throughout Alluxio system
-import org.HdrHistogram.Histogram;
-import org.HdrHistogram.Recorder;
-=======
->>>>>>> parent of 696647645c... Add additional metrics throughout Alluxio system
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -150,45 +141,6 @@ public class InodeTreePersistentState implements Journaled {
   }
 
   /**
-<<<<<<< HEAD
-   * @return the file size distribution in the tree
-   */
-  public Histogram getFileSizeHistogram() {
-    synchronized (mFileSizeHistogram) {
-      try {
-        mRemovedFileHistogram = mRemovedFileRecorder.getIntervalHistogram(mRemovedFileHistogram);
-        mCreatedFileHistogram = mCreatedFileRecorder.getIntervalHistogram(mCreatedFileHistogram);
-        mFileSizeHistogram.add(mCreatedFileHistogram);
-        if (mFileSizeHistogram.getTotalCount() != 0
-            && mRemovedFileHistogram.getTotalCount() != 0) {
-          mFileSizeHistogram.subtract(mRemovedFileHistogram);
-        }
-        return mFileSizeHistogram.copy();
-      } catch (Exception e) {
-        LOG.info("Unexpected exception in generating file size histogram\n"
-            + e.getMessage() + "\n" + ExceptionUtils.getStackTrace(e));
-        throw e;
-      }
-    }
-  }
-
-  /**
-||||||| 696647645c... Add additional metrics throughout Alluxio system
-   * @return the file size distribution in the tree
-   */
-  public Histogram getFileSizeHistogram() {
-    synchronized (mFileSizeHistogram) {
-      mRemovedFileHistogram = mRemovedFileRecorder.getIntervalHistogram(mRemovedFileHistogram);
-      mCreatedFileHistogram = mCreatedFileRecorder.getIntervalHistogram(mCreatedFileHistogram);
-      mFileSizeHistogram.add(mCreatedFileHistogram);
-      mFileSizeHistogram.subtract(mRemovedFileHistogram);
-      return mFileSizeHistogram.copy();
-    }
-  }
-
-  /**
-=======
->>>>>>> parent of 696647645c... Add additional metrics throughout Alluxio system
    * @return an unmodifiable view of the files with persistence state
    *         {@link PersistenceState#TO_BE_PERSISTED}
    */

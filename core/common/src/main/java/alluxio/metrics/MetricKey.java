@@ -337,12 +337,6 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setDescription("Total number of files and directory in Alluxio namespace")
           .setMetricType(MetricType.GAUGE)
           .build();
-<<<<<<< HEAD
-  public static final MetricKey MASTER_TOTAL_BLOCKS =
-      new Builder("Master.TotalBlocks")
-          .setDescription("Total number of blocks in Alluxio")
-          .setMetricType(MetricType.COUNTER)
-          .build();
   public static final MetricKey MASTER_INODE_HEAP_SIZE =
       new Builder("Master.InodeHeapSize")
           .setDescription("An estimate of the inode heap size")
@@ -353,16 +347,6 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setDescription("An estimate of the blocks heap size")
           .setMetricType(MetricType.GAUGE)
           .build();
-
-||||||| 696647645c... Add additional metrics throughout Alluxio system
-  public static final MetricKey MASTER_TOTAL_BLOCKS =
-      new Builder("Master.TotalBlocks")
-          .setDescription("Total number of blocks in Alluxio")
-          .setMetricType(MetricType.COUNTER)
-          .build();
-
-=======
->>>>>>> parent of 696647645c... Add additional metrics throughout Alluxio system
   // Backup Restore
   public static final MetricKey MASTER_LAST_BACKUP_ENTRIES_COUNT =
       new Builder("Master.LastBackupEntriesCount")

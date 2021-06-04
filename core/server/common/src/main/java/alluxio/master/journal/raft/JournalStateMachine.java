@@ -197,7 +197,6 @@ public class JournalStateMachine extends BaseStateMachine {
   @Override
   public long takeSnapshot() {
     if (mIsLeader) {
-<<<<<<< HEAD
       try {
         Preconditions.checkState(mServer.getGroups().iterator().hasNext());
         RaftGroup group = mServer.getGroups().iterator().next();
@@ -210,16 +209,7 @@ public class JournalStateMachine extends BaseStateMachine {
       } catch (IOException e) {
         SAMPLING_LOG.warn("Failed to get raft group info: {}", e.getMessage());
       }
-      long index = mSnapshotManager.maybeCopySnapshotFromFollower();
-      mLastCheckPointTime = System.currentTimeMillis();
-      return index;
-||||||| 696647645c... Add additional metrics throughout Alluxio system
-      long index = mSnapshotManager.maybeCopySnapshotFromFollower();
-      mLastCheckPointTime = System.currentTimeMillis();
-      return index;
-=======
       return mSnapshotManager.maybeCopySnapshotFromFollower();
->>>>>>> parent of 696647645c... Add additional metrics throughout Alluxio system
     } else {
       return takeLocalSnapshot();
     }
