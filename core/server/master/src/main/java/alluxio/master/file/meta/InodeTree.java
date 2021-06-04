@@ -261,7 +261,7 @@ public class InodeTree implements DelegatingJournaled {
   /**
    * @return the file size histogram of the inode tree
    */
-  public Map<Long, AtomicLong> getFileSizeHistogram() {
+  public Map<Long, Number> getFileSizeHistogram() {
     return mState.getFileSizeHistogram();
   }
 

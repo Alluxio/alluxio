@@ -16,13 +16,14 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.atomic.LongAdder;
 
 /**
  * Bucket Counter Utility.
  */
 public class BucketCounter {
   // Counts the number of values less or equal to the key
-  private Map<Long, AtomicLong> mCounter;
+  private Map<Long, LongAdder> mCounter;
   private List<Long> mIntervals;
 
   /**
@@ -35,12 +36,12 @@ public class BucketCounter {
     mIntervals = new ArrayList<>(intervals);
     mIntervals.add(Long.MAX_VALUE);
     for (Long interval : intervals) {
-      mCounter.put(interval, new AtomicLong(0));
+      mCounter.put(interval, new LongAdder());
     }
-    mCounter.put(Long.MAX_VALUE, new AtomicLong(0));
+    mCounter.put(Long.MAX_VALUE, new LongAdder());
   }
 
-  private AtomicLong getStartInterval(Long value) {
+  private LongAdder getStartInterval(Long value) {
     for (int i = 0; i < mIntervals.size(); i++) {
       if (mIntervals.get(i) >= value) {
         return mCounter.get(mIntervals.get(i));
@@ -54,7 +55,7 @@ public class BucketCounter {
    * @param number the number to be counted
    */
   public void insert(Long number) {
-    getStartInterval(number).incrementAndGet();
+    getStartInterval(number).increment();
   }
 
   /**
@@ -62,13 +63,13 @@ public class BucketCounter {
    * @param number the number to be counted
    */
   public void remove(Long number) {
-    getStartInterval(number).decrementAndGet();
+    getStartInterval(number).decrement();
   }
 
   /**
    * @return counters
    */
-  public Map<Long, AtomicLong> getCounters() {
+  public Map<Long, Number> getCounters() {
     return new HashMap<>(mCounter);
   }
 }

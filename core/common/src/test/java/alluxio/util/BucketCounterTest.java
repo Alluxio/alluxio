@@ -25,15 +25,15 @@ public final class BucketCounterTest {
   public void insertandremove() {
     BucketCounter counter = new BucketCounter(Arrays.asList(4L, 8L, 12L));
     counter.insert(3L);
-    assertEquals(1, counter.getCounters().get(4L).get());
+    assertEquals(1, counter.getCounters().get(4L).intValue());
     counter.insert(5L);
-    assertEquals(1, counter.getCounters().get(4L).get());
-    assertEquals(1, counter.getCounters().get(8L).get());
+    assertEquals(1, counter.getCounters().get(4L).intValue());
+    assertEquals(1, counter.getCounters().get(8L).intValue());
     counter.insert(6L);
-    assertEquals(1, counter.getCounters().get(4L).get());
-    assertEquals(2, counter.getCounters().get(8L).get());
+    assertEquals(1, counter.getCounters().get(4L).intValue());
+    assertEquals(2, counter.getCounters().get(8L).intValue());
     counter.remove(6L);
-    assertEquals(1, counter.getCounters().get(4L).get());
-    assertEquals(1, counter.getCounters().get(8L).get());
+    assertEquals(1, counter.getCounters().get(4L).intValue());
+    assertEquals(1, counter.getCounters().get(8L).intValue());
   }
 }

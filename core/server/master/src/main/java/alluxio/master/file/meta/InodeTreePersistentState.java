@@ -152,7 +152,7 @@ public class InodeTreePersistentState implements Journaled {
   /**
    * @return the file size distribution in the tree
    */
-  public Map<Long, AtomicLong> getFileSizeHistogram() {
+  public Map<Long, Number> getFileSizeHistogram() {
     return mBucketCounter.getCounters();
   }
 
