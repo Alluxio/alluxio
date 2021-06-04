@@ -11,7 +11,7 @@
 
 package alluxio.master.file.meta;
 
-import static alluxio.conf.PropertyKey.MASTER_METRICS_FILE_SIZE_BUCKET;
+import static alluxio.conf.PropertyKey.MASTER_METRICS_FILE_SIZE_DISTRIBUTION_BUCKETS;
 
 import alluxio.ProcessUtils;
 import alluxio.conf.PropertyKey;
@@ -119,7 +119,7 @@ public class InodeTreePersistentState implements Journaled {
     mInodeLockManager = lockManager;
     mTtlBuckets = ttlBucketList;
     mBucketCounter = new BucketCounter(
-        ServerConfiguration.getList(MASTER_METRICS_FILE_SIZE_BUCKET, ",")
+        ServerConfiguration.getList(MASTER_METRICS_FILE_SIZE_DISTRIBUTION_BUCKETS, ",")
             .stream().map(FormatUtils::parseSpaceSize).collect(Collectors.toList()));
   }
 

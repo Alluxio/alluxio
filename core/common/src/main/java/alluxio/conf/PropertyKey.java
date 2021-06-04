@@ -2043,8 +2043,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.MASTER)
           .build();
 
-  public static final PropertyKey MASTER_METRICS_FILE_SIZE_BUCKET =
-      new Builder(Name.MASTER_METRICS_FILE_SIZE_BUCKET)
+  public static final PropertyKey MASTER_METRICS_FILE_SIZE_DISTRIBUTION_BUCKETS =
+      new Builder(Name.MASTER_METRICS_FILE_SIZE_DISTRIBUTION_BUCKETS)
           .setDefaultValue("1KB,1MB,10MB,100MB,1GB,10GB")
           .setDescription("Master metrics file size buckets")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
@@ -5688,8 +5688,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.metrics.service.threads";
     public static final String MASTER_METRICS_TIME_SERIES_INTERVAL =
         "alluxio.master.metrics.time.series.interval";
-    public static final String MASTER_METRICS_FILE_SIZE_BUCKET =
-        "alluxio.master.metrics.file.size.bucket";
+    public static final String MASTER_METRICS_FILE_SIZE_DISTRIBUTION_BUCKETS =
+        "alluxio.master.metrics.file.size.distribution.buckets";
     public static final String MASTER_NETWORK_MAX_INBOUND_MESSAGE_SIZE =
         "alluxio.master.network.max.inbound.message.size";
     public static final String MASTER_PERSISTENCE_INITIAL_INTERVAL_MS =
