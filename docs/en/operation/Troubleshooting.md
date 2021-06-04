@@ -419,13 +419,13 @@ Please make sure the Alluxio version being deployed is update-to-date and suppor
 ## Posting Questions
 
 When posting questions on the [Mailing List](https://groups.google.com/forum/#!forum/alluxio-users)
-or [Slack channel](https://slackin.alluxio.io/), please attach the full environment information, including
+or [Slack channel](https://alluxio.io/slack), please attach the full environment information, including
 - Alluxio version
 - OS version
 - Java version
 - UnderFileSystem type and version
 - Computing framework type and version
 - Cluster information, e.g. the number of nodes, memory size in each node, intra-datacenter or cross-datacenter
-- Relevant Alluxio configurations like alluxio-site.properties and alluxio-env.sh
+- Relevant Alluxio configurations like `alluxio-site.properties` and `alluxio-env.sh`
 - Relevant Alluxio logs and logs from compute/storage engines
 - If you face a problem, please try to include clear steps to reproduce it
