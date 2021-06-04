@@ -191,5 +191,5 @@ public abstract class ResourcePool<T> implements Pool<T> {
    *
    * @return a resource which will be added to the pool of resources
    */
-  protected abstract T createNewResource();
+  public abstract T createNewResource();
 }

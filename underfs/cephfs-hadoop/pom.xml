@@ -30,9 +30,8 @@
   <dependencies>
     <!-- External dependencies -->
     <dependency>
-      <groupId>org.alluxio</groupId>
-      <artifactId>alluxio-shaded-cephfs-hadoop</artifactId>
-      <version>${project.version}</version>
+      <groupId>io.github.opendataio</groupId>
+      <artifactId>cephfs-hadoop</artifactId>
     </dependency>
     <!-- Internal dependencies -->
     <dependency>

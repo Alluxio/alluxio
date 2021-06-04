@@ -11,7 +11,6 @@
 
 package alluxio.client.block.stream;
 
-import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.options.InStreamOptions;
 import alluxio.grpc.ReadPType;
 import alluxio.metrics.MetricKey;
@@ -83,9 +82,12 @@ public final class BlockWorkerDataReader implements DataReader {
   }
 
   @Override
-  public void close() {
+  public void close() throws IOException {
     if (mClosed) {
       return;
+    }
+    if (mReader != null) {
+      mReader.close();
     }
     mClosed = true;
   }
@@ -102,26 +104,24 @@ public final class BlockWorkerDataReader implements DataReader {
     private final boolean mIsPositionShort;
     private final Protocol.OpenUfsBlockOptions mOpenUfsBlockOptions;
     private BlockReadRequest mBlockReadRequest;
-    private boolean mClosed;
-    private BlockReader mReader;
 
     /**
      * Creates an instance of {@link Factory}.
      *
-     * @param context the file system context
+     * @param blockWorker the block worker
      * @param blockId the block ID
      * @param chunkSize chunk size in bytes
      * @param options the instream options
      */
-    public Factory(FileSystemContext context, long blockId,
+    public Factory(BlockWorker blockWorker, long blockId,
         long chunkSize, InStreamOptions options)  {
+      Preconditions.checkNotNull(blockWorker);
       mBlockId = blockId;
+      mBlockWorker = blockWorker;
       mChunkSize = chunkSize;
-      mClosed = false;
       mIsPromote = options.getOptions().getReadType() == ReadPType.CACHE_PROMOTE;
       mIsPositionShort = options.getPositionShort();
       mOpenUfsBlockOptions = options.getOpenUfsBlockOptions(blockId);
-      mBlockWorker = context.getProcessLocalWorker();
     }
 
     @Override
@@ -129,8 +129,8 @@ public final class BlockWorkerDataReader implements DataReader {
       mBlockReadRequest = new BlockReadRequest(mBlockId, offset, offset + len, mChunkSize,
           mIsPromote, mIsPositionShort, mOpenUfsBlockOptions);
       try {
-        mReader = mBlockWorker.createBlockReader(mBlockReadRequest);
-        return new BlockWorkerDataReader(mReader, offset, len, mChunkSize);
+        BlockReader reader = mBlockWorker.createBlockReader(mBlockReadRequest);
+        return new BlockWorkerDataReader(reader, offset, len, mChunkSize);
       } catch (Exception e) {
         throw new IOException(e);
       }
@@ -142,15 +142,7 @@ public final class BlockWorkerDataReader implements DataReader {
     }
 
     @Override
-    public void close() throws IOException {
-      if (mClosed) {
-        return;
-      }
-      if (mReader != null) {
-        mReader.close();
-      }
-      mClosed = true;
-    }
+    public void close() throws IOException {}
   }
 }
 

@@ -845,6 +845,10 @@ logserver:
 ```
 
 For a production environment, you should always persist the logs with a Persistent Volume.
+When you specify the `logserver.volumeType` to be `persistentVolumeClaim`, 
+the Helm Chart will create a PVC.
+If you are not using dynamic provisioning for PVs, you will need to manually create the PV.
+Remember to make sure the selectors for PVC and PV match with each other.
 ```properties
 logserver:
   enabled: true
@@ -856,20 +860,22 @@ logserver:
   accessModes:
     - ReadWriteOnce
   storageClass: standard
-  selector:
-    matchLabels:
-      role: alluxio-logserver
-      # If you need, you can specify more selectors like below to provide better separation
-      # app: alluxio
-      # chart: alluxio-<chart version>
-      # release: alluxio
-      # heritage: Helm
-      # dc: data-center-1
-      # region: us-east
   # If you are dynamically provisioning PVs, the selector on the PVC should be empty.
   # Ref: https://kubernetes.io/docs/concepts/storage/persistent-volumes/#class-1
+  selector: {}
+  # If you are manually allocating PV for the logserver,
+  # it is recommended to use selectors to make sure the PV and PVC match as expected.
+  # You can specify selectors like below:
   # Example:
-  # selector: {}
+  # selector:
+  #   matchLabels:
+  #     role: alluxio-logserver
+  #     app: alluxio
+  #     chart: alluxio-<chart version>
+  #     release: alluxio
+  #     heritage: Helm
+  #     dc: data-center-1
+  #     region: us-east
 ```
 
 **Step 2: Helm install with the updated configuration**
@@ -951,15 +957,29 @@ spec:
   accessModes:
     - ReadWriteOnce
   # If you are using dynamic provisioning, leave the selector empty.
-  selector:
-    matchLabels:
-      role: alluxio-logserver
+  selector: {}
+  # If you are manually allocating PV for the logserver,
+  # it is recommended to use selectors to make sure the PV and PVC match as expected.
+  # You can specify selectors like below:
+  # Example:
+  # selector:
+  #   matchLabels:
+  #     role: alluxio-logserver
+  #     app: alluxio
+  #     chart: alluxio-<chart version>
+  #     release: alluxio
+  #     heritage: Helm
+  #     dc: data-center-1
+  #     region: us-east
 ```
 
 Create the PVC when you are ready.
 ```console
 $ kubectl create -f alluxio-logserver-pvc.yaml
 ```
+
+(Optional) If you are not using dynamic provisioning, you need to prepare the PV yourself.
+Remember to make sure the selectors on the PVC and PV match with each other.
 
 After you configure the volume in the Deployment, you can go ahead to create it.
 ```console
@@ -1340,6 +1360,51 @@ You should set the property `alluxio.user.short.circuit.enabled` to `false` in y
 
 You should also manually remove the volume `alluxio-domain` from `volumes` of the Pod definition
 and `volumeMounts` of each container if existing.
+
+{% endnavtab %}
+{% endnavtabs %}
+
+### Configuring ServiceAccounts
+
+By default Kubernetes will assign the namespace's `default` ServiceAccount
+to new pods in a namespace. You may specify for Alluxio pods to use
+any existing ServiceAccounts you may have in your cluster through
+the following:
+
+{% navtabs serviceAccounts %}
+{% navtab helm %}
+
+You may specify a top-level Helm value `serviceAccount` which will
+apply to the Master, Worker, and FUSE pods in the chart.
+```properties
+serviceAccount: sa-alluxio
+```
+
+You can override the top-level Helm value by specifying a value
+for the specific component's `serviceAccount` like below:
+```properties
+master:
+  serviceAccount: sa-alluxio-master
+
+worker:
+  serviceAccount: sa-alluxio-worker
+```
+
+{% endnavtab %}
+{% navtab kubectl %}
+
+You may add a `serviceAccountName` field to any of the Alluxio Pod template
+specs to have the Pod run using the matching ServiceAccount. For example:
+```properties
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: alluxio-master
+spec:
+  template:
+    spec:
+      serviceAccountName: sa-alluxio
+```
 
 {% endnavtab %}
 {% endnavtabs %}

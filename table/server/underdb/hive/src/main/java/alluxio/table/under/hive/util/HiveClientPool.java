@@ -11,7 +11,11 @@
 
 package alluxio.table.under.hive.util;
 
+import static alluxio.conf.PropertyKey.TABLE_UDB_HIVE_CLIENTPOOL_MAX;
+import static alluxio.conf.PropertyKey.TABLE_UDB_HIVE_CLIENTPOOL_MIN;
+
 import alluxio.Constants;
+import alluxio.conf.ServerConfiguration;
 import alluxio.resource.CloseableResource;
 import alluxio.resource.DynamicResourcePool;
 import alluxio.util.ThreadFactoryUtils;
@@ -21,7 +25,6 @@ import org.apache.hadoop.hive.metastore.HiveMetaHookLoader;
 import org.apache.hadoop.hive.metastore.HiveMetaStoreClient;
 import org.apache.hadoop.hive.metastore.IMetaStoreClient;
 import org.apache.hadoop.hive.metastore.RetryingMetaStoreClient;
-import org.apache.hadoop.hive.metastore.api.NoSuchObjectException;
 import org.apache.thrift.TException;
 
 import java.io.IOException;
@@ -41,24 +44,19 @@ public final class HiveClientPool extends DynamicResourcePool<IMetaStoreClient> 
 
   private final long mGcThresholdMs;
   private final String mConnectionUri;
-  private final String mHiveDbName;
-  /** This tracks if the db exists in HMS. */
-  private volatile boolean mDbExists = false;
 
   /**
    * Creates a new hive client client pool.
    *
    * @param connectionUri the connect uri for the hive metastore
-   * @param hiveDbName the db name in hive
    */
-  public HiveClientPool(String connectionUri, String hiveDbName) {
+  public HiveClientPool(String connectionUri) {
     super(Options.defaultOptions()
-        .setMinCapacity(16)
-        .setMaxCapacity(128)
+        .setMinCapacity(ServerConfiguration.getInt(TABLE_UDB_HIVE_CLIENTPOOL_MIN))
+        .setMaxCapacity(ServerConfiguration.getInt(TABLE_UDB_HIVE_CLIENTPOOL_MAX))
         .setGcIntervalMs(5L * Constants.MINUTE_MS)
         .setGcExecutor(GC_EXECUTOR));
     mConnectionUri = connectionUri;
-    mHiveDbName = hiveDbName;
     mGcThresholdMs = 5L * Constants.MINUTE_MS;
   }
 
@@ -79,20 +77,7 @@ public final class HiveClientPool extends DynamicResourcePool<IMetaStoreClient> 
 
       IMetaStoreClient client = HMSClientFactory.newInstance(
           RetryingMetaStoreClient.getProxy(conf, NOOP_HOOK, HiveMetaStoreClient.class.getName()));
-      if (!mDbExists) {
-        synchronized (this) {
-          // serialize the querying of the hive db
-          if (!mDbExists) {
-            client.getDatabase(mHiveDbName);
-            mDbExists = true;
-          }
-        }
-      }
       return client;
-    } catch (NoSuchObjectException e) {
-      throw new IOException(String
-          .format("hive db name '%s' does not exist at metastore: %s", mHiveDbName, mConnectionUri),
-          e);
     } catch (NullPointerException | TException e) {
       // HiveMetaStoreClient throws a NPE if the uri is not a uri for hive metastore
       throw new IOException(String

@@ -25,6 +25,11 @@ user: 1000
 group: 1000
 fsGroup: 1000
 
+# Service Account
+#   If not specified, Kubernetes will assign the 'default'
+#   ServiceAccount used for the namespace
+serviceAccount:
+
 # Site properties for all the components
 properties:
   # alluxio.user.metrics.collection.enabled: 'true'
@@ -45,6 +50,12 @@ properties:
 
 # Use labels to run Alluxio on a subset of the K8s nodes
 # nodeSelector: {}
+
+# A list of K8s Node taints to allow scheduling on.
+# See the Kubernetes docs for more info:
+# - https://kubernetes.io/docs/concepts/scheduling-eviction/taint-and-toleration/
+# eg: tolerations: [ {"key": "env", "operator": "Equal", "value": "prod", "effect": "NoSchedule"} ]
+# tolerations: []
 
 ## Master ##
 
@@ -84,7 +95,11 @@ master:
   # JVM options specific to the master container
   jvmOptions:
   nodeSelector: {}
+  tolerations: []
   podAnnotations: {}
+  # The ServiceAccount provided here will have precedence over
+  # the global `serviceAccount`
+  serviceAccount:
 
 jobMaster:
   args:
@@ -178,7 +193,11 @@ worker:
   # JVM options specific to the worker container
   jvmOptions:
   nodeSelector: {}
+  tolerations: []
   podAnnotations: {}
+  # The ServiceAccount provided here will have precedence over
+  # the global `serviceAccount`
+  serviceAccount:
 
 jobWorker:
   args:
@@ -302,7 +321,12 @@ fuse:
     limits:
       cpu: "4"
       memory: "4G"
+  nodeSelector: {}
+  tolerations: []
   podAnnotations: {}
+  # The ServiceAccount provided here will have precedence over
+  # the global `serviceAccount`
+  serviceAccount:
 
 
 ##  Secrets ##
@@ -407,28 +431,48 @@ logserver:
   # JVM options specific to the logserver container
   jvmOptions:
   nodeSelector: {}
+  tolerations: []
+  # The strategy field corresponds to the .spec.strategy field for the deployment
+  # This specifies the strategy used to replace old Pods by new ones
+  # https://kubernetes.io/docs/concepts/workloads/controllers/deployment/#strategy
+  # The default is Recreate which kills the existing Pod before creating a new one
+  # Note: When using RWO PVCs, the strategy MUST be Recreate, because the PVC cannot
+  # be passed from the old Pod to the new one
+  # When using RWX PVCs, you can use RollingUpdate strategy to ensure zero down time
+  # Example:
+  # strategy:
+  #   type: RollingUpdate
+  #   rollingUpdate:
+  #     maxUnavailable: 25%
+  #     maxSurge: 1
+  strategy:
+    type: Recreate
   # volumeType controls the type of log volume.
   # It can be "persistentVolumeClaim" or "hostPath" or "emptyDir"
   volumeType: persistentVolumeClaim
   # Attributes to use if the log volume is PVC
   pvcName: alluxio-logserver-logs
+  # Note: If using RWO, the strategy MUST be Recreate
+  # If using RWX, the strategy can be RollingUpdate
   accessModes:
     - ReadWriteOnce
   storageClass: standard
-  selector:
-    matchLabels:
-      role: alluxio-logserver
-      # If you need, you can specify more selectors like below to provide better separation
-      # app: alluxio
-      # chart: alluxio-<chart version>
-      # release: alluxio
-      # heritage: Helm
-      # dc: data-center-1
-      # region: us-east
   # If you are dynamically provisioning PVs, the selector on the PVC should be empty.
   # Ref: https://kubernetes.io/docs/concepts/storage/persistent-volumes/#class-1
+  selector: {}
+  # If you are manually allocating PV for the logserver,
+  # it is recommended to use selectors to make sure the PV and PVC match as expected.
+  # You can specify selectors like below:
   # Example:
-  # selector: {}
+  # selector:
+  #   matchLabels:
+  #     role: alluxio-logserver
+  #     app: alluxio
+  #     chart: alluxio-<chart version>
+  #     release: alluxio
+  #     heritage: Helm
+  #     dc: data-center-1
+  #     region: us-east
 
   # Attributes to use if the log volume is hostPath
   hostPath: "/tmp/alluxio-logs" # The hostPath directory to use

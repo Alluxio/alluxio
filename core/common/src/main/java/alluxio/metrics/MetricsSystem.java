@@ -22,6 +22,7 @@ import alluxio.util.CommonUtils;
 import alluxio.util.ConfigurationUtils;
 import alluxio.util.network.NetworkAddressUtils;
 
+import com.codahale.metrics.CachedGauge;
 import com.codahale.metrics.Counter;
 import com.codahale.metrics.Gauge;
 import com.codahale.metrics.Meter;
@@ -552,6 +553,24 @@ public final class MetricsSystem {
   public static synchronized <T> void registerGaugeIfAbsent(String name, Gauge<T> metric) {
     if (!METRIC_REGISTRY.getMetrics().containsKey(name)) {
       METRIC_REGISTRY.register(name, metric);
+    }
+  }
+
+  /**
+   * Registers a cached gauge if it has not been registered.
+   *
+   * @param name the gauge name
+   * @param metric the gauge
+   * @param <T> the type
+   */
+  public static synchronized <T> void registerCachedGaugeIfAbsent(String name, Gauge<T> metric) {
+    if (!METRIC_REGISTRY.getMetrics().containsKey(name)) {
+      METRIC_REGISTRY.register(name, new CachedGauge<T>(10, TimeUnit.MINUTES) {
+        @Override
+        protected T loadValue() {
+          return metric.getValue();
+        }
+      });
     }
   }
 

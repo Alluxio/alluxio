@@ -93,7 +93,7 @@ public class AlluxioJobMasterProcess extends MasterProcess {
           new MasterContext(mJournalSystem, null, mUfsManager), mFileSystem, mFsContext,
           mUfsManager);
     } catch (Exception e) {
-      LOG.error(e.getMessage(), e);
+      LOG.error("Failed to create job master", e);
       throw Throwables.propagate(e);
     }
   }
@@ -172,7 +172,7 @@ public class AlluxioJobMasterProcess extends MasterProcess {
     try {
       mJobMaster.stop();
     } catch (IOException e) {
-      LOG.error(e.getMessage(), e);
+      LOG.error("Failed to stop job master", e);
       throw Throwables.propagate(e);
     }
   }

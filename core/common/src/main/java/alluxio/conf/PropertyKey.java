@@ -64,6 +64,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   private static final Cache<String, Boolean> REGEXP_CACHE = CacheBuilder.newBuilder()
       .maximumSize(1024)
       .build();
+
   /**
    * The consistency check level to apply to a certain property key.
    * User can run "alluxio validateEnv all cluster.conf.consistent" to validate the consistency of
@@ -333,7 +334,9 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey LOGGER_TYPE =
       new Builder(Name.LOGGER_TYPE)
           .setDefaultValue("Console")
-          .setDescription("The type of logger.")
+          .setDescription("This controls which logger the process uses. "
+              + "This is only set by test code.")
+          .setIsHidden(true)
           .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
           .setScope(Scope.ALL)
           .build();
@@ -666,6 +669,48 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "https://console.cloud.google.com/storage/settings . Please use the "
               + "\"Owners\" one. This property key is only valid when %s=1",
               Name.UNDERFS_GCS_VERSION))
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.SERVER)
+          .build();
+  public static final PropertyKey UNDERFS_GCS_RETRY_INITIAL_DELAY_MS =
+      new Builder(Name.UNDERFS_GCS_RETRY_INITIAL_DELAY_MS)
+          .setDefaultValue(1000)
+          .setDescription("Initial delay before attempting the retry on the ufs")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.SERVER)
+          .build();
+  public static final PropertyKey UNDERFS_GCS_RETRY_MAX_DELAY_MS =
+      new Builder(Name.UNDERFS_GCS_RETRY_MAX_DELAY_MS)
+          .setDefaultValue(1000 * 60)  // 1 min
+          .setDescription("Maximum delay before attempting the retry on the ufs")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.SERVER)
+          .build();
+  public static final PropertyKey UNDERFS_GCS_RETRY_DELAY_MULTIPLIER =
+      new Builder(Name.UNDERFS_GCS_RETRY_DELAY_MULTIPLIER)
+          .setDefaultValue(2)
+          .setDescription("Delay multiplier while retrying requests on the ufs")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.SERVER)
+          .build();
+  public static final PropertyKey UNDERFS_GCS_RETRY_JITTER =
+      new Builder(Name.UNDERFS_GCS_RETRY_JITTER)
+          .setDefaultValue(true)
+          .setDescription("Enable delay jitter while retrying requests on the ufs")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.SERVER)
+          .build();
+  public static final PropertyKey UNDERFS_GCS_RETRY_TOTAL_DURATION_MS =
+      new Builder(Name.UNDERFS_GCS_RETRY_TOTAL_DURATION_MS)
+          .setDefaultValue(5 * 1000 * 60) // 5 mins
+          .setDescription("Maximum retry duration on the ufs")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.SERVER)
+          .build();
+  public static final PropertyKey UNDERFS_GCS_RETRY_MAX =
+      new Builder(Name.UNDERFS_GCS_RETRY_MAX)
+          .setDefaultValue(60)
+          .setDescription("Maximum Number of retries on the ufs")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.SERVER)
           .build();
@@ -1076,7 +1121,87 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.SERVER)
           .build();
 
-  //
+  public static final PropertyKey UNDERFS_CEPHFS_AUTH_ID =
+      new Builder(Name.UNDERFS_CEPHFS_AUTH_ID)
+          .setDefaultValue("admin")
+          .setDescription("Ceph client id for authentication.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.SERVER)
+          .build();
+  public static final PropertyKey UNDERFS_CEPHFS_CONF_FILE =
+      new Builder(Name.UNDERFS_CEPHFS_CONF_FILE)
+          .setDefaultValue("/etc/ceph/ceph.conf")
+          .setDescription("Path to Ceph configuration file.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.SERVER)
+          .build();
+  public static final PropertyKey UNDERFS_CEPHFS_CONF_OPTS =
+      new Builder(Name.UNDERFS_CEPHFS_CONF_OPTS)
+          .setDescription("Extra configuration options for CephFS client.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.SERVER)
+          .build();
+  public static final PropertyKey UNDERFS_CEPHFS_AUTH_KEY =
+      new Builder(Name.UNDERFS_CEPHFS_AUTH_KEY)
+          .setDescription("CephX authentication key, base64 encoded.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.SERVER)
+          .build();
+  public static final PropertyKey UNDERFS_CEPHFS_AUTH_KEYFILE =
+      new Builder(Name.UNDERFS_CEPHFS_AUTH_KEYFILE)
+          .setDescription("Path to CephX authentication key file.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.SERVER)
+          .build();
+  public static final PropertyKey UNDERFS_CEPHFS_AUTH_KEYRING =
+      new Builder(Name.UNDERFS_CEPHFS_AUTH_KEYRING)
+          .setDefaultValue("/etc/ceph/ceph.client.admin.keyring")
+          .setDescription("Path to CephX authentication keyring file.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.SERVER)
+          .build();
+  public static final PropertyKey UNDERFS_CEPHFS_MON_HOST =
+      new Builder(Name.UNDERFS_CEPHFS_MON_HOST)
+          .setDefaultValue("0.0.0.0")
+          .setDescription("List of hosts or addresses to search for a Ceph monitor.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.SERVER)
+          .build();
+  public static final PropertyKey UNDERFS_CEPHFS_MDS_NAMESPACE =
+      new Builder(Name.UNDERFS_CEPHFS_MDS_NAMESPACE)
+          .setDescription("CephFS filesystem to mount.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.SERVER)
+          .build();
+  public static final PropertyKey UNDERFS_CEPHFS_MOUNT_UID =
+      new Builder(Name.UNDERFS_CEPHFS_MOUNT_UID)
+          .setDefaultValue(0)
+          .setDescription("The user ID of CephFS mount.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.SERVER)
+          .build();
+  public static final PropertyKey UNDERFS_CEPHFS_MOUNT_GID =
+      new Builder(Name.UNDERFS_CEPHFS_MOUNT_GID)
+          .setDefaultValue(0)
+          .setDescription("The group ID of CephFS mount.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.SERVER)
+          .build();
+  public static final PropertyKey UNDERFS_CEPHFS_MOUNT_POINT =
+      new Builder(Name.UNDERFS_CEPHFS_MOUNT_POINT)
+          .setDefaultValue("/")
+          .setDescription("Directory to mount on the CephFS filesystem.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.SERVER)
+          .build();
+  public static final PropertyKey UNDERFS_CEPHFS_LOCALIZE_READS =
+      new Builder(Name.UNDERFS_CEPHFS_LOCALIZE_READS)
+          .setDefaultValue(false)
+          .setDescription("Utilize Ceph localized reads feature.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.SERVER)
+          .build();
+
   // UFS access control related properties
   //
   // Not prefixed with fs, the s3a property names mirror the aws-sdk property names for ease of use
@@ -1910,6 +2035,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
+  public static final PropertyKey MASTER_METRICS_HEAP_ENABLED =
+      new Builder(Name.MASTER_METRICS_HEAP_ENABLED)
+          .setDefaultValue(true)
+          .setDescription("Enable master heap estimate metrics")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.MASTER)
+          .build();
+
   public static final PropertyKey MASTER_HOSTNAME =
       new Builder(Name.MASTER_HOSTNAME)
           .setDescription("The hostname of Alluxio master.")
@@ -2238,21 +2371,21 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey MASTER_TIERED_STORE_GLOBAL_LEVEL0_ALIAS =
       new Builder(Name.MASTER_TIERED_STORE_GLOBAL_LEVEL0_ALIAS)
-          .setDefaultValue("MEM")
+          .setDefaultValue(Constants.MEDIUM_MEM)
           .setDescription("The name of the highest storage tier in the entire system.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey MASTER_TIERED_STORE_GLOBAL_LEVEL1_ALIAS =
       new Builder(Name.MASTER_TIERED_STORE_GLOBAL_LEVEL1_ALIAS)
-          .setDefaultValue("SSD")
+          .setDefaultValue(Constants.MEDIUM_SSD)
           .setDescription("The name of the second highest storage tier in the entire system.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey MASTER_TIERED_STORE_GLOBAL_LEVEL2_ALIAS =
       new Builder(Name.MASTER_TIERED_STORE_GLOBAL_LEVEL2_ALIAS)
-          .setDefaultValue("HDD")
+          .setDefaultValue(Constants.MEDIUM_HDD)
           .setDescription("The name of the third highest storage tier in the entire system.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.MASTER)
@@ -2513,7 +2646,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey MASTER_METADATA_SYNC_UFS_PREFETCH_POOL_SIZE =
       new Builder(Name.MASTER_METADATA_SYNC_UFS_PREFETCH_POOL_SIZE)
-          .setDefaultSupplier(() -> Runtime.getRuntime().availableProcessors(),
+          .setDefaultSupplier(() -> 10 * Runtime.getRuntime().availableProcessors(),
               "The number of threads which can concurrently fetch metadata from UFSes during a "
                   + "metadata sync operations")
           .setDescription("The number of threads used to fetch UFS objects for all metadata sync"
@@ -3185,7 +3318,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   // TODO(binfan): Use alluxio.worker.tieredstore.level0.dirs.mediumtype instead
   public static final PropertyKey WORKER_TIERED_STORE_LEVEL0_ALIAS =
       new Builder(Template.WORKER_TIERED_STORE_LEVEL_ALIAS, 0)
-          .setDefaultValue("MEM")
+          .setDefaultValue(Constants.MEDIUM_MEM)
           .setDescription("The alias of the top storage tier on this worker. It must "
               + "match one of the global storage tiers from the master configuration. We "
               + "disable placing an alias lower in the global hierarchy before an alias with "
@@ -4604,6 +4737,30 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   //
   // FUSE integration related properties
   //
+  public static final PropertyKey FUSE_AUTH_POLICY_CLASS =
+      new Builder(Name.FUSE_AUTH_POLICY_CLASS)
+          .setDefaultValue("alluxio.fuse.auth.SystemUserGroupAuthPolicy")
+          .setDescription("The fuse auth policy class. "
+              + " Valid options include: "
+              + "`alluxio.fuse.auth.SystemUserGroupAuthPolicy`, "
+              + "`alluxio.fuse.auth.CustomAuthPolicy`.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
+          .setScope(Scope.CLIENT)
+          .build();
+  public static final PropertyKey FUSE_AUTH_POLICY_CUSTOM_USER =
+      new Builder(Name.FUSE_AUTH_POLICY_CUSTOM_USER)
+          .setDescription("The fuse user name for custom auth policy. Only valid if the "
+              + Name.FUSE_AUTH_POLICY_CLASS + " is alluxio.fuse.auth.CustomAuthPolicy")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
+          .setScope(Scope.CLIENT)
+          .build();
+  public static final PropertyKey FUSE_AUTH_POLICY_CUSTOM_GROUP =
+      new Builder(Name.FUSE_AUTH_POLICY_CUSTOM_GROUP)
+          .setDescription("The fuse group name for custom auth policy. Only valid if the "
+              + Name.FUSE_AUTH_POLICY_CLASS + " is alluxio.fuse.auth.CustomAuthPolicy")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
+          .setScope(Scope.CLIENT)
+          .build();
   public static final PropertyKey FUSE_CACHED_PATHS_MAX =
       new Builder(Name.FUSE_CACHED_PATHS_MAX)
           .setDefaultValue(500)
@@ -4943,7 +5100,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey JOB_WORKER_THROTTLING =
       new Builder(Name.JOB_WORKER_THROTTLING)
-          .setDescription("Whether the job worker should throttle itself based on whether the"
+          .setDescription("Whether the job worker should throttle itself based on whether the "
               + "resources are saturated.")
           .setScope(Scope.WORKER)
           .setDefaultValue(false)
@@ -5083,7 +5240,20 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
-
+  public static final PropertyKey TABLE_UDB_HIVE_CLIENTPOOL_MIN =
+      new Builder(Name.TABLE_UDB_HIVE_CLIENTPOOL_MIN)
+          .setDefaultValue("16")
+          .setDescription("The minimum capacity of the hive client pool per hive metastore")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.MASTER)
+          .build();
+  public static final PropertyKey TABLE_UDB_HIVE_CLIENTPOOL_MAX =
+      new Builder(Name.TABLE_UDB_HIVE_CLIENTPOOL_MAX)
+          .setDefaultValue("256")
+          .setDescription("The maximum capacity of the hive client pool per hive metastore")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.MASTER)
+          .build();
   /**
    * @deprecated This key is used for testing. It is always deprecated.
    */
@@ -5186,6 +5356,18 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.underfs.gcs.directory.suffix";
     public static final String UNDERFS_GCS_OWNER_ID_TO_USERNAME_MAPPING =
         "alluxio.underfs.gcs.owner.id.to.username.mapping";
+    public static final String UNDERFS_GCS_RETRY_INITIAL_DELAY_MS =
+        "alluxio.underfs.gcs.retry.initial.delay";
+    public static final String UNDERFS_GCS_RETRY_MAX_DELAY_MS =
+        "alluxio.underfs.gcs.retry.max.delay";
+    public static final String UNDERFS_GCS_RETRY_DELAY_MULTIPLIER =
+        "alluxio.underfs.gcs.retry.delay.multiplier";
+    public static final String UNDERFS_GCS_RETRY_JITTER =
+        "alluxio.underfs.gcs.retry.jitter";
+    public static final String UNDERFS_GCS_RETRY_TOTAL_DURATION_MS =
+        "alluxio.underfs.gcs.retry.total.duration";
+    public static final String UNDERFS_GCS_RETRY_MAX =
+        "alluxio.underfs.gcs.retry.max";
     public static final String UNDERFS_GCS_VERSION = "alluxio.underfs.gcs.version";
     public static final String UNDERFS_HDFS_CONFIGURATION = "alluxio.underfs.hdfs.configuration";
     public static final String UNDERFS_HDFS_IMPL = "alluxio.underfs.hdfs.impl";
@@ -5258,6 +5440,30 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String UNDERFS_KODO_CONNECT_TIMEOUT =
         "alluxio.underfs.kodo.connect.timeout";
     public static final String UNDERFS_KODO_REQUESTS_MAX = "alluxio.underfs.kodo.requests.max";
+    public static final String UNDERFS_CEPHFS_AUTH_ID =
+        "alluxio.underfs.cephfs.auth.id";
+    public static final String UNDERFS_CEPHFS_CONF_FILE =
+        "alluxio.underfs.cephfs.conf.file";
+    public static final String UNDERFS_CEPHFS_CONF_OPTS =
+        "alluxio.underfs.cephfs.conf.options";
+    public static final String UNDERFS_CEPHFS_AUTH_KEY =
+        "alluxio.underfs.cephfs.auth.key";
+    public static final String UNDERFS_CEPHFS_AUTH_KEYFILE =
+        "alluxio.underfs.cephfs.auth.keyfile";
+    public static final String UNDERFS_CEPHFS_AUTH_KEYRING =
+        "alluxio.underfs.cephfs.auth.keyring";
+    public static final String UNDERFS_CEPHFS_MON_HOST =
+        "alluxio.underfs.cephfs.mon.host";
+    public static final String UNDERFS_CEPHFS_MDS_NAMESPACE =
+        "alluxio.underfs.cephfs.mds.namespace";
+    public static final String UNDERFS_CEPHFS_MOUNT_UID =
+        "alluxio.underfs.cephfs.mount.uid";
+    public static final String UNDERFS_CEPHFS_MOUNT_GID =
+        "alluxio.underfs.cephfs.mount.gid";
+    public static final String UNDERFS_CEPHFS_MOUNT_POINT =
+        "alluxio.underfs.cephfs.mount.point";
+    public static final String UNDERFS_CEPHFS_LOCALIZE_READS =
+        "alluxio.underfs.cephfs.localize.reads";
 
     //
     // UFS access control related properties
@@ -5468,6 +5674,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.metastore.inode.inherit.owner.and.group";
     public static final String MASTER_PERSISTENCE_CHECKER_INTERVAL_MS =
         "alluxio.master.persistence.checker.interval";
+    public static final String MASTER_METRICS_HEAP_ENABLED =
+        "alluxio.master.metrics.heap.enabled";
     public static final String MASTER_METRICS_SERVICE_THREADS =
         "alluxio.master.metrics.service.threads";
     public static final String MASTER_METRICS_TIME_SERIES_INTERVAL =
@@ -5987,6 +6195,11 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     //
     // FUSE integration related properties
     //
+    public static final String FUSE_AUTH_POLICY_CLASS = "alluxio.fuse.auth.policy.class";
+    public static final String FUSE_AUTH_POLICY_CUSTOM_USER =
+        "alluxio.fuse.auth.policy.custom.user";
+    public static final String FUSE_AUTH_POLICY_CUSTOM_GROUP =
+        "alluxio.fuse.auth.policy.custom.group";
     public static final String FUSE_CACHED_PATHS_MAX = "alluxio.fuse.cached.paths.max";
     public static final String FUSE_DEBUG_ENABLED = "alluxio.fuse.debug.enabled";
     public static final String FUSE_FS_NAME = "alluxio.fuse.fs.name";
@@ -6090,6 +6303,10 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.table.transform.manager.job.monitor.interval";
     public static final String TABLE_TRANSFORM_MANAGER_JOB_HISTORY_RETENTION_TIME =
         "alluxio.table.transform.manager.job.history.retention.time";
+    public static final String TABLE_UDB_HIVE_CLIENTPOOL_MIN =
+        "alluxio.table.udb.hive.clientpool.min";
+    public static final String TABLE_UDB_HIVE_CLIENTPOOL_MAX =
+        "alluxio.table.udb.hive.clientpool.MAX";
 
     private Name() {} // prevent instantiation
   }
@@ -6646,8 +6863,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
    *
    * @param key the property key to check
    * @return if this property key is deprecated
-   * @see Deprecated
    * @see #getDeprecationMessage(PropertyKey)
+   * @see Deprecated
    */
   public static boolean isDeprecated(PropertyKey key) {
     return DEPRECATED_CHECKER.hasAnnotation(key);
@@ -6669,9 +6886,9 @@ public final class PropertyKey implements Comparable<PropertyKey> {
    *
    * @param key the property key to check
    * @return true this property key is removed, false otherwise
-   * @see RemovedKey
    * @see #isDeprecated(alluxio.conf.PropertyKey)
    * @see Deprecated
+   * @see RemovedKey
    */
   public static boolean isRemoved(String key) {
     return RemovedKey.isRemoved(key);

@@ -15,6 +15,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
+import alluxio.Constants;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.worker.block.BlockMetadataEvictorView;
@@ -26,7 +27,9 @@ import alluxio.worker.block.meta.StorageDir;
 import alluxio.worker.block.meta.StorageDirView;
 import alluxio.worker.block.meta.StorageTier;
 import alluxio.worker.block.meta.TempBlockMeta;
+import alluxio.worker.block.reviewer.MockReviewer;
 
+import com.google.common.collect.Sets;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.rules.TemporaryFolder;
@@ -47,13 +50,16 @@ public class AllocatorTestBase {
   public static final long DEFAULT_SSD_SIZE = 2000;
   public static final long DEFAULT_HDD_SIZE = 3000;
 
-  public static final String[] MEDIA_TYPES = {"MEM", "SSD", "HDD"};
+  public static final String[] MEDIA_TYPES =
+      {Constants.MEDIUM_MEM, Constants.MEDIUM_SSD, Constants.MEDIUM_HDD};
   public static final int[] TIER_LEVEL = {0, 1, 2};
-  public static final String[] TIER_ALIAS = {"MEM", "SSD", "HDD"};
+  public static final String[] TIER_ALIAS =
+      {Constants.MEDIUM_MEM, Constants.MEDIUM_SSD, Constants.MEDIUM_HDD};
   public static final String[][] TIER_PATH = {{"/ramdisk"}, {"/ssd1", "/ssd2"},
       {"/disk1", "/disk2", "/disk3"}};
-  public static final String[][] TIER_MEDIA_TYPE = {{"MEM"}, {"SSD", "SSD"},
-      {"HDD", "HDD", "HDD"}};
+  public static final String[][] TIER_MEDIA_TYPE = {{Constants.MEDIUM_MEM},
+      {Constants.MEDIUM_SSD, Constants.MEDIUM_SSD},
+      {Constants.MEDIUM_HDD, Constants.MEDIUM_HDD, Constants.MEDIUM_HDD}};
   public static final long[][] TIER_CAPACITY_BYTES = {{DEFAULT_RAM_SIZE},
       {DEFAULT_SSD_SIZE, DEFAULT_SSD_SIZE},
       {DEFAULT_HDD_SIZE, DEFAULT_HDD_SIZE, DEFAULT_HDD_SIZE}};
@@ -66,9 +72,12 @@ public class AllocatorTestBase {
   protected Allocator mAllocator = null;
 
   protected BlockStoreLocation mAnyTierLoc = BlockStoreLocation.anyTier();
-  protected BlockStoreLocation mAnyDirInTierLoc1 = BlockStoreLocation.anyDirInTier("MEM");
-  protected BlockStoreLocation mAnyDirInTierLoc2 = BlockStoreLocation.anyDirInTier("SSD");
-  protected BlockStoreLocation mAnyDirInTierLoc3 = BlockStoreLocation.anyDirInTier("HDD");
+  protected BlockStoreLocation mAnyDirInTierLoc1 =
+      BlockStoreLocation.anyDirInTier(Constants.MEDIUM_MEM);
+  protected BlockStoreLocation mAnyDirInTierLoc2 =
+      BlockStoreLocation.anyDirInTier(Constants.MEDIUM_SSD);
+  protected BlockStoreLocation mAnyDirInTierLoc3 =
+      BlockStoreLocation.anyDirInTier(Constants.MEDIUM_HDD);
 
   /** Rule to create a new temporary folder during each test. */
   @Rule
@@ -89,6 +98,10 @@ public class AllocatorTestBase {
     String alluxioHome = mTestFolder.newFolder().getAbsolutePath();
     ServerConfiguration.set(PropertyKey.WORKER_MANAGEMENT_TIER_ALIGN_ENABLED, "false");
     ServerConfiguration.set(PropertyKey.WORKER_MANAGEMENT_TIER_PROMOTE_ENABLED, "false");
+    ServerConfiguration.set(PropertyKey.WORKER_REVIEWER_CLASS,
+            "alluxio.worker.block.reviewer.MockReviewer");
+    // Reviewer will not reject by default.
+    MockReviewer.resetBytesToReject(Sets.newHashSet());
     TieredBlockStoreTestUtils.setupConfWithMultiTier(alluxioHome, TIER_LEVEL, TIER_ALIAS,
         TIER_PATH, TIER_CAPACITY_BYTES, TIER_MEDIA_TYPE, null);
     mManager = BlockMetadataManager.createBlockMetadataManager();
@@ -136,10 +149,9 @@ public class AllocatorTestBase {
 
     mTestBlockId++;
 
-    // We skip the review here as we do not want the Reviewer's opinion to affect the test
     StorageDirView dirView =
         allocator.allocateBlockWithView(SESSION_ID, blockSize, location,
-                getMetadataEvictorView(), true);
+                getMetadataEvictorView(), false);
     TempBlockMeta tempBlockMeta =
         dirView == null ? null : dirView.createTempBlockMeta(SESSION_ID, mTestBlockId, blockSize);
 
@@ -151,7 +163,7 @@ public class AllocatorTestBase {
       StorageDir pDir = tempBlockMeta.getParentDir();
       StorageTier pTier = pDir.getParentTier();
 
-      assertTrue(pDir.getDirIndex() == dirIndex);
+      assertEquals(dirIndex, pDir.getDirIndex());
       assertEquals(tierAlias, pTier.getTierAlias());
 
       //update the dir meta info

@@ -54,14 +54,14 @@ public final class RestUtils {
         AuthenticatedClientUser.set(ServerUserState.global().getUser().getName());
       }
     } catch (IOException e) {
-      LOG.warn("Failed to set AuthenticatedClientUser in REST service handler: {}", e.getMessage());
+      LOG.warn("Failed to set AuthenticatedClientUser in REST service handler: {}", e.toString());
       return createErrorResponse(e, alluxioConf);
     }
 
     try {
       return createResponse(callable.call(), alluxioConf, headers);
     } catch (Exception e) {
-      LOG.warn("Unexpected error invoking rest endpoint: {}", e.getMessage());
+      LOG.warn("Unexpected error invoking rest endpoint: {}", e.toString());
       return createErrorResponse(e, alluxioConf);
     }
   }

@@ -83,7 +83,13 @@ public final class GCSV2OutputStream extends OutputStream {
     }
     mSingleByteBuffer.clear();
     mSingleByteBuffer.putInt(b);
-    mWriteChannel.write(mSingleByteBuffer);
+
+    try {
+      mWriteChannel.write(mSingleByteBuffer);
+    } catch (StorageException e) {
+      throw new IOException(String
+          .format("Failed to write to a channel of %s in %s", mKey, mBucketName), e);
+    }
   }
 
   @Override
@@ -97,7 +103,12 @@ public final class GCSV2OutputStream extends OutputStream {
       createWriteChannel();
     }
     ByteBuffer buffer = ByteBuffer.wrap(b, off, len);
-    mWriteChannel.write(buffer);
+    try {
+      mWriteChannel.write(buffer);
+    } catch (StorageException e) {
+      throw new IOException(String
+          .format("Failed to write to a channel of %s in %s", mKey, mBucketName), e);
+    }
   }
 
   @Override
@@ -121,9 +132,9 @@ public final class GCSV2OutputStream extends OutputStream {
         }
       }
     } catch (ClosedChannelException e) {
-      LOG.error("Channel already closed, possible duplicate close call.", e.toString());
+      LOG.error("Channel already closed, possible duplicate close call.", e);
     } catch (IOException e) {
-      LOG.error("Failed to upload {} to {}: {}", mKey, mBucketName, e.toString());
+      LOG.error("Failed to upload {} to {}", mKey, mBucketName, e);
       throw e;
     }
   }

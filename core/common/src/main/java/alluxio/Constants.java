@@ -71,6 +71,7 @@ public final class Constants {
   public static final String HEADER_HTTPS = "https://";
   public static final String HEADER_KODO = "kodo://";
   public static final String HEADER_COSN = "cosn://";
+  public static final String HEADER_CEPHFS = "cephfs://";
 
   public static final int MAX_PORT = 65535;
 
@@ -206,6 +207,11 @@ public final class Constants {
   public static final String TABLE_MASTER_NAME = "TableMaster";
   public static final String TABLE_MASTER_CLIENT_SERVICE_NAME = "TableMasterClient";
   public static final long TABLE_MASTER_CLIENT_SERVICE_VERSION = 1;
+
+  // Medium name
+  public static final String MEDIUM_MEM = "MEM";
+  public static final String MEDIUM_HDD = "HDD";
+  public static final String MEDIUM_SSD = "SSD";
 
   private Constants() {} // prevent instantiation
 }

@@ -11,6 +11,10 @@
 
 package alluxio.worker.block.io;
 
+import alluxio.metrics.MetricKey;
+import alluxio.metrics.MetricsSystem;
+
+import com.codahale.metrics.Counter;
 import com.google.common.base.Preconditions;
 import com.google.common.io.Closer;
 import io.netty.buffer.ByteBuf;
@@ -28,6 +32,9 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public class LocalFileBlockReader extends BlockReader {
+  private static final Counter BLOCKS_READ_LOCAL =
+      MetricsSystem.counter(MetricKey.WORKER_BLOCKS_READ_LOCAL.getName());
+
   private final String mFilePath;
   private final RandomAccessFile mLocalFile;
   private final FileChannel mLocalFileChannel;
@@ -110,6 +117,7 @@ public class LocalFileBlockReader extends BlockReader {
       mCloser.close();
     } finally {
       mClosed = true;
+      BLOCKS_READ_LOCAL.inc();
     }
   }
 

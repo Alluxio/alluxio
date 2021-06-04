@@ -15,7 +15,9 @@ import alluxio.Seekable;
 import alluxio.client.BoundedStream;
 import alluxio.client.PositionedReadable;
 
+import java.io.IOException;
 import java.io.InputStream;
+import java.nio.ByteBuffer;
 
 /**
  * A streaming API to read a file. This API represents a file as a stream of bytes and provides a
@@ -24,4 +26,31 @@ import java.io.InputStream;
  */
 public abstract class FileInStream extends InputStream implements BoundedStream, PositionedReadable,
     Seekable {
+  /**
+   * Reads up to len bytes of data from the input stream into the byte buffer.
+   *
+   * @param byteBuffer the buffer into which the data is read
+   * @param off the start offset in the buffer at which the data is written
+   * @param len the maximum number of bytes to read
+   * @return the total number of bytes read into the buffer, or -1 if there is no more
+   *         data because the end of the stream has been reached
+   */
+  public int read(ByteBuffer byteBuffer, int off, int len) throws IOException {
+    int nread = 0;
+    int rd = 0;
+    final int sz = len;
+    final byte[] dest = new byte[sz];
+    while (rd >= 0 && nread < sz) {
+      rd = read(dest, nread, sz - nread);
+      if (rd >= 0) {
+        nread += rd;
+      }
+    }
+    if (nread == -1) { // EOF
+      nread = 0;
+    } else if (nread > 0) {
+      byteBuffer.put(dest, 0, nread);
+    }
+    return nread;
+  }
 }
