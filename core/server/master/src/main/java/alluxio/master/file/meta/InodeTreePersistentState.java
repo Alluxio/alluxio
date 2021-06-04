@@ -46,6 +46,7 @@ import alluxio.util.proto.ProtoUtils;
 import com.google.common.base.Preconditions;
 import org.HdrHistogram.Histogram;
 import org.HdrHistogram.Recorder;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -158,11 +159,20 @@ public class InodeTreePersistentState implements Journaled {
    */
   public Histogram getFileSizeHistogram() {
     synchronized (mFileSizeHistogram) {
-      mRemovedFileHistogram = mRemovedFileRecorder.getIntervalHistogram(mRemovedFileHistogram);
-      mCreatedFileHistogram = mCreatedFileRecorder.getIntervalHistogram(mCreatedFileHistogram);
-      mFileSizeHistogram.add(mCreatedFileHistogram);
-      mFileSizeHistogram.subtract(mRemovedFileHistogram);
-      return mFileSizeHistogram.copy();
+      try {
+        mRemovedFileHistogram = mRemovedFileRecorder.getIntervalHistogram(mRemovedFileHistogram);
+        mCreatedFileHistogram = mCreatedFileRecorder.getIntervalHistogram(mCreatedFileHistogram);
+        mFileSizeHistogram.add(mCreatedFileHistogram);
+        if (mFileSizeHistogram.getTotalCount() != 0
+            && mRemovedFileHistogram.getTotalCount() != 0) {
+          mFileSizeHistogram.subtract(mRemovedFileHistogram);
+        }
+        return mFileSizeHistogram.copy();
+      } catch (Exception e) {
+        LOG.info("Unexpected exception in generating file size histogram\n"
+            + e.getMessage() + "\n" + ExceptionUtils.getStackTrace(e));
+        throw e;
+      }
     }
   }
 

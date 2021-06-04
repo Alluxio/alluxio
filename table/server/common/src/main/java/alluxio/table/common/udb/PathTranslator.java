@@ -68,6 +68,10 @@ public class PathTranslator {
   public String toAlluxioPath(String ufsPath) throws IOException {
     for (BiMap.Entry<String, String> entry : mPathMap.entrySet()) {
       if (ufsPath.startsWith(entry.getValue())) {
+        // return ufsPath if set the key and value to be same when bypass path.
+        if (entry.getKey().equals(entry.getValue())) {
+          return ufsPath;
+        }
         String alluxioPath = entry.getKey() + ufsPath.substring(entry.getValue().length());
         if (alluxioPath.startsWith("/")) {
           // scheme/authority are missing, so prefix with the scheme and authority

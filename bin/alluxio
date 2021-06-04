@@ -80,7 +80,7 @@ EOF
 
 function killAll {
   if [[ $# -ne 1 ]]; then
-    echo "Usage: alluxio killAll <WORD>"
+    echo "Usage: alluxio killAll <WORD>" >&2
     exit 2
   fi
 
@@ -97,7 +97,7 @@ function killAll {
         sleep 1
       else
         # waited long enough, kill the process
-        echo "Process did not complete after "${maxWait}" seconds, killing."
+        echo "Process did not complete after "${maxWait}" seconds, killing." >&2
         kill -9 ${pid} 2> /dev/null
       fi
     done
@@ -223,11 +223,11 @@ function main {
           shift # remove -s param
         fi
       else
-        echo "Usage: alluxio format [-s]"
+        echo "Usage: alluxio format [-s]" >&2
         exit 2
       fi
     elif [[ $# -gt 1 ]]; then
-      echo "Usage: alluxio format [-s]"
+      echo "Usage: alluxio format [-s]" >&2
       exit 2
     fi
 
