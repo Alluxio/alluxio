@@ -582,13 +582,6 @@ public interface FileSystemMaster extends Master {
   boolean recordActiveSyncTxid(long txId, long mountId);
 
   /**
-   * Get the total inode count.
-   *
-   * @return inode count
-   */
-  long getInodeCount();
-
-  /**
    * @return the time series data stored by the master
    */
   List<TimeSeries> getTimeSeries();
