@@ -486,11 +486,11 @@ public class InodeTreePersistentState implements Journaled {
       }
     }
     if (inode.asFile().isCompleted()) {
-      // mBucketCounter.remove(inode.asFile().getLength());
+      mBucketCounter.remove(inode.asFile().getLength());
     }
     inode.asFile().updateFromEntry(entry);
     mInodeStore.writeInode(inode);
-    // mBucketCounter.insert(inode.asFile().getLength());
+    mBucketCounter.insert(inode.asFile().getLength());
   }
 
   ////
@@ -599,7 +599,7 @@ public class InodeTreePersistentState implements Journaled {
     mTtlBuckets.insert(Inode.wrap(inode));
     updateToBePersistedIds(inode);
     if (inode.isFile() && inode.asFile().isCompleted()) {
-      // mBucketCounter.insert(inode.asFile().getLength());
+      mBucketCounter.insert(inode.asFile().getLength());
     }
   }
 
