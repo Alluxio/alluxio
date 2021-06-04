@@ -235,17 +235,12 @@ public final class MetricKey implements Comparable<MetricKey> {
   public static final MetricKey MASTER_ABSENT_CACHE_HITS =
       new Builder("Master.AbsentCacheHits")
           .setDescription("Number of cache hits on the absent cache")
-          .setMetricType(MetricType.COUNTER)
+          .setMetricType(MetricType.GAUGE)
           .build();
   public static final MetricKey MASTER_ABSENT_CACHE_MISSES =
       new Builder("Master.AbsentCacheMisses")
           .setDescription("Number of cache misses on the absent cache")
-          .setMetricType(MetricType.COUNTER)
-          .build();
-  public static final MetricKey MASTER_ABSENT_CACHE_INVALIDATIONS =
-      new Builder("Master.AbsentCacheInvalidations")
-          .setDescription("Number of invalidations on the absent cache")
-          .setMetricType(MetricType.COUNTER)
+          .setMetricType(MetricType.GAUGE)
           .build();
   public static final MetricKey MASTER_ABSENT_CACHE_SIZE =
       new Builder("Master.AbsentCacheSize")
