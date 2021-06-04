@@ -1,3 +1,7 @@
+Worker.ActiveRpcReadCount:
+  'The number of active read-RPCs managed by this worker'
+Worker.ActiveRpcWriteCount:
+  'The number of active write-RPCs managed by this worker'
 Worker.AsyncCacheDuplicateRequests:
   'Total number of duplicated async cache request received by this worker'
 Worker.AsyncCacheFailedBlocks:
@@ -28,10 +32,18 @@ Worker.BlocksDeleted:
   'Total number of deleted blocks in this worker by external requests.'
 Worker.BlocksEvicted:
   'Total number of evicted blocks in this worker.'
+Worker.BlocksEvictionRate:
+  'Block eviction rate in this worker.'
 Worker.BlocksLost:
   'Total number of lost blocks in this worker.'
 Worker.BlocksPromoted:
   'Total number of times any one of the blocks in this worker moved to a new tier.'
+Worker.BlocksReadLocal:
+  'Total number of local blocks read by this worker.'
+Worker.BlocksReadRemote:
+  'Total number of a remote blocks read by this worker.'
+Worker.BlocksReadUfs:
+  'Total number of a UFS blocks read by this worker.'
 Worker.BytesReadDirect:
   'Total number of bytes read from Alluxio storage managed by this worker and underlying UFS if data cannot be found in the Alluxio storage without external RPC involved. This records data read by worker internal calls (e.g. a client embedded in this worker).'
 Worker.BytesReadDirectThroughput:
