@@ -9,12 +9,20 @@
 # See the NOTICE file distributed with this work for information regarding copyright ownership.
 #
 
-{{ if .Values.csi.enabled -}}
-apiVersion: storage.k8s.io/v1beta1
-kind: CSIDriver
+{{ if .Values.csi.clientEnabled -}}
+apiVersion: v1
+kind: PersistentVolumeClaim
 metadata:
-  name: alluxio
+  name: alluxio-pvc
 spec:
-  attachRequired: false
-  podInfoOnMount: true
+  accessModes:
+  - ReadWriteMany
+  resources:
+    requests:
+      storage: 100Gi
+  selector:
+    matchExpressions:
+    - key: name
+      operator: In
+      values: ["alluxio-pv"]
 {{- end }}

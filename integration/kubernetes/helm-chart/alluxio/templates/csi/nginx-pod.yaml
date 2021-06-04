@@ -10,47 +10,6 @@
 #
 
 {{ if .Values.csi.clientEnabled -}}
----
-apiVersion: v1
-kind: PersistentVolume
-metadata:
-  name: alluxio-pv
-  labels:
-    name: alluxio-pv
-spec:
-  accessModes:
-  - ReadWriteMany
-  capacity:
-    storage: 100Gi
-  csi:
-    driver: alluxio
-    volumeHandle: alluxio
-    volumeAttributes:
-      alluxioPath: {{ .Values.csi.alluxioPath }}
-      javaOptions: {{ .Values.csi.javaOptions }}
-  mountOptions:
-  {{- range .Values.csi.mountOptions }}
-  - "{{ . }}"
-  {{- end }}
-
----
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: alluxio-pvc
-spec:
-  accessModes:
-  - ReadWriteMany
-  resources:
-    requests:
-      storage: 100Gi
-  selector:
-    matchExpressions:
-    - key: name
-      operator: In
-      values: ["alluxio-pv"]
-
----
 apiVersion: v1
 kind: Pod
 metadata:

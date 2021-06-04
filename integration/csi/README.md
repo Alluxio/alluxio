@@ -1,6 +1,6 @@
 # Alluxio CSI
 
-This project implement contienr storage interface(https://github.com/container-storage-interface/spec) for Alluxio.
+This module implement contienr storage interface(https://github.com/container-storage-interface/spec) for Alluxio.
 
 ## Requirements
 

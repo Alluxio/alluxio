@@ -181,7 +181,7 @@
 - Change logserver PVC default selectors to empty, so dynamic provisioning works by default configuration.
 
 0.6.22
-- Add Alluxio CSI support
-
-0.6.22
 - Enable configuring logserver Deployment strategy to address [#13422](https://github.com/Alluxio/alluxio/issues/13422)
+
+0.6.23
+- Add Alluxio CSI support

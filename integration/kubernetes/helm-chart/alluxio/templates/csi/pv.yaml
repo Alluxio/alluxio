@@ -9,12 +9,26 @@
 # See the NOTICE file distributed with this work for information regarding copyright ownership.
 #
 
-{{ if .Values.csi.enabled -}}
-apiVersion: storage.k8s.io/v1beta1
-kind: CSIDriver
+{{ if .Values.csi.clientEnabled -}}
+apiVersion: v1
+kind: PersistentVolume
 metadata:
-  name: alluxio
+  name: alluxio-pv
+  labels:
+    name: alluxio-pv
 spec:
-  attachRequired: false
-  podInfoOnMount: true
+  accessModes:
+  - ReadWriteMany
+  capacity:
+    storage: 100Gi
+  csi:
+    driver: alluxio
+    volumeHandle: alluxio
+    volumeAttributes:
+      alluxioPath: {{ .Values.csi.alluxioPath }}
+      javaOptions: {{ .Values.csi.javaOptions }}
+  mountOptions:
+  {{- range .Values.csi.mountOptions }}
+  - "{{ . }}"
+  {{- end }}
 {{- end }}

@@ -10,7 +10,6 @@
 #
 
 {{ if .Values.csi.clientEnabled -}}
----
 apiVersion: storage.k8s.io/v1
 kind: StorageClass
 metadata:
@@ -24,38 +23,4 @@ mountOptions:
   {{- range .Values.csi.mountOptions }}
   - "{{ . }}"
   {{- end }}
-
----
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: alluxio-pvc
-spec:
-  accessModes:
-  - ReadWriteMany
-  resources:
-    requests:
-      storage: 100Gi
-  storageClassName: alluxio
-
----
-apiVersion: v1
-kind: Pod
-metadata:
-  name: nginx
-spec:
-  containers:
-  - image: nginx
-    imagePullPolicy: Always
-    name: nginx
-    ports:
-    - containerPort: 80
-      protocol: TCP
-    volumeMounts:
-      - mountPath: {{ .Values.csi.mountPath }}
-        name: alluxio-pvc
-  volumes:
-  - name: alluxio-pvc
-    persistentVolumeClaim:
-      claimName: alluxio-pvc
 {{- end }}
