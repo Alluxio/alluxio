@@ -13,7 +13,6 @@ package alluxio.cli.fsadmin.command;
 
 import alluxio.annotation.PublicApi;
 import alluxio.conf.AlluxioConfiguration;
-import alluxio.grpc.UpdateConfigurationPResponse.UpdatePropertyPStatus;
 
 import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.cli.CommandLine;
@@ -64,23 +63,33 @@ public final class UpdateConfCommand extends AbstractFsAdminCommand {
 
   @Override
   public int run(CommandLine cl) throws IOException {
-    if (cl.hasOption(OPTION_OPTION.getLongOpt())) {
-      Map<String, String> properties = new HashMap<>();
-      cl.getOptionProperties(OPTION_OPTION.getLongOpt())
-          .forEach((k, v) -> properties.put((String) k, (String) v));
-      Map<String, UpdatePropertyPStatus> result
+    int errorCode = 0;
+    Map<String, String> properties = new HashMap<>();
+    cl.getArgList().forEach(arg -> {
+      if (arg.contains("=")) {
+        String[] kv = arg.split("=");
+        if (arg.length() == 2) {
+          properties.put(kv[0], kv[1]);
+        }
+      }
+    });
+
+    if (properties.size() > 0) {
+      Map<String, Boolean> result
           = mMetaConfigClient.updateConfiguration(properties);
-      System.out.println("Updated " + properties.size() + " configs");
-      for (Entry<String, UpdatePropertyPStatus> entry : result.entrySet()) {
-        if (entry.getValue() != UpdatePropertyPStatus.SUCCESS) {
-          System.out.println("Failed to Update " + entry.getKey()
-              + " , status is " + entry.getValue());
+      System.out.println("Updated " + result.size() + " configs");
+      for (Entry<String, Boolean> entry : result.entrySet()) {
+        if (!entry.getValue()) {
+          System.out.println("Failed to Update " + entry.getKey());
+          errorCode = -2;
         }
       }
     } else {
       System.out.println("No config to update");
+      errorCode = -1;
     }
-    return 0;
+
+    return errorCode;
   }
 
   @Override

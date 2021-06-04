@@ -33,7 +33,6 @@ import alluxio.grpc.MetaCommand;
 import alluxio.grpc.RegisterMasterPOptions;
 import alluxio.grpc.Scope;
 import alluxio.grpc.ServiceType;
-import alluxio.grpc.UpdateConfigurationPResponse.UpdatePropertyPStatus;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatExecutor;
 import alluxio.heartbeat.HeartbeatThread;
@@ -608,8 +607,8 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
   }
 
   @Override
-  public Map<String, UpdatePropertyPStatus> updateConfiguration(Map<String, String> propertiesMap) {
-    Map<String, UpdatePropertyPStatus> result = new HashMap<>();
+  public Map<String, Boolean> updateConfiguration(Map<String, String> propertiesMap) {
+    Map<String, Boolean> result = new HashMap<>();
     int successCount = 0;
     for (Map.Entry<String, String> entry : propertiesMap.entrySet()) {
       try {
@@ -617,16 +616,16 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
         if (key.isDynamic()) {
           String oldValue = ServerConfiguration.get(key);
           ServerConfiguration.set(key, entry.getValue(), Source.RUNTIME);
-          result.put(entry.getKey(), UpdatePropertyPStatus.SUCCESS);
+          result.put(entry.getKey(), true);
           successCount++;
           LOG.debug("Update property {} from {} to {}",
               key.getName(), oldValue, ServerConfiguration.get(key));
         } else {
           LOG.debug("Update a non-dynamic property {} is banned", key.getName());
-          result.put(entry.getKey(), UpdatePropertyPStatus.BANNED);
+          result.put(entry.getKey(), false);
         }
       } catch (Exception e) {
-        result.put(entry.getKey(), UpdatePropertyPStatus.Exception);
+        result.put(entry.getKey(), false);
         LOG.error("Update property {} to {} met exception", e);
       }
     }

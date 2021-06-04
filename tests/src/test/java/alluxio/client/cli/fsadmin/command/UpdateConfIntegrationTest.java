@@ -11,13 +11,9 @@
 
 package alluxio.client.cli.fsadmin.command;
 
-import alluxio.cli.fsadmin.FileSystemAdminShell;
-import alluxio.cli.fsadmin.command.PathConfCommand;
 import alluxio.cli.fsadmin.command.UpdateConfCommand;
 import alluxio.client.cli.fsadmin.AbstractFsAdminShellTest;
-import org.junit.After;
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.Test;
 
 /**
@@ -34,15 +30,26 @@ public final class UpdateConfIntegrationTest extends AbstractFsAdminShellTest {
   }
 
   @Test
-  public void unknownKey() {
-    int ret = mFsAdminShell.run("updateConf", "--option", "unknown-key=unknown-value");
+  public void unNormalKey() {
+    int ret = mFsAdminShell.run("updateConf", "unknown-key=unknown-value");
+    Assert.assertEquals(-2, ret);
+    ret = mFsAdminShell.run("updateConf", "unknown-key");
+    Assert.assertEquals(-1, ret);
+    ret = mFsAdminShell.run("updateConf", "unknown-key=1=2");
     Assert.assertEquals(-1, ret);
   }
 
   @Test
   public void updateNormal() {
-    int ret = mFsAdminShell.run("updateConf", "--option", "alluxio.master.worker.timeout=4min");
+    int ret = mFsAdminShell.run("updateConf", "alluxio.master.worker.timeout=4min");
     Assert.assertEquals(0, ret);
+  }
+
+  @Test
+  public void updateNonDynamicKey() {
+    int ret = mFsAdminShell.run("updateConf",
+        "alluxio.security.authorization.permission.enabled=false");
+    Assert.assertEquals(-2, ret);
   }
 
   private String lastLine(String output) {

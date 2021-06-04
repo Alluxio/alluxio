@@ -17,7 +17,6 @@ import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.GetConfigurationPOptions;
 import alluxio.grpc.MetaCommand;
 import alluxio.grpc.RegisterMasterPOptions;
-import alluxio.grpc.UpdateConfigurationPResponse.UpdatePropertyPStatus;
 import alluxio.master.Master;
 import alluxio.master.backup.BackupOps;
 import alluxio.wire.Address;
@@ -170,5 +169,5 @@ public interface MetaMaster extends BackupOps, Master {
    * @param propertiesMap properties to update
    * @return the update properties status map
    */
-  Map<String, UpdatePropertyPStatus> updateConfiguration(Map<String, String> propertiesMap);
+  Map<String, Boolean> updateConfiguration(Map<String, String> propertiesMap);
 }

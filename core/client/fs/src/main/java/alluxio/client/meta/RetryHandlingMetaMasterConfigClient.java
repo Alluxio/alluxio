@@ -22,7 +22,6 @@ import alluxio.grpc.RemovePathConfigurationPRequest;
 import alluxio.grpc.ServiceType;
 import alluxio.grpc.SetPathConfigurationPRequest;
 import alluxio.grpc.UpdateConfigurationPRequest;
-import alluxio.grpc.UpdateConfigurationPResponse.UpdatePropertyPStatus;
 import alluxio.master.MasterClientContext;
 import alluxio.wire.ConfigHash;
 import alluxio.wire.Configuration;
@@ -122,13 +121,14 @@ public class RetryHandlingMetaMasterConfigClient extends AbstractMasterClient
   }
 
   @Override
-  public Map<String, UpdatePropertyPStatus> updateConfiguration(
+  public Map<String, Boolean> updateConfiguration(
       Map<String, String> propertiesMap) throws IOException {
     return retryRPC(
         () -> mClient.updateConfiguration(
             UpdateConfigurationPRequest.newBuilder()
                 .putAllProperties(propertiesMap)
                 .build()),
-        RPC_LOG, "updateConfiguration", "propertiesMap=%s", propertiesMap).getStatusMap();
+        RPC_LOG, "updateConfiguration", "propertiesMap=%s", propertiesMap)
+        .getStatusMap();
   }
 }

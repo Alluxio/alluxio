@@ -251,12 +251,7 @@ message UpdateConfigurationPRequest {
 }
 
 message UpdateConfigurationPResponse {
-  enum UpdatePropertyPStatus {
-    SUCCESS = 0;
-    BANNED = 1;
-    Exception = 2;
-  }
-  map<string, UpdatePropertyPStatus> status = 1;
+  map<string, bool> status = 1;
 }
 
 /**
