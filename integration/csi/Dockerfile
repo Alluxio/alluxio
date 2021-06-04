@@ -9,7 +9,7 @@
 # See the NOTICE file distributed with this work for information regarding copyright ownership.
 #
 
-FROM golang:1.14.3-alpine as dev
+FROM golang:1.15.13-alpine as dev
 
 ENV GO111MODULE=on
 

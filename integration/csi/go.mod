@@ -1,6 +1,6 @@
 module github.com/Alluxio/integration/csi
 
-go 1.14
+go 1.15
 
 require (
 	github.com/Alluxio/alluxio-csi v0.0.0-20210426175157-bbf121c94da5
