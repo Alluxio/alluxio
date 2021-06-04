@@ -219,7 +219,7 @@ value of `-o`.
 The `-o [mount options]` must follow the `mount` command.
 
 Different versions of `libfuse` and `osxfuse` may support different mount options.
-The available Linux mount options are listed [here](http://man7.org/linux/man-pages/man8/mount.8.html).
+The available Linux mount options are listed [here](http://man7.org/linux/man-pages/man8/mount.fuse3.8.html).
 The mount options of MacOS with osxfuse are listed [here](https://github.com/osxfuse/osxfuse/wiki/Mount-options) .
 Some mount options (e.g. `allow_other` and `allow_root`) need additional set-up
 and the set up process may be different depending on the platform.
