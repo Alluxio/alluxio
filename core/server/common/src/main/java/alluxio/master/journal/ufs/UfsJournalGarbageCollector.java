@@ -77,7 +77,7 @@ final class UfsJournalGarbageCollector implements Closeable {
     try {
       snapshot = UfsJournalSnapshot.getSnapshot(mJournal);
     } catch (IOException e) {
-      LOG.warn("Failed to get journal snapshot with error {}.", e.getMessage());
+      LOG.warn("Failed to get journal snapshot with error {}.", e.toString());
       return;
     }
     long checkpointSequenceNumber = 0;

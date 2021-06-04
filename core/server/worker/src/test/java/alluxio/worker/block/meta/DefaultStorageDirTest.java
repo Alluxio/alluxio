@@ -15,6 +15,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
+import alluxio.Constants;
 import alluxio.exception.BlockAlreadyExistsException;
 import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.ExceptionMessage;
@@ -75,14 +76,14 @@ public final class DefaultStorageDirTest {
     mTestDirPath = mFolder.newFolder().getAbsolutePath();
     String[] testDirPaths = {mTestDirPath};
     long[] testDirCapacity = {1};
-    String[] testDirMediumType = {"MEM"};
+    String[] testDirMediumType = {Constants.MEDIUM_MEM};
 
-    TieredBlockStoreTestUtils.setupConfWithSingleTier(null, TEST_TIER_ORDINAL, "MEM",
+    TieredBlockStoreTestUtils.setupConfWithSingleTier(null, TEST_TIER_ORDINAL, Constants.MEDIUM_MEM,
         testDirPaths, testDirCapacity, testDirMediumType, null);
 
-    mTier = DefaultStorageTier.newStorageTier("MEM", false);
+    mTier = DefaultStorageTier.newStorageTier(Constants.MEDIUM_MEM, false);
     mDir = DefaultStorageDir.newStorageDir(
-        mTier, TEST_DIR_INDEX, TEST_DIR_CAPACITY, 0, mTestDirPath, "MEM");
+        mTier, TEST_DIR_INDEX, TEST_DIR_CAPACITY, 0, mTestDirPath, Constants.MEDIUM_MEM);
     mBlockMeta = new DefaultBlockMeta(TEST_BLOCK_ID, TEST_BLOCK_SIZE, mDir);
     mTempBlockMeta =
         new DefaultTempBlockMeta(TEST_SESSION_ID, TEST_TEMP_BLOCK_ID, TEST_TEMP_BLOCK_SIZE, mDir);
@@ -97,7 +98,7 @@ public final class DefaultStorageDirTest {
    */
   private StorageDir newStorageDir(File testDir) throws Exception {
     return DefaultStorageDir.newStorageDir(mTier, TEST_DIR_INDEX, TEST_DIR_CAPACITY, 0,
-        testDir.getAbsolutePath(), "MEM");
+        testDir.getAbsolutePath(), Constants.MEDIUM_MEM);
   }
 
   /**
@@ -203,7 +204,7 @@ public final class DefaultStorageDirTest {
     File testDir = mFolder.newFolder();
 
     newBlockFile(testDir, String.valueOf(TEST_BLOCK_ID), Ints.checkedCast(TEST_DIR_CAPACITY + 1));
-    String alias = "MEM";
+    String alias = Constants.MEDIUM_MEM;
     mThrown.expect(WorkerOutOfSpaceException.class);
     mThrown.expectMessage(ExceptionMessage.NO_SPACE_FOR_BLOCK_META.getMessage(TEST_BLOCK_ID,
         TEST_DIR_CAPACITY + 1, TEST_DIR_CAPACITY, alias));
@@ -330,7 +331,8 @@ public final class DefaultStorageDirTest {
   @Test
   public void addBlockMetaExisting() throws Exception {
     mThrown.expect(BlockAlreadyExistsException.class);
-    mThrown.expectMessage(ExceptionMessage.ADD_EXISTING_BLOCK.getMessage(TEST_BLOCK_ID, "MEM"));
+    mThrown.expectMessage(ExceptionMessage.ADD_EXISTING_BLOCK
+        .getMessage(TEST_BLOCK_ID, Constants.MEDIUM_MEM));
     mDir.addBlockMeta(mBlockMeta);
     BlockMeta dupBlockMeta = new DefaultBlockMeta(TEST_BLOCK_ID, TEST_BLOCK_SIZE, mDir);
     mDir.addBlockMeta(dupBlockMeta);
@@ -382,7 +384,8 @@ public final class DefaultStorageDirTest {
   public void addTempBlockMetaExisting() throws Exception {
     mThrown.expect(BlockAlreadyExistsException.class);
     mThrown
-        .expectMessage(ExceptionMessage.ADD_EXISTING_BLOCK.getMessage(TEST_TEMP_BLOCK_ID, "MEM"));
+        .expectMessage(ExceptionMessage.ADD_EXISTING_BLOCK
+            .getMessage(TEST_TEMP_BLOCK_ID, Constants.MEDIUM_MEM));
     mDir.addTempBlockMeta(mTempBlockMeta);
     TempBlockMeta dupTempBlockMeta =
         new DefaultTempBlockMeta(TEST_SESSION_ID, TEST_TEMP_BLOCK_ID, TEST_TEMP_BLOCK_SIZE, mDir);
@@ -407,7 +410,7 @@ public final class DefaultStorageDirTest {
   @Test
   public void removeTempBlockMetaNotOwner() throws Exception {
     final long wrongSessionId = TEST_SESSION_ID + 1;
-    String alias = "MEM";
+    String alias = Constants.MEDIUM_MEM;
     mThrown.expect(BlockDoesNotExistException.class);
     mThrown.expectMessage(ExceptionMessage.BLOCK_NOT_FOUND_FOR_SESSION
         .getMessage(TEST_TEMP_BLOCK_ID, alias, wrongSessionId));

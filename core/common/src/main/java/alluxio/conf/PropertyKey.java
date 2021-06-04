@@ -64,6 +64,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   private static final Cache<String, Boolean> REGEXP_CACHE = CacheBuilder.newBuilder()
       .maximumSize(1024)
       .build();
+
   /**
    * The consistency check level to apply to a certain property key.
    * User can run "alluxio validateEnv all cluster.conf.consistent" to validate the consistency of
@@ -1148,7 +1149,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey UNDERFS_CEPHFS_AUTH_KEYFILE =
       new Builder(Name.UNDERFS_CEPHFS_AUTH_KEYFILE)
-          .setDefaultValue("/etc/ceph/keyfile")
           .setDescription("Path to CephX authentication key file.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.SERVER)
@@ -2035,6 +2035,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
+  public static final PropertyKey MASTER_METRICS_HEAP_ENABLED =
+      new Builder(Name.MASTER_METRICS_HEAP_ENABLED)
+          .setDefaultValue(true)
+          .setDescription("Enable master heap estimate metrics")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.MASTER)
+          .build();
+
   public static final PropertyKey MASTER_HOSTNAME =
       new Builder(Name.MASTER_HOSTNAME)
           .setDescription("The hostname of Alluxio master.")
@@ -2363,21 +2371,21 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey MASTER_TIERED_STORE_GLOBAL_LEVEL0_ALIAS =
       new Builder(Name.MASTER_TIERED_STORE_GLOBAL_LEVEL0_ALIAS)
-          .setDefaultValue("MEM")
+          .setDefaultValue(Constants.MEDIUM_MEM)
           .setDescription("The name of the highest storage tier in the entire system.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey MASTER_TIERED_STORE_GLOBAL_LEVEL1_ALIAS =
       new Builder(Name.MASTER_TIERED_STORE_GLOBAL_LEVEL1_ALIAS)
-          .setDefaultValue("SSD")
+          .setDefaultValue(Constants.MEDIUM_SSD)
           .setDescription("The name of the second highest storage tier in the entire system.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey MASTER_TIERED_STORE_GLOBAL_LEVEL2_ALIAS =
       new Builder(Name.MASTER_TIERED_STORE_GLOBAL_LEVEL2_ALIAS)
-          .setDefaultValue("HDD")
+          .setDefaultValue(Constants.MEDIUM_HDD)
           .setDescription("The name of the third highest storage tier in the entire system.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.MASTER)
@@ -3310,7 +3318,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   // TODO(binfan): Use alluxio.worker.tieredstore.level0.dirs.mediumtype instead
   public static final PropertyKey WORKER_TIERED_STORE_LEVEL0_ALIAS =
       new Builder(Template.WORKER_TIERED_STORE_LEVEL_ALIAS, 0)
-          .setDefaultValue("MEM")
+          .setDefaultValue(Constants.MEDIUM_MEM)
           .setDescription("The alias of the top storage tier on this worker. It must "
               + "match one of the global storage tiers from the master configuration. We "
               + "disable placing an alias lower in the global hierarchy before an alias with "
@@ -4729,6 +4737,30 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   //
   // FUSE integration related properties
   //
+  public static final PropertyKey FUSE_AUTH_POLICY_CLASS =
+      new Builder(Name.FUSE_AUTH_POLICY_CLASS)
+          .setDefaultValue("alluxio.fuse.auth.SystemUserGroupAuthPolicy")
+          .setDescription("The fuse auth policy class. "
+              + " Valid options include: "
+              + "`alluxio.fuse.auth.SystemUserGroupAuthPolicy`, "
+              + "`alluxio.fuse.auth.CustomAuthPolicy`.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
+          .setScope(Scope.CLIENT)
+          .build();
+  public static final PropertyKey FUSE_AUTH_POLICY_CUSTOM_USER =
+      new Builder(Name.FUSE_AUTH_POLICY_CUSTOM_USER)
+          .setDescription("The fuse user name for custom auth policy. Only valid if the "
+              + Name.FUSE_AUTH_POLICY_CLASS + " is alluxio.fuse.auth.CustomAuthPolicy")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
+          .setScope(Scope.CLIENT)
+          .build();
+  public static final PropertyKey FUSE_AUTH_POLICY_CUSTOM_GROUP =
+      new Builder(Name.FUSE_AUTH_POLICY_CUSTOM_GROUP)
+          .setDescription("The fuse group name for custom auth policy. Only valid if the "
+              + Name.FUSE_AUTH_POLICY_CLASS + " is alluxio.fuse.auth.CustomAuthPolicy")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
+          .setScope(Scope.CLIENT)
+          .build();
   public static final PropertyKey FUSE_CACHED_PATHS_MAX =
       new Builder(Name.FUSE_CACHED_PATHS_MAX)
           .setDefaultValue(500)
@@ -5208,7 +5240,20 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
-
+  public static final PropertyKey TABLE_UDB_HIVE_CLIENTPOOL_MIN =
+      new Builder(Name.TABLE_UDB_HIVE_CLIENTPOOL_MIN)
+          .setDefaultValue("16")
+          .setDescription("The minimum capacity of the hive client pool per hive metastore")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.MASTER)
+          .build();
+  public static final PropertyKey TABLE_UDB_HIVE_CLIENTPOOL_MAX =
+      new Builder(Name.TABLE_UDB_HIVE_CLIENTPOOL_MAX)
+          .setDefaultValue("256")
+          .setDescription("The maximum capacity of the hive client pool per hive metastore")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.MASTER)
+          .build();
   /**
    * @deprecated This key is used for testing. It is always deprecated.
    */
@@ -5410,7 +5455,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String UNDERFS_CEPHFS_MON_HOST =
         "alluxio.underfs.cephfs.mon.host";
     public static final String UNDERFS_CEPHFS_MDS_NAMESPACE =
-        "alluxio.underfs.cephfs.mds.namespce";
+        "alluxio.underfs.cephfs.mds.namespace";
     public static final String UNDERFS_CEPHFS_MOUNT_UID =
         "alluxio.underfs.cephfs.mount.uid";
     public static final String UNDERFS_CEPHFS_MOUNT_GID =
@@ -5629,6 +5674,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.metastore.inode.inherit.owner.and.group";
     public static final String MASTER_PERSISTENCE_CHECKER_INTERVAL_MS =
         "alluxio.master.persistence.checker.interval";
+    public static final String MASTER_METRICS_HEAP_ENABLED =
+        "alluxio.master.metrics.heap.enabled";
     public static final String MASTER_METRICS_SERVICE_THREADS =
         "alluxio.master.metrics.service.threads";
     public static final String MASTER_METRICS_TIME_SERIES_INTERVAL =
@@ -6148,6 +6195,11 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     //
     // FUSE integration related properties
     //
+    public static final String FUSE_AUTH_POLICY_CLASS = "alluxio.fuse.auth.policy.class";
+    public static final String FUSE_AUTH_POLICY_CUSTOM_USER =
+        "alluxio.fuse.auth.policy.custom.user";
+    public static final String FUSE_AUTH_POLICY_CUSTOM_GROUP =
+        "alluxio.fuse.auth.policy.custom.group";
     public static final String FUSE_CACHED_PATHS_MAX = "alluxio.fuse.cached.paths.max";
     public static final String FUSE_DEBUG_ENABLED = "alluxio.fuse.debug.enabled";
     public static final String FUSE_FS_NAME = "alluxio.fuse.fs.name";
@@ -6251,6 +6303,10 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.table.transform.manager.job.monitor.interval";
     public static final String TABLE_TRANSFORM_MANAGER_JOB_HISTORY_RETENTION_TIME =
         "alluxio.table.transform.manager.job.history.retention.time";
+    public static final String TABLE_UDB_HIVE_CLIENTPOOL_MIN =
+        "alluxio.table.udb.hive.clientpool.min";
+    public static final String TABLE_UDB_HIVE_CLIENTPOOL_MAX =
+        "alluxio.table.udb.hive.clientpool.MAX";
 
     private Name() {} // prevent instantiation
   }
@@ -6807,8 +6863,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
    *
    * @param key the property key to check
    * @return if this property key is deprecated
-   * @see Deprecated
    * @see #getDeprecationMessage(PropertyKey)
+   * @see Deprecated
    */
   public static boolean isDeprecated(PropertyKey key) {
     return DEPRECATED_CHECKER.hasAnnotation(key);
@@ -6830,9 +6886,9 @@ public final class PropertyKey implements Comparable<PropertyKey> {
    *
    * @param key the property key to check
    * @return true this property key is removed, false otherwise
-   * @see RemovedKey
    * @see #isDeprecated(alluxio.conf.PropertyKey)
    * @see Deprecated
+   * @see RemovedKey
    */
   public static boolean isRemoved(String key) {
     return RemovedKey.isRemoved(key);

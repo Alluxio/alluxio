@@ -319,7 +319,7 @@ abstract class AbstractWriteHandler<T extends WriteRequestContext<?>> {
       mContext.setError(error);
       cleanupRequest(mContext);
     } catch (Exception e) {
-      LOG.warn("Failed to cleanup states with error {}.", e.getMessage());
+      LOG.warn("Failed to cleanup states with error {}.", e.toString());
     } finally {
       replyError();
     }

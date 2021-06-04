@@ -35,11 +35,11 @@ component-owner-mapping:
   integration: 
     - jiacheliu3
   job: 
-    - bradyoo
+    - bf8086
   libexec: 
     - ggezer
   minicluster: 
-    - bradyoo
+    - ggezer
   shell: 
     - LuQQiu
   stress: 
@@ -47,7 +47,7 @@ component-owner-mapping:
   table: 
     - yuzhu
   tests: 
-    - bradyoo
+    - ggezer
   underfs: 
     - bf8086
   webui: 

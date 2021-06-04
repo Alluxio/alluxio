@@ -29,12 +29,12 @@ A third party metrics collector can be used to monitor the rate of
 change of this metric to determine how the number of files are growing over time.
 
 The number of files in Alluxio impacts the following:
-* Size of heap required by the master - Each file takes approximately 1 - 2 kb. If RocksDB is used,
+* Size of heap required by the master - Each file takes approximately 1 - 2 KB. If RocksDB is used,
 most file metadata is stored off-heap, and the size of the heap impacts how many files’ metadata can
 be cached on heap. See the
 [RocksDB section]({{ '/en/operation/Metastore.html#rocksdb-metastore' | relativize_url }}) for more
 information.
-* Size of disk required for journal storage - Each file takes approximately 1 - 2 kb on disk.
+* Size of disk required for journal storage - Each file takes approximately 1 - 2 KB on disk.
 * Latency of journal replay - The journal replay, which is the majority of the cold startup time for
 a master, takes time proportional to the number of files in the system.
 * Latency of journal backup - The journal backup takes time proportional to the number of files in
@@ -60,7 +60,7 @@ clients and then convert to a operations/second metric
 * 1 per Alluxio worker in the cluster
 * Max of
 	* Number of concurrent clients of the system as calculated above
-	* (alluxio.worker.block.master.client.pool.size + alluxio.user.file.master.client.pool.size.max)
+	* (`alluxio.worker.block.master.client.pool.size` + `alluxio.user.file.master.client.pool.size.max`)
 	per user per service using the Alluxio client
 
 For example, in a deployment with 2 users, 50 Presto worker nodes (with 200 task concurrency), and
@@ -132,7 +132,6 @@ the Alluxio master and standby master processes to `256 GB`:
 
 ```bash
 ALLUXIO_MASTER_JAVA_OPTS+=" -Xms256g -Xmx256g "
-ALLUXIO_SECONDARY_MASTER_JAVA_OPTS+=" -Xms256g -Xmx256g "
 ```
 
 * As a rule of thumb set the min and max heap size equal to avoid heap resizing.
@@ -147,7 +146,7 @@ The Alluxio Master’s ability to handle concurrent requests and parallelize rec
 (ie. full sync, check consistency) scales with the number of cores available. In addition,
 background processes of the Alluxio Master also require cores.
 
-Alluxio microbenchmarks, show the following operation throughputs on 4vCores (r5.xlarge) on the
+Alluxio microbenchmarks, show the following operation throughput on 4vCores (r5.xlarge) on the
 master. There are 32 clients. The journal is on HDFS.
 * Create File - 3000 ops/second
 * List Status (file) - 65000 ops/second
@@ -232,11 +231,13 @@ Increase the interval to reduce the number of heartbeat checks.
 
 ### Heap Size
 
-Alluxio workers require modest amounts of memory because off-heap storage is used for data storage.
-Therefore, a 4 GB heap is sufficient for Alluxio workers.
+Alluxio workers require modest amounts of memory for metadata because off-heap storage is used for data storage.
+However, data transfer will create buffers that consume heap or direct memory.
+We recommend about 64MB (from the heap or direct memory) per expected concurrent client.
 
+As a beginning, you can set both to 32G and tune up when you see the worker running out of heap/direct memory. 
 ```properties
-ALLUXIO_WORKER_JAVA_OPTS+=" -Xms4g -Xmx4g"
+ALLUXIO_WORKER_JAVA_OPTS+=" -Xms32g -Xmx32g -XX:MaxDirectMemorySize=32g"
 ```
 
 ### Number of Cores

@@ -78,10 +78,9 @@ class ShortCircuitBlockReadHandler implements StreamObserver<OpenLocalBlockReque
             try {
               mWorker.moveBlock(mSessionId, mRequest.getBlockId(), 0);
             } catch (BlockDoesNotExistException e) {
-              LOG.debug("Block {} to promote does not exist in Alluxio: {}", mRequest.getBlockId(),
-                  e.getMessage());
+              LOG.debug("Block {} to promote does not exist in Alluxio", mRequest.getBlockId(), e);
             } catch (Exception e) {
-              LOG.warn("Failed to promote block {}: {}", mRequest.getBlockId(), e.getMessage());
+              LOG.warn("Failed to promote block {}: {}", mRequest.getBlockId(), e.toString());
             }
           }
           mLockId = mWorker.lockBlock(mSessionId, mRequest.getBlockId());
@@ -109,7 +108,7 @@ class ShortCircuitBlockReadHandler implements StreamObserver<OpenLocalBlockReque
             mWorker.unlockBlock(mLockId);
           } catch (BlockDoesNotExistException ee) {
             LOG.warn("Failed to unlock lock {} of block {} with error {}.",
-                mLockId, mRequest.getBlockId(), e);
+                mLockId, mRequest.getBlockId(), e.toString());
           }
           mLockId = BlockWorker.INVALID_LOCK_ID;
         }
@@ -127,7 +126,7 @@ class ShortCircuitBlockReadHandler implements StreamObserver<OpenLocalBlockReque
         mWorker.unlockBlock(mLockId);
       } catch (BlockDoesNotExistException e) {
         LOG.warn("Failed to unlock lock {} of block {} with error {}.",
-            mLockId, mRequest.getBlockId(), e.getMessage());
+            mLockId, mRequest.getBlockId(), e.toString());
       }
       mWorker.cleanupSession(mSessionId);
     }
@@ -147,7 +146,7 @@ class ShortCircuitBlockReadHandler implements StreamObserver<OpenLocalBlockReque
             mWorker.unlockBlock(mLockId);
           } catch (BlockDoesNotExistException e) {
             LOG.warn("Failed to unlock lock {} of block {} with error {}.",
-                mLockId, mRequest.getBlockId(), e.getMessage());
+                mLockId, mRequest.getBlockId(), e.toString());
           }
           mLockId = BlockWorker.INVALID_LOCK_ID;
         } else if (mRequest != null) {

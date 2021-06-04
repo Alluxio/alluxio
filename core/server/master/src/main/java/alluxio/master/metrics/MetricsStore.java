@@ -192,6 +192,12 @@ public class MetricsStore {
       mClusterCounters.putIfAbsent(new ClusterCounterKey(InstanceType.WORKER,
           MetricKey.WORKER_BYTES_WRITTEN_DOMAIN.getMetricName()),
           MetricsSystem.counter(MetricKey.CLUSTER_BYTES_WRITTEN_DOMAIN.getName()));
+      mClusterCounters.putIfAbsent(new ClusterCounterKey(InstanceType.WORKER,
+          MetricKey.WORKER_ACTIVE_RPC_READ_COUNT.getMetricName()),
+          MetricsSystem.counter(MetricKey.CLUSTER_ACTIVE_RPC_READ_COUNT.getName()));
+      mClusterCounters.putIfAbsent(new ClusterCounterKey(InstanceType.WORKER,
+          MetricKey.WORKER_ACTIVE_RPC_WRITE_COUNT.getMetricName()),
+          MetricsSystem.counter(MetricKey.CLUSTER_ACTIVE_RPC_WRITE_COUNT.getName()));
 
       // client metrics
       mClusterCounters.putIfAbsent(new ClusterCounterKey(InstanceType.CLIENT,

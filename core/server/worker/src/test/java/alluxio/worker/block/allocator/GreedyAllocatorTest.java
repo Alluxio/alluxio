@@ -11,9 +11,12 @@
 
 package alluxio.worker.block.allocator;
 
+import alluxio.Constants;
 import alluxio.conf.ServerConfiguration;
 import alluxio.conf.PropertyKey;
+import alluxio.worker.block.reviewer.MockReviewer;
 
+import com.google.common.collect.Sets;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -47,7 +50,7 @@ public final class GreedyAllocatorTest extends AllocatorTestBase {
     //  1               ├─── 3000
     //  2               └─── 3000
     //
-    assertTempBlockMeta(mAllocator, mAnyTierLoc, 500, true, "MEM", 0);
+    assertTempBlockMeta(mAllocator, mAnyTierLoc, 500, true, Constants.MEDIUM_MEM, 0);
     //
     // idx | tier1 | tier2 | tier3
     //  0     500   <--- alloc
@@ -57,7 +60,7 @@ public final class GreedyAllocatorTest extends AllocatorTestBase {
     //  1               ├─── 3000
     //  2               └─── 3000
     //
-    assertTempBlockMeta(mAllocator, mAnyDirInTierLoc2, 1000, true, "SSD", 0);
+    assertTempBlockMeta(mAllocator, mAnyDirInTierLoc2, 1000, true, Constants.MEDIUM_SSD, 0);
     //
     // idx | tier1 | tier2 | tier3
     //  0     500
@@ -67,7 +70,7 @@ public final class GreedyAllocatorTest extends AllocatorTestBase {
     //  1               ├─── 3000
     //  2               └─── 3000
     //
-    assertTempBlockMeta(mAllocator, mAnyDirInTierLoc2, 1500, true, "SSD", 1);
+    assertTempBlockMeta(mAllocator, mAnyDirInTierLoc2, 1500, true, Constants.MEDIUM_SSD, 1);
     //
     // idx | tier1 | tier2 | tier3
     //  0     500
@@ -77,7 +80,7 @@ public final class GreedyAllocatorTest extends AllocatorTestBase {
     //  1               ├─── 3000
     //  2               └─── 3000
     //
-    assertTempBlockMeta(mAllocator, mAnyTierLoc, 1000, true, "SSD", 0);
+    assertTempBlockMeta(mAllocator, mAnyTierLoc, 1000, true, Constants.MEDIUM_SSD, 0);
     //
     // idx | tier1 | tier2 | tier3
     //  0     500
@@ -87,7 +90,7 @@ public final class GreedyAllocatorTest extends AllocatorTestBase {
     //  1               ├─── 3000
     //  2               └─── 3000
     //
-    assertTempBlockMeta(mAllocator, mAnyTierLoc, 1000, true, "HDD", 0);
+    assertTempBlockMeta(mAllocator, mAnyTierLoc, 1000, true, Constants.MEDIUM_HDD, 0);
     //
     // idx | tier1 | tier2 | tier3
     //  0     500
@@ -97,7 +100,7 @@ public final class GreedyAllocatorTest extends AllocatorTestBase {
     //  1               ├─── 3000
     //  2               └─── 3000
     //
-    assertTempBlockMeta(mAllocator, mAnyTierLoc, 2000, true, "HDD", 0);
+    assertTempBlockMeta(mAllocator, mAnyTierLoc, 2000, true, Constants.MEDIUM_HDD, 0);
     //
     // idx | tier1 | tier2 | tier3
     //  0     500
@@ -107,7 +110,7 @@ public final class GreedyAllocatorTest extends AllocatorTestBase {
     //  1               ├─── 3000
     //  2               └─── 3000
     //
-    assertTempBlockMeta(mAllocator, mAnyTierLoc, 500, true, "MEM", 0);
+    assertTempBlockMeta(mAllocator, mAnyTierLoc, 500, true, Constants.MEDIUM_MEM, 0);
     //
     // idx | tier1 | tier2 | tier3
     //  0      0   <--- alloc
@@ -117,7 +120,7 @@ public final class GreedyAllocatorTest extends AllocatorTestBase {
     //  1               ├─── 3000
     //  2               └─── 3000
     //
-    assertTempBlockMeta(mAllocator, mAnyTierLoc, 500, true, "SSD", 1);
+    assertTempBlockMeta(mAllocator, mAnyTierLoc, 500, true, Constants.MEDIUM_SSD, 1);
     //
     // idx | tier1 | tier2 | tier3
     //  0      0
@@ -127,7 +130,7 @@ public final class GreedyAllocatorTest extends AllocatorTestBase {
     //  1               ├─── 3000
     //  2               └─── 3000
     //
-    assertTempBlockMeta(mAllocator, mAnyDirInTierLoc3, 1000, true, "HDD", 1);
+    assertTempBlockMeta(mAllocator, mAnyDirInTierLoc3, 1000, true, Constants.MEDIUM_HDD, 1);
     //
     // idx | tier1 | tier2 | tier3
     //  0      0
@@ -137,7 +140,7 @@ public final class GreedyAllocatorTest extends AllocatorTestBase {
     //  1               ├─── 2000   <--- alloc
     //  2               └─── 3000
     //
-    assertTempBlockMeta(mAllocator, mAnyTierLoc, 700, true, "HDD", 1);
+    assertTempBlockMeta(mAllocator, mAnyTierLoc, 700, true, Constants.MEDIUM_HDD, 1);
     //
     // idx | tier1 | tier2 | tier3
     //  0      0
@@ -145,6 +148,30 @@ public final class GreedyAllocatorTest extends AllocatorTestBase {
     //  1      └───── 500
     //  0               ├─── 0
     //  1               ├─── 1300   <--- alloc
+    //  2               └─── 3000
+    //
+
+    /** Reviewer's opinion affects the test */
+    MockReviewer.resetBytesToReject(Sets.newHashSet(500L));
+
+    assertTempBlockMeta(mAllocator, mAnyTierLoc, 100, true, "HDD", 1);
+    //
+    // idx | tier1 | tier2 | tier3
+    //  0      0
+    //  0      ├───── 0
+    //  1      └───── 500
+    //  0               ├─── 0
+    //  1               ├─── 1200   <--- alloc
+    //  2               └─── 3000
+    //
+    assertTempBlockMeta(mAllocator, mAnyDirInTierLoc2, 100, false, "", 0);
+    //
+    // idx | tier1 | tier2 | tier3
+    //  0      0
+    //  0      ├───── 0
+    //  1      └───── 500
+    //  0               ├─── 0
+    //  1               ├─── 1200
     //  2               └─── 3000
     //
   }

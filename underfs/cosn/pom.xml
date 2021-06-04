@@ -31,9 +31,14 @@
   <dependencies>
     <!-- External dependencies -->
     <dependency>
-      <groupId>org.alluxio</groupId>
-      <artifactId>alluxio-shaded-cosn</artifactId>
-      <version>${project.version}</version>
+      <groupId>com.qcloud</groupId>
+      <artifactId>cos_api-bundle</artifactId>
+      <version>${cos_api.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.qcloud.cos</groupId>
+      <artifactId>hadoop-cos</artifactId>
+      <version>${hadoop-cos.version}</version>
     </dependency>
     <!-- Internal dependencies -->
     <dependency>

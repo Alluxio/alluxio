@@ -432,11 +432,28 @@ logserver:
   jvmOptions:
   nodeSelector: {}
   tolerations: []
+  # The strategy field corresponds to the .spec.strategy field for the deployment
+  # This specifies the strategy used to replace old Pods by new ones
+  # https://kubernetes.io/docs/concepts/workloads/controllers/deployment/#strategy
+  # The default is Recreate which kills the existing Pod before creating a new one
+  # Note: When using RWO PVCs, the strategy MUST be Recreate, because the PVC cannot
+  # be passed from the old Pod to the new one
+  # When using RWX PVCs, you can use RollingUpdate strategy to ensure zero down time
+  # Example:
+  # strategy:
+  #   type: RollingUpdate
+  #   rollingUpdate:
+  #     maxUnavailable: 25%
+  #     maxSurge: 1
+  strategy:
+    type: Recreate
   # volumeType controls the type of log volume.
   # It can be "persistentVolumeClaim" or "hostPath" or "emptyDir"
   volumeType: persistentVolumeClaim
   # Attributes to use if the log volume is PVC
   pvcName: alluxio-logserver-logs
+  # Note: If using RWO, the strategy MUST be Recreate
+  # If using RWX, the strategy can be RollingUpdate
   accessModes:
     - ReadWriteOnce
   storageClass: standard
