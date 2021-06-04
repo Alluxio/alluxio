@@ -139,7 +139,7 @@ public final class Format {
             formatWorkerDataFolder(dirWorkerDataFolder);
           }
         }
-        new File(ServerConfiguration.get(PropertyKey.WORKER_INFO_FILE)).delete();
+        Files.deleteIfExists(Paths.get(ServerConfiguration.get(PropertyKey.WORKER_INFO_FILE)));
         break;
       default:
         throw new RuntimeException(String.format("Unrecognized format mode: %s", mode));

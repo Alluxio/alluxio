@@ -851,7 +851,7 @@ public final class DefaultBlockMaster extends CoreMaster implements BlockMaster 
       return oldWorkerId;
     }
 
-    return _getWorkerId(workerNetAddress);
+    return getWorkerIdInternal(workerNetAddress);
   }
 
   @Override
@@ -865,7 +865,7 @@ public final class DefaultBlockMaster extends CoreMaster implements BlockMaster 
       return workerId;
     }
 
-    return _getWorkerId(workerNetAddress);
+    return getWorkerIdInternal(workerNetAddress);
   }
 
   @Override
@@ -954,7 +954,7 @@ public final class DefaultBlockMaster extends CoreMaster implements BlockMaster 
     }
   }
 
-  private long _getWorkerId(WorkerNetAddress workerNetAddress) {
+  private long getWorkerIdInternal(WorkerNetAddress workerNetAddress) {
     MasterWorkerInfo existingWorker = findUnregisteredWorker(workerNetAddress);
     if (existingWorker != null) {
       return existingWorker.getId();
