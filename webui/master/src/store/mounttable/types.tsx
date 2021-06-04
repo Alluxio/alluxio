@@ -19,7 +19,7 @@ export interface IMountPointInfo {
   ufsUsedBytes: number;
   readOnly: boolean;
   shared: boolean;
-  properties: string;
+  properties: [string,string];
 }
 
 export interface IMountTable {
