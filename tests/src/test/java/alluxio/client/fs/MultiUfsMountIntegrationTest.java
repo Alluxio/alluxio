@@ -286,7 +286,6 @@ public final class MultiUfsMountIntegrationTest extends BaseIntegrationTest {
   public void mountWithCredentials() throws Exception {
     MountPOptions options3 = MountPOptions.newBuilder().putAllProperties(UFS_CONF3).build();
     mFileSystem.mount(mMountPoint3, new AlluxioURI(mUfsUri3), options3);
-    mLocalAlluxioCluster.stopFS();
     try (FsMasterResource masterResource = MasterTestUtils
         .createLeaderFileSystemMasterFromJournal()) {
       FileSystemMaster fsMaster = masterResource.getRegistry().get(FileSystemMaster.class);

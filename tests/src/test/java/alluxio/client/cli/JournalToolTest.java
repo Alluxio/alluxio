@@ -134,13 +134,14 @@ public class JournalToolTest extends BaseIntegrationTest {
 
     assertNonemptyFileExists(PathUtils.concatPath(mDumpDir, "edits.txt"));
     assertNonemptyFileExists(PathUtils.concatPath(checkpointDir, "INODE_DIRECTORY_ID_GENERATOR"));
-    for (String subPath : Arrays.asList("INODE_COUNTER", "PINNED_INODE_FILE_IDS",
-        "REPLICATION_LIMITED_FILE_IDS", "TO_BE_PERSISTED_FILE_IDS")) {
+    for (String subPath : Arrays.asList("HEAP_INODE_STORE", "INODE_COUNTER",
+        "PINNED_INODE_FILE_IDS", "REPLICATION_LIMITED_FILE_IDS", "TO_BE_PERSISTED_FILE_IDS")) {
       assertNonemptyFileExists(PathUtils.concatPath(checkpointDir, "INODE_TREE", subPath));
     }
   }
 
   @Test
+
   @LocalAlluxioClusterResource.Config(confParams = {PropertyKey.Name.MASTER_JOURNAL_TYPE,
       "EMBEDDED", PropertyKey.Name.MASTER_METASTORE, "HEAP"})
   public void dumpHeapCheckpointFromEmbeddedJournal() throws Throwable {
