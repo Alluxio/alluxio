@@ -231,57 +231,6 @@ public final class MetricKey implements Comparable<MetricKey> {
   }
 
   // Master metrics
-<<<<<<< HEAD
-  // Absent cache stats
-  public static final MetricKey MASTER_ABSENT_CACHE_HITS =
-      new Builder("Master.AbsentCacheHits")
-          .setDescription("Number of cache hits on the absent cache")
-          .setMetricType(MetricType.COUNTER)
-          .build();
-  public static final MetricKey MASTER_ABSENT_CACHE_MISSES =
-      new Builder("Master.AbsentCacheMisses")
-          .setDescription("Number of cache misses on the absent cache")
-          .setMetricType(MetricType.COUNTER)
-          .build();
-  public static final MetricKey MASTER_ABSENT_CACHE_INVALIDATIONS =
-      new Builder("Master.AbsentCacheInvalidations")
-          .setDescription("Number of invalidations on the absent cache")
-          .setMetricType(MetricType.COUNTER)
-          .build();
-  public static final MetricKey MASTER_ABSENT_CACHE_SIZE =
-      new Builder("Master.AbsentCacheSize")
-          .setDescription("Size of the absent cache")
-          .setMetricType(MetricType.GAUGE)
-          .build();
-
-  // Edge cache stats
-||||||| a7f53499d6... Add absent cache metrics
-  // Absent cache stats
-  public static final MetricKey MASTER_ABSENT_CACHE_HITS =
-      new Builder(Name.MASTER_ABSENT_CACHE_HITS)
-          .setDescription("Number of cache hits on the absent cache")
-          .setMetricType(MetricType.COUNTER)
-          .build();
-  public static final MetricKey MASTER_ABSENT_CACHE_MISSES =
-      new Builder(Name.MASTER_ABSENT_CACHE_MISSES)
-          .setDescription("Number of cache misses on the absent cache")
-          .setMetricType(MetricType.COUNTER)
-          .build();
-  public static final MetricKey MASTER_ABSENT_CACHE_INVALIDATIONS =
-      new Builder(Name.MASTER_ABSENT_CACHE_INVALIDATIONS)
-          .setDescription("Number of invalidations on the absent cache")
-          .setMetricType(MetricType.COUNTER)
-          .build();
-  public static final MetricKey MASTER_ABSENT_CACHE_SIZE =
-      new Builder(Name.MASTER_ABSENT_CACHE_SIZE)
-          .setDescription("Size of the absent cache")
-          .setMetricType(MetricType.GAUGE)
-          .build();
-
-  // Edge cache stats
-=======
-  // Master status
->>>>>>> parent of a7f53499d6... Add absent cache metrics
   public static final MetricKey MASTER_EDGE_CACHE_EVICTIONS =
       new Builder("Master.EdgeCacheEvictions")
           .setDescription("Total number of edges (inode metadata) that was evicted from cache. "
