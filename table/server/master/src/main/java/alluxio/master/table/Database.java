@@ -71,7 +71,7 @@ public class Database implements Journaled {
   private final CatalogConfiguration mConfig;
   private final Set<String> mIgnoreTables;
   private final String mConfigPath;
-  private Set<String> mBypassSet;
+  private DbConfig mDbConfig;
   private final long mUdbSyncTimeoutMs =
       ServerConfiguration.getMs(PropertyKey.TABLE_CATALOG_UDB_SYNC_TIMEOUT);
 
@@ -88,7 +88,7 @@ public class Database implements Journaled {
     mIgnoreTables = Sets.newHashSet(
         ConfigurationUtils.parseAsList(mConfig.get(CatalogProperty.DB_IGNORE_TABLES), ","));
     mConfigPath = mConfig.get(CatalogProperty.DB_CONFIG_FILE);
-    mBypassSet = new HashSet<>();
+    mDbConfig = DbConfig.empty();
   }
 
   /**
@@ -211,8 +211,7 @@ public class Database implements Journaled {
 
     if (Files.exists(Paths.get(mConfigPath))) {
       ObjectMapper mapper = new ObjectMapper();
-      DbConfig dbConfig = mapper.readValue(new File(mConfigPath), DbConfig.class);
-      mBypassSet.addAll(dbConfig.getBypassSet());
+      mDbConfig = mapper.readValue(new File(mConfigPath), DbConfig.class);
     }
     DatabaseInfo newDbInfo = mUdb.getDatabaseInfo();
     if (!newDbInfo.equals(mDatabaseInfo)) {
@@ -242,7 +241,7 @@ public class Database implements Journaled {
         // Save all exceptions
         try {
           Table previousTable = mTables.get(tableName);
-          UdbTable udbTable = mUdb.getTable(tableName, mBypassSet.contains(tableName));
+          UdbTable udbTable = mUdb.getTable(tableName, mDbConfig.getUdbBypassSpec());
           Table newTable = Table.create(thisDb, udbTable, previousTable);
 
           if (newTable != null) {
