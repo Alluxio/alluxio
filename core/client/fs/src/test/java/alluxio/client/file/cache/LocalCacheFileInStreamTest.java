@@ -57,7 +57,6 @@ import alluxio.wire.MountPointInfo;
 import alluxio.wire.SyncPointInfo;
 
 import com.google.common.io.ByteStreams;
-import java.nio.ByteBuffer;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -65,6 +64,7 @@ import org.junit.Test;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;

@@ -14,10 +14,10 @@ package alluxio.hadoop;
 import alluxio.client.file.FileInStream;
 
 import com.google.common.base.Preconditions;
-import java.nio.ByteBuffer;
 import org.apache.hadoop.fs.FSDataInputStream;
 
 import java.io.IOException;
+import java.nio.ByteBuffer;
 
 /**
  * A wrapper class to translate Hadoop FileSystem FSDataInputStream to Alluxio FileSystem
