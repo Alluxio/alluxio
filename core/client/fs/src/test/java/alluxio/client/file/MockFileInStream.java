@@ -19,7 +19,6 @@ import java.nio.ByteBuffer;
  * Mock implementation of {@link FileInStream} which delegates to a {@link ByteArrayInputStream}.
  */
 public final class MockFileInStream extends FileInStream {
-
   private final ByteArrayInputStream mStream;
   private final long mLength;
 

@@ -80,7 +80,6 @@ import java.util.stream.IntStream;
  * Unit tests for {@link LocalCacheFileInStream}.
  */
 public class LocalCacheFileInStreamTest {
-
   private static AlluxioConfiguration sConf = new InstancedConfiguration(
       ConfigurationUtils.defaults());
   private static final int PAGE_SIZE =
@@ -529,9 +528,7 @@ public class LocalCacheFileInStreamTest {
 
     private final Map<PageId, byte[]> mPages;
 
-    /**
-     * Metrics for test validation.
-     */
+    /** Metrics for test validation. */
     long mPagesServed = 0;
     long mPagesCached = 0;
 
@@ -574,11 +571,10 @@ public class LocalCacheFileInStreamTest {
   }
 
   /**
-   * An implementation of file system which is a store of filenames to byte arrays. Only {@link
-   * FileSystem#openFile(AlluxioURI)} and its variants are supported.
+   * An implementation of file system which is a store of filenames to byte arrays. Only
+   * {@link FileSystem#openFile(AlluxioURI)} and its variants are supported.
    */
   private class ByteArrayFileSystem implements FileSystem {
-
     private final Map<AlluxioURI, byte[]> mFiles;
 
     ByteArrayFileSystem(Map<AlluxioURI, byte[]> files) {
@@ -792,7 +788,6 @@ public class LocalCacheFileInStreamTest {
    * This implementation may not serve the full read in a single call.
    */
   private class MultiReadFileInStream extends FileInStream {
-
     private final FileInStream mIn;
 
     /**

@@ -41,40 +41,26 @@ public class LocalCacheFileInStream extends FileInStream {
 
   private static final Logger LOG = LoggerFactory.getLogger(LocalCacheFileInStream.class);
 
-  /**
-   * Page size in bytes.
-   */
+  /** Page size in bytes. */
   protected final long mPageSize;
 
   private final byte[] mSingleByte = new byte[1];
   private final Closer mCloser = Closer.create();
 
-  /**
-   * Local store to store pages.
-   */
+  /** Local store to store pages. */
   private final CacheManager mCacheManager;
   private final boolean mQuotaEnabled;
-  /**
-   * Scope of the file.
-   */
+  /** Scope of the file. */
   private final CacheScope mCacheScope;
-  /**
-   * Cache Scope.
-   */
+  /** Cache Scope. */
   private final CacheQuota mCacheQuota;
-  /**
-   * File info, fetched from external FS.
-   */
+  /** File info, fetched from external FS. */
   private final URIStatus mStatus;
   private final FileInStreamOpener mExternalFileInStreamOpener;
 
-  /**
-   * Stream reading from the external file system, opened once.
-   */
+  /** Stream reading from the external file system, opened once. */
   private FileInStream mExternalFileInStream;
-  /**
-   * Current position of the stream, relative to the start of the file.
-   */
+  /** Current position of the stream, relative to the start of the file. */
   private long mPosition = 0;
   private boolean mClosed = false;
   private boolean mEOF = false;
@@ -83,7 +69,6 @@ public class LocalCacheFileInStream extends FileInStream {
    * Interface to wrap open method of file system.
    */
   public interface FileInStreamOpener {
-
     /**
      * Opens an FSDataInputStream at the indicated Path.
      *
@@ -384,19 +369,13 @@ public class LocalCacheFileInStream extends FileInStream {
 
   private static final class Metrics {
 
-    /**
-     * Cache hits.
-     */
+    /** Cache hits. */
     private static final Meter BYTES_READ_CACHE =
         MetricsSystem.meter(MetricKey.CLIENT_CACHE_BYTES_READ_CACHE.getName());
-    /**
-     * Bytes read from external, may be larger than requests due to reading complete pages.
-     */
+    /** Bytes read from external, may be larger than requests due to reading complete pages. */
     private static final Meter BYTES_READ_EXTERNAL =
         MetricsSystem.meter(MetricKey.CLIENT_CACHE_BYTES_READ_EXTERNAL.getName());
-    /**
-     * Cache misses.
-     */
+    /** Cache misses. */
     private static final Meter BYTES_REQUESTED_EXTERNAL =
         MetricsSystem.meter(MetricKey.CLIENT_CACHE_BYTES_REQUESTED_EXTERNAL.getName());
 
