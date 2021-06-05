@@ -368,7 +368,6 @@ public class LocalCacheFileInStream extends FileInStream {
   }
 
   private static final class Metrics {
-
     /** Cache hits. */
     private static final Meter BYTES_READ_CACHE =
         MetricsSystem.meter(MetricKey.CLIENT_CACHE_BYTES_READ_CACHE.getName());

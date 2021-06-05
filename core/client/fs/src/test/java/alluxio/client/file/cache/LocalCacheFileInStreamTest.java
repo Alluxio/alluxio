@@ -396,7 +396,7 @@ public class LocalCacheFileInStreamTest {
   }
 
   @Test
-  public void externalStoreMultiReadFromBuffer() throws Exception {
+  public void externalStoreMultiReadThroughReadByteBufferMethod() throws Exception {
     int fileSize = PAGE_SIZE;
     byte[] testData = BufferUtils.getIncreasingByteArray(fileSize);
     ByteArrayCacheManager manager = new ByteArrayCacheManager();
@@ -525,7 +525,6 @@ public class LocalCacheFileInStreamTest {
    * Implementation of cache manager that stores cached data in byte arrays in memory.
    */
   private class ByteArrayCacheManager implements CacheManager {
-
     private final Map<PageId, byte[]> mPages;
 
     /** Metrics for test validation. */
