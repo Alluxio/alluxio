@@ -162,8 +162,8 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
         try {
           Class.forName(HDFS_EC_CODEC_REGISTRY_CLASS);
         } catch (ClassNotFoundException e) {
-          LOG.warn("Cannot initialize HDFS EC CodecRegistry. " +
-              "HDFS EC will not be supported: {}", e.toString());
+          LOG.warn("Cannot initialize HDFS EC CodecRegistry. "
+              + "HDFS EC will not be supported: {}", e.toString());
         }
       }
     } finally {
