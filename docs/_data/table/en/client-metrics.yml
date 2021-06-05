@@ -64,6 +64,8 @@ Client.CachePutStoreDeleteErrors:
   'Number of failures when putting cached data in the client cache due to failed deletes in page store.'
 Client.CachePutStoreWriteErrors:
   'Number of failures when putting cached data in the client cache due to failed writes to page store.'
+Client.CachePutStoreWriteNoSpaceErrors:
+  'Number of failures when putting cached data in the client cache but getting disk is full while cache capacity is not achieved. This can happen if the storage overhead ratio to write data is underestimated.'
 Client.CacheSpaceAvailable:
   'Amount of bytes available in the client cache.'
 Client.CacheSpaceUsed:
