@@ -132,7 +132,7 @@ public class LocalCacheFileInStream extends FileInStream {
       return 0;
     }
     // at end of file
-    if (mPosition >= mStatus.getLength()) {
+    if (pos >= mStatus.getLength()) {
       return -1;
     }
     int totalBytesRead = 0;
