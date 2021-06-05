@@ -14,6 +14,7 @@ package alluxio.underfs.hdfs;
 import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.SyncInfo;
+import alluxio.UfsConstants;
 import alluxio.conf.PropertyKey;
 import alluxio.collections.Pair;
 import alluxio.retry.CountingRetry;
@@ -90,7 +91,10 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
   private static final String HDFS_ACTIVESYNC_PROVIDER_CLASS =
       "alluxio.underfs.hdfs.activesync.SupportedHdfsActiveSyncProvider";
 
-  /** Name of the class for the Hdfs EC Codec Registry. **/
+  /** The minimum HDFS production version required for EC. **/
+  private static final String HDFS_EC_MIN_VERSION = "3.0.0";
+
+  /** Name of the class for the HDFS EC Codec Registry. **/
   private static final String HDFS_EC_CODEC_REGISTRY_CLASS =
       "org.apache.hadoop.io.erasurecode.CodecRegistry";
 
@@ -152,9 +156,16 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
       // Set Hadoop UGI configuration to ensure UGI can be initialized by the shaded classes for
       // group service.
       UserGroupInformation.setConfiguration(hdfsConf);
-      Class.forName(HDFS_EC_CODEC_REGISTRY_CLASS);
-    } catch (ClassNotFoundException e) {
-      LOG.warn("Cannot initialize HDFS EC CodecRegistry. HDFS EC will not be supported.");
+      // When HDFS version is 3.0.0 or later, initialize HDFS EC CodecRegistry here to ensure
+      // RawErasureCoderFactory implementations are loaded by the same classloader of hdfsConf.
+      if (UfsConstants.UFS_HADOOP_VERSION.compareTo(HDFS_EC_MIN_VERSION) >= 0) {
+        try {
+          Class.forName(HDFS_EC_CODEC_REGISTRY_CLASS);
+        } catch (ClassNotFoundException e) {
+          LOG.warn("Cannot initialize HDFS EC CodecRegistry. " +
+              "HDFS EC will not be supported: {}", e.toString());
+        }
+      }
     } finally {
       Thread.currentThread().setContextClassLoader(currentClassLoader);
     }
