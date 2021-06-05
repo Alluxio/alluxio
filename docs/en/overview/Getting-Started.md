@@ -105,6 +105,8 @@ the Alluxio journal and worker storage directories.
 $ ./bin/alluxio format
 ```
 
+Note that if this command returns failures related to 'ValidateHdfsVersion',
+and you are not planning to integrate HDFS to alluxio yet, you can ignore this failure for now.
 By default, Alluxio is configured to start a master and worker process when running locally.
 Start Alluxio on localhost with the following command:
 
@@ -387,3 +389,26 @@ Different frameworks and applications work with Alluxio.
 * [Apache HBase with Alluxio]({{ '/en/compute/HBase.html' | relativize_url }})
 * [Apache Hive with Alluxio]({{ '/en/compute/Hive.html' | relativize_url }})
 * [Presto with Alluxio]({{ '/en/compute/Presto.html' | relativize_url }})
+
+## FAQ
+
+### Why do I keep getting "Operation not permitted" for ssh and alluxio 
+
+For the users who are using macOS 11(Big Sur) or later, when running the command
+```console
+$ ./bin/alluxio format
+```
+you might get the error message:
+```
+alluxio-{{site.ALLUXIO_VERSION_STRING}}/bin/alluxio: Operation not permitted
+```
+This can be caused by the newly added setting options to macOS. 
+To fix it, open `System Preferences` and open `Sharing`.
+
+![macOS System Preferences Sharing]({{ '/img/screenshot_sharing_setting.png' | relativize_url }})
+
+On the left, check the box next to `Remote Login`. If there is `Allow full access to remote users` as shown in the 
+image, check the box next to it. Besides, click the `+` button and add yourself to the list of users that are allowed
+for Remote Login you are not already in it.
+
+
