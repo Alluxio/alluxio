@@ -76,9 +76,4 @@ public final class MockFileInStream extends FileInStream {
   public long remaining() {
     return mStream.available();
   }
-
-  @Override
-  public int read(ByteBuffer buf) throws IOException {
-    throw new UnsupportedOperationException("read(ByteBuffer buf) not implemented for mock FileInStream");
-  }
 }
