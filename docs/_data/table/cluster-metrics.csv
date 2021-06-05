@@ -1,4 +1,6 @@
 metricName,metricType
+Cluster.ActiveRpcReadCount,COUNTER
+Cluster.ActiveRpcWriteCount,COUNTER
 Cluster.BytesReadDirect,COUNTER
 Cluster.BytesReadDirectThroughput,GAUGE
 Cluster.BytesReadDomain,COUNTER
@@ -22,6 +24,7 @@ Cluster.BytesWrittenUfsThroughput,GAUGE
 Cluster.CapacityFree,GAUGE
 Cluster.CapacityTotal,GAUGE
 Cluster.CapacityUsed,GAUGE
+Cluster.LostWorkers,GAUGE
 Cluster.RootUfsCapacityFree,GAUGE
 Cluster.RootUfsCapacityTotal,GAUGE
 Cluster.RootUfsCapacityUsed,GAUGE
