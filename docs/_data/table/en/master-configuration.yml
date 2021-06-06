@@ -116,6 +116,10 @@ alluxio.master.journal.log.size.bytes.max:
   'If a log file is bigger than this value, it will rotate to next file.'
 alluxio.master.journal.retry.interval:
   'The amount of time to sleep between retrying journal flushes'
+alluxio.master.journal.space.monitor.interval:
+  'How often to check and update information on space utilization of the journal disk. This is currently only compatible with linux-basedsystems and when alluxio.master.journal.type is configured to EMBEDDED'
+alluxio.master.journal.space.monitor.percent.free.threshold:
+  'When the percent of free space on any disk which backs the journal falls below this percentage, begin logging warning messages to let administrators know the journal disk(s) may be running low on space.'
 alluxio.master.journal.tailer.shutdown.quiet.wait.time:
   'Before the standby master shuts down its tailer thread, there should be no update to the leader master''s journal in this specified time period.'
 alluxio.master.journal.tailer.sleep.time:
@@ -170,6 +174,8 @@ alluxio.master.metastore.inode.iteration.crawler.count:
   'The number of threads used during inode tree enumeration.'
 alluxio.master.metastore.iterator.readahead.size:
   'The read-ahead size (in bytes) for metastore iterators.'
+alluxio.master.metrics.heap.enabled:
+  'Enable master heap estimate metrics'
 alluxio.master.metrics.service.threads:
   'The number of threads in metrics master executor pool for parallel processing metrics submitted by workers or clients and update cluster metrics.'
 alluxio.master.metrics.time.series.interval:

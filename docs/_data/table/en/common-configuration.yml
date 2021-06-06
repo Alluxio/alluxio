@@ -4,6 +4,12 @@ alluxio.debug:
   'Set to true to enable debug mode which has additional logging and info in the Web UI.'
 alluxio.extensions.dir:
   'The directory containing Alluxio extensions.'
+alluxio.fuse.auth.policy.class:
+  'The fuse auth policy class.  Valid options include: `alluxio.fuse.auth.SystemUserGroupAuthPolicy`, `alluxio.fuse.auth.CustomAuthPolicy`.'
+alluxio.fuse.auth.policy.custom.group:
+  'The fuse group name for custom auth policy. Only valid if the alluxio.fuse.auth.policy.class is alluxio.fuse.auth.CustomAuthPolicy'
+alluxio.fuse.auth.policy.custom.user:
+  'The fuse user name for custom auth policy. Only valid if the alluxio.fuse.auth.policy.class is alluxio.fuse.auth.CustomAuthPolicy'
 alluxio.fuse.cached.paths.max:
   'Maximum number of Alluxio paths to cache for FUSE conversion.'
 alluxio.fuse.debug.enabled:
@@ -67,7 +73,7 @@ alluxio.job.worker.rpc.port:
 alluxio.job.worker.threadpool.size:
   'Number of threads in the thread pool for job worker. This may be adjusted to a lower value to alleviate resource saturation on the job worker nodes (CPU + IO).'
 alluxio.job.worker.throttling:
-  'Whether the job worker should throttle itself based on whether theresources are saturated.'
+  'Whether the job worker should throttle itself based on whether the resources are saturated.'
 alluxio.job.worker.web.bind.host:
   'The host the job worker web server binds to.'
 alluxio.job.worker.web.port:
@@ -88,8 +94,6 @@ alluxio.locality.rack:
   'Value to use for determining rack locality'
 alluxio.locality.script:
   'A script to determine tiered identity for locality checking'
-alluxio.logger.type:
-  'The type of logger.'
 alluxio.logs.dir:
   'The path under Alluxio home directory to store log files. It has a corresponding environment variable $ALLUXIO_LOGS_DIR. Note: overwriting this property will only work when it is passed as a JVM system property (e.g., appending &quot;-Dalluxio.logs.dir&quot;=&lt;NEW_VALUE&gt;&quot; to $ALLUXIO_JAVA_OPTS). Setting it in alluxio-site.properties will not work.'
 alluxio.logserver.hostname:
@@ -148,12 +152,40 @@ alluxio.table.transform.manager.job.history.retention.time:
   'The length of time the Alluxio Table Master should keep information about finished transformation jobs before they are discarded.'
 alluxio.table.transform.manager.job.monitor.interval:
   'Job monitor is a heartbeat thread in the transform manager, this is the time interval in milliseconds the job monitor heartbeat is run to check the status of the transformation jobs and update table and partition locations after transformation.'
+alluxio.table.udb.hive.clientpool.MAX:
+  'The maximum capacity of the hive client pool per hive metastore'
+alluxio.table.udb.hive.clientpool.min:
+  'The minimum capacity of the hive client pool per hive metastore'
 alluxio.test.deprecated.key:
   'N/A'
 alluxio.tmp.dirs:
   'The path(s) to store Alluxio temporary files, use commas as delimiters. If multiple paths are specified, one will be selected at random per temporary file. Currently, only files to be uploaded to object stores are stored in these paths.'
 alluxio.underfs.allow.set.owner.failure:
   'Whether to allow setting owner in UFS to fail. When set to true, it is possible file or directory owners diverge between Alluxio and UFS.'
+alluxio.underfs.cephfs.auth.id:
+  'Ceph client id for authentication.'
+alluxio.underfs.cephfs.auth.key:
+  'CephX authentication key, base64 encoded.'
+alluxio.underfs.cephfs.auth.keyfile:
+  'Path to CephX authentication key file.'
+alluxio.underfs.cephfs.auth.keyring:
+  'Path to CephX authentication keyring file.'
+alluxio.underfs.cephfs.conf.file:
+  'Path to Ceph configuration file.'
+alluxio.underfs.cephfs.conf.options:
+  'Extra configuration options for CephFS client.'
+alluxio.underfs.cephfs.localize.reads:
+  'Utilize Ceph localized reads feature.'
+alluxio.underfs.cephfs.mds.namespace:
+  'CephFS filesystem to mount.'
+alluxio.underfs.cephfs.mon.host:
+  'List of hosts or addresses to search for a Ceph monitor.'
+alluxio.underfs.cephfs.mount.gid:
+  'The group ID of CephFS mount.'
+alluxio.underfs.cephfs.mount.point:
+  'Directory to mount on the CephFS filesystem.'
+alluxio.underfs.cephfs.mount.uid:
+  'The user ID of CephFS mount.'
 alluxio.underfs.cleanup.enabled:
   'Whether or not to clean up under file storage periodically.Some ufs operations may not be completed and cleaned up successfully in normal ways and leave some intermediate data that needs periodical cleanup.If enabled, all the mount points will be cleaned up when a leader master starts or cleanup interval is reached. This should be used sparingly.'
 alluxio.underfs.cleanup.interval:
@@ -170,6 +202,18 @@ alluxio.underfs.gcs.directory.suffix:
   'Directories are represented in GCS as zero-byte objects named with the specified suffix.'
 alluxio.underfs.gcs.owner.id.to.username.mapping:
   'Optionally, specify a preset gcs owner id to Alluxio username static mapping in the format &quot;id1=user1;id2=user2&quot;. The Google Cloud Storage IDs can be found at the console address https://console.cloud.google.com/storage/settings . Please use the &quot;Owners&quot; one. This property key is only valid when alluxio.underfs.gcs.version=1'
+alluxio.underfs.gcs.retry.delay.multiplier:
+  'Delay multiplier while retrying requests on the ufs'
+alluxio.underfs.gcs.retry.initial.delay:
+  'Initial delay before attempting the retry on the ufs'
+alluxio.underfs.gcs.retry.jitter:
+  'Enable delay jitter while retrying requests on the ufs'
+alluxio.underfs.gcs.retry.max:
+  'Maximum Number of retries on the ufs'
+alluxio.underfs.gcs.retry.max.delay:
+  'Maximum delay before attempting the retry on the ufs'
+alluxio.underfs.gcs.retry.total.duration:
+  'Maximum retry duration on the ufs'
 alluxio.underfs.gcs.version:
   'Specify the version of GCS module to use. GCS version &quot;1&quot; builds on top of jets3t package which requires fs.gcs.accessKeyId and fs.gcs.secretAccessKey. GCS version &quot;2&quot; build on top of Google cloud API which requires fs.gcs.credential.path'
 alluxio.underfs.hdfs.configuration:
