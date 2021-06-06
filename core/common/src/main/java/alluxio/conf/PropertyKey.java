@@ -4058,10 +4058,19 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "a past time window, and measure the hit ratio if the working set fits the cache")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN).setScope(Scope.CLIENT).build();
   public static final PropertyKey USER_CLIENT_CACHE_SHADOW_WINDOW =
-      new Builder(Name.USER_CLIENT_CACHE_SHADOW_WINDOW).setDefaultValue(86400)
+      new Builder(Name.USER_CLIENT_CACHE_SHADOW_WINDOW).setDefaultValue("24h")
           .setDescription(
               "The past time window for the shadow cache to tracking the working set, and it is "
                   + "in the unit of second")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN).setScope(Scope.CLIENT).build();
+  public static final PropertyKey USER_CLIENT_CACHE_SHADOW_MEMORY_OVERHEAD =
+      new Builder(Name.USER_CLIENT_CACHE_SHADOW_MEMORY_OVERHEAD).setDefaultValue("125MB")
+          .setDescription("The total memory overhead for bloom filters used for tracking")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN).setScope(Scope.CLIENT).build();
+  public static final PropertyKey USER_CLIENT_CACHE_SHADOW_BLOOMFILTER_NUM =
+      new Builder(Name.USER_CLIENT_CACHE_SHADOW_BLOOMFILTER_NUM).setDefaultValue(4)
+          .setDescription(
+              "The number of bloom filters used for tracking. Each tracks a segment of window")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN).setScope(Scope.CLIENT).build();
   public static final PropertyKey USER_CLIENT_CACHE_DIR =
       new Builder(Name.USER_CLIENT_CACHE_DIR)
@@ -6023,6 +6032,10 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.user.client.cache.shadow.enabled";
     public static final String USER_CLIENT_CACHE_SHADOW_WINDOW =
         "alluxio.user.client.cache.shadow.window";
+    public static final String USER_CLIENT_CACHE_SHADOW_MEMORY_OVERHEAD =
+        "alluxio.user.client.cache.shadow.memory.overhead";
+    public static final String USER_CLIENT_CACHE_SHADOW_BLOOMFILTER_NUM =
+        "alluxio.user.client.cache.shadow.bloomfilter.num";
     public static final String USER_CLIENT_CACHE_DIR =
         "alluxio.user.client.cache.dir";
     public static final String USER_CLIENT_CACHE_LOCAL_STORE_FILE_BUCKETS =

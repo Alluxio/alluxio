@@ -15,9 +15,12 @@ import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
+import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
 import alluxio.client.quota.CacheQuota;
 import alluxio.client.quota.CacheScope;
+import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.util.io.BufferUtils;
 
 import org.junit.Before;
@@ -36,10 +39,12 @@ public final class CacheManagerWithShadowCacheTest {
   private static final byte[] PAGE2 = BufferUtils.getIncreasingByteArray(255, PAGE_SIZE_BYTES);
   private final byte[] mBuf = new byte[PAGE_SIZE_BYTES];
   private CacheManagerWithShadowCache mCacheManager;
+  private InstancedConfiguration mConf = ConfigurationTestUtils.defaults();
 
   @Before
   public void before() throws Exception {
-    mCacheManager = new CacheManagerWithShadowCache(new KVCacheManager(), 20);
+    mConf.set(PropertyKey.USER_CLIENT_CACHE_SHADOW_WINDOW, "20s");
+    mCacheManager = new CacheManagerWithShadowCache(new KVCacheManager(), mConf);
     mCacheManager.stopUpdate();
   }
 

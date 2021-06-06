@@ -1206,10 +1206,6 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setMetricType(MetricType.GAUGE)
           .setIsClusterAggregated(false)
           .build();
-  public static final MetricKey CLIENT_CACHE_SHADOW_CACHE_PAGES =
-      new Builder("Client.CacheShadowCachePages")
-          .setDescription("Amount of pages in the client shadow cache.")
-          .setMetricType(MetricType.COUNTER).setIsClusterAggregated(false).build();
   public static final MetricKey CLIENT_CACHE_SHADOW_CACHE_BYTES =
       new Builder("Client.CacheShadowCacheBytes")
           .setDescription("Amount of bytes in the client shadow cache.")
@@ -1221,6 +1217,15 @@ public final class MetricKey implements Comparable<MetricKey> {
   public static final MetricKey CLIENT_CACHE_SHADOW_CACHE_BYTES_READ =
       new Builder("Client.CacheShadowCacheBytesRead")
           .setDescription("Total number of bytes read from the client shadow cache.")
+          .setMetricType(MetricType.COUNTER).setIsClusterAggregated(false).build();
+  public static final MetricKey CLIENT_CACHE_SHADOW_CACHE_FALSE_POSITIVE_RATIO =
+      new Builder("Client.CacheShadowCacheFalsePositiveRatio")
+          .setDescription("Probability that the working set bloom filter makes an error. "
+              + "The value is 0-100. If too high, need to allocate more space")
+          .setMetricType(MetricType.COUNTER).setIsClusterAggregated(false).build();
+  public static final MetricKey CLIENT_CACHE_SHADOW_CACHE_PAGES =
+      new Builder("Client.CacheShadowCachePages")
+          .setDescription("Amount of pages in the client shadow cache.")
           .setMetricType(MetricType.COUNTER).setIsClusterAggregated(false).build();
   public static final MetricKey CLIENT_CACHE_SHADOW_CACHE_PAGES_HIT =
       new Builder("Client.CacheShadowCachePagesHit")
