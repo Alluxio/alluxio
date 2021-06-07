@@ -878,7 +878,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
           ensureFullPathAndUpdateCache(inodePath);
 
           FileInfo fileInfo = getFileInfoInternal(inodePath);
-          if (!fileInfo.isCompleted()) {
+          if (!fileInfo.isFolder() && (!fileInfo.isCompleted())) {
             LOG.warn("File {} is not yet completed. getStatus will see incomplete metadata.",
                 fileInfo.getPath());
           }
