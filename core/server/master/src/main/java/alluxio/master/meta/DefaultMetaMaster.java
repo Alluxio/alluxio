@@ -618,15 +618,15 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
           ServerConfiguration.set(key, entry.getValue(), Source.RUNTIME);
           result.put(entry.getKey(), true);
           successCount++;
-          LOG.debug("Update property {} from {} to {}",
-              key.getName(), oldValue, ServerConfiguration.get(key));
+          LOG.info("Property {} has been updated to \"{}\" from \"{}\"",
+              key.getName(), entry.getValue(), oldValue);
         } else {
           LOG.debug("Update a non-dynamic property {} is banned", key.getName());
           result.put(entry.getKey(), false);
         }
       } catch (Exception e) {
         result.put(entry.getKey(), false);
-        LOG.error("Update property {} to {} met exception", e);
+        LOG.error("Update property {} to {} met exception", entry.getKey(), entry.getValue(), e);
       }
     }
     LOG.debug("Update {} properties, succeed {}.", propertiesMap.size(), successCount);

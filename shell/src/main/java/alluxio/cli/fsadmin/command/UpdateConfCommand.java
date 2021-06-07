@@ -16,8 +16,6 @@ import alluxio.conf.AlluxioConfiguration;
 
 import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.cli.CommandLine;
-import org.apache.commons.cli.Option;
-import org.apache.commons.cli.Options;
 
 import javax.annotation.concurrent.ThreadSafe;
 import java.io.IOException;
@@ -32,28 +30,12 @@ import java.util.Map.Entry;
 @PublicApi
 public final class UpdateConfCommand extends AbstractFsAdminCommand {
 
-  private static final Option OPTION_OPTION =
-      Option.builder()
-          .longOpt("option")
-          .required(false)
-          .hasArg(true)
-          .numberOfArgs(2)
-          .argName("key=value")
-          .valueSeparator('=')
-          .desc("property key and value")
-          .build();
-
   /**
    * @param context fsadmin command context
    * @param alluxioConf Alluxio configuration
    */
   public UpdateConfCommand(Context context, AlluxioConfiguration alluxioConf) {
     super(context);
-  }
-
-  @Override
-  public Options getOptions() {
-    return new Options().addOption(OPTION_OPTION);
   }
 
   @Override
@@ -65,28 +47,30 @@ public final class UpdateConfCommand extends AbstractFsAdminCommand {
   public int run(CommandLine cl) throws IOException {
     int errorCode = 0;
     Map<String, String> properties = new HashMap<>();
-    cl.getArgList().forEach(arg -> {
+    for (String arg : cl.getArgList()) {
       if (arg.contains("=")) {
         String[] kv = arg.split("=");
-        if (arg.length() == 2) {
-          properties.put(kv[0], kv[1]);
+        if (kv.length != 2) {
+          System.err.println("Each argument must exactly contain one `=`");
+          return -3;
         }
+        properties.put(kv[0], kv[1]);
       }
-    });
+    }
 
-    if (properties.size() > 0) {
-      Map<String, Boolean> result
-          = mMetaConfigClient.updateConfiguration(properties);
-      System.out.println("Updated " + result.size() + " configs");
-      for (Entry<String, Boolean> entry : result.entrySet()) {
-        if (!entry.getValue()) {
-          System.out.println("Failed to Update " + entry.getKey());
-          errorCode = -2;
-        }
-      }
-    } else {
+    if (properties.size() == 0) {
       System.out.println("No config to update");
-      errorCode = -1;
+      return -1;
+    }
+
+    Map<String, Boolean> result
+        = mMetaConfigClient.updateConfiguration(properties);
+    System.out.println("Updated " + result.size() + " configs");
+    for (Entry<String, Boolean> entry : result.entrySet()) {
+      if (!entry.getValue()) {
+        System.out.println("Failed to Update " + entry.getKey());
+        errorCode = -2;
+      }
     }
 
     return errorCode;
@@ -94,7 +78,7 @@ public final class UpdateConfCommand extends AbstractFsAdminCommand {
 
   @Override
   public String getUsage() {
-    return "updateConf [--option <key=val>] ";
+    return "updateConf key1=val1 key2=val2 ... keyn=valn";
   }
 
   /**

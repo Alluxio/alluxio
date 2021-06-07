@@ -37,7 +37,7 @@ public final class UpdateConfIntegrationTest extends AbstractFsAdminShellTest {
     ret = mFsAdminShell.run("updateConf", "unknown-key");
     Assert.assertEquals(-1, ret);
     ret = mFsAdminShell.run("updateConf", "unknown-key=1=2");
-    Assert.assertEquals(-1, ret);
+    Assert.assertEquals(-3, ret);
   }
 
   @Test

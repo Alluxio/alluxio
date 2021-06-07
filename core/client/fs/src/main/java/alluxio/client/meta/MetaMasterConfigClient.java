@@ -77,7 +77,7 @@ public interface MetaMasterConfigClient extends Client {
   void removePathConfiguration(AlluxioURI path) throws IOException;
 
   /**
-   * Update properties.
+   * Updates properties.
    *
    * @param propertiesMap the properties map to be updated
    * @return the update properties status map
