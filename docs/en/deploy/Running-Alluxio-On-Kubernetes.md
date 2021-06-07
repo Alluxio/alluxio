@@ -1366,7 +1366,8 @@ and `volumeMounts` of each container if existing.
 
 ### Configuring ServiceAccounts
 
-By default Kubernetes will assign the namespace's `default` ServiceAccount
+[By default](https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account/#use-the-default-service-account-to-access-the-api-server)
+Kubernetes will assign the namespace's `default` ServiceAccount
 to new pods in a namespace. You may specify for Alluxio pods to use
 any existing ServiceAccounts you may have in your cluster through
 the following:
@@ -1404,6 +1405,72 @@ spec:
   template:
     spec:
       serviceAccountName: sa-alluxio
+```
+
+{% endnavtab %}
+{% endnavtabs %}
+
+### Configuring Node Selectors & Tolerations
+
+Kubernetes provides many options to control the scheduling of pods
+onto nodes in the cluster. The most direct of which is a [node selector](https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/#nodeselector).
+
+However, Kubernetes will avoid scheduling pods on any tainted nodes.
+To allow certain pods to schedule on such nodes, Kubernetes allows
+you to specify tolerations for those taints. See [the Kubernetes documentation
+on taints and tolerations](https://kubernetes.io/docs/concepts/scheduling-eviction/taint-and-toleration/)
+for more details.
+
+{% navtabs selectorsTolerations %}
+{% navtab helm %}
+
+You may specify a node selector in JSON as a top-level Helm value,
+`nodeSelector`, which will apply to all pods in the chart. Similarly,
+you may specify a list of tolerations in JSON as a top-level Helm value,
+`tolerations`, which will also apply to all pods in the chart.
+```properties
+nodeSelector: {"app": "alluxio"}
+
+tolerations: [ {"key": "env", "operator": "Equal", "value": "prod", "effect": "NoSchedule"} ]
+```
+
+You can **override** the top-level `nodeSelector` by specifying a value
+for the specific component's `nodeSelector`.
+```properties
+master:
+  nodeSelector: {"app": "alluxio-master"}
+
+worker:
+  nodeSelector: {"app": "alluxio-worker"}
+```
+
+You can **append** to the top-level `tolerations` by specifying a value
+for the specific component's `tolerations`.
+```properties
+logserver:
+  tolerations: [ {"key": "app", "operator": "Equal", "value": "logging", "effect": "NoSchedule"} ]
+```
+
+{% endnavtab %}
+{% navtab kubectl %}
+
+You may add `nodeSelector` and `tolerations` fields to any of the Alluxio Pod template
+specs. For example:
+```properties
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: alluxio-master
+spec:
+  template:
+    spec:
+      nodeSelector:
+        app: alluxio
+      tolerations:
+        - effect: NoSchedule
+          key: env
+          operator: Equal
+          value: prod
 ```
 
 {% endnavtab %}
