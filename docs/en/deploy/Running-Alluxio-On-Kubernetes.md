@@ -1364,7 +1364,12 @@ and `volumeMounts` of each container if existing.
 {% endnavtab %}
 {% endnavtabs %}
 
-### Configuring ServiceAccounts
+### Kubernetes Configuration Options
+
+The following options are provided in our Helm chart as additional
+parameters for experienced Kubernetes users.
+
+#### ServiceAccounts
 
 [By default](https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account/#use-the-default-service-account-to-access-the-api-server)
 Kubernetes will assign the namespace's `default` ServiceAccount
@@ -1410,7 +1415,7 @@ spec:
 {% endnavtab %}
 {% endnavtabs %}
 
-### Configuring Node Selectors & Tolerations
+#### Node Selectors & Tolerations
 
 Kubernetes provides many options to control the scheduling of pods
 onto nodes in the cluster. The most direct of which is a [node selector](https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/#nodeselector).
@@ -1476,7 +1481,7 @@ spec:
 {% endnavtab %}
 {% endnavtabs %}
 
-### Configuring "Host Aliases"
+#### Host Aliases
 
 If you wish to modify the pods' `/etc/hosts` file,
 Kubernetes exposes this via [host aliases](https://kubernetes.io/docs/concepts/services-networking/add-entries-to-pod-etc-hosts-with-host-aliases/).
@@ -1520,6 +1525,45 @@ spec:
         hostnames:
           - "foo.remote"
           - "bar.local"
+```
+
+{% endnavtab %}
+{% endnavtabs %}
+
+#### Deployment Strategy
+
+[By default](https://kubernetes.io/docs/concepts/workloads/controllers/deployment/#strategy)
+Kubernetes will use the 'RollingUpdate' deployment strategy to progressively
+upgrade Pods when changes are detected.
+
+{% navtabs deployStrategy %}
+{% navtab helm %}
+
+The Helm chart currently only supports `strategy` for the logging server deployment:
+```properties
+logserver:
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 25%
+      maxSurge: 1
+```
+
+{% endnavtab %}
+{% navtab kubectl %}
+
+You may add a `strategy` field to any of the Alluxio Pod template
+specs to have the Pod run using the matching ServiceAccount. For example:
+```properties
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: alluxio-master
+spec:
+  template:
+    spec:
+      strategy:
+        type: Recreate
 ```
 
 {% endnavtab %}
