@@ -102,17 +102,28 @@ $ ${ALLUXIO_HOME}/bin/alluxio table attachdb --db alluxio_db hive \
     thrift://metastore_host:9083 default
 ```
 
-If you want specify config file for the UDB, please add `attachdb` option `-o catalog.db.config.file`.
-Each time you want to affect the config file, you can use `alluxio table sync`.
+If you want to specify a config file for the UDB, please append an option `-o catalog.db.config.file` to
+`attachdb` command.
+After each time you made changes to the config file, you can use `alluxio table sync` to apply the changes.
 
-If you want to write a configuration file for the UDB, please configure it like the following given example.
-It must contain an array `bypassSet`, the comma-separated table names will be bypassed.
+The configuration file is in JSON format, and can contain these configurations:
 
-```json
-{
-  "bypassSet" : ["table1", "table2"]
-}
-```
+1. Tables and partitions bypassing specification:
+
+    ```json
+    {
+      "bypass": {
+        "tables": [
+          "table1",
+          {"table": "table2", "partitions": ["table2_part1", "table2_part2"]}
+        ]
+      }
+    }
+    ```
+
+    You can specify which tables and partitions within these tables should be bypassed from Alluxio.
+    By specifying only the table name, all partitions of that table, if any, will be bypassed. Otherwise, 
+    you can specify specific partitions to bypass.
 
 > **Note:** When databases are attached, all tables are synced from the configured UDB.
 If out-of-band updates occur to the database or table and the user wants query results to reflect
