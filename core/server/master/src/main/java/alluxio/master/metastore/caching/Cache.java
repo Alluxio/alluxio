@@ -17,7 +17,6 @@ import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.util.logging.SamplingLogger;
 
-import com.codahale.metrics.Timer;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Stopwatch;
 import org.slf4j.Logger;
@@ -114,35 +113,32 @@ public abstract class Cache<K, V> implements Closeable {
    * @return the value, or empty if the key doesn't exist in the cache or in the backing store
    */
   public Optional<V> get(K key, ReadOption option) {
-    try (Timer.Context ctx = MetricsSystem
-        .timer(MetricKey.MASTER_INODE_CACHE_LOAD_TIMER.getName()).time()) {
-      if (option.shouldSkipCache() || cacheIsFull()) {
-        return getSkipCache(key);
-      }
-      Entry result = mMap.compute(key, (k, entry) -> {
-        if (entry != null) {
-          mStatsCounter.recordHit();
-          entry.mReferenced = true;
-          return entry;
-        }
-        mStatsCounter.recordMiss();
-        final Stopwatch stopwatch = Stopwatch.createStarted();
-        Optional<V> value = load(key);
-        mStatsCounter.recordLoad(stopwatch.elapsed(TimeUnit.NANOSECONDS));
-        if (value.isPresent()) {
-          onCacheUpdate(key, value.get());
-          Entry newEntry = new Entry(key, value.get());
-          newEntry.mDirty = false;
-          return newEntry;
-        }
-        return null;
-      });
-      if (result == null || result.mValue == null) {
-        return Optional.empty();
-      }
-      wakeEvictionThreadIfNecessary();
-      return Optional.of(result.mValue);
+    if (option.shouldSkipCache() || cacheIsFull()) {
+      return getSkipCache(key);
     }
+    Entry result = mMap.compute(key, (k, entry) -> {
+      if (entry != null) {
+        mStatsCounter.recordHit();
+        entry.mReferenced = true;
+        return entry;
+      }
+      mStatsCounter.recordMiss();
+      final Stopwatch stopwatch = Stopwatch.createStarted();
+      Optional<V> value = load(key);
+      mStatsCounter.recordLoad(stopwatch.elapsed(TimeUnit.NANOSECONDS));
+      if (value.isPresent()) {
+        onCacheUpdate(key, value.get());
+        Entry newEntry = new Entry(key, value.get());
+        newEntry.mDirty = false;
+        return newEntry;
+      }
+      return null;
+    });
+    if (result == null || result.mValue == null) {
+      return Optional.empty();
+    }
+    wakeEvictionThreadIfNecessary();
+    return Optional.of(result.mValue);
   }
 
   /**
