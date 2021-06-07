@@ -52,7 +52,8 @@ get_env() {
   CLASSPATH=${ALLUXIO_CLIENT_CLASSPATH}
   ALLUXIO_TASK_LOG="${ALLUXIO_LOGS_DIR}/task.log"
 
-  # Remove the remote debug configuration to avoid the error: "transport error 20: bind failed: Address already in use."
+  # Remove the remote debug configuration to avoid the error: "transport error 20: bind failed: Address already in use." 
+  # See https://github.com/Alluxio/alluxio/issues/10958
   ALLUXIO_MASTER_MONITOR_JAVA_OPTS=$(echo ${ALLUXIO_MASTER_JAVA_OPTS} | sed 's/^-agentlib:jdwp=transport=dt_socket.*address=[0-9]*//')
   ALLUXIO_WORKER_MONITOR_JAVA_OPTS=$(echo ${ALLUXIO_WORKER_JAVA_OPTS} | sed 's/^-agentlib:jdwp=transport=dt_socket.*address=[0-9]*//')
   ALLUXIO_JOB_MASTER_MONITOR_JAVA_OPTS=$(echo ${ALLUXIO_JOB_MASTER_JAVA_OPTS} | sed 's/^-agentlib:jdwp=transport=dt_socket.*address=[0-9]*//')
