@@ -39,6 +39,7 @@ class TruncateOperation;
 class UnlinkOperation;
 class UtimensOperation;
 class WriteOperation;
+class SymlinkOperation;
 
 class JniFuseFileSystem {
  private:
@@ -74,6 +75,7 @@ class JniFuseFileSystem {
   RenameOperation *renameOper;
   RmdirOperation *rmdirOper;
   SetxattrOperation *setxattrOper;
+  SymlinkOperation *symlinkOper;
   TruncateOperation *truncateOper;
   UnlinkOperation *unlinkOper;
   UtimensOperation *utimensOper;
