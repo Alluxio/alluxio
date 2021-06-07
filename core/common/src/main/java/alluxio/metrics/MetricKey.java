@@ -1038,7 +1038,7 @@ public final class MetricKey implements Comparable<MetricKey> {
 
   // Client metrics
   public static final MetricKey CLIENT_BLOCK_READ_CHUNK_REMOTE =
-      new Builder("Client.BlockReadDataChunkRemote")
+      new Builder("Client.BlockReadChunkRemote")
           .setDescription(String.format("The timer statistics of reading block data in chunks "
               + "from remote Alluxio workers via RPC framework. "
               + "This metrics will only be recorded when %s is set to true",
