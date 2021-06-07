@@ -1476,6 +1476,55 @@ spec:
 {% endnavtab %}
 {% endnavtabs %}
 
+### Configuring "Host Aliases"
+
+If you wish to modify the pods' `/etc/hosts` file,
+Kubernetes exposes this via [host aliases](https://kubernetes.io/docs/concepts/services-networking/add-entries-to-pod-etc-hosts-with-host-aliases/).
+
+{% navtabs hostAliases %}
+{% navtab helm %}
+
+You may specify a top-level Helm value `hostAliases` which will
+apply to the Master and Worker pods in the chart.
+```properties
+hostAliases:
+- ip: "127.0.0.1"
+  hostnames:
+    - "foo.local"
+    - "bar.local"
+- ip: "10.1.2.3"
+  hostnames:
+    - "foo.remote"
+    - "bar.remote"
+```
+
+{% endnavtab %}
+{% navtab kubectl %}
+
+You may add the `hostAliases` field to any of the Alluxio Pod template
+specs. For example:
+```properties
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: alluxio-master
+spec:
+  template:
+    spec:
+      hostAliases:
+      - ip: "127.0.0.1"
+        hostnames:
+          - "foo.local"
+          - "bar.local"
+      - ip: "10.1.2.3"
+        hostnames:
+          - "foo.remote"
+          - "bar.local"
+```
+
+{% endnavtab %}
+{% endnavtabs %}
+
 ## Troubleshooting
 
 {% accordion worker_host %}
