@@ -38,10 +38,10 @@ Please read the [section of limitations](#assumptions-and-limitations) for detai
 ## Choose POSIX API Implementation
 
 The Alluxio POSIX API has two implementations:
-* Alluxio JNR-Fuse
+* Alluxio JNR-Fuse:
 Alluxio's first generation Fuse implementation that uses [JNR-Fuse](https://github.com/SerCeMan/jnr-fuse) for FUSE on Java.
 JNR-Fuse targets for low concurrency scenarios and has some known limitations in performance.
-* Alluxio JNI-Fuse
+* Alluxio JNI-Fuse:
 Alluxio's default in-house implementation based on JNI (Java Native Interface) which targets more performance-sensitve applications (like model training workloads) and initiated by researchers from Nanjing University and engineers from Alibaba Inc.
 
 Here is a guideline to choose between the JNR-Fuse and JNI-Fuse:
@@ -60,13 +60,13 @@ alluxio.fuse.jnifuse.enabled=false
 
 There are two approaches to deploy Alluxio POSIX integration:
 
-* Serving POSIX API by Standalone FUSE process
+* Serving POSIX API by Standalone FUSE process:
 Alluxio POSIX integration can be launched as a standalone process, independent from existing running Alluxio clusters.
 Each process is essentially a long-running Alluxio client, serving a file system mount point that maps an Alluxio path to a local path.
 This approach is flexible so that users can enable or disable POSIX integration on hosts regardless Alluxio servers are running locally.
 However, the FUSE process needs to communicate with Alluxio service through network.
 
-* Enabling FUSE on worker
+* Enabling FUSE on worker:
 Alluxio POSIX integration can also be provided by a running Alluxio worker process.
 This integration provides better performance because the FUSE service can communicate with the Alluxio worker without invoking RPCs,
 which help improve the read/write throughput on local cache hit.
@@ -123,7 +123,7 @@ Note that the `<mount_point>` must be an existing and empty path in your local f
 and that the user that runs the `integration/fuse/bin/alluxio-fuse` script must own the mount point
 and have read and write permissions on it.
 Multiple Alluxio FUSE mount points can be created in the same node.
-All the `AlluxioFuse` processes share the same log output at `$ALLUXIO_HOME\logs\fuse.log`, which is
+All the `AlluxioFuse` processes share the same log output at `${ALLUXIO_HOME}/logs/fuse.log`, which is
 useful for troubleshooting when errors happen on operations under the filesystem.
 
 ### Unmount Alluxio from FUSE
@@ -219,13 +219,13 @@ value of `-o`.
 The `-o [mount options]` must follow the `mount` command.
 
 Different versions of `libfuse` and `osxfuse` may support different mount options.
-The available Linux mount options are listed [here](http://man7.org/linux/man-pages/man8/mount.fuse.8.html).
+The available Linux mount options are listed [here](http://man7.org/linux/man-pages/man8/mount.fuse3.8.html).
 The mount options of MacOS with osxfuse are listed [here](https://github.com/osxfuse/osxfuse/wiki/Mount-options) .
 Some mount options (e.g. `allow_other` and `allow_root`) need additional set-up
 and the set up process may be different depending on the platform.
 
 ```console
-$ ${ALLUXIO_HOME}integration/fuse/bin/alluxio-fuse mount \
+$ ${ALLUXIO_HOME}/integration/fuse/bin/alluxio-fuse mount \
   -o [comma separated mount options] mount_point [alluxio_path]
 ```
 
@@ -292,7 +292,7 @@ enables this property by modifying the [libfuse source code](https://github.com/
 
 If you are using alluxio fuse docker image, set the `MAX_IDLE_THREADS` via environment variable:
 ```console
-$ docker run --rm \
+$ docker run -d --rm \
     ...
     --env MAX_IDLE_THREADS=64 \
     alluxio/{{site.ALLUXIO_DOCKER_IMAGE}}-fuse fuse
@@ -352,7 +352,7 @@ characteristics, please be aware that:
 
 ## Performance Optimization
 
-Due to the conjunct use of FUSE, the performance of the mounted file system is expected to lower compared to using the [Alluxio Java client]({{ '/en/api/FS-API.html' | relativize_url }}#java-client) directly.
+Due to the conjunct use of FUSE, the performance of the mounted file system is expected to be lower compared to using the [Alluxio Java client]({{ '/en/api/FS-API.html' | relativize_url }}#java-client) directly.
 
 Most of the overheads come from the fact that there are several memory copies going on for each call
 for `read` or `write` operations. FUSE caps the maximum granularity of writes to 128KB.

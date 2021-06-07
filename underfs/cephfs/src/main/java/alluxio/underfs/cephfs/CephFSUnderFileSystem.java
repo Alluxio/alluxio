@@ -35,7 +35,6 @@ import alluxio.util.io.PathUtils;
 
 import com.ceph.fs.CephFileAlreadyExistsException;
 import com.ceph.fs.CephMount;
-import com.ceph.fs.CephNotDirectoryException;
 import com.ceph.fs.CephStat;
 import com.ceph.fs.CephStatVFS;
 import org.slf4j.Logger;
@@ -733,19 +732,11 @@ public class CephFSUnderFileSystem extends ConsistentUnderFileSystem
   }
 
   private void lstat(String path, CephStat stat) throws IOException {
-    try {
-      mMount.lstat(path, stat);
-    } catch (CephNotDirectoryException e) {
-      throw new FileNotFoundException();
-    }
+    mMount.lstat(path, stat);
   }
 
   private void statfs(String path, CephStatVFS stat) throws IOException {
-    try {
-      mMount.statfs(path, stat);
-    } catch (FileNotFoundException e) {
-      throw new FileNotFoundException();
-    }
+    mMount.statfs(path, stat);
   }
 }
 
