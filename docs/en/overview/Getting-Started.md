@@ -392,7 +392,7 @@ Different frameworks and applications work with Alluxio.
 
 ## FAQ
 
-### Why do I keep getting "Operation not permitted" for ssh and alluxio 
+### Why do I keep getting "Operation not permitted" for ssh and alluxio? 
 
 For the users who are using macOS 11(Big Sur) or later, when running the command
 ```console
@@ -409,6 +409,6 @@ To fix it, open `System Preferences` and open `Sharing`.
 
 On the left, check the box next to `Remote Login`. If there is `Allow full access to remote users` as shown in the 
 image, check the box next to it. Besides, click the `+` button and add yourself to the list of users that are allowed
-for Remote Login you are not already in it.
+for Remote Login if you are not already in it.
 
 
