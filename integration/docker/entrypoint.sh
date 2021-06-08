@@ -187,18 +187,18 @@ function main {
   local service="$1"
   OPTIONS="$2"
 
+  setup_for_dynamic_non_root "$@"
+
+  cd ${ALLUXIO_HOME}
+
+  writeConf
+
   # Only set ALLUXIO_RAM_FOLDER if tiered storage isn't explicitly configured
   if [[ -z "${ALLUXIO_WORKER_TIEREDSTORE_LEVEL0_DIRS_PATH}" ]]; then
     # Docker will set this tmpfs up by default. Its size is configurable through the
     # --shm-size argument to docker run
     export ALLUXIO_RAM_FOLDER=${ALLUXIO_RAM_FOLDER:-/dev/shm}
   fi
-
-  setup_for_dynamic_non_root "$@"
-
-  cd ${ALLUXIO_HOME}
-
-  writeConf
 
   local processes
   processes=()
