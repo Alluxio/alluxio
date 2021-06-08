@@ -1418,12 +1418,13 @@ spec:
 #### Node Selectors & Tolerations
 
 Kubernetes provides many options to control the scheduling of pods
-onto nodes in the cluster. The most direct of which is a [node selector](https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/#nodeselector).
+onto nodes in the cluster. The most direct of which is a
+[node selector](https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/#nodeselector).
 
 However, Kubernetes will avoid scheduling pods on any tainted nodes.
 To allow certain pods to schedule on such nodes, Kubernetes allows
-you to specify tolerations for those taints. See [the Kubernetes documentation
-on taints and tolerations](https://kubernetes.io/docs/concepts/scheduling-eviction/taint-and-toleration/)
+you to specify tolerations for those taints. See
+[the Kubernetes documentation on taints and tolerations](https://kubernetes.io/docs/concepts/scheduling-eviction/taint-and-toleration/)
 for more details.
 
 {% navtabs selectorsTolerations %}
