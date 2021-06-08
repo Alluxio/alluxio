@@ -309,6 +309,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.ALL)
           .build();
+  public static final PropertyKey CONF_DYNAMIC_UPDATE_ENABLED =
+      new Builder(Name.CONF_DYNAMIC_UPDATE_ENABLED)
+          .setDefaultValue(false)
+          .setDescription("Whether to support dynamic update property.")
+          .setIgnoredSiteProperty(true)
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.ALL)
+          .build();
   public static final PropertyKey CONF_VALIDATION_ENABLED =
       new Builder(Name.CONF_VALIDATION_ENABLED)
           .setDefaultValue(true)
@@ -5259,6 +5267,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   @ThreadSafe
   public static final class Name {
     public static final String CONF_DIR = "alluxio.conf.dir";
+    public static final String CONF_DYNAMIC_UPDATE_ENABLED =
+        "alluxio.conf.dynamic.update.enabled";
     public static final String CONF_VALIDATION_ENABLED = "alluxio.conf.validation.enabled";
     public static final String DEBUG = "alluxio.debug";
     public static final String EXTENSIONS_DIR = "alluxio.extensions.dir";

@@ -613,7 +613,8 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
     for (Map.Entry<String, String> entry : propertiesMap.entrySet()) {
       try {
         PropertyKey key = PropertyKey.fromString(entry.getKey());
-        if (key.isDynamic()) {
+        if (ServerConfiguration.getBoolean(PropertyKey.CONF_DYNAMIC_UPDATE_ENABLED)
+            && key.isDynamic()) {
           String oldValue = ServerConfiguration.get(key);
           ServerConfiguration.set(key, entry.getValue(), Source.RUNTIME);
           result.put(entry.getKey(), true);
