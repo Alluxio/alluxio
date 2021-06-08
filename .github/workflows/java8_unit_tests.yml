@@ -53,7 +53,6 @@ jobs:
         run: |
           mkdir -p ~/.m2
           ALLUXIO_DOCKER_NO_TTY=true \
-          ALLUXIO_COVERAGE_REPORT=true \
           ALLUXIO_DOCKER_MVN_RUNTOEND=true \
           ALLUXIO_DOCKER_MVN_PROJECT_LIST=!webui,!shaded/client,!shaded/hadoop,!shaded/ozone,!integration/tools/hms,!integration/yarn,!assembly/client,!assembly/server,!table/server/underdb/glue,!table/server/underdb/hive,!underfs/hdfs,!underfs/ozone,!underfs/adl,!underfs/wasb,!underfs/cos,!underfs/kodo,!underfs/oss,!underfs/swift \
           dev/github/run_docker.sh
