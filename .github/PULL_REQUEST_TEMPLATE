@@ -1,17 +1,16 @@
-### What changes were proposed in this pull request?
-<!--
-Please clarify what changes you are proposing.
-The purpose of this section is to outline the changes and how this PR fixes the issue.
--->
+### What changes are proposed in this pull request?
 
+Please outline the changes and how this PR fixes the issue.
 
 ### Why are the changes needed?
-<!--
+
 Please clarify why the changes are needed. For instance,
   1. If you propose a new API, clarify the use case for a new API.
-  2. If you fix a bug, you can clarify why it is a bug.
--->
+  2. If you fix a bug, describe the bug.
 
+### Does this PR introduce any user facing changes?
 
-### Does this PR introduce _any_ user-facing change?
-
+Please list the user-facing changes introduced by your change, including
+  1. change in user-facing APIs
+  2. addition or removal of property keys
+  3. webui
