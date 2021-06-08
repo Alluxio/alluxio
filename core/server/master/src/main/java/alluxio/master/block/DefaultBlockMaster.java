@@ -1079,8 +1079,10 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
         }
       }
     }
-    LOG.warn("{} invalid blocks found on worker {} in total", invalidBlockCount,
-        workerInfo.getWorkerAddress().getHost());
+    if (invalidBlockCount > 0) {
+      LOG.warn("{} invalid blocks found on worker {} in total", invalidBlockCount,
+          workerInfo.getWorkerAddress().getHost());
+    }
   }
 
   /**
@@ -1103,8 +1105,10 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
         workerInfo.updateToRemovedBlock(true, block);
       }
     }
-    LOG.warn("{} blocks marked as orphaned from worker {}", orphanedBlockCount,
-        workerInfo.getWorkerAddress().getHost());
+    if (orphanedBlockCount > 0) {
+      LOG.warn("{} blocks marked as orphaned from worker {}", orphanedBlockCount,
+          workerInfo.getWorkerAddress().getHost());
+    }
   }
 
   @Override
