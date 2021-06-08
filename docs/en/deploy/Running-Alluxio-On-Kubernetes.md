@@ -1483,8 +1483,11 @@ spec:
 
 #### Host Aliases
 
-If you wish to modify the pods' `/etc/hosts` file,
-Kubernetes exposes this via [host aliases](https://kubernetes.io/docs/concepts/services-networking/add-entries-to-pod-etc-hosts-with-host-aliases/).
+If you wish to add or override hostname resolution in the pods,
+Kubernetes exposes the containers' `/etc/hosts` file via
+[host aliases](https://kubernetes.io/docs/concepts/services-networking/add-entries-to-pod-etc-hosts-with-host-aliases/).
+This can be particularly useful for providing hostname addresses
+for services not managed by Kubernetes, like HDFS.
 
 {% navtabs hostAliases %}
 {% navtab helm %}
