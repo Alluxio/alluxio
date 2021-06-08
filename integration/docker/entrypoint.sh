@@ -180,14 +180,22 @@ function setup_for_dynamic_non_root {
   fi
 }
 
+#######################################
+# Sets the Alluxio ram folder if alluxio top tier is MEM and ram folder isn't explicitly configured.
+# Globals:
+#   ALLUXIO_JAVA_OPTS
+#   ALLUXIO_HOME
+#   ALLUXIO_WORKER_JAVA_OPTS
+# Arguments:
+#   None
+#######################################
 function set_ram_folder_if_needed {
-  local tier_alias=$(${ALLUXIO_HOME}/bin/alluxio getConf alluxio.worker.tieredstore.level0.alias)
-  if [[ ${tier_alias} != "MEM" ]]; then
-    # if the top tier is not MEM, skip check
+  local tier_alias=$("${ALLUXIO_HOME}"/bin/alluxio getConf alluxio.worker.tieredstore.level0.alias)
+  if [[ "${tier_alias}" != "MEM" ]]; then
+    # If the top tier is not MEM, skip setting ram folder
     return
   fi
   local full_worker_opts="${ALLUXIO_JAVA_OPTS} ${ALLUXIO_WORKER_JAVA_OPTS}"
-  # Only set ALLUXIO_RAM_FOLDER if tiered storage isn't explicitly configured
   if [[ "${full_worker_opts}" != *"alluxio.worker.tieredstore.level0.dirs.path"* ]]; then
     # Docker will set this tmpfs up by default. Its size is configurable through the
     # --shm-size argument to docker run
@@ -209,6 +217,7 @@ function main {
   setup_for_dynamic_non_root "$@"
 
   cd ${ALLUXIO_HOME}
+
   writeConf
 
   local processes
