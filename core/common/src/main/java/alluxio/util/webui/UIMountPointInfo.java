@@ -13,7 +13,6 @@ package alluxio.util.webui;
 
 import alluxio.util.FormatUtils;
 import alluxio.wire.MountPointInfo;
-
 import javax.annotation.concurrent.ThreadSafe;
 
 
@@ -45,7 +44,7 @@ public class UIMountPointInfo {
     mUfsUsedBytes = mountPointInfo.getUfsUsedBytes();
     mReadOnly = mountPointInfo.getReadOnly();
     mShared = mountPointInfo.getShared();
-    if(mountPointInfo.getProperties() != null){
+    if (mountPointInfo.getProperties() != null) {
       mProperties = mountPointInfo.getProperties().toString();
     }
   }
