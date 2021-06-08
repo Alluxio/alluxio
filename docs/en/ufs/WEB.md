@@ -47,7 +47,13 @@ alluxio.underfs.web.header.last.modified=<WEB_HEADER_LAST_MODIFIED>
 alluxio.underfs.web.parent.names=<WEB_PARENT_NAMES>
 alluxio.underfs.web.titles=<WEB_TITLES>
 ```
-Here, alluxio.underfs.web.connnection.timeout is the timeout setting for a http connection(unit: second, default: 60s). alluxio.underfs.web.header.last.modified represents the format to parse the last modified field for a directory or a file from a http response header (default: "EEE, dd MMM yyyy HH:mm:ss zzz"). alluxio.underfs.web.parent.names indicates the start row index of the files list, which can be set as multiple flags seperated by a comma (default: "Parent Directory,..,../"). alluxio.underfs.web.titles means the "web page title" flags to check it is a directory or not which can be also set with multiple values seperated by a comma (default: "Index of ,Directory listing for ").
+Here, alluxio.underfs.web.connnection.timeout is the timeout setting for an http connection(unit: second, default: 60s). 
+alluxio.underfs.web.header.last.modified represents the format to parse the last modified field for a directory 
+or a file from an http response header (default: "EEE, dd MMM yyyy HH:mm:ss zzz"). 
+alluxio.underfs.web.parent.names indicates the start row index of the files list, 
+which can be set as multiple flags separated by commas (default: "Parent Directory,..,../"). 
+alluxio.underfs.web.titles is a flag that can be used to check if a web page is a directory. 
+It can also be set with multiple values separated by commas (default: "Index of ,Directory listing for ").
 
 ### NESTED MOUNT
 
