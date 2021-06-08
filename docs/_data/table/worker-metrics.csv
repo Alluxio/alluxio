@@ -1,4 +1,6 @@
 metricName,metricType
+Worker.ActiveRpcReadCount,COUNTER
+Worker.ActiveRpcWriteCount,COUNTER
 Worker.AsyncCacheDuplicateRequests,COUNTER
 Worker.AsyncCacheFailedBlocks,COUNTER
 Worker.AsyncCacheRemoteBlocks,COUNTER
@@ -14,8 +16,12 @@ Worker.BlocksCached,GAUGE
 Worker.BlocksCancelled,COUNTER
 Worker.BlocksDeleted,COUNTER
 Worker.BlocksEvicted,COUNTER
+Worker.BlocksEvictionRate,METER
 Worker.BlocksLost,COUNTER
 Worker.BlocksPromoted,COUNTER
+Worker.BlocksReadLocal,COUNTER
+Worker.BlocksReadRemote,COUNTER
+Worker.BlocksReadUfs,COUNTER
 Worker.BytesReadDirect,COUNTER
 Worker.BytesReadDirectThroughput,METER
 Worker.BytesReadDomain,COUNTER

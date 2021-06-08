@@ -28,7 +28,6 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.mapred.FileSplit;
-import org.apache.hadoop.mapred.InputSplit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -123,26 +122,6 @@ public final class HadoopUtils {
     sb.append(" , Permission: ").append(fs.getPermission());
     sb.append(" , Owner: ").append(fs.getOwner());
     sb.append(" , Group: ").append(fs.getGroup());
-    return sb.toString();
-  }
-
-  /**
-   * Returns a string representation of a {@link InputSplit}.
-   *
-   * @param is Hadoop {@link InputSplit}
-   * @return its string representation
-   */
-  public static String toStringHadoopInputSplit(InputSplit is) {
-    StringBuilder sb = new StringBuilder("HadoopInputSplit: ");
-    try {
-      sb.append(" Length: ").append(is.getLength());
-      sb.append(" , Locations: ");
-      for (String loc : is.getLocations()) {
-        sb.append(loc).append(" ; ");
-      }
-    } catch (IOException e) {
-      LOG.error(e.getMessage());
-    }
     return sb.toString();
   }
 

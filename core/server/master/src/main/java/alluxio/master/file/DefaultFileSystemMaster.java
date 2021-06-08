@@ -879,6 +879,10 @@ public final class DefaultFileSystemMaster extends CoreMaster
           ensureFullPathAndUpdateCache(inodePath);
 
           FileInfo fileInfo = getFileInfoInternal(inodePath);
+          if (!fileInfo.isFolder() && (!fileInfo.isCompleted())) {
+            LOG.warn("File {} is not yet completed. getStatus will see incomplete metadata.",
+                fileInfo.getPath());
+          }
           if (ufsAccessed) {
             MountTable.Resolution resolution = mMountTable.resolve(inodePath.getUri());
             Metrics.getUfsOpsSavedCounter(resolution.getUfsMountPointUri(),
@@ -918,10 +922,6 @@ public final class DefaultFileSystemMaster extends CoreMaster
     fileInfo.setInMemoryPercentage(getInMemoryPercentage(inode));
     fileInfo.setInAlluxioPercentage(getInAlluxioPercentage(inode));
     if (inode.isFile()) {
-      if (!fileInfo.isCompleted()) {
-        LOG.warn("File {} is not yet completed. getStatus will see incomplete metadata.",
-                fileInfo.getPath());
-      }
       try {
         fileInfo.setFileBlockInfos(getFileBlockInfoListInternal(inodePath));
       } catch (InvalidPathException e) {
@@ -4580,7 +4580,8 @@ public final class DefaultFileSystemMaster extends CoreMaster
           .setAuthType(authType)
           .setIp(ClientIpAddressInjector.getIpAddress())
           .setCommand(command).setSrcPath(srcPath).setDstPath(dstPath)
-          .setSrcInode(srcInode).setAllowed(true);
+          .setSrcInode(srcInode).setAllowed(true)
+          .setCreationTimeNs(System.nanoTime());
     }
     return auditContext;
   }
