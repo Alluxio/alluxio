@@ -16,7 +16,6 @@ import alluxio.wire.MountPointInfo;
 
 import javax.annotation.concurrent.ThreadSafe;
 
-
 /**
  * Contains information about a mount point to be displayed in the UI.
  */
