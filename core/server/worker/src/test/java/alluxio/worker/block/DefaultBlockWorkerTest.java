@@ -100,7 +100,7 @@ public class DefaultBlockWorkerTest {
     mBlockMasterClient = mock(BlockMasterClient.class);
     mBlockMasterClientPool = spy(new BlockMasterClientPool());
     when(mBlockMasterClientPool.createNewResource()).thenReturn(mBlockMasterClient);
-    mBlockStore = spy(new TieredBlockStore(null, null));
+    mBlockStore = spy(new TieredBlockStore());
     mFileSystemMasterClient = mock(FileSystemMasterClient.class);
     mSessions = mock(Sessions.class);
     mUfsManager = mock(UfsManager.class);
