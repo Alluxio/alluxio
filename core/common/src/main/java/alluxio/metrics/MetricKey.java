@@ -343,7 +343,7 @@ public final class MetricKey implements Comparable<MetricKey> {
   public static final MetricKey MASTER_JOURNAL_SPACE_FREE_PERCENT =
       new Builder("Master.JournalFreePercent")
           .setDescription("Percentage of free space left on the journal disk(s) "
-              + "for an Alluxio master"
+              + "for an Alluxio master。"
               + "This metric is only valid on Linux and when embedded journal is used. "
               + "Use this metric to monitor whether your journal is running out of disk space.")
           .setMetricType(MetricType.GAUGE)
@@ -615,7 +615,7 @@ public final class MetricKey implements Comparable<MetricKey> {
   public static final MetricKey MASTER_UFS_JOURNAL_CATCHUP_TIMER =
       new Builder("Master.UfsJournalCatchupTimer")
           .setDescription("The timer statistics of journal catchup"
-              + "Only valid when ufs journal and zookeeper is used. "
+              + "Only valid when ufs journal is used. "
               + "This provides a summary of how long a secondary master"
               + " takes to catch up with primary master,"
               + " and should be monitored if master transition takes too long")
@@ -631,8 +631,7 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setDescription("The process time of the ufs journal initial replay."
               + "Only valid when ufs journal is used."
               + " It records the time it took for the very first journal replay. "
-              + "It can be used to to determine if journal replay is the reason "
-              + "for master's start-up delay.")
+              + "Use this metric to monitor when your master boot-up time is high。")
           .setMetricType(MetricType.GAUGE)
           .build();
 
