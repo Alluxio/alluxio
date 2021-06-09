@@ -313,7 +313,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       new Builder(Name.CONF_DYNAMIC_UPDATE_ENABLED)
           .setDefaultValue(false)
           .setDescription("Whether to support dynamic update property.")
-          .setIgnoredSiteProperty(true)
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.ALL)
           .build();
