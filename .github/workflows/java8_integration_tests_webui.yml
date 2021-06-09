@@ -74,5 +74,5 @@ jobs:
         with:
           file: ./**/target/site/jacoco/jacoco.xml # optional
           name: codecov-umbrella
-          fail_ci_if_error: true
+          fail_ci_if_error: false
           verbose: true
