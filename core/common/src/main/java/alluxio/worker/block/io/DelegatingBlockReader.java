@@ -37,6 +37,13 @@ public class DelegatingBlockReader extends BlockReader {
     mCloser.register(closeable);
   }
 
+  /**
+   * @return the delegate
+   */
+  public BlockReader getDelegate() {
+    return mBlockReader;
+  }
+
   @Override
   public ByteBuffer read(long offset, long length) throws IOException {
     return mBlockReader.read(offset, length);

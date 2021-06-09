@@ -14,7 +14,9 @@ package alluxio.worker.block.allocator;
 import alluxio.Constants;
 import alluxio.conf.ServerConfiguration;
 import alluxio.conf.PropertyKey;
+import alluxio.worker.block.reviewer.MockReviewer;
 
+import com.google.common.collect.Sets;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -86,6 +88,39 @@ public final class MaxFreeAllocatorTest extends AllocatorTestBase {
     //  1      └───── 0
     //  0               ├─── 3000
     //  1               ├─── 3000
+    //  2               └─── 3000
+    //
+
+    /** Reviewer's opinion affects the test */
+    MockReviewer.resetBytesToReject(Sets.newHashSet(700L, 2700L, 3000L));
+    assertTempBlockMeta(mAllocator, mAnyTierLoc, 300, true, "HDD", 0);
+    //
+    // idx | tier1 | tier2 | tier3
+    //  0     700
+    //  0      ├───── 200
+    //  1      └───── 0
+    //  0               ├─── 2700   <--- alloc
+    //  1               ├─── 3000
+    //  2               └─── 3000
+    //
+    assertTempBlockMeta(mAllocator, mAnyTierLoc, 300, true, "HDD", 1);
+    //
+    // idx | tier1 | tier2 | tier3
+    //  0     700
+    //  0      ├───── 200
+    //  1      └───── 0
+    //  0               ├─── 2700
+    //  1               ├─── 2700  <--- alloc
+    //  2               └─── 3000
+    //
+    assertTempBlockMeta(mAllocator, mAnyDirInTierLoc1, 300, false, "", 0);
+    //
+    // idx | tier1 | tier2 | tier3
+    //  0     700
+    //  0      ├───── 200
+    //  1      └───── 0
+    //  0               ├─── 2700
+    //  1               ├─── 2700
     //  2               └─── 3000
     //
   }

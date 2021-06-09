@@ -39,7 +39,7 @@ public final class ValidateConf {
       new InstancedConfiguration(ConfigurationUtils.defaults()).validate();
       LOG.info("Configuration is valid.");
     } catch (IllegalStateException e) {
-      LOG.error("Configuration is invalid: {}", e.getMessage());
+      LOG.error("Configuration is invalid", e);
       System.exit(-1);
     }
     System.exit(0);

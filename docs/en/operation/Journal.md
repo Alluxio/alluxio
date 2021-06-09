@@ -295,7 +295,7 @@ that the removed master is shown as `UNAVAILABLE`.
 
 `-address` option below should reflect the exact address that is returned by the `.. quorum info` command provided above.
 ```console
-$ ./bin/alluxio fsadmin journal quorum remove -domain <MASTER | JOB_MASTER> -address <address>
+$ ./bin/alluxio fsadmin journal quorum remove -domain <MASTER | JOB_MASTER> -address <HostName:Port>
 ```
 
 3- Verify that the removed member is no longer shown in the quorum info.

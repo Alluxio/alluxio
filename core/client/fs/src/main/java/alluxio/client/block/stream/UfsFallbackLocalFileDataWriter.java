@@ -59,7 +59,7 @@ public final class UfsFallbackLocalFileDataWriter implements DataWriter {
           blockId, blockSize, options);
     } catch (ResourceExhaustedException e) {
       LOG.warn("Fallback to create new block {} in UFS due to a failure of insufficient space on "
-          + "the local worker: {}", blockId, e.getMessage());
+          + "the local worker: {}", blockId, e.toString());
     }
     // Failed to create the local writer due to insufficient space, fallback to gRPC data writer
     // directly
@@ -97,7 +97,7 @@ public final class UfsFallbackLocalFileDataWriter implements DataWriter {
         return;
       } catch (ResourceExhaustedException e) {
         LOG.warn("Fallback to write to UFS for block {} due to a failure of insufficient space "
-            + "on the local worker: {}", mBlockId, e.getMessage());
+            + "on the local worker: {}", mBlockId, e.toString());
         mIsWritingToLocal = false;
       }
       try {

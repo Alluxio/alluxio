@@ -110,7 +110,7 @@ public final class DefaultStorageTier implements StorageTier {
         totalCapacity += capacity;
         mDirs.put(i, dir);
       } catch (IOException | InvalidPathException e) {
-        LOG.error("Unable to initialize storage directory at {}: {}", dirPaths[i], e.getMessage());
+        LOG.error("Unable to initialize storage directory at {}", dirPaths[i], e);
         mLostStorage.add(dirPaths[i]);
         continue;
       }
@@ -147,8 +147,7 @@ public final class DefaultStorageTier implements StorageTier {
     try {
       info = ShellUtils.getUnixMountInfo();
     } catch (IOException e) {
-      LOG.warn("Failed to get mount information for verifying memory capacity: {}",
-          e.getMessage());
+      LOG.warn("Failed to get mount information for verifying memory capacity: {}", e.toString());
       return;
     }
     boolean foundMountInfo = false;

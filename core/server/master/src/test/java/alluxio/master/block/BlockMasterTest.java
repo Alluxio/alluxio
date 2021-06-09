@@ -14,9 +14,7 @@ package alluxio.master.block;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
-import alluxio.conf.ServerConfiguration;
 import alluxio.Constants;
-import alluxio.conf.PropertyKey;
 import alluxio.clock.ManualClock;
 import alluxio.grpc.Command;
 import alluxio.grpc.CommandType;
@@ -29,8 +27,6 @@ import alluxio.heartbeat.ManuallyScheduleHeartbeat;
 import alluxio.master.CoreMasterContext;
 import alluxio.master.MasterRegistry;
 import alluxio.master.MasterTestUtils;
-import alluxio.master.SafeModeManager;
-import alluxio.master.TestSafeModeManager;
 import alluxio.master.journal.JournalSystem;
 import alluxio.master.journal.noop.NoopJournalSystem;
 import alluxio.master.metrics.MetricsMaster;
@@ -76,16 +72,12 @@ public class BlockMasterTest {
   private static final Map<Block.BlockLocation, List<Long>> NO_BLOCKS_ON_LOCATION
       = ImmutableMap.of();
   private static final Map<String, StorageList> NO_LOST_STORAGE = ImmutableMap.of();
-  private static final Block.BlockLocation BLOCK_LOCATION = Block.BlockLocation.newBuilder()
-      .setTier(Constants.MEDIUM_MEM).setMediumType(Constants.MEDIUM_MEM).build();
 
   private BlockMaster mBlockMaster;
   private MasterRegistry mRegistry;
   private ManualClock mClock;
   private ExecutorService mExecutorService;
-  private SafeModeManager mSafeModeManager;
-  private long mStartTimeMs;
-  private int mPort;
+  private ExecutorService mClientExecutorService;
   private MetricsMaster mMetricsMaster;
   private List<Metric> mMetrics;
 
@@ -107,9 +99,6 @@ public class BlockMasterTest {
   @Before
   public void before() throws Exception {
     mRegistry = new MasterRegistry();
-    mSafeModeManager = new TestSafeModeManager();
-    mStartTimeMs = System.currentTimeMillis();
-    mPort = ServerConfiguration.getInt(PropertyKey.MASTER_RPC_PORT);
     mMetrics = Lists.newArrayList();
     JournalSystem journalSystem = new NoopJournalSystem();
     CoreMasterContext masterContext = MasterTestUtils.testMasterContext();
@@ -240,16 +229,20 @@ public class BlockMasterTest {
   @Test
   public void registerCleansUpOrphanedBlocks() throws Exception {
     // Create a worker with unknown blocks.
-    long worker = mBlockMaster.getWorkerId(NET_ADDRESS_1);
+    long workerId = mBlockMaster.getWorkerId(NET_ADDRESS_1);
     List<Long> orphanedBlocks = Arrays.asList(1L, 2L);
     Map<String, Long> memUsage = ImmutableMap.of(Constants.MEDIUM_MEM, 10L);
-    mBlockMaster.workerRegister(worker, Arrays.asList(Constants.MEDIUM_MEM),
+
+    Block.BlockLocation blockLoc = Block.BlockLocation.newBuilder()
+        .setWorkerId(workerId).setTier(Constants.MEDIUM_MEM)
+        .setMediumType(Constants.MEDIUM_MEM).build();
+    mBlockMaster.workerRegister(workerId, Arrays.asList(Constants.MEDIUM_MEM),
         ImmutableMap.of(Constants.MEDIUM_MEM, 100L),
-        memUsage, ImmutableMap.of(BLOCK_LOCATION, orphanedBlocks), NO_LOST_STORAGE,
+        memUsage, ImmutableMap.of(blockLoc, orphanedBlocks), NO_LOST_STORAGE,
         RegisterWorkerPOptions.getDefaultInstance());
 
     // Check that the worker heartbeat tells the worker to remove the blocks.
-    alluxio.grpc.Command heartBeat = mBlockMaster.workerHeartbeat(worker, null,
+    alluxio.grpc.Command heartBeat = mBlockMaster.workerHeartbeat(workerId, null,
         memUsage, NO_BLOCKS, NO_BLOCKS_ON_LOCATION, NO_LOST_STORAGE, mMetrics);
     assertEquals(orphanedBlocks, heartBeat.getDataList());
   }
@@ -313,9 +306,12 @@ public class BlockMasterTest {
 
     // Send a heartbeat from worker2 saying that it's added blockId.
     List<Long> addedBlocks = ImmutableList.of(blockId);
+    Block.BlockLocation blockOnWorker2 = Block.BlockLocation.newBuilder()
+        .setWorkerId(worker2).setTier(Constants.MEDIUM_MEM)
+        .setMediumType(Constants.MEDIUM_MEM).build();
     mBlockMaster.workerHeartbeat(worker2, null,
         ImmutableMap.of(Constants.MEDIUM_MEM, 0L), NO_BLOCKS,
-        ImmutableMap.of(BLOCK_LOCATION, addedBlocks),
+        ImmutableMap.of(blockOnWorker2, addedBlocks),
         NO_LOST_STORAGE, mMetrics);
 
     // The block now has two locations.

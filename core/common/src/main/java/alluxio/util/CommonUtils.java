@@ -305,7 +305,7 @@ public final class CommonUtils {
       result = ShellUtils.execCommand(ShellUtils.getGroupsForUserCommand(user));
     } catch (ExitCodeException e) {
       // if we didn't get the group - just return empty list
-      LOG.warn("got exception trying to get groups for user " + user + ": " + e.getMessage());
+      LOG.warn("got exception trying to get groups for user {}: {}", user, e.toString());
       return groups;
     }
 

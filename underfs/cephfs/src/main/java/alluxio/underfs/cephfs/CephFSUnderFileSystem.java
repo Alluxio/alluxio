@@ -35,7 +35,6 @@ import alluxio.util.io.PathUtils;
 
 import com.ceph.fs.CephFileAlreadyExistsException;
 import com.ceph.fs.CephMount;
-import com.ceph.fs.CephNotDirectoryException;
 import com.ceph.fs.CephStat;
 import com.ceph.fs.CephStatVFS;
 import org.slf4j.Logger;
@@ -280,7 +279,7 @@ public class CephFSUnderFileSystem extends ConsistentUnderFileSystem
         int fd = openInternal(path, flags, mode);
         return new CephOutputStream(mMount, fd);
       } catch (IOException e) {
-        LOG.warn("Retry count {} : {}", retryPolicy.getAttemptCount(), e.getMessage());
+        LOG.warn("Retry count {} : {}", retryPolicy.getAttemptCount(), e.toString());
         te = e;
       }
     }
@@ -297,7 +296,7 @@ public class CephFSUnderFileSystem extends ConsistentUnderFileSystem
         try {
           return deleteInternal(path, options.isRecursive());
         } catch (IOException e) {
-          LOG.warn("Retry count {} : {}", retryPolicy.getAttemptCount(), e.getMessage());
+          LOG.warn("Retry count {} : {}", retryPolicy.getAttemptCount(), e.toString());
           te = e;
         }
       }
@@ -316,7 +315,7 @@ public class CephFSUnderFileSystem extends ConsistentUnderFileSystem
         try {
           return deleteInternal(path, false);
         } catch (IOException e) {
-          LOG.warn("Retry count {} : {}", retryPolicy.getAttemptCount(), e.getMessage());
+          LOG.warn("Retry count {} : {}", retryPolicy.getAttemptCount(), e.toString());
           te = e;
         }
       }
@@ -529,7 +528,7 @@ public class CephFSUnderFileSystem extends ConsistentUnderFileSystem
         return true;
       } catch (IOException e) {
         LOG.warn("{} try to make directory for {} : {}", retryPolicy.getAttemptCount(), path,
-            e.getMessage());
+            e.toString());
         te = e;
       }
     }
@@ -556,7 +555,7 @@ public class CephFSUnderFileSystem extends ConsistentUnderFileSystem
         }
         return inputStream;
       } catch (IOException e) {
-        LOG.warn("{} try to open {} : {}", retryPolicy.getAttemptCount(), path, e.getMessage());
+        LOG.warn("{} try to open {} : {}", retryPolicy.getAttemptCount(), path, e.toString());
         te = e;
       }
     }
@@ -725,7 +724,7 @@ public class CephFSUnderFileSystem extends ConsistentUnderFileSystem
         return true;
       } catch (IOException e) {
         LOG.warn("{} try to rename {} to {} : {}", retryPolicy.getAttemptCount(), src, dst,
-            e.getMessage());
+            e.toString());
         te = e;
       }
     }
@@ -733,19 +732,11 @@ public class CephFSUnderFileSystem extends ConsistentUnderFileSystem
   }
 
   private void lstat(String path, CephStat stat) throws IOException {
-    try {
-      mMount.lstat(path, stat);
-    } catch (CephNotDirectoryException e) {
-      throw new FileNotFoundException();
-    }
+    mMount.lstat(path, stat);
   }
 
   private void statfs(String path, CephStatVFS stat) throws IOException {
-    try {
-      mMount.statfs(path, stat);
-    } catch (FileNotFoundException e) {
-      throw new FileNotFoundException();
-    }
+    mMount.statfs(path, stat);
   }
 }
 

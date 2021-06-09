@@ -18,6 +18,7 @@ import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.security.authentication.AuthenticatedUserInfo;
 import alluxio.worker.block.BlockWorker;
 
+import com.codahale.metrics.Counter;
 import com.google.common.base.Preconditions;
 import io.grpc.stub.StreamObserver;
 import org.slf4j.Logger;
@@ -35,6 +36,10 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 public final class BlockWriteHandler extends AbstractWriteHandler<BlockWriteRequestContext> {
   private static final Logger LOG = LoggerFactory.getLogger(BlockWriteHandler.class);
+  /** Metrics. */
+  private static final Counter RPC_WRITE_COUNT =
+      MetricsSystem.counterWithTags(MetricKey.WORKER_ACTIVE_RPC_WRITE_COUNT.getName(),
+            MetricKey.WORKER_ACTIVE_RPC_WRITE_COUNT.isClusterAggregated());
 
   /** The Block Worker which handles blocks stored in the Alluxio storage of the worker. */
   private final BlockWorker mWorker;
@@ -76,6 +81,7 @@ public final class BlockWriteHandler extends AbstractWriteHandler<BlockWriteRequ
       context.setMeter(MetricsSystem.meter(
           MetricKey.WORKER_BYTES_WRITTEN_REMOTE_THROUGHPUT.getName()));
     }
+    RPC_WRITE_COUNT.inc();
     return context;
   }
 
@@ -86,6 +92,7 @@ public final class BlockWriteHandler extends AbstractWriteHandler<BlockWriteRequ
       context.getBlockWriter().close();
     }
     mWorker.commitBlock(request.getSessionId(), request.getId(), request.getPinOnCreate());
+    RPC_WRITE_COUNT.dec();
   }
 
   @Override
@@ -95,6 +102,7 @@ public final class BlockWriteHandler extends AbstractWriteHandler<BlockWriteRequ
       context.getBlockWriter().close();
     }
     mWorker.abortBlock(request.getSessionId(), request.getId());
+    RPC_WRITE_COUNT.dec();
   }
 
   @Override
@@ -103,6 +111,11 @@ public final class BlockWriteHandler extends AbstractWriteHandler<BlockWriteRequ
       context.getBlockWriter().close();
     }
     mWorker.cleanupSession(context.getRequest().getSessionId());
+
+    // Decrement RPC counter only if the request wasn't completed/canceled already
+    if (!context.isDoneUnsafe()) {
+      RPC_WRITE_COUNT.dec();
+    }
   }
 
   @Override

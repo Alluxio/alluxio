@@ -164,7 +164,7 @@ public class GrpcSerializationUtils {
         return (ByteBuf) sReadableByteBuf.get(buffer);
       }
     } catch (Exception e) {
-      LOG.warn("Failed to get data buffer from stream: {}.", e.getMessage());
+      LOG.warn("Failed to get data buffer from stream: {}.", e.toString());
       return null;
     }
     return null;
@@ -194,7 +194,7 @@ public class GrpcSerializationUtils {
       }
       return true;
     } catch (Exception e) {
-      LOG.warn("Failed to add data buffer to stream: {}.", e.getMessage());
+      LOG.warn("Failed to add data buffer to stream: {}.", e.toString());
       return false;
     }
   }

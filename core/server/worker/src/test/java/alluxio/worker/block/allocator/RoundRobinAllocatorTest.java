@@ -14,7 +14,9 @@ package alluxio.worker.block.allocator;
 import alluxio.Constants;
 import alluxio.conf.ServerConfiguration;
 import alluxio.conf.PropertyKey;
+import alluxio.worker.block.reviewer.MockReviewer;
 
+import com.google.common.collect.Sets;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -227,6 +229,28 @@ public final class RoundRobinAllocatorTest extends AllocatorTestBase {
     //  1      └───── 100
     //  0               ├─── 1800
     //  1               ├─── 700   <--- alloc
+    //  2               └─── 0
+    //
+
+    /** Reviewer's opinion affects the test */
+    MockReviewer.resetBytesToReject(Sets.newHashSet(200L));
+
+    assertTempBlockMeta(mAllocator, mAnyTierLoc, 50, true, "SSD", 1);
+    // idx | tier1 | tier2 | tier3
+    //  0    200
+    //  0      ├───── 0
+    //  1      └───── 50   <--- alloc
+    //  0               ├─── 1800
+    //  1               ├─── 700
+    //  2               └─── 0
+    //
+    assertTempBlockMeta(mAllocator, mAnyDirInTierLoc1, 50, false, "", 0);
+    // idx | tier1 | tier2 | tier3
+    //  0    200
+    //  0      ├───── 0
+    //  1      └───── 50
+    //  0               ├─── 1800
+    //  1               ├─── 700
     //  2               └─── 0
     //
   }

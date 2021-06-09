@@ -62,6 +62,7 @@ JNIEXPORT jint JNICALL Java_alluxio_jnifuse_LibFuse_fuse_1main_1real(
   jnifuse_oper.rename = rename_wrapper;
   jnifuse_oper.rmdir = rmdir_wrapper;
   jnifuse_oper.setxattr = setxattr_wrapper;
+  jnifuse_oper.symlink = symlink_wrapper;
   jnifuse_oper.truncate = truncate_wrapper;
   jnifuse_oper.unlink = unlink_wrapper;
   jnifuse_oper.utimens = utimens_wrapper;

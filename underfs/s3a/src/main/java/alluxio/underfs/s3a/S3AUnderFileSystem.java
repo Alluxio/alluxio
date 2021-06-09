@@ -564,7 +564,7 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
           accountOwner = owner.getDisplayName() != null ? owner.getDisplayName() : owner.getId();
         }
       } catch (AmazonClientException e) {
-        LOG.warn("Failed to inherit bucket ACLs, proceeding with defaults. {}", e.getMessage());
+        LOG.warn("Failed to inherit bucket ACLs, proceeding with defaults. {}", e.toString());
       }
     }
 
