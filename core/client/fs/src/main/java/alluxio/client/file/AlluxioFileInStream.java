@@ -453,4 +453,12 @@ public class AlluxioFileInStream extends FileInStream {
 
     mFailedWorkers.put(workerAddress, System.currentTimeMillis());
   }
+
+  @Override
+  public int read(ByteBuffer buf) throws IOException {
+    int length = buf.remaining();
+    int pos = buf.position();
+    return read(buf, pos, length);
+  }
+
 }

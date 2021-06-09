@@ -18,6 +18,8 @@ import alluxio.exception.AlluxioException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileDoesNotExistException;
 
+import java.nio.ByteBuffer;
+import org.apache.hadoop.fs.ByteBufferReadable;
 import org.apache.hadoop.fs.FileSystem.Statistics;
 import org.apache.hadoop.fs.PositionedReadable;
 import org.apache.hadoop.fs.Seekable;
@@ -36,7 +38,8 @@ import javax.annotation.concurrent.NotThreadSafe;
  * {@link FileInStream} with additional statistics gathering in a {@link Statistics} object.
  */
 @NotThreadSafe
-public class HdfsFileInputStream extends InputStream implements Seekable, PositionedReadable {
+public class HdfsFileInputStream extends InputStream implements Seekable, PositionedReadable,
+    ByteBufferReadable {
   private static final Logger LOG = LoggerFactory.getLogger(HdfsFileInputStream.class);
 
   private final Statistics mStatistics;
@@ -188,5 +191,13 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
       throw new IOException("Cannot skip bytes in a closed stream.");
     }
     return mInputStream.skip(n);
+  }
+
+  @Override
+  public int read(ByteBuffer buf) throws IOException {
+    if (mClosed) {
+      throw new IOException(ExceptionMessage.READ_CLOSED_STREAM.getMessage());
+    }
+    return mInputStream.read(buf);
   }
 }
