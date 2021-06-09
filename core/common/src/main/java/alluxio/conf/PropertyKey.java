@@ -1946,11 +1946,11 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.MASTER)
           .build();
-  // 350 bytes per inode cache key and * 2 for the existence of edge cache and some leeway
+  // 2k bytes per inode cache key and * 2 for the existence of edge cache and some leeway
   public static final PropertyKey MASTER_METASTORE_INODE_CACHE_MAX_SIZE =
       new Builder(Name.MASTER_METASTORE_INODE_CACHE_MAX_SIZE)
           .setDefaultValue(Math.min(Integer.MAX_VALUE / 2,
-              Runtime.getRuntime().maxMemory() / 350 / 2))
+              Runtime.getRuntime().maxMemory() / 2000 / 2))
           .setDescription("The number of inodes to cache on-heap. "
               + "This only applies to off-heap metastores, e.g. ROCKS. Set this to 0 to disable "
               + "the on-heap inode cache")
@@ -2039,6 +2039,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       new Builder(Name.MASTER_METRICS_HEAP_ENABLED)
           .setDefaultValue(true)
           .setDescription("Enable master heap estimate metrics")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.MASTER)
+          .build();
+
+  public static final PropertyKey MASTER_METRICS_FILE_SIZE_DISTRIBUTION_BUCKETS =
+      new Builder(Name.MASTER_METRICS_FILE_SIZE_DISTRIBUTION_BUCKETS)
+          .setDefaultValue("1KB,1MB,10MB,100MB,1GB,10GB")
+          .setDescription("Master metrics file size buckets")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
@@ -5680,6 +5688,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.metrics.service.threads";
     public static final String MASTER_METRICS_TIME_SERIES_INTERVAL =
         "alluxio.master.metrics.time.series.interval";
+    public static final String MASTER_METRICS_FILE_SIZE_DISTRIBUTION_BUCKETS =
+        "alluxio.master.metrics.file.size.distribution.buckets";
     public static final String MASTER_NETWORK_MAX_INBOUND_MESSAGE_SIZE =
         "alluxio.master.network.max.inbound.message.size";
     public static final String MASTER_PERSISTENCE_INITIAL_INTERVAL_MS =
