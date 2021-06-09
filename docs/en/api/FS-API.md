@@ -216,36 +216,62 @@ Users can override the default policy class in the
 
   **This is the default policy.**
 
-  > A policy that returns local host first, and if the local worker doesn't have enough availability,
-  > it randomly picks a worker from the active workers list for each block write.
+  > A policy that returns the local worker first, and if the local worker doesn't
+  > exist or have enough availability, will select the nearest worker from the active
+  > workers list with sufficient availability.
+  >
+  > The calculation of which worker gets selected is done for each block write.
 
 * [LocalFirstAvoidEvictionPolicy](https://docs.alluxio.io/os/javadoc/{{site.ALLUXIO_MAJOR_VERSION}}/alluxio/client/block/policy/LocalFirstAvoidEvictionPolicy.html)
 
   This is the same as `LocalFirstPolicy` with the following addition:
 
-  > If no worker meets the demands, return local host. USER_FILE_WRITE_AVOID_EVICTION_POLICY_RESERVED_BYTES
-  > is used to reserve some space of the worker to store the block, for the values
-  > mCapacityBytes minus mUsedBytes is not the available bytes.
+  > A policy that returns the local worker first, and if the local worker doesn't
+  > exist or have enough availability, will select the nearest worker from the active
+  > workers list with sufficient availability.
+  >
+  > The calculation of which worker gets selected is done for each block write.
+  >
+  > The PropertyKey `USER_FILE_WRITE_AVOID_EVICTION_POLICY_RESERVED_BYTES`
+  > (alluxio.user.block.avoid.eviction.policy.reserved.size.bytes)
+  > is used as buffer space on each worker when calculating available space
+  > to store each block.
 
 * [MostAvailableFirstPolicy](https://docs.alluxio.io/os/javadoc/{{site.ALLUXIO_MAJOR_VERSION}}/alluxio/client/block/policy/MostAvailableFirstPolicy.html)
 
-  > A policy that returns the worker with the most available bytes. The policy returns null if no worker is qualified.
+  > A policy that returns the worker with the most available bytes.
+  >
+  > The policy returns null if no worker is qualified.
 
 * [RoundRobinPolicy](https://docs.alluxio.io/os/javadoc/{{site.ALLUXIO_MAJOR_VERSION}}/alluxio/client/block/policy/RoundRobinPolicy.html)
 
   > A policy that chooses the worker for the next block in a round-robin manner
-  > and skips workers that do not have enough space. The policy returns null if no worker can be found.
+  > and skips workers that do not have enough space.
+  >
+  > The policy returns null if no worker can be found.
 
 * [SpecificHostPolicy](https://docs.alluxio.io/os/javadoc/{{site.ALLUXIO_MAJOR_VERSION}}/alluxio/client/block/policy/SpecificHostPolicy.html)
 
-  > Always returns a worker with the specified hostname. Returns null if no active worker on that hostname found.
+  > Always returns a worker with the specified hostname.
+  >
+  > Returns null if no active worker on that hostname found.
+  > Note that since this does not have an empty constructor, this cannot be used as a default policy.
 
 * [DeterministicHashPolicy](https://docs.alluxio.io/os/javadoc/{{site.ALLUXIO_MAJOR_VERSION}}/alluxio/client/block/policy/DeterministicHashPolicy.html)
 
-  > This policy maps blockId to several deterministic Alluxio workers.
-  > The number of workers a block can be mapped to can be passed through the constructor.
-  > The default is 1. It skips the workers that do not have enough capacity to hold the block.
-  > Note that the hash function relies on the number of workers in the cluster, so if the number of workers changes, the workers chosen by the policy for a given block will likely change. This policy is useful for limiting the amount of replication that occurs when reading blocks from the UFS with high concurrency. With 30 workers and 100 remote clients reading the same block concurrently, the replication level for the block would get close to 30 as each workers reads and caches the block for one or more clients. If the clients use DeterministicHashPolicy with 3 shards, the 100 clients will split their reads between just 3 workers, so that the replication level for the block will be only 3 when the data is first loaded.
+  > This policy maps the blockId to several deterministic Alluxio workers. The number of workers a block
+  > can be mapped to can be passed through the constructor. The default is 1. It skips the workers
+  > that do not have enough capacity to hold the block.
+  >
+  > This policy is useful for limiting the amount of replication that occurs when reading blocks from
+  > the UFS with high concurrency. With 30 workers and 100 remote clients reading the same block
+  > concurrently, the replication level for the block would get close to 30 as each worker reads
+  > and caches the block for one or more clients. If the clients use DeterministicHashPolicy with
+  > 3 shards, the 100 clients will split their reads between just 3 workers, so that the replication
+  > level for the block will be only 3 when the data is first loaded.
+  >
+  > Note that the hash function relies on the number of workers in the cluster, so if the number of
+  > workers changes, the workers chosen by the policy for a given block will likely change.
 
 Alluxio supports custom policies, so you can also develop your own policy appropriate for your
 workload by implementing the interface `alluxio.client.block.policy.BlockLocationPolicy`. Note that a
@@ -319,7 +345,7 @@ worker on each compute node.
 Alluxio has a [Python Client](https://github.com/Alluxio/alluxio-py) for interacting with Alluxio through its
 [REST API](#rest-api). The Python client exposes an API similar to the [Alluxio Java API](#java-client).
 See the [doc](http://alluxio-py.readthedocs.io) for detailed documentation about all available
-methods. See the [example](https://github.com/Alluxio/alluxio-py/blob/master/example.py) of how to perform basic
+methods. See the [example](https://github.com/Alluxio/alluxio-py/blob/master/example.py) on how to perform basic
 filesystem operations in Alluxio.
 
 ### Alluxio Proxy dependency

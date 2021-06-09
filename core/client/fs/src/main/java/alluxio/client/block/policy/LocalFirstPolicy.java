@@ -32,8 +32,11 @@ import java.util.stream.Collectors;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * A policy that returns local host first, and if the local worker doesn't have enough availability,
- * it randomly picks a worker from the active workers list for each block write.
+ * A policy that returns the local worker first, and if the local worker doesn't
+ * exist or have enough availability, will select the nearest worker from the active
+ * workers list with sufficient availability.
+ *
+ * The calculation of which worker gets selected is done for each block write.
  */
 @ThreadSafe
 public final class LocalFirstPolicy implements BlockLocationPolicy {

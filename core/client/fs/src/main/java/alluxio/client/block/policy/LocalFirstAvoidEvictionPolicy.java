@@ -27,11 +27,16 @@ import java.util.stream.Collectors;
 
 import javax.annotation.concurrent.ThreadSafe;
 /**
- * A policy that returns local host first, and if the local worker doesn't have enough availability,
- * it randomly picks a worker from the active workers list for each block write.
- * If no worker meets the demands, return local host.
- * USER_FILE_WRITE_AVOID_EVICTION_POLICY_RESERVED_BYTES is used to reserve some space of the worker
- * to store the block, for the values mCapacityBytes minus mUsedBytes is not the available bytes.
+ * A policy that returns the local worker first, and if the local worker doesn't
+ * exist or have enough availability, will select the nearest worker from the active
+ * workers list with sufficient availability.
+ *
+ * The calculation of which worker gets selected is done for each block write.
+ *
+ * The PropertyKey `USER_FILE_WRITE_AVOID_EVICTION_POLICY_RESERVED_BYTES`
+ * (alluxio.user.block.avoid.eviction.policy.reserved.size.bytes)
+ * is used as buffer space on each worker when calculating available space
+ * to store each block.
  */
 @ThreadSafe
 public final class LocalFirstAvoidEvictionPolicy implements BlockLocationPolicy {
@@ -78,9 +83,12 @@ public final class LocalFirstAvoidEvictionPolicy implements BlockLocationPolicy 
   }
 
   /**
-   * The information of BlockWorkerInfo is update after a file complete write. To avoid evict,
-   * user should configure "alluxio.user.block.avoid.eviction.policy.reserved.size.bytes"
-   * to reserve some space to store the block.
+   * Calculate the available bytes for a worker with the added buffer of
+   * USER_FILE_WRITE_AVOID_EVICTION_POLICY_RESERVED_BYTES
+   * (alluxio.user.block.avoid.eviction.policy.reserved.size.bytes)
+   *
+   * Since the information of BlockWorkerInfo is updated <em>after</em> a file
+   * completes a write, mCapacityBytes minus mUsedBytes may not be the true available bytes.
    *
    * @param workerInfo BlockWorkerInfo of the worker
    * @return the available bytes of the worker

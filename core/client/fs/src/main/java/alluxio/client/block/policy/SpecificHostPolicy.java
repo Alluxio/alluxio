@@ -26,6 +26,9 @@ import javax.annotation.concurrent.ThreadSafe;
 /**
  * Always returns a worker with the specified hostname. Returns null if no active worker on that
  * hostname found.
+ *
+ * Note that since this does not have an empty constructor, this cannot
+ * be used as a default policy.
  */
 @ThreadSafe
 public final class SpecificHostPolicy implements BlockLocationPolicy {
