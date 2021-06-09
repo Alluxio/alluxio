@@ -20,6 +20,7 @@ import org.slf4j.LoggerFactory;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -83,6 +84,15 @@ public class UdbConfiguration extends BaseConfiguration<UdbProperty> {
       // include the trailing '/'
       schemeAuthority += "/";
     }
-    return mMountOptions.getOrDefault(schemeAuthority, Collections.emptyMap());
+    Map<String, String> map =
+        mMountOptions.getOrDefault(schemeAuthority, Collections.emptyMap());
+    if (map.equals(Collections.emptyMap())) {
+      for (Entry<String, Map<String, String>> entry : mMountOptions.entrySet()) {
+        if (schemeAuthority.matches(entry.getKey())) {
+          return entry.getValue();
+        }
+      }
+    }
+    return map;
   }
 }
