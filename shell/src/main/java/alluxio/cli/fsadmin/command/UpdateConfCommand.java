@@ -79,7 +79,7 @@ public final class UpdateConfCommand extends AbstractFsAdminCommand {
 
   @Override
   public String getUsage() {
-    return "updateConf key1=val1 key2=val2 ... keyn=valn";
+    return "updateConf key1=val1 [key2=val2 ...]";
   }
 
   /**
