@@ -46,7 +46,7 @@ public class CacheManagerWithShadowCache implements CacheManager {
   private final AtomicLongArray mByteEachBloomFilter;
   private final AtomicLong mShadowCachePageRead = new AtomicLong(0);
   private final AtomicLong mShadowCachePageHit = new AtomicLong(0);
-  ScheduledExecutorService mScheduler = Executors.newScheduledThreadPool(0);
+  private final ScheduledExecutorService mScheduler = Executors.newScheduledThreadPool(0);
   private final AtomicLong mShadowCacheByteRead = new AtomicLong(0);
   private long mShadowCacheBytes = 0;
   private final AtomicLong mShadowCacheByteHit = new AtomicLong(0);
