@@ -42,12 +42,12 @@ public final class UdbBypassSpec {
    * Checks if all partitions of a table should be bypassed.
    *
    * @param tableName the table name
-   * @return true if the table is configured to be bypassed, false otherwise
+   * @return true if the table is configured to be fully bypassed, false otherwise
    * @see UdbBypassSpec#isBypassedTable(String)
    */
   public boolean isFullyBypassedTable(String tableName) {
     // empty set indicates all partitions should be bypassed
-    return mTablePartMap.containsKey(tableName) && mTablePartMap.get(tableName).size() == 0;
+    return isBypassedTable(tableName) && mTablePartMap.get(tableName).size() == 0;
   }
 
   /**
@@ -60,14 +60,14 @@ public final class UdbBypassSpec {
   public boolean isBypassedPartition(String tableName, String partitionName) {
     if (!isBypassedTable(tableName)) {
       return false;
-    } else {
-      Set<String> parts = mTablePartMap.get(tableName);
-      if (parts.size() == 0) {
-        // empty set indicates all partitions should be bypassed
-        return true;
-      } else {
-        return parts.contains(partitionName);
-      }
     }
+
+    Set<String> parts = mTablePartMap.get(tableName);
+    if (parts.size() == 0) {
+      // empty set indicates all partitions should be bypassed
+      return true;
+    }
+
+    return parts.contains(partitionName);
   }
 }

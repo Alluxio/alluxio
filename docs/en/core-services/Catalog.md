@@ -102,13 +102,20 @@ $ ${ALLUXIO_HOME}/bin/alluxio table attachdb --db alluxio_db hive \
     thrift://metastore_host:9083 default
 ```
 
-If you want to specify a config file for the UDB, please append an option `-o catalog.db.config.file` to
+#### UDB Configuration File
+
+To specify a configuration file for the UDB, append an option `-o catalog.db.config.file` to
 `attachdb` command.
-After each time you made changes to the config file, you can use `alluxio table sync` to apply the changes.
+Each time the configuration file is changed, you can use `alluxio table sync` to apply the changes.
 
 The configuration file is in JSON format, and can contain these configurations:
 
 1. Tables and partitions bypassing specification:
+
+    You can specify some tables and partitions to be bypassed from Alluxio, so that they will not be
+    cached in Alluxio, instead clients will be directed to access them directly from the UDB. 
+    This can be helpful when some tables and partitions are large, and accommodating them in the cache
+    is undesirable.
 
     ```json
     {

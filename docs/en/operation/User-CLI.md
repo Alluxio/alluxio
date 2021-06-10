@@ -1434,7 +1434,10 @@ Here are the additional properties possible for the `-o` options:
     * `<UFS_PREFIX>`: the UFS path prefix, or a regex string starts with `regex:` that the mount properties are for
     * `<MOUNT_PROPERTY>`: an Alluxio mount property
   * `catalog.db.config.file`: the config file for the UDB, 
-    you can configure which tables and partitions should be bypassed from Alluxio by this option.
+    you can configure which tables and partitions to bypass from Alluxio in a configuration specified 
+    by this option. 
+    See [UDB Configuration File]({{ /en/core-services/Catalog.md#udb-configuration-file | relativize_url }}) 
+    for details.
   * `catalog.db.ignore.udb.tables`: comma-separated list of table names to ignore from the UDB
   * `catalog.db.sync.threads`: number of parallel threads to use to sync with the UDB. If too large,
   the sync may overload the UDB, and if set too low, syncing a database with many tables make take

@@ -44,7 +44,7 @@ public class DbConfigTest {
     );
     for (String input : src) {
       DbConfig config = mMapper.readValue(input, DbConfig.class);
-      assertEquals(config.getBypassEntry().getBypassedTables().size(), 0);
+      assertEquals(0, config.getBypassEntry().getBypassedTables().size());
     }
   }
 
@@ -52,7 +52,7 @@ public class DbConfigTest {
   public void tableNamesOnly() throws Exception {
     DbConfig config = mMapper.readValue(
         "{\"bypass\": {\"tables\": [\"table1\", \"table2\"]}}", DbConfig.class);
-    assertEquals(config.getBypassEntry().getBypassedTables(), ImmutableSet.of("table1", "table2"));
+    assertEquals(ImmutableSet.of("table1", "table2"), config.getBypassEntry().getBypassedTables());
   }
 
   @Test
