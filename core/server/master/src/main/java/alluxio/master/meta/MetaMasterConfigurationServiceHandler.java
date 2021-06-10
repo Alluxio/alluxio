@@ -140,6 +140,6 @@ public final class MetaMasterConfigurationServiceHandler
       return UpdateConfigurationPResponse.newBuilder()
           .putAllStatus(result)
           .build();
-    }, "updateConfig", "request=%s", responseObserver, request);
+    }, "updateConfiguration", "request=%s", responseObserver, request);
   }
 }
