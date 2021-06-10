@@ -55,10 +55,13 @@ public class UdbConfigurationTest {
     testMountOptions("SCHE.E.*", "SCHEME" + randomString(), true);
     testMountOptions("SCHE.E.*", "SCHEME" + randomString(), false);
   }
+
   private void testMountOptions(String schemeAuthority, boolean specifyTrailingSlash) {
     testMountOptions(schemeAuthority, schemeAuthority, specifyTrailingSlash);
   }
-  private void testMountOptions(String schemeAuthority, String userSchemeAuthority, boolean specifyTrailingSlash) {
+
+  private void testMountOptions(String schemeAuthority, String userSchemeAuthority,
+      boolean specifyTrailingSlash) {
     Map<String, String> values = new HashMap<>();
     for (int i = 0; i < 20; i++) {
       values.put("PROPERTY" + randomString(), "VALUE" + randomString());
