@@ -113,7 +113,6 @@ public class UIMountPointInfo {
   }
 
   /**
-   *
    * @return the properties
    */
   public String getProperties() {
