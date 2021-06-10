@@ -30,6 +30,7 @@ import alluxio.util.CommonUtils;
 import alluxio.util.ConfigurationUtils;
 import alluxio.util.executor.ExecutorServiceFactories;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Iterators;
 import com.google.common.collect.Sets;
@@ -211,7 +212,12 @@ public class Database implements Journaled {
 
     if (Files.exists(Paths.get(mConfigPath))) {
       ObjectMapper mapper = new ObjectMapper();
-      mDbConfig = mapper.readValue(new File(mConfigPath), DbConfig.class);
+      try {
+        mDbConfig = mapper.readValue(new File(mConfigPath), DbConfig.class);
+      } catch (JsonProcessingException e) {
+        LOG.error(String.format("failed to deserialize UDB config file %s, stays unsynced",
+            mConfigPath), e);
+      }
     }
     DatabaseInfo newDbInfo = mUdb.getDatabaseInfo();
     if (!newDbInfo.equals(mDatabaseInfo)) {

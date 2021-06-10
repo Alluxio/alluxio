@@ -112,6 +112,13 @@ public final class DbConfig {
     public Set<String> getBypassedTables() {
       return mEntries.stream().map(BypassTableEntry::getTable).collect(Collectors.toSet());
     }
+
+    /**
+     * @return {@link BypassTableEntry}s
+     */
+    public Set<BypassTableEntry> getBypassTableEntries() {
+      return mEntries;
+    }
   }
 
   /**
