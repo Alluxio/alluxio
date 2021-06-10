@@ -554,32 +554,40 @@ public final class MetricKey implements Comparable<MetricKey> {
   public static final MetricKey MASTER_EMBEDDED_JOURNAL_SNAPSHOT_GENERATE_TIMER =
       new Builder("Master.EmbeddedJournalSnapshotGenerateTimer")
           .setDescription("Describes the amount of time taken to generate local journal snapshots"
-              + " on this master. Valid only when using the embedded journal.")
+              + " on this master. Only valid when using the embedded journal. Use this metric to "
+              + "measure the performance of Alluxio's snapshot generation.")
           .setMetricType(MetricType.TIMER)
           .build();
   public static final MetricKey MASTER_EMBEDDED_JOURNAL_SNAPSHOT_DOWNLOAD_TIMER =
       new Builder("Master.EmbeddedJournalSnapshotDownloadGenerate")
           .setDescription("Describes the amount of time taken to download journal snapshots from "
-              + "other masters in the cluster. Only valid when using the embedded journal.")
+              + "other masters in the cluster. Only valid when using the embedded journal. Use "
+              + "this metric to determine if there are potential communication bottlenecks "
+              + "between Alluxio masters.")
           .setMetricType(MetricType.TIMER)
           .build();
   public static final MetricKey MASTER_EMBEDDED_JOURNAL_SNAPSHOT_INSTALL_TIMER =
       new Builder("Master.EmbeddedJournalSnapshotInstallTimer")
           .setDescription("Describes the amount of time taken to install a downloaded journal "
-              + "snapshot from another master. Valid only when using the embedded journal. ")
+              + "snapshot from another master. Only valid only when using the embedded journal. "
+              + "Use this metric to determine the performance of Alluxio when installing "
+              + "snapshots from the leader. Higher numbers may indicate a slow disk or CPU "
+              + "contention.")
           .setMetricType(MetricType.TIMER)
           .build();
   public static final MetricKey MASTER_EMBEDDED_JOURNAL_SNAPSHOT_REPLAY_TIMER =
       new Builder("Master.EmbeddedJournalSnapshotReplayTimer")
           .setDescription("Describes the amount of time taken to replay a journal snapshot onto "
-              + "the master's state machine. Valid only when using the embedded journal.")
+              + "the master's state machine. Only valid only when using the embedded journal. Use"
+              + " this metric to determine the performance of Alluxio when replaying journal "
+              + "snapshot file. Higher numbers may indicate a slow disk or CPU contention")
           .setMetricType(MetricType.TIMER)
           .build();
   public static final MetricKey MASTER_EMBEDDED_JOURNAL_SNAPSHOT_LAST_INDEX =
       new Builder("Master.EmbeddedJournalSnapshotLastIndex")
           .setDescription("Represents the latest journal index that was recorded by this master "
               + "in the most recent local snapshot or from a snapshot downloaded from another "
-              + "master in the cluster.")
+              + "master in the cluster. Only valid when using the embedded journal.")
           .setMetricType(MetricType.GAUGE)
           .build();
   public static final MetricKey MASTER_JOURNAL_FLUSH_FAILURE =
