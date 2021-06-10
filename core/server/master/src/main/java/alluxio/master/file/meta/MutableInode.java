@@ -12,6 +12,8 @@
 package alluxio.master.file.meta;
 
 import alluxio.Constants;
+import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.TtlAction;
 import alluxio.master.ProtobufUtils;
 import alluxio.proto.journal.File.UpdateInodeEntry;
@@ -32,10 +34,12 @@ import com.google.common.base.MoreObjects;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
@@ -606,7 +610,14 @@ public abstract class MutableInode<T extends MutableInode> implements InodeView 
     }
     if (entry.hasPinned()) {
       // pinning status has changed, therefore we change the medium list with it.
-      setMediumTypes(new HashSet<>(entry.getMediumTypeList()));
+      if (entry.getPinned()) {
+        List<String> mediaList = ServerConfiguration.getList(
+            PropertyKey.MASTER_TIERED_STORE_GLOBAL_MEDIUMTYPE, ",");
+        setMediumTypes(entry.getMediumTypeList().stream()
+            .filter(mediaList::contains).collect(Collectors.toSet()));
+      } else {
+        setMediumTypes(Collections.emptySet());
+      }
     }
   }
 
