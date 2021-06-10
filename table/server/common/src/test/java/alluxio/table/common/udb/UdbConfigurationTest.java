@@ -50,9 +50,15 @@ public class UdbConfigurationTest {
   public void mountOptions() {
     testMountOptions("SCHEME" + randomString(), true);
     testMountOptions("SCHEME" + randomString(), false);
+    testMountOptions(".*", "SCHEME" + randomString(), true);
+    testMountOptions(".*", "SCHEME" + randomString(), false);
+    testMountOptions("SCHE.E.*", "SCHEME" + randomString(), true);
+    testMountOptions("SCHE.E.*", "SCHEME" + randomString(), false);
   }
-
   private void testMountOptions(String schemeAuthority, boolean specifyTrailingSlash) {
+    testMountOptions(schemeAuthority, schemeAuthority, specifyTrailingSlash);
+  }
+  private void testMountOptions(String schemeAuthority, String userSchemeAuthority, boolean specifyTrailingSlash) {
     Map<String, String> values = new HashMap<>();
     for (int i = 0; i < 20; i++) {
       values.put("PROPERTY" + randomString(), "VALUE" + randomString());
@@ -71,8 +77,8 @@ public class UdbConfigurationTest {
     UdbConfiguration conf = new UdbConfiguration(properties);
 
     // query for mount options with and without the trailing slash
-    assertEquals(values, conf.getMountOption(schemeAuthority));
-    assertEquals(values, conf.getMountOption(schemeAuthority + "/"));
+    assertEquals(values, conf.getMountOption(userSchemeAuthority));
+    assertEquals(values, conf.getMountOption(userSchemeAuthority + "/"));
   }
 
   private String randomString() {
