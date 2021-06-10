@@ -21,6 +21,8 @@ import alluxio.proto.meta.Block.BlockLocation;
 import alluxio.proto.meta.Block.BlockMeta;
 import alluxio.util.ObjectSizeCalculator;
 
+import com.google.common.collect.ImmutableSet;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -53,7 +55,8 @@ public class HeapBlockStore implements BlockStore {
     super();
     if (ServerConfiguration.getBoolean(PropertyKey.MASTER_METRICS_HEAP_ENABLED)) {
       MetricsSystem.registerCachedGaugeIfAbsent(MetricKey.MASTER_BLOCK_HEAP_SIZE.getName(),
-          () -> ObjectSizeCalculator.getObjectSize(this));
+          () -> ObjectSizeCalculator.getObjectSize(mBlocks,
+              ImmutableSet.of(Long.class, BlockMeta.class)));
     }
   }
 
