@@ -1436,7 +1436,7 @@ Here are the additional properties possible for the `-o` options:
   * `catalog.db.config.file`: the config file for the UDB, 
     you can configure which tables and partitions to bypass from Alluxio in a configuration specified 
     by this option. 
-    See [UDB Configuration File]({{ '/en/core-services/Catalog.md#udb-configuration-file' | relativize_url }}) 
+    See [UDB Configuration File]({{ '/en/core-services/Catalog.html#udb-configuration-file' | relativize_url }}) 
     for details.
   * `catalog.db.ignore.udb.tables`: comma-separated list of table names to ignore from the UDB
   * `catalog.db.sync.threads`: number of parallel threads to use to sync with the UDB. If too large,
