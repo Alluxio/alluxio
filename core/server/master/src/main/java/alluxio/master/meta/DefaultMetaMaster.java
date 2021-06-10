@@ -627,7 +627,7 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
         }
       } catch (Exception e) {
         result.put(entry.getKey(), false);
-        LOG.error("Update property {} to {} met exception", entry.getKey(), entry.getValue(), e);
+        LOG.error("Failed to update property {} to {}", entry.getKey(), entry.getValue(), e);
       }
     }
     LOG.debug("Update {} properties, succeed {}.", propertiesMap.size(), successCount);
