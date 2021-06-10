@@ -474,7 +474,9 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
       mCurrentChunk.release();
       mCurrentChunk = null;
     }
-    mCurrentChunk = mDataReader.readChunk();
+    if (mCurrentChunk == null) {
+      mCurrentChunk = mDataReader.readChunk();
+    }
   }
 
   /**
