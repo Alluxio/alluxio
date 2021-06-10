@@ -28,7 +28,7 @@ public class UIMountPointInfo {
   private long mUfsUsedBytes;
   private boolean mReadOnly;
   private boolean mShared;
-  private String mProperties;
+  private final String mProperties;
 
   /**
    * Instantiates a new instance of {@link UIMountPointInfo}.
