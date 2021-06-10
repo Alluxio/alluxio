@@ -1066,8 +1066,8 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
             workerInfo.addBlock(blockId);
             BlockLocation location = entry.getKey();
             Preconditions.checkState(location.getWorkerId() == workerInfo.getId(),
-                "BlockLocation has a different workerId %s from the request sender's workerId %s!",
-                    location.getWorkerId(), workerInfo.getId());
+                "BlockLocation has a different workerId %s from the request sender's workerId %s",
+                location.getWorkerId(), workerInfo.getId());
             mBlockStore.addLocation(blockId, location);
             mLostBlocks.remove(blockId);
           } else {
