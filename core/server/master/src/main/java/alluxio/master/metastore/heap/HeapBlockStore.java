@@ -15,7 +15,6 @@ import alluxio.collections.TwoKeyConcurrentMap;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.master.file.meta.MutableInodeDirectory;
-import alluxio.master.file.meta.MutableInodeFile;
 import alluxio.master.metastore.BlockStore;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
@@ -58,7 +57,7 @@ public class HeapBlockStore implements BlockStore {
     if (ServerConfiguration.getBoolean(PropertyKey.MASTER_METRICS_HEAP_ENABLED)) {
       MetricsSystem.registerCachedGaugeIfAbsent(MetricKey.MASTER_BLOCK_HEAP_SIZE.getName(),
           () -> ObjectSizeCalculator.getObjectSize(mBlocks,
-              ImmutableSet.of(Long.class, BlockMeta.class, MutableInodeDirectory.class)));
+              ImmutableSet.of(Long.class, BlockMeta.class)));
     }
   }
 
