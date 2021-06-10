@@ -13,6 +13,7 @@ package alluxio.cli.fsadmin.command;
 
 import alluxio.annotation.PublicApi;
 import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.PropertyKey;
 
 import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.cli.CommandLine;
@@ -63,12 +64,12 @@ public final class UpdateConfCommand extends AbstractFsAdminCommand {
       return -1;
     }
 
-    Map<String, Boolean> result
+    Map<PropertyKey, Boolean> result
         = mMetaConfigClient.updateConfiguration(properties);
     System.out.println("Updated " + result.size() + " configs");
-    for (Entry<String, Boolean> entry : result.entrySet()) {
+    for (Entry<PropertyKey, Boolean> entry : result.entrySet()) {
       if (!entry.getValue()) {
-        System.out.println("Failed to Update " + entry.getKey());
+        System.out.println("Failed to Update " + entry.getKey().getName());
         errorCode = -2;
       }
     }
