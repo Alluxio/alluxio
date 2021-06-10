@@ -622,7 +622,7 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
           LOG.info("Property {} has been updated to \"{}\" from \"{}\"",
               key.getName(), entry.getValue(), oldValue);
         } else {
-          LOG.debug("Update a non-dynamic property {} is banned", key.getName());
+          LOG.debug("Update a non-dynamic property {} is not allowed", key.getName());
           result.put(entry.getKey(), false);
         }
       } catch (Exception e) {
