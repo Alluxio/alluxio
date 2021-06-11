@@ -318,7 +318,6 @@ public final class AsyncUfsAbsentPathCache implements UfsAbsentPathCache {
 
   private void removeCacheEntry(String path) {
     LOG.debug("Remove cacheEntry={}", path);
-    // Metrics.ABSENT_CACHE_INVALIDATIONS.inc();
     mCache.invalidate(path);
   }
 
