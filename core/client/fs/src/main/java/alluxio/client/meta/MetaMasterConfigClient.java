@@ -83,5 +83,5 @@ public interface MetaMasterConfigClient extends Client {
    * @return the update properties status map
    */
   Map<PropertyKey, Boolean> updateConfiguration(
-      Map<String, String> propertiesMap) throws IOException;
+      Map<PropertyKey, String> propertiesMap) throws IOException;
 }

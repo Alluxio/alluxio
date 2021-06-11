@@ -122,12 +122,14 @@ public class RetryHandlingMetaMasterConfigClient extends AbstractMasterClient
 
   @Override
   public Map<PropertyKey, Boolean> updateConfiguration(
-      Map<String, String> propertiesMap) throws IOException {
+      Map<PropertyKey, String> propertiesMap) throws IOException {
     Map<PropertyKey, Boolean> resultMap = new HashMap<>();
+    Map<String, String> inputMap = new HashMap<>();
+    propertiesMap.forEach((k, v) -> inputMap.put(k.getName(), v));
     retryRPC(
         () -> mClient.updateConfiguration(
             UpdateConfigurationPRequest.newBuilder()
-                .putAllProperties(propertiesMap)
+                .putAllProperties(inputMap)
                 .build()),
         RPC_LOG, "updateConfiguration", "propertiesMap=%s", propertiesMap)
         .getStatusMap().forEach((k, v) -> {

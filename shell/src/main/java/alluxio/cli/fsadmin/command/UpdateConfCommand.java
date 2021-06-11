@@ -47,7 +47,7 @@ public final class UpdateConfCommand extends AbstractFsAdminCommand {
   @Override
   public int run(CommandLine cl) throws IOException {
     int errorCode = 0;
-    Map<String, String> properties = new HashMap<>();
+    Map<PropertyKey, String> properties = new HashMap<>();
     for (String arg : cl.getArgList()) {
       if (arg.contains("=")) {
         String[] kv = arg.split("=");
@@ -56,7 +56,7 @@ public final class UpdateConfCommand extends AbstractFsAdminCommand {
               "Failed to parse %s, expecting argument in the format of \"key=val\", arg)");
           return -3;
         }
-        properties.put(kv[0], kv[1]);
+        properties.put(PropertyKey.getOrBuildCustom(kv[0]), kv[1]);
       }
     }
 
