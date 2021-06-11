@@ -11,7 +11,6 @@
 
 package alluxio.worker;
 
-import alluxio.Constants;
 import alluxio.RuntimeConstants;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
