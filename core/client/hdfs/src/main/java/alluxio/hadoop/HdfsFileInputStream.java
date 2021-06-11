@@ -18,11 +18,11 @@ import alluxio.exception.AlluxioException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileDoesNotExistException;
 
-import java.nio.ByteBuffer;
 import org.apache.hadoop.fs.ByteBufferReadable;
 import org.apache.hadoop.fs.FileSystem.Statistics;
 import org.apache.hadoop.fs.PositionedReadable;
 import org.apache.hadoop.fs.Seekable;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,7 +30,7 @@ import java.io.EOFException;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
-
+import java.nio.ByteBuffer;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -134,6 +134,14 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
   }
 
   @Override
+  public int read(ByteBuffer buf) throws IOException {
+    if (mClosed) {
+      throw new IOException(ExceptionMessage.READ_CLOSED_STREAM.getMessage());
+    }
+    return mInputStream.read(buf);
+  }
+
+  @Override
   public int read(long position, byte[] buffer, int offset, int length) throws IOException {
     if (mClosed) {
       throw new IOException(ExceptionMessage.READ_CLOSED_STREAM.getMessage());
@@ -191,13 +199,5 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
       throw new IOException("Cannot skip bytes in a closed stream.");
     }
     return mInputStream.skip(n);
-  }
-
-  @Override
-  public int read(ByteBuffer buf) throws IOException {
-    if (mClosed) {
-      throw new IOException(ExceptionMessage.READ_CLOSED_STREAM.getMessage());
-    }
-    return mInputStream.read(buf);
   }
 }

@@ -80,10 +80,10 @@ public class LocalCacheFileInStream extends FileInStream {
   /**
    * Constructor when the {@link URIStatus} is already available.
    *
-   * @param status       file status
-   * @param fileOpener   open file in the external file system if a cache miss occurs
-   * @param cacheManager local cache manager
-   * @param conf         configuration
+   * @param status  file status
+   * @param fileOpener  open file in the external file system if a cache miss occurs
+   * @param cacheManager  local cache manager
+   * @param conf  configuration
    */
   public LocalCacheFileInStream(URIStatus status, FileInStreamOpener fileOpener,
       CacheManager cacheManager, AlluxioConfiguration conf) {
@@ -122,6 +122,15 @@ public class LocalCacheFileInStream extends FileInStream {
     return read(b, off, len, ReadType.READ_INTO_BYTE_ARRAY, mPosition, false);
   }
 
+  @Override
+  public int read(ByteBuffer buf) throws IOException {
+    byte[] b = new byte[buf.remaining()];
+    int len = buf.remaining();
+    int off = buf.position();
+    int totalBytesRead = read(b, off, len, ReadType.READ_INTO_BYTE_BUFFER, mPosition, false);
+    buf.put(b, off, len);
+    return totalBytesRead;
+  }
 
   private int read(byte[] b, int off, int len, ReadType readType, long pos,
       boolean isPositionRead) throws IOException {
@@ -170,7 +179,7 @@ public class LocalCacheFileInStream extends FileInStream {
 
     if (totalBytesRead > len || (totalBytesRead < len && currentPosition < mStatus.getLength())) {
       throw new IOException(String.format("Invalid number of bytes read - "
-              + "bytes to read = %d, actual bytes read = %d, bytes remains in file %d",
+          + "bytes to read = %d, actual bytes read = %d, bytes remains in file %d",
           len, totalBytesRead, remaining()));
     }
 
@@ -293,7 +302,7 @@ public class LocalCacheFileInStream extends FileInStream {
   }
 
   /**
-   * Using read(byte b[], int off, int len) method to read data from external storage which contains
+   * Uses read(byte b[], int off, int len) method to read data from external storage which contains
    * the position specified.
    *
    * @param pos the position which the page will contain
@@ -321,7 +330,7 @@ public class LocalCacheFileInStream extends FileInStream {
   }
 
   /**
-   * Using read(ByteBuffer buf) method to read data from external storage which contains the
+   * Uses read(ByteBuffer buf) method to read data from external storage which contains the
    * position specified.
    *
    * @param pos the position which the page will contain
@@ -350,16 +359,6 @@ public class LocalCacheFileInStream extends FileInStream {
     return page;
   }
 
-  @Override
-  public int read(ByteBuffer buf) throws IOException {
-    byte[] b = new byte[buf.remaining()];
-    int len = buf.remaining();
-    int off = buf.position();
-    int totalBytesRead = read(b, off, len, ReadType.READ_INTO_BYTE_BUFFER, mPosition, false);
-    buf.put(b, off, len);
-    return totalBytesRead;
-  }
-
   private static final class Metrics {
     /** Cache hits. */
     private static final Meter BYTES_READ_CACHE =
@@ -386,7 +385,6 @@ public class LocalCacheFileInStream extends FileInStream {
           });
     }
   }
-
 
   enum ReadType {
     /**

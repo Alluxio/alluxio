@@ -49,6 +49,11 @@ public class AlluxioHdfsInputStream extends FileInStream {
   }
 
   @Override
+  public int read(ByteBuffer buf) throws IOException {
+    return mInput.read(buf);
+  }
+
+  @Override
   public long skip(long length) throws IOException {
     return mInput.skip(length);
   }
@@ -98,10 +103,5 @@ public class AlluxioHdfsInputStream extends FileInStream {
   public int positionedRead(long position, byte[] buffer, int offset, int length)
       throws IOException {
     return mInput.read(position, buffer, offset, length);
-  }
-
-  @Override
-  public int read(ByteBuffer buf) throws IOException {
-    return mInput.read(buf);
   }
 }

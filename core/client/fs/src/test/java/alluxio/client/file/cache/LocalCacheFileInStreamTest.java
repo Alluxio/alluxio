@@ -178,7 +178,6 @@ public class LocalCacheFileInStreamTest {
     Assert.assertEquals(1, manager.mPagesServed);
   }
 
-
   @Test
   public void readMultiPage() throws Exception {
     int pages = 2;
@@ -499,7 +498,8 @@ public class LocalCacheFileInStreamTest {
     Assert.assertEquals(pages, manager.mPagesServed);
   }
 
-  private void verifyReadFullFileThroughReadByteBufferMethod(int fileSize, int bufferSize, int pages) throws Exception {
+  private void verifyReadFullFileThroughReadByteBufferMethod(int fileSize, int bufferSize,
+      int pages) throws Exception {
     byte[] testData = BufferUtils.getIncreasingByteArray(fileSize);
     ByteArrayCacheManager manager = new ByteArrayCacheManager();
     LocalCacheFileInStream stream = setupWithSingleFile(testData, manager);
@@ -815,6 +815,11 @@ public class LocalCacheFileInStreamTest {
     }
 
     @Override
+    public int read(ByteBuffer buf) throws IOException {
+      return mIn.read(buf);
+    }
+
+    @Override
     public long getPos() throws IOException {
       return mIn.getPos();
     }
@@ -833,11 +838,6 @@ public class LocalCacheFileInStreamTest {
     public int positionedRead(long position, byte[] buffer, int offset, int length)
         throws IOException {
       return mIn.positionedRead(position, buffer, offset, length);
-    }
-
-    @Override
-    public int read(ByteBuffer buf) throws IOException {
-      return mIn.read(buf);
     }
   }
 }
