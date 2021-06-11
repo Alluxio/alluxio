@@ -36,12 +36,6 @@ import java.util.Map;
 public class AbfsUnderFileSystem extends HdfsUnderFileSystem {
   private static final Logger LOG = LoggerFactory.getLogger(AbfsUnderFileSystem.class);
 
-  /** Constant for the abfs URI scheme. */
-  public static final String SCHEME_INSECURE = "abfs://";
-
-  /** Constant for the abfss URI scheme. */
-  public static final String SCHEME_SECURE = "abfss://";
-
   private static Configuration createAbfsConfiguration(UnderFileSystemConfiguration conf) {
     Configuration abfsConf = HdfsUnderFileSystem.createConfiguration(conf);
 
