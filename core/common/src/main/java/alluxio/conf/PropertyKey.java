@@ -64,6 +64,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   private static final Cache<String, Boolean> REGEXP_CACHE = CacheBuilder.newBuilder()
       .maximumSize(1024)
       .build();
+
   /**
    * The consistency check level to apply to a certain property key.
    * User can run "alluxio validateEnv all cluster.conf.consistent" to validate the consistency of
@@ -1945,11 +1946,11 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.MASTER)
           .build();
-  // 350 bytes per inode cache key and * 2 for the existence of edge cache and some leeway
+  // 2k bytes per inode cache key and * 2 for the existence of edge cache and some leeway
   public static final PropertyKey MASTER_METASTORE_INODE_CACHE_MAX_SIZE =
       new Builder(Name.MASTER_METASTORE_INODE_CACHE_MAX_SIZE)
           .setDefaultValue(Math.min(Integer.MAX_VALUE / 2,
-              Runtime.getRuntime().maxMemory() / 350 / 2))
+              Runtime.getRuntime().maxMemory() / 2000 / 2))
           .setDescription("The number of inodes to cache on-heap. "
               + "This only applies to off-heap metastores, e.g. ROCKS. Set this to 0 to disable "
               + "the on-heap inode cache")
@@ -2034,6 +2035,22 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
+  public static final PropertyKey MASTER_METRICS_HEAP_ENABLED =
+      new Builder(Name.MASTER_METRICS_HEAP_ENABLED)
+          .setDefaultValue(true)
+          .setDescription("Enable master heap estimate metrics")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.MASTER)
+          .build();
+
+  public static final PropertyKey MASTER_METRICS_FILE_SIZE_DISTRIBUTION_BUCKETS =
+      new Builder(Name.MASTER_METRICS_FILE_SIZE_DISTRIBUTION_BUCKETS)
+          .setDefaultValue("1KB,1MB,10MB,100MB,1GB,10GB")
+          .setDescription("Master metrics file size buckets")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.MASTER)
+          .build();
+
   public static final PropertyKey MASTER_HOSTNAME =
       new Builder(Name.MASTER_HOSTNAME)
           .setDescription("The hostname of Alluxio master.")
@@ -4728,6 +4745,30 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   //
   // FUSE integration related properties
   //
+  public static final PropertyKey FUSE_AUTH_POLICY_CLASS =
+      new Builder(Name.FUSE_AUTH_POLICY_CLASS)
+          .setDefaultValue("alluxio.fuse.auth.SystemUserGroupAuthPolicy")
+          .setDescription("The fuse auth policy class. "
+              + " Valid options include: "
+              + "`alluxio.fuse.auth.SystemUserGroupAuthPolicy`, "
+              + "`alluxio.fuse.auth.CustomAuthPolicy`.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
+          .setScope(Scope.CLIENT)
+          .build();
+  public static final PropertyKey FUSE_AUTH_POLICY_CUSTOM_USER =
+      new Builder(Name.FUSE_AUTH_POLICY_CUSTOM_USER)
+          .setDescription("The fuse user name for custom auth policy. Only valid if the "
+              + Name.FUSE_AUTH_POLICY_CLASS + " is alluxio.fuse.auth.CustomAuthPolicy")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
+          .setScope(Scope.CLIENT)
+          .build();
+  public static final PropertyKey FUSE_AUTH_POLICY_CUSTOM_GROUP =
+      new Builder(Name.FUSE_AUTH_POLICY_CUSTOM_GROUP)
+          .setDescription("The fuse group name for custom auth policy. Only valid if the "
+              + Name.FUSE_AUTH_POLICY_CLASS + " is alluxio.fuse.auth.CustomAuthPolicy")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
+          .setScope(Scope.CLIENT)
+          .build();
   public static final PropertyKey FUSE_CACHED_PATHS_MAX =
       new Builder(Name.FUSE_CACHED_PATHS_MAX)
           .setDefaultValue(500)
@@ -5641,10 +5682,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.metastore.inode.inherit.owner.and.group";
     public static final String MASTER_PERSISTENCE_CHECKER_INTERVAL_MS =
         "alluxio.master.persistence.checker.interval";
+    public static final String MASTER_METRICS_HEAP_ENABLED =
+        "alluxio.master.metrics.heap.enabled";
     public static final String MASTER_METRICS_SERVICE_THREADS =
         "alluxio.master.metrics.service.threads";
     public static final String MASTER_METRICS_TIME_SERIES_INTERVAL =
         "alluxio.master.metrics.time.series.interval";
+    public static final String MASTER_METRICS_FILE_SIZE_DISTRIBUTION_BUCKETS =
+        "alluxio.master.metrics.file.size.distribution.buckets";
     public static final String MASTER_NETWORK_MAX_INBOUND_MESSAGE_SIZE =
         "alluxio.master.network.max.inbound.message.size";
     public static final String MASTER_PERSISTENCE_INITIAL_INTERVAL_MS =
@@ -6160,6 +6205,11 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     //
     // FUSE integration related properties
     //
+    public static final String FUSE_AUTH_POLICY_CLASS = "alluxio.fuse.auth.policy.class";
+    public static final String FUSE_AUTH_POLICY_CUSTOM_USER =
+        "alluxio.fuse.auth.policy.custom.user";
+    public static final String FUSE_AUTH_POLICY_CUSTOM_GROUP =
+        "alluxio.fuse.auth.policy.custom.group";
     public static final String FUSE_CACHED_PATHS_MAX = "alluxio.fuse.cached.paths.max";
     public static final String FUSE_DEBUG_ENABLED = "alluxio.fuse.debug.enabled";
     public static final String FUSE_FS_NAME = "alluxio.fuse.fs.name";

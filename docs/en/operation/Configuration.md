@@ -21,10 +21,11 @@ The two major components to configure are
 Customizing how an application interacts with Alluxio is specific to each application.
 The following are recommendations for some common applications.
 
-Note that properties prefixes with `alluxio.user` only affect Alluxio client operations.
+Alluxio properties mostly fall into three categories 
 
-Similarly, setting server-side properties prefixed with `alluxio.master` or `alluxio.worker` will
-only affect Alluxio server settings and does not affect compute applications.
+- properties prefixed with `alluxio.user` affect Alluxio client operations (e.g. compute applications)
+- properties prefixed with `alluxio.master` affect the Alluxio master processes
+- properties prefixed with `alluxio.worker` affect the Alluxio worker processes
 
 ### Alluxio Shell Commands
 
@@ -47,14 +48,14 @@ Note that, as a part of Alluxio deployment, the Alluxio shell will also take the
 To customize Alluxio client-side properties in Spark applications,
 Spark users can use pass Alluxio properties as JVM system properties.
 See examples for
-[the entire Spark Service]({{ '/en/compute/Spark.html' | relativize_url }}#basic-setup)
+[configuring the Spark service]({{ '/en/compute/Spark.html' | relativize_url }}#basic-setup)
 or for
-[individual Spark Jobs]({{ '/en/compute/Spark.html' | relativize_url }}#customize-alluxio-user-properties-for-individual-spark-jobs).
+[individual Spark jobs]({{ '/en/compute/Spark.html' | relativize_url }}#customize-alluxio-user-properties-for-individual-spark-jobs).
 
 ### Hadoop MapReduce
 
 See examples to configure Alluxio properties for
-[the entire MapReduce service]({{ '/en/compute/Hadoop-MapReduce.html' | relativize_url }}#customize-alluxio-user-properties-for-all-mapreduce-jobs)
+[the MapReduce service]({{ '/en/compute/Hadoop-MapReduce.html' | relativize_url }}#customize-alluxio-user-properties-for-all-mapreduce-jobs)
 or for
 [individual MapReduce jobs]({{ '/en/compute/Hadoop-MapReduce.html' | relativize_url }}#customize-alluxio-user-properties-for-individual-mapreduce-jobs).
 
@@ -158,8 +159,8 @@ Filesystem client operations have options which are derived from client side con
 properties.
 Only client-side configuration properties can be set as as path defaults.
 
-For example, `createFile` has an option to specify write type. By default, the write type is the
-value of the configuration key `alluxio.user.file.writetype.default`.
+For example, the `createFile` operation has an option to specify write type.
+By default, the write type is the value of the configuration key `alluxio.user.file.writetype.default`.
 The administrator can set default value of `alluxio.user.file.write.type.default` to `MUST_CACHE`
 for all paths with prefix `/tmp` by running:
 
@@ -186,7 +187,7 @@ show, add, update, and remove path defaults.
 
 ## Configuration Sources
 
-An Alluxio properties can be configured from multiple sources.
+Alluxio properties can be configured from multiple sources.
 A property's final value is determined by the following priority list, from highest priority to lowest:
 
 1. [JVM system properties (i.e., `-Dproperty=key`)](http://docs.oracle.com/javase/jndi/tutorial/beyond/env/source.html#SYS)
@@ -199,7 +200,7 @@ When an Alluxio cluster starts, each server process including master and worker 
 5. [Cluster default values](#cluster-defaults):
 An Alluxio client may initialize its configuration based on the cluster-wide default configuration served by the masters.
 
-If no user-specified configuration is found for a property, Alluxio runtime will fallback to
+If no user-specified configuration is found for a property, Alluxio will fall back to
 its [default property value]({{ '/en/reference/Properties-List.html' | relativize_url }}).
 
 To check the value of a specific configuration property and the source of its value,
@@ -247,7 +248,7 @@ by other application running in the same environment.
 ## Server Configuration Checker
 
 The server-side configuration checker helps discover configuration errors and warnings.
-Suspected configuration errors are reported through the web UI, `doctor` CLI, and master logs.
+Suspected configuration errors are reported through the web UI, `fsadmin doctor` CLI, and master logs.
 
 The web UI shows the result of the server configuration check.
 

@@ -55,7 +55,7 @@ public class InodeLockManager implements Closeable {
    * a lock, the garbage collector can remove the lock's entry from the pool.
    */
   private final LockPool<Long> mInodeLocks =
-      new LockPool<>(() -> new ReentrantReadWriteLock(),
+      new LockPool<>((key)-> new ReentrantReadWriteLock(),
           ServerConfiguration.getInt(PropertyKey.MASTER_LOCK_POOL_INITSIZE),
           ServerConfiguration.getInt(PropertyKey.MASTER_LOCK_POOL_LOW_WATERMARK),
           ServerConfiguration.getInt(PropertyKey.MASTER_LOCK_POOL_HIGH_WATERMARK),
@@ -64,7 +64,7 @@ public class InodeLockManager implements Closeable {
    * Cache for supplying edge locks, similar to mInodeLocks.
    */
   private final LockPool<Edge> mEdgeLocks =
-      new LockPool<>(() -> new ReentrantReadWriteLock(),
+      new LockPool<>((key)-> new ReentrantReadWriteLock(),
           ServerConfiguration.getInt(PropertyKey.MASTER_LOCK_POOL_INITSIZE),
           ServerConfiguration.getInt(PropertyKey.MASTER_LOCK_POOL_LOW_WATERMARK),
           ServerConfiguration.getInt(PropertyKey.MASTER_LOCK_POOL_HIGH_WATERMARK),

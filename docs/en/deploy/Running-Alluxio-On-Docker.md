@@ -466,7 +466,7 @@ For example, the following commands run the alluxio-fuse container as a long-run
 
 Run the Alluxio FUSE service to create a FUSE mount in the host bind-mounted directory:
 ```console
-$ docker run --rm \
+$ docker run -d --rm \
     --net=host \
     --name=alluxio-fuse \
     -v /tmp/mnt:/mnt:rshared \

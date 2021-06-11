@@ -294,6 +294,12 @@ public class JournalStateMachine extends BaseStateMachine {
     mJournalSystem.notifyLeadershipStateChanged(false);
   }
 
+  @Override
+  public void notifyIndexUpdate(long term, long index) {
+    super.notifyIndexUpdate(term, index);
+    CompletableFuture.runAsync(mJournalSystem::updateGroup);
+  }
+
   private long getNextIndex() {
     try {
       return ((RaftServerProxy) mServer).getImpl(mRaftGroupId).getState().getLog().getNextIndex();

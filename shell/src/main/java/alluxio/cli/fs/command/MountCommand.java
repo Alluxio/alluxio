@@ -24,8 +24,6 @@ import com.google.common.collect.Maps;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
-import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.Path;
 
 import java.io.IOException;
 import java.util.Map;
@@ -64,14 +62,6 @@ public final class MountCommand extends AbstractFileSystemCommand {
           .valueSeparator('=')
           .desc("options associated with this mount point")
           .build();
-  private static final Option HDFS_CONF_OPTION =
-      Option.builder()
-          .longOpt("hdfsconf")
-          .required(false)
-          .hasArg(true)
-          .numberOfArgs(1)
-          .desc("path to its config files for an HDFS mount point")
-          .build();
 
   /**
    * @param fsContext the filesystem of Alluxio
@@ -88,7 +78,7 @@ public final class MountCommand extends AbstractFileSystemCommand {
   @Override
   public Options getOptions() {
     return new Options().addOption(READONLY_OPTION).addOption(SHARED_OPTION)
-        .addOption(OPTION_OPTION).addOption(HDFS_CONF_OPTION);
+        .addOption(OPTION_OPTION);
   }
 
   @Override
@@ -109,16 +99,6 @@ public final class MountCommand extends AbstractFileSystemCommand {
     if (cl.hasOption(SHARED_OPTION.getLongOpt())) {
       optionsBuilder.setShared(true);
     }
-    if (cl.hasOption(HDFS_CONF_OPTION.getLongOpt())) {
-      String[] cfgFiles = cl.getOptionValues(HDFS_CONF_OPTION.getLongOpt());
-      Configuration hdfsConf = new Configuration(false);
-      for (String path : cfgFiles) {
-        if (!path.isEmpty()) {
-          hdfsConf.addResource(new Path(path));
-        }
-      }
-      optionsBuilder.putAllProperties(hdfsConf.getPropsWithPrefix(""));
-    }
     if (cl.hasOption(OPTION_OPTION.getLongOpt())) {
       Properties properties = cl.getOptionProperties(OPTION_OPTION.getLongOpt());
       optionsBuilder.putAllProperties(Maps.fromProperties(properties));
@@ -130,8 +110,7 @@ public final class MountCommand extends AbstractFileSystemCommand {
 
   @Override
   public String getUsage() {
-    return "mount [--readonly] [--shared] [--option <key=val>] [--hdfsconf <hdfsConfigFilePath>] "
-        + "<alluxioPath> <ufsURI>";
+    return "mount [--readonly] [--shared] [--option <key=val>] <alluxioPath> <ufsURI>";
   }
 
   @Override

@@ -52,6 +52,8 @@ alluxio.user.client.cache.quota.enabled:
   'Whether to support cache quota.'
 alluxio.user.client.cache.size:
   'The maximum size of the client-side cache.'
+alluxio.user.client.cache.store.overhead:
+  'A fraction value representing the storage overhead writing to disk. For example, with 1GB allocated cache space, and 10% storage overhead we expect no more than 1024MB / (1 + 10%) user data to store.'
 alluxio.user.client.cache.store.type:
   'The type of page store to use for client-side cache. Can be either `LOCAL` or `ROCKS`. The `LOCAL` page store stores all pages in a directory, the `ROCKS` page store utilizes rocksDB to persist the data.'
 alluxio.user.client.cache.timeout.duration:
