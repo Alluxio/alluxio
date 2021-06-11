@@ -80,10 +80,10 @@ public class LocalCacheFileInStream extends FileInStream {
   /**
    * Constructor when the {@link URIStatus} is already available.
    *
-   * @param status  file status
-   * @param fileOpener  open file in the external file system if a cache miss occurs
-   * @param cacheManager  local cache manager
-   * @param conf  configuration
+   * @param status file status
+   * @param fileOpener open file in the external file system if a cache miss occurs
+   * @param cacheManager local cache manager
+   * @param conf configuration
    */
   public LocalCacheFileInStream(URIStatus status, FileInStreamOpener fileOpener,
       CacheManager cacheManager, AlluxioConfiguration conf) {
@@ -182,7 +182,6 @@ public class LocalCacheFileInStream extends FileInStream {
           + "bytes to read = %d, actual bytes read = %d, bytes remains in file %d",
           len, totalBytesRead, remaining()));
     }
-
     return totalBytesRead;
   }
 
