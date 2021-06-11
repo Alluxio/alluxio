@@ -52,7 +52,8 @@ public final class UpdateConfCommand extends AbstractFsAdminCommand {
       if (arg.contains("=")) {
         String[] kv = arg.split("=");
         if (kv.length != 2) {
-          System.err.println("Failed to parse %s, expecting argument in the format of \"key=val\", arg);
+          System.err.println(
+              "Failed to parse %s, expecting argument in the format of \"key=val\", arg)");
           return -3;
         }
         properties.put(kv[0], kv[1]);
