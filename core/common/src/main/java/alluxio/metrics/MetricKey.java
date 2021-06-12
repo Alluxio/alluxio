@@ -1069,14 +1069,14 @@ public final class MetricKey implements Comparable<MetricKey> {
           .build();
   public static final MetricKey WORKER_BLOCK_REMOVER_TRY_REMOVE_BLOCKS_SIZE =
       new Builder("Worker.BlockRemoverTryRemoveBlocksSize")
-          .setDescription("The number of blocks to be removed from this worker at this moment "
+          .setDescription("The number of blocks to be removed from this worker at a moment "
               + "by asynchronous block remover.")
           .setMetricType(MetricType.GAUGE)
           .setIsClusterAggregated(false)
           .build();
   public static final MetricKey WORKER_BLOCK_REMOVER_REMOVING_BLOCKS_SIZE =
       new Builder("Worker.BlockRemoverRemovingBlocksSize")
-          .setDescription("The size of blocks is being removed from this worker at this moment "
+          .setDescription("The size of blocks is being removed from this worker at a moment "
               + "by asynchronous block remover.")
           .setMetricType(MetricType.GAUGE)
           .setIsClusterAggregated(false)
