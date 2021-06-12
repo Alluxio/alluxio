@@ -344,7 +344,7 @@ public final class MetricKey implements Comparable<MetricKey> {
       new Builder("Master.JournalFreePercent")
           .setDescription("Percentage of free space left on the journal disk(s) "
               + "for an Alluxio master."
-              + "This metric is only valid on Linux and when embedded journal is used."
+              + "This metric is only valid on Linux and when embedded journal is used. "
               + "Use this metric to monitor whether your journal is running out of disk space.")
           .setMetricType(MetricType.GAUGE)
           .build();
