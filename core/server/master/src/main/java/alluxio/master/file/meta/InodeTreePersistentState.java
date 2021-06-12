@@ -14,6 +14,7 @@ package alluxio.master.file.meta;
 import static alluxio.conf.PropertyKey.MASTER_METRICS_FILE_SIZE_DISTRIBUTION_BUCKETS;
 
 import alluxio.ProcessUtils;
+import alluxio.conf.ServerConfiguration;
 import alluxio.master.journal.JournalContext;
 import alluxio.master.journal.JournalUtils;
 import alluxio.master.journal.Journaled;
