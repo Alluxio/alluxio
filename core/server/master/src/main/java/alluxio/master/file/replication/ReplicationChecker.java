@@ -156,14 +156,14 @@ public final class ReplicationChecker implements HeartbeatExecutor {
 
     // Check the set of files that could possibly be under-replicated
     inodes = mInodeTree.getPinIdSet();
-    Set<Long> inProgress = check(inodes, mReplicationHandler, Mode.REPLICATE);
+    check(inodes, mReplicationHandler, Mode.REPLICATE);
 
     // Check the set of files that could possibly be over-replicated
     inodes = mInodeTree.getReplicationLimitedFileIds();
     check(inodes, mReplicationHandler, Mode.EVICT);
 
     // Check the set of files that could possibly be mis-replicated
-    inodes = Sets.difference(mInodeTree.getPinIdSet(), inProgress);
+    inodes = mInodeTree.getPinIdSet();
     checkMisreplicated(inodes, mReplicationHandler);
   }
 

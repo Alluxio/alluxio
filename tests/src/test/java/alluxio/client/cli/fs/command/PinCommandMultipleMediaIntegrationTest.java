@@ -24,23 +24,33 @@ import alluxio.client.file.URIStatus;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.exception.AlluxioException;
+import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.WritePType;
+import alluxio.job.wire.JobInfo;
+import alluxio.job.wire.Status;
+import alluxio.master.LocalAlluxioJobCluster;
 import alluxio.testutils.BaseIntegrationTest;
 import alluxio.testutils.LocalAlluxioClusterResource;
+import alluxio.util.CommonUtils;
+import alluxio.util.WaitForOptions;
 
 import com.google.common.io.Files;
+import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TestRule;
 
 import java.io.IOException;
+import java.util.List;
 
 /**
  * Tests the pin command with multiple media.
  */
 public final class PinCommandMultipleMediaIntegrationTest extends BaseIntegrationTest {
   private static final int SIZE_BYTES = Constants.MB * 16;
+
+  private static LocalAlluxioJobCluster sJobCluster;
 
   @ClassRule
   public static LocalAlluxioClusterResource sLocalAlluxioClusterResource =
@@ -57,7 +67,7 @@ public final class PinCommandMultipleMediaIntegrationTest extends BaseIntegratio
           .setProperty(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, "CACHE_THROUGH")
           .setProperty(PropertyKey.USER_FILE_RESERVED_BYTES, SIZE_BYTES / 2)
           // multiple media
-          .setProperty(PropertyKey.MASTER_REPLICATION_CHECK_INTERVAL_MS, "100ms")
+          .setProperty(PropertyKey.MASTER_REPLICATION_CHECK_INTERVAL_MS, "10ms")
           .setProperty(PropertyKey.WORKER_TIERED_STORE_LEVELS, "2")
           .setProperty(PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_ALIAS
               .format(1), Constants.MEDIUM_SSD)
@@ -81,6 +91,12 @@ public final class PinCommandMultipleMediaIntegrationTest extends BaseIntegratio
   @Rule
   public TestRule mResetRule = sLocalAlluxioClusterResource.getResetResource();
 
+  @BeforeClass
+  public static void beforeClass() throws Exception {
+    sJobCluster = new LocalAlluxioJobCluster();
+    sJobCluster.start();
+  }
+
   @Test
   public void setPinToSpecificMedia() throws Exception {
     FileSystem fileSystem = sLocalAlluxioClusterResource.get().getClient();
@@ -91,16 +107,24 @@ public final class PinCommandMultipleMediaIntegrationTest extends BaseIntegratio
 
     int fileSize = SIZE_BYTES / 2;
 
-    FileSystemTestUtils.createByteFile(fileSystem, filePathA, WritePType.MUST_CACHE,
+    FileSystemTestUtils.createByteFile(fileSystem, filePathA, WritePType.CACHE_THROUGH,
         fileSize);
     assertTrue(fileSystem.exists(filePathA));
 
     assertEquals(0, fsShell.run("pin", filePathA.toString(), Constants.MEDIUM_SSD));
     int ret = fsShell.run("setReplication", "-min", "2", filePathA.toString());
     assertEquals(0, ret);
+    Thread.sleep(1000);
+    List<JobInfo> test = sJobCluster.getMaster().getJobMaster().listDetailed();
+    CommonUtils
+        .waitFor("File being moved", () -> sJobCluster.getMaster().getJobMaster().listDetailed()
+            .stream().anyMatch(x -> x.getName().equals("Move")
+                    && x.getStatus().equals(Status.COMPLETED)
+                    && x.getAffectedPaths().contains(filePathA.getPath())),
+            WaitForOptions.defaults().setTimeoutMs(10 * Constants.SECOND_MS));
 
-    assertEquals(Constants.MEDIUM_SSD, fileSystem.getStatus(filePathA).getFileBlockInfos()
-        .get(0).getBlockInfo().getLocations().get(0).getMediumType());
+    assertTrue(fileSystem.getStatus(filePathA).getFileBlockInfos()
+        .get(0).getBlockInfo().getLocations().stream().anyMatch(x -> x.getMediumType().equals(Constants.MEDIUM_SSD)));
 
     assertEquals(-1, fsShell.run("pin", filePathB.toString(), "NVRAM"));
   }
@@ -116,7 +140,7 @@ public final class PinCommandMultipleMediaIntegrationTest extends BaseIntegratio
   }
 
   @Test
-  public void pinToMedium() throws Exception {
+  public void pinToMediumForceEviction() throws Exception {
     FileSystem fileSystem = sLocalAlluxioClusterResource.get().getClient();
     FileSystemShell fsShell = new FileSystemShell(ServerConfiguration.global());
 
@@ -145,12 +169,22 @@ public final class PinCommandMultipleMediaIntegrationTest extends BaseIntegratio
     URIStatus statusB = fileSystem.getStatus(filePathB);
     assertTrue(statusB.isPinned());
     assertTrue(statusB.getPinnedMediumTypes().contains("MEM"));
-    FileSystemTestUtils.createByteFile(fileSystem, filePathC, WritePType.CACHE_THROUGH,
+    FileSystemTestUtils.createByteFile(fileSystem, filePathC, WritePType.THROUGH,
         fileSize);
 
-    assertTrue(fileExists(fileSystem, filePathC));
     assertEquals(100, fileSystem.getStatus(filePathA).getInAlluxioPercentage());
     assertEquals(100, fileSystem.getStatus(filePathB).getInAlluxioPercentage());
+    assertEquals(0, fileSystem.getStatus(filePathC).getInAlluxioPercentage());
+
+    assertEquals(0, fsShell.run("pin", filePathC.toString(), "SSD"));
+
+    // Verify files are replicated into the correct tier through job service
+    CommonUtils
+        .waitFor("File being loaded", () -> sJobCluster.getMaster().getJobMaster().listDetailed()
+                .stream().anyMatch(x -> x.getStatus().equals(Status.COMPLETED) && x.getName().equals("Replicate")
+                    && x.getAffectedPaths().contains(filePathC.getPath())),
+            WaitForOptions.defaults().setTimeoutMs(10 * Constants.SECOND_MS));
+
     assertEquals(100, fileSystem.getStatus(filePathC).getInAlluxioPercentage());
 
     assertEquals(Constants.MEDIUM_MEM, fileSystem.getStatus(filePathA).getFileBlockInfos()
@@ -162,13 +196,22 @@ public final class PinCommandMultipleMediaIntegrationTest extends BaseIntegratio
         .get(0).getBlockInfo().getLocations().get(0).getMediumType());
 
     assertEquals(0, fsShell.run("unpin", filePathA.toString()));
-    Thread.sleep(1000);
+
+    assertEquals(0, fsShell.run("pin", filePathC.toString(), "MEM"));
+
     status = fileSystem.getStatus(filePathA);
     assertFalse(status.isPinned());
     assertTrue(status.getPinnedMediumTypes().isEmpty());
 
-    assertEquals(Constants.MEDIUM_SSD, fileSystem.getStatus(filePathA).getFileBlockInfos()
-        .get(0).getBlockInfo().getLocations().get(0).getMediumType());
+    // Verify files are migrated from another tier into the correct tier through job service
+    // Also verify that eviction works
+    CommonUtils
+        .waitFor("File being moved", () -> sJobCluster.getMaster().getJobMaster().listDetailed()
+                .stream().anyMatch(x -> x.getStatus().equals(Status.COMPLETED) && x.getName().equals("Move")
+                    && x.getAffectedPaths().contains(filePathC.getPath())),
+            WaitForOptions.defaults().setTimeoutMs(15 * Constants.SECOND_MS));
+    assertEquals(0, fileSystem.getStatus(filePathA).getInAlluxioPercentage());
+
     assertEquals(Constants.MEDIUM_MEM, fileSystem.getStatus(filePathC).getFileBlockInfos()
         .get(0).getBlockInfo().getLocations().get(0).getMediumType());
   }

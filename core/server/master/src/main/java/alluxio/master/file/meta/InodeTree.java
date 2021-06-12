@@ -1070,6 +1070,7 @@ public class InodeTree implements DelegatingJournaled {
       mState.applyAndJournal(rpcContext, UpdateInodeEntry.newBuilder()
           .setId(inode.getId())
           .setPinned(newMin > 0)
+          .addAllMediumType(inode.getMediumTypes())
           .setLastModificationTimeMs(opTimeMs)
           .build());
     } else {
