@@ -24,7 +24,6 @@ import alluxio.client.file.URIStatus;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.exception.AlluxioException;
-import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.WritePType;
 import alluxio.job.wire.JobInfo;
 import alluxio.job.wire.Status;
@@ -124,7 +123,8 @@ public final class PinCommandMultipleMediaIntegrationTest extends BaseIntegratio
             WaitForOptions.defaults().setTimeoutMs(10 * Constants.SECOND_MS));
 
     assertTrue(fileSystem.getStatus(filePathA).getFileBlockInfos()
-        .get(0).getBlockInfo().getLocations().stream().anyMatch(x -> x.getMediumType().equals(Constants.MEDIUM_SSD)));
+        .get(0).getBlockInfo().getLocations().stream()
+        .anyMatch(x -> x.getMediumType().equals(Constants.MEDIUM_SSD)));
 
     assertEquals(-1, fsShell.run("pin", filePathB.toString(), "NVRAM"));
   }
@@ -181,7 +181,9 @@ public final class PinCommandMultipleMediaIntegrationTest extends BaseIntegratio
     // Verify files are replicated into the correct tier through job service
     CommonUtils
         .waitFor("File being loaded", () -> sJobCluster.getMaster().getJobMaster().listDetailed()
-                .stream().anyMatch(x -> x.getStatus().equals(Status.COMPLETED) && x.getName().equals("Replicate")
+                .stream()
+                .anyMatch(x -> x.getStatus().equals(Status.COMPLETED)
+                    && x.getName().equals("Replicate")
                     && x.getAffectedPaths().contains(filePathC.getPath())),
             WaitForOptions.defaults().setTimeoutMs(10 * Constants.SECOND_MS));
 
@@ -207,7 +209,9 @@ public final class PinCommandMultipleMediaIntegrationTest extends BaseIntegratio
     // Also verify that eviction works
     CommonUtils
         .waitFor("File being moved", () -> sJobCluster.getMaster().getJobMaster().listDetailed()
-                .stream().anyMatch(x -> x.getStatus().equals(Status.COMPLETED) && x.getName().equals("Move")
+                .stream()
+                .anyMatch(x -> x.getStatus().equals(Status.COMPLETED)
+                    && x.getName().equals("Move")
                     && x.getAffectedPaths().contains(filePathC.getPath())),
             WaitForOptions.defaults().setTimeoutMs(15 * Constants.SECOND_MS));
     assertEquals(0, fileSystem.getStatus(filePathA).getInAlluxioPercentage());

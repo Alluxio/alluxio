@@ -37,7 +37,6 @@ import alluxio.wire.BlockInfo;
 import alluxio.wire.BlockLocation;
 
 import com.google.common.collect.HashBiMap;
-import com.google.common.collect.Sets;
 import org.apache.commons.lang3.tuple.ImmutableTriple;
 import org.apache.commons.lang3.tuple.Triple;
 import org.slf4j.Logger;
