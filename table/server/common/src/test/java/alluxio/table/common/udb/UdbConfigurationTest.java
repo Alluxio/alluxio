@@ -21,6 +21,7 @@ import org.junit.Test;
 import org.powermock.reflect.Whitebox;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -50,18 +51,26 @@ public class UdbConfigurationTest {
   public void mountOptions() {
     testMountOptions("SCHEME" + randomString(), true);
     testMountOptions("SCHEME" + randomString(), false);
-    testMountOptions(UdbConfiguration.REGEX_PREFIX + ".*", "SCHEME" + randomString(), true);
-    testMountOptions(UdbConfiguration.REGEX_PREFIX + ".*", "SCHEME" + randomString(), false);
-    testMountOptions(UdbConfiguration.REGEX_PREFIX + "SCHE.E.*", "SCHEME" + randomString(), true);
-    testMountOptions(UdbConfiguration.REGEX_PREFIX + "SCHE.E.*", "SCHEME" + randomString(), false);
+    testMountOptions(UdbConfiguration.REGEX_PREFIX + ".*", "SCHEME" + randomString(),
+        true, true);
+    testMountOptions(UdbConfiguration.REGEX_PREFIX + ".*", "SCHEME" + randomString(),
+        false, true);
+    testMountOptions(UdbConfiguration.REGEX_PREFIX + "SCHE.E.*", "SCHEME" + randomString(),
+        true, true);
+    testMountOptions(UdbConfiguration.REGEX_PREFIX + "SCHE.E.*", "SCHEME" + randomString(),
+        false, true);
+    testMountOptions(UdbConfiguration.REGEX_PREFIX + "SCHEME1.*", "SCHEME2" + randomString(),
+        true, false);
+    testMountOptions(UdbConfiguration.REGEX_PREFIX + "SCHEME1.*", "SCHEME2" + randomString(),
+        false, false);
   }
 
   private void testMountOptions(String concreteSchemeAuthority, boolean specifyTrailingSlash) {
-    testMountOptions(concreteSchemeAuthority, concreteSchemeAuthority, specifyTrailingSlash);
+    testMountOptions(concreteSchemeAuthority, concreteSchemeAuthority, specifyTrailingSlash, true);
   }
 
   private void testMountOptions(String templateSchemeAuthority, String concreteSchemeAuthority,
-      boolean specifyTrailingSlash) {
+      boolean specifyTrailingSlash, boolean expectedExist) {
     Map<String, String> values = new HashMap<>();
     for (int i = 0; i < 20; i++) {
       values.put("PROPERTY" + randomString(), "VALUE" + randomString());
@@ -80,6 +89,9 @@ public class UdbConfigurationTest {
     UdbConfiguration conf = new UdbConfiguration(properties);
 
     // query for mount options with and without the trailing slash
+    if (!expectedExist) {
+      values = Collections.emptyMap();
+    }
     assertEquals(values, conf.getMountOption(concreteSchemeAuthority));
     assertEquals(values, conf.getMountOption(concreteSchemeAuthority + "/"));
   }
