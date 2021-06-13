@@ -17,7 +17,7 @@ such as syncing and namespaces, refer to the
 [page on namespace management]({{ '/en/core-services/Unified-Namespace.html' | relativize_url }})
 
 Alluxio helps unify users' data across a variety of platforms while also helping to increase
-overall I/O throughput from a user's perspective. Alluxio accomplishes this by splitting storage
+overall I/O throughput. Alluxio accomplishes this by splitting storage
 into two distinct categories.
 
 - **UFS (Under File Storage, also referred to as under storage)**
@@ -241,7 +241,7 @@ to the lowest tier, trying to put the new block into the first directory that ca
 
 This is an experimental feature added in Alluxio 2.4.1. The interface is subject to change in future versions.
 
-Alluxio uses block allocation review policies to complement allocation policies. In comparison to allocation policies
+Alluxio uses block **allocation review** policies to complement **allocation policies**. In comparison to allocation policies
 which define what the allocation should be, the allocation review process validates allocation decisions and prevent 
 the ones that are not good enough. The `Reviewer` works together with the `Allocator`
 
@@ -267,7 +267,7 @@ storage.
 
 Annotation policies define an ordering for blocks across tiers and is consulted during:
 - Eviction
-- [Dynamic Block Placement](#block-aligning-dynamic-block-placement).
+- [Dynamic Block Placement](#block-aligning-dynamic-block-placement)
 
 The eviction, that happens during writes, will attempt to remove blocks based on the order enforced by the block annotation policy.
 The last block in annotated order is the first candidate for eviction regardless of which tier it's on.
@@ -483,10 +483,10 @@ The TTL API is as follows:
 
 ```
 SetTTL(path, duration, action)
-`path`          the path in the Alluxio namespace
-`duration`      the number of milliseconds before the TTL action goes into effect, this overrides
+path          the path in the Alluxio namespace
+duration      the number of milliseconds before the TTL action goes into effect, this overrides
                 any previous value
-`action`        the action to take when the duration has elapsed. `FREE` will cause the file to be
+action        the action to take when the duration has elapsed. `FREE` will cause the file to be
                 evicted from Alluxio storage, regardless of the pin status. `DELETE` will cause the
                 file to be deleted from the Alluxio namespace and under store.
                 NOTE: `DELETE` is the default for certain commands and will cause the file to be

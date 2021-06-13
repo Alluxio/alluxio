@@ -37,7 +37,7 @@ public class LockPoolTest {
    */
   @Before
   public void before() {
-    mPool = new LockPool<>(() -> new ReentrantReadWriteLock(), 2, LOW_WATERMARK, HIGH_WATERMARK, 4);
+    mPool = new LockPool<>(k -> new ReentrantReadWriteLock(), 2, LOW_WATERMARK, HIGH_WATERMARK, 4);
   }
 
   @After

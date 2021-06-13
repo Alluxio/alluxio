@@ -21,12 +21,12 @@ import com.google.common.base.Preconditions;
 
 import java.io.IOException;
 import java.io.OutputStream;
-import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.atomic.LongAdder;
 
 /**
- * A checkpointed atomic long.
+ * A checkpointed long adder.
  */
-public final class InodeCounter extends AtomicLong implements Checkpointed {
+public final class InodeCounter extends LongAdder implements Checkpointed {
   private static final long serialVersionUID = 0;
 
   @Override
@@ -37,7 +37,7 @@ public final class InodeCounter extends AtomicLong implements Checkpointed {
   @Override
   public void writeToCheckpoint(OutputStream output) throws IOException, InterruptedException {
     CheckpointOutputStream stream = new CheckpointOutputStream(output, CheckpointType.LONG);
-    stream.writeLong(get());
+    stream.writeLong(longValue());
     stream.flush();
   }
 
@@ -45,6 +45,7 @@ public final class InodeCounter extends AtomicLong implements Checkpointed {
   public void restoreFromCheckpoint(CheckpointInputStream input) throws IOException {
     Preconditions.checkState(input.getType() == CheckpointType.LONG,
         "Unexpected checkpoint type: %s", input.getType());
-    set(input.readLong());
+    reset();
+    add(input.readLong());
   }
 }

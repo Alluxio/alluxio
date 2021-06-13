@@ -293,6 +293,15 @@ public abstract class AbstractFuseFileSystem implements FuseFileSystem {
     }
   }
 
+  public int symlinkCallback(String linkname, String path) {
+    try {
+      return symlink(linkname, path);
+    } catch (Exception e) {
+      LOG.error("Failed to symlink linkname {}, path {}", linkname, path, e);
+      return -ErrorCodes.EIO();
+    }
+  }
+
   public int truncateCallback(String path, long size) {
     try {
       return truncate(path, size);

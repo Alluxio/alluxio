@@ -161,10 +161,6 @@
                   <shadedPattern>${shading.prefix}.org.apache.curator</shadedPattern>
                 </relocation>
                 <relocation>
-                  <pattern>org.apache.hadoop.io.erasurecode</pattern>
-                  <shadedPattern>${shading.prefix}.org.apache.hadoop.io.erasurecode</shadedPattern>
-                </relocation>
-                <relocation>
                   <pattern>org.apache.http</pattern>
                   <shadedPattern>${shading.prefix}.org.apache.http</shadedPattern>
                 </relocation>

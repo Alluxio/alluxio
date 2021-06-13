@@ -118,6 +118,10 @@ int setxattr_wrapper(const char *path, const char *name,
 }
 #endif
 
+int symlink_wrapper(const char *linkname, const char *path) {
+  return jnifuse::JniFuseFileSystem::getInstance()->symlinkOper->call(linkname, path);
+}
+
 int truncate_wrapper(const char *path, off_t size) {
   return jnifuse::JniFuseFileSystem::getInstance()->truncateOper->call(path, size);
 }

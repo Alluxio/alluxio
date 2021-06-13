@@ -120,8 +120,20 @@ public class TieredBlockStore implements BlockStore {
    * Creates a new instance of {@link TieredBlockStore}.
    */
   public TieredBlockStore() {
-    mMetaManager = BlockMetadataManager.createBlockMetadataManager();
-    mLockManager = new BlockLockManager();
+    this(BlockMetadataManager.createBlockMetadataManager(), new BlockLockManager());
+  }
+
+  /**
+   * Creates a new instance of {@link TieredBlockStore}.
+   *
+   * @param metaManager the block metadata manager
+   * @param lockManager the lock manager
+   */
+  @VisibleForTesting
+  public TieredBlockStore(BlockMetadataManager metaManager,
+      BlockLockManager lockManager) {
+    mMetaManager = metaManager;
+    mLockManager = lockManager;
 
     mBlockIterator = mMetaManager.getBlockIterator();
     // Register listeners required by the block iterator.

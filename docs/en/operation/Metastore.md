@@ -86,8 +86,18 @@ Backup URI         : ${BACKUP_PATH}
 Backup Entry Count : ${ENTRY_COUNT}
 ```
 
-`${BACKUP_PATH}` will be determined by the date, and the configuration of your
-journal.
+By default, this will write a backup named
+`alluxio-backup-YYYY-MM-DD-timestamp.gz` to the `/alluxio_backups` directory of
+the root under storage system, e.g. `hdfs://cluster/alluxio_backups`. This default
+backup directory can be configured by setting `alluxio.master.backup.directory`
+
+Alternatively, you may use the `--local <DIRECTORY>` flag to
+specify a path to write the backup to on the local disk of the primary master.
+For example:
+
+```console
+$ ./bin/alluxio fsadmin backup --local /tmp/alluxio_backup
+```
 
 Then stop Alluxio masters:
 

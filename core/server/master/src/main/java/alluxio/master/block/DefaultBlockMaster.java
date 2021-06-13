@@ -1066,9 +1066,8 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
             workerInfo.addBlock(blockId);
             BlockLocation location = entry.getKey();
             Preconditions.checkState(location.getWorkerId() == workerInfo.getId(),
-                String.format("BlockLocation has a different workerId %s from "
-                    + "the request sender's workerId %s!",
-                        location.getWorkerId(), workerInfo.getId()));
+                "BlockLocation has a different workerId %s from the request sender's workerId %s",
+                location.getWorkerId(), workerInfo.getId());
             mBlockStore.addLocation(blockId, location);
             mLostBlocks.remove(blockId);
           } else {
@@ -1079,8 +1078,10 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
         }
       }
     }
-    LOG.warn("{} invalid blocks found on worker {} in total", invalidBlockCount,
-        workerInfo.getWorkerAddress().getHost());
+    if (invalidBlockCount > 0) {
+      LOG.warn("{} invalid blocks found on worker {} in total", invalidBlockCount,
+          workerInfo.getWorkerAddress().getHost());
+    }
   }
 
   /**
@@ -1103,8 +1104,10 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
         workerInfo.updateToRemovedBlock(true, block);
       }
     }
-    LOG.warn("{} blocks marked as orphaned from worker {}", orphanedBlockCount,
-        workerInfo.getWorkerAddress().getHost());
+    if (orphanedBlockCount > 0) {
+      LOG.warn("{} blocks marked as orphaned from worker {}", orphanedBlockCount,
+          workerInfo.getWorkerAddress().getHost());
+    }
   }
 
   @Override

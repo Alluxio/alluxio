@@ -149,6 +149,12 @@ class SetxattrOperation : public Operation {
            size_t size, int flags);
 };
 
+class SymlinkOperation : public Operation {
+ public:
+  SymlinkOperation(JniFuseFileSystem *fs);
+  int call(const char *linkname, const char *path);
+};
+
 class ListxattrOperation : public Operation {
  public:
   ListxattrOperation(JniFuseFileSystem *fs);

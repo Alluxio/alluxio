@@ -51,6 +51,7 @@ $ ./bin/alluxio fs mount /mnt/new_storage s3://bucket/prefix
 ```
 
 ### UFS Namespace
+
 In addition to the unified namespace Alluxio provides, each underlying file system that is mounted
 in the Alluxio namespace has its own namespace; this is referred to as the _UFS namespace_.
 If a file in the UFS namespace is changed without going through Alluxio,
@@ -86,12 +87,14 @@ The frequency at which Alluxio will sync out-of-band changes from the UFS namesp
 explained in [UFS Metadata Sync](#ufs-metadata-sync).
 
 ## Mounting Under Storage Systems
-Mounting an Under storage system to the Alluxio file system namespace is the mechanism for
+
+Mounting an under storage system to the Alluxio file system namespace is the mechanism for
 defining the association between the Alluxio namespace and the UFS namespace.
 Mounting in Alluxio works similarly to mounting a volume in a Linux file system.
 The `mount` command attaches a UFS to the file system tree in the Alluxio namespace.
 
 ### Root Mount Point
+
 The root mount point of the Alluxio namespace is configured in `conf/alluxio-site.properties`
 on the masters.
 The following line is an example configuration where an HDFS path is mounted to the root of the
@@ -122,6 +125,7 @@ alluxio.master.mount.table.root.option.alluxio.underfs.version=2.7
 ```
 
 ### Nested Mount Points
+
 In addition to the root mount point, other under file systems can be mounted into Alluxio namespace.
 These additional mount points are added to Alluxio at runtime, via the `mount` command.
 The `--option` flag allows the user to pass additional parameters
@@ -146,6 +150,7 @@ As a result, users can mount HDFS with different versions into a single Alluxio 
 refer to [HDFS Under Store]({{ '/en/ufs/HDFS.html#mount-hdfs-with-specific-versions' | relativize_url }}) for more details.
 
 ## Relationship Between Alluxio and UFS Namespace
+
 Alluxio provides a unified namespace, acting as a cache for data in one or more
 under file storage systems. This section discusses how Alluxio interacts with
 under file systems to discover their files and make them available through Alluxio.
@@ -194,10 +199,10 @@ client operations.
 </p>
 
 The overall cost of syncing with sync interval enabled (blue line) is amortized across the number of
-RPCs within the sync time interval. When sync interval enabled to some non-0 value users should
+RPCs within the sync time interval. When the sync interval is enabled to some non-0 value users should
 expect latency spikes in normal application usage. The frequency at which the spikes occur will
 be directly correlated with how frequently users want to update their metadata from the UFS. When
-configured to 0, users will generally see much higher RPC response times (possible an order of
+configured to 0, users will generally see much higher RPC response times (possibly an order of
 magnitude or more) greater than if they were to disable sync interval.
 
 The reason syncing metadata is so costly is because of the latency induced by making an RPC call to
@@ -265,7 +270,7 @@ set the sync interval to -1.
 
 ##### Non-HDFS UFS
 
-If a small number of paths are updated regularly or semi-regularly through the UFS directly instead
+If a small number of paths are updated on regular patterns through the UFS directly instead
 of Alluxio, we recommend using the path configuration feature to set the sync interval on the
 specific path(s) based on the understanding of the rate of change in the UFS. This allows files to
 be synced for the special cases without detrimentally affecting the performance of operations on
@@ -366,7 +371,7 @@ once in the last 5 intervals.
 
 ## Examples
 
-The following examples assume that Alluxio source code exists in the `${ALLUXIO_HOME}` directory
+The following examples assume Alluxio is installed in the `${ALLUXIO_HOME}` directory
 and an instance of Alluxio is running locally.
 
 ### Transparent Naming

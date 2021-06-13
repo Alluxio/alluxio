@@ -42,6 +42,7 @@ int release_wrapper(const char *path, struct fuse_file_info *fi);
 int removexattr_wrapper(const char *path, const char *list);
 int rename_wrapper(const char *oldPath, const char *newPath);
 int rmdir_wrapper(const char *path);
+int symlink_wrapper(const char *linkname, const char *path);
 int truncate_wrapper(const char *path, off_t size);
 int unlink_wrapper(const char *path);
 int utimens_wrapper(const char *path, const struct timespec ts[2]);
