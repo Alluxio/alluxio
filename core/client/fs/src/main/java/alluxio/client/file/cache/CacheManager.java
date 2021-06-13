@@ -85,17 +85,13 @@ public interface CacheManager extends AutoCloseable {
     public static CacheManager get(AlluxioConfiguration conf) throws IOException {
       // TODO(feng): support multiple cache managers
       if (CACHE_MANAGER.get() == null) {
-        if (CACHE_INIT_LOCK.tryLock()) {
-          try {
-            if (CACHE_MANAGER.get() == null) {
-              CACHE_MANAGER.set(create(conf));
-            }
-          } catch (IOException e) {
-            Metrics.CREATE_ERRORS.inc();
-            throw new IOException("Failed to create CacheManager", e);
-          } finally {
-            CACHE_INIT_LOCK.unlock();
+        try (LockResource lockResource = new LockResource(CACHE_INIT_LOCK)) {
+          if (CACHE_MANAGER.get() == null) {
+            CACHE_MANAGER.set(create(conf));
           }
+        } catch (IOException e) {
+          Metrics.CREATE_ERRORS.inc();
+          throw new IOException("Failed to create CacheManager", e);
         }
       }
       return CACHE_MANAGER.get();
