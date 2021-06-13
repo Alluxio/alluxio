@@ -53,6 +53,7 @@ export class MountTablePresenter extends React.Component<AllProps> {
                     <th>UFS Used Bytes</th>
                     <th>ReadOnly</th>
                     <th>Shared</th>
+                    <th>Properties</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -65,6 +66,7 @@ export class MountTablePresenter extends React.Component<AllProps> {
                       <td>{mountPointInfo.ufsUsedBytes}</td>
                       <td>{mountPointInfo.readOnly ? 'YES' : 'NO'}</td>
                       <td>{mountPointInfo.shared ? 'YES' : 'NO'}</td>
+                      <td>{mountPointInfo.properties}</td>
                     </tr>
                   ))}
                 </tbody>

@@ -44,6 +44,9 @@ exports[`MountTable Shallow component Matches snapshot 1`] = `
               <th>
                 Shared
               </th>
+              <th>
+                Properties
+              </th>
             </tr>
           </thead>
           <tbody />
