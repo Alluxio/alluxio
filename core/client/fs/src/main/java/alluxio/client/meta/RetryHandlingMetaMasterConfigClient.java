@@ -21,6 +21,7 @@ import alluxio.grpc.MetaMasterConfigurationServiceGrpc;
 import alluxio.grpc.RemovePathConfigurationPRequest;
 import alluxio.grpc.ServiceType;
 import alluxio.grpc.SetPathConfigurationPRequest;
+import alluxio.grpc.UpdateConfigurationPRequest;
 import alluxio.master.MasterClientContext;
 import alluxio.wire.ConfigHash;
 import alluxio.wire.Configuration;
@@ -117,5 +118,23 @@ public class RetryHandlingMetaMasterConfigClient extends AbstractMasterClient
   public void removePathConfiguration(AlluxioURI path) throws IOException {
     retryRPC(() -> mClient.removePathConfiguration(RemovePathConfigurationPRequest.newBuilder()
         .setPath(path.getPath()).build()), RPC_LOG, "removePathConfiguration", "path=%s", path);
+  }
+
+  @Override
+  public Map<PropertyKey, Boolean> updateConfiguration(
+      Map<PropertyKey, String> propertiesMap) throws IOException {
+    Map<PropertyKey, Boolean> resultMap = new HashMap<>();
+    Map<String, String> inputMap = new HashMap<>();
+    propertiesMap.forEach((k, v) -> inputMap.put(k.getName(), v));
+    retryRPC(
+        () -> mClient.updateConfiguration(
+            UpdateConfigurationPRequest.newBuilder()
+                .putAllProperties(inputMap)
+                .build()),
+        RPC_LOG, "updateConfiguration", "propertiesMap=%s", propertiesMap)
+        .getStatusMap().forEach((k, v) -> {
+          resultMap.put(PropertyKey.getOrBuildCustom(k), v);
+        });
+    return resultMap;
   }
 }
