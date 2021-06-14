@@ -22,8 +22,6 @@ import alluxio.conf.PropertyKey;
 import alluxio.exception.PreconditionMessage;
 import alluxio.exception.status.NotFoundException;
 import alluxio.grpc.ReadRequest;
-import alluxio.metrics.MetricKey;
-import alluxio.metrics.MetricsSystem;
 import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.util.io.BufferUtils;
@@ -32,7 +30,6 @@ import alluxio.util.network.NetworkAddressUtils;
 import alluxio.wire.BlockInfo;
 import alluxio.wire.WorkerNetAddress;
 
-import com.codahale.metrics.Timer;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
@@ -62,7 +59,6 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
   }
 
   private final WorkerNetAddress mAddress;
-  private final boolean mDetailedMetricsEnabled;
   private final BlockInStreamSource mInStreamSource;
   /** The id of the block or UFS file to which this instream provides access. */
   private final long mId;
@@ -267,7 +263,6 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
     mInStreamSource = blockSource;
     mId = id;
     mLength = length;
-    mDetailedMetricsEnabled = conf.getBoolean(PropertyKey.USER_BLOCK_READ_METRICS_ENABLED);
   }
 
   @Override
@@ -325,14 +320,7 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
     }
     int toRead = Math.min(len, mCurrentChunk.readableBytes());
     byteBuffer.position(off).limit(off + toRead);
-    if (mDetailedMetricsEnabled) {
-      try (Timer.Context ctx = MetricsSystem
-          .timer(MetricKey.CLIENT_BLOCK_READ_FROM_CHUNK.getName()).time()) {
-        mCurrentChunk.readBytes(byteBuffer);
-      }
-    } else {
-      mCurrentChunk.readBytes(byteBuffer);
-    }
+    mCurrentChunk.readBytes(byteBuffer);
     mPos += toRead;
     return toRead;
   }
@@ -487,14 +475,7 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
       mCurrentChunk = null;
     }
     if (mCurrentChunk == null) {
-      if (mDetailedMetricsEnabled) {
-        try (Timer.Context ctx = MetricsSystem
-            .timer(MetricKey.CLIENT_BLOCK_READ_CHUNK.getName()).time()) {
-          mCurrentChunk = mDataReader.readChunk();
-        }
-      } else {
-        mCurrentChunk = mDataReader.readChunk();
-      }
+      mCurrentChunk = mDataReader.readChunk();
     }
   }
 
