@@ -13,7 +13,6 @@ package alluxio.client.file;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.nio.ByteBuffer;
 
 /**
  * Mock implementation of {@link FileInStream} which delegates to a {@link ByteArrayInputStream}.
@@ -43,16 +42,6 @@ public final class MockFileInStream extends FileInStream {
   }
 
   @Override
-  public int read(ByteBuffer buf) throws IOException {
-    byte[] b = new byte[buf.remaining()];
-    int len = buf.remaining();
-    int off = buf.position();
-    int totalBytesRead = mStream.read(b, off, len);
-    buf.put(b, off, len);
-    return totalBytesRead;
-  }
-
-  @Override
   public int read(byte[] b, int off, int len) throws IOException {
     return mStream.read(b, off, len);
   }
@@ -73,13 +62,11 @@ public final class MockFileInStream extends FileInStream {
     mStream.skip(n);
   }
 
-  @Override
-  public long getPos() throws IOException {
+  @Override public long getPos() throws IOException {
     return mLength - remaining();
   }
 
-  @Override
-  public int positionedRead(long position, byte[] buffer, int offset, int length)
+  @Override public int positionedRead(long position, byte[] buffer, int offset, int length)
       throws IOException {
     throw new UnsupportedOperationException("positionedRead not implemented for mock FileInStream");
   }

@@ -218,13 +218,6 @@ public class AlluxioFileInStream extends FileInStream {
   }
 
   @Override
-  public int read(ByteBuffer buf) throws IOException {
-    int length = buf.remaining();
-    int pos = buf.position();
-    return read(buf, pos, length);
-  }
-
-  @Override
   public long skip(long n) throws IOException {
     if (n <= 0) {
       return 0;
