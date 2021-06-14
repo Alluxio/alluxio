@@ -219,6 +219,17 @@ public final class BlockMetadataManager {
         spaceAvailable += tier.getAvailableBytes();
       }
       return spaceAvailable;
+    } else if (!location.mediumType().isEmpty()
+        && location.equals(
+        BlockStoreLocation.anyDirInAnyTierWithMedium(location.mediumType()))) {
+      for (StorageTier tier : mTiers) {
+        for (StorageDir dir : tier.getStorageDirs()) {
+          if (dir.getDirMedium().equals(location.mediumType())) {
+            spaceAvailable += dir.getAvailableBytes();
+          }
+        }
+      }
+      return spaceAvailable;
     }
 
     String tierAlias = location.tierAlias();
