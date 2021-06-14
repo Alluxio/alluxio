@@ -787,9 +787,10 @@ public class InodeTree implements DelegatingJournaled {
       MutableInodeDirectory newDir = MutableInodeDirectory.create(
           mDirectoryIdGenerator.getNewDirectoryId(rpcContext.getJournalContext()),
           currentInodeDirectory.getId(), pathComponents[k], missingDirContext);
-
-      newDir.setPinned(currentInodeDirectory.isPinned());
-      newDir.setMediumTypes(new HashSet<>(currentInodeDirectory.getMediumTypes()));
+      if (currentInodeDirectory.isPinned() && !newDir.isPinned()) {
+        newDir.setPinned(true);
+        newDir.setMediumTypes(new HashSet<>(currentInodeDirectory.getMediumTypes()));
+      }
       inheritOwnerAndGroupIfEmpty(newDir, currentInodeDirectory);
 
       // if the parent has default ACL, copy that default ACL as the new directory's default
@@ -892,8 +893,10 @@ public class InodeTree implements DelegatingJournaled {
     } else {
       throw new IllegalStateException(String.format("Unrecognized create options: %s", context));
     }
-    newInode.setPinned(currentInodeDirectory.isPinned());
-    newInode.setMediumTypes(new HashSet<>(currentInodeDirectory.getMediumTypes()));
+    if (currentInodeDirectory.isPinned() && !newInode.isPinned()) {
+      newInode.setPinned(true);
+      newInode.setMediumTypes(new HashSet<>(currentInodeDirectory.getMediumTypes()));
+    }
 
     mState.applyAndJournal(rpcContext, newInode,
         inodePath.getUri().getPath());

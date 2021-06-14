@@ -422,37 +422,32 @@ public class InodeTreePersistentState implements Journaled {
     if (entry.hasTtl()) {
       mTtlBuckets.insert(Inode.wrap(inode));
     }
-    if (entry.hasPinned()) {
-      // if pinning status has changed
-      setReplicationForPin(inode);
+    if (inode.isFile() && entry.hasPinned()) {
+      setReplicationForPin(inode, entry.getPinned());
     }
     mInodeStore.writeInode(inode);
     updateToBePersistedIds(inode);
   }
 
-  private void setReplicationForPin(MutableInode<?> inode) {
+  private void setReplicationForPin(MutableInode<?> inode, boolean pinned) {
     if (inode.isFile()) {
       MutableInodeFile file = inode.asFile();
-      if (inode.isPinned()) {
+      if (pinned) {
         // when we pin a file with default min replication (zero), we bump the min replication
         // to one in addition to setting pinned flag, and adjust the max replication if it is
         // smaller than min replication.
+        file.setPinned(true);
         if (file.getReplicationMin() == 0) {
           file.setReplicationMin(1);
-          if (file.getReplicationMax() == 0) {
-            file.setReplicationMax(alluxio.Constants.REPLICATION_MAX_INFINITY);
-          }
+        }
+        if (file.getReplicationMax() == 0) {
+          file.setReplicationMax(alluxio.Constants.REPLICATION_MAX_INFINITY);
         }
         mPinnedInodeFileIds.add(inode.getId());
       } else {
         // when we unpin a file, set the min replication to zero too.
-        inode.asFile().setReplicationMin(0);
+        file.setReplicationMin(0);
         mPinnedInodeFileIds.remove(file.getId());
-      }
-
-      if (file.getReplicationMin() > 0) {
-        mPinnedInodeFileIds.add(file.getId());
-        file.setPinned(true);
       }
       if (file.getReplicationMax() != alluxio.Constants.REPLICATION_MAX_INFINITY) {
         mReplicationLimitedFileIds.add(file.getId());
@@ -585,7 +580,10 @@ public class InodeTreePersistentState implements Journaled {
     mInodeStore.addChild(inode.getParentId(), inode);
     // Only update size, last modified time is updated separately.
     updateTimestampsAndChildCount(inode.getParentId(), Long.MIN_VALUE, 1);
-    setReplicationForPin(inode);
+    if (inode.isFile()) {
+      boolean pinned = inode.asFile().isPinned() || inode.asFile().getReplicationMin() > 0;
+      setReplicationForPin(inode, pinned);
+    }
     // Add the file to TTL buckets, the insert automatically rejects files w/ Constants.NO_TTL
     mTtlBuckets.insert(Inode.wrap(inode));
     updateToBePersistedIds(inode);
