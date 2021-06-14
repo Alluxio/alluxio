@@ -35,6 +35,7 @@ import alluxio.wire.UfsInfo;
 import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
 
+import com.google.common.collect.ImmutableSet;
 import com.google.common.net.HostAndPort;
 import com.google.protobuf.ByteString;
 
@@ -235,7 +236,7 @@ public final class GrpcUtils {
         .setBlockSizeBytes(pInfo.getBlockSizeBytes()).setCreationTimeMs(pInfo.getCreationTimeMs())
         .setCompleted(pInfo.getCompleted()).setFolder(pInfo.getFolder())
         .setPinned(pInfo.getPinned()).setCacheable(pInfo.getCacheable())
-        .setMediumTypes(new HashSet<>(pInfo.getMediumTypeList()))
+        .setMediumTypes(ImmutableSet.copyOf(pInfo.getMediumTypeList()))
         .setPersisted(pInfo.getPersisted()).setBlockIds(pInfo.getBlockIdsList())
         .setLastModificationTimeMs(pInfo.getLastModificationTimeMs()).setTtl(pInfo.getTtl())
         .setLastAccessTimeMs(pInfo.getLastAccessTimeMs())
