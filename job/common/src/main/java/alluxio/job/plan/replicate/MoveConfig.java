@@ -72,7 +72,7 @@ public final class MoveConfig implements PlanConfig {
 
   @Override
   public Collection<String> affectedPaths() {
-    if (StringUtils.isEmpty(mPath)) {
+    if (!StringUtils.isEmpty(mPath)) {
       return ImmutableList.of(mPath);
     }
     return Collections.EMPTY_LIST;
