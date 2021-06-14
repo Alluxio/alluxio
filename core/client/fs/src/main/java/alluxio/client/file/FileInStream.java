@@ -66,8 +66,8 @@ public abstract class FileInStream extends InputStream
    * Implementations should treat 0-length requests as legitimate, and must not
    * signal an error upon their receipt.
    *
-   * @param buf the ByteBuffer to receive the results of the read operation.
-   * @return the number of bytes read, possibly zero, or -1 if reach end-of-stream.
+   * @param buf the ByteBuffer to receive the results of the read operation
+   * @return the number of bytes read, possibly zero, or -1 if reach end-of-stream
    */
   public int read(ByteBuffer buf) throws IOException {
     return read(buf, buf.position(), buf.remaining());

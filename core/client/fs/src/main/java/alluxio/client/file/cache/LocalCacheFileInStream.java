@@ -20,7 +20,6 @@ import alluxio.conf.PropertyKey;
 import alluxio.exception.AlluxioException;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
-import alluxio.util.io.BufferUtils;
 
 import com.codahale.metrics.Meter;
 import com.google.common.base.Preconditions;
@@ -115,16 +114,16 @@ public class LocalCacheFileInStream extends FileInStream {
     return totalBytesRead;
   }
 
+  // TODO(binfan): take ByteBuffer once CacheManager takes ByteBuffer to avoid extra mem copy
   private int readInternal(byte[] b, int off, int len, ReadType readType, long pos,
-      boolean isPositionRead) throws IOException {
+      boolean isPositionedRead) throws IOException {
     Preconditions.checkArgument(len >= 0, "length should be non-negative");
     Preconditions.checkArgument(off >= 0, "offset should be non-negative");
     Preconditions.checkArgument(pos >= 0, "position should be non-negative");
     if (len == 0) {
       return 0;
     }
-    // at end of file
-    if (pos >= mStatus.getLength()) {
+    if (pos >= mStatus.getLength()) { // at end of file
       return -1;
     }
     int totalBytesRead = 0;
@@ -155,7 +154,7 @@ public class LocalCacheFileInStream extends FileInStream {
           mCacheManager.put(pageId, page, mCacheScope, mCacheQuota);
         }
       }
-      if (!isPositionRead) {
+      if (!isPositionedRead) {
         mPosition = currentPosition;
       }
     }
