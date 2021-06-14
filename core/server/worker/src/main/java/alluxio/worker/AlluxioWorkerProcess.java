@@ -117,7 +117,7 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
       // registered at worker registry, so the maximum timeout here is set to the multiply of
       // the number of factories by the default timeout of getting a worker from the registry.
       CommonUtils.invokeAll(callables,
-          (long) callables.size() * Constants.DEFAULT_REGISTRY_GET_TIMEOUT_MS);
+          (long) callables.size() * 10 * Constants.DEFAULT_REGISTRY_GET_TIMEOUT_MS);
 
       // Setup web server
       mWebServer =
