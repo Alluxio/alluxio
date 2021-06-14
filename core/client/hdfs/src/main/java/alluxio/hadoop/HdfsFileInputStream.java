@@ -138,7 +138,11 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
     if (mClosed) {
       throw new IOException(ExceptionMessage.READ_CLOSED_STREAM.getMessage());
     }
-    return mInputStream.read(buf);
+    int bytesRead = mInputStream.read(buf);
+    if (bytesRead != -1 && mStatistics != null) {
+      mStatistics.incrementBytesRead(bytesRead);
+    }
+    return bytesRead;
   }
 
   @Override

@@ -43,7 +43,6 @@ public class LocalCacheFileInStream extends FileInStream {
   /** Page size in bytes. */
   protected final long mPageSize;
 
-  private final byte[] mSingleByte = new byte[1];
   private final Closer mCloser = Closer.create();
 
   /** Local store to store pages. */
@@ -103,39 +102,24 @@ public class LocalCacheFileInStream extends FileInStream {
   }
 
   @Override
-  public int read() throws IOException {
-    int bytesRead = read(mSingleByte);
-    if (bytesRead == -1) {
-      return -1;
-    }
-    Preconditions.checkState(bytesRead == 1);
-    return BufferUtils.byteToInt(mSingleByte[0]);
-  }
-
-  @Override
-  public int read(byte[] b) throws IOException {
-    return read(b, 0, b.length, ReadType.READ_INTO_BYTE_ARRAY, mPosition, false);
-  }
-
-  @Override
   public int read(byte[] b, int off, int len) throws IOException {
-    return read(b, off, len, ReadType.READ_INTO_BYTE_ARRAY, mPosition, false);
+    return readInternal(b, off, len, ReadType.READ_INTO_BYTE_ARRAY, mPosition, false);
   }
 
   @Override
-  public int read(ByteBuffer buf) throws IOException {
+  public int read(ByteBuffer buf, int off, int len) throws IOException {
     byte[] b = new byte[buf.remaining()];
-    int len = buf.remaining();
-    int off = buf.position();
-    int totalBytesRead = read(b, off, len, ReadType.READ_INTO_BYTE_BUFFER, mPosition, false);
+    int totalBytesRead =
+        readInternal(b, off, len, ReadType.READ_INTO_BYTE_BUFFER, mPosition, false);
     buf.put(b, off, len);
     return totalBytesRead;
   }
 
-  private int read(byte[] b, int off, int len, ReadType readType, long pos,
+  private int readInternal(byte[] b, int off, int len, ReadType readType, long pos,
       boolean isPositionRead) throws IOException {
     Preconditions.checkArgument(len >= 0, "length should be non-negative");
     Preconditions.checkArgument(off >= 0, "offset should be non-negative");
+    Preconditions.checkArgument(pos >= 0, "position should be non-negative");
     if (len == 0) {
       return 0;
     }
@@ -171,12 +155,10 @@ public class LocalCacheFileInStream extends FileInStream {
           mCacheManager.put(pageId, page, mCacheScope, mCacheQuota);
         }
       }
+      if (!isPositionRead) {
+        mPosition = currentPosition;
+      }
     }
-
-    if (!isPositionRead) {
-      mPosition = currentPosition;
-    }
-
     if (totalBytesRead > len || (totalBytesRead < len && currentPosition < mStatus.getLength())) {
       throw new IOException(String.format("Invalid number of bytes read - "
           + "bytes to read = %d, actual bytes read = %d, bytes remains in file %d",
@@ -208,15 +190,7 @@ public class LocalCacheFileInStream extends FileInStream {
 
   @Override
   public int positionedRead(long pos, byte[] b, int off, int len) throws IOException {
-    Preconditions.checkArgument(pos >= 0, "position should be non-negative");
-    if (len == 0) {
-      return 0;
-    }
-    // at end of file
-    if (pos >= mStatus.getLength()) {
-      return -1;
-    }
-    return read(b, off, len, ReadType.READ_INTO_BYTE_ARRAY, pos, true);
+    return readInternal(b, off, len, ReadType.READ_INTO_BYTE_ARRAY, pos, true);
   }
 
   @Override
@@ -286,70 +260,29 @@ public class LocalCacheFileInStream extends FileInStream {
    * @return a byte array of the page data
    */
   private synchronized byte[] readExternalPage(long pos, ReadType readType) throws IOException {
-    byte[] page = null;
-    switch (readType) {
-      case READ_INTO_BYTE_ARRAY:
-        page = readExternalPageIntoByteArray(pos);
-        break;
-      case READ_INTO_BYTE_BUFFER:
-        page = readExternalPageIntoByteBuffer(pos);
-        break;
-      default:
-        throw new IOException("unsupported read type = " + readType);
-    }
-    return page;
-  }
-
-  /**
-   * Uses read(byte b[], int off, int len) method to read data from external storage which contains
-   * the position specified.
-   *
-   * @param pos the position which the page will contain
-   * @return a byte array of the page data
-   */
-  private synchronized byte[] readExternalPageIntoByteArray(long pos) throws IOException {
     long pageStart = pos - (pos % mPageSize);
     FileInStream stream = getExternalFileInStream(pageStart);
     int pageSize = (int) Math.min(mPageSize, mStatus.getLength() - pageStart);
     byte[] page = new byte[pageSize];
+    ByteBuffer buffer = readType == ReadType.READ_INTO_BYTE_BUFFER ? ByteBuffer.wrap(page) : null;
     int totalBytesRead = 0;
     while (totalBytesRead < pageSize) {
-      int bytesRead = stream.read(page, totalBytesRead, pageSize - totalBytesRead);
+      int bytesRead;
+      switch (readType) {
+        case READ_INTO_BYTE_ARRAY:
+          bytesRead = stream.read(page, totalBytesRead, pageSize - totalBytesRead);
+          break;
+        case READ_INTO_BYTE_BUFFER:
+          bytesRead = stream.read(buffer);
+          break;
+        default:
+          throw new IOException("unsupported read type = " + readType);
+      }
       if (bytesRead <= 0) {
         break;
       }
       totalBytesRead += bytesRead;
     }
-    Metrics.BYTES_READ_EXTERNAL.mark(totalBytesRead);
-    if (totalBytesRead != pageSize) {
-      throw new IOException("Failed to read complete page from external storage. Bytes read: "
-          + totalBytesRead + " Page size: " + pageSize);
-    }
-    return page;
-  }
-
-  /**
-   * Uses read(ByteBuffer buf) method to read data from external storage which contains the
-   * position specified.
-   *
-   * @param pos the position which the page will contain
-   * @return a byte array of the page data
-   */
-  private synchronized byte[] readExternalPageIntoByteBuffer(long pos) throws IOException {
-    long pageStart = pos - (pos % mPageSize);
-    FileInStream stream = getExternalFileInStream(pageStart);
-    int pageSize = (int) Math.min(mPageSize, mStatus.getLength() - pageStart);
-    byte[] page = new byte[pageSize];
-    ByteBuffer buffer = ByteBuffer.wrap(page);
-    int totalBytesRead = stream.read(buffer);
-    while (totalBytesRead < pageSize) {
-      int bytesRead = stream.read(buffer);
-      if (bytesRead <= 0) {
-        break;
-      }
-      totalBytesRead += bytesRead;
-    }
-
     Metrics.BYTES_READ_EXTERNAL.mark(totalBytesRead);
     if (totalBytesRead != pageSize) {
       throw new IOException("Failed to read complete page from external storage. Bytes read: "
