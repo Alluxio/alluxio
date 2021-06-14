@@ -32,9 +32,9 @@ import java.util.Random;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
- * This policy maps the blockId to several deterministic Alluxio workers. The number of workers a block
- * can be mapped to can be passed through the constructor. The default is 1. It skips the workers
- * that do not have enough capacity to hold the block.
+ * This policy maps the blockId to several deterministic Alluxio workers. The number of workers a
+ * block can be mapped to can be passed through the constructor. The default is 1. It skips the
+ * workers that do not have enough capacity to hold the block.
  *
  * This policy is useful for limiting the amount of replication that occurs when reading blocks from
  * the UFS with high concurrency. With 30 workers and 100 remote clients reading the same block

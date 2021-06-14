@@ -86,8 +86,8 @@ FileSystem fs = FileSystem.Factory.get();
 All metadata operations as well as opening a file for reading or creating a file for writing are
 executed through the `FileSystem` object. Since Alluxio files are immutable once written, the
 idiomatic way to create files is to use
-[FileSystem#createFile(AlluxioURI)](https://docs.alluxio.io/os/javadoc/{{site.ALLUXIO_MAJOR_VERSION}}/alluxio/client/file/FileSystem.html#createFile-alluxio.AlluxioURI-)
-, which returns a stream object that can be used to write the file. For example:
+[FileSystem#createFile(AlluxioURI)](https://docs.alluxio.io/os/javadoc/{{site.ALLUXIO_MAJOR_VERSION}}/alluxio/client/file/FileSystem.html#createFile-alluxio.AlluxioURI-),
+which returns a stream object that can be used to write the file. For example:
 
 ```java
 FileSystem fs = FileSystem.Factory.get();
@@ -220,7 +220,12 @@ Users can override the default policy class in the
   > exist or have enough availability, will select the nearest worker from the active
   > workers list with sufficient availability.
   >
+  > The definition of 'nearest worker' is based on
+  > ['Tiered Locality']({{ '/en/operation/Tiered-Locality.html' | relativize_url }}).
+  >
   > The calculation of which worker gets selected is done for each block write.
+
+  * If no worker meets availability criteria, will randomly select a worker from the list of all workers.
 
 * [LocalFirstAvoidEvictionPolicy](https://docs.alluxio.io/os/javadoc/{{site.ALLUXIO_MAJOR_VERSION}}/alluxio/client/block/policy/LocalFirstAvoidEvictionPolicy.html)
 
@@ -237,25 +242,27 @@ Users can override the default policy class in the
   > is used as buffer space on each worker when calculating available space
   > to store each block.
 
+  * If no worker meets availability criteria, will randomly select a worker from the list of all workers.
+
 * [MostAvailableFirstPolicy](https://docs.alluxio.io/os/javadoc/{{site.ALLUXIO_MAJOR_VERSION}}/alluxio/client/block/policy/MostAvailableFirstPolicy.html)
 
   > A policy that returns the worker with the most available bytes.
-  >
-  > The policy returns null if no worker is qualified.
+
+  * If no worker meets availability criteria, will randomly select a worker from the list of all workers.
 
 * [RoundRobinPolicy](https://docs.alluxio.io/os/javadoc/{{site.ALLUXIO_MAJOR_VERSION}}/alluxio/client/block/policy/RoundRobinPolicy.html)
 
   > A policy that chooses the worker for the next block in a round-robin manner
   > and skips workers that do not have enough space.
-  >
-  > The policy returns null if no worker can be found.
+
+  * If no worker meets availability criteria, will randomly select a worker from the list of all workers.
 
 * [SpecificHostPolicy](https://docs.alluxio.io/os/javadoc/{{site.ALLUXIO_MAJOR_VERSION}}/alluxio/client/block/policy/SpecificHostPolicy.html)
 
-  > Always returns a worker with the specified hostname.
-  >
-  > Returns null if no active worker on that hostname found.
-  > Note that since this does not have an empty constructor, this cannot be used as a default policy.
+  > Always returns a worker with the hostname specified by
+  > PropertyKey.WORKER_HOSTNAME (alluxio.worker.hostname).
+
+  * If no value is set, will randomly select a worker from the list of all workers.
 
 * [DeterministicHashPolicy](https://docs.alluxio.io/os/javadoc/{{site.ALLUXIO_MAJOR_VERSION}}/alluxio/client/block/policy/DeterministicHashPolicy.html)
 
