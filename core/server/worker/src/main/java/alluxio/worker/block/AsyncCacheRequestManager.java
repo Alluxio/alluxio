@@ -102,7 +102,7 @@ public class AsyncCacheRequestManager {
           "Failed to cache block locally (async & best effort) as the thread pool is at capacity."
               + " To increase, update the parameter '%s'. numRejected: {} error: {}",
           PropertyKey.Name.WORKER_NETWORK_ASYNC_CACHE_MANAGER_THREADS_MAX), mNumRejected.get(),
-          e.getMessage());
+          e.toString());
     } catch (Exception e) {
       LOG.warn("Failed to submit async cache request. request: {}", request, e);
       ASYNC_CACHE_FAILED_BLOCKS.inc();
@@ -158,7 +158,7 @@ public class AsyncCacheRequestManager {
     } catch (AlluxioException | IOException e) {
       LOG.warn(
           "Failed to async cache block {} from remote worker ({}) on creating the temp block: {}",
-          blockId, sourceAddress, e.getMessage());
+          blockId, sourceAddress, e.toString());
       return false;
     }
     try (BlockReader reader =
@@ -170,11 +170,11 @@ public class AsyncCacheRequestManager {
       return true;
     } catch (AlluxioException | IOException e) {
       LOG.warn("Failed to async cache block {} from remote worker ({}) on copying the block: {}",
-          blockId, sourceAddress, e.getMessage());
+          blockId, sourceAddress, e.toString());
       try {
         mBlockWorker.abortBlock(Sessions.ASYNC_CACHE_WORKER_SESSION_ID, blockId);
       } catch (AlluxioException | IOException ee) {
-        LOG.warn("Failed to abort block {}: {}", blockId, ee.getMessage());
+        LOG.warn("Failed to abort block {}: {}", blockId, ee.toString());
       }
       return false;
     }

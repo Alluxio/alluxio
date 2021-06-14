@@ -104,7 +104,7 @@ public final class MultiProcessCluster {
   private final Map<PropertyKey, String> mProperties;
   private final Map<Integer, Map<PropertyKey, String>> mMasterProperties;
   private final Map<Integer, Map<PropertyKey, String>> mWorkerProperties;
-  private final int mNumMasters;
+  private int mNumMasters;
   private final int mNumWorkers;
   private final String mClusterName;
   /** Closer for closing all resources that must be closed when the cluster is destroyed. */
@@ -136,7 +136,7 @@ public final class MultiProcessCluster {
       List<PortCoordination.ReservedPort> ports) {
     if (System.getenv(ALLUXIO_USE_FIXED_TEST_PORTS) != null) {
       Preconditions.checkState(
-          ports.size() == numMasters * PORTS_PER_MASTER + numWorkers * PORTS_PER_WORKER,
+          ports.size() >= numMasters * PORTS_PER_MASTER + numWorkers * PORTS_PER_WORKER,
           "We require %s ports per master and %s ports per worker, but there are %s masters, "
               + "%s workers, and %s ports",
           PORTS_PER_MASTER, PORTS_PER_WORKER, numMasters, numWorkers, ports.size());
@@ -170,8 +170,38 @@ public final class MultiProcessCluster {
     Preconditions.checkState(mState != State.DESTROYED, "Cannot start a destroyed cluster");
     mWorkDir = AlluxioTestDirectory.createTemporaryDirectory(mClusterName);
     mState = State.STARTED;
+    // Start servers
+    LOG.info("Starting alluxio cluster {} with base directory {}", mClusterName,
+        mWorkDir.getAbsolutePath());
+    startNewMasters(mNumMasters, !mNoFormat);
 
-    mMasterAddresses = generateMasterAddresses(mNumMasters);
+    for (int i = 0; i < mNumWorkers; i++) {
+      createWorker(i).start();
+    }
+    LOG.info("Starting alluxio cluster in directory {}", mWorkDir.getAbsolutePath());
+    int primaryMasterIndex = getPrimaryMasterIndex(WAIT_MASTER_SERVING_TIMEOUT_MS);
+    LOG.info("Alluxio primary master {} starts serving RPCs",
+        mMasterAddresses.get(primaryMasterIndex));
+  }
+
+  /**
+   * Start a number of new master nodes.
+   *
+   * @param count the count of the masters to start
+   * @param format whether to format the master first
+   * @throws Exception if any error occurs
+   */
+  public synchronized void startNewMasters(int count, boolean format) throws Exception {
+    int startIndex = 0;
+    if (mMasterAddresses != null) {
+      startIndex = mMasterAddresses.size();
+    } else {
+      mMasterAddresses = new ArrayList<>();
+    }
+    List<MasterNetAddress> masterAddresses = generateMasterAddresses(count);
+    mMasterAddresses.addAll(masterAddresses);
+    mNumMasters = mMasterAddresses.size();
+
     LOG.info("Master addresses: {}", mMasterAddresses);
     switch (mDeployMode) {
       case UFS_NON_HA:
@@ -224,25 +254,15 @@ public final class MultiProcessCluster {
     mProperties.put(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS,
         PathUtils.concatPath(mWorkDir, "underFSStorage"));
     new File(mProperties.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS)).mkdirs();
-    if (!mNoFormat) {
+    if (format) {
       formatJournal();
     }
     writeConf();
     ServerConfiguration.merge(mProperties, Source.RUNTIME);
 
-    // Start servers
-    LOG.info("Starting alluxio cluster {} with base directory {}", mClusterName,
-        mWorkDir.getAbsolutePath());
-    for (int i = 0; i < mNumMasters; i++) {
-      createMaster(i).start();
+    for (int i = 0; i < count; i++) {
+      createMaster(startIndex + i).start();
     }
-    for (int i = 0; i < mNumWorkers; i++) {
-      createWorker(i).start();
-    }
-    LOG.info("Starting alluxio cluster in directory {}", mWorkDir.getAbsolutePath());
-    int primaryMasterIndex = getPrimaryMasterIndex(WAIT_MASTER_SERVING_TIMEOUT_MS);
-    LOG.info("Alluxio primary master {} starts serving RPCs",
-        mMasterAddresses.get(primaryMasterIndex));
   }
 
   /**
@@ -306,12 +326,13 @@ public final class MultiProcessCluster {
   public synchronized void waitForAllNodesRegistered(int timeoutMs)
       throws TimeoutException, InterruptedException {
     MetaMasterClient metaMasterClient = getMetaMasterClient();
+    int nodeCount = mNumMasters + mNumWorkers;
     CommonUtils.waitFor("all nodes registered", () -> {
       try {
         MasterInfo masterInfo = metaMasterClient.getMasterInfo(Collections.emptySet());
         int liveNodeNum = masterInfo.getMasterAddressesList().size()
             + masterInfo.getWorkerAddressesList().size();
-        if (liveNodeNum == (mNumMasters + mNumWorkers)) {
+        if (liveNodeNum == nodeCount) {
           return true;
         } else {
           LOG.info("Master addresses: {}. Worker addresses: {}",

@@ -32,7 +32,7 @@ import java.util.List;
 /**
  * Tests loading UFS metadata many times concurrently.
  */
-public final class ConcurrentFileSystemMasterLoadMetadataTest {
+public final class ConcurrentFileSystemMasterLoadMetadataIntegrationTest {
   private static final int CONCURRENCY_FACTOR = 20;
   private FileSystem mFileSystem;
 

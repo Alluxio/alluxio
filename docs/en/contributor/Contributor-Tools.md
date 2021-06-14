@@ -210,7 +210,7 @@ To run those tests, please install the libraries referenced in
 
 ## Modifying a gRPC definition
 
-Alluxio uses [gRPC](https://grpc.io/) 1.28.1 for RPC communication between clients and servers. The `.proto`
+Alluxio uses [gRPC](https://grpc.io/) 1.37.0 for RPC communication between clients and servers. The `.proto`
 files defined in `core/transport/src/grpc/` are used to auto-generate Java code for calling the
 RPCs on clients and implementing the RPCs on servers. To regenerate Java code after changing 
 a gRPC definition, you must rebuild `alluxio-core-transport` module with `'generate'` maven profile.

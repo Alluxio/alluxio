@@ -120,8 +120,20 @@ public class TieredBlockStore implements BlockStore {
    * Creates a new instance of {@link TieredBlockStore}.
    */
   public TieredBlockStore() {
-    mMetaManager = BlockMetadataManager.createBlockMetadataManager();
-    mLockManager = new BlockLockManager();
+    this(BlockMetadataManager.createBlockMetadataManager(), new BlockLockManager());
+  }
+
+  /**
+   * Creates a new instance of {@link TieredBlockStore}.
+   *
+   * @param metaManager the block metadata manager
+   * @param lockManager the lock manager
+   */
+  @VisibleForTesting
+  public TieredBlockStore(BlockMetadataManager metaManager,
+      BlockLockManager lockManager) {
+    mMetaManager = metaManager;
+    mLockManager = lockManager;
 
     mBlockIterator = mMetaManager.getBlockIterator();
     // Register listeners required by the block iterator.
@@ -449,8 +461,7 @@ public class TieredBlockStore implements BlockStore {
             sessionId);
         abortBlockInternal(sessionId, tempBlockMeta.getBlockId());
       } catch (Exception e) {
-        LOG.error("Failed to cleanup tempBlock {} due to {}", tempBlockMeta.getBlockId(),
-            e.getMessage());
+        LOG.error("Failed to cleanup tempBlock {}", tempBlockMeta.getBlockId(), e);
       }
     }
   }
@@ -630,8 +641,8 @@ public class TieredBlockStore implements BlockStore {
           dirView = mAllocator.allocateBlockWithView(sessionId, options.getSize(),
               options.getLocation(), allocatorView.refreshView(), true);
           if (LOG.isDebugEnabled()) {
-            LOG.debug("Allocation after freeing space for block expansion. availableBytes: {}",
-                dirView.getAvailableBytes());
+            LOG.debug("Allocation after freeing space for block expansion, {}", dirView == null
+                ? "no available dir." : "available bytes in dir: " + dirView.getAvailableBytes());
           }
           if (dirView == null) {
             LOG.error("Target tier: {} has no evictable space to store {} bytes for session: {}",
@@ -671,7 +682,10 @@ public class TieredBlockStore implements BlockStore {
           // Skip the review as we want the allocation to be in the place we just freed
           dirView = mAllocator.allocateBlockWithView(sessionId, options.getSize(),
               BlockStoreLocation.anyTier(), allocatorView.refreshView(), true);
-          LOG.debug("Allocation after freeing space for block creation: {}", dirView);
+          if (LOG.isDebugEnabled()) {
+            LOG.debug("Allocation after freeing space for block creation, {} ", dirView == null
+                ? "no available dir." : "available bytes in dir: " + dirView.getAvailableBytes());
+          }
         }
       }
       if (dirView == null) {

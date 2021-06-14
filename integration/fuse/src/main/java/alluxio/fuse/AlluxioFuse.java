@@ -122,7 +122,7 @@ public final class AlluxioFuse {
     try (FileSystem fs = FileSystem.Factory.create(fsContext)) {
       launchFuse(fs, conf, opts, true);
     } catch (IOException e) {
-      LOG.error(e.getMessage());
+      LOG.error("Failed to launch FUSE", e);
       System.exit(-1);
     }
   }

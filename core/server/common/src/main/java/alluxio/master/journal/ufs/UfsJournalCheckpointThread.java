@@ -252,7 +252,7 @@ public final class UfsJournalCheckpointThread extends Thread {
           mJournalReader.close();
         } catch (IOException ee) {
           LOG.warn("{}: Failed to close the journal reader with error {}.", mMaster.getName(),
-              ee.getMessage());
+              ee.toString());
         }
         long nextSequenceNumber = mJournalReader.getNextSequenceNumber();
 
@@ -275,7 +275,7 @@ public final class UfsJournalCheckpointThread extends Thread {
                 mJournalReader.close();
               } catch (IOException e) {
                 LOG.warn("{}: Failed to close the journal reader with error {}.", mMaster.getName(),
-                    e.getMessage());
+                    e.toString());
               }
             }
             return;
@@ -315,7 +315,7 @@ public final class UfsJournalCheckpointThread extends Thread {
       mNextSequenceNumberToCheckpoint = mJournal.getNextSequenceNumberToCheckpoint();
     } catch (IOException e) {
       LOG.warn("{}: Failed to get the next sequence number to checkpoint with error {}.",
-          mMaster.getName(), e.getMessage());
+          mMaster.getName(), e.toString());
       return;
     }
     if (nextSequenceNumber - mNextSequenceNumberToCheckpoint < mCheckpointPeriodEntries) {

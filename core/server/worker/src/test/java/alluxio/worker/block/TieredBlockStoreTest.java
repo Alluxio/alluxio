@@ -20,6 +20,7 @@ import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import alluxio.Constants;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.exception.BlockAlreadyExistsException;
@@ -50,7 +51,6 @@ import org.junit.rules.TemporaryFolder;
 import org.mockito.invocation.InvocationOnMock;
 
 import java.io.File;
-import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -101,15 +101,9 @@ public final class TieredBlockStoreTest {
 
     File tempFolder = mTestFolder.newFolder();
     TieredBlockStoreTestUtils.setupDefaultConf(tempFolder.getAbsolutePath());
-    mBlockStore = new TieredBlockStore();
-
-    // TODO(bin): Avoid using reflection to get private members.
-    Field field = mBlockStore.getClass().getDeclaredField("mMetaManager");
-    field.setAccessible(true);
-    mMetaManager = (BlockMetadataManager) field.get(mBlockStore);
-    field = mBlockStore.getClass().getDeclaredField("mLockManager");
-    field.setAccessible(true);
-    mLockManager = (BlockLockManager) field.get(mBlockStore);
+    mMetaManager = BlockMetadataManager.createBlockMetadataManager();
+    mLockManager = new BlockLockManager();
+    mBlockStore = new TieredBlockStore(mMetaManager, mLockManager);
     mBlockIterator = mMetaManager.getBlockIterator();
 
     mTestDir1 = mMetaManager.getTier(FIRST_TIER_ALIAS).getDir(0);
@@ -388,7 +382,7 @@ public final class TieredBlockStoreTest {
       runnables.add(() -> {
         try {
           mBlockStore.freeSpace(SESSION_ID1, 0, 0,
-              new BlockStoreLocation("MEM", 0, BlockStoreLocation.ANY_MEDIUM));
+              new BlockStoreLocation(Constants.MEDIUM_MEM, 0, BlockStoreLocation.ANY_MEDIUM));
         } catch (Exception e) {
           fail();
         }
@@ -443,13 +437,13 @@ public final class TieredBlockStoreTest {
 
   @Test
   public void createBlockMetaWithMediumType() throws Exception {
-    BlockStoreLocation loc = BlockStoreLocation.anyDirInAnyTierWithMedium("MEM");
+    BlockStoreLocation loc = BlockStoreLocation.anyDirInAnyTierWithMedium(Constants.MEDIUM_MEM);
     TempBlockMeta tempBlockMeta = mBlockStore.createBlock(SESSION_ID1, TEMP_BLOCK_ID,
         AllocateOptions.forCreate(1, loc));
     assertEquals(1, tempBlockMeta.getBlockSize());
     assertEquals(mTestDir2, tempBlockMeta.getParentDir());
 
-    BlockStoreLocation loc2 = BlockStoreLocation.anyDirInAnyTierWithMedium("SSD");
+    BlockStoreLocation loc2 = BlockStoreLocation.anyDirInAnyTierWithMedium(Constants.MEDIUM_SSD);
     TempBlockMeta tempBlockMeta2 = mBlockStore.createBlock(SESSION_ID1, TEMP_BLOCK_ID2,
         AllocateOptions.forCreate(1, loc2));
     assertEquals(1, tempBlockMeta2.getBlockSize());

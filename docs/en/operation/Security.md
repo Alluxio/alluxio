@@ -114,7 +114,7 @@ Running the `groups` command for every query may be expensive, so
 the user group mapping is cached, with an expiration period configured by the
 `alluxio.security.group.mapping.cache.timeout` property, with a default value of `60s`.
 If set to a value of `0`, the caching is disabled.
-If the cache timeout is too low or disabled, the `groups` command will be run very frequently, but
+If the cache timeout is too low or disabled, the `groups` command will be run very frequently, and
 may increase latency for operations.
 If the cache timeout is too high, the `groups` command will not be run frequently, but the cached
 results may become stale.
@@ -123,6 +123,7 @@ Alluxio has super user, a user with special privileges typically needed to admin
 The super user is the operating system user executing the Alluxio master process. 
 The `alluxio.security.authorization.permission.supergroup` property defines a super group.
 Any additional operating system users belong to this operating system group are also super users.
+The default value is `supergroup`.
 
 ### Initialized directory and file permissions
 
@@ -252,7 +253,7 @@ For example, a Hadoop application can be configured to run as the Hadoop client 
 Alluxio client user is configured to be `yarn`. This means any data interactions will be attributed
 to user `yarn`. With client-side Hadoop impersonation, the Alluxio client will detect the Hadoop
 client user is `foo`, and then connect to Alluxio servers as user `yarn` impersonating as user
-`foo`. With this impersonation, the data interactions will be attributed to user ‘foo’.
+`foo`. With this impersonation, the data interactions will be attributed to user `foo`.
 
 This feature is only applicable when using the hadoop compatible client to access Alluxio.
 
@@ -301,7 +302,7 @@ If the property is set to an empty string or `_NONE_`, impersonation is disabled
 client will interact with Alluxio servers as the Alluxio client user.
 If the property is set to `_HDFS_USER_`, the Alluxio client will connect to Alluxio servers as the
 Alluxio client user, but impersonate as the Hadoop client user when using the Hadoop compatible
-client.
+client. The default value is `_HDFS_USER_`.
 
 ### Exceptions
 

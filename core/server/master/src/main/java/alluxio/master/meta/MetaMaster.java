@@ -164,4 +164,10 @@ public interface MetaMaster extends BackupOps, Master {
    * @return the hostname of the master that did the checkpoint
    */
   String checkpoint() throws IOException;
+
+  /**
+   * @param propertiesMap properties to update
+   * @return the update properties status map
+   */
+  Map<String, Boolean> updateConfiguration(Map<String, String> propertiesMap);
 }

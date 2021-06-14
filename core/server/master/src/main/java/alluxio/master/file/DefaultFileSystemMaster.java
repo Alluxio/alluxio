@@ -196,6 +196,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -493,7 +494,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
     mJournaledGroup = new JournaledGroup(journaledComponents, CheckpointName.FILE_SYSTEM_MASTER);
 
     resetState();
-    Metrics.registerGauges(this, mUfsManager);
+    Metrics.registerGauges(mUfsManager, mInodeTree);
   }
 
   private static MountInfo getRootMountInfo(MasterUfsManager ufsManager) {
@@ -877,6 +878,10 @@ public final class DefaultFileSystemMaster extends CoreMaster
           ensureFullPathAndUpdateCache(inodePath);
 
           FileInfo fileInfo = getFileInfoInternal(inodePath);
+          if (!fileInfo.isFolder() && (!fileInfo.isCompleted())) {
+            LOG.warn("File {} is not yet completed. getStatus will see incomplete metadata.",
+                fileInfo.getPath());
+          }
           if (ufsAccessed) {
             MountTable.Resolution resolution = mMountTable.resolve(inodePath.getUri());
             Metrics.getUfsOpsSavedCounter(resolution.getUfsMountPointUri(),
@@ -916,10 +921,6 @@ public final class DefaultFileSystemMaster extends CoreMaster
     fileInfo.setInMemoryPercentage(getInMemoryPercentage(inode));
     fileInfo.setInAlluxioPercentage(getInAlluxioPercentage(inode));
     if (inode.isFile()) {
-      if (!fileInfo.isCompleted()) {
-        LOG.warn("File {} is not yet completed. getStatus will see incomplete metadata.",
-                fileInfo.getPath());
-      }
       try {
         fileInfo.setFileBlockInfos(getFileBlockInfoListInternal(inodePath));
       } catch (InvalidPathException e) {
@@ -1679,16 +1680,6 @@ public final class DefaultFileSystemMaster extends CoreMaster
   }
 
   @Override
-  public long getInodeCount() {
-    return mInodeTree.getInodeCount();
-  }
-
-  @Override
-  public int getNumberOfPinnedFiles() {
-    return mInodeTree.getPinnedSize();
-  }
-
-  @Override
   public void delete(AlluxioURI path, DeleteContext context)
       throws IOException, FileDoesNotExistException, DirectoryNotEmptyException,
       InvalidPathException, AccessControlException {
@@ -1834,13 +1825,10 @@ public final class DefaultFileSystemMaster extends CoreMaster
                 checkUfsMode(alluxioUriToDelete, OperationType.WRITE);
                 // Attempt to delete node if all children were deleted successfully
                 ufsDeleter.delete(alluxioUriToDelete, inodeToDelete);
-              } catch (AccessControlException e) {
+              } catch (AccessControlException | IOException e) {
                 // In case ufs is not writable, we will still attempt to delete other entries
                 // if any as they may be from a different mount point
-                LOG.warn(e.getMessage());
-                failureReason = e.getMessage();
-              } catch (IOException e) {
-                LOG.warn(e.getMessage());
+                LOG.warn("Failed to delete {}: {}", alluxioUriToDelete, e.toString());
                 failureReason = e.getMessage();
               }
             }
@@ -2685,7 +2673,9 @@ public final class DefaultFileSystemMaster extends CoreMaster
   @Override
   public List<Long> getLostFiles() {
     Set<Long> lostFiles = new HashSet<>();
-    for (long blockId : mBlockMaster.getLostBlocks()) {
+    Iterator<Long> iter = mBlockMaster.getLostBlocksIterator();
+    while (iter.hasNext()) {
+      long blockId = iter.next();
       // the file id is the container id of the block id
       long containerId = BlockId.getContainerId(blockId);
       long fileId = IdUtils.createFileId(containerId);
@@ -3704,6 +3694,11 @@ public final class DefaultFileSystemMaster extends CoreMaster
     return mBlockMaster.getWorkerInfoList();
   }
 
+  @Override
+  public long getInodeCount() {
+    return mInodeTree.getInodeCount();
+  }
+
   /**
    * @param fileId file ID
    * @param jobId persist job ID
@@ -3907,13 +3902,13 @@ public final class DefaultFileSystemMaster extends CoreMaster
             uri = inodePath.getUri();
           } catch (FileDoesNotExistException e) {
             LOG.debug("The file (id={}) to be persisted was not found. Likely this file has been "
-                + "removed by users : {}", fileId, e.getMessage());
+                + "removed by users", fileId, e);
             continue;
           }
           try {
             checkUfsMode(uri, OperationType.WRITE);
           } catch (Exception e) {
-            LOG.warn("Unable to schedule persist request for path {}: {}", uri, e.getMessage());
+            LOG.warn("Unable to schedule persist request for path {}: {}", uri, e.toString());
             // Retry when ufs mode permits operation
             remove = false;
             continue;
@@ -3930,7 +3925,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
           }
         } catch (FileDoesNotExistException | InvalidPathException e) {
           LOG.warn("The file {} (id={}) to be persisted was not found : {}", uri, fileId,
-              e.getMessage());
+              e.toString());
           LOG.debug("Exception: ", e);
         } catch (UnavailableException e) {
           LOG.warn("Failed to persist file {}, will retry later: {}", uri, e.toString());
@@ -3946,7 +3941,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
           return;
         } catch (Exception e) {
           LOG.warn("Unexpected exception encountered when scheduling the persist job for file {} "
-              + "(id={}) : {}", uri, fileId, e.getMessage());
+              + "(id={}) : {}", uri, fileId, e.toString());
           LOG.debug("Exception: ", e);
         } finally {
           if (remove) {
@@ -4062,7 +4057,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
         }
       } catch (FileDoesNotExistException | InvalidPathException e) {
         LOG.warn("The file {} (id={}) to be persisted was not found: {}", job.getUri(), fileId,
-            e.getMessage());
+            e.toString());
         LOG.debug("Exception: ", e);
         // Cleanup the temporary file.
         if (ufsClient != null) {
@@ -4074,7 +4069,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
         LOG.warn(
             "Unexpected exception encountered when trying to complete persistence of a file {} "
                 + "(id={}) : {}",
-            job.getUri(), fileId, e.getMessage());
+            job.getUri(), fileId, e.toString());
         LOG.debug("Exception: ", e);
         if (ufsClient != null) {
           try (CloseableResource<UnderFileSystem> ufsResource = ufsClient.acquireUfsResource()) {
@@ -4188,13 +4183,13 @@ public final class DefaultFileSystemMaster extends CoreMaster
               job.setCancelState(PersistJob.CancelState.CANCELING);
             } catch (alluxio.exception.status.NotFoundException e) {
               LOG.warn("Persist job (id={}) for file {} (id={}) to cancel was not found: {}",
-                  job.getId(), job.getUri(), fileId, e.getMessage());
+                  job.getId(), job.getUri(), fileId, e.toString());
               LOG.debug("Exception: ", e);
               mPersistJobs.remove(fileId);
               continue;
             } catch (Exception e) {
               LOG.warn("Unexpected exception encountered when cancelling a persist job (id={}) for "
-                  + "file {} (id={}) : {}", job.getId(), job.getUri(), fileId, e.getMessage());
+                  + "file {} (id={}) : {}", job.getId(), job.getUri(), fileId, e.toString());
               LOG.debug("Exception: ", e);
             } finally {
               mJobMasterClientPool.release(client);
@@ -4237,7 +4232,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
         } catch (Exception e) {
           LOG.warn("Exception encountered when trying to retrieve the status of a "
                   + " persist job (id={}) for file {} (id={}): {}.", jobId, job.getUri(), fileId,
-              e.getMessage());
+              e.toString());
           LOG.debug("Exception: ", e);
           mPersistJobs.remove(fileId);
           mPersistRequests.put(fileId, job.getTimer());
@@ -4319,14 +4314,13 @@ public final class DefaultFileSystemMaster extends CoreMaster
   }
 
   private static void cleanup(UnderFileSystem ufs, String ufsPath) {
-    final String errMessage = "Failed to delete UFS file {}.";
     if (!ufsPath.isEmpty()) {
       try {
         if (!ufs.deleteExistingFile(ufsPath)) {
-          LOG.warn(errMessage, ufsPath);
+          LOG.warn("Failed to delete UFS file {}.", ufsPath);
         }
       } catch (IOException e) {
-        LOG.warn(errMessage, ufsPath, e);
+        LOG.warn("Failed to delete UFS file {}: {}", ufsPath, e.toString());
       }
     }
   }
@@ -4486,17 +4480,19 @@ public final class DefaultFileSystemMaster extends CoreMaster
     /**
      * Register some file system master related gauges.
      *
-     * @param master the file system master
      * @param ufsManager the under filesystem manager
+     * @param inodeTree the inodeTree
      */
     @VisibleForTesting
-    public static void registerGauges(
-        final FileSystemMaster master, final UfsManager ufsManager) {
+    public static void registerGauges(final UfsManager ufsManager, final InodeTree inodeTree) {
       MetricsSystem.registerGaugeIfAbsent(MetricKey.MASTER_FILES_PINNED.getName(),
-          master::getNumberOfPinnedFiles);
-
+          inodeTree::getPinnedSize);
+      MetricsSystem.registerGaugeIfAbsent(MetricKey.MASTER_FILES_TO_PERSIST.getName(),
+          () -> inodeTree.getToBePersistedIds().size());
       MetricsSystem.registerGaugeIfAbsent(MetricKey.MASTER_TOTAL_PATHS.getName(),
-          () -> master.getInodeCount());
+          inodeTree::getInodeCount);
+      MetricsSystem.registerGaugeIfAbsent(MetricKey.MASTER_FILE_SIZE.getName(),
+          inodeTree::getFileSizeHistogram);
 
       final String ufsDataFolder = ServerConfiguration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
 
@@ -4552,9 +4548,14 @@ public final class DefaultFileSystemMaster extends CoreMaster
    */
   private FileSystemMasterAuditContext createAuditContext(String command, AlluxioURI srcPath,
       @Nullable AlluxioURI dstPath, @Nullable Inode srcInode) {
+    // Audit log may be enabled during runtime
+    AsyncUserAccessAuditLogWriter auditLogWriter = null;
+    if (ServerConfiguration.getBoolean(PropertyKey.MASTER_AUDIT_LOGGING_ENABLED)) {
+      auditLogWriter = mAsyncAuditLogWriter;
+    }
     FileSystemMasterAuditContext auditContext =
-        new FileSystemMasterAuditContext(mAsyncAuditLogWriter);
-    if (mAsyncAuditLogWriter != null) {
+        new FileSystemMasterAuditContext(auditLogWriter);
+    if (auditLogWriter != null) {
       String user = null;
       String ugi = "";
       try {
@@ -4577,7 +4578,8 @@ public final class DefaultFileSystemMaster extends CoreMaster
           .setAuthType(authType)
           .setIp(ClientIpAddressInjector.getIpAddress())
           .setCommand(command).setSrcPath(srcPath).setDstPath(dstPath)
-          .setSrcInode(srcInode).setAllowed(true);
+          .setSrcInode(srcInode).setAllowed(true)
+          .setCreationTimeNs(System.nanoTime());
     }
     return auditContext;
   }

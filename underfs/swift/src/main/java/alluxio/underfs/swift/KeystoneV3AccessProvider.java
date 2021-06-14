@@ -69,7 +69,7 @@ public class KeystoneV3AccessProvider implements AccessProvider {
                 new Scope(new Project(mAccountConfig.getTenantName()))));
         requestBody = new ObjectMapper().writeValueAsString(request);
       } catch (JsonProcessingException e) {
-        LOG.error("Error processing JSON request: {}", e.getMessage());
+        LOG.error("Error processing JSON request", e);
         return null;
       }
 
@@ -117,7 +117,7 @@ public class KeystoneV3AccessProvider implements AccessProvider {
                   mAccountConfig.getPreferredRegion(), publicURL, token);
               return access;
             } catch (JsonProcessingException e) {
-              LOG.error("Error processing JSON response: {}", e.getMessage());
+              LOG.error("Error processing JSON response", e);
               return null;
             }
           }
@@ -125,7 +125,7 @@ public class KeystoneV3AccessProvider implements AccessProvider {
       }
     } catch (IOException e) {
       // Unable to authenticate
-      LOG.error("Exception authenticating using KeystoneV3 {}", e.getMessage());
+      LOG.error("Exception authenticating using KeystoneV3", e);
       return null;
     }
   }
