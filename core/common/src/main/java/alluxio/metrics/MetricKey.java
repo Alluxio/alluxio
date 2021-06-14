@@ -1107,18 +1107,10 @@ public final class MetricKey implements Comparable<MetricKey> {
           .build();
 
   // Client metrics
-  public static final MetricKey CLIENT_BLOCK_READ_CHUNK =
-      new Builder("Client.BlockReadDataChunk")
+  public static final MetricKey CLIENT_BLOCK_READ_CHUNK_REMOTE =
+      new Builder("Client.BlockReadChunkRemote")
           .setDescription(String.format("The timer statistics of reading block data in chunks "
-              + "from Alluxio workers. This metrics will only be recorded when %s is set to true",
-              PropertyKey.USER_BLOCK_READ_METRICS_ENABLED.getName()))
-          .setMetricType(MetricType.TIMER)
-          .setIsClusterAggregated(false)
-          .build();
-  public static final MetricKey CLIENT_BLOCK_READ_FROM_CHUNK =
-      new Builder("Client.BlockReadDataFromChunk")
-          .setDescription(String.format("The timer statistics of reading data from data chunks "
-              + "which have already fetched from Alluxio workers. "
+              + "from remote Alluxio workers via RPC framework. "
               + "This metrics will only be recorded when %s is set to true",
               PropertyKey.USER_BLOCK_READ_METRICS_ENABLED.getName()))
           .setMetricType(MetricType.TIMER)
