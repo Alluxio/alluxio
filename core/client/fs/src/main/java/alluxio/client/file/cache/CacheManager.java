@@ -14,6 +14,7 @@ package alluxio.client.file.cache;
 import alluxio.client.quota.CacheQuota;
 import alluxio.client.quota.CacheScope;
 import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.resource.LockResource;
@@ -106,6 +107,12 @@ public interface CacheManager extends AutoCloseable {
      */
     static CacheManager create(AlluxioConfiguration conf) throws IOException {
       try {
+        boolean isShadowCacheEnabled =
+            conf.getBoolean(PropertyKey.USER_CLIENT_CACHE_SHADOW_ENABLED);
+        if (isShadowCacheEnabled) {
+          return new NoExceptionCacheManager(
+              new CacheManagerWithShadowCache(LocalCacheManager.create(conf), conf));
+        }
         return new NoExceptionCacheManager(LocalCacheManager.create(conf));
       } catch (IOException e) {
         Metrics.CREATE_ERRORS.inc();
