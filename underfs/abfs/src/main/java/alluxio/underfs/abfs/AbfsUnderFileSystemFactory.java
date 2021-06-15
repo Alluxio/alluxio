@@ -12,6 +12,7 @@
 package alluxio.underfs.abfs;
 
 import alluxio.AlluxioURI;
+import alluxio.Constants;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.underfs.UnderFileSystemFactory;
@@ -40,7 +41,7 @@ public class AbfsUnderFileSystemFactory implements UnderFileSystemFactory {
   @Override
   public boolean supportsPath(String path) {
     return path != null
-        && (path.startsWith(AbfsUnderFileSystem.SCHEME_SECURE)
-        || path.startsWith(AbfsUnderFileSystem.SCHEME_INSECURE));
+        && (path.startsWith(Constants.HEADER_ABFS)
+        || path.startsWith(Constants.HEADER_ABFSS));
   }
 }
