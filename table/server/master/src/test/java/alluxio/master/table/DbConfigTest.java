@@ -97,7 +97,7 @@ public class DbConfigTest {
         mMapper.readValue("{\"tables\": [\"table1\"]}", DbConfig.BypassEntry.class);
     assertEquals(ImmutableSet.of("table1"), entry.getBypassedTables());
     UdbBypassSpec spec = entry.toUdbBypassSpec();
-    assertTrue(spec.isBypassedTable("table1"));
+    assertTrue(spec.hasTable("table1"));
   }
 
   /* DbConfig tests */

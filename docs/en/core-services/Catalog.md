@@ -115,7 +115,7 @@ The configuration file is in JSON format, and can contain these configurations:
     You can specify some tables and partitions to be bypassed from Alluxio, so that they will not be
     cached in Alluxio, instead clients will be directed to access them directly from the UDB. 
     This can be helpful when some tables and partitions are large, and accommodating them in the cache
-    is undesirable.
+    is undesirable. An example configuration is like the following:
 
     ```json
     {
@@ -129,8 +129,11 @@ The configuration file is in JSON format, and can contain these configurations:
     ```
 
     You can specify which tables and partitions within these tables should be bypassed from Alluxio.
-    By specifying only the table name, all partitions of that table, if any, will be bypassed. Otherwise, 
-    you can specify specific partitions to bypass.
+    By specifying only the table name, all partitions of that table, if any, will be bypassed. 
+    Otherwise, you can specify specific partitions to bypass.
+    
+    In the example above, table 1 is fully bypassed. Partition 1 and 2 of table 2 are bypassed, 
+    and any other partitions, if any, are not.
 
 > **Note:** When databases are attached, all tables are synced from the configured UDB.
 If out-of-band updates occur to the database or table and the user wants query results to reflect

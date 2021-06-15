@@ -18,6 +18,11 @@ import java.util.Set;
  * Tables and partitions bypassing specification.
  */
 public final class UdbBypassSpec {
+  /**
+   * Map of table name to set of partition names.
+   * Keyed by a table's name, the value set contains names of partitions in that table.
+   * An empty set indicates all partitions of that table, if any, should be bypassed.
+   */
   private final Map<String, Set<String>> mTablePartMap;
 
   /**
@@ -32,9 +37,9 @@ public final class UdbBypassSpec {
    *
    * @param tableName the table name
    * @return true if the table is configured to be bypassed, false otherwise
-   * @see UdbBypassSpec#isFullyBypassedTable(String)
+   * @see UdbBypassSpec#hasFullTable(String)
    */
-  public boolean isBypassedTable(String tableName) {
+  public boolean hasTable(String tableName) {
     return mTablePartMap.containsKey(tableName);
   }
 
@@ -43,11 +48,11 @@ public final class UdbBypassSpec {
    *
    * @param tableName the table name
    * @return true if the table is configured to be fully bypassed, false otherwise
-   * @see UdbBypassSpec#isBypassedTable(String)
+   * @see UdbBypassSpec#hasTable(String)
    */
-  public boolean isFullyBypassedTable(String tableName) {
+  public boolean hasFullTable(String tableName) {
     // empty set indicates all partitions should be bypassed
-    return isBypassedTable(tableName) && mTablePartMap.get(tableName).size() == 0;
+    return hasTable(tableName) && mTablePartMap.get(tableName).size() == 0;
   }
 
   /**
@@ -57,17 +62,15 @@ public final class UdbBypassSpec {
    * @param partitionName the partition name
    * @return true if the partition should be bypassed, false otherwise
    */
-  public boolean isBypassedPartition(String tableName, String partitionName) {
-    if (!isBypassedTable(tableName)) {
+  public boolean hasPartition(String tableName, String partitionName) {
+    if (!hasTable(tableName)) {
       return false;
     }
-
     Set<String> parts = mTablePartMap.get(tableName);
     if (parts.size() == 0) {
       // empty set indicates all partitions should be bypassed
       return true;
     }
-
     return parts.contains(partitionName);
   }
 }

@@ -191,11 +191,13 @@ public final class DbConfig {
       JsonNode node = mapper.readTree(jp);
       String tableName;
       Set<String> partitions;
-      if (node.isTextual()) {
+      if (!node.isTextual() && !node.isObject()) {
+        throw new JsonParseException(mapper.treeAsTokens(node), "invalid syntax");
+      } else if (node.isTextual()) {
         // single table name, all partitions are bypassed
         tableName = node.asText();
         partitions = new HashSet<>();
-      } else if (node.isObject()) {
+      } else {
         // a {"table": "table", "partitions": ["part1", "part2"]} object
         if (!node.hasNonNull("table")) {
           throw new JsonParseException(mapper.treeAsTokens(node), "missing table name");
@@ -206,8 +208,6 @@ public final class DbConfig {
         if (partitions == null) {
           partitions = new HashSet<>();
         }
-      } else {
-        throw new JsonParseException(mapper.treeAsTokens(node), "invalid syntax");
       }
       return new BypassTableEntry(tableName, partitions);
     }
