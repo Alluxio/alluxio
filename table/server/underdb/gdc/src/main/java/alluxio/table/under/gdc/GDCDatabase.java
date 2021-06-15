@@ -11,15 +11,20 @@
 
 package alluxio.table.under.gdc;
 
+import alluxio.AlluxioURI;
+import alluxio.exception.AlluxioException;
 import alluxio.grpc.table.Layout;
 import alluxio.grpc.table.Schema;
 import alluxio.grpc.table.layout.hive.PartitionInfo;
 import alluxio.master.table.DatabaseInfo;
 import alluxio.table.common.UdbPartition;
 import alluxio.table.common.layout.HiveLayout;
+
+import alluxio.table.common.udb.PathTranslator;
 import alluxio.table.common.udb.UdbConfiguration;
 import alluxio.table.common.udb.UdbContext;
 import alluxio.table.common.udb.UdbTable;
+import alluxio.table.common.udb.UdbUtils;
 import alluxio.table.common.udb.UnderDatabase;
 
 import com.google.api.gax.paging.Page;
@@ -114,24 +119,50 @@ public class GDCDatabase implements UnderDatabase {
     return tableNames;
   }
 
+  private PathTranslator mountAlluxioPaths(Table table) throws IOException {
+    String tableName = table.getTableId().getTable();
+    AlluxioURI parquetFileUri;
+    AlluxioURI alluxioUri = mUdbContext.getTableLocation(tableName);
+    String gdcUfsUri = table.getGeneratedId();
+
+    try {
+      PathTranslator pathTranslator = new PathTranslator();
+      // temporary, don't know how to access parquet file using BigQuery API
+      parquetFileUri = new AlluxioURI("");
+      pathTranslator.addMapping(
+          UdbUtils.mountAlluxioPath(tableName,
+              parquetFileUri,
+              alluxioUri,
+              mUdbContext,
+              mConfiguration),
+          gdcUfsUri);
+
+      return pathTranslator;
+    } catch (AlluxioException e) {
+      throw new IOException(
+          "Failed to mount table location. tableName: " + tableName
+              + " gdcUfsLocation: " + gdcUfsUri
+              + " AlluxioLocation: " + alluxioUri
+              + " error: " + e.getMessage(), e);
+    }
+  }
+
   @Override
-  public UdbTable getTable(String tableName) throws IOException {
+  public UdbTable getTable(String tableName, boolean bypass) throws IOException {
     BigQuery bigQuery = BigQueryOptions.getDefaultInstance().getService();
     Table table = bigQuery.getTable(mGdcDatasetName, tableName);
     Schema schema = GDCUtils.toProtoSchema(table.getDefinition().getSchema());
 
     Map<String, String> tableParameters = Collections.emptyMap();
+    PathTranslator pathTranslator = mountAlluxioPaths(table);
     PartitionInfo partitionInfo = PartitionInfo.newBuilder()
-        // Database name is not required for glue table, use mGlueDbName
+        // Database name is not required for glue table, use mGdcDatasetName
         .setDbName(mGdcDatasetName)
         .setTableName(tableName)
         .addAllDataCols(GDCUtils.toProto(table.getDefinition().getSchema()))
-//        .setStorage() // don't know what to do with this one
+        .setStorage(GDCUtils.toProto(table, pathTranslator))
         .putAllParameters(tableParameters)
         .build();
-
-//        .setStorage(GlueUtils.toProto(table.getStorageDescriptor(), pathTranslator))
-//        .putAllParameters(tableParameters)
 
     Layout layout = Layout.newBuilder()
         .setLayoutType(HiveLayout.TYPE)
@@ -152,7 +183,7 @@ public class GDCDatabase implements UnderDatabase {
           .setDbName(getUdbContext().getDbName())
           .setTableName(tableName)
           .addAllDataCols(GDCUtils.toProto(table.getDefinition().getSchema()))
-//          .setStorage(HiveUtils.toProto(table.getSd(), pathTranslator))
+          .setStorage(GDCUtils.toProto(table, pathTranslator))
           .setPartitionName(tableName)
           .putAllParameters(tableParameters);
       udbPartitions.add(new GDCPartition(

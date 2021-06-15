@@ -14,8 +14,13 @@ package alluxio.table.under.gdc;
 import alluxio.grpc.table.FieldSchema;
 import alluxio.grpc.table.Schema;
 
-import com.google.cloud.bigquery.Field;
+import alluxio.grpc.table.layout.hive.Storage;
+import alluxio.table.common.udb.PathTranslator;
 
+import com.google.cloud.bigquery.Field;
+import com.google.cloud.bigquery.Table;
+
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -48,12 +53,30 @@ public class GDCUtils {
     for (Field field : gdcSchema.getFields()) {
       FieldSchema.Builder builder = FieldSchema.newBuilder()
           .setName(field.getName())
-          .setType(field.getType().toString());
+          .setType(field.getType().getStandardType().toString());
       if (field.getDescription() != null && !field.getDescription().isEmpty()) {
         builder.setComment(field.getDescription());
       }
       list.add(builder.build());
     }
     return list;
+  }
+
+  /**
+   * Convert the GDC Table Definition and Translator information to Storage.
+   *
+   * @param def the gdc storage descriptor
+   * @param translator the glue translator
+   * @return storage proto
+   * @throws IOException
+   */
+  public static Storage toProto(Table def, PathTranslator translator)
+      throws IOException {
+    if (def == null) {
+      return Storage.getDefaultInstance();
+    }
+    return Storage.newBuilder()
+        .setLocation(translator.toAlluxioPath(def.getSelfLink()))
+        .build();
   }
 }
