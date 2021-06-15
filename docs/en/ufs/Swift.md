@@ -101,7 +101,7 @@ Visit your Swift bucket to verify the files and directories created
 by Alluxio exist. For this test, you should see files named like:
 
 ```bash
-<bucket>/<folder>/default_tests_files/Basic_CACHE_THROUGH
+<bucket>/<folder>/default_tests_files/BASIC_CACHE_THROUGH
 ```
 
 To stop Alluxio, you can run:

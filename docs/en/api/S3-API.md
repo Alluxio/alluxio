@@ -52,7 +52,7 @@ By default, the user that is used to do any FileSystem operations is the user th
 the proxy process. This can be changed by providing the Authorization Header.
 
 ```console
-curl -i -H "Authorization: AWS testuser:" -X PUT http://localhost:39999/api/v1/s3/testbucket0
+$ curl -i -H "Authorization: AWS testuser:" -X PUT http://localhost:39999/api/v1/s3/testbucket0
 HTTP/1.1 200 OK
 Date: Tue, 02 Mar 2021 00:02:26 GMT
 Content-Length: 0
@@ -79,7 +79,7 @@ Server: Jetty(9.2.z-SNAPSHOT)
 Authenticating as a user is necessary to have buckets returned by this operation.
 
 ```console
-curl -i -H "Authorization: AWS testuser:" -X GET http://localhost:39999/api/v1/s3
+$ curl -i -H "Authorization: AWS testuser:" -X GET http://localhost:39999/api/v1/s3
 HTTP/1.1 200 OK
 Date: Tue, 02 Mar 2021 00:06:43 GMT
 Content-Type: application/xml
@@ -161,7 +161,7 @@ ETag: "911df44b7ff57801ca8d74568e4ebfbe"
 Content-Length: 0
 Server: Jetty(9.2.z-SNAPSHOT)
 
-# curl -i -X PUT -T "LICENSE" http://localhost:39999/api/v1/s3/testbucket/key2
+$ curl -i -X PUT -T "LICENSE" http://localhost:39999/api/v1/s3/testbucket/key2
 
 HTTP/1.1 100 Continue
 
@@ -171,7 +171,7 @@ ETag: "911df44b7ff57801ca8d74568e4ebfbe"
 Content-Length: 0
 Server: Jetty(9.2.z-SNAPSHOT)
 
-# curl -i -X PUT -T "LICENSE" http://localhost:39999/api/v1/s3/testbucket/key3
+$ curl -i -X PUT -T "LICENSE" http://localhost:39999/api/v1/s3/testbucket/key3
 
 HTTP/1.1 100 Continue
 
@@ -181,7 +181,7 @@ ETag: "911df44b7ff57801ca8d74568e4ebfbe"
 Content-Length: 0
 Server: Jetty(9.2.z-SNAPSHOT)
 
-# curl -i -X GET http://localhost:39999/api/v1/s3/testbucket\?max-keys\=2
+$ curl -i -X GET http://localhost:39999/api/v1/s3/testbucket\?max-keys\=2
 
 HTTP/1.1 200 OK
 Date: Tue, 18 Jun 2019 21:26:57 GMT
@@ -191,7 +191,7 @@ Server: Jetty(9.2.z-SNAPSHOT)
 
 <ListBucketResult><Name>/testbucket</Name><Prefix/><ContinuationToken/><NextContinuationToken>key3</NextContinuationToken><KeyCount>2</KeyCount><MaxKeys>2</MaxKeys><IsTruncated>true</IsTruncated><Contents><Key>key1</Key><LastModified>2019-06-18T14:26:05.694Z</LastModified><ETag></ETag><Size>27040</Size><StorageClass>STANDARD</StorageClass></Contents><Contents><Key>key2</Key><LastModified>2019-06-18T14:26:28.153Z</LastModified><ETag></ETag><Size>27040</Size><StorageClass>STANDARD</StorageClass></Contents></ListBucketResult>
 
-# curl -i -X GET http://localhost:39999/api/v1/s3/testbucket\?max-keys\=2\&continuation-token\=key3
+$ curl -i -X GET http://localhost:39999/api/v1/s3/testbucket\?max-keys\=2\&continuation-token\=key3
 
 HTTP/1.1 200 OK
 Date: Tue, 18 Jun 2019 21:28:14 GMT
@@ -221,22 +221,20 @@ $ curl -i -X DELETE http://localhost:39999/api/v1/s3/testbucket/key1
 HTTP/1.1 204 No Content
 Date: Tue, 18 Jun 2019 21:31:27 GMT
 Server: Jetty(9.2.z-SNAPSHOT)
-```
 
-```console
 $ curl -i -X DELETE http://localhost:39999/api/v1/s3/testbucket/key2
 
 HTTP/1.1 204 No Content
 Date: Tue, 18 Jun 2019 21:31:44 GMT
 Server: Jetty(9.2.z-SNAPSHOT)
 
-# curl -i -X DELETE http://localhost:39999/api/v1/s3/testbucket/key3
+$ curl -i -X DELETE http://localhost:39999/api/v1/s3/testbucket/key3
 
 HTTP/1.1 204 No Content
 Date: Tue, 18 Jun 2019 21:31:58 GMT
 Server: Jetty(9.2.z-SNAPSHOT)
 
-# curl -i -X DELETE http://localhost:39999/api/v1/s3/testbucket/testobject
+$ curl -i -X DELETE http://localhost:39999/api/v1/s3/testbucket/testobject
 
 HTTP/1.1 204 No Content
 Date: Tue, 18 Jun 2019 21:32:08 GMT
@@ -331,7 +329,7 @@ Tested for Python 2.7.
 Please note you have to install boto package first.
 
 ```console
-pip install boto
+$ pip install boto
 ```
 
 ```python

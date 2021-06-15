@@ -1431,7 +1431,7 @@ Here are the additional properties possible for the `-o` options:
   * `udb-<UDB_TYPE>.mount.option.{<UFS_PREFIX>}.<MOUNT_PROPERTY>`: specify a mount option for a
   particular UFS path
     * `<UDB_TYPE>`: the UDB type
-    * `<UFS_PREFIX>`: the UFS path prefix that the mount properties are for
+    * `<UFS_PREFIX>`: the UFS path prefix, or a regex string starts with `regex:` that the mount properties are for
     * `<MOUNT_PROPERTY>`: an Alluxio mount property
   * `catalog.db.config.file`: the config file for the UDB, you can specify bypass table by this option.
   * `catalog.db.ignore.udb.tables`: comma-separated list of table names to ignore from the UDB
@@ -1444,7 +1444,8 @@ Here are the additional properties possible for the `-o` options:
 For the `hive` udb type, during the attach process, the Alluxio catalog will auto-mount all the
 table/partition locations in the specified database, to Alluxio. You can supply the mount options
 for the possible table locations with the
-option `-o udb-hive.mount.option.{scheme/authority}.key=value`.
+option `-o udb-hive.mount.option.{scheme/authority}.key=value` or
+`-o udb-hive.mount.option.{regex:REGEX}.key=value`
 
 ```console
 $ ./bin/alluxio table attachdb hive thrift://HOSTNAME:9083 hive_db_name --db=alluxio_db_name  \
@@ -1456,6 +1457,13 @@ This command will attach the database `hive_db_name` (of type `hive`) from the U
 `thrift://HOSTNAME:9083` to the Alluxio catalog, using the same database name `alluxio_db_name`.
 When paths are mounted for `s3a://bucket1`, the mount option `aws.accessKeyId=abc` will be used,
 and when paths are mounted for `s3a://bucket2`, the mount option `aws.accessKeyId=123` will be used.
+
+Or using regex expression if the options are same the two buckets.
+
+```console
+$ ./bin/alluxio table attachdb hive thrift://HOSTNAME:9083 hive_db_name --db=alluxio_db_name  \
+  -o udb-hive.mount.option.{regex:s3a://bucket.*}.aws.accessKeyId=abc
+```
 
 Besides mount options, there are some additional properties with the `-o` options:
   * `udb-hive.<UDB_PROPERTY>`: specify the UDB options for the Hive UDB. The options

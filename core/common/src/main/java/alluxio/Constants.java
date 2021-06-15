@@ -57,21 +57,28 @@ public final class Constants {
   public static final String SCHEME = "alluxio";
   public static final String HEADER = SCHEME + "://";
 
-  public static final String HEADER_OSS = "oss://";
-  public static final String HEADER_S3 = "s3://";
-  public static final String HEADER_S3A = "s3a://";
-  public static final String HEADER_SWIFT = "swift://";
+  // Under Filesystem URI Schemes
+  public static final String HEADER_ABFS = "abfs://";
+  public static final String HEADER_ABFSS = "abfss://";
+  public static final String HEADER_ADL = "adl://";
+  public static final String HEADER_ADLS = "adls://";
+  public static final String HEADER_CEPHFS = "cephfs://";
+  public static final String HEADER_CEPHFS_HADOOP = "ceph://";
+  public static final String HEADER_COS = "cos://";
+  public static final String HEADER_COSN = "cosn://";
   // Google Cloud Storage header convention is "gs://".
   // See https://cloud.google.com/storage/docs/cloud-console
   public static final String HEADER_GCS = "gs://";
-  public static final String HEADER_COS = "cos://";
-  public static final String HEADER_OZONE = "o3fs://";
-  public static final String HEADER_CEPHFS_HADOOP = "ceph://";
   public static final String HEADER_HTTP = "http://";
   public static final String HEADER_HTTPS = "https://";
   public static final String HEADER_KODO = "kodo://";
-  public static final String HEADER_COSN = "cosn://";
-  public static final String HEADER_CEPHFS = "cephfs://";
+  public static final String HEADER_OSS = "oss://";
+  public static final String HEADER_OZONE = "o3fs://";
+  public static final String HEADER_S3 = "s3://";
+  public static final String HEADER_S3A = "s3a://";
+  public static final String HEADER_SWIFT = "swift://";
+  public static final String HEADER_WASB = "wasb://";
+  public static final String HEADER_WASBS = "wasbs://";
 
   public static final int MAX_PORT = 65535;
 

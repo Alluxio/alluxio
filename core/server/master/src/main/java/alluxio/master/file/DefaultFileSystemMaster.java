@@ -213,7 +213,6 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import java.util.stream.StreamSupport;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
@@ -879,6 +878,10 @@ public final class DefaultFileSystemMaster extends CoreMaster
           ensureFullPathAndUpdateCache(inodePath);
 
           FileInfo fileInfo = getFileInfoInternal(inodePath);
+          if (!fileInfo.isFolder() && (!fileInfo.isCompleted())) {
+            LOG.warn("File {} is not yet completed. getStatus will see incomplete metadata.",
+                fileInfo.getPath());
+          }
           if (ufsAccessed) {
             MountTable.Resolution resolution = mMountTable.resolve(inodePath.getUri());
             Metrics.getUfsOpsSavedCounter(resolution.getUfsMountPointUri(),
@@ -918,10 +921,6 @@ public final class DefaultFileSystemMaster extends CoreMaster
     fileInfo.setInMemoryPercentage(getInMemoryPercentage(inode));
     fileInfo.setInAlluxioPercentage(getInAlluxioPercentage(inode));
     if (inode.isFile()) {
-      if (!fileInfo.isCompleted()) {
-        LOG.warn("File {} is not yet completed. getStatus will see incomplete metadata.",
-                fileInfo.getPath());
-      }
       try {
         fileInfo.setFileBlockInfos(getFileBlockInfoListInternal(inodePath));
       } catch (InvalidPathException e) {
@@ -4493,13 +4492,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
       MetricsSystem.registerGaugeIfAbsent(MetricKey.MASTER_TOTAL_PATHS.getName(),
           inodeTree::getInodeCount);
       MetricsSystem.registerGaugeIfAbsent(MetricKey.MASTER_FILE_SIZE.getName(),
-          () -> StreamSupport.stream(
-              inodeTree.getFileSizeHistogram().logarithmicBucketValues(1024, 1024).spliterator(),
-              false)
-              .map(x -> new Pair<>(
-                  new Pair<>(x.getDoubleValueIteratedFrom(), x.getDoubleValueIteratedTo()),
-                  x.getCountAddedInThisIterationStep()))
-              .collect(Collectors.toMap(Pair::getFirst, Pair::getSecond)));
+          inodeTree::getFileSizeHistogram);
 
       final String ufsDataFolder = ServerConfiguration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
 
@@ -4555,9 +4548,14 @@ public final class DefaultFileSystemMaster extends CoreMaster
    */
   private FileSystemMasterAuditContext createAuditContext(String command, AlluxioURI srcPath,
       @Nullable AlluxioURI dstPath, @Nullable Inode srcInode) {
+    // Audit log may be enabled during runtime
+    AsyncUserAccessAuditLogWriter auditLogWriter = null;
+    if (ServerConfiguration.getBoolean(PropertyKey.MASTER_AUDIT_LOGGING_ENABLED)) {
+      auditLogWriter = mAsyncAuditLogWriter;
+    }
     FileSystemMasterAuditContext auditContext =
-        new FileSystemMasterAuditContext(mAsyncAuditLogWriter);
-    if (mAsyncAuditLogWriter != null) {
+        new FileSystemMasterAuditContext(auditLogWriter);
+    if (auditLogWriter != null) {
       String user = null;
       String ugi = "";
       try {
@@ -4580,7 +4578,8 @@ public final class DefaultFileSystemMaster extends CoreMaster
           .setAuthType(authType)
           .setIp(ClientIpAddressInjector.getIpAddress())
           .setCommand(command).setSrcPath(srcPath).setDstPath(dstPath)
-          .setSrcInode(srcInode).setAllowed(true);
+          .setSrcInode(srcInode).setAllowed(true)
+          .setCreationTimeNs(System.nanoTime());
     }
     return auditContext;
   }

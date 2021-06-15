@@ -1057,6 +1057,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
    */
   private void processWorkerAddedBlocks(MasterWorkerInfo workerInfo,
       Map<BlockLocation, List<Long>> addedBlockIds) {
+    long invalidBlockCount = 0;
     for (Map.Entry<BlockLocation, List<Long>> entry : addedBlockIds.entrySet()) {
       for (long blockId : entry.getValue()) {
         try (LockResource r = lockBlock(blockId)) {
@@ -1065,17 +1066,21 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
             workerInfo.addBlock(blockId);
             BlockLocation location = entry.getKey();
             Preconditions.checkState(location.getWorkerId() == workerInfo.getId(),
-                String.format("BlockLocation has a different workerId %s from "
-                    + "the request sender's workerId %s!",
-                        location.getWorkerId(), workerInfo.getId()));
+                "BlockLocation has a different workerId %s from the request sender's workerId %s",
+                location.getWorkerId(), workerInfo.getId());
             mBlockStore.addLocation(blockId, location);
             mLostBlocks.remove(blockId);
           } else {
-            LOG.warn("Invalid block: {} from worker {}.", blockId,
+            invalidBlockCount++;
+            LOG.debug("Invalid block: {} from worker {}.", blockId,
                 workerInfo.getWorkerAddress().getHost());
           }
         }
       }
+    }
+    if (invalidBlockCount > 0) {
+      LOG.warn("{} invalid blocks found on worker {} in total", invalidBlockCount,
+          workerInfo.getWorkerAddress().getHost());
     }
   }
 
@@ -1090,12 +1095,18 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
    * @param workerInfo The worker metadata object
    */
   private void processWorkerOrphanedBlocks(MasterWorkerInfo workerInfo) {
+    long orphanedBlockCount = 0;
     for (long block : workerInfo.getBlocks()) {
       if (!mBlockStore.getBlock(block).isPresent()) {
-        LOG.info("Requesting delete for orphaned block: {} from worker {}.", block,
+        orphanedBlockCount++;
+        LOG.debug("Requesting delete for orphaned block: {} from worker {}.", block,
             workerInfo.getWorkerAddress().getHost());
         workerInfo.updateToRemovedBlock(true, block);
       }
+    }
+    if (orphanedBlockCount > 0) {
+      LOG.warn("{} blocks marked as orphaned from worker {}", orphanedBlockCount,
+          workerInfo.getWorkerAddress().getHost());
     }
   }
 

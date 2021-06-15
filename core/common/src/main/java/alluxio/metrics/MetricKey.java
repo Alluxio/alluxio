@@ -235,17 +235,12 @@ public final class MetricKey implements Comparable<MetricKey> {
   public static final MetricKey MASTER_ABSENT_CACHE_HITS =
       new Builder("Master.AbsentCacheHits")
           .setDescription("Number of cache hits on the absent cache")
-          .setMetricType(MetricType.COUNTER)
+          .setMetricType(MetricType.GAUGE)
           .build();
   public static final MetricKey MASTER_ABSENT_CACHE_MISSES =
       new Builder("Master.AbsentCacheMisses")
           .setDescription("Number of cache misses on the absent cache")
-          .setMetricType(MetricType.COUNTER)
-          .build();
-  public static final MetricKey MASTER_ABSENT_CACHE_INVALIDATIONS =
-      new Builder("Master.AbsentCacheInvalidations")
-          .setDescription("Number of invalidations on the absent cache")
-          .setMetricType(MetricType.COUNTER)
+          .setMetricType(MetricType.GAUGE)
           .build();
   public static final MetricKey MASTER_ABSENT_CACHE_SIZE =
       new Builder("Master.AbsentCacheSize")
@@ -328,11 +323,6 @@ public final class MetricKey implements Comparable<MetricKey> {
               + "that resulted from a cache miss.")
           .setMetricType(MetricType.GAUGE)
           .build();
-  public static final MetricKey MASTER_INODE_CACHE_LOAD_TIMER =
-      new Builder("Master.InodeCacheLoadTimer")
-          .setDescription("Total load latency in the inodes (inode metadata) cache")
-          .setMetricType(MetricType.TIMER)
-          .build();
   public static final MetricKey MASTER_INODE_CACHE_MISSES =
       new Builder("Master.InodeCacheMisses")
           .setDescription("Total number of misses in the inodes (inode metadata) cache.")
@@ -345,13 +335,17 @@ public final class MetricKey implements Comparable<MetricKey> {
           .build();
   public static final MetricKey MASTER_JOURNAL_SPACE_FREE_BYTES =
       new Builder("Master.JournalFreeBytes")
-          .setDescription("Bytes left on the journal disk(s) for an Alluxio master")
+          .setDescription("Bytes left on the journal disk(s) for an Alluxio master. "
+              + "This metric is only valid on Linux and when embedded journal is used. "
+              + "Use this metric to monitor whether your journal is running out of disk space.")
           .setMetricType(MetricType.GAUGE)
           .build();
   public static final MetricKey MASTER_JOURNAL_SPACE_FREE_PERCENT =
       new Builder("Master.JournalFreePercent")
-          .setDescription(
-              "Percentage of free space left on the journal disk(s) for an Alluxio master")
+          .setDescription("Percentage of free space left on the journal disk(s) "
+              + "for an Alluxio master."
+              + "This metric is only valid on Linux and when embedded journal is used. "
+              + "Use this metric to monitor whether your journal is running out of disk space.")
           .setMetricType(MetricType.GAUGE)
           .build();
   public static final MetricKey MASTER_TOTAL_PATHS =
@@ -563,28 +557,41 @@ public final class MetricKey implements Comparable<MetricKey> {
   // Journal metrics
   public static final MetricKey MASTER_EMBEDDED_JOURNAL_SNAPSHOT_GENERATE_TIMER =
       new Builder("Master.EmbeddedJournalSnapshotGenerateTimer")
-          .setDescription("The timer statistics of journal snapshot generation by this master")
+          .setDescription("Describes the amount of time taken to generate local journal snapshots"
+              + " on this master. Only valid when using the embedded journal. Use this metric to "
+              + "measure the performance of Alluxio's snapshot generation.")
           .setMetricType(MetricType.TIMER)
           .build();
   public static final MetricKey MASTER_EMBEDDED_JOURNAL_SNAPSHOT_DOWNLOAD_TIMER =
       new Builder("Master.EmbeddedJournalSnapshotDownloadGenerate")
-          .setDescription("The timer statistics of journal snapshot download from other masters")
+          .setDescription("Describes the amount of time taken to download journal snapshots from "
+              + "other masters in the cluster. Only valid when using the embedded journal. Use "
+              + "this metric to determine if there are potential communication bottlenecks "
+              + "between Alluxio masters.")
           .setMetricType(MetricType.TIMER)
           .build();
   public static final MetricKey MASTER_EMBEDDED_JOURNAL_SNAPSHOT_INSTALL_TIMER =
       new Builder("Master.EmbeddedJournalSnapshotInstallTimer")
-          .setDescription("The timer statistics of journal snapshot install")
+          .setDescription("Describes the amount of time taken to install a downloaded journal "
+              + "snapshot from another master. Only valid only when using the embedded journal. "
+              + "Use this metric to determine the performance of Alluxio when installing "
+              + "snapshots from the leader. Higher numbers may indicate a slow disk or CPU "
+              + "contention.")
           .setMetricType(MetricType.TIMER)
           .build();
   public static final MetricKey MASTER_EMBEDDED_JOURNAL_SNAPSHOT_REPLAY_TIMER =
       new Builder("Master.EmbeddedJournalSnapshotReplayTimer")
-          .setDescription("The timer statistics of journal snapshot replay")
+          .setDescription("Describes the amount of time taken to replay a journal snapshot onto "
+              + "the master's state machine. Only valid only when using the embedded journal. Use"
+              + " this metric to determine the performance of Alluxio when replaying journal "
+              + "snapshot file. Higher numbers may indicate a slow disk or CPU contention")
           .setMetricType(MetricType.TIMER)
           .build();
   public static final MetricKey MASTER_EMBEDDED_JOURNAL_SNAPSHOT_LAST_INDEX =
       new Builder("Master.EmbeddedJournalSnapshotLastIndex")
-          .setDescription("The last index of the latest journal snapshot "
-              + "created by this master or downloaded from other masters")
+          .setDescription("Represents the latest journal index that was recorded by this master "
+              + "in the most recent local snapshot or from a snapshot downloaded from another "
+              + "master in the cluster. Only valid when using the embedded journal.")
           .setMetricType(MetricType.GAUGE)
           .build();
   public static final MetricKey MASTER_JOURNAL_FLUSH_FAILURE =
@@ -620,7 +627,11 @@ public final class MetricKey implements Comparable<MetricKey> {
           .build();
   public static final MetricKey MASTER_UFS_JOURNAL_CATCHUP_TIMER =
       new Builder("Master.UfsJournalCatchupTimer")
-          .setDescription("The timer statistics of journal catchup")
+          .setDescription("The timer statistics of journal catchup"
+              + "Only valid when ufs journal is used. "
+              + "This provides a summary of how long a secondary master"
+              + " takes to catch up with primary master,"
+              + " and should be monitored if master transition takes too long")
           .setMetricType(MetricType.TIMER)
           .build();
   public static final MetricKey MASTER_UFS_JOURNAL_FAILURE_RECOVER_TIMER =
@@ -630,7 +641,10 @@ public final class MetricKey implements Comparable<MetricKey> {
           .build();
   public static final MetricKey MASTER_UFS_JOURNAL_INITIAL_REPLAY_TIME_MS =
       new Builder("Master.UfsJournalInitialReplayTimeMs")
-          .setDescription("The process time of the ufs journal initial replay")
+          .setDescription("The process time of the ufs journal initial replay."
+              + "Only valid when ufs journal is used."
+              + " It records the time it took for the very first journal replay. "
+              + "Use this metric to monitor when your master boot-up time is high。")
           .setMetricType(MetricType.GAUGE)
           .build();
 
@@ -1065,46 +1079,38 @@ public final class MetricKey implements Comparable<MetricKey> {
           .build();
   public static final MetricKey WORKER_BLOCK_REMOVER_TRY_REMOVE_COUNT =
       new Builder("Worker.BlockRemoverTryRemoveCount")
-          .setDescription("The total number of blocks tried to be removed from this worker "
-              + "by asynchronous block remover.")
+          .setDescription("The total number of blocks this worker attempted to remove "
+              + "with asynchronous block remover.")
           .setMetricType(MetricType.COUNTER)
           .setIsClusterAggregated(false)
           .build();
   public static final MetricKey WORKER_BLOCK_REMOVER_REMOVED_COUNT =
-      new Builder("Worker.BlockRemoverBlocksToRemovedCount")
-          .setDescription("The total number of blocks removed from this worker "
+      new Builder("Worker.BlockRemoverBlocksRemovedCount")
+          .setDescription("The total number of blocks successfully removed from this worker "
               + "by asynchronous block remover.")
           .setMetricType(MetricType.COUNTER)
           .setIsClusterAggregated(false)
           .build();
   public static final MetricKey WORKER_BLOCK_REMOVER_TRY_REMOVE_BLOCKS_SIZE =
       new Builder("Worker.BlockRemoverTryRemoveBlocksSize")
-          .setDescription("The size of blocks to be removed from this worker "
+          .setDescription("The number of blocks to be removed from this worker at a moment "
               + "by asynchronous block remover.")
           .setMetricType(MetricType.GAUGE)
           .setIsClusterAggregated(false)
           .build();
   public static final MetricKey WORKER_BLOCK_REMOVER_REMOVING_BLOCKS_SIZE =
       new Builder("Worker.BlockRemoverRemovingBlocksSize")
-          .setDescription("The size of blocks is removing from this worker "
+          .setDescription("The size of blocks is being removed from this worker at a moment "
               + "by asynchronous block remover.")
           .setMetricType(MetricType.GAUGE)
           .setIsClusterAggregated(false)
           .build();
 
   // Client metrics
-  public static final MetricKey CLIENT_BLOCK_READ_CHUNK =
-      new Builder("Client.BlockReadDataChunk")
+  public static final MetricKey CLIENT_BLOCK_READ_CHUNK_REMOTE =
+      new Builder("Client.BlockReadChunkRemote")
           .setDescription(String.format("The timer statistics of reading block data in chunks "
-              + "from Alluxio workers. This metrics will only be recorded when %s is set to true",
-              PropertyKey.USER_BLOCK_READ_METRICS_ENABLED.getName()))
-          .setMetricType(MetricType.TIMER)
-          .setIsClusterAggregated(false)
-          .build();
-  public static final MetricKey CLIENT_BLOCK_READ_FROM_CHUNK =
-      new Builder("Client.BlockReadDataFromChunk")
-          .setDescription(String.format("The timer statistics of reading data from data chunks "
-              + "which have already fetched from Alluxio workers. "
+              + "from remote Alluxio workers via RPC framework. "
               + "This metrics will only be recorded when %s is set to true",
               PropertyKey.USER_BLOCK_READ_METRICS_ENABLED.getName()))
           .setMetricType(MetricType.TIMER)
@@ -1206,6 +1212,35 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setMetricType(MetricType.GAUGE)
           .setIsClusterAggregated(false)
           .build();
+  public static final MetricKey CLIENT_CACHE_SHADOW_CACHE_BYTES =
+      new Builder("Client.CacheShadowCacheBytes")
+          .setDescription("Amount of bytes in the client shadow cache.")
+          .setMetricType(MetricType.COUNTER).setIsClusterAggregated(false).build();
+  public static final MetricKey CLIENT_CACHE_SHADOW_CACHE_BYTES_HIT =
+      new Builder("Client.CacheShadowCacheBytesHit")
+          .setDescription("Total number of bytes hit the client shadow cache.")
+          .setMetricType(MetricType.COUNTER).setIsClusterAggregated(false).build();
+  public static final MetricKey CLIENT_CACHE_SHADOW_CACHE_BYTES_READ =
+      new Builder("Client.CacheShadowCacheBytesRead")
+          .setDescription("Total number of bytes read from the client shadow cache.")
+          .setMetricType(MetricType.COUNTER).setIsClusterAggregated(false).build();
+  public static final MetricKey CLIENT_CACHE_SHADOW_CACHE_FALSE_POSITIVE_RATIO =
+      new Builder("Client.CacheShadowCacheFalsePositiveRatio")
+          .setDescription("Probability that the working set bloom filter makes an error. "
+              + "The value is 0-100. If too high, need to allocate more space")
+          .setMetricType(MetricType.COUNTER).setIsClusterAggregated(false).build();
+  public static final MetricKey CLIENT_CACHE_SHADOW_CACHE_PAGES =
+      new Builder("Client.CacheShadowCachePages")
+          .setDescription("Amount of pages in the client shadow cache.")
+          .setMetricType(MetricType.COUNTER).setIsClusterAggregated(false).build();
+  public static final MetricKey CLIENT_CACHE_SHADOW_CACHE_PAGES_HIT =
+      new Builder("Client.CacheShadowCachePagesHit")
+          .setDescription("Total number of pages hit the client shadow cache.")
+          .setMetricType(MetricType.COUNTER).setIsClusterAggregated(false).build();
+  public static final MetricKey CLIENT_CACHE_SHADOW_CACHE_PAGES_READ =
+      new Builder("Client.CacheShadowCachePagesRead")
+          .setDescription("Total number of pages read from the client shadow cache.")
+          .setMetricType(MetricType.COUNTER).setIsClusterAggregated(false).build();
 
   // Counter versions of gauges, these may be removed in the future without notice
   public static final MetricKey CLIENT_CACHE_SPACE_USED_COUNT =

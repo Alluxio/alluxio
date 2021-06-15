@@ -181,6 +181,7 @@ public final class PlanInfo implements JobInfo {
   /**
    * @return a list of affected alluxio paths by this plan
    */
+  @Override
   public List<String> getAffectedPaths() {
     return ImmutableList.copyOf(mAffectedPaths);
   }
@@ -225,13 +226,14 @@ public final class PlanInfo implements JobInfo {
         && Objects.equal(mResult, that.mResult)
         && Objects.equal(mLastUpdated, that.mLastUpdated)
         && Objects.equal(mName, that.mName)
-        && Objects.equal(mDescription, that.mDescription);
+        && Objects.equal(mDescription, that.mDescription)
+        && Objects.equal(mAffectedPaths, that.mAffectedPaths);
   }
 
   @Override
   public int hashCode() {
     return Objects.hashCode(mId, mErrorMessage, mChildren, mStatus, mResult, mLastUpdated,
-        mName, mDescription);
+        mName, mDescription, mAffectedPaths);
   }
 
   @Override
@@ -246,6 +248,7 @@ public final class PlanInfo implements JobInfo {
         .add("lastUpdated", mLastUpdated)
         .add("name", mName)
         .add("description", mDescription)
+        .add("affectedPaths", mAffectedPaths)
         .toString();
   }
 }

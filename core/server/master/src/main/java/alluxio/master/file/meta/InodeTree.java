@@ -58,7 +58,6 @@ import alluxio.util.CommonUtils;
 import alluxio.util.interfaces.Scoped;
 
 import com.google.common.base.Preconditions;
-import org.HdrHistogram.Histogram;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -261,7 +260,7 @@ public class InodeTree implements DelegatingJournaled {
   /**
    * @return the file size histogram of the inode tree
    */
-  public Histogram getFileSizeHistogram() {
+  public Map<Long, Number> getFileSizeHistogram() {
     return mState.getFileSizeHistogram();
   }
 
@@ -788,9 +787,10 @@ public class InodeTree implements DelegatingJournaled {
       MutableInodeDirectory newDir = MutableInodeDirectory.create(
           mDirectoryIdGenerator.getNewDirectoryId(rpcContext.getJournalContext()),
           currentInodeDirectory.getId(), pathComponents[k], missingDirContext);
-
-      newDir.setPinned(currentInodeDirectory.isPinned());
-
+      if (currentInodeDirectory.isPinned() && !newDir.isPinned()) {
+        newDir.setPinned(true);
+        newDir.setMediumTypes(new HashSet<>(currentInodeDirectory.getMediumTypes()));
+      }
       inheritOwnerAndGroupIfEmpty(newDir, currentInodeDirectory);
 
       // if the parent has default ACL, copy that default ACL as the new directory's default
@@ -893,7 +893,10 @@ public class InodeTree implements DelegatingJournaled {
     } else {
       throw new IllegalStateException(String.format("Unrecognized create options: %s", context));
     }
-    newInode.setPinned(currentInodeDirectory.isPinned());
+    if (currentInodeDirectory.isPinned() && !newInode.isPinned()) {
+      newInode.setPinned(true);
+      newInode.setMediumTypes(new HashSet<>(currentInodeDirectory.getMediumTypes()));
+    }
 
     mState.applyAndJournal(rpcContext, newInode,
         inodePath.getUri().getPath());
@@ -1060,7 +1063,7 @@ public class InodeTree implements DelegatingJournaled {
       Preconditions.checkArgument(newMax == alluxio.Constants.REPLICATION_MAX_INFINITY
           || newMax >= newMin,
           PreconditionMessage.INVALID_REPLICATION_MAX_SMALLER_THAN_MIN.toString(),
-          replicationMax, replicationMax);
+          newMin, newMax);
 
       mState.applyAndJournal(rpcContext, UpdateInodeFileEntry.newBuilder()
           .setId(inode.getId())
@@ -1070,6 +1073,7 @@ public class InodeTree implements DelegatingJournaled {
       mState.applyAndJournal(rpcContext, UpdateInodeEntry.newBuilder()
           .setId(inode.getId())
           .setPinned(newMin > 0)
+          .addAllMediumType(inode.getMediumTypes())
           .setLastModificationTimeMs(opTimeMs)
           .build());
     } else {

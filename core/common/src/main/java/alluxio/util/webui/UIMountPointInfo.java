@@ -28,6 +28,7 @@ public class UIMountPointInfo {
   private long mUfsUsedBytes;
   private boolean mReadOnly;
   private boolean mShared;
+  private String mProperties = "";
 
   /**
    * Instantiates a new instance of {@link UIMountPointInfo}.
@@ -43,6 +44,9 @@ public class UIMountPointInfo {
     mUfsUsedBytes = mountPointInfo.getUfsUsedBytes();
     mReadOnly = mountPointInfo.getReadOnly();
     mShared = mountPointInfo.getShared();
+    if (mountPointInfo.getProperties() != null) {
+      mProperties = mountPointInfo.getProperties().toString();
+    }
   }
 
   /**
@@ -106,5 +110,12 @@ public class UIMountPointInfo {
    */
   public boolean isShared() {
     return mShared;
+  }
+
+  /**
+   * @return the properties
+   */
+  public String getProperties() {
+    return mProperties;
   }
 }
