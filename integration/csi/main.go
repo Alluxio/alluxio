@@ -69,7 +69,7 @@ func handle() {
 }
 
 /*
-Based on https://github.com/openshift/origin/blob/master/pkg/util/proc/reaper.go
+Based on https://github.com/openshift/content-mirror/blob/5ee8de2ddc6d4c755fb2401066fdf0b09a1eaea0/pkg/reaper/reaper.go
 The alluxio-fuse script nohup the Alluxio java client for the FUSE mount and then exits.
 That causes the java process to become defunct after un-mounting.
 */

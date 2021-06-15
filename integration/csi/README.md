@@ -1,14 +1,15 @@
 # Alluxio CSI
 
-This module implement contienr storage interface(https://github.com/container-storage-interface/spec) for Alluxio.
+This module implement container storage interface(https://github.com/container-storage-interface/spec) for Alluxio.
 
 ## Requirements
 
-Kubernetes 1.14 or higher, RBAC enbaled in API server.
+Kubernetes 1.14 or higher, RBAC enbaled in API server(https://kubernetes.io/docs/reference/access-authn-authz/rbac/).
 
 ## Usage
 
 ### Deploy
+
 Please use `helm-generate.sh` to generate related templates. All CSI related templates should under `integration/kubernetes/<deploy-mode>/csi` folder.
 
 You need to deploy `alluxio-csi-controller`, `alluxio-csi-nodeplugin`, `alluxio-csi-driver` before mount volume via CSI.
@@ -20,13 +21,13 @@ All these examples will be gernerated after run `helm-generate.sh`.
 
 ### Configuration
 
-You can custmomize alluxio volumes via serveral configurations.
+You can customize alluxio volumes via serveral configurations.
 
 The options you can customized:
 | Options | Description |
 | --- | --- |
 | `alluxioPath` | The path in alluxio |
-| `javaOptions` | The customized options which pass to fuse daemon |
+| `javaOptions` | The customized options which will be passes to fuse daemon |
 | `mountOptions` | Alluxio fuse mount options |
 
 If you use dynamic provisioning, please put your cutomized parameters under `StorageClass.parameters` and `StorageClass.mountOptions`.
