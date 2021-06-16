@@ -16,6 +16,7 @@ import alluxio.ProcessUtils;
 import alluxio.conf.PropertyKey;
 import alluxio.StorageTierAssoc;
 import alluxio.WorkerStorageTierAssoc;
+import alluxio.conf.Source;
 import alluxio.exception.ConnectionFailedException;
 import alluxio.grpc.Command;
 import alluxio.grpc.ConfigProperty;
@@ -29,7 +30,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 
 import javax.annotation.concurrent.NotThreadSafe;
@@ -178,7 +181,7 @@ public final class BlockMasterSync implements HeartbeatExecutor {
         break;
       // Master requests blocks to be removed from Alluxio managed space.
       case Free:
-        mAsyncBlockRemover.addBlocksToDelete(cmd.getDataList());
+        mAsyncBlockRemover.addBlocksToDelete(cmd.getFreeCmd().getDataList());
         break;
       // No action required
       case Nothing:
@@ -188,6 +191,9 @@ public final class BlockMasterSync implements HeartbeatExecutor {
         mWorkerId.set(mMasterClient.getId(mWorkerAddress));
         registerWithMaster();
         break;
+      case UpdateConfig:
+        updateConfiguration(cmd.getUpdateConfCmd().getPropertiesMap());
+        break;
       // Unknown request
       case Unknown:
         LOG.error("Master heartbeat sends unknown command {}", cmd);
@@ -195,5 +201,32 @@ public final class BlockMasterSync implements HeartbeatExecutor {
       default:
         throw new RuntimeException("Un-recognized command from master " + cmd);
     }
+  }
+
+  private Map<String, Boolean> updateConfiguration(Map<String, String> propertiesMap) {
+    Map<String, Boolean> result = new HashMap<>();
+    int successCount = 0;
+    for (Map.Entry<String, String> entry : propertiesMap.entrySet()) {
+      try {
+        PropertyKey key = PropertyKey.fromString(entry.getKey());
+        if (ServerConfiguration.getBoolean(PropertyKey.CONF_DYNAMIC_UPDATE_ENABLED)
+            && key.isDynamic()) {
+          String oldValue = ServerConfiguration.get(key);
+          ServerConfiguration.set(key, entry.getValue(), Source.RUNTIME);
+          result.put(entry.getKey(), true);
+          successCount++;
+          LOG.info("Property {} has been updated to \"{}\" from \"{}\"",
+              key.getName(), entry.getValue(), oldValue);
+        } else {
+          LOG.debug("Update a non-dynamic property {} is not allowed", key.getName());
+          result.put(entry.getKey(), false);
+        }
+      } catch (Exception e) {
+        result.put(entry.getKey(), false);
+        LOG.error("Failed to update property {} to {}", entry.getKey(), entry.getValue(), e);
+      }
+    }
+    LOG.debug("Update {} properties, succeed {}.", propertiesMap.size(), successCount);
+    return result;
   }
 }

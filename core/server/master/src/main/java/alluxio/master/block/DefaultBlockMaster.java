@@ -31,6 +31,7 @@ import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.Command;
 import alluxio.grpc.CommandType;
 import alluxio.grpc.ConfigProperty;
+import alluxio.grpc.FreeCommand;
 import alluxio.grpc.GrpcService;
 import alluxio.grpc.GrpcUtils;
 import alluxio.grpc.RegisterWorkerPOptions;
@@ -996,7 +997,9 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
         workerCommand = Command.newBuilder().setCommandType(CommandType.Nothing).build();
       } else {
         workerCommand = Command.newBuilder().setCommandType(CommandType.Free)
-            .addAllData(toRemoveBlocks).build();
+            .addAllData(toRemoveBlocks)
+            .setFreeCmd(FreeCommand.newBuilder().addAllData(toRemoveBlocks).build())
+            .build();
       }
     }
 

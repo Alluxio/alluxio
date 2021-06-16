@@ -76,6 +76,7 @@ enum CommandType {
   Free = 3;     // Ask the worker to free files.
   Delete = 4;   // Ask the worker to delete files.
   Persist = 5;  // Ask the worker to persist a file for lineage
+  UpdateConfig = 6;  // Ask the worker to update config
 }
 
 message ConfigProperty {
@@ -89,9 +90,26 @@ enum TtlAction {
   FREE = 1;   // Free the file after TTL expires.
 }
 
+message RegisterWorkerCommand {
+}
+
+message FreeCommand {
+  repeated int64 data = 1;
+}
+
+message UpdateConfigCommand {
+  map<string, string> properties = 1;
+}
+
 message Command {
-  optional CommandType commandType = 1;
+  required CommandType commandType = 1;
+  // TODO(maobaolong): keep this for consistency, remove it in the future.
   repeated int64 data = 2;
+  // One of the following command is available when the corresponding
+  // commandType is set
+  optional FreeCommand freeCmd = 3;
+  optional RegisterWorkerCommand regCmd = 4;
+  optional UpdateConfigCommand updateConfCmd = 5;
 }
 
 message LocalityTier {
