@@ -38,6 +38,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -210,13 +211,15 @@ public class Database implements Journaled {
     // Synchronization is necessary if accessed concurrently from multiple threads
     SyncStatus.Builder builder = SyncStatus.newBuilder();
 
-    if (Files.exists(Paths.get(mConfigPath))) {
+    if (!mConfigPath.equals(CatalogProperty.DB_CONFIG_FILE.getDefaultValue())) {
+      if (!Files.exists(Paths.get(mConfigPath))) {
+        throw new FileNotFoundException(mConfigPath);
+      }
       ObjectMapper mapper = new ObjectMapper();
       try {
         mDbConfig = mapper.readValue(new File(mConfigPath), DbConfig.class);
       } catch (JsonProcessingException e) {
-        LOG.error("Failed to deserialize UDB config file {}, stays unsynced",
-            mConfigPath, e);
+        LOG.error("Failed to deserialize UDB config file {}, stays unsynced", mConfigPath, e);
         throw e;
       }
     }
