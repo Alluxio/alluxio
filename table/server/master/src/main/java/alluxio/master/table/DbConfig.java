@@ -27,27 +27,26 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.google.common.base.Preconditions;
 
 import java.io.IOException;
-import java.util.HashSet;
+import java.util.Collections;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 /**
  * The Alluxio db config information.
  */
 public final class DbConfig {
-  private BypassEntry mBypassEntry;
+  private final BypassEntry mBypassEntry;
 
   /**
    * @param bypassEntry bypass entry
    */
   @JsonCreator
   public DbConfig(@JsonProperty("bypass") @Nullable BypassEntry bypassEntry) {
-    mBypassEntry = bypassEntry == null ? new BypassEntry(new HashSet<>()) : bypassEntry;
+    mBypassEntry = bypassEntry == null ? new BypassEntry(Collections.emptySet()) : bypassEntry;
   }
 
   /**
@@ -56,7 +55,7 @@ public final class DbConfig {
    * @return an empty config instance
    */
   public static DbConfig empty() {
-    return new DbConfig(new BypassEntry(new HashSet<>()));
+    return new DbConfig(new BypassEntry(Collections.emptySet()));
   }
 
   /**
@@ -64,13 +63,6 @@ public final class DbConfig {
    */
   public BypassEntry getBypassEntry() {
     return mBypassEntry;
-  }
-
-  /**
-   * @param bypassEntry bypass entry
-   */
-  public void setBypassEntry(@Nonnull BypassEntry bypassEntry) {
-    mBypassEntry = bypassEntry;
   }
 
   /**
@@ -92,7 +84,7 @@ public final class DbConfig {
      */
     @JsonCreator
     public BypassEntry(@JsonProperty("tables") @Nullable Set<BypassTableEntry> entries) {
-      mEntries = entries == null ? new HashSet<>() : entries;
+      mEntries = entries == null ? Collections.emptySet() : entries;
     }
 
     /**
@@ -196,7 +188,7 @@ public final class DbConfig {
       } else if (node.isTextual()) {
         // single table name, all partitions are bypassed
         tableName = node.asText();
-        partitions = new HashSet<>();
+        partitions = Collections.emptySet();
       } else {
         // a {"table": "table", "partitions": ["part1", "part2"]} object
         if (!node.hasNonNull("table")) {
@@ -206,7 +198,7 @@ public final class DbConfig {
         JsonNode partitionsList = node.get("partitions");
         partitions = mapper.convertValue(partitionsList,  new TypeReference<Set<String>>() {});
         if (partitions == null) {
-          partitions = new HashSet<>();
+          partitions = Collections.emptySet();
         }
       }
       return new BypassTableEntry(tableName, partitions);
