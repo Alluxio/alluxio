@@ -215,8 +215,9 @@ public class Database implements Journaled {
       try {
         mDbConfig = mapper.readValue(new File(mConfigPath), DbConfig.class);
       } catch (JsonProcessingException e) {
-        LOG.warn(String.format("Failed to deserialize UDB config file %s, stays unsynced: {}",
-            mConfigPath), e.toString());
+        LOG.error("Failed to deserialize UDB config file {}, stays unsynced",
+            mConfigPath, e);
+        throw e;
       }
     }
     DatabaseInfo newDbInfo = mUdb.getDatabaseInfo();
