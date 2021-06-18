@@ -36,21 +36,21 @@ public class PathTranslatorTest {
 
   @Test
   public void noMapping() throws Exception {
-    mTranslator.addMapping("alluxio://master/my/table/directory", "ufs://a/the/ufs/location");
+    mTranslator.addMapping("alluxio:///my/table/directory", "ufs://a/the/ufs/location");
     mException.expect(IOException.class);
     mTranslator.toAlluxioPath("ufs://b/no/mapping");
   }
 
   @Test
   public void noMappingSingleLevel() throws Exception {
-    mTranslator.addMapping("alluxio://master/my/table/directory", "ufs://a/the/ufs/location");
+    mTranslator.addMapping("alluxio:///my/table/directory", "ufs://a/the/ufs/location");
     mException.expect(IOException.class);
     mTranslator.toAlluxioPath("ufs://a/the/ufs/no_loc");
   }
 
   @Test
   public void exactMatch() throws Exception {
-    String alluxioPath  = "alluxio://master/my/table/directory";
+    String alluxioPath  = "alluxio:///my/table/directory";
     String ufsPath = "ufs://a/the/ufs/location";
     mTranslator.addMapping(alluxioPath, ufsPath);
     assertEquals(alluxioPath, mTranslator.toAlluxioPath(ufsPath));
@@ -58,7 +58,7 @@ public class PathTranslatorTest {
 
   @Test
   public void singleSubDirectory() throws Exception {
-    String alluxioPath  = "alluxio://master/my/table/directory";
+    String alluxioPath  = "alluxio:///my/table/directory";
     String ufsPath = "ufs://a/the/ufs/location";
     mTranslator.addMapping(alluxioPath, ufsPath);
     assertEquals(PathUtils.concatPath(alluxioPath, "subdir"),
@@ -67,7 +67,7 @@ public class PathTranslatorTest {
 
   @Test
   public void multipleSubdir() throws Exception {
-    String alluxioPath  = "alluxio://master/my/table/directory";
+    String alluxioPath  = "alluxio:///my/table/directory";
     String ufsPath = "ufs://a/the/ufs/location";
     mTranslator.addMapping(alluxioPath, ufsPath);
     assertEquals(PathUtils.concatPath(alluxioPath, "subdir/a/b/c"),
@@ -76,7 +76,7 @@ public class PathTranslatorTest {
 
   @Test
   public void samePathDifferentUfs() throws Exception {
-    String alluxioPath  = "alluxio://master/my/table/directory";
+    String alluxioPath  = "alluxio:///my/table/directory";
     String ufsPath = "/the/ufs/location";
     mTranslator.addMapping(alluxioPath, "ufs-a://" + ufsPath);
     mException.expect(IOException.class);
@@ -85,7 +85,7 @@ public class PathTranslatorTest {
 
   @Test
   public void noSchemeUfs() throws Exception {
-    String alluxioPath  = "alluxio://master/my/table/directory";
+    String alluxioPath  = "alluxio:///my/table/directory";
     String ufsPath = "/the/ufs/location";
     mTranslator.addMapping(alluxioPath, ufsPath);
     assertEquals(alluxioPath, mTranslator.toAlluxioPath(ufsPath));
@@ -93,7 +93,7 @@ public class PathTranslatorTest {
 
   @Test
   public void trailingSeparator() throws Exception {
-    String alluxioPath  = "alluxio://master/my/table/directory";
+    String alluxioPath  = "alluxio:///my/table/directory";
     String ufsPath = "/the/ufs/location";
     mTranslator.addMapping(alluxioPath + "/", ufsPath + "/");
     assertEquals(alluxioPath, mTranslator.toAlluxioPath(ufsPath));
@@ -105,9 +105,9 @@ public class PathTranslatorTest {
 
   @Test
   public void prefixBoundaryWithinPathComponent() throws Exception {
-    mTranslator.addMapping("alluxio://master/table_a", "ufs://a/table1");
-    mTranslator.addMapping("alluxio://master/table_b", "ufs://a/table11");
-    assertEquals("alluxio://master/table_b/part1",
+    mTranslator.addMapping("alluxio:///table_a", "ufs://a/table1");
+    mTranslator.addMapping("alluxio:///table_b", "ufs://a/table11");
+    assertEquals("alluxio:///table_b/part1",
         mTranslator.toAlluxioPath("ufs://a/table11/part1"));
   }
 }
