@@ -78,8 +78,9 @@ public final class DistributedLoadCommand extends AbstractDistributedJobCommand 
           .hasArg(true)
           .numberOfArgs(1)
           .argName("hosts")
-          .desc("A list of worker hosts separated by comma, and add ! before host"
-              + " to exclude the worker")
+          .desc("A list of worker hosts separated by comma, when host and locality lists are empty,"
+              + " all hosts will be selected unless excluded by setting excluded-hosts or"
+              + " excluded-locality")
           .build();
   private static final Option HOST_FILE_OPTION =
       Option.builder()
@@ -88,8 +89,28 @@ public final class DistributedLoadCommand extends AbstractDistributedJobCommand 
           .hasArg(true)
           .numberOfArgs(1)
           .argName("host-file")
-          .desc("Host File contains worker hosts, each line has a worker host, and add ! before"
-              + " host to exclude the worker")
+          .desc("Host File contains worker hosts, each line has a worker host, if empty,"
+              + " all hosts will be selected unless explicitly excluded by setting excluded-hosts")
+          .build();
+  private static final Option EXCLUDED_HOSTS_OPTION =
+      Option.builder()
+          .longOpt("excluded-hosts")
+          .required(false)
+          .hasArg(true)
+          .numberOfArgs(1)
+          .argName("excluded-hosts")
+          .desc("A list of excluded worker hosts separated by comma,"
+              + " it should not be set together with hosts")
+          .build();
+  private static final Option EXCLUDED_HOST_FILE_OPTION =
+      Option.builder()
+          .longOpt("excluded-host-file")
+          .required(false)
+          .hasArg(true)
+          .numberOfArgs(1)
+          .argName("excluded-host-file")
+          .desc("Host File contains excluded worker hosts, each line has a worker host,"
+              + " it should not be set together with HOSTS_OPTION")
           .build();
   private static final Option LOCALITY_OPTION =
       Option.builder()
@@ -98,8 +119,10 @@ public final class DistributedLoadCommand extends AbstractDistributedJobCommand 
           .hasArg(true)
           .numberOfArgs(1)
           .argName("locality")
-          .desc("A list of worker locality separated by comma, and add ! before locality to"
-              + " exclude the worker")
+          .desc("A list of worker locality separated by comma,"
+              + " when host and locality lists are empty,"
+              + " all hosts will be selected unless excluded by setting excluded-hosts or"
+              + " excluded-locality")
           .build();
   private static final Option LOCALITY_FILE_OPTION =
       Option.builder()
@@ -108,8 +131,28 @@ public final class DistributedLoadCommand extends AbstractDistributedJobCommand 
           .hasArg(true)
           .numberOfArgs(1)
           .argName("locality-file")
-          .desc("Locality File contains worker localities, each line has a worker locality,"
-              + " and add ! before locality to exclude the worker")
+          .argName("locality-file")
+          .desc("Locality File contains worker localities, each line has a worker locality")
+          .build();
+  private static final Option EXCLUDED_LOCALITY_OPTION =
+      Option.builder()
+          .longOpt("excluded-locality")
+          .required(false)
+          .hasArg(true)
+          .numberOfArgs(1)
+          .argName("excluded-locality")
+          .desc("A list of excluded worker locality separated by comma,"
+              + "it should not be set together with locality")
+          .build();
+  private static final Option EXCLUDED_LOCALITY_FILE_OPTION =
+      Option.builder()
+          .longOpt("excluded-locality-file")
+          .required(false)
+          .hasArg(true)
+          .numberOfArgs(1)
+          .argName("excluded-locality-file")
+          .desc("Locality File contains excluded worker localities,"
+              + " each line has a worker locality, it should not be set together with locality")
           .build();
 
   /**
@@ -142,9 +185,12 @@ public final class DistributedLoadCommand extends AbstractDistributedJobCommand 
   @Override
   public String getUsage() {
     return "distributedLoad [--replication <num>] [--active-jobs <num>] [--index] "
-        + "[--hosts <host1>,!<excludedHost2>,...,<hostN>] [--host-file <hostFilePath>] "
-        + "[--locality <locality1>,!<locality2>,...,<localityN>] "
+        + "[--hosts <host1>,<host2>,...,<hostN>] [--host-file <hostFilePath>] "
+        + "[--excluded-hosts <host1>,<host2>,...,<hostN>] [--excluded-host-file <hostFilePath>] "
+        + "[--locality <locality1>,<locality2>,...,<localityN>] "
         + "[--locality-file <localityFilePath>] "
+        + "[--excluded-locality <locality1>,<locality2>,...,<localityN>] "
+        + "[--excluded-locality-file <localityFilePath>] "
         + "<path>";
   }
 
@@ -162,65 +208,71 @@ public final class DistributedLoadCommand extends AbstractDistributedJobCommand 
     String[] args = cl.getArgs();
     int replication = FileSystemShellUtils.getIntArg(cl, REPLICATION_OPTION, DEFAULT_REPLICATION);
     Set<String> workerSet = new HashSet<>();
-    Set<String> excludeWorkerSet = new HashSet<>();
+    Set<String> excludedWorkerSet = new HashSet<>();
     Set<String> localityIds = new HashSet<>();
-    Set<String> excludeLocalityIds = new HashSet<>();
+    Set<String> excludedLocalityIds = new HashSet<>();
     if (cl.hasOption(HOST_FILE_OPTION.getLongOpt())) {
       String hostFile = cl.getOptionValue(HOST_FILE_OPTION.getLongOpt()).trim();
-      readLinesToSet(workerSet, excludeWorkerSet, hostFile);
+      readLinesToSet(workerSet, hostFile);
     } else if (cl.hasOption(HOSTS_OPTION.getLongOpt())) {
       String argOption = cl.getOptionValue(HOSTS_OPTION.getLongOpt()).trim();
-      readItemsFromOptionString(workerSet, excludeWorkerSet, argOption);
+      readItemsFromOptionString(workerSet, argOption);
+    }
+    if (cl.hasOption(EXCLUDED_HOST_FILE_OPTION.getLongOpt())) {
+      String hostFile = cl.getOptionValue(EXCLUDED_HOST_FILE_OPTION.getLongOpt()).trim();
+      readLinesToSet(excludedWorkerSet, hostFile);
+    } else if (cl.hasOption(EXCLUDED_HOSTS_OPTION.getLongOpt())) {
+      String argOption = cl.getOptionValue(EXCLUDED_HOSTS_OPTION.getLongOpt()).trim();
+      readItemsFromOptionString(excludedWorkerSet, argOption);
     }
     if (cl.hasOption(LOCALITY_FILE_OPTION.getLongOpt())) {
       String localityFile = cl.getOptionValue(LOCALITY_FILE_OPTION.getLongOpt()).trim();
-      readLinesToSet(localityIds, excludeLocalityIds, localityFile);
+      readLinesToSet(localityIds, localityFile);
     } else if (cl.hasOption(LOCALITY_OPTION.getLongOpt())) {
       String argOption = cl.getOptionValue(LOCALITY_OPTION.getLongOpt()).trim();
-      readItemsFromOptionString(localityIds, excludeLocalityIds, argOption);
+      readItemsFromOptionString(localityIds, argOption);
+    }
+    if (cl.hasOption(EXCLUDED_LOCALITY_FILE_OPTION.getLongOpt())) {
+      String localityFile = cl.getOptionValue(EXCLUDED_LOCALITY_FILE_OPTION.getLongOpt()).trim();
+      readLinesToSet(excludedLocalityIds, localityFile);
+    } else if (cl.hasOption(EXCLUDED_LOCALITY_OPTION.getLongOpt())) {
+      String argOption = cl.getOptionValue(EXCLUDED_LOCALITY_OPTION.getLongOpt()).trim();
+      readItemsFromOptionString(excludedLocalityIds, argOption);
     }
 
     if (!cl.hasOption(INDEX_FILE.getLongOpt())) {
       AlluxioURI path = new AlluxioURI(args[0]);
       DistributedLoadUtils.distributedLoad(this, path, replication, workerSet,
-          excludeWorkerSet, localityIds, excludeLocalityIds);
+          excludedWorkerSet, localityIds, excludedLocalityIds);
     } else {
       try (BufferedReader reader = new BufferedReader(new FileReader(args[0]))) {
         for (String filename; (filename = reader.readLine()) != null; ) {
           AlluxioURI path = new AlluxioURI(filename);
           DistributedLoadUtils.distributedLoad(this, path, replication, workerSet,
-              excludeWorkerSet, localityIds, excludeLocalityIds);
+              excludedWorkerSet, localityIds, excludedLocalityIds);
         }
       }
     }
     return 0;
   }
 
-  private void readItemsFromOptionString(Set<String> localityIds, Set<String> excludedSet,
+  private void readItemsFromOptionString(Set<String> localityIds,
       String argOption) {
     for (String locality : StringUtils.split(argOption, ",")) {
       locality = locality.trim().toUpperCase();
       if (!locality.isEmpty()) {
-        if (locality.charAt(0) == '!') {
-          excludedSet.add(locality.substring(1));
-        } else {
-          localityIds.add(locality);
-        }
+        localityIds.add(locality);
       }
     }
   }
 
-  private void readLinesToSet(Set<String> workerSet, Set<String> excludedWorkerSet, String hostFile)
+  private void readLinesToSet(Set<String> workerSet, String hostFile)
       throws IOException {
     try (BufferedReader reader = new BufferedReader(new FileReader(hostFile))) {
       for (String worker; (worker = reader.readLine()) != null; ) {
         worker = worker.trim().toUpperCase();
         if (!worker.isEmpty()) {
-          if (worker.charAt(0) == '!') {
-            excludedWorkerSet.add(worker.substring(1));
-          } else {
-            workerSet.add(worker);
-          }
+          workerSet.add(worker);
         }
       }
     }

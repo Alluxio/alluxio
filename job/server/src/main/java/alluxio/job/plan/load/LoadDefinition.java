@@ -75,19 +75,19 @@ public final class LoadDefinition
     for (BlockWorkerInfo worker : context.getFsContext().getCachedWorkers()) {
       if (jobWorkersByAddress.containsKey(worker.getNetAddress().getHost())) {
         String workerHost = worker.getNetAddress().getHost().toUpperCase();
-        if ((!isEmptySet(config.getExcludeWorkerSet()))
-            && config.getExcludeWorkerSet().contains(workerHost)) {
+        if (!isEmptySet(config.getExcludedWorkerSet())
+            && config.getExcludedWorkerSet().contains(workerHost)) {
           continue;
         }
         // If specified the locality id, the candidate worker must match one at least
         boolean match = false;
         if (worker.getNetAddress().getTieredIdentity().getTiers() != null) {
           if (!(isEmptySet(config.getLocalityIds())
-              && isEmptySet(config.getExcludeLocalityIds()))) {
+              && isEmptySet(config.getExcludedLocalityIds()))) {
             boolean exclude = false;
             for (LocalityTier tier : worker.getNetAddress().getTieredIdentity().getTiers()) {
-              if (!isEmptySet(config.getExcludeLocalityIds())
-                  && config.getExcludeLocalityIds().contains(tier.getValue().toUpperCase())) {
+              if (!isEmptySet(config.getExcludedLocalityIds())
+                  && config.getExcludedLocalityIds().contains(tier.getValue().toUpperCase())) {
                 exclude = true;
                 break;
               }
