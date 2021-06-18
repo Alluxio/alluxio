@@ -333,6 +333,14 @@ public class URIStatus {
     return mInfo;
   }
 
+  /**
+   * Increments the counter {@code name} by {@code value}.
+   *
+   * Default implementation does nothing. Subclass can implement its own tracking mechanism.
+   */
+  public void incrementCounter(String name, long value) {
+  }
+
   @Override
   public boolean equals(Object o) {
     if (this == o) {
