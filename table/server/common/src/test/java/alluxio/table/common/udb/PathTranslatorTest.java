@@ -110,4 +110,17 @@ public class PathTranslatorTest {
     assertEquals("alluxio:///table_b/part1",
         mTranslator.toAlluxioPath("ufs://a/table11/part1"));
   }
+
+  @Test
+  public void deepestMatch() throws Exception {
+    mTranslator.addMapping("alluxio:///db1/tables/table1", "ufs://a/db1/table1");
+    mTranslator.addMapping("alluxio:///db1/fragments/a", "ufs://a/db1");
+    mTranslator.addMapping("alluxio:///db1/fragments/b", "ufs://b/db1");
+    assertEquals("alluxio:///db1/tables/table1/part1",
+        mTranslator.toAlluxioPath("ufs://a/db1/table1/part1"));
+    assertEquals("alluxio:///db1/fragments/b/table1/part1",
+        mTranslator.toAlluxioPath("ufs://b/db1/table1/part1"));
+    assertEquals("alluxio:///db1/fragments/a/table2/part1",
+        mTranslator.toAlluxioPath("ufs://a/db1/table2/part1"));
+  }
 }
