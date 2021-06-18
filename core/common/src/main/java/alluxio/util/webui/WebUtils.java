@@ -11,10 +11,7 @@
 
 package alluxio.util.webui;
 
-import alluxio.Constants;
 import alluxio.wire.WorkerInfo;
-
-import com.google.common.base.Preconditions;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -40,23 +37,6 @@ public final class WebUtils {
       sb.append((char) data[i]);
     }
     return sb.toString();
-  }
-
-  /**
-   * Converts milliseconds to short clock time.
-   *
-   * @param millis milliseconds
-   * @return input encoded as short clock time
-   */
-  public static String convertMsToShortClockTime(long millis) {
-    Preconditions.checkArgument(millis >= 0, "Negative values are not supported");
-
-    long days = millis / Constants.DAY_MS;
-    long hours = (millis % Constants.DAY_MS) / Constants.HOUR_MS;
-    long mins = (millis % Constants.HOUR_MS) / Constants.MINUTE_MS;
-    long secs = (millis % Constants.MINUTE_MS) / Constants.SECOND_MS;
-
-    return String.format("%d d, %d h, %d m, and %d s", days, hours, mins, secs);
   }
 
   /**
