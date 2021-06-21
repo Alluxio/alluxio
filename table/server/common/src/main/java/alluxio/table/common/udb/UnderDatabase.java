@@ -41,6 +41,7 @@ public interface UnderDatabase {
    * @param bypassSpec table and partition bypass specification
    * @return the {@link UdbTable} for the specified table name
    */
+  // TODO(bowen) remove bypass spec from this method since it's part of udb configuration
   UdbTable getTable(String tableName, UdbBypassSpec bypassSpec) throws IOException;
 
   /**
@@ -52,4 +53,10 @@ public interface UnderDatabase {
    * @return get database info
    */
   DatabaseInfo getDatabaseInfo() throws IOException;
+
+  /**
+   * Update configuration for the UDB.
+   * @param configuration the configuration
+   */
+  void setUdbConfiguration(UdbConfiguration configuration);
 }

@@ -66,7 +66,7 @@ public class HiveDatabase implements UnderDatabase {
   private static final int MAX_PARTITION_COLUMN_STATISTICS = 10000;
 
   private final UdbContext mUdbContext;
-  private final UdbConfiguration mConfiguration;
+  private UdbConfiguration mConfiguration;
   /** the connection uri for the hive metastore. */
   private final String mConnectionUri;
   /** the name of the hive db. */
@@ -144,6 +144,12 @@ public class HiveDatabase implements UnderDatabase {
     } catch (TException  e) {
       throw new IOException("Failed to get hive tables: " + e.getMessage(), e);
     }
+  }
+
+  @Override
+  public void setUdbConfiguration(UdbConfiguration configuration) {
+    mConfiguration = configuration;
+    // TODO(bowen) apply updated configuration to mount points
   }
 
   private PathTranslator mountAlluxioPaths(Table table, List<Partition> partitions,

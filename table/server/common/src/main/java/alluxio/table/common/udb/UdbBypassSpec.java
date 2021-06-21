@@ -11,6 +11,8 @@
 
 package alluxio.table.common.udb;
 
+import com.google.common.collect.ImmutableMap;
+
 import java.util.Map;
 import java.util.Set;
 
@@ -24,6 +26,17 @@ public final class UdbBypassSpec {
    * An empty set indicates all partitions of that table, if any, should be bypassed.
    */
   private final Map<String, Set<String>> mTablePartMap;
+
+  private final static UdbBypassSpec EMPTY_SPEC = new UdbBypassSpec(ImmutableMap.of());
+
+  /**
+   * Return an empty spec that contains no bypassed tables or partitions.
+   *
+   * @return an empty spec
+   */
+  public static UdbBypassSpec empty() {
+    return EMPTY_SPEC;
+  }
 
   /**
    * @param tablePartMap table to partition map
