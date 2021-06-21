@@ -449,6 +449,10 @@ public class SnapshotReplicationManager {
                   .newBuilder()
                   .setSnapshotInfoRequest(GetSnapshotInfoRequest.getDefaultInstance())
                   .build()))));
+      // no follower in the cluster
+      if (jobs.isEmpty()){
+        return;
+      }
       for (Map.Entry<RaftPeerId, CompletableFuture<RaftClientReply>> job : jobs.entrySet()) {
         RaftPeerId peerId = job.getKey();
         RaftClientReply reply;
