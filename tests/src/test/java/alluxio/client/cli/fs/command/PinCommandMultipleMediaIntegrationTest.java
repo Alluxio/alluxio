@@ -81,25 +81,9 @@ public final class PinCommandMultipleMediaIntegrationTest extends BaseIntegratio
           .setProperty(PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_DIRS_QUOTA.format(1),
               SIZE_BYTES + "," + SIZE_BYTES)
           .setProperty(
-<<<<<<< HEAD
-              PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_DIRS_MEDIUMTYPE.format(0), "SSD")
-||||||| parent of 0abc4df492 (Fix various aspects of pin to specific medium)
-              PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_DIRS_MEDIUMTYPE
-                  .format(0), Constants.MEDIUM_SSD)
-=======
-              PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_DIRS_MEDIUMTYPE
-                  .format(0), Constants.MEDIUM_MEM)
->>>>>>> 0abc4df492 (Fix various aspects of pin to specific medium)
+              PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_DIRS_MEDIUMTYPE.format(0), "MEM")
           .setProperty(
-<<<<<<< HEAD
-              PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_DIRS_MEDIUMTYPE.format(1), "SSD")
-||||||| parent of 0abc4df492 (Fix various aspects of pin to specific medium)
-              PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_DIRS_MEDIUMTYPE
-                  .format(1), Constants.MEDIUM_SSD)
-=======
-              PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_DIRS_MEDIUMTYPE
-                  .format(1), Constants.MEDIUM_SSD + "," + Constants.MEDIUM_SSD)
->>>>>>> 0abc4df492 (Fix various aspects of pin to specific medium)
+              PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_DIRS_MEDIUMTYPE.format(1), "SSD,SSD")
           .build();
 
   @Rule
@@ -131,35 +115,16 @@ public final class PinCommandMultipleMediaIntegrationTest extends BaseIntegratio
         fileSize);
     assertTrue(fileSystem.exists(filePathA));
 
-<<<<<<< HEAD
     assertEquals(0, fsShell.run("pin", filePathA.toString(), "SSD"));
-    int ret = fsShell.run("setReplication", "-min", "2", filePathA.toString());
-    assertEquals(0, ret);
-||||||| parent of 0abc4df492 (Fix various aspects of pin to specific medium)
-    assertEquals(0, fsShell.run("pin", filePathA.toString(), Constants.MEDIUM_SSD));
-    int ret = fsShell.run("setReplication", "-min", "2", filePathA.toString());
-    assertEquals(0, ret);
-=======
-    assertEquals(0, fsShell.run("pin", filePathA.toString(), Constants.MEDIUM_SSD));
     CommonUtils
         .waitFor("File being moved", () -> sJobCluster.getMaster().getJobMaster().listDetailed()
             .stream().anyMatch(x -> x.getName().equals("Move")
                     && x.getStatus().equals(Status.COMPLETED)
                     && x.getAffectedPaths().contains(filePathA.getPath())),
             sWaitOptions);
->>>>>>> 0abc4df492 (Fix various aspects of pin to specific medium)
-
-<<<<<<< HEAD
-    assertEquals("SSD", fileSystem.getStatus(filePathA).getFileBlockInfos()
-        .get(0).getBlockInfo().getLocations().get(0).getMediumType());
-||||||| parent of 0abc4df492 (Fix various aspects of pin to specific medium)
-    assertEquals(Constants.MEDIUM_SSD, fileSystem.getStatus(filePathA).getFileBlockInfos()
-        .get(0).getBlockInfo().getLocations().get(0).getMediumType());
-=======
     assertTrue(fileSystem.getStatus(filePathA).getFileBlockInfos()
         .get(0).getBlockInfo().getLocations().stream()
-        .anyMatch(x -> x.getMediumType().equals(Constants.MEDIUM_SSD)));
->>>>>>> 0abc4df492 (Fix various aspects of pin to specific medium)
+        .anyMatch(x -> x.getMediumType().equals("SSD")));
 
     assertEquals(-1, fsShell.run("pin", filePathB.toString(), "NVRAM"));
   }
@@ -224,12 +189,12 @@ public final class PinCommandMultipleMediaIntegrationTest extends BaseIntegratio
 
     assertEquals(100, fileSystem.getStatus(filePathC).getInAlluxioPercentage());
 
-    assertEquals(Constants.MEDIUM_MEM, fileSystem.getStatus(filePathA).getFileBlockInfos()
+    assertEquals("MEM", fileSystem.getStatus(filePathA).getFileBlockInfos()
         .get(0).getBlockInfo().getLocations().get(0).getMediumType());
-    assertEquals(Constants.MEDIUM_MEM, fileSystem.getStatus(filePathB).getFileBlockInfos()
+    assertEquals("MEM", fileSystem.getStatus(filePathB).getFileBlockInfos()
         .get(0).getBlockInfo().getLocations().get(0).getMediumType());
 
-    assertEquals(Constants.MEDIUM_SSD, fileSystem.getStatus(filePathC).getFileBlockInfos()
+    assertEquals("SSD", fileSystem.getStatus(filePathC).getFileBlockInfos()
         .get(0).getBlockInfo().getLocations().get(0).getMediumType());
 
     assertEquals(0, fsShell.run("unpin", filePathA.toString()));
@@ -251,7 +216,7 @@ public final class PinCommandMultipleMediaIntegrationTest extends BaseIntegratio
             sWaitOptions);
     assertEquals(0, fileSystem.getStatus(filePathA).getInAlluxioPercentage());
 
-    assertEquals(Constants.MEDIUM_MEM, fileSystem.getStatus(filePathC).getFileBlockInfos()
+    assertEquals("MEM", fileSystem.getStatus(filePathC).getFileBlockInfos()
         .get(0).getBlockInfo().getLocations().get(0).getMediumType());
   }
 }
