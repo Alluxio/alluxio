@@ -41,7 +41,7 @@ public class GDCUtils {
 
   // conversion from https://prestodb.io/docs/current/connector/bigquery.html#data-types
   // mappings are lowercase because https://stackoverflow.com/a/55505613
-  private static Map<String, String> sTypeConverter = new HashMap<String, String>() {{
+  private static Map<String, String> sTypeConverter = new HashMap<String, String>() { {
         put("BOOLEAN", "bool");
         put("BYTES", "varbinary");
         put("DATE", "date");

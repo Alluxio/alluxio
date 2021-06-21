@@ -21,6 +21,7 @@ import alluxio.table.common.UdbPartition;
 import alluxio.table.common.layout.HiveLayout;
 
 import alluxio.table.common.udb.PathTranslator;
+import alluxio.table.common.udb.UdbBypassSpec;
 import alluxio.table.common.udb.UdbConfiguration;
 import alluxio.table.common.udb.UdbContext;
 import alluxio.table.common.udb.UdbTable;
@@ -153,7 +154,7 @@ public class GDCDatabase implements UnderDatabase {
   }
 
   @Override
-  public UdbTable getTable(String tableName, boolean bypass) throws IOException {
+  public UdbTable getTable(String tableName, UdbBypassSpec bypassSpec) throws IOException {
     BigQuery bigQuery = BigQueryOptions.getDefaultInstance().getService();
     Table table = bigQuery.getTable(mGdcDatasetName, tableName);
     Schema schema = GDCUtils.toProtoSchema(table.getDefinition().getSchema());
