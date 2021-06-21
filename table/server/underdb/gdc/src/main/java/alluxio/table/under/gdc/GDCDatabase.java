@@ -32,6 +32,7 @@ import com.google.cloud.bigquery.BigQuery;
 import com.google.cloud.bigquery.BigQueryException;
 import com.google.cloud.bigquery.BigQueryOptions;
 import com.google.cloud.bigquery.Dataset;
+import com.google.cloud.bigquery.ExternalTableDefinition;
 import com.google.cloud.bigquery.Table;
 import com.google.cloud.bigquery.TableId;
 import com.google.common.annotations.VisibleForTesting;
@@ -119,16 +120,20 @@ public class GDCDatabase implements UnderDatabase {
     return tableNames;
   }
 
+  private AlluxioURI extractPath(Table table) {
+    String uri = ((ExternalTableDefinition) table.getDefinition()).getSourceUris().get(0);
+    return new AlluxioURI(uri).getParent();
+  }
+
   private PathTranslator mountAlluxioPaths(Table table) throws IOException {
     String tableName = table.getTableId().getTable();
     AlluxioURI parquetFileUri;
     AlluxioURI alluxioUri = mUdbContext.getTableLocation(tableName);
-    String gdcUfsUri = table.getGeneratedId();
+    String gdcUfsUri = extractPath(table).toString();
 
     try {
       PathTranslator pathTranslator = new PathTranslator();
-      // temporary, don't know how to access parquet file using BigQuery API
-      parquetFileUri = new AlluxioURI("");
+      parquetFileUri = extractPath(table);
       pathTranslator.addMapping(
           UdbUtils.mountAlluxioPath(tableName,
               parquetFileUri,
@@ -193,7 +198,7 @@ public class GDCDatabase implements UnderDatabase {
     return new GDCTable(tableName,
         schema,
         new ArrayList<>(), // placeholder instead of null
-        schema.getColsList(),
+        new ArrayList<>(),
         udbPartitions, // placeholder instead of null
         layout
     );
@@ -206,7 +211,6 @@ public class GDCDatabase implements UnderDatabase {
 
   @Override
   public DatabaseInfo getDatabaseInfo() throws IOException {
-    // TODO(jenoudet): not very straightforward translation, might need to be revisited
     BigQuery bigQuery = BigQueryOptions.getDefaultInstance().getService();
     Dataset dataset = bigQuery.getDataset(mGdcDatasetName);
     String comments = dataset.getDescription();

@@ -267,6 +267,7 @@ hive.metastore=alluxio
 hive.metastore.alluxio.master.address=HOSTNAME:PORT
 ```
 
+The default master RPC port is 19998, and should be used here instead of the web port (whose default is 19999).
 Creating the `catalog_alluxio.properties` file means a new catalog named `catalog_alluxio` is added
 to Presto.
 Setting `connector.name=hive-alluxio` sets the connector type to the name of the
