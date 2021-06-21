@@ -32,6 +32,7 @@ import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
+import org.apache.hadoop.fs.CanUnbuffer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -47,7 +48,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public class BlockInStream extends InputStream implements BoundedStream, Seekable,
-    PositionedReadable {
+    PositionedReadable, CanUnbuffer {
   private static final Logger LOG = LoggerFactory.getLogger(BlockInStream.class);
 
   /** the source tracking where the block is from. */
@@ -519,5 +520,14 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
    */
   public long getId() {
     return mId;
+  }
+
+  @Override
+  public void unbuffer() {
+    try {
+      closeDataReader();
+    } catch (IOException e) {
+      LOG.error("Failed to close DataReader: {}", e.getMessage());
+    }
   }
 }

@@ -92,6 +92,12 @@
       <type>test-jar</type>
       <scope>test</scope>
     </dependency>
+    <dependency>
+      <groupId>org.apache.hadoop</groupId>
+      <artifactId>hadoop-common</artifactId>
+      <version>3.2.1</version>
+      <scope>compile</scope>
+    </dependency>
   </dependencies>
 
   <build>

@@ -19,9 +19,13 @@ import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileDoesNotExistException;
 
 import org.apache.hadoop.fs.ByteBufferReadable;
+import org.apache.hadoop.fs.CanUnbuffer;
 import org.apache.hadoop.fs.FileSystem.Statistics;
 import org.apache.hadoop.fs.PositionedReadable;
 import org.apache.hadoop.fs.Seekable;
+import org.apache.hadoop.fs.StreamCapabilities;
+import org.apache.hadoop.fs.StreamCapabilitiesPolicy;
+import org.apache.hadoop.util.StringUtils;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,7 +43,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public class HdfsFileInputStream extends InputStream implements Seekable, PositionedReadable,
-    ByteBufferReadable {
+    ByteBufferReadable, StreamCapabilities, CanUnbuffer {
   private static final Logger LOG = LoggerFactory.getLogger(HdfsFileInputStream.class);
 
   private final Statistics mStatistics;
@@ -203,5 +207,20 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
       throw new IOException("Cannot skip bytes in a closed stream.");
     }
     return mInputStream.skip(n);
+  }
+
+  @Override
+  public boolean hasCapability(String capability) {
+    switch (StringUtils.toLowerCase(capability)) {
+      case StreamCapabilities.UNBUFFER:
+        return true;
+      default:
+        return false;
+    }
+  }
+
+  @Override
+  public void unbuffer() {
+    StreamCapabilitiesPolicy.unbuffer(mInputStream);
   }
 }
