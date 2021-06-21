@@ -11,6 +11,7 @@
 
 package alluxio.util.webui;
 
+import alluxio.util.CommonUtils;
 import alluxio.util.FormatUtils;
 import alluxio.wire.WorkerInfo;
 
@@ -51,7 +52,7 @@ public final class NodeInfo implements Comparable<NodeInfo> {
     }
     mFreePercent = 100 - mUsedPercent;
     mUptimeClockTime =
-        WebUtils.convertMsToShortClockTime(
+        CommonUtils.convertMsToClockTime(
             System.currentTimeMillis() - workerInfo.getStartTimeMs());
     mWorkerId = workerInfo.getId();
   }

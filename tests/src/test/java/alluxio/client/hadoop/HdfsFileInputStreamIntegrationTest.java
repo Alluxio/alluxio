@@ -40,12 +40,14 @@ import org.junit.rules.ExpectedException;
 
 import java.io.EOFException;
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.util.Arrays;
 
 /**
  * Integration tests for {@link HdfsFileInputStream}.
  */
 public final class HdfsFileInputStreamIntegrationTest extends BaseIntegrationTest {
+
   private static final int FILE_LEN = 255;
   private static final int BUFFER_SIZE = 50;
   private static final String IN_MEMORY_FILE = "/inMemoryFile";
@@ -215,6 +217,32 @@ public final class HdfsFileInputStreamIntegrationTest extends BaseIntegrationTes
     length = mInMemInputStream.read(FILE_LEN, buf, 0, FILE_LEN);
     Assert.assertEquals(-1, length);
     length = mUfsInputStream.read(FILE_LEN, buf, 0, FILE_LEN);
+    Assert.assertEquals(-1, length);
+  }
+
+  /**
+   * Tests {@link HdfsFileInputStream#read(java.nio.ByteBuffer buf)}.
+   */
+  @Test
+  public void readTest5() throws Exception {
+    byte[] data = new byte[FILE_LEN];
+    ByteBuffer buf = ByteBuffer.wrap(data);
+    int length = mInMemInputStream.read(buf);
+    Assert.assertEquals(FILE_LEN, length);
+    Assert.assertTrue(BufferUtils.equalIncreasingByteBuffer(0, FILE_LEN, buf));
+
+    createUfsInStream(ReadType.NO_CACHE);
+    buf.rewind();
+    buf.clear();
+    length = mUfsInputStream.read(buf);
+    Assert.assertEquals(FILE_LEN, length);
+    Assert.assertTrue(BufferUtils.equalIncreasingByteBuffer(0, FILE_LEN, buf));
+
+    buf.rewind();
+    buf.clear();
+    length = mInMemInputStream.read(buf);
+    Assert.assertEquals(-1, length);
+    length = mUfsInputStream.read(buf);
     Assert.assertEquals(-1, length);
   }
 
