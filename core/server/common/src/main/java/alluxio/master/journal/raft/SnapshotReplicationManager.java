@@ -450,7 +450,7 @@ public class SnapshotReplicationManager {
                   .setSnapshotInfoRequest(GetSnapshotInfoRequest.getDefaultInstance())
                   .build()))));
       // no follower in the cluster
-      if (jobs.isEmpty()){
+      if (jobs.isEmpty()) {
         return;
       }
       for (Map.Entry<RaftPeerId, CompletableFuture<RaftClientReply>> job : jobs.entrySet()) {
