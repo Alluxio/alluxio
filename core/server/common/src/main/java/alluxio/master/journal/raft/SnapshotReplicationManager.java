@@ -451,6 +451,7 @@ public class SnapshotReplicationManager {
                   .build()))));
       // no follower in the cluster
       if (jobs.isEmpty()) {
+        transitionState(DownloadState.REQUEST_INFO, DownloadState.IDLE);
         return;
       }
       for (Map.Entry<RaftPeerId, CompletableFuture<RaftClientReply>> job : jobs.entrySet()) {
