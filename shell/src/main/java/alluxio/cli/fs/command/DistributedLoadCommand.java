@@ -78,9 +78,13 @@ public final class DistributedLoadCommand extends AbstractDistributedJobCommand 
           .hasArg(true)
           .numberOfArgs(1)
           .argName("hosts")
-          .desc("A list of worker hosts separated by comma, when host and locality lists are empty,"
-              + " all hosts will be selected unless excluded by setting excluded-hosts or"
-              + " excluded-locality")
+          .desc("A list of worker hosts separated by comma."
+              + " When host and locality options are not set,"
+              + " all hosts will be selected unless explicitly excluded by setting excluded option"
+              + "('excluded-hosts', 'excluded-host-file', 'excluded-locality'"
+              + " and 'excluded-locality-file')."
+              + " Only one of the 'hosts' and 'host-file' should be set,"
+              + " and it should not be set with excluded option together.")
           .build();
   private static final Option HOST_FILE_OPTION =
       Option.builder()
@@ -89,8 +93,13 @@ public final class DistributedLoadCommand extends AbstractDistributedJobCommand 
           .hasArg(true)
           .numberOfArgs(1)
           .argName("host-file")
-          .desc("Host File contains worker hosts, each line has a worker host, if empty,"
-              + " all hosts will be selected unless explicitly excluded by setting excluded-hosts")
+          .desc("Host File contains worker hosts, each line has a worker host."
+              + " When host and locality options are not set,"
+              + " all hosts will be selected unless explicitly excluded by setting excluded option"
+              + "('excluded-hosts', 'excluded-host-file', 'excluded-locality'"
+              + " and 'excluded-locality-file')."
+              + " Only one of the 'hosts' and 'host-file' should be set,"
+              + " and it should not be set with excluded option together.")
           .build();
   private static final Option EXCLUDED_HOSTS_OPTION =
       Option.builder()
@@ -99,8 +108,10 @@ public final class DistributedLoadCommand extends AbstractDistributedJobCommand 
           .hasArg(true)
           .numberOfArgs(1)
           .argName("excluded-hosts")
-          .desc("A list of excluded worker hosts separated by comma,"
-              + " it should not be set together with hosts")
+          .desc("A list of excluded worker hosts separated by comma."
+              + " Only one of the 'excluded-hosts' and 'excluded-host-file' should be set,"
+              + " and it should not be set with 'hosts', 'host-file', 'locality'"
+              + " and 'locality-file' together.")
           .build();
   private static final Option EXCLUDED_HOST_FILE_OPTION =
       Option.builder()
@@ -109,8 +120,10 @@ public final class DistributedLoadCommand extends AbstractDistributedJobCommand 
           .hasArg(true)
           .numberOfArgs(1)
           .argName("excluded-host-file")
-          .desc("Host File contains excluded worker hosts, each line has a worker host,"
-              + " it should not be set together with HOSTS_OPTION")
+          .desc("Host File contains excluded worker hosts, each line has a worker host."
+              + " Only one of the 'excluded-hosts' and 'excluded-host-file' should be set,"
+              + " and it should not be set with 'hosts', 'host-file', 'locality'"
+              + " and 'locality-file' together.")
           .build();
   private static final Option LOCALITY_OPTION =
       Option.builder()
@@ -119,10 +132,13 @@ public final class DistributedLoadCommand extends AbstractDistributedJobCommand 
           .hasArg(true)
           .numberOfArgs(1)
           .argName("locality")
-          .desc("A list of worker locality separated by comma,"
-              + " when host and locality lists are empty,"
-              + " all hosts will be selected unless excluded by setting excluded-hosts or"
-              + " excluded-locality")
+          .desc("A list of worker locality separated by comma."
+              + " When host and locality options are not set,"
+              + " all hosts will be selected unless explicitly excluded by setting excluded option"
+              + "('excluded-hosts', 'excluded-host-file', 'excluded-locality'"
+              + " and 'excluded-locality-file')."
+              + " Only one of the 'locality' and 'locality-file' should be set,"
+              + " and it should not be set with excluded option together.")
           .build();
   private static final Option LOCALITY_FILE_OPTION =
       Option.builder()
@@ -132,7 +148,13 @@ public final class DistributedLoadCommand extends AbstractDistributedJobCommand 
           .numberOfArgs(1)
           .argName("locality-file")
           .argName("locality-file")
-          .desc("Locality File contains worker localities, each line has a worker locality")
+          .desc("Locality File contains worker localities, each line has a worker locality."
+              + " When host and locality options are not set,"
+              + " all hosts will be selected unless explicitly excluded by setting excluded option"
+              + "('excluded-hosts', 'excluded-host-file', 'excluded-locality'"
+              + " and 'excluded-locality-file')."
+              + " Only one of the 'locality' and 'locality-file' should be set,"
+              + " and it should not be set with excluded option together.")
           .build();
   private static final Option EXCLUDED_LOCALITY_OPTION =
       Option.builder()
@@ -141,8 +163,10 @@ public final class DistributedLoadCommand extends AbstractDistributedJobCommand 
           .hasArg(true)
           .numberOfArgs(1)
           .argName("excluded-locality")
-          .desc("A list of excluded worker locality separated by comma,"
-              + "it should not be set together with locality")
+          .desc("A list of excluded worker locality separated by comma."
+              + " Only one of the 'excluded-locality' and 'excluded-locality-file' should be set,"
+              + " and it should not be set with 'hosts', 'host-file', 'locality'"
+              + " and 'locality-file' together.")
           .build();
   private static final Option EXCLUDED_LOCALITY_FILE_OPTION =
       Option.builder()
@@ -152,7 +176,10 @@ public final class DistributedLoadCommand extends AbstractDistributedJobCommand 
           .numberOfArgs(1)
           .argName("excluded-locality-file")
           .desc("Locality File contains excluded worker localities,"
-              + " each line has a worker locality, it should not be set together with locality")
+              + " each line has a worker locality."
+              + " Only one of the 'excluded-locality' and 'excluded-locality-file' should be set,"
+              + " and it should not be set with 'hosts', 'host-file', 'locality'"
+              + " and 'locality-file' together.")
           .build();
 
   /**

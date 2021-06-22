@@ -248,12 +248,13 @@ public class LoadDefinitionTest {
         Collections.EMPTY_SET, Collections.EMPTY_SET, workerIds);
   }
 
-  private void loadedBySpecifiedHost(Set<String> workerSet, Set<String> excludeWorkerSet,
-      Set<String> localityIds, Set<String> exclLocalityIds, Set<Long> workerIds) throws Exception {
+  private void loadedBySpecifiedHost(Set<String> workerSet, Set<String> excludedWorkerSet,
+      Set<String> localityIds, Set<String> excludedLocalityIds, Set<Long> workerIds)
+      throws Exception {
     int numBlocks = 10;
     createFileWithNoLocations(TEST_URI, numBlocks);
-    LoadConfig config = new LoadConfig(TEST_URI, 1, workerSet, excludeWorkerSet,
-        localityIds, exclLocalityIds);
+    LoadConfig config = new LoadConfig(TEST_URI, 1, workerSet, excludedWorkerSet,
+        localityIds, excludedLocalityIds);
     Set<Pair<WorkerInfo, ArrayList<LoadTask>>> assignments =
         new LoadDefinition().selectExecutors(config,
             JOB_WORKERS, new SelectExecutorsContext(1, mJobServerContext));
