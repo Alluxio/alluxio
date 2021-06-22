@@ -1249,9 +1249,10 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setMetricType(MetricType.COUNTER)
           .setIsClusterAggregated(false)
           .build();
-  public static final MetricKey CLIENT_CACHE_UNREMOVABLE_FILES =
-      new Builder("Client.CacheUnremovableFiles")
-          .setDescription("Amount of bytes unusable managed by the client cache.")
+  public static final MetricKey CLIENT_CACHE_CLEAN_ERRORS =
+      new Builder("Client.CacheCleanErrors")
+          .setDescription("Number of failures when cleaning out the existing cache directory "
+              + "to initialize a new cache.")
           .setMetricType(MetricType.COUNTER)
           .setIsClusterAggregated(false)
           .build();
@@ -1276,13 +1277,13 @@ public final class MetricKey implements Comparable<MetricKey> {
           .build();
   public static final MetricKey CLIENT_CACHE_DELETE_NOT_READY_ERRORS =
       new Builder("Client.CacheDeleteNotReadyErrors")
-          .setDescription("Number of failures when  when cache is not ready to delete pages.")
+          .setDescription("Number of failures when cache is not ready to delete pages.")
           .setMetricType(MetricType.COUNTER)
           .setIsClusterAggregated(false)
           .build();
-  public static final MetricKey CLIENT_CACHE_DELETE_STORE_DELETE_ERRORS =
-      new Builder("Client.CacheDeleteStoreDeleteErrors")
-          .setDescription("Number of failures when deleting pages due to failed delete in page "
+  public static final MetricKey CLIENT_CACHE_DELETE_FROM_STORE_ERRORS =
+      new Builder("Client.CacheDeleteFromStoreErrors")
+          .setDescription("Number of failures when deleting pages from page "
               + "stores.")
           .setMetricType(MetricType.COUNTER)
           .setIsClusterAggregated(false)

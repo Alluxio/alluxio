@@ -102,17 +102,38 @@ $ ${ALLUXIO_HOME}/bin/alluxio table attachdb --db alluxio_db hive \
     thrift://metastore_host:9083 default
 ```
 
-If you want specify config file for the UDB, please add `attachdb` option `-o catalog.db.config.file`.
-Each time you want to affect the config file, you can use `alluxio table sync`.
+#### UDB Configuration File
 
-If you want to write a configuration file for the UDB, please configure it like the following given example.
-It must contain an array `bypassSet`, the comma-separated table names will be bypassed.
+To specify a configuration file for the UDB, append an option `-o catalog.db.config.file` to
+`attachdb` command.
+Each time the configuration file is changed, you can use `alluxio table sync` to apply the changes.
 
-```json
-{
-  "bypassSet" : ["table1", "table2"]
-}
-```
+The configuration file is in JSON format, and can contain these configurations:
+
+1. Tables and partitions bypassing specification:
+
+    You can specify some tables and partitions to be bypassed from Alluxio, so that they will not be
+    cached in Alluxio, instead clients will be directed to access them directly from the UDB. 
+    This can be helpful when some tables and partitions are large, and accommodating them in the cache
+    is undesirable. An example configuration is like the following:
+
+    ```json
+    {
+      "bypass": {
+        "tables": [
+          "table1",
+          {"table": "table2", "partitions": ["table2_part1", "table2_part2"]}
+        ]
+      }
+    }
+    ```
+
+    You can specify which tables and partitions within these tables should be bypassed from Alluxio.
+    By specifying only the table name, all partitions of that table, if any, will be bypassed. 
+    Otherwise, you can specify specific partitions to bypass.
+    
+    In the example above, table 1 is fully bypassed. Partition 1 and 2 of table 2 are bypassed, 
+    and any other partitions, if any, are not.
 
 > **Note:** When databases are attached, all tables are synced from the configured UDB.
 If out-of-band updates occur to the database or table and the user wants query results to reflect
