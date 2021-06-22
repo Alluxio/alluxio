@@ -8,6 +8,12 @@ Kubernetes 1.14 or higher, RBAC enbaled in API server(https://kubernetes.io/docs
 
 ## Usage
 
+
+### Build docker image
+
+Please run `docker build . -t alluxio/alluxio-csi:<version_tag>` to bulid CSI docker image. Alluxio doesn't provide official CSI docker image currently.
+You need to build the image by yourself.
+
 ### Deploy
 
 Please use `helm-generate.sh` to generate related templates. All CSI related templates should under `integration/kubernetes/<deploy-mode>/csi` folder.
