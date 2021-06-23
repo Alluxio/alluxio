@@ -58,7 +58,7 @@ $ cp conf/core-site.xml.template conf/core-site.xml
 Modify `conf/alluxio-site.properties` to include:
 
 ```properties
-alluxio.underfs.cephfs.conf.file=<ceph-conf-file->
+alluxio.underfs.cephfs.conf.file=<ceph-conf-file>
 alluxio.underfs.cephfs.mds.namespace=<ceph-fs-name>
 alluxio.underfs.cephfs.mount.point=<ceph-fs-dir>
 alluxio.underfs.cephfs.auth.id=<client-id>
