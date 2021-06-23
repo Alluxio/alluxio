@@ -25,8 +25,7 @@ import alluxio.util.WaitForOptions;
 import alluxio.util.network.NetworkAddressUtils;
 
 import com.google.common.annotations.VisibleForTesting;
-import org.apache.ratis.server.impl.RaftServerImpl;
-import org.apache.ratis.server.impl.RaftServerProxy;
+import org.apache.ratis.server.RaftServer;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -530,21 +529,33 @@ public class RaftJournalTest {
 
   @VisibleForTesting
   void changeToCandidate(RaftJournalSystem journalSystem) throws Exception {
-    RaftServerImpl serverImpl = ((RaftServerProxy) journalSystem.getRaftServer()).getImpl(
-        RaftJournalSystem.RAFT_GROUP_ID);
-    Method method = serverImpl.getClass().getDeclaredMethod("changeToCandidate");
+    RaftServer.Division serverImpl = journalSystem.getRaftServer()
+            .getDivision(RaftJournalSystem.RAFT_GROUP_ID);
+    Class<?> raftServerImpl = (Class.forName("org.apache.ratis.server.impl.RaftServerImpl"));
+    Method method = raftServerImpl.getDeclaredMethod("changeToCandidate", boolean.class);
     method.setAccessible(true);
-    method.invoke(serverImpl);
+    method.invoke(serverImpl, false);
   }
 
   @VisibleForTesting
   void changeToFollower(RaftJournalSystem journalSystem) throws Exception {
-    RaftServerImpl serverImpl = ((RaftServerProxy) journalSystem.getRaftServer()).getImpl(
-        RaftJournalSystem.RAFT_GROUP_ID);
-    Method method = serverImpl.getClass().getDeclaredMethod("changeToFollower",
+    RaftServer.Division serverImplObj = journalSystem.getRaftServer()
+            .getDivision(RaftJournalSystem.RAFT_GROUP_ID);
+    Class<?> raftServerImplClass = Class.forName("org.apache.ratis.server.impl.RaftServerImpl");
+
+    Method getStateMethod = raftServerImplClass.getDeclaredMethod("getState");
+    getStateMethod.setAccessible(true);
+    Object serverStateObj = getStateMethod.invoke(serverImplObj);
+    Class<?> serverStateClass = Class.forName("org.apache.ratis.server.impl.ServerState");
+    Method getCurrentTermMethod = serverStateClass.getMethod("getCurrentTerm");
+    getCurrentTermMethod.setAccessible(true);
+    long currentTermObj = (long) getCurrentTermMethod.invoke(serverStateObj);
+
+    Method changeToFollowerMethod = raftServerImplClass.getDeclaredMethod("changeToFollower",
         long.class, boolean.class, Object.class);
-    method.setAccessible(true);
-    method.invoke(serverImpl, serverImpl.getState().getCurrentTerm(), true, "test");
+
+    changeToFollowerMethod.setAccessible(true);
+    changeToFollowerMethod.invoke(serverImplObj, currentTermObj, true, "test");
   }
 
   /**
