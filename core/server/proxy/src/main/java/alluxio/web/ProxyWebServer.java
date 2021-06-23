@@ -78,15 +78,8 @@ public final class ProxyWebServer extends WebServer {
       }
     };
     ServletHolder servletHolder = new ServletHolder("Alluxio Proxy Web Service", servlet);
-    // Determine from where to publish servlet.
-    String pathSpec;
-    if (ServerConfiguration.getBoolean(PropertyKey.PROXY_WEB_PUBLISH_ON_ROOT)) {
-      pathSpec = "/*";
-    } else {
-      pathSpec = PathUtils.concatPath(Constants.REST_API_PREFIX, "*");
-    }
-    // Add proxy web service.
-    mServletContextHandler.addServlet(servletHolder, pathSpec);
+    mServletContextHandler
+        .addServlet(servletHolder, PathUtils.concatPath(Constants.REST_API_PREFIX, "*"));
   }
 
   @Override
