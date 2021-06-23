@@ -3610,14 +3610,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
           .setScope(Scope.NONE)
           .build();
-  public static final PropertyKey PROXY_WEB_PUBLISH_ON_ROOT =
-      new Builder(Name.PROXY_WEB_PUBLISH_ON_ROOT)
-          .setDefaultValue(false)
-          .setDescription("Whether to publish REST API from root path. "
-              + "By default, API version specific header will be used.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
-          .setScope(Scope.NONE)
-          .build();
 
   //
   // Locality related properties
@@ -6001,7 +5993,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String PROXY_WEB_BIND_HOST = "alluxio.proxy.web.bind.host";
     public static final String PROXY_WEB_HOSTNAME = "alluxio.proxy.web.hostname";
     public static final String PROXY_WEB_PORT = "alluxio.proxy.web.port";
-    public static final String PROXY_WEB_PUBLISH_ON_ROOT = "alluxio.proxy.web.publish.on.root";
 
     //
     // Locality related properties
