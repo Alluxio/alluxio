@@ -96,6 +96,10 @@ import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URLDecoder;
+import java.time.Instant;
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -318,6 +322,32 @@ public final class AlluxioMasterRestServiceHandler {
       }
       mMetaMaster.getJournalSpaceMonitor().map(monitor ->
           response.setJournalDiskWarnings(monitor.getJournalDiskWarnings()));
+
+      Gauge entriesSinceGauge = MetricsSystem.METRIC_REGISTRY.getGauges()
+              .get(MetricKey.MASTER_JOURNAL_ENTRIES_SINCE_CHECKPOINT.getName());
+      Gauge lastCkPtGauge = MetricsSystem.METRIC_REGISTRY.getGauges()
+          .get(MetricKey.MASTER_JOURNAL_LAST_CHECKPOINT_TIME.getName());
+
+      if (entriesSinceGauge != null && lastCkPtGauge != null) {
+        long entriesSinceCkpt = (Long) entriesSinceGauge.getValue();
+        long lastCkptTime = (Long) lastCkPtGauge.getValue();
+        long timeSinceCkpt = System.currentTimeMillis() - lastCkptTime;
+        boolean over72Hrs = timeSinceCkpt > ServerConfiguration.getMs(
+            PropertyKey.MASTER_WEB_JOURNAL_CHECKPOINT_WARNING_THRESHOLD_TIME);
+        boolean passedThreshold = entriesSinceCkpt > ServerConfiguration
+            .getLong(PropertyKey.MASTER_JOURNAL_CHECKPOINT_PERIOD_ENTRIES);
+        if (lastCkptTime > 0 && passedThreshold && over72Hrs) {
+          String time = ZonedDateTime
+              .ofInstant(Instant.ofEpochMilli(lastCkptTime), ZoneOffset.UTC)
+              .format(DateTimeFormatter.ISO_INSTANT);
+          response.setJournalCheckpointTimeWarning(String.format("Journal has not checkpointed in "
+              + "a timely manner since passing the checkpoint threshold (%d/%d). Last checkpoint:"
+              + " %s", entriesSinceCkpt,
+              ServerConfiguration.getLong(PropertyKey.MASTER_JOURNAL_CHECKPOINT_PERIOD_ENTRIES),
+              time));
+        }
+      }
+
 
       return response;
     }, ServerConfiguration.global());
@@ -1040,18 +1070,33 @@ public final class AlluxioMasterRestServiceHandler {
       response.setUfsOps(ufsOpsMap);
 
       response.setTimeSeriesMetrics(mFileSystemMaster.getTimeSeries());
-      mMetaMaster.getJournalSpaceMonitor().map(monitor -> {
+      mMetaMaster.getJournalSpaceMonitor().ifPresent(monitor -> {
         try {
-          return response.setJournalDiskMetrics(monitor.getDiskInfo());
+          response.setJournalDiskMetrics(monitor.getDiskInfo());
         } catch (IOException e) {
           LogUtils.warnWithException(LOG,
               "Failed to populate journal disk information for WebUI metrics.", e);
         }
-        return response;
       });
       if (response.getJournalDiskMetrics() == null) {
-        response.setJournalDiskMetrics(Collections.EMPTY_LIST);
+        response.setJournalDiskMetrics(Collections.emptyList());
       }
+
+      long lastCheckpointTime =
+          (Long) gauges.get(MetricKey.MASTER_JOURNAL_LAST_CHECKPOINT_TIME.getName()).getValue();
+      long entriesSinceCheckpoint =
+          (Long) gauges.get(MetricKey.MASTER_JOURNAL_ENTRIES_SINCE_CHECKPOINT.getName()).getValue();
+      response.setJournalEntriesSinceCheckpoint(entriesSinceCheckpoint);
+      String time;
+      if (lastCheckpointTime > 0) {
+        time = ZonedDateTime
+            .ofInstant(Instant.ofEpochMilli(lastCheckpointTime), ZoneOffset.UTC)
+            .format(DateTimeFormatter.ISO_INSTANT);
+      } else {
+        time = "N/A";
+      }
+      response.setJournalLastCheckpointTime(time);
+
 
       return response;
     }, ServerConfiguration.global());

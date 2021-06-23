@@ -68,6 +68,7 @@ export class OverviewPresenter extends React.Component<AllProps> {
               {this.renderConfigurationIssues(data.configCheckErrors, 'text-error')}
               {this.renderConfigurationIssues(data.configCheckWarns, 'text-warning')}
               {this.renderJournalDiskWarnings(data.journalDiskWarnings, 'text-warning')}
+              {this.renderJournalCheckpointWarning(data.journalCheckpointTimeWarning, 'text-warning')}
             </tbody>
           </Table>
         </div>
@@ -132,6 +133,21 @@ export class OverviewPresenter extends React.Component<AllProps> {
         </div>
       </React.Fragment>
     );
+  }
+
+  private renderJournalCheckpointWarning(warning: string, className: string): JSX.Element | null {
+    if (!warning || warning == "") {
+      return null;
+    }
+
+    return (
+      <tr key="0">
+        <td colSpan={2} className={className}>
+          {warning}
+        </td>
+      </tr>
+    );
+
   }
 
   private renderJournalDiskWarnings(warnings: string[], className: string): JSX.Element | null {

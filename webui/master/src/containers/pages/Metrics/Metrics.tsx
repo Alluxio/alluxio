@@ -318,6 +318,21 @@ export class MetricsPresenter extends React.Component<AllProps> {
             </tbody>
           </Table>
         </div>
+        <div className="col-12">
+          <h5>Alluxio Master Journal Checkpoint Status</h5>
+          <Table hover={true}>
+            <tbody>
+              <tr>
+                <th>Last Checkpoint Time</th>
+                <th>Journal Entries Since Checkpoint</th>
+              </tr>
+              <tr key="0">
+                    <td>{data.journalLastCheckpointTime}</td>
+                    <td>{data.journalEntriesSinceCheckpoint}</td>
+                  </tr>
+            </tbody>
+          </Table>
+        </div>
       </React.Fragment>
     );
   }

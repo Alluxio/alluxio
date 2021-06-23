@@ -43,6 +43,7 @@ public final class MasterWebUIOverview implements Serializable {
   private String mDiskUsedCapacity;
   private String mFreeCapacity;
   private List<String> mJournalDiskWarnings;
+  private String mJournalCheckpointTimeWarning;
   private String mLiveWorkerNodes;
   private String mMasterNodeAddress;
   private String mStartTime;
@@ -144,6 +145,13 @@ public final class MasterWebUIOverview implements Serializable {
    */
   public String getFreeCapacity() {
     return mFreeCapacity;
+  }
+
+  /**
+   * @return the journal checkpoint time warning
+   */
+  public String getJournalCheckpointTimeWarning() {
+    return mJournalCheckpointTimeWarning;
   }
 
   /**
@@ -335,6 +343,15 @@ public final class MasterWebUIOverview implements Serializable {
    */
   public MasterWebUIOverview setFreeCapacity(String freeCapacity) {
     mFreeCapacity = freeCapacity;
+    return this;
+  }
+
+  /**
+   * @param journalCheckpointTimeWarning the journal checkpoint time warning
+   * @return the updated {@link MasterWebUIOverview} object
+   */
+  public MasterWebUIOverview setJournalCheckpointTimeWarning(String journalCheckpointTimeWarning) {
+    mJournalCheckpointTimeWarning = journalCheckpointTimeWarning;
     return this;
   }
 
