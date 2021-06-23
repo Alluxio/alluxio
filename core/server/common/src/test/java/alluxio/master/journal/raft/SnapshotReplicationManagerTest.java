@@ -32,7 +32,6 @@ import io.grpc.stub.StreamObserver;
 import org.apache.commons.io.FileUtils;
 import org.apache.ratis.protocol.Message;
 import org.apache.ratis.protocol.RaftClientReply;
-import org.apache.ratis.protocol.RaftClientRequest;
 import org.apache.ratis.protocol.RaftPeerId;
 import org.apache.ratis.server.RaftServerConfigKeys;
 import org.apache.ratis.server.protocol.TermIndex;
@@ -86,11 +85,8 @@ public class SnapshotReplicationManagerTest {
       JournalQueryRequest queryRequest = JournalQueryRequest.parseFrom(
           message.getContent().asReadOnlyByteBuffer());
       Message response = mFollowerSnapshotManager.handleRequest(queryRequest);
-      RaftClientReply reply = RaftClientReply.newBuilder()
-              .setRequest(Mockito.mock(RaftClientRequest.class))
-              .setMessage(response)
-              .setGroupId(null)
-              .build();
+      RaftClientReply reply = Mockito.mock(RaftClientReply.class);
+      Mockito.when(reply.getMessage()).thenReturn(response);
       return CompletableFuture.completedFuture(reply);
     });
     mLeaderStore = getSimpleStateMachineStorage();

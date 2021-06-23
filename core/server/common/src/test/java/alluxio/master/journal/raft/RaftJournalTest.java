@@ -547,7 +547,7 @@ public class RaftJournalTest {
     getStateMethod.setAccessible(true);
     Object serverStateObj = getStateMethod.invoke(serverImplObj);
     Class<?> serverStateClass = Class.forName("org.apache.ratis.server.impl.ServerState");
-    Method getCurrentTermMethod = serverStateClass.getMethod("getCurrentTerm");
+    Method getCurrentTermMethod = serverStateClass.getDeclaredMethod("getCurrentTerm");
     getCurrentTermMethod.setAccessible(true);
     long currentTermObj = (long) getCurrentTermMethod.invoke(serverStateObj);
 
