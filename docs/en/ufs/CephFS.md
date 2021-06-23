@@ -10,7 +10,7 @@ priority: 11
 {:toc}
 
 This guide describes how to configure Alluxio with CephFS as the under storage system. Alluxio supports
-two different under storage systems to connect to [CephFS](https://docs.ceph.com/en/latest/cephfs/):
+two different implementations of under storage system for [CephFS](https://docs.ceph.com/en/latest/cephfs/):
 - [cephfs](https://docs.ceph.com/en/latest/cephfs/api/libcephfs-java/)
 - [cephfs-hadoop](https://docs.ceph.com/en/nautilus/cephfs/hadoop/)
 
@@ -189,4 +189,3 @@ In Alluxio, you can visit the nested directory in the Alluxio. Alluxio's [Comman
 ```
 /mnt/cephfs-hadoop/default_tests_files/Basic_CACHE_THROUGH
 ```
-
