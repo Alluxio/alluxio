@@ -93,8 +93,8 @@ public class PathTranslator {
       String difference = PathUtils.subtractPaths(ufsUri.getPath(),
           longestPrefix.getValue().getPath());
       AlluxioURI mappedUri = longestPrefix.getKey().join(difference);
-      if (!mappedUri.hasScheme()) {
-        // scheme is missing, so prefix with the scheme and authority
+      if (!mappedUri.hasScheme() || !mappedUri.hasAuthority()) {
+        // if scheme or authority is missing, so prefix with the scheme and authority
         AlluxioURI baseUri = new AlluxioURI(
             ConfigurationUtils.getSchemeAuthority(ServerConfiguration.global()) + "/");
         mappedUri = new AlluxioURI(baseUri, mappedUri.getPath(), false);
