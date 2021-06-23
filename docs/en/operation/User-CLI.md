@@ -246,7 +246,7 @@ for more examples.
 > You are not able to set the logger level on the standby masters.
 > The standby masters/job masters do not have a running web server.
 > So they are not accepting the requests from this command.
-> If you want to modify the logger level for standby masters, 
+> If you want to modify the logger level for standby masters,
 > update the `log4j.properties` and restart the process.
 
 ### runClass
