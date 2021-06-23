@@ -18,7 +18,7 @@ priority: 11
 
 首先，在你的机器上必须安装Alluxio二进制包。你可以自己[编译Alluxio](Building-Alluxio-From-Source.html)，或者[下载二进制包](Running-Alluxio-Locally.html)
 
-其次，在你的机器上需要安装一下包:
+其次，在你的机器上需要安装以下包:
     cephfs-java
     libcephfs_jni
     libcephfs2
@@ -154,4 +154,3 @@ alluxio.underfs.hdfs.configuration=${ALLUXIO_HOME}/conf/core-site.xml
 运行成功后，访问你的alluxio /mnt/cephfs-hadoop 和 cephfs <cephfs-fs-dir> 目录，确认其中包含了由Alluxio创建的文件和目录default_tests_files/Basic_CACHE_THROUGH _。
 前者，通过Alluxio的[Command Line Interface]({{ '/en/operation/User-CLI.html' | relativize__url }})可被访问；
 后者，通过ceph-fuse或mount的方式使用POSIX APIs[Mounting CephFS](https://docs.ceph.com/en/latest/cephfs/#mounting-cephfs)可被访问。
-
