@@ -168,8 +168,8 @@ to multiple under storage systems. Alluxio's [Command Line Interface]({{ '/en/op
 
 Issue the following command to use the ufs cephfs:
 ```console
-./bin/alluxio fs mkdir /mnt/cephfs-hadoop
-./bin/alluxio fs mount /mnt/cephfs-hadoop ceph://mon1\;mon2\;mon3/
+$ ./bin/alluxio fs mkdir /mnt/cephfs-hadoop
+$ ./bin/alluxio fs mount /mnt/cephfs-hadoop ceph://mon1\;mon2\;mon3/
 ```
 
 Run a simple example program:
