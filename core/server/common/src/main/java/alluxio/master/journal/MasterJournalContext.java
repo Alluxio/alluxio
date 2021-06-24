@@ -23,7 +23,7 @@ import alluxio.retry.TimeoutRetry;
 
 import com.google.common.base.Preconditions;
 import io.grpc.Status;
-import org.apache.ratis.protocol.NotLeaderException;
+import org.apache.ratis.protocol.exceptions.NotLeaderException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

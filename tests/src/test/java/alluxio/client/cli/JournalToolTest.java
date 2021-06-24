@@ -39,8 +39,9 @@ import alluxio.testutils.IntegrationTestUtils;
 import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.util.io.PathUtils;
 
-import org.apache.ratis.server.impl.RaftServerConstants;
+import org.apache.ratis.server.RaftServerConfigKeys;
 import org.apache.ratis.server.storage.RaftStorage;
+import org.apache.ratis.server.storage.RaftStorageImpl;
 import org.apache.ratis.statemachine.impl.SimpleStateMachineStorage;
 import org.apache.ratis.statemachine.impl.SingleFileSnapshotInfo;
 import org.hamcrest.Matchers;
@@ -217,10 +218,10 @@ public class JournalToolTest extends BaseIntegrationTest {
   }
 
   private long getCurrentRatisSnapshotIndex(String journalFolder) throws Throwable {
-    try (RaftStorage storage = new RaftStorage(
+    try (RaftStorage storage = new RaftStorageImpl(
         new File(RaftJournalUtils.getRaftJournalDir(new File(journalFolder)),
             RaftJournalSystem.RAFT_GROUP_UUID.toString()),
-        RaftServerConstants.StartupOption.REGULAR)) {
+            RaftServerConfigKeys.Log.CorruptionPolicy.getDefault())) {
       SimpleStateMachineStorage stateMachineStorage = new SimpleStateMachineStorage();
       stateMachineStorage.init(storage);
       SingleFileSnapshotInfo snapshot = stateMachineStorage.getLatestSnapshot();
