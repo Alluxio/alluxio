@@ -19,12 +19,17 @@ priority: 11
 首先，在你的机器上必须安装Alluxio二进制包。你可以自己[编译Alluxio](Building-Alluxio-From-Source.html)，或者[下载二进制包](Running-Alluxio-Locally.html)
 
 其次，在你的机器上需要安装以下包:
-    cephfs-java
-    libcephfs_jni
-    libcephfs2
+
+```
+cephfs-java
+libcephfs_jni
+libcephfs2
+```
+
 以上，包的安装请参考[ceph包安装](https://docs.ceph.com/en/latest/install/get-packages/)，
 
 再次，建立软连：
+
 ```
 $ ln -s /usr/lib64/libcephfs_jni.so.1.0.0 /usr/lib64/libcephfs_jni.so
 $ ln -s /usr/lib64/libcephfs.so.2.0.0 /usr/lib64/libcephfs.so
@@ -33,6 +38,7 @@ $ ln -s /usr/share/java/libcephfs.jar $java_path/jre/lib/ext/libcephfs.jar
 ```
 
 最后，下载CephFS Hadoop jar包:
+
 ```
 $ curl -o $java_path/jre/lib/ext/hadoop-cephfs.jar -d https://download.ceph.com/tarballs/hadoop-cephfs.jar
 ```
@@ -46,18 +52,21 @@ $ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
 $ cp conf/core-site.xml.template conf/core-site.xml
 ```
 
-### 方法1: ufs cephfs
+{% navtabs 配置 %}
+{% navtab 方法1: cephfs %}
 
 向`conf/alluxio-site.properties`文件添加以下代码：
 
 ```
-alluxio.underfs.cephfs.conf.file=<ceph-conf-file->
+alluxio.underfs.cephfs.conf.file=<ceph-conf-file>
 alluxio.underfs.cephfs.mds.namespace=<ceph-fs-name>
 alluxio.underfs.cephfs.mount.point=<ceph-fs-dir>
 alluxio.underfs.cephfs.auth.id=<client-id>
 alluxio.underfs.cephfs.auth.keyring=<client-keyring-file>
 ```
-### 方法2: ufs cephfs-hadoop
+
+{% endnavtab %}
+{% navtab 方法2: cephfs-hadoop %}
 
 向`conf/alluxio-site.properties`文件添加以下代码：
 
@@ -112,6 +121,9 @@ alluxio.underfs.hdfs.configuration=${ALLUXIO_HOME}/conf/core-site.xml
 </configuration>
 ```
 
+{% endnavtab %}
+{% endnavtabs %}
+
 ## 使用CephFS本地运行Alluxio
 
 完成所有的配置之后，你可以本地运行Alluxio,观察是否一切运行正常。
@@ -123,7 +135,8 @@ alluxio.underfs.hdfs.configuration=${ALLUXIO_HOME}/conf/core-site.xml
 
 该命令应当会启动一个Alluxio master和一个Alluxio worker，可以在浏览器中访问[http://localhost:19999](http://localhost:19999)查看master Web UI。
 
-### 方法1: ufs cephfs
+{% navtabs 测试 %}
+{% navtab 方法1: cephfs %}
 
 ```
 ./bin/alluxio fs mkdir /mnt/cephfs
@@ -139,7 +152,8 @@ alluxio.underfs.hdfs.configuration=${ALLUXIO_HOME}/conf/core-site.xml
 前者，通过Alluxio的[Command Line Interface]({{ '/en/operation/User-CLI.html' | relativize__url }})可被访问；
 后者，通过ceph-fuse或mount的方式使用POSIX APIs[Mounting CephFS](https://docs.ceph.com/en/latest/cephfs/#mounting-cephfs)可被访问。
 
-### 方法2: ufs cephfs-hadoop
+{% endnavtab %}
+{% navtab 方法2: cephfs-hadoop %}
 
 ```
 ./bin/alluxio fs mkdir /cephfs-hadoop
@@ -154,3 +168,7 @@ alluxio.underfs.hdfs.configuration=${ALLUXIO_HOME}/conf/core-site.xml
 运行成功后，访问你的alluxio /mnt/cephfs-hadoop 和 cephfs <cephfs-fs-dir> 目录，确认其中包含了由Alluxio创建的文件和目录default_tests_files/Basic_CACHE_THROUGH _。
 前者，通过Alluxio的[Command Line Interface]({{ '/en/operation/User-CLI.html' | relativize__url }})可被访问；
 后者，通过ceph-fuse或mount的方式使用POSIX APIs[Mounting CephFS](https://docs.ceph.com/en/latest/cephfs/#mounting-cephfs)可被访问。
+
+{% endnavtab %}
+{% endnavtabs %}
+

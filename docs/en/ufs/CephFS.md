@@ -22,10 +22,13 @@ The Alluxio binaries must be on your machine. You can either
 [download the binaries locally]({{ '/en/deploy/Running-Alluxio-Locally.html' | relativize_url }}).
 
 ### Install Dependences
-According to [ceph packages install](https://docs.ceph.com/en/latest/install/get-packages/)，
-    cephfs-java
-    libcephfs_jni
-    libcephfs2
+According to [ceph packages install](https://docs.ceph.com/en/latest/install/get-packages/) to install below packages:
+
+```
+cephfs-java
+libcephfs_jni
+libcephfs2
+```
 
 ### Make symbolic links
 
@@ -53,7 +56,8 @@ $ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
 $ cp conf/core-site.xml.template conf/core-site.xml
 ```
 
-### Option 1: ufs cephfs
+{% navtabs Setup %}
+{% navtab Option 1: cephfs %}
 
 Modify `conf/alluxio-site.properties` to include:
 
@@ -64,7 +68,9 @@ alluxio.underfs.cephfs.mount.point=<ceph-fs-dir>
 alluxio.underfs.cephfs.auth.id=<client-id>
 alluxio.underfs.cephfs.auth.keyring=<client-keyring-file>
 ```
-### Option 2: ufs cephfs-hadoop
+
+{% endnavtab %}
+{% navtab Option 2: cephfs-hadoop %}
 
 Modify `conf/alluxio-site.properties` to include:
 
@@ -119,6 +125,9 @@ Modify `conf/core-site.xml` to include:
 </configuration>
 ```
 
+{% endnavtab %}
+{% endnavtabs %}
+
 ## Running Alluxio Locally with CephFS
 
 Start up Alluxio locally to see that everything works.
@@ -131,12 +140,14 @@ $ ./bin/alluxio-start.sh local
 This should start an Alluxio master and Alluxio worker. You can see the master UI at
 [http://localhost:19999](http://localhost:19999).
 
-### Option 1: ufs cephfs
+{% navtabs Test %}
+{% navtab Option 1: cephfs %}
 
 An CephFS location can be mounted at a nested directory in the Alluxio namespace to have unified access
 to multiple under storage systems. Alluxio's [Command Line Interface]({{ '/en/operation/User-CLI.html' | relativize_url }}) can be used for this purpose.
 
 Issue the following command to use the ufs cephfs:
+
 ```
 $ ./bin/alluxio fs mkdir /mnt/cephfs
 $ ./bin/alluxio fs mount /mnt/cephfs cephfs://mon1\;mon2\;mon3/
@@ -152,21 +163,24 @@ Visit your cephfs to verify the files and directories created by Alluxio exist.
 
 You should see files named like:
 In cephfs, you can visit cephfs with ceph-fuse or mount by POSIX APIs. [Mounting CephFS](https://docs.ceph.com/en/latest/cephfs/#mounting-cephfs)
+
 ```
 ${ceph-fs-dir}/default_tests_files/Basic_CACHE_THROUGH
 ```
 In Alluxio, you can visit the nested directory in the Alluxio. Alluxio's [Command Line Interface]({{ '/en/operation/User-CLI.html' | relativize_url }}) can be used for this purpose.
+
 ```
 /mnt/cephfs/default_tests_files/Basic_CACHE_THROUGH
 ```
 
-
-### Option 2: ufs cephfs-hadoop
+{% endnavtab %}
+{% navtab Option 2: cephfs-hadoop %}
 
 An CephFS location can be mounted at a nested directory in the Alluxio namespace to have unified access
 to multiple under storage systems. Alluxio's [Command Line Interface]({{ '/en/operation/User-CLI.html' | relativize_url }}) can be used for this purpose.
 
 Issue the following command to use the ufs cephfs:
+
 ```console
 $ ./bin/alluxio fs mkdir /mnt/cephfs-hadoop
 $ ./bin/alluxio fs mount /mnt/cephfs-hadoop ceph://mon1\;mon2\;mon3/
@@ -182,10 +196,16 @@ Visit your cephfs to verify the files and directories created by Alluxio exist.
 
 You should see files named like:
 In cephfs, you can visit cephfs with ceph-fuse or mount by POSIX APIs. [Mounting CephFS](https://docs.ceph.com/en/latest/cephfs/#mounting-cephfs)
+
 ```
 ${ceph-fs-dir}/default_tests_files/Basic_CACHE_THROUGH
 ```
 In Alluxio, you can visit the nested directory in the Alluxio. Alluxio's [Command Line Interface]({{ '/en/operation/User-CLI.html' | relativize_url }}) can be used for this purpose.
+
 ```
 /mnt/cephfs-hadoop/default_tests_files/Basic_CACHE_THROUGH
 ```
+
+{% endnavtab %}
+{% endnavtabs %}
+
