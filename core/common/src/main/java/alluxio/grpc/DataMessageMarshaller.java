@@ -68,6 +68,9 @@ public abstract class DataMessageMarshaller<T> implements MethodDescriptor.Marsh
         return deserialize(ReadableBuffers.wrap(byteBuffer));
       }
     } catch (IOException e) {
+      if (rawBuffer != null) {
+        rawBuffer.close();
+      }
       throw new RuntimeException(e);
     }
   }
