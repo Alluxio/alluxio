@@ -116,11 +116,6 @@
       </snapshots>
     </repository>
     <repository>
-      <id>aliyunmaven</id>
-      <name>spring-plugin</name>
-      <url>https://maven.aliyun.com/repository/spring-plugin</url>
-    </repository>
-    <repository>
       <id>alluxio.artifacts</id>
       <url>http://alluxio.artifacts.s3-website-us-east-1.amazonaws.com/release</url>
     </repository>
@@ -129,7 +124,7 @@
   <properties>
     <argLine />
     <apache.curator.version>4.2.0</apache.curator.version>
-    <aws.amazonaws.version>1.11.215</aws.amazonaws.version>
+    <aws.amazonaws.version>1.11.815</aws.amazonaws.version>
     <build.path>build</build.path>
     <catalyst.version>1.2.1</catalyst.version>
     <glusterfs-hadoop.version>2.3.13</glusterfs-hadoop.version>
@@ -200,6 +195,11 @@
       <dependency>
         <groupId>com.amazonaws</groupId>
         <artifactId>aws-java-sdk-core</artifactId>
+        <version>${aws.amazonaws.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.amazonaws</groupId>
+        <artifactId>aws-java-sdk-sts</artifactId>
         <version>${aws.amazonaws.version}</version>
       </dependency>
       <dependency>
