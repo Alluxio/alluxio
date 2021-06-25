@@ -42,6 +42,7 @@ import alluxio.util.StreamUtils;
 import alluxio.util.proto.ProtoUtils;
 
 import com.google.common.base.Preconditions;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -627,6 +628,7 @@ public class InodeTreePersistentState implements Journaled {
     }
   }
 
+  @SuppressFBWarnings("NP_NULL_ON_SOME_PATH_FROM_RETURN_VALUE")
   private RenameEntry rewriteDeprecatedRenameEntry(RenameEntry entry) {
     Preconditions.checkState(!entry.hasNewName(),
         "old-style rename entries should not have the newName field set");
