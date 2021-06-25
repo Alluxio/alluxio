@@ -14,7 +14,7 @@ package alluxio.master.table;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
-import alluxio.table.common.udb.UdbBypassSpec;
+import alluxio.table.common.udb.UdbInExClusionSpec;
 
 import com.google.common.collect.ImmutableList;
 import org.junit.Before;
@@ -33,20 +33,20 @@ public class DbConfigTest {
     mMapper = new ObjectMapper();
   }
 
-  /* BypassTableEntry tests */
+  /* TableEntry tests */
   @Test
   public void tableNamesOnly() throws Exception {
-    DbConfig.BypassTableEntry entry =
-        mMapper.readValue("\"table1\"", DbConfig.BypassTableEntry.class);
+    DbConfig.TableEntry entry =
+        mMapper.readValue("\"table1\"", DbConfig.TableEntry.class);
     assertEquals("table1", entry.getTable());
     assertEquals(ImmutableSet.of(), entry.getPartitions());
   }
 
   @Test
   public void tableNamesAndPartitions() throws Exception {
-    DbConfig.BypassTableEntry entry = mMapper.readValue(
+    DbConfig.TableEntry entry = mMapper.readValue(
         "{\"table\": \"table2\", \"partitions\": [\"t2p1\", \"t2p2\"]}",
-        DbConfig.BypassTableEntry.class
+        DbConfig.TableEntry.class
     );
     assertEquals("table2", entry.getTable());
     assertEquals(ImmutableSet.of("t2p1", "t2p2"), entry.getPartitions());
@@ -54,9 +54,9 @@ public class DbConfigTest {
 
   @Test
   public void missingPartitions() throws Exception {
-    DbConfig.BypassTableEntry entry = mMapper.readValue(
+    DbConfig.TableEntry entry = mMapper.readValue(
         "{\"table\": \"table3\"}",
-        DbConfig.BypassTableEntry.class
+        DbConfig.TableEntry.class
     );
     assertEquals("table3", entry.getTable());
     assertEquals(ImmutableSet.of(), entry.getPartitions());
@@ -64,40 +64,31 @@ public class DbConfigTest {
 
   @Test
   public void equalityRegardlessOfPartitions() throws Exception {
-    DbConfig.BypassTableEntry entry1 = mMapper.readValue(
+    DbConfig.TableEntry entry1 = mMapper.readValue(
         "{\"table\": \"table4\", \"partitions\": [\"p1\"]}",
-        DbConfig.BypassTableEntry.class
+        DbConfig.TableEntry.class
     );
-    DbConfig.BypassTableEntry entry2 = mMapper.readValue(
+    DbConfig.TableEntry entry2 = mMapper.readValue(
         "{\"table\": \"table4\", \"partitions\": [\"p2\"]}",
-        DbConfig.BypassTableEntry.class
+        DbConfig.TableEntry.class
     );
     assertEquals(entry1, entry2);
     assertEquals(entry1.hashCode(), entry2.hashCode());
   }
 
-  /* BypassEntry tests */
+  /* TablesEntry tests */
   @Test
   public void emptyListOfTables() throws Exception {
-    DbConfig.BypassEntry entry = mMapper.readValue("{\"tables\": []}", DbConfig.BypassEntry.class);
-    assertEquals(ImmutableSet.of(), entry.getBypassedTables());
+    DbConfig.TablesEntry entry = mMapper.readValue("{\"tables\": []}", DbConfig.TablesEntry.class);
+    assertEquals(ImmutableSet.of(), entry.getTableNames());
   }
 
   @Test
   public void nullConstructor() throws Exception {
-    DbConfig.BypassEntry entry1 = mMapper.readValue("{}", DbConfig.BypassEntry.class);
-    assertEquals(ImmutableSet.of(), entry1.getBypassedTables());
-    DbConfig.BypassEntry entry2 = new DbConfig.BypassEntry(null);
-    assertEquals(ImmutableSet.of(), entry2.getBypassedTables());
-  }
-
-  @Test
-  public void convertToUdbBypassSpec() throws Exception {
-    DbConfig.BypassEntry entry =
-        mMapper.readValue("{\"tables\": [\"table1\"]}", DbConfig.BypassEntry.class);
-    assertEquals(ImmutableSet.of("table1"), entry.getBypassedTables());
-    UdbBypassSpec spec = entry.toUdbBypassSpec();
-    assertTrue(spec.hasTable("table1"));
+    DbConfig.TablesEntry entry1 = mMapper.readValue("{}", DbConfig.TablesEntry.class);
+    assertEquals(ImmutableSet.of(), entry1.getTableNames());
+    DbConfig.TablesEntry entry2 = new DbConfig.TablesEntry(null);
+    assertEquals(ImmutableSet.of(), entry2.getTableNames());
   }
 
   /* DbConfig tests */
@@ -105,12 +96,29 @@ public class DbConfigTest {
   public void emptyConfig() throws Exception {
     List<String> src = ImmutableList.of(
         "{}",
-        "{\"bypass\": {}}"
+        "{\"bypass\": {}}",
+        "{\"ignore\": {}}",
+        "{\"bypass\": {}, \"ignore\": {}}"
     );
     for (String input : src) {
       DbConfig config = mMapper.readValue(input, DbConfig.class);
-      assertEquals(DbConfig.empty().getBypassEntry().getBypassTableEntries(),
-          config.getBypassEntry().getBypassTableEntries());
+      assertEquals(DbConfig.empty().getBypassEntry().getTableEntries(),
+          config.getBypassEntry().getTableEntries());
+      assertEquals(DbConfig.empty().getIgnoreEntry().getTableEntries(),
+          config.getIgnoreEntry().getTableEntries());
     }
+  }
+
+  @Test
+  public void convertToSpec() throws Exception {
+    DbConfig config =
+        mMapper.readValue("{\"bypass\": {\"tables\": [\"table1\"]}}", DbConfig.class);
+    UdbInExClusionSpec spec = config.getUdbInExClusionSpec();
+    assertTrue(spec.hasFullyBypassedTable("table1"));
+    config =
+        mMapper.readValue("{\"ignore\": {\"tables\": [\"table1\"]}}", DbConfig.class);
+    spec = config.getUdbInExClusionSpec();
+    assertTrue(spec.hasIgnoredTable("table1"));
+    assertEquals(ImmutableSet.of("table1"), spec.getIgnoredTables());
   }
 }

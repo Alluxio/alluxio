@@ -21,7 +21,7 @@ import alluxio.master.table.DatabaseInfo;
 import alluxio.table.common.UdbPartition;
 import alluxio.table.common.layout.HiveLayout;
 import alluxio.table.common.udb.PathTranslator;
-import alluxio.table.common.udb.UdbBypassSpec;
+import alluxio.table.common.udb.UdbInExClusionSpec;
 import alluxio.table.common.udb.UdbConfiguration;
 import alluxio.table.common.udb.UdbContext;
 import alluxio.table.common.udb.UdbTable;
@@ -238,7 +238,7 @@ public class GlueDatabase implements UnderDatabase {
 
   @VisibleForTesting
   private PathTranslator mountAlluxioPaths(Table table, List<Partition> partitions,
-      UdbBypassSpec bypassSpec)
+      UdbInExClusionSpec bypassSpec)
       throws IOException {
     String tableName = table.getName();
     AlluxioURI ufsUri;
@@ -247,7 +247,7 @@ public class GlueDatabase implements UnderDatabase {
 
     try {
       PathTranslator pathTranslator = new PathTranslator();
-      if (bypassSpec.hasFullTable(tableName)) {
+      if (bypassSpec.hasFullyBypassedTable(tableName)) {
         pathTranslator.addMapping(glueUfsUri, glueUfsUri);
         return pathTranslator;
       }
@@ -283,7 +283,7 @@ public class GlueDatabase implements UnderDatabase {
                 mGlueDbName,
                 mGlueConfiguration.get(Property.CATALOG_ID));
           }
-          if (bypassSpec.hasPartition(tableName, partitionName)) {
+          if (bypassSpec.hasBypassedPartition(tableName, partitionName)) {
             pathTranslator.addMapping(partitionUri.getPath(), partitionUri.getPath());
             continue;
           }
@@ -341,7 +341,7 @@ public class GlueDatabase implements UnderDatabase {
   }
 
   @Override
-  public UdbTable getTable(String tableName, UdbBypassSpec bypassSpec) throws IOException {
+  public UdbTable getTable(String tableName, UdbInExClusionSpec bypassSpec) throws IOException {
     Table table;
     List<Partition> partitions;
     try {

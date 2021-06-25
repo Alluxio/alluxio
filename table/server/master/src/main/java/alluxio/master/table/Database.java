@@ -24,16 +24,15 @@ import alluxio.master.journal.checkpoint.CheckpointName;
 import alluxio.proto.journal.Journal;
 import alluxio.resource.CloseableIterator;
 import alluxio.table.common.udb.UdbContext;
+import alluxio.table.common.udb.UdbInExClusionSpec;
 import alluxio.table.common.udb.UdbTable;
 import alluxio.table.common.udb.UnderDatabase;
 import alluxio.util.CommonUtils;
-import alluxio.util.ConfigurationUtils;
 import alluxio.util.executor.ExecutorServiceFactories;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Iterators;
-import com.google.common.collect.Sets;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -71,7 +70,6 @@ public class Database implements Journaled {
   private final Map<String, Table> mTables;
   private final UnderDatabase mUdb;
   private final CatalogConfiguration mConfig;
-  private final Set<String> mIgnoreTables;
   private final String mConfigPath;
   private DbConfig mDbConfig;
   private final long mUdbSyncTimeoutMs =
@@ -87,8 +85,6 @@ public class Database implements Journaled {
     mTables = new ConcurrentHashMap<>();
     mUdb = udb;
     mConfig = config;
-    mIgnoreTables = Sets.newHashSet(
-        ConfigurationUtils.parseAsList(mConfig.get(CatalogProperty.DB_IGNORE_TABLES), ","));
     mConfigPath = mConfig.get(CatalogProperty.DB_CONFIG_FILE);
     mDbConfig = DbConfig.empty();
   }
@@ -240,8 +236,9 @@ public class Database implements Journaled {
     // sync each table in parallel, with the executor service
     List<Callable<Void>> tasks = new ArrayList<>(udbTableNames.size());
     final Database thisDb = this;
+    UdbInExClusionSpec inExClusionSpec = mDbConfig.getUdbInExClusionSpec();
     for (String tableName : udbTableNames) {
-      if (mIgnoreTables.contains(tableName)) {
+      if (inExClusionSpec.hasIgnoredTable(tableName)) {
         // this table should be ignored.
         builder.addTablesIgnored(tableName);
         tablesSynced.incrementAndGet();
@@ -251,7 +248,7 @@ public class Database implements Journaled {
         // Save all exceptions
         try {
           Table previousTable = mTables.get(tableName);
-          UdbTable udbTable = mUdb.getTable(tableName, mDbConfig.getUdbBypassSpec());
+          UdbTable udbTable = mUdb.getTable(tableName, inExClusionSpec);
           Table newTable = Table.create(thisDb, udbTable, previousTable);
 
           if (newTable != null) {
