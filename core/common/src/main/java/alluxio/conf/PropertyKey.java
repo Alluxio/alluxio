@@ -2407,7 +2407,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey MASTER_TIERED_STORE_GLOBAL_MEDIUMTYPE =
       new Builder(Name.MASTER_TIERED_STORE_GLOBAL_MEDIUMTYPE)
-          .setDefaultValue("MEM, SSD, HDD")
+          .setDefaultValue("MEM,SSD,HDD")
           .setDescription("The list of medium types we support in the system.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.MASTER)
