@@ -12,8 +12,6 @@
 package alluxio.master.file.meta;
 
 import alluxio.ProcessUtils;
-import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
 import alluxio.master.journal.JournalContext;
 import alluxio.master.journal.JournalUtils;
 import alluxio.master.journal.Journaled;
@@ -44,6 +42,7 @@ import alluxio.util.StreamUtils;
 import alluxio.util.proto.ProtoUtils;
 
 import com.google.common.base.Preconditions;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -54,7 +53,6 @@ import java.nio.file.Paths;
 import java.util.ArrayDeque;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Queue;
@@ -404,39 +402,37 @@ public class InodeTreePersistentState implements Journaled {
     if (entry.hasTtl()) {
       mTtlBuckets.insert(Inode.wrap(inode));
     }
-    if (entry.hasPinned() && inode.isFile()) {
-      if (entry.getPinned()) {
-        MutableInodeFile file = inode.asFile();
-        List<String> mediaList = ServerConfiguration.getList(
-            PropertyKey.MASTER_TIERED_STORE_GLOBAL_MEDIUMTYPE, ",");
-        if (entry.getMediumTypeList().isEmpty()) {
-          // if user does not specify a pinned media list, any location is OK
-          file.setMediumTypes(new HashSet<>());
-        } else {
-          for (String medium : entry.getMediumTypeList()) {
-            if (mediaList.contains(medium)) {
-              file.getMediumTypes().add(medium);
-            }
-          }
-        }
-        // when we pin a file with default min replication (zero), we bump the min replication
-        // to one in addition to setting pinned flag, and adjust the max replication if it is
-        // smaller than min replication.
-        if (file.getReplicationMin() == 0) {
-          file.setReplicationMin(1);
-          if (file.getReplicationMax() == 0) {
-            file.setReplicationMax(alluxio.Constants.REPLICATION_MAX_INFINITY);
-          }
-        }
-        mPinnedInodeFileIds.add(entry.getId());
-      } else {
-        // when we unpin a file, set the min replication to zero too.
-        inode.asFile().setReplicationMin(0);
-        mPinnedInodeFileIds.remove(entry.getId());
-      }
+    if (inode.isFile() && entry.hasPinned()) {
+      setReplicationForPin(inode, entry.getPinned());
     }
     mInodeStore.writeInode(inode);
     updateToBePersistedIds(inode);
+  }
+
+  private void setReplicationForPin(MutableInode<?> inode, boolean pinned) {
+    if (inode.isFile()) {
+      MutableInodeFile file = inode.asFile();
+      if (pinned) {
+        // when we pin a file with default min replication (zero), we bump the min replication
+        // to one in addition to setting pinned flag, and adjust the max replication if it is
+        // smaller than min replication.
+        file.setPinned(true);
+        if (file.getReplicationMin() == 0) {
+          file.setReplicationMin(1);
+        }
+        if (file.getReplicationMax() == 0) {
+          file.setReplicationMax(alluxio.Constants.REPLICATION_MAX_INFINITY);
+        }
+        mPinnedInodeFileIds.add(inode.getId());
+      } else {
+        // when we unpin a file, set the min replication to zero too.
+        file.setReplicationMin(0);
+        mPinnedInodeFileIds.remove(file.getId());
+      }
+      if (file.getReplicationMax() != alluxio.Constants.REPLICATION_MAX_INFINITY) {
+        mReplicationLimitedFileIds.add(file.getId());
+      }
+    }
   }
 
   /**
@@ -560,18 +556,8 @@ public class InodeTreePersistentState implements Journaled {
     // Only update size, last modified time is updated separately.
     updateTimestampsAndChildCount(inode.getParentId(), Long.MIN_VALUE, 1);
     if (inode.isFile()) {
-      MutableInodeFile file = inode.asFile();
-      if (file.getReplicationMin() > 0) {
-        mPinnedInodeFileIds.add(file.getId());
-        file.setPinned(true);
-      }
-      if (file.getReplicationMax() != alluxio.Constants.REPLICATION_MAX_INFINITY) {
-        mReplicationLimitedFileIds.add(file.getId());
-      }
-    }
-    // Update indexes.
-    if (inode.isFile() && inode.isPinned()) {
-      mPinnedInodeFileIds.add(inode.getId());
+      boolean pinned = inode.asFile().isPinned() || inode.asFile().getReplicationMin() > 0;
+      setReplicationForPin(inode, pinned);
     }
     // Add the file to TTL buckets, the insert automatically rejects files w/ Constants.NO_TTL
     mTtlBuckets.insert(Inode.wrap(inode));
@@ -642,6 +628,7 @@ public class InodeTreePersistentState implements Journaled {
     }
   }
 
+  @SuppressFBWarnings("NP_NULL_ON_SOME_PATH_FROM_RETURN_VALUE")
   private RenameEntry rewriteDeprecatedRenameEntry(RenameEntry entry) {
     Preconditions.checkState(!entry.hasNewName(),
         "old-style rename entries should not have the newName field set");
