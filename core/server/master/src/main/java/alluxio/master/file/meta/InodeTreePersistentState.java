@@ -12,7 +12,6 @@
 package alluxio.master.file.meta;
 
 import alluxio.ProcessUtils;
-import alluxio.conf.ServerConfiguration;
 import alluxio.master.journal.JournalContext;
 import alluxio.master.journal.JournalUtils;
 import alluxio.master.journal.Journaled;
