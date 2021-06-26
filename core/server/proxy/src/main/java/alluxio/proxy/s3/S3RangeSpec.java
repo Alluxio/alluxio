@@ -25,29 +25,27 @@ public class S3RangeSpec {
   public static final S3RangeSpec INVALID_S3_RANGE_SPEC = new S3RangeSpec(false);
 
   /* Does the range spec is valid */
-  private boolean mIsValid;
-  /* Does the range spec refers to a suffix of object */
-  private boolean mIsSuffixLength;
+  private final boolean mIsValid;
   /* Start offset specified in range spec */
-  private long mStart;
+  private final long mStart;
   /* End offset specified in range spec */
-  private long mEnd;
+  private final long mEnd;
 
   /**
    * @param isValid the spec is valid or not
    */
-  public S3RangeSpec(boolean isValid) {
+  protected S3RangeSpec(boolean isValid) {
     mIsValid = isValid;
+    mStart = -1;
+    mEnd = -1;
   }
 
   /**
-   * @param isSuffixLength the spec if use for suffix length
    * @param start          the start offset of object
    * @param end            the end offset of object
    */
-  public S3RangeSpec(boolean isSuffixLength, long start, long end) {
+  public S3RangeSpec(long start, long end) {
     mIsValid = true;
-    mIsSuffixLength = isSuffixLength;
     mStart = start;
     mEnd = end;
   }
@@ -64,7 +62,7 @@ public class S3RangeSpec {
     }
 
     long length;
-    if (mIsSuffixLength) {
+    if (isSuffixLength()) {
       length = mEnd;
       if (length > objectSize) {
         length = objectSize;
@@ -94,7 +92,7 @@ public class S3RangeSpec {
     }
 
     long start = mStart;
-    if (mIsSuffixLength) {
+    if (isSuffixLength()) {
       start = objectSize - mEnd;
       if (start < 0) {
         start = 0;
@@ -105,6 +103,10 @@ public class S3RangeSpec {
       }
     }
     return start;
+  }
+
+  private boolean isSuffixLength() {
+    return mStart == -1;
   }
 
   /**
@@ -142,14 +144,14 @@ public class S3RangeSpec {
         if (start > end) {
           return INVALID_S3_RANGE_SPEC;
         }
-        return new S3RangeSpec(false, start, end);
+        return new S3RangeSpec(start, end);
       } else if (start > -1) {
-        return new S3RangeSpec(false, start, -1);
+        return new S3RangeSpec(start, -1);
       } else if (end > -1) {
         if (end == 0) {
           return INVALID_S3_RANGE_SPEC;
         }
-        return new S3RangeSpec(true, -1, end);
+        return new S3RangeSpec(-1, end);
       } else {
         return INVALID_S3_RANGE_SPEC;
       }

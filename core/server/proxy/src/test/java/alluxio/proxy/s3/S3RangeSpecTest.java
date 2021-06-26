@@ -49,6 +49,20 @@ public final class S3RangeSpecTest {
   }
 
   @Test
+  public void prefixLength() {
+    long objectSize = 150;
+    String range = "bytes=100-";
+    S3RangeSpec s3Range = S3RangeSpec.Factory.create(range);
+    assertEquals(50, s3Range.getLength(objectSize));
+    assertEquals(100, s3Range.getOffset(objectSize));
+
+    range = "bytes=150-";
+    s3Range = S3RangeSpec.Factory.create(range);
+    assertEquals(0, s3Range.getLength(objectSize));
+    assertEquals(0, s3Range.getOffset(objectSize));
+  }
+
+  @Test
   public void suffixLength() {
     String range = "bytes=-200";
     long objectSize = 1000;
