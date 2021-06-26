@@ -146,7 +146,7 @@ public final class AsyncJournalWriter {
    * It goes over the {@code mTicketList} after every flush session and releases waiters.
    */
   private Thread mFlushThread = new Thread(this::doFlush,
-"AsyncJournalWriterThread-" + mJournalName);
+      "AsyncJournalWriterThread-" + mJournalName);
 
   /**
    * Used to give permits to flush thread to start processing immediately.
@@ -187,7 +187,8 @@ public final class AsyncJournalWriter {
    * @param journalSinks a supplier for journal sinks
    * @param journalName the journal source name
    */
-  public AsyncJournalWriter(JournalWriter journalWriter, Supplier<Set<JournalSink>> journalSinks, String journalName) {
+  public AsyncJournalWriter(JournalWriter journalWriter, Supplier<Set<JournalSink>> journalSinks,
+      String journalName) {
     this(journalWriter, journalSinks);
     mJournalName = journalName;
   }
