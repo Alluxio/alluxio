@@ -76,19 +76,19 @@ public class RangeFileInStream extends InputStream {
   }
 
   /**
-   *Factory for {@link RangeFileInStream}.
+   * Factory for {@link RangeFileInStream}.
    */
   public static final class Factory {
 
     /**
      * @param underlyingStream underlying stream
      * @param underlyingLength underlying steam length
-     * @param range range read
+     * @param range            range read
      * @return the stream for range read
      * @throws IOException
      */
     public static RangeFileInStream create(FileInStream underlyingStream, long underlyingLength,
-        S3RangeSpec range) throws IOException {
+                                           S3RangeSpec range) throws IOException {
       RangeFileInStream ris = new RangeFileInStream(underlyingStream);
       ris.seek(underlyingLength, range);
       return ris;

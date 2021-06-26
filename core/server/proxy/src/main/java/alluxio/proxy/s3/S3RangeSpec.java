@@ -42,8 +42,8 @@ public class S3RangeSpec {
 
   /**
    * @param isSuffixLength the spec if use for suffix length
-   * @param start the start offset of object
-   * @param end the end offset of object
+   * @param start          the start offset of object
+   * @param end            the end offset of object
    */
   public S3RangeSpec(boolean isSuffixLength, long start, long end) {
     mIsValid = true;
@@ -54,6 +54,7 @@ public class S3RangeSpec {
 
   /**
    * Get real length of object.
+   *
    * @param objectSize the object size
    * @return the real object length referring to range
    */
@@ -83,6 +84,7 @@ public class S3RangeSpec {
 
   /**
    * Get real offset of object.
+   *
    * @param objectSize the object size
    * @return the real object offset referring to range
    */
@@ -106,11 +108,12 @@ public class S3RangeSpec {
   }
 
   /**
-   *Factory for {@link S3RangeSpec}.
+   * Factory for {@link S3RangeSpec}.
    */
   public static final class Factory {
     /**
      * Create {@link S3RangeSpec} from http range header.
+     *
      * @param range the http range header
      * @return the {@link S3RangeSpec}
      */
