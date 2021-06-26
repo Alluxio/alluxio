@@ -448,6 +448,7 @@ public class RaftJournalSystem extends AbstractJournalSystem {
 
     Preconditions.checkState(mRaftJournalWriter == null);
     mRaftJournalWriter = new RaftJournalWriter(nextSN, client);
+    // TODO(jiacheng): pass sth here?
     mAsyncJournalWriter
         .set(new AsyncJournalWriter(mRaftJournalWriter, () -> getJournalSinks(null)));
   }
