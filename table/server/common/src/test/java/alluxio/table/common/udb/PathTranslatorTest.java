@@ -19,6 +19,7 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
+import org.mockito.Mockito;
 
 import java.io.IOException;
 
@@ -122,5 +123,67 @@ public class PathTranslatorTest {
         mTranslator.toAlluxioPath("ufs://b/db1/table1/part1"));
     assertEquals("alluxio:///db1/fragments/a/table2/part1",
         mTranslator.toAlluxioPath("ufs://a/db1/table2/part1"));
+  }
+
+  @Test
+  public void alluxioUriWithSchemeOnly() throws Exception {
+    mTranslator.addMapping("alluxio:///db1/tables/table1", "ufs://a/db1/table1");
+    // non-exact match
+    assertEquals("alluxio:///db1/tables/table1/part1",
+        mTranslator.toAlluxioPath("ufs://a/db1/table1/part1"));
+    // exact match
+    assertEquals("alluxio:///db1/tables/table1",
+        mTranslator.toAlluxioPath("ufs://a/db1/table1"));
+    // trailing slash is preserved
+    assertEquals("alluxio:///db1/tables/table1/",
+        mTranslator.toAlluxioPath("ufs://a/db1/table1/"));
+  }
+
+  @Test
+  public void alluxioUriWithSchemeAndAuthority() throws Exception {
+    mTranslator.addMapping("alluxio://master/db1/tables/table1", "ufs://a/db1/table1");
+    // non-exact match
+    assertEquals("alluxio://master/db1/tables/table1/part1",
+        mTranslator.toAlluxioPath("ufs://a/db1/table1/part1"));
+    // exact match
+    assertEquals("alluxio://master/db1/tables/table1",
+        mTranslator.toAlluxioPath("ufs://a/db1/table1"));
+    // trailing slash is preserved
+    assertEquals("alluxio://master/db1/tables/table1/",
+        mTranslator.toAlluxioPath("ufs://a/db1/table1/"));
+  }
+
+  @Test
+  public void alluxioUriPurePath() throws Exception {
+    mTranslator.addMapping("/db1/tables/table1", "ufs://a/db1/table1");
+    PathTranslator spy = Mockito.spy(mTranslator);
+    Mockito.doReturn("alluxio://master").when(spy).getSchemeAuthority();
+    // non-exact match
+    assertEquals("alluxio://master/db1/tables/table1/part1",
+        spy.toAlluxioPath("ufs://a/db1/table1/part1"));
+    // exact match
+    assertEquals("alluxio://master/db1/tables/table1",
+        spy.toAlluxioPath("ufs://a/db1/table1"));
+    // trailing slash is preserved
+    assertEquals("alluxio://master/db1/tables/table1/",
+        spy.toAlluxioPath("ufs://a/db1/table1/"));
+  }
+
+  @Test
+  public void bypassedUfsUri() throws Exception {
+    mTranslator.addMapping("ufs://a/db1/table1", "ufs://a/db1/table1");
+    assertEquals("ufs://a/db1/table1",
+        mTranslator.toAlluxioPath("ufs://a/db1/table1"));
+    assertEquals("ufs://a/db1/table1/part1",
+        mTranslator.toAlluxioPath("ufs://a/db1/table1/part1"));
+  }
+
+  @Test
+  public void bypassedUfsPath() throws Exception {
+    mTranslator.addMapping("/a/db1/table1", "/a/db1/table1");
+    assertEquals("/a/db1/table1",
+        mTranslator.toAlluxioPath("/a/db1/table1"));
+    assertEquals("/a/db1/table1/part1",
+        mTranslator.toAlluxioPath("/a/db1/table1/part1"));
   }
 }

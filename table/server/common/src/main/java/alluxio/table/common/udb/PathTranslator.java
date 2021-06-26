@@ -17,6 +17,7 @@ import alluxio.exception.InvalidPathException;
 import alluxio.util.ConfigurationUtils;
 import alluxio.util.io.PathUtils;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 import org.slf4j.Logger;
@@ -64,7 +65,12 @@ public class PathTranslator {
     AlluxioURI ufsUri = new AlluxioURI(ufsPath);
     // first look for an exact match
     if (mPathMap.inverse().containsKey(ufsUri)) {
-      return mPathMap.inverse().get(ufsUri).toString() + suffix;
+      AlluxioURI match = mPathMap.inverse().get(ufsUri);
+      if (match.equals(ufsUri)) {
+        // bypassed UFS path, return as is
+        return ufsPath;
+      }
+      return checkAndAddSchemeAuthority(mPathMap.inverse().get(ufsUri)) + suffix;
     }
     // otherwise match by longest prefix
     BiMap.Entry<AlluxioURI, AlluxioURI> longestPrefix = null;
@@ -93,15 +99,22 @@ public class PathTranslator {
       String difference = PathUtils.subtractPaths(ufsUri.getPath(),
           longestPrefix.getValue().getPath());
       AlluxioURI mappedUri = longestPrefix.getKey().join(difference);
-      if (!mappedUri.hasScheme()) {
-        // scheme is missing, so prefix with the scheme and authority
-        AlluxioURI baseUri = new AlluxioURI(
-            ConfigurationUtils.getSchemeAuthority(ServerConfiguration.global()) + "/");
-        mappedUri = new AlluxioURI(baseUri, mappedUri.getPath(), false);
-      }
-      return mappedUri.toString() + suffix;
+      return checkAndAddSchemeAuthority(mappedUri) + suffix;
     } catch (InvalidPathException e) {
       throw new IOException(e);
     }
+  }
+
+  private AlluxioURI checkAndAddSchemeAuthority(AlluxioURI input) {
+    if (!input.hasScheme()) {
+      AlluxioURI baseUri = new AlluxioURI(getSchemeAuthority() + "/");
+      return new AlluxioURI(baseUri, input.getPath(), false);
+    }
+    return input;
+  }
+
+  @VisibleForTesting
+  String getSchemeAuthority() {
+    return ConfigurationUtils.getSchemeAuthority(ServerConfiguration.global());
   }
 }
