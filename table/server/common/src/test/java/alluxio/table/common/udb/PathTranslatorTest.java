@@ -78,9 +78,9 @@ public class PathTranslatorTest {
   public void samePathDifferentUfs() throws Exception {
     String alluxioPath  = "alluxio:///my/table/directory";
     String ufsPath = "/the/ufs/location";
-    mTranslator.addMapping(alluxioPath, "ufs_a://" + ufsPath);
+    mTranslator.addMapping(alluxioPath, "ufs-a://" + ufsPath);
     mException.expect(IOException.class);
-    mTranslator.toAlluxioPath("ufs_b://" + ufsPath);
+    mTranslator.toAlluxioPath("ufs-b://" + ufsPath);
   }
 
   @Test
@@ -101,5 +101,26 @@ public class PathTranslatorTest {
     mTranslator.addMapping(alluxioPath, ufsPath);
     assertEquals(alluxioPath, mTranslator.toAlluxioPath(ufsPath));
     assertEquals(alluxioPath + "/", mTranslator.toAlluxioPath(ufsPath + "/"));
+  }
+
+  @Test
+  public void prefixBoundaryWithinPathComponent() throws Exception {
+    mTranslator.addMapping("alluxio:///table_a", "ufs://a/table1");
+    mTranslator.addMapping("alluxio:///table_b", "ufs://a/table11");
+    assertEquals("alluxio:///table_b/part1",
+        mTranslator.toAlluxioPath("ufs://a/table11/part1"));
+  }
+
+  @Test
+  public void deepestMatch() throws Exception {
+    mTranslator.addMapping("alluxio:///db1/tables/table1", "ufs://a/db1/table1");
+    mTranslator.addMapping("alluxio:///db1/fragments/a", "ufs://a/db1");
+    mTranslator.addMapping("alluxio:///db1/fragments/b", "ufs://b/db1");
+    assertEquals("alluxio:///db1/tables/table1/part1",
+        mTranslator.toAlluxioPath("ufs://a/db1/table1/part1"));
+    assertEquals("alluxio:///db1/fragments/b/table1/part1",
+        mTranslator.toAlluxioPath("ufs://b/db1/table1/part1"));
+    assertEquals("alluxio:///db1/fragments/a/table2/part1",
+        mTranslator.toAlluxioPath("ufs://a/db1/table2/part1"));
   }
 }
