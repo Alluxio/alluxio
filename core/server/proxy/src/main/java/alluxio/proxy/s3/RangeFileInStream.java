@@ -50,7 +50,7 @@ public class RangeFileInStream extends InputStream {
 
   @Override
   public int read(byte[] b, int off, int len) throws IOException {
-    if (mReadBytes == mUnderlyingLength) {
+    if (mReadBytes >= mUnderlyingLength) {
       return -1;
     }
 
