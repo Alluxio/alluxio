@@ -136,7 +136,7 @@ export class OverviewPresenter extends React.Component<AllProps> {
   }
 
   private renderJournalCheckpointWarning(warning: string, className: string): JSX.Element | null {
-    if (!warning || warning == "") {
+    if (!warning || warning == '') {
       return null;
     }
 
@@ -147,7 +147,6 @@ export class OverviewPresenter extends React.Component<AllProps> {
         </td>
       </tr>
     );
-
   }
 
   private renderJournalDiskWarnings(warnings: string[], className: string): JSX.Element | null {

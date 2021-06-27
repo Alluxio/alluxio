@@ -62,7 +62,7 @@ exports[`App Shallow component Matches snapshot 1`] = `
               "url": "/metrics",
             },
             Object {
-              "innerText": "MountTable",
+              "innerText": "Mount Table",
               "url": "/mounttable",
             },
           ]
@@ -169,7 +169,7 @@ exports[`App Shallow component Matches snapshot 1`] = `
               "url": "/workers",
             },
             Object {
-              "innerText": "MountTable",
+              "innerText": "Mount Table",
               "url": "/mounttable",
             },
           ]

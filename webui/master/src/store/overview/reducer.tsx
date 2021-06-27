@@ -24,7 +24,7 @@ export const initialOverviewState: IOverviewState = {
     diskFreeCapacity: '',
     diskUsedCapacity: '',
     freeCapacity: '',
-    journalCheckpointTimeWarning: "",
+    journalCheckpointTimeWarning: '',
     journalDiskWarnings: [],
     liveWorkerNodes: 0,
     masterNodeAddress: '',

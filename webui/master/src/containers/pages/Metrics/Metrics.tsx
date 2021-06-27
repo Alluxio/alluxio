@@ -327,9 +327,9 @@ export class MetricsPresenter extends React.Component<AllProps> {
                 <th>Journal Entries Since Checkpoint</th>
               </tr>
               <tr>
-                    <td>{data.journalLastCheckpointTime}</td>
-                    <td>{data.journalEntriesSinceCheckpoint}</td>
-                  </tr>
+                <td>{data.journalLastCheckpointTime}</td>
+                <td>{data.journalEntriesSinceCheckpoint}</td>
+              </tr>
             </tbody>
           </Table>
         </div>
