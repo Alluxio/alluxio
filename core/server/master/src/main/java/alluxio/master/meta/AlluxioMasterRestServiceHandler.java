@@ -332,22 +332,22 @@ public final class AlluxioMasterRestServiceHandler {
         long entriesSinceCkpt = (Long) entriesSinceGauge.getValue();
         long lastCkptTime = (Long) lastCkPtGauge.getValue();
         long timeSinceCkpt = System.currentTimeMillis() - lastCkptTime;
-        boolean over72Hrs = timeSinceCkpt > ServerConfiguration.getMs(
+        boolean overThreshold = timeSinceCkpt > ServerConfiguration.getMs(
             PropertyKey.MASTER_WEB_JOURNAL_CHECKPOINT_WARNING_THRESHOLD_TIME);
         boolean passedThreshold = entriesSinceCkpt > ServerConfiguration
             .getLong(PropertyKey.MASTER_JOURNAL_CHECKPOINT_PERIOD_ENTRIES);
-        if (lastCkptTime > 0 && passedThreshold && over72Hrs) {
-          String time = ZonedDateTime
+        if (passedThreshold && overThreshold) {
+          String time = lastCkptTime > 0 ? ZonedDateTime
               .ofInstant(Instant.ofEpochMilli(lastCkptTime), ZoneOffset.UTC)
-              .format(DateTimeFormatter.ISO_INSTANT);
+              .format(DateTimeFormatter.ISO_INSTANT) : "N/A";
           response.setJournalCheckpointTimeWarning(String.format("Journal has not checkpointed in "
               + "a timely manner since passing the checkpoint threshold (%d/%d). Last checkpoint:"
-              + " %s", entriesSinceCkpt,
+              + " %s. It is recommended to use the fsadmin tool to force a checkpoint.",
+              entriesSinceCkpt,
               ServerConfiguration.getLong(PropertyKey.MASTER_JOURNAL_CHECKPOINT_PERIOD_ENTRIES),
               time));
         }
       }
-
 
       return response;
     }, ServerConfiguration.global());
@@ -1096,7 +1096,6 @@ public final class AlluxioMasterRestServiceHandler {
         time = "N/A";
       }
       response.setJournalLastCheckpointTime(time);
-
 
       return response;
     }, ServerConfiguration.global());

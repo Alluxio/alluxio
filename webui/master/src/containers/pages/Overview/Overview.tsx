@@ -141,7 +141,7 @@ export class OverviewPresenter extends React.Component<AllProps> {
     }
 
     return (
-      <tr key="0">
+      <tr key="journal-ckpt-warning-0">
         <td colSpan={2} className={className}>
           {warning}
         </td>
