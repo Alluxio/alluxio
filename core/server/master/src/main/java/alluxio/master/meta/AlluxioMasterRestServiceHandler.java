@@ -345,10 +345,10 @@ public final class AlluxioMasterRestServiceHandler {
               + "prevent the master from serving requests while checkpointing.";
           response.setJournalCheckpointTimeWarning(String.format("Journal has not checkpointed in "
               + "a timely manner since passing the checkpoint threshold (%d/%d). Last checkpoint:"
-              + " %s. t is recommended to use the fsadmin tool to force a checkpoint. " + advice,
+              + " %s. %s",
               entriesSinceCkpt,
               ServerConfiguration.getLong(PropertyKey.MASTER_JOURNAL_CHECKPOINT_PERIOD_ENTRIES),
-              time));
+              time, advice));
         }
       }
 
