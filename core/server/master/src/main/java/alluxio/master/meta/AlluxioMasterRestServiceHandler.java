@@ -1082,20 +1082,26 @@ public final class AlluxioMasterRestServiceHandler {
         response.setJournalDiskMetrics(Collections.emptyList());
       }
 
-      long lastCheckpointTime =
-          (Long) gauges.get(MetricKey.MASTER_JOURNAL_LAST_CHECKPOINT_TIME.getName()).getValue();
-      long entriesSinceCheckpoint =
-          (Long) gauges.get(MetricKey.MASTER_JOURNAL_ENTRIES_SINCE_CHECKPOINT.getName()).getValue();
-      response.setJournalEntriesSinceCheckpoint(entriesSinceCheckpoint);
-      String time;
-      if (lastCheckpointTime > 0) {
-        time = ZonedDateTime
-            .ofInstant(Instant.ofEpochMilli(lastCheckpointTime), ZoneOffset.UTC)
-            .format(DateTimeFormatter.ISO_INSTANT);
-      } else {
-        time = "N/A";
+      Gauge lastCheckpointTimeGauge =
+          gauges.get(MetricKey.MASTER_JOURNAL_LAST_CHECKPOINT_TIME.getName());
+      Gauge entriesSinceCheckpointGauge =
+          gauges.get(MetricKey.MASTER_JOURNAL_ENTRIES_SINCE_CHECKPOINT.getName());
+
+      if (entriesSinceCheckpointGauge != null) {
+        response.setJournalEntriesSinceCheckpoint((long) entriesSinceCheckpointGauge.getValue());
       }
-      response.setJournalLastCheckpointTime(time);
+      if (lastCheckpointTimeGauge != null) {
+        long lastCheckpointTime = (long) lastCheckpointTimeGauge.getValue();
+        String time;
+        if (lastCheckpointTime > 0) {
+          time = ZonedDateTime
+              .ofInstant(Instant.ofEpochMilli(lastCheckpointTime), ZoneOffset.UTC)
+              .format(DateTimeFormatter.ISO_INSTANT);
+        } else {
+          time = "N/A";
+        }
+        response.setJournalLastCheckpointTime(time);
+      }
 
       return response;
     }, ServerConfiguration.global());
