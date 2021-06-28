@@ -377,7 +377,8 @@ public final class AlluxioMasterRestServiceHandler {
             if (requestOffset != null) {
               relativeOffset = Long.parseLong(requestOffset);
             }
-          } catch (NumberFormatException ignored) {
+          } catch (NumberFormatException e) {
+            // ignore the exception
           }
           // If no param "end" presents, the offset is relative to the beginning; otherwise, it is
           // relative to the end of the file.
@@ -696,7 +697,8 @@ public final class AlluxioMasterRestServiceHandler {
             if (requestOffset != null) {
               relativeOffset = Long.parseLong(requestOffset);
             }
-          } catch (NumberFormatException ignored) {
+          } catch (NumberFormatException e) {
+            // ignore the exception
           }
           // If no param "end" presents, the offset is relative to the beginning; otherwise, it is
           // relative to the end of the file.
