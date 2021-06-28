@@ -340,9 +340,12 @@ public final class AlluxioMasterRestServiceHandler {
           String time = lastCkptTime > 0 ? ZonedDateTime
               .ofInstant(Instant.ofEpochMilli(lastCkptTime), ZoneOffset.UTC)
               .format(DateTimeFormatter.ISO_INSTANT) : "N/A";
+          String advice = ConfigurationUtils.isHaMode(ServerConfiguration.global()) ? ""
+              : "It is recommended to use the fsadmin tool to checkpoint the journal. This will "
+              + "prevent the master from serving requests while checkpointing.";
           response.setJournalCheckpointTimeWarning(String.format("Journal has not checkpointed in "
               + "a timely manner since passing the checkpoint threshold (%d/%d). Last checkpoint:"
-              + " %s. It is recommended to use the fsadmin tool to force a checkpoint.",
+              + " %s. t is recommended to use the fsadmin tool to force a checkpoint. " + advice,
               entriesSinceCkpt,
               ServerConfiguration.getLong(PropertyKey.MASTER_JOURNAL_CHECKPOINT_PERIOD_ENTRIES),
               time));
