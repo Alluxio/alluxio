@@ -40,6 +40,14 @@ public class UdbConfiguration extends BaseConfiguration<UdbProperty> {
   protected final UdbBypassSpec mBypassSpec;
 
   /**
+   * Creates an instance with empty UdbBypassSpec.
+   * @param values the map of values
+   */
+  public UdbConfiguration(Map<String, String> values) {
+    this(values, UdbBypassSpec.empty());
+  }
+
+  /**
    * Creates an instance.
    *
    * @param values the map of values
@@ -103,6 +111,9 @@ public class UdbConfiguration extends BaseConfiguration<UdbProperty> {
     return map;
   }
 
+  /**
+   * @return UDB bypass spec
+   */
   public UdbBypassSpec getBypassSpec() {
     return mBypassSpec;
   }

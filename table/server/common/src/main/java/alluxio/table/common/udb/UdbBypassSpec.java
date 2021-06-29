@@ -27,7 +27,7 @@ public final class UdbBypassSpec {
    */
   private final Map<String, Set<String>> mTablePartMap;
 
-  private final static UdbBypassSpec EMPTY_SPEC = new UdbBypassSpec(ImmutableMap.of());
+  private static final UdbBypassSpec EMPTY_SPEC = new UdbBypassSpec(ImmutableMap.of());
 
   /**
    * Return an empty spec that contains no bypassed tables or partitions.
