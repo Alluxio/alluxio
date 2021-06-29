@@ -19,7 +19,6 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
-import org.mockito.Mockito;
 
 import java.io.IOException;
 
@@ -110,6 +109,8 @@ public class PathTranslatorTest {
     mTranslator.addMapping("alluxio:///table_b", "ufs://a/table11");
     assertEquals("alluxio:///table_b/part1",
         mTranslator.toAlluxioPath("ufs://a/table11/part1"));
+    assertEquals("alluxio:///table_a/part1",
+        mTranslator.toAlluxioPath("ufs://a/table1/part1"));
   }
 
   @Test
@@ -155,18 +156,17 @@ public class PathTranslatorTest {
 
   @Test
   public void alluxioUriPurePath() throws Exception {
+    PathTranslator.sSchemeAuthorityPrefix = "alluxio://master";
     mTranslator.addMapping("/db1/tables/table1", "ufs://a/db1/table1");
-    PathTranslator spy = Mockito.spy(mTranslator);
-    Mockito.doReturn("alluxio://master").when(spy).getSchemeAuthority();
     // non-exact match
     assertEquals("alluxio://master/db1/tables/table1/part1",
-        spy.toAlluxioPath("ufs://a/db1/table1/part1"));
+        mTranslator.toAlluxioPath("ufs://a/db1/table1/part1"));
     // exact match
     assertEquals("alluxio://master/db1/tables/table1",
-        spy.toAlluxioPath("ufs://a/db1/table1"));
+        mTranslator.toAlluxioPath("ufs://a/db1/table1"));
     // trailing slash is preserved
     assertEquals("alluxio://master/db1/tables/table1/",
-        spy.toAlluxioPath("ufs://a/db1/table1/"));
+        mTranslator.toAlluxioPath("ufs://a/db1/table1/"));
   }
 
   @Test

@@ -33,6 +33,9 @@ public class PathTranslator {
 
   private final BiMap<AlluxioURI, AlluxioURI> mPathMap;
 
+  @VisibleForTesting
+  static String sSchemeAuthorityPrefix = null;
+
   /**
    * Construct a path translator.
    */
@@ -105,16 +108,15 @@ public class PathTranslator {
     }
   }
 
-  private AlluxioURI checkAndAddSchemeAuthority(AlluxioURI input) {
+  private static AlluxioURI checkAndAddSchemeAuthority(AlluxioURI input) {
     if (!input.hasScheme()) {
-      AlluxioURI baseUri = new AlluxioURI(getSchemeAuthority() + "/");
+      if (sSchemeAuthorityPrefix == null) {
+        sSchemeAuthorityPrefix =
+            ConfigurationUtils.getSchemeAuthority(ServerConfiguration.global());
+      }
+      AlluxioURI baseUri = new AlluxioURI(sSchemeAuthorityPrefix);
       return new AlluxioURI(baseUri, input.getPath(), false);
     }
     return input;
-  }
-
-  @VisibleForTesting
-  String getSchemeAuthority() {
-    return ConfigurationUtils.getSchemeAuthority(ServerConfiguration.global());
   }
 }
