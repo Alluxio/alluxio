@@ -53,10 +53,4 @@ public interface UnderDatabase {
    * @return get database info
    */
   DatabaseInfo getDatabaseInfo() throws IOException;
-
-  /**
-   * Update configuration for the UDB.
-   * @param configuration the configuration
-   */
-  void setUdbConfiguration(UdbConfiguration configuration);
 }

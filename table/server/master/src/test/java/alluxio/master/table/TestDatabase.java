@@ -150,9 +150,4 @@ public class TestDatabase implements UnderDatabase {
   public DatabaseInfo getDatabaseInfo() {
     return sTestDbInfo;
   }
-
-  @Override
-  public void setUdbConfiguration(UdbConfiguration config) {
-    // do nothing
-  }
 }

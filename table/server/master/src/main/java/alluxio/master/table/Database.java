@@ -23,7 +23,6 @@ import alluxio.master.journal.Journaled;
 import alluxio.master.journal.checkpoint.CheckpointName;
 import alluxio.proto.journal.Journal;
 import alluxio.resource.CloseableIterator;
-import alluxio.table.common.udb.UdbConfiguration;
 import alluxio.table.common.udb.UdbContext;
 import alluxio.table.common.udb.UdbTable;
 import alluxio.table.common.udb.UnderDatabase;
@@ -201,10 +200,6 @@ public class Database implements Journaled {
     // Keep track of the status of each syncing table.
     // Synchronization is necessary if accessed concurrently from multiple threads
     SyncStatus.Builder builder = SyncStatus.newBuilder();
-
-    // update UDB config, for now the config file will be updated
-    UdbConfiguration udbConfiguration = mConfig.getUdbConfiguration(mType);
-    mUdb.setUdbConfiguration(udbConfiguration);
 
     DatabaseInfo newDbInfo = mUdb.getDatabaseInfo();
     if (!newDbInfo.equals(mDatabaseInfo)) {
