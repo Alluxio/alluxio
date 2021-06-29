@@ -1077,6 +1077,42 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setMetricType(MetricType.GAUGE)
           .setIsClusterAggregated(false)
           .build();
+  public static final MetricKey WORKER_CACHE_DUPLICATE_REQUESTS =
+          new Builder("Worker.CacheDuplicateRequests")
+                  .setDescription("Total number of duplicated cache request received by this worker")
+                  .setMetricType(MetricType.COUNTER)
+                  .setIsClusterAggregated(false)
+                  .build();
+  public static final MetricKey WORKER_CACHE_FAILED_BLOCKS =
+          new Builder("Worker.CacheFailedBlocks")
+                  .setDescription("Total number of async cache blocks in this worker")
+                  .setMetricType(MetricType.COUNTER)
+                  .setIsClusterAggregated(false)
+                  .build();
+  public static final MetricKey WORKER_CACHE_REMOTE_BLOCKS =
+          new Builder("Worker.CacheRemoteBlocks")
+                  .setDescription("Total number of blocks that need to be cached from remote source")
+                  .setMetricType(MetricType.COUNTER)
+                  .setIsClusterAggregated(false)
+                  .build();
+  public static final MetricKey WORKER_CACHE_REQUESTS =
+          new Builder("Worker.CacheRequests")
+                  .setDescription("Total number of cache request received by this worker")
+                  .setMetricType(MetricType.COUNTER)
+                  .setIsClusterAggregated(false)
+                  .build();
+  public static final MetricKey WORKER_CACHE_SUCCEEDED_BLOCKS =
+          new Builder("Worker.CacheSucceededBlocks")
+                  .setDescription("Total number of cache succeeded blocks in this worker")
+                  .setMetricType(MetricType.COUNTER)
+                  .setIsClusterAggregated(false)
+                  .build();
+  public static final MetricKey WORKER_CACHE_UFS_BLOCKS =
+          new Builder("Worker.CacheUfsBlocks")
+                  .setDescription("Total number of blocks that need to be cached from local source")
+                  .setMetricType(MetricType.COUNTER)
+                  .setIsClusterAggregated(false)
+                  .build();
   public static final MetricKey WORKER_BLOCK_REMOVER_TRY_REMOVE_COUNT =
       new Builder("Worker.BlockRemoverTryRemoveCount")
           .setDescription("The total number of blocks this worker attempted to remove "
