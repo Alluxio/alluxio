@@ -12,6 +12,7 @@
 package alluxio.master.journal.raft;
 
 import alluxio.ClientContext;
+import alluxio.Constants;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.exception.status.AbortedException;
@@ -451,6 +452,7 @@ public class SnapshotReplicationManager {
                   .build()))));
       // no follower in the cluster
       if (jobs.isEmpty()) {
+        CommonUtils.sleepMs(Constants.SECOND_MS);
         transitionState(DownloadState.REQUEST_INFO, DownloadState.IDLE);
         return;
       }
