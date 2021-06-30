@@ -23,7 +23,7 @@ You need to deploy `alluxio-csi-controller`, `alluxio-csi-nodeplugin`, `alluxio-
 We provide two types of provisioning methods. For static provisioning, you need to create `PersistentVolume` and `PersistentVolumeClaim` first.
 For dynamic provisioning, you need to create `StorageClass` and  `PersistentVolumeClaim`.
 
-All these examples will be gernerated after run `helm-generate.sh`.
+All these examples will be gernerated after running `helm-generate.sh`.
 
 ### Configuration
 
