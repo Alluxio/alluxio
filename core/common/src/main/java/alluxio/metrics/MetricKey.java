@@ -782,6 +782,11 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setDescription("Bytes write per minute throughput to all Alluxio UFSes by all workers")
           .setMetricType(MetricType.GAUGE)
           .build();
+  public static final MetricKey CLUSTER_CACHE_HIT_RATE =
+      new Builder("Cluster.CacheHitRate")
+          .setDescription("Cache hit rate: (# bytes read from cache) / (# bytes requested)")
+          .setMetricType(MetricType.GAUGE)
+          .build();
   public static final MetricKey CLUSTER_CAPACITY_TOTAL =
       new Builder("Cluster.CapacityTotal")
           .setDescription("Total capacity (in bytes) on all tiers, on all workers of Alluxio")

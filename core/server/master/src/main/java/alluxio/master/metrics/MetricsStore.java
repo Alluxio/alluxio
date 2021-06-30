@@ -172,9 +172,9 @@ public class MetricsStore {
 
   /**
    * Inits the metrics store.
-   * Defines the cluster metrics counters.
+   * Defines the cluster metrics metrics.
    */
-  public void initCounterKeys() {
+  public void initMetricKeys() {
     try (LockResource r = new LockResource(mLock.readLock())) {
       // worker metrics
       mClusterCounters.putIfAbsent(new ClusterCounterKey(InstanceType.WORKER,
@@ -215,6 +215,21 @@ public class MetricsStore {
       mClusterCounters.putIfAbsent(new ClusterCounterKey(InstanceType.CLUSTER,
           MetricKey.CLUSTER_BYTES_WRITTEN_UFS_ALL.getName()),
           MetricsSystem.counter(MetricKey.CLUSTER_BYTES_WRITTEN_UFS_ALL.getName()));
+
+      MetricsSystem.registerGaugeIfAbsent(
+          MetricsSystem.getMetricName(MetricKey.CLUSTER_CACHE_HIT_RATE.getName()),
+          () -> {
+            long cacheMisses = MetricsSystem.counter(MetricKey.CLUSTER_BYTES_READ_UFS_ALL.getName())
+                .getCount();
+            long total =
+                MetricsSystem.counter(MetricKey.CLUSTER_BYTES_READ_DIRECT.getName()).getCount()
+                + MetricsSystem.counter(MetricKey.CLUSTER_BYTES_READ_REMOTE.getName()).getCount()
+                + MetricsSystem.counter(MetricKey.CLUSTER_BYTES_READ_DOMAIN.getName()).getCount();
+            if (total > 0) {
+              return 1 - cacheMisses / (1.0 * total);
+            }
+            return 0;
+          });
     }
   }
 
