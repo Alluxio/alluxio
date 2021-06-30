@@ -25,6 +25,7 @@ import alluxio.client.metrics.MetricsHeartbeatContext;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.path.SpecificPathConfiguration;
+import alluxio.conf.reconf.ReconfigurableModel;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.exception.status.UnavailableException;
@@ -385,6 +386,7 @@ public class FileSystemContext implements Closeable {
       LOG.debug("Reinitializing FileSystemContext: update cluster conf: {}, update path conf:"
           + " {}", updateClusterConf, updateClusterConf);
       closeContext();
+      ReconfigurableModel.getInstance().propertyChange();
       initContext(getClientContext(), MasterInquireClient.Factory.create(getClusterConf(),
           getClientContext().getUserState()));
       LOG.debug("FileSystemContext re-initialized");
