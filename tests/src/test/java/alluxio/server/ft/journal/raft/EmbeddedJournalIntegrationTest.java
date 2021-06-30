@@ -42,8 +42,8 @@ import alluxio.util.network.NetworkAddressUtils;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.ratis.protocol.Message;
-import org.apache.ratis.server.impl.RaftServerConstants;
-import org.apache.ratis.server.storage.RaftStorage;
+import org.apache.ratis.server.RaftServerConfigKeys;
+import org.apache.ratis.server.storage.RaftStorageImpl;
 import org.apache.ratis.statemachine.impl.SimpleStateMachineStorage;
 import org.apache.ratis.statemachine.impl.SingleFileSnapshotInfo;
 import org.junit.After;
@@ -139,7 +139,8 @@ public final class EmbeddedJournalIntegrationTest extends BaseIntegrationTest {
     mCluster.stopMasters();
 
     SimpleStateMachineStorage storage = new SimpleStateMachineStorage();
-    storage.init(new RaftStorage(raftDir, RaftServerConstants.StartupOption.REGULAR));
+    storage.init(new RaftStorageImpl(raftDir,
+            RaftServerConfigKeys.Log.CorruptionPolicy.getDefault()));
     SingleFileSnapshotInfo snapshot = storage.findLatestSnapshot();
     assertNotNull(snapshot);
     mCluster.notifySuccess();
@@ -178,7 +179,8 @@ public final class EmbeddedJournalIntegrationTest extends BaseIntegrationTest {
     waitForSnapshot(raftDir);
     mCluster.stopMaster(catchUpMasterIndex);
     SimpleStateMachineStorage storage = new SimpleStateMachineStorage();
-    storage.init(new RaftStorage(raftDir, RaftServerConstants.StartupOption.REGULAR));
+    storage.init(new RaftStorageImpl(raftDir,
+            RaftServerConfigKeys.Log.CorruptionPolicy.getDefault()));
     SingleFileSnapshotInfo snapshot = storage.findLatestSnapshot();
     assertNotNull(snapshot);
     mCluster.notifySuccess();
