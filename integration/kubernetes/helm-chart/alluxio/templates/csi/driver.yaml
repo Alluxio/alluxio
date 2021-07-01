@@ -15,6 +15,7 @@ kind: CSIDriver
 metadata:
   name: alluxio
 spec:
+  # used by CSI developer
   attachRequired: false
   podInfoOnMount: true
 {{- end }}
