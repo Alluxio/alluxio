@@ -268,7 +268,7 @@ public class UfsJournal implements Journal {
 
     nextSequenceNumber = catchUp(nextSequenceNumber);
     mWriter = new UfsJournalLogWriter(this, nextSequenceNumber);
-    mAsyncWriter = new AsyncJournalWriter(mWriter, mJournalSinks);
+    mAsyncWriter = new AsyncJournalWriter(mWriter, mJournalSinks, mMaster.getName());
     mState.set(State.PRIMARY);
     LOG.info("{}: journal switched to primary mode. location: {}", mMaster.getName(), mLocation);
   }
