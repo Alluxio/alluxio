@@ -89,7 +89,7 @@ public class StressClientIOBench extends Benchmark<ClientIOTaskResult> {
           .format("File size (%s) must be larger than buffer size (%s)", mParameters.mFileSize,
               mParameters.mBufferSize));
     }
-    if (mParameters.mOperation == ClientIOOperation.Write) {
+    if (mParameters.mOperation == ClientIOOperation.WRITE) {
       LOG.warn("Cannot write repeatedly, so warmup is not possible. Setting warmup to 0s.");
       mParameters.mWarmup = "0s";
     }
@@ -367,7 +367,7 @@ public class StressClientIOBench extends Benchmark<ClientIOTaskResult> {
           if (ioBytes > 0) {
             mThreadCountResult.incrementIOBytes(ioBytes);
           }
-          if (mParameters.mOperation == ClientIOOperation.Write && ioBytes < 0) {
+          if (mParameters.mOperation == ClientIOOperation.WRITE && ioBytes < 0) {
             // done writing. done with the thread.
             break;
           }
@@ -395,7 +395,7 @@ public class StressClientIOBench extends Benchmark<ClientIOTaskResult> {
       }
 
       switch (mParameters.mOperation) {
-        case ReadArray: {
+        case READ_ARRAY: {
           int bytesRead = mInStream.read(mBuffer);
           if (bytesRead < 0) {
             closeInStream();
@@ -403,7 +403,7 @@ public class StressClientIOBench extends Benchmark<ClientIOTaskResult> {
           }
           return bytesRead;
         }
-        case ReadByteBuffer: {
+        case READ_BYTE_BUFFER: {
           int bytesRead = mInStream.read(mByteBuffer);
           if (bytesRead < 0) {
             closeInStream();
@@ -411,7 +411,7 @@ public class StressClientIOBench extends Benchmark<ClientIOTaskResult> {
           }
           return bytesRead;
         }
-        case ReadFully: {
+        case READ_FULLY: {
           int toRead = Math.min(mBuffer.length, (int) (mFileSize - mInStream.getPos()));
           mInStream.readFully(mBuffer, 0, toRead);
           if (mInStream.getPos() == mFileSize) {
@@ -420,14 +420,14 @@ public class StressClientIOBench extends Benchmark<ClientIOTaskResult> {
           }
           return toRead;
         }
-        case PosRead: {
+        case POS_READ: {
           return mInStream.read(mCurrentOffset, mBuffer, 0, mBuffer.length);
         }
-        case PosReadFully: {
+        case POS_READ_FULLY: {
           mInStream.readFully(mCurrentOffset, mBuffer, 0, mBuffer.length);
           return mBuffer.length;
         }
-        case Write: {
+        case WRITE: {
           if (mOutStream == null) {
             mOutStream = mFs.create(mFilePath, false, mBuffer.length, (short) 1, mBlockSize);
           }

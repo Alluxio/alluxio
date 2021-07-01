@@ -4548,9 +4548,14 @@ public final class DefaultFileSystemMaster extends CoreMaster
    */
   private FileSystemMasterAuditContext createAuditContext(String command, AlluxioURI srcPath,
       @Nullable AlluxioURI dstPath, @Nullable Inode srcInode) {
+    // Audit log may be enabled during runtime
+    AsyncUserAccessAuditLogWriter auditLogWriter = null;
+    if (ServerConfiguration.getBoolean(PropertyKey.MASTER_AUDIT_LOGGING_ENABLED)) {
+      auditLogWriter = mAsyncAuditLogWriter;
+    }
     FileSystemMasterAuditContext auditContext =
-        new FileSystemMasterAuditContext(mAsyncAuditLogWriter);
-    if (mAsyncAuditLogWriter != null) {
+        new FileSystemMasterAuditContext(auditLogWriter);
+    if (auditLogWriter != null) {
       String user = null;
       String ugi = "";
       try {

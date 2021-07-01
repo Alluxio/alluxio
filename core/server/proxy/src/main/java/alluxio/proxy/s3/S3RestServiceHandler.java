@@ -559,12 +559,14 @@ public final class S3RestServiceHandler {
    * @param bucket the bucket name
    * @param object the object name
    * @param uploadId the ID of the multipart upload, if not null, listing parts of the object
+   * @param range the http range header
    * @return the response object
    */
   @GET
   @Path(OBJECT_PARAM)
   @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_OCTET_STREAM})
   public Response getObjectOrListParts(@HeaderParam("Authorization") String authorization,
+                                       @HeaderParam("Range") final String range,
                                        @PathParam("bucket") final String bucket,
                                        @PathParam("object") final String object,
                                        @QueryParam("uploadId") final Long uploadId) {
@@ -576,7 +578,7 @@ public final class S3RestServiceHandler {
     if (uploadId != null) {
       return listParts(fs, bucket, object, uploadId);
     } else {
-      return getObject(fs, bucket, object);
+      return getObject(fs, bucket, object, range);
     }
   }
 
@@ -619,7 +621,8 @@ public final class S3RestServiceHandler {
 
   private Response getObject(final FileSystem fs,
                              final String bucket,
-                             final String object) {
+                             final String object,
+                             final String range) {
     return S3RestUtils.call(bucket, new S3RestUtils.RestCallable<Response>() {
       @Override
       public Response call() throws S3Exception {
@@ -632,11 +635,13 @@ public final class S3RestServiceHandler {
         try {
           URIStatus status = fs.getStatus(objectURI);
           FileInStream is = fs.openFile(objectURI);
+          S3RangeSpec s3Range = S3RangeSpec.Factory.create(range);
+          RangeFileInStream ris = RangeFileInStream.Factory.create(is, status.getLength(), s3Range);
           // TODO(cc): Consider how to respond with the object's ETag.
-          return Response.ok(is)
+          return Response.ok(ris)
               .lastModified(new Date(status.getLastModificationTimeMs()))
               .header(S3Constants.S3_ETAG_HEADER, "\"" + status.getLastModificationTimeMs() + "\"")
-              .header(S3Constants.S3_CONTENT_LENGTH_HEADER, status.getLength())
+              .header(S3Constants.S3_CONTENT_LENGTH_HEADER, s3Range.getLength(status.getLength()))
               .build();
         } catch (Exception e) {
           throw toObjectS3Exception(e, objectPath);

@@ -606,6 +606,34 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
     mPathProperties.resetState();
   }
 
+  @Override
+  public Map<String, Boolean> updateConfiguration(Map<String, String> propertiesMap) {
+    Map<String, Boolean> result = new HashMap<>();
+    int successCount = 0;
+    for (Map.Entry<String, String> entry : propertiesMap.entrySet()) {
+      try {
+        PropertyKey key = PropertyKey.fromString(entry.getKey());
+        if (ServerConfiguration.getBoolean(PropertyKey.CONF_DYNAMIC_UPDATE_ENABLED)
+            && key.isDynamic()) {
+          String oldValue = ServerConfiguration.get(key);
+          ServerConfiguration.set(key, entry.getValue(), Source.RUNTIME);
+          result.put(entry.getKey(), true);
+          successCount++;
+          LOG.info("Property {} has been updated to \"{}\" from \"{}\"",
+              key.getName(), entry.getValue(), oldValue);
+        } else {
+          LOG.debug("Update a non-dynamic property {} is not allowed", key.getName());
+          result.put(entry.getKey(), false);
+        }
+      } catch (Exception e) {
+        result.put(entry.getKey(), false);
+        LOG.error("Failed to update property {} to {}", entry.getKey(), entry.getValue(), e);
+      }
+    }
+    LOG.debug("Update {} properties, succeed {}.", propertiesMap.size(), successCount);
+    return result;
+  }
+
   /**
    * Lost master periodic check.
    */

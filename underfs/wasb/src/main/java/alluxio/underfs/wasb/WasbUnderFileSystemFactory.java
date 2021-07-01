@@ -12,6 +12,7 @@
 package alluxio.underfs.wasb;
 
 import alluxio.AlluxioURI;
+import alluxio.Constants;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.underfs.UnderFileSystemFactory;
@@ -40,7 +41,7 @@ public class WasbUnderFileSystemFactory implements UnderFileSystemFactory {
   @Override
   public boolean supportsPath(String path) {
     return path != null
-            && (path.startsWith(WasbUnderFileSystem.SCHEME_SECURE)
-            || path.startsWith(WasbUnderFileSystem.SCHEME_INSECURE));
+            && (path.startsWith(Constants.HEADER_WASB)
+            || path.startsWith(Constants.HEADER_WASBS));
   }
 }

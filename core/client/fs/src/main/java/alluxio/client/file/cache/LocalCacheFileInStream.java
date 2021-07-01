@@ -20,7 +20,6 @@ import alluxio.conf.PropertyKey;
 import alluxio.exception.AlluxioException;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
-import alluxio.util.io.BufferUtils;
 
 import com.codahale.metrics.Meter;
 import com.google.common.base.Preconditions;
@@ -29,6 +28,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.nio.ByteBuffer;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -42,7 +42,6 @@ public class LocalCacheFileInStream extends FileInStream {
   /** Page size in bytes. */
   protected final long mPageSize;
 
-  private final byte[] mSingleByte = new byte[1];
   private final Closer mCloser = Closer.create();
 
   /** Local store to store pages. */
@@ -102,36 +101,38 @@ public class LocalCacheFileInStream extends FileInStream {
   }
 
   @Override
-  public int read() throws IOException {
-    int bytesRead = read(mSingleByte);
-    if (bytesRead == -1) {
-      return -1;
-    }
-    Preconditions.checkState(bytesRead == 1);
-    return BufferUtils.byteToInt(mSingleByte[0]);
-  }
-
-  @Override
-  public int read(byte[] b) throws IOException {
-    return read(b, 0, b.length);
-  }
-
-  @Override
   public int read(byte[] b, int off, int len) throws IOException {
+    return readInternal(b, off, len, ReadType.READ_INTO_BYTE_ARRAY, mPosition, false);
+  }
+
+  @Override
+  public int read(ByteBuffer buf, int off, int len) throws IOException {
+    byte[] b = new byte[buf.remaining()];
+    int totalBytesRead =
+        readInternal(b, off, len, ReadType.READ_INTO_BYTE_BUFFER, mPosition, false);
+    buf.put(b, off, len);
+    return totalBytesRead;
+  }
+
+  // TODO(binfan): take ByteBuffer once CacheManager takes ByteBuffer to avoid extra mem copy
+  private int readInternal(byte[] b, int off, int len, ReadType readType, long pos,
+      boolean isPositionedRead) throws IOException {
     Preconditions.checkArgument(len >= 0, "length should be non-negative");
     Preconditions.checkArgument(off >= 0, "offset should be non-negative");
+    Preconditions.checkArgument(pos >= 0, "position should be non-negative");
     if (len == 0) {
       return 0;
     }
-    if (mPosition >= mStatus.getLength()) { // at end of file
+    if (pos >= mStatus.getLength()) { // at end of file
       return -1;
     }
     int totalBytesRead = 0;
-    long lengthToRead = Math.min(len, mStatus.getLength() - mPosition);
+    long currentPosition = pos;
+    long lengthToRead = Math.min(len, mStatus.getLength() - pos);
     // for each page, check if it is available in the cache
     while (totalBytesRead < lengthToRead) {
-      long currentPage = mPosition / mPageSize;
-      int currentPageOffset = (int) (mPosition % mPageSize);
+      long currentPage = currentPosition / mPageSize;
+      int currentPageOffset = (int) (currentPosition % mPageSize);
       int bytesLeftInPage =
           (int) Math.min(mPageSize - currentPageOffset, lengthToRead - totalBytesRead);
       PageId pageId = new PageId(mStatus.getFileIdentifier(), currentPage);
@@ -139,22 +140,25 @@ public class LocalCacheFileInStream extends FileInStream {
           mCacheManager.get(pageId, currentPageOffset, bytesLeftInPage, b, off + totalBytesRead);
       if (bytesRead > 0) {
         totalBytesRead += bytesRead;
-        mPosition += bytesRead;
+        currentPosition += bytesRead;
         Metrics.BYTES_READ_CACHE.mark(bytesRead);
       } else {
         // on local cache miss, read a complete page from external storage. This will always make
         // progress or throw an exception
-        byte[] page = readExternalPage(mPosition);
+        byte[] page = readExternalPage(currentPosition, readType);
         if (page.length > 0) {
           System.arraycopy(page, currentPageOffset, b, off + totalBytesRead, bytesLeftInPage);
           totalBytesRead += bytesLeftInPage;
-          mPosition += bytesLeftInPage;
+          currentPosition += bytesLeftInPage;
           Metrics.BYTES_REQUESTED_EXTERNAL.mark(bytesLeftInPage);
           mCacheManager.put(pageId, page, mCacheScope, mCacheQuota);
         }
       }
+      if (!isPositionedRead) {
+        mPosition = currentPosition;
+      }
     }
-    if (totalBytesRead > len || (totalBytesRead < len && remaining() > 0)) {
+    if (totalBytesRead > len || (totalBytesRead < len && currentPosition < mStatus.getLength())) {
       throw new IOException(String.format("Invalid number of bytes read - "
           + "bytes to read = %d, actual bytes read = %d, bytes remains in file %d",
           len, totalBytesRead, remaining()));
@@ -185,52 +189,7 @@ public class LocalCacheFileInStream extends FileInStream {
 
   @Override
   public int positionedRead(long pos, byte[] b, int off, int len) throws IOException {
-    Preconditions.checkArgument(len >= 0, "length should be non-negative");
-    Preconditions.checkArgument(off >= 0, "offset should be non-negative");
-    Preconditions.checkArgument(pos >= 0, "position should be non-negative");
-    if (len == 0) {
-      return 0;
-    }
-    if (pos < 0 || pos >= mStatus.getLength()) { // at end of file
-      return -1;
-    }
-    int totalBytesRead = 0;
-    long currentPosition = pos;
-    long lengthToRead = Math.min(len, mStatus.getLength() - pos);
-    // for each page, check if it is available in the cache
-    while (totalBytesRead < lengthToRead) {
-      long currentPage = currentPosition / mPageSize;
-      int currentPageOffset = (int) (currentPosition % mPageSize);
-      int bytesLeftInPage =
-          (int) Math.min(mPageSize - currentPageOffset, lengthToRead - totalBytesRead);
-      PageId pageId = new PageId(mStatus.getFileIdentifier(), currentPage);
-      int bytesRead =
-          mCacheManager.get(pageId, currentPageOffset, bytesLeftInPage, b, off + totalBytesRead);
-      if (bytesRead > 0) {
-        totalBytesRead += bytesRead;
-        currentPosition += bytesRead;
-        Metrics.BYTES_READ_CACHE.mark(bytesRead);
-      } else {
-        // on local cache miss, read a complete page from external storage. This will always make
-        // progress or throw an exception
-        byte[] page = readExternalPage(currentPosition);
-        if (page.length > 0) {
-          System.arraycopy(page, currentPageOffset, b, off + totalBytesRead, bytesLeftInPage);
-          totalBytesRead += bytesLeftInPage;
-          currentPosition += bytesLeftInPage;
-          Metrics.BYTES_REQUESTED_EXTERNAL.mark(bytesLeftInPage);
-          mCacheManager.put(pageId, page, mCacheScope, mCacheQuota);
-        }
-      }
-    }
-    if (totalBytesRead > len || (totalBytesRead < len && currentPosition < mStatus.getLength())) {
-      throw new IOException(String.format(
-          "Invalid number of bytes positionread - read from position = %d, "
-              + "bytes to read = %d, actual bytes read = %d, bytes remains in file %d",
-          pos, len, totalBytesRead, mStatus.getLength() - currentPosition)
-      );
-    }
-    return totalBytesRead;
+    return readInternal(b, off, len, ReadType.READ_INTO_BYTE_ARRAY, pos, true);
   }
 
   @Override
@@ -263,7 +222,7 @@ public class LocalCacheFileInStream extends FileInStream {
 
   /**
    * Convenience method to get external file reader with lazy init.
-   *
+   * <p>
    * // TODO(calvin): Evaluate if using positioned read to allow for more concurrency is worthwhile
    *
    * @param pos position to set the external stream to
@@ -287,26 +246,37 @@ public class LocalCacheFileInStream extends FileInStream {
   /**
    * Reads a page from external storage which contains the position specified. Note that this makes
    * a copy of the page.
-   *
+   * <p>
    * This method is synchronized to ensure thread safety for positioned reads. Only a single thread
    * should call this method at a time because the underlying state (mExternalFileInStream) is
    * shared. Another way would be to use positioned reads instead of seek and read, but that assumes
    * the underlying FileInStream implements thread safe positioned reads which are not much more
    * expensive than seek and read.
-   *
+   * <p>
    * TODO(calvin): Consider a more efficient API which does not require a data copy.
    *
    * @param pos the position which the page will contain
    * @return a byte array of the page data
    */
-  private synchronized byte[] readExternalPage(long pos) throws IOException {
+  private synchronized byte[] readExternalPage(long pos, ReadType readType) throws IOException {
     long pageStart = pos - (pos % mPageSize);
     FileInStream stream = getExternalFileInStream(pageStart);
     int pageSize = (int) Math.min(mPageSize, mStatus.getLength() - pageStart);
     byte[] page = new byte[pageSize];
+    ByteBuffer buffer = readType == ReadType.READ_INTO_BYTE_BUFFER ? ByteBuffer.wrap(page) : null;
     int totalBytesRead = 0;
     while (totalBytesRead < pageSize) {
-      int bytesRead = stream.read(page, totalBytesRead, pageSize - totalBytesRead);
+      int bytesRead;
+      switch (readType) {
+        case READ_INTO_BYTE_ARRAY:
+          bytesRead = stream.read(page, totalBytesRead, pageSize - totalBytesRead);
+          break;
+        case READ_INTO_BYTE_BUFFER:
+          bytesRead = stream.read(buffer);
+          break;
+        default:
+          throw new IOException("unsupported read type = " + readType);
+      }
       if (bytesRead <= 0) {
         break;
       }
@@ -345,5 +315,16 @@ public class LocalCacheFileInStream extends FileInStream {
             return 0;
           });
     }
+  }
+
+  enum ReadType {
+    /**
+     * read some number of bytes from the input stream and stores them into the buffer array.
+     */
+    READ_INTO_BYTE_ARRAY,
+    /**
+     * read some number of bytes from the input stream and stores them into the ByteBuffer.
+     */
+    READ_INTO_BYTE_BUFFER
   }
 }

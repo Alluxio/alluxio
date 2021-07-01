@@ -104,7 +104,7 @@ public interface PageStore extends AutoCloseable {
         try {
           FileUtils.deletePathRecursively(path.toString());
         } catch (IOException e) {
-          Metrics.UNREMOVABLE_FILES.inc();
+          Metrics.CACHE_CLEAN_ERRORS.inc();
           LOG.warn("failed to delete {} in cache directory: {}", path, e.toString());
         }
       });
@@ -177,8 +177,11 @@ public interface PageStore extends AutoCloseable {
    * Metrics.
    */
   final class Metrics {
-    /** Number of unremovable files in the cache. */
-    private static final Counter UNREMOVABLE_FILES =
-        MetricsSystem.counter(MetricKey.CLIENT_CACHE_UNREMOVABLE_FILES.getName());
+    /**
+     * Number of failures when cleaning out the existing cache directory
+     * to initialize a new cache.
+     */
+    private static final Counter CACHE_CLEAN_ERRORS =
+        MetricsSystem.counter(MetricKey.CLIENT_CACHE_CLEAN_ERRORS.getName());
   }
 }

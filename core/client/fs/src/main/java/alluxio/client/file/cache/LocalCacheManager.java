@@ -669,7 +669,7 @@ public class LocalCacheManager implements CacheManager {
         MetricsSystem.counter(MetricKey.CLIENT_CACHE_DELETE_NOT_READY_ERRORS.getName());
     /** Errors when deleting pages due to failed delete in page stores. */
     private static final Counter DELETE_STORE_DELETE_ERRORS =
-        MetricsSystem.counter(MetricKey.CLIENT_CACHE_DELETE_STORE_DELETE_ERRORS.getName());
+        MetricsSystem.counter(MetricKey.CLIENT_CACHE_DELETE_FROM_STORE_ERRORS.getName());
     /** Errors when getting pages. */
     private static final Counter GET_ERRORS =
         MetricsSystem.counter(MetricKey.CLIENT_CACHE_GET_ERRORS.getName());

@@ -15,6 +15,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.IOException;
 import java.io.Serializable;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -80,6 +81,14 @@ public interface JobInfo {
    */
   @Nonnull
   String getErrorMessage();
+
+  /**
+   * @return affected paths
+   */
+  @Nonnull
+  default List<String> getAffectedPaths() {
+    return Collections.emptyList();
+  }
 
   /**
    * @return proto representation of the job info

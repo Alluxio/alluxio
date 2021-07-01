@@ -251,7 +251,8 @@ public enum ExceptionMessage {
       "{0} {1} specified above max threshold of cluster, specified={2}, max={3}"),
 
   // mounting
-  MOUNT_POINT_ALREADY_EXISTS("Mount point {0} already exists"),
+  MOUNT_POINT_ALREADY_EXISTS("Mount point target path {0} already exists in Alluxio namespace. "
+      + "Try mounting to another path."),
   MOUNT_POINT_PREFIX_OF_ANOTHER("Mount point {0} is a prefix of {1}"),
   MOUNT_PATH_SHADOWS_PARENT_UFS(
       "Mount path {0} shadows an existing path {1} in the parent underlying filesystem"),

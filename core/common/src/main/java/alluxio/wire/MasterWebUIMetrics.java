@@ -660,11 +660,11 @@ public final class MasterWebUIMetrics implements Serializable {
   }
 
   /**
-   * @param timeSeries the time series metrics to set
+   * @param timeSeries the time series metrics to set. The latest 20 data points will be set
    * @return the updated masterWebUIMetrics object
    */
   public MasterWebUIMetrics setTimeSeriesMetrics(List<TimeSeries> timeSeries) {
-    mTimeSeriesMetrics = timeSeries;
+    mTimeSeriesMetrics = timeSeries.subList(Math.max(timeSeries.size() - 20, 0), timeSeries.size());
     return this;
   }
 

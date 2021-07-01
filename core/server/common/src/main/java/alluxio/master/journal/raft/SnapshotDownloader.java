@@ -123,7 +123,7 @@ public class SnapshotDownloader<S, R> implements ClientResponseObserver<S, R> {
   }
 
   private void onNextInternal(R response) throws IOException {
-    TermIndex termIndex = TermIndex.newTermIndex(
+    TermIndex termIndex = TermIndex.valueOf(
         mDataGetter.apply(response).getSnapshotTerm(),
         mDataGetter.apply(response).getSnapshotIndex());
     if (mTermIndex == null) {

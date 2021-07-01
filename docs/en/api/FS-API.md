@@ -65,15 +65,17 @@ also both included in `alluxio-shaded-client` artifact.
 
 ### Alluxio Java API
 
-This section introduces the basic operations to use Alluxio File System interface.
-Read its [javadoc](https://docs.alluxio.io/os/javadoc/{{site.ALLUXIO_MAJOR_VERSION}}/alluxio/client/file/FileSystem.html)
+This section introduces the basic operations to use the Alluxio `FileSystem` interface.
+Read the [javadoc](https://docs.alluxio.io/os/javadoc/{{site.ALLUXIO_MAJOR_VERSION}}/alluxio/client/file/FileSystem.html)
 for the complete list of API methods.
-All resources with the Alluxio Java API are specified through an `AlluxioURI` which represents the
-path to the resource.
+All resources with the Alluxio Java API are specified through an
+[AlluxioURI](https://docs.alluxio.io/os/javadoc/{{site.ALLUXIO_MAJOR_VERSION}}/alluxio/AlluxioURI.html)
+which represents the path to the resource.
 
 #### Getting a Filesystem Client
 
-To obtain an Alluxio filesystem client in Java code, use:
+To obtain an Alluxio Filesystem client in Java code, use
+[FileSystem.Factory#get()](https://docs.alluxio.io/os/javadoc/{{site.ALLUXIO_MAJOR_VERSION}}/alluxio/client/file/FileSystem.Factory.html#get--):
 
 ```java
 FileSystem fs = FileSystem.Factory.get();
@@ -82,9 +84,10 @@ FileSystem fs = FileSystem.Factory.get();
 #### Creating a File
 
 All metadata operations as well as opening a file for reading or creating a file for writing are
-executed through the FileSystem object. Since Alluxio files are immutable once written, the
-idiomatic way to create files is to use `FileSystem#createFile(AlluxioURI)`, which returns
-a stream object that can be used to write the file. For example:
+executed through the `FileSystem` object. Since Alluxio files are immutable once written, the
+idiomatic way to create files is to use
+[FileSystem#createFile(AlluxioURI)](https://docs.alluxio.io/os/javadoc/{{site.ALLUXIO_MAJOR_VERSION}}/alluxio/client/file/FileSystem.html#createFile-alluxio.AlluxioURI-),
+which returns a stream object that can be used to write the file. For example:
 
 ```java
 FileSystem fs = FileSystem.Factory.get();
@@ -97,9 +100,31 @@ out.write(...);
 out.close();
 ```
 
+#### Accessing an existing file in Alluxio
+
+All operations on existing files or directories require the user to specify the `AlluxioURI`.
+An `AlluxioURI` can be used to perform various operations, such as modifying the file
+metadata (i.e. TTL or pin state) or getting an input stream to read the file.
+
+#### Reading Data
+
+Use [FileSystem#openFile(AlluxioURI)](https://docs.alluxio.io/os/javadoc/{{site.ALLUXIO_MAJOR_VERSION}}/alluxio/client/file/FileSystem.html#openFile-alluxio.AlluxioURI-)
+to obtain a stream object that can be used to read a file. For example:
+
+```java
+FileSystem fs = FileSystem.Factory.get();
+AlluxioURI path = new AlluxioURI("/myFile");
+// Open the file for reading
+FileInStream in = fs.openFile(path);
+// Read data
+in.read(...);
+// Close file relinquishing the lock
+in.close();
+```
+
 #### Specifying Operation Options
 
-For all FileSystem operations, an additional `options` field may be specified, which allows
+For all `FileSystem` operations, an additional `options` field may be specified, which allows
 users to specify non-default settings for the operation. For example:
 
 ```java
@@ -187,23 +212,73 @@ Users can override the default policy class in the
 [configuration file]({{ '/en/operation/Configuration.html' | relativize_url }}) at property
 `alluxio.user.block.write.location.policy.class`. The built-in policies include:
 
-* **LocalFirstPolicy (alluxio.client.block.policy.LocalFirstPolicy)**
+* [LocalFirstPolicy](https://docs.alluxio.io/os/javadoc/{{site.ALLUXIO_MAJOR_VERSION}}/alluxio/client/block/policy/LocalFirstPolicy.html)
 
-    Returns the local worker first, and if it does not have enough capacity of a block,
-    randomly picks a worker from the active workers list. This is the default policy.
+  **This is the default policy.**
 
-* **MostAvailableFirstPolicy (alluxio.client.block.policy.MostAvailableFirstPolicy)**
+  > A policy that returns the local worker first, and if the local worker doesn't
+  > exist or have enough availability, will select the nearest worker from the active
+  > workers list with sufficient availability.
+  >
+  > The definition of 'nearest worker' is based on
+  > ['Tiered Locality']({{ '/en/operation/Tiered-Locality.html' | relativize_url }}).
+  >
+  > The calculation of which worker gets selected is done for each block write.
 
-    Returns the worker with the most available bytes.
+  * If no worker meets availability criteria, will randomly select a worker from the list of all workers.
 
-* **RoundRobinPolicy (alluxio.client.block.policy.RoundRobinPolicy)**
+* [LocalFirstAvoidEvictionPolicy](https://docs.alluxio.io/os/javadoc/{{site.ALLUXIO_MAJOR_VERSION}}/alluxio/client/block/policy/LocalFirstAvoidEvictionPolicy.html)
 
-    Chooses the worker for the next block in a round-robin manner and skips workers that do not have
-    enough capacity.
+  This is the same as `LocalFirstPolicy` with the following addition:
 
-* **SpecificHostPolicy (alluxio.client.block.policy.SpecificHostPolicy)**
+  > A policy that returns the local worker first, and if the local worker doesn't
+  > exist or have enough availability, will select the nearest worker from the active
+  > workers list with sufficient availability.
+  >
+  > The calculation of which worker gets selected is done for each block write.
+  >
+  > The PropertyKey `USER_FILE_WRITE_AVOID_EVICTION_POLICY_RESERVED_BYTES`
+  > (alluxio.user.block.avoid.eviction.policy.reserved.size.bytes)
+  > is used as buffer space on each worker when calculating available space
+  > to store each block.
 
-    Returns a worker with the specified host name. This policy cannot be set as default policy.
+  * If no worker meets availability criteria, will randomly select a worker from the list of all workers.
+
+* [MostAvailableFirstPolicy](https://docs.alluxio.io/os/javadoc/{{site.ALLUXIO_MAJOR_VERSION}}/alluxio/client/block/policy/MostAvailableFirstPolicy.html)
+
+  > A policy that returns the worker with the most available bytes.
+
+  * If no worker meets availability criteria, will randomly select a worker from the list of all workers.
+
+* [RoundRobinPolicy](https://docs.alluxio.io/os/javadoc/{{site.ALLUXIO_MAJOR_VERSION}}/alluxio/client/block/policy/RoundRobinPolicy.html)
+
+  > A policy that chooses the worker for the next block in a round-robin manner
+  > and skips workers that do not have enough space.
+
+  * If no worker meets availability criteria, will randomly select a worker from the list of all workers.
+
+* [SpecificHostPolicy](https://docs.alluxio.io/os/javadoc/{{site.ALLUXIO_MAJOR_VERSION}}/alluxio/client/block/policy/SpecificHostPolicy.html)
+
+  > Always returns a worker with the hostname specified by
+  > PropertyKey.WORKER_HOSTNAME (alluxio.worker.hostname).
+
+  * If no value is set, will randomly select a worker from the list of all workers.
+
+* [DeterministicHashPolicy](https://docs.alluxio.io/os/javadoc/{{site.ALLUXIO_MAJOR_VERSION}}/alluxio/client/block/policy/DeterministicHashPolicy.html)
+
+  > This policy maps the blockId to several deterministic Alluxio workers. The number of workers a block
+  > can be mapped to can be passed through the constructor. The default is 1. It skips the workers
+  > that do not have enough capacity to hold the block.
+  >
+  > This policy is useful for limiting the amount of replication that occurs when reading blocks from
+  > the UFS with high concurrency. With 30 workers and 100 remote clients reading the same block
+  > concurrently, the replication level for the block would get close to 30 as each worker reads
+  > and caches the block for one or more clients. If the clients use DeterministicHashPolicy with
+  > 3 shards, the 100 clients will split their reads between just 3 workers, so that the replication
+  > level for the block will be only 3 when the data is first loaded.
+  >
+  > Note that the hash function relies on the number of workers in the cluster, so if the number of
+  > workers changes, the workers chosen by the policy for a given block will likely change.
 
 Alluxio supports custom policies, so you can also develop your own policy appropriate for your
 workload by implementing the interface `alluxio.client.block.policy.BlockLocationPolicy`. Note that a
@@ -219,29 +294,6 @@ blocks to the highest tier.
 By default, data is written to the top tier. Users can modify the default setting through the
 `alluxio.user.file.write.tier.default` [configuration]({{ '/en/operation/Configuration.html' | relativize_url }})
 property or override it through an option to the `FileSystem#createFile(AlluxioURI)` API call.
-
-#### Accessing an existing file in Alluxio
-
-All operations on existing files or directories require the user to specify the `AlluxioURI`.
-With the AlluxioURI, the user may use any of the methods of `FileSystem` to access the resource.
-
-#### Reading Data
-
-A `AlluxioURI` can be used to perform Alluxio FileSystem operations, such as modifying the file
-metadata, i.e. TTL or pin state, or getting an input stream to read the file.
-
-For example, to read a file:
-
-```java
-FileSystem fs = FileSystem.Factory.get();
-AlluxioURI path = new AlluxioURI("/myFile");
-// Open the file for reading
-FileInStream in = fs.openFile(path);
-// Read data
-in.read(...);
-// Close file relinquishing the lock
-in.close();
-```
 
 #### Javadoc
 
@@ -300,8 +352,8 @@ worker on each compute node.
 Alluxio has a [Python Client](https://github.com/Alluxio/alluxio-py) for interacting with Alluxio through its
 [REST API](#rest-api). The Python client exposes an API similar to the [Alluxio Java API](#java-client).
 See the [doc](http://alluxio-py.readthedocs.io) for detailed documentation about all available
-methods. See the [example](https://github.com/Alluxio/alluxio-py/blob/master/example.py) of how to perform basic filesystem
-operations in Alluxio.
+methods. See the [example](https://github.com/Alluxio/alluxio-py/blob/master/example.py) on how to perform basic
+filesystem operations in Alluxio.
 
 ### Alluxio Proxy dependency
 

@@ -31,7 +31,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * A policy that chooses the worker for the next block in a round-robin manner and skips workers
- * that do not have enough space. The policy returns null if no worker can be found.
+ * that do not have enough space.
  */
 @NotThreadSafe
 public final class RoundRobinPolicy implements BlockLocationPolicy {
@@ -53,6 +53,8 @@ public final class RoundRobinPolicy implements BlockLocationPolicy {
    * round-robin manner in the subsequent calls. The policy doesn't assume the list of worker info
    * in the subsequent calls has the same order from the first, and it will skip the workers that
    * are no longer active.
+   *
+   * Returns null if no worker can be found.
    *
    * @param options options
    * @return the address of the worker to write to

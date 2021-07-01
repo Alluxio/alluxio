@@ -1,7 +1,7 @@
 ---
 layout: global
-title: Ceph
-nickname: Ceph
+title: CephObjectStorage
+nickname: CephObjectStorage
 group: Storage Integrations
 priority: 10
 ---
@@ -9,7 +9,7 @@ priority: 10
 * Table of Contents
 {:toc}
 
-This guide describes how to configure Alluxio with Ceph as the under storage system. Alluxio supports
+This guide describes how to configure Alluxio with Ceph Object Storage as the under storage system. Alluxio supports
 two different clients APIs to connect to [Ceph Object Storage](http://ceph.com/ceph-storage/object-storage/)
 using [Rados Gateway](http://docs.ceph.com/docs/master/radosgw/):
 - [S3](http://docs.aws.amazon.com/AmazonS3/latest/API/Welcome.html) (preferred)

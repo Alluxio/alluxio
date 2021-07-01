@@ -24,8 +24,8 @@ import com.google.common.base.Preconditions;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * Always returns a worker with the specified hostname. Returns null if no active worker on that
- * hostname found.
+ * Always returns a worker with the hostname specified by
+ * {@link PropertyKey.WORKER_HOSTNAME} (alluxio.worker.hostname).
  */
 @ThreadSafe
 public final class SpecificHostPolicy implements BlockLocationPolicy {
@@ -49,6 +49,10 @@ public final class SpecificHostPolicy implements BlockLocationPolicy {
     mHostname = Preconditions.checkNotNull(hostname, "hostname");
   }
 
+  /**
+   * Returns null if no active worker matches the hostname
+   * provided in WORKER_HOSTNAME (alluxio.worker.hostname).
+   */
   @Override
   public WorkerNetAddress getWorker(GetWorkerOptions options) {
     // find the first worker matching the host name

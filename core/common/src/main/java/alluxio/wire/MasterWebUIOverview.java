@@ -32,7 +32,7 @@ public final class MasterWebUIOverview implements Serializable {
 
   private boolean mDebug;
   private ConfigStatus mConfigCheckStatus;
-  private int mComfigCheckWarnNum;
+  private int mConfigCheckWarnNum;
   private int mConfigCheckErrorNum;
   private List<StorageTierInfo> mStorageTierInfos;
   private Map<Scope, List<InconsistentProperty>> mConfigCheckErrors;
@@ -217,12 +217,12 @@ public final class MasterWebUIOverview implements Serializable {
   }
 
   /**
-   * Gets comfig check warn num.
+   * Gets config check warn num.
    *
-   * @return the comfig check warn num
+   * @return the config check warn num
    */
-  public int getComfigCheckWarnNum() {
-    return mComfigCheckWarnNum;
+  public int getConfigCheckWarnNum() {
+    return mConfigCheckWarnNum;
   }
 
   /**
@@ -431,7 +431,7 @@ public final class MasterWebUIOverview implements Serializable {
    * @return config check warn num
    */
   public MasterWebUIOverview setConfigCheckWarnNum(int configCheckWarnNum) {
-    mComfigCheckWarnNum = configCheckWarnNum;
+    mConfigCheckWarnNum = configCheckWarnNum;
     return this;
   }
 
@@ -440,6 +440,7 @@ public final class MasterWebUIOverview implements Serializable {
     return MoreObjects.toStringHelper(this).add("capacity", mCapacity)
         .add("configCheckErrorNum", mConfigCheckErrorNum)
         .add("configCheckErrors", mConfigCheckErrors).add("configCheckStatus", mConfigCheckStatus)
+        .add("configCheckWarnNum", mConfigCheckWarnNum)
         .add("configCheckWarns", mConfigCheckWarns)
         .add("debug", mDebug)
         .add("diskCapacity", mDiskCapacity).add("diskFreeCapacity", mDiskFreeCapacity)

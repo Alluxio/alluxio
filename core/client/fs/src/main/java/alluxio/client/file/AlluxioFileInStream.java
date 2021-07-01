@@ -164,17 +164,6 @@ public class AlluxioFileInStream extends FileInStream {
   }
 
   @Override
-  public int read(byte[] b) throws IOException {
-    return read(b, 0, b.length);
-  }
-
-  @Override
-  public int read(byte[] b, int off, int len) throws IOException {
-    Preconditions.checkArgument(b != null, PreconditionMessage.ERR_READ_BUFFER_NULL);
-    return read(ByteBuffer.wrap(b), off, len);
-  }
-
-  @Override
   public int read(ByteBuffer byteBuffer, int off, int len) throws IOException {
     Preconditions.checkArgument(off >= 0 && len >= 0 && len + off <= byteBuffer.capacity(),
         PreconditionMessage.ERR_BUFFER_STATE.toString(), byteBuffer.capacity(), off, len);

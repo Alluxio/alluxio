@@ -1,7 +1,7 @@
 ---
 layout: global
-title: Alluxio集成Ceph作为底层存储
-nickname: Alluxio集成Ceph作为底层存储
+title: Alluxio集成Ceph Object Storage作为底层存储
+nickname: Alluxio集成Ceph Object Storage作为底层存储
 group: Storage Integrations
 priority: 5
 ---
@@ -9,7 +9,7 @@ priority: 5
 * 内容列表
 {:toc}
 
-该指南介绍如何配置Alluxio以使用Ceph作为底层文件系统。Alluxio使用[Rados Gateway](http://docs.ceph.com/docs/master/radosgw/)
+该指南介绍如何配置Alluxio以使用Ceph Object Storage作为底层文件系统。Alluxio使用[Rados Gateway](http://docs.ceph.com/docs/master/radosgw/)
 支持两种不同的客户端API连接[Ceph Object Storage](http://ceph.com/ceph-storage/object-storage/)：
 - [S3](http://docs.aws.amazon.com/AmazonS3/latest/API/Welcome.html) (推荐使用)
 - [Swift](http://docs.openstack.org/developer/swift/)

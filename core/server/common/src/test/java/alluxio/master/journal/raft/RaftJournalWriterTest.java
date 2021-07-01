@@ -52,10 +52,18 @@ public class RaftJournalWriterTest {
 
   private void setupRaftJournalWriter() throws IOException  {
     mClient = mock(LocalFirstRaftClient.class);
-    RaftClientReply reply = new RaftClientReply(ClientId.randomId(),
-        RaftGroupMemberId.valueOf(RaftJournalUtils.getPeerId(new InetSocketAddress(1)),
-            RaftGroupId.valueOf(UUID.fromString("02511d47-d67c-49a3-9011-abb3109a44c1"))),
-        1L, true, Message.valueOf("mp"), null, 1L, null);
+    RaftClientReply reply = RaftClientReply.newBuilder()
+            .setClientId(ClientId.randomId())
+            .setServerId(
+              RaftGroupMemberId.valueOf(RaftJournalUtils.getPeerId(new InetSocketAddress(1)),
+              RaftGroupId.valueOf(UUID.fromString("02511d47-d67c-49a3-9011-abb3109a44c1")))
+            ).setCallId(1L)
+            .setSuccess(true)
+            .setMessage(Message.valueOf("mp"))
+            .setException(null)
+            .setLogIndex(1L)
+            .setCommitInfos(null)
+            .build();
 
     CompletableFuture<RaftClientReply> future = new CompletableFuture<RaftClientReply>() {
       @Override

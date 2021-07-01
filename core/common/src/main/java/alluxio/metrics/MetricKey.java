@@ -1107,18 +1107,10 @@ public final class MetricKey implements Comparable<MetricKey> {
           .build();
 
   // Client metrics
-  public static final MetricKey CLIENT_BLOCK_READ_CHUNK =
-      new Builder("Client.BlockReadDataChunk")
+  public static final MetricKey CLIENT_BLOCK_READ_CHUNK_REMOTE =
+      new Builder("Client.BlockReadChunkRemote")
           .setDescription(String.format("The timer statistics of reading block data in chunks "
-              + "from Alluxio workers. This metrics will only be recorded when %s is set to true",
-              PropertyKey.USER_BLOCK_READ_METRICS_ENABLED.getName()))
-          .setMetricType(MetricType.TIMER)
-          .setIsClusterAggregated(false)
-          .build();
-  public static final MetricKey CLIENT_BLOCK_READ_FROM_CHUNK =
-      new Builder("Client.BlockReadDataFromChunk")
-          .setDescription(String.format("The timer statistics of reading data from data chunks "
-              + "which have already fetched from Alluxio workers. "
+              + "from remote Alluxio workers via RPC framework. "
               + "This metrics will only be recorded when %s is set to true",
               PropertyKey.USER_BLOCK_READ_METRICS_ENABLED.getName()))
           .setMetricType(MetricType.TIMER)
@@ -1220,6 +1212,35 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setMetricType(MetricType.GAUGE)
           .setIsClusterAggregated(false)
           .build();
+  public static final MetricKey CLIENT_CACHE_SHADOW_CACHE_BYTES =
+      new Builder("Client.CacheShadowCacheBytes")
+          .setDescription("Amount of bytes in the client shadow cache.")
+          .setMetricType(MetricType.COUNTER).setIsClusterAggregated(false).build();
+  public static final MetricKey CLIENT_CACHE_SHADOW_CACHE_BYTES_HIT =
+      new Builder("Client.CacheShadowCacheBytesHit")
+          .setDescription("Total number of bytes hit the client shadow cache.")
+          .setMetricType(MetricType.COUNTER).setIsClusterAggregated(false).build();
+  public static final MetricKey CLIENT_CACHE_SHADOW_CACHE_BYTES_READ =
+      new Builder("Client.CacheShadowCacheBytesRead")
+          .setDescription("Total number of bytes read from the client shadow cache.")
+          .setMetricType(MetricType.COUNTER).setIsClusterAggregated(false).build();
+  public static final MetricKey CLIENT_CACHE_SHADOW_CACHE_FALSE_POSITIVE_RATIO =
+      new Builder("Client.CacheShadowCacheFalsePositiveRatio")
+          .setDescription("Probability that the working set bloom filter makes an error. "
+              + "The value is 0-100. If too high, need to allocate more space")
+          .setMetricType(MetricType.COUNTER).setIsClusterAggregated(false).build();
+  public static final MetricKey CLIENT_CACHE_SHADOW_CACHE_PAGES =
+      new Builder("Client.CacheShadowCachePages")
+          .setDescription("Amount of pages in the client shadow cache.")
+          .setMetricType(MetricType.COUNTER).setIsClusterAggregated(false).build();
+  public static final MetricKey CLIENT_CACHE_SHADOW_CACHE_PAGES_HIT =
+      new Builder("Client.CacheShadowCachePagesHit")
+          .setDescription("Total number of pages hit the client shadow cache.")
+          .setMetricType(MetricType.COUNTER).setIsClusterAggregated(false).build();
+  public static final MetricKey CLIENT_CACHE_SHADOW_CACHE_PAGES_READ =
+      new Builder("Client.CacheShadowCachePagesRead")
+          .setDescription("Total number of pages read from the client shadow cache.")
+          .setMetricType(MetricType.COUNTER).setIsClusterAggregated(false).build();
 
   // Counter versions of gauges, these may be removed in the future without notice
   public static final MetricKey CLIENT_CACHE_SPACE_USED_COUNT =
@@ -1228,9 +1249,10 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setMetricType(MetricType.COUNTER)
           .setIsClusterAggregated(false)
           .build();
-  public static final MetricKey CLIENT_CACHE_UNREMOVABLE_FILES =
-      new Builder("Client.CacheUnremovableFiles")
-          .setDescription("Amount of bytes unusable managed by the client cache.")
+  public static final MetricKey CLIENT_CACHE_CLEAN_ERRORS =
+      new Builder("Client.CacheCleanErrors")
+          .setDescription("Number of failures when cleaning out the existing cache directory "
+              + "to initialize a new cache.")
           .setMetricType(MetricType.COUNTER)
           .setIsClusterAggregated(false)
           .build();
@@ -1255,13 +1277,13 @@ public final class MetricKey implements Comparable<MetricKey> {
           .build();
   public static final MetricKey CLIENT_CACHE_DELETE_NOT_READY_ERRORS =
       new Builder("Client.CacheDeleteNotReadyErrors")
-          .setDescription("Number of failures when  when cache is not ready to delete pages.")
+          .setDescription("Number of failures when cache is not ready to delete pages.")
           .setMetricType(MetricType.COUNTER)
           .setIsClusterAggregated(false)
           .build();
-  public static final MetricKey CLIENT_CACHE_DELETE_STORE_DELETE_ERRORS =
-      new Builder("Client.CacheDeleteStoreDeleteErrors")
-          .setDescription("Number of failures when deleting pages due to failed delete in page "
+  public static final MetricKey CLIENT_CACHE_DELETE_FROM_STORE_ERRORS =
+      new Builder("Client.CacheDeleteFromStoreErrors")
+          .setDescription("Number of failures when deleting pages from page "
               + "stores.")
           .setMetricType(MetricType.COUNTER)
           .setIsClusterAggregated(false)

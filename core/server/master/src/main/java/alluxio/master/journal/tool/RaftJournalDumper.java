@@ -20,10 +20,10 @@ import alluxio.util.io.FileUtils;
 
 import com.google.common.base.Preconditions;
 import org.apache.ratis.server.RaftServerConfigKeys;
-import org.apache.ratis.server.impl.RaftServerConstants;
 import org.apache.ratis.server.raftlog.segmented.LogSegment;
+import org.apache.ratis.server.raftlog.segmented.LogSegmentPath;
 import org.apache.ratis.server.storage.RaftStorage;
-import org.apache.ratis.server.storage.RaftStorageDirectory;
+import org.apache.ratis.server.storage.RaftStorageImpl;
 import org.apache.ratis.statemachine.impl.SimpleStateMachineStorage;
 import org.apache.ratis.statemachine.impl.SingleFileSnapshotInfo;
 import org.slf4j.Logger;
@@ -83,14 +83,13 @@ public class RaftJournalDumper extends AbstractJournalDumper {
     try (
         PrintStream out =
             new PrintStream(new BufferedOutputStream(new FileOutputStream(mJournalEntryFile)));
-        RaftStorage storage = new RaftStorage(getJournalDir(),
-            RaftServerConstants.StartupOption.REGULAR)) {
-      List<RaftStorageDirectory.LogPathAndIndex> paths =
-          storage.getStorageDir().getLogSegmentFiles();
-      for (RaftStorageDirectory.LogPathAndIndex path : paths) {
+        RaftStorage storage = new RaftStorageImpl(getJournalDir(),
+                RaftServerConfigKeys.Log.CorruptionPolicy.getDefault())) {
+      List<LogSegmentPath> paths = LogSegmentPath.getLogSegmentPaths(storage);
+      for (LogSegmentPath path : paths) {
         final int entryCount = LogSegment.readSegmentFile(path.getPath().toFile(),
-            path.getStartIndex(), path.getEndIndex(), path.isOpen(),
-            RaftServerConfigKeys.Log.CorruptionPolicy.EXCEPTION, null, (proto) -> {
+                path.getStartEnd(), RaftServerConfigKeys.Log.CorruptionPolicy.EXCEPTION,
+                null, (proto) -> {
               if (proto.hasStateMachineLogEntry()) {
                 try {
                   Journal.JournalEntry entry = Journal.JournalEntry.parseFrom(
@@ -114,8 +113,8 @@ public class RaftJournalDumper extends AbstractJournalDumper {
   }
 
   private void readRatisSnapshotFromDir() throws IOException {
-    try (RaftStorage storage = new RaftStorage(getJournalDir(),
-        RaftServerConstants.StartupOption.REGULAR)) {
+    try (RaftStorage storage = new RaftStorageImpl(getJournalDir(),
+            RaftServerConfigKeys.Log.CorruptionPolicy.getDefault())) {
       SimpleStateMachineStorage stateMachineStorage = new SimpleStateMachineStorage();
       stateMachineStorage.init(storage);
       SingleFileSnapshotInfo currentSnapshot = stateMachineStorage.getLatestSnapshot();
