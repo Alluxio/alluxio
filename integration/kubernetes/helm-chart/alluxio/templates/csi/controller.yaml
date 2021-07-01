@@ -43,12 +43,11 @@ spec:
         heritage: {{ .Release.Service }}
         role: alluxio-csi-controller
     spec:
-      hostNetwork: true
+      hostNetwork: {{ .Values.csi.controllerPlugin.hostNetwork }}
       serviceAccountName: csi-controller-sa
       containers:
         - name: csi-provisioner
-          # For kubernetes 1.13 or above
-          image: quay.io/k8scsi/csi-provisioner:v1.4.0
+          image: {{ .Values.csi.controllerPlugin.provisioner.image }}
           args:
             - "-v=5"
             - "--csi-address=$(ADDRESS)"
@@ -60,17 +59,17 @@ spec:
           volumeMounts:
             - mountPath: /csi
               name: socket-dir
-          {{- if .Values.csi.provisioner.resources  }}
+          {{- if .Values.csi.controllerPlugin.provisioner.resources  }}
           resources:
-            {{- if .Values.csi.provisioner.resources.limits }}
+            {{- if .Values.csi.controllerPlugin.provisioner.resources.limits }}
             limits:
-              cpu: {{ .Values.csi.provisioner.resources.limits.cpu }}
-              memory: {{ .Values.csi.provisioner.resources.limits.memory }}
+              cpu: {{ .Values.csi.controllerPlugin.provisioner.resources.limits.cpu }}
+              memory: {{ .Values.csi.controllerPlugin.provisioner.resources.limits.memory }}
             {{- end }}
-            {{- if .Values.csi.provisioner.resources.requests }}
+            {{- if .Values.csi.controllerPlugin.provisioner.resources.requests }}
             requests:
-              cpu: {{ .Values.csi.provisioner.resources.requests.cpu }}
-              memory: {{ .Values.csi.provisioner.resources.requests.memory }}
+              cpu: {{ .Values.csi.controllerPlugin.provisioner.resources.requests.cpu }}
+              memory: {{ .Values.csi.controllerPlugin.provisioner.resources.requests.memory }}
             {{- end }}
           {{- end }}
         - name: csi-controller
@@ -90,17 +89,17 @@ spec:
           volumeMounts:
             - mountPath: /csi
               name: socket-dir
-          {{- if .Values.csi.controller.resources  }}
+          {{- if .Values.csi.controllerPlugin.controller.resources  }}
           resources:
-            {{- if .Values.csi.controller.resources.limits }}
+            {{- if .Values.csi.controllerPlugin.controller.resources.limits }}
             limits:
-              cpu: {{ .Values.csi.controller.resources.limits.cpu }}
-              memory: {{ .Values.csi.controller.resources.limits.memory }}
+              cpu: {{ .Values.csi.controllerPlugin.controller.resources.limits.cpu }}
+              memory: {{ .Values.csi.controllerPlugin.controller.resources.limits.memory }}
             {{- end }}
-            {{- if .Values.csi.controller.resources.requests }}
+            {{- if .Values.csi.controllerPlugin.controller.resources.requests }}
             requests:
-              cpu: {{ .Values.csi.controller.resources.requests.cpu }}
-              memory: {{ .Values.csi.controller.resources.requests.memory }}
+              cpu: {{ .Values.csi.controllerPlugin.controller.resources.requests.cpu }}
+              memory: {{ .Values.csi.controllerPlugin.controller.resources.requests.memory }}
             {{- end }}
           {{- end }}
       volumes:

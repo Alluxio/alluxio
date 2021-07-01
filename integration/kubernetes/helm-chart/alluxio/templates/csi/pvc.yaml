@@ -16,9 +16,9 @@ metadata:
   name: alluxio-pvc
 spec:
   accessModes:
-  - ReadWriteMany
+  {{ toYaml .Values.csi.accessModes }}
   resources:
     requests:
-      storage: 100Gi
+      storage: {{ .Values.csi.quota }}
   storageClassName: alluxio
 {{- end }}

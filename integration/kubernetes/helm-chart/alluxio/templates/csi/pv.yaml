@@ -18,9 +18,9 @@ metadata:
     name: alluxio-pv
 spec:
   accessModes:
-  - ReadWriteMany
+  {{ toYaml .Values.csi.accessModes }}
   capacity:
-    storage: 100Gi
+    storage: {{ .Values.csi.quota }}
   csi:
     driver: alluxio
     volumeHandle: alluxio

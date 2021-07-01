@@ -41,10 +41,10 @@ spec:
         heritage: {{ .Release.Service }}
         role: alluxio-csi-nodeplugin
     spec:
-      hostNetwork: true
+      hostNetwork: {{ .Values.csi.nodePlugin.hostNetwork }}
       containers:
         - name: node-driver-registrar
-          image: quay.io/k8scsi/csi-node-driver-registrar:v1.0.2
+          image: {{ .Values.csi.nodePlugin.driverRegistrar.image }}
           lifecycle:
             preStop:
               exec:
@@ -53,17 +53,17 @@ spec:
             - --v=5
             - --csi-address=/plugin/csi.sock
             - --kubelet-registration-path=/var/lib/kubelet/plugins/csi-alluxio-plugin/csi.sock
-          {{- if .Values.csi.driverRegistrar.resources }}
+          {{- if .Values.csi.nodePlugin.driverRegistrar.resources }}
           resources:
-            {{- if .Values.csi.driverRegistrar.resources.limits }}
+            {{- if .Values.csi.nodePlugin.driverRegistrar.resources.limits }}
             limits:
-              cpu: {{ .Values.csi.driverRegistrar.resources.limits.cpu }}
-              memory: {{ .Values.csi.driverRegistrar.resources.limits.memory }}
+              cpu: {{ .Values.csi.nodePlugin.driverRegistrar.resources.limits.cpu }}
+              memory: {{ .Values.csi.nodePlugin.driverRegistrar.resources.limits.memory }}
             {{- end }}
-            {{- if .Values.csi.driverRegistrar.resources.requests }}
+            {{- if .Values.csi.nodePlugin.driverRegistrar.resources.requests }}
             requests:
-              cpu: {{ .Values.csi.driverRegistrar.resources.requests.cpu }}
-              memory: {{ .Values.csi.driverRegistrar.resources.requests.memory }}
+              cpu: {{ .Values.csi.nodePlugin.driverRegistrar.resources.requests.cpu }}
+              memory: {{ .Values.csi.nodePlugin.driverRegistrar.resources.requests.memory }}
             {{- end }}
           {{- end }}
           env:
@@ -83,17 +83,17 @@ spec:
             runAsGroup: 0
             capabilities:
               add: ["SYS_ADMIN"]
-          {{- if .Values.csi.nodeserver.resources  }}
+          {{- if .Values.csi.nodePlugin.nodeserver.resources  }}
           resources:
-            {{- if .Values.csi.nodeserver.resources.limits }}
+            {{- if .Values.csi.nodePlugin.nodeserver.resources.limits }}
             limits:
-              cpu: {{ .Values.csi.nodeserver.resources.limits.cpu }}
-              memory: {{ .Values.csi.nodeserver.resources.limits.memory }}
+              cpu: {{ .Values.csi.nodePlugin.nodeserver.resources.limits.cpu }}
+              memory: {{ .Values.csi.nodePlugin.nodeserver.resources.limits.memory }}
             {{- end }}
-            {{- if .Values.csi.nodeserver.resources.requests }}
+            {{- if .Values.csi.nodePlugin.nodeserver.resources.requests }}
             requests:
-              cpu: {{ .Values.csi.nodeserver.resources.requests.cpu }}
-              memory: {{ .Values.csi.nodeserver.resources.requests.memory }}
+              cpu: {{ .Values.csi.nodePlugin.nodeserver.resources.requests.cpu }}
+              memory: {{ .Values.csi.nodePlugin.nodeserver.resources.requests.memory }}
             {{- end }}
           {{- end }}
           image: {{ .Values.csi.image }}:{{ .Values.csi.imageTag }}
