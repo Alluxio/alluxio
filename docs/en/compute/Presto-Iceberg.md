@@ -13,14 +13,13 @@ This document describes how to use Presto to query Iceberg tables through Alluxi
 * Table of Contents
 {:toc}
 
-In order to use Presto to query an Iceberg table, make sure you have set up Presto, Hive metastore 
-and Alluxio. If you haven't done so, please refer to the 
+In order to use Presto to query an Iceberg table, make sure you have a working setup of Presto, 
+Hive Metastore and Alluxio, and Presto can access data through Alluxio's filesystem interface.
+If not, please refer to the 
 [guide]({{ '/en/compute/Presto.html' | relativize_url }}) on general Presto installation 
 and configuration. Most of that guide apply for Iceberg workflows as well, and this document 
 covers the specific instructions for working with Iceberg tables.
 
-Before proceeding, make sure you have a working setup of Presto, Hive metastore and Alluxio, 
-and Presto can access data through Alluxio's filesystem interface. 
 The [guide]({{ '/en/compute/Presto.html' | relativize_url }}) mentions two approaches that 
 Presto can access data through Alluxio: via the filesystem interface, and via the catalog service. 
 Alluxio has not added support for Iceberg in the catalog service yet, so for Iceberg tables Presto 
@@ -35,10 +34,9 @@ connector's directory located at `${PRESTO_HOME}/plugin/iceberg/`. Then restart 
 $ ${PRESTO_HOME}/bin/launcher restart
 ```
 
-Also note that the same client jar file needs to be copied to Hive's `lib` directory.
-In case you haven't done so, please refer to the 
-[section]({{ '/en/compute/Hive.html' | relativize_url }}#basic-setup) on setting up Hive to 
-work with Alluxio.
+Also note that the same client jar file needs to be on Hive's classpath. 
+If not, please refer to the [section]({{ '/en/compute/Hive.html' | relativize_url }}#basic-setup)
+on setting up Hive to work with Alluxio.
 
 ## Configure Presto to use the Iceberg connector
 
@@ -52,13 +50,23 @@ connector.name=iceberg
 hive.metastore.uri=thrift://localhost:9083
 ```
 
-Change the Hive connection URI to match your Hive setup.
+Change the Hive Metastore connection URI to match your setup.
 
 ## Create a schema and an Iceberg table
 
 For demonstration purposes, we will create an example schema and an Iceberg table.
 
-Launch the Presto CLI client, and run the following statements:
+Launch the Presto CLI client with the following command:
+
+```shell
+./presto --server localhost:8080 --catalog iceberg --debug
+```
+
+For more information on the client, please refer to this section on [querying tables using Presto]
+({{ '/en/compute/Presto.html' | relativize_url }}#query-tables-using-presto). Note that the 
+catalog is set to `iceberg` since we will be dealing with Iceberg tables.
+
+Run the following statements from the client:
 
 ```sql
 CREATE SCHEMA iceberg_test;
@@ -90,7 +98,7 @@ Now you can verify things are working by reading back the data from the table:
 SELECT * FROM person;
 ```
 
-As well as examining the files in Alluxio:
+As well as examine the files in Alluxio:
 
 ```shell
 $ bin/alluxio fs ls /person
