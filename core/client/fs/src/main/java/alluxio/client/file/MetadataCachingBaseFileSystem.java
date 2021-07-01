@@ -47,11 +47,11 @@ public class MetadataCachingBaseFileSystem extends BaseFileSystem {
   private static final Logger LOG = LoggerFactory.getLogger(BaseFileSystem.class);
   private static final int THREAD_KEEPALIVE_SECOND = 60;
   private static final int THREAD_TERMINATION_TIMEOUT_MS = 10000;
+  private static final URIStatus NOT_FOUND_STATUS = new URIStatus(new FileInfo());
 
   private final MetadataCache mMetadataCache;
   private final ExecutorService mAccessTimeUpdater;
   private final boolean mDisableUpdateFileAccessTime;
-  private static final URIStatus NOT_FOUND_STATUS = new URIStatus(new FileInfo());
 
   /**
    * @param context the fs context
