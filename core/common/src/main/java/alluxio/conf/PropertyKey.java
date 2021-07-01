@@ -1535,7 +1535,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey MASTER_BACKUP_STATE_LOCK_INTERRUPT_CYCLE_ENABLED =
       new Builder(Name.MASTER_BACKUP_STATE_LOCK_INTERRUPT_CYCLE_ENABLED)
-          .setDefaultValue(true)
+          .setDefaultValue(false)
           .setDescription("This controls whether RPCs that are waiting/holding state-lock "
               + "in shared-mode will be interrupted while state-lock is taken exclusively.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
