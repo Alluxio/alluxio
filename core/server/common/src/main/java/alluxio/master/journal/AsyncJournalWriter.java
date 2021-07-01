@@ -138,6 +138,7 @@ public final class AsyncJournalWriter {
   /**
    * If this is UFS journal, we have one AsyncJournalWriter threads per journal.
    * We use this suffix to distinguish different threads.
+   * If this is RAFT embedded journal, there is only one AsyncJournalWriter thread.
    */
   private String mJournalName = "Raft";
 
