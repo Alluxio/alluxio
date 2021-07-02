@@ -41,6 +41,20 @@ public final class LockResourceTest {
   }
 
   /**
+   * Tests {@link LockResource} with {@link ReentrantLock}.
+   */
+  @Test
+  public void reentrantTryLock() {
+    Lock lock = new ReentrantLock();
+    try (LockResource r1 = new LockResource(lock, true, true)) {
+      try (LockResource r2 = new LockResource(lock, true, true)) {
+        assertTrue(lock.tryLock());
+        lock.unlock();
+      }
+    }
+  }
+
+  /**
    * Tests {@link LockResource} with {@link ReentrantReadWriteLock}.
    */
   @Test

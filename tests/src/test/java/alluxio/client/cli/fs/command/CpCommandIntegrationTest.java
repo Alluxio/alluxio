@@ -36,6 +36,7 @@ import alluxio.security.authorization.AclAction;
 import alluxio.security.authorization.AclEntry;
 import alluxio.security.authorization.AclEntryType;
 import alluxio.security.authorization.Mode;
+import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.util.io.BufferUtils;
 
 import com.google.common.collect.ImmutableMap;
@@ -54,6 +55,11 @@ import java.util.List;
 /**
  * Tests for cp command.
  */
+@LocalAlluxioClusterResource.ServerConfig(
+    // do not cache worker info on master or clients, since this test restarts workers
+    confParams = {
+        PropertyKey.Name.MASTER_WORKER_INFO_CACHE_REFRESH_TIME, "1ms",
+        PropertyKey.Name.USER_WORKER_LIST_REFRESH_INTERVAL, "1ms"})
 public final class CpCommandIntegrationTest extends AbstractFileSystemShellTest {
 
   @Rule
@@ -66,10 +72,10 @@ public final class CpCommandIntegrationTest extends AbstractFileSystemShellTest 
    */
   @Test
   public void copyFileNew() throws Exception {
-    String testDir = FileSystemShellUtilsTest.resetFileHierarchy(mFileSystem);
-    int ret = mFsShell.run("cp", testDir + "/foobar4", "/copy");
+    String testDir = FileSystemShellUtilsTest.resetFileHierarchy(sFileSystem);
+    int ret = sFsShell.run("cp", testDir + "/foobar4", "/copy");
     Assert.assertEquals(0, ret);
-    Assert.assertTrue(mFileSystem.exists(new AlluxioURI("/copy")));
+    Assert.assertTrue(sFileSystem.exists(new AlluxioURI("/copy")));
 
     Assert.assertTrue(equals(new AlluxioURI("/copy"), new AlluxioURI(testDir + "/foobar4")));
   }
@@ -79,10 +85,10 @@ public final class CpCommandIntegrationTest extends AbstractFileSystemShellTest 
    */
   @Test
   public void copyFileExisting() throws Exception {
-    String testDir = FileSystemShellUtilsTest.resetFileHierarchy(mFileSystem);
-    int ret = mFsShell.run("cp", testDir + "/foobar4", testDir + "/bar");
+    String testDir = FileSystemShellUtilsTest.resetFileHierarchy(sFileSystem);
+    int ret = sFsShell.run("cp", testDir + "/foobar4", testDir + "/bar");
     Assert.assertEquals(0, ret);
-    Assert.assertTrue(mFileSystem.exists(new AlluxioURI(testDir + "/bar/foobar4")));
+    Assert.assertTrue(sFileSystem.exists(new AlluxioURI(testDir + "/bar/foobar4")));
 
     Assert.assertTrue(
         equals(new AlluxioURI(testDir + "/bar/foobar4"), new AlluxioURI(testDir + "/foobar4")));
@@ -93,16 +99,16 @@ public final class CpCommandIntegrationTest extends AbstractFileSystemShellTest 
    */
   @Test
   public void copyDirNew() throws Exception {
-    String testDir = FileSystemShellUtilsTest.resetFileHierarchy(mFileSystem);
-    int ret = mFsShell.run("cp", "-R", testDir, "/copy");
+    String testDir = FileSystemShellUtilsTest.resetFileHierarchy(sFileSystem);
+    int ret = sFsShell.run("cp", "-R", testDir, "/copy");
     Assert.assertEquals(0, ret);
-    Assert.assertTrue(mFileSystem.exists(new AlluxioURI("/copy")));
-    Assert.assertTrue(mFileSystem.exists(new AlluxioURI("/copy/bar")));
-    Assert.assertTrue(mFileSystem.exists(new AlluxioURI("/copy/bar/foobar3")));
-    Assert.assertTrue(mFileSystem.exists(new AlluxioURI("/copy/foo")));
-    Assert.assertTrue(mFileSystem.exists(new AlluxioURI("/copy/foo/foobar1")));
-    Assert.assertTrue(mFileSystem.exists(new AlluxioURI("/copy/foo/foobar2")));
-    Assert.assertTrue(mFileSystem.exists(new AlluxioURI("/copy/foobar4")));
+    Assert.assertTrue(sFileSystem.exists(new AlluxioURI("/copy")));
+    Assert.assertTrue(sFileSystem.exists(new AlluxioURI("/copy/bar")));
+    Assert.assertTrue(sFileSystem.exists(new AlluxioURI("/copy/bar/foobar3")));
+    Assert.assertTrue(sFileSystem.exists(new AlluxioURI("/copy/foo")));
+    Assert.assertTrue(sFileSystem.exists(new AlluxioURI("/copy/foo/foobar1")));
+    Assert.assertTrue(sFileSystem.exists(new AlluxioURI("/copy/foo/foobar2")));
+    Assert.assertTrue(sFileSystem.exists(new AlluxioURI("/copy/foobar4")));
 
     Assert.assertTrue(
         equals(new AlluxioURI("/copy/bar/foobar3"), new AlluxioURI(testDir + "/bar/foobar3")));
@@ -119,16 +125,16 @@ public final class CpCommandIntegrationTest extends AbstractFileSystemShellTest 
    */
   @Test
   public void copyDirExisting() throws Exception {
-    String testDir = FileSystemShellUtilsTest.resetFileHierarchy(mFileSystem);
-    int ret = mFsShell.run("cp", "-R", testDir, testDir);
+    String testDir = FileSystemShellUtilsTest.resetFileHierarchy(sFileSystem);
+    int ret = sFsShell.run("cp", "-R", testDir, testDir);
     Assert.assertEquals(0, ret);
-    Assert.assertTrue(mFileSystem.exists(new AlluxioURI(testDir + testDir)));
-    Assert.assertTrue(mFileSystem.exists(new AlluxioURI(testDir + testDir + "/bar")));
-    Assert.assertTrue(mFileSystem.exists(new AlluxioURI(testDir + testDir + "/bar/foobar3")));
-    Assert.assertTrue(mFileSystem.exists(new AlluxioURI(testDir + testDir + "/foo")));
-    Assert.assertTrue(mFileSystem.exists(new AlluxioURI(testDir + testDir + "/foo/foobar1")));
-    Assert.assertTrue(mFileSystem.exists(new AlluxioURI(testDir + testDir + "/foo/foobar2")));
-    Assert.assertTrue(mFileSystem.exists(new AlluxioURI(testDir + testDir + "/foobar4")));
+    Assert.assertTrue(sFileSystem.exists(new AlluxioURI(testDir + testDir)));
+    Assert.assertTrue(sFileSystem.exists(new AlluxioURI(testDir + testDir + "/bar")));
+    Assert.assertTrue(sFileSystem.exists(new AlluxioURI(testDir + testDir + "/bar/foobar3")));
+    Assert.assertTrue(sFileSystem.exists(new AlluxioURI(testDir + testDir + "/foo")));
+    Assert.assertTrue(sFileSystem.exists(new AlluxioURI(testDir + testDir + "/foo/foobar1")));
+    Assert.assertTrue(sFileSystem.exists(new AlluxioURI(testDir + testDir + "/foo/foobar2")));
+    Assert.assertTrue(sFileSystem.exists(new AlluxioURI(testDir + testDir + "/foobar4")));
 
     Assert.assertTrue(equals(new AlluxioURI(testDir + testDir + "/bar/foobar3"),
         new AlluxioURI(testDir + "/bar/foobar3")));
@@ -145,14 +151,14 @@ public final class CpCommandIntegrationTest extends AbstractFileSystemShellTest 
    */
   @Test
   public void copyWildcard() throws Exception {
-    String testDir = FileSystemShellUtilsTest.resetFileHierarchy(mFileSystem);
-    int ret = mFsShell.run("cp", testDir + "/*/foo*", "/copy");
+    String testDir = FileSystemShellUtilsTest.resetFileHierarchy(sFileSystem);
+    int ret = sFsShell.run("cp", testDir + "/*/foo*", "/copy");
     Assert.assertEquals(0, ret);
-    Assert.assertTrue(mFileSystem.exists(new AlluxioURI("/copy")));
-    Assert.assertTrue(mFileSystem.exists(new AlluxioURI("/copy/foobar1")));
-    Assert.assertTrue(mFileSystem.exists(new AlluxioURI("/copy/foobar2")));
-    Assert.assertTrue(mFileSystem.exists(new AlluxioURI("/copy/foobar3")));
-    Assert.assertFalse(mFileSystem.exists(new AlluxioURI("/copy/foobar4")));
+    Assert.assertTrue(sFileSystem.exists(new AlluxioURI("/copy")));
+    Assert.assertTrue(sFileSystem.exists(new AlluxioURI("/copy/foobar1")));
+    Assert.assertTrue(sFileSystem.exists(new AlluxioURI("/copy/foobar2")));
+    Assert.assertTrue(sFileSystem.exists(new AlluxioURI("/copy/foobar3")));
+    Assert.assertFalse(sFileSystem.exists(new AlluxioURI("/copy/foobar4")));
 
     Assert.assertTrue(
         equals(new AlluxioURI("/copy/foobar1"), new AlluxioURI(testDir + "/foo/foobar1")));
@@ -163,6 +169,32 @@ public final class CpCommandIntegrationTest extends AbstractFileSystemShellTest 
   }
 
   /**
+   * Tests copying a list of files with special characters in folder name
+   * specified through a wildcard expression.
+   */
+  @Test
+  public void copyWildcardWithSpecialCharacters() throws Exception {
+    String testDir = FileSystemShellUtilsTest.resetFileHierarchy(sFileSystem);
+    char[] specialChars = new char[]{'.', '+', '^', '$'};
+    for (char specialChar : specialChars) {
+      copyWildcardWithSpecialChar(testDir, specialChar);
+    }
+  }
+
+  private void copyWildcardWithSpecialChar(String testDir, char specialChar) throws Exception {
+    String specialFolderName = String.format("%s/folder%sname", testDir, specialChar);
+    sFsShell.run("mkdir", specialFolderName);
+    sFsShell.run("mkdir", "/result");
+    Assert.assertTrue(sFileSystem.exists(new AlluxioURI(specialFolderName)));
+    sFsShell.run("cp", testDir + "/foobar4", specialFolderName + "/foobar4");
+    Assert.assertTrue(sFileSystem.exists(new AlluxioURI(specialFolderName + "/foobar4")));
+    sFsShell.run("cp", specialFolderName + "/*", "/result/");
+    Assert.assertTrue(sFileSystem.exists(new AlluxioURI("/result/foobar4")));
+    sFsShell.run("rm", "/result/foobar4");
+    Assert.assertFalse(sFileSystem.exists(new AlluxioURI("/result/foobar4")));
+  }
+
+  /**
    * Tests copying a file with attributes preserved.
    */
   @Test
@@ -170,34 +202,34 @@ public final class CpCommandIntegrationTest extends AbstractFileSystemShellTest 
     InstancedConfiguration conf = new InstancedConfiguration(ServerConfiguration.global());
     // avoid chown on UFS since test might not be run with root
     conf.set(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, "MUST_CACHE");
-    mFsShell = new FileSystemShell(conf);
-
-    String testDir = FileSystemShellUtilsTest.resetFileHierarchy(mFileSystem);
-    AlluxioURI srcFile = new AlluxioURI(testDir + "/foobar4");
-    String owner = TEST_USER_1.getUser();
-    String group = "staff";
-    short mode = 0422;
-    List<AclEntry> entries = new ArrayList<>();
-    entries.add(new AclEntry.Builder().setType(AclEntryType.NAMED_USER)
-        .setSubject(TEST_USER_2.getUser()).addAction(AclAction.READ).addAction(AclAction.WRITE)
-        .addAction(AclAction.EXECUTE).build());
-    entries.add(new AclEntry.Builder().setType(AclEntryType.NAMED_GROUP).setSubject(group)
-        .addAction(AclAction.WRITE).addAction(AclAction.EXECUTE).build());
-    mFileSystem.setAttribute(srcFile,
-        SetAttributePOptions.newBuilder()
-            .setOwner(owner).setGroup(group)
-            .setMode(new Mode(mode).toProto())
-            .setPinned(true)
-            .setReplicationMin(2)
-            .setReplicationMax(4)
-            .setCommonOptions(FileSystemMasterCommonPOptions.newBuilder().setTtl(12345))
-            .build());
-    mFileSystem.setAcl(srcFile, SetAclAction.MODIFY, entries);
-    int ret = mFsShell.run("cp", "-p", testDir + "/foobar4", testDir + "/bar");
-    AlluxioURI dstFile = new AlluxioURI(testDir + "/bar/foobar4");
-    Assert.assertEquals(0, ret);
-    Assert.assertTrue(mFileSystem.exists(dstFile));
-    verifyPreservedAttributes(srcFile, dstFile);
+    try (FileSystemShell fsShell = new FileSystemShell(conf)) {
+      String testDir = FileSystemShellUtilsTest.resetFileHierarchy(sFileSystem);
+      AlluxioURI srcFile = new AlluxioURI(testDir + "/foobar4");
+      String owner = TEST_USER_1.getUser();
+      String group = "staff";
+      short mode = 0422;
+      List<AclEntry> entries = new ArrayList<>();
+      entries.add(new AclEntry.Builder().setType(AclEntryType.NAMED_USER)
+          .setSubject(TEST_USER_2.getUser()).addAction(AclAction.READ).addAction(AclAction.WRITE)
+          .addAction(AclAction.EXECUTE).build());
+      entries.add(new AclEntry.Builder().setType(AclEntryType.NAMED_GROUP).setSubject(group)
+          .addAction(AclAction.WRITE).addAction(AclAction.EXECUTE).build());
+      sFileSystem.setAttribute(srcFile,
+          SetAttributePOptions.newBuilder()
+              .setOwner(owner).setGroup(group)
+              .setMode(new Mode(mode).toProto())
+              .setPinned(true)
+              .setReplicationMin(2)
+              .setReplicationMax(4)
+              .setCommonOptions(FileSystemMasterCommonPOptions.newBuilder().setTtl(12345))
+              .build());
+      sFileSystem.setAcl(srcFile, SetAclAction.MODIFY, entries);
+      int ret = fsShell.run("cp", "-p", testDir + "/foobar4", testDir + "/bar");
+      AlluxioURI dstFile = new AlluxioURI(testDir + "/bar/foobar4");
+      Assert.assertEquals(0, ret);
+      Assert.assertTrue(sFileSystem.exists(dstFile));
+      verifyPreservedAttributes(srcFile, dstFile);
+    }
   }
 
   /**
@@ -207,46 +239,46 @@ public final class CpCommandIntegrationTest extends AbstractFileSystemShellTest 
   public void copyDirectoryWithPreservedAttributes() throws Exception {
     InstancedConfiguration conf = new InstancedConfiguration(ServerConfiguration.global());
     conf.set(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, "MUST_CACHE");
-    mFsShell = new FileSystemShell(conf);
-
-    String testDir = FileSystemShellUtilsTest.resetFileHierarchy(mFileSystem);
-    String newDir = "/copy";
-    String subDir = "/foo";
-    String file = "/foobar4";
-    String owner = TEST_USER_1.getUser();
-    String group = "staff";
-    short mode = 0422;
-    List<AclEntry> entries = new ArrayList<>();
-    entries.add(new AclEntry.Builder().setType(AclEntryType.NAMED_USER)
-        .setSubject(TEST_USER_2.getUser()).addAction(AclAction.READ).addAction(AclAction.WRITE)
-        .addAction(AclAction.EXECUTE).build());
-    entries.add(new AclEntry.Builder().setType(AclEntryType.NAMED_GROUP).setSubject(group)
-        .addAction(AclAction.WRITE).addAction(AclAction.EXECUTE).build());
-    AlluxioURI srcDir = new AlluxioURI(testDir);
-    mFileSystem.setAttribute(srcDir,
-        SetAttributePOptions.newBuilder().setRecursive(true)
-            .setOwner(owner).setGroup(group)
-            .setMode(new Mode(mode).toProto())
-            .setPinned(true)
-            .setReplicationMin(2)
-            .setReplicationMax(4)
-            .setCommonOptions(FileSystemMasterCommonPOptions.newBuilder().setTtl(12345))
-            .build());
-    mFileSystem.setAcl(srcDir, SetAclAction.MODIFY, entries,
-        SetAclPOptions.newBuilder().setRecursive(true).build());
-    int ret = mFsShell.run("cp", "-R",  "-p", testDir, newDir);
-    AlluxioURI dstDir = new AlluxioURI(newDir);
-    Assert.assertEquals(0, ret);
-    Assert.assertTrue(mFileSystem.exists(dstDir));
-    verifyPreservedAttributes(srcDir, dstDir);
-    verifyPreservedAttributes(srcDir.join(subDir), dstDir.join(subDir));
-    verifyPreservedAttributes(srcDir.join(file), dstDir.join(file));
+    try (FileSystemShell fsShell = new FileSystemShell(conf)) {
+      String testDir = FileSystemShellUtilsTest.resetFileHierarchy(sFileSystem);
+      String newDir = "/copy";
+      String subDir = "/foo";
+      String file = "/foobar4";
+      String owner = TEST_USER_1.getUser();
+      String group = "staff";
+      short mode = 0422;
+      List<AclEntry> entries = new ArrayList<>();
+      entries.add(new AclEntry.Builder().setType(AclEntryType.NAMED_USER)
+          .setSubject(TEST_USER_2.getUser()).addAction(AclAction.READ).addAction(AclAction.WRITE)
+          .addAction(AclAction.EXECUTE).build());
+      entries.add(new AclEntry.Builder().setType(AclEntryType.NAMED_GROUP).setSubject(group)
+          .addAction(AclAction.WRITE).addAction(AclAction.EXECUTE).build());
+      AlluxioURI srcDir = new AlluxioURI(testDir);
+      sFileSystem.setAttribute(srcDir,
+          SetAttributePOptions.newBuilder().setRecursive(true)
+              .setOwner(owner).setGroup(group)
+              .setMode(new Mode(mode).toProto())
+              .setPinned(true)
+              .setReplicationMin(2)
+              .setReplicationMax(4)
+              .setCommonOptions(FileSystemMasterCommonPOptions.newBuilder().setTtl(12345))
+              .build());
+      sFileSystem.setAcl(srcDir, SetAclAction.MODIFY, entries,
+          SetAclPOptions.newBuilder().setRecursive(true).build());
+      int ret = fsShell.run("cp", "-R",  "-p", testDir, newDir);
+      AlluxioURI dstDir = new AlluxioURI(newDir);
+      Assert.assertEquals(0, ret);
+      Assert.assertTrue(sFileSystem.exists(dstDir));
+      verifyPreservedAttributes(srcDir, dstDir);
+      verifyPreservedAttributes(srcDir.join(subDir), dstDir.join(subDir));
+      verifyPreservedAttributes(srcDir.join(file), dstDir.join(file));
+    }
   }
 
   private void verifyPreservedAttributes(AlluxioURI src, AlluxioURI dst)
       throws IOException, AlluxioException {
-    URIStatus srcStatus = mFileSystem.getStatus(src);
-    URIStatus dstStatus = mFileSystem.getStatus(dst);
+    URIStatus srcStatus = sFileSystem.getStatus(src);
+    URIStatus dstStatus = sFileSystem.getStatus(dst);
     Assert.assertEquals(srcStatus.getOwner(), dstStatus.getOwner());
     Assert.assertEquals(srcStatus.getGroup(), dstStatus.getGroup());
     Assert.assertEquals(srcStatus.getMode(), dstStatus.getMode());
@@ -264,38 +296,62 @@ public final class CpCommandIntegrationTest extends AbstractFileSystemShellTest 
    */
   @Test
   public void copyInvalidArgs() throws Exception {
-    FileSystemShellUtilsTest.resetFileHierarchy(mFileSystem);
+    FileSystemShellUtilsTest.resetFileHierarchy(sFileSystem);
     int ret;
     // cannot copy a directory without -R
-    ret = mFsShell.run("cp", "/testDir", "/copy");
+    ret = sFsShell.run("cp", "/testDir", "/copy");
     Assert.assertEquals(-1, ret);
     // cannot copy a directory onto an existing file
-    ret = mFsShell.run("cp", "-R", "/testDir", "/testDir/foobar4");
+    ret = sFsShell.run("cp", "-R", "/testDir", "/testDir/foobar4");
     Assert.assertEquals(-1, ret);
     // cannot copy list of file onto a existing file
-    ret = mFsShell.run("cp", "-R", "/testDir/*", "/testDir/foobar4");
+    ret = sFsShell.run("cp", "-R", "/testDir/*", "/testDir/foobar4");
     Assert.assertEquals(-1, ret);
   }
 
   @Test
   public void copyAfterWorkersNotAvailable() throws Exception {
-    FileSystemShellUtilsTest.resetFileHierarchy(mFileSystem);
-    File testFile = new File(mLocalAlluxioCluster.getAlluxioHome() + "/testFile");
+    File testFile = new File(sLocalAlluxioCluster.getAlluxioHome() + "/testFile");
+    testFile.delete();
     testFile.createNewFile();
-    mFsShell.run("mkdir", mLocalAlluxioCluster.getAlluxioHome());
-    mFsShell.run("copyFromLocal", testFile.getPath(), "/");
-    Assert.assertTrue(mFileSystem.exists(new AlluxioURI("/testFile")));
-    mLocalAlluxioCluster.stopWorkers();
-    mFsShell.run("cp", "/testFile", "/testFile2");
-    Assert.assertFalse(mFileSystem.exists(new AlluxioURI("/testFile2")));
+    FileOutputStream fos = new FileOutputStream(testFile);
+    byte[] toWrite = BufferUtils.getIncreasingByteArray(100);
+    fos.write(toWrite);
+    fos.close();
+
+    sFsShell.run("copyFromLocal", testFile.getPath(), "/");
+    Assert.assertTrue(sFileSystem.exists(new AlluxioURI("/testFile")));
+    sLocalAlluxioCluster.stopWorkers();
+    sFsShell.run("cp", "/testFile", "/testFile2");
+    Assert.assertFalse(sFileSystem.exists(new AlluxioURI("/testFile2")));
+  }
+
+  @Test
+  public void copyAfterWorkersNotAvailableMustCache() throws Exception {
+    InstancedConfiguration conf = new InstancedConfiguration(ServerConfiguration.global());
+    conf.set(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, "MUST_CACHE");
+    try (FileSystemShell fsShell = new FileSystemShell(conf)) {
+      File testFile = new File(sLocalAlluxioCluster.getAlluxioHome() + "/testFile");
+      testFile.createNewFile();
+      FileOutputStream fos = new FileOutputStream(testFile);
+      byte[] toWrite = BufferUtils.getIncreasingByteArray(100);
+      fos.write(toWrite);
+      fos.close();
+
+      fsShell.run("copyFromLocal", testFile.getPath(), "/");
+      Assert.assertTrue(sFileSystem.exists(new AlluxioURI("/testFile")));
+      sLocalAlluxioCluster.stopWorkers();
+      fsShell.run("cp", "/testFile", "/testFile2");
+      Assert.assertFalse(sFileSystem.exists(new AlluxioURI("/testFile2")));
+    }
   }
 
   private boolean equals(AlluxioURI file1, AlluxioURI file2) throws Exception {
     try (Closer closer = Closer.create()) {
       OpenFilePOptions openFileOptions =
           OpenFilePOptions.newBuilder().setReadType(ReadPType.NO_CACHE).build();
-      FileInStream is1 = closer.register(mFileSystem.openFile(file1, openFileOptions));
-      FileInStream is2 = closer.register(mFileSystem.openFile(file2, openFileOptions));
+      FileInStream is1 = closer.register(sFileSystem.openFile(file1, openFileOptions));
+      FileInStream is2 = closer.register(sFileSystem.openFile(file2, openFileOptions));
       return IOUtils.contentEquals(is1, is2);
     }
   }
@@ -304,14 +360,14 @@ public final class CpCommandIntegrationTest extends AbstractFileSystemShellTest 
   public void copyFromLocalFileToDstPath() throws Exception {
     String dataString = "copyFromLocalFileToDstPathTest";
     byte[] data = dataString.getBytes();
-    File localDir = new File(mLocalAlluxioCluster.getAlluxioHome() + "/localDir");
+    File localDir = new File(sLocalAlluxioCluster.getAlluxioHome() + "/localDir");
     localDir.mkdir();
     File localFile = generateFileContent("/localDir/testFile", data);
-    mFsShell.run("mkdir", "/dstDir");
-    mFsShell.run("cp", "file://" + localFile.getPath(), "/dstDir");
+    sFsShell.run("mkdir", "/dstDir");
+    sFsShell.run("cp", "file://" + localFile.getPath(), "/dstDir");
 
     AlluxioURI uri = new AlluxioURI("/dstDir/testFile");
-    URIStatus status = mFileSystem.getStatus(uri);
+    URIStatus status = sFileSystem.getStatus(uri);
     Assert.assertNotNull(status);
     byte[] read = readContent(uri, data.length);
     Assert.assertEquals(new String(read), dataString);
@@ -321,47 +377,47 @@ public final class CpCommandIntegrationTest extends AbstractFileSystemShellTest 
   public void copyFromLocalDir() throws Exception {
     // Copy a directory from local to Alluxio filesystem, which the destination uri was not created
     // before.
-    File srcOuterDir = new File(mLocalAlluxioCluster.getAlluxioHome() + "/outerDir");
-    File srcInnerDir = new File(mLocalAlluxioCluster.getAlluxioHome() + "/outerDir/innerDir");
-    File emptyDir = new File(mLocalAlluxioCluster.getAlluxioHome() + "/outerDir/emptyDir");
+    File srcOuterDir = new File(sLocalAlluxioCluster.getAlluxioHome() + "/outerDir");
+    File srcInnerDir = new File(sLocalAlluxioCluster.getAlluxioHome() + "/outerDir/innerDir");
+    File emptyDir = new File(sLocalAlluxioCluster.getAlluxioHome() + "/outerDir/emptyDir");
     srcOuterDir.mkdir();
     srcInnerDir.mkdir();
     emptyDir.mkdir();
     generateFileContent("/outerDir/srcFile1", BufferUtils.getIncreasingByteArray(10));
     generateFileContent("/outerDir/innerDir/srcFile2", BufferUtils.getIncreasingByteArray(10));
-    int ret = mFsShell.run("cp", "file://" + srcOuterDir.getPath() + "/", "/dstDir");
+    int ret = sFsShell.run("cp", "file://" + srcOuterDir.getPath() + "/", "/dstDir");
     Assert.assertEquals(0, ret);
     AlluxioURI dstURI1 = new AlluxioURI("/dstDir/srcFile1");
     AlluxioURI dstURI2 = new AlluxioURI("/dstDir/innerDir/srcFile2");
     AlluxioURI dstURI3 = new AlluxioURI("/dstDir/emptyDir");
-    Assert.assertNotNull(mFileSystem.getStatus(dstURI1));
-    Assert.assertNotNull(mFileSystem.getStatus(dstURI2));
-    Assert.assertNotNull(mFileSystem.getStatus(dstURI3));
+    Assert.assertNotNull(sFileSystem.getStatus(dstURI1));
+    Assert.assertNotNull(sFileSystem.getStatus(dstURI2));
+    Assert.assertNotNull(sFileSystem.getStatus(dstURI3));
   }
 
   @Test
   public void copyFromLocalDirToExistingFile() throws Exception {
     // Copy a directory from local to a file which exists in Alluxio filesystem. This case should
     // fail.
-    File localDir = new File(mLocalAlluxioCluster.getAlluxioHome() + "/localDir");
-    File innerDir = new File(mLocalAlluxioCluster.getAlluxioHome() + "/localDir/innerDir");
+    File localDir = new File(sLocalAlluxioCluster.getAlluxioHome() + "/localDir");
+    File innerDir = new File(sLocalAlluxioCluster.getAlluxioHome() + "/localDir/innerDir");
     localDir.mkdir();
     innerDir.mkdir();
     generateFileContent("/localDir/srcFile", BufferUtils.getIncreasingByteArray(10));
-    mFileSystem.createFile(new AlluxioURI("/dstFile")).close();
-    int ret = mFsShell.run("cp", "file://" + localDir.getPath(), "/dstFile");
+    sFileSystem.createFile(new AlluxioURI("/dstFile")).close();
+    int ret = sFsShell.run("cp", "file://" + localDir.getPath(), "/dstFile");
     Assert.assertEquals(-1, ret);
-    Assert.assertFalse(mFileSystem.getStatus(new AlluxioURI("/dstFile")).isFolder());
-    Assert.assertFalse(mFileSystem.exists(new AlluxioURI("/dstFile/innerDir")));
+    Assert.assertFalse(sFileSystem.getStatus(new AlluxioURI("/dstFile")).isFolder());
+    Assert.assertFalse(sFileSystem.exists(new AlluxioURI("/dstFile/innerDir")));
   }
 
   @Test
   public void copyFromLocalDirToExistingDir() throws Exception {
     // Copy a directory from local to Alluxio filesystem, which the destination uri has been
     // created before.
-    File srcOuterDir = new File(mLocalAlluxioCluster.getAlluxioHome() + "/outerDir");
-    File srcInnerDir = new File(mLocalAlluxioCluster.getAlluxioHome() + "/outerDir/innerDir");
-    File emptyDir = new File(mLocalAlluxioCluster.getAlluxioHome() + "/outerDir/emptyDir");
+    File srcOuterDir = new File(sLocalAlluxioCluster.getAlluxioHome() + "/outerDir");
+    File srcInnerDir = new File(sLocalAlluxioCluster.getAlluxioHome() + "/outerDir/innerDir");
+    File emptyDir = new File(sLocalAlluxioCluster.getAlluxioHome() + "/outerDir/emptyDir");
     srcOuterDir.mkdir();
     srcInnerDir.mkdir();
     emptyDir.mkdir();
@@ -369,48 +425,49 @@ public final class CpCommandIntegrationTest extends AbstractFileSystemShellTest 
     generateFileContent("/outerDir/innerDir/srcFile2", BufferUtils.getIncreasingByteArray(10));
     // Copying a directory to a destination directory which exists and doesn't contain the copied
     // directory.
-    mFileSystem.createDirectory(new AlluxioURI("/dstDir"));
-    int ret = mFsShell.run("cp", "file://" + srcOuterDir.getPath(), "/dstDir");
+    sFileSystem.createDirectory(new AlluxioURI("/dstDir"));
+    int ret = sFsShell.run("cp", "file://" + srcOuterDir.getPath(), "/dstDir");
     Assert.assertEquals(0, ret);
     AlluxioURI dstURI1 = new AlluxioURI("/dstDir/srcFile1");
     AlluxioURI dstURI2 = new AlluxioURI("/dstDir/innerDir/srcFile2");
     AlluxioURI dstURI3 = new AlluxioURI("/dstDir/emptyDir");
-    Assert.assertNotNull(mFileSystem.getStatus(dstURI1));
-    Assert.assertNotNull(mFileSystem.getStatus(dstURI2));
-    Assert.assertNotNull(mFileSystem.getStatus(dstURI3));
+    Assert.assertNotNull(sFileSystem.getStatus(dstURI1));
+    Assert.assertNotNull(sFileSystem.getStatus(dstURI2));
+    Assert.assertNotNull(sFileSystem.getStatus(dstURI3));
 
     // Copying a directory to a destination directory which exists and does contain the copied
     // directory.
-    mFileSystem.createDirectory(new AlluxioURI("/dstDir1"));
-    mFileSystem.createDirectory(new AlluxioURI("/dstDir1/innerDir"));
-    int ret1 = mFsShell.run("cp", "file://" + srcOuterDir.getPath(), "/dstDir1");
+    sFileSystem.createDirectory(new AlluxioURI("/dstDir1"));
+    sFileSystem.createDirectory(new AlluxioURI("/dstDir1/innerDir"));
+    int ret1 = sFsShell.run("cp", "file://" + srcOuterDir.getPath(), "/dstDir1");
     Assert.assertEquals(-1, ret1);
     dstURI1 = new AlluxioURI("/dstDir1/srcFile1");
     dstURI2 = new AlluxioURI("/dstDir1/innerDir/srcFile2");
     dstURI3 = new AlluxioURI("/dstDir1/emptyDir");
-    Assert.assertNotNull(mFileSystem.getStatus(dstURI1));
+    Assert.assertNotNull(sFileSystem.getStatus(dstURI1));
     // The directory already exists. But the sub directory shouldn't be copied.
-    Assert.assertFalse(mFileSystem.exists(dstURI2));
-    Assert.assertNotNull(mFileSystem.getStatus(dstURI3));
+    Assert.assertFalse(sFileSystem.exists(dstURI2));
+    Assert.assertNotNull(sFileSystem.getStatus(dstURI3));
   }
 
   @Test
   public void copyFromLocalLarge() throws Exception {
-    File testFile = new File(mLocalAlluxioCluster.getAlluxioHome() + "/testFile");
+    File testFile = new File(sLocalAlluxioCluster.getAlluxioHome() + "/testFile");
+    testFile.delete();
     testFile.createNewFile();
     FileOutputStream fos = new FileOutputStream(testFile);
     byte[] toWrite = BufferUtils.getIncreasingByteArray(SIZE_BYTES);
     fos.write(toWrite);
     fos.close();
     String[] cmd = new String[]{"cp", "file://" +  testFile.getAbsolutePath(), "/testFile"};
-    mFsShell.run(cmd);
+    sFsShell.run(cmd);
     Assert.assertEquals(getCommandOutput(cmd), mOutput.toString());
     AlluxioURI uri = new AlluxioURI("/testFile");
-    URIStatus status = mFileSystem.getStatus(uri);
+    URIStatus status = sFileSystem.getStatus(uri);
     Assert.assertNotNull(status);
     Assert.assertEquals(SIZE_BYTES, status.getLength());
 
-    try (FileInStream tfis = mFileSystem.openFile(uri,
+    try (FileInStream tfis = sFileSystem.openFile(uri,
         OpenFilePOptions.newBuilder().setReadType(ReadPType.NO_CACHE).build())) {
       byte[] read = new byte[SIZE_BYTES];
       tfis.read(read);
@@ -429,7 +486,7 @@ public final class CpCommandIntegrationTest extends AbstractFileSystemShellTest 
 
     // Write the first file
     String[] cmd1 = {"cp", "file://" +  testFile1.getPath(), alluxioFilePath.getPath()};
-    mFsShell.run(cmd1);
+    sFsShell.run(cmd1);
     Assert.assertEquals(getCommandOutput(cmd1), mOutput.toString());
     mOutput.reset();
     Assert.assertTrue(BufferUtils
@@ -437,9 +494,9 @@ public final class CpCommandIntegrationTest extends AbstractFileSystemShellTest 
 
     // Write the second file to the same location, which should cause an exception
     String[] cmd2 = {"cp", "file://" +  testFile2.getPath(), alluxioFilePath.getPath()};
-    Assert.assertEquals(-1, mFsShell.run(cmd2));
-    Assert.assertThat(mOutput.toString(),
-        containsString(alluxioFilePath.getPath() + " already exists"));
+    Assert.assertEquals(-1, sFsShell.run(cmd2));
+    Assert.assertThat(mOutput.toString(), containsString(
+        "Not allowed to create file because path already exists: " + alluxioFilePath.getPath()));
     // Make sure the original file is intact
     Assert.assertTrue(BufferUtils
         .equalIncreasingByteArray(LEN1, readContent(alluxioFilePath, LEN1)));
@@ -447,21 +504,21 @@ public final class CpCommandIntegrationTest extends AbstractFileSystemShellTest 
 
   @Test
   public void copyFromLocal() throws Exception {
-    File testDir = new File(mLocalAlluxioCluster.getAlluxioHome() + "/testDir");
+    File testDir = new File(sLocalAlluxioCluster.getAlluxioHome() + "/testDir");
     testDir.mkdir();
-    File testDirInner = new File(mLocalAlluxioCluster.getAlluxioHome() + "/testDir/testDirInner");
+    File testDirInner = new File(sLocalAlluxioCluster.getAlluxioHome() + "/testDir/testDirInner");
     testDirInner.mkdir();
     File testFile =
         generateFileContent("/testDir/testFile", BufferUtils.getIncreasingByteArray(10));
     generateFileContent("/testDir/testDirInner/testFile2",
         BufferUtils.getIncreasingByteArray(10, 20));
     String[] cmd = new String[]{"cp", "file://" + testFile.getParent(), "/testDir"};
-    mFsShell.run(cmd);
+    sFsShell.run(cmd);
     Assert.assertThat(mOutput.toString(), containsString(getCommandOutput(cmd)));
     AlluxioURI uri1 = new AlluxioURI("/testDir/testFile");
     AlluxioURI uri2 = new AlluxioURI("/testDir/testDirInner/testFile2");
-    URIStatus status1 = mFileSystem.getStatus(uri1);
-    URIStatus status2 = mFileSystem.getStatus(uri2);
+    URIStatus status1 = sFileSystem.getStatus(uri1);
+    URIStatus status2 = sFileSystem.getStatus(uri2);
     Assert.assertNotNull(status1);
     Assert.assertNotNull(status2);
     Assert.assertEquals(10, status1.getLength());
@@ -475,16 +532,16 @@ public final class CpCommandIntegrationTest extends AbstractFileSystemShellTest 
   @Test
   public void copyFromLocalTestWithFullURI() throws Exception {
     File testFile = generateFileContent("/srcFileURI", BufferUtils.getIncreasingByteArray(10));
-    String alluxioURI = "alluxio://" + mLocalAlluxioCluster.getHostname() + ":"
-        + mLocalAlluxioCluster.getMasterRpcPort() + "/destFileURI";
+    String alluxioURI = "alluxio://" + sLocalAlluxioCluster.getHostname() + ":"
+        + sLocalAlluxioCluster.getMasterRpcPort() + "/destFileURI";
     String[] cmd = new String[]{"cp", "file://" + testFile.getPath(), alluxioURI};
     // when
-    mFsShell.run(cmd);
+    sFsShell.run(cmd);
     String cmdOut = getCommandOutput(cmd);
     // then
     Assert.assertEquals(cmdOut, mOutput.toString());
     AlluxioURI uri = new AlluxioURI("/destFileURI");
-    URIStatus status = mFileSystem.getStatus(uri);
+    URIStatus status = sFileSystem.getStatus(uri);
     Assert.assertEquals(10L, status.getLength());
     byte[] read = readContent(uri, 10);
     Assert.assertTrue(BufferUtils.equalIncreasingByteArray(10, read));
@@ -492,9 +549,9 @@ public final class CpCommandIntegrationTest extends AbstractFileSystemShellTest 
 
   @Test
   public void copyFromLocalWildcardExistingDir() throws Exception {
-    String testDir = FileSystemShellUtilsTest.resetLocalFileHierarchy(mLocalAlluxioCluster);
-    mFileSystem.createDirectory(new AlluxioURI("/testDir"));
-    int ret = mFsShell.run("cp", "file://" +  testDir + "/*/foo*", "/testDir");
+    String testDir = FileSystemShellUtilsTest.resetLocalFileHierarchy(sLocalAlluxioCluster);
+    sFileSystem.createDirectory(new AlluxioURI("/testDir"));
+    int ret = sFsShell.run("cp", "file://" +  testDir + "/*/foo*", "/testDir");
     Assert.assertEquals(0, ret);
     Assert.assertTrue(fileExists(new AlluxioURI("/testDir/foobar1")));
     Assert.assertTrue(fileExists(new AlluxioURI("/testDir/foobar2")));
@@ -503,8 +560,8 @@ public final class CpCommandIntegrationTest extends AbstractFileSystemShellTest 
 
   @Test
   public void copyFromLocalWildcardHier() throws Exception {
-    String testDir = FileSystemShellUtilsTest.resetLocalFileHierarchy(mLocalAlluxioCluster);
-    int ret = mFsShell.run("cp", "file://" +  testDir + "/*", "/testDir");
+    String testDir = FileSystemShellUtilsTest.resetLocalFileHierarchy(sLocalAlluxioCluster);
+    int ret = sFsShell.run("cp", "file://" +  testDir + "/*", "/testDir");
     Assert.assertEquals(0, ret);
     Assert.assertTrue(fileExists(new AlluxioURI("/testDir/foo/foobar1")));
     Assert.assertTrue(fileExists(new AlluxioURI("/testDir/foo/foobar2")));
@@ -514,17 +571,17 @@ public final class CpCommandIntegrationTest extends AbstractFileSystemShellTest 
 
   @Test
   public void copyFromLocalWildcardNotDir() throws Exception {
-    String localTestDir = FileSystemShellUtilsTest.resetFileHierarchy(mFileSystem);
-    String alluxioTestDir = FileSystemShellUtilsTest.resetFileHierarchy(mFileSystem);
-    int ret = mFsShell.run("cp", "file://" +  localTestDir + "/*/foo*", alluxioTestDir
+    String localTestDir = FileSystemShellUtilsTest.resetFileHierarchy(sFileSystem);
+    String alluxioTestDir = FileSystemShellUtilsTest.resetFileHierarchy(sFileSystem);
+    int ret = sFsShell.run("cp", "file://" +  localTestDir + "/*/foo*", alluxioTestDir
                            + "/foobar4");
     Assert.assertEquals(-1, ret);
   }
 
   @Test
   public void copyFromLocalWildcard() throws Exception {
-    String testDir = FileSystemShellUtilsTest.resetLocalFileHierarchy(mLocalAlluxioCluster);
-    int ret = mFsShell.run("cp", "file://" +  testDir + "/*/foo*", "/testDir");
+    String testDir = FileSystemShellUtilsTest.resetLocalFileHierarchy(sLocalAlluxioCluster);
+    int ret = sFsShell.run("cp", "file://" +  testDir + "/*/foo*", "/testDir");
     Assert.assertEquals(0, ret);
     Assert.assertTrue(fileExists(new AlluxioURI("/testDir/foobar1")));
     Assert.assertTrue(fileExists(new AlluxioURI("/testDir/foobar2")));
@@ -534,9 +591,9 @@ public final class CpCommandIntegrationTest extends AbstractFileSystemShellTest 
 
   @Test
   public void copyToLocalDir() throws Exception {
-    String testDir = FileSystemShellUtilsTest.resetFileHierarchy(mFileSystem);
-    int ret = mFsShell.run("cp", testDir,
-            "file://" + mLocalAlluxioCluster.getAlluxioHome() + "/testDir");
+    String testDir = FileSystemShellUtilsTest.resetFileHierarchy(sFileSystem);
+    int ret = sFsShell.run("cp", testDir,
+            "file://" + sLocalAlluxioCluster.getAlluxioHome() + "/testDir");
     Assert.assertEquals(0, ret);
     fileReadTest("/testDir/foo/foobar1", 10);
     fileReadTest("/testDir/foo/foobar2", 20);
@@ -551,12 +608,12 @@ public final class CpCommandIntegrationTest extends AbstractFileSystemShellTest 
 
   @Test
   public void copyToLocalWildcardExistingDir() throws Exception {
-    String testDir = FileSystemShellUtilsTest.resetFileHierarchy(mFileSystem);
+    String testDir = FileSystemShellUtilsTest.resetFileHierarchy(sFileSystem);
 
-    new File(mLocalAlluxioCluster.getAlluxioHome() + "/testDir").mkdir();
+    new File(sLocalAlluxioCluster.getAlluxioHome() + "/testDir").mkdir();
 
-    int ret = mFsShell.run("cp", testDir + "/*/foo*",
-        "file://" + mLocalAlluxioCluster.getAlluxioHome() + "/testDir");
+    int ret = sFsShell.run("cp", testDir + "/*/foo*",
+        "file://" + sLocalAlluxioCluster.getAlluxioHome() + "/testDir");
     Assert.assertEquals(0, ret);
     fileReadTest("/testDir/foobar1", 10);
     fileReadTest("/testDir/foobar2", 20);
@@ -565,9 +622,9 @@ public final class CpCommandIntegrationTest extends AbstractFileSystemShellTest 
 
   @Test
   public void copyToLocalWildcardHier() throws Exception {
-    String testDir = FileSystemShellUtilsTest.resetFileHierarchy(mFileSystem);
-    int ret = mFsShell
-        .run("cp", testDir + "/*", "file://" + mLocalAlluxioCluster.getAlluxioHome() + "/testDir");
+    String testDir = FileSystemShellUtilsTest.resetFileHierarchy(sFileSystem);
+    int ret = sFsShell
+        .run("cp", testDir + "/*", "file://" + sLocalAlluxioCluster.getAlluxioHome() + "/testDir");
     Assert.assertEquals(0, ret);
     fileReadTest("/testDir/foo/foobar1", 10);
     fileReadTest("/testDir/foo/foobar2", 20);
@@ -577,20 +634,22 @@ public final class CpCommandIntegrationTest extends AbstractFileSystemShellTest 
 
   @Test
   public void copyToLocalWildcardNotDir() throws Exception {
-    String testDir = FileSystemShellUtilsTest.resetFileHierarchy(mFileSystem);
-    new File(mLocalAlluxioCluster.getAlluxioHome() + "/testDir").mkdir();
-    new File(mLocalAlluxioCluster.getAlluxioHome() + "/testDir/testFile").createNewFile();
+    String testDir = FileSystemShellUtilsTest.resetFileHierarchy(sFileSystem);
+    new File(sLocalAlluxioCluster.getAlluxioHome() + "/testDir").mkdir();
+    File testFile = new File(sLocalAlluxioCluster.getAlluxioHome() + "/testDir/testFile");
+    testFile.delete();
+    testFile.createNewFile();
 
-    int ret = mFsShell.run("cp", testDir + "/*/foo*",
-        "file://" + mLocalAlluxioCluster.getAlluxioHome() + "/testDir/testFile");
+    int ret = sFsShell.run("cp", testDir + "/*/foo*",
+        "file://" + sLocalAlluxioCluster.getAlluxioHome() + "/testDir/testFile");
     Assert.assertEquals(-1, ret);
   }
 
   @Test
   public void copyToLocalWildcard() throws Exception {
-    String testDir = FileSystemShellUtilsTest.resetFileHierarchy(mFileSystem);
-    int ret = mFsShell.run("cp", testDir + "/*/foo*",
-        "file://" + mLocalAlluxioCluster.getAlluxioHome() + "/testDir");
+    String testDir = FileSystemShellUtilsTest.resetFileHierarchy(sFileSystem);
+    int ret = sFsShell.run("cp", testDir + "/*/foo*",
+        "file://" + sLocalAlluxioCluster.getAlluxioHome() + "/testDir");
     Assert.assertEquals(0, ret);
     fileReadTest("/testDir/foobar1", 10);
     fileReadTest("/testDir/foobar2", 20);
@@ -599,11 +658,11 @@ public final class CpCommandIntegrationTest extends AbstractFileSystemShellTest 
 
   @Override
   protected void copyToLocalWithBytes(int bytes) throws Exception {
-    FileSystemTestUtils.createByteFile(mFileSystem, "/testFile", WritePType.MUST_CACHE,
+    FileSystemTestUtils.createByteFile(sFileSystem, "/testFile", WritePType.MUST_CACHE,
         bytes);
     String[] cmd = new String[] {"cp", "/testFile",
-        "file://" + mLocalAlluxioCluster.getAlluxioHome() + "/testFile"};
-    mFsShell.run(cmd);
+        "file://" + sLocalAlluxioCluster.getAlluxioHome() + "/testFile"};
+    sFsShell.run(cmd);
     Assert.assertEquals(getCommandOutput(cmd), mOutput.toString());
     fileReadTest("/testFile", 10);
   }

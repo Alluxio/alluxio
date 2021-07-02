@@ -1,0 +1,58 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`MountTable Shallow component Matches snapshot 1`] = `
+<div
+  className="mounttable-page"
+>
+  <div
+    className="container-fluid"
+  >
+    <div
+      className="row"
+    >
+      <div
+        className="col-12"
+      >
+        <h5>
+          Mount table
+        </h5>
+        <Table
+          hover={true}
+          responsiveTag="div"
+          tag="table"
+        >
+          <thead>
+            <tr>
+              <th>
+                Mount Point
+              </th>
+              <th>
+                UFS URI
+              </th>
+              <th>
+                UFS Type
+              </th>
+              <th>
+                UFS Capacity Bytes
+              </th>
+              <th>
+                UFS Used Bytes
+              </th>
+              <th>
+                ReadOnly
+              </th>
+              <th>
+                Shared
+              </th>
+              <th>
+                Properties
+              </th>
+            </tr>
+          </thead>
+          <tbody />
+        </Table>
+      </div>
+    </div>
+  </div>
+</div>
+`;

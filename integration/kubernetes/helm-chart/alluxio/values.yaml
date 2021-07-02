@@ -1,0 +1,490 @@
+#
+# The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
+# (the "License"). You may not use this work except in compliance with the License, which is
+# available at www.apache.org/licenses/LICENSE-2.0
+#
+# This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+# either express or implied, as more fully set forth in the License.
+#
+# See the NOTICE file distributed with this work for information regarding copyright ownership.
+#
+
+# This should not be modified in the usual case.
+fullnameOverride: alluxio
+
+
+## Common ##
+
+# Docker Image
+image: alluxio/alluxio
+imageTag: 2.7.0-SNAPSHOT
+imagePullPolicy: IfNotPresent
+
+# Security Context
+user: 1000
+group: 1000
+fsGroup: 1000
+
+# Service Account
+#   If not specified, Kubernetes will assign the 'default'
+#   ServiceAccount used for the namespace
+serviceAccount:
+
+# Site properties for all the components
+properties:
+  # alluxio.user.metrics.collection.enabled: 'true'
+  alluxio.security.stale.channel.purge.interval: 365d
+
+# Recommended JVM Heap options for running in Docker
+# Ref: https://developers.redhat.com/blog/2017/03/14/java-inside-docker/
+# These JVM options are common to all Alluxio services
+# jvmOptions:
+#   - "-XX:+UnlockExperimentalVMOptions"
+#   - "-XX:+UseCGroupMemoryLimitForHeap"
+#   - "-XX:MaxRAMFraction=2"
+
+# Mount Persistent Volumes to all components
+# mounts:
+# - name: <persistentVolume claimName>
+#   path: <mountPath>
+
+# Use labels to run Alluxio on a subset of the K8s nodes
+# nodeSelector: {}
+
+# A list of K8s Node taints to allow scheduling on.
+# See the Kubernetes docs for more info:
+# - https://kubernetes.io/docs/concepts/scheduling-eviction/taint-and-toleration/
+# eg: tolerations: [ {"key": "env", "operator": "Equal", "value": "prod", "effect": "NoSchedule"} ]
+# tolerations: []
+
+## Master ##
+
+master:
+  count: 1 # Controls the number of StatefulSets. For multiMaster mode increase this to >1.
+  replicas: 1 # Controls #replicas in a StatefulSet and should not be modified in the usual case.
+  env:
+    # Extra environment variables for the master pod
+    # Example:
+    # JAVA_HOME: /opt/java
+  args: # Arguments to Docker entrypoint
+    - master-only
+    - --no-format
+  # Properties for the master component
+  properties:
+    # Example: use ROCKS DB instead of Heap
+    # alluxio.master.metastore: ROCKS
+    # alluxio.master.metastore.dir: /metastore
+  resources:
+    # The default xmx is 8G
+    limits:
+      cpu: "4"
+      memory: "8G"
+    requests:
+      cpu: "1"
+      memory: "1G"
+  ports:
+    embedded: 19200
+    rpc: 19998
+    web: 19999
+  hostPID: false
+  hostNetwork: false
+  # dnsPolicy will be ClusterFirstWithHostNet if hostNetwork: true
+  # and ClusterFirst if hostNetwork: false
+  # You can specify dnsPolicy here to override this inference
+  # dnsPolicy: ClusterFirst
+  # JVM options specific to the master container
+  jvmOptions:
+  nodeSelector: {}
+  tolerations: []
+  podAnnotations: {}
+  # The ServiceAccount provided here will have precedence over
+  # the global `serviceAccount`
+  serviceAccount:
+
+jobMaster:
+  args:
+    - job-master
+  # Properties for the jobMaster component
+  properties:
+  resources:
+    limits:
+      cpu: "4"
+      memory: "8G"
+    requests:
+      cpu: "1"
+      memory: "1G"
+  ports:
+    embedded: 20003
+    rpc: 20001
+    web: 20002
+  # JVM options specific to the jobMaster container
+  jvmOptions:
+
+# Alluxio supports journal type of UFS and EMBEDDED
+# UFS journal with HDFS example
+# journal:
+#   type: "UFS"
+#   folder: "hdfs://{$hostname}:{$hostport}/journal"
+# EMBEDDED journal to /journal example
+# journal:
+#   type: "EMBEDDED"
+#   folder: "/journal"
+journal:
+  type: "UFS" # "UFS" or "EMBEDDED"
+  ufsType: "local" # Ignored if type is "EMBEDDED". "local" or "HDFS"
+  folder: "/journal" # Master journal folder
+  # volumeType controls the type of journal volume.
+  # It can be "persistentVolumeClaim" or "emptyDir"
+  volumeType: persistentVolumeClaim
+  size: 1Gi
+  # Attributes to use when the journal is persistentVolumeClaim
+  storageClass: "standard"
+  accessModes:
+    - ReadWriteOnce
+  # Attributes to use when the journal is emptyDir
+  medium: ""
+  # Configuration for journal formatting job
+  format:
+    runFormat: false # Change to true to format journal
+
+
+# You can enable metastore to use ROCKS DB instead of Heap
+# metastore:
+#   volumeType: persistentVolumeClaim # Options: "persistentVolumeClaim" or "emptyDir"
+#   size: 1Gi
+#   mountPath: /metastore
+# # Attributes to use when the metastore is persistentVolumeClaim
+#   storageClass: "standard"
+#   accessModes:
+#    - ReadWriteOnce
+# # Attributes to use when the metastore is emptyDir
+#   medium: ""
+
+
+## Worker ##
+
+worker:
+  env:
+    # Extra environment variables for the worker pod
+    # Example:
+    # JAVA_HOME: /opt/java
+  args:
+    - worker-only
+    - --no-format
+  # Properties for the worker component
+  properties:
+  resources:
+    limits:
+      cpu: "4"
+      memory: "4G"
+    requests:
+      cpu: "1"
+      memory: "2G"
+  ports:
+    rpc: 29999
+    web: 30000
+  # hostPID requires escalated privileges
+  hostPID: false
+  hostNetwork: false
+  # dnsPolicy will be ClusterFirstWithHostNet if hostNetwork: true
+  # and ClusterFirst if hostNetwork: false
+  # You can specify dnsPolicy here to override this inference
+  # dnsPolicy: ClusterFirst
+  # JVM options specific to the worker container
+  jvmOptions:
+  nodeSelector: {}
+  tolerations: []
+  podAnnotations: {}
+  # The ServiceAccount provided here will have precedence over
+  # the global `serviceAccount`
+  serviceAccount:
+
+jobWorker:
+  args:
+    - job-worker
+  # Properties for the jobWorker component
+  properties:
+  resources:
+    limits:
+      cpu: "4"
+      memory: "4G"
+    requests:
+      cpu: "1"
+      memory: "1G"
+  ports:
+    rpc: 30001
+    data: 30002
+    web: 30003
+  # JVM options specific to the jobWorker container
+  jvmOptions:
+
+# Tiered Storage
+# emptyDir example
+#  - level: 0
+#    alias: MEM
+#    mediumtype: MEM
+#    path: /dev/shm
+#    type: emptyDir
+#    quota: 1G
+#
+# hostPath example
+#  - level: 0
+#    alias: MEM
+#    mediumtype: MEM
+#    path: /dev/shm
+#    type: hostPath
+#    quota: 1G
+#
+# persistentVolumeClaim example
+#  - level: 1
+#    alias: SSD
+#    mediumtype: SSD
+#    type: persistentVolumeClaim
+#    name: alluxio-ssd
+#    path: /dev/ssd
+#    quota: 10G
+#
+# multi-part mediumtype example
+#  - level: 1
+#    alias: SSD,HDD
+#    mediumtype: SSD,HDD
+#    type: persistentVolumeClaim
+#    name: alluxio-ssd,alluxio-hdd
+#    path: /dev/ssd,/dev/hdd
+#    quota: 10G,10G
+tieredstore:
+  levels:
+  - level: 0
+    alias: MEM
+    mediumtype: MEM
+    path: /dev/shm
+    type: emptyDir
+    quota: 1G
+    high: 0.95
+    low: 0.7
+
+# Short circuit related properties
+shortCircuit:
+  enabled: true
+  # The policy for short circuit can be "local" or "uuid",
+  # local means the cache directory is in the same mount namespace,
+  # uuid means interact with domain socket
+  policy: uuid
+  # volumeType controls the type of shortCircuit volume.
+  # It can be "persistentVolumeClaim" or "hostPath"
+  volumeType: persistentVolumeClaim
+  size: 1Mi
+  # Attributes to use if the domain socket volume is PVC
+  pvcName: alluxio-worker-domain-socket
+  accessModes:
+    - ReadWriteOnce
+  storageClass: standard
+  # Attributes to use if the domain socket volume is hostPath
+  hostPath: "/tmp/alluxio-domain" # The hostPath directory to use
+
+
+## FUSE ##
+
+fuse:
+  env:
+    # Extra environment variables for the fuse pod
+    # Example:
+    # JAVA_HOME: /opt/java
+  image: alluxio/alluxio-fuse
+  imageTag: 2.7.0-SNAPSHOT
+  imagePullPolicy: IfNotPresent
+  # Change both to true to deploy FUSE
+  enabled: false
+  clientEnabled: false
+  # Properties for the fuse component
+  properties:
+  # Customize the MaxDirectMemorySize
+  # These options are specific to the FUSE daemon
+  jvmOptions:
+    - "-XX:MaxDirectMemorySize=2g"
+  hostNetwork: true
+  # hostPID requires escalated privileges
+  hostPID: true
+  dnsPolicy: ClusterFirstWithHostNet
+  user: 0
+  group: 0
+  fsGroup: 0
+  args:
+    - fuse
+    - --fuse-opts=allow_other
+  # Mount path in the host
+  mountPath: /mnt/alluxio-fuse
+  resources:
+    requests:
+      cpu: "0.5"
+      memory: "1G"
+    limits:
+      cpu: "4"
+      memory: "4G"
+  nodeSelector: {}
+  tolerations: []
+  podAnnotations: {}
+  # The ServiceAccount provided here will have precedence over
+  # the global `serviceAccount`
+  serviceAccount:
+
+
+##  Secrets ##
+
+# Format: (<name>:<mount path under /secrets/>):
+# secrets:
+#   master: # Shared by master and jobMaster containers
+#     alluxio-hdfs-config: hdfsConfig
+#   worker: # Shared by worker and jobWorker containers
+#     alluxio-hdfs-config: hdfsConfig
+#   logserver: # Used by the logserver container
+#     alluxio-hdfs-config: hdfsConfig
+
+##  Metrics System ##
+
+# Settings for Alluxio metrics. Disabled by default.
+metrics:
+  enabled: false
+  # Enable ConsoleSink by class name
+  ConsoleSink:
+    enabled: false
+    # Polling period for ConsoleSink
+    period: 10
+    # Unit of poll period
+    unit: seconds
+  # Enable CsvSink by class name
+  CsvSink:
+    enabled: false
+    # Polling period for CsvSink
+    period: 1
+    # Unit of poll period
+    unit: seconds
+    # Polling directory for CsvSink, ensure this directory exists!
+    directory: /tmp/alluxio-metrics
+  # Enable JmxSink by class name
+  JmxSink:
+    enabled: false
+    # Jmx domain
+    domain: org.alluxio
+  # Enable GraphiteSink by class name
+  GraphiteSink:
+    enabled: false
+    # Hostname of Graphite server
+    host: NONE
+    # Port of Graphite server
+    port: NONE
+    # Poll period
+    period: 10
+    # Unit of poll period
+    unit: seconds
+    # Prefix to prepend to metric name
+    prefix: ""
+  # Enable Slf4jSink by class name
+  Slf4jSink:
+    enabled: false
+    # Poll period
+    period: 10
+    # Units of poll period
+    unit: seconds
+    # Contains all metrics
+    filterClass: null
+    # Contains all metrics
+    filterRegex: null
+  # Enable PrometheusMetricsServlet by class name
+  PrometheusMetricsServlet:
+    enabled: false
+  # Pod annotations for Prometheus
+  # podAnnotations:
+  #   prometheus.io/scrape: "true"
+  #   prometheus.io/port: "19999"
+  #   prometheus.io/path: "/metrics/prometheus/"
+  podAnnotations: {}
+
+# Remote logging server
+logserver:
+  enabled: false
+  replicas: 1
+  env:
+  # Extra environment variables for the logserver pod
+  # Example:
+  # JAVA_HOME: /opt/java
+  args: # Arguments to Docker entrypoint
+    - logserver
+  # Properties for the logserver component
+  properties:
+  resources:
+    # The default xmx is 8G
+    limits:
+      cpu: "4"
+      memory: "8G"
+    requests:
+      cpu: "1"
+      memory: "1G"
+  ports:
+    logging: 45600
+  hostPID: false
+  hostNetwork: false
+  # dnsPolicy will be ClusterFirstWithHostNet if hostNetwork: true
+  # and ClusterFirst if hostNetwork: false
+  # You can specify dnsPolicy here to override this inference
+  # dnsPolicy: ClusterFirst
+  # JVM options specific to the logserver container
+  jvmOptions:
+  nodeSelector: {}
+  tolerations: []
+  # The strategy field corresponds to the .spec.strategy field for the deployment
+  # This specifies the strategy used to replace old Pods by new ones
+  # https://kubernetes.io/docs/concepts/workloads/controllers/deployment/#strategy
+  # The default is Recreate which kills the existing Pod before creating a new one
+  # Note: When using RWO PVCs, the strategy MUST be Recreate, because the PVC cannot
+  # be passed from the old Pod to the new one
+  # When using RWX PVCs, you can use RollingUpdate strategy to ensure zero down time
+  # Example:
+  # strategy:
+  #   type: RollingUpdate
+  #   rollingUpdate:
+  #     maxUnavailable: 25%
+  #     maxSurge: 1
+  strategy:
+    type: Recreate
+  # volumeType controls the type of log volume.
+  # It can be "persistentVolumeClaim" or "hostPath" or "emptyDir"
+  volumeType: persistentVolumeClaim
+  # Attributes to use if the log volume is PVC
+  pvcName: alluxio-logserver-logs
+  # Note: If using RWO, the strategy MUST be Recreate
+  # If using RWX, the strategy can be RollingUpdate
+  accessModes:
+    - ReadWriteOnce
+  storageClass: standard
+  # If you are dynamically provisioning PVs, the selector on the PVC should be empty.
+  # Ref: https://kubernetes.io/docs/concepts/storage/persistent-volumes/#class-1
+  selector: {}
+  # If you are manually allocating PV for the logserver,
+  # it is recommended to use selectors to make sure the PV and PVC match as expected.
+  # You can specify selectors like below:
+  # Example:
+  # selector:
+  #   matchLabels:
+  #     role: alluxio-logserver
+  #     app: alluxio
+  #     chart: alluxio-<chart version>
+  #     release: alluxio
+  #     heritage: Helm
+  #     dc: data-center-1
+  #     region: us-east
+
+  # Attributes to use if the log volume is hostPath
+  hostPath: "/tmp/alluxio-logs" # The hostPath directory to use
+  # Attributes to use when the log volume is emptyDir
+  medium: ""
+  size: 4Gi
+
+# The pod's HostAliases. HostAliases is an optional list of hosts and IPs that will be injected into the pod's hosts file if specified.
+# It is mainly to provide the external host addresses for services not in the K8s cluster, like HDFS.
+# Example:
+# hostAliases:
+# - ip: "192.168.0.1"
+#   hostnames:
+#     - "example1.com"
+#     - "example2.com"

@@ -1,0 +1,86 @@
+Client.BlockReadDataChunk:
+  'The timer statistics of reading block data in chunks from Alluxio workers. This metrics will only be recorded when alluxio.user.block.read.metrics.enabled is set to true'
+Client.BlockReadDataFromChunk:
+  'The timer statistics of reading data from data chunks which have already fetched from Alluxio workers. This metrics will only be recorded when alluxio.user.block.read.metrics.enabled is set to true'
+Client.BytesReadLocal:
+  'Total number of bytes short-circuit read from local storage by this client'
+Client.BytesReadLocalThroughput:
+  'Bytes throughput short-circuit read from local storage by this client'
+Client.BytesWrittenLocal:
+  'Total number of bytes short-circuit written to local storage by this client'
+Client.BytesWrittenLocalThroughput:
+  'Bytes throughput short-circuit written to local storage by this client'
+Client.BytesWrittenUfs:
+  'Total number of bytes write to Alluxio UFS by this client'
+Client.CacheBytesEvicted:
+  'Total number of bytes evicted from the client cache.'
+Client.CacheBytesReadCache:
+  'Total number of bytes read from the client cache.'
+Client.CacheBytesReadExternal:
+  'Total number of bytes read from external storage due to a cache miss on the client cache.'
+Client.CacheBytesRequestedExternal:
+  'Total number of bytes the user requested to read which resulted in a cache miss. This number may be smaller than Client.CacheBytesReadExternal due to chunk reads.'
+Client.CacheBytesWrittenCache:
+  'Total number of bytes written to the client cache.'
+Client.CacheCleanupGetErrors:
+  'Number of failures when cleaning up a failed cache read.'
+Client.CacheCleanupPutErrors:
+  'Number of failures when cleaning up a failed cache write.'
+Client.CacheCreateErrors:
+  'Number of failures when creating a cache in the client cache.'
+Client.CacheDeleteErrors:
+  'Number of failures when deleting cached data in the client cache.'
+Client.CacheDeleteNonExistingPageErrors:
+  'Number of failures when deleting pages due to absence.'
+Client.CacheDeleteNotReadyErrors:
+  'Number of failures when  when cache is not ready to delete pages.'
+Client.CacheDeleteStoreDeleteErrors:
+  'Number of failures when deleting pages due to failed delete in page stores.'
+Client.CacheGetErrors:
+  'Number of failures when getting cached data in the client cache.'
+Client.CacheGetNotReadyErrors:
+  'Number of failures when cache is not ready to get pages.'
+Client.CacheGetStoreReadErrors:
+  'Number of failures when getting cached data in the client cache due to failed read from page stores.'
+Client.CacheHitRate:
+  'Cache hit rate: (# bytes read from cache) / (# bytes requested).'
+Client.CachePages:
+  'Total number of pages in the client cache.'
+Client.CachePagesEvicted:
+  'Total number of pages evicted from the client cache.'
+Client.CachePutAsyncRejectionErrors:
+  'Number of failures when putting cached data in the client cache due to failed injection to async write queue.'
+Client.CachePutBenignRacingErrors:
+  'Number of failures when adding pages due to racing eviction. This error is benign.'
+Client.CachePutErrors:
+  'Number of failures when putting cached data in the client cache.'
+Client.CachePutEvictionErrors:
+  'Number of failures when putting cached data in the client cache due to failed eviction.'
+Client.CachePutInsufficientSpaceErrors:
+  'Number of failures when putting cached data in the client cache due to insufficient space made after eviction.'
+Client.CachePutNotReadyErrors:
+  'Number of failures when cache is not ready to add pages.'
+Client.CachePutStoreDeleteErrors:
+  'Number of failures when putting cached data in the client cache due to failed deletes in page store.'
+Client.CachePutStoreWriteErrors:
+  'Number of failures when putting cached data in the client cache due to failed writes to page store.'
+Client.CachePutStoreWriteNoSpaceErrors:
+  'Number of failures when putting cached data in the client cache but getting disk is full while cache capacity is not achieved. This can happen if the storage overhead ratio to write data is underestimated.'
+Client.CacheSpaceAvailable:
+  'Amount of bytes available in the client cache.'
+Client.CacheSpaceUsed:
+  'Amount of bytes used by the client cache.'
+Client.CacheSpaceUsedCount:
+  'Amount of bytes used by the client cache as a counter.'
+Client.CacheState:
+  'State of the cache: 0 (NOT_IN_USE), 1 (READ_ONLY) and 2 (READ_WRITE)'
+Client.CacheStoreDeleteTimeout:
+  'Number of timeouts when deleting pages from page store.'
+Client.CacheStoreGetTimeout:
+  'Number of timeouts when reading pages from page store.'
+Client.CacheStorePutTimeout:
+  'Number of timeouts when writing new pages to page store.'
+Client.CacheStoreThreadsRejected:
+  'Number of rejection of I/O threads on submitting tasks to thread pool, likely due to unresponsive local file system.'
+Client.CacheUnremovableFiles:
+  'Amount of bytes unusable managed by the client cache.'

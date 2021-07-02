@@ -16,6 +16,7 @@ import static java.util.stream.Collectors.joining;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.status.AlluxioStatusException;
+import alluxio.exception.status.DeadlineExceededException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.GetServiceVersionPRequest;
 import alluxio.grpc.GrpcChannel;
@@ -23,8 +24,9 @@ import alluxio.grpc.GrpcChannelBuilder;
 import alluxio.grpc.GrpcServerAddress;
 import alluxio.grpc.ServiceType;
 import alluxio.grpc.ServiceVersionClientServiceGrpc;
-import alluxio.retry.ExponentialBackoffRetry;
 import alluxio.retry.RetryPolicy;
+import alluxio.retry.RetryUtils;
+import alluxio.security.user.UserState;
 import alluxio.uri.Authority;
 import alluxio.uri.MultiMasterAuthority;
 
@@ -35,6 +37,7 @@ import org.slf4j.LoggerFactory;
 import java.net.InetSocketAddress;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 
 import javax.annotation.Nullable;
@@ -50,15 +53,21 @@ public class PollingMasterInquireClient implements MasterInquireClient {
   private final MultiMasterConnectDetails mConnectDetails;
   private final Supplier<RetryPolicy> mRetryPolicySupplier;
   private final AlluxioConfiguration mConfiguration;
+  private final UserState mUserState;
 
   /**
    * @param masterAddresses the potential master addresses
    * @param alluxioConf Alluxio configuration
+   * @param userState user state
    */
   public PollingMasterInquireClient(List<InetSocketAddress> masterAddresses,
-      AlluxioConfiguration alluxioConf) {
-    this(masterAddresses, () -> new ExponentialBackoffRetry(20, 2000, 30),
-        alluxioConf);
+      AlluxioConfiguration alluxioConf,
+      UserState userState) {
+    this(masterAddresses, () -> RetryUtils.defaultClientRetry(
+        alluxioConf.getDuration(PropertyKey.USER_RPC_RETRY_MAX_DURATION),
+        alluxioConf.getDuration(PropertyKey.USER_RPC_RETRY_BASE_SLEEP_MS),
+        alluxioConf.getDuration(PropertyKey.USER_RPC_RETRY_MAX_SLEEP_MS)),
+        alluxioConf, userState);
   }
 
   /**
@@ -72,6 +81,23 @@ public class PollingMasterInquireClient implements MasterInquireClient {
     mConnectDetails = new MultiMasterConnectDetails(masterAddresses);
     mRetryPolicySupplier = retryPolicySupplier;
     mConfiguration = alluxioConf;
+    mUserState = UserState.Factory.create(mConfiguration);
+  }
+
+  /**
+   * @param masterAddresses the potential master addresses
+   * @param retryPolicySupplier the retry policy supplier
+   * @param alluxioConf Alluxio configuration
+   * @param userState user state
+   */
+  public PollingMasterInquireClient(List<InetSocketAddress> masterAddresses,
+      Supplier<RetryPolicy> retryPolicySupplier,
+      AlluxioConfiguration alluxioConf,
+      UserState userState) {
+    mConnectDetails = new MultiMasterConnectDetails(masterAddresses);
+    mRetryPolicySupplier = retryPolicySupplier;
+    mConfiguration = alluxioConf;
+    mUserState = userState;
   }
 
   @Override
@@ -100,18 +126,27 @@ public class PollingMasterInquireClient implements MasterInquireClient {
       } catch (UnavailableException e) {
         LOG.debug("Failed to connect to {}", address);
         continue;
+      } catch (DeadlineExceededException e) {
+        LOG.debug("Timeout while connecting to {}", address);
+        continue;
       } catch (AlluxioStatusException e) {
-        throw new RuntimeException(e);
+        throw new RuntimeException(
+            String.format("Received exception from %s. message: %s", address, e.getMessage()), e);
       }
     }
     return null;
   }
 
   private void pingMetaService(InetSocketAddress address) throws AlluxioStatusException {
+    // disable authentication in the channel since version service does not require authentication
     GrpcChannel channel =
-        GrpcChannelBuilder.newBuilder(new GrpcServerAddress(address), mConfiguration).build();
+        GrpcChannelBuilder.newBuilder(GrpcServerAddress.create(address), mConfiguration)
+            .setSubject(mUserState.getSubject()).setClientType("MasterInquireClient")
+            .disableAuthentication().build();
     ServiceVersionClientServiceGrpc.ServiceVersionClientServiceBlockingStub versionClient =
-        ServiceVersionClientServiceGrpc.newBlockingStub(channel);
+        ServiceVersionClientServiceGrpc.newBlockingStub(channel)
+            .withDeadlineAfter(mConfiguration.getMs(PropertyKey.USER_MASTER_POLLING_TIMEOUT),
+                TimeUnit.MILLISECONDS);
     ServiceType serviceType
         = address.getPort() == mConfiguration.getInt(PropertyKey.JOB_MASTER_RPC_PORT)
         ? ServiceType.JOB_MASTER_CLIENT_SERVICE : ServiceType.META_MASTER_CLIENT_SERVICE;
@@ -120,8 +155,9 @@ public class PollingMasterInquireClient implements MasterInquireClient {
           .setServiceType(serviceType).build());
     } catch (StatusRuntimeException e) {
       throw AlluxioStatusException.fromThrowable(e);
+    } finally {
+      channel.shutdown();
     }
-    channel.shutdown();
   }
 
   @Override

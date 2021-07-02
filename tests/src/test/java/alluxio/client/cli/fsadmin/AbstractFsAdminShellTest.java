@@ -25,7 +25,7 @@ public class AbstractFsAdminShellTest extends AbstractShellIntegrationTest {
 
   @Before
   public final void before() throws Exception {
-    mLocalAlluxioCluster = mLocalAlluxioClusterResource.get();
+    mLocalAlluxioCluster = sLocalAlluxioClusterResource.get();
     mFsAdminShell = new FileSystemAdminShell(ServerConfiguration.global());
   }
 

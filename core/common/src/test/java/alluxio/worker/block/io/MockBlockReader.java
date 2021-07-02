@@ -21,8 +21,9 @@ import java.nio.channels.ReadableByteChannel;
 /**
  * A simple {@link BlockReader} to use for testing purposes.
  */
-public final class MockBlockReader implements BlockReader {
+public final class MockBlockReader extends BlockReader {
   private final byte[] mBytes;
+  private boolean mClosed;
 
   /**
    * Constructs a mock block reader which will read the given data.
@@ -31,11 +32,12 @@ public final class MockBlockReader implements BlockReader {
    */
   public MockBlockReader(byte[] bytes) {
     mBytes = bytes;
+    mClosed = false;
   }
 
   @Override
   public void close() {
-    // no-op
+    mClosed = true;
   }
 
   @Override
@@ -51,7 +53,7 @@ public final class MockBlockReader implements BlockReader {
 
   @Override
   public boolean isClosed() {
-    return false;
+    return mClosed;
   }
 
   @Override
@@ -62,5 +64,10 @@ public final class MockBlockReader implements BlockReader {
   @Override
   public ReadableByteChannel getChannel() {
     return Channels.newChannel(new ByteArrayInputStream(mBytes));
+  }
+
+  @Override
+  public String getLocation() {
+    return "mock";
   }
 }

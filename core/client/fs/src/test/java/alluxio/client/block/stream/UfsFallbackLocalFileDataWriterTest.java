@@ -147,7 +147,7 @@ public class UfsFallbackLocalFileDataWriterTest {
 
   @Rule
   public ConfigurationRule mConfigurationRule =
-      new ConfigurationRule(PropertyKey.USER_NETWORK_WRITER_CHUNK_SIZE_BYTES,
+      new ConfigurationRule(PropertyKey.USER_STREAMING_WRITER_CHUNK_SIZE_BYTES,
           String.valueOf(CHUNK_SIZE), mConf);
 
   @Before
@@ -160,8 +160,8 @@ public class UfsFallbackLocalFileDataWriterTest {
     mRequestObserver = mock(ClientCallStreamObserver.class);
     PowerMockito.when(mContext.getClientContext()).thenReturn(mClientContext);
     PowerMockito.when(mContext.getClusterConf()).thenReturn(mConf);
-    PowerMockito.when(mContext.acquireBlockWorkerClient(mAddress)).thenReturn(mClient);
-    PowerMockito.doNothing().when(mContext).releaseBlockWorkerClient(mAddress, mClient);
+    PowerMockito.when(mContext.acquireBlockWorkerClient(mAddress)).thenReturn(
+        new NoopClosableResource<>(mClient));
     PowerMockito.when(mClient.writeBlock(any(StreamObserver.class))).thenReturn(mRequestObserver);
     PowerMockito.when(mRequestObserver.isReady()).thenReturn(true);
   }
@@ -183,7 +183,7 @@ public class UfsFallbackLocalFileDataWriterTest {
     mLocalWriter = new FixedCapacityTestDataWriter(mBuffer);
     DataWriter writer =
         new UfsFallbackLocalFileDataWriter(mLocalWriter, null, mContext, mAddress, BLOCK_ID,
-            blockSize, OutStreamOptions.defaults(mConf).setMountId(MOUNT_ID));
+            blockSize, OutStreamOptions.defaults(mClientContext).setMountId(MOUNT_ID));
     return writer;
   }
 

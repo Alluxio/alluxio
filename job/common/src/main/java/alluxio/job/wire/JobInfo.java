@@ -11,209 +11,90 @@
 
 package alluxio.job.wire;
 
-import alluxio.job.JobConfig;
-
-import com.google.common.base.MoreObjects;
-import com.google.common.base.Objects;
-import com.google.common.base.Preconditions;
-import com.google.common.collect.Lists;
-
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.io.IOException;
-import java.util.ArrayList;
+import java.io.Serializable;
+import java.util.Collections;
 import java.util.List;
 
-import javax.annotation.concurrent.NotThreadSafe;
-
 /**
- * The job descriptor.
+ * The Job Info. {@link JobInfo} can currently be either {@link TaskInfo}, {@link PlanInfo},
+ * or {@link WorkflowInfo}.
  */
-@NotThreadSafe
-public final class JobInfo {
-  private long mJobId;
-  private JobConfig mJobConfig;
-  private String mErrorMessage;
-  private List<TaskInfo> mTaskInfoList;
-  private Status mStatus;
-  private String mResult;
+public interface JobInfo {
 
   /**
-   * Default constructor.
+   * @return job id
    */
-  public JobInfo() {}
+  long getId();
 
   /**
-   * Constructs the job info from the job master's internal representation of job info.
-   *
-   * @param jobInfo the job master's internal job info
+   * @return parent job id
    */
-  public JobInfo(alluxio.job.meta.JobInfo jobInfo) {
-    mJobId = jobInfo.getId();
-    mJobConfig = jobInfo.getJobConfig();
-    mErrorMessage = jobInfo.getErrorMessage();
-    mTaskInfoList = Lists.newArrayList();
-    mStatus = Status.valueOf(jobInfo.getStatus().name());
-    mResult = jobInfo.getResult();
-    for (TaskInfo taskInfo : jobInfo.getTaskInfoList()) {
-      mTaskInfoList.add(taskInfo);
-    }
-  }
+  @Nullable
+  Long getParentId();
 
   /**
-   * Constructs a new instance of {@link JobInfo} from a proto object.
-   *
-   * @param jobInfo the proto object
-   * @throws IOException if the deserialization fails
+   * @return name of the job
    */
-  public JobInfo(alluxio.grpc.JobInfo jobInfo) throws IOException {
-    mJobId = jobInfo.getId();
-    mErrorMessage = jobInfo.getErrorMessage();
-    mTaskInfoList = new ArrayList<>();
-    for (alluxio.grpc.TaskInfo taskInfo : jobInfo.getTaskInfosList()) {
-      mTaskInfoList.add(new TaskInfo(taskInfo));
-    }
-    mStatus = Status.valueOf(jobInfo.getStatus().name());
-    mResult = jobInfo.getResult();
-  }
+  @Nonnull
+  String getName();
 
   /**
-   * @param jobId the job id
+   * @return description of the job
    */
-  public void setJobId(long jobId) {
-    mJobId = jobId;
-  }
+  @Nonnull
+  String getDescription();
 
   /**
-   * @return the job id
+   * @return status of the job
    */
-  public long getJobId() {
-    return mJobId;
-  }
+  @Nonnull
+  Status getStatus();
 
   /**
-   * @param jobConfig the job config
+   * @return last updated time in milliseconds
    */
-  public void setJobConfig(JobConfig jobConfig) {
-    mJobConfig = jobConfig;
-  }
+  long getLastUpdated();
 
   /**
-   * @return the job config
+   * @return collection of children
    */
-  public JobConfig getJobConfig() {
-    return mJobConfig;
-  }
+  @Nonnull
+  List<JobInfo> getChildren();
 
   /**
-   * Sets the job result.
-   *
-   * @param result the job result
+   * @return result of the job
    */
-  public void setResult(String result) {
-    mResult = result;
-  }
+  @Nullable
+  Serializable getResult();
 
   /**
-   * @return the job result
+   * @return error type
    */
-  public String getResult() {
-    return mResult;
-  }
+  @Nonnull
+  String getErrorType();
 
   /**
-   * Sets the job status.
-   *
-   * @param status the job status
+   * @return error message
    */
-  public void setStatus(Status status) {
-    mStatus = status;
-  }
+  @Nonnull
+  String getErrorMessage();
 
   /**
-   * @return the job status
+   * @return affected paths
    */
-  public Status getStatus() {
-    return mStatus;
-  }
-
-  /**
-   * @param taskInfoList the list of task descriptors
-   */
-  public void setTaskInfoList(List<TaskInfo> taskInfoList) {
-    mTaskInfoList = Preconditions.checkNotNull(taskInfoList);
-  }
-
-  /**
-   * @return the list of task descriptors
-   */
-  public List<TaskInfo> getTaskInfoList() {
-    return mTaskInfoList;
-  }
-
-  /**
-   * @param errorMessage the error message
-   */
-  public void setErrorMessage(String errorMessage) {
-    mErrorMessage = errorMessage;
-  }
-
-  /**
-   * @return the error message
-   */
-  public String getErrorMessage() {
-    return mErrorMessage;
+  @Nonnull
+  default List<String> getAffectedPaths() {
+    return Collections.emptyList();
   }
 
   /**
    * @return proto representation of the job info
    * @throws IOException if serialization fails
    */
-  public alluxio.grpc.JobInfo toProto() throws IOException {
-    List<alluxio.grpc.TaskInfo> taskInfos = new ArrayList<>();
-    for (TaskInfo taskInfo : mTaskInfoList) {
-      taskInfos.add(taskInfo.toProto());
-    }
-    alluxio.grpc.JobInfo.Builder jobInfoBuilder = alluxio.grpc.JobInfo.newBuilder().setId(mJobId)
-        .setErrorMessage(mErrorMessage).addAllTaskInfos(taskInfos).setStatus(mStatus.toProto());
-    if (mResult != null) {
-      jobInfoBuilder.setResult(mResult);
-    }
-    return jobInfoBuilder.build();
-  }
 
-  @Override
-  public boolean equals(Object o) {
-    if (o == null) {
-      return false;
-    }
-    if (this == o) {
-      return true;
-    }
-    if (!(o instanceof JobInfo)) {
-      return false;
-    }
-    JobInfo that = (JobInfo) o;
-    return Objects.equal(mJobId, that.mJobId)
-        && Objects.equal(mJobConfig, that.mJobConfig)
-        && Objects.equal(mErrorMessage, that.mErrorMessage)
-        && Objects.equal(mTaskInfoList, that.mTaskInfoList)
-        && Objects.equal(mStatus, that.mStatus)
-        && Objects.equal(mResult, that.mResult);
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hashCode(mJobId, mJobConfig, mErrorMessage, mTaskInfoList, mStatus, mResult);
-  }
-
-  @Override
-  public String toString() {
-    return MoreObjects.toStringHelper(this)
-        .add("jobId", mJobId)
-        .add("jobConfig", mJobConfig)
-        .add("errorMessage", mErrorMessage)
-        .add("taskInfoList", mTaskInfoList)
-        .add("status", mStatus)
-        .add("result", mResult)
-        .toString();
-  }
+  @Nonnull
+  alluxio.grpc.JobInfo toProto() throws IOException;
 }

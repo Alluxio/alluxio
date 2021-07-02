@@ -11,17 +11,15 @@
 
 package alluxio.util;
 
-import static  org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertEquals;
 
 import alluxio.ConfigurationTestUtils;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
-import alluxio.security.LoginUserTestUtils;
 import alluxio.security.authentication.AuthType;
 import alluxio.security.authentication.AuthenticatedClientUser;
 import alluxio.security.group.provider.IdentityUserGroupsMapping;
 
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -32,11 +30,6 @@ public final class SecurityUtilsTest {
   @Before
   public void before() {
     mConfiguration = ConfigurationTestUtils.defaults();
-  }
-
-  @After
-  public void after() {
-    LoginUserTestUtils.resetLoginUser();
   }
 
   /**
@@ -69,40 +62,5 @@ public final class SecurityUtilsTest {
         IdentityUserGroupsMapping.class.getName());
     AuthenticatedClientUser.set("test_client_user");
     assertEquals("test_client_user", SecurityUtils.getGroupFromGrpcClient(mConfiguration));
-  }
-
-  /**
-   * Tests the {@link SecurityUtils#getOwnerFromLoginModule()} method.
-   */
-  @Test
-  public void getOwnerFromLoginModule() throws Exception {
-    // When security is not enabled, user and group are not set
-    mConfiguration.set(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.NOSASL.getAuthName());
-    assertEquals("", SecurityUtils.getOwnerFromLoginModule(mConfiguration));
-
-    // When authentication is enabled, user and group are inferred from login module
-    mConfiguration.set(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.SIMPLE.getAuthName());
-    mConfiguration.set(PropertyKey.SECURITY_LOGIN_USERNAME, "test_login_user");
-    mConfiguration.set(PropertyKey.SECURITY_GROUP_MAPPING_CLASS,
-        IdentityUserGroupsMapping.class.getName());
-    assertEquals("test_login_user", SecurityUtils.getOwnerFromLoginModule(mConfiguration));
-  }
-
-  /**
-   * Tests the {@link SecurityUtils#getGroupFromLoginModule()} method.
-   */
-  @Test
-  public void getGroupFromLoginModuleError() throws Exception {
-    // When security is not enabled, user and group are not set
-    mConfiguration.set(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.NOSASL.getAuthName());
-    assertEquals("", SecurityUtils.getGroupFromLoginModule(mConfiguration));
-
-    // When authentication is enabled, user and group are inferred from login module
-    mConfiguration.set(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.SIMPLE.getAuthName());
-    mConfiguration.set(PropertyKey.SECURITY_LOGIN_USERNAME, "test_login_user");
-    mConfiguration.set(PropertyKey.SECURITY_GROUP_MAPPING_CLASS,
-        IdentityUserGroupsMapping.class.getName());
-    LoginUserTestUtils.resetLoginUser();
-    assertEquals("test_login_user", SecurityUtils.getGroupFromLoginModule(mConfiguration));
   }
 }

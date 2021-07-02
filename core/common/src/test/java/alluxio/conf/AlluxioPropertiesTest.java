@@ -21,6 +21,7 @@ import static org.junit.Assert.assertTrue;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import org.junit.After;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -155,5 +156,37 @@ public class AlluxioPropertiesTest {
     assertEquals("value1", mProperties.get(mKeyWithValue));
     assertEquals("value2", mProperties.get(mKeyWithoutValue));
     assertEquals("value3", mProperties.get(newKey));
+  }
+
+  @Test
+  public void hash() {
+    String hash0 = mProperties.hash();
+
+    mProperties.set(mKeyWithValue, "new value");
+    String hash1 = mProperties.hash();
+    Assert.assertNotEquals(hash0, hash1);
+
+    mProperties.remove(mKeyWithValue);
+    String hash2 = mProperties.hash();
+    Assert.assertEquals(hash0, hash2);
+
+    mProperties.set(mKeyWithValue, "new value");
+    String hash3 = mProperties.hash();
+    Assert.assertEquals(hash1, hash3);
+
+    mProperties.set(mKeyWithValue, "updated new value");
+    String hash4 = mProperties.hash();
+    Assert.assertNotEquals(hash0, hash4);
+    Assert.assertNotEquals(hash1, hash4);
+    Assert.assertNotEquals(hash2, hash4);
+    Assert.assertNotEquals(hash3, hash4);
+
+    mProperties.set(mKeyWithoutValue, "value");
+    String hash5 = mProperties.hash();
+    Assert.assertNotEquals(hash0, hash5);
+    Assert.assertNotEquals(hash1, hash5);
+    Assert.assertNotEquals(hash2, hash5);
+    Assert.assertNotEquals(hash3, hash5);
+    Assert.assertNotEquals(hash4, hash5);
   }
 }

@@ -9,36 +9,34 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-import {configure, mount, ReactWrapper, shallow, ShallowWrapper} from 'enzyme';
+import { configure, shallow, ShallowWrapper } from 'enzyme';
 import Adapter from 'enzyme-adapter-react-16';
-import {createBrowserHistory, History, LocationState} from 'history';
+import { createBrowserHistory, History, LocationState } from 'history';
 import React from 'react';
-import {Provider} from 'react-redux';
-import {Store} from 'redux';
-import sinon, {SinonSpy} from 'sinon';
+import sinon from 'sinon';
 
-import configureStore from '../../../configureStore'
-import {initialState, IApplicationState} from '../../../store';
-import ConnectedApp from '../../App/App';
-import {AllProps, BlockInfo} from './BlockInfo';
+import { initialState } from '../../../store';
+import { AllProps, BlockInfoPresenter } from './BlockInfo';
+import { routePaths } from '../../../constants';
+import { createAlertErrors } from '@alluxio/common-ui/src/utilities';
 
-configure({adapter: new Adapter()});
+configure({ adapter: new Adapter() });
 
 describe('BlockInfo', () => {
   let history: History<LocationState>;
-  let store: Store<IApplicationState>;
   let props: AllProps;
 
   beforeAll(() => {
-    history = createBrowserHistory({keyLength: 0});
-    history.push('/blockInfo');
-    store = configureStore(history, initialState);
+    history = createBrowserHistory({ keyLength: 0 });
+    history.push(routePaths.blockInfo);
     props = {
-      location: {search: ''},
+      refresh: false,
       fetchRequest: sinon.spy(() => {}),
       data: initialState.blockInfo.data,
-      loading: initialState.blockInfo.loading,
-      refresh: initialState.refresh.data
+      loading: false,
+      errors: createAlertErrors(false),
+      request: {},
+      class: '',
     };
   });
 
@@ -50,39 +48,33 @@ describe('BlockInfo', () => {
     let shallowWrapper: ShallowWrapper;
 
     beforeAll(() => {
-      shallowWrapper = shallow(<BlockInfo {...props}/>);
+      shallowWrapper = shallow(<BlockInfoPresenter {...props} />);
     });
 
     it('Renders without crashing', () => {
       expect(shallowWrapper.length).toEqual(1);
     });
 
-    it('Matches snapshot', () => {
-      expect(shallowWrapper).toMatchSnapshot();
-    });
-  });
-
-  describe('App with connected component', () => {
-    let reactWrapper: ReactWrapper;
-
-    beforeAll(() => {
-      reactWrapper = mount(<Provider store={store}><ConnectedApp history={history}/></Provider>);
+    it('Contains a div with class col-12', () => {
+      expect(shallowWrapper.find('.col-12').length).toEqual(1);
     });
 
-    it('Renders without crashing', () => {
-      expect(reactWrapper.length).toEqual(1);
+    describe('Renders BlockInfo Listing', () => {
+      it('Matches snapshot with Table listing', () => {
+        expect(shallowWrapper).toMatchSnapshot();
+      });
     });
 
-    it('Contains the component', () => {
-      expect(reactWrapper.find('.blockInfo-page').length).toEqual(1);
-    });
+    describe('Renders BlockInfo view', () => {
+      beforeAll(() => {
+        const data = { ...props.data };
+        data.blockSizeBytes = 'x';
+        shallowWrapper.setProps({ data: data });
+      });
 
-    it('Calls fetchRequest', () => {
-      sinon.assert.called(props.fetchRequest as SinonSpy);
-    });
-
-    it('Matches snapshot', () => {
-      expect(reactWrapper).toMatchSnapshot();
+      it('Matches snapshot with File', () => {
+        expect(shallowWrapper).toMatchSnapshot();
+      });
     });
   });
 });

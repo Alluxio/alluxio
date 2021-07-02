@@ -9,9 +9,17 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
+export * from './HOCs/withLoadingMessage/withLoadingMessage';
+export * from './HOCs/withErrors/withErrors';
+export * from './HOCs/withTextAreaResize/withTextAreaResize';
+export * from './HOCs/withFetchDataFromPath/withFetchDataFromPath';
+export * from './HOCs/withFetchData/withFetchData';
+export * from './HOCs/withFluidContainer/withFluidContainer';
 export * from './Footer/Footer';
 export * from './Header/Header';
 export * from './LoadingMessage/LoadingMessage';
+export * from './Logs/Logs';
 export * from './FileView/FileView';
 export * from './Paginator/Paginator';
 export * from './LineGraph/LineGraph';
+export * from './SlackButton/SlackButton';

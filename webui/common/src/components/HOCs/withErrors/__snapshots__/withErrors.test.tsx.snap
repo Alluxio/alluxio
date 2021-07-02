@@ -1,0 +1,91 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`withErrors HOC Shallow component No Errors Matches snapshot - renders WrappedComponent 1`] = `
+<WrappedComponent
+  errors={
+    Object {
+      "general": false,
+      "hasErrors": false,
+      "specific": Array [],
+    }
+  }
+/>
+`;
+
+exports[`withErrors HOC Shallow component With Errors Matches snapshot - renders general error 1`] = `
+<Alert
+  closeAriaLabel="Close"
+  color="danger"
+  fade={true}
+  isOpen={true}
+  tag="div"
+  transition={
+    Object {
+      "appear": true,
+      "baseClass": "fade",
+      "baseClassActive": "show",
+      "enter": true,
+      "exit": true,
+      "in": true,
+      "mountOnEnter": false,
+      "onEnter": [Function],
+      "onEntered": [Function],
+      "onEntering": [Function],
+      "onExit": [Function],
+      "onExited": [Function],
+      "onExiting": [Function],
+      "tag": "div",
+      "timeout": 150,
+      "unmountOnExit": true,
+    }
+  }
+>
+  <div>
+    Unable to reach the api endpoint for this page.
+  </div>
+</Alert>
+`;
+
+exports[`withErrors HOC Shallow component With Errors Matches snapshot - renders specific errors 1`] = `
+<Alert
+  closeAriaLabel="Close"
+  color="danger"
+  fade={true}
+  isOpen={true}
+  tag="div"
+  transition={
+    Object {
+      "appear": true,
+      "baseClass": "fade",
+      "baseClassActive": "show",
+      "enter": true,
+      "exit": true,
+      "in": true,
+      "mountOnEnter": false,
+      "onEnter": [Function],
+      "onEntered": [Function],
+      "onEntering": [Function],
+      "onExit": [Function],
+      "onExited": [Function],
+      "onExiting": [Function],
+      "tag": "div",
+      "timeout": 150,
+      "unmountOnExit": true,
+    }
+  }
+>
+  <div>
+    Unable to reach the api endpoint for this page.
+  </div>
+  <div
+    key="0"
+  >
+    error1
+  </div>
+  <div
+    key="1"
+  >
+    error2
+  </div>
+</Alert>
+`;

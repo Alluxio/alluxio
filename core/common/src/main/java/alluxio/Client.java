@@ -34,10 +34,16 @@ public interface Client extends Closeable {
   void disconnect();
 
   /**
-   * @return the {@link InetSocketAddress} of the remote,
+   * @return the {@link InetSocketAddress} of the remote
    * @throws UnavailableException if the primary address cannot be determined
    */
   InetSocketAddress getAddress() throws UnavailableException;
+
+  /**
+   * @return the {@link InetSocketAddress} of the configuration remote
+   * @throws UnavailableException if the primary address cannot be determined
+   */
+  InetSocketAddress getConfAddress() throws UnavailableException;
 
   /**
    * Returns the connected status of the client.
@@ -45,4 +51,9 @@ public interface Client extends Closeable {
    * @return true if this client is connected to the remote
    */
   boolean isConnected();
+
+  /**
+   * @return whether the client is closed
+   */
+  boolean isClosed();
 }

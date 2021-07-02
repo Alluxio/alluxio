@@ -1,0 +1,36 @@
+<!--
+
+    The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
+    (the "License"). You may not use this work except in compliance with the License, which is
+    available at www.apache.org/licenses/LICENSE-2.0
+
+    This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+    either express or implied, as more fully set forth in the License.
+
+    See the NOTICE file distributed with this work for information regarding copyright ownership.
+
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <artifactId>alluxio-table</artifactId>
+    <groupId>org.alluxio</groupId>
+    <version>2.7.0-SNAPSHOT</version>
+  </parent>
+  <artifactId>alluxio-table-server</artifactId>
+  <packaging>pom</packaging>
+  <name>Alluxio Table - Server</name>
+  <description>Alluxio Table server components</description>
+
+  <modules>
+    <module>common</module>
+    <module>master</module>
+    <module>underdb</module>
+  </modules>
+
+  <properties>
+    <!-- These need to be defined here as well as in the parent pom so that mvn can run
+         properly from sub-project directories -->
+    <build.path>${project.parent.parent.basedir}/build</build.path>
+  </properties>
+</project>

@@ -34,15 +34,6 @@ public class RaftJournalConfiguration {
   private InetSocketAddress mLocalAddress;
   private long mMaxLogSize;
   private File mPath;
-  private StorageLevel mStorageLevel;
-
-  /**
-   * Enum corresponding to io.atomix.copycat.server.storage.StorageLevel. We cannot use that class
-   * here because the atomix module requires Java 8.
-   */
-  public enum StorageLevel {
-    DISK, MAPPED, MEMORY;
-  }
 
   /**
    * @param serviceType either master raft service or job master raft service
@@ -59,9 +50,7 @@ public class RaftJournalConfiguration {
         .setLocalAddress(NetworkAddressUtils.getConnectAddress(serviceType,
             ServerConfiguration.global()))
         .setMaxLogSize(ServerConfiguration.getBytes(PropertyKey.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX))
-        .setPath(new File(JournalUtils.getJournalLocation().getPath()))
-        .setStorageLevel(ServerConfiguration
-            .getEnum(PropertyKey.MASTER_EMBEDDED_JOURNAL_STORAGE_LEVEL, StorageLevel.class));
+        .setPath(new File(JournalUtils.getJournalLocation().getPath()));
   }
 
   /**
@@ -108,6 +97,18 @@ public class RaftJournalConfiguration {
   }
 
   /**
+   * @return proxy address of this Raft cluster node
+   */
+  public InetSocketAddress getProxyAddress() {
+    if (ServerConfiguration.isSet(PropertyKey.MASTER_EMBEDDED_JOURNAL_PROXY_HOST)) {
+      return InetSocketAddress.createUnresolved(
+          ServerConfiguration.get(PropertyKey.MASTER_EMBEDDED_JOURNAL_PROXY_HOST),
+          getLocalAddress().getPort());
+    }
+    return null;
+  }
+
+  /**
    * @return max log file size
    */
   public long getMaxLogSize() {
@@ -119,13 +120,6 @@ public class RaftJournalConfiguration {
    */
   public File getPath() {
     return mPath;
-  }
-
-  /**
-   * @return storage level
-   */
-  public StorageLevel getStorageLevel() {
-    return mStorageLevel;
   }
 
   /**
@@ -179,15 +173,6 @@ public class RaftJournalConfiguration {
    */
   public RaftJournalConfiguration setPath(File path) {
     mPath = path;
-    return this;
-  }
-
-  /**
-   * @param storageLevel storage level
-   * @return the updated configuration
-   */
-  public RaftJournalConfiguration setStorageLevel(StorageLevel storageLevel) {
-    mStorageLevel = storageLevel;
     return this;
   }
 }

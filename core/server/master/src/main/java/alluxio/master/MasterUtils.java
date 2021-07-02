@@ -32,7 +32,7 @@ import java.util.concurrent.Callable;
 /**
  * This class encapsulates the different master services that are configured to run.
  */
-final class MasterUtils {
+public final class MasterUtils {
   private MasterUtils() {}  // prevent instantiation
 
   /**
@@ -52,7 +52,7 @@ final class MasterUtils {
       });
     }
     try {
-      CommonUtils.invokeAll(callables, 10 * Constants.MINUTE_MS);
+      CommonUtils.invokeAll(callables, 10L * Constants.MINUTE_MS);
     } catch (Exception e) {
       throw new RuntimeException("Failed to start masters", e);
     }

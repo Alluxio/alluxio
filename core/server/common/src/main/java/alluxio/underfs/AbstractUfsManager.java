@@ -17,6 +17,7 @@ import alluxio.conf.ServerConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.status.NotFoundException;
 import alluxio.exception.status.UnavailableException;
+import alluxio.master.journal.ufs.UfsJournal;
 import alluxio.util.IdUtils;
 
 import com.google.common.base.MoreObjects;
@@ -27,11 +28,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.net.URI;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Basic implementation of {@link UfsManager}.
+ * Basic implementation of {@link UfsManager}. Store the journal UFS and root
+ * mount point information.
  */
 public abstract class AbstractUfsManager implements UfsManager {
   private static final Logger LOG = LoggerFactory.getLogger(AbstractUfsManager.class);
@@ -99,15 +102,16 @@ public abstract class AbstractUfsManager implements UfsManager {
       new ConcurrentHashMap<>();
 
   private UfsClient mRootUfsClient;
+  private UfsClient mJournalUfsClient;
   protected final Closer mCloser;
 
-  AbstractUfsManager() {
+  protected AbstractUfsManager() {
     mCloser = Closer.create();
   }
 
   /**
    * Return a UFS instance if it already exists in the cache, otherwise, creates a new instance and
-   * return this.
+   * return it.
    *
    * @param ufsUri the UFS path
    * @param ufsConf the UFS configuration
@@ -129,20 +133,23 @@ public abstract class AbstractUfsManager implements UfsManager {
 
       // Detect whether to use managed blocking on UFS operations.
       boolean useManagedBlocking = fs.isObjectStorage();
-      if (ufsConf.isSet(PropertyKey.UNDERFS_RUN_WITH_MANAGEDBLOCKING)) {
-        useManagedBlocking = ufsConf.getBoolean(PropertyKey.UNDERFS_RUN_WITH_MANAGEDBLOCKING);
+      if (ufsConf.isSet(PropertyKey.MASTER_UFS_MANAGED_BLOCKING_ENABLED)) {
+        useManagedBlocking = ufsConf.getBoolean(PropertyKey.MASTER_UFS_MANAGED_BLOCKING_ENABLED);
       }
       // Wrap UFS under managed blocking forwarder if required.
       if (useManagedBlocking) {
         fs = new ManagedBlockingUfsForwarder(fs);
       }
 
-      mUnderFileSystemMap.putIfAbsent(key, fs);
+      if (mUnderFileSystemMap.putIfAbsent(key, fs) != null) {
+        // This shouldn't occur unless our synchronization is incorrect
+        LOG.warn("UFS already existed in UFS manager");
+      }
       mCloser.register(fs);
       try {
         connectUfs(fs);
       } catch (IOException e) {
-        LOG.warn("Failed to perform initial connect to UFS {}: {}", ufsUri, e.getMessage());
+        LOG.warn("Failed to perform initial connect to UFS {}: {}", ufsUri, e.toString());
       }
       return fs;
     }
@@ -194,8 +201,8 @@ public abstract class AbstractUfsManager implements UfsManager {
         Map<String, String> rootConf =
             ServerConfiguration.getNestedProperties(PropertyKey.MASTER_MOUNT_TABLE_ROOT_OPTION);
         addMount(IdUtils.ROOT_MOUNT_ID, new AlluxioURI(rootUri),
-            UnderFileSystemConfiguration.defaults().setReadOnly(rootReadOnly).setShared(rootShared)
-                .createMountSpecificConf(rootConf));
+            UnderFileSystemConfiguration.defaults(ServerConfiguration.global())
+                .setReadOnly(rootReadOnly).setShared(rootShared).createMountSpecificConf(rootConf));
         try {
           mRootUfsClient = get(IdUtils.ROOT_MOUNT_ID);
         } catch (NotFoundException | UnavailableException e) {
@@ -203,6 +210,22 @@ public abstract class AbstractUfsManager implements UfsManager {
         }
       }
       return mRootUfsClient;
+    }
+  }
+
+  @Override
+  public UfsClient getJournal(URI location) {
+    synchronized (this) {
+      if (mJournalUfsClient == null) {
+        addMount(IdUtils.UFS_JOURNAL_MOUNT_ID, new AlluxioURI(location.toString()),
+            UfsJournal.getJournalUfsConf());
+        try {
+          mJournalUfsClient = get(IdUtils.UFS_JOURNAL_MOUNT_ID);
+        } catch (NotFoundException | UnavailableException e) {
+          throw new RuntimeException("We should never reach here", e);
+        }
+      }
+      return mJournalUfsClient;
     }
   }
 

@@ -1,0 +1,114 @@
+<!--
+
+    The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
+    (the "License"). You may not use this work except in compliance with the License, which is
+    available at www.apache.org/licenses/LICENSE-2.0
+
+    This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+    either express or implied, as more fully set forth in the License.
+
+    See the NOTICE file distributed with this work for information regarding copyright ownership.
+
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <groupId>org.alluxio</groupId>
+    <artifactId>alluxio-integration-tools</artifactId>
+    <version>2.7.0-SNAPSHOT</version>
+  </parent>
+  <artifactId>alluxio-integration-tools-validation</artifactId>
+  <packaging>jar</packaging>
+  <name>Alluxio Integration - Validation Tools</name>
+  <description>Tools to validation the underlying environment for Alluxio</description>
+
+  <properties>
+    <!-- The following paths need to be defined here as well as in the parent pom so that mvn can -->
+    <!-- run properly from sub-project directories -->
+    <build.path>${project.parent.parent.parent.basedir}/build</build.path>
+    <failIfNoTests>false</failIfNoTests>
+    <lib.jar.name>${project.artifactId}-${project.version}.jar</lib.jar.name>
+  </properties>
+
+  <dependencies>
+    <!-- External dependencies -->
+    <dependency>
+      <groupId>com.google.guava</groupId>
+      <artifactId>guava</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.jline</groupId>
+      <artifactId>jline</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.beust</groupId>
+      <artifactId>jcommander</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-compress</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.google.code.gson</groupId>
+      <artifactId>gson</artifactId>
+    </dependency>
+
+    <!-- Internal dependencies -->
+    <dependency>
+      <groupId>org.alluxio</groupId>
+      <artifactId>alluxio-core-common</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+
+    <!-- Test dependencies -->
+    <dependency>
+      <groupId>org.alluxio</groupId>
+      <artifactId>alluxio-core-common</artifactId>
+      <version>${project.version}</version>
+      <type>test-jar</type>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.alluxio</groupId>
+      <artifactId>alluxio-underfs-local</artifactId>
+      <version>${project.version}</version>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>com.coderplus.maven.plugins</groupId>
+        <artifactId>copy-rename-maven-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>copy-and-rename-file</id>
+            <phase>install</phase>
+            <goals>
+              <goal>copy</goal>
+            </goals>
+            <configuration>
+              <sourceFile>${basedir}/target/${project.artifactId}-${project.version}.jar</sourceFile>
+              <destinationFile>${project.parent.parent.parent.basedir}/lib/${lib.jar.name}</destinationFile>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <artifactId>maven-clean-plugin</artifactId>
+        <configuration>
+          <filesets>
+            <fileset>
+              <directory>${basedir}/../../../lib</directory>
+              <includes>
+                <include>**/${project.artifactId}-*.jar</include>
+              </includes>
+            </fileset>
+          </filesets>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+
+</project>

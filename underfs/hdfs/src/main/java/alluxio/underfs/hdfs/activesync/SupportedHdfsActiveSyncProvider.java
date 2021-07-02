@@ -12,15 +12,18 @@
 package alluxio.underfs.hdfs.activesync;
 
 import alluxio.AlluxioURI;
+import alluxio.Constants;
 import alluxio.SyncInfo;
 import alluxio.collections.ConcurrentHashSet;
-import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.InvalidPathException;
 import alluxio.resource.LockResource;
+import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.underfs.hdfs.HdfsActiveSyncProvider;
+import alluxio.util.LogUtils;
 import alluxio.util.ThreadFactoryUtils;
 import alluxio.util.io.PathUtils;
+import alluxio.util.logging.SamplingLogger;
 
 import org.apache.hadoop.hdfs.DFSInotifyEventInputStream;
 import org.apache.hadoop.hdfs.client.HdfsAdmin;
@@ -34,15 +37,20 @@ import java.io.IOException;
 import java.net.URI;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.ConcurrentModificationException;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Queue;
 import java.util.Set;
+import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -52,17 +60,20 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
  */
 public class SupportedHdfsActiveSyncProvider implements HdfsActiveSyncProvider {
   private static final Logger LOG = LoggerFactory.getLogger(SupportedHdfsActiveSyncProvider.class);
+  private static final Logger SAMPLING_LOG = new SamplingLogger(LOG, 10L * Constants.MINUTE_MS);
+
   private final HdfsAdmin mHdfsAdmin;
   // These read write locks protect the state (maps) managed by this class.
   private final Lock mReadLock;
   private final Lock mWriteLock;
-  private final ExecutorService mExecutorService;
+  private final ThreadPoolExecutor mExecutorService;
   private final int mActiveUfsSyncMaxActivity;
   private final int mActiveUfsSyncMaxAge;
   private final long mActiveUfsPollTimeoutMs;
   private final long mActiveUfsSyncEventRateInterval;
   private Future<?> mPollingThread;
   private List<AlluxioURI> mUfsUriList;
+  private final Queue<Future<Integer>> mProcessTasks;
 
   // a map mapping SyncPoints to a set of files that have been changed under that syncPoint
   private Map<String, Set<AlluxioURI>> mChangedFiles;
@@ -74,15 +85,17 @@ public class SupportedHdfsActiveSyncProvider implements HdfsActiveSyncProvider {
   private long mCurrentTxId;
   private boolean mEventMissed;
 
+  private final int mBatchSize;
+
   /**
    * Constructor for supported Hdfs Active Sync Provider.
    *
    * @param uri the hdfs uri
    * @param conf the hdfs conf
-   * @param alluxioConf Alluxio configuration
+   * @param ufsConf Alluxio UFS configuration
    */
   public SupportedHdfsActiveSyncProvider(URI uri, org.apache.hadoop.conf.Configuration conf,
-      AlluxioConfiguration alluxioConf)
+      UnderFileSystemConfiguration ufsConf)
       throws IOException {
     mHdfsAdmin = new HdfsAdmin(uri, conf);
     mChangedFiles = new ConcurrentHashMap<>();
@@ -91,19 +104,25 @@ public class SupportedHdfsActiveSyncProvider implements HdfsActiveSyncProvider {
     ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
     mReadLock = lock.readLock();
     mWriteLock = lock.writeLock();
-    mExecutorService = Executors
-        .newFixedThreadPool(alluxioConf.getInt(PropertyKey.MASTER_ACTIVE_UFS_SYNC_THREAD_POOL_SIZE),
-            ThreadFactoryUtils.build("SupportedHdfsActiveSyncProvider-%d", true));
+    mExecutorService = new ThreadPoolExecutor(
+        ufsConf.getInt(PropertyKey.MASTER_UFS_ACTIVE_SYNC_THREAD_POOL_SIZE),
+        ufsConf.getInt(PropertyKey.MASTER_UFS_ACTIVE_SYNC_THREAD_POOL_SIZE),
+        1, TimeUnit.MINUTES, new LinkedBlockingQueue<>(),
+        ThreadFactoryUtils.build("SupportedHdfsActiveSyncProvider-%d", false),
+        new ThreadPoolExecutor.CallerRunsPolicy());
+    mExecutorService.allowCoreThreadTimeOut(true);
     mPollingThread = null;
     mUfsUriList = new CopyOnWriteArrayList<>();
     mEventMissed = false;
     mTxIdMap = new ConcurrentHashMap<>();
     mCurrentTxId = SyncInfo.INVALID_TXID;
-    mActiveUfsSyncMaxActivity = alluxioConf.getInt(PropertyKey.MASTER_ACTIVE_UFS_SYNC_MAX_ACTIVITY);
-    mActiveUfsSyncMaxAge = alluxioConf.getInt(PropertyKey.MASTER_ACTIVE_UFS_SYNC_MAX_AGE);
-    mActiveUfsPollTimeoutMs = alluxioConf.getMs(PropertyKey.MASTER_ACTIVE_UFS_POLL_TIMEOUT);
+    mActiveUfsSyncMaxActivity = ufsConf.getInt(PropertyKey.MASTER_UFS_ACTIVE_SYNC_MAX_ACTIVITIES);
+    mActiveUfsSyncMaxAge = ufsConf.getInt(PropertyKey.MASTER_UFS_ACTIVE_SYNC_MAX_AGE);
+    mActiveUfsPollTimeoutMs = ufsConf.getMs(PropertyKey.MASTER_UFS_ACTIVE_SYNC_POLL_TIMEOUT);
     mActiveUfsSyncEventRateInterval =
-        alluxioConf.getMs(PropertyKey.MASTER_ACTIVE_UFS_SYNC_EVENT_RATE_INTERVAL);
+        ufsConf.getMs(PropertyKey.MASTER_UFS_ACTIVE_SYNC_EVENT_RATE_INTERVAL);
+    mProcessTasks = new LinkedBlockingQueue<>();
+    mBatchSize = ufsConf.getInt(PropertyKey.MASTER_UFS_ACTIVE_SYNC_POLL_BATCH_SIZE);
   }
 
   /**
@@ -114,24 +133,24 @@ public class SupportedHdfsActiveSyncProvider implements HdfsActiveSyncProvider {
    */
   private void initNextWindow() {
     for (String syncPoint : mActivity.keySet()) {
-      mActivity.put(syncPoint, mActivity.get(syncPoint).intValue() / 10);
-      mAge.put(syncPoint, mAge.get(syncPoint).intValue() + 1);
+      mActivity.put(syncPoint, mActivity.get(syncPoint) / 10);
+      mAge.put(syncPoint, mAge.get(syncPoint) + 1);
     }
   }
 
   private void recordFileChanged(String syncPoint, String filePath, long txId) {
     AlluxioURI syncPointUri = new AlluxioURI(syncPoint);
 
+    mChangedFiles.computeIfAbsent(syncPoint, (key) -> {
+      mActivity.put(syncPoint, 0);
+      mAge.put(syncPoint, 0);
+      mTxIdMap.put(syncPoint, txId);
+      return new ConcurrentHashSet<>();
+    });
     try (LockResource r = new LockResource(mWriteLock)) {
-      if (!mChangedFiles.containsKey(syncPoint)) {
-        mChangedFiles.put(syncPoint, new ConcurrentHashSet<>());
-        mActivity.put(syncPoint, 0);
-        mAge.put(syncPoint, 0);
-        mTxIdMap.put(syncPoint, txId);
-      }
       mChangedFiles.get(syncPoint).add(
           new AlluxioURI(syncPointUri.getScheme(), syncPointUri.getAuthority(), filePath));
-      mActivity.put(syncPoint, mActivity.get(syncPoint).intValue() + 1);
+      mActivity.put(syncPoint, mActivity.get(syncPoint) + 1);
     }
   }
 
@@ -258,53 +277,108 @@ public class SupportedHdfsActiveSyncProvider implements HdfsActiveSyncProvider {
    * @param eventStream event stream
    */
   public void pollEvent(DFSInotifyEventInputStream eventStream) {
-    EventBatch batch;
     LOG.debug("Polling thread starting, with timeout {} ms", mActiveUfsPollTimeoutMs);
-    int count = 0;
     long start = System.currentTimeMillis();
 
     long behind = eventStream.getTxidsBehindEstimate();
 
     while (!Thread.currentThread().isInterrupted()) {
       try {
-        batch = eventStream.poll(mActiveUfsPollTimeoutMs, TimeUnit.MILLISECONDS);
 
-        if (batch != null) {
-          long txId = batch.getTxid();
-          count++;
-          for (Event event : batch.getEvents()) {
-            processEvent(event, mUfsUriList, txId);
+        List<Callable<Integer>> process = new LinkedList<>();
+        for (int i = 0; i < mBatchSize; i++) {
+          EventBatch batch = eventStream.poll(mActiveUfsPollTimeoutMs, TimeUnit.MILLISECONDS);
+          if (batch == null) {
+            break;
           }
+          process.add(() -> {
+            for (Event event : batch.getEvents()) {
+              processEvent(event, mUfsUriList, batch.getTxid());
+            }
+            return batch.getEvents().length;
+          });
         }
+        mProcessTasks.add(mExecutorService.submit(() -> process.stream().map(
+            callable -> {
+              try {
+                return callable.call();
+              } catch (Exception e) {
+                LogUtils.warnWithException(LOG, "Failed to process event", e);
+                return 0;
+              }
+            }).reduce(0, Integer::sum)
+        ));
         long end = System.currentTimeMillis();
         if (end > (start + mActiveUfsSyncEventRateInterval)) {
           long currentlyBehind = eventStream.getTxidsBehindEstimate();
-          LOG.info("HDFS generated {} events in {} ms, at a rate of {} rps",
-              count + currentlyBehind - behind ,
-              end - start,
-              String.format("%.2f", (count + currentlyBehind - behind) * 1000.0 / (end - start)));
-          LOG.info("processed {} events in {} ms, at a rate of {} rps", count,
-              end - start,
-              String.format("%.2f", count * 1000.0 / (end - start)));
-          LOG.info("Currently TxidsBehindEstimate by {}", currentlyBehind);
+          long processedEvents = getCountSinceLastLog();
+          long hdfsEvents = processedEvents + currentlyBehind - behind;
+          long durationMs = end - start;
+          if (LOG.isDebugEnabled()) {
+            // for debug, print every interval
+            LOG.debug(
+                "HDFS sync stats. past duration: {} ms. HDFS generated events: {} ({} events/s). "
+                    + "Processed events: {} ({} events/s). TxidsBehindEstimate: {}",
+                durationMs,
+                hdfsEvents, String.format("%.2f", hdfsEvents * 1000.0f / durationMs),
+                processedEvents, String.format("%.2f", processedEvents * 1000.0f / durationMs),
+                currentlyBehind);
+          } else {
+            // for info, print with the sampling logger
+            SAMPLING_LOG.info(
+                "HDFS sync stats. past duration: {} ms. HDFS generated events: {} ({} events/s). "
+                    + "Processed events: {} ({} events/s). TxidsBehindEstimate: {}",
+                durationMs,
+                hdfsEvents, String.format("%.2f", hdfsEvents * 1000.0f / durationMs),
+                processedEvents, String.format("%.2f", processedEvents * 1000.0f / durationMs),
+                currentlyBehind);
+          }
           behind = currentlyBehind;
           start = end;
-          count = 0;
         }
       } catch (IOException e) {
-        LOG.warn("IOException occured during polling inotify {}", e);
+        LOG.warn("IOException occured during polling inotify: {}", e.toString());
         if (e.getCause() instanceof InterruptedException) {
           return;
         }
       } catch (MissingEventsException e) {
-        LOG.warn("MissingEventException during polling {}", e);
+        LOG.warn("MissingEventException during polling: {}", e.toString());
         mEventMissed = true;
         // need to sync all syncpoints at this point
       } catch (InterruptedException e) {
-        LOG.warn("InterruptedException during polling {}", e);
+        LOG.warn("InterruptedException during polling: {}", e.toString());
         return;
       }
     }
+  }
+
+  /**
+   * Removes any tasks from the head of the task queue which have been completed.
+   *
+   * Operation is not idempotent.
+   *
+   * @return the number of events processed since this method was last called
+   */
+  private long getCountSinceLastLog() {
+    // Take any completed tasks off of the queue and update the count.
+    int count = 0;
+    while (mProcessTasks.peek() != null && mProcessTasks.peek().isDone()) {
+      try {
+        Future<Integer> task = mProcessTasks.poll();
+        if (task == null) {
+          // the while condition should ensure this never happens.
+          throw new ConcurrentModificationException("Head of queue modified while polling");
+        }
+        count += task.get();
+      } catch (InterruptedException | ExecutionException e) {
+        LogUtils.warnWithException(LOG, "EventBatch process task failed: ", e);
+        if (e instanceof InterruptedException) {
+          Thread.currentThread().interrupt();
+          break;
+        }
+      }
+    }
+    return count;
   }
 
   private long getLastTxId() {
@@ -325,7 +399,7 @@ public class SupportedHdfsActiveSyncProvider implements HdfsActiveSyncProvider {
     // 1. setup a source of event
     // 2. Filter based on the paths associated with this mountId
     // 3. Build History for each of the syncPoint
-    // 4. If heurstics function returns sync, then we sync the syncPoint
+    // 4. If heuristics function returns sync, then we sync the syncPoint
 
     if (mPollingThread == null) {
       return SyncInfo.emptyInfo();

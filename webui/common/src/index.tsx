@@ -17,11 +17,8 @@ import App from './App';
 
 import 'source-sans-pro/source-sans-pro.css';
 import 'source-serif-pro/source-serif-pro.css';
-import 'source-code-pro/source-code-pro.css';
+import '@openfonts/anonymous-pro_all';
 
 import './index.css';
 
-ReactDOM.render(
-  <App />,
-  document.getElementById('root') as HTMLElement
-);
+ReactDOM.render(<App />, document.getElementById('root') as HTMLElement);

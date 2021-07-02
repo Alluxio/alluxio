@@ -58,7 +58,7 @@ NOTE: `coverage-ci` is meant to run tests once and quit (for continuous integrat
 #### Developing within the webui project
 
 1. Follow the prerequisite instructions above.
-1. Enable CORS for the alluxio RESTful api endpoints by setting `alluxio.webui.enable.cors=true` in `conf/alluxio-site.properties`
+1. Enable CORS for the alluxio RESTful api endpoints by setting `alluxio.web.cors.enabled=true` in `conf/alluxio-site.properties`
 1. Start a development server in one of the following ways:
     1. For all packages: `npm run start`
     1. For each package independently:
@@ -83,6 +83,18 @@ NOTE: `coverage-ci` is meant to run tests once and quit (for continuous integrat
         1. worker-ui: `cd webui/worker-ui && npm run coverage`
 
     This will also generate a coverage report within each package: `common/coverage/lcov-report/index.html`, `master/coverage/lcov-report/index.html`, `worker/coverage/lcov-report/index.html`. You may also run `coverage-ci` instead of `coverage` in this step if you would like this to execute only once.
+
+#### Formatting and linting .tsx files
+
+This will format .tsx files based on `.prettierrc.js` and return errors based on rules defined in `.eslintrc.js`.
+
+This can be done in two ways:
+
+1. Let lerna format and lint everything: `npm run format`
+1. Build everything independently:
+    1. common-ui: `cd webui/common-ui && npm run format`
+    1. master-ui: `cd webui/master-ui && npm run format`
+    1. worker-ui: `cd webui/worker-ui && npm run format`
 
 #### Shrinkwrapping dependencies
 

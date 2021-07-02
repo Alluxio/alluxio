@@ -9,35 +9,33 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-import {configure, mount, ReactWrapper, shallow, ShallowWrapper} from 'enzyme';
+import { configure, shallow, ShallowWrapper } from 'enzyme';
 import Adapter from 'enzyme-adapter-react-16';
-import {createBrowserHistory, History, LocationState} from 'history';
+import { createBrowserHistory, History, LocationState } from 'history';
 import React from 'react';
-import {Provider} from 'react-redux';
-import {Store} from 'redux';
-import sinon, {SinonSpy} from 'sinon';
+import sinon from 'sinon';
 
-import configureStore from '../../../configureStore'
-import {initialState, IApplicationState} from '../../../store';
-import ConnectedApp from '../../App/App';
-import {AllProps, Metrics} from './Metrics';
+import { initialState } from '../../../store';
+import { AllProps, MetricsPresenter } from './Metrics';
+import { routePaths } from '../../../constants';
+import { createAlertErrors } from '@alluxio/common-ui/src/utilities';
 
-configure({adapter: new Adapter()});
+configure({ adapter: new Adapter() });
 
 describe('Metrics', () => {
   let history: History<LocationState>;
-  let store: Store<IApplicationState>;
   let props: AllProps;
 
   beforeAll(() => {
-    history = createBrowserHistory({keyLength: 0});
-    history.push('/metrics');
-    store = configureStore(history, initialState);
+    history = createBrowserHistory({ keyLength: 0 });
+    history.push(routePaths.metrics);
     props = {
-      fetchRequest: sinon.spy(() => {}),
       data: initialState.metrics.data,
-      loading: initialState.metrics.loading,
-      refresh: initialState.refresh.data
+      errors: createAlertErrors(false),
+      class: '',
+      loading: false,
+      refresh: initialState.refresh.data,
+      fetchRequest: sinon.spy(() => {}),
     };
   });
 
@@ -49,7 +47,7 @@ describe('Metrics', () => {
     let shallowWrapper: ShallowWrapper;
 
     beforeAll(() => {
-      shallowWrapper = shallow(<Metrics {...props}/>);
+      shallowWrapper = shallow(<MetricsPresenter {...props} />);
     });
 
     it('Renders without crashing', () => {
@@ -58,30 +56,6 @@ describe('Metrics', () => {
 
     it('Matches snapshot', () => {
       expect(shallowWrapper).toMatchSnapshot();
-    });
-  });
-
-  describe('App with connected component', () => {
-    let reactWrapper: ReactWrapper;
-
-    beforeAll(() => {
-      reactWrapper = mount(<Provider store={store}><ConnectedApp history={history}/></Provider>);
-    });
-
-    it('Renders without crashing', () => {
-      expect(reactWrapper.length).toEqual(1);
-    });
-
-    it('Contains the component', () => {
-      expect(reactWrapper.find('.metrics-page').length).toEqual(1);
-    });
-
-    it('Calls fetchRequest', () => {
-      sinon.assert.called(props.fetchRequest as SinonSpy);
-    });
-
-    it('Matches snapshot', () => {
-      expect(reactWrapper).toMatchSnapshot();
     });
   });
 });

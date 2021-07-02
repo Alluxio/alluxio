@@ -73,14 +73,14 @@ public final class GrpcDataReaderTest {
         .thenReturn(ClientContext.create(ConfigurationTestUtils.defaults()));
     when(mContext.getClusterConf()).thenReturn(ConfigurationTestUtils.defaults());
     mAddress = mock(WorkerNetAddress.class);
-    ReadRequest readRequest =
-        ReadRequest.newBuilder().setBlockId(BLOCK_ID).setChunkSize(CHUNK_SIZE).build();
-    mFactory = new GrpcDataReader.Factory(mContext, mAddress, readRequest);
+    ReadRequest.Builder readRequestBuilder =
+        ReadRequest.newBuilder().setBlockId(BLOCK_ID).setChunkSize(CHUNK_SIZE);
+    mFactory = new GrpcDataReader.Factory(mContext, mAddress, readRequestBuilder);
 
     mClient = mock(BlockWorkerClient.class);
     mRequestObserver = mock(ClientCallStreamObserver.class);
-    when(mContext.acquireBlockWorkerClient(mAddress)).thenReturn(mClient);
-    PowerMockito.doNothing().when(mContext).releaseBlockWorkerClient(mAddress, mClient);
+    when(mContext.acquireBlockWorkerClient(mAddress)).thenReturn(
+        new NoopClosableResource<>(mClient));
     when(mClient.readBlock(any(StreamObserver.class))).thenReturn(mRequestObserver);
     when(mRequestObserver.isReady()).thenReturn(true);
   }

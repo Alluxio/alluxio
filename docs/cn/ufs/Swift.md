@@ -1,9 +1,9 @@
 ---
 layout: global
-title: 在Swift上配置Alluxio
-nickname: Alluxio使用Swift
-group: Under Stores
-priority: 1
+title: Alluxio集成Swift作为底层存储
+nickname: Alluxio集成Swift作为底层存储
+group: Storage Integrations
+priority: 5
 ---
 
 * 内容列表
@@ -19,8 +19,8 @@ priority: 1
 
 要使用底层存储系统，你需要编辑`conf/alluxio-site.properties`来配置Alluxio。如果该文件不存在，那就从模板创建一个配置文件。
 
-```bash
-cp conf/alluxio-site.properties.template conf/alluxio-site.properties
+```console
+$ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
 ```
 
 修改`conf/alluxio-site.properties`配置文件的内容包括：
@@ -31,7 +31,6 @@ fs.swift.user=<swift-user>
 fs.swift.tenant=<swift-tenant>
 fs.swift.password=<swift-user-password>
 fs.swift.auth.url=<swift-auth-url>
-fs.swift.use.public.url=<swift-use-public>
 fs.swift.auth.method=<swift-auth-model>
 ```
 
@@ -53,35 +52,47 @@ fs.swift.region=<swift-preferred-region>
 
 完成配置后，你可以启动一个Alluxio集群：
 
-```bash
-./bin/alluxio format
-./bin/alluxio-start.sh local
+```console
+$ ./bin/alluxio format
+$ ./bin/alluxio-start.sh local
 ```
 
 该命令应当会启动一个Alluxio master和一个Alluxio worker，可以在浏览器中访问[http://localhost:19999](http://localhost:19999)查看master Web UI。
 
 接着，你可以运行一个简单的示例程序：
 
-```bash
-./bin/alluxio runTests
+```console
+$ ./bin/alluxio runTests
 ```
 
 运行成功后，访问你的Swift容器，其中应该包含了由Alluxio创建的文件和目录。在这个测试中，你应该会看到创建的文件名像下面这样：
 
-```bash
+```
 <container>/<folder>/default_tests_files/Basic_CACHE_THROUGH
 ```
 
 运行以下命令停止Alluxio：
 
-```bash
-./bin/alluxio-stop.sh local
+```console
+$ ./bin/alluxio-stop.sh local
 ```
 
 ## 运行功能测试  
 
-```bash
-mvn test -DtestSwiftContainerKey=swift://<container>
+```console
+$ mvn test -DtestSwiftContainerKey=swift://<container>
+```
+## 运行功能测试
+
+以下命令可用于测试给定的Swift凭证是否有效。 开发人员还可以使用它对Swift endpoint运行功能测试，以验证Alluxio和Swift之间的合约。
+
+```console
+$ ./bin/alluxio runUfsTests --path swift://<bucket> \
+  -Dfs.swift.user=<SWIFT_USER> \
+  -Dfs.swift.tenant=<SWIFT_TENANT> \
+  -Dfs.swift.password=<SWIFT_PASSWORD> \
+  -Dfs.swift.auth.url=<AUTH_URL> \
+  -Dfs.swift.auth.method=<AUTH_METHOD> 
 ```
 
 ## Swift访问控制

@@ -12,6 +12,8 @@
 package alluxio.conf;
 
 import alluxio.exception.status.AlluxioStatusException;
+import alluxio.grpc.GetConfigurationPResponse;
+import alluxio.grpc.Scope;
 import alluxio.util.ConfigurationUtils;
 
 import org.slf4j.Logger;
@@ -172,6 +174,16 @@ public final class ServerConfiguration {
    */
   public static boolean isSet(PropertyKey key) {
     return sConf.isSet(key);
+  }
+
+  /**
+   * Checks if the configuration contains a value for the given key that is set by a user.
+   *
+   * @param key the key to check
+   * @return true if there is value for the key by a user, false otherwise
+   */
+  public static boolean isSetByUser(PropertyKey key) {
+    return sConf.isSetByUser(key);
   }
 
   /**
@@ -340,14 +352,26 @@ public final class ServerConfiguration {
   }
 
   /**
-   * Loads cluster default values from the meta master.
+   * Loads cluster default values for workers from the meta master if it's not loaded yet.
    *
    * @param address the master address
    */
-  public static synchronized void loadClusterDefaults(InetSocketAddress address)
+  public static synchronized void loadWorkerClusterDefaults(InetSocketAddress address)
       throws AlluxioStatusException {
-    AlluxioConfiguration conf = ConfigurationUtils.loadClusterDefaults(address, global());
-    sConf = new InstancedConfiguration(conf.copyProperties(), conf.clusterDefaultsLoaded());
+    if (sConf.getBoolean(PropertyKey.USER_CONF_CLUSTER_DEFAULT_ENABLED)
+        && !sConf.clusterDefaultsLoaded()) {
+      GetConfigurationPResponse response = ConfigurationUtils.loadConfiguration(address, sConf,
+          false, true);
+      AlluxioConfiguration conf = ConfigurationUtils.getClusterConf(response, sConf, Scope.WORKER);
+      sConf = new InstancedConfiguration(conf.copyProperties(), conf.clusterDefaultsLoaded());
+    }
+  }
+
+  /**
+   * @return hash of properties
+   */
+  public static String hash() {
+    return sConf.hash();
   }
 
   private ServerConfiguration() {} // prevent instantiation

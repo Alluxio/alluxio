@@ -23,11 +23,12 @@ import alluxio.master.journal.checkpoint.CompoundCheckpointFormat.CompoundCheckp
 import alluxio.master.journal.checkpoint.CompoundCheckpointFormat.CompoundCheckpointReader.Entry;
 import alluxio.master.journal.sink.JournalSink;
 import alluxio.proto.journal.Journal.JournalEntry;
+import alluxio.resource.CloseableIterator;
 import alluxio.util.StreamUtils;
 
 import com.esotericsoftware.kryo.io.OutputChunked;
 import com.google.common.base.Preconditions;
-import org.apache.commons.lang.exception.ExceptionUtils;
+import com.google.common.base.Throwables;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,7 +37,6 @@ import java.io.OutputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Arrays;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -77,13 +77,14 @@ public final class JournalUtils {
   public static void writeJournalEntryCheckpoint(OutputStream output, JournalEntryIterable iterable)
       throws IOException, InterruptedException {
     output = new CheckpointOutputStream(output, CheckpointType.JOURNAL_ENTRY);
-    Iterator<JournalEntry> it = iterable.getJournalEntryIterator();
-    LOG.info("Write journal entry checkpoint");
-    while (it.hasNext()) {
-      if (Thread.interrupted()) {
-        throw new InterruptedException();
+    try (CloseableIterator<JournalEntry> it = iterable.getJournalEntryIterator()) {
+      LOG.info("Write journal entry checkpoint");
+      while (it.get().hasNext()) {
+        if (Thread.interrupted()) {
+          throw new InterruptedException();
+        }
+        it.get().next().writeDelimitedTo(output);
       }
-      it.next().writeDelimitedTo(output);
     }
     output.flush();
   }
@@ -178,7 +179,7 @@ public final class JournalUtils {
       String format, Object... args) throws RuntimeException {
     String message = String.format("Journal replay error: " + format, args);
     if (t != null) {
-      message += "\n" + ExceptionUtils.getStackTrace(t);
+      message += "\n" + Throwables.getStackTraceAsString(t);
     }
     if (ServerConfiguration.getBoolean(PropertyKey.TEST_MODE)) {
       throw new RuntimeException(message);

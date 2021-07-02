@@ -11,56 +11,57 @@
 
 package alluxio.proxy.s3;
 
-import alluxio.AlluxioURI;
 import alluxio.client.file.URIStatus;
-import alluxio.wire.FileInfo;
 
-import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
- * Get bucket result defined in http://docs.aws.amazon.com/AmazonS3/latest/API/v2-RESTBucketGET.html
+ * Get bucket result defined in https://docs.aws.amazon.com/AmazonS3/latest/API/API_ListObjects.html
  * It will be encoded into an XML string to be returned as a response for the REST call.
- *
- * TODO(chaomin): consider add more required fields in S3 BucketGet API.
  */
 @JacksonXmlRootElement(localName = "ListBucketResult")
-@JsonPropertyOrder({ "Name", "Prefix", "ContinuationToken", "NextContinuationToken",
-    "KeyCount", "MaxKeys", "IsTruncated", "Contents" })
 public class ListBucketResult {
+  private static final Logger LOG = LoggerFactory.getLogger(ListBucketResult.class);
 
-  /* Name of the bucket. */
-  private String mName = "";
-  /* Keys that begin with the indicated prefix. */
-  private String mPrefix = null;
-  /* ContinuationToken is included in the response if it was sent with the request. */
-  private String mContinuationToken = null;
-  /**
+  // Name of the bucket
+  private String mName;
+
+  /*
    * Returns the number of keys included in the response. The value is always less than or equal
    * to the mMaxKeys value.
    */
-  private int mKeyCount = 0;
-  /* The maximum number of keys returned in the response body. */
-  private int mMaxKeys = S3Constants.S3_DEFAULT_MAX_KEYS;
-  /**
-   * Specifies whether or not all of the results were returned. If the number of
-   * results exceeds that specified by MaxKeys, all of the results might not be returned.
-   */
-  private boolean mIsTruncated = false;
-  /**
-   * If only partial results are returned (i.e. mIsTruncated = true), this value is set as the
-   * next continuation token. The continuation token is the full Alluxio path of the object.
-   */
-  private String mNextContinuationToken = null;
-  /* A list of objects with metadata. */
-  private List<Content> mContents = new ArrayList<>();
+  private int mKeyCount;
+
+  // The maximum number of keys returned in the response body.
+  private int mMaxKeys;
+
+  private boolean mIsTruncated;
+
+  // Marker is included in the response if it was sent with the request.
+  private String mMarker;
+
+  // If only partial results are returned, this value is set as the nextMarker.
+  private String mNextMarker;
+
+  // Prefix is included in the response if it was sent with the request.
+  private String mPrefix;
+
+  // List of files.
+  private List<Content> mContents;
+
+  // List of common prefixes (aka. folders)
+  private List<Prefix> mCommonPrefixes;
 
   /**
    * Creates an {@link ListBucketResult}.
@@ -71,58 +72,53 @@ public class ListBucketResult {
    * Creates an {@link ListBucketResult}.
    *
    * @param bucketName the bucket name
-   * @param objectsList a list of {@link URIStatus}, representing the objects
+   * @param children a list of {@link URIStatus}, representing the objects and common prefixes
    * @param options the list bucket options
    */
   public ListBucketResult(
-      String bucketName, List<URIStatus> objectsList, ListBucketOptions options) {
+      String bucketName, List<URIStatus> children, ListBucketOptions options) {
     mName = bucketName;
     mPrefix = options.getPrefix();
-    mKeyCount = 0;
-    if (options.getMaxKeys() != null) {
-      mMaxKeys = Integer.parseInt(options.getMaxKeys());
+    mMarker = options.getMarker();
+    mMaxKeys = options.getMaxKeys();
+
+    Collections.sort(children, new URIStatusComparator());
+
+    final List<URIStatus> keys = children.stream()
+        .filter((status) -> status.getPath().compareTo(mMarker) > 0)
+        .limit(mMaxKeys)
+        .collect(Collectors.toList());
+
+    mKeyCount = keys.size();
+    mIsTruncated = mKeyCount == mMaxKeys;
+
+    if (mIsTruncated) {
+      mNextMarker = keys.get(keys.size() - 1).getPath();
     }
+
+    final Map<Boolean, List<URIStatus>> typeToStatus = keys.stream()
+        .collect(Collectors.groupingBy((status) -> status.isFolder()));
+    final List<URIStatus> objectsList = typeToStatus.getOrDefault(false, Collections.EMPTY_LIST);
+    final List<URIStatus> prefixList = typeToStatus.getOrDefault(true, Collections.EMPTY_LIST);
+
     mContents = new ArrayList<>();
-    mContinuationToken = options.getContinuationToken();
-
-    Collections.sort(objectsList, new URIStatusComparator());
-
-    int startIndex = 0;
-    if (options.getContinuationToken() != null) {
-      URIStatus tokenStatus = new URIStatus(new FileInfo().setPath(
-          mName + AlluxioURI.SEPARATOR + mContinuationToken));
-      startIndex = Collections.binarySearch(objectsList, tokenStatus, new URIStatusComparator());
-      if (startIndex < 0) {
-        // If continuation token does not exist in the object list, find the first element which is
-        // greater than the token.
-        startIndex = (-1) * startIndex - 1;
-      }
-    }
-
-    for (int i = startIndex; i < objectsList.size(); i++) {
-      URIStatus status = objectsList.get(i);
-      String objectKey = status.getPath().substring(mName.length() + 1);
-      if (mKeyCount >= mMaxKeys) {
-        mIsTruncated = true;
-        mNextContinuationToken = objectKey;
-        return;
-      }
-      if (mContinuationToken != null && objectKey.compareTo(mContinuationToken) < 0) {
-        continue;
-      }
-      if (mPrefix != null && !objectKey.startsWith(mPrefix)) {
-        continue;
-      }
-      // TODO(chaomin): set ETag once there's a way to get MD5 hash of an Alluxio file.
-      // TODO(chaomin): construct the response with CommonPrefixes when delimiter support is added.
+    for (URIStatus status : objectsList) {
       mContents.add(new Content(
-          status.getPath().substring(mName.length() + 1),
+          status.getPath().substring(mName.length() + 2), // remove both ends of "/" character
           S3RestUtils.toS3Date(status.getLastModificationTimeMs()),
-          S3Constants.S3_EMPTY_ETAG,
-          String.valueOf(status.getLength()),
-          S3Constants.S3_STANDARD_STORAGE_CLASS));
-      mKeyCount++;
+          String.valueOf(status.getLength())
+      ));
     }
+
+    final ArrayList<Prefix> commonPrefixes = new ArrayList<>();
+    for (URIStatus status : prefixList) {
+      final String path = status.getPath();
+      // remove both ends of "/" character in the path as well as bucket name
+      // add "/" at end to show it's a folder (or else, aws cli crashes with index out of bounds)
+      commonPrefixes.add(new Prefix(path.substring(mName.length() + 2) + "/"));
+    }
+
+    mCommonPrefixes = commonPrefixes;
   }
 
   /**
@@ -134,30 +130,6 @@ public class ListBucketResult {
   }
 
   /**
-   * @return the prefix
-   */
-  @JacksonXmlProperty(localName = "Prefix")
-  public String getPrefix() {
-    return mPrefix;
-  }
-
-  /**
-   * @return the continuation token
-   */
-  @JacksonXmlProperty(localName = "ContinuationToken")
-  public String getContinuationToken() {
-    return mContinuationToken;
-  }
-
-  /**
-   * @return the next continuation token
-   */
-  @JacksonXmlProperty(localName = "NextContinuationToken")
-  public String getNextContinuationToken() {
-    return mNextContinuationToken;
-  }
-
-  /**
    * @return the number of keys included in the response
    */
   @JacksonXmlProperty(localName = "KeyCount")
@@ -166,19 +138,35 @@ public class ListBucketResult {
   }
 
   /**
-   * @return the maximum number of keys returned in the response body
-   */
-  @JacksonXmlProperty(localName = "MaxKeys")
-  public int getMaxKeys() {
-    return mMaxKeys;
-  }
-
-  /**
    * @return false if all results are returned, otherwise true
    */
   @JacksonXmlProperty(localName = "IsTruncated")
   public boolean isTruncated() {
     return mIsTruncated;
+  }
+
+  /**
+   * @return the prefix
+   */
+  @JacksonXmlProperty(localName = "Prefix")
+  public String getPrefix() {
+    return mPrefix;
+  }
+
+  /**
+   * @return the marker
+   */
+  @JacksonXmlProperty(localName = "Marker")
+  public String getMarker() {
+    return mMarker;
+  }
+
+  /**
+   * @return the next marker
+   */
+  @JacksonXmlProperty(localName = "NextMarker")
+  public String getNextMarker() {
+    return mNextMarker;
   }
 
   /**
@@ -191,117 +179,55 @@ public class ListBucketResult {
   }
 
   /**
-   * @param name the bucket name to set
+   * @return the common prefixes
    */
-  @JacksonXmlProperty(localName = "Name")
-  public void setName(String name) {
-    mName = name;
-  }
-
-  /**
-   * @param prefix the prefix to set
-   */
-  @JacksonXmlProperty(localName = "Prefix")
-  public void setPrefix(String prefix) {
-    mPrefix = prefix;
-  }
-
-  /**
-   * @param continuationToken the continuation token to set
-   */
-  @JacksonXmlProperty(localName = "ContinuationToken")
-  public void setContinuationToken(String continuationToken) {
-    mContinuationToken = continuationToken;
-  }
-
-  /**
-   * @param nextContinuationToken the next continuation token to set
-   */
-  @JacksonXmlProperty(localName = "NextContinuationToken")
-  public void setNextContinuationToken(String nextContinuationToken) {
-    mNextContinuationToken = nextContinuationToken;
-  }
-
-  /**
-   * @param keyCount the number of keys to set
-   */
-  @JacksonXmlProperty(localName = "KeyCount")
-  public void setKeyCount(int keyCount) {
-    mKeyCount = keyCount;
-  }
-
-  /**
-   * @param maxKeys the maximum number of keys returned value to set
-   */
-  @JacksonXmlProperty(localName = "MaxKeys")
-  public void setMaxKeys(int maxKeys) {
-    mMaxKeys = maxKeys;
-  }
-
-  /**
-   * @param isTruncated the isTruncated value to set
-   */
-  @JacksonXmlProperty(localName = "IsTruncated")
-  public void setIsTruncated(boolean isTruncated) {
-    mIsTruncated = isTruncated;
-  }
-
-  /**
-   * @param contents the contents list to set
-   */
-  @JacksonXmlProperty(localName = "Contents")
+  @JacksonXmlProperty(localName = "CommonPrefixes")
   @JacksonXmlElementWrapper(useWrapping = false)
-  public void setContent(List<Content> contents) {
-    mContents = contents;
+  public List<Prefix> getCommonPrefixes() {
+    return mCommonPrefixes;
+  }
+
+  /**
+   * Prefix Object.
+   */
+  public class Prefix {
+    private final String mPrefix;
+
+    private Prefix(String prefix) {
+      mPrefix = prefix;
+    }
+
+    /**
+     * @return the prefix string
+     */
+    @JacksonXmlProperty(localName = "Prefix")
+    public String getPrefix() {
+      return mPrefix;
+    }
   }
 
   /**
    * Object metadata class.
    */
-  @JsonPropertyOrder({ "Key", "LastModified", "ETag", "Size", "StorageClass" })
   public class Content {
     /* The object's key. */
-    private String mKey;
+    private final String mKey;
     /* Date and time the object was last modified. */
-    private String mLastModified;
-    /* The entity tag is an MD5 hash of the object. */
-    // TODO(chaomin): for now this is always empty because file content's MD5 hash is not yet
-    // part of Alluxio metadata
-    private String mETag;
+    private final String mLastModified;
     /* Size in bytes of the object. */
-    private String mSize;
-    /**
-     * Storage class (STANDARD | STANDARD_IA | REDUCED_REDUNDANCY | GLACIER). Alluxio only supports
-     * STANDARD for now.
-     */
-    private String mStorageClass;
-
-    /**
-     * Constructs a new {@link Content}.
-     */
-    public Content() {
-      mKey = "";
-      mLastModified = "";
-      mETag = "";
-      mSize = "";
-      mStorageClass = S3Constants.S3_STANDARD_STORAGE_CLASS;
-    }
+    private final String mSize;
 
     /**
      * Constructs a new {@link Content}.
      *
      * @param key the object key
      * @param lastModified the data and time in string format the object was last modified
-     * @param eTag the entity tag (MD5 hash of the object contents)
      * @param size size in bytes of the object
-     * @param storageClass storage class
      */
-    public Content(String key, String lastModified, String eTag, String size, String storageClass) {
+    public Content(String key, String lastModified, String size) {
       mKey = key;
       mLastModified = lastModified;
-      mETag = eTag;
       mSize = size;
-      mStorageClass = storageClass;
     }
 
     /**
@@ -321,67 +247,11 @@ public class ListBucketResult {
     }
 
     /**
-     * @return the ETag
-     */
-    @JacksonXmlProperty(localName = "ETag")
-    public String getETag() {
-      return mETag;
-    }
-
-    /**
      * @return the size in bytes of the object
      */
     @JacksonXmlProperty(localName = "Size")
     public String getSize() {
       return mSize;
-    }
-
-    /**
-     * @return the storage class
-     */
-    @JacksonXmlProperty(localName = "StorageClass")
-    public String getStorageClass() {
-      return mStorageClass;
-    }
-
-    /**
-     * @param key the object key to set
-     */
-    @JacksonXmlProperty(localName = "Key")
-    public void setKey(String key) {
-      mKey = key;
-    }
-
-    /**
-     * @param lastModified the last modified time to set
-     */
-    @JacksonXmlProperty(localName = "LastModified")
-    public void setLastModified(String lastModified) {
-      mLastModified = lastModified;
-    }
-
-    /**
-     * @param eTag the ETag to set
-     */
-    @JacksonXmlProperty(localName = "ETag")
-    public void setETag(String eTag) {
-      mETag = eTag;
-    }
-
-    /**
-     * @param size the object size in bytes to set
-     */
-    @JacksonXmlProperty(localName = "Size")
-    public void setSize(String size) {
-      mSize = size;
-    }
-
-    /**
-     * @param storageClass the storage class to set
-     */
-    @JacksonXmlProperty(localName = "StorageClass")
-    public void setStorageClass(String storageClass) {
-      mStorageClass = storageClass;
     }
   }
 

@@ -15,10 +15,10 @@
   <parent>
     <groupId>org.alluxio</groupId>
     <artifactId>alluxio-underfs</artifactId>
-    <version>2.0.0-SNAPSHOT</version>
+    <version>2.7.0-SNAPSHOT</version>
   </parent>
   <artifactId>alluxio-underfs-s3a</artifactId>
-  <name>Alluxio Under File System - S3A</name>
+  <name>Alluxio Under File System - S3</name>
   <description>AWS-SDK S3 Under File System implementation</description>
 
   <properties>
@@ -36,6 +36,16 @@
     <dependency>
       <groupId>com.amazonaws</groupId>
       <artifactId>aws-java-sdk-s3</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.amazonaws</groupId>
+      <artifactId>aws-java-sdk-sts</artifactId>
+    </dependency>
+    <!--aws sdk requires jaxb binding at runtime-->
+    <dependency>
+      <groupId>com.sun.xml.bind</groupId>
+      <artifactId>jaxb-impl</artifactId>
+      <scope>runtime</scope>
     </dependency>
     <dependency>
       <groupId>commons-codec</groupId>
@@ -60,40 +70,8 @@
     </dependency>
   </dependencies>
 
-  <profiles>
-    <profile>
-      <id>ufsContractTest</id>
-      <activation>
-        <property>
-          <name>testS3ABucket</name>
-        </property>
-      </activation>
-      <build>
-        <plugins>
-          <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-compiler-plugin</artifactId>
-            <configuration>
-              <testExcludes combine.self="override" />
-            </configuration>
-          </plugin>
-        </plugins>
-      </build>
-    </profile>
-  </profiles>
-
   <build>
     <plugins>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-compiler-plugin</artifactId>
-        <configuration>
-          <testExcludes>
-            <!-- Skip UFS contract tests unless -DtestS3ABucket="s3a://my-bucket/alluxio-test" is specified -->
-            <exclude>**/S3AUnderFileSystemContractTest.java</exclude>
-          </testExcludes>
-        </configuration>
-      </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-shade-plugin</artifactId>

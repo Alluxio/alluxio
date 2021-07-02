@@ -1,0 +1,55 @@
+<!--
+
+    The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
+    (the "License"). You may not use this work except in compliance with the License, which is
+    available at www.apache.org/licenses/LICENSE-2.0
+
+    This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+    either express or implied, as more fully set forth in the License.
+
+    See the NOTICE file distributed with this work for information regarding copyright ownership.
+
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <artifactId>alluxio-integration-jnifuse</artifactId>
+    <groupId>org.alluxio</groupId>
+    <version>2.7.0-SNAPSHOT</version>
+  </parent>
+
+  <artifactId>alluxio-integration-jnifuse-fs</artifactId>
+  <name>Alluxio Integration - JNIFUSE - Filesystem</name>
+  <description>JNI-based FUSE Integration - Java filesystem stub</description>
+
+  <properties>
+    <!-- The following paths need to be defined here as well as in the parent pom so that mvn can -->
+    <!-- run properly from sub-project directories -->
+    <build.path>${project.parent.parent.parent.basedir}/build</build.path>
+  </properties>
+
+  <dependencies>
+    <dependency>
+      <groupId>org.alluxio</groupId>
+      <artifactId>alluxio-integration-jnifuse-native</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>com.github.serceman</groupId>
+      <artifactId>jnr-fuse</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-lang3</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-api</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.logging.log4j</groupId>
+      <artifactId>log4j-slf4j-impl</artifactId>
+    </dependency>
+  </dependencies>
+</project>

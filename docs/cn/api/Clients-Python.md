@@ -3,13 +3,13 @@ layout: global
 title: Python Client
 nickname: Python Client
 group: Client APIs
-priority: 5
+priority: 6
 ---
 
 * 内容列表
 {:toc}
 
-Alluxio 有一个 [Python 客户端](https://github.com/Alluxio/alluxio-py)，这个客户端提供了 [REST API](Clients-Rest.html) 来和 Alluxio 交互。它提供了一个和 [Alluxio Java API](Clients-Alluxio-Java.html) 类似的 API。查看这篇[文档](http://alluxio-py.readthedocs.io)来了解有关所有可用方法的详细文档。通过[示例](https://github.com/Alluxio/alluxio-py/blob/master/example.py)来了解如何在 Alluxio 上执行基本的文件系统操作。
+Alluxio 有一个 [Python 客户端](https://github.com/Alluxio/alluxio-py)，这个客户端提供了 [REST API]({{ '/cn/api/Clients-Rest.html' | relativize_url }}) 来和 Alluxio 交互。它提供了一个和 [Alluxio Java API](Clients-Alluxio-Java.html) 类似的 API。查看这篇[文档](http://alluxio-py.readthedocs.io)来了解有关所有可用方法的详细文档。通过[示例](https://github.com/Alluxio/alluxio-py/blob/master/example.py)来了解如何在 Alluxio 上执行基本的文件系统操作。
 
 # Alluxio代理依赖
 这个Python客户端通过由Alluxio代理提供的REST API来和Alluxio相互交流。
@@ -17,8 +17,8 @@ Alluxio 有一个 [Python 客户端](https://github.com/Alluxio/alluxio-py)，�
 使用HTTP代理服务器有性能上的影响。特别的是，使用这个代理服务器需要一个额外的跳。为了达到最佳性能，运行这个代理服务器的时候推荐在每个计算节点上分配一个Alluxio worker。
 
 # 安装python客户端库
-```bash
-pip install alluxio
+```console
+$ pip install alluxio
 ```
 
 # 使用示例

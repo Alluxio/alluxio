@@ -9,161 +9,121 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-import {AxiosResponse} from 'axios';
 import React from 'react';
-import {connect} from 'react-redux';
-import {Alert, Table} from 'reactstrap';
-import {Dispatch} from 'redux';
+import { connect } from 'react-redux';
+import { Table } from 'reactstrap';
+import { AnyAction, compose, Dispatch } from 'redux';
 
-import {LoadingMessage, Paginator} from '@alluxio/common-ui/src/components';
-import {IFileInfo} from '@alluxio/common-ui/src/constants';
-import {parseQuerystring} from '@alluxio/common-ui/src/utilities';
-import {IApplicationState} from '../../../store';
-import {fetchRequest} from '../../../store/data/actions';
-import {IData} from '../../../store/data/types';
+import {
+  withErrors,
+  withFetchDataFromPath,
+  withFluidContainer,
+  withLoadingMessage,
+  Paginator,
+} from '@alluxio/common-ui/src/components';
+import { IAlertErrors, ICommonState, IFileInfo, IRequest } from '@alluxio/common-ui/src/constants';
+import { IApplicationState } from '../../../store';
+import { fetchRequest } from '../../../store/data/actions';
+import { IData } from '../../../store/data/types';
+import { createAlertErrors } from '@alluxio/common-ui/src/utilities';
+import { routePaths } from '../../../constants';
 
-interface IPropsFromState {
+interface IPropsFromState extends ICommonState {
   data: IData;
-  errors?: AxiosResponse;
-  loading: boolean;
-  location: {
-    search: string;
-  };
-  refresh: boolean;
 }
 
 interface IPropsFromDispatch {
   fetchRequest: typeof fetchRequest;
 }
 
-interface IDataState {
-  limit?: string;
-  offset?: string;
-  lastFetched: {
-    limit?: string;
-    offset?: string;
-  }
+interface IDataProps {
+  request: IRequest;
 }
 
-export type AllProps = IPropsFromState & IPropsFromDispatch;
+export type AllProps = IPropsFromState & IPropsFromDispatch & IDataProps;
 
-export class Data extends React.Component<AllProps, IDataState> {
-  constructor(props: AllProps) {
-    super(props);
-
-    const {offset, limit} = parseQuerystring(this.props.location.search);
-    this.state = {offset, limit, lastFetched: {}};
-  }
-
-  public componentDidUpdate(prevProps: AllProps) {
-    const {refresh, location: {search}} = this.props;
-    const {refresh: prevRefresh, location: {search: prevSearch}} = prevProps;
-    if (search !== prevSearch) {
-      const {offset, limit} = parseQuerystring(search);
-      this.setState({offset, limit});
-      this.fetchData(offset, limit);
-    } else if (refresh !== prevRefresh) {
-      const {offset, limit} = this.state;
-      this.fetchData(offset, limit);
-    }
-  }
-
-  public componentWillMount() {
-    const {offset, limit} = this.state;
-    this.fetchData(offset, limit);
-  }
-
-  public render() {
-    const {offset, limit} = this.state;
-    const {data, errors, loading} = this.props;
-
-    if (errors || data.permissionError || data.fatalError) {
-      return (
-        <Alert color="danger">
-          {errors && <div>Unable to reach the api endpoint for this page.</div>}
-          {data.permissionError && <div>{data.permissionError}</div>}
-          {data.fatalError && <div>{data.fatalError}</div>}
-        </Alert>
-      );
-    }
-
-    if (loading) {
-      return (
-        <div className="data-page">
-          <LoadingMessage/>
-        </div>
-      );
-    }
+export class DataPresenter extends React.Component<AllProps> {
+  public render(): JSX.Element {
+    const {
+      request: { offset, limit },
+      data,
+    } = this.props;
 
     return (
-      <div className="data-page">
-        <div className="container-fluid">
-          <div className="row">
-            <div className="col-12">
-              {this.renderFileListing(data.fileInfos)}
-              <Paginator baseUrl={'/data'} total={data.inAlluxioFileNum} offset={offset} limit={limit}/>
-            </div>
-          </div>
-        </div>
+      <div className="col-12">
+        {this.renderFileListing(data.fileInfos)}
+        <Paginator baseUrl={routePaths.data} total={data.inAlluxioFileNum} offset={offset} limit={limit} />
       </div>
     );
   }
 
-  private renderFileListing(fileInfos: IFileInfo[]) {
+  private renderFileListing(fileInfos: IFileInfo[]): JSX.Element {
     return (
       <Table hover={true}>
         <thead>
-        <tr>
-          <th>File Path</th>
-          <th>Size</th>
-          <th>Block Size</th>
-          <th>Permission</th>
-          <th>Owner</th>
-          <th>Group</th>
-          <th>Pin</th>
-          <th>Creation Time</th>
-          <th>Modification Time</th>
-        </tr>
+          <tr>
+            <th>File Path</th>
+            <th>Size</th>
+            <th>Block Size</th>
+            <th>Permission</th>
+            <th>Owner</th>
+            <th>Group</th>
+            <th>Pin</th>
+            <th>Creation Time</th>
+            <th>Modification Time</th>
+          </tr>
         </thead>
         <tbody>
-        {fileInfos && fileInfos.map((fileInfo: IFileInfo) => (
-          <tr key={fileInfo.absolutePath}>
-            <td>{fileInfo.absolutePath}</td>
-            <td>{fileInfo.size}</td>
-            <td>{fileInfo.blockSizeBytes}</td>
-            <td>
-              <pre className="mb-0"><code>{fileInfo.mode}</code></pre>
-            </td>
-            <td>{fileInfo.owner}</td>
-            <td>{fileInfo.group}</td>
-            <td>{fileInfo.pinned ? 'YES' : 'NO'}</td>
-            <td>{fileInfo.creationTime}</td>
-            <td>{fileInfo.modificationTime}</td>
-          </tr>
-        ))}
+          {fileInfos &&
+            fileInfos.map((fileInfo: IFileInfo) => (
+              <tr key={fileInfo.absolutePath}>
+                <td>{fileInfo.absolutePath}</td>
+                <td>{fileInfo.size}</td>
+                <td>{fileInfo.blockSizeBytes}</td>
+                <td>
+                  <pre className="mb-0">
+                    <code>{fileInfo.mode}</code>
+                  </pre>
+                </td>
+                <td>{fileInfo.owner}</td>
+                <td>{fileInfo.group}</td>
+                <td>{fileInfo.pinned ? 'YES' : 'NO'}</td>
+                <td>{fileInfo.creationTime}</td>
+                <td>{fileInfo.modificationTime}</td>
+              </tr>
+            ))}
         </tbody>
       </Table>
-    )
-  }
-
-  private fetchData(offset?: string, limit?: string) {
-    this.setState({lastFetched: {offset, limit}});
-    this.props.fetchRequest(offset, limit);
+    );
   }
 }
 
-const mapStateToProps = ({data, refresh}: IApplicationState) => ({
-  data: data.data,
-  errors: data.errors,
-  loading: data.loading,
-  refresh: refresh.data
+const mapStateToProps = ({ data, refresh }: IApplicationState): IPropsFromState => {
+  const allErrors: IAlertErrors = createAlertErrors(data.errors != undefined, [
+    data.data.permissionError,
+    data.data.fatalError,
+  ]);
+
+  return {
+    data: data.data,
+    errors: allErrors,
+    loading: data.loading,
+    refresh: refresh.data,
+    class: 'data-page',
+  };
+};
+
+const mapDispatchToProps = (dispatch: Dispatch): { fetchRequest: (request: IRequest) => AnyAction } => ({
+  fetchRequest: (request: IRequest): AnyAction => dispatch(fetchRequest(request)),
 });
 
-const mapDispatchToProps = (dispatch: Dispatch) => ({
-  fetchRequest: (offset?: string, limit?: string) => dispatch(fetchRequest(offset, limit))
-});
-
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps
-)(Data);
+export default compose(
+  connect(
+    mapStateToProps,
+    mapDispatchToProps,
+  ),
+  withFetchDataFromPath,
+  withErrors,
+  withLoadingMessage,
+  withFluidContainer,
+)(DataPresenter) as typeof React.Component;

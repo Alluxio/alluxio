@@ -18,19 +18,7 @@ get_env() {
   . ${ALLUXIO_LIBEXEC_DIR}/alluxio-config.sh
 
   ALLUXIO_FUSE_JAR=${SCRIPT_DIR}/../target/alluxio-integration-fuse-${VERSION}-jar-with-dependencies.jar
-  FUSE_MAX_WRITE=131072
   CLASSPATH=${CLASSPATH}:${ALLUXIO_FUSE_JAR}
-}
-
-check_java_version() {
-  local java_mjr_vers=$("${JAVA}" -version 2>&1 | awk -F '"' '/version/ {print $2}' | awk -F'.' '{print $1 $2}')
-  if [[ ${java_mjr_vers} -lt 18 ]]; then
-    echo "You are running a version of Java which is older than Java 8.
-     Please use Java 8 to use alluxio-fuse" >&2
-    return 1
-  else
-    return 0
-  fi
 }
 
 check_fuse_jar() {
@@ -42,20 +30,7 @@ check_fuse_jar() {
   fi
 }
 
-set_java_opt() {
-  JAVA_OPTS+="
-    -server
-    -Xms1G
-    -Xmx1G
-    -XX:MaxDirectMemorySize=4g
-  "
-
-  ALLUXIO_FUSE_JAVA_OPTS=${ALLUXIO_JAVA_OPTS}
-  ALLUXIO_FUSE_JAVA_OPTS+=" -Dalluxio.logger.type=FUSE_LOGGER"
-}
-
 mount_fuse() {
-  echo "Starting alluxio-fuse on local host."
   local mount_point=$1
   local alluxio_root=$2
   local full_mount_option=""
@@ -64,21 +39,45 @@ mount_fuse() {
   else
     full_mount_option="big_writes"
   fi
-  (nohup "${JAVA}" -cp ${CLASSPATH} ${JAVA_OPTS} ${ALLUXIO_FUSE_JAVA_OPTS} \
+
+  if [[ ${NO_DAEMON} -eq "1" ]]; then
+    ALLUXIO_FUSE_JAVA_OPTS+=" -Dalluxio.logger.type=FUSE_LOGGER,Console"
+  fi
+
+  local cmd="${JAVA} -cp ${CLASSPATH} ${JAVA_OPTS} ${ALLUXIO_FUSE_JAVA_OPTS} \
     alluxio.fuse.AlluxioFuse \
     -o ${full_mount_option} \
     -m ${mount_point} \
-    -r ${alluxio_root} > ${ALLUXIO_LOGS_DIR}/fuse.out 2>&1) &
-  # sleep: workaround to let the bg java process exit on errors, if any
-  sleep 2s
-  if kill -0 $! > /dev/null 2>&1 ; then
-    echo "Successfully mounted Alluxio path \"${alluxio_root}\" to ${mount_point}."
-    echo "See ${ALLUXIO_LOGS_DIR}/fuse.log for logging messages"
-    return 0
+    -r ${alluxio_root}"
+  if [[ ${STACK_FS} -eq "1" ]]; then
+    stackfs_mount_option=`echo "${full_mount_option}" | sed -E 's/([^,]+)/-o\1/g' | sed -E 's/,/ /g'`
+
+    cmd="${JAVA} -cp ${CLASSPATH} ${JAVA_OPTS} ${ALLUXIO_FUSE_JAVA_OPTS} \
+    alluxio.fuse.StackMain \
+    ${mount_point} \
+    ${alluxio_root} \
+    ${stackfs_mount_option}"
+
+    echo "Starting StackFS process: mounting src local path \"${alluxio_root}\" to dst local path \"${mount_point}\" with options=\"${stackfs_mount_option}\""
   else
-    echo "Failed to mount Alluxio path \"${alluxio_root}\" to ${mount_point}."
-    echo "See ${ALLUXIO_LOGS_DIR}/fuse.out for more details"
-    return 1
+    echo "Starting AlluxioFuse process: mounting alluxio path \"${alluxio_root}\" to local mount point \"${mount_point}\" with options=\"${full_mount_option}\""
+  fi
+
+  if [[ ${NO_DAEMON} -eq "1" ]]; then
+    exec ${cmd}
+  else
+    (nohup ${cmd} > ${ALLUXIO_LOGS_DIR}/fuse.out 2>&1) &
+    # sleep: workaround to let the bg java process exit on errors, if any
+    sleep 2s
+    if kill -0 $! > /dev/null 2>&1 ; then
+      echo "Successfully mounted Alluxio path \"${alluxio_root}\" to ${mount_point}."
+      echo "See ${ALLUXIO_LOGS_DIR}/fuse.log for logging messages"
+      return 0
+    else
+      echo "Failed to mount Alluxio path \"${alluxio_root}\" to ${mount_point}."
+      echo "See ${ALLUXIO_LOGS_DIR}/fuse.out for more details"
+      return 1
+    fi
   fi
 }
 
@@ -96,18 +95,48 @@ umount_fuse() {
 }
 
 fuse_stat() {
-  local fuse_info=$("${JAVA_HOME}/bin/jps" | grep AlluxioFuse)
-  if [[ -z ${fuse_info} ]]; then
-    echo "AlluxioFuse: not running"
-    return 1
-  else
+  local fuse_info=$(ps aux | grep [A]lluxioFuse)
+  if [[ -n ${fuse_info} ]]; then
     echo -e "pid\tmount_point\talluxio_path"
     echo -e "$(ps aux | grep [A]lluxioFuse | awk -F' ' '{print $2 "\t" $(NF-2) "\t" $NF}')"
     return 0
   fi
+  fuse_info=$(ps aux | grep [A]lluxioWorker | grep alluxio\.worker\.fuse\.enabled=true)
+  if [[ -n ${fuse_info} ]]; then
+    fuse_worker_pid="$(echo ${fuse_info} | awk '{print $2}')"
+    fuse_mount_point="$(echo ${fuse_info} | grep -Po '(?<=alluxio\.worker\.fuse\.mount\.point=)\S+(?=\s)')"
+    fuse_alluxio_path="$(echo ${fuse_info} | grep -Po '(?<=alluxio\.worker\.fuse\.mount\.alluxio\.path=)\S+(?=\s)')"
+    echo -e "pid\tmount_point\talluxio_path"
+    echo -e "${fuse_worker_pid}\t${fuse_mount_point}\t${fuse_alluxio_path}"
+    return 0
+  fi
+  fuse_info=$(ps aux | grep [S]tackMain)
+  if [[ -n ${fuse_info} ]]; then
+    echo -e "pid\tmount_point\tsource_path"
+    echo -e "$(ps aux | grep [S]tackMain | awk -F' ' '{print $2 "\t" $(NF-2) "\t" $(NF-1)}')"
+    return 0
+  fi
+  echo "No mount point found. AlluxioFuse process is not running."
+  echo -e "${MOUNT_USAGE}"
+  return 1
 }
 
-USAGE_MSG="Usage:\n\talluxio-fuse [mount|umount|stat]"
+USAGE_MSG="Usage:\n\talluxio-fuse [mount|umount|stat]
+
+mount \tmount an Alluxio path to local file system
+umount \tunmount an Alluxio path from local file system
+stat \tshow status of Alluxio mount points"
+
+MOUNT_USAGE="
+Mounts a path in Alluxio namespace (defaults to "/") to mount point on local file system.
+When no argument is given, list the current mount point
+
+Usage:\talluxio-fuse mount [-n] [-o <mount option>] <mount_point> [alluxio_path]
+\talluxio-fuse mount
+
+-o \tmount options for the fuse daemon
+-n \tno-daemon. This launches the process in the foreground and logs to stdout
+-s \tstackFS. This launches StackFS process for testing purpose"
 
 if [[ $# -lt 1 ]]; then
   echo -e "${USAGE_MSG}" >&2
@@ -115,8 +144,7 @@ if [[ $# -lt 1 ]]; then
 fi
 
 get_env
-check_java_version && check_fuse_jar
-set_java_opt
+check_fuse_jar
 if [[ $? -ne 0 ]]; then
   exit 1
 fi
@@ -124,13 +152,19 @@ fi
 case $1 in
   mount)
     shift
-    while getopts "o:" option; do
+    while getopts "o:ns" option; do
       case "${option}" in
         o)
           mount_option=${OPTARG}
           ;;
+        n)
+          NO_DAEMON="1"
+          ;;
+        s)
+          STACK_FS="1"
+          ;;
         *)
-          echo -e "${USAGE_MSG}" >&2
+          echo -e "${MOUNT_USAGE}" >&2
           exit 1
           ;;
       esac
@@ -148,7 +182,7 @@ case $1 in
       mount_fuse $1 $2
       exit $?
     fi
-    echo -e "Usage\n\talluxio-fuse mount mount_point [alluxio_path]\n\t alluxio_path is default to root" >&2
+    echo -e "${MOUNT_USAGE}" >&2
     exit 1
     ;;
   umount|unmount)

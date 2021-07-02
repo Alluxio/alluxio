@@ -56,20 +56,15 @@ public abstract class BaseUnderFileSystem implements UnderFileSystem {
   /** UFS Configuration options. */
   protected final UnderFileSystemConfiguration mUfsConf;
 
-  protected final AlluxioConfiguration mAlluxioConf;
-
   /**
    * Constructs an {@link BaseUnderFileSystem}.
    *
    * @param uri the {@link AlluxioURI} used to create this ufs
    * @param ufsConf UFS configuration
-   * @param alluxioConf Alluxio configuration
    */
-  protected BaseUnderFileSystem(AlluxioURI uri, UnderFileSystemConfiguration ufsConf,
-      AlluxioConfiguration alluxioConf) {
+  protected BaseUnderFileSystem(AlluxioURI uri, UnderFileSystemConfiguration ufsConf) {
     mUri = Preconditions.checkNotNull(uri, "uri");
     mUfsConf = Preconditions.checkNotNull(ufsConf, "ufsConf");
-    mAlluxioConf = Preconditions.checkNotNull(alluxioConf, "alluxioConf");
   }
 
   @Override
@@ -96,6 +91,11 @@ public abstract class BaseUnderFileSystem implements UnderFileSystem {
   @Override
   public void setAclEntries(String path, List<AclEntry> aclEntries) throws IOException {
     // Noop here by default
+  }
+
+  @Override
+  public AlluxioConfiguration getConfiguration() {
+    return mUfsConf;
   }
 
   @Override
@@ -164,7 +164,8 @@ public abstract class BaseUnderFileSystem implements UnderFileSystem {
       final Pair<String, UfsStatus> pathToProcessPair = pathsToProcess.remove();
       final String pathToProcess = pathToProcessPair.getFirst();
       UfsStatus pathStatus = pathToProcessPair.getSecond();
-      returnPaths.add(pathStatus.setName(pathToProcess.substring(path.length() + 1)));
+      int beginIndex = path.endsWith(AlluxioURI.SEPARATOR) ? path.length() : path.length() + 1;
+      returnPaths.add(pathStatus.setName(pathToProcess.substring(beginIndex)));
 
       if (pathStatus.isDirectory()) {
         // Add all of its subpaths

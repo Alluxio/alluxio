@@ -14,6 +14,7 @@ package alluxio.client.file;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -28,9 +29,7 @@ import alluxio.util.ConfigurationUtils;
 
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 
 import java.io.Closeable;
 import java.io.IOException;
@@ -43,10 +42,6 @@ import java.util.Set;
 import javax.security.auth.Subject;
 
 public class FileSystemFactoryTest {
-
-  @Rule
-  public ExpectedException mThrown = ExpectedException.none();
-
   @Before
   public void before() {
     ConfigurationUtils.reloadProperties();
@@ -93,7 +88,7 @@ public class FileSystemFactoryTest {
     Map<String, String> sysProps = new HashMap<>();
     sysProps.put(PropertyKey.ZOOKEEPER_ENABLED.getName(), Boolean.toString(true));
     sysProps.put(PropertyKey.ZOOKEEPER_ADDRESS.getName(), "zk@192.168.0.5");
-    sysProps.put(PropertyKey.ZOOKEEPER_ELECTION_PATH.getName(), "/leader");
+    sysProps.put(PropertyKey.ZOOKEEPER_ELECTION_PATH.getName(), "/alluxio/leader");
 
     try (Closeable p = new SystemPropertyRule(sysProps).toResource()) {
       ConfigurationUtils.reloadProperties();
@@ -110,8 +105,7 @@ public class FileSystemFactoryTest {
 
   @Test
   public void nullSubjectTest()  {
-    mThrown.expect(NullPointerException.class);
-    FileSystem.Factory.get(null);
+    assertThrows(NullPointerException.class, () -> FileSystem.Factory.get(null));
   }
 
   @Test
@@ -122,23 +116,34 @@ public class FileSystemFactoryTest {
     FileSystem fs2 = FileSystem.Factory.create(conf);
     fs2.close();
     FileSystem fs3 = FileSystem.Factory.get();
-    assertSame("closing custom config should result in same FileSystem", fs1, fs3);
+    assertSame("closing custom config should result in same FileSystem",
+        getDelegatedFileSystem(fs1), getDelegatedFileSystem(fs3));
     assertFalse("FileSystem should not be closed", fs1.isClosed());
   }
 
-  public void fileSystemCacheTest()  {
+  // Helper method to get the underlying delegated file system from cache
+  private FileSystem getDelegatedFileSystem(FileSystem fs) {
+    return ((FileSystemCache.InstanceCachingFileSystem) fs).mDelegatedFileSystem;
+  }
+
+  private void fileSystemCacheTest()  {
     FileSystem.Factory.FILESYSTEM_CACHE.purge();
     FileSystem fs1 = FileSystem.Factory.get();
     FileSystem fs2 = FileSystem.Factory.get();
-    assertSame("Second client should have been retrieved from cache.", fs1, fs2);
+    assertSame("Second client should have been retrieved from cache.",
+        getDelegatedFileSystem(fs1), getDelegatedFileSystem(fs2));
     fs2 = FileSystem.Factory.get(new Subject());
-    assertSame("Passing empty subject should have given the same cached client", fs1, fs2);
+    assertSame("Passing empty subject should have given the same cached client",
+        getDelegatedFileSystem(fs1), getDelegatedFileSystem(fs2));
     fs2 = FileSystem.Factory.get(createTestSubject("alluxio-test"));
-    assertNotSame("Passing filled subject should have given a new client", fs1, fs2);
+    assertNotSame("Passing filled subject should have given a new client",
+        getDelegatedFileSystem(fs1), getDelegatedFileSystem(fs2));
     fs1 = FileSystem.Factory.get(createTestSubject("alluxio-test"));
-    assertSame("Second subject with same credentials should return cached client", fs1, fs2);
+    assertSame("Second subject with same credentials should return cached client",
+        getDelegatedFileSystem(fs1), getDelegatedFileSystem(fs2));
     fs2 = FileSystem.Factory.get(createTestSubject("alluxio-test-2"));
-    assertNotSame("Passing filled subject should have given a new client", fs1, fs2);
+    assertNotSame("Passing filled subject should have given a new client",
+        getDelegatedFileSystem(fs1), getDelegatedFileSystem(fs2));
   }
 
   private Subject createTestSubject(String username) {

@@ -24,6 +24,9 @@ import alluxio.grpc.ServiceType;
 import alluxio.master.MasterClientContext;
 import alluxio.wire.Address;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.IOException;
 import java.util.List;
 
@@ -35,6 +38,8 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public final class RetryHandlingMetaMasterMasterClient extends AbstractMasterClient {
+  private static final Logger LOG =
+      LoggerFactory.getLogger(RetryHandlingMetaMasterMasterClient.class);
   private MetaMasterMasterServiceGrpc.MetaMasterMasterServiceBlockingStub mClient = null;
 
   /**
@@ -75,7 +80,7 @@ public final class RetryHandlingMetaMasterMasterClient extends AbstractMasterCli
   public long getId(final Address address) throws IOException {
     return retryRPC(() -> mClient
         .getMasterId(GetMasterIdPRequest.newBuilder().setMasterAddress(address.toProto()).build())
-        .getMasterId());
+        .getMasterId(), LOG, "GetId", "address=%s", address);
   }
 
   /**
@@ -88,7 +93,7 @@ public final class RetryHandlingMetaMasterMasterClient extends AbstractMasterCli
   public MetaCommand heartbeat(final long masterId) throws IOException {
     return retryRPC(() -> mClient
         .masterHeartbeat(MasterHeartbeatPRequest.newBuilder().setMasterId(masterId).build())
-        .getCommand());
+        .getCommand(), LOG, "Heartbeat", "masterId=%d", masterId);
   }
 
   /**
@@ -104,6 +109,6 @@ public final class RetryHandlingMetaMasterMasterClient extends AbstractMasterCli
           .setOptions(RegisterMasterPOptions.newBuilder().addAllConfigs(configList).build())
           .build());
       return null;
-    });
+    }, LOG, "Register", "masterId=%d,configList=%s", masterId, configList);
   }
 }

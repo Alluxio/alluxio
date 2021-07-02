@@ -74,5 +74,30 @@ public class HdfsVersionTest {
     Assert.assertEquals(HdfsVersion.HADOOP_2_8, HdfsVersion.find("hadoop-2.8"));
     Assert.assertEquals(HdfsVersion.HADOOP_2_8, HdfsVersion.find("hadoop-2.8.0"));
     Assert.assertEquals(HdfsVersion.HADOOP_2_8, HdfsVersion.find("hadoop2.8"));
+    Assert.assertEquals(HdfsVersion.HADOOP_2_9, HdfsVersion.find("2.9.0"));
+    Assert.assertEquals(HdfsVersion.HADOOP_2_9, HdfsVersion.find("2.9.0-SNAPSHOT"));
+    Assert.assertEquals(HdfsVersion.HADOOP_2_9, HdfsVersion.find("hadoop-2.9"));
+    Assert.assertEquals(HdfsVersion.HADOOP_2_9, HdfsVersion.find("hadoop-2.9.0"));
+    Assert.assertEquals(HdfsVersion.HADOOP_2_9, HdfsVersion.find("hadoop2.9"));
+    Assert.assertEquals(HdfsVersion.HADOOP_3_0, HdfsVersion.find("3.0.0"));
+    Assert.assertEquals(HdfsVersion.HADOOP_3_0, HdfsVersion.find("3.0.0-SNAPSHOT"));
+    Assert.assertEquals(HdfsVersion.HADOOP_3_0, HdfsVersion.find("hadoop-3.0"));
+    Assert.assertEquals(HdfsVersion.HADOOP_3_0, HdfsVersion.find("hadoop-3.0.0"));
+    Assert.assertEquals(HdfsVersion.HADOOP_3_0, HdfsVersion.find("hadoop3.0"));
+    Assert.assertEquals(HdfsVersion.HADOOP_3_1, HdfsVersion.find("3.1.0"));
+    Assert.assertEquals(HdfsVersion.HADOOP_3_1, HdfsVersion.find("3.1.0-SNAPSHOT"));
+    Assert.assertEquals(HdfsVersion.HADOOP_3_1, HdfsVersion.find("hadoop-3.1"));
+    Assert.assertEquals(HdfsVersion.HADOOP_3_1, HdfsVersion.find("hadoop-3.1.0"));
+    Assert.assertEquals(HdfsVersion.HADOOP_3_1, HdfsVersion.find("hadoop3.1"));
+    Assert.assertEquals(HdfsVersion.HADOOP_3_2, HdfsVersion.find("3.2.0"));
+    Assert.assertEquals(HdfsVersion.HADOOP_3_2, HdfsVersion.find("3.2.0-SNAPSHOT"));
+    Assert.assertEquals(HdfsVersion.HADOOP_3_2, HdfsVersion.find("hadoop-3.2"));
+    Assert.assertEquals(HdfsVersion.HADOOP_3_2, HdfsVersion.find("hadoop-3.2.0"));
+    Assert.assertEquals(HdfsVersion.HADOOP_3_2, HdfsVersion.find("hadoop3.2"));
+    Assert.assertEquals(HdfsVersion.HADOOP_3_3, HdfsVersion.find("3.3.0"));
+    Assert.assertEquals(HdfsVersion.HADOOP_3_3, HdfsVersion.find("3.3.0-SNAPSHOT"));
+    Assert.assertEquals(HdfsVersion.HADOOP_3_3, HdfsVersion.find("hadoop-3.3"));
+    Assert.assertEquals(HdfsVersion.HADOOP_3_3, HdfsVersion.find("hadoop-3.3.0"));
+    Assert.assertEquals(HdfsVersion.HADOOP_3_3, HdfsVersion.find("hadoop3.3"));
   }
 }

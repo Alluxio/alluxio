@@ -9,9 +9,9 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-import {AxiosResponse} from 'axios';
+import { AxiosResponse } from 'axios';
 
-import {ICounter} from '@alluxio/common-ui/src/constants';
+import { ICounter } from '@alluxio/common-ui/src/constants';
 
 export interface IMetrics {
   workerCapacityFreePercentage: number;
@@ -19,20 +19,17 @@ export interface IMetrics {
   operationMetrics: {
     [key: string]: ICounter;
   };
-  rpcInvocationMetrics: {
-    [key: string]: ICounter;
-  },
   timeSeriesMetrics: {
     [key: string]: {
       [key: string]: number;
-    }
-  }
+    };
+  };
 }
 
 export enum MetricsActionTypes {
   FETCH_REQUEST = '@@metrics/FETCH_REQUEST',
   FETCH_SUCCESS = '@@metrics/FETCH_SUCCESS',
-  FETCH_ERROR = '@@metrics/FETCH_ERROR'
+  FETCH_ERROR = '@@metrics/FETCH_ERROR',
 }
 
 export interface IMetricsState {

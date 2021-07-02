@@ -25,7 +25,6 @@ import com.google.common.hash.HashFunction;
 import com.google.common.hash.Hashing;
 
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Random;
@@ -33,19 +32,19 @@ import java.util.Random;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
- * This policy maps blockId to several deterministic Alluxio workers. The number of workers a block
- * can be mapped to can be passed through the constructor. The default is 1. It skips the workers
- * that do not have enough capacity to hold the block.
- *
- * Note that the hash function relies on the number of workers in the cluster, so if the number of
- * workers changes, the workers chosen by the policy for a given block will likely change.
+ * This policy maps the blockId to several deterministic Alluxio workers. The number of workers a
+ * block can be mapped to can be passed through the constructor. The default is 1. It skips the
+ * workers that do not have enough capacity to hold the block.
  *
  * This policy is useful for limiting the amount of replication that occurs when reading blocks from
  * the UFS with high concurrency. With 30 workers and 100 remote clients reading the same block
- * concurrently, the replication level for the block would get close to 30 as each workers reads
+ * concurrently, the replication level for the block would get close to 30 as each worker reads
  * and caches the block for one or more clients. If the clients use DeterministicHashPolicy with
  * 3 shards, the 100 clients will split their reads between just 3 workers, so that the replication
  * level for the block will be only 3 when the data is first loaded.
+ *
+ * Note that the hash function relies on the number of workers in the cluster, so if the number of
+ * workers changes, the workers chosen by the policy for a given block will likely change.
  */
 @NotThreadSafe
 public final class DeterministicHashPolicy implements BlockLocationPolicy {
@@ -69,13 +68,8 @@ public final class DeterministicHashPolicy implements BlockLocationPolicy {
   @Override
   public WorkerNetAddress getWorker(GetWorkerOptions options) {
     List<BlockWorkerInfo> workerInfos = Lists.newArrayList(options.getBlockWorkerInfos());
-    workerInfos.sort(new Comparator<BlockWorkerInfo>() {
-      @Override
-      public int compare(BlockWorkerInfo o1, BlockWorkerInfo o2) {
-        return o1.getNetAddress().toString().compareToIgnoreCase(o2.getNetAddress().toString());
-      }
-    });
-
+    workerInfos.sort((o1, o2) ->
+        o1.getNetAddress().toString().compareToIgnoreCase(o2.getNetAddress().toString()));
     HashMap<WorkerNetAddress, BlockWorkerInfo> blockWorkerInfoMap = new HashMap<>();
     for (BlockWorkerInfo workerInfo : options.getBlockWorkerInfos()) {
       blockWorkerInfoMap.put(workerInfo.getNetAddress(), workerInfo);

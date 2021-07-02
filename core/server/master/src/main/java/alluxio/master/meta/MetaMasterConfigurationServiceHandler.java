@@ -13,6 +13,8 @@ package alluxio.master.meta;
 
 import alluxio.RpcUtils;
 import alluxio.conf.PropertyKey;
+import alluxio.grpc.GetConfigHashPOptions;
+import alluxio.grpc.GetConfigHashPResponse;
 import alluxio.grpc.GetConfigurationPOptions;
 import alluxio.grpc.GetConfigurationPResponse;
 import alluxio.grpc.MetaMasterConfigurationServiceGrpc;
@@ -20,6 +22,9 @@ import alluxio.grpc.RemovePathConfigurationPRequest;
 import alluxio.grpc.RemovePathConfigurationPResponse;
 import alluxio.grpc.SetPathConfigurationPRequest;
 import alluxio.grpc.SetPathConfigurationPResponse;
+import alluxio.grpc.UpdateConfigurationPRequest;
+import alluxio.grpc.UpdateConfigurationPResponse;
+import alluxio.wire.ConfigHash;
 
 import io.grpc.stub.StreamObserver;
 import org.slf4j.Logger;
@@ -39,6 +44,12 @@ public final class MetaMasterConfigurationServiceHandler
       LoggerFactory.getLogger(MetaMasterConfigurationServiceHandler.class);
 
   private final MetaMaster mMetaMaster;
+  /**
+   * The cached response of GetConfiguration to save serialization cost when configurations are
+   * not updated.
+   */
+  private volatile GetConfigurationPResponse mClusterConf;
+  private volatile GetConfigurationPResponse mPathConf;
 
   /**
    * @param metaMaster the Alluxio meta master
@@ -50,11 +61,41 @@ public final class MetaMasterConfigurationServiceHandler
   @Override
   public void getConfiguration(GetConfigurationPOptions options,
       StreamObserver<GetConfigurationPResponse> responseObserver) {
-    RpcUtils.call(LOG, (RpcUtils.RpcCallableThrowsIOException<GetConfigurationPResponse>) () ->
-        GetConfigurationPResponse.newBuilder()
-            .addAllConfigs(mMetaMaster.getConfiguration(options))
-            .putAllPathConfigs(mMetaMaster.getPathConfiguration(options))
-            .build(), "getConfiguration", "options=%s", responseObserver, options);
+    RpcUtils.call(LOG, (RpcUtils.RpcCallableThrowsIOException<GetConfigurationPResponse>) () -> {
+      GetConfigurationPResponse clusterConf = mClusterConf;
+      GetConfigurationPResponse pathConf = mPathConf;
+      GetConfigurationPResponse.Builder builder = GetConfigurationPResponse.newBuilder();
+      ConfigHash hash = mMetaMaster.getConfigHash();
+      if (!options.getIgnoreClusterConf()) {
+        if (clusterConf == null
+            || !clusterConf.getClusterConfigHash().equals(hash.getClusterConfigHash())) {
+          clusterConf = mMetaMaster.getConfiguration(options.toBuilder()
+              .setIgnorePathConf(true).build()).toProto();
+          mClusterConf = clusterConf;
+        }
+        builder.addAllClusterConfigs(clusterConf.getClusterConfigsList());
+        builder.setClusterConfigHash(clusterConf.getClusterConfigHash());
+      }
+      if (!options.getIgnorePathConf()) {
+        if (pathConf == null
+            || !pathConf.getPathConfigHash().equals(hash.getPathConfigHash())) {
+          pathConf = mMetaMaster.getConfiguration(options.toBuilder()
+              .setIgnoreClusterConf(true).build()).toProto();
+          mPathConf = pathConf;
+        }
+        builder.putAllPathConfigs(pathConf.getPathConfigsMap());
+        builder.setPathConfigHash(pathConf.getPathConfigHash());
+      }
+      return builder.build();
+    }, "getConfiguration", "resquest=%s", responseObserver, options);
+  }
+
+  @Override
+  public void getConfigHash(GetConfigHashPOptions request,
+      StreamObserver<GetConfigHashPResponse> responseObserver) {
+    RpcUtils.call(LOG, (RpcUtils.RpcCallableThrowsIOException<GetConfigHashPResponse>) () ->
+        mMetaMaster.getConfigHash().toProto(), "getConfigHash", "request=%s", responseObserver,
+        request);
   }
 
   @Override
@@ -87,5 +128,18 @@ public final class MetaMasterConfigurationServiceHandler
         }
         return RemovePathConfigurationPResponse.getDefaultInstance();
       }, "removePathConfiguration", "request=%s", responseObserver, request);
+  }
+
+  @Override
+  public void updateConfiguration(
+      UpdateConfigurationPRequest request,
+      StreamObserver<UpdateConfigurationPResponse> responseObserver) {
+    RpcUtils.call(LOG, () -> {
+      Map<String, Boolean> result =
+          mMetaMaster.updateConfiguration(request.getPropertiesMap());
+      return UpdateConfigurationPResponse.newBuilder()
+          .putAllStatus(result)
+          .build();
+    }, "updateConfiguration", "request=%s", responseObserver, request);
   }
 }

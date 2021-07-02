@@ -2,18 +2,18 @@
 layout: global
 title: 本地运行Alluxio
 nickname: 本地机器上运行Alluxio
-group: Deploying Alluxio
+group: Install Alluxio
 priority: 1
 ---
 
 * Table of Contents
 {:toc}
 
-# 前提条件
+## 前提条件
 
 这部分的前提条件是你安装了[Java](http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html)(JDK 8或更高版本)。
 
-下载 [Alluxio](https://alluxio.io/download) 二进制发行版 {{site.ALLUXIO_RELEASED_VERSION}}:
+下载 [Alluxio](https://alluxio.io/download) 二进制发行版。
 
 在独立模式下运行，请执行以下操作：
 
@@ -24,29 +24,38 @@ priority: 1
 * 将`conf/alluxio-site.properties`中的`alluxio.master.mount.table.root.ufs`设置为一个本地文件系统上的临时文件夹（例如，`alluxio.master.mount.table.root.ufs=/tmp`）。
 
 * 开启远程登录服务，确保`ssh localhost`能成功。为了避免重复输入密码，你可以将本机的ssh公钥添加到`~/.ssh/authorized_keys`文件中。更多细节请参考[该指南](http://www.linuxproblem.org/art_9.html)。
+## 挂载RAMFS文件系统
+运行以下命令以挂载RAMFS文件系统。
 
-# 第0步：格式化Alluxio文件系统
+```console
+$ ./bin/alluxio-mount.sh SudoMount
+```
+
+## 格式化Alluxio文件系统
 
 > 注意：这个步骤只有在第一次运行Alluxio系统时才需要执行。
 > 如果用户在已部署好的Alluxio集群上运行格式化命令，
 > 当前服务器上之前保存的Alluxio文件系统的所有数据和元数据都会被清除。
 > 但是，底层数据不会改变。
 
-```bash
-./bin/alluxio format
+```console
+$ ./bin/alluxio format
 ```
 
-# 第1步：本地启动Alluxio文件系统
+## 本地启动Alluxio文件系统
 
 简单运行如下的命令来启动Alluxio文件系统。
 
-```bash
-./bin/alluxio-start.sh local
+```console
+# 如果您尚未挂载ramdisk或要重新挂载（如为了改变ramdisk大小）
+$ ./bin/alluxio-start.sh local SudoMount
+# 或者，如果已经安装了ramdisk
+$ ./bin/alluxio-start.sh local
 ```
 
 > 注意：用户在linux系统下运行上述命令需要输入密码来获取sudo权限,
 > 以便启动RAMFS。如果用户不想每次运行命令输入密码，
-> 或者没有sudo权限，可以使用[FAQ](#faq)中介绍的其他方法。
+> 或者没有sudo权限，可以使用[常见问题]({{ '/cn/overview/FAQ.html' | relativize_url }})中介绍的其他方法。
 
 ## 验证Alluxio是否运行
 
@@ -54,14 +63,14 @@ priority: 1
 
 运行一个更全面的系统完整性检查：
 
-```bash
-./bin/alluxio runTests
+```console
+$ ./bin/alluxio runTests
 ```
 
 可以在任意时刻执行以下命令以关闭Alluxio:
 
-```bash
-./bin/alluxio-stop.sh local
+```console
+$ ./bin/alluxio-stop.sh local
 ```
 
 
@@ -84,8 +93,8 @@ alluxio.worker.tieredstore.level0.dirs.path=/path/to/ramdisk
 
 然后在不需要请求root权限的情况下启动Alluxio，使用上述的目录作为存储器：
 
-```bash
-./bin/alluxio-start.sh local NoMount
+```console
+$ ./bin/alluxio-start.sh local NoMount
 ```
 
 另外，用户可以使用Linux [tmpFS](https://en.wikipedia.org/wiki/Tmpfs)存储数据，
@@ -99,8 +108,8 @@ alluxio.worker.tieredstore.level0.dirs.path=/dev/shm
 
 其次是：
 
-```bash
-./bin/alluxio-start.sh local NoMount
+```console
+$ ./bin/alluxio-start.sh local NoMount
 ```
 
 ## 我怎样避免通过输入密码运行sudo命令？

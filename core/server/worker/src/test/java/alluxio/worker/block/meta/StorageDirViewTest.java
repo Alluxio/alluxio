@@ -11,8 +11,8 @@
 
 package alluxio.worker.block.meta;
 
+import alluxio.worker.block.BlockMetadataEvictorView;
 import alluxio.worker.block.BlockMetadataManager;
-import alluxio.worker.block.BlockMetadataManagerView;
 import alluxio.worker.block.TieredBlockStoreTestUtils;
 
 import com.google.common.collect.Lists;
@@ -39,9 +39,9 @@ public class StorageDirViewTest {
   private static final long TEST_TEMP_BLOCK_ID = 10;
   private static final long TEST_BLOCK_SIZE = 20;
   private StorageDir mTestDir;
-  private StorageDirView mTestDirView;
-  private StorageTierView mTestTierView;
-  private BlockMetadataManagerView mMetaManagerView;
+  private StorageDirEvictorView mTestDirView;
+  private StorageTierEvictorView mTestTierView;
+  private BlockMetadataEvictorView mMetadataView;
 
   /** Rule to create a new temporary folder during each test. */
   @Rule
@@ -55,45 +55,21 @@ public class StorageDirViewTest {
     File tempFolder = mTestFolder.newFolder();
     BlockMetadataManager metaManager =
         TieredBlockStoreTestUtils.defaultMetadataManager(tempFolder.getAbsolutePath());
-    mMetaManagerView =
-        Mockito.spy(new BlockMetadataManagerView(metaManager, new HashSet<Long>(),
+    mMetadataView =
+        Mockito.spy(new BlockMetadataEvictorView(metaManager, new HashSet<Long>(),
           new HashSet<Long>()));
     StorageTier testTier = metaManager.getTiers().get(TEST_TIER_LEVEL);
     mTestDir = testTier.getDir(TEST_DIR);
-    mTestTierView = new StorageTierView(testTier, mMetaManagerView);
-    mTestDirView = new StorageDirView(mTestDir, mTestTierView, mMetaManagerView);
+    mTestTierView = new StorageTierEvictorView(testTier, mMetadataView);
+    mTestDirView = new StorageDirEvictorView(mTestDir, mTestTierView, mMetadataView);
   }
 
   /**
-   * Tests the {@link StorageDirView#getDirViewIndex()} method.
-   */
-  @Test
-  public void getDirViewIndex() {
-    Assert.assertEquals(mTestDir.getDirIndex(), mTestDirView.getDirViewIndex());
-  }
-
-  /**
-   * Tests the {@link StorageDirView#getParentTierView()} method.
+   * Tests the {@link StorageDirEvictorView#getParentTierView()} method.
    */
   @Test
   public void getParentTierView() {
     Assert.assertEquals(mTestTierView, mTestDirView.getParentTierView());
-  }
-
-  /**
-   * Tests the {@link StorageDirView#toBlockStoreLocation()} method.
-   */
-  @Test
-  public void toBlockStoreLocation() {
-    Assert.assertEquals(mTestDir.toBlockStoreLocation(), mTestDirView.toBlockStoreLocation());
-  }
-
-  /**
-   * Tests the {@link StorageDirView#getCapacityBytes()} method.
-   */
-  @Test
-  public void getCapacityBytes() {
-    Assert.assertEquals(mTestDir.getCapacityBytes(), mTestDirView.getCapacityBytes());
   }
 
   /**
@@ -113,7 +89,39 @@ public class StorageDirViewTest {
   }
 
   /**
-   * Tests the {@link StorageDirView#getEvictableBlocks()} method.
+   * Tests the {@link StorageDirView#getCapacityBytes()} method.
+   */
+  @Test
+  public void getCapacityBytes() {
+    Assert.assertEquals(mTestDir.getCapacityBytes(), mTestDirView.getCapacityBytes());
+  }
+
+  /**
+   * Tests the {@link StorageDirView#getDirViewIndex()} method.
+   */
+  @Test
+  public void getDirViewIndex() {
+    Assert.assertEquals(mTestDir.getDirIndex(), mTestDirView.getDirViewIndex());
+  }
+
+  /**
+   * Tests the {@link StorageDirView#getMediumType()} method.
+   */
+  @Test
+  public void getMediumType() {
+    Assert.assertEquals(mTestDir.getDirMedium(), mTestDirView.getMediumType());
+  }
+
+  /**
+   * Tests the {@link StorageDirView#toBlockStoreLocation()} method.
+   */
+  @Test
+  public void toBlockStoreLocation() {
+    Assert.assertEquals(mTestDir.toBlockStoreLocation(), mTestDirView.toBlockStoreLocation());
+  }
+
+  /**
+   * Tests the {@link StorageDirEvictorView#getEvictableBlocks()} method.
    */
   @Test
   public void getEvictableBlocks() throws Exception {
@@ -122,27 +130,27 @@ public class StorageDirViewTest {
     Assert.assertTrue(mTestDirView.getEvictableBlocks().isEmpty());
 
     // Add one block to test dir, expect this block to be evictable
-    BlockMeta blockMeta = new BlockMeta(TEST_BLOCK_ID, TEST_BLOCK_SIZE, mTestDir);
+    BlockMeta blockMeta = new DefaultBlockMeta(TEST_BLOCK_ID, TEST_BLOCK_SIZE, mTestDir);
     mTestDir.addBlockMeta(blockMeta);
     Assert.assertEquals(TEST_BLOCK_SIZE, mTestDirView.getEvitableBytes());
     Assert.assertThat(mTestDirView.getEvictableBlocks(),
         CoreMatchers.is((List<BlockMeta>) Lists.newArrayList(blockMeta)));
 
     // Lock this block, expect this block to be non-evictable
-    Mockito.when(mMetaManagerView.isBlockPinned(TEST_BLOCK_ID)).thenReturn(false);
-    Mockito.when(mMetaManagerView.isBlockLocked(TEST_BLOCK_ID)).thenReturn(true);
+    Mockito.when(mMetadataView.isBlockPinned(TEST_BLOCK_ID)).thenReturn(false);
+    Mockito.when(mMetadataView.isBlockLocked(TEST_BLOCK_ID)).thenReturn(true);
     Assert.assertEquals(0, mTestDirView.getEvitableBytes());
     Assert.assertTrue(mTestDirView.getEvictableBlocks().isEmpty());
 
     // Pin this block, expect this block to be non-evictable
-    Mockito.when(mMetaManagerView.isBlockPinned(TEST_BLOCK_ID)).thenReturn(true);
-    Mockito.when(mMetaManagerView.isBlockLocked(TEST_BLOCK_ID)).thenReturn(false);
+    Mockito.when(mMetadataView.isBlockPinned(TEST_BLOCK_ID)).thenReturn(true);
+    Mockito.when(mMetadataView.isBlockLocked(TEST_BLOCK_ID)).thenReturn(false);
     Assert.assertEquals(0, mTestDirView.getEvitableBytes());
     Assert.assertTrue(mTestDirView.getEvictableBlocks().isEmpty());
 
     // Release pin/lock, expect this block to be evictable
-    Mockito.when(mMetaManagerView.isBlockPinned(TEST_BLOCK_ID)).thenReturn(false);
-    Mockito.when(mMetaManagerView.isBlockLocked(TEST_BLOCK_ID)).thenReturn(false);
+    Mockito.when(mMetadataView.isBlockPinned(TEST_BLOCK_ID)).thenReturn(false);
+    Mockito.when(mMetadataView.isBlockLocked(TEST_BLOCK_ID)).thenReturn(false);
     Assert.assertEquals(TEST_BLOCK_SIZE, mTestDirView.getEvitableBytes());
     Assert.assertThat(mTestDirView.getEvictableBlocks(),
         CoreMatchers.is((List<BlockMeta>) Lists.newArrayList(blockMeta)));

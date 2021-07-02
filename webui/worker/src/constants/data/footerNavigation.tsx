@@ -9,21 +9,22 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-import {INavigationData} from '@alluxio/common-ui/src/constants';
+import { INavigationData } from '@alluxio/common-ui/src/constants';
 
-export const footerNavigationData: INavigationData[] = [{
-  attributes: {target: '_blank'},
-  innerText: 'Project Website',
-  url: 'https://alluxio.io/'
-}, {
-  attributes: {target: '_blank'},
-  innerText: 'User Mailing List',
-  url: 'https://groups.google.com/forum/#!forum/alluxio-users'
-}, {
-  innerText: 'Workers',
-  url: ({masterHostname, masterPort}) => `${window.location.protocol}//${masterHostname}:${masterPort}/workers`
-}, {
-  attributes: {target: '_blank'},
-  innerText: 'Slack Channel',
-  url: 'https://www.alluxio.io/slack'
-}];
+export const footerNavigationData: INavigationData[] = [
+  {
+    attributes: { target: '_blank' },
+    innerText: 'Project Website',
+    url: 'https://alluxio.io/',
+  },
+  {
+    attributes: { target: '_blank' },
+    innerText: 'User Mailing List',
+    url: 'https://groups.google.com/forum/#!forum/alluxio-users',
+  },
+  {
+    innerText: 'Workers',
+    url: ({ masterHostname, masterPort }): string =>
+      `${window.location.protocol}//${masterHostname}:${masterPort}/workers`,
+  },
+];

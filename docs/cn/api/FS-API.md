@@ -1,9 +1,9 @@
 ---
 layout: global
-title: 本地Java客户端
-nickname: Native Java
+title: 原生文件系统Java客户端
+nickname: Filesystem API
 group: Client APIs
-priority: 1
+priority: 0
 ---
 
 * 内容列表
@@ -84,7 +84,7 @@ Alluxio提供定位策略，用于确定应该选择哪个Worker来存储文件�
 
 使用Alluxio的Java API，用户可以在`CreateFileOptions`中设置该策略以用于写文件，也可在`OpenFileOptions`中设置该策略用于向Alluxio中读文件。
 
-用户可以简单的覆盖默认策略类通过修改[配置文件](Configuration-Settings.html)`alluxio.user.block.write.location.policy.class`内的属性。内置策略包括：
+用户可以简单的覆盖默认策略类通过修改[配置文件]({{ '/cn/operation/Configuration.html' | relativize_url }})`alluxio.user.block.write.location.policy.class`内的属性。内置策略包括：
 
 * **LocalFirstPolicy(alluxio.client.block.policy.LocalFirstPolicy)**
 
@@ -112,7 +112,7 @@ Alluxio支持自定义策略，所以你可以通过实现接口`alluxio.client.
 
 Alluxio允许客户端在向本地worker写入数据块时选择偏好的存储层。目前这种策略偏好只存在于本地worker，不支持远程workers; 远程worker会将数据块写到最高存储层。
 
-默认情况下，数据写入顶层。 用户可以通过修改`alluxio.user.file.write.tier.default` [配置文件](Configuration-Settings.html)属性改变默认设置，或通过`FileSystem#createFile(AlluxioURI)`的API调用选项覆盖默认设置。
+默认情况下，数据写入顶层。 用户可以通过修改`alluxio.user.file.write.tier.default` [配置文档]({{ '/cn/operation/Configuration.html' | relativize_url }})属性改变默认设置，或通过`FileSystem#createFile(AlluxioURI)`的API调用选项覆盖默认设置。
 
 ### 读数据
 

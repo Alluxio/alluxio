@@ -15,8 +15,11 @@ import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.mock;
 
+import alluxio.Constants;
 import alluxio.StorageTierAssoc;
 import alluxio.WorkerStorageTierAssoc;
+import alluxio.metrics.MetricInfo;
+import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.worker.block.DefaultBlockWorker.Metrics;
 
@@ -30,8 +33,8 @@ import org.junit.Test;
  * Unit tests for {@link DefaultBlockWorker.Metrics}.
  */
 public final class BlockWorkerMetricsTest {
-  private static final String MEM = "MEM";
-  private static final String HDD = "HDD";
+  private static final String MEM = Constants.MEDIUM_MEM;
+  private static final String HDD = Constants.MEDIUM_HDD;
 
   private BlockWorker mBlockWorker;
   private BlockStoreMeta mBlockStoreMeta;
@@ -50,10 +53,10 @@ public final class BlockWorkerMetricsTest {
   @Test
   public void testMetricsCapacity() {
     when(mBlockStoreMeta.getCapacityBytes()).thenReturn(1000L);
-    Assert.assertEquals(1000L, getGauge(Metrics.CAPACITY_TOTAL));
+    Assert.assertEquals(1000L, getGauge(MetricKey.WORKER_CAPACITY_TOTAL.getName()));
     when(mBlockStoreMeta.getUsedBytes()).thenReturn(200L);
-    Assert.assertEquals(200L, getGauge(Metrics.CAPACITY_USED));
-    Assert.assertEquals(800L, getGauge(Metrics.CAPACITY_FREE));
+    Assert.assertEquals(200L, getGauge(MetricKey.WORKER_CAPACITY_USED.getName()));
+    Assert.assertEquals(800L, getGauge(MetricKey.WORKER_CAPACITY_FREE.getName()));
   }
 
   @Test
@@ -61,21 +64,23 @@ public final class BlockWorkerMetricsTest {
     when(mBlockStoreMeta.getCapacityBytesOnTiers())
         .thenReturn(ImmutableMap.of(MEM, 1000L, HDD, 2000L));
     when(mBlockStoreMeta.getUsedBytesOnTiers()).thenReturn(ImmutableMap.of(MEM, 100L, HDD, 200L));
-    assertEquals(1000L, getGauge(Metrics.CAPACITY_TOTAL + Metrics.TIER + MEM));
-    assertEquals(2000L, getGauge(Metrics.CAPACITY_TOTAL + Metrics.TIER + HDD));
-    assertEquals(100L, getGauge(Metrics.CAPACITY_USED + Metrics.TIER + MEM));
-    assertEquals(200L, getGauge(Metrics.CAPACITY_USED + Metrics.TIER + HDD));
-    assertEquals(900L, getGauge(Metrics.CAPACITY_FREE + Metrics.TIER + MEM));
-    assertEquals(1800L, getGauge(Metrics.CAPACITY_FREE + Metrics.TIER + HDD));
+    assertEquals(1000L,
+        getGauge(MetricKey.WORKER_CAPACITY_TOTAL.getName() + MetricInfo.TIER + MEM));
+    assertEquals(2000L,
+        getGauge(MetricKey.WORKER_CAPACITY_TOTAL.getName() + MetricInfo.TIER + HDD));
+    assertEquals(100L, getGauge(MetricKey.WORKER_CAPACITY_USED.getName() + MetricInfo.TIER + MEM));
+    assertEquals(200L, getGauge(MetricKey.WORKER_CAPACITY_USED.getName() + MetricInfo.TIER + HDD));
+    assertEquals(900L, getGauge(MetricKey.WORKER_CAPACITY_FREE.getName() + MetricInfo.TIER + MEM));
+    assertEquals(1800L, getGauge(MetricKey.WORKER_CAPACITY_FREE.getName() + MetricInfo.TIER + HDD));
   }
 
   public void testMetricBocksCached() {
     when(mBlockStoreMeta.getNumberOfBlocks()).thenReturn(200);
-    Assert.assertEquals(200, getGauge(Metrics.BLOCKS_CACHED));
+    Assert.assertEquals(200, getGauge(MetricKey.WORKER_BLOCKS_CACHED.getName()));
   }
 
   private Object getGauge(String name) {
-    return MetricsSystem.METRIC_REGISTRY.getGauges().get(MetricsSystem.getMetricName(name))
-        .getValue();
+    return MetricsSystem.METRIC_REGISTRY.getGauges()
+        .get(MetricsSystem.getMetricName(name)).getValue();
   }
 }

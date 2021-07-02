@@ -15,7 +15,7 @@
   <parent>
     <groupId>org.alluxio</groupId>
     <artifactId>alluxio-core-client</artifactId>
-    <version>2.0.0-SNAPSHOT</version>
+    <version>2.7.0-SNAPSHOT</version>
   </parent>
   <artifactId>alluxio-core-client-fs</artifactId>
   <packaging>jar</packaging>
@@ -32,23 +32,47 @@
   <dependencies>
     <!-- External dependencies -->
     <dependency>
-      <groupId>com.fasterxml.jackson.core</groupId>
-      <artifactId>jackson-annotations</artifactId>
-    </dependency>
-    <dependency>
       <groupId>com.google.guava</groupId>
       <artifactId>guava</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.google.protobuf</groupId>
+      <artifactId>protobuf-java</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>commons-codec</groupId>
+      <artifactId>commons-codec</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>commons-io</groupId>
+      <artifactId>commons-io</artifactId>
     </dependency>
     <dependency>
       <groupId>io.dropwizard.metrics</groupId>
       <artifactId>metrics-core</artifactId>
     </dependency>
     <dependency>
+      <groupId>io.grpc</groupId>
+      <artifactId>grpc-api</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>io.grpc</groupId>
+      <artifactId>grpc-core</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>io.grpc</groupId>
+      <artifactId>grpc-stub</artifactId>
+    </dependency>
+    <dependency>
       <groupId>io.netty</groupId>
       <artifactId>netty-all</artifactId>
     </dependency>
-    
-<!-- Internal dependencies -->
+    <dependency>
+      <groupId>org.rocksdb</groupId>
+      <artifactId>rocksdbjni</artifactId>
+    </dependency>
+
+    <!-- Internal dependencies -->
     <dependency>
       <groupId>org.alluxio</groupId>
       <artifactId>alluxio-core-common</artifactId>

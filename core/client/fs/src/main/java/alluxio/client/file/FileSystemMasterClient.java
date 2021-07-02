@@ -16,6 +16,7 @@ import alluxio.Client;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.exception.status.AlreadyExistsException;
 import alluxio.exception.status.NotFoundException;
+import alluxio.grpc.CheckAccessPOptions;
 import alluxio.grpc.CheckConsistencyPOptions;
 import alluxio.grpc.CompleteFilePOptions;
 import alluxio.grpc.CreateDirectoryPOptions;
@@ -38,6 +39,7 @@ import alluxio.wire.SyncPointInfo;
 
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 
 /**
  * A client to use for interacting with a file system master.
@@ -61,6 +63,16 @@ public interface FileSystemMasterClient extends Client {
       return new RetryHandlingFileSystemMasterClient(conf);
     }
   }
+
+  /**
+   * Check access to a path.
+   *
+   * @param path the path to check
+   * @param options method options
+   * @throws alluxio.exception.AccessControlException if the access is denied
+   */
+  void checkAccess(AlluxioURI path, CheckAccessPOptions options)
+      throws AlluxioStatusException;
 
   /**
    * Checks the consistency of Alluxio metadata against the under storage for all files and
@@ -146,6 +158,20 @@ public interface FileSystemMasterClient extends Client {
   List<SyncPointInfo> getSyncPathList() throws AlluxioStatusException;
 
   /**
+   * Performs a specific action on each {@code URIStatus} in the result of {@link #listStatus}.
+   * This method is preferred when iterating over directories with a large number of files or
+   * sub-directories inside. The caller can proceed with partial result without waiting for all
+   * result returned.
+   *
+   * @param path the path to list information about
+   * @param options options to associate with this operation
+   * @param action action to apply on each {@code URIStatus}
+   * @throws NotFoundException if the path does not exist
+   */
+  void iterateStatus(AlluxioURI path, ListStatusPOptions options,
+      Consumer<? super URIStatus> action) throws AlluxioStatusException;
+
+  /**
    * @param path the path to list
    * @param options the listStatus options
    * @return the list of file information for the given path
@@ -163,6 +189,14 @@ public interface FileSystemMasterClient extends Client {
    */
   void mount(AlluxioURI alluxioPath, AlluxioURI ufsPath, MountPOptions options)
       throws AlluxioStatusException;
+
+  /**
+   * Updates options of a mount point for the given Alluxio path.
+   *
+   * @param alluxioPath the Alluxio path
+   * @param options mount options
+   */
+  void updateMount(AlluxioURI alluxioPath, MountPOptions options) throws AlluxioStatusException;
 
   /**
    * Lists all mount points and their corresponding under storage addresses.
@@ -189,6 +223,15 @@ public interface FileSystemMasterClient extends Client {
    * @throws NotFoundException if the path does not exist
    */
   void rename(AlluxioURI src, AlluxioURI dst, RenamePOptions options) throws AlluxioStatusException;
+
+  /**
+   * Reverse resolve a ufs uri.
+   *
+   * @param ufsUri the ufs uri
+   * @return the alluxio path for the ufsUri
+   * @throws AlluxioStatusException
+   */
+  AlluxioURI reverseResolve(AlluxioURI ufsUri) throws AlluxioStatusException;
 
   /**
    * Sets the ACL for a path.
@@ -254,4 +297,9 @@ public interface FileSystemMasterClient extends Client {
    */
   void updateUfsMode(AlluxioURI ufsUri, UpdateUfsModePOptions options)
       throws AlluxioStatusException;
+
+  /**
+   * @return the state lock waiters and holders thread identifiers
+   */
+  List<String> getStateLockHolders() throws AlluxioStatusException;
 }

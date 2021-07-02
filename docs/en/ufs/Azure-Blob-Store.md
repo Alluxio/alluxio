@@ -2,7 +2,7 @@
 layout: global
 title: Azure Blob Store
 nickname: Azure Blob Store
-group: Under Stores
+group: Storage Integrations
 priority: 2
 ---
 
@@ -36,14 +36,14 @@ you need to configure Alluxio to use under storage systems by modifying
 `conf/alluxio-site.properties`. If it does not exist, create the configuration file from the
 template.
 
-```bash
-cp conf/alluxio-site.properties.template conf/alluxio-site.properties
+```console
+$ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
 ```
 
 Specify the underfs address by modifying `conf/alluxio-site.properties` to include:
 
 ```
-alluxio.master.mount.table.root.ufs=wasb://<AZURE_CONTAINER>@<AZURE_ACCOUNT>.blob.core.windows.net/<AZURE_DIRECTORY>/
+alluxio.master.mount.table.root.ufs=wasbs://<AZURE_CONTAINER>@<AZURE_ACCOUNT>.blob.core.windows.net/<AZURE_DIRECTORY>/
 ```
 
 Specify credentials for the Azure account of the root mount point by adding the following
@@ -56,10 +56,11 @@ alluxio.master.mount.table.root.option.fs.azure.account.key.<AZURE_ACCOUNT>.blob
 ### Nested Mount
 An Azure blob store location can be mounted at a nested directory in the Alluxio namespace to have unified access
 to multiple under storage systems. Alluxio's
-[Command Line Interface]({{ '/en/basic/Command-Line-Interface.html' | relativize_url }}) can be used for this purpose.
+[Command Line Interface]({{ '/en/operation/User-CLI.html' | relativize_url }}) can be used for this purpose.
 
-```bash
-./bin/alluxio fs mount --option fs.azure.account.key.<AZURE_ACCOUNT>.blob.core.windows.net=<AZURE_ACCESS_KEY>\
+```console
+$ ./bin/alluxio fs mount \
+  --option fs.azure.account.key.<AZURE_ACCOUNT>.blob.core.windows.net=<AZURE_ACCESS_KEY> \
   /mnt/azure wasb://<AZURE_CONTAINER>@<AZURE_ACCOUNT>.blob.core.windows.net/<AZURE_DIRECTORY>/
 ```
 
@@ -94,3 +95,11 @@ To stop Alluxio, you can run:
 ```
 ./bin/alluxio-stop.sh local
 ```
+
+## FAQ
+### What should I do if I get http not support error?
+If you mount the Blob and configure the Blob path start with `wasb://`, you may see the error as follows:
+```
+alluxio.exception.AlluxioException: com.microsoft.azure.storage.StorageException: The account being accessed does not support http.
+```
+You can change the Blob path start with `wasbs://`.

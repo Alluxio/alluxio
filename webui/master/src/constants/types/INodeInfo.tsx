@@ -9,15 +9,15 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-export interface INodeInfo     {
-  'state': string;
-  'host': string;
-  'workerId': number;
-  'freeSpacePercent': number;
-  'usedSpacePercent': number;
-  'webPort': number;
-  'capacity': string;
-  'lastHeartbeat': string;
-  'uptimeClockTime': string;
-  'usedMemory': string;
+export interface INodeInfo {
+  state: string;
+  host: string;
+  workerId: number;
+  freeSpacePercent: number;
+  usedSpacePercent: number;
+  webPort: number;
+  capacity: string;
+  lastHeartbeat: string;
+  uptimeClockTime: string;
+  usedMemory: string;
 }

@@ -1,0 +1,90 @@
+<!--
+
+    The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
+    (the "License"). You may not use this work except in compliance with the License, which is
+    available at www.apache.org/licenses/LICENSE-2.0
+
+    This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+    either express or implied, as more fully set forth in the License.
+
+    See the NOTICE file distributed with this work for information regarding copyright ownership.
+
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <artifactId>alluxio-underfs</artifactId>
+    <groupId>org.alluxio</groupId>
+    <version>2.7.0-SNAPSHOT</version>
+  </parent>
+
+  <artifactId>alluxio-underfs-cephfs-hadoop</artifactId>
+  <name>Alluxio Under File System - Cephfs-hadoop</name>
+  <description>Cephfs-hadoop Under File System implementation based on cephfs-hadoop</description>
+  <properties>
+    <!-- The following paths need to be defined here as well as in the parent pom so that mvn can -->
+    <!-- run properly from sub-project directories -->
+    <build.path>${project.parent.parent.basedir}/build</build.path>
+  </properties>
+
+  <dependencies>
+    <!-- External dependencies -->
+    <dependency>
+      <groupId>io.github.opendataio</groupId>
+      <artifactId>cephfs-hadoop</artifactId>
+    </dependency>
+    <!-- Internal dependencies -->
+    <dependency>
+      <groupId>org.alluxio</groupId>
+      <artifactId>alluxio-core-common</artifactId>
+      <version>${project.version}</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.alluxio</groupId>
+      <artifactId>alluxio-underfs-hdfs</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+  </dependencies>
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-shade-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>shade</id>
+            <phase>package</phase>
+            <goals>
+              <goal>shade</goal>
+            </goals>
+            <configuration>
+              <filters>
+                <filter>
+                  <artifact>*:*</artifact>
+                  <excludes>
+                    <exclude>LICENSE</exclude>
+                    <exclude>META-INF/LICENSE</exclude>
+                    <exclude>META-INF/*.SF</exclude>
+                    <exclude>META-INF/*.DSA</exclude>
+                    <exclude>META-INF/*.RSA</exclude>
+                  </excludes>
+                </filter>
+                <filter>
+                  <artifact>org.alluxio:alluxio-underfs-hdfs</artifact>
+                  <excludes>
+                    <exclude>META-INF/services/alluxio.underfs.UnderFileSystemFactory</exclude>
+                  </excludes>
+                </filter>
+              </filters>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>com.coderplus.maven.plugins</groupId>
+        <artifactId>copy-rename-maven-plugin</artifactId>
+      </plugin>
+    </plugins>
+  </build>
+</project>

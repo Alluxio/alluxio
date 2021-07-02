@@ -73,18 +73,20 @@ public class KodoInputStream extends MultiRangeObjectInputStream {
   protected InputStream createStream(long startPos, long endPos)
       throws IOException {
     IOException lastException = null;
+    String errorMessage = String.format("Failed to open key: %s", mKey);
     while (mRetryPolicy.attempt()) {
       try {
         return mKodoclent.getObject(mKey, startPos, endPos, mContentLength);
       } catch (NotFoundException e) {
-        LOG.warn("Attempt {} to open key {} failed with exception : {}",
-            mRetryPolicy.getAttemptCount(), mKey, e.toString());
+        errorMessage = String
+            .format("Failed to open key: %s attempts: %s error: %s", mKey,
+                mRetryPolicy.getAttemptCount(), e.getMessage());
         // Key does not exist
         lastException = e;
       }
     }
     // Failed after retrying key does not exist
-    throw lastException;
+    throw new IOException(errorMessage, lastException);
   }
 }
 

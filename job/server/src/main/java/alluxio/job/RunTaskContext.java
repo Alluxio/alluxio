@@ -20,7 +20,7 @@ package alluxio.job;
  */
 public class RunTaskContext extends JobServerContext {
   private final long mJobId;
-  private final int mTaskId;
+  private final long mTaskId;
 
   /**
    * Creates an instance of {@link RunTaskContext}.
@@ -29,7 +29,7 @@ public class RunTaskContext extends JobServerContext {
    * @param taskId the task id
    * @param jobServerContext the context of the Alluxio job worker
    */
-  public RunTaskContext(long jobId, int taskId, JobServerContext jobServerContext) {
+  public RunTaskContext(long jobId, long taskId, JobServerContext jobServerContext) {
     super(jobServerContext);
     mJobId = jobId;
     mTaskId = taskId;
@@ -45,7 +45,7 @@ public class RunTaskContext extends JobServerContext {
   /**
    * @return the task id
    */
-  public int getTaskId() {
+  public long getTaskId() {
     return mTaskId;
   }
 }

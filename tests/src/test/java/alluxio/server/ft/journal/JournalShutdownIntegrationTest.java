@@ -19,20 +19,21 @@ import static org.mockito.Mockito.spy;
 
 import alluxio.AlluxioURI;
 import alluxio.AuthenticatedUserRule;
-import alluxio.conf.ServerConfiguration;
 import alluxio.ConfigurationRule;
 import alluxio.Constants;
-import alluxio.conf.PropertyKey;
 import alluxio.SystemPropertyRule;
 import alluxio.client.WriteType;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
+import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
 import alluxio.master.LocalAlluxioCluster;
-import alluxio.master.MasterRegistry;
 import alluxio.master.MultiMasterLocalAlluxioCluster;
 import alluxio.multi.process.MultiProcessCluster;
 import alluxio.multi.process.PortCoordination;
 import alluxio.testutils.BaseIntegrationTest;
+import alluxio.testutils.IntegrationTestUtils;
+import alluxio.testutils.master.FsMasterResource;
 import alluxio.testutils.master.MasterTestUtils;
 import alluxio.testutils.underfs.sleeping.SleepingUnderFileSystem;
 import alluxio.testutils.underfs.sleeping.SleepingUnderFileSystemFactory;
@@ -49,6 +50,7 @@ import org.junit.ClassRule;
 import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TestName;
 
 import java.io.IOException;
 import java.util.concurrent.ExecutorService;
@@ -68,6 +70,9 @@ public class JournalShutdownIntegrationTest extends BaseIntegrationTest {
   @Rule
   public AuthenticatedUserRule mAuthenticatedUser = new AuthenticatedUserRule("test",
       ServerConfiguration.global());
+
+  @Rule
+  private TestName mTestName = new TestName();
 
   @Rule
   public ConfigurationRule mConfigRule =
@@ -172,27 +177,38 @@ public class JournalShutdownIntegrationTest extends BaseIntegrationTest {
     awaitClientTermination();
     // Fail the creation of UFS
     doThrow(new RuntimeException()).when(factory).create(anyString(),
-        any(UnderFileSystemConfiguration.class), ServerConfiguration.global());
-    createFsMasterFromJournal();
+        any(UnderFileSystemConfiguration.class));
+    createFsMasterFromJournal().close();
   }
 
   @Test
   public void multiMasterMountUnmountJournal() throws Exception {
-    MultiMasterLocalAlluxioCluster cluster = setupMultiMasterCluster();
-    UnderFileSystemFactory factory = mountUnmount(cluster.getClient());
-    // Kill the leader one by one.
-    for (int kills = 0; kills < TEST_NUM_MASTERS; kills++) {
-      cluster.waitForNewMaster(120 * Constants.SECOND_MS);
-      assertTrue(cluster.stopLeader());
+    MultiMasterLocalAlluxioCluster cluster = null;
+    UnderFileSystemFactory factory = null;
+    try {
+      cluster = new MultiMasterLocalAlluxioCluster(TEST_NUM_MASTERS);
+      cluster.initConfiguration(
+          IntegrationTestUtils.getTestName(getClass().getSimpleName(), mTestName.getMethodName()));
+      cluster.start();
+      cluster.stopLeader();
+      factory = mountUnmount(cluster.getClient());
+      // Kill the leader one by one.
+      for (int kills = 0; kills < TEST_NUM_MASTERS; kills++) {
+        cluster.waitForNewMaster(120 * Constants.SECOND_MS);
+        assertTrue(cluster.stopLeader());
+      }
+    } finally {
+      // Shutdown the cluster
+      if (cluster != null) {
+        cluster.stopFS();
+      }
     }
-    // Shutdown the cluster
-    cluster.stopFS();
     CommonUtils.sleepMs(TEST_TIME_MS);
     awaitClientTermination();
     // Fail the creation of UFS
     doThrow(new RuntimeException()).when(factory).create(anyString(),
-        any(UnderFileSystemConfiguration.class), ServerConfiguration.global());
-    createFsMasterFromJournal();
+        any(UnderFileSystemConfiguration.class));
+    createFsMasterFromJournal().close();
   }
 
   /**
@@ -201,8 +217,8 @@ public class JournalShutdownIntegrationTest extends BaseIntegrationTest {
    */
   private UnderFileSystemFactory mountUnmount(FileSystem fs) throws Exception {
     SleepingUnderFileSystem sleepingUfs = new SleepingUnderFileSystem(new AlluxioURI("sleep:///"),
-        new SleepingUnderFileSystemOptions(), UnderFileSystemConfiguration.defaults(),
-        ServerConfiguration.global());
+        new SleepingUnderFileSystemOptions(),
+        UnderFileSystemConfiguration.defaults(ServerConfiguration.global()));
     SleepingUnderFileSystemFactory sleepingUfsFactory =
         new SleepingUnderFileSystemFactory(sleepingUfs);
     UnderFileSystemFactoryRegistry.register(sleepingUfsFactory);
@@ -225,19 +241,8 @@ public class JournalShutdownIntegrationTest extends BaseIntegrationTest {
   /**
    * Creates file system master from journal.
    */
-  private MasterRegistry createFsMasterFromJournal() throws Exception {
+  private FsMasterResource createFsMasterFromJournal() throws Exception {
     return MasterTestUtils.createLeaderFileSystemMasterFromJournal();
-  }
-
-  /**
-   * Sets up and starts a multi-master cluster.
-   */
-  private MultiMasterLocalAlluxioCluster setupMultiMasterCluster() throws Exception {
-    // Setup and start the alluxio-ft cluster.
-    MultiMasterLocalAlluxioCluster cluster = new MultiMasterLocalAlluxioCluster(TEST_NUM_MASTERS);
-    cluster.initConfiguration();
-    cluster.start();
-    return cluster;
   }
 
   /**
@@ -246,7 +251,8 @@ public class JournalShutdownIntegrationTest extends BaseIntegrationTest {
   private LocalAlluxioCluster setupSingleMasterCluster() throws Exception {
     // Setup and start the local alluxio cluster.
     LocalAlluxioCluster cluster = new LocalAlluxioCluster();
-    cluster.initConfiguration();
+    cluster.initConfiguration(
+        IntegrationTestUtils.getTestName(getClass().getSimpleName(), mTestName.getMethodName()));
     ServerConfiguration.set(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.MUST_CACHE);
     cluster.start();
     return cluster;
@@ -313,12 +319,6 @@ public class JournalShutdownIntegrationTest extends BaseIntegrationTest {
             } catch (IOException e) {
               break;
             }
-          } else if (mOpType == 1) {
-            // TODO(gene): Add this back when there is new RawTable client API.
-            // if (mFileSystem.createRawTable(new AlluxioURI(TEST_TABLE_DIR + mSuccessNum), 1) ==
-            // -1) {
-            // break;
-            // }
           }
           // The create operation may succeed at the master side but still returns false due to the
           // shutdown. So the mSuccessNum may be less than the actual success number.

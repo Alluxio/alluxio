@@ -11,6 +11,10 @@
 
 package alluxio.worker.block.io;
 
+import alluxio.metrics.MetricKey;
+import alluxio.metrics.MetricsSystem;
+
+import com.codahale.metrics.Counter;
 import com.google.common.base.Preconditions;
 import com.google.common.io.Closer;
 import io.netty.buffer.ByteBuf;
@@ -27,7 +31,10 @@ import javax.annotation.concurrent.NotThreadSafe;
  * This class provides read access to a block data file locally stored in managed storage.
  */
 @NotThreadSafe
-public final class LocalFileBlockReader implements BlockReader {
+public class LocalFileBlockReader extends BlockReader {
+  private static final Counter BLOCKS_READ_LOCAL =
+      MetricsSystem.counter(MetricKey.WORKER_BLOCKS_READ_LOCAL.getName());
+
   private final String mFilePath;
   private final RandomAccessFile mLocalFile;
   private final FileChannel mLocalFileChannel;
@@ -91,10 +98,6 @@ public final class LocalFileBlockReader implements BlockReader {
   public ByteBuffer read(long offset, long length) throws IOException {
     Preconditions.checkArgument(offset + length <= mFileSize,
         "offset=%s, length=%s, exceeding fileSize=%s", offset, length, mFileSize);
-    // TODO(calvin): May need to make sure length is an int.
-    if (length == -1L) {
-      length = mFileSize - offset;
-    }
     return mLocalFileChannel.map(FileChannel.MapMode.READ_ONLY, offset, length);
   }
 
@@ -105,6 +108,7 @@ public final class LocalFileBlockReader implements BlockReader {
 
   @Override
   public void close() throws IOException {
+    super.close();
     Preconditions.checkState(mUsageCount == 0);
     if (mClosed) {
       return;
@@ -113,11 +117,17 @@ public final class LocalFileBlockReader implements BlockReader {
       mCloser.close();
     } finally {
       mClosed = true;
+      BLOCKS_READ_LOCAL.inc();
     }
   }
 
   @Override
   public boolean isClosed() {
     return mClosed;
+  }
+
+  @Override
+  public String getLocation() {
+    return mFilePath;
   }
 }

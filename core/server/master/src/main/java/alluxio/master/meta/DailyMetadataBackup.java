@@ -15,13 +15,17 @@ import alluxio.Constants;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.BackupPOptions;
+import alluxio.grpc.BackupPRequest;
 import alluxio.master.BackupManager;
+import alluxio.master.StateLockOptions;
+import alluxio.resource.CloseableResource;
+import alluxio.underfs.UfsManager;
 import alluxio.underfs.UfsStatus;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.CommonUtils;
 import alluxio.util.FormatUtils;
 import alluxio.util.io.PathUtils;
-import alluxio.wire.BackupResponse;
+import alluxio.wire.BackupStatus;
 
 import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
@@ -44,14 +48,14 @@ import java.util.regex.Matcher;
  */
 public final class DailyMetadataBackup {
   private static final Logger LOG = LoggerFactory.getLogger(DailyMetadataBackup.class);
-  private static final long SHUTDOWN_TIMEOUT_MS = 5 * Constants.SECOND_MS;
+  private static final long SHUTDOWN_TIMEOUT_MS = 5L * Constants.SECOND_MS;
 
   private final String mBackupDir;
   private final boolean mIsLocal;
   private final MetaMaster mMetaMaster;
   private final int mRetainedFiles;
   private final ScheduledExecutorService mScheduledExecutor;
-  private final UnderFileSystem mUfs;
+  private final UfsManager mUfsManager;
 
   private ScheduledFuture<?> mBackup;
 
@@ -60,16 +64,19 @@ public final class DailyMetadataBackup {
    *
    * @param metaMaster the meta master
    * @param service a scheduled executor service
-   * @param ufs the under file system
+   * @param ufsManager the under file system Manager
    */
   DailyMetadataBackup(MetaMaster metaMaster,
-      ScheduledExecutorService service, UnderFileSystem ufs) {
+      ScheduledExecutorService service, UfsManager ufsManager) {
     mMetaMaster = metaMaster;
     mBackupDir = ServerConfiguration.get(PropertyKey.MASTER_BACKUP_DIRECTORY);
     mRetainedFiles = ServerConfiguration.getInt(PropertyKey.MASTER_DAILY_BACKUP_FILES_RETAINED);
     mScheduledExecutor = service;
-    mUfs = ufs;
-    mIsLocal = ufs.getUnderFSType().equals("local");
+    mUfsManager = ufsManager;
+    try (CloseableResource<UnderFileSystem> ufsResource =
+             mUfsManager.getRoot().acquireUfsResource()) {
+      mIsLocal = ufsResource.get().getUnderFSType().equals("local");
+    }
   }
 
   /**
@@ -108,13 +115,16 @@ public final class DailyMetadataBackup {
    */
   private void dailyBackup() {
     try {
-      BackupResponse resp = mMetaMaster.backup(BackupPOptions.newBuilder()
-          .setTargetDirectory(mBackupDir).setLocalFileSystem(mIsLocal).build());
+      BackupStatus resp = mMetaMaster.backup(
+          BackupPRequest.newBuilder().setTargetDirectory(mBackupDir)
+              .setOptions(BackupPOptions.newBuilder().setLocalFileSystem(mIsLocal)).build(),
+          StateLockOptions.defaultsForDailyBackup());
       if (mIsLocal) {
-        LOG.info("Successfully backed up journal to {} on master {}",
-            resp.getBackupUri(), resp.getHostname());
+        LOG.info("Successfully backed up journal to {} on master {} with {} entries.",
+            resp.getBackupUri(), resp.getHostname(), resp.getEntryCount());
       } else {
-        LOG.info("Successfully backed up journal to {}", resp.getBackupUri());
+        LOG.info("Successfully backed up journal to {} with {} entries.",
+            resp.getBackupUri(), resp.getEntryCount());
       }
     } catch (Throwable t) {
       LOG.error("Failed to execute daily backup at {}", mBackupDir, t);
@@ -132,34 +142,38 @@ public final class DailyMetadataBackup {
    * Deletes stale backup files to avoid consuming too many spaces.
    */
   private void deleteStaleBackups() throws Exception {
-    UfsStatus[] statuses = mUfs.listStatus(mBackupDir);
-    if (statuses.length <= mRetainedFiles) {
-      return;
-    }
+    try (CloseableResource<UnderFileSystem> ufsResource =
+             mUfsManager.getRoot().acquireUfsResource()) {
+      UnderFileSystem ufs = ufsResource.get();
+      UfsStatus[] statuses = ufs.listStatus(mBackupDir);
+      if (statuses.length <= mRetainedFiles) {
+        return;
+      }
 
-    // Sort the backup files according to create time from oldest to newest
-    TreeMap<Instant, String> timeToFile = new TreeMap<>((a, b) -> (
-        a.isBefore(b) ? -1 : a.isAfter(b) ? 1 : 0));
-    for (UfsStatus status : statuses) {
-      if (status.isFile()) {
-        Matcher matcher = BackupManager.BACKUP_FILE_PATTERN.matcher(status.getName());
-        if (matcher.matches()) {
-          timeToFile.put(Instant.ofEpochMilli(Long.parseLong(matcher.group(1))),
-              status.getName());
+      // Sort the backup files according to create time from oldest to newest
+      TreeMap<Instant, String> timeToFile = new TreeMap<>((a, b) -> (
+          a.isBefore(b) ? -1 : a.isAfter(b) ? 1 : 0));
+      for (UfsStatus status : statuses) {
+        if (status.isFile()) {
+          Matcher matcher = BackupManager.BACKUP_FILE_PATTERN.matcher(status.getName());
+          if (matcher.matches()) {
+            timeToFile.put(Instant.ofEpochMilli(Long.parseLong(matcher.group(1))),
+                status.getName());
+          }
         }
       }
-    }
 
-    int toDeleteFileNum = timeToFile.size() - mRetainedFiles;
-    if (toDeleteFileNum <= 0) {
-      return;
+      int toDeleteFileNum = timeToFile.size() - mRetainedFiles;
+      if (toDeleteFileNum <= 0) {
+        return;
+      }
+      for (int i = 0; i < toDeleteFileNum; i++) {
+        String toDeleteFile = PathUtils.concatPath(mBackupDir,
+            timeToFile.pollFirstEntry().getValue());
+        ufs.deleteExistingFile(toDeleteFile);
+      }
+      LOG.info("Deleted {} stale metadata backup files at {}", toDeleteFileNum, mBackupDir);
     }
-    for (int i = 0; i < toDeleteFileNum; i++) {
-      String toDeleteFile = PathUtils.concatPath(mBackupDir,
-          timeToFile.pollFirstEntry().getValue());
-      mUfs.deleteExistingFile(toDeleteFile);
-    }
-    LOG.info("Deleted {} stale metadata backup files at {}", toDeleteFileNum, mBackupDir);
   }
 
   /**

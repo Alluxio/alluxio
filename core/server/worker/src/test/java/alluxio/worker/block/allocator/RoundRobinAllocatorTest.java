@@ -11,24 +11,37 @@
 
 package alluxio.worker.block.allocator;
 
+import alluxio.Constants;
 import alluxio.conf.ServerConfiguration;
 import alluxio.conf.PropertyKey;
+import alluxio.worker.block.reviewer.MockReviewer;
 
+import com.google.common.collect.Sets;
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 
 /**
  * Unit tests for {@link RoundRobinAllocator}.
  */
 public final class RoundRobinAllocatorTest extends AllocatorTestBase {
+  @Before
+  public void initialize() {
+    ServerConfiguration.set(PropertyKey.WORKER_ALLOCATOR_CLASS,
+            RoundRobinAllocator.class.getName());
+    mAllocator = Allocator.Factory.create(getMetadataEvictorView());
+  }
+
+  @After
+  public void reset() {
+    ServerConfiguration.reset();
+  }
 
   /**
    * Tests that blocks are allocated in a round robin fashion.
    */
   @Test
   public void allocateBlock() throws Exception {
-    ServerConfiguration.set(PropertyKey.WORKER_ALLOCATOR_CLASS,
-        RoundRobinAllocator.class.getName());
-    mAllocator = Allocator.Factory.create(getManagerView());
     //
     // idx | tier1 | tier2 | tier3
     //  0    1000
@@ -38,7 +51,7 @@ public final class RoundRobinAllocatorTest extends AllocatorTestBase {
     //  1               ├─── 3000
     //  2               └─── 3000
     //
-    assertTempBlockMeta(mAllocator, mAnyTierLoc, 500, true, "MEM", 0);
+    assertTempBlockMeta(mAllocator, mAnyTierLoc, 500, true, Constants.MEDIUM_MEM, 0);
     //
     // idx | tier1 | tier2 | tier3
     //  0    500   <--- alloc
@@ -48,7 +61,7 @@ public final class RoundRobinAllocatorTest extends AllocatorTestBase {
     //  1               ├─── 3000
     //  2               └─── 3000
     //
-    assertTempBlockMeta(mAllocator, mAnyTierLoc, 600, true, "SSD", 0);
+    assertTempBlockMeta(mAllocator, mAnyTierLoc, 600, true, Constants.MEDIUM_SSD, 0);
     //
     // idx | tier1 | tier2 | tier3
     //  0    500
@@ -58,7 +71,7 @@ public final class RoundRobinAllocatorTest extends AllocatorTestBase {
     //  1               ├─── 3000
     //  2               └─── 3000
     //
-    assertTempBlockMeta(mAllocator, mAnyDirInTierLoc2, 700, true, "SSD", 1);
+    assertTempBlockMeta(mAllocator, mAnyDirInTierLoc2, 700, true, Constants.MEDIUM_SSD, 1);
     //
     // idx | tier1 | tier2 | tier3
     //  0    500
@@ -68,7 +81,7 @@ public final class RoundRobinAllocatorTest extends AllocatorTestBase {
     //  1               ├─── 3000
     //  2               └─── 3000
     //
-    assertTempBlockMeta(mAllocator, mAnyTierLoc, 700, true, "SSD", 0);
+    assertTempBlockMeta(mAllocator, mAnyTierLoc, 700, true, Constants.MEDIUM_SSD, 0);
     //
     // idx | tier1 | tier2 | tier3
     //  0    500
@@ -78,7 +91,7 @@ public final class RoundRobinAllocatorTest extends AllocatorTestBase {
     //  1               ├─── 3000
     //  2               └─── 3000
     //
-    assertTempBlockMeta(mAllocator, mAnyTierLoc, 1000, true, "SSD", 1);
+    assertTempBlockMeta(mAllocator, mAnyTierLoc, 1000, true, Constants.MEDIUM_SSD, 1);
     //
     // idx | tier1 | tier2 | tier3
     //  0    500
@@ -88,7 +101,7 @@ public final class RoundRobinAllocatorTest extends AllocatorTestBase {
     //  1               ├─── 3000
     //  2               └─── 3000
     //
-    assertTempBlockMeta(mAllocator, mAnyTierLoc, 700, true, "SSD", 0);
+    assertTempBlockMeta(mAllocator, mAnyTierLoc, 700, true, Constants.MEDIUM_SSD, 0);
     //
     // idx | tier1 | tier2 | tier3
     //  0    500
@@ -98,7 +111,7 @@ public final class RoundRobinAllocatorTest extends AllocatorTestBase {
     //  1               ├─── 3000
     //  2               └─── 3000
     //
-    assertTempBlockMeta(mAllocator, mAnyTierLoc, 700, true, "HDD", 0);
+    assertTempBlockMeta(mAllocator, mAnyTierLoc, 700, true, Constants.MEDIUM_HDD, 0);
     //
     // idx | tier1 | tier2 | tier3
     //  0    500
@@ -108,7 +121,7 @@ public final class RoundRobinAllocatorTest extends AllocatorTestBase {
     //  1               ├─── 3000
     //  2               └─── 3000
     //
-    assertTempBlockMeta(mAllocator, mAnyDirInTierLoc1, 200, true, "MEM", 0);
+    assertTempBlockMeta(mAllocator, mAnyDirInTierLoc1, 200, true, Constants.MEDIUM_MEM, 0);
     //
     // idx | tier1 | tier2 | tier3
     //  0    300   <--- alloc
@@ -118,7 +131,7 @@ public final class RoundRobinAllocatorTest extends AllocatorTestBase {
     //  1               ├─── 3000
     //  2               └─── 3000
     //
-    assertTempBlockMeta(mAllocator, mAnyDirInTierLoc1, 100, true, "MEM", 0);
+    assertTempBlockMeta(mAllocator, mAnyDirInTierLoc1, 100, true, Constants.MEDIUM_MEM, 0);
     //
     // idx | tier1 | tier2 | tier3
     //  0    200   <--- alloc
@@ -138,7 +151,7 @@ public final class RoundRobinAllocatorTest extends AllocatorTestBase {
     //  1               ├─── 3000
     //  2               └─── 3000
     //
-    assertTempBlockMeta(mAllocator, mAnyDirInTierLoc2, 100, true, "SSD", 1);
+    assertTempBlockMeta(mAllocator, mAnyDirInTierLoc2, 100, true, Constants.MEDIUM_SSD, 1);
     //
     // idx | tier1 | tier2 | tier3
     //  0    200
@@ -148,7 +161,7 @@ public final class RoundRobinAllocatorTest extends AllocatorTestBase {
     //  1               ├─── 3000
     //  2               └─── 3000
     //
-    assertTempBlockMeta(mAllocator, mAnyDirInTierLoc2, 100, true, "SSD", 1);
+    assertTempBlockMeta(mAllocator, mAnyDirInTierLoc2, 100, true, Constants.MEDIUM_SSD, 1);
     //
     // idx | tier1 | tier2 | tier3
     //  0    200
@@ -168,7 +181,7 @@ public final class RoundRobinAllocatorTest extends AllocatorTestBase {
     //  1               ├─── 3000
     //  2               └─── 3000
     //
-    assertTempBlockMeta(mAllocator, mAnyDirInTierLoc3, 2000, true, "HDD", 1);
+    assertTempBlockMeta(mAllocator, mAnyDirInTierLoc3, 2000, true, Constants.MEDIUM_HDD, 1);
     //
     // idx | tier1 | tier2 | tier3
     //  0    200
@@ -178,7 +191,7 @@ public final class RoundRobinAllocatorTest extends AllocatorTestBase {
     //  1               ├─── 1000   <--- alloc
     //  2               └─── 3000
     //
-    assertTempBlockMeta(mAllocator, mAnyDirInTierLoc3, 3000, true, "HDD", 2);
+    assertTempBlockMeta(mAllocator, mAnyDirInTierLoc3, 3000, true, Constants.MEDIUM_HDD, 2);
     //
     // idx | tier1 | tier2 | tier3
     //  0    200
@@ -188,7 +201,7 @@ public final class RoundRobinAllocatorTest extends AllocatorTestBase {
     //  1               ├─── 1000
     //  2               └─── 0   <--- alloc
     //
-    assertTempBlockMeta(mAllocator, mAnyDirInTierLoc3, 500, true, "HDD", 0);
+    assertTempBlockMeta(mAllocator, mAnyDirInTierLoc3, 500, true, Constants.MEDIUM_HDD, 0);
     //
     // idx | tier1 | tier2 | tier3
     //  0    200
@@ -198,7 +211,7 @@ public final class RoundRobinAllocatorTest extends AllocatorTestBase {
     //  1               ├─── 1000
     //  2               └─── 0
     //
-    assertTempBlockMeta(mAllocator, mAnyDirInTierLoc3, 2000, false, "HDD", 0);
+    assertTempBlockMeta(mAllocator, mAnyDirInTierLoc3, 2000, false, Constants.MEDIUM_HDD, 0);
     //
     // idx | tier1 | tier2 | tier3
     //  0    200
@@ -209,7 +222,7 @@ public final class RoundRobinAllocatorTest extends AllocatorTestBase {
     //  2               └─── 0
     //
     // tier 3, dir 0, remain 0
-    assertTempBlockMeta(mAllocator, mAnyDirInTierLoc3, 300, true, "HDD", 1);
+    assertTempBlockMeta(mAllocator, mAnyDirInTierLoc3, 300, true, Constants.MEDIUM_HDD, 1);
     // idx | tier1 | tier2 | tier3
     //  0    200
     //  0      ├───── 0
@@ -218,6 +231,42 @@ public final class RoundRobinAllocatorTest extends AllocatorTestBase {
     //  1               ├─── 700   <--- alloc
     //  2               └─── 0
     //
-    ServerConfiguration.reset();
+
+    /** Reviewer's opinion affects the test */
+    MockReviewer.resetBytesToReject(Sets.newHashSet(200L));
+
+    assertTempBlockMeta(mAllocator, mAnyTierLoc, 50, true, "SSD", 1);
+    // idx | tier1 | tier2 | tier3
+    //  0    200
+    //  0      ├───── 0
+    //  1      └───── 50   <--- alloc
+    //  0               ├─── 1800
+    //  1               ├─── 700
+    //  2               └─── 0
+    //
+    assertTempBlockMeta(mAllocator, mAnyDirInTierLoc1, 50, false, "", 0);
+    // idx | tier1 | tier2 | tier3
+    //  0    200
+    //  0      ├───── 0
+    //  1      └───── 50
+    //  0               ├─── 1800
+    //  1               ├─── 700
+    //  2               └─── 0
+    //
+  }
+
+  @Test
+  public void testAnyDirInTier() throws Exception {
+    assertAllocationAnyDirInTier();
+  }
+
+  @Test
+  public void testAnyDirInAnyTierWithMedium() throws Exception {
+    assertAllocationAnyDirInAnyTierWithMedium();
+  }
+
+  @Test
+  public void testSpecificDir() throws Exception {
+    assertAllocationInSpecificDir();
   }
 }

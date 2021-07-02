@@ -14,16 +14,15 @@ package alluxio.client.metrics;
 import alluxio.ClientContext;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
-import alluxio.master.MasterClientContext;
 import alluxio.master.MasterInquireClient;
 import alluxio.util.IdUtils;
 import alluxio.util.ThreadFactoryUtils;
 
 import com.google.common.base.Preconditions;
-import net.jcip.annotations.ThreadSafe;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.concurrent.ThreadSafe;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
@@ -67,7 +66,6 @@ public class MetricsHeartbeatContext {
   private static ScheduledExecutorService sExecutorService;
 
   private final MasterInquireClient.ConnectDetails mConnectDetails;
-  private final MetricsMasterClient mMetricsMasterClient;
   private final ClientMasterSync mClientMasterSync;
   private final AlluxioConfiguration mConf;
 
@@ -78,20 +76,18 @@ public class MetricsHeartbeatContext {
   private MetricsHeartbeatContext(ClientContext ctx, MasterInquireClient inquireClient) {
     mCtxCount = 0;
     mConnectDetails = inquireClient.getConnectDetails();
-    mConf = ctx.getConf();
-    mMetricsMasterClient = new MetricsMasterClient(MasterClientContext
-        .newBuilder(ctx)
-        .setMasterInquireClient(inquireClient)
-        .build());
-    mClientMasterSync = new ClientMasterSync(sAppId, mMetricsMasterClient, mConf);
+    mConf = ctx.getClusterConf();
+    mClientMasterSync = new ClientMasterSync(sAppId, ctx, inquireClient);
   }
 
   private synchronized void addContext() {
     // increment and lazily schedule the new heartbeat task if it is the first one
     if (mCtxCount++ == 0) {
       mMetricsMasterHeartbeatTask =
-          sExecutorService.scheduleWithFixedDelay(mClientMasterSync::heartbeat, 0,
-              mConf.getMs(PropertyKey.USER_METRICS_HEARTBEAT_INTERVAL_MS), TimeUnit.MILLISECONDS);
+          sExecutorService.scheduleWithFixedDelay(mClientMasterSync::heartbeat,
+              mConf.getMs(PropertyKey.USER_METRICS_HEARTBEAT_INTERVAL_MS),
+              mConf.getMs(PropertyKey.USER_METRICS_HEARTBEAT_INTERVAL_MS),
+              TimeUnit.MILLISECONDS);
     }
   }
 
@@ -121,11 +117,13 @@ public class MetricsHeartbeatContext {
    * this reference should be discarded.
    */
   private synchronized void close() {
-    mMetricsMasterClient.close();
     if (mMetricsMasterHeartbeatTask != null) {
       mMetricsMasterHeartbeatTask.cancel(false);
     }
     MASTER_METRICS_HEARTBEAT.remove(mConnectDetails);
+    // Trigger the last heartbeat to preserve the client side metrics changes
+    heartbeat();
+    mClientMasterSync.close();
   }
 
   /**
@@ -167,7 +165,7 @@ public class MetricsHeartbeatContext {
     }
 
     if (sAppId == null) {
-      sAppId = IdUtils.createOrGetAppIdFromConfig(ctx.getConf());
+      sAppId = IdUtils.createOrGetAppIdFromConfig(ctx.getClusterConf());
       LOG.info("Created metrics heartbeat with ID {}. This ID will be used for identifying info "
               + "from the client. It can be set manually through the {} property",
           sAppId, PropertyKey.Name.USER_APP_ID);
@@ -194,7 +192,7 @@ public class MetricsHeartbeatContext {
    */
   public static synchronized void removeHeartbeat(ClientContext ctx) {
     MasterInquireClient.ConnectDetails connectDetails =
-        MasterInquireClient.Factory.getConnectDetails(ctx.getConf());
+        MasterInquireClient.Factory.getConnectDetails(ctx.getClusterConf());
     MetricsHeartbeatContext heartbeatCtx = MASTER_METRICS_HEARTBEAT.get(connectDetails);
     if (heartbeatCtx != null) {
       heartbeatCtx.removeContext();

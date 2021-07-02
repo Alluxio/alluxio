@@ -2,60 +2,112 @@ alluxio.user.app.id:
   'The custom id to use for labeling this client''s info, such as metrics. If unset, a random long will be used. This value is displayed in the client logs on initialization. Note that using the same app id will cause client info to be aggregated, so different applications must set their own ids or leave this value unset to use a randomly generated id.'
 alluxio.user.block.avoid.eviction.policy.reserved.size.bytes:
   'The portion of space reserved in a worker when using the LocalFirstAvoidEvictionPolicy class as block location policy.'
-alluxio.user.block.master.client.threads:
-  'The number of threads used by a block master client pool to talk to the block master.'
-alluxio.user.block.remote.read.buffer.size.bytes:
-  'The size of the file buffer to read data from remote Alluxio worker.'
+alluxio.user.block.master.client.pool.gc.interval:
+  'The interval at which block master client GC checks occur.'
+alluxio.user.block.master.client.pool.gc.threshold:
+  'A block master client is closed if it has been idle for more than this threshold.'
+alluxio.user.block.master.client.pool.size.max:
+  'The maximum number of block master clients cached in the block master client pool.'
+alluxio.user.block.master.client.pool.size.min:
+  'The minimum number of block master clients cached in the block master client pool. For long running processes, this should be set to zero.'
+alluxio.user.block.read.metrics.enabled:
+  'Whether detailed block read metrics will be recorded and sink.'
+alluxio.user.block.read.retry.max.duration:
+  'N/A'
+alluxio.user.block.read.retry.sleep.base:
+  'N/A'
+alluxio.user.block.read.retry.sleep.max:
+  'N/A'
 alluxio.user.block.size.bytes.default:
   'Default block size for Alluxio files.'
 alluxio.user.block.worker.client.pool.gc.threshold:
   'A block worker client is closed if it has been idle for more than this threshold.'
-alluxio.user.block.worker.client.pool.size:
+alluxio.user.block.worker.client.pool.max:
   'The maximum number of block worker clients cached in the block worker client pool.'
-alluxio.user.block.worker.client.read.retry:
-  'The maximum number of workers to retry before the client gives up on  reading a block'
 alluxio.user.block.write.location.policy.class:
   'The default location policy for choosing workers for writing a file''s blocks.'
+alluxio.user.client.cache.async.restore.enabled:
+  'If this is enabled, cache restore state asynchronously.'
+alluxio.user.client.cache.async.write.enabled:
+  'If this is enabled, cache data asynchronously.'
+alluxio.user.client.cache.async.write.threads:
+  'Number of threads to asynchronously cache data.'
+alluxio.user.client.cache.dir:
+  'The directory where client-side cache is stored.'
+alluxio.user.client.cache.enabled:
+  'If this is enabled, data will be cached on Alluxio client.'
+alluxio.user.client.cache.eviction.retries:
+  'Max number of eviction retries.'
+alluxio.user.client.cache.evictor.class:
+  'The strategy that client uses to evict local cached pages when running out of space. Currently valid options include `alluxio.client.file.cache.evictor.LRUCacheEvictor`,`alluxio.client.file.cache.evictor.LFUCacheEvictor`.'
+alluxio.user.client.cache.evictor.lfu.logbase:
+  'The log base for client cache LFU evictor bucket index.'
+alluxio.user.client.cache.evictor.nondeterministic.enabled:
+  'If this is enabled, the evictor picks uniformly from the worst k elements.Currently only LRU is supported.'
+alluxio.user.client.cache.local.store.file.buckets:
+  'The number of file buckets for the local page store of the client-side cache. It is recommended to set this to a high value if the number of unique files is expected to be high (# files / file buckets &lt;= 100,000).'
+alluxio.user.client.cache.page.size:
+  'Size of each page in client-side cache.'
+alluxio.user.client.cache.quota.enabled:
+  'Whether to support cache quota.'
+alluxio.user.client.cache.size:
+  'The maximum size of the client-side cache.'
+alluxio.user.client.cache.store.overhead:
+  'A fraction value representing the storage overhead writing to disk. For example, with 1GB allocated cache space, and 10% storage overhead we expect no more than 1024MB / (1 + 10%) user data to store.'
+alluxio.user.client.cache.store.type:
+  'The type of page store to use for client-side cache. Can be either `LOCAL` or `ROCKS`. The `LOCAL` page store stores all pages in a directory, the `ROCKS` page store utilizes rocksDB to persist the data.'
+alluxio.user.client.cache.timeout.duration:
+  'The timeout duration for local cache I/O operations (reading/writing/deleting). When this property is a positive value,local cache operations after timing out will fail and fallback to external file system but transparent to applications; when this property is a negative value, this feature is disabled.'
+alluxio.user.client.cache.timeout.threads:
+  'The number of threads to handle cache I/O operation timeout, when alluxio.user.client.cache.timeout.duration is positive.'
 alluxio.user.conf.cluster.default.enabled:
-  'When this property is true, an Alluxio client will load the default values of configuration properties set by Alluxio master.'
+  'When this property is true, an Alluxio client will load the default values of cluster-wide configuration and path-specific configuration set by Alluxio master.'
+alluxio.user.conf.sync.interval:
+  'The time period of client master heartbeat to update the configuration if necessary from meta master.'
 alluxio.user.date.format.pattern:
   'Display formatted date in cli command and web UI by given date format pattern.'
-alluxio.user.failed.space.request.limits:
-  'The number of times to request space from the file system before aborting.'
 alluxio.user.file.buffer.bytes:
   'The size of the file buffer to use for file system reads/writes.'
-alluxio.user.file.cache.partially.read.block:
-  'This property is deprecated as of 1.7 and has no effect. Use the read type to control caching behavior.'
 alluxio.user.file.copyfromlocal.block.location.policy.class:
   'The default location policy for choosing workers for writing a file''s blocks using copyFromLocal command.'
 alluxio.user.file.create.ttl:
   'Time to live for files created by a user, no ttl by default.'
 alluxio.user.file.create.ttl.action:
-  'When file''s ttl is expired, the action performs on it. DELETE by default'
+  'When file''s ttl is expired, the action performs on it. Options: DELETE (default) or FREE'
 alluxio.user.file.delete.unchecked:
   'Whether to check if the UFS contents are in sync with Alluxio before attempting to delete persisted directories recursively.'
-alluxio.user.file.load.ttl:
-  'Time to live for files loaded from UFS by a user, no ttl by default.'
-alluxio.user.file.load.ttl.action:
-  'When file''s ttl is expired, the action performs on it. FREE by default'
-alluxio.user.file.master.client.threads:
-  'The number of threads used by a file master client to talk to the file master.'
+alluxio.user.file.master.client.pool.gc.interval:
+  'The interval at which file system master client GC checks occur.'
+alluxio.user.file.master.client.pool.gc.threshold:
+  'A fs master client is closed if it has been idle for more than this threshold.'
+alluxio.user.file.master.client.pool.size.max:
+  'The maximum number of fs master clients cached in the fs master client pool.'
+alluxio.user.file.master.client.pool.size.min:
+  'The minimum number of fs master clients cached in the fs master client pool. For long running processes, this should be set to zero.'
 alluxio.user.file.metadata.load.type:
-  'The behavior of loading metadata from UFS. When information about a path is requested and the path does not exist in Alluxio, metadata can be loaded from the UFS. Valid options are `ALWAYS`, `NEVER`, and `ONCE`. `ALWAYS` will always access UFS to see if the path exists in the UFS. `NEVER` will never consult the UFS. `ONCE` will access the UFS the "first" time (according to a cache), but not after that. This parameter is ignored if a metadata sync is performed, via the parameter "alluxio.user.file.metadata.sync.interval"'
+  'The behavior of loading metadata from UFS. When information about a path is requested and the path does not exist in Alluxio, metadata can be loaded from the UFS. Valid options are `ALWAYS`, `NEVER`, and `ONCE`. `ALWAYS` will always access UFS to see if the path exists in the UFS. `NEVER` will never consult the UFS. `ONCE` will access the UFS the &quot;first&quot; time (according to a cache), but not after that. This parameter is ignored if a metadata sync is performed, via the parameter &quot;alluxio.user.file.metadata.sync.interval&quot;'
 alluxio.user.file.metadata.sync.interval:
-  'The interval for syncing UFS metadata before invoking an operation on a path. -1 means no sync will occur. 0 means Alluxio will always sync the metadata of the path before an operation. If you specify a time interval, Alluxio will (best effort) not re-sync a path within that time interval. Syncing the metadata for a path must interact with the UFS, so it is an expensive operation. If a sync is performed for an operation, the configuration of "alluxio.user.file.metadata.load.type" will be ignored.'
+  'The interval for syncing UFS metadata before invoking an operation on a path. -1 means no sync will occur. 0 means Alluxio will always sync the metadata of the path before an operation. If you specify a time interval, Alluxio will (best effort) not re-sync a path within that time interval. Syncing the metadata for a path must interact with the UFS, so it is an expensive operation. If a sync is performed for an operation, the configuration of &quot;alluxio.user.file.metadata.load.type&quot; will be ignored.'
 alluxio.user.file.passive.cache.enabled:
   'Whether to cache files to local Alluxio workers when the files are read from remote workers (not UFS).'
+alluxio.user.file.persist.on.rename:
+  'Whether or not to asynchronously persist any files which have been renamed. This is helpful when working with compute frameworks which use rename to commit results.'
+alluxio.user.file.persistence.initial.wait.time:
+  'Time to wait before starting the persistence job. When the value is set to -1, the file will be persisted by rename operation or persist CLI but will not be automatically persisted in other cases. This is to avoid the heavy object copy in rename operation when alluxio.user.file.writetype.default is set to ASYNC_THROUGH. This value should be smaller than the value of alluxio.master.persistence.max.total.wait.time'
 alluxio.user.file.readtype.default:
   'Default read type when creating Alluxio files. Valid options are `CACHE_PROMOTE` (move data to highest tier if already in Alluxio storage, write data into highest tier of local Alluxio if data needs to be read from under storage), `CACHE` (write data into highest tier of local Alluxio if data needs to be read from under storage), `NO_CACHE` (no data interaction with Alluxio, if the read is from Alluxio data migration or eviction will not occur).'
 alluxio.user.file.replication.durable:
-  'N/A'
+  'The target replication level of a file created by ASYNC_THROUGH writesbefore this file is persisted.'
 alluxio.user.file.replication.max:
-  'N/A'
+  'The target max replication level of a file in Alluxio space. Setting this property to a negative value means no upper limit.'
 alluxio.user.file.replication.min:
-  'N/A'
-alluxio.user.file.seek.buffer.size.bytes:
-  'The file seek buffer size. This is only used when alluxio.user.file.cache.partially.read.block is enabled.'
+  'The target min replication level of a file in Alluxio space.'
+alluxio.user.file.reserved.bytes:
+  'The size to reserve on workers for file system writes.Using smaller value will improve concurrency for writes smaller than block size.'
+alluxio.user.file.sequential.pread.threshold:
+  'An upper bound on the client buffer size for positioned read to hint at the sequential nature of reads. For reads with a buffer size greater than this threshold, the read op is treated to be sequential and the worker may handle the read differently. For instance, cold reads from the HDFS ufs may use a different HDFS client API.'
+alluxio.user.file.target.media:
+  'Preferred media type while storing file''s blocks.'
 alluxio.user.file.ufs.tier.enabled:
   'When workers run out of available memory, whether the client can skip writing data to Alluxio but fallback to write to UFS without stopping the application. This property only works when the write type is ASYNC_THROUGH.'
 alluxio.user.file.waitcompleted.poll:
@@ -63,23 +115,31 @@ alluxio.user.file.waitcompleted.poll:
 alluxio.user.file.write.tier.default:
   'The default tier for choosing a where to write a block. Valid option is any integer. Non-negative values identify tiers starting from top going down (0 identifies the first tier, 1 identifies the second tier, and so on). If the provided value is greater than the number of tiers, it identifies the last tier. Negative values identify tiers starting from the bottom going up (-1 identifies the last tier, -2 identifies the second to last tier, and so on). If the absolute value of the provided value is greater than the number of tiers, it identifies the first tier.'
 alluxio.user.file.writetype.default:
-  'Default write type when creating Alluxio files. Valid options are `MUST_CACHE` (write will only go to Alluxio and must be stored in Alluxio), `CACHE_THROUGH` (try to cache, write to UnderFS synchronously), `THROUGH` (no cache, write to UnderFS synchronously).'
-alluxio.user.heartbeat.interval:
-  'The interval between Alluxio workers'' heartbeats.'
+  'Default write type when creating Alluxio files. Valid options are `MUST_CACHE` (write will only go to Alluxio and must be stored in Alluxio), `CACHE_THROUGH` (try to cache, write to UnderFS synchronously), `THROUGH` (no cache, write to UnderFS synchronously), `ASYNC_THROUGH` (write to cache, write to UnderFS asynchronously, replicated alluxio.user.file.replication.durable times in Alluxio before data is persisted.'
 alluxio.user.hostname:
-  'The hostname to use for the client. Note: this property is deprecated. set alluxio.locality.node instead'
+  'The hostname to use for an Alluxio client.'
 alluxio.user.local.reader.chunk.size.bytes:
   'When a client reads from a local worker, the maximum data chunk size.'
 alluxio.user.local.writer.chunk.size.bytes:
   'When a client writes to a local worker, the maximum data chunk size.'
+alluxio.user.logging.threshold:
+  'Logging a client RPC when it takes more time than the threshold.'
 alluxio.user.logs.dir:
-  'The path to store alluxio CLI logs. Note: This property must be specified as a JVM property; it is not accepted in alluxio-site.properties.'
+  'The path to store logs of Alluxio shell. To change its value, one can  set environment variable $ALLUXIO_USER_LOGS_DIR. Note: overwriting this property will only work when it is passed as a JVM system property (e.g., appending &quot;-Dalluxio.user.logs.dir&quot;=&lt;NEW_VALUE&gt;&quot; to $ALLUXIO_JAVA_OPTS). Setting it in alluxio-site.properties will not work.'
+alluxio.user.master.polling.timeout:
+  'The maximum time for a rpc client to wait for master to respond.'
+alluxio.user.metadata.cache.enabled:
+  'If this is enabled, metadata of paths will be cached. The cached metadata will be evicted when it expires after alluxio.user.metadata.cache.expiration.time or the cache size is over the limit of alluxio.user.metadata.cache.max.size.'
+alluxio.user.metadata.cache.expiration.time:
+  'Metadata will expire and be evicted after being cached for this time period. Only valid if the filesystem is alluxio.client.file.MetadataCachingBaseFileSystem.'
+alluxio.user.metadata.cache.max.size:
+  'Maximum number of paths with cached metadata. Only valid if the filesystem is alluxio.client.file.MetadataCachingBaseFileSystem.'
 alluxio.user.metrics.collection.enabled:
-  'Enable collecting the client-side metrics and hearbeat them to master'
+  'Enable collecting the client-side metrics and heartbeat them to master'
 alluxio.user.metrics.heartbeat.interval:
-  'The time period of client master hearbeat to send the client-side metrics.'
+  'The time period of client master heartbeat to send the client-side metrics.'
 alluxio.user.network.data.timeout:
-  'The maximum time for a data client (for block reads and block writes) to wait for a response from the data server.'
+  'The maximum time for an Alluxio client to wait for a data response (e.g. block reads and block writes) from Alluxio worker.'
 alluxio.user.network.flowcontrol.window:
   'The HTTP2 flow control window used by user gRPC connections. Larger value will allow more data to be buffered but will use more memory.'
 alluxio.user.network.keepalive.time:
@@ -96,8 +156,34 @@ alluxio.user.network.reader.buffer.size.messages:
   'When a client reads from a remote worker, the maximum number of messages to buffer by the client. A message can be either a command response, a data chunk, or a gRPC stream event such as complete or error.'
 alluxio.user.network.reader.chunk.size.bytes:
   'When a client reads from a remote worker, the maximum chunk size.'
-alluxio.user.network.socket.timeout:
-  'The time out of a socket created by a user to connect to the master.'
+alluxio.user.network.rpc.flowcontrol.window:
+  'The HTTP2 flow control window used by user rpc connections. Larger value will allow more data to be buffered but will use more memory.'
+alluxio.user.network.rpc.keepalive.time:
+  'The amount of time for a rpc client to wait for a response before pinging the server to see if it is still alive.'
+alluxio.user.network.rpc.keepalive.timeout:
+  'The maximum time for a rpc client to wait for a keepalive response before closing the connection.'
+alluxio.user.network.rpc.max.connections:
+  'The maximum number of physical connections to be used per target host.'
+alluxio.user.network.rpc.max.inbound.message.size:
+  'The max inbound message size used by user rpc connections.'
+alluxio.user.network.rpc.netty.channel:
+  'Type of netty channels used by rpc connections. If EPOLL is not available, this will automatically fall back to NIO.'
+alluxio.user.network.rpc.netty.worker.threads:
+  'How many threads to use for rpc client to read from remote workers.'
+alluxio.user.network.streaming.flowcontrol.window:
+  'The HTTP2 flow control window used by user streaming connections. Larger value will allow more data to be buffered but will use more memory.'
+alluxio.user.network.streaming.keepalive.time:
+  'The amount of time for a streaming client to wait for a response before pinging the server to see if it is still alive.'
+alluxio.user.network.streaming.keepalive.timeout:
+  'The maximum time for a streaming client to wait for a keepalive response before closing the connection.'
+alluxio.user.network.streaming.max.connections:
+  'The maximum number of physical connections to be used per target host.'
+alluxio.user.network.streaming.max.inbound.message.size:
+  'The max inbound message size used by user streaming connections.'
+alluxio.user.network.streaming.netty.channel:
+  'Type of netty channels used by streaming connections. If EPOLL is not available, this will automatically fall back to NIO.'
+alluxio.user.network.streaming.netty.worker.threads:
+  'How many threads to use for streaming client to read from remote workers.'
 alluxio.user.network.writer.buffer.size.messages:
   'When a client writes to a remote worker, the maximum number of messages to buffer by the client. A message can be either a command response, a data chunk, or a gRPC stream event such as complete or error.'
 alluxio.user.network.writer.chunk.size.bytes:
@@ -112,23 +198,39 @@ alluxio.user.rpc.retry.base.sleep:
   'Alluxio client RPCs automatically retry for transient errors with an exponential backoff. This property determines the base time in the exponential backoff.'
 alluxio.user.rpc.retry.max.duration:
   'Alluxio client RPCs automatically retry for transient errors with an exponential backoff. This property determines the maximum duration to retry for before giving up. Note that, this value is set to 5s for fs and fsadmin CLIs.'
-alluxio.user.rpc.retry.max.num.retry:
-  'Alluxio client RPCs automatically retry for transient errors with an exponential backoff. This property determines the maximum number of retries. This property has been deprecated by time-based retry using: alluxio.user.rpc.retry.max.duration'
 alluxio.user.rpc.retry.max.sleep:
   'Alluxio client RPCs automatically retry for transient errors with an exponential backoff. This property determines the maximum wait time in the backoff.'
 alluxio.user.short.circuit.enabled:
   'The short circuit read/write which allows the clients to read/write data without going through Alluxio workers if the data is local is enabled if set to true.'
+alluxio.user.short.circuit.preferred:
+  'When short circuit and domain socket both enabled, prefer to use short circuit.'
+alluxio.user.streaming.data.read.timeout:
+  'The maximum time for an Alluxio client to wait for a data response for read requests from Alluxio worker. Keep in mind that some streaming operations may take an unexpectedly long time, such as UFS io. In order to handle occasional slow operations, it is recommended for this parameter to be set to a large value, to avoid spurious timeouts.'
+alluxio.user.streaming.data.write.timeout:
+  'The maximum time for an Alluxio client to wait for when writing 1 chunk for block writes to an Alluxio worker. This value can be tuned to offset instability from the UFS.'
+alluxio.user.streaming.reader.buffer.size.messages:
+  'When a client reads from a remote worker, the maximum number of messages to buffer by the client. A message can be either a command response, a data chunk, or a gRPC stream event such as complete or error.'
+alluxio.user.streaming.reader.chunk.size.bytes:
+  'When a client reads from a remote worker, the maximum chunk size.'
+alluxio.user.streaming.reader.close.timeout:
+  'The timeout to close a grpc streaming reader client. If too long, it may add delays to closing clients. If too short, the client will complete the close() before the server confirms the close()'
+alluxio.user.streaming.writer.buffer.size.messages:
+  'When a client writes to a remote worker, the maximum number of messages to buffer by the client. A message can be either a command response, a data chunk, or a gRPC stream event such as complete or error.'
+alluxio.user.streaming.writer.chunk.size.bytes:
+  'When a client writes to a remote worker, the maximum chunk size.'
+alluxio.user.streaming.writer.close.timeout:
+  'The timeout to close a writer client.'
+alluxio.user.streaming.writer.flush.timeout:
+  'The timeout to wait for flush to finish in a data writer.'
+alluxio.user.streaming.zerocopy.enabled:
+  'Whether zero copy is enabled on client when processing data streams.'
 alluxio.user.ufs.block.location.all.fallback.enabled:
   'Whether to return all workers as block location if ufs block locations are not co-located with any Alluxio workers or is empty.'
 alluxio.user.ufs.block.read.concurrency.max:
   'The maximum concurrent readers for one UFS block on one Block Worker.'
 alluxio.user.ufs.block.read.location.policy:
-  'When an Alluxio client reads a file from the UFS, it delegates the read to an Alluxio worker. The client uses this policy to choose which worker to read through. Built-in choices: [<a href="https://www.alluxio.org/javadoc/master/alluxio/client/block/policy/DeterministicHashPolicy.html">alluxio.client.block.policy.DeterministicHashPolicy</a>, <a href="https://www.alluxio.org/javadoc/master/alluxio/client/block/policy/LocalFirstAvoidEvictionPolicy.html">alluxio.client.block.policy.LocalFirstAvoidEvictionPolicy</a>, <a href="https://www.alluxio.org/javadoc/master/alluxio/client/block/policy/LocalFirstPolicy.html">alluxio.client.block.policy.LocalFirstPolicy</a>, <a href="https://www.alluxio.org/javadoc/master/alluxio/client/block/policy/MostAvailableFirstPolicy.html">alluxio.client.block.policy.MostAvailableFirstPolicy</a>, <a href="https://www.alluxio.org/javadoc/master/alluxio/client/block/policy/RoundRobinPolicy.html">alluxio.client.block.policy.RoundRobinPolicy</a>, <a href="https://www.alluxio.org/javadoc/master/alluxio/client/block/policy/SpecificHostPolicy.html">alluxio.client.block.policy.SpecificHostPolicy</a>].'
+  'When an Alluxio client reads a file from the UFS, it delegates the read to an Alluxio worker. The client uses this policy to choose which worker to read through. Built-in choices: [&lt;a href=&quot;https://docs.alluxio.io/os/javadoc/edge/alluxio/client/block/policy/DeterministicHashPolicy.html&quot;&gt;alluxio.client.block.policy.DeterministicHashPolicy&lt;/a&gt;, &lt;a href=&quot;https://docs.alluxio.io/os/javadoc/edge/alluxio/client/block/policy/LocalFirstAvoidEvictionPolicy.html&quot;&gt;alluxio.client.block.policy.LocalFirstAvoidEvictionPolicy&lt;/a&gt;, &lt;a href=&quot;https://docs.alluxio.io/os/javadoc/edge/alluxio/client/block/policy/LocalFirstPolicy.html&quot;&gt;alluxio.client.block.policy.LocalFirstPolicy&lt;/a&gt;, &lt;a href=&quot;https://docs.alluxio.io/os/javadoc/edge/alluxio/client/block/policy/MostAvailableFirstPolicy.html&quot;&gt;alluxio.client.block.policy.MostAvailableFirstPolicy&lt;/a&gt;, &lt;a href=&quot;https://docs.alluxio.io/os/javadoc/edge/alluxio/client/block/policy/RoundRobinPolicy.html&quot;&gt;alluxio.client.block.policy.RoundRobinPolicy&lt;/a&gt;, &lt;a href=&quot;https://docs.alluxio.io/os/javadoc/edge/alluxio/client/block/policy/SpecificHostPolicy.html&quot;&gt;alluxio.client.block.policy.SpecificHostPolicy&lt;/a&gt;].'
 alluxio.user.ufs.block.read.location.policy.deterministic.hash.shards:
   'When alluxio.user.ufs.block.read.location.policy is set to alluxio.client.block.policy.DeterministicHashPolicy, this specifies the number of hash shards.'
-alluxio.user.ufs.delegation.read.buffer.size.bytes:
-  'Size of the read buffer when reading from the UFS through the Alluxio worker. Each read request will fetch at least this many bytes, unless the read reaches the end of the file.'
-alluxio.user.ufs.delegation.write.buffer.size.bytes:
-  'Size of the write buffer when writing to the UFS through the Alluxio worker. Each write request will write at least this many bytes, unless the write is at the end of the file.'
 alluxio.user.worker.list.refresh.interval:
   'The interval used to refresh the live worker list on the client'

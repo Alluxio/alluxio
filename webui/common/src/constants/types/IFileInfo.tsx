@@ -9,26 +9,26 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-import {IFileBlockInfo} from '..';
+import { IFileBlockInfo } from '..';
 
 export interface IFileInfo {
-  'absolutePath': string;
-  'blockSizeBytes': string;
-  'blocksOnTier': {
+  absolutePath: string;
+  blockSizeBytes: string;
+  blocksOnTier: {
     [tierAlias: string]: IFileBlockInfo[];
   };
-  'creationTime': string;
-  'fileLocations': string[];
-  'group': string;
-  'id': number;
-  'inAlluxio': boolean;
-  'inAlluxioPercentage': number;
-  'isDirectory': boolean;
-  'mode': string;
-  'modificationTime': string;
-  'name': string;
-  'owner': string;
-  'persistenceState': string;
-  'pinned': boolean;
-  'size': string;
+  creationTime: string;
+  fileLocations: string[];
+  group: string;
+  id: number;
+  inAlluxio: boolean;
+  inAlluxioPercentage: number;
+  isDirectory: boolean;
+  mode: string;
+  modificationTime: string;
+  name: string;
+  owner: string;
+  persistenceState: string;
+  pinned: boolean;
+  size: string;
 }

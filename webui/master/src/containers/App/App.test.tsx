@@ -9,38 +9,37 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-import {configure, mount, ReactWrapper, shallow, ShallowWrapper} from 'enzyme';
+import { configure, shallow, ShallowWrapper } from 'enzyme';
 import Adapter from 'enzyme-adapter-react-16';
-import {createBrowserHistory, History, LocationState} from 'history';
+import { createBrowserHistory, History, LocationState } from 'history';
 import React from 'react';
-import {Provider} from 'react-redux';
-import {Store} from 'redux';
-import sinon, {SinonSpy} from 'sinon';
+import sinon from 'sinon';
 
-import {initialRefreshState} from '@alluxio/common-ui/src/store/refresh/reducer';
-import configureStore from '../../configureStore'
-import {initialState, IApplicationState} from '../../store';
-import {initialInitState} from '../../store/init/reducer';
-import ConnectedApp, {AllProps, App} from './App';
+import { initialState } from '../../store';
+import { initialInitState } from '../../store/init/reducer';
+import { AllProps, App } from './App';
+import { Footer, Header } from '@alluxio/common-ui/src/components';
+import { routePaths } from '../../constants';
+import { createAlertErrors } from '@alluxio/common-ui/src/utilities';
 
-configure({adapter: new Adapter()});
+configure({ adapter: new Adapter() });
 
 describe('App', () => {
   let history: History<LocationState>;
-  let store: Store<IApplicationState>;
   let props: AllProps;
 
   beforeAll(() => {
-    history = createBrowserHistory({keyLength: 0});
-    history.push('/');
-    store = configureStore(history, initialState);
+    history = createBrowserHistory({ keyLength: 0 });
+    history.push(routePaths.root);
     props = {
-      fetchRequest: sinon.spy(() => {}),
       history: history,
       init: initialInitState.data,
-      loading: initialInitState.loading,
-      refresh: initialRefreshState.data,
-      triggerRefresh: sinon.spy(() => {})
+      triggerRefresh: sinon.spy(() => {}),
+      fetchRequest: sinon.spy(() => {}),
+      errors: createAlertErrors(false),
+      loading: false,
+      refresh: initialState.refresh.data,
+      class: '',
     };
   });
 
@@ -48,39 +47,33 @@ describe('App', () => {
     let shallowWrapper: ShallowWrapper;
 
     beforeAll(() => {
-      shallowWrapper = shallow(<App {...props}/>);
+      shallowWrapper = shallow(<App {...props} />);
     });
 
     it('Renders without crashing', () => {
       expect(shallowWrapper.length).toEqual(1);
     });
 
+    it('Should render a Header', () => {
+      expect(shallowWrapper.find(Header)).toHaveLength(1);
+    });
+
+    it('Should render a Footer', () => {
+      expect(shallowWrapper.find(Footer)).toHaveLength(1);
+    });
+
+    Object.values(routePaths).forEach(path => {
+      it(`Should render Route for ${path}`, () => {
+        expect(shallowWrapper.findWhere(n => n.name() === 'Route' && n.prop('path') === path)).toHaveLength(1);
+      });
+    });
+
+    it('Should render a Route for redirects', () => {
+      expect(shallowWrapper.findWhere(n => n.name() === 'Route' && n.prop('path') === undefined)).toHaveLength(1);
+    });
+
     it('Matches snapshot', () => {
       expect(shallowWrapper).toMatchSnapshot();
-    });
-  });
-
-  describe('Connected component', () => {
-    let reactWrapper: ReactWrapper;
-
-    beforeAll(() => {
-      reactWrapper = mount(<Provider store={store}><ConnectedApp {...props} history={history}/></Provider>);
-    });
-
-    it('Renders without crashing', () => {
-      expect(reactWrapper.length).toEqual(1);
-    });
-
-    it('Contains the overview component', () => {
-      expect(reactWrapper.find('.overview-page').length).toEqual(1);
-    });
-
-    it('Calls fetchRequest', () => {
-      sinon.assert.called(props.fetchRequest as SinonSpy);
-    });
-
-    it('Matches snapshot', () => {
-      expect(reactWrapper).toMatchSnapshot();
     });
   });
 });

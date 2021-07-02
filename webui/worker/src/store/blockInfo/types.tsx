@@ -9,29 +9,29 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-import {AxiosResponse} from 'axios';
+import { AxiosResponse } from 'axios';
 
-import {IFileBlockInfo, IFileInfo} from '@alluxio/common-ui/src/constants';
+import { IFileBlockInfo, IFileInfo } from '@alluxio/common-ui/src/constants';
 
 export interface IFileBlocksOnTier {
   [tierAlias: string]: IFileBlockInfo[];
 }
 
 export interface IBlockInfo {
-  'blockSizeBytes': string;
-  'fatalError': string;
-  'fileBlocksOnTier': IFileBlocksOnTier[];
-  'fileInfos': IFileInfo[];
-  'invalidPathError': string;
-  'ntotalFile': number;
-  'orderedTierAliases': string[];
-  'path': string;
+  blockSizeBytes: string;
+  fatalError: string;
+  fileBlocksOnTier: IFileBlocksOnTier[];
+  fileInfos: IFileInfo[];
+  invalidPathError: string;
+  ntotalFile: number;
+  orderedTierAliases: string[];
+  path: string;
 }
 
 export enum BlockInfoActionTypes {
   FETCH_REQUEST = '@@blockInfo/FETCH_REQUEST',
   FETCH_SUCCESS = '@@blockInfo/FETCH_SUCCESS',
-  FETCH_ERROR = '@@blockInfo/FETCH_ERROR'
+  FETCH_ERROR = '@@blockInfo/FETCH_ERROR',
 }
 
 export interface IBlockInfoState {

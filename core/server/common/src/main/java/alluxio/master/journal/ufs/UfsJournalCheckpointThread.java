@@ -19,6 +19,7 @@ import alluxio.master.journal.JournalReader;
 import alluxio.master.journal.JournalUtils;
 import alluxio.master.journal.sink.JournalSink;
 import alluxio.proto.journal.Journal.JournalEntry;
+import alluxio.retry.ExponentialBackoffRetry;
 import alluxio.util.CommonUtils;
 import alluxio.util.ExceptionUtils;
 
@@ -27,6 +28,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.OptionalLong;
 import java.util.Set;
 import java.util.function.Supplier;
 
@@ -82,6 +84,18 @@ public final class UfsJournalCheckpointThread extends Thread {
   /** A supplier of journal sinks for this journal. */
   private final Supplier<Set<JournalSink>> mJournalSinks;
 
+  /** The last sequence number applied to the journal. */
+  private volatile long mLastAppliedSN;
+
+  /**
+   * The state of the journal catchup.
+   */
+  public enum CatchupState {
+    NOT_STARTED, IN_PROGRESS, DONE;
+  }
+
+  private volatile CatchupState mCatchupState = CatchupState.NOT_STARTED;
+
   /**
    * Creates a new instance of {@link UfsJournalCheckpointThread}.
    *
@@ -91,14 +105,27 @@ public final class UfsJournalCheckpointThread extends Thread {
    */
   public UfsJournalCheckpointThread(Master master, UfsJournal journal,
       Supplier<Set<JournalSink>> journalSinks) {
+    this(master, journal, 0L, journalSinks);
+  }
+
+  /**
+   * Creates a new instance of {@link UfsJournalCheckpointThread}.
+   *
+   * @param master the master to apply the journal entries to
+   * @param journal the journal
+   * @param startSequence the journal start sequence
+   * @param journalSinks a supplier for journal sinks
+   */
+  public UfsJournalCheckpointThread(Master master, UfsJournal journal, long startSequence,
+      Supplier<Set<JournalSink>> journalSinks) {
     mMaster = Preconditions.checkNotNull(master, "master");
     mJournal = Preconditions.checkNotNull(journal, "journal");
     mShutdownQuietWaitTimeMs = journal.getQuietPeriodMs();
     mJournalCheckpointSleepTimeMs =
         (int) ServerConfiguration.getMs(PropertyKey.MASTER_JOURNAL_TAILER_SLEEP_TIME_MS);
-    mJournalReader = new UfsJournalReader(mJournal, 0, false);
-    mCheckpointPeriodEntries = ServerConfiguration.getLong(
-        PropertyKey.MASTER_JOURNAL_CHECKPOINT_PERIOD_ENTRIES);
+    mJournalReader = new UfsJournalReader(mJournal, startSequence, false);
+    mCheckpointPeriodEntries =
+        ServerConfiguration.getLong(PropertyKey.MASTER_JOURNAL_CHECKPOINT_PERIOD_ENTRIES);
     mJournalSinks = journalSinks;
   }
 
@@ -146,12 +173,34 @@ public final class UfsJournalCheckpointThread extends Thread {
 
   @Override
   public void run() {
+    // Start a new thread which tracks the journal replay statistics
+    ExponentialBackoffRetry retry = new ExponentialBackoffRetry(1000, 30000, Integer.MAX_VALUE);
+    long start = System.currentTimeMillis();
+    final OptionalLong finalSN = UfsJournalReader.getLastSN(mJournal);
+    Thread t = new Thread(() -> {
+      UfsJournalProgressLogger progressLogger =
+          new UfsJournalProgressLogger(mJournal, finalSN, () -> mLastAppliedSN);
+      while (!Thread.currentThread().isInterrupted() && retry.attempt()) {
+        // log current stats
+        progressLogger.logProgress();
+      }
+    });
     try {
+      t.start();
       runInternal();
     } catch (Throwable e) {
+      t.interrupt();
       ProcessUtils.fatalError(LOG, e, "%s: Failed to run journal checkpoint thread, crashing.",
           mMaster.getName());
-      throw e;
+      System.exit(-1);
+    } finally {
+      t.interrupt();
+      try {
+        t.join();
+      } catch (InterruptedException e) {
+        Thread.currentThread().interrupt();
+        LOG.warn("interrupted while waiting for journal stats thread to shut down.");
+      }
     }
   }
 
@@ -163,6 +212,7 @@ public final class UfsJournalCheckpointThread extends Thread {
     LOG.info("{}: Journal checkpoint thread started.", mMaster.getName());
     // Set to true if it has waited for a quiet period. Reset if a valid journal entry is read.
     boolean quietPeriodWaited = false;
+    mCatchupState = CatchupState.IN_PROGRESS;
     while (true) {
       JournalEntry entry = null;
       try {
@@ -175,8 +225,13 @@ public final class UfsJournalCheckpointThread extends Thread {
           case LOG:
             entry = mJournalReader.getEntry();
             try {
-              mMaster.processJournalEntry(entry);
-              JournalUtils.sinkAppend(mJournalSinks, entry);
+              if (!mMaster.processJournalEntry(entry)) {
+                JournalUtils
+                    .handleJournalReplayFailure(LOG, null, "%s: Unrecognized journal entry: %s",
+                        mMaster.getName(), entry);
+              } else {
+                JournalUtils.sinkAppend(mJournalSinks, entry);
+              }
             } catch (Throwable t) {
               JournalUtils.handleJournalReplayFailure(LOG, t,
                   "%s: Failed to read or process journal entry %s.", mMaster.getName(), entry);
@@ -185,8 +240,10 @@ public final class UfsJournalCheckpointThread extends Thread {
               LOG.info("Quiet period interrupted by new journal entry");
               quietPeriodWaited = false;
             }
+            mLastAppliedSN = entry.getSequenceNumber();
             break;
           default:
+            mCatchupState = CatchupState.DONE;
             break;
         }
       } catch (IOException e) {
@@ -195,7 +252,7 @@ public final class UfsJournalCheckpointThread extends Thread {
           mJournalReader.close();
         } catch (IOException ee) {
           LOG.warn("{}: Failed to close the journal reader with error {}.", mMaster.getName(),
-              ee.getMessage());
+              ee.toString());
         }
         long nextSequenceNumber = mJournalReader.getNextSequenceNumber();
 
@@ -210,6 +267,7 @@ public final class UfsJournalCheckpointThread extends Thread {
         maybeCheckpoint();
         if (mShutdownInitiated) {
           if (quietPeriodWaited || !mWaitQuietPeriod) {
+            mCatchupState = CatchupState.DONE;
             LOG.info("{}: Journal checkpoint thread has been shutdown. No new logs have been found "
                 + "during the quiet period.", mMaster.getName());
             if (mJournalReader != null) {
@@ -217,7 +275,7 @@ public final class UfsJournalCheckpointThread extends Thread {
                 mJournalReader.close();
               } catch (IOException e) {
                 LOG.warn("{}: Failed to close the journal reader with error {}.", mMaster.getName(),
-                    e.getMessage());
+                    e.toString());
               }
             }
             return;
@@ -236,6 +294,13 @@ public final class UfsJournalCheckpointThread extends Thread {
   }
 
   /**
+   * @return the state of the master process journal catchup
+   */
+  public CatchupState getCatchupState() {
+    return mCatchupState;
+  }
+
+  /**
    * Creates a new checkpoint if necessary.
    */
   private void maybeCheckpoint() {
@@ -250,7 +315,7 @@ public final class UfsJournalCheckpointThread extends Thread {
       mNextSequenceNumberToCheckpoint = mJournal.getNextSequenceNumberToCheckpoint();
     } catch (IOException e) {
       LOG.warn("{}: Failed to get the next sequence number to checkpoint with error {}.",
-          mMaster.getName(), e.getMessage());
+          mMaster.getName(), e.toString());
       return;
     }
     if (nextSequenceNumber - mNextSequenceNumberToCheckpoint < mCheckpointPeriodEntries) {
@@ -268,6 +333,9 @@ public final class UfsJournalCheckpointThread extends Thread {
       try {
         synchronized (mCheckpointingLock) {
           if (mShutdownInitiated) {
+            // This checkpoint thread is signaled to shutdown, so any checkpoint in progress must be
+            // canceled/invalidated.
+            journalWriter.cancel();
             return;
           }
           mCheckpointing = true;

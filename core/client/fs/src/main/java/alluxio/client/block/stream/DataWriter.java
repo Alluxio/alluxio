@@ -57,18 +57,27 @@ public interface DataWriter extends Closeable, Cancelable {
     public static DataWriter create(FileSystemContext context, long blockId, long blockSize,
         WorkerNetAddress address, OutStreamOptions options) throws IOException {
       AlluxioConfiguration alluxioConf = context.getClusterConf();
-      if (CommonUtils.isLocalHost(address, alluxioConf) && alluxioConf
-          .getBoolean(PropertyKey.USER_SHORT_CIRCUIT_ENABLED) && !NettyUtils
-          .isDomainSocketSupported(address, alluxioConf)) {
-        if (options.getWriteType() == WriteType.ASYNC_THROUGH
-            && alluxioConf.getBoolean(PropertyKey.USER_FILE_UFS_TIER_ENABLED)) {
+      boolean shortCircuit = alluxioConf.getBoolean(PropertyKey.USER_SHORT_CIRCUIT_ENABLED);
+      boolean shortCircuitPreferred =
+          alluxioConf.getBoolean(PropertyKey.USER_SHORT_CIRCUIT_PREFERRED);
+      boolean ufsFallbackEnabled = options.getWriteType() == WriteType.ASYNC_THROUGH
+          && alluxioConf.getBoolean(PropertyKey.USER_FILE_UFS_TIER_ENABLED);
+
+      if (context.hasProcessLocalWorker() && !ufsFallbackEnabled) {
+        return BlockWorkerDataWriter.create(context, blockId, blockSize, options);
+      }
+
+      if (CommonUtils.isLocalHost(address, alluxioConf)
+          && shortCircuit
+          && (shortCircuitPreferred || !NettyUtils.isDomainSocketSupported(address))) {
+        if (ufsFallbackEnabled) {
           LOG.info("Creating UFS-fallback short circuit output stream for block {} @ {}", blockId,
               address);
           return UfsFallbackLocalFileDataWriter.create(
               context, address, blockId, blockSize, options);
         }
         LOG.debug("Creating short circuit output stream for block {} @ {}", blockId, address);
-        return LocalFileDataWriter.create(context, address, blockId, options);
+        return LocalFileDataWriter.create(context, address, blockId, blockSize, options);
       } else {
         LOG.debug("Creating gRPC output stream for block {} @ {} from client {}", blockId, address,
             NetworkAddressUtils.getClientHostName(alluxioConf));

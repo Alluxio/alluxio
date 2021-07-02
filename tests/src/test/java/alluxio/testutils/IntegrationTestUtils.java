@@ -182,5 +182,19 @@ public final class IntegrationTestUtils {
     PortRegistry.clear();
   }
 
+  /**
+   * @param className the test class name
+   * @param methodName the test method name
+   * @return the combined test name
+   */
+  public static String getTestName(String className, String methodName) {
+    String testName = className + "-" + methodName;
+    // cannot use these characters in the name/path: . [ ]
+    testName = testName.replace(".", "-");
+    testName = testName.replace("[", "-");
+    testName = testName.replace("]", "");
+    return testName;
+  }
+
   private IntegrationTestUtils() {} // This is a utils class not intended for instantiation
 }

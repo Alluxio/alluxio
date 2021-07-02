@@ -18,10 +18,13 @@ import alluxio.util.FileSystemOptions;
 
 import com.google.common.base.MoreObjects;
 
+import javax.annotation.Nullable;
+
 /**
  * Used to merge and wrap {@link LoadMetadataPOptions}.
  */
-public class LoadMetadataContext extends OperationContext<LoadMetadataPOptions.Builder> {
+public class LoadMetadataContext
+    extends OperationContext<LoadMetadataPOptions.Builder, LoadMetadataContext> {
 
   private UfsStatus mUfsStatus;
 
@@ -67,6 +70,7 @@ public class LoadMetadataContext extends OperationContext<LoadMetadataPOptions.B
   /**
    * @return the Ufs status
    */
+  @Nullable
   public UfsStatus getUfsStatus() {
     return mUfsStatus;
   }

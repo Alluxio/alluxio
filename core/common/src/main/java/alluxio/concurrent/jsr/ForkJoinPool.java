@@ -26,6 +26,7 @@ import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.RunnableFuture;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.LockSupport;
 import java.util.function.Predicate;
 
@@ -2490,6 +2491,45 @@ public class ForkJoinPool extends AbstractExecutorService {
       return AccessController.doPrivileged(new PrivilegedAction<ForkJoinWorkerThread>() {
         public ForkJoinWorkerThread run() {
           return new ForkJoinWorkerThread(pool, ClassLoader.getSystemClassLoader());
+        }
+      }, ACC);
+    }
+  }
+
+  /**
+   * Default ForkJoinWorkerThreadFactory implementation; creates a new ForkJoinWorkerThread using
+   * the system class loader as the thread context class loader.
+   */
+  public static final class AlluxioForkJoinWorkerThreadFactory
+          implements ForkJoinWorkerThreadFactory {
+    private static final AccessControlContext ACC = contextWithPermissions(
+            // new RuntimePermission("setContextClassLoader"), // java9-concurrent-backport changed
+            new RuntimePermission("getClassLoader"));
+    // ForkJoinWorkerThread index counter.
+    private static final AtomicLong sThreadIndex = new AtomicLong(0);
+    // Thread properties.
+    private final String mNameFormat;
+    private final boolean mIsDaemon;
+
+    /**
+     * Creates a new thread-factory for {@link ForkJoinPool}.
+     *
+     * @param threadNameFormat thread name format
+     * @param isDaemon is daemon
+     */
+    public AlluxioForkJoinWorkerThreadFactory(String threadNameFormat, boolean isDaemon){
+      mNameFormat = threadNameFormat;
+      mIsDaemon = isDaemon;
+    }
+
+    public final ForkJoinWorkerThread newThread(ForkJoinPool pool) {
+      return AccessController.doPrivileged(new PrivilegedAction<ForkJoinWorkerThread>() {
+        public ForkJoinWorkerThread run() {
+          ForkJoinWorkerThread th =
+              new ForkJoinWorkerThread(pool, ClassLoader.getSystemClassLoader());
+          th.setName(String.format(mNameFormat, sThreadIndex.getAndIncrement()));
+          th.setDaemon(mIsDaemon);
+          return th;
         }
       }, ACC);
     }

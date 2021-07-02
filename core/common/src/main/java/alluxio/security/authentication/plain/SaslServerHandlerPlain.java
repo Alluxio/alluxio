@@ -13,50 +13,47 @@ package alluxio.security.authentication.plain;
 
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
+import alluxio.security.authentication.AbstractSaslServerHandler;
 import alluxio.security.authentication.AuthenticatedUserInfo;
 import alluxio.security.authentication.AuthenticationProvider;
-import alluxio.security.authentication.AuthenticationServer;
 import alluxio.security.authentication.AuthType;
+import alluxio.security.authentication.ImpersonationAuthenticator;
 import alluxio.security.authentication.SaslServerHandler;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.security.Security;
 import java.util.HashMap;
-import java.util.UUID;
 
 import javax.security.sasl.Sasl;
 import javax.security.sasl.SaslException;
-import javax.security.sasl.SaslServer;
 
 /**
  * {@link SaslServerHandler} implementation for Plain/Custom schemes.
  */
-public class SaslServerHandlerPlain implements SaslServerHandler {
+public class SaslServerHandlerPlain extends AbstractSaslServerHandler {
+  private static final Logger LOG = LoggerFactory.getLogger(SaslServerHandlerPlain.class);
+
   static {
     Security.addProvider(new PlainSaslServerProvider());
   }
-
-  /** Underlying {@code SaslServer}. */
-  private final SaslServer mSaslServer;
 
   /**
    * Creates {@link SaslServerHandler} for Plain/Custom.
    *
    * @param serverName server name
    * @param conf Alluxio configuration
+   * @param authenticator the impersonation authenticator
    * @throws SaslException
    */
-  public SaslServerHandlerPlain(String serverName, AlluxioConfiguration conf) throws SaslException {
+  public SaslServerHandlerPlain(String serverName, AlluxioConfiguration conf,
+      ImpersonationAuthenticator authenticator) throws SaslException {
     AuthType authType =
         conf.getEnum(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.class);
     AuthenticationProvider provider = AuthenticationProvider.Factory.create(authType, conf);
     mSaslServer = Sasl.createSaslServer(PlainSaslServerProvider.MECHANISM, null, serverName,
-        new HashMap<String, String>(), new PlainSaslServerCallbackHandler(provider, conf));
-  }
-
-  @Override
-  public void authenticationCompleted(UUID channelId, AuthenticationServer authenticationServer) {
-    authenticationServer.registerChannel(channelId,
-        new AuthenticatedUserInfo(mSaslServer.getAuthorizationID()), mSaslServer);
+        new HashMap<String, String>(), new PlainSaslServerCallbackHandler(provider, authenticator));
   }
 
   @Override
@@ -66,7 +63,7 @@ public class SaslServerHandlerPlain implements SaslServerHandler {
   }
 
   @Override
-  public SaslServer getSaslServer() {
-    return mSaslServer;
+  public AuthenticatedUserInfo getAuthenticatedUserInfo() {
+    return new AuthenticatedUserInfo(mSaslServer.getAuthorizationID());
   }
 }

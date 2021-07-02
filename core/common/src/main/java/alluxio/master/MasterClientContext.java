@@ -17,7 +17,7 @@ import alluxio.ClientContext;
  * Configuration for constructing an Alluxio master client.
  */
 public class MasterClientContext extends ClientContext {
-  private MasterInquireClient mMasterInquireClient;
+  private final MasterInquireClient mMasterInquireClient;
 
   // Prevent outside instantiation
   protected MasterClientContext(ClientContext ctx, MasterInquireClient masterInquireClient) {
@@ -40,6 +40,13 @@ public class MasterClientContext extends ClientContext {
    * @return the master inquire client
    */
   public MasterInquireClient getMasterInquireClient() {
+    return mMasterInquireClient;
+  }
+
+  /**
+   * @return the master inquire client for configuration
+   */
+  public MasterInquireClient getConfMasterInquireClient() {
     return mMasterInquireClient;
   }
 }

@@ -29,7 +29,7 @@ import alluxio.util.CommonUtils;
 import alluxio.util.executor.ExecutorServiceFactories;
 import alluxio.util.io.PathUtils;
 
-import com.google.common.base.Supplier;
+import com.google.common.annotations.VisibleForTesting;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -38,6 +38,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -47,6 +48,7 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
+import java.util.function.Supplier;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
@@ -75,18 +77,24 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
   /** Executor service used for parallel UFS operations such as bulk deletes. */
   protected ExecutorService mExecutorService;
 
+  /** The root key of an object fs. */
+  protected final Supplier<String> mRootKeySupplier =
+      CommonUtils.memoize(this::getRootKey);
+
+  private final boolean mBreadcrumbsEnabled;
+
   /**
    * Constructs an {@link ObjectUnderFileSystem}.
    *
    * @param uri the {@link AlluxioURI} used to create this ufs
    * @param ufsConf UFS configuration
    */
-  protected ObjectUnderFileSystem(AlluxioURI uri, UnderFileSystemConfiguration ufsConf,
-      AlluxioConfiguration alluxioConf) {
-    super(uri, ufsConf, alluxioConf);
-    int numThreads = mAlluxioConf.getInt(PropertyKey.UNDERFS_OBJECT_STORE_SERVICE_THREADS);
+  protected ObjectUnderFileSystem(AlluxioURI uri, UnderFileSystemConfiguration ufsConf) {
+    super(uri, ufsConf);
+    int numThreads = mUfsConf.getInt(PropertyKey.UNDERFS_OBJECT_STORE_SERVICE_THREADS);
     mExecutorService = ExecutorServiceFactories.fixedThreadPool(
         "alluxio-underfs-object-service-worker", numThreads).create();
+    mBreadcrumbsEnabled = mUfsConf.getBoolean(PropertyKey.UNDERFS_OBJECT_STORE_BREADCRUMBS_ENABLED);
   }
 
   /**
@@ -366,7 +374,9 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
 
   @Override
   public OutputStream create(String path, CreateOptions options) throws IOException {
-    if (options.getCreateParent() && !mkdirs(getParentPath(path))) {
+    if (options.getCreateParent()
+        && !mUfsConf.getBoolean(PropertyKey.UNDERFS_OBJECT_STORE_SKIP_PARENT_DIRECTORY_CREATION)
+        && !mkdirs(getParentPath(path))) {
       throw new IOException(ExceptionMessage.PARENT_CREATION_FAILED.getMessage(path));
     }
     return createObject(stripPrefixIfPresent(path));
@@ -459,7 +469,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
     @Override
     protected int getBatchSize() {
       // Delete batch size is same as listing length
-      return getListingChunkLength(mAlluxioConf);
+      return getListingChunkLength(mUfsConf);
     }
 
     @Override
@@ -476,7 +486,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
    */
   @Override
   public long getBlockSizeByte(String path) throws IOException {
-    return mAlluxioConf.getBytes(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT);
+    return mUfsConf.getBytes(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT);
   }
 
   @Override
@@ -486,8 +496,8 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
       return new UfsDirectoryStatus(path, permissions.getOwner(), permissions.getGroup(),
           permissions.getMode());
     }
-    LOG.warn("Error fetching directory status, assuming directory {} does not exist", path);
-    throw new FileNotFoundException(path);
+    LOG.debug("Error fetching directory status, assuming directory {} does not exist", path);
+    throw new FileNotFoundException("Failed to fetch directory status " + path);
   }
 
   @Override
@@ -526,10 +536,10 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
       ObjectPermissions permissions = getPermissions();
       return new UfsFileStatus(path, details.getContentHash(), details.getContentLength(),
           details.getLastModifiedTimeMs(), permissions.getOwner(), permissions.getGroup(),
-          permissions.getMode());
+          permissions.getMode(), mUfsConf.getBytes(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT));
     } else {
-      LOG.warn("Error fetching file status, assuming file {} does not exist", path);
-      throw new FileNotFoundException(path);
+      LOG.debug("Error fetching file status, assuming file {} does not exist", path);
+      throw new FileNotFoundException("Failed to fetch file status " + path);
     }
   }
 
@@ -548,7 +558,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
       ObjectPermissions permissions = getPermissions();
       return new UfsFileStatus(path, details.getContentHash(), details.getContentLength(),
           details.getLastModifiedTimeMs(), permissions.getOwner(), permissions.getGroup(),
-          permissions.getMode());
+          permissions.getMode(), mUfsConf.getBytes(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT));
     }
     return getDirectoryStatus(path);
   }
@@ -749,7 +759,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
   }
 
   @Override
-  public boolean supportsFlush() {
+  public boolean supportsFlush() throws IOException {
     return false;
   }
 
@@ -759,7 +769,8 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
    * @param key the key to create
    * @return true if the operation was successful
    */
-  protected abstract boolean createEmptyObject(String key);
+  @VisibleForTesting
+  public abstract boolean createEmptyObject(String key);
 
   /**
    * Creates an {@link OutputStream} for object uploads.
@@ -874,14 +885,16 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
   }
 
   /**
-   * Checks if the path is the root.
+   * Checks if the path is the root. This method supports full path (e.g. s3://bucket_name/dir)
+   * and stripped path (e.g. /dir).
    *
    * @param path ufs path including scheme and bucket
    * @return true if the path is the root, false otherwise
    */
   protected boolean isRoot(String path) {
-    return PathUtils.normalizePath(path, PATH_SEPARATOR).equals(
-        PathUtils.normalizePath(getRootKey(), PATH_SEPARATOR));
+    String normalizePath = PathUtils.normalizePath(path, PATH_SEPARATOR);
+    return normalizePath.equals(PATH_SEPARATOR)
+        || normalizePath.equals(PathUtils.normalizePath(mRootKeySupplier.get(), PATH_SEPARATOR));
   }
 
   /**
@@ -932,8 +945,11 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
     // If there are, this is a folder and we can create the necessary metadata
     if (objs != null && ((objs.getObjectStatuses() != null && objs.getObjectStatuses().length > 0)
         || (objs.getCommonPrefixes() != null && objs.getCommonPrefixes().length > 0))) {
-      // If the breadcrumb exists, this is a no-op
-      if (!mUfsConf.isReadOnly()) {
+      // Do not recreate the breadcrumb if it already exists
+      String folderName = convertToFolderName(dir);
+      if (!mUfsConf.isReadOnly() && mBreadcrumbsEnabled
+          && Arrays.stream(objs.getObjectStatuses()).noneMatch(
+              x -> x.mContentLength == 0 && x.getName().equals(folderName))) {
         mkdirsInternal(dir);
       }
       return objs;
@@ -1005,7 +1021,8 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
           children.put(child,
               new UfsFileStatus(child, status.getContentHash(), status.getContentLength(),
                   status.getLastModifiedTimeMs(), permissions.getOwner(), permissions.getGroup(),
-                  permissions.getMode()));
+                  permissions.getMode(),
+                  mUfsConf.getBytes(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT)));
         }
       }
       // Handle case (2)
@@ -1037,10 +1054,6 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
           int childNameIndex = child.lastIndexOf(PATH_SEPARATOR);
           child = childNameIndex != -1 ? child.substring(0, childNameIndex) : child;
           if (!child.isEmpty() && !children.containsKey(child)) {
-            // This directory has not been created through Alluxio.
-            if (!mUfsConf.isReadOnly()) {
-              mkdirsInternal(commonPrefix);
-            }
             // If both a file and a directory existed with the same name, the path will be
             // treated as a directory
             ObjectPermissions permissions = getPermissions();
@@ -1104,12 +1117,17 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
    * @param path the path to strip
    * @return the path without the bucket prefix
    */
-  protected String stripPrefixIfPresent(String path) {
-    String stripedKey = CommonUtils.stripPrefixIfPresent(path,
-        PathUtils.normalizePath(getRootKey(), PATH_SEPARATOR));
+  @VisibleForTesting
+  public String stripPrefixIfPresent(String path) {
+    if (mRootKeySupplier.get().equals(path)) {
+      return "";
+    }
+    String stripedKey = CommonUtils.stripPrefixIfPresent(
+        path, PathUtils.normalizePath(mRootKeySupplier.get(), PATH_SEPARATOR));
     if (!stripedKey.equals(path)) {
       return stripedKey;
     }
+
     return CommonUtils.stripPrefixIfPresent(path, PATH_SEPARATOR);
   }
 

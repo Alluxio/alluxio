@@ -2,7 +2,7 @@
 layout: global
 title: Apache Spark 使用 Alluxio
 nickname: Apache Spark
-group: Data Applications
+group: Compute Integrations
 priority: 0
 ---
 
@@ -27,7 +27,7 @@ Spark 1.1 或更高版本的 Spark 应用程序可以通过其与 HDFS 兼容的
   本指南假设底层持久存储为本地部署的 HDFS。例如，`${ALLUXIO_HOME}/conf/alluxio-site.properties`中包含`alluxio.master.mount.table.root.ufs=hdfs://localhost:9000/alluxio/`这一行。
   请注意，除了 HDFS，Alluxio 还支持许多其他底层存储系统。
   从任意数量的这些系统中访问数据与本指南的重点是垂直的，
-  [统一和透明的名称空间]({{ '/cn/advanced/Namespace-Management.html' | relativize_url }})介绍了相关内容。
+  [统一命名空间文档]({{ '/cn/core-services/Unified-Namespace.html' | relativize_url }})介绍了相关内容。
 * 确保 Alluxio 客户端 jar 包是可用的。
   在从 Alluxio [下载页面](http://www.alluxio.io/download)下载的压缩包的`{{site.ALLUXIO_CLIENT_JAR_PATH}}`中，可以找到 Alluxio 客户端 jar 包。
   高级用户也可以从源代码编译该客户端 jar 包，可以参考[从源代码构建 Alluxio 的步骤]({{ '/cn/contributor/Building-Alluxio-From-Source.html' | relativize_url }})。
@@ -38,7 +38,7 @@ Spark 1.1 或更高版本的 Spark 应用程序可以通过其与 HDFS 兼容的
 
 将 Alluxio 客户端 jar 包添加到 Spark driver 和 executor 的 classpath 中，以便 Spark 应用程序能够使用客户端 jar 包在 Alluxio 中读取和写入文件。具体来说，在运行 Spark 的每个节点上，将以下几行添加到`spark/conf/spark-defaults.conf`中。
 
-```bash
+```
 spark.driver.extraClassPath   {{site.ALLUXIO_CLIENT_JAR_PATH}}
 spark.executor.extraClassPath {{site.ALLUXIO_CLIENT_JAR_PATH}}
 ```
@@ -52,8 +52,8 @@ spark.executor.extraClassPath {{site.ALLUXIO_CLIENT_JAR_PATH}}
 将本地数据复制到 Alluxio 文件系统中。
 假设你在 Alluxio 项目目录中，将`LICENSE`文件放入 Alluxio，运行：
 
-```bash
-bin/alluxio fs copyFromLocal LICENSE /Input
+```console
+$ ./bin/alluxio fs copyFromLocal LICENSE /Input
 ```
 
 假设 Alluxio Master 运行在`localhost`上，在`spark-shell`中运行如下命令：
@@ -74,8 +74,8 @@ bin/alluxio fs copyFromLocal LICENSE /Input
 
 将`Input_HDFS`文件放入到 HDFS 中：
 
-```bash
-hdfs dfs -put -f ${ALLUXIO_HOME}/LICENSE hdfs://localhost:9000/alluxio/Input_HDFS
+```console
+$ hdfs dfs -put -f ${ALLUXIO_HOME}/LICENSE hdfs://localhost:9000/alluxio/Input_HDFS
 ```
 
 请注意，Alluxio 并不知道该文件。你可以通过访问 Web UI 来验证这一点。
@@ -99,7 +99,7 @@ hdfs dfs -put -f ${ALLUXIO_HOME}/LICENSE hdfs://localhost:9000/alluxio/Input_HDF
 如果你运行多个 Alluxio master，其中 Zookeeper 服务运行在`zkHost1:2181`、`zkHost2:2181`和`zkHost3:2181`，
 将以下几行添加到`${SPARK_HOME}/conf/spark-defaults.conf`中：
 
-```bash
+```
 spark.driver.extraJavaOptions   -Dalluxio.zookeeper.address=zkHost1:2181,zkHost2:2181,zkHost3:2181 -Dalluxio.zookeeper.enabled=true
 spark.executor.extraJavaOptions -Dalluxio.zookeeper.address=zkHost1:2181,zkHost2:2181,zkHost3:2181 -Dalluxio.zookeeper.enabled=true
 ```
@@ -119,21 +119,21 @@ spark.executor.extraJavaOptions -Dalluxio.zookeeper.address=zkHost1:2181,zkHost2
 </configuration>
 ```
 
-在 Alluxio 1.8 （不包含 1.8）后，用户可以在 Alluxio URI 中编码 Zookeeper 服务地址（见[详细说明]({{ '/cn/deploy/Running-Alluxio-On-a-Cluster.html' | relativize_url }})#ha-configuration-parameters）。
+在 Alluxio 1.8 （不包含 1.8）后，用户可以在 Alluxio URI 中编码 Zookeeper 服务地址（见[详细说明]({{ '/cn/deploy/Running-Alluxio-on-a-Cluster.html' | relativize_url }})#ha-configuration-parameters）。
 这样，就不需要为 Spark 配置额外设置。
 
 ### 为单个 Spark 作业自定义 Alluxio 用户属性
 
-Spark 用户可以将 JVM 系统设置传递给 Spark 作业，通过将`"-Dproperty=value"`添加到`spark.executor.extraJavaOptions`来设置 Spark executor，将`"-Dproperty=value"`添加到`spark.driver.extraJavaOptions`中来设置 spark driver。例如，要在写入 Alluxio 时提交`CACHE_THROUGH`写模式的 Spark 作业，请执行以下操作：
+Spark 用户可以将 JVM 系统设置传递给 Spark 任务，通过将`"-Dproperty=value"`添加到`spark.executor.extraJavaOptions`来设置 Spark executor，将`"-Dproperty=value"`添加到`spark.driver.extraJavaOptions`中来设置 spark driver。例如，要在写入 Alluxio 时提交`CACHE_THROUGH`写模式的 Spark 任务，请执行以下操作：
 
-```bash
-spark-submit \
+```console
+$ spark-submit \
 --conf 'spark.driver.extraJavaOptions=-Dalluxio.user.file.writetype.default=CACHE_THROUGH' \
 --conf 'spark.executor.extraJavaOptions=-Dalluxio.user.file.writetype.default=CACHE_THROUGH' \
 ...
 ```
 
-如果需要自定义 Spark 作业中的 Alluxio 客户端侧属性，请参见[如何配置 Spark 作业]({{ '/cn/basic/Configuration-Settings.html' | relativize_url }}#spark)。
+如果需要自定义 Spark 任务中的 Alluxio 客户端侧属性，请参见[如何配置 Spark 任务]({{ '/cn/operation/Configuration.html' | relativize_url }}#spark)。
 
 请注意，在客户端模式中，你需要设置`--driver-java-options "-Dalluxio.user.file.writetype.default=CACHE_THROUGH"`，而不是`--conf spark.driver.extraJavaOptions=-Dalluxio.user.file.writetype.default=CACHE_THROUGH`（见[解释](https://spark.apache.org/docs/2.3.2/configuration.html))。
 
@@ -160,7 +160,7 @@ spark-submit \
 > double.saveAsTextFile("alluxio://zk@zkHost1:2181;zkHost2:2181;zkHost3:2181/Output")
 ```
 
-> 请注意，你必须使用分号而不是逗号来分隔不同的 ZooKeeper 地址，以便在 Spark 中引用 HA 模式的 Alluxio 的 URI；否则，Spark 会认为该 URI 无效。请参阅[连接高可用 Alluxio 的 HDFS API]({{ '/en/deploy/Running-Alluxio-On-a-Cluster.html' | relativize_url }}#ha-authority)。
+> 请注意，你必须使用分号而不是逗号来分隔不同的 ZooKeeper 地址，以便在 Spark 中引用 HA 模式的 Alluxio 的 URI；否则，Spark 会认为该 URI 无效。请参阅[连接高可用 Alluxio 的 HDFS API]({{ '/en/deploy/Running-Alluxio-On-a-HA-Cluster.html' | relativize_url }}#ha-authority)。
 
 ### 缓存 RDD 到 Alluxio 中
 
@@ -182,7 +182,7 @@ spark-submit \
 > rdd = sc.objectFile("alluxio://localhost:19998/rdd2")
 ```
 
-见博客文章[“通过 Alluxio 高效使用 Spark RDD”](https://www.alluxio.com/blog/effective-spark-rdds-with-alluxio)。
+见博客文章[“通过 Alluxio 高效使用 Spark RDD”](https://www.alluxio.io/blog/effective-spark-rdds-with-alluxio/)。
 
 ### 缓存 Dataframe 到 Alluxio 中
 
@@ -195,7 +195,7 @@ DataFrame 通常用`df.write.parquet()`作为 parquet 文件写入。
 > df = sqlContext.read.parquet("alluxio://localhost:19998/data.parquet")
 ```
 
-见博客文章“[通过 Alluxio 高效使用 Spark DataFrame](https://www.alluxio.com/blog/effective-spark-dataframes-with-alluxio)”.
+见博客文章“[通过 Alluxio 高效使用 Spark DataFrame](https://www.alluxio.io/blog/effective-spark-rdds-with-alluxio/)”.
 
 ## 故障排除指南
 
@@ -208,27 +208,6 @@ Spark 文档解释了
 如果你用的是 YARN，则有单独一节来解释
 [如何配置 YARN 下的 Spark 应用程序的日志](https://spark.apache.org/docs/latest/running-on-yarn.html#debugging-your-application)。
 
-
-### 检查是否正确设置 Spark
-
-为了确保 Spark 在运行前已经被正确配置，Alluxio v1.8 附带的工具可以帮助检查配置。
-
-如果运行的是 2.x 版的 Spark 集群（或 Spark standalone），则可以在 Alluxio 项目目录中运行以下命令：
-
-```bash
-integration/checker/bin/alluxio-checker.sh spark <spark master uri>
-```
-
-例如，
-
-```bash
-integration/checker/bin/alluxio-checker.sh spark spark://sparkMaster:7077
-```
-
-此命令将报告可能阻止在 Alluxio 上运行 Spark 的潜在问题。
-
-可以使用`-h`显示有关该命令的有用信息。
-
 ### Spark 任务的数据本地性级别错误
 
 如果 Spark 任务的本地性级别是`ANY`（本应该是`NODE_LOCAL`），这可能是因为 Alluxio 和 Spark 使用不同的网络地址表示，可能其中一个使用主机名，而另一个使用 IP 地址。更多详情请参考 JIRA ticket [SPARK-10149](
@@ -237,14 +216,14 @@ https://issues.apache.org/jira/browse/SPARK-10149)（这里可以找到 Spark �
 注意：Alluxio worker 使用主机名来表示网络地址，以便与 HDFS 保持一致。
 有一个变通方法，可以在启动 Spark 时实现数据本地性。用户可以使用 Spark 中提供的以下脚本显式指定主机名。在每个从节点中以 slave-hostname 启动 Spark worker：
 
-```bash
-${SPARK_HOME}/sbin/start-slave.sh -h <slave-hostname> <spark master uri>
+```console
+$ ${SPARK_HOME}/sbin/start-slave.sh -h <slave-hostname> <spark master uri>
 ```
 
 例如：
 
-```bash
-${SPARK_HOME}/sbin/start-slave.sh -h simple30 spark://simple27:7077
+```console
+$ ${SPARK_HOME}/sbin/start-slave.sh -h simple30 spark://simple27:7077
 ```
 
 你也可以在`$SPARK_HOME/conf/spark-env.sh`中设置`SPARK_LOCAL_HOSTNAME`来达到此目的。例如：
@@ -283,7 +262,7 @@ org.apache.hadoop.hive.ql.metadata.HiveException: MetaException(message:java.lan
 然而，这个独立的类加载器忽视了特定的包，并且让主类加载器去加载“共享”类（Hadoop 的 HDFS 客户端就是一种“共享”类）。
 Alluxio 客户端也应该由主类加载器加载，你可以将`alluxio`包加到配置参数`spark.sql.hive.metastore.sharedPrefixes`中，以通知 Spark 用主类加载器加载 Alluxio。例如，该参数可以在`spark/conf/spark-defaults.conf`中这样设置：
 
-```bash
+```
 spark.sql.hive.metastore.sharedPrefixes=com.mysql.jdbc,org.postgresql,com.microsoft.sqlserver,oracle.jdbc,alluxio
 ```
 

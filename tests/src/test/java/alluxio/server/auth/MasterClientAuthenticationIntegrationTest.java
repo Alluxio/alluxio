@@ -13,26 +13,30 @@ package alluxio.server.auth;
 
 import alluxio.AlluxioURI;
 import alluxio.ClientContext;
+import alluxio.client.file.FileSystemMasterClient;
+import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.exception.status.UnauthenticatedException;
 import alluxio.master.MasterClientContext;
-import alluxio.security.LoginUserTestUtils;
-import alluxio.conf.PropertyKey;
-import alluxio.client.file.FileSystemMasterClient;
 import alluxio.security.authentication.AuthType;
 import alluxio.security.authentication.AuthenticationProvider;
+import alluxio.security.group.GroupMappingService;
+import alluxio.security.user.TestUserState;
+import alluxio.security.user.UserState;
 import alluxio.testutils.BaseIntegrationTest;
 import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.util.FileSystemOptions;
 
-import org.junit.After;
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
+import java.io.IOException;
+import java.net.URL;
 import java.net.URLClassLoader;
+import java.util.Collections;
+import java.util.List;
 
 import javax.security.sasl.AuthenticationException;
 
@@ -43,22 +47,19 @@ import javax.security.sasl.AuthenticationException;
 // TODO(bin): add tests for {@link MultiMasterLocalAlluxioCluster} in fault tolerant mode
 // TODO(bin): improve the way to set and isolate MasterContext/WorkerContext across test cases
 public final class MasterClientAuthenticationIntegrationTest extends BaseIntegrationTest {
+  private static final String SUPERGROUP = "supergroup";
+  private static final String NONSUPER = "nonsuper";
+  private static final String SUPERUSER = "alluxio";
+
   @Rule
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
-      new LocalAlluxioClusterResource.Builder().build();
+      new LocalAlluxioClusterResource.Builder()
+          .setProperty(PropertyKey.SECURITY_GROUP_MAPPING_CLASS, UserGroupsMapping.class.getName())
+          .setProperty(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_SUPERGROUP, SUPERGROUP)
+          .build();
 
   @Rule
   public ExpectedException mThrown = ExpectedException.none();
-
-  @Before
-  public void before() throws Exception {
-    clearLoginUser();
-  }
-
-  @After
-  public void after() throws Exception {
-    clearLoginUser();
-  }
 
   @Test
   @LocalAlluxioClusterResource.Config(
@@ -92,12 +93,13 @@ public final class MasterClientAuthenticationIntegrationTest extends BaseIntegra
           NameMatchAuthenticationProvider.FULL_CLASS_NAME,
           PropertyKey.Name.SECURITY_LOGIN_USERNAME, "alluxio"})
   public void customAuthenticationDenyConnect() throws Exception {
-    try (FileSystemMasterClient masterClient =
-        FileSystemMasterClient.Factory.create(MasterClientContext
-            .newBuilder(ClientContext.create(ServerConfiguration.global())).build())) {
+    UserState s = new TestUserState("no-alluxio", ServerConfiguration.global());
+    try (FileSystemMasterClient masterClient = FileSystemMasterClient.Factory.create(
+        MasterClientContext
+            .newBuilder(ClientContext.create(s.getSubject(), ServerConfiguration.global()))
+            .build())) {
       Assert.assertFalse(masterClient.isConnected());
       // Using no-alluxio as loginUser to connect to Master, the IOException will be thrown
-      LoginUserTestUtils.resetLoginUser("no-alluxio");
       mThrown.expect(UnauthenticatedException.class);
       masterClient.connect();
     }
@@ -114,11 +116,14 @@ public final class MasterClientAuthenticationIntegrationTest extends BaseIntegra
 
     // Get the current context class loader to retrieve the classpath URLs.
     ClassLoader contextClassLoader = Thread.currentThread().getContextClassLoader();
-    Assert.assertTrue(contextClassLoader instanceof URLClassLoader);
-
     // Set the context class loader to an isolated class loader.
-    ClassLoader isolatedClassLoader =
-        new URLClassLoader(((URLClassLoader) contextClassLoader).getURLs(), null);
+    ClassLoader isolatedClassLoader;
+    if (contextClassLoader instanceof URLClassLoader) {
+      isolatedClassLoader = new URLClassLoader(((URLClassLoader) contextClassLoader).getURLs(),
+          null);
+    } else {
+      isolatedClassLoader = new URLClassLoader(new URL[0], contextClassLoader);
+    }
     Thread.currentThread().setContextClassLoader(isolatedClassLoader);
     try {
       masterClient.connect();
@@ -136,9 +141,9 @@ public final class MasterClientAuthenticationIntegrationTest extends BaseIntegra
    * @param filename the name of the file
    */
   private void authenticationOperationTest(String filename) throws Exception {
-    FileSystemMasterClient masterClient =
-        FileSystemMasterClient.Factory.create(MasterClientContext
-            .newBuilder(ClientContext.create(ServerConfiguration.global())).build());
+    UserState s = new TestUserState(SUPERUSER, ServerConfiguration.global());
+    FileSystemMasterClient masterClient = FileSystemMasterClient.Factory.create(MasterClientContext
+        .newBuilder(ClientContext.create(s.getSubject(), ServerConfiguration.global())).build());
     Assert.assertFalse(masterClient.isConnected());
     masterClient.connect();
     Assert.assertTrue(masterClient.isConnected());
@@ -149,10 +154,6 @@ public final class MasterClientAuthenticationIntegrationTest extends BaseIntegra
             FileSystemOptions.getStatusDefaults(ServerConfiguration.global())));
     masterClient.disconnect();
     masterClient.close();
-  }
-
-  private void clearLoginUser() throws Exception {
-    LoginUserTestUtils.resetLoginUser();
   }
 
   /**
@@ -170,6 +171,18 @@ public final class MasterClientAuthenticationIntegrationTest extends BaseIntegra
       if (!user.equals("alluxio")) {
         throw new AuthenticationException("Only allow the user alluxio to connect");
       }
+    }
+  }
+
+  public static class UserGroupsMapping implements GroupMappingService {
+    public UserGroupsMapping() {}
+
+    @Override
+    public List<String> getGroups(String user) throws IOException {
+      if (user.equals(SUPERUSER)) {
+        return Collections.singletonList(SUPERGROUP);
+      }
+      return Collections.singletonList(NONSUPER);
     }
   }
 }

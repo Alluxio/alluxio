@@ -11,6 +11,7 @@
 
 package alluxio.cli;
 
+import alluxio.annotation.PublicApi;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.util.ConfigurationUtils;
 
@@ -23,6 +24,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * Validate the Alluxio configuration.
  */
 @ThreadSafe
+@PublicApi
 public final class ValidateConf {
   private static final Logger LOG = LoggerFactory.getLogger(ValidateConf.class);
 
@@ -37,7 +39,7 @@ public final class ValidateConf {
       new InstancedConfiguration(ConfigurationUtils.defaults()).validate();
       LOG.info("Configuration is valid.");
     } catch (IllegalStateException e) {
-      LOG.error("Configuration is invalid: {}", e.getMessage());
+      LOG.error("Configuration is invalid", e);
       System.exit(-1);
     }
     System.exit(0);

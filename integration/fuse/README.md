@@ -18,16 +18,16 @@ profile is active. This profile is automatically activated when maven detects a 
 
 ### Mounting
 After having configured and started the Alluxio cluster:
-`$ bin/alluxio-fuse.sh mount mount_point [alluxio_path]`
+`$ ./bin/alluxio-fuse.sh mount mount_point [alluxio_path]`
 
 **Note**: the user running the script must own the mount point and
 have rw permissions on it.
 
 ### Unmounting
-`$ bin/alluxio-fuse.sh umount mount_point`
+`$ ./bin/alluxio-fuse.sh umount mount_point`
 
 ### Check if running
-`$ bin/alluxio-fuse.sh stat`
+`$ ./bin/alluxio-fuse.sh stat`
 
 ### Optional
 Edit `bin/alluxio-fuse.sh` and add your specific Alluxio client options in the

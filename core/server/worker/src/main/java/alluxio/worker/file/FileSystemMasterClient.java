@@ -13,23 +13,24 @@ package alluxio.worker.file;
 
 import alluxio.AbstractMasterClient;
 import alluxio.Constants;
-import alluxio.grpc.FileSystemCommand;
-import alluxio.grpc.FileSystemHeartbeatPOptions;
-import alluxio.grpc.FileSystemHeartbeatPRequest;
+import alluxio.conf.PropertyKey;
 import alluxio.grpc.FileSystemMasterWorkerServiceGrpc;
 import alluxio.grpc.GetFileInfoPRequest;
 import alluxio.grpc.GetPinnedFileIdsPRequest;
 import alluxio.grpc.GetUfsInfoPRequest;
+import alluxio.grpc.GrpcUtils;
 import alluxio.grpc.ServiceType;
 import alluxio.grpc.UfsInfo;
 import alluxio.master.MasterClientContext;
-import alluxio.grpc.GrpcUtils;
 import alluxio.wire.FileInfo;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -37,7 +38,8 @@ import javax.annotation.concurrent.ThreadSafe;
  * A wrapper for the gRPC client to interact with the file system master, used by Alluxio worker.
  */
 @ThreadSafe
-public final class FileSystemMasterClient extends AbstractMasterClient {
+public class FileSystemMasterClient extends AbstractMasterClient {
+  private static final Logger LOG = LoggerFactory.getLogger(FileSystemMasterClient.class);
   private FileSystemMasterWorkerServiceGrpc.FileSystemMasterWorkerServiceBlockingStub mClient =
       null;
 
@@ -76,15 +78,19 @@ public final class FileSystemMasterClient extends AbstractMasterClient {
    */
   public FileInfo getFileInfo(final long fileId) throws IOException {
     return retryRPC(() -> GrpcUtils.fromProto(mClient
-        .getFileInfo(GetFileInfoPRequest.newBuilder().setFileId(fileId).build()).getFileInfo()));
+        .getFileInfo(GetFileInfoPRequest.newBuilder().setFileId(fileId).build()).getFileInfo()),
+        LOG, "GetFileInfo", "fileId=%d", fileId);
   }
 
   /**
    * @return the set of pinned file ids
    */
   public Set<Long> getPinList() throws IOException {
-    return retryRPC(() -> new HashSet<>(mClient
-        .getPinnedFileIds(GetPinnedFileIdsPRequest.newBuilder().build()).getPinnedFileIdsList()));
+    return retryRPC(() -> new HashSet<>(mClient.withDeadlineAfter(mContext.getClusterConf()
+            .getMs(PropertyKey.WORKER_MASTER_PERIODICAL_RPC_TIMEOUT), TimeUnit.MILLISECONDS)
+            .getPinnedFileIds(GetPinnedFileIdsPRequest.newBuilder().build())
+            .getPinnedFileIdsList()),
+        LOG, "GetPinList", "");
   }
 
   /**
@@ -94,34 +100,7 @@ public final class FileSystemMasterClient extends AbstractMasterClient {
    */
   public UfsInfo getUfsInfo(final long mountId) throws IOException {
     return retryRPC(() -> mClient
-        .getUfsInfo(GetUfsInfoPRequest.newBuilder().setMountId(mountId).build()).getUfsInfo());
-  }
-
-  /**
-   * Heartbeats to the master. It also carries command for the worker to persist the given files.
-   *
-   * @param workerId the id of the worker that heartbeats
-   * @param persistedFiles the files which have been persisted since the last heartbeat
-   * @return the command for file system worker
-   */
-  public FileSystemCommand heartbeat(final long workerId,
-      final List<Long> persistedFiles) throws IOException {
-    return heartbeat(workerId, persistedFiles, FileSystemHeartbeatPOptions.newBuilder().build());
-  }
-
-  /**
-   * Heartbeats to the master. It also carries command for the worker to persist the given files.
-   *
-   * @param workerId the id of the worker that heartbeats
-   * @param persistedFiles the files which have been persisted since the last heartbeat
-   * @param options heartbeat options
-   * @return the command for file system worker
-   */
-  public FileSystemCommand heartbeat(final long workerId,
-      final List<Long> persistedFiles, final FileSystemHeartbeatPOptions options)
-      throws IOException {
-    return retryRPC(() -> mClient.fileSystemHeartbeat(FileSystemHeartbeatPRequest.newBuilder()
-        .setWorkerId(workerId).addAllPersistedFiles(persistedFiles).setOptions(options).build())
-        .getCommand());
+        .getUfsInfo(GetUfsInfoPRequest.newBuilder().setMountId(mountId).build()).getUfsInfo(),
+        LOG, "GetUfsInfo", "mountId=%d", mountId);
   }
 }

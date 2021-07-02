@@ -23,7 +23,10 @@ import org.apache.curator.CuratorZookeeperClient;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.retry.ExponentialBackoffRetry;
+import org.apache.curator.utils.ZookeeperFactory;
+import org.apache.zookeeper.Watcher;
 import org.apache.zookeeper.ZooKeeper;
+import org.apache.zookeeper.client.ZKClientConfig;
 import org.apache.zookeeper.data.Stat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -54,21 +57,42 @@ public final class ZkMasterInquireClient implements MasterInquireClient, Closeab
   private final int mInquireRetryCount;
 
   /**
+   * Zookeeper factory for curator that controls enabling/disabling client authentication.
+   */
+  private class AlluxioZookeeperFactory implements ZookeeperFactory {
+    private boolean mAuthEnabled;
+
+    public AlluxioZookeeperFactory(boolean authEnabled) {
+      mAuthEnabled = authEnabled;
+    }
+
+    @Override
+    public ZooKeeper newZooKeeper(String connectString, int sessionTimeout, Watcher watcher,
+                                  boolean canBeReadOnly) throws Exception {
+      ZKClientConfig zkConfig = new ZKClientConfig();
+      zkConfig.setProperty(ZKClientConfig.ENABLE_CLIENT_SASL_KEY,
+          Boolean.toString(mAuthEnabled).toLowerCase());
+      return new ZooKeeper(connectString, sessionTimeout, watcher, zkConfig);
+    }
+  }
+
+  /**
    * Gets the client.
    *
    * @param zookeeperAddress the address for Zookeeper
    * @param electionPath the path of the master election
    * @param leaderPath the path of the leader
    * @param inquireRetryCount the number of times to retry connections
+   * @param authEnabled if Alluxio client-side auth is enabled
    * @return the client
    */
   public static synchronized ZkMasterInquireClient getClient(String zookeeperAddress,
-      String electionPath, String leaderPath, int inquireRetryCount) {
+      String electionPath, String leaderPath, int inquireRetryCount, boolean authEnabled) {
     ZkMasterConnectDetails connectDetails =
         new ZkMasterConnectDetails(zookeeperAddress, leaderPath);
     if (!sCreatedClients.containsKey(connectDetails)) {
-      sCreatedClients.put(connectDetails, new ZkMasterInquireClient(connectDetails, electionPath,
-          inquireRetryCount));
+      sCreatedClients.put(connectDetails,
+          new ZkMasterInquireClient(connectDetails, electionPath, inquireRetryCount, authEnabled));
     }
     return sCreatedClients.get(connectDetails);
   }
@@ -78,16 +102,20 @@ public final class ZkMasterInquireClient implements MasterInquireClient, Closeab
    *
    * @param connectDetails connect details
    * @param electionPath the path of the master election
+   * @param inquireRetryCount the number of times to retry connections
+   * @param authEnabled if Alluxio client-side auth is enabled
    */
   private ZkMasterInquireClient(ZkMasterConnectDetails connectDetails, String electionPath,
-      int inquireRetryCount) {
+      int inquireRetryCount, boolean authEnabled) {
     mConnectDetails = connectDetails;
     mElectionPath = electionPath;
 
     LOG.info("Creating new zookeeper client for {}", connectDetails);
-    // Start the client lazily.
-    mClient = CuratorFrameworkFactory.newClient(connectDetails.getZkAddress(),
-        new ExponentialBackoffRetry(Constants.SECOND_MS, 3));
+    CuratorFrameworkFactory.Builder curatorBuilder = CuratorFrameworkFactory.builder();
+    curatorBuilder.connectString(connectDetails.getZkAddress());
+    curatorBuilder.retryPolicy(new ExponentialBackoffRetry(Constants.SECOND_MS, 3));
+    curatorBuilder.zookeeperFactory(new AlluxioZookeeperFactory(authEnabled));
+    mClient = curatorBuilder.build();
 
     mInquireRetryCount = inquireRetryCount;
   }
@@ -110,7 +138,7 @@ public final class ZkMasterInquireClient implements MasterInquireClient, Closeab
       }
       curatorClient.blockUntilConnectedOrTimedOut();
       String leaderPath = mConnectDetails.getLeaderPath();
-      while (tried < mInquireRetryCount) {
+      while (tried++ < mInquireRetryCount) {
         ZooKeeper zookeeper = curatorClient.getZooKeeper();
         if (zookeeper.exists(leaderPath, false) != null) {
           List<String> masters = zookeeper.getChildren(leaderPath, null);
@@ -133,7 +161,7 @@ public final class ZkMasterInquireClient implements MasterInquireClient, Closeab
             return NetworkAddressUtils.parseInetSocketAddress(leader);
           }
         } else {
-          LOG.info("{} does not exist ({})", leaderPath, ++tried);
+          LOG.info("{} does not exist ({})", leaderPath, tried);
         }
         CommonUtils.sleepMs(LOG, Constants.SECOND_MS);
       }

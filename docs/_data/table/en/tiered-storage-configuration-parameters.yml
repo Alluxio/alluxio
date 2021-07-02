@@ -18,9 +18,7 @@ alluxio.worker.tieredstore.level{x}.watermark.high.ratio:
   Value is between 0 and 1, it sets the high watermark of the space on storage tier x. If the used space reach the high watermark, the space reserver will evict blocks until the used space drop to the low watermark.
 alluxio.worker.tieredstore.level{x}.watermark.low.ratio:
   Value is between 0 and 1, it sets the low watermark of the space on storage tier x. If the used space reach the high watermark, the space reserver will evict blocks until the used space drop to the low watermark.
-alluxio.worker.tieredstore.reserver.enabled:
-  Flag for enabling the space reserver service.
-alluxio.worker.tieredstore.reserver.interval.ms:
+alluxio.worker.tieredstore.reserver.interval:
   Interval for the space reserver to check if enough space is reserved in all tiers.
 alluxio.worker.allocator.class:
   The class name of the allocation strategy to use for new blocks in Alluxio.

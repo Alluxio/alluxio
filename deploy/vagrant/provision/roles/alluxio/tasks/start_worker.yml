@@ -1,4 +1,0 @@
-- name: start alluxio worker
-  shell: /alluxio/bin/alluxio-start.sh worker SudoMount
-
-# vim :set filetype=ansible.yaml:

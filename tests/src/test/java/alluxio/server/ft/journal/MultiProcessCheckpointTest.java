@@ -16,10 +16,10 @@ import static org.junit.Assert.assertEquals;
 import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.client.file.FileSystem;
-import alluxio.client.meta.MetaMasterClient;
+import alluxio.client.metrics.MetricsMasterClient;
 import alluxio.conf.PropertyKey;
 import alluxio.master.journal.JournalType;
-import alluxio.metrics.MasterMetrics;
+import alluxio.metrics.MetricKey;
 import alluxio.multi.process.MultiProcessCluster;
 import alluxio.multi.process.PortCoordination;
 import alluxio.testutils.IntegrationTestUtils;
@@ -44,8 +44,8 @@ public class MultiProcessCheckpointTest {
         .setNumMasters(2)
         .setNumWorkers(0)
         .build();
-    cluster.start();
     try {
+      cluster.start();
       cluster.waitForAllNodesRegistered(20 * Constants.SECOND_MS);
       String journal = cluster.getJournalDir();
       FileSystem fs = cluster.getFileSystemClient();
@@ -53,19 +53,18 @@ public class MultiProcessCheckpointTest {
       for (int i = 0; i < numFiles; i++) {
         fs.createFile(new AlluxioURI("/file" + i)).close();
       }
-      MetaMasterClient meta = cluster.getMetaMasterClient();
-      assertEquals(numFiles + 1,
-          meta.getMetrics().get("Master." + MasterMetrics.TOTAL_PATHS).getLongValue());
+      MetricsMasterClient metricsClient = cluster.getMetricsMasterClient();
+      assertEquals(numFiles + 1, (long) metricsClient.getMetrics()
+          .get(MetricKey.MASTER_TOTAL_PATHS.getName()).getDoubleValue());
       IntegrationTestUtils.waitForUfsJournalCheckpoint(Constants.FILE_SYSTEM_MASTER_NAME,
           new URI(journal));
       cluster.stopMasters();
       cluster.startMasters();
-      cluster.waitForAllNodesRegistered(20 * Constants.SECOND_MS);
+      cluster.waitForAllNodesRegistered(60 * Constants.SECOND_MS);
       fs = cluster.getFileSystemClient();
       assertEquals(numFiles, fs.listStatus(new AlluxioURI("/")).size());
-      meta = cluster.getMetaMasterClient();
-      assertEquals(numFiles + 1,
-          meta.getMetrics().get("Master." + MasterMetrics.TOTAL_PATHS).getLongValue());
+      assertEquals(numFiles + 1, (long) metricsClient.getMetrics()
+          .get(MetricKey.MASTER_TOTAL_PATHS.getName()).getDoubleValue());
       cluster.notifySuccess();
     } finally {
       cluster.destroy();

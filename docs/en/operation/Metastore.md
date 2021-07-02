@@ -3,7 +3,7 @@ layout: global
 title: Metastore Management
 nickname: Metastore Management
 group: Operations
-priority: 0
+priority: 6
 ---
 
 * Table of Contents
@@ -11,36 +11,42 @@ priority: 0
 
 Alluxio stores most of its metadata on the master node. The metadata includes the
 filesystem tree, file permissions, and block locations. Alluxio provides two ways
-to store the metadata: (1) with an on-disk, RocksDB-based metastore or (2) with an
-on-heap metastore.
+to store the metadata:
+  * `ROCKS`: an on-disk, RocksDB-based metastore
+  * `HEAP`: an on-heap metastore
+
+The default metastore is the `ROCKS` metastore.
 
 ## RocksDB Metastore
 
-The default metastore uses a mixture of memory and disk. Metadata eventually gets
+The ROCKS metastore uses a mixture of memory and disk. Metadata eventually gets
 written to disk, but a large, in-memory cache stores recently-accessed metadata. The
 cache buffers writes, asynchronously flushing them to RocksDB as the cache fills up.
 The default cache size is 10 million inodes, which comes out to around 10GB of memory.
 The cache performs LRU-style eviction, with an asynchronous evictor evicting from a
 high water mark (default 85%) down to a low water mark (default 80%).
 
-Rocks is the default metastore, but you can explicitly set it in configuration with
+You can explicitly configure Alluxio to use the ROCKS metastore by adding this setting
+in `conf/alluxio-site.properties` for the master nodes.
 
-```
+```properties
 alluxio.master.metastore=ROCKS
 ```
 
 ### Configuration Properties
 
 * `alluxio.master.metastore.dir`: A local directory for writing RocksDB data.
-Default: ${work_dir}/metastore
+Default: `${work_dir}/metastore`
 * `alluxio.master.metastore.inode.cache.max.size`: A hard limit on the size of the inode cache.
 Increase this to improve performance if you have spare master memory. Every million inodes
 takes roughly 1GB of memory. Default: `10000000` (10 million)
 
 ### Advanced Tuning Properties
 
-* `alluxio.master.metastore.inode.cache.evict.batch.size`: Batch size for flushing modifications
-  to RocksDB. Default: `1000`
+These tuning parameters primarily affect the behavior of the cache.
+
+* `alluxio.master.metastore.inode.cache.evict.batch.size`: Batch size for flushing cache
+  modifications to RocksDB. Default: `1000`
 * `alluxio.master.metastore.inode.cache.high.water.mark.ratio`: Ratio of the maximum cache size
   where the cache begins evicting. Default: `0.85`
 * `alluxio.master.metastore.inode.cache.low.water.mark.ratio`: Ratio of the maximum cache size
@@ -50,12 +56,73 @@ takes roughly 1GB of memory. Default: `10000000` (10 million)
 
 The heap metastore is simple: it stores all metadata on the heap. This gives consistent,
 fast performance, but the required memory scales with the number of files in the
-filesystem. With 32GB of Alluxio master memory, Alluxio can support around 40 million files.
+filesystem. With 64GB of Alluxio master memory, Alluxio can support around 30 million files.
 
-To configure Alluxio to use the on-heap metastore, set
+To configure Alluxio to use the on-heap metastore, set the following in
+`conf/alluxio-site.properties` for the master nodes:
 
-```
+```properties
 alluxio.master.metastore=HEAP
 ```
 
-in alluxio-site.properties.
+## Switching between RocksDB MetaStore and Heap MetaStore
+
+Alluxio master stores different journal information for RocksDB metastore and heap metastore.
+Switching the metastore type of an existing Alluxio requires formatting Alluxio journal which will wipe
+all Alluxio metadata. If you would like to keep the existing data in Alluxio cluster after the switch,
+you will need to perform a journal backup and restore:
+
+First, run the journal backup command while Alluxio master is running.
+
+```console
+$ ./bin/alluxio fsadmin backup
+```
+
+This will print something like
+
+```
+Backup Host        : ${HOST_NAME}
+Backup URI         : ${BACKUP_PATH}
+Backup Entry Count : ${ENTRY_COUNT}
+```
+
+By default, this will write a backup named
+`alluxio-backup-YYYY-MM-DD-timestamp.gz` to the `/alluxio_backups` directory of
+the root under storage system, e.g. `hdfs://cluster/alluxio_backups`. This default
+backup directory can be configured by setting `alluxio.master.backup.directory`
+
+Alternatively, you may use the `--local <DIRECTORY>` flag to
+specify a path to write the backup to on the local disk of the primary master.
+For example:
+
+```console
+$ ./bin/alluxio fsadmin backup --local /tmp/alluxio_backup
+```
+
+Then stop Alluxio masters:
+
+```console
+$ ./bin/alluxio-stop.sh masters
+```
+
+Update the metastore type in `conf/alluxio-site.properties` for the master nodes:
+
+```properties
+alluxio.master.metastore=<new value>
+```
+
+Format the masters with the following command:
+
+```console
+$ ./bin/alluxio formatMasters
+```
+
+Then restart the masters with the `-i ${BACKUP_PATH}` argument, replacing
+`${BACKUP_PATH}` with your specific backup path.
+
+```console
+$ ./bin/alluxio-start.sh -i ${BACKUP_PATH} masters
+```
+
+See [here]({{ '/en/operation/Journal.html' | relativize_url }}#backing-up-the-journal)
+for more information regarding journal backup.

@@ -22,6 +22,7 @@ import alluxio.client.meta.RetryHandlingMetaMasterClient;
 import alluxio.client.file.FileSystem;
 import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.BackupPOptions;
+import alluxio.grpc.BackupPRequest;
 import alluxio.master.MasterClientContext;
 import alluxio.master.journal.JournalType;
 import alluxio.multi.process.MultiProcessCluster;
@@ -46,9 +47,10 @@ public final class JournalMigrationIntegrationTest extends BaseIntegrationTest {
         .setNumMasters(3)
         .addProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.UFS.toString())
         // Masters become primary faster
-        .addProperty(PropertyKey.ZOOKEEPER_SESSION_TIMEOUT, "1sec").build();
-    cluster.start();
+        .addProperty(PropertyKey.ZOOKEEPER_SESSION_TIMEOUT, "1sec")
+        .build();
     try {
+      cluster.start();
       FileSystem fs = cluster.getFileSystemClient();
       MetaMasterClient metaClient = new RetryHandlingMetaMasterClient(
           MasterClientContext.newBuilder(ClientContext.create(ServerConfiguration.global()))
@@ -58,8 +60,9 @@ public final class JournalMigrationIntegrationTest extends BaseIntegrationTest {
         fs.createDirectory(new AlluxioURI("/dir" + i));
       }
       File backupsDir = AlluxioTestDirectory.createTemporaryDirectory("backups");
-      AlluxioURI zkBackup = metaClient.backup(BackupPOptions.newBuilder()
-          .setTargetDirectory(backupsDir.getAbsolutePath()).setLocalFileSystem(false).build())
+      AlluxioURI zkBackup = metaClient
+          .backup(BackupPRequest.newBuilder().setTargetDirectory(backupsDir.getAbsolutePath())
+              .setOptions(BackupPOptions.newBuilder().setLocalFileSystem(false)).build())
           .getBackupUri();
       cluster.updateMasterConf(PropertyKey.MASTER_JOURNAL_INIT_FROM_BACKUP, zkBackup.toString());
 

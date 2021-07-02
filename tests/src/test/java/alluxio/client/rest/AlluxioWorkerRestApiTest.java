@@ -11,10 +11,14 @@
 
 package alluxio.client.rest;
 
-import alluxio.conf.ServerConfiguration;
-import alluxio.conf.PropertyKey;
+import alluxio.Constants;
 import alluxio.RuntimeConstants;
+import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
+import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
+import alluxio.security.authentication.AuthType;
+import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.wire.AlluxioWorkerInfo;
 import alluxio.wire.Capacity;
@@ -23,7 +27,10 @@ import alluxio.worker.AlluxioWorkerRestServiceHandler;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.ClassRule;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TestRule;
 
 import javax.ws.rs.HttpMethod;
 
@@ -32,10 +39,21 @@ import javax.ws.rs.HttpMethod;
  */
 public final class AlluxioWorkerRestApiTest extends RestApiTest {
 
+  // TODO(chaomin): Rest API integration tests are only run in NOSASL mode now. Need to
+  // fix the test setup in SIMPLE mode.
+  @ClassRule
+  public static LocalAlluxioClusterResource sResource = new LocalAlluxioClusterResource.Builder()
+      .setProperty(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "false")
+      .setProperty(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.NOSASL.getAuthName())
+      .setProperty(PropertyKey.USER_FILE_BUFFER_BYTES, "1KB").build();
+
+  @Rule
+  public TestRule mResetRule = sResource.getResetResource();
+
   @Before
   public void before() {
-    mHostname = mResource.get().getHostname();
-    mPort = mResource.get().getWorkerProcess().getWebLocalPort();
+    mHostname = sResource.get().getHostname();
+    mPort = sResource.get().getWorkerProcess().getWebLocalPort();
     mServicePrefix = AlluxioWorkerRestServiceHandler.SERVICE_PREFIX;
   }
 
@@ -49,7 +67,7 @@ public final class AlluxioWorkerRestApiTest extends RestApiTest {
 
   @Test
   public void getCapacity() throws Exception {
-    long total = ServerConfiguration.getBytes(PropertyKey.WORKER_MEMORY_SIZE);
+    long total = ServerConfiguration.getBytes(PropertyKey.WORKER_RAMDISK_SIZE);
     Capacity capacity = getInfo().getCapacity();
     Assert.assertEquals(total, capacity.getTotal());
     Assert.assertEquals(0, capacity.getUsed());
@@ -65,7 +83,8 @@ public final class AlluxioWorkerRestApiTest extends RestApiTest {
   @Test
   public void getMetrics() throws Exception {
     Assert.assertEquals(Long.valueOf(0),
-        getInfo().getMetrics().get(MetricsSystem.getMetricName("CompleteFileOps")));
+        getInfo().getMetrics().get(MetricsSystem.getMetricName(
+            MetricKey.MASTER_COMPLETE_FILE_OPS.getName())));
   }
 
   @Test
@@ -81,15 +100,15 @@ public final class AlluxioWorkerRestApiTest extends RestApiTest {
 
   @Test
   public void getTierCapacity() throws Exception {
-    long total = ServerConfiguration.getBytes(PropertyKey.WORKER_MEMORY_SIZE);
-    Capacity capacity = getInfo().getTierCapacity().get("MEM");
+    long total = ServerConfiguration.getBytes(PropertyKey.WORKER_RAMDISK_SIZE);
+    Capacity capacity = getInfo().getTierCapacity().get(Constants.MEDIUM_MEM);
     Assert.assertEquals(total, capacity.getTotal());
     Assert.assertEquals(0, capacity.getUsed());
   }
 
   @Test
   public void getTierPaths() throws Exception {
-    Assert.assertTrue(getInfo().getTierPaths().containsKey("MEM"));
+    Assert.assertTrue(getInfo().getTierPaths().containsKey(Constants.MEDIUM_MEM));
   }
 
   @Test

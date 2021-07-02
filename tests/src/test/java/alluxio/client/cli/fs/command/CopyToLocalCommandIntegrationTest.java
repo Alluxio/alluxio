@@ -36,9 +36,9 @@ public final class CopyToLocalCommandIntegrationTest extends AbstractFileSystemS
 
   @Test
   public void copyToLocalDir() throws Exception {
-    String testDir = FileSystemShellUtilsTest.resetFileHierarchy(mFileSystem);
+    String testDir = FileSystemShellUtilsTest.resetFileHierarchy(sFileSystem);
     int ret =
-        mFsShell.run("copyToLocal", testDir, mLocalAlluxioCluster.getAlluxioHome() + "/testDir");
+        sFsShell.run("copyToLocal", testDir, sLocalAlluxioCluster.getAlluxioHome() + "/testDir");
     Assert.assertEquals(0, ret);
     fileReadTest("/testDir/foo/foobar1", 10);
     fileReadTest("/testDir/foo/foobar2", 20);
@@ -48,13 +48,19 @@ public final class CopyToLocalCommandIntegrationTest extends AbstractFileSystemS
 
   @Test
   public void copyToLocalRelativePathDir() throws Exception {
-    FileSystemTestUtils.createByteFile(mFileSystem, "/testFile", WritePType.MUST_CACHE, 10);
+    String version = System.getProperty("java.version");
+    if (version.startsWith("11")) {
+      // Breaks on Java 11+ because of https://bugs.openjdk.java.net/browse/JDK-8202127
+      return;
+    }
+
+    FileSystemTestUtils.createByteFile(sFileSystem, "/testFile", WritePType.MUST_CACHE, 10);
     HashMap<String, String> sysProps = new HashMap<>();
     sysProps.put("user.dir", mTestFolder.getRoot().getAbsolutePath());
     try (Closeable p = new SystemPropertyRule(sysProps).toResource()) {
       File localDir = mTestFolder.newFolder("localDir");
       localDir.mkdir();
-      mFsShell.run("copyToLocal", "/testFile", "localDir");
+      sFsShell.run("copyToLocal", "/testFile", "localDir");
       Assert.assertEquals("Copied /testFile to file://" + mTestFolder.getRoot().getAbsolutePath()
               + "/localDir/testFile" + "\n", mOutput.toString());
     }
@@ -73,12 +79,12 @@ public final class CopyToLocalCommandIntegrationTest extends AbstractFileSystemS
 
   @Test
   public void copyToLocalWildcardExistingDir() throws Exception {
-    String testDir = FileSystemShellUtilsTest.resetFileHierarchy(mFileSystem);
+    String testDir = FileSystemShellUtilsTest.resetFileHierarchy(sFileSystem);
 
-    new File(mLocalAlluxioCluster.getAlluxioHome() + "/testDir").mkdir();
+    new File(sLocalAlluxioCluster.getAlluxioHome() + "/testDir").mkdir();
 
-    int ret = mFsShell.run("copyToLocal", testDir + "/*/foo*",
-        mLocalAlluxioCluster.getAlluxioHome() + "/testDir");
+    int ret = sFsShell.run("copyToLocal", testDir + "/*/foo*",
+        sLocalAlluxioCluster.getAlluxioHome() + "/testDir");
     Assert.assertEquals(0, ret);
     fileReadTest("/testDir/foobar1", 10);
     fileReadTest("/testDir/foobar2", 20);
@@ -87,9 +93,9 @@ public final class CopyToLocalCommandIntegrationTest extends AbstractFileSystemS
 
   @Test
   public void copyToLocalWildcardHier() throws Exception {
-    String testDir = FileSystemShellUtilsTest.resetFileHierarchy(mFileSystem);
-    int ret = mFsShell
-        .run("copyToLocal", testDir + "/*", mLocalAlluxioCluster.getAlluxioHome() + "/testDir");
+    String testDir = FileSystemShellUtilsTest.resetFileHierarchy(sFileSystem);
+    int ret = sFsShell
+        .run("copyToLocal", testDir + "/*", sLocalAlluxioCluster.getAlluxioHome() + "/testDir");
     Assert.assertEquals(0, ret);
     fileReadTest("/testDir/foo/foobar1", 10);
     fileReadTest("/testDir/foo/foobar2", 20);
@@ -99,20 +105,20 @@ public final class CopyToLocalCommandIntegrationTest extends AbstractFileSystemS
 
   @Test
   public void copyToLocalWildcardNotDir() throws Exception {
-    String testDir = FileSystemShellUtilsTest.resetFileHierarchy(mFileSystem);
-    new File(mLocalAlluxioCluster.getAlluxioHome() + "/testDir").mkdir();
-    new File(mLocalAlluxioCluster.getAlluxioHome() + "/testDir/testFile").createNewFile();
+    String testDir = FileSystemShellUtilsTest.resetFileHierarchy(sFileSystem);
+    new File(sLocalAlluxioCluster.getAlluxioHome() + "/testDir").mkdir();
+    new File(sLocalAlluxioCluster.getAlluxioHome() + "/testDir/testFile").createNewFile();
 
-    int ret = mFsShell.run("copyToLocal", testDir + "/*/foo*",
-        mLocalAlluxioCluster.getAlluxioHome() + "/testDir/testFile");
+    int ret = sFsShell.run("copyToLocal", testDir + "/*/foo*",
+        sLocalAlluxioCluster.getAlluxioHome() + "/testDir/testFile");
     Assert.assertEquals(-1, ret);
   }
 
   @Test
   public void copyToLocalWildcard() throws Exception {
-    String testDir = FileSystemShellUtilsTest.resetFileHierarchy(mFileSystem);
-    int ret = mFsShell.run("copyToLocal", testDir + "/*/foo*",
-        mLocalAlluxioCluster.getAlluxioHome() + "/testDir");
+    String testDir = FileSystemShellUtilsTest.resetFileHierarchy(sFileSystem);
+    int ret = sFsShell.run("copyToLocal", testDir + "/*/foo*",
+        sLocalAlluxioCluster.getAlluxioHome() + "/testDir");
     Assert.assertEquals(0, ret);
     fileReadTest("/testDir/foobar1", 10);
     fileReadTest("/testDir/foobar2", 20);
@@ -121,15 +127,21 @@ public final class CopyToLocalCommandIntegrationTest extends AbstractFileSystemS
 
   @Test
   public void copyToLocalRelativePath() throws Exception {
+    String version = System.getProperty("java.version");
+    if (version.startsWith("11")) {
+      // Breaks on Java 11+ because of https://bugs.openjdk.java.net/browse/JDK-8202127
+      return;
+    }
+
     HashMap<String, String> sysProps = new HashMap<>();
     sysProps.put("user.dir", mTestFolder.getRoot().getAbsolutePath());
     try (Closeable p = new SystemPropertyRule(sysProps).toResource()) {
-      FileSystemTestUtils.createByteFile(mFileSystem, "/testFile", WritePType.MUST_CACHE, 10);
-      mFsShell.run("copyToLocal", "/testFile", ".");
+      FileSystemTestUtils.createByteFile(sFileSystem, "/testFile", WritePType.MUST_CACHE, 10);
+      sFsShell.run("copyToLocal", "/testFile", ".");
       Assert.assertEquals("Copied /testFile to file://" + mTestFolder.getRoot().getAbsolutePath()
               + "/testFile" + "\n", mOutput.toString());
       mOutput.reset();
-      mFsShell.run("copyToLocal", "/testFile", "./testFile");
+      sFsShell.run("copyToLocal", "/testFile", "./testFile");
       Assert.assertEquals("Copied /testFile to file://" + mTestFolder.getRoot().getAbsolutePath()
               + "/testFile" + "\n", mOutput.toString());
     }
@@ -137,10 +149,10 @@ public final class CopyToLocalCommandIntegrationTest extends AbstractFileSystemS
 
   @Test
   public void parseOption() {
-    FileSystemTestUtils.createByteFile(mFileSystem, "/testFile", WritePType.MUST_CACHE,
+    FileSystemTestUtils.createByteFile(sFileSystem, "/testFile", WritePType.MUST_CACHE,
         10);
-    int ret = mFsShell.run("copyToLocal", "--buffersize", "1024", "/testFile",
-        mLocalAlluxioCluster.getAlluxioHome() + "/testFile");
+    int ret = sFsShell.run("copyToLocal", "--buffersize", "1024", "/testFile",
+        sLocalAlluxioCluster.getAlluxioHome() + "/testFile");
     Assert.assertEquals(0, ret);
   }
 }

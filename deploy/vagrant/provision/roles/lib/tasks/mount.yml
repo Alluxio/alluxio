@@ -1,2 +1,0 @@
-- name: mount devices defined in block device mapping
-  script: device.sh

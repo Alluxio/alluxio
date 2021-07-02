@@ -188,7 +188,7 @@ public class FileSystemUtilsIntegrationTest extends BaseIntegrationTest {
     FileSystemTestUtils.createByteFile(sFileSystem, path, WritePType.MUST_CACHE, 4096);
     assertFalse("File cannot yet be persisted", sFileSystem.getStatus(alluxioPath).isPersisted());
     mThrown.expect(TimeoutException.class);
-    FileSystemUtils.persistAndWait(sFileSystem, alluxioPath, 1); // 1ms timeout
+    FileSystemUtils.persistAndWait(sFileSystem, alluxioPath, 0, 1); // 1ms timeout
   }
 
   @Test
@@ -197,7 +197,7 @@ public class FileSystemUtilsIntegrationTest extends BaseIntegrationTest {
     AlluxioURI alluxioPath = new AlluxioURI(path);
     FileSystemTestUtils.createByteFile(sFileSystem, path, WritePType.MUST_CACHE, 4096);
     assertFalse("File cannot yet be persisted", sFileSystem.getStatus(alluxioPath).isPersisted());
-    FileSystemUtils.persistAndWait(sFileSystem, alluxioPath, -1);
+    FileSystemUtils.persistAndWait(sFileSystem, alluxioPath, 5000, -1);
     assertTrue("File must be persisted", sFileSystem.getStatus(alluxioPath).isPersisted());
   }
 }

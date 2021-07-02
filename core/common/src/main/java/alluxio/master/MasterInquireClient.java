@@ -16,6 +16,7 @@ import alluxio.conf.PropertyKey;
 import alluxio.exception.status.UnavailableException;
 import alluxio.master.SingleMasterInquireClient.SingleMasterConnectDetails;
 import alluxio.master.ZkMasterInquireClient.ZkMasterConnectDetails;
+import alluxio.security.user.UserState;
 import alluxio.uri.Authority;
 import alluxio.util.ConfigurationUtils;
 import alluxio.util.network.NetworkAddressUtils;
@@ -74,34 +75,43 @@ public interface MasterInquireClient {
   class Factory {
     /**
      * @param conf configuration for creating the master inquire client
+     * @param userState the user state for the client
      * @return a master inquire client
      */
-    public static MasterInquireClient create(AlluxioConfiguration conf) {
+    public static MasterInquireClient create(AlluxioConfiguration conf, UserState userState) {
       if (conf.getBoolean(PropertyKey.ZOOKEEPER_ENABLED)) {
         return ZkMasterInquireClient.getClient(conf.get(PropertyKey.ZOOKEEPER_ADDRESS),
             conf.get(PropertyKey.ZOOKEEPER_ELECTION_PATH),
             conf.get(PropertyKey.ZOOKEEPER_LEADER_PATH),
-            conf.getInt(PropertyKey.ZOOKEEPER_LEADER_INQUIRY_RETRY_COUNT));
+            conf.getInt(PropertyKey.ZOOKEEPER_LEADER_INQUIRY_RETRY_COUNT),
+            conf.getBoolean(PropertyKey.ZOOKEEPER_AUTH_ENABLED));
       } else {
         List<InetSocketAddress> addresses = ConfigurationUtils.getMasterRpcAddresses(conf);
         if (addresses.size() > 1) {
-          return new PollingMasterInquireClient(addresses, conf);
+          return new PollingMasterInquireClient(addresses, conf, userState);
         } else {
           return new SingleMasterInquireClient(addresses.get(0));
         }
       }
     }
 
-    public static MasterInquireClient createForJobMaster(AlluxioConfiguration conf) {
+    /**
+     * @param conf configuration for creating the master inquire client
+     * @param userState the user state for the client
+     * @return a master inquire client
+     */
+    public static MasterInquireClient createForJobMaster(AlluxioConfiguration conf,
+        UserState userState) {
       if (conf.getBoolean(PropertyKey.ZOOKEEPER_ENABLED)) {
         return ZkMasterInquireClient.getClient(conf.get(PropertyKey.ZOOKEEPER_ADDRESS),
             conf.get(PropertyKey.ZOOKEEPER_JOB_ELECTION_PATH),
             conf.get(PropertyKey.ZOOKEEPER_JOB_LEADER_PATH),
-            conf.getInt(PropertyKey.ZOOKEEPER_LEADER_INQUIRY_RETRY_COUNT));
+            conf.getInt(PropertyKey.ZOOKEEPER_LEADER_INQUIRY_RETRY_COUNT),
+            conf.getBoolean(PropertyKey.ZOOKEEPER_AUTH_ENABLED));
       } else {
         List<InetSocketAddress> addresses = ConfigurationUtils.getJobMasterRpcAddresses(conf);
         if (addresses.size() > 1) {
-          return new PollingMasterInquireClient(addresses, conf);
+          return new PollingMasterInquireClient(addresses, conf, userState);
         } else {
           return new SingleMasterInquireClient(addresses.get(0));
         }

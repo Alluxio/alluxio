@@ -78,7 +78,7 @@ public final class MultiWorkerIntegrationTest extends BaseIntegrationTest {
   @Rule
   public LocalAlluxioClusterResource mResource =
       new LocalAlluxioClusterResource.Builder()
-          .setProperty(PropertyKey.WORKER_MEMORY_SIZE, WORKER_MEMORY_SIZE_BYTES)
+          .setProperty(PropertyKey.WORKER_RAMDISK_SIZE, WORKER_MEMORY_SIZE_BYTES)
           .setProperty(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT, BLOCK_SIZE_BYTES)
           .setProperty(PropertyKey.USER_FILE_BUFFER_BYTES, BLOCK_SIZE_BYTES)
           .setNumWorkers(NUM_WORKERS)
@@ -87,7 +87,7 @@ public final class MultiWorkerIntegrationTest extends BaseIntegrationTest {
   @Test
   @LocalAlluxioClusterResource.Config(confParams = {
       PropertyKey.Name.USER_BLOCK_WRITE_LOCATION_POLICY,
-      "alluxio.client.block.policy.RoundRobinPolicy"
+      "alluxio.client.block.policy.RoundRobinPolicy",
       })
   public void writeLargeFile() throws Exception {
     int fileSize = NUM_WORKERS * WORKER_MEMORY_SIZE_BYTES;
@@ -106,8 +106,9 @@ public final class MultiWorkerIntegrationTest extends BaseIntegrationTest {
   @Test
   @LocalAlluxioClusterResource.Config(confParams = {PropertyKey.Name.USER_SHORT_CIRCUIT_ENABLED,
       "false", PropertyKey.Name.USER_BLOCK_SIZE_BYTES_DEFAULT, "16MB",
-      PropertyKey.Name.USER_NETWORK_READER_CHUNK_SIZE_BYTES, "64KB",
-      PropertyKey.Name.WORKER_MEMORY_SIZE, "1GB"})
+      PropertyKey.Name.USER_STREAMING_READER_CHUNK_SIZE_BYTES, "64KB",
+      PropertyKey.Name.USER_BLOCK_READ_RETRY_MAX_DURATION, "1s",
+      PropertyKey.Name.WORKER_RAMDISK_SIZE, "1GB"})
   public void readRecoverFromLostWorker() throws Exception {
     int offset = 17 * Constants.MB;
     int length = 33 * Constants.MB;
@@ -131,8 +132,9 @@ public final class MultiWorkerIntegrationTest extends BaseIntegrationTest {
   @Test
   @LocalAlluxioClusterResource.Config(confParams = {PropertyKey.Name.USER_SHORT_CIRCUIT_ENABLED,
       "false", PropertyKey.Name.USER_BLOCK_SIZE_BYTES_DEFAULT, "4MB",
-      PropertyKey.Name.USER_NETWORK_READER_CHUNK_SIZE_BYTES, "64KB",
-      PropertyKey.Name.WORKER_MEMORY_SIZE, "1GB"})
+      PropertyKey.Name.USER_STREAMING_READER_CHUNK_SIZE_BYTES, "64KB",
+      PropertyKey.Name.USER_BLOCK_READ_RETRY_MAX_DURATION, "1s",
+      PropertyKey.Name.WORKER_RAMDISK_SIZE, "1GB"})
   public void readOneRecoverFromLostWorker() throws Exception {
     int offset = 1 * Constants.MB;
     int length = 5 * Constants.MB;
@@ -156,8 +158,9 @@ public final class MultiWorkerIntegrationTest extends BaseIntegrationTest {
   @Test
   @LocalAlluxioClusterResource.Config(confParams = {PropertyKey.Name.USER_SHORT_CIRCUIT_ENABLED,
       "false", PropertyKey.Name.USER_BLOCK_SIZE_BYTES_DEFAULT, "4MB",
-      PropertyKey.Name.USER_NETWORK_READER_CHUNK_SIZE_BYTES, "64KB",
-      PropertyKey.Name.WORKER_MEMORY_SIZE, "1GB"})
+      PropertyKey.Name.USER_STREAMING_READER_CHUNK_SIZE_BYTES, "64KB",
+      PropertyKey.Name.USER_BLOCK_READ_RETRY_MAX_DURATION, "1s",
+      PropertyKey.Name.WORKER_RAMDISK_SIZE, "1GB"})
   public void positionReadRecoverFromLostWorker() throws Exception {
     int offset = 1 * Constants.MB;
     int length = 7 * Constants.MB;
@@ -191,11 +194,11 @@ public final class MultiWorkerIntegrationTest extends BaseIntegrationTest {
   }
 
   private void replicateFileBlocks(AlluxioURI filePath) throws Exception {
-    AlluxioBlockStore store =
-        AlluxioBlockStore.create(FileSystemContext.create(ServerConfiguration.global()));
+    FileSystemContext fsContext = FileSystemContext.create(ServerConfiguration.global());
+    AlluxioBlockStore store = AlluxioBlockStore.create(fsContext);
     URIStatus status =  mResource.get().getClient().getStatus(filePath);
     List<FileBlockInfo> blocks = status.getFileBlockInfos();
-    List<BlockWorkerInfo> workers = store.getAllWorkers();
+    List<BlockWorkerInfo> workers = fsContext.getCachedWorkers();
 
     for (FileBlockInfo block : blocks) {
       BlockInfo blockInfo = block.getBlockInfo();
@@ -206,7 +209,7 @@ public final class MultiWorkerIntegrationTest extends BaseIntegrationTest {
           .get()
           .getNetAddress();
       try (OutputStream outStream = store.getOutStream(blockInfo.getBlockId(),
-          blockInfo.getLength(), dest, OutStreamOptions.defaults(ServerConfiguration.global())
+          blockInfo.getLength(), dest, OutStreamOptions.defaults(fsContext.getClientContext())
               .setBlockSizeBytes(8 * Constants.MB).setWriteType(WriteType.MUST_CACHE))) {
         try (InputStream inStream = store.getInStream(blockInfo.getBlockId(),
             new InStreamOptions(status, ServerConfiguration.global()))) {

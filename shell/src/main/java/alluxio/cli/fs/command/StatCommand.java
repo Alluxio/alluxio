@@ -12,6 +12,7 @@
 package alluxio.cli.fs.command;
 
 import alluxio.AlluxioURI;
+import alluxio.annotation.PublicApi;
 import alluxio.cli.CommandUtils;
 import alluxio.client.block.AlluxioBlockStore;
 import alluxio.client.file.FileSystemContext;
@@ -39,6 +40,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * If path is a file, it displays the file's all blocks info.
  */
 @ThreadSafe
+@PublicApi
 public final class StatCommand extends AbstractFileSystemCommand {
   /**
    * @param fsContext the filesystem of Alluxio

@@ -32,8 +32,8 @@ import java.util.UUID;
  */
 @ThreadSafe
 public final class AuthenticatedUserInjector implements ServerInterceptor {
-
   private static final Logger LOG = LoggerFactory.getLogger(AuthenticatedUserInjector.class);
+
   private final AuthenticationServer mAuthenticationServer;
 
   /**
@@ -75,11 +75,13 @@ public final class AuthenticatedUserInjector implements ServerInterceptor {
    * Fails the call if it's not originating from an authenticated client channel.
    * It sets thread-local authentication information for the call with the user information
    * that is kept on auth-server.
+   *
+   * @return {@code true} if call was authenticated successfully
    */
   private <ReqT, RespT> boolean authenticateCall(ServerCall<ReqT, RespT> call, Metadata headers) {
     // Fail validation for cancelled server calls.
     if (call.isCancelled()) {
-      LOG.debug("Server call has been cancelled: %s",
+      LOG.debug("Server call has been cancelled: {}",
           call.getMethodDescriptor().getFullMethodName());
       return false;
     }
@@ -91,6 +93,8 @@ public final class AuthenticatedUserInjector implements ServerInterceptor {
       try {
         // Fetch authenticated username for this channel and set it.
         AuthenticatedUserInfo userInfo = mAuthenticationServer.getUserInfoForChannel(channelId);
+        LOG.debug("Acquiring credentials for service-method: {} on channel: {}",
+            call.getMethodDescriptor().getFullMethodName(), channelId);
         if (userInfo != null) {
           AuthenticatedClientUser.set(userInfo.getAuthorizedUserName());
           AuthenticatedClientUser.setConnectionUser(userInfo.getConnectionUserName());
@@ -102,13 +106,33 @@ public final class AuthenticatedUserInjector implements ServerInterceptor {
       } catch (UnauthenticatedException e) {
         String message = String.format("Channel: %s is not authenticated for call: %s",
             channelId.toString(), call.getMethodDescriptor().getFullMethodName());
-        call.close(Status.UNAUTHENTICATED.withDescription(message), headers);
+        closeQuietly(call, Status.UNAUTHENTICATED.withDescription(message), headers);
       }
     } else {
       String message = String.format("Channel Id is missing for call: %s.",
           call.getMethodDescriptor().getFullMethodName());
-      call.close(Status.UNAUTHENTICATED.withDescription(message), headers);
+      closeQuietly(call, Status.UNAUTHENTICATED.withDescription(message), headers);
     }
     return callAuthenticated;
+  }
+
+  /**
+   * Closes the call while blanketing runtime exceptions. This is mostly to avoid dumping "already
+   * closed" exceptions to logs.
+   *
+   * @param call call to close
+   * @param status status to close the call with
+   * @param headers headers to close the call with
+   */
+  private <ReqT, RespT> void closeQuietly(ServerCall<ReqT, RespT> call, Status status,
+      Metadata headers) {
+    try {
+      LOG.debug("Closing the call:{} with Status:{}",
+          call.getMethodDescriptor().getFullMethodName(), status);
+      call.close(status, headers);
+    } catch (RuntimeException exc) {
+      LOG.debug("Error while closing the call:{} with Status:{}: {}",
+          call.getMethodDescriptor().getFullMethodName(), status, exc);
+    }
   }
 }

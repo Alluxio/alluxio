@@ -12,16 +12,12 @@
 package alluxio.metrics.aggregator;
 
 import alluxio.metrics.Metric;
-import alluxio.metrics.MetricsFilter;
-import alluxio.metrics.MetricsSystem;
 import alluxio.metrics.MultiValueMetricsAggregator;
 
 import com.google.common.base.Preconditions;
-import com.google.common.collect.Lists;
 
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -30,11 +26,9 @@ import java.util.Set;
  * metric.
  */
 public class SingleTagValueAggregator implements MultiValueMetricsAggregator {
-  private final MetricsSystem.InstanceType mInstanceType;
   private final String mAggregationName;
   private final String mMetricName;
   private final String mTagName;
-  private final MetricsFilter mFilter;
   /** Cached aggregated metric values. */
   private Map<String, Long> mAggregates;
 
@@ -42,37 +36,33 @@ public class SingleTagValueAggregator implements MultiValueMetricsAggregator {
    * Constructs a new instance of {@link SingleTagValueAggregator}.
    *
    * @param aggregationName the aggregated metric name
-   * @param instanceType instance type
    * @param metricName metric name
    * @param tagName tag name
    */
-  public SingleTagValueAggregator(String aggregationName, MetricsSystem.InstanceType instanceType,
+  public SingleTagValueAggregator(String aggregationName,
       String metricName, String tagName) {
     Preconditions.checkNotNull(aggregationName, "aggregationName");
-    Preconditions.checkNotNull(instanceType, "instance type");
     Preconditions.checkNotNull(metricName, "metricName");
     Preconditions.checkNotNull(tagName, "tagName");
     mAggregationName = aggregationName;
-    mInstanceType = instanceType;
     mMetricName = metricName;
     mTagName = tagName;
-    mFilter = new MetricsFilter(mInstanceType, mMetricName);
     mAggregates = new HashMap<>();
   }
 
   @Override
-  public List<MetricsFilter> getFilters() {
-    return Lists.newArrayList(mFilter);
+  public String getFilterMetricName() {
+    return mMetricName;
   }
 
   @Override
-  public Map<String, Long> updateValues(Map<MetricsFilter, Set<Metric>> map) {
+  public Map<String, Long> updateValues(Set<Metric> set) {
     Map<String, Long> updated = new HashMap<>();
-    for (Metric metric : map.get(mFilter)) {
+    for (Metric metric : set) {
       Map<String, String> tags = metric.getTags();
       if (tags.containsKey(mTagName)) {
-        String ufsName = MetricsSystem.getClusterMetricName(
-            Metric.getMetricNameWithTags(mAggregationName, mTagName, tags.get(mTagName)));
+        String ufsName =
+            Metric.getMetricNameWithTags(mAggregationName, mTagName, tags.get(mTagName));
         long value = updated.getOrDefault(ufsName, 0L);
         updated.put(ufsName, (long) (value + metric.getValue()));
       }

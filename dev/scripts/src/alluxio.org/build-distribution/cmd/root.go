@@ -12,27 +12,16 @@
 package cmd
 
 import (
+	"flag"
 	"fmt"
-	"v.io/x/lib/cmdline"
 	"strings"
 )
 
 var (
-	Root = &cmdline.Command{
-		Name:  "generate-tarballs",
-		Short: "tool for creating alluxio tarballs",
-		Long: `
-	The publish tool contains functionality for generating either a single alluxio tarball,
-or generating a suite of release tarballs.
-	`,
-		Children: []*cmdline.Command{
-			cmdSingle,
-			cmdRelease,
-		},
-	}
-
-	debugFlag bool
-	ufsModulesFlag string
+	customUfsModuleFlag string
+	debugFlag           bool
+	includedLibJarsFlag string
+	ufsModulesFlag      string
 )
 
 func updateRootFlags() error {
@@ -51,8 +40,16 @@ func checkRootFlags() error {
 	return nil
 }
 
-func init() {
-	Root.Flags.BoolVar(&debugFlag, "debug", false, "whether to run this tool in debug mode to generate additional console output")
-	Root.Flags.StringVar(&ufsModulesFlag, "ufs-modules", strings.Join(defaultModules(ufsModules), ","),
+// common flags that are used regardless of subcommand type
+// these flags provide additional settings unrelated to tarball generation
+func additionalFlags(cmd *flag.FlagSet) {
+	cmd.StringVar(&customUfsModuleFlag, "custom-ufs-module", "",
+		"a percent-separated list of custom ufs modules which has the form of a pipe-separated pair of the module name and its comma-separated maven arguments."+
+			" e.g. hadoop-a.b|-pl,underfs/hdfs,-Pufs-hadoop-A,-Dufs.hadoop.version=a.b.c%hadoop-x.y|-pl,underfs/hdfs,-Pufs-hadoop-X,-Dufs.hadoop.version=x.y.z")
+	cmd.BoolVar(&debugFlag, "debug", false, "whether to run this tool in debug mode to generate additional console output")
+	cmd.StringVar(&ufsModulesFlag, "ufs-modules", strings.Join(defaultModules(ufsModules), ","),
 		fmt.Sprintf("a comma-separated list of ufs modules to compile into the distribution tarball(s). Specify 'all' to build all ufs modules. Supported ufs modules: [%v]", strings.Join(validModules(ufsModules), ",")))
+	cmd.StringVar(&includedLibJarsFlag, "lib-jars", "all",
+		"a comma-separated list of jars under lib/ to include in addition to all underfs-hdfs modules. All jars under lib/ will be included by default."+
+			" e.g. underfs-cos,table-server-underdb-glue")
 }

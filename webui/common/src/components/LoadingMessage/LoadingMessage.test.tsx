@@ -9,21 +9,21 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-import {configure, mount, ReactWrapper, shallow, ShallowWrapper} from 'enzyme';
+import { configure, mount, ReactWrapper, shallow, ShallowWrapper } from 'enzyme';
 import Adapter from 'enzyme-adapter-react-16';
 import React from 'react';
-import {StaticRouter} from 'react-router';
+import { StaticRouter } from 'react-router';
 
-import {LoadingMessage} from './LoadingMessage';
+import { LoadingMessage } from './LoadingMessage';
 
-configure({adapter: new Adapter()});
+configure({ adapter: new Adapter() });
 
 describe('LoadingMessage', () => {
   describe('Shallow component', () => {
     let shallowWrapper: ShallowWrapper;
 
     beforeAll(() => {
-      shallowWrapper = shallow(<LoadingMessage/>);
+      shallowWrapper = shallow(<LoadingMessage />);
     });
 
     it('Renders without crashing', () => {
@@ -37,13 +37,13 @@ describe('LoadingMessage', () => {
 
   describe('React component', () => {
     let reactWrapper: ReactWrapper;
-    let context = {};
+    const context = {};
 
     beforeAll(() => {
       reactWrapper = mount(
         <StaticRouter location="someLocation" context={context}>
-          <LoadingMessage/>
-        </StaticRouter>
+          <LoadingMessage />
+        </StaticRouter>,
       );
     });
 

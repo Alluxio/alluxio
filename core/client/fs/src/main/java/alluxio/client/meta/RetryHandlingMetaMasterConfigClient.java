@@ -15,19 +15,26 @@ import alluxio.AbstractMasterClient;
 import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.conf.PropertyKey;
+import alluxio.grpc.GetConfigHashPOptions;
 import alluxio.grpc.GetConfigurationPOptions;
 import alluxio.grpc.MetaMasterConfigurationServiceGrpc;
 import alluxio.grpc.RemovePathConfigurationPRequest;
 import alluxio.grpc.ServiceType;
 import alluxio.grpc.SetPathConfigurationPRequest;
+import alluxio.grpc.UpdateConfigurationPRequest;
 import alluxio.master.MasterClientContext;
+import alluxio.wire.ConfigHash;
 import alluxio.wire.Configuration;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -37,6 +44,7 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public class RetryHandlingMetaMasterConfigClient extends AbstractMasterClient
     implements MetaMasterConfigClient {
+  private static final Logger RPC_LOG = LoggerFactory.getLogger(MetaMasterConfigClient.class);
   private MetaMasterConfigurationServiceGrpc.MetaMasterConfigurationServiceBlockingStub mClient =
       null;
 
@@ -70,9 +78,19 @@ public class RetryHandlingMetaMasterConfigClient extends AbstractMasterClient
   }
 
   @Override
-  public Configuration getConfiguration() throws IOException {
-    return Configuration.fromProto(retryRPC(() ->
-        mClient.getConfiguration(GetConfigurationPOptions.getDefaultInstance())));
+  public Configuration getConfiguration(GetConfigurationPOptions options) throws IOException {
+    return Configuration.fromProto(retryRPC(() -> mClient.withDeadlineAfter(
+        mContext.getClusterConf().getMs(PropertyKey.WORKER_MASTER_PERIODICAL_RPC_TIMEOUT),
+        TimeUnit.MILLISECONDS).getConfiguration(options),
+        RPC_LOG, "GetConfiguration", "options=%s", options));
+  }
+
+  @Override
+  public ConfigHash getConfigHash() throws IOException {
+    return ConfigHash.fromProto(retryRPC(() -> mClient.withDeadlineAfter(
+        mContext.getClusterConf().getMs(PropertyKey.WORKER_MASTER_PERIODICAL_RPC_TIMEOUT),
+        TimeUnit.MILLISECONDS).getConfigHash(GetConfigHashPOptions.getDefaultInstance()),
+        RPC_LOG, "GetConfigHash", ""));
   }
 
   @Override
@@ -81,7 +99,8 @@ public class RetryHandlingMetaMasterConfigClient extends AbstractMasterClient
     Map<String, String> props = new HashMap<>();
     properties.forEach((key, value) -> props.put(key.getName(), value));
     retryRPC(() -> mClient.setPathConfiguration(SetPathConfigurationPRequest.newBuilder()
-        .setPath(path.getPath()).putAllProperties(props).build()));
+        .setPath(path.getPath()).putAllProperties(props).build()),
+        RPC_LOG, "setPathConfiguration", "path=%s,properties=%s", path, properties);
   }
 
   @Override
@@ -91,12 +110,31 @@ public class RetryHandlingMetaMasterConfigClient extends AbstractMasterClient
       keySet.add(key.getName());
     }
     retryRPC(() -> mClient.removePathConfiguration(RemovePathConfigurationPRequest.newBuilder()
-        .setPath(path.getPath()).addAllKeys(keySet).build()));
+        .setPath(path.getPath()).addAllKeys(keySet).build()),
+        RPC_LOG, "removePathConfiguration", "path=%s,keys=%s", path, keys);
   }
 
   @Override
   public void removePathConfiguration(AlluxioURI path) throws IOException {
     retryRPC(() -> mClient.removePathConfiguration(RemovePathConfigurationPRequest.newBuilder()
-        .setPath(path.getPath()).build()));
+        .setPath(path.getPath()).build()), RPC_LOG, "removePathConfiguration", "path=%s", path);
+  }
+
+  @Override
+  public Map<PropertyKey, Boolean> updateConfiguration(
+      Map<PropertyKey, String> propertiesMap) throws IOException {
+    Map<PropertyKey, Boolean> resultMap = new HashMap<>();
+    Map<String, String> inputMap = new HashMap<>();
+    propertiesMap.forEach((k, v) -> inputMap.put(k.getName(), v));
+    retryRPC(
+        () -> mClient.updateConfiguration(
+            UpdateConfigurationPRequest.newBuilder()
+                .putAllProperties(inputMap)
+                .build()),
+        RPC_LOG, "updateConfiguration", "propertiesMap=%s", propertiesMap)
+        .getStatusMap().forEach((k, v) -> {
+          resultMap.put(PropertyKey.getOrBuildCustom(k), v);
+        });
+    return resultMap;
   }
 }

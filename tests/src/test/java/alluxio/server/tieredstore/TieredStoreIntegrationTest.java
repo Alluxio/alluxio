@@ -12,63 +12,69 @@
 package alluxio.server.tieredstore;
 
 import alluxio.AlluxioURI;
-import alluxio.conf.PropertyKey;
+import alluxio.Constants;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemTestUtils;
 import alluxio.client.file.URIStatus;
+import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.OpenFilePOptions;
 import alluxio.grpc.ReadPType;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.grpc.WritePType;
-import alluxio.heartbeat.HeartbeatContext;
-import alluxio.heartbeat.HeartbeatScheduler;
-import alluxio.heartbeat.ManuallyScheduleHeartbeat;
+import alluxio.master.block.BlockMaster;
 import alluxio.testutils.BaseIntegrationTest;
 import alluxio.testutils.LocalAlluxioClusterResource;
+import alluxio.util.CommonUtils;
+import alluxio.util.WaitForOptions;
 import alluxio.util.io.BufferUtils;
+import alluxio.worker.block.allocator.GreedyAllocator;
 
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
-
-import java.util.concurrent.TimeUnit;
+import org.junit.rules.TemporaryFolder;
 
 /**
  * Integration tests for {@link alluxio.worker.block.meta.StorageTier}.
  */
 public class TieredStoreIntegrationTest extends BaseIntegrationTest {
   private static final int MEM_CAPACITY_BYTES = 1000;
+  private static final WaitForOptions WAIT_OPTIONS =
+      WaitForOptions.defaults().setTimeoutMs(2000).setInterval(10);
 
   private FileSystem mFileSystem;
+  private BlockMaster mBlockMaster;
   private SetAttributePOptions mSetPinned;
   private SetAttributePOptions mSetUnpinned;
-
-  @ClassRule
-  public static ManuallyScheduleHeartbeat sManuallySchedule = new ManuallyScheduleHeartbeat(
-          HeartbeatContext.MASTER_TTL_CHECK,
-          HeartbeatContext.WORKER_BLOCK_SYNC,
-          HeartbeatContext.WORKER_PIN_LIST_SYNC);
 
   @Rule
   public ExpectedException mThrown = ExpectedException.none();
 
   @Rule
+  public TemporaryFolder mTempFolder = new TemporaryFolder();
+
+  @Rule
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
       new LocalAlluxioClusterResource.Builder()
-          .setProperty(PropertyKey.WORKER_MEMORY_SIZE, MEM_CAPACITY_BYTES)
+          .setProperty(PropertyKey.WORKER_RAMDISK_SIZE, MEM_CAPACITY_BYTES)
           .setProperty(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT, 1000)
           .setProperty(PropertyKey.USER_FILE_BUFFER_BYTES, String.valueOf(100))
-          .setProperty(PropertyKey.WORKER_FILE_BUFFER_SIZE, String.valueOf(100))
           .setProperty(PropertyKey.WORKER_TIERED_STORE_LEVEL0_HIGH_WATERMARK_RATIO, 0.8)
+          .setProperty(PropertyKey.USER_FILE_RESERVED_BYTES, String.valueOf(100))
+          .setProperty(PropertyKey.WORKER_MANAGEMENT_TIER_ALIGN_ENABLED, String.valueOf(false))
+          .setProperty(PropertyKey.WORKER_REVIEWER_CLASS,
+              "alluxio.worker.block.reviewer.AcceptingReviewer")
           .build();
 
   @Before
   public final void before() throws Exception {
     mFileSystem = mLocalAlluxioClusterResource.get().getClient();
+    mBlockMaster = mLocalAlluxioClusterResource.get().getLocalAlluxioMaster().getMasterProcess()
+        .getMaster(BlockMaster.class);
     mSetPinned = SetAttributePOptions.newBuilder().setPinned(true).build();
     mSetUnpinned = SetAttributePOptions.newBuilder().setPinned(false).build();
   }
@@ -79,14 +85,18 @@ public class TieredStoreIntegrationTest extends BaseIntegrationTest {
   @Test
   public void deleteWhileRead() throws Exception {
     int fileSize = MEM_CAPACITY_BYTES / 2; // Small enough not to trigger async eviction
-    HeartbeatScheduler.await(HeartbeatContext.WORKER_BLOCK_SYNC, 10, TimeUnit.SECONDS);
 
     AlluxioURI file = new AlluxioURI("/test1");
     FileSystemTestUtils.createByteFile(mFileSystem, file, WritePType.MUST_CACHE, fileSize);
 
-    HeartbeatScheduler.execute(HeartbeatContext.WORKER_BLOCK_SYNC);
+    CommonUtils.waitFor("file in memory", () -> {
+      try {
+        return 100 == mFileSystem.getStatus(file).getInAlluxioPercentage();
+      } catch (Exception e) {
+        return false;
+      }
+    }, WAIT_OPTIONS);
 
-    Assert.assertEquals(100, mFileSystem.getStatus(file).getInAlluxioPercentage());
     // Open the file
     OpenFilePOptions options =
         OpenFilePOptions.newBuilder().setReadType(ReadPType.CACHE).build();
@@ -95,8 +105,6 @@ public class TieredStoreIntegrationTest extends BaseIntegrationTest {
 
     // Delete the file
     mFileSystem.delete(file);
-
-    HeartbeatScheduler.execute(HeartbeatContext.WORKER_BLOCK_SYNC);
 
     // After the delete, the master should no longer serve the file
     Assert.assertFalse(mFileSystem.exists(file));
@@ -108,13 +116,13 @@ public class TieredStoreIntegrationTest extends BaseIntegrationTest {
     Assert.assertTrue(BufferUtils.equalIncreasingByteArray(fileSize, res));
     in.close();
 
-    HeartbeatScheduler.execute(HeartbeatContext.WORKER_BLOCK_SYNC);
+    CommonUtils.waitFor("file blocks are deleted" , () -> 0 == mBlockMaster.getUsedBytes(),
+        WAIT_OPTIONS);
 
     // After the file is closed, the master's delete should go through and new files can be created
     AlluxioURI newFile = new AlluxioURI("/test2");
     FileSystemTestUtils.createByteFile(mFileSystem, newFile, WritePType.MUST_CACHE,
         MEM_CAPACITY_BYTES);
-    HeartbeatScheduler.execute(HeartbeatContext.WORKER_BLOCK_SYNC);
     Assert.assertEquals(100, mFileSystem.getStatus(newFile).getInAlluxioPercentage());
   }
 
@@ -128,11 +136,9 @@ public class TieredStoreIntegrationTest extends BaseIntegrationTest {
     // Half of mem capacity to avoid triggering async eviction
     FileSystemTestUtils.createByteFile(mFileSystem, file, WritePType.MUST_CACHE,
         MEM_CAPACITY_BYTES / 2);
-    HeartbeatScheduler.execute(HeartbeatContext.WORKER_BLOCK_SYNC);
 
     // Pin the file
     mFileSystem.setAttribute(file, mSetPinned);
-    HeartbeatScheduler.execute(HeartbeatContext.WORKER_PIN_LIST_SYNC);
 
     // Confirm the pin with master
     Assert.assertTrue(mFileSystem.getStatus(file).isPinned());
@@ -152,30 +158,34 @@ public class TieredStoreIntegrationTest extends BaseIntegrationTest {
     AlluxioURI file1 = new AlluxioURI("/test1");
     FileSystemTestUtils
         .createByteFile(mFileSystem, file1, WritePType.MUST_CACHE, MEM_CAPACITY_BYTES);
-    HeartbeatScheduler.execute(HeartbeatContext.WORKER_BLOCK_SYNC);
 
     // Pin the file
     mFileSystem.setAttribute(file1, mSetPinned);
-    HeartbeatScheduler.execute(HeartbeatContext.WORKER_PIN_LIST_SYNC);
-    // Confirm the pin with master
     Assert.assertTrue(mFileSystem.getStatus(file1).isPinned());
 
     // Unpin the file
     mFileSystem.setAttribute(file1, mSetUnpinned);
-    HeartbeatScheduler.execute(HeartbeatContext.WORKER_PIN_LIST_SYNC);
     // Confirm the unpin
     Assert.assertFalse(mFileSystem.getStatus(file1).isPinned());
+
+    // Wait until worker receives the new pin-list.
+    Thread.sleep(2 * ServerConfiguration.getMs(PropertyKey.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS));
 
     // Try to create a file that cannot be stored unless the previous file is evicted, this
     // should succeed
     AlluxioURI file2 = new AlluxioURI("/test2");
     FileSystemTestUtils
         .createByteFile(mFileSystem, file2, WritePType.MUST_CACHE, MEM_CAPACITY_BYTES);
-    HeartbeatScheduler.execute(HeartbeatContext.WORKER_BLOCK_SYNC);
 
-    // File 2 should be in memory and File 1 should be evicted
-    Assert.assertEquals(0, mFileSystem.getStatus(file1).getInAlluxioPercentage());
-    Assert.assertEquals(100, mFileSystem.getStatus(file2).getInAlluxioPercentage());
+    // Wait for validation.
+    CommonUtils.waitFor("file2 should be in memory and file1 should be evicted", () -> {
+      try {
+        return 0 == mFileSystem.getStatus(file1).getInAlluxioPercentage()
+            && 100 == mFileSystem.getStatus(file2).getInAlluxioPercentage();
+      } catch (Exception e) {
+        return false;
+      }
+    }, WAIT_OPTIONS);
   }
 
   /**
@@ -192,8 +202,6 @@ public class TieredStoreIntegrationTest extends BaseIntegrationTest {
         MEM_CAPACITY_BYTES / 2);
     FileSystemTestUtils.createByteFile(mFileSystem, uri3, WritePType.CACHE_THROUGH,
         MEM_CAPACITY_BYTES / 2);
-
-    HeartbeatScheduler.execute(HeartbeatContext.WORKER_BLOCK_SYNC);
 
     AlluxioURI toPromote;
     int toPromoteLen;
@@ -226,10 +234,46 @@ public class TieredStoreIntegrationTest extends BaseIntegrationTest {
     int len = is.read(buf);
     is.close();
 
-    HeartbeatScheduler.schedule(HeartbeatContext.WORKER_BLOCK_SYNC);
-    HeartbeatScheduler.await(HeartbeatContext.WORKER_BLOCK_SYNC, 10, TimeUnit.SECONDS);
-
     Assert.assertEquals(toPromoteLen, len);
-    Assert.assertEquals(100, mFileSystem.getStatus(toPromote).getInAlluxioPercentage());
+    CommonUtils.waitFor("file in memory", () -> {
+      try {
+        return 100 == mFileSystem.getStatus(toPromote).getInAlluxioPercentage();
+      } catch (Exception e) {
+        return false;
+      }
+    }, WAIT_OPTIONS);
+  }
+
+  /**
+   * With setting of "StorageDir1, StorageDir2", loading a block from UFS that is bigger than
+   * the available space of StorageDir1 should land in StorageDir2 using GreedyAllocator.
+   * https://github.com/Alluxio/alluxio/issues/8687
+   */
+  @Test
+  public void greedyAllocator() throws Exception {
+    mLocalAlluxioClusterResource.stop();
+    int fileLen = 8 * Constants.MB;
+    mLocalAlluxioClusterResource
+        .setProperty(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT, "4MB")
+        .setProperty(PropertyKey.WORKER_ALLOCATOR_CLASS, GreedyAllocator.class.getName())
+        .setProperty(PropertyKey.WORKER_TIERED_STORE_LEVELS, "1")
+        .setProperty(PropertyKey.WORKER_TIERED_STORE_LEVEL0_DIRS_PATH, String.join(",",
+            mTempFolder.newFolder("dir1").getAbsolutePath(),
+            mTempFolder.newFolder("dir2").getAbsolutePath()))
+        .setProperty(PropertyKey.WORKER_TIERED_STORE_LEVEL0_DIRS_QUOTA,
+            String.join(",", "2MB", String.valueOf(2 * fileLen)));
+    mLocalAlluxioClusterResource.start();
+    mFileSystem = mLocalAlluxioClusterResource.get().getClient();
+    AlluxioURI uri1 = new AlluxioURI("/file1");
+    FileSystemTestUtils.createByteFile(mFileSystem, uri1, WritePType.THROUGH, fileLen);
+    Assert.assertEquals(0, mFileSystem.getStatus(uri1).getInAlluxioPercentage());
+    FileSystemTestUtils.loadFile(mFileSystem, uri1.getPath());
+    CommonUtils.waitFor("file is in Alluxio", () -> {
+      try {
+        return 100 == mFileSystem.getStatus(uri1).getInAlluxioPercentage();
+      } catch (Exception e) {
+        return false;
+      }
+    }, WAIT_OPTIONS);
   }
 }

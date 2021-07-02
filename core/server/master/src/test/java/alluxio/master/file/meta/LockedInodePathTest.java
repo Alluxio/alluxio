@@ -42,7 +42,8 @@ public class LockedInodePathTest extends BaseInodeLockingTest {
   @Test
   public void pathExistsReadLock() throws Exception {
     AlluxioURI uri = new AlluxioURI("/a/b/c");
-    mPath = new LockedInodePath(uri, mInodeStore, mInodeLockManager, mRootDir, LockPattern.READ);
+    mPath =
+        new LockedInodePath(uri, mInodeStore, mInodeLockManager, mRootDir, LockPattern.READ, false);
     assertEquals(uri, mPath.getUri());
     assertEquals(4, mPath.size());
 
@@ -96,7 +97,7 @@ public class LockedInodePathTest extends BaseInodeLockingTest {
     assertEquals(LockPattern.WRITE_EDGE, mPath.getLockPattern());
 
     checkOnlyNodesReadLocked(mRootDir, mDirA, mDirB);
-    checkOnlyNodesWriteLocked();
+    checkOnlyNodesWriteLocked(mFileC);
     checkOnlyIncomingEdgesReadLocked(mRootDir, mDirA, mDirB);
     checkOnlyIncomingEdgesWriteLocked(mFileC);
   }
@@ -136,6 +137,7 @@ public class LockedInodePathTest extends BaseInodeLockingTest {
     checkOnlyNodesReadLocked(mRootDir, mDirA, mDirB);
     checkOnlyNodesWriteLocked();
     checkOnlyIncomingEdgesReadLocked(mRootDir, mDirA, mDirB);
+    checkIncomingEdgeReadLocked(mDirB.getId(), "missing");
     checkOnlyIncomingEdgesWriteLocked();
   }
 
@@ -242,7 +244,7 @@ public class LockedInodePathTest extends BaseInodeLockingTest {
     assertEquals(1, mPath.getExistingInodeCount());
 
     checkOnlyNodesReadLocked();
-    checkOnlyNodesWriteLocked();
+    checkOnlyNodesWriteLocked(mRootDir);
     checkOnlyIncomingEdgesReadLocked();
     checkOnlyIncomingEdgesWriteLocked(mRootDir);
   }
@@ -259,7 +261,7 @@ public class LockedInodePathTest extends BaseInodeLockingTest {
 
     checkOnlyNodesReadLocked(mRootDir);
     checkOnlyNodesWriteLocked();
-    checkOnlyIncomingEdgesReadLocked(mRootDir);
+    checkOnlyIncomingEdgesReadLocked(mRootDir, mDirA);
     checkOnlyIncomingEdgesWriteLocked();
   }
 
@@ -290,14 +292,14 @@ public class LockedInodePathTest extends BaseInodeLockingTest {
     assertEquals(Arrays.asList(mRootDir, mDirA, mDirB), pathC.getInodeList());
 
     checkOnlyNodesReadLocked(mRootDir);
-    checkOnlyNodesWriteLocked();
+    checkOnlyNodesWriteLocked(mDirA, mDirB);
     checkOnlyIncomingEdgesReadLocked(mRootDir);
-    checkOnlyIncomingEdgesWriteLocked(mDirA);
+    checkOnlyIncomingEdgesWriteLocked(mDirA, mDirB, mFileC);
 
     pathC.close();
 
     checkOnlyNodesReadLocked(mRootDir);
-    checkOnlyNodesWriteLocked();
+    checkOnlyNodesWriteLocked(mDirA);
     checkOnlyIncomingEdgesReadLocked(mRootDir);
     checkOnlyIncomingEdgesWriteLocked(mDirA);
   }
@@ -342,7 +344,7 @@ public class LockedInodePathTest extends BaseInodeLockingTest {
   public void downgradeWriteEdgeToRead() throws Exception {
     mPath = create("/a/b/c", LockPattern.WRITE_EDGE);
 
-    mPath.downgradeToPattern(LockPattern.READ);
+    mPath.downgradeToRead();
     assertTrue(mPath.fullPathExists());
     assertEquals(Arrays.asList(mRootDir, mDirA, mDirB, mFileC), mPath.getInodeList());
     assertEquals(LockPattern.READ, mPath.getLockPattern());
@@ -354,25 +356,10 @@ public class LockedInodePathTest extends BaseInodeLockingTest {
   }
 
   @Test
-  public void downgradeWriteEdgeToWriteInode() throws Exception {
-    mPath = create("/a/b/c", LockPattern.WRITE_EDGE);
-
-    mPath.downgradeToPattern(LockPattern.WRITE_INODE);
-    assertTrue(mPath.fullPathExists());
-    assertEquals(Arrays.asList(mRootDir, mDirA, mDirB, mFileC), mPath.getInodeList());
-    assertEquals(LockPattern.WRITE_INODE, mPath.getLockPattern());
-
-    checkOnlyNodesReadLocked(mRootDir, mDirA, mDirB);
-    checkOnlyNodesWriteLocked(mFileC);
-    checkOnlyIncomingEdgesReadLocked(mRootDir, mDirA, mDirB, mFileC);
-    checkOnlyIncomingEdgesWriteLocked();
-  }
-
-  @Test
   public void downgradeWriteInodeToReadInode() throws Exception {
     mPath = create("/a/b/c", LockPattern.WRITE_INODE);
 
-    mPath.downgradeToPattern(LockPattern.READ);
+    mPath.downgradeToRead();
     assertTrue(mPath.fullPathExists());
     assertEquals(Arrays.asList(mRootDir, mDirA, mDirB, mFileC), mPath.getInodeList());
     assertEquals(LockPattern.READ, mPath.getLockPattern());
@@ -394,7 +381,7 @@ public class LockedInodePathTest extends BaseInodeLockingTest {
     assertEquals(mDirB, childPath.getInode());
 
     checkOnlyNodesReadLocked(mRootDir, mDirA);
-    checkOnlyNodesWriteLocked();
+    checkOnlyNodesWriteLocked(mDirB);
     checkOnlyIncomingEdgesReadLocked(mRootDir, mDirA);
     checkOnlyIncomingEdgesWriteLocked(mDirB);
 
@@ -439,11 +426,10 @@ public class LockedInodePathTest extends BaseInodeLockingTest {
     assertTrue(childPath.fullPathExists());
     assertEquals(mDirB, childPath.getInode());
 
-    // No new locks are taken since we already have a write lock
     checkOnlyNodesReadLocked(mRootDir);
-    checkOnlyNodesWriteLocked(mDirA);
+    checkOnlyNodesWriteLocked(mDirA, mDirB);
     checkOnlyIncomingEdgesReadLocked(mRootDir, mDirA);
-    checkOnlyIncomingEdgesWriteLocked();
+    checkOnlyIncomingEdgesWriteLocked(mDirB);
 
     childPath.close();
 
@@ -513,7 +499,7 @@ public class LockedInodePathTest extends BaseInodeLockingTest {
     assertEquals(Arrays.asList(mRootDir, mDirA, mDirB, mFileC), childPath.getInodeList());
 
     checkOnlyNodesReadLocked(mRootDir, mDirA, mDirB);
-    checkOnlyNodesWriteLocked();
+    checkOnlyNodesWriteLocked(mFileC);
     checkOnlyIncomingEdgesReadLocked(mRootDir, mDirA, mDirB);
     checkOnlyIncomingEdgesWriteLocked(mFileC);
 
@@ -535,14 +521,14 @@ public class LockedInodePathTest extends BaseInodeLockingTest {
     assertEquals(Arrays.asList(mRootDir, mDirA, mDirB, mFileC), childPath.getInodeList());
 
     checkOnlyNodesReadLocked();
-    checkOnlyNodesWriteLocked();
+    checkOnlyNodesWriteLocked(mRootDir, mDirA, mDirB, mFileC);
     checkOnlyIncomingEdgesReadLocked();
-    checkOnlyIncomingEdgesWriteLocked(mRootDir);
+    checkOnlyIncomingEdgesWriteLocked(mRootDir, mDirA, mDirB, mFileC);
 
     childPath.close();
 
     checkOnlyNodesReadLocked();
-    checkOnlyNodesWriteLocked();
+    checkOnlyNodesWriteLocked(mRootDir);
     checkOnlyIncomingEdgesReadLocked();
     checkOnlyIncomingEdgesWriteLocked(mRootDir);
   }
@@ -594,7 +580,7 @@ public class LockedInodePathTest extends BaseInodeLockingTest {
 
   private LockedInodePath create(String path, LockPattern lockPattern) throws InvalidPathException {
     LockedInodePath lockedPath = new LockedInodePath(new AlluxioURI(path), mInodeStore,
-        mInodeLockManager, mRootDir, lockPattern);
+        mInodeLockManager, mRootDir, lockPattern, false);
     lockedPath.traverse();
     return lockedPath;
   }

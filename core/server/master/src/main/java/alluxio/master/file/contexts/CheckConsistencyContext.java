@@ -20,7 +20,8 @@ import com.google.common.base.MoreObjects;
 /**
  * Used to merge and wrap {@link CheckConsistencyPOptions}.
  */
-public class CheckConsistencyContext extends OperationContext<CheckConsistencyPOptions.Builder> {
+public class CheckConsistencyContext
+    extends OperationContext<CheckConsistencyPOptions.Builder, CheckConsistencyContext> {
 
   /**
    * Creates context with given option data.

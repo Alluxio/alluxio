@@ -1,0 +1,289 @@
+#
+# The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
+# (the "License"). You may not use this work except in compliance with the License, which is
+# available at www.apache.org/licenses/LICENSE-2.0
+#
+# This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+# either express or implied, as more fully set forth in the License.
+#
+# See the NOTICE file distributed with this work for information regarding copyright ownership.
+#
+
+{{- $masterCount := int .Values.master.count }}
+{{- $isSingleMaster := eq $masterCount 1 }}
+{{- $isEmbedded := (eq .Values.journal.type "EMBEDDED") }}
+{{- $isHaEmbedded := and $isEmbedded (gt $masterCount 1) }}
+{{- $isUfsLocal := and (eq .Values.journal.type "UFS") (eq .Values.journal.ufsType "local") }}
+{{- $needJournalVolume := or $isEmbedded $isUfsLocal }}
+{{- $hostNetwork := .Values.master.hostNetwork }}
+{{- $hostPID := .Values.master.hostPID }}
+{{- $name := include "alluxio.name" . }}
+{{- $fullName := include "alluxio.fullname" . }}
+{{- $chart := include "alluxio.chart" . }}
+
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ $fullName }}-master
+  labels:
+    name: {{ $fullName }}-master
+    app: {{ $name }}
+    chart: {{ $chart }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+    role: alluxio-master
+spec:
+  selector:
+    matchLabels:
+      app: {{ $name }}
+      role: alluxio-master
+      name: {{ $fullName }}-master
+  serviceName: {{ $fullName }}-master
+  podManagementPolicy: Parallel
+  replicas: {{ $masterCount }}
+  template:
+    metadata:
+      labels:
+        name: {{ $fullName }}-master
+        app: {{ $name }}
+        chart: {{ $chart }}
+        release: {{ .Release.Name }}
+        heritage: {{ .Release.Service }}
+        role: alluxio-master
+    {{- if or .Values.master.podAnnotations .Values.metrics.enabled }}
+      annotations:
+      {{- with .Values.master.podAnnotations }}
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.metrics.podAnnotations }}
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+    {{- end }}
+    spec:
+      {{ if .Values.hostAliases }}
+      {{- include "alluxio.hostAliases" . | nindent 6 }}
+      {{ end }}
+      hostNetwork: {{ $hostNetwork }}
+      dnsPolicy: {{ .Values.master.dnsPolicy | default ($hostNetwork | ternary "ClusterFirstWithHostNet" "ClusterFirst") }}
+      nodeSelector:
+      {{- if .Values.master.nodeSelector }}
+{{ toYaml .Values.master.nodeSelector | trim | indent 8  }}
+      {{- else if .Values.nodeSelector }}
+{{ toYaml .Values.nodeSelector | trim | indent 8  }}
+      {{- end }}
+      tolerations:
+      {{- if .Values.master.tolerations }}
+{{ toYaml .Values.master.tolerations | trim | indent 8  }}
+      {{- end }}
+      {{- if .Values.tolerations }}
+{{ toYaml .Values.tolerations | trim | indent 8  }}
+      {{- end }}
+      securityContext:
+        runAsUser: {{ .Values.user }}
+        runAsGroup: {{ .Values.group }}
+        fsGroup: {{ .Values.fsGroup }}
+    {{- if .Values.master.serviceAccount }}
+      serviceAccountName: {{ .Values.master.serviceAccount }}
+    {{- else if .Values.serviceAccount }}
+      serviceAccountName: {{ .Values.serviceAccount }}
+    {{- end }}
+      initContainers:
+      {{- if .Values.journal.format.runFormat}}
+      - name: journal-format
+        image: {{ .Values.image }}:{{ .Values.imageTag }}
+        imagePullPolicy: {{ .Values.imagePullPolicy }}
+        command: ["alluxio","formatJournal"]
+        volumeMounts:
+          - name: alluxio-journal
+            mountPath: /journal
+      {{- end}}
+      containers:
+        - name: alluxio-master
+          image: {{ .Values.image }}:{{ .Values.imageTag }}
+          imagePullPolicy: {{ .Values.imagePullPolicy }}
+          {{- if .Values.master.resources  }}
+{{ include "alluxio.master.resources" . | indent 10 }}
+          {{- end }}
+          command: ["tini", "--", "/entrypoint.sh"]
+          {{- if .Values.master.args }}
+          args:
+{{ toYaml .Values.master.args | trim | indent 12 }}
+          {{- end }}
+          {{- if $isHaEmbedded }}
+          env:
+          - name: ALLUXIO_MASTER_HOSTNAME
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.name
+          {{- else if $isSingleMaster }}
+          env:
+          - name: ALLUXIO_MASTER_HOSTNAME
+            valueFrom:
+              fieldRef:
+                fieldPath: status.podIP
+          {{- end }}
+          {{- range $key, $value := .Values.master.env }}
+          - name: "{{ $key }}"
+            value: "{{ $value }}"
+          {{- end }}
+          envFrom:
+          - configMapRef:
+              name: {{ $fullName }}-config
+{{- $probePort := $isHaEmbedded | ternary "embedded" "rpc" }}
+{{ include "alluxio.master.readinessProbe" (dict "port" $probePort) | indent 10 }}
+{{ include "alluxio.master.livenessProbe" (dict "port" $probePort) | indent 10 }}
+          ports:
+          - containerPort: {{ .Values.master.ports.rpc }}
+            name: rpc
+          - containerPort: {{ .Values.master.ports.web }}
+            name: web
+          {{- if $isHaEmbedded }}
+          - containerPort: {{ .Values.master.ports.embedded }}
+            name: embedded
+          {{- end }}
+          volumeMounts:
+            {{- if .Values.metrics.enabled }}
+            - name: {{ $fullName }}-metrics-volume
+              mountPath: /config/metrics
+            {{- end }}
+            {{- if $needJournalVolume }}
+            - name: alluxio-journal
+              mountPath: /journal
+            {{- end }}
+            {{- if .Values.metastore }}
+            - name: alluxio-metastore
+              mountPath: {{ .Values.metastore.mountPath }}
+            {{- end }}
+            {{- if .Values.secrets }}
+              {{- if .Values.secrets.master }}
+{{- include "alluxio.master.secretVolumeMounts" . }}
+              {{- end }}
+            {{- end }}
+            {{- if .Values.mounts }}
+              {{- range .Values.mounts }}
+            - name: "{{ .name }}"
+              mountPath: "{{ .path }}"
+              {{- end }}
+            {{- end }}
+        - name: alluxio-job-master
+          image: {{ .Values.image }}:{{ .Values.imageTag }}
+          imagePullPolicy: {{ .Values.imagePullPolicy }}
+          {{- if .Values.jobMaster.resources  }}
+{{ include "alluxio.jobMaster.resources" . | indent 10 }}
+          {{- end }}
+          command: ["tini", "--", "/entrypoint.sh"]
+          {{- if .Values.jobMaster.args }}
+          args:
+{{ toYaml .Values.jobMaster.args | trim | indent 12 }}
+          {{- end }}
+          {{- if $isHaEmbedded }}
+          env:
+          - name: ALLUXIO_MASTER_HOSTNAME
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.name
+          {{- else if $isSingleMaster }}
+          env:
+          - name: ALLUXIO_MASTER_HOSTNAME
+            valueFrom:
+              fieldRef:
+                fieldPath: status.podIP
+          {{- end }}
+          {{- range $key, $value := .Values.jobMaster.env }}
+            - name: "{{ $key }}"
+              value: "{{ $value }}"
+          {{- end }}
+          envFrom:
+          - configMapRef:
+              name: {{ $fullName }}-config
+{{- $probePort := $isHaEmbedded | ternary "job-embedded" "job-rpc" }}
+{{ include "alluxio.master.readinessProbe" (dict "port" $probePort) | indent 10 }}
+{{ include "alluxio.master.livenessProbe" (dict "port" $probePort) | indent 10 }}
+          ports:
+          - containerPort: {{ .Values.jobMaster.ports.rpc }}
+            name: job-rpc
+          - containerPort: {{ .Values.jobMaster.ports.web }}
+            name: job-web
+          {{- if $isHaEmbedded }}
+          - containerPort: {{ .Values.jobMaster.ports.embedded }}
+            name: job-embedded
+          {{- end }}
+          volumeMounts:
+          {{- if .Values.metrics.enabled }}
+          - name: {{ $fullName }}-metrics-volume
+            mountPath: /config/metrics
+          {{- end }}
+          {{- if .Values.secrets }}
+            {{- if .Values.secrets.master }}
+{{- include "alluxio.master.secretVolumeMounts" . }}
+            {{- end }}
+          {{- end }}
+          {{- if .Values.mounts }}
+            {{- range .Values.mounts }}
+            - name: "{{ .name }}"
+              mountPath: "{{ .path }}"
+            {{- end }}
+          {{- end }}
+      restartPolicy: Always
+      volumes:
+        {{- if .Values.metrics.enabled }}
+        - name: {{ $fullName }}-metrics-volume
+          configMap:
+            name: {{ $fullName }}-metrics
+        {{- end }}
+        {{- if .Values.secrets }}
+          {{- if .Values.secrets.master }}
+            {{- range $key, $val := .Values.secrets.master }}
+        - name: secret-{{ $key }}-volume
+          secret:
+            secretName: {{ $key }}
+            defaultMode: 256
+            {{- end }}
+          {{- end }}
+        {{- end }}
+        {{- if .Values.mounts }}
+          {{- range .Values.mounts }}
+        - name: "{{ .name }}"
+          persistentVolumeClaim:
+            claimName: "{{ .name }}"
+          {{- end }}
+        {{- end }}
+        {{- if .Values.metastore }}
+          {{- if eq .Values.metastore.volumeType "emptyDir" }}
+        - name: alluxio-metastore
+          emptyDir:
+            medium: {{ .Values.metastore.medium }}
+            sizeLimit: {{ .Values.metastore.size | quote }}
+          {{- end }}
+        {{- end}}
+        {{- if and $needJournalVolume (eq .Values.journal.volumeType "emptyDir") }}
+        - name: alluxio-journal
+          emptyDir:
+            medium: {{ .Values.journal.medium }}
+            sizeLimit: {{ .Values.journal.size | quote }}
+        {{- end}}
+  volumeClaimTemplates:
+  {{- if and $needJournalVolume (eq .Values.journal.volumeType "persistentVolumeClaim") }}
+    - metadata:
+        name: alluxio-journal
+      spec:
+        storageClassName: {{ .Values.journal.storageClass }}
+        accessModes:
+{{ toYaml .Values.journal.accessModes | indent 8 }}
+        resources:
+          requests:
+            storage: {{ .Values.journal.size }}
+  {{- end }}
+  {{- if .Values.metastore }}
+    {{- if eq .Values.metastore.volumeType "persistentVolumeClaim" }}
+    - metadata:
+        name: alluxio-metastore
+      spec:
+        storageClassName: {{ .Values.metastore.storageClass }}
+        accessModes:
+{{ toYaml .Values.metastore.accessModes | indent 8 }}
+        resources:
+          requests:
+            storage: {{ .Values.metastore.size }}
+    {{- end }}
+  {{- end }}

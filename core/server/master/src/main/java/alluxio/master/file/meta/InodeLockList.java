@@ -12,366 +12,178 @@
 package alluxio.master.file.meta;
 
 import alluxio.concurrent.LockMode;
-import alluxio.resource.LockResource;
-
-import com.google.common.base.Preconditions;
-import com.google.common.collect.Lists;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
- * Represents a locked path within the inode tree. All lock lists must start with the root. Both
- * inodes and edges are locked along the path.
+ * Represents a locked path within the inode tree. Both inodes and edges are locked along the path.
+ * The path may start from either an edge or an inode.
  *
- * A lock list is either in read mode or write mode. In read mode, every lock in the list is a read
- * lock. In write mode, every lock is a read lock except for the final lock. In write mode, the
- * lock list cannot be extended (only the final lock is ever a write lock).
+ * A lock list always contains some number of read locks (possibly zero) followed by some number of
+ * write locks (possibly zero).
  *
- * For consistency across locking operations, lock lists begin with a fake edge leading to the root
- * inode. This enables the WRITE_EDGE pattern to be applied to the root.
+ * This class uses list notation to describe lock lists. Nodes are single letters, edges are
+ * parentName->childName, and write-locks are indicated with '*'. For example, a lock list for
+ * /a/b/c/d where the c->d edge is the first write-locked element:
  *
- * InodeLockLists are not thread safe and should not be passed across threads.
+ * [->/, /, /->a, a, a->b, b, b->c, c, c->d*, d*]
+ *
+ * The "->/" at the start is a pseudo-edge used to allow the WRITE_EDGE lock mode to be applied to
+ * the root. This edge can only be locked by calling lockRootEdge.
+ *
+ * Not all lock lists need to start from the root. Another example list could be
+ *
+ * [b, b->c, c->d*, d*]
+ *
+ * This allows us to create composite lock lists out of a "normal" lock list starting from the root,
+ * plus a non-root lock list.
  */
 @NotThreadSafe
-public class InodeLockList implements AutoCloseable {
-  private static final Logger LOG = LoggerFactory.getLogger(InodeLockList.class);
-
-  private static final int INITIAL_CAPACITY = 4;
-  private static final Edge ROOT_EDGE = new Edge(-1, "");
-
-  protected final InodeLockManager mInodeLockManager;
-
-  /** The inodes that have been locked by the lock list, ordered from the root. */
-  protected List<Inode> mLockedInodes;
-  /** Entries for each lock in the lock list, ordered from the root. */
-  protected List<Entry> mEntries;
-  /** The current lock mode for the lock list, either read or write. */
-  protected LockMode mLockMode;
-
+public interface InodeLockList extends AutoCloseable {
   /**
-   * Creates a new empty lock list.
+   * Locks the root edge in the specified mode.
    *
-   * @param inodeLockManager manager for inode locks
+   * The lock list must be empty to call this method.
+   *
+   * @param mode the mode to lock in
    */
-  public InodeLockList(InodeLockManager inodeLockManager) {
-    mInodeLockManager = inodeLockManager;
-    mLockedInodes = new ArrayList<>(INITIAL_CAPACITY);
-    mEntries = new ArrayList<>(INITIAL_CAPACITY);
-
-    mLockMode = LockMode.READ;
-  }
+  void lockRootEdge(LockMode mode);
 
   /**
    * Locks the given inode and adds it to the lock list. This method does *not* check that the inode
    * is still a child of the previous inode, or that the inode still exists. This method should only
    * be called when the edge leading to the inode is locked.
    *
-   * @param inode the inode to lock
-   * @param mode the mode to lock in
-   */
-  public void lockInode(Inode inode, LockMode mode) {
-    Preconditions.checkState(mLockMode == LockMode.READ);
-
-    lockInodeInternal(inode, mode);
-    mLockMode = mode;
-  }
-
-  /**
-   * Locks the next inode without checking or updating the mode.
+   * Example
+   * Starting from [a, a->b]
+   *
+   * lockInode(b, LockMode.READ) results in [a, a->b, b]
+   * lockInode(b, LockMode.WRITE) results in [a, a->b, b*]
    *
    * @param inode the inode to lock
    * @param mode the mode to lock in
    */
-  private void lockInodeInternal(Inode inode, LockMode mode) {
-    Preconditions.checkState(!endsInInode());
-    String lastEdgeName = ((EdgeEntry) lastEntry()).getEdge().getName();
-    Preconditions.checkState(inode.getName().equals(lastEdgeName),
-        "Expected to lock inode %s but locked inode %s", lastEdgeName, inode.getName());
-
-    mLockedInodes.add(inode);
-    mEntries.add(new InodeEntry(mInodeLockManager.lockInode(inode, mode), inode));
-  }
+  void lockInode(Inode inode, LockMode mode);
 
   /**
    * Locks an edge leading out of the last inode in the list.
    *
-   * For example, if the lock list is [a, a->b, b], lockEdge(c) will add b->c to the list, resulting
-   * in [a, a->b, b, b->c].
+   * Example
+   * Starting from [a, a->b, b]
    *
-   * @param childName the child to lock
+   * lockEdge(b, c, LockMode.READ) results in [a, a->b, b, b->c]
+   * lockEdge(b, c, LockMode.WRITE) results in [a, a->b, b, b->c*]
+   *
+   * @param inode the parent inode of the edge
+   * @param childName the child name of the edge
    * @param mode the mode to lock in
    */
-  public void lockEdge(String childName, LockMode mode) {
-    Preconditions.checkState(endsInInode());
-    Preconditions.checkState(mLockMode == LockMode.READ);
-
-    lockEdgeInternal(childName, mode);
-    mLockMode = mode;
-  }
+  void lockEdge(Inode inode, String childName, LockMode mode);
 
   /**
-   * Locks the next edge without checking or updating the mode.
+   * Unlocks the last locked inode.
    *
-   * @param childName the child to lock
-   * @param mode the mode to lock in
+   * Example
+   * Starting from [a, a->b, b]
+   *
+   * unlockLastInode() results in [a, a->b]
    */
-  public void lockEdgeInternal(String childName, LockMode mode) {
-    Preconditions.checkState(endsInInode());
-
-    Inode lastInode = get(numLockedInodes() - 1);
-    Edge edge = new Edge(lastInode.getId(), childName);
-    mEntries.add(new EdgeEntry(mInodeLockManager.lockEdge(edge, mode), edge));
-  }
+  void unlockLastInode();
 
   /**
-   * Locks the root edge in the specified mode.
+   * Unlocks the last locked edge.
    *
-   * @param mode the mode to lock in
+   * Example
+   * Starting from [a, a->b]
+   *
+   * unlockLastEdge results in [a]
    */
-  public void lockRootEdge(LockMode mode) {
-    Preconditions.checkState(mEntries.isEmpty());
-
-    mEntries.add(new EdgeEntry(mInodeLockManager.lockEdge(ROOT_EDGE, mode), ROOT_EDGE));
-    mLockMode = mode;
-  }
+  void unlockLastEdge();
 
   /**
-   * Leapfrogs the edge write lock forward, reducing the lock list's write-locked scope.
+   * Downgrades all locks in the current lock list to read locks.
+   */
+  void downgradeToReadLocks();
+
+  /**
+   * Downgrades the last edge lock in the lock list from WRITE lock to READ lock.
    *
-   * For example, if the lock list is in write mode with entries [a, a->b, b, b->c],
-   * pushWriteLockedEdge(c, d) will change the list to [a, a->b, b, b->c, c, c->d]. The c->d edge
-   * will be write locked instead of the b->c edge. At least a read lock on b->c will be maintained
-   * throughout the process so that other threads cannot interfere with creates, deletes, or
-   * renames.
+   * Example
+   * Starting from [a, a->b*]
    *
-   * For composite lock lists, this method will do nothing if the base lock is is write locked.
+   * downgradeLastEdge() results in [a, a->b]
+   */
+  void downgradeLastEdge();
+
+  /**
+   * Leapfrogs the final edge write lock forward, reducing the lock list's write-locked scope.
+   *
+   * Example
+   * Starting from [a, a->b*]
+   *
+   * pushWriteLockedEdge(b, c) results in [a, a->b, b, b->c*]
+   *
+   * The read lock on a->b is acquired before releasing the write lock. This ensures that no other
+   * thread can take the write lock before the read lock is acquired.
+   *
+   * If this is a composite lock list and the final write lock is part of the base lock list, the
+   * new locks will be acquired but no downgrade will occur.
    *
    * @param inode the inode to add to the lock list
    * @param childName the child name for the edge to add to the lock list
    */
-  public void pushWriteLockedEdge(Inode inode, String childName) {
-    Preconditions.checkState(!endsInInode());
-    Preconditions.checkState(mLockMode == LockMode.WRITE);
-
-    if (mEntries.isEmpty()) {
-      // Cannot modify the base lock list, and the new inode is already implicitly locked.
-      return;
-    }
-
-    int edgeIndex = mEntries.size() - 1;
-    lockInodeInternal(inode, LockMode.READ);
-    lockEdgeInternal(childName, LockMode.WRITE);
-    downgradeEdge(edgeIndex);
-  }
+  void pushWriteLockedEdge(Inode inode, String childName);
 
   /**
-   * @return whether this lock list ends in an inode (as opposed to an edge)
+   * @return {@link LockMode#WRITE} if the last entry in the list is write-locked, otherwise
+   *         {@link LockMode#READ}
    */
-  public boolean endsInInode() {
-    return lastEntry() instanceof InodeEntry;
-  }
+  LockMode getLockMode();
 
   /**
-   * Unlocks the last locked inode.
+   * @return a copy of all locked inodes
    */
-  public void unlockLastInode() {
-    Preconditions.checkState(endsInInode());
-    Preconditions.checkState(!mEntries.isEmpty());
-
-    mLockedInodes.remove(mLockedInodes.size() - 1);
-    mEntries.remove(mEntries.size() - 1).mLock.close();
-    mLockMode = LockMode.READ;
-  }
+  List<Inode> getLockedInodes();
 
   /**
-   * Unlocks the last locked edge.
+   * @return a copy of all locked inodes
    */
-  public void unlockLastEdge() {
-    Preconditions.checkState(!endsInInode());
-    Preconditions.checkState(!mEntries.isEmpty());
-
-    mEntries.remove(mEntries.size() - 1).mLock.close();
-    mLockMode = LockMode.READ;
-  }
-
-  /**
-   * Downgrades the last inode from a write lock to a read lock. The read lock is acquired before
-   * releasing the write lock.
-   */
-  public void downgradeLastInode() {
-    Preconditions.checkState(endsInInode());
-    Preconditions.checkState(!mEntries.isEmpty());
-    Preconditions.checkState(mLockMode == LockMode.WRITE);
-
-    InodeEntry last = (InodeEntry) mEntries.get(mEntries.size() - 1);
-    LockResource lock = mInodeLockManager.lockInode(last.getInode(), LockMode.READ);
-    last.getLock().close();
-    mEntries.set(mEntries.size() - 1, new InodeEntry(lock, last.mInode));
-    mLockMode = LockMode.READ;
-  }
-
-  /**
-   * Downgrades the last edge lock in the lock list from WRITE lock to READ lock.
-   */
-  public void downgradeLastEdge() {
-    Preconditions.checkNotNull(!endsInInode());
-    Preconditions.checkState(!mEntries.isEmpty());
-    Preconditions.checkState(mLockMode == LockMode.WRITE);
-
-    downgradeEdge(mEntries.size() - 1);
-    mLockMode = LockMode.READ;
-  }
-
-  /**
-   * Downgrades from edge write-locking to inode write-locking. This reduces the scope of the write
-   * lock by pushing it forward one entry.
-   *
-   * For example, if the lock list is in write mode with entries [a, a->b, b, b->c],
-   * downgradeEdgeToInode(c, mode) will change the list to [a, a->b, b, b->c, c], with b->c
-   * downgraded to a read lock. c will be locked according to the mode.
-   *
-   * The read lock on the final edge is taken before releasing the write lock.
-   *
-   * @param inode the next inode in the lock list
-   * @param mode the mode to downgrade to
-   */
-  public void downgradeEdgeToInode(Inode inode, LockMode mode) {
-    Preconditions.checkState(!endsInInode());
-    Preconditions.checkState(!mEntries.isEmpty());
-    Preconditions.checkState(mLockMode == LockMode.WRITE);
-
-    EdgeEntry last = (EdgeEntry) mEntries.get(mEntries.size() - 1);
-    LockResource inodeLock = mInodeLockManager.lockInode(inode, mode);
-    LockResource edgeLock = mInodeLockManager.lockEdge(last.mEdge, LockMode.READ);
-    last.getLock().close();
-    mEntries.set(mEntries.size() - 1, new EdgeEntry(edgeLock, last.getEdge()));
-    mEntries.add(new InodeEntry(inodeLock, inode));
-    mLockedInodes.add(inode);
-    mLockMode = mode;
-  }
-
-  /**
-   * Downgrades the edge at the specified entry index.
-   */
-  private void downgradeEdge(int edgeEntryIndex) {
-    EdgeEntry entry = (EdgeEntry) mEntries.get(edgeEntryIndex);
-    LockResource lock = mInodeLockManager.lockEdge(entry.mEdge, LockMode.READ);
-    entry.getLock().close();
-    mEntries.set(edgeEntryIndex, new EdgeEntry(lock, entry.getEdge()));
-  }
-
-  /**
-   * @return the current lock mode for the lock list
-   */
-  public LockMode getLockMode() {
-    return mLockMode;
-  }
-
-  /**
-   * @return a copy of the the list of inodes locked in this lock list, in order of when
-   * the inodes were locked
-   */
-  // TODO(david): change this API to not return a copy
-  public List<Inode> getLockedInodes() {
-    return Lists.newArrayList(mLockedInodes);
+  default List<InodeView> getLockedInodeViews() {
+    return new ArrayList<>(getLockedInodes());
   }
 
   /**
    * @param index the index of the list
    * @return the inode at the specified index
    */
-  public Inode get(int index) {
-    return mLockedInodes.get(index);
-  }
+  Inode get(int index);
 
   /**
    * @return the size of the list in terms of locked inodes
    */
-  public int numLockedInodes() {
-    return mLockedInodes.size();
-  }
+  int numInodes();
+
+  /**
+   * @return whether this lock list ends in an inode (as opposed to an edge)
+   */
+  boolean endsInInode();
 
   /**
    * @return true if the locklist is empty
    */
-  public boolean isEmpty() {
-    return mEntries.isEmpty();
-  }
+  boolean isEmpty();
 
   /**
-   * @return the last lock entry in the lock list
+   * @return the inode lock manager for this lock list
    */
-  protected Entry lastEntry() {
-    return mEntries.get(mEntries.size() - 1);
-  }
+  InodeLockManager getInodeLockManager();
 
+  /**
+   * Closes the lock list, releasing all locks.
+   */
   @Override
-  public String toString() {
-    String path =
-        getLockedInodes().stream().map(Inode::getName).collect(Collectors.joining("/"));
-    return String.format("Locked Inodes: <%s>%n"
-        + "Entries: %s%n"
-        + "Lock Mode: %s", path, mEntries, mLockMode);
-  }
-
-  @Override
-  public void close() {
-    mLockedInodes.clear();
-    mEntries.forEach(entry -> entry.mLock.close());
-    mEntries.clear();
-  }
-
-  protected abstract static class Entry {
-    private final LockResource mLock;
-
-    protected Entry(LockResource lock) {
-      mLock = lock;
-    }
-
-    protected LockResource getLock() {
-      return mLock;
-    }
-  }
-
-  protected static class InodeEntry extends Entry {
-    private final Inode mInode;
-
-    private InodeEntry(LockResource lock, Inode inode) {
-      super(lock);
-      mInode = inode;
-    }
-
-    public Inode getInode() {
-      return mInode;
-    }
-
-    @Override
-    public String toString() {
-      return "\"" + mInode.getName() + "\"";
-    }
-  }
-
-  protected static class EdgeEntry extends Entry {
-    private final Edge mEdge;
-
-    private EdgeEntry(LockResource lock, Edge edge) {
-      super(lock);
-      mEdge = edge;
-    }
-
-    public Edge getEdge() {
-      return mEdge;
-    }
-
-    @Override
-    public String toString() {
-      return mEdge.toString();
-    }
-  }
+  void close();
 }

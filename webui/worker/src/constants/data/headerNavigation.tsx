@@ -9,21 +9,28 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-import {INavigationData} from '@alluxio/common-ui/src/constants';
+import { INavigationData } from '@alluxio/common-ui/src/constants';
+import { routePaths } from './routePaths';
 
-export const headerNavigationData: INavigationData[] = [{
-  innerText: 'Overview',
-  url: '/overview'
-}, {
-  innerText: 'BlockInfo',
-  url: '/blockInfo'
-}, {
-  innerText: 'Logs',
-  url: '/logs'
-}, {
-  innerText: 'Metrics',
-  url: '/metrics'
-}, {
-  innerText: 'Return to Master',
-  url: ({masterHostname, masterPort}) => `${window.location.protocol}//${masterHostname}:${masterPort}`
-}];
+export const headerNavigationData: INavigationData[] = [
+  {
+    innerText: 'Overview',
+    url: routePaths.overview,
+  },
+  {
+    innerText: 'BlockInfo',
+    url: routePaths.blockInfo,
+  },
+  {
+    innerText: 'Logs',
+    url: routePaths.logs,
+  },
+  {
+    innerText: 'Metrics',
+    url: routePaths.metrics,
+  },
+  {
+    innerText: 'Return to Master',
+    url: ({ masterHostname, masterPort }): string => `${window.location.protocol}//${masterHostname}:${masterPort}`,
+  },
+];

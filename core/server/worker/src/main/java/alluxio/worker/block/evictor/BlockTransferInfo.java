@@ -22,29 +22,67 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public class BlockTransferInfo {
-  private final long mBlockId;
+  private static final int INVALID = -1;
+
+  private final long mSrcBlockId;
+  private final long mDstBlockId;
   private final BlockStoreLocation mSrcLocation;
   private final BlockStoreLocation mDstLocation;
 
-  /**
-   * Creates a new instance of {@link BlockTransferInfo}.
-   *
-   * @param blockId the block id
-   * @param srcLocation the source {@link BlockStoreLocation}
-   * @param dstLocation the destination {@link BlockStoreLocation}
-   */
-  public BlockTransferInfo(long blockId, BlockStoreLocation srcLocation,
-      BlockStoreLocation dstLocation) {
-    mBlockId = blockId;
+  private BlockTransferInfo(BlockStoreLocation srcLocation, long srcBlockId,
+      BlockStoreLocation dstLocation, long dstBlockId) {
     mSrcLocation = srcLocation;
+    mSrcBlockId = srcBlockId;
     mDstLocation = dstLocation;
+    mDstBlockId = dstBlockId;
   }
 
   /**
-   * @return the block id
+   * Creates a new instance of {@link BlockTransferInfo} for moving a block.
+   *
+   * @param srcLocation the source {@link BlockStoreLocation}
+   * @param srcBlockId the source block id
+   * @param dstLocation the destination {@link BlockStoreLocation}
+   * @return the transfer info object
    */
-  public long getBlockId() {
-    return mBlockId;
+  public static BlockTransferInfo createMove(BlockStoreLocation srcLocation, long srcBlockId,
+      BlockStoreLocation dstLocation) {
+    return new BlockTransferInfo(srcLocation, srcBlockId, dstLocation, INVALID);
+  }
+
+  /**
+   * Creates a new instance of {@link BlockTransferInfo} for swapping two blocks.
+   *
+   * @param srcLocation the source {@link BlockStoreLocation}
+   * @param srcBlockId the source block id
+   * @param dstLocation the destination {@link BlockStoreLocation}
+   * @param dstBlockId the destination block id
+   * @return the transfer info object
+   */
+  public static BlockTransferInfo createSwap(BlockStoreLocation srcLocation, long srcBlockId,
+      BlockStoreLocation dstLocation, long dstBlockId) {
+    return new BlockTransferInfo(srcLocation, srcBlockId, dstLocation, dstBlockId);
+  }
+
+  /**
+   * @return the source block id
+   */
+  public long getSrcBlockId() {
+    return mSrcBlockId;
+  }
+
+  /**
+   * @return the destination block id
+   */
+  public long getDstBlockId() {
+    return mDstBlockId;
+  }
+
+  /**
+   * @return {@code true} if this tranfer info is for a swap operation
+   */
+  public boolean isSwap() {
+    return mDstBlockId != INVALID;
   }
 
   /**
@@ -63,9 +101,18 @@ public class BlockTransferInfo {
 
   @Override
   public String toString() {
-    return MoreObjects.toStringHelper(this)
-        .add("blockId", mBlockId)
-        .add("srcLocation", mSrcLocation)
-        .add("dstLocation", mDstLocation).toString();
+    MoreObjects.ToStringHelper strHelper = MoreObjects.toStringHelper(this);
+    if (isSwap()) {
+      strHelper.add("TransferType", "SWAP");
+      strHelper.add("SrcBlockId", mSrcBlockId);
+      strHelper.add("DstBlockId", mDstBlockId);
+    } else {
+      strHelper.add("TransferType", "MOVE");
+      strHelper.add("BlockId", mSrcBlockId);
+    }
+
+    strHelper.add("SrcLocation", mSrcLocation);
+    strHelper.add("DstLocation", mDstLocation);
+    return strHelper.toString();
   }
 }

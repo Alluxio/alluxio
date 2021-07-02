@@ -11,11 +11,18 @@
 
 package alluxio.wire;
 
+import alluxio.conf.Source;
 import alluxio.grpc.ConfigProperty;
+
+import com.google.common.base.Preconditions;
+
+import javax.annotation.Nullable;
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Wire representation of a configuration property.
  */
+@ThreadSafe
 public final class Property {
   /** Property key name. */
   private final String mName;
@@ -25,6 +32,21 @@ public final class Property {
    * Property source, should be one of the values of {@link alluxio.conf.Source}.
    */
   private final String mSource;
+
+  /**
+   * Creates a new property.
+   *
+   * @param name property name
+   * @param value property value
+   * @param source property source
+   */
+  public Property(String name, @Nullable String value, Source source) {
+    Preconditions.checkNotNull(name, "name");
+    Preconditions.checkNotNull(source, "source");
+    mName = name;
+    mValue = value;
+    mSource = source.toString();
+  }
 
   private Property(ConfigProperty property) {
     mName = property.getName();
@@ -44,7 +66,13 @@ public final class Property {
    * @return the grpc representation
    */
   public ConfigProperty toProto() {
-    return ConfigProperty.newBuilder().setName(mName).setValue(mValue).setSource(mSource).build();
+    ConfigProperty.Builder builder = ConfigProperty.newBuilder();
+    builder.setName(mName);
+    if (mValue != null) {
+      builder.setValue(mValue);
+    }
+    builder.setSource(mSource);
+    return builder.build();
   }
 
   /**

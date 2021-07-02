@@ -126,6 +126,15 @@ public class BaseInodeLockingTest {
   }
 
   /**
+   * Checks that the specified edge is read-locked.
+   */
+  protected void checkIncomingEdgeReadLocked(long parentId, String childName) {
+    Edge edge = new Edge(parentId, childName);
+    assertTrue("Unexpected read lock state for edge " + edge,
+        mInodeLockManager.edgeReadLockedByCurrentThread(edge));
+  }
+
+  /**
    * Checks that the specified edge is write-locked.
    */
   protected void checkIncomingEdgeWriteLocked(long parentId, String childName) {

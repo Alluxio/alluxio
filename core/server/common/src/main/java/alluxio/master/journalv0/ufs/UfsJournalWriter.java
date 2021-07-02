@@ -20,6 +20,7 @@ import alluxio.master.journalv0.JournalOutputStream;
 import alluxio.master.journalv0.JournalWriter;
 import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.underfs.UnderFileSystem;
+import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.underfs.options.CreateOptions;
 import alluxio.util.UnderFileSystemUtils;
 
@@ -80,7 +81,8 @@ public final class UfsJournalWriter implements JournalWriter {
     } catch (URISyntaxException e) {
       throw new RuntimeException(e);
     }
-    mUfs = UnderFileSystem.Factory.create(mJournal.getLocation(), ServerConfiguration.global());
+    mUfs = UnderFileSystem.Factory.create(mJournal.getLocation().toString(),
+        UnderFileSystemConfiguration.defaults(ServerConfiguration.global()));
     mCheckpointManager = new UfsCheckpointManager(mUfs, mJournal.getCheckpoint(), this);
   }
 

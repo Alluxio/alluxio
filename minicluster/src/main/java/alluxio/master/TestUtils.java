@@ -12,7 +12,11 @@
 package alluxio.master;
 
 import alluxio.Constants;
+import alluxio.master.file.FileSystemMaster;
+import alluxio.master.file.meta.InodeLockManager;
 import alluxio.util.ThreadUtils;
+
+import org.powermock.reflect.Whitebox;
 
 /**
  * Test utilities.
@@ -29,5 +33,17 @@ public class TestUtils {
       throw new RuntimeException(
           String.format("Timed out waiting for process %s to start", process));
     }
+  }
+
+  /**
+   * Verifies that all master inode tree locks have been released for the given cluster.
+   *
+   * @param cluster the cluster
+   */
+  public static void assertAllLocksReleased(LocalAlluxioCluster cluster) {
+    InodeLockManager lockManager =
+        (InodeLockManager) Whitebox.getInternalState(cluster.getLocalAlluxioMaster()
+            .getMasterProcess().getMaster(FileSystemMaster.class), "mInodeLockManager");
+    lockManager.assertAllLocksReleased();
   }
 }

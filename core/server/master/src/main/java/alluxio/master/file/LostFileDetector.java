@@ -45,8 +45,12 @@ final class LostFileDetector implements HeartbeatExecutor {
   }
 
   @Override
-  public void heartbeat() {
+  public void heartbeat() throws InterruptedException {
     for (long fileId : mFileSystemMaster.getLostFiles()) {
+      // Throw if interrupted.
+      if (Thread.interrupted()) {
+        throw new InterruptedException("LostFileDetector interrupted.");
+      }
       // update the state
       try (JournalContext journalContext = mFileSystemMaster.createJournalContext();
           LockedInodePath inodePath =

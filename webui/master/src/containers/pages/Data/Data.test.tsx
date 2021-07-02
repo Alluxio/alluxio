@@ -9,36 +9,34 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-import {configure, mount, ReactWrapper, shallow, ShallowWrapper} from 'enzyme';
+import { configure, shallow, ShallowWrapper } from 'enzyme';
 import Adapter from 'enzyme-adapter-react-16';
-import {createBrowserHistory, History, LocationState} from 'history';
+import { createBrowserHistory, History, LocationState } from 'history';
 import React from 'react';
-import {Provider} from 'react-redux';
-import {Store} from 'redux';
-import sinon, {SinonSpy} from 'sinon';
+import sinon from 'sinon';
 
-import configureStore from '../../../configureStore'
-import {initialState, IApplicationState} from '../../../store';
-import ConnectedApp from '../../App/App';
-import {AllProps, Data} from './Data';
+import { initialState } from '../../../store';
+import { AllProps, DataPresenter } from './Data';
+import { routePaths } from '../../../constants';
+import { createAlertErrors } from '@alluxio/common-ui/src/utilities';
 
-configure({adapter: new Adapter()});
+configure({ adapter: new Adapter() });
 
 describe('Data', () => {
   let history: History<LocationState>;
-  let store: Store<IApplicationState>;
   let props: AllProps;
 
   beforeAll(() => {
-    history = createBrowserHistory({keyLength: 0});
-    history.push('/data');
-    store = configureStore(history, initialState);
+    history = createBrowserHistory({ keyLength: 0 });
+    history.push(routePaths.data);
     props = {
-      location: {search: ''},
+      request: {},
+      refresh: false,
       fetchRequest: sinon.spy(() => {}),
       data: initialState.data.data,
-      loading: initialState.data.loading,
-      refresh: initialState.refresh.data
+      errors: createAlertErrors(false),
+      class: '',
+      loading: false,
     };
   });
 
@@ -50,39 +48,19 @@ describe('Data', () => {
     let shallowWrapper: ShallowWrapper;
 
     beforeAll(() => {
-      shallowWrapper = shallow(<Data {...props}/>);
+      shallowWrapper = shallow(<DataPresenter {...props} />);
     });
 
     it('Renders without crashing', () => {
       expect(shallowWrapper.length).toEqual(1);
     });
 
+    it('Contains a div with class col-12', () => {
+      expect(shallowWrapper.find('.col-12').length).toEqual(1);
+    });
+
     it('Matches snapshot', () => {
       expect(shallowWrapper).toMatchSnapshot();
-    });
-  });
-
-  describe('App with connected component', () => {
-    let reactWrapper: ReactWrapper;
-
-    beforeAll(() => {
-      reactWrapper = mount(<Provider store={store}><ConnectedApp history={history}/></Provider>);
-    });
-
-    it('Renders without crashing', () => {
-      expect(reactWrapper.length).toEqual(1);
-    });
-
-    it('Contains the component', () => {
-      expect(reactWrapper.find('.data-page').length).toEqual(1);
-    });
-
-    it('Calls fetchRequest', () => {
-      sinon.assert.called(props.fetchRequest as SinonSpy);
-    });
-
-    it('Matches snapshot', () => {
-      expect(reactWrapper).toMatchSnapshot();
     });
   });
 });

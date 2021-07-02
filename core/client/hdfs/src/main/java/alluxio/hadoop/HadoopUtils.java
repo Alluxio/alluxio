@@ -11,18 +11,28 @@
 
 package alluxio.hadoop;
 
+import static com.google.common.hash.Hashing.md5;
+import static java.nio.charset.StandardCharsets.UTF_8;
+
 import alluxio.AlluxioURI;
+import alluxio.client.file.URIStatus;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.AlluxioProperties;
+import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
+import alluxio.conf.Source;
+import alluxio.util.ConfigurationUtils;
+import alluxio.wire.FileInfo;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.mapred.FileSplit;
-import org.apache.hadoop.mapred.InputSplit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.Map;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -116,26 +126,6 @@ public final class HadoopUtils {
   }
 
   /**
-   * Returns a string representation of a {@link InputSplit}.
-   *
-   * @param is Hadoop {@link InputSplit}
-   * @return its string representation
-   */
-  public static String toStringHadoopInputSplit(InputSplit is) {
-    StringBuilder sb = new StringBuilder("HadoopInputSplit: ");
-    try {
-      sb.append(" Length: ").append(is.getLength());
-      sb.append(" , Locations: ");
-      for (String loc : is.getLocations()) {
-        sb.append(loc).append(" ; ");
-      }
-    } catch (IOException e) {
-      LOG.error(e.getMessage());
-    }
-    return sb.toString();
-  }
-
-  /**
    * Adds Swift keys to the given Hadoop Configuration object if the user has specified them using
    * System properties, and they're not already set.
    *
@@ -146,10 +136,10 @@ public final class HadoopUtils {
    */
 
   public static void addSwiftCredentials(Configuration configuration) {
-    PropertyKey[] propertyNames = {PropertyKey.SWIFT_API_KEY, PropertyKey.SWIFT_TENANT_KEY,
-        PropertyKey.SWIFT_USER_KEY, PropertyKey.SWIFT_AUTH_URL_KEY,
-        PropertyKey.SWIFT_AUTH_METHOD_KEY, PropertyKey.SWIFT_PASSWORD_KEY,
-        PropertyKey.SWIFT_SIMULATION, PropertyKey.SWIFT_REGION_KEY};
+    PropertyKey[] propertyNames = { PropertyKey.SWIFT_TENANT_KEY, PropertyKey.SWIFT_USER_KEY,
+        PropertyKey.SWIFT_AUTH_URL_KEY, PropertyKey.SWIFT_AUTH_METHOD_KEY,
+        PropertyKey.SWIFT_PASSWORD_KEY, PropertyKey.SWIFT_SIMULATION,
+        PropertyKey.SWIFT_REGION_KEY };
     setConfigurationFromSystemProperties(configuration, propertyNames);
   }
 
@@ -182,6 +172,47 @@ public final class HadoopUtils {
     if (propertyValue != null && configuration.get(propertyName) == null) {
       configuration.set(propertyName, propertyValue);
     }
+  }
+
+  /**
+   * @param alluxioURI Alluxio uri
+   * @return corresponding Hadoop Path instance
+   */
+  public static Path toPath(AlluxioURI alluxioURI) {
+    return new Path(alluxioURI.toString());
+  }
+
+  /**
+   * @param conf Hadoop conf
+   * @return Alluxio configuration merged from Hadoop conf
+   */
+  public static AlluxioConfiguration toAlluxioConf(Configuration conf) {
+    // Take hadoop configuration to merge to Alluxio configuration
+    Map<String, Object> hadoopConfProperties =
+        HadoopConfigurationUtils.getConfigurationFromHadoop(conf);
+    AlluxioProperties alluxioProps = ConfigurationUtils.defaults();
+    // Merge relevant Hadoop configuration into Alluxio's configuration.
+    alluxioProps.merge(hadoopConfProperties, Source.RUNTIME);
+    // Creating a new instanced configuration from an AlluxioProperties object isn't expensive.
+    return new InstancedConfiguration(alluxioProps);
+  }
+
+  /**
+   * @param status Hadoop file status
+   * @return corresponding Alluxio uri status instance
+   */
+  public static URIStatus toAlluxioUriStatus(FileStatus status) {
+    // FilePath is a unique identifier for a file, however it can be a long string
+    // hence using md5 hash of the file path as the identifier in the cache.
+    // We don't set fileId because fileId is Alluxio specific
+    FileInfo info = new FileInfo();
+    info.setFileIdentifier(md5().hashString(status.getPath().toString(), UTF_8).toString());
+    info.setLength(status.getLen()).setPath(status.getPath().toString());
+    info.setFolder(status.isDirectory()).setBlockSizeBytes(status.getBlockSize());
+    info.setLastModificationTimeMs(status.getModificationTime())
+        .setLastAccessTimeMs(status.getAccessTime());
+    info.setOwner(status.getOwner()).setGroup(status.getGroup());
+    return new URIStatus(info);
   }
 
   private HadoopUtils() {} // prevent instantiation

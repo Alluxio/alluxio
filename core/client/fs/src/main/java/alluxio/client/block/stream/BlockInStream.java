@@ -11,15 +11,14 @@
 
 package alluxio.client.block.stream;
 
-import alluxio.conf.AlluxioConfiguration;
-import alluxio.conf.PropertyKey;
 import alluxio.Seekable;
 import alluxio.client.BoundedStream;
 import alluxio.client.PositionedReadable;
 import alluxio.client.ReadType;
 import alluxio.client.file.FileSystemContext;
-import alluxio.client.file.URIStatus;
 import alluxio.client.file.options.InStreamOptions;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.exception.PreconditionMessage;
 import alluxio.exception.status.NotFoundException;
 import alluxio.grpc.ReadRequest;
@@ -31,12 +30,14 @@ import alluxio.util.network.NetworkAddressUtils;
 import alluxio.wire.BlockInfo;
 import alluxio.wire.WorkerNetAddress;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.ByteBuffer;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -51,7 +52,10 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
 
   /** the source tracking where the block is from. */
   public enum BlockInStreamSource {
-    LOCAL, REMOTE, UFS
+    PROCESS_LOCAL, // The block is from a worker in the same process
+    NODE_LOCAL, // The block is from a separate worker process on the same node
+    REMOTE, // The block is from a remote worker
+    UFS // The block is in UFS
   }
 
   private final WorkerNetAddress mAddress;
@@ -60,7 +64,6 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
   private final long mId;
   /** The size in bytes of the block. */
   private final long mLength;
-
   private final byte[] mSingleByte = new byte[1];
 
   /** Current position of the stream, relative to the start of the block. */
@@ -97,25 +100,29 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
   public static BlockInStream create(FileSystemContext context, BlockInfo info,
       WorkerNetAddress dataSource, BlockInStreamSource dataSourceType, InStreamOptions options)
       throws IOException {
-    URIStatus status = options.getStatus();
-    ReadType readType = ReadType.fromProto(options.getOptions().getReadType());
-
     long blockId = info.getBlockId();
     long blockSize = info.getLength();
 
-    // Construct the partial read request
-    ReadRequest.Builder builder =
-        ReadRequest.newBuilder().setBlockId(blockId).setPromote(readType.isPromote());
-    // Add UFS fallback options
-    builder.setOpenUfsBlockOptions(options.getOpenUfsBlockOptions(blockId));
+    if (dataSourceType == BlockInStreamSource.PROCESS_LOCAL
+        && dataSource.equals(context.getNodeLocalWorker())) {
+      // Interaction between the current client and the worker it embedded to should
+      // go through worker internal communication directly without RPC involves
+      return createProcessLocalBlockInStream(context, dataSource, blockId, blockSize, options);
+    }
+
     AlluxioConfiguration alluxioConf = context.getClusterConf();
     boolean shortCircuit = alluxioConf.getBoolean(PropertyKey.USER_SHORT_CIRCUIT_ENABLED);
-    boolean sourceSupportsDomainSocket = NettyUtils.isDomainSocketSupported(dataSource,
-        alluxioConf);
-    boolean sourceIsLocal = dataSourceType == BlockInStreamSource.LOCAL;
+    boolean shortCircuitPreferred =
+        alluxioConf.getBoolean(PropertyKey.USER_SHORT_CIRCUIT_PREFERRED);
+    boolean sourceSupportsDomainSocket = NettyUtils.isDomainSocketSupported(dataSource);
+    boolean sourceIsLocal = dataSourceType == BlockInStreamSource.NODE_LOCAL;
 
-    // Short circuit
-    if (sourceIsLocal && shortCircuit && !sourceSupportsDomainSocket) {
+    // Short circuit is enabled when
+    // 1. data source is local node
+    // 2. alluxio.user.short.circuit.enabled is true
+    // 3. the worker's domain socket is not configured
+    //      OR alluxio.user.short.circuit.preferred is true
+    if (sourceIsLocal && shortCircuit && (shortCircuitPreferred || !sourceSupportsDomainSocket)) {
       LOG.debug("Creating short circuit input stream for block {} @ {}", blockId, dataSource);
       try {
         return createLocalBlockInStream(context, dataSource, blockId, blockSize, options);
@@ -130,8 +137,30 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
     // gRPC
     LOG.debug("Creating gRPC input stream for block {} @ {} from client {} reading through {}",
         blockId, dataSource, NetworkAddressUtils.getClientHostName(alluxioConf), dataSource);
-    return createGrpcBlockInStream(context, dataSource, dataSourceType, builder.buildPartial(),
+    return createGrpcBlockInStream(context, dataSource, dataSourceType, blockId,
         blockSize, options);
+  }
+
+  /**
+   * Creates a {@link BlockInStream} to read from the worker process-local to this client
+   * directly without RPC involves, if the block does not exist in this worker, will read from
+   * the UFS storage via this worker.
+   *
+   * @param context the file system context
+   * @param address the network address of the gRPC data server to read from
+   * @param blockId the block ID
+   * @param length the block length
+   * @param options the in stream options
+   * @return the {@link BlockInStream} created
+   */
+  private static BlockInStream createProcessLocalBlockInStream(FileSystemContext context,
+      WorkerNetAddress address, long blockId, long length, InStreamOptions options) {
+    AlluxioConfiguration conf = context.getClusterConf();
+    long chunkSize = conf.getBytes(
+        PropertyKey.USER_LOCAL_READER_CHUNK_SIZE_BYTES);
+    return new BlockInStream(new BlockWorkerDataReader.Factory(
+        context.getProcessLocalWorker(), blockId, chunkSize, options),
+        conf, address, BlockInStreamSource.PROCESS_LOCAL, blockId, length);
   }
 
   /**
@@ -147,11 +176,12 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
   private static BlockInStream createLocalBlockInStream(FileSystemContext context,
       WorkerNetAddress address, long blockId, long length, InStreamOptions options)
       throws IOException {
-    long chunkSize = context.getClusterConf().getBytes(
+    AlluxioConfiguration conf = context.getClusterConf();
+    long chunkSize = conf.getBytes(
         PropertyKey.USER_LOCAL_READER_CHUNK_SIZE_BYTES);
     return new BlockInStream(
         new LocalFileDataReader.Factory(context, address, blockId, chunkSize, options),
-        address, BlockInStreamSource.LOCAL, blockId, length);
+        conf, address, BlockInStreamSource.NODE_LOCAL, blockId, length);
   }
 
   /**
@@ -161,20 +191,32 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
    * @param address the address of the gRPC data server
    * @param blockSource the source location of the block
    * @param blockSize the block size
-   * @param readRequestPartial the partial read request
+   * @param blockId the block id
    * @return the {@link BlockInStream} created
    */
   private static BlockInStream createGrpcBlockInStream(FileSystemContext context,
       WorkerNetAddress address, BlockInStreamSource blockSource,
-      ReadRequest readRequestPartial, long blockSize, InStreamOptions options) {
-    ReadRequest.Builder readRequestBuilder = readRequestPartial.toBuilder();
-    long chunkSize = context.getClusterConf().getBytes(
-        PropertyKey.USER_NETWORK_READER_CHUNK_SIZE_BYTES);
-    readRequestBuilder.setChunkSize(chunkSize);
-    DataReader.Factory factory =
-        new GrpcDataReader.Factory(context, address, readRequestBuilder.build());
-    return new BlockInStream(factory, address, blockSource, readRequestPartial.getBlockId(),
-        blockSize);
+      long blockId, long blockSize, InStreamOptions options) {
+    AlluxioConfiguration conf = context.getClusterConf();
+    long chunkSize = conf.getBytes(
+        PropertyKey.USER_STREAMING_READER_CHUNK_SIZE_BYTES);
+    // Construct the partial read request
+    ReadRequest.Builder builder = ReadRequest.newBuilder()
+        .setBlockId(blockId)
+        .setPromote(ReadType.fromProto(options.getOptions().getReadType()).isPromote())
+        .setOpenUfsBlockOptions(options.getOpenUfsBlockOptions(blockId)) // Add UFS fallback options
+        .setPositionShort(options.getPositionShort())
+        .setChunkSize(chunkSize);
+    DataReader.Factory factory;
+    if (context.getClusterConf().getBoolean(PropertyKey.FUSE_SHARED_CACHING_READER_ENABLED)
+        && blockSize > chunkSize * 4) {
+      // Heuristic to resolve issues/12146, guarded by alluxio.fuse.shared.caching.reader.enabled
+      // GrpcDataReader instances are shared across FileInStreams to mitigate seek cost
+      factory = new SharedGrpcDataReader.Factory(context, address, builder, blockSize);
+    } else {
+      factory = new GrpcDataReader.Factory(context, address, builder);
+    }
+    return new BlockInStream(factory, conf, address, blockSource, blockId, blockSize);
   }
 
   /**
@@ -193,27 +235,29 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
   public static BlockInStream createRemoteBlockInStream(FileSystemContext context, long blockId,
       WorkerNetAddress address, BlockInStreamSource blockSource, long blockSize,
       Protocol.OpenUfsBlockOptions ufsOptions) {
-    long chunkSize =
-        context.getClusterConf()
-            .getBytes(PropertyKey.USER_NETWORK_READER_CHUNK_SIZE_BYTES);
+    AlluxioConfiguration conf = context.getClusterConf();
+    long chunkSize = conf.getBytes(
+        PropertyKey.USER_STREAMING_READER_CHUNK_SIZE_BYTES);
     ReadRequest readRequest = ReadRequest.newBuilder().setBlockId(blockId)
         .setOpenUfsBlockOptions(ufsOptions).setChunkSize(chunkSize).buildPartial();
     DataReader.Factory factory = new GrpcDataReader.Factory(context, address,
-        readRequest.toBuilder().buildPartial());
-    return new BlockInStream(factory, address, blockSource, blockId, blockSize);
+        readRequest.toBuilder());
+    return new BlockInStream(factory, conf, address, blockSource, blockId, blockSize);
   }
 
   /**
    * Creates an instance of {@link BlockInStream}.
    *
    * @param dataReaderFactory the data reader factory
+   * @param conf the Alluxio configuration
    * @param address the address of the gRPC data server
    * @param blockSource the source location of the block
    * @param id the ID (either block ID or UFS file ID)
    * @param length the length
    */
-  protected BlockInStream(DataReader.Factory dataReaderFactory, WorkerNetAddress address,
-      BlockInStreamSource blockSource, long id, long length) {
+  @VisibleForTesting
+  protected BlockInStream(DataReader.Factory dataReaderFactory, AlluxioConfiguration conf,
+      WorkerNetAddress address, BlockInStreamSource blockSource, long id, long length) {
     mDataReaderFactory = dataReaderFactory;
     mAddress = address;
     mInStreamSource = blockSource;
@@ -243,14 +287,26 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
 
   @Override
   public int read(byte[] b, int off, int len) throws IOException {
-    checkIfClosed();
     Preconditions.checkArgument(b != null, PreconditionMessage.ERR_READ_BUFFER_NULL);
-    Preconditions.checkArgument(off >= 0 && len >= 0 && len + off <= b.length,
-        PreconditionMessage.ERR_BUFFER_STATE.toString(), b.length, off, len);
+    return read(ByteBuffer.wrap(b), off, len);
+  }
+
+  /**
+   * Reads up to len bytes of data from the input stream into the byte buffer.
+   *
+   * @param byteBuffer the buffer into which the data is read
+   * @param off the start offset in the buffer at which the data is written
+   * @param len the maximum number of bytes to read
+   * @return the total number of bytes read into the buffer, or -1 if there is no more data because
+   *         the end of the stream has been reached
+   */
+  public int read(ByteBuffer byteBuffer, int off, int len) throws IOException {
+    Preconditions.checkArgument(off >= 0 && len >= 0 && len + off <= byteBuffer.capacity(),
+        PreconditionMessage.ERR_BUFFER_STATE.toString(), byteBuffer.capacity(), off, len);
+    checkIfClosed();
     if (len == 0) {
       return 0;
     }
-
     readChunk();
     if (mCurrentChunk == null) {
       mEOF = true;
@@ -263,7 +319,8 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
       return -1;
     }
     int toRead = Math.min(len, mCurrentChunk.readableBytes());
-    mCurrentChunk.readBytes(b, off, toRead);
+    byteBuffer.position(off).limit(off + toRead);
+    mCurrentChunk.readBytes(byteBuffer);
     mPos += toRead;
     return toRead;
   }
@@ -321,11 +378,53 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
     if (pos == mPos) {
       return;
     }
+    // When alluxio.fuse.shared.caching.reader.enabled is on (to resolve issues/12146),
+    // use the heuristic to improve seek performance with fewer data reader close.
+    if (mDataReader instanceof SharedGrpcDataReader) {
+      seekForSharedGrpcDataReader(pos);
+      return;
+    }
     if (pos < mPos) {
       mEOF = false;
     }
-
     closeDataReader();
+    mPos = pos;
+  }
+
+  private void seekForSharedGrpcDataReader(long pos) throws IOException {
+    if (pos < mPos) {
+      mEOF = false;
+      // because the reader is shared, let's not close it but simply seek
+      ((SharedGrpcDataReader) mDataReader).seek(pos);
+      if (mCurrentChunk != null) {
+        mCurrentChunk.release();
+        mCurrentChunk = null;
+      }
+    } else {
+      // TODO(lu) combine the original seek logic and the following general improvements
+      // that are helpful in both fuse and non-fuse scenarios
+      // Try to read data already received but haven't processed
+      long curPos = mPos;
+      while (mCurrentChunk != null && curPos < pos) {
+        long nextPos = curPos + mCurrentChunk.readableBytes();
+        if (nextPos <= pos) {
+          curPos = nextPos;
+          mCurrentChunk.release();
+          mCurrentChunk = mDataReader.readChunk();
+        } else {
+          // TODO(chaowang) introduce seek in DataBuffer
+          int toRead = (int) (pos - curPos);
+          final byte[] b = new byte[toRead];
+          mCurrentChunk.readBytes(b, 0, toRead);
+          curPos = pos;
+        }
+      }
+
+      if (curPos < pos) {
+        // Not enough data in queue, close the data reader
+        closeDataReader();
+      }
+    }
     mPos = pos;
   }
 
@@ -345,6 +444,9 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
 
   @Override
   public void close() throws IOException {
+    if (mClosed) {
+      return;
+    }
     try {
       closeDataReader();
     } finally {

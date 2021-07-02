@@ -97,6 +97,19 @@ public final class MutableInodeDirectoryTest extends AbstractInodeTest {
   }
 
   /**
+   * Tests the last modification time is initially set to the creation time.
+   */
+  @Test
+  public void initialLastAccessTime() {
+    long lowerBoundMs = System.currentTimeMillis();
+    MutableInodeDirectory inodeDirectory = createInodeDirectory();
+    long upperBoundMs = System.currentTimeMillis();
+    long lastAccessTimeMs = inodeDirectory.getLastAccessTimeMs();
+    Assert.assertTrue(lowerBoundMs <= lastAccessTimeMs);
+    Assert.assertTrue(upperBoundMs >= lastAccessTimeMs);
+  }
+
+  /**
    * Tests the {@link MutableInodeDirectory#setLastModificationTimeMs(long)} method.
    */
   @Test
@@ -119,6 +132,30 @@ public final class MutableInodeDirectoryTest extends AbstractInodeTest {
     long invalidModificationTimeMs = lastModificationTimeMs - Constants.SECOND_MS;
     inodeDirectory.setLastModificationTimeMs(invalidModificationTimeMs);
     Assert.assertEquals(lastModificationTimeMs, inodeDirectory.getLastModificationTimeMs());
+  }
+
+  /**
+   * Tests the {@link MutableInodeDirectory#setLastAccessTimeMs(long, boolean)} method.
+   */
+  @Test
+  public void setLastAccessTime() {
+    MutableInodeDirectory inodeDirectory = createInodeDirectory();
+    long lastAccessTimeMs = inodeDirectory.getLastAccessTimeMs();
+    long newLastAccessTimeMs = lastAccessTimeMs + Constants.SECOND_MS;
+    inodeDirectory.setLastAccessTimeMs(newLastAccessTimeMs);
+    Assert.assertEquals(newLastAccessTimeMs, inodeDirectory.getLastAccessTimeMs());
+  }
+
+  /**
+   * Tests the {@link MutableInodeDirectory#setLastAccessTimeMs(long, boolean)} method.
+   */
+  @Test
+  public void setInvalidLastAccessTime() {
+    MutableInodeDirectory inodeDirectory = createInodeDirectory();
+    long lastAccessTimeMs = inodeDirectory.getLastAccessTimeMs();
+    long invalidAccessTimeMs = lastAccessTimeMs - Constants.SECOND_MS;
+    inodeDirectory.setLastAccessTimeMs(invalidAccessTimeMs);
+    Assert.assertEquals(lastAccessTimeMs, inodeDirectory.getLastAccessTimeMs());
   }
 
   /**

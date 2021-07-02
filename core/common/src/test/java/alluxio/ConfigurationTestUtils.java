@@ -58,7 +58,7 @@ public final class ConfigurationTestUtils {
 
     conf.put(PropertyKey.WORK_DIR, workDirectory);
     // Sets up the tiered store
-    conf.put(PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_ALIAS.format(0), "MEM");
+    conf.put(PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_ALIAS.format(0), Constants.MEDIUM_MEM);
     String ramdiskPath = PathUtils.concatPath(workDirectory, "ramdisk");
     conf.put(PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_DIRS_PATH.format(0), ramdiskPath);
 
@@ -75,6 +75,10 @@ public final class ConfigurationTestUtils {
       conf.put(PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_DIRS_PATH.format(level),
           Joiner.on(',').join(newPaths));
     }
+
+    // Sets up the block allocation and review policy
+    conf.put(PropertyKey.WORKER_REVIEWER_CLASS, "alluxio.worker.block.reviewer.AcceptingReviewer");
+
     // Sets up the journal folder
     conf.put(PropertyKey.MASTER_JOURNAL_TYPE, "UFS");
     conf.put(PropertyKey.MASTER_JOURNAL_FOLDER, PathUtils.concatPath(workDirectory, "journal"));
@@ -82,20 +86,23 @@ public final class ConfigurationTestUtils {
 
     conf.put(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT, "1KB");
     conf.put(PropertyKey.USER_BLOCK_REMOTE_READ_BUFFER_SIZE_BYTES, "64");
-    conf.put(PropertyKey.USER_NETWORK_READER_CHUNK_SIZE_BYTES, "64");
+    conf.put(PropertyKey.USER_STREAMING_READER_CHUNK_SIZE_BYTES, "64");
     conf.put(PropertyKey.MASTER_TTL_CHECKER_INTERVAL_MS, "1sec");
     conf.put(PropertyKey.MASTER_JOURNAL_FLUSH_TIMEOUT_MS, "1sec");
-    conf.put(PropertyKey.MASTER_GRPC_CHANNEL_AUTH_TIMEOUT, "2sec");
-    conf.put(PropertyKey.MASTER_GRPC_CHANNEL_SHUTDOWN_TIMEOUT, "3sec");
-    conf.put(PropertyKey.MASTER_GRPC_SERVER_SHUTDOWN_TIMEOUT, "10sec");
+    // This cannot be too short, since sometimes there are grpc channel startup delays, which
+    // affect authentication
+    conf.put(PropertyKey.NETWORK_CONNECTION_AUTH_TIMEOUT, "5sec");
+    conf.put(PropertyKey.NETWORK_CONNECTION_SHUTDOWN_GRACEFUL_TIMEOUT, "3sec");
+    conf.put(PropertyKey.NETWORK_CONNECTION_SERVER_SHUTDOWN_TIMEOUT, "10sec");
 
     // Shutdown journal tailer quickly. Graceful shutdown is unnecessarily slow.
     conf.put(PropertyKey.MASTER_JOURNAL_TAILER_SHUTDOWN_QUIET_WAIT_TIME_MS, "50ms");
     conf.put(PropertyKey.MASTER_JOURNAL_TAILER_SLEEP_TIME_MS, "10ms");
 
     // To keep tests fast, we should do more retries with a lower max wait time.
-    conf.put(PropertyKey.USER_RPC_RETRY_MAX_NUM_RETRY, "60");
-    conf.put(PropertyKey.USER_RPC_RETRY_MAX_SLEEP_MS, "500ms");
+    conf.put(PropertyKey.USER_RPC_RETRY_MAX_DURATION, "2s");
+    conf.put(PropertyKey.USER_RPC_RETRY_MAX_SLEEP_MS, "200");
+    conf.put(PropertyKey.USER_RPC_RETRY_BASE_SLEEP_MS, "20");
 
     // Do not engage safe mode by default since the worker is connected when test starts.
     conf.put(PropertyKey.MASTER_WORKER_CONNECT_WAIT_TIME, "0sec");
@@ -112,27 +119,41 @@ public final class ConfigurationTestUtils {
     conf.put(PropertyKey.WEB_THREADS, "1");
     conf.put(PropertyKey.WEB_RESOURCES,
         PathUtils.concatPath(System.getProperty("user.dir"), "../webui"));
-    conf.put(PropertyKey.WORKER_MEMORY_SIZE, "100MB");
+    conf.put(PropertyKey.WORKER_RAMDISK_SIZE, "100MB");
+    conf.put(PropertyKey.MASTER_LOST_WORKER_FILE_DETECTION_INTERVAL, "15ms");
+    conf.put(PropertyKey.MASTER_LOST_WORKER_DETECTION_INTERVAL, "15ms");
     conf.put(PropertyKey.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS, "15ms");
-    conf.put(PropertyKey.WORKER_BLOCK_THREADS_MIN, "1");
-    conf.put(PropertyKey.WORKER_BLOCK_THREADS_MAX, "2048");
     conf.put(PropertyKey.WORKER_NETWORK_NETTY_WORKER_THREADS, "2");
 
     // Shutdown data server quickly. Graceful shutdown is unnecessarily slow.
     conf.put(PropertyKey.WORKER_NETWORK_NETTY_SHUTDOWN_QUIET_PERIOD, "0ms");
     conf.put(PropertyKey.WORKER_NETWORK_SHUTDOWN_TIMEOUT, "0ms");
 
-    conf.put(PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_ALIAS.format(0), "MEM");
-    conf.put(PropertyKey.USER_RPC_RETRY_MAX_DURATION, "2s");
-    // Election timeout should be bigger than the default copycat heartbeat interval 250
+    conf.put(PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_ALIAS.format(0), Constants.MEDIUM_MEM);
+
     conf.put(PropertyKey.MASTER_EMBEDDED_JOURNAL_ELECTION_TIMEOUT, "260ms");
     conf.put(PropertyKey.MASTER_EMBEDDED_JOURNAL_HEARTBEAT_INTERVAL, "50ms");
     // Reset the value to avoid raft journal system complaining about log size < 65
     conf.put(PropertyKey.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX,
         PropertyKey.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX.getDefaultValue());
-    // For faster test shutdown
-    conf.put(PropertyKey.MASTER_EMBEDDED_JOURNAL_SHUTDOWN_TIMEOUT, "100ms");
     conf.put(PropertyKey.USER_WORKER_LIST_REFRESH_INTERVAL, "1s");
+
+    // faster persists
+    conf.put(PropertyKey.JOB_MASTER_WORKER_HEARTBEAT_INTERVAL, "20ms");
+    conf.put(PropertyKey.MASTER_PERSISTENCE_CHECKER_INTERVAL_MS, "20ms");
+    conf.put(PropertyKey.MASTER_PERSISTENCE_INITIAL_INTERVAL_MS, "20ms");
+    conf.put(PropertyKey.MASTER_PERSISTENCE_SCHEDULER_INTERVAL_MS, "20ms");
+
+    // faster refresh
+    conf.put(PropertyKey.MASTER_WORKER_INFO_CACHE_REFRESH_TIME, "20ms");
+
+    // faster I/O retries.
+    conf.put(PropertyKey.USER_BLOCK_READ_RETRY_SLEEP_MIN, "1ms");
+    conf.put(PropertyKey.USER_BLOCK_READ_RETRY_SLEEP_MIN, "5ms");
+    conf.put(PropertyKey.USER_BLOCK_READ_RETRY_MAX_DURATION, "10ms");
+
+    conf.put(PropertyKey.TEST_MODE, "true");
+
     return conf;
   }
 

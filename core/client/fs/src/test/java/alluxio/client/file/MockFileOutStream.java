@@ -11,9 +11,6 @@
 
 package alluxio.client.file;
 
-import alluxio.AlluxioURI;
-import alluxio.client.file.options.OutStreamOptions;
-
 import java.io.ByteArrayOutputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -29,8 +26,6 @@ public final class MockFileOutStream extends FileOutStream {
    * inspection during tests.
    */
   public MockFileOutStream(FileSystemContext fsContext) throws IOException {
-    super(new AlluxioURI("/"), OutStreamOptions.defaults(
-        fsContext.getPathConf(new AlluxioURI("/"))), fsContext);
     mStream = new ByteArrayOutputStream();
   }
 

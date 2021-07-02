@@ -16,18 +16,21 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import alluxio.AlluxioURI;
 import alluxio.ConfigurationRule;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
+import alluxio.grpc.BackupPStatus;
+import alluxio.grpc.BackupState;
 import alluxio.master.BackupManager;
+import alluxio.resource.CloseableResource;
 import alluxio.underfs.UfsFileStatus;
+import alluxio.underfs.UfsManager;
 import alluxio.underfs.UfsStatus;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.CommonUtils;
 import alluxio.util.executor.ControllableScheduler;
 import alluxio.util.io.PathUtils;
-import alluxio.wire.BackupResponse;
+import alluxio.wire.BackupStatus;
 
 import com.google.common.collect.ImmutableMap;
 import org.junit.Before;
@@ -39,6 +42,7 @@ import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.Random;
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -48,6 +52,8 @@ public class DailyMetadataBackupTest {
   private MetaMaster mMetaMaster;
   private ControllableScheduler mScheduler;
   private UnderFileSystem mUfs;
+  private UfsManager mUfsManager;
+  private UfsManager.UfsClient mUfsClient;
   private Random mRandom;
   private String mBackupDir;
 
@@ -57,12 +63,25 @@ public class DailyMetadataBackupTest {
     mBackupDir = "/tmp/test/alluxio_backups";
 
     mMetaMaster = Mockito.mock(MetaMaster.class);
-    when(mMetaMaster.backup(any())).thenReturn(new BackupResponse(new AlluxioURI(
-        PathUtils.concatPath(mBackupDir, generateBackupFileName())), "localhost"));
+    when(mMetaMaster.backup(any(), any()))
+        .thenReturn(BackupStatus.fromProto(BackupPStatus.newBuilder()
+            .setBackupId(UUID.randomUUID().toString()).setBackupState(BackupState.Completed)
+            .setBackupUri(PathUtils.concatPath(mBackupDir, generateBackupFileName()))
+            .setBackupHost("localhost").build()));
 
     mUfs = Mockito.mock(UnderFileSystem.class);
     when(mUfs.getUnderFSType()).thenReturn("local");
     when(mUfs.deleteFile(any())).thenReturn(true);
+
+    mUfsClient = Mockito.mock(UfsManager.UfsClient.class);
+    when(mUfsClient.acquireUfsResource()).thenReturn(new CloseableResource<UnderFileSystem>(mUfs) {
+      @Override
+      public void close() {
+        // Noop
+      }
+    });
+    mUfsManager = Mockito.mock(UfsManager.class);
+    when(mUfsManager.getRoot()).thenReturn(mUfsClient);
 
     mScheduler = new ControllableScheduler();
   }
@@ -76,25 +95,26 @@ public class DailyMetadataBackupTest {
             PropertyKey.MASTER_DAILY_BACKUP_ENABLED, "true",
             PropertyKey.MASTER_DAILY_BACKUP_FILES_RETAINED,
             String.valueOf(fileToRetain)), ServerConfiguration.global()).toResource()) {
-      DailyMetadataBackup dailyBackup = new DailyMetadataBackup(mMetaMaster, mScheduler, mUfs);
+      DailyMetadataBackup dailyBackup =
+          new DailyMetadataBackup(mMetaMaster, mScheduler, mUfsManager);
       dailyBackup.start();
 
       int backUpFileNum = 0;
       when(mUfs.listStatus(mBackupDir)).thenReturn(generateUfsStatuses(++backUpFileNum));
       mScheduler.jumpAndExecute(1, TimeUnit.DAYS);
-      verify(mMetaMaster, times(backUpFileNum)).backup(any());
+      verify(mMetaMaster, times(backUpFileNum)).backup(any(), any());
       int deleteFileNum = getNumOfDeleteFile(backUpFileNum, fileToRetain);
       verify(mUfs, times(deleteFileNum)).deleteFile(any());
 
       when(mUfs.listStatus(mBackupDir)).thenReturn(generateUfsStatuses(++backUpFileNum));
       mScheduler.jumpAndExecute(1, TimeUnit.DAYS);
-      verify(mMetaMaster, times(backUpFileNum)).backup(any());
+      verify(mMetaMaster, times(backUpFileNum)).backup(any(), any());
       deleteFileNum += getNumOfDeleteFile(backUpFileNum, fileToRetain);
       verify(mUfs, times(deleteFileNum)).deleteExistingFile(any());
 
       when(mUfs.listStatus(mBackupDir)).thenReturn(generateUfsStatuses(++backUpFileNum));
       mScheduler.jumpAndExecute(1, TimeUnit.DAYS);
-      verify(mMetaMaster, times(backUpFileNum)).backup(any());
+      verify(mMetaMaster, times(backUpFileNum)).backup(any(), any());
       deleteFileNum += getNumOfDeleteFile(backUpFileNum, fileToRetain);
       verify(mUfs, times(deleteFileNum)).deleteExistingFile(any());
     }
@@ -112,7 +132,7 @@ public class DailyMetadataBackupTest {
       statuses[i] = new UfsFileStatus(generateBackupFileName(),
           CommonUtils.randomAlphaNumString(10), mRandom.nextLong(), mRandom.nextLong(),
           CommonUtils.randomAlphaNumString(10), CommonUtils.randomAlphaNumString(10),
-          (short) mRandom.nextInt());
+          (short) mRandom.nextInt(), mRandom.nextLong());
     }
     return statuses;
   }

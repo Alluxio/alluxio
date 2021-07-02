@@ -13,9 +13,10 @@ package alluxio.client.block.policy;
 
 import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.block.policy.options.GetWorkerOptions;
+import alluxio.client.block.util.BlockLocationUtils;
+import alluxio.collections.Pair;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.network.TieredIdentityFactory;
-import alluxio.util.TieredIdentityUtils;
 import alluxio.wire.TieredIdentity;
 import alluxio.wire.WorkerNetAddress;
 
@@ -31,8 +32,14 @@ import java.util.stream.Collectors;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * A policy that returns local host first, and if the local worker doesn't have enough availability,
- * it randomly picks a worker from the active workers list for each block write.
+ * A policy that returns the local worker first, and if the local worker doesn't
+ * exist or have enough availability, will select the nearest worker from the active
+ * workers list with sufficient availability.
+ *
+ * The definition of 'nearest worker' is based on {@link alluxio.wire.TieredIdentity}.
+ * @see alluxio.wire.TieredIdentityUtils#nearest()
+ *
+ * The calculation of which worker gets selected is done for each block write.
  */
 @ThreadSafe
 public final class LocalFirstPolicy implements BlockLocationPolicy {
@@ -68,21 +75,17 @@ public final class LocalFirstPolicy implements BlockLocationPolicy {
         .filter(worker -> worker.getCapacityBytes() >= options.getBlockInfo().getLength())
         .collect(Collectors.toList());
 
-    // Try finding a worker based on nearest tiered identity.
-    List<TieredIdentity> identities = candidateWorkers.stream()
-        .map(worker -> worker.getNetAddress().getTieredIdentity())
+    // Try finding the nearest worker.
+    List<WorkerNetAddress> addresses = candidateWorkers.stream()
+        .map(worker -> worker.getNetAddress())
         .filter(Objects::nonNull)
         .collect(Collectors.toList());
-    Optional<TieredIdentity> nearest = TieredIdentityUtils.nearest(mTieredIdentity, identities,
-        mConf);
+    Optional<Pair<WorkerNetAddress, Boolean>> nearest =
+        BlockLocationUtils.nearest(mTieredIdentity, addresses, mConf);
     if (!nearest.isPresent()) {
       return null;
     }
-    // Map back to the worker with the nearest tiered identity.
-    return candidateWorkers.stream()
-        .filter(worker -> worker.getNetAddress().getTieredIdentity().equals(nearest.get()))
-        .map(BlockWorkerInfo::getNetAddress)
-        .findFirst().orElse(null);
+    return nearest.get().getFirst();
   }
 
   @Override

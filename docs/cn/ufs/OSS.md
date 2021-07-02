@@ -1,9 +1,9 @@
 ---
 layout: global
-title: 在OSS上配置Alluxio
-nickname: Alluxio使用OSS
-group: Under Stores
-priority: 4
+title: Alluxio集成OSS作为底层存储
+nickname: Alluxio集成OSS作为底层存储
+group: Storage Integrations
+priority: 5
 ---
 
 * 内容列表
@@ -40,15 +40,15 @@ fs.oss.endpoint=<OSS_ENDPOINT>
 此处, `fs.oss.accessKeyId `和`fs.oss.accessKeySecret`分别为`Access Key ID`字符串和`Access Key Secret`字符串，均受阿里云[AccessKeys管理界面](https://ak-console.aliyun.com)管理；`fs.oss.endpoint`是Bucket概述中所说的Bucket的endpoint，其可能的取值比如`oss-us-west-1.aliyuncs.com `，`oss-cn-shanghai.aliyuncs.com`。
 ([OSS Internet Endpoint](https://intl.aliyun.com/help/doc-detail/31837.htm))。
 
-更改完成后，Alluxio应该能够将OSS作为底层文件系统运行，你可以尝试[使用OSS在本地运行Alluxio](#running-alluxio-locally-with-s3)
+更改完成后，Alluxio应该能够将OSS作为底层文件系统运行，你可以尝试[使用OSS在本地运行Alluxio](#使用OSS在本地运行Alluxio)
 
 ### 嵌套目录安装
 
 OSS可以安装在Alluxio命名空间中的嵌套目录中，以统一访问多个存储系统。 
-[Mount 命令](Command-Line-Interface.html#mount)可以实现这一目的。例如，下面的命令将OSS容器内部的目录挂载到Alluxio的`/oss`目录
+[Mount 命令]({{ '/cn/operation/User-CLI.html' | relativize_url }}#mount)可以实现这一目的。例如，下面的命令将OSS容器内部的目录挂载到Alluxio的`/oss`目录
 
-```bash 
-./bin/alluxio fs mount --option fs.oss.accessKeyId=<OSS_ACCESS_KEY_ID> \
+```console 
+$ ./bin/alluxio fs mount --option fs.oss.accessKeyId=<OSS_ACCESS_KEY_ID> \
   --option fs.oss.accessKeySecret=<OSS_ACCESS_KEY_SECRET> \
   --option fs.oss.endpoint=<OSS_ENDPOINT> \
   /oss oss://<OSS_BUCKET>/<OSS_DIRECTORY>/
@@ -58,24 +58,24 @@ OSS可以安装在Alluxio命名空间中的嵌套目录中，以统一访问多�
 
 配置完成后，你可以在本地启动Alluxio，观察一切是否正常运行：
 
-```bash
-./bin/alluxio format
-./bin/alluxio-start.sh local
+```console
+$ ./bin/alluxio format
+$ ./bin/alluxio-start.sh local
 ```
 
 该命令应当会启动一个Alluxio master和一个Alluxio worker，可以在浏览器中访问[http://localhost:19999](http://localhost:19999)查看master UI。
 
 接着，你可以运行一个简单的示例程序：
 
-```bash
-./bin/alluxio runTests
+```console
+$ ./bin/alluxio runTests
 ```
 
 运行成功后，访问你的OSS目录`oss://<OSS_BUCKET>/<OSS_DIRECTORY>`，确认其中包含了由Alluxio创建的文件和目录。在该测试中，创建的文件名称应像`OSS_BUCKET/OSS_DIRECTORY/default_tests_files/BasicFile_CACHE_PROMOTE_MUST_CACHE`这样。。
 
 运行以下命令停止Alluxio：
 
-```bash
-./bin/alluxio-stop.sh local
+```console
+$ ./bin/alluxio-stop.sh local
 ```
 

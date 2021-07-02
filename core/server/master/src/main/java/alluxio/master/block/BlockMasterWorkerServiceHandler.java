@@ -21,12 +21,14 @@ import alluxio.grpc.CommitBlockPRequest;
 import alluxio.grpc.CommitBlockPResponse;
 import alluxio.grpc.GetWorkerIdPRequest;
 import alluxio.grpc.GetWorkerIdPResponse;
+import alluxio.grpc.GrpcUtils;
+import alluxio.grpc.LocationBlockIdListEntry;
 import alluxio.grpc.RegisterWorkerPOptions;
 import alluxio.grpc.RegisterWorkerPRequest;
 import alluxio.grpc.RegisterWorkerPResponse;
 import alluxio.grpc.StorageList;
 import alluxio.metrics.Metric;
-import alluxio.grpc.GrpcUtils;
+import alluxio.proto.meta.Block;
 
 import com.google.common.base.Preconditions;
 import io.grpc.stub.StreamObserver;
@@ -40,8 +42,8 @@ import java.util.stream.Collectors;
 /**
  * This class is a gRPC handler for block master RPCs invoked by an Alluxio worker.
  */
-public final class BlockMasterWorkerServiceHandler
-    extends BlockMasterWorkerServiceGrpc.BlockMasterWorkerServiceImplBase {
+public final class BlockMasterWorkerServiceHandler extends
+    BlockMasterWorkerServiceGrpc.BlockMasterWorkerServiceImplBase {
   private static final Logger LOG = LoggerFactory.getLogger(BlockMasterWorkerServiceHandler.class);
 
   private final BlockMaster mBlockMaster;
@@ -59,6 +61,12 @@ public final class BlockMasterWorkerServiceHandler
   @Override
   public void blockHeartbeat(BlockHeartbeatPRequest request,
       StreamObserver<BlockHeartbeatPResponse> responseObserver) {
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("Block heartbeat request is {} bytes, {} added blocks and {} removed blocks",
+              request.getSerializedSize(),
+              request.getAddedBlocksCount(),
+              request.getRemovedBlockIdsCount());
+    }
 
     final long workerId = request.getWorkerId();
     final Map<String, Long> capacityBytesOnTiers =
@@ -67,16 +75,15 @@ public final class BlockMasterWorkerServiceHandler
     final List<Long> removedBlockIds = request.getRemovedBlockIdsList();
     final Map<String, StorageList> lostStorageMap = request.getLostStorageMap();
 
-    final Map<String, List<Long>> addedBlocksOnTiersMap = request.getAddedBlocksOnTiersMap()
-        .entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey,
-            e -> e.getValue().getTiersList()));
+    final Map<Block.BlockLocation, List<Long>> addedBlocksMap =
+        reconstructBlocksOnLocationMap(request.getAddedBlocksList(), workerId);
 
     final List<Metric> metrics = request.getOptions().getMetricsList()
         .stream().map(Metric::fromProto).collect(Collectors.toList());
 
     RpcUtils.call(LOG, (RpcUtils.RpcCallableThrowsIOException<BlockHeartbeatPResponse>) () ->
         BlockHeartbeatPResponse.newBuilder().setCommand(mBlockMaster.workerHeartbeat(workerId,
-          capacityBytesOnTiers, usedBytesOnTiers, removedBlockIds, addedBlocksOnTiersMap,
+          capacityBytesOnTiers, usedBytesOnTiers, removedBlockIds, addedBlocksMap,
             lostStorageMap, metrics)).build(),
         "blockHeartbeat", "request=%s", responseObserver, request);
   }
@@ -89,10 +96,12 @@ public final class BlockMasterWorkerServiceHandler
     final long usedBytesOnTier = request.getUsedBytesOnTier();
     final String tierAlias = request.getTierAlias();
     final long blockId = request.getBlockId();
+    final String mediumType = request.getMediumType();
     final long length = request.getLength();
 
     RpcUtils.call(LOG, (RpcUtils.RpcCallableThrowsIOException<CommitBlockPResponse>) () -> {
-      mBlockMaster.commitBlock(workerId, usedBytesOnTier, tierAlias, blockId, length);
+      mBlockMaster.commitBlock(workerId, usedBytesOnTier, tierAlias,
+          mediumType, blockId, length);
       return CommitBlockPResponse.getDefaultInstance();
     }, "commitBlock", "request=%s", responseObserver, request);
   }
@@ -121,22 +130,54 @@ public final class BlockMasterWorkerServiceHandler
   @Override
   public void registerWorker(RegisterWorkerPRequest request,
       StreamObserver<RegisterWorkerPResponse> responseObserver) {
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("Register worker request is {} bytes, containing {} blocks",
+              request.getSerializedSize(),
+              request.getCurrentBlocksCount());
+    }
+
     final long workerId = request.getWorkerId();
     final List<String> storageTiers = request.getStorageTiersList();
     final Map<String, Long> totalBytesOnTiers = request.getTotalBytesOnTiersMap();
     final Map<String, Long> usedBytesOnTiers = request.getUsedBytesOnTiersMap();
     final Map<String, StorageList> lostStorageMap = request.getLostStorageMap();
 
-    final Map<String, List<Long>> currentBlocksOnTiersMap = request.getCurrentBlocksOnTiersMap()
-        .entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey,
-            e -> e.getValue().getTiersList()));
+    final Map<Block.BlockLocation, List<Long>> currBlocksOnLocationMap =
+        reconstructBlocksOnLocationMap(request.getCurrentBlocksList(), workerId);
 
     RegisterWorkerPOptions options = request.getOptions();
     RpcUtils.call(LOG,
         (RpcUtils.RpcCallableThrowsIOException<RegisterWorkerPResponse>) () -> {
           mBlockMaster.workerRegister(workerId, storageTiers, totalBytesOnTiers, usedBytesOnTiers,
-              currentBlocksOnTiersMap, lostStorageMap, options);
+              currBlocksOnLocationMap, lostStorageMap, options);
           return RegisterWorkerPResponse.getDefaultInstance();
         }, "registerWorker", "request=%s", responseObserver, request);
+  }
+
+  /**
+   * This converts the flattened list of block locations back to a map.
+   * This relies on the unique guarantee from the worker-side serialization.
+   * If a duplicated key is seen, an AssertionError will be thrown.
+   * The key is {@link Block.BlockLocation}, where the hash code is determined by
+   * tier alias and medium type.
+   * */
+  private Map<Block.BlockLocation, List<Long>> reconstructBlocksOnLocationMap(
+          List<LocationBlockIdListEntry> entries, long workerId) {
+    return entries.stream().collect(
+        Collectors.toMap(
+            e -> Block.BlockLocation.newBuilder().setTier(e.getKey().getTierAlias())
+                .setMediumType(e.getKey().getMediumType()).setWorkerId(workerId).build(),
+            e -> e.getValue().getBlockIdList(),
+            /**
+             * The merger function is invoked on key collisions to merge the values.
+             * In fact this merger should never be invoked because the list is deduplicated
+             * by {@link BlockMasterClient#heartbeat} before sending to the master.
+             * Therefore we just fail on merging.
+             */
+            (e1, e2) -> {
+              throw new AssertionError(
+                String.format("Request contains two block id lists for the "
+                  + "same BlockLocation.%nExisting: %s%n New: %s", e1, e2));
+            }));
   }
 }

@@ -57,10 +57,14 @@ public class SpecificTierWriteIntegrationTest extends BaseIntegrationTest {
       new LocalAlluxioClusterResource.Builder()
           .setProperty(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT, BLOCK_SIZE_BYTES)
           .setProperty(PropertyKey.USER_FILE_BUFFER_BYTES, BLOCK_SIZE_BYTES)
-          .setProperty(PropertyKey.WORKER_MEMORY_SIZE, CAPACITY_BYTES)
+          .setProperty(PropertyKey.WORKER_RAMDISK_SIZE, CAPACITY_BYTES)
+          .setProperty(PropertyKey.WORKER_MANAGEMENT_TIER_PROMOTE_ENABLED, "false")
+          .setProperty(PropertyKey.WORKER_MANAGEMENT_TIER_ALIGN_ENABLED, "false")
           .setProperty(PropertyKey.WORKER_TIERED_STORE_LEVELS, "3")
-          .setProperty(PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_ALIAS.format(1), "SSD")
-          .setProperty(PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_ALIAS.format(2), "HDD")
+          .setProperty(PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_ALIAS
+              .format(1), Constants.MEDIUM_SSD)
+          .setProperty(PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_ALIAS
+              .format(2), Constants.MEDIUM_HDD)
           .setProperty(PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_DIRS_PATH.format(0),
               Files.createTempDir().getAbsolutePath())
           .setProperty(PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_DIRS_PATH.format(1),
@@ -79,6 +83,8 @@ public class SpecificTierWriteIntegrationTest extends BaseIntegrationTest {
               LOW_WATERMARK)
           .setProperty(PropertyKey.USER_BLOCK_WRITE_LOCATION_POLICY,
               LocalFirstPolicy.class.getTypeName())
+          .setProperty(PropertyKey.WORKER_REVIEWER_CLASS,
+              "alluxio.worker.block.reviewer.AcceptingReviewer")
           .build();
 
   @ClassRule
@@ -109,27 +115,44 @@ public class SpecificTierWriteIntegrationTest extends BaseIntegrationTest {
    */
   private void writeFileAndCheckUsage(int writeTier, long memBytes, long ssdBytes, long hddBytes)
       throws Exception {
+    writeFileAndCheckUsage(writeTier, FILE_SIZE, memBytes, ssdBytes, hddBytes);
+  }
+
+  /**
+   * Writes a file into a specified tier, and then verifies the expected bytes on each tier.
+   *
+   * @param writeTier the specific tier to write the file to
+   * @param writeSize number of bytes to write
+   * @param memBytes the expected number of bytes used in the MEM tier
+   * @param ssdBytes the expected number of bytes used in the SSD tier
+   * @param hddBytes the expected number of bytes used in the HDD tier
+   */
+  private void writeFileAndCheckUsage(int writeTier, int writeSize, long memBytes, long ssdBytes,
+      long hddBytes) throws Exception {
     CreateFilePOptions createOptions = CreateFilePOptions.newBuilder().setWriteTier(writeTier)
-        .setWriteType(WritePType.MUST_CACHE).build();
+            .setWriteType(WritePType.MUST_CACHE).build();
     FileOutStream os = mFileSystem.createFile(
-        new AlluxioURI("/tier-" + writeTier + "_" + CommonUtils.randomAlphaNumString(5)),
-        createOptions);
-    os.write(BufferUtils.getIncreasingByteArray(FILE_SIZE));
+            new AlluxioURI("/tier-" + writeTier + "_" + CommonUtils.randomAlphaNumString(5)),
+            createOptions);
+    os.write(BufferUtils.getIncreasingByteArray(writeSize));
     os.close();
 
     HeartbeatScheduler.execute(HeartbeatContext.WORKER_BLOCK_SYNC);
 
     long totalBytes = memBytes + ssdBytes + hddBytes;
     Assert.assertEquals("Total bytes used", totalBytes,
-        mLocalAlluxioClusterResource.get().getLocalAlluxioMaster().getMasterProcess()
-            .getMaster(BlockMaster.class).getUsedBytes());
+            mLocalAlluxioClusterResource.get().getLocalAlluxioMaster().getMasterProcess()
+                    .getMaster(BlockMaster.class).getUsedBytes());
 
     Map<String, Long> bytesOnTiers =
-        mLocalAlluxioClusterResource.get().getLocalAlluxioMaster().getMasterProcess()
-            .getMaster(BlockMaster.class).getUsedBytesOnTiers();
-    Assert.assertEquals("MEM tier usage", memBytes, bytesOnTiers.get("MEM").longValue());
-    Assert.assertEquals("SSD tier usage", ssdBytes, bytesOnTiers.get("SSD").longValue());
-    Assert.assertEquals("HDD tier usage", hddBytes, bytesOnTiers.get("HDD").longValue());
+            mLocalAlluxioClusterResource.get().getLocalAlluxioMaster().getMasterProcess()
+                    .getMaster(BlockMaster.class).getUsedBytesOnTiers();
+    Assert.assertEquals("MEM tier usage", memBytes,
+        bytesOnTiers.get(Constants.MEDIUM_MEM).longValue());
+    Assert.assertEquals("SSD tier usage", ssdBytes,
+        bytesOnTiers.get(Constants.MEDIUM_SSD).longValue());
+    Assert.assertEquals("HDD tier usage",
+        hddBytes, bytesOnTiers.get(Constants.MEDIUM_HDD).longValue());
   }
 
   private void deleteAllFiles() throws Exception {
@@ -189,56 +212,22 @@ public class SpecificTierWriteIntegrationTest extends BaseIntegrationTest {
   }
 
   @Test
-  public void topTierWriteWithEviction() throws Exception {
-    // Free space in first tier is based off the low watermark after async eviction
-    long unreservedTier1 = Math.round(CAPACITY_BYTES * LOW_WATERMARK);
-    for (int i = 0; i < FILES_PER_TIER; i++) {
-      writeFileAndCheckUsage(0, (i + 1) * FILE_SIZE, 0, 0);
-    }
-    HeartbeatScheduler.schedule(HeartbeatContext.WORKER_SPACE_RESERVER);
-    writeFileAndCheckUsage(0, FILE_SIZE + unreservedTier1, CAPACITY_BYTES - unreservedTier1, 0);
+  public void spillingWrite() throws Exception {
+    // Keep writing to the top tier at tier capacity.
+    // Writes should be spilled to the lower tiers.
+    // Then keep writing. New writes should succeeded and worker remain at full capacity.
+    writeFileAndCheckUsage(0, CAPACITY_BYTES, CAPACITY_BYTES, 0, 0);
+    writeFileAndCheckUsage(0, CAPACITY_BYTES, CAPACITY_BYTES, CAPACITY_BYTES, 0);
+    writeFileAndCheckUsage(0, CAPACITY_BYTES, CAPACITY_BYTES, CAPACITY_BYTES, CAPACITY_BYTES);
+    // Overwrite.
+    writeFileAndCheckUsage(0, CAPACITY_BYTES, CAPACITY_BYTES, CAPACITY_BYTES, CAPACITY_BYTES);
+    deleteAllFiles();
   }
 
+  @LocalAlluxioClusterResource.Config(confParams = {PropertyKey.Name.WORKER_EVICTOR_CLASS,
+      "alluxio.worker.block.evictor.LRUEvictor"})
   @Test
-  public void midTierWriteWithEviction() throws Exception {
-    // Free space in second tier will be low watermark + data reserved in the first tier
-    // This is because we evict in anticipation of data coming from the first tier
-    long reservedTier1 = Math.round(CAPACITY_BYTES * (1 - LOW_WATERMARK));
-    long unreservedTier2 = Math.round(CAPACITY_BYTES * LOW_WATERMARK) - reservedTier1;
-    for (int i = 0; i < FILES_PER_TIER; i++) {
-      writeFileAndCheckUsage(1, 0, (i + 1) * FILE_SIZE, 0);
-    }
-    HeartbeatScheduler.schedule(HeartbeatContext.WORKER_SPACE_RESERVER);
-    writeFileAndCheckUsage(1, 0, unreservedTier2 + FILE_SIZE, CAPACITY_BYTES - unreservedTier2);
-  }
-
-  @Test
-  public void bottomTierWriteWithEviction() throws Exception {
-    // Free space in third tier will be low watermark + data reserved in the first two tiers
-    // This is because we evict in anticipation of data coming from the first and second tiers
-    long reservedTier1 = Math.round(CAPACITY_BYTES * (1 - LOW_WATERMARK));
-    long reservedTier2 = Math.round(CAPACITY_BYTES * (1 - LOW_WATERMARK));
-    long unreservedTier3 =
-        Math.round(CAPACITY_BYTES * LOW_WATERMARK) - reservedTier1 - reservedTier2;
-    for (int i = 0; i < FILES_PER_TIER; i++) {
-      writeFileAndCheckUsage(2, 0, 0, (i + 1) * FILE_SIZE);
-    }
-    HeartbeatScheduler.schedule(HeartbeatContext.WORKER_SPACE_RESERVER);
-    writeFileAndCheckUsage(2, 0, 0, unreservedTier3 + FILE_SIZE);
-  }
-
-  @Test
-  public void allTierWriteWithEviction() throws Exception {
-    // All tiers have data so the evictor will evict till low watermark for all tiers
-    long unreservedTier1 = Math.round(CAPACITY_BYTES * LOW_WATERMARK);
-    long unreservedTier2 = Math.round(CAPACITY_BYTES * LOW_WATERMARK);
-    long unreservedTier3 = Math.round(CAPACITY_BYTES * LOW_WATERMARK);
-    for (int i = 0; i < FILES_PER_TIER; i++) {
-      writeFileAndCheckUsage(0, (i + 1) * FILE_SIZE, i * FILE_SIZE, i * FILE_SIZE);
-      writeFileAndCheckUsage(1, (i + 1) * FILE_SIZE, (i + 1) * FILE_SIZE, i * FILE_SIZE);
-      writeFileAndCheckUsage(2, (i + 1) * FILE_SIZE, (i + 1) * FILE_SIZE, (i + 1) * FILE_SIZE);
-    }
-    HeartbeatScheduler.schedule(HeartbeatContext.WORKER_SPACE_RESERVER);
-    writeFileAndCheckUsage(0, unreservedTier1 + FILE_SIZE, unreservedTier2, unreservedTier3);
+  public void spillingWriteWithEmulation() throws Exception {
+    spillingWrite();
   }
 }

@@ -10,18 +10,18 @@
  */
 
 import axios from 'axios';
-import {all, fork, takeLatest} from 'redux-saga/effects';
+import { all, AllEffect, fork, ForkEffect, takeLatest } from 'redux-saga/effects';
 
-import {getSagaRequest} from '@alluxio/common-ui/src/utilities';
-import {fetchError, fetchSuccess} from './actions';
-import {WorkersActionTypes} from './types';
+import { getSagaRequest } from '@alluxio/common-ui/src/utilities';
+import { fetchError, fetchSuccess } from './actions';
+import { WorkersActionTypes } from './types';
 
 const API_ENDPOINT = `${process.env.REACT_APP_API_ROOT}/webui_workers`;
 
-const watchRequest = function* () {
+const watchRequest = function*(): IterableIterator<ForkEffect> {
   yield takeLatest(WorkersActionTypes.FETCH_REQUEST, getSagaRequest(axios.get, API_ENDPOINT, fetchSuccess, fetchError));
 };
 
-export const workersSaga = function* () {
+export const workersSaga = function*(): IterableIterator<AllEffect<ForkEffect>> {
   yield all([fork(watchRequest)]);
 };

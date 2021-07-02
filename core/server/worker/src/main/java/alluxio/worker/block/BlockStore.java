@@ -15,13 +15,14 @@ import alluxio.exception.BlockAlreadyExistsException;
 import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.InvalidWorkerStateException;
 import alluxio.exception.WorkerOutOfSpaceException;
+import alluxio.exception.status.DeadlineExceededException;
 import alluxio.worker.SessionCleanable;
-import alluxio.worker.block.evictor.EvictionPlan;
 import alluxio.worker.block.io.BlockReader;
 import alluxio.worker.block.io.BlockWriter;
 import alluxio.worker.block.meta.BlockMeta;
 import alluxio.worker.block.meta.TempBlockMeta;
 
+import java.io.Closeable;
 import java.io.IOException;
 import java.util.Set;
 
@@ -31,7 +32,7 @@ import javax.annotation.Nullable;
  * A blob store interface to represent the local storage managing and serving all the blocks in the
  * local storage.
  */
-public interface BlockStore extends SessionCleanable {
+public interface BlockStore extends SessionCleanable, Closeable {
 
   /**
    * Locks an existing block and guards subsequent reads on this block.
@@ -45,12 +46,12 @@ public interface BlockStore extends SessionCleanable {
 
   /**
    * Locks an existing block and guards subsequent reads on this block. If the lock fails, return
-   * {@link BlockLockManager#INVALID_LOCK_ID}.
+   * {@link BlockWorker#INVALID_LOCK_ID}.
    *
    * @param sessionId the id of the session to lock this block
    * @param blockId the id of the block to lock
    * @return the lock id (non-negative) that uniquely identifies the lock obtained or
-   *         {@link BlockLockManager#INVALID_LOCK_ID} if it failed to lock
+   *         {@link BlockWorker#INVALID_LOCK_ID} if it failed to lock
    */
   long lockBlockNoException(long sessionId, long blockId);
 
@@ -77,23 +78,22 @@ public interface BlockStore extends SessionCleanable {
    * location named after session id) to store its data. The location can be a location with
    * specific tier and dir, or {@link BlockStoreLocation#anyTier()}, or
    * {@link BlockStoreLocation#anyDirInTier(String)}.
+   *
    * <p>
    * Before commit, all the data written to this block will be stored in the temp path and the block
    * is only "visible" to its writer client.
    *
    * @param sessionId the id of the session
    * @param blockId the id of the block to create
-   * @param location location to create this block
-   * @param initialBlockSize initial size of this block in bytes
+   * @param options allocation options
    * @return metadata of the temp block created
    * @throws IllegalArgumentException if location does not belong to tiered storage
    * @throws BlockAlreadyExistsException if block id already exists, either temporary or committed,
    *         or block in eviction plan already exists
    * @throws WorkerOutOfSpaceException if this Store has no more space than the initialBlockSize
    */
-  TempBlockMeta createBlock(long sessionId, long blockId, BlockStoreLocation location,
-      long initialBlockSize) throws BlockAlreadyExistsException, WorkerOutOfSpaceException,
-      IOException;
+  TempBlockMeta createBlock(long sessionId, long blockId, AllocateOptions options)
+      throws BlockAlreadyExistsException, WorkerOutOfSpaceException, IOException;
 
   /**
    * Gets the metadata of a block given its block id or throws {@link BlockDoesNotExistException}.
@@ -141,14 +141,32 @@ public interface BlockStore extends SessionCleanable {
    *
    * @param sessionId the id of the session
    * @param blockId the id of a temp block
+   * @param pinOnCreate whether to pin block on create
    * @throws BlockAlreadyExistsException if block id already exists in committed blocks
    * @throws BlockDoesNotExistException if the temporary block can not be found
    * @throws InvalidWorkerStateException if block id does not belong to session id
    * @throws WorkerOutOfSpaceException if there is no more space left to hold the block
    */
-  void commitBlock(long sessionId, long blockId) throws BlockAlreadyExistsException,
-      BlockDoesNotExistException, InvalidWorkerStateException, IOException,
-      WorkerOutOfSpaceException;
+  void commitBlock(long sessionId, long blockId, boolean pinOnCreate)
+      throws BlockAlreadyExistsException, BlockDoesNotExistException, InvalidWorkerStateException,
+      IOException, WorkerOutOfSpaceException;
+
+  /**
+   * Similar to {@link #commitBlock(long, long, boolean)}. It returns the block locked,
+   * so the caller is required to explicitly unlock the block.
+   *
+   * @param sessionId the id of the session
+   * @param blockId the id of a temp block
+   * @param pinOnCreate whether to pin block on create
+   * @return the lock id
+   * @throws BlockAlreadyExistsException if block id already exists in committed blocks
+   * @throws BlockDoesNotExistException if the temporary block can not be found
+   * @throws InvalidWorkerStateException if block id does not belong to session id
+   * @throws WorkerOutOfSpaceException if there is no more space left to hold the block
+   */
+  long commitBlockLocked(long sessionId, long blockId, boolean pinOnCreate)
+      throws BlockAlreadyExistsException, BlockDoesNotExistException, InvalidWorkerStateException,
+      IOException, WorkerOutOfSpaceException;
 
   /**
    * Aborts a temporary block. The metadata of this block will not be added, its data will be
@@ -215,7 +233,7 @@ public interface BlockStore extends SessionCleanable {
    *
    * @param sessionId the id of the session to move a block
    * @param blockId the id of an existing block
-   * @param newLocation the location of the destination
+   * @param moveOptions the options for move
    * @throws IllegalArgumentException if newLocation does not belong to the tiered storage
    * @throws BlockDoesNotExistException if block id can not be found
    * @throws BlockAlreadyExistsException if block id already exists in committed blocks of the
@@ -224,7 +242,7 @@ public interface BlockStore extends SessionCleanable {
    * @throws WorkerOutOfSpaceException if newLocation does not have enough extra space to hold the
    *         block
    */
-  void moveBlock(long sessionId, long blockId, BlockStoreLocation newLocation)
+  void moveBlock(long sessionId, long blockId, AllocateOptions moveOptions)
       throws BlockDoesNotExistException, BlockAlreadyExistsException, InvalidWorkerStateException,
       WorkerOutOfSpaceException, IOException;
 
@@ -234,7 +252,7 @@ public interface BlockStore extends SessionCleanable {
    * @param sessionId the id of the session to remove a block
    * @param blockId the id of an existing block
    * @param oldLocation the location of the source
-   * @param newLocation the location of the destination
+   * @param moveOptions the options for move
    * @throws IllegalArgumentException if newLocation does not belong to the tiered storage
    * @throws BlockDoesNotExistException if block id can not be found
    * @throws BlockAlreadyExistsException if block id already exists in committed blocks of the
@@ -244,7 +262,7 @@ public interface BlockStore extends SessionCleanable {
    *         block
    */
   void moveBlock(long sessionId, long blockId, BlockStoreLocation oldLocation,
-      BlockStoreLocation newLocation) throws BlockDoesNotExistException,
+      AllocateOptions moveOptions) throws BlockDoesNotExistException,
       BlockAlreadyExistsException, InvalidWorkerStateException, WorkerOutOfSpaceException,
       IOException;
 
@@ -267,9 +285,11 @@ public interface BlockStore extends SessionCleanable {
    * @param location the location of the block
    * @throws InvalidWorkerStateException if block id has not been committed
    * @throws BlockDoesNotExistException if block can not be found
+   * @throws DeadlineExceededException if locking takes longer than timeout
    */
   void removeBlock(long sessionId, long blockId, BlockStoreLocation location)
-      throws InvalidWorkerStateException, BlockDoesNotExistException, IOException;
+      throws InvalidWorkerStateException, BlockDoesNotExistException, DeadlineExceededException,
+      IOException;
 
   /**
    * Notifies the block store that a block was accessed so the block store could update accordingly
@@ -315,18 +335,6 @@ public interface BlockStore extends SessionCleanable {
    */
   @Override
   void cleanupSession(long sessionId);
-
-  /**
-   * Frees space to make a specific amount of bytes available in a best-effort way in the location.
-   *
-   * @param sessionId the session id
-   * @param availableBytes the amount of free space in bytes
-   * @param location the location to free space
-   * @throws WorkerOutOfSpaceException if there is not enough space
-   * @throws BlockDoesNotExistException if blocks in {@link EvictionPlan} can not be found
-   */
-  void freeSpace(long sessionId, long availableBytes, BlockStoreLocation location)
-      throws WorkerOutOfSpaceException, BlockDoesNotExistException, IOException;
 
   /**
    * Registers a {@link BlockStoreEventListener} to this block store.

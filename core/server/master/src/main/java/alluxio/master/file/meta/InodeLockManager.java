@@ -11,11 +11,14 @@
 
 package alluxio.master.file.meta;
 
-import alluxio.collections.LockCache;
+import alluxio.collections.LockPool;
 import alluxio.concurrent.LockMode;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
+import alluxio.metrics.MetricKey;
+import alluxio.metrics.MetricsSystem;
 import alluxio.resource.LockResource;
+import alluxio.resource.RWLockResource;
 import alluxio.util.interfaces.Scoped;
 
 import com.google.common.annotations.VisibleForTesting;
@@ -24,6 +27,9 @@ import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.util.concurrent.Striped;
 
+import java.io.Closeable;
+import java.io.IOException;
+import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.Lock;
@@ -40,37 +46,39 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
  * WeakSafeReentrantReadWriteLock stores the reference to the original lock to avoid this problem.
  * See https://github.com/google/guava/issues/2477
  */
-public class InodeLockManager {
+public class InodeLockManager implements Closeable {
   /**
-   * Cache for supplying inode locks. To lock an inode, its inode id must be searched in this
-   * cache to get the appropriate read lock.
+   * Pool for supplying inode locks. To lock an inode, its inode id must be searched in this
+   * pool to get the appropriate read lock.
    *
    * We use weak values so that when nothing holds a reference to
-   * a lock, the garbage collector can remove the lock's entry from the cache.
+   * a lock, the garbage collector can remove the lock's entry from the pool.
    */
-  public final LockCache<Long> mInodeLocks =
-      new LockCache<>((key)-> new ReentrantReadWriteLock(),
-          ServerConfiguration.getInt(PropertyKey.MASTER_LOCKCACHE_INITSIZE),
-          ServerConfiguration.getInt(PropertyKey.MASTER_LOCKCACHE_MAXSIZE),
-          ServerConfiguration.getInt(PropertyKey.MASTER_LOCKCACHE_CONCURRENCY_LEVEL));
+  private final LockPool<Long> mInodeLocks =
+      new LockPool<>((key)-> new ReentrantReadWriteLock(),
+          ServerConfiguration.getInt(PropertyKey.MASTER_LOCK_POOL_INITSIZE),
+          ServerConfiguration.getInt(PropertyKey.MASTER_LOCK_POOL_LOW_WATERMARK),
+          ServerConfiguration.getInt(PropertyKey.MASTER_LOCK_POOL_HIGH_WATERMARK),
+          ServerConfiguration.getInt(PropertyKey.MASTER_LOCK_POOL_CONCURRENCY_LEVEL));
   /**
    * Cache for supplying edge locks, similar to mInodeLocks.
    */
-  public final LockCache<Edge> mEdgeLocks =
-      new LockCache<>((key)-> new ReentrantReadWriteLock(),
-          ServerConfiguration.getInt(PropertyKey.MASTER_LOCKCACHE_INITSIZE),
-          ServerConfiguration.getInt(PropertyKey.MASTER_LOCKCACHE_MAXSIZE),
-          ServerConfiguration.getInt(PropertyKey.MASTER_LOCKCACHE_CONCURRENCY_LEVEL));
+  private final LockPool<Edge> mEdgeLocks =
+      new LockPool<>((key)-> new ReentrantReadWriteLock(),
+          ServerConfiguration.getInt(PropertyKey.MASTER_LOCK_POOL_INITSIZE),
+          ServerConfiguration.getInt(PropertyKey.MASTER_LOCK_POOL_LOW_WATERMARK),
+          ServerConfiguration.getInt(PropertyKey.MASTER_LOCK_POOL_HIGH_WATERMARK),
+          ServerConfiguration.getInt(PropertyKey.MASTER_LOCK_POOL_CONCURRENCY_LEVEL));
 
   /**
    * Locks for guarding changes to last modified time and size on read-locked parent inodes.
    *
-   * When renaming, creating, or deleting, we update the last modified time and size of the parent
-   * inode while holding only a read lock. In the presence of concurrent operations, this could
-   * cause the last modified time to decrease, or lead to incorrect directory sizes. To avoid this,
-   * we guard the parent inode read-modify-write with this lock. To avoid deadlock, a thread should
-   * never acquire more than one of these locks at the same time, and no other locks should be taken
-   * while holding one of these locks.
+   * When renaming, creating, or deleting, we update the last modified time, last access time
+   * and size of the parent inode while holding only a read lock. In the presence of concurrent
+   * operations, this could cause the last modified time to decrease, or lead to incorrect
+   * directory sizes. To avoid this, we guard the parent inode read-modify-write with this lock.
+   * To avoid deadlock, a thread should never acquire more than one of these locks at the same time,
+   * and no other locks should be taken while holding one of these locks.
    */
   private final Striped<Lock> mParentUpdateLocks = Striped.lock(1_000);
 
@@ -90,6 +98,18 @@ public class InodeLockManager {
               return new AtomicBoolean();
             }
           });
+
+  /**
+   * Creates a new instance of {@link InodeLockManager}.
+   */
+  public InodeLockManager() {
+    MetricsSystem.registerGaugeIfAbsent(
+        MetricKey.MASTER_INODE_LOCK_POOL_SIZE.getName(),
+        () -> mInodeLocks.size());
+    MetricsSystem.registerGaugeIfAbsent(
+        MetricKey.MASTER_EDGE_LOCK_POOL_SIZE.getName(),
+        () -> mEdgeLocks.size());
+  }
 
   @VisibleForTesting
   boolean inodeReadLockedByCurrentThread(long inodeId) {
@@ -112,14 +132,41 @@ public class InodeLockManager {
   }
 
   /**
+   * Asserts that all locks have been released, throwing an exception if any locks are still taken.
+   */
+  @VisibleForTesting
+  public void assertAllLocksReleased() {
+    assertAllLocksReleased(mEdgeLocks);
+    assertAllLocksReleased(mInodeLocks);
+  }
+
+  private <T> void assertAllLocksReleased(LockPool<T> pool) {
+    for (Entry<T, ReentrantReadWriteLock> entry : pool.getEntryMap().entrySet()) {
+      ReentrantReadWriteLock lock = entry.getValue();
+      if (lock.isWriteLocked()) {
+        throw new RuntimeException(
+            String.format("Found a write-locked lock for %s", entry.getKey()));
+      }
+      if (lock.getReadLockCount() > 0) {
+        throw new RuntimeException(
+            String.format("Found a read-locked lock for %s", entry.getKey()));
+      }
+    }
+  }
+
+  /**
    * Acquires an inode lock.
    *
    * @param inode the inode to lock
    * @param mode the mode to lock in
+   * @param useTryLock whether to acquire with {@link Lock#tryLock()} or {@link Lock#lock()}. This
+   *                   method differs from {@link #tryLockInode(Long, LockMode)} because it will
+   *                   block until the inode has been successfully locked.
    * @return a lock resource which must be closed to release the lock
+   * @see #tryLockInode(Long, LockMode)
    */
-  public LockResource lockInode(InodeView inode, LockMode mode) {
-    return mInodeLocks.get(inode.getId(), mode);
+  public RWLockResource lockInode(InodeView inode, LockMode mode, boolean useTryLock) {
+    return mInodeLocks.get(inode.getId(), mode, useTryLock);
   }
 
   /**
@@ -129,7 +176,7 @@ public class InodeLockManager {
    * @param mode the mode to lock in
    * @return either an empty optional, or a lock resource which must be closed to release the lock
    */
-  public Optional<LockResource> tryLockInode(Long inodeId, LockMode mode) {
+  public Optional<RWLockResource> tryLockInode(Long inodeId, LockMode mode) {
     return mInodeLocks.tryGet(inodeId, mode);
   }
 
@@ -138,10 +185,14 @@ public class InodeLockManager {
    *
    * @param edge the edge to lock
    * @param mode the mode to lock in
+   * @param useTryLock whether to acquire with {@link Lock#tryLock()} or {@link Lock#lock()}. This
+   *                   method differs from {@link #tryLockEdge(Edge, LockMode)} because it will
+   *                   block until the edge has been successfully locked.
    * @return a lock resource which must be closed to release the lock
+   * @see #tryLockEdge(Edge, LockMode)
    */
-  public LockResource lockEdge(Edge edge, LockMode mode) {
-    return mEdgeLocks.get(edge, mode);
+  public RWLockResource lockEdge(Edge edge, LockMode mode, boolean useTryLock) {
+    return mEdgeLocks.get(edge, mode, useTryLock);
   }
 
   /**
@@ -151,7 +202,7 @@ public class InodeLockManager {
    * @param mode the mode to lock in
    * @return either an empty optional, or a lock resource which must be closed to release the lock
    */
-  public Optional<LockResource> tryLockEdge(Edge edge, LockMode mode) {
+  public Optional<RWLockResource> tryLockEdge(Edge edge, LockMode mode) {
     return mEdgeLocks.tryGet(edge, mode);
   }
 
@@ -179,5 +230,11 @@ public class InodeLockManager {
    */
   public LockResource lockUpdate(long inodeId) {
     return new LockResource(mParentUpdateLocks.get(inodeId));
+  }
+
+  @Override
+  public void close() throws IOException {
+    mInodeLocks.close();
+    mEdgeLocks.close();
   }
 }

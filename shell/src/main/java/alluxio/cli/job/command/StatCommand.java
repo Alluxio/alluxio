@@ -11,6 +11,7 @@
 
 package alluxio.cli.job.command;
 
+import alluxio.annotation.PublicApi;
 import alluxio.cli.CommandUtils;
 import alluxio.cli.fs.command.AbstractFileSystemCommand;
 import alluxio.client.file.FileSystemContext;
@@ -26,6 +27,7 @@ import alluxio.resource.CloseableResource;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,6 +39,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * Displays the status of the job.
  */
 @ThreadSafe
+@PublicApi
 public final class StatCommand extends AbstractFileSystemCommand {
   private static final Logger LOG = LoggerFactory.getLogger(StatCommand.class);
   private static final Option VERBOSE_OPTION =
@@ -69,9 +72,9 @@ public final class StatCommand extends AbstractFileSystemCommand {
   public int run(CommandLine cl) throws AlluxioException, IOException {
     long id = Long.parseLong(cl.getArgs()[0]);
     try (CloseableResource<JobMasterClient> client =
-        JobContext.create(mFsContext.getClusterConf())
+        JobContext.create(mFsContext.getClusterConf(), mFsContext.getClientContext().getUserState())
             .acquireMasterClientResource()) {
-      JobInfo info = client.get().getStatus(id);
+      JobInfo info = client.get().getJobStatusDetailed(id);
       System.out.print(formatOutput(cl, info));
     } catch (Exception e) {
       LOG.error("Failed to get status of the job", e);
@@ -83,27 +86,42 @@ public final class StatCommand extends AbstractFileSystemCommand {
 
   private String formatOutput(CommandLine cl, JobInfo info) {
     StringBuilder output = new StringBuilder();
-    output.append("ID: ").append(info.getJobId()).append("\n");
-    if (info.getJobConfig() != null) {
-      output.append("Config: ").append(info.getJobConfig()).append("\n");
+    output.append("ID: ").append(info.getId()).append("\n");
+    output.append("Name: ").append(info.getName()).append("\n");
+    output.append("Description: ");
+    if (cl.hasOption("v")) {
+      output.append(info.getDescription());
+    } else {
+      output.append(StringUtils.abbreviate(info.getDescription(), 200));
     }
+    output.append("\n");
     output.append("Status: ").append(info.getStatus()).append("\n");
     if (info.getErrorMessage() != null && !info.getErrorMessage().isEmpty()) {
       output.append("Error: ").append(info.getErrorMessage()).append("\n");
     }
-    if (info.getResult() != null && !info.getResult().isEmpty()) {
-      output.append("Result: ").append(info.getResult()).append("\n");
+    if (info.getResult() != null && !info.getResult().toString().isEmpty()) {
+      output.append("Result: ").append(info.getResult().toString()).append("\n");
     }
 
     if (cl.hasOption("v")) {
-      for (TaskInfo taskInfo : info.getTaskInfoList()) {
-        output.append("Task ").append(taskInfo.getTaskId()).append("\n");
-        output.append("\t").append("Status: ").append(taskInfo.getStatus()).append("\n");
-        if (taskInfo.getErrorMessage() != null && !taskInfo.getErrorMessage().isEmpty()) {
-          output.append("\t").append("Error: ").append(taskInfo.getErrorMessage()).append("\n");
+      for (JobInfo childInfo : info.getChildren()) {
+        output.append("Task ").append(childInfo.getId()).append("\n");
+        if (childInfo instanceof TaskInfo) {
+          TaskInfo taskInfo = (TaskInfo) childInfo;
+          if (taskInfo.getWorkerHost() != null) {
+            output.append("\t").append("Worker: ").append(taskInfo.getWorkerHost()).append("\n");
+          }
         }
-        if (taskInfo.getResult() != null) {
-          output.append("\t").append("Result: ").append(taskInfo.getResult()).append("\n");
+        if (!childInfo.getDescription().isEmpty()) {
+          output.append("\t").append("Description: ").append(
+              StringUtils.abbreviate(childInfo.getDescription(), 200)).append("\n");
+        }
+        output.append("\t").append("Status: ").append(childInfo.getStatus()).append("\n");
+        if (childInfo.getErrorMessage() != null && !childInfo.getErrorMessage().isEmpty()) {
+          output.append("\t").append("Error: ").append(childInfo.getErrorMessage()).append("\n");
+        }
+        if (childInfo.getResult() != null) {
+          output.append("\t").append("Result: ").append(childInfo.getResult()).append("\n");
         }
       }
     }

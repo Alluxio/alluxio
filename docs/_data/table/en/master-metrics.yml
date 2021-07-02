@@ -1,0 +1,150 @@
+Master.AbsentCacheHits:
+  'Number of cache hits on the absent cache'
+Master.AbsentCacheInvalidations:
+  'Number of invalidations on the absent cache'
+Master.AbsentCacheMisses:
+  'Number of cache misses on the absent cache'
+Master.AbsentCacheSize:
+  'Size of the absent cache'
+Master.BlockHeapSize:
+  'An estimate of the blocks heap size'
+Master.CompleteFileOps:
+  'Total number of the CompleteFile operations'
+Master.CreateDirectoryOps:
+  'Total number of the CreateDirectory operations'
+Master.CreateFileOps:
+  'Total number of the CreateFile operations'
+Master.DeletePathOps:
+  'Total number of the Delete operations'
+Master.DirectoriesCreated:
+  'Total number of the succeed CreateDirectory operations'
+Master.EdgeCacheEvictions:
+  'Total number of edges (inode metadata) that was evicted from cache. The edge cache is responsible for managing the mapping from (parentId, childName) to childId.'
+Master.EdgeCacheHits:
+  'Total number of hits in the edge (inode metadata) cache. The edge cache is responsible for managing the mapping from (parentId, childName) to childId.'
+Master.EdgeCacheLoadTimes:
+  'Total load times in the edge (inode metadata) cache that resulted from a cache miss. The edge cache is responsible for managing the mapping from (parentId, childName) to childId.'
+Master.EdgeCacheMisses:
+  'Total number of misses in the edge (inode metadata) cache. The edge cache is responsible for managing the mapping from (parentId, childName) to childId.'
+Master.EdgeCacheSize:
+  'Total number of edges (inode metadata) cached. The edge cache is responsible for managing the mapping from (parentId, childName) to childId.'
+Master.EdgeLockPoolSize:
+  'The size of master edge lock pool'
+Master.EmbeddedJournalSnapshotDownloadGenerate:
+  'The timer statistics of journal snapshot download from other masters'
+Master.EmbeddedJournalSnapshotGenerateTimer:
+  'The timer statistics of journal snapshot generation by this master'
+Master.EmbeddedJournalSnapshotInstallTimer:
+  'The timer statistics of journal snapshot install'
+Master.EmbeddedJournalSnapshotLastIndex:
+  'The last index of the latest journal snapshot created by this master or downloaded from other masters'
+Master.EmbeddedJournalSnapshotReplayTimer:
+  'The timer statistics of journal snapshot replay'
+Master.FileBlockInfosGot:
+  'Total number of succeed GetFileBlockInfo operations'
+Master.FileInfosGot:
+  'Total number of the succeed GetFileInfo operations'
+Master.FileSize:
+  'File size distribution'
+Master.FilesCompleted:
+  'Total number of the succeed CompleteFile operations'
+Master.FilesCreated:
+  'Total number of the succeed CreateFile operations'
+Master.FilesFreed:
+  'Total number of succeed FreeFile operations'
+Master.FilesPersisted:
+  'Total number of successfully persisted files'
+Master.FilesPinned:
+  'Total number of currently pinned files'
+Master.FilesToBePersisted:
+  'Total number of currently to be persisted files'
+Master.FreeFileOps:
+  'Total number of FreeFile operations'
+Master.GetFileBlockInfoOps:
+  'Total number of GetFileBlockInfo operations'
+Master.GetFileInfoOps:
+  'Total number of the GetFileInfo operations'
+Master.GetNewBlockOps:
+  'Total number of the GetNewBlock operations'
+Master.InodeCacheEvictions:
+  'Total number of inodes that was evicted from the cache.'
+Master.InodeCacheHitRatio:
+  'Inode Cache hit ratio'
+Master.InodeCacheHits:
+  'Total number of hits in the inodes (inode metadata) cache.'
+Master.InodeCacheLoadTimer:
+  'Total load latency in the inodes (inode metadata) cache'
+Master.InodeCacheLoadTimes:
+  'Total load times in the inodes (inode metadata) cache that resulted from a cache miss.'
+Master.InodeCacheMisses:
+  'Total number of misses in the inodes (inode metadata) cache.'
+Master.InodeCacheSize:
+  'Total number of inodes (inode metadata) cached.'
+Master.InodeHeapSize:
+  'An estimate of the inode heap size'
+Master.InodeLockPoolSize:
+  'The size of master inode lock pool'
+Master.JournalEntriesSinceCheckPoint:
+  'Journal entries since last checkpoint'
+Master.JournalFlushFailure:
+  'Total number of failed journal flush'
+Master.JournalFlushTimer:
+  'The timer statistics of journal flush'
+Master.JournalFreeBytes:
+  'Bytes left on the journal disk(s) for an Alluxio master'
+Master.JournalFreePercent:
+  'Percentage of free space left on the journal disk(s) for an Alluxio master'
+Master.JournalGainPrimacyTimer:
+  'The timer statistics of journal gain primacy'
+Master.JournalLastCheckPointTime:
+  'Last Journal Checkpoint Time'
+Master.JournalSequenceNumber:
+  'Current journal sequence number'
+Master.LastBackupEntriesCount:
+  'The total number of entries written in the last leading master metadata backup'
+Master.LastBackupRestoreCount:
+  'The total number of entries restored from backup when a leading master initializes its metadata'
+Master.LastBackupRestoreTimeMs:
+  'The process time of the last restore from backup'
+Master.LastBackupTimeMs:
+  'The process time of the last backup'
+Master.ListingCacheEvictions:
+  'The total number of evictions in master listing cache'
+Master.ListingCacheHits:
+  'The total number of hits in master listing cache'
+Master.ListingCacheLoadTimes:
+  'The total load time (in nanoseconds) in master listing cache that resulted from a cache miss.'
+Master.ListingCacheMisses:
+  'The total number of misses in master listing cache'
+Master.ListingCacheSize:
+  'The size of master listing cache'
+Master.MountOps:
+  'Total number of Mount operations'
+Master.NewBlocksGot:
+  'Total number of the succeed GetNewBlock operations'
+Master.PathsDeleted:
+  'Total number of the succeed Delete operations'
+Master.PathsMounted:
+  'Total number of succeed Mount operations'
+Master.PathsRenamed:
+  'Total number of succeed Rename operations'
+Master.PathsUnmounted:
+  'Total number of succeed Unmount operations'
+Master.RenamePathOps:
+  'Total number of Rename operations'
+Master.SetAclOps:
+  'Total number of SetAcl operations'
+Master.SetAttributeOps:
+  'Total number of SetAttribute operations'
+Master.TotalBlocks:
+  'Total number of blocks in Alluxio'
+Master.TotalPaths:
+  'Total number of files and directory in Alluxio namespace'
+Master.UfsJournalCatchupTimer:
+  'The timer statistics of journal catchup'
+Master.UfsJournalFailureRecoverTimer:
+  'The timer statistics of ufs journal failure recover'
+Master.UfsJournalInitialReplayTimeMs:
+  'The process time of the ufs journal initial replay'
+Master.UnmountOps:
+  'Total number of Unmount operations'

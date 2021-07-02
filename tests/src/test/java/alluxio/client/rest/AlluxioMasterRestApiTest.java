@@ -14,13 +14,24 @@ package alluxio.client.rest;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
+import alluxio.AlluxioURI;
+import alluxio.Constants;
 import alluxio.RuntimeConstants;
+import alluxio.client.file.FileSystemTestUtils;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
+import alluxio.grpc.WritePType;
 import alluxio.master.file.FileSystemMaster;
+import alluxio.master.file.contexts.GetStatusContext;
 import alluxio.master.meta.AlluxioMasterRestServiceHandler;
+import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
+import alluxio.security.authentication.AuthType;
+import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.testutils.underfs.UnderFileSystemTestUtils;
+import alluxio.util.CommonUtils;
+import alluxio.util.FormatUtils;
+import alluxio.util.WaitForOptions;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
 import alluxio.wire.AlluxioMasterInfo;
@@ -29,9 +40,11 @@ import alluxio.wire.MountPointInfo;
 import alluxio.wire.WorkerInfo;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.junit.After;
 import org.junit.Before;
+import org.junit.ClassRule;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TestRule;
 
 import java.util.HashMap;
 import java.util.List;
@@ -45,20 +58,24 @@ import javax.ws.rs.HttpMethod;
 public final class AlluxioMasterRestApiTest extends RestApiTest {
   private FileSystemMaster mFileSystemMaster;
 
+  // TODO(chaomin): Rest API integration tests are only run in NOSASL mode now. Need to
+  // fix the test setup in SIMPLE mode.
+  @ClassRule
+  public static LocalAlluxioClusterResource sResource = new LocalAlluxioClusterResource.Builder()
+      .setProperty(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "false")
+      .setProperty(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.NOSASL.getAuthName())
+      .setProperty(PropertyKey.USER_FILE_BUFFER_BYTES, "1KB").build();
+
+  @Rule
+  public TestRule mResetRule = sResource.getResetResource();
+
   @Before
   public void before() {
-    mFileSystemMaster = mResource.get().getLocalAlluxioMaster().getMasterProcess()
+    mFileSystemMaster = sResource.get().getLocalAlluxioMaster().getMasterProcess()
         .getMaster(FileSystemMaster.class);
-    mHostname = mResource.get().getHostname();
-    mPort = mResource.get().getLocalAlluxioMaster().getMasterProcess().getWebAddress().getPort();
+    mHostname = sResource.get().getHostname();
+    mPort = sResource.get().getLocalAlluxioMaster().getMasterProcess().getWebAddress().getPort();
     mServicePrefix = AlluxioMasterRestServiceHandler.SERVICE_PREFIX;
-
-    MetricsSystem.resetAllCounters();
-  }
-
-  @After
-  public void after() {
-    ServerConfiguration.reset();
   }
 
   private AlluxioMasterInfo getInfo(Map<String, String> params) throws Exception {
@@ -69,9 +86,17 @@ public final class AlluxioMasterRestApiTest extends RestApiTest {
     return info;
   }
 
+  private Map<String, String> getMetrics(Map<String, String> params) throws Exception {
+    String result =
+        new TestCase(mHostname, mPort, getEndpoint(AlluxioMasterRestServiceHandler.WEBUI_METRICS),
+            params, HttpMethod.GET, null).call();
+    Map<String, String> info = new ObjectMapper().readValue(result, Map.class);
+    return info;
+  }
+
   @Test
   public void getCapacity() throws Exception {
-    long total = ServerConfiguration.getBytes(PropertyKey.WORKER_MEMORY_SIZE);
+    long total = ServerConfiguration.getBytes(PropertyKey.WORKER_RAMDISK_SIZE);
     Capacity capacity = getInfo(NO_PARAMS).getCapacity();
     assertEquals(total, capacity.getTotal());
     assertEquals(0, capacity.getUsed());
@@ -110,14 +135,41 @@ public final class AlluxioMasterRestApiTest extends RestApiTest {
   }
 
   @Test
-  public void getMetrics() throws Exception {
-    assertEquals(Long.valueOf(0),
-        getInfo(NO_PARAMS).getMetrics().get(MetricsSystem.getMetricName("CompleteFileOps")));
+  public void getMetricsInfo() throws Exception {
+    long start = getInfo(NO_PARAMS).getMetrics()
+        .get(MetricsSystem.getMetricName(MetricKey.MASTER_FILE_INFOS_GOT.getName()));
+    mFileSystemMaster.getFileInfo(new AlluxioURI("/"), GetStatusContext.defaults());
+    assertEquals(Long.valueOf(start + 1), getInfo(NO_PARAMS).getMetrics()
+        .get(MetricsSystem.getMetricName(MetricKey.MASTER_FILE_INFOS_GOT.getName())));
+  }
+
+  @Test
+  public void getUfsMetrics() throws Exception {
+    int len = 100;
+    FileSystemTestUtils.createByteFile(sResource.get().getClient(), "/f1", WritePType.THROUGH, len);
+    CommonUtils.waitFor("Metrics to be updated correctly", () -> {
+      try {
+        return FormatUtils.getSizeFromBytes(len).equals(getMetrics(NO_PARAMS)
+            .get("totalBytesWrittenUfs"));
+      } catch (Exception e) {
+        return false;
+      }
+    }, WaitForOptions.defaults().setTimeoutMs(2000));
+
+    FileSystemTestUtils.createByteFile(sResource.get().getClient(), "/f2", WritePType.THROUGH, len);
+    CommonUtils.waitFor("Metrics to be updated correctly", () -> {
+      try {
+        return FormatUtils.getSizeFromBytes(2 * len).equals(getMetrics(NO_PARAMS)
+            .get("totalBytesWrittenUfs"));
+      } catch (Exception e) {
+        return false;
+      }
+    }, WaitForOptions.defaults().setTimeoutMs(2000));
   }
 
   @Test
   public void getMountPoints() throws Exception {
-    Map<String, MountPointInfo> mountTable = mFileSystemMaster.getMountTable();
+    Map<String, MountPointInfo> mountTable = mFileSystemMaster.getMountPointInfoSummary();
     Map<String, MountPointInfo> mountPoints = getInfo(NO_PARAMS).getMountPoints();
     assertEquals(mountTable.size(), mountPoints.size());
     for (Map.Entry<String, MountPointInfo> mountPoint : mountTable.entrySet()) {
@@ -142,8 +194,8 @@ public final class AlluxioMasterRestApiTest extends RestApiTest {
 
   @Test
   public void getTierCapacity() throws Exception {
-    long total = ServerConfiguration.getBytes(PropertyKey.WORKER_MEMORY_SIZE);
-    Capacity capacity = getInfo(NO_PARAMS).getTierCapacity().get("MEM");
+    long total = ServerConfiguration.getBytes(PropertyKey.WORKER_RAMDISK_SIZE);
+    Capacity capacity = getInfo(NO_PARAMS).getTierCapacity().get(Constants.MEDIUM_MEM);
     assertEquals(total, capacity.getTotal());
     assertEquals(0, capacity.getUsed());
   }
@@ -170,7 +222,7 @@ public final class AlluxioMasterRestApiTest extends RestApiTest {
     assertEquals(1, workerInfos.size());
     WorkerInfo workerInfo = workerInfos.get(0);
     assertEquals(0, workerInfo.getUsedBytes());
-    long bytes = ServerConfiguration.getBytes(PropertyKey.WORKER_MEMORY_SIZE);
+    long bytes = ServerConfiguration.getBytes(PropertyKey.WORKER_RAMDISK_SIZE);
     assertEquals(bytes, workerInfo.getCapacityBytes());
   }
 

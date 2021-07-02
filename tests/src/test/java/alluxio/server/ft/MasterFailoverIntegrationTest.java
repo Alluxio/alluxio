@@ -15,13 +15,14 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 
 import alluxio.AlluxioURI;
-import alluxio.conf.ServerConfiguration;
 import alluxio.Constants;
-import alluxio.conf.PropertyKey;
 import alluxio.UnderFileSystemFactoryRegistryRule;
 import alluxio.client.file.FileSystem;
+import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
 import alluxio.master.MultiMasterLocalAlluxioCluster;
 import alluxio.testutils.BaseIntegrationTest;
+import alluxio.testutils.IntegrationTestUtils;
 import alluxio.testutils.underfs.delegating.DelegatingUnderFileSystem;
 import alluxio.testutils.underfs.delegating.DelegatingUnderFileSystemFactory;
 import alluxio.underfs.UnderFileSystem;
@@ -32,7 +33,10 @@ import com.google.common.io.Files;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.ClassRule;
+import org.junit.Ignore;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TestName;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -64,6 +68,9 @@ public final class MasterFailoverIntegrationTest extends BaseIntegrationTest {
         }
       };
 
+  @Rule
+  public TestName mTestName = new TestName();
+
   @ClassRule
   public static UnderFileSystemFactoryRegistryRule sUnderfilesystemfactoryregistry =
       new UnderFileSystemFactoryRegistryRule(new DelegatingUnderFileSystemFactory(UFS));
@@ -72,10 +79,11 @@ public final class MasterFailoverIntegrationTest extends BaseIntegrationTest {
   public final void before() throws Exception {
     mMultiMasterLocalAlluxioCluster =
         new MultiMasterLocalAlluxioCluster(2);
-    mMultiMasterLocalAlluxioCluster.initConfiguration();
+    mMultiMasterLocalAlluxioCluster.initConfiguration(
+        IntegrationTestUtils.getTestName(getClass().getSimpleName(), mTestName.getMethodName()));
     ServerConfiguration.set(PropertyKey.USER_RPC_RETRY_MAX_DURATION, "60sec");
     ServerConfiguration.set(PropertyKey.USER_RPC_RETRY_MAX_SLEEP_MS, "1sec");
-    ServerConfiguration.set(PropertyKey.MASTER_GRPC_SERVER_SHUTDOWN_TIMEOUT, "30sec");
+    ServerConfiguration.set(PropertyKey.NETWORK_CONNECTION_SERVER_SHUTDOWN_TIMEOUT, "30sec");
     ServerConfiguration.set(PropertyKey.MASTER_JOURNAL_TAILER_SHUTDOWN_QUIET_WAIT_TIME_MS, "0sec");
     ServerConfiguration.set(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS,
         DelegatingUnderFileSystemFactory.DELEGATING_SCHEME + "://" + LOCAL_UFS_PATH);
@@ -88,6 +96,7 @@ public final class MasterFailoverIntegrationTest extends BaseIntegrationTest {
     mMultiMasterLocalAlluxioCluster.stop();
   }
 
+  @Ignore
   @Test
   public void failoverJournalFencingTest() throws Exception {
     // This test verifies that when a master fails over due to Zookeeper disconnection, outstanding

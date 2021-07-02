@@ -15,18 +15,17 @@
   <parent>
     <groupId>org.alluxio</groupId>
     <artifactId>alluxio-underfs</artifactId>
-    <version>2.0.0-SNAPSHOT</version>
+    <version>2.7.0-SNAPSHOT</version>
   </parent>
   <artifactId>alluxio-underfs-wasb</artifactId>
   <name>Alluxio Under File System - Microsoft Azure Blob Storage</name>
   <description>Microsoft Azure Blob Storage Under File System implementation</description>
 
   <properties>
-    <!-- The hadoop client version wasb-hadoop depends on -->
-    <wasb.hadoop.version>2.7.3.2.6.1.0-129</wasb.hadoop.version>
     <!-- The following paths need to be defined here as well as in the parent pom so that mvn can -->
     <!-- run properly from sub-project directories -->
     <build.path>${project.parent.parent.basedir}/build</build.path>
+    <ufs.hadoop.version>3.3.0</ufs.hadoop.version>
   </properties>
 
   <dependencies>
@@ -34,17 +33,7 @@
     <dependency>
       <groupId>org.apache.hadoop</groupId>
       <artifactId>hadoop-azure</artifactId>
-      <version>${wasb.hadoop.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.hadoop</groupId>
-      <artifactId>hadoop-common</artifactId>
-      <version>${wasb.hadoop.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.hadoop</groupId>
-      <artifactId>hadoop-hdfs</artifactId>
-      <version>${wasb.hadoop.version}</version>
+      <version>${ufs.hadoop.version}</version>
     </dependency>
 
     <!-- Internal dependencies -->
@@ -77,41 +66,8 @@
     </dependency>
   </dependencies>
 
-  <profiles>
-    <profile>
-      <id>ufsContractTest</id>
-      <activation>
-        <property>
-          <name>testWasbBaseDir</name>
-        </property>
-      </activation>
-      <build>
-        <plugins>
-          <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-compiler-plugin</artifactId>
-            <configuration>
-              <testExcludes combine.self="override" />
-            </configuration>
-          </plugin>
-        </plugins>
-      </build>
-    </profile>
-  </profiles>
-
   <build>
     <plugins>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-compiler-plugin</artifactId>
-        <configuration>
-          <testExcludes>
-            <!-- Skip UFS contract tests unless -DtestWasbBaseDir="wasb://AZURE_CONTAINER@AZURE_ACCOUNT.blob.core.windows.net/AZURE_DIRECTORY/"
-                 is specified -->
-            <exclude>**/WasbUnderFileSystemContractTest.java</exclude>
-          </testExcludes>
-        </configuration>
-      </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-shade-plugin</artifactId>

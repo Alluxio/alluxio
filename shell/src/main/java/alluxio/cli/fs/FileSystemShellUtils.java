@@ -36,7 +36,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.regex.Pattern;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -49,7 +48,7 @@ public final class FileSystemShellUtils {
   private FileSystemShellUtils() {} // prevent instantiation
 
   /**
-   * Removes {@link Constants#HEADER} / {@link Constants#HEADER_FT} and hostname:port information
+   * Removes {@link Constants#HEADER} and hostname:port information
    * from a path, leaving only the local file path.
    *
    * @param path the path to obtain the local path from
@@ -61,37 +60,32 @@ public final class FileSystemShellUtils {
     path = validatePath(path, alluxioConf);
     if (path.startsWith(Constants.HEADER)) {
       path = path.substring(Constants.HEADER.length());
-    } else if (path.startsWith(Constants.HEADER_FT)) {
-      path = path.substring(Constants.HEADER_FT.length());
     }
     return path.substring(path.indexOf(AlluxioURI.SEPARATOR));
   }
 
   /**
-   * Validates the path, verifying that it contains the {@link Constants#HEADER} or
-   * {@link Constants#HEADER_FT} and a hostname:port specified.
+   * Validates the path, verifying that it contains the {@link Constants#HEADER} and a
+   * hostname:port specified.
    *
    * @param path the path to be verified
    * @param alluxioConf Alluxio configuration
    * @return the verified path in a form like alluxio://host:port/dir. If only the "/dir" or "dir"
    *         part is provided, the host and port are retrieved from property,
-   *         alluxio.master.hostname and alluxio.master.port, respectively.
+   *         alluxio.master.hostname and alluxio.master.rpc.port, respectively.
    */
   public static String validatePath(String path, AlluxioConfiguration alluxioConf)
       throws IOException {
-    if (path.startsWith(Constants.HEADER) || path.startsWith(Constants.HEADER_FT)) {
+    if (path.startsWith(Constants.HEADER)) {
       if (!path.contains(":")) {
         throw new IOException("Invalid Path: " + path + ". Use " + Constants.HEADER
-            + "host:port/ ," + Constants.HEADER_FT + "host:port/" + " , or /file");
+            + "host:port/ , or /file");
       } else {
         return path;
       }
     } else {
       String hostname = NetworkAddressUtils.getConnectHost(ServiceType.MASTER_RPC, alluxioConf);
-      int port =  alluxioConf.getInt(PropertyKey.MASTER_RPC_PORT);
-      if (alluxioConf.getBoolean(PropertyKey.ZOOKEEPER_ENABLED)) {
-        return PathUtils.concatPath(Constants.HEADER_FT + hostname + ":" + port, path);
-      }
+      int port = alluxioConf.getInt(PropertyKey.MASTER_RPC_PORT);
       return PathUtils.concatPath(Constants.HEADER + hostname + ":" + port, path);
     }
   }
@@ -228,11 +222,45 @@ public final class FileSystemShellUtils {
    * @param defaultValue default value for the option
    * @return argument from command line or default if not present
    */
+  public static boolean getBoolArg(CommandLine cl, Option option, boolean defaultValue) {
+    boolean arg = defaultValue;
+    if (cl.hasOption(option.getLongOpt())) {
+      String argOption = cl.getOptionValue(option.getLongOpt());
+      arg = Boolean.parseBoolean(argOption);
+    }
+    return arg;
+  }
+
+  /**
+   * Gets the value of an option from the command line.
+   *
+   * @param cl command line object
+   * @param option the option to check for in the command line
+   * @param defaultValue default value for the option
+   * @return argument from command line or default if not present
+   */
   public static int getIntArg(CommandLine cl, Option option, int defaultValue) {
     int arg = defaultValue;
     if (cl.hasOption(option.getLongOpt())) {
       String argOption = cl.getOptionValue(option.getLongOpt());
       arg = Integer.parseInt(argOption);
+    }
+    return arg;
+  }
+
+  /**
+   * Gets the value of an option from the command line.
+   *
+   * @param cl command line object
+   * @param option the option to check for in the command line
+   * @param defaultValue default value for the option
+   * @return argument from command line or default if not present
+   */
+  public static long getMsArg(CommandLine cl, Option option, long defaultValue) {
+    long arg = defaultValue;
+    if (cl.hasOption(option.getLongOpt())) {
+      String argOption = cl.getOptionValue(option.getLongOpt());
+      arg = FormatUtils.parseTimeSize(argOption);
     }
     return arg;
   }
@@ -264,25 +292,24 @@ public final class FileSystemShellUtils {
   }
 
   /**
-   * The characters that have special regex semantics.
-   */
-  private static final Pattern SPECIAL_REGEX_CHARS = Pattern.compile("[{}()\\[\\].+*?^$\\\\|]");
-
-  /**
    * Escapes the special characters in a given string.
    *
    * @param str input string
    * @return the string with special characters escaped
    */
   private static String escape(String str) {
-    return SPECIAL_REGEX_CHARS.matcher(str).replaceAll("\\\\$0");
+    return str.replace(".", "%2E")
+        .replace("+", "%2B")
+        .replace("^", "%5E")
+        .replace("$", "%24")
+        .replace("*", "%2A");
   }
 
   /**
    * Replaces the wildcards with Java's regex semantics.
    */
   private static String replaceWildcards(String text) {
-    return escape(text).replace("\\*", ".*");
+    return escape(text).replace("%2A", ".*");
   }
 
   /**

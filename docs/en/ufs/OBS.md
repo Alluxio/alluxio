@@ -2,7 +2,7 @@
 layout: global
 title: OBS
 nickname: OBS
-group: Under Stores
+group: Storage Integrations
 priority: 10
 ---
 
@@ -20,13 +20,19 @@ machines. You can either
 [compile the binaries from Alluxio source code]({{ '/en/contributor/Building-Alluxio-From-Source.html' | relativize_url }}),
 or [download the precompiled binaries directly]({{ '/en/deploy/Running-Alluxio-Locally.html' | relativize_url }}).
 
-OBS under storage is implemented as an under storage extension. A precompiled OBS under storage jar 
-can be downloaded from [here](https://github.com/Alluxio/alluxio-extensions/tree/master/underfs/obs/target).
+[OBS under storage](https://github.com/Alluxio/alluxio-extensions/tree/master/underfs/obs) is implemented as an under storage extension.
+Clone the [alluxio-extensions](https://github.com/Alluxio/alluxio-extensions/) repo and run the following command under `<alluxio_extensions_home>/underfs/obs`:
+
+```console
+$ mvn package -DskipTests
+```
+
+The built jar can be found under the `<alluxio_extensions_home>/underfs/obs/target`.
 
 Execute the following command on master to install the extension to all masters and workers defined in `conf/masters` and `conf/workers`:
 
-```bash
-bin/alluxio extensions install /PATH/TO/DOWNLOADED/OBS/jar
+```console
+$ ./bin/alluxio extensions install /PATH/TO/OBS/jar
 ```
 
 See [here]({{ '/en/ufs/Ufs-Extensions.html' | relativize_url }}) for more details on Alluxio extension management.
@@ -39,7 +45,7 @@ to create a OBS bucket.
 To configure Alluxio to use OBS as its under storage system, you will need to modify the configuration file
 `conf/alluxio-site.properties`. If the file does not exist, create the configuration file from the template.
 
-```bash
+```console
 $ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
 ```
 
@@ -74,9 +80,9 @@ under the Object Storage Service category.
 
 Start the Alluxio servers:
 
-```bash
-bin/alluxio format
-bin/alluxio-start.sh local
+```console
+$ ./bin/alluxio format
+$ ./bin/alluxio-start.sh local
 ```
 
 This should start an Alluxio master and an Alluxio worker. You can see the master UI at
@@ -84,8 +90,8 @@ This should start an Alluxio master and an Alluxio worker. You can see the maste
 
 Run a simple example program:
 
-```bash
-bin/alluxio runTests
+```console
+$ ./bin/alluxio runTests
 ```
 
 Visit your OBS folder `obs://<OBS_BUCKET>/<OBS_DIRECTORY>` to verify the files
@@ -93,8 +99,8 @@ and directories created by Alluxio exist.
 
 To stop Alluxio, you can run:
 
-```bash
-bin/alluxio-stop.sh local
+```console
+$ ./bin/alluxio-stop.sh local
 ```
 
 ## Advanced Setup
@@ -103,15 +109,23 @@ bin/alluxio-stop.sh local
 
 An OBS location can be mounted at a nested directory in the Alluxio namespace to have unified
 access to multiple under storage systems. Alluxio's
-[Mount Command]({{ '/en/basic/Command-Line-Interface.html' | relativize_url }}#mount) can be used for
+[Mount Command]({{ '/en/operation/User-CLI.html' | relativize_url }}#mount) can be used for
 this purpose. 
 
 For example, the following command mounts a folder inside an OBS bucket into Alluxio
 directory `/obs`:
 
-```bash
-./bin/alluxio fs mount --option fs.obs.accessKey=<OBS_ACCESS_KEY> \
+```console
+$ ./bin/alluxio fs mount --option fs.obs.accessKey=<OBS_ACCESS_KEY> \
   --option fs.obs.secretKey=<OBS_SECRET_KEY> \
   --option fs.obs.endpoint=<OBS_ENDPOINT> \
   /obs obs://<OBS_BUCKET>/<OBS_DIRECTORY>/
 ```
+
+## Contributed by the Alluxio Community
+
+OBS UFS integration is contributed and maintained by the Alluxio community.
+The source code is located [here](https://github.com/Alluxio/alluxio-extensions/tree/master/underfs/obs).
+Feel free submit pull requests to improve the integration and update 
+the documentation [here](https://github.com/Alluxio/alluxio/edit/master/docs/en/ufs/OBS.md) 
+if any information is missing or out of date.

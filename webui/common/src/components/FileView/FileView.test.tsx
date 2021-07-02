@@ -9,44 +9,40 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-import {configure, mount, ReactWrapper, shallow, ShallowWrapper} from 'enzyme';
+import { configure, mount, ReactWrapper, shallow, ShallowWrapper } from 'enzyme';
 import Adapter from 'enzyme-adapter-react-16';
-import {createBrowserHistory, History, LocationState} from 'history';
+import { createBrowserHistory, History, LocationState } from 'history';
 import React from 'react';
-import {StaticRouter} from 'react-router';
+import { StaticRouter } from 'react-router';
 import sinon from 'sinon';
 
-import {FileView, IFileViewProps} from './FileView';
+import { FileView, IFileViewProps } from './FileView';
 
-configure({adapter: new Adapter()});
+configure({ adapter: new Adapter() });
 
 describe('FileView', () => {
   let props: IFileViewProps;
   let history: History<LocationState>;
 
   beforeAll(() => {
-    history = createBrowserHistory({keyLength: 0});
+    history = createBrowserHistory({ keyLength: 0 });
     props = {
-      beginInputHandler: sinon.spy(() => {
-      }),
-      endInputHandler: sinon.spy(() => {
-      }),
+      beginInputHandler: sinon.spy(() => {}),
+      endInputHandler: sinon.spy(() => {}),
       history: history,
-      lastFetched: {},
-      offsetInputHandler: sinon.spy(() => {
-      }),
+      offsetInputHandler: sinon.spy(() => {}),
       queryStringPrefix: '',
       queryStringSuffix: '',
       viewData: {
-        'currentPath': '',
-        'debug': true,
-        'fatalError': '',
-        'fileData': '',
-        'fileInfos': [],
-        'invalidPathError': '',
-        'ntotalFile': 0,
-        'viewingOffset': 0
-      }
+        currentPath: '',
+        debug: true,
+        fatalError: '',
+        fileData: '',
+        fileInfos: [],
+        invalidPathError: '',
+        ntotalFile: 0,
+        viewingOffset: 0,
+      },
     };
   });
 
@@ -54,7 +50,7 @@ describe('FileView', () => {
     let shallowWrapper: ShallowWrapper;
 
     beforeAll(() => {
-      shallowWrapper = shallow(<FileView {...props}/>);
+      shallowWrapper = shallow(<FileView {...props} />);
     });
 
     it('Renders without crashing', () => {
@@ -68,13 +64,13 @@ describe('FileView', () => {
 
   describe('React component', () => {
     let reactWrapper: ReactWrapper;
-    let context = {};
+    const context = {};
 
     beforeAll(() => {
       reactWrapper = mount(
         <StaticRouter location="someLocation" context={context}>
-          <FileView {...props}/>
-        </StaticRouter>
+          <FileView {...props} />
+        </StaticRouter>,
       );
     });
 

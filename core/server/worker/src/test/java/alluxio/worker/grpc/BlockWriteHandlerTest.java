@@ -11,8 +11,12 @@
 
 package alluxio.worker.grpc;
 
+import static org.junit.Assert.assertTrue;
+
 import alluxio.grpc.RequestType;
+import alluxio.util.CommonUtils;
 import alluxio.worker.block.BlockWorker;
+import alluxio.worker.block.NoopBlockWorker;
 import alluxio.worker.block.io.BlockWriter;
 import alluxio.worker.block.io.LocalFileBlockWriter;
 
@@ -38,20 +42,15 @@ public final class BlockWriteHandlerTest extends AbstractWriteHandlerTest {
   @Before
   public void before() throws Exception {
     mFile = mTestFolder.newFile();
-    mBlockWorker = Mockito.mock(BlockWorker.class);
-    Mockito.doNothing().when(mBlockWorker)
-        .createBlockRemote(Mockito.anyLong(), Mockito.anyLong(), Mockito.anyString(),
-            Mockito.anyLong());
-    Mockito.doNothing().when(mBlockWorker)
-        .requestSpace(Mockito.anyLong(), Mockito.anyLong(), Mockito.anyLong());
-    Mockito.doNothing().when(mBlockWorker).abortBlock(Mockito.anyLong(), Mockito.anyLong());
-    Mockito.doNothing().when(mBlockWorker).commitBlock(Mockito.anyLong(), Mockito.anyLong());
+    mBlockWorker = new NoopBlockWorker() {
+      @Override
+      public BlockWriter createBlockWriter(long sessionId, long blockId) {
+        return mBlockWriter;
+      }
+    };
     mBlockWriter = new LocalFileBlockWriter(mFile.getPath());
-    Mockito.when(mBlockWorker.getTempBlockWriterRemote(Mockito.anyLong(), Mockito.anyLong()))
-        .thenReturn(mBlockWriter)
-        .thenReturn(new LocalFileBlockWriter(mTestFolder.newFile().getPath()));
     mResponseObserver = Mockito.mock(StreamObserver.class);
-    mWriteHandler = new BlockWriteHandler(mBlockWorker, mResponseObserver, mUserInfo);
+    mWriteHandler = new BlockWriteHandler(mBlockWorker, mResponseObserver, mUserInfo, false);
     setupResponseTrigger();
   }
 
@@ -62,6 +61,13 @@ public final class BlockWriteHandlerTest extends AbstractWriteHandlerTest {
     mWriteHandler.write(newWriteRequest(newDataBuffer(CHUNK_SIZE)));
     waitForResponses();
     checkErrorCode(mResponseObserver, Status.Code.FAILED_PRECONDITION);
+  }
+
+  @Test
+  public void getLocation() throws Exception {
+    mWriteHandler.write(newWriteRequestCommand(0));
+    CommonUtils.waitFor("location is not null", () -> !"null".equals(mWriteHandler.getLocation()));
+    assertTrue(mWriteHandler.getLocation().startsWith("temp-block-"));
   }
 
   @Override

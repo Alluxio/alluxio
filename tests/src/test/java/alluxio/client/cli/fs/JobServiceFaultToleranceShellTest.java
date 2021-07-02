@@ -21,10 +21,13 @@ import alluxio.conf.ServerConfiguration;
 import alluxio.master.LocalAlluxioJobCluster;
 import alluxio.master.MultiMasterLocalAlluxioCluster;
 import alluxio.testutils.BaseIntegrationTest;
+import alluxio.testutils.IntegrationTestUtils;
 
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TestName;
 
 import java.io.ByteArrayOutputStream;
 import java.io.OutputStream;
@@ -38,10 +41,14 @@ public final class JobServiceFaultToleranceShellTest extends BaseIntegrationTest
   private LocalAlluxioJobCluster mLocalAlluxioJobCluster;
   private ByteArrayOutputStream mOutput;
 
+  @Rule
+  public TestName mTestName = new TestName();
+
   @Before
   public void before() throws Exception {
-    mLocalAlluxioCluster = new MultiMasterLocalAlluxioCluster(1);
-    mLocalAlluxioCluster.initConfiguration();
+    mLocalAlluxioCluster = new MultiMasterLocalAlluxioCluster(2);
+    mLocalAlluxioCluster.initConfiguration(
+        IntegrationTestUtils.getTestName(getClass().getSimpleName(), mTestName.getMethodName()));
     mLocalAlluxioCluster.start();
     mLocalAlluxioJobCluster = new LocalAlluxioJobCluster();
     mLocalAlluxioJobCluster.start();
@@ -51,21 +58,25 @@ public final class JobServiceFaultToleranceShellTest extends BaseIntegrationTest
 
   @After
   public void after() throws Exception {
-    mLocalAlluxioJobCluster.stop();
-    mLocalAlluxioCluster.stop();
+    if (mLocalAlluxioJobCluster != null) {
+      mLocalAlluxioJobCluster.stop();
+    }
+    if (mLocalAlluxioCluster != null) {
+      mLocalAlluxioCluster.stop();
+    }
     System.setOut(System.out);
     ServerConfiguration.reset();
   }
 
   @Test
-  public void distributedMv() throws Exception {
+  public void distributedCp() throws Exception {
     FileSystem fs = FileSystem.Factory.create(ServerConfiguration.global());
     try (OutputStream out = fs.createFile(new AlluxioURI("/test"))) {
       out.write("Hello".getBytes());
     }
 
     try (FileSystemShell shell = new FileSystemShell(ServerConfiguration.global())) {
-      int exitCode = shell.run("distributedMv", "/test", "/test2");
+      int exitCode = shell.run("distributedCp", "/test", "/test2");
       assertEquals("Command failed, output: " + mOutput.toString(), 0, exitCode);
     }
     assertTrue(fs.exists(new AlluxioURI("/test2")));

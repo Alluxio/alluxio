@@ -38,7 +38,7 @@ public final class HelpCommandIntegrationTest extends AbstractFileSystemShellTes
    */
   @Test
   public void helpNotExist() throws IOException {
-    Assert.assertEquals(-1, mFsShell.run("help", "notExistTestCommand"));
+    Assert.assertEquals(-1, sFsShell.run("help", "notExistTestCommand"));
     String expected = "notExistTestCommand is an unknown command.\n";
     Assert.assertEquals(expected, mOutput.toString());
   }
@@ -48,7 +48,7 @@ public final class HelpCommandIntegrationTest extends AbstractFileSystemShellTes
    */
   @Test
   public void help() throws IOException {
-    Assert.assertEquals(0, mFsShell.run("help", "help"));
+    Assert.assertEquals(0, sFsShell.run("help", "help"));
     HelpCommand cmd = new HelpCommand(FileSystemContext.create(ServerConfiguration.global()));
     StringWriter stringWriter = new StringWriter();
     PrintWriter printWriter = new PrintWriter(stringWriter);
@@ -63,7 +63,7 @@ public final class HelpCommandIntegrationTest extends AbstractFileSystemShellTes
    */
   @Test
   public void helpAllCommand() throws IOException {
-    Assert.assertEquals(0, mFsShell.run("help"));
+    Assert.assertEquals(0, sFsShell.run("help"));
     final Map<String, Command> commands =
         FileSystemShellUtils.loadCommands(FileSystemContext.create(ServerConfiguration.global()));
     String expected = "";
@@ -84,6 +84,6 @@ public final class HelpCommandIntegrationTest extends AbstractFileSystemShellTes
    */
   @Test
   public void helpRedundantArgs() throws IOException {
-    Assert.assertEquals(-1, mFsShell.run("help", "Cat", "Chmod"));
+    Assert.assertEquals(-1, sFsShell.run("help", "Cat", "Chmod"));
   }
 }

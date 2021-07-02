@@ -130,12 +130,15 @@ public final class GCSOutputStream extends OutputStream {
         LOG.warn("MD5 was not computed for: {}", mKey);
       }
       mClient.putObject(mBucketName, obj);
+    } catch (ServiceException e) {
+      LOG.error("Failed to upload {}.", mKey);
+      throw new IOException(e);
+    } finally {
+      // Delete the temporary file on the local machine if the GCS client completed the
+      // upload or if the upload failed.
       if (!mFile.delete()) {
         LOG.error("Failed to delete temporary file @ {}", mFile.getPath());
       }
-    } catch (ServiceException e) {
-      LOG.error("Failed to upload {}. Temporary file @ {}", mKey, mFile.getPath());
-      throw new IOException(e);
     }
   }
 }

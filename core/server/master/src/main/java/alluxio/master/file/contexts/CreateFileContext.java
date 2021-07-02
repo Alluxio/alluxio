@@ -64,10 +64,6 @@ public class CreateFileContext
     return create(FileSystemOptions.createFileDefaults(ServerConfiguration.global()).toBuilder());
   }
 
-  protected CreateFileContext getThis() {
-    return this;
-  }
-
   /**
    * @return true if file is cacheable
    */

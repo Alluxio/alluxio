@@ -34,7 +34,6 @@ import java.util.List;
 import java.util.ServiceLoader;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -75,7 +74,8 @@ import javax.annotation.concurrent.NotThreadSafe;
  * @param <S> the type of configuration to be used when creating the extension
  */
 @NotThreadSafe
-public class ExtensionFactoryRegistry<T extends ExtensionFactory<?, S>, S> {
+public class ExtensionFactoryRegistry<T extends ExtensionFactory<?, S>,
+    S extends AlluxioConfiguration> {
   private static final Logger LOG = LoggerFactory.getLogger(ExtensionFactoryRegistry.class);
 
   /**
@@ -125,15 +125,14 @@ public class ExtensionFactoryRegistry<T extends ExtensionFactory<?, S>, S> {
    *
    * @param path path
    * @param conf configuration of the extension
-   * @param alluxioConf Alluxio configuration
    * @return list of factories that support the given path which may be an empty list
    */
-  public List<T> findAll(String path, @Nullable S conf, AlluxioConfiguration alluxioConf) {
+  public List<T> findAll(String path, S conf) {
     Preconditions.checkArgument(path != null, "path may not be null");
 
     List<T> factories = new ArrayList<>(mFactories);
-    String libDir = PathUtils.concatPath(alluxioConf.get(PropertyKey.HOME), "lib");
-    String extensionDir = alluxioConf.get(PropertyKey.EXTENSIONS_DIR);
+    String libDir = PathUtils.concatPath(conf.get(PropertyKey.HOME), "lib");
+    String extensionDir = conf.get(PropertyKey.EXTENSIONS_DIR);
     scanLibs(factories, libDir);
     scanExtensions(factories, extensionDir);
 

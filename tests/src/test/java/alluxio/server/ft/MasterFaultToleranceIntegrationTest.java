@@ -35,18 +35,22 @@ import alluxio.hadoop.HadoopClientTestUtils;
 import alluxio.master.MultiMasterLocalAlluxioCluster;
 import alluxio.master.PollingMasterInquireClient;
 import alluxio.master.block.BlockMaster;
+import alluxio.security.user.ServerUserState;
 import alluxio.testutils.BaseIntegrationTest;
+import alluxio.testutils.IntegrationTestUtils;
 import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
 import alluxio.util.io.PathUtils;
 
-import jersey.repackaged.com.google.common.collect.Lists;
+import com.google.common.collect.Lists;
 import org.junit.After;
 import org.junit.Assume;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TestName;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -66,6 +70,9 @@ public class MasterFaultToleranceIntegrationTest extends BaseIntegrationTest {
   private MultiMasterLocalAlluxioCluster mMultiMasterLocalAlluxioCluster = null;
   private FileSystem mFileSystem = null;
 
+  @Rule
+  private TestName mTestName = new TestName();
+
   @BeforeClass
   public static void beforeClass() {
     // Skip hadoop 1 because hadoop 1's RPC cannot be interrupted properly which makes it
@@ -84,8 +91,9 @@ public class MasterFaultToleranceIntegrationTest extends BaseIntegrationTest {
     // TODO(gpang): Implement multi-master cluster as a resource.
     mMultiMasterLocalAlluxioCluster =
         new MultiMasterLocalAlluxioCluster(MASTERS);
-    mMultiMasterLocalAlluxioCluster.initConfiguration();
-    ServerConfiguration.set(PropertyKey.WORKER_MEMORY_SIZE, WORKER_CAPACITY_BYTES);
+    mMultiMasterLocalAlluxioCluster.initConfiguration(
+        IntegrationTestUtils.getTestName(getClass().getSimpleName(), mTestName.getMethodName()));
+    ServerConfiguration.set(PropertyKey.WORKER_RAMDISK_SIZE, WORKER_CAPACITY_BYTES);
     ServerConfiguration.set(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT, BLOCK_SIZE);
     ServerConfiguration.set(PropertyKey.MASTER_JOURNAL_TAILER_SHUTDOWN_QUIET_WAIT_TIME_MS, 100);
     ServerConfiguration.set(PropertyKey.MASTER_JOURNAL_CHECKPOINT_PERIOD_ENTRIES, 2);
@@ -135,15 +143,15 @@ public class MasterFaultToleranceIntegrationTest extends BaseIntegrationTest {
    * Wait for a number of workers to register. This call will block until the block master
    * detects the required number of workers or if the timeout is exceeded.
    *
-   * @param store the block store object which references the correct block master
+   * @param context the file system context
    * @param numWorkers the number of workers to wait for
    * @param timeoutMs the number of milliseconds to wait before timing out
    */
-  private void waitForWorkerRegistration(final AlluxioBlockStore store, final int numWorkers,
+  private void waitForWorkerRegistration(final FileSystemContext context, final int numWorkers,
       int timeoutMs) throws TimeoutException, InterruptedException {
     CommonUtils.waitFor("Worker to register.", () -> {
       try {
-        return store.getEligibleWorkers().size() >= numWorkers;
+        return context.getCachedWorkers().size() >= numWorkers;
       } catch (Exception e) {
         return false;
       }
@@ -162,8 +170,7 @@ public class MasterFaultToleranceIntegrationTest extends BaseIntegrationTest {
     for (int kills = 0; kills < MASTERS - 1; kills++) {
       assertTrue(mMultiMasterLocalAlluxioCluster.stopLeader());
       mMultiMasterLocalAlluxioCluster.waitForNewMaster(CLUSTER_WAIT_TIMEOUT_MS);
-      waitForWorkerRegistration(AlluxioBlockStore
-              .create(FileSystemContext.create(ServerConfiguration.global())), 1,
+      waitForWorkerRegistration(FileSystemContext.create(ServerConfiguration.global()), 1,
           CLUSTER_WAIT_TIMEOUT_MS);
       faultTestDataCheck(answer);
       faultTestDataCreation(new AlluxioURI("/data_kills_" + kills), answer);
@@ -177,8 +184,7 @@ public class MasterFaultToleranceIntegrationTest extends BaseIntegrationTest {
     for (int kills = 0; kills < MASTERS - 1; kills++) {
       assertTrue(mMultiMasterLocalAlluxioCluster.stopLeader());
       mMultiMasterLocalAlluxioCluster.waitForNewMaster(CLUSTER_WAIT_TIMEOUT_MS);
-      waitForWorkerRegistration(AlluxioBlockStore
-              .create(FileSystemContext.create(ServerConfiguration.global())), 1,
+      waitForWorkerRegistration(FileSystemContext.create(ServerConfiguration.global()), 1,
           CLUSTER_WAIT_TIMEOUT_MS);
 
       if (kills % 2 != 0) {
@@ -253,8 +259,8 @@ public class MasterFaultToleranceIntegrationTest extends BaseIntegrationTest {
   public void queryStandby() throws Exception {
     List<InetSocketAddress> addresses = mMultiMasterLocalAlluxioCluster.getMasterAddresses();
     Collections.shuffle(addresses);
-    PollingMasterInquireClient inquireClient =
-        new PollingMasterInquireClient(addresses, ServerConfiguration.global());
+    PollingMasterInquireClient inquireClient = new PollingMasterInquireClient(addresses,
+        ServerConfiguration.global(), ServerUserState.global());
     assertEquals(mMultiMasterLocalAlluxioCluster.getLocalAlluxioMaster().getAddress(),
         inquireClient.getPrimaryRpcAddress());
   }
@@ -264,9 +270,9 @@ public class MasterFaultToleranceIntegrationTest extends BaseIntegrationTest {
     for (int kills = 0; kills < MASTERS - 1; kills++) {
       assertTrue(mMultiMasterLocalAlluxioCluster.stopLeader());
       mMultiMasterLocalAlluxioCluster.waitForNewMaster(CLUSTER_WAIT_TIMEOUT_MS);
-      AlluxioBlockStore store =
-          AlluxioBlockStore.create(FileSystemContext.create(ServerConfiguration.global()));
-      waitForWorkerRegistration(store, 1, 1 * Constants.MINUTE_MS);
+      FileSystemContext context = FileSystemContext.create(ServerConfiguration.global());
+      AlluxioBlockStore store = AlluxioBlockStore.create(context);
+      waitForWorkerRegistration(context, 1, 1 * Constants.MINUTE_MS);
       // If worker is successfully re-registered, the capacity bytes should not change.
       long capacityFound = store.getCapacityBytes();
       assertEquals(WORKER_CAPACITY_BYTES, capacityFound);
@@ -278,11 +284,13 @@ public class MasterFaultToleranceIntegrationTest extends BaseIntegrationTest {
     // Stop the default cluster.
     after();
 
-    // Create a new cluster, with no workers initially
-    final MultiMasterLocalAlluxioCluster cluster = new MultiMasterLocalAlluxioCluster(2, 0);
-    cluster.initConfiguration();
-    cluster.start();
+    MultiMasterLocalAlluxioCluster cluster = null;
     try {
+      // Create a new cluster, with no workers initially
+      cluster = new MultiMasterLocalAlluxioCluster(2, 0);
+      cluster.initConfiguration(
+          IntegrationTestUtils.getTestName(getClass().getSimpleName(), mTestName.getMethodName()));
+      cluster.start();
       // Get the first block master
       BlockMaster blockMaster1 =
           cluster.getLocalAlluxioMaster().getMasterProcess().getMaster(BlockMaster.class);
@@ -343,7 +351,9 @@ public class MasterFaultToleranceIntegrationTest extends BaseIntegrationTest {
           Collections.EMPTY_MAP, Collections.EMPTY_MAP, Collections.EMPTY_MAP,
           RegisterWorkerPOptions.getDefaultInstance());
     } finally {
-      cluster.stop();
+      if (cluster != null) {
+        cluster.stop();
+      }
     }
 
     // Start the default cluster.

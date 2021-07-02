@@ -79,7 +79,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * Some multipart uploads may not be completed/aborted in normal ways and need periodical cleanup
  * by enabling the {@link PropertyKey#UNDERFS_CLEANUP_ENABLED}.
  * When a leader master starts or a cleanup interval is reached, all the multipart uploads
- * older than {@link PropertyKey#UNDERFS_S3A_INTERMEDIATE_UPLOAD_CLEAN_AGE} will be cleaned.
+ * older than {@link PropertyKey#UNDERFS_S3_INTERMEDIATE_UPLOAD_CLEAN_AGE} will be cleaned.
  */
 @NotThreadSafe
 public class S3ALowLevelOutputStream extends OutputStream {
@@ -93,7 +93,7 @@ public class S3ALowLevelOutputStream extends OutputStream {
    * Only parts bigger than 5MB could be uploaded through S3A low-level multipart upload,
    * except the last part.
    */
-  private static final long UPLOAD_THRESHOLD = 5 * Constants.MB;
+  private static final long UPLOAD_THRESHOLD = 5L * Constants.MB;
 
   /** Bucket name of the Alluxio S3 bucket. */
   private final String mBucketName;
@@ -267,7 +267,7 @@ public class S3ALowLevelOutputStream extends OutputStream {
       waitForAllPartsUpload();
       completeMultiPartUpload();
     } catch (Exception e) {
-      LOG.error("Failed to upload {}: {}", mKey, e.toString());
+      LOG.error("Failed to upload {}", mKey, e);
       throw new IOException(e);
     }
   }

@@ -13,33 +13,30 @@ package alluxio.extensions;
 
 import alluxio.conf.AlluxioConfiguration;
 
-import javax.annotation.Nullable;
-
 /**
  * A factory class for creating instance of {@link T} based on configuration {@link S}.
  * @param <T> The type of instance to be created
  * @param <S> the type of configuration to be used when creating the extension
  */
-public interface ExtensionFactory<T, S> {
+public interface ExtensionFactory<T, S extends AlluxioConfiguration> {
   /**
    * Creates a new extension for the given path. An {@link IllegalArgumentException} is
    * thrown if this factory does not support extension for the given path or if the configuration
    * provided is insufficient to create an extension.
    *
    * @param path file path with scheme for which the extension will be created
-   * @param conf optional configuration object for the extension, may be null
-   * @param alluxioConf Alluxio configuration object
+   * @param conf configuration object for the extension
    * @return the new extension
    */
-  T create(String path, @Nullable S conf, AlluxioConfiguration alluxioConf);
+  T create(String path, S conf);
 
   /**
    * Gets whether this factory supports the given path and thus whether calling the
-   * {@link #create(String, S, AlluxioConfiguration)} can succeed for this path.
+   * {@link #create(String, S)} can succeed for this path.
    *
    * @param path file path with scheme for which the extension will be created
-   * @param conf optional configuration object for the extension, may be null
+   * @param conf configuration object for the extension
    * @return true if the path is supported, false otherwise
    */
-  boolean supportsPath(String path, @Nullable S conf);
+  boolean supportsPath(String path, S conf);
 }

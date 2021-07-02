@@ -25,15 +25,13 @@ import alluxio.conf.PropertyKey;
 import alluxio.retry.CountingRetry;
 import alluxio.util.ConfigurationUtils;
 
-import com.aliyun.oss.OSSClient;
-import com.aliyun.oss.model.GetObjectRequest;
+import com.aliyun.oss.OSS;
 import com.aliyun.oss.model.OSSObject;
 
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
-import org.mockito.ArgumentMatcher;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -51,7 +49,7 @@ public class OSSInputStreamTest {
       new InstancedConfiguration(ConfigurationUtils.defaults());
 
   private OSSInputStream mOssInputStream;
-  private OSSClient mOssClient;
+  private OSS mOssClient;
   private InputStream[] mInputStreamSpy;
   private OSSObject[] mOssObject;
 
@@ -63,7 +61,7 @@ public class OSSInputStreamTest {
 
   @Before
   public void setUp() throws IOException {
-    mOssClient = mock(OSSClient.class);
+    mOssClient = mock(OSS.class);
 
     byte[] input = new byte[] {1, 2, 3};
     mOssObject = new OSSObject[input.length];
@@ -71,15 +69,13 @@ public class OSSInputStreamTest {
     for (int i = 0; i < input.length; ++i) {
       final long pos = (long) i;
       mOssObject[i] = mock(OSSObject.class);
-      when(mOssClient.getObject(argThat(new ArgumentMatcher<GetObjectRequest>() {
-        @Override
-        public boolean matches(Object argument) {
-          if (argument instanceof  GetObjectRequest) {
-            return ((GetObjectRequest) argument).getRange()[0] == pos;
-          }
-          return false;
+      when(mOssClient.getObject(argThat(argument -> {
+        if (argument != null) {
+          return argument.getRange()[0] == pos;
         }
-      }))).thenReturn(mOssObject[i]);
+        return false;
+      })))
+          .thenReturn(mOssObject[i]);
       byte[] mockInput = Arrays.copyOfRange(input, i, input.length);
       mInputStreamSpy[i] = spy(new ByteArrayInputStream(mockInput));
       when(mOssObject[i].getObjectContent()).thenReturn(mInputStreamSpy[i]);

@@ -11,12 +11,16 @@
 
 package alluxio.util.io;
 
+import alluxio.Constants;
+import alluxio.util.CommonUtils;
+
 import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.nio.ByteBuffer;
 import java.nio.channels.ReadableByteChannel;
@@ -32,9 +36,11 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public final class BufferUtils {
   private static final Logger LOG = LoggerFactory.getLogger(BufferUtils.class);
-
+  private static final Object LOCK = new Object();
+  private static final int TRANSFER_BUFFER_SIZE = 4 * Constants.MB;
   private static Method sCleanerCleanMethod;
   private static Method sByteBufferCleanerMethod;
+  private static Class sUnsafeClass;
 
   /**
    * Converts a byte to an integer.
@@ -51,6 +57,63 @@ public final class BufferUtils {
    * this direct buffer should be discarded. This is unsafe operation and currently a work-around to
    * avoid huge memory occupation caused by memory map.
    *
+   * @param buffer bytebuffer
+   */
+  public static void cleanDirectBuffer(ByteBuffer buffer) {
+    Preconditions.checkNotNull(buffer, "buffer is null");
+    Preconditions.checkArgument(buffer.isDirect(), "buffer isn't a DirectByteBuffer");
+    int javaVersion = CommonUtils.getJavaVersion();
+    if (javaVersion < 9) {
+      cleanDirectBufferJava8(buffer);
+    } else {
+      cleanDirectBufferJava11(buffer);
+    }
+  }
+
+  /**
+   * <p>
+   * Note: This calls the cleaner method on jdk 9+.
+   * See <a
+   * href="https://stackoverflow.com/questions/2972986/how-to-unmap-a-file-from-memory-mapped-
+   * using-filechannel-in-java"
+   * >more discussion</a>.
+   *
+   * @param buffer the byte buffer to be unmapped, this must be a direct buffer
+   */
+  private static void cleanDirectBufferJava11(ByteBuffer buffer) {
+    if (sByteBufferCleanerMethod == null || sUnsafeClass == null) {
+      synchronized (LOCK) {
+        try {
+          if (sByteBufferCleanerMethod == null || sUnsafeClass == null) {
+            try {
+              sUnsafeClass = Class.forName("sun.misc.Unsafe");
+            } catch (Exception e) {
+              // jdk.internal.misc.Unsafe doesn't yet have an invokeCleaner() method,
+              // but that method should be added if sun.misc.Unsafe is removed.
+              sUnsafeClass = Class.forName("jdk.internal.misc.Unsafe");
+            }
+            sByteBufferCleanerMethod = sUnsafeClass.getMethod("invokeCleaner", ByteBuffer.class);
+            sByteBufferCleanerMethod.setAccessible(true);
+          }
+        } catch (Exception e) {
+          // Force to drop reference to the buffer to clean
+          buffer = null;
+          return;
+        }
+      }
+    }
+    try {
+      Field theUnsafeField = sUnsafeClass.getDeclaredField("theUnsafe");
+      theUnsafeField.setAccessible(true);
+      Object theUnsafe = theUnsafeField.get(null);
+      sByteBufferCleanerMethod.invoke(theUnsafe, buffer);
+    } catch (Exception e) {
+      LOG.warn("Failed to unmap direct ByteBuffer: {}, error message: {}",
+          buffer.getClass().getName(), e.toString());
+    }
+  }
+
+  /**
    * <p>
    * NOTE: DirectByteBuffers are not guaranteed to be garbage-collected immediately after their
    * references are released and may lead to OutOfMemoryError. This function helps by calling the
@@ -60,14 +123,22 @@ public final class BufferUtils {
    *
    * @param buffer the byte buffer to be unmapped, this must be a direct buffer
    */
-  public static synchronized void cleanDirectBuffer(ByteBuffer buffer) {
-    Preconditions.checkNotNull(buffer, "buffer");
-    Preconditions.checkArgument(buffer.isDirect(), "buffer isn't a DirectByteBuffer");
-    try {
-      if (sByteBufferCleanerMethod == null) {
-        sByteBufferCleanerMethod = buffer.getClass().getMethod("cleaner");
-        sByteBufferCleanerMethod.setAccessible(true);
+  private static void cleanDirectBufferJava8(ByteBuffer buffer) {
+    if (sByteBufferCleanerMethod == null) {
+      synchronized (LOCK) {
+        try {
+          if (sByteBufferCleanerMethod == null) {
+            sByteBufferCleanerMethod = buffer.getClass().getMethod("cleaner");
+            sByteBufferCleanerMethod.setAccessible(true);
+          }
+        } catch (Exception e) {
+          // Force to drop reference to the buffer to clean
+          buffer = null;
+          return;
+        }
       }
+    }
+    try {
       final Object cleaner = sByteBufferCleanerMethod.invoke(buffer);
       if (cleaner == null) {
         if (buffer.capacity() > 0) {
@@ -77,12 +148,16 @@ public final class BufferUtils {
         return;
       }
       if (sCleanerCleanMethod == null) {
-        sCleanerCleanMethod = cleaner.getClass().getMethod("clean");
+        synchronized (LOCK) {
+          if (sCleanerCleanMethod == null) {
+            sCleanerCleanMethod = cleaner.getClass().getMethod("clean");
+          }
+        }
       }
       sCleanerCleanMethod.invoke(cleaner);
     } catch (Exception e) {
       LOG.warn("Failed to unmap direct ByteBuffer: {}, error message: {}",
-                buffer.getClass().getName(), e.getMessage());
+          buffer.getClass().getName(), e.toString());
     } finally {
       // Force to drop reference to the buffer to clean
       buffer = null;
@@ -282,21 +357,21 @@ public final class BufferUtils {
    * @param src the source channel
    * @param dest the destination channel
    */
-  public static void fastCopy(final ReadableByteChannel src, final WritableByteChannel dest)
+  public static void transfer(final ReadableByteChannel src, final WritableByteChannel dest)
       throws IOException {
-    // TODO(yupeng): make the buffer size configurable
-    final ByteBuffer buffer = ByteBuffer.allocateDirect(16 * 1024);
-
-    while (src.read(buffer) != -1) {
+    final ByteBuffer buffer = ByteBuffer.allocateDirect(TRANSFER_BUFFER_SIZE);
+    try {
+      while (src.read(buffer) != -1) {
+        buffer.flip();
+        dest.write(buffer);
+        buffer.compact();
+      }
       buffer.flip();
-      dest.write(buffer);
-      buffer.compact();
-    }
-
-    buffer.flip();
-
-    while (buffer.hasRemaining()) {
-      dest.write(buffer);
+      while (buffer.hasRemaining()) {
+        dest.write(buffer);
+      }
+    } finally {
+      cleanDirectBuffer(buffer);
     }
   }
 

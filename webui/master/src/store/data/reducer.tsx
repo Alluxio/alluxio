@@ -9,31 +9,31 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-import {Reducer} from 'redux';
+import { Reducer } from 'redux';
 
-import {DataActionTypes, IDataState} from './types';
+import { DataActionTypes, IDataState } from './types';
 
 export const initialDataState: IDataState = {
   data: {
-    'fatalError': '',
-    'fileInfos': [],
-    'inAlluxioFileNum': 0,
-    'masterNodeAddress': '',
-    'permissionError': '',
-    'showPermissions': true
+    fatalError: '',
+    fileInfos: [],
+    inAlluxioFileNum: 0,
+    masterNodeAddress: '',
+    permissionError: '',
+    showPermissions: true,
   },
   errors: undefined,
-  loading: false
+  loading: false,
 };
 
 export const dataReducer: Reducer<IDataState> = (state = initialDataState, action) => {
   switch (action.type) {
     case DataActionTypes.FETCH_REQUEST:
-      return {...state, loading: true};
+      return { ...state, loading: true };
     case DataActionTypes.FETCH_SUCCESS:
-      return {...state, loading: false, data: action.payload.data, response: action.payload, errors: undefined};
+      return { ...state, loading: false, data: action.payload.data, response: action.payload, errors: undefined };
     case DataActionTypes.FETCH_ERROR:
-      return {...state, loading: false, errors: action.payload};
+      return { ...state, loading: false, errors: action.payload };
     default:
       return state;
   }

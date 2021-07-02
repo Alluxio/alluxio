@@ -17,13 +17,16 @@ import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.master.PrimarySelector.State;
 import alluxio.master.journal.JournalSystem;
+import alluxio.metrics.MetricKey;
+import alluxio.metrics.MetricsSystem;
 import alluxio.util.CommonUtils;
 import alluxio.util.ThreadUtils;
 import alluxio.util.WaitForOptions;
 import alluxio.util.interfaces.Scoped;
 
+import com.codahale.metrics.Timer;
 import com.google.common.base.Preconditions;
-import org.apache.commons.lang.exception.ExceptionUtils;
+import com.google.common.base.Throwables;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -70,6 +73,16 @@ final class FaultTolerantAlluxioMasterProcess extends AlluxioMasterProcess {
   public void start() throws Exception {
     mRunning = true;
     mJournalSystem.start();
+
+    startMasters(false);
+    LOG.info("Secondary started");
+
+    // Perform the initial catchup before joining leader election,
+    // to avoid potential delay if this master is selected as leader
+    if (ServerConfiguration.getBoolean(PropertyKey.MASTER_JOURNAL_CATCHUP_PROTECT_ENABLED)) {
+      mJournalSystem.waitForCatchup();
+    }
+
     try {
       mLeaderSelector.start(getRpcAddress());
     } catch (IOException e) {
@@ -77,19 +90,27 @@ final class FaultTolerantAlluxioMasterProcess extends AlluxioMasterProcess {
       throw new RuntimeException(e);
     }
 
-    startMasters(false);
-    LOG.info("Secondary started");
     while (!Thread.interrupted()) {
+      if (!mRunning) {
+        break;
+      }
+      if (ServerConfiguration.getBoolean(PropertyKey.MASTER_JOURNAL_CATCHUP_PROTECT_ENABLED)) {
+        mJournalSystem.waitForCatchup();
+      }
       mLeaderSelector.waitForState(State.PRIMARY);
       if (!mRunning) {
         break;
       }
       if (gainPrimacy()) {
         mLeaderSelector.waitForState(State.SECONDARY);
-        if (!mRunning) {
-          break;
+        if (ServerConfiguration.getBoolean(PropertyKey.MASTER_JOURNAL_EXIT_ON_DEMOTION)) {
+          stop();
+        } else {
+          if (!mRunning) {
+            break;
+          }
+          losePrimacy();
         }
-        losePrimacy();
       }
     }
   }
@@ -111,7 +132,10 @@ final class FaultTolerantAlluxioMasterProcess extends AlluxioMasterProcess {
       }
       stopMasters();
       LOG.info("Secondary stopped");
-      mJournalSystem.gainPrimacy();
+      try (Timer.Context ctx = MetricsSystem
+          .timer(MetricKey.MASTER_JOURNAL_GAIN_PRIMACY_TIMER.getName()).time()) {
+        mJournalSystem.gainPrimacy();
+      }
       // We only check unstable here because mJournalSystem.gainPrimacy() is the only slow method
       if (unstable.get()) {
         losePrimacy();
@@ -123,7 +147,7 @@ final class FaultTolerantAlluxioMasterProcess extends AlluxioMasterProcess {
       try {
         startServing(" (gained leadership)", " (lost leadership)");
       } catch (Throwable t) {
-        Throwable root = ExceptionUtils.getRootCause(t);
+        Throwable root = Throwables.getRootCause(t);
         if ((root != null && (root instanceof InterruptedException)) || Thread.interrupted()) {
           return;
         }
@@ -170,6 +194,13 @@ final class FaultTolerantAlluxioMasterProcess extends AlluxioMasterProcess {
     if (mLeaderSelector != null) {
       mLeaderSelector.stop();
     }
+  }
+
+  /**
+   * @return whether the master is running
+   */
+  protected boolean isRunning() {
+    return mRunning;
   }
 
   @Override

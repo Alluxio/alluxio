@@ -34,6 +34,10 @@ public final class IdUtils {
   public static final long INVALID_WORKER_ID = -1;
   public static final long INVALID_MOUNT_ID = -1;
   public static final long ROOT_MOUNT_ID = 1;
+  /**
+   * The journal ufs is stored as a special mount in the ufs manage.
+   */
+  public static final long UFS_JOURNAL_MOUNT_ID = Long.MAX_VALUE - 10000;
   private static SecureRandom sRandom = new SecureRandom();
 
   private IdUtils() {} // prevent instantiation
@@ -74,10 +78,12 @@ public final class IdUtils {
   }
 
   /**
+   * Generates a positive random number by zero-ing the sign bit.
+   *
    * @return a random long which is guaranteed to be non negative (zero is allowed)
    */
   public static synchronized long getRandomNonNegativeLong() {
-    return Math.abs(sRandom.nextLong());
+    return sRandom.nextLong() & Long.MAX_VALUE;
   }
 
   /**
@@ -98,7 +104,7 @@ public final class IdUtils {
    * @return app suffixed by a positive random long
    */
   public static String createFileSystemContextId() {
-    return "app-" + Math.abs(sRandom.nextLong());
+    return "app-" + getRandomNonNegativeLong();
   }
 
   /**

@@ -11,21 +11,27 @@
 
 package alluxio.security.authentication;
 
-import alluxio.grpc.ChannelAuthenticationScheme;
+import alluxio.grpc.SaslMessage;
 
 import javax.security.sasl.SaslClient;
+import javax.security.sasl.SaslException;
 
 /**
  * Interface for authentication scheme specific {@link SaslClient} management.
  */
-public interface SaslClientHandler {
+public interface SaslClientHandler extends AutoCloseable {
   /**
-   * @return the scheme under which client is authenticating
+   * Handles the given {@link SaslMessage} from the server.
+   *
+   * @param message server-side Sasl message to handle
+   * @return client's answer. null if client is completed
+   * @throws SaslException
    */
-  ChannelAuthenticationScheme getClientScheme();
+  SaslMessage handleMessage(SaslMessage message) throws SaslException;
 
   /**
-   * @return the {@link SaslClient} instance
+   * Close the handler and dispose internal resources.
    */
-  SaslClient getSaslClient();
+  @Override
+  void close();
 }

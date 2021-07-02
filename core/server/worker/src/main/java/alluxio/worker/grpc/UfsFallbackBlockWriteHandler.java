@@ -11,17 +11,14 @@
 
 package alluxio.worker.grpc;
 
-import alluxio.StorageTierAssoc;
-import alluxio.WorkerStorageTierAssoc;
-import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.exception.WorkerOutOfSpaceException;
 import alluxio.exception.status.NotFoundException;
 import alluxio.grpc.WriteRequestCommand;
 import alluxio.grpc.WriteResponse;
-import alluxio.metrics.Metric;
+import alluxio.metrics.MetricInfo;
+import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
-import alluxio.metrics.WorkerMetrics;
 import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.security.authentication.AuthenticatedUserInfo;
@@ -54,41 +51,51 @@ import javax.annotation.concurrent.NotThreadSafe;
 public final class UfsFallbackBlockWriteHandler
     extends AbstractWriteHandler<BlockWriteRequestContext> {
   private static final Logger LOG = LoggerFactory.getLogger(UfsFallbackBlockWriteHandler.class);
-  private static final long FILE_BUFFER_SIZE =
-      ServerConfiguration.getBytes(PropertyKey.WORKER_FILE_BUFFER_SIZE);
 
   /** The Block Worker which handles blocks stored in the Alluxio storage of the worker. */
   private final BlockWorker mWorker;
-  /** An object storing the mapping of tier aliases to ordinals. */
-  private final StorageTierAssoc mStorageTierAssoc = new WorkerStorageTierAssoc();
   private final UfsManager mUfsManager;
   private final BlockWriteHandler mBlockWriteHandler;
+  private final boolean mDomainSocketEnabled;
 
   /**
    * Creates an instance of {@link UfsFallbackBlockWriteHandler}.
    *
    * @param blockWorker the block worker
    * @param userInfo the authenticated user info
+   * @param domainSocketEnabled whether using a domain socket
    */
   UfsFallbackBlockWriteHandler(BlockWorker blockWorker, UfsManager ufsManager,
-      StreamObserver<WriteResponse> responseObserver, AuthenticatedUserInfo userInfo) {
+      StreamObserver<WriteResponse> responseObserver, AuthenticatedUserInfo userInfo,
+      boolean domainSocketEnabled) {
     super(responseObserver, userInfo);
     mWorker = blockWorker;
     mUfsManager = ufsManager;
-    mBlockWriteHandler = new BlockWriteHandler(blockWorker, responseObserver, userInfo);
+    mBlockWriteHandler =
+        new BlockWriteHandler(blockWorker, responseObserver, userInfo, domainSocketEnabled);
+    mDomainSocketEnabled = domainSocketEnabled;
   }
 
   @Override
   protected BlockWriteRequestContext createRequestContext(alluxio.grpc.WriteRequest msg)
       throws Exception {
     BlockWriteRequestContext context = new BlockWriteRequestContext(msg, FILE_BUFFER_SIZE);
+    if (mDomainSocketEnabled) {
+      context.setCounter(MetricsSystem.counter(MetricKey.WORKER_BYTES_WRITTEN_DOMAIN.getName()));
+      context.setMeter(MetricsSystem
+          .meter(MetricKey.WORKER_BYTES_WRITTEN_DOMAIN_THROUGHPUT.getName()));
+    } else {
+      context.setCounter(MetricsSystem.counter(MetricKey.WORKER_BYTES_WRITTEN_REMOTE.getName()));
+      context.setMeter(MetricsSystem
+          .meter(MetricKey.WORKER_BYTES_WRITTEN_REMOTE_THROUGHPUT.getName()));
+    }
     BlockWriteRequest request = context.getRequest();
     Preconditions.checkState(request.hasCreateUfsBlockOptions());
     // if it is already a UFS fallback from short-circuit write, avoid writing to local again
     context.setWritingToLocal(!request.getCreateUfsBlockOptions().getFallback());
     if (context.isWritingToLocal()) {
-      mWorker.createBlockRemote(request.getSessionId(), request.getId(),
-          mStorageTierAssoc.getAlias(request.getTier()), FILE_BUFFER_SIZE);
+      mWorker.createBlock(request.getSessionId(), request.getId(), request.getTier(),
+          request.getMediumType(), FILE_BUFFER_SIZE);
     }
     return context;
   }
@@ -192,6 +199,25 @@ public final class UfsFallbackBlockWriteHandler
     }
   }
 
+  @Override
+  protected String getLocationInternal(BlockWriteRequestContext context) {
+    Protocol.CreateUfsBlockOptions createUfsBlockOptions =
+        context.getRequest().getCreateUfsBlockOptions();
+
+    if (createUfsBlockOptions == null) {
+      return String.format("blockId-%d", context.getRequest().getId());
+    }
+
+    UfsManager.UfsClient ufsClient;
+    try {
+      ufsClient = mUfsManager.get(createUfsBlockOptions.getMountId());
+    } catch (Throwable e) {
+      return String.format("blockId-%d", context.getRequest().getId());
+    }
+
+    return BlockUtils.getUfsBlockPath(ufsClient, context.getRequest().getId());
+  }
+
   private void initUfsFallback(BlockWriteRequestContext context) throws Exception {
     Preconditions.checkState(!context.isWritingToLocal());
     if (context.getOutputStream() == null) {
@@ -225,12 +251,12 @@ public final class UfsFallbackBlockWriteHandler
     context.setOutputStream(ufsOutputStream);
     context.setUfsPath(ufsPath);
 
-    String counterName = Metric.getMetricNameWithTags(WorkerMetrics.BYTES_WRITTEN_UFS,
-        WorkerMetrics.TAG_UFS, ufsString);
-    String meterName = Metric.getMetricNameWithTags(WorkerMetrics.BYTES_WRITTEN_UFS_THROUGHPUT,
-        WorkerMetrics.TAG_UFS, ufsString);
-    context.setCounter(MetricsSystem.counter(counterName));
-    context.setMeter(MetricsSystem.meter(meterName));
+    MetricKey counterKey = MetricKey.WORKER_BYTES_WRITTEN_UFS;
+    MetricKey meterKey = MetricKey.WORKER_BYTES_WRITTEN_UFS_THROUGHPUT;
+    context.setCounter(MetricsSystem.counterWithTags(counterKey.getName(),
+        counterKey.isClusterAggregated(), MetricInfo.TAG_UFS, ufsString));
+    context.setMeter(MetricsSystem.meterWithTags(meterKey.getName(),
+        meterKey.isClusterAggregated(), MetricInfo.TAG_UFS, ufsString));
   }
 
   /**
@@ -244,7 +270,7 @@ public final class UfsFallbackBlockWriteHandler
 
     long sessionId = context.getRequest().getSessionId();
     long blockId = context.getRequest().getId();
-    TempBlockMeta block = mWorker.getBlockStore().getTempBlockMeta(sessionId, blockId);
+    TempBlockMeta block = mWorker.getTempBlockMeta(sessionId, blockId);
     if (block == null) {
       throw new NotFoundException("block " + blockId + " not found");
     }

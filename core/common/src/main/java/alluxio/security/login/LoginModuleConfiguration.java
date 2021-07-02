@@ -17,11 +17,11 @@ import alluxio.security.authentication.AuthType;
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 import javax.security.auth.login.AppConfigurationEntry;
 import javax.security.auth.login.AppConfigurationEntry.LoginModuleControlFlag;
 import javax.security.auth.login.Configuration;
-import javax.annotation.Nullable;
 
 /**
  * A JAAS configuration that defines the login modules, by which JAAS uses to login.
@@ -50,9 +50,6 @@ public final class LoginModuleConfiguration extends Configuration {
   private static final AppConfigurationEntry ALLUXIO_LOGIN = new AppConfigurationEntry(
       AlluxioLoginModule.class.getName(), LoginModuleControlFlag.REQUIRED, EMPTY_JAAS_OPTIONS);
 
-  // TODO(dong): add Kerberos_LOGIN module
-  // private static final AppConfigurationEntry KERBEROS_LOGIN = ...
-
   /**
    * In the {@link AuthType#SIMPLE} mode, JAAS first tries to retrieve the user name set by the
    * application with {@link AppLoginModule}. Upon failure, it uses the OS specific login module to
@@ -61,9 +58,6 @@ public final class LoginModuleConfiguration extends Configuration {
    */
   private static final AppConfigurationEntry[] SIMPLE =
       new AppConfigurationEntry[] {APP_LOGIN, OS_SPECIFIC_LOGIN, ALLUXIO_LOGIN};
-
-  // TODO(dong): add Kerberos mode
-  // private static final AppConfigurationEntry[] KERBEROS = ...
 
   /**
    * Constructs a new {@link LoginModuleConfiguration}.
@@ -77,7 +71,6 @@ public final class LoginModuleConfiguration extends Configuration {
         || appName.equalsIgnoreCase(AuthType.CUSTOM.getAuthName())) {
       return SIMPLE;
     } else if (appName.equalsIgnoreCase(AuthType.KERBEROS.getAuthName())) {
-      // TODO(dong): return KERBEROS;
       throw new UnsupportedOperationException("Kerberos is not supported currently.");
     }
     return null;

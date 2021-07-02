@@ -74,7 +74,7 @@ public class S3AUnderFileSystemTest {
     mManager = Mockito.mock(TransferManager.class);
     mS3UnderFileSystem =
         new S3AUnderFileSystem(new AlluxioURI("s3a://" + BUCKET_NAME), mClient, BUCKET_NAME,
-            mExecutor, mManager, UnderFileSystemConfiguration.defaults(sConf), sConf, false);
+            mExecutor, mManager, UnderFileSystemConfiguration.defaults(sConf), false);
   }
 
   @Test
@@ -174,6 +174,46 @@ public class S3AUnderFileSystemTest {
   }
 
   @Test
+  public void getPermissionsWithMapping() throws Exception {
+    Map<PropertyKey, String> conf = new HashMap<>();
+    conf.put(PropertyKey.UNDERFS_S3_OWNER_ID_TO_USERNAME_MAPPING, "111=altname");
+    try (Closeable c = new ConfigurationRule(conf, sConf).toResource()) {
+      UnderFileSystemConfiguration ufsConf = UnderFileSystemConfiguration.defaults(sConf);
+      mS3UnderFileSystem =
+              new S3AUnderFileSystem(new AlluxioURI("s3a://" + BUCKET_NAME), mClient, BUCKET_NAME,
+                      mExecutor, mManager, UnderFileSystemConfiguration.defaults(sConf), false);
+    }
+
+    Mockito.when(mClient.getS3AccountOwner()).thenReturn(new Owner("111", "test"));
+    Mockito.when(mClient.getBucketAcl(Mockito.anyString())).thenReturn(new AccessControlList());
+    ObjectUnderFileSystem.ObjectPermissions permissions = mS3UnderFileSystem.getPermissions();
+
+    Assert.assertEquals("altname", permissions.getOwner());
+    Assert.assertEquals("altname", permissions.getGroup());
+    Assert.assertEquals(0, permissions.getMode());
+  }
+
+  @Test
+  public void getPermissionsNoMapping() throws Exception {
+    Map<PropertyKey, String> conf = new HashMap<>();
+    conf.put(PropertyKey.UNDERFS_S3_OWNER_ID_TO_USERNAME_MAPPING, "111=userid");
+    try (Closeable c = new ConfigurationRule(conf, sConf).toResource()) {
+      UnderFileSystemConfiguration ufsConf = UnderFileSystemConfiguration.defaults(sConf);
+      mS3UnderFileSystem =
+              new S3AUnderFileSystem(new AlluxioURI("s3a://" + BUCKET_NAME), mClient, BUCKET_NAME,
+                      mExecutor, mManager, UnderFileSystemConfiguration.defaults(sConf), false);
+    }
+
+    Mockito.when(mClient.getS3AccountOwner()).thenReturn(new Owner("0", "test"));
+    Mockito.when(mClient.getBucketAcl(Mockito.anyString())).thenReturn(new AccessControlList());
+    ObjectUnderFileSystem.ObjectPermissions permissions = mS3UnderFileSystem.getPermissions();
+
+    Assert.assertEquals("test", permissions.getOwner());
+    Assert.assertEquals("test", permissions.getGroup());
+    Assert.assertEquals(0, permissions.getMode());
+  }
+
+  @Test
   public void getOperationMode() throws Exception {
     Map<String, UfsMode> physicalUfsState = new Hashtable<>();
     // Check default
@@ -198,5 +238,19 @@ public class S3AUnderFileSystemTest {
         UfsMode.READ_WRITE);
     Assert.assertEquals(UfsMode.READ_WRITE,
         mS3UnderFileSystem.getOperationMode(physicalUfsState));
+  }
+
+  @Test
+  public void stripPrefixIfPresent() throws Exception {
+    Assert.assertEquals("", mS3UnderFileSystem.stripPrefixIfPresent("s3a://" + BUCKET_NAME));
+    Assert.assertEquals("", mS3UnderFileSystem.stripPrefixIfPresent("s3a://" + BUCKET_NAME + "/"));
+    Assert.assertEquals("test/",
+        mS3UnderFileSystem.stripPrefixIfPresent("s3a://" + BUCKET_NAME + "/test/"));
+    Assert.assertEquals("test", mS3UnderFileSystem.stripPrefixIfPresent("test"));
+    Assert.assertEquals("test/", mS3UnderFileSystem.stripPrefixIfPresent("test/"));
+    Assert.assertEquals("test/", mS3UnderFileSystem.stripPrefixIfPresent("/test/"));
+    Assert.assertEquals("test", mS3UnderFileSystem.stripPrefixIfPresent("/test"));
+    Assert.assertEquals("", mS3UnderFileSystem.stripPrefixIfPresent(""));
+    Assert.assertEquals("", mS3UnderFileSystem.stripPrefixIfPresent("/"));
   }
 }

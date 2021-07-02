@@ -29,6 +29,8 @@ public final class OpenOptions {
 
   private long mLength;
 
+  private boolean mPositionShort;
+
   /**
    * If true, attempt to recover after failed opened attempts. Extra effort may be required in
    * order to recover from a failed open.
@@ -49,6 +51,7 @@ public final class OpenOptions {
     mOffset = 0;
     mLength = Long.MAX_VALUE;
     mRecoverFailedOpen = false;
+    mPositionShort = false;
   }
 
   /**
@@ -70,6 +73,13 @@ public final class OpenOptions {
    */
   public boolean getRecoverFailedOpen() {
     return mRecoverFailedOpen;
+  }
+
+  /**
+   * @return true, if the operation is using positioned read to a small buffer size
+   */
+  public boolean getPositionShort() {
+    return mPositionShort;
   }
 
   /**
@@ -101,6 +111,15 @@ public final class OpenOptions {
     return this;
   }
 
+  /**
+   * @param positionShort whether the operation is positioned read to a small buffer
+   * @return the updated option object
+   */
+  public OpenOptions setPositionShort(boolean positionShort) {
+    mPositionShort = positionShort;
+    return this;
+  }
+
   @Override
   public boolean equals(Object o) {
     if (this == o) {
@@ -110,13 +129,15 @@ public final class OpenOptions {
       return false;
     }
     OpenOptions that = (OpenOptions) o;
-    return Objects.equal(mOffset, that.mOffset) && Objects.equal(mLength, that.mLength)
-        && Objects.equal(mRecoverFailedOpen, that.mRecoverFailedOpen);
+    return Objects.equal(mOffset, that.mOffset)
+        && Objects.equal(mLength, that.mLength)
+        && Objects.equal(mRecoverFailedOpen, that.mRecoverFailedOpen)
+        && Objects.equal(mPositionShort, that.mPositionShort);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(mOffset, mLength, mRecoverFailedOpen);
+    return Objects.hashCode(mOffset, mLength, mRecoverFailedOpen, mPositionShort);
   }
 
   @Override
@@ -125,6 +146,7 @@ public final class OpenOptions {
         .add("offset", mOffset)
         .add("length", mLength)
         .add("recoverFailedOpen", mRecoverFailedOpen)
+        .add("positionShort", mPositionShort)
         .toString();
   }
 }

@@ -1,0 +1,70 @@
+#
+# The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
+# (the "License"). You may not use this work except in compliance with the License, which is
+# available at www.apache.org/licenses/LICENSE-2.0
+#
+# This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+# either express or implied, as more fully set forth in the License.
+#
+# See the NOTICE file distributed with this work for information regarding copyright ownership.
+#
+
+{{ if .Values.fuse.clientEnabled -}}
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: {{ template "alluxio.fullname" . }}-fuse-client
+  labels:
+    app: {{ template "alluxio.name" . }}
+    chart: {{ template "alluxio.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+    role: alluxio-fuse-client
+spec:
+  selector:
+    matchLabels:
+      app: {{ template "alluxio.name" . }}
+      chart: {{ template "alluxio.chart" . }}
+      release: {{ .Release.Name }}
+      heritage: {{ .Release.Service }}
+      role: alluxio-fuse-client
+  template:
+    metadata:
+      labels:
+        app: {{ template "alluxio.name" . }}
+        chart: {{ template "alluxio.chart" . }}
+        release: {{ .Release.Name }}
+        heritage: {{ .Release.Service }}
+        role: alluxio-fuse-client
+    {{- if or .Values.fuse.podAnnotations .Values.metrics.enabled }}
+      annotations:
+      {{- with .Values.fuse.podAnnotations }}
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.metrics.podAnnotations }}
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+    {{- end }}
+    spec:
+      containers:
+        - name: alluxio-fuse-client
+          image: alpine:latest
+          resources:
+            requests:
+              cpu: "0.5"
+              memory: "500M"
+            limits:
+              cpu: "1"
+              memory: "500M"
+          command: ["/bin/sh", "-c", "--"]
+          args: ["while true; do sleep 30 && echo .; done;"]
+          volumeMounts:
+            - name: alluxio-fuse-mount
+              mountPath: {{ .Values.fuse.mountPath | dir }}
+      restartPolicy: Always
+      volumes:
+        - name: alluxio-fuse-mount
+          hostPath:
+            path: {{ .Values.fuse.mountPath | dir }}
+            type: Directory
+{{- end }}

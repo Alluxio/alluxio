@@ -9,13 +9,14 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-import {AxiosResponse} from 'axios';
-import {action} from 'typesafe-actions';
+import { AxiosResponse } from 'axios';
+import { action } from 'typesafe-actions';
 
-import {DataActionTypes} from './types';
+import { DataActionTypes } from './types';
+import { IRequest } from '@alluxio/common-ui/src/constants';
+import { AnyAction } from 'redux';
 
-export const fetchRequest = (offset?: string, limit?: string) => action(DataActionTypes.FETCH_REQUEST,
-  {queryString: {limit, offset}}
-);
-export const fetchSuccess = (response: AxiosResponse) => action(DataActionTypes.FETCH_SUCCESS, response);
-export const fetchError = (message: string) => action(DataActionTypes.FETCH_ERROR, message);
+export const fetchRequest = ({ offset, limit }: IRequest): AnyAction =>
+  action(DataActionTypes.FETCH_REQUEST, { queryString: { limit, offset } });
+export const fetchSuccess = (response: AxiosResponse): AnyAction => action(DataActionTypes.FETCH_SUCCESS, response);
+export const fetchError = (message: string): AnyAction => action(DataActionTypes.FETCH_ERROR, message);

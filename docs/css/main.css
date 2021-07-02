@@ -52,6 +52,10 @@ div.highlight > pre.highlight {
     margin-bottom: 2.5rem;
 }
 
+.nav-tab-margin {
+    margin-bottom: 1rem;
+}
+
 body #content {
     line-height: 1.6;
     /* Inspired by Github's wiki style */
@@ -102,4 +106,8 @@ body {
     #toc + ul>li.list>ul {
         display: block;
     }
+}
+
+div.accordion {
+    margin-bottom: 1rem;
 }

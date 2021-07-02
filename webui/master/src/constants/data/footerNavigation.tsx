@@ -9,21 +9,26 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-import {INavigationData} from '@alluxio/common-ui/src/constants';
+import { INavigationData } from '@alluxio/common-ui/src/constants';
+import { routePaths } from './routePaths';
 
-export const footerNavigationData: INavigationData[] = [{
-  attributes: {target: '_blank'},
-  innerText: 'Project Website',
-  url: 'https://alluxio.io/'
-}, {
-  attributes: {target: '_blank'},
-  innerText: 'User Mailing List',
-  url: 'https://groups.google.com/forum/#!forum/alluxio-users'
-}, {
-  innerText: 'Workers',
-  url: '/workers'
-}, {
-  attributes: {target: '_blank'},
-  innerText: 'Slack Channel',
-  url: 'https://www.alluxio.io/slack'
-}];
+export const footerNavigationData: INavigationData[] = [
+  {
+    attributes: { target: '_blank' },
+    innerText: 'Project Website',
+    url: 'https://alluxio.io/',
+  },
+  {
+    attributes: { target: '_blank' },
+    innerText: 'User Mailing List',
+    url: 'https://groups.google.com/forum/#!forum/alluxio-users',
+  },
+  {
+    innerText: 'Workers',
+    url: routePaths.workers,
+  },
+  {
+    innerText: 'MountTable',
+    url: routePaths.mounttable,
+  },
+];

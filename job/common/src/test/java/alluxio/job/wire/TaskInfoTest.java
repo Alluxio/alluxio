@@ -11,12 +11,13 @@
 
 package alluxio.job.wire;
 
+import static org.junit.Assert.assertEquals;
+
 import alluxio.util.CommonUtils;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import org.junit.Assert;
 import org.junit.Test;
 
+import java.io.IOException;
 import java.util.Random;
 
 /**
@@ -25,11 +26,10 @@ import java.util.Random;
 public final class TaskInfoTest {
 
   @Test
-  public void jsonTest() throws Exception {
+  public void testToProto() throws IOException {
     TaskInfo taskInfo = createRandom();
-    ObjectMapper mapper = new ObjectMapper();
-    TaskInfo other = mapper.readValue(mapper.writeValueAsBytes(taskInfo), TaskInfo.class);
-    checkEquality(taskInfo, other);
+
+    assertEquals(taskInfo, new TaskInfo(taskInfo.toProto()));
   }
 
   public static TaskInfo createRandom() {
@@ -39,14 +39,9 @@ public final class TaskInfoTest {
     result.setErrorMessage(CommonUtils.randomAlphaNumString(random.nextInt(10)));
     result.setStatus(Status.values()[random.nextInt(Status.values().length)]);
     result.setTaskId(random.nextInt());
+    result.setDescription(CommonUtils.randomAlphaNumString(random.nextInt(10)));
+    result.setWorkerHost("test");
 
     return result;
-  }
-
-  public void checkEquality(TaskInfo a, TaskInfo b) {
-    Assert.assertEquals(a.getErrorMessage(), b.getErrorMessage());
-    Assert.assertEquals(a.getStatus(), b.getStatus());
-    Assert.assertEquals(a.getTaskId(), b.getTaskId());
-    Assert.assertEquals(a, b);
   }
 }

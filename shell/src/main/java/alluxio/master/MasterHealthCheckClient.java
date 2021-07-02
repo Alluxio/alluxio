@@ -17,6 +17,7 @@ import alluxio.common.RpcPortHealthCheckClient;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.grpc.ServiceType;
 import alluxio.retry.RetryPolicy;
+import alluxio.security.user.UserState;
 import alluxio.util.CommonUtils;
 import alluxio.util.ConfigurationUtils;
 import alluxio.util.ShellUtils;
@@ -50,7 +51,7 @@ public class MasterHealthCheckClient implements HealthCheckClient {
    */
   public enum MasterType {
     MASTER("alluxio.master.AlluxioMaster"),
-    JOB_MASTER("alluxio.master.job.JobMaster")
+    JOB_MASTER("alluxio.master.AlluxioJobMaster")
     ;
 
     private String mClassName;
@@ -192,7 +193,8 @@ public class MasterHealthCheckClient implements HealthCheckClient {
 
     @Override
     public void run() {
-      MasterInquireClient client = MasterInquireClient.Factory.create(mConf);
+      UserState userState = UserState.Factory.create(mConf);
+      MasterInquireClient client = MasterInquireClient.Factory.create(mConf, userState);
       try {
         while (true) {
           List<InetSocketAddress> addresses = client.getMasterRpcAddresses();
@@ -219,7 +221,7 @@ public class MasterHealthCheckClient implements HealthCheckClient {
           CommonUtils.sleepMs(Constants.SECOND_MS);
         }
       } catch (Throwable e) {
-        LOG.error("Exception thrown in the master process check {}", e);
+        LOG.error("Exception thrown in the master process check", e);
         throw new RuntimeException(e);
       }
     }
@@ -281,7 +283,7 @@ public class MasterHealthCheckClient implements HealthCheckClient {
           }
         }
         // Check after a 7 second period if the process is is still alive
-        CommonUtils.sleepMs(7 * Constants.SECOND_MS);
+        CommonUtils.sleepMs(7L * Constants.SECOND_MS);
         LOG.debug("Checking the master processes one more time...");
         return !processCheckFuture.isDone();
       } else {
@@ -289,7 +291,7 @@ public class MasterHealthCheckClient implements HealthCheckClient {
         return masterRpcCheck.serving();
       }
     } catch (Exception e) {
-      LOG.error("Exception thrown in master health check client {}", e);
+      LOG.error("Exception thrown in master health check client", e);
     } finally {
       mExecutorService.shutdown();
     }

@@ -16,6 +16,7 @@ import alluxio.clock.SystemClock;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.GrpcService;
+import alluxio.grpc.MetricValue;
 import alluxio.grpc.ServiceType;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatExecutor;
@@ -23,26 +24,23 @@ import alluxio.heartbeat.HeartbeatThread;
 import alluxio.master.CoreMaster;
 import alluxio.master.CoreMasterContext;
 import alluxio.master.journal.NoopJournaled;
-import alluxio.metrics.ClientMetrics;
 import alluxio.metrics.Metric;
-import alluxio.metrics.MetricsAggregator;
-import alluxio.metrics.MetricsFilter;
+import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.metrics.MultiValueMetricsAggregator;
-import alluxio.metrics.SingleValueAggregator;
-import alluxio.metrics.WorkerMetrics;
+import alluxio.metrics.MetricInfo;
 import alluxio.metrics.aggregator.SingleTagValueAggregator;
-import alluxio.metrics.aggregator.SumInstancesAggregator;
 import alluxio.util.executor.ExecutorServiceFactories;
 import alluxio.util.executor.ExecutorServiceFactory;
 
 import com.codahale.metrics.Gauge;
 import com.google.common.annotations.VisibleForTesting;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.time.Clock;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -52,11 +50,11 @@ import java.util.Set;
  * Default implementation of the metrics master.
  */
 public class DefaultMetricsMaster extends CoreMaster implements MetricsMaster, NoopJournaled {
-  private final Map<String, MetricsAggregator> mMetricsAggregatorRegistry = new HashMap<>();
-  private final Set<MultiValueMetricsAggregator> mMultiValueMetricsAggregatorRegistry =
-      new HashSet<>();
+  private static final Logger LOG = LoggerFactory.getLogger(DefaultMetricsMaster.class);
+  // A map from the to be aggregated metric name to aggregator itself
+  // This registry only holds aggregator for master metrics
+  private final Map<String, MultiValueMetricsAggregator> mAggregatorRegistry = new HashMap<>();
   private final MetricsStore mMetricsStore;
-  private final HeartbeatThread mClusterMetricsUpdater;
 
   /**
    * Creates a new instance of {@link MetricsMaster}.
@@ -65,7 +63,8 @@ public class DefaultMetricsMaster extends CoreMaster implements MetricsMaster, N
    */
   DefaultMetricsMaster(CoreMasterContext masterContext) {
     this(masterContext, new SystemClock(),
-        ExecutorServiceFactories.cachedThreadPool(Constants.METRICS_MASTER_NAME));
+        ExecutorServiceFactories.fixedThreadPool(Constants.METRICS_MASTER_NAME,
+            ServerConfiguration.getInt(PropertyKey.MASTER_METRICS_SERVICE_THREADS)));
   }
 
   /**
@@ -79,46 +78,25 @@ public class DefaultMetricsMaster extends CoreMaster implements MetricsMaster, N
   DefaultMetricsMaster(CoreMasterContext masterContext, Clock clock,
       ExecutorServiceFactory executorServiceFactory) {
     super(masterContext, clock, executorServiceFactory);
-    mMetricsStore = new MetricsStore();
+    mMetricsStore = new MetricsStore(mClock);
     registerAggregators();
-    mClusterMetricsUpdater =
-        new HeartbeatThread(HeartbeatContext.MASTER_CLUSTER_METRICS_UPDATER,
-            new ClusterMetricsUpdater(),
-            ServerConfiguration.getMs(PropertyKey.MASTER_CLUSTER_METRICS_UPDATE_INTERVAL),
-            ServerConfiguration.global());
-  }
-
-  @VisibleForTesting
-  protected void addAggregator(SingleValueAggregator aggregator) {
-    mMetricsAggregatorRegistry.put(aggregator.getName(), aggregator);
-    MetricsSystem.registerGaugeIfAbsent(MetricsSystem.getClusterMetricName(aggregator.getName()),
-        (Gauge<Object>) () -> {
-          Map<MetricsFilter, Set<Metric>> metrics = new HashMap<>();
-          for (MetricsFilter filter : aggregator.getFilters()) {
-            metrics.put(filter, mMetricsStore
-                .getMetricsByInstanceTypeAndName(filter.getInstanceType(), filter.getName()));
-          }
-          return aggregator.getValue(metrics);
-        });
   }
 
   @VisibleForTesting
   protected void addAggregator(MultiValueMetricsAggregator aggregator) {
-    mMultiValueMetricsAggregatorRegistry.add(aggregator);
+    mAggregatorRegistry.put(aggregator.getFilterMetricName(), aggregator);
   }
 
-  private void updateMultiValueMetrics() {
-    for (MultiValueMetricsAggregator aggregator : mMultiValueMetricsAggregatorRegistry) {
-      Map<MetricsFilter, Set<Metric>> metrics = new HashMap<>();
-      for (MetricsFilter filter : aggregator.getFilters()) {
-        metrics.put(filter, mMetricsStore.getMetricsByInstanceTypeAndName(filter.getInstanceType(),
-            filter.getName()));
-      }
-      for (Entry<String, Long> entry : aggregator.updateValues(metrics).entrySet()) {
-        MetricsSystem.registerGaugeIfAbsent(entry.getKey(), new Gauge<Object>() {
+  private void updateMultiValueMasterMetrics() {
+    Map<String, Set<Metric>> masterMetricsMap
+        = MetricsSystem.getMasterMetrics(mAggregatorRegistry.keySet());
+    for (Map.Entry<String, Set<Metric>> entry : masterMetricsMap.entrySet()) {
+      MultiValueMetricsAggregator aggregator = mAggregatorRegistry.get(entry.getKey());
+      for (Entry<String, Long> updated : aggregator.updateValues(entry.getValue()).entrySet()) {
+        MetricsSystem.registerGaugeIfAbsent(updated.getKey(), new Gauge<Object>() {
           @Override
           public Object getValue() {
-            return aggregator.getValue(entry.getKey());
+            return aggregator.getValue(updated.getKey());
           }
         });
       }
@@ -127,40 +105,54 @@ public class DefaultMetricsMaster extends CoreMaster implements MetricsMaster, N
 
   private void registerAggregators() {
     // worker metrics
-    addAggregator(new SumInstancesAggregator(WorkerMetrics.BYTES_READ_ALLUXIO,
-        MetricsSystem.InstanceType.WORKER, WorkerMetrics.BYTES_READ_ALLUXIO));
-    addAggregator(new SumInstancesAggregator(WorkerMetrics.BYTES_READ_ALLUXIO_THROUGHPUT,
-        MetricsSystem.InstanceType.WORKER, WorkerMetrics.BYTES_READ_ALLUXIO_THROUGHPUT));
-    addAggregator(new SumInstancesAggregator(WorkerMetrics.BYTES_READ_UFS_ALL,
-        MetricsSystem.InstanceType.WORKER, WorkerMetrics.BYTES_READ_UFS));
-    addAggregator(new SumInstancesAggregator(WorkerMetrics.BYTES_READ_UFS_THROUGHPUT,
-        MetricsSystem.InstanceType.WORKER, WorkerMetrics.BYTES_READ_UFS_THROUGHPUT));
-
-    addAggregator(new SumInstancesAggregator(WorkerMetrics.BYTES_WRITTEN_ALLUXIO,
-        MetricsSystem.InstanceType.WORKER, WorkerMetrics.BYTES_WRITTEN_ALLUXIO));
-    addAggregator(new SumInstancesAggregator(WorkerMetrics.BYTES_WRITTEN_ALLUXIO_THROUGHPUT,
-        MetricsSystem.InstanceType.WORKER, WorkerMetrics.BYTES_WRITTEN_ALLUXIO_THROUGHPUT));
-    addAggregator(new SumInstancesAggregator(WorkerMetrics.BYTES_WRITTEN_UFS_ALL,
-        MetricsSystem.InstanceType.WORKER, WorkerMetrics.BYTES_WRITTEN_UFS));
-    addAggregator(new SumInstancesAggregator(WorkerMetrics.BYTES_WRITTEN_UFS_THROUGHPUT,
-        MetricsSystem.InstanceType.WORKER, WorkerMetrics.BYTES_WRITTEN_UFS_THROUGHPUT));
-
+    registerThroughputGauge(MetricKey.CLUSTER_BYTES_READ_DIRECT.getName(),
+        MetricKey.CLUSTER_BYTES_READ_DIRECT_THROUGHPUT.getName());
+    registerThroughputGauge(MetricKey.CLUSTER_BYTES_READ_REMOTE.getName(),
+        MetricKey.CLUSTER_BYTES_READ_REMOTE_THROUGHPUT.getName());
+    registerThroughputGauge(MetricKey.CLUSTER_BYTES_READ_DOMAIN.getName(),
+        MetricKey.CLUSTER_BYTES_READ_DOMAIN_THROUGHPUT.getName());
+    registerThroughputGauge(MetricKey.CLUSTER_BYTES_WRITTEN_REMOTE.getName(),
+        MetricKey.CLUSTER_BYTES_WRITTEN_REMOTE_THROUGHPUT.getName());
+    registerThroughputGauge(MetricKey.CLUSTER_BYTES_WRITTEN_DOMAIN.getName(),
+        MetricKey.CLUSTER_BYTES_WRITTEN_DOMAIN_THROUGHPUT.getName());
+    registerThroughputGauge(MetricKey.CLUSTER_BYTES_READ_UFS_ALL.getName(),
+        MetricKey.CLUSTER_BYTES_READ_UFS_THROUGHPUT.getName());
+    registerThroughputGauge(MetricKey.CLUSTER_BYTES_WRITTEN_UFS_ALL.getName(),
+        MetricKey.CLUSTER_BYTES_WRITTEN_UFS_THROUGHPUT.getName());
     // client metrics
-    addAggregator(new SumInstancesAggregator(ClientMetrics.BYTES_READ_LOCAL,
-        MetricsSystem.InstanceType.CLIENT, ClientMetrics.BYTES_READ_LOCAL));
-    addAggregator(new SumInstancesAggregator(ClientMetrics.BYTES_READ_LOCAL_THROUGHPUT,
-        MetricsSystem.InstanceType.CLIENT, ClientMetrics.BYTES_READ_LOCAL_THROUGHPUT));
+    registerThroughputGauge(MetricKey.CLUSTER_BYTES_READ_LOCAL.getName(),
+        MetricKey.CLUSTER_BYTES_READ_LOCAL_THROUGHPUT.getName());
+    registerThroughputGauge(MetricKey.CLUSTER_BYTES_WRITTEN_LOCAL.getName(),
+        MetricKey.CLUSTER_BYTES_WRITTEN_LOCAL_THROUGHPUT.getName());
 
-    // multi-value aggregators
-    addAggregator(new SingleTagValueAggregator(WorkerMetrics.BYTES_READ_UFS,
-        MetricsSystem.InstanceType.WORKER, WorkerMetrics.BYTES_READ_UFS, WorkerMetrics.TAG_UFS));
-    addAggregator(new SingleTagValueAggregator(WorkerMetrics.BYTES_WRITTEN_UFS,
-        MetricsSystem.InstanceType.WORKER, WorkerMetrics.BYTES_WRITTEN_UFS, WorkerMetrics.TAG_UFS));
-    for (WorkerMetrics.UfsOps ufsOp : WorkerMetrics.UfsOps.values()) {
-      addAggregator(new SingleTagValueAggregator(WorkerMetrics.UFS_OP_PREFIX + ufsOp,
-          MetricsSystem.InstanceType.MASTER, ufsOp.toString(),
-          WorkerMetrics.TAG_UFS));
+    // TODO(lu) Create a template for dynamically construct MetricKey
+    for (MetricInfo.UfsOps ufsOp : MetricInfo.UfsOps.values()) {
+      addAggregator(new SingleTagValueAggregator(MetricInfo.UFS_OP_PREFIX + ufsOp,
+          MetricsSystem.getMasterMetricName(ufsOp.toString()), MetricInfo.TAG_UFS));
     }
+  }
+
+  /**
+   * Registers the corresponding throughput of the given counter.
+   *
+   * @param counterName the counter to get value of
+   * @param throughputName the gauge throughput name to be registered
+   */
+  @VisibleForTesting
+  protected void registerThroughputGauge(String counterName, String throughputName) {
+    MetricsSystem.registerGaugeIfAbsent(throughputName,
+        new Gauge<Object>() {
+          @Override
+          public Object getValue() {
+            // Divide into two lines so uptime is always zero or positive
+            long lastClearTime = mMetricsStore.getLastClearTime();
+            long uptime = (mClock.millis() - lastClearTime)
+                / Constants.MINUTE_MS;
+            long value = MetricsSystem.counter(counterName).getCount();
+            // The value is bytes per minute
+            return uptime <= 0 ? value : value / uptime;
+          }
+        });
   }
 
   @Override
@@ -180,13 +172,18 @@ public class DefaultMetricsMaster extends CoreMaster implements MetricsMaster, N
   public void start(Boolean isLeader) throws IOException {
     super.start(isLeader);
     if (isLeader) {
-      getExecutorService().submit(mClusterMetricsUpdater);
+      mMetricsStore.initCounterKeys();
+      mMetricsStore.clear();
+      getExecutorService().submit(new HeartbeatThread(
+          HeartbeatContext.MASTER_CLUSTER_METRICS_UPDATER, new ClusterMetricsUpdater(),
+          ServerConfiguration.getMs(PropertyKey.MASTER_CLUSTER_METRICS_UPDATE_INTERVAL),
+          ServerConfiguration.global(), mMasterContext.getUserState()));
     }
   }
 
   @Override
-  public void clientHeartbeat(String clientId, String hostname, List<Metric> metrics) {
-    mMetricsStore.putClientMetrics(hostname, clientId, metrics);
+  public void clientHeartbeat(String source, List<Metric> metrics) {
+    getExecutorService().submit(() -> mMetricsStore.putClientMetrics(source, metrics));
   }
 
   @Override
@@ -195,8 +192,18 @@ public class DefaultMetricsMaster extends CoreMaster implements MetricsMaster, N
   }
 
   @Override
-  public void workerHeartbeat(String hostname, List<Metric> metrics) {
-    mMetricsStore.putWorkerMetrics(hostname, metrics);
+  public void workerHeartbeat(String source, List<Metric> metrics) {
+    getExecutorService().submit(() -> mMetricsStore.putWorkerMetrics(source, metrics));
+  }
+
+  @Override
+  public void clearMetrics() {
+    mMetricsStore.clear();
+  }
+
+  @Override
+  public Map<String, MetricValue> getMetrics() {
+    return MetricsSystem.allMetrics();
   }
 
   /**
@@ -205,7 +212,7 @@ public class DefaultMetricsMaster extends CoreMaster implements MetricsMaster, N
   private class ClusterMetricsUpdater implements HeartbeatExecutor {
     @Override
     public void heartbeat() throws InterruptedException {
-      updateMultiValueMetrics();
+      updateMultiValueMasterMetrics();
     }
 
     @Override

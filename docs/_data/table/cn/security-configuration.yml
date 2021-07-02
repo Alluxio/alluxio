@@ -1,8 +1,6 @@
 alluxio.security.authentication.type:
   安全认证模式。目前支持三种模式：NOSASL、SIMPLE和CUSTOM。
-  默认为NOSASL，即不启用安全认证功能。
-alluxio.security.authentication.socket.timeout:
-  用户创建一个连接master的Thrift套接字的最大时长（以毫秒为单位）。
+  默认为SIMPLE，即不启用安全认证功能。
 alluxio.security.authentication.custom.provider.class:
   当alluxio.security.authentication.type被设为CUSTOM时，实现安全认证功能的类。
   该类必须实现'alluxio.security.authentication.AuthenticationProvider'接口。

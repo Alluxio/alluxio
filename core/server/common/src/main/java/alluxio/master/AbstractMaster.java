@@ -16,6 +16,7 @@ import alluxio.Server;
 import alluxio.exception.status.UnavailableException;
 import alluxio.master.journal.Journal;
 import alluxio.master.journal.JournalContext;
+import alluxio.master.journal.StateChangeJournalContext;
 import alluxio.resource.LockResource;
 import alluxio.util.executor.ExecutorServiceFactory;
 
@@ -40,7 +41,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe // TODO(jiri): make thread-safe (c.f. ALLUXIO-1664)
 public abstract class AbstractMaster implements Master {
   private static final Logger LOG = LoggerFactory.getLogger(AbstractMaster.class);
-  private static final long SHUTDOWN_TIMEOUT_MS = 10 * Constants.SECOND_MS;
+  private static final long SHUTDOWN_TIMEOUT_MS = 10L * Constants.SECOND_MS;
 
   /** A factory for creating executor services when they are needed. */
   private ExecutorServiceFactory mExecutorServiceFactory;
@@ -66,10 +67,10 @@ public abstract class AbstractMaster implements Master {
   protected AbstractMaster(MasterContext masterContext, Clock clock,
       ExecutorServiceFactory executorServiceFactory) {
     Preconditions.checkNotNull(masterContext, "masterContext");
-    mJournal = masterContext.getJournalSystem().createJournal(this);
     mMasterContext = masterContext;
     mClock = clock;
     mExecutorServiceFactory = executorServiceFactory;
+    mJournal = masterContext.getJournalSystem().createJournal(this);
   }
 
   @Override
@@ -133,11 +134,26 @@ public abstract class AbstractMaster implements Master {
 
   @Override
   public JournalContext createJournalContext() throws UnavailableException {
-    // All modifications to journaled state must happen inside of a journal context so that we can
-    // persist the state change. As a mechanism to allow for state pauses, we acquire the state
-    // change lock before entering any code paths that could modify journaled state.
-    try (LockResource l = new LockResource(mMasterContext.stateChangeLock())) {
-      return mJournal.createJournalContext();
+    // Use the state change lock for the journal context, since all modifications to journaled
+    // state must happen inside of a journal context.
+    LockResource sharedLockResource;
+    try {
+      sharedLockResource = mMasterContext.getStateLockManager().lockShared();
+    } catch (InterruptedException e) {
+      throw new UnavailableException(
+          "Failed to acquire state-lock due to ongoing backup activity.");
     }
+
+    return new StateChangeJournalContext(mJournal.createJournalContext(), sharedLockResource);
+  }
+
+  @Override
+  public void close() throws IOException {
+    stop();
+  }
+
+  @Override
+  public MasterContext getMasterContext() {
+    return mMasterContext;
   }
 }

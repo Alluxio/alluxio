@@ -88,7 +88,7 @@ class ShortCircuitBlockWriteHandler implements StreamObserver<CreateLocalBlockRe
           if (mSessionId == INVALID_SESSION_ID) {
             mSessionId = IdUtils.createSessionId();
             String path = mBlockWorker.createBlock(mSessionId, request.getBlockId(),
-                mStorageTierAssoc.getAlias(request.getTier()), request.getSpaceToReserve());
+                request.getTier(), request.getMediumType(), request.getSpaceToReserve());
             CreateLocalBlockResponse response =
                 CreateLocalBlockResponse.newBuilder().setPath(path).build();
             return response;
@@ -166,7 +166,7 @@ class ShortCircuitBlockWriteHandler implements StreamObserver<CreateLocalBlockRe
           if (isCanceled) {
             mBlockWorker.abortBlock(mSessionId, mRequest.getBlockId());
           } else {
-            mBlockWorker.commitBlock(mSessionId, mRequest.getBlockId());
+            mBlockWorker.commitBlock(mSessionId, mRequest.getBlockId(), mRequest.getPinOnCreate());
           }
         } finally {
           newContext.detach(previousContext);

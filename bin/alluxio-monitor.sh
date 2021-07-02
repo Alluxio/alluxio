@@ -51,6 +51,13 @@ get_env() {
   . ${ALLUXIO_LIBEXEC_DIR}/alluxio-config.sh
   CLASSPATH=${ALLUXIO_CLIENT_CLASSPATH}
   ALLUXIO_TASK_LOG="${ALLUXIO_LOGS_DIR}/task.log"
+
+  # Remove the remote debug configuration to avoid the error: "transport error 20: bind failed: Address already in use." 
+  # See https://github.com/Alluxio/alluxio/issues/10958
+  ALLUXIO_MASTER_MONITOR_JAVA_OPTS=$(echo ${ALLUXIO_MASTER_JAVA_OPTS} | sed 's/^-agentlib:jdwp=transport=dt_socket.*address=[0-9]*//')
+  ALLUXIO_WORKER_MONITOR_JAVA_OPTS=$(echo ${ALLUXIO_WORKER_JAVA_OPTS} | sed 's/^-agentlib:jdwp=transport=dt_socket.*address=[0-9]*//')
+  ALLUXIO_JOB_MASTER_MONITOR_JAVA_OPTS=$(echo ${ALLUXIO_JOB_MASTER_JAVA_OPTS} | sed 's/^-agentlib:jdwp=transport=dt_socket.*address=[0-9]*//')
+  ALLUXIO_JOB_WORKER_MONITOR_JAVA_OPTS=$(echo ${ALLUXIO_JOB_WORKER_JAVA_OPTS} | sed 's/^-agentlib:jdwp=transport=dt_socket.*address=[0-9]*//')
 }
 
 prepare_monitor() {
@@ -82,18 +89,24 @@ print_node_logs() {
 run_monitor() {
   local node_type=$1
   local mode=$2
+  local alluxio_config="${ALLUXIO_JAVA_OPTS}"
+
   case "${node_type}" in
     master)
       monitor_exec=alluxio.master.AlluxioMasterMonitor
+      alluxio_config="${alluxio_config} ${ALLUXIO_MASTER_MONITOR_JAVA_OPTS}"
       ;;
     worker)
       monitor_exec=alluxio.worker.AlluxioWorkerMonitor
+      alluxio_config="${alluxio_config} ${ALLUXIO_WORKER_MONITOR_JAVA_OPTS}"
       ;;
     job_master)
       monitor_exec=alluxio.master.job.AlluxioJobMasterMonitor
+      alluxio_config="${alluxio_config} ${ALLUXIO_JOB_MASTER_MONITOR_JAVA_OPTS}"
       ;;
     job_worker)
       monitor_exec=alluxio.worker.job.AlluxioJobWorkerMonitor
+      alluxio_config="${alluxio_config} ${ALLUXIO_JOB_WORKER_MONITOR_JAVA_OPTS}"
       ;;
     proxy)
       monitor_exec=alluxio.proxy.AlluxioProxyMonitor
@@ -108,7 +121,7 @@ run_monitor() {
     print_node_logs "${node_type}"
     return 0
   else
-    "${JAVA}" -cp ${CLASSPATH} ${ALLUXIO_JAVA_OPTS} ${monitor_exec}
+    "${JAVA}" -cp ${CLASSPATH} ${alluxio_config} ${monitor_exec}
     if [[ $? -ne 0 ]]; then
       echo -e "${WHITE}---${NC} ${RED}[ FAILED ]${NC} The ${CYAN}${node_type}${NC} @ ${PURPLE}$(hostname -f)${NC} is not serving requests.${NC}"
       print_node_logs "${node_type}"
@@ -175,9 +188,7 @@ run_monitors() {
     nodes=$(echo -e "${nodes}" | tail -n+2)
     if [[ $? -ne 0 ]]; then
       # if there is an error, print the log tail for the remaining master nodes.
-      for node in $(echo ${nodes}); do
-        run_on_node ${node} "${BIN}/alluxio-monitor.sh" -L "${node_type}"
-      done
+      batch_run_on_nodes "$(echo ${nodes})" "${BIN}/alluxio-monitor.sh" -L "${node_type}"
     else
       HA_ENABLED=$(${BIN}/alluxio getConf ${ALLUXIO_MASTER_JAVA_OPTS} alluxio.zookeeper.enabled)
       JOURNAL_TYPE=$(${BIN}/alluxio getConf ${ALLUXIO_MASTER_JAVA_OPTS} alluxio.master.journal.type | awk '{print toupper($0)}')
@@ -185,17 +196,36 @@ run_monitors() {
         HA_ENABLED="true"
       fi
       if [[ ${HA_ENABLED} == "true" ]]; then
-        for node in $(echo ${nodes}); do
-          run_on_node ${node} "${BIN}/alluxio-monitor.sh" ${mode} "${node_type}"
-        done
+        batch_run_on_nodes "$(echo ${nodes})" "${BIN}/alluxio-monitor.sh" "${mode}" "${node_type}"
       fi
     fi
   else
-    for node in $(echo "${nodes}"); do
-      run_on_node ${node} "${BIN}/alluxio-monitor.sh" ${mode} "${node_type}"
-    done
+    batch_run_on_nodes "$(echo ${nodes})" "${BIN}/alluxio-monitor.sh" "${mode}" "${node_type}"
   fi
+}
 
+# Used to run a command on multiple hosts concurrently.
+# By default it limits concurrent tasks to 100.
+batch_run_on_nodes() {
+  # String of nodes, seperated by a new line
+  local nodes=$1
+  # Command to run on each node
+  local command=$2
+  # Parameter for command
+  local params=${@:3}
+
+  # How many nodes to run on concurrently
+  local batchCount=100
+
+  local taskCount=0
+  for node in $nodes; do
+      run_on_node ${node} ${command} ${params} &
+
+      # Wait for existing tasks, if batch is full
+      ((taskCount++))
+      if [ $(( $taskCount % $batchCount )) == 0 ]; then wait; fi;
+  done
+  wait
 }
 
 main() {

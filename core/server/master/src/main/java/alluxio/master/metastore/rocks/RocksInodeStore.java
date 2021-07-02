@@ -11,13 +11,17 @@
 
 package alluxio.master.metastore.rocks;
 
+import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
 import alluxio.master.file.meta.EdgeEntry;
 import alluxio.master.file.meta.Inode;
 import alluxio.master.file.meta.InodeDirectoryView;
+import alluxio.master.file.meta.InodeView;
 import alluxio.master.file.meta.MutableInode;
 import alluxio.master.journal.checkpoint.CheckpointInputStream;
 import alluxio.master.journal.checkpoint.CheckpointName;
 import alluxio.master.metastore.InodeStore;
+import alluxio.master.metastore.ReadOption;
 import alluxio.proto.meta.InodeMeta;
 import alluxio.util.io.PathUtils;
 
@@ -41,6 +45,7 @@ import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -61,6 +66,7 @@ public class RocksInodeStore implements InodeStore {
   // These are fields instead of constants because they depend on the call to RocksDB.loadLibrary().
   private final WriteOptions mDisableWAL;
   private final ReadOptions mReadPrefixSameAsStart;
+  private final ReadOptions mIteratorOption;
 
   private final RocksStore mRocksStore;
 
@@ -76,6 +82,8 @@ public class RocksInodeStore implements InodeStore {
     RocksDB.loadLibrary();
     mDisableWAL = new WriteOptions().setDisableWAL(true);
     mReadPrefixSameAsStart = new ReadOptions().setPrefixSameAsStart(true);
+    mIteratorOption = new ReadOptions().setReadaheadSize(
+        ServerConfiguration.getBytes(PropertyKey.MASTER_METASTORE_ITERATOR_READAHEAD_SIZE));
     String dbPath = PathUtils.concatPath(baseDir, INODES_DB_NAME);
     String backupPath = PathUtils.concatPath(baseDir, INODES_DB_NAME + "-backup");
     ColumnFamilyOptions cfOpts = new ColumnFamilyOptions()
@@ -145,7 +153,7 @@ public class RocksInodeStore implements InodeStore {
   }
 
   @Override
-  public Optional<MutableInode<?>> getMutable(long id) {
+  public Optional<MutableInode<?>> getMutable(long id, ReadOption option) {
     byte[] inode;
     try {
       inode = db().get(mInodesColumn.get(), Longs.toByteArray(id));
@@ -163,7 +171,7 @@ public class RocksInodeStore implements InodeStore {
   }
 
   @Override
-  public Iterable<Long> getChildIds(Long inodeId) {
+  public Iterable<Long> getChildIds(Long inodeId, ReadOption option) {
     List<Long> ids = new ArrayList<>();
     try (RocksIterator iter = db().newIterator(mEdgesColumn.get(), mReadPrefixSameAsStart)) {
       iter.seek(Longs.toByteArray(inodeId));
@@ -176,7 +184,7 @@ public class RocksInodeStore implements InodeStore {
   }
 
   @Override
-  public Optional<Long> getChildId(Long inodeId, String name) {
+  public Optional<Long> getChildId(Long inodeId, String name, ReadOption option) {
     byte[] id;
     try {
       id = db().get(mEdgesColumn.get(), RocksUtils.toByteArray(inodeId, name));
@@ -190,7 +198,7 @@ public class RocksInodeStore implements InodeStore {
   }
 
   @Override
-  public Optional<Inode> getChild(Long inodeId, String name) {
+  public Optional<Inode> getChild(Long inodeId, String name, ReadOption option) {
     return getChildId(inodeId, name).flatMap(id -> {
       Optional<Inode> child = get(id);
       if (!child.isPresent()) {
@@ -202,7 +210,7 @@ public class RocksInodeStore implements InodeStore {
   }
 
   @Override
-  public boolean hasChildren(InodeDirectoryView inode) {
+  public boolean hasChildren(InodeDirectoryView inode, ReadOption option) {
     try (RocksIterator iter = db().newIterator(mEdgesColumn.get(), mReadPrefixSameAsStart)) {
       iter.seek(Longs.toByteArray(inode.getId()));
       return iter.isValid();
@@ -231,11 +239,19 @@ public class RocksInodeStore implements InodeStore {
     try (RocksIterator iter = db().newIterator(mInodesColumn.get())) {
       iter.seekToFirst();
       while (iter.isValid()) {
-        inodes.add(getMutable(Longs.fromByteArray(iter.key())).get());
+        inodes.add(getMutable(Longs.fromByteArray(iter.key()), ReadOption.defaults()).get());
         iter.next();
       }
     }
     return inodes;
+  }
+
+  /**
+   * @return an iterator over stored inodes
+   */
+  public Iterator<InodeView> iterator() {
+    return RocksUtils.createIterator(db().newIterator(mInodesColumn.get(), mIteratorOption),
+        (iter) -> getMutable(Longs.fromByteArray(iter.key()), ReadOption.defaults()).get());
   }
 
   @Override

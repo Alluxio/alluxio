@@ -9,20 +9,20 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-import {AxiosResponse} from 'axios';
+import { AxiosResponse } from 'axios';
 
-import {INodeInfo} from '../../constants';
+import { INodeInfo } from '../../constants';
 
 export interface IWorkers {
-  'debug': boolean;
-  'normalNodeInfos': INodeInfo[],
-  'failedNodeInfos': INodeInfo[]
+  debug: boolean;
+  normalNodeInfos: INodeInfo[];
+  failedNodeInfos: INodeInfo[];
 }
 
 export enum WorkersActionTypes {
   FETCH_REQUEST = '@@workers/FETCH_REQUEST',
   FETCH_SUCCESS = '@@workers/FETCH_SUCCESS',
-  FETCH_ERROR = '@@workers/FETCH_ERROR'
+  FETCH_ERROR = '@@workers/FETCH_ERROR',
 }
 
 export interface IWorkersState {

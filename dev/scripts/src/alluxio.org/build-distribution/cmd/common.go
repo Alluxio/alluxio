@@ -25,20 +25,20 @@ const versionMarker = "${VERSION}"
 
 // hadoopDistributions maps hadoop distributions to versions
 var hadoopDistributions = map[string]version{
-	"hadoop-1.0": parseVersion("1.0.4"),
-	"hadoop-1.2": parseVersion("1.2.1"),
 	"hadoop-2.2": parseVersion("2.2.0"),
 	"hadoop-2.3": parseVersion("2.3.0"),
 	"hadoop-2.4": parseVersion("2.4.1"),
 	"hadoop-2.5": parseVersion("2.5.2"),
 	"hadoop-2.6": parseVersion("2.6.5"),
 	"hadoop-2.7": parseVersion("2.7.3"),
-	"hadoop-2.8": parseVersion("2.8.0"),
-	"hadoop-2.9": parseVersion("2.9.0"),
+	"hadoop-2.8": parseVersion("2.8.5"),
+	"hadoop-2.9": parseVersion("2.9.2"),
 	"hadoop-3.0": parseVersion("3.0.3"),
 	"hadoop-3.1": parseVersion("3.1.1"),
-	// This distribution type is built with 2.2.0, but doesn't include the hadoop version in the name.
-	"default": parseVersion("2.2.0"),
+	"hadoop-3.2": parseVersion("3.2.1"),
+	"hadoop-3.3": parseVersion("3.3.0"),
+	// This distribution type is built with 2.7.3, but doesn't include the hadoop version in the name.
+	"default": parseVersion("2.7.3"),
 }
 
 type module struct {
@@ -49,17 +49,39 @@ type module struct {
 
 // ufsModules is a map from ufs module to information for building the module.
 var ufsModules = map[string]module{
-	"ufs-hadoop-1.0": {"hadoop-1.0", false, "-pl underfs/hdfs -Pufs-hadoop-1 -Dufs.hadoop.version=1.0.4"},
-	"ufs-hadoop-1.2": {"hadoop-1.2", true, "-pl underfs/hdfs -Pufs-hadoop-1 -Dufs.hadoop.version=1.2.1"},
 	"ufs-hadoop-2.2": {"hadoop-2.2", true, "-pl underfs/hdfs -Pufs-hadoop-2 -Dufs.hadoop.version=2.2.0"},
 	"ufs-hadoop-2.3": {"hadoop-2.3", false, "-pl underfs/hdfs -Pufs-hadoop-2 -Dufs.hadoop.version=2.3.0"},
 	"ufs-hadoop-2.4": {"hadoop-2.4", false, "-pl underfs/hdfs -Pufs-hadoop-2 -Dufs.hadoop.version=2.4.1"},
 	"ufs-hadoop-2.5": {"hadoop-2.5", false, "-pl underfs/hdfs -Pufs-hadoop-2 -Dufs.hadoop.version=2.5.2"},
 	"ufs-hadoop-2.6": {"hadoop-2.6", false, "-pl underfs/hdfs -Pufs-hadoop-2 -Dufs.hadoop.version=2.6.5 -PhdfsActiveSync"},
 	"ufs-hadoop-2.7": {"hadoop-2.7", true, "-pl underfs/hdfs -Pufs-hadoop-2 -Dufs.hadoop.version=2.7.3 -PhdfsActiveSync"},
-	"ufs-hadoop-2.8": {"hadoop-2.8", false, "-pl underfs/hdfs -Pufs-hadoop-2 -Dufs.hadoop.version=2.8.0 -PhdfsActiveSync"},
+	"ufs-hadoop-2.8": {"hadoop-2.8", true, "-pl underfs/hdfs -Pufs-hadoop-2 -Dufs.hadoop.version=2.8.5 -PhdfsActiveSync"},
+	"ufs-hadoop-2.9": {"hadoop-2.9", true, "-pl underfs/hdfs -Pufs-hadoop-2 -Dufs.hadoop.version=2.9.2 -PhdfsActiveSync"},
 	"ufs-hadoop-3.0": {"hadoop-3.0", false, "-pl underfs/hdfs -Pufs-hadoop-3 -Dufs.hadoop.version=3.0.0 -PhdfsActiveSync"},
-	"ufs-hadoop-3.1": {"hadoop-3.1", false, "-pl underfs/hdfs -Pufs-hadoop-3 -Dufs.hadoop.version=3.1.0 -PhdfsActiveSync"},
+	"ufs-hadoop-3.1": {"hadoop-3.1", false, "-pl underfs/hdfs -Pufs-hadoop-3 -Dufs.hadoop.version=3.1.1 -PhdfsActiveSync"},
+	"ufs-hadoop-3.2": {"hadoop-3.2", true, "-pl underfs/hdfs -Pufs-hadoop-3 -Dufs.hadoop.version=3.2.1 -PhdfsActiveSync"},
+	"ufs-hadoop-3.3": {"hadoop-3.3", false, "-pl underfs/hdfs -Pufs-hadoop-3 -Dufs.hadoop.version=3.3.0 -PhdfsActiveSync"},
+}
+
+var libJars = map[string]struct{}{
+	"integration-tools-hms":        {},
+	"integration-tools-validation": {},
+	"table-server-underdb-glue":    {},
+	"table-server-underdb-hive":    {},
+	"underfs-abfs":                 {},
+	"underfs-adl":                  {},
+	"underfs-cephfs":               {},
+	"underfs-cephfs-hadoop":        {},
+	"underfs-cos":                  {},
+	"underfs-cosn":                 {},
+	"underfs-gcs":                  {},
+	"underfs-local":                {},
+	"underfs-oss":                  {},
+	"underfs-ozone":                {},
+	"underfs-s3a":                  {},
+	"underfs-swift":                {},
+	"underfs-wasb":                 {},
+	"underfs-web":                  {},
 }
 
 func validModules(modules map[string]module) []string {

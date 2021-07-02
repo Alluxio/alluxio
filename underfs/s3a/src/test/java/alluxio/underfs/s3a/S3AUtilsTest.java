@@ -115,4 +115,12 @@ public final class S3AUtilsTest {
     Assert.assertEquals((short) 0700, S3AUtils.translateBucketAcl(mAcl, ID));
     Assert.assertEquals((short) 0700, S3AUtils.translateBucketAcl(mAcl, OTHER_ID));
   }
+
+  @Test
+  public void translatePermissionWithNullId() {
+    // Emulate a corner case when returned grantee does not have ID from some S3 compatible UFS
+    mUserGrantee.setIdentifier(null);
+    mAcl.grantPermission(mUserGrantee, Permission.Read);
+    Assert.assertEquals((short) 0000, S3AUtils.translateBucketAcl(mAcl, OTHER_ID));
+  }
 }

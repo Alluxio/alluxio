@@ -12,26 +12,14 @@
 package cmd
 
 import (
+	"flag"
 	"fmt"
 	"strings"
-
-	"v.io/x/lib/cmdline"
 )
 
 var (
-	cmdRelease = &cmdline.Command{
-		Name:   "release",
-		Short:  "Generates all release tarballs",
-		Long:   "Generates all release tarballs",
-		Runner: cmdline.RunnerFunc(release),
-	}
-
 	hadoopDistributionsFlag string
 )
-
-func init() {
-	cmdRelease.Flags.StringVar(&hadoopDistributionsFlag, "hadoop-distributions", strings.Join(validHadoopDistributions(), ","), "a comma-separated list of hadoop distributions to generate Alluxio clients for")
-}
 
 func checkReleaseFlags() error {
 	if err := checkRootFlags(); err != nil {
@@ -46,7 +34,14 @@ func checkReleaseFlags() error {
 	return nil
 }
 
-func release(_ *cmdline.Env, _ []string) error {
+func Release(args []string) error {
+	releaseCmd := flag.NewFlagSet("release", flag.ExitOnError)
+	// flags
+	releaseCmd.StringVar(&hadoopDistributionsFlag, "hadoop-distributions", strings.Join(validHadoopDistributions(), ","), "a comma-separated list of hadoop distributions to generate Alluxio clients for")
+	generateFlags(releaseCmd)
+	additionalFlags(releaseCmd)
+	releaseCmd.Parse(args[2:]) // error handling by flag.ExitOnError
+
 	if err := updateRootFlags(); err != nil {
 		return err
 	}
@@ -61,7 +56,8 @@ func release(_ *cmdline.Env, _ []string) error {
 
 func generateTarballs() error {
 	fmt.Printf("Generating tarball %v\n", fmt.Sprintf("alluxio-%v-bin.tar.gz", versionMarker))
-	if err := generateTarball(strings.Split(hadoopDistributionsFlag, ",")); err != nil {
+	// Do not skip UI and Helm
+	if err := generateTarball(strings.Split(hadoopDistributionsFlag, ","), false, false); err != nil {
 		return err
 	}
 	return nil

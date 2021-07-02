@@ -29,6 +29,15 @@ public interface BlockStoreEventListener {
   void onAccessBlock(long sessionId, long blockId);
 
   /**
+   * Actions when accessing a block.
+   *
+   * @param sessionId the id of the session to access this block
+   * @param blockId the id of the block to access
+   * @param location the location of the block
+   */
+  void onAccessBlock(long sessionId, long blockId, BlockStoreLocation location);
+
+  /**
    * Actions when aborting a temporary block.
    *
    * @param sessionId the id of the session to abort on this block
@@ -84,6 +93,15 @@ public interface BlockStoreEventListener {
   void onRemoveBlockByWorker(long sessionId, long blockId);
 
   /**
+   * Actions when removing an existing block.
+   *
+   * @param sessionId the id of the session to remove this block
+   * @param blockId the id of the block to be removed
+   * @param location the location of the block to be removed
+   */
+  void onRemoveBlock(long sessionId, long blockId, BlockStoreLocation location);
+
+  /**
    * Actions when a block is lost.
    *
    * @param blockId the id of the lost block
@@ -97,4 +115,11 @@ public interface BlockStoreEventListener {
    * @param dirPath the directory path of this storage
    */
   void onStorageLost(String tierAlias, String dirPath);
+
+  /**
+   * Actions when a storage dir is lost.
+   *
+   * @param dirLocation the location of this storage
+   */
+  void onStorageLost(BlockStoreLocation dirLocation);
 }

@@ -11,53 +11,73 @@
 
 package alluxio.client.rest;
 
+import static org.junit.Assert.assertEquals;
+
 import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileSystem;
+import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.URIStatus;
+import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
 import alluxio.exception.FileDoesNotExistException;
+import alluxio.grpc.SetAttributePOptions;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.file.contexts.CreateDirectoryContext;
 import alluxio.master.file.contexts.CreateFileContext;
 import alluxio.master.file.contexts.GetStatusContext;
 import alluxio.master.file.contexts.ListStatusContext;
-import alluxio.master.file.contexts.MountContext;
 import alluxio.proxy.s3.CompleteMultipartUploadResult;
 import alluxio.proxy.s3.InitiateMultipartUploadResult;
+import alluxio.proxy.s3.ListAllMyBucketsResult;
 import alluxio.proxy.s3.ListBucketOptions;
 import alluxio.proxy.s3.ListBucketResult;
 import alluxio.proxy.s3.ListPartsResult;
 import alluxio.proxy.s3.S3Constants;
 import alluxio.proxy.s3.S3RestUtils;
+import alluxio.security.User;
+import alluxio.security.authentication.AuthType;
+import alluxio.security.authorization.Mode;
+import alluxio.security.authorization.ModeParser;
+import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.util.CommonUtils;
 import alluxio.wire.FileInfo;
 
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
+import com.google.common.collect.Lists;
 import com.google.common.io.BaseEncoding;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.io.IOUtils;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+import org.junit.rules.TestRule;
 
 import java.io.ByteArrayInputStream;
 import java.net.HttpURLConnection;
 import java.security.MessageDigest;
-import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.security.auth.Subject;
 import javax.ws.rs.HttpMethod;
 import javax.ws.rs.core.Response;
 
 /**
- * Test cases for {@link S3RestServiceHandler}.
+ * Test cases for {@link alluxio.proxy.s3.S3RestServiceHandler}.
  */
 public final class S3ClientRestApiTest extends RestApiTest {
+  private static final int DATA_SIZE = 16 * Constants.KB;
+  // cannot be too large, since all block streams are open until file is closed, and may run out of
+  // block worker clients.
+  private static final int LARGE_DATA_SIZE = 256 * Constants.KB;
+
   private static final GetStatusContext GET_STATUS_CONTEXT = GetStatusContext.defaults();
   private static final Map<String, String> NO_PARAMS = new HashMap<>();
   private static final XmlMapper XML_MAPPER = new XmlMapper();
@@ -68,16 +88,172 @@ public final class S3ClientRestApiTest extends RestApiTest {
   private FileSystem mFileSystem;
   private FileSystemMaster mFileSystemMaster;
 
+  // TODO(chaomin): Rest API integration tests are only run in NOSASL mode now. Need to
+  // fix the test setup in SIMPLE mode.
+  @ClassRule
+  public static LocalAlluxioClusterResource sResource = new LocalAlluxioClusterResource.Builder()
+      .setProperty(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "false")
+      .setProperty(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.NOSASL.getAuthName())
+      .setProperty(PropertyKey.USER_FILE_BUFFER_BYTES, "1KB")
+      .build();
+
+  @Rule
+  public TestRule mResetRule = sResource.getResetResource();
+
   @Rule
   public TemporaryFolder mFolder = new TemporaryFolder();
 
   @Before
   public void before() throws Exception {
-    mHostname = mResource.get().getHostname();
-    mPort = mResource.get().getProxyProcess().getWebLocalPort();
-    mFileSystemMaster = mResource.get().getLocalAlluxioMaster().getMasterProcess()
+    mHostname = sResource.get().getHostname();
+    mPort = sResource.get().getProxyProcess().getWebLocalPort();
+    mFileSystemMaster = sResource.get().getLocalAlluxioMaster().getMasterProcess()
         .getMaster(FileSystemMaster.class);
-    mFileSystem = mResource.get().getClient();
+    mFileSystem = sResource.get().getClient();
+  }
+
+  @Test
+  public void listAllMyBuckets() throws Exception {
+    Mode mode = ModeParser.parse("777");
+    SetAttributePOptions options =
+        SetAttributePOptions.newBuilder().setMode(mode.toProto()).setRecursive(true).build();
+    mFileSystem.setAttribute(new AlluxioURI("/"), options);
+
+    Subject subject = new Subject();
+    subject.getPrincipals().add(new User("user0"));
+    sResource.get().getClient(FileSystemContext.create(subject, ServerConfiguration.global()))
+        .createDirectory(new AlluxioURI("/bucket0"));
+    SetAttributePOptions setAttributeOptions =
+        SetAttributePOptions.newBuilder().setOwner("user0").build();
+    mFileSystem.setAttribute(new AlluxioURI("/bucket0"), setAttributeOptions);
+
+    subject = new Subject();
+    subject.getPrincipals().add(new User("user1"));
+    sResource.get().getClient(FileSystemContext.create(subject, ServerConfiguration.global()))
+        .createDirectory(new AlluxioURI("/bucket1"));
+    setAttributeOptions = SetAttributePOptions.newBuilder().setOwner("user1").build();
+    mFileSystem.setAttribute(new AlluxioURI("/bucket1"), setAttributeOptions);
+
+    ListAllMyBucketsResult expected = new ListAllMyBucketsResult(Collections.EMPTY_LIST);
+    final TestCaseOptions requestOptions = TestCaseOptions.defaults()
+        .setContentType(TestCaseOptions.XML_CONTENT_TYPE);
+    new TestCase(mHostname, mPort, S3_SERVICE_PREFIX + "/", NO_PARAMS,
+        HttpMethod.GET, expected, requestOptions).run();
+
+    expected = new ListAllMyBucketsResult(Lists.newArrayList("bucket0"));
+    requestOptions.setAuthorization("AWS user0:");
+    new TestCase(mHostname, mPort, S3_SERVICE_PREFIX + "/", NO_PARAMS,
+        HttpMethod.GET, expected, requestOptions).run();
+
+    expected = new ListAllMyBucketsResult(Lists.newArrayList("bucket1"));
+    requestOptions.setAuthorization("AWS user1:");
+    new TestCase(mHostname, mPort, S3_SERVICE_PREFIX + "/", NO_PARAMS,
+        HttpMethod.GET, expected, requestOptions).run();
+  }
+
+  @Test
+  public void listBucket() throws Exception {
+    mFileSystem.createDirectory(new AlluxioURI("/bucket"));
+    mFileSystem.createDirectory(new AlluxioURI("/bucket/folder0"));
+    mFileSystem.createDirectory(new AlluxioURI("/bucket/folder1"));
+
+    mFileSystem.createFile(new AlluxioURI("/bucket/file0"));
+    mFileSystem.createFile(new AlluxioURI("/bucket/file1"));
+
+    mFileSystem.createFile(new AlluxioURI("/bucket/folder0/file0"));
+    mFileSystem.createFile(new AlluxioURI("/bucket/folder0/file1"));
+
+    List<URIStatus> statuses = mFileSystem.listStatus(new AlluxioURI("/bucket"));
+
+    ListBucketResult expected = new ListBucketResult("bucket", statuses,
+        ListBucketOptions.defaults());
+
+    new TestCase(mHostname, mPort, S3_SERVICE_PREFIX + "/bucket", NO_PARAMS,
+        HttpMethod.GET, expected,
+        TestCaseOptions.defaults().setContentType(TestCaseOptions.XML_CONTENT_TYPE)).run();
+
+    assertEquals("file0", expected.getContents().get(0).getKey());
+    assertEquals("file1", expected.getContents().get(1).getKey());
+
+    final List<ListBucketResult.Prefix> commonPrefixes = expected.getCommonPrefixes();
+    assertEquals(2, commonPrefixes.size());
+    assertEquals("folder0/", commonPrefixes.get(0).getPrefix());
+    assertEquals("folder1/", commonPrefixes.get(1).getPrefix());
+
+    statuses = mFileSystem.listStatus(new AlluxioURI("/bucket/folder0"));
+
+    expected = new ListBucketResult("bucket", statuses,
+        ListBucketOptions.defaults().setPrefix("/folder0"));
+
+    final Map<String, String> parameters = new HashMap<>();
+    parameters.put("prefix", "/folder0");
+
+    new TestCase(mHostname, mPort, S3_SERVICE_PREFIX + "/bucket", parameters,
+        HttpMethod.GET, expected,
+        TestCaseOptions.defaults().setContentType(TestCaseOptions.XML_CONTENT_TYPE)).run();
+
+    assertEquals("folder0/file0", expected.getContents().get(0).getKey());
+    assertEquals("folder0/file1", expected.getContents().get(1).getKey());
+    assertEquals(0, expected.getCommonPrefixes().size());
+  }
+
+  @Test
+  public void listBucketPagination() throws Exception {
+    AlluxioURI uri = new AlluxioURI("/bucket");
+    mFileSystem.createDirectory(uri);
+    mFileSystem.createDirectory(new AlluxioURI("/bucket/folder0"));
+    mFileSystem.createDirectory(new AlluxioURI("/bucket/folder1"));
+
+    mFileSystem.createFile(new AlluxioURI("/bucket/file0"));
+    mFileSystem.createFile(new AlluxioURI("/bucket/file1"));
+
+    mFileSystem.createFile(new AlluxioURI("/bucket/folder0/file0"));
+    mFileSystem.createFile(new AlluxioURI("/bucket/folder0/file1"));
+
+    List<URIStatus> statuses = mFileSystem.listStatus(new AlluxioURI("/bucket"));
+
+    ListBucketResult expected = new ListBucketResult("bucket", statuses,
+        ListBucketOptions.defaults().setMaxKeys(1));
+    String nextMarker = expected.getNextMarker();
+
+    final Map<String, String> parameters = new HashMap<>();
+    parameters.put("max-keys", "1");
+
+    new TestCase(mHostname, mPort, S3_SERVICE_PREFIX + "/bucket", parameters,
+        HttpMethod.GET, expected,
+        TestCaseOptions.defaults().setContentType(TestCaseOptions.XML_CONTENT_TYPE)).run();
+
+    assertEquals("file0", expected.getContents().get(0).getKey());
+    assertEquals(0, expected.getCommonPrefixes().size());
+
+    parameters.put("marker", nextMarker);
+
+    expected = new ListBucketResult("bucket", statuses,
+        ListBucketOptions.defaults().setMaxKeys(1).setMarker(nextMarker));
+    nextMarker = expected.getNextMarker();
+
+    new TestCase(mHostname, mPort, S3_SERVICE_PREFIX + "/bucket", parameters,
+        HttpMethod.GET, expected,
+        TestCaseOptions.defaults().setContentType(TestCaseOptions.XML_CONTENT_TYPE)).run();
+
+    assertEquals("file1", expected.getContents().get(0).getKey());
+    assertEquals(0, expected.getCommonPrefixes().size());
+
+    parameters.put("marker", nextMarker);
+
+    expected = new ListBucketResult("bucket", statuses,
+        ListBucketOptions.defaults().setMaxKeys(1).setMarker(nextMarker));
+    nextMarker = expected.getNextMarker();
+
+    new TestCase(mHostname, mPort, S3_SERVICE_PREFIX + "/bucket", parameters,
+        HttpMethod.GET, expected,
+        TestCaseOptions.defaults().setContentType(TestCaseOptions.XML_CONTENT_TYPE)).run();
+
+    assertEquals(0, expected.getContents().size());
+
+    final List<ListBucketResult.Prefix> commonPrefixes = expected.getCommonPrefixes();
+    assertEquals(1, commonPrefixes.size());
+    assertEquals("folder0/", commonPrefixes.get(0).getPrefix());
   }
 
   @Test
@@ -88,86 +264,6 @@ public final class S3ClientRestApiTest extends RestApiTest {
     AlluxioURI uri = new AlluxioURI(AlluxioURI.SEPARATOR + bucket);
     Assert.assertTrue(mFileSystemMaster
         .listStatus(uri, ListStatusContext.defaults()).isEmpty());
-  }
-
-  @Test
-  public void putBucketUnderMountPoint() throws Exception {
-    final String mountPoint = "s3";
-    final String bucketName = "bucket";
-    final String s3Path = mountPoint + BUCKET_SEPARATOR + bucketName;
-
-    AlluxioURI mountPointPath = new AlluxioURI(AlluxioURI.SEPARATOR + mountPoint);
-    mFileSystemMaster.mount(mountPointPath, new AlluxioURI(mFolder.newFolder().getAbsolutePath()),
-        MountContext.defaults());
-
-    // Create a new bucket under an existing mount point.
-    createBucketRestCall(s3Path);
-
-    // Verify the directory is created for the new bucket, under the mount point.
-    AlluxioURI uri = new AlluxioURI(
-        AlluxioURI.SEPARATOR + mountPoint + AlluxioURI.SEPARATOR + bucketName);
-    Assert.assertTrue(mFileSystemMaster
-        .listStatus(uri, ListStatusContext.defaults()).isEmpty());
-  }
-
-  @Test
-  public void putBucketUnderNestedMountPoint() throws Exception {
-    final String mountPointParent = "mounts";
-    final String mountPointName = "s3";
-    final String bucketName = "bucket";
-    final String s3Path =
-        mountPointParent + BUCKET_SEPARATOR + mountPointName + BUCKET_SEPARATOR + bucketName;
-
-    mFileSystemMaster.createDirectory(new AlluxioURI(
-        AlluxioURI.SEPARATOR + mountPointParent), CreateDirectoryContext.defaults());
-    AlluxioURI mountPointPath = new AlluxioURI(AlluxioURI.SEPARATOR + mountPointParent
-        + AlluxioURI.SEPARATOR + mountPointName);
-    mFileSystemMaster.mount(mountPointPath, new AlluxioURI(mFolder.newFolder().getAbsolutePath()),
-        MountContext.defaults());
-
-    // Create a new bucket under an existing nested mount point.
-    createBucketRestCall(s3Path);
-
-    // Verify the directory is created for the new bucket, under the mount point.
-    AlluxioURI uri = new AlluxioURI(AlluxioURI.SEPARATOR + mountPointParent
-        + AlluxioURI.SEPARATOR + mountPointName + AlluxioURI.SEPARATOR + bucketName);
-    Assert.assertTrue(mFileSystemMaster
-        .listStatus(uri, ListStatusContext.defaults()).isEmpty());
-  }
-
-  @Test
-  public void putBucketUnderNonExistingMountPoint() throws Exception {
-    final String mountPoint = "s3";
-    final String bucketName = "bucket";
-    final String s3Path = mountPoint + BUCKET_SEPARATOR + bucketName;
-
-    try {
-      // Create a new bucket under a non-existing mount point should fail.
-      createBucketRestCall(s3Path);
-    } catch (AssertionError e) {
-      // expected
-      return;
-    }
-    Assert.fail("create bucket under non-existing mount point should fail");
-  }
-
-  @Test
-  public void putBucketUnderNonMountPointDirectory() throws Exception {
-    final String dirName = "dir";
-    final String bucketName = "bucket";
-    final String s3Path = dirName + BUCKET_SEPARATOR + bucketName;
-
-    AlluxioURI dirPath = new AlluxioURI(AlluxioURI.SEPARATOR + dirName);
-    mFileSystemMaster.createDirectory(dirPath, CreateDirectoryContext.defaults());
-
-    try {
-      // Create a new bucket under a non-mount-point directory should fail.
-      createBucketRestCall(s3Path);
-    } catch (AssertionError e) {
-      // expected
-      return;
-    }
-    Assert.fail("create bucket under non-mount-point directory should fail");
   }
 
   @Test
@@ -268,8 +364,23 @@ public final class S3ClientRestApiTest extends RestApiTest {
   }
 
   @Test
+  public void putDirectoryObject() throws Exception {
+    final String bucketName = "directory-bucket";
+    createBucketRestCall(bucketName);
+
+    final String directoryName = "directory/";
+    createObject(bucketName + AlluxioURI.SEPARATOR + directoryName, new byte[]{}, null, null);
+
+    final List<URIStatus> statuses = mFileSystem.listStatus(
+        new AlluxioURI(AlluxioURI.SEPARATOR + bucketName));
+
+    assertEquals(1, statuses.size());
+    assertEquals(true, statuses.get(0).isFolder());
+  }
+
+  @Test
   public void putSmallObject() throws Exception {
-    final String bucketName = "bucket";
+    final String bucketName = "small-object-bucket";
     createBucketRestCall(bucketName);
 
     final String objectName = "object";
@@ -278,11 +389,11 @@ public final class S3ClientRestApiTest extends RestApiTest {
 
   @Test
   public void putLargeObject() throws Exception {
-    final String bucketName = "bucket";
+    final String bucketName = "large-object-bucket";
     createBucketRestCall(bucketName);
 
     final String objectName = "object";
-    final byte[] object = CommonUtils.randomAlphaNumString(Constants.MB).getBytes();
+    final byte[] object = CommonUtils.randomAlphaNumString(LARGE_DATA_SIZE).getBytes();
     putObjectTest(bucketName, objectName, object, null, null);
   }
 
@@ -332,228 +443,6 @@ public final class S3ClientRestApiTest extends RestApiTest {
   }
 
   @Test
-  public void getBucket() throws Exception {
-    final String bucket = "bucket-to-get";
-    createBucketRestCall(bucket);
-
-    AlluxioURI uri = new AlluxioURI(AlluxioURI.SEPARATOR + bucket + AlluxioURI.SEPARATOR);
-    // Verify the directory is created for the new bucket.
-    Assert.assertTrue(mFileSystemMaster
-        .listStatus(uri, ListStatusContext.defaults()).isEmpty());
-
-    // Prepare a bucket with direct child objects and objects within sub directories:
-    // - /file1
-    // - /file2
-    // - /dir1/subdir1/file3
-    // - /dir2/
-    AlluxioURI file1 = new AlluxioURI(uri.getPath() + "/file1");
-    mFileSystemMaster.createFile(file1, CreateFileContext.defaults());
-    AlluxioURI file2 = new AlluxioURI(uri.getPath() + "/file2");
-    mFileSystemMaster.createFile(file2, CreateFileContext.defaults());
-    AlluxioURI dir1 = new AlluxioURI(uri.getPath() + "/dir1");
-    mFileSystemMaster.createDirectory(dir1, CreateDirectoryContext.defaults());
-    AlluxioURI dir2 = new AlluxioURI(uri.getPath() + "/dir2");
-    mFileSystemMaster.createDirectory(dir2, CreateDirectoryContext.defaults());
-    AlluxioURI subdir1 = new AlluxioURI(uri.getPath() + "/dir1/subdir1");
-    mFileSystemMaster.createDirectory(subdir1, CreateDirectoryContext.defaults());
-    AlluxioURI file3 = new AlluxioURI(subdir1.getPath() + "/file3");
-    mFileSystemMaster.createFile(file3, CreateFileContext.defaults());
-
-    // Expected result.
-    List<URIStatus> objectsList = new ArrayList<>();
-    objectsList.add(new URIStatus(
-        mFileSystemMaster.getFileInfo(file1, GetStatusContext.defaults())));
-    objectsList.add(new URIStatus(
-        mFileSystemMaster.getFileInfo(file2, GetStatusContext.defaults())));
-    objectsList.add(new URIStatus(
-        mFileSystemMaster.getFileInfo(file3, GetStatusContext.defaults())));
-    objectsList.add(new URIStatus(
-        mFileSystemMaster.getFileInfo(dir2, GetStatusContext.defaults())));
-    ListBucketResult expected = new ListBucketResult(
-        AlluxioURI.SEPARATOR + bucket, objectsList, ListBucketOptions.defaults());
-
-    // Verify op with no param
-    new TestCase(mHostname, mPort, S3_SERVICE_PREFIX + AlluxioURI.SEPARATOR + bucket, NO_PARAMS,
-        HttpMethod.GET, expected,
-        TestCaseOptions.defaults().setContentType(TestCaseOptions.XML_CONTENT_TYPE)).run();
-  }
-
-  @Test
-  public void getBucketWithPrefix() throws Exception {
-    final String bucket = "bucket-to-get-with-prefix";
-    createBucketRestCall(bucket);
-
-    AlluxioURI uri = new AlluxioURI(AlluxioURI.SEPARATOR + bucket + AlluxioURI.SEPARATOR);
-    // Verify the directory is created for the new bucket.
-    Assert.assertTrue(mFileSystemMaster
-        .listStatus(uri, ListStatusContext.defaults()).isEmpty());
-
-    // Prepare a bucket with direct child objects and objects within sub directories:
-    // - /file1
-    // - /file2
-    // - /dir1/subdir1/file3
-    // - /dir2/
-    AlluxioURI file1 = new AlluxioURI(uri.getPath() + "/file1");
-    mFileSystemMaster.createFile(file1, CreateFileContext.defaults());
-    AlluxioURI file2 = new AlluxioURI(uri.getPath() + "/file2");
-    mFileSystemMaster.createFile(file2, CreateFileContext.defaults());
-    AlluxioURI dir1 = new AlluxioURI(uri.getPath() + "/dir1");
-    mFileSystemMaster.createDirectory(dir1, CreateDirectoryContext.defaults());
-    AlluxioURI dir2 = new AlluxioURI(uri.getPath() + "/dir2");
-    mFileSystemMaster.createDirectory(dir2, CreateDirectoryContext.defaults());
-    AlluxioURI subdir1 = new AlluxioURI(uri.getPath() + "/dir1/subdir1");
-    mFileSystemMaster.createDirectory(subdir1, CreateDirectoryContext.defaults());
-    AlluxioURI file3 = new AlluxioURI(subdir1.getPath() + "/file3");
-    mFileSystemMaster.createFile(file3, CreateFileContext.defaults());
-
-    // Verify op with prefix
-    final String prefix = "dir";
-    Map<String, String> prefixParam = new HashMap<>();
-    prefixParam.put("prefix", prefix);
-    List<URIStatus> filteredObjectsList = new ArrayList<>();
-    filteredObjectsList.add(new URIStatus(
-        mFileSystemMaster.getFileInfo(file3, GetStatusContext.defaults())));
-    filteredObjectsList.add(new URIStatus(
-        mFileSystemMaster.getFileInfo(dir2, GetStatusContext.defaults())));
-    ListBucketResult expected = new ListBucketResult(AlluxioURI.SEPARATOR + bucket,
-        filteredObjectsList, ListBucketOptions.defaults().setPrefix(prefix));
-    new TestCase(mHostname, mPort, S3_SERVICE_PREFIX + AlluxioURI.SEPARATOR + bucket,
-        prefixParam, HttpMethod.GET, expected,
-        TestCaseOptions.defaults().setContentType(TestCaseOptions.XML_CONTENT_TYPE)).run();
-  }
-
-  @Test
-  public void getBucketWithMaxKeys() throws Exception {
-    final String bucket = "bucket-to-get-with-max-keys";
-    createBucketRestCall(bucket);
-
-    AlluxioURI uri = new AlluxioURI(AlluxioURI.SEPARATOR + bucket + AlluxioURI.SEPARATOR);
-    // Verify the directory is created for the new bucket.
-    Assert.assertTrue(mFileSystemMaster
-        .listStatus(uri, ListStatusContext.defaults()).isEmpty());
-
-    // Prepare a bucket with two objects:
-    // - /file1
-    // - /file2
-    AlluxioURI file1 = new AlluxioURI(uri.getPath() + "/file1");
-    mFileSystemMaster.createFile(file1, CreateFileContext.defaults());
-    AlluxioURI file2 = new AlluxioURI(uri.getPath() + "/file2");
-    mFileSystemMaster.createFile(file2, CreateFileContext.defaults());
-
-    // Expected result, with max-keys = 1.
-    List<URIStatus> objectsList = new ArrayList<>();
-    objectsList.add(new URIStatus(
-        mFileSystemMaster.getFileInfo(file1, GetStatusContext.defaults())));
-    objectsList.add(new URIStatus(
-        mFileSystemMaster.getFileInfo(file2, GetStatusContext.defaults())));
-    ListBucketResult expected = new ListBucketResult(
-        AlluxioURI.SEPARATOR + bucket, objectsList, ListBucketOptions.defaults().setMaxKeys("1"));
-
-    // Verify
-    HashMap<String, String> maxKeysParam = new HashMap<>();
-    maxKeysParam.put("max-keys", "1");
-    new TestCase(mHostname, mPort, S3_SERVICE_PREFIX + AlluxioURI.SEPARATOR + bucket, maxKeysParam,
-        HttpMethod.GET, expected,
-        TestCaseOptions.defaults().setContentType(TestCaseOptions.XML_CONTENT_TYPE)).run();
-  }
-
-  @Test
-  public void getBucketWithMaxKeysAndContinuationToken() throws Exception {
-    final String bucket = "bucket-to-get-with-max-keys-and-token";
-    createBucketRestCall(bucket);
-
-    AlluxioURI uri = new AlluxioURI(AlluxioURI.SEPARATOR + bucket + AlluxioURI.SEPARATOR);
-    // Verify the directory is created for the new bucket.
-    Assert.assertTrue(mFileSystemMaster
-        .listStatus(uri, ListStatusContext.defaults()).isEmpty());
-
-    // Prepare a bucket with two objects:
-    // - /file1
-    // - /file2
-    AlluxioURI file1 = new AlluxioURI(uri.getPath() + "/file1");
-    mFileSystemMaster.createFile(file1, CreateFileContext.defaults());
-    AlluxioURI file2 = new AlluxioURI(uri.getPath() + "/file2");
-    mFileSystemMaster.createFile(file2, CreateFileContext.defaults());
-
-    // Expected result, with max-keys = 1.
-    List<URIStatus> objectsList = new ArrayList<>();
-    objectsList.add(new URIStatus(
-        mFileSystemMaster.getFileInfo(file1, GetStatusContext.defaults())));
-    objectsList.add(new URIStatus(
-        mFileSystemMaster.getFileInfo(file2, GetStatusContext.defaults())));
-    String maxKeys = "1";
-    String continuationToken = file1.getPath();
-    ListBucketResult expected = new ListBucketResult(
-        AlluxioURI.SEPARATOR + bucket, objectsList,
-        ListBucketOptions.defaults().setMaxKeys("1").setContinuationToken(continuationToken));
-
-    // Verify
-    HashMap<String, String> maxKeysParam = new HashMap<>();
-    maxKeysParam.put("max-keys", maxKeys);
-    maxKeysParam.put("continuation-token", continuationToken);
-    new TestCase(mHostname, mPort, S3_SERVICE_PREFIX + AlluxioURI.SEPARATOR + bucket, maxKeysParam,
-        HttpMethod.GET, expected,
-        TestCaseOptions.defaults().setContentType(TestCaseOptions.XML_CONTENT_TYPE)).run();
-  }
-
-  @Test
-  public void getBucketWithNonExistingContinuationToken() throws Exception {
-    final String bucket = "bucket-to-get-with-non-existing-token";
-    createBucketRestCall(bucket);
-
-    AlluxioURI uri = new AlluxioURI(AlluxioURI.SEPARATOR + bucket + AlluxioURI.SEPARATOR);
-    // Verify the directory is created for the new bucket.
-    Assert.assertTrue(mFileSystemMaster
-        .listStatus(uri, ListStatusContext.defaults()).isEmpty());
-
-    // Prepare a bucket with two objects:
-    // - /file1
-    // - /file2
-    AlluxioURI file1 = new AlluxioURI(uri.getPath() + "/file1");
-    mFileSystemMaster.createFile(file1, CreateFileContext.defaults());
-    AlluxioURI file2 = new AlluxioURI(uri.getPath() + "/file2");
-    mFileSystemMaster.createFile(file2, CreateFileContext.defaults());
-
-    // Expected result, with max-keys = 1.
-    List<URIStatus> objectsList = new ArrayList<>();
-    objectsList.add(new URIStatus(
-        mFileSystemMaster.getFileInfo(file1, GetStatusContext.defaults())));
-    objectsList.add(new URIStatus(
-        mFileSystemMaster.getFileInfo(file2, GetStatusContext.defaults())));
-    String continuationToken = file1.getPath() + "random-tail";
-    ListBucketResult expected = new ListBucketResult(
-        AlluxioURI.SEPARATOR + bucket, objectsList,
-        ListBucketOptions.defaults().setContinuationToken(continuationToken));
-
-    // Verify
-    HashMap<String, String> maxKeysParam = new HashMap<>();
-    maxKeysParam.put("continuation-token", continuationToken);
-    new TestCase(mHostname, mPort, S3_SERVICE_PREFIX + AlluxioURI.SEPARATOR + bucket, maxKeysParam,
-        HttpMethod.GET, expected,
-        TestCaseOptions.defaults().setContentType(TestCaseOptions.XML_CONTENT_TYPE)).run();
-  }
-
-  @Test
-  public void listEmptyBucket() throws Exception {
-    final String bucket = "empty-bucket-to-list";
-    createBucketRestCall(bucket);
-
-    AlluxioURI uri = new AlluxioURI(AlluxioURI.SEPARATOR + bucket + AlluxioURI.SEPARATOR);
-    // Verify the directory is created for the new bucket.
-    Assert.assertTrue(mFileSystemMaster
-        .listStatus(uri, ListStatusContext.defaults()).isEmpty());
-
-    List<URIStatus> listStatusResult = new ArrayList<>();
-    ListBucketResult expected = new ListBucketResult(
-        AlluxioURI.SEPARATOR + bucket, listStatusResult, ListBucketOptions.defaults());
-
-    new TestCase(mHostname, mPort, S3_SERVICE_PREFIX + AlluxioURI.SEPARATOR + bucket, NO_PARAMS,
-        HttpMethod.GET, expected,
-        TestCaseOptions.defaults().setContentType(TestCaseOptions.XML_CONTENT_TYPE))
-        .run();
-  }
-
-  @Test
   public void getNonExistingBucket() throws Exception {
     final String bucketName = "non-existing-bucket";
 
@@ -584,7 +473,7 @@ public final class S3ClientRestApiTest extends RestApiTest {
 
   @Test
   public void getLargeObject() throws Exception {
-    getObjectTest(CommonUtils.randomAlphaNumString(Constants.MB).getBytes());
+    getObjectTest(CommonUtils.randomAlphaNumString(LARGE_DATA_SIZE).getBytes());
   }
 
   @Test
@@ -748,7 +637,7 @@ public final class S3ClientRestApiTest extends RestApiTest {
         XML_MAPPER.readValue(result, InitiateMultipartUploadResult.class);
 
     final long uploadId = Long.parseLong(multipartUploadResult.getUploadId());
-    final byte[] object = CommonUtils.randomAlphaNumString(Constants.MB).getBytes();
+    final byte[] object = CommonUtils.randomAlphaNumString(DATA_SIZE).getBytes();
     putObjectTest(bucketName, objectName, object, uploadId, 1);
   }
 
@@ -764,7 +653,7 @@ public final class S3ClientRestApiTest extends RestApiTest {
         XML_MAPPER.readValue(result, InitiateMultipartUploadResult.class);
 
     final long uploadId = Long.parseLong(multipartUploadResult.getUploadId());
-    final byte[] object = CommonUtils.randomAlphaNumString(Constants.MB).getBytes();
+    final byte[] object = CommonUtils.randomAlphaNumString(DATA_SIZE).getBytes();
     try {
       putObjectTest(bucketName, objectName, object, uploadId + 1, 1);
     } catch (AssertionError e) {
@@ -781,7 +670,7 @@ public final class S3ClientRestApiTest extends RestApiTest {
 
     try {
       final String objectName = "object";
-      final byte[] object = CommonUtils.randomAlphaNumString(Constants.MB).getBytes();
+      final byte[] object = CommonUtils.randomAlphaNumString(DATA_SIZE).getBytes();
       putObjectTest(bucketName, objectName, object, 1L, 1);
     } catch (AssertionError e) {
       // Expected because there is no such upload ID.
@@ -814,8 +703,8 @@ public final class S3ClientRestApiTest extends RestApiTest {
     Assert.assertEquals(0, listPartsResult.getParts().size());
 
     // Upload 2 parts.
-    String object1 = CommonUtils.randomAlphaNumString(Constants.MB);
-    String object2 = CommonUtils.randomAlphaNumString(Constants.MB);
+    String object1 = CommonUtils.randomAlphaNumString(DATA_SIZE);
+    String object2 = CommonUtils.randomAlphaNumString(DATA_SIZE);
     createObject(objectKey, object1.getBytes(), uploadId, 1);
     createObject(objectKey, object2.getBytes(), uploadId, 2);
 
@@ -904,8 +793,8 @@ public final class S3ClientRestApiTest extends RestApiTest {
     final long uploadId = Long.parseLong(multipartUploadResult.getUploadId());
 
     // Upload parts.
-    String object1 = CommonUtils.randomAlphaNumString(Constants.MB);
-    String object2 = CommonUtils.randomAlphaNumString(Constants.MB);
+    String object1 = CommonUtils.randomAlphaNumString(DATA_SIZE);
+    String object2 = CommonUtils.randomAlphaNumString(DATA_SIZE);
     createObject(objectKey, object1.getBytes(), uploadId, 1);
     createObject(objectKey, object2.getBytes(), uploadId, 2);
 

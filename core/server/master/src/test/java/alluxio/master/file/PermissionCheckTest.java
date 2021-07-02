@@ -20,12 +20,13 @@ import alluxio.AlluxioURI;
 import alluxio.AuthenticatedUserRule;
 import alluxio.ConfigurationRule;
 import alluxio.Constants;
-import alluxio.LoginUserRule;
+import alluxio.client.WriteType;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileDoesNotExistException;
+import alluxio.grpc.CheckAccessPOptions;
 import alluxio.grpc.CompleteFilePOptions;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
@@ -38,6 +39,7 @@ import alluxio.master.CoreMasterContext;
 import alluxio.master.MasterRegistry;
 import alluxio.master.MasterTestUtils;
 import alluxio.master.block.BlockMasterFactory;
+import alluxio.master.file.contexts.CheckAccessContext;
 import alluxio.master.file.contexts.CompleteFileContext;
 import alluxio.master.file.contexts.CreateDirectoryContext;
 import alluxio.master.file.contexts.CreateFileContext;
@@ -48,11 +50,13 @@ import alluxio.master.file.contexts.ListStatusContext;
 import alluxio.master.file.contexts.RenameContext;
 import alluxio.master.file.contexts.SetAttributeContext;
 import alluxio.master.file.meta.MutableInodeDirectory;
+import alluxio.master.journal.noop.NoopJournalSystem;
 import alluxio.master.metrics.MetricsMaster;
 import alluxio.master.metrics.MetricsMasterFactory;
 import alluxio.security.GroupMappingServiceTestUtils;
 import alluxio.security.authorization.Mode;
 import alluxio.security.group.GroupMappingService;
+import alluxio.security.user.TestUserState;
 import alluxio.util.FileSystemOptions;
 import alluxio.util.SecurityUtils;
 import alluxio.util.io.PathUtils;
@@ -126,10 +130,6 @@ public final class PermissionCheckTest {
       new AuthenticatedUserRule(TEST_USER_ADMIN.getUser(), ServerConfiguration.global());
 
   @Rule
-  public LoginUserRule mLoginUserRule = new LoginUserRule(TEST_USER_ADMIN.getUser(),
-      ServerConfiguration.global());
-
-  @Rule
   public TemporaryFolder mTestFolder = new TemporaryFolder();
 
   @Rule
@@ -185,7 +185,8 @@ public final class PermissionCheckTest {
     GroupMappingServiceTestUtils.resetCache();
     mRegistry = new MasterRegistry();
     mRegistry.add(MetricsMaster.class, mMetricsMaster);
-    CoreMasterContext masterContext = MasterTestUtils.testMasterContext();
+    CoreMasterContext masterContext = MasterTestUtils.testMasterContext(new NoopJournalSystem(),
+        new TestUserState(TEST_USER_ADMIN.getUser(), ServerConfiguration.global()));
     mMetricsMaster = new MetricsMasterFactory().create(mRegistry, masterContext);
     new BlockMasterFactory().create(mRegistry, masterContext);
     mFileSystemMaster = new FileSystemMasterFactory().create(mRegistry, masterContext);
@@ -294,7 +295,7 @@ public final class PermissionCheckTest {
               CreateFilePOptions.newBuilder().setRecursive(recursive))
           .setOwner(SecurityUtils.getOwnerFromGrpcClient(ServerConfiguration.global()))
           .setGroup(SecurityUtils.getGroupFromGrpcClient(ServerConfiguration.global()))
-          .setPersisted(true);
+          .setWriteType(WriteType.CACHE_THROUGH);
 
       FileInfo fileInfo = mFileSystemMaster.createFile(new AlluxioURI(path), context);
       String[] pathComponents = path.split("/");
@@ -934,6 +935,52 @@ public final class PermissionCheckTest {
       if (mode != -1) {
         assertEquals(mode, fileInfo.getMode());
       }
+    }
+  }
+
+  @Test
+  public void checkAccessSuccess() throws Exception {
+    verifyAccess(TEST_USER_2, TEST_DIR_FILE_URI, Mode.Bits.READ);
+  }
+
+  @Test
+  public void checkAccessFail() throws Exception {
+    mThrown.expect(AccessControlException.class);
+    mThrown.expectMessage(ExceptionMessage.PERMISSION_DENIED.getMessage(
+        toExceptionMessage(TEST_USER_2.getUser(), Mode.Bits.WRITE, TEST_DIR_FILE_URI, "file")));
+    verifyAccess(TEST_USER_2, TEST_DIR_FILE_URI, Mode.Bits.WRITE);
+  }
+
+  @Test
+  public void checkAccessMultipleSuccess() throws Exception {
+    verifyAccess(TEST_USER_2, TEST_DIR_URI, Mode.Bits.READ_EXECUTE);
+  }
+
+  @Test
+  public void checkAccessMultipleFail() throws Exception {
+    mThrown.expect(AccessControlException.class);
+    mThrown.expectMessage(ExceptionMessage.PERMISSION_DENIED.getMessage(
+        toExceptionMessage(TEST_USER_2.getUser(), Mode.Bits.READ_WRITE, TEST_DIR_URI, "testDir")));
+    verifyAccess(TEST_USER_2, TEST_DIR_URI, Mode.Bits.READ_WRITE);
+  }
+
+  @Test
+  public void checkAccessSuperGroupSuccess() throws Exception {
+    verifyAccess(TEST_USER_SUPERGROUP, TEST_DIR_FILE_URI, Mode.Bits.ALL);
+  }
+
+  @Test
+  public void checkAccessFileNotFound() throws Exception {
+    mThrown.expect(FileDoesNotExistException.class);
+    verifyAccess(TEST_USER_2, "/notFound", Mode.Bits.READ);
+  }
+
+  private void verifyAccess(TestUser user, String path, Mode.Bits bits) throws Exception {
+    try (Closeable r = new AuthenticatedUserRule(user.getUser(),
+        ServerConfiguration.global()).toResource()) {
+      mFileSystemMaster.checkAccess(new AlluxioURI(path),
+          CheckAccessContext.mergeFrom(
+              CheckAccessPOptions.newBuilder().setBits(bits.toProto())));
     }
   }
 

@@ -11,21 +11,23 @@
 
 package alluxio.util;
 
+import alluxio.shell.CommandReturn;
+import alluxio.shell.ScpCommand;
+import alluxio.shell.ShellCommand;
+import alluxio.shell.SshCommand;
+
+import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import javax.annotation.concurrent.NotThreadSafe;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -110,7 +112,7 @@ public final class ShellUtils {
     // Now parse the rest
     matcher = Pattern.compile("(.*) on (.*) \\((.*)\\)").matcher(lineWithoutType);
     if (!matcher.matches()) {
-      LOG.debug("Unable to parse output of 'mount': {}", line);
+      LOG.warn("Unable to parse output of '{}': {}", MOUNT_COMMAND, line);
       return builder.build();
     }
     builder.setDeviceSpec(matcher.group(1));
@@ -127,71 +129,58 @@ public final class ShellUtils {
         try {
           builder.setSize(FormatUtils.parseSpaceSize(matcher.group(2)));
         } catch (IllegalArgumentException e) {
-          LOG.debug("Failed to parse mount point size: {}", e);
+          LOG.debug("Failed to parse mount point size", e);
         }
       }
     }
     return builder.build();
   }
 
-  @NotThreadSafe
-  private static final class Command {
-    private String[] mCommand;
-
-    private Command(String[] execString) {
-      mCommand = execString.clone();
-    }
-
-    /**
-     * Runs a command and returns its stdout on success.
-     *
-     * @return the output
-     * @throws ExitCodeException if the command returns a non-zero exit code
-     */
-    private String run() throws ExitCodeException, IOException {
-      Process process = new ProcessBuilder(mCommand).redirectErrorStream(true).start();
-
-      BufferedReader inReader =
-          new BufferedReader(new InputStreamReader(process.getInputStream(),
-              Charset.defaultCharset()));
-
-      try {
-        // read the output of the command
-        StringBuilder output = new StringBuilder();
-        String line = inReader.readLine();
-        while (line != null) {
-          output.append(line);
-          output.append("\n");
-          line = inReader.readLine();
-        }
-        // wait for the process to finish and check the exit code
-        int exitCode = process.waitFor();
-        if (exitCode != 0) {
-          throw new ExitCodeException(exitCode, output.toString());
-        }
-        return output.toString();
-      } catch (InterruptedException e) {
-        Thread.currentThread().interrupt();
-        throw new IOException(e);
-      } finally {
-        // close the input stream
-        try {
-          // JDK 7 tries to automatically drain the input streams for us
-          // when the process exits, but since close is not synchronized,
-          // it creates a race if we close the stream first and the same
-          // fd is recycled. the stream draining thread will attempt to
-          // drain that fd!! it may block, OOM, or cause bizarre behavior
-          // see: https://bugs.openjdk.java.net/browse/JDK-8024521
-          // issue is fixed in build 7u60
-          InputStream stdout = process.getInputStream();
-          synchronized (stdout) {
-            inReader.close();
+  /**
+   * Checks whether a path is the mounting point of a RAM disk volume.
+   *
+   * @param path  a string represents the path to be checked
+   * @param fsTypes an array of strings represents expected file system type
+   * @return true if the path is the mounting point of volume with one of the given fsTypes,
+   *         false otherwise
+   * @throws IOException if the function fails to get the mount information of the system
+   */
+  public static boolean isMountingPoint(String path, String[] fsTypes) throws IOException {
+    List<UnixMountInfo> infoList = getUnixMountInfo();
+    for (UnixMountInfo info : infoList) {
+      Optional<String> mountPoint = info.getMountPoint();
+      Optional<String> fsType = info.getFsType();
+      if (mountPoint.isPresent() && mountPoint.get().equals(path) && fsType.isPresent()) {
+        for (String expectedType : fsTypes) {
+          if (fsType.get().equalsIgnoreCase(expectedType)) {
+            return true;
           }
-        } catch (IOException e) {
-          LOG.warn("Error while closing the input stream", e);
         }
-        process.destroy();
       }
+    }
+    return false;
+  }
+
+  /**
+   * Checks whether an Alluxio service is running.
+   *
+   * @param className class name of the Alluxio service
+   * @return whether the Alluxio service is running
+   */
+  public static boolean isAlluxioRunning(String className) {
+    String[] command = {"bash", "-c",
+        "ps -Aww -o command | grep -i \"[j]ava\" | grep " + className};
+    try {
+      Process p = Runtime.getRuntime().exec(command);
+      try (InputStreamReader input = new InputStreamReader(p.getInputStream())) {
+        if (input.read() >= 0) {
+          return true;
+        }
+      }
+      return false;
+    } catch (IOException e) {
+      System.err.format("Unable to check Alluxio status: %s.%n", e.getMessage());
+      return false;
     }
   }
 
@@ -234,13 +223,89 @@ public final class ShellUtils {
   }
 
   /**
-   * Static method to execute a shell command.
+   * Static method to execute a shell command. The StdErr is not returned.
+   * If execution failed
    *
    * @param cmd shell command to execute
    * @return the output of the executed command
+   * @throws IOException in various situations:
+   *  1. {@link ExitCodeException} when exit code is non-zero
+   *  2. when the executable is not valid, i.e. running ls in Windows
+   *  3. execution interrupted
+   *  4. other normal reasons for IOException
    */
   public static String execCommand(String... cmd) throws IOException {
-    return new Command(cmd).run();
+    return new ShellCommand(cmd).run();
+  }
+
+  /**
+   * Static method to execute a shell command and tolerate non-zero exit code.
+   * Preserves exit code. Stderr is redirected to stdout.
+   *
+   * @param cmd shell command to execute
+   * @return the output of the executed command
+   * @throws IOException in various situations:
+   *  1. when the executable is not valid, i.e. running ls in Windows
+   *  2. execution interrupted
+   *  3. other normal reasons for IOException
+   */
+  public static CommandReturn execCommandWithOutput(String... cmd) throws IOException {
+    return new ShellCommand(cmd).runWithOutput();
+  }
+
+  /**
+   * Static method to execute a shell command remotely via ssh.
+   * Preserves exit code. Stderr redirected to stdout.
+   * SSH must be password-less.
+   *
+   * @param hostname Hostname where the command should execute
+   * @param cmd shell command to execute
+   * @return the output of the executed command
+   * @throws IOException in various situations:
+   *  1. when the executable is not valid, i.e. running ls in Windows
+   *  2. execution interrupted
+   *  3. other normal reasons for IOException
+   */
+  public static CommandReturn sshExecCommandWithOutput(String hostname, String... cmd)
+          throws IOException {
+    return new SshCommand(hostname, cmd).runWithOutput();
+  }
+
+  /**
+   * Static method to execute an scp command to copy a remote file/dir to local.
+   * Preserves exit code. Stderr redirected to stdout.
+   *
+   * @param hostname Hostname where the command should execute
+   * @param fromFile File path on remote host
+   * @param toFile File path to copy to on localhost
+   * @param isDir Is the file a directory
+   * @return the output of the executed command
+   * @throws IOException in various situations:
+   *  1. when the executable is not valid, i.e. running ls in Windows
+   *  2. execution interrupted
+   *  3. other normal reasons for IOException
+   */
+  public static CommandReturn scpCommandWithOutput(
+          String hostname, String fromFile, String toFile, boolean isDir) throws IOException {
+    return new ScpCommand(hostname, fromFile, toFile, isDir).runWithOutput();
+  }
+
+  /**
+   * Executes a shell command.
+   * If it fails, try the backup command.
+   *
+   * @param cmd the primary command
+   * @param backupCmd a backup option
+   * @return the {@link CommandReturn} with combined output
+   */
+  public static CommandReturn execCmdWithBackup(ShellCommand cmd, ShellCommand backupCmd)
+          throws IOException {
+    CommandReturn cr = cmd.runWithOutput();
+    // If the command works or there is no backup option, return
+    if (cr.getExitCode() == 0 || backupCmd == null) {
+      return cr;
+    }
+    return backupCmd.runWithOutput();
   }
 
   private ShellUtils() {} // prevent instantiation

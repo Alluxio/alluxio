@@ -12,12 +12,16 @@
 package alluxio.client.cli.fs.command;
 
 import alluxio.AlluxioURI;
-import alluxio.conf.PropertyKey;
 import alluxio.client.cli.fs.AbstractFileSystemShellTest;
+import alluxio.client.file.FileSystem;
+import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.FileSystemTestUtils;
 import alluxio.client.file.URIStatus;
+import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
 import alluxio.exception.AlluxioException;
 import alluxio.grpc.WritePType;
+import alluxio.security.user.TestUserState;
 import alluxio.testutils.LocalAlluxioClusterResource;
 
 import org.junit.Assert;
@@ -31,6 +35,13 @@ import java.util.List;
 /**
  * Tests for setfacl command.
  */
+@LocalAlluxioClusterResource.ServerConfig(
+    confParams = {
+        PropertyKey.Name.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "true",
+        PropertyKey.Name.SECURITY_AUTHENTICATION_TYPE, "SIMPLE",
+        PropertyKey.Name.SECURITY_GROUP_MAPPING_CLASS,
+        "alluxio.security.group.provider.IdentityUserGroupsMapping",
+        PropertyKey.Name.SECURITY_AUTHORIZATION_PERMISSION_SUPERGROUP, "setfacl_test_user"})
 public final class SetFaclCommandIntegrationTest extends AbstractFileSystemShellTest {
   private static final List<String> FACL_STRING_ENTRIES
       = Arrays.asList("user::rw-", "group::r--", "other::r--");
@@ -45,20 +56,13 @@ public final class SetFaclCommandIntegrationTest extends AbstractFileSystemShell
    * Tests setfacl command.
    */
   @Test
-  @LocalAlluxioClusterResource.Config(
-      confParams = {PropertyKey.Name.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "true",
-          PropertyKey.Name.SECURITY_AUTHENTICATION_TYPE, "SIMPLE",
-          PropertyKey.Name.SECURITY_GROUP_MAPPING_CLASS,
-          "alluxio.security.group.provider.IdentityUserGroupsMapping",
-          PropertyKey.Name.SECURITY_AUTHORIZATION_PERMISSION_SUPERGROUP, "test_user_setfacl"})
   public void setfacl() throws Exception {
-    String testOwner = "test_user_setfacl";
+    String testOwner = "setfacl_test_user";
     String expected = "";
-    clearAndLogin(testOwner);
-    URIStatus[] files = createFiles();
+    URIStatus[] files = createFiles(testOwner);
 
-    mFsShell.run("setfacl", "-m", "user:testuser:rwx", "/testRoot/testFileA");
-    mFsShell.run("getfacl", "/testRoot/testFileA");
+    sFsShell.run("setfacl", "-m", "user:testuser:rwx", "/testRoot/testFileA");
+    sFsShell.run("getfacl", "/testRoot/testFileA");
 
     List<String> stringEntries = new ArrayList<>(FACL_STRING_ENTRIES);
     stringEntries.add("user:testuser:rwx");
@@ -67,8 +71,8 @@ public final class SetFaclCommandIntegrationTest extends AbstractFileSystemShell
 
     Assert.assertEquals(expected, mOutput.toString());
 
-    mFsShell.run("setfacl", "-m", "user::rwx", "/testRoot/testFileC");
-    mFsShell.run("getfacl", "/testRoot/testFileC");
+    sFsShell.run("setfacl", "-m", "user::rwx", "/testRoot/testFileC");
+    sFsShell.run("getfacl", "/testRoot/testFileC");
 
     stringEntries = new ArrayList<>(FACL_STRING_ENTRIES);
     stringEntries.set(0, "user::rwx");
@@ -80,19 +84,11 @@ public final class SetFaclCommandIntegrationTest extends AbstractFileSystemShell
    * Tests setfacl command to set default facl.
    */
   @Test
-  @LocalAlluxioClusterResource.Config(
-      confParams = {PropertyKey.Name.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "true",
-          PropertyKey.Name.SECURITY_AUTHENTICATION_TYPE, "SIMPLE",
-          PropertyKey.Name.SECURITY_GROUP_MAPPING_CLASS,
-          "alluxio.security.group.provider.IdentityUserGroupsMapping",
-          PropertyKey.Name.SECURITY_AUTHORIZATION_PERMISSION_SUPERGROUP,
-          "test_user_setDefaultFacl"})
   public void setDefaultFacl() throws Exception {
-    String testOwner = "test_user_setDefaultFacl";
-    clearAndLogin(testOwner);
-    URIStatus[] files = createFiles();
-    mFsShell.run("setfacl", "-m", "default:user:testuser:rwx", "/testRoot/testDir");
-    mFsShell.run("getfacl", "/testRoot/testDir");
+    String testOwner = "setfacl_test_user";
+    URIStatus[] files = createFiles(testOwner);
+    sFsShell.run("setfacl", "-m", "default:user:testuser:rwx", "/testRoot/testDir");
+    sFsShell.run("getfacl", "/testRoot/testDir");
 
     List<String> stringEntries = new ArrayList<>(DIR_FACL_STRING_ENTRIES);
     stringEntries.addAll(DEFAULT_FACL_STRING_ENTRIES);
@@ -102,10 +98,10 @@ public final class SetFaclCommandIntegrationTest extends AbstractFileSystemShell
 
     Assert.assertEquals(expected, mOutput.toString());
 
-    FileSystemTestUtils.createByteFile(mFileSystem,
+    FileSystemTestUtils.createByteFile(sFileSystem,
         "/testRoot/testDir/testDir2/testFileD", WritePType.MUST_CACHE, 10);
 
-    mFsShell.run("getfacl", "/testRoot/testDir/testDir2");
+    sFsShell.run("getfacl", "/testRoot/testDir/testDir2");
     stringEntries = new ArrayList<>(DIR_FACL_STRING_ENTRIES);
     stringEntries.add("user:testuser:rwx");
     stringEntries.add("mask::r-x");
@@ -117,7 +113,7 @@ public final class SetFaclCommandIntegrationTest extends AbstractFileSystemShell
 
     Assert.assertEquals(expected, mOutput.toString());
 
-    mFsShell.run("getfacl", "/testRoot/testDir/testDir2/testFileD");
+    sFsShell.run("getfacl", "/testRoot/testDir/testDir2/testFileD");
     stringEntries = new ArrayList<>(FILE_FACL_STRING_ENTRIES);
     stringEntries.add("user:testuser:rwx");
     stringEntries.add("mask::r--");
@@ -145,19 +141,26 @@ public final class SetFaclCommandIntegrationTest extends AbstractFileSystemShell
   }
 
   // Helper function to create a set of files in the file system
-  private URIStatus[] createFiles() throws IOException, AlluxioException {
-    FileSystemTestUtils.createByteFile(mFileSystem, "/testRoot/testFileA",
+  private URIStatus[] createFiles(String user) throws IOException, AlluxioException {
+    FileSystem fs = sFileSystem;
+    if (user != null) {
+      fs = sLocalAlluxioCluster.getClient(FileSystemContext
+          .create(new TestUserState(user, ServerConfiguration.global()).getSubject(),
+              ServerConfiguration.global()));
+    }
+
+    FileSystemTestUtils.createByteFile(fs, "/testRoot/testFileA",
         WritePType.MUST_CACHE, 10);
-    FileSystemTestUtils.createByteFile(mFileSystem, "/testRoot/testDir/testFileB",
+    FileSystemTestUtils.createByteFile(fs, "/testRoot/testDir/testFileB",
         WritePType.MUST_CACHE, 20);
-    FileSystemTestUtils.createByteFile(mFileSystem, "/testRoot/testFileC", WritePType.THROUGH,
+    FileSystemTestUtils.createByteFile(fs, "/testRoot/testFileC", WritePType.THROUGH,
         30);
 
     URIStatus[] files = new URIStatus[4];
-    files[0] = mFileSystem.getStatus(new AlluxioURI("/testRoot/testFileA"));
-    files[1] = mFileSystem.getStatus(new AlluxioURI("/testRoot/testDir"));
-    files[2] = mFileSystem.getStatus(new AlluxioURI("/testRoot/testDir/testFileB"));
-    files[3] = mFileSystem.getStatus(new AlluxioURI("/testRoot/testFileC"));
+    files[0] = fs.getStatus(new AlluxioURI("/testRoot/testFileA"));
+    files[1] = fs.getStatus(new AlluxioURI("/testRoot/testDir"));
+    files[2] = fs.getStatus(new AlluxioURI("/testRoot/testDir/testFileB"));
+    files[3] = fs.getStatus(new AlluxioURI("/testRoot/testFileC"));
     return files;
   }
 }

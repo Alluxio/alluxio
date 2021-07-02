@@ -11,6 +11,8 @@
 
 package alluxio.conf;
 
+import alluxio.annotation.PublicApi;
+
 import java.time.Duration;
 import java.util.List;
 import java.util.Map;
@@ -20,6 +22,7 @@ import java.util.Set;
 /**
  * Alluxio configuration.
  */
+@PublicApi
 public interface AlluxioConfiguration {
 
   /**
@@ -227,4 +230,11 @@ public interface AlluxioConfiguration {
    * @return whether or not the configuration has been merged with cluster defaults
    */
   boolean clusterDefaultsLoaded();
+
+  /**
+   * @return hash of properties, if hashing is not supported, return empty string
+   */
+  default String hash() {
+    return "";
+  }
 }

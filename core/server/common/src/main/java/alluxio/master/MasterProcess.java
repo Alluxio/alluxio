@@ -15,6 +15,7 @@ import static alluxio.util.network.NetworkAddressUtils.ServiceType;
 
 import alluxio.Process;
 import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.GrpcServer;
 import alluxio.grpc.GrpcServerBuilder;
@@ -93,11 +94,9 @@ public abstract class MasterProcess implements Process {
           String.format("%s port must be nonzero in single-master mode", service));
     }
     if (port == 0) {
-      try {
-        ServerSocket s = new ServerSocket(0);
+      try (ServerSocket s = new ServerSocket(0)) {
         s.setReuseAddress(true);
         conf.set(service.getPortKey(), s.getLocalPort());
-        s.close();
       } catch (IOException e) {
         throw new RuntimeException(e);
       }
@@ -163,8 +162,13 @@ public abstract class MasterProcess implements Process {
   public boolean waitForReady(int timeoutMs) {
     try {
       CommonUtils.waitFor(this + " to start",
-          () -> isServing() && mWebServer != null && mWebServer.getServer().isRunning(),
-          WaitForOptions.defaults().setTimeoutMs(timeoutMs));
+          () -> {
+            boolean ready = isServing();
+            if (ready && !ServerConfiguration.getBoolean(PropertyKey.TEST_MODE)) {
+              ready &= mWebServer != null && mWebServer.getServer().isRunning();
+            }
+            return ready;
+          }, WaitForOptions.defaults().setTimeoutMs(timeoutMs));
       return true;
     } catch (InterruptedException e) {
       Thread.currentThread().interrupt();
@@ -175,10 +179,14 @@ public abstract class MasterProcess implements Process {
   }
 
   protected void startRejectingServers() {
-    mRejectingRpcServer = new RejectingServer(mRpcBindAddress.getPort());
-    mRejectingRpcServer.start();
-    mRejectingWebServer = new RejectingServer(mWebBindAddress.getPort());
-    mRejectingWebServer.start();
+    if (mRejectingRpcServer == null) {
+      mRejectingRpcServer = new RejectingServer(mRpcBindAddress);
+      mRejectingRpcServer.start();
+    }
+    if (mRejectingWebServer == null) {
+      mRejectingWebServer = new RejectingServer(mWebBindAddress);
+      mRejectingWebServer.start();
+    }
   }
 
   protected void stopRejectingRpcServer() {

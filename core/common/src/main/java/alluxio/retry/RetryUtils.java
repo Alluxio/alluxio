@@ -47,6 +47,13 @@ public final class RetryUtils {
   }
 
   /**
+   * @return the best effort policy with no retry
+   */
+  public static RetryPolicy noRetryPolicy() {
+    return new CountingRetry(0);
+  }
+
+  /**
    * Gives a ClientRetry based on the given parameters.
    *
    * @param maxRetryDuration the maximum total duration to retry for
@@ -95,6 +102,25 @@ public final class RetryUtils {
             .ofMillis(activeUfsPollTimeoutMs))
         .withInitialSleep(Duration.ofMillis(100))
         .withMaxSleep(Duration.ofSeconds(60))
+        .build();
+  }
+
+  /**
+   *
+   * Gives a ClientRetry based on the given parameters.
+   *
+   * @param maxRetryDuration the maximum total duration to retry for
+   * @param baseSleepMs initial sleep time in milliseconds
+   * @param maxSleepMs max sleep time in milliseconds
+   * @return the default block-read retry
+   */
+  public static RetryPolicy defaultBlockReadRetry(Duration maxRetryDuration, Duration baseSleepMs,
+      Duration maxSleepMs) {
+    return ExponentialTimeBoundedRetry.builder()
+        .withMaxDuration(maxRetryDuration)
+        .withInitialSleep(baseSleepMs)
+        .withMaxSleep(maxSleepMs)
+        .withSkipInitialSleep()
         .build();
   }
 

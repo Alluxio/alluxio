@@ -14,18 +14,17 @@ package alluxio.util.network;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.status.AlluxioStatusException;
-import alluxio.exception.status.UnauthenticatedException;
 import alluxio.grpc.GetServiceVersionPRequest;
 import alluxio.grpc.GrpcChannel;
 import alluxio.grpc.GrpcChannelBuilder;
 import alluxio.grpc.GrpcServerAddress;
 import alluxio.grpc.ServiceVersionClientServiceGrpc;
+import alluxio.security.user.UserState;
 import alluxio.util.CommonUtils;
 import alluxio.util.OSUtils;
 import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.base.Preconditions;
-import io.grpc.StatusRuntimeException;
 import io.netty.channel.unix.DomainSocketAddress;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,6 +40,7 @@ import java.net.UnknownHostException;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
@@ -53,6 +53,7 @@ public final class NetworkAddressUtils {
   private static final Logger LOG = LoggerFactory.getLogger(NetworkAddressUtils.class);
 
   public static final String WILDCARD_ADDRESS = "0.0.0.0";
+  public static final String UNKNOWN_HOSTNAME = "<UNKNOWN>";
 
   /**
    * Checks if the underlying OS is Windows.
@@ -99,7 +100,7 @@ public final class NetworkAddressUtils {
     /**
      * Job worker RPC service (gRPC).
      */
-    JOB_WORKER_RPC("Alluxio Job Manager Worker RPC service", PropertyKey.WORKER_HOSTNAME,
+    JOB_WORKER_RPC("Alluxio Job Manager Worker RPC service", PropertyKey.JOB_WORKER_HOSTNAME,
         PropertyKey.JOB_WORKER_BIND_HOST, PropertyKey.JOB_WORKER_RPC_PORT),
 
     /**
@@ -235,7 +236,8 @@ public final class NetworkAddressUtils {
    */
   public static InetSocketAddress getConnectAddress(ServiceType service,
       AlluxioConfiguration conf) {
-    return new InetSocketAddress(getConnectHost(service, conf), getPort(service, conf));
+    return InetSocketAddress.createUnresolved(getConnectHost(service, conf),
+        getPort(service, conf));
   }
 
   /**
@@ -249,6 +251,7 @@ public final class NetworkAddressUtils {
    * <tr>
    * <th>Specified Hostname</th>
    * <th>Specified Bind Host</th>
+   * <th>Enable Network IP Address Used</th>
    * <th>Returned Connect Host</th>
    * </tr>
    * </thead>
@@ -256,22 +259,32 @@ public final class NetworkAddressUtils {
    * <tr>
    * <td>hostname</td>
    * <td>hostname</td>
+   * <td>true/false</td>
    * <td>hostname</td>
    * </tr>
    * <tr>
    * <td>not defined</td>
    * <td>hostname</td>
+   * <td>true/false</td>
    * <td>hostname</td>
    * </tr>
    * <tr>
    * <td>hostname</td>
    * <td>0.0.0.0 or not defined</td>
+   * <td>true/false</td>
    * <td>hostname</td>
    * </tr>
    * <tr>
    * <td>not defined</td>
    * <td>0.0.0.0 or not defined</td>
-   * <td>localhost</td>
+   * <td>false</td>
+   * <td>local hostname</td>
+   * </tr>
+   * <tr>
+   * <td>not defined</td>
+   * <td>0.0.0.0 or not defined</td>
+   * <td>true</td>
+   * <td>local IP address</td>
    * </tr>
    * </tbody>
    * </table>
@@ -293,6 +306,9 @@ public final class NetworkAddressUtils {
       if (!bindHost.isEmpty() && !bindHost.equals(WILDCARD_ADDRESS)) {
         return bindHost;
       }
+    }
+    if (conf.getBoolean(PropertyKey.NETWORK_IP_ADDRESS_USED)) {
+      return getLocalIpAddress((int) conf.getMs(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS));
     }
     return getLocalHostName((int) conf.getMs(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS));
   }
@@ -351,12 +367,13 @@ public final class NetworkAddressUtils {
    *
    * @param conf Alluxio configuration
    * @return the local hostname for the client
-   * @deprecated This should not be used anymore as the USER_HOSTNAME key is deprecated
    */
-  @Deprecated
   public static String getClientHostName(AlluxioConfiguration conf) {
     if (conf.isSet(PropertyKey.USER_HOSTNAME)) {
       return conf.get(PropertyKey.USER_HOSTNAME);
+    }
+    if (conf.isSet(PropertyKey.LOCALITY_TIER_NODE)) {
+      return conf.get(PropertyKey.LOCALITY_TIER_NODE);
     }
     return getLocalHostName((int) conf.getMs(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS));
   }
@@ -396,6 +413,9 @@ public final class NetworkAddressUtils {
         break;
       default:
         break;
+    }
+    if (conf.isSet(PropertyKey.LOCALITY_TIER_NODE)) {
+      return conf.get(PropertyKey.LOCALITY_TIER_NODE);
     }
     return getLocalHostName((int) conf.getMs(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS));
   }
@@ -599,7 +619,7 @@ public final class NetworkAddressUtils {
     if (strArr.length != 2) {
       throw new IOException("Invalid InetSocketAddress " + address);
     }
-    return new InetSocketAddress(strArr[0], Integer.parseInt(strArr[1]));
+    return InetSocketAddress.createUnresolved(strArr[0], Integer.parseInt(strArr[1]));
   }
 
   /**
@@ -624,10 +644,18 @@ public final class NetworkAddressUtils {
   public static SocketAddress getDataPortSocketAddress(WorkerNetAddress netAddress,
       AlluxioConfiguration conf) {
     SocketAddress address;
-    if (NettyUtils.isDomainSocketSupported(netAddress, conf)) {
+    if (NettyUtils.isDomainSocketAccessible(netAddress, conf)) {
       address = new DomainSocketAddress(netAddress.getDomainSocketPath());
     } else {
       String host = netAddress.getHost();
+      // ALLUXIO-11172: If the worker is in a container, use the container hostname
+      // to establish the connection.
+      if (!netAddress.getContainerHost().equals("")) {
+        LOG.debug("Worker is in a container. Use container host {} instead of physical host {}",
+                netAddress.getContainerHost(), host);
+        host = netAddress.getContainerHost();
+      }
+
       int port = netAddress.getDataPort();
       address = new InetSocketAddress(host, port);
     }
@@ -637,24 +665,33 @@ public final class NetworkAddressUtils {
   /**
    * Test if the input address is serving an Alluxio service. This method make use of the
    * gRPC protocol for performing service communication.
+   * This methods throws UnauthenticatedException if the user is not authenticated,
+   * StatusRuntimeException If the host not reachable or does not serve the given service.
    *
    * @param address the network address to ping
    * @param serviceType the Alluxio service type
    * @param conf Alluxio configuration
-   * @throws UnauthenticatedException If the user is not authenticated
-   * @throws StatusRuntimeException If the host not reachable or does not serve the given service
+   * @param userState the UserState
    */
   public static void pingService(InetSocketAddress address, alluxio.grpc.ServiceType serviceType,
-      AlluxioConfiguration conf)
+      AlluxioConfiguration conf, UserState userState)
       throws AlluxioStatusException {
     Preconditions.checkNotNull(address, "address");
     Preconditions.checkNotNull(serviceType, "serviceType");
-    GrpcChannel channel =
-        GrpcChannelBuilder.newBuilder(new GrpcServerAddress(address), conf).build();
-    ServiceVersionClientServiceGrpc.ServiceVersionClientServiceBlockingStub versionClient =
-        ServiceVersionClientServiceGrpc.newBlockingStub(channel);
-    versionClient.getServiceVersion(
-        GetServiceVersionPRequest.newBuilder().setServiceType(serviceType).build());
-    channel.shutdown();
+    GrpcChannel channel = GrpcChannelBuilder.newBuilder(GrpcServerAddress.create(address), conf)
+        .setClientType("PingService").disableAuthentication().setSubject(userState.getSubject())
+        .build();
+    try {
+      ServiceVersionClientServiceGrpc.ServiceVersionClientServiceBlockingStub versionClient =
+          ServiceVersionClientServiceGrpc.newBlockingStub(channel)
+              .withDeadlineAfter(conf.getMs(PropertyKey.USER_MASTER_POLLING_TIMEOUT),
+                  TimeUnit.MILLISECONDS);
+      versionClient.getServiceVersion(
+          GetServiceVersionPRequest.newBuilder().setServiceType(serviceType).build());
+    } catch (Throwable t) {
+      throw AlluxioStatusException.fromThrowable(t);
+    } finally {
+      channel.shutdown();
+    }
   }
 }

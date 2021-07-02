@@ -15,7 +15,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyObject;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.eq;
@@ -24,8 +23,8 @@ import static org.mockito.Mockito.when;
 
 import alluxio.AlluxioURI;
 import alluxio.ConfigurationRule;
+import alluxio.Constants;
 import alluxio.RuntimeConstants;
-import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.RegisterWorkerPOptions;
@@ -40,13 +39,15 @@ import alluxio.master.file.FileSystemMaster;
 import alluxio.master.file.FileSystemMasterFactory;
 import alluxio.master.metrics.MetricsMaster;
 import alluxio.master.metrics.MetricsMasterFactory;
-import alluxio.metrics.MasterMetrics;
+import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
+import alluxio.proto.meta.Block;
 import alluxio.underfs.UnderFileSystem;
-import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.underfs.UnderFileSystemFactory;
 import alluxio.underfs.UnderFileSystemFactoryRegistry;
 import alluxio.web.MasterWebServer;
+import alluxio.wire.AlluxioMasterInfo;
+import alluxio.wire.Capacity;
 import alluxio.wire.MountPointInfo;
 import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
@@ -70,7 +71,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.SortedMap;
 
 import javax.servlet.ServletContext;
 import javax.ws.rs.core.Response;
@@ -83,21 +83,26 @@ public final class AlluxioMasterRestServiceHandlerTest {
       .setRpcPort(80).setDataPort(81).setWebPort(82);
   private static final WorkerNetAddress NET_ADDRESS_2 = new WorkerNetAddress().setHost("localhost")
       .setRpcPort(83).setDataPort(84).setWebPort(85);
-  private static final Map<String, List<Long>> NO_BLOCKS_ON_TIERS = ImmutableMap.of();
+  private static final Map<Block.BlockLocation, List<Long>> NO_BLOCKS_ON_LOCATIONS
+      = ImmutableMap.of();
   private static final Map<String, StorageList> NO_LOST_STORAGE = ImmutableMap.of();
 
   private static final long UFS_SPACE_TOTAL = 100L;
   private static final long UFS_SPACE_USED = 25L;
   private static final long UFS_SPACE_FREE = 75L;
-  private static final String TEST_PATH = "test://test";
-  private static final Map<String, Long> WORKER1_TOTAL_BYTES_ON_TIERS = ImmutableMap.of("MEM", 10L,
-      "SSD", 20L);
-  private static final Map<String, Long> WORKER2_TOTAL_BYTES_ON_TIERS = ImmutableMap.of("MEM",
-      1000L, "SSD", 2000L);
-  private static final Map<String, Long> WORKER1_USED_BYTES_ON_TIERS = ImmutableMap.of("MEM", 1L,
-      "SSD", 2L);
-  private static final Map<String, Long> WORKER2_USED_BYTES_ON_TIERS = ImmutableMap.of("MEM", 100L,
-      "SSD", 200L);
+  private static final String TEST_PATH = "test://test/";
+  private static final Map<String, Long> WORKER1_TOTAL_BYTES_ON_TIERS =
+      ImmutableMap.of(Constants.MEDIUM_MEM, 10L,
+      Constants.MEDIUM_SSD, 20L);
+  private static final Map<String, Long> WORKER2_TOTAL_BYTES_ON_TIERS =
+      ImmutableMap.of(Constants.MEDIUM_MEM,
+      1000L, Constants.MEDIUM_SSD, 2000L);
+  private static final Map<String, Long> WORKER1_USED_BYTES_ON_TIERS =
+      ImmutableMap.of(Constants.MEDIUM_MEM, 1L,
+      Constants.MEDIUM_SSD, 2L);
+  private static final Map<String, Long> WORKER2_USED_BYTES_ON_TIERS =
+      ImmutableMap.of(Constants.MEDIUM_MEM, 100L,
+      Constants.MEDIUM_SSD, 200L);
 
   private AlluxioMasterProcess mMasterProcess;
   private BlockMaster mBlockMaster;
@@ -136,17 +141,16 @@ public final class AlluxioMasterRestServiceHandlerTest {
     // Register two workers
     long worker1 = mBlockMaster.getWorkerId(NET_ADDRESS_1);
     long worker2 = mBlockMaster.getWorkerId(NET_ADDRESS_2);
-    List<String> tiers = Arrays.asList("MEM", "SSD");
+    List<String> tiers = Arrays.asList(Constants.MEDIUM_MEM, Constants.MEDIUM_SSD);
 
     mBlockMaster.workerRegister(worker1, tiers, WORKER1_TOTAL_BYTES_ON_TIERS,
-        WORKER1_USED_BYTES_ON_TIERS, NO_BLOCKS_ON_TIERS, NO_LOST_STORAGE,
+        WORKER1_USED_BYTES_ON_TIERS, NO_BLOCKS_ON_LOCATIONS, NO_LOST_STORAGE,
         RegisterWorkerPOptions.getDefaultInstance());
     mBlockMaster.workerRegister(worker2, tiers, WORKER2_TOTAL_BYTES_ON_TIERS,
-        WORKER2_USED_BYTES_ON_TIERS, NO_BLOCKS_ON_TIERS, NO_LOST_STORAGE,
+        WORKER2_USED_BYTES_ON_TIERS, NO_BLOCKS_ON_LOCATIONS, NO_LOST_STORAGE,
         RegisterWorkerPOptions.getDefaultInstance());
 
-    String filesPinnedProperty =
-        MetricsSystem.getMetricName(MasterMetrics.FILES_PINNED);
+    String filesPinnedProperty = MetricKey.MASTER_FILES_PINNED.getName();
     MetricsSystem.METRIC_REGISTRY.remove(filesPinnedProperty);
   }
 
@@ -163,8 +167,7 @@ public final class AlluxioMasterRestServiceHandlerTest {
         .thenReturn(UFS_SPACE_TOTAL);
     when(underFileSystemMock.getSpace(TEST_PATH, UnderFileSystem.SpaceType.SPACE_USED)).thenReturn(
         UFS_SPACE_USED);
-    when(underFileSystemFactoryMock.create(eq(TEST_PATH),
-        Matchers.<UnderFileSystemConfiguration>any(), any(AlluxioConfiguration.class)))
+    when(underFileSystemFactoryMock.create(eq(TEST_PATH), Matchers.any()))
         .thenReturn(underFileSystemMock);
     UnderFileSystemFactoryRegistry.register(underFileSystemFactoryMock);
   }
@@ -175,262 +178,88 @@ public final class AlluxioMasterRestServiceHandlerTest {
   }
 
   @Test
-  public void getConfiguration() {
-    Response response = mHandler.getConfiguration();
-    try {
-      assertNotNull("Response must be not null!", response);
-      assertNotNull("Response must have a entry!", response.getEntity());
-      assertTrue("Entry must be a SortedMap!", (response.getEntity() instanceof SortedMap));
-      SortedMap<String, String> entry = (SortedMap<String, String>) response.getEntity();
-      assertFalse("Properties Map must be not empty!", (entry.isEmpty()));
-    } finally {
-      response.close();
-    }
-  }
-
-  @Test
-  public void getRpcAddress() {
+  public void getMasterInfo() {
+    // Mock for rpc address
     when(mMasterProcess.getRpcAddress()).thenReturn(new InetSocketAddress("localhost", 8080));
-    Response response = mHandler.getRpcAddress();
-    try {
-      assertNotNull("Response must be not null!", response);
-      assertNotNull("Response must have a entry!", response.getEntity());
-      assertEquals("Entry must be a String!", String.class, response.getEntity().getClass());
-      String entry = (String) response.getEntity();
-      assertEquals("\"localhost/127.0.0.1:8080\"", entry);
-    } finally {
-      response.close();
-    }
-  }
-
-  @Test
-  public void getMetrics() {
+    // Mock for metrics
     final int FILES_PINNED_TEST_VALUE = 100;
-    String filesPinnedProperty =
-        MetricsSystem.getMetricName(MasterMetrics.FILES_PINNED);
+    String filesPinnedProperty = MetricKey.MASTER_FILES_PINNED.getName();
     Gauge<Integer> filesPinnedGauge = () -> FILES_PINNED_TEST_VALUE;
     MetricSet mockMetricsSet = mock(MetricSet.class);
     Map<String, Metric> map = new HashMap<>();
     map.put(filesPinnedProperty, filesPinnedGauge);
-
     when(mockMetricsSet.getMetrics()).thenReturn(map);
     MetricsSystem.METRIC_REGISTRY.registerAll(mockMetricsSet);
+    // Mock for start time
+    when(mMasterProcess.getStartTimeMs()).thenReturn(101L);
+    // Mock for up time
+    when(mMasterProcess.getUptimeMs()).thenReturn(102L);
 
-    Response response = mHandler.getMetrics();
+    Response response = mHandler.getInfo(false);
     try {
       assertNotNull("Response must be not null!", response);
       assertNotNull("Response must have a entry!", response.getEntity());
-      assertTrue("Entry must be a SortedMap!", (response.getEntity() instanceof SortedMap));
-      SortedMap<String, Long> metricsMap = (SortedMap<String, Long>) response.getEntity();
+      assertTrue("Entry must be an AlluxioMasterInfo!",
+              (response.getEntity() instanceof AlluxioMasterInfo));
+      AlluxioMasterInfo info = (AlluxioMasterInfo) response.getEntity();
+
+      // Validate configuration
+      assertNotNull("Configuration must be not null", info.getConfiguration());
+      assertFalse("Properties Map must be not empty!", (info.getConfiguration().isEmpty()));
+      // Validate rpc address
+      assertEquals("localhost/127.0.0.1:8080", info.getRpcAddress());
+      // Validate metrics
+      Map<String, Long> metricsMap = info.getMetrics();
       assertFalse("Metrics Map must be not empty!", (metricsMap.isEmpty()));
       assertTrue("Map must contain key " + filesPinnedProperty + "!",
           metricsMap.containsKey(filesPinnedProperty));
       assertEquals(FILES_PINNED_TEST_VALUE, metricsMap.get(filesPinnedProperty).longValue());
-    } finally {
-      response.close();
-    }
-  }
-
-  @Test
-  public void getStartTimeMs() {
-    when(mMasterProcess.getStartTimeMs()).thenReturn(100L);
-    Response response = mHandler.getStartTimeMs();
-    try {
-      assertNotNull("Response must be not null!", response);
-      assertNotNull("Response must have a entry!", response.getEntity());
-      assertEquals("Entry must be a Long!", Long.class, response.getEntity().getClass());
-      Long entry = (Long) response.getEntity();
-      assertEquals(100L, entry.longValue());
-    } finally {
-      response.close();
-    }
-  }
-
-  @Test
-  public void getUptimeMs() {
-    when(mMasterProcess.getUptimeMs()).thenReturn(100L);
-    Response response = mHandler.getUptimeMs();
-    try {
-      assertNotNull("Response must be not null!", response);
-      assertNotNull("Response must have a entry!", response.getEntity());
-      assertEquals("Entry must be a Long!", Long.class, response.getEntity().getClass());
-      Long entry = (Long) response.getEntity();
-      assertEquals(100L, entry.longValue());
-    } finally {
-      response.close();
-    }
-  }
-
-  @Test
-  public void getVersion() {
-    Response response = mHandler.getVersion();
-    try {
-      assertNotNull("Response must be not null!", response);
-      assertNotNull("Response must have a entry!", response.getEntity());
-      assertEquals("Entry must be a String!", String.class, response.getEntity().getClass());
-      String entry = (String) response.getEntity();
-      assertEquals("\"" + RuntimeConstants.VERSION + "\"", entry);
-    } finally {
-      response.close();
-    }
-  }
-
-  @Test
-  public void getCapacityBytes() {
-    Response response = mHandler.getCapacityBytes();
-    try {
-      assertNotNull("Response must be not null!", response);
-      assertNotNull("Response must have a entry!", response.getEntity());
-      assertEquals("Entry must be a Long!", Long.class, response.getEntity().getClass());
-      Long entry = (Long) response.getEntity();
-      long sum = 0;
+      // Validate StartTimeMs
+      assertEquals(101L, info.getStartTimeMs());
+      // Validate UptimeMs
+      assertEquals(102L, info.getUptimeMs());
+      // Validate version
+      assertEquals(RuntimeConstants.VERSION, info.getVersion());
+      // Validate capacity bytes
+      Capacity cap = info.getCapacity();
+      long sumCapacityBytes = 0;
       for (Map.Entry<String, Long> entry1 : WORKER1_TOTAL_BYTES_ON_TIERS.entrySet()) {
         Long totalBytes = entry1.getValue();
-        sum = sum + totalBytes;
+        sumCapacityBytes += totalBytes;
       }
       for (Map.Entry<String, Long> entry1 : WORKER2_TOTAL_BYTES_ON_TIERS.entrySet()) {
         Long totalBytes = entry1.getValue();
-        sum = sum + totalBytes;
+        sumCapacityBytes += totalBytes;
       }
-      assertEquals(sum, entry.longValue());
-    } finally {
-      response.close();
-    }
-  }
-
-  @Test
-  public void getUsedBytes() {
-    Response response = mHandler.getUsedBytes();
-    try {
-      assertNotNull("Response must be not null!", response);
-      assertNotNull("Response must have a entry!", response.getEntity());
-      assertEquals("Entry must be a Long!", Long.class, response.getEntity().getClass());
-      Long entry = (Long) response.getEntity();
-      long sum = 0;
+      assertEquals(sumCapacityBytes, cap.getTotal());
+      // Validate used bytes
+      long sumUsedBytes = 0;
       for (Map.Entry<String, Long> entry1 : WORKER1_USED_BYTES_ON_TIERS.entrySet()) {
         Long totalBytes = entry1.getValue();
-        sum = sum + totalBytes;
+        sumUsedBytes += totalBytes;
       }
       for (Map.Entry<String, Long> entry1 : WORKER2_USED_BYTES_ON_TIERS.entrySet()) {
         Long totalBytes = entry1.getValue();
-        sum = sum + totalBytes;
+        sumUsedBytes += totalBytes;
       }
-      assertEquals(sum, entry.longValue());
-    } finally {
-      response.close();
-    }
-  }
-
-  @Test
-  public void getFreeBytes() {
-    Response response = mHandler.getFreeBytes();
-    try {
-      assertNotNull("Response must be not null!", response);
-      assertNotNull("Response must have a entry!", response.getEntity());
-      assertEquals("Entry must be a Long!", Long.class, response.getEntity().getClass());
-      Long entry = (Long) response.getEntity();
-
-      long usedSum = 0;
-      for (Map.Entry<String, Long> entry1 : WORKER1_USED_BYTES_ON_TIERS.entrySet()) {
-        Long totalBytes = entry1.getValue();
-        usedSum = usedSum + totalBytes;
+      assertEquals(sumUsedBytes, cap.getUsed());
+      // Validate UFS capacity
+      Capacity ufsCapacity = info.getUfsCapacity();
+      assertEquals(UFS_SPACE_TOTAL, ufsCapacity.getTotal());
+      assertEquals(UFS_SPACE_USED, ufsCapacity.getUsed());
+      // Validate workers
+      List<WorkerInfo> workers = info.getWorkers();
+      assertEquals(2, workers.size());
+      long worker1 = mBlockMaster.getWorkerId(NET_ADDRESS_1);
+      long worker2 = mBlockMaster.getWorkerId(NET_ADDRESS_2);
+      Set<Long> expectedWorkers = new HashSet<>();
+      expectedWorkers.add(worker1);
+      expectedWorkers.add(worker2);
+      Set<Long> actualWorkers = new HashSet<>();
+      for (WorkerInfo w : workers) {
+        actualWorkers.add(w.getId());
       }
-      for (Map.Entry<String, Long> entry1 : WORKER2_USED_BYTES_ON_TIERS.entrySet()) {
-        Long totalBytes = entry1.getValue();
-        usedSum = usedSum + totalBytes;
-      }
-
-      long totalSum = 0;
-      for (Map.Entry<String, Long> entry1 : WORKER1_TOTAL_BYTES_ON_TIERS.entrySet()) {
-        Long totalBytes = entry1.getValue();
-        totalSum = totalSum + totalBytes;
-      }
-      for (Map.Entry<String, Long> entry1 : WORKER2_TOTAL_BYTES_ON_TIERS.entrySet()) {
-        Long totalBytes = entry1.getValue();
-        totalSum = totalSum + totalBytes;
-      }
-
-      assertEquals(totalSum - usedSum, entry.longValue());
-    } finally {
-      response.close();
-    }
-  }
-
-  @Test
-  public void getUfsCapacityBytes() {
-    Response response = mHandler.getUfsCapacityBytes();
-    try {
-      assertNotNull("Response must be not null!", response);
-      assertNotNull("Response must have a entry!", response.getEntity());
-      assertEquals("Entry must be a Long!", Long.class, response.getEntity().getClass());
-      Long entry = (Long) response.getEntity();
-      assertEquals(UFS_SPACE_TOTAL, entry.longValue());
-    } finally {
-      response.close();
-    }
-  }
-
-  @Test
-  public void getUfsUsedBytes() {
-    Response response = mHandler.getUfsUsedBytes();
-    try {
-      assertNotNull("Response must be not null!", response);
-      assertNotNull("Response must have a entry!", response.getEntity());
-      assertEquals("Entry must be a Long!", Long.class, response.getEntity().getClass());
-      Long entry = (Long) response.getEntity();
-      assertEquals(UFS_SPACE_USED, entry.longValue());
-    } finally {
-      response.close();
-    }
-  }
-
-  @Test
-  public void getUfsFreeBytes() {
-    Response response = mHandler.getUfsFreeBytes();
-    try {
-      assertNotNull("Response must be not null!", response);
-      assertNotNull("Response must have a entry!", response.getEntity());
-      assertEquals("Entry must be a Long!", Long.class, response.getEntity().getClass());
-      Long entry = (Long) response.getEntity();
-      assertEquals(UFS_SPACE_FREE, entry.longValue());
-    } finally {
-      response.close();
-    }
-  }
-
-  @Test
-  public void getWorkerCount() {
-    Response response = mHandler.getWorkerCount();
-    try {
-      assertNotNull("Response must be not null!", response);
-      assertNotNull("Response must have a entry!", response.getEntity());
-      assertEquals("Entry must be a Integer!", Integer.class, response.getEntity().getClass());
-      Integer entry = (Integer) response.getEntity();
-      assertEquals(Integer.valueOf(2), entry);
-    } finally {
-      response.close();
-    }
-  }
-
-  @Test
-  public void getWorkerInfoList() {
-    long worker1 = mBlockMaster.getWorkerId(NET_ADDRESS_1);
-    long worker2 = mBlockMaster.getWorkerId(NET_ADDRESS_2);
-    Set<Long> expected = new HashSet<>();
-    expected.add(worker1);
-    expected.add(worker2);
-    Response response = mHandler.getWorkerInfoList();
-    try {
-      assertNotNull("Response must be not null!", response);
-      assertNotNull("Response must have a entry!", response.getEntity());
-      assertTrue("Entry must be a List!", (response.getEntity() instanceof List));
-      @SuppressWarnings("unchecked")
-      List<WorkerInfo> entry = (List<WorkerInfo>) response.getEntity();
-      Set<Long> actual = new HashSet<>();
-      for (WorkerInfo info : entry) {
-        actual.add(info.getId());
-      }
-      assertEquals(expected, actual);
+      assertEquals(expectedWorkers, actualWorkers);
     } finally {
       response.close();
     }
@@ -444,7 +273,7 @@ public final class AlluxioMasterRestServiceHandlerTest {
     Map<String, MountPointInfo> mountTable = new HashMap<>();
     mountTable.put("/s3", new MountPointInfo().setUfsUri(s3Uri));
     FileSystemMaster mockMaster = mock(FileSystemMaster.class);
-    when(mockMaster.getMountTable()).thenReturn(mountTable);
+    when(mockMaster.getMountPointInfoSummary()).thenReturn(mountTable);
 
     AlluxioMasterProcess masterProcess = mock(AlluxioMasterProcess.class);
     when(masterProcess.getMaster(FileSystemMaster.class)).thenReturn(mockMaster);

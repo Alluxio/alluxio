@@ -11,9 +11,12 @@
 
 package alluxio.master.metastore.rocks;
 
+import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
 import alluxio.master.metastore.BlockStore;
 import alluxio.proto.meta.Block.BlockLocation;
 import alluxio.proto.meta.Block.BlockMeta;
+import alluxio.util.io.FileUtils;
 import alluxio.util.io.PathUtils;
 
 import com.google.common.primitives.Longs;
@@ -27,10 +30,12 @@ import org.rocksdb.ReadOptions;
 import org.rocksdb.RocksDB;
 import org.rocksdb.RocksDBException;
 import org.rocksdb.RocksIterator;
+import org.rocksdb.Slice;
 import org.rocksdb.WriteOptions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
@@ -52,6 +57,7 @@ public class RocksBlockStore implements BlockStore {
 
   // This is a field instead of a constant because it depends on the call to RocksDB.loadLibrary().
   private final WriteOptions mDisableWAL;
+  private final ReadOptions mIteratorOption;
 
   private final RocksStore mRocksStore;
   private final AtomicReference<ColumnFamilyHandle> mBlockMetaColumn = new AtomicReference<>();
@@ -65,10 +71,11 @@ public class RocksBlockStore implements BlockStore {
   public RocksBlockStore(String baseDir) {
     RocksDB.loadLibrary();
     mDisableWAL = new WriteOptions().setDisableWAL(true);
+    mIteratorOption = new ReadOptions().setReadaheadSize(
+        ServerConfiguration.getBytes(PropertyKey.MASTER_METASTORE_ITERATOR_READAHEAD_SIZE));
     ColumnFamilyOptions cfOpts = new ColumnFamilyOptions()
         .setMemTableConfig(new HashLinkedListMemTableConfig())
-        .setCompressionType(CompressionType.NO_COMPRESSION)
-        .useFixedLengthPrefixExtractor(8); // We always search using the initial long key
+        .setCompressionType(CompressionType.NO_COMPRESSION);
     List<ColumnFamilyDescriptor> columns =
         Arrays.asList(new ColumnFamilyDescriptor(BLOCK_META_COLUMN.getBytes(), cfOpts),
             new ColumnFamilyDescriptor(BLOCK_LOCATIONS_COLUMN.getBytes(), cfOpts));
@@ -80,6 +87,14 @@ public class RocksBlockStore implements BlockStore {
         .setCreateMissingColumnFamilies(true);
     String dbPath = PathUtils.concatPath(baseDir, BLOCKS_DB_NAME);
     String backupPath = PathUtils.concatPath(baseDir, BLOCKS_DB_NAME + "-backups");
+    // Create block store db path if it does not exist.
+    if (!FileUtils.exists(dbPath)) {
+      try {
+        FileUtils.createDir(dbPath);
+      } catch (IOException e) {
+        LOG.warn("Failed to create nonexistent db path at: {}. Error:{}", dbPath, e);
+      }
+    }
     mRocksStore = new RocksStore(dbPath, backupPath, columns, dbOpts,
         Arrays.asList(mBlockMetaColumn, mBlockLocationsColumn));
   }
@@ -127,10 +142,20 @@ public class RocksBlockStore implements BlockStore {
   }
 
   @Override
+  public void close() {
+    mRocksStore.close();
+  }
+
+  @Override
   public List<BlockLocation> getLocations(long id) {
-    try (RocksIterator iter = db().newIterator(mBlockLocationsColumn.get(),
-        new ReadOptions().setPrefixSameAsStart(true))) {
-      iter.seek(Longs.toByteArray(id));
+    byte[] startKey = RocksUtils.toByteArray(id, 0);
+    byte[] endKey = RocksUtils.toByteArray(id, Long.MAX_VALUE);
+
+    // Explicitly hold a reference to the ReadOptions object from the discussion in
+    // https://groups.google.com/g/rocksdb/c/PwapmWwyBbc/m/ecl7oW3AAgAJ
+    final ReadOptions readOptions = new ReadOptions().setIterateUpperBound(new Slice(endKey));
+    try (RocksIterator iter = db().newIterator(mBlockLocationsColumn.get(), readOptions)) {
+      iter.seek(startKey);
       List<BlockLocation> locations = new ArrayList<>();
       for (; iter.isValid(); iter.next()) {
         try {
@@ -165,20 +190,8 @@ public class RocksBlockStore implements BlockStore {
 
   @Override
   public Iterator<Block> iterator() {
-    List<Block> blocks = new ArrayList<>();
-    try (RocksIterator iter =
-        db().newIterator(mBlockMetaColumn.get(), new ReadOptions().setPrefixSameAsStart(true))) {
-      iter.seekToFirst();
-      while (iter.isValid()) {
-        try {
-          blocks.add(new Block(Longs.fromByteArray(iter.key()), BlockMeta.parseFrom(iter.value())));
-        } catch (Exception e) {
-          throw new RuntimeException(e);
-        }
-        iter.next();
-      }
-    }
-    return blocks.iterator();
+    return RocksUtils.createIterator(db().newIterator(mBlockMetaColumn.get(), mIteratorOption),
+        (iter) -> new Block(Longs.fromByteArray(iter.key()), BlockMeta.parseFrom(iter.value())));
   }
 
   private RocksDB db() {

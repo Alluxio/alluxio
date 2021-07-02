@@ -2,7 +2,7 @@
 layout: global
 title: Running Apache HBase on Alluxio
 nickname: Apache HBase
-group: Data Applications
+group: Compute Integrations
 priority: 2
 ---
 
@@ -17,7 +17,7 @@ that you can easily store HBase tables into Alluxio at various storage levels.
 * Alluxio has been set up and is running.
 * Make sure that the Alluxio client jar is available.
 This Alluxio client jar file can be found at `{{site.ALLUXIO_CLIENT_JAR_PATH}}` in the tarball
-downloaded from Alluxio [download page](http://www.alluxio.io/download).
+downloaded from Alluxio [download page](https://www.alluxio.io/download).
 Alternatively, advanced users can compile this client jar from the source code
 by following the [instructions]({{ '/en/contributor/Building-Alluxio-From-Source.html' | relativize_url }}).
 * [Deploy HBase](https://hbase.apache.org/book.html#configuration)
@@ -30,9 +30,10 @@ Therefore, the configuration of Alluxio is done mostly in HBase configuration fi
 
 ### Set property in `hbase-site.xml`
 
-Change the `hbase.rootdir` property in `conf/hbase-site.xml`:
-> You do not need to create the `/hbase` directory in Alluxio, HBase will do this for you.
+Set the following properties in `conf/hbase-site.xml` and make sure all HBase cluster nodes
+have the configuration.
 
+Set the `hbase.rootdir` property as follows: 
 ```xml
 <property>
   <name>hbase.rootdir</name>
@@ -40,9 +41,22 @@ Change the `hbase.rootdir` property in `conf/hbase-site.xml`:
 </property>
 ```
 
-Add the following property to the same file `hbase-site.xml`.
-(make sure it is configured in all HBase cluster nodes):
+> You do not need to create the `/hbase` directory in Alluxio, HBase will do this for you.
 
+You also need to add the FS implementation classes to HBase configuration. These classes are provided in Alluxio Client jar.
+
+```xml
+<property>
+  <name>fs.alluxio.impl</name>
+  <value>alluxio.hadoop.FileSystem</value>
+</property>
+<property>
+  <name>fs.AbstractFileSystem.alluxio.impl</name>
+  <value>alluxio.hadoop.AlluxioFileSystem</value>
+</property>
+```
+
+Also add the following property to the same file `hbase-site.xml`:
 ```xml
 <property>
   <name>hbase.regionserver.hlog.syncer.count</name>
@@ -50,8 +64,19 @@ Add the following property to the same file `hbase-site.xml`.
 </property>
 ```
 
-This property is required to prevent HBase from flushing Alluxio file stream in a thread unsafe
+> This property is required to prevent HBase from flushing Alluxio file stream in a thread unsafe
 way.
+
+If you are running HBase version greater than 2.0, add the following property:
+
+```xml
+<property>
+  <name>hbase.unsafe.stream.capability.enforce</name>
+  <value>false</value>
+</property>
+```
+
+> This will disable HBase new stream capabilities (hflush/hsync) used for WAL.
 
 ### Distribute the Alluxio Client jar
 
@@ -61,19 +86,22 @@ We need to make the Alluxio client jar file available to HBase, because it conta
 Specify the location of the jar file in the `$HBASE_CLASSPATH` environment variable (make sure it's available
 on all cluster nodes). For example:
 
-```bash
-export HBASE_CLASSPATH={{site.ALLUXIO_CLIENT_JAR_PATH}}:${HBASE_CLASSPATH}
+```console
+$ export HBASE_CLASSPATH={{site.ALLUXIO_CLIENT_JAR_PATH}}:${HBASE_CLASSPATH}
 ```
 
 Alternative ways are described in the [Advanced Setup]({{ '/en/compute/HBase.html' | relativize_url }}#advanced-setup)
 
 ## Example
 
-Start HBase:
+Ensure alluxio scheme is recognized before starting HBase:
 
-```bash
-${HBASE_HOME}/bin/start-hbase.sh
+```console
+$ ${HBASE_HOME}/bin/start-hbase.sh
 ```
+
+If not, follow the [Usage FAQs]({{ '/en/operation/Troubleshooting.html' | relativize_url }}#usage-faq)
+ as needed.
 
 Visit HBase Web UI at `http://<HBASE_MASTER_HOSTNAME>:16010` to confirm that HBase is running on Alluxio
 (check the `HBase Root Directory` attribute):
@@ -99,8 +127,8 @@ get 'test', 'row1'
 
 Run the following command from the top level HBase project directory:
 
-```bash
-bin/hbase shell simple_test.txt
+```console
+$ bin/hbase shell simple_test.txt
 ```
 
 You should see some output like this:
@@ -110,8 +138,8 @@ You should see some output like this:
 If you have Hadoop installed, you can run a Hadoop-utility program in HBase shell to
 count the rows of the newly created table:
 
-```bash
-bin/hbase org.apache.hadoop.hbase.mapreduce.RowCounter test
+```console
+$ bin/hbase org.apache.hadoop.hbase.mapreduce.RowCounter test
 ```
 
 After this mapreduce job finishes, you can see a result like this:
@@ -133,13 +161,13 @@ or `zk@host1:2181,host2:2181,host3:2181`.
 </property>
 ```
 
-See [HA authority]({{ '/en/deploy/Running-Alluxio-On-a-Cluster.html' | relativize_url }}#ha-authority)
+See [HA authority]({{ '/en/deploy/Running-Alluxio-On-a-HA-Cluster.html' | relativize_url }}#ha-authority)
 for more details.
 
 ### Add additional Alluxio site properties to HBase
 
 If there are any Alluxio site properties you want to specify for HBase, add those to `hbase-site.xml`. For example,
-change `alluxio.user.file.writetype.default` from default `MUST_CACHE` to `CACHE_THROUGH`:
+change `alluxio.user.file.writetype.default` from default `ASYNC_THROUGH` to `CACHE_THROUGH`:
 
 ```xml
 <property>
@@ -153,6 +181,12 @@ change `alluxio.user.file.writetype.default` from default `MUST_CACHE` to `CACHE
 Instead of specifying the location of the jar file in the `$HBASE_CLASSPATH` environment variable,
 users could copy the `{{site.ALLUXIO_CLIENT_JAR_PATH}}` file into the `lib` directory of HBase
 (make sure it's available on all cluster nodes).
+
+```console
+$ cp `{{site.ALLUXIO_CLIENT_JAR_PATH}}` /path/to/hbase-master/lib/
+$ cp `{{site.ALLUXIO_CLIENT_JAR_PATH}}` /path/to/current/hbase-client/lib/
+$ cp `{{site.ALLUXIO_CLIENT_JAR_PATH}}` /path/to/hbase-regionserver/lib/
+```
 
 ## Troubleshooting
 

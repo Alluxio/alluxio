@@ -12,10 +12,10 @@
 package alluxio.proxy.s3;
 
 import alluxio.AlluxioURI;
-import alluxio.conf.ServerConfiguration;
 import alluxio.conf.PropertyKey;
-import alluxio.security.LoginUser;
+import alluxio.conf.ServerConfiguration;
 import alluxio.security.authentication.AuthenticatedClientUser;
+import alluxio.security.user.ServerUserState;
 import alluxio.util.SecurityUtils;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -49,10 +49,10 @@ public final class S3RestUtils {
       // TODO(cc): reconsider how to enable authentication
       if (SecurityUtils.isSecurityEnabled(ServerConfiguration.global())
               && AuthenticatedClientUser.get(ServerConfiguration.global()) == null) {
-        AuthenticatedClientUser.set(LoginUser.get(ServerConfiguration.global()).getName());
+        AuthenticatedClientUser.set(ServerUserState.global().getUser().getName());
       }
     } catch (IOException e) {
-      LOG.warn("Failed to set AuthenticatedClientUser in REST service handler: {}", e.getMessage());
+      LOG.warn("Failed to set AuthenticatedClientUser in REST service handler: {}", e.toString());
       return createErrorResponse(new S3Exception(e, resource, S3ErrorCode.INTERNAL_ERROR));
     }
 

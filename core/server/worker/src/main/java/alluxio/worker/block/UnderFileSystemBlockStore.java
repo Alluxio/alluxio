@@ -75,8 +75,8 @@ public final class UnderFileSystemBlockStore implements SessionCleanable {
   /** The manager for all ufs. */
   private final UfsManager mUfsManager;
 
-  /** The manager for all ufs instream. */
-  private final UfsInputStreamManager mUfsInstreamManager;
+  /** The cache for all ufs instream. */
+  private final UfsInputStreamCache mUfsInstreamCache;
 
   /**
    * Creates an instance of {@link UnderFileSystemBlockStore}.
@@ -87,7 +87,7 @@ public final class UnderFileSystemBlockStore implements SessionCleanable {
   public UnderFileSystemBlockStore(BlockStore localBlockStore, UfsManager ufsManager) {
     mLocalBlockStore = localBlockStore;
     mUfsManager = ufsManager;
-    mUfsInstreamManager = new UfsInputStreamManager();
+    mUfsInstreamCache = new UfsInputStreamCache();
   }
 
   /**
@@ -224,12 +224,13 @@ public final class UnderFileSystemBlockStore implements SessionCleanable {
    * @param sessionId the client session ID that requested this read
    * @param blockId the ID of the block to read
    * @param offset the read offset within the block (NOT the file)
+   * @param positionShort whether the client op is a positioned read to a small buffer
    * @return the block reader instance
    * @throws BlockDoesNotExistException if the UFS block does not exist in the
    * {@link UnderFileSystemBlockStore}
    */
-  public BlockReader getBlockReader(final long sessionId, long blockId, long offset)
-      throws BlockDoesNotExistException, IOException {
+  public BlockReader getBlockReader(final long sessionId, long blockId, long offset,
+      boolean positionShort) throws BlockDoesNotExistException, IOException {
     final BlockInfo blockInfo;
     try (LockResource lr = new LockResource(mLock)) {
       blockInfo = getBlockInfo(sessionId, blockId);
@@ -239,8 +240,8 @@ public final class UnderFileSystemBlockStore implements SessionCleanable {
       }
     }
     BlockReader reader =
-        UnderFileSystemBlockReader.create(blockInfo.getMeta(), offset, mLocalBlockStore,
-            mUfsManager, mUfsInstreamManager);
+        UnderFileSystemBlockReader.create(blockInfo.getMeta(), offset, positionShort,
+            mLocalBlockStore, mUfsManager, mUfsInstreamCache);
     blockInfo.setBlockReader(reader);
     return reader;
   }

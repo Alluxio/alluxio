@@ -14,7 +14,7 @@ package alluxio.underfs.hdfs;
 import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.SyncInfo;
-import alluxio.conf.AlluxioConfiguration;
+import alluxio.UfsConstants;
 import alluxio.conf.PropertyKey;
 import alluxio.collections.Pair;
 import alluxio.retry.CountingRetry;
@@ -37,6 +37,7 @@ import alluxio.underfs.options.MkdirsOptions;
 import alluxio.underfs.options.OpenOptions;
 import alluxio.util.CommonUtils;
 import alluxio.util.UnderFileSystemUtils;
+import alluxio.util.network.NetworkAddressUtils;
 
 import com.google.common.base.Preconditions;
 import com.google.common.cache.CacheBuilder;
@@ -63,6 +64,7 @@ import java.io.OutputStream;
 import java.lang.reflect.Constructor;
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -89,9 +91,15 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
   private static final String HDFS_ACTIVESYNC_PROVIDER_CLASS =
       "alluxio.underfs.hdfs.activesync.SupportedHdfsActiveSyncProvider";
 
+  /** The minimum HDFS production version required for EC. **/
+  private static final String HDFS_EC_MIN_VERSION = "3.0.0";
+
+  /** Name of the class for the HDFS EC Codec Registry. **/
+  private static final String HDFS_EC_CODEC_REGISTRY_CLASS =
+      "org.apache.hadoop.io.erasurecode.CodecRegistry";
+
   private final LoadingCache<String, FileSystem> mUserFs;
   private final HdfsAclProvider mHdfsAclProvider;
-  private UnderFileSystemConfiguration mUfsConf;
 
   private HdfsActiveSyncProvider mHdfsActiveSyncer;
 
@@ -100,13 +108,12 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
    *
    * @param ufsUri the {@link AlluxioURI} for this UFS
    * @param conf the configuration for Hadoop
-   * @param alluxioConf Alluxio configuration
    * @return a new HDFS {@link UnderFileSystem} instance
    */
   public static HdfsUnderFileSystem createInstance(AlluxioURI ufsUri,
-      UnderFileSystemConfiguration conf, AlluxioConfiguration alluxioConf) {
+      UnderFileSystemConfiguration conf) {
     Configuration hdfsConf = createConfiguration(conf);
-    return new HdfsUnderFileSystem(ufsUri, conf, hdfsConf, alluxioConf);
+    return new HdfsUnderFileSystem(ufsUri, conf, hdfsConf);
   }
 
   /**
@@ -115,11 +122,10 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
    * @param ufsUri the {@link AlluxioURI} for this UFS
    * @param conf the configuration for this UFS
    * @param hdfsConf the configuration for HDFS
-   * @param alluxioConf Alluxio configuration
    */
   public HdfsUnderFileSystem(AlluxioURI ufsUri, UnderFileSystemConfiguration conf,
-      Configuration hdfsConf, AlluxioConfiguration alluxioConf) {
-    super(ufsUri, conf, alluxioConf);
+      Configuration hdfsConf) {
+    super(ufsUri, conf);
 
     // Create the supported HdfsAclProvider if possible.
     HdfsAclProvider hdfsAclProvider = new NoopHdfsAclProvider();
@@ -140,25 +146,48 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
     }
     mHdfsAclProvider = hdfsAclProvider;
 
-    mUfsConf = conf;
     Path path = new Path(ufsUri.toString());
     // UserGroupInformation.setConfiguration(hdfsConf) will trigger service loading.
     // Stash the classloader to prevent service loading throwing exception due to
     // classloader mismatch.
-    ClassLoader previousClassLoader = Thread.currentThread().getContextClassLoader();
+    ClassLoader currentClassLoader = Thread.currentThread().getContextClassLoader();
     try {
       Thread.currentThread().setContextClassLoader(hdfsConf.getClassLoader());
       // Set Hadoop UGI configuration to ensure UGI can be initialized by the shaded classes for
       // group service.
       UserGroupInformation.setConfiguration(hdfsConf);
+      // When HDFS version is 3.0.0 or later, initialize HDFS EC CodecRegistry here to ensure
+      // RawErasureCoderFactory implementations are loaded by the same classloader of hdfsConf.
+      if (UfsConstants.UFS_HADOOP_VERSION.compareTo(HDFS_EC_MIN_VERSION) >= 0) {
+        try {
+          Class.forName(HDFS_EC_CODEC_REGISTRY_CLASS);
+        } catch (ClassNotFoundException e) {
+          LOG.warn("Cannot initialize HDFS EC CodecRegistry. "
+              + "HDFS EC will not be supported: {}", e.toString());
+        }
+      }
     } finally {
-      Thread.currentThread().setContextClassLoader(previousClassLoader);
+      Thread.currentThread().setContextClassLoader(currentClassLoader);
     }
 
     mUserFs = CacheBuilder.newBuilder().build(new CacheLoader<String, FileSystem>() {
       @Override
       public FileSystem load(String userKey) throws Exception {
-        return path.getFileSystem(hdfsConf);
+        // When running {@link UnderFileSystemContractTest} with hdfs path,
+        // the org.apache.hadoop.fs.FileSystem is loaded by {@link ExtensionClassLoader},
+        // but the org.apache.hadoop.fs.LocalFileSystem is loaded by {@link AppClassLoader}.
+        // When an interface and associated implementation are each loaded
+        // by two separate class loaders, an instance of the class from one loader cannot
+        // be recognized as implementing the interface from the other loader.
+        ClassLoader previousClassLoader = Thread.currentThread().getContextClassLoader();
+        try {
+          // Set the class loader to ensure FileSystem implementations are
+          // loaded by the same class loader to avoid ServerConfigurationError
+          Thread.currentThread().setContextClassLoader(currentClassLoader);
+          return path.getFileSystem(hdfsConf);
+        } finally {
+          Thread.currentThread().setContextClassLoader(previousClassLoader);
+        }
       }
     });
 
@@ -167,8 +196,8 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
 
     try {
       Constructor c = Class.forName(HDFS_ACTIVESYNC_PROVIDER_CLASS)
-          .getConstructor(URI.class, Configuration.class, AlluxioConfiguration.class);
-      Object o = c.newInstance(URI.create(ufsUri.toString()), hdfsConf, alluxioConf);
+          .getConstructor(URI.class, Configuration.class, UnderFileSystemConfiguration.class);
+      Object o = c.newInstance(URI.create(ufsUri.toString()), hdfsConf, mUfsConf);
       if (o instanceof HdfsActiveSyncProvider) {
         hdfsActiveSyncProvider = (HdfsActiveSyncProvider) o;
         LOG.info("Successfully instantiated SupportedHdfsActiveSyncProvider");
@@ -210,7 +239,9 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
     // Load HDFS site properties from the given file and overwrite the default HDFS conf,
     // the path of this file can be passed through --option
     for (String path : conf.get(PropertyKey.UNDERFS_HDFS_CONFIGURATION).split(":")) {
-      hdfsConf.addResource(new Path(path));
+      if (!path.isEmpty()) {
+        hdfsConf.addResource(new Path(path));
+      }
     }
 
     // On Hadoop 2.x this is strictly unnecessary since it uses ServiceLoader to automatically
@@ -267,7 +298,7 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
         }
         return outputStream;
       } catch (IOException e) {
-        LOG.warn("Attempt count {} : {} ", retryPolicy.getAttemptCount(), e.getMessage());
+        LOG.warn("Attempt count {} : {} ", retryPolicy.getAttemptCount(), e.toString());
         te = e;
       }
     }
@@ -352,7 +383,7 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
         Collections.addAll(ret, names);
       }
     } catch (IOException e) {
-      LOG.warn("Unable to get file location for {} : {}", path, e.getMessage());
+      LOG.debug("Unable to get file location for {}", path, e);
     }
     return ret;
   }
@@ -364,8 +395,8 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
     FileStatus fs = hdfs.getFileStatus(tPath);
     String contentHash =
         UnderFileSystemUtils.approximateContentHash(fs.getLen(), fs.getModificationTime());
-    return new UfsFileStatus(path, contentHash, fs.getLen(),
-        fs.getModificationTime(), fs.getOwner(), fs.getGroup(), fs.getPermission().toShort());
+    return new UfsFileStatus(path, contentHash, fs.getLen(), fs.getModificationTime(),
+        fs.getOwner(), fs.getGroup(), fs.getPermission().toShort(), fs.getBlockSize());
   }
 
   @Override
@@ -416,7 +447,7 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
       String contentHash =
           UnderFileSystemUtils.approximateContentHash(fs.getLen(), fs.getModificationTime());
       return new UfsFileStatus(path, contentHash, fs.getLen(), fs.getModificationTime(),
-          fs.getOwner(), fs.getGroup(), fs.getPermission().toShort());
+          fs.getOwner(), fs.getGroup(), fs.getPermission().toShort(), fs.getBlockSize());
     }
     // Return directory status.
     return new UfsDirectoryStatus(path, fs.getOwner(), fs.getGroup(), fs.getPermission().toShort(),
@@ -452,7 +483,7 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
             .approximateContentHash(status.getLen(), status.getModificationTime());
         retStatus = new UfsFileStatus(status.getPath().getName(), contentHash, status.getLen(),
             status.getModificationTime(), status.getOwner(), status.getGroup(),
-            status.getPermission().toShort());
+            status.getPermission().toShort(), status.getBlockSize());
       } else {
         retStatus = new UfsDirectoryStatus(status.getPath().getName(), status.getOwner(),
             status.getGroup(), status.getPermission().toShort(), status.getModificationTime());
@@ -535,11 +566,34 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
         return true;
       } catch (IOException e) {
         LOG.warn("{} try to make directory for {} : {}", retryPolicy.getAttemptCount(), path,
-            e.getMessage());
+            e.toString());
         te = e;
       }
     }
     throw te;
+  }
+
+  private boolean isReadLocal(FileSystem fs, Path filePath, OpenOptions options) {
+    String localHost = NetworkAddressUtils.getLocalHostName((int) mUfsConf
+        .getMs(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS));
+    BlockLocation[] blockLocations;
+    try {
+      blockLocations = fs.getFileBlockLocations(filePath,
+          options.getOffset(), options.getLength());
+      if (blockLocations == null) {
+        // no blocks exist
+        return true;
+      }
+
+      for (BlockLocation loc : blockLocations) {
+        if (Arrays.stream(loc.getHosts()).noneMatch(localHost::equals)) {
+          return false;
+        }
+      }
+    } catch (IOException e) {
+      return true;
+    }
+    return true;
   }
 
   @Override
@@ -551,18 +605,30 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
     if (hdfs instanceof DistributedFileSystem) {
       dfs = (DistributedFileSystem) hdfs;
     }
+    Path filePath = new Path(path);
+    boolean remote = options.getPositionShort()
+        || mUfsConf.getBoolean(PropertyKey.UNDERFS_HDFS_REMOTE)
+        || !isReadLocal(hdfs, filePath, options);
     while (retryPolicy.attempt()) {
       try {
-        FSDataInputStream inputStream = hdfs.open(new Path(path));
+        FSDataInputStream inputStream = hdfs.open(filePath);
+        if (remote) {
+          LOG.debug("Using pread API to HDFS");
+          // pread API instead of seek is more efficient for FSDataInputStream.
+          // A seek on FSDataInputStream uses a skip op which is implemented as read + discard
+          // and hence ends up reading extra data from the datanode.
+          return new HdfsPositionedUnderFileInputStream(inputStream, options.getOffset());
+        }
         try {
           inputStream.seek(options.getOffset());
         } catch (IOException e) {
           inputStream.close();
           throw e;
         }
+        LOG.debug("Using original API to HDFS");
         return new HdfsUnderFileInputStream(inputStream);
       } catch (IOException e) {
-        LOG.warn("{} try to open {} : {}", retryPolicy.getAttemptCount(), path, e.getMessage());
+        LOG.warn("{} try to open {} : {}", retryPolicy.getAttemptCount(), path, e.toString());
         te = e;
         if (options.getRecoverFailedOpen() && dfs != null && e.getMessage().toLowerCase()
             .startsWith("cannot obtain block length for")) {
@@ -575,7 +641,7 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
               LOG.warn("HDFS recoverLease-1 success for: {}", path);
             } else {
               // try one more time, after waiting
-              CommonUtils.sleepMs(5 * Constants.SECOND_MS);
+              CommonUtils.sleepMs(5L * Constants.SECOND_MS);
               if (dfs.recoverLease(new Path(path))) {
                 LOG.warn("HDFS recoverLease-2 success for: {}", path);
               } else {
@@ -621,15 +687,16 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
       FileStatus fileStatus = hdfs.getFileStatus(new Path(path));
       hdfs.setOwner(fileStatus.getPath(), user, group);
     } catch (IOException e) {
-      LOG.warn("Failed to set owner for {} with user: {}, group: {}", path, user, group);
-      LOG.debug("Exception : ", e);
-      LOG.warn("In order for Alluxio to modify ownership of local files, "
-          + "Alluxio should be the local file system superuser.");
-      if (!Boolean.valueOf(mUfsConf.get(PropertyKey.UNDERFS_ALLOW_SET_OWNER_FAILURE))) {
+      LOG.debug("Exception: ", e);
+      if (!mUfsConf.getBoolean(PropertyKey.UNDERFS_ALLOW_SET_OWNER_FAILURE)) {
+        LOG.warn("Failed to set owner for {} with user: {}, group: {}: {}. "
+            + "Running Alluxio as superuser is required to modify ownership of local files",
+            path, user, group, e.toString());
         throw e;
       } else {
-        LOG.warn("Failure is ignored, which may cause permission inconsistency between "
-            + "Alluxio and HDFS.");
+        LOG.warn("Failed to set owner for {} with user: {}, group: {}: {}. "
+            + "This failure is ignored but may cause permission inconsistency between Alluxio "
+            + "and local under file system", path, user, group, e.toString());
       }
     }
   }
@@ -641,13 +708,13 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
       FileStatus fileStatus = hdfs.getFileStatus(new Path(path));
       hdfs.setPermission(fileStatus.getPath(), new FsPermission(mode));
     } catch (IOException e) {
-      LOG.warn("Fail to set permission for {} with perm {} : {}", path, mode, e.getMessage());
+      LOG.warn("Fail to set permission for {} with perm {} : {}", path, mode, e.toString());
       throw e;
     }
   }
 
   @Override
-  public boolean supportsFlush() {
+  public boolean supportsFlush() throws IOException {
     return true;
   }
 
@@ -696,7 +763,7 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
       try {
         return hdfs.delete(new Path(path), recursive);
       } catch (IOException e) {
-        LOG.warn("Attempt count {} : {}", retryPolicy.getAttemptCount(), e.getMessage());
+        LOG.warn("Attempt count {} : {}", retryPolicy.getAttemptCount(), e.toString());
         te = e;
       }
     }
@@ -714,13 +781,15 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
   private FileStatus[] listStatusInternal(String path) throws IOException {
     FileStatus[] files;
     FileSystem hdfs = getFs();
+    Path thePath = new Path(path);
     try {
-      files = hdfs.listStatus(new Path(path));
+      files = hdfs.listStatus(thePath);
     } catch (FileNotFoundException e) {
       return null;
     }
     // Check if path is a file
-    if (files != null && files.length == 1 && files[0].getPath().toString().equals(path)) {
+    if (files != null && files.length == 1
+        && files[0].getPath().toUri().getPath().equals(thePath.toUri().getPath())) {
       return null;
     }
     return files;
@@ -742,7 +811,7 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
         return hdfs.rename(new Path(src), new Path(dst));
       } catch (IOException e) {
         LOG.warn("{} try to rename {} to {} : {}", retryPolicy.getAttemptCount(), src, dst,
-            e.getMessage());
+            e.toString());
         te = e;
       }
     }

@@ -11,17 +11,20 @@
 
 package alluxio.resource;
 
+import alluxio.concurrent.LockMode;
+
 import com.google.common.base.Preconditions;
 
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 /**
  * Reference counted Lock resource, automatically unlocks and decrements the reference count.
  * It contains a lock and a reference count for that lock, and will decrement
  * the lock reference count and unlocking when the resource is closed.
  */
-public class RefCountLockResource extends LockResource {
+public class RefCountLockResource extends RWLockResource {
   private final AtomicInteger mRefCount;
 
   /**
@@ -29,11 +32,15 @@ public class RefCountLockResource extends LockResource {
    * reference counter should have been initialized and incremented outside of this class.
    *
    * @param lock the lock to acquire
+   * @param mode the mode to acquire the lock in
    * @param acquireLock whether to lock the lock
    * @param refCount ref count for the lock
+   * @param useTryLock applicable only if acquireLock is true. Determines whether or not to use
+   *                   {@link Lock#tryLock()} or {@link Lock#lock()} to acquire the lock
    */
-  public RefCountLockResource(Lock lock, boolean acquireLock, AtomicInteger refCount) {
-    super(lock, acquireLock);
+  public RefCountLockResource(ReentrantReadWriteLock lock, LockMode mode, boolean acquireLock,
+      AtomicInteger refCount, boolean useTryLock) {
+    super(lock, mode, acquireLock, useTryLock);
     mRefCount = Preconditions.checkNotNull(refCount, "Reference Counter can not be null");
   }
 

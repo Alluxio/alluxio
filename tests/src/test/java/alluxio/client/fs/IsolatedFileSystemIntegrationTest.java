@@ -13,16 +13,13 @@ package alluxio.client.fs;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
-import alluxio.conf.PropertyKey;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemTestUtils;
 import alluxio.client.file.URIStatus;
+import alluxio.conf.PropertyKey;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.WritePType;
-import alluxio.heartbeat.HeartbeatContext;
-import alluxio.heartbeat.HeartbeatScheduler;
-import alluxio.heartbeat.ManuallyScheduleHeartbeat;
 import alluxio.master.LocalAlluxioCluster;
 import alluxio.testutils.BaseIntegrationTest;
 import alluxio.testutils.LocalAlluxioClusterResource;
@@ -30,7 +27,6 @@ import alluxio.util.io.PathUtils;
 
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -46,17 +42,13 @@ public class IsolatedFileSystemIntegrationTest extends BaseIntegrationTest {
   private static final int WORKER_UNRESERVED_BYTES = WORKER_CAPACITY_BYTES / 10 * 9;
   private static final int USER_QUOTA_UNIT_BYTES = 1000;
 
-  @ClassRule
-  public static ManuallyScheduleHeartbeat sManuallySchedule =
-      new ManuallyScheduleHeartbeat(HeartbeatContext.WORKER_BLOCK_SYNC);
-
   @Rule
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
       new LocalAlluxioClusterResource.Builder()
-          .setProperty(PropertyKey.WORKER_MEMORY_SIZE, WORKER_CAPACITY_BYTES)
+          .setProperty(PropertyKey.WORKER_RAMDISK_SIZE, WORKER_CAPACITY_BYTES)
           .setProperty(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT, 100 * Constants.MB)
+          .setProperty(PropertyKey.USER_FILE_RESERVED_BYTES, USER_QUOTA_UNIT_BYTES)
           .setProperty(PropertyKey.USER_FILE_BUFFER_BYTES, USER_QUOTA_UNIT_BYTES)
-          .setProperty(PropertyKey.WORKER_TIERED_STORE_LEVEL0_LOW_WATERMARK_RATIO, "0.9")
           .build();
   private FileSystem mFileSystem = null;
   private CreateFilePOptions mWriteBoth;
@@ -84,15 +76,9 @@ public class IsolatedFileSystemIntegrationTest extends BaseIntegrationTest {
     FileSystemTestUtils.createByteFile(mFileSystem, uniqPath + numOfFiles, fileSize, mWriteBoth);
     files.add(new AlluxioURI(uniqPath + numOfFiles));
 
-    HeartbeatScheduler.execute(HeartbeatContext.WORKER_BLOCK_SYNC);
-
-    int numFilesCached = 0;
-    for (int k = 0; k <= numOfFiles; k++) {
-      if (mFileSystem.getStatus(files.get(k)).getInAlluxioPercentage() == 100) {
-        numFilesCached++;
-      }
-    }
-    Assert.assertEquals(numOfFiles, numFilesCached);
+    Assert.assertEquals(numOfFiles, numCached(files));
+    Assert.assertEquals(100, mFileSystem.getStatus(files.get(numOfFiles)).getInAlluxioPercentage());
+    Assert.assertNotEquals(100, mFileSystem.getStatus(files.get(0)).getInAlluxioPercentage());
   }
 
   @Test
@@ -118,17 +104,9 @@ public class IsolatedFileSystemIntegrationTest extends BaseIntegrationTest {
     FileSystemTestUtils.createByteFile(mFileSystem, uniqPath + numOfFiles, fileSize, mWriteBoth);
     files.add(new AlluxioURI(uniqPath + numOfFiles));
 
-    HeartbeatScheduler.execute(HeartbeatContext.WORKER_BLOCK_SYNC);
-
-    int numFilesCached = 0;
-    for (int k = 0; k <= numOfFiles; k++) {
-      if (mFileSystem.getStatus(files.get(k)).getInAlluxioPercentage() == 100) {
-        numFilesCached++;
-      }
-    }
-    Assert.assertEquals(numOfFiles, numFilesCached);
-    URIStatus info = mFileSystem.getStatus(files.get(numOfFiles));
-    Assert.assertTrue(info.getInAlluxioPercentage() == 100);
+    Assert.assertEquals(numOfFiles, numCached(files));
+    Assert.assertEquals(100, mFileSystem.getStatus(files.get(numOfFiles)).getInAlluxioPercentage());
+    Assert.assertNotEquals(100, mFileSystem.getStatus(files.get(0)).getInAlluxioPercentage());
   }
 
   @Test
@@ -156,14 +134,9 @@ public class IsolatedFileSystemIntegrationTest extends BaseIntegrationTest {
     }
     FileSystemTestUtils.createByteFile(mFileSystem, uniqPath + numOfFiles, fileSize, mWriteBoth);
     files.add(new AlluxioURI(uniqPath + numOfFiles));
-    HeartbeatScheduler.execute(HeartbeatContext.WORKER_BLOCK_SYNC);
-    int numFilesCached = 0;
-    for (int k = 0; k <= numOfFiles; k++) {
-      if (mFileSystem.getStatus(files.get(k)).getInAlluxioPercentage() == 100) {
-        numFilesCached++;
-      }
-    }
-    Assert.assertEquals(numOfFiles, numFilesCached);
+    Assert.assertEquals(numOfFiles, numCached(files));
+    Assert.assertEquals(100, mFileSystem.getStatus(files.get(numOfFiles)).getInAlluxioPercentage());
+    Assert.assertNotEquals(100, mFileSystem.getStatus(files.get(0)).getInAlluxioPercentage());
   }
 
   @Test
@@ -188,13 +161,9 @@ public class IsolatedFileSystemIntegrationTest extends BaseIntegrationTest {
     }
     FileSystemTestUtils.createByteFile(mFileSystem, uniqPath + numOfFiles, fileSize, mWriteBoth);
     files.add(new AlluxioURI(uniqPath + numOfFiles));
-    HeartbeatScheduler.execute(HeartbeatContext.WORKER_BLOCK_SYNC);
-    URIStatus info = mFileSystem.getStatus(files.get(0));
-    Assert.assertFalse(info.getInAlluxioPercentage() == 100);
-    for (int k = 1; k <= numOfFiles; k++) {
-      URIStatus in = mFileSystem.getStatus(files.get(k));
-      Assert.assertTrue(in.getInAlluxioPercentage() == 100);
-    }
+    Assert.assertEquals(numOfFiles, numCached(files));
+    Assert.assertEquals(100, mFileSystem.getStatus(files.get(numOfFiles)).getInAlluxioPercentage());
+    Assert.assertNotEquals(100, mFileSystem.getStatus(files.get(0)).getInAlluxioPercentage());
   }
 
   @Test
@@ -222,13 +191,9 @@ public class IsolatedFileSystemIntegrationTest extends BaseIntegrationTest {
     }
     FileSystemTestUtils.createByteFile(mFileSystem, uniqPath + numOfFiles, fileSize, mWriteBoth);
     files.add(new AlluxioURI(uniqPath + numOfFiles));
-    for (int k = 1; k < numOfFiles; k++) {
-      URIStatus info = mFileSystem.getStatus(files.get(k));
-      Assert.assertTrue(info.getInAlluxioPercentage() == 100);
-    }
-    HeartbeatScheduler.execute(HeartbeatContext.WORKER_BLOCK_SYNC);
-    URIStatus info = mFileSystem.getStatus(files.get(numOfFiles));
-    Assert.assertTrue(info.getInAlluxioPercentage() == 100);
+    Assert.assertEquals(numOfFiles, numCached(files));
+    Assert.assertEquals(100, mFileSystem.getStatus(files.get(numOfFiles)).getInAlluxioPercentage());
+    Assert.assertNotEquals(100, mFileSystem.getStatus(files.get(0)).getInAlluxioPercentage());
   }
 
   @Test
@@ -257,12 +222,24 @@ public class IsolatedFileSystemIntegrationTest extends BaseIntegrationTest {
     }
     FileSystemTestUtils.createByteFile(mFileSystem, uniqPath + numOfFiles, fileSize, mWriteBoth);
     files.add(new AlluxioURI(uniqPath + numOfFiles));
-    HeartbeatScheduler.execute(HeartbeatContext.WORKER_BLOCK_SYNC);
-    URIStatus info = mFileSystem.getStatus(files.get(0));
-    Assert.assertFalse(info.getInAlluxioPercentage() == 100);
-    for (int k = 1; k <= numOfFiles; k++) {
-      URIStatus in = mFileSystem.getStatus(files.get(k));
-      Assert.assertTrue(in.getInAlluxioPercentage() == 100);
-    }
+    Assert.assertEquals(numOfFiles, numCached(files));
+    Assert.assertEquals(100, mFileSystem.getStatus(files.get(numOfFiles)).getInAlluxioPercentage());
+    Assert.assertNotEquals(100, mFileSystem.getStatus(files.get(0)).getInAlluxioPercentage());
+  }
+
+  /**
+   * Returns number of fully cached files from the list of uris.
+   *
+   * @param fileUris list of file uris
+   * @return number of fully cached files among the input list of uris
+   */
+  private long numCached(List<AlluxioURI> fileUris) {
+    return fileUris.stream().map((uri) -> {
+      try {
+        return mFileSystem.getStatus(uri);
+      } catch (Exception e) {
+        throw new RuntimeException(e);
+      }
+    }).filter((status) -> status.getInAlluxioPercentage() == 100).count();
   }
 }

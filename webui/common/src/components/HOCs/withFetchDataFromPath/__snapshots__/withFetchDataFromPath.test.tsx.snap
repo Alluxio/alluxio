@@ -1,0 +1,23 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`withFetchData HOC Shallow component Matches snapshot - renders WrappedComponent 1`] = `
+<WrappedComponent
+  fetchRequest={[Function]}
+  location={
+    Object {
+      "search": "",
+    }
+  }
+  queryStringSuffix="&offset=0"
+  refresh={false}
+  request={
+    Object {
+      "end": undefined,
+      "limit": undefined,
+      "offset": "0",
+      "path": "",
+    }
+  }
+  upateRequestParameter={[Function]}
+/>
+`;

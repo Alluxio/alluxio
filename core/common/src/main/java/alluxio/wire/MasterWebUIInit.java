@@ -26,6 +26,7 @@ public final class MasterWebUIInit implements Serializable {
   private static final long serialVersionUID = -6482980420852879864L;
 
   private boolean mDebug;
+  private boolean mNewerVersionAvailable;
   private boolean mWebFileInfoEnabled;
   private boolean mSecurityAuthorizationPermissionEnabled;
   private int mWorkerPort;
@@ -45,6 +46,15 @@ public final class MasterWebUIInit implements Serializable {
    */
   public boolean getDebug() {
     return mDebug;
+  }
+
+  /**
+   * Gets newer version available.
+   *
+   * @return true if a newer version is available, false otherwise
+   */
+  public boolean getNewerVersionAvailable() {
+    return mNewerVersionAvailable;
   }
 
   /**
@@ -96,7 +106,7 @@ public final class MasterWebUIInit implements Serializable {
    * Sets debug.
    *
    * @param debug the debug
-   * @return debug debug
+   * @return the updated MasterWebUIInit instance
    */
   public MasterWebUIInit setDebug(boolean debug) {
     mDebug = debug;
@@ -104,10 +114,21 @@ public final class MasterWebUIInit implements Serializable {
   }
 
   /**
+   * Sets newer version available.
+   *
+   * @param newerVersionAvailable the newer version available
+   * @return the updated MasterWebUIInit instance
+   */
+  public MasterWebUIInit setNewerVersionAvailable(boolean newerVersionAvailable) {
+    mNewerVersionAvailable = newerVersionAvailable;
+    return this;
+  }
+
+  /**
    * Sets web file info enabled.
    *
    * @param enabled the enabled
-   * @return the web file info enabled
+   * @return the updated MasterWebUIInit instance
    */
   public MasterWebUIInit setWebFileInfoEnabled(boolean enabled) {
     mWebFileInfoEnabled = enabled;
@@ -118,7 +139,7 @@ public final class MasterWebUIInit implements Serializable {
    * Sets security authorization permission enabled.
    *
    * @param enabled the enabled
-   * @return the security authorization permission enabled
+   * @return the updated MasterWebUIInit instance
    */
   public MasterWebUIInit setSecurityAuthorizationPermissionEnabled(boolean enabled) {
     mSecurityAuthorizationPermissionEnabled = enabled;
@@ -129,7 +150,7 @@ public final class MasterWebUIInit implements Serializable {
    * Sets worker port.
    *
    * @param port the port
-   * @return the worker port
+   * @return the updated MasterWebUIInit instance
    */
   public MasterWebUIInit setWorkerPort(int port) {
     mWorkerPort = port;
@@ -140,7 +161,7 @@ public final class MasterWebUIInit implements Serializable {
    * Sets refresh interval.
    *
    * @param interval the interval
-   * @return the refresh interval
+   * @return the updated MasterWebUIInit instance
    */
   public MasterWebUIInit setRefreshInterval(int interval) {
     mRefreshInterval = interval;
@@ -151,7 +172,7 @@ public final class MasterWebUIInit implements Serializable {
    * Sets proxy download file api url.
    *
    * @param apiUrl the api url
-   * @return the proxy download file api url
+   * @return the updated MasterWebUIInit instance
    */
   public MasterWebUIInit setProxyDownloadFileApiUrl(Map<String, String> apiUrl) {
     mProxyDownloadFileApiUrl = apiUrl;
@@ -161,6 +182,7 @@ public final class MasterWebUIInit implements Serializable {
   @Override
   public String toString() {
     return MoreObjects.toStringHelper(this).add("debug", mDebug)
+        .add("newerVersionAvailable", mNewerVersionAvailable)
         .add("webFileInfoEnabled", mWebFileInfoEnabled)
         .add("securityAuthorizationPermissionEnabled", mSecurityAuthorizationPermissionEnabled)
         .add("workerPort", mWorkerPort).add("refreshInterval", mRefreshInterval).toString();

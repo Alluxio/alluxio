@@ -124,7 +124,8 @@ public class DefaultPermissionChecker implements PermissionChecker {
 
   @Override
   public void checkSetAttributePermission(LockedInodePath inodePath, boolean superuserRequired,
-      boolean ownerRequired) throws AccessControlException, InvalidPathException {
+      boolean ownerRequired, boolean writeRequired)
+      throws AccessControlException, InvalidPathException {
     if (!mPermissionCheckEnabled) {
       return;
     }
@@ -137,7 +138,21 @@ public class DefaultPermissionChecker implements PermissionChecker {
     if (ownerRequired) {
       checkOwner(inodePath);
     }
-    checkPermission(Mode.Bits.WRITE, inodePath);
+    // For other non-permission related attributes
+    if (writeRequired) {
+      checkPermission(Mode.Bits.WRITE, inodePath);
+    }
+  }
+
+  @Override
+  public void checkSuperUser() throws AccessControlException {
+    // collects user and groups
+    String user = AuthenticatedClientUser.getClientUser(ServerConfiguration.global());
+    List<String> groups = getGroups(user);
+    if (!isPrivilegedUser(user, groups)) {
+      throw new AccessControlException(ExceptionMessage.PERMISSION_DENIED
+          .getMessage(user + " is not a super user or in super group"));
+    }
   }
 
   /**
@@ -175,21 +190,6 @@ public class DefaultPermissionChecker implements PermissionChecker {
     }
 
     checkInodeList(user, groups, null, inodePath.getUri().getPath(), inodeList, true);
-  }
-
-  /**
-   * Checks whether the user is a super user or in super group.
-   *
-   * @throws AccessControlException if the user is not a super user
-   */
-  private void checkSuperUser() throws AccessControlException {
-    // collects user and groups
-    String user = AuthenticatedClientUser.getClientUser(ServerConfiguration.global());
-    List<String> groups = getGroups(user);
-    if (!isPrivilegedUser(user, groups)) {
-      throw new AccessControlException(ExceptionMessage.PERMISSION_DENIED
-          .getMessage(user + " is not a super user or in super group"));
-    }
   }
 
   /**

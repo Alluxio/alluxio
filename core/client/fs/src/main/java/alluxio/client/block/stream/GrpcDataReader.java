@@ -11,6 +11,7 @@
 
 package alluxio.client.block.stream;
 
+import alluxio.Constants;
 import alluxio.client.file.FileSystemContext;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
@@ -18,10 +19,15 @@ import alluxio.grpc.DataMessage;
 import alluxio.grpc.ReadRequest;
 import alluxio.grpc.ReadResponse;
 import alluxio.grpc.ReadResponseMarshaller;
+import alluxio.metrics.MetricKey;
+import alluxio.metrics.MetricsSystem;
 import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.network.protocol.databuffer.NioDataBuffer;
+import alluxio.resource.CloseableResource;
+import alluxio.util.logging.SamplingLogger;
 import alluxio.wire.WorkerNetAddress;
 
+import com.codahale.metrics.Timer;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
@@ -47,16 +53,19 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 public final class GrpcDataReader implements DataReader {
   private static final Logger LOG = LoggerFactory.getLogger(GrpcDataReader.class);
+  private static final Logger SLOW_CLOSE_LOG = new SamplingLogger(LOG, Constants.MINUTE_MS);
 
   private final int mReaderBufferSizeMessages;
   private final long mDataTimeoutMs;
+  private final boolean mDetailedMetricsEnabled;
   private final FileSystemContext mContext;
-  private final BlockWorkerClient mClient;
+  private final CloseableResource<BlockWorkerClient> mClient;
   private final ReadRequest mReadRequest;
   private final WorkerNetAddress mAddress;
 
   private final GrpcBlockingStream<ReadRequest, ReadResponse> mStream;
   private final ReadResponseMarshaller mMarshaller;
+  private final long mCloseWaitMs;
 
   /** The next pos to read. */
   private long mPosToRead;
@@ -76,29 +85,39 @@ public final class GrpcDataReader implements DataReader {
     mReadRequest = readRequest;
     AlluxioConfiguration alluxioConf = context.getClusterConf();
     mReaderBufferSizeMessages = alluxioConf
-        .getInt(PropertyKey.USER_NETWORK_READER_BUFFER_SIZE_MESSAGES);
-    mDataTimeoutMs = alluxioConf.getMs(PropertyKey.USER_NETWORK_DATA_TIMEOUT_MS);
+        .getInt(PropertyKey.USER_STREAMING_READER_BUFFER_SIZE_MESSAGES);
+    mDataTimeoutMs = alluxioConf.getMs(PropertyKey.USER_STREAMING_DATA_READ_TIMEOUT);
+    mDetailedMetricsEnabled = alluxioConf.getBoolean(PropertyKey.USER_BLOCK_READ_METRICS_ENABLED);
     mMarshaller = new ReadResponseMarshaller();
     mClient = mContext.acquireBlockWorkerClient(address);
+    mCloseWaitMs = alluxioConf.getMs(PropertyKey.USER_STREAMING_READER_CLOSE_TIMEOUT);
 
     try {
-      if (alluxioConf.getBoolean(PropertyKey.USER_NETWORK_ZEROCOPY_ENABLED)) {
-        mStream = new GrpcDataMessageBlockingStream<>(mClient::readBlock, mReaderBufferSizeMessages,
-            MoreObjects.toStringHelper(this)
-                .add("request", mReadRequest)
-                .add("address", address)
-                .toString(),
-            null, mMarshaller);
+      if (alluxioConf.getBoolean(PropertyKey.USER_STREAMING_ZEROCOPY_ENABLED)) {
+        String desc = "Zero Copy GrpcDataReader";
+        if (LOG.isDebugEnabled()) { // More detailed description when debug logging is enabled
+          desc = MoreObjects.toStringHelper(this)
+              .add("request", mReadRequest)
+              .add("address", address)
+              .toString();
+        }
+        mStream = new GrpcDataMessageBlockingStream<>(mClient.get()::readBlock,
+            mReaderBufferSizeMessages,
+            desc, null, mMarshaller);
       } else {
-        mStream = new GrpcBlockingStream<>(mClient::readBlock, mReaderBufferSizeMessages,
-            MoreObjects.toStringHelper(this)
-                .add("request", mReadRequest)
-                .add("address", address)
-                .toString());
+        String desc = "GrpcDataReader";
+        if (LOG.isDebugEnabled()) { // More detailed description when debug logging is enabled
+          desc = MoreObjects.toStringHelper(this)
+              .add("request", mReadRequest)
+              .add("address", address)
+              .toString();
+        }
+        mStream = new GrpcBlockingStream<>(mClient.get()::readBlock, mReaderBufferSizeMessages,
+            desc);
       }
       mStream.send(mReadRequest, mDataTimeoutMs);
     } catch (Exception e) {
-      mContext.releaseBlockWorkerClient(address, mClient);
+      mClient.close();
       throw e;
     }
   }
@@ -110,7 +129,17 @@ public final class GrpcDataReader implements DataReader {
 
   @Override
   public DataBuffer readChunk() throws IOException {
-    Preconditions.checkState(!mClient.isShutdown(),
+    if (mDetailedMetricsEnabled) {
+      try (Timer.Context ctx = MetricsSystem
+          .timer(MetricKey.CLIENT_BLOCK_READ_CHUNK_REMOTE.getName()).time()) {
+        return readChunkInternal();
+      }
+    }
+    return readChunkInternal();
+  }
+
+  private DataBuffer readChunkInternal() throws IOException {
+    Preconditions.checkState(!mClient.get().isShutdown(),
         "Data reader is closed while reading data chunks.");
     DataBuffer buffer = null;
     ReadResponse response = null;
@@ -155,14 +184,31 @@ public final class GrpcDataReader implements DataReader {
   @Override
   public void close() throws IOException {
     try {
-      if (mClient.isShutdown()) {
+      if (mClient.get().isShutdown()) {
         return;
       }
       mStream.close();
-      mStream.waitForComplete(mDataTimeoutMs);
+
+      // When a reader is closed, there is technically nothing the client requires from the server.
+      // However, the server does need to cleanup resources for a client close(), including closing
+      // or canceling any temp blocks. Therefore, we should wait for some amount of time for the
+      // server to finish cleanup, but it should not be very long (since the client is finished
+      // with the read). Also, if there is any error when waiting for the complete, it should be
+      // ignored since again, the client is completely finished with the read.
+      try {
+        // Wait a short time for the server to finish the close, and then let the client continue.
+        if (mCloseWaitMs > 0) {
+          mStream.waitForComplete(mCloseWaitMs);
+        }
+      } catch (Throwable e) {
+        // ignore any errors
+        SLOW_CLOSE_LOG.warn(
+            "Closing gRPC read stream took longer than {}ms, moving on. blockId: {}, address: {}",
+            mCloseWaitMs, mReadRequest.getBlockId(), mAddress);
+      }
     } finally {
       mMarshaller.close();
-      mContext.releaseBlockWorkerClient(mAddress, mClient);
+      mClient.close();
     }
   }
 
@@ -172,26 +218,26 @@ public final class GrpcDataReader implements DataReader {
   public static class Factory implements DataReader.Factory {
     private final FileSystemContext mContext;
     private final WorkerNetAddress mAddress;
-    private final ReadRequest mReadRequestPartial;
+    private final ReadRequest.Builder mReadRequestBuilder;
 
     /**
      * Creates an instance of {@link GrpcDataReader.Factory} for block reads.
      *
      * @param context the file system context
      * @param address the worker address
-     * @param readRequestPartial the partial read request
+     * @param readRequestBuilder the builder of read request
      */
     public Factory(FileSystemContext context, WorkerNetAddress address,
-        ReadRequest readRequestPartial) {
+        ReadRequest.Builder readRequestBuilder) {
       mContext = context;
       mAddress = address;
-      mReadRequestPartial = readRequestPartial;
+      mReadRequestBuilder = readRequestBuilder;
     }
 
     @Override
     public DataReader create(long offset, long len) throws IOException {
       return new GrpcDataReader(mContext, mAddress,
-          mReadRequestPartial.toBuilder().setOffset(offset).setLength(len).build());
+          mReadRequestBuilder.setOffset(offset).setLength(len).build());
     }
 
     @Override

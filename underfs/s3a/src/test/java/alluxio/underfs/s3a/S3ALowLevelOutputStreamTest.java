@@ -74,11 +74,11 @@ public class S3ALowLevelOutputStreamTest {
   public void before() throws Exception {
     mockS3ClientAndExecutor();
     mockFileAndOutputStream();
-    sConf.set(PropertyKey.UNDERFS_S3A_STREAMING_UPLOAD_PARTITION_SIZE, PARTITION_SIZE);
+    sConf.set(PropertyKey.UNDERFS_S3_STREAMING_UPLOAD_PARTITION_SIZE, PARTITION_SIZE);
     mStream = new S3ALowLevelOutputStream(BUCKET_NAME, KEY, mMockS3Client, mMockExecutor,
-        sConf.getBytes(PropertyKey.UNDERFS_S3A_STREAMING_UPLOAD_PARTITION_SIZE),
+        sConf.getBytes(PropertyKey.UNDERFS_S3_STREAMING_UPLOAD_PARTITION_SIZE),
         sConf.getList(PropertyKey.TMP_DIRS, ","),
-        sConf.getBoolean(PropertyKey.UNDERFS_S3A_SERVER_SIDE_ENCRYPTION_ENABLED));
+        sConf.getBoolean(PropertyKey.UNDERFS_S3_SERVER_SIDE_ENCRYPTION_ENABLED));
   }
 
   @Test
@@ -175,7 +175,7 @@ public class S3ALowLevelOutputStreamTest {
    */
   private void mockFileAndOutputStream() throws Exception {
     File file = Mockito.mock(File.class);
-    PowerMockito.whenNew(File.class).withArguments(Mockito.anyString()).thenReturn(file);
+    PowerMockito.whenNew(File.class).withAnyArguments().thenReturn(file);
 
     mMockOutputStream = PowerMockito.mock(BufferedOutputStream.class);
     PowerMockito.whenNew(BufferedOutputStream.class)

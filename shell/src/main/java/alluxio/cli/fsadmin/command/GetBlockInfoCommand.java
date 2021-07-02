@@ -11,6 +11,7 @@
 
 package alluxio.cli.fsadmin.command;
 
+import alluxio.annotation.PublicApi;
 import alluxio.cli.CommandUtils;
 import alluxio.cli.fsadmin.FileSystemAdminShellUtils;
 import alluxio.conf.AlluxioConfiguration;
@@ -27,6 +28,7 @@ import java.io.IOException;
 /**
  * Command for getting information from a block id.
  */
+@PublicApi
 public class GetBlockInfoCommand extends AbstractFsAdminCommand {
   private static final String HELP_OPTION_NAME = "h";
   private static final Option HELP_OPTION =
@@ -70,11 +72,29 @@ public class GetBlockInfoCommand extends AbstractFsAdminCommand {
       throw new InvalidArgumentException(arg + " is not a valid block id.");
     }
 
-    BlockInfo info = mBlockClient.getBlockInfo(blockId);
+    BlockInfo info = null;
+    try {
+      info = mBlockClient.getBlockInfo(blockId);
+    } catch (Exception e) {
+      // ignore
+    }
     long fileId = BlockId.getFileId(blockId);
-    String path = mFsClient.getFilePath(fileId);
-    System.out.println(info);
-    System.out.printf("This block belongs to file {id=%s, path=%s}%n", fileId, path);
+    String path = null;
+    try {
+      path = mFsClient.getFilePath(fileId);
+    } catch (Exception e) {
+      // ignore
+    }
+    if (info != null) {
+      System.out.println(info);
+    } else {
+      System.out.println("BlockMeta is not available for blockId: " + blockId);
+    }
+    if (path != null) {
+      System.out.printf("This block belongs to file {id=%s, path=%s}%n", fileId, path);
+    } else {
+      System.out.printf("This block belongs to file {id=%s}%n", fileId);
+    }
     return 0;
   }
 

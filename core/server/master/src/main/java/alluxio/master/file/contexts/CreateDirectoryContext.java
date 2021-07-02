@@ -73,10 +73,6 @@ public class CreateDirectoryContext
         .createDirectoryDefaults(ServerConfiguration.global()).toBuilder());
   }
 
-  protected CreateDirectoryContext getThis() {
-    return this;
-  }
-
   /**
    * @return the Ufs status
    */
@@ -116,7 +112,7 @@ public class CreateDirectoryContext
   public String toString() {
     return MoreObjects.toStringHelper(this)
         .add("PathContext", super.toString())
-        .add("UfsStatus", mUfsStatus.toString())
+        .add("UfsStatus", mUfsStatus)
         .toString();
   }
 }

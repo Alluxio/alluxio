@@ -22,9 +22,10 @@ import alluxio.client.util.ClientTestUtils;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.exception.status.UnavailableException;
+import alluxio.master.block.BlockMaster;
+import alluxio.master.block.DefaultBlockMaster;
 import alluxio.proxy.ProxyProcess;
 import alluxio.security.GroupMappingServiceTestUtils;
-import alluxio.security.LoginUserTestUtils;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.CommonUtils;
 import alluxio.util.UnderFileSystemUtils;
@@ -195,7 +196,6 @@ public abstract class AbstractLocalAlluxioCluster {
   public void stop() throws Exception {
     stopFS();
     reset();
-    LoginUserTestUtils.resetLoginUser();
     ServerConfiguration.reset();
   }
 
@@ -257,12 +257,29 @@ public abstract class AbstractLocalAlluxioCluster {
       }
     }
     mWorkerThreads.clear();
+
+    // forget all the workers in the master
+    LocalAlluxioMaster master = getLocalAlluxioMaster();
+    if (master != null) {
+      DefaultBlockMaster bm =
+          (DefaultBlockMaster) master.getMasterProcess().getMaster(BlockMaster.class);
+      bm.forgetAllWorkers();
+    }
+  }
+
+  /**
+   * @return true if the workers are started, and not stopped
+   */
+  public boolean isStartedWorkers() {
+    return !mWorkerThreads.isEmpty();
   }
 
   /**
    * Creates a default {@link ServerConfiguration} for testing.
+   *
+   * @param name the name of the test/cluster
    */
-  public abstract void initConfiguration() throws IOException;
+  public abstract void initConfiguration(String name) throws IOException;
 
   /**
    * Returns a {@link FileSystem} client.
@@ -338,9 +355,11 @@ public abstract class AbstractLocalAlluxioCluster {
 
   /**
    * Sets Alluxio work directory.
+   *
+   * @param name the name of the test/cluster
    */
-  protected void setAlluxioWorkDirectory() {
+  protected void setAlluxioWorkDirectory(String name) {
     mWorkDirectory =
-        AlluxioTestDirectory.createTemporaryDirectory("test-cluster").getAbsolutePath();
+        AlluxioTestDirectory.createTemporaryDirectory(name).getAbsolutePath();
   }
 }

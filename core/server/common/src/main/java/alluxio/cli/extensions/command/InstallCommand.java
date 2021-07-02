@@ -11,14 +11,15 @@
 
 package alluxio.cli.extensions.command;
 
+import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.ServerConfiguration;
 import alluxio.Constants;
 import alluxio.conf.PropertyKey;
 import alluxio.cli.Command;
 import alluxio.cli.CommandUtils;
-import alluxio.cli.extensions.ExtensionsShellUtils;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.status.InvalidArgumentException;
+import alluxio.util.ConfigurationUtils;
 import alluxio.util.ShellUtils;
 
 import org.apache.commons.cli.CommandLine;
@@ -62,14 +63,15 @@ public final class InstallCommand implements Command {
   @Override
   public int run(CommandLine cl) {
     String uri = cl.getArgs()[0];
-    String extensionsDir = ServerConfiguration.get(PropertyKey.EXTENSIONS_DIR);
+    AlluxioConfiguration conf = ServerConfiguration.global();
+    String extensionsDir = conf.get(PropertyKey.EXTENSIONS_DIR);
     File dir = new File(extensionsDir);
     if (!dir.exists() && !dir.mkdirs()) {
       System.err.println("Failed to create extensions directory " + extensionsDir);
       return -1;
     }
     List<String> failedHosts = new ArrayList<>();
-    for (String host : ExtensionsShellUtils.getServerHostnames()) {
+    for (String host : ConfigurationUtils.getServerHostnames(conf)) {
       try {
         LOG.info("Attempting to install extension on host {}", host);
         // Parent folder on target host

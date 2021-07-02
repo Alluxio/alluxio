@@ -1,9 +1,9 @@
 ---
 layout: global
-title: Configuring Alluxio with Azure Blob Store
-nickname: Alluxio使用Azure Blob Store
-group: Under Stores
-priority: 0
+title: Alluxio集成Azure Blob Store作为底层存储
+nickname: Alluxio集成Azure Blob Store作为底层存储
+group: Storage Integrations
+priority: 2
 ---
 
 * 内容列表
@@ -16,7 +16,7 @@ priority: 0
 为了在多台机器上运行一个Alluxio集群，你必须在每台机器上部署Alluxio的二进制文件。
 你可以[从Alluxio源码编译二进制文件](Building-Alluxio-From-Source.html)，或者[直接下载已经编译好的Alluxio二进制文件](Running-Alluxio-Locally.html)。
 
-此外，为了在Alluxi上使用Azure Blob Store，你需要在Azure storage帐户上创建一个新的container或者使用一个已有的container。还要提供准备在这个container里使用的目录，你可以在这个container里面创建一个目录，或者使用一个已有的目录。在这篇文章中，我们将Azure storage帐户名称为`<AZURE_ACCOUNT>`，将帐户里的container称为`<AZURE_CONTAINER>`并将该container里面的目录称为`<AZURE_DIRECTORY>`。点击[这里](https://docs.microsoft.com/en-us/azure/storage/storage-create-storage-account)查看更多关于Azure storage帐户的信息。
+此外，为了在Alluxio上使用Azure Blob Store，你需要在Azure storage帐户上创建一个新的container或者使用一个已有的container。还要提供准备在这个container里使用的目录，你可以在这个container里面创建一个目录，或者使用一个已有的目录。在这篇文章中，我们将Azure storage帐户名称为`<AZURE_ACCOUNT>`，将帐户里的container称为`<AZURE_CONTAINER>`并将该container里面的目录称为`<AZURE_DIRECTORY>`。点击[这里](https://docs.microsoft.com/en-us/azure/storage/storage-create-storage-account)查看更多关于Azure storage帐户的信息。
 
 
 ## 配置Alluxio
@@ -25,8 +25,8 @@ priority: 0
 
 要使用Azure blob store作为Alluxio根挂载点的UFS，您需要通过修改`conf/alluxio-site.properties`配置Alluxio使用底层存储系统。如果这个文件不存在，重命名template文件。
 
-```bash
-cp conf/alluxio-site.properties.template conf/alluxio-site.properties
+```console
+$ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
 ```
 
 首先修改`conf / alluxio-site.properties`来指定underfs address：
@@ -42,10 +42,11 @@ alluxio.master.mount.table.root.option.fs.azure.account.key.<AZURE_ACCOUNT>.blob
 ```
 
 ### 嵌套挂载
- Azure blob store位置可以挂载在Alluxio命名空间中的嵌套目录中，以便统一访问到多个底层存储系统。Alluxio的[Command Line Interface](Command-Line-Interface.html)可以用于此目的。
+ Azure blob store位置可以挂载在Alluxio命名空间中的嵌套目录中，以便统一访问到多个底层存储系统。Alluxio的[用户CLI]({{ '/cn/operation/User-CLI.html' | relativize_url }})可以用于此目的。
 
-```bash
-./bin/alluxio fs mount --option fs.azure.account.key.<AZURE_ACCOUNT>.blob.core.windows.net=<AZURE_ACCESS_KEY>\
+```console
+$ ./bin/alluxio fs mount \
+  --option fs.azure.account.key.<AZURE_ACCOUNT>.blob.core.windows.net=<AZURE_ACCESS_KEY>\
   /mnt/azure wasb://<AZURE_CONTAINER>@<AZURE_ACCOUNT>.blob.core.windows.net/<AZURE_DIRECTORY>/
 ```
 

@@ -9,10 +9,10 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-import {faAngleDoubleRight, faAngleRight} from '@fortawesome/free-solid-svg-icons';
-import {FontAwesomeIcon} from '@fortawesome/react-fontawesome'
+import { faAngleDoubleRight, faAngleRight } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import React from 'react';
-import {Link} from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import {
   DropdownItem,
   DropdownMenu,
@@ -34,8 +34,8 @@ export interface IPaginatorProps {
 }
 
 export class Paginator extends React.PureComponent<IPaginatorProps> {
-  public render() {
-    const {offset, limit, total, baseUrl, path} = this.props;
+  public render(): JSX.Element | null {
+    const { offset, limit, total, baseUrl, path } = this.props;
 
     const numOffset = this.getNumber(offset) || 0;
     const numLimit = this.getNumber(limit) || 20;
@@ -54,52 +54,83 @@ export class Paginator extends React.PureComponent<IPaginatorProps> {
     return (
       <div className="paginator text-center">
         <Pagination>
-          {numPages > 1 && <React.Fragment>
-            <PaginationItem disabled={currentPage === firstPage}>
-              <PaginationLink tag={Link}
-                              to={`${baseUrl}?offset=0${limit ? `&limit=${limit}` : ''}${path ? `&path=${path}` : ''}`}>
-                <FontAwesomeIcon icon={faAngleDoubleRight} flip="horizontal"/>
-              </PaginationLink>
-            </PaginationItem>
-            <PaginationItem disabled={prevPage < 1}>
-              <PaginationLink tag={Link}
-                              to={`${baseUrl}?offset=${(prevPage - 1) * numLimit}${limit ? `&limit=${limit}` : ''}${path ? `&path=${path}` : ''}`}>
-                <FontAwesomeIcon icon={faAngleRight} flip="horizontal"/>
-              </PaginationLink>
-            </PaginationItem>
-            <PaginationItem disabled={true}>
-              <PaginationLink href="#">
-                Page {currentPage} of {numPages}
-              </PaginationLink>
-            </PaginationItem>
-            <PaginationItem disabled={nextPage > numPages}>
-              <PaginationLink tag={Link}
-                              to={`${baseUrl}?offset=${(nextPage - 1) * numLimit}${limit ? `&limit=${limit}` : ''}${path ? `&path=${path}` : ''}`}>
-                <FontAwesomeIcon icon={faAngleRight}/>
-              </PaginationLink>
-            </PaginationItem>
-            <PaginationItem className="mr-2" disabled={currentPage >= lastPage}>
-              <PaginationLink tag={Link}
-                              to={`${baseUrl}?offset=${(lastPage - 1) * numLimit}${limit ? `&limit=${limit}` : ''}${path ? `&path=${path}` : ''}`}>
-                <FontAwesomeIcon icon={faAngleDoubleRight}/>
-              </PaginationLink>
-            </PaginationItem>
-          </React.Fragment>}
+          {numPages > 1 && (
+            <React.Fragment>
+              <PaginationItem disabled={currentPage === firstPage}>
+                <PaginationLink
+                  tag={Link}
+                  to={`${baseUrl}?offset=0${limit ? `&limit=${limit}` : ''}${path ? `&path=${path}` : ''}`}
+                >
+                  <FontAwesomeIcon icon={faAngleDoubleRight} flip="horizontal" />
+                </PaginationLink>
+              </PaginationItem>
+              <PaginationItem disabled={prevPage < 1}>
+                <PaginationLink
+                  tag={Link}
+                  to={`${baseUrl}?offset=${(prevPage - 1) * numLimit}${limit ? `&limit=${limit}` : ''}${
+                    path ? `&path=${path}` : ''
+                  }`}
+                >
+                  <FontAwesomeIcon icon={faAngleRight} flip="horizontal" />
+                </PaginationLink>
+              </PaginationItem>
+              <PaginationItem disabled={true}>
+                <PaginationLink href="#">
+                  Page {currentPage} of {numPages}
+                </PaginationLink>
+              </PaginationItem>
+              <PaginationItem disabled={nextPage > numPages}>
+                <PaginationLink
+                  tag={Link}
+                  to={`${baseUrl}?offset=${(nextPage - 1) * numLimit}${limit ? `&limit=${limit}` : ''}${
+                    path ? `&path=${path}` : ''
+                  }`}
+                >
+                  <FontAwesomeIcon icon={faAngleRight} />
+                </PaginationLink>
+              </PaginationItem>
+              <PaginationItem className="mr-2" disabled={currentPage >= lastPage}>
+                <PaginationLink
+                  tag={Link}
+                  to={`${baseUrl}?offset=${(lastPage - 1) * numLimit}${limit ? `&limit=${limit}` : ''}${
+                    path ? `&path=${path}` : ''
+                  }`}
+                >
+                  <FontAwesomeIcon icon={faAngleDoubleRight} />
+                </PaginationLink>
+              </PaginationItem>
+            </React.Fragment>
+          )}
           <PaginationItem>
             <UncontrolledButtonDropdown>
               <DropdownToggle className="bg-dark" caret={true}>
                 {numLimit} Rows / Page
               </DropdownToggle>
               <DropdownMenu>
-                <DropdownItem tag={Link} className="text-success"
-                              to={`${baseUrl}?offset=${0}&limit=${20}${path ? `&path=${path}` : ''}`}
-                              disabled={numLimit === 20}>20 Rows / Page</DropdownItem>
-                <DropdownItem tag={Link} className="text-success"
-                              to={`${baseUrl}?offset=${0}&limit=${100}${path ? `&path=${path}` : ''}`}
-                              disabled={numLimit === 100}>100 Rows / Page</DropdownItem>
-                <DropdownItem tag={Link} className="text-success"
-                              to={`${baseUrl}?offset=${0}&limit=${500}${path ? `&path=${path}` : ''}`}
-                              disabled={numLimit === 500}>500 Rows / Page</DropdownItem>
+                <DropdownItem
+                  tag={Link}
+                  className={numLimit === 20 ? '' : 'text-success'}
+                  to={`${baseUrl}?offset=${0}&limit=${20}${path ? `&path=${path}` : ''}`}
+                  disabled={numLimit === 20}
+                >
+                  20 Rows / Page
+                </DropdownItem>
+                <DropdownItem
+                  tag={Link}
+                  className={numLimit === 100 ? '' : 'text-success'}
+                  to={`${baseUrl}?offset=${0}&limit=${100}${path ? `&path=${path}` : ''}`}
+                  disabled={numLimit === 100}
+                >
+                  100 Rows / Page
+                </DropdownItem>
+                <DropdownItem
+                  tag={Link}
+                  className={numLimit === 500 ? '' : 'text-success'}
+                  to={`${baseUrl}?offset=${0}&limit=${500}${path ? `&path=${path}` : ''}`}
+                  disabled={numLimit === 500}
+                >
+                  500 Rows / Page
+                </DropdownItem>
               </DropdownMenu>
             </UncontrolledButtonDropdown>
           </PaginationItem>
@@ -108,7 +139,7 @@ export class Paginator extends React.PureComponent<IPaginatorProps> {
     );
   }
 
-  private getNumber(numString?: string) {
+  private getNumber(numString?: string): number | null {
     if (numString === undefined) {
       return null;
     }

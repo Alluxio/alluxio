@@ -11,11 +11,16 @@
 
 package alluxio.conf;
 
+import alluxio.annotation.PublicApi;
+
 import com.google.common.base.Objects;
 
 /**
  * The source of a configuration property.
+ *
+ * The natural ordering of this class is not consistent with the {@link #equals(Object)} method.
  */
+@PublicApi
 public class Source implements Comparable<Source> {
   public static final Source UNKNOWN = new Source(Type.UNKNOWN);
   public static final Source DEFAULT = new Source(Type.DEFAULT);
@@ -94,6 +99,26 @@ public class Source implements Comparable<Source> {
   }
 
   @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+
+    if (!(o instanceof Source)) {
+      return false;
+    }
+
+    Source other = (Source) o;
+
+    return compareTo(other) == 0;
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hashCode(mType);
+  }
+
+  @Override
   public String toString() {
     return mType.name();
   }
@@ -111,7 +136,8 @@ public class Source implements Comparable<Source> {
       if (this == o) {
         return true;
       }
-      if (!(o instanceof SitePropertySource)) {
+
+      if (o == null || this.getClass() != o.getClass()) {
         return false;
       }
       SitePropertySource that = (SitePropertySource) o;

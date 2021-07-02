@@ -36,53 +36,53 @@ public class DelegatingReadOnlyInodeStore implements ReadOnlyInodeStore {
   }
 
   @Override
-  public Optional<Inode> get(long id) {
-    return mDelegate.get(id);
+  public Optional<Inode> get(long id, ReadOption option) {
+    return mDelegate.get(id, option);
   }
 
   @Override
-  public Iterable<Long> getChildIds(Long inodeId) {
-    return mDelegate.getChildIds(inodeId);
+  public Iterable<Long> getChildIds(Long inodeId, ReadOption option) {
+    return mDelegate.getChildIds(inodeId, option);
   }
 
   @Override
-  public Iterable<Long> getChildIds(InodeDirectoryView inode) {
-    return mDelegate.getChildIds(inode);
+  public Iterable<Long> getChildIds(InodeDirectoryView inode, ReadOption option) {
+    return mDelegate.getChildIds(inode, option);
   }
 
   @Override
-  public Iterable<? extends Inode> getChildren(Long inodeId) {
-    return mDelegate.getChildren(inodeId);
+  public Iterable<? extends Inode> getChildren(Long inodeId, ReadOption option) {
+    return mDelegate.getChildren(inodeId, option);
   }
 
   @Override
-  public Iterable<? extends Inode> getChildren(InodeDirectoryView inode) {
-    return mDelegate.getChildren(inode);
+  public Iterable<? extends Inode> getChildren(InodeDirectoryView inode, ReadOption option) {
+    return mDelegate.getChildren(inode, option);
   }
 
   @Override
-  public Optional<Long> getChildId(Long inodeId, String name) {
-    return mDelegate.getChildId(inodeId, name);
+  public Optional<Long> getChildId(Long inodeId, String name, ReadOption option) {
+    return mDelegate.getChildId(inodeId, name, option);
   }
 
   @Override
-  public Optional<Long> getChildId(InodeDirectoryView inode, String name) {
-    return mDelegate.getChildId(inode, name);
+  public Optional<Long> getChildId(InodeDirectoryView inode, String name, ReadOption option) {
+    return mDelegate.getChildId(inode, name, option);
   }
 
   @Override
-  public Optional<Inode> getChild(Long inodeId, String name) {
-    return mDelegate.getChild(inodeId, name);
+  public Optional<Inode> getChild(Long inodeId, String name, ReadOption option) {
+    return mDelegate.getChild(inodeId, name, option);
   }
 
   @Override
-  public Optional<Inode> getChild(InodeDirectoryView inode, String name) {
-    return mDelegate.getChild(inode, name);
+  public Optional<Inode> getChild(InodeDirectoryView inode, String name, ReadOption option) {
+    return mDelegate.getChild(inode, name, option);
   }
 
   @Override
-  public boolean hasChildren(InodeDirectoryView inode) {
-    return mDelegate.hasChildren(inode);
+  public boolean hasChildren(InodeDirectoryView inode, ReadOption option) {
+    return mDelegate.hasChildren(inode, option);
   }
 
   @Override

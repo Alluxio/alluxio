@@ -13,6 +13,7 @@ package alluxio.cli.fs.command;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
+import alluxio.annotation.PublicApi;
 import alluxio.cli.CommandUtils;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileSystemContext;
@@ -35,6 +36,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * Loads a file or directory in Alluxio space, making it resident in Alluxio.
  */
 @ThreadSafe
+@PublicApi
 public final class LoadCommand extends AbstractFileSystemCommand {
   private static final Option LOCAL_OPTION =
       Option.builder()
@@ -95,9 +97,9 @@ public final class LoadCommand extends AbstractFileSystemCommand {
       }
     } else {
       OpenFilePOptions options =
-          OpenFilePOptions.newBuilder().setReadType(ReadPType.CACHE_PROMOTE).build();
+          OpenFilePOptions.newBuilder().setReadType(ReadPType.CACHE).build();
       if (local) {
-        if (!mFsContext.hasLocalWorker()) {
+        if (!mFsContext.hasNodeLocalWorker()) {
           System.out.println("When local option is specified,"
               + " there must be a local worker available");
           return;

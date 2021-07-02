@@ -21,11 +21,11 @@
 # alluxio.security.authentication.type=SIMPLE
 
 # Worker properties
-# alluxio.worker.memory.size=1GB
+# alluxio.worker.ramdisk.size=1GB
 # alluxio.worker.tieredstore.levels=1
 # alluxio.worker.tieredstore.level0.alias=MEM
 # alluxio.worker.tieredstore.level0.dirs.path=/mnt/ramdisk
 
 # User properties
-# alluxio.user.file.readtype.default=CACHE_PROMOTE
-# alluxio.user.file.writetype.default=MUST_CACHE
+# alluxio.user.file.readtype.default=CACHE
+# alluxio.user.file.writetype.default=ASYNC_THROUGH

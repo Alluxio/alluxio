@@ -14,13 +14,15 @@ package alluxio.master;
 import alluxio.master.journal.JournalSystem;
 import alluxio.master.metastore.BlockStore;
 import alluxio.master.metastore.InodeStore;
+import alluxio.security.user.UserState;
+import alluxio.underfs.MasterUfsManager;
 
 import com.google.common.base.Preconditions;
 
 /**
  * This class stores fields that are specific to core masters.
  */
-public class CoreMasterContext extends MasterContext {
+public class CoreMasterContext extends MasterContext<MasterUfsManager> {
   private final SafeModeManager mSafeModeManager;
   private final BackupManager mBackupManager;
   private final BlockStore.Factory mBlockStoreFactory;
@@ -30,7 +32,7 @@ public class CoreMasterContext extends MasterContext {
   private final int mPort;
 
   private CoreMasterContext(Builder builder) {
-    super(builder.mJournalSystem);
+    super(builder.mJournalSystem, builder.mUserState, builder.mUfsManager);
 
     mSafeModeManager = Preconditions.checkNotNull(builder.mSafeModeManager, "safeModeManager");
     mBackupManager = Preconditions.checkNotNull(builder.mBackupManager, "backupManager");
@@ -103,10 +105,12 @@ public class CoreMasterContext extends MasterContext {
    */
   public static class Builder {
     private JournalSystem mJournalSystem;
+    private UserState mUserState;
     private SafeModeManager mSafeModeManager;
     private BackupManager mBackupManager;
     private BlockStore.Factory mBlockStoreFactory;
     private InodeStore.Factory mInodeStoreFactory;
+    private MasterUfsManager mUfsManager;
     private long mStartTimeMs;
     private int mPort;
 
@@ -116,6 +120,15 @@ public class CoreMasterContext extends MasterContext {
      */
     public Builder setJournalSystem(JournalSystem journalSystem) {
       mJournalSystem = journalSystem;
+      return this;
+    }
+
+    /**
+     * @param userState the user state
+     * @return the builder
+     */
+    public Builder setUserState(UserState userState) {
+      mUserState = userState;
       return this;
     }
 
@@ -170,6 +183,15 @@ public class CoreMasterContext extends MasterContext {
      */
     public Builder setPort(int port) {
       mPort = port;
+      return this;
+    }
+
+    /**
+     * @param ufsManager ufsManager
+     * @return the builder
+     */
+    public Builder setUfsManager(MasterUfsManager ufsManager) {
+      mUfsManager = ufsManager;
       return this;
     }
 

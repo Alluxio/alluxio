@@ -1,11 +1,22 @@
-alluxio.fuse.maxwrite.bytes:
-  The desired granularity of FUSE write upcalls in bytes. Note that 128K is currently an upper
-  bound imposed by the linux kernel.
+alluxio.fuse.cached.paths.max:
+  Defines the size of the internal Alluxio-FUSE cache that maintains the most frequently used
+  translations between local file system paths and Alluxio file URIs.
 alluxio.fuse.debug.enabled:
   Enable FUSE debug output. This output will be redirected in a `fuse.out` log file inside
   `alluxio.logs.dir`.
-alluxio.fuse.cachedpaths.max:
-  Defines the size of the internal Alluxio-FUSE cache that maintains the most frequently used
-  translations between local file system paths and Alluxio file URIs.
 alluxio.fuse.fs.name:
   Descriptive name used by FUSE to mount the file system.
+alluxio.fuse.jnifuse.enabled:
+  Use JNI-Fuse library for better performance. If disabled, JNR-Fuse will be used.
+alluxio.fuse.shared.caching.reader.enabled:
+  (Experimental) Use share grpc data reader for better performance on multi-process file reading through Alluxio JNI Fuse.
+  Blocks data will be cached on the client side so more memory is required for the Fuse process.
+alluxio.fuse.logging.threshold:
+  Logging a FUSE API call when it takes more time than the threshold.
+alluxio.fuse.maxwrite.bytes:
+  The desired granularity of FUSE write upcalls in bytes. Note that 128K is currently an upper
+  bound imposed by the linux kernel.
+alluxio.fuse.user.group.translation.enabled:
+  Whether to translate Alluxio users and groups into Unix users and groups when exposing Alluxio files
+  through the FUSE API. When this property is set to false, the user and group for all FUSE files
+  will match the user who started the alluxio-fuse process

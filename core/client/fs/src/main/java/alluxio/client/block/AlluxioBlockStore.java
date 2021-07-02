@@ -14,28 +14,23 @@ package alluxio.client.block;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 
-import alluxio.Constants;
-import alluxio.conf.PropertyKey;
 import alluxio.client.WriteType;
 import alluxio.client.block.policy.BlockLocationPolicy;
 import alluxio.client.block.policy.options.GetWorkerOptions;
 import alluxio.client.block.stream.BlockInStream;
 import alluxio.client.block.stream.BlockInStream.BlockInStreamSource;
 import alluxio.client.block.stream.BlockOutStream;
+import alluxio.client.block.stream.DataWriter;
+import alluxio.client.block.util.BlockLocationUtils;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.options.InStreamOptions;
 import alluxio.client.file.options.OutStreamOptions;
+import alluxio.collections.Pair;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.PreconditionMessage;
-import alluxio.exception.status.NotFoundException;
-import alluxio.exception.status.ResourceExhaustedException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.network.TieredIdentityFactory;
-import alluxio.refresh.RefreshPolicy;
-import alluxio.refresh.TimeoutRefresh;
 import alluxio.resource.CloseableResource;
-import alluxio.util.FormatUtils;
-import alluxio.util.TieredIdentityUtils;
 import alluxio.wire.BlockInfo;
 import alluxio.wire.BlockLocation;
 import alluxio.wire.TieredIdentity;
@@ -70,11 +65,6 @@ public final class AlluxioBlockStore {
   private final FileSystemContext mContext;
   private final TieredIdentity mTieredIdentity;
 
-  /** Cached map for workers. */
-  private List<BlockWorkerInfo> mWorkerInfoList = null;
-  /** The policy to refresh workers list. */
-  private final RefreshPolicy mWorkerRefreshPolicy;
-
   /**
    * Creates an Alluxio block store with default local hostname.
    *
@@ -96,9 +86,6 @@ public final class AlluxioBlockStore {
   AlluxioBlockStore(FileSystemContext context, TieredIdentity tieredIdentity) {
     mContext = context;
     mTieredIdentity = tieredIdentity;
-    mWorkerRefreshPolicy =
-        new TimeoutRefresh(mContext.getClusterConf()
-            .getMs(PropertyKey.USER_WORKER_LIST_REFRESH_INTERVAL));
   }
 
   /**
@@ -111,28 +98,6 @@ public final class AlluxioBlockStore {
     try (CloseableResource<BlockMasterClient> masterClientResource =
         mContext.acquireBlockMasterClientResource()) {
       return masterClientResource.get().getBlockInfo(blockId);
-    }
-  }
-
-  /**
-   * @return the info of all block workers eligible for reads and writes
-   */
-  public synchronized List<BlockWorkerInfo> getEligibleWorkers() throws IOException {
-    if (mWorkerInfoList == null || mWorkerRefreshPolicy.attempt()) {
-      mWorkerInfoList = getAllWorkers();
-    }
-    return mWorkerInfoList;
-  }
-
-  /**
-   * @return the info of all block workers
-   */
-  public List<BlockWorkerInfo> getAllWorkers() throws IOException {
-    try (CloseableResource<BlockMasterClient> masterClientResource =
-        mContext.acquireBlockMasterClientResource()) {
-      return masterClientResource.get().getWorkerInfoList().stream()
-          .map(w -> new BlockWorkerInfo(w.getAddress(), w.getCapacityBytes(), w.getUsedBytes()))
-          .collect(toList());
     }
   }
 
@@ -164,11 +129,20 @@ public final class AlluxioBlockStore {
   public BlockInStream getInStream(long blockId, InStreamOptions options,
       Map<WorkerNetAddress, Long> failedWorkers) throws IOException {
     // Get the latest block info from master
-    BlockInfo info;
-    try (CloseableResource<BlockMasterClient> masterClientResource =
-             mContext.acquireBlockMasterClientResource()) {
-      info = masterClientResource.get().getBlockInfo(blockId);
-    }
+    BlockInfo info = getInfo(blockId);
+    return getInStream(info, options, failedWorkers);
+  }
+
+  /**
+   * {@link #getInStream(long, InStreamOptions, Map)}.
+   *
+   * @param info the block info
+   * @param options the options associated with the read request
+   * @param failedWorkers the map of workers address to most recent failure time
+   * @return a stream which reads from the beginning of the block
+   */
+  public BlockInStream getInStream(BlockInfo info, InStreamOptions options,
+      Map<WorkerNetAddress, Long> failedWorkers) throws IOException {
     List<BlockLocation> locations = info.getLocations();
     List<BlockWorkerInfo> blockWorkerInfo = Collections.EMPTY_LIST;
     // Initial target workers to read the block given the block locations.
@@ -176,18 +150,21 @@ public final class AlluxioBlockStore {
     // Note that, it is possible that the blocks have been written as UFS blocks
     if (options.getStatus().isPersisted()
         || options.getStatus().getPersistenceState().equals("TO_BE_PERSISTED")) {
-      blockWorkerInfo = getEligibleWorkers();
-      workerPool = blockWorkerInfo.stream().map(BlockWorkerInfo::getNetAddress).collect(toSet());
-      if (workerPool.isEmpty()) {
-        throw new UnavailableException(
-            "No Alluxio worker available. Check that your workers are still running");
+      blockWorkerInfo = mContext.getCachedWorkers();
+      if (blockWorkerInfo.isEmpty()) {
+        throw new UnavailableException(ExceptionMessage.NO_WORKER_AVAILABLE.getMessage());
       }
+      workerPool = blockWorkerInfo.stream().map(BlockWorkerInfo::getNetAddress).collect(toSet());
     } else {
-      workerPool = locations.stream().map(BlockLocation::getWorkerAddress).collect(toSet());
-      if (workerPool.isEmpty()) {
-        throw new NotFoundException(
+      if (locations.isEmpty()) {
+        blockWorkerInfo = mContext.getCachedWorkers();
+        if (blockWorkerInfo.isEmpty()) {
+          throw new UnavailableException(ExceptionMessage.NO_WORKER_AVAILABLE.getMessage());
+        }
+        throw new UnavailableException(
             ExceptionMessage.BLOCK_UNAVAILABLE.getMessage(info.getBlockId()));
       }
+      workerPool = locations.stream().map(BlockLocation::getWorkerAddress).collect(toSet());
     }
     // Workers to read the block, after considering failed workers.
     Set<WorkerNetAddress> workers = handleFailedWorkers(workerPool, failedWorkers);
@@ -199,21 +176,17 @@ public final class AlluxioBlockStore {
     // First try to read data from Alluxio
     if (!locations.isEmpty()) {
       // TODO(calvin): Get location via a policy
-      List<TieredIdentity> tieredLocations =
-          locations.stream().map(location -> location.getWorkerAddress().getTieredIdentity())
+      List<WorkerNetAddress> tieredLocations =
+          locations.stream().map(location -> location.getWorkerAddress())
               .collect(toList());
       Collections.shuffle(tieredLocations);
-      Optional<TieredIdentity> nearest =
-          TieredIdentityUtils.nearest(mTieredIdentity, tieredLocations, mContext.getClusterConf());
+      Optional<Pair<WorkerNetAddress, Boolean>> nearest =
+          BlockLocationUtils.nearest(mTieredIdentity, tieredLocations, mContext.getClusterConf());
       if (nearest.isPresent()) {
-        dataSource = locations.stream().map(BlockLocation::getWorkerAddress)
-            .filter(addr -> addr.getTieredIdentity().equals(nearest.get())).findFirst().get();
-        if (mTieredIdentity.getTier(0).getTierName().equals(Constants.LOCALITY_NODE)
-            && mTieredIdentity.topTiersMatch(nearest.get())) {
-          dataSourceType = BlockInStreamSource.LOCAL;
-        } else {
-          dataSourceType = BlockInStreamSource.REMOTE;
-        }
+        dataSource = nearest.get().getFirst();
+        dataSourceType = nearest.get().getSecond() ? mContext.hasProcessLocalWorker()
+            ? BlockInStreamSource.PROCESS_LOCAL : BlockInStreamSource.NODE_LOCAL
+            : BlockInStreamSource.REMOTE;
       }
     }
     // Can't get data from Alluxio, get it from the UFS instead
@@ -264,8 +237,7 @@ public final class AlluxioBlockStore {
    * Gets a stream to write data to a block. The stream can only be backed by Alluxio storage.
    *
    * @param blockId the block to write
-   * @param blockSize the standard block size to write, or -1 if the block already exists (and this
-   *        stream is just storing the block in Alluxio again)
+   * @param blockSize the standard block size to write
    * @param address the address of the worker to write the block to, fails if the worker cannot
    *        serve the request
    * @param options the output stream options
@@ -274,20 +246,13 @@ public final class AlluxioBlockStore {
    */
   public BlockOutStream getOutStream(long blockId, long blockSize, WorkerNetAddress address,
       OutStreamOptions options) throws IOException {
-    if (blockSize == -1) {
-      try (CloseableResource<BlockMasterClient> blockMasterClientResource =
-          mContext.acquireBlockMasterClientResource()) {
-        blockSize = blockMasterClientResource.get().getBlockInfo(blockId).getLength();
-      }
-    }
     // No specified location to write to.
-    if (address == null) {
-      throw new ResourceExhaustedException(ExceptionMessage.NO_SPACE_FOR_BLOCK_ON_WORKER
-          .getMessage(FormatUtils.getSizeFromBytes(blockSize)));
-    }
-    LOG.debug("Create block outstream for {} of block size {} at address {}, using options: {}",
+    Preconditions.checkNotNull(address, "address");
+    LOG.debug("Create BlockOutStream for {} of block size {} at address {}, using options: {}",
         blockId, blockSize, address, options);
-    return BlockOutStream.create(mContext, blockId, blockSize, address, options);
+    DataWriter dataWriter =
+        DataWriter.Factory.create(mContext, blockId, blockSize, address, options);
+    return new BlockOutStream(dataWriter, blockSize, address);
   }
 
   /**
@@ -295,8 +260,7 @@ public final class AlluxioBlockStore {
    * Alluxio storage.
    *
    * @param blockId the block to write
-   * @param blockSize the standard block size to write, or -1 if the block already exists (and this
-   *        stream is just storing the block in Alluxio again)
+   * @param blockSize the standard block size to write
    * @param options the output stream option
    * @return a {@link BlockOutStream} which can be used to write data to the block in a streaming
    *         fashion
@@ -308,7 +272,7 @@ public final class AlluxioBlockStore {
         PreconditionMessage.BLOCK_WRITE_LOCATION_POLICY_UNSPECIFIED);
     GetWorkerOptions workerOptions = GetWorkerOptions.defaults()
         .setBlockInfo(new BlockInfo().setBlockId(blockId).setLength(blockSize))
-        .setBlockWorkerInfos(new ArrayList<>(getEligibleWorkers()));
+        .setBlockWorkerInfos(new ArrayList<>(mContext.getCachedWorkers()));
 
     // The number of initial copies depends on the write type: if ASYNC_THROUGH, it is the property
     // "alluxio.user.file.replication.durable" before data has been persisted; otherwise
@@ -319,9 +283,13 @@ public final class AlluxioBlockStore {
     if (initialReplicas <= 1) {
       address = locationPolicy.getWorker(workerOptions);
       if (address == null) {
+        if (mContext.getCachedWorkers().isEmpty()) {
+          throw new UnavailableException(ExceptionMessage.NO_WORKER_AVAILABLE.getMessage());
+        }
         throw new UnavailableException(
             ExceptionMessage.NO_SPACE_FOR_BLOCK_ON_WORKER.getMessage(blockSize));
       }
+      // TODO(ggezer): Retry on another worker if this has no storage.
       return getOutStream(blockId, blockSize, address, options);
     }
 

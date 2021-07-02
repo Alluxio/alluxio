@@ -37,8 +37,8 @@ public final class RuntimeConstants {
   }
 
   /** The relative path to the Alluxio target jar. */
-  public static final String ALLUXIO_JAR =
-      "target/alluxio-" + VERSION + "-jar-with-dependencies.jar";
+  public static final String ALLUXIO_JAR = "target/alluxio-" + VERSION
+      + "-jar-with-dependencies.jar";
 
   /** The URL of Alluxio documentation for this version on project web site. */
   public static final String ALLUXIO_DOCS_URL;
@@ -47,11 +47,16 @@ public final class RuntimeConstants {
   public static final String ALLUXIO_JAVADOC_URL;
 
   /** The URL of Alluxio debugging documentation. */
-  public static final String ALLUXIO_DEBUG_DOCS_URL = ALLUXIO_DOCS_URL + "/en/Debugging-Guide.html";
+  public static final String ALLUXIO_DEBUG_DOCS_URL = ALLUXIO_DOCS_URL
+      + "/en/operation/Troubleshooting.html";
 
   /** The URL of Alluxio 1.x to 2.x upgrade documentation. */
-  public static final String ALLUXIO_2X_UPGRADE_DOC_URL =
-      ALLUXIO_DOCS_URL + "/en/operation/2.x-Upgrade.html";
+  public static final String ALLUXIO_2X_UPGRADE_DOC_URL = ALLUXIO_DOCS_URL
+      + "/en/operation/2.x-Upgrade.html";
+
+  /** The URL of Alluxio security documentation. */
+  public static final String ALLUXIO_SECURITY_DOCS_URL = ALLUXIO_DOCS_URL
+      + "/en/operation/Security.html";
 
   private RuntimeConstants() {} // prevent instantiation
 }

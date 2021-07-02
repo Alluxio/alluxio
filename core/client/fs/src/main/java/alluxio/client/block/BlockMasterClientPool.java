@@ -11,17 +11,15 @@
 
 package alluxio.client.block;
 
-import alluxio.ClientContext;
 import alluxio.conf.PropertyKey;
 import alluxio.master.MasterClientContext;
-import alluxio.master.MasterInquireClient;
+import alluxio.resource.DynamicResourcePool;
 import alluxio.resource.ResourcePool;
-
-import com.google.common.io.Closer;
+import alluxio.util.ThreadFactoryUtils;
 
 import java.io.IOException;
-import java.util.Queue;
-import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -31,37 +29,56 @@ import javax.annotation.concurrent.ThreadSafe;
  * thread is done using the client.
  */
 @ThreadSafe
-public final class BlockMasterClientPool extends ResourcePool<BlockMasterClient> {
+public final class BlockMasterClientPool extends DynamicResourcePool<BlockMasterClient> {
   private final MasterClientContext mMasterContext;
-  private final Queue<BlockMasterClient> mClientList;
+  private final long mGcThresholdMs;
+
+  private static final int BLOCK_MASTER_CLIENT_POOL_GC_THREADPOOL_SIZE = 1;
+  private static final ScheduledExecutorService GC_EXECUTOR =
+      new ScheduledThreadPoolExecutor(BLOCK_MASTER_CLIENT_POOL_GC_THREADPOOL_SIZE,
+          ThreadFactoryUtils.build("BlockMasterClientPoolGcThreads-%d", true));
 
   /**
    * Creates a new block master client pool.
    *
-   * @param context the information required for connecting to Alluxio
-   * @param masterInquireClient a client for determining the master address
+   * @param ctx the information required for connecting to Alluxio
    */
-  public BlockMasterClientPool(ClientContext context, MasterInquireClient masterInquireClient) {
-    super(context.getConf().getInt(PropertyKey.USER_BLOCK_MASTER_CLIENT_THREADS));
-    mClientList = new ConcurrentLinkedQueue<>();
-    mMasterContext =
-        MasterClientContext.newBuilder(context).setMasterInquireClient(masterInquireClient).build();
+  public BlockMasterClientPool(MasterClientContext ctx) {
+    super(Options.defaultOptions()
+        .setMinCapacity(ctx.getClusterConf()
+            .getInt(PropertyKey.USER_BLOCK_MASTER_CLIENT_POOL_SIZE_MIN))
+        .setMaxCapacity(ctx.getClusterConf()
+            .getInt(PropertyKey.USER_BLOCK_MASTER_CLIENT_POOL_SIZE_MAX))
+        .setGcIntervalMs(
+            ctx.getClusterConf().getMs(PropertyKey.USER_BLOCK_MASTER_CLIENT_POOL_GC_INTERVAL_MS))
+        .setGcExecutor(GC_EXECUTOR));
+    mMasterContext = ctx;
+    mGcThresholdMs =
+        ctx.getClusterConf().getMs(PropertyKey.USER_BLOCK_MASTER_CLIENT_POOL_GC_THRESHOLD_MS);
   }
 
   @Override
-  public void close() throws IOException {
-    BlockMasterClient client;
-    Closer closer = Closer.create();
-    while ((client = mClientList.poll()) != null) {
-      closer.register(client);
+  protected void closeResource(BlockMasterClient client) {
+    try {
+      client.close();
+    } catch (IOException e) {
+      throw new RuntimeException(e);
     }
-    closer.close();
   }
 
   @Override
   protected BlockMasterClient createNewResource() {
-    BlockMasterClient client = BlockMasterClient.Factory.create(mMasterContext);
-    mClientList.add(client);
-    return client;
+    return BlockMasterClient.Factory.create(mMasterContext);
+  }
+
+  @Override
+  protected boolean isHealthy(BlockMasterClient client) {
+    return client.isConnected();
+  }
+
+  @Override
+  protected boolean shouldGc(ResourceInternal<BlockMasterClient> clientResourceInternal) {
+    return System.currentTimeMillis()
+        - clientResourceInternal.getLastAccessTimeMs() > mGcThresholdMs;
   }
 }

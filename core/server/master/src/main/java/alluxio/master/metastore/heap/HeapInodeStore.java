@@ -14,18 +14,27 @@ package alluxio.master.metastore.heap;
 import static java.util.stream.Collectors.toList;
 
 import alluxio.collections.TwoKeyConcurrentMap;
+import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
 import alluxio.master.file.meta.EdgeEntry;
 import alluxio.master.file.meta.Inode;
 import alluxio.master.file.meta.InodeDirectoryView;
 import alluxio.master.file.meta.MutableInode;
+import alluxio.master.file.meta.MutableInodeDirectory;
+import alluxio.master.file.meta.MutableInodeFile;
 import alluxio.master.journal.checkpoint.CheckpointInputStream;
 import alluxio.master.journal.checkpoint.CheckpointName;
 import alluxio.master.journal.checkpoint.CheckpointOutputStream;
 import alluxio.master.journal.checkpoint.CheckpointType;
 import alluxio.master.metastore.InodeStore;
+import alluxio.master.metastore.ReadOption;
+import alluxio.metrics.MetricKey;
+import alluxio.metrics.MetricsSystem;
 import alluxio.proto.meta.InodeMeta;
+import alluxio.util.ObjectSizeCalculator;
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableSet;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -48,6 +57,18 @@ public class HeapInodeStore implements InodeStore {
   private final TwoKeyConcurrentMap<Long, String, Long, Map<String, Long>> mEdges =
       new TwoKeyConcurrentMap<>(() -> new ConcurrentHashMap<>(4));
 
+  /**
+   * Construct a heap inode store.
+   */
+  public HeapInodeStore() {
+    super();
+    if (ServerConfiguration.getBoolean(PropertyKey.MASTER_METRICS_HEAP_ENABLED)) {
+      MetricsSystem.registerCachedGaugeIfAbsent(MetricKey.MASTER_INODE_HEAP_SIZE.getName(),
+          () -> ObjectSizeCalculator.getObjectSize(mInodes,
+          ImmutableSet.of(Long.class, MutableInodeFile.class, MutableInodeDirectory.class)));
+    }
+  }
+
   @Override
   public void remove(Long inodeId) {
     mInodes.remove(inodeId);
@@ -69,17 +90,17 @@ public class HeapInodeStore implements InodeStore {
   }
 
   @Override
-  public Optional<MutableInode<?>> getMutable(long id) {
+  public Optional<MutableInode<?>> getMutable(long id, ReadOption option) {
     return Optional.ofNullable(mInodes.get(id));
   }
 
   @Override
-  public Iterable<Long> getChildIds(Long inodeId) {
+  public Iterable<Long> getChildIds(Long inodeId, ReadOption option) {
     return children(inodeId).values();
   }
 
   @Override
-  public Iterable<? extends Inode> getChildren(Long inodeId) {
+  public Iterable<? extends Inode> getChildren(Long inodeId, ReadOption option) {
     return children(inodeId).values().stream()
         .map(this::get)
         .filter(Optional::isPresent)
@@ -89,19 +110,19 @@ public class HeapInodeStore implements InodeStore {
   }
 
   @Override
-  public Optional<Long> getChildId(Long inodeId, String child) {
+  public Optional<Long> getChildId(Long inodeId, String child, ReadOption option) {
     return Optional.ofNullable(children(inodeId).get(child));
   }
 
   @Override
-  public Optional<Inode> getChild(Long inodeId, String child) {
+  public Optional<Inode> getChild(Long inodeId, String child, ReadOption option) {
     return getChildId(inodeId, child)
         .flatMap(this::get)
         .map(Inode::wrap);
   }
 
   @Override
-  public boolean hasChildren(InodeDirectoryView dir) {
+  public boolean hasChildren(InodeDirectoryView dir, ReadOption option) {
     return !children(dir.getId()).isEmpty();
   }
 

@@ -12,13 +12,12 @@
 package alluxio.client.file;
 
 import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.fail;
 import static org.junit.Assert.assertEquals;
-
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertThrows;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyByte;
 import static org.mockito.Matchers.anyInt;
 import static org.mockito.Matchers.anyLong;
 import static org.mockito.Matchers.eq;
@@ -29,9 +28,9 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import alluxio.AlluxioURI;
+import alluxio.ClientContext;
 import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
-import alluxio.LoginUserRule;
 import alluxio.client.UnderStorageType;
 import alluxio.client.WriteType;
 import alluxio.client.block.AlluxioBlockStore;
@@ -50,7 +49,6 @@ import alluxio.grpc.CompleteFilePOptions;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.FileSystemMasterCommonPOptions;
 import alluxio.grpc.GetStatusPOptions;
-import alluxio.grpc.ScheduleAsyncPersistencePOptions;
 import alluxio.grpc.TtlAction;
 import alluxio.grpc.WritePType;
 import alluxio.network.TieredIdentityFactory;
@@ -62,10 +60,9 @@ import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.collect.Lists;
 import org.junit.After;
+import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.invocation.InvocationOnMock;
@@ -91,12 +88,6 @@ public class FileOutStreamTest {
 
   private static InstancedConfiguration sConf = ConfigurationTestUtils.defaults();
 
-  @Rule
-  public LoginUserRule mLoginUser = new LoginUserRule("Test", sConf);
-
-  @Rule
-  public ExpectedException mException = ExpectedException.none();
-
   private static final long BLOCK_LENGTH = 100L;
   private static final AlluxioURI FILE_NAME = new AlluxioURI("/file");
 
@@ -108,7 +99,8 @@ public class FileOutStreamTest {
   private TestUnderFileSystemFileOutStream mUnderStorageOutputStream;
   private AtomicBoolean mUnderStorageFlushed;
 
-  private FileOutStream mTestStream;
+  private AlluxioFileOutStream mTestStream;
+  private ClientContext mClientContext;
 
   /**
    * Sets up the different contexts and clients before a test runs.
@@ -118,8 +110,11 @@ public class FileOutStreamTest {
     GroupMappingServiceTestUtils.resetCache();
     ClientTestUtils.setSmallBufferSizes(sConf);
 
+    mClientContext = ClientContext.create(sConf);
+
     // PowerMock enums and final classes
     mFileSystemContext = PowerMockito.mock(FileSystemContext.class);
+    when(mFileSystemContext.getClientContext()).thenReturn(mClientContext);
     when(mFileSystemContext.getClusterConf()).thenReturn(sConf);
     when(mFileSystemContext.getPathConf(any(AlluxioURI.class))).thenReturn(sConf);
     mBlockStore = PowerMockito.mock(AlluxioBlockStore.class);
@@ -150,7 +145,7 @@ public class FileOutStreamTest {
         any(OutStreamOptions.class))).thenAnswer(new Answer<TestBlockOutStream>() {
           @Override
           public TestBlockOutStream answer(InvocationOnMock invocation) throws Throwable {
-            Long blockId = invocation.getArgumentAt(0, Long.class);
+            Long blockId = invocation.getArgument(0, Long.class);
             if (!outStreamMap.containsKey(blockId)) {
               TestBlockOutStream newStream =
                   new TestBlockOutStream(ByteBuffer.allocate(1000), BLOCK_LENGTH);
@@ -163,7 +158,7 @@ public class FileOutStreamTest {
         new BlockWorkerInfo(new WorkerNetAddress().setHost("localhost")
             .setTieredIdentity(TieredIdentityFactory.fromString("node=localhost", sConf))
             .setRpcPort(1).setDataPort(2).setWebPort(3), Constants.GB, 0);
-    when(mBlockStore.getEligibleWorkers()).thenReturn(Lists.newArrayList(workerInfo));
+    when(mFileSystemContext.getCachedWorkers()).thenReturn(Lists.newArrayList(workerInfo));
     mAlluxioOutStreamMap = outStreamMap;
 
     // Create an under storage stream so that we can check whether it has been flushed
@@ -184,8 +179,9 @@ public class FileOutStreamTest {
             any(WorkerNetAddress.class), any(OutStreamOptions.class))).thenReturn(
         mUnderStorageOutputStream);
 
-    OutStreamOptions options = OutStreamOptions.defaults(sConf).setBlockSizeBytes(BLOCK_LENGTH)
-        .setWriteType(WriteType.CACHE_THROUGH).setUfsPath(FILE_NAME.getPath());
+    OutStreamOptions options =
+        OutStreamOptions.defaults(mClientContext).setBlockSizeBytes(BLOCK_LENGTH)
+            .setWriteType(WriteType.CACHE_THROUGH).setUfsPath(FILE_NAME.getPath());
     mTestStream = createTestStream(FILE_NAME, options);
   }
 
@@ -292,15 +288,16 @@ public class FileOutStreamTest {
   @Test
   public void cacheWriteExceptionNonSyncPersist() throws IOException {
     OutStreamOptions options =
-        OutStreamOptions.defaults(sConf).setBlockSizeBytes(BLOCK_LENGTH)
+        OutStreamOptions.defaults(mClientContext).setBlockSizeBytes(BLOCK_LENGTH)
             .setWriteType(WriteType.MUST_CACHE);
     BlockOutStream stream = mock(BlockOutStream.class);
-    when(mBlockStore.getOutStream(anyInt(), anyLong(), any(OutStreamOptions.class)))
+    when(mBlockStore.getOutStream(anyLong(), anyLong(), any(OutStreamOptions.class)))
         .thenReturn(stream);
     mTestStream = createTestStream(FILE_NAME, options);
 
     when(stream.remaining()).thenReturn(BLOCK_LENGTH);
-    doThrow(new IOException("test error")).when(stream).write((byte) 7);
+    doThrow(new IOException("test error")).when(stream).write(7);
+
     try {
       mTestStream.write(7);
       fail("the test should fail");
@@ -327,7 +324,7 @@ public class FileOutStreamTest {
     assertArrayEquals(new byte[] {7, 8}, mUnderStorageOutputStream.getWrittenData());
     // The cache stream is written to only once - the FileInStream gives up on it after it throws
     // the first exception.
-    verify(stream, times(1)).write(anyByte());
+    verify(stream, times(1)).write(anyInt());
   }
 
   /**
@@ -388,15 +385,18 @@ public class FileOutStreamTest {
   @Test
   public void asyncWrite() throws Exception {
     OutStreamOptions options =
-        OutStreamOptions.defaults(sConf).setBlockSizeBytes(BLOCK_LENGTH)
+        OutStreamOptions.defaults(mClientContext).setBlockSizeBytes(BLOCK_LENGTH)
             .setWriteType(WriteType.ASYNC_THROUGH);
     mTestStream = createTestStream(FILE_NAME, options);
 
     mTestStream.write(BufferUtils.getIncreasingByteArray((int) (BLOCK_LENGTH * 1.5)));
     mTestStream.close();
-    verify(mFileSystemMasterClient).completeFile(eq(FILE_NAME), any(CompleteFilePOptions.class));
-    verify(mFileSystemMasterClient).scheduleAsyncPersist(eq(FILE_NAME),
-        any(ScheduleAsyncPersistencePOptions.class));
+
+    // Verify that async persist request is sent with complete file request.
+    ArgumentCaptor<CompleteFilePOptions> parameterCaptor =
+            ArgumentCaptor.forClass(CompleteFilePOptions.class);
+    verify(mFileSystemMasterClient).completeFile(eq(FILE_NAME), parameterCaptor.capture());
+    Assert.assertTrue(parameterCaptor.getValue().hasAsyncPersistOptions());
   }
 
   /**
@@ -412,7 +412,8 @@ public class FileOutStreamTest {
 
     OutStreamOptions options =
         new OutStreamOptions(CreateFilePOptions.newBuilder().setWriteType(WritePType.ASYNC_THROUGH)
-            .setBlockSizeBytes(BLOCK_LENGTH).setCommonOptions(commonOptions).build(), sConf);
+            .setBlockSizeBytes(BLOCK_LENGTH).setCommonOptions(commonOptions).build(),
+            mClientContext, sConf);
 
     // Verify that OutStreamOptions have captured the common options properly.
     assertEquals(options.getCommonOptions(), commonOptions);
@@ -423,10 +424,12 @@ public class FileOutStreamTest {
     verify(mFileSystemMasterClient).completeFile(eq(FILE_NAME), any(CompleteFilePOptions.class));
 
     // Verify that common options for OutStreamOptions are propagated to ScheduleAsyncPersistence.
-    ArgumentCaptor<ScheduleAsyncPersistencePOptions> parameterCaptor =
-            ArgumentCaptor.forClass(ScheduleAsyncPersistencePOptions.class);
-    verify(mFileSystemMasterClient).scheduleAsyncPersist(eq(FILE_NAME), parameterCaptor.capture());
-    assertEquals(parameterCaptor.getValue().getCommonOptions(), options.getCommonOptions());
+    ArgumentCaptor<CompleteFilePOptions> parameterCaptor =
+            ArgumentCaptor.forClass(CompleteFilePOptions.class);
+
+    verify(mFileSystemMasterClient).completeFile(eq(FILE_NAME), parameterCaptor.capture());
+    assertEquals(parameterCaptor.getValue().getAsyncPersistOptions().getCommonOptions(),
+        options.getCommonOptions());
   }
 
   /**
@@ -437,8 +440,8 @@ public class FileOutStreamTest {
   public void getBytesWrittenWithDifferentUnderStorageType() throws IOException {
     for (WriteType type : WriteType.values()) {
       OutStreamOptions options =
-          OutStreamOptions.defaults(sConf).setBlockSizeBytes(BLOCK_LENGTH).setWriteType(type)
-              .setUfsPath(FILE_NAME.getPath());
+          OutStreamOptions.defaults(mClientContext).setBlockSizeBytes(BLOCK_LENGTH)
+              .setWriteType(type).setUfsPath(FILE_NAME.getPath());
       mTestStream = createTestStream(FILE_NAME, options);
       mTestStream.write(BufferUtils.getIncreasingByteArray((int) BLOCK_LENGTH));
       mTestStream.flush();
@@ -448,12 +451,12 @@ public class FileOutStreamTest {
 
   @Test
   public void createWithNoWorker() throws Exception {
-    OutStreamOptions options = OutStreamOptions.defaults(sConf)
+    OutStreamOptions options = OutStreamOptions.defaults(mClientContext)
         .setLocationPolicy((getWorkerOptions) -> null)
         .setWriteType(WriteType.CACHE_THROUGH);
-    mException.expect(UnavailableException.class);
-    mException.expectMessage(ExceptionMessage.NO_WORKER_AVAILABLE.getMessage());
-    mTestStream = createTestStream(FILE_NAME, options);
+    Exception e = assertThrows(UnavailableException.class,
+        () -> mTestStream = createTestStream(FILE_NAME, options));
+    assertTrue(e.getMessage().contains(ExceptionMessage.NO_WORKER_AVAILABLE.getMessage()));
   }
 
   private void verifyIncreasingBytesWritten(int len) {
@@ -491,8 +494,8 @@ public class FileOutStreamTest {
    * @param options the set of options specific to this operation
    * @return a {@link FileOutStream}
    */
-  private FileOutStream createTestStream(AlluxioURI path, OutStreamOptions options)
+  private AlluxioFileOutStream createTestStream(AlluxioURI path, OutStreamOptions options)
       throws IOException {
-    return new FileOutStream(path, options, mFileSystemContext);
+    return new AlluxioFileOutStream(path, options, mFileSystemContext);
   }
 }

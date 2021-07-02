@@ -12,6 +12,7 @@
 package alluxio.cli.fs.command;
 
 import alluxio.AlluxioURI;
+import alluxio.annotation.PublicApi;
 import alluxio.cli.CommandUtils;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.URIStatus;
@@ -28,6 +29,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * Displays ACL info of a path.
  */
 @ThreadSafe
+@PublicApi
 public final class GetFaclCommand extends AbstractFileSystemCommand {
   /**
    * @param fsContext the filesystem of Alluxio

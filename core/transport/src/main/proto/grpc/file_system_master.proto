@@ -1,0 +1,706 @@
+syntax = "proto2";
+
+option java_multiple_files = true;
+option java_package = "alluxio.grpc";
+option java_outer_classname = "FileSystemMasterProto";
+
+package alluxio.grpc.file;
+
+import "grpc/common.proto";
+import "grpc/fscommon.proto";
+
+enum WritePType {
+  MUST_CACHE = 1;
+  TRY_CACHE = 2;
+  CACHE_THROUGH = 3;
+  THROUGH = 4;
+  ASYNC_THROUGH = 5;
+  NONE = 6;
+}
+
+enum ReadPType {
+  NO_CACHE = 1;
+  CACHE = 2;
+  CACHE_PROMOTE = 3;
+}
+
+enum LoadMetadataPType {
+  NEVER = 0;  // Never load metadata.
+  ONCE = 1;  // Load metadata only once.
+  ALWAYS = 2;  // Always load metadata.
+}
+
+message FileSystemMasterCommonPOptions {
+  optional int64 syncIntervalMs = 1;
+  optional int64 ttl = 2;
+  optional grpc.TtlAction ttlAction = 3;
+}
+
+message CheckAccessPRequest {
+  optional string path = 1;
+  optional CheckAccessPOptions options = 2;
+}
+
+message CheckAccessPResponse {}
+message CheckAccessPOptions {
+  optional Bits bits = 1;
+  optional FileSystemMasterCommonPOptions commonOptions = 2;
+}
+
+message CheckConsistencyPResponse {
+  repeated string inconsistentPaths = 1;
+}
+message CheckConsistencyPOptions {
+  optional FileSystemMasterCommonPOptions commonOptions = 1;
+}
+message CheckConsistencyPRequest {
+  /** the root of the subtree to check */
+  optional string path = 1;
+  optional CheckConsistencyPOptions options = 2;
+}
+
+message CompleteFilePResponse {}
+message CompleteFilePOptions {
+  optional int64 ufsLength = 1;
+  optional ScheduleAsyncPersistencePOptions asyncPersistOptions = 2;
+  optional FileSystemMasterCommonPOptions commonOptions = 3;
+}
+message CompleteFilePRequest {
+  /** the path of the file */
+  optional string path = 1;
+  optional CompleteFilePOptions options = 2;
+}
+
+message OpenFilePOptions {
+  optional ReadPType readType = 1;
+  optional int32 maxUfsReadConcurrency = 2;
+  optional FileSystemMasterCommonPOptions commonOptions = 3;
+  optional bool updateLastAccessTime = 4 [default = true];
+}
+
+message CreateDirectoryPResponse {}
+message CreateDirectoryPOptions {
+  optional bool recursive = 1;
+  optional bool allowExists = 2;
+  optional PMode mode = 3;
+  optional WritePType writeType = 4;
+  optional FileSystemMasterCommonPOptions commonOptions = 5;
+}
+message CreateDirectoryPRequest {
+  /** the path of the directory */
+  optional string path = 1;
+  optional CreateDirectoryPOptions options = 2;
+}
+
+message CreateFilePResponse {
+  optional FileInfo fileInfo = 1;
+}
+message CreateFilePOptions {
+  optional int64 blockSizeBytes = 1;
+  optional bool recursive = 2;
+  optional PMode mode = 3;
+  optional int32 replicationMax = 4;
+  optional int32 replicationMin = 5;
+  optional int32 replicationDurable = 6;
+  optional int32 writeTier = 7;
+  optional WritePType writeType = 8;
+  optional FileSystemMasterCommonPOptions commonOptions = 9;
+  optional int64 persistenceWaitTime = 10;
+}
+message CreateFilePRequest {
+  /** the path of the file */
+  optional string path = 1;
+  optional CreateFilePOptions options = 2;
+}
+
+message DeletePResponse {}
+message DeletePOptions {
+  optional bool recursive = 1;
+  optional bool alluxioOnly = 2;
+  optional bool unchecked = 3;
+  optional FileSystemMasterCommonPOptions commonOptions = 4;
+}
+message DeletePRequest {
+  /** the path of the file or directory */
+  optional string path = 1;
+  optional DeletePOptions options = 2;
+}
+
+message FreePResponse {}
+message FreePOptions {
+  optional bool recursive = 1;
+  optional bool forced = 2;
+  optional FileSystemMasterCommonPOptions commonOptions = 3;
+}
+message FreePRequest {
+  /** the path of the file or directory */
+  optional string path = 1;
+  optional FreePOptions options = 2;
+}
+
+message GetNewBlockIdForFilePResponse {
+  optional int64 id = 1;
+}
+message GetNewBlockIdForFilePOptions {
+  optional FileSystemMasterCommonPOptions commonOptions = 1;
+}
+message GetNewBlockIdForFilePRequest {
+  /** the path of the file */
+  optional string path = 1;
+  optional GetNewBlockIdForFilePOptions options = 2;
+}
+
+message GetStatusPResponse {
+  optional FileInfo fileInfo = 1;
+}
+message GetStatusPOptions {
+  optional LoadMetadataPType loadMetadataType = 1;
+  optional FileSystemMasterCommonPOptions commonOptions = 2;
+  optional Bits accessMode = 3;
+  optional bool updateTimestamps = 4 [default = true];
+}
+message GetStatusPRequest {
+  /** the path of the file or directory */
+  optional string path = 1;
+  optional GetStatusPOptions options = 2;
+}
+
+message ExistsPOptions {
+  optional LoadMetadataPType loadMetadataType = 1;
+  optional FileSystemMasterCommonPOptions commonOptions = 2;
+}
+
+enum SyncPointStatus {
+  Not_Initially_Synced = 0;
+  Syncing = 1;
+  Initially_Synced = 2;
+}
+
+message SyncPointInfo {
+  optional string syncPointUri = 1;
+  optional SyncPointStatus syncStatus = 2;
+}
+
+message GetSyncPathListPResponse {
+  repeated SyncPointInfo syncPaths= 1;
+}
+message GetSyncPathListPRequest {}
+
+message ListStatusPResponse {
+  repeated FileInfo fileInfos = 1;
+}
+message ListStatusPOptions {
+  // This is deprecated since 1.1.1 and will be removed in 2.0. Use loadMetadataType.
+  optional bool loadDirectChildren = 1;
+  optional LoadMetadataPType loadMetadataType = 2;
+  optional FileSystemMasterCommonPOptions commonOptions = 3;
+  optional bool recursive = 4;
+  // No data will be transferred.
+  optional bool loadMetadataOnly = 5;
+}
+message ListStatusPRequest {
+  /** the path of the file or directory */
+  optional string path = 1;
+  optional ListStatusPOptions options = 2;
+}
+
+message LoadMetadataPOptions {
+  /** whether to load metadata recursively */
+  optional bool recursive = 1;
+  optional bool createAncestors = 2;
+  optional fscommon.LoadDescendantPType loadDescendantType = 3;
+  optional FileSystemMasterCommonPOptions commonOptions = 4;
+  optional LoadMetadataPType loadType = 5;
+}
+
+enum PAclEntryType {
+  Owner = 0;
+  NamedUser = 1;
+  OwningGroup = 2;
+  NamedGroup = 3;
+  Mask = 4;
+  Other = 5;
+}
+
+enum PAclAction {
+  Read = 0;
+  Write = 1;
+  Execute = 2;
+}
+
+message PAclEntry {
+  optional PAclEntryType type = 1;
+  optional string subject = 2;
+  repeated PAclAction actions = 3;
+  optional bool isDefault = 4;
+}
+
+message PAcl {
+  optional string owner = 1;
+  optional string owningGroup = 2;
+  repeated PAclEntry entries = 3;
+  optional int32 mode = 4;
+  optional bool isDefault = 5;
+  optional bool isDefaultEmpty = 6;
+}
+
+/**
+* Contains the information of a block in a file. In addition to the BlockInfo, it includes the
+* offset in the file, and the under file system locations of the block replicas.
+*/
+message FileBlockInfo {
+  optional grpc.BlockInfo blockInfo = 1;
+  optional int64 offset = 2;
+  repeated grpc.WorkerNetAddress ufsLocations = 3; // deprecated since 1.1 will be removed in 2.0 (replaced by ufsStringLocations)
+  repeated string ufsStringLocations = 4;
+}
+
+message FileInfo {
+  optional int64 fileId = 1;
+  optional string name = 2;
+  optional string path = 3;
+  optional string ufsPath = 4;
+  optional int64 length = 5;
+  optional int64 blockSizeBytes = 6;
+  optional int64 creationTimeMs = 7;
+  optional bool completed = 8;
+  optional bool folder = 9;
+  optional bool pinned = 10;
+  optional bool cacheable = 11;
+  optional bool persisted = 12;
+  repeated int64 blockIds = 13;
+  optional int64 lastModificationTimeMs = 14;
+  optional int64 ttl = 15;
+  optional string owner = 16;
+  optional string group = 17;
+  optional int32 mode = 18;
+  optional string persistenceState = 19;
+  optional bool mountPoint = 20;
+  repeated FileBlockInfo fileBlockInfos = 21;
+  optional grpc.TtlAction ttlAction = 22;
+  optional int64 mountId = 23;
+  optional int32 inAlluxioPercentage = 24;
+  optional int32 inMemoryPercentage = 25;
+  optional string ufsFingerprint = 26;
+  optional PAcl acl = 27;
+  optional PAcl defaultAcl = 28;
+  optional int32 replicationMax = 29;
+  optional int32 replicationMin = 30;
+  optional int64 lastAccessTimeMs = 31;
+  map<string, bytes> xattr = 32;
+  repeated string mediumType = 33;
+}
+
+message GetFilePathPResponse {
+  optional string path = 1;
+}
+message GetFilePathPRequest {
+  optional int64 fileId = 1;
+}
+
+message MountPResponse {}
+message MountPOptions {
+  optional bool readOnly = 1;
+  map<string, string> properties = 2;
+  optional bool shared = 3;
+  optional FileSystemMasterCommonPOptions commonOptions = 4;
+}
+message MountPRequest {
+  /** the path of alluxio mount point */
+  optional string alluxioPath = 1;
+  /** the path of the under file system */
+  optional string ufsPath = 2;
+  optional MountPOptions options = 3;
+}
+
+message GetMountTablePResponse {
+  map<string, MountPointInfo> mountPoints = 1;
+}
+message GetMountTablePRequest {}
+
+message MountPointInfo {
+  optional string ufsUri = 1;
+  optional string ufsType = 2;
+  optional int64 ufsCapacityBytes = 3 [default = -1];
+  optional int64 ufsUsedBytes = 4 [default = -1];
+  optional bool readOnly = 5;
+  map<string, string> properties = 6;
+  optional bool shared = 7;
+  optional int64 mountId = 8;
+}
+
+message FileSystemCommandOptions {
+  optional PersistCommandOptions persistOptions = 1;
+}
+
+message PersistCommandOptions {
+  repeated PersistFile persistFiles = 1;
+}
+
+message PersistFile {
+  optional int64 fileId = 1;
+  repeated int64 blockIds = 2;
+}
+
+message FileSystemCommand {
+  optional grpc.CommandType commandType = 1;
+  optional FileSystemCommandOptions commandOptions = 2;
+}
+
+message RenamePResponse {}
+message RenamePOptions {
+  optional FileSystemMasterCommonPOptions commonOptions = 1;
+  optional bool persist = 2;
+}
+message RenamePRequest {
+  /** the source path of the file or directory */
+  optional string path = 1;
+  /** the destination path */
+  optional string dstPath = 2;
+  optional RenamePOptions options = 3;
+}
+
+message ReverseResolvePRequest {
+  optional string ufsUri = 1;
+}
+message ReverseResolvePResponse {
+  optional string alluxioPath = 1;
+}
+
+
+message SetAttributePResponse {}
+message SetAttributePOptions {
+  optional bool pinned = 1;
+  optional bool persisted = 2;
+  optional string owner = 3;
+  optional string group = 4;
+  optional PMode mode = 5;
+  optional bool recursive = 6;
+  optional int32 replicationMax = 7;
+  optional int32 replicationMin = 8;
+  optional FileSystemMasterCommonPOptions commonOptions = 9;
+  repeated string pinnedMedia = 10;
+}
+message SetAttributePRequest {
+  /** the path of the file */
+  optional string path = 1;
+  optional SetAttributePOptions options = 2;
+}
+
+enum SetAclAction {
+  REPLACE = 0;
+  MODIFY = 1;
+  REMOVE = 2;
+  REMOVE_ALL = 3;
+  REMOVE_DEFAULT = 4;
+}
+
+message SetAclPResponse {}
+message SetAclPOptions {
+  optional FileSystemMasterCommonPOptions commonOptions = 1;
+  optional bool recursive = 2;
+}
+message SetAclPRequest {
+  /** the path of the file or directory */
+  optional string path = 1;
+  /** the set action to perform */
+  optional SetAclAction action = 2;
+  /** the list of ACL entries */
+  repeated PAclEntry entries = 3;
+  /** the method options */
+  optional SetAclPOptions options = 4;
+}
+
+message ScheduleAsyncPersistencePResponse {}
+message ScheduleAsyncPersistencePOptions {
+  optional FileSystemMasterCommonPOptions commonOptions = 1;
+  optional int64 persistenceWaitTime = 2;
+}
+message ScheduleAsyncPersistencePRequest {
+  /** the path of the file */
+  optional string path = 1;
+  optional ScheduleAsyncPersistencePOptions options = 2;
+}
+
+message StartSyncPResponse {}
+message StartSyncPOptions {
+  optional FileSystemMasterCommonPOptions commonOptions = 1;
+}
+message StartSyncPRequest {
+  optional string path = 1;
+  optional StartSyncPOptions options = 2;
+}
+
+message StopSyncPResponse {}
+message StopSyncPOptions {
+  optional FileSystemMasterCommonPOptions commonOptions = 1;
+}
+message StopSyncPRequest {
+  optional string path = 1;
+  optional StopSyncPOptions options = 2;
+}
+
+message UnmountPResponse {}
+message UnmountPOptions {
+  optional FileSystemMasterCommonPOptions commonOptions = 1;
+}
+message UnmountPRequest {
+  /** the path of the alluxio mount point */
+  optional string alluxioPath = 1;
+  optional UnmountPOptions options = 2;
+}
+
+message UfsInfo {
+  optional string uri = 1;
+  optional MountPOptions properties = 2;
+}
+
+enum UfsPMode {
+  NO_ACCESS = 1;
+  READ_ONLY = 2;
+  READ_WRITE = 3;
+}
+
+message UpdateMountPRequest {
+  /** the path of alluxio mount point */
+  optional string alluxioPath = 1;
+  optional MountPOptions options = 3;
+}
+message UpdateMountPResponse {}
+
+message UpdateUfsModePResponse {}
+message UpdateUfsModePOptions {
+  optional UfsPMode ufsMode = 1;
+}
+message UpdateUfsModePRequest {
+  /** the ufs path */
+  optional string ufsPath = 1;
+  optional UpdateUfsModePOptions options = 2;
+}
+
+message GetStateLockHoldersPResponse {
+  repeated string threads = 1;
+}
+message GetStateLockHoldersPOptions {}
+message GetStateLockHoldersPRequest {
+  optional GetStateLockHoldersPOptions options = 1;
+}
+
+
+/**
+ * This interface contains file system master service endpoints for Alluxio clients.
+ */
+service FileSystemMasterClientService {
+
+  /**
+   * Checks access to path.
+   */
+  rpc CheckAccess(CheckAccessPRequest) returns (CheckAccessPResponse);
+
+  /**
+   * Checks the consistency of the files and directores with the path as the root of the subtree
+   */
+  rpc CheckConsistency(CheckConsistencyPRequest) returns (CheckConsistencyPResponse);
+
+  /**
+   * Marks a file as completed.
+   */
+  rpc CompleteFile(CompleteFilePRequest) returns (CompleteFilePResponse);
+
+  /**
+   * Creates a directory.
+   */
+  rpc CreateDirectory(CreateDirectoryPRequest) returns (CreateDirectoryPResponse);
+
+  /**
+   * Creates a file.
+   */
+  rpc CreateFile(CreateFilePRequest) returns (CreateFilePResponse);
+
+  /**
+   * Frees the given file or directory from Alluxio.
+   */
+  rpc Free(FreePRequest) returns (FreePResponse);
+
+  /**
+  * Returns the file path of a file id
+  */
+  rpc GetFilePath(GetFilePathPRequest) returns (GetFilePathPResponse);
+
+  /**
+  * Returns a map from each Alluxio path to information of corresponding mount point
+  */
+  rpc GetMountTable(GetMountTablePRequest) returns (GetMountTablePResponse);
+
+  /**
+   * Returns a list of paths that are being actively synced by Alluxio
+   */
+  rpc GetSyncPathList(GetSyncPathListPRequest) returns (GetSyncPathListPResponse);
+
+  /**
+   * Generates a new block id for the given file.
+   */
+  rpc GetNewBlockIdForFile(GetNewBlockIdForFilePRequest) returns (GetNewBlockIdForFilePResponse);
+
+  /**
+   * Returns the status of the file or directory.
+   */
+  rpc GetStatus (GetStatusPRequest) returns (GetStatusPResponse);
+
+  /**
+   * If the path points to a file, the method returns a singleton with its file information.
+   * If the path points to a directory, the method returns a list with file information for the
+   * directory contents.
+   */
+  rpc ListStatus(ListStatusPRequest) returns (stream ListStatusPResponse);
+
+  /**
+   * Creates a new "mount point", mounts the given UFS path in the Alluxio namespace at the given
+   * path. The path should not exist and should not be nested under any existing mount point.
+   */
+  rpc Mount(MountPRequest) returns (MountPResponse);
+
+  /**
+   * Deletes a file or a directory and returns whether the remove operation succeeded.
+   */
+  rpc Remove(DeletePRequest) returns (DeletePResponse);
+
+  /**
+   * Renames a file or a directory.
+   */
+  rpc Rename(RenamePRequest) returns (RenamePResponse);
+
+  /**
+   * Reverse resolve a ufs path.
+   */
+  rpc ReverseResolve(ReverseResolvePRequest) returns (ReverseResolvePResponse);
+
+  /**
+   * Schedules async persistence.
+   */
+  rpc ScheduleAsyncPersistence(ScheduleAsyncPersistencePRequest) returns (ScheduleAsyncPersistencePResponse);
+
+  /**
+   * Sets ACL for the path.
+   */
+  rpc SetAcl(SetAclPRequest) returns (SetAclPResponse);
+
+  /**
+   * Sets file or directory attributes.
+   */
+  rpc SetAttribute(SetAttributePRequest) returns (SetAttributePResponse);
+
+  /**
+   * Start the active syncing of the directory or file
+   */
+  rpc StartSync(StartSyncPRequest) returns (StartSyncPResponse);
+
+  /**
+   * Start the active syncing of the directory or file
+   */
+  rpc StopSync(StopSyncPRequest) returns (StopSyncPResponse);
+
+  /**
+   * Deletes an existing "mount point", voiding the Alluxio namespace at the given path. The path
+   * should correspond to an existing mount point. Any files in its subtree that are backed by UFS
+   * will be persisted before they are removed from the Alluxio namespace.
+   */
+  rpc Unmount(UnmountPRequest) returns (UnmountPResponse);
+
+  /**
+   * Updates an existing "mount point", changing its mount properties
+   */
+  rpc UpdateMount(UpdateMountPRequest) returns (UpdateMountPResponse);
+
+  /**
+   * Updates the ufs mode for a ufs path under one or more mount points.
+   */
+  rpc UpdateUfsMode(UpdateUfsModePRequest) returns (UpdateUfsModePResponse);
+
+  rpc GetStateLockHolders(GetStateLockHoldersPRequest) returns (GetStateLockHoldersPResponse);
+}
+
+message FileSystemHeartbeatPResponse {
+  optional FileSystemCommand command = 1;
+}
+message FileSystemHeartbeatPOptions {
+  repeated string persistedFileFingerprints = 1;
+}
+message FileSystemHeartbeatPRequest {
+  /** the id of the worker */
+  optional int64 workerId = 1;
+  /** the list of persisted files */
+  repeated int64 persistedFiles = 2;
+  optional FileSystemHeartbeatPOptions options = 3;
+}
+
+message GetFileInfoPResponse {
+  optional FileInfo fileInfo = 1;
+}
+message GetFileInfoPOptions {}
+message GetFileInfoPRequest {
+  /** the id of the file */
+  optional int64 fileId = 1;
+  optional GetFileInfoPOptions options = 2;
+}
+
+message GetPinnedFileIdsPResponse {
+  // TODO(adit): set replacement?
+  repeated int64 pinnedFileIds = 1;
+}
+message GetPinnedFileIdsPOptions {}
+message GetPinnedFileIdsPRequest {
+  optional GetPinnedFileIdsPOptions options = 1;
+}
+
+message GetUfsInfoPResponse {
+  optional UfsInfo ufsInfo = 1;
+}
+message GetUfsInfoPOptions {}
+message GetUfsInfoPRequest {
+  /** the id of the ufs */
+  optional int64 mountId = 1;
+  optional GetUfsInfoPOptions options = 2;
+}
+
+/**
+ * This interface contains file system master service endpoints for Alluxio workers.
+ */
+service FileSystemMasterWorkerService {
+
+  /**
+   * Periodic file system worker heartbeat. Returns the command for persisting
+   * the blocks of a file.
+   */
+  rpc FileSystemHeartbeat(FileSystemHeartbeatPRequest) returns (FileSystemHeartbeatPResponse);
+
+  /*
+   * Returns the file information for a file or directory identified by the given file id.
+   */
+  rpc GetFileInfo(GetFileInfoPRequest) returns (GetFileInfoPResponse);
+
+  /**
+   * Returns the set of pinned file ids.
+   */
+  rpc GetPinnedFileIds(GetPinnedFileIdsPRequest) returns (GetPinnedFileIdsPResponse);
+
+  /**
+   * Returns the UFS information for the given mount point identified by its id.
+   **/
+  rpc GetUfsInfo(GetUfsInfoPRequest) returns (GetUfsInfoPResponse);
+}
+
+/**
+ * This interface contains file system master service endpoints for Alluxio workers.
+ */
+service FileSystemMasterJobService {
+  /*
+   * Returns the file information for a file or directory identified by the given file id.
+   */
+  rpc GetFileInfo(GetFileInfoPRequest) returns (GetFileInfoPResponse);
+
+  /**
+   * Returns the UFS information for the given mount point identified by its id.
+   **/
+  rpc GetUfsInfo(GetUfsInfoPRequest) returns (GetUfsInfoPResponse);
+}

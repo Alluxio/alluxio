@@ -1,9 +1,9 @@
 ---
 layout: global
-title: 在GCS上配置Alluxio
-nickname: Alluxio使用GCS
-group: Under Stores
-priority: 0
+title: Alluxio集成GCS作为底层存储
+nickname: Alluxio集成GCS作为底层存储
+group: Storage Integrations
+priority: 1
 ---
 
 * 内容列表
@@ -29,11 +29,16 @@ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
 
 你需要配置Alluxio，以使用GCS作为其底层文件系统。第一个需要修改的地方就是指定一个已有的bucket以及bucket中的目录作为底层文件系统。你可以通过向`conf/alluxio-site.properties`文件添加以下代码来指定：
 
-{% include Configuring-Alluxio-with-GCS/underfs-address.md %}
+```properties
+alluxio.master.mount.table.root.ufs=gs://GCS_BUCKET/GCS_DIRECTORY
+```
 
 接下来，你需要指定Google证书来接入GCS。在`conf/alluxio-site.properties`文件中添加:
 
-{% include Configuring-Alluxio-with-GCS/google.md %}
+```properties
+fs.gcs.accessKeyId=<GCS_ACCESS_KEY_ID>
+fs.gcs.secretAccessKey=<GCS_SECRET_ACCESS_KEY>
+```
 
 在这里 `<GCS_ACCESS_KEY_ID>` 和 `<GCS_SECRET_ACCESS_KEY>`应该用你的
 [GCS可互操作存储的access keys](https://console.cloud.google.com/storage/settings)来替换,或者用其他包含你的证书的环境变量来替换。
@@ -42,32 +47,53 @@ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
 
 执行完以上步骤后，Alluxio应该已经配置GCS作为其底层文件系统，然后你可以尝试[使用GCS本地运行Alluxio](#running-alluxio-locally-with-gcs).
 
-## 配置应用依赖
+### 嵌套挂载点
 
-当使用Alluxio构建你的应用时，你的应用需要包含一个client模块，如果要使用[Alluxio file system interface](File-System-API.html)，那么需要配置`alluxio-core-client-fs`模块，如果需要使用[Hadoop file system interface](https://wiki.apache.org/hadoop/HCFS)，则需要使用`alluxio-core-client-hdfs`模块。
-举例来说，如果你正在使用 [maven](https://maven.apache.org/)，你可以通过添加以下代码来添加你的应用的依赖：
+可以将GCS存储路径挂载到Alluxio命名空间中的一个嵌套目录，以便允许统一访问
+多个底层存储系统。 可用Alluxio的[命令行界面]({{ '/en/operation/User-CLI.html' | relativize_url }})来实现。
 
-{% include Configuring-Alluxio-with-GCS/dependency.md %}
+首先，在`conf/alluxio-site.properties`中，指定master主机：
+
+```properties
+alluxio.master.hostname=localhost
+```
+
+然后，挂载GCS：
+```console
+$ ./bin/alluxio fs mount \
+  --option fs.gcs.accessKeyId=<GCS_ACCESS_KEY_ID> \
+  --option fs.gcs.secretAccessKey=<GCS_SECRET_ACCESS_KEY> \
+  /gcs gs://GCS_BUCKET/GCS_DIRECTORY
+```
 
 ## 使用GCS本地运行Alluxio
 
 完成所有的配置之后，你可以本地运行Alluxio,观察是否一切运行正常。
 
-{% include Common-Commands/start-alluxio.md %}
+```console
+$ ./bin/alluxio format
+$ ./bin/alluxio-start.sh local SudoMount
+```
 
 该命令应当会启动一个Alluxio master和一个Alluxio worker，可以在浏览器中访问[http://localhost:19999](http://localhost:19999)查看master Web UI。
 
 接着，你可以运行一个简单的示例程序：
 
-{% include Common-Commands/runTests.md %}
+```console
+$ ./bin/alluxio runTests
+```
 
 运行成功后，访问你的GCS目录`GCS_BUCKET/GCS_DIRECTORY`，确认其中包含了由Alluxio创建的文件和目录。在该测试中，创建的文件名称应像下面这样：
 
-{% include Configuring-Alluxio-with-GCS/gcs-file.md %}
+```
+GCS_BUCKET/GCS_DIRECTORY/alluxio/data/default_tests_files/Basic_CACHE_THROUGH
+```
 
 运行以下命令停止Alluxio:
 
-{% include Common-Commands/stop-alluxio.md %}
+```console
+$ ./bin/alluxio-stop.sh local
+```
 
 ## GCS访问控制
 

@@ -18,6 +18,7 @@ import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.master.journal.JournalSystem;
 import alluxio.master.journal.JournalUtils;
+import alluxio.underfs.MasterUfsManager;
 import alluxio.util.CommonUtils;
 import alluxio.util.CommonUtils.ProcessType;
 import alluxio.util.WaitForOptions;
@@ -71,6 +72,7 @@ public final class AlluxioSecondaryMaster implements Process {
           .setInodeStoreFactory(MasterUtils.getInodeStoreFactory(baseDir))
           .setStartTimeMs(mStartTimeMs)
           .setPort(mPort)
+          .setUfsManager(new MasterUfsManager())
           .build());
       // Check that journals of each service have been formatted.
       if (!mJournalSystem.isFormatted()) {
@@ -89,6 +91,7 @@ public final class AlluxioSecondaryMaster implements Process {
     mRunning = true;
     mLatch.await();
     mJournalSystem.stop();
+    mRegistry.close();
     mRunning = false;
   }
 

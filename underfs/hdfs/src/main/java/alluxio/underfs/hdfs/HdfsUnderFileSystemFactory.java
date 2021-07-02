@@ -30,7 +30,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * It caches created {@link HdfsUnderFileSystem}s, using the scheme and authority pair as the key.
  */
 @ThreadSafe
-public final class HdfsUnderFileSystemFactory implements UnderFileSystemFactory {
+public class HdfsUnderFileSystemFactory implements UnderFileSystemFactory {
 
   /**
    * Constructs a new {@link HdfsUnderFileSystemFactory}.
@@ -38,10 +38,9 @@ public final class HdfsUnderFileSystemFactory implements UnderFileSystemFactory 
   public HdfsUnderFileSystemFactory() { }
 
   @Override
-  public UnderFileSystem create(String path, UnderFileSystemConfiguration conf,
-      AlluxioConfiguration alluxioConf) {
+  public UnderFileSystem create(String path, UnderFileSystemConfiguration conf) {
     Preconditions.checkNotNull(path, "path");
-    return HdfsUnderFileSystem.createInstance(new AlluxioURI(path), conf, alluxioConf);
+    return HdfsUnderFileSystem.createInstance(new AlluxioURI(path), conf);
   }
 
   @Override
@@ -79,7 +78,7 @@ public final class HdfsUnderFileSystemFactory implements UnderFileSystemFactory 
       // are supported this is not an option and we have to continue to use this method.
       for (final String prefix : alluxioConf.getList(PropertyKey.UNDERFS_HDFS_PREFIXES, ",")) {
         if (path.startsWith(prefix)) {
-          if (conf == null
+          if (!conf.isSet(PropertyKey.UNDERFS_VERSION)
               || HdfsVersion.matches(conf.get(PropertyKey.UNDERFS_VERSION), getVersion())) {
             return true;
           }

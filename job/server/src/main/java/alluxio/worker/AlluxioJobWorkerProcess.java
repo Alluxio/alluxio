@@ -17,10 +17,12 @@ import alluxio.conf.ServerConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.RuntimeConstants;
 import alluxio.grpc.GrpcServer;
+import alluxio.grpc.GrpcServerAddress;
 import alluxio.grpc.GrpcServerBuilder;
 import alluxio.grpc.GrpcService;
 import alluxio.metrics.MetricsSystem;
 import alluxio.metrics.sink.MetricsServlet;
+import alluxio.security.user.ServerUserState;
 import alluxio.underfs.JobUfsManager;
 import alluxio.underfs.UfsManager;
 import alluxio.util.CommonUtils;
@@ -120,7 +122,7 @@ public final class AlluxioJobWorkerProcess implements JobWorkerProcess {
       mRpcConnectAddress = NetworkAddressUtils.getConnectAddress(ServiceType.JOB_WORKER_RPC,
           ServerConfiguration.global());
     } catch (Exception e) {
-      LOG.error(e.getMessage(), e);
+      LOG.error("Failed to create JobWorkerProcess", e);
       throw Throwables.propagate(e);
     }
   }
@@ -204,7 +206,8 @@ public final class AlluxioJobWorkerProcess implements JobWorkerProcess {
 
       LOG.info("Starting gRPC server on address {}", mRpcConnectAddress);
       GrpcServerBuilder serverBuilder = GrpcServerBuilder.forAddress(
-          mRpcConnectAddress.getHostName(), mRpcBindAddress, ServerConfiguration.global());
+          GrpcServerAddress.create(mRpcConnectAddress.getHostName(), mRpcBindAddress),
+          ServerConfiguration.global(), ServerUserState.global());
 
       for (Map.Entry<alluxio.grpc.ServiceType, GrpcService> serviceEntry : mJobWorker.getServices()
           .entrySet()) {
@@ -240,6 +243,8 @@ public final class AlluxioJobWorkerProcess implements JobWorkerProcess {
     return new WorkerNetAddress()
         .setHost(NetworkAddressUtils.getConnectHost(ServiceType.JOB_WORKER_RPC,
             ServerConfiguration.global()))
+        .setContainerHost(ServerConfiguration.global()
+            .getOrDefault(PropertyKey.WORKER_CONTAINER_HOSTNAME, ""))
         .setRpcPort(ServerConfiguration.getInt(PropertyKey.JOB_WORKER_RPC_PORT))
         .setDataPort(ServerConfiguration.getInt(PropertyKey.JOB_WORKER_DATA_PORT))
         .setWebPort(ServerConfiguration.getInt(PropertyKey.JOB_WORKER_WEB_PORT));

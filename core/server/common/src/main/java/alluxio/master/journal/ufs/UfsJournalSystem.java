@@ -12,14 +12,21 @@
 package alluxio.master.journal.ufs;
 
 import alluxio.Constants;
+import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
 import alluxio.master.Master;
 import alluxio.master.journal.AbstractJournalSystem;
+import alluxio.master.journal.CatchupFuture;
 import alluxio.master.journal.sink.JournalSink;
+import alluxio.metrics.MetricKey;
+import alluxio.metrics.MetricsSystem;
 import alluxio.retry.ExponentialTimeBoundedRetry;
 import alluxio.retry.RetryPolicy;
 import alluxio.util.CommonUtils;
 import alluxio.util.URIUtils;
+import alluxio.util.WaitForOptions;
 
+import com.codahale.metrics.Timer;
 import com.google.common.io.Closer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,6 +35,7 @@ import java.io.IOException;
 import java.net.URI;
 import java.time.Duration;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -49,6 +57,7 @@ public class UfsJournalSystem extends AbstractJournalSystem {
   private final URI mBase;
   private final long mQuietTimeMs;
   private ConcurrentHashMap<String, UfsJournal> mJournals;
+  private long mInitialCatchupTimeMs = -1;
 
   /**
    * Creates a UFS journal system with the specified base location. When journals are created, their
@@ -59,9 +68,13 @@ public class UfsJournalSystem extends AbstractJournalSystem {
    *        this duration has passed without any journal entries being written.
    */
   public UfsJournalSystem(URI base, long quietTimeMs) {
+    super();
     mBase = base;
     mQuietTimeMs = quietTimeMs;
     mJournals = new ConcurrentHashMap<>();
+    MetricsSystem.registerGaugeIfAbsent(
+        MetricKey.MASTER_UFS_JOURNAL_INITIAL_REPLAY_TIME_MS.getName(),
+        () -> mInitialCatchupTimeMs);
   }
 
   @Override
@@ -85,7 +98,7 @@ public class UfsJournalSystem extends AbstractJournalSystem {
       });
     }
     try {
-      CommonUtils.invokeAll(callables, 365 * Constants.DAY_MS);
+      CommonUtils.invokeAll(callables, 365L * Constants.DAY_MS);
     } catch (TimeoutException | ExecutionException e) {
       throw new RuntimeException(e);
     }
@@ -93,13 +106,84 @@ public class UfsJournalSystem extends AbstractJournalSystem {
 
   @Override
   public void losePrimacy() {
+    // Make all journals secondary as soon as possible
+    for (UfsJournal journal : mJournals.values()) {
+      journal.signalLosePrimacy();
+    }
+
+    // Wait for all journals to transition to secondary
     try {
       for (UfsJournal journal : mJournals.values()) {
-        journal.losePrimacy();
+        journal.awaitLosePrimacy();
       }
     } catch (IOException e) {
       throw new RuntimeException("Failed to downgrade journal to secondary", e);
     }
+  }
+
+  @Override
+  public void suspend(Runnable interruptCallback) throws IOException {
+    for (Map.Entry<String, UfsJournal> journalEntry : mJournals.entrySet()) {
+      LOG.info("Suspending journal: {}", journalEntry.getKey());
+      journalEntry.getValue().suspend();
+    }
+  }
+
+  @Override
+  public void resume() throws IOException {
+    for (Map.Entry<String, UfsJournal> journalEntry : mJournals.entrySet()) {
+      LOG.info("Resuming journal: {}", journalEntry.getKey());
+      journalEntry.getValue().resume();
+    }
+  }
+
+  @Override
+  public CatchupFuture catchup(Map<String, Long> journalSequenceNumbers) throws IOException {
+    List<CatchupFuture> futures = new ArrayList<>(journalSequenceNumbers.size());
+    for (Map.Entry<String, UfsJournal> journalEntry : mJournals.entrySet()) {
+      long resumeSequence = journalSequenceNumbers.get(journalEntry.getKey());
+      LOG.info("Advancing journal :{} to sequence: {}", journalEntry.getKey(), resumeSequence);
+      futures.add(journalEntry.getValue().catchup(resumeSequence));
+    }
+    return CatchupFuture.allOf(futures);
+  }
+
+  @Override
+  public void waitForCatchup() {
+    long start = System.currentTimeMillis();
+    try (Timer.Context ctx = MetricsSystem
+        .timer(MetricKey.MASTER_UFS_JOURNAL_CATCHUP_TIMER.getName()).time()) {
+      CommonUtils.waitFor("journal catch up to finish", () -> {
+        for (UfsJournal journal : mJournals.values()) {
+          UfsJournalCheckpointThread.CatchupState catchupState = journal.getCatchupState();
+          if (catchupState != UfsJournalCheckpointThread.CatchupState.DONE) {
+            return false;
+          }
+        }
+        return true;
+      }, WaitForOptions.defaults().setTimeoutMs(
+          (int) ServerConfiguration.getMs(PropertyKey.MASTER_UFS_JOURNAL_MAX_CATCHUP_TIME))
+          .setInterval(Constants.SECOND_MS));
+    } catch (InterruptedException | TimeoutException e) {
+      LOG.info("Journal catchup is interrupted or timeout", e);
+      if (mInitialCatchupTimeMs == -1) {
+        mInitialCatchupTimeMs = System.currentTimeMillis() - start;
+      }
+      return;
+    }
+    if (mInitialCatchupTimeMs == -1) {
+      mInitialCatchupTimeMs = System.currentTimeMillis() - start;
+    }
+    LOG.info("Finished master process ufs journal catchup in {} ms", mInitialCatchupTimeMs);
+  }
+
+  @Override
+  public Map<String, Long> getCurrentSequenceNumbers() {
+    Map<String, Long> sequenceMap = new HashMap<>();
+    for (String master : mJournals.keySet()) {
+      sequenceMap.put(master, mJournals.get(master).getNextSequenceNumberToWrite() - 1);
+    }
+    return sequenceMap;
   }
 
   @Override

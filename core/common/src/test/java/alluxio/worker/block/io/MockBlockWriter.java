@@ -25,7 +25,7 @@ import java.nio.channels.WritableByteChannel;
 /**
  * A simple {@link BlockWriter} to use for testing purposes.
  */
-public final class MockBlockWriter implements BlockWriter {
+public final class MockBlockWriter extends BlockWriter {
   private final ByteArrayOutputStream mOutputStream;
   private long mPosition;
 

@@ -30,7 +30,7 @@ import java.io.IOException;
 public final class StatCommandIntegrationTest extends AbstractFileSystemShellTest {
   @Test
   public void statFileNotExist() throws IOException {
-    int ret = mFsShell.run("stat", "/NotExistFile");
+    int ret = sFsShell.run("stat", "/NotExistFile");
     assertEquals(ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage("/NotExistFile") + "\n",
         mOutput.toString());
     assertEquals(-1, ret);
@@ -38,9 +38,9 @@ public final class StatCommandIntegrationTest extends AbstractFileSystemShellTes
 
   @Test
   public void statFileWildCard() throws IOException, AlluxioException {
-    String testDir = FileSystemShellUtilsTest.resetFileHierarchy(mFileSystem);
+    String testDir = FileSystemShellUtilsTest.resetFileHierarchy(sFileSystem);
 
-    mFsShell.run("stat", testDir + "/*");
+    sFsShell.run("stat", testDir + "/*");
     String res1 = mOutput.toString();
     assertTrue(res1.contains(testDir + "/foo"));
     assertTrue(res1.contains(testDir + "/bar"));
@@ -48,7 +48,7 @@ public final class StatCommandIntegrationTest extends AbstractFileSystemShellTes
     assertFalse(res1.contains(testDir + "/foo/foobar1"));
     assertFalse(res1.contains(testDir + "/bar/foobar3"));
 
-    mFsShell.run("stat", testDir + "/*/foo*");
+    sFsShell.run("stat", testDir + "/*/foo*");
     String res2 = mOutput.toString();
     res2 = res2.replace(res1, "");
     assertTrue(res2.contains(testDir + "/foo/foobar1"));
@@ -59,9 +59,9 @@ public final class StatCommandIntegrationTest extends AbstractFileSystemShellTes
 
   @Test
   public void statDirectoryWildCard() throws IOException, AlluxioException {
-    String testDir = FileSystemShellUtilsTest.resetFileHierarchy(mFileSystem);
+    String testDir = FileSystemShellUtilsTest.resetFileHierarchy(sFileSystem);
 
-    mFsShell.run("stat", testDir + "/*");
+    sFsShell.run("stat", testDir + "/*");
     String res1 = mOutput.toString();
     assertTrue(res1.contains(testDir + "/foo"));
     assertTrue(res1.contains(testDir + "/bar"));
@@ -69,7 +69,7 @@ public final class StatCommandIntegrationTest extends AbstractFileSystemShellTes
     assertFalse(res1.contains(testDir + "/foo/foobar1"));
     assertFalse(res1.contains(testDir + "/bar/foobar3"));
 
-    mFsShell.run("stat", testDir + "/*/foo*");
+    sFsShell.run("stat", testDir + "/*/foo*");
     String res2 = mOutput.toString();
     res2 = res2.replace(res1, "");
     assertTrue(res2.contains(testDir + "/foo/foobar1"));
@@ -80,15 +80,15 @@ public final class StatCommandIntegrationTest extends AbstractFileSystemShellTes
 
   @Test
   public void statFileFormat() throws IOException, AlluxioException {
-    String testDir = FileSystemShellUtilsTest.resetFileHierarchy(mFileSystem);
+    String testDir = FileSystemShellUtilsTest.resetFileHierarchy(sFileSystem);
 
     String format = "%N-%z-%b-%u-%g-%Y";
-    mFsShell.run("stat", "-f", format, testDir + "/foo/foobar1");
+    sFsShell.run("stat", "-f", format, testDir + "/foo/foobar1");
     String res1 = mOutput.toString();
     assertTrue(res1.startsWith("foobar1-10-1-"));
 
     format = "%N-%z-%b-%u-%g-%y";
-    mFsShell.run("stat", "-f", format, testDir + "/foo/foobar1");
+    sFsShell.run("stat", "-f", format, testDir + "/foo/foobar1");
     String res2 = mOutput.toString();
     res2 = res2.replace(res1, "");
     assertTrue(res2.startsWith("foobar1-10-1-"));
@@ -96,15 +96,15 @@ public final class StatCommandIntegrationTest extends AbstractFileSystemShellTes
 
   @Test
   public void statDirectoryFormat() throws IOException, AlluxioException {
-    String testDir = FileSystemShellUtilsTest.resetFileHierarchy(mFileSystem);
+    String testDir = FileSystemShellUtilsTest.resetFileHierarchy(sFileSystem);
 
     String format = "%N-%z-%b-%Y-%u-%g";
-    mFsShell.run("stat", "-f", format, testDir + "/foo");
+    sFsShell.run("stat", "-f", format, testDir + "/foo");
     String res1 = mOutput.toString();
     assertTrue(res1.startsWith("foo-NA-NA-"));
 
     format = "%N-%z-%b-%y-%u-%g";
-    mFsShell.run("stat", "-f", format, testDir + "/foo");
+    sFsShell.run("stat", "-f", format, testDir + "/foo");
     String res2 = mOutput.toString();
     res2 = res2.replace(res1, "");
     assertTrue(res2.startsWith("foo-NA-NA-"));

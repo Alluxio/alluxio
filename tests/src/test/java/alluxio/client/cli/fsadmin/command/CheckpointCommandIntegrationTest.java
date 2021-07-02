@@ -23,10 +23,10 @@ import org.junit.Test;
 public final class CheckpointCommandIntegrationTest extends AbstractFsAdminShellTest {
   @Test
   public void checkpoint() throws Exception {
-    int ret = mFsAdminShell.run("checkpoint");
+    int ret = mFsAdminShell.run("journal", "checkpoint");
     Assert.assertEquals(0, ret);
     Assert.assertThat(mOutput.toString(), CoreMatchers.containsString(String
         .format("Successfully took a checkpoint on master %s%n",
-        mLocalAlluxioClusterResource.get().getHostname())));
+        sLocalAlluxioClusterResource.get().getHostname())));
   }
 }

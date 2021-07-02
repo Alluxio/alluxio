@@ -22,7 +22,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * {@link StorageTierAssoc} for workers.
  */
 @ThreadSafe
-public class WorkerStorageTierAssoc extends StorageTierAssoc {
+public class WorkerStorageTierAssoc extends AbstractStorageTierAssoc {
 
   /**
    * Creates a new instance of {@link WorkerStorageTierAssoc} using a {@link ServerConfiguration}.

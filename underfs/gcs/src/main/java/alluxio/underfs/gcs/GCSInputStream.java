@@ -13,7 +13,7 @@ package alluxio.underfs.gcs;
 
 import alluxio.retry.RetryPolicy;
 
-import org.apache.commons.httpclient.HttpStatus;
+import org.apache.http.HttpStatus;
 import org.jets3t.service.ServiceException;
 import org.jets3t.service.impl.rest.httpclient.GoogleStorageService;
 import org.jets3t.service.model.GSObject;
@@ -44,14 +44,17 @@ public final class GCSInputStream extends InputStream {
   /** The JetS3t client for GCS operations. */
   private final GoogleStorageService mClient;
 
-  /** The storage object that will be updated on each large skip. */
-  private GSObject mObject;
-
   /** The underlying input stream. */
   private BufferedInputStream mInputStream;
 
   /** Position of the stream. */
   private long mPos;
+
+  /**
+   * Policy determining the retry behavior in case the key does not exist. The key may not exist
+   * because of eventual consistency.
+   */
+  private final RetryPolicy mRetryPolicy;
 
   /**
    * Creates a new instance of {@link GCSInputStream}.
@@ -62,7 +65,7 @@ public final class GCSInputStream extends InputStream {
    * @param retryPolicy retry policy in case the key does not exist
    */
   GCSInputStream(String bucketName, String key, GoogleStorageService client,
-      RetryPolicy retryPolicy) throws ServiceException {
+      RetryPolicy retryPolicy) {
     this(bucketName, key, client, 0L, retryPolicy);
   }
 
@@ -76,60 +79,44 @@ public final class GCSInputStream extends InputStream {
    * @param retryPolicy retry policy in case the key does not exist
    */
   GCSInputStream(String bucketName, String key, GoogleStorageService client,
-      long pos, RetryPolicy retryPolicy) throws ServiceException {
+      long pos, RetryPolicy retryPolicy) {
     mBucketName = bucketName;
     mKey = key;
     mClient = client;
     mPos = pos;
-    mObject = getObjectWithRetry(retryPolicy);
-    mInputStream = new BufferedInputStream(mObject.getDataInputStream());
-  }
-
-  /**
-   * Retries getting a {@link GSObject}.
-   *
-   * @param retryPolicy the retry policy to solve eventual consistency issue
-   * @return the {@link GSObject}
-   */
-  private GSObject getObjectWithRetry(RetryPolicy retryPolicy) throws ServiceException {
-    ServiceException lastException = null;
-    while (retryPolicy.attempt()) {
-      try {
-        if (mPos > 0) {
-          return mClient.getObject(mBucketName, mKey, null, null, null, null, mPos, null);
-        } else {
-          return mClient.getObject(mBucketName, mKey);
-        }
-      } catch (ServiceException e) {
-        LOG.warn("Attempt {} to open key {} in bucket {} failed with exception : {}",
-            retryPolicy.getAttemptCount(), mKey, mBucketName, e.toString());
-        if (e.getResponseCode() != HttpStatus.SC_NOT_FOUND) {
-          throw e;
-        }
-        // Key does not exist
-        lastException = e;
-      }
-    }
-    // Failed after retrying key does not exist
-    throw lastException;
+    mRetryPolicy = retryPolicy;
   }
 
   @Override
   public void close() throws IOException {
-    mInputStream.close();
+    closeStream();
   }
 
   @Override
   public int read() throws IOException {
-    int ret = mInputStream.read();
-    if (ret != -1) {
+    if (mInputStream == null) {
+      openStream();
+    }
+    int value = mInputStream.read();
+    if (value != -1) {
       mPos++;
     }
-    return ret;
+    return value;
+  }
+
+  @Override
+  public int read(byte[] b) throws IOException {
+    return read(b, 0, b.length);
   }
 
   @Override
   public int read(byte[] b, int off, int len) throws IOException {
+    if (len == 0) {
+      return 0;
+    }
+    if (mInputStream == null) {
+      openStream();
+    }
     int ret = mInputStream.read(b, off, len);
     if (ret != -1) {
       mPos += ret;
@@ -147,21 +134,57 @@ public final class GCSInputStream extends InputStream {
    */
   @Override
   public long skip(long n) throws IOException {
+    if (n <= 0) {
+      return 0;
+    }
     if (mInputStream.available() >= n) {
       return mInputStream.skip(n);
     }
-    // The number of bytes to skip is possibly large, open a new stream from GCS.
-    mInputStream.close();
+    closeStream();
     mPos += n;
-    try {
-      mObject = mClient.getObject(mBucketName, mKey, null /* ignore ModifiedSince */,
-          null /* ignore UnmodifiedSince */, null /* ignore MatchTags */,
-          null /* ignore NoneMatchTags */, mPos /* byteRangeStart */,
-          null /* ignore byteRangeEnd */);
-      mInputStream = new BufferedInputStream(mObject.getDataInputStream());
-    } catch (ServiceException e) {
-      throw new IOException(e);
-    }
+    openStream();
     return n;
+  }
+
+  /**
+   * Opens a new stream at mPos if the wrapped stream mInputStream is null.
+   */
+  private void openStream() throws IOException {
+    ServiceException lastException = null;
+    String errorMessage = String.format("Failed to open key: %s bucket: %s", mKey, mBucketName);
+    while (mRetryPolicy.attempt()) {
+      try {
+        GSObject object;
+        if (mPos > 0) {
+          object = mClient.getObject(mBucketName, mKey, null, null, null, null, mPos, null);
+        } else {
+          object = mClient.getObject(mBucketName, mKey);
+        }
+        mInputStream = new BufferedInputStream(object.getDataInputStream());
+        return;
+      } catch (ServiceException e) {
+        errorMessage = String
+            .format("Failed to open key: %s bucket: %s attempts: %d error: %s", mKey, mBucketName,
+                mRetryPolicy.getAttemptCount(), e.getMessage());
+        if (e.getResponseCode() != HttpStatus.SC_NOT_FOUND) {
+          throw new IOException(errorMessage, e);
+        }
+        // Key does not exist
+        lastException = e;
+      }
+    }
+    // Failed after retrying key does not exist
+    throw new IOException(errorMessage, lastException);
+  }
+
+  /**
+   * Closes the current stream.
+   */
+  private void closeStream() throws IOException {
+    if (mInputStream == null) {
+      return;
+    }
+    mInputStream.close();
+    mInputStream = null;
   }
 }

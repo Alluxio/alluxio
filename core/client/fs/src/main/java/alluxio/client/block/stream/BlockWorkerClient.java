@@ -12,9 +12,13 @@
 package alluxio.client.block.stream;
 
 import alluxio.grpc.AsyncCacheRequest;
+import alluxio.grpc.ClearMetricsRequest;
+import alluxio.grpc.ClearMetricsResponse;
 import alluxio.grpc.CreateLocalBlockRequest;
 import alluxio.grpc.CreateLocalBlockResponse;
 import alluxio.grpc.GrpcServerAddress;
+import alluxio.grpc.MoveBlockRequest;
+import alluxio.grpc.MoveBlockResponse;
 import alluxio.grpc.OpenLocalBlockRequest;
 import alluxio.grpc.OpenLocalBlockResponse;
 import alluxio.conf.AlluxioConfiguration;
@@ -24,16 +28,13 @@ import alluxio.grpc.RemoveBlockRequest;
 import alluxio.grpc.RemoveBlockResponse;
 import alluxio.grpc.WriteRequest;
 import alluxio.grpc.WriteResponse;
+import alluxio.security.user.UserState;
 
 import io.grpc.stub.StreamObserver;
 import io.grpc.StatusRuntimeException;
-import io.netty.channel.EventLoopGroup;
 
 import java.io.Closeable;
 import java.io.IOException;
-
-import javax.annotation.Nullable;
-import javax.security.auth.Subject;
 
 /**
  * gRPC client for worker communication.
@@ -47,14 +48,19 @@ public interface BlockWorkerClient extends Closeable {
     /**
      * Creates a new block worker client.
      *
-     * @param subject the user subject
+     * @param userState the user subject
      * @param address the address of the worker
      * @return a new {@link BlockWorkerClient}
      */
-    public static BlockWorkerClient create(@Nullable Subject subject, GrpcServerAddress address,
-        AlluxioConfiguration alluxioConf, EventLoopGroup workerGroup)
+    public static BlockWorkerClient create(UserState userState, GrpcServerAddress address,
+        AlluxioConfiguration alluxioConf)
         throws IOException {
-      return new DefaultBlockWorkerClient(subject, address, alluxioConf, workerGroup);
+      try {
+        return new DefaultBlockWorkerClient(userState, address, alluxioConf);
+      } catch (Exception e) {
+        throw new IOException(
+            String.format("Failed to connect to remote block worker: %s", address), e);
+      }
     }
   }
 
@@ -119,6 +125,22 @@ public interface BlockWorkerClient extends Closeable {
    * @throws StatusRuntimeException if any error occurs
    */
   RemoveBlockResponse removeBlock(RemoveBlockRequest request);
+
+  /**
+   * Move a block from worker.
+   * @param request the remove block request
+   * @return the response from server
+   * @throws StatusRuntimeException if any error occurs
+   */
+  MoveBlockResponse moveBlock(MoveBlockRequest request);
+
+  /**
+   * Clear the worker metrics.
+   *
+   * @param request the request to clear metrics
+   * @return the response from server
+   */
+  ClearMetricsResponse clearMetrics(ClearMetricsRequest request);
 
   /**
    * Caches a block asynchronously.

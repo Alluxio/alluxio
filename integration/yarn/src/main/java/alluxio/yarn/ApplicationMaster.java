@@ -72,7 +72,10 @@ import javax.ws.rs.HttpMethod;
  * Actual owner of Alluxio running on Yarn. The YARN ResourceManager will launch this
  * ApplicationMaster on an allocated container. The ApplicationMaster communicates with the YARN
  * cluster, and handles application execution. It performs operations asynchronously.
+ *
+ * @deprecated since 2.0
  */
+@Deprecated
 @NotThreadSafe
 public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler {
   private static final Logger LOG = LoggerFactory.getLogger(ApplicationMaster.class);
@@ -173,7 +176,7 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
     mWorkerMemInMB =
         (int) (alluxioConf.getBytes(PropertyKey.INTEGRATION_WORKER_RESOURCE_MEM) / Constants.MB);
     // memory for running ramdisk
-    mRamdiskMemInMB = (int) (alluxioConf.getBytes(PropertyKey.WORKER_MEMORY_SIZE) / Constants.MB);
+    mRamdiskMemInMB = (int) (alluxioConf.getBytes(PropertyKey.WORKER_RAMDISK_SIZE) / Constants.MB);
     mMaxWorkersPerHost = alluxioConf.getInt(PropertyKey.INTEGRATION_YARN_WORKERS_PER_HOST_MAX);
     mNumWorkers = numWorkers;
     mMasterAddress = masterAddress;
@@ -465,7 +468,7 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
       int ramdiskMemInMB) {
     Map<String, String> env = setupCommonEnvironment();
     env.put("ALLUXIO_MASTER_HOSTNAME", masterContainerNetAddress);
-    env.put("ALLUXIO_WORKER_MEMORY_SIZE",
+    env.put("ALLUXIO_WORKER_RAMDISK_SIZE",
         FormatUtils.getSizeFromBytes((long) ramdiskMemInMB * Constants.MB));
     if (UserGroupInformation.isSecurityEnabled()) {
       try {

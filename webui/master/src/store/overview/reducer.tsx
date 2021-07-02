@@ -9,48 +9,51 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-import {Reducer} from 'redux';
+import { Reducer } from 'redux';
 
-import {IOverviewState, OverviewActionTypes} from './types';
+import { IOverviewState, OverviewActionTypes } from './types';
 
 export const initialOverviewState: IOverviewState = {
   data: {
-    'capacity': '',
-    'configCheckErrors': [],
-    'configCheckStatus': '',
-    'configCheckWarns': [],
-    'debug': false,
-    'diskCapacity': '',
-    'diskFreeCapacity': '',
-    'diskUsedCapacity': '',
-    'freeCapacity': '',
-    'liveWorkerNodes': 0,
-    'masterNodeAddress': '',
-    'startTime': '',
-    'storageTierInfos': [{
-      'capacity': '',
-      'freeCapacity': '',
-      'freeSpacePercent': 0,
-      'storageTierAlias': '',
-      'usedCapacity': '',
-      'usedSpacePercent': 100
-    }],
-    'uptime': '',
-    'usedCapacity': '',
-    'version': ''
+    capacity: '',
+    configCheckErrors: [],
+    configCheckStatus: '',
+    configCheckWarns: [],
+    debug: false,
+    diskCapacity: '',
+    diskFreeCapacity: '',
+    diskUsedCapacity: '',
+    freeCapacity: '',
+    journalDiskWarnings: [],
+    liveWorkerNodes: 0,
+    masterNodeAddress: '',
+    startTime: '',
+    storageTierInfos: [
+      {
+        capacity: '',
+        freeCapacity: '',
+        freeSpacePercent: 0,
+        storageTierAlias: '',
+        usedCapacity: '',
+        usedSpacePercent: 100,
+      },
+    ],
+    uptime: '',
+    usedCapacity: '',
+    version: '',
   },
   errors: undefined,
-  loading: false
+  loading: false,
 };
 
 export const overviewReducer: Reducer<IOverviewState> = (state = initialOverviewState, action) => {
   switch (action.type) {
     case OverviewActionTypes.FETCH_REQUEST:
-      return {...state, loading: true};
+      return { ...state, loading: true };
     case OverviewActionTypes.FETCH_SUCCESS:
-      return {...state, loading: false, data: action.payload.data, response: action.payload, errors: undefined};
+      return { ...state, loading: false, data: action.payload.data, response: action.payload, errors: undefined };
     case OverviewActionTypes.FETCH_ERROR:
-      return {...state, loading: false, errors: action.payload};
+      return { ...state, loading: false, errors: action.payload };
     default:
       return state;
   }

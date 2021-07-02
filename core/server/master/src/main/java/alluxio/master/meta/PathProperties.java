@@ -12,6 +12,7 @@
 package alluxio.master.meta;
 
 import alluxio.conf.PropertyKey;
+import alluxio.conf.Hash;
 import alluxio.master.journal.DelegatingJournaled;
 import alluxio.master.journal.JournalContext;
 import alluxio.master.journal.Journaled;
@@ -20,12 +21,12 @@ import alluxio.proto.journal.Journal;
 import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.proto.journal.Meta.PathPropertiesEntry;
 import alluxio.proto.journal.Meta.RemovePathPropertiesEntry;
+import alluxio.resource.CloseableIterator;
 import alluxio.resource.LockResource;
 
 import com.google.common.collect.Iterators;
 
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.locks.ReadWriteLock;
@@ -55,6 +56,20 @@ public final class PathProperties implements DelegatingJournaled {
   /** Journaled state of path level properties. */
   @GuardedBy("mLock")
   private final State mState = new State();
+  @GuardedBy("mLock")
+  private Hash mHash = new Hash(() -> mState.getProperties().entrySet().stream()
+      .flatMap(pathProperties -> pathProperties.getValue().entrySet().stream()
+          .map(property -> String.format("%s:%s:%s", pathProperties.getKey(), property.getKey(),
+              property.getValue()).getBytes())));
+
+  /**
+   * @return a snapshot of properties and corresponding hash
+   */
+  public PathPropertiesView snapshot() {
+    try (LockResource r = new LockResource(mLock.readLock())) {
+      return new PathPropertiesView(get(), hash());
+    }
+  }
 
   /**
    * @return a copy of path level properties which is a map from path to property key values
@@ -82,6 +97,7 @@ public final class PathProperties implements DelegatingJournaled {
         properties.forEach((key, value) -> newProperties.put(key.getName(), value));
         mState.applyAndJournal(ctx, PathPropertiesEntry.newBuilder().setPath(path)
             .putAllProperties(newProperties).build());
+        mHash.markOutdated();
       }
     }
   }
@@ -104,6 +120,7 @@ public final class PathProperties implements DelegatingJournaled {
           mState.applyAndJournal(ctx, PathPropertiesEntry.newBuilder()
               .setPath(path).putAllProperties(properties).build());
         }
+        mHash.markOutdated();
       }
     }
   }
@@ -119,7 +136,17 @@ public final class PathProperties implements DelegatingJournaled {
       Map<String, String> properties = mState.getProperties(path);
       if (!properties.isEmpty()) {
         mState.applyAndJournal(ctx, RemovePathPropertiesEntry.newBuilder().setPath(path).build());
+        mHash.markOutdated();
       }
+    }
+  }
+
+  /**
+   * @return the current hash of properties
+   */
+  public String hash() {
+    try (LockResource r = new LockResource(mLock.readLock())) {
+      return mHash.get();
     }
   }
 
@@ -214,13 +241,14 @@ public final class PathProperties implements DelegatingJournaled {
     }
 
     @Override
-    public Iterator<Journal.JournalEntry> getJournalEntryIterator() {
-      return Iterators.transform(mProperties.entrySet().iterator(), entry -> {
-        String path = entry.getKey();
-        Map<String, String> properties = entry.getValue();
-        return Journal.JournalEntry.newBuilder().setPathProperties(PathPropertiesEntry.newBuilder()
-            .setPath(path).putAllProperties(properties).build()).build();
-      });
+    public CloseableIterator<JournalEntry> getJournalEntryIterator() {
+      return CloseableIterator.noopCloseable(
+          Iterators.transform(mProperties.entrySet().iterator(), entry -> {
+            String path = entry.getKey();
+            Map<String, String> properties = entry.getValue();
+            return Journal.JournalEntry.newBuilder().setPathProperties(PathPropertiesEntry
+                .newBuilder().setPath(path).putAllProperties(properties).build()).build();
+          }));
     }
   }
 }

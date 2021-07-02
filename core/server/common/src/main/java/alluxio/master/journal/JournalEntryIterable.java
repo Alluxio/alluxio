@@ -12,15 +12,14 @@
 package alluxio.master.journal;
 
 import alluxio.proto.journal.Journal;
-
-import java.util.Iterator;
+import alluxio.resource.CloseableIterator;
 
 /**
  * Interface to get an iterator of {@link alluxio.proto.journal.Journal.JournalEntry}s.
  */
 public interface JournalEntryIterable {
   /**
-   * @return an {@link Iterator} that iterates all the journal entries
+   * @return an {@link CloseableIterator} that iterates all the journal entries
    */
-  Iterator<Journal.JournalEntry> getJournalEntryIterator();
+  CloseableIterator<Journal.JournalEntry> getJournalEntryIterator();
 }

@@ -11,6 +11,7 @@
 
 package alluxio.cli.fs.command;
 
+import alluxio.annotation.PublicApi;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
 import alluxio.conf.InstancedConfiguration;
@@ -33,6 +34,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * This command will fail if "remote path" already exists.
  */
 @ThreadSafe
+@PublicApi
 public final class CopyFromLocalCommand extends AbstractFileSystemCommand {
   private static final Logger LOG = LoggerFactory.getLogger(CopyFromLocalCommand.class);
 
@@ -49,14 +51,21 @@ public final class CopyFromLocalCommand extends AbstractFileSystemCommand {
     InstancedConfiguration conf = new InstancedConfiguration(
         fsContext.getClusterConf().copyProperties());
     conf.set(PropertyKey.USER_BLOCK_WRITE_LOCATION_POLICY,
-        conf.get(PropertyKey.USER_FILE_COPY_FROM_LOCAL_BLOCK_LOCATION_POLICY));
+        conf.get(PropertyKey.USER_FILE_COPYFROMLOCAL_BLOCK_LOCATION_POLICY));
     LOG.debug(String.format("copyFromLocal block write location policy is %s from property %s",
         conf.get(PropertyKey.USER_BLOCK_WRITE_LOCATION_POLICY),
-        PropertyKey.Name.USER_FILE_COPY_FROM_LOCAL_BLOCK_LOCATION_POLICY));
+        PropertyKey.USER_FILE_COPYFROMLOCAL_BLOCK_LOCATION_POLICY.getName()));
     FileSystemContext updatedCtx = FileSystemContext.create(conf);
     mFsContext = updatedCtx;
     mFileSystem = FileSystem.Factory.create(updatedCtx);
     mCpCommand = new CpCommand(updatedCtx);
+  }
+
+  @Override
+  public void close() throws IOException {
+    // Close updated {@link FileSystem} instance that is created for internal cp command.
+    // This will close the {@link FileSystemContext} associated with it.
+    mFileSystem.close();
   }
 
   @Override

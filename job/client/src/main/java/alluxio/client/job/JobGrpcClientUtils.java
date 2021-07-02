@@ -12,7 +12,6 @@
 package alluxio.client.job;
 
 import alluxio.ClientContext;
-import alluxio.Constants;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.job.JobConfig;
 import alluxio.job.wire.JobInfo;
@@ -26,10 +25,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.io.PrintStream;
 import java.util.concurrent.TimeoutException;
-import java.util.concurrent.atomic.AtomicReference;
 
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -40,6 +38,24 @@ public final class JobGrpcClientUtils {
   private static final Logger LOG = LoggerFactory.getLogger(JobGrpcClientUtils.class);
 
   /**
+   * @param jobId the job id
+   * @param alluxioConf the Alluxio configuration
+   * @param verbose if true, will return the detailed job info
+   * @return the {@link JobInfo} for the job id
+   */
+  public static JobInfo getJobStatus(long jobId, AlluxioConfiguration alluxioConf,
+      boolean verbose) throws IOException {
+    try (final JobMasterClient client = JobMasterClient.Factory
+        .create(JobMasterClientContext.newBuilder(ClientContext.create(alluxioConf)).build())) {
+      if (verbose) {
+        return client.getJobStatusDetailed(jobId);
+      } else {
+        return client.getJobStatus(jobId);
+      }
+    }
+  }
+
+  /**
    * Runs the specified job and waits for it to finish. If the job fails, it is retried the given
    * number of times. If the job does not complete in the given number of attempts, an exception
    * is thrown.
@@ -47,10 +63,12 @@ public final class JobGrpcClientUtils {
    * @param config configuration for the job to run
    * @param attempts number of times to try running the job before giving up
    * @param alluxioConf Alluxio configuration
+   * @return the job id of the job
    */
-  public static void run(JobConfig config, int attempts, AlluxioConfiguration alluxioConf)
+  public static long run(JobConfig config, int attempts, AlluxioConfiguration alluxioConf)
       throws InterruptedException {
     CountingRetry retryPolicy = new CountingRetry(attempts);
+    String errorMessage = "";
     while (retryPolicy.attempt()) {
       long jobId;
       try (JobMasterClient client = JobMasterClient.Factory.create(
@@ -67,89 +85,55 @@ public final class JobGrpcClientUtils {
         break;
       }
       if (jobInfo.getStatus() == Status.COMPLETED || jobInfo.getStatus() == Status.CANCELED) {
-        return;
+        return jobInfo.getId();
       }
-      LOG.warn("Job {} failed to complete: {}", jobId, jobInfo.getErrorMessage());
+      errorMessage = jobInfo.getErrorMessage();
+      LOG.warn("Job {} failed to complete with attempt {}. error: {}",
+          jobId, retryPolicy.getAttemptCount(), errorMessage);
     }
-    throw new RuntimeException("Failed to successfully complete the job.");
-  }
-
-  /**
-   * Convenience method for calling {@link #createProgressThread(long, PrintStream)} with an
-   * interval of 2 seconds.
-   *
-   * @param stream the print stream to write to
-   * @return the thread
-   */
-  public static Thread createProgressThread(PrintStream stream) {
-    return createProgressThread(2 * Constants.SECOND_MS, stream);
-  }
-
-  /**
-   * Creates a thread which will write "." to the given print stream at the given interval. The
-   * created thread is not started by this method. The created thread will be daemonic and will
-   * halt when interrupted.
-   *
-   * @param intervalMs the time interval in milliseconds between writes
-   * @param stream the print stream to write to
-   * @return the thread
-   */
-  public static Thread createProgressThread(final long intervalMs, final PrintStream stream) {
-    Thread thread = new Thread(new Runnable() {
-      @Override
-      public void run() {
-        while (true) {
-          CommonUtils.sleepMs(intervalMs);
-          if (Thread.interrupted()) {
-            return;
-          }
-          stream.print(".");
-        }
-      }
-    });
-    thread.setDaemon(true);
-    return thread;
+    throw new RuntimeException("Failed to successfully complete the job: " + errorMessage);
   }
 
   /**
    * @param jobId the ID of the job to wait for
-   * @return the job info for the job once it finishes or null if the job status cannot be fetched
+   * @return the job info once it finishes or null if the status cannot be fetched
    */
+  @Nullable
   private static JobInfo waitFor(final long jobId, AlluxioConfiguration alluxioConf)
       throws InterruptedException {
-    final AtomicReference<JobInfo> finishedJobInfo = new AtomicReference<>();
     try (final JobMasterClient client =
         JobMasterClient.Factory.create(JobMasterClientContext
             .newBuilder(ClientContext.create(alluxioConf)).build())) {
-      CommonUtils.waitFor("Job to finish", ()-> {
-        JobInfo jobInfo;
+      return CommonUtils.waitForResult("Job to finish", ()-> {
         try {
-          jobInfo = client.getStatus(jobId);
+          return client.getJobStatus(jobId);
         } catch (Exception e) {
           LOG.warn("Failed to get status for job (jobId={})", jobId, e);
+          return null;
+        }
+      }, (jobInfo) -> {
+          if (jobInfo != null) {
+            switch (jobInfo.getStatus()) {
+              case FAILED: // fall through
+              case CANCELED: // fall through
+              case COMPLETED:
+                return true;
+              case RUNNING: // fall through
+              case CREATED:
+                return false;
+              default:
+                throw new IllegalStateException("Unrecognized job status: " + jobInfo.getStatus());
+            }
+          }
           return true;
-        }
-        switch (jobInfo.getStatus()) {
-          case FAILED: // fall through
-          case CANCELED: // fall through
-          case COMPLETED:
-            finishedJobInfo.set(jobInfo);
-            return true;
-          case RUNNING: // fall through
-          case CREATED:
-            return false;
-          default:
-            throw new IllegalStateException("Unrecognized job status: " + jobInfo.getStatus());
-        }
-      }, WaitForOptions.defaults().setInterval(1000));
+        }, WaitForOptions.defaults().setInterval(1000));
     } catch (IOException e) {
       LOG.warn("Failed to close job master client: {}", e.toString());
+      return null;
     } catch (TimeoutException e) {
       // Should never happen since we use the default timeout of "never".
       throw new IllegalStateException(e);
     }
-
-    return finishedJobInfo.get();
   }
 
   private JobGrpcClientUtils() {} // prevent instantiation

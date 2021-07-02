@@ -82,9 +82,9 @@ public final class RaftJournalConfigurationTest {
     ServerConfiguration.set(PropertyKey.MASTER_HOSTNAME, "host1");
     ServerConfiguration.set(PropertyKey.JOB_MASTER_EMBEDDED_JOURNAL_PORT, 5);
     RaftJournalConfiguration conf = getConf(ServiceType.JOB_MASTER_RAFT);
-    assertEquals(Sets.newHashSet(new InetSocketAddress("host1", 5),
-        new InetSocketAddress("host2", 5),
-        new InetSocketAddress("host3", 5)),
+    assertEquals(Sets.newHashSet(InetSocketAddress.createUnresolved("host1", 5),
+        InetSocketAddress.createUnresolved("host2", 5),
+        InetSocketAddress.createUnresolved("host3", 5)),
         new HashSet<>(conf.getClusterAddresses()));
   }
 
@@ -95,9 +95,9 @@ public final class RaftJournalConfigurationTest {
     ServerConfiguration.set(PropertyKey.JOB_MASTER_HOSTNAME, "host1");
     ServerConfiguration.set(PropertyKey.JOB_MASTER_EMBEDDED_JOURNAL_PORT, 10);
     RaftJournalConfiguration conf = getConf(ServiceType.JOB_MASTER_RAFT);
-    assertEquals(Sets.newHashSet(new InetSocketAddress("host1", 10),
-        new InetSocketAddress("host2", 20),
-        new InetSocketAddress("host3", 10)),
+    assertEquals(Sets.newHashSet(InetSocketAddress.createUnresolved("host1", 10),
+        InetSocketAddress.createUnresolved("host2", 20),
+        InetSocketAddress.createUnresolved("host3", 10)),
         new HashSet<>(conf.getClusterAddresses()));
   }
 

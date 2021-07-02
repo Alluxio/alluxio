@@ -4,17 +4,21 @@ kramdown:
   hard_wrap: false
   syntax_highlighter: rouge
 
-# For release candidates and release branches, this should match the pom.xml Alluxio version, e.g. "1.5.0" or "1.5.0-RC1"
-# For master branch, this should be the latest released version, e.g. "1.5.0"
-ALLUXIO_RELEASED_VERSION: 1.8.1
-# This should be the same as ALLUXIO_RELEASED_VERSION, except on master branch, where it should be "master"
-ALLUXIO_MASTER_VERSION_SHORT: master
-# For release candidates and release branches, this should be the major Alluxio version, e.g. both 1.5.0 and 1.5.0-RC1 should use "1.5"
-# For master branch, this should be "master"
-ALLUXIO_MAJOR_VERSION: master
+# The full version string
+# Used to match the version string portion of file paths, URLs, and dependency versions
+# e.g. client jar path,
+ALLUXIO_VERSION_STRING: 2.7.0-SNAPSHOT
 # We must inline the version string (e.g., "1.4.0-SNAPSHOT") rather than using the macro of Alluxio version.
 # Otherwise the macro name remains in the output.
-ALLUXIO_CLIENT_JAR_PATH: /<PATH_TO_ALLUXIO>/client/alluxio-2.0.0-SNAPSHOT-client.jar
+ALLUXIO_CLIENT_JAR_PATH: /<PATH_TO_ALLUXIO>/client/alluxio-2.7.0-SNAPSHOT-client.jar
+# For release branches, this should be the Alluxio version in the form of <major>.<minor>, e.g. both 1.5.0 and 1.5.0-RC1 should use "1.5"
+# For master branch, this should be "edge"
+# This should be used to reference versioned pages that are not relative to the docs/ directory
+# e.g. Javadoc:      https://docs.alluxio.io/os/javadoc/{{site.ALLUXIO_MAJOR_VERSION}}/master/index.html
+# e.g. REST API doc: https://docs.alluxio.io/os/restdoc/{{site.ALLUXIO_MAJOR_VERSION}}/master/index.html
+ALLUXIO_MAJOR_VERSION: edge
+# The Alluxio docker image name.
+ALLUXIO_DOCKER_IMAGE: alluxio
 
 # These attach the pages of different languages with different 'lang' attributes
 defaults:
@@ -35,13 +39,13 @@ defaults:
 
 # These are the ordered category names
 categoryList:
-  - Home
-  - Deploying Alluxio
-  - Under Stores
-  - Data Applications
-  - Basic
+  - Overview
+  - Core Services
+  - Install Alluxio
+  - Cloud Native
+  - Compute Integrations
+  - Storage Integrations
   - Operations
-  - Advanced
   - Client APIs
   - Contributor Resources
   - Reference
@@ -50,27 +54,27 @@ categoryList:
 # When supporting a new language version, do not change the 'group' attribute in .md page files
 # Instead, just add the group name of that language below
 categoryInfo:
-  Home:
-    en: Home
+  Overview:
+    en: Overview
     cn: 用户指南
-  Deploying Alluxio:
-    en: Deploying Alluxio
+  Core Services:
+    en: Core Services
+    cn: 核心功能
+  Install Alluxio:
+    en: Install Alluxio
     cn: 部署 Alluxio
-  Under Stores:
-    en: Under Stores
-    cn: 底层存储系统
-  Data Applications:
-    en: Data Applications
+  Cloud Native:
+    en: Cloud Native
+    cn: 云原生
+  Compute Integrations:
+    en: Compute Integrations
     cn: 计算应用
-  Basic:
-    en: Basic
-    cn: 基本用法
+  Storage Integrations:
+    en: Storage Integrations
+    cn: 底层存储系统
   Operations:
     en: Operations
-    cn: 运行维护
-  Advanced:
-    en: Advanced
-    cn: 高级用法
+    cn: 运维指南
   Client APIs:
     en: Client APIs
     cn: APIs

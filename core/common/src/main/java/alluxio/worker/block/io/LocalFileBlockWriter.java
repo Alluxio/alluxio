@@ -33,7 +33,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * This class provides write access to a temp block data file locally stored in managed storage.
  */
 @NotThreadSafe
-public final class LocalFileBlockWriter implements BlockWriter {
+public class LocalFileBlockWriter extends BlockWriter {
   private static final Logger LOG = LoggerFactory.getLogger(LocalFileBlockWriter.class);
 
   private final String mFilePath;
@@ -101,6 +101,7 @@ public final class LocalFileBlockWriter implements BlockWriter {
     }
     mClosed = true;
 
+    super.close();
     mCloser.close();
     mPosition = -1;
   }

@@ -11,23 +11,30 @@
 
 package alluxio.worker.grpc;
 
+import static org.junit.Assert.assertTrue;
+
 import alluxio.AlluxioTestDirectory;
 import alluxio.AlluxioURI;
 import alluxio.ConfigurationRule;
-import alluxio.grpc.RequestType;
-import alluxio.grpc.WriteRequest;
+import alluxio.Constants;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
+import alluxio.grpc.RequestType;
+import alluxio.grpc.WriteRequest;
 import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.underfs.UfsManager;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.CreateOptions;
+import alluxio.util.CommonUtils;
+import alluxio.worker.block.AllocateOptions;
 import alluxio.worker.block.BlockStore;
 import alluxio.worker.block.BlockStoreLocation;
 import alluxio.worker.block.BlockWorker;
+import alluxio.worker.block.NoopBlockWorker;
 import alluxio.worker.block.TieredBlockStore;
 import alluxio.worker.block.io.BlockWriter;
+import alluxio.worker.block.meta.TempBlockMeta;
 
 import io.grpc.Status;
 import io.grpc.stub.StreamObserver;
@@ -59,6 +66,18 @@ public class UfsFallbackBlockWriteHandlerTest extends AbstractWriteHandlerTest {
   private File mFile;
   private long mPartialChecksum;
 
+  class MockBlockWorker extends NoopBlockWorker {
+    @Override
+    public AtomicReference<Long> getWorkerId() {
+      return new AtomicReference<>(TEST_WORKER_ID);
+    }
+
+    @Override
+    public TempBlockMeta getTempBlockMeta(long sessionId, long blockId) {
+      return mBlockStore.getTempBlockMeta(sessionId, blockId);
+    }
+  }
+
   @Rule
   public ConfigurationRule mConfigurationRule =
       new ConfigurationRule(new HashMap<PropertyKey, String>() {
@@ -79,10 +98,7 @@ public class UfsFallbackBlockWriteHandlerTest extends AbstractWriteHandlerTest {
     mFile = mTestFolder.newFile();
     mOutputStream = new FileOutputStream(mFile);
     mBlockStore = new TieredBlockStore();
-    mBlockWorker = Mockito.mock(BlockWorker.class);
-    Mockito.when(mBlockWorker.getBlockStore()).thenReturn(mBlockStore);
-    Mockito.when(mBlockWorker.getWorkerId()).thenReturn(
-        new AtomicReference<>(TEST_WORKER_ID));
+    mBlockWorker = new MockBlockWorker();
     UnderFileSystem mockUfs = Mockito.mock(UnderFileSystem.class);
     UfsManager ufsManager = Mockito.mock(UfsManager.class);
     UfsManager.UfsClient ufsClient = new UfsManager.UfsClient(() -> mockUfs, AlluxioURI.EMPTY_URI);
@@ -92,13 +108,13 @@ public class UfsFallbackBlockWriteHandlerTest extends AbstractWriteHandlerTest {
         .thenReturn(new FileOutputStream(mFile, true));
 
     mResponseObserver = Mockito.mock(StreamObserver.class);
-    mWriteHandler =
-        new UfsFallbackBlockWriteHandler(mBlockWorker, ufsManager, mResponseObserver, mUserInfo);
+    mWriteHandler = new UfsFallbackBlockWriteHandler(mBlockWorker, ufsManager, mResponseObserver,
+        mUserInfo, false);
     setupResponseTrigger();
 
     // create a partial block in block store first
-    mBlockStore.createBlock(TEST_SESSION_ID, TEST_BLOCK_ID,
-        BlockStoreLocation.anyDirInTier("MEM"), CHUNK_SIZE);
+    mBlockStore.createBlock(TEST_SESSION_ID, TEST_BLOCK_ID, AllocateOptions
+        .forCreate(CHUNK_SIZE, BlockStoreLocation.anyDirInTier(Constants.MEDIUM_MEM)));
     BlockWriter writer = mBlockStore.getBlockWriter(TEST_SESSION_ID, TEST_BLOCK_ID);
     DataBuffer buffer = newDataBuffer(PARTIAL_WRITTEN);
     mPartialChecksum = getChecksum(buffer);
@@ -130,6 +146,13 @@ public class UfsFallbackBlockWriteHandlerTest extends AbstractWriteHandlerTest {
     waitForResponses();
     checkComplete(mResponseObserver);
     checkWriteData(checksum, PARTIAL_WRITTEN + CHUNK_SIZE);
+  }
+
+  @Test
+  public void getLocation() throws Exception {
+    mWriteHandler.write(newFallbackInitRequest(0));
+    CommonUtils.waitFor("location is not null", () -> !"null".equals(mWriteHandler.getLocation()));
+    assertTrue(mWriteHandler.getLocation().startsWith("/.alluxio_ufs_blocks"));
   }
 
   protected WriteRequest newFallbackInitRequest(long bytesInBlockStore) {

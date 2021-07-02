@@ -11,26 +11,24 @@
 
 package alluxio.security.authentication;
 
-import java.util.UUID;
+import alluxio.grpc.SaslMessage;
 
+import javax.security.sasl.SaslException;
 import javax.security.sasl.SaslServer;
 
 /**
  * Interface for authentication scheme specific {@link SaslServer} management.
  */
-public interface SaslServerHandler {
-  /**
-   * Callback that will be called when authentication complete.
-   *
-   * @param channelId channel that has been authenticated
-   * @param authenticationServer authentication server instance
-   */
-  void authenticationCompleted(UUID channelId, AuthenticationServer authenticationServer);
+public interface SaslServerHandler extends AutoCloseable {
 
   /**
-   * @return the {@link SaslServer} instance
+   * Handles given {@link SaslMessage} from the client.
+   *
+   * @param message client Sasl message
+   * @return server's response to given client message
+   * @throws SaslException
    */
-  SaslServer getSaslServer();
+  SaslMessage handleMessage(SaslMessage message) throws SaslException;
 
   /**
    * To be called by callbacks to store authenticated user information.
@@ -38,4 +36,18 @@ public interface SaslServerHandler {
    * @param userinfo user info
    */
   void setAuthenticatedUserInfo(AuthenticatedUserInfo userinfo);
+
+  /**
+   * Used to get the authenticated user info after the completed session.
+   *
+   * @return the authenticated user info
+   */
+  AuthenticatedUserInfo getAuthenticatedUserInfo();
+
+  /**
+   * Close the handler and dispose internal resources.
+   * Implementations should be idempotent.
+   */
+  @Override
+  void close();
 }

@@ -113,6 +113,7 @@ public class ConfigCheckerIntegrationTest extends BaseIntegrationTest {
 
     mCluster.start();
     ConfigCheckReport report = getReport();
+    // The workers values of many directory related properties are different
     assertEquals(ConfigStatus.WARN, report.getConfigStatus());
     assertThat(report.getConfigWarns().toString(), CoreMatchers.containsString(key.getName()));
     mCluster.notifySuccess();

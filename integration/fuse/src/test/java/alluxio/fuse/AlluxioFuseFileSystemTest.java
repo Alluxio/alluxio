@@ -23,24 +23,29 @@ import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.mockito.Mockito.times;
 
 import alluxio.AlluxioURI;
 import alluxio.ConfigurationRule;
-import alluxio.Constants;
 import alluxio.ConfigurationTestUtils;
-import alluxio.conf.InstancedConfiguration;
-import alluxio.conf.PropertyKey;
+import alluxio.Constants;
+import alluxio.client.block.BlockMasterClient;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
+import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
+import alluxio.exception.FileIncompleteException;
+import alluxio.grpc.CreateDirectoryPOptions;
+import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.security.authorization.Mode;
+import alluxio.wire.BlockMasterInfo;
 import alluxio.wire.FileInfo;
 
 import com.google.common.cache.LoadingCache;
@@ -51,17 +56,25 @@ import org.junit.Assume;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.mockito.stubbing.Answer;
+import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 import ru.serce.jnrfuse.ErrorCodes;
 import ru.serce.jnrfuse.struct.FileStat;
 import ru.serce.jnrfuse.struct.FuseFileInfo;
+import ru.serce.jnrfuse.struct.Statvfs;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Isolation tests for {@link AlluxioFuseFileSystem}.
  */
+@RunWith(PowerMockRunner.class)
+@PrepareForTest({BlockMasterClient.Factory.class})
 public class AlluxioFuseFileSystemTest {
 
   private static final String TEST_ROOT_PATH = "/t/root";
@@ -80,8 +93,8 @@ public class AlluxioFuseFileSystemTest {
   @Before
   public void before() throws Exception {
     final List<String> empty = Collections.emptyList();
-    AlluxioFuseOptions opts =
-        new AlluxioFuseOptions("/doesnt/matter", TEST_ROOT_PATH, false, empty);
+    FuseMountOptions opts =
+        new FuseMountOptions("/doesnt/matter", TEST_ROOT_PATH, false, empty);
 
     mFileSystem = mock(FileSystem.class);
     try {
@@ -168,14 +181,25 @@ public class AlluxioFuseFileSystemTest {
     mFileInfo.flags.set(O_WRONLY.intValue());
     mFuseFs.create("/foo/bar", 0, mFileInfo);
     AlluxioURI expectedPath = BASE_EXPECTED_URI.join("/foo/bar");
-    verify(mFileSystem).createFile(expectedPath);
+    verify(mFileSystem).createFile(expectedPath, CreateFilePOptions.newBuilder()
+        .setMode(new alluxio.security.authorization.Mode((short) 0).toProto())
+        .build());
+  }
+
+  @Test
+  public void createWithLengthLimit() throws Exception {
+    String c256 = String.join("", Collections.nCopies(16, "0123456789ABCDEF"));
+    mFileInfo.flags.set(O_WRONLY.intValue());
+    assertEquals(-ErrorCodes.ENAMETOOLONG(),
+        mFuseFs.create("/foo/" + c256, 0, mFileInfo));
   }
 
   @Test
   public void flush() throws Exception {
     FileOutStream fos = mock(FileOutStream.class);
     AlluxioURI anyURI = any();
-    when(mFileSystem.createFile(anyURI)).thenReturn(fos);
+    CreateFilePOptions options = any();
+    when(mFileSystem.createFile(anyURI, options)).thenReturn(fos);
 
     // open a file
     mFileInfo.flags.set(O_WRONLY.intValue());
@@ -277,7 +301,7 @@ public class AlluxioFuseFileSystemTest {
     // getattr() will not be blocked when writing
     mFuseFs.getattr(path, stat);
     // If getattr() is blocking, it will continuously get status of the file
-    verify(mFileSystem, atMost(2)).getStatus(expectedPath);
+    verify(mFileSystem, atMost(300)).getStatus(expectedPath);
     assertEquals(0, stat.st_size.longValue());
 
     mFuseFs.release(path, mFileInfo);
@@ -301,8 +325,20 @@ public class AlluxioFuseFileSystemTest {
 
   @Test
   public void mkDir() throws Exception {
-    mFuseFs.mkdir("/foo/bar", -1);
-    verify(mFileSystem).createDirectory(BASE_EXPECTED_URI.join("/foo/bar"));
+    long mode = 0755L;
+    mFuseFs.mkdir("/foo/bar", mode);
+    verify(mFileSystem).createDirectory(BASE_EXPECTED_URI.join("/foo/bar"),
+        CreateDirectoryPOptions.newBuilder()
+            .setMode(new alluxio.security.authorization.Mode((short) mode).toProto())
+            .build());
+  }
+
+  @Test
+  public void mkDirWithLengthLimit() throws Exception {
+    long mode = 0755L;
+    String c256 = String.join("", Collections.nCopies(16, "0123456789ABCDEF"));
+    assertEquals(-ErrorCodes.ENAMETOOLONG(),
+        mFuseFs.mkdir("/foo/" + c256, mode));
   }
 
   @Test
@@ -310,8 +346,9 @@ public class AlluxioFuseFileSystemTest {
     AlluxioURI expectedPath = BASE_EXPECTED_URI.join("/foo/bar");
     setUpOpenMock(expectedPath);
 
+    FileInStream is = mock(FileInStream.class);
+    when(mFileSystem.openFile(expectedPath)).thenReturn(is);
     mFuseFs.open("/foo/bar", mFileInfo);
-    verify(mFileSystem).getStatus(expectedPath);
     verify(mFileSystem).openFile(expectedPath);
   }
 
@@ -321,9 +358,8 @@ public class AlluxioFuseFileSystemTest {
     FileInfo fi = setUpOpenMock(expectedPath);
     fi.setCompleted(false);
 
-    mFuseFs.open("/foo/bar", mFileInfo);
-    verify(mFileSystem, atLeast(100)).getStatus(expectedPath);
-    verify(mFileSystem, never()).openFile(expectedPath);
+    when(mFileSystem.openFile(expectedPath)).thenThrow(new FileIncompleteException(expectedPath));
+    assertEquals(-ErrorCodes.EFAULT(), mFuseFs.open("/foo/bar", mFileInfo));
   }
 
   @Test
@@ -331,6 +367,7 @@ public class AlluxioFuseFileSystemTest {
     AlluxioURI expectedPath = BASE_EXPECTED_URI.join("/foo/bar");
     FileInfo fi = setUpOpenMock(expectedPath);
     fi.setCompleted(false);
+    when(mFileSystem.openFile(expectedPath)).thenThrow(new FileIncompleteException(expectedPath));
 
     // Use another thread to open file so that
     // we could change the file status when opening it
@@ -339,11 +376,10 @@ public class AlluxioFuseFileSystemTest {
     Thread.sleep(1000);
     // If the file exists but is not completed, we will wait for the file to complete
     verify(mFileSystem, atLeast(10)).getStatus(expectedPath);
-    verify(mFileSystem, never()).openFile(expectedPath);
 
     fi.setCompleted(true);
     t.join();
-    verify(mFileSystem).openFile(expectedPath);
+    verify(mFileSystem, times(2)).openFile(expectedPath);
   }
 
   @Test
@@ -361,6 +397,7 @@ public class AlluxioFuseFileSystemTest {
           }
           return 4;
         });
+    when(fakeInStream.remaining()).thenReturn(4L);
 
     when(mFileSystem.openFile(expectedPath)).thenReturn(fakeInStream);
     mFileInfo.flags.set(O_RDONLY.intValue());
@@ -376,6 +413,90 @@ public class AlluxioFuseFileSystemTest {
     final byte[] dst = new byte[4];
     ptr.get(0, dst, 0, 4);
     final byte[] expected = new byte[] {0, 1, 2, 3};
+
+    assertArrayEquals("Source and dst data should be equal", expected, dst);
+  }
+
+  @Test
+  public void readOffset() throws Exception {
+    // mocks set-up
+    AlluxioURI expectedPath = BASE_EXPECTED_URI.join("/foo/bar");
+    setUpOpenMock(expectedPath);
+
+    FileInStream fakeInStream = mock(FileInStream.class);
+    when(fakeInStream.read(any(byte[].class),
+        anyInt(), anyInt())).then((Answer<Integer>) invocationOnMock -> {
+          byte[] myDest = (byte[]) invocationOnMock.getArguments()[0];
+          for (byte i = 0; i < (int) invocationOnMock.getArgument(2); i++) {
+            myDest[i] = (byte) (i + 1);
+          }
+          return myDest.length;
+        });
+    AtomicInteger callCounter = new AtomicInteger();
+    when(fakeInStream.remaining()).then((Answer<Long>) invocationOnMock -> {
+      if (callCounter.getAndIncrement() == 0) {
+        return 4L;
+      } else {
+        return 3L;
+      }
+    });
+
+    when(mFileSystem.openFile(expectedPath)).thenReturn(fakeInStream);
+    mFileInfo.flags.set(O_RDONLY.intValue());
+
+    // prepare something to read to it
+    Runtime r = Runtime.getSystemRuntime();
+    Pointer ptr = r.getMemoryManager().allocateTemporary(2, true);
+
+    // actual test
+    mFuseFs.open("/foo/bar", mFileInfo);
+
+    mFuseFs.read("/foo/bar", ptr, 2, 1, mFileInfo);
+    final byte[] dst = new byte[2];
+    ptr.get(0, dst, 0, 2);
+    final byte[] expected = new byte[] {1, 2};
+
+    assertArrayEquals("Source and dst data should be equal", expected, dst);
+  }
+
+  @Test
+  public void readOffset2() throws Exception {
+    // mocks set-up
+    AlluxioURI expectedPath = BASE_EXPECTED_URI.join("/foo/bar");
+    setUpOpenMock(expectedPath);
+
+    FileInStream fakeInStream = mock(FileInStream.class);
+    when(fakeInStream.read(any(byte[].class),
+        anyInt(), anyInt())).then((Answer<Integer>) invocationOnMock -> {
+          byte[] myDest = (byte[]) invocationOnMock.getArguments()[0];
+          for (byte i = 0; i < (int) invocationOnMock.getArgument(2); i++) {
+            myDest[i] = i;
+          }
+          return myDest.length;
+        });
+    AtomicInteger callCounter = new AtomicInteger();
+    when(fakeInStream.remaining()).then((Answer<Long>) invocationOnMock -> {
+      if (callCounter.getAndIncrement() == 0) {
+        return 4L;
+      } else {
+        return 3L;
+      }
+    });
+
+    when(mFileSystem.openFile(expectedPath)).thenReturn(fakeInStream);
+    mFileInfo.flags.set(O_RDONLY.intValue());
+
+    // prepare something to read to it
+    Runtime r = Runtime.getSystemRuntime();
+    Pointer ptr = r.getMemoryManager().allocateTemporary(4, true);
+
+    // actual test
+    mFuseFs.open("/foo/bar", mFileInfo);
+
+    mFuseFs.read("/foo/bar", ptr, 4, 4, mFileInfo);
+    final byte[] dst = new byte[0];
+    ptr.get(0, dst, 0, 0);
+    final byte[] expected = new byte[0];
 
     assertArrayEquals("Source and dst data should be equal", expected, dst);
   }
@@ -408,6 +529,16 @@ public class AlluxioFuseFileSystemTest {
   }
 
   @Test
+  public void renameWithLengthLimit() throws Exception {
+    String c256 = String.join("", Collections.nCopies(16, "0123456789ABCDEF"));
+    AlluxioURI oldPath = BASE_EXPECTED_URI.join("/old");
+    AlluxioURI newPath = BASE_EXPECTED_URI.join("/" + c256);
+    doNothing().when(mFileSystem).rename(oldPath, newPath);
+    assertEquals(-ErrorCodes.ENAMETOOLONG(),
+        mFuseFs.rename("/old", "/" + c256));
+  }
+
+  @Test
   public void rmdir() throws Exception {
     AlluxioURI expectedPath = BASE_EXPECTED_URI.join("/foo/bar");
     doNothing().when(mFileSystem).delete(expectedPath);
@@ -419,7 +550,8 @@ public class AlluxioFuseFileSystemTest {
   public void write() throws Exception {
     FileOutStream fos = mock(FileOutStream.class);
     AlluxioURI anyURI = any();
-    when(mFileSystem.createFile(anyURI)).thenReturn(fos);
+    CreateFilePOptions options = any();
+    when(mFileSystem.createFile(anyURI, options)).thenReturn(fos);
 
     // open a file
     mFileInfo.flags.set(O_WRONLY.intValue());
@@ -481,5 +613,38 @@ public class AlluxioFuseFileSystemTest {
 
     when(mFileSystem.getStatus(uri)).thenReturn(status);
     return fi;
+  }
+
+  @Test
+  public void statfs() throws Exception {
+    Runtime runtime = Runtime.getSystemRuntime();
+    Pointer pointer = runtime.getMemoryManager().allocateTemporary(4 * Constants.KB, true);
+    Statvfs stbuf = Statvfs.of(pointer);
+
+    int blockSize = 4 * Constants.KB;
+    int totalBlocks = 4;
+    int freeBlocks = 3;
+
+    BlockMasterClient blockMasterClient = PowerMockito.mock(BlockMasterClient.class);
+    PowerMockito.mockStatic(BlockMasterClient.Factory.class);
+    when(BlockMasterClient.Factory.create(any())).thenReturn(blockMasterClient);
+
+    BlockMasterInfo blockMasterInfo = new BlockMasterInfo();
+    blockMasterInfo.setCapacityBytes(totalBlocks * blockSize);
+    blockMasterInfo.setFreeBytes(freeBlocks * blockSize);
+    when(blockMasterClient.getBlockMasterInfo(any())).thenReturn(blockMasterInfo);
+
+    assertEquals(0, mFuseFs.statfs("/", stbuf));
+
+    assertEquals(blockSize, stbuf.f_bsize.intValue());
+    assertEquals(blockSize, stbuf.f_frsize.intValue());
+    assertEquals(totalBlocks, stbuf.f_blocks.longValue());
+    assertEquals(freeBlocks, stbuf.f_bfree.longValue());
+    assertEquals(freeBlocks, stbuf.f_bavail.longValue());
+
+    assertEquals(AlluxioFuseFileSystem.UNKNOWN_INODES, stbuf.f_files.intValue());
+    assertEquals(AlluxioFuseFileSystem.UNKNOWN_INODES, stbuf.f_ffree.intValue());
+    assertEquals(AlluxioFuseFileSystem.UNKNOWN_INODES, stbuf.f_favail.intValue());
+    assertEquals(AlluxioFuseFileSystem.MAX_NAME_LENGTH, stbuf.f_namemax.intValue());
   }
 }

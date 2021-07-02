@@ -13,6 +13,7 @@ package alluxio.cli.fs.command;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
+import alluxio.annotation.PublicApi;
 import alluxio.cli.CommandUtils;
 import alluxio.cli.fs.FileSystemShellUtils;
 import alluxio.client.file.FileInStream;
@@ -26,6 +27,7 @@ import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
 import alluxio.exception.status.InvalidArgumentException;
+import alluxio.grpc.DeletePOptions;
 import alluxio.grpc.SetAclAction;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.security.authorization.Mode;
@@ -38,7 +40,7 @@ import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang.RandomStringUtils;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -66,6 +68,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * Copies a file or a directory in the Alluxio filesystem.
  */
 @ThreadSafe
+@PublicApi
 public final class CpCommand extends AbstractFileSystemCommand {
   private static final Logger LOG = LoggerFactory.getLogger(CpCommand.class);
   private static final String COPY_SUCCEED_MESSAGE = "Copied %s to %s";
@@ -330,6 +333,8 @@ public final class CpCommand extends AbstractFileSystemCommand {
     }
     if (cl.hasOption(PRESERVE_OPTION.getLongOpt())) {
       mPreservePermissions = true;
+    } else {
+      mPreservePermissions = false;
     }
   }
 
@@ -534,13 +539,14 @@ public final class CpCommand extends AbstractFileSystemCommand {
    */
   private void copyFile(AlluxioURI srcPath, AlluxioURI dstPath)
       throws AlluxioException, IOException {
-    try (Closer closer = Closer.create()) {
-      FileInStream is = closer.register(mFileSystem.openFile(srcPath));
-      FileOutStream os = closer.register(mFileSystem.createFile(dstPath));
+    try (FileInStream is = mFileSystem.openFile(srcPath);
+         FileOutStream os = mFileSystem.createFile(dstPath)) {
       try {
-        IOUtils.copy(is, os);
+        IOUtils.copyLarge(is, os, new byte[8 * Constants.MB]);
       } catch (Exception e) {
         os.cancel();
+        // clean up the incomplete file
+        mFileSystem.delete(dstPath, DeletePOptions.newBuilder().setUnchecked(true).build());
         throw e;
       }
       System.out.println(String.format(COPY_SUCCEED_MESSAGE, srcPath, dstPath));

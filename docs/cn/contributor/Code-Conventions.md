@@ -9,7 +9,7 @@ priority: 2
 * 内容列表
 {:toc}
 
-> 如果您是一名新的开源贡献者，请先浏览[Alluxio开发新手指南](Contributing-Getting-Started.html)以熟悉如何向Alluxio贡献源码。
+> 如果您是一名新的开源贡献者，请先浏览[Alluxio开发新手指南]({{ '/cn/contributor/Contributor-Getting-Started.html' | relativize_url }})以熟悉如何向Alluxio贡献源码。
 
 我们非常感谢您对Alluxio的关注与兴趣！特别感谢您对Alluxio开源社区作出的贡献！
 
@@ -39,38 +39,38 @@ priority: 2
 
 - 运行所有单元测试
 
-```bash
-cd ${ALLUXIO_HOME}
-mvn test
+```console
+$ cd ${ALLUXIO_HOME}
+$ mvn test
 ```
 
 这会使用本地文件系统作为底层文件系统。
 
 - 运行单个单元测试
 
-```bash
-mvn -Dtest=AlluxioFSTest#createFileTest -DfailIfNoTests=false test
+```console
+$ mvn -Dtest=AlluxioFSTest#createFileTest -DfailIfNoTests=false test
 ```
 
 - 要运行特定模块的单元测试, 在想要的子模块下执行`maven test`命令。例如，要运行HDFS UFS模块测试，执行以下命令
 
-```bash
-mvn test -pl underfs/hdfs
+```console
+$ mvn test -pl underfs/hdfs
 ```
 
 您可以指定运行模块单元测试的Hadoop版本, 我们会创建该版本的模拟HDFS服务来进行测试：
 
-```bash
+```console
 # build and run test on HDFS under filesystem module for Hadoop 2.7.0
-mvn test -pl underfs/hdfs -Phadoop-2 -Dhadoop.version=2.7.0
+$ mvn test -pl underfs/hdfs -Phadoop-2 -Dhadoop.version=2.7.0
 # build and run test on HDFS under filesystem module for Hadoop 3.0.0
-mvn test -pl underfs/hdfs -Phadoop-3 -Dhadoop.version=3.0.0
+$ mvn test -pl underfs/hdfs -Phadoop-3 -Dhadoop.version=3.0.0
 ```
 
 您也可以使用一个正在运行的HDFS服务来对Alluxio的HDFS 底层文件系统进行更加全面的测试：
 
-```bash
-mvn test -pl underfs/hdfs -PufsContractTest -DtestHdfsBaseDir=hdfs://ip:port/alluxio_test
+```console
+$ mvn test -pl underfs/hdfs -PufsContractTest -DtestHdfsBaseDir=hdfs://ip:port/alluxio_test
 ```
 
 - 要想日志输出到STDOUT, 在mvn命令后添加以下参数：
@@ -82,7 +82,7 @@ mvn test -pl underfs/hdfs -PufsContractTest -DtestHdfsBaseDir=hdfs://ip:port/all
 - 要以交互的方式快速运行某些API测试，你可能需要使用Scala shell，这在
 [blog](http://scala4fun.tumblr.com/post/84791653967/interactivejavacoding)有详细说明。
 
-- 如果libfuse库丢失，其测试将被忽略。要运行这些测试，请安装[FUSE](Mounting-Alluxio-FS-with-FUSE.html#requirements)中所提到的正确的库。
+- 如果libfuse库丢失，其测试将被忽略。要运行这些测试，请安装[FUSE]({{ '/cn/api/POSIX-API.html' | relativize_url }}#requirements)中所提到的正确的库。
 
 ### 系统设置
 
@@ -90,9 +90,9 @@ mvn test -pl underfs/hdfs -PufsContractTest -DtestHdfsBaseDir=hdfs://ip:port/all
 
 要使得MacOS上允许的文件数和进程数增加，运行以下命令
 
-```bash
-sudo launchctl limit maxfiles 32768 32768
-sudo launchctl limit maxproc 32768 32768
+```console
+$ sudo launchctl limit maxfiles 32768 32768
+$ sudo launchctl limit maxproc 32768 32768
 ```
 
 同时建议关闭本地Alluxio文件夹的spotlight定位服务。否则，你的Mac在单元测试时将会一直挂起来尝试重新定位文件系统。去`System Preferences > Spotlight > Privacy`，点击`+`键，浏览你本地Alluxio的目录，点击`Choose`将其添加到排除列表。
@@ -116,8 +116,8 @@ sudo launchctl limit maxproc 32768 32768
 
 -  为验证编码风格符合标准，你在提交pull request之前应该先运行[checkstyle](http://checkstyle.sourceforge.net)，并且保证没有警告：
 
-```bash
-mvn checkstyle:checkstyle
+```console
+$ mvn checkstyle:checkstyle
 ```
 
 ## 日志约定
@@ -146,7 +146,7 @@ LOG.error("Failed to do something due to an exception", e);
 ```
 * 警告级别日志（`LOG.warn`）常用于描述用户预期行为与Alluxio实践行为之间的差异。警告级别日志伴有异常消息。相关的堆栈跟踪信息可能在调试级日志中记录。
 ```java
-LOG.warm("Failed to do something due to {}", e.getMessage());
+LOG.warn("Failed to do something: {}", e.toString());
 ```
 * 信息级别日志（`LOG.info`）记录了重要系统状态的更改信息。当有错误消息或需要记录堆栈跟踪信息时，请不要使用信息级别日志。需要注意的是，该日志级别不应该出现在频繁使用的关键路径上的程序中以避免对性能的不利影响。
 ```java
@@ -167,44 +167,37 @@ if (LOG.isDebugEnabled()) {
 在提交pull request之前，对最新的代码运行
 [FindBugs](http://findbugs.sourceforge.net/)确保不出现警告：
 
-{% include Contributing-to-Alluxio/findbugs.md %}
+```console
+$ mvn compile findbugs:findbugs
+```
 
 ## IDE
 
 你可以通过运行以下命令生成Eclipse配置文件：
 
-{% include Contributing-to-Alluxio/eclipse-configuration.md %}
+```console
+$ mvn clean -Pdeveloper install -DskipTests
+$ mvn clean -Pdeveloper -DskipTests eclipse:eclipse -DdownloadJavadocs=true -DdownloadSources=true
+```
 
 然后将该文件夹导入到Eclipse中。
 
 也可以运行以下命令将M2_REPO添加到classpath变量中：
 
-{% include Contributing-to-Alluxio/M2_REPO.md %}
+```console
+$ mvn -Declipse.workspace="your Eclipse Workspace" eclipse:configure-workspace
+```
 
 如果你使用的是IntelliJ IDEA，你可能需要修改Maven profile配置中的'developer'以防止导入错误，可以通过以下方式进行：
 
     View > Tool Windows > Maven Projects
 
-## 更改Thrift RPC的定义
-
-Alluxio使用Thrift来完成客户端与服务端的RPC通信。`common/src/thrift/`目录下的`.thrift`文件，其一方面用于自动生成客户端调用RPC的Java代码，另一方面用于实现服务端的RPC。要想更改一个Thrift定义，你首先必须要[安装Thrift的编译器](https://thrift.apache.org/docs/install/)。如果你的机器上有brew，你可以通过运行下面的命令来完成。
-
-```bash
-brew install thrift
-```
-
-然后重新生成Java代码，运行
-
-```bash
-./bin/alluxio thriftGen
-```
-
 ## 更改Protocol Buffer消息
 
 Alluxio使用Protocol Buffer来读写日志消息。`servers/src/proto/journal/`目录下的`.proto`文件用于为Protocol Buffer消息自动生成Java定义。如果需要修改这些消息，首先要读取[更新消息类型](https://developers.google.com/protocol-buffers/docs/proto#updating)从而保证你的修改不会破坏向后兼容性。然后请[安装protoc](https://github.com/google/protobuf#protocol-buffers---googles-data-interchange-format)。如果你的机器上有brew，你可以通过运行下面的命令来完成。
 
-```bash
-mvn compile -Pgenerate
+```console
+$ mvn compile -Pgenerate
 ```
 
 ## bin/alluxio目录下的命令列表
@@ -222,4 +215,4 @@ mvn compile -Pgenerate
 {% endfor %}
 </table>
 
-此外，这些命令的执行有不同的先决条件。`format`，`formatWorker`，`journalCrashTest`，`readJournal`，`version`，`validateConf`和`validateEnv`命令的先决条件是你已经编译了Alluxio（见[编译Alluxio源代码](Building-Alluxio-From-Source.html)其介绍了如何手动构建Alluxio)。而`fs`，`logLevel`, `runTest`和`runTests`命令的先决条件是你已经运行了Alluxio系统。
+此外，这些命令的执行有不同的先决条件。`format`，`formatWorker`，`journalCrashTest`，`readJournal`，`version`，`validateConf`和`validateEnv`命令的先决条件是你已经编译了Alluxio（见[编译Alluxio源代码]({{ '/cn/contributor/Building-Alluxio-From-Source.html' | relativize_url }})其介绍了如何手动构建Alluxio)。而`fs`，`logLevel`, `runTest`和`runTests`命令的先决条件是你已经运行了Alluxio系统。

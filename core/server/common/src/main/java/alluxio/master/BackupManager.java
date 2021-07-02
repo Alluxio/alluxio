@@ -11,12 +11,17 @@
 
 package alluxio.master;
 
+import alluxio.ProcessUtils;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.master.journal.JournalContext;
 import alluxio.master.journal.JournalEntryAssociation;
 import alluxio.master.journal.JournalEntryStreamReader;
+import alluxio.master.journal.JournalUtils;
+import alluxio.metrics.MetricKey;
+import alluxio.metrics.MetricsSystem;
 import alluxio.proto.journal.Journal.JournalEntry;
+import alluxio.resource.CloseableIterator;
 import alluxio.util.ThreadFactoryUtils;
 
 import com.google.common.collect.Maps;
@@ -30,7 +35,6 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -41,6 +45,7 @@ import java.util.concurrent.ExecutorCompletionService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
@@ -69,19 +74,34 @@ public class BackupManager {
 
   private final MasterRegistry mRegistry;
 
+  // Set initial values to -1 to indicate no backup or restore happened
+  private long mBackupEntriesCount = -1;
+  private long mRestoreEntriesCount = -1;
+  private long mBackupTimeMs = -1;
+  private long mRestoreTimeMs = -1;
+
   /**
    * @param registry a master registry containing the masters to backup or restore
    */
   public BackupManager(MasterRegistry registry) {
     mRegistry = registry;
+    MetricsSystem.registerGaugeIfAbsent(MetricKey.MASTER_LAST_BACKUP_ENTRIES_COUNT.getName(),
+        () -> mBackupEntriesCount);
+    MetricsSystem.registerGaugeIfAbsent(MetricKey.MASTER_LAST_BACKUP_RESTORE_COUNT.getName(),
+        () -> mRestoreEntriesCount);
+    MetricsSystem.registerGaugeIfAbsent(MetricKey.MASTER_LAST_BACKUP_RESTORE_TIME_MS.getName(),
+        () -> mRestoreTimeMs);
+    MetricsSystem.registerGaugeIfAbsent(MetricKey.MASTER_LAST_BACKUP_TIME_MS.getName(),
+        () -> mBackupTimeMs);
   }
 
   /**
    * Writes a backup to the specified stream.
    *
    * @param os the stream to write to
+   * @param entryCount will receive total entry count that are backed up
    */
-  public void backup(OutputStream os) throws IOException {
+  public void backup(OutputStream os, AtomicLong entryCount) throws IOException {
     // Create gZIP compressed stream as back-up stream.
     GzipCompressorOutputStream zipStream = new GzipCompressorOutputStream(os);
 
@@ -93,25 +113,30 @@ public class BackupManager {
     Set<Future<?>> activeTasks = new HashSet<>();
 
     // Entry queue will be used as a buffer and synchronization between readers and writer.
-    // Use of {@link LinkedBlockingQueue} is preferred becaue of {@code #drainTo()} method,
+    // Use of {@link LinkedBlockingQueue} is preferred because of {@code #drainTo()} method,
     // using which all existing entries can be drained while allowing writes.
     // Processing/draining one-by-one using {@link ConcurrentLinkedQueue} proved to be
     // inefficient compared to draining with dedicated method.
     LinkedBlockingQueue<JournalEntry> journalEntryQueue = new LinkedBlockingQueue<>(
         ServerConfiguration.getInt(PropertyKey.MASTER_BACKUP_ENTRY_BUFFER_COUNT));
 
-    // Shows how many entries have been written.
-    AtomicLong writtenEntryCount = new AtomicLong(0);
     // Whether buffering is still active.
     AtomicBoolean bufferingActive = new AtomicBoolean(true);
+
+    // Start the timer for backup metrics.
+    long startBackupTime = System.currentTimeMillis();
 
     // Submit master reader task.
     activeTasks.add(completionService.submit(() -> {
       try {
         for (Master master : mRegistry.getServers()) {
-          Iterator<JournalEntry> it = master.getJournalEntryIterator();
-          while (it.hasNext()) {
-            journalEntryQueue.put(it.next());
+          try (CloseableIterator<JournalEntry> it = master.getJournalEntryIterator()) {
+            while (it.get().hasNext()) {
+              journalEntryQueue.put(it.get().next());
+              if (Thread.interrupted()) {
+                throw new InterruptedException();
+              }
+            }
           }
         }
         // Put termination entry for signaling the writer.
@@ -119,6 +144,7 @@ public class BackupManager {
             .put(JournalEntry.newBuilder().setSequenceNumber(TERMINATION_SEQ).build());
         return true;
       } catch (InterruptedException ie) {
+        LOG.info("Backup reader task interrupted");
         Thread.currentThread().interrupt();
         throw new RuntimeException("Thread interrupted while reading master state.", ie);
       } finally {
@@ -137,6 +163,9 @@ public class BackupManager {
             // No elements at the moment. Fall-back to blocking mode.
             pendingEntries.add(journalEntryQueue.take());
           }
+          if (Thread.interrupted()) {
+            throw new InterruptedException();
+          }
           // Write entries to back-up stream.
           for (JournalEntry journalEntry : pendingEntries) {
             // Check for termination entry.
@@ -145,12 +174,13 @@ public class BackupManager {
               return true;
             }
             journalEntry.writeDelimitedTo(zipStream);
-            writtenEntryCount.incrementAndGet();
+            entryCount.incrementAndGet();
           }
           pendingEntries.clear();
         }
         return true;
       } catch (InterruptedException ie) {
+        LOG.info("Backup writer task interrupted");
         // Continue interrupt chain.
         Thread.currentThread().interrupt();
         throw new RuntimeException("Thread interrupted while writing to backup stream.", ie);
@@ -160,9 +190,13 @@ public class BackupManager {
     // Wait until backup tasks are completed.
     safeWaitTasks(activeTasks, completionService);
 
+    // Close timer and update entry count.
+    mBackupTimeMs = System.currentTimeMillis() - startBackupTime;
+    mBackupEntriesCount = entryCount.get();
+
     // finish() instead of close() since close would close os, which is owned by the caller.
     zipStream.finish();
-    LOG.info("Created backup with {} entries", writtenEntryCount.get());
+    LOG.info("Created backup with {} entries", entryCount.get());
   }
 
   /**
@@ -177,7 +211,7 @@ public class BackupManager {
 
       // Executor for applying backup.
       CompletionService<Boolean> completionService = new ExecutorCompletionService<>(
-          Executors.newFixedThreadPool(4, ThreadFactoryUtils.build("master-backup-%d", true)));
+          Executors.newFixedThreadPool(2, ThreadFactoryUtils.build("master-backup-%d", true)));
 
       // List of active tasks.
       Set<Future<?>> activeTasks = new HashSet<>();
@@ -194,6 +228,16 @@ public class BackupManager {
 
       // Shows how many entries have been applied.
       AtomicLong appliedEntryCount = new AtomicLong(0);
+
+      // Progress executor
+      ScheduledExecutorService traceExecutor = Executors.newScheduledThreadPool(1,
+          ThreadFactoryUtils.build("master-backup-tracer-%d", true));
+      traceExecutor.scheduleAtFixedRate(() -> {
+        LOG.info("{} entries from backup applied so far...", appliedEntryCount.get());
+      }, 30, 30, TimeUnit.SECONDS);
+
+      // Start the timer for backup metrics.
+      long startRestoreTime = System.currentTimeMillis();
 
       // Create backup reader task.
       activeTasks.add(completionService.submit(() -> {
@@ -249,8 +293,21 @@ public class BackupManager {
                   // Reading finished.
                   return true;
                 }
-                Master master = mastersByName.get(JournalEntryAssociation.getMasterForEntry(entry));
-                master.applyAndJournal(masterJCMap.get(master), entry);
+                String masterName;
+                try {
+                  masterName = JournalEntryAssociation.getMasterForEntry(entry);
+                } catch (IllegalStateException ise) {
+                  ProcessUtils.fatalError(LOG, ise, "Unrecognized journal entry: %s", entry);
+                  throw ise;
+                }
+                try {
+                  Master master = mastersByName.get(masterName);
+                  master.applyAndJournal(masterJCMap.get(master), entry);
+                  appliedEntryCount.incrementAndGet();
+                } catch (Exception e) {
+                  JournalUtils.handleJournalReplayFailure(LOG, e, "Failed to apply "
+                          + "journal entry to master %s. Entry: %s", masterName, entry);
+                }
               }
             } finally {
               // Close journal contexts to ensure applied entries are flushed,
@@ -268,8 +325,14 @@ public class BackupManager {
         }
       }));
 
-      // Wait until backup tasks are completed.
-      safeWaitTasks(activeTasks, completionService);
+      // Wait until backup tasks are completed and stop metrics timer.
+      try {
+        safeWaitTasks(activeTasks, completionService);
+      } finally {
+        mRestoreTimeMs = System.currentTimeMillis() - startRestoreTime;
+        mRestoreEntriesCount = appliedEntryCount.get();
+        traceExecutor.shutdownNow();
+      }
 
       LOG.info("Restored {} entries from backup", appliedEntryCount.get());
     }

@@ -13,7 +13,7 @@
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-  <title>{{ page.title }} - Alluxio {{site.ALLUXIO_MASTER_VERSION_SHORT}} Documentation</title>
+  <title>{{ page.title }} - Alluxio Documentation</title>
   <meta name="description" content="">
 
   <link rel="stylesheet" href="{{site.baseurl}}/css/bootstrap.min.css">
@@ -40,24 +40,6 @@
     your browser today</a> or <a href="http://www.google.com/chromeframe/?redirect=true">install
     Google Chrome Frame</a> to better experience this site.</p>
 <![endif]-->
-
-  <!-- As a heading -->
-  <div class="">
-    <nav class="navbar navbar-dark bg-dark">
-      <div class="container">
-        <a href="/">
-          <div class="brand" style="display:table;">
-            <div style="position:relative;display:table-cell;vertical-align:middle;">
-              <img src="{{site.baseurl}}/img/logo-white.png" alt="Alluxio Logo" style="height:34px;" />
-              <div style="position:absolute;right:0;top:32px;text-shadow:none;">
-                <span class="navbar-brand mb-0 version">{{site.ALLUXIO_MASTER_VERSION_SHORT}}</span>
-              </div>
-            </div>
-          </div>
-        </a>
-      </div>
-    </nav>
-  </div>
 
   <div class="container">
     <div class="row">
@@ -112,7 +94,7 @@
                   <div class="dropdown-menu" aria-labelledby="LANGUAGE">
                     {% for singleLanguage in multiLanguagePages %}
                       <a href="{{site.baseurl}}{{singleLanguage.url}}" class="dropdown-item">{{singleLanguage.languageName}}</a>
-                    {% endfor %}    
+                    {% endfor %}
                   </div>
               </div>
             </li>

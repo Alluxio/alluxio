@@ -15,6 +15,7 @@ import alluxio.AlluxioURI;
 import alluxio.SyncInfo;
 import alluxio.collections.Pair;
 import alluxio.concurrent.jsr.ForkJoinPool;
+import alluxio.conf.AlluxioConfiguration;
 import alluxio.security.authorization.AccessControlList;
 import alluxio.security.authorization.AclEntry;
 import alluxio.security.authorization.DefaultAccessControlList;
@@ -201,6 +202,16 @@ public class ManagedBlockingUfsForwarder implements UnderFileSystem {
       @Override
       public Long execute() throws IOException {
         return mUfs.getBlockSizeByte(path);
+      }
+    }.get();
+  }
+
+  @Override
+  public AlluxioConfiguration getConfiguration() throws IOException {
+    return new ManagedBlockingUfsMethod<AlluxioConfiguration>() {
+      @Override
+      public AlluxioConfiguration execute() throws IOException {
+        return mUfs.getConfiguration();
       }
     }.get();
   }
@@ -515,7 +526,7 @@ public class ManagedBlockingUfsForwarder implements UnderFileSystem {
   }
 
   @Override
-  public boolean supportsFlush() {
+  public boolean supportsFlush() throws IOException {
     return mUfs.supportsFlush();
   }
 
@@ -579,7 +590,7 @@ public class ManagedBlockingUfsForwarder implements UnderFileSystem {
      */
     public T get() throws IOException {
       try {
-        ForkJoinPool.managedBlock(this);
+        ForkJoinPoolHelper.safeManagedBlock(this);
         if (mExc != null) {
           throw mExc;
         }

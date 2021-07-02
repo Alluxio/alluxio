@@ -12,11 +12,13 @@
 package alluxio.master.journal.noop;
 
 import alluxio.master.Master;
+import alluxio.master.journal.CatchupFuture;
 import alluxio.master.journal.Journal;
 import alluxio.master.journal.JournalSystem;
 import alluxio.master.journal.sink.JournalSink;
 
 import java.util.Collections;
+import java.util.Map;
 import java.util.Set;
 
 import javax.annotation.Nullable;
@@ -43,6 +45,26 @@ public final class NoopJournalSystem implements JournalSystem {
   @Override
   public void losePrimacy() {
     return;
+  }
+
+  @Override
+  public void suspend(Runnable interruptCallback) {
+    return;
+  }
+
+  @Override
+  public void resume() {
+    return;
+  }
+
+  @Override
+  public CatchupFuture catchup(Map<String, Long> journalSequenceNumbers) {
+    return CatchupFuture.completed();
+  }
+
+  @Override
+  public Map<String, Long> getCurrentSequenceNumbers() {
+    return Collections.emptyMap();
   }
 
   @Override

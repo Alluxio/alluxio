@@ -17,6 +17,7 @@ import alluxio.ClientContext;
 import alluxio.ConfigurationTestUtils;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.master.MasterClientContext;
+import alluxio.master.MasterInquireClient;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -37,8 +38,12 @@ public class FileSystemMasterClientPoolTest {
         .create(Mockito.any(MasterClientContext.class)))
         .thenReturn(expectedClient);
     FileSystemMasterClient client;
-    try (FileSystemMasterClientPool pool =
-        new FileSystemMasterClientPool(ClientContext.create(conf), null)) {
+    ClientContext clientContext = ClientContext.create(conf);
+    MasterInquireClient masterInquireClient = MasterInquireClient.Factory
+        .create(conf, clientContext.getUserState());
+    MasterClientContext masterClientContext = MasterClientContext.newBuilder(clientContext)
+        .setMasterInquireClient(masterInquireClient).build();
+    try (FileSystemMasterClientPool pool = new FileSystemMasterClientPool(masterClientContext)) {
       client = pool.acquire();
       assertEquals(expectedClient, client);
       pool.release(client);

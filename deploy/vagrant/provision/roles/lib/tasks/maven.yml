@@ -1,2 +1,0 @@
-- name: install maven
-  script: maven.sh

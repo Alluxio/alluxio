@@ -15,6 +15,7 @@ import static org.junit.Assert.fail;
 
 import alluxio.conf.ServerConfiguration;
 import alluxio.conf.PropertyKey;
+import alluxio.worker.block.meta.StorageTier;
 
 import com.google.common.reflect.ClassPath;
 import com.google.common.reflect.Reflection;
@@ -67,7 +68,7 @@ public final class AllocatorContractTest extends AllocatorTestBase {
     for (String strategyName : mStrategies) {
       ServerConfiguration.set(PropertyKey.WORKER_ALLOCATOR_CLASS, strategyName);
       resetManagerView();
-      Allocator allocator = Allocator.Factory.create(getManagerView());
+      Allocator allocator = Allocator.Factory.create(getMetadataEvictorView());
       assertTempBlockMeta(allocator, mAnyDirInTierLoc1, DEFAULT_RAM_SIZE + 1, false);
       assertTempBlockMeta(allocator, mAnyDirInTierLoc2, DEFAULT_SSD_SIZE + 1, false);
       assertTempBlockMeta(allocator, mAnyDirInTierLoc3, DEFAULT_HDD_SIZE + 1, false);
@@ -84,7 +85,7 @@ public final class AllocatorContractTest extends AllocatorTestBase {
     for (String strategyName : mStrategies) {
       ServerConfiguration.set(PropertyKey.WORKER_ALLOCATOR_CLASS, strategyName);
       resetManagerView();
-      Allocator tierAllocator = Allocator.Factory.create(getManagerView());
+      Allocator tierAllocator = Allocator.Factory.create(getMetadataEvictorView());
       for (int i = 0; i < DEFAULT_RAM_NUM; i++) {
         assertTempBlockMeta(tierAllocator, mAnyDirInTierLoc1, DEFAULT_RAM_SIZE - 1, true);
       }
@@ -96,7 +97,7 @@ public final class AllocatorContractTest extends AllocatorTestBase {
       }
 
       resetManagerView();
-      Allocator anyAllocator = Allocator.Factory.create(getManagerView());
+      Allocator anyAllocator = Allocator.Factory.create(getMetadataEvictorView());
       for (int i = 0; i < DEFAULT_RAM_NUM; i++) {
         assertTempBlockMeta(anyAllocator, mAnyTierLoc, DEFAULT_RAM_SIZE - 1, true);
       }
@@ -104,6 +105,40 @@ public final class AllocatorContractTest extends AllocatorTestBase {
         assertTempBlockMeta(anyAllocator, mAnyTierLoc, DEFAULT_SSD_SIZE - 1, true);
       }
       for (int i = 0; i < DEFAULT_HDD_NUM; i++) {
+        assertTempBlockMeta(anyAllocator, mAnyTierLoc, DEFAULT_HDD_SIZE - 1, true);
+      }
+    }
+  }
+
+  @Test
+  public void allocateAfterDirDeletion() throws Exception {
+    for (String strategyName : mStrategies) {
+      ServerConfiguration.set(PropertyKey.WORKER_ALLOCATOR_CLASS, strategyName);
+      resetManagerView();
+      for (int i = 0; i < TIER_ALIAS.length; i++) {
+        StorageTier tier = mManager.getTier(TIER_ALIAS[i]);
+        tier.removeStorageDir(tier.getDir(0));
+      }
+      Allocator tierAllocator = Allocator.Factory.create(getMetadataEvictorView());
+      for (int i = 0; i < DEFAULT_RAM_NUM - 1; i++) {
+        assertTempBlockMeta(tierAllocator, mAnyDirInTierLoc1, DEFAULT_RAM_SIZE - 1, true);
+      }
+      for (int i = 0; i < DEFAULT_SSD_NUM - 1; i++) {
+        assertTempBlockMeta(tierAllocator, mAnyDirInTierLoc2, DEFAULT_SSD_SIZE - 1, true);
+      }
+      for (int i = 0; i < DEFAULT_HDD_NUM - 1; i++) {
+        assertTempBlockMeta(tierAllocator, mAnyDirInTierLoc3, DEFAULT_HDD_SIZE - 1, true);
+      }
+
+      resetManagerView();
+      Allocator anyAllocator = Allocator.Factory.create(getMetadataEvictorView());
+      for (int i = 0; i < DEFAULT_RAM_NUM - 1; i++) {
+        assertTempBlockMeta(anyAllocator, mAnyTierLoc, DEFAULT_RAM_SIZE - 1, true);
+      }
+      for (int i = 0; i < DEFAULT_SSD_NUM - 1; i++) {
+        assertTempBlockMeta(anyAllocator, mAnyTierLoc, DEFAULT_SSD_SIZE - 1, true);
+      }
+      for (int i = 0; i < DEFAULT_HDD_NUM - 1; i++) {
         assertTempBlockMeta(anyAllocator, mAnyTierLoc, DEFAULT_HDD_SIZE - 1, true);
       }
     }

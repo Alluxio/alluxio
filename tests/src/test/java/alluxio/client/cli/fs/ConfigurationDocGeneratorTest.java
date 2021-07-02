@@ -16,12 +16,12 @@ import static org.junit.Assert.assertTrue;
 
 import alluxio.conf.ServerConfiguration;
 import alluxio.conf.PropertyKey;
-import alluxio.cli.ConfigurationDocGenerator;
+import alluxio.cli.docgen.ConfigurationDocGenerator;
 import alluxio.collections.Pair;
 import alluxio.util.io.PathUtils;
 
 import com.google.common.base.Joiner;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -40,7 +40,7 @@ import java.util.Collection;
 import java.util.List;
 
 /**
- * Tests for {@link alluxio.cli.ConfigurationDocGenerator}.
+ * Tests for {@link ConfigurationDocGenerator}.
  */
 @RunWith(Parameterized.class)
 public class ConfigurationDocGeneratorTest {
@@ -66,7 +66,7 @@ public class ConfigurationDocGeneratorTest {
             "common-configuration.csv")},
         {TYPE.CSV, new Pair<>(PropertyKey.USER_LOCAL_READER_CHUNK_SIZE_BYTES,
             "user-configuration.csv")},
-        {TYPE.CSV, new Pair<>(PropertyKey.MASTER_CONNECTION_TIMEOUT_MS,
+        {TYPE.CSV, new Pair<>(PropertyKey.MASTER_WEB_PORT,
             "master-configuration.csv")},
         {TYPE.CSV, new Pair<>(PropertyKey.WORKER_DATA_FOLDER,
             "worker-configuration.csv")},
@@ -78,7 +78,7 @@ public class ConfigurationDocGeneratorTest {
             "common-configuration.yml")},
         {TYPE.YML, new Pair<>(PropertyKey.USER_LOCAL_READER_CHUNK_SIZE_BYTES,
             "user-configuration.yml")},
-        {TYPE.YML, new Pair<>(PropertyKey.MASTER_CONNECTION_TIMEOUT_MS,
+        {TYPE.YML, new Pair<>(PropertyKey.MASTER_WEB_PORT,
             "master-configuration.yml")},
         {TYPE.YML, new Pair<>(PropertyKey.WORKER_DATA_FOLDER,
             "worker-configuration.yml")},

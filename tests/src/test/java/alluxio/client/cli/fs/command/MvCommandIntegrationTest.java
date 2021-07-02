@@ -26,10 +26,10 @@ public final class MvCommandIntegrationTest extends AbstractFileSystemShellTest 
   @Test
   public void rename() throws IOException {
     StringBuilder toCompare = new StringBuilder();
-    mFsShell.run("mkdir", "/testFolder1");
+    sFsShell.run("mkdir", "/testFolder1");
     toCompare.append(getCommandOutput(new String[] {"mkdir", "/testFolder1"}));
     Assert.assertTrue(fileExists(new AlluxioURI("/testFolder1")));
-    mFsShell.run("mv", "/testFolder1", "/testFolder");
+    sFsShell.run("mv", "/testFolder1", "/testFolder");
     toCompare.append(getCommandOutput(new String[] {"mv", "/testFolder1", "/testFolder"}));
     Assert.assertEquals(toCompare.toString(), mOutput.toString());
     Assert.assertTrue(fileExists(new AlluxioURI("/testFolder")));
@@ -39,9 +39,9 @@ public final class MvCommandIntegrationTest extends AbstractFileSystemShellTest 
   @Test
   public void renameParentDirectory() throws IOException {
     StringBuilder toCompare = new StringBuilder();
-    mFsShell.run("mkdir", "/test/File1");
+    sFsShell.run("mkdir", "/test/File1");
     toCompare.append(getCommandOutput(new String[] {"mkdir", "/test/File1"}));
-    mFsShell.run("mv", "/test", "/test2");
+    sFsShell.run("mv", "/test", "/test2");
     toCompare.append(getCommandOutput(new String[] {"mv", "/test", "/test2"}));
     Assert.assertTrue(fileExists(new AlluxioURI("/test2/File1")));
     Assert.assertFalse(fileExists(new AlluxioURI("/test")));
@@ -52,15 +52,16 @@ public final class MvCommandIntegrationTest extends AbstractFileSystemShellTest 
   @Test
   public void renameToExistingFile() throws IOException {
     StringBuilder toCompare = new StringBuilder();
-    mFsShell.run("mkdir", "/testFolder");
+    sFsShell.run("mkdir", "/testFolder");
     toCompare.append(getCommandOutput(new String[] {"mkdir", "/testFolder"}));
-    mFsShell.run("mkdir", "/testFolder1");
+    sFsShell.run("mkdir", "/testFolder1");
     toCompare.append(getCommandOutput(new String[] {"mkdir", "/testFolder1"}));
-    int ret = mFsShell.run("mv", "/testFolder1", "/testFolder");
+    int ret = sFsShell.run("mv", "/testFolder1", "/testFolder");
 
     Assert.assertEquals(-1, ret);
     String output = mOutput.toString();
     System.out.println(output);
-    Assert.assertTrue(output.contains("/testFolder already exists"));
+    Assert.assertTrue(output.contains(
+        "Cannot rename because destination already exists. src: /testFolder1 dst: /testFolder"));
   }
 }

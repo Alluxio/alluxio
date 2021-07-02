@@ -11,7 +11,6 @@
 
 package alluxio.security.login;
 
-import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.security.User;
 
@@ -147,18 +146,14 @@ public final class AppLoginModule implements LoginModule {
    */
   @NotThreadSafe
   public static final class AppCallbackHandler implements CallbackHandler {
-    private String mUserName;
+    private final String mUserName;
 
     /**
      * Creates a new instance of {@link AppCallbackHandler}.
-     * @param conf Alluxio configuration
+     * @param username the username
      */
-    public AppCallbackHandler(AlluxioConfiguration conf) {
-      if (conf.isSet(PropertyKey.SECURITY_LOGIN_USERNAME)) {
-        mUserName = conf.get(PropertyKey.SECURITY_LOGIN_USERNAME);
-      } else {
-        mUserName = "";
-      }
+    public AppCallbackHandler(String username) {
+      mUserName = username;
     }
 
     @Override

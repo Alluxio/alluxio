@@ -15,7 +15,7 @@
   <parent>
     <groupId>org.alluxio</groupId>
     <artifactId>alluxio-core</artifactId>
-    <version>2.0.0-SNAPSHOT</version>
+    <version>2.7.0-SNAPSHOT</version>
   </parent>
   <artifactId>alluxio-core-transport</artifactId>
   <packaging>jar</packaging>
@@ -29,7 +29,7 @@
     <failIfNoTests>false</failIfNoTests>
     <!-- The shading prefix should match the artifact ID, replacing '-' with '.' -->
     <shading.prefix>alluxio.core.transport</shading.prefix>
-    <skip.protoc>true</skip.protoc>
+    <skip.protoc>false</skip.protoc>
   </properties>
 
   <dependencies>
@@ -48,21 +48,11 @@
     </dependency>
     <dependency>
       <groupId>io.grpc</groupId>
-      <artifactId>grpc-netty</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>io.grpc</groupId>
       <artifactId>grpc-protobuf</artifactId>
     </dependency>
     <dependency>
       <groupId>io.grpc</groupId>
       <artifactId>grpc-stub</artifactId>
-    </dependency>
-
-    <!-- Internal dependencies -->
-    <dependency>
-      <groupId>io.netty</groupId>
-      <artifactId>netty-all</artifactId>
     </dependency>
   </dependencies>
 
@@ -100,6 +90,18 @@
         </plugins>
       </build>
     </profile>
+    <profile>
+      <id>java11</id>
+      <activation>
+        <jdk>11</jdk>
+      </activation>
+      <dependencies>
+        <dependency>
+          <groupId>javax.annotation</groupId>
+          <artifactId>javax.annotation-api</artifactId>
+        </dependency>
+      </dependencies>
+    </profile>
   </profiles>
 
   <build>
@@ -107,21 +109,18 @@
       <extension>
         <groupId>kr.motd.maven</groupId>
         <artifactId>os-maven-plugin</artifactId>
-        <version>1.5.0.Final</version>
+        <version>1.6.2</version>
       </extension>
     </extensions>
     <plugins>
       <plugin>
         <groupId>org.xolstice.maven.plugins</groupId>
         <artifactId>protobuf-maven-plugin</artifactId>
-        <version>0.5.0</version>
+        <version>0.6.1</version>
         <configuration>
           <protocArtifact>com.google.protobuf:protoc:${protobuf.version}:exe:${os.detected.classifier}</protocArtifact>
           <pluginId>grpc-java</pluginId>
           <pluginArtifact>io.grpc:protoc-gen-grpc-java:${grpc.version}:exe:${os.detected.classifier}</pluginArtifact>
-          <protoSourceRoot>src</protoSourceRoot>
-          <outputDirectory>src/main/java</outputDirectory>
-          <clearOutputDirectory>false</clearOutputDirectory>
           <skip>${skip.protoc}</skip>
         </configuration>
         <executions>
@@ -133,11 +132,27 @@
           </execution>
         </executions>
       </plugin>
-      
+
+      <!-- Proto lock for preventing backwards compatibility issues -->
+      <plugin>
+        <groupId>com.salesforce.servicelibs</groupId>
+        <artifactId>proto-backwards-compatibility</artifactId>
+        <configuration>
+          <protoSourceRoot>${basedir}/target/classes/</protoSourceRoot>
+        </configuration>
+        <executions>
+          <execution>
+            <goals>
+              <goal>backwards-compatibility-check</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+
       <!-- Skip findbugs since there are only generated files in this module. -->
       <plugin>
-        <groupId>org.codehaus.mojo</groupId>
-        <artifactId>findbugs-maven-plugin</artifactId>
+        <groupId>com.github.spotbugs</groupId>
+        <artifactId>spotbugs-maven-plugin</artifactId>
         <configuration>
           <skip>true</skip>
         </configuration>

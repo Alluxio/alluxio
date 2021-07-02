@@ -9,31 +9,37 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-import {Reducer} from 'redux';
+import { Reducer } from 'redux';
 
-import {IInitState, InitActionTypes} from './types';
+import { IInitState, InitActionTypes } from './types';
 
 export const initialInitState: IInitState = {
   data: {
-    "debug": false,
-    "masterHostname": '',
-    "masterPort": 19999,
-    "refreshInterval": 15000,
-    "securityAuthorizationPermissionEnabled": false,
-    "webFileInfoEnabled": false
+    debug: false,
+    masterHostname: '',
+    masterPort: 19999,
+    refreshInterval: 15000,
+    securityAuthorizationPermissionEnabled: false,
+    webFileInfoEnabled: false,
   },
   errors: undefined,
-  loading: false
+  loading: false,
 };
 
 export const initReducer: Reducer<IInitState> = (state = initialInitState, action) => {
   switch (action.type) {
     case InitActionTypes.FETCH_REQUEST:
-      return {...state, loading: true};
+      return { ...state, loading: true };
     case InitActionTypes.FETCH_SUCCESS:
-      return {...state, loading: false, data: action.payload.data, response: action.payload, errors: undefined};
+      return {
+        ...state,
+        loading: false,
+        data: action.payload.data,
+        response: action.payload,
+        errors: undefined,
+      };
     case InitActionTypes.FETCH_ERROR:
-      return {...state, loading: false, errors: action.payload};
+      return { ...state, loading: false, errors: action.payload };
     default:
       return state;
   }

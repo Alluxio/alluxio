@@ -146,20 +146,21 @@ public class S3AOutputStream extends OutputStream {
       meta.setContentLength(mFile.length());
       meta.setContentType(Mimetypes.MIMETYPE_OCTET_STREAM);
 
-      // Generate the put request and wait for the transfer manager to complete the upload, then
-      // delete the temporary file on the local machine
+      // Generate the put request and wait for the transfer manager to complete the upload
       PutObjectRequest putReq = new PutObjectRequest(mBucketName, path, mFile).withMetadata(meta);
       mManager.upload(putReq).waitForUploadResult();
+    } catch (Exception e) {
+      LOG.error("Failed to upload {}", path, e);
+      throw new IOException(e);
+    } finally {
+      // Delete the temporary file on the local machine if the transfer manager completed the
+      // upload or if the upload failed.
       if (!mFile.delete()) {
         LOG.error("Failed to delete temporary file @ {}", mFile.getPath());
       }
-    } catch (Exception e) {
-      LOG.error("Failed to upload {}: {}", path, e.toString());
-      throw new IOException(e);
+      // Set the closed flag, close can be retried until mFile.delete is called successfully
+      mClosed = true;
     }
-
-    // Set the closed flag, close can be retried until mFile.delete is called successfully
-    mClosed = true;
   }
 
   /**

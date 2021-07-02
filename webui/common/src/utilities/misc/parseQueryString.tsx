@@ -13,10 +13,12 @@ export interface IParsedQueryString {
   [key: string]: string;
 }
 
-export const parseQuerystring = (searchString: string): IParsedQueryString => {
-  if (!searchString) { return {}; }
+export const parseQueryString = (queryString: string): IParsedQueryString => {
+  if (!queryString) {
+    return {};
+  }
 
-  const searchArray = searchString.replace('?', '').split(/[=&]/);
+  const searchArray = queryString.replace('?', '').split(/[=&]/);
   if (searchArray.length % 2 !== 0) {
     throw new Error('unable to parse querystring');
   }

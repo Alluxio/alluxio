@@ -2,8 +2,8 @@
 layout: global
 title: Presto 使用 Alluxio
 nickname: Presto
-group: Data Applications
-priority: 2
+group: Compute Integrations
+priority: 1
 ---
 
 [Presto](https://prestosql.io/) 是一个开源的分布式 SQL 查询引擎，用于对数据进行大规模的交互式分析查询。
@@ -40,8 +40,8 @@ hive.metastore.uri=thrift://localhost:9083
 
 把 Alluxio 客户端 jar 包`{{site.ALLUXIO_CLIENT_JAR_PATH}}` 放到所有 Presto 服务器的`${PRESTO_HOME}/plugin/hive-hadoop2/`目录（该目录可能会因版本而不同）中。重启 Presto 服务：
 
-```bash
-${PRESTO_HOME}/bin/launcher restart
+```console
+$ ${PRESTO_HOME}/bin/launcher restart
 ```
 
 在完成基础配置后，Presto 应该能够访问 Alluxio 中的数据。
@@ -55,9 +55,9 @@ ${PRESTO_HOME}/bin/launcher restart
 你可以从 [http://grouplens.org/datasets/movielens/](http://grouplens.org/datasets/movielens/) 下载数据文件（例如，`ml-100k.zip`）。
 解压文件，并将文件`u.user`上传到 Alluxio 的`/ml-100k/`目录：
 
-```bash
-bin/alluxio fs mkdir /ml-100k
-bin/alluxio fs copyFromLocal /path/to/ml-100k/u.user alluxio:///ml-100k
+```console
+$ ./bin/alluxio fs mkdir /ml-100k
+$ ./bin/alluxio fs copyFromLocal /path/to/ml-100k/u.user alluxio:///ml-100k
 ```
 
 从 Alluxio 的已有文件创建一个 Hive 外部表：
@@ -82,16 +82,16 @@ LOCATION 'alluxio://master_hostname:port/ml-100k';
 
 确保 Hive metastore 服务正在运行。Hive metastore 默认监听端口`9083`。如果 Hive metastore 没在运行，运行以下命令来启动 Hive metastore：
 
-```bash
-${HIVE_HOME}/bin/hive --service metastore
+```console
+$ ${HIVE_HOME}/bin/hive --service metastore
 ```
 
 ### 启动 Presto 服务器
 
 启动 Presto 服务器。Presto 服务器默认在`8080`端口运行（可以通过`${PRESTO_HOME}/etc/config.properties`中的`http-server.http.port`设置）：
 
-```bash
-${PRESTO_HOME}/bin/launcher run
+```console
+$ ${PRESTO_HOME}/bin/launcher run
 ```
 
 ### 使用 Presto 查询表
@@ -100,8 +100,9 @@ ${PRESTO_HOME}/bin/launcher run
 
 运行简单的查询（使用你实际的 Presto 服务器主机名和端口替换`localhost:8080`）：
 
-```bash
-./presto --server localhost:8080 --execute "use default;select * from u_user limit 10;" --catalog hive --debug
+```console
+$ ./presto --server localhost:8080 --execute "use default;select * from u_user limit 10;" \
+  --catalog hive --debug
 ```
 
 你可以从控制台看到查询结果：
@@ -116,12 +117,12 @@ Presto 服务器日志：
 
 ### 自定义 Alluxio 用户属性
 
-要配置其他 Alluxio 属性，可以将包含[`alluxio-site.properties`]({{ '/en/basic/Configuration-Settings.html' | relativize_url }})的配置路径（即`${ALLUXIO_HOME}/conf`）追加到 Presto 文件夹下的`etc/jvm.config`的 JVM 配置中。
+要配置其他 Alluxio 属性，可以将包含[`alluxio-site.properties`]({{ '/cn/operation/Configuration.html' | relativize_url }})的配置路径（即`${ALLUXIO_HOME}/conf`）追加到 Presto 文件夹下的`etc/jvm.config`的 JVM 配置中。
 这种方法的优点是能够在同一个`alluxio-site.properties`文件中设置所有的 Alluxio 属性。
 
 ```bash
 ...
--Xbootclasspath/p:<path-to-alluxio-conf>
+-Xbootclasspath/a:<path-to-alluxio-conf>
 ```
 
 或者，你可以将这些属性添加到 Hadoop 配置文件（`core-site.xml`，`hdfs-site.xml`）中，并使用文件`$presto/etc/catalog/hive.properties`中的 Presto 属性`hive.config.resources`来为每个 Presto worker 指明文件位置。
@@ -173,12 +174,6 @@ alluxio.user.file.writetype.default=CACHE_THROUGH
 </property>
 ```
 
-### 启用数据本地性
-
-建议将 Presto worker 与 Alluxio worker 同置部署，以便 Presto worker 可以在本地读取数据。
-在 Presto 中启用数据本地性的一个重要选项是`hive.force-local-scheduling`，该选项会强制在与提供数据分片的 Alluxio worker 相同的节点上调度数据分片。
-默认情况下，Presto 中的`hive.force-local-scheduling`为`false`，Presto 不会尝试在与 Alluxio worker 节点相同的机器上安排工作。
-
 ### 提高并行度
 
 Presto 的 Hive 集成使用[`hive.max-split-size`](https://teradata.github.io/presto/docs/141t/connector/hive.html)配置来控制查询的并行度。
@@ -186,7 +181,7 @@ Presto 的 Hive 集成使用[`hive.max-split-size`](https://teradata.github.io/p
 
 ### 避免 Presto 读取大文件超时
 
-建议将`alluxio.user.network.netty.timeout`增加到较大的值（例如`10min`），以避免从远程的 worker 读取大文件时超时失败。
+ 建议将`alluxio.user.network.data.timeout`增加到较大的值（例如`10min`），以避免从远程的 worker 读取大文件时超时失败。
 
 ## 故障排除指南
 

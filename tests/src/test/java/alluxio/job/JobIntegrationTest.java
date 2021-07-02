@@ -51,8 +51,9 @@ public abstract class JobIntegrationTest extends BaseIntegrationTest {
         .setProperty(PropertyKey.JOB_MASTER_WORKER_HEARTBEAT_INTERVAL, 20)
         .setProperty(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT, BLOCK_SIZE_BYTES)
         .setProperty(PropertyKey.USER_FILE_BUFFER_BYTES, String.valueOf(BUFFER_BYTES))
-        .setProperty(PropertyKey.USER_NETWORK_READER_CHUNK_SIZE_BYTES, "64KB")
-        .setProperty(PropertyKey.WORKER_MEMORY_SIZE, WORKER_CAPACITY_BYTES);
+        .setProperty(PropertyKey.USER_STREAMING_READER_CHUNK_SIZE_BYTES, "64KB")
+        .setProperty(PropertyKey.MASTER_FILE_ACCESS_TIME_UPDATE_PRECISION, "0")
+        .setProperty(PropertyKey.WORKER_RAMDISK_SIZE, WORKER_CAPACITY_BYTES);
     return resource.build();
   }
 

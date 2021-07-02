@@ -14,8 +14,8 @@ package alluxio;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.status.AlluxioStatusException;
-import alluxio.security.LoginUser;
 import alluxio.security.authentication.AuthenticatedClientUser;
+import alluxio.security.user.ServerUserState;
 import alluxio.util.SecurityUtils;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -51,17 +51,17 @@ public final class RestUtils {
       // TODO(cc): reconsider how to enable authentication
       if (SecurityUtils.isSecurityEnabled(alluxioConf)
           && AuthenticatedClientUser.get(alluxioConf) == null) {
-        AuthenticatedClientUser.set(LoginUser.get(alluxioConf).getName());
+        AuthenticatedClientUser.set(ServerUserState.global().getUser().getName());
       }
     } catch (IOException e) {
-      LOG.warn("Failed to set AuthenticatedClientUser in REST service handler: {}", e.getMessage());
+      LOG.warn("Failed to set AuthenticatedClientUser in REST service handler: {}", e.toString());
       return createErrorResponse(e, alluxioConf);
     }
 
     try {
       return createResponse(callable.call(), alluxioConf, headers);
     } catch (Exception e) {
-      LOG.warn("Unexpected error invoking rest endpoint: {}", e.getMessage());
+      LOG.warn("Unexpected error invoking rest endpoint: {}", e.toString());
       return createErrorResponse(e, alluxioConf);
     }
   }
@@ -120,7 +120,7 @@ public final class RestUtils {
       headers.forEach(rb::header);
     }
 
-    if (alluxioConf.getBoolean(PropertyKey.WEBUI_CORS_ENABLED)) {
+    if (alluxioConf.getBoolean(PropertyKey.WEB_CORS_ENABLED)) {
       return makeCORS(rb).build();
     }
 
@@ -176,7 +176,7 @@ public final class RestUtils {
     ErrorResponse response = new ErrorResponse(se.getStatus().getCode(), se.getMessage());
 
     Response.ResponseBuilder rb = Response.serverError().entity(response);
-    if (alluxioConf.getBoolean(PropertyKey.WEBUI_CORS_ENABLED)) {
+    if (alluxioConf.getBoolean(PropertyKey.WEB_CORS_ENABLED)) {
       return makeCORS(rb).build();
     }
 

@@ -9,7 +9,11 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
+export * from './types/IAlertErrors';
 export * from './types/INavigationData';
 export * from './types/IFileBlockInfo';
 export * from './types/IFileInfo';
+export * from './types/IFileViewData';
 export * from './types/ICounter';
+export * from './types/IRequest';
+export * from './types/ICommonState';

@@ -9,9 +9,9 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-import {AxiosResponse} from 'axios';
+import { AxiosResponse } from 'axios';
 
-import {IConfigTriple} from '../../constants';
+import { IConfigTriple } from '../../constants';
 
 export interface IConfig {
   configuration: IConfigTriple[];
@@ -21,7 +21,7 @@ export interface IConfig {
 export enum ConfigActionTypes {
   FETCH_REQUEST = '@@config/FETCH_REQUEST',
   FETCH_SUCCESS = '@@config/FETCH_SUCCESS',
-  FETCH_ERROR = '@@config/FETCH_ERROR'
+  FETCH_ERROR = '@@config/FETCH_ERROR',
 }
 
 export interface IConfigState {

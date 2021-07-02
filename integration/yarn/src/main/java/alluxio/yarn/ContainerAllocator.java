@@ -32,7 +32,10 @@ import java.util.concurrent.CountDownLatch;
 
 /**
  * A class for negotiating with YARN to allocate containers.
+ *
+ * @deprecated since 2.0
  */
+@Deprecated
 public final class ContainerAllocator {
   private static final Logger LOG = LoggerFactory.getLogger(ContainerAllocator.class);
 

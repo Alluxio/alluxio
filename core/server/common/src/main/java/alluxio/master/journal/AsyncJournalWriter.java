@@ -11,41 +11,52 @@
 
 package alluxio.master.journal;
 
+import alluxio.Constants;
+import alluxio.collections.ConcurrentHashSet;
+import alluxio.concurrent.ForkJoinPoolHelper;
 import alluxio.concurrent.jsr.ForkJoinPool;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.exception.JournalClosedException;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.master.journal.sink.JournalSink;
+import alluxio.metrics.MetricKey;
+import alluxio.metrics.MetricsSystem;
 import alluxio.proto.journal.Journal.JournalEntry;
-import alluxio.resource.LockResource;
+import alluxio.util.logging.SamplingLogger;
 
+import com.codahale.metrics.Counter;
+import com.codahale.metrics.Timer;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import com.google.common.util.concurrent.SettableFuture;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.grpc.Status;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.ListIterator;
+import java.util.Iterator;
 import java.util.Set;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Supplier;
 
-import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * This enables async journal writing, as well as some batched journal flushing.
  */
 @ThreadSafe
+@SuppressFBWarnings("RV_RETURN_VALUE_IGNORED")
 public final class AsyncJournalWriter {
+  private static final Logger SAMPLING_LOG =
+      new SamplingLogger(LoggerFactory.getLogger(AsyncJournalWriter.class),
+          30L * Constants.SECOND_MS);
+
   /**
    * Used to manage and keep track of pending callers of ::flush.
    */
@@ -82,7 +93,7 @@ public final class AsyncJournalWriter {
      * @throws Throwable
      */
     public void waitCompleted() throws Throwable {
-      ForkJoinPool.managedBlock(this);
+      ForkJoinPoolHelper.safeManagedBlock(this);
       if (mError != null) {
         throw mError;
       }
@@ -120,21 +131,23 @@ public final class AsyncJournalWriter {
   private final long mFlushBatchTimeNs;
 
   /**
-   * List of flush tickets submitted by ::flush() method.
+   * Set of flush tickets submitted by ::flush() method.
    */
-  @GuardedBy("mTicketLock")
-  private final List<FlushTicket> mTicketList = new LinkedList<>();
+  private final Set<FlushTicket> mTicketSet = new ConcurrentHashSet<>();
 
   /**
-   * Used to guard access to ticket cache.
+   * If this is UFS journal, we have one AsyncJournalWriter threads per journal.
+   * We use this suffix to distinguish different threads.
+   * If this is RAFT embedded journal, there is only one AsyncJournalWriter thread.
    */
-  private final ReentrantLock mTicketLock = new ReentrantLock(true);
+  private String mJournalName = "Raft";
 
   /**
    * Dedicated thread for writing and flushing entries in journal queue.
    * It goes over the {@code mTicketList} after every flush session and releases waiters.
    */
-  private Thread mFlushThread = new Thread(this::doFlush, "AsyncJournalWriterThread");
+  private Thread mFlushThread = new Thread(this::doFlush,
+      "AsyncJournalWriterThread-" + mJournalName);
 
   /**
    * Used to give permits to flush thread to start processing immediately.
@@ -166,6 +179,19 @@ public final class AsyncJournalWriter {
         TimeUnit.MILLISECONDS);
     mJournalSinks = journalSinks;
     mFlushThread.start();
+  }
+
+  /**
+   * Creates a {@link AsyncJournalWriter}.
+   *
+   * @param journalWriter a journal writer to write to
+   * @param journalSinks a supplier for journal sinks
+   * @param journalName the journal source name
+   */
+  public AsyncJournalWriter(JournalWriter journalWriter, Supplier<Set<JournalSink>> journalSinks,
+      String journalName) {
+    this(journalWriter, journalSinks);
+    mJournalName = journalName;
   }
 
   /**
@@ -293,34 +319,37 @@ public final class AsyncJournalWriter {
 
         // Either written new entries or previous flush had been failed.
         if (mFlushCounter.get() < mWriteCounter) {
-          mJournalWriter.flush();
+          try (Timer.Context ctx = MetricsSystem
+              .timer(MetricKey.MASTER_JOURNAL_FLUSH_TIMER.getName()).time()) {
+            mJournalWriter.flush();
+          }
           JournalUtils.sinkFlush(mJournalSinks);
           mFlushCounter.set(mWriteCounter);
         }
 
         // Notify tickets that have been served to wake up.
-        try (LockResource lr = new LockResource(mTicketLock)) {
-          ListIterator<FlushTicket> ticketIterator = mTicketList.listIterator();
-          while (ticketIterator.hasNext()) {
-            FlushTicket ticket = ticketIterator.next();
-            if (ticket.getTargetCounter() <= mFlushCounter.get()) {
-              ticket.setCompleted();
-              ticketIterator.remove();
-            }
+        Iterator<FlushTicket> ticketIterator = mTicketSet.iterator();
+        while (ticketIterator.hasNext()) {
+          FlushTicket ticket = ticketIterator.next();
+          if (ticket.getTargetCounter() <= mFlushCounter.get()) {
+            ticket.setCompleted();
+            ticketIterator.remove();
           }
         }
       } catch (IOException | JournalClosedException exc) {
+        // Add the error logging here since the actual flush error may be overwritten
+        // by the future meaningless ratis.protocol.AlreadyClosedException
+        SAMPLING_LOG.warn("Failed to flush journal entry: " + exc.getMessage(), exc);
+        Metrics.JOURNAL_FLUSH_FAILURE.inc();
         // Release only tickets that have been flushed. Fail the rest.
-        try (LockResource lr = new LockResource(mTicketLock)) {
-          ListIterator<FlushTicket> ticketIterator = mTicketList.listIterator();
-          while (ticketIterator.hasNext()) {
-            FlushTicket ticket = ticketIterator.next();
-            ticketIterator.remove();
-            if (ticket.getTargetCounter() <= mFlushCounter.get()) {
-              ticket.setCompleted();
-            } else {
-              ticket.setError(exc);
-            }
+        Iterator<FlushTicket> ticketIterator = mTicketSet.iterator();
+        while (ticketIterator.hasNext()) {
+          FlushTicket ticket = ticketIterator.next();
+          ticketIterator.remove();
+          if (ticket.getTargetCounter() <= mFlushCounter.get()) {
+            ticket.setCompleted();
+          } else {
+            ticket.setError(exc);
           }
         }
       }
@@ -342,9 +371,7 @@ public final class AsyncJournalWriter {
 
     // Submit the ticket for flush thread to process.
     FlushTicket ticket = new FlushTicket(targetCounter);
-    try (LockResource lr = new LockResource(mTicketLock)) {
-      mTicketList.add(ticket);
-    }
+    mTicketSet.add(ticket);
 
     try {
       // Give a permit for flush thread to run.
@@ -366,11 +393,22 @@ public final class AsyncJournalWriter {
       // Not expected. throw internal error.
       throw new AlluxioStatusException(Status.INTERNAL.withCause(e));
     } finally {
-      /**
+      /*
        * Client can only try to reacquire the permit it has given
        * because the permit may or may not have been used by the flush thread.
        */
       mFlushSemaphore.tryAcquire();
     }
+  }
+
+  /**
+   * Class that contains metrics about AsyncJournalWriter.
+   */
+  @ThreadSafe
+  private static final class Metrics {
+    private static final Counter JOURNAL_FLUSH_FAILURE =
+        MetricsSystem.counter(MetricKey.MASTER_JOURNAL_FLUSH_FAILURE.getName());
+
+    private Metrics() {} // prevent instantiation
   }
 }

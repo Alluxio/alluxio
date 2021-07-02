@@ -13,10 +13,13 @@ package alluxio.worker.block;
 
 import alluxio.client.block.stream.BlockInStream;
 import alluxio.client.file.FileSystemContext;
+import alluxio.metrics.MetricKey;
+import alluxio.metrics.MetricsSystem;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.wire.WorkerNetAddress;
 import alluxio.worker.block.io.BlockReader;
 
+import com.codahale.metrics.Counter;
 import com.google.common.base.Preconditions;
 import io.netty.buffer.ByteBuf;
 
@@ -29,7 +32,10 @@ import java.nio.channels.ReadableByteChannel;
 /**
  * Reads a block from a remote worker node. This should only be used for reading entire blocks.
  */
-public class RemoteBlockReader implements BlockReader {
+public class RemoteBlockReader extends BlockReader {
+  private static final Counter BLOCKS_READ_REMOTE =
+      MetricsSystem.counter(MetricKey.WORKER_BLOCKS_READ_REMOTE.getName());
+
   private final long mBlockId;
   private final long mBlockSize;
   private final InetSocketAddress mDataSource;
@@ -98,11 +104,18 @@ public class RemoteBlockReader implements BlockReader {
     if (mClosed) {
       return;
     }
+    super.close();
     if (mInputStream != null) {
       mInputStream.close();
       mChannel.close();
     }
     mClosed = true;
+    BLOCKS_READ_REMOTE.inc();
+  }
+
+  @Override
+  public String getLocation() {
+    return mDataSource.toString();
   }
 
   private void init() {

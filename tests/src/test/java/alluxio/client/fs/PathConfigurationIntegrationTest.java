@@ -17,6 +17,7 @@ import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
+import alluxio.client.file.FileSystemUtils;
 import alluxio.client.meta.MetaMasterConfigClient;
 import alluxio.client.meta.RetryHandlingMetaMasterConfigClient;
 import alluxio.conf.PropertyKey;
@@ -32,8 +33,6 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-
-import java.net.InetSocketAddress;
 
 /**
  * Integration tests for path level configurations.
@@ -72,10 +71,8 @@ public class PathConfigurationIntegrationTest {
     mMetaConfig = new RetryHandlingMetaMasterConfigClient(
         MasterClientContext.newBuilder(metaCtx.getClientContext()).build());
     setPathConfigurations(mMetaConfig);
-    InetSocketAddress address = mLocalAlluxioClusterResource.get().getLocalAlluxioMaster()
-        .getAddress();
     FileSystemContext fsCtx = FileSystemContext.create(ServerConfiguration.global());
-    fsCtx.getClientContext().updateConfigurationDefaults(address);
+    fsCtx.getClientContext().loadConf(fsCtx.getMasterAddress(), true, true);
     mFileSystem = mLocalAlluxioClusterResource.get().getClient(fsCtx);
     mWriteThrough = CreateFilePOptions.newBuilder().setRecursive(true)
         .setWriteType(WritePType.THROUGH).build();
@@ -112,6 +109,6 @@ public class PathConfigurationIntegrationTest {
     try (FileInStream is = mFileSystem.openFile(uri)) {
       IOUtils.copy(is, ByteStreams.nullOutputStream());
     }
-    Assert.assertEquals(shouldCache ? 100 : 0, mFileSystem.getStatus(uri).getInMemoryPercentage());
+    FileSystemUtils.waitForAlluxioPercentage(mFileSystem, uri, shouldCache ? 100 : 0);
   }
 }

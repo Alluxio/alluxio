@@ -12,7 +12,6 @@
 package alluxio.underfs.s3a;
 
 import alluxio.AlluxioURI;
-import alluxio.conf.AlluxioConfiguration;
 import alluxio.Constants;
 import alluxio.conf.PropertyKey;
 import alluxio.retry.RetryPolicy;
@@ -84,7 +83,7 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
   private static final String DIR_HASH;
 
   /** Threshold to do multipart copy. */
-  private static final long MULTIPART_COPY_THRESHOLD = 100 * Constants.MB;
+  private static final long MULTIPART_COPY_THRESHOLD = 100L * Constants.MB;
 
   /** Default owner of objects if owner cannot be determined. */
   private static final String DEFAULT_OWNER = "";
@@ -105,30 +104,8 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
   private final boolean mStreamingUploadEnabled;
 
   /** The permissions associated with the bucket. Fetched once and assumed to be immutable. */
-  private final Supplier<ObjectPermissions> mPermissions = memoize(this::getPermissionsInternal);
-
-  /** Memoize implementation for java.util.function.supplier. */
-  private static <T> Supplier<T> memoize(Supplier<T> original) {
-    return new Supplier<T>() {
-      Supplier<T> mDelegate = this::firstTime;
-      boolean mInitialized;
-      public T get() {
-        return mDelegate.get();
-      }
-
-      private synchronized T firstTime() {
-        if (!mInitialized) {
-          T value = original.get();
-          mDelegate = () -> value;
-          mInitialized = true;
-        }
-        return mDelegate.get();
-      }
-    };
-  }
-
-  /** The configuration for ufs. */
-  private final UnderFileSystemConfiguration mConf;
+  private final Supplier<ObjectPermissions> mPermissions
+      = CommonUtils.memoize(this::getPermissionsInternal);
 
   static {
     byte[] dirByteHash = DigestUtils.md5(new byte[0]);
@@ -158,11 +135,10 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
    *
    * @param uri the {@link AlluxioURI} for this UFS
    * @param conf the configuration for this UFS
-   * @param alluxioConf Alluxio configuration
    * @return the created {@link S3AUnderFileSystem} instance
    */
-  public static S3AUnderFileSystem createInstance(AlluxioURI uri, UnderFileSystemConfiguration conf,
-      AlluxioConfiguration alluxioConf) {
+  public static S3AUnderFileSystem createInstance(AlluxioURI uri,
+      UnderFileSystemConfiguration conf) {
 
     AWSCredentialsProvider credentials = createAwsCredentialsProvider(conf);
     String bucketName = UnderFileSystemUtils.getBucketName(uri);
@@ -170,12 +146,18 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
     // Set the client configuration based on Alluxio configuration values.
     ClientConfiguration clientConf = new ClientConfiguration();
 
+    // Max error retry
+    if (conf.isSet(PropertyKey.UNDERFS_S3_MAX_ERROR_RETRY)) {
+      clientConf.setMaxErrorRetry(conf.getInt(PropertyKey.UNDERFS_S3_MAX_ERROR_RETRY));
+    }
+    clientConf.setConnectionTTL(conf.getMs(PropertyKey.UNDERFS_S3_CONNECT_TTL));
     // Socket timeout
     clientConf
-        .setSocketTimeout((int) alluxioConf.getMs(PropertyKey.UNDERFS_S3A_SOCKET_TIMEOUT_MS));
+        .setSocketTimeout((int) conf.getMs(PropertyKey.UNDERFS_S3_SOCKET_TIMEOUT));
 
     // HTTP protocol
-    if (Boolean.parseBoolean(conf.get(PropertyKey.UNDERFS_S3A_SECURE_HTTP_ENABLED))) {
+    if (Boolean.parseBoolean(conf.get(PropertyKey.UNDERFS_S3_SECURE_HTTP_ENABLED))
+        || Boolean.parseBoolean(conf.get(PropertyKey.UNDERFS_S3_SERVER_SIDE_ENCRYPTION_ENABLED))) {
       clientConf.setProtocol(Protocol.HTTPS);
     } else {
       clientConf.setProtocol(Protocol.HTTP);
@@ -207,14 +189,14 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
     // Set client request timeout for all requests since multipart copy is used,
     // and copy parts can only be set with the client configuration.
     clientConf
-        .setRequestTimeout((int) alluxioConf.getMs(PropertyKey.UNDERFS_S3A_REQUEST_TIMEOUT));
+        .setRequestTimeout((int) conf.getMs(PropertyKey.UNDERFS_S3_REQUEST_TIMEOUT));
 
     boolean streamingUploadEnabled =
-        conf.getBoolean(PropertyKey.UNDERFS_S3A_STREAMING_UPLOAD_ENABLED);
+        conf.getBoolean(PropertyKey.UNDERFS_S3_STREAMING_UPLOAD_ENABLED);
 
     // Signer algorithm
-    if (conf.isSet(PropertyKey.UNDERFS_S3A_SIGNER_ALGORITHM)) {
-      clientConf.setSignerOverride(conf.get(PropertyKey.UNDERFS_S3A_SIGNER_ALGORITHM));
+    if (conf.isSet(PropertyKey.UNDERFS_S3_SIGNER_ALGORITHM)) {
+      clientConf.setSignerOverride(conf.get(PropertyKey.UNDERFS_S3_SIGNER_ALGORITHM));
     }
 
     AmazonS3Client amazonS3Client = new AmazonS3Client(credentials, clientConf);
@@ -240,7 +222,7 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
         .build();
 
     return new S3AUnderFileSystem(uri, amazonS3Client, bucketName,
-        service, transferManager, conf, alluxioConf, streamingUploadEnabled);
+        service, transferManager, conf, streamingUploadEnabled);
   }
 
   /**
@@ -256,13 +238,12 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
    */
   protected S3AUnderFileSystem(AlluxioURI uri, AmazonS3Client amazonS3Client, String bucketName,
       ExecutorService executor, TransferManager transferManager, UnderFileSystemConfiguration conf,
-      AlluxioConfiguration alluxioConf, boolean streamingUploadEnabled) {
-    super(uri, conf, alluxioConf);
+      boolean streamingUploadEnabled) {
+    super(uri, conf);
     mClient = amazonS3Client;
     mBucketName = bucketName;
     mExecutor = MoreExecutors.listeningDecorator(executor);
     mManager = transferManager;
-    mConf = conf;
     mStreamingUploadEnabled = streamingUploadEnabled;
   }
 
@@ -281,9 +262,9 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
 
   @Override
   public void cleanup() {
-    long cleanAge = mConf.isSet(PropertyKey.UNDERFS_S3A_INTERMEDIATE_UPLOAD_CLEAN_AGE)
-        ? mConf.getMs(PropertyKey.UNDERFS_S3A_INTERMEDIATE_UPLOAD_CLEAN_AGE)
-        : FormatUtils.parseTimeSize(PropertyKey.UNDERFS_S3A_INTERMEDIATE_UPLOAD_CLEAN_AGE
+    long cleanAge = mUfsConf.isSet(PropertyKey.UNDERFS_S3_INTERMEDIATE_UPLOAD_CLEAN_AGE)
+        ? mUfsConf.getMs(PropertyKey.UNDERFS_S3_INTERMEDIATE_UPLOAD_CLEAN_AGE)
+        : FormatUtils.parseTimeSize(PropertyKey.UNDERFS_S3_INTERMEDIATE_UPLOAD_CLEAN_AGE
         .getDefaultValue());
     Date cleanBefore = new Date(new Date().getTime() - cleanAge);
     mManager.abortMultipartUploads(mBucketName, cleanBefore);
@@ -298,7 +279,7 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
       try {
         CopyObjectRequest request = new CopyObjectRequest(mBucketName, src, mBucketName, dst);
         if (Boolean.parseBoolean(
-            mConf.get(PropertyKey.UNDERFS_S3A_SERVER_SIDE_ENCRYPTION_ENABLED))) {
+            mUfsConf.get(PropertyKey.UNDERFS_S3_SERVER_SIDE_ENCRYPTION_ENABLED))) {
           ObjectMetadata meta = new ObjectMetadata();
           meta.setSSEAlgorithm(ObjectMetadata.AES_256_SERVER_SIDE_ENCRYPTION);
           request.setNewObjectMetadata(meta);
@@ -317,7 +298,7 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
   }
 
   @Override
-  protected boolean createEmptyObject(String key) {
+  public boolean createEmptyObject(String key) {
     try {
       ObjectMetadata meta = new ObjectMetadata();
       meta.setContentLength(0);
@@ -336,14 +317,14 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
   protected OutputStream createObject(String key) throws IOException {
     if (mStreamingUploadEnabled) {
       return new S3ALowLevelOutputStream(mBucketName, key, mClient, mExecutor,
-          mAlluxioConf.getBytes(PropertyKey.UNDERFS_S3A_STREAMING_UPLOAD_PARTITION_SIZE),
-          mAlluxioConf.getList(PropertyKey.TMP_DIRS, ","),
-          mAlluxioConf.getBoolean(PropertyKey.UNDERFS_S3A_SERVER_SIDE_ENCRYPTION_ENABLED));
+          mUfsConf.getBytes(PropertyKey.UNDERFS_S3_STREAMING_UPLOAD_PARTITION_SIZE),
+          mUfsConf.getList(PropertyKey.TMP_DIRS, ","),
+          mUfsConf.getBoolean(PropertyKey.UNDERFS_S3_SERVER_SIDE_ENCRYPTION_ENABLED));
     }
     return new S3AOutputStream(mBucketName, key, mManager,
-        mAlluxioConf.getList(PropertyKey.TMP_DIRS, ","),
-        mAlluxioConf
-            .getBoolean(PropertyKey.UNDERFS_S3A_SERVER_SIDE_ENCRYPTION_ENABLED));
+        mUfsConf.getList(PropertyKey.TMP_DIRS, ","),
+        mUfsConf
+            .getBoolean(PropertyKey.UNDERFS_S3_SERVER_SIDE_ENCRYPTION_ENABLED));
   }
 
   @Override
@@ -359,7 +340,7 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
 
   @Override
   protected List<String> deleteObjects(List<String> keys) throws IOException {
-    if (!mAlluxioConf.getBoolean(PropertyKey.UNDERFS_S3A_BULK_DELETE_ENABLED)) {
+    if (!mUfsConf.getBoolean(PropertyKey.UNDERFS_S3_BULK_DELETE_ENABLED)) {
       return super.deleteObjects(keys);
     }
     Preconditions.checkArgument(keys != null && keys.size() <= getListingChunkLengthMax());
@@ -383,7 +364,7 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
 
   @Override
   protected String getFolderSuffix() {
-    return mUfsConf.get(PropertyKey.UNDERFS_S3A_DIRECTORY_SUFFIX);
+    return mUfsConf.get(PropertyKey.UNDERFS_S3_DIRECTORY_SUFFIX);
   }
 
   @Override
@@ -394,11 +375,11 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
     key = PathUtils.normalizePath(key, PATH_SEPARATOR);
     // In case key is root (empty string) do not normalize prefix.
     key = key.equals(PATH_SEPARATOR) ? "" : key;
-    if (mConf.isSet(PropertyKey.UNDERFS_S3A_LIST_OBJECTS_VERSION_1) && mConf
-        .get(PropertyKey.UNDERFS_S3A_LIST_OBJECTS_VERSION_1).equals(Boolean.toString(true))) {
+    if (mUfsConf.isSet(PropertyKey.UNDERFS_S3_LIST_OBJECTS_V1) && mUfsConf
+        .getBoolean(PropertyKey.UNDERFS_S3_LIST_OBJECTS_V1)) {
       ListObjectsRequest request =
           new ListObjectsRequest().withBucketName(mBucketName).withPrefix(key)
-              .withDelimiter(delimiter).withMaxKeys(getListingChunkLength(mAlluxioConf));
+              .withDelimiter(delimiter).withMaxKeys(getListingChunkLength(mUfsConf));
       ObjectListing result = getObjectListingChunkV1(request);
       if (result != null) {
         return new S3AObjectListingChunkV1(request, result);
@@ -406,7 +387,7 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
     } else {
       ListObjectsV2Request request =
           new ListObjectsV2Request().withBucketName(mBucketName).withPrefix(key)
-              .withDelimiter(delimiter).withMaxKeys(getListingChunkLength(mAlluxioConf));
+              .withDelimiter(delimiter).withMaxKeys(getListingChunkLength(mUfsConf));
       ListObjectsV2Result result = getObjectListingChunk(request);
       if (result != null) {
         return new S3AObjectListingChunk(request, result);
@@ -472,7 +453,7 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
     @Override
     public String[] getCommonPrefixes() {
       List<String> res = mResult.getCommonPrefixes();
-      return res.toArray(new String[res.size()]);
+      return res.toArray(new String[0]);
     }
 
     @Override
@@ -516,7 +497,7 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
     @Override
     public String[] getCommonPrefixes() {
       List<String> res = mResult.getCommonPrefixes();
-      return res.toArray(new String[res.size()]);
+      return res.toArray(new String[0]);
     }
 
     @Override
@@ -563,25 +544,27 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
    */
   private ObjectPermissions getPermissionsInternal() {
     short bucketMode =
-        ModeUtils.getUMask(mUfsConf.get(PropertyKey.UNDERFS_S3A_DEFAULT_MODE)).toShort();
+        ModeUtils.getUMask(mUfsConf.get(PropertyKey.UNDERFS_S3_DEFAULT_MODE)).toShort();
     String accountOwner = DEFAULT_OWNER;
 
     // if ACL enabled try to inherit bucket acl for all the objects.
-    if (Boolean.parseBoolean(mConf.get(PropertyKey.UNDERFS_S3A_INHERIT_ACL))) {
+    if (Boolean.parseBoolean(mUfsConf.get(PropertyKey.UNDERFS_S3_INHERIT_ACL))) {
       try {
         Owner owner = mClient.getS3AccountOwner();
         AccessControlList acl = mClient.getBucketAcl(mBucketName);
 
         bucketMode = S3AUtils.translateBucketAcl(acl, owner.getId());
-        if (mConf.isSet(PropertyKey.UNDERFS_S3_OWNER_ID_TO_USERNAME_MAPPING)) {
+        if (mUfsConf.isSet(PropertyKey.UNDERFS_S3_OWNER_ID_TO_USERNAME_MAPPING)) {
+          // Here accountOwner can be null if there is no mapping set for this owner id
           accountOwner = CommonUtils.getValueFromStaticMapping(
-              mConf.get(PropertyKey.UNDERFS_S3_OWNER_ID_TO_USERNAME_MAPPING), owner.getId());
-        } else {
+              mUfsConf.get(PropertyKey.UNDERFS_S3_OWNER_ID_TO_USERNAME_MAPPING), owner.getId());
+        }
+        if (accountOwner == null || accountOwner.equals(DEFAULT_OWNER)) {
           // If there is no user-defined mapping, use display name or id.
           accountOwner = owner.getDisplayName() != null ? owner.getDisplayName() : owner.getId();
         }
       } catch (AmazonClientException e) {
-        LOG.warn("Failed to inherit bucket ACLs, proceeding with defaults. {}", e.getMessage());
+        LOG.warn("Failed to inherit bucket ACLs, proceeding with defaults. {}", e.toString());
       }
     }
 
@@ -590,16 +573,16 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
 
   @Override
   protected String getRootKey() {
-    return Constants.HEADER_S3A + mBucketName;
+    if ("s3a".equals(mUri.getScheme())) {
+      return Constants.HEADER_S3A + mBucketName;
+    } else {
+      return Constants.HEADER_S3 + mBucketName;
+    }
   }
 
   @Override
   protected InputStream openObject(String key, OpenOptions options,
-      RetryPolicy retryPolicy) throws IOException {
-    try {
-      return new S3AInputStream(mBucketName, key, mClient, options.getOffset(), retryPolicy);
-    } catch (AmazonClientException e) {
-      throw new IOException(e);
-    }
+      RetryPolicy retryPolicy) {
+    return new S3AInputStream(mBucketName, key, mClient, options.getOffset(), retryPolicy);
   }
 }

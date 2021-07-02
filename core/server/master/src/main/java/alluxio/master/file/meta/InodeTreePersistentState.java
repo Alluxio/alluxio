@@ -11,8 +11,9 @@
 
 package alluxio.master.file.meta;
 
+import static alluxio.conf.PropertyKey.MASTER_METRICS_FILE_SIZE_DISTRIBUTION_BUCKETS;
+
 import alluxio.ProcessUtils;
-import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.master.journal.JournalContext;
 import alluxio.master.journal.JournalUtils;
@@ -35,13 +36,14 @@ import alluxio.proto.journal.File.UpdateInodeDirectoryEntry;
 import alluxio.proto.journal.File.UpdateInodeEntry;
 import alluxio.proto.journal.File.UpdateInodeEntry.Builder;
 import alluxio.proto.journal.File.UpdateInodeFileEntry;
-import alluxio.proto.journal.Journal;
 import alluxio.proto.journal.Journal.JournalEntry;
+import alluxio.resource.CloseableIterator;
 import alluxio.resource.LockResource;
 import alluxio.security.authorization.AclEntry;
 import alluxio.security.authorization.DefaultAccessControlList;
+import alluxio.util.BucketCounter;
+import alluxio.util.FormatUtils;
 import alluxio.util.StreamUtils;
-import alluxio.util.ThreadFactoryUtils;
 import alluxio.util.proto.ProtoUtils;
 
 import com.google.common.base.Preconditions;
@@ -55,27 +57,13 @@ import java.nio.file.Paths;
 import java.util.ArrayDeque;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.List;
-import java.util.NoSuchElementException;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Queue;
 import java.util.Set;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.Callable;
-import java.util.concurrent.CompletionService;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorCompletionService;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 /**
  * Class for managing persistent inode tree state.
@@ -115,6 +103,8 @@ public class InodeTreePersistentState implements Journaled {
   // TODO(andrew): Move ownership of the ttl bucket list to this class
   private final TtlBucketList mTtlBuckets;
 
+  private final BucketCounter mBucketCounter;
+
   /**
    * @param inodeStore file store which holds inode metadata
    * @param lockManager manager for inode locks
@@ -126,6 +116,9 @@ public class InodeTreePersistentState implements Journaled {
     mInodeStore = inodeStore;
     mInodeLockManager = lockManager;
     mTtlBuckets = ttlBucketList;
+    mBucketCounter = new BucketCounter(
+        ServerConfiguration.getList(MASTER_METRICS_FILE_SIZE_DISTRIBUTION_BUCKETS, ",")
+            .stream().map(FormatUtils::parseSpaceSize).collect(Collectors.toList()));
   }
 
   /**
@@ -153,7 +146,14 @@ public class InodeTreePersistentState implements Journaled {
    * @return the number of inodes in the tree
    */
   public long getInodeCount() {
-    return mInodeCounter.get();
+    return mInodeCounter.longValue();
+  }
+
+  /**
+   * @return the file size distribution in the tree
+   */
+  public Map<Long, Number> getFileSizeHistogram() {
+    return mBucketCounter.getCounters();
   }
 
   /**
@@ -293,15 +293,33 @@ public class InodeTreePersistentState implements Journaled {
    *
    * @param context journal context supplier
    * @param inode an inode to add and create a journal entry for
+   * @param path path of the new inode
    */
-  public void applyAndJournal(Supplier<JournalContext> context, MutableInode<?> inode) {
+  public void applyAndJournal(Supplier<JournalContext> context, MutableInode<?> inode,
+      String path) {
     try {
       applyCreateInode(inode);
-      context.get().append(inode.toJournalEntry());
+      context.get().append(inode.toJournalEntry(
+          Preconditions.checkNotNull(path)));
     } catch (Throwable t) {
       ProcessUtils.fatalError(LOG, t, "Failed to apply %s", inode);
       throw t; // fatalError will usually system.exit
     }
+  }
+
+  /**
+   * Updates last access time for Inode without journaling. The caller should apply the journal
+   * entry separately.
+   *
+   * @param inodeId the id of the target inode
+   * @param accessTime the new value for last access time
+   * @return the journal entry that represents the update
+   */
+  public UpdateInodeEntry applyInodeAccessTime(long inodeId, long accessTime) {
+    UpdateInodeEntry entry = UpdateInodeEntry.newBuilder().setId(inodeId)
+        .setLastAccessTimeMs(accessTime).build();
+    applyUpdateInode(entry);
+    return entry;
   }
 
   ////
@@ -320,25 +338,28 @@ public class InodeTreePersistentState implements Journaled {
       while (!dirsToDelete.isEmpty()) {
         InodeDirectory dir = dirsToDelete.poll();
         mInodeStore.removeInodeAndParentEdge(inode);
-        mInodeCounter.decrementAndGet();
+        mInodeCounter.decrement();
         for (Inode child : mInodeStore.getChildren(dir)) {
           if (child.isDirectory()) {
             dirsToDelete.add(child.asDirectory());
           } else {
             mInodeStore.removeInodeAndParentEdge(inode);
-            mInodeCounter.decrementAndGet();
+            mInodeCounter.decrement();
           }
         }
       }
     } else {
       mInodeStore.removeInodeAndParentEdge(inode);
-      mInodeCounter.decrementAndGet();
+      mInodeCounter.decrement();
     }
-
-    updateLastModifiedAndChildCount(inode.getParentId(), entry.getOpTimeMs(), -1);
+    if (inode.isFile()) {
+      mBucketCounter.remove(inode.asFile().getLength());
+    }
+    updateTimestampsAndChildCount(inode.getParentId(), entry.getOpTimeMs(), -1);
     mPinnedInodeFileIds.remove(id);
     mReplicationLimitedFileIds.remove(id);
     mToBePersistedIds.remove(id);
+    mTtlBuckets.remove(inode);
   }
 
   private void applyCreateDirectory(InodeDirectoryEntry entry) {
@@ -385,6 +406,10 @@ public class InodeTreePersistentState implements Journaled {
   private void applyUpdateInode(UpdateInodeEntry entry) {
     Optional<MutableInode<?>> inodeOpt = mInodeStore.getMutable(entry.getId());
     if (!inodeOpt.isPresent()) {
+      if (isJournalUpdateAsync(entry)) {
+        // do not throw if the entry is journaled asynchronously
+        return;
+      }
       throw new IllegalStateException("Inode " + entry.getId() + " not found");
     }
     MutableInode<?> inode = inodeOpt.get();
@@ -397,27 +422,45 @@ public class InodeTreePersistentState implements Journaled {
     if (entry.hasTtl()) {
       mTtlBuckets.insert(Inode.wrap(inode));
     }
-    if (entry.hasPinned() && inode.isFile()) {
-      if (entry.getPinned()) {
-        MutableInodeFile file = inode.asFile();
-        // when we pin a file with default min replication (zero), we bump the min replication
-        // to one in addition to setting pinned flag, and adjust the max replication if it is
-        // smaller than min replication.
-        if (file.getReplicationMin() == 0) {
-          file.setReplicationMin(1);
-          if (file.getReplicationMax() == 0) {
-            file.setReplicationMax(alluxio.Constants.REPLICATION_MAX_INFINITY);
-          }
-        }
-        mPinnedInodeFileIds.add(entry.getId());
-      } else {
-        // when we unpin a file, set the min replication to zero too.
-        inode.asFile().setReplicationMin(0);
-        mPinnedInodeFileIds.remove(entry.getId());
-      }
+    if (inode.isFile() && entry.hasPinned()) {
+      setReplicationForPin(inode, entry.getPinned());
     }
     mInodeStore.writeInode(inode);
     updateToBePersistedIds(inode);
+  }
+
+  private void setReplicationForPin(MutableInode<?> inode, boolean pinned) {
+    if (inode.isFile()) {
+      MutableInodeFile file = inode.asFile();
+      if (pinned) {
+        // when we pin a file with default min replication (zero), we bump the min replication
+        // to one in addition to setting pinned flag, and adjust the max replication if it is
+        // smaller than min replication.
+        file.setPinned(true);
+        if (file.getReplicationMin() == 0) {
+          file.setReplicationMin(1);
+        }
+        if (file.getReplicationMax() == 0) {
+          file.setReplicationMax(alluxio.Constants.REPLICATION_MAX_INFINITY);
+        }
+        mPinnedInodeFileIds.add(inode.getId());
+      } else {
+        // when we unpin a file, set the min replication to zero too.
+        file.setReplicationMin(0);
+        mPinnedInodeFileIds.remove(file.getId());
+      }
+      if (file.getReplicationMax() != alluxio.Constants.REPLICATION_MAX_INFINITY) {
+        mReplicationLimitedFileIds.add(file.getId());
+      }
+    }
+  }
+
+  /**
+   * @param entry the update inode journal entry to be checked
+   * @return whether the journal entry might be applied asynchronously out of order
+   */
+  private boolean isJournalUpdateAsync(UpdateInodeEntry entry) {
+    return entry.getAllFields().size() == 2 && entry.hasId() && entry.hasLastAccessTimeMs();
   }
 
   private void applyUpdateInodeDirectory(UpdateInodeDirectoryEntry entry) {
@@ -440,8 +483,12 @@ public class InodeTreePersistentState implements Journaled {
         mReplicationLimitedFileIds.add(inode.getId());
       }
     }
+    if (inode.asFile().isCompleted()) {
+      mBucketCounter.remove(inode.asFile().getLength());
+    }
     inode.asFile().updateFromEntry(entry);
     mInodeStore.writeInode(inode);
+    mBucketCounter.insert(inode.asFile().getLength());
   }
 
   ////
@@ -517,7 +564,8 @@ public class InodeTreePersistentState implements Journaled {
       // This is the root inode. Clear all the state, and set the root.
       mInodeStore.clear();
       mInodeStore.writeNewInode(inode);
-      mInodeCounter.set(1);
+      mInodeCounter.reset();
+      mInodeCounter.increment();
       mPinnedInodeFileIds.clear();
       mReplicationLimitedFileIds.clear();
       mToBePersistedIds.clear();
@@ -528,27 +576,20 @@ public class InodeTreePersistentState implements Journaled {
     // inode should be added to the inode store before getting added to its parent list, because it
     // becomes visible at this point.
     mInodeStore.writeNewInode(inode);
-    mInodeCounter.incrementAndGet();
+    mInodeCounter.increment();
     mInodeStore.addChild(inode.getParentId(), inode);
     // Only update size, last modified time is updated separately.
-    updateLastModifiedAndChildCount(inode.getParentId(), Long.MIN_VALUE, 1);
+    updateTimestampsAndChildCount(inode.getParentId(), Long.MIN_VALUE, 1);
     if (inode.isFile()) {
-      MutableInodeFile file = inode.asFile();
-      if (file.getReplicationMin() > 0) {
-        mPinnedInodeFileIds.add(file.getId());
-        file.setPinned(true);
-      }
-      if (file.getReplicationMax() != alluxio.Constants.REPLICATION_MAX_INFINITY) {
-        mReplicationLimitedFileIds.add(file.getId());
-      }
-    }
-    // Update indexes.
-    if (inode.isFile() && inode.isPinned()) {
-      mPinnedInodeFileIds.add(inode.getId());
+      boolean pinned = inode.asFile().isPinned() || inode.asFile().getReplicationMin() > 0;
+      setReplicationForPin(inode, pinned);
     }
     // Add the file to TTL buckets, the insert automatically rejects files w/ Constants.NO_TTL
     mTtlBuckets.insert(Inode.wrap(inode));
     updateToBePersistedIds(inode);
+    if (inode.isFile() && inode.asFile().isCompleted()) {
+      mBucketCounter.insert(inode.asFile().getLength());
+    }
   }
 
   private void applyRename(RenameEntry entry) {
@@ -567,30 +608,34 @@ public class InodeTreePersistentState implements Journaled {
     mInodeStore.writeInode(inode);
 
     if (oldParent == newParent) {
-      updateLastModifiedAndChildCount(oldParent, entry.getOpTimeMs(), 0);
+      updateTimestampsAndChildCount(oldParent, entry.getOpTimeMs(), 0);
     } else {
-      updateLastModifiedAndChildCount(oldParent, entry.getOpTimeMs(), -1);
-      updateLastModifiedAndChildCount(newParent, entry.getOpTimeMs(), 1);
+      updateTimestampsAndChildCount(oldParent, entry.getOpTimeMs(), -1);
+      updateTimestampsAndChildCount(newParent, entry.getOpTimeMs(), 1);
     }
   }
 
   /**
-   * Updates the last modified time (LMT) for the indicated inode directory, and updates its child
-   * count.
+   * Updates the last modification time and last access time for the indicated inode directory,
+   * and updates its child count.
    *
-   * If the inode's LMT is already greater than the specified time, the inode's LMT will not be
-   * changed.
+   * If the inode's timestamps are already greater than the specified time, the inode's timestamps
+   * will not be changed.
    *
    * @param id the inode to update
    * @param opTimeMs the time of the operation that modified the inode
    * @param deltaChildCount the change in inode directory child count
    */
-  private void updateLastModifiedAndChildCount(long id, long opTimeMs, long deltaChildCount) {
+  private void updateTimestampsAndChildCount(long id, long opTimeMs, long deltaChildCount) {
     try (LockResource lr = mInodeLockManager.lockUpdate(id)) {
       MutableInodeDirectory inode = mInodeStore.getMutable(id).get().asDirectory();
       boolean madeUpdate = false;
       if (inode.getLastModificationTimeMs() < opTimeMs) {
         inode.setLastModificationTimeMs(opTimeMs);
+        madeUpdate = true;
+      }
+      if (inode.getLastAccessTimeMs() < opTimeMs) {
+        inode.setLastAccessTimeMs(opTimeMs);
         madeUpdate = true;
       }
       if (deltaChildCount != 0) {
@@ -617,8 +662,18 @@ public class InodeTreePersistentState implements Journaled {
     Preconditions.checkState(!entry.hasNewParentId(),
         "old-style rename entries should not have the newParentId field set");
     Path path = Paths.get(entry.getDstPath());
+    Path parent = path.getParent();
+    Path filename = path.getFileName();
+    if (parent == null) {
+      throw new NullPointerException("path parent cannot be null");
+    }
+    if (filename == null) {
+      throw new NullPointerException("path filename cannot be null");
+    }
+
     return RenameEntry.newBuilder().setId(entry.getId())
-        .setNewParentId(getIdFromPath(path.getParent())).setNewName(path.getFileName().toString())
+        .setNewParentId(getIdFromPath(parent))
+        .setNewName(filename.toString())
         .setOpTimeMs(entry.getOpTimeMs()).build();
   }
 
@@ -691,254 +746,8 @@ public class InodeTreePersistentState implements Journaled {
   }
 
   @Override
-  public Iterator<JournalEntry> getJournalEntryIterator() {
-    /**
-     * Used to iterate this InodeTree's state, while doing a read-ahead buffering. Traversal is done
-     * concurrently and depth order for each branch is preserved in the final iteration order. This
-     * makes applying those entries later more efficient by guaranteeing that a parent of an inode
-     * is iterated before it.
-     */
-    final class BufferedIterator implements Iterator<Journal.JournalEntry> {
-
-      // Used to signal end of iteration.
-      private static final long TERMINATION_SEQ = -1;
-
-      /** Buffered entry queue. */
-      BlockingQueue<JournalEntry> mEntryBuffer;
-      /** Whether buffering is still running. */
-      private AtomicBoolean mBufferingActive;
-      /** Completion service for crawlers. */
-      private CompletionService<Boolean> mCrawlerCompletionService;
-      /** Active crawlers. */
-      private Set<Future<?>> mActiveCrawlers;
-      /** Executor for the coordinating thread. */
-      private ExecutorService mCoordinatorExecutor;
-      /** Directories for iterator threads to traverse. */
-      private BlockingQueue<Inode> mDirectoriesToIterate;
-      /** Used to keep the next element for the iteration. */
-      private LinkedList<JournalEntry> mNextElements;
-      /** For storing iteration failure. */
-      private AtomicReference<Throwable> mBufferingFailure;
-
-      public BufferedIterator() {
-        // Initialize configuration values.
-        int iteratorThreadCount =
-            ServerConfiguration.getInt(PropertyKey.MASTER_METASTORE_INODE_ITERATION_CRAWLER_COUNT);
-        int entryBufferSize =
-            ServerConfiguration.getInt(PropertyKey.MASTER_METASTORE_INODE_ENUMERATOR_BUFFER_COUNT);
-
-        // Create executors.
-        mCoordinatorExecutor = Executors.newSingleThreadExecutor(
-            ThreadFactoryUtils.build("inode-tree-crawler-coordinator-%d", true));
-        mCrawlerCompletionService =
-            new ExecutorCompletionService(Executors.newFixedThreadPool(iteratorThreadCount,
-                ThreadFactoryUtils.build("inode-tree-crawler-%d", true)));
-        // Used to keep futures of active crawlers.
-        mActiveCrawlers = new HashSet<>();
-
-        // Using linked queue for fast insertion/removal from the queue.
-        mEntryBuffer = new LinkedBlockingQueue<>(entryBufferSize);
-
-        // Initialize directories to iterate.
-        mDirectoriesToIterate = new LinkedBlockingQueue<>();
-        if (getRoot() != null) {
-          mDirectoriesToIterate.add(getRoot());
-        }
-
-        // Initialize iteration buffers.
-        mNextElements = new LinkedList<>();
-        mBufferingFailure = new AtomicReference<>();
-
-        // Start buffering entries by iteration.
-        mBufferingActive = new AtomicBoolean(true);
-        startBuffering();
-      }
-
-      /**
-       * Starts buffering process by launching the coordinator task, which in turn spawns crawler
-       * tasks for enumeration.
-       */
-      private void startBuffering() {
-        /**
-         * Runnable class that is used to branch out on a dir inode.
-         */
-        final class DirectoryCrawler implements Callable<Boolean> {
-          // Dir to branch out.
-          private Inode mDirInode;
-
-          /**
-           * Creates an instance for given dir inode.
-           *
-           * @param dirInode the dir inode
-           */
-          public DirectoryCrawler(Inode dirInode) {
-            mDirInode = dirInode;
-          }
-
-          @Override
-          public Boolean call() throws Exception {
-            try {
-              // Buffer current dir as JournalEntry.
-              mEntryBuffer.put(mDirInode.toJournalEntry());
-
-              // Enumerate on immediate children.
-              Iterable<? extends Inode> children = mInodeStore.getChildren(mDirInode.asDirectory());
-              children.forEach((child) -> {
-                try {
-                  if (child.isDirectory()) {
-                    // Insert directory for further branching.
-                    mDirectoriesToIterate.put(child);
-                  } else {
-                    // Buffer current file as JournalEntry
-                    mEntryBuffer.put(child.toJournalEntry());
-                  }
-                } catch (InterruptedException ie) {
-                  // Continue interrupt chain.
-                  Thread.currentThread().interrupt();
-                  throw new RuntimeException("Thread interrupted while enumerating a dir.");
-                }
-              });
-              return true;
-            } catch (InterruptedException ie) {
-              // Continue interrupt chain.
-              Thread.currentThread().interrupt();
-              throw new RuntimeException("Thread interrupted while enumerating on a dir.");
-            }
-          }
-        }
-
-        // Create coordinator task.
-        mCoordinatorExecutor.submit(() -> {
-          try {
-            // Loop as long as there is a dir to branch or there are active enumeration thread.
-            while (mActiveCrawlers.size() > 0 || !mDirectoriesToIterate.isEmpty()) {
-              if (!mDirectoriesToIterate.isEmpty()) {
-                // There is a dir to enumerate.
-                mActiveCrawlers.add(mCrawlerCompletionService
-                    .submit(new DirectoryCrawler(mDirectoriesToIterate.take())));
-              } else {
-                // No dirs but there are active threads.
-                Future<?> crawlerFuture =
-                    mCrawlerCompletionService.poll(100, TimeUnit.MILLISECONDS);
-                if (crawlerFuture != null) {
-                  mActiveCrawlers.remove(crawlerFuture);
-                  crawlerFuture.get();
-                }
-              }
-            }
-            // Signal end of buffering.
-            mEntryBuffer.put(
-                JournalEntry.newBuilder().setSequenceNumber(TERMINATION_SEQ).build());
-          } catch (InterruptedException ie) {
-            // Cancel pending crawlers.
-            mActiveCrawlers.forEach((future) -> future.cancel(true));
-            // Continue interrupt chain.
-            Thread.currentThread().interrupt();
-            throw new RuntimeException("Thread interrupted while waiting for enumeration threads.");
-          } catch (ExecutionException ee) {
-            // Cancel pending crawlers.
-            mActiveCrawlers.forEach((future) -> future.cancel(true));
-            LOG.error("InodeTree buffering stopped due to crawler thread failure.",
-                ee.getCause());
-            mBufferingFailure.set(ee.getCause());
-          } finally {
-            // Signal completion of buffering.
-            mBufferingActive.set(false);
-          }
-        });
-        // Will be shutdown after current coordinator task is complete.
-        mCoordinatorExecutor.shutdown();
-      }
-
-      @Override
-      public boolean hasNext() {
-        /*
-         * This call returns {@code true) if it was able to fetch an element
-         * from an ongoing buffering. Then it stores that element to be remembered in following
-         * calls to hasNext() and next().
-         *
-         * Fetching an item from buffering requires synchronization, so this call is blocked
-         * until an entry is retrieved or buffering is completed with no entries.
-         */
-
-        // Throw for buffering failure.
-        if (mBufferingFailure.get() != null) {
-          throw new RuntimeException(mBufferingFailure.get());
-        }
-
-        // Check for termination entry.
-        // This assumes the termination entry will be enqueued the last.
-        if (mNextElements.size() == 1
-            && mNextElements.peekFirst().getSequenceNumber() == TERMINATION_SEQ) {
-          return false;
-        }
-
-        if (mNextElements.size() > 0) {
-          // hasNext() has been called before and cached some elements.
-          // next() can return the next element.
-          return true;
-        }
-
-        // Continue until taking an entry or failing due to having no entry.
-        while (true) {
-          if (!mBufferingActive.get() && mEntryBuffer.size() == 0) {
-            return false;
-          }
-          try {
-            // Drain existing elements.
-            if (0 == mEntryBuffer.drainTo(mNextElements)) {
-              // Fall back to polling.
-              JournalEntry entry;
-              while (mBufferingActive.get() || mEntryBuffer.size() > 0) {
-                // Poll in-case buffering is failed without proper termination.
-                entry = mEntryBuffer.poll(30, TimeUnit.SECONDS);
-                if (entry != null) {
-                  mNextElements.addLast(entry);
-                  break;
-                }
-              }
-            }
-            // Return true if there are more entries,
-            // unless there is only a single termination entry.
-            if (mNextElements.size() == 1) {
-              return mNextElements.peekLast().getSequenceNumber() != TERMINATION_SEQ;
-            } else {
-              return mNextElements.size() > 0;
-            }
-          } catch (InterruptedException ie) {
-            // Continue interrupt chain.
-            Thread.currentThread().interrupt();
-            throw new RuntimeException("Thread interrupted while taking an entry from buffer.");
-          }
-        }
-      }
-
-      @Override
-      public Journal.JournalEntry next() {
-        if (mNextElements.size() == 0) {
-          // It's either:
-          // -> next() has been called without a preceding hasNext().
-          // -> there is no next entry.
-          //
-          // Call hasNext() to understand which one of the above is true.
-          //
-          if (!hasNext()) {
-            throw new NoSuchElementException();
-          }
-          // hasNext() has been called before and stored the next element.
-          // Return and reset state for the next item.
-        }
-        // Return next element.
-        return mNextElements.removeFirst();
-      }
-
-      @Override
-      public void remove() {
-        throw new UnsupportedOperationException("remove is not supported in inode tree iterator");
-      }
-    }
-    // Create a new instance that isolates this instance of iteration.
-    return new BufferedIterator();
+  public CloseableIterator<JournalEntry> getJournalEntryIterator() {
+    return InodeTreeBufferedIterator.create(mInodeStore, getRoot());
   }
 
   @Override

@@ -2,8 +2,8 @@
 layout: global
 title: 在Alluxio上运行深度学习框架
 nickname: 深度学习框架
-group: Data Applications
-priority: 5
+group: Compute Integrations
+priority: 4
 ---
 
 * 内容列表
@@ -31,17 +31,17 @@ priority: 5
 ## Alluxio如何帮助解决深度学习的存储问题
 
 Alluxio可以帮助解决深度学习的数据访问问题。Alluxio最简单的形式是一个虚拟文件系统，它透明地连接到现有的存储系统，并将它们作为一个单一
-的系统呈现给用户。使用Alluxio的[统一命名空间](Unified-and-Transparent-Namespace.html)，可以将许多存储系统挂载到Alluxio中，包括S3，
+的系统呈现给用户。使用Alluxio的[统一命名空间]({{ '/cn/core-services/Unified-Namespace.html' | relativize_url }})，可以将许多存储系统挂载到Alluxio中，包括S3，
 Azure和GCS等云存储系统。由于Alluxio已经与存储系统集成了，因此深度学习框架只需与Alluxio进行交互即可访问所有存储中的数据。这为从任何数据源获得
 数据并进行训练打开了大门，从而可以提高深度学习学得的模型的性能。
 
-Alluxio还包括一个可以提供便利和人性化的使用体验的FUSE界面。使用[Alluxio FUSE](Mounting-Alluxio-FS-with-FUSE.html)，可以将Alluxio实
+Alluxio还包括一个可以提供便利和人性化的使用体验的FUSE界面。使用[Alluxio POSIX API]({{ '/cn/api/POSIX-API.html' | relativize_url }})，可以将Alluxio实
 例挂载到本地文件系统，因此与Alluxio的交互就跟与本地文件或者目录的交互一样简单。这使用户能够继续使用熟悉的工具和范例与其数据进行交互。Alluxio
 可以连接到多个不同的存储系统，这意味着来自任何存储的任何数据看起来都跟本地文件或目录一样。
 
 ![Fuse]({{ site.baseurl }}/img/fuse.png)
 
-最后，Alluxio还提供常用数据的[本地缓存](Alluxio-Storage.html)。当数据远离计算时，这非常有用，例如存储环境中的计算分离。由于Alluxio可以
+最后，Alluxio还提供常用数据的[本地缓存]({{ '/cn/core-services/Caching.html' | relativize_url }})。当数据远离计算时，这非常有用，例如存储环境中的计算分离。由于Alluxio可以
 在本地缓存数据，所以不需要通过网络IO来访问数据，从而使得深度学习训练的成本会更低，并且花费的时间会更少。
 
 ## 设置 Alluxio FUSE
@@ -51,14 +51,17 @@ Alluxio还包括一个可以提供便利和人性化的使用体验的FUSE界面
 
 首先在Alluxio的根目录下创建一个文件夹。
 
-```bash
-./bin/alluxio fs mkdir /training-data
+```console
+$ ./bin/alluxio fs mkdir /training-data
 ```
 
-然后我们可以把存储在S3桶中的ImageNet数据挂载到路径 `/training-data/imagenet`上。假定数据在s3中的路径是 `s3a://alluxio-tensorflow-imagenet/`。
+然后我们可以把存储在S3桶中的ImageNet数据挂载到路径 `/training-data/imagenet`上。假定数据在s3中的路径是 `s3://alluxio-tensorflow-imagenet/`。
 
-```bash
-./bin/alluxio fs mount /training-data/imagenet/ s3a://alluxio-tensorflow-imagenet/ --option aws.accessKeyID=<ACCESS_KEY_ID> --option aws.secretKey=<SECRET_KEY>
+```console
+$ ./bin/alluxio fs mount /training-data/imagenet/ \
+s3://alluxio-tensorflow-imagenet/ \
+--option aws.accessKeyID=<ACCESS_KEY_ID> \
+--option aws.secretKey=<SECRET_KEY>
 ```
 
 请注意，此命令需要传递存储桶的S3证书。这些证书与挂载点相关联，这样之后的访问就不需要证书了。
@@ -66,23 +69,23 @@ Alluxio还包括一个可以提供便利和人性化的使用体验的FUSE界面
 之后，我们会启动Alluxio-FUSE进程。首先，我们创建一个名为 `/mnt/fuse` 的目录，把它的所有者改成当前的使用者（本文档中是ec2-user），并且设置
 权限为可读写。
 
-```bash
-sudo mkdir -p /mnt/fuse
-sudo chown ec2-user:ec2-user /mnt/fuse
-chmod 664 /mnt/fuse
+```console
+$ sudo mkdir -p /mnt/fuse
+$ sudo chown ec2-user:ec2-user /mnt/fuse
+$ chmod 664 /mnt/fuse
 ```
 
 然后我们运行 Alluxio-FUSE shell 来将Alluxio目录下的 training-data 挂载到本地目录 `/mnt/fuse` 下面。
 
-```bash
-./integration/fuse/bin/alluxio-fuse mount /mnt/fuse /training-data
+```console
+$ ./integration/fuse/bin/alluxio-fuse mount /mnt/fuse /training-data
 ```
 
 现在，你可以访问挂载目录并浏览其中的数据了，你应该能看到存储在云中的数据。
 
-```bash
-cd /mnt/fuse
-ls
+```console
+$ cd /mnt/fuse
+$ ls
 ```
 
 该文件夹已准备好供深度学习框架使用，深度学习框架将把Alluxio存储视为本地文件夹。我们将在下一节中使用此文件夹进行Tensorflow训练。

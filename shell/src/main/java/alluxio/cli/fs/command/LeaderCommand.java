@@ -11,6 +11,7 @@
 
 package alluxio.cli.fs.command;
 
+import alluxio.annotation.PublicApi;
 import alluxio.cli.CommandUtils;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.FileSystemMasterClient;
@@ -30,8 +31,12 @@ import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Prints the current leader master host name.
+ *
+ * @deprecated This command will be deprecated as of v3.0, use {@link MasterInfoCommand}
  */
 @ThreadSafe
+@PublicApi
+@Deprecated
 public final class LeaderCommand extends AbstractFileSystemCommand {
 
   /**
@@ -53,6 +58,7 @@ public final class LeaderCommand extends AbstractFileSystemCommand {
 
   @Override
   public int run(CommandLine cl) {
+    System.out.println("This command will be deprecated as of v3.0, please use masterInfo command");
     try (CloseableResource<FileSystemMasterClient> client =
         mFsContext.acquireMasterClientResource()) {
       try {

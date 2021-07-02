@@ -11,7 +11,9 @@
 
 package alluxio.server.ft;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotEquals;
 
 import alluxio.ConfigurationRule;
 import alluxio.conf.PropertyKey;
@@ -49,7 +51,6 @@ public class ZookeeperFailureIntegrationTest extends BaseIntegrationTest {
   @Rule
   public ConfigurationRule mConf = new ConfigurationRule(ImmutableMap.of(
       PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT, "1000",
-      PropertyKey.USER_RPC_RETRY_MAX_NUM_RETRY, "5",
       PropertyKey.USER_RPC_RETRY_BASE_SLEEP_MS, "500",
       PropertyKey.USER_RPC_RETRY_MAX_SLEEP_MS, "500",
       PropertyKey.USER_RPC_RETRY_MAX_DURATION, "2500"), ServerConfiguration.global()
@@ -106,6 +107,63 @@ public class ZookeeperFailureIntegrationTest extends BaseIntegrationTest {
     mCluster.notifySuccess();
   }
 
+  @Test
+  public void zkConnectionPolicy_Standard() throws Exception {
+    mCluster = MultiProcessCluster.newBuilder(PortCoordination.ZOOKEEPER_CONNECTION_POLICY_STANDARD)
+        .setClusterName("ZookeeperConnectionPolicy_Standard")
+        .setNumMasters(2)
+        .setNumWorkers(0)
+        .addProperty(PropertyKey.ZOOKEEPER_LEADER_CONNECTION_ERROR_POLICY, "STANDARD")
+        .addProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.UFS.toString())
+        .build();
+    mCluster.start();
+
+    int leaderIdx = getPrimaryMasterIndex();
+    mCluster.restartZk();
+    // Leader will step down under STANDARD connection error policy.
+    int leaderIdx2 = getPrimaryMasterIndex();
+    assertNotEquals(leaderIdx, leaderIdx2);
+
+    mCluster.notifySuccess();
+  }
+
+  @Test
+  public void zkConnectionPolicy_Session() throws Exception {
+    mCluster = MultiProcessCluster.newBuilder(PortCoordination.ZOOKEEPER_CONNECTION_POLICY_SESSION)
+        .setClusterName("ZookeeperConnectionPolicy_Session")
+        .setNumMasters(2)
+        .setNumWorkers(0)
+        .addProperty(PropertyKey.ZOOKEEPER_LEADER_CONNECTION_ERROR_POLICY, "SESSION")
+        .addProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.UFS.toString())
+        .build();
+    mCluster.start();
+
+    int leaderIdx = getPrimaryMasterIndex();
+    mCluster.restartZk();
+    // Leader will retain its status under SESSION connection error policy.
+    int leaderIdx2 = getPrimaryMasterIndex();
+    assertEquals(leaderIdx, leaderIdx2);
+
+    mCluster.notifySuccess();
+  }
+
+  /**
+   * Used to get primary master index with retries for when zk server is down.
+   */
+  private int getPrimaryMasterIndex() throws Exception {
+    AtomicInteger primaryIndex = new AtomicInteger();
+    CommonUtils.waitFor("Getting primary master index", () -> {
+      try {
+        primaryIndex.set(mCluster.getPrimaryMasterIndex(30000));
+        return true;
+      } catch (Exception e) {
+        LOG.warn("Could not get primary master index.", e);
+        return false;
+      }
+    });
+
+    return primaryIndex.get();
+  }
   /*
    * This method uses a client with an explicit master address to ensure that the master has shut
    * down its rpc service.
@@ -116,7 +174,7 @@ public class ZookeeperFailureIntegrationTest extends BaseIntegrationTest {
         new InetSocketAddress(netAddress.getHostname(), netAddress.getRpcPort());
     try {
       GrpcChannel channel = GrpcChannelBuilder
-          .newBuilder(new GrpcServerAddress(address), ServerConfiguration.global()).build();
+          .newBuilder(GrpcServerAddress.create(address), ServerConfiguration.global()).build();
       FileSystemMasterClientServiceGrpc.FileSystemMasterClientServiceBlockingStub client =
           FileSystemMasterClientServiceGrpc.newBlockingStub(channel);
       client.listStatus(ListStatusPRequest.getDefaultInstance());

@@ -57,10 +57,10 @@ public class ShowCommandIntegrationTest extends AbstractShellIntegrationTest {
     client.setPathConfiguration(new AlluxioURI(DIR1), PROPERTY_KEY11, PROPERTY_VALUE11);
     client.setPathConfiguration(new AlluxioURI(DIR1), PROPERTY_KEY12, PROPERTY_VALUE12);
     client.setPathConfiguration(new AlluxioURI(DIR2), PROPERTY_KEY2, PROPERTY_VALUE2);
-    InetSocketAddress address = mLocalAlluxioClusterResource.get().getLocalAlluxioMaster()
+    InetSocketAddress address = sLocalAlluxioClusterResource.get().getLocalAlluxioMaster()
         .getAddress();
     FileSystemContext fsCtx = FileSystemContext.create(ServerConfiguration.global());
-    fsCtx.getClientContext().updateConfigurationDefaults(address);
+    fsCtx.getClientContext().loadConf(address, true, true);
     return (InstancedConfiguration) fsCtx.getClusterConf();
   }
 

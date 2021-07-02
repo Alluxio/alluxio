@@ -9,61 +9,68 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-import {Reducer} from 'redux';
+import { Reducer } from 'redux';
 
-import {transformToNivoFormat} from '@alluxio/common-ui/src/utilities';
-import {IMetricsState, MetricsActionTypes} from './types';
-import {LineSerieData} from '@nivo/line';
+import { transformToNivoFormat } from '@alluxio/common-ui/src/utilities';
+import { IMetricsState, MetricsActionTypes } from './types';
+import { LineSerieData } from '@nivo/line';
 
 export const initialMetricsState: IMetricsState = {
   data: {
-    'cacheHitLocal': '',
-    'cacheHitRemote': '',
-    'cacheMiss': '0.00',
-    'masterCapacityFreePercentage': 0,
-    'masterCapacityUsedPercentage': 0,
-    'masterUnderfsCapacityFreePercentage': 0,
-    'masterUnderfsCapacityUsedPercentage': 0,
-    'operationMetrics': {},
-    'rpcInvocationMetrics': {},
-    'timeSeriesMetrics': [],
-    'totalBytesReadLocal': '',
-    'totalBytesReadLocalThroughput': '',
-    'totalBytesReadRemote': '',
-    'totalBytesReadRemoteThroughput': '',
-    'totalBytesReadUfs': '',
-    'totalBytesReadUfsThroughput': '',
-    'totalBytesWrittenAlluxio': '',
-    'totalBytesWrittenAlluxioThroughput': '',
-    'totalBytesWrittenUfs': '',
-    'totalBytesWrittenUfsThroughput': '',
-    'ufsOps': {},
-    'ufsReadSize': {},
-    'ufsWriteSize': {}
+    cacheHitLocal: '',
+    cacheHitRemote: '',
+    cacheMiss: '0.00',
+    masterCapacityFreePercentage: 0,
+    masterCapacityUsedPercentage: 0,
+    masterUnderfsCapacityFreePercentage: 0,
+    masterUnderfsCapacityUsedPercentage: 0,
+    operationMetrics: {},
+    rpcInvocationMetrics: {},
+    timeSeriesMetrics: [],
+    journalDiskMetrics: [],
+    totalBytesReadLocal: '',
+    totalBytesReadLocalThroughput: '',
+    totalBytesReadDomainSocket: '',
+    totalBytesReadDomainSocketThroughput: '',
+    totalBytesReadRemote: '',
+    totalBytesReadRemoteThroughput: '',
+    totalBytesReadUfs: '',
+    totalBytesReadUfsThroughput: '',
+    totalBytesWrittenLocal: '',
+    totalBytesWrittenLocalThroughput: '',
+    totalBytesWrittenRemote: '',
+    totalBytesWrittenRemoteThroughput: '',
+    totalBytesWrittenDomainSocket: '',
+    totalBytesWrittenDomainSocketThroughput: '',
+    totalBytesWrittenUfs: '',
+    totalBytesWrittenUfsThroughput: '',
+    ufsOps: {},
+    ufsOpsSaved: {},
+    ufsReadSize: {},
+    ufsWriteSize: {},
   },
   errors: undefined,
-  loading: false
+  loading: false,
 };
 
 export const metricsReducer: Reducer<IMetricsState> = (state = initialMetricsState, action) => {
+  const timeSeriesMetrics: LineSerieData[] = [];
   switch (action.type) {
     case MetricsActionTypes.FETCH_REQUEST:
-      return {...state, loading: true};
+      return { ...state, loading: true };
     case MetricsActionTypes.FETCH_SUCCESS:
-      const timeSeriesMetrics: LineSerieData[] = [];
-      action.payload.data.timeSeriesMetrics.map((item: any) => {
-        // only push the latest 20 points of data
+      action.payload.data.timeSeriesMetrics.map((item: { name: string; dataPoints: [] }) => {
         timeSeriesMetrics.push({
           id: item.name,
           xAxisLabel: 'Time Stamp',
-          yAxisLabel: 'Percent (%)',
-          data: transformToNivoFormat(item.dataPoints.splice(0,24), 'timeStamp', 'value')
+          yAxisLabel: item.name.includes('%') ? 'Percent (%)' : 'Raw Throughput (Bytes/Minute)',
+          data: transformToNivoFormat(item.dataPoints, 'timeStamp', 'value'),
         });
       });
       action.payload.data.timeSeriesMetrics = timeSeriesMetrics;
-      return {...state, loading: false, data: action.payload.data, response: action.payload, errors: undefined};
+      return { ...state, loading: false, data: action.payload.data, response: action.payload, errors: undefined };
     case MetricsActionTypes.FETCH_ERROR:
-      return {...state, loading: false, errors: action.payload};
+      return { ...state, loading: false, errors: action.payload };
     default:
       return state;
   }

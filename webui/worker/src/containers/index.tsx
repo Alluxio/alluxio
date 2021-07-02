@@ -9,9 +9,9 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-export {default as App} from './App/App';
+export { default as App } from './App/App';
 
-export {default as Overview} from './pages/Overview/Overview';
-export {default as Logs} from './pages/Logs/Logs';
-export {default as Metrics} from './pages/Metrics/Metrics';
-export {default as BlockInfo} from './pages/BlockInfo/BlockInfo';
+export { default as Overview } from './pages/Overview/Overview';
+export { default as WorkerLogs } from './pages/WorkerLogs/WorkerLogs';
+export { default as Metrics } from './pages/Metrics/Metrics';
+export { default as BlockInfo } from './pages/BlockInfo/BlockInfo';

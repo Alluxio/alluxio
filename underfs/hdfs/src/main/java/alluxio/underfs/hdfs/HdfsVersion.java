@@ -29,6 +29,8 @@ public enum HdfsVersion {
   HADOOP_2_9("hadoop-2.9", "(hadoop-?2\\.9(\\.(\\d+))?|2\\.9(\\.(\\d+)(-.*)?)?)"),
   HADOOP_3_0("hadoop-3.0", "(hadoop-?3\\.0(\\.(\\d+))?|3\\.0(\\.(\\d+)(-.*)?)?)"),
   HADOOP_3_1("hadoop-3.1", "(hadoop-?3\\.1(\\.(\\d+))?|3\\.1(\\.(\\d+)(-.*)?)?)"),
+  HADOOP_3_2("hadoop-3.2", "(hadoop-?3\\.2(\\.(\\d+))?|3\\.2(\\.(\\d+)(-.*)?)?)"),
+  HADOOP_3_3("hadoop-3.3", "(hadoop-?3\\.3(\\.(\\d+))?|3\\.3(\\.(\\d+)(-.*)?)?)"),
   ;
 
   private final String mCanonicalVersion;

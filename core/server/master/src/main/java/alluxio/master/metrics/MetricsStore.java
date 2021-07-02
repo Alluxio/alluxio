@@ -11,20 +11,23 @@
 
 package alluxio.master.metrics;
 
-import alluxio.collections.IndexDefinition;
-import alluxio.collections.IndexedSet;
 import alluxio.grpc.MetricType;
 import alluxio.metrics.Metric;
+import alluxio.metrics.MetricInfo;
+import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.metrics.MetricsSystem.InstanceType;
+import alluxio.resource.LockResource;
 
+import com.codahale.metrics.Counter;
+import com.google.common.base.Objects;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.HashSet;
+import java.time.Clock;
 import java.util.List;
-import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.ThreadSafe;
@@ -35,175 +38,270 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public class MetricsStore {
   private static final Logger LOG = LoggerFactory.getLogger(MetricsStore.class);
-  private static final IndexDefinition<Metric, String> FULL_NAME_INDEX =
-      new IndexDefinition<Metric, String>(true) {
-        @Override
-        public String getFieldValue(Metric o) {
-          return o.getFullMetricName();
-        }
-      };
+  // The following fields are added for reducing the string processing
+  // for MetricKey.WORKER_BYTES_READ_UFS and MetricKey.WORKER_BYTES_WRITTEN_UFS
+  private static final String BYTES_READ_UFS = "BytesReadPerUfs";
+  private static final String BYTES_WRITTEN_UFS = "BytesWrittenPerUfs";
 
-  private static final IndexDefinition<Metric, String> NAME_INDEX =
-      new IndexDefinition<Metric, String>(false) {
-        @Override
-        public String getFieldValue(Metric o) {
-          return o.getName();
-        }
-      };
+  private final Clock mClock;
 
-  private static final IndexDefinition<Metric, String> ID_INDEX =
-      new IndexDefinition<Metric, String>(false) {
-        @Override
-        public String getFieldValue(Metric o) {
-          return getFullInstanceId(o.getHostname(), o.getInstanceId());
-        }
-      };
+  // The lock to guarantee that only one thread is clearing the metrics
+  // and no other interaction with worker/client metrics set is allowed during metrics clearing
+  private final ReentrantReadWriteLock mLock;
+
+  // The time of the most recent metrics store clearance.
+  // This tracks when the cluster counters start aggregating from the reported metrics.
+  @GuardedBy("mLock")
+  private long mLastClearTime;
 
   /**
-   * Gets the full instance id of the concatenation of hostname and the id. The dots in the hostname
-   * replaced by underscores.
+   * A map from the cluster counter key representing the metrics to be aggregated
+   * to the corresponding aggregated cluster Counter.
+   * For example, Counter of cluster.BytesReadRemote is aggregated from
+   * the worker reported worker.BytesReadRemote.
    *
-   * @param hostname the hostname
-   * @param id the instance id
-   * @return the full instance id of hostname[:id]
+   * Exceptions are the BytesRead/WrittenUfs metrics which records
+   * the actual cluster metrics name to its Counter directly.
    */
-  private static String getFullInstanceId(String hostname, String id) {
-    String str = hostname == null ? "" : hostname;
-    str = str.replace('.', '_');
-    str += (id == null ? "" : "-" + id);
-    return str;
+  @GuardedBy("mLock")
+  private final ConcurrentHashMap<ClusterCounterKey, Counter> mClusterCounters;
+
+  /**
+   * Constructs a new {@link MetricsStore}.
+   *
+   * @param clock the clock to get time of
+   */
+  public MetricsStore(Clock clock) {
+    mClock = clock;
+    mLastClearTime = clock.millis();
+    mLock = new ReentrantReadWriteLock();
+    mClusterCounters = new ConcurrentHashMap<>();
   }
 
-  // Although IndexedSet is threadsafe, it lacks an update operation, so we need locking to
-  // implement atomic update using remove + add.
-  @GuardedBy("itself")
-  private final IndexedSet<Metric> mWorkerMetrics =
-      new IndexedSet<>(FULL_NAME_INDEX, NAME_INDEX, ID_INDEX);
-  @GuardedBy("itself")
-  private final IndexedSet<Metric> mClientMetrics =
-      new IndexedSet<>(FULL_NAME_INDEX, NAME_INDEX, ID_INDEX);
-
   /**
-   * Put the metrics from a worker with a hostname. If all the old metrics associated with this
-   * instance will be removed and then replaced by the latest.
+   * Put the metrics from a worker with a source name.
    *
-   * @param hostname the hostname of the instance
+   * @param source the source name
    * @param metrics the new worker metrics
    */
-  public void putWorkerMetrics(String hostname, List<Metric> metrics) {
-    if (metrics.isEmpty()) {
+  public void putWorkerMetrics(String source, List<Metric> metrics) {
+    if (metrics.isEmpty() || source == null) {
       return;
     }
-    synchronized (mWorkerMetrics) {
-      putReportedMetrics(mWorkerMetrics, getFullInstanceId(hostname, null), metrics);
+    try (LockResource r = new LockResource(mLock.readLock())) {
+      putReportedMetrics(InstanceType.WORKER, metrics);
     }
+    LOG.debug("Put {} metrics of worker {}", metrics.size(), source);
   }
 
   /**
-   * Put the metrics from a client with a hostname and a client id. If all the old metrics
-   * associated with this instance will be removed and then replaced by the latest.
+   * Put the metrics from a client with a source name.
    *
-   * @param hostname the hostname of the client
-   * @param clientId the id of the client
+   * @param source the source name
    * @param metrics the new metrics
    */
-  public void putClientMetrics(String hostname, String clientId, List<Metric> metrics) {
-    if (metrics.isEmpty()) {
+  public void putClientMetrics(String source, List<Metric> metrics) {
+    if (metrics.isEmpty() || source == null) {
       return;
     }
-    LOG.debug("Removing metrics for id {} to replace with {}", clientId, metrics);
-    synchronized (mClientMetrics) {
-      putReportedMetrics(mClientMetrics, getFullInstanceId(hostname, clientId), metrics);
+    try (LockResource r = new LockResource(mLock.readLock())) {
+      putReportedMetrics(InstanceType.CLIENT, metrics);
     }
+    LOG.debug("Put {} metrics of client {}", metrics.size(), source);
   }
 
   /**
-   * Update the reported metrics with the given instanceId and set of metrics received from a
-   * worker or client.
+   * Update the reported metrics received from a worker or client.
    *
-   * Any metrics from the given instanceId which are not reported in the new set of metrics are
-   * removed. Metrics of {@link MetricType} COUNTER are incremented by the reported values.
-   * Otherwise, all metrics are simply replaced.
+   * Cluster metrics of {@link MetricType} COUNTER are directly incremented by the reported values.
    *
-   * @param metricSet the {@link IndexedSet} of client or worker metrics to update
-   * @param instanceId the instance id, derived from {@link #getFullInstanceId(String, String)}
+   * @param instanceType the instance type that reports the metrics
    * @param reportedMetrics the metrics received by the RPC handler
    */
-  private static void putReportedMetrics(IndexedSet<Metric> metricSet, String instanceId,
-      List<Metric> reportedMetrics) {
-    List<Metric> newMetrics = new ArrayList<>(reportedMetrics.size());
+  private void putReportedMetrics(InstanceType instanceType, List<Metric> reportedMetrics) {
     for (Metric metric : reportedMetrics) {
-      if (metric.getHostname() == null) {
-        continue; // ignore metrics whose hostname is null
+      if (metric.getSource() == null) {
+        continue; // ignore metrics whose source is null
       }
 
       // If a metric is COUNTER, the value sent via RPC should be the incremental value; i.e.
       // the amount the value has changed since the last RPC. The master should equivalently
       // increment its value based on the received metric rather than replacing it.
       if (metric.getMetricType() == MetricType.COUNTER) {
-        // FULL_NAME_INDEX is a unique index, so getFirstByField will return the same results as
-        // getByField
-        Metric oldMetric = metricSet.getFirstByField(FULL_NAME_INDEX, metric.getFullMetricName());
-        double oldVal = oldMetric == null ? 0.0 : oldMetric.getValue();
-        Metric newMetric = new Metric(metric.getInstanceType(), metric.getHostname(),
-            metric.getMetricType(), metric.getName(), oldVal + metric.getValue());
-        metricSet.removeByField(FULL_NAME_INDEX, metric.getFullMetricName());
-        newMetrics.add(newMetric);
-      } else {
-        metricSet.removeByField(FULL_NAME_INDEX, metric.getFullMetricName());
-        newMetrics.add(metric);
+        ClusterCounterKey key = new ClusterCounterKey(instanceType, metric.getName());
+        Counter counter = mClusterCounters.get(key);
+        if (counter != null) {
+          counter.inc((long) metric.getValue());
+          continue;
+        }
+        if (instanceType.equals(InstanceType.CLIENT)) {
+          continue;
+        }
+        // Need to increment two metrics: one for the specific ufs the current metric recorded from
+        // and one to summarize values from all UFSes
+        if (metric.getName().equals(BYTES_READ_UFS)) {
+          incrementUfsRelatedCounters(metric, MetricKey.CLUSTER_BYTES_READ_UFS.getName(),
+              MetricKey.CLUSTER_BYTES_READ_UFS_ALL.getName());
+        } else if (metric.getName().equals(BYTES_WRITTEN_UFS)) {
+          incrementUfsRelatedCounters(metric, MetricKey.CLUSTER_BYTES_WRITTEN_UFS.getName(),
+              MetricKey.CLUSTER_BYTES_WRITTEN_UFS_ALL.getName());
+        }
       }
     }
-    metricSet.removeByField(ID_INDEX, instanceId);
-    metricSet.addAll(newMetrics);
   }
 
   /**
-   * Gets all the metrics by instance type and the metric name. The supported instance types are
-   * worker and client.
+   * Increments the related counters of a specific metric.
    *
-   * @param instanceType the instance type
-   * @param name the metric name
-   * @return the set of matched metrics
+   * @param metric the metric
+   * @param perUfsMetricName the per ufs metric name prefix to increment counter value of
+   * @param allUfsMetricName the all ufs metric name to increment counter value of
    */
-  public Set<Metric> getMetricsByInstanceTypeAndName(
-      MetricsSystem.InstanceType instanceType, String name) {
-    if (instanceType == InstanceType.MASTER) {
-      return getMasterMetrics(name);
-    }
-
-    if (instanceType == InstanceType.WORKER) {
-      synchronized (mWorkerMetrics) {
-        return mWorkerMetrics.getByField(NAME_INDEX, name);
-      }
-    } else if (instanceType == InstanceType.CLIENT) {
-      synchronized (mClientMetrics) {
-        return mClientMetrics.getByField(NAME_INDEX, name);
-      }
-    } else {
-      throw new IllegalArgumentException("Unsupported instance type " + instanceType);
-    }
+  private void incrementUfsRelatedCounters(Metric metric,
+      String perUfsMetricName, String allUfsMetricName) {
+    String fullCounterName = Metric.getMetricNameWithTags(perUfsMetricName,
+        MetricInfo.TAG_UFS, metric.getTags().get(MetricInfo.TAG_UFS));
+    Counter perUfsCounter = mClusterCounters.computeIfAbsent(
+        new ClusterCounterKey(InstanceType.CLUSTER, fullCounterName),
+        n -> MetricsSystem.counter(fullCounterName));
+    long counterValue = (long) metric.getValue();
+    perUfsCounter.inc(counterValue);
+    mClusterCounters.get(new ClusterCounterKey(InstanceType.CLUSTER, allUfsMetricName))
+        .inc(counterValue);
   }
 
-  private Set<Metric> getMasterMetrics(String name) {
-    Set<Metric> metrics = new HashSet<>();
-    for (Metric metric : MetricsSystem.allMasterMetrics()) {
-      if (metric.getName().equals(name)) {
-        metrics.add(metric);
-      }
+  /**
+   * Inits the metrics store.
+   * Defines the cluster metrics counters.
+   */
+  public void initCounterKeys() {
+    try (LockResource r = new LockResource(mLock.readLock())) {
+      // worker metrics
+      mClusterCounters.putIfAbsent(new ClusterCounterKey(InstanceType.WORKER,
+              MetricKey.WORKER_BYTES_READ_DIRECT.getMetricName()),
+          MetricsSystem.counter(MetricKey.CLUSTER_BYTES_READ_DIRECT.getName()));
+      mClusterCounters.putIfAbsent(new ClusterCounterKey(InstanceType.WORKER,
+          MetricKey.WORKER_BYTES_READ_REMOTE.getMetricName()),
+          MetricsSystem.counter(MetricKey.CLUSTER_BYTES_READ_REMOTE.getName()));
+      mClusterCounters.putIfAbsent(new ClusterCounterKey(InstanceType.WORKER,
+          MetricKey.WORKER_BYTES_READ_DOMAIN.getMetricName()),
+          MetricsSystem.counter(MetricKey.CLUSTER_BYTES_READ_DOMAIN.getName()));
+      mClusterCounters.putIfAbsent(new ClusterCounterKey(InstanceType.WORKER,
+          MetricKey.WORKER_BYTES_WRITTEN_REMOTE.getMetricName()),
+          MetricsSystem.counter(MetricKey.CLUSTER_BYTES_WRITTEN_REMOTE.getName()));
+      mClusterCounters.putIfAbsent(new ClusterCounterKey(InstanceType.WORKER,
+          MetricKey.WORKER_BYTES_WRITTEN_DOMAIN.getMetricName()),
+          MetricsSystem.counter(MetricKey.CLUSTER_BYTES_WRITTEN_DOMAIN.getName()));
+      mClusterCounters.putIfAbsent(new ClusterCounterKey(InstanceType.WORKER,
+          MetricKey.WORKER_ACTIVE_RPC_READ_COUNT.getMetricName()),
+          MetricsSystem.counter(MetricKey.CLUSTER_ACTIVE_RPC_READ_COUNT.getName()));
+      mClusterCounters.putIfAbsent(new ClusterCounterKey(InstanceType.WORKER,
+          MetricKey.WORKER_ACTIVE_RPC_WRITE_COUNT.getMetricName()),
+          MetricsSystem.counter(MetricKey.CLUSTER_ACTIVE_RPC_WRITE_COUNT.getName()));
+
+      // client metrics
+      mClusterCounters.putIfAbsent(new ClusterCounterKey(InstanceType.CLIENT,
+          MetricKey.CLIENT_BYTES_READ_LOCAL.getMetricName()),
+          MetricsSystem.counter(MetricKey.CLUSTER_BYTES_READ_LOCAL.getName()));
+      mClusterCounters.putIfAbsent(new ClusterCounterKey(InstanceType.CLIENT,
+          MetricKey.CLIENT_BYTES_WRITTEN_LOCAL.getMetricName()),
+          MetricsSystem.counter(MetricKey.CLUSTER_BYTES_WRITTEN_LOCAL.getName()));
+
+      // special metrics that have multiple worker metrics to summarize from
+      // always use the full name instead of metric name for those metrics
+      mClusterCounters.putIfAbsent(new ClusterCounterKey(InstanceType.CLUSTER,
+          MetricKey.CLUSTER_BYTES_READ_UFS_ALL.getName()),
+          MetricsSystem.counter(MetricKey.CLUSTER_BYTES_READ_UFS_ALL.getName()));
+      mClusterCounters.putIfAbsent(new ClusterCounterKey(InstanceType.CLUSTER,
+          MetricKey.CLUSTER_BYTES_WRITTEN_UFS_ALL.getName()),
+          MetricsSystem.counter(MetricKey.CLUSTER_BYTES_WRITTEN_UFS_ALL.getName()));
     }
-    return metrics;
   }
 
   /**
    * Clears all the metrics.
+   *
+   * This method should only be called when starting the {@link DefaultMetricsMaster}
+   * and before starting the metrics updater to avoid conflicts with
+   * other methods in this class which updates or accesses
+   * the metrics inside metrics sets.
    */
   public void clear() {
-    synchronized (mWorkerMetrics) {
-      mWorkerMetrics.clear();
+    long start = System.currentTimeMillis();
+    try (LockResource r = new LockResource(mLock.writeLock())) {
+      for (Counter counter : mClusterCounters.values()) {
+        counter.dec(counter.getCount());
+      }
+      mLastClearTime = mClock.millis();
+      MetricsSystem.resetAllMetrics();
     }
-    synchronized (mClientMetrics) {
-      mClientMetrics.clear();
+    LOG.info("Cleared the metrics store and metrics system in {} ms",
+        System.currentTimeMillis() - start);
+  }
+
+  /**
+   * @return the last metrics store clear time in milliseconds
+   */
+  public long getLastClearTime() {
+    try (LockResource r = new LockResource(mLock.readLock())) {
+      return mLastClearTime;
+    }
+  }
+
+  /**
+   * The key for cluster counter map.
+   * This class is added to reduce the string concatenation of instancetype + "." + metric name.
+   */
+  public static class ClusterCounterKey {
+    private InstanceType mInstanceType;
+    private String mMetricName;
+
+    /**
+     * Construct a new {@link ClusterCounterKey}.
+     *
+     * @param instanceType the instance type
+     * @param metricName the metric name
+     */
+    public ClusterCounterKey(InstanceType instanceType, String metricName) {
+      mInstanceType = instanceType;
+      mMetricName = metricName;
+    }
+
+    /**
+     * @return the instance type
+     */
+    private InstanceType getInstanceType() {
+      return mInstanceType;
+    }
+
+    /**
+     * @return the metric name
+     */
+    private String getMetricName() {
+      return mMetricName;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+      if (this == o) {
+        return true;
+      }
+      if (!(o instanceof ClusterCounterKey)) {
+        return false;
+      }
+      ClusterCounterKey that = (ClusterCounterKey) o;
+      return Objects.equal(mInstanceType, that.getInstanceType())
+          && Objects.equal(mMetricName, that.getMetricName());
+    }
+
+    @Override
+    public int hashCode() {
+      return Objects.hashCode(mInstanceType, mMetricName);
+    }
+
+    @Override
+    public String toString() {
+      return mInstanceType + "." + mMetricName;
     }
   }
 }

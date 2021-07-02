@@ -25,8 +25,9 @@ import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatThread;
 import alluxio.job.JobServerContext;
 import alluxio.metrics.MetricsSystem;
+import alluxio.security.user.ServerUserState;
 import alluxio.underfs.UfsManager;
-import alluxio.util.ThreadFactoryUtils;
+import alluxio.util.executor.ExecutorServiceFactories;
 import alluxio.wire.WorkerNetAddress;
 import alluxio.worker.job.JobMasterClient;
 import alluxio.worker.job.JobMasterClientContext;
@@ -42,7 +43,6 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
 import javax.annotation.concurrent.NotThreadSafe;
@@ -58,7 +58,7 @@ public final class JobWorker extends AbstractWorker {
   /** Client for job master communication. */
   private final JobMasterClient mJobMasterClient;
   /** The manager for the all the local task execution. */
-  private final TaskExecutorManager mTaskExecutorManager;
+  private TaskExecutorManager mTaskExecutorManager;
   /** The service that handles commands sent from master. */
   private Future<?> mCommandHandlingService;
 
@@ -68,12 +68,10 @@ public final class JobWorker extends AbstractWorker {
    * @param ufsManager the ufs manager
    */
   JobWorker(FileSystem filesystem, FileSystemContext fsContext, UfsManager ufsManager) {
-    super(
-        Executors.newFixedThreadPool(1, ThreadFactoryUtils.build("job-worker-heartbeat-%d", true)));
+    super(ExecutorServiceFactories.fixedThreadPool("job-worker-executor", 1));
     mJobServerContext = new JobServerContext(filesystem, fsContext, ufsManager);
     mJobMasterClient = JobMasterClient.Factory.create(JobMasterClientContext
         .newBuilder(ClientContext.create(ServerConfiguration.global())).build());
-    mTaskExecutorManager = new TaskExecutorManager();
   }
 
   @Override
@@ -93,6 +91,8 @@ public final class JobWorker extends AbstractWorker {
 
   @Override
   public void start(WorkerNetAddress address) throws IOException {
+    super.start(address);
+
     // Start serving metrics system, this will not block
     MetricsSystem.startSinks(ServerConfiguration.get(PropertyKey.METRICS_CONF_FILE));
 
@@ -103,12 +103,15 @@ public final class JobWorker extends AbstractWorker {
       throw Throwables.propagate(e);
     }
 
+    mTaskExecutorManager = new TaskExecutorManager(
+        ServerConfiguration.getInt(PropertyKey.JOB_WORKER_THREADPOOL_SIZE), address);
+
     mCommandHandlingService = getExecutorService().submit(
         new HeartbeatThread(HeartbeatContext.JOB_WORKER_COMMAND_HANDLING,
             new CommandHandlingExecutor(mJobServerContext, mTaskExecutorManager, mJobMasterClient,
                 address),
             (int) ServerConfiguration.getMs(PropertyKey.JOB_MASTER_WORKER_HEARTBEAT_INTERVAL),
-            ServerConfiguration.global()));
+            ServerConfiguration.global(), ServerUserState.global()));
   }
 
   @Override
@@ -117,6 +120,7 @@ public final class JobWorker extends AbstractWorker {
       mCommandHandlingService.cancel(true);
     }
     mJobMasterClient.close();
-    getExecutorService().shutdown();
+
+    super.stop();
   }
 }

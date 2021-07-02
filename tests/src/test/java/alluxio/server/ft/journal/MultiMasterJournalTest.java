@@ -28,9 +28,11 @@ import alluxio.testutils.IntegrationTestUtils;
 import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TestName;
 
 public class MultiMasterJournalTest extends BaseIntegrationTest {
   private MultiMasterLocalAlluxioCluster mCluster;
@@ -38,13 +40,22 @@ public class MultiMasterJournalTest extends BaseIntegrationTest {
   @Rule
   public TtlIntervalRule mTtlRule = new TtlIntervalRule(200);
 
+  @Rule
+  public TestName mTestName = new TestName();
+
   @Before
   public void before() throws Exception {
     mCluster = new MultiMasterLocalAlluxioCluster(2, 0);
-    mCluster.initConfiguration();
+    mCluster.initConfiguration(
+        IntegrationTestUtils.getTestName(getClass().getSimpleName(), mTestName.getMethodName()));
     ServerConfiguration.set(PropertyKey.MASTER_JOURNAL_CHECKPOINT_PERIOD_ENTRIES, 5);
     ServerConfiguration.set(PropertyKey.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX, 100);
     mCluster.start();
+  }
+
+  @After
+  public void after() throws Exception {
+    mCluster.stop();
   }
 
   @Test

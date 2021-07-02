@@ -16,13 +16,13 @@ import static org.junit.Assert.assertEquals;
 import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.client.file.FileSystem;
-import alluxio.client.meta.MetaMasterClient;
+import alluxio.client.metrics.MetricsMasterClient;
 import alluxio.conf.PropertyKey;
 import alluxio.master.NoopMaster;
 import alluxio.master.journal.JournalType;
 import alluxio.master.journal.ufs.UfsJournal;
 import alluxio.master.journal.ufs.UfsJournalSnapshot;
-import alluxio.metrics.MasterMetrics;
+import alluxio.metrics.MetricKey;
 import alluxio.multi.process.MultiProcessCluster;
 import alluxio.multi.process.PortCoordination;
 import alluxio.util.URIUtils;
@@ -45,8 +45,8 @@ public class TriggeredCheckpointTest {
         .setNumMasters(1)
         .setNumWorkers(1)
         .build();
-    cluster.start();
     try {
+      cluster.start();
       cluster.waitForAllNodesRegistered(20 * Constants.SECOND_MS);
 
       // Get enough journal entries
@@ -107,9 +107,9 @@ public class TriggeredCheckpointTest {
     for (int i = 0; i < numFiles; i++) {
       fs.createFile(new AlluxioURI("/file" + i)).close();
     }
-    MetaMasterClient meta = cluster.getMetaMasterClient();
-    assertEquals(numFiles + 1,
-        meta.getMetrics().get("Master." + MasterMetrics.TOTAL_PATHS).getLongValue());
+    MetricsMasterClient metricsMasterClient = cluster.getMetricsMasterClient();
+    assertEquals(numFiles + 1, (long) metricsMasterClient
+        .getMetrics().get(MetricKey.MASTER_TOTAL_PATHS.getName()).getDoubleValue());
   }
 
   /**
@@ -121,9 +121,9 @@ public class TriggeredCheckpointTest {
       throws Exception {
     cluster.stopMasters();
     cluster.startMasters();
-    cluster.waitForAllNodesRegistered(20 * Constants.SECOND_MS);
+    cluster.waitForAllNodesRegistered(40 * Constants.SECOND_MS);
     assertEquals(100, cluster.getFileSystemClient().listStatus(new AlluxioURI("/")).size());
-    assertEquals(101, cluster.getMetaMasterClient().getMetrics()
-        .get("Master." + MasterMetrics.TOTAL_PATHS).getLongValue());
+    assertEquals(101, (long) cluster.getMetricsMasterClient().getMetrics()
+        .get(MetricKey.MASTER_TOTAL_PATHS.getName()).getDoubleValue());
   }
 }

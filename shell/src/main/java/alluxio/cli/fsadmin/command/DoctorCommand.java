@@ -11,6 +11,7 @@
 
 package alluxio.cli.fsadmin.command;
 
+import alluxio.annotation.PublicApi;
 import alluxio.cli.CommandUtils;
 import alluxio.cli.fsadmin.FileSystemAdminShellUtils;
 import alluxio.cli.fsadmin.doctor.ConfigurationCommand;
@@ -28,6 +29,7 @@ import java.io.IOException;
 /**
  * Shows errors or warnings that users should pay attention to.
  */
+@PublicApi
 public final class DoctorCommand extends AbstractFsAdminCommand {
   public static final String HELP_OPTION_NAME = "h";
 

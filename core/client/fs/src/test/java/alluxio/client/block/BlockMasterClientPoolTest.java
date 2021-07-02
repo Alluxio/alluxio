@@ -21,6 +21,7 @@ import alluxio.ClientContext;
 import alluxio.ConfigurationTestUtils;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.master.MasterClientContext;
+import alluxio.master.MasterInquireClient;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -42,8 +43,12 @@ public class BlockMasterClientPoolTest {
         .create(any(MasterClientContext.class)))
         .thenReturn(expectedClient);
     BlockMasterClient client;
-    try (BlockMasterClientPool pool = new BlockMasterClientPool(ClientContext.create(mConf),
-        null)) {
+    ClientContext clientContext = ClientContext.create(mConf);
+    MasterInquireClient masterInquireClient = MasterInquireClient.Factory
+        .create(mConf, clientContext.getUserState());
+    MasterClientContext masterClientContext = MasterClientContext.newBuilder(clientContext)
+        .setMasterInquireClient(masterInquireClient).build();
+    try (BlockMasterClientPool pool = new BlockMasterClientPool(masterClientContext)) {
       client = pool.acquire();
       assertEquals(expectedClient, client);
       pool.release(client);

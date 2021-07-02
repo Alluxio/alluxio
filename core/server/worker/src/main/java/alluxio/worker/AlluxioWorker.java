@@ -17,6 +17,7 @@ import alluxio.conf.PropertyKey;
 import alluxio.RuntimeConstants;
 import alluxio.master.MasterInquireClient;
 import alluxio.retry.RetryUtils;
+import alluxio.security.user.ServerUserState;
 import alluxio.util.CommonUtils;
 import alluxio.util.ConfigurationUtils;
 
@@ -54,18 +55,28 @@ public final class AlluxioWorker {
 
     CommonUtils.PROCESS_TYPE.set(CommonUtils.ProcessType.WORKER);
     MasterInquireClient masterInquireClient =
-        MasterInquireClient.Factory.create(ServerConfiguration.global());
+        MasterInquireClient.Factory.create(ServerConfiguration.global(), ServerUserState.global());
     try {
       RetryUtils.retry("load cluster default configuration with master", () -> {
         InetSocketAddress masterAddress = masterInquireClient.getPrimaryRpcAddress();
-        ServerConfiguration.loadClusterDefaults(masterAddress);
+        ServerConfiguration.loadWorkerClusterDefaults(masterAddress);
       }, RetryUtils.defaultWorkerMasterClientRetry(
           ServerConfiguration.getDuration(PropertyKey.WORKER_MASTER_CONNECT_RETRY_TIMEOUT)));
     } catch (IOException e) {
       ProcessUtils.fatalError(LOG,
-          "Failed to load cluster default configuration for worker: %s", e.getMessage());
+          "Failed to load cluster default configuration for worker. Please make sure that Alluxio "
+              + "master is running: %s", e.toString());
     }
-    WorkerProcess process = WorkerProcess.Factory.create();
+    WorkerProcess process;
+    try {
+      process = WorkerProcess.Factory.create();
+    } catch (Throwable t) {
+      ProcessUtils.fatalError(LOG, t, "Failed to create worker process");
+      // fatalError will exit, so we shouldn't reach here.
+      throw t;
+    }
+
+    ProcessUtils.stopProcessOnShutdown(process);
     ProcessUtils.run(process);
   }
 

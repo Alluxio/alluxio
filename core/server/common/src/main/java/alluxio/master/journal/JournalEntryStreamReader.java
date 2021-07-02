@@ -17,7 +17,6 @@ import alluxio.util.proto.ProtoUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.ByteArrayInputStream;
 import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStream;
@@ -76,9 +75,7 @@ public class JournalEntryStreamReader implements Closeable {
           totalBytesRead);
       return null;
     }
-
-    JournalEntry entry = JournalEntry.parseFrom(new ByteArrayInputStream(mBuffer, 0, size));
-    return entry;
+    return JournalEntry.parser().parseFrom(mBuffer, 0, size);
   }
 
   @Override

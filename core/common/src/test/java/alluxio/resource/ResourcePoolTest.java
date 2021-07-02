@@ -71,7 +71,7 @@ public final class ResourcePoolTest {
     }
 
     @Override
-    protected Integer createNewResource() {
+    public Integer createNewResource() {
       mPort++;
       return mPort;
     }

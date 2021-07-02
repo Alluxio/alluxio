@@ -9,12 +9,13 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-export {default as App} from './App/App';
+export { default as App } from './App/App';
 
-export {default as Browse} from './pages/Browse/Browse';
-export {default as Configuration} from './pages/Configuration/Configuration';
-export {default as Data} from './pages/Data/Data';
-export {default as Overview} from './pages/Overview/Overview';
-export {default as Logs} from './pages/Logs/Logs';
-export {default as Workers} from './pages/Workers/Workers';
-export {default as Metrics} from './pages/Metrics/Metrics';
+export { default as Browse } from './pages/Browse/Browse';
+export { default as Configuration } from './pages/Configuration/Configuration';
+export { default as Data } from './pages/Data/Data';
+export { default as Overview } from './pages/Overview/Overview';
+export { default as MasterLogs } from './pages/MasterLogs/MasterLogs';
+export { default as Workers } from './pages/Workers/Workers';
+export { default as Metrics } from './pages/Metrics/Metrics';
+export { default as MountTable } from './pages/MountTable/MountTable';

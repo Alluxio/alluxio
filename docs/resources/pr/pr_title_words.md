@@ -117,6 +117,7 @@ get
 give
 group
 handle
+hardcode
 heartbeat
 hide
 ignore
@@ -134,6 +135,8 @@ insert
 install
 integrate
 introduce
+invalidate
+isolate
 journal
 keep
 kill
@@ -163,6 +166,7 @@ organize
 output
 overload
 override
+parallelize
 parse
 pass
 perform
@@ -215,6 +219,7 @@ report
 request
 require
 rerun
+reserve
 reset
 resolve
 respect

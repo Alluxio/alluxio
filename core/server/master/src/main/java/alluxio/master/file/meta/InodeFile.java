@@ -35,6 +35,11 @@ public class InodeFile extends Inode implements InodeFileView {
   }
 
   @Override
+  public long getShouldPersistTime() {
+    return mDelegate.getShouldPersistTime();
+  }
+
+  @Override
   public int getReplicationDurable() {
     return mDelegate.getReplicationDurable();
   }

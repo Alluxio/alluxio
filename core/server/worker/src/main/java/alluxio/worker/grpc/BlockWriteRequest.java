@@ -24,6 +24,7 @@ import javax.annotation.concurrent.ThreadSafe;
 public final class BlockWriteRequest extends WriteRequest {
   /** Which tier this block writes to. */
   private final int mTier;
+  private final String mMediumType;
   private final Protocol.CreateUfsBlockOptions mCreateUfsBlockOptions;
 
   /**
@@ -32,6 +33,7 @@ public final class BlockWriteRequest extends WriteRequest {
   BlockWriteRequest(alluxio.grpc.WriteRequest request) {
     super(request);
     mTier = request.getCommand().getTier();
+    mMediumType = request.getCommand().getMediumType();
     if (request.getCommand().hasCreateUfsBlockOptions()) {
       mCreateUfsBlockOptions = request.getCommand().getCreateUfsBlockOptions();
     } else {
@@ -44,6 +46,13 @@ public final class BlockWriteRequest extends WriteRequest {
    */
   public int getTier() {
     return mTier;
+  }
+
+  /**
+   * @return the medium type this block is writing to
+   */
+  public String getMediumType() {
+    return mMediumType;
   }
 
   /**

@@ -14,35 +14,32 @@ package alluxio.master.meta;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.status.NotFoundException;
 import alluxio.exception.status.UnavailableException;
-import alluxio.grpc.BackupPOptions;
-import alluxio.grpc.ConfigProperties;
-import alluxio.grpc.ConfigProperty;
 import alluxio.grpc.GetConfigurationPOptions;
 import alluxio.grpc.MetaCommand;
 import alluxio.grpc.RegisterMasterPOptions;
 import alluxio.master.Master;
+import alluxio.master.backup.BackupOps;
 import alluxio.wire.Address;
-import alluxio.wire.BackupResponse;
 import alluxio.wire.ConfigCheckReport;
+import alluxio.wire.ConfigHash;
+import alluxio.wire.Configuration;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 /**
  * The interface of meta master.
  */
-public interface MetaMaster extends Master {
+public interface MetaMaster extends BackupOps, Master {
 
   /**
-   * Backs up the master.
-   *
-   * @param options method options
-   * @return the uri of the created backup
+   * @return the cluster ID
    */
-  BackupResponse backup(BackupPOptions options) throws IOException;
+  String getClusterID();
 
   /**
    * @return the server-side configuration checker report
@@ -53,13 +50,17 @@ public interface MetaMaster extends Master {
    * @param options method options
    * @return configuration information list
    */
-  List<ConfigProperty> getConfiguration(GetConfigurationPOptions options);
+  Configuration getConfiguration(GetConfigurationPOptions options);
 
   /**
-   * @param options get configuration options
-   * @return a mapping from path to path level properties
+   * @return hashes of cluster and path level configuration
    */
-  Map<String, ConfigProperties> getPathConfiguration(GetConfigurationPOptions options);
+  ConfigHash getConfigHash();
+
+  /**
+   * @return the journal space monitor if supported by the current configuration
+   */
+  Optional<JournalSpaceMonitor> getJournalSpaceMonitor();
 
   /**
    * Sets properties for a path.
@@ -84,6 +85,18 @@ public interface MetaMaster extends Master {
    * @param path the path
    */
   void removePathConfiguration(String path) throws UnavailableException;
+
+  /**
+   * Sets whether newer version Alluxio is available.
+   *
+   * @param available new version is available
+   */
+  void setNewerVersionAvailable(boolean available);
+
+  /**
+   * @return true if newer version is available, false otherwise
+   */
+  boolean getNewerVersionAvailable();
 
   /**
    * @return the addresses of live masters
@@ -151,4 +164,10 @@ public interface MetaMaster extends Master {
    * @return the hostname of the master that did the checkpoint
    */
   String checkpoint() throws IOException;
+
+  /**
+   * @param propertiesMap properties to update
+   * @return the update properties status map
+   */
+  Map<String, Boolean> updateConfiguration(Map<String, String> propertiesMap);
 }

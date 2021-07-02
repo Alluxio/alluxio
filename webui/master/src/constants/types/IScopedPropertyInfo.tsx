@@ -10,7 +10,8 @@
  */
 
 export type IScopedPropertyInfo = {
-  [scopeKey: string]: {// we allow any string as key here
+  [scopeKey: string]: {
+    // we allow any string as key here
     [propertyKey: string]: string; // we allow any string as a property key here
   };
 };

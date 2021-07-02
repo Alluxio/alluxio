@@ -9,18 +9,18 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-import {Reducer} from 'redux';
+import { Reducer } from 'redux';
 
-import {RefreshActionTypes, IRefreshState} from './types';
+import { RefreshActionTypes, IRefreshState } from './types';
 
 export const initialRefreshState: IRefreshState = {
-  data: false
+  data: false,
 };
 
 export const refreshReducer: Reducer<IRefreshState> = (state = initialRefreshState, action) => {
   switch (action.type) {
     case RefreshActionTypes.TRIGGER_REFRESH:
-      return {...state, data: !state.data};
+      return { ...state, data: !state.data };
     default:
       return state;
   }

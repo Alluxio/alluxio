@@ -27,6 +27,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.stream.Stream;
 
 /**
  * Utility methods for working with tar archives.
@@ -43,19 +44,21 @@ public final class TarUtils {
       throws IOException, InterruptedException {
     GzipCompressorOutputStream zipStream = new GzipCompressorOutputStream(output);
     TarArchiveOutputStream archiveStream = new TarArchiveOutputStream(zipStream);
-    for (Path subPath : Files.walk(dirPath).collect(toList())) {
-      if (Thread.interrupted()) {
-        throw new InterruptedException();
-      }
-      File file = subPath.toFile();
-      TarArchiveEntry entry = new TarArchiveEntry(file, dirPath.relativize(subPath).toString());
-      archiveStream.putArchiveEntry(entry);
-      if (file.isFile()) {
-        try (InputStream fileIn = Files.newInputStream(subPath)) {
-          IOUtils.copy(fileIn, archiveStream);
+    try (final Stream<Path> stream = Files.walk(dirPath)) {
+      for (Path subPath : stream.collect(toList())) {
+        if (Thread.interrupted()) {
+          throw new InterruptedException();
         }
+        File file = subPath.toFile();
+        TarArchiveEntry entry = new TarArchiveEntry(file, dirPath.relativize(subPath).toString());
+        archiveStream.putArchiveEntry(entry);
+        if (file.isFile()) {
+          try (InputStream fileIn = Files.newInputStream(subPath)) {
+            IOUtils.copy(fileIn, archiveStream);
+          }
+        }
+        archiveStream.closeArchiveEntry();
       }
-      archiveStream.closeArchiveEntry();
     }
     archiveStream.finish();
     zipStream.finish();

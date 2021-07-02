@@ -11,6 +11,7 @@
 
 package alluxio.cli.fs.command;
 
+import alluxio.annotation.PublicApi;
 import alluxio.cli.CommandUtils;
 import alluxio.client.block.AlluxioBlockStore;
 import alluxio.client.file.FileSystem;
@@ -27,6 +28,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * Gets number of bytes used in the {@link FileSystem}.
  */
 @ThreadSafe
+@PublicApi
 public final class GetUsedBytesCommand extends AbstractFileSystemCommand {
   /**
    * Constructs a new instance to get the number of bytes used in the {@link FileSystem}.

@@ -11,14 +11,16 @@
 
 package alluxio.worker.block;
 
-import alluxio.conf.ServerConfiguration;
 import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
 import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.InvalidWorkerStateException;
+import alluxio.resource.LockResource;
 import alluxio.resource.ResourcePool;
 
 import com.google.common.base.Objects;
+import com.google.common.base.Preconditions;
 import com.google.common.collect.Sets;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,7 +36,9 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -44,9 +48,6 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public final class BlockLockManager {
   private static final Logger LOG = LoggerFactory.getLogger(BlockLockManager.class);
-
-  /** Invalid lock ID. */
-  public static final long INVALID_LOCK_ID = -1;
 
   /** The unique id of each lock. */
   private static final AtomicLong LOCK_ID_GEN = new AtomicLong(0);
@@ -58,7 +59,7 @@ public final class BlockLockManager {
     public void close() {}
 
     @Override
-    protected ClientRWLock createNewResource() {
+    public ClientRWLock createNewResource() {
       return new ClientRWLock();
     }
   };
@@ -75,10 +76,8 @@ public final class BlockLockManager {
   @GuardedBy("mSharedMapsLock")
   private final Map<Long, LockRecord> mLockIdToRecordMap = new HashMap<>();
 
-  /**
-   * To guard access to the maps maintained by this class.
-   */
-  private final Object mSharedMapsLock = new Object();
+  /** Lock to guard metadata operations. */
+  private final ReentrantReadWriteLock mSharedMapsLock = new ReentrantReadWriteLock();
 
   /**
    * Constructs a new {@link BlockLockManager}.
@@ -98,23 +97,60 @@ public final class BlockLockManager {
    * @return lock id
    */
   public long lockBlock(long sessionId, long blockId, BlockLockType blockLockType) {
+    return lockBlockInternal(sessionId, blockId, blockLockType, true, null, null);
+  }
+
+  /**
+   * Tries to lock a block within the given time.
+   * Note that even if this block does not exist, a lock id is still returned.
+   *
+   * If all {@link PropertyKey#WORKER_TIERED_STORE_BLOCK_LOCKS} are already in use and no lock has
+   * been allocated for the specified block, this method will need to wait until a lock can be
+   * acquired from the lock pool.
+   *
+   * @param sessionId the session id
+   * @param blockId the block id
+   * @param blockLockType {@link BlockLockType#READ} or {@link BlockLockType#WRITE}
+   * @param time the maximum time to wait for the lock
+   * @param unit the time unit of the {@code time} argument
+   * @return lock id or INVALID_LOCK_ID if not able to lock within the given time
+   */
+  public long tryLockBlock(long sessionId, long blockId, BlockLockType blockLockType,
+      long time, TimeUnit unit) {
+    return lockBlockInternal(sessionId, blockId, blockLockType, false, time, unit);
+  }
+
+  private long lockBlockInternal(long sessionId, long blockId, BlockLockType blockLockType,
+      boolean blocking, @Nullable Long time, @Nullable TimeUnit unit) {
     ClientRWLock blockLock = getBlockLock(blockId);
-    Lock lock;
-    if (blockLockType == BlockLockType.READ) {
-      lock = blockLock.readLock();
-    } else {
-      // Make sure the session isn't already holding the block lock.
-      if (sessionHoldsLock(sessionId, blockId)) {
-        throw new IllegalStateException(String
-            .format("Session %s attempted to take a write lock on block %s, but the session already"
-                + " holds a lock on the block", sessionId, blockId));
-      }
-      lock = blockLock.writeLock();
+    Lock lock = blockLockType == BlockLockType.READ ? blockLock.readLock() : blockLock.writeLock();
+    // Make sure the session isn't already holding the block lock.
+    if (blockLockType == BlockLockType.WRITE && sessionHoldsLock(sessionId, blockId)) {
+      throw new IllegalStateException(String
+          .format("Session %s attempted to take a write lock on block %s, but the session already"
+              + " holds a lock on the block", sessionId, blockId));
     }
-    lock.lock();
+    if (blocking) {
+      lock.lock();
+    } else {
+      Preconditions.checkNotNull(time, "time");
+      Preconditions.checkNotNull(unit, "unit");
+      try {
+        if (!lock.tryLock(time, unit)) {
+          LOG.warn("Failed to acquire lock for block {} after {} {}.  "
+                  + "session: {}, blockLockType: {}, lock reference count = {}",
+              blockId, time, unit, sessionId, blockLockType,
+              blockLock.getReferenceCount());
+          return BlockWorker.INVALID_LOCK_ID;
+        }
+      } catch (InterruptedException e) {
+        Thread.currentThread().interrupt();
+        return BlockWorker.INVALID_LOCK_ID;
+      }
+    }
     try {
       long lockId = LOCK_ID_GEN.getAndIncrement();
-      synchronized (mSharedMapsLock) {
+      try (LockResource r = new LockResource(mSharedMapsLock.writeLock())) {
         mLockIdToRecordMap.put(lockId, new LockRecord(sessionId, blockId, lock));
         Set<Long> sessionLockIds = mSessionIdToLockIdsMap.get(sessionId);
         if (sessionLockIds == null) {
@@ -124,7 +160,7 @@ public final class BlockLockManager {
         }
       }
       return lockId;
-    } catch (RuntimeException e) {
+    } catch (Throwable e) {
       // If an unexpected exception occurs, we should release the lock to be conservative.
       unlock(lock, blockId);
       throw e;
@@ -137,7 +173,7 @@ public final class BlockLockManager {
    * @return whether the specified session holds a lock on the specified block
    */
   private boolean sessionHoldsLock(long sessionId, long blockId) {
-    synchronized (mSharedMapsLock) {
+    try (LockResource r = new LockResource(mSharedMapsLock.readLock())) {
       Set<Long> sessionLocks = mSessionIdToLockIdsMap.get(sessionId);
       if (sessionLocks == null) {
         return false;
@@ -166,7 +202,7 @@ public final class BlockLockManager {
     while (true) {
       ClientRWLock blockLock;
       // Check whether a lock has already been allocated for the block id.
-      synchronized (mSharedMapsLock) {
+      try (LockResource r = new LockResource(mSharedMapsLock.readLock())) {
         blockLock = mLocks.get(blockId);
         if (blockLock != null) {
           blockLock.addReference();
@@ -179,7 +215,7 @@ public final class BlockLockManager {
       // allocated to another thread, in which case we could just use that lock.
       blockLock = mLockPool.acquire(1, TimeUnit.SECONDS);
       if (blockLock != null) {
-        synchronized (mSharedMapsLock) {
+        try (LockResource r = new LockResource(mSharedMapsLock.writeLock())) {
           // Check if someone else acquired a block lock for blockId while we were acquiring one.
           if (mLocks.containsKey(blockId)) {
             mLockPool.release(blockLock);
@@ -203,7 +239,7 @@ public final class BlockLockManager {
   public boolean unlockBlockNoException(long lockId) {
     Lock lock;
     LockRecord record;
-    synchronized (mSharedMapsLock) {
+    try (LockResource r = new LockResource(mSharedMapsLock.writeLock())) {
       record = mLockIdToRecordMap.get(lockId);
       if (record == null) {
         return false;
@@ -243,7 +279,7 @@ public final class BlockLockManager {
    */
   // TODO(bin): Temporary, remove me later.
   public boolean unlockBlock(long sessionId, long blockId) {
-    synchronized (mSharedMapsLock) {
+    try (LockResource r = new LockResource(mSharedMapsLock.writeLock())) {
       Set<Long> sessionLockIds = mSessionIdToLockIdsMap.get(sessionId);
       if (sessionLockIds == null) {
         return false;
@@ -281,7 +317,7 @@ public final class BlockLockManager {
    */
   public void validateLock(long sessionId, long blockId, long lockId)
       throws BlockDoesNotExistException, InvalidWorkerStateException {
-    synchronized (mSharedMapsLock) {
+    try (LockResource r = new LockResource(mSharedMapsLock.readLock())) {
       LockRecord record = mLockIdToRecordMap.get(lockId);
       if (record == null) {
         throw new BlockDoesNotExistException(ExceptionMessage.LOCK_RECORD_NOT_FOUND_FOR_LOCK_ID,
@@ -304,7 +340,7 @@ public final class BlockLockManager {
    * @param sessionId the id of the session to cleanup
    */
   public void cleanupSession(long sessionId) {
-    synchronized (mSharedMapsLock) {
+    try (LockResource r = new LockResource(mSharedMapsLock.writeLock())) {
       Set<Long> sessionLockIds = mSessionIdToLockIdsMap.get(sessionId);
       if (sessionLockIds == null) {
         return;
@@ -329,7 +365,7 @@ public final class BlockLockManager {
    * @return a set of locked blocks
    */
   public Set<Long> getLockedBlocks() {
-    synchronized (mSharedMapsLock) {
+    try (LockResource r = new LockResource(mSharedMapsLock.readLock())) {
       Set<Long> set = new HashSet<>();
       for (LockRecord lockRecord : mLockIdToRecordMap.values()) {
         set.add(lockRecord.getBlockId());
@@ -357,7 +393,7 @@ public final class BlockLockManager {
    * @param blockId the block id for which to potentially release the block lock
    */
   private void releaseBlockLockIfUnused(long blockId) {
-    synchronized (mSharedMapsLock) {
+    try (LockResource r = new LockResource(mSharedMapsLock.writeLock())) {
       ClientRWLock lock = mLocks.get(blockId);
       if (lock == null) {
         // Someone else probably released the block lock already.
@@ -378,7 +414,7 @@ public final class BlockLockManager {
    * state is encountered.
    */
   public void validate() {
-    synchronized (mSharedMapsLock) {
+    try (LockResource r = new LockResource(mSharedMapsLock.readLock())) {
       // Compute block lock reference counts based off of lock records
       ConcurrentMap<Long, AtomicInteger> blockLockReferenceCounts = new ConcurrentHashMap<>();
       for (LockRecord record : mLockIdToRecordMap.values()) {

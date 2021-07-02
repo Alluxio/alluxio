@@ -9,26 +9,25 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-import {AxiosResponse} from 'axios';
-
-import {IFileInfo} from '@alluxio/common-ui/src/constants';
+import { AxiosResponse } from 'axios';
 
 export interface IInit {
-  'debug': boolean;
-  'proxyDownloadFileApiUrl': {
-    'prefix': string;
-    'suffix': string;
+  debug: boolean;
+  newerVersionAvailable: boolean;
+  proxyDownloadFileApiUrl: {
+    prefix: string;
+    suffix: string;
   };
-  'refreshInterval': number;
-  'securityAuthorizationPermissionEnabled': boolean;
-  'webFileInfoEnabled': boolean;
-  'workerPort': number;
+  refreshInterval: number;
+  securityAuthorizationPermissionEnabled: boolean;
+  webFileInfoEnabled: boolean;
+  workerPort: number;
 }
 
 export enum InitActionTypes {
   FETCH_REQUEST = '@@init/FETCH_REQUEST',
   FETCH_SUCCESS = '@@init/FETCH_SUCCESS',
-  FETCH_ERROR = '@@init/FETCH_ERROR'
+  FETCH_ERROR = '@@init/FETCH_ERROR',
 }
 
 export interface IInitState {

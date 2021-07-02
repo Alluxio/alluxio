@@ -3,7 +3,7 @@ layout: global
 title: S3 Client
 nickname: S3 Client
 group: Client APIs
-priority: 6
+priority: 1
 ---
 
 * 内容列表
@@ -11,7 +11,7 @@ priority: 6
 
 Alluxio支持RESTful API，兼容[Amazon S3 API](http://docs.aws.amazon.com/AmazonS3/latest/API/Welcome.html) 的基本操作。
 
-[REST API 手册](https://docs.alluxio.io/os/restdoc/{{site.ALLUXIO_MAJOR_VERSION}}/proxy/index.html)会在Alluxio构建时生成并且可以通过`${ALLUXIO_HOME}/core/server/proxy/target/miredot/index.html`获得。
+[REST API 手册]({{ '/cn/api/Clients-Rest.html' | relativize_url }})会在Alluxio构建时生成并且可以通过`${ALLUXIO_HOME}/core/server/proxy/target/miredot/index.html`获得。
 
 使用HTTP代理会带来一些性能的影响，尤其是在使用代理的时候会增加一个额外的跳计数。为了达到最优的性能，推荐代理服务和一个Alluxio worker运行在一个计算节点上。或者，推荐将所有的代理服务器放到load balancer之后。
 
@@ -38,8 +38,8 @@ Alluxio S3 客户端支持各种编程语言，比如C++、Java、Python、Golan
 
 ### 创建bucket
 
-```bash
-# curl -i -X PUT http://localhost:39999/api/v1/s3/testbucket
+```console
+$ curl -i -X PUT http://localhost:39999/api/v1/s3/testbucket
 HTTP/1.1 200 OK
 Date: Tue, 29 Aug 2017 22:34:41 GMT
 Content-Length: 0
@@ -48,8 +48,8 @@ Server: Jetty(9.2.z-SNAPSHOT)
 
 ### 获取bucket(objects列表)
 
-```bash
-# curl -i -X GET http://localhost:39999/api/v1/s3/testbucket
+```console
+$ curl -i -X GET http://localhost:39999/api/v1/s3/testbucket
 HTTP/1.1 200 OK
 Date: Tue, 29 Aug 2017 22:35:00 GMT
 Content-Type: application/xml
@@ -62,8 +62,8 @@ Server: Jetty(9.2.z-SNAPSHOT)
 ### 加入object
 假定本地现存一个文件`LICENSE`。
 
-```bash
-# curl -i -X PUT -T "LICENSE" http://localhost:39999/api/v1/s3/testbucket/testobject
+```console
+$ curl -i -X PUT -T "LICENSE" http://localhost:39999/api/v1/s3/testbucket/testobject
 HTTP/1.1 100 Continue
 
 HTTP/1.1 200 OK
@@ -76,8 +76,8 @@ Server: Jetty(9.2.z-SNAPSHOT)
 
 ### 获取object
 
-```bash
-# curl -i -X GET http://localhost:39999/api/v1/s3/testbucket/testobject
+```console
+$ curl -i -X GET http://localhost:39999/api/v1/s3/testbucket/testobject
 HTTP/1.1 200 OK
 Date: Tue, 29 Aug 2017 22:37:34 GMT
 Last-Modified: Tue, 29 Aug 2017 22:36:03 GMT
@@ -90,8 +90,8 @@ Server: Jetty(9.2.z-SNAPSHOT)
 
 ### 列出含有单个object的bucket
 
-```bash
-# curl -i -X GET http://localhost:39999/api/v1/s3/testbucket
+```console
+$ curl -i -X GET http://localhost:39999/api/v1/s3/testbucket
 HTTP/1.1 200 OK
 Date: Tue, 29 Aug 2017 22:38:48 GMT
 Content-Type: application/xml
@@ -104,11 +104,11 @@ Server: Jetty(9.2.z-SNAPSHOT)
 ### 列出含有多个objects的bucket
 你可以上传更多的文件并且使用`max-keys`和`continuation-token`作为GET bucket request参数，比如：
 
-```bash
-# curl -i -X PUT -T "LICENSE" http://localhost:39999/api/v1/s3/testbucket/key1
-# curl -i -X PUT -T "LICENSE" http://localhost:39999/api/v1/s3/testbucket/key2
-# curl -i -X PUT -T "LICENSE" http://localhost:39999/api/v1/s3/testbucket/key3
-# curl -i -X GET http://localhost:39999/api/v1/s3/testbucket\?max-keys\=2
+```console
+$ curl -i -X PUT -T "LICENSE" http://localhost:39999/api/v1/s3/testbucket/key1
+$ curl -i -X PUT -T "LICENSE" http://localhost:39999/api/v1/s3/testbucket/key2
+$ curl -i -X PUT -T "LICENSE" http://localhost:39999/api/v1/s3/testbucket/key3
+$ curl -i -X GET http://localhost:39999/api/v1/s3/testbucket\?max-keys\=2
 HTTP/1.1 200 OK
 Date: Tue, 29 Aug 2017 22:40:45 GMT
 Content-Type: application/xml
@@ -129,29 +129,29 @@ Server: Jetty(9.2.z-SNAPSHOT)
 
 你还可以验证这些对象是否为Alluxio文件，在`/testbucket`目录下。
 
-```bash
-./bin/alluxio fs ls -R /testbucket
+```console
+$ ./bin/alluxio fs ls -R /testbucket
 ```
 
 ### 删除objects
 
-```bash
-# curl -i -X DELETE http://localhost:39999/api/v1/s3/testbucket/key1
+```console
+$ curl -i -X DELETE http://localhost:39999/api/v1/s3/testbucket/key1
 HTTP/1.1 204 No Content
 Date: Tue, 29 Aug 2017 22:43:22 GMT
 Server: Jetty(9.2.z-SNAPSHOT)
 ```
 
-```bash
-# curl -i -X DELETE http://localhost:39999/api/v1/s3/testbucket/key2
-# curl -i -X DELETE http://localhost:39999/api/v1/s3/testbucket/key3
-# curl -i -X DELETE http://localhost:39999/api/v1/s3/testbucket/testobject
+```console
+$ curl -i -X DELETE http://localhost:39999/api/v1/s3/testbucket/key2
+$ curl -i -X DELETE http://localhost:39999/api/v1/s3/testbucket/key3
+$ curl -i -X DELETE http://localhost:39999/api/v1/s3/testbucket/testobject
 ```
 
 ### 初始化multipart upload
 
-```bash
-# curl -i -X POST http://localhost:39999/api/v1/s3/testbucket/testobject?uploads
+```console
+$ curl -i -X POST http://localhost:39999/api/v1/s3/testbucket/testobject?uploads
 HTTP/1.1 200 OK
 Date: Tue, 29 Aug 2017 22:43:22 GMT
 Content-Length: 197
@@ -167,8 +167,8 @@ Server: Jetty(9.2.z-SNAPSHOT)
 
 ### 上传分块
 
-```bash
-# curl -i -X PUT http://localhost:39999/api/v1/s3/testbucket/testobject?partNumber=1&uploadId=2
+```console
+$ curl -i -X PUT http://localhost:39999/api/v1/s3/testbucket/testobject?partNumber=1&uploadId=2
 HTTP/1.1 200 OK
 Date: Tue, 29 Aug 2017 22:43:22 GMT
 ETag: "b54357faf0632cce46e942fa68356b38"
@@ -177,8 +177,8 @@ Server: Jetty(9.2.z-SNAPSHOT)
 
 ### 罗列已上传的分块
 
-```bash
-# curl -i -X GET http://localhost:39999/api/v1/s3/testbucket/testobject?uploadId=2
+```console
+$ curl -i -X GET http://localhost:39999/api/v1/s3/testbucket/testobject?uploadId=2
 HTTP/1.1 200 OK
 Date: Tue, 29 Aug 2017 22:43:22 GMT
 Content-Length: 985
@@ -202,8 +202,8 @@ Server: Jetty(9.2.z-SNAPSHOT)
 
 ### 完成multipart upload
 
-```bash
-# curl -i -X POST http://localhost:39999/api/v1/s3/testbucket/testobject?uploadId=2 -d '
+```console
+$ curl -i -X POST http://localhost:39999/api/v1/s3/testbucket/testobject?uploadId=2 -d '
 <CompleteMultipartUpload>
   <Part>
     <PartNumber>1</PartNumber>
@@ -226,8 +226,8 @@ Server: Jetty(9.2.z-SNAPSHOT)
 
 ### 中止multipart upload
 
-```bash
-# curl -i -X DELETE http://localhost:39999/api/v1/s3/testbucket/testobject?uploadId=2
+```console
+$ curl -i -X DELETE http://localhost:39999/api/v1/s3/testbucket/testobject?uploadId=2
 HTTP/1.1 204 OK
 Date: Tue, 29 Aug 2017 22:43:22 GMT
 Content-Length: 0
@@ -236,8 +236,8 @@ Server: Jetty(9.2.z-SNAPSHOT)
 
 ### 删除空bucket
 
-```bash
-# curl -i -X DELETE http://localhost:39999/api/v1/s3/testbucket
+```console
+$ curl -i -X DELETE http://localhost:39999/api/v1/s3/testbucket
 HTTP/1.1 204 No Content
 Date: Tue, 29 Aug 2017 22:45:19 GMT
 ```
@@ -287,8 +287,8 @@ assert smallObjectContent == key.get_contents_as_string()
 ### 上传large object
 在本地文件系统创建一个8MB文件
 
-```bash
-# dd if=/dev/zero of=8mb.data bs=1048576 count=8
+```console
+$ dd if=/dev/zero of=8mb.data bs=1048576 count=8
 ```
 
 使用python S3 client把它作为object上传

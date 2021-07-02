@@ -14,6 +14,10 @@ package alluxio.master.metastore.rocks;
 import alluxio.util.io.PathUtils;
 
 import com.google.common.primitives.Longs;
+import org.rocksdb.RocksIterator;
+
+import java.util.Iterator;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Convenience methods for working with RocksDB.
@@ -76,5 +80,59 @@ public final class RocksUtils {
   public static long readLong(byte[] bytes, int start) {
     return Longs.fromBytes(bytes[start], bytes[start + 1], bytes[start + 2], bytes[start + 3],
         bytes[start + 4], bytes[start + 5], bytes[start + 6], bytes[start + 7]);
+  }
+
+  /**
+   * Used to parse current {@link RocksIterator} element.
+   *
+   * @param <T> return type of parser's next method
+   */
+  interface RocksIteratorParser<T> {
+    /**
+     * Parses and return next element.
+     *
+     * @param iter {@link RocksIterator} instance
+     * @return parsed value
+     * @throws Exception if parsing fails
+     */
+    T next(RocksIterator iter) throws Exception;
+  }
+
+  /**
+   * Used to wrap an {@link Iterator} over {@link RocksIterator}.
+   * It seeks given iterator to first entry before returning the iterator.
+   *
+   * @param rocksIterator the rocks iterator
+   * @param parser parser to produce iterated values from rocks key-value
+   * @param <T> iterator value type
+   * @return wrapped iterator
+   */
+  public static <T> Iterator<T> createIterator(RocksIterator rocksIterator,
+      RocksIteratorParser<T> parser) {
+    rocksIterator.seekToFirst();
+    AtomicBoolean valid = new AtomicBoolean(true);
+    return new Iterator<T>() {
+      @Override
+      public boolean hasNext() {
+        return valid.get() && rocksIterator.isValid();
+      }
+
+      @Override
+      public T next() {
+        try {
+          return parser.next(rocksIterator);
+        } catch (Exception exc) {
+          rocksIterator.close();
+          valid.set(false);
+          throw new RuntimeException(exc);
+        } finally {
+          rocksIterator.next();
+          if (!rocksIterator.isValid()) {
+            rocksIterator.close();
+            valid.set(false);
+          }
+        }
+      }
+    };
   }
 }

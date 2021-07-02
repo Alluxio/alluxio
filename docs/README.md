@@ -32,14 +32,14 @@ way to do this is via a Ruby Gem
 
 Before running `jekyll`, please run mvn to generate Java doc under alluxio root directory.
 
-```bash
+```console
 $ mvn javadoc:javadoc
 $ mvn javadoc:aggregate
 ```
 
 Then go to `docs` directory and use jekyll to build the HTML documentation.
 
-```bash
+```console
 $ cd docs
 $ jekyll build
 ```
@@ -55,3 +55,14 @@ at [http://localhost:4000](http://localhost:4000).
 
 The markdown files for Alluxio documentation in different languages are stored in separate
 directories, e.g., `docs/en` for English documentation and `docs/cn` for Chinese documentation.
+
+## Contributing to the Documentation
+
+We would welcome anyone to contribute to Alluxio Documentation! For more details, please visit [this
+page](https://docs.alluxio.io/os/user/stable/en/contributor/Contributor-Getting-Started.html).
+
+## Questions
+
+If you have any question, welcome to ask in our [community](https://www.alluxio.io/community/) or
+[Alluxio Community Slack Channel](https://slackin.alluxio.io/)!
+

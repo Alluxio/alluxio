@@ -9,12 +9,8 @@ priority: 1
 * Table of Contents
 {:toc}
 
-Alluxio supports a RESTful API that is compatible with the basic operations of the Amazon
-[S3 API](http://docs.aws.amazon.com/AmazonS3/latest/API/Welcome.html).
-
-The [REST API documentation](https://docs.alluxio.io/os/restdoc/{{site.ALLUXIO_MAJOR_VERSION}}/proxy/index.html)
-is generated as part of Alluxio build and accessible through
-`${ALLUXIO_HOME}/core/server/proxy/target/miredot/index.html`.
+Alluxio supports a [RESTful API](https://docs.alluxio.io/os/restdoc/{{site.ALLUXIO_MAJOR_VERSION}}/proxy/index.html)
+that is compatible with the basic operations of the Amazon [S3 API](http://docs.aws.amazon.com/AmazonS3/latest/API/Welcome.html).
 
 The Alluxio S3 API should be used by applications designed to communicate with an S3-like storage
 and would benefit from the other features provided by Alluxio, such as data caching, data
@@ -50,53 +46,88 @@ In this documentation, we use curl REST calls and python S3 client as usage exam
 For example, you can run the following RESTful API calls to an Alluxio cluster running on localhost.
 The Alluxio proxy is listening at port 39999 by default.
 
+#### Authorization
+
+By default, the user that is used to do any FileSystem operations is the user that was used to launch
+the proxy process. This can be changed by providing the Authorization Header.
+
+```console
+$ curl -i -H "Authorization: AWS testuser:" -X PUT http://localhost:39999/api/v1/s3/testbucket0
+HTTP/1.1 200 OK
+Date: Tue, 02 Mar 2021 00:02:26 GMT
+Content-Length: 0
+Server: Jetty(9.4.31.v20200723)
+
+$ bin/alluxio fs ls /
+drwxr-xr-x  testuser                                    0       PERSISTED 03-01-2021 16:02:26:547  DIR /testbucket0
+
+```
+
 #### Create a bucket
 
-```bash
-# curl -i -X PUT http://localhost:39999/api/v1/s3/testbucket
+```console
+$ curl -i -X PUT http://localhost:39999/api/v1/s3/testbucket
+
 HTTP/1.1 200 OK
-Date: Tue, 29 Aug 2017 22:34:41 GMT
+Date: Tue, 18 Jun 2019 21:23:18 GMT
 Content-Length: 0
 Server: Jetty(9.2.z-SNAPSHOT)
 ```
 
+#### List all buckets owned by the user
+
+Authenticating as a user is necessary to have buckets returned by this operation.
+
+```console
+$ curl -i -H "Authorization: AWS testuser:" -X GET http://localhost:39999/api/v1/s3
+HTTP/1.1 200 OK
+Date: Tue, 02 Mar 2021 00:06:43 GMT
+Content-Type: application/xml
+Content-Length: 109
+Server: Jetty(9.4.31.v20200723)
+
+<ListAllMyBucketsResult><Buckets><Bucket><Name>testbucket0</Name></Bucket></Buckets></ListAllMyBucketsResult>%
+```
+
 #### Get the bucket (listing objects)
 
-```bash
-# curl -i -X GET http://localhost:39999/api/v1/s3/testbucket
+```console
+$ curl -i -X GET http://localhost:39999/api/v1/s3/testbucket
+
 HTTP/1.1 200 OK
-Date: Tue, 29 Aug 2017 22:35:00 GMT
+Date: Tue, 18 Jun 2019 21:23:56 GMT
 Content-Type: application/xml
-Content-Length: 200
+Content-Length: 191
 Server: Jetty(9.2.z-SNAPSHOT)
 
-<ListBucketResult xmlns=""><Name>/testbucket</Name><Prefix/><ContinuationToken/><NextContinuationToken/><KeyCount>0</KeyCount><MaxKeys>1000</MaxKeys><IsTruncated>false</IsTruncated></ListBucketResult>
+<ListBucketResult><Name>/testbucket</Name><Prefix/><ContinuationToken/><NextContinuationToken/><KeyCount>0</KeyCount><MaxKeys>1000</MaxKeys><IsTruncated>false</IsTruncated></ListBucketResult>
 ```
 
 #### Put an object
 Assuming there is an existing file on local file system called `LICENSE`:
 
-```bash
-# curl -i -X PUT -T "LICENSE" http://localhost:39999/api/v1/s3/testbucket/testobject
+```console
+$ curl -i -X PUT -T "LICENSE" http://localhost:39999/api/v1/s3/testbucket/testobject
+
 HTTP/1.1 100 Continue
 
 HTTP/1.1 200 OK
-Date: Tue, 29 Aug 2017 22:36:03 GMT
-ETag: "9347237b67b0be183499e5893128704e"
+Date: Tue, 18 Jun 2019 21:24:32 GMT
+ETag: "911df44b7ff57801ca8d74568e4ebfbe"
 Content-Length: 0
 Server: Jetty(9.2.z-SNAPSHOT)
-
 ```
 
 #### Get the object:
 
-```bash
-# curl -i -X GET http://localhost:39999/api/v1/s3/testbucket/testobject
+```console
+$ curl -i -X GET http://localhost:39999/api/v1/s3/testbucket/testobject
+
 HTTP/1.1 200 OK
-Date: Tue, 29 Aug 2017 22:37:34 GMT
-Last-Modified: Tue, 29 Aug 2017 22:36:03 GMT
+Date: Tue, 18 Jun 2019 21:24:57 GMT
+Last-Modified: Tue, 18 Jun 2019 21:24:33 GMT
 Content-Type: application/xml
-Content-Length: 26847
+Content-Length: 27040
 Server: Jetty(9.2.z-SNAPSHOT)
 
 .................. Content of the test file ...................
@@ -104,163 +135,202 @@ Server: Jetty(9.2.z-SNAPSHOT)
 
 #### Listing a bucket with one object
 
-```bash
-# curl -i -X GET http://localhost:39999/api/v1/s3/testbucket
+```console
+$ curl -i -X GET http://localhost:39999/api/v1/s3/testbucket
+
 HTTP/1.1 200 OK
-Date: Tue, 29 Aug 2017 22:38:48 GMT
+Date: Tue, 18 Jun 2019 21:25:27 GMT
 Content-Type: application/xml
-Content-Length: 363
+Content-Length: 354
 Server: Jetty(9.2.z-SNAPSHOT)
 
-<ListBucketResult xmlns=""><Name>/testbucket</Name><Prefix/><ContinuationToken/><NextContinuationToken/><KeyCount>1</KeyCount><MaxKeys>1000</MaxKeys><IsTruncated>false</IsTruncated><Contents><Key>testobject</Key><LastModified>2017-08-29T15:36:03.613Z</LastModified><ETag></ETag><Size>26847</Size><StorageClass>STANDARD</StorageClass></Contents></ListBucketResult>
+<ListBucketResult><Name>/testbucket</Name><Prefix/><ContinuationToken/><NextContinuationToken/><KeyCount>1</KeyCount><MaxKeys>1000</MaxKeys><IsTruncated>false</IsTruncated><Contents><Key>testobject</Key><LastModified>2019-06-18T14:24:33.029Z</LastModified><ETag></ETag><Size>27040</Size><StorageClass>STANDARD</StorageClass></Contents></ListBucketResult>
 ```
 
 #### Listing a bucket with multiple objects
-You can upload more files and use the `max-keys` and `continuation-token` as the GET bucket request param. For example:
+You can upload more files and use the `max-keys` and `continuation-token` as the [GET bucket request parameter](https://docs.aws.amazon.com/AmazonS3/latest/API/v2-RESTBucketGET.html). For example:
 
-```bash
-# curl -i -X PUT -T "LICENSE" http://localhost:39999/api/v1/s3/testbucket/key1
-# curl -i -X PUT -T "LICENSE" http://localhost:39999/api/v1/s3/testbucket/key2
-# curl -i -X PUT -T "LICENSE" http://localhost:39999/api/v1/s3/testbucket/key3
-# curl -i -X GET http://localhost:39999/api/v1/s3/testbucket\?max-keys\=2
+```console
+$ curl -i -X PUT -T "LICENSE" http://localhost:39999/api/v1/s3/testbucket/key1
+
+HTTP/1.1 100 Continue
+
 HTTP/1.1 200 OK
-Date: Tue, 29 Aug 2017 22:40:45 GMT
-Content-Type: application/xml
-Content-Length: 537
+Date: Tue, 18 Jun 2019 21:26:05 GMT
+ETag: "911df44b7ff57801ca8d74568e4ebfbe"
+Content-Length: 0
 Server: Jetty(9.2.z-SNAPSHOT)
 
-<ListBucketResult xmlns=""><Name>/testbucket</Name><Prefix/><ContinuationToken/><NextContinuationToken>key3</NextContinuationToken><KeyCount>2</KeyCount><MaxKeys>2</MaxKeys><IsTruncated>true</IsTruncated><Contents><Key>key1</Key><LastModified>2017-08-29T15:40:42.213Z</LastModified><ETag></ETag><Size>26847</Size><StorageClass>STANDARD</StorageClass></Contents><Contents><Key>key2</Key><LastModified>2017-08-29T15:40:43.269Z</LastModified><ETag></ETag><Size>26847</Size><StorageClass>STANDARD</StorageClass></Contents></ListBucketResult>
+$ curl -i -X PUT -T "LICENSE" http://localhost:39999/api/v1/s3/testbucket/key2
 
-# curl -i -X GET http://localhost:39999/api/v1/s3/testbucket\?max-keys\=2\&continuation-token\=key3
+HTTP/1.1 100 Continue
+
 HTTP/1.1 200 OK
-Date: Tue, 29 Aug 2017 22:41:18 GMT
-Content-Type: application/xml
-Content-Length: 540
+Date: Tue, 18 Jun 2019 21:26:28 GMT
+ETag: "911df44b7ff57801ca8d74568e4ebfbe"
+Content-Length: 0
 Server: Jetty(9.2.z-SNAPSHOT)
 
-<ListBucketResult xmlns=""><Name>/testbucket</Name><Prefix/><ContinuationToken>key3</ContinuationToken><NextContinuationToken/><KeyCount>2</KeyCount><MaxKeys>2</MaxKeys><IsTruncated>false</IsTruncated><Contents><Key>key3</Key><LastModified>2017-08-29T15:40:44.002Z</LastModified><ETag></ETag><Size>26847</Size><StorageClass>STANDARD</StorageClass></Contents><Contents><Key>testobject</Key><LastModified>2017-08-29T15:36:03.613Z</LastModified><ETag></ETag><Size>26847</Size><StorageClass>STANDARD</StorageClass></Contents></ListBucketResult>
+$ curl -i -X PUT -T "LICENSE" http://localhost:39999/api/v1/s3/testbucket/key3
+
+HTTP/1.1 100 Continue
+
+HTTP/1.1 200 OK
+Date: Tue, 18 Jun 2019 21:26:43 GMT
+ETag: "911df44b7ff57801ca8d74568e4ebfbe"
+Content-Length: 0
+Server: Jetty(9.2.z-SNAPSHOT)
+
+$ curl -i -X GET http://localhost:39999/api/v1/s3/testbucket\?max-keys\=2
+
+HTTP/1.1 200 OK
+Date: Tue, 18 Jun 2019 21:26:57 GMT
+Content-Type: application/xml
+Content-Length: 528
+Server: Jetty(9.2.z-SNAPSHOT)
+
+<ListBucketResult><Name>/testbucket</Name><Prefix/><ContinuationToken/><NextContinuationToken>key3</NextContinuationToken><KeyCount>2</KeyCount><MaxKeys>2</MaxKeys><IsTruncated>true</IsTruncated><Contents><Key>key1</Key><LastModified>2019-06-18T14:26:05.694Z</LastModified><ETag></ETag><Size>27040</Size><StorageClass>STANDARD</StorageClass></Contents><Contents><Key>key2</Key><LastModified>2019-06-18T14:26:28.153Z</LastModified><ETag></ETag><Size>27040</Size><StorageClass>STANDARD</StorageClass></Contents></ListBucketResult>
+
+$ curl -i -X GET http://localhost:39999/api/v1/s3/testbucket\?max-keys\=2\&continuation-token\=key3
+
+HTTP/1.1 200 OK
+Date: Tue, 18 Jun 2019 21:28:14 GMT
+Content-Type: application/xml
+Content-Length: 531
+Server: Jetty(9.2.z-SNAPSHOT)
+
+<ListBucketResult><Name>/testbucket</Name><Prefix/><ContinuationToken>key3</ContinuationToken><NextContinuationToken/><KeyCount>2</KeyCount><MaxKeys>2</MaxKeys><IsTruncated>false</IsTruncated><Contents><Key>key3</Key><LastModified>2019-06-18T14:26:43.081Z</LastModified><ETag></ETag><Size>27040</Size><StorageClass>STANDARD</StorageClass></Contents><Contents><Key>testobject</Key><LastModified>2019-06-18T14:24:33.029Z</LastModified><ETag></ETag><Size>27040</Size><StorageClass>STANDARD</StorageClass></Contents></ListBucketResult>
 ```
 
 You can also verify those objects are represented as Alluxio files, under `/testbucket` directory.
 
-```bash
-./bin/alluxio fs ls -R /testbucket
+```console
+$ ./bin/alluxio fs ls -R /testbucket
+
+-rw-r--r--  alluxio        staff                    27040       PERSISTED 06-18-2019 14:26:05:694 100% /testbucket/key1
+-rw-r--r--  alluxio        staff                    27040       PERSISTED 06-18-2019 14:26:28:153 100% /testbucket/key2
+-rw-r--r--  alluxio        staff                    27040       PERSISTED 06-18-2019 14:26:43:081 100% /testbucket/key3
+-rw-r--r--  alluxio        staff                    27040       PERSISTED 06-18-2019 14:24:33:029 100% /testbucket/testobject
 ```
 
 #### Delete objects
 
-```bash
-# curl -i -X DELETE http://localhost:39999/api/v1/s3/testbucket/key1
-HTTP/1.1 204 No Content
-Date: Tue, 29 Aug 2017 22:43:22 GMT
-Server: Jetty(9.2.z-SNAPSHOT)
-```
+```console
+$ curl -i -X DELETE http://localhost:39999/api/v1/s3/testbucket/key1
 
-```bash
-# curl -i -X DELETE http://localhost:39999/api/v1/s3/testbucket/key2
-# curl -i -X DELETE http://localhost:39999/api/v1/s3/testbucket/key3
-# curl -i -X DELETE http://localhost:39999/api/v1/s3/testbucket/testobject
+HTTP/1.1 204 No Content
+Date: Tue, 18 Jun 2019 21:31:27 GMT
+Server: Jetty(9.2.z-SNAPSHOT)
+
+$ curl -i -X DELETE http://localhost:39999/api/v1/s3/testbucket/key2
+
+HTTP/1.1 204 No Content
+Date: Tue, 18 Jun 2019 21:31:44 GMT
+Server: Jetty(9.2.z-SNAPSHOT)
+
+$ curl -i -X DELETE http://localhost:39999/api/v1/s3/testbucket/key3
+
+HTTP/1.1 204 No Content
+Date: Tue, 18 Jun 2019 21:31:58 GMT
+Server: Jetty(9.2.z-SNAPSHOT)
+
+$ curl -i -X DELETE http://localhost:39999/api/v1/s3/testbucket/testobject
+
+HTTP/1.1 204 No Content
+Date: Tue, 18 Jun 2019 21:32:08 GMT
+Server: Jetty(9.2.z-SNAPSHOT)
 ```
 
 #### Initiate a multipart upload
+Since we deleted the `testobject` in the previous command, you have to create another `testobject`
+before initiating a multipart upload.
 
-```bash
-# curl -i -X POST http://localhost:39999/api/v1/s3/testbucket/testobject?uploads
+```console
+$ curl -i -X POST http://localhost:39999/api/v1/s3/testbucket/testobject?uploads
+
 HTTP/1.1 200 OK
-Date: Tue, 29 Aug 2017 22:43:22 GMT
-Content-Length: 197
+Date: Tue, 18 Jun 2019 21:32:36 GMT
+Content-Type: application/xml
+Content-Length: 133
 Server: Jetty(9.2.z-SNAPSHOT)
 
-<?xml version="1.0" encoding="UTF-8"?>
-<InitiateMultipartUploadResult xmlns="">
-  <Bucket>testbucket</Bucket>
-  <Key>testobject</Key>
-  <UploadId>2</UploadId>
-</InitiateMultipartUploadResult>
+<InitiateMultipartUploadResult><Bucket>testbucket</Bucket><Key>testobject</Key><UploadId>3</UploadId></InitiateMultipartUploadResult>
 ```
 
-Note that the commands below related to multipart upload need the upload ID shown above, it's not necessarily 2.
+Note that the commands below related to multipart upload need the upload ID shown above, it's not necessarily 3.
 
 #### Upload part
 
-```bash
-# curl -i -X PUT 'http://localhost:39999/api/v1/s3/testbucket/testobject?partNumber=1&uploadId=2'
+```console
+$ curl -i -X PUT 'http://localhost:39999/api/v1/s3/testbucket/testobject?partNumber=1&uploadId=3'
+
 HTTP/1.1 200 OK
-Date: Tue, 29 Aug 2017 22:43:22 GMT
-ETag: "b54357faf0632cce46e942fa68356b38"
+Date: Tue, 18 Jun 2019 21:33:36 GMT
+ETag: "d41d8cd98f00b204e9800998ecf8427e"
+Content-Length: 0
 Server: Jetty(9.2.z-SNAPSHOT)
 ```
 
 #### List parts
 
-```bash
-# curl -i -X GET http://localhost:39999/api/v1/s3/testbucket/testobject?uploadId=2
+```console
+$ curl -i -X GET http://localhost:39999/api/v1/s3/testbucket/testobject?uploadId=3
+
 HTTP/1.1 200 OK
-Date: Tue, 29 Aug 2017 22:43:22 GMT
-Content-Length: 985
+Date: Tue, 18 Jun 2019 21:35:10 GMT
+Content-Type: application/xml
+Content-Length: 296
 Server: Jetty(9.2.z-SNAPSHOT)
 
-<?xml version="1.0" encoding="UTF-8"?>
-<ListPartsResult xmlns="">
-  <Bucket>testbucket</Bucket>
-  <Key>testobject</Key>
-  <UploadId>2</UploadId>
-  <StorageClass>STANDARD</StorageClass>
-  <IsTruncated>false</IsTruncated>
-  <Part>
-    <PartNumber>1</PartNumber>
-    <LastModified>2017-08-29T20:48:34.000Z</LastModified>
-    <ETag>"b54357faf0632cce46e942fa68356b38"</ETag>
-    <Size>10485760</Size>
-  </Part>
-</ListPartsResult>
+<ListPartsResult><Bucket>/testbucket</Bucket><Key>testobject</Key><UploadId>3</UploadId><StorageClass>STANDARD</StorageClass><IsTruncated>false</IsTruncated><Part><PartNumber>1</PartNumber><LastModified>2019-06-18T14:33:36.373Z</LastModified><ETag>""</ETag><Size>0</Size></Part></ListPartsResult>
 ```
 
 #### Complete a multipart upload
 
-```bash
-# curl -i -X POST http://localhost:39999/api/v1/s3/testbucket/testobject?uploadId=2
-<CompleteMultipartUpload>
-  <Part>
-    <PartNumber>1</PartNumber>
-    <ETag>"b54357faf0632cce46e942fa68356b38"</ETag>
-  </Part>
-</CompleteMultipartUpload>'
+```console
+$ curl -i -X POST http://localhost:39999/api/v1/s3/testbucket/testobject?uploadId=3
 
 HTTP/1.1 200 OK
-Date: Tue, 29 Aug 2017 22:43:22 GMT
+Date: Tue, 18 Jun 2019 21:35:47 GMT
+Content-Type: application/xml
+Content-Length: 201
 Server: Jetty(9.2.z-SNAPSHOT)
 
-<?xml version="1.0" encoding="UTF-8"?>
-<CompleteMultipartUploadResult xmlns="">
-  <Location>/testbucket/testobjectLocation>
-  <Bucket>testbucket</Bucket>
-  <Key>testobject</Key>
-  <ETag>"b54357faf0632cce46e942fa68356b38"</ETag>
-</CompleteMultipartUploadResult>
+<CompleteMultipartUploadResult><Location>/testbucket/testobject</Location><Bucket>testbucket</Bucket><Key>testobject</Key><ETag>"d41d8cd98f00b204e9800998ecf8427e"</ETag></CompleteMultipartUploadResult>
 ```
 
 #### Abort a multipart upload
 
-```bash
-# curl -i -X DELETE http://localhost:39999/api/v1/s3/testbucket/testobject?uploadId=2
-HTTP/1.1 204 OK
-Date: Tue, 29 Aug 2017 22:43:22 GMT
-Content-Length: 0
+A non-completed upload can be aborted:
+
+```console
+$ curl -i -X DELETE http://localhost:39999/api/v1/s3/testbucket/testobject?uploadId=3
+
+HTTP/1.1 204 No Content
+Date: Tue, 18 Jun 2019 21:37:27 GMT
 Server: Jetty(9.2.z-SNAPSHOT)
 ```
 
 #### Delete an empty bucket
 
-```bash
-# curl -i -X DELETE http://localhost:39999/api/v1/s3/testbucket
+```console
+$ curl -i -X DELETE http://localhost:39999/api/v1/s3/testbucket
+
 HTTP/1.1 204 No Content
-Date: Tue, 29 Aug 2017 22:45:19 GMT
+Date: Tue, 18 Jun 2019 21:38:38 GMT
+Server: Jetty(9.2.z-SNAPSHOT)
 ```
 
 ### Python S3 Client
 
+Tested for Python 2.7.
+
 #### Create a connection:
+Please note you have to install boto package first.
+
+```console
+$ pip install boto
+```
 
 ```python
 import boto
@@ -277,11 +347,35 @@ conn = boto.connect_s3(
 )
 ```
 
+#### Authenticating as a user:
+By default, authenticating with no access_key_id uses the user that was used to launch the proxy
+as the user performing the file system actions.
+
+Set the ```aws_access_key_id``` to a different username to perform the actions under a different user.
+
 #### Create a bucket
 
 ```python
 bucketName = 'bucket-for-testing'
 bucket = conn.create_bucket(bucketName)
+```
+
+#### List all buckets owned by the user
+
+Authenticating as a user is necessary to have buckets returned by this operation.
+
+```python
+conn = boto.connect_s3(
+    aws_access_key_id = 'testuser',
+    aws_secret_access_key = '',
+    host = 'localhost',
+    port = 39999,
+    path = '/api/v1/s3',
+    is_secure=False,
+    calling_format = boto.s3.connection.OrdinaryCallingFormat(),
+)
+
+conn.get_all_buckets()
 ```
 
 #### PUT a small object
@@ -303,8 +397,8 @@ assert smallObjectContent == key.get_contents_as_string()
 #### Upload a large object
 Create a 8MB file on local file system.
 
-```bash
-# dd if=/dev/zero of=8mb.data bs=1048576 count=8
+```console
+$ dd if=/dev/zero of=8mb.data bs=1048576 count=8
 ```
 
 Then use python S3 client to upload this as an object
@@ -366,6 +460,8 @@ mp.complete_upload()
 
 #### Abort the multipart upload
 
+Non-completed uploads can be aborted.
+
 ```python
 mp.cancel_upload()
 ```
@@ -373,6 +469,6 @@ mp.cancel_upload()
 #### Delete the bucket
 
 ```python
+bucket.delete_key(largeObjectKey)
 conn.delete_bucket(bucketName)
 ```
-

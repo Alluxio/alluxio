@@ -11,21 +11,24 @@
 
 package alluxio.worker.block;
 
+import alluxio.Constants;
 import alluxio.conf.ServerConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.util.io.BufferUtils;
 import alluxio.util.io.FileUtils;
 import alluxio.util.io.PathUtils;
+import alluxio.worker.block.annotator.BlockIterator;
 import alluxio.worker.block.evictor.Evictor;
 import alluxio.worker.block.io.BlockWriter;
 import alluxio.worker.block.io.LocalFileBlockWriter;
+import alluxio.worker.block.meta.DefaultTempBlockMeta;
 import alluxio.worker.block.meta.StorageDir;
 import alluxio.worker.block.meta.TempBlockMeta;
 
 import com.google.common.base.Preconditions;
 import com.google.common.primitives.Ints;
-import org.apache.commons.lang.ArrayUtils;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.Collections;
 
@@ -40,9 +43,12 @@ public final class TieredBlockStoreTestUtils {
    * 20000, 30000 bytes separately in the SSD tier.
    */
   public static final int[] TIER_ORDINAL = {0, 1};
-  public static final String[] TIER_ALIAS = {"MEM", "SSD"};
+  public static final String[] TIER_ALIAS = {Constants.MEDIUM_MEM, Constants.MEDIUM_SSD};
   public static final String[][] TIER_PATH = {{"/mem/0", "/mem/1"}, {"/ssd/0", "/ssd/1", "/ssd/2"}};
   public static final long[][] TIER_CAPACITY_BYTES = {{2000, 3000}, {10000, 20000, 30000}};
+  public static final String[][] TIER_MEDIA_TYPES =
+      {{Constants.MEDIUM_MEM, Constants.MEDIUM_MEM},
+          {Constants.MEDIUM_SSD, Constants.MEDIUM_SSD, Constants.MEDIUM_SSD}};
   public static final String WORKER_DATA_FOLDER = "/alluxioworker/";
 
   /**
@@ -58,15 +64,19 @@ public final class TieredBlockStoreTestUtils {
    *        same list index in tierAlias
    * @param tierCapacity like {@link #TIER_CAPACITY_BYTES}, should be in the same dimension with
    *        tierPath, each element is the capacity of the corresponding dir in tierPath
+   * @param tierMediumType should be in the same dimension with tierPath, each element is the
+   *                       medium type of the corresponding dir in tierPath
    * @param workerDataFolder when specified it sets up the alluxio.worker.data.folder property
    */
   public static void setupConfWithMultiTier(String baseDir, int[] tierOrdinal, String[] tierAlias,
-      String[][] tierPath, long[][] tierCapacity, String workerDataFolder) throws Exception {
+      String[][] tierPath, long[][] tierCapacity, String[][] tierMediumType,
+      String workerDataFolder) throws Exception {
     // make sure dimensions are legal
     Preconditions.checkNotNull(tierOrdinal, "tierOrdinal");
     Preconditions.checkNotNull(tierAlias, "tierAlias");
     Preconditions.checkNotNull(tierPath, "tierPath");
     Preconditions.checkNotNull(tierCapacity, "tierCapacity");
+    Preconditions.checkNotNull(tierMediumType, "tierMediumType");
 
     Preconditions.checkArgument(tierOrdinal.length > 0, "length of tierLevel should be > 0");
     Preconditions.checkArgument(tierOrdinal.length == tierAlias.length,
@@ -75,6 +85,8 @@ public final class TieredBlockStoreTestUtils {
         "tierPath and tierLevel should have the same length");
     Preconditions.checkArgument(tierOrdinal.length == tierCapacity.length,
         "tierCapacity and tierLevel should have the same length");
+    Preconditions.checkArgument(tierOrdinal.length == tierMediumType.length,
+        "tierMediumType and tierLevel should have the same length");
     int nTier = tierOrdinal.length;
 
     tierPath = createDirHierarchy(baseDir, tierPath);
@@ -85,7 +97,7 @@ public final class TieredBlockStoreTestUtils {
 
     // sets up each tier in turn
     for (int i = 0; i < nTier; i++) {
-      setupConfTier(tierOrdinal[i], tierAlias[i], tierPath[i], tierCapacity[i]);
+      setupConfTier(tierOrdinal[i], tierAlias[i], tierPath[i], tierCapacity[i], tierMediumType[i]);
     }
   }
 
@@ -106,7 +118,8 @@ public final class TieredBlockStoreTestUtils {
    * @param workerDataFolder when specified it sets up the alluxio.worker.data.folder property
    */
   public static void setupConfWithSingleTier(String baseDir, int tierOrdinal, String tierAlias,
-      String[] tierPath, long[] tierCapacity, String workerDataFolder) throws Exception {
+      String[] tierPath, long[] tierCapacity, String[] tierMedia, String workerDataFolder)
+      throws Exception {
     if (baseDir != null) {
       tierPath = createDirHierarchy(baseDir, tierPath);
     }
@@ -114,7 +127,7 @@ public final class TieredBlockStoreTestUtils {
       ServerConfiguration.set(PropertyKey.WORKER_DATA_FOLDER, workerDataFolder);
     }
     ServerConfiguration.set(PropertyKey.WORKER_TIERED_STORE_LEVELS, String.valueOf(1));
-    setupConfTier(tierOrdinal, tierAlias, tierPath, tierCapacity);
+    setupConfTier(tierOrdinal, tierAlias, tierPath, tierCapacity, tierMedia);
   }
 
   /**
@@ -125,9 +138,10 @@ public final class TieredBlockStoreTestUtils {
    * @param tierCapacity capacity of the tier
    */
   private static void setupConfTier(int ordinal, String tierAlias, String[] tierPath,
-      long[] tierCapacity) {
+      long[] tierCapacity, String[] tierMediumType) {
     Preconditions.checkNotNull(tierPath, "tierPath");
     Preconditions.checkNotNull(tierCapacity, "tierCapacity");
+    Preconditions.checkNotNull(tierMediumType, "tierMediumType");
     Preconditions.checkArgument(tierPath.length == tierCapacity.length,
         "tierPath and tierCapacity should have the same length");
 
@@ -144,6 +158,11 @@ public final class TieredBlockStoreTestUtils {
     ServerConfiguration
         .set(PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_DIRS_QUOTA.format(ordinal),
             tierCapacityString);
+
+    String tierMediumString = StringUtils.join(tierMediumType, ",");
+    ServerConfiguration
+        .set(PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_DIRS_MEDIUMTYPE.format(ordinal),
+            tierMediumString);
   }
 
   /**
@@ -197,16 +216,16 @@ public final class TieredBlockStoreTestUtils {
   }
 
   /**
-   * Creates a {@link BlockMetadataManagerView} with {@link #setupDefaultConf(String)}.
+   * Creates a {@link BlockMetadataEvictorView} with {@link #setupDefaultConf(String)}.
    *
    * @param baseDir the directory path as prefix for paths of directories in the tiered storage; the
    *        directory needs to exist before calling this method
-   * @return the created metadata manager view
+   * @return the created metadata evictor view
    */
-  public static BlockMetadataManagerView defaultMetadataManagerView(String baseDir)
+  public static BlockMetadataEvictorView defaultMetadataManagerView(String baseDir)
       throws Exception {
     BlockMetadataManager metaManager = TieredBlockStoreTestUtils.defaultMetadataManager(baseDir);
-    return new BlockMetadataManagerView(metaManager, Collections.<Long>emptySet(),
+    return new BlockMetadataEvictorView(metaManager, Collections.<Long>emptySet(),
         Collections.<Long>emptySet());
   }
 
@@ -220,7 +239,7 @@ public final class TieredBlockStoreTestUtils {
    */
   public static void setupDefaultConf(String baseDir) throws Exception {
     setupConfWithMultiTier(baseDir, TIER_ORDINAL, TIER_ALIAS, TIER_PATH, TIER_CAPACITY_BYTES,
-        WORKER_DATA_FOLDER);
+        TIER_MEDIA_TYPES, WORKER_DATA_FOLDER);
   }
 
   /**
@@ -235,17 +254,11 @@ public final class TieredBlockStoreTestUtils {
    */
   public static void cache(long sessionId, long blockId, long bytes, StorageDir dir,
       BlockMetadataManager meta, Evictor evictor) throws Exception {
-    TempBlockMeta tempBlockMeta = createTempBlock(sessionId, blockId, bytes, dir);
-
-    // commit block
-    FileUtils.move(tempBlockMeta.getPath(), tempBlockMeta.getCommitPath());
-    meta.commitTempBlockMeta(tempBlockMeta);
-
-    // update evictor
+    BlockStoreEventListener listener = null;
     if (evictor instanceof BlockStoreEventListener) {
-      ((BlockStoreEventListener) evictor)
-          .onCommitBlock(sessionId, blockId, dir.toBlockStoreLocation());
+      listener = (BlockStoreEventListener) evictor;
     }
+    cache2(sessionId, blockId, bytes, dir, meta, listener);
   }
 
   /**
@@ -256,18 +269,40 @@ public final class TieredBlockStoreTestUtils {
    * @param bytes size of the block in bytes
    * @param blockStore block store that the block is written into
    * @param location the location where the block resides
+   * @param pinOnCreate whether to pin block on create
    */
   public static void cache(long sessionId, long blockId, long bytes, BlockStore blockStore,
-      BlockStoreLocation location) throws Exception {
-    TempBlockMeta tempBlockMeta = blockStore.createBlock(sessionId, blockId, location, bytes);
+      BlockStoreLocation location, boolean pinOnCreate) throws Exception {
+    TempBlockMeta tempBlockMeta = blockStore.createBlock(sessionId, blockId,
+        AllocateOptions.forCreate(bytes, location));
     // write data
-    FileUtils.createFile(tempBlockMeta.getPath());
     BlockWriter writer = new LocalFileBlockWriter(tempBlockMeta.getPath());
     writer.append(BufferUtils.getIncreasingByteBuffer(Ints.checkedCast(bytes)));
     writer.close();
 
     // commit block
-    blockStore.commitBlock(sessionId, blockId);
+    blockStore.commitBlock(sessionId, blockId, pinOnCreate);
+  }
+
+  /**
+   * Caches bytes into {@link BlockStore} at specific location.
+   *
+   * @param sessionId session who caches the data
+   * @param blockId id of the cached block
+   * @param options allocation options
+   * @param blockStore block store that the block is written into
+   * @param pinOnCreate whether to pin block on create
+   */
+  public static void cache(long sessionId, long blockId, AllocateOptions options,
+      BlockStore blockStore, boolean pinOnCreate) throws Exception {
+    TempBlockMeta tempBlockMeta = blockStore.createBlock(sessionId, blockId, options);
+    // write data
+    BlockWriter writer = new LocalFileBlockWriter(tempBlockMeta.getPath());
+    writer.append(BufferUtils.getIncreasingByteBuffer(Ints.checkedCast(options.getSize())));
+    writer.close();
+
+    // commit block
+    blockStore.commitBlock(sessionId, blockId, pinOnCreate);
   }
 
   /**
@@ -288,6 +323,50 @@ public final class TieredBlockStoreTestUtils {
   }
 
   /**
+   * Caches bytes into {@link StorageDir}.
+   *
+   * @param sessionId session who caches the data
+   * @param blockId id of the cached block
+   * @param bytes size of the block in bytes
+   * @param dir the {@link StorageDir} the block resides in
+   * @param meta the metadata manager to update meta of the block
+   * @param iterator the iterator to be informed of the new block
+   */
+  public static void cache2(long sessionId, long blockId, long bytes, StorageDir dir,
+      BlockMetadataManager meta, BlockIterator iterator) throws Exception {
+    cache2(sessionId, blockId, bytes, dir, meta, (BlockStoreEventListener) null);
+    if (iterator != null) {
+      for (BlockStoreEventListener listener : iterator.getListeners()) {
+        listener.onCommitBlock(sessionId, blockId, dir.toBlockStoreLocation());
+      }
+    }
+  }
+
+  /**
+   * Caches bytes into {@link StorageDir}.
+   *
+   * @param sessionId session who caches the data
+   * @param blockId id of the cached block
+   * @param bytes size of the block in bytes
+   * @param dir the {@link StorageDir} the block resides in
+   * @param meta the metadata manager to update meta of the block
+   * @param listener the listener to be informed of the new block
+   */
+  public static void cache2(long sessionId, long blockId, long bytes, StorageDir dir,
+      BlockMetadataManager meta, BlockStoreEventListener listener) throws Exception {
+    TempBlockMeta tempBlockMeta = createTempBlock(sessionId, blockId, bytes, dir);
+
+    // commit block.
+    FileUtils.move(tempBlockMeta.getPath(), tempBlockMeta.getCommitPath());
+    meta.commitTempBlockMeta(tempBlockMeta);
+
+    // update iterator if a listener.
+    if (listener != null) {
+      listener.onCommitBlock(sessionId, blockId, dir.toBlockStoreLocation());
+    }
+  }
+
+  /**
    * Makes a temp block of a given size in {@link StorageDir}.
    *
    * @param sessionId session who caches the data
@@ -299,7 +378,7 @@ public final class TieredBlockStoreTestUtils {
   public static TempBlockMeta createTempBlock(long sessionId, long blockId, long bytes,
       StorageDir dir) throws Exception {
     // prepare temp block
-    TempBlockMeta tempBlockMeta = new TempBlockMeta(sessionId, blockId, bytes, dir);
+    TempBlockMeta tempBlockMeta = new DefaultTempBlockMeta(sessionId, blockId, bytes, dir);
     dir.addTempBlockMeta(tempBlockMeta);
 
     // write data

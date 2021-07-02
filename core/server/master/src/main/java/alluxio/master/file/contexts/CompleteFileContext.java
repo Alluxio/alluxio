@@ -20,7 +20,8 @@ import com.google.common.base.MoreObjects;
 /**
  * Used to merge and wrap {@link CompleteFilePOptions}.
  */
-public class CompleteFileContext extends OperationContext<CompleteFilePOptions.Builder> {
+public class CompleteFileContext
+    extends OperationContext<CompleteFilePOptions.Builder, CompleteFileContext> {
 
   private long mOperationTimeMs;
   private UfsStatus mUfsStatus;

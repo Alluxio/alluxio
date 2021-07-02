@@ -64,33 +64,6 @@ public final class ProtoUtils {
   }
 
   /**
-   * A wrapper of
-   * {@link alluxio.proto.journal.Job.TaskInfo.Builder#setResult} to take byte[] as input.
-   *
-   * @param builder the builder to update
-   * @param bytes results bytes to set
-   * @return updated builder
-   */
-  public static alluxio.proto.journal.Job.TaskInfo.Builder setResult(
-          alluxio.proto.journal.Job.TaskInfo.Builder builder, byte[] bytes) {
-    return builder.setResult(com.google.protobuf.ByteString.copyFrom(bytes));
-  }
-
-  /**
-   * A wrapper of
-   * {@link alluxio.proto.journal.Job.StartJobEntry.Builder#setSerializedJobConfig}
-   * to take byte[] as input.
-   *
-   * @param builder the builder to update
-   * @param bytes results bytes to set
-   * @return updated builder
-   */
-  public static alluxio.proto.journal.Job.StartJobEntry.Builder setSerializedJobConfig(
-          alluxio.proto.journal.Job.StartJobEntry.Builder builder, byte[] bytes) {
-    return builder.setSerializedJobConfig(com.google.protobuf.ByteString.copyFrom(bytes));
-  }
-
-  /**
    * Checks whether the exception is an {@link InvalidProtocolBufferException} thrown because of
    * a truncated message.
    *

@@ -17,6 +17,7 @@ import alluxio.conf.ServerConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.RuntimeConstants;
 import alluxio.master.NoopMaster;
+import alluxio.master.NoopUfsManager;
 import alluxio.master.ServiceUtils;
 import alluxio.master.journal.JournalSystem;
 import alluxio.master.journal.JournalUtils;
@@ -110,6 +111,7 @@ public final class Format {
    * @param alluxioConf Alluxio configuration
    */
   public static void format(Mode mode, AlluxioConfiguration alluxioConf) throws IOException {
+    NoopUfsManager noopUfsManager = new NoopUfsManager();
     switch (mode) {
       case MASTER:
         URI journalLocation = JournalUtils.getJournalLocation();
@@ -117,7 +119,7 @@ public final class Format {
         JournalSystem journalSystem = new JournalSystem.Builder()
             .setLocation(journalLocation).build(CommonUtils.ProcessType.MASTER);
         for (String masterServiceName : ServiceUtils.getMasterServiceNames()) {
-          journalSystem.createJournal(new NoopMaster(masterServiceName));
+          journalSystem.createJournal(new NoopMaster(masterServiceName, noopUfsManager));
         }
         journalSystem.format();
         break;

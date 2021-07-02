@@ -12,10 +12,12 @@
 package alluxio.client.meta;
 
 import alluxio.AlluxioURI;
+import alluxio.Client;
 import alluxio.conf.PropertyKey;
+import alluxio.grpc.GetConfigurationPOptions;
+import alluxio.wire.ConfigHash;
 import alluxio.wire.Configuration;
 
-import java.io.Closeable;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
@@ -24,11 +26,17 @@ import java.util.Set;
 /**
  * Interface for a meta master config client.
  */
-public interface MetaMasterConfigClient extends Closeable {
+public interface MetaMasterConfigClient extends Client {
   /**
+   * @param options the options
    * @return the runtime configuration
    */
-  Configuration getConfiguration() throws IOException;
+  Configuration getConfiguration(GetConfigurationPOptions options) throws IOException;
+
+  /**
+   * @return hashes of cluster and path level configurations
+   */
+  ConfigHash getConfigHash() throws IOException;
 
   /**
    * Sets a property for a path.
@@ -67,4 +75,13 @@ public interface MetaMasterConfigClient extends Closeable {
    * @param path the path
    */
   void removePathConfiguration(AlluxioURI path) throws IOException;
+
+  /**
+   * Updates properties.
+   *
+   * @param propertiesMap the properties map to be updated
+   * @return the update properties status map
+   */
+  Map<PropertyKey, Boolean> updateConfiguration(
+      Map<PropertyKey, String> propertiesMap) throws IOException;
 }

@@ -15,6 +15,7 @@ import static org.junit.Assert.assertEquals;
 
 import alluxio.ConfigurationTestUtils;
 import alluxio.conf.InstancedConfiguration;
+import alluxio.security.user.UserState;
 
 import org.junit.After;
 import org.junit.Before;
@@ -142,7 +143,8 @@ public final class HeartbeatThreadTest {
       try (ManuallyScheduleHeartbeat.Resource r =
           new ManuallyScheduleHeartbeat.Resource(Arrays.asList(mThreadName))) {
         DummyHeartbeatExecutor executor = new DummyHeartbeatExecutor();
-        HeartbeatThread ht = new HeartbeatThread(mThreadName, executor, 1, mConfiguration);
+        HeartbeatThread ht = new HeartbeatThread(mThreadName, executor, 1, mConfiguration,
+            UserState.Factory.create(mConfiguration));
 
         // Run the HeartbeatThread.
         mExecutorService.submit(ht);

@@ -9,26 +9,26 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-import {configure, mount, ReactWrapper, shallow, ShallowWrapper} from 'enzyme';
+import { configure, mount, ReactWrapper, shallow, ShallowWrapper } from 'enzyme';
 import Adapter from 'enzyme-adapter-react-16';
-import {createBrowserHistory, History, LocationState} from 'history';
+import { createBrowserHistory, History, LocationState } from 'history';
 import React from 'react';
-import {StaticRouter} from 'react-router';
+import { StaticRouter } from 'react-router';
 
-import {Header, IHeaderProps} from './Header';
+import { Header, IHeaderProps } from './Header';
 
-configure({adapter: new Adapter()});
+configure({ adapter: new Adapter() });
 
 describe('Header', () => {
   let history: History<LocationState>;
   let props: IHeaderProps;
 
   beforeAll(() => {
-    history = createBrowserHistory({keyLength: 0});
+    history = createBrowserHistory({ keyLength: 0 });
     history.push('/');
     props = {
       data: [],
-      history
+      history,
     };
   });
 
@@ -36,11 +36,16 @@ describe('Header', () => {
     let shallowWrapper: ShallowWrapper;
 
     beforeAll(() => {
-      shallowWrapper = shallow(<Header {...props}/>);
+      shallowWrapper = shallow(<Header {...props} />);
     });
 
     it('Renders without crashing', () => {
       expect(shallowWrapper.length).toEqual(1);
+    });
+
+    it('Matches snapshot with newer version', () => {
+      shallowWrapper.setProps({ newerVersionAvailable: true });
+      expect(shallowWrapper).toMatchSnapshot();
     });
 
     it('Matches snapshot', () => {
@@ -50,13 +55,13 @@ describe('Header', () => {
 
   describe('React component', () => {
     let reactWrapper: ReactWrapper;
-    let context = {};
+    const context = {};
 
     beforeAll(() => {
       reactWrapper = mount(
         <StaticRouter location={history.location} context={context}>
-          <Header {...props}/>
-        </StaticRouter>
+          <Header {...props} />
+        </StaticRouter>,
       );
     });
 
