@@ -19,11 +19,11 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import org.junit.Test;
 
-public class UdbInExClusionSpecTest {
+public class UdbMountSpecTest {
   /* Bypassing tests */
   @Test
   public void tableAndPartitionNames() {
-    UdbInExClusionSpec spec = new UdbInExClusionSpec(
+    UdbMountSpec spec = new UdbMountSpec(
         ImmutableMap.of("table1", ImmutableSet.of("part1", "part2")),
         ImmutableSet.of());
     assertTrue(spec.hasBypassedTable("table1"));
@@ -35,7 +35,7 @@ public class UdbInExClusionSpecTest {
 
   @Test
   public void tableNamesOnly() {
-    UdbInExClusionSpec spec = new UdbInExClusionSpec(
+    UdbMountSpec spec = new UdbMountSpec(
         ImmutableMap.of("table2", ImmutableSet.of()),
         ImmutableSet.of());
     assertTrue(spec.hasBypassedTable("table2"));
@@ -47,7 +47,7 @@ public class UdbInExClusionSpecTest {
 
   @Test
   public void nonExistentTable() {
-    UdbInExClusionSpec spec = new UdbInExClusionSpec(
+    UdbMountSpec spec = new UdbMountSpec(
         ImmutableMap.of("table3", ImmutableSet.of()),
         ImmutableSet.of());
     assertFalse(spec.hasBypassedTable("table4"));
@@ -60,7 +60,7 @@ public class UdbInExClusionSpecTest {
   /* Ignoring tests */
   @Test
   public void ignoredTables() {
-    UdbInExClusionSpec spec = new UdbInExClusionSpec(
+    UdbMountSpec spec = new UdbMountSpec(
         ImmutableMap.of(),
         ImmutableSet.of("table1"));
     assertTrue(spec.hasIgnoredTable("table1"));

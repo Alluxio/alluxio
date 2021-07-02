@@ -16,7 +16,7 @@ import alluxio.collections.ConcurrentHashSet;
 import alluxio.conf.ServerConfiguration;
 import alluxio.exception.status.NotFoundException;
 import alluxio.grpc.table.PrincipalType;
-import alluxio.table.common.udb.UdbInExClusionSpec;
+import alluxio.table.common.udb.UdbMountSpec;
 import alluxio.table.common.udb.UdbConfiguration;
 import alluxio.table.common.udb.UdbContext;
 import alluxio.table.common.udb.UdbTable;
@@ -112,7 +112,7 @@ public class TestDatabase implements UnderDatabase {
   }
 
   @Override
-  public UdbTable getTable(String tableName, UdbInExClusionSpec bypassSpec) throws IOException {
+  public UdbTable getTable(String tableName, UdbMountSpec mountSpec) throws IOException {
     checkDbName();
     if (!mUdbTables.containsKey(tableName)) {
       throw new NotFoundException("Table " + tableName + " does not exist.");

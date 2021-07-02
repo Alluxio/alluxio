@@ -14,7 +14,7 @@ package alluxio.master.table;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
-import alluxio.table.common.udb.UdbInExClusionSpec;
+import alluxio.table.common.udb.UdbMountSpec;
 
 import com.google.common.collect.ImmutableList;
 import org.junit.Before;
@@ -113,11 +113,11 @@ public class DbConfigTest {
   public void convertToSpec() throws Exception {
     DbConfig config =
         mMapper.readValue("{\"bypass\": {\"tables\": [\"table1\"]}}", DbConfig.class);
-    UdbInExClusionSpec spec = config.getUdbInExClusionSpec();
+    UdbMountSpec spec = config.getUdbMountSpec();
     assertTrue(spec.hasFullyBypassedTable("table1"));
     config =
         mMapper.readValue("{\"ignore\": {\"tables\": [\"table1\"]}}", DbConfig.class);
-    spec = config.getUdbInExClusionSpec();
+    spec = config.getUdbMountSpec();
     assertTrue(spec.hasIgnoredTable("table1"));
     assertEquals(ImmutableSet.of("table1"), spec.getIgnoredTables());
   }

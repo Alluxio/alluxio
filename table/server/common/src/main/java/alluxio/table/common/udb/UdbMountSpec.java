@@ -17,7 +17,7 @@ import java.util.Set;
 /**
  * Tables and partitions inclusion and exclusion specification.
  */
-public final class UdbInExClusionSpec {
+public final class UdbMountSpec {
   /**
    * Map of table name to set of partition names.
    * Keyed by a table's name, the value set contains names of partitions in that table.
@@ -35,7 +35,7 @@ public final class UdbInExClusionSpec {
    * @param bypassed bypassed table to partition map
    * @param ignored ignored tables set
    */
-  public UdbInExClusionSpec(Map<String, Set<String>> bypassed, Set<String> ignored) {
+  public UdbMountSpec(Map<String, Set<String>> bypassed, Set<String> ignored) {
     mBypassed = bypassed;
     mIgnored = ignored;
   }
@@ -45,7 +45,7 @@ public final class UdbInExClusionSpec {
    *
    * @param tableName the table name
    * @return true if the table is configured to be bypassed, false otherwise
-   * @see UdbInExClusionSpec#hasFullyBypassedTable(String)
+   * @see UdbMountSpec#hasFullyBypassedTable(String)
    */
   public boolean hasBypassedTable(String tableName) {
     return mBypassed.containsKey(tableName);
@@ -56,7 +56,7 @@ public final class UdbInExClusionSpec {
    *
    * @param tableName the table name
    * @return true if the table is configured to be fully bypassed, false otherwise
-   * @see UdbInExClusionSpec#hasBypassedTable(String)
+   * @see UdbMountSpec#hasBypassedTable(String)
    */
   public boolean hasFullyBypassedTable(String tableName) {
     // empty set indicates all partitions should be bypassed

@@ -11,7 +11,7 @@
 
 package alluxio.master.table;
 
-import alluxio.table.common.udb.UdbInExClusionSpec;
+import alluxio.table.common.udb.UdbMountSpec;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -77,13 +77,13 @@ public final class DbConfig {
   }
 
   /**
-   * @return the {@link UdbInExClusionSpec} object
+   * @return the {@link UdbMountSpec} object
    */
-  public UdbInExClusionSpec getUdbInExClusionSpec() {
+  public UdbMountSpec getUdbMountSpec() {
     Map<String, Set<String>> bypassed = mBypassEntry.getTableEntries().stream().collect(
         Collectors.toMap(TableEntry::getTable, TableEntry::getPartitions));
     Set<String> ignored = mIgnoreEntry.getTableNames();
-    return new UdbInExClusionSpec(bypassed, ignored);
+    return new UdbMountSpec(bypassed, ignored);
   }
 
   /**
