@@ -11,8 +11,9 @@
 
 package alluxio.master.file.meta;
 
+import static alluxio.conf.PropertyKey.MASTER_METRICS_FILE_SIZE_DISTRIBUTION_BUCKETS;
+
 import alluxio.ProcessUtils;
-import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.master.journal.JournalContext;
 import alluxio.master.journal.JournalUtils;
@@ -40,13 +41,12 @@ import alluxio.resource.CloseableIterator;
 import alluxio.resource.LockResource;
 import alluxio.security.authorization.AclEntry;
 import alluxio.security.authorization.DefaultAccessControlList;
+import alluxio.util.BucketCounter;
+import alluxio.util.FormatUtils;
 import alluxio.util.StreamUtils;
 import alluxio.util.proto.ProtoUtils;
 
 import com.google.common.base.Preconditions;
-import org.HdrHistogram.Histogram;
-import org.HdrHistogram.Recorder;
-import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -57,12 +57,13 @@ import java.nio.file.Paths;
 import java.util.ArrayDeque;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Queue;
 import java.util.Set;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 /**
  * Class for managing persistent inode tree state.
@@ -102,11 +103,7 @@ public class InodeTreePersistentState implements Journaled {
   // TODO(andrew): Move ownership of the ttl bucket list to this class
   private final TtlBucketList mTtlBuckets;
 
-  private Histogram mCreatedFileHistogram;
-  private Histogram mRemovedFileHistogram;
-  private final Histogram mFileSizeHistogram;
-  private final Recorder mCreatedFileRecorder;
-  private final Recorder mRemovedFileRecorder;
+  private final BucketCounter mBucketCounter;
 
   /**
    * @param inodeStore file store which holds inode metadata
@@ -119,11 +116,9 @@ public class InodeTreePersistentState implements Journaled {
     mInodeStore = inodeStore;
     mInodeLockManager = lockManager;
     mTtlBuckets = ttlBucketList;
-    mCreatedFileHistogram = null;
-    mRemovedFileHistogram = null;
-    mFileSizeHistogram = new Histogram(2);
-    mRemovedFileRecorder = new Recorder(2);
-    mCreatedFileRecorder = new Recorder(2);
+    mBucketCounter = new BucketCounter(
+        ServerConfiguration.getList(MASTER_METRICS_FILE_SIZE_DISTRIBUTION_BUCKETS, ",")
+            .stream().map(FormatUtils::parseSpaceSize).collect(Collectors.toList()));
   }
 
   /**
@@ -151,29 +146,14 @@ public class InodeTreePersistentState implements Journaled {
    * @return the number of inodes in the tree
    */
   public long getInodeCount() {
-    return mInodeCounter.get();
+    return mInodeCounter.longValue();
   }
 
   /**
    * @return the file size distribution in the tree
    */
-  public Histogram getFileSizeHistogram() {
-    synchronized (mFileSizeHistogram) {
-      try {
-        mRemovedFileHistogram = mRemovedFileRecorder.getIntervalHistogram(mRemovedFileHistogram);
-        mCreatedFileHistogram = mCreatedFileRecorder.getIntervalHistogram(mCreatedFileHistogram);
-        mFileSizeHistogram.add(mCreatedFileHistogram);
-        if (mFileSizeHistogram.getTotalCount() != 0
-            && mRemovedFileHistogram.getTotalCount() != 0) {
-          mFileSizeHistogram.subtract(mRemovedFileHistogram);
-        }
-        return mFileSizeHistogram.copy();
-      } catch (Exception e) {
-        LOG.info("Unexpected exception in generating file size histogram\n"
-            + e.getMessage() + "\n" + ExceptionUtils.getStackTrace(e));
-        throw e;
-      }
-    }
+  public Map<Long, Number> getFileSizeHistogram() {
+    return mBucketCounter.getCounters();
   }
 
   /**
@@ -358,22 +338,22 @@ public class InodeTreePersistentState implements Journaled {
       while (!dirsToDelete.isEmpty()) {
         InodeDirectory dir = dirsToDelete.poll();
         mInodeStore.removeInodeAndParentEdge(inode);
-        mInodeCounter.decrementAndGet();
+        mInodeCounter.decrement();
         for (Inode child : mInodeStore.getChildren(dir)) {
           if (child.isDirectory()) {
             dirsToDelete.add(child.asDirectory());
           } else {
             mInodeStore.removeInodeAndParentEdge(inode);
-            mInodeCounter.decrementAndGet();
+            mInodeCounter.decrement();
           }
         }
       }
     } else {
       mInodeStore.removeInodeAndParentEdge(inode);
-      mInodeCounter.decrementAndGet();
+      mInodeCounter.decrement();
     }
     if (inode.isFile()) {
-      mRemovedFileRecorder.recordValue(inode.asFile().getLength());
+      mBucketCounter.remove(inode.asFile().getLength());
     }
     updateTimestampsAndChildCount(inode.getParentId(), entry.getOpTimeMs(), -1);
     mPinnedInodeFileIds.remove(id);
@@ -442,39 +422,37 @@ public class InodeTreePersistentState implements Journaled {
     if (entry.hasTtl()) {
       mTtlBuckets.insert(Inode.wrap(inode));
     }
-    if (entry.hasPinned() && inode.isFile()) {
-      if (entry.getPinned()) {
-        MutableInodeFile file = inode.asFile();
-        List<String> mediaList = ServerConfiguration.getList(
-            PropertyKey.MASTER_TIERED_STORE_GLOBAL_MEDIUMTYPE, ",");
-        if (entry.getMediumTypeList().isEmpty()) {
-          // if user does not specify a pinned media list, any location is OK
-          file.setMediumTypes(new HashSet<>());
-        } else {
-          for (String medium : entry.getMediumTypeList()) {
-            if (mediaList.contains(medium)) {
-              file.getMediumTypes().add(medium);
-            }
-          }
-        }
-        // when we pin a file with default min replication (zero), we bump the min replication
-        // to one in addition to setting pinned flag, and adjust the max replication if it is
-        // smaller than min replication.
-        if (file.getReplicationMin() == 0) {
-          file.setReplicationMin(1);
-          if (file.getReplicationMax() == 0) {
-            file.setReplicationMax(alluxio.Constants.REPLICATION_MAX_INFINITY);
-          }
-        }
-        mPinnedInodeFileIds.add(entry.getId());
-      } else {
-        // when we unpin a file, set the min replication to zero too.
-        inode.asFile().setReplicationMin(0);
-        mPinnedInodeFileIds.remove(entry.getId());
-      }
+    if (inode.isFile() && entry.hasPinned()) {
+      setReplicationForPin(inode, entry.getPinned());
     }
     mInodeStore.writeInode(inode);
     updateToBePersistedIds(inode);
+  }
+
+  private void setReplicationForPin(MutableInode<?> inode, boolean pinned) {
+    if (inode.isFile()) {
+      MutableInodeFile file = inode.asFile();
+      if (pinned) {
+        // when we pin a file with default min replication (zero), we bump the min replication
+        // to one in addition to setting pinned flag, and adjust the max replication if it is
+        // smaller than min replication.
+        file.setPinned(true);
+        if (file.getReplicationMin() == 0) {
+          file.setReplicationMin(1);
+        }
+        if (file.getReplicationMax() == 0) {
+          file.setReplicationMax(alluxio.Constants.REPLICATION_MAX_INFINITY);
+        }
+        mPinnedInodeFileIds.add(inode.getId());
+      } else {
+        // when we unpin a file, set the min replication to zero too.
+        file.setReplicationMin(0);
+        mPinnedInodeFileIds.remove(file.getId());
+      }
+      if (file.getReplicationMax() != alluxio.Constants.REPLICATION_MAX_INFINITY) {
+        mReplicationLimitedFileIds.add(file.getId());
+      }
+    }
   }
 
   /**
@@ -505,9 +483,12 @@ public class InodeTreePersistentState implements Journaled {
         mReplicationLimitedFileIds.add(inode.getId());
       }
     }
+    if (inode.asFile().isCompleted()) {
+      mBucketCounter.remove(inode.asFile().getLength());
+    }
     inode.asFile().updateFromEntry(entry);
     mInodeStore.writeInode(inode);
-    mCreatedFileRecorder.recordValue(inode.asFile().getLength());
+    mBucketCounter.insert(inode.asFile().getLength());
   }
 
   ////
@@ -583,7 +564,8 @@ public class InodeTreePersistentState implements Journaled {
       // This is the root inode. Clear all the state, and set the root.
       mInodeStore.clear();
       mInodeStore.writeNewInode(inode);
-      mInodeCounter.set(1);
+      mInodeCounter.reset();
+      mInodeCounter.increment();
       mPinnedInodeFileIds.clear();
       mReplicationLimitedFileIds.clear();
       mToBePersistedIds.clear();
@@ -594,27 +576,20 @@ public class InodeTreePersistentState implements Journaled {
     // inode should be added to the inode store before getting added to its parent list, because it
     // becomes visible at this point.
     mInodeStore.writeNewInode(inode);
-    mInodeCounter.incrementAndGet();
+    mInodeCounter.increment();
     mInodeStore.addChild(inode.getParentId(), inode);
     // Only update size, last modified time is updated separately.
     updateTimestampsAndChildCount(inode.getParentId(), Long.MIN_VALUE, 1);
     if (inode.isFile()) {
-      MutableInodeFile file = inode.asFile();
-      if (file.getReplicationMin() > 0) {
-        mPinnedInodeFileIds.add(file.getId());
-        file.setPinned(true);
-      }
-      if (file.getReplicationMax() != alluxio.Constants.REPLICATION_MAX_INFINITY) {
-        mReplicationLimitedFileIds.add(file.getId());
-      }
-    }
-    // Update indexes.
-    if (inode.isFile() && inode.isPinned()) {
-      mPinnedInodeFileIds.add(inode.getId());
+      boolean pinned = inode.asFile().isPinned() || inode.asFile().getReplicationMin() > 0;
+      setReplicationForPin(inode, pinned);
     }
     // Add the file to TTL buckets, the insert automatically rejects files w/ Constants.NO_TTL
     mTtlBuckets.insert(Inode.wrap(inode));
     updateToBePersistedIds(inode);
+    if (inode.isFile() && inode.asFile().isCompleted()) {
+      mBucketCounter.insert(inode.asFile().getLength());
+    }
   }
 
   private void applyRename(RenameEntry entry) {

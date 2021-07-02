@@ -235,9 +235,9 @@ Alluxio workers require modest amounts of memory for metadata because off-heap s
 However, data transfer will create buffers that consume heap or direct memory.
 We recommend about 64MB (from the heap or direct memory) per expected concurrent client.
 
-As a beginning, you can set both to 32G and tune up when you see the worker running out of heap/direct memory. 
+As a beginning, you can set both to 8G and tune up when you see the worker running out of heap/direct memory. 
 ```properties
-ALLUXIO_WORKER_JAVA_OPTS+=" -Xms32g -Xmx32g -XX:MaxDirectMemorySize=32g"
+ALLUXIO_WORKER_JAVA_OPTS+=" -Xms8g -Xmx8g -XX:MaxDirectMemorySize=8g"
 ```
 
 ### Number of Cores

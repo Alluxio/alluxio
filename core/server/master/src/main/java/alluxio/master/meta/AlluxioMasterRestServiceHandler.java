@@ -134,7 +134,7 @@ public final class AlluxioMasterRestServiceHandler {
   // endpoints
   public static final String GET_INFO = "info";
 
-  // webui endpoints // TODO(william): DRY up these enpoints
+  // webui endpoints // TODO(william): DRY up these endpoints
   public static final String WEBUI_INIT = "webui_init";
   public static final String WEBUI_OVERVIEW = "webui_overview";
   public static final String WEBUI_BROWSE = "webui_browse";
@@ -291,7 +291,7 @@ public final class AlluxioMasterRestServiceHandler {
         long capacityBytes = mountInfo.getUfsCapacityBytes();
         long usedBytes = mountInfo.getUfsUsedBytes();
         long freeBytes = -1;
-        if (capacityBytes >= 0 && usedBytes >= 0 && capacityBytes >= usedBytes) {
+        if (usedBytes >= 0 && capacityBytes >= usedBytes) {
           freeBytes = capacityBytes - usedBytes;
         }
 
@@ -378,7 +378,7 @@ public final class AlluxioMasterRestServiceHandler {
               relativeOffset = Long.parseLong(requestOffset);
             }
           } catch (NumberFormatException e) {
-            relativeOffset = 0;
+            // ignore the exception
           }
           // If no param "end" presents, the offset is relative to the beginning; otherwise, it is
           // relative to the end of the file.
@@ -510,7 +510,7 @@ public final class AlluxioMasterRestServiceHandler {
         }
         fileInfos.add(toAdd);
       }
-      Collections.sort(fileInfos, UIFileInfo.PATH_STRING_COMPARE);
+      fileInfos.sort(UIFileInfo.PATH_STRING_COMPARE);
 
       response.setNTotalFile(fileInfos.size());
 
@@ -658,7 +658,7 @@ public final class AlluxioMasterRestServiceHandler {
                 new MasterStorageTierAssoc().getOrderedStorageAliases()));
           }
         }
-        Collections.sort(fileInfos, UIFileInfo.PATH_STRING_COMPARE);
+        fileInfos.sort(UIFileInfo.PATH_STRING_COMPARE);
         response.setNTotalFile(fileInfos.size());
 
         try {
@@ -691,20 +691,18 @@ public final class AlluxioMasterRestServiceHandler {
 
         try {
           long fileSize = logFile.length();
-          String offsetParam = requestOffset;
           long relativeOffset = 0;
           long offset;
           try {
-            if (offsetParam != null) {
-              relativeOffset = Long.parseLong(offsetParam);
+            if (requestOffset != null) {
+              relativeOffset = Long.parseLong(requestOffset);
             }
           } catch (NumberFormatException e) {
-            relativeOffset = 0;
+            // ignore the exception
           }
-          String endParam = requestEnd;
           // If no param "end" presents, the offset is relative to the beginning; otherwise, it is
           // relative to the end of the file.
-          if (endParam.equals("")) {
+          if (requestEnd.equals("")) {
             offset = relativeOffset;
           } else {
             offset = fileSize - relativeOffset;
@@ -996,11 +994,11 @@ public final class AlluxioMasterRestServiceHandler {
                 ufsUnescaped, new TreeMap<>());
             String alluxioOperation = alluxio.metrics.Metric.getBaseName(metricName)
                 .substring(UFS_OP_SAVED_PREFIX.length());
-            String equavalentOp = DefaultFileSystemMaster.Metrics.UFS_OPS_DESC.get(
+            String equivalentOp = DefaultFileSystemMaster.Metrics.UFS_OPS_DESC.get(
                 DefaultFileSystemMaster.Metrics.UFSOps.valueOf(alluxioOperation));
-            if (equavalentOp != null) {
+            if (equivalentOp != null) {
               alluxioOperation = String.format("%s (Roughly equivalent to %s operation)",
-                  alluxioOperation, equavalentOp);
+                  alluxioOperation, equivalentOp);
             }
             perUfsMap.put(alluxioOperation, entry.getValue().getCount());
             ufsOpsSavedMap.put(ufsUnescaped, perUfsMap);

@@ -15,7 +15,7 @@
   <parent>
     <groupId>org.alluxio</groupId>
     <artifactId>alluxio-shaded</artifactId>
-    <version>2.6.0-SNAPSHOT</version>
+    <version>2.7.0-SNAPSHOT</version>
   </parent>
   <artifactId>alluxio-shaded-hadoop</artifactId>
   <packaging>jar</packaging>
@@ -159,10 +159,6 @@
                 <relocation>
                   <pattern>org.apache.curator</pattern>
                   <shadedPattern>${shading.prefix}.org.apache.curator</shadedPattern>
-                </relocation>
-                <relocation>
-                  <pattern>org.apache.hadoop.io.erasurecode</pattern>
-                  <shadedPattern>${shading.prefix}.org.apache.hadoop.io.erasurecode</shadedPattern>
                 </relocation>
                 <relocation>
                   <pattern>org.apache.http</pattern>

@@ -126,7 +126,7 @@ $ python classify_image.py --model_dir /mnt/fuse/imagenet/
 ```
 
 This will use the input data in `/mnt/fuse/imagenet/inception-2015-12-05.tgz` to recognize images,  write some intermediate data to `/mnt/fuse/imagenet` 
-and if everything worked successfully you will see in your command prompt:
+and if everything works you will see in your command prompt:
 
 ```
 giant panda, panda, panda bear, coon bear, Ailuropoda melanoleuca (score = 0.89107)

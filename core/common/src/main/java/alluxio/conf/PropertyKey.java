@@ -125,6 +125,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     private ConsistencyCheckLevel mConsistencyCheckLevel = ConsistencyCheckLevel.IGNORE;
     private Scope mScope = Scope.ALL;
     private DisplayType mDisplayType = DisplayType.DEFAULT;
+    private boolean mIsDynamic = true;
 
     /**
      * @param name name of the property
@@ -251,6 +252,15 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     }
 
     /**
+     * @param dynamic whether the property could be updated dynamically
+     * @return the updated builder instance
+     */
+    public Builder setIsDynamic(boolean dynamic) {
+      mIsDynamic = dynamic;
+      return this;
+    }
+
+    /**
      * Creates and registers the property key.
      *
      * @return the created property key instance
@@ -278,7 +288,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
 
       PropertyKey key = new PropertyKey(mName, mDescription, defaultSupplier, mAlias,
           mIgnoredSiteProperty, mIsHidden, mConsistencyCheckLevel, mScope, mDisplayType,
-          mIsBuiltIn);
+          mIsBuiltIn, mIsDynamic);
       return key;
     }
 
@@ -297,6 +307,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDefaultValue(String.format("${%s}/conf", Name.HOME))
           .setDescription("The directory containing files used to configure Alluxio.")
           .setIgnoredSiteProperty(true)
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.ALL)
+          .build();
+  public static final PropertyKey CONF_DYNAMIC_UPDATE_ENABLED =
+      new Builder(Name.CONF_DYNAMIC_UPDATE_ENABLED)
+          .setDefaultValue(false)
+          .setDescription("Whether to support dynamic update property.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.ALL)
           .build();
@@ -1518,7 +1535,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey MASTER_BACKUP_STATE_LOCK_INTERRUPT_CYCLE_ENABLED =
       new Builder(Name.MASTER_BACKUP_STATE_LOCK_INTERRUPT_CYCLE_ENABLED)
-          .setDefaultValue(true)
+          .setDefaultValue(false)
           .setDescription("This controls whether RPCs that are waiting/holding state-lock "
               + "in shared-mode will be interrupted while state-lock is taken exclusively.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
@@ -1946,11 +1963,11 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.MASTER)
           .build();
-  // 350 bytes per inode cache key and * 2 for the existence of edge cache and some leeway
+  // 2k bytes per inode cache key and * 2 for the existence of edge cache and some leeway
   public static final PropertyKey MASTER_METASTORE_INODE_CACHE_MAX_SIZE =
       new Builder(Name.MASTER_METASTORE_INODE_CACHE_MAX_SIZE)
           .setDefaultValue(Math.min(Integer.MAX_VALUE / 2,
-              Runtime.getRuntime().maxMemory() / 350 / 2))
+              Runtime.getRuntime().maxMemory() / 2000 / 2))
           .setDescription("The number of inodes to cache on-heap. "
               + "This only applies to off-heap metastores, e.g. ROCKS. Set this to 0 to disable "
               + "the on-heap inode cache")
@@ -2039,6 +2056,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       new Builder(Name.MASTER_METRICS_HEAP_ENABLED)
           .setDefaultValue(true)
           .setDescription("Enable master heap estimate metrics")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.MASTER)
+          .build();
+
+  public static final PropertyKey MASTER_METRICS_FILE_SIZE_DISTRIBUTION_BUCKETS =
+      new Builder(Name.MASTER_METRICS_FILE_SIZE_DISTRIBUTION_BUCKETS)
+          .setDefaultValue("1KB,1MB,10MB,100MB,1GB,10GB")
+          .setDescription("Master metrics file size buckets")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
@@ -2399,7 +2424,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey MASTER_TIERED_STORE_GLOBAL_MEDIUMTYPE =
       new Builder(Name.MASTER_TIERED_STORE_GLOBAL_MEDIUMTYPE)
-          .setDefaultValue("MEM, SSD, HDD")
+          .setDefaultValue("MEM,SSD,HDD")
           .setDescription("The list of medium types we support in the system.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.MASTER)
@@ -4052,6 +4077,26 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
+  public static final PropertyKey USER_CLIENT_CACHE_SHADOW_ENABLED =
+      new Builder(Name.USER_CLIENT_CACHE_SHADOW_ENABLED).setDefaultValue(false).setDescription(
+          "If this is enabled, a shadow cache will be created to tracking the working set of "
+              + "a past time window, and measure the hit ratio if the working set fits the cache")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN).setScope(Scope.CLIENT).build();
+  public static final PropertyKey USER_CLIENT_CACHE_SHADOW_WINDOW =
+      new Builder(Name.USER_CLIENT_CACHE_SHADOW_WINDOW).setDefaultValue("24h")
+          .setDescription(
+              "The past time window for the shadow cache to tracking the working set, and it is "
+                  + "in the unit of second")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN).setScope(Scope.CLIENT).build();
+  public static final PropertyKey USER_CLIENT_CACHE_SHADOW_MEMORY_OVERHEAD =
+      new Builder(Name.USER_CLIENT_CACHE_SHADOW_MEMORY_OVERHEAD).setDefaultValue("125MB")
+          .setDescription("The total memory overhead for bloom filters used for tracking")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN).setScope(Scope.CLIENT).build();
+  public static final PropertyKey USER_CLIENT_CACHE_SHADOW_BLOOMFILTER_NUM =
+      new Builder(Name.USER_CLIENT_CACHE_SHADOW_BLOOMFILTER_NUM).setDefaultValue(4)
+          .setDescription(
+              "The number of bloom filters used for tracking. Each tracks a segment of window")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN).setScope(Scope.CLIENT).build();
   public static final PropertyKey USER_CLIENT_CACHE_DIR =
       new Builder(Name.USER_CLIENT_CACHE_DIR)
           .setDefaultValue("/tmp/alluxio_cache")
@@ -4856,6 +4901,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "authentication is enabled. Server trusts whoever the client claims to be.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.ALL)
+          .setIsDynamic(false)
           .build();
   public static final PropertyKey SECURITY_AUTHORIZATION_PERMISSION_ENABLED =
       new Builder(Name.SECURITY_AUTHORIZATION_PERMISSION_ENABLED)
@@ -4863,6 +4909,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDescription("Whether to enable access control based on file permission.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.ALL)
+          .setIsDynamic(false)
           .build();
   public static final PropertyKey SECURITY_AUTHORIZATION_PERMISSION_SUPERGROUP =
       new Builder(Name.SECURITY_AUTHORIZATION_PERMISSION_SUPERGROUP)
@@ -5280,6 +5327,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   @ThreadSafe
   public static final class Name {
     public static final String CONF_DIR = "alluxio.conf.dir";
+    public static final String CONF_DYNAMIC_UPDATE_ENABLED =
+        "alluxio.conf.dynamic.update.enabled";
     public static final String CONF_VALIDATION_ENABLED = "alluxio.conf.validation.enabled";
     public static final String DEBUG = "alluxio.debug";
     public static final String EXTENSIONS_DIR = "alluxio.extensions.dir";
@@ -5680,6 +5729,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.metrics.service.threads";
     public static final String MASTER_METRICS_TIME_SERIES_INTERVAL =
         "alluxio.master.metrics.time.series.interval";
+    public static final String MASTER_METRICS_FILE_SIZE_DISTRIBUTION_BUCKETS =
+        "alluxio.master.metrics.file.size.distribution.buckets";
     public static final String MASTER_NETWORK_MAX_INBOUND_MESSAGE_SIZE =
         "alluxio.master.network.max.inbound.message.size";
     public static final String MASTER_PERSISTENCE_INITIAL_INTERVAL_MS =
@@ -6008,6 +6059,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.user.client.cache.evictor.lfu.logbase";
     public static final String USER_CLIENT_CACHE_EVICTOR_NONDETERMINISTIC_ENABLED =
         "alluxio.user.client.cache.evictor.nondeterministic.enabled";
+    public static final String USER_CLIENT_CACHE_SHADOW_ENABLED =
+        "alluxio.user.client.cache.shadow.enabled";
+    public static final String USER_CLIENT_CACHE_SHADOW_WINDOW =
+        "alluxio.user.client.cache.shadow.window";
+    public static final String USER_CLIENT_CACHE_SHADOW_MEMORY_OVERHEAD =
+        "alluxio.user.client.cache.shadow.memory.overhead";
+    public static final String USER_CLIENT_CACHE_SHADOW_BLOOMFILTER_NUM =
+        "alluxio.user.client.cache.shadow.bloomfilter.num";
     public static final String USER_CLIENT_CACHE_DIR =
         "alluxio.user.client.cache.dir";
     public static final String USER_CLIENT_CACHE_LOCAL_STORE_FILE_BUCKETS =
@@ -6638,6 +6697,9 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   /** The displayType which indicates how the property value should be displayed. **/
   private final DisplayType mDisplayType;
 
+  /** Whether the property could be updated dynamically. */
+  private final boolean mDynamic;
+
   /**
    * @param name String of this property
    * @param description String description of this property key
@@ -6654,7 +6716,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   private PropertyKey(String name, String description, DefaultSupplier defaultSupplier,
       String[] aliases, boolean ignoredSiteProperty, boolean isHidden,
       ConsistencyCheckLevel consistencyCheckLevel, Scope scope, DisplayType displayType,
-      boolean isBuiltIn) {
+      boolean isBuiltIn, boolean dynamic) {
     mName = Preconditions.checkNotNull(name, "name");
     // TODO(binfan): null check after we add description for each property key
     mDescription = Strings.isNullOrEmpty(description) ? "N/A" : description;
@@ -6666,6 +6728,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     mScope = scope;
     mDisplayType = displayType;
     mIsBuiltIn = isBuiltIn;
+    mDynamic = dynamic;
   }
 
   /**
@@ -6673,7 +6736,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
    */
   private PropertyKey(String name) {
     this(name, null, new DefaultSupplier(() -> null, "null"), null, false, false,
-        ConsistencyCheckLevel.IGNORE, Scope.ALL, DisplayType.DEFAULT, true);
+        ConsistencyCheckLevel.IGNORE, Scope.ALL, DisplayType.DEFAULT, true, true);
   }
 
   /**
@@ -6821,6 +6884,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
    */
   public boolean isBuiltIn() {
     return mIsBuiltIn;
+  }
+
+  /**
+   * @return true if this property can be updated dynamically during runtime
+   */
+  public boolean isDynamic() {
+    return mDynamic;
   }
 
   /**

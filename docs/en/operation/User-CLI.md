@@ -246,7 +246,7 @@ for more examples.
 > You are not able to set the logger level on the standby masters.
 > The standby masters/job masters do not have a running web server.
 > So they are not accepting the requests from this command.
-> If you want to modify the logger level for standby masters, 
+> If you want to modify the logger level for standby masters,
 > update the `log4j.properties` and restart the process.
 
 ### runClass
@@ -302,7 +302,7 @@ The `runJournalCrashTest` simulates a failover to test recovery from the journal
 
 ### runHmsTests
 
-The `runHmsTests` aims to validate the configuration, connectivity, and permissions of an existing hive metastore 
+The `runHmsTests` aims to validate the configuration, connectivity, and permissions of an existing hive metastore
 which is an important component in compute workflows with Alluxio.
 
 * `-h` provides detailed guidance.
@@ -312,7 +312,7 @@ which is an important component in compute workflows with Alluxio.
 * `-st <timeout>` socket timeout of hive metastore client in minutes.
 
 ```console
-$ ./bin/alluxio runHmsTests -m thrift://<hms_host>:<hms_port> -d tpcds -t store_sales,web_sales 
+$ ./bin/alluxio runHmsTests -m thrift://<hms_host>:<hms_port> -d tpcds -t store_sales,web_sales
 ```
 
 This tool is suggested to run from compute application environments and checks
@@ -325,7 +325,7 @@ This tool is suggested to run from compute application environments and checks
 ### runHdfsMountTests
 
 The `runHdfsMountTests` command aims to validate the configuration, connectivity and permissions of an HDFS path.
-It validates various aspects for connecting to HDFS with the given Alluxio configurations and identifies issues 
+It validates various aspects for connecting to HDFS with the given Alluxio configurations and identifies issues
 before the path is mounted to Alluxio.
 This tool will validate a few criteria and return the feedback.
 If a test failed, advice will be given correspondingly on how the user can rectify the setup.
@@ -337,7 +337,7 @@ Usage: `runHdfsMountTests [--readonly] [--shared] [--option <key=val>] <hdfsURI>
 * `--option <key>=<val>` passes an property to this mount point.
 * `<hdfs-path>` (required) specifies the HDFS path you want to validate (then mount to Alluxio)
 
-The arguments to this command should be consistent to what you give to the 
+The arguments to this command should be consistent to what you give to the
 [Mount command](#mount), in order to validate the setup for the mount.
 
 ```console
@@ -352,7 +352,7 @@ $ bin/alluxio runHdfsMountTests --readonly --option alluxio.underfs.version=2.7 
   hdfs://<hdfs-path>
 ```
 
-> Note: This command DOES NOT mount the HDFS path to Alluxio. 
+> Note: This command DOES NOT mount the HDFS path to Alluxio.
 > This command does not require the Alluxio cluster to be running.
 
 ### runUfsIOTest
@@ -366,13 +366,13 @@ Usage: `runUfsIOTest --path <hdfs-path> [--io-size <io-size>] [--threads <thread
 * `--threads <thread-num>` specifies the number of threads to concurrently use on each worker. It defaults to 4.
 * `--cluster` specifies the benchmark is run in the Alluxio cluster. If not specified, this benchmark will run locally.
 * `--cluster-limit <worker-num>` specifies how many Alluxio workers to run the benchmark concurrently.
-       If `>0`, it will only run on that number of workers. 
-       If `0`, it will run on all available cluster workers. 
-       If `<0`, will run on the workers from the end of the worker list. 
+       If `>0`, it will only run on that number of workers.
+       If `0`, it will run on all available cluster workers.
+       If `<0`, will run on the workers from the end of the worker list.
        This flag is only used if `--cluster` is enabled.
        This default to 0.
-* `--java-opt <java-opt>` The java options to add to the command line to for the task. 
-       This can be repeated. The options must be quoted and prefixed with a space. 
+* `--java-opt <java-opt>` The java options to add to the command line to for the task.
+       This can be repeated. The options must be quoted and prefixed with a space.
        For example: `--java-opt " -Xmx4g" --java-opt " -Xms2g"`.
 
 Examples:
@@ -381,7 +381,7 @@ Examples:
 $ bin/alluxio runUfsIOTest --path hdfs://<hdfs-address>
 
 # This invokes the I/O benchmark to HDFS in the Alluxio cluster
-# 1 worker will be used. 4 threads will be created, each writing then reading 4G of data 
+# 1 worker will be used. 4 threads will be created, each writing then reading 4G of data
 $ bin/alluxio runUfsIOTest --path hdfs://<hdfs-address> --cluster --cluster-limit 1
 
 # This invokes the I/O benchmark to HDFS in the Alluxio cluster
@@ -819,7 +819,7 @@ If the source designates a directory, `distributedCp` copies the entire subtree 
 
 Options:
 * `--active-jobs`: Limits how many jobs can be submitted to the Alluxio job service at the same time.
-Later jobs must wait until some earlier jobs to finish. The default value is `3000`. 
+Later jobs must wait until some earlier jobs to finish. The default value is `3000`.
 A lower value means slower execution but also being nicer to the other users of the job service.
 
 ```console
@@ -828,7 +828,7 @@ $ ./bin/alluxio fs distributedCp --active-jobs 2000 /data/1023 /data/1024
 
 ### distributedLoad
 
-The `distributedLoad` command loads a file or directory from the under storage system into Alluxio storage distributed 
+The `distributedLoad` command loads a file or directory from the under storage system into Alluxio storage distributed
 across workers using the job service. The job is a no-op if the file is already loaded into Alluxio.
 
 If `distributedLoad` is run on a directory, files in the directory will be recursively loaded and each file will be loaded
@@ -838,8 +838,11 @@ Options:
 
 * `--replication`: Specifies how many workers to load each file into. The default value is `1`.
 * `--active-jobs`: Limits how many jobs can be submitted to the Alluxio job service at the same time.
-Later jobs must wait until some earlier jobs to finish. The default value is `3000`. 
+Later jobs must wait until some earlier jobs to finish. The default value is `3000`.
 A lower value means slower execution but also being nicer to the other users of the job service.
+* `--host-file <host-file>`: Specifies a file contains worker hosts to load target data, each line has a worker host.
+* `--hosts`: Specifies a list of worker hosts separated by comma to load target data.
+* `--index`: Specifies a file that lists all files to be loaded
 
 ```console
 $ ./bin/alluxio fs distributedLoad --replication 2 --active-jobs 2000 /data/today
@@ -1431,9 +1434,13 @@ Here are the additional properties possible for the `-o` options:
   * `udb-<UDB_TYPE>.mount.option.{<UFS_PREFIX>}.<MOUNT_PROPERTY>`: specify a mount option for a
   particular UFS path
     * `<UDB_TYPE>`: the UDB type
-    * `<UFS_PREFIX>`: the UFS path prefix that the mount properties are for
+    * `<UFS_PREFIX>`: the UFS path prefix, or a regex string starts with `regex:` that the mount properties are for
     * `<MOUNT_PROPERTY>`: an Alluxio mount property
-  * `catalog.db.config.file`: the config file for the UDB, you can specify bypass table by this option.
+  * `catalog.db.config.file`: the config file for the UDB, 
+    you can configure which tables and partitions to bypass from Alluxio in a configuration specified 
+    by this option. 
+    See [UDB Configuration File]({{ '/en/core-services/Catalog.html#udb-configuration-file' | relativize_url }}) 
+    for details.
   * `catalog.db.ignore.udb.tables`: comma-separated list of table names to ignore from the UDB
   * `catalog.db.sync.threads`: number of parallel threads to use to sync with the UDB. If too large,
   the sync may overload the UDB, and if set too low, syncing a database with many tables make take
@@ -1444,7 +1451,8 @@ Here are the additional properties possible for the `-o` options:
 For the `hive` udb type, during the attach process, the Alluxio catalog will auto-mount all the
 table/partition locations in the specified database, to Alluxio. You can supply the mount options
 for the possible table locations with the
-option `-o udb-hive.mount.option.{scheme/authority}.key=value`.
+option `-o udb-hive.mount.option.{scheme/authority}.key=value` or
+`-o udb-hive.mount.option.{regex:REGEX}.key=value`
 
 ```console
 $ ./bin/alluxio table attachdb hive thrift://HOSTNAME:9083 hive_db_name --db=alluxio_db_name  \
@@ -1456,6 +1464,13 @@ This command will attach the database `hive_db_name` (of type `hive`) from the U
 `thrift://HOSTNAME:9083` to the Alluxio catalog, using the same database name `alluxio_db_name`.
 When paths are mounted for `s3a://bucket1`, the mount option `aws.accessKeyId=abc` will be used,
 and when paths are mounted for `s3a://bucket2`, the mount option `aws.accessKeyId=123` will be used.
+
+Or using regex expression if the options are same the two buckets.
+
+```console
+$ ./bin/alluxio table attachdb hive thrift://HOSTNAME:9083 hive_db_name --db=alluxio_db_name  \
+  -o udb-hive.mount.option.{regex:s3a://bucket.*}.aws.accessKeyId=abc
+```
 
 Besides mount options, there are some additional properties with the `-o` options:
   * `udb-hive.<UDB_PROPERTY>`: specify the UDB options for the Hive UDB. The options
@@ -1479,7 +1494,7 @@ For `glue` udb type, there are some additional properties with the `-o` options:
     * `aws.proxy.password`: The proxy password
     * `table.column.statistics`: Enable table column statistics(true/false)
     * `partition.column.statistics`: Enable partition column statistics(true/false)
-    
+
 You can supply the mount options for the `glue` as follows:
 
 ```console
@@ -1492,8 +1507,8 @@ $ ./bin/alluxio table attachdb --db alluxio_db_name glue null glue_db_name \
 
 This command will attach the database `glue_db_name` (of type `glue`) to the Alluxio catalog,
 using the same database name `alluxio_db_name`. Please notice that `glue` udb does not need the
-URI as `hive` udb. When `glue` udb access to AWS glue, the aws region `udb-glue.aws.region`, AWS 
-catalog id `udb-glue.aws.catalog.id` and AWS credentials, `udb-glue.aws.accesskey` and 
+URI as `hive` udb. When `glue` udb access to AWS glue, the aws region `udb-glue.aws.region`, AWS
+catalog id `udb-glue.aws.catalog.id` and AWS credentials, `udb-glue.aws.accesskey` and
 `udb-glue.aws.secretkey` , need to be provided.
 
 ### detachdb
@@ -1544,7 +1559,7 @@ The sync will update, add, remove catalog metadata according to the changes foun
 database and tables.
 For example, if the under database is `hive`, and the metadata of its tables is updated
 in the Hive Metastore (like `MSCK REPAIR` or other commands), then this `sync` command will
-update the Alluxio metadata with the updated Hive metadata. 
+update the Alluxio metadata with the updated Hive metadata.
 If an existing Alluxio partition or table is updated and previously had a transformation, then the
 transformation is invalidated, and must be re-triggered via the `transform` command.
 
@@ -1569,9 +1584,9 @@ format.
 > In 2.1.0, the supported file formats which can be transformed are: parquet and csv
 > file formats. The resulting transformations are in the parquet file format. Additional formats
 > for input and output will be implemented in future versions.
-> For the coalesce feature, by default it will coalesce into a maximum of 100 files, 
+> For the coalesce feature, by default it will coalesce into a maximum of 100 files,
 > with each file no smaller than 2GB.
- 
+
 The definition format takes a form of configuration separated by semicolon and specifies the details of the output
 format. Available configurations are:
 

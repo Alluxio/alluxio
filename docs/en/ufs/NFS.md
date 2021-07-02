@@ -75,7 +75,7 @@ Visit your NFS volume at `/mnt/nfs` to verify the files and directories created 
 For this test, you should see files named:
 
 ```
-/mnt/nfs/default_tests_files/Basic_CACHE_THROUGH
+/mnt/nfs/default_tests_files/BASIC_CACHE_THROUGH
 ```
 
 Stop Alluxio by running:

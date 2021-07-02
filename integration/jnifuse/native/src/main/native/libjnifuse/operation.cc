@@ -437,6 +437,28 @@ int SetxattrOperation::call(const char *path, const char *name, const char *valu
   return ret;
 }
 
+SymlinkOperation::SymlinkOperation(JniFuseFileSystem *fs) {
+  this->fs = fs;
+  JNIEnv *env = this->fs->getEnv();
+  this->obj = this->fs->getFSObj();
+  this->clazz = env->GetObjectClass(this->fs->getFSObj());
+  this->signature = "(Ljava/lang/String;Ljava/lang/String;)I";
+  this->methodID = env->GetMethodID(this->clazz, "symlinkCallback", signature);
+}
+
+int SymlinkOperation::call(const char *linkname, const char *path) {
+  JNIEnv *env = this->fs->getEnv();
+  jstring jlinkname = env->NewStringUTF(linkname);
+  jstring jpath = env->NewStringUTF(path);
+
+  int ret = env->CallIntMethod(this->obj, this->methodID, jlinkname, jpath);
+
+  env->DeleteLocalRef(jlinkname);
+  env->DeleteLocalRef(jpath);
+
+  return ret;
+}
+
 TruncateOperation::TruncateOperation(JniFuseFileSystem *fs) {
   this->fs = fs;
   JNIEnv *env = this->fs->getEnv();
