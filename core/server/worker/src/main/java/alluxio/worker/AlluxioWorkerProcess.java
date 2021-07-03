@@ -12,7 +12,6 @@
 package alluxio.worker;
 
 import alluxio.Constants;
-import alluxio.RuntimeConstants;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.metrics.MetricsSystem;
@@ -233,7 +232,6 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
     // Requirement: NetAddress set in WorkerContext, so block worker can initialize BlockMasterSync
     // Consequence: worker id is granted
     startWorkers();
-    LOG.info("Started {} with id {}", this, mRegistry.get(BlockWorker.class).getWorkerId());
 
     // Start serving the web server, this will not block.
     mWebServer.addHandler(mMetricsServlet.getHandler());
@@ -251,9 +249,8 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
     }
 
     // Start serving RPC, this will block
-    LOG.info("Alluxio worker version {} started. "
-            + "bindHost={}, connectHost={}, rpcPort={}, webPort={}",
-        RuntimeConstants.VERSION,
+    LOG.info("Alluxio worker started. id={}, bindHost={}, connectHost={}, rpcPort={}, webPort={}",
+        mRegistry.get(BlockWorker.class).getWorkerId(),
         NetworkAddressUtils.getBindHost(ServiceType.WORKER_RPC, ServerConfiguration.global()),
         NetworkAddressUtils.getConnectHost(ServiceType.WORKER_RPC, ServerConfiguration.global()),
         NetworkAddressUtils.getPort(ServiceType.WORKER_RPC, ServerConfiguration.global()),
