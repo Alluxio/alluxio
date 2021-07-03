@@ -87,7 +87,7 @@ public final class MetaMasterConfigurationServiceHandler
         builder.setPathConfigHash(pathConf.getPathConfigHash());
       }
       return builder.build();
-    }, "getConfiguration", "resquest=%s", responseObserver, options);
+    }, "getConfiguration", "request=%s", responseObserver, options);
   }
 
   @Override
