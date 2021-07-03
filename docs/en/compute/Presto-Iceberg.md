@@ -58,7 +58,7 @@ For demonstration purposes, we will create an example schema and an Iceberg tabl
 
 Launch the Presto CLI client with the following command:
 
-```shell
+```console
 ./presto --server localhost:8080 --catalog iceberg --debug
 ```
 
@@ -100,7 +100,7 @@ SELECT * FROM person;
 
 As well as examine the files in Alluxio:
 
-```shell
+```console
 $ bin/alluxio fs ls /person
 drwxr-xr-x  alluxio    alluxio    10    PERSISTED 06-29-2021 16:24:02:007  DIR /person/metadata
 drwxr-xr-x  alluxio    alluxio     1    PERSISTED 06-29-2021 16:24:00:049  DIR /person/data
