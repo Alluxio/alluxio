@@ -488,3 +488,66 @@ logserver:
 #   hostnames:
 #     - "example1.com"
 #     - "example2.com"
+
+# kubernates CSI plugin
+csi:
+  enabled: false
+  image: alluxio/alluxio-csi
+  imageTag: 2.6.0-SNAPSHOT
+  imagePullPolicy: IfNotPresent
+  controllerPlugin:
+    hostNetwork: true
+    provisioner:
+      # for kubernates 1.13 or above
+      image: quay.io/k8scsi/csi-provisioner:v1.4.0
+      resources:
+        limits:
+          cpu: 100m
+          memory: 300Mi
+        requests:
+          cpu: 10m
+          memory: 20Mi
+    controller:
+      resources:
+        limits:
+          cpu: 200m
+          memory: 200Mi
+        requests:
+          cpu: 10m
+          memory: 20Mi
+  # Will run fuse daemon inside csi nodeserver
+  nodePlugin:
+    hostNetwork: true
+    nodeserver:
+      resources:
+        # The default xmx is 8G
+        limits:
+          cpu: "4"
+          memory: "8G"
+        requests:
+          cpu: "1"
+          memory: "1G"
+    driverRegistrar:
+      image: quay.io/k8scsi/csi-node-driver-registrar:v1.0.2
+      resources:
+        limits:
+          cpu: 100m
+          memory: 100Mi
+        requests:
+          cpu: 10m
+        memory: 20Mi
+
+  # for csi client
+  clientEnabled: false
+  accessModes:
+    - ReadWriteMany
+  quota: 100Gi
+  mountPath: /data
+  alluxioPath: /
+  mountOptions:
+    - kernel_cache
+    - allow_other
+    - entry_timeout=36000
+    - attr_timeout=36000
+    - max_readahead=0
+  javaOptions: "-Dalluxio.user.metadata.cache.enabled=true "
