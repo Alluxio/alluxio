@@ -13,8 +13,12 @@ package alluxio.table.common.udb;
 
 import static org.junit.Assert.assertEquals;
 
+import alluxio.ConfigurationRule;
+import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
 import alluxio.util.io.PathUtils;
 
+import com.google.common.collect.ImmutableMap;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -26,6 +30,13 @@ public class PathTranslatorTest {
 
   @Rule
   public ExpectedException mException = ExpectedException.none();
+
+  @Rule
+  public ConfigurationRule mConfiguration =
+      new ConfigurationRule(
+          ImmutableMap.of(PropertyKey.MASTER_HOSTNAME, "master",
+            PropertyKey.MASTER_RPC_PORT, "19998"),
+          ServerConfiguration.global());
 
   private PathTranslator mTranslator;
 
@@ -156,16 +167,15 @@ public class PathTranslatorTest {
 
   @Test
   public void alluxioUriPurePath() throws Exception {
-    PathTranslator.sSchemeAuthorityPrefix = "alluxio://master";
     mTranslator.addMapping("/db1/tables/table1", "ufs://a/db1/table1");
     // non-exact match
-    assertEquals("alluxio://master/db1/tables/table1/part1",
+    assertEquals("alluxio://master:19998/db1/tables/table1/part1",
         mTranslator.toAlluxioPath("ufs://a/db1/table1/part1"));
     // exact match
-    assertEquals("alluxio://master/db1/tables/table1",
+    assertEquals("alluxio://master:19998/db1/tables/table1",
         mTranslator.toAlluxioPath("ufs://a/db1/table1"));
     // trailing slash is preserved
-    assertEquals("alluxio://master/db1/tables/table1/",
+    assertEquals("alluxio://master:19998/db1/tables/table1/",
         mTranslator.toAlluxioPath("ufs://a/db1/table1/"));
   }
 

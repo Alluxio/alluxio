@@ -17,7 +17,6 @@ import alluxio.exception.InvalidPathException;
 import alluxio.util.ConfigurationUtils;
 import alluxio.util.io.PathUtils;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 import org.slf4j.Logger;
@@ -33,8 +32,12 @@ public class PathTranslator {
 
   private final BiMap<AlluxioURI, AlluxioURI> mPathMap;
 
-  @VisibleForTesting
-  static String sSchemeAuthorityPrefix = null;
+  private static final String sSchemeAuthorityPrefix;
+
+  static {
+    sSchemeAuthorityPrefix =
+        ConfigurationUtils.getSchemeAuthority(ServerConfiguration.global());
+  }
 
   /**
    * Construct a path translator.
@@ -110,10 +113,6 @@ public class PathTranslator {
 
   private static AlluxioURI checkAndAddSchemeAuthority(AlluxioURI input) {
     if (!input.hasScheme()) {
-      if (sSchemeAuthorityPrefix == null) {
-        sSchemeAuthorityPrefix =
-            ConfigurationUtils.getSchemeAuthority(ServerConfiguration.global());
-      }
       AlluxioURI baseUri = new AlluxioURI(sSchemeAuthorityPrefix);
       return new AlluxioURI(baseUri, input.getPath(), false);
     }
