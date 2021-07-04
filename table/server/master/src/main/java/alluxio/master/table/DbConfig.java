@@ -28,10 +28,10 @@ import com.google.common.base.Preconditions;
 
 import java.io.IOException;
 import java.util.Collections;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import java.util.stream.Collectors;
+import java.util.regex.Pattern;
+import java.util.regex.PatternSyntaxException;
 
 import javax.annotation.Nullable;
 
@@ -39,18 +39,18 @@ import javax.annotation.Nullable;
  * The Alluxio db config information.
  */
 public final class DbConfig {
-  private final TablesEntry mBypassEntry;
-  private final TablesEntry mIgnoreEntry;
+  private final TablesEntry<TableEntry> mBypassEntry;
+  private final TablesEntry<NameEntry> mIgnoreEntry;
 
   /**
    * @param bypassEntry bypass entry
    * @param ignoreEntry ignore entry
    */
   @JsonCreator
-  public DbConfig(@JsonProperty("bypass") @Nullable TablesEntry bypassEntry,
-                  @JsonProperty("ignore") @Nullable TablesEntry ignoreEntry) {
-    mBypassEntry = bypassEntry == null ? new TablesEntry(Collections.emptySet()) : bypassEntry;
-    mIgnoreEntry = ignoreEntry == null ? new TablesEntry(Collections.emptySet()) : ignoreEntry;
+  public DbConfig(@JsonProperty("bypass") @Nullable TablesEntry<TableEntry> bypassEntry,
+                  @JsonProperty("ignore") @Nullable TablesEntry<NameEntry> ignoreEntry) {
+    mBypassEntry = bypassEntry == null ? new TablesEntry<>(null) : bypassEntry;
+    mIgnoreEntry = ignoreEntry == null ? new TablesEntry<>(null) : ignoreEntry;
   }
 
   /**
@@ -65,14 +65,14 @@ public final class DbConfig {
   /**
    * @return the {@link TablesEntry} for bypassed tables from config file
    */
-  public TablesEntry getBypassEntry() {
+  public TablesEntry<TableEntry> getBypassEntry() {
     return mBypassEntry;
   }
 
   /**
    * @return the {@link TablesEntry} for ignored tables from config file
    */
-  public TablesEntry getIgnoreEntry() {
+  public TablesEntry<NameEntry> getIgnoreEntry() {
     return mIgnoreEntry;
   }
 
@@ -80,74 +80,260 @@ public final class DbConfig {
    * @return the {@link UdbMountSpec} object
    */
   public UdbMountSpec getUdbMountSpec() {
-    Map<String, Set<String>> bypassed = mBypassEntry.getTableEntries().stream().collect(
-        Collectors.toMap(TableEntry::getTable, TableEntry::getPartitions));
-    Set<String> ignored = mIgnoreEntry.getTableNames();
-    return new UdbMountSpec(bypassed, ignored);
+    UdbMountSpec.Builder builder = new UdbMountSpec.Builder();
+    for (TableEntry entry : mBypassEntry.getList().getIncludedEntries()) {
+      if (entry.isPattern()) {
+        builder.bypass().include().addPattern(entry.getPattern());
+      } else {
+        builder.bypass().include().addName(entry.getName());
+      }
+      Set<NameEntry> partitions = entry.getPartitions();
+      if (partitions == null) {
+        continue;
+      }
+      UdbMountSpec.SimpleWrapperBuilder partitionBuilder = new UdbMountSpec.SimpleWrapperBuilder();
+      for (NameEntry partition : partitions) {
+        if (partition.isPattern()) {
+          partitionBuilder.include().addPattern(partition.getPattern());
+        } else {
+          partitionBuilder.include().addName(partition.getName());
+        }
+      }
+      builder.bypass().include().addPartition(entry.getTable(), partitionBuilder.build());
+    }
+
+    for (NameEntry entry : mBypassEntry.getList().getExcludedEntries()) {
+      if (entry.isPattern()) {
+        builder.bypass().exclude().addPattern(entry.getPattern());
+      } else {
+        builder.bypass().exclude().addName(entry.getName());
+      }
+    }
+
+    for (NameEntry entry : mIgnoreEntry.getList().getIncludedEntries()) {
+      if (entry.isPattern()) {
+        builder.ignore().include().addPattern(entry.getPattern());
+      } else {
+        builder.ignore().include().addName(entry.getName());
+      }
+    }
+
+    for (NameEntry entry : mIgnoreEntry.getList().getExcludedEntries()) {
+      if (entry.isPattern()) {
+        builder.ignore().exclude().addPattern(entry.getPattern());
+      } else {
+        builder.ignore().exclude().addName(entry.getName());
+      }
+    }
+    return builder.build();
+  }
+
+  public static final class BypassTablesEntry extends TablesEntry<TableEntry> {
+
+    /**
+     * @param list
+     */
+    public BypassTablesEntry(@Nullable IncludeExcludeList<TableEntry> list) {
+      super(list);
+    }
   }
 
   /**
    * Tables configuration entry from config file.
    */
-  public static final class TablesEntry {
+  @JsonDeserialize(using = TablesEntryDeserializer.class)
+  public static  class TablesEntry<T extends NameEntry> {
     @JsonProperty("tables")
-    private final Set<TableEntry> mEntries;
+    private final IncludeExcludeList<T> mList;
 
     /**
-     * @param entries set of {@link TableEntry}s
+     * @param list
      */
-    @JsonCreator
-    public TablesEntry(@JsonProperty("tables") @Nullable Set<TableEntry> entries) {
-      mEntries = entries == null ? Collections.emptySet() : entries;
+    public TablesEntry(@Nullable IncludeExcludeList<T> list) {
+      mList = list == null ? new IncludeExcludeList<>(Collections.emptySet()) : list;
     }
 
-    /**
-     * @return table names
-     */
-    public Set<String> getTableNames() {
-      return mEntries.stream().map(TableEntry::getTable).collect(Collectors.toSet());
-    }
-
-    /**
-     * @return {@link TableEntry}s
-     */
-    public Set<TableEntry> getTableEntries() {
-      return mEntries;
+    public IncludeExcludeList<T> getList() {
+      return mList;
     }
   }
 
   /**
-   * Table to partitions mapping.
+   * Tables entry accepts one the two following:
+   * 1. a list of {@link NameEntry}s
+   * 2. an object containing `include`, `exclude` and `includeFirstOnConflict` keys
    */
-  @JsonDeserialize(using = TableEntryDeserializer.class)
-  public static class TableEntry {
-    private final String mTableName;
-    private final Set<String> mPartitions;
+  public static class TablesEntryDeserializer<T extends NameEntry>
+      extends JsonDeserializer<TablesEntry<T>> {
+    @Override
+    public TablesEntry<T> deserialize(JsonParser jp, DeserializationContext cxt)
+        throws IOException, JsonProcessingException {
+      ObjectMapper mapper = (ObjectMapper) jp.getCodec();
+      JsonNode node = mapper.readTree(jp);
+      if (node == null) {
+        return null;
+      }
+      if (node.isArray()) {
+        // in case an array, an included list is implied
+        Set<T> entries =
+            mapper.convertValue(node, new TypeReference<Set<T>>() {});
+        return new TablesEntry<T>(new IncludeExcludeList<T>(entries));
+      }
+      if (node.isObject()) {
+        // otherwise, deserialize as an IncludeExcludeList object
+        IncludeExcludeList<T> list =
+            mapper.convertValue(node, new TypeReference<IncludeExcludeList<T>>() {});
+        return new TablesEntry<T>(list);
+      }
+      throw new JsonParseException(mapper.treeAsTokens(node),
+          "invalid syntax, expecting array or object");
+    }
+  }
+
+  /**
+   * Contains additional partition specification.
+   * If the set of partitions is empty, all belonging partitions of that table will be bypassed.
+   */
+  public static class TableEntry extends NameEntry {
+    private final Set<NameEntry> mPartitions;
 
     /**
+     * Creates an instance with a specific table name and no partition specification.
+     *
      * @param tableName table name
-     * @param partitions partition names
      */
-    @JsonCreator
-    public TableEntry(@JsonProperty("table") String tableName,
-                      @JsonProperty("partitions") Set<String> partitions) {
-      Preconditions.checkArgument(!tableName.isEmpty(), "empty table name");
-      mTableName = tableName;
-      mPartitions = partitions;
+    public TableEntry(String tableName) {
+      this(tableName, Collections.emptySet());
     }
 
     /**
-     * @return table name
+     * Creates an instance with a specific table name and possibly partitions specifications.
+     *
+     * @param tableName table name
+     * @param partitions partition names
      */
-    public String getTable() {
-      return mTableName;
+    public TableEntry(String tableName, Set<NameEntry> partitions) {
+      super(tableName);
+      mPartitions = partitions;
+    }
+    
+    public TableEntry(NameEntry nameEntry, Set<NameEntry> partitions) {
+      super(nameEntry);
+      mPartitions = partitions;
     }
 
     /**
      * @return partition names
      */
-    public Set<String> getPartitions() {
+    @Nullable
+    public Set<NameEntry> getPartitions() {
       return mPartitions;
+    }
+    
+    @Nullable
+    public String getTable() {
+      return getName();
+    }
+  }
+
+  /**
+   * Accepts a simple table name or
+   * an object of form: {"table": "tableName", "partitions": ["part1", "part2"]}
+   * the specified individual partitions will be bypasses. Any others, if any, will not.
+   */
+  public static class TableEntryDeserializer extends JsonDeserializer<TableEntry> {
+    @Override
+    public TableEntry deserialize(JsonParser jp, DeserializationContext cxt)
+        throws IOException, JsonProcessingException {
+      ObjectMapper mapper = (ObjectMapper) jp.getCodec();
+      JsonNode node = mapper.readTree(jp);
+      if (node == null) {
+        return null;
+      }
+      // a {"table": "table", "partitions": ["part1", "part2"]} object
+      if (node.hasNonNull("table")) {
+        String tableName = node.get("table").asText();
+        JsonNode partitionsList = node.get("partitions");
+        Set<NameEntry> partitions = 
+            mapper.convertValue(partitionsList, new TypeReference<Set<NameEntry>>() {});
+        if (partitions == null) {
+          partitions = Collections.emptySet();
+        }
+        return new TableEntry(tableName, partitions);
+      }
+      if (node.isTextual()){
+        return new TableEntry(node.asText());
+      }
+      throw new JsonParseException(mapper.treeAsTokens(node),
+          "invalid syntax, expecting table name or an object with a `table` key");
+    }
+  }
+
+  /**
+   * Name entry for table names and partition names.
+   * Comes in two flavors: a simple name and regular expressions.
+   */
+  @JsonDeserialize(using = NameEntryDeserializer.class)
+  public static class NameEntry {
+    private final boolean mIsPattern;
+    private final Pattern mPattern;
+    private final String mName;
+
+    /**
+     * Creates an entry with a simple name.
+     *
+     * @param name table or partition name
+     */
+    public NameEntry(String name) {
+      Preconditions.checkArgument(!name.isEmpty(), "empty name");
+      mIsPattern = false;
+      mPattern = null;
+      mName = name;
+    }
+
+    /**
+     * Creates an instance with a regex.
+     *
+     * @param regex regex
+     */
+    public NameEntry(Pattern regex) {
+      mIsPattern = true;
+      mPattern = regex;
+      mName = null;
+    }
+
+    /**
+     * Copy constructor.
+     *
+     * @param nameEntry instance to copy
+     */
+    NameEntry(NameEntry nameEntry) {
+      mIsPattern = nameEntry.mIsPattern;
+      mName = nameEntry.mName;
+      mPattern = nameEntry.mPattern;
+    }
+
+    /**
+     * @return if the entry is a regex entry
+     */
+    public boolean isPattern() {
+      return mIsPattern;
+    }
+
+    /**
+     * @return pattern if the entry contains a regex pattern
+     */
+    @Nullable
+    public Pattern getPattern() {
+      return mPattern;
+    }
+
+    /**
+     * @return table name
+     */
+    @Nullable
+    public String getName() {
+      return mName;
     }
 
     @Override
@@ -159,52 +345,102 @@ public final class DbConfig {
       } else if (getClass() != other.getClass()) {
         return false;
       }
-      TableEntry entry = (TableEntry) other;
-      return Objects.equals(mTableName, entry.mTableName);
+      NameEntry entry = (NameEntry) other;
+      return mIsPattern == entry.mIsPattern
+          && Objects.equals(mName, entry.mName)
+          && Objects.equals(mPattern.pattern(), entry.mPattern.pattern());
     }
 
     @Override
     public int hashCode() {
-      return Objects.hashCode(mTableName);
+      if (mIsPattern) {
+        return Objects.hashCode(mPattern.pattern());
+      } else {
+        return Objects.hashCode(mName);
+      }
     }
   }
 
   /**
-   * Deserializer of TableEntry
+   * Deserializer of NameEntry
    *
-   * Enables flexible syntax: either a single table name can be specified, and all belonging
-   * partitions will be bypassed;
-   * or an object of form
-   * {"table": "tableName", "partitions": ["part1", "part2"]}
-   * can be used, and individual partitions can be specified.
+   * Accepts
+   * 1. a plain name: "table1"
+   * 2. an object of form: {"regex": "<regex>"}
    */
-  public static class TableEntryDeserializer extends JsonDeserializer<TableEntry> {
+  public static class NameEntryDeserializer extends JsonDeserializer<NameEntry> {
     @Override
-    public TableEntry deserialize(JsonParser jp, DeserializationContext cxt)
+    public NameEntry deserialize(JsonParser jp, DeserializationContext cxt)
         throws IOException, JsonProcessingException {
       ObjectMapper mapper = (ObjectMapper) jp.getCodec();
       JsonNode node = mapper.readTree(jp);
-      String tableName;
-      Set<String> partitions;
-      if (!node.isTextual() && !node.isObject()) {
-        throw new JsonParseException(mapper.treeAsTokens(node), "invalid syntax");
-      } else if (node.isTextual()) {
-        // single table name, all partitions are bypassed
-        tableName = node.asText();
-        partitions = Collections.emptySet();
-      } else {
-        // a {"table": "table", "partitions": ["part1", "part2"]} object
-        if (!node.hasNonNull("table")) {
-          throw new JsonParseException(mapper.treeAsTokens(node), "missing table name");
-        }
-        tableName = node.get("table").asText();
-        JsonNode partitionsList = node.get("partitions");
-        partitions = mapper.convertValue(partitionsList,  new TypeReference<Set<String>>() {});
-        if (partitions == null) {
-          partitions = Collections.emptySet();
-        }
+      if (node == null) {
+        return null;
       }
-      return new TableEntry(tableName, partitions);
+      if (node.isTextual()) {
+        // a simple name
+        return new NameEntry(node.asText());
+      }
+      if (!node.isObject() || !node.hasNonNull("regex")) {
+        throw new JsonParseException(mapper.treeAsTokens(node),
+            "invalid syntax, expecting name or an object with a `regex` key");
+      }
+      // a {"regex": "<regex>"} object
+      try {
+        Pattern regex = Pattern.compile(node.get("regex").asText());
+        return new NameEntry(regex);
+      } catch (PatternSyntaxException e) {
+        throw new JsonParseException(
+            mapper.treeAsTokens(node.get("regex")), "invalid regex syntax", e);
+      }
+    }
+  }
+
+  public static class IncludeExcludeList<INCLUDED extends NameEntry> {
+    @JsonProperty("include")
+    private final Set<INCLUDED> mIncludedEntries;
+    @JsonProperty("exclude")
+    private final Set<NameEntry> mExcludedEntries;
+    @JsonProperty("includeFirstOnConflict")
+    private final boolean mIncludeFirstOnConflict;
+
+    /**
+     * Creates an implicit include-only list.
+     *
+     * @param entries included {@link NameEntry}s
+     */
+    public IncludeExcludeList(@Nullable Set<INCLUDED> entries) {
+      this(entries, Collections.emptySet(), true);
+    }
+
+    /**
+     * Json creator.
+     *
+     * @param included included {@link NameEntry}s
+     * @param excluded excluded {@link NameEntry}s
+     * @param includeFirstOnConflict whether included entries should override excluded entries on
+     *                               conflict
+     */
+    @JsonCreator
+    public IncludeExcludeList(
+        @JsonProperty("include") @Nullable Set<INCLUDED> included,
+        @JsonProperty("exclude") @Nullable Set<NameEntry> excluded,
+        @JsonProperty("includeFirstOnConflict") @Nullable Boolean includeFirstOnConflict) {
+      mIncludedEntries = included == null ? Collections.emptySet() : included;
+      mExcludedEntries = excluded == null ? Collections.emptySet() : excluded;
+      mIncludeFirstOnConflict = includeFirstOnConflict == null || includeFirstOnConflict;
+    }
+
+    public Set<NameEntry> getExcludedEntries() {
+      return mExcludedEntries;
+    }
+
+    public Set<INCLUDED> getIncludedEntries() {
+      return mIncludedEntries;
+    }
+
+    public boolean isIncludeFirstOnConflict() {
+      return mIncludeFirstOnConflict;
     }
   }
 }
