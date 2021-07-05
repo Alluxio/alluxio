@@ -15,7 +15,8 @@ import alluxio.ClientContext;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.grpc.LocationBlockIdListEntry;
 import alluxio.master.MasterClientContext;
-import alluxio.stress.rpc.RpcParameters;
+import alluxio.stress.CachingBlockMasterClient;
+import alluxio.stress.rpc.RegisterWorkerParameters;
 import alluxio.stress.rpc.RpcTaskResult;
 import alluxio.util.FormatUtils;
 import alluxio.util.network.NetworkAddressUtils;
@@ -50,7 +51,7 @@ public class RegisterWorkerBench extends Benchmark<RpcTaskResult> {
   private static final Logger LOG = LoggerFactory.getLogger(RegisterWorkerBench.class);
 
   @ParametersDelegate
-  private RpcParameters mParameters = new RpcParameters();
+  private RegisterWorkerParameters mParameters = new RegisterWorkerParameters();
 
   private final InstancedConfiguration mConf = InstancedConfiguration.defaults();
 
@@ -115,14 +116,7 @@ public class RegisterWorkerBench extends Benchmark<RpcTaskResult> {
   public void prepare() {
     LOG.info("Task ID is {}", mBaseParameters.mId);
 
-    // TODO(jiacheng): how to support running --local which does not have task id?
-    // Calucalte the start ID with the worker ID
-//    String taskId = mBaseParameters.mId;
-//    String workerId = (taskId.split("-"))[1];
-//    LOG.info("Found workerId {}", workerId);
-//    long startId = (Long.valueOf(workerId).longValue()) << 30;
-//    LOG.info("Start block id is {}", startId);
-
+    // TODO(jiacheng): ideally this benchmark should be able to generate blocks in a distributed manner
     Map<BlockStoreLocation, List<Long>> blockMap = RpcBenchUtils.generateBlockIdOnTiers(mParameters.mTiers);
 
     BlockMasterClient client =
@@ -198,10 +192,11 @@ public class RegisterWorkerBench extends Benchmark<RpcTaskResult> {
   }
 
   private void runOnce(alluxio.worker.block.BlockMasterClient client, RpcTaskResult result, long i, long workerId, String hostname) {
-    WorkerNetAddress address;// TODO(jiacheng): The 1st reported RPC time is always very long, this does
-    // not match with the time recorded by Jaeger.
-    // I suspect it's the time spend in establishing the connection.
-    // The easiest way out is just to ignore the 1st point.
+    WorkerNetAddress address;
+    // TODO(jiacheng): The 1st reported RPC time is always very long, this does
+    //  not match with the time recorded by Jaeger.
+    //  I suspect it's the time spend in establishing the connection.
+    //  The easiest way out is just to ignore the 1st point.
     try {
       if (!mParameters.mSameWorker) {
         // If use different worker, get a different address and workerId every time
@@ -304,8 +299,8 @@ public class RegisterWorkerBench extends Benchmark<RpcTaskResult> {
   private RpcTaskResult runRPC() throws Exception {
     // Use a mocked client to save conversion
     LOG.info("Using the MockBlockMasterClient");
-    MockBlockMasterClient client =
-            new MockBlockMasterClient(MasterClientContext
+    CachingBlockMasterClient client =
+            new CachingBlockMasterClient(MasterClientContext
                     .newBuilder(ClientContext.create(mConf))
                     .build(), mLocationBlockIdList);
 
@@ -338,32 +333,5 @@ public class RegisterWorkerBench extends Benchmark<RpcTaskResult> {
 
     LOG.info("Run finished");
     return result;
-  }
-
-  /**
-   * Use this class to avoid map-list conversion at the client side
-   * So if you are running all processes on the same machine,
-   * the client side work affect the performance less.
-   * */
-  public static class MockBlockMasterClient extends BlockMasterClient {
-    private List<LocationBlockIdListEntry> mLocationBlockIdList;
-
-    /**
-     * Creates a new instance of {@link BlockMasterClient} for the worker.
-     *
-     * @param conf master client configuration
-     */
-    public MockBlockMasterClient(MasterClientContext conf, List<LocationBlockIdListEntry> locationBlockIdList) {
-      super(conf);
-      LOG.info("Init MockBlockMasterClient");
-      mLocationBlockIdList = locationBlockIdList;
-    }
-
-    @Override
-    public List<LocationBlockIdListEntry> convertBlockListMapToProto(
-            Map<BlockStoreLocation, List<Long>> blockListOnLocation) {
-      LOG.info("Using the prepared mLocationBlockIdList");
-      return mLocationBlockIdList;
-    }
   }
 }

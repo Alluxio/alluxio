@@ -15,7 +15,6 @@ import alluxio.stress.BaseParameters;
 import alluxio.stress.Summary;
 import alluxio.stress.TaskResult;
 import alluxio.util.JsonSerializable;
-import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.MoreObjects;
 
@@ -26,7 +25,7 @@ public class RpcTaskResult implements TaskResult {
   private List<Point> mPoints;
   private List<String> mErrors;
   private BaseParameters mBaseParameters;
-  private RpcParameters mParameters;
+  private RegisterWorkerParameters mParameters;
 
   public RpcTaskResult() {
     mPoints = new ArrayList<>();
@@ -50,14 +49,14 @@ public class RpcTaskResult implements TaskResult {
   /**
    * @return the {@link UfsIOParameters}
    * */
-  public RpcParameters getParameters() {
+  public RegisterWorkerParameters getParameters() {
     return mParameters;
   }
 
   /**
    * @param parameters the {@link UfsIOParameters} to use
    * */
-  public void setParameters(RpcParameters parameters) {
+  public void setParameters(RegisterWorkerParameters parameters) {
     mParameters = parameters;
   }
 

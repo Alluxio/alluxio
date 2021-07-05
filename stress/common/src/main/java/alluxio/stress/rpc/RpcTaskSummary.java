@@ -23,7 +23,7 @@ public class RpcTaskSummary implements Summary {
   private List<RpcTaskResult.Point> mPoints;
   private List<String> mErrors;
   private BaseParameters mBaseParameters;
-  private RpcParameters mParameters;
+  private RegisterWorkerParameters mParameters;
   public long mCount;
   // TODO(jiacheng): calculate p50 p99
   public long mTotalDurationMs;
@@ -107,14 +107,14 @@ public class RpcTaskSummary implements Summary {
   /**
    * @return the task specific {@link UfsIOParameters}
    * */
-  public RpcParameters getParameters() {
+  public RegisterWorkerParameters getParameters() {
     return mParameters;
   }
 
   /**
    * @param parameters the {@link UfsIOParameters}
    * */
-  public void setParameters(RpcParameters parameters) {
+  public void setParameters(RegisterWorkerParameters parameters) {
     mParameters = parameters;
   }
 }
