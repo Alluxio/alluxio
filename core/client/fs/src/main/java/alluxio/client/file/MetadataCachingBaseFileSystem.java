@@ -52,7 +52,6 @@ public class MetadataCachingBaseFileSystem extends BaseFileSystem {
   private final MetadataCache mMetadataCache;
   private final ExecutorService mAccessTimeUpdater;
   private final boolean mDisableUpdateFileAccessTime;
-  private final boolean mNotFoundResultCacheEnabled;
 
   /**
    * @param context the fs context
@@ -72,9 +71,6 @@ public class MetadataCachingBaseFileSystem extends BaseFileSystem {
     // asynchronously update access time.
     mAccessTimeUpdater = new ThreadPoolExecutor(0, masterClientThreads, THREAD_KEEPALIVE_SECOND,
         TimeUnit.SECONDS, new SynchronousQueue<>());
-    mNotFoundResultCacheEnabled =
-        mFsContext.getClusterConf().getBoolean(
-            PropertyKey.USER_METADATA_CACHE_NOT_FOUND_RESULT_CACHE_ENABLED);
   }
 
   @Override
@@ -87,9 +83,7 @@ public class MetadataCachingBaseFileSystem extends BaseFileSystem {
         status = super.getStatus(path, options);
         mMetadataCache.put(path, status);
       } catch (FileDoesNotExistException e) {
-        if (mNotFoundResultCacheEnabled) {
-          mMetadataCache.put(path, NOT_FOUND_STATUS);
-        }
+        mMetadataCache.put(path, NOT_FOUND_STATUS);
         throw e;
       }
     } else if (status == NOT_FOUND_STATUS) {
