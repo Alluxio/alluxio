@@ -36,7 +36,50 @@ import java.util.regex.PatternSyntaxException;
 import javax.annotation.Nullable;
 
 /**
- * The Alluxio db config information.
+ * The Alluxio db config file.
+ *
+ * Current syntax:
+ * Top level: BypassIgnoreObject
+ * BypassIgnoreObject := {"bypass": BypassTablesSpec, "ignore": IgnoreTablesSpec}
+ * BypassTablesSpec := {"tables": BypassIncludeTablesList | BypassTablesObject}
+ * IgnoreTablesSpec := {"tables": SimpleNameRegexList | SimpleTablesObject}
+ * BypassTablesObject := {"include": BypassIncludeTablesList, "exclude": SimpleNameRegexList}
+ * BypassIncludeTablesList := [ NameLiteral | RegexObject | BypassTablePartitionSpec ]*
+ * SimpleNameRegexList := [ NameLiteral | RegexObject ]*
+ * SimpleTablesObject := SimpleIncludeExcludeObject
+ * SimpleIncludeExcludeObject := {"include": SimpleNameRegexList, "exclude": SimpleNameRegexList}
+ * BypassTablePartitionSpec := {"table": NameLiteral, "partition": SimpleIncludeExcludeObject}
+ * RegexObject := {"regex": RegexLiteral}
+ *
+ * An example:
+ * {                  <- BypassIgnoreObject
+ *   "bypass": {        <- BypassTablesSpec
+ *     "tables": {        <- BypassTablesObject
+ *       "include": [       <- BypassIncludeTablesList
+ *         "table1",          <- NameLiteral
+ *         {                    <- BypassTablePartitionSpec
+ *           "table": "table2",
+ *           "partition": {         <- SimpleIncludeExcludeObject
+ *             "include": [           <- SimpleNameRegexList
+ *               "part1",
+ *               {                        <- RegexObject
+ *                 "regex": "part\\d\\d"    <-RegexLiteral
+ *               }
+ *             ],
+ *             "exclude": [{"regex": "part\\d"}]
+ *           }
+ *         }
+ *       ],
+ *       "exclude": [
+ *         "table3",
+ *         {"regex": "^table\\d"}
+ *       ]
+ *     }
+ *   },
+ *   "ignore": {        <- IgnoreTablesSpec
+ *     "tables": ["table4"]
+ *   }
+ * }
  */
 public final class DbConfig {
   private final TablesEntry<TableEntry> mBypassEntry;
