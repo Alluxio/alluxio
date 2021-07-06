@@ -24,7 +24,6 @@ import org.apache.hadoop.fs.FileSystem.Statistics;
 import org.apache.hadoop.fs.PositionedReadable;
 import org.apache.hadoop.fs.Seekable;
 import org.apache.hadoop.fs.StreamCapabilities;
-import org.apache.hadoop.fs.StreamCapabilitiesPolicy;
 import org.apache.hadoop.util.StringUtils;
 
 import org.slf4j.Logger;
@@ -221,6 +220,6 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
 
   @Override
   public void unbuffer() {
-    StreamCapabilitiesPolicy.unbuffer(mInputStream);
+    mInputStream.unbuffer();
   }
 }

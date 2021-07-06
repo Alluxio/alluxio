@@ -33,9 +33,6 @@ import alluxio.wire.WorkerNetAddress;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Supplier;
 import com.google.common.io.Closer;
-import org.apache.hadoop.fs.CanUnbuffer;
-import org.apache.hadoop.fs.StreamCapabilities;
-import org.apache.hadoop.util.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -67,7 +64,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @PublicApi
 @NotThreadSafe
-public class AlluxioFileInStream extends FileInStream implements StreamCapabilities, CanUnbuffer {
+public class AlluxioFileInStream extends FileInStream {
   private static final Logger LOG = LoggerFactory.getLogger(AlluxioFileInStream.class);
 
   private Supplier<RetryPolicy> mRetryPolicySupplier;
@@ -444,16 +441,6 @@ public class AlluxioFileInStream extends FileInStream implements StreamCapabilit
     }
 
     mFailedWorkers.put(workerAddress, System.currentTimeMillis());
-  }
-
-  @Override
-  public boolean hasCapability(String capability) {
-    switch (StringUtils.toLowerCase(capability)) {
-      case StreamCapabilities.UNBUFFER:
-        return true;
-      default:
-        return false;
-    }
   }
 
   @Override
