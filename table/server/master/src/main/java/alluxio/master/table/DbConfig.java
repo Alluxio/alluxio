@@ -224,6 +224,7 @@ public final class DbConfig {
       }
       if (node.isObject()) {
         // otherwise, deserialize as an IncludeExcludeList object
+        // Todo(bowen): does jackson work with generic classes?
         IncludeExcludeList<T> list =
             mapper.convertValue(node, new TypeReference<IncludeExcludeList<T>>() {});
         return new TablesEntry<T>(list);

@@ -11,6 +11,8 @@
 
 package alluxio.table.common.udb;
 
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 
 import java.util.Collections;
@@ -20,6 +22,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import javax.annotation.Nullable;
 
 /**
  * Tables and partitions inclusion and exclusion specification.
@@ -105,12 +109,25 @@ public final class UdbMountSpec {
    *                  |           exclusion   |
    *                  |_______________________|
    * D = D1 + D2
+   *
+   * General rules:
    * when exclusion is not empty and inclusion is:
    * 1. empty: A2 + D is to be bypassed/ignored
    * 2. not empty: A2 is to be bypassed/ignored
    * when exclusion is empty and inclusion is:
    * 1. empty: none is to be bypassed/ignored
    * 2. not empty: A2 + B is to be bypassed/ignored
+   *
+   * Corner cases:
+   * 1. Explicit names have priority over patterns.
+   *     If a table is included by an explicit name but excluded by a pattern,
+   *     then it is still considered included.
+   *     Likewise, if it is excluded by an explicit name but included by a pattern,
+   *     it's still excluded.
+   * 2. If a name is specified explicitly both in the include list and the exclude list,
+   *     then it's an IllegalStateException.
+   * 3. If a name is covered by both the include and the exclude patterns,
+   *     then it's excluded. (or included? or IllegalStateException?)
    */
   abstract static class InclusionExclusionWrapper<T extends NamePatternWrapper> {
     protected final T mIncluded;
@@ -124,7 +141,56 @@ public final class UdbMountSpec {
 
     // generic implementation
     boolean has(String name) {
-      return !mExcluded.has(name) && mIncluded.has(name);
+      if (mExcluded.isEmpty()) {
+        if (mIncluded.isEmpty()) {
+          return false;
+        } else {
+          return mIncluded.has(name);
+        }
+      } else {
+        if (mIncluded.isEmpty()) {
+          // when include is empty, anything that is not excluded is implicitly included
+          return !mExcluded.has(name);
+        } else {
+          return handleExplicitness(name);
+        }
+      }
+    }
+
+    protected boolean handleExplicitness(String name) {
+      return handleExplicitness(
+          name,
+          mIncluded.hasExplicit(name),
+          mExcluded.hasExplicit(name),
+          mIncluded.hasCoveredByPattern(name),
+          mExcluded.hasCoveredByPattern(name));
+    }
+
+    protected boolean handleExplicitness(
+        String name,
+        boolean isExplicitlyIncluded,
+        boolean isExplicitlyExcluded,
+        boolean isIncludedByPattern,
+        boolean isExcludedByPattern
+    ) {
+      if (isExplicitlyIncluded && isExplicitlyExcluded) {
+        throw new IllegalStateException(
+            String.format("Name `%s` is both included and excluded explicitly", name));
+      }
+      if (isExplicitlyIncluded) {
+        return true;
+      }
+      if (isExplicitlyExcluded) {
+        return false;
+      }
+      if (isIncludedByPattern && isExcludedByPattern) {
+        return false;
+      }
+      if (isIncludedByPattern) {
+        return true;
+      }
+      // isExcludedByPattern == true
+      return false;
     }
   }
 
@@ -141,12 +207,53 @@ public final class UdbMountSpec {
     }
 
     boolean hasFullTable(String tableName) {
-      return !mExcluded.has(tableName) && mIncluded.hasFullTable(tableName);
+      boolean isFullTableIncludedExplicitly =
+          mIncluded.hasExplicit(tableName) && mIncluded.hasFullTable(tableName);
+      boolean isFullTableIncludedByPattern =
+          mIncluded.hasCoveredByPattern(tableName) && mIncluded.hasFullTable(tableName);
+      boolean isTableExcludedExplicitly = mExcluded.hasExplicit(tableName);
+      boolean isTableExcludedByPattern = mExcluded.hasCoveredByPattern(tableName);
+
+      if (mExcluded.isEmpty()) {
+        if (mIncluded.isEmpty()) {
+          return false;
+        } else {
+          return mIncluded.hasFullTable(tableName);
+        }
+      } else {
+        if (mIncluded.isEmpty()) {
+          // implicitly included tables are fully bypassed
+          return !mExcluded.has(tableName);
+        } else {
+          return handleExplicitness(
+              tableName,
+              isFullTableIncludedExplicitly,
+              isTableExcludedExplicitly,
+              isFullTableIncludedByPattern,
+              isTableExcludedByPattern
+          );
+        }
+      }
     }
 
     boolean hasPartition(String tableName, String partName) {
-      // if the whole table is excluded, so is any partition of that table
-      return !mExcluded.has(tableName) && mIncluded.hasPartition(tableName, partName);
+      if (mExcluded.isEmpty()) {
+        if (mIncluded.isEmpty()) {
+          return false;
+        } else {
+          return mIncluded.hasPartition(tableName, partName);
+        }
+      } else {
+        if (mIncluded.isEmpty()) {
+          // implicitly included tables are fully bypassed
+          return !mExcluded.has(tableName);
+        } else {
+          // first check if the table is present
+          boolean hasTable = handleExplicitness(tableName);
+          // then checks if the partition is present
+          return hasTable && mIncluded.hasPartition(tableName, partName);
+        }
+      }
     }
   }
 
@@ -164,7 +271,7 @@ public final class UdbMountSpec {
    * Wrapper for table and partition specs, only appears in bypass-include list.
    */
   private static class TablePartitionNamePatternWrapper extends NamePatternWrapper {
-    private final Map<String, Set<SimpleWrapper>> mTablePartMap;
+    private final ImmutableMap<String, Set<SimpleWrapper>> mTablePartMap;
 
     TablePartitionNamePatternWrapper(Set<String> fullTableNames, Set<Pattern> patterns) {
       this(fullTableNames, patterns, Collections.emptyMap());
@@ -173,7 +280,7 @@ public final class UdbMountSpec {
     TablePartitionNamePatternWrapper(Set<String> fullTableNames, Set<Pattern> patterns,
                                      Map<String, Set<SimpleWrapper>> tablePartMap) {
       super(fullTableNames, patterns);
-      mTablePartMap = tablePartMap;
+      mTablePartMap = ImmutableMap.copyOf(tablePartMap);
     }
 
     static TablePartitionNamePatternWrapper empty() {
@@ -188,7 +295,8 @@ public final class UdbMountSpec {
     boolean hasFullTable(String tableName) {
       // if a table is listed with an explicit literal name, then the partition specification
       // or regex patterns should not be consulted:
-      if (getNames().contains(tableName)) {
+      // here use parent's hasExplicit since self's takes into account partition specs
+      if (super.hasExplicit(tableName)) {
         return true;
       }
       if (mTablePartMap.containsKey(tableName)) {
@@ -198,13 +306,18 @@ public final class UdbMountSpec {
         return mTablePartMap.get(tableName).size() == 0;
       }
       // otherwise, check if it is covered by a regex pattern:
-      return patternsMatch(tableName);
+      return hasCoveredByPattern(tableName);
       // it's not listed in any way, so not a fully bypassed table.
     }
 
     @Override
     boolean has(String tableName) {
       return super.has(tableName) || mTablePartMap.containsKey(tableName);
+    }
+
+    @Override
+    boolean hasExplicit(String tableName) {
+      return super.hasExplicit(tableName) || mTablePartMap.containsKey(tableName);
     }
 
     /**
@@ -215,18 +328,20 @@ public final class UdbMountSpec {
     }
 
     boolean hasPartition(String tableName, String partName) {
+      // any partition of a fully bypassed table is bypassed
       if (hasFullTable(tableName)) {
         return true;
       }
-      // not a fully bypassed table, this means:
-      // 1. it's partially bypassed
+      // otherwise, one of the following is true:
+      // 1. the table's partially bypassed
       // 2. it's not bypassed at all
       Set<SimpleWrapper> simpleWrappers = mTablePartMap.get(tableName);
       if (simpleWrappers == null) {
+        // no partition specs, so it's not bypassed at all
         return false;
       }
-      // no need to test if `simpleWrappers.size() == 0`, since we know the table is not
-      // fully bypassed.
+      // it's partially bypassed
+      // here we know for sure `simpleWrappers.size() != 0`
       return simpleWrappers.stream().anyMatch(p -> p.has(partName));
     }
   }
@@ -245,12 +360,12 @@ public final class UdbMountSpec {
   }
 
   abstract static class NamePatternWrapper {
-    protected final Set<String> mNames;
-    protected final Set<Pattern> mPatterns;
+    protected final ImmutableSet<String> mNames;
+    protected final ImmutableSet<Pattern> mPatterns;
 
     NamePatternWrapper(Set<String> names, Set<Pattern> patterns) {
-      mNames = names;
-      mPatterns = patterns;
+      mNames = ImmutableSet.copyOf(names);
+      mPatterns = ImmutableSet.copyOf(patterns);
     }
 
     boolean isEmpty() {
@@ -258,7 +373,15 @@ public final class UdbMountSpec {
     }
 
     boolean has(String name) {
-      return mNames.contains(name) || patternsMatch(name);
+      return hasExplicit(name) || hasCoveredByPattern(name);
+    }
+
+    boolean hasExplicit(String name) {
+      return mNames.contains(name);
+    }
+
+    boolean hasCoveredByPattern(String name) {
+      return mPatterns.stream().map(p -> p.matcher(name)).anyMatch(Matcher::matches);
     }
 
     Set<String> getNames() {
@@ -268,14 +391,12 @@ public final class UdbMountSpec {
     Set<Pattern> getPatterns() {
       return mPatterns;
     }
-
-    boolean patternsMatch(String target) {
-      return mPatterns.stream().map(p -> p.matcher(target)).anyMatch(Matcher::matches);
-    }
   }
 
   abstract static class BaseBuilder<T> {
+    @Nullable
     protected Set<String> mNames;
+    @Nullable
     protected Set<Pattern> mPatterns;
 
     protected BaseBuilder() {}
