@@ -368,6 +368,11 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setDescription("An estimate of the blocks heap size")
           .setMetricType(MetricType.GAUGE)
           .build();
+  public static final MetricKey MASTER_RPC_QUEUE_LENGTH =
+      new Builder("Master.RpcQueueLength")
+          .setDescription("Length of the master rpc queue")
+          .setMetricType(MetricType.GAUGE)
+          .build();
 
   // Backup Restore
   public static final MetricKey MASTER_LAST_BACKUP_ENTRIES_COUNT =

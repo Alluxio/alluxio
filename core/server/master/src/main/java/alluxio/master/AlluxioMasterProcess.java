@@ -27,6 +27,7 @@ import alluxio.master.journal.JournalMasterClientServiceHandler;
 import alluxio.master.journal.JournalSystem;
 import alluxio.master.journal.JournalUtils;
 import alluxio.master.journal.raft.RaftJournalSystem;
+import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.metrics.sink.MetricsServlet;
 import alluxio.metrics.sink.PrometheusMetricsServlet;
@@ -50,7 +51,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.InetSocketAddress;
 import java.net.URI;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 
 import javax.annotation.Nullable;
@@ -89,7 +89,7 @@ public class AlluxioMasterProcess extends MasterProcess {
   /** The manager of all ufs. */
   private final MasterUfsManager mUfsManager;
 
-  private ExecutorService mRPCExecutor = null;
+  private ForkJoinPool mRPCExecutor = null;
 
   /**
    * Creates a new {@link AlluxioMasterProcess}.
@@ -317,6 +317,9 @@ public class AlluxioMasterProcess extends MasterProcess {
           TimeUnit.MILLISECONDS);
 
       serverBuilder.executor(mRPCExecutor);
+      MetricsSystem.registerGaugeIfAbsent(MetricKey.MASTER_RPC_QUEUE_LENGTH.getName(),
+              mRPCExecutor::getQueuedTaskCount);
+
       for (Master master : mRegistry.getServers()) {
         registerServices(serverBuilder, master.getServices());
       }
