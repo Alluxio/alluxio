@@ -2605,6 +2605,16 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
+  public static final PropertyKey MASTER_WEB_JOURNAL_CHECKPOINT_WARNING_THRESHOLD_TIME =
+      new Builder(Name.MASTER_WEB_JOURNAL_CHECKPOINT_WARNING_THRESHOLD_TIME)
+          .setDefaultValue(Constants.DAY * 3)
+          .setIsHidden(true)
+          .setDescription("The amount of time since the last checkpoint and when the number of "
+              + "journal entries is greater than " + Name.MASTER_JOURNAL_CHECKPOINT_PERIOD_ENTRIES
+              + " which causes a warning to be displayed in the web UI ")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.MASTER)
+          .build();
   public static final PropertyKey MASTER_WHITELIST =
       new Builder(Name.MASTER_WHITELIST)
           .setDefaultValue("/")
@@ -5818,6 +5828,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String MASTER_WEB_BIND_HOST = "alluxio.master.web.bind.host";
     public static final String MASTER_WEB_HOSTNAME = "alluxio.master.web.hostname";
     public static final String MASTER_WEB_PORT = "alluxio.master.web.port";
+    public static final String MASTER_WEB_JOURNAL_CHECKPOINT_WARNING_THRESHOLD_TIME =
+        "alluxio.master.journal.checkpoint.warning.threshold.time";
     public static final String MASTER_WHITELIST = "alluxio.master.whitelist";
     public static final String MASTER_WORKER_CONNECT_WAIT_TIME =
         "alluxio.master.worker.connect.wait.time";
