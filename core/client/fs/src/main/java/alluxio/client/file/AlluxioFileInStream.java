@@ -439,7 +439,6 @@ public class AlluxioFileInStream extends FileInStream {
       LOG.warn("Failed to close input stream for block {} of file {}: {}",
           stream.getId(), mStatus.getPath(), ex.getMessage());
     }
-
     mFailedWorkers.put(workerAddress, System.currentTimeMillis());
   }
 }

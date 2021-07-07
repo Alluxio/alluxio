@@ -26,11 +26,14 @@ import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.options.InStreamOptions;
 import alluxio.client.file.options.OutStreamOptions;
 import alluxio.collections.Pair;
+import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.PreconditionMessage;
 import alluxio.exception.status.UnavailableException;
 import alluxio.network.TieredIdentityFactory;
 import alluxio.resource.CloseableResource;
+import alluxio.util.CommonUtils;
 import alluxio.wire.BlockInfo;
 import alluxio.wire.BlockLocation;
 import alluxio.wire.TieredIdentity;
@@ -171,8 +174,12 @@ public final class AlluxioBlockStore {
     // TODO(calvin): Consider containing these two variables in one object
     BlockInStreamSource dataSourceType = null;
     WorkerNetAddress dataSource = null;
+    LOG.info("Before filter, locations={}, workerPool={}, failedWorkers={}, handledWorkers={}", locations,
+        workerPool, failedWorkers, workers);
     locations = locations.stream()
         .filter(location -> workers.contains(location.getWorkerAddress())).collect(toList());
+    LOG.info("After filter, locations={}", locations);
+
     // First try to read data from Alluxio
     if (!locations.isEmpty()) {
       // TODO(calvin): Get location via a policy
@@ -183,7 +190,6 @@ public final class AlluxioBlockStore {
       Optional<Pair<WorkerNetAddress, Boolean>> nearest =
           BlockLocationUtils.nearest(mTieredIdentity, tieredLocations, mContext.getClusterConf());
 
-      // HUATAI:
       // nearest = <worker, true>
       if (nearest.isPresent()) {
         LOG.info("Found nearest worker {}", nearest.get());
@@ -200,13 +206,14 @@ public final class AlluxioBlockStore {
     }
     // Can't get data from Alluxio, get it from the UFS instead
     if (dataSource == null) {
-      LOG.info("dataSource==null, data is from UFS");
+      LOG.info("dataSource==null, getting data from UFS");
       dataSourceType = BlockInStreamSource.UFS;
       BlockLocationPolicy policy =
           Preconditions.checkNotNull(options.getUfsReadLocationPolicy(),
               PreconditionMessage.UFS_READ_LOCATION_POLICY_UNSPECIFIED);
       blockWorkerInfo = blockWorkerInfo.stream()
           .filter(workerInfo -> workers.contains(workerInfo.getNetAddress())).collect(toList());
+      LOG.info("dataSourceType={}, policy={}, blockWorkerInfo={}", dataSourceType, policy, blockWorkerInfo);
       GetWorkerOptions getWorkerOptions = GetWorkerOptions.defaults()
           .setBlockInfo(new BlockInfo()
               .setBlockId(info.getBlockId())
@@ -214,6 +221,7 @@ public final class AlluxioBlockStore {
               .setLocations(locations))
           .setBlockWorkerInfos(blockWorkerInfo);
       dataSource = policy.getWorker(getWorkerOptions);
+      LOG.info("Found worker {} according to the option {}", dataSource, getWorkerOptions);
     }
     if (dataSource == null) {
       throw new UnavailableException(ExceptionMessage.NO_WORKER_AVAILABLE.getMessage());
@@ -237,8 +245,21 @@ public final class AlluxioBlockStore {
     Set<WorkerNetAddress> nonFailed =
         workers.stream().filter(worker -> !failedWorkers.containsKey(worker)).collect(toSet());
     if (nonFailed.isEmpty()) {
-      return Collections.singleton(workers.stream()
-          .min((x, y) -> Long.compare(failedWorkers.get(x), failedWorkers.get(y))).get());
+      Set<WorkerNetAddress> lastHope = Collections.singleton(workers.stream()
+            .min((x, y) -> Long.compare(failedWorkers.get(x), failedWorkers.get(y))).get());
+      LOG.info("All workers in the failedWorker list, return {}", lastHope);
+      return lastHope;
+    }
+    LOG.info("Non-failed workers {}", nonFailed);
+    // Forgive and forget
+    long currentTime = CommonUtils.getCurrentMs();
+    for (Map.Entry<WorkerNetAddress, Long> entry : failedWorkers.entrySet()) {
+      long memory = 5 * 60 * 1000;
+      long interval = currentTime - entry.getValue();
+      if (interval > memory) {
+        LOG.info("Forgive worker {} because it failed {}ms ago", entry.getKey(), interval);
+        nonFailed.add(entry.getKey());
+      }
     }
     return nonFailed;
   }
