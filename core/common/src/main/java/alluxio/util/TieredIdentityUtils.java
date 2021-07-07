@@ -16,6 +16,8 @@ import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.wire.TieredIdentity;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.net.UnknownHostException;
 import java.util.List;
@@ -28,6 +30,7 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public final class TieredIdentityUtils {
+  private static final Logger LOG = LoggerFactory.getLogger(TieredIdentityUtils.class);
 
   /**
    * Locality comparison for wire type locality tiers, two locality tiers matches if both name and
@@ -77,20 +80,24 @@ public final class TieredIdentityUtils {
   public static Optional<TieredIdentity> nearest(TieredIdentity tieredIdentity,
       List<TieredIdentity> identities, AlluxioConfiguration conf) {
     if (identities.isEmpty()) {
+      LOG.info("tieredIndenties are empty, nearest() returns empty");
       return Optional.empty();
     }
     for (TieredIdentity.LocalityTier tier : tieredIdentity.getTiers()) {
       if (tier == null) {
+        LOG.info("tier==null returning {}", identities.get(0));
         return Optional.of(identities.get(0));
       }
       for (TieredIdentity identity : identities) {
         for (TieredIdentity.LocalityTier otherTier : identity.getTiers()) {
           if (matches(tier, otherTier, conf.getBoolean(PropertyKey.LOCALITY_COMPARE_NODE_IP))) {
+            LOG.info("Found match {}={}, return {}", tier, otherTier, identity);
             return Optional.of(identity);
           }
         }
       }
     }
+    LOG.info("All comparisons ended, return {}", identities.get(0));
     return Optional.of(identities.get(0));
   }
 

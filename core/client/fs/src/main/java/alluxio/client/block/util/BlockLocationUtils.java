@@ -47,10 +47,11 @@ public final class BlockLocationUtils {
   public static Optional<Pair<WorkerNetAddress, Boolean>> nearest(TieredIdentity tieredIdentity,
       List<WorkerNetAddress> addresses, AlluxioConfiguration conf) {
     if (conf.getBoolean(PropertyKey.WORKER_DATA_SERVER_DOMAIN_SOCKET_AS_UUID)) {
+      LOG.info("WORKER_DATA_SERVER_DOMAIN_SOCKET_AS_UUID is enabled. Looking for worker with UUID.");
       // Determine by inspecting the file system if worker is local
       for (WorkerNetAddress addr : addresses) {
         if (NettyUtils.isDomainSocketAccessible(addr, conf)) {
-          LOG.debug("Found local worker by file system inspection of path {}",
+          LOG.info("Found local worker by file system inspection of path {}",
               addr.getDomainSocketPath());
           // Returns the first local worker and does not shuffle
           return Optional.of(new Pair<>(addr, true));
@@ -62,15 +63,25 @@ public final class BlockLocationUtils {
         addresses.stream().map(addr -> addr.getTieredIdentity()).collect(Collectors.toList()),
         conf);
     if (!nearestIdentity.isPresent()) {
+      LOG.info("TieredIdentity nearest returned empty");
       return Optional.empty();
     }
+    LOG.info("TieredIdentity returned nearest {}", nearestIdentity.get());
     boolean isLocal = tieredIdentity.getTier(0).getTierName().equals(Constants.LOCALITY_NODE)
         && tieredIdentity.topTiersMatch(nearestIdentity.get());
+    LOG.info("Constants.LOCALITY_NODE={}, tierName={}, are they equal:{}", Constants.LOCALITY_NODE,
+        tieredIdentity.getTier(0).getTierName(), isLocal);
+    List<WorkerNetAddress> filteredAddresses = addresses.stream()
+            .filter(addr -> addr.getTieredIdentity().equals(nearestIdentity.get())).collect(Collectors.toList());
     Optional<WorkerNetAddress> dataSource = addresses.stream()
         .filter(addr -> addr.getTieredIdentity().equals(nearestIdentity.get())).findFirst();
+    LOG.info("nearestIdentity={}, filteredAddresses={}, first dataSource={}", nearestIdentity.get(),
+        filteredAddresses, dataSource);
     if (!dataSource.isPresent()) {
+      LOG.info("dataSource is empty");
       return Optional.empty();
     }
+    LOG.info("dataSource is {}, isLocal={}", dataSource.get(), isLocal);
     return Optional.of(new Pair<>(dataSource.get(), isLocal));
   }
 

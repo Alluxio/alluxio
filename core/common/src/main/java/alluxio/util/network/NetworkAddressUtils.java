@@ -370,12 +370,16 @@ public final class NetworkAddressUtils {
    */
   public static String getClientHostName(AlluxioConfiguration conf) {
     if (conf.isSet(PropertyKey.USER_HOSTNAME)) {
+      LOG.info("Using USER_HOSTNAME={}", conf.get(PropertyKey.USER_HOSTNAME));
       return conf.get(PropertyKey.USER_HOSTNAME);
     }
     if (conf.isSet(PropertyKey.LOCALITY_TIER_NODE)) {
+      LOG.info("Using LOCALITY_TIER_NODE={}", conf.get(PropertyKey.LOCALITY_TIER_NODE));
       return conf.get(PropertyKey.LOCALITY_TIER_NODE);
     }
-    return getLocalHostName((int) conf.getMs(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS));
+    String localHostName = getLocalHostName((int) conf.getMs(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS));
+    LOG.info("Using resolved local hostname={}", localHostName);
+    return localHostName;
   }
 
   /**

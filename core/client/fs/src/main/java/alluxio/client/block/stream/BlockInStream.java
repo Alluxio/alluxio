@@ -103,10 +103,14 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
     long blockId = info.getBlockId();
     long blockSize = info.getLength();
 
+    LOG.info("Creating BlockInStream: dataSource={}, dataSourceType={}, nodeLocalWorker={}, equal={}",
+            dataSource, dataSourceType, context.getNodeLocalWorker(),
+            dataSource.equals(context.getNodeLocalWorker()));
     if (dataSourceType == BlockInStreamSource.PROCESS_LOCAL
         && dataSource.equals(context.getNodeLocalWorker())) {
       // Interaction between the current client and the worker it embedded to should
       // go through worker internal communication directly without RPC involves
+      LOG.info("Creating process local BlockInStream");
       return createProcessLocalBlockInStream(context, dataSource, blockId, blockSize, options);
     }
 
@@ -116,6 +120,8 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
         alluxioConf.getBoolean(PropertyKey.USER_SHORT_CIRCUIT_PREFERRED);
     boolean sourceSupportsDomainSocket = NettyUtils.isDomainSocketSupported(dataSource);
     boolean sourceIsLocal = dataSourceType == BlockInStreamSource.NODE_LOCAL;
+    LOG.info("shortCircuitEnabled={}, shortCircuitPreferred={}, sourceSupportsDomainSocket={}, sourceIsLocal={}",
+            shortCircuit, shortCircuitPreferred, sourceSupportsDomainSocket, sourceIsLocal);
 
     // Short circuit is enabled when
     // 1. data source is local node
@@ -123,7 +129,7 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
     // 3. the worker's domain socket is not configured
     //      OR alluxio.user.short.circuit.preferred is true
     if (sourceIsLocal && shortCircuit && (shortCircuitPreferred || !sourceSupportsDomainSocket)) {
-      LOG.debug("Creating short circuit input stream for block {} @ {}", blockId, dataSource);
+      LOG.info("Creating short circuit input stream for block {} @ {}", blockId, dataSource);
       try {
         return createLocalBlockInStream(context, dataSource, blockId, blockSize, options);
       } catch (NotFoundException e) {
@@ -135,7 +141,7 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
     }
 
     // gRPC
-    LOG.debug("Creating gRPC input stream for block {} @ {} from client {} reading through {}",
+    LOG.info("Creating gRPC input stream for block {} @ {} from client {} reading through {}",
         blockId, dataSource, NetworkAddressUtils.getClientHostName(alluxioConf), dataSource);
     return createGrpcBlockInStream(context, dataSource, dataSourceType, blockId,
         blockSize, options);
@@ -335,6 +341,7 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
     }
 
     int lenCopy = len;
+    // HUATAI: this is triggered
     try (DataReader reader = mDataReaderFactory.create(pos, len)) {
       // We try to read len bytes instead of returning after reading one chunk because
       // it is not free to create/close a DataReader.

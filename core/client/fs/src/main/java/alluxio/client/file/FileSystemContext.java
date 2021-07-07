@@ -653,6 +653,7 @@ public class FileSystemContext implements Closeable {
 
   private void initializeLocalWorker() throws IOException {
     List<WorkerNetAddress> addresses = getWorkerAddresses();
+    LOG.info("worker addresses: {}", addresses);
     if (!addresses.isEmpty()) {
       if (addresses.get(0).getHost().equals(NetworkAddressUtils.getClientHostName(
           getClusterConf()))) {
@@ -660,6 +661,7 @@ public class FileSystemContext implements Closeable {
       }
     }
     mLocalWorkerInitialized = true;
+    LOG.info("Local worker initialized {}", mLocalWorker);
   }
 
   /**
