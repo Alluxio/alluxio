@@ -130,7 +130,8 @@ public class LocalCacheFileInStream extends FileInStream {
     }
     int totalBytesRead = 0;
     long currentPosition = pos;
-    long lengthToRead = Math.min(len, mStatus.getLength() - pos);
+    long lengthToRead = Math.min(len, mStatus.getLength() - mPosition);
+    long mTime = mStatus.getFileInfo().getLastModificationTimeMs();
     // for each page, check if it is available in the cache
     while (totalBytesRead < lengthToRead) {
       long currentPage = currentPosition / mPageSize;
@@ -140,9 +141,9 @@ public class LocalCacheFileInStream extends FileInStream {
       PageId pageId;
       CacheContext cacheContext = mStatus.getCacheContext();
       if (cacheContext != null && cacheContext.getCacheIdentifier() != null) {
-        pageId = new PageId(cacheContext.getCacheIdentifier(), currentPage);
+        pageId = new PageId(cacheContext.getCacheIdentifier(), currentPage, mTime);
       } else {
-        pageId = new PageId(Long.toString(mStatus.getFileId()), currentPage);
+        pageId = new PageId(Long.toString(mStatus.getFileId()), currentPage, mTime);
       }
       int bytesRead =
           mCacheManager.get(pageId, currentPageOffset, bytesLeftInPage, b, off + totalBytesRead);

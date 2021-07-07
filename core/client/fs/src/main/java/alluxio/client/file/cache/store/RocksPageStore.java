@@ -159,8 +159,9 @@ public class RocksPageStore implements PageStore {
 
   private static byte[] getKeyFromPageId(PageId pageId) {
     byte[] fileId = pageId.getFileId().getBytes();
-    ByteBuffer buf = ByteBuffer.allocate(Long.BYTES + fileId.length);
+    ByteBuffer buf = ByteBuffer.allocate(Long.BYTES + fileId.length + Long.BYTES);
     buf.putLong(pageId.getPageIndex());
+    buf.putLong(pageId.getmTime());
     buf.put(fileId);
     return buf.array();
   }
@@ -176,8 +177,10 @@ public class RocksPageStore implements PageStore {
     }
     ByteBuffer buf = ByteBuffer.wrap(key);
     long pageIndex = buf.getLong();
+    long mTime = buf.getLong();
     String fileId = Charset.defaultCharset().decode(buf).toString();
-    return new PageId(fileId, pageIndex);
+
+    return new PageId(fileId, pageIndex, mTime);
   }
 
   @Override

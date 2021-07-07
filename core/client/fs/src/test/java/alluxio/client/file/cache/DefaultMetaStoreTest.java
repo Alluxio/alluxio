@@ -25,8 +25,10 @@ import org.junit.Test;
  * Tests for the {@link DefaultMetaStore} class.
  */
 public class DefaultMetaStoreTest {
-  protected final PageId mPage = new PageId("1L", 2L);
+  protected final PageId mPage = new PageId("1L", 2L, 0L);
+  protected final PageId mPage1 = new PageId("1L", 3L, 0L);
   protected final PageInfo mPageInfo = new PageInfo(mPage, 1024);
+  protected final PageInfo mPageInfo1 = new PageInfo(mPage1, 1024);
   protected final InstancedConfiguration mConf = ConfigurationTestUtils.defaults();
   protected DefaultMetaStore mMetaStore;
 
@@ -54,9 +56,12 @@ public class DefaultMetaStoreTest {
   @Test
   public void removeExist() throws Exception {
     mMetaStore.addPage(mPage, mPageInfo);
-    Assert.assertTrue(mMetaStore.hasPage(mPage));
+    mMetaStore.addPage(mPage1, mPageInfo1);
+    mMetaStore.hasPage(mPage);
+    mMetaStore.hasPage(mPage1);
     mMetaStore.removePage(mPage);
     Assert.assertFalse(mMetaStore.hasPage(mPage));
+    Assert.assertTrue(mMetaStore.hasPage(mPage1));
   }
 
   @Test

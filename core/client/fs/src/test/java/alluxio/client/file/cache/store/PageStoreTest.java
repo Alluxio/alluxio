@@ -82,7 +82,7 @@ public class PageStoreTest {
   public void helloWorldTest() throws Exception {
     String msg = "Hello, World!";
     byte[] msgBytes = msg.getBytes();
-    PageId id = new PageId("0", 0);
+    PageId id = new PageId("0", 0, 0L);
     mPageStore.put(id, msgBytes);
     byte[] buf = new byte[1024];
     assertEquals(msgBytes.length, mPageStore.get(id, buf));
@@ -99,7 +99,7 @@ public class PageStoreTest {
   @Test
   public void getOffset() throws Exception {
     int len = 32;
-    PageId id = new PageId("0", 0);
+    PageId id = new PageId("0", 0, 0L);
     mPageStore.put(id, BufferUtils.getIncreasingByteArray(len));
     byte[] buf = new byte[len];
     for (int offset = 1; offset < len; offset++) {
@@ -114,7 +114,7 @@ public class PageStoreTest {
   public void getOffsetOverflow() throws Exception {
     int len = 32;
     int offset = 36;
-    PageId id = new PageId("0", 0);
+    PageId id = new PageId("0", 0, 0L);
     mPageStore.put(id, BufferUtils.getIncreasingByteArray(len));
     byte[] buf = new byte[1024];
     assertThrows(IllegalArgumentException.class, () ->
@@ -124,11 +124,11 @@ public class PageStoreTest {
   @Test
   public void getPages() throws Exception {
     int len = 32;
-    int count = 16;
+    int count = 2;
     byte[] data = BufferUtils.getIncreasingByteArray(len);
     Set<PageInfo> pages = new HashSet<>(count);
     for (int i = 0; i < count; i++) {
-      PageId id = new PageId("0", i);
+      PageId id = new PageId("0", i, 0L);
       mPageStore.put(id, data);
       pages.add(new PageInfo(id, data.length));
     }
@@ -143,7 +143,7 @@ public class PageStoreTest {
     byte[] data = BufferUtils.getIncreasingByteArray(len);
     Set<PageInfo> pages = new HashSet<>(count);
     for (int i = 0; i < count; i++) {
-      PageId id = new PageId(UUID.randomUUID().toString(), i);
+      PageId id = new PageId(UUID.randomUUID().toString(), i, 0L);
       mPageStore.put(id, data);
       pages.add(new PageInfo(id, data.length));
     }
@@ -154,7 +154,7 @@ public class PageStoreTest {
   @Test
   public void getSmallLen() throws Exception {
     int len = 32;
-    PageId id = new PageId("0", 0);
+    PageId id = new PageId("0", 0, 0L);
     mPageStore.put(id, BufferUtils.getIncreasingByteArray(len));
     byte[] buf = new byte[1024];
     for (int b = 1; b < len; b++) {
@@ -168,7 +168,7 @@ public class PageStoreTest {
   @Test
   public void getSmallBuffer() throws Exception {
     int len = 32;
-    PageId id = new PageId("0", 0);
+    PageId id = new PageId("0", 0, 0L);
     mPageStore.put(id, BufferUtils.getIncreasingByteArray(len));
     for (int b = 1; b < len; b++) {
       byte[] buf = new byte[b];
@@ -195,7 +195,7 @@ public class PageStoreTest {
     Random r = new Random();
     for (int i = 0; i < numPages; i++) {
       int pind = r.nextInt();
-      store.put(new PageId("0", pind), b);
+      store.put(new PageId("0", pind, 0L), b);
       pages.add(pind);
     }
 
@@ -207,7 +207,7 @@ public class PageStoreTest {
       long start = System.nanoTime();
       bos.reset();
       for (Integer pageIndex : pages) {
-        store.get(new PageId("0", pageIndex), buf);
+        store.get(new PageId("0", pageIndex, 0L), buf);
       }
       long end = System.nanoTime();
       times.add(end - start);

@@ -49,12 +49,30 @@ public class LocalPageStoreTest {
   }
 
   @Test
+  public void testmTime() throws Exception {
+    LocalPageStore pageStore = new LocalPageStore(mOptions);
+    mTime(pageStore);
+  }
+
+  private void mTime(PageStore store) throws Exception {
+    String msg = "Hello, World!";
+    PageId id = new PageId("0", 0, 0);
+    PageId fId = new PageId("0", 0, 1);
+    store.put(id, msg.getBytes());
+    store.put(fId, msg.getBytes());
+    store.delete(fId);
+    store.put(id, msg.getBytes());
+    byte[] buf = new byte[1024];
+    assertEquals(msg.getBytes().length, store.get(id, buf));
+  }
+
+  @Test
   public void testSingleFileBucket() throws Exception {
     mOptions.setFileBuckets(1);
     LocalPageStore pageStore = new LocalPageStore(mOptions);
     long numFiles = 100;
     for (int i = 0; i < numFiles; i++) {
-      PageId id = new PageId(Integer.toString(i), 0);
+      PageId id = new PageId(Integer.toString(i), 0, i);
       pageStore.put(id, "test".getBytes());
     }
     assertEquals(1, Files.list(
@@ -68,7 +86,7 @@ public class LocalPageStoreTest {
     LocalPageStore pageStore = new LocalPageStore(mOptions);
     long numFiles = numBuckets * 10;
     for (int i = 0; i < numFiles; i++) {
-      PageId id = new PageId(Integer.toString(i), 0);
+      PageId id = new PageId(Integer.toString(i), 0, i);
       pageStore.put(id, "test".getBytes());
     }
     assertEquals(10, Files.list(
@@ -78,7 +96,7 @@ public class LocalPageStoreTest {
   @Test
   public void cleanFileAndDirectory() throws Exception {
     LocalPageStore pageStore = new LocalPageStore(mOptions);
-    PageId pageId = new PageId("0", 0);
+    PageId pageId = new PageId("0", 0, 0);
     pageStore.put(pageId, "test".getBytes());
     Path p = pageStore.getFilePath(pageId);
     assertTrue(Files.exists(p));
@@ -89,7 +107,7 @@ public class LocalPageStoreTest {
 
   private void helloWorldTest(PageStore store) throws Exception {
     String msg = "Hello, World!";
-    PageId id = new PageId("0", 0);
+    PageId id = new PageId("0", 0, 0);
     store.put(id, msg.getBytes());
     byte[] buf = new byte[1024];
     assertEquals(msg.getBytes().length, store.get(id, buf));

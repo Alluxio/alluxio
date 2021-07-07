@@ -51,8 +51,8 @@ public class QuotaMetaStoreTest extends DefaultMetaStoreTest {
   public void evictInScope2() throws Exception {
     CacheScope partitionScope1 = CacheScope.create("schema.table.partition1");
     CacheScope partitionScope2 = CacheScope.create("schema.table.partition2");
-    PageId pageId1 = new PageId("1L", 2L);
-    PageId pageId2 = new PageId("3L", 4L);
+    PageId pageId1 = new PageId("1L", 2L, 0L);
+    PageId pageId2 = new PageId("3L", 4L, 0L);
     PageInfo pageInfo1 = new PageInfo(pageId1, 1234, partitionScope1);
     PageInfo pageInfo2 = new PageInfo(pageId2, 5678, partitionScope2);
     mQuotaMetaStore.addPage(pageId1, pageInfo1);
