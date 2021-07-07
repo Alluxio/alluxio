@@ -3093,6 +3093,24 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
+  public static final PropertyKey WORKER_NETWORK_CACHE_MANAGER_QUEUE_MAX =
+      new Builder(Name.WORKER_NETWORK_CACHE_MANAGER_QUEUE_MAX)
+          .setAlias(Name.WORKER_NETWORK_ASYNC_CACHE_MANAGER_QUEUE_MAX)
+          .setDefaultValue(512)
+          .setDescription("The maximum number of outstanding caching requests to cache "
+              + "blocks in each data server")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.WORKER)
+          .build();
+  public static final PropertyKey WORKER_NETWORK_CACHE_MANAGER_THREADS_MAX =
+      new Builder(Name.WORKER_NETWORK_CACHE_MANAGER_THREADS_MAX)
+          .setAlias(Name.WORKER_NETWORK_ASYNC_CACHE_MANAGER_THREADS_MAX)
+          .setDefaultValue(8)
+          .setDescription("The maximum number of threads used to cache blocks in "
+              + "the data server.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.WORKER)
+          .build();
   public static final PropertyKey WORKER_NETWORK_BLOCK_READER_THREADS_MAX =
       new Builder(Name.WORKER_NETWORK_BLOCK_READER_THREADS_MAX)
           .setDefaultValue(2048)
@@ -5913,6 +5931,10 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.worker.network.async.cache.manager.threads.max";
     public static final String WORKER_NETWORK_ASYNC_CACHE_MANAGER_QUEUE_MAX =
         "alluxio.worker.network.async.cache.manager.queue.max";
+    public static final String WORKER_NETWORK_CACHE_MANAGER_THREADS_MAX =
+            "alluxio.worker.network.cache.manager.threads.max";
+    public static final String WORKER_NETWORK_CACHE_MANAGER_QUEUE_MAX =
+            "alluxio.worker.network.cache.manager.queue.max";
     public static final String WORKER_NETWORK_BLOCK_READER_THREADS_MAX =
         "alluxio.worker.network.block.reader.threads.max";
     public static final String WORKER_NETWORK_BLOCK_WRITER_THREADS_MAX =

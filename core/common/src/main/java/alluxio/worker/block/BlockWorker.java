@@ -317,6 +317,7 @@ public interface BlockWorker extends Worker, SessionCleanable {
    * Submits the async cache request to async cache manager to execute.
    *
    * @param request the async cache request
+   * @return cache result, succeed or not
    */
   boolean cache(CacheRequest request);
 
