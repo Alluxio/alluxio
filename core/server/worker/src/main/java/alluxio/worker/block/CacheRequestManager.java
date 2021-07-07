@@ -18,11 +18,13 @@ import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.BlockAlreadyExistsException;
+import alluxio.grpc.AsyncCacheRequest;
 import alluxio.grpc.CacheRequest;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.util.io.BufferUtils;
+import alluxio.util.logging.SamplingLogger;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.worker.block.io.BlockReader;
 import alluxio.worker.block.io.BlockWriter;
@@ -37,6 +39,8 @@ import java.net.InetSocketAddress;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.RejectedExecutionException;
+import java.util.concurrent.atomic.AtomicLong;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -47,15 +51,18 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public class CacheRequestManager {
   private static final Logger LOG = LoggerFactory.getLogger(CacheRequestManager.class);
+  private static final Logger SAMPLING_LOG = new SamplingLogger(LOG, 10L * Constants.MINUTE_MS);
 
   /** Executor service for execute the async cache tasks. */
   private final ExecutorService mCacheExecutor;
   /** The block worker. */
   private final BlockWorker mBlockWorker;
-  private final ConcurrentHashMap<Long, CacheRequest> mPendingRequests;
+  private final ConcurrentHashMap<Long, AsyncCacheRequest> mPendingAsyncRequests;
+  private final ConcurrentHashMap<Long, CacheRequest> mPendingSyncRequests;
   private final String mLocalWorkerHostname;
   private final FileSystemContext mFsContext;
-
+  /** Keeps track of the number of rejected cache requests. */
+  private final AtomicLong mNumRejected = new AtomicLong(0);
 
   /**
    * @param service thread pool to run the background caching work
@@ -67,7 +74,8 @@ public class CacheRequestManager {
     mCacheExecutor = service;
     mBlockWorker = blockWorker;
     mFsContext = fsContext;
-    mPendingRequests = new ConcurrentHashMap<>();
+    mPendingAsyncRequests = new ConcurrentHashMap<>();
+    mPendingSyncRequests = new ConcurrentHashMap<>();
     mLocalWorkerHostname =
         NetworkAddressUtils.getLocalHostName(
             (int) ServerConfiguration.getMs(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS));
@@ -77,12 +85,43 @@ public class CacheRequestManager {
    * Handles a request to cache a block asynchronously. This is a non-blocking call.
    *
    * @param request the async cache request fields will be available
+   */
+  public void submitRequest(AsyncCacheRequest request) {
+    ASYNC_CACHE_REQUESTS.inc();
+    long blockId = request.getBlockId();
+    if (mPendingAsyncRequests.putIfAbsent(blockId, request) != null) {
+      // This block is already planned.
+      ASYNC_CACHE_DUPLICATE_REQUESTS.inc();
+      return;
+    }
+    try {
+      mCacheExecutor.submit(new AsyncCacheTask(request));
+    } catch (RejectedExecutionException e) {
+      // RejectedExecutionException may be thrown in extreme cases when the
+      // gRPC thread pool is drained due to highly concurrent caching workloads. In these cases,
+      // return as async caching is at best effort.
+      mNumRejected.incrementAndGet();
+      SAMPLING_LOG.warn(String.format(
+          "Failed to cache block locally (async & best effort) as the thread pool is at capacity."
+              + " To increase, update the parameter '%s'. numRejected: {} error: {}",
+          PropertyKey.Name.WORKER_NETWORK_ASYNC_CACHE_MANAGER_THREADS_MAX), mNumRejected.get(),
+          e.toString());
+    } catch (Exception e) {
+      LOG.warn("Failed to submit async cache request. request: {}", request, e);
+      ASYNC_CACHE_FAILED_BLOCKS.inc();
+      mPendingAsyncRequests.remove(blockId);
+    }
+  }
+  /**
+   * Handles a request to cache a block asynchronously. This is a non-blocking call.
+   *
+   * @param request the async cache request fields will be available
    * @return
    */
   public boolean submitRequest(CacheRequest request) {
     CACHE_REQUESTS.inc();
     long blockId = request.getBlockId();
-    if (mPendingRequests.putIfAbsent(blockId, request) != null) {
+    if (mPendingSyncRequests.putIfAbsent(blockId, request) != null) {
       // This block is already planned.
       CACHE_DUPLICATE_REQUESTS.inc();
       return false;
@@ -94,7 +133,7 @@ public class CacheRequestManager {
     } catch (Exception e) {
       LOG.warn("Failed to submit cache request. request: {}", request, e);
       CACHE_FAILED_BLOCKS.inc();
-      mPendingRequests.remove(blockId);
+      mPendingSyncRequests.remove(blockId);
       return false;
     }
   }
@@ -174,6 +213,87 @@ public class CacheRequestManager {
    * the blockId of the request is the same.
    */
   @VisibleForTesting
+  class AsyncCacheTask implements Runnable {
+    private final AsyncCacheRequest mRequest;
+
+    /**
+     * Constructor for an AsyncCacheTask.
+     *
+     * @param request an AsyncCacheRequest
+     */
+    AsyncCacheTask(AsyncCacheRequest request) {
+      mRequest = request;
+    }
+
+    @Override
+    public int hashCode() {
+      // Only care about the block id being the same.
+      // Do not care if the source host or port is different.
+      return Objects.hash(mRequest.getBlockId());
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+      if (this == obj) {
+        return true;
+      }
+      if (!(obj instanceof AsyncCacheTask)) {
+        return false;
+      }
+      AsyncCacheTask that = ((AsyncCacheTask) obj);
+      if (mRequest == that.mRequest) {
+        return true;
+      }
+      if (this.mRequest == null || that.mRequest == null) {
+        return false;
+      }
+      // Only care about the block id being the same.
+      // Do not care if the source host or port is different.
+      return mRequest.getBlockId() == that.mRequest.getBlockId();
+    }
+
+    @Override
+    public void run() {
+      boolean result = false;
+      long blockId = mRequest.getBlockId();
+      long blockLength = mRequest.getLength();
+      try {
+        boolean isSourceLocal = mLocalWorkerHostname.equals(mRequest.getSourceHost());
+        // Check if the block has already been cached on this worker
+        if (mBlockWorker.hasBlockMeta(mRequest.getBlockId())) {
+          ASYNC_CACHE_DUPLICATE_REQUESTS.inc();
+          return;
+        }
+        Protocol.OpenUfsBlockOptions openUfsBlockOptions = mRequest.getOpenUfsBlockOptions();
+        // Depends on the request, cache the target block from different sources
+        if (isSourceLocal) {
+          ASYNC_CACHE_UFS_BLOCKS.inc();
+          result = cacheBlockFromUfs(blockId, blockLength, openUfsBlockOptions);
+        } else {
+          ASYNC_CACHE_REMOTE_BLOCKS.inc();
+          InetSocketAddress sourceAddress =
+              new InetSocketAddress(mRequest.getSourceHost(), mRequest.getSourcePort());
+          result = cacheBlockFromRemoteWorker(
+              blockId, blockLength, sourceAddress, openUfsBlockOptions);
+        }
+        LOG.debug("Result of async caching block {}: {}", blockId, result);
+      } catch (Exception e) {
+        LOG.warn("Async cache task failed. request: {}", mRequest, e);
+      } finally {
+        if (result) {
+          ASYNC_CACHE_SUCCEEDED_BLOCKS.inc();
+        } else {
+          ASYNC_CACHE_FAILED_BLOCKS.inc();
+        }
+        mPendingAsyncRequests.remove(blockId);
+      }
+    }
+  }
+  /**
+   * AsyncCacheTask is a runnable task that can be considered equal if
+   * the blockId of the request is the same.
+   */
+  @VisibleForTesting
   class CacheTask {
     private final CacheRequest mRequest;
 
@@ -198,10 +318,10 @@ public class CacheRequestManager {
       if (this == obj) {
         return true;
       }
-      if (!(obj instanceof CacheTask)) {
+      if (!(obj instanceof CacheRequestManager.CacheTask)) {
         return false;
       }
-      CacheTask that = ((CacheTask) obj);
+      CacheRequestManager.CacheTask that = ((CacheRequestManager.CacheTask) obj);
       if (mRequest == that.mRequest) {
         return true;
       }
@@ -233,9 +353,9 @@ public class CacheRequestManager {
         } else {
           CACHE_REMOTE_BLOCKS.inc();
           InetSocketAddress sourceAddress =
-              new InetSocketAddress(mRequest.getSourceHost(), mRequest.getSourcePort());
+                  new InetSocketAddress(mRequest.getSourceHost(), mRequest.getSourcePort());
           result = cacheBlockFromRemoteWorker(
-              blockId, blockLength, sourceAddress, openUfsBlockOptions);
+                  blockId, blockLength, sourceAddress, openUfsBlockOptions);
         }
         LOG.debug("Result of async caching block {}: {}", blockId, result);
         return result;
@@ -249,23 +369,34 @@ public class CacheRequestManager {
           CACHE_FAILED_BLOCKS.inc();
           return false;
         }
-        mPendingRequests.remove(blockId);
+        mPendingAsyncRequests.remove(blockId);
         return true;
       }
     }
   }
-
   // Metrics
+  private static final Counter ASYNC_CACHE_REQUESTS
+      = MetricsSystem.counter(MetricKey.WORKER_ASYNC_CACHE_REQUESTS.getName());
+  private static final Counter ASYNC_CACHE_DUPLICATE_REQUESTS =
+      MetricsSystem.counter(MetricKey.WORKER_ASYNC_CACHE_DUPLICATE_REQUESTS.getName());
+  private static final Counter ASYNC_CACHE_FAILED_BLOCKS =
+      MetricsSystem.counter(MetricKey.WORKER_ASYNC_CACHE_FAILED_BLOCKS.getName());
+  private static final Counter ASYNC_CACHE_REMOTE_BLOCKS =
+      MetricsSystem.counter(MetricKey.WORKER_ASYNC_CACHE_REMOTE_BLOCKS.getName());
+  private static final Counter ASYNC_CACHE_SUCCEEDED_BLOCKS =
+      MetricsSystem.counter(MetricKey.WORKER_ASYNC_CACHE_SUCCEEDED_BLOCKS.getName());
+  private static final Counter ASYNC_CACHE_UFS_BLOCKS =
+      MetricsSystem.counter(MetricKey.WORKER_ASYNC_CACHE_UFS_BLOCKS.getName());
   private static final Counter CACHE_REQUESTS
-      = MetricsSystem.counter(MetricKey.WORKER_CACHE_REQUESTS.getName());
+          = MetricsSystem.counter(MetricKey.WORKER_CACHE_REQUESTS.getName());
   private static final Counter CACHE_DUPLICATE_REQUESTS =
-      MetricsSystem.counter(MetricKey.WORKER_CACHE_DUPLICATE_REQUESTS.getName());
+          MetricsSystem.counter(MetricKey.WORKER_CACHE_DUPLICATE_REQUESTS.getName());
   private static final Counter CACHE_FAILED_BLOCKS =
-      MetricsSystem.counter(MetricKey.WORKER_CACHE_FAILED_BLOCKS.getName());
+          MetricsSystem.counter(MetricKey.WORKER_CACHE_FAILED_BLOCKS.getName());
   private static final Counter CACHE_REMOTE_BLOCKS =
-      MetricsSystem.counter(MetricKey.WORKER_CACHE_REMOTE_BLOCKS.getName());
+          MetricsSystem.counter(MetricKey.WORKER_CACHE_REMOTE_BLOCKS.getName());
   private static final Counter CACHE_SUCCEEDED_BLOCKS =
-      MetricsSystem.counter(MetricKey.WORKER_CACHE_SUCCEEDED_BLOCKS.getName());
+          MetricsSystem.counter(MetricKey.WORKER_CACHE_SUCCEEDED_BLOCKS.getName());
   private static final Counter CACHE_UFS_BLOCKS =
-      MetricsSystem.counter(MetricKey.WORKER_CACHE_UFS_BLOCKS.getName());
+          MetricsSystem.counter(MetricKey.WORKER_CACHE_UFS_BLOCKS.getName());
 }
