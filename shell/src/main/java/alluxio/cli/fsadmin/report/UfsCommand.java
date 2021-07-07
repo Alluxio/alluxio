@@ -61,7 +61,7 @@ public class UfsCommand {
 
       String usedPercentageInfo = "";
       if (capacityBytes > 0) {
-        int usedPercentage = (int) (100L * usedBytes / capacityBytes);
+        int usedPercentage = (int) (100.0 * usedBytes / capacityBytes);
         usedPercentageInfo = String.format("(%s%%)", usedPercentage);
       }
 
