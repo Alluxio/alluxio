@@ -182,15 +182,25 @@ public final class AlluxioBlockStore {
       Collections.shuffle(tieredLocations);
       Optional<Pair<WorkerNetAddress, Boolean>> nearest =
           BlockLocationUtils.nearest(mTieredIdentity, tieredLocations, mContext.getClusterConf());
+
+      // HUATAI:
+      // nearest = <worker, true>
       if (nearest.isPresent()) {
+        LOG.info("Found nearest worker {}", nearest.get());
+        // dataSource is worker
         dataSource = nearest.get().getFirst();
+        boolean isLocal = nearest.get().getSecond();
+        boolean hasProcessLocalWorker = mContext.hasProcessLocalWorker();
         dataSourceType = nearest.get().getSecond() ? mContext.hasProcessLocalWorker()
             ? BlockInStreamSource.PROCESS_LOCAL : BlockInStreamSource.NODE_LOCAL
             : BlockInStreamSource.REMOTE;
+        LOG.info("Found dataSource={}, dataSourceType={}, isLocal={}, hasProcessLocalWorker={}",
+            dataSource, dataSourceType, isLocal, hasProcessLocalWorker);
       }
     }
     // Can't get data from Alluxio, get it from the UFS instead
     if (dataSource == null) {
+      LOG.info("dataSource==null, data is from UFS");
       dataSourceType = BlockInStreamSource.UFS;
       BlockLocationPolicy policy =
           Preconditions.checkNotNull(options.getUfsReadLocationPolicy(),
