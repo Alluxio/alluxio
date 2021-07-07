@@ -147,6 +147,7 @@ public final class AlluxioBlockStore {
   public BlockInStream getInStream(BlockInfo info, InStreamOptions options,
       Map<WorkerNetAddress, Long> failedWorkers) throws IOException {
     List<BlockLocation> locations = info.getLocations();
+    LOG.info("BlockInfo is {}", info);
     List<BlockWorkerInfo> blockWorkerInfo = Collections.EMPTY_LIST;
     // Initial target workers to read the block given the block locations.
     Set<WorkerNetAddress> workerPool;
@@ -241,6 +242,10 @@ public final class AlluxioBlockStore {
       Map<WorkerNetAddress, Long> failedWorkers) {
     if (workers.isEmpty()) {
       return Collections.EMPTY_SET;
+    }
+    if (InstancedConfiguration.defaults().getBoolean(PropertyKey.USER_DISABLE_FAILED_WORKER_CHECK)) {
+      LOG.info("Disable failed worker check totally. Accept all of {}", workers);
+      return workers;
     }
     Set<WorkerNetAddress> nonFailed =
         workers.stream().filter(worker -> !failedWorkers.containsKey(worker)).collect(toSet());

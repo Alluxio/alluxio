@@ -4701,6 +4701,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
+  public static final PropertyKey USER_DISABLE_FAILED_WORKER_CHECK =
+          new Builder(Name.USER_DISABLE_FAILED_WORKER_CHECK)
+                  .setDefaultValue("false")
+                  .setDescription("If true, the failed worker check is skipped")
+                  .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+                  .setScope(Scope.CLIENT)
+                  .build();
   public static final PropertyKey USER_RPC_RETRY_MAX_SLEEP_MS =
       new Builder(Name.USER_RPC_RETRY_MAX_SLEEP_MS)
           .setAlias("alluxio.user.rpc.retry.max.sleep.ms")
@@ -4734,6 +4741,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
+
   public static final PropertyKey USER_UFS_BLOCK_READ_LOCATION_POLICY_DETERMINISTIC_HASH_SHARDS =
       new Builder(Name.USER_UFS_BLOCK_READ_LOCATION_POLICY_DETERMINISTIC_HASH_SHARDS)
           .setDefaultValue(1)
@@ -6262,6 +6270,9 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.user.short.circuit.preferred";
     public static final String USER_WORKER_LIST_REFRESH_INTERVAL =
         "alluxio.user.worker.list.refresh.interval";
+
+    public static final String USER_DISABLE_FAILED_WORKER_CHECK =
+            "alluxio.user.disable.failed.worker.check";
 
     //
     // FUSE integration related properties
