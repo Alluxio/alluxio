@@ -41,7 +41,7 @@ import javax.annotation.concurrent.ThreadSafe;
 public class URIStatus {
   private final FileInfo mInfo;
   /** Context related to Presto runtime associated with this URI. */
-  private PrestoContext mPrestoContext;
+  private CacheContext mCacheContext;
 
   /**
    * Constructs an instance of this class from a {@link FileInfo}.
@@ -50,7 +50,7 @@ public class URIStatus {
    */
   public URIStatus(FileInfo info) {
     mInfo = Preconditions.checkNotNull(info, "info");
-    mPrestoContext = null;
+    mCacheContext = null;
   }
 
   /**
@@ -316,15 +316,15 @@ public class URIStatus {
    * @return the Presto context
    */
   @Nullable
-  public PrestoContext getPrestoContext() {
-    return mPrestoContext;
+  public CacheContext getCacheContext() {
+    return mCacheContext;
   }
 
   /**
-   * @param prestoContext Presto context to set
+   * @param cacheContext Presto context to set
    */
-  public void setPrestoContext(PrestoContext prestoContext) {
-    mPrestoContext = prestoContext;
+  public void setCacheContext(CacheContext cacheContext) {
+    mCacheContext = cacheContext;
   }
 
   /**
@@ -347,19 +347,19 @@ public class URIStatus {
     }
     URIStatus uriStatus = (URIStatus) o;
     return Objects.equals(mInfo, uriStatus.mInfo) && Objects
-        .equals(mPrestoContext, uriStatus.mPrestoContext);
+        .equals(mCacheContext, uriStatus.mCacheContext);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(mInfo, mPrestoContext);
+    return Objects.hash(mInfo, mCacheContext);
   }
 
   @Override
   public String toString() {
     return MoreObjects.toStringHelper(this)
         .add("info", mInfo)
-        .add("prestoContext", mPrestoContext)
+        .add("cacheContext", mCacheContext)
         .toString();
   }
 }

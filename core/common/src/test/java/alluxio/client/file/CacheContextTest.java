@@ -18,18 +18,18 @@ import alluxio.client.quota.CacheScope;
 
 import org.junit.Test;
 
-public class PrestoContextTest {
+public class CacheContextTest {
 
   @Test
   public void defaults() {
-    PrestoContext defaultContext = new PrestoContext();
+    CacheContext defaultContext = new CacheContext();
     assertEquals(CacheQuota.UNLIMITED, defaultContext.getCacheQuota());
     assertEquals(CacheScope.GLOBAL, defaultContext.getCacheScope());
   }
 
   @Test
   public void setters() {
-    PrestoContext context = new PrestoContext()
+    CacheContext context = new CacheContext()
         .setCacheQuota(new CacheQuota())
         .setCacheScope(CacheScope.create("db.table"));
     assertEquals(new CacheQuota(), context.getCacheQuota());

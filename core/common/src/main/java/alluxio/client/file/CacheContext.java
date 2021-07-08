@@ -20,16 +20,16 @@ import com.google.common.base.MoreObjects;
 import java.util.Objects;
 
 /**
- * Context when running in Presto.
+ * Cache related context.
  */
-public class PrestoContext {
+public class CacheContext {
   private CacheQuota mCacheQuota = CacheQuota.UNLIMITED;
   private CacheScope mCacheScope = CacheScope.GLOBAL;
 
   /**
-   * Constructs PrestoContext.
+   * Constructs CacheContext.
    */
-  public PrestoContext() {
+  public CacheContext() {
   }
 
   /**
@@ -50,7 +50,7 @@ public class PrestoContext {
    * @param cacheQuota the cache quota
    * @return the updated {@link FileInfo}
    */
-  public PrestoContext setCacheQuota(CacheQuota cacheQuota) {
+  public CacheContext setCacheQuota(CacheQuota cacheQuota) {
     mCacheQuota = cacheQuota;
     return this;
   }
@@ -59,7 +59,7 @@ public class PrestoContext {
    * @param cacheScope the cache quota
    * @return the updated {@link FileInfo}
    */
-  public PrestoContext setCacheScope(CacheScope cacheScope) {
+  public CacheContext setCacheScope(CacheScope cacheScope) {
     mCacheScope = cacheScope;
     return this;
   }
@@ -84,7 +84,7 @@ public class PrestoContext {
     if (o == null || getClass() != o.getClass()) {
       return false;
     }
-    PrestoContext that = (PrestoContext) o;
+    CacheContext that = (CacheContext) o;
     return Objects.equals(mCacheQuota, that.mCacheQuota) && Objects
         .equals(mCacheScope, that.mCacheScope);
   }

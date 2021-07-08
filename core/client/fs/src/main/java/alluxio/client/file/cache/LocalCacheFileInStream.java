@@ -91,8 +91,8 @@ public class LocalCacheFileInStream extends FileInStream {
     mStatus = status;
     mQuotaEnabled = conf.getBoolean(PropertyKey.USER_CLIENT_CACHE_QUOTA_ENABLED);
     if (mQuotaEnabled) {
-      mCacheQuota = status.getPrestoContext().getCacheQuota();
-      mCacheScope = status.getPrestoContext().getCacheScope();
+      mCacheQuota = status.getCacheContext().getCacheQuota();
+      mCacheScope = status.getCacheContext().getCacheScope();
     } else {
       mCacheQuota = CacheQuota.UNLIMITED;
       mCacheScope = CacheScope.GLOBAL;
@@ -142,7 +142,7 @@ public class LocalCacheFileInStream extends FileInStream {
         totalBytesRead += bytesRead;
         currentPosition += bytesRead;
         Metrics.BYTES_READ_CACHE.mark(bytesRead);
-        mStatus.getPrestoContext()
+        mStatus.getCacheContext()
             .incrementCounter(MetricKey.CLIENT_CACHE_BYTES_READ_CACHE.getMetricName(), bytesRead);
       } else {
         // on local cache miss, read a complete page from external storage. This will always make
@@ -153,7 +153,7 @@ public class LocalCacheFileInStream extends FileInStream {
           totalBytesRead += bytesLeftInPage;
           currentPosition += bytesLeftInPage;
           Metrics.BYTES_REQUESTED_EXTERNAL.mark(bytesLeftInPage);
-          mStatus.getPrestoContext()
+          mStatus.getCacheContext()
               .incrementCounter(MetricKey.CLIENT_CACHE_BYTES_REQUESTED_EXTERNAL.getMetricName(),
                   bytesLeftInPage);
           mCacheManager.put(pageId, page, mCacheScope, mCacheQuota);
