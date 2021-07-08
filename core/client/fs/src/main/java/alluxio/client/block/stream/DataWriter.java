@@ -62,12 +62,15 @@ public interface DataWriter extends Closeable, Cancelable {
           alluxioConf.getBoolean(PropertyKey.USER_SHORT_CIRCUIT_PREFERRED);
       boolean ufsFallbackEnabled = options.getWriteType() == WriteType.ASYNC_THROUGH
           && alluxioConf.getBoolean(PropertyKey.USER_FILE_UFS_TIER_ENABLED);
+      boolean workerIsLocal = CommonUtils.isLocalHost(address, alluxioConf);
 
-      if (context.hasProcessLocalWorker() && !ufsFallbackEnabled) {
+      if (workerIsLocal && context.hasProcessLocalWorker() && !ufsFallbackEnabled) {
+        LOG.debug("Creating worker process local output stream for block {} @ {}",
+            blockId, address);
         return BlockWorkerDataWriter.create(context, blockId, blockSize, options);
       }
 
-      if (CommonUtils.isLocalHost(address, alluxioConf)
+      if (workerIsLocal
           && shortCircuit
           && (shortCircuitPreferred || !NettyUtils.isDomainSocketSupported(address))) {
         if (ufsFallbackEnabled) {

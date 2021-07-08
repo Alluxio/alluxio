@@ -106,6 +106,8 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
     if (dataSourceType == BlockInStreamSource.PROCESS_LOCAL) {
       // Interaction between the current client and the worker it embedded to should
       // go through worker internal communication directly without RPC involves
+      LOG.debug("Creating worker process local input stream for block {} @ {}",
+          blockId, dataSource);
       return createProcessLocalBlockInStream(context, dataSource, blockId, blockSize, options);
     }
 
