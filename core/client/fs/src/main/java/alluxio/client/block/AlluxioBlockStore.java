@@ -204,7 +204,13 @@ public final class AlluxioBlockStore {
               .setLocations(locations))
           .setBlockWorkerInfos(blockWorkerInfo);
       dataSource = policy.getWorker(getWorkerOptions);
+      // TODO(lu) update the bytesReadUfs metrics
+      if (dataSource != null && mContext.hasProcessLocalWorker()
+          && dataSource.equals(mContext.getNodeLocalWorker())) {
+        dataSourceType = BlockInStreamSource.PROCESS_LOCAL;
+      }
     }
+
     if (dataSource == null) {
       throw new UnavailableException(ExceptionMessage.NO_WORKER_AVAILABLE.getMessage());
     }
