@@ -11,7 +11,6 @@
 
 package alluxio.worker.grpc;
 
-import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
@@ -21,7 +20,6 @@ import alluxio.exception.status.InvalidArgumentException;
 import alluxio.grpc.Chunk;
 import alluxio.grpc.DataMessage;
 import alluxio.grpc.ReadResponse;
-import alluxio.metrics.MetricInfo;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.network.protocol.databuffer.DataBuffer;
@@ -337,9 +335,11 @@ public class BlockReadHandler implements StreamObserver<alluxio.grpc.ReadRequest
   private void incrementMetrics(long bytesRead) {
     Counter counter = mContext.getCounter();
     Meter meter = mContext.getMeter();
-    Preconditions.checkState(counter != null);
-    counter.inc(bytesRead);
-    meter.mark(bytesRead);
+    if (counter != null) {
+      // Ufs metrics is recorded in {@link UnderFileSystemBlockReader
+      counter.inc(bytesRead);
+      meter.mark(bytesRead);
+    }
   }
 
   /**
@@ -572,20 +572,8 @@ public class BlockReadHandler implements StreamObserver<alluxio.grpc.ReadRequest
           || (reader instanceof DelegatingBlockReader
           && ((DelegatingBlockReader) reader).getDelegate()
           instanceof UnderFileSystemBlockReader)) {
-        AlluxioURI ufsMountPointUri;
-        if (reader instanceof DelegatingBlockReader) {
-          reader = ((DelegatingBlockReader) reader).getDelegate();
-        }
-        ufsMountPointUri =
-            ((UnderFileSystemBlockReader) reader).getUfsMountPointUri();
-
-        String ufsString = MetricsSystem.escape(ufsMountPointUri);
-        MetricKey counterKey = MetricKey.WORKER_BYTES_READ_UFS;
-        MetricKey meterKey = MetricKey.WORKER_BYTES_READ_UFS_THROUGHPUT;
-        context.setCounter(MetricsSystem.counterWithTags(counterKey.getName(),
-            counterKey.isClusterAggregated(), MetricInfo.TAG_UFS, ufsString));
-        context.setMeter(MetricsSystem.meterWithTags(meterKey.getName(),
-            meterKey.isClusterAggregated(), MetricInfo.TAG_UFS, ufsString));
+        context.setCounter(null);
+        context.setMeter(null);
       }
     }
 
