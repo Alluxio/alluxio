@@ -12,8 +12,6 @@
 package alluxio.client.file;
 
 import alluxio.annotation.PublicApi;
-import alluxio.client.quota.CacheQuota;
-import alluxio.client.quota.CacheScope;
 import alluxio.grpc.TtlAction;
 import alluxio.security.authorization.AccessControlList;
 import alluxio.security.authorization.DefaultAccessControlList;
@@ -21,10 +19,12 @@ import alluxio.wire.BlockInfo;
 import alluxio.wire.FileBlockInfo;
 import alluxio.wire.FileInfo;
 
+import com.google.common.base.MoreObjects;
 import com.google.common.base.Preconditions;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 import javax.annotation.Nullable;
@@ -40,6 +40,8 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public class URIStatus {
   private final FileInfo mInfo;
+  /** Context related to Presto runtime associated with this URI. */
+  private PrestoContext mPrestoContext;
 
   /**
    * Constructs an instance of this class from a {@link FileInfo}.
@@ -47,7 +49,8 @@ public class URIStatus {
    * @param info an object containing the information about a particular uri
    */
   public URIStatus(FileInfo info) {
-    mInfo = Preconditions.checkNotNull(info, "Cannot create a URIStatus from a null FileInfo");
+    mInfo = Preconditions.checkNotNull(info, "info");
+    mPrestoContext = null;
   }
 
   /**
@@ -310,17 +313,18 @@ public class URIStatus {
   }
 
   /**
-   * @return the cache quota
+   * @return the Presto context
    */
-  public CacheQuota getCacheQuota() {
-    return mInfo.getCacheQuota();
+  @Nullable
+  public PrestoContext getPrestoContext() {
+    return mPrestoContext;
   }
 
   /**
-   * @return the cache scope
+   * @param prestoContext Presto context to set
    */
-  public CacheScope getCacheScope() {
-    return mInfo.getCacheScope();
+  public void setPrestoContext(PrestoContext prestoContext) {
+    mPrestoContext = prestoContext;
   }
 
   /**
@@ -333,33 +337,29 @@ public class URIStatus {
     return mInfo;
   }
 
-  /**
-   * Increments the counter {@code name} by {@code value}.
-   *
-   * Default implementation does nothing. Subclass can implement its own tracking mechanism.
-   */
-  public void incrementCounter(String name, long value) {
-  }
-
   @Override
   public boolean equals(Object o) {
     if (this == o) {
       return true;
     }
-    if (!(o instanceof URIStatus)) {
+    if (o == null || getClass() != o.getClass()) {
       return false;
     }
-    URIStatus that = (URIStatus) o;
-    return mInfo.equals(that.mInfo);
+    URIStatus uriStatus = (URIStatus) o;
+    return Objects.equals(mInfo, uriStatus.mInfo) && Objects
+        .equals(mPrestoContext, uriStatus.mPrestoContext);
   }
 
   @Override
   public int hashCode() {
-    return mInfo.hashCode();
+    return Objects.hash(mInfo, mPrestoContext);
   }
 
   @Override
   public String toString() {
-    return mInfo.toString();
+    return MoreObjects.toStringHelper(this)
+        .add("info", mInfo)
+        .add("prestoContext", mPrestoContext)
+        .toString();
   }
 }
