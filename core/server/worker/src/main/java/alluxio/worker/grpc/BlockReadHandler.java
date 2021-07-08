@@ -336,7 +336,7 @@ public class BlockReadHandler implements StreamObserver<alluxio.grpc.ReadRequest
     Counter counter = mContext.getCounter();
     Meter meter = mContext.getMeter();
     if (counter != null) {
-      // Ufs metrics is recorded in {@link UnderFileSystemBlockReader
+      // Ufs metrics is recorded in {@link UnderFileSystemBlockReader}
       counter.inc(bytesRead);
       meter.mark(bytesRead);
     }
