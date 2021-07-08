@@ -68,6 +68,7 @@ export class OverviewPresenter extends React.Component<AllProps> {
               {this.renderConfigurationIssues(data.configCheckErrors, 'text-error')}
               {this.renderConfigurationIssues(data.configCheckWarns, 'text-warning')}
               {this.renderJournalDiskWarnings(data.journalDiskWarnings, 'text-warning')}
+              {this.renderJournalCheckpointWarning(data.journalCheckpointTimeWarning, 'text-warning')}
             </tbody>
           </Table>
         </div>
@@ -131,6 +132,20 @@ export class OverviewPresenter extends React.Component<AllProps> {
           </Table>
         </div>
       </React.Fragment>
+    );
+  }
+
+  private renderJournalCheckpointWarning(warning: string, className: string): JSX.Element | null {
+    if (!warning || warning == '') {
+      return null;
+    }
+
+    return (
+      <tr key="journal-ckpt-warning-0">
+        <td colSpan={2} className={className}>
+          {warning}
+        </td>
+      </tr>
     );
   }
 

@@ -364,5 +364,34 @@ exports[`Metrics Shallow component Matches snapshot 1`] = `
       </tbody>
     </Table>
   </div>
+  <div
+    className="col-12"
+  >
+    <h5>
+      Alluxio Master Journal Checkpoint Status
+    </h5>
+    <Table
+      hover={true}
+      responsiveTag="div"
+      tag="table"
+    >
+      <tbody>
+        <tr>
+          <th>
+            Last Checkpoint Time
+          </th>
+          <th>
+            Journal Entries Since Checkpoint
+          </th>
+        </tr>
+        <tr>
+          <td />
+          <td>
+            0
+          </td>
+        </tr>
+      </tbody>
+    </Table>
+  </div>
 </Fragment>
 `;

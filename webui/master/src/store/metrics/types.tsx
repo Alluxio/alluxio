@@ -28,6 +28,8 @@ export interface IMetrics {
   };
   timeSeriesMetrics: LineSerieData[];
   journalDiskMetrics: IJournalDiskInfo[];
+  journalLastCheckpointTime: string;
+  journalEntriesSinceCheckpoint: number;
   totalBytesReadLocal: string;
   totalBytesReadLocalThroughput: string;
   totalBytesReadDomainSocket: string;

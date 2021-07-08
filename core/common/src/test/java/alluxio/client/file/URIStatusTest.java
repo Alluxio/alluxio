@@ -11,6 +11,7 @@
 
 package alluxio.client.file;
 
+import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.junit.Assert.assertThat;
@@ -20,8 +21,6 @@ import alluxio.wire.FileInfo;
 import alluxio.wire.FileInfoTest;
 
 import org.hamcrest.CoreMatchers;
-
-import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.Map;
@@ -81,7 +80,7 @@ public final class URIStatusTest {
     assertEquals(uriStatus.toString(), fileInfo.toString());
     assertEquals(uriStatus.getXAttr().size(), fileInfo.getXAttr().size());
     for (Map.Entry<String, byte[]> entry : uriStatus.getXAttr().entrySet()) {
-      Assert.assertArrayEquals(entry.getValue(), fileInfo.getXAttr().get(entry.getKey()));
+      assertArrayEquals(entry.getValue(), fileInfo.getXAttr().get(entry.getKey()));
     }
   }
 

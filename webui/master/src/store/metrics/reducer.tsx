@@ -28,6 +28,8 @@ export const initialMetricsState: IMetricsState = {
     rpcInvocationMetrics: {},
     timeSeriesMetrics: [],
     journalDiskMetrics: [],
+    journalLastCheckpointTime: '',
+    journalEntriesSinceCheckpoint: 0,
     totalBytesReadLocal: '',
     totalBytesReadLocalThroughput: '',
     totalBytesReadDomainSocket: '',

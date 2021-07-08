@@ -124,10 +124,14 @@ public abstract class AbstractClient implements Client {
 
   protected long getRemoteServiceVersion() throws AlluxioStatusException {
     // Calling directly as this method is subject to an encompassing retry loop.
-    return mVersionService
-        .getServiceVersion(
-            GetServiceVersionPRequest.newBuilder().setServiceType(getRemoteServiceType()).build())
-        .getVersion();
+    try {
+      return mVersionService
+          .getServiceVersion(
+              GetServiceVersionPRequest.newBuilder().setServiceType(getRemoteServiceType()).build())
+          .getVersion();
+    } catch (Throwable t) {
+      throw AlluxioStatusException.fromThrowable(t);
+    }
   }
 
   /**

@@ -359,6 +359,18 @@ public class RaftJournalSystem extends AbstractJournalSystem {
     RaftServerConfigKeys.Log.Appender.setInstallSnapshotEnabled(
         properties, false);
 
+    /*
+     * Soft disable RPC level safety.
+     *
+     * Without these overrides, the leader will step down upon detecting a long running GC over
+     * 10sec. This is not desirable for a single master cluster. Additionally, reduced safety should
+     * be provided via standard leader election in clustered mode.
+     */
+    RaftServerConfigKeys.Rpc.setSlownessTimeout(properties,
+        TimeDuration.valueOf(Long.MAX_VALUE, TimeUnit.MILLISECONDS));
+    RaftServerConfigKeys.LeaderElection.setLeaderStepDownWaitTime(properties,
+        TimeDuration.valueOf(Long.MAX_VALUE, TimeUnit.MILLISECONDS));
+
     long messageSize = ServerConfiguration.global().getBytes(
         PropertyKey.MASTER_EMBEDDED_JOURNAL_TRANSPORT_MAX_INBOUND_MESSAGE_SIZE);
     GrpcConfigKeys.setMessageSizeMax(properties,

@@ -81,6 +81,10 @@ public final class RemovedKey {
       put("alluxio.master.retry", removedSince(V2_0_0));
       put("alluxio.master.worker.threads.max", removedSince(V2_0_0));
       put("alluxio.master.worker.threads.min", removedSince(V2_0_0));
+      put("alluxio.master.embedded.journal.appender.batch.size", removedSince(V2_4_0));
+      put("alluxio.master.embedded.journal.storage.level", removedSince(V2_4_0));
+      put("alluxio.master.embedded.journal.shutdown.timeout", removedSince(V2_4_0));
+      put("alluxio.master.embedded.journal.triggered.snapshot.wait.timeout", removedSince(V2_4_0));
       put("alluxio.network.netty.heartbeat.timeout", removedSince(V2_0_0));
       put("alluxio.network.thrift.frame.size.bytes.max", removedSince(V2_0_0));
       put("alluxio.underfs.object.store.read.retry.base.sleep", removedSince(V2_0_0));
