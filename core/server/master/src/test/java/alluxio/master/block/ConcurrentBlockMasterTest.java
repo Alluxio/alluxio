@@ -15,6 +15,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 
+import alluxio.ProjectConstants;
 import alluxio.client.block.options.GetWorkerReportOptions;
 import alluxio.clock.ManualClock;
 import alluxio.exception.BlockInfoException;
@@ -88,6 +89,7 @@ public class ConcurrentBlockMasterTest {
   private ExecutorService mClientExecutorService;
   private MetricsMaster mMetricsMaster;
   private CoreMasterContext mMasterContext;
+  private long mStartTime;
 
   /** Rule to create a new temporary folder during each test. */
   @Rule
@@ -120,6 +122,7 @@ public class ConcurrentBlockMasterTest {
         ExecutorServiceFactories.constantExecutorServiceFactory(mExecutorService), voidLatch);
     mRegistry.add(BlockMaster.class, mBlockMaster);
     mRegistry.start(true);
+    mStartTime = System.currentTimeMillis();
   }
 
   /**
@@ -328,7 +331,7 @@ public class ConcurrentBlockMasterTest {
               ImmutableMap.of(newBlockLocationOnWorkerMemTier(worker2),
                   ImmutableList.of(BLOCK1_ID)),
               NO_LOST_STORAGE,
-              RegisterWorkerPOptions.getDefaultInstance());
+              RegisterWorkerPOptions.getDefaultInstance(), mStartTime, ProjectConstants.VERSION);
           return null;
         },
         // Verifier
@@ -373,7 +376,7 @@ public class ConcurrentBlockMasterTest {
               ImmutableMap.of(newBlockLocationOnWorkerMemTier(worker2),
                   ImmutableList.of(BLOCK2_ID)),
               NO_LOST_STORAGE,
-              RegisterWorkerPOptions.getDefaultInstance());
+              RegisterWorkerPOptions.getDefaultInstance(), mStartTime, ProjectConstants.VERSION);
           return null;
         },
         // Verifier
@@ -643,7 +646,7 @@ public class ConcurrentBlockMasterTest {
                 ImmutableMap.of(newBlockLocationOnWorkerMemTier(worker2),
                     ImmutableList.of(BLOCK1_ID)),
                 NO_LOST_STORAGE,
-                RegisterWorkerPOptions.getDefaultInstance());
+                RegisterWorkerPOptions.getDefaultInstance(), mStartTime, ProjectConstants.VERSION);
             return null;
           },
           // Verifier
@@ -751,7 +754,7 @@ public class ConcurrentBlockMasterTest {
                 ImmutableMap.of(newBlockLocationOnWorkerMemTier(worker2),
                     ImmutableList.of(BLOCK2_ID)),
                 NO_LOST_STORAGE,
-                RegisterWorkerPOptions.getDefaultInstance());
+                RegisterWorkerPOptions.getDefaultInstance(), mStartTime, ProjectConstants.VERSION);
             return null;
           },
           // Verifier
@@ -866,7 +869,7 @@ public class ConcurrentBlockMasterTest {
     long workerId = mBlockMaster.getWorkerId(address);
     mBlockMaster.workerRegister(workerId, Arrays.asList("MEM"), MEM_CAPACITY,
         MEM_USAGE_EMPTY, NO_BLOCKS_ON_LOCATION, NO_LOST_STORAGE,
-        RegisterWorkerPOptions.getDefaultInstance());
+        RegisterWorkerPOptions.getDefaultInstance(), mStartTime, ProjectConstants.VERSION);
     return workerId;
   }
 

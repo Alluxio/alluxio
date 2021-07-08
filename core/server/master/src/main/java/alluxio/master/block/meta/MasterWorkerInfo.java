@@ -611,4 +611,38 @@ public final class MasterWorkerInfo {
   public LockResource lockWorkerMeta(EnumSet<WorkerMetaLockSection> lockTypes, boolean isShared) {
     return new LockResource(new WorkerMetaLock(lockTypes, isShared, this));
   }
+
+  /**
+   * Sets the version of worker.
+   * @param version the version of worker
+   */
+  public void setVersion(String version) {
+    mMeta.mVersion = version;
+  }
+
+  /**
+   * Sets the start time  of worker.
+   * @param startTime the version of worker
+   */
+  public void setRealStartTime(long startTime) {
+    mMeta.mStartTime = startTime;
+  }
+
+  /**
+   * No locking required.
+   *
+   * @return the start time of worker
+   */
+  public long getRealStartTime() {
+    return mMeta.mStartTime;
+  }
+
+  /**
+   * No locking required.
+   *
+   * @return the version of worker
+   */
+  public String getVersion() {
+    return mMeta.mVersion;
+  }
 }
