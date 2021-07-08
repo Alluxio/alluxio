@@ -11,6 +11,7 @@
 
 package alluxio.master.table;
 
+import static alluxio.master.table.DbConfig.*;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
@@ -36,17 +37,17 @@ public class DbConfigTest {
   /* TableEntry tests */
   @Test
   public void tableNamesOnly() throws Exception {
-    DbConfig.TableEntry entry =
-        mMapper.readValue("\"table1\"", DbConfig.TableEntry.class);
+    TableEntry entry =
+        mMapper.readValue("\"table1\"", TableEntry.class);
     assertEquals("table1", entry.getTable());
     assertEquals(ImmutableSet.of(), entry.getPartitions());
   }
 
   @Test
   public void tableNamesAndPartitions() throws Exception {
-    DbConfig.TableEntry entry = mMapper.readValue(
+    TableEntry entry = mMapper.readValue(
         "{\"table\": \"table2\", \"partitions\": [\"t2p1\", \"t2p2\"]}",
-        DbConfig.TableEntry.class
+        TableEntry.class
     );
     assertEquals("table2", entry.getTable());
     assertEquals(ImmutableSet.of("t2p1", "t2p2"), entry.getPartitions());
@@ -54,9 +55,9 @@ public class DbConfigTest {
 
   @Test
   public void missingPartitions() throws Exception {
-    DbConfig.TableEntry entry = mMapper.readValue(
+    TableEntry entry = mMapper.readValue(
         "{\"table\": \"table3\"}",
-        DbConfig.TableEntry.class
+        TableEntry.class
     );
     assertEquals("table3", entry.getTable());
     assertEquals(ImmutableSet.of(), entry.getPartitions());
@@ -64,13 +65,13 @@ public class DbConfigTest {
 
   @Test
   public void equalityRegardlessOfPartitions() throws Exception {
-    DbConfig.TableEntry entry1 = mMapper.readValue(
+    TableEntry entry1 = mMapper.readValue(
         "{\"table\": \"table4\", \"partitions\": [\"p1\"]}",
-        DbConfig.TableEntry.class
+        TableEntry.class
     );
-    DbConfig.TableEntry entry2 = mMapper.readValue(
+    TableEntry entry2 = mMapper.readValue(
         "{\"table\": \"table4\", \"partitions\": [\"p2\"]}",
-        DbConfig.TableEntry.class
+        TableEntry.class
     );
     assertEquals(entry1, entry2);
     assertEquals(entry1.hashCode(), entry2.hashCode());
@@ -79,15 +80,15 @@ public class DbConfigTest {
   /* TablesEntry tests */
   @Test
   public void emptyListOfTables() throws Exception {
-    DbConfig.TablesEntry entry = mMapper.readValue("{\"tables\": []}", DbConfig.TablesEntry.class);
+    TablesEntry entry = mMapper.readValue("{\"tables\": []}", TablesEntry.class);
     assertEquals(ImmutableSet.of(), entry.getTableNames());
   }
 
   @Test
   public void nullConstructor() throws Exception {
-    DbConfig.TablesEntry entry1 = mMapper.readValue("{}", DbConfig.TablesEntry.class);
+    TablesEntry entry1 = mMapper.readValue("{}", TablesEntry.class);
     assertEquals(ImmutableSet.of(), entry1.getTableNames());
-    DbConfig.TablesEntry entry2 = new DbConfig.TablesEntry(null);
+    TablesEntry entry2 = new TablesEntry(null);
     assertEquals(ImmutableSet.of(), entry2.getTableNames());
   }
 
