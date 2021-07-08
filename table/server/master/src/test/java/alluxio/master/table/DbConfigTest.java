@@ -21,11 +21,6 @@ import com.google.common.collect.ImmutableList;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.collect.ImmutableSet;
-
-import java.util.List;
-
 public class DbConfigTest {
   private ObjectMapper mMapper;
 
@@ -78,6 +73,7 @@ public class DbConfigTest {
   }
 
   /* TablesEntry tests */
+  /* IgnoreTablesEntry is a type alias for TablesEntry<NameEntry> */
   @Test
   public void emptyListOfTables() throws Exception {
     TablesEntry entry = mMapper.readValue("{\"tables\": []}", TablesEntry.class);
@@ -86,32 +82,46 @@ public class DbConfigTest {
 
   @Test
   public void nullConstructor() throws Exception {
-    TablesEntry entry1 = mMapper.readValue("{}", TablesEntry.class);
-    assertEquals(ImmutableSet.of(), entry1.getTableNames());
-    TablesEntry entry2 = new TablesEntry(null);
-    assertEquals(ImmutableSet.of(), entry2.getTableNames());
+    IgnoreTablesEntry entry2 = new IgnoreTablesEntry(null);
+    assertEquals(ImmutableSet.of(), entry2.getList().getIncludedEntries());
+    assertEquals(ImmutableSet.of(), entry2.getList().getExcludedEntries());
+  }
+  
+  @Test
+  public void implicitIncludeList() throws Exception {
+    IgnoreTablesEntry entry =
+        mMapper.readValue(
+            "{\"tables\": [\"table1\"]}", 
+            new TypeReference<IgnoreTablesEntry>() {});
+    assertEquals(ImmutableSet.of(new NameEntry("table1")), entry.getList().getIncludedEntries());
+    assertEquals(ImmutableSet.of(), entry.getList().getExcludedEntries());
+  }
+
+  @Test
+  public void explicitIncludeExcludeList() throws Exception {
+    IgnoreTablesEntry entry =
+        mMapper.readValue(
+            "{\"tables\": {\"include\": [\"table1\"]}}",
+            new TypeReference<IgnoreTablesEntry>() {});
+    assertEquals(ImmutableSet.of(new NameEntry("table1")), entry.getList().getIncludedEntries());
+    assertEquals(ImmutableSet.of(), entry.getList().getExcludedEntries());
+  }
+
+  @Test
+  public void bypassTablesEntry() throws Exception {
+    BypassTablesEntry entry =
+        mMapper.readValue(
+            "{\"tables\": [{\"table\": \"table1\"}]}",
+            new TypeReference<BypassTablesEntry>() {});
+    assertEquals(ImmutableSet.of(new TableEntry("table1")),
+        entry.getList().getIncludedEntries());
+    assertEquals(ImmutableSet.of(), entry.getList().getExcludedEntries());
   }
 
   /* DbConfig tests */
   @Test
-  public void emptyConfig() throws Exception {
-    List<String> src = ImmutableList.of(
-        "{}",
-        "{\"bypass\": {}}",
-        "{\"ignore\": {}}",
-        "{\"bypass\": {}, \"ignore\": {}}"
-    );
-    for (String input : src) {
-      DbConfig config = mMapper.readValue(input, DbConfig.class);
-      assertEquals(DbConfig.empty().getBypassEntry().getTableEntries(),
-          config.getBypassEntry().getTableEntries());
-      assertEquals(DbConfig.empty().getIgnoreEntry().getTableEntries(),
-          config.getIgnoreEntry().getTableEntries());
-    }
-  }
-
-  @Test
   public void convertToSpec() throws Exception {
+    // Todo(bowen): add more tests to cover partitions, inclusion/exclusion
     DbConfig config =
         mMapper.readValue("{\"bypass\": {\"tables\": [\"table1\"]}}", DbConfig.class);
     UdbMountSpec spec = config.getUdbMountSpec();
@@ -120,6 +130,5 @@ public class DbConfigTest {
         mMapper.readValue("{\"ignore\": {\"tables\": [\"table1\"]}}", DbConfig.class);
     spec = config.getUdbMountSpec();
     assertTrue(spec.hasIgnoredTable("table1"));
-    assertEquals(ImmutableSet.of("table1"), spec.getIgnoredTables());
   }
 }

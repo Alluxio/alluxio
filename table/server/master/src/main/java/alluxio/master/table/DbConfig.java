@@ -82,18 +82,18 @@ import javax.annotation.Nullable;
  * }
  */
 public final class DbConfig {
-  private final TablesEntry<TableEntry> mBypassEntry;
-  private final TablesEntry<NameEntry> mIgnoreEntry;
+  private final BypassTablesEntry mBypassEntry;
+  private final IgnoreTablesEntry mIgnoreEntry;
 
   /**
    * @param bypassEntry bypass entry
    * @param ignoreEntry ignore entry
    */
   @JsonCreator
-  public DbConfig(@JsonProperty("bypass") @Nullable TablesEntry<TableEntry> bypassEntry,
-                  @JsonProperty("ignore") @Nullable TablesEntry<NameEntry> ignoreEntry) {
-    mBypassEntry = bypassEntry == null ? new TablesEntry<>(null) : bypassEntry;
-    mIgnoreEntry = ignoreEntry == null ? new TablesEntry<>(null) : ignoreEntry;
+  public DbConfig(@JsonProperty("bypass") @Nullable BypassTablesEntry bypassEntry,
+                  @JsonProperty("ignore") @Nullable IgnoreTablesEntry ignoreEntry) {
+    mBypassEntry = bypassEntry == null ? new BypassTablesEntry(null) : bypassEntry;
+    mIgnoreEntry = ignoreEntry == null ? new IgnoreTablesEntry(null) : ignoreEntry;
   }
 
   /**
@@ -171,6 +171,10 @@ public final class DbConfig {
     return builder.build();
   }
 
+  /**
+   * Type alias for {@link TablesEntry<TableEntry>}.
+   */
+  @JsonDeserialize(using = BypassTablesEntryDeserializer.class)
   public static final class BypassTablesEntry extends TablesEntry<TableEntry> {
 
     /**
@@ -182,11 +186,23 @@ public final class DbConfig {
   }
 
   /**
+   * Type alias for {@link TablesEntry<NameEntry>}.
+   */
+  @JsonDeserialize(using = IgnoreTablesEntryDeserializer.class)
+  public static final class IgnoreTablesEntry extends TablesEntry<NameEntry> {
+
+    /**
+     * @param list
+     */
+    public IgnoreTablesEntry(@Nullable IncludeExcludeList<NameEntry> list) {
+      super(list);
+    }
+  }
+
+  /**
    * Tables configuration entry from config file.
    */
-  @JsonDeserialize(using = TablesEntryDeserializer.class)
   public static  class TablesEntry<T extends NameEntry> {
-    @JsonProperty("tables")
     private final IncludeExcludeList<T> mList;
 
     /**
@@ -206,31 +222,58 @@ public final class DbConfig {
    * 1. a list of {@link NameEntry}s
    * 2. an object containing `include`, `exclude` and `includeFirstOnConflict` keys
    */
-  public static class TablesEntryDeserializer<T extends NameEntry>
-      extends JsonDeserializer<TablesEntry<T>> {
-    @Override
-    public TablesEntry<T> deserialize(JsonParser jp, DeserializationContext cxt)
+  public static class TablesEntryDeserializer<T extends NameEntry> {
+    public IncludeExcludeList<T> deserializeToList(
+        Class<T> type, JsonParser jp, DeserializationContext cxt)
         throws IOException, JsonProcessingException {
       ObjectMapper mapper = (ObjectMapper) jp.getCodec();
       JsonNode node = mapper.readTree(jp);
       if (node == null) {
         return null;
       }
+      if (!node.hasNonNull("tables")) {
+        throw new JsonParseException(mapper.treeAsTokens(node), "missing field `tables`");
+      }
+      node = node.get("tables");
       if (node.isArray()) {
         // in case an array, an included list is implied
-        Set<T> entries =
-            mapper.convertValue(node, new TypeReference<Set<T>>() {});
-        return new TablesEntry<T>(new IncludeExcludeList<T>(entries));
+        Set<T> entries = mapper.convertValue(
+            node,
+            mapper.getTypeFactory().constructCollectionType(Set.class, type)
+        );
+        return new IncludeExcludeList<>(entries);
       }
       if (node.isObject()) {
         // otherwise, deserialize as an IncludeExcludeList object
-        // Todo(bowen): does jackson work with generic classes?
-        IncludeExcludeList<T> list =
-            mapper.convertValue(node, new TypeReference<IncludeExcludeList<T>>() {});
-        return new TablesEntry<T>(list);
+        return mapper.convertValue(
+            node,
+            mapper.getTypeFactory().constructParametricType(IncludeExcludeList.class, type)
+        );
       }
       throw new JsonParseException(mapper.treeAsTokens(node),
           "invalid syntax, expecting array or object");
+    }
+  }
+
+  public static class IgnoreTablesEntryDeserializer extends JsonDeserializer<IgnoreTablesEntry> {
+    @Override
+    public IgnoreTablesEntry deserialize(JsonParser jp, DeserializationContext cxt)
+        throws IOException, JsonProcessingException {
+      TablesEntryDeserializer<NameEntry> deserializer = new TablesEntryDeserializer<>();
+      IncludeExcludeList<NameEntry> list =
+          deserializer.deserializeToList(NameEntry.class, jp, cxt);
+      return new IgnoreTablesEntry(list);
+    }
+  }
+
+  public static class BypassTablesEntryDeserializer extends JsonDeserializer<BypassTablesEntry> {
+    @Override
+    public BypassTablesEntry deserialize(JsonParser jp, DeserializationContext cxt)
+        throws IOException, JsonProcessingException {
+      TablesEntryDeserializer<TableEntry> deserializer = new TablesEntryDeserializer<>();
+      IncludeExcludeList<TableEntry> list =
+          deserializer.deserializeToList(TableEntry.class, jp, cxt);
+      return new BypassTablesEntry(list);
     }
   }
 
@@ -238,6 +281,7 @@ public final class DbConfig {
    * Contains additional partition specification.
    * If the set of partitions is empty, all belonging partitions of that table will be bypassed.
    */
+  @JsonDeserialize(using = TableEntryDeserializer.class)
   public static class TableEntry extends NameEntry {
     private final Set<NameEntry> mPartitions;
 
@@ -291,6 +335,14 @@ public final class DbConfig {
         throws IOException, JsonProcessingException {
       ObjectMapper mapper = (ObjectMapper) jp.getCodec();
       JsonNode node = mapper.readTree(jp);
+      // try deserialize as a `NameEntry` object first
+      try {
+        NameEntryDeserializer deserializer = new NameEntryDeserializer();
+        NameEntry nameEntry =  deserializer.deserialize(mapper.treeAsTokens(node), cxt);
+        return new TableEntry(nameEntry, Collections.emptySet());
+      } catch (JsonProcessingException e) {
+        // ignore, and try deserialize as a `TableEntry` object
+      }
       if (node == null) {
         return null;
       }
@@ -390,9 +442,11 @@ public final class DbConfig {
         return false;
       }
       NameEntry entry = (NameEntry) other;
-      return mIsPattern == entry.mIsPattern
-          && Objects.equals(mName, entry.mName)
-          && Objects.equals(mPattern.pattern(), entry.mPattern.pattern());
+      if (mIsPattern) {
+        return Objects.equals(mPattern.pattern(), entry.mPattern.pattern());
+      } else {
+        return Objects.equals(mName, entry.mName);
+      }
     }
 
     @Override
@@ -485,6 +539,11 @@ public final class DbConfig {
 
     public boolean isIncludeFirstOnConflict() {
       return mIncludeFirstOnConflict;
+    }
+
+    @Override
+    public int hashCode() {
+      return Objects.hash(mIncludedEntries, mExcludedEntries);
     }
   }
 }
