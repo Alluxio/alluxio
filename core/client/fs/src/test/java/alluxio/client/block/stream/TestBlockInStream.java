@@ -95,8 +95,8 @@ public class TestBlockInStream extends BlockInStream {
     }
 
     @Override
-    public boolean isShortCircuit() {
-      return mShortCircuit;
+    public DataReader.DataReaderType getDataReaderType() {
+      return DataReader.DataReaderType.TEST;
     }
 
     @Override

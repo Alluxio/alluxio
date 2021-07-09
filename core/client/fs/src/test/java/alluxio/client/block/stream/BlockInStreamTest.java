@@ -11,8 +11,9 @@
 
 package alluxio.client.block.stream;
 
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.assertFalse;
+import static alluxio.client.block.stream.DataReader.DataReaderType;
+
+import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.when;
@@ -31,6 +32,7 @@ import alluxio.util.network.NettyUtils;
 import alluxio.wire.BlockInfo;
 import alluxio.wire.FileInfo;
 import alluxio.wire.WorkerNetAddress;
+import alluxio.worker.block.BlockWorker;
 
 import io.grpc.stub.ClientCallStreamObserver;
 import io.grpc.stub.StreamObserver;
@@ -38,6 +40,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Matchers;
+import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 import org.powermock.api.mockito.PowerMockito;
@@ -92,7 +95,7 @@ public class BlockInStreamTest {
     BlockInStream.BlockInStreamSource dataSourceType = BlockInStream.BlockInStreamSource.NODE_LOCAL;
     BlockInStream stream =
         BlockInStream.create(mMockContext, mInfo, dataSource, dataSourceType, mOptions);
-    assertTrue(stream.isShortCircuit());
+    assertEquals(DataReaderType.SHORT_CIRCUIT, stream.getDataReaderType());
   }
 
   @Test
@@ -101,7 +104,7 @@ public class BlockInStreamTest {
     BlockInStream.BlockInStreamSource dataSourceType = BlockInStream.BlockInStreamSource.REMOTE;
     BlockInStream stream =
         BlockInStream.create(mMockContext, mInfo, dataSource, dataSourceType, mOptions);
-    assertFalse(stream.isShortCircuit());
+    assertEquals(DataReaderType.GRPC, stream.getDataReaderType());
   }
 
   @Test
@@ -110,7 +113,7 @@ public class BlockInStreamTest {
     BlockInStream.BlockInStreamSource dataSourceType = BlockInStream.BlockInStreamSource.UFS;
     BlockInStream stream =
         BlockInStream.create(mMockContext, mInfo, dataSource, dataSourceType, mOptions);
-    assertFalse(stream.isShortCircuit());
+    assertEquals(DataReaderType.GRPC, stream.getDataReaderType());
   }
 
   @Test
@@ -124,7 +127,7 @@ public class BlockInStreamTest {
           BlockInStream.BlockInStreamSource.NODE_LOCAL;
       BlockInStream stream =
           BlockInStream.create(mMockContext, mInfo, dataSource, dataSourceType, mOptions);
-      assertFalse(stream.isShortCircuit());
+      assertEquals(DataReaderType.GRPC, stream.getDataReaderType());
     }
   }
 
@@ -140,6 +143,34 @@ public class BlockInStreamTest {
     BlockInStream.BlockInStreamSource dataSourceType = BlockInStream.BlockInStreamSource.NODE_LOCAL;
     BlockInStream stream = BlockInStream.create(mMockContext, mInfo, dataSource, dataSourceType,
         mOptions);
-    assertFalse(stream.isShortCircuit());
+    assertEquals(DataReaderType.GRPC, stream.getDataReaderType());
+  }
+
+  @Test
+  public void createProcessLocal() throws Exception {
+    WorkerNetAddress dataSource = new WorkerNetAddress();
+    when(mMockContext.getNodeLocalWorker()).thenReturn(dataSource);
+    when(mMockContext.getClientContext()).thenReturn(ClientContext.create(mConf));
+    BlockWorker blockWorker = Mockito.mock(BlockWorker.class);
+    when(mMockContext.getProcessLocalWorker()).thenReturn(blockWorker);
+    BlockInStream.BlockInStreamSource dataSourceType =
+        BlockInStream.BlockInStreamSource.PROCESS_LOCAL;
+    BlockInStream stream =
+        BlockInStream.create(mMockContext, mInfo, dataSource, dataSourceType, mOptions);
+    assertEquals(DataReaderType.BLOCK_WORKER, stream.getDataReaderType());
+  }
+
+  @Test
+  public void createUfsProcessLocal() throws Exception {
+    WorkerNetAddress dataSource = new WorkerNetAddress();
+    when(mMockContext.getNodeLocalWorker()).thenReturn(dataSource);
+    when(mMockContext.getClientContext()).thenReturn(ClientContext.create(mConf));
+    BlockWorker blockWorker = Mockito.mock(BlockWorker.class);
+    when(mMockContext.getProcessLocalWorker()).thenReturn(blockWorker);
+    BlockInStream.BlockInStreamSource dataSourceType =
+        BlockInStream.BlockInStreamSource.PROCESS_LOCAL;
+    BlockInStream stream =
+        BlockInStream.create(mMockContext, mInfo, dataSource, dataSourceType, mOptions);
+    assertEquals(DataReaderType.BLOCK_WORKER, stream.getDataReaderType());
   }
 }

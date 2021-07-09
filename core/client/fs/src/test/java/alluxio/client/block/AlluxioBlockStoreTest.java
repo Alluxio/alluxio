@@ -27,6 +27,7 @@ import alluxio.client.block.policy.options.GetWorkerOptions;
 import alluxio.client.block.stream.BlockInStream;
 import alluxio.client.block.stream.BlockOutStream;
 import alluxio.client.block.stream.BlockWorkerClient;
+import alluxio.client.block.stream.DataReader;
 import alluxio.client.block.stream.NoopClosableResource;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.URIStatus;
@@ -51,6 +52,7 @@ import alluxio.wire.BlockLocation;
 import alluxio.wire.FileBlockInfo;
 import alluxio.wire.FileInfo;
 import alluxio.wire.WorkerNetAddress;
+import alluxio.worker.block.BlockWorker;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
@@ -60,6 +62,7 @@ import io.grpc.stub.StreamObserver;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 import org.powermock.api.mockito.PowerMockito;
@@ -379,6 +382,24 @@ public final class AlluxioBlockStoreTest {
           .getAddress());
     }
     assertEquals(Sets.newHashSet(remote1, remote2), results);
+  }
+
+  @Test
+  public void getInStreamProcessLocal() throws Exception {
+    WorkerNetAddress remote = new WorkerNetAddress().setHost("remote");
+    WorkerNetAddress local = new WorkerNetAddress().setHost(WORKER_HOSTNAME_LOCAL);
+    BlockInfo info = new BlockInfo().setBlockId(BLOCK_ID).setLocations(Arrays
+        .asList(new BlockLocation().setWorkerAddress(remote),
+            new BlockLocation().setWorkerAddress(local)));
+    when(mMasterClient.getBlockInfo(BLOCK_ID)).thenReturn(info);
+
+    when(mContext.hasProcessLocalWorker()).thenReturn(true);
+    BlockWorker blockWorker = Mockito.mock(BlockWorker.class);
+    when(mContext.getProcessLocalWorker()).thenReturn(blockWorker);
+    BlockInStream stream = mBlockStore.getInStream(BLOCK_ID, new InStreamOptions(
+        new URIStatus(new FileInfo().setBlockIds(Lists.newArrayList(BLOCK_ID))), sConf));
+    assertEquals(local,stream.getAddress());
+    assertEquals(DataReader.DataReaderType.BLOCK_WORKER, stream.getDataReaderType());
   }
 
   @Test

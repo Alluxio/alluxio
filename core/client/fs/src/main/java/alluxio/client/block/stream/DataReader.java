@@ -22,6 +22,17 @@ import java.io.IOException;
 public interface DataReader extends Closeable {
 
   /**
+   * The data reader type.
+   */
+  enum DataReaderType {
+    BLOCK_WORKER,
+    GRPC,
+    SHORT_CIRCUIT,
+    SHARED,
+    TEST
+  }
+
+  /**
    * Reads a chunk. The caller needs to release the chunk.
    *
    * @return the data buffer or null if EOF is reached
@@ -47,8 +58,8 @@ public interface DataReader extends Closeable {
     DataReader create(long offset, long len) throws IOException;
 
     /**
-     * @return whether this factory generates data readers which perform short-circuit reads
+     * @return the data reader type
      */
-    boolean isShortCircuit();
+    DataReaderType getDataReaderType();
   }
 }

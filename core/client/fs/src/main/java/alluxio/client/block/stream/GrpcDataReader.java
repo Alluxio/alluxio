@@ -241,8 +241,8 @@ public final class GrpcDataReader implements DataReader {
     }
 
     @Override
-    public boolean isShortCircuit() {
-      return false;
+    public DataReaderType getDataReaderType() {
+      return DataReaderType.GRPC;
     }
 
     @Override

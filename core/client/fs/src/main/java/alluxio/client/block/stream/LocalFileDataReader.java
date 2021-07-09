@@ -166,8 +166,8 @@ public final class LocalFileDataReader implements DataReader {
     }
 
     @Override
-    public boolean isShortCircuit() {
-      return true;
+    public DataReaderType getDataReaderType() {
+      return DataReaderType.SHORT_CIRCUIT;
     }
 
     @Override

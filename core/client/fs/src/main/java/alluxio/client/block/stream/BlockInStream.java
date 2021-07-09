@@ -459,8 +459,8 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
   /**
    * @return whether the reader is reading data directly from a local file
    */
-  public boolean isShortCircuit() {
-    return mDataReaderFactory.isShortCircuit();
+  public DataReader.DataReaderType getDataReaderType() {
+    return mDataReaderFactory.getDataReaderType();
   }
 
   /**

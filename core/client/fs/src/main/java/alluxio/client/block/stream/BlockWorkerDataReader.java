@@ -137,8 +137,8 @@ public final class BlockWorkerDataReader implements DataReader {
     }
 
     @Override
-    public boolean isShortCircuit() {
-      return false;
+    public DataReaderType getDataReaderType() {
+      return DataReaderType.BLOCK_WORKER;
     }
 
     @Override
