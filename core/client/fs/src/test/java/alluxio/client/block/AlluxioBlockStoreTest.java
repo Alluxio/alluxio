@@ -20,6 +20,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import alluxio.ClientContext;
+import alluxio.ConfigurationRule;
 import alluxio.ConfigurationTestUtils;
 import alluxio.client.WriteType;
 import alluxio.client.block.policy.BlockLocationPolicy;
@@ -69,6 +70,7 @@ import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
+import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
 import java.util.AbstractMap;
@@ -287,28 +289,49 @@ public final class AlluxioBlockStoreTest {
   }
 
   @Test
-  public void getInStreamUfs() throws Exception {
-    WorkerNetAddress worker1 = new WorkerNetAddress().setHost("worker1");
-    WorkerNetAddress worker2 = new WorkerNetAddress().setHost("worker2");
+  public void getInStreamUfsMockLocaltion() throws Exception {
+    try (Closeable c = new ConfigurationRule(PropertyKey.USER_UFS_BLOCK_READ_LOCATION_POLICY,
+        MockBlockLocationPolicy.class.getTypeName(), sConf).toResource()) {
+      WorkerNetAddress worker1 = new WorkerNetAddress().setHost("worker1");
+      WorkerNetAddress worker2 = new WorkerNetAddress().setHost("worker2");
+      BlockInfo info = new BlockInfo().setBlockId(0);
+      URIStatus dummyStatus = new URIStatus(new FileInfo().setPersisted(true)
+          .setBlockIds(Collections.singletonList(0L))
+          .setFileBlockInfos(Collections.singletonList(new FileBlockInfo().setBlockInfo(info))));
+      OpenFilePOptions readOptions = OpenFilePOptions.newBuilder().build();
+      InStreamOptions options = new InStreamOptions(dummyStatus, readOptions, sConf);
+      ((MockBlockLocationPolicy) options.getUfsReadLocationPolicy())
+          .setHosts(Arrays.asList(worker1, worker2));
+      when(mMasterClient.getBlockInfo(BLOCK_ID)).thenReturn(new BlockInfo());
+      when(mContext.getCachedWorkers()).thenReturn(
+          Lists.newArrayList(new BlockWorkerInfo(worker1, -1, -1),
+              new BlockWorkerInfo(worker2, -1, -1)));
+
+      // Location policy chooses worker1 first.
+      assertEquals(worker1, mBlockStore.getInStream(BLOCK_ID, options).getAddress());
+      // Location policy chooses worker2 second.
+      assertEquals(worker2, mBlockStore.getInStream(BLOCK_ID, options).getAddress());
+    }
+  }
+
+  @Test
+  public void getInStreamUfsLocalFirst() throws Exception {
+    WorkerNetAddress remote = new WorkerNetAddress().setHost("remote");
+    WorkerNetAddress local = new WorkerNetAddress().setHost(WORKER_HOSTNAME_LOCAL);
     BlockInfo info = new BlockInfo().setBlockId(0);
     URIStatus dummyStatus =
         new URIStatus(new FileInfo().setPersisted(true).setBlockIds(Collections.singletonList(0L))
             .setFileBlockInfos(Collections.singletonList(new FileBlockInfo().setBlockInfo(info))));
-    sConf.set(PropertyKey.USER_UFS_BLOCK_READ_LOCATION_POLICY,
-        MockBlockLocationPolicy.class.getTypeName());
     OpenFilePOptions readOptions = OpenFilePOptions.newBuilder().build();
     InStreamOptions options = new InStreamOptions(dummyStatus, readOptions, sConf);
-    ((MockBlockLocationPolicy) options.getUfsReadLocationPolicy())
-        .setHosts(Arrays.asList(worker1, worker2));
     when(mMasterClient.getBlockInfo(BLOCK_ID)).thenReturn(new BlockInfo());
     when(mContext.getCachedWorkers()).thenReturn(
-        Lists.newArrayList(new BlockWorkerInfo(worker1, -1, -1),
-            new BlockWorkerInfo(worker2, -1, -1)));
+        Lists.newArrayList(new BlockWorkerInfo(remote, 100, 0),
+            new BlockWorkerInfo(local, 100, 0)));
 
-    // Location policy chooses worker1 first.
-    assertEquals(worker1, mBlockStore.getInStream(BLOCK_ID, options).getAddress());
-    // Location policy chooses worker2 second.
-    assertEquals(worker2, mBlockStore.getInStream(BLOCK_ID, options).getAddress());
+    BlockInStream stream = mBlockStore.getInStream(BLOCK_ID, options);
+    assertEquals(local, stream.getAddress());
+    assertEquals(DataReader.DataReaderType.GRPC, stream.getDataReaderType());
   }
 
   @Test
@@ -396,9 +419,35 @@ public final class AlluxioBlockStoreTest {
     when(mContext.hasProcessLocalWorker()).thenReturn(true);
     BlockWorker blockWorker = Mockito.mock(BlockWorker.class);
     when(mContext.getProcessLocalWorker()).thenReturn(blockWorker);
+
     BlockInStream stream = mBlockStore.getInStream(BLOCK_ID, new InStreamOptions(
         new URIStatus(new FileInfo().setBlockIds(Lists.newArrayList(BLOCK_ID))), sConf));
-    assertEquals(local,stream.getAddress());
+    assertEquals(local, stream.getAddress());
+    assertEquals(DataReader.DataReaderType.BLOCK_WORKER, stream.getDataReaderType());
+  }
+
+  @Test
+  public void getInStreamUfsProcessLocal() throws Exception {
+    WorkerNetAddress remote = new WorkerNetAddress().setHost("remote");
+    WorkerNetAddress local = new WorkerNetAddress().setHost(WORKER_HOSTNAME_LOCAL);
+    BlockInfo info = new BlockInfo().setBlockId(0);
+    URIStatus dummyStatus =
+        new URIStatus(new FileInfo().setPersisted(true).setBlockIds(Collections.singletonList(0L))
+            .setFileBlockInfos(Collections.singletonList(new FileBlockInfo().setBlockInfo(info))));
+    OpenFilePOptions readOptions = OpenFilePOptions.newBuilder().build();
+    InStreamOptions options = new InStreamOptions(dummyStatus, readOptions, sConf);
+    when(mMasterClient.getBlockInfo(BLOCK_ID)).thenReturn(new BlockInfo());
+    when(mContext.getCachedWorkers()).thenReturn(
+        Lists.newArrayList(new BlockWorkerInfo(remote, 100, 0),
+            new BlockWorkerInfo(local, 100, 0)));
+
+    when(mContext.getNodeLocalWorker()).thenReturn(local);
+    when(mContext.hasProcessLocalWorker()).thenReturn(true);
+    BlockWorker blockWorker = Mockito.mock(BlockWorker.class);
+    when(mContext.getProcessLocalWorker()).thenReturn(blockWorker);
+
+    BlockInStream stream = mBlockStore.getInStream(BLOCK_ID, options);
+    assertEquals(local, stream.getAddress());
     assertEquals(DataReader.DataReaderType.BLOCK_WORKER, stream.getDataReaderType());
   }
 
