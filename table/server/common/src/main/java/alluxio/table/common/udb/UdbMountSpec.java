@@ -11,6 +11,7 @@
 
 package alluxio.table.common.udb;
 
+import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
@@ -91,37 +92,6 @@ public final class UdbMountSpec {
 
   /**
    * Wrapper class that takes into account inclusion and exclusion behaviour.
-   *  |-----------------------|
-   *  |  inclusion            |       All items
-   *  |         |-------------|------|
-   *  |         |    A2       |  D2  |
-   *  |    A1   |     |-------|------|--------|
-   *  |         |     |   B   |      |        |
-   *  |_________|_____|_______|      |        |
-   *            |  D1 |       C2     |        |
-   *            |_____|______________|   C1   |
-   *                  |           exclusion   |
-   *                  |_______________________|
-   * D = D1 + D2
-   *
-   * General rules:
-   * when exclusion is not empty and inclusion is:
-   * 1. empty: A2 + D is to be bypassed/ignored
-   * 2. not empty: A2 is to be bypassed/ignored
-   * when exclusion is empty and inclusion is:
-   * 1. empty: none is to be bypassed/ignored
-   * 2. not empty: A2 + B is to be bypassed/ignored
-   *
-   * Corner cases:
-   * 1. Explicit names have priority over patterns.
-   *     If a table is included by an explicit name but excluded by a pattern,
-   *     then it is still considered included.
-   *     Likewise, if it is excluded by an explicit name but included by a pattern,
-   *     it's still excluded.
-   * 2. If a name is specified explicitly both in the include list and the exclude list,
-   *     then it's an IllegalStateException.
-   * 3. If a name is covered by both the include and the exclude patterns,
-   *     then it's excluded. (or included? or IllegalStateException?)
    */
   abstract static class InclusionExclusionWrapper<T extends NamePatternWrapper> {
     protected final T mIncluded;
@@ -129,6 +99,8 @@ public final class UdbMountSpec {
     protected final SimpleNamePatternWrapper mExcluded;
 
     InclusionExclusionWrapper(T included, SimpleNamePatternWrapper excluded) {
+      // currently either included or excluded list is accepted, but not both
+      Preconditions.checkArgument(included.isEmpty() || excluded.isEmpty());
       mIncluded = included;
       mExcluded = excluded;
     }
@@ -136,55 +108,10 @@ public final class UdbMountSpec {
     // generic implementation
     boolean has(String name) {
       if (mExcluded.isEmpty()) {
-        if (mIncluded.isEmpty()) {
-          return false;
-        } else {
-          return mIncluded.has(name);
-        }
+        return mIncluded.has(name);
       } else {
-        if (mIncluded.isEmpty()) {
-          // when include is empty, anything that is not excluded is implicitly included
-          return !mExcluded.has(name);
-        } else {
-          return handleExplicitness(name);
-        }
+        return !mExcluded.has(name);
       }
-    }
-
-    protected boolean handleExplicitness(String name) {
-      return handleExplicitness(
-          name,
-          mIncluded.hasExplicit(name),
-          mExcluded.hasExplicit(name),
-          mIncluded.hasCoveredByPattern(name),
-          mExcluded.hasCoveredByPattern(name));
-    }
-
-    protected boolean handleExplicitness(
-        String name,
-        boolean isExplicitlyIncluded,
-        boolean isExplicitlyExcluded,
-        boolean isIncludedByPattern,
-        boolean isExcludedByPattern
-    ) {
-      if (isExplicitlyIncluded && isExplicitlyExcluded) {
-        throw new IllegalStateException(
-            String.format("Name `%s` is both included and excluded explicitly", name));
-      }
-      if (isExplicitlyIncluded) {
-        return true;
-      }
-      if (isExplicitlyExcluded) {
-        return false;
-      }
-      if (isIncludedByPattern && isExcludedByPattern) {
-        return false;
-      }
-      if (isIncludedByPattern) {
-        return true;
-      }
-      // isExcludedByPattern == true
-      return false;
     }
   }
 
@@ -201,52 +128,20 @@ public final class UdbMountSpec {
     }
 
     boolean hasFullTable(String tableName) {
-      boolean isFullTableIncludedExplicitly =
-          mIncluded.hasExplicit(tableName) && mIncluded.hasFullTable(tableName);
-      boolean isFullTableIncludedByPattern =
-          mIncluded.hasCoveredByPattern(tableName) && mIncluded.hasFullTable(tableName);
-      boolean isTableExcludedExplicitly = mExcluded.hasExplicit(tableName);
-      boolean isTableExcludedByPattern = mExcluded.hasCoveredByPattern(tableName);
-
       if (mExcluded.isEmpty()) {
-        if (mIncluded.isEmpty()) {
-          return false;
-        } else {
-          return mIncluded.hasFullTable(tableName);
-        }
+        return mIncluded.hasFullTable(tableName);
       } else {
-        if (mIncluded.isEmpty()) {
-          // implicitly included tables are fully bypassed
-          return !mExcluded.has(tableName);
-        } else {
-          return handleExplicitness(
-              tableName,
-              isFullTableIncludedExplicitly,
-              isTableExcludedExplicitly,
-              isFullTableIncludedByPattern,
-              isTableExcludedByPattern
-          );
-        }
+        // tables that are implicitly included by being NOT excluded are meant to be fully bypassed
+        // since there is no way to specify partitions in an exclusion list
+        return !mExcluded.has(tableName);
       }
     }
 
     boolean hasPartition(String tableName, String partName) {
       if (mExcluded.isEmpty()) {
-        if (mIncluded.isEmpty()) {
-          return false;
-        } else {
-          return mIncluded.hasPartition(tableName, partName);
-        }
+        return mIncluded.hasPartition(tableName, partName);
       } else {
-        if (mIncluded.isEmpty()) {
-          // implicitly included tables are fully bypassed
-          return !mExcluded.has(tableName);
-        } else {
-          // first check if the table is present
-          boolean hasTable = handleExplicitness(tableName);
-          // then checks if the partition is present
-          return hasTable && mIncluded.hasPartition(tableName, partName);
-        }
+        return !mExcluded.has(tableName);
       }
     }
   }
@@ -300,7 +195,6 @@ public final class UdbMountSpec {
       }
       // otherwise, check if it is covered by a regex pattern:
       return hasCoveredByPattern(tableName);
-      // it's not listed in any way, so not a fully bypassed table.
     }
 
     @Override
