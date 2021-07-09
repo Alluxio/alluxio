@@ -70,7 +70,7 @@ public class DbConfigTest {
         mMapper.readValue("\"table1\"", TableEntry.class);
     assertFalse(entry.isPattern());
     assertEquals("table1", entry.getTable());
-    assertEquals(ImmutableSet.of(), entry.getPartitions());
+    assertEquals(IncludeExcludeList.empty(), entry.getPartitions());
   }
 
   @Test
@@ -86,8 +86,24 @@ public class DbConfigTest {
             new NameEntry("t2p1"),
             new NameEntry("t2p2")
         ),
-        entry.getPartitions()
+        entry.getPartitions().getIncludedEntries()
     );
+    assertEquals(ImmutableSet.of(), entry.getPartitions().getExcludedEntries());
+  }
+
+  @Test
+  public void partitionsAsIncludeExcludeList() throws Exception {
+    TableEntry entry = mMapper.readValue(
+        "{\"table\": \"table2\", \"partitions\": {\"exclude\": [\"t2p1\"]}}",
+        TableEntry.class
+    );
+    assertFalse(entry.isPattern());
+    assertEquals("table2", entry.getTable());
+    assertEquals(
+        ImmutableSet.of(new NameEntry("t2p1")),
+        entry.getPartitions().getExcludedEntries()
+    );
+    assertEquals(ImmutableSet.of(), entry.getPartitions().getIncludedEntries());
   }
 
   @Test
@@ -98,7 +114,7 @@ public class DbConfigTest {
     );
     assertFalse(entry.isPattern());
     assertEquals("table3", entry.getTable());
-    assertEquals(ImmutableSet.of(), entry.getPartitions());
+    assertEquals(IncludeExcludeList.empty(), entry.getPartitions());
   }
 
   @Test
@@ -108,7 +124,7 @@ public class DbConfigTest {
         TableEntry.class
     );
     assertTrue(entry.isPattern());
-    assertEquals(ImmutableSet.of(), entry.getPartitions());
+    assertEquals(IncludeExcludeList.empty(), entry.getPartitions());
   }
 
   @Test

@@ -48,7 +48,8 @@ import javax.annotation.Nullable;
  * SimpleNameRegexList := [ NameLiteral | RegexObject ]*
  * SimpleTablesObject := SimpleIncludeExcludeObject
  * SimpleIncludeExcludeObject := {"include": SimpleNameRegexList} | {"exclude": SimpleNameRegexList}
- * BypassTablePartitionSpec := {"table": NameLiteral, "partition": SimpleIncludeExcludeObject}
+ * BypassTablePartitionSpec :=
+ *     {"table": NameLiteral, "partition": SimpleNameRegexList | SimpleIncludeExcludeObject}
  * RegexObject := {"regex": RegexLiteral}
  *
  * An example:
@@ -125,16 +126,23 @@ public final class DbConfig {
       } else {
         builder.bypass().include().addName(entry.getName());
       }
-      Set<NameEntry> partitions = entry.getPartitions();
+      IncludeExcludeList<NameEntry> partitions = entry.getPartitions();
       if (partitions == null) {
         continue;
       }
       UdbMountSpec.SimpleWrapperBuilder partitionBuilder = new UdbMountSpec.SimpleWrapperBuilder();
-      for (NameEntry partition : partitions) {
+      for (NameEntry partition : partitions.getIncludedEntries()) {
         if (partition.isPattern()) {
           partitionBuilder.include().addPattern(partition.getPattern());
         } else {
           partitionBuilder.include().addName(partition.getName());
+        }
+      }
+      for (NameEntry partition : partitions.getExcludedEntries()) {
+        if (partition.isPattern()) {
+          partitionBuilder.exclude().addPattern(partition.getPattern());
+        } else {
+          partitionBuilder.exclude().addName(partition.getName());
         }
       }
       builder.bypass().include().addPartition(entry.getTable(), partitionBuilder.build());
@@ -278,7 +286,7 @@ public final class DbConfig {
    */
   @JsonDeserialize(using = TableEntryDeserializer.class)
   public static class TableEntry extends NameEntry {
-    private final Set<NameEntry> mPartitions;
+    private final IncludeExcludeList<NameEntry> mPartitions;
 
     /**
      * Creates an instance with a specific table name and no partition specification.
@@ -286,33 +294,37 @@ public final class DbConfig {
      * @param tableName table name
      */
     public TableEntry(String tableName) {
-      this(tableName, Collections.emptySet());
+      this(tableName, IncludeExcludeList.empty());
     }
 
     /**
      * Creates an instance with a specific table name and possibly partitions specifications.
      *
      * @param tableName table name
-     * @param partitions partition names
+     * @param partitions partitions
      */
-    public TableEntry(String tableName, Set<NameEntry> partitions) {
+    public TableEntry(String tableName, IncludeExcludeList<NameEntry> partitions) {
       super(tableName);
       mPartitions = partitions;
     }
     
-    public TableEntry(NameEntry nameEntry, Set<NameEntry> partitions) {
+    public TableEntry(NameEntry nameEntry, IncludeExcludeList<NameEntry> partitions) {
       super(nameEntry);
       mPartitions = partitions;
     }
 
     /**
-     * @return partition names
+     * Returns partition specifications.
+     * @return partitions
      */
-    @Nullable
-    public Set<NameEntry> getPartitions() {
+    public IncludeExcludeList<NameEntry> getPartitions() {
       return mPartitions;
     }
-    
+
+    /**
+     * Returns table name if the entry is not a regex entry.
+     * @return table name, null if the entry is a regex entry
+     */
     @Nullable
     public String getTable() {
       return getName();
@@ -334,7 +346,7 @@ public final class DbConfig {
       try {
         NameEntryDeserializer deserializer = new NameEntryDeserializer();
         NameEntry nameEntry =  deserializer.deserialize(mapper.treeAsTokens(node), cxt);
-        return new TableEntry(nameEntry, Collections.emptySet());
+        return new TableEntry(nameEntry, IncludeExcludeList.empty());
       } catch (JsonProcessingException e) {
         // ignore, and try deserialize as a `TableEntry` object
       }
@@ -345,18 +357,27 @@ public final class DbConfig {
       if (node.hasNonNull("table")) {
         String tableName = node.get("table").asText();
         JsonNode partitionsList = node.get("partitions");
-        Set<NameEntry> partitions = 
-            mapper.convertValue(partitionsList, new TypeReference<Set<NameEntry>>() {});
-        if (partitions == null) {
-          partitions = Collections.emptySet();
+        if (partitionsList == null) {
+          return new TableEntry(tableName);
+        }
+        IncludeExcludeList<NameEntry> partitions;
+        if (partitionsList.isArray()) {
+          // an implicit included list
+          Set<NameEntry> includedPartitions =
+              mapper.convertValue(partitionsList, new TypeReference<Set<NameEntry>>() {});
+          partitions = new IncludeExcludeList<>(includedPartitions);
+        } else {
+          // an IncludeExcludeList object
+           partitions = mapper.convertValue(
+                  partitionsList, new TypeReference<IncludeExcludeList<NameEntry>>() {});
+          if (partitions == null) {
+            partitions = IncludeExcludeList.empty();
+          }
         }
         return new TableEntry(tableName, partitions);
       }
-      if (node.isTextual()){
-        return new TableEntry(node.asText());
-      }
       throw new JsonParseException(mapper.treeAsTokens(node),
-          "invalid syntax, expecting table name or an object with a `table` key");
+          "invalid syntax, expecting table name, regex, or an object with a `table` key");
     }
   }
 
@@ -502,6 +523,13 @@ public final class DbConfig {
      */
     public IncludeExcludeList(@Nullable Set<INCLUDED> entries) {
       this(entries, Collections.emptySet());
+    }
+
+    /**
+     * Creates an empty list.
+     */
+    public static <T extends NameEntry> IncludeExcludeList<T> empty() {
+      return new IncludeExcludeList<>(Collections.emptySet(), Collections.emptySet());
     }
 
     /**
