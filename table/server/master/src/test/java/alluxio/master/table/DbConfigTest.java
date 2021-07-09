@@ -50,19 +50,17 @@ public class DbConfigTest {
 
   @Test(expected = JsonProcessingException.class)
   public void rejectUnknownKey() throws Exception {
-    NameEntry entry = mMapper.readValue(
-        "{\"some_key\":\"some_value\"}", NameEntry.class);
+    mMapper.readValue("{\"some_key\":\"some_value\"}", NameEntry.class);
   }
 
   @Test(expected = JsonProcessingException.class)
   public void rejectBadPattern() throws Exception {
-    NameEntry entry = mMapper.readValue(
-        "{\"regex\":\"unclosed parenthesis (\"}", NameEntry.class);
+    mMapper.readValue("{\"regex\":\"unclosed parenthesis (\"}", NameEntry.class);
   }
 
   @Test(expected = IllegalArgumentException.class)
   public void rejectEmptyName() throws Exception {
-    NameEntry entry = mMapper.readValue("\"\"", NameEntry.class);
+    mMapper.readValue("\"\"", NameEntry.class);
   }
 
   /* TableEntry tests */
@@ -128,14 +126,11 @@ public class DbConfigTest {
   }
 
   /* IncludeExcludeList tests */
-  @Test
-  public void includeAndExcludeNameEntry() throws Exception {
-    IncludeExcludeList<NameEntry> list =
-        mMapper.readValue(
-            "{\"include\": [\"table1\"], \"exclude\": [\"table2\"]}",
-            new TypeReference<IncludeExcludeList<NameEntry>>() {});
-    assertEquals(ImmutableSet.of(new NameEntry("table1")), list.getIncludedEntries());
-    assertEquals(ImmutableSet.of(new NameEntry("table2")), list.getExcludedEntries());
+  @Test(expected = JsonProcessingException.class)
+  public void rejectIncludeAndExcludeNameEntry() throws Exception {
+    mMapper.readValue(
+        "{\"include\": [\"table1\"], \"exclude\": [\"table2\"]}",
+        new TypeReference<IncludeExcludeList<NameEntry>>() {});
   }
 
   @Test
@@ -146,6 +141,32 @@ public class DbConfigTest {
             new TypeReference<IncludeExcludeList<NameEntry>>() {});
     assertEquals(ImmutableSet.of(new NameEntry("table1")), list.getIncludedEntries());
     assertEquals(ImmutableSet.of(), list.getExcludedEntries());
+  }
+
+  @Test
+  public void includeOnlyTableEntry() throws Exception {
+    IncludeExcludeList<TableEntry> list =
+        mMapper.readValue(
+            "{\"include\": [\"table1\", {\"table\": \"table2\"}]}",
+            new TypeReference<IncludeExcludeList<TableEntry>>() {});
+    assertEquals(
+        ImmutableSet.of(
+            new TableEntry("table1"),
+            new TableEntry("table2")
+        ),
+        list.getIncludedEntries()
+    );
+    assertEquals(ImmutableSet.of(), list.getExcludedEntries());
+  }
+
+  @Test
+  public void excludeOnlyNameEntry() throws Exception {
+    IncludeExcludeList<NameEntry> list =
+        mMapper.readValue(
+            "{\"exclude\": [\"table1\"]}",
+            new TypeReference<IncludeExcludeList<NameEntry>>() {});
+    assertEquals(ImmutableSet.of(new NameEntry("table1")), list.getExcludedEntries());
+    assertEquals(ImmutableSet.of(), list.getIncludedEntries());
   }
 
   /* TablesEntry tests */

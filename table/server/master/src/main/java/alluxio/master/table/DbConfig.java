@@ -43,11 +43,11 @@ import javax.annotation.Nullable;
  * BypassIgnoreObject := {"bypass": BypassTablesSpec, "ignore": IgnoreTablesSpec}
  * BypassTablesSpec := {"tables": BypassIncludeTablesList | BypassTablesObject}
  * IgnoreTablesSpec := {"tables": SimpleNameRegexList | SimpleTablesObject}
- * BypassTablesObject := {"include": BypassIncludeTablesList, "exclude": SimpleNameRegexList}
+ * BypassTablesObject := {"include": BypassIncludeTablesList} | {"exclude": SimpleNameRegexList}
  * BypassIncludeTablesList := [ NameLiteral | RegexObject | BypassTablePartitionSpec ]*
  * SimpleNameRegexList := [ NameLiteral | RegexObject ]*
  * SimpleTablesObject := SimpleIncludeExcludeObject
- * SimpleIncludeExcludeObject := {"include": SimpleNameRegexList, "exclude": SimpleNameRegexList}
+ * SimpleIncludeExcludeObject := {"include": SimpleNameRegexList} | {"exclude": SimpleNameRegexList}
  * BypassTablePartitionSpec := {"table": NameLiteral, "partition": SimpleIncludeExcludeObject}
  * RegexObject := {"regex": RegexLiteral}
  *
@@ -60,19 +60,14 @@ import javax.annotation.Nullable;
  *         {                    <- BypassTablePartitionSpec
  *           "table": "table2",
  *           "partition": {         <- SimpleIncludeExcludeObject
- *             "include": [           <- SimpleNameRegexList
+ *             "exclude": [           <- SimpleNameRegexList
  *               "part1",
  *               {                        <- RegexObject
  *                 "regex": "part\\d\\d"    <-RegexLiteral
  *               }
- *             ],
- *             "exclude": [{"regex": "part\\d"}]
+ *             ]
  *           }
  *         }
- *       ],
- *       "exclude": [
- *         "table3",
- *         {"regex": "^table\\d"}
  *       ]
  *     }
  *   },
@@ -521,6 +516,9 @@ public final class DbConfig {
         @JsonProperty("exclude") @Nullable Set<NameEntry> excluded) {
       mIncludedEntries = included == null ? Collections.emptySet() : included;
       mExcludedEntries = excluded == null ? Collections.emptySet() : excluded;
+      // included and excluded cannot be both non-empty at the same time
+      Preconditions.checkArgument(
+          mIncludedEntries.isEmpty() || mExcludedEntries.isEmpty());
     }
 
     public Set<NameEntry> getExcludedEntries() {
