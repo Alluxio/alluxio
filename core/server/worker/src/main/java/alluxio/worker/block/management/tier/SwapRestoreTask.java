@@ -141,12 +141,15 @@ public class SwapRestoreTask extends AbstractBlockManagementTask {
         long blockId = tierIterator.next();
         try {
           BlockMeta nextBlockFromTier = mEvictorView.getBlockMeta(blockId);
-          moveOutBytes -= nextBlockFromTier.getBlockSize();
-          if (lastTier) {
-            blocksToRemove.add(nextBlockFromTier.getBlockId());
-          } else {
-            blocksToTransfer.add(BlockTransferInfo.createMove(nextBlockFromTier.getBlockLocation(),
-                nextBlockFromTier.getBlockId(), destLocation));
+          if (nextBlockFromTier != null) {
+            moveOutBytes -= nextBlockFromTier.getBlockSize();
+            if (lastTier) {
+              blocksToRemove.add(nextBlockFromTier.getBlockId());
+            } else {
+              blocksToTransfer
+                  .add(BlockTransferInfo.createMove(nextBlockFromTier.getBlockLocation(),
+                      nextBlockFromTier.getBlockId(), destLocation));
+            }
           }
         } catch (BlockDoesNotExistException e) {
           LOG.warn("Failed to find block:{} during cascading calculation.", blockId);
