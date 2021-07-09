@@ -11,12 +11,17 @@
 
 package alluxio.master.table;
 
-import static alluxio.master.table.DbConfig.*;
+import static alluxio.master.table.DbConfig.BypassTablesEntry;
+import static alluxio.master.table.DbConfig.IgnoreTablesEntry;
+import static alluxio.master.table.DbConfig.IncludeExcludeList;
+import static alluxio.master.table.DbConfig.NameEntry;
+import static alluxio.master.table.DbConfig.TableEntry;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import alluxio.table.common.udb.UdbMountSpec;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -191,7 +196,7 @@ public class DbConfigTest {
   public void emptyListOfTables() throws Exception {
     IgnoreTablesEntry entry =
         mMapper.readValue(
-            "{\"tables\": []}", 
+            "{\"tables\": []}",
             new TypeReference<IgnoreTablesEntry>() {});
     assertEquals(ImmutableSet.of(), entry.getList().getIncludedEntries());
     assertEquals(ImmutableSet.of(), entry.getList().getExcludedEntries());
@@ -203,12 +208,12 @@ public class DbConfigTest {
     assertEquals(ImmutableSet.of(), entry2.getList().getIncludedEntries());
     assertEquals(ImmutableSet.of(), entry2.getList().getExcludedEntries());
   }
-  
+
   @Test
   public void implicitIncludeList() throws Exception {
     IgnoreTablesEntry entry =
         mMapper.readValue(
-            "{\"tables\": [\"table1\"]}", 
+            "{\"tables\": [\"table1\"]}",
             new TypeReference<IgnoreTablesEntry>() {});
     assertEquals(ImmutableSet.of(new NameEntry("table1")), entry.getList().getIncludedEntries());
     assertEquals(ImmutableSet.of(), entry.getList().getExcludedEntries());

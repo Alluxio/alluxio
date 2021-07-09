@@ -175,13 +175,13 @@ public final class DbConfig {
   }
 
   /**
-   * Type alias for {@link TablesEntry<TableEntry>}.
+   * Type alias for TablesEntry<TableEntry>.
    */
   @JsonDeserialize(using = BypassTablesEntryDeserializer.class)
   public static final class BypassTablesEntry extends TablesEntry<TableEntry> {
 
     /**
-     * @param list
+     * @param list list of table entries
      */
     public BypassTablesEntry(@Nullable IncludeExcludeList<TableEntry> list) {
       super(list);
@@ -189,13 +189,13 @@ public final class DbConfig {
   }
 
   /**
-   * Type alias for {@link TablesEntry<NameEntry>}.
+   * Type alias for TablesEntry<NameEntry>.
    */
   @JsonDeserialize(using = IgnoreTablesEntryDeserializer.class)
   public static final class IgnoreTablesEntry extends TablesEntry<NameEntry> {
 
     /**
-     * @param list
+     * @param list list of table entries
      */
     public IgnoreTablesEntry(@Nullable IncludeExcludeList<NameEntry> list) {
       super(list);
@@ -204,17 +204,22 @@ public final class DbConfig {
 
   /**
    * Tables configuration entry from config file.
+   * @param <T> the type of entry contained
    */
   public static  class TablesEntry<T extends NameEntry> {
     private final IncludeExcludeList<T> mList;
 
     /**
-     * @param list
+     * @param list list of table entries
      */
     public TablesEntry(@Nullable IncludeExcludeList<T> list) {
       mList = list == null ? new IncludeExcludeList<>(Collections.emptySet()) : list;
     }
 
+    /**
+     * Returns the list of tables.
+     * @return list of tables
+     */
     public IncludeExcludeList<T> getList() {
       return mList;
     }
@@ -225,8 +230,8 @@ public final class DbConfig {
    * 1. a list of {@link NameEntry}s
    * 2. an object containing `include`, `exclude` and `includeFirstOnConflict` keys
    */
-  public static class TablesEntryDeserializer<T extends NameEntry> {
-    public IncludeExcludeList<T> deserializeToList(
+  static class TablesEntryDeserializer<T extends NameEntry> {
+    IncludeExcludeList<T> deserializeToList(
         Class<T> type, JsonParser jp, DeserializationContext cxt)
         throws IOException, JsonProcessingException {
       ObjectMapper mapper = (ObjectMapper) jp.getCodec();
@@ -258,7 +263,7 @@ public final class DbConfig {
     }
   }
 
-  public static class IgnoreTablesEntryDeserializer extends JsonDeserializer<IgnoreTablesEntry> {
+  static class IgnoreTablesEntryDeserializer extends JsonDeserializer<IgnoreTablesEntry> {
     @Override
     public IgnoreTablesEntry deserialize(JsonParser jp, DeserializationContext cxt)
         throws IOException, JsonProcessingException {
@@ -269,7 +274,7 @@ public final class DbConfig {
     }
   }
 
-  public static class BypassTablesEntryDeserializer extends JsonDeserializer<BypassTablesEntry> {
+  static class BypassTablesEntryDeserializer extends JsonDeserializer<BypassTablesEntry> {
     @Override
     public BypassTablesEntry deserialize(JsonParser jp, DeserializationContext cxt)
         throws IOException, JsonProcessingException {
@@ -307,7 +312,12 @@ public final class DbConfig {
       super(tableName);
       mPartitions = partitions;
     }
-    
+
+    /**
+     * Creates an instance from a {@link NameEntry}.
+     * @param nameEntry name entry
+     * @param partitions partitions
+     */
     public TableEntry(NameEntry nameEntry, IncludeExcludeList<NameEntry> partitions) {
       super(nameEntry);
       mPartitions = partitions;
@@ -329,6 +339,29 @@ public final class DbConfig {
     public String getTable() {
       return getName();
     }
+
+    @Override
+    public boolean equals(Object other) {
+      if (this == other) {
+        return true;
+      }
+      if (other == null) {
+        return false;
+      }
+      if (getClass() != other.getClass()) {
+        return false;
+      }
+      if (!super.equals(other)) {
+        return false;
+      }
+      TableEntry entry = (TableEntry) other;
+      return Objects.equals(mPartitions, entry.mPartitions);
+    }
+
+    @Override
+    public int hashCode() {
+      return super.hashCode() * 31 + Objects.hashCode(mPartitions);
+    }
   }
 
   /**
@@ -336,7 +369,7 @@ public final class DbConfig {
    * an object of form: {"table": "tableName", "partitions": ["part1", "part2"]}
    * the specified individual partitions will be bypasses. Any others, if any, will not.
    */
-  public static class TableEntryDeserializer extends JsonDeserializer<TableEntry> {
+  static class TableEntryDeserializer extends JsonDeserializer<TableEntry> {
     @Override
     public TableEntry deserialize(JsonParser jp, DeserializationContext cxt)
         throws IOException, JsonProcessingException {
@@ -368,8 +401,8 @@ public final class DbConfig {
           partitions = new IncludeExcludeList<>(includedPartitions);
         } else {
           // an IncludeExcludeList object
-           partitions = mapper.convertValue(
-                  partitionsList, new TypeReference<IncludeExcludeList<NameEntry>>() {});
+          partitions = mapper.convertValue(
+              partitionsList, new TypeReference<IncludeExcludeList<NameEntry>>() {});
           if (partitions == null) {
             partitions = IncludeExcludeList.empty();
           }
@@ -452,9 +485,11 @@ public final class DbConfig {
     public boolean equals(Object other) {
       if (this == other) {
         return true;
-      } else if (other == null) {
+      }
+      if (other == null) {
         return false;
-      } else if (getClass() != other.getClass()) {
+      }
+      if (getClass() != other.getClass()) {
         return false;
       }
       NameEntry entry = (NameEntry) other;
@@ -482,7 +517,7 @@ public final class DbConfig {
    * 1. a plain name: "table1"
    * 2. an object of form: {"regex": "<regex>"}
    */
-  public static class NameEntryDeserializer extends JsonDeserializer<NameEntry> {
+  static class NameEntryDeserializer extends JsonDeserializer<NameEntry> {
     @Override
     public NameEntry deserialize(JsonParser jp, DeserializationContext cxt)
         throws IOException, JsonProcessingException {
@@ -510,9 +545,13 @@ public final class DbConfig {
     }
   }
 
-  public static class IncludeExcludeList<INCLUDED extends NameEntry> {
+  /**
+   * A wrapper for included and excluded elements.
+   * @param <INCLUDEDT> type of included entry
+   */
+  public static class IncludeExcludeList<INCLUDEDT extends NameEntry> {
     @JsonProperty("include")
-    private final Set<INCLUDED> mIncludedEntries;
+    private final Set<INCLUDEDT> mIncludedEntries;
     @JsonProperty("exclude")
     private final Set<NameEntry> mExcludedEntries;
 
@@ -521,12 +560,14 @@ public final class DbConfig {
      *
      * @param entries included {@link NameEntry}s
      */
-    public IncludeExcludeList(@Nullable Set<INCLUDED> entries) {
+    public IncludeExcludeList(@Nullable Set<INCLUDEDT> entries) {
       this(entries, Collections.emptySet());
     }
 
     /**
      * Creates an empty list.
+     * @param <T> type of contained entry
+     * @return an empty list
      */
     public static <T extends NameEntry> IncludeExcludeList<T> empty() {
       return new IncludeExcludeList<>(Collections.emptySet(), Collections.emptySet());
@@ -540,7 +581,7 @@ public final class DbConfig {
      */
     @JsonCreator
     public IncludeExcludeList(
-        @JsonProperty("include") @Nullable Set<INCLUDED> included,
+        @JsonProperty("include") @Nullable Set<INCLUDEDT> included,
         @JsonProperty("exclude") @Nullable Set<NameEntry> excluded) {
       mIncludedEntries = included == null ? Collections.emptySet() : included;
       mExcludedEntries = excluded == null ? Collections.emptySet() : excluded;
@@ -549,11 +590,19 @@ public final class DbConfig {
           mIncludedEntries.isEmpty() || mExcludedEntries.isEmpty());
     }
 
+    /**
+     * Returns excluded entries.
+     * @return excluded entries
+     */
     public Set<NameEntry> getExcludedEntries() {
       return mExcludedEntries;
     }
 
-    public Set<INCLUDED> getIncludedEntries() {
+    /**
+     * Returns included entries.
+     * @return included entries
+     */
+    public Set<INCLUDEDT> getIncludedEntries() {
       return mIncludedEntries;
     }
 
