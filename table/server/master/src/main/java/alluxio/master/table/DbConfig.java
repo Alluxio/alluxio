@@ -350,16 +350,12 @@ public final class DbConfig {
       if (getClass() != other.getClass()) {
         return false;
       }
-      if (!super.equals(other)) {
-        return false;
-      }
-      TableEntry entry = (TableEntry) other;
-      return Objects.equals(mPartitions, entry.mPartitions);
+      return super.equals(other);
     }
 
     @Override
     public int hashCode() {
-      return super.hashCode() * 31 + Objects.hashCode(mPartitions);
+      return super.hashCode();
     }
   }
 
