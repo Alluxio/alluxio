@@ -283,8 +283,9 @@ public final class UdbMountSpec {
   /**
    * Base builder for common builder methods.
    * @param <T> the output type
+   * @param <SELFT> the subtype of deriving class
    */
-  public abstract static class BaseBuilder<T> {
+  public abstract static class BaseBuilder<T, SELFT extends BaseBuilder<T, SELFT>> {
     @Nullable
     protected Set<String> mNames;
     @Nullable
@@ -293,13 +294,19 @@ public final class UdbMountSpec {
     protected BaseBuilder() {}
 
     /**
+     * Returns this instance.
+     * @return this instance
+     */
+    abstract SELFT self();
+
+    /**
      * Adds a name.
      * @param name name
      * @return the builder
      */
-    public BaseBuilder<T> addName(String name) {
+    public SELFT addName(String name) {
       mNames = addOrNewSet(mNames, name);
-      return this;
+      return self();
     }
 
     /**
@@ -307,9 +314,9 @@ public final class UdbMountSpec {
      * @param pattern pattern
      * @return the builder
      */
-    public BaseBuilder<T> addPattern(Pattern pattern) {
+    public SELFT addPattern(Pattern pattern) {
       mPatterns = addOrNewSet(mPatterns, pattern);
-      return this;
+      return self();
     }
 
     /**
@@ -317,9 +324,9 @@ public final class UdbMountSpec {
      * @param names set of names
      * @return the builder
      */
-    public BaseBuilder<T> addNames(Set<String> names) {
+    public SELFT addNames(Set<String> names) {
       mNames = addOrNewSet(mNames, names);
-      return this;
+      return self();
     }
 
     /**
@@ -327,9 +334,9 @@ public final class UdbMountSpec {
      * @param patterns set of names
      * @return the builder
      */
-    public BaseBuilder<T> addPatterns(Set<Pattern> patterns) {
+    public SELFT addPatterns(Set<Pattern> patterns) {
       mPatterns = addOrNewSet(mPatterns, patterns);
-      return this;
+      return self();
     }
 
     /**
@@ -374,8 +381,8 @@ public final class UdbMountSpec {
    * @param <EBUILDERT> builder type for {@link E}
    * @param <OUT> the output type
    */
-  abstract static class IncludeExcludeBuilder<I, IBUILDERT extends BaseBuilder<I>,
-                                              E, EBUILDERT extends BaseBuilder<E>,
+  abstract static class IncludeExcludeBuilder<I, IBUILDERT extends BaseBuilder<I, IBUILDERT>,
+                                              E, EBUILDERT extends BaseBuilder<E, EBUILDERT>,
                                               OUT> {
     private final IBUILDERT mInclude;
     private final EBUILDERT mExclude;
@@ -408,8 +415,13 @@ public final class UdbMountSpec {
   /**
    * Builder for simple names and patterns.
    */
-  public static class SimpleNamePatternWrapperBuilder
-      extends BaseBuilder<SimpleNamePatternWrapper> {
+  public static final class SimpleNamePatternWrapperBuilder
+      extends BaseBuilder<SimpleNamePatternWrapper, SimpleNamePatternWrapperBuilder> {
+    @Override
+    SimpleNamePatternWrapperBuilder self() {
+      return this;
+    }
+
     @Override
     SimpleNamePatternWrapper build() {
       mNames = BaseBuilder.replaceNullWithEmpty(mNames);
@@ -425,9 +437,15 @@ public final class UdbMountSpec {
   /**
    * Builder for table with partition specification.
    */
-  public static class TablePartitionNamePatternWrapperBuilder
-      extends BaseBuilder<TablePartitionNamePatternWrapper> {
+  public static final class TablePartitionNamePatternWrapperBuilder
+      extends BaseBuilder<TablePartitionNamePatternWrapper,
+      TablePartitionNamePatternWrapperBuilder> {
     private Map<String, Set<SimpleWrapper>> mTablePartMap;
+
+    @Override
+    TablePartitionNamePatternWrapperBuilder self() {
+      return this;
+    }
 
     /**
      * Attaches partition specification to a table.
