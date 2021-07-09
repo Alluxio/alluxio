@@ -70,8 +70,7 @@ public interface DataWriter extends Closeable, Cancelable {
         return BlockWorkerDataWriter.create(context, blockId, blockSize, options);
       }
 
-      if (workerIsLocal
-          && shortCircuit
+      if (workerIsLocal && shortCircuit
           && (shortCircuitPreferred || !NettyUtils.isDomainSocketSupported(address))) {
         if (ufsFallbackEnabled) {
           LOG.info("Creating UFS-fallback short circuit output stream for block {} @ {}", blockId,
