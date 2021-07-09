@@ -13,11 +13,14 @@ package alluxio.master.table;
 
 import static alluxio.master.table.DbConfig.*;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import alluxio.table.common.udb.UdbMountSpec;
-
-import com.google.common.collect.ImmutableList;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.ImmutableSet;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -29,11 +32,45 @@ public class DbConfigTest {
     mMapper = new ObjectMapper();
   }
 
+  /* NameEntry tests */
+  @Test
+  public void simpleName() throws Exception {
+    NameEntry entry = mMapper.readValue("\"table1\"", NameEntry.class);
+    assertFalse(entry.isPattern());
+    assertEquals("table1", entry.getName());
+  }
+
+  @Test
+  public void regexPattern() throws Exception {
+    NameEntry entry = mMapper.readValue(
+        "{\"regex\":\"^table\\\\d$\"}", NameEntry.class);
+    assertTrue(entry.isPattern());
+    assertEquals("^table\\d$", entry.getPattern().pattern());
+  }
+
+  @Test(expected = JsonProcessingException.class)
+  public void rejectUnknownKey() throws Exception {
+    NameEntry entry = mMapper.readValue(
+        "{\"some_key\":\"some_value\"}", NameEntry.class);
+  }
+
+  @Test(expected = JsonProcessingException.class)
+  public void rejectBadPattern() throws Exception {
+    NameEntry entry = mMapper.readValue(
+        "{\"regex\":\"unclosed parenthesis (\"}", NameEntry.class);
+  }
+
+  @Test(expected = IllegalArgumentException.class)
+  public void rejectEmptyName() throws Exception {
+    NameEntry entry = mMapper.readValue("\"\"", NameEntry.class);
+  }
+
   /* TableEntry tests */
   @Test
   public void tableNamesOnly() throws Exception {
     TableEntry entry =
         mMapper.readValue("\"table1\"", TableEntry.class);
+    assertFalse(entry.isPattern());
     assertEquals("table1", entry.getTable());
     assertEquals(ImmutableSet.of(), entry.getPartitions());
   }
@@ -44,8 +81,15 @@ public class DbConfigTest {
         "{\"table\": \"table2\", \"partitions\": [\"t2p1\", \"t2p2\"]}",
         TableEntry.class
     );
+    assertFalse(entry.isPattern());
     assertEquals("table2", entry.getTable());
-    assertEquals(ImmutableSet.of("t2p1", "t2p2"), entry.getPartitions());
+    assertEquals(
+        ImmutableSet.of(
+            new NameEntry("t2p1"),
+            new NameEntry("t2p2")
+        ),
+        entry.getPartitions()
+    );
   }
 
   @Test
@@ -54,7 +98,18 @@ public class DbConfigTest {
         "{\"table\": \"table3\"}",
         TableEntry.class
     );
+    assertFalse(entry.isPattern());
     assertEquals("table3", entry.getTable());
+    assertEquals(ImmutableSet.of(), entry.getPartitions());
+  }
+
+  @Test
+  public void regexPatternAsTable() throws Exception {
+    TableEntry entry = mMapper.readValue(
+        "{\"regex\": \"^table\\\\d\"}",
+        TableEntry.class
+    );
+    assertTrue(entry.isPattern());
     assertEquals(ImmutableSet.of(), entry.getPartitions());
   }
 
@@ -72,12 +127,37 @@ public class DbConfigTest {
     assertEquals(entry1.hashCode(), entry2.hashCode());
   }
 
+  /* IncludeExcludeList tests */
+  @Test
+  public void includeAndExcludeNameEntry() throws Exception {
+    IncludeExcludeList<NameEntry> list =
+        mMapper.readValue(
+            "{\"include\": [\"table1\"], \"exclude\": [\"table2\"]}",
+            new TypeReference<IncludeExcludeList<NameEntry>>() {});
+    assertEquals(ImmutableSet.of(new NameEntry("table1")), list.getIncludedEntries());
+    assertEquals(ImmutableSet.of(new NameEntry("table2")), list.getExcludedEntries());
+  }
+
+  @Test
+  public void includeOnlyNameEntry() throws Exception {
+    IncludeExcludeList<NameEntry> list =
+        mMapper.readValue(
+            "{\"include\": [\"table1\"]}",
+            new TypeReference<IncludeExcludeList<NameEntry>>() {});
+    assertEquals(ImmutableSet.of(new NameEntry("table1")), list.getIncludedEntries());
+    assertEquals(ImmutableSet.of(), list.getExcludedEntries());
+  }
+
   /* TablesEntry tests */
   /* IgnoreTablesEntry is a type alias for TablesEntry<NameEntry> */
   @Test
   public void emptyListOfTables() throws Exception {
-    TablesEntry entry = mMapper.readValue("{\"tables\": []}", TablesEntry.class);
-    assertEquals(ImmutableSet.of(), entry.getTableNames());
+    IgnoreTablesEntry entry =
+        mMapper.readValue(
+            "{\"tables\": []}", 
+            new TypeReference<IgnoreTablesEntry>() {});
+    assertEquals(ImmutableSet.of(), entry.getList().getIncludedEntries());
+    assertEquals(ImmutableSet.of(), entry.getList().getExcludedEntries());
   }
 
   @Test

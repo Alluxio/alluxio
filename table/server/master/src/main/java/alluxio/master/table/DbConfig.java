@@ -499,8 +499,6 @@ public final class DbConfig {
     private final Set<INCLUDED> mIncludedEntries;
     @JsonProperty("exclude")
     private final Set<NameEntry> mExcludedEntries;
-    @JsonProperty("includeFirstOnConflict")
-    private final boolean mIncludeFirstOnConflict;
 
     /**
      * Creates an implicit include-only list.
@@ -508,7 +506,7 @@ public final class DbConfig {
      * @param entries included {@link NameEntry}s
      */
     public IncludeExcludeList(@Nullable Set<INCLUDED> entries) {
-      this(entries, Collections.emptySet(), true);
+      this(entries, Collections.emptySet());
     }
 
     /**
@@ -516,17 +514,13 @@ public final class DbConfig {
      *
      * @param included included {@link NameEntry}s
      * @param excluded excluded {@link NameEntry}s
-     * @param includeFirstOnConflict whether included entries should override excluded entries on
-     *                               conflict
      */
     @JsonCreator
     public IncludeExcludeList(
         @JsonProperty("include") @Nullable Set<INCLUDED> included,
-        @JsonProperty("exclude") @Nullable Set<NameEntry> excluded,
-        @JsonProperty("includeFirstOnConflict") @Nullable Boolean includeFirstOnConflict) {
+        @JsonProperty("exclude") @Nullable Set<NameEntry> excluded) {
       mIncludedEntries = included == null ? Collections.emptySet() : included;
       mExcludedEntries = excluded == null ? Collections.emptySet() : excluded;
-      mIncludeFirstOnConflict = includeFirstOnConflict == null || includeFirstOnConflict;
     }
 
     public Set<NameEntry> getExcludedEntries() {
@@ -537,8 +531,18 @@ public final class DbConfig {
       return mIncludedEntries;
     }
 
-    public boolean isIncludeFirstOnConflict() {
-      return mIncludeFirstOnConflict;
+    @Override
+    public boolean equals(Object other) {
+      if (this == other) {
+        return true;
+      } else if (other == null) {
+        return false;
+      } else if (getClass() != other.getClass()) {
+        return false;
+      }
+      IncludeExcludeList list = (IncludeExcludeList) other;
+      return Objects.equals(mIncludedEntries, list.mIncludedEntries)
+          && Objects.equals(mExcludedEntries, list.mExcludedEntries);
     }
 
     @Override
