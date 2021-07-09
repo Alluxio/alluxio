@@ -1,0 +1,27 @@
+{
+  "bypass": {
+    "tables": {
+      "include": [
+        "bypassed1",
+        "bypassed_and_ignored",
+        {"regex": "bypassed_regex\\d"},
+        {
+          "table": "bypassed2",
+          "partitions": {
+            "exclude": [
+              "part1",
+              {"regex": "part_regex\\d"}
+            ]
+          }
+        }
+      ]
+    }
+  },
+  "ignore": {
+    "tables": [
+      "ignored3",
+      "bypassed_and_ignored",
+      {"regex": "ignored_regex\\d"}
+    ]
+  }
+}

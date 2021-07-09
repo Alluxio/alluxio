@@ -55,7 +55,7 @@ public final class UdbMountSpec {
    * @see UdbMountSpec#hasFullyBypassedTable(String)
    */
   public boolean hasBypassedTable(String tableName) {
-    return mBypassed.hasTable(tableName);
+    return !hasIgnoredTable(tableName) && mBypassed.hasTable(tableName);
   }
 
   /**
@@ -66,7 +66,7 @@ public final class UdbMountSpec {
    * @see UdbMountSpec#hasBypassedTable(String)
    */
   public boolean hasFullyBypassedTable(String tableName) {
-    return mBypassed.hasFullTable(tableName);
+    return !hasIgnoredTable(tableName) && mBypassed.hasFullTable(tableName);
   }
 
   /**
@@ -87,7 +87,7 @@ public final class UdbMountSpec {
    * @return true if the partition should be bypassed, false otherwise
    */
   public boolean hasBypassedPartition(String tableName, String partitionName) {
-    return mBypassed.hasPartition(tableName, partitionName);
+    return !hasIgnoredTable(tableName) && mBypassed.hasPartition(tableName, partitionName);
   }
 
   /**

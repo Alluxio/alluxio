@@ -197,4 +197,13 @@ public class UdbMountSpecTest {
     assertTrue(spec.hasIgnoredTable("table6"));
     assertFalse(spec.hasIgnoredTable("table7"));
   }
+
+  @Test
+  public void ignoredAndBypassedTable() {
+    mBuilder.bypass().include().addName("same_table");
+    mBuilder.ignore().include().addName("same_table");
+    UdbMountSpec spec = mBuilder.build();
+    assertTrue(spec.hasIgnoredTable("same_table"));
+    assertFalse(spec.hasBypassedTable("same_table"));
+  }
 }

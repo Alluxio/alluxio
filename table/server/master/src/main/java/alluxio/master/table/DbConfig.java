@@ -123,13 +123,13 @@ public final class DbConfig {
     for (TableEntry entry : mBypassEntry.getList().getIncludedEntries()) {
       if (entry.isPattern()) {
         builder.bypass().include().addPattern(entry.getPattern());
-      } else {
-        builder.bypass().include().addName(entry.getName());
-      }
-      IncludeExcludeList<NameEntry> partitions = entry.getPartitions();
-      if (partitions == null) {
         continue;
       }
+      if (entry.getPartitions().isEmpty()) {
+        builder.bypass().include().addName(entry.getName());
+        continue;
+      }
+      IncludeExcludeList<NameEntry> partitions = entry.getPartitions();
       UdbMountSpec.SimpleWrapperBuilder partitionBuilder = new UdbMountSpec.SimpleWrapperBuilder();
       for (NameEntry partition : partitions.getIncludedEntries()) {
         if (partition.isPattern()) {
@@ -314,13 +314,12 @@ public final class DbConfig {
     }
 
     /**
-     * Creates an instance from a {@link NameEntry}.
+     * Creates an instance from a {@link NameEntry} with no partition specification.
      * @param nameEntry name entry
-     * @param partitions partitions
      */
-    public TableEntry(NameEntry nameEntry, IncludeExcludeList<NameEntry> partitions) {
+    public TableEntry(NameEntry nameEntry) {
       super(nameEntry);
-      mPartitions = partitions;
+      mPartitions = IncludeExcludeList.empty();
     }
 
     /**
@@ -379,7 +378,7 @@ public final class DbConfig {
       try {
         NameEntryDeserializer deserializer = new NameEntryDeserializer();
         NameEntry nameEntry =  deserializer.deserialize(mapper.treeAsTokens(node), cxt);
-        return new TableEntry(nameEntry, IncludeExcludeList.empty());
+        return new TableEntry(nameEntry);
       } catch (JsonProcessingException e) {
         // ignore, and try deserialize as a `TableEntry` object
       }
@@ -571,6 +570,14 @@ public final class DbConfig {
      */
     public static <T extends NameEntry> IncludeExcludeList<T> empty() {
       return new IncludeExcludeList<>(Collections.emptySet(), Collections.emptySet());
+    }
+
+    /**
+     * Checks if the list is empty.
+     * @return if the list is empty
+     */
+    public boolean isEmpty() {
+      return mIncludedEntries.isEmpty() && mExcludedEntries.isEmpty();
     }
 
     /**
