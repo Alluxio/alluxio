@@ -290,7 +290,7 @@ fuse:
     # Extra environment variables for the fuse pod
     # Example:
     # JAVA_HOME: /opt/java
-  image: alluxio/alluxio-fuse
+  image: alluxio/alluxio
   imageTag: 2.7.0-SNAPSHOT
   imagePullPolicy: IfNotPresent
   # Change both to true to deploy FUSE
