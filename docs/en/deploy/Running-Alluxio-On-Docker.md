@@ -459,8 +459,8 @@ and mount point of Alluxio service is `/mnt/alluxio-fuse`, mapped to host path
 {% endnavtab %}
 {% navtab Standalone FUSE %}
 
-Using the [alluxio/{{site.ALLUXIO_DOCKER_IMAGE}}-fuse](https://hub.docker.com/r/alluxio/{{site.ALLUXIO_DOCKER_IMAGE}}-fuse/), you can enable
-access to Alluxio on Docker host using the POSIX API.
+The original [alluxio/{{site.ALLUXIO_DOCKER_IMAGE}}-fuse](https://hub.docker.com/r/alluxio/{{site.ALLUXIO_DOCKER_IMAGE}}-fuse/) has been deprecated. Now you can enable access to Alluxio on Docker host using the POSIX API by [alluxio/{{site.ALLUXIO_DOCKER_IMAGE}}](https://hub.docker.com/r/alluxio/{{site.ALLUXIO_DOCKER_IMAGE}}/) Docker image, the same one used for launching Alluxio master and worker.
+
 
 For example, the following commands run the alluxio-fuse container as a long-running client that presents Alluxio file system through a POSIX interface on the Docker host:
 
@@ -474,7 +474,7 @@ $ docker run -d --rm \
     --cap-add SYS_ADMIN \
     --device /dev/fuse \
     --security-opt apparmor:unconfined \
-    alluxio/{{site.ALLUXIO_DOCKER_IMAGE}}-fuse fuse
+    alluxio/{{site.ALLUXIO_DOCKER_IMAGE}} fuse
 ```
 
 Notes
