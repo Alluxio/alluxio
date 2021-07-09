@@ -233,7 +233,7 @@ __fuse values:__
 | Parameter | Description | Default |
 | --- | --- | --- |
 | `env` | Extra environment variables for the fuse pod | `{}` |
-| `image` | Docker image | `alluxio/alluxio` |
+| `image` | Docker image | `alluxio/alluxio-fuse` |
 | `imageTag` | Docker image tag | `2.5.0-SNAPSHOT` |
 | `imagePullPolicy` | Docker image pull policy | `IfNotPresent` |
 | `enabled` | Set to true to deploy FUSE | `false` |
