@@ -145,7 +145,7 @@ public final class DbConfig {
           partitionBuilder.exclude().addName(partition.getName());
         }
       }
-      builder.bypass().include().addPartition(entry.getTable(), partitionBuilder.build());
+      builder.bypass().include().addPartition(entry.getTable(), partitionBuilder);
     }
 
     for (NameEntry entry : mBypassEntry.getList().getExcludedEntries()) {

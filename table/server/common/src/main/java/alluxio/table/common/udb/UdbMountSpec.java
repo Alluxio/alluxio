@@ -30,24 +30,18 @@ import javax.annotation.Nullable;
  */
 public final class UdbMountSpec {
   /**
-   * Map of table name to set of partition names.
-   * Keyed by a table's name, the value set contains names of partitions in that table.
-   * An empty set indicates all partitions of that table, if any, should be bypassed.
+   * Tables and partitions to bypass.
    */
   private final TablePartitionWrapper mBypassed;
 
   /**
-   * Set of ignored tables.
+   * Ignored tables.
    * Tables are ignored as a whole, no partition configuration is needed.
    */
   private final SimpleWrapper mIgnored;
 
-  /**
-   * @param bypassed bypassed table to partition map
-   * @param ignored ignored tables set
-   */
-  public UdbMountSpec(TablePartitionWrapper bypassed,
-                      SimpleWrapper ignored) {
+  protected UdbMountSpec(TablePartitionWrapper bypassed,
+                         SimpleWrapper ignored) {
     mBypassed = bypassed;
     mIgnored = ignored;
   }
@@ -194,7 +188,7 @@ public final class UdbMountSpec {
     }
   }
 
-  private static final class TablePartitionWrapper
+  static final class TablePartitionWrapper
       extends InclusionExclusionWrapper<TablePartitionNamePatternWrapper> {
     TablePartitionWrapper(
         TablePartitionNamePatternWrapper included,
@@ -260,8 +254,7 @@ public final class UdbMountSpec {
   /**
    * Type alias for {@link InclusionExclusionWrapper<SimpleNamePatternWrapper>}.
    */
-  private static final class SimpleWrapper
-      extends InclusionExclusionWrapper<SimpleNamePatternWrapper> {
+  static final class SimpleWrapper extends InclusionExclusionWrapper<SimpleNamePatternWrapper> {
     SimpleWrapper(SimpleNamePatternWrapper included, SimpleNamePatternWrapper excluded) {
       super(included, excluded);
     }
@@ -270,7 +263,7 @@ public final class UdbMountSpec {
   /**
    * Wrapper for table and partition specs, only appears in bypass-include list.
    */
-  private static class TablePartitionNamePatternWrapper extends NamePatternWrapper {
+  static class TablePartitionNamePatternWrapper extends NamePatternWrapper {
     private final ImmutableMap<String, Set<SimpleWrapper>> mTablePartMap;
 
     TablePartitionNamePatternWrapper(Set<String> fullTableNames, Set<Pattern> patterns) {
@@ -349,7 +342,7 @@ public final class UdbMountSpec {
   /**
    * Type alias for NamePatternWrapper.
    */
-  private static final class SimpleNamePatternWrapper extends NamePatternWrapper {
+  static final class SimpleNamePatternWrapper extends NamePatternWrapper {
     SimpleNamePatternWrapper(Set<String> names, Set<Pattern> patterns) {
       super(names, patterns);
     }
@@ -393,7 +386,11 @@ public final class UdbMountSpec {
     }
   }
 
-  abstract static class BaseBuilder<T> {
+  /**
+   * Base builder for common builder methods.
+   * @param <T> the output type
+   */
+  public abstract static class BaseBuilder<T> {
     @Nullable
     protected Set<String> mNames;
     @Nullable
@@ -401,27 +398,51 @@ public final class UdbMountSpec {
 
     protected BaseBuilder() {}
 
+    /**
+     * Adds a name.
+     * @param name name
+     * @return the builder
+     */
     public BaseBuilder<T> addName(String name) {
       mNames = addOrNewSet(mNames, name);
       return this;
     }
 
+    /**
+     * Adds a pattern.
+     * @param pattern pattern
+     * @return the builder
+     */
     public BaseBuilder<T> addPattern(Pattern pattern) {
       mPatterns = addOrNewSet(mPatterns, pattern);
       return this;
     }
 
+    /**
+     * Adds a set of names, the set has to be mutable.
+     * @param names set of names
+     * @return the builder
+     */
     public BaseBuilder<T> addNames(Set<String> names) {
       mNames = addOrNewSet(mNames, names);
       return this;
     }
 
+    /**
+     * Adds a set of patterns, the set has to be mutable.
+     * @param patterns set of names
+     * @return the builder
+     */
     public BaseBuilder<T> addPatterns(Set<Pattern> patterns) {
       mPatterns = addOrNewSet(mPatterns, patterns);
       return this;
     }
 
-    public abstract T build();
+    /**
+     * Builds the type.
+     * @return the built type
+     */
+    abstract T build();
 
     private static <T> Set<T> addOrNewSet(Set<T> someSet, T element) {
       if (someSet == null) {
@@ -451,6 +472,14 @@ public final class UdbMountSpec {
     }
   }
 
+  /**
+   * Builder for include/exclude list.
+   * @param <I> the type contained in the included list
+   * @param <IBUILDERT> builder type for {@link I}
+   * @param <E> the type contained in the excluded list
+   * @param <EBUILDERT> builder type for {@link E}
+   * @param <OUT> the output type
+   */
   abstract static class IncludeExcludeBuilder<I, IBUILDERT extends BaseBuilder<I>,
                                               E, EBUILDERT extends BaseBuilder<E>,
                                               OUT> {
@@ -462,21 +491,33 @@ public final class UdbMountSpec {
       mExclude = excludeBuilder;
     }
 
+    /**
+     * Returns the included entry's builder.
+     */
     public IBUILDERT include() {
       return mInclude;
     }
 
+    /**
+     * Returns the excluded entry's builder.
+     */
     public EBUILDERT exclude() {
       return mExclude;
     }
 
-    public abstract OUT build();
+    /**
+     * Builds the type.
+     */
+    abstract OUT build();
   }
 
+  /**
+   * Builder for simple names and patterns.
+   */
   public static class SimpleNamePatternWrapperBuilder
       extends BaseBuilder<SimpleNamePatternWrapper> {
     @Override
-    public SimpleNamePatternWrapper build() {
+    SimpleNamePatternWrapper build() {
       mNames = BaseBuilder.replaceNullWithEmpty(mNames);
       mPatterns = BaseBuilder.replaceNullWithEmpty(mPatterns);
       SimpleNamePatternWrapper built = new SimpleNamePatternWrapper(mNames, mPatterns);
@@ -487,12 +528,26 @@ public final class UdbMountSpec {
     }
   }
 
+  /**
+   * Builder for table with partition specification.
+   */
   public static class TablePartitionNamePatternWrapperBuilder
       extends BaseBuilder<TablePartitionNamePatternWrapper> {
     private Map<String, Set<SimpleWrapper>> mTablePartMap;
 
+    /**
+     * Attaches partition specification to a table.
+     * @param tableName the table name
+     * @param builder builder for partition specification
+     * @return the builder
+     */
     public TablePartitionNamePatternWrapperBuilder addPartition(String tableName,
-                                                                SimpleWrapper partition) {
+                                                                SimpleWrapperBuilder builder) {
+      return addPartition(tableName, builder.build());
+    }
+
+    TablePartitionNamePatternWrapperBuilder addPartition(String tableName,
+                                                         SimpleWrapper partition) {
       if (mTablePartMap == null) {
         mTablePartMap = new HashMap<>();
       }
@@ -506,7 +561,7 @@ public final class UdbMountSpec {
     }
 
     @Override
-    public TablePartitionNamePatternWrapper build() {
+    TablePartitionNamePatternWrapper build() {
       mNames = BaseBuilder.replaceNullWithEmpty(mNames);
       mPatterns = BaseBuilder.replaceNullWithEmpty(mPatterns);
       mTablePartMap = mTablePartMap == null ? Collections.emptyMap() : mTablePartMap;
@@ -520,29 +575,38 @@ public final class UdbMountSpec {
     }
   }
 
-  public static class TablePartitionWrapperBuilder extends IncludeExcludeBuilder<
+  /**
+   * Builder for the bypass entry.
+   */
+  public static class BypassEntryBuilder extends IncludeExcludeBuilder<
       TablePartitionNamePatternWrapper,
       TablePartitionNamePatternWrapperBuilder,
       SimpleNamePatternWrapper,
       SimpleNamePatternWrapperBuilder,
       TablePartitionWrapper> {
 
-    protected TablePartitionWrapperBuilder(
+    protected BypassEntryBuilder(
         TablePartitionNamePatternWrapperBuilder includeBuilder,
         SimpleNamePatternWrapperBuilder excludeBuilder) {
       super(includeBuilder, excludeBuilder);
     }
 
-    public TablePartitionWrapperBuilder() {
+    /**
+     * Creates a new builder.
+     */
+    public BypassEntryBuilder() {
       this(new TablePartitionNamePatternWrapperBuilder(), new SimpleNamePatternWrapperBuilder());
     }
 
     @Override
-    public TablePartitionWrapper build() {
+    TablePartitionWrapper build() {
       return new TablePartitionWrapper(include().build(), exclude().build());
     }
   }
 
+  /**
+   * Builder for the ignore entry.
+   */
   public static class SimpleWrapperBuilder extends IncludeExcludeBuilder<
       SimpleNamePatternWrapper,
       SimpleNamePatternWrapperBuilder,
@@ -556,6 +620,9 @@ public final class UdbMountSpec {
       super(includeBuilder, excludeBuilder);
     }
 
+    /**
+     * Creates a new builder.
+     */
     public SimpleWrapperBuilder() {
       this(new SimpleNamePatternWrapperBuilder(), new SimpleNamePatternWrapperBuilder());
     }
@@ -566,23 +633,41 @@ public final class UdbMountSpec {
     }
   }
 
+  /**
+   * Builder for {@link UdbMountSpec}.
+   */
   public static class Builder {
-    private final TablePartitionWrapperBuilder mBypassBuilder;
+    private final BypassEntryBuilder mBypassBuilder;
     private final SimpleWrapperBuilder mIgnoreBuilder;
 
+    /**
+     * Creates a new builder.
+     */
     public Builder() {
-      mBypassBuilder = new TablePartitionWrapperBuilder();
+      mBypassBuilder = new BypassEntryBuilder();
       mIgnoreBuilder = new SimpleWrapperBuilder();
     }
 
-    public TablePartitionWrapperBuilder bypass() {
+    /**
+     * Gets builder for the bypass entry.
+     * @return the builder
+     */
+    public BypassEntryBuilder bypass() {
       return mBypassBuilder;
     }
 
+    /**
+     * Gets Builder for the ignore entry.
+     * @return the builder
+     */
     public SimpleWrapperBuilder ignore() {
       return mIgnoreBuilder;
     }
 
+    /**
+     * Builds the spec.
+     * @return the builder
+     */
     public UdbMountSpec build() {
       TablePartitionWrapper bypassed = mBypassBuilder.build();
       SimpleWrapper ignored = mIgnoreBuilder.build();
