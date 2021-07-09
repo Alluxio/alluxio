@@ -89,7 +89,7 @@ the journal size in later sections.
 the assigned user:group permissions may prevent the Alluxio masters & workers from accessing it.
 Please ensure the permissions are set to allow the pods to access the directory.
   - See the [Kubernetes volume docs](https://kubernetes.io/docs/concepts/storage/volumes/#hostpath) for more details
-  - From Alluxio v2.1 on, Alluxio Docker containers will run as non-root user `alluxio`
+  - From Alluxio v2.1 on, Alluxio Docker containers except Fuse will run as non-root user `alluxio`
 with UID 1000 and GID 1000 by default.
 
 Then create the persistent volume with `kubectl`:
@@ -477,7 +477,7 @@ Or you can trigger the journal formatting at deployment.
 $ helm install alluxio -f config.yaml --set journal.format.runFormat=true alluxio-charts/alluxio
 ```
 
-> Note: From Alluxio v2.1 on, Alluxio Docker containers will run as non-root user `alluxio`
+> Note: From Alluxio v2.1 on, Alluxio Docker containers except Fuse will run as non-root user `alluxio`
 with UID 1000 and GID 1000 by default.
 You should make sure the journal is formatted using the same user that the Alluxio master Pod runs as.
 
@@ -648,7 +648,7 @@ This `initContainer` will run `alluxio formatJournal` when the Pod is created an
       mountPath: /journal
 ```
 
-> Note: From Alluxio v2.1 on, Alluxio Docker containers will run as non-root user `alluxio`
+> Note: From Alluxio v2.1 on, Alluxio Docker containers except Fuse will run as non-root user `alluxio`
 with UID 1000 and GID 1000 by default.
 You should make sure the journal is formatted using the same user that the Alluxio master Pod runs as.
 
@@ -1106,8 +1106,10 @@ Note:
 - The container running the Alluxio FUSE daemon must have the `securityContext.privileged=true` with
 `SYS_ADMIN` capabilities.
 Application containers that require Alluxio access do not need this privilege.
-
-- Application containers can run on any Docker image.
+- A different Docker image
+[alluxio/{{site.ALLUXIO_DOCKER_IMAGE}}-fuse](https://hub.docker.com/r/alluxio/{{site.ALLUXIO_DOCKER_IMAGE}}-fuse/)
+based on `ubuntu` instead of `alpine` is needed to run the FUSE daemon.
+Application containers can run on any Docker image.
 
 Verify that a container can simply mount the Alluxio FileSystem without any custom binaries or
 capabilities using a `hostPath` mount of location `/alluxio-fuse`:
@@ -1595,7 +1597,7 @@ $ nc -zv <IP> 29999
   {% endcollapsible %}
 
   {% collapsible Permission Denied %}
-From Alluxio v2.1 on, Alluxio Docker containers will run as non-root user `alluxio` with
+From Alluxio v2.1 on, Alluxio Docker containers except Fuse will run as non-root user `alluxio` with
 UID 1000 and GID 1000 by default.
 Kubernetes [`hostPath`](https://kubernetes.io/docs/concepts/storage/volumes/#hostpath) volumes
 are only writable by root so you need to update the permission accordingly.
