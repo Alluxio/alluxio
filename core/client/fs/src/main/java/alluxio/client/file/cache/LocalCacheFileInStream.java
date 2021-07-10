@@ -90,6 +90,7 @@ public class LocalCacheFileInStream extends FileInStream {
     mExternalFileInStreamOpener = fileOpener;
     mCacheManager = cacheManager;
     mStatus = status;
+    // Currently quota is only supported when it is set by external systems in status context
     mQuotaEnabled = conf.getBoolean(PropertyKey.USER_CLIENT_CACHE_QUOTA_ENABLED);
     if (mQuotaEnabled && status.getCacheContext() != null) {
       mCacheQuota = status.getCacheContext().getCacheQuota();
@@ -138,8 +139,8 @@ public class LocalCacheFileInStream extends FileInStream {
           (int) Math.min(mPageSize - currentPageOffset, lengthToRead - totalBytesRead);
       PageId pageId;
       CacheContext cacheContext = mStatus.getCacheContext();
-      if (cacheContext != null) {
-        pageId = new PageId(mStatus.getCacheContext().getFileIdentifier(), currentPage);
+      if (cacheContext != null && cacheContext.getCacheIdentifier() != null) {
+        pageId = new PageId(cacheContext.getCacheIdentifier(), currentPage);
       } else {
         pageId = new PageId(Long.toString(mStatus.getFileId()), currentPage);
       }
@@ -163,8 +164,8 @@ public class LocalCacheFileInStream extends FileInStream {
           currentPosition += bytesLeftInPage;
           Metrics.BYTES_REQUESTED_EXTERNAL.mark(bytesLeftInPage);
           if (cacheContext != null) {
-            cacheContext.incrementCounter(MetricKey.CLIENT_CACHE_BYTES_REQUESTED_EXTERNAL.getMetricName(),
-                bytesLeftInPage);
+            cacheContext.incrementCounter(
+                MetricKey.CLIENT_CACHE_BYTES_REQUESTED_EXTERNAL.getMetricName(), bytesLeftInPage);
           }
           mCacheManager.put(pageId, page, mCacheScope, mCacheQuota);
         }

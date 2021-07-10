@@ -26,7 +26,7 @@ public class CacheContextTest {
     CacheContext defaultContext = new CacheContext();
     assertEquals(CacheQuota.UNLIMITED, defaultContext.getCacheQuota());
     assertEquals(CacheScope.GLOBAL, defaultContext.getCacheScope());
-    assertNull(defaultContext.getFileIdentifier());
+    assertNull(defaultContext.getCacheIdentifier());
   }
 
   @Test
@@ -34,9 +34,9 @@ public class CacheContextTest {
     CacheContext context = new CacheContext()
         .setCacheQuota(new CacheQuota())
         .setCacheScope(CacheScope.create("db.table"))
-        .setFileIdentifier("1234");
+        .setCacheIdentifier("1234");
     assertEquals(new CacheQuota(), context.getCacheQuota());
     assertEquals(CacheScope.create("db.table"), context.getCacheScope());
-    assertEquals("1234", context.getFileIdentifier());
+    assertEquals("1234", context.getCacheIdentifier());
   }
 }

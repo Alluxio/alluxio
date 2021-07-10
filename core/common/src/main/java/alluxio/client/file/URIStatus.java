@@ -39,8 +39,9 @@ import javax.annotation.concurrent.ThreadSafe;
 @PublicApi
 @ThreadSafe
 public class URIStatus {
+  /** Information about this URI retrieved from Alluxio master. */
   private final FileInfo mInfo;
-  /** Context related to Presto runtime associated with this URI. */
+  /** Context associated with this URI, possibly set by other external engines (e.g., presto). */
   private final CacheContext mCacheContext;
 
   /**

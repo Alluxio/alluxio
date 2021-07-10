@@ -12,14 +12,12 @@
 package alluxio.hadoop;
 
 import alluxio.AlluxioURI;
-import alluxio.client.file.URIStatus;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.AlluxioProperties;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.Source;
 import alluxio.util.ConfigurationUtils;
-import alluxio.wire.FileInfo;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileStatus;
@@ -192,20 +190,6 @@ public final class HadoopUtils {
     alluxioProps.merge(hadoopConfProperties, Source.RUNTIME);
     // Creating a new instanced configuration from an AlluxioProperties object isn't expensive.
     return new InstancedConfiguration(alluxioProps);
-  }
-
-  /**
-   * @param status Hadoop file status
-   * @return corresponding Alluxio uri status instance
-   */
-  public static URIStatus toAlluxioUriStatus(FileStatus status) {
-    FileInfo info = new FileInfo();
-    info.setLength(status.getLen()).setPath(status.getPath().toString());
-    info.setFolder(status.isDirectory()).setBlockSizeBytes(status.getBlockSize());
-    info.setLastModificationTimeMs(status.getModificationTime())
-        .setLastAccessTimeMs(status.getAccessTime());
-    info.setOwner(status.getOwner()).setGroup(status.getGroup());
-    return new URIStatus(info);
   }
 
   private HadoopUtils() {} // prevent instantiation

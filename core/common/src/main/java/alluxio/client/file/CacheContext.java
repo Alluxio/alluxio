@@ -13,11 +13,12 @@ package alluxio.client.file;
 
 import alluxio.client.quota.CacheQuota;
 import alluxio.client.quota.CacheScope;
-import alluxio.wire.FileInfo;
 
 import com.google.common.base.MoreObjects;
 
 import java.util.Objects;
+
+import javax.annotation.Nullable;
 
 /**
  * Cache related context.
@@ -33,12 +34,25 @@ public class CacheContext {
    * hence using md5 hash of the file path as the identifier in the cache.
    * We don't set Alluxio fileId because in local cache files do not have Alluxio fileId assigned.
    */
-  private String mFileIdentifier = null;
+  private String mCacheIdentifier = null;
 
   /**
    * Constructs CacheContext.
    */
   public CacheContext() {
+  }
+
+  /**
+   * Returns an string as a hint from computation to indicate the file.
+   * Note that, this can be independent and different from Alluxio File ID stored in
+   * URIStatus.mInfo, which is assigned and maintained by Alluxio master.
+   * In cases like using Alluxio local cache, such Alluxio File ID may not be available.
+   *
+   * @return the unique string identifier of the entity to cache
+   */
+  @Nullable
+  public String getCacheIdentifier() {
+    return mCacheIdentifier;
   }
 
   /**
@@ -56,16 +70,17 @@ public class CacheContext {
   }
 
   /**
-   * @return the unique string identifier of the entity referenced by this uri used by Alluxio
-   * servers, immutable
+   * @param identifier the id to use
+   * @return the updated {@code CacheContext}
    */
-  public String getFileIdentifier() {
-    return mFileIdentifier;
+  public CacheContext setCacheIdentifier(String identifier) {
+    mCacheIdentifier = identifier;
+    return this;
   }
 
   /**
    * @param cacheQuota the cache quota
-   * @return the updated {@link FileInfo}
+   * @return the updated {@code CacheContext}
    */
   public CacheContext setCacheQuota(CacheQuota cacheQuota) {
     mCacheQuota = cacheQuota;
@@ -74,19 +89,10 @@ public class CacheContext {
 
   /**
    * @param cacheScope the cache quota
-   * @return the updated {@link FileInfo}
+   * @return the updated {@code CacheContext}
    */
   public CacheContext setCacheScope(CacheScope cacheScope) {
     mCacheScope = cacheScope;
-    return this;
-  }
-
-  /**
-   * @param fileIdentifier the file id to use
-   * @return the file information
-   */
-  public CacheContext setFileIdentifier(String fileIdentifier) {
-    mFileIdentifier = fileIdentifier;
     return this;
   }
 
@@ -111,22 +117,22 @@ public class CacheContext {
       return false;
     }
     CacheContext that = (CacheContext) o;
-    return Objects.equals(mCacheQuota, that.mCacheQuota)
-        && Objects.equals(mCacheScope, that.mCacheScope)
-        && Objects.equals(mFileIdentifier, that.mFileIdentifier);
+    return Objects.equals(mCacheIdentifier, that.mCacheIdentifier)
+        && Objects.equals(mCacheQuota, that.mCacheQuota)
+        && Objects.equals(mCacheScope, that.mCacheScope);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(mCacheQuota, mCacheScope, mFileIdentifier);
+    return Objects.hash(mCacheQuota, mCacheScope, mCacheIdentifier);
   }
 
   @Override
   public String toString() {
     return MoreObjects.toStringHelper(this)
+        .add("cacheIdentifier", mCacheIdentifier)
         .add("cacheQuota", mCacheQuota)
         .add("cacheScope", mCacheScope)
-        .add("fileIdentifier", mFileIdentifier)
         .toString();
   }
 }
