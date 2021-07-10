@@ -23,8 +23,17 @@ import java.util.Objects;
  * Cache related context.
  */
 public class CacheContext {
+  /** Used in Prestodb to indicate the cache quota for a file. */
   private CacheQuota mCacheQuota = CacheQuota.UNLIMITED;
+  /** Used in Prestodb to indicate the cache scope. */
   private CacheScope mCacheScope = CacheScope.GLOBAL;
+  /**
+   * Used in Prestodb to uniquely identify a file in Alluxio local cache.
+   * Note that, though the filePath can be a unique identifier, it can be a long string
+   * hence using md5 hash of the file path as the identifier in the cache.
+   * We don't set Alluxio fileId because in local cache files do not have Alluxio fileId assigned.
+   */
+  private String mFileIdentifier = null;
 
   /**
    * Constructs CacheContext.
@@ -47,6 +56,14 @@ public class CacheContext {
   }
 
   /**
+   * @return the unique string identifier of the entity referenced by this uri used by Alluxio
+   * servers, immutable
+   */
+  public String getFileIdentifier() {
+    return mFileIdentifier;
+  }
+
+  /**
    * @param cacheQuota the cache quota
    * @return the updated {@link FileInfo}
    */
@@ -61,6 +78,15 @@ public class CacheContext {
    */
   public CacheContext setCacheScope(CacheScope cacheScope) {
     mCacheScope = cacheScope;
+    return this;
+  }
+
+  /**
+   * @param fileIdentifier the file id to use
+   * @return the file information
+   */
+  public CacheContext setFileIdentifier(String fileIdentifier) {
+    mFileIdentifier = fileIdentifier;
     return this;
   }
 
@@ -85,13 +111,14 @@ public class CacheContext {
       return false;
     }
     CacheContext that = (CacheContext) o;
-    return Objects.equals(mCacheQuota, that.mCacheQuota) && Objects
-        .equals(mCacheScope, that.mCacheScope);
+    return Objects.equals(mCacheQuota, that.mCacheQuota)
+        && Objects.equals(mCacheScope, that.mCacheScope)
+        && Objects.equals(mFileIdentifier, that.mFileIdentifier);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(mCacheQuota, mCacheScope);
+    return Objects.hash(mCacheQuota, mCacheScope, mFileIdentifier);
   }
 
   @Override
@@ -99,6 +126,7 @@ public class CacheContext {
     return MoreObjects.toStringHelper(this)
         .add("cacheQuota", mCacheQuota)
         .add("cacheScope", mCacheScope)
+        .add("fileIdentifier", mFileIdentifier)
         .toString();
   }
 }

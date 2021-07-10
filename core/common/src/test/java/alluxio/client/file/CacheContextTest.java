@@ -12,6 +12,7 @@
 package alluxio.client.file;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 
 import alluxio.client.quota.CacheQuota;
 import alluxio.client.quota.CacheScope;
@@ -25,14 +26,17 @@ public class CacheContextTest {
     CacheContext defaultContext = new CacheContext();
     assertEquals(CacheQuota.UNLIMITED, defaultContext.getCacheQuota());
     assertEquals(CacheScope.GLOBAL, defaultContext.getCacheScope());
+    assertNull(defaultContext.getFileIdentifier());
   }
 
   @Test
   public void setters() {
     CacheContext context = new CacheContext()
         .setCacheQuota(new CacheQuota())
-        .setCacheScope(CacheScope.create("db.table"));
+        .setCacheScope(CacheScope.create("db.table"))
+        .setFileIdentifier("1234");
     assertEquals(new CacheQuota(), context.getCacheQuota());
     assertEquals(CacheScope.create("db.table"), context.getCacheScope());
+    assertEquals("1234", context.getFileIdentifier());
   }
 }

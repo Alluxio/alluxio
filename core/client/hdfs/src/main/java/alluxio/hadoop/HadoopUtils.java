@@ -11,9 +11,6 @@
 
 package alluxio.hadoop;
 
-import static com.google.common.hash.Hashing.md5;
-import static java.nio.charset.StandardCharsets.UTF_8;
-
 import alluxio.AlluxioURI;
 import alluxio.client.file.URIStatus;
 import alluxio.conf.AlluxioConfiguration;
@@ -202,11 +199,7 @@ public final class HadoopUtils {
    * @return corresponding Alluxio uri status instance
    */
   public static URIStatus toAlluxioUriStatus(FileStatus status) {
-    // FilePath is a unique identifier for a file, however it can be a long string
-    // hence using md5 hash of the file path as the identifier in the cache.
-    // We don't set fileId because fileId is Alluxio specific
     FileInfo info = new FileInfo();
-    info.setFileIdentifier(md5().hashString(status.getPath().toString(), UTF_8).toString());
     info.setLength(status.getLen()).setPath(status.getPath().toString());
     info.setFolder(status.isDirectory()).setBlockSizeBytes(status.getBlockSize());
     info.setLastModificationTimeMs(status.getModificationTime())

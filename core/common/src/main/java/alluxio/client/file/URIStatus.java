@@ -41,7 +41,7 @@ import javax.annotation.concurrent.ThreadSafe;
 public class URIStatus {
   private final FileInfo mInfo;
   /** Context related to Presto runtime associated with this URI. */
-  private CacheContext mCacheContext;
+  private final CacheContext mCacheContext;
 
   /**
    * Constructs an instance of this class from a {@link FileInfo}.
@@ -49,8 +49,18 @@ public class URIStatus {
    * @param info an object containing the information about a particular uri
    */
   public URIStatus(FileInfo info) {
+    this(info, null);
+  }
+
+  /**
+   * Constructs an instance of this class from a {@link FileInfo}.
+   *
+   * @param info an object containing the information about a particular uri
+   * @param context cache context associated with this uri
+   */
+  public URIStatus(FileInfo info, @Nullable CacheContext context) {
     mInfo = Preconditions.checkNotNull(info, "info");
-    mCacheContext = null;
+    mCacheContext = context;
   }
 
   /**
@@ -104,14 +114,6 @@ public class URIStatus {
    */
   public long getFileId() {
     return mInfo.getFileId();
-  }
-
-  /**
-   * @return the unique string identifier of the entity referenced by this uri used by Alluxio
-   *         servers, immutable
-   */
-  public String getFileIdentifier() {
-    return mInfo.getFileIdentifier();
   }
 
   /**
@@ -318,13 +320,6 @@ public class URIStatus {
   @Nullable
   public CacheContext getCacheContext() {
     return mCacheContext;
-  }
-
-  /**
-   * @param cacheContext Presto context to set
-   */
-  public void setCacheContext(CacheContext cacheContext) {
-    mCacheContext = cacheContext;
   }
 
   /**
