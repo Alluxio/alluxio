@@ -3508,6 +3508,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
+  public static final PropertyKey WORKER_REGISTRY_GET_TIMEOUT_MS  =
+      new Builder(Name.WORKER_REGISTRY_GET_TIMEOUT_MS)
+          .setDefaultValue("600000")
+          .setDescription("The timeout of getting a worker from the registry.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
+          .setScope(Scope.WORKER)
+          .build();
 
   //
   // Proxy related properties
@@ -5935,6 +5942,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.worker.ufs.instream.cache.enabled";
     public static final String WORKER_UFS_INSTREAM_CACHE_MAX_SIZE =
         "alluxio.worker.ufs.instream.cache.max.size";
+    public static final String WORKER_REGISTRY_GET_TIMEOUT_MS =
+        "alluxio.worker.registry.get.timeout";
 
     //
     // Proxy related properties
