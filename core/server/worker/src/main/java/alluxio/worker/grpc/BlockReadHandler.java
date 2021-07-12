@@ -30,9 +30,7 @@ import alluxio.util.LogUtils;
 import alluxio.util.logging.SamplingLogger;
 import alluxio.wire.BlockReadRequest;
 import alluxio.worker.block.BlockWorker;
-import alluxio.worker.block.UnderFileSystemBlockReader;
 import alluxio.worker.block.io.BlockReader;
-import alluxio.worker.block.io.DelegatingBlockReader;
 
 import com.codahale.metrics.Counter;
 import com.codahale.metrics.Meter;
@@ -335,11 +333,9 @@ public class BlockReadHandler implements StreamObserver<alluxio.grpc.ReadRequest
   private void incrementMetrics(long bytesRead) {
     Counter counter = mContext.getCounter();
     Meter meter = mContext.getMeter();
-    if (counter != null) {
-      // Ufs metrics is recorded in {@link UnderFileSystemBlockReader}
-      counter.inc(bytesRead);
-      meter.mark(bytesRead);
-    }
+    Preconditions.checkState(counter != null);
+    counter.inc(bytesRead);
+    meter.mark(bytesRead);
   }
 
   /**
@@ -568,13 +564,6 @@ public class BlockReadHandler implements StreamObserver<alluxio.grpc.ReadRequest
       }
       BlockReader reader = mWorker.createBlockReader(request);
       context.setBlockReader(reader);
-      if (reader instanceof UnderFileSystemBlockReader
-          || (reader instanceof DelegatingBlockReader
-          && ((DelegatingBlockReader) reader).getDelegate()
-          instanceof UnderFileSystemBlockReader)) {
-        context.setCounter(null);
-        context.setMeter(null);
-      }
     }
 
     /**
