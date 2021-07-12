@@ -46,6 +46,10 @@ export class OverviewPresenter extends React.Component<AllProps> {
                 <td>{data.masterNodeAddress}</td>
               </tr>
               <tr>
+                <th scope="row">Cluster Id</th>
+                <td>{data.clusterId}</td>
+              </tr>
+              <tr>
                 <th scope="row">Started</th>
                 <td>{data.startTime}</td>
               </tr>
