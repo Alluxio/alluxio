@@ -11,6 +11,7 @@
 
 package alluxio.client.file.cache;
 
+import alluxio.client.file.CacheContext;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.URIStatus;
 import alluxio.client.quota.CacheQuota;
@@ -89,10 +90,11 @@ public class LocalCacheFileInStream extends FileInStream {
     mExternalFileInStreamOpener = fileOpener;
     mCacheManager = cacheManager;
     mStatus = status;
+    // Currently quota is only supported when it is set by external systems in status context
     mQuotaEnabled = conf.getBoolean(PropertyKey.USER_CLIENT_CACHE_QUOTA_ENABLED);
-    if (mQuotaEnabled) {
-      mCacheQuota = status.getCacheQuota();
-      mCacheScope = status.getCacheScope();
+    if (mQuotaEnabled && status.getCacheContext() != null) {
+      mCacheQuota = status.getCacheContext().getCacheQuota();
+      mCacheScope = status.getCacheContext().getCacheScope();
     } else {
       mCacheQuota = CacheQuota.UNLIMITED;
       mCacheScope = CacheScope.GLOBAL;
@@ -135,13 +137,23 @@ public class LocalCacheFileInStream extends FileInStream {
       int currentPageOffset = (int) (currentPosition % mPageSize);
       int bytesLeftInPage =
           (int) Math.min(mPageSize - currentPageOffset, lengthToRead - totalBytesRead);
-      PageId pageId = new PageId(mStatus.getFileIdentifier(), currentPage);
+      PageId pageId;
+      CacheContext cacheContext = mStatus.getCacheContext();
+      if (cacheContext != null && cacheContext.getCacheIdentifier() != null) {
+        pageId = new PageId(cacheContext.getCacheIdentifier(), currentPage);
+      } else {
+        pageId = new PageId(Long.toString(mStatus.getFileId()), currentPage);
+      }
       int bytesRead =
           mCacheManager.get(pageId, currentPageOffset, bytesLeftInPage, b, off + totalBytesRead);
       if (bytesRead > 0) {
         totalBytesRead += bytesRead;
         currentPosition += bytesRead;
         Metrics.BYTES_READ_CACHE.mark(bytesRead);
+        if (cacheContext != null) {
+          cacheContext
+              .incrementCounter(MetricKey.CLIENT_CACHE_BYTES_READ_CACHE.getMetricName(), bytesRead);
+        }
       } else {
         // on local cache miss, read a complete page from external storage. This will always make
         // progress or throw an exception
@@ -151,6 +163,10 @@ public class LocalCacheFileInStream extends FileInStream {
           totalBytesRead += bytesLeftInPage;
           currentPosition += bytesLeftInPage;
           Metrics.BYTES_REQUESTED_EXTERNAL.mark(bytesLeftInPage);
+          if (cacheContext != null) {
+            cacheContext.incrementCounter(
+                MetricKey.CLIENT_CACHE_BYTES_REQUESTED_EXTERNAL.getMetricName(), bytesLeftInPage);
+          }
           mCacheManager.put(pageId, page, mCacheScope, mCacheQuota);
         }
       }

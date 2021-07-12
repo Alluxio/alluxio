@@ -472,7 +472,7 @@ public class LocalCacheFileInStreamTest {
 
   private URIStatus generateURIStatus(String path, long len) {
     FileInfo info = new FileInfo();
-    info.setFileIdentifier(path);
+    info.setFileId(path.hashCode());
     info.setPath(path);
     info.setLength(len);
     return new URIStatus(info);
