@@ -58,6 +58,8 @@ public final class UnderFileSystemBlockReader extends BlockReader {
   private static final Counter BLOCKS_READ_UFS =
       MetricsSystem.counter(MetricKey.WORKER_BLOCKS_READ_UFS.getName());
 
+  private final Counter mCounter;
+  private final Meter mMeter;
   /** An object storing the mapping of tier aliases to ordinals. */
   private final StorageTierAssoc mStorageTierAssoc = new WorkerStorageTierAssoc();
 
@@ -91,9 +93,6 @@ public final class UnderFileSystemBlockReader extends BlockReader {
    * that is valid instead of relying on this invalid state of the position to be safe.
    */
   private long mInStreamPos;
-
-  private Counter mCounter;
-  private Meter mMeter;
 
   /**
    * Creates an instance of {@link UnderFileSystemBlockReader} and initializes it with a reading
@@ -139,7 +138,6 @@ public final class UnderFileSystemBlockReader extends BlockReader {
     mUfsResource = ufsClient.acquireUfsResource();
     mUfsMountPointUri = ufsClient.getUfsMountPointUri();
     mIsPositionShort = positionShort;
-
     String ufsString = MetricsSystem.escape(mUfsMountPointUri);
     MetricKey counterKey = MetricKey.WORKER_BYTES_READ_UFS;
     MetricKey meterKey = MetricKey.WORKER_BYTES_READ_UFS_THROUGHPUT;
