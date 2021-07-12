@@ -11,10 +11,10 @@
 
 package alluxio.master.table;
 
-import static alluxio.master.table.DbConfig.BypassTablesEntry;
-import static alluxio.master.table.DbConfig.IgnoreTablesEntry;
+import static alluxio.master.table.DbConfig.BypassTablesSpec;
+import static alluxio.master.table.DbConfig.IgnoreTablesSpec;
 import static alluxio.master.table.DbConfig.IncludeExcludeList;
-import static alluxio.master.table.DbConfig.NameEntry;
+import static alluxio.master.table.DbConfig.NamePatternEntry;
 import static alluxio.master.table.DbConfig.TableEntry;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -42,32 +42,32 @@ public class DbConfigTest {
   /* NameEntry tests */
   @Test
   public void simpleName() throws Exception {
-    NameEntry entry = mMapper.readValue("\"table1\"", NameEntry.class);
+    NamePatternEntry entry = mMapper.readValue("\"table1\"", NamePatternEntry.class);
     assertFalse(entry.isPattern());
     assertEquals("table1", entry.getName());
   }
 
   @Test
   public void regexPattern() throws Exception {
-    NameEntry entry = mMapper.readValue(
-        "{\"regex\":\"^table\\\\d$\"}", NameEntry.class);
+    NamePatternEntry entry = mMapper.readValue(
+        "{\"regex\":\"^table\\\\d$\"}", NamePatternEntry.class);
     assertTrue(entry.isPattern());
     assertEquals("^table\\d$", entry.getPattern().pattern());
   }
 
   @Test(expected = JsonProcessingException.class)
   public void rejectUnknownKey() throws Exception {
-    mMapper.readValue("{\"some_key\":\"some_value\"}", NameEntry.class);
+    mMapper.readValue("{\"some_key\":\"some_value\"}", NamePatternEntry.class);
   }
 
   @Test(expected = JsonProcessingException.class)
   public void rejectBadPattern() throws Exception {
-    mMapper.readValue("{\"regex\":\"unclosed parenthesis (\"}", NameEntry.class);
+    mMapper.readValue("{\"regex\":\"unclosed parenthesis (\"}", NamePatternEntry.class);
   }
 
   @Test(expected = IllegalArgumentException.class)
   public void rejectEmptyName() throws Exception {
-    mMapper.readValue("\"\"", NameEntry.class);
+    mMapper.readValue("\"\"", NamePatternEntry.class);
   }
 
   /* TableEntry tests */
@@ -90,8 +90,8 @@ public class DbConfigTest {
     assertEquals("table2", entry.getTable());
     assertEquals(
         ImmutableSet.of(
-            new NameEntry("t2p1"),
-            new NameEntry("t2p2")
+            new NamePatternEntry("t2p1"),
+            new NamePatternEntry("t2p2")
         ),
         entry.getPartitions().getIncludedEntries()
     );
@@ -107,7 +107,7 @@ public class DbConfigTest {
     assertFalse(entry.isPattern());
     assertEquals("table2", entry.getTable());
     assertEquals(
-        ImmutableSet.of(new NameEntry("t2p1")),
+        ImmutableSet.of(new NamePatternEntry("t2p1")),
         entry.getPartitions().getExcludedEntries()
     );
     assertEquals(ImmutableSet.of(), entry.getPartitions().getIncludedEntries());
@@ -153,16 +153,16 @@ public class DbConfigTest {
   public void rejectIncludeAndExcludeNameEntry() throws Exception {
     mMapper.readValue(
         "{\"include\": [\"table1\"], \"exclude\": [\"table2\"]}",
-        new TypeReference<IncludeExcludeList<NameEntry>>() {});
+        new TypeReference<IncludeExcludeList<NamePatternEntry>>() {});
   }
 
   @Test
   public void includeOnlyNameEntry() throws Exception {
-    IncludeExcludeList<NameEntry> list =
+    IncludeExcludeList<NamePatternEntry> list =
         mMapper.readValue(
             "{\"include\": [\"table1\"]}",
-            new TypeReference<IncludeExcludeList<NameEntry>>() {});
-    assertEquals(ImmutableSet.of(new NameEntry("table1")), list.getIncludedEntries());
+            new TypeReference<IncludeExcludeList<NamePatternEntry>>() {});
+    assertEquals(ImmutableSet.of(new NamePatternEntry("table1")), list.getIncludedEntries());
     assertEquals(ImmutableSet.of(), list.getExcludedEntries());
   }
 
@@ -184,11 +184,11 @@ public class DbConfigTest {
 
   @Test
   public void excludeOnlyNameEntry() throws Exception {
-    IncludeExcludeList<NameEntry> list =
+    IncludeExcludeList<NamePatternEntry> list =
         mMapper.readValue(
             "{\"exclude\": [\"table1\"]}",
-            new TypeReference<IncludeExcludeList<NameEntry>>() {});
-    assertEquals(ImmutableSet.of(new NameEntry("table1")), list.getExcludedEntries());
+            new TypeReference<IncludeExcludeList<NamePatternEntry>>() {});
+    assertEquals(ImmutableSet.of(new NamePatternEntry("table1")), list.getExcludedEntries());
     assertEquals(ImmutableSet.of(), list.getIncludedEntries());
   }
 
@@ -196,47 +196,47 @@ public class DbConfigTest {
   /* IgnoreTablesEntry is a type alias for TablesEntry<NameEntry> */
   @Test
   public void emptyListOfTables() throws Exception {
-    IgnoreTablesEntry entry =
+    IgnoreTablesSpec entry =
         mMapper.readValue(
             "{\"tables\": []}",
-            new TypeReference<IgnoreTablesEntry>() {});
+            new TypeReference<IgnoreTablesSpec>() {});
     assertEquals(ImmutableSet.of(), entry.getList().getIncludedEntries());
     assertEquals(ImmutableSet.of(), entry.getList().getExcludedEntries());
   }
 
   @Test
   public void nullConstructor() throws Exception {
-    IgnoreTablesEntry entry2 = new IgnoreTablesEntry(null);
+    IgnoreTablesSpec entry2 = new IgnoreTablesSpec(null);
     assertEquals(ImmutableSet.of(), entry2.getList().getIncludedEntries());
     assertEquals(ImmutableSet.of(), entry2.getList().getExcludedEntries());
   }
 
   @Test
   public void implicitIncludeList() throws Exception {
-    IgnoreTablesEntry entry =
+    IgnoreTablesSpec entry =
         mMapper.readValue(
             "{\"tables\": [\"table1\"]}",
-            new TypeReference<IgnoreTablesEntry>() {});
-    assertEquals(ImmutableSet.of(new NameEntry("table1")), entry.getList().getIncludedEntries());
+            new TypeReference<IgnoreTablesSpec>() {});
+    assertEquals(ImmutableSet.of(new NamePatternEntry("table1")), entry.getList().getIncludedEntries());
     assertEquals(ImmutableSet.of(), entry.getList().getExcludedEntries());
   }
 
   @Test
   public void explicitIncludeExcludeList() throws Exception {
-    IgnoreTablesEntry entry =
+    IgnoreTablesSpec entry =
         mMapper.readValue(
             "{\"tables\": {\"include\": [\"table1\"]}}",
-            new TypeReference<IgnoreTablesEntry>() {});
-    assertEquals(ImmutableSet.of(new NameEntry("table1")), entry.getList().getIncludedEntries());
+            new TypeReference<IgnoreTablesSpec>() {});
+    assertEquals(ImmutableSet.of(new NamePatternEntry("table1")), entry.getList().getIncludedEntries());
     assertEquals(ImmutableSet.of(), entry.getList().getExcludedEntries());
   }
 
   @Test
   public void bypassTablesEntry() throws Exception {
-    BypassTablesEntry entry =
+    BypassTablesSpec entry =
         mMapper.readValue(
             "{\"tables\": [{\"table\": \"table1\"}]}",
-            new TypeReference<BypassTablesEntry>() {});
+            new TypeReference<BypassTablesSpec>() {});
     assertEquals(ImmutableSet.of(new TableEntry("table1")),
         entry.getList().getIncludedEntries());
     assertEquals(ImmutableSet.of(), entry.getList().getExcludedEntries());

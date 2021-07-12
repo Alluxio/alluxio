@@ -39,14 +39,13 @@ import javax.annotation.Nullable;
  * The Alluxio db config file.
  *
  * Current syntax:
- * Top level: BypassIgnoreObject
- * BypassIgnoreObject := {"bypass": BypassTablesSpec, "ignore": IgnoreTablesSpec}
+ * Top level: DbConfig
+ * DbConfig := {"bypass": BypassTablesSpec, "ignore": IgnoreTablesSpec}
  * BypassTablesSpec := {"tables": BypassIncludeTablesList | BypassTablesObject}
- * IgnoreTablesSpec := {"tables": SimpleNameRegexList | SimpleTablesObject}
+ * IgnoreTablesSpec := {"tables": SimpleNameRegexList | SimpleIncludeExcludeObject}
  * BypassTablesObject := {"include": BypassIncludeTablesList} | {"exclude": SimpleNameRegexList}
  * BypassIncludeTablesList := [ NameLiteral | RegexObject | BypassTablePartitionSpec ]*
  * SimpleNameRegexList := [ NameLiteral | RegexObject ]*
- * SimpleTablesObject := SimpleIncludeExcludeObject
  * SimpleIncludeExcludeObject := {"include": SimpleNameRegexList} | {"exclude": SimpleNameRegexList}
  * BypassTablePartitionSpec :=
  *     {"table": NameLiteral, "partition": SimpleNameRegexList | SimpleIncludeExcludeObject}
@@ -78,18 +77,18 @@ import javax.annotation.Nullable;
  * }
  */
 public final class DbConfig {
-  private final BypassTablesEntry mBypassEntry;
-  private final IgnoreTablesEntry mIgnoreEntry;
+  private final BypassTablesSpec mBypassEntry;
+  private final IgnoreTablesSpec mIgnoreEntry;
 
   /**
    * @param bypassEntry bypass entry
    * @param ignoreEntry ignore entry
    */
   @JsonCreator
-  public DbConfig(@JsonProperty("bypass") @Nullable BypassTablesEntry bypassEntry,
-                  @JsonProperty("ignore") @Nullable IgnoreTablesEntry ignoreEntry) {
-    mBypassEntry = bypassEntry == null ? new BypassTablesEntry(null) : bypassEntry;
-    mIgnoreEntry = ignoreEntry == null ? new IgnoreTablesEntry(null) : ignoreEntry;
+  public DbConfig(@JsonProperty("bypass") @Nullable BypassTablesSpec bypassEntry,
+                  @JsonProperty("ignore") @Nullable IgnoreTablesSpec ignoreEntry) {
+    mBypassEntry = bypassEntry == null ? new BypassTablesSpec(null) : bypassEntry;
+    mIgnoreEntry = ignoreEntry == null ? new IgnoreTablesSpec(null) : ignoreEntry;
   }
 
   /**
@@ -111,7 +110,7 @@ public final class DbConfig {
   /**
    * @return the {@link TablesEntry} for ignored tables from config file
    */
-  public TablesEntry<NameEntry> getIgnoreEntry() {
+  public TablesEntry<NamePatternEntry> getIgnoreEntry() {
     return mIgnoreEntry;
   }
 
@@ -129,16 +128,16 @@ public final class DbConfig {
         builder.bypass().include().addName(entry.getName());
         continue;
       }
-      IncludeExcludeList<NameEntry> partitions = entry.getPartitions();
+      IncludeExcludeList<NamePatternEntry> partitions = entry.getPartitions();
       UdbMountSpec.SimpleWrapperBuilder partitionBuilder = new UdbMountSpec.SimpleWrapperBuilder();
-      for (NameEntry partition : partitions.getIncludedEntries()) {
+      for (NamePatternEntry partition : partitions.getIncludedEntries()) {
         if (partition.isPattern()) {
           partitionBuilder.include().addPattern(partition.getPattern());
         } else {
           partitionBuilder.include().addName(partition.getName());
         }
       }
-      for (NameEntry partition : partitions.getExcludedEntries()) {
+      for (NamePatternEntry partition : partitions.getExcludedEntries()) {
         if (partition.isPattern()) {
           partitionBuilder.exclude().addPattern(partition.getPattern());
         } else {
@@ -148,7 +147,7 @@ public final class DbConfig {
       builder.bypass().include().addPartition(entry.getTable(), partitionBuilder);
     }
 
-    for (NameEntry entry : mBypassEntry.getList().getExcludedEntries()) {
+    for (NamePatternEntry entry : mBypassEntry.getList().getExcludedEntries()) {
       if (entry.isPattern()) {
         builder.bypass().exclude().addPattern(entry.getPattern());
       } else {
@@ -156,7 +155,7 @@ public final class DbConfig {
       }
     }
 
-    for (NameEntry entry : mIgnoreEntry.getList().getIncludedEntries()) {
+    for (NamePatternEntry entry : mIgnoreEntry.getList().getIncludedEntries()) {
       if (entry.isPattern()) {
         builder.ignore().include().addPattern(entry.getPattern());
       } else {
@@ -164,7 +163,7 @@ public final class DbConfig {
       }
     }
 
-    for (NameEntry entry : mIgnoreEntry.getList().getExcludedEntries()) {
+    for (NamePatternEntry entry : mIgnoreEntry.getList().getExcludedEntries()) {
       if (entry.isPattern()) {
         builder.ignore().exclude().addPattern(entry.getPattern());
       } else {
@@ -177,36 +176,41 @@ public final class DbConfig {
   /**
    * Type alias for TablesEntry<TableEntry>.
    */
-  @JsonDeserialize(using = BypassTablesEntryDeserializer.class)
-  public static final class BypassTablesEntry extends TablesEntry<TableEntry> {
+  @JsonDeserialize(using = BypassTablesSpecDeserializer.class)
+  public static final class BypassTablesSpec extends TablesEntry<TableEntry> {
+    // inherited: IncludeExcludeList<TableEntry>
+    // this is the BypassTablesObject from syntax specification
 
     /**
      * @param list list of table entries
      */
-    public BypassTablesEntry(@Nullable IncludeExcludeList<TableEntry> list) {
+    public BypassTablesSpec(@Nullable IncludeExcludeList<TableEntry> list) {
       super(list);
     }
   }
 
   /**
-   * Type alias for TablesEntry<NameEntry>.
+   * Type alias for TablesEntry<NamePatternEntry>.
    */
-  @JsonDeserialize(using = IgnoreTablesEntryDeserializer.class)
-  public static final class IgnoreTablesEntry extends TablesEntry<NameEntry> {
+  @JsonDeserialize(using = IgnoreTablesSpecDeserializer.class)
+  public static final class IgnoreTablesSpec extends TablesEntry<NamePatternEntry> {
+    // inherited: IncludeExcludeList<NamePatternEntry>
+    // this is the SimpleIncludeExcludeObject from syntax specification
 
     /**
      * @param list list of table entries
      */
-    public IgnoreTablesEntry(@Nullable IncludeExcludeList<NameEntry> list) {
+    public IgnoreTablesSpec(@Nullable IncludeExcludeList<NamePatternEntry> list) {
       super(list);
     }
   }
 
   /**
-   * Tables configuration entry from config file.
+   * The "tables" object: {"tables": ... }.
+   * Base class for BypassTablesSpec and IgnoreTablesSpec.
    * @param <T> the type of entry contained
    */
-  public static  class TablesEntry<T extends NameEntry> {
+  public static  class TablesEntry<T extends NamePatternEntry> {
     private final IncludeExcludeList<T> mList;
 
     /**
@@ -226,11 +230,11 @@ public final class DbConfig {
   }
 
   /**
-   * Tables entry accepts one the two following:
-   * 1. a list of {@link NameEntry}s
-   * 2. an object containing `include`, `exclude` and `includeFirstOnConflict` keys
+   * Deserialize to an IncludeExcludeList of given inner type T.
+   * When the contained object is an array, an include list is implied.
+   * @param <T> the contained inner entry type
    */
-  static class TablesEntryDeserializer<T extends NameEntry> {
+  static class TablesEntryDeserializer<T extends NamePatternEntry> {
     IncludeExcludeList<T> deserializeToList(
         Class<T> type, JsonParser jp, DeserializationContext cxt)
         throws IOException, JsonProcessingException {
@@ -244,7 +248,7 @@ public final class DbConfig {
       }
       node = node.get("tables");
       if (node.isArray()) {
-        // in case an array, an included list is implied
+        // in case of an array, an included list is implied
         Set<T> entries = mapper.convertValue(
             node,
             mapper.getTypeFactory().constructCollectionType(Set.class, type)
@@ -263,35 +267,34 @@ public final class DbConfig {
     }
   }
 
-  static class IgnoreTablesEntryDeserializer extends JsonDeserializer<IgnoreTablesEntry> {
+  static class IgnoreTablesSpecDeserializer extends JsonDeserializer<IgnoreTablesSpec> {
     @Override
-    public IgnoreTablesEntry deserialize(JsonParser jp, DeserializationContext cxt)
+    public IgnoreTablesSpec deserialize(JsonParser jp, DeserializationContext cxt)
         throws IOException, JsonProcessingException {
-      TablesEntryDeserializer<NameEntry> deserializer = new TablesEntryDeserializer<>();
-      IncludeExcludeList<NameEntry> list =
-          deserializer.deserializeToList(NameEntry.class, jp, cxt);
-      return new IgnoreTablesEntry(list);
+      TablesEntryDeserializer<NamePatternEntry> deserializer = new TablesEntryDeserializer<>();
+      IncludeExcludeList<NamePatternEntry> list =
+          deserializer.deserializeToList(NamePatternEntry.class, jp, cxt);
+      return new IgnoreTablesSpec(list);
     }
   }
 
-  static class BypassTablesEntryDeserializer extends JsonDeserializer<BypassTablesEntry> {
+  static class BypassTablesSpecDeserializer extends JsonDeserializer<BypassTablesSpec> {
     @Override
-    public BypassTablesEntry deserialize(JsonParser jp, DeserializationContext cxt)
+    public BypassTablesSpec deserialize(JsonParser jp, DeserializationContext cxt)
         throws IOException, JsonProcessingException {
       TablesEntryDeserializer<TableEntry> deserializer = new TablesEntryDeserializer<>();
       IncludeExcludeList<TableEntry> list =
           deserializer.deserializeToList(TableEntry.class, jp, cxt);
-      return new BypassTablesEntry(list);
+      return new BypassTablesSpec(list);
     }
   }
 
   /**
-   * Contains additional partition specification.
-   * If the set of partitions is empty, all belonging partitions of that table will be bypassed.
+   * On top of a regular NamePatternEntry, contains additional partition specification.
    */
   @JsonDeserialize(using = TableEntryDeserializer.class)
-  public static class TableEntry extends NameEntry {
-    private final IncludeExcludeList<NameEntry> mPartitions;
+  public static class TableEntry extends NamePatternEntry {
+    private final IncludeExcludeList<NamePatternEntry> mPartitions;
 
     /**
      * Creates an instance with a specific table name and no partition specification.
@@ -308,17 +311,17 @@ public final class DbConfig {
      * @param tableName table name
      * @param partitions partitions
      */
-    public TableEntry(String tableName, IncludeExcludeList<NameEntry> partitions) {
+    public TableEntry(String tableName, IncludeExcludeList<NamePatternEntry> partitions) {
       super(tableName);
       mPartitions = partitions;
     }
 
     /**
-     * Creates an instance from a {@link NameEntry} with no partition specification.
-     * @param nameEntry name entry
+     * Creates an instance from a {@link NamePatternEntry} with no partition specification.
+     * @param namePatternEntry name entry
      */
-    public TableEntry(NameEntry nameEntry) {
-      super(nameEntry);
+    public TableEntry(NamePatternEntry namePatternEntry) {
+      super(namePatternEntry);
       mPartitions = IncludeExcludeList.empty();
     }
 
@@ -326,7 +329,7 @@ public final class DbConfig {
      * Returns partition specifications.
      * @return partitions
      */
-    public IncludeExcludeList<NameEntry> getPartitions() {
+    public IncludeExcludeList<NamePatternEntry> getPartitions() {
       return mPartitions;
     }
 
@@ -360,9 +363,8 @@ public final class DbConfig {
   }
 
   /**
-   * Accepts a simple table name or
+   * Accepts a simple table name, an regular expression, or
    * an object of form: {"table": "tableName", "partitions": ["part1", "part2"]}
-   * the specified individual partitions will be bypasses. Any others, if any, will not.
    */
   static class TableEntryDeserializer extends JsonDeserializer<TableEntry> {
     @Override
@@ -370,34 +372,35 @@ public final class DbConfig {
         throws IOException, JsonProcessingException {
       ObjectMapper mapper = (ObjectMapper) jp.getCodec();
       JsonNode node = mapper.readTree(jp);
-      // try deserialize as a `NameEntry` object first
+      // try deserialize as a `NamePatternEntry` object first
       try {
-        NameEntryDeserializer deserializer = new NameEntryDeserializer();
-        NameEntry nameEntry =  deserializer.deserialize(mapper.treeAsTokens(node), cxt);
-        return new TableEntry(nameEntry);
+        NamePatternEntryDeserializer deserializer = new NamePatternEntryDeserializer();
+        NamePatternEntry namePatternEntry =
+            deserializer.deserialize(mapper.treeAsTokens(node), cxt);
+        return new TableEntry(namePatternEntry);
       } catch (JsonProcessingException e) {
         // ignore, and try deserialize as a `TableEntry` object
       }
       if (node == null) {
         return null;
       }
-      // a {"table": "table", "partitions": ["part1", "part2"]} object
+      // a BypassTablePartitionSpec object
       if (node.hasNonNull("table")) {
         String tableName = node.get("table").asText();
         JsonNode partitionsList = node.get("partitions");
         if (partitionsList == null) {
           return new TableEntry(tableName);
         }
-        IncludeExcludeList<NameEntry> partitions;
+        IncludeExcludeList<NamePatternEntry> partitions;
         if (partitionsList.isArray()) {
           // an implicit included list
-          Set<NameEntry> includedPartitions =
-              mapper.convertValue(partitionsList, new TypeReference<Set<NameEntry>>() {});
+          Set<NamePatternEntry> includedPartitions =
+              mapper.convertValue(partitionsList, new TypeReference<Set<NamePatternEntry>>() {});
           partitions = new IncludeExcludeList<>(includedPartitions);
         } else {
           // an IncludeExcludeList object
           partitions = mapper.convertValue(
-              partitionsList, new TypeReference<IncludeExcludeList<NameEntry>>() {});
+              partitionsList, new TypeReference<IncludeExcludeList<NamePatternEntry>>() {});
           if (partitions == null) {
             partitions = IncludeExcludeList.empty();
           }
@@ -410,11 +413,10 @@ public final class DbConfig {
   }
 
   /**
-   * Name entry for table names and partition names.
-   * Comes in two flavors: a simple name and regular expressions.
+   * Wrapper of a explicit name or a regular expression.
    */
-  @JsonDeserialize(using = NameEntryDeserializer.class)
-  public static class NameEntry {
+  @JsonDeserialize(using = NamePatternEntryDeserializer.class)
+  public static class NamePatternEntry {
     private final boolean mIsPattern;
     private final Pattern mPattern;
     private final String mName;
@@ -424,7 +426,7 @@ public final class DbConfig {
      *
      * @param name table or partition name
      */
-    public NameEntry(String name) {
+    public NamePatternEntry(String name) {
       Preconditions.checkArgument(!name.isEmpty(), "empty name");
       mIsPattern = false;
       mPattern = null;
@@ -436,7 +438,7 @@ public final class DbConfig {
      *
      * @param regex regex
      */
-    public NameEntry(Pattern regex) {
+    public NamePatternEntry(Pattern regex) {
       mIsPattern = true;
       mPattern = regex;
       mName = null;
@@ -445,12 +447,12 @@ public final class DbConfig {
     /**
      * Copy constructor.
      *
-     * @param nameEntry instance to copy
+     * @param namePatternEntry instance to copy
      */
-    NameEntry(NameEntry nameEntry) {
-      mIsPattern = nameEntry.mIsPattern;
-      mName = nameEntry.mName;
-      mPattern = nameEntry.mPattern;
+    NamePatternEntry(NamePatternEntry namePatternEntry) {
+      mIsPattern = namePatternEntry.mIsPattern;
+      mName = namePatternEntry.mName;
+      mPattern = namePatternEntry.mPattern;
     }
 
     /**
@@ -487,7 +489,7 @@ public final class DbConfig {
       if (getClass() != other.getClass()) {
         return false;
       }
-      NameEntry entry = (NameEntry) other;
+      NamePatternEntry entry = (NamePatternEntry) other;
       if (mIsPattern) {
         return Objects.equals(mPattern.pattern(), entry.mPattern.pattern());
       } else {
@@ -506,15 +508,15 @@ public final class DbConfig {
   }
 
   /**
-   * Deserializer of NameEntry
+   * Deserializer of NamePatternEntry
    *
    * Accepts
    * 1. a plain name: "table1"
    * 2. an object of form: {"regex": "<regex>"}
    */
-  static class NameEntryDeserializer extends JsonDeserializer<NameEntry> {
+  static class NamePatternEntryDeserializer extends JsonDeserializer<NamePatternEntry> {
     @Override
-    public NameEntry deserialize(JsonParser jp, DeserializationContext cxt)
+    public NamePatternEntry deserialize(JsonParser jp, DeserializationContext cxt)
         throws IOException, JsonProcessingException {
       ObjectMapper mapper = (ObjectMapper) jp.getCodec();
       JsonNode node = mapper.readTree(jp);
@@ -523,16 +525,16 @@ public final class DbConfig {
       }
       if (node.isTextual()) {
         // a simple name
-        return new NameEntry(node.asText());
+        return new NamePatternEntry(node.asText());
       }
       if (!node.isObject() || !node.hasNonNull("regex")) {
         throw new JsonParseException(mapper.treeAsTokens(node),
             "invalid syntax, expecting name or an object with a `regex` key");
       }
-      // a {"regex": "<regex>"} object
+      // a RegexObject object
       try {
         Pattern regex = Pattern.compile(node.get("regex").asText());
-        return new NameEntry(regex);
+        return new NamePatternEntry(regex);
       } catch (PatternSyntaxException e) {
         throw new JsonParseException(
             mapper.treeAsTokens(node.get("regex")), "invalid regex syntax", e);
@@ -544,16 +546,16 @@ public final class DbConfig {
    * A wrapper for included and excluded elements.
    * @param <INCLUDEDT> type of included entry
    */
-  public static class IncludeExcludeList<INCLUDEDT extends NameEntry> {
+  public static class IncludeExcludeList<INCLUDEDT extends NamePatternEntry> {
     @JsonProperty("include")
     private final Set<INCLUDEDT> mIncludedEntries;
     @JsonProperty("exclude")
-    private final Set<NameEntry> mExcludedEntries;
+    private final Set<NamePatternEntry> mExcludedEntries;
 
     /**
      * Creates an implicit include-only list.
      *
-     * @param entries included {@link NameEntry}s
+     * @param entries included {@link NamePatternEntry}s
      */
     public IncludeExcludeList(@Nullable Set<INCLUDEDT> entries) {
       this(entries, Collections.emptySet());
@@ -564,7 +566,7 @@ public final class DbConfig {
      * @param <T> type of contained entry
      * @return an empty list
      */
-    public static <T extends NameEntry> IncludeExcludeList<T> empty() {
+    public static <T extends NamePatternEntry> IncludeExcludeList<T> empty() {
       return new IncludeExcludeList<>(Collections.emptySet(), Collections.emptySet());
     }
 
@@ -579,13 +581,13 @@ public final class DbConfig {
     /**
      * Json creator.
      *
-     * @param included included {@link NameEntry}s
-     * @param excluded excluded {@link NameEntry}s
+     * @param included included {@link NamePatternEntry}s
+     * @param excluded excluded {@link NamePatternEntry}s
      */
     @JsonCreator
     public IncludeExcludeList(
         @JsonProperty("include") @Nullable Set<INCLUDEDT> included,
-        @JsonProperty("exclude") @Nullable Set<NameEntry> excluded) {
+        @JsonProperty("exclude") @Nullable Set<NamePatternEntry> excluded) {
       mIncludedEntries = included == null ? Collections.emptySet() : included;
       mExcludedEntries = excluded == null ? Collections.emptySet() : excluded;
       // included and excluded cannot be both non-empty at the same time
@@ -597,7 +599,7 @@ public final class DbConfig {
      * Returns excluded entries.
      * @return excluded entries
      */
-    public Set<NameEntry> getExcludedEntries() {
+    public Set<NamePatternEntry> getExcludedEntries() {
       return mExcludedEntries;
     }
 
