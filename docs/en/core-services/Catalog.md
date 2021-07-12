@@ -110,30 +110,224 @@ Each time the configuration file is changed, you can use `alluxio table sync` to
 
 The configuration file is in JSON format, and can contain these configurations:
 
-1. Tables and partitions bypassing specification:
+1. Bypassing tables and partitions:
 
-    You can specify some tables and partitions to be bypassed from Alluxio, so that they will not be
-    cached in Alluxio, instead clients will be directed to access them directly from the UDB. 
-    This can be helpful when some tables and partitions are large, and accommodating them in the cache
-    is undesirable. An example configuration is like the following:
+   You can specify some tables and partitions to be bypassed from Alluxio, so that they will not be
+   cached in Alluxio, instead clients will be directed to access them directly from the UDB. 
+   This can be helpful when some tables and partitions are large, and accommodating them in the cache
+   is undesirable. An example configuration is like the following:
 
-    ```json
-    {
-      "bypass": {
-        "tables": [
-          "table1",
-          {"table": "table2", "partitions": ["table2_part1", "table2_part2"]}
-        ]
-      }
-    }
-    ```
+   ```json
+   {
+     "bypass": {
+       "tables": [
+         "table1",
+         {"regex": "table[23]"},
+         {
+           "table": "table4", 
+           "partitions": [
+             "table4_part1", 
+             {"regex": "table4_part[23]"}
+           ]
+         }
+       ]
+     }
+   }
+   ```
 
-    You can specify which tables and partitions within these tables should be bypassed from Alluxio.
-    By specifying only the table name, all partitions of that table, if any, will be bypassed. 
-    Otherwise, you can specify specific partitions to bypass.
+   You can specify which tables and partitions within these tables should be bypassed from Alluxio.
+   There are 2 ways to specify tables and partitions:
     
-    In the example above, table 1 is fully bypassed. Partition 1 and 2 of table 2 are bypassed, 
-    and any other partitions, if any, are not.
+   1. Plain names: Use the exact name of a table or partition;
+   2. Regular expressions: Use a pattern to capture a set of table or partition names. The pattern
+      is matched as a whole on the names, i.e., it is as if the patterns were enclosed in a pair 
+      of `^` and `$`.
+       
+   All partitions, if any, of a table specified using exact name or regular expression, will be 
+   bypassed. In other words, the table is "fully" bypassed. 
+    
+   Additionally, you can specify some partitions of a table to be bypassed, like
+   `table4` in the above example. In this case, only listed partitions will be bypassed, the rest 
+   will be mounted normally.
+    
+   In the above example, table 1 is specified by its exact name, and will be fully bypassed. 
+   Table 2 and 3 are matched by the regular expression, and will be fully bypassed.
+   Partition 1, 2 and 3 of table 4 are bypassed, and any other partitions, if any, are not.
+   
+2. Ignoring tables:
+
+   You can specify some tables to be ignored when attaching the database to Alluxio. Compared to 
+   bypassed tables, Alluxio will not try to mount the ignored tables, therefore they will be 
+   invisible to the client. 
+   
+   The syntax for configuring ignored tables is similar to that of bypassing:
+
+   ```json
+   {
+     "ignore": {
+       "tables": [
+         "table1",
+         {"regex": "table[a-z]"}
+       ]
+     }
+   }
+   ```
+    
+   Tables are ignored as a whole. Ignoring individual partitions is not currently supported.
+
+   > **Note:** if the same table is configured to be ignored and bypassed at the same time, it will 
+   be ignored.
+
+3. Excluding tables and partitions from bypassing or ignoring:
+
+   Sometimes it is useful to exclude some tables and partitions from the bypassed or ignored list.
+   To do so, the syntax supports an exclusion mode in tables and partitions specifications:
+   
+   ```json
+   {
+     "bypass": {
+       "tables": [
+         {
+           "table": "partially_bypassed_table", 
+           "partitions": {
+             "exclude": ["normally_mounted_part"]
+           }
+         }
+       ]
+     },
+     "ignore": {
+       "tables": {
+         "exclude": [
+           "partially_bypassed_table",
+           "not_ignored_table1",
+           {"regex":  "not_ignored_table[23]"}
+         ]
+       }
+     }
+   }
+   ```
+   
+   You can use names and regular expressions inside the exclusion list, just like in inclusion mode.
+   In exclusion mode, the excluded tables and partitions will be mounted normally, but any other
+   tables of the parent database, and any other partitions of the parent table, will be bypassed or 
+   ignored.
+   
+   Note that to exclude a partition from a table, you need to specify the table in inclusion mode, 
+   and specify that partition inside the exclusion list of the table's partition specification.
+   It is an error to specify partitions of a table inside an exclusion list:
+   
+   ```json
+   {
+     "tables": {
+       "exclude": [
+         {"table": "table1", "partitions": ["part1"]}
+       ]
+     }
+   }
+   ```
+   
+   In the previous example, 
+   partition `normally_mounted_part` of table `partially_bypassed_table` is excluded from 
+   bypassing, meaning that the partition will be mounted normally, and any other partitions of
+   `partially_bypassed_table` are bypassed. Likewise, all tables except for 
+   `not_ignored_table1|2|3`, and `partially_bypassed_table` are ignored.
+   
+   > **Note:** since ignoring takes precedence over bypassing, when both bypassing and ignoring 
+   > are enabled, and exclusion mode is used for ignoring, make sure to add the bypassed tables to 
+   > the exclusion list. Otherwise, the bypassing configuration will be overridden and have no 
+   > effect.
+   
+   > **Note:** An empty exclusion list **do not** cause all tables or partitions to be bypassed or 
+   > ignored. Instead, it has no effect: no tables or partitions will be bypassed or 
+   > ignored. To bypass or ignore all tables or partitions, use an inclusion list with the 
+   > catch-all regular expression: `.*`.
+   
+Examples for common use cases:
+
+1. Bypassing all tables of a database:
+
+   ```json
+   {
+     "bypass": {
+       "tables": [
+         {"regex": ".*"}
+       ]
+     }
+   }
+   ```
+
+2. Bypassing all tables except for a specific one `not_bypassed_table`:
+
+   ```json
+   {
+     "bypass": {
+       "tables": {
+         "exclude": [ "not_bypassed_table" ]
+       }
+     }
+   }
+   ```
+   
+3. Bypassing all partitions of some tables, and some partitions of some other table:
+
+   ```json
+   {
+     "bypass": {
+       "tables": [  
+         {"regex": "fully_bypassed_table\\d"},
+         {
+           "table": "partially_bypassed_table1", 
+           "partitions": [
+             {"regex": "bypassed_part_[a-z]"}
+           ]
+         }
+       ]
+     }
+   }
+   ```
+   
+4. Bypassing all partitions matching a pattern, of a group of tables matching another pattern:
+
+   ```json
+   {
+     "bypass": {
+       "tables": [
+         {
+           "table": "partially_bypassed_table1", 
+           "partitions": [
+             {"regex": "table1_part_[a-z]"}
+           ]
+         },
+         {
+           "table": "partially_bypassed_table2",
+           "partitions": [
+             {"regex": "table2_part_[a-z]"}
+           ]
+         }
+       ]
+     }
+   }
+   ```
+
+   You have to specify every individual table, even though they can be captured by a pattern. It 
+   might be tempting to write something like:
+
+   ```json
+   {
+     "bypass": {
+       "tables": [
+         {
+           "regex": "partially_bypassed_table(\\d)", 
+           "partitions": [
+             {"regex": "table$1_part_[a-z]"}
+           ]
+         }
+       ]
+     }
+   }
+   ```
+   
+   However, this is not supported.
 
 > **Note:** When databases are attached, all tables are synced from the configured UDB.
 If out-of-band updates occur to the database or table and the user wants query results to reflect

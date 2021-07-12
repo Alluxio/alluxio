@@ -18,6 +18,7 @@ import com.google.common.collect.ImmutableSet;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.util.Collections;
 import java.util.regex.Pattern;
 
 public class UdbMountSpecTest {
@@ -175,6 +176,21 @@ public class UdbMountSpecTest {
     assertTrue(spec.hasBypassedPartition("table1", "part2"));
   }
 
+  @Test
+  public void excludeEverythingIsIncludeNothing() {
+    mBuilder.bypass().exclude().addPattern(Pattern.compile(".*"));
+    UdbMountSpec spec = mBuilder.build();
+    assertFalse(spec.hasBypassedTable("any_table"));
+  }
+
+  @Test
+  public void excludeNothingIsIncludeNothing() {
+    mBuilder.bypass()
+        .exclude().addNames(Collections.emptySet()).addPatterns(Collections.emptySet());
+    UdbMountSpec spec = mBuilder.build();
+    assertFalse(spec.hasBypassedTable("any_table"));
+  }
+
   /* Ignoring tests */
   @Test
   public void ignoredTables() {
@@ -199,11 +215,20 @@ public class UdbMountSpecTest {
   }
 
   @Test
-  public void ignoredAndBypassedTable() {
+  public void ignoreTakesPrecedenceOverBypass() {
     mBuilder.bypass().include().addName("same_table");
     mBuilder.ignore().include().addName("same_table");
     UdbMountSpec spec = mBuilder.build();
     assertTrue(spec.hasIgnoredTable("same_table"));
     assertFalse(spec.hasBypassedTable("same_table"));
+  }
+
+  @Test
+  public void ignoreTakesPrecedenceOverBypass2() {
+    mBuilder.bypass().include().addName("table1");
+    mBuilder.ignore().exclude().addName("table2");
+    UdbMountSpec spec = mBuilder.build();
+    assertTrue(spec.hasIgnoredTable("table1"));
+    assertFalse(spec.hasBypassedTable("table1"));
   }
 }
