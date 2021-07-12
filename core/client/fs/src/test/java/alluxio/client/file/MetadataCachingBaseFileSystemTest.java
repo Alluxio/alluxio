@@ -19,13 +19,16 @@ import alluxio.AlluxioURI;
 import alluxio.ClientContext;
 import alluxio.ConfigurationTestUtils;
 import alluxio.conf.InstancedConfiguration;
+import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.status.AlluxioStatusException;
+import alluxio.exception.status.NotFoundException;
 import alluxio.grpc.GetStatusPOptions;
 import alluxio.grpc.ListStatusPOptions;
 import alluxio.resource.CloseableResource;
 import alluxio.wire.FileInfo;
 
 import org.junit.After;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -45,6 +48,7 @@ import java.util.function.Consumer;
 public class MetadataCachingBaseFileSystemTest {
   private static final AlluxioURI DIR = new AlluxioURI("/dir");
   private static final AlluxioURI FILE = new AlluxioURI("/dir/file");
+  private static final AlluxioURI NOT_EXIST_FILE = new AlluxioURI("/dir/not_exist_file");
   private static final ListStatusPOptions LIST_STATUS_OPTIONS =
       ListStatusPOptions.getDefaultInstance();
   private static final URIStatus FILE_STATUS =
@@ -153,6 +157,25 @@ public class MetadataCachingBaseFileSystemTest {
     assertEquals(1, mFileSystemMasterClient.getStatusRpcCount(FILE));
   }
 
+  @Test
+  public void getNoneExitStatus() throws Exception {
+    try {
+      mFs.getStatus(NOT_EXIST_FILE);
+      Assert.fail("Failed while getStatus for a non-exist path.");
+    } catch (FileDoesNotExistException e){
+      // expected exception thrown. test passes
+    }
+    assertEquals(1, mFileSystemMasterClient.getStatusRpcCount(NOT_EXIST_FILE));
+    // The following getStatus gets from cache, so no RPC will be made.
+    try {
+      mFs.getStatus(NOT_EXIST_FILE);
+      Assert.fail("Failed while getStatus for a non-exist path.");
+    } catch (FileDoesNotExistException e){
+      // expected exception thrown. test passes
+    }
+    assertEquals(1, mFileSystemMasterClient.getStatusRpcCount(NOT_EXIST_FILE));
+  }
+
   class RpcCountingFileSystemMasterClient extends MockFileSystemMasterClient {
     RpcCountingFileSystemMasterClient() {
     }
@@ -172,7 +195,10 @@ public class MetadataCachingBaseFileSystemTest {
     public URIStatus getStatus(AlluxioURI path, GetStatusPOptions options)
         throws AlluxioStatusException {
       mGetStatusCount.compute(path, (k, v) -> v == null ? 1 : v + 1);
-      return FILE_STATUS;
+      if (path.toString().equals(FILE_STATUS.getPath())) {
+        return FILE_STATUS;
+      }
+      throw new NotFoundException("Path \"" + path.getPath() + "\" does not exist.");
     }
 
     @Override
