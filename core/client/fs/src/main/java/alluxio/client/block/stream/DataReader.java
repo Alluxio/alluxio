@@ -22,14 +22,21 @@ import java.io.IOException;
 public interface DataReader extends Closeable {
 
   /**
-   * The data reader type.
+   * The data reader type represents different ways to read data.
    */
   enum DataReaderType {
-    BLOCK_WORKER,
-    GRPC,
+    BLOCK_WORKER, // Read from a worker in the same process
+    GRPC, // Read from a worker through gRPC
+    /**
+     * Reads from a local block directly.
+     * Usually used when the client and worker are on the same node but in the different processes.
+     */
     SHORT_CIRCUIT,
+    /**
+     * Shared gRPC data reader that cache blocks data for multi-thread accessing.
+     */
     SHARED,
-    TEST
+    TEST // Mock data reader for testing
   }
 
   /**

@@ -136,8 +136,11 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
     }
 
     // gRPC
-    LOG.debug("Creating gRPC input stream for block {} @ {} from client {} reading through {}",
-        blockId, dataSource, NetworkAddressUtils.getClientHostName(alluxioConf), dataSource);
+    LOG.debug("Creating gRPC input stream for block {} @ {} from client {} reading through {} ("
+        + "data locates in the local worker {}, shortCircuitEnabled {}, "
+        + "shortCircuitPreferred {}, sourceSupportDomainSocket {})",
+        blockId, dataSource, NetworkAddressUtils.getClientHostName(alluxioConf), dataSource,
+        sourceIsLocal, shortCircuit, shortCircuitPreferred, sourceSupportsDomainSocket);
     return createGrpcBlockInStream(context, dataSource, dataSourceType, blockId,
         blockSize, options);
   }

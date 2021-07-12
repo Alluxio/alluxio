@@ -204,9 +204,20 @@ public final class AlluxioBlockStore {
               .setLocations(locations))
           .setBlockWorkerInfos(blockWorkerInfo);
       dataSource = policy.getWorker(getWorkerOptions);
-      if (dataSource != null && mContext.hasProcessLocalWorker()
-          && dataSource.equals(mContext.getNodeLocalWorker())) {
-        dataSourceType = BlockInStreamSource.PROCESS_LOCAL;
+      if (dataSource != null) {
+        if (mContext.hasProcessLocalWorker()
+            && dataSource.equals(mContext.getNodeLocalWorker())) {
+          dataSourceType = BlockInStreamSource.PROCESS_LOCAL;
+          LOG.debug("Create BlockInStream to read data from UFS through process local worker {}",
+              dataSource);
+        } else {
+          LOG.debug("Create BlockInStream to read data from UFS through worker {} "
+              + "(client embedded in local worker process: {},"
+                  + "client co-located with worker in different processes: {}, "
+                  + "local worker address: {})",
+              dataSource, mContext.hasProcessLocalWorker(), mContext.hasNodeLocalWorker(),
+              mContext.hasNodeLocalWorker() ? mContext.getNodeLocalWorker() : "N/A");
+        }
       }
     }
 

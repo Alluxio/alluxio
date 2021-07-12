@@ -87,8 +87,9 @@ public class BlockWorkerDataReaderTest {
           .put(PropertyKey.WORKER_TIERED_STORE_LEVEL0_DIRS_PATH, mMemDir)
           .put(PropertyKey.WORKER_TIERED_STORE_BLOCK_LOCKS, String.valueOf(LOCK_NUM))
           .put(PropertyKey.WORKER_RPC_PORT, "0")
-          .put(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS, AlluxioTestDirectory
-              .createTemporaryDirectory("BlockWorkerDataReaderTest").getAbsolutePath()).build(), mConf);
+          .put(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS,
+              AlluxioTestDirectory.createTemporaryDirectory("BlockWorkerDataReaderTest")
+                  .getAbsolutePath()).build(), mConf);
 
   @Before
   public void before() throws Exception {
@@ -163,10 +164,12 @@ public class BlockWorkerDataReaderTest {
         .setLength(CHUNK_SIZE * 5)
         .setBlockSizeBytes(CHUNK_SIZE)
         .setFileBlockInfos(Collections.singletonList(new FileBlockInfo().setBlockInfo(info))));
-    OpenFilePOptions readOptions = OpenFilePOptions.newBuilder().setReadType(ReadPType.NO_CACHE).build();
+    OpenFilePOptions readOptions = OpenFilePOptions.newBuilder()
+        .setReadType(ReadPType.NO_CACHE).build();
     InStreamOptions options = new InStreamOptions(dummyStatus, readOptions, mConf);
 
-    BlockWorkerDataReader.Factory factory = new BlockWorkerDataReader.Factory(mBlockWorker, BLOCK_ID, CHUNK_SIZE, options);
+    BlockWorkerDataReader.Factory factory = new BlockWorkerDataReader
+        .Factory(mBlockWorker, BLOCK_ID, CHUNK_SIZE, options);
     int len = CHUNK_SIZE * 3 / 2;
     try (DataReader dataReader = factory.create(0, len)) {
       validateBuffer(dataReader.readChunk(), 0, CHUNK_SIZE);
