@@ -102,6 +102,11 @@ $ ${ALLUXIO_HOME}/bin/alluxio table attachdb --db alluxio_db hive \
     thrift://metastore_host:9083 default
 ```
 
+> **Note:** When databases are attached, all tables are synced from the configured UDB.
+If out-of-band updates occur to the database or table and the user wants query results to reflect
+the updates, the database must be synced. See [Syncing Databases](#syncing-databases) for more
+information.
+
 #### UDB Configuration File
 
 To specify a configuration file for the UDB, append an option `-o catalog.db.config.file` to
@@ -328,11 +333,6 @@ Examples for common use cases:
    ```
    
    However, this is not supported.
-
-> **Note:** When databases are attached, all tables are synced from the configured UDB.
-If out-of-band updates occur to the database or table and the user wants query results to reflect
-the updates, the database must be synced. See [Syncing Databases](#syncing-databases) for more
-information. 
 
 ### Exploring Attached Databases
 
