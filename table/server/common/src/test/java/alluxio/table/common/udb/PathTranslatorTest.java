@@ -27,6 +27,11 @@ import org.junit.rules.ExpectedException;
 import java.io.IOException;
 
 public class PathTranslatorTest {
+  private static final String MASTER_HOSTNAME = "master";
+  private static final String MASTER_RPC_PORT = "11111";
+  private static final String ALLUXIO_URI_AUTHORITY = "alluxio://" + MASTER_HOSTNAME;
+  private static final String ALLUXIO_URI_AUTHORITY_WITH_PORT =
+      ALLUXIO_URI_AUTHORITY + ":" + MASTER_RPC_PORT;
 
   @Rule
   public ExpectedException mException = ExpectedException.none();
@@ -34,8 +39,8 @@ public class PathTranslatorTest {
   @Rule
   public ConfigurationRule mConfiguration =
       new ConfigurationRule(
-          ImmutableMap.of(PropertyKey.MASTER_HOSTNAME, "master",
-            PropertyKey.MASTER_RPC_PORT, "19998"),
+          ImmutableMap.of(PropertyKey.MASTER_HOSTNAME, MASTER_HOSTNAME,
+            PropertyKey.MASTER_RPC_PORT, MASTER_RPC_PORT),
           ServerConfiguration.global());
 
   private PathTranslator mTranslator;
@@ -153,15 +158,16 @@ public class PathTranslatorTest {
 
   @Test
   public void alluxioUriWithSchemeAndAuthority() throws Exception {
-    mTranslator.addMapping("alluxio://master/db1/tables/table1", "ufs://a/db1/table1");
+    mTranslator.addMapping(
+        ALLUXIO_URI_AUTHORITY + "/db1/tables/table1", "ufs://a/db1/table1");
     // non-exact match
-    assertEquals("alluxio://master/db1/tables/table1/part1",
+    assertEquals(ALLUXIO_URI_AUTHORITY + "/db1/tables/table1/part1",
         mTranslator.toAlluxioPath("ufs://a/db1/table1/part1"));
     // exact match
-    assertEquals("alluxio://master/db1/tables/table1",
+    assertEquals(ALLUXIO_URI_AUTHORITY + "/db1/tables/table1",
         mTranslator.toAlluxioPath("ufs://a/db1/table1"));
     // trailing slash is preserved
-    assertEquals("alluxio://master/db1/tables/table1/",
+    assertEquals(ALLUXIO_URI_AUTHORITY + "/db1/tables/table1/",
         mTranslator.toAlluxioPath("ufs://a/db1/table1/"));
   }
 
@@ -169,13 +175,13 @@ public class PathTranslatorTest {
   public void alluxioUriPurePath() throws Exception {
     mTranslator.addMapping("/db1/tables/table1", "ufs://a/db1/table1");
     // non-exact match
-    assertEquals("alluxio://master:19998/db1/tables/table1/part1",
+    assertEquals(ALLUXIO_URI_AUTHORITY_WITH_PORT + "/db1/tables/table1/part1",
         mTranslator.toAlluxioPath("ufs://a/db1/table1/part1"));
     // exact match
-    assertEquals("alluxio://master:19998/db1/tables/table1",
+    assertEquals(ALLUXIO_URI_AUTHORITY_WITH_PORT + "/db1/tables/table1",
         mTranslator.toAlluxioPath("ufs://a/db1/table1"));
     // trailing slash is preserved
-    assertEquals("alluxio://master:19998/db1/tables/table1/",
+    assertEquals(ALLUXIO_URI_AUTHORITY_WITH_PORT + "/db1/tables/table1/",
         mTranslator.toAlluxioPath("ufs://a/db1/table1/"));
   }
 
