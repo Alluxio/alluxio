@@ -141,6 +141,10 @@ public class SwapRestoreTask extends AbstractBlockManagementTask {
         long blockId = tierIterator.next();
         try {
           BlockMeta nextBlockFromTier = mEvictorView.getBlockMeta(blockId);
+          if (nextBlockFromTier == null) {
+            LOG.debug("Block:{} exist but not available for moving.", blockId);
+            continue;
+          }
           moveOutBytes -= nextBlockFromTier.getBlockSize();
           if (lastTier) {
             blocksToRemove.add(nextBlockFromTier.getBlockId());
@@ -179,6 +183,10 @@ public class SwapRestoreTask extends AbstractBlockManagementTask {
           long blockId = dirBlockIter.next();
           try {
             BlockMeta movingOutBlock = mEvictorView.getBlockMeta(blockId);
+            if (movingOutBlock == null) {
+              LOG.debug("Block:{} exist but not available for balancing.", blockId);
+              continue;
+            }
             // Find where to move the block.
             StorageDirView dstDirView = null;
             for (StorageDirView candidateDirView : tierView.getDirViews()) {
