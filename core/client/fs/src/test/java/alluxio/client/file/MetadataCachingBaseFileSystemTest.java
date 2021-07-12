@@ -162,7 +162,7 @@ public class MetadataCachingBaseFileSystemTest {
     try {
       mFs.getStatus(NOT_EXIST_FILE);
       Assert.fail("Failed while getStatus for a non-exist path.");
-    } catch (FileDoesNotExistException e){
+    } catch (FileDoesNotExistException e) {
       // expected exception thrown. test passes
     }
     assertEquals(1, mFileSystemMasterClient.getStatusRpcCount(NOT_EXIST_FILE));
@@ -170,7 +170,7 @@ public class MetadataCachingBaseFileSystemTest {
     try {
       mFs.getStatus(NOT_EXIST_FILE);
       Assert.fail("Failed while getStatus for a non-exist path.");
-    } catch (FileDoesNotExistException e){
+    } catch (FileDoesNotExistException e) {
       // expected exception thrown. test passes
     }
     assertEquals(1, mFileSystemMasterClient.getStatusRpcCount(NOT_EXIST_FILE));
