@@ -14,6 +14,7 @@ package alluxio.client.quota;
 import com.google.common.collect.ImmutableMap;
 
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * Data structure that stores and returns cache size in number of bytes associated with a
@@ -51,5 +52,22 @@ public class CacheQuota {
    */
   public long getQuota(CacheScope cacheScope) {
     return mQuota.getOrDefault(cacheScope.level(), Long.MAX_VALUE);
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+    CacheQuota that = (CacheQuota) o;
+    return Objects.equals(mQuota, that.mQuota);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(mQuota);
   }
 }
