@@ -242,8 +242,8 @@ The configuration file is in JSON format, and can contain these configurations:
    > the exclusion list. Otherwise, the bypassing configuration will be overridden and have no 
    > effect.
    
-   > **Note:** An empty exclusion list **do not** cause all tables or partitions to be bypassed or 
-   > ignored. Instead, it has no effect: no tables or partitions will be bypassed or 
+   > **Note:** An empty exclusion list **does not** cause all tables or partitions to be 
+   > bypassed or ignored. Instead, it has no effect: no tables or partitions will be bypassed or 
    > ignored. To bypass or ignore all tables or partitions, use an inclusion list with the 
    > catch-all regular expression: `.*`.
    
