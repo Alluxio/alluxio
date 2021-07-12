@@ -126,9 +126,11 @@ Alluxio的度量指标信息被分配到各种相关Alluxio组件的实例中。
 * BytesReadUfs: 从ufs中读取的字节数目。
 * BytesWrittenUfs: 写入ufs的字节数目。
 
-## Jvm 指标
+## JVM 指标
 
-您可以获取 JVM 相关的指标，通过以 Java agent 的方式运行 `jvm_exporter`，下载 [jmx_prometheus_javaagent-0.16.0.jar](https://repo1.maven.org/maven2/io/prometheus/jmx/jmx_prometheus_javaagent/0.16.0/jmx_prometheus_javaagent-0.16.0.jar) 并运行：
+您可以以 Java agent 的方式运行 `jvm_exporter` 来获取JVM相关指标。
+
+下载 [jmx_prometheus_javaagent-0.16.0.jar](https://repo1.maven.org/maven2/io/prometheus/jmx/jmx_prometheus_javaagent/0.16.0/jmx_prometheus_javaagent-0.16.0.jar) 并运行：
 
 ```bash
 java -javaagent:./jmx_prometheus_javaagent-0.16.0.jar=8080:config.yaml -jar yourJar.jar

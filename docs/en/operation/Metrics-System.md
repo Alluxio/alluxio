@@ -188,17 +188,19 @@ Detailed descriptions of those metrics are in [cluster metrics]({{ '/en/referenc
 without accessing UFSes. Performance improvement can be significant if the target UFS is remote or slow in response.
 Costs can be saved if the underlying storage charges are based on requests.
 
-## Jvm metrics
+## JVM metrics
 
-You can get Jvm related metrics via `jvm_exporter` as a Java agent, download [jmx_prometheus_javaagent-0.16.0.jar](https://repo1.maven.org/maven2/io/prometheus/jmx/jmx_prometheus_javaagent/0.16.0/jmx_prometheus_javaagent-0.16.0.jar) and run:
+You can get JVM related metrics via `jvm_exporter` as a Java agent.
+
+Download [jmx_prometheus_javaagent-0.16.0.jar](https://repo1.maven.org/maven2/io/prometheus/jmx/jmx_prometheus_javaagent/0.16.0/jmx_prometheus_javaagent-0.16.0.jar) and run:
 
 ```bash
 java -javaagent:./jmx_prometheus_javaagent-0.16.0.jar=8080:config.yaml -jar yourJar.jar
 ```
 
-Metrics will now be accessible at http://localhost:8080/metrics
+Metrics will now be accessible at http://localhost:8080/metrics.
 
-The configuration is in YAML. You can create an empty file for quick start, and you can get more information from [jmx_exporter](https://github.com/prometheus/jmx_exporter).
+`config.yaml` file provides the configuration for jmx_exporter. Empty file can be used for a quick start. For more information, please refer to [jmx_exporter documentation](https://github.com/prometheus/jmx_exporter).
 
 ## Grafana Web UI with Prometheus
 
