@@ -396,13 +396,15 @@ public class RaftJournalTest {
   }
 
   private void promoteFollower() throws Exception {
-    System.out.printf("Leader is leader? %s", mLeaderJournalSystem.isLeader());
-    changeToFollower(mLeaderJournalSystem);
-    System.out.printf("Follower is leader? %s", mFollowerJournalSystem.isLeader());
+    Assert.assertTrue(mLeaderJournalSystem.isLeader());
+    Assert.assertFalse(mFollowerJournalSystem.isLeader());
+    // Triggering rigged election via reflection to switch the leader.
     changeToFollower(mLeaderJournalSystem);
     changeToCandidate(mFollowerJournalSystem);
-    CommonUtils.waitFor("follower becomes leader",
-        () -> mFollowerJournalSystem.isLeader(), mWaitOptions);
+    CommonUtils.waitFor("follower becomes leader", () -> mFollowerJournalSystem.isLeader(),
+        mWaitOptions);
+    Assert.assertFalse(mLeaderJournalSystem.isLeader());
+    Assert.assertTrue(mFollowerJournalSystem.isLeader());
     mFollowerJournalSystem.gainPrimacy();
   }
 
@@ -534,7 +536,7 @@ public class RaftJournalTest {
     Class<?> raftServerImpl = (Class.forName("org.apache.ratis.server.impl.RaftServerImpl"));
     Method method = raftServerImpl.getDeclaredMethod("changeToCandidate", boolean.class);
     method.setAccessible(true);
-    method.invoke(serverImpl, false);
+    method.invoke(serverImpl, true);
   }
 
   @VisibleForTesting
