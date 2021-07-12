@@ -12,8 +12,6 @@
 package alluxio.wire;
 
 import alluxio.Constants;
-import alluxio.client.quota.CacheQuota;
-import alluxio.client.quota.CacheScope;
 import alluxio.grpc.TtlAction;
 import alluxio.security.authorization.AccessControlList;
 import alluxio.security.authorization.DefaultAccessControlList;
@@ -37,7 +35,6 @@ import javax.annotation.concurrent.NotThreadSafe;
  * The file information.
  */
 @NotThreadSafe
-
 // TODO(jiri): Consolidate with URIStatus.
 public final class FileInfo implements Serializable {
   private static final long serialVersionUID = 3086599355791696602L;
@@ -46,7 +43,6 @@ public final class FileInfo implements Serializable {
   private String mName = "";
   private String mPath = "";
   private String mUfsPath = "";
-  private String mFileIdentifier;
   private long mLength;
   private long mBlockSizeBytes;
   private long mCreationTimeMs;
@@ -75,8 +71,6 @@ public final class FileInfo implements Serializable {
   private int mReplicationMin;
   private int mInAlluxioPercentage;
   private String mUfsFingerprint = Constants.INVALID_UFS_FINGERPRINT;
-  private CacheQuota mCacheQuota;
-  private CacheScope mCacheScope;
   private AccessControlList mAcl = AccessControlList.EMPTY_ACL;
   private DefaultAccessControlList mDefaultAcl = DefaultAccessControlList.EMPTY_DEFAULT_ACL;
   private Map<String, byte[]> mXAttr;
@@ -91,16 +85,6 @@ public final class FileInfo implements Serializable {
    */
   public long getFileId() {
     return mFileId;
-  }
-
-  /**
-   *  Similar to {@link #getFileId()}, but returns in a string form, allowing for the use of
-   *  non-long based ids.
-   *
-   *  @return the file identifier
-   */
-  public String getFileIdentifier() {
-    return mFileIdentifier != null ? mFileIdentifier : Long.toString(mFileId);
   }
 
   /**
@@ -322,20 +306,6 @@ public final class FileInfo implements Serializable {
   }
 
   /**
-   * @return the cache quota
-   */
-  public CacheQuota getCacheQuota() {
-    return mCacheQuota;
-  }
-
-  /**
-   * @return the cache scope
-   */
-  public CacheScope getCacheScope() {
-    return mCacheScope;
-  }
-
-  /**
    * @return the ACL as string entries for this file
    */
   public List<String> convertAclToStringEntries() {
@@ -372,15 +342,6 @@ public final class FileInfo implements Serializable {
    */
   public FileInfo setFileId(long fileId) {
     mFileId = fileId;
-    return this;
-  }
-
-  /**
-   * @param fileIdentifier the file id to use
-   * @return the file information
-   */
-  public FileInfo setFileIdentifier(String fileIdentifier) {
-    mFileIdentifier = fileIdentifier;
     return this;
   }
 
@@ -682,24 +643,6 @@ public final class FileInfo implements Serializable {
     return this;
   }
 
-  /**
-   * @param cacheQuota the cache quota
-   * @return the updated {@link FileInfo}
-   */
-  public FileInfo setCacheQuota(CacheQuota cacheQuota) {
-    mCacheQuota = cacheQuota;
-    return this;
-  }
-
-  /**
-   * @param cacheScope the cache quota
-   * @return the updated {@link FileInfo}
-   */
-  public FileInfo setCacheScope(CacheScope cacheScope) {
-    mCacheScope = cacheScope;
-    return this;
-  }
-
   @Override
   public boolean equals(Object o) {
     if (this == o) {
@@ -723,12 +666,9 @@ public final class FileInfo implements Serializable {
         && mFileBlockInfoList.equals(that.mFileBlockInfoList) && mTtlAction == that.mTtlAction
         && mMountId == that.mMountId && mInAlluxioPercentage == that.mInAlluxioPercentage
         && mUfsFingerprint.equals(that.mUfsFingerprint)
-        && Objects.equal(getFileIdentifier(), that.getFileIdentifier())
         && Objects.equal(mAcl, that.mAcl)
         && Objects.equal(mDefaultAcl, that.mDefaultAcl)
-        && Objects.equal(mMediumTypes, that.mMediumTypes)
-        && Objects.equal(mCacheQuota, that.mCacheQuota)
-        && Objects.equal(mCacheScope, that.mCacheScope);
+        && Objects.equal(mMediumTypes, that.mMediumTypes);
   }
 
   @Override
@@ -737,15 +677,13 @@ public final class FileInfo implements Serializable {
         mCreationTimeMs, mCompleted, mFolder, mPinned, mCacheable, mPersisted, mBlockIds,
         mInMemoryPercentage, mLastModificationTimeMs, mLastAccessTimeMs, mTtl, mOwner, mGroup,
         mMode, mReplicationMax, mReplicationMin, mPersistenceState, mMountPoint, mFileBlockInfoList,
-        mTtlAction, mInAlluxioPercentage, mUfsFingerprint, mAcl, mDefaultAcl, mMediumTypes,
-        getFileIdentifier(), mCacheQuota, mCacheScope);
+        mTtlAction, mInAlluxioPercentage, mUfsFingerprint, mAcl, mDefaultAcl, mMediumTypes);
   }
 
   @Override
   public String toString() {
     return MoreObjects.toStringHelper(this)
         .add("fileId", mFileId)
-        .add("fileIdentifier", mFileIdentifier)
         .add("name", mName)
         .add("path", mPath)
         .add("ufsPath", mUfsPath).add("length", mLength).add("blockSizeBytes", mBlockSizeBytes)
@@ -763,8 +701,6 @@ public final class FileInfo implements Serializable {
         .add("ufsFingerprint", mUfsFingerprint)
         .add("acl", mAcl.toString())
         .add("defaultAcl", mDefaultAcl.toString())
-        .add("cacheQuota", mCacheQuota)
-        .add("cacheScope", mCacheScope)
         .toString();
   }
 }
