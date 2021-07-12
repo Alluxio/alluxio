@@ -362,10 +362,8 @@ public final class DbConfig {
     }
   }
 
-  /**
-   * Accepts a simple table name, an regular expression, or
-   * an object of form: {"table": "tableName", "partitions": ["part1", "part2"]}
-   */
+  // Accepts a simple table name, an regular expression, or
+  // an object of form: {"table": "tableName", "partitions": ["part1", "part2"]}
   static class TableEntryDeserializer extends JsonDeserializer<TableEntry> {
     @Override
     public TableEntry deserialize(JsonParser jp, DeserializationContext cxt)

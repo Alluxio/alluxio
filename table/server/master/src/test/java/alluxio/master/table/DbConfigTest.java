@@ -217,7 +217,10 @@ public class DbConfigTest {
         mMapper.readValue(
             "{\"tables\": [\"table1\"]}",
             new TypeReference<IgnoreTablesSpec>() {});
-    assertEquals(ImmutableSet.of(new NamePatternEntry("table1")), entry.getList().getIncludedEntries());
+    assertEquals(
+        ImmutableSet.of(new NamePatternEntry("table1")),
+        entry.getList().getIncludedEntries()
+    );
     assertEquals(ImmutableSet.of(), entry.getList().getExcludedEntries());
   }
 
@@ -227,7 +230,10 @@ public class DbConfigTest {
         mMapper.readValue(
             "{\"tables\": {\"include\": [\"table1\"]}}",
             new TypeReference<IgnoreTablesSpec>() {});
-    assertEquals(ImmutableSet.of(new NamePatternEntry("table1")), entry.getList().getIncludedEntries());
+    assertEquals(
+        ImmutableSet.of(new NamePatternEntry("table1")),
+        entry.getList().getIncludedEntries()
+    );
     assertEquals(ImmutableSet.of(), entry.getList().getExcludedEntries());
   }
 
