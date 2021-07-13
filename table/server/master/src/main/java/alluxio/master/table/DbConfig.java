@@ -211,14 +211,11 @@ public final class DbConfig {
    * Type alias for TablesEntry<TableEntry>.
    */
   @JsonDeserialize(using = BypassTablesSpecDeserializer.class)
-  public static final class BypassTablesSpec extends TablesEntry<TableEntry> {
+  static final class BypassTablesSpec extends TablesEntry<TableEntry> {
     // inherited: IncludeExcludeList<TableEntry>
     // this is the BypassTablesObject from syntax specification
 
-    /**
-     * @param list list of table entries
-     */
-    public BypassTablesSpec(@Nullable IncludeExcludeList<TableEntry> list) {
+    BypassTablesSpec(@Nullable IncludeExcludeList<TableEntry> list) {
       super(list);
     }
   }
@@ -227,14 +224,11 @@ public final class DbConfig {
    * Type alias for TablesEntry<NamePatternEntry>.
    */
   @JsonDeserialize(using = IgnoreTablesSpecDeserializer.class)
-  public static final class IgnoreTablesSpec extends TablesEntry<NamePatternEntry> {
+  static final class IgnoreTablesSpec extends TablesEntry<NamePatternEntry> {
     // inherited: IncludeExcludeList<NamePatternEntry>
     // this is the SimpleIncludeExcludeObject from syntax specification
 
-    /**
-     * @param list list of table entries
-     */
-    public IgnoreTablesSpec(@Nullable IncludeExcludeList<NamePatternEntry> list) {
+    IgnoreTablesSpec(@Nullable IncludeExcludeList<NamePatternEntry> list) {
       super(list);
     }
   }
@@ -244,23 +238,16 @@ public final class DbConfig {
    * Base class for BypassTablesSpec and IgnoreTablesSpec.
    * @param <T> the type of entry contained
    */
-  public static class TablesEntry<T extends NamePatternEntry> {
+  static class TablesEntry<T extends NamePatternEntry> {
     static final String FIELD_TABLES = "tables";
 
     private final IncludeExcludeList<T> mList;
 
-    /**
-     * @param list list of table entries
-     */
-    public TablesEntry(@Nullable IncludeExcludeList<T> list) {
+    protected TablesEntry(@Nullable IncludeExcludeList<T> list) {
       mList = list == null ? IncludeExcludeList.empty() : list;
     }
 
-    /**
-     * Returns the list of tables.
-     * @return list of tables
-     */
-    public IncludeExcludeList<T> getList() {
+    IncludeExcludeList<T> getList() {
       return mList;
     }
   }
@@ -306,7 +293,7 @@ public final class DbConfig {
     }
   }
 
-  static class IgnoreTablesSpecDeserializer extends JsonDeserializer<IgnoreTablesSpec> {
+  static final class IgnoreTablesSpecDeserializer extends JsonDeserializer<IgnoreTablesSpec> {
     @Override
     public IgnoreTablesSpec deserialize(JsonParser jp, DeserializationContext cxt)
         throws IOException, JsonProcessingException {
@@ -317,7 +304,7 @@ public final class DbConfig {
     }
   }
 
-  static class BypassTablesSpecDeserializer extends JsonDeserializer<BypassTablesSpec> {
+  static final class BypassTablesSpecDeserializer extends JsonDeserializer<BypassTablesSpec> {
     @Override
     public BypassTablesSpec deserialize(JsonParser jp, DeserializationContext cxt)
         throws IOException, JsonProcessingException {
@@ -332,7 +319,7 @@ public final class DbConfig {
    * On top of a regular NamePatternEntry, contains additional partition specification.
    */
   @JsonDeserialize(using = TableEntryDeserializer.class)
-  public static class TableEntry extends NamePatternEntry {
+  static class TableEntry extends NamePatternEntry {
     static final String FIELD_TABLE = "table";
     static final String FIELD_PARTITIONS = "partitions";
 
@@ -343,7 +330,7 @@ public final class DbConfig {
      *
      * @param tableName table name
      */
-    public TableEntry(String tableName) {
+    TableEntry(String tableName) {
       this(tableName, IncludeExcludeList.empty());
     }
 
@@ -353,7 +340,7 @@ public final class DbConfig {
      * @param tableName table name
      * @param partitions partitions
      */
-    public TableEntry(String tableName, IncludeExcludeList<NamePatternEntry> partitions) {
+    TableEntry(String tableName, IncludeExcludeList<NamePatternEntry> partitions) {
       super(tableName);
       mPartitions = partitions;
     }
@@ -362,16 +349,12 @@ public final class DbConfig {
      * Creates an instance from a {@link NamePatternEntry} with no partition specification.
      * @param namePatternEntry name entry
      */
-    public TableEntry(NamePatternEntry namePatternEntry) {
+    TableEntry(NamePatternEntry namePatternEntry) {
       super(namePatternEntry);
       mPartitions = IncludeExcludeList.empty();
     }
 
-    /**
-     * Returns partition specifications.
-     * @return partitions
-     */
-    public IncludeExcludeList<NamePatternEntry> getPartitions() {
+    IncludeExcludeList<NamePatternEntry> getPartitions() {
       return mPartitions;
     }
 
@@ -380,7 +363,7 @@ public final class DbConfig {
      * @return table name, null if the entry is a regex entry
      */
     @Nullable
-    public String getTable() {
+    String getTable() {
       return getName();
     }
 
@@ -397,7 +380,7 @@ public final class DbConfig {
 
   // Accepts a simple table name, an regular expression, or
   // an object of form: {"table": "tableName", "partitions": ["part1", "part2"]}
-  static class TableEntryDeserializer extends JsonDeserializer<TableEntry> {
+  static final class TableEntryDeserializer extends JsonDeserializer<TableEntry> {
     @Override
     public TableEntry deserialize(JsonParser jp, DeserializationContext cxt)
         throws IOException, JsonProcessingException {
@@ -450,7 +433,7 @@ public final class DbConfig {
    * Wrapper of a explicit name or a regular expression.
    */
   @JsonDeserialize(using = NamePatternEntryDeserializer.class)
-  public static class NamePatternEntry {
+  static class NamePatternEntry {
     static final String FIELD_REGEX = "regex";
 
     private final boolean mIsPattern;
@@ -462,7 +445,7 @@ public final class DbConfig {
      *
      * @param name table or partition name
      */
-    public NamePatternEntry(String name) {
+    NamePatternEntry(String name) {
       Preconditions.checkArgument(!name.isEmpty(), "empty name");
       mIsPattern = false;
       mPattern = null;
@@ -474,7 +457,7 @@ public final class DbConfig {
      *
      * @param regex regex
      */
-    public NamePatternEntry(Pattern regex) {
+    NamePatternEntry(Pattern regex) {
       mIsPattern = true;
       mPattern = regex;
       mName = null;
@@ -492,25 +475,25 @@ public final class DbConfig {
     }
 
     /**
-     * @return if the entry is a regex entry
+     * @return if the entry contains a pattern
      */
-    public boolean isPattern() {
+    boolean isPattern() {
       return mIsPattern;
     }
 
     /**
-     * @return pattern if the entry contains a regex pattern
+     * @return pattern if the entry contains a pattern, null otherwise
      */
     @Nullable
-    public Pattern getPattern() {
+    Pattern getPattern() {
       return mPattern;
     }
 
     /**
-     * @return table name
+     * @return name if the entry contains a name, null otherwise
      */
     @Nullable
-    public String getName() {
+    String getName() {
       return mName;
     }
 
@@ -585,7 +568,7 @@ public final class DbConfig {
    * A wrapper for included and excluded elements.
    * @param <INCLUDEDT> type of included entry
    */
-  public static class IncludeExcludeList<INCLUDEDT extends NamePatternEntry> {
+  static class IncludeExcludeList<INCLUDEDT extends NamePatternEntry> {
     static final String FIELD_INCLUDE = "include";
     static final String FIELD_EXCLUDE = "exclude";
 
@@ -602,7 +585,7 @@ public final class DbConfig {
      *
      * @param entries included {@link NamePatternEntry}s
      */
-    public IncludeExcludeList(@Nullable Set<INCLUDEDT> entries) {
+    IncludeExcludeList(@Nullable Set<INCLUDEDT> entries) {
       this(entries, Collections.emptySet());
     }
 
@@ -611,26 +594,16 @@ public final class DbConfig {
      * @param <T> type of contained entry
      * @return an empty list
      */
-    public static <T extends NamePatternEntry> IncludeExcludeList<T> empty() {
+    static <T extends NamePatternEntry> IncludeExcludeList<T> empty() {
       return (IncludeExcludeList<T>) EMPTY_INSTANCE;
     }
 
-    /**
-     * Checks if the list is empty.
-     * @return if the list is empty
-     */
-    public boolean isEmpty() {
+    boolean isEmpty() {
       return mIncludedEntries.isEmpty() && mExcludedEntries.isEmpty();
     }
 
-    /**
-     * Json creator.
-     *
-     * @param included included {@link NamePatternEntry}s
-     * @param excluded excluded {@link NamePatternEntry}s
-     */
     @JsonCreator
-    public IncludeExcludeList(
+    IncludeExcludeList(
         @JsonProperty(FIELD_INCLUDE) @Nullable Set<INCLUDEDT> included,
         @JsonProperty(FIELD_EXCLUDE) @Nullable Set<NamePatternEntry> excluded) {
       mIncludedEntries = included == null ? Collections.emptySet() : included;
@@ -640,19 +613,11 @@ public final class DbConfig {
           mIncludedEntries.isEmpty() || mExcludedEntries.isEmpty());
     }
 
-    /**
-     * Returns excluded entries.
-     * @return excluded entries
-     */
-    public Set<NamePatternEntry> getExcludedEntries() {
+    Set<NamePatternEntry> getExcludedEntries() {
       return mExcludedEntries;
     }
 
-    /**
-     * Returns included entries.
-     * @return included entries
-     */
-    public Set<INCLUDEDT> getIncludedEntries() {
+    Set<INCLUDEDT> getIncludedEntries() {
       return mIncludedEntries;
     }
 
