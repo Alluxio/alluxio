@@ -118,16 +118,21 @@ import javax.annotation.Nullable;
  * }
  */
 public final class DbConfig {
+  static final String FIELD_BYPASS = "bypass";
+  static final String FIELD_IGNORE = "ignore";
+
   private final BypassTablesSpec mBypassEntry;
   private final IgnoreTablesSpec mIgnoreEntry;
 
   /**
+   * Json creator.
+   *
    * @param bypassEntry bypass entry
    * @param ignoreEntry ignore entry
    */
   @JsonCreator
-  public DbConfig(@JsonProperty("bypass") @Nullable BypassTablesSpec bypassEntry,
-                  @JsonProperty("ignore") @Nullable IgnoreTablesSpec ignoreEntry) {
+  public DbConfig(@JsonProperty(FIELD_BYPASS) @Nullable BypassTablesSpec bypassEntry,
+                  @JsonProperty(FIELD_IGNORE) @Nullable IgnoreTablesSpec ignoreEntry) {
     mBypassEntry = bypassEntry == null ? new BypassTablesSpec(null) : bypassEntry;
     mIgnoreEntry = ignoreEntry == null ? new IgnoreTablesSpec(null) : ignoreEntry;
   }
@@ -251,7 +256,9 @@ public final class DbConfig {
    * Base class for BypassTablesSpec and IgnoreTablesSpec.
    * @param <T> the type of entry contained
    */
-  public static  class TablesEntry<T extends NamePatternEntry> {
+  public static class TablesEntry<T extends NamePatternEntry> {
+    static final String FIELD_TABLES = "tables";
+
     private final IncludeExcludeList<T> mList;
 
     /**
@@ -284,10 +291,13 @@ public final class DbConfig {
       if (node == null) {
         return null;
       }
-      if (!node.hasNonNull("tables")) {
-        throw new JsonParseException(mapper.treeAsTokens(node), "missing field `tables`");
+      if (!node.hasNonNull(TablesEntry.FIELD_TABLES)) {
+        throw new JsonParseException(
+            mapper.treeAsTokens(node),
+            String.format("missing field `%s`", TablesEntry.FIELD_TABLES)
+        );
       }
-      node = node.get("tables");
+      node = node.get(TablesEntry.FIELD_TABLES);
       if (node.isArray()) {
         // in case of an array, an included list is implied
         Set<T> entries = mapper.convertValue(
@@ -335,6 +345,9 @@ public final class DbConfig {
    */
   @JsonDeserialize(using = TableEntryDeserializer.class)
   public static class TableEntry extends NamePatternEntry {
+    static final String FIELD_TABLE = "table";
+    static final String FIELD_PARTITIONS = "partitions";
+
     private final IncludeExcludeList<NamePatternEntry> mPartitions;
 
     /**
@@ -424,9 +437,9 @@ public final class DbConfig {
         return null;
       }
       // a BypassTablePartitionSpec object
-      if (node.hasNonNull("table")) {
-        String tableName = node.get("table").asText();
-        JsonNode partitionsList = node.get("partitions");
+      if (node.hasNonNull(TableEntry.FIELD_TABLE)) {
+        String tableName = node.get(TableEntry.FIELD_TABLE).asText();
+        JsonNode partitionsList = node.get(TableEntry.FIELD_PARTITIONS);
         if (partitionsList == null) {
           return new TableEntry(tableName);
         }
@@ -446,8 +459,11 @@ public final class DbConfig {
         }
         return new TableEntry(tableName, partitions);
       }
-      throw new JsonParseException(mapper.treeAsTokens(node),
-          "invalid syntax, expecting table name, regex, or an object with a `table` key");
+      throw new JsonParseException(
+          mapper.treeAsTokens(node),
+          String.format("invalid syntax, expecting table name, regex, "
+              + "or an object with a `%s` key", TableEntry.FIELD_TABLE)
+      );
     }
   }
 
@@ -456,6 +472,8 @@ public final class DbConfig {
    */
   @JsonDeserialize(using = NamePatternEntryDeserializer.class)
   public static class NamePatternEntry {
+    static final String FIELD_REGEX = "regex";
+
     private final boolean mIsPattern;
     private final Pattern mPattern;
     private final String mName;
@@ -566,17 +584,20 @@ public final class DbConfig {
         // a simple name
         return new NamePatternEntry(node.asText());
       }
-      if (!node.isObject() || !node.hasNonNull("regex")) {
-        throw new JsonParseException(mapper.treeAsTokens(node),
-            "invalid syntax, expecting name or an object with a `regex` key");
+      if (!node.isObject() || !node.hasNonNull(NamePatternEntry.FIELD_REGEX)) {
+        throw new JsonParseException(
+            mapper.treeAsTokens(node),
+            String.format("invalid syntax, expecting name "
+                + "or an object with a `%s` key", NamePatternEntry.FIELD_REGEX)
+        );
       }
       // a RegexObject object
       try {
-        Pattern regex = Pattern.compile(node.get("regex").asText());
+        Pattern regex = Pattern.compile(node.get(NamePatternEntry.FIELD_REGEX).asText());
         return new NamePatternEntry(regex);
       } catch (PatternSyntaxException e) {
         throw new JsonParseException(
-            mapper.treeAsTokens(node.get("regex")), "invalid regex syntax", e);
+            mapper.treeAsTokens(node.get(NamePatternEntry.FIELD_REGEX)), "invalid regex syntax", e);
       }
     }
   }
@@ -586,9 +607,12 @@ public final class DbConfig {
    * @param <INCLUDEDT> type of included entry
    */
   public static class IncludeExcludeList<INCLUDEDT extends NamePatternEntry> {
-    @JsonProperty("include")
+    static final String FIELD_INCLUDE = "include";
+    static final String FIELD_EXCLUDE = "exclude";
+
+    @JsonProperty(FIELD_INCLUDE)
     private final Set<INCLUDEDT> mIncludedEntries;
-    @JsonProperty("exclude")
+    @JsonProperty(FIELD_EXCLUDE)
     private final Set<NamePatternEntry> mExcludedEntries;
 
     /**
@@ -625,8 +649,8 @@ public final class DbConfig {
      */
     @JsonCreator
     public IncludeExcludeList(
-        @JsonProperty("include") @Nullable Set<INCLUDEDT> included,
-        @JsonProperty("exclude") @Nullable Set<NamePatternEntry> excluded) {
+        @JsonProperty(FIELD_INCLUDE) @Nullable Set<INCLUDEDT> included,
+        @JsonProperty(FIELD_EXCLUDE) @Nullable Set<NamePatternEntry> excluded) {
       mIncludedEntries = included == null ? Collections.emptySet() : included;
       mExcludedEntries = excluded == null ? Collections.emptySet() : excluded;
       // included and excluded cannot be both non-empty at the same time
