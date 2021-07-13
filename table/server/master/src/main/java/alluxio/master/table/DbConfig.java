@@ -124,6 +124,8 @@ public final class DbConfig {
   private final BypassTablesSpec mBypassEntry;
   private final IgnoreTablesSpec mIgnoreEntry;
 
+  private static final DbConfig EMPTY_INSTANCE = new DbConfig(null, null);
+
   /**
    * Json creator.
    *
@@ -143,7 +145,7 @@ public final class DbConfig {
    * @return an empty config instance
    */
   public static DbConfig empty() {
-    return new DbConfig(null, null);
+    return EMPTY_INSTANCE;
   }
 
   /**
@@ -265,7 +267,7 @@ public final class DbConfig {
      * @param list list of table entries
      */
     public TablesEntry(@Nullable IncludeExcludeList<T> list) {
-      mList = list == null ? new IncludeExcludeList<>(Collections.emptySet()) : list;
+      mList = list == null ? IncludeExcludeList.empty() : list;
     }
 
     /**
@@ -615,6 +617,9 @@ public final class DbConfig {
     @JsonProperty(FIELD_EXCLUDE)
     private final Set<NamePatternEntry> mExcludedEntries;
 
+    private static final IncludeExcludeList EMPTY_INSTANCE =
+        new IncludeExcludeList(Collections.emptySet(), Collections.emptySet());
+
     /**
      * Creates an implicit include-only list.
      *
@@ -630,7 +635,7 @@ public final class DbConfig {
      * @return an empty list
      */
     public static <T extends NamePatternEntry> IncludeExcludeList<T> empty() {
-      return new IncludeExcludeList<>(Collections.emptySet(), Collections.emptySet());
+      return (IncludeExcludeList<T>) EMPTY_INSTANCE;
     }
 
     /**
