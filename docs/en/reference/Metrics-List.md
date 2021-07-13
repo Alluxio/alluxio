@@ -176,11 +176,11 @@ A subset of the memory usage metrics are listed as following:
 | Metric Name | Description |
 |-------------------------|-----------------------------------------------------|
 | count | The current number of live threads |
-| daemon.count | The current number of live threads |
+| daemon.count | The current number of live daemon threads |
 | peak.count | The peak live thread count |
 | total_started.count | The total number of threads started |
 | deadlock.count | The number of deadlocked threads |
-| deadlock | The call stack of each thread related deadlock  |
+| deadlock | The call stack of each thread related deadlock |
 | new.count | The number of threads with new state |
 | blocked.count | The number of threads with blocked state |
 | runnable.count | The number of threads with runnable state |
