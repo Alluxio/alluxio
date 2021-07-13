@@ -21,6 +21,7 @@ import alluxio.grpc.GetStatusPOptions;
 import alluxio.grpc.ListStatusPOptions;
 import alluxio.util.FileSystemOptions;
 import alluxio.util.ThreadUtils;
+import alluxio.wire.FileInfo;
 
 import com.google.common.annotations.VisibleForTesting;
 import org.slf4j.Logger;
@@ -46,6 +47,7 @@ public class MetadataCachingBaseFileSystem extends BaseFileSystem {
   private static final Logger LOG = LoggerFactory.getLogger(BaseFileSystem.class);
   private static final int THREAD_KEEPALIVE_SECOND = 60;
   private static final int THREAD_TERMINATION_TIMEOUT_MS = 10000;
+  private static final URIStatus NOT_FOUND_STATUS = new URIStatus(new FileInfo());
 
   private final MetadataCache mMetadataCache;
   private final ExecutorService mAccessTimeUpdater;
@@ -77,8 +79,15 @@ public class MetadataCachingBaseFileSystem extends BaseFileSystem {
     checkUri(path);
     URIStatus status = mMetadataCache.get(path);
     if (status == null) {
-      status = super.getStatus(path, options);
-      mMetadataCache.put(path, status);
+      try {
+        status = super.getStatus(path, options);
+        mMetadataCache.put(path, status);
+      } catch (FileDoesNotExistException e) {
+        mMetadataCache.put(path, NOT_FOUND_STATUS);
+        throw e;
+      }
+    } else if (status == NOT_FOUND_STATUS) {
+      throw new FileDoesNotExistException("Path \"" + path.getPath() + "\" does not exist.");
     } else if (options.getUpdateTimestamps()) {
       // Asynchronously send an RPC to master to update the access time.
       // Otherwise, if we need to synchronously send RPC to master to do this,
