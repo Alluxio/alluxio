@@ -149,20 +149,6 @@ public final class DbConfig {
   }
 
   /**
-   * @return the {@link TablesEntry} for bypassed tables from config file
-   */
-  public TablesEntry<TableEntry> getBypassEntry() {
-    return mBypassEntry;
-  }
-
-  /**
-   * @return the {@link TablesEntry} for ignored tables from config file
-   */
-  public TablesEntry<NamePatternEntry> getIgnoreEntry() {
-    return mIgnoreEntry;
-  }
-
-  /**
    * @return the {@link UdbMountSpec} object
    */
   public UdbMountSpec getUdbMountSpec() {
@@ -400,15 +386,6 @@ public final class DbConfig {
 
     @Override
     public boolean equals(Object other) {
-      if (this == other) {
-        return true;
-      }
-      if (other == null) {
-        return false;
-      }
-      if (getClass() != other.getClass()) {
-        return false;
-      }
       return super.equals(other);
     }
 

@@ -161,18 +161,10 @@ public final class UdbMountSpec {
   static class TablePartitionNamePatternWrapper extends NamePatternWrapper {
     private final ImmutableMap<String, Set<SimpleWrapper>> mTablePartMap;
 
-    TablePartitionNamePatternWrapper(Set<String> fullTableNames, Set<Pattern> patterns) {
-      this(fullTableNames, patterns, Collections.emptyMap());
-    }
-
     TablePartitionNamePatternWrapper(Set<String> fullTableNames, Set<Pattern> patterns,
                                      Map<String, Set<SimpleWrapper>> tablePartMap) {
       super(fullTableNames, patterns);
       mTablePartMap = ImmutableMap.copyOf(tablePartMap);
-    }
-
-    static TablePartitionNamePatternWrapper empty() {
-      return new TablePartitionNamePatternWrapper(Collections.emptySet(), Collections.emptySet());
     }
 
     @Override
@@ -239,10 +231,6 @@ public final class UdbMountSpec {
   static final class SimpleNamePatternWrapper extends NamePatternWrapper {
     SimpleNamePatternWrapper(Set<String> names, Set<Pattern> patterns) {
       super(names, patterns);
-    }
-
-    static SimpleNamePatternWrapper empty() {
-      return new SimpleNamePatternWrapper(Collections.emptySet(), Collections.emptySet());
     }
   }
 
