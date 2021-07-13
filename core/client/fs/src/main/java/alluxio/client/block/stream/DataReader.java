@@ -25,8 +25,15 @@ public interface DataReader extends Closeable {
    * The data reader type represents different ways to read data.
    */
   enum DataReaderType {
-    BLOCK_WORKER, // Read from a worker in the same process
-    GRPC, // Read from a worker through gRPC
+    /**
+     * Read from a worker in the same process.
+     * This is used by fuse client in the worker process.
+     */
+    BLOCK_WORKER,
+    /**
+     * Reads from a worker through gRPC.
+     */
+    GRPC,
     /**
      * Reads from a local block directly.
      * Usually used when the client and worker are on the same node but in the different processes.
