@@ -11,7 +11,7 @@
 
 package alluxio.master.table;
 
-import alluxio.table.common.udb.UdbMountSpec;
+import alluxio.table.common.udb.UdbAttachSpec;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -152,10 +152,10 @@ public final class DbConfig {
   }
 
   /**
-   * @return the {@link UdbMountSpec} object
+   * @return the {@link UdbAttachSpec} object
    */
-  public UdbMountSpec getUdbMountSpec() {
-    UdbMountSpec.Builder builder = new UdbMountSpec.Builder();
+  public UdbAttachSpec getUdbAttachSpec() {
+    UdbAttachSpec.Builder builder = new UdbAttachSpec.Builder();
     for (TableEntry entry : mBypassEntry.getList().getIncludedEntries()) {
       if (entry.isPattern()) {
         builder.bypass().include().addPattern(entry.getPattern());
@@ -166,7 +166,8 @@ public final class DbConfig {
         continue;
       }
       IncludeExcludeList<NamePatternEntry> partitions = entry.getPartitions();
-      UdbMountSpec.SimpleWrapperBuilder partitionBuilder = new UdbMountSpec.SimpleWrapperBuilder();
+      UdbAttachSpec.SimpleWrapperBuilder partitionBuilder =
+          new UdbAttachSpec.SimpleWrapperBuilder();
       for (NamePatternEntry partition : partitions.getIncludedEntries()) {
         if (partition.isPattern()) {
           partitionBuilder.include().addPattern(partition.getPattern());

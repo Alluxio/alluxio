@@ -24,7 +24,7 @@ import alluxio.master.journal.checkpoint.CheckpointName;
 import alluxio.proto.journal.Journal;
 import alluxio.resource.CloseableIterator;
 import alluxio.table.common.udb.UdbContext;
-import alluxio.table.common.udb.UdbMountSpec;
+import alluxio.table.common.udb.UdbAttachSpec;
 import alluxio.table.common.udb.UdbTable;
 import alluxio.table.common.udb.UnderDatabase;
 import alluxio.util.CommonUtils;
@@ -236,9 +236,9 @@ public class Database implements Journaled {
     // sync each table in parallel, with the executor service
     List<Callable<Void>> tasks = new ArrayList<>(udbTableNames.size());
     final Database thisDb = this;
-    UdbMountSpec mountSpec = mDbConfig.getUdbMountSpec();
+    UdbAttachSpec attachSpec = mDbConfig.getUdbAttachSpec();
     for (String tableName : udbTableNames) {
-      if (mountSpec.hasIgnoredTable(tableName)) {
+      if (attachSpec.hasIgnoredTable(tableName)) {
         // this table should be ignored.
         builder.addTablesIgnored(tableName);
         tablesSynced.incrementAndGet();
@@ -248,7 +248,7 @@ public class Database implements Journaled {
         // Save all exceptions
         try {
           Table previousTable = mTables.get(tableName);
-          UdbTable udbTable = mUdb.getTable(tableName, mountSpec);
+          UdbTable udbTable = mUdb.getTable(tableName, attachSpec);
           Table newTable = Table.create(thisDb, udbTable, previousTable);
 
           if (newTable != null) {

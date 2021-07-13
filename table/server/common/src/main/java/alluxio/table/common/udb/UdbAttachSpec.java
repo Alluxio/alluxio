@@ -29,7 +29,7 @@ import javax.annotation.Nullable;
 /**
  * Tables and partitions inclusion and exclusion specification.
  */
-public final class UdbMountSpec {
+public final class UdbAttachSpec {
   /**
    * Tables and partitions to bypass.
    */
@@ -41,8 +41,8 @@ public final class UdbMountSpec {
    */
   private final SimpleWrapper mIgnored;
 
-  protected UdbMountSpec(TablePartitionWrapper bypassed,
-                         SimpleWrapper ignored) {
+  protected UdbAttachSpec(TablePartitionWrapper bypassed,
+                          SimpleWrapper ignored) {
     mBypassed = bypassed;
     mIgnored = ignored;
   }
@@ -52,7 +52,7 @@ public final class UdbMountSpec {
    *
    * @param tableName the table name
    * @return true if the table is configured to be bypassed, false otherwise
-   * @see UdbMountSpec#hasFullyBypassedTable(String)
+   * @see UdbAttachSpec#hasFullyBypassedTable(String)
    */
   public boolean hasBypassedTable(String tableName) {
     return !hasIgnoredTable(tableName) && mBypassed.hasTable(tableName);
@@ -63,7 +63,7 @@ public final class UdbMountSpec {
    *
    * @param tableName the table name
    * @return true if the table is configured to be fully bypassed, false otherwise
-   * @see UdbMountSpec#hasBypassedTable(String)
+   * @see UdbAttachSpec#hasBypassedTable(String)
    */
   public boolean hasFullyBypassedTable(String tableName) {
     return !hasIgnoredTable(tableName) && mBypassed.hasFullTable(tableName);
@@ -534,7 +534,7 @@ public final class UdbMountSpec {
   }
 
   /**
-   * Builder for {@link UdbMountSpec}.
+   * Builder for {@link UdbAttachSpec}.
    */
   public static class Builder {
     private final BypassEntryBuilder mBypassBuilder;
@@ -568,10 +568,10 @@ public final class UdbMountSpec {
      * Builds the spec.
      * @return the builder
      */
-    public UdbMountSpec build() {
+    public UdbAttachSpec build() {
       TablePartitionWrapper bypassed = mBypassBuilder.build();
       SimpleWrapper ignored = mIgnoreBuilder.build();
-      return new UdbMountSpec(bypassed, ignored);
+      return new UdbAttachSpec(bypassed, ignored);
     }
   }
 }

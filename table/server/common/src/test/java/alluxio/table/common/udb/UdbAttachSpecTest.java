@@ -21,25 +21,25 @@ import org.junit.Test;
 import java.util.Collections;
 import java.util.regex.Pattern;
 
-public class UdbMountSpecTest {
-  private UdbMountSpec.Builder mBuilder;
+public class UdbAttachSpecTest {
+  private UdbAttachSpec.Builder mBuilder;
 
   @Before
   public void before() {
-    mBuilder = new UdbMountSpec.Builder();
+    mBuilder = new UdbAttachSpec.Builder();
   }
 
   /* Bypassing tests */
   /* Inclusion tests */
   @Test
   public void includedTableAndPartitionNames() {
-    UdbMountSpec.SimpleWrapperBuilder partitionBuilder = new UdbMountSpec.SimpleWrapperBuilder();
+    UdbAttachSpec.SimpleWrapperBuilder partitionBuilder = new UdbAttachSpec.SimpleWrapperBuilder();
     partitionBuilder.include().addName("part1").addName("part2");
     mBuilder.bypass()
         .include()
         .addPartition("table1", partitionBuilder);
 
-    UdbMountSpec spec = mBuilder.build();
+    UdbAttachSpec spec = mBuilder.build();
     assertTrue(spec.hasBypassedTable("table1"));
     assertFalse(spec.hasFullyBypassedTable("table1"));
     assertTrue(spec.hasBypassedPartition("table1", "part1"));
@@ -50,7 +50,7 @@ public class UdbMountSpecTest {
   @Test
   public void includedTableNamesOnly() {
     mBuilder.bypass().include().addName("table2");
-    UdbMountSpec spec = mBuilder.build();
+    UdbAttachSpec spec = mBuilder.build();
     assertTrue(spec.hasBypassedTable("table2"));
     assertTrue(spec.hasFullyBypassedTable("table2"));
     assertTrue(spec.hasBypassedPartition("table2", "part1"));
@@ -61,7 +61,7 @@ public class UdbMountSpecTest {
   @Test
   public void includedNonExistentTable() {
     mBuilder.bypass().include().addName("table3");
-    UdbMountSpec spec = mBuilder.build();
+    UdbAttachSpec spec = mBuilder.build();
     assertFalse(spec.hasBypassedTable("table4"));
     assertFalse(spec.hasFullyBypassedTable("table4"));
     assertFalse(spec.hasBypassedPartition("table4", "part1"));
@@ -72,7 +72,7 @@ public class UdbMountSpecTest {
   @Test
   public void includedTablePatterns() {
     mBuilder.bypass().include().addPattern(Pattern.compile("table\\d"));
-    UdbMountSpec spec = mBuilder.build();
+    UdbAttachSpec spec = mBuilder.build();
     assertTrue(spec.hasBypassedTable("table1"));
     assertTrue(spec.hasBypassedTable("table2"));
     assertTrue(spec.hasFullyBypassedTable("table1"));
@@ -81,7 +81,7 @@ public class UdbMountSpecTest {
 
   @Test
   public void includedTableMixedNamesPatternsPartitions() {
-    UdbMountSpec.SimpleWrapperBuilder partitionBuilder = new UdbMountSpec.SimpleWrapperBuilder();
+    UdbAttachSpec.SimpleWrapperBuilder partitionBuilder = new UdbAttachSpec.SimpleWrapperBuilder();
     partitionBuilder
         .include()
         .addNames(ImmutableSet.of("part1", "part2"))
@@ -92,7 +92,7 @@ public class UdbMountSpecTest {
         .addPattern(Pattern.compile("table_[a-z]]"))
         .addPartition("table2", partitionBuilder);
 
-    UdbMountSpec spec = mBuilder.build();
+    UdbAttachSpec spec = mBuilder.build();
     assertTrue(spec.hasBypassedTable("table1"));
     assertTrue(spec.hasBypassedTable("table2"));
     assertTrue(spec.hasFullyBypassedTable("table1"));
@@ -104,14 +104,14 @@ public class UdbMountSpecTest {
 
   @Test
   public void includedTableExplicitNamesFirst() {
-    UdbMountSpec.SimpleWrapperBuilder partitionBuilder = new UdbMountSpec.SimpleWrapperBuilder();
+    UdbAttachSpec.SimpleWrapperBuilder partitionBuilder = new UdbAttachSpec.SimpleWrapperBuilder();
     partitionBuilder.include().addName("part1");
     mBuilder.bypass()
         .include()
         .addName("table1")
         .addPartition("table1", partitionBuilder);
 
-    UdbMountSpec spec = mBuilder.build();
+    UdbAttachSpec spec = mBuilder.build();
     assertTrue(spec.hasFullyBypassedTable("table1"));
     assertTrue(spec.hasBypassedPartition("table1", "part2"));
   }
@@ -125,7 +125,7 @@ public class UdbMountSpecTest {
 
   @Test(expected = IllegalArgumentException.class)
   public void rejectInclusionExclusionAtSameTime2() {
-    UdbMountSpec.SimpleWrapperBuilder partitionBuilder = new UdbMountSpec.SimpleWrapperBuilder();
+    UdbAttachSpec.SimpleWrapperBuilder partitionBuilder = new UdbAttachSpec.SimpleWrapperBuilder();
     partitionBuilder.include().addName("part1");
     partitionBuilder.exclude().addName("part2");
     partitionBuilder.build();
@@ -136,7 +136,7 @@ public class UdbMountSpecTest {
   public void excludedTableNamesOnly() {
     mBuilder.bypass().exclude().addNames(ImmutableSet.of("table1", "table2"));
 
-    UdbMountSpec spec = mBuilder.build();
+    UdbAttachSpec spec = mBuilder.build();
     assertFalse(spec.hasBypassedTable("table1"));
     assertFalse(spec.hasBypassedTable("table2"));
     assertFalse(spec.hasFullyBypassedTable("table1"));
@@ -152,7 +152,7 @@ public class UdbMountSpecTest {
         .addName("table0")
         .addPattern(Pattern.compile("table[12]"));
 
-    UdbMountSpec spec = mBuilder.build();
+    UdbAttachSpec spec = mBuilder.build();
     assertFalse(spec.hasBypassedTable("table0"));
     assertFalse(spec.hasBypassedTable("table1"));
     assertFalse(spec.hasBypassedTable("table2"));
@@ -165,13 +165,13 @@ public class UdbMountSpecTest {
 
   @Test
   public void excludedPartitionsOfIncludedTable() {
-    UdbMountSpec.SimpleWrapperBuilder partitionBuilder = new UdbMountSpec.SimpleWrapperBuilder();
+    UdbAttachSpec.SimpleWrapperBuilder partitionBuilder = new UdbAttachSpec.SimpleWrapperBuilder();
     partitionBuilder.exclude().addName("part1");
     mBuilder.bypass()
         .include()
         .addPartition("table1", partitionBuilder);
 
-    UdbMountSpec spec = mBuilder.build();
+    UdbAttachSpec spec = mBuilder.build();
     assertFalse(spec.hasBypassedPartition("table1", "part1"));
     assertTrue(spec.hasBypassedPartition("table1", "part2"));
   }
@@ -179,7 +179,7 @@ public class UdbMountSpecTest {
   @Test
   public void excludeEverythingIsIncludeNothing() {
     mBuilder.bypass().exclude().addPattern(Pattern.compile(".*"));
-    UdbMountSpec spec = mBuilder.build();
+    UdbAttachSpec spec = mBuilder.build();
     assertFalse(spec.hasBypassedTable("any_table"));
   }
 
@@ -187,7 +187,7 @@ public class UdbMountSpecTest {
   public void excludeNothingIsIncludeNothing() {
     mBuilder.bypass()
         .exclude().addNames(Collections.emptySet()).addPatterns(Collections.emptySet());
-    UdbMountSpec spec = mBuilder.build();
+    UdbAttachSpec spec = mBuilder.build();
     assertFalse(spec.hasBypassedTable("any_table"));
   }
 
@@ -204,7 +204,7 @@ public class UdbMountSpecTest {
             Pattern.compile("table6")
         ));
 
-    UdbMountSpec spec = mBuilder.build();
+    UdbAttachSpec spec = mBuilder.build();
     assertTrue(spec.hasIgnoredTable("table1"));
     assertTrue(spec.hasIgnoredTable("table2"));
     assertTrue(spec.hasIgnoredTable("table3"));
@@ -218,7 +218,7 @@ public class UdbMountSpecTest {
   public void ignoreTakesPrecedenceOverBypass() {
     mBuilder.bypass().include().addName("same_table");
     mBuilder.ignore().include().addName("same_table");
-    UdbMountSpec spec = mBuilder.build();
+    UdbAttachSpec spec = mBuilder.build();
     assertTrue(spec.hasIgnoredTable("same_table"));
     assertFalse(spec.hasBypassedTable("same_table"));
   }
@@ -227,7 +227,7 @@ public class UdbMountSpecTest {
   public void ignoreTakesPrecedenceOverBypass2() {
     mBuilder.bypass().include().addName("table1");
     mBuilder.ignore().exclude().addName("table2");
-    UdbMountSpec spec = mBuilder.build();
+    UdbAttachSpec spec = mBuilder.build();
     assertTrue(spec.hasIgnoredTable("table1"));
     assertFalse(spec.hasBypassedTable("table1"));
   }

@@ -20,7 +20,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
-import alluxio.table.common.udb.UdbMountSpec;
+import alluxio.table.common.udb.UdbAttachSpec;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -254,7 +254,7 @@ public class DbConfigTest {
     InputStream stream = getClass().getResourceAsStream("/DbConfigTestSample.json");
     DbConfig config =
         mMapper.readValue(stream, DbConfig.class);
-    UdbMountSpec spec = config.getUdbMountSpec();
+    UdbAttachSpec spec = config.getUdbAttachSpec();
     assertTrue(spec.hasFullyBypassedTable("bypassed1"));
     assertTrue(spec.hasFullyBypassedTable("bypassed_regex1"));
     assertTrue(spec.hasFullyBypassedTable("bypassed_regex9"));

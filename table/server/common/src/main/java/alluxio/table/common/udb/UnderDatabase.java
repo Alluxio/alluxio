@@ -38,10 +38,10 @@ public interface UnderDatabase {
 
   /**
    * @param tableName the table name
-   * @param mountSpec table and partition bypass specification
+   * @param attachSpec table and partition attach specification
    * @return the {@link UdbTable} for the specified table name
    */
-  UdbTable getTable(String tableName, UdbMountSpec mountSpec) throws IOException;
+  UdbTable getTable(String tableName, UdbAttachSpec attachSpec) throws IOException;
 
   /**
    * @return the {@link UdbContext}
