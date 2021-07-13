@@ -20,16 +20,12 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
-import alluxio.table.common.udb.UdbAttachSpec;
-
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableSet;
 import org.junit.Before;
 import org.junit.Test;
-
-import java.io.InputStream;
 
 public class DbConfigTest {
   private ObjectMapper mMapper;
@@ -246,31 +242,5 @@ public class DbConfigTest {
     assertEquals(ImmutableSet.of(new TableEntry("table1")),
         entry.getList().getIncludedEntries());
     assertEquals(ImmutableSet.of(), entry.getList().getExcludedEntries());
-  }
-
-  /* DbConfig tests */
-  @Test
-  public void convertToSpec() throws Exception {
-    InputStream stream = getClass().getResourceAsStream("/DbConfigTestSample.json");
-    DbConfig config =
-        mMapper.readValue(stream, DbConfig.class);
-    UdbAttachSpec spec = config.getUdbAttachSpec();
-    assertTrue(spec.hasFullyBypassedTable("bypassed1"));
-    assertTrue(spec.hasFullyBypassedTable("bypassed_regex1"));
-    assertTrue(spec.hasFullyBypassedTable("bypassed_regex9"));
-    assertTrue(spec.hasBypassedTable("bypassed2"));
-    assertFalse(spec.hasFullyBypassedTable("bypassed2"));
-    assertFalse(spec.hasBypassedTable("any_other_table"));
-    assertFalse(spec.hasFullyBypassedTable("any_other_table"));
-    assertFalse(spec.hasBypassedPartition("bypassed2", "part1"));
-    assertFalse(spec.hasBypassedPartition("bypassed2", "part_regex1"));
-    assertFalse(spec.hasBypassedPartition("bypassed2", "part_regex9"));
-    assertTrue(spec.hasBypassedPartition("bypassed2", "any_other_part"));
-    assertTrue(spec.hasIgnoredTable("ignored3"));
-    assertTrue(spec.hasIgnoredTable("ignored_regex1"));
-    assertTrue(spec.hasIgnoredTable("ignored_regex9"));
-    assertFalse(spec.hasIgnoredTable("any_other_table"));
-    assertTrue(spec.hasIgnoredTable("bypassed_and_ignored"));
-    assertFalse(spec.hasBypassedTable("bypassed_and_ignored"));
   }
 }
