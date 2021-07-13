@@ -16,6 +16,8 @@ import alluxio.ProcessUtils;
 import alluxio.conf.PropertyKey;
 import alluxio.StorageTierAssoc;
 import alluxio.WorkerStorageTierAssoc;
+import alluxio.conf.reconf.ReconfigurableListener;
+import alluxio.conf.reconf.ReconfigurableModel;
 import alluxio.exception.ConnectionFailedException;
 import alluxio.grpc.Command;
 import alluxio.grpc.ConfigProperty;
@@ -48,7 +50,8 @@ import javax.annotation.concurrent.NotThreadSafe;
  * it before retrying.
  */
 @NotThreadSafe
-public final class BlockMasterSync implements HeartbeatExecutor {
+public final class BlockMasterSync implements HeartbeatExecutor,
+    ReconfigurableListener {
   private static final Logger LOG = LoggerFactory.getLogger(BlockMasterSync.class);
 
   /** The block worker responsible for interacting with Alluxio and UFS storage. */
@@ -61,7 +64,7 @@ public final class BlockMasterSync implements HeartbeatExecutor {
   private final WorkerNetAddress mWorkerAddress;
 
   /** Milliseconds between heartbeats before a timeout. */
-  private final int mHeartbeatTimeoutMs;
+  private int mHeartbeatTimeoutMs;
 
   /** Client-pool for all master communication. */
   private final BlockMasterClientPool mMasterClientPool;
@@ -95,6 +98,7 @@ public final class BlockMasterSync implements HeartbeatExecutor {
 
     registerWithMaster();
     mLastSuccessfulHeartbeatMs = System.currentTimeMillis();
+    ReconfigurableModel.getInstance().addListener(this);
   }
 
   /**
@@ -157,6 +161,7 @@ public final class BlockMasterSync implements HeartbeatExecutor {
   public void close() {
     mAsyncBlockRemover.shutDown();
     mMasterClientPool.release(mMasterClient);
+    ReconfigurableModel.getInstance().removeListener(this);
   }
 
   /**
@@ -195,5 +200,11 @@ public final class BlockMasterSync implements HeartbeatExecutor {
       default:
         throw new RuntimeException("Un-recognized command from master " + cmd);
     }
+  }
+
+  @Override
+  public void propertyChange() {
+    mHeartbeatTimeoutMs = (int) ServerConfiguration
+        .getMs(PropertyKey.WORKER_BLOCK_HEARTBEAT_TIMEOUT_MS);
   }
 }
