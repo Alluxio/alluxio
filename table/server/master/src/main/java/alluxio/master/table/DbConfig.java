@@ -25,6 +25,8 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.google.common.base.Preconditions;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.Collections;
@@ -118,6 +120,8 @@ import javax.annotation.Nullable;
  * }
  */
 public final class DbConfig {
+  private static final Logger LOG = LoggerFactory.getLogger(DbConfig.class);
+
   static final String FIELD_BYPASS = "bypass";
   static final String FIELD_IGNORE = "ignore";
 
@@ -269,7 +273,7 @@ public final class DbConfig {
       if (!node.hasNonNull(TablesEntry.FIELD_TABLES)) {
         throw new JsonParseException(
             mapper.treeAsTokens(node),
-            String.format("missing field `%s`", TablesEntry.FIELD_TABLES)
+            String.format("field `%s` missing or is null", TablesEntry.FIELD_TABLES)
         );
       }
       node = node.get(TablesEntry.FIELD_TABLES);
@@ -399,33 +403,41 @@ public final class DbConfig {
         return null;
       }
       // a BypassTablePartitionSpec object
-      if (node.hasNonNull(TableEntry.FIELD_TABLE)) {
-        String tableName = node.get(TableEntry.FIELD_TABLE).asText();
-        JsonNode partitionsList = node.get(TableEntry.FIELD_PARTITIONS);
-        if (partitionsList == null) {
-          return new TableEntry(tableName);
-        }
-        IncludeExcludeList<NamePatternEntry> partitions;
-        if (partitionsList.isArray()) {
-          // an implicit included list
-          Set<NamePatternEntry> includedPartitions =
-              mapper.convertValue(partitionsList, new TypeReference<Set<NamePatternEntry>>() {});
-          partitions = new IncludeExcludeList<>(includedPartitions);
-        } else {
-          // an IncludeExcludeList object
-          partitions = mapper.convertValue(
-              partitionsList, new TypeReference<IncludeExcludeList<NamePatternEntry>>() {});
-          if (partitions == null) {
-            partitions = IncludeExcludeList.empty();
-          }
-        }
-        return new TableEntry(tableName, partitions);
+      if (!node.hasNonNull(TableEntry.FIELD_TABLE)) {
+        throw new JsonParseException(
+            mapper.treeAsTokens(node),
+            String.format("invalid syntax, expecting table name, regex, "
+                + "or an object with a `%s` field", TableEntry.FIELD_TABLE)
+        );
       }
-      throw new JsonParseException(
-          mapper.treeAsTokens(node),
-          String.format("invalid syntax, expecting table name, regex, "
-              + "or an object with a `%s` key", TableEntry.FIELD_TABLE)
-      );
+      String tableName = node.get(TableEntry.FIELD_TABLE).asText();
+      JsonNode partitionsList = node.get(TableEntry.FIELD_PARTITIONS);
+      if (partitionsList == null) {
+        LOG.warn("Partition specification is not found, use literal table name instead: {}",
+            node);
+        return new TableEntry(tableName);
+      }
+      IncludeExcludeList<NamePatternEntry> partitions;
+      if (partitionsList.isArray()) {
+        // an implicit included list
+        Set<NamePatternEntry> includedPartitions =
+            mapper.convertValue(partitionsList, new TypeReference<Set<NamePatternEntry>>() {
+            });
+        partitions = new IncludeExcludeList<>(includedPartitions);
+      } else if (partitionsList.isObject()) {
+        // an IncludeExcludeList object
+        partitions = mapper.convertValue(
+            partitionsList, new TypeReference<IncludeExcludeList<NamePatternEntry>>() {});
+        if (partitions == null) {
+          partitions = IncludeExcludeList.empty();
+        }
+      } else {
+        throw new JsonParseException(
+            mapper.treeAsTokens(partitionsList),
+            "invalid syntax, expecting array or object"
+        );
+      }
+      return new TableEntry(tableName, partitions);
     }
   }
 
@@ -533,7 +545,7 @@ public final class DbConfig {
    * 1. a plain name: "table1"
    * 2. an object of form: {"regex": "<regex>"}
    */
-  static class NamePatternEntryDeserializer extends JsonDeserializer<NamePatternEntry> {
+  static final class NamePatternEntryDeserializer extends JsonDeserializer<NamePatternEntry> {
     @Override
     public NamePatternEntry deserialize(JsonParser jp, DeserializationContext cxt)
         throws IOException, JsonProcessingException {
@@ -546,20 +558,28 @@ public final class DbConfig {
         // a simple name
         return new NamePatternEntry(node.asText());
       }
-      if (!node.isObject() || !node.hasNonNull(NamePatternEntry.FIELD_REGEX)) {
+      if (!node.isObject()) {
         throw new JsonParseException(
             mapper.treeAsTokens(node),
-            String.format("invalid syntax, expecting name "
-                + "or an object with a `%s` key", NamePatternEntry.FIELD_REGEX)
+            String.format("invalid syntax, expecting name or an object with a `%s` field",
+                NamePatternEntry.FIELD_REGEX)
+        );
+      }
+      if (!node.hasNonNull(NamePatternEntry.FIELD_REGEX)) {
+        throw new JsonParseException(
+            mapper.treeAsTokens(node),
+            String.format("invalid syntax, `%s` field missing or is null",
+                NamePatternEntry.FIELD_REGEX)
         );
       }
       // a RegexObject object
+      JsonNode regexNode = node.get(NamePatternEntry.FIELD_REGEX);
       try {
-        Pattern regex = Pattern.compile(node.get(NamePatternEntry.FIELD_REGEX).asText());
+        Pattern regex = Pattern.compile(regexNode.asText());
         return new NamePatternEntry(regex);
       } catch (PatternSyntaxException e) {
         throw new JsonParseException(
-            mapper.treeAsTokens(node.get(NamePatternEntry.FIELD_REGEX)), "invalid regex syntax", e);
+            mapper.treeAsTokens(regexNode), "invalid regex syntax", e);
       }
     }
   }
