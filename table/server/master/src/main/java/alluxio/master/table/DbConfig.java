@@ -18,7 +18,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -277,23 +276,8 @@ public final class DbConfig {
         );
       }
       node = node.get(TablesEntry.FIELD_TABLES);
-      if (node.isArray()) {
-        // in case of an array, an included list is implied
-        Set<T> entries = mapper.convertValue(
-            node,
-            mapper.getTypeFactory().constructCollectionType(Set.class, type)
-        );
-        return new IncludeExcludeList<>(entries);
-      }
-      if (node.isObject()) {
-        // otherwise, deserialize as an IncludeExcludeList object
-        return mapper.convertValue(
-            node,
-            mapper.getTypeFactory().constructParametricType(IncludeExcludeList.class, type)
-        );
-      }
-      throw new JsonParseException(mapper.treeAsTokens(node),
-          "invalid syntax, expecting array or object");
+      IncludeExcludeListDeserializer<T> deserializer = new IncludeExcludeListDeserializer<>();
+      return deserializer.deserialize(type, mapper.treeAsTokens(node), cxt);
     }
   }
 
@@ -417,25 +401,12 @@ public final class DbConfig {
             node);
         return new TableEntry(tableName);
       }
-      IncludeExcludeList<NamePatternEntry> partitions;
-      if (partitionsList.isArray()) {
-        // an implicit included list
-        Set<NamePatternEntry> includedPartitions =
-            mapper.convertValue(partitionsList, new TypeReference<Set<NamePatternEntry>>() {
-            });
-        partitions = new IncludeExcludeList<>(includedPartitions);
-      } else if (partitionsList.isObject()) {
-        // an IncludeExcludeList object
-        partitions = mapper.convertValue(
-            partitionsList, new TypeReference<IncludeExcludeList<NamePatternEntry>>() {});
-        if (partitions == null) {
-          partitions = IncludeExcludeList.empty();
-        }
-      } else {
-        throw new JsonParseException(
-            mapper.treeAsTokens(partitionsList),
-            "invalid syntax, expecting array or object"
-        );
+      IncludeExcludeListDeserializer<NamePatternEntry> deserializer =
+          new IncludeExcludeListDeserializer<>();
+      IncludeExcludeList<NamePatternEntry> partitions = deserializer.deserialize(
+          NamePatternEntry.class, mapper.treeAsTokens(partitionsList), cxt);
+      if (partitions == null) {
+        partitions = IncludeExcludeList.empty();
       }
       return new TableEntry(tableName, partitions);
     }
@@ -658,6 +629,40 @@ public final class DbConfig {
     @Override
     public int hashCode() {
       return Objects.hash(mIncludedEntries, mExcludedEntries);
+    }
+  }
+
+  /**
+   * Deserializer for IncludeExcludeList.
+   * Handles the case with an implicit list of included entries.
+   * @param <INCLUDEDT> the type for included entries
+   */
+  static class IncludeExcludeListDeserializer<INCLUDEDT extends NamePatternEntry> {
+    IncludeExcludeList<INCLUDEDT> deserialize(
+        Class<INCLUDEDT> type, JsonParser jp, DeserializationContext cxt)
+        throws IOException, JsonProcessingException {
+      ObjectMapper mapper = (ObjectMapper) jp.getCodec();
+      JsonNode node = mapper.readTree(jp);
+      if (node == null) {
+        return null;
+      }
+      if (node.isArray()) {
+        // in case of an array, an included list is implied
+        Set<INCLUDEDT> entries = mapper.convertValue(
+            node,
+            mapper.getTypeFactory().constructCollectionType(Set.class, type)
+        );
+        return new IncludeExcludeList<>(entries);
+      }
+      if (node.isObject()) {
+        // otherwise, deserialize as an IncludeExcludeList object
+        return mapper.convertValue(
+            node,
+            mapper.getTypeFactory().constructParametricType(IncludeExcludeList.class, type)
+        );
+      }
+      throw new JsonParseException(mapper.treeAsTokens(node),
+          "invalid syntax, expecting array or object");
     }
   }
 }
