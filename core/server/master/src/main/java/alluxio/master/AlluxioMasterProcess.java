@@ -281,6 +281,7 @@ public class AlluxioMasterProcess extends MasterProcess {
    */
   protected void startServing(String startMessage, String stopMessage) {
     MetricsSystem.startSinks(ServerConfiguration.get(PropertyKey.METRICS_CONF_FILE));
+    startServingRPCServer();
     LOG.info("Alluxio master web server version {} starting{}. webAddress={}",
         RuntimeConstants.VERSION, startMessage, mWebBindAddress);
     startServingWebServer();
@@ -289,7 +290,8 @@ public class AlluxioMasterProcess extends MasterProcess {
         "Alluxio master version {} started{}. bindAddress={}, connectAddress={}, webAddress={}",
         RuntimeConstants.VERSION, startMessage, mRpcBindAddress, mRpcConnectAddress,
         mWebBindAddress);
-    startServingRPCServer();
+    // Wait until the server is shut down.
+    mGrpcServer.awaitTermination();
     LOG.info("Alluxio master ended{}", stopMessage);
   }
 
@@ -333,9 +335,6 @@ public class AlluxioMasterProcess extends MasterProcess {
       mGrpcServer = serverBuilder.build().start();
       mSafeModeManager.notifyRpcServerStarted();
       LOG.info("Started Alluxio master gRPC server on address {}", mRpcConnectAddress);
-
-      // Wait until the server is shut down.
-      mGrpcServer.awaitTermination();
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
