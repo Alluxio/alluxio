@@ -38,28 +38,69 @@ import javax.annotation.Nullable;
 /**
  * The Alluxio db config file.
  *
- * Current syntax:
- * Top level: DbConfig
- * DbConfig := {"bypass": BypassTablesSpec, "ignore": IgnoreTablesSpec}
- * BypassTablesSpec := {"tables": BypassIncludeTablesList | BypassTablesObject}
- * IgnoreTablesSpec := {"tables": SimpleNameRegexList | SimpleIncludeExcludeObject}
- * BypassTablesObject := {"include": BypassIncludeTablesList} | {"exclude": SimpleNameRegexList}
- * BypassIncludeTablesList := [ NameLiteral | RegexObject | BypassTablePartitionSpec ]*
- * SimpleNameRegexList := [ NameLiteral | RegexObject ]*
- * SimpleIncludeExcludeObject := {"include": SimpleNameRegexList} | {"exclude": SimpleNameRegexList}
- * BypassTablePartitionSpec :=
- *     {"table": NameLiteral, "partition": SimpleNameRegexList | SimpleIncludeExcludeObject}
- * RegexObject := {"regex": RegexLiteral}
+ * Syntax specification:
+ * 1. Top level object:
+ *    DbConfig :=
+ *        {"bypass": BypassTablesSpecObject}
+ *        | {"ignore": IgnoreTablesSpecObject}
+ *        | {"bypass": BypassTablesSpecObject, "ignore": IgnoreTablesSpecObject}
+ *    DbConfig is the outermost object of the json config file. Currently allows
+ *    configurations for bypassing and ignoring tables and partitions.
+ *
+ * 2. Second level objects:
+ *    i.   BypassTablesSpecObject :=
+ *             {"tables": BypassIncludeTablePartitionList | BypassTablesIncludeExcludeObject}
+ *    ii.  IgnoreTablesSpecObject :=
+ *             {"tables": SimpleNameRegexList | SimpleIncludeExcludeObject}
+ *    Each of the `tables` fields accepts either one of the followings:
+ *      a) an array (`BypassIncludeTablePartitionList` or `SimpleNameRegexList`)
+ *      b) an object (`BypassTablesIncludeExcludeObject` or `SimpleIncludeExcludeObject`)
+ *
+ * 3. Inclusion/exclusion lists and objects:
+ *    i.   SimpleNameRegexList := [ (NameLiteral | RegexObject)* ]
+ *         SimpleNameRegexList is an mixed array of name literals and regex objects.
+ *    ii.  BypassIncludeTablePartitionList :=
+ *             [ (NameLiteral | RegexObject | BypassTablePartitionSpecObject)* ]
+ *         BypassIncludeTablePartitionList is a superset of SimpleNameRegexList, with the additional
+ *         capability of containing BypassTablePartitionSpecObjects.
+ *    iv.  SimpleIncludeExcludeObject :=
+ *             {"include": SimpleNameRegexList} | {"exclude": SimpleNameRegexList}
+ *         SimpleIncludeExcludeObject is an enum of either an inclusion list or an exclusion
+ *         list. Names and regexes can be specified in the lists.
+ *    iii. BypassTablesIncludeExcludeObject :=
+ *             {"include": BypassIncludeTablePartitionList} | {"exclude": SimpleNameRegexList}
+ *         BypassTablesIncludeExcludeObject is a superset of SimpleIncludeExcludeObject.
+ *         In case of an inclusion list, further partition specifications are allowed, while
+ *         in case of an exclusion list, only names and regexes are allowed.
+ *
+ * 4. Table partition specification object:
+ *    i.   BypassTablePartitionSpecObject :=
+ *           {
+ *             "table": NameLiteral,
+ *             "partitions": SimpleNameRegexList | SimpleIncludeExcludeObject
+ *           }
+ *       BypassTablePartitionSpecObject has a `table` field that contains the table name for which
+ *       the partition specification is bound to. The `partitions` field follows the same
+ *       convention that allows either an array of included items, or an object that allows
+ *       to explicitly specify inclusions and exclusions.
+ *
+ * 5. Others:
+ *    i.   NameLiteral
+ *         A string literal for table and partition names.
+ *    ii.  RegexLiteral
+ *         A string representation of a regular expression.
+ *    ii.  RegexObject := {"regex": RegexLiteral}
+ *         An object with a `regex` field that contains a regex literal.
  *
  * An example:
- * {                  <- BypassIgnoreObject
- *   "bypass": {        <- BypassTablesSpec
- *     "tables": {        <- BypassTablesObject
- *       "include": [       <- BypassIncludeTablesList
+ * {                  <- DbConfig
+ *   "bypass": {        <- BypassTablesSpecObject
+ *     "tables": {        <- BypassTablesIncludeExcludeObject
+ *       "include": [       <- BypassIncludeTablePartitionList
  *         "table1",          <- NameLiteral
- *         {                    <- BypassTablePartitionSpec
+ *         {                    <- BypassTablePartitionSpecObject
  *           "table": "table2",
- *           "partition": {         <- SimpleIncludeExcludeObject
+ *           "partitions": {         <- SimpleIncludeExcludeObject
  *             "exclude": [           <- SimpleNameRegexList
  *               "part1",
  *               {                        <- RegexObject
@@ -71,8 +112,8 @@ import javax.annotation.Nullable;
  *       ]
  *     }
  *   },
- *   "ignore": {        <- IgnoreTablesSpec
- *     "tables": ["table4"]
+ *   "ignore": {        <- IgnoreTablesSpecObject
+ *     "tables": ["table4"]  <- SimpleNameRegexList
  *   }
  * }
  */
