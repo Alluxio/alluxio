@@ -35,10 +35,8 @@ You can checkout more details in its structure and how to join Alluxio PMC
 ## Community and Events
 Please use the following to reach members of the community:
 
-* [Alluxio Community Slack Channel](https://www.alluxio.io/slack)
-* [Special Interest Groups (SIG) for Alluxio users and developers](https://github.com/Alluxio/alluxio/wiki/Alluxio-Community-Dev-Sync-Meetings)
-     * Alluxio and AI workloads: e.g., running Tensorflow, Pytorch on Alluxio
-     * Alluxio and Presto workloads: e.g., running Presto on Alluxio, running Alluxio catalog service
+* [Alluxio Community Slack Channel](https://www.alluxio.io/slack): post your questions here if you seek for help for general questions or issues using Alluxio.
+* [Special Interest Groups (SIG) for Alluxio users and developers](#contributing)
 * Community Events: [upcoming online office hours, meetups and webinars](https://www.alluxio.io/events)
 * Meetup Groups: [Global Online Meetup](https://www.meetup.com/Alluxio-Global-Online-Meetup/), [Bay Area Meetup](http://www.meetup.com/Alluxio),
 [New York Meetup](https://www.meetup.com/Alluxio-Open-Source-New-York-Meetup),
@@ -89,36 +87,31 @@ to run a simple example with Alluxio.
 
 ## Report a Bug
 
-To report bugs, suggest improvements, or create new feature requests, please open a [Github Issue](https://github.com/alluxio/alluxio/issues). Our previous [Alluxio JIRA system](https://alluxio.atlassian.net) has been deprecated since December 2018.
+To report bugs, suggest improvements, or create new feature requests, please open a [Github Issue](https://github.com/alluxio/alluxio/issues).
+If you are not sure whether you run into bugs or simply have general questions with respect to Alluxio, post your questions on [Alluxio Slack channel](www.alluxio.io/slack).
 
 ## Depend on Alluxio
 
 Alluxio project provides several different client artifacts for external projects to depend on Alluxio client:
 
-- Artifact `alluxio-core-client-fs` provides a client for
+- Artifact `alluxio-core-client-fs` provides a Java artifact for
   [Alluxio Java file system API](https://docs.alluxio.io/os/user/stable/en/api/FS-API.html#alluxio-java-api))
   to access all Alluxio-specific functionalities.
-- Artifact `alluxio-core-client-hdfs` provides a client for
+- Artifact `alluxio-core-client-hdfs` provides a Java artifact for
   [HDFS-Compatible file system API](https://docs.alluxio.io/os/user/stable/en/api/FS-API.html#hadoop-compatible-java-client).
-- Artifact `alluxio-shaded-client`, available in Alluxio 2.0.1 or later, includes both above
-  clients and all their dependencies but in a shaded form to prevent conflicts. This client jar is
-  self-contained but the size is also much larger than the other two. This artifact is recommended
-  generally for a project to use Alluxio client.
+- (Recommended) Artifact `alluxio-shaded-client` includes both artifact. 
+  This artifact is self-contained (including all dependencies in a shaded form to prevent conflicts),
+  but also much larger than the other two. 
+  This artifact is recommended generally for a project to use Alluxio client.
 
-Here are examples to declare the dependecies on  `alluxio-shaded-client` using Maven or SBT:
+Here are examples to declare the dependecies on  `alluxio-shaded-client` using Maven:
 
-- Apache Maven
   ```xml
   <dependency>
     <groupId>org.alluxio</groupId>
     <artifactId>alluxio-shaded-client</artifactId>
-    <version>2.5.0-2</version>
+    <version>2.6.0</version>
   </dependency>
-  ```
-
-- SBT
-  ```
-  libraryDependencies += "org.alluxio" % "alluxio-shaded-client" % "2.5.0-2"
   ```
 
 ## Contributing
@@ -131,7 +124,15 @@ to license the material under the project's open source license and warrant that
 authority to do so.
 For a more detailed step-by-step guide, please read
 [how to contribute to Alluxio](https://docs.alluxio.io/os/user/stable/en/contributor/Contributor-Getting-Started.html).
-For new contributor, please take 2 [new contributor tasks](https://github.com/Alluxio/new-contributor-tasks).
+For new contributor, please take two [new contributor tasks](https://github.com/Alluxio/new-contributor-tasks).
+
+For advanced feature requests and contributions, 
+Alluxio core team is hosting regular online meetings with community users and developers to iterate the project in two special interest groups:
+
+* Alluxio and AI workloads: e.g., running Tensorflow, Pytorch on Alluxio through the POSIX API. Checkout the [meeting notes](https://docs.google.com/spreadsheets/d/1OlprIiUkGjMuZJ_6cLTJYVJpTGpnTWkFhHzX16tYNDQ/)
+* Alluxio and Presto workloads: e.g., running Presto on Alluxio, running Alluxio catalog service. Checkout the [meeting notes](https://docs.google.com/spreadsheets/d/1V-fxqfG_oj3B1ZWSgbRWVuTHFvjL3pq6uXgAL-xvFQA/)
+
+Subscribe our [public calendar](https://calendar.google.com/calendar/embed?src=alluxio.com_g9ec8agk27baqu2nu692ft1m3s%40group.calendar.google.com&ctz=America%2FLos_Angeles) to join us.
 
 ## Useful Links
 
