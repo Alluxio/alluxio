@@ -109,23 +109,21 @@ public class CacheManagerWithShadowCache implements CacheManager {
 
   @Override
   public boolean put(PageId pageId, byte[] page, CacheScope cacheScope, CacheQuota cacheQuota) {
+    updateBloomFilterAndWorkingSet(pageId, page.length);
+    return mCacheManager.put(pageId, page, cacheScope, cacheQuota);
+  }
+
+  private void updateBloomFilterAndWorkingSet(PageId pageId, int pageLength) {
     int filterIndex = mCurrentSegmentFilterIndex;
     BloomFilter<PageId> bf = mSegmentBloomFilters.get(filterIndex);
     if (!bf.mightContain(pageId)) {
       bf.put(pageId);
       mObjEachBloomFilter.getAndIncrement(filterIndex);
-      mByteEachBloomFilter.getAndAdd(filterIndex, page.length);
+      mByteEachBloomFilter.getAndAdd(filterIndex, pageLength);
       mWorkingSetBloomFilter.put(pageId);
       updateFalsePositiveRatio();
-
-      long oldPages = Metrics.SHADOW_CACHE_PAGES.getCount();
-      mShadowCachePages = (int) mWorkingSetBloomFilter.approximateElementCount();
-      Metrics.SHADOW_CACHE_PAGES.inc(mShadowCachePages - oldPages);
-      long oldBytes = Metrics.SHADOW_CACHE_BYTES.getCount();
-      mShadowCacheBytes = (long) (mShadowCachePages * mAvgPageSize);
-      Metrics.SHADOW_CACHE_BYTES.inc(mShadowCacheBytes - oldBytes);
+      updateWorkingSetSize();
     }
-    return mCacheManager.put(pageId, page, cacheScope, cacheQuota);
   }
 
   /**
@@ -227,6 +225,8 @@ public class CacheManagerWithShadowCache implements CacheManager {
       Metrics.SHADOW_CACHE_BYTES_HIT.inc(bytesToRead);
       mShadowCachePageHit.getAndIncrement();
       mShadowCacheByteHit.getAndAdd(bytesToRead);
+    } else {
+      updateBloomFilterAndWorkingSet(pageId, bytesToRead);
     }
     Metrics.SHADOW_CACHE_PAGES_READ.inc();
     Metrics.SHADOW_CACHE_BYTES_READ.inc(bytesToRead);
