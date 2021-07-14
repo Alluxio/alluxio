@@ -15,6 +15,8 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -30,6 +32,8 @@ import javax.annotation.Nullable;
  * Tables and partitions inclusion and exclusion specification.
  */
 public final class UdbAttachSpec {
+  private static final Logger LOG = LoggerFactory.getLogger(UdbAttachSpec.class);
+
   /**
    * Tables and partitions to bypass.
    */
@@ -55,7 +59,7 @@ public final class UdbAttachSpec {
    * @see UdbAttachSpec#hasFullyBypassedTable(String)
    */
   public boolean hasBypassedTable(String tableName) {
-    return !hasIgnoredTable(tableName) && mBypassed.hasTable(tableName);
+    return shadowedByIgnore(tableName, mBypassed.hasTable(tableName));
   }
 
   /**
@@ -66,7 +70,7 @@ public final class UdbAttachSpec {
    * @see UdbAttachSpec#hasBypassedTable(String)
    */
   public boolean hasFullyBypassedTable(String tableName) {
-    return !hasIgnoredTable(tableName) && mBypassed.hasFullTable(tableName);
+    return shadowedByIgnore(tableName, mBypassed.hasFullTable(tableName));
   }
 
   /**
@@ -87,7 +91,21 @@ public final class UdbAttachSpec {
    * @return true if the partition should be bypassed, false otherwise
    */
   public boolean hasBypassedPartition(String tableName, String partitionName) {
-    return !hasIgnoredTable(tableName) && mBypassed.hasPartition(tableName, partitionName);
+    return shadowedByIgnore(tableName, mBypassed.hasPartition(tableName, partitionName));
+  }
+
+  /**
+   * Checks if a table is shadowed by ignoring when it is also bypassed.
+   * @param tableName the table name
+   * @param mightBeShadowedIfTrue the return value of {@link #hasBypassedTable(String)}, etc
+   * @return false if the table is shadowed by ignoring, mightBeShadowedIfTrue if it is not
+   */
+  private boolean shadowedByIgnore(String tableName, boolean mightBeShadowedIfTrue) {
+    if (mightBeShadowedIfTrue && hasIgnoredTable(tableName)) {
+      LOG.warn("Table {} is set to be bypassed but it is also ignored", tableName);
+      return false;
+    }
+    return mightBeShadowedIfTrue;
   }
 
   /**
