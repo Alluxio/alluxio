@@ -163,3 +163,26 @@ A subset of the memory usage metrics are listed as following:
 | pools.Compressed-Class-Space.used | Used memory of collection usage from the pool from which memory is use for class metadata |
 | pools.PS-Eden-Space.used | Used memory of collection usage from the pool from which memory is initially allocated for most objects |
 | pools.PS-Survivor-Space.used | Used memory of collection usage from the pool containing objects that have survived the garbage collection of the Eden space |
+
+### ClassLoading Statistics
+
+| Metric Name | Description |
+|-------------------------|-----------------------------------------------------|
+| loaded | The total number of classes loaded |
+| unloaded | The total number of unloaded classes |
+
+### Thread Statistics
+
+| Metric Name | Description |
+|-------------------------|-----------------------------------------------------|
+| count | The current number of live threads |
+| daemon.count | The current number of live daemon threads |
+| peak.count | The peak live thread count |
+| total_started.count | The total number of threads started |
+| deadlock.count | The number of deadlocked threads |
+| deadlock | The call stack of each thread related deadlock |
+| new.count | The number of threads with new state |
+| blocked.count | The number of threads with blocked state |
+| runnable.count | The number of threads with runnable state |
+| terminated.count | The number of threads with terminated state |
+| timed_waiting.count | The number of threads with timed_waiting state |
