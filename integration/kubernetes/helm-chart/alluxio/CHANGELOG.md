@@ -185,3 +185,6 @@
 
 0.6.23
 - Add Alluxio CSI support
+
+0.6.24
+- Fix Alluxio CSI `nodeplugin.yaml` indentation
