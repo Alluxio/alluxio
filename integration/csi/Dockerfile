@@ -21,5 +21,5 @@ FROM dev as build
 RUN cd $GOPATH/src/github.com/Alluxio/alluxio-csi && \
     CGO_ENABLED=0 go build -o /usr/local/bin/alluxio-csi
 
-FROM alluxio/alluxio-fuse:latest as final
+FROM alluxio/alluxio:latest as final
 COPY --from=build /usr/local/bin/alluxio-csi /usr/local/bin/
