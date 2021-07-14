@@ -23,9 +23,12 @@ import static org.junit.Assert.assertTrue;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import org.junit.Before;
 import org.junit.Test;
+
+import java.util.List;
 
 public class DbConfigTest {
   private ObjectMapper mMapper;
@@ -242,5 +245,20 @@ public class DbConfigTest {
     assertEquals(ImmutableSet.of(new TableEntry("table1")),
         entry.getList().getIncludedEntries());
     assertEquals(ImmutableSet.of(), entry.getList().getExcludedEntries());
+  }
+
+  @Test
+  public void emptyConfig() throws Exception {
+    List<String> sources = ImmutableList.of(
+        // "" empty string will cause MismatchedInputException
+        "{}",
+        "{\"bypass\": null}",
+        "{\"ignore\": null}",
+        "{\"bypass\": null, \"ignore\": null}"
+    );
+    for (String source : sources) {
+      DbConfig config = mMapper.readValue(source, DbConfig.class);
+      assertEquals(DbConfig.empty(), config);
+    }
   }
 }

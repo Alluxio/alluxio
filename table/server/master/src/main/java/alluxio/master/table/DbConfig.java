@@ -211,6 +211,25 @@ public final class DbConfig {
     return builder.build();
   }
 
+  @Override
+  public boolean equals(Object other) {
+    if (this == other) {
+      return true;
+    } else if (other == null) {
+      return false;
+    } else if (getClass() != other.getClass()) {
+      return false;
+    }
+    DbConfig that = (DbConfig) other;
+    return Objects.equals(mBypassEntry, that.mBypassEntry)
+        && Objects.equals(mIgnoreEntry, that.mIgnoreEntry);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(mBypassEntry, mIgnoreEntry);
+  }
+
   /**
    * Type alias for TablesEntry<TableEntry>.
    */
@@ -253,6 +272,24 @@ public final class DbConfig {
 
     IncludeExcludeList<T> getList() {
       return mList;
+    }
+
+    @Override
+    public boolean equals(Object other) {
+      if (this == other) {
+        return true;
+      } else if (other == null) {
+        return false;
+      } else if (getClass() != other.getClass()) {
+        return false;
+      }
+      TablesEntry that = (TablesEntry) other;
+      return Objects.equals(mList, that.mList);
+    }
+
+    @Override
+    public int hashCode() {
+      return Objects.hashCode(mList);
     }
   }
 

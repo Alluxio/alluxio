@@ -212,11 +212,16 @@ public class Database implements Journaled {
         throw new FileNotFoundException(mConfigPath);
       }
       ObjectMapper mapper = new ObjectMapper();
-      try {
-        mDbConfig = mapper.readValue(new File(mConfigPath), DbConfig.class);
-      } catch (JsonProcessingException e) {
-        LOG.error("Failed to deserialize UDB config file {}, stays unsynced", mConfigPath, e);
-        throw e;
+      File configFile = new File(mConfigPath);
+      if (configFile.length() == 0) {
+        mDbConfig = DbConfig.empty();
+      } else {
+        try {
+          mDbConfig = mapper.readValue(configFile, DbConfig.class);
+        } catch (JsonProcessingException e) {
+          LOG.error("Failed to deserialize UDB config file {}, stays unsynced", mConfigPath, e);
+          throw e;
+        }
       }
     }
     DatabaseInfo newDbInfo = mUdb.getDatabaseInfo();
