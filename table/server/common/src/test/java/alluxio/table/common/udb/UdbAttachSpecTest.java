@@ -33,7 +33,7 @@ public class UdbAttachSpecTest {
   /* Inclusion tests */
   @Test
   public void includedTableAndPartitionNames() {
-    UdbAttachSpec.SimpleWrapperBuilder partitionBuilder = new UdbAttachSpec.SimpleWrapperBuilder();
+    UdbAttachSpec.PartitionSpecBuilder partitionBuilder = new UdbAttachSpec.PartitionSpecBuilder();
     partitionBuilder.include().addName("part1").addName("part2");
     mBuilder.bypass()
         .include()
@@ -81,7 +81,7 @@ public class UdbAttachSpecTest {
 
   @Test
   public void includedTableMixedNamesPatternsPartitions() {
-    UdbAttachSpec.SimpleWrapperBuilder partitionBuilder = new UdbAttachSpec.SimpleWrapperBuilder();
+    UdbAttachSpec.PartitionSpecBuilder partitionBuilder = new UdbAttachSpec.PartitionSpecBuilder();
     partitionBuilder
         .include()
         .addNames(ImmutableSet.of("part1", "part2"))
@@ -104,7 +104,7 @@ public class UdbAttachSpecTest {
 
   @Test
   public void includedTableExplicitNamesFirst() {
-    UdbAttachSpec.SimpleWrapperBuilder partitionBuilder = new UdbAttachSpec.SimpleWrapperBuilder();
+    UdbAttachSpec.PartitionSpecBuilder partitionBuilder = new UdbAttachSpec.PartitionSpecBuilder();
     partitionBuilder.include().addName("part1");
     mBuilder.bypass()
         .include()
@@ -125,7 +125,7 @@ public class UdbAttachSpecTest {
 
   @Test(expected = IllegalArgumentException.class)
   public void rejectInclusionExclusionAtSameTime2() {
-    UdbAttachSpec.SimpleWrapperBuilder partitionBuilder = new UdbAttachSpec.SimpleWrapperBuilder();
+    UdbAttachSpec.PartitionSpecBuilder partitionBuilder = new UdbAttachSpec.PartitionSpecBuilder();
     partitionBuilder.include().addName("part1");
     partitionBuilder.exclude().addName("part2");
     partitionBuilder.build();
@@ -165,7 +165,7 @@ public class UdbAttachSpecTest {
 
   @Test
   public void excludedPartitionsOfIncludedTable() {
-    UdbAttachSpec.SimpleWrapperBuilder partitionBuilder = new UdbAttachSpec.SimpleWrapperBuilder();
+    UdbAttachSpec.PartitionSpecBuilder partitionBuilder = new UdbAttachSpec.PartitionSpecBuilder();
     partitionBuilder.exclude().addName("part1");
     mBuilder.bypass()
         .include()

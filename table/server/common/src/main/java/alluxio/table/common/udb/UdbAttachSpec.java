@@ -37,16 +37,16 @@ public final class UdbAttachSpec {
   /**
    * Tables and partitions to bypass.
    */
-  private final TablePartitionWrapper mBypassed;
+  private final TablePartitionInclusionExclusionWrapper mBypassed;
 
   /**
    * Ignored tables.
    * Tables are ignored as a whole, no partition configuration is needed.
    */
-  private final SimpleWrapper mIgnored;
+  private final NamePatternInclusionExclusionWrapper mIgnored;
 
-  protected UdbAttachSpec(TablePartitionWrapper bypassed,
-                          SimpleWrapper ignored) {
+  protected UdbAttachSpec(TablePartitionInclusionExclusionWrapper bypassed,
+                          NamePatternInclusionExclusionWrapper ignored) {
     mBypassed = bypassed;
     mIgnored = ignored;
   }
@@ -133,9 +133,9 @@ public final class UdbAttachSpec {
     }
   }
 
-  static final class TablePartitionWrapper
+  static final class TablePartitionInclusionExclusionWrapper
       extends InclusionExclusionWrapper<TablePartitionNamePatternWrapper> {
-    TablePartitionWrapper(
+    TablePartitionInclusionExclusionWrapper(
         TablePartitionNamePatternWrapper included,
         SimpleNamePatternWrapper excluded) {
       super(included, excluded);
@@ -167,8 +167,10 @@ public final class UdbAttachSpec {
   /**
    * Type alias for {@link InclusionExclusionWrapper<SimpleNamePatternWrapper>}.
    */
-  static final class SimpleWrapper extends InclusionExclusionWrapper<SimpleNamePatternWrapper> {
-    SimpleWrapper(SimpleNamePatternWrapper included, SimpleNamePatternWrapper excluded) {
+  static final class NamePatternInclusionExclusionWrapper
+      extends InclusionExclusionWrapper<SimpleNamePatternWrapper> {
+    NamePatternInclusionExclusionWrapper(SimpleNamePatternWrapper included,
+                                         SimpleNamePatternWrapper excluded) {
       super(included, excluded);
     }
   }
@@ -177,10 +179,12 @@ public final class UdbAttachSpec {
    * Wrapper for table and partition specs, only appears in bypass-include list.
    */
   static class TablePartitionNamePatternWrapper extends NamePatternWrapper {
-    private final ImmutableMap<String, Set<SimpleWrapper>> mTablePartMap;
+    private final ImmutableMap<String, Set<NamePatternInclusionExclusionWrapper>> mTablePartMap;
 
-    TablePartitionNamePatternWrapper(Set<String> fullTableNames, Set<Pattern> patterns,
-                                     Map<String, Set<SimpleWrapper>> tablePartMap) {
+    TablePartitionNamePatternWrapper(
+        Set<String> fullTableNames,
+        Set<Pattern> patterns,
+        Map<String, Set<NamePatternInclusionExclusionWrapper>> tablePartMap) {
       super(fullTableNames, patterns);
       mTablePartMap = ImmutableMap.copyOf(tablePartMap);
     }
@@ -232,14 +236,14 @@ public final class UdbAttachSpec {
       // otherwise, one of the following is true:
       // 1. the table's partially bypassed
       // 2. it's not bypassed at all
-      Set<SimpleWrapper> simpleWrappers = mTablePartMap.get(tableName);
-      if (simpleWrappers == null) {
+      Set<NamePatternInclusionExclusionWrapper> wrappers = mTablePartMap.get(tableName);
+      if (wrappers == null) {
         // no partition specs, so it's not bypassed at all
         return false;
       }
       // it's partially bypassed
-      // here we know for sure `simpleWrappers.size() != 0`
-      return simpleWrappers.stream().anyMatch(p -> p.has(partName));
+      // here we know for sure `wrappers.size() != 0`
+      return wrappers.stream().anyMatch(p -> p.has(partName));
     }
   }
 
@@ -446,7 +450,7 @@ public final class UdbAttachSpec {
   public static final class TablePartitionNamePatternWrapperBuilder
       extends BaseBuilder<TablePartitionNamePatternWrapper,
       TablePartitionNamePatternWrapperBuilder> {
-    private Map<String, Set<SimpleWrapper>> mTablePartMap;
+    private Map<String, Set<NamePatternInclusionExclusionWrapper>> mTablePartMap;
 
     @Override
     TablePartitionNamePatternWrapperBuilder self() {
@@ -460,16 +464,17 @@ public final class UdbAttachSpec {
      * @return the builder
      */
     public TablePartitionNamePatternWrapperBuilder addPartition(String tableName,
-                                                                SimpleWrapperBuilder builder) {
+                                                                PartitionSpecBuilder builder) {
       return addPartition(tableName, builder.build());
     }
 
-    TablePartitionNamePatternWrapperBuilder addPartition(String tableName,
-                                                         SimpleWrapper partition) {
+    TablePartitionNamePatternWrapperBuilder addPartition(
+        String tableName,
+        NamePatternInclusionExclusionWrapper partition) {
       if (mTablePartMap == null) {
         mTablePartMap = new HashMap<>();
       }
-      Set<SimpleWrapper> set = mTablePartMap.get(tableName);
+      Set<NamePatternInclusionExclusionWrapper> set = mTablePartMap.get(tableName);
       if (set != null) {
         set.add(partition);
       } else {
@@ -501,7 +506,7 @@ public final class UdbAttachSpec {
       TablePartitionNamePatternWrapperBuilder,
       SimpleNamePatternWrapper,
       SimpleNamePatternWrapperBuilder,
-      TablePartitionWrapper> {
+      TablePartitionInclusionExclusionWrapper> {
 
     protected BypassEntryBuilder(
         TablePartitionNamePatternWrapperBuilder includeBuilder,
@@ -517,22 +522,22 @@ public final class UdbAttachSpec {
     }
 
     @Override
-    TablePartitionWrapper build() {
-      return new TablePartitionWrapper(include().build(), exclude().build());
+    TablePartitionInclusionExclusionWrapper build() {
+      return new TablePartitionInclusionExclusionWrapper(include().build(), exclude().build());
     }
   }
 
   /**
    * Builder for the ignore entry.
    */
-  public static class SimpleWrapperBuilder extends IncludeExcludeBuilder<
+  static class NamePatternInclusionExclusionWrapperBuilder extends IncludeExcludeBuilder<
       SimpleNamePatternWrapper,
       SimpleNamePatternWrapperBuilder,
       SimpleNamePatternWrapper,
       SimpleNamePatternWrapperBuilder,
-      SimpleWrapper> {
+      NamePatternInclusionExclusionWrapper> {
 
-    protected SimpleWrapperBuilder(
+    protected NamePatternInclusionExclusionWrapperBuilder(
         SimpleNamePatternWrapperBuilder includeBuilder,
         SimpleNamePatternWrapperBuilder excludeBuilder) {
       super(includeBuilder, excludeBuilder);
@@ -541,29 +546,41 @@ public final class UdbAttachSpec {
     /**
      * Creates a new builder.
      */
-    public SimpleWrapperBuilder() {
+    public NamePatternInclusionExclusionWrapperBuilder() {
       this(new SimpleNamePatternWrapperBuilder(), new SimpleNamePatternWrapperBuilder());
     }
 
     @Override
-    public SimpleWrapper build() {
-      return new SimpleWrapper(include().build(), exclude().build());
+    public NamePatternInclusionExclusionWrapper build() {
+      return new NamePatternInclusionExclusionWrapper(include().build(), exclude().build());
     }
   }
+
+  /**
+   * Type alias for {@link NamePatternInclusionExclusionWrapperBuilder} \
+   * when it is used to build a partition spec.
+   */
+  public static class PartitionSpecBuilder extends NamePatternInclusionExclusionWrapperBuilder {}
+
+  /**
+   * Type alias for {@link NamePatternInclusionExclusionWrapperBuilder} \
+   * when it is used to build an ignore entry.
+   */
+  public static class IgnoreEntryBuilder extends NamePatternInclusionExclusionWrapperBuilder {}
 
   /**
    * Builder for {@link UdbAttachSpec}.
    */
   public static class Builder {
     private final BypassEntryBuilder mBypassBuilder;
-    private final SimpleWrapperBuilder mIgnoreBuilder;
+    private final IgnoreEntryBuilder mIgnoreBuilder;
 
     /**
      * Creates a new builder.
      */
     public Builder() {
       mBypassBuilder = new BypassEntryBuilder();
-      mIgnoreBuilder = new SimpleWrapperBuilder();
+      mIgnoreBuilder = new IgnoreEntryBuilder();
     }
 
     /**
@@ -578,7 +595,7 @@ public final class UdbAttachSpec {
      * Gets Builder for the ignore entry.
      * @return the builder
      */
-    public SimpleWrapperBuilder ignore() {
+    public IgnoreEntryBuilder ignore() {
       return mIgnoreBuilder;
     }
 
@@ -587,8 +604,8 @@ public final class UdbAttachSpec {
      * @return the builder
      */
     public UdbAttachSpec build() {
-      TablePartitionWrapper bypassed = mBypassBuilder.build();
-      SimpleWrapper ignored = mIgnoreBuilder.build();
+      TablePartitionInclusionExclusionWrapper bypassed = mBypassBuilder.build();
+      NamePatternInclusionExclusionWrapper ignored = mIgnoreBuilder.build();
       return new UdbAttachSpec(bypassed, ignored);
     }
   }

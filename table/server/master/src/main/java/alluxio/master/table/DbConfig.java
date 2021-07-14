@@ -166,8 +166,8 @@ public final class DbConfig {
         continue;
       }
       IncludeExcludeList<NamePatternEntry> partitions = entry.getPartitions();
-      UdbAttachSpec.SimpleWrapperBuilder partitionBuilder =
-          new UdbAttachSpec.SimpleWrapperBuilder();
+      UdbAttachSpec.PartitionSpecBuilder partitionBuilder =
+          new UdbAttachSpec.PartitionSpecBuilder();
       for (NamePatternEntry partition : partitions.getIncludedEntries()) {
         if (partition.isPattern()) {
           partitionBuilder.include().addPattern(partition.getPattern());
