@@ -120,10 +120,14 @@ public final class S3RestServiceHandler {
       return null;
     }
 
-    // The valid pattern for Authorization is "AWS <AWSAccessKeyId>:<Signature>"
     // Parse the authorization header defined at
     // https://docs.aws.amazon.com/AmazonS3/latest/API/sigv4-auth-using-authorization-header.html
     // All other authorization types are deprecated or EOL (as of writing)
+    // Example Header value (spaces turned to line breaks):
+    // AWS4-HMAC-SHA256
+    // Credential=AKIAIOSFODNN7EXAMPLE/20130524/us-east-1/s3/aws4_request,
+    // SignedHeaders=host;range;x-amz-date,
+    // Signature=fe5f80f77d5fa3beca038a248ff027d0445342fe2855ddc963176630326f1024
 
     // We only care about the credential key, so split the header by " " and then take everything
     // after the "=" and before the first "/"
@@ -158,12 +162,12 @@ public final class S3RestServiceHandler {
   }
 
   /**
-   * @summary lists all buckets owned by you
+   * Lists all buckets owned by you
+   *
    * @param authorization header parameter authorization
    * @return the response object
    */
   @GET
-  @Path("/")
   public Response listAllMyBuckets(@HeaderParam("Authorization") String authorization) {
 
     return S3RestUtils.call("", () -> {
