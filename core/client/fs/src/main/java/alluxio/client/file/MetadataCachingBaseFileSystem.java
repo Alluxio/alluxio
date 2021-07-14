@@ -83,6 +83,7 @@ public class MetadataCachingBaseFileSystem extends BaseFileSystem {
   public void createDirectory(AlluxioURI path, CreateDirectoryPOptions options)
       throws FileAlreadyExistsException, InvalidPathException, IOException, AlluxioException {
     super.createDirectory(path, options);
+    mMetadataCache.invalidate(path.getParent());
     mMetadataCache.invalidate(path);
   }
 
@@ -91,6 +92,7 @@ public class MetadataCachingBaseFileSystem extends BaseFileSystem {
       throws IOException,
       AlluxioException {
     FileOutStream outStream = super.createFile(path);
+    mMetadataCache.invalidate(path.getParent());
     mMetadataCache.invalidate(path);
     return outStream;
   }
@@ -100,6 +102,7 @@ public class MetadataCachingBaseFileSystem extends BaseFileSystem {
       throws IOException,
       AlluxioException {
     FileOutStream outStream = super.createFile(path, options);
+    mMetadataCache.invalidate(path.getParent());
     mMetadataCache.invalidate(path);
     return outStream;
   }
@@ -109,6 +112,7 @@ public class MetadataCachingBaseFileSystem extends BaseFileSystem {
       throws IOException,
       AlluxioException {
     super.delete(path);
+    mMetadataCache.invalidate(path.getParent());
     mMetadataCache.invalidate(path);
   }
 
@@ -117,6 +121,7 @@ public class MetadataCachingBaseFileSystem extends BaseFileSystem {
       throws IOException,
       AlluxioException {
     super.delete(path, options);
+    mMetadataCache.invalidate(path.getParent());
     mMetadataCache.invalidate(path);
   }
 
@@ -124,7 +129,9 @@ public class MetadataCachingBaseFileSystem extends BaseFileSystem {
   public void rename(AlluxioURI src, AlluxioURI dst)
       throws IOException, AlluxioException {
     super.rename(src, dst);
+    mMetadataCache.invalidate(src.getParent());
     mMetadataCache.invalidate(src);
+    mMetadataCache.invalidate(dst.getParent());
     mMetadataCache.invalidate(dst);
   }
 
@@ -132,7 +139,9 @@ public class MetadataCachingBaseFileSystem extends BaseFileSystem {
   public void rename(AlluxioURI src, AlluxioURI dst, RenamePOptions options)
       throws IOException, AlluxioException {
     super.rename(src, dst, options);
+    mMetadataCache.invalidate(src.getParent());
     mMetadataCache.invalidate(src);
+    mMetadataCache.invalidate(dst.getParent());
     mMetadataCache.invalidate(dst);
   }
 
