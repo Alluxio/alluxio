@@ -183,7 +183,7 @@ public abstract class Cache<K, V> implements Closeable {
       return;
     }
 
-    if (entry == null || entry.mValue == null) {
+    if(entry == null || entry.mValue == null) {
       onCacheUpdate(key, value);
       entry = new Entry(key, value);
     } else {
