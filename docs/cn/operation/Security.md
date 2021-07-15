@@ -148,7 +148,8 @@ Failed to authenticate client user="yarn" connecting to Alluxio server and imper
 impersonationUser="foo" to access Alluxio file system. User "yarn" is not configured to
 allow any impersonation.
 ```
-这个错误意味着用户`yarn`正在试图冒充用户`foo`连接到Alluxio，但是Alluxio服务并没有配置允许用户yarn启用模拟。为了解决这个问题，Alluxio服务器必须配置允许有问题的用户启用模拟（示例中用户`yarn`）
+这个错误意味着用户`yarn`正在试图冒充用户`foo`连接到Alluxio，但是Alluxio服务并没有配置允许用户yarn启用模拟。为了解决这个问题，Alluxio服务器必须配置允许有问题的用户启用模拟（示例中用户`yarn`）  
+更多的建议可参考该[文档](https://www.alluxio.io/blog/alluxio-developer-tip-why-am-i-seeing-the-error-user-yarn-is-not-configured-for-any-impersonation-impersonationuser-foo/) 。
 ## 审计 {#auditing}
 Alluxio支持审计日志以便系统管理员能追踪用户对文件元数据的访问操作。
 
