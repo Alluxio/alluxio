@@ -346,7 +346,6 @@ public class CacheRequestManager {
       return mRequest.getBlockId() == that.mRequest.getBlockId();
     }
 
-
     public Boolean call() {
       boolean result = false;
       long blockId = mRequest.getBlockId();

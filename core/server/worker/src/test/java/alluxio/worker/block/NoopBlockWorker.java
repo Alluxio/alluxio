@@ -167,6 +167,7 @@ public class NoopBlockWorker implements BlockWorker {
   public void asyncCache(AsyncCacheRequest request) {
     // noop
   }
+
   @Override
   public boolean cache(CacheRequest request) {
     // noop

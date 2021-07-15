@@ -47,7 +47,6 @@ import alluxio.wire.BlockLocation;
 import alluxio.wire.TieredIdentity;
 import alluxio.wire.WorkerNetAddress;
 
-
 import com.google.common.base.Preconditions;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
@@ -77,17 +76,10 @@ public final class LoadCommand extends AbstractFileSystemCommand {
   // todo(jianjian) add option for timeout and parallelism(compatibility?)
   private static final int DEFAULT_PARALLELISM = 4;
 
-  private static final Option LOCAL_OPTION =
-      Option.builder()
-          .longOpt("local")
-          .required(false)
-          .hasArg(false)
-          .desc("load the file to local worker.")
-          .build();
+  private static final Option LOCAL_OPTION = Option.builder().longOpt("local").required(false)
+      .hasArg(false).desc("load the file to local worker.").build();
 
   private static final long DEFAULT_TIMEOUT = 20 * Constants.MINUTE_MS;
-
-
 
   /**
    * Constructs a new instance to load a file or directory in Alluxio space.
@@ -105,22 +97,21 @@ public final class LoadCommand extends AbstractFileSystemCommand {
 
   @Override
   public Options getOptions() {
-    return new Options()
-        .addOption(LOCAL_OPTION);
+    return new Options().addOption(LOCAL_OPTION);
   }
 
   @Override
   protected void runPlainPath(AlluxioURI plainPath, CommandLine cl)
       throws AlluxioException, IOException {
-    ExecutorService service =
-        Executors.newFixedThreadPool(DEFAULT_PARALLELISM, ThreadFactoryUtils.build("load-cli-%d",
-            true));
+    ExecutorService service = Executors.newFixedThreadPool(DEFAULT_PARALLELISM,
+        ThreadFactoryUtils.build("load-cli-%d", true));
 
     List<LoadTask> tasks = new ArrayList<>();
 
-    load(plainPath, cl.hasOption(LOCAL_OPTION.getLongOpt()),tasks);
+    load(plainPath, cl.hasOption(LOCAL_OPTION.getLongOpt()), tasks);
     try {
-      List<Future<Boolean>> futures = service.invokeAll(tasks,DEFAULT_TIMEOUT, TimeUnit.MILLISECONDS);
+      List<Future<Boolean>> futures =
+          service.invokeAll(tasks, DEFAULT_TIMEOUT, TimeUnit.MILLISECONDS);
       for (Future<Boolean> future : futures) {
         if (!future.isCancelled()) {
           try {
@@ -151,7 +142,8 @@ public final class LoadCommand extends AbstractFileSystemCommand {
    * @param filePath The {@link AlluxioURI} path to load into Alluxio
    * @param local whether to load data to local worker even when the data is already loaded remotely
    */
-  private void load(AlluxioURI filePath, boolean local, List<LoadTask> tasks) throws AlluxioException, IOException {
+  private void load(AlluxioURI filePath, boolean local, List<LoadTask> tasks)
+      throws AlluxioException, IOException {
     URIStatus status = mFileSystem.getStatus(filePath);
 
     if (status.isFolder()) {
@@ -163,8 +155,8 @@ public final class LoadCommand extends AbstractFileSystemCommand {
     } else {
       if (local) {
         if (!mFsContext.hasNodeLocalWorker()) {
-          System.out.println("When local option is specified,"
-              + " there must be a local worker available");
+          System.out.println(
+              "When local option is specified," + " there must be a local worker available");
           return;
         }
       } else if (status.getInAlluxioPercentage() == 100) {
@@ -173,22 +165,22 @@ public final class LoadCommand extends AbstractFileSystemCommand {
         return;
       }
 
-      submitLoadTaks(filePath, status, local, tasks);
+      queueLoadTasks(filePath, status, local, tasks);
     }
   }
 
-  private void submitLoadTaks(AlluxioURI filePath, URIStatus status, boolean local,
+  private void queueLoadTasks(AlluxioURI filePath, URIStatus status, boolean local,
       List<LoadTask> tasks) throws IOException {
     OpenFilePOptions options = OpenFilePOptions.newBuilder().build();
     AlluxioConfiguration conf = mFsContext.getPathConf(filePath);
-    BlockLocationPolicy policy =
-        Preconditions.checkNotNull(BlockLocationPolicy.Factory
-                .create(conf.get(PropertyKey.USER_UFS_BLOCK_READ_LOCATION_POLICY), conf),
-            PreconditionMessage.UFS_READ_LOCATION_POLICY_UNSPECIFIED);
+    BlockLocationPolicy policy = Preconditions.checkNotNull(
+        BlockLocationPolicy.Factory
+            .create(conf.get(PropertyKey.USER_UFS_BLOCK_READ_LOCATION_POLICY), conf),
+        PreconditionMessage.UFS_READ_LOCATION_POLICY_UNSPECIFIED);
 
     WorkerNetAddress worker;
     List<Long> blockIds = status.getBlockIds();
-    for (long blockId:blockIds) {
+    for (long blockId : blockIds) {
       if (local) {
         worker = mFsContext.getNodeLocalWorker();
       } else { // send request to data source
@@ -220,29 +212,25 @@ public final class LoadCommand extends AbstractFileSystemCommand {
     private final URIStatus mStatus;
     private final OpenFilePOptions mOptions;
 
-
-    LoadTask(long blockId, WorkerNetAddress dataSource, boolean local,
-        URIStatus status, OpenFilePOptions options) {
+    LoadTask(long blockId, WorkerNetAddress dataSource, boolean local, URIStatus status,
+        OpenFilePOptions options) {
       mBlockId = blockId;
       mDataSource = dataSource;
       mLocal = local;
       mStatus = status;
       mOptions = options;
-
     }
 
     @Override
     public Boolean call() throws Exception {
       BlockInfo info = mStatus.getBlockInfo(mBlockId);
       long blockLength = info.getLength();
-      CacheRequest request =
-          CacheRequest.newBuilder().setBlockId(mBlockId).setLength(blockLength)
-              .setOpenUfsBlockOptions(getOpenUfsBlockOptions(mBlockId,mStatus,mOptions))
-              .setSourceHost(mDataSource.getHost()).setSourcePort(mDataSource.getDataPort())
-              .build();
+      CacheRequest request = CacheRequest.newBuilder().setBlockId(mBlockId).setLength(blockLength)
+          .setOpenUfsBlockOptions(getOpenUfsBlockOptions(mBlockId, mStatus, mOptions))
+          .setSourceHost(mDataSource.getHost()).setSourcePort(mDataSource.getDataPort()).build();
       // TODO(jianjian) support FUSE processLocalWorker?
       WorkerNetAddress worker;
-      try{
+      try {
         if (mLocal) {
           // send request to local worker
           worker = mFsContext.getNodeLocalWorker();
@@ -253,17 +241,18 @@ public final class LoadCommand extends AbstractFileSystemCommand {
             mFsContext.acquireBlockWorkerClient(worker)) {
           CacheResponse response = blockWorker.get().cache(request);
           return response.getSuccess();
-        }} catch (Exception e) {
-        System.out.printf("Failed to complete cache request for block %d of file %s: %s",
-            mBlockId, mStatus.getPath(), e.toString());
+        }
+      } catch (Exception e) {
+        System.out.printf("Failed to complete cache request for block %d of file %s: %s", mBlockId,
+            mStatus.getPath(), e.toString());
       }
       return false;
     }
   }
 
   // todo(jianjian) consider refactoring with AlluxioBlockStore
-  private WorkerNetAddress getDataSouce(long blockId, URIStatus status,
-      BlockLocationPolicy policy) throws IOException{
+  private WorkerNetAddress getDataSouce(long blockId, URIStatus status, BlockLocationPolicy policy)
+      throws IOException {
     BlockInfo info = status.getBlockInfo(blockId);
     List<BlockLocation> locations = info.getLocations();
     List<BlockWorkerInfo> blockWorkerInfo = Collections.EMPTY_LIST;
@@ -272,8 +261,7 @@ public final class LoadCommand extends AbstractFileSystemCommand {
     // Initial target workers to read the block given the block locations.
     Set<WorkerNetAddress> workers;
     // Note that, it is possible that the blocks have been written as UFS blocks
-    if (status.isPersisted()
-        || status.getPersistenceState().equals("TO_BE_PERSISTED")) {
+    if (status.isPersisted() || status.getPersistenceState().equals("TO_BE_PERSISTED")) {
       blockWorkerInfo = mFsContext.getCachedWorkers();
       if (blockWorkerInfo.isEmpty()) {
         throw new UnavailableException(ExceptionMessage.NO_WORKER_AVAILABLE.getMessage());
@@ -292,20 +280,18 @@ public final class LoadCommand extends AbstractFileSystemCommand {
     }
     // Workers to read the block, after considering failed workers.
     WorkerNetAddress dataSource = null;
-    locations = locations.stream()
-        .filter(location -> workers.contains(location.getWorkerAddress())).collect(toList());
+    locations = locations.stream().filter(location -> workers.contains(location.getWorkerAddress()))
+        .collect(toList());
     // First try to read data from Alluxio
     if (!locations.isEmpty()) {
       // TODO(calvin): Get location via a policy
       List<WorkerNetAddress> tieredLocations =
-          locations.stream().map(location -> location.getWorkerAddress())
-              .collect(toList());
+          locations.stream().map(location -> location.getWorkerAddress()).collect(toList());
       Collections.shuffle(tieredLocations);
       Optional<Pair<WorkerNetAddress, Boolean>> nearest =
           BlockLocationUtils.nearest(tieredIdentity, tieredLocations, mFsContext.getClusterConf());
       if (nearest.isPresent()) {
         dataSource = nearest.get().getFirst();
-
       }
     }
 
@@ -313,11 +299,9 @@ public final class LoadCommand extends AbstractFileSystemCommand {
     if (dataSource == null) {
       blockWorkerInfo = blockWorkerInfo.stream()
           .filter(workerInfo -> workers.contains(workerInfo.getNetAddress())).collect(toList());
-      GetWorkerOptions getWorkerOptions = GetWorkerOptions.defaults()
-          .setBlockInfo(new BlockInfo()
-              .setBlockId(info.getBlockId())
-              .setLength(info.getLength())
-              .setLocations(locations))
+      GetWorkerOptions getWorkerOptions = GetWorkerOptions
+          .defaults().setBlockInfo(new BlockInfo().setBlockId(info.getBlockId())
+              .setLength(info.getLength()).setLocations(locations))
           .setBlockWorkerInfos(blockWorkerInfo);
       dataSource = policy.getWorker(getWorkerOptions);
     }

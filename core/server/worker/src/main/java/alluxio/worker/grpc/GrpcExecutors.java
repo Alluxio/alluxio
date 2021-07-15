@@ -41,11 +41,10 @@ public final class GrpcExecutors {
       new ImpersonateThreadPoolExecutor(new ThreadPoolExecutor(THREADS_MIN,
           ServerConfiguration.getInt(PropertyKey.WORKER_NETWORK_CACHE_MANAGER_THREADS_MAX),
           THREAD_STOP_MS, TimeUnit.MILLISECONDS,
-          new UniqueBlockingQueue<>(ServerConfiguration.getInt(
-              PropertyKey.WORKER_NETWORK_CACHE_MANAGER_QUEUE_MAX)),
+          new UniqueBlockingQueue<>(
+              ServerConfiguration.getInt(PropertyKey.WORKER_NETWORK_CACHE_MANAGER_QUEUE_MAX)),
           ThreadFactoryUtils.build("AsyncCacheManagerExecutor-%d", true)));
-  //TODO(jianjian): update thread name when figure out compatibility issue
-
+  // TODO(jianjian): update thread name when figure out compatibility issue
 
   public static final ExecutorService BLOCK_READER_EXECUTOR =
       new ImpersonateThreadPoolExecutor(new ThreadPoolExecutor(THREADS_MIN,
@@ -72,11 +71,10 @@ public final class GrpcExecutors {
   private GrpcExecutors() {}
 
   /**
-   * This executor passes impersonation information to the real worker thread.
-   * The proxy user is tracked by {@link AuthenticatedClientUser#sUserThreadLocal}.
-   * This executor delegates operations to the underlying executor while setting the
-   * ThreadLocal context for execution.
-   * */
+   * This executor passes impersonation information to the real worker thread. The proxy user is
+   * tracked by {@link AuthenticatedClientUser#sUserThreadLocal}. This executor delegates operations
+   * to the underlying executor while setting the ThreadLocal context for execution.
+   */
   private static class ImpersonateThreadPoolExecutor extends AbstractExecutorService {
     private final ExecutorService mDelegate;
 

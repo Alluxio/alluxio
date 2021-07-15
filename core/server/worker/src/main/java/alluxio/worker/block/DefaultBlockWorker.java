@@ -543,6 +543,7 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
   public void asyncCache(AsyncCacheRequest request) {
     mCacheManager.submitRequest(request);
   }
+
   @Override
   public boolean cache(CacheRequest request) {
     return mCacheManager.submitRequest(request);
