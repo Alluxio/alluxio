@@ -82,9 +82,10 @@ public class MetadataCachingBaseFileSystem extends BaseFileSystem {
   @Override
   public void createDirectory(AlluxioURI path, CreateDirectoryPOptions options)
       throws FileAlreadyExistsException, InvalidPathException, IOException, AlluxioException {
-    super.createDirectory(path, options);
     mMetadataCache.invalidate(path.getParent());
     mMetadataCache.invalidate(path);
+    super.createDirectory(path, options);
+
   }
 
   @Override
