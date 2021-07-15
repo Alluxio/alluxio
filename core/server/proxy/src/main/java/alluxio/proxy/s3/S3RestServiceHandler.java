@@ -448,6 +448,7 @@ public final class S3RestServiceHandler {
   @Path(OBJECT_PARAM)
   // TODO(cc): investigate on how to specify multiple return types, and how to decouple the REST
   // endpoints where the only difference is the query parameter.
+  @Consumes({MediaType.APPLICATION_OCTET_STREAM, MediaType.APPLICATION_XML})
   public Response initiateOrCompleteMultipartUpload(
       @HeaderParam("Authorization") String authorization,
       @PathParam("bucket") final String bucket,
