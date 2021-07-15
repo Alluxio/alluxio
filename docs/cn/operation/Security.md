@@ -141,6 +141,7 @@ Alluxio支持用户模拟，以便用户代表另一个用户访问Alluxio。这
   - 不启用Alluxio client用户模拟
 - `_HDFS_USER_`
   - Alluxio client会模拟HDFS client的用户（当使用Hadoop兼容的client来调用Alluxio时）
+
 ### 异常
 应用程序中最可能常见的错误类似于
 ```
@@ -150,6 +151,7 @@ allow any impersonation.
 ```
 这个错误意味着用户`yarn`正在试图冒充用户`foo`连接到Alluxio，但是Alluxio服务并没有配置允许用户yarn启用模拟。为了解决这个问题，Alluxio服务器必须配置允许有问题的用户启用模拟（示例中用户`yarn`）  
 更多的建议可参考该[文档](https://www.alluxio.io/blog/alluxio-developer-tip-why-am-i-seeing-the-error-user-yarn-is-not-configured-for-any-impersonation-impersonationuser-foo/) 。
+
 ## 审计 {#auditing}
 Alluxio支持审计日志以便系统管理员能追踪用户对文件元数据的访问操作。
 
