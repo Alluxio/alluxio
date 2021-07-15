@@ -182,7 +182,7 @@ public class ListBucketResult {
   }
 
   /**
-   * @return the prefix
+   * @return the encoding type of the result
    */
   @JacksonXmlProperty(localName = "EncodingType")
   public String getEncodingType() {

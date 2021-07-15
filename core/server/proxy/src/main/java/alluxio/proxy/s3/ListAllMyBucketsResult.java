@@ -73,7 +73,7 @@ public class ListAllMyBucketsResult {
     }
 
     /**
-     * @return the name of the bucket
+     * @return the creation timestamp for the bucket
      */
     @JacksonXmlProperty(localName = "CreationDate")
     public String getCreationDate() {
