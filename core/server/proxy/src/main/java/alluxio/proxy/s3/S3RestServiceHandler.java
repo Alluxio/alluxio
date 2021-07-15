@@ -162,7 +162,7 @@ public final class S3RestServiceHandler {
   }
 
   /**
-   * Lists all buckets owned by you
+   * Lists all buckets owned by you.
    *
    * @param authorization header parameter authorization
    * @return the response object
