@@ -176,21 +176,22 @@ public abstract class Cache<K, V> implements Closeable {
    * @param value the value
    */
   public void put(K key, V value) {
-    mMap.compute(key, (k, entry) -> {
-      onPut(key, value);
-      if (entry == null && cacheIsFull()) {
-        writeToBackingStore(key, value);
-        return null;
-      }
-      if (entry == null || entry.mValue == null) {
-        onCacheUpdate(key, value);
-        return new Entry(key, value);
-      }
+    onPut(key, value);
+    Entry entry = mMap.get(key);
+    if(entry == null && cacheIsFull()) {
+      writeToBackingStore(key, value);
+      return;
+    }
+
+    if(entry == null || entry.mValue == null) {
+      onCacheUpdate(key, value);
+      entry = new Entry(key, value);
+    } else {
       entry.mValue = value;
       entry.mReferenced = true;
       entry.mDirty = true;
-      return entry;
-    });
+    }
+    mMap.put(key, entry);
     wakeEvictionThreadIfNecessary();
   }
 
