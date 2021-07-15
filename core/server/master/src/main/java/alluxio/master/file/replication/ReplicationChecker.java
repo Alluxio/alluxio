@@ -59,7 +59,8 @@ public final class ReplicationChecker implements HeartbeatExecutor {
   private static final Logger LOG = LoggerFactory.getLogger(ReplicationChecker.class);
   private static final Logger SAMPLING_LOG = new SamplingLogger(LOG, 10L * Constants.MINUTE_MS);
 
-  /** Maximum number of active jobs to be submitted to the job service. **/
+  // Maximum number of active jobs to be submitted to the job service in a
+  // single run of the replication checker
   private final int mMaxSingleBatch;
 
   /** Handler to the inode tree. */
