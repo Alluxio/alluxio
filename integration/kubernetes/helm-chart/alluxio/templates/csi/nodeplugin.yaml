@@ -116,7 +116,7 @@ spec:
               value: unix://plugin/csi.sock
           envFrom:
             - configMapRef:
-              name: {{ template "alluxio.fullname" . }}-config
+                name: {{ template "alluxio.fullname" . }}-config
           volumeMounts:
             - name: plugin-dir
               mountPath: /plugin
