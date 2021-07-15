@@ -150,7 +150,7 @@ public class MetadataCachingBaseFileSystem extends BaseFileSystem {
       throws FileDoesNotExistException, IOException, AlluxioException {
     checkUri(path);
     URIStatus status = mMetadataCache.get(path);
-    if (status == null) {
+    if (status == null || !status.isCompleted()) {
       try {
         status = super.getStatus(path, options);
         mMetadataCache.put(path, status);
