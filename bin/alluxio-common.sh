@@ -17,7 +17,24 @@ if [[ "$-" == *x* ]]; then
 fi
 BIN=$(cd "$( dirname "$( readlink "$0" || echo "$0" )" )"; pwd)
 
-# Utility functions for alluxio scripts 
+### Utility functions for alluxio scripts ###
+
+# Fetches the specified property from Alluxio configuration
+function get_alluxio_property() {
+  local property_key="${1:-}"
+  if [[ -z ${property_key} ]]; then
+    echo "No property provided to get_alluxio_property()"
+    exit 1
+  fi
+
+  local property=$(${BIN}/alluxio getConf ${property_key})
+  if [[ ${?} -ne 0 ]]; then
+    echo "Failed to fetch value for Alluxio property key: ${property_key}"
+    exit 1
+  fi
+
+  echo "${property}"
+}
 
 # Generates an array of ramdisk paths in global variable RAMDISKARRAY 
 function get_ramdisk_array() {
