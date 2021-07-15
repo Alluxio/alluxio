@@ -12,15 +12,13 @@
 package alluxio.client.file;
 
 import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertEquals;
 
 import alluxio.wire.FileInfo;
 import alluxio.wire.FileInfoTest;
 
-import org.hamcrest.CoreMatchers;
 import org.junit.Test;
 
 import java.util.Map;
@@ -37,8 +35,6 @@ public final class URIStatusTest {
       fail("Cannot create a URIStatus from a null FileInfo");
     } catch (Exception e) {
       assertTrue(e instanceof NullPointerException);
-      assertThat(e.getMessage(),
-          CoreMatchers.containsString("Cannot create a URIStatus from a null FileInfo"));
     }
   }
 
@@ -77,7 +73,6 @@ public final class URIStatusTest {
     assertEquals(uriStatus.isPinned(), fileInfo.isPinned());
     assertEquals(uriStatus.isMountPoint(), fileInfo.isMountPoint());
     assertEquals(uriStatus.getFileBlockInfos(), fileInfo.getFileBlockInfos());
-    assertEquals(uriStatus.toString(), fileInfo.toString());
     assertEquals(uriStatus.getXAttr().size(), fileInfo.getXAttr().size());
     for (Map.Entry<String, byte[]> entry : uriStatus.getXAttr().entrySet()) {
       assertArrayEquals(entry.getValue(), fileInfo.getXAttr().get(entry.getKey()));

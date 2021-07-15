@@ -36,22 +36,32 @@ public class LoadConfig implements PlanConfig {
   private final String mFilePath;
   private final int mReplication;
   private final Set<String> mWorkerSet;
+  private final Set<String> mExcludedWorkerSet;
   private final Set<String> mLocalityIds;
+  private final Set<String> mExcludedLocalityIds;
 
   /**
    * @param filePath the file path
    * @param replication the number of workers to store each block on, defaults to 1
    * @param workerSet the worker set
+   * @param excludedWorkerSet the excluded worker set
    * @param localityIds the locality identify set
+   * @param excludedLocalityIds the excluded locality identify set
    */
   public LoadConfig(@JsonProperty("filePath") String filePath,
       @JsonProperty("replication") Integer replication,
       @JsonProperty("workerSet") Set<String> workerSet,
-      @JsonProperty("localityIds") Set<String> localityIds) {
+      @JsonProperty("excludedWorkerSet") Set<String> excludedWorkerSet,
+      @JsonProperty("localityIds") Set<String> localityIds,
+      @JsonProperty("excludedLocalityIds") Set<String> excludedLocalityIds) {
     mFilePath = Preconditions.checkNotNull(filePath, "The file path cannot be null");
     mReplication = replication == null ? 1 : replication;
     mWorkerSet = workerSet == null ? Collections.EMPTY_SET : new HashSet(workerSet);
+    mExcludedWorkerSet = excludedWorkerSet == null ? Collections.EMPTY_SET
+        : new HashSet(excludedWorkerSet);
     mLocalityIds = localityIds == null ? Collections.EMPTY_SET : new HashSet(localityIds);
+    mExcludedLocalityIds = excludedLocalityIds == null ? Collections.EMPTY_SET
+        : new HashSet(excludedLocalityIds);
   }
 
   /**
@@ -114,9 +124,23 @@ public class LoadConfig implements PlanConfig {
   }
 
   /**
+   * @return excluded worker set
+   */
+  public Set<String> getExcludedWorkerSet() {
+    return mExcludedWorkerSet;
+  }
+
+  /**
    * @return locality identify set
    */
   public Set<String> getLocalityIds() {
     return mLocalityIds;
+  }
+
+  /**
+   * @return excluded locality identify set
+   */
+  public Set<String> getExcludedLocalityIds() {
+    return mExcludedLocalityIds;
   }
 }
