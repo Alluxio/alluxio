@@ -18,6 +18,8 @@ import alluxio.exception.status.UnauthenticatedException;
 import alluxio.grpc.AsyncCacheRequest;
 import alluxio.grpc.AsyncCacheResponse;
 import alluxio.grpc.BlockWorkerGrpc;
+import alluxio.grpc.CacheRequest;
+import alluxio.grpc.CacheResponse;
 import alluxio.grpc.ClearMetricsRequest;
 import alluxio.grpc.ClearMetricsResponse;
 import alluxio.grpc.CreateLocalBlockRequest;
@@ -232,5 +234,10 @@ public class DefaultBlockWorkerClient implements BlockWorkerClient {
             // we don't use response from the RPC
           }
         });
+  }
+
+  @Override
+  public CacheResponse cache(CacheRequest request) {
+    return mRpcBlockingStub.withDeadlineAfter(mRpcTimeoutMs, TimeUnit.MILLISECONDS).cache(request);
   }
 }

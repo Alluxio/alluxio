@@ -37,16 +37,18 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.Objects;
+import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
 import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.atomic.AtomicLong;
 
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * Handles client requests to asynchronously cache blocks. Responsible for managing the local
- * worker resources and intelligent pruning of duplicate or meaningless requests.
+ * Handles client requests to synchronously/asynchronously cache blocks. Responsible for
+ * managing the local worker resources and intelligent pruning of duplicate or meaningless requests.
  */
 @ThreadSafe
 public class CacheRequestManager {
@@ -112,11 +114,12 @@ public class CacheRequestManager {
       mPendingAsyncRequests.remove(blockId);
     }
   }
+  // TODO(jianjian): return error message
   /**
-   * Handles a request to cache a block asynchronously. This is a non-blocking call.
+   * Handles a request to cache a block synchronously.
    *
-   * @param request the async cache request fields will be available
-   * @return
+   * @param request the cache request fields will be available
+   * @return request succeed or not
    */
   public boolean submitRequest(CacheRequest request) {
     CACHE_REQUESTS.inc();
@@ -127,9 +130,19 @@ public class CacheRequestManager {
       return false;
     }
     try {
-      CacheTask task = new CacheTask(request);
-      boolean result = task.call();
-      return result;
+      Future<Boolean> task = mCacheExecutor.submit(new CacheTask(request));
+      return task.get();
+    } catch (RejectedExecutionException e) {
+      // RejectedExecutionException may be thrown in extreme cases when the
+      // gRPC thread pool is drained due to highly concurrent caching workloads. In these cases,
+      // return as async caching is at best effort.
+      mNumRejected.incrementAndGet();
+      SAMPLING_LOG.warn(String.format(
+          "Failed to cache block locally (async & best effort) as the thread pool is at capacity."
+              + " To increase, update the parameter '%s'. numRejected: {} error: {}",
+          PropertyKey.Name.WORKER_NETWORK_CACHE_MANAGER_THREADS_MAX), mNumRejected.get(),
+          e.toString());
+      return false;
     } catch (Exception e) {
       LOG.warn("Failed to submit cache request. request: {}", request, e);
       CACHE_FAILED_BLOCKS.inc();
@@ -290,11 +303,11 @@ public class CacheRequestManager {
     }
   }
   /**
-   * AsyncCacheTask is a runnable task that can be considered equal if
+   * CacheTask is a callable task that can be considered equal if
    * the blockId of the request is the same.
    */
   @VisibleForTesting
-  class CacheTask {
+  class CacheTask implements Callable<Boolean> {
     private final CacheRequest mRequest;
 
     /**
@@ -334,7 +347,7 @@ public class CacheRequestManager {
     }
 
 
-    public boolean call() {
+    public Boolean call() {
       boolean result = false;
       long blockId = mRequest.getBlockId();
       long blockLength = mRequest.getLength();
@@ -357,20 +370,18 @@ public class CacheRequestManager {
           result = cacheBlockFromRemoteWorker(
                   blockId, blockLength, sourceAddress, openUfsBlockOptions);
         }
-        LOG.debug("Result of async caching block {}: {}", blockId, result);
+        LOG.debug("Result of caching block {}: {}", blockId, result);
         return result;
       } catch (Exception e) {
-        LOG.warn("Async cache task failed. request: {}", mRequest, e);
+        LOG.warn("Cache task failed. request: {}", mRequest, e);
         return false;
       } finally {
         if (result) {
           CACHE_SUCCEEDED_BLOCKS.inc();
         } else {
           CACHE_FAILED_BLOCKS.inc();
-          return false;
         }
-        mPendingAsyncRequests.remove(blockId);
-        return true;
+        mPendingSyncRequests.remove(blockId);
       }
     }
   }
