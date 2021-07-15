@@ -12,6 +12,7 @@
 package alluxio.proxy.s3;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 
 import org.junit.Test;
 
@@ -19,8 +20,9 @@ public class S3RestServiceHandlerTest {
 
   @Test
   public void userFromAuthorization() throws Exception {
-    assertEquals(null, S3RestServiceHandler.getUserFromAuthorization("AWS :randomtext"));
-    assertEquals("test", S3RestServiceHandler.getUserFromAuthorization("AWS test:"));
-    assertEquals(null, S3RestServiceHandler.getUserFromAuthorization(""));
+    assertNull(S3RestServiceHandler.getUserFromAuthorization("AWS-SHA256-HMAC Credential=/asd"));
+    assertEquals("test", S3RestServiceHandler.getUserFromAuthorization(
+        "AWS-SHA256-HMAC Credential=test/asd"));
+    assertNull(S3RestServiceHandler.getUserFromAuthorization(""));
   }
 }
