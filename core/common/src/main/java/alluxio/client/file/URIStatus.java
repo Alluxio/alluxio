@@ -12,8 +12,6 @@
 package alluxio.client.file;
 
 import alluxio.annotation.PublicApi;
-import alluxio.client.quota.CacheQuota;
-import alluxio.client.quota.CacheScope;
 import alluxio.grpc.TtlAction;
 import alluxio.security.authorization.AccessControlList;
 import alluxio.security.authorization.DefaultAccessControlList;
@@ -21,10 +19,12 @@ import alluxio.wire.BlockInfo;
 import alluxio.wire.FileBlockInfo;
 import alluxio.wire.FileInfo;
 
+import com.google.common.base.MoreObjects;
 import com.google.common.base.Preconditions;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 import javax.annotation.Nullable;
@@ -39,7 +39,10 @@ import javax.annotation.concurrent.ThreadSafe;
 @PublicApi
 @ThreadSafe
 public class URIStatus {
+  /** Information about this URI retrieved from Alluxio master. */
   private final FileInfo mInfo;
+  /** Context associated with this URI, possibly set by other external engines (e.g., presto). */
+  private final CacheContext mCacheContext;
 
   /**
    * Constructs an instance of this class from a {@link FileInfo}.
@@ -47,7 +50,18 @@ public class URIStatus {
    * @param info an object containing the information about a particular uri
    */
   public URIStatus(FileInfo info) {
-    mInfo = Preconditions.checkNotNull(info, "Cannot create a URIStatus from a null FileInfo");
+    this(info, null);
+  }
+
+  /**
+   * Constructs an instance of this class from a {@link FileInfo}.
+   *
+   * @param info an object containing the information about a particular uri
+   * @param context cache context associated with this uri
+   */
+  public URIStatus(FileInfo info, @Nullable CacheContext context) {
+    mInfo = Preconditions.checkNotNull(info, "info");
+    mCacheContext = context;
   }
 
   /**
@@ -101,14 +115,6 @@ public class URIStatus {
    */
   public long getFileId() {
     return mInfo.getFileId();
-  }
-
-  /**
-   * @return the unique string identifier of the entity referenced by this uri used by Alluxio
-   *         servers, immutable
-   */
-  public String getFileIdentifier() {
-    return mInfo.getFileIdentifier();
   }
 
   /**
@@ -310,17 +316,11 @@ public class URIStatus {
   }
 
   /**
-   * @return the cache quota
+   * @return the Presto context
    */
-  public CacheQuota getCacheQuota() {
-    return mInfo.getCacheQuota();
-  }
-
-  /**
-   * @return the cache scope
-   */
-  public CacheScope getCacheScope() {
-    return mInfo.getCacheScope();
+  @Nullable
+  public CacheContext getCacheContext() {
+    return mCacheContext;
   }
 
   /**
@@ -338,20 +338,24 @@ public class URIStatus {
     if (this == o) {
       return true;
     }
-    if (!(o instanceof URIStatus)) {
+    if (o == null || getClass() != o.getClass()) {
       return false;
     }
-    URIStatus that = (URIStatus) o;
-    return mInfo.equals(that.mInfo);
+    URIStatus uriStatus = (URIStatus) o;
+    return Objects.equals(mInfo, uriStatus.mInfo) && Objects
+        .equals(mCacheContext, uriStatus.mCacheContext);
   }
 
   @Override
   public int hashCode() {
-    return mInfo.hashCode();
+    return Objects.hash(mInfo, mCacheContext);
   }
 
   @Override
   public String toString() {
-    return mInfo.toString();
+    return MoreObjects.toStringHelper(this)
+        .add("info", mInfo)
+        .add("cacheContext", mCacheContext)
+        .toString();
   }
 }

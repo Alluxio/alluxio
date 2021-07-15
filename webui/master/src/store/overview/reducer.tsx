@@ -16,6 +16,7 @@ import { IOverviewState, OverviewActionTypes } from './types';
 export const initialOverviewState: IOverviewState = {
   data: {
     capacity: '',
+    clusterId: '',
     configCheckErrors: [],
     configCheckStatus: '',
     configCheckWarns: [],

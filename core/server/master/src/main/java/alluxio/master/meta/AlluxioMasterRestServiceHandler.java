@@ -260,10 +260,10 @@ public final class AlluxioMasterRestServiceHandler {
           .setVersion(RuntimeConstants.VERSION)
           .setLiveWorkerNodes(Integer.toString(mBlockMaster.getWorkerCount()))
           .setCapacity(FormatUtils.getSizeFromBytes(mBlockMaster.getCapacityBytes()))
+          .setClusterId(mMetaMaster.getClusterID())
           .setUsedCapacity(FormatUtils.getSizeFromBytes(mBlockMaster.getUsedBytes()))
           .setFreeCapacity(FormatUtils
               .getSizeFromBytes(mBlockMaster.getCapacityBytes() - mBlockMaster.getUsedBytes()));
-
       ConfigCheckReport report = mMetaMaster.getConfigCheckReport();
       response.setConfigCheckStatus(report.getConfigStatus())
           .setConfigCheckErrors(report.getConfigErrors())
