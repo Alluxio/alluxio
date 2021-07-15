@@ -11,7 +11,7 @@
 
 package alluxio.master.table;
 
-import alluxio.table.common.udb.UdbBypassSpec;
+import alluxio.table.common.udb.UdbInExClusionSpec;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -39,14 +39,18 @@ import javax.annotation.Nullable;
  * The Alluxio db config information.
  */
 public final class DbConfig {
-  private final BypassEntry mBypassEntry;
+  private final TablesEntry mBypassEntry;
+  private final TablesEntry mIgnoreEntry;
 
   /**
    * @param bypassEntry bypass entry
+   * @param ignoreEntry ignore entry
    */
   @JsonCreator
-  public DbConfig(@JsonProperty("bypass") @Nullable BypassEntry bypassEntry) {
-    mBypassEntry = bypassEntry == null ? new BypassEntry(Collections.emptySet()) : bypassEntry;
+  public DbConfig(@JsonProperty("bypass") @Nullable TablesEntry bypassEntry,
+                  @JsonProperty("ignore") @Nullable TablesEntry ignoreEntry) {
+    mBypassEntry = bypassEntry == null ? new TablesEntry(Collections.emptySet()) : bypassEntry;
+    mIgnoreEntry = ignoreEntry == null ? new TablesEntry(Collections.emptySet()) : ignoreEntry;
   }
 
   /**
@@ -55,60 +59,59 @@ public final class DbConfig {
    * @return an empty config instance
    */
   public static DbConfig empty() {
-    return new DbConfig(new BypassEntry(Collections.emptySet()));
+    return new DbConfig(null, null);
   }
 
   /**
-   * @return the {@link BypassEntry} from config file
+   * @return the {@link TablesEntry} for bypassed tables from config file
    */
-  public BypassEntry getBypassEntry() {
+  public TablesEntry getBypassEntry() {
     return mBypassEntry;
   }
 
   /**
-   * @return the {@link UdbBypassSpec} object
+   * @return the {@link TablesEntry} for ignored tables from config file
    */
-  public UdbBypassSpec getUdbBypassSpec() {
-    return mBypassEntry.toUdbBypassSpec();
+  public TablesEntry getIgnoreEntry() {
+    return mIgnoreEntry;
   }
 
   /**
-   * Bypass configuration entry from config file.
+   * @return the {@link UdbInExClusionSpec} object
    */
-  public static final class BypassEntry {
+  public UdbInExClusionSpec getUdbInExClusionSpec() {
+    Map<String, Set<String>> bypassed = mBypassEntry.getTableEntries().stream().collect(
+        Collectors.toMap(TableEntry::getTable, TableEntry::getPartitions));
+    Set<String> ignored = mIgnoreEntry.getTableNames();
+    return new UdbInExClusionSpec(bypassed, ignored);
+  }
+
+  /**
+   * Tables configuration entry from config file.
+   */
+  public static final class TablesEntry {
     @JsonProperty("tables")
-    private final Set<BypassTableEntry> mEntries;
+    private final Set<TableEntry> mEntries;
 
     /**
-     * @param entries set of {@link BypassTableEntry}s
+     * @param entries set of {@link TableEntry}s
      */
     @JsonCreator
-    public BypassEntry(@JsonProperty("tables") @Nullable Set<BypassTableEntry> entries) {
+    public TablesEntry(@JsonProperty("tables") @Nullable Set<TableEntry> entries) {
       mEntries = entries == null ? Collections.emptySet() : entries;
     }
 
     /**
-     * Converts to a {@link UdbBypassSpec} object.
-     *
-     * @return the {@link UdbBypassSpec} object
+     * @return table names
      */
-    public UdbBypassSpec toUdbBypassSpec() {
-      Map<String, Set<String>> map = mEntries.stream().collect(
-          Collectors.toMap(BypassTableEntry::getTable, BypassTableEntry::getPartitions));
-      return new UdbBypassSpec(map);
+    public Set<String> getTableNames() {
+      return mEntries.stream().map(TableEntry::getTable).collect(Collectors.toSet());
     }
 
     /**
-     * @return tables bypassed
+     * @return {@link TableEntry}s
      */
-    public Set<String> getBypassedTables() {
-      return mEntries.stream().map(BypassTableEntry::getTable).collect(Collectors.toSet());
-    }
-
-    /**
-     * @return {@link BypassTableEntry}s
-     */
-    public Set<BypassTableEntry> getBypassTableEntries() {
+    public Set<TableEntry> getTableEntries() {
       return mEntries;
     }
   }
@@ -116,8 +119,8 @@ public final class DbConfig {
   /**
    * Table to partitions mapping.
    */
-  @JsonDeserialize(using = BypassTableEntryDeserializer.class)
-  public static class BypassTableEntry {
+  @JsonDeserialize(using = TableEntryDeserializer.class)
+  public static class TableEntry {
     private final String mTableName;
     private final Set<String> mPartitions;
 
@@ -126,8 +129,8 @@ public final class DbConfig {
      * @param partitions partition names
      */
     @JsonCreator
-    public BypassTableEntry(@JsonProperty("table") String tableName,
-                            @JsonProperty("partitions") Set<String> partitions) {
+    public TableEntry(@JsonProperty("table") String tableName,
+                      @JsonProperty("partitions") Set<String> partitions) {
       Preconditions.checkArgument(!tableName.isEmpty(), "empty table name");
       mTableName = tableName;
       mPartitions = partitions;
@@ -156,7 +159,7 @@ public final class DbConfig {
       } else if (getClass() != other.getClass()) {
         return false;
       }
-      BypassTableEntry entry = (BypassTableEntry) other;
+      TableEntry entry = (TableEntry) other;
       return Objects.equals(mTableName, entry.mTableName);
     }
 
@@ -167,7 +170,7 @@ public final class DbConfig {
   }
 
   /**
-   * Deserializer of BypassTableEntry
+   * Deserializer of TableEntry
    *
    * Enables flexible syntax: either a single table name can be specified, and all belonging
    * partitions will be bypassed;
@@ -175,9 +178,9 @@ public final class DbConfig {
    * {"table": "tableName", "partitions": ["part1", "part2"]}
    * can be used, and individual partitions can be specified.
    */
-  public static class BypassTableEntryDeserializer extends JsonDeserializer<BypassTableEntry> {
+  public static class TableEntryDeserializer extends JsonDeserializer<TableEntry> {
     @Override
-    public BypassTableEntry deserialize(JsonParser jp, DeserializationContext cxt)
+    public TableEntry deserialize(JsonParser jp, DeserializationContext cxt)
         throws IOException, JsonProcessingException {
       ObjectMapper mapper = (ObjectMapper) jp.getCodec();
       JsonNode node = mapper.readTree(jp);
@@ -201,7 +204,7 @@ public final class DbConfig {
           partitions = Collections.emptySet();
         }
       }
-      return new BypassTableEntry(tableName, partitions);
+      return new TableEntry(tableName, partitions);
     }
   }
 }

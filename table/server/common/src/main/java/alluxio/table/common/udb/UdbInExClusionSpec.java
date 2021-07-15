@@ -15,21 +15,29 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * Tables and partitions bypassing specification.
+ * Tables and partitions inclusion and exclusion specification.
  */
-public final class UdbBypassSpec {
+public final class UdbInExClusionSpec {
   /**
    * Map of table name to set of partition names.
    * Keyed by a table's name, the value set contains names of partitions in that table.
    * An empty set indicates all partitions of that table, if any, should be bypassed.
    */
-  private final Map<String, Set<String>> mTablePartMap;
+  private final Map<String, Set<String>> mBypassed;
 
   /**
-   * @param tablePartMap table to partition map
+   * Set of ignored tables.
+   * Tables are ignored as a whole, no partition configuration is needed.
    */
-  public UdbBypassSpec(Map<String, Set<String>> tablePartMap) {
-    mTablePartMap = tablePartMap;
+  private final Set<String> mIgnored;
+
+  /**
+   * @param bypassed bypassed table to partition map
+   * @param ignored ignored tables set
+   */
+  public UdbInExClusionSpec(Map<String, Set<String>> bypassed, Set<String> ignored) {
+    mBypassed = bypassed;
+    mIgnored = ignored;
   }
 
   /**
@@ -37,10 +45,10 @@ public final class UdbBypassSpec {
    *
    * @param tableName the table name
    * @return true if the table is configured to be bypassed, false otherwise
-   * @see UdbBypassSpec#hasFullTable(String)
+   * @see UdbInExClusionSpec#hasFullyBypassedTable(String)
    */
-  public boolean hasTable(String tableName) {
-    return mTablePartMap.containsKey(tableName);
+  public boolean hasBypassedTable(String tableName) {
+    return mBypassed.containsKey(tableName);
   }
 
   /**
@@ -48,11 +56,28 @@ public final class UdbBypassSpec {
    *
    * @param tableName the table name
    * @return true if the table is configured to be fully bypassed, false otherwise
-   * @see UdbBypassSpec#hasTable(String)
+   * @see UdbInExClusionSpec#hasBypassedTable(String)
    */
-  public boolean hasFullTable(String tableName) {
+  public boolean hasFullyBypassedTable(String tableName) {
     // empty set indicates all partitions should be bypassed
-    return hasTable(tableName) && mTablePartMap.get(tableName).size() == 0;
+    return hasBypassedTable(tableName) && mBypassed.get(tableName).size() == 0;
+  }
+
+  /**
+   * Checks if a table is ignored.
+   *
+   * @param tableName the table name
+   * @return true if the table is ignored, false otherwise
+   */
+  public boolean hasIgnoredTable(String tableName) {
+    return mIgnored.contains(tableName);
+  }
+
+  /**
+   * @return tables ignored
+   */
+  public Set<String> getIgnoredTables() {
+    return mIgnored;
   }
 
   /**
@@ -62,11 +87,11 @@ public final class UdbBypassSpec {
    * @param partitionName the partition name
    * @return true if the partition should be bypassed, false otherwise
    */
-  public boolean hasPartition(String tableName, String partitionName) {
-    if (!hasTable(tableName)) {
+  public boolean hasBypassedPartition(String tableName, String partitionName) {
+    if (!hasBypassedTable(tableName)) {
       return false;
     }
-    Set<String> parts = mTablePartMap.get(tableName);
+    Set<String> parts = mBypassed.get(tableName);
     if (parts.size() == 0) {
       // empty set indicates all partitions should be bypassed
       return true;
