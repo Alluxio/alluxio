@@ -151,7 +151,7 @@ public final class MetadataCache {
   }
 
   /**
-   * Invalidate the cache of path.
+   * Invalidates the cache of path.
    *
    * @param path the path
    */
