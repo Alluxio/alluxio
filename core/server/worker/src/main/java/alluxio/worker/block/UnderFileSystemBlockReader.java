@@ -20,6 +20,7 @@ import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.InvalidWorkerStateException;
 import alluxio.exception.PreconditionMessage;
 import alluxio.exception.status.AlluxioStatusException;
+import alluxio.metrics.MetricInfo;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.resource.CloseableResource;
@@ -32,6 +33,7 @@ import alluxio.worker.block.io.BlockWriter;
 import alluxio.worker.block.meta.UnderFileSystemBlockMeta;
 
 import com.codahale.metrics.Counter;
+import com.codahale.metrics.Meter;
 import com.google.common.base.Preconditions;
 import io.netty.buffer.ByteBuf;
 import org.slf4j.Logger;
@@ -56,6 +58,8 @@ public final class UnderFileSystemBlockReader extends BlockReader {
   private static final Counter BLOCKS_READ_UFS =
       MetricsSystem.counter(MetricKey.WORKER_BLOCKS_READ_UFS.getName());
 
+  private final Counter mCounter;
+  private final Meter mMeter;
   /** An object storing the mapping of tier aliases to ordinals. */
   private final StorageTierAssoc mStorageTierAssoc = new WorkerStorageTierAssoc();
 
@@ -134,6 +138,13 @@ public final class UnderFileSystemBlockReader extends BlockReader {
     mUfsResource = ufsClient.acquireUfsResource();
     mUfsMountPointUri = ufsClient.getUfsMountPointUri();
     mIsPositionShort = positionShort;
+    String ufsString = MetricsSystem.escape(mUfsMountPointUri);
+    MetricKey counterKey = MetricKey.WORKER_BYTES_READ_UFS;
+    MetricKey meterKey = MetricKey.WORKER_BYTES_READ_UFS_THROUGHPUT;
+    mCounter = MetricsSystem.counterWithTags(counterKey.getName(),
+        counterKey.isClusterAggregated(), MetricInfo.TAG_UFS, ufsString);
+    mMeter = MetricsSystem.meterWithTags(meterKey.getName(),
+        meterKey.isClusterAggregated(), MetricInfo.TAG_UFS, ufsString);
   }
 
   /**
@@ -205,6 +216,8 @@ public final class UnderFileSystemBlockReader extends BlockReader {
         }
       }
     }
+    mCounter.inc(bytesRead);
+    mMeter.mark(bytesRead);
     return ByteBuffer.wrap(data, 0, bytesRead);
   }
 
@@ -251,7 +264,8 @@ public final class UnderFileSystemBlockReader extends BlockReader {
         cancelBlockWriter();
       }
     }
-
+    mCounter.inc(bytesRead);
+    mMeter.mark(bytesRead);
     return bytesRead;
   }
 

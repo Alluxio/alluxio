@@ -727,7 +727,7 @@ public final class MetricKey implements Comparable<MetricKey> {
           .build();
   public static final MetricKey CLUSTER_BYTES_READ_UFS_ALL =
       new Builder("Cluster.BytesReadUfsAll")
-          .setDescription("Total number of bytes read from a all Alluxio UFSes by all workers")
+          .setDescription("Total number of bytes read from all Alluxio UFSes by all workers")
           .setMetricType(MetricType.COUNTER)
           .build();
   public static final MetricKey CLUSTER_BYTES_READ_UFS_THROUGHPUT =
