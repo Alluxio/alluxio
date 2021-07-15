@@ -100,8 +100,7 @@ public class MetadataCachingBaseFileSystem extends BaseFileSystem {
 
   @Override
   public FileOutStream createFile(AlluxioURI path, CreateFilePOptions options)
-      throws IOException,
-      AlluxioException {
+      throws IOException, AlluxioException {
     FileOutStream outStream = super.createFile(path, options);
     mMetadataCache.invalidate(path.getParent());
     mMetadataCache.invalidate(path);
