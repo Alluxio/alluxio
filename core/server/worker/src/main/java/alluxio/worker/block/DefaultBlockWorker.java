@@ -125,6 +125,7 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
   /** Block Store manager. */
   private final BlockStore mLocalBlockStore;
   private WorkerNetAddress mAddress;
+  private long mStartTime;
 
   /** The under file system block store. */
   private final UnderFileSystemBlockStore mUnderFileSystemBlockStore;
@@ -217,6 +218,7 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
   public void start(WorkerNetAddress address) throws IOException {
     super.start(address);
     mAddress = address;
+    mStartTime = System.currentTimeMillis();
 
     // Acquire worker Id.
     BlockMasterClient blockMasterClient = mBlockMasterClientPool.acquire();
@@ -236,7 +238,8 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
 
     // Setup BlockMasterSync
     mBlockMasterSync = mResourceCloser
-        .register(new BlockMasterSync(this, mWorkerId, mAddress, mBlockMasterClientPool));
+        .register(new BlockMasterSync(this, mWorkerId, mAddress,
+                mBlockMasterClientPool, mStartTime));
     getExecutorService()
         .submit(new HeartbeatThread(HeartbeatContext.WORKER_BLOCK_SYNC, mBlockMasterSync,
             (int) ServerConfiguration.getMs(PropertyKey.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS),

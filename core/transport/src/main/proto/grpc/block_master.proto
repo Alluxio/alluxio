@@ -252,6 +252,10 @@ message RegisterWorkerPRequest {
   map<string, StorageList> lostStorage = 7;
   /** use repeated fields to represent mapping from BlockStoreLocationProto to TierList */
   repeated LocationBlockIdListEntry currentBlocks = 8;
+  /** the start time of the worker. */
+  optional int64 startTime = 9;
+  /** the version of the worker. */
+  optional string version = 10;
 }
 message RegisterWorkerPResponse {}
 

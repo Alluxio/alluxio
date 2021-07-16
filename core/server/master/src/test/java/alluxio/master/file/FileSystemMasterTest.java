@@ -28,6 +28,7 @@ import alluxio.AuthenticatedClientUserResource;
 import alluxio.AuthenticatedUserRule;
 import alluxio.ConfigurationRule;
 import alluxio.Constants;
+import alluxio.ProjectConstants;
 import alluxio.client.WriteType;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
@@ -170,6 +171,7 @@ public final class FileSystemMasterTest {
   private List<Metric> mMetrics;
   private long mWorkerId1;
   private long mWorkerId2;
+  private long mStartTime;
 
   private String mJournalFolder;
   private String mUnderFS;
@@ -222,6 +224,7 @@ public final class FileSystemMasterTest {
             .setRecursive(true));
     mJournalFolder = mTestFolder.newFolder().getAbsolutePath();
     startServices();
+    mStartTime = System.currentTimeMillis();
   }
 
   /**
@@ -2719,7 +2722,8 @@ public final class FileSystemMasterTest {
             Constants.MEDIUM_SSD, (long) Constants.MB),
         ImmutableMap.of(Constants.MEDIUM_MEM, (long) Constants.KB,
             Constants.MEDIUM_SSD, (long) Constants.KB), ImmutableMap.of(),
-        new HashMap<String, StorageList>(), RegisterWorkerPOptions.getDefaultInstance());
+        new HashMap<String, StorageList>(), mStartTime, ProjectConstants.VERSION,
+        RegisterWorkerPOptions.getDefaultInstance());
     mWorkerId2 = mBlockMaster.getWorkerId(
         new WorkerNetAddress().setHost("remote").setRpcPort(80).setDataPort(81).setWebPort(82));
     mBlockMaster.workerRegister(mWorkerId2,
@@ -2729,6 +2733,7 @@ public final class FileSystemMasterTest {
         ImmutableMap.of(Constants.MEDIUM_MEM, (long) Constants.KB,
             Constants.MEDIUM_SSD, (long) Constants.KB),
         ImmutableMap.of(), new HashMap<String, StorageList>(),
+        mStartTime, ProjectConstants.VERSION,
         RegisterWorkerPOptions.getDefaultInstance());
   }
 

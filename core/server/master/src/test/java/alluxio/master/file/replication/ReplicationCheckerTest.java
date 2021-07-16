@@ -15,6 +15,7 @@ import static org.mockito.Mockito.mock;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
+import alluxio.ProjectConstants;
 import alluxio.collections.Pair;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
@@ -157,6 +158,7 @@ public final class ReplicationCheckerTest {
       CreateFileContext.mergeFrom(CreateFilePOptions.newBuilder().setBlockSizeBytes(Constants.KB)
           .setMode(TEST_MODE.toProto())).setOwner(TEST_OWNER).setGroup(TEST_GROUP);
   private Set<Long> mKnownWorkers = Sets.newHashSet();
+  private long mStartTime;
 
   /** Rule to create a new temporary folder during each test. */
   @Rule
@@ -181,6 +183,7 @@ public final class ReplicationCheckerTest {
     journalSystem.start();
     journalSystem.gainPrimacy();
     mBlockMaster.start(true);
+    mStartTime = System.currentTimeMillis();
 
     ServerConfiguration.set(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "true");
     ServerConfiguration
@@ -253,6 +256,7 @@ public final class ReplicationCheckerTest {
       mBlockMaster.workerRegister(workerId, ImmutableList.of(Constants.MEDIUM_MEM),
           ImmutableMap.of(Constants.MEDIUM_MEM, 100L),
           ImmutableMap.of(Constants.MEDIUM_MEM, 0L), NO_BLOCKS_ON_LOCATION, NO_LOST_STORAGE,
+          mStartTime, ProjectConstants.VERSION,
           RegisterWorkerPOptions.getDefaultInstance());
       mKnownWorkers.add(workerId);
     }
@@ -379,7 +383,8 @@ public final class ReplicationCheckerTest {
     mBlockMaster.workerRegister(workerId, Collections.singletonList(Constants.MEDIUM_MEM),
         ImmutableMap.of(Constants.MEDIUM_MEM, 100L),
         ImmutableMap.of(Constants.MEDIUM_MEM, 0L), NO_BLOCKS_ON_LOCATION,
-        NO_LOST_STORAGE, RegisterWorkerPOptions.getDefaultInstance());
+        NO_LOST_STORAGE, mStartTime, ProjectConstants.VERSION,
+        RegisterWorkerPOptions.getDefaultInstance());
     mBlockMaster.commitBlock(workerId, 50L,
         Constants.MEDIUM_MEM, Constants.MEDIUM_MEM, blockId, 20L);
 
