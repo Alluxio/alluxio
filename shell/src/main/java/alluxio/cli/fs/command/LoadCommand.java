@@ -127,6 +127,7 @@ public final class LoadCommand extends AbstractFileSystemCommand {
     } finally {
       service.shutdownNow();
     }
+    System.out.println(plainPath + " loaded");
   }
 
   @Override
