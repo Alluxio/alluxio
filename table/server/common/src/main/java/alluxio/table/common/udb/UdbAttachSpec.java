@@ -112,8 +112,11 @@ public final class UdbAttachSpec {
    * Wrapper class that takes into account inclusion and exclusion behaviour.
    */
   abstract static class InclusionExclusionWrapper<T extends NamePatternWrapper> {
+    // T can be TablePartitionNamePatternWrapper when used in a bypass spec,
+    // or SimpleNamePatternWrapper when used in an ignore spec, or a partition spec
     protected final T mIncluded;
     // excluded entries don't allow partition specifications -- they are name and regex only
+    // therefore type parameter T is not used for the exclusion list
     protected final SimpleNamePatternWrapper mExcluded;
 
     InclusionExclusionWrapper(T included, SimpleNamePatternWrapper excluded) {
@@ -123,7 +126,20 @@ public final class UdbAttachSpec {
       mExcluded = excluded;
     }
 
-    // generic implementation
+    /**
+     * Checks if a name is contained in this wrapper.
+     * The generic implementation here follows this logic:
+     * 1. when the exclusion list is empty, check if the name is contained in the inclusion list;
+     * 2. when the exclusion list is not empty, check if the name is not excluded by the exclusion
+     *    list.
+     * This logic has this implication: when both lists are empty, nothing is contained in this
+     * wrapper (as opposed to the expectation that an empty exclusion list contains everything).
+     * Deriving classes may override the default implementation, but should be careful to stay
+     * consistent with the generic behaviour, so as to avoid any surprises.
+     *
+     * @param name the name to check
+     * @return true if the name is contained in this wrapper, false otherwise
+     */
     boolean contains(String name) {
       if (mExcluded.isEmpty()) {
         return mIncluded.contains(name);
