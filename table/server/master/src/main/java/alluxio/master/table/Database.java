@@ -207,23 +207,7 @@ public class Database implements Journaled {
     // Synchronization is necessary if accessed concurrently from multiple threads
     SyncStatus.Builder builder = SyncStatus.newBuilder();
 
-    if (!mConfigPath.equals(CatalogProperty.DB_CONFIG_FILE.getDefaultValue())) {
-      if (!Files.exists(Paths.get(mConfigPath))) {
-        throw new FileNotFoundException(mConfigPath);
-      }
-      ObjectMapper mapper = new ObjectMapper();
-      File configFile = new File(mConfigPath);
-      if (configFile.length() == 0) {
-        mDbConfig = DbConfig.empty();
-      } else {
-        try {
-          mDbConfig = mapper.readValue(configFile, DbConfig.class);
-        } catch (JsonProcessingException e) {
-          LOG.error("Failed to deserialize UDB config file {}, stays unsynced", mConfigPath, e);
-          throw e;
-        }
-      }
-    }
+    loadDbConfig();
     DatabaseInfo newDbInfo = mUdb.getDatabaseInfo();
     if (!newDbInfo.equals(mDatabaseInfo)) {
       applyAndJournal(context, Journal.JournalEntry.newBuilder()
@@ -353,6 +337,26 @@ public class Database implements Journaled {
       }
     }
     return builder.build();
+  }
+
+  private void loadDbConfig() throws IOException {
+    if (!mConfigPath.equals(CatalogProperty.DB_CONFIG_FILE.getDefaultValue())) {
+      if (!Files.exists(Paths.get(mConfigPath))) {
+        throw new FileNotFoundException(mConfigPath);
+      }
+      ObjectMapper mapper = new ObjectMapper();
+      File configFile = new File(mConfigPath);
+      if (configFile.length() == 0) {
+        mDbConfig = DbConfig.empty();
+      } else {
+        try {
+          mDbConfig = mapper.readValue(configFile, DbConfig.class);
+        } catch (JsonProcessingException e) {
+          LOG.error("Failed to deserialize UDB config file {}, stays unsynced", mConfigPath, e);
+          throw e;
+        }
+      }
+    }
   }
 
   @Override
