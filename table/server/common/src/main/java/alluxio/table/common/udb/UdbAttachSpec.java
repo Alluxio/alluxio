@@ -56,10 +56,10 @@ public final class UdbAttachSpec {
    *
    * @param tableName the table name
    * @return true if the table is configured to be bypassed, false otherwise
-   * @see UdbAttachSpec#hasFullyBypassedTable(String)
+   * @see UdbAttachSpec#isFullyBypassedTable(String)
    */
-  public boolean hasBypassedTable(String tableName) {
-    return shadowedByIgnore(tableName, mBypassed.hasTable(tableName));
+  public boolean isBypassedTable(String tableName) {
+    return shadowedByIgnore(tableName, mBypassed.containsTable(tableName));
   }
 
   /**
@@ -67,10 +67,10 @@ public final class UdbAttachSpec {
    *
    * @param tableName the table name
    * @return true if the table is configured to be fully bypassed, false otherwise
-   * @see UdbAttachSpec#hasBypassedTable(String)
+   * @see UdbAttachSpec#isBypassedTable(String)
    */
-  public boolean hasFullyBypassedTable(String tableName) {
-    return shadowedByIgnore(tableName, mBypassed.hasFullTable(tableName));
+  public boolean isFullyBypassedTable(String tableName) {
+    return shadowedByIgnore(tableName, mBypassed.containsFullTable(tableName));
   }
 
   /**
@@ -79,8 +79,8 @@ public final class UdbAttachSpec {
    * @param tableName the table name
    * @return true if the table is ignored, false otherwise
    */
-  public boolean hasIgnoredTable(String tableName) {
-    return mIgnored.has(tableName);
+  public boolean isIgnoredTable(String tableName) {
+    return mIgnored.contains(tableName);
   }
 
   /**
@@ -90,18 +90,18 @@ public final class UdbAttachSpec {
    * @param partitionName the partition name
    * @return true if the partition should be bypassed, false otherwise
    */
-  public boolean hasBypassedPartition(String tableName, String partitionName) {
-    return shadowedByIgnore(tableName, mBypassed.hasPartition(tableName, partitionName));
+  public boolean isBypassedPartition(String tableName, String partitionName) {
+    return shadowedByIgnore(tableName, mBypassed.containsPartition(tableName, partitionName));
   }
 
   /**
    * Checks if a table is shadowed by ignoring when it is also bypassed.
    * @param tableName the table name
-   * @param mightBeShadowedIfTrue the return value of {@link #hasBypassedTable(String)}, etc
+   * @param mightBeShadowedIfTrue the return value of {@link #isBypassedTable(String)}, etc
    * @return false if the table is shadowed by ignoring, mightBeShadowedIfTrue if it is not
    */
   private boolean shadowedByIgnore(String tableName, boolean mightBeShadowedIfTrue) {
-    if (mightBeShadowedIfTrue && hasIgnoredTable(tableName)) {
+    if (mightBeShadowedIfTrue && isIgnoredTable(tableName)) {
       LOG.warn("Table {} is set to be bypassed but it is also ignored", tableName);
       return false;
     }
@@ -124,11 +124,11 @@ public final class UdbAttachSpec {
     }
 
     // generic implementation
-    boolean has(String name) {
+    boolean contains(String name) {
       if (mExcluded.isEmpty()) {
-        return mIncluded.has(name);
+        return mIncluded.contains(name);
       } else {
-        return !mExcluded.has(name);
+        return !mExcluded.contains(name);
       }
     }
   }
@@ -141,25 +141,25 @@ public final class UdbAttachSpec {
       super(included, excluded);
     }
 
-    boolean hasTable(String tableName) {
-      return has(tableName);
+    boolean containsTable(String tableName) {
+      return contains(tableName);
     }
 
-    boolean hasFullTable(String tableName) {
+    boolean containsFullTable(String tableName) {
       if (mExcluded.isEmpty()) {
-        return mIncluded.hasFullTable(tableName);
+        return mIncluded.containsFullTable(tableName);
       } else {
         // tables that are implicitly included by being NOT excluded are meant to be fully bypassed
         // since there is no way to specify partitions in an exclusion list
-        return !mExcluded.has(tableName);
+        return !mExcluded.contains(tableName);
       }
     }
 
-    boolean hasPartition(String tableName, String partName) {
+    boolean containsPartition(String tableName, String partName) {
       if (mExcluded.isEmpty()) {
-        return mIncluded.hasPartition(tableName, partName);
+        return mIncluded.containsPartition(tableName, partName);
       } else {
-        return !mExcluded.has(tableName);
+        return !mExcluded.contains(tableName);
       }
     }
   }
@@ -194,11 +194,11 @@ public final class UdbAttachSpec {
       return super.isEmpty() && mTablePartMap.isEmpty();
     }
 
-    boolean hasFullTable(String tableName) {
+    boolean containsFullTable(String tableName) {
       // if a table is listed with an explicit literal name, then the partition specification
       // or regex patterns should not be consulted:
       // here use parent's hasExplicit since self's takes into account partition specs
-      if (super.hasExplicit(tableName)) {
+      if (super.containsExplicit(tableName)) {
         return true;
       }
       if (mTablePartMap.containsKey(tableName)) {
@@ -208,29 +208,29 @@ public final class UdbAttachSpec {
         return mTablePartMap.get(tableName).size() == 0;
       }
       // otherwise, check if it is covered by a regex pattern:
-      return hasCoveredByPattern(tableName);
+      return containsByPattern(tableName);
     }
 
     @Override
-    boolean has(String tableName) {
-      return super.has(tableName) || mTablePartMap.containsKey(tableName);
+    boolean contains(String tableName) {
+      return super.contains(tableName) || mTablePartMap.containsKey(tableName);
     }
 
     @Override
-    boolean hasExplicit(String tableName) {
-      return super.hasExplicit(tableName) || mTablePartMap.containsKey(tableName);
+    boolean containsExplicit(String tableName) {
+      return super.containsExplicit(tableName) || mTablePartMap.containsKey(tableName);
     }
 
     /**
-     * Alias of {@link TablePartitionNamePatternWrapper#has(String)}.
+     * Alias of {@link TablePartitionNamePatternWrapper#contains(String)}.
      */
-    boolean hasTable(String tableName) {
-      return has(tableName);
+    boolean containsTable(String tableName) {
+      return contains(tableName);
     }
 
-    boolean hasPartition(String tableName, String partName) {
+    boolean containsPartition(String tableName, String partName) {
       // any partition of a fully bypassed table is bypassed
-      if (hasFullTable(tableName)) {
+      if (containsFullTable(tableName)) {
         return true;
       }
       // otherwise, one of the following is true:
@@ -243,7 +243,7 @@ public final class UdbAttachSpec {
       }
       // it's partially bypassed
       // here we know for sure `wrappers.size() != 0`
-      return wrappers.stream().anyMatch(p -> p.has(partName));
+      return wrappers.stream().anyMatch(p -> p.contains(partName));
     }
   }
 
@@ -269,15 +269,15 @@ public final class UdbAttachSpec {
       return mNames.size() == 0 && mPatterns.size() == 0;
     }
 
-    boolean has(String name) {
-      return hasExplicit(name) || hasCoveredByPattern(name);
+    boolean contains(String name) {
+      return containsExplicit(name) || containsByPattern(name);
     }
 
-    boolean hasExplicit(String name) {
+    boolean containsExplicit(String name) {
       return mNames.contains(name);
     }
 
-    boolean hasCoveredByPattern(String name) {
+    boolean containsByPattern(String name) {
       return mPatterns.stream().map(p -> p.matcher(name)).anyMatch(Matcher::matches);
     }
 

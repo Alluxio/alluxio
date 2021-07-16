@@ -243,7 +243,7 @@ public class Database implements Journaled {
     final Database thisDb = this;
     UdbAttachSpec attachSpec = mDbConfig.getUdbAttachSpec();
     for (String tableName : udbTableNames) {
-      if (attachSpec.hasIgnoredTable(tableName)) {
+      if (attachSpec.isIgnoredTable(tableName)) {
         // this table should be ignored.
         builder.addTablesIgnored(tableName);
         tablesSynced.incrementAndGet();

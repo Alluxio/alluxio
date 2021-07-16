@@ -156,7 +156,7 @@ public class HiveDatabase implements UnderDatabase {
 
     try {
       PathTranslator pathTranslator = new PathTranslator();
-      if (attachSpec.hasFullyBypassedTable(tableName)) {
+      if (attachSpec.isFullyBypassedTable(tableName)) {
         pathTranslator.addMapping(hiveUfsUri, hiveUfsUri);
         return pathTranslator;
       }
@@ -185,7 +185,7 @@ public class HiveDatabase implements UnderDatabase {
             LOG.warn("Error making partition name for table {}, partition {}", tableName,
                 part.getValues().toString());
           }
-          if (attachSpec.hasBypassedPartition(tableName, partName)) {
+          if (attachSpec.isBypassedPartition(tableName, partName)) {
             pathTranslator.addMapping(partitionUri.getPath(), partitionUri.getPath());
             continue;
           }

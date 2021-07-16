@@ -247,7 +247,7 @@ public class GlueDatabase implements UnderDatabase {
 
     try {
       PathTranslator pathTranslator = new PathTranslator();
-      if (attachSpec.hasFullyBypassedTable(tableName)) {
+      if (attachSpec.isFullyBypassedTable(tableName)) {
         pathTranslator.addMapping(glueUfsUri, glueUfsUri);
         return pathTranslator;
       }
@@ -283,7 +283,7 @@ public class GlueDatabase implements UnderDatabase {
                 mGlueDbName,
                 mGlueConfiguration.get(Property.CATALOG_ID));
           }
-          if (attachSpec.hasBypassedPartition(tableName, partitionName)) {
+          if (attachSpec.isBypassedPartition(tableName, partitionName)) {
             pathTranslator.addMapping(partitionUri.getPath(), partitionUri.getPath());
             continue;
           }

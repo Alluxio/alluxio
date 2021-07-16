@@ -40,43 +40,43 @@ public class UdbAttachSpecTest {
         .addPartition("table1", partitionBuilder);
 
     UdbAttachSpec spec = mBuilder.build();
-    assertTrue(spec.hasBypassedTable("table1"));
-    assertFalse(spec.hasFullyBypassedTable("table1"));
-    assertTrue(spec.hasBypassedPartition("table1", "part1"));
-    assertTrue(spec.hasBypassedPartition("table1", "part2"));
-    assertFalse(spec.hasBypassedPartition("table1", "part3"));
+    assertTrue(spec.isBypassedTable("table1"));
+    assertFalse(spec.isFullyBypassedTable("table1"));
+    assertTrue(spec.isBypassedPartition("table1", "part1"));
+    assertTrue(spec.isBypassedPartition("table1", "part2"));
+    assertFalse(spec.isBypassedPartition("table1", "part3"));
   }
 
   @Test
   public void includedTableNamesOnly() {
     mBuilder.bypass().include().addName("table2");
     UdbAttachSpec spec = mBuilder.build();
-    assertTrue(spec.hasBypassedTable("table2"));
-    assertTrue(spec.hasFullyBypassedTable("table2"));
-    assertTrue(spec.hasBypassedPartition("table2", "part1"));
-    assertTrue(spec.hasBypassedPartition("table2", "part2"));
-    assertTrue(spec.hasBypassedPartition("table2", "part3"));
+    assertTrue(spec.isBypassedTable("table2"));
+    assertTrue(spec.isFullyBypassedTable("table2"));
+    assertTrue(spec.isBypassedPartition("table2", "part1"));
+    assertTrue(spec.isBypassedPartition("table2", "part2"));
+    assertTrue(spec.isBypassedPartition("table2", "part3"));
   }
 
   @Test
   public void includedNonExistentTable() {
     mBuilder.bypass().include().addName("table3");
     UdbAttachSpec spec = mBuilder.build();
-    assertFalse(spec.hasBypassedTable("table4"));
-    assertFalse(spec.hasFullyBypassedTable("table4"));
-    assertFalse(spec.hasBypassedPartition("table4", "part1"));
-    assertFalse(spec.hasBypassedPartition("table4", "part2"));
-    assertFalse(spec.hasBypassedPartition("table4", "part3"));
+    assertFalse(spec.isBypassedTable("table4"));
+    assertFalse(spec.isFullyBypassedTable("table4"));
+    assertFalse(spec.isBypassedPartition("table4", "part1"));
+    assertFalse(spec.isBypassedPartition("table4", "part2"));
+    assertFalse(spec.isBypassedPartition("table4", "part3"));
   }
 
   @Test
   public void includedTablePatterns() {
     mBuilder.bypass().include().addPattern(Pattern.compile("table\\d"));
     UdbAttachSpec spec = mBuilder.build();
-    assertTrue(spec.hasBypassedTable("table1"));
-    assertTrue(spec.hasBypassedTable("table2"));
-    assertTrue(spec.hasFullyBypassedTable("table1"));
-    assertTrue(spec.hasFullyBypassedTable("table2"));
+    assertTrue(spec.isBypassedTable("table1"));
+    assertTrue(spec.isBypassedTable("table2"));
+    assertTrue(spec.isFullyBypassedTable("table1"));
+    assertTrue(spec.isFullyBypassedTable("table2"));
   }
 
   @Test
@@ -93,13 +93,13 @@ public class UdbAttachSpecTest {
         .addPartition("table2", partitionBuilder);
 
     UdbAttachSpec spec = mBuilder.build();
-    assertTrue(spec.hasBypassedTable("table1"));
-    assertTrue(spec.hasBypassedTable("table2"));
-    assertTrue(spec.hasFullyBypassedTable("table1"));
-    assertFalse(spec.hasFullyBypassedTable("table2"));
-    assertTrue(spec.hasBypassedPartition("table2", "part1"));
-    assertTrue(spec.hasBypassedPartition("table2", "part2"));
-    assertTrue(spec.hasBypassedPartition("table2", "part_a"));
+    assertTrue(spec.isBypassedTable("table1"));
+    assertTrue(spec.isBypassedTable("table2"));
+    assertTrue(spec.isFullyBypassedTable("table1"));
+    assertFalse(spec.isFullyBypassedTable("table2"));
+    assertTrue(spec.isBypassedPartition("table2", "part1"));
+    assertTrue(spec.isBypassedPartition("table2", "part2"));
+    assertTrue(spec.isBypassedPartition("table2", "part_a"));
   }
 
   @Test
@@ -112,8 +112,8 @@ public class UdbAttachSpecTest {
         .addPartition("table1", partitionBuilder);
 
     UdbAttachSpec spec = mBuilder.build();
-    assertTrue(spec.hasFullyBypassedTable("table1"));
-    assertTrue(spec.hasBypassedPartition("table1", "part2"));
+    assertTrue(spec.isFullyBypassedTable("table1"));
+    assertTrue(spec.isBypassedPartition("table1", "part2"));
   }
 
   @Test(expected = IllegalArgumentException.class)
@@ -137,12 +137,12 @@ public class UdbAttachSpecTest {
     mBuilder.bypass().exclude().addNames(ImmutableSet.of("table1", "table2"));
 
     UdbAttachSpec spec = mBuilder.build();
-    assertFalse(spec.hasBypassedTable("table1"));
-    assertFalse(spec.hasBypassedTable("table2"));
-    assertFalse(spec.hasFullyBypassedTable("table1"));
-    assertFalse(spec.hasFullyBypassedTable("table2"));
-    assertTrue(spec.hasBypassedTable("table3"));
-    assertTrue(spec.hasFullyBypassedTable("table3"));
+    assertFalse(spec.isBypassedTable("table1"));
+    assertFalse(spec.isBypassedTable("table2"));
+    assertFalse(spec.isFullyBypassedTable("table1"));
+    assertFalse(spec.isFullyBypassedTable("table2"));
+    assertTrue(spec.isBypassedTable("table3"));
+    assertTrue(spec.isFullyBypassedTable("table3"));
   }
 
   @Test
@@ -153,14 +153,14 @@ public class UdbAttachSpecTest {
         .addPattern(Pattern.compile("table[12]"));
 
     UdbAttachSpec spec = mBuilder.build();
-    assertFalse(spec.hasBypassedTable("table0"));
-    assertFalse(spec.hasBypassedTable("table1"));
-    assertFalse(spec.hasBypassedTable("table2"));
-    assertFalse(spec.hasFullyBypassedTable("table0"));
-    assertFalse(spec.hasFullyBypassedTable("table1"));
-    assertFalse(spec.hasFullyBypassedTable("table2"));
-    assertTrue(spec.hasBypassedTable("table3"));
-    assertTrue(spec.hasFullyBypassedTable("table3"));
+    assertFalse(spec.isBypassedTable("table0"));
+    assertFalse(spec.isBypassedTable("table1"));
+    assertFalse(spec.isBypassedTable("table2"));
+    assertFalse(spec.isFullyBypassedTable("table0"));
+    assertFalse(spec.isFullyBypassedTable("table1"));
+    assertFalse(spec.isFullyBypassedTable("table2"));
+    assertTrue(spec.isBypassedTable("table3"));
+    assertTrue(spec.isFullyBypassedTable("table3"));
   }
 
   @Test
@@ -172,15 +172,15 @@ public class UdbAttachSpecTest {
         .addPartition("table1", partitionBuilder);
 
     UdbAttachSpec spec = mBuilder.build();
-    assertFalse(spec.hasBypassedPartition("table1", "part1"));
-    assertTrue(spec.hasBypassedPartition("table1", "part2"));
+    assertFalse(spec.isBypassedPartition("table1", "part1"));
+    assertTrue(spec.isBypassedPartition("table1", "part2"));
   }
 
   @Test
   public void excludeEverythingIsIncludeNothing() {
     mBuilder.bypass().exclude().addPattern(Pattern.compile(".*"));
     UdbAttachSpec spec = mBuilder.build();
-    assertFalse(spec.hasBypassedTable("any_table"));
+    assertFalse(spec.isBypassedTable("any_table"));
   }
 
   @Test
@@ -188,7 +188,7 @@ public class UdbAttachSpecTest {
     mBuilder.bypass()
         .exclude().addNames(Collections.emptySet()).addPatterns(Collections.emptySet());
     UdbAttachSpec spec = mBuilder.build();
-    assertFalse(spec.hasBypassedTable("any_table"));
+    assertFalse(spec.isBypassedTable("any_table"));
   }
 
   /* Ignoring tests */
@@ -205,13 +205,13 @@ public class UdbAttachSpecTest {
         ));
 
     UdbAttachSpec spec = mBuilder.build();
-    assertTrue(spec.hasIgnoredTable("table1"));
-    assertTrue(spec.hasIgnoredTable("table2"));
-    assertTrue(spec.hasIgnoredTable("table3"));
-    assertTrue(spec.hasIgnoredTable("table4"));
-    assertTrue(spec.hasIgnoredTable("table5"));
-    assertTrue(spec.hasIgnoredTable("table6"));
-    assertFalse(spec.hasIgnoredTable("table7"));
+    assertTrue(spec.isIgnoredTable("table1"));
+    assertTrue(spec.isIgnoredTable("table2"));
+    assertTrue(spec.isIgnoredTable("table3"));
+    assertTrue(spec.isIgnoredTable("table4"));
+    assertTrue(spec.isIgnoredTable("table5"));
+    assertTrue(spec.isIgnoredTable("table6"));
+    assertFalse(spec.isIgnoredTable("table7"));
   }
 
   @Test
@@ -219,8 +219,8 @@ public class UdbAttachSpecTest {
     mBuilder.bypass().include().addName("same_table");
     mBuilder.ignore().include().addName("same_table");
     UdbAttachSpec spec = mBuilder.build();
-    assertTrue(spec.hasIgnoredTable("same_table"));
-    assertFalse(spec.hasBypassedTable("same_table"));
+    assertTrue(spec.isIgnoredTable("same_table"));
+    assertFalse(spec.isBypassedTable("same_table"));
   }
 
   @Test
@@ -228,7 +228,7 @@ public class UdbAttachSpecTest {
     mBuilder.bypass().include().addName("table1");
     mBuilder.ignore().exclude().addName("table2");
     UdbAttachSpec spec = mBuilder.build();
-    assertTrue(spec.hasIgnoredTable("table1"));
-    assertFalse(spec.hasBypassedTable("table1"));
+    assertTrue(spec.isIgnoredTable("table1"));
+    assertFalse(spec.isBypassedTable("table1"));
   }
 }
