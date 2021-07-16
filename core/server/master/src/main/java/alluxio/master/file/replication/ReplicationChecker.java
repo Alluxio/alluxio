@@ -205,9 +205,6 @@ public final class ReplicationChecker implements HeartbeatExecutor {
       if (Thread.interrupted()) {
         throw new InterruptedException("ReplicationChecker interrupted.");
       }
-      if (singleBatch >= mMaxSingleBatch) {
-        break;
-      }
       try (LockedInodePath inodePath = mInodeTree.lockFullInodePath(inodeId, LockPattern.READ)) {
         InodeFile file = inodePath.getInodeFile();
         for (long blockId : file.getBlockIds()) {
@@ -230,7 +227,11 @@ public final class ReplicationChecker implements HeartbeatExecutor {
           for (Map.Entry<String, String> entry
               : findMisplacedBlock(file, blockInfo).entrySet()) {
             try {
+              if (singleBatch >= mMaxSingleBatch) {
+                return;
+              }
               handler.migrate(inodePath.getUri(), blockId, entry.getKey(), entry.getValue());
+              singleBatch++;
             } catch (Exception e) {
               LOG.warn(
                   "Unexpected exception encountered when starting a migration job (uri={},"
@@ -249,15 +250,11 @@ public final class ReplicationChecker implements HeartbeatExecutor {
   private Set<Long> check(Set<Long> inodes, ReplicationHandler handler, Mode mode)
       throws InterruptedException {
     Set<Long> processedFileIds = new HashSet<>();
-    int singleBatch = 0;
     for (long inodeId : inodes) {
       Set<Triple<AlluxioURI, Long, Integer>> requests = new HashSet<>();
       // Throw if interrupted.
       if (Thread.interrupted()) {
         throw new InterruptedException("ReplicationChecker interrupted.");
-      }
-      if (singleBatch >= mMaxSingleBatch) {
-        break;
       }
       // TODO(binfan): calling lockFullInodePath locks the entire path from root to the target
       // file and may increase lock contention in this tree. Investigate if we could avoid
@@ -266,6 +263,9 @@ public final class ReplicationChecker implements HeartbeatExecutor {
         InodeFile file = inodePath.getInodeFile();
         for (long blockId : file.getBlockIds()) {
           BlockInfo blockInfo = null;
+          if (requests.size() >= mMaxSingleBatch) {
+            break;
+          }
           try {
             blockInfo = mBlockMaster.getBlockInfo(blockId);
           } catch (BlockInfoException e) {
