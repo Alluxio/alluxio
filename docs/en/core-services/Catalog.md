@@ -117,8 +117,8 @@ The configuration file is in JSON format, and can contain these configurations:
 
 1. Bypassing tables and partitions:
 
-   You can specify some tables and partitions to be bypassed from Alluxio, so that they will not be
-   cached in Alluxio, instead clients will be directed to access them directly from the UDB. 
+   You can specify some tables and partitions to be bypassed from Alluxio, so that data will not be
+   cached in the Alluxio file system, instead computing frameworks will be directed to access data directly from the UFS.
    This can be helpful when some tables and partitions are large, and accommodating them in the cache
    is undesirable. An example configuration is like the following:
 
@@ -163,7 +163,7 @@ The configuration file is in JSON format, and can contain these configurations:
 
    You can specify some tables to be ignored when attaching the database to Alluxio. Compared to 
    bypassed tables, Alluxio will not try to mount the ignored tables, therefore they will be 
-   invisible to the client. 
+   invisible to the Alluxio client. 
    
    The syntax for configuring ignored tables is similar to that of bypassing:
 
