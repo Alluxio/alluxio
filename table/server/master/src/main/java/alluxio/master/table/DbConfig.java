@@ -225,16 +225,24 @@ public final class DbConfig {
 
   @Override
   public boolean equals(Object other) {
-    if (this == other) {
-      return true;
-    } else if (other == null) {
-      return false;
-    } else if (getClass() != other.getClass()) {
+    if (!checkReferenceAndClassEquality(this, other)) {
       return false;
     }
     DbConfig that = (DbConfig) other;
     return Objects.equals(mBypassEntry, that.mBypassEntry)
         && Objects.equals(mIgnoreEntry, that.mIgnoreEntry);
+  }
+
+  private static boolean checkReferenceAndClassEquality(Object self, Object other) {
+    if (self == other) {
+      return true;
+    }
+    if (other == null) {
+      return false;
+    }
+    // we dont compare by instanceof because we dont want to compare
+    // a subclass instance with a superclass instance.
+    return self.getClass() == other.getClass();
   }
 
   @Override
@@ -288,11 +296,7 @@ public final class DbConfig {
 
     @Override
     public boolean equals(Object other) {
-      if (this == other) {
-        return true;
-      } else if (other == null) {
-        return false;
-      } else if (getClass() != other.getClass()) {
+      if (!checkReferenceAndClassEquality(this, other)) {
         return false;
       }
       TablesEntry that = (TablesEntry) other;
@@ -532,13 +536,7 @@ public final class DbConfig {
 
     @Override
     public boolean equals(Object other) {
-      if (this == other) {
-        return true;
-      }
-      if (other == null) {
-        return false;
-      }
-      if (getClass() != other.getClass()) {
+      if (!checkReferenceAndClassEquality(this, other)) {
         return false;
       }
       NamePatternEntry entry = (NamePatternEntry) other;
@@ -664,11 +662,7 @@ public final class DbConfig {
 
     @Override
     public boolean equals(Object other) {
-      if (this == other) {
-        return true;
-      } else if (other == null) {
-        return false;
-      } else if (getClass() != other.getClass()) {
+      if (!checkReferenceAndClassEquality(this, other)) {
         return false;
       }
       IncludeExcludeList list = (IncludeExcludeList) other;
