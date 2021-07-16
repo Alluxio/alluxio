@@ -27,6 +27,7 @@ import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.DeletePOptions;
 import alluxio.grpc.GetStatusPOptions;
 import alluxio.grpc.ListStatusPOptions;
+import alluxio.grpc.RenamePOptions;
 import alluxio.resource.CloseableResource;
 import alluxio.wire.FileInfo;
 
@@ -212,10 +213,25 @@ public class MetadataCachingBaseFileSystemTest {
   }
 
   @Test
-  public void createAndDeleteStatus() throws Exception {
+  public void createAndDelete() throws Exception {
     mFs.createFile(NOT_EXIST_FILE);
     mFs.getStatus(NOT_EXIST_FILE);
     mFs.delete(NOT_EXIST_FILE);
+    try {
+      mFs.getStatus(NOT_EXIST_FILE);
+      Assert.fail("Failed while getStatus for a non-exist path.");
+    } catch (FileDoesNotExistException e) {
+      // expected exception thrown. test passes
+    }
+    assertEquals(2, mFileSystemMasterClient.getStatusRpcCount(NOT_EXIST_FILE));
+  }
+
+
+  @Test
+  public void createAndRename() throws Exception {
+    mFs.createFile(NOT_EXIST_FILE);
+    mFs.getStatus(NOT_EXIST_FILE);
+    mFs.rename(NOT_EXIST_FILE, new AlluxioURI(NOT_EXIST_FILE.getPath() + ".rename"));
     try {
       mFs.getStatus(NOT_EXIST_FILE);
       Assert.fail("Failed while getStatus for a non-exist path.");
@@ -292,6 +308,12 @@ public class MetadataCachingBaseFileSystemTest {
     public void delete(AlluxioURI path, DeletePOptions options)
         throws AlluxioStatusException {
       mFileStatusMap.remove(path);
+    }
+
+    @Override
+    public void rename(AlluxioURI src, AlluxioURI dst, RenamePOptions options)
+        throws AlluxioStatusException {
+      mFileStatusMap.put(dst, mFileStatusMap.remove(src));
     }
   }
 }
