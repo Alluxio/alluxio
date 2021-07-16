@@ -152,22 +152,30 @@ public final class DbConfig {
   }
 
   /**
+   * Converts to a {@link UdbAttachSpec}.
+   *
    * @return the {@link UdbAttachSpec} object
    */
   public UdbAttachSpec getUdbAttachSpec() {
     UdbAttachSpec.Builder builder = new UdbAttachSpec.Builder();
+    // process included bypassed tables
     for (TableEntry entry : mBypassEntry.getList().getIncludedEntries()) {
+      // entry can be a simple name, a pattern, or a table name with partition specifications
       if (entry.isPattern()) {
+        // adds it as a pattern and we are done
         builder.bypass().include().addPattern(entry.getPattern());
         continue;
       }
       if (entry.getPartitions().isEmpty()) {
+        // no partition specifications, add it as a simple name, and we are done
         builder.bypass().include().addName(entry.getName());
         continue;
       }
+      // otherwise, process partition specifications
       IncludeExcludeList<NamePatternEntry> partitions = entry.getPartitions();
       UdbAttachSpec.PartitionSpecBuilder partitionBuilder =
           new UdbAttachSpec.PartitionSpecBuilder();
+      // process included and excluded partitions
       for (NamePatternEntry partition : partitions.getIncludedEntries()) {
         if (partition.isPattern()) {
           partitionBuilder.include().addPattern(partition.getPattern());
@@ -182,9 +190,11 @@ public final class DbConfig {
           partitionBuilder.exclude().addName(partition.getName());
         }
       }
+      // finally, add the partition spec with the table name
       builder.bypass().include().addPartition(entry.getTable(), partitionBuilder);
     }
 
+    // process excluded bypassed tables
     for (NamePatternEntry entry : mBypassEntry.getList().getExcludedEntries()) {
       if (entry.isPattern()) {
         builder.bypass().exclude().addPattern(entry.getPattern());
@@ -193,6 +203,7 @@ public final class DbConfig {
       }
     }
 
+    // process included ignored tables
     for (NamePatternEntry entry : mIgnoreEntry.getList().getIncludedEntries()) {
       if (entry.isPattern()) {
         builder.ignore().include().addPattern(entry.getPattern());
@@ -201,6 +212,7 @@ public final class DbConfig {
       }
     }
 
+    // process excluded ignored tables
     for (NamePatternEntry entry : mIgnoreEntry.getList().getExcludedEntries()) {
       if (entry.isPattern()) {
         builder.ignore().exclude().addPattern(entry.getPattern());
