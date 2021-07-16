@@ -210,6 +210,16 @@ public final class UdbAttachSpec {
       return super.isEmpty() && mTablePartMap.isEmpty();
     }
 
+    /**
+     * A table is considered a "full" table, if it meets one of the following conditions in order:
+     * 1. its name is explicitly specified as a string literal;
+     * 2. it has an associated partition specification, which
+     *    a) is empty, then it's a full table;
+     *    b) is not empty, then it's not a full table;
+     * 3. its name is captured by a pattern.
+     * @param tableName
+     * @return
+     */
     boolean containsFullTable(String tableName) {
       // if a table is listed with an explicit literal name, then the partition specification
       // or regex patterns should not be consulted:
@@ -218,8 +228,8 @@ public final class UdbAttachSpec {
         return true;
       }
       if (mTablePartMap.containsKey(tableName)) {
-        // otherwise, check if it has an empty partition specification,
-        // or a non-empty partition spec.
+        // otherwise, check if it has a partition specification.
+        // an empty partition spec signals a full table, a non-empty one signals otherwise.
         // either way, it is explicitly listed, so no need to consult the regex patterns.
         return mTablePartMap.get(tableName).size() == 0;
       }
@@ -232,6 +242,12 @@ public final class UdbAttachSpec {
       return super.contains(tableName) || mTablePartMap.containsKey(tableName);
     }
 
+    /**
+     * This overrides the parent's behaviour by adding a new criterion for what counts as an
+     * explicitly specified table: if it has a partition specification.
+     * @param tableName
+     * @return
+     */
     @Override
     boolean containsExplicit(String tableName) {
       return super.containsExplicit(tableName) || mTablePartMap.containsKey(tableName);
@@ -244,6 +260,15 @@ public final class UdbAttachSpec {
       return contains(tableName);
     }
 
+    /**
+     * A partition is considered contained in this wrapper, if it meets the following conditions:
+     * 1. the parent table is a full table (see {@link #containsFullTable(String)};
+     * 2. the parent table has partition specifications, and the partition is contained in one
+     *    of the specifications.
+     * @param tableName
+     * @param partName
+     * @return
+     */
     boolean containsPartition(String tableName, String partName) {
       // any partition of a fully bypassed table is bypassed
       if (containsFullTable(tableName)) {
