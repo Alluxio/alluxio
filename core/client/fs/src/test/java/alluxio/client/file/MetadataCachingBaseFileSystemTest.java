@@ -22,6 +22,9 @@ import alluxio.conf.InstancedConfiguration;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.exception.status.NotFoundException;
+import alluxio.grpc.CreateDirectoryPOptions;
+import alluxio.grpc.CreateFilePOptions;
+import alluxio.grpc.DeletePOptions;
 import alluxio.grpc.GetStatusPOptions;
 import alluxio.grpc.ListStatusPOptions;
 import alluxio.resource.CloseableResource;
@@ -58,6 +61,7 @@ public class MetadataCachingBaseFileSystemTest {
   private FileSystemContext mFileContext;
   private ClientContext mClientContext;
   private RpcCountingFileSystemMasterClient mFileSystemMasterClient;
+  private Map<AlluxioURI, URIStatus> mFileStatusMap;
   private MetadataCachingBaseFileSystem mFs;
 
   @Before
@@ -77,6 +81,7 @@ public class MetadataCachingBaseFileSystemTest {
     when(mFileContext.getPathConf(any())).thenReturn(mConf);
     when(mFileContext.getUriValidationEnabled()).thenReturn(true);
     mFs = new MetadataCachingBaseFileSystem(mFileContext);
+    mFileStatusMap = new HashMap<>();
   }
 
   @After
@@ -158,7 +163,7 @@ public class MetadataCachingBaseFileSystemTest {
   }
 
   @Test
-  public void getNoneExitStatus() throws Exception {
+  public void getNoneExistStatus() throws Exception {
     try {
       mFs.getStatus(NOT_EXIST_FILE);
       Assert.fail("Failed while getStatus for a non-exist path.");
@@ -174,6 +179,50 @@ public class MetadataCachingBaseFileSystemTest {
       // expected exception thrown. test passes
     }
     assertEquals(1, mFileSystemMasterClient.getStatusRpcCount(NOT_EXIST_FILE));
+  }
+
+  @Test
+  public void createNoneExistFile() throws Exception {
+    try {
+      mFs.getStatus(NOT_EXIST_FILE);
+      Assert.fail("Failed while getStatus for a non-exist path.");
+    } catch (FileDoesNotExistException e) {
+      // expected exception thrown. test passes
+    }
+    assertEquals(1, mFileSystemMasterClient.getStatusRpcCount(NOT_EXIST_FILE));
+    // The following getStatus gets from cache, so no RPC will be made.
+    mFs.createFile(NOT_EXIST_FILE);
+    mFs.getStatus(NOT_EXIST_FILE);
+    assertEquals(2, mFileSystemMasterClient.getStatusRpcCount(NOT_EXIST_FILE));
+  }
+
+  @Test
+  public void createNoneExistDirectory() throws Exception {
+    try {
+      mFs.getStatus(NOT_EXIST_FILE);
+      Assert.fail("Failed while getStatus for a non-exist path.");
+    } catch (FileDoesNotExistException e) {
+      // expected exception thrown. test passes
+    }
+    assertEquals(1, mFileSystemMasterClient.getStatusRpcCount(NOT_EXIST_FILE));
+    // The following getStatus gets from cache, so no RPC will be made.
+    mFs.createDirectory(NOT_EXIST_FILE);
+    mFs.getStatus(NOT_EXIST_FILE);
+    assertEquals(2, mFileSystemMasterClient.getStatusRpcCount(NOT_EXIST_FILE));
+  }
+
+  @Test
+  public void createAndDeleteStatus() throws Exception {
+    mFs.createFile(NOT_EXIST_FILE);
+    mFs.getStatus(NOT_EXIST_FILE);
+    mFs.delete(NOT_EXIST_FILE);
+    try {
+      mFs.getStatus(NOT_EXIST_FILE);
+      Assert.fail("Failed while getStatus for a non-exist path.");
+    } catch (FileDoesNotExistException e) {
+      // expected exception thrown. test passes
+    }
+    assertEquals(2, mFileSystemMasterClient.getStatusRpcCount(NOT_EXIST_FILE));
   }
 
   class RpcCountingFileSystemMasterClient extends MockFileSystemMasterClient {
@@ -198,6 +247,9 @@ public class MetadataCachingBaseFileSystemTest {
       if (path.toString().equals(FILE_STATUS.getPath())) {
         return FILE_STATUS;
       }
+      if (mFileStatusMap.containsKey(path)) {
+        return mFileStatusMap.get(path);
+      }
       throw new NotFoundException("Path \"" + path.getPath() + "\" does not exist.");
     }
 
@@ -213,6 +265,33 @@ public class MetadataCachingBaseFileSystemTest {
         throws AlluxioStatusException {
       mListStatusCount.compute(path, (k, v) -> v == null ? 1 : v + 1);
       return Arrays.asList(FILE_STATUS);
+    }
+
+    @Override
+    public URIStatus createFile(AlluxioURI path, CreateFilePOptions options)
+        throws AlluxioStatusException {
+      URIStatus status = new URIStatus(
+          new FileInfo()
+              .setPath(NOT_EXIST_FILE.getPath())
+              .setCompleted(true));
+      mFileStatusMap.put(path, status);
+      return status;
+    }
+
+    @Override
+    public void createDirectory(AlluxioURI path,
+        CreateDirectoryPOptions options) throws AlluxioStatusException {
+      URIStatus status = new URIStatus(
+          new FileInfo()
+              .setPath(NOT_EXIST_FILE.getPath())
+              .setCompleted(true));
+      mFileStatusMap.put(path, status);
+    }
+
+    @Override
+    public void delete(AlluxioURI path, DeletePOptions options)
+        throws AlluxioStatusException {
+      mFileStatusMap.remove(path);
     }
   }
 }

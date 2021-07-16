@@ -53,7 +53,8 @@ public class MetadataCachingBaseFileSystem extends BaseFileSystem {
   private static final Logger LOG = LoggerFactory.getLogger(BaseFileSystem.class);
   private static final int THREAD_KEEPALIVE_SECOND = 60;
   private static final int THREAD_TERMINATION_TIMEOUT_MS = 10000;
-  private static final URIStatus NOT_FOUND_STATUS = new URIStatus(new FileInfo());
+  private static final URIStatus NOT_FOUND_STATUS = new URIStatus(
+      new FileInfo().setCompleted(true));
 
   private final MetadataCache mMetadataCache;
   private final ExecutorService mAccessTimeUpdater;
@@ -80,29 +81,11 @@ public class MetadataCachingBaseFileSystem extends BaseFileSystem {
   }
 
   @Override
-  public void createDirectory(AlluxioURI path)
-      throws IOException,
-      AlluxioException {
-    mMetadataCache.invalidate(path.getParent());
-    mMetadataCache.invalidate(path);
-    super.createDirectory(path);
-  }
-
-  @Override
   public void createDirectory(AlluxioURI path, CreateDirectoryPOptions options)
       throws FileAlreadyExistsException, InvalidPathException, IOException, AlluxioException {
     mMetadataCache.invalidate(path.getParent());
     mMetadataCache.invalidate(path);
     super.createDirectory(path, options);
-  }
-
-  @Override
-  public FileOutStream createFile(AlluxioURI path)
-      throws IOException,
-      AlluxioException {
-    mMetadataCache.invalidate(path.getParent());
-    mMetadataCache.invalidate(path);
-    return super.createFile(path);
   }
 
   @Override
@@ -114,31 +97,12 @@ public class MetadataCachingBaseFileSystem extends BaseFileSystem {
   }
 
   @Override
-  public void delete(AlluxioURI path)
-      throws IOException,
-      AlluxioException {
-    mMetadataCache.invalidate(path.getParent());
-    mMetadataCache.invalidate(path);
-    super.delete(path);
-  }
-
-  @Override
   public void delete(AlluxioURI path, DeletePOptions options)
       throws IOException,
       AlluxioException {
     mMetadataCache.invalidate(path.getParent());
     mMetadataCache.invalidate(path);
     super.delete(path, options);
-  }
-
-  @Override
-  public void rename(AlluxioURI src, AlluxioURI dst)
-      throws IOException, AlluxioException {
-    mMetadataCache.invalidate(src.getParent());
-    mMetadataCache.invalidate(src);
-    mMetadataCache.invalidate(dst.getParent());
-    mMetadataCache.invalidate(dst);
-    super.rename(src, dst);
   }
 
   @Override
