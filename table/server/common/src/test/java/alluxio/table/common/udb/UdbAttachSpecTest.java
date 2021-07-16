@@ -126,8 +126,8 @@ public class UdbAttachSpecTest {
     assertTrue(spec.isBypassedPartition(TABLE("a"), PART("a")));
   }
 
-  @Test
-  public void includedTableExplicitNamesFirst() {
+  @Test(expected = IllegalArgumentException.class)
+  public void rejectTableExplicitNameAndPartitionSpecAtSameTime() {
     UdbAttachSpec.PartitionSpecBuilder partitionBuilder = new UdbAttachSpec.PartitionSpecBuilder();
     partitionBuilder.include().addName(PART(1));
     mBuilder.bypass()
@@ -135,9 +135,7 @@ public class UdbAttachSpecTest {
         .addName(TABLE(1))
         .addPartition(TABLE(1), partitionBuilder);
 
-    UdbAttachSpec spec = mBuilder.build();
-    assertTrue(spec.isFullyBypassedTable(TABLE(1)));
-    assertTrue(spec.isBypassedPartition(TABLE(1), PART(2)));
+    mBuilder.build();
   }
 
   @Test(expected = IllegalArgumentException.class)

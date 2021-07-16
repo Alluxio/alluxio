@@ -529,6 +529,15 @@ public final class UdbAttachSpec {
       mNames = BaseBuilder.replaceNullWithEmpty(mNames);
       mPatterns = BaseBuilder.replaceNullWithEmpty(mPatterns);
       mTablePartMap = mTablePartMap == null ? Collections.emptyMap() : mTablePartMap;
+      // make sure no tables are added both as a simple name and with partition specs
+      // at the same time.
+      Set<String> intersection = Sets.intersection(mNames, mTablePartMap.keySet());
+      Preconditions.checkArgument(
+          intersection.isEmpty(),
+          "Tables ({}) should be specified either as a simple name, "
+          + "or with partition specs, but not both",
+          String.join(", ", intersection)
+      );
       TablePartitionNamePatternWrapper built =
           new TablePartitionNamePatternWrapper(mNames, mPatterns, mTablePartMap);
       // release references
