@@ -255,4 +255,12 @@ public class UdbAttachSpecTest {
     assertTrue(spec.isIgnoredTable(TABLE(1)));
     assertFalse(spec.isBypassedTable(TABLE(1)));
   }
+
+  @Test
+  public void ignoreNone() {
+    mBuilder.ignore().include().addNames(ImmutableSet.of());
+    mBuilder.ignore().include().addPatterns(ImmutableSet.of());
+    UdbAttachSpec spec = mBuilder.build();
+    assertFalse(spec.isIgnoredTable(ANY_TABLE));
+  }
 }
