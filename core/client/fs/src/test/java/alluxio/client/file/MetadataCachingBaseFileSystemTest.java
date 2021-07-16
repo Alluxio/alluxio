@@ -226,7 +226,6 @@ public class MetadataCachingBaseFileSystemTest {
     assertEquals(2, mFileSystemMasterClient.getStatusRpcCount(NOT_EXIST_FILE));
   }
 
-
   @Test
   public void createAndRename() throws Exception {
     mFs.createFile(NOT_EXIST_FILE);
