@@ -112,13 +112,13 @@ public class CollectInfo extends AbstractShell {
                   .build();
   private static final String HELP_OPTION_NAME = "help";
   private static final Option HELP_OPTION =
-          Option.builder().required(false).longOpt(HELP_OPTION_NAME).hasArg(false)
-                  .desc("shows the help message").build();
+      Option.builder().required(false).longOpt(HELP_OPTION_NAME).hasArg(false)
+          .desc("shows the help message").build();
   // Build the options for collectInfo, then aggregate local options for each sub-command
   private static final Options OPTIONS = loadOptions(new Options()
-          .addOption(THREAD_NUM_OPTION)
-          .addOption(LOCAL_OPTION)
-          .addOption(HELP_OPTION));
+      .addOption(THREAD_NUM_OPTION)
+      .addOption(LOCAL_OPTION)
+      .addOption(HELP_OPTION));
 
   // Load the options defined in each sub-command class
   private static Options loadOptions(Options options) {
