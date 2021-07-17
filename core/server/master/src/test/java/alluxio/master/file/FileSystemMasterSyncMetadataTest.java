@@ -19,7 +19,12 @@ import static org.mockito.Matchers.eq;
 import alluxio.AlluxioURI;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
+import alluxio.exception.AccessControlException;
+import alluxio.exception.FileAlreadyExistsException;
+import alluxio.exception.FileDoesNotExistException;
+import alluxio.exception.InvalidPathException;
 import alluxio.grpc.FileSystemMasterCommonPOptions;
+import alluxio.grpc.GetStatusPOptions;
 import alluxio.grpc.ListStatusPOptions;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.ManuallyScheduleHeartbeat;
@@ -58,6 +63,7 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.List;
 
 /**
@@ -101,22 +107,46 @@ public final class FileSystemMasterSyncMetadataTest {
   }
 
   @Test
-  public void listStatusWithSyncMetadataAndEmptyS3Owner() throws Exception {
-    // Create parent of mount point
-    mFileSystemMaster.createDirectory(new AlluxioURI("/mnt/"), CreateDirectoryContext.defaults());
-
-    // Mock ufs mount
-    AlluxioURI ufsMount = new AlluxioURI("s3a://bucket/");
-    Mockito.when(mUfs.getUnderFSType()).thenReturn("s3");
-    Mockito.when(mUfs.isObjectStorage()).thenReturn(true);
-    Mockito.when(mUfs.isDirectory(ufsMount.toString())).thenReturn(true);
+  public void setAttributeOwnerGroupOnMetadataUpdate() throws Exception {
+    AlluxioURI ufsMount = setupMockUfsS3Mount();
+    String fname = "file";
+    AlluxioURI uri = new AlluxioURI("/mnt/local/" + fname);
     short mode = ModeUtils.getUMask("0700").toShort();
-    Mockito.when(mUfs.getExistingDirectoryStatus(ufsMount.toString()))
-        .thenReturn(new UfsDirectoryStatus(ufsMount.toString(), "", "", mode));
-    Mockito.when(mUfs.resolveUri(Mockito.eq(ufsMount), anyString()))
-        .thenAnswer(invocation -> new AlluxioURI(ufsMount,
-            PathUtils.concatPath(ufsMount.getPath(),
-                invocation.getArgument(1, String.class)), false));
+
+    // Mock dir1 ufs path
+    AlluxioURI filePath = ufsMount.join("file");
+    UfsFileStatus fileStatus = new UfsFileStatus(
+        "file", "", 0L, System.currentTimeMillis(),
+        "owner1", "owner1", (short) 777, null, 100L);
+    Mockito.when(mUfs.getFingerprint(filePath.toString()))
+        .thenReturn(Fingerprint.create("s3", fileStatus).serialize());
+    Mockito.when(mUfs.exists(filePath.toString())).thenReturn(true);
+    Mockito.when(mUfs.isDirectory(filePath.toString())).thenReturn(false);
+    Mockito.when(mUfs.isFile(filePath.toString())).thenReturn(true);
+    Mockito.when(mUfs.getStatus(filePath.toString())).thenReturn(fileStatus);
+
+    List<FileInfo> f1 = mFileSystemMaster.listStatus(uri, ListStatusContext.mergeFrom(
+        ListStatusPOptions.newBuilder().setCommonOptions(
+            FileSystemMasterCommonPOptions.newBuilder().setSyncIntervalMs(0).build())));
+    UfsFileStatus updatedStatus = new UfsFileStatus(
+        "file", "", 0, System.currentTimeMillis(),
+        "owner2", "owner2", (short) 777, null, 100);
+    Mockito.when(mUfs.getStatus(filePath.toString())).thenReturn(updatedStatus);
+    Mockito.when(mUfs.getFingerprint(filePath.toString())).thenReturn(Fingerprint.create("s3",
+        updatedStatus).serialize());
+
+    FileInfo res = mFileSystemMaster.getFileInfo(uri,
+        GetStatusContext.mergeFrom(GetStatusPOptions.newBuilder().setCommonOptions(
+            FileSystemMasterCommonPOptions.newBuilder().setSyncIntervalMs(0).build())));
+    assertEquals("owner2", res.getOwner());
+    assertEquals("owner2", res.getGroup());
+  }
+
+  @Test
+  public void listStatusWithSyncMetadataAndEmptyS3Owner() throws Exception {
+
+    AlluxioURI ufsMount = setupMockUfsS3Mount();
+    short mode = ModeUtils.getUMask("0700").toShort();
 
     // Mock dir1 ufs path
     AlluxioURI dir1Path = ufsMount.join("dir1");
@@ -173,6 +203,30 @@ public final class FileSystemMasterSyncMetadataTest {
         mFileSystemMaster.getFileInfo(file1, GetStatusContext.defaults()).getOwner());
     assertEquals(mountLocalInfo.getGroup(),
         mFileSystemMaster.getFileInfo(file1, GetStatusContext.defaults()).getGroup());
+  }
+
+  private AlluxioURI setupMockUfsS3Mount()
+      throws IOException, FileDoesNotExistException, FileAlreadyExistsException,
+      AccessControlException, InvalidPathException {
+    mFileSystemMaster.createDirectory(new AlluxioURI("/mnt/"), CreateDirectoryContext.defaults());
+    // Mock ufs mount
+    AlluxioURI ufsMount = new AlluxioURI("s3a://bucket/");
+    Mockito.when(mUfs.getUnderFSType()).thenReturn("s3");
+    Mockito.when(mUfs.isObjectStorage()).thenReturn(true);
+    Mockito.when(mUfs.isDirectory(ufsMount.toString())).thenReturn(true);
+    short mode = ModeUtils.getUMask("0700").toShort();
+    Mockito.when(mUfs.getExistingDirectoryStatus(ufsMount.toString()))
+        .thenReturn(new UfsDirectoryStatus(ufsMount.toString(), "", "", mode));
+    Mockito.when(mUfs.resolveUri(Mockito.eq(ufsMount), anyString()))
+        .thenAnswer(invocation -> new AlluxioURI(ufsMount,
+            PathUtils.concatPath(ufsMount.getPath(),
+                invocation.getArgument(1, String.class)), false));
+
+    // Mount
+    AlluxioURI mountLocal = new AlluxioURI("/mnt/local");
+    mFileSystemMaster.mount(mountLocal, ufsMount, MountContext.defaults());
+
+    return ufsMount;
   }
 
   private void startServices() throws Exception {
