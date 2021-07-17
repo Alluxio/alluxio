@@ -16,6 +16,7 @@ import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.InvalidWorkerStateException;
 import alluxio.exception.WorkerOutOfSpaceException;
 import alluxio.grpc.AsyncCacheRequest;
+import alluxio.grpc.CacheRequest;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.wire.BlockReadRequest;
 import alluxio.wire.FileInfo;
@@ -311,6 +312,14 @@ public interface BlockWorker extends Worker, SessionCleanable {
    * @param request the async cache request
    */
   void asyncCache(AsyncCacheRequest request);
+
+  /**
+   * Submits the async cache request to async cache manager to execute.
+   *
+   * @param request the async cache request
+   * @return cache result, succeed or not
+   */
+  boolean cache(CacheRequest request);
 
   /**
    * Sets the pinlist for the underlying block store.

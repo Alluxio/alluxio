@@ -28,6 +28,7 @@ import alluxio.exception.InvalidWorkerStateException;
 import alluxio.exception.WorkerOutOfSpaceException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.AsyncCacheRequest;
+import alluxio.grpc.CacheRequest;
 import alluxio.grpc.GrpcService;
 import alluxio.grpc.ServiceType;
 import alluxio.heartbeat.HeartbeatContext;
@@ -136,7 +137,7 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
   private final AtomicReference<Long> mWorkerId;
 
   private final FileSystemContext mFsContext;
-  private final AsyncCacheRequestManager mAsyncCacheManager;
+  private final CacheRequestManager mCacheManager;
   private final FuseManager mFuseManager;
   private final UfsManager mUfsManager;
 
@@ -179,8 +180,8 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
     mUfsManager = ufsManager;
     mFsContext = mResourceCloser.register(
         FileSystemContext.create(null, ServerConfiguration.global(), this));
-    mAsyncCacheManager = new AsyncCacheRequestManager(
-        GrpcExecutors.ASYNC_CACHE_MANAGER_EXECUTOR, this, mFsContext);
+    mCacheManager = new CacheRequestManager(
+        GrpcExecutors.CACHE_MANAGER_EXECUTOR, this, mFsContext);
     mFuseManager = mResourceCloser.register(new FuseManager(mFsContext));
     mUnderFileSystemBlockStore = new UnderFileSystemBlockStore(mLocalBlockStore, ufsManager);
 
@@ -540,7 +541,12 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
 
   @Override
   public void asyncCache(AsyncCacheRequest request) {
-    mAsyncCacheManager.submitRequest(request);
+    mCacheManager.submitRequest(request);
+  }
+
+  @Override
+  public boolean cache(CacheRequest request) {
+    return mCacheManager.submitRequest(request);
   }
 
   @Override
