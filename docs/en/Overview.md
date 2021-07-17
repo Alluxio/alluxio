@@ -32,7 +32,7 @@ Today, Alluxio is deployed in production by [hundreds of organizations](https://
 with the largest deployment exceeding 1,500 nodes.
 
 <p align="center">
-<img src="https://d39kqat1wpn1o5.cloudfront.net/app/uploads/2019/05/alluxio-overview-r050119.svg" width="800" alt="Ecosystem"/>
+<img src="https://d39kqat1wpn1o5.cloudfront.net/app/uploads/2021/07/alluxio-overview-r071521.png" width="800" alt="Ecosystem"/>
 </p>
 
 ## Benefits
