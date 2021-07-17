@@ -12,6 +12,8 @@
 package alluxio.master.metrics;
 
 import alluxio.RpcUtils;
+import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.ClearMetricsPRequest;
 import alluxio.grpc.ClearMetricsPResponse;
 import alluxio.grpc.GetMetricsPOptions;
@@ -40,7 +42,8 @@ public final class MetricsMasterClientServiceHandler
     extends MetricsMasterClientServiceGrpc.MetricsMasterClientServiceImplBase {
   private static final Logger LOG =
       LoggerFactory.getLogger(MetricsMasterClientServiceHandler.class);
-
+  private static final long RPC_REQUEST_SIZE_WARNING_THRESHOLD =
+      ServerConfiguration.getBytes(PropertyKey.MASTER_RPC_REQUEST_SIZE_WARNING_THRESHOLD);
   private final MetricsMaster mMetricsMaster;
 
   /**
@@ -65,7 +68,11 @@ public final class MetricsMasterClientServiceHandler
       StreamObserver<MetricsHeartbeatPResponse> responseObserver) {
     RpcUtils.call(LOG,
         (RpcUtils.RpcCallableThrowsIOException<MetricsHeartbeatPResponse>) () -> {
-
+          if (request.getSerializedSize() > RPC_REQUEST_SIZE_WARNING_THRESHOLD) {
+            LOG.warn("metricsHeartbeat request is {} bytes, {} client metrics",
+                request.getSerializedSize(),
+                request.getOptions().getClientMetricsCount());
+          }
           for (alluxio.grpc.ClientMetrics clientMetric :
               request.getOptions().getClientMetricsList()) {
             List<Metric> metrics = Lists.newArrayList();

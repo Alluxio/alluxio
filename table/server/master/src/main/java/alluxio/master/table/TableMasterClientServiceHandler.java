@@ -12,6 +12,8 @@
 package alluxio.master.table;
 
 import alluxio.RpcUtils;
+import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.table.AttachDatabasePRequest;
 import alluxio.grpc.table.AttachDatabasePResponse;
 import alluxio.grpc.table.DetachDatabasePRequest;
@@ -53,7 +55,10 @@ import java.util.stream.Collectors;
 public class TableMasterClientServiceHandler
     extends TableMasterClientServiceGrpc.TableMasterClientServiceImplBase {
   private static final Logger LOG = LoggerFactory.getLogger(TableMasterClientServiceHandler.class);
-
+  private static final long RPC_REQUEST_SIZE_WARNING_THRESHOLD =
+      ServerConfiguration.getBytes(PropertyKey.MASTER_RPC_REQUEST_SIZE_WARNING_THRESHOLD);
+  private static final long RPC_RESPONSE_SIZE_WARNING_THRESHOLD =
+      ServerConfiguration.getBytes(PropertyKey.MASTER_RPC_RESPONSE_SIZE_WARNING_THRESHOLD);
   private final TableMaster mTableMaster;
 
   /**
@@ -70,6 +75,11 @@ public class TableMasterClientServiceHandler
   public void attachDatabase(AttachDatabasePRequest request,
       StreamObserver<AttachDatabasePResponse> responseObserver) {
     RpcUtils.call(LOG, () -> {
+      if (request.getSerializedSize() > RPC_REQUEST_SIZE_WARNING_THRESHOLD) {
+        LOG.warn("attachDatabase request is {} bytes, {} options",
+                request.getSerializedSize(),
+                request.getOptionsCount());
+      }
       SyncStatus status = mTableMaster
           .attachDatabase(request.getUdbType(), request.getUdbConnectionUri(),
               request.getUdbDbName(), request.getDbName(), request.getOptionsMap(),
@@ -90,17 +100,31 @@ public class TableMasterClientServiceHandler
   @Override
   public void getAllDatabases(GetAllDatabasesPRequest request,
       StreamObserver<GetAllDatabasesPResponse> responseObserver) {
-    RpcUtils.call(LOG, () -> GetAllDatabasesPResponse.newBuilder()
-        .addAllDatabase(mTableMaster.getAllDatabases()).build(),
-        "getAllDatabases", "", responseObserver);
+    RpcUtils.call(LOG, () -> {
+      GetAllDatabasesPResponse response = GetAllDatabasesPResponse.newBuilder()
+          .addAllDatabase(mTableMaster.getAllDatabases()).build();
+      if (response.getSerializedSize() > RPC_RESPONSE_SIZE_WARNING_THRESHOLD) {
+        LOG.warn("getAllDatabases response is {} bytes, {} databases",
+            response.getSerializedSize(),
+            response.getDatabaseCount());
+      }
+      return response;
+    }, "getAllDatabases", "", responseObserver);
   }
 
   @Override
   public void getAllTables(GetAllTablesPRequest request,
       StreamObserver<GetAllTablesPResponse> responseObserver) {
-    RpcUtils.call(LOG, () -> GetAllTablesPResponse.newBuilder()
-        .addAllTable(mTableMaster.getAllTables(request.getDatabase())).build(),
-        "getAllTables", "", responseObserver);
+    RpcUtils.call(LOG, () -> {
+      GetAllTablesPResponse response = GetAllTablesPResponse.newBuilder()
+          .addAllTable(mTableMaster.getAllTables(request.getDatabase())).build();
+      if (response.getSerializedSize() > RPC_RESPONSE_SIZE_WARNING_THRESHOLD) {
+        LOG.warn("getAllTables response is {} bytes, {} tables",
+            response.getSerializedSize(),
+            response.getTableCount());
+      }
+      return response;
+    }, "getAllTables", "", responseObserver);
   }
 
   @Override
@@ -126,20 +150,35 @@ public class TableMasterClientServiceHandler
   @Override
   public void getTableColumnStatistics(GetTableColumnStatisticsPRequest request,
       StreamObserver<GetTableColumnStatisticsPResponse> responseObserver) {
-    RpcUtils.call(LOG, () -> GetTableColumnStatisticsPResponse.newBuilder().addAllStatistics(
-        mTableMaster.getTableColumnStatistics(request.getDbName(),
-            request.getTableName(), request.getColNamesList())).build(),
-        "getTableColumnStatistics", "", responseObserver);
+    RpcUtils.call(LOG, () -> {
+      GetTableColumnStatisticsPResponse response = GetTableColumnStatisticsPResponse.newBuilder()
+          .addAllStatistics(mTableMaster.getTableColumnStatistics(request.getDbName(),
+              request.getTableName(), request.getColNamesList())).build();
+      if (response.getSerializedSize() > RPC_RESPONSE_SIZE_WARNING_THRESHOLD) {
+        LOG.warn("getTableColumnStatistics response is {} bytes, {} columns",
+            response.getSerializedSize(),
+            response.getStatisticsCount());
+      }
+      return response;
+    }, "getTableColumnStatistics", "", responseObserver);
   }
 
   @Override
   public void getPartitionColumnStatistics(GetPartitionColumnStatisticsPRequest request,
       StreamObserver<GetPartitionColumnStatisticsPResponse> responseObserver) {
-    RpcUtils.call(LOG, () -> GetPartitionColumnStatisticsPResponse.newBuilder()
-            .putAllPartitionStatistics(mTableMaster.getPartitionColumnStatistics(
-                request.getDbName(), request.getTableName(), request.getPartNamesList(),
-                request.getColNamesList())).build(),
-        "getPartitionColumnStatistics", "", responseObserver);
+    RpcUtils.call(LOG, () -> {
+      GetPartitionColumnStatisticsPResponse response =
+          GetPartitionColumnStatisticsPResponse.newBuilder()
+              .putAllPartitionStatistics(mTableMaster.getPartitionColumnStatistics(
+                  request.getDbName(), request.getTableName(), request.getPartNamesList(),
+                  request.getColNamesList())).build();
+      if (response.getSerializedSize() > RPC_RESPONSE_SIZE_WARNING_THRESHOLD) {
+        LOG.warn("getPartitionColumnStatistics response is {} bytes, {} partitions",
+            response.getSerializedSize(),
+            response.getPartitionStatisticsCount());
+      }
+      return response;
+    }, "getPartitionColumnStatistics", "", responseObserver);
   }
 
   @Override

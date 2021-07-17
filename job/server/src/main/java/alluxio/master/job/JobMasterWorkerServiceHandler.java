@@ -12,6 +12,8 @@
 package alluxio.master.job;
 
 import alluxio.RpcUtils;
+import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.JobHeartbeatPRequest;
 import alluxio.grpc.JobHeartbeatPResponse;
 import alluxio.grpc.JobMasterWorkerServiceGrpc;
@@ -39,6 +41,10 @@ import javax.annotation.concurrent.ThreadSafe;
 public final class JobMasterWorkerServiceHandler
     extends JobMasterWorkerServiceGrpc.JobMasterWorkerServiceImplBase {
   private static final Logger LOG = LoggerFactory.getLogger(JobMasterWorkerServiceHandler.class);
+  private static final long RPC_REQUEST_SIZE_WARNING_THRESHOLD =
+      ServerConfiguration.getBytes(PropertyKey.MASTER_RPC_REQUEST_SIZE_WARNING_THRESHOLD);
+  private static final long RPC_RESPONSE_SIZE_WARNING_THRESHOLD =
+      ServerConfiguration.getBytes(PropertyKey.MASTER_RPC_RESPONSE_SIZE_WARNING_THRESHOLD);
   private final JobMaster mJobMaster;
 
   /**
@@ -55,6 +61,11 @@ public final class JobMasterWorkerServiceHandler
                         StreamObserver<JobHeartbeatPResponse> responseObserver) {
 
     RpcUtils.call(LOG, (RpcUtils.RpcCallableThrowsIOException<JobHeartbeatPResponse>) () -> {
+      if (request.getSerializedSize() > RPC_REQUEST_SIZE_WARNING_THRESHOLD) {
+        LOG.warn("jobHeartbeat request is {} bytes, {} TaskInfo",
+            request.getSerializedSize(),
+            request.getTaskInfosCount());
+      }
       List<TaskInfo> wireTaskInfoList = Lists.newArrayList();
       for (alluxio.grpc.JobInfo taskInfo : request.getTaskInfosList()) {
         try {
@@ -64,9 +75,15 @@ public final class JobMasterWorkerServiceHandler
         }
       }
       JobWorkerHealth jobWorkerHealth = new JobWorkerHealth(request.getJobWorkerHealth());
-      return JobHeartbeatPResponse.newBuilder()
-              .addAllCommands(mJobMaster.workerHeartbeat(jobWorkerHealth, wireTaskInfoList))
-              .build();
+      JobHeartbeatPResponse response = JobHeartbeatPResponse.newBuilder()
+          .addAllCommands(mJobMaster.workerHeartbeat(jobWorkerHealth, wireTaskInfoList))
+          .build();
+      if (response.getSerializedSize() > RPC_RESPONSE_SIZE_WARNING_THRESHOLD) {
+        LOG.warn("jobHeartbeat response is {} bytes, {} commands",
+            response.getSerializedSize(),
+            response.getCommandsCount());
+      }
+      return response;
     }, "heartbeat", "request=%s", responseObserver, request);
   }
 

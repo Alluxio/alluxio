@@ -11,6 +11,8 @@
 
 package alluxio;
 
+import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.exception.status.InternalException;
@@ -25,6 +27,8 @@ import io.grpc.stub.StreamObserver;
 import org.slf4j.Logger;
 
 import java.io.IOException;
+import java.time.Duration;
+import java.time.Instant;
 
 /**
  * Utilities for handling server RPC calls.
@@ -34,6 +38,9 @@ import java.io.IOException;
  * level and failure metrics will not be recorded.
  */
 public final class RpcUtils {
+  private static final long RPC_TIME_WARNING_THESHOLD =
+      ServerConfiguration.getMs(PropertyKey.MASTER_RPC_TIME_WARNING_THRESHOLD);
+
   private RpcUtils() {} // prevent instantiation
 
   /**
@@ -108,6 +115,7 @@ public final class RpcUtils {
       throws StatusException {
     // avoid string format for better performance if debug is off
     String debugDesc = logger.isDebugEnabled() ? String.format(description, args) : null;
+    Instant startTime = Instant.now();
     try (Timer.Context ctx = MetricsSystem.timer(getQualifiedMetricName(methodName)).time()) {
       MetricsSystem.counter(getQualifiedInProgressMetricName(methodName)).inc();
       logger.debug("Enter: {}: {}", methodName, debugDesc);
@@ -140,6 +148,11 @@ public final class RpcUtils {
       throw new InternalException(e).toGrpcStatusException();
     } finally {
       MetricsSystem.counter(getQualifiedInProgressMetricName(methodName)).dec();
+      Instant endTime = Instant.now();
+      long timeElapsed = Duration.between(startTime, endTime).toMillis();
+      if (timeElapsed > RPC_TIME_WARNING_THESHOLD) {
+        logger.warn("RPC {} took {}ms to complete: {}", methodName, timeElapsed, debugDesc);
+      }
     }
   }
 
@@ -161,6 +174,7 @@ public final class RpcUtils {
       StreamObserver<T> responseObserver, String description, Object... args) {
     // avoid string format for better performance if debug is off
     String debugDesc = logger.isDebugEnabled() ? String.format(description, args) : null;
+    Instant startTime = Instant.now();
     try (Timer.Context ctx = MetricsSystem.timer(getQualifiedMetricName(methodName)).time()) {
       MetricsSystem.counter(getQualifiedInProgressMetricName(methodName)).inc();
       logger.debug("Enter(stream): {}: {}", methodName, debugDesc);
@@ -182,6 +196,11 @@ public final class RpcUtils {
       callable.exceptionCaught(e);
     } finally {
       MetricsSystem.counter(getQualifiedInProgressMetricName(methodName)).dec();
+      Instant endTime = Instant.now();
+      long timeElapsed = Duration.between(startTime, endTime).toMillis();
+      if (timeElapsed > RPC_TIME_WARNING_THESHOLD) {
+        logger.warn("Streaming RPC {} took {} to complete: {}", methodName, timeElapsed, debugDesc);
+      }
     }
   }
 
