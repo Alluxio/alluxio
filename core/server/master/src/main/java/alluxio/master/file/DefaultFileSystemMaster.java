@@ -494,7 +494,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
     mJournaledGroup = new JournaledGroup(journaledComponents, CheckpointName.FILE_SYSTEM_MASTER);
 
     resetState();
-    Metrics.registerGauges(mUfsManager, mInodeTree);
+    Metrics.registerMetrics(mUfsManager, mInodeTree);
   }
 
   private static MountInfo getRootMountInfo(MasterUfsManager ufsManager) {
@@ -4480,13 +4480,13 @@ public final class DefaultFileSystemMaster extends CoreMaster
     }
 
     /**
-     * Register some file system master related gauges.
+     * Register some file system master related metrics.
      *
      * @param ufsManager the under filesystem manager
      * @param inodeTree the inodeTree
      */
     @VisibleForTesting
-    public static void registerGauges(final UfsManager ufsManager, final InodeTree inodeTree) {
+    public static void registerMetrics(final UfsManager ufsManager, final InodeTree inodeTree) {
       MetricsSystem.registerGaugeIfAbsent(MetricKey.MASTER_FILES_PINNED.getName(),
           inodeTree::getPinnedSize);
       MetricsSystem.registerGaugeIfAbsent(MetricKey.MASTER_FILES_TO_PERSIST.getName(),
@@ -4534,6 +4534,8 @@ public final class DefaultFileSystemMaster extends CoreMaster
             }
             return ret;
           });
+
+      MetricsSystem.counter(MetricKey.MASTER_UFS_METADATA_ACCESS_COUNT.getName());
     }
 
     private Metrics() {} // prevent instantiation

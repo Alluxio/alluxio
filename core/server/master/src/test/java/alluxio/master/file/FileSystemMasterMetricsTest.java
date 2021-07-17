@@ -40,7 +40,7 @@ public class FileSystemMasterMetricsTest {
     MetricsSystem.clearAllMetrics();
     mUfsManager = Mockito.mock(UfsManager.class);
     mInodeTree = Mockito.mock(InodeTree.class);
-    Metrics.registerGauges(mUfsManager, mInodeTree);
+    Metrics.registerMetrics(mUfsManager, mInodeTree);
   }
 
   @Test

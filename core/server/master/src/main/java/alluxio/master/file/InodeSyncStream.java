@@ -54,6 +54,8 @@ import alluxio.master.file.meta.UfsSyncPathCache;
 import alluxio.master.file.meta.UfsSyncUtils;
 import alluxio.master.journal.MergeJournalContext;
 import alluxio.master.metastore.ReadOnlyInodeStore;
+import alluxio.metrics.MetricKey;
+import alluxio.metrics.MetricsSystem;
 import alluxio.proto.journal.File;
 import alluxio.proto.journal.Journal;
 import alluxio.resource.CloseableResource;
@@ -69,6 +71,7 @@ import alluxio.util.LogUtils;
 import alluxio.util.interfaces.Scoped;
 import alluxio.util.io.PathUtils;
 
+import com.codahale.metrics.Counter;
 import com.google.common.base.MoreObjects;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -750,6 +753,8 @@ public class InodeSyncStream {
         return;
       }
 
+      Metrics.UFS_METADATA_ACCESS.inc();
+
       if (context.getUfsStatus().isFile()) {
         loadFileMetadataInternal(mRpcContext, inodePath, resolution, context, mFsMaster);
       } else {
@@ -1033,5 +1038,17 @@ public class InodeSyncStream {
         .add("forceSync", mForceSync)
         .add("isGetFileInfo", mIsGetFileInfo)
         .toString();
+  }
+
+  /**
+   * Class that contains metrics for InodeSyncStream.
+   * This class is public because the counter names are referenced in
+   * {@link alluxio.web.WebInterfaceAbstractMetricsServlet}.
+   */
+  public static final class Metrics {
+    private static final Counter UFS_METADATA_ACCESS =
+        MetricsSystem.counter(MetricKey.MASTER_UFS_METADATA_ACCESS_COUNT.getName());
+
+    private Metrics() {} // prevent instantiation
   }
 }
