@@ -132,7 +132,6 @@ public final class ConfigurationTestUtils {
     conf.put(PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_ALIAS.format(0), Constants.MEDIUM_MEM);
 
     conf.put(PropertyKey.MASTER_EMBEDDED_JOURNAL_ELECTION_TIMEOUT, "260ms");
-    conf.put(PropertyKey.MASTER_EMBEDDED_JOURNAL_HEARTBEAT_INTERVAL, "50ms");
     // Reset the value to avoid raft journal system complaining about log size < 65
     conf.put(PropertyKey.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX,
         PropertyKey.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX.getDefaultValue());

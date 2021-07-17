@@ -267,8 +267,6 @@ public class RaftJournalSystem extends AbstractJournalSystem {
       LOG.debug("Overriding election timeout to {}ms for single master cluster.",
           SINGLE_MASTER_ELECTION_TIMEOUT_MS);
       conf.setElectionTimeoutMs(SINGLE_MASTER_ELECTION_TIMEOUT_MS);
-      // Use the highest heartbeat internal relative to election timeout.
-      conf.setHeartbeatIntervalMs((SINGLE_MASTER_ELECTION_TIMEOUT_MS / 2) - 1);
     }
     // Validate the conf.
     conf.validate();

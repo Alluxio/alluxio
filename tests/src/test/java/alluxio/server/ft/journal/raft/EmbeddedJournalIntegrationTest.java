@@ -98,7 +98,6 @@ public final class EmbeddedJournalIntegrationTest extends BaseIntegrationTest {
         .addProperty(PropertyKey.MASTER_JOURNAL_FLUSH_TIMEOUT_MS, "5min")
         // To make the test run faster.
         .addProperty(PropertyKey.MASTER_EMBEDDED_JOURNAL_ELECTION_TIMEOUT, "750ms")
-        .addProperty(PropertyKey.MASTER_EMBEDDED_JOURNAL_HEARTBEAT_INTERVAL, "250ms")
         .build();
     mCluster.start();
 
@@ -201,8 +200,7 @@ public final class EmbeddedJournalIntegrationTest extends BaseIntegrationTest {
         .addProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.EMBEDDED.toString())
         .addProperty(PropertyKey.MASTER_JOURNAL_FLUSH_TIMEOUT_MS, "5min")
         // To make the test run faster.
-        .addProperty(PropertyKey.MASTER_EMBEDDED_JOURNAL_ELECTION_TIMEOUT, "750ms")
-        .addProperty(PropertyKey.MASTER_EMBEDDED_JOURNAL_HEARTBEAT_INTERVAL, "250ms").build();
+        .addProperty(PropertyKey.MASTER_EMBEDDED_JOURNAL_ELECTION_TIMEOUT, "750ms").build();
     mCluster.start();
 
     assertEquals(5,
@@ -265,8 +263,7 @@ public final class EmbeddedJournalIntegrationTest extends BaseIntegrationTest {
         .addProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.EMBEDDED.toString())
         .addProperty(PropertyKey.MASTER_JOURNAL_FLUSH_TIMEOUT_MS, "5min")
         // To make the test run faster.
-        .addProperty(PropertyKey.MASTER_EMBEDDED_JOURNAL_ELECTION_TIMEOUT, "2s")
-        .addProperty(PropertyKey.MASTER_EMBEDDED_JOURNAL_HEARTBEAT_INTERVAL, "250ms").build();
+        .addProperty(PropertyKey.MASTER_EMBEDDED_JOURNAL_ELECTION_TIMEOUT, "2s").build();
     mCluster.start();
 
     AlluxioURI testDir = new AlluxioURI("/" + CommonUtils.randomAlphaNumString(10));
@@ -383,8 +380,7 @@ public final class EmbeddedJournalIntegrationTest extends BaseIntegrationTest {
         .addProperty(PropertyKey.MASTER_JOURNAL_FLUSH_TIMEOUT_MS, "5min")
         .addProperty(PropertyKey.MASTER_METASTORE, "HEAP")
         // To make the test run faster.
-        .addProperty(PropertyKey.MASTER_EMBEDDED_JOURNAL_ELECTION_TIMEOUT, "2s")
-        .addProperty(PropertyKey.MASTER_EMBEDDED_JOURNAL_HEARTBEAT_INTERVAL, "250ms").build();
+        .addProperty(PropertyKey.MASTER_EMBEDDED_JOURNAL_ELECTION_TIMEOUT, "2s").build();
     mCluster.start();
 
     AlluxioURI testDir = new AlluxioURI("/" + CommonUtils.randomAlphaNumString(10));
@@ -507,7 +503,6 @@ public final class EmbeddedJournalIntegrationTest extends BaseIntegrationTest {
         .addProperty(PropertyKey.MASTER_JOURNAL_FLUSH_TIMEOUT_MS, "5min")
         // To make the test run faster.
         .addProperty(PropertyKey.MASTER_EMBEDDED_JOURNAL_ELECTION_TIMEOUT, "750ms")
-        .addProperty(PropertyKey.MASTER_EMBEDDED_JOURNAL_HEARTBEAT_INTERVAL, "250ms")
         .build();
     mCluster.start();
 
@@ -533,7 +528,6 @@ public final class EmbeddedJournalIntegrationTest extends BaseIntegrationTest {
         .addProperty(PropertyKey.MASTER_JOURNAL_FLUSH_TIMEOUT_MS, "5min")
         // To make the test run faster.
         .addProperty(PropertyKey.MASTER_EMBEDDED_JOURNAL_ELECTION_TIMEOUT, "750ms")
-        .addProperty(PropertyKey.MASTER_EMBEDDED_JOURNAL_HEARTBEAT_INTERVAL, "250ms")
         .build();
     mCluster.start();
 

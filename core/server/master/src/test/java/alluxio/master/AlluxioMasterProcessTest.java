@@ -152,7 +152,6 @@ public final class AlluxioMasterProcessTest {
     FileUtils.createDir(ufsPath);
     ufsPath = "http://other_ufs/";
     ServerConfiguration.set(PropertyKey.MASTER_EMBEDDED_JOURNAL_ELECTION_TIMEOUT, "550");
-    ServerConfiguration.set(PropertyKey.MASTER_EMBEDDED_JOURNAL_HEARTBEAT_INTERVAL, "250ms");
     ServerConfiguration.set(PropertyKey.MASTER_JOURNAL_INIT_FROM_BACKUP, backupPath);
     ServerConfiguration.set(PropertyKey.MASTER_JOURNAL_FOLDER, journalPath);
     ServerConfiguration.set(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS, ufsPath);
