@@ -17,6 +17,7 @@ import static org.junit.Assert.assertTrue;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
+import alluxio.ProjectConstants;
 import alluxio.client.block.AlluxioBlockStore;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
@@ -69,6 +70,7 @@ public class MasterFaultToleranceIntegrationTest extends BaseIntegrationTest {
 
   private MultiMasterLocalAlluxioCluster mMultiMasterLocalAlluxioCluster = null;
   private FileSystem mFileSystem = null;
+  private long mStartTime;
 
   @Rule
   private TestName mTestName = new TestName();
@@ -100,6 +102,7 @@ public class MasterFaultToleranceIntegrationTest extends BaseIntegrationTest {
     ServerConfiguration.set(PropertyKey.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX, 32);
     mMultiMasterLocalAlluxioCluster.start();
     mFileSystem = mMultiMasterLocalAlluxioCluster.getClient();
+    mStartTime = System.currentTimeMillis();
   }
 
   /**
@@ -299,6 +302,7 @@ public class MasterFaultToleranceIntegrationTest extends BaseIntegrationTest {
           blockMaster1.getWorkerId(new alluxio.wire.WorkerNetAddress().setHost("host1"));
       blockMaster1.workerRegister(workerId1a, Collections.EMPTY_LIST, Collections.EMPTY_MAP,
           Collections.EMPTY_MAP, Collections.EMPTY_MAP, Collections.EMPTY_MAP,
+          mStartTime, ProjectConstants.VERSION,
           RegisterWorkerPOptions.getDefaultInstance());
 
       // Register worker 2
@@ -306,6 +310,7 @@ public class MasterFaultToleranceIntegrationTest extends BaseIntegrationTest {
           blockMaster1.getWorkerId(new alluxio.wire.WorkerNetAddress().setHost("host2"));
       blockMaster1.workerRegister(workerId2a, Collections.EMPTY_LIST, Collections.EMPTY_MAP,
           Collections.EMPTY_MAP, Collections.EMPTY_MAP, Collections.EMPTY_MAP,
+          mStartTime, ProjectConstants.VERSION,
           RegisterWorkerPOptions.getDefaultInstance());
 
       assertEquals(2, blockMaster1.getWorkerCount());
@@ -336,6 +341,7 @@ public class MasterFaultToleranceIntegrationTest extends BaseIntegrationTest {
           blockMaster2.getWorkerId(new alluxio.wire.WorkerNetAddress().setHost("host2"));
       blockMaster2.workerRegister(workerId2b, Collections.EMPTY_LIST, Collections.EMPTY_MAP,
           Collections.EMPTY_MAP, Collections.EMPTY_MAP, Collections.EMPTY_MAP,
+          mStartTime, ProjectConstants.VERSION,
           RegisterWorkerPOptions.getDefaultInstance());
 
       // Worker 1 tries to heartbeat (with original id), and should get "Register" in response.
@@ -349,6 +355,7 @@ public class MasterFaultToleranceIntegrationTest extends BaseIntegrationTest {
           blockMaster2.getWorkerId(new alluxio.wire.WorkerNetAddress().setHost("host1"));
       blockMaster2.workerRegister(workerId1b, Collections.EMPTY_LIST, Collections.EMPTY_MAP,
           Collections.EMPTY_MAP, Collections.EMPTY_MAP, Collections.EMPTY_MAP,
+          mStartTime, ProjectConstants.VERSION,
           RegisterWorkerPOptions.getDefaultInstance());
     } finally {
       if (cluster != null) {

@@ -24,6 +24,7 @@ import static org.mockito.Mockito.when;
 import alluxio.AlluxioURI;
 import alluxio.ConfigurationRule;
 import alluxio.Constants;
+import alluxio.ProjectConstants;
 import alluxio.RuntimeConstants;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
@@ -110,6 +111,7 @@ public final class AlluxioMasterRestServiceHandlerTest {
   private MasterRegistry mRegistry;
   private AlluxioMasterRestServiceHandler mHandler;
   private MetricsMaster mMetricsMaster;
+  private long mStartTime;
 
   @Rule
   public TemporaryFolder mTestFolder = new TemporaryFolder();
@@ -145,9 +147,11 @@ public final class AlluxioMasterRestServiceHandlerTest {
 
     mBlockMaster.workerRegister(worker1, tiers, WORKER1_TOTAL_BYTES_ON_TIERS,
         WORKER1_USED_BYTES_ON_TIERS, NO_BLOCKS_ON_LOCATIONS, NO_LOST_STORAGE,
+        mStartTime, ProjectConstants.VERSION,
         RegisterWorkerPOptions.getDefaultInstance());
     mBlockMaster.workerRegister(worker2, tiers, WORKER2_TOTAL_BYTES_ON_TIERS,
         WORKER2_USED_BYTES_ON_TIERS, NO_BLOCKS_ON_LOCATIONS, NO_LOST_STORAGE,
+        mStartTime, ProjectConstants.VERSION,
         RegisterWorkerPOptions.getDefaultInstance());
 
     String filesPinnedProperty = MetricKey.MASTER_FILES_PINNED.getName();

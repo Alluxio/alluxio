@@ -29,6 +29,10 @@ public class StaticWorkerMeta {
   final long mId;
   /** Start time of the worker in ms. */
   final long mStartTimeMs;
+  /** the start time of worker. */
+  long mStartTime;
+  /** the version of worker. */
+  String mVersion;
 
   /**
    * Constructor.
