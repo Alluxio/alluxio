@@ -22,6 +22,31 @@ import java.io.IOException;
 public interface DataReader extends Closeable {
 
   /**
+   * The data reader type represents different ways to read data.
+   */
+  enum DataReaderType {
+    /**
+     * Read from a worker in the same process.
+     * This is used by fuse client in the worker process.
+     */
+    BLOCK_WORKER,
+    /**
+     * Reads from a worker through gRPC.
+     */
+    GRPC,
+    /**
+     * Reads from a local block directly.
+     * Usually used when the client and worker are on the same node but in the different processes.
+     */
+    SHORT_CIRCUIT,
+    /**
+     * Shared gRPC data reader that cache blocks data for multi-thread accessing.
+     */
+    SHARED,
+    TEST // Mock data reader for testing
+  }
+
+  /**
    * Reads a chunk. The caller needs to release the chunk.
    *
    * @return the data buffer or null if EOF is reached
@@ -47,8 +72,8 @@ public interface DataReader extends Closeable {
     DataReader create(long offset, long len) throws IOException;
 
     /**
-     * @return whether this factory generates data readers which perform short-circuit reads
+     * @return the data reader type
      */
-    boolean isShortCircuit();
+    DataReaderType getDataReaderType();
   }
 }
