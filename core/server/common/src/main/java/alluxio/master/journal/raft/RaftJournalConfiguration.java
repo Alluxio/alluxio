@@ -19,15 +19,20 @@ import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
 
 import com.google.common.base.Preconditions;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.net.UnknownHostException;
 import java.util.List;
 
 /**
  * Configuration for the Raft journal system.
  */
 public class RaftJournalConfiguration {
+  private static final Logger LOG = LoggerFactory.getLogger(RaftJournalConfiguration.class);
   private List<InetSocketAddress> mClusterAddresses;
   private long mElectionTimeoutMs;
   private long mHeartbeatIntervalMs;
@@ -54,6 +59,28 @@ public class RaftJournalConfiguration {
   }
 
   /**
+   * @param clusterAddresses addresses of all nodes in the Raft cluster
+   * @return true if the cluster addresses contain the local IP, false otherwise
+   */
+  private static boolean containsLocalIp(List<InetSocketAddress> clusterAddresses) {
+    String localAddressIp = NetworkAddressUtils.getLocalIpAddress((int) ServerConfiguration
+        .global().getMs(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS));
+    for (InetSocketAddress addr : clusterAddresses) {
+      String clusterNodeIp;
+      try {
+        clusterNodeIp = InetAddress.getByName(addr.getHostName()).getHostAddress();
+        if (clusterNodeIp.equals(localAddressIp)) {
+          return true;
+        }
+      } catch (UnknownHostException e) {
+        LOG.error("Get raft cluster node ip by hostname({}) failed",
+            addr.getHostName(), e);
+      }
+    }
+    return false;
+  }
+
+  /**
    * Validates the configuration.
    */
   public void validate() {
@@ -63,7 +90,8 @@ public class RaftJournalConfiguration {
     Preconditions.checkState(getHeartbeatIntervalMs() < getElectionTimeoutMs() / 2,
         "Heartbeat interval (%sms) should be less than half of the election timeout (%sms)",
         getHeartbeatIntervalMs(), getElectionTimeoutMs());
-    Preconditions.checkState(getClusterAddresses().contains(getLocalAddress()),
+    Preconditions.checkState(getClusterAddresses().contains(getLocalAddress())
+            || containsLocalIp(getClusterAddresses()),
         "The cluster addresses (%s) must contain the local master address (%s)",
         getClusterAddresses(), getLocalAddress());
   }
