@@ -23,6 +23,7 @@ import alluxio.util.ConfigurationUtils;
 import alluxio.util.network.NetworkAddressUtils;
 
 import com.codahale.metrics.CachedGauge;
+import com.codahale.metrics.Clock;
 import com.codahale.metrics.Counter;
 import com.codahale.metrics.Gauge;
 import com.codahale.metrics.Meter;
@@ -837,6 +838,40 @@ public final class MetricsSystem {
     }
     for (String gauge : METRIC_REGISTRY.getGauges().keySet()) {
       METRIC_REGISTRY.remove(gauge);
+    }
+  }
+
+  public static class MultiTimerContext implements AutoCloseable {
+    private final Timer mTimer1;
+    private final Timer mTimer2;
+    private final long mStartTime;
+
+    public MultiTimerContext(Timer timer1, Timer timer2) {
+      mTimer1 = Preconditions.checkNotNull(timer1, "timer1");
+      mTimer2 = Preconditions.checkNotNull(timer2, "timer2");
+      mStartTime = System.nanoTime();
+    }
+
+    /**
+     * Updates the timer with the difference between current and start time. Call to this method
+     * will
+     * not reset the start time. Multiple calls result in multiple updates.
+     *
+     * @return the elapsed time in nanoseconds
+     */
+    public long stop() {
+      final long elapsed = System.nanoTime() - mStartTime;
+      mTimer1.update(elapsed, TimeUnit.NANOSECONDS);
+      mTimer2.update(elapsed, TimeUnit.NANOSECONDS);
+      return elapsed;
+    }
+
+    /**
+     * Equivalent to calling {@link #stop()}.
+     */
+    @Override
+    public void close() {
+      stop();
     }
   }
 
