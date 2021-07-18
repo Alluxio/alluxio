@@ -73,9 +73,9 @@ func (cs *controllerServer) CreateVolume(ctx context.Context, req *csi.CreateVol
 		command := exec.Command("/opt/alluxio/bin/alluxio", "fs", "test", "-d", alluxioPath)
 		stdoutStderr, err := command.CombinedOutput()
 		if err != nil {
-			glog.V(2).Infof("Path %s is not directory, stdout/stderr is: %s, error is %v",
+			glog.V(2).Infof("Path %s does not exist or is not a directory, stdout/stderr is: %s, error is %v",
 				alluxioPath, string(stdoutStderr), err)
-			return nil, status.Error(codes.Aborted, "AlluxioPath not exists or not a directory")
+			return nil, status.Error(codes.Aborted, "AlluxioPath does not exists or is not a directory")
 		}
 		glog.V(4).Infof("Command stdout/stderr is: %s", string(stdoutStderr))
 	}
