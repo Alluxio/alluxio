@@ -501,7 +501,7 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
     try {
       openUfsBlock(sessionId, blockId, options);
       BlockReader reader = mUnderFileSystemBlockStore.getBlockReader(sessionId, blockId, offset,
-          positionShort);
+          positionShort, options.getUser());
       return new DelegatingBlockReader(reader, () -> {
         try {
           closeUfsBlock(sessionId, blockId);
