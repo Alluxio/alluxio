@@ -16,12 +16,12 @@
 
 USAGE="Usage: alluxio-start.sh [-hNwm] [-i backup] ACTION [MOPT] [-f] [-c cache]
 Where ACTION is one of:
-  all [MOPT]                \tStart all masters, proxies, and workers.
+  all [MOPT] [-c cache]     \tStart all masters, proxies, and workers.
   job_master                \tStart the job_master on this node.
   job_masters               \tStart job_masters on master nodes.
   job_worker                \tStart a job_worker on this node.
   job_workers               \tStart job_workers on worker nodes.
-  local [MOPT]              \tStart all processes locally.
+  local [MOPT] [-c cache]   \tStart all processes locally.
   master                    \tStart the local master on this node.
   secondary_master          \tStart the local secondary master on this node.
   masters                   \tStart masters on master nodes.
@@ -262,7 +262,12 @@ start_worker() {
     exit 1
   fi
 
-  if [[ ! -z "${cache}" && -d "${cache}" ]] ; then
+  if [[ ! -z "${cache}" ]] ; then
+    if [[ ! -d "${cache}" ]] ; then
+      echo "Cache path ${cache} is not a directory; aborting"
+      exit 1
+    fi
+
     echo "Populating worker MEM-type caches with contents from ${cache}"
 
     num_tiers=$(get_alluxio_property "alluxio.worker.tieredstore.levels")

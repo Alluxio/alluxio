@@ -12,31 +12,25 @@
 
 . $(dirname "$0")/alluxio-common.sh
 
-USAGE="Usage: alluxio-stop.sh [-h] [component]
+USAGE="Usage: alluxio-stop.sh [-h] [component] [-c cache]
 Where component is one of:
-  all     [-c cache]  \tStop all masters, proxies, and workers.
-    -c cache   save the worker MEM-type cache(s) from the worker node(s) to the
-               specified directory (relative to each worker node's host filesystem).
+  all [-c cache]      \tStop all masters, proxies, and workers.
   job_master          \tStop local job master.
   job_masters         \tStop job masters on master nodes.
   job_worker          \tStop local job worker.
   job_workers         \tStop job workers on worker nodes.
-  local   [-c cache]  \tStop all processes locally.
-    -c cache   save the worker MEM-type cache(s) from the worker node(s) to the
-               specified directory (relative to each worker node's host filesystem).
+  local [-c cache]    \tStop all processes locally.
   master              \tStop local primary master.
   secondary_master    \tStop local secondary master.
   masters             \tStop masters on master nodes.
   proxy               \tStop local proxy.
   proxies             \tStop proxies on master and worker nodes.
   worker  [-c cache]  \tStop local worker.
-    -c cache   save the worker MEM-type cache(s) from the worker node(s) to the
-               specified directory (relative to each worker node's host filesystem).
   workers [-c cache]  \tStop workers on worker nodes.
-    -c cache   save the worker MEM-type cache(s) from the worker node(s) to the
-               specified directory (relative to each worker node's host filesystem).
   logserver           \tStop the logserver
 
+-c cache   save the worker MEM-type cache(s) from the worker node(s) to the
+           specified directory (relative to each worker node's host filesystem).
 -h         display this help."
 
 DEFAULT_LIBEXEC_DIR="${BIN}/../libexec"
@@ -80,9 +74,8 @@ stop_proxies() {
   ${LAUNCHER} "${BIN}/alluxio-workers.sh" "${BIN}/alluxio-stop.sh" "proxy"
 }
 
-stop_worker() { # [-c cache]
-  local cache="${1:-}"
-  if [[ ! -z ${cache} ]]; then
+stop_worker() {
+  if [[ ! -z "${cache}" ]] ; then
     echo "Cache directory: ${cache}"
     mkdir -p ${cache}
     if [[ ${?} -ne 0 ]]; then
@@ -124,9 +117,12 @@ stop_worker() { # [-c cache]
   ${LAUNCHER} "${BIN}/alluxio" "killAll" "alluxio.worker.AlluxioWorker"
 }
 
-stop_workers() { # [-c cache]
-  local cache="${1:-}"
-  ${LAUNCHER} "${BIN}/alluxio-workers.sh" "${BIN}/alluxio-stop.sh" "worker" ${cache}
+stop_workers() {
+  start_opts=""
+  if [[ -n ${cache} ]]; then
+    start_opts="-c ${cache}"
+  fi
+  ${LAUNCHER} "${BIN}/alluxio-workers.sh" "${BIN}/alluxio-stop.sh" "worker" ${start_opts}
 }
 
 stop_logserver() {
@@ -136,14 +132,25 @@ stop_logserver() {
 
 WHAT=${1:--h}
 
-# TODO(czhu): Implement usage of bash flags (eg: `getopts`)
-CACHE=${2:-}
+# shift argument index for getopts
+shift
+while getopts "c:" o; do
+  case "${o}" in
+    c)
+      cache="${OPTARG}"
+      ;;
+    *)
+      echo -e "${USAGE}" >&2
+      exit 1
+      ;;
+  esac
+done
 
 case "${WHAT}" in
   all)
     stop_proxies
     stop_job_workers
-    stop_workers ${CACHE}
+    stop_workers
     stop_job_masters
     stop_masters
     ;;
@@ -151,7 +158,7 @@ case "${WHAT}" in
     stop_proxy
     stop_job_worker
     stop_job_master
-    stop_worker ${CACHE}
+    stop_worker
     ALLUXIO_MASTER_SECONDARY=true
     stop_master
     ALLUXIO_MASTER_SECONDARY=false
@@ -187,10 +194,10 @@ case "${WHAT}" in
     stop_proxies
     ;;
   worker)
-    stop_worker ${CACHE}
+    stop_worker
     ;;
   workers)
-    stop_workers ${CACHE}
+    stop_workers
     ;;
   logserver)
     stop_logserver
