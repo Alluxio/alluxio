@@ -1,7 +1,7 @@
 ---
 layout: global
-title: Querying Iceberg Tables with Presto and Alluxio
-nickname: Presto-Iceberg
+title: Running Presto on Iceberg Tables with Alluxio
+nickname: Presto on Iceberg (Experimental)
 group: Compute Integrations
 priority: 2
 ---
@@ -9,6 +9,7 @@ priority: 2
 Presto has introduced support for [Iceberg tables](https://iceberg.apache.org/) in version 0.256.
 
 This document describes how to use Presto to query Iceberg tables through Alluxio.
+This document is currently experimental, and the information provided here is subject to change.
 
 * Table of Contents
 {:toc}
@@ -25,7 +26,15 @@ Presto can access data through Alluxio: via the filesystem interface, and via th
 Alluxio has not added support for Iceberg in the catalog service yet, so for Iceberg tables Presto 
 needs to access them through Alluxio's filesystem interface.
 
-## Install Alluxio client jar to Presto Iceberg connector
+## Prerequisites
+
+* All [prerequisites]({{ '/en/compute/Presto.html' | relativize_url }}#prerequisites) 
+  from the general Presto setup;
+* Presto server, version 0.257 or later.
+
+## Basic Setup
+
+### Install Alluxio client jar to Presto Iceberg connector
 
 Copy the Alluxio client jar located at `{{site.ALLUXIO_CLIENT_JAR_PATH}}` into Presto Iceberg 
 connector's directory located at `${PRESTO_HOME}/plugin/iceberg/`. Then restart the Presto server:
@@ -38,7 +47,7 @@ Also note that the same client jar file needs to be on Hive's classpath.
 If not, please refer to the [section]({{ '/en/compute/Hive.html' | relativize_url }}#basic-setup)
 on setting up Hive to work with Alluxio.
 
-## Configure Presto to use the Iceberg connector
+### Configure Presto to use the Iceberg connector
 
 Presto reads and writes an Iceberg table using the 
 [Iceberg connector](https://prestodb.io/docs/current/connector/iceberg.html). To enable the Iceberg 
@@ -52,7 +61,9 @@ hive.metastore.uri=thrift://localhost:9083
 
 Change the Hive Metastore connection URI to match your setup.
 
-## Create a schema and an Iceberg table
+## Examples: Use Presto to Query Iceberg Tables on Alluxio
+
+### Create a schema and an Iceberg table
 
 For demonstration purposes, we will create an example schema and an Iceberg table.
 
@@ -80,7 +91,7 @@ Change the hostname and port in the Alluxio connection URI to match your setup.
 These statements create a schema `iceberg_test` and a table `person` at the directory 
 `/person` in Alluxio filesystem, and with Parquet as the table's storage format.
 
-## Insert sample data into the table
+### Insert sample data into the table
 
 Insert one row of sample data into the newly created table:
 
@@ -88,9 +99,9 @@ Insert one row of sample data into the newly created table:
 INSERT INTO person VALUES ('alice', 18, 1000);
 ```
 
-Note: there's a bug in the write path of Presto's Iceberg connector, so insertion may fail. 
-This issue has been resolved in a recent [PR](https://github.com/prestodb/presto/pull/16275) 
-but not released yet as of this writing.
+Note: there was a bug in the write path of Presto's Iceberg connector, so insertion may fail. 
+This issue has been resolved in Presto version 0.257 by 
+[this PR](https://github.com/prestodb/presto/pull/16275).
 
 Now you can verify things are working by reading back the data from the table:
 
