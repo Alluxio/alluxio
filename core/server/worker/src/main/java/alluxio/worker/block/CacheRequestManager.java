@@ -40,7 +40,6 @@ import java.util.Objects;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Future;
 import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -126,12 +125,12 @@ public class CacheRequestManager {
     long blockId = request.getBlockId();
     if (mPendingSyncRequests.putIfAbsent(blockId, request) != null) {
       // This block is already planned.
-      CACHE_DUPLICATE_REQUESTS.inc();
+      SAMPLING_LOG.warn("Failed to submit cache request due to duplicate cache requests");
       return false;
     }
     try {
-      Future<Boolean> task = mCacheExecutor.submit(new CacheTask(request));
-      return task.get();
+      return new CacheTask(request).call();
+
     } catch (RejectedExecutionException e) {
       // RejectedExecutionException may be thrown in extreme cases when the
       // gRPC thread pool is drained due to highly concurrent caching workloads. In these cases,
@@ -354,7 +353,7 @@ public class CacheRequestManager {
         boolean isSourceLocal = mLocalWorkerHostname.equals(mRequest.getSourceHost());
         // Check if the block has already been cached on this worker
         if (mBlockWorker.hasBlockMeta(mRequest.getBlockId())) {
-          CACHE_DUPLICATE_REQUESTS.inc();
+          SAMPLING_LOG.debug("Block already cached:{}", mRequest.getBlockId());
           return true;
         }
         Protocol.OpenUfsBlockOptions openUfsBlockOptions = mRequest.getOpenUfsBlockOptions();
@@ -399,8 +398,6 @@ public class CacheRequestManager {
       MetricsSystem.counter(MetricKey.WORKER_ASYNC_CACHE_UFS_BLOCKS.getName());
   private static final Counter CACHE_REQUESTS
           = MetricsSystem.counter(MetricKey.WORKER_CACHE_REQUESTS.getName());
-  private static final Counter CACHE_DUPLICATE_REQUESTS =
-          MetricsSystem.counter(MetricKey.WORKER_CACHE_DUPLICATE_REQUESTS.getName());
   private static final Counter CACHE_FAILED_BLOCKS =
           MetricsSystem.counter(MetricKey.WORKER_CACHE_FAILED_BLOCKS.getName());
   private static final Counter CACHE_REMOTE_BLOCKS =

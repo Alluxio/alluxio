@@ -159,7 +159,7 @@ public final class LoadCommand extends AbstractFileSystemCommand {
       if (local) {
         if (!mFsContext.hasNodeLocalWorker()) {
           System.out.println(
-              "When local option is specified," + " there must be a local worker available");
+              "When local option is specified, there must be a local worker available");
           return;
         }
       } else if (status.getInAlluxioPercentage() == 100) {
@@ -309,7 +309,7 @@ public final class LoadCommand extends AbstractFileSystemCommand {
       dataSource = policy.getWorker(getWorkerOptions);
     }
     if (dataSource == null) {
-      throw new UnavailableException(ExceptionMessage.NO_WORKER_AVAILABLE.getMessage());
+      throw new UnavailableException("Can't find dataSource for block:" + blockId);
     }
     return dataSource;
   }
@@ -343,4 +343,3 @@ public final class LoadCommand extends AbstractFileSystemCommand {
     return openUfsBlockOptions;
   }
 }
-
