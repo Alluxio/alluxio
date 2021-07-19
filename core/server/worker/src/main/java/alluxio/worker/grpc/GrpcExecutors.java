@@ -37,12 +37,12 @@ public final class GrpcExecutors {
   private static final long THREAD_STOP_MS = Constants.SECOND_MS * 10;
   private static final int THREADS_MIN = 4;
 
-  public static final ExecutorService CACHE_MANAGER_EXECUTOR =
+  public static final ExecutorService ASYNC_CACHE_MANAGER_EXECUTOR =
       new ImpersonateThreadPoolExecutor(new ThreadPoolExecutor(THREADS_MIN,
-          ServerConfiguration.getInt(PropertyKey.WORKER_NETWORK_CACHE_MANAGER_THREADS_MAX),
+          ServerConfiguration.getInt(PropertyKey.WORKER_NETWORK_ASYNC_CACHE_MANAGER_THREADS_MAX),
           THREAD_STOP_MS, TimeUnit.MILLISECONDS,
           new UniqueBlockingQueue<>(
-              ServerConfiguration.getInt(PropertyKey.WORKER_NETWORK_CACHE_MANAGER_QUEUE_MAX)),
+              ServerConfiguration.getInt(PropertyKey.WORKER_NETWORK_ASYNC_CACHE_MANAGER_QUEUE_MAX)),
           ThreadFactoryUtils.build("AsyncCacheManagerExecutor-%d", true)));
   // TODO(jianjian): update thread name when figure out compatibility issue
 
