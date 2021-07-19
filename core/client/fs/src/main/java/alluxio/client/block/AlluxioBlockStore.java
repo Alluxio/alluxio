@@ -148,8 +148,6 @@ public final class AlluxioBlockStore {
         options.getStatus(), options.getUfsReadLocationPolicy(), failedWorkers);
     WorkerNetAddress dataSource = dataSourceAndType.getFirst();
     BlockInStreamSource dataSourceType = dataSourceAndType.getSecond();
-    
-
     try {
       return BlockInStream.create(mContext, info, dataSource, dataSourceType, options);
     } catch (UnavailableException e) {
@@ -174,7 +172,7 @@ public final class AlluxioBlockStore {
       URIStatus status, BlockLocationPolicy policy) throws IOException {
     return getDataSourceAndType(info, status, policy, ImmutableMap.of());
   }
-  
+
   /**
    * Gets the data source and type of data source of a block. This method is primarily responsible
    * for determining the data source and type of data source. The latest BlockInfo will be fetched
@@ -189,7 +187,7 @@ public final class AlluxioBlockStore {
    * @return the data source and type of data source of the block
    */
   public Pair<WorkerNetAddress, BlockInStreamSource> getDataSourceAndType(BlockInfo info,
-      URIStatus status,BlockLocationPolicy policy, Map<WorkerNetAddress, Long> failedWorkers)
+      URIStatus status, BlockLocationPolicy policy, Map<WorkerNetAddress, Long> failedWorkers)
       throws IOException {
     List<BlockLocation> locations = info.getLocations();
     List<BlockWorkerInfo> blockWorkerInfo = Collections.EMPTY_LIST;

@@ -130,7 +130,6 @@ public class CacheRequestManager {
     }
     try {
       return new CacheTask(request).call();
-
     } catch (RejectedExecutionException e) {
       // RejectedExecutionException may be thrown in extreme cases when the
       // gRPC thread pool is drained due to highly concurrent caching workloads. In these cases,
@@ -139,7 +138,7 @@ public class CacheRequestManager {
       SAMPLING_LOG.warn(String.format(
           "Failed to cache block locally (async & best effort) as the thread pool is at capacity."
               + " To increase, update the parameter '%s'. numRejected: {} error: {}",
-          PropertyKey.Name.WORKER_NETWORK_CACHE_MANAGER_THREADS_MAX), mNumRejected.get(),
+          PropertyKey.Name.WORKER_NETWORK_ASYNC_CACHE_MANAGER_THREADS_MAX), mNumRejected.get(),
           e.toString());
       return false;
     } catch (Exception e) {

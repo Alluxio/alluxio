@@ -46,8 +46,8 @@ public class CacheRequestManagerTest {
     mRandom = new Random();
     mBlockWorker = mock(DefaultBlockWorker.class);
     mFsContext = mock(FileSystemContext.class);
-    mCacheRequestManager =
-        new CacheRequestManager(GrpcExecutors.ASYNC_CACHE_MANAGER_EXECUTOR, mBlockWorker, mFsContext);
+    mCacheRequestManager = new CacheRequestManager(GrpcExecutors.ASYNC_CACHE_MANAGER_EXECUTOR,
+        mBlockWorker, mFsContext);
   }
 
   @Test
