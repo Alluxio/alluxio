@@ -17,8 +17,7 @@ import static org.junit.Assert.assertTrue;
 
 import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
-import alluxio.client.quota.CacheQuota;
-import alluxio.client.quota.CacheScope;
+import alluxio.client.file.CacheContext;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.util.io.BufferUtils;
@@ -185,7 +184,7 @@ public final class CacheManagerWithShadowCacheTest {
     private final HashMap<PageId, byte[]> mCache = new HashMap<>();
 
     @Override
-    public boolean put(PageId pageId, byte[] page, CacheScope cacheScope, CacheQuota cacheQuota) {
+    public boolean put(PageId pageId, byte[] page, CacheContext cacheContext) {
       if (!mCache.containsKey(pageId)) {
         mCache.put(pageId, page);
       }
@@ -194,7 +193,7 @@ public final class CacheManagerWithShadowCacheTest {
 
     @Override
     public int get(PageId pageId, int pageOffset, int bytesToRead, byte[] buffer,
-        int offsetInBuffer) {
+        int offsetInBuffer, CacheContext cacheContext) {
       if (!mCache.containsKey(pageId)) {
         return 0;
       }
