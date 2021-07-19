@@ -11,41 +11,31 @@
 
 package alluxio.cli.fs.command;
 
-import static java.util.stream.Collectors.toList;
-import static java.util.stream.Collectors.toSet;
-
 import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.annotation.PublicApi;
 import alluxio.cli.CommandUtils;
-import alluxio.client.ReadType;
-import alluxio.client.block.BlockWorkerInfo;
+import alluxio.client.block.AlluxioBlockStore;
 import alluxio.client.block.policy.BlockLocationPolicy;
-import alluxio.client.block.policy.options.GetWorkerOptions;
+import alluxio.client.block.stream.BlockInStream;
 import alluxio.client.block.stream.BlockWorkerClient;
-import alluxio.client.block.util.BlockLocationUtils;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.URIStatus;
+import alluxio.client.file.options.InStreamOptions;
 import alluxio.collections.Pair;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.AlluxioException;
-import alluxio.exception.ExceptionMessage;
 import alluxio.exception.PreconditionMessage;
 import alluxio.exception.status.InvalidArgumentException;
-import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.CacheRequest;
 import alluxio.grpc.CacheResponse;
 import alluxio.grpc.OpenFilePOptions;
-import alluxio.master.block.BlockId;
-import alluxio.network.TieredIdentityFactory;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.resource.CloseableResource;
 import alluxio.util.FileSystemOptions;
 import alluxio.util.ThreadFactoryUtils;
 import alluxio.wire.BlockInfo;
-import alluxio.wire.BlockLocation;
-import alluxio.wire.TieredIdentity;
 import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.base.Preconditions;
@@ -55,10 +45,7 @@ import org.apache.commons.cli.Options;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
-import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -182,15 +169,21 @@ public final class LoadCommand extends AbstractFileSystemCommand {
             .create(conf.get(PropertyKey.USER_UFS_BLOCK_READ_LOCATION_POLICY), conf),
         PreconditionMessage.UFS_READ_LOCATION_POLICY_UNSPECIFIED);
 
-    WorkerNetAddress worker;
+    WorkerNetAddress dataSource;
     List<Long> blockIds = status.getBlockIds();
     for (long blockId : blockIds) {
       if (local) {
-        worker = mFsContext.getNodeLocalWorker();
+        dataSource = mFsContext.getNodeLocalWorker();
       } else { // send request to data source
-        worker = getDataSouce(blockId, status, policy);
+        AlluxioBlockStore blockStore = AlluxioBlockStore.create(mFsContext);
+
+        Pair<WorkerNetAddress, BlockInStream.BlockInStreamSource> dataSourceAndType =
+            blockStore.getDataSourceAndType(status.getBlockInfo(blockId), status, policy);
+        dataSource = dataSourceAndType.getFirst();
       }
-      tasks.add(new LoadTask(blockId, worker, local, status, options));
+      Protocol.OpenUfsBlockOptions openUfsBlockOptions =
+          new InStreamOptions(status, options, conf).getOpenUfsBlockOptions(blockId);
+      tasks.add(new LoadTask(blockId, dataSource, local, status, openUfsBlockOptions));
     }
   }
 
@@ -214,10 +207,10 @@ public final class LoadCommand extends AbstractFileSystemCommand {
     private final WorkerNetAddress mDataSource;
     private final boolean mLocal;
     private final URIStatus mStatus;
-    private final OpenFilePOptions mOptions;
+    private final Protocol.OpenUfsBlockOptions mOptions;
 
     LoadTask(long blockId, WorkerNetAddress dataSource, boolean local, URIStatus status,
-        OpenFilePOptions options) {
+        Protocol.OpenUfsBlockOptions options) {
       mBlockId = blockId;
       mDataSource = dataSource;
       mLocal = local;
@@ -230,7 +223,7 @@ public final class LoadCommand extends AbstractFileSystemCommand {
       BlockInfo info = mStatus.getBlockInfo(mBlockId);
       long blockLength = info.getLength();
       CacheRequest request = CacheRequest.newBuilder().setBlockId(mBlockId).setLength(blockLength)
-          .setOpenUfsBlockOptions(getOpenUfsBlockOptions(mBlockId, mStatus, mOptions))
+          .setOpenUfsBlockOptions(mOptions)
           .setSourceHost(mDataSource.getHost()).setSourcePort(mDataSource.getDataPort()).build();
       // TODO(jianjian) support FUSE processLocalWorker?
       WorkerNetAddress worker;
@@ -252,95 +245,5 @@ public final class LoadCommand extends AbstractFileSystemCommand {
       }
       return false;
     }
-  }
-
-  // todo(jianjian) consider refactoring with AlluxioBlockStore
-  private WorkerNetAddress getDataSouce(long blockId, URIStatus status, BlockLocationPolicy policy)
-      throws IOException {
-    BlockInfo info = status.getBlockInfo(blockId);
-    List<BlockLocation> locations = info.getLocations();
-    List<BlockWorkerInfo> blockWorkerInfo = Collections.EMPTY_LIST;
-    TieredIdentity tieredIdentity =
-        TieredIdentityFactory.localIdentity(mFsContext.getClusterConf());
-    // Initial target workers to read the block given the block locations.
-    Set<WorkerNetAddress> workers;
-    // Note that, it is possible that the blocks have been written as UFS blocks
-    if (status.isPersisted() || status.getPersistenceState().equals("TO_BE_PERSISTED")) {
-      blockWorkerInfo = mFsContext.getCachedWorkers();
-      if (blockWorkerInfo.isEmpty()) {
-        throw new UnavailableException(ExceptionMessage.NO_WORKER_AVAILABLE.getMessage());
-      }
-      workers = blockWorkerInfo.stream().map(BlockWorkerInfo::getNetAddress).collect(toSet());
-    } else {
-      if (locations.isEmpty()) {
-        blockWorkerInfo = mFsContext.getCachedWorkers();
-        if (blockWorkerInfo.isEmpty()) {
-          throw new UnavailableException(ExceptionMessage.NO_WORKER_AVAILABLE.getMessage());
-        }
-        throw new UnavailableException(
-            ExceptionMessage.BLOCK_UNAVAILABLE.getMessage(info.getBlockId()));
-      }
-      workers = locations.stream().map(BlockLocation::getWorkerAddress).collect(toSet());
-    }
-    // Workers to read the block, after considering failed workers.
-    WorkerNetAddress dataSource = null;
-    locations = locations.stream().filter(location -> workers.contains(location.getWorkerAddress()))
-        .collect(toList());
-    // First try to read data from Alluxio
-    if (!locations.isEmpty()) {
-      // TODO(calvin): Get location via a policy
-      List<WorkerNetAddress> tieredLocations =
-          locations.stream().map(location -> location.getWorkerAddress()).collect(toList());
-      Collections.shuffle(tieredLocations);
-      Optional<Pair<WorkerNetAddress, Boolean>> nearest =
-          BlockLocationUtils.nearest(tieredIdentity, tieredLocations, mFsContext.getClusterConf());
-      if (nearest.isPresent()) {
-        dataSource = nearest.get().getFirst();
-      }
-    }
-
-    // Can't get data from Alluxio, get it from the UFS instead
-    if (dataSource == null) {
-      blockWorkerInfo = blockWorkerInfo.stream()
-          .filter(workerInfo -> workers.contains(workerInfo.getNetAddress())).collect(toList());
-      GetWorkerOptions getWorkerOptions = GetWorkerOptions
-          .defaults().setBlockInfo(new BlockInfo().setBlockId(info.getBlockId())
-              .setLength(info.getLength()).setLocations(locations))
-          .setBlockWorkerInfos(blockWorkerInfo);
-      dataSource = policy.getWorker(getWorkerOptions);
-    }
-    if (dataSource == null) {
-      throw new UnavailableException("Can't find dataSource for block:" + blockId);
-    }
-    return dataSource;
-  }
-
-  // todo(jianjian) refactoring with InStreamOptions
-  private Protocol.OpenUfsBlockOptions getOpenUfsBlockOptions(long blockId, URIStatus status,
-      OpenFilePOptions options) {
-    Preconditions.checkArgument(status.getBlockIds().contains(blockId), "blockId");
-    boolean readFromUfs = status.isPersisted();
-    // In case it is possible to fallback to read UFS blocks, also fill in the options.
-    boolean storedAsUfsBlock = status.getPersistenceState().equals("TO_BE_PERSISTED");
-    readFromUfs = readFromUfs || storedAsUfsBlock;
-    if (!readFromUfs) {
-      return Protocol.OpenUfsBlockOptions.getDefaultInstance();
-    }
-    BlockInfo info = status.getBlockInfo(blockId);
-    long blockStart = BlockId.getSequenceNumber(blockId) * status.getBlockSizeBytes();
-    Protocol.OpenUfsBlockOptions openUfsBlockOptions = Protocol.OpenUfsBlockOptions.newBuilder()
-        .setUfsPath(status.getUfsPath()).setOffsetInFile(blockStart).setBlockSize(info.getLength())
-        .setMaxUfsReadConcurrency(options.getMaxUfsReadConcurrency())
-        .setNoCache(!ReadType.fromProto(options.getReadType()).isCache())
-        .setMountId(status.getMountId()).build();
-    if (storedAsUfsBlock) {
-      // On client-side, we do not have enough mount information to fill in the UFS file path.
-      // Instead, we unset the ufsPath field and fill in a flag ufsBlock to indicate the UFS file
-      // path can be derived from mount id and the block ID. Also because the entire file is only
-      // one block, we set the offset in file to be zero.
-      openUfsBlockOptions = openUfsBlockOptions.toBuilder().clearUfsPath().setBlockInUfsTier(true)
-          .setOffsetInFile(0).build();
-    }
-    return openUfsBlockOptions;
   }
 }

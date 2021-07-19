@@ -37,7 +37,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * fields and creating {@link alluxio.proto.dataserver.Protocol.ReadRequest}s.
  */
 @NotThreadSafe
-// TODO(calvin): Rename this class
+// TODO(calvin, jianjian): Rename this class since it's not used by InStream
 public final class InStreamOptions {
   private final URIStatus mStatus;
   private final OpenFilePOptions mProtoOptions;
