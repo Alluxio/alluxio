@@ -14,25 +14,25 @@
 
 #start up alluxio
 
-USAGE="Usage: alluxio-start.sh [-hNwm] [-i backup] ACTION [MOPT] [-f]
+USAGE="Usage: alluxio-start.sh [-hNwm] [-i backup] ACTION [MOPT] [-f] [-c cache]
 Where ACTION is one of:
-  all [MOPT]         \tStart all masters, proxies, and workers.
-  job_master         \tStart the job_master on this node.
-  job_masters        \tStart job_masters on master nodes.
-  job_worker         \tStart a job_worker on this node.
-  job_workers        \tStart job_workers on worker nodes.
-  local [MOPT]       \tStart all processes locally.
-  master             \tStart the local master on this node.
-  secondary_master   \tStart the local secondary master on this node.
-  masters            \tStart masters on master nodes.
-  proxy              \tStart the proxy on this node.
-  proxies            \tStart proxies on master and worker nodes.
-  safe               \tScript will run continuously and start the master if it's not running.
-  worker [MOPT]      \tStart a worker on this node.
-  workers [MOPT]     \tStart workers on worker nodes.
-  logserver          \tStart the logserver
-  restart_worker     \tRestart a failed worker on this node.
-  restart_workers    \tRestart any failed workers on worker nodes.
+  all [MOPT]                \tStart all masters, proxies, and workers.
+  job_master                \tStart the job_master on this node.
+  job_masters               \tStart job_masters on master nodes.
+  job_worker                \tStart a job_worker on this node.
+  job_workers               \tStart job_workers on worker nodes.
+  local [MOPT]              \tStart all processes locally.
+  master                    \tStart the local master on this node.
+  secondary_master          \tStart the local secondary master on this node.
+  masters                   \tStart masters on master nodes.
+  proxy                     \tStart the proxy on this node.
+  proxies                   \tStart proxies on master and worker nodes.
+  safe                      \tScript will run continuously and start the master if it's not running.
+  worker  [MOPT] [-c cache] \tStart a worker on this node.
+  workers [MOPT] [-c cache] \tStart workers on worker nodes.
+  logserver                 \tStart the logserver
+  restart_worker            \tRestart a failed worker on this node.
+  restart_workers           \tRestart any failed workers on worker nodes.
 
 MOPT (Mount Option) is one of:
   Mount    \tMount the configured RamFS if it is not already mounted.
@@ -44,6 +44,8 @@ MOPT (Mount Option) is one of:
 
 -a         asynchronously start all processes. The script may exit before all
            processes have been started.
+-c cache   populate the worker cache for each worker node from the specified
+           directory (relative to each worker node's host filesystem).
 -f         format Journal, UnderFS Data and Workers Folder on master.
 -h         display this help.
 -i backup  a journal backup to restore the master from. The backup should be
@@ -260,13 +262,50 @@ start_worker() {
     exit 1
   fi
 
+  if [[ ! -z "${cache}" && -d "${cache}" ]] ; then
+    echo "Populating worker MEM-type caches with contents from ${cache}"
+
+    num_tiers=$(get_alluxio_property "alluxio.worker.tieredstore.levels")
+    for ((i=0;i<num_tiers;i++)); do
+      echo "Checking Worker tiered store level ${i}..."
+
+      tier_types=$(get_alluxio_property "alluxio.worker.tieredstore.level${i}.dirs.mediumtype")
+      tier_dirs=$(get_alluxio_property "alluxio.worker.tieredstore.level${i}.dirs.path")
+      # Use "Internal Field Separator (IFS)" variable to split strings on a
+      # delimeter and parse into an array
+      # - https://stackoverflow.com/a/918931
+      IFS=',' read -ra tier_types_arr <<< "${tier_types}"
+      IFS=',' read -ra tier_dirs_arr <<< "${tier_dirs}"
+
+      # iterate over the array elements using indices
+      # - https://stackoverflow.com/a/6723516
+      for j in "${!tier_types_arr[@]}"; do
+        tier_type=${tier_types_arr[$j]}
+        if [[ "${tier_type}" -eq "MEM" ]]; then
+          tier_dir=${tier_dirs_arr[$j]}
+
+          echo "Populating Worker tiered store at ${tier_dir} with ${cache}/tier${i}/${tier_dir}"
+          cp -a "${cache}/tier${i}/${tier_dir}/." "${tier_dir}/"
+          if [[ ${?} -ne 0 ]]; then
+            echo "Failed to copy directory from ${cache}/tier${i}/${tier_dir} to ${tier_dir}"
+            exit 2
+          fi
+        fi
+      done
+    done
+  fi
+
   echo "Starting worker @ $(hostname -f). Logging to ${ALLUXIO_LOGS_DIR}"
   (ALLUXIO_WORKER_JAVA_OPTS=${ALLUXIO_WORKER_JAVA_OPTS} \
      nohup ${BIN}/launch-process worker > ${ALLUXIO_LOGS_DIR}/worker.out 2>&1 ) &
 }
 
 start_workers() {
-  ${LAUNCHER} "${BIN}/alluxio-workers.sh" "${BIN}/alluxio-start.sh" "-a" "worker" $1
+  start_opts=""
+  if [[ -n ${cache} ]]; then
+    start_opts="-c ${cache}"
+  fi
+  ${LAUNCHER} "${BIN}/alluxio-workers.sh" "${BIN}/alluxio-start.sh" "-a" "worker" $1 ${start_opts}
 }
 
 restart_worker() {
@@ -415,11 +454,20 @@ main() {
       ;;
   esac
 
-  FORMAT=$1
-  if [[ ! -z "${FORMAT}" && "${FORMAT}" != "-f" ]]; then
-    echo -e "${USAGE}" >&2
-    exit 1
-  fi
+  while getopts "fc:" o; do
+    case "${o}" in
+      f)
+        FORMAT="-f"
+        ;;
+      c)
+        cache="${OPTARG}"
+        ;;
+      *)
+        echo -e "${USAGE}" >&2
+        exit 1
+        ;;
+    esac
+  done
 
   MONITOR_NODES=
   if [[ ! "${async}" ]]; then
