@@ -62,6 +62,7 @@ public final class ReplicationChecker implements HeartbeatExecutor {
   // Maximum number of active jobs to be submitted to the job service in a
   // single run of the replication checker
   private final int mMaxSingleBatch;
+  private int mRequestBatchCount;
 
   /** Handler to the inode tree. */
   private final InodeTree mInodeTree;
@@ -130,6 +131,7 @@ public final class ReplicationChecker implements HeartbeatExecutor {
     if (mSafeModeManager.isInSafeMode()) {
       return;
     }
+    mRequestBatchCount = 0;
 
     Set<Long> inodes;
 
@@ -199,7 +201,6 @@ public final class ReplicationChecker implements HeartbeatExecutor {
 
   private void checkMisreplicated(Set<Long> inodes, ReplicationHandler handler)
       throws InterruptedException {
-    int singleBatch = 0;
     for (long inodeId : inodes) {
       // Throw if interrupted.
       if (Thread.interrupted()) {
@@ -227,11 +228,11 @@ public final class ReplicationChecker implements HeartbeatExecutor {
           for (Map.Entry<String, String> entry
               : findMisplacedBlock(file, blockInfo).entrySet()) {
             try {
-              if (singleBatch >= mMaxSingleBatch) {
+              if (mRequestBatchCount >= mMaxSingleBatch) {
                 return;
               }
               handler.migrate(inodePath.getUri(), blockId, entry.getKey(), entry.getValue());
-              singleBatch++;
+              mRequestBatchCount++;
             } catch (Exception e) {
               LOG.warn(
                   "Unexpected exception encountered when starting a migration job (uri={},"
@@ -263,7 +264,7 @@ public final class ReplicationChecker implements HeartbeatExecutor {
         InodeFile file = inodePath.getInodeFile();
         for (long blockId : file.getBlockIds()) {
           BlockInfo blockInfo = null;
-          if (requests.size() >= mMaxSingleBatch) {
+          if (mRequestBatchCount >= mMaxSingleBatch) {
             break;
           }
           try {
@@ -286,6 +287,7 @@ public final class ReplicationChecker implements HeartbeatExecutor {
               if (currentReplicas > maxReplicas) {
                 requests.add(new ImmutableTriple<>(inodePath.getUri(), blockId,
                     currentReplicas - maxReplicas));
+                mRequestBatchCount++;
               }
               break;
             case REPLICATE:
@@ -301,6 +303,7 @@ public final class ReplicationChecker implements HeartbeatExecutor {
                 }
                 requests.add(new ImmutableTriple<>(inodePath.getUri(), blockId,
                     minReplicas - currentReplicas));
+                mRequestBatchCount++;
               }
               break;
             default:
