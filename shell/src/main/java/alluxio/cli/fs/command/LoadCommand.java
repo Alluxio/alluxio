@@ -41,6 +41,7 @@ import alluxio.master.block.BlockId;
 import alluxio.network.TieredIdentityFactory;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.resource.CloseableResource;
+import alluxio.util.FileSystemOptions;
 import alluxio.util.ThreadFactoryUtils;
 import alluxio.wire.BlockInfo;
 import alluxio.wire.BlockLocation;
@@ -174,8 +175,8 @@ public final class LoadCommand extends AbstractFileSystemCommand {
 
   private void queueLoadTasks(AlluxioURI filePath, URIStatus status, boolean local,
       List<LoadTask> tasks) throws IOException {
-    OpenFilePOptions options = OpenFilePOptions.newBuilder().build();
     AlluxioConfiguration conf = mFsContext.getPathConf(filePath);
+    OpenFilePOptions options = FileSystemOptions.openFileDefaults(conf);
     BlockLocationPolicy policy = Preconditions.checkNotNull(
         BlockLocationPolicy.Factory
             .create(conf.get(PropertyKey.USER_UFS_BLOCK_READ_LOCATION_POLICY), conf),
