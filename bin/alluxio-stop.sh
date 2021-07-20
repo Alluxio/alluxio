@@ -29,7 +29,7 @@ Where component is one of:
   workers [-c cache]  \tStop workers on worker nodes.
   logserver           \tStop the logserver
 
--c cache   save the worker MEM-type cache(s) from the worker node(s) to the
+-c cache   save the worker ramcache(s) from the worker node(s) to the
            specified directory (relative to each worker node's host filesystem).
 -h         display this help."
 
@@ -77,40 +77,34 @@ stop_proxies() {
 stop_worker() {
   if [[ ! -z "${cache}" ]] ; then
     echo "Cache directory: ${cache}"
-    mkdir -p ${cache}
+    mkdir -p "${cache}"
     if [[ ${?} -ne 0 ]]; then
       echo "Failed to create directory: ${cache}"
       exit 2
     fi
 
-    num_tiers=$(get_alluxio_property "alluxio.worker.tieredstore.levels")
-    for ((i=0;i<num_tiers;i++)); do
-      echo "Checking Worker tiered store level ${i}..."
+    get_ramdisk_array # see alluxio-common.sh
+    for dir in "${RAMDISKARRAY[@]}"; do
+      if [[ ! -e "${dir}" ]]; then
+        echo "Alluxio has a configured ramcache path ${dir}, but that path does not exist"
+        exit 2
+      fi
+      if [[ ! -d "${dir}" ]]; then
+        echo "Alluxio has a configured ramcache path ${dir}, but that path is not a directory"
+        exit 2
+      fi
 
-      tier_types=$(get_alluxio_property "alluxio.worker.tieredstore.level${i}.dirs.mediumtype")
-      tier_dirs=$(get_alluxio_property "alluxio.worker.tieredstore.level${i}.dirs.path")
-      # Use "Internal Field Separator (IFS)" variable to split strings on a
-      # delimeter and parse into an array
-      # - https://stackoverflow.com/a/918931
-      IFS=',' read -ra tier_types_arr <<< "${tier_types}"
-      IFS=',' read -ra tier_dirs_arr <<< "${tier_dirs}"
-
-      # iterate over the array elements using indices
-      # - https://stackoverflow.com/a/6723516
-      for j in "${!tier_types_arr[@]}"; do
-        tier_type=${tier_types_arr[$j]}
-        if [[ "${tier_type}" -eq "MEM" ]]; then
-          tier_dir=${tier_dirs_arr[$j]}
-
-          echo "Saving Worker tiered store at ${tier_dir} to ${cache}/tier${i}/${tier_dir}"
-          mkdir -p "${cache}/tier${i}/${tier_dir}"
-          cp -a "${tier_dir}/." "${cache}/tier${i}/${tier_dir}/"
-          if [[ ${?} -ne 0 ]]; then
-            echo "Failed to copy directory from ${tier_dir} to ${cache}/tier${i}/${tier_dir}"
-            exit 2
-          fi
-        fi
-      done
+      echo "Saving worker ramcache at ${dir} to ${cache}/${dir}"
+      mkdir -p "${cache}/${dir}"
+      if [[ ${?} -ne 0 ]]; then
+        echo "Failed to create directory: ${cache}/${dir}"
+        exit 2
+      fi
+      cp -a "${dir}/." "${cache}/${dir}/"
+      if [[ ${?} -ne 0 ]]; then
+        echo "Failed to copy worker ramcache from ${dir} to ${cache}/${dir}"
+        exit 1
+      fi
     done
   fi
 

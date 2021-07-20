@@ -38,18 +38,30 @@ function get_alluxio_property() {
 
 # Generates an array of ramdisk paths in global variable RAMDISKARRAY 
 function get_ramdisk_array() {
-  local tier_path=$(${BIN}/alluxio getConf alluxio.worker.tieredstore.level0.dirs.path)
-  local medium_type=$(${BIN}/alluxio getConf alluxio.worker.tieredstore.level0.dirs.mediumtype)
+  local tier_path=$(get_alluxio_property "alluxio.worker.tieredstore.level0.dirs.path")
+  local medium_type=$(get_alluxio_property "alluxio.worker.tieredstore.level0.dirs.mediumtype")
   local patharray
   local mediumtypearray
+
+  # Use "Internal Field Separator (IFS)" variable to split strings on a
+  # delimeter and parse into an array
+  # - https://stackoverflow.com/a/918931
   local oldifs=$IFS
   IFS=','
   read -ra patharray <<< "$tier_path"
   read -ra mediumtypearray <<< "$medium_type"
-  
+
+  # iterate over the array elements using indices
+  # - https://stackoverflow.com/a/6723516
   RAMDISKARRAY=()
   for i in "${!patharray[@]}"; do 
     if [ "${mediumtypearray[$i]}" = "MEM" ]; then
+      local dir=${patharray[$i]}
+      if [[ -z "${dir}" ]]; then
+        echo "Alluxio has a configured ramcache with an empty path"
+        exit 1
+      fi
+
       RAMDISKARRAY+=(${patharray[$i]})
     fi
   done

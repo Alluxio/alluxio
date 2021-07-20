@@ -44,8 +44,8 @@ MOPT (Mount Option) is one of:
 
 -a         asynchronously start all processes. The script may exit before all
            processes have been started.
--c cache   populate the worker cache for each worker node from the specified
-           directory (relative to each worker node's host filesystem).
+-c cache   populate the worker ramcache(s) for each worker node from the
+           specified directory (relative to each worker node's host filesystem).
 -f         format Journal, UnderFS Data and Workers Folder on master.
 -h         display this help.
 -i backup  a journal backup to restore the master from. The backup should be
@@ -263,40 +263,43 @@ start_worker() {
   fi
 
   if [[ ! -z "${cache}" ]] ; then
+    if [[ ! -e "${cache}" ]] ; then
+      echo "Cache path ${cache} does not exist; aborting"
+      exit 2
+    fi
     if [[ ! -d "${cache}" ]] ; then
       echo "Cache path ${cache} is not a directory; aborting"
-      exit 1
+      exit 2
     fi
 
-    echo "Populating worker MEM-type caches with contents from ${cache}"
+    echo "Populating worker ramcache(s) with contents from ${cache}"
 
-    num_tiers=$(get_alluxio_property "alluxio.worker.tieredstore.levels")
-    for ((i=0;i<num_tiers;i++)); do
-      echo "Checking Worker tiered store level ${i}..."
+    get_ramdisk_array # see alluxio-common.sh
+    for dir in "${RAMDISKARRAY[@]}"; do
+      if [[ ! -e "${dir}" ]]; then
+        echo "Alluxio has a configured ramcache path ${dir}, but that path does not exist"
+        exit 2
+      fi
+      if [[ ! -d "${dir}" ]]; then
+        echo "Alluxio has a configured ramcache path ${dir}, but that path is not a directory"
+        exit 2
+      fi
 
-      tier_types=$(get_alluxio_property "alluxio.worker.tieredstore.level${i}.dirs.mediumtype")
-      tier_dirs=$(get_alluxio_property "alluxio.worker.tieredstore.level${i}.dirs.path")
-      # Use "Internal Field Separator (IFS)" variable to split strings on a
-      # delimeter and parse into an array
-      # - https://stackoverflow.com/a/918931
-      IFS=',' read -ra tier_types_arr <<< "${tier_types}"
-      IFS=',' read -ra tier_dirs_arr <<< "${tier_dirs}"
+      echo "Populating worker ramcache at ${dir} with ${cache}/${dir}"
+      if [[ ! -e "${cache}/${dir}" ]]; then
+        echo "Path does not exist: ${cache}/${dir}"
+        exit 2
+      fi
+      if [[ ! -d "${cache}/${dir}" ]]; then
+        echo "Path is not a directory: ${cache}/${dir}"
+        exit 2
+      fi
 
-      # iterate over the array elements using indices
-      # - https://stackoverflow.com/a/6723516
-      for j in "${!tier_types_arr[@]}"; do
-        tier_type=${tier_types_arr[$j]}
-        if [[ "${tier_type}" -eq "MEM" ]]; then
-          tier_dir=${tier_dirs_arr[$j]}
-
-          echo "Populating Worker tiered store at ${tier_dir} with ${cache}/tier${i}/${tier_dir}"
-          cp -a "${cache}/tier${i}/${tier_dir}/." "${tier_dir}/"
-          if [[ ${?} -ne 0 ]]; then
-            echo "Failed to copy directory from ${cache}/tier${i}/${tier_dir} to ${tier_dir}"
-            exit 2
-          fi
-        fi
-      done
+      cp -a "${cache}/${dir}/." "${dir}/"
+      if [[ ${?} -ne 0 ]]; then
+        echo "Failed to populate ramcache at ${dir} with ${cache}/${dir}"
+        exit 2
+      fi
     done
   fi
 
