@@ -171,10 +171,6 @@ public final class FileSystemMasterSyncMetadataTest {
     Mockito.when(mUfs.getFileStatus(nestedFilePath.toString())).thenReturn(nestedFileStatus);
     Mockito.when(mUfs.exists(nestedFilePath.toString())).thenReturn(true);
 
-    // Mount
-    AlluxioURI mountLocal = new AlluxioURI("/mnt/local");
-    mFileSystemMaster.mount(mountLocal, ufsMount, MountContext.defaults());
-
     // Create directory in Alluxio only
     AlluxioURI dir1 = new AlluxioURI("/mnt/local/dir1");
     mFileSystemMaster.createDirectory(dir1, CreateDirectoryContext.defaults());
@@ -193,7 +189,7 @@ public final class FileSystemMasterSyncMetadataTest {
 
     // Verify owner/group is not empty
     FileInfo mountLocalInfo =
-        mFileSystemMaster.getFileInfo(mountLocal, GetStatusContext.defaults());
+        mFileSystemMaster.getFileInfo(new AlluxioURI("/mnt/local"), GetStatusContext.defaults());
     assertEquals(mountLocalInfo.getOwner(),
         mFileSystemMaster.getFileInfo(dir1, GetStatusContext.defaults()).getOwner());
     assertEquals(mountLocalInfo.getGroup(),
