@@ -11,6 +11,7 @@
 
 package alluxio.client.file;
 
+import alluxio.client.hive.HiveCacheContext;
 import alluxio.client.quota.CacheQuota;
 import alluxio.client.quota.CacheScope;
 
@@ -28,6 +29,10 @@ public class CacheContext {
   private CacheQuota mCacheQuota = CacheQuota.UNLIMITED;
   /** Used in Prestodb to indicate the cache scope. */
   private CacheScope mCacheScope = CacheScope.GLOBAL;
+
+  /** Used in Prestodb to indicate the hiveContext for a file. */
+  private HiveCacheContext mHiveCacheContext = null;
+
   /**
    * Used in Prestodb to uniquely identify a file in Alluxio local cache.
    * Note that, though the filePath can be a unique identifier, it can be a long string
@@ -63,6 +68,14 @@ public class CacheContext {
   }
 
   /**
+   * @return the hive cache context
+   */
+  @Nullable
+  public HiveCacheContext getHiveCacheContext() {
+    return mHiveCacheContext;
+  }
+
+  /**
    * @return the cache quota
    */
   public CacheQuota getCacheQuota() {
@@ -82,6 +95,16 @@ public class CacheContext {
    */
   public CacheContext setCacheIdentifier(String identifier) {
     mCacheIdentifier = identifier;
+    return this;
+  }
+
+  /**
+   *
+   * @param hiveCacheContext the hive cache context to use
+   * @return the updated {@code CacheContext}
+   */
+  public CacheContext setHiveCacheContext(HiveCacheContext hiveCacheContext) {
+    mHiveCacheContext = hiveCacheContext;
     return this;
   }
 
@@ -125,19 +148,21 @@ public class CacheContext {
     }
     CacheContext that = (CacheContext) o;
     return Objects.equals(mCacheIdentifier, that.mCacheIdentifier)
+        && Objects.equals(mHiveCacheContext, that.mHiveCacheContext)
         && Objects.equals(mCacheQuota, that.mCacheQuota)
         && Objects.equals(mCacheScope, that.mCacheScope);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(mCacheQuota, mCacheScope, mCacheIdentifier);
+    return Objects.hash(mCacheQuota, mCacheScope, mCacheIdentifier, mHiveCacheContext);
   }
 
   @Override
   public String toString() {
     return MoreObjects.toStringHelper(this)
         .add("cacheIdentifier", mCacheIdentifier)
+        .add("cacheHiveContext", mHiveCacheContext)
         .add("cacheQuota", mCacheQuota)
         .add("cacheScope", mCacheScope)
         .toString();
