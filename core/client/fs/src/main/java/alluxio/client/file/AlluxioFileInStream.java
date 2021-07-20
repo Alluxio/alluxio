@@ -400,7 +400,7 @@ public class AlluxioFileInStream extends FileInStream {
         // Construct the async cache request
         long blockLength = mOptions.getBlockInfo(blockId).getLength();
         String host = dataSource.getHost();
-        // ALLUXIO-11172: If the worker is in a container, use the container hostname
+        // issues#11172: If the worker is in a container, use the container hostname
         // to establish the connection.
         if (!dataSource.getContainerHost().equals("")) {
           LOG.debug("Worker is in a container. Use container host {} instead of physical host {}",
