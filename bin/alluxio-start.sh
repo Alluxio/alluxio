@@ -462,6 +462,7 @@ main() {
       ;;
   esac
 
+  OPTIND=1 # reset for `getopts`
   while getopts "fc:" o; do
     case "${o}" in
       f)
