@@ -9,14 +9,15 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.conf.reconf;
+package alluxio.conf;
 
 /**
  * Reconfigurable listener.
  */
-public interface ReconfigurableListener {
+public interface Reconfigurable {
+
   /**
    * When the property changed, this function will be invoked.
    */
-  void propertyChange();
+  void update();
 }

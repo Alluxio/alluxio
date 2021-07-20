@@ -11,13 +11,13 @@
 
 package alluxio.worker.block;
 
-import alluxio.conf.ServerConfiguration;
 import alluxio.ProcessUtils;
-import alluxio.conf.PropertyKey;
 import alluxio.StorageTierAssoc;
 import alluxio.WorkerStorageTierAssoc;
-import alluxio.conf.reconf.ReconfigurableListener;
-import alluxio.conf.reconf.ReconfigurableModel;
+import alluxio.conf.PropertyKey;
+import alluxio.conf.ReconfigurableRegistry;
+import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Reconfigurable;
 import alluxio.exception.ConnectionFailedException;
 import alluxio.grpc.Command;
 import alluxio.grpc.ConfigProperty;
@@ -50,8 +50,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * it before retrying.
  */
 @NotThreadSafe
-public final class BlockMasterSync implements HeartbeatExecutor,
-    ReconfigurableListener {
+public final class BlockMasterSync implements HeartbeatExecutor, Reconfigurable {
   private static final Logger LOG = LoggerFactory.getLogger(BlockMasterSync.class);
 
   /** The block worker responsible for interacting with Alluxio and UFS storage. */
@@ -98,7 +97,7 @@ public final class BlockMasterSync implements HeartbeatExecutor,
 
     registerWithMaster();
     mLastSuccessfulHeartbeatMs = System.currentTimeMillis();
-    ReconfigurableModel.getInstance().addListener(this);
+    ReconfigurableRegistry.register(this);
   }
 
   /**
@@ -161,7 +160,7 @@ public final class BlockMasterSync implements HeartbeatExecutor,
   public void close() {
     mAsyncBlockRemover.shutDown();
     mMasterClientPool.release(mMasterClient);
-    ReconfigurableModel.getInstance().removeListener(this);
+    ReconfigurableRegistry.unregister(this);
   }
 
   /**
@@ -203,7 +202,7 @@ public final class BlockMasterSync implements HeartbeatExecutor,
   }
 
   @Override
-  public void propertyChange() {
+  public void update() {
     mHeartbeatTimeoutMs = (int) ServerConfiguration
         .getMs(PropertyKey.WORKER_BLOCK_HEARTBEAT_TIMEOUT_MS);
   }
