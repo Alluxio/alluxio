@@ -27,6 +27,7 @@ import javax.annotation.Nullable;
 public class CacheContext {
   /** Used in Prestodb to indicate the cache quota for a file. */
   private CacheQuota mCacheQuota = CacheQuota.UNLIMITED;
+
   /** Used in Prestodb to indicate the cache scope. */
   private CacheScope mCacheScope = CacheScope.GLOBAL;
 
@@ -99,16 +100,6 @@ public class CacheContext {
   }
 
   /**
-   *
-   * @param hiveCacheContext the hive cache context to use
-   * @return the updated {@code CacheContext}
-   */
-  public CacheContext setHiveCacheContext(HiveCacheContext hiveCacheContext) {
-    mHiveCacheContext = hiveCacheContext;
-    return this;
-  }
-
-  /**
    * @param cacheQuota the cache quota
    * @return the updated {@code CacheContext}
    */
@@ -123,6 +114,15 @@ public class CacheContext {
    */
   public CacheContext setCacheScope(CacheScope cacheScope) {
     mCacheScope = cacheScope;
+    return this;
+  }
+
+  /**
+   * @param hiveCacheContext the hive cache context
+   * @return the updated {@code CacheContext}
+   */
+  public CacheContext setHiveCacheContext(HiveCacheContext hiveCacheContext) {
+    mHiveCacheContext = hiveCacheContext;
     return this;
   }
 

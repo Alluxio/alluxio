@@ -14,34 +14,47 @@ package alluxio.client.hive;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 
+import javax.annotation.Nullable;
+
 /**
- * Data structure that stores and returns Hive related Cache Scope
+ * Data structure that stores and returns Hive related Cache Scope.
  */
-public class HiveCacheContext
-{
+public class HiveCacheContext {
   private final String mDatabase;
   private final String mTable;
   private final String mPartition;
 
-  public HiveCacheContext(String database, String table, String partition)
-  {
-    this.mDatabase = database;
-    this.mTable = table;
-    this.mPartition = partition;
+  /**
+   * Constructor.
+   * @param database    the database name
+   * @param table       the table name
+   * @param partition   the partition name
+   */
+  public HiveCacheContext(String database, String table, String partition) {
+    mDatabase = database;
+    mTable = table;
+    mPartition = partition;
   }
 
-  public String getDatabase()
-  {
+  /**
+   * @return the database in the hive cache context
+   */
+  public String getDatabase() {
     return mDatabase;
   }
 
-  public String getTable()
-  {
+  /**
+   * @return the table in the hive cache context
+   */
+  public String getTable() {
     return mTable;
   }
 
-  public String getPartition()
-  {
+  /**
+   * @return the partition in the hive cache context
+   */
+  @Nullable
+  public String getPartition() {
     return mPartition;
   }
 
@@ -60,14 +73,12 @@ public class HiveCacheContext
   }
 
   @Override
-  public int hashCode()
-  {
+  public int hashCode() {
     return Objects.hashCode(mDatabase, mTable, mPartition);
   }
 
   @Override
-  public String toString()
-  {
+  public String toString() {
     return MoreObjects.toStringHelper(this)
         .add("database", mDatabase)
         .add("table", mTable)
