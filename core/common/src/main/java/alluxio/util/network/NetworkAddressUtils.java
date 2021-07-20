@@ -636,7 +636,7 @@ public final class NetworkAddressUtils {
       address = new DomainSocketAddress(netAddress.getDomainSocketPath());
     } else {
       String host = netAddress.getHost();
-      // ALLUXIO-11172: If the worker is in a container, use the container hostname
+      // issues#11172: If the worker is in a container, use the container hostname
       // to establish the connection.
       if (!netAddress.getContainerHost().equals("")) {
         LOG.debug("Worker is in a container. Use container host {} instead of physical host {}",

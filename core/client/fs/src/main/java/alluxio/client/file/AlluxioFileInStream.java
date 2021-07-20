@@ -402,10 +402,18 @@ public class AlluxioFileInStream extends FileInStream {
       try {
         // Construct the async cache request
         long blockLength = mOptions.getBlockInfo(blockId).getLength();
+        String host = dataSource.getHost();
+        // issues#11172: If the worker is in a container, use the container hostname
+        // to establish the connection.
+        if (!dataSource.getContainerHost().equals("")) {
+          LOG.debug("Worker is in a container. Use container host {} instead of physical host {}",
+              dataSource.getContainerHost(), host);
+          host = dataSource.getContainerHost();
+        }
         AsyncCacheRequest request =
             AsyncCacheRequest.newBuilder().setBlockId(blockId).setLength(blockLength)
                 .setOpenUfsBlockOptions(mOptions.getOpenUfsBlockOptions(blockId))
-                .setSourceHost(dataSource.getHost()).setSourcePort(dataSource.getDataPort())
+                .setSourceHost(host).setSourcePort(dataSource.getDataPort())
                 .build();
         try (CloseableResource<BlockWorkerClient> blockWorker =
                  mContext.acquireBlockWorkerClient(worker)) {
