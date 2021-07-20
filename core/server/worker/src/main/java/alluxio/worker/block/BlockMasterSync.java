@@ -11,13 +11,11 @@
 
 package alluxio.worker.block;
 
+import alluxio.conf.ServerConfiguration;
 import alluxio.ProcessUtils;
+import alluxio.conf.PropertyKey;
 import alluxio.StorageTierAssoc;
 import alluxio.WorkerStorageTierAssoc;
-import alluxio.conf.PropertyKey;
-import alluxio.conf.ReconfigurableRegistry;
-import alluxio.conf.ServerConfiguration;
-import alluxio.conf.Reconfigurable;
 import alluxio.exception.ConnectionFailedException;
 import alluxio.grpc.Command;
 import alluxio.grpc.ConfigProperty;
@@ -50,7 +48,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * it before retrying.
  */
 @NotThreadSafe
-public final class BlockMasterSync implements HeartbeatExecutor, Reconfigurable {
+public final class BlockMasterSync implements HeartbeatExecutor {
   private static final Logger LOG = LoggerFactory.getLogger(BlockMasterSync.class);
 
   /** The block worker responsible for interacting with Alluxio and UFS storage. */
@@ -63,7 +61,7 @@ public final class BlockMasterSync implements HeartbeatExecutor, Reconfigurable 
   private final WorkerNetAddress mWorkerAddress;
 
   /** Milliseconds between heartbeats before a timeout. */
-  private int mHeartbeatTimeoutMs;
+  private final int mHeartbeatTimeoutMs;
 
   /** Client-pool for all master communication. */
   private final BlockMasterClientPool mMasterClientPool;
@@ -97,7 +95,6 @@ public final class BlockMasterSync implements HeartbeatExecutor, Reconfigurable 
 
     registerWithMaster();
     mLastSuccessfulHeartbeatMs = System.currentTimeMillis();
-    ReconfigurableRegistry.register(this);
   }
 
   /**
@@ -160,7 +157,6 @@ public final class BlockMasterSync implements HeartbeatExecutor, Reconfigurable 
   public void close() {
     mAsyncBlockRemover.shutDown();
     mMasterClientPool.release(mMasterClient);
-    ReconfigurableRegistry.unregister(this);
   }
 
   /**
@@ -199,11 +195,5 @@ public final class BlockMasterSync implements HeartbeatExecutor, Reconfigurable 
       default:
         throw new RuntimeException("Un-recognized command from master " + cmd);
     }
-  }
-
-  @Override
-  public void update() {
-    mHeartbeatTimeoutMs = (int) ServerConfiguration
-        .getMs(PropertyKey.WORKER_BLOCK_HEARTBEAT_TIMEOUT_MS);
   }
 }
