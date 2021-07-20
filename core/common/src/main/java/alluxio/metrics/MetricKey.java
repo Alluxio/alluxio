@@ -872,6 +872,12 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setMetricType(MetricType.COUNTER)
           .setIsClusterAggregated(false)
           .build();
+  public static final MetricKey WORKER_ASYNC_CACHE_BLOCKS_SIZE =
+      new Builder("Worker.AsyncCacheBlocksSize")
+          .setDescription("Total number of bytes that being cached through async cache requests")
+          .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggregated(false)
+          .build();
   public static final MetricKey WORKER_BLOCKS_ACCESSED =
       new Builder("Worker.BlocksAccessed")
           .setDescription("Total number of times any one of the blocks in this worker is accessed.")
@@ -1077,12 +1083,6 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setMetricType(MetricType.GAUGE)
           .setIsClusterAggregated(false)
           .build();
-  public static final MetricKey WORKER_CACHE_DUPLICATE_REQUESTS =
-      new Builder("Worker.CacheDuplicateRequests")
-          .setDescription("Total number of duplicated cache request received by this worker")
-          .setMetricType(MetricType.COUNTER)
-          .setIsClusterAggregated(false)
-          .build();
   public static final MetricKey WORKER_CACHE_FAILED_BLOCKS =
       new Builder("Worker.CacheFailedBlocks")
           .setDescription("Total number of async cache blocks in this worker")
@@ -1110,6 +1110,12 @@ public final class MetricKey implements Comparable<MetricKey> {
   public static final MetricKey WORKER_CACHE_UFS_BLOCKS =
       new Builder("Worker.CacheUfsBlocks")
           .setDescription("Total number of blocks that need to be cached from local source")
+          .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggregated(false)
+          .build();
+  public static final MetricKey WORKER_CACHE_BLOCKS_SIZE =
+      new Builder("Worker.CacheBlocksSize")
+          .setDescription("Total number of bytes that being cached through cache requests")
           .setMetricType(MetricType.COUNTER)
           .setIsClusterAggregated(false)
           .build();

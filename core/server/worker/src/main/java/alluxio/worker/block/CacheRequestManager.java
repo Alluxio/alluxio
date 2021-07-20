@@ -292,6 +292,7 @@ public class CacheRequestManager {
         LOG.warn("Async cache task failed. request: {}", mRequest, e);
       } finally {
         if (result) {
+          ASYNC_CACHE_BLOCKS_SIZE.inc(blockLength);
           ASYNC_CACHE_SUCCEEDED_BLOCKS.inc();
         } else {
           ASYNC_CACHE_FAILED_BLOCKS.inc();
@@ -374,6 +375,7 @@ public class CacheRequestManager {
         return false;
       } finally {
         if (result) {
+          CACHE_BLOCKS_SIZE.inc(blockLength);
           CACHE_SUCCEEDED_BLOCKS.inc();
         } else {
           CACHE_FAILED_BLOCKS.inc();
@@ -395,6 +397,8 @@ public class CacheRequestManager {
       MetricsSystem.counter(MetricKey.WORKER_ASYNC_CACHE_SUCCEEDED_BLOCKS.getName());
   private static final Counter ASYNC_CACHE_UFS_BLOCKS =
       MetricsSystem.counter(MetricKey.WORKER_ASYNC_CACHE_UFS_BLOCKS.getName());
+  private static final Counter ASYNC_CACHE_BLOCKS_SIZE =
+      MetricsSystem.counter(MetricKey.WORKER_ASYNC_CACHE_BLOCKS_SIZE.getName());
   private static final Counter CACHE_REQUESTS
           = MetricsSystem.counter(MetricKey.WORKER_CACHE_REQUESTS.getName());
   private static final Counter CACHE_FAILED_BLOCKS =
@@ -405,4 +409,6 @@ public class CacheRequestManager {
           MetricsSystem.counter(MetricKey.WORKER_CACHE_SUCCEEDED_BLOCKS.getName());
   private static final Counter CACHE_UFS_BLOCKS =
           MetricsSystem.counter(MetricKey.WORKER_CACHE_UFS_BLOCKS.getName());
+  private static final Counter CACHE_BLOCKS_SIZE =
+      MetricsSystem.counter(MetricKey.WORKER_CACHE_BLOCKS_SIZE.getName());
 }

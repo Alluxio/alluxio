@@ -55,6 +55,7 @@ import java.util.Set;
 
 import javax.annotation.concurrent.ThreadSafe;
 
+// todo (jianjian): rename AlluxioBlockStore since it would get confused by BlockStore
 /**
  * Alluxio Block Store client. This is an internal client for all block level operations in Alluxio.
  * An instance of this class can be obtained via {@link AlluxioBlockStore} constructors.
