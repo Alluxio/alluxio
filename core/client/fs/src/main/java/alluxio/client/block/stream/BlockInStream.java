@@ -39,7 +39,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
 
-import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -461,12 +460,11 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
   }
 
   /**
-   * @return the underlying data reader
+   * @return the underlying data reader factory
    */
   @VisibleForTesting
-  @Nullable
-  public DataReader getDataReader() {
-    return mDataReader;
+  public DataReader.Factory getDataReaderFactory() {
+    return mDataReaderFactory;
   }
 
   /**

@@ -332,7 +332,8 @@ public final class AlluxioBlockStoreTest {
 
     BlockInStream stream = mBlockStore.getInStream(BLOCK_ID, options);
     assertEquals(local, stream.getAddress());
-    assertEquals(GrpcDataReader.class.getName(), stream.getDataReader().getClass().getName());
+    assertEquals(GrpcDataReader.Factory.class.getName(),
+        stream.getDataReaderFactory().getClass().getName());
   }
 
   @Test
@@ -424,8 +425,8 @@ public final class AlluxioBlockStoreTest {
     BlockInStream stream = mBlockStore.getInStream(BLOCK_ID, new InStreamOptions(
         new URIStatus(new FileInfo().setBlockIds(Lists.newArrayList(BLOCK_ID))), sConf));
     assertEquals(local, stream.getAddress());
-    assertEquals(BlockWorkerDataReader.class.getName(),
-        stream.getDataReader().getClass().getName());
+    assertEquals(BlockWorkerDataReader.Factory.class.getName(),
+        stream.getDataReaderFactory().getClass().getName());
   }
 
   @Test
@@ -450,8 +451,8 @@ public final class AlluxioBlockStoreTest {
 
     BlockInStream stream = mBlockStore.getInStream(BLOCK_ID, options);
     assertEquals(local, stream.getAddress());
-    assertEquals(BlockWorkerDataReader.class.getName(),
-        stream.getDataReader().getClass().getName());
+    assertEquals(BlockWorkerDataReader.Factory.class.getName(),
+        stream.getDataReaderFactory().getClass().getName());
   }
 
   @Test
