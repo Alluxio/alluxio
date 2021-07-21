@@ -28,7 +28,8 @@ import alluxio.client.block.policy.options.GetWorkerOptions;
 import alluxio.client.block.stream.BlockInStream;
 import alluxio.client.block.stream.BlockOutStream;
 import alluxio.client.block.stream.BlockWorkerClient;
-import alluxio.client.block.stream.DataReader;
+import alluxio.client.block.stream.BlockWorkerDataReader;
+import alluxio.client.block.stream.GrpcDataReader;
 import alluxio.client.block.stream.NoopClosableResource;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.URIStatus;
@@ -331,7 +332,7 @@ public final class AlluxioBlockStoreTest {
 
     BlockInStream stream = mBlockStore.getInStream(BLOCK_ID, options);
     assertEquals(local, stream.getAddress());
-    assertEquals(DataReader.DataReaderType.GRPC, stream.getDataReaderType());
+    assertEquals(GrpcDataReader.class.getName(), stream.getDataReader().getClass().getName());
   }
 
   @Test
@@ -423,7 +424,8 @@ public final class AlluxioBlockStoreTest {
     BlockInStream stream = mBlockStore.getInStream(BLOCK_ID, new InStreamOptions(
         new URIStatus(new FileInfo().setBlockIds(Lists.newArrayList(BLOCK_ID))), sConf));
     assertEquals(local, stream.getAddress());
-    assertEquals(DataReader.DataReaderType.BLOCK_WORKER, stream.getDataReaderType());
+    assertEquals(BlockWorkerDataReader.class.getName(),
+        stream.getDataReader().getClass().getName());
   }
 
   @Test
@@ -448,7 +450,8 @@ public final class AlluxioBlockStoreTest {
 
     BlockInStream stream = mBlockStore.getInStream(BLOCK_ID, options);
     assertEquals(local, stream.getAddress());
-    assertEquals(DataReader.DataReaderType.BLOCK_WORKER, stream.getDataReaderType());
+    assertEquals(BlockWorkerDataReader.class.getName(),
+        stream.getDataReader().getClass().getName());
   }
 
   @Test

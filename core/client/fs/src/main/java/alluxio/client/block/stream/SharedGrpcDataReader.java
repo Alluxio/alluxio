@@ -180,11 +180,6 @@ public class SharedGrpcDataReader implements DataReader {
     }
 
     @Override
-    public DataReaderType getDataReaderType() {
-      return DataReaderType.SHARED;
-    }
-
-    @Override
     public void close() throws IOException {}
   }
 }

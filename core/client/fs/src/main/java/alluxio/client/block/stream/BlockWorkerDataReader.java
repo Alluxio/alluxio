@@ -137,11 +137,6 @@ public final class BlockWorkerDataReader implements DataReader {
     }
 
     @Override
-    public DataReaderType getDataReaderType() {
-      return DataReaderType.BLOCK_WORKER;
-    }
-
-    @Override
     public void close() throws IOException {}
   }
 }

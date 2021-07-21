@@ -241,11 +241,6 @@ public final class GrpcDataReader implements DataReader {
     }
 
     @Override
-    public DataReaderType getDataReaderType() {
-      return DataReaderType.GRPC;
-    }
-
-    @Override
     public void close() throws IOException {}
   }
 }

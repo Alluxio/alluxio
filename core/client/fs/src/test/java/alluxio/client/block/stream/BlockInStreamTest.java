@@ -11,8 +11,6 @@
 
 package alluxio.client.block.stream;
 
-import static alluxio.client.block.stream.DataReader.DataReaderType;
-
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.doAnswer;
@@ -95,7 +93,7 @@ public class BlockInStreamTest {
     BlockInStream.BlockInStreamSource dataSourceType = BlockInStream.BlockInStreamSource.NODE_LOCAL;
     BlockInStream stream =
         BlockInStream.create(mMockContext, mInfo, dataSource, dataSourceType, mOptions);
-    assertEquals(DataReaderType.SHORT_CIRCUIT, stream.getDataReaderType());
+    assertEquals(LocalFileDataReader.class.getName(), stream.getDataReader().getClass().getName());
   }
 
   @Test
@@ -104,7 +102,7 @@ public class BlockInStreamTest {
     BlockInStream.BlockInStreamSource dataSourceType = BlockInStream.BlockInStreamSource.REMOTE;
     BlockInStream stream =
         BlockInStream.create(mMockContext, mInfo, dataSource, dataSourceType, mOptions);
-    assertEquals(DataReaderType.GRPC, stream.getDataReaderType());
+    assertEquals(GrpcDataReader.class.getName(), stream.getDataReader().getClass().getName());
   }
 
   @Test
@@ -113,7 +111,7 @@ public class BlockInStreamTest {
     BlockInStream.BlockInStreamSource dataSourceType = BlockInStream.BlockInStreamSource.UFS;
     BlockInStream stream =
         BlockInStream.create(mMockContext, mInfo, dataSource, dataSourceType, mOptions);
-    assertEquals(DataReaderType.GRPC, stream.getDataReaderType());
+    assertEquals(GrpcDataReader.class.getName(), stream.getDataReader().getClass().getName());
   }
 
   @Test
@@ -127,7 +125,7 @@ public class BlockInStreamTest {
           BlockInStream.BlockInStreamSource.NODE_LOCAL;
       BlockInStream stream =
           BlockInStream.create(mMockContext, mInfo, dataSource, dataSourceType, mOptions);
-      assertEquals(DataReaderType.GRPC, stream.getDataReaderType());
+      assertEquals(GrpcDataReader.class.getName(), stream.getDataReader().getClass().getName());
     }
   }
 
@@ -143,7 +141,7 @@ public class BlockInStreamTest {
     BlockInStream.BlockInStreamSource dataSourceType = BlockInStream.BlockInStreamSource.NODE_LOCAL;
     BlockInStream stream = BlockInStream.create(mMockContext, mInfo, dataSource, dataSourceType,
         mOptions);
-    assertEquals(DataReaderType.GRPC, stream.getDataReaderType());
+    assertEquals(GrpcDataReader.class.getName(), stream.getDataReader().getClass().getName());
   }
 
   @Test
@@ -157,6 +155,7 @@ public class BlockInStreamTest {
         BlockInStream.BlockInStreamSource.PROCESS_LOCAL;
     BlockInStream stream =
         BlockInStream.create(mMockContext, mInfo, dataSource, dataSourceType, mOptions);
-    assertEquals(DataReaderType.BLOCK_WORKER, stream.getDataReaderType());
+    assertEquals(BlockWorkerDataReader.class.getName(),
+        stream.getDataReader().getClass().getName());
   }
 }

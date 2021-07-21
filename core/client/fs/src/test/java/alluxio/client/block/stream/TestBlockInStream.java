@@ -95,11 +95,6 @@ public class TestBlockInStream extends BlockInStream {
     }
 
     @Override
-    public DataReader.DataReaderType getDataReaderType() {
-      return DataReader.DataReaderType.TEST;
-    }
-
-    @Override
     public void close() {}
   }
 }
