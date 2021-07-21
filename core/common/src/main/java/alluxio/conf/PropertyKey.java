@@ -1712,17 +1712,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
-  public static final PropertyKey MASTER_EMBEDDED_JOURNAL_HEARTBEAT_INTERVAL =
-      new Builder(Name.MASTER_EMBEDDED_JOURNAL_HEARTBEAT_INTERVAL)
-          .setDescription(
-              "The period between sending heartbeats from the embedded journal primary to "
-                  + "followers. This should be less than half of the election timeout "
-                  + String.format("{%s}", Name.MASTER_EMBEDDED_JOURNAL_ELECTION_TIMEOUT)
-                  + ", because the election is driven by heart beats.")
-          .setDefaultValue("3s")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.MASTER)
-          .build();
   public static final PropertyKey MASTER_EMBEDDED_JOURNAL_CATCHUP_RETRY_WAIT =
       new Builder(Name.MASTER_EMBEDDED_JOURNAL_CATCHUP_RETRY_WAIT)
           .setDefaultValue("1s")
@@ -5629,8 +5618,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.embedded.journal.entry.size.max";
     public static final String MASTER_EMBEDDED_JOURNAL_FLUSH_SIZE_MAX =
         "alluxio.master.embedded.journal.flush.size.max";
-    public static final String MASTER_EMBEDDED_JOURNAL_HEARTBEAT_INTERVAL =
-        "alluxio.master.embedded.journal.heartbeat.interval";
     public static final String MASTER_EMBEDDED_JOURNAL_PORT =
         "alluxio.master.embedded.journal.port";
     public static final String MASTER_EMBEDDED_JOURNAL_RETRY_CACHE_EXPIRY_TIME =
