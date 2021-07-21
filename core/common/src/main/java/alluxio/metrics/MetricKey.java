@@ -1437,6 +1437,24 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setMetricType(MetricType.COUNTER)
           .setIsClusterAggregated(false)
           .build();
+  public static final MetricKey FUSE_WRITING_FILE_COUNT =
+      new Builder("Fuse.WritingFileCount")
+          .setDescription("Total number of files being written concurrently.")
+          .setMetricType(MetricType.GAUGE)
+          .setIsClusterAggregated(false)
+          .build();
+  public static final MetricKey FUSE_READING_FILE_COUNT =
+      new Builder("Fuse.ReadingFileCount")
+          .setDescription("Total number of files being read concurrently.")
+          .setMetricType(MetricType.GAUGE)
+          .setIsClusterAggregated(false)
+          .build();
+  public static final MetricKey FUSE_CACHED_PATH_COUNT =
+      new Builder("Fuse.CachedPathCount")
+          .setDescription("Total number of Alluxio paths to cache for FUSE conversion.")
+          .setMetricType(MetricType.GAUGE)
+          .setIsClusterAggregated(false)
+          .build();
 
   /**
    * Registers the given key to the global key map.
