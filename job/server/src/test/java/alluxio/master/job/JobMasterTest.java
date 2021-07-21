@@ -25,6 +25,7 @@ import alluxio.conf.ServerConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.status.ResourceExhaustedException;
+import alluxio.grpc.ListAllPOptions;
 import alluxio.job.JobConfig;
 import alluxio.job.JobServerContext;
 import alluxio.job.SleepJobConfig;
@@ -126,7 +127,8 @@ public final class JobMasterTest {
     for (long i = 0; i < TEST_JOB_MASTER_JOB_CAPACITY; i++) {
       mJobMaster.run(jobConfig);
     }
-    Assert.assertEquals(TEST_JOB_MASTER_JOB_CAPACITY, mJobMaster.list().size());
+    Assert.assertEquals(TEST_JOB_MASTER_JOB_CAPACITY,
+        mJobMaster.list(ListAllPOptions.getDefaultInstance()).size());
   }
 
   @Test

@@ -37,6 +37,7 @@ import alluxio.wire.BlockInfo;
 import alluxio.wire.BlockLocation;
 
 import com.google.common.collect.HashBiMap;
+import com.google.common.collect.ImmutableSet;
 import org.apache.commons.lang3.tuple.ImmutableTriple;
 import org.apache.commons.lang3.tuple.Triple;
 import org.slf4j.Logger;
@@ -47,7 +48,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -64,7 +64,7 @@ public final class ReplicationChecker implements HeartbeatExecutor {
   private static final Logger SAMPLING_LOG = new SamplingLogger(LOG, 10L * Constants.MINUTE_MS);
 
   /** Maximum number of active jobs to be submitted to the job service. **/
-  private int mMaxActiveJobs;
+  private final int mMaxActiveJobs;
 
   /** Handler to the inode tree. */
   private final InodeTree mInodeTree;
@@ -136,20 +136,26 @@ public final class ReplicationChecker implements HeartbeatExecutor {
     if (mSafeModeManager.isInSafeMode()) {
       return;
     }
+    final Set<Long> activeJobIds = new HashSet<>();
+    try {
+      final List<Long> completedEvictJobIds =
+          mReplicationHandler.findJobs("Evict",
+              ImmutableSet.of(Status.RUNNING, Status.CREATED));
+      final List<Long> completedMoveJobIds =
+          mReplicationHandler.findJobs("Move",
+              ImmutableSet.of(Status.RUNNING, Status.CREATED));
+      final List<Long> completedReplicateJobIds =
+          mReplicationHandler.findJobs("Replicate",
+              ImmutableSet.of(Status.RUNNING, Status.CREATED));
 
-    final Iterator<Long> jobIterator = mActiveJobToInodeID.keySet().iterator();
-
-    while (jobIterator.hasNext()) {
-      final Long jobId = jobIterator.next();
-      try {
-        final Status jobStatus = mReplicationHandler.getJobStatus(jobId);
-        if (jobStatus.isFinished()) {
-          jobIterator.remove();
-        }
-      } catch (IOException e) {
-        throw new RuntimeException(e);
-      }
+      activeJobIds.addAll(completedEvictJobIds);
+      activeJobIds.addAll(completedMoveJobIds);
+      activeJobIds.addAll(completedReplicateJobIds);
+    } catch (IOException e) {
+      throw new RuntimeException(e);
     }
+
+    mActiveJobToInodeID.keySet().removeIf(jobId -> !activeJobIds.contains(jobId));
 
     Set<Long> inodes;
 

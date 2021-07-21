@@ -14,6 +14,7 @@ package alluxio.master.job;
 import alluxio.Constants;
 import alluxio.RestUtils;
 import alluxio.conf.ServerConfiguration;
+import alluxio.grpc.ListAllPOptions;
 import alluxio.job.JobConfig;
 import alluxio.job.ServiceConstants;
 import alluxio.job.wire.JobInfo;
@@ -135,7 +136,7 @@ public final class JobMasterClientRestServiceHandler {
     return RestUtils.call(new RestUtils.RestCallable<List<Long>>() {
       @Override
       public List<Long> call() throws Exception {
-        return mJobMaster.list();
+        return mJobMaster.list(ListAllPOptions.getDefaultInstance());
       }
     }, ServerConfiguration.global());
   }

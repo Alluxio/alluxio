@@ -120,7 +120,10 @@ message GetJobStatusDetailedPResponse {
   optional JobInfo jobInfo = 1;
 }
 
-message ListAllPOptions {}
+message ListAllPOptions {
+  repeated Status status = 1;
+  optional string name = 2;
+}
 message ListAllPRequest {
   optional ListAllPOptions options = 1;
 }

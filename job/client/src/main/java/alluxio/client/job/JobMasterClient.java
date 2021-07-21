@@ -12,6 +12,7 @@
 package alluxio.client.job;
 
 import alluxio.Client;
+import alluxio.grpc.ListAllPOptions;
 import alluxio.job.JobConfig;
 import alluxio.job.wire.JobInfo;
 import alluxio.job.wire.JobServiceSummary;
@@ -75,9 +76,10 @@ public interface JobMasterClient extends Client {
   JobServiceSummary getJobServiceSummary() throws IOException;
 
   /**
+   * @param option list options
    * @return the list of ids of all jobs
    */
-  List<Long> list() throws IOException;
+  List<Long> list(ListAllPOptions option) throws IOException;
 
   /**
    * @return the list of all jobInfos

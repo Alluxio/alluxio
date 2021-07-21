@@ -79,8 +79,8 @@ public class JobMasterClientServiceHandler
   public void getJobStatusDetailed(GetJobStatusDetailedPRequest request,
                                    StreamObserver<GetJobStatusDetailedPResponse>
                                        responseObserver) {
-    RpcUtils.call(LOG, (RpcUtils.RpcCallableThrowsIOException<GetJobStatusDetailedPResponse>) () ->
-    {
+    RpcUtils.call(LOG, (RpcUtils.RpcCallableThrowsIOException<GetJobStatusDetailedPResponse>) ()
+        -> {
       return GetJobStatusDetailedPResponse.newBuilder()
           .setJobInfo(mJobMaster.getStatus(request.getJobId(), true).toProto()).build();
     }, "getJobStatusDetailed", "request=%s", responseObserver, request);
@@ -100,7 +100,7 @@ public class JobMasterClientServiceHandler
   public void listAll(ListAllPRequest request, StreamObserver<ListAllPResponse> responseObserver) {
     RpcUtils.call(LOG, (RpcUtils.RpcCallableThrowsIOException<ListAllPResponse>) () -> {
       ListAllPResponse.Builder builder = ListAllPResponse.newBuilder()
-          .addAllJobIds(mJobMaster.list());
+          .addAllJobIds(mJobMaster.list(request.getOptions()));
       for (JobInfo jobInfo : mJobMaster.listDetailed()) {
         builder.addJobInfos(jobInfo.toProto());
       }

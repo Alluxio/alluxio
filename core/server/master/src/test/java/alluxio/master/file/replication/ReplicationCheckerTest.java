@@ -69,6 +69,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -114,6 +115,13 @@ public final class ReplicationCheckerTest {
         return mJobStatus.get(jobId);
       }
       return Status.RUNNING;
+    }
+
+    @Override
+    public List<Long> findJobs(String jobName, Set<Status> statusList) throws IOException {
+      return mJobStatus.entrySet().stream()
+          .filter(x -> statusList.isEmpty() || statusList.contains(x.getValue()))
+          .map(x -> x.getKey()).collect(Collectors.toList());
     }
 
     @Override
