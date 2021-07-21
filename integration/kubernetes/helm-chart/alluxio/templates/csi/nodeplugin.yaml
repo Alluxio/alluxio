@@ -101,6 +101,7 @@ spec:
           imagePullPolicy: {{ .Values.csi.imagePullPolicy }}
           command: ["/usr/local/bin/alluxio-csi"]
           args :
+            - --v=5
             - "--nodeid=$(NODE_ID)"
             - "--endpoint=$(CSI_ENDPOINT)"
           env:

@@ -532,7 +532,7 @@ csi:
           memory: 100Mi
         requests:
           cpu: 10m
-        memory: 20Mi
+          memory: 20Mi
 
   # for csi client
   clientEnabled: false
@@ -547,4 +547,4 @@ csi:
     - entry_timeout=36000
     - attr_timeout=36000
     - max_readahead=0
-  javaOptions: "-Dalluxio.user.metadata.cache.enabled=true "
+  javaOptions: "-Dalluxio.user.metadata.cache.enabled=true"
