@@ -36,10 +36,8 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 public final class BlockWriteHandler extends AbstractWriteHandler<BlockWriteRequestContext> {
   private static final Logger LOG = LoggerFactory.getLogger(BlockWriteHandler.class);
-  /** Metrics. */
   private static final Counter RPC_WRITE_COUNT =
-      MetricsSystem.counterWithTags(MetricKey.WORKER_ACTIVE_RPC_WRITE_COUNT.getName(),
-            MetricKey.WORKER_ACTIVE_RPC_WRITE_COUNT.isClusterAggregated());
+      MetricsSystem.counter(MetricKey.WORKER_ACTIVE_RPC_WRITE_COUNT.getName());
 
   /** The Block Worker which handles blocks stored in the Alluxio storage of the worker. */
   private final BlockWorker mWorker;
