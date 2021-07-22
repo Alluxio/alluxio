@@ -33,8 +33,8 @@ import java.util.HashMap;
  */
 public final class CacheManagerWithShadowCacheTest {
   private static final int PAGE_SIZE_BYTES = Constants.KB;
-  private static final PageId PAGE_ID1 = new PageId("0L", 0L);
-  private static final PageId PAGE_ID2 = new PageId("1L", 1L);
+  private static final PageId PAGE_ID1 = new PageId("0L", 0L, 0);
+  private static final PageId PAGE_ID2 = new PageId("1L", 1L, 0);
   private static final byte[] PAGE1 = BufferUtils.getIncreasingByteArray(PAGE_SIZE_BYTES);
   private static final byte[] PAGE2 = BufferUtils.getIncreasingByteArray(255, PAGE_SIZE_BYTES);
   private final byte[] mBuf = new byte[PAGE_SIZE_BYTES];

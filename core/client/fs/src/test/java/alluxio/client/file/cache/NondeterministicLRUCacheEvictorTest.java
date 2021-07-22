@@ -24,9 +24,9 @@ import org.junit.Test;
  * Tests for the {@link NondeterministicLRUCacheEvictor} class.
  */
 public final class NondeterministicLRUCacheEvictorTest {
-  private final PageId mFirst = new PageId("1L", 2L);
-  private final PageId mSecond = new PageId("3L", 4L);
-  private final PageId mThird = new PageId("5L", 6L);
+  private final PageId mFirst = new PageId("1L", 2L, 0L);
+  private final PageId mSecond = new PageId("3L", 4L, 0L);
+  private final PageId mThird = new PageId("5L", 6L, 0L);
   private NondeterministicLRUCacheEvictor mEvictor;
 
   /**

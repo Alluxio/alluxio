@@ -61,9 +61,10 @@ import java.util.stream.Stream;
  */
 public final class LocalCacheManagerTest {
   private static final int PAGE_SIZE_BYTES = Constants.KB;
-  private static final int CACHE_SIZE_BYTES = 512 * Constants.KB;
-  private static final PageId PAGE_ID1 = new PageId("0L", 0L);
-  private static final PageId PAGE_ID2 = new PageId("1L", 1L);
+  private static final int CACHE_SIZE_BYTES = 2 * Constants.KB;
+  private static final PageId PAGE_ID1 = new PageId("0L", 0L, 0L);
+  private static final PageId PAGE_ID11 = new PageId("0L", 0L, 1L);
+  private static final PageId PAGE_ID2 = new PageId("1L", 1L, 1L);
   private static final byte[] PAGE1 = BufferUtils.getIncreasingByteArray(PAGE_SIZE_BYTES);
   private static final byte[] PAGE2 = BufferUtils.getIncreasingByteArray(255, PAGE_SIZE_BYTES);
 
@@ -102,7 +103,7 @@ public final class LocalCacheManagerTest {
   }
 
   private PageId pageId(long i, int pageIndex) {
-    return new PageId(Long.toString(i), pageIndex);
+    return new PageId(Long.toString(i), pageIndex, 0L);
   }
 
   /**
@@ -122,7 +123,7 @@ public final class LocalCacheManagerTest {
     LocalCacheManager cacheManager = LocalCacheManager.create(conf, metaStore, pageStore);
     CommonUtils.waitFor("restore completed",
         () -> cacheManager.state() == CacheManager.State.READ_WRITE,
-        WaitForOptions.defaults().setTimeoutMs(10000));
+        WaitForOptions.defaults().setTimeoutMs(1000000));
     return cacheManager;
   }
 
@@ -317,7 +318,7 @@ public final class LocalCacheManagerTest {
   public void putGetPartialPage() throws Exception {
     int[] sizeArray = {1, PAGE_SIZE_BYTES / 2, PAGE_SIZE_BYTES - 1};
     for (int size : sizeArray) {
-      PageId pageId = new PageId("3", size);
+      PageId pageId = new PageId("3", size, 0L);
       byte[] pageData = page(0, size);
       assertTrue(mCacheManager.put(pageId, pageData));
       byte[] buf = new byte[size];
@@ -330,12 +331,12 @@ public final class LocalCacheManagerTest {
   public void putMoreThanCacheCapacity() throws Exception {
     int cacheSize = CACHE_SIZE_BYTES / PAGE_SIZE_BYTES;
     for (int i = 0; i < 2 * cacheSize; i++) {
-      PageId pageId = new PageId("3", i);
+      PageId pageId = new PageId("3", i, 0L);
       mCacheManager.put(pageId, page(i, PAGE_SIZE_BYTES));
       if (i >= cacheSize) {
-        PageId id = new PageId("3", i - cacheSize + 1);
+        PageId id = new PageId("3", i - cacheSize + 1, 0L);
         assertEquals(0,
-            mCacheManager.get(new PageId("3", i - cacheSize), PAGE_SIZE_BYTES, mBuf, 0));
+            mCacheManager.get(new PageId("3", i - cacheSize, 0L), PAGE_SIZE_BYTES, mBuf, 0));
         assertEquals(PAGE_SIZE_BYTES, mCacheManager.get(id, PAGE_SIZE_BYTES, mBuf, 0));
         assertArrayEquals(page(i - cacheSize + 1, PAGE_SIZE_BYTES), mBuf);
       }
@@ -406,12 +407,12 @@ public final class LocalCacheManagerTest {
           (long) CACHE_SIZE_BYTES + 1));
       int cacheSize = CACHE_SIZE_BYTES / PAGE_SIZE_BYTES;
       for (int i = 0; i < 2 * cacheSize; i++) {
-        PageId pageId = new PageId("3", i);
+        PageId pageId = new PageId("3", i, 0L);
         assertTrue(mCacheManager.put(pageId, page(i, PAGE_SIZE_BYTES), partitionCacheScope, quota));
         if (i >= cacheSize) {
-          PageId id = new PageId("3", i - cacheSize + 1);
+          PageId id = new PageId("3", i - cacheSize + 1, 0L);
           assertEquals(
-              0, mCacheManager.get(new PageId("3", i - cacheSize), PAGE_SIZE_BYTES, mBuf, 0));
+              0, mCacheManager.get(new PageId("3", i - cacheSize, 0L), PAGE_SIZE_BYTES, mBuf, 0));
           assertEquals(PAGE_SIZE_BYTES, mCacheManager.get(id, PAGE_SIZE_BYTES, mBuf, 0));
           assertArrayEquals(page(i - cacheSize + 1, PAGE_SIZE_BYTES), mBuf);
         }
@@ -449,7 +450,7 @@ public final class LocalCacheManagerTest {
     long[] pageIndexArray = {Long.MAX_VALUE - 1, Long.MAX_VALUE};
     for (long fileId : fileIdArray) {
       for (long pageIndexId : pageIndexArray) {
-        PageId largeId = new PageId("0", pageIndexId);
+        PageId largeId = new PageId("0", pageIndexId, 0L);
         mCacheManager.put(largeId, PAGE1);
         assertEquals(PAGE_SIZE_BYTES, mCacheManager.get(largeId, PAGE1.length, mBuf, 0));
         assertArrayEquals(PAGE1, mBuf);
@@ -504,7 +505,7 @@ public final class LocalCacheManagerTest {
   public void syncRestore() throws Exception {
     mCacheManager.close();
     mPageStore = PageStore.open(mPageStoreOptions); // previous page store has been closed
-    PageId pageUuid = new PageId(UUID.randomUUID().toString(), 0);
+    PageId pageUuid = new PageId(UUID.randomUUID().toString(), 0, 0L);
     mPageStore.put(PAGE_ID1, PAGE1);
     mPageStore.put(pageUuid, PAGE2);
     mConf.set(PropertyKey.USER_CLIENT_CACHE_ASYNC_RESTORE_ENABLED, false);
@@ -533,7 +534,7 @@ public final class LocalCacheManagerTest {
   public void asyncRestoreReadOnly() throws Exception {
     mConf.set(PropertyKey.USER_CLIENT_CACHE_ASYNC_RESTORE_ENABLED, true);
     mCacheManager.close();
-    PageId pageUuid = new PageId(UUID.randomUUID().toString(), 0);
+    PageId pageUuid = new PageId(UUID.randomUUID().toString(), 0, 0L);
     SlowGetPageStore slowGetPageStore = new SlowGetPageStore();
     slowGetPageStore.put(PAGE_ID1, PAGE1);
     slowGetPageStore.put(pageUuid, PAGE2);
@@ -567,7 +568,7 @@ public final class LocalCacheManagerTest {
     mConf.set(PropertyKey.USER_CLIENT_CACHE_ASYNC_RESTORE_ENABLED, false);
     mCacheManager.close();
     mPageStore = PageStore.open(mPageStoreOptions); // previous page store has been closed
-    PageId pageUuid = new PageId(UUID.randomUUID().toString(), 0);
+    PageId pageUuid = new PageId(UUID.randomUUID().toString(), 0, 0L);
     mPageStore.put(PAGE_ID1, PAGE1);
     mPageStore.put(pageUuid, PAGE2);
     String rootDir = mPageStoreOptions.getRootDir();
@@ -583,7 +584,7 @@ public final class LocalCacheManagerTest {
     mConf.set(PropertyKey.USER_CLIENT_CACHE_ASYNC_RESTORE_ENABLED, true);
     mCacheManager.close();
     mPageStore = PageStore.open(mPageStoreOptions); // previous page store has been closed
-    PageId pageUuid = new PageId(UUID.randomUUID().toString(), 0);
+    PageId pageUuid = new PageId(UUID.randomUUID().toString(), 0, 0L);
     mPageStore.put(PAGE_ID1, PAGE1);
     mPageStore.put(pageUuid, PAGE2);
     String rootDir = mPageStoreOptions.getRootDir();
@@ -598,7 +599,7 @@ public final class LocalCacheManagerTest {
     mConf.set(PropertyKey.USER_CLIENT_CACHE_ASYNC_RESTORE_ENABLED, false);
     mCacheManager.close();
     mPageStore = PageStore.open(mPageStoreOptions); // previous page store has been closed
-    PageId pageUuid = new PageId(UUID.randomUUID().toString(), 0);
+    PageId pageUuid = new PageId(UUID.randomUUID().toString(), 0, 0L);
     mPageStore.put(PAGE_ID1, PAGE1);
     mPageStore.put(pageUuid, PAGE2);
     String rootDir = mPageStoreOptions.getRootDir();
@@ -618,7 +619,7 @@ public final class LocalCacheManagerTest {
   public void asyncRestoreUnwritableRootDir() throws Exception {
     mCacheManager.close();
     mPageStore = PageStore.open(mPageStoreOptions); // previous page store has been closed
-    PageId pageUuid = new PageId(UUID.randomUUID().toString(), 0);
+    PageId pageUuid = new PageId(UUID.randomUUID().toString(), 0, 0L);
     mPageStore.put(PAGE_ID1, PAGE1);
     mPageStore.put(pageUuid, PAGE2);
     String rootDir = mPageStoreOptions.getRootDir();
@@ -644,7 +645,7 @@ public final class LocalCacheManagerTest {
     mConf.set(PropertyKey.USER_CLIENT_CACHE_ASYNC_RESTORE_ENABLED, false);
     mCacheManager.close();
     mPageStore = PageStore.open(mPageStoreOptions); // previous page store has been closed
-    PageId pageUuid = new PageId(UUID.randomUUID().toString(), 0);
+    PageId pageUuid = new PageId(UUID.randomUUID().toString(), 0, 0L);
     mPageStore.put(PAGE_ID1, PAGE1);
     mPageStore.put(PAGE_ID2, PAGE2);
     mPageStore.put(pageUuid, BufferUtils.getIncreasingByteArray(
@@ -665,7 +666,7 @@ public final class LocalCacheManagerTest {
     mConf.set(PropertyKey.USER_CLIENT_CACHE_ASYNC_RESTORE_ENABLED, true);
     mCacheManager.close();
     mPageStore = PageStore.open(mPageStoreOptions); // previous page store has been closed
-    PageId pageUuid = new PageId(UUID.randomUUID().toString(), 0);
+    PageId pageUuid = new PageId(UUID.randomUUID().toString(), 0, 0L);
     mPageStore.put(PAGE_ID1, PAGE1);
     mPageStore.put(PAGE_ID2, PAGE2);
     mPageStore.put(pageUuid, BufferUtils.getIncreasingByteArray(
@@ -690,7 +691,7 @@ public final class LocalCacheManagerTest {
     pageStore.setPutHanging(true);
     mCacheManager = createLocalCacheManager(mConf, mMetaStore, pageStore);
     for (int i = 0; i < threads; i++) {
-      PageId pageId = new PageId("5", i);
+      PageId pageId = new PageId("5", i, 0L);
       assertTrue(mCacheManager.put(pageId, page(i, PAGE_SIZE_BYTES)));
     }
     // fail due to full queue
@@ -701,7 +702,7 @@ public final class LocalCacheManagerTest {
     }
     pageStore.setPutHanging(true);
     for (int i = 0; i < threads; i++) {
-      PageId pageId = new PageId("6", i);
+      PageId pageId = new PageId("6", i, 0L);
       assertTrue(mCacheManager.put(pageId, page(i, PAGE_SIZE_BYTES)));
     }
   }
@@ -837,6 +838,19 @@ public final class LocalCacheManagerTest {
     assertFalse(mCacheManager.put(PAGE_ID1, PAGE1));
   }
 
+  @Test
+  public void mTimeTest() throws Exception {
+    mCacheManager = createLocalCacheManager();
+
+    assertEquals(0, mCacheManager.get(PAGE_ID1, PAGE1.length, mBuf, 0));
+    mCacheManager.put(PAGE_ID1, PAGE1);
+    assertEquals(PAGE1.length, mCacheManager.get(PAGE_ID1, PAGE1.length, mBuf, 0));
+    assertEquals(0, mCacheManager.get(PAGE_ID11, PAGE1.length, mBuf, 0));
+    mCacheManager.put(PAGE_ID11, PAGE1);
+    assertEquals(PAGE1.length, mCacheManager.get(PAGE_ID1, PAGE1.length, mBuf, 0));
+    assertEquals(PAGE1.length, mCacheManager.get(PAGE_ID11, PAGE1.length, mBuf, 0));
+  }
+
   /**
    * A PageStore where put can throw IOException on put or delete.
    */
@@ -890,7 +904,7 @@ public final class LocalCacheManagerTest {
         } catch (InterruptedException e) {
           Thread.currentThread().interrupt();
         }
-        PageId id = new PageId(String.valueOf(mPageId.getAndIncrement()), 0L);
+        PageId id = new PageId(String.valueOf(mPageId.getAndIncrement()), 0L, 0L);
         return new PageInfo(id, 1L);
       }
     }

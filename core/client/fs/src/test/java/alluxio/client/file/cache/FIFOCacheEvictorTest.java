@@ -22,10 +22,10 @@ import org.junit.Test;
  */
 public final class FIFOCacheEvictorTest {
   private final FIFOCacheEvictor mEvictor = new FIFOCacheEvictor(ConfigurationTestUtils.defaults());
-  private final PageId mFirst = new PageId("1L", 2L);
-  private final PageId mSecond = new PageId("3L", 4L);
-  private final PageId mThird = new PageId("5L", 6L);
-  private final PageId mFourth = new PageId("7L", 8L);
+  private final PageId mFirst = new PageId("1L", 2L, 0L);
+  private final PageId mSecond = new PageId("3L", 4L, 0L);
+  private final PageId mThird = new PageId("5L", 6L, 0L);
+  private final PageId mFourth = new PageId("7L", 8L, 0L);
 
   @Test
   public void evictPutOrder() {

@@ -62,9 +62,11 @@ public class LocalPageStore implements PageStore {
     mFileBuckets = options.getFileBuckets();
     // normalize the path to deal with trailing slash
     Path rootDir = Paths.get(mRoot);
-    // pattern encoding root_path/page_size(ulong)/bucket(uint)/file_id(str)/page_idx(ulong)/
+    // pattern encoding
+    // root_path/page_size(ulong)/bucket(uint)/file_id(str)/page_idx(ulong)/mtime(long)
     mPagePattern = Pattern.compile(
-        String.format("%s/%d/(\\d+)/([^/]+)/(\\d+)", Pattern.quote(rootDir.toString()), mPageSize));
+        String.format("%s/%d/(\\d+)/([^/]+)/(\\d+)/(\\d+)",
+                Pattern.quote(rootDir.toString()), mPageSize));
   }
 
   @Override
@@ -161,7 +163,7 @@ public class LocalPageStore implements PageStore {
   public Path getFilePath(PageId pageId) {
     // TODO(feng): encode fileId with URLEncoder to escape invalid characters for file name
     return Paths.get(mRoot, Long.toString(mPageSize), getFileBucket(pageId.getFileId()),
-        pageId.getFileId(), Long.toString(pageId.getPageIndex()));
+        pageId.getFileId(), Long.toString(pageId.getPageIndex()), Long.toString(pageId.getLastModifiedTime()));
   }
 
   private String getFileBucket(String fileId) {
@@ -184,9 +186,11 @@ public class LocalPageStore implements PageStore {
       if (!fileBucket.equals(getFileBucket(fileId))) {
         return null;
       }
-      String fileName = Preconditions.checkNotNull(matcher.group(3));
-      long pageIndex = Long.parseLong(fileName);
-      return new PageId(fileId, pageIndex);
+      String folderName = Preconditions.checkNotNull(matcher.group(3));
+      long pageIndex = Long.parseLong(folderName);
+      String fileName = Preconditions.checkNotNull(matcher.group(4));
+      long mTime = Long.parseLong(fileName);
+      return new PageId(fileId, pageIndex, mTime);
     } catch (NumberFormatException e) {
       return null;
     }

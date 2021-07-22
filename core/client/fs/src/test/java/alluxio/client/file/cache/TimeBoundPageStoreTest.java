@@ -43,7 +43,7 @@ import java.util.concurrent.TimeoutException;
 public class TimeBoundPageStoreTest {
   private static final int PAGE_SIZE_BYTES = Constants.KB;
   private static final int CACHE_SIZE_BYTES = 512 * Constants.KB;
-  private static final PageId PAGE_ID = new PageId("0L", 0L);
+  private static final PageId PAGE_ID = new PageId("0L", 0L, 0L);
   private static final byte[] PAGE = BufferUtils.getIncreasingByteArray(PAGE_SIZE_BYTES);
   private byte[] mBuf = new byte[PAGE_SIZE_BYTES];
   private PageStoreOptions mPageStoreOptions;
@@ -166,7 +166,7 @@ public class TimeBoundPageStoreTest {
     List<Future<?>> futures = new ArrayList<>();
     Exception[] exceptions = new Exception[threads];
     for (int i = 0; i < threads; i++) {
-      PageId pageId = new PageId("0L", i);
+      PageId pageId = new PageId("0L", i, 0L);
       int index = i;
       futures.add(executor.submit(() -> {
         try {

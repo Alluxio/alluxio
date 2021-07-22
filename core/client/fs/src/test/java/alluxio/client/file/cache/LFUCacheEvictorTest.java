@@ -23,10 +23,10 @@ import org.junit.Test;
  */
 public final class LFUCacheEvictorTest {
   private LFUCacheEvictor mEvictor;
-  private final PageId mOne = new PageId("1L", 2L);
-  private final PageId mTwo = new PageId("3L", 4L);
-  private final PageId mThree = new PageId("5L", 6L);
-  private final PageId mFour = new PageId("7L", 8L);
+  private final PageId mOne = new PageId("1L", 2L, 0L);
+  private final PageId mTwo = new PageId("3L", 4L, 0L);
+  private final PageId mThree = new PageId("5L", 6L, 0L);
+  private final PageId mFour = new PageId("7L", 8L, 0L);
 
   /**
    * Sets up the instances.

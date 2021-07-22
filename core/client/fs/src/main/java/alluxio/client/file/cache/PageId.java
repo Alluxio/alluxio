@@ -23,14 +23,17 @@ import javax.annotation.concurrent.ThreadSafe;
 public class PageId {
   private final String mFileId;
   private final long mPageIndex;
+  private final long mLastModifiedTime;
 
   /**
    * @param fileId file Id
    * @param pageIndex index of the page in file
+   * @param last modified time of a page
    */
-  public PageId(String fileId, long pageIndex) {
+  public PageId(String fileId, long pageIndex, long lastModifiedTime) {
     mFileId = fileId;
     mPageIndex = pageIndex;
+    mLastModifiedTime = lastModifiedTime;
   }
 
   /**
@@ -47,9 +50,16 @@ public class PageId {
     return mPageIndex;
   }
 
+  /**
+   * @return last modification time
+   */
+  public long getLastModifiedTime() {
+    return mLastModifiedTime;
+  }
+
   @Override
   public int hashCode() {
-    return Objects.hashCode(mFileId, mPageIndex);
+    return Objects.hashCode(mFileId, mPageIndex, mLastModifiedTime);
   }
 
   @Override
@@ -61,7 +71,9 @@ public class PageId {
       return false;
     }
     PageId that = (PageId) obj;
-    return mFileId.equals(that.mFileId) && mPageIndex == that.mPageIndex;
+    return mFileId.equals(that.mFileId)
+        && mPageIndex == that.mPageIndex
+        && mLastModifiedTime == that.mLastModifiedTime;
   }
 
   @Override
@@ -69,6 +81,7 @@ public class PageId {
     return MoreObjects.toStringHelper(this)
         .add("FileId", mFileId)
         .add("PageIndex", mPageIndex)
+        .add("ModificationTime", mLastModifiedTime)
         .toString();
   }
 }
