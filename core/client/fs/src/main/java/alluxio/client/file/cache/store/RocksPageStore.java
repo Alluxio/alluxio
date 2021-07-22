@@ -161,7 +161,7 @@ public class RocksPageStore implements PageStore {
     byte[] fileId = pageId.getFileId().getBytes();
     ByteBuffer buf = ByteBuffer.allocate(Long.BYTES + fileId.length + Long.BYTES);
     buf.putLong(pageId.getPageIndex());
-    buf.putLong(pageId.getmTime());
+    buf.putLong(pageId.getLastModifiedTime());
     buf.put(fileId);
     return buf.array();
   }

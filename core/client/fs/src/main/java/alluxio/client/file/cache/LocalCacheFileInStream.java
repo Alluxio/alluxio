@@ -130,7 +130,7 @@ public class LocalCacheFileInStream extends FileInStream {
     }
     int totalBytesRead = 0;
     long currentPosition = pos;
-    long lengthToRead = Math.min(len, mStatus.getLength() - mPosition);
+    long lengthToRead = Math.min(len, mStatus.getLength() - pos);
     long mTime = mStatus.getFileInfo().getLastModificationTimeMs();
     // for each page, check if it is available in the cache
     while (totalBytesRead < lengthToRead) {

@@ -163,7 +163,7 @@ public class LocalPageStore implements PageStore {
   public Path getFilePath(PageId pageId) {
     // TODO(feng): encode fileId with URLEncoder to escape invalid characters for file name
     return Paths.get(mRoot, Long.toString(mPageSize), getFileBucket(pageId.getFileId()),
-        pageId.getFileId(), Long.toString(pageId.getPageIndex()), Long.toString(pageId.getmTime()));
+        pageId.getFileId(), Long.toString(pageId.getPageIndex()), Long.toString(pageId.getLastModifiedTime()));
   }
 
   private String getFileBucket(String fileId) {

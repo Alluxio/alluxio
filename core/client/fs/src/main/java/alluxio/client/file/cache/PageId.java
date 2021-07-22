@@ -23,17 +23,17 @@ import javax.annotation.concurrent.ThreadSafe;
 public class PageId {
   private final String mFileId;
   private final long mPageIndex;
-  private final long mTime;
+  private final long mLastModifiedTime;
 
   /**
    * @param fileId file Id
    * @param pageIndex index of the page in file
-   * @param time modification time of a page
+   * @param last modified time of a page
    */
-  public PageId(String fileId, long pageIndex, long time) {
+  public PageId(String fileId, long pageIndex, long lastModifiedTime) {
     mFileId = fileId;
     mPageIndex = pageIndex;
-    mTime = time;
+    mLastModifiedTime = lastModifiedTime;
   }
 
   /**
@@ -51,15 +51,15 @@ public class PageId {
   }
 
   /**
-   * @return modification time
+   * @return last modification time
    */
-  public long getmTime() {
-    return mTime;
+  public long getLastModifiedTime() {
+    return mLastModifiedTime;
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(mFileId, mPageIndex, mTime);
+    return Objects.hashCode(mFileId, mPageIndex, mLastModifiedTime);
   }
 
   @Override
@@ -71,7 +71,9 @@ public class PageId {
       return false;
     }
     PageId that = (PageId) obj;
-    return mFileId.equals(that.mFileId) && mPageIndex == that.mPageIndex && mTime == that.mTime;
+    return mFileId.equals(that.mFileId)
+        && mPageIndex == that.mPageIndex
+        && mLastModifiedTime == that.mLastModifiedTime;
   }
 
   @Override
@@ -79,7 +81,7 @@ public class PageId {
     return MoreObjects.toStringHelper(this)
         .add("FileId", mFileId)
         .add("PageIndex", mPageIndex)
-        .add("ModificationTime", mTime)
+        .add("ModificationTime", mLastModifiedTime)
         .toString();
   }
 }

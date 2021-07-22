@@ -3218,7 +3218,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey WORKER_REVIEWER_PROBABILISTIC_HARDLIMIT_BYTES =
           new Builder(Name.WORKER_REVIEWER_PROBABILISTIC_HARDLIMIT_BYTES)
-          .setDefaultValue("1MB")
+          .setDefaultValue("64MB")
           .setDescription("This is used by the "
               + "`alluxio.worker.block.reviewer.ProbabilisticBufferReviewer`. "
               + "When the free space in a storage dir falls below this hard limit, "
@@ -4122,7 +4122,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey USER_CLIENT_CACHE_PAGE_SIZE =
       new Builder(Name.USER_CLIENT_CACHE_PAGE_SIZE)
-          .setDefaultValue("64MB")
+          .setDefaultValue("1MB")
           .setDescription("Size of each page in client-side cache.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
