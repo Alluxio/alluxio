@@ -52,9 +52,9 @@ spec:
       hostNetwork: {{ $hostNetwork }}
       hostPID: {{ $hostPID }}
       dnsPolicy: {{ .Values.worker.dnsPolicy | default ($hostNetwork | ternary "ClusterFirstWithHostNet" "ClusterFirst") }}
-      {{ if .Values.hostAliases }}
+      {{- if .Values.hostAliases }}
       {{- include "alluxio.hostAliases" . | nindent 6 }}
-      {{ end }}
+      {{- end }}
       nodeSelector:
       {{- if .Values.worker.nodeSelector }}
 {{ toYaml .Values.worker.nodeSelector | trim | indent 8  }}
@@ -68,10 +68,17 @@ spec:
       {{- if .Values.tolerations }}
 {{ toYaml .Values.tolerations | trim | indent 8  }}
       {{- end }}
+    {{- if eq .Values.worker.fuseEnabled true }}
+      securityContext:
+        runAsUser: {{ .Values.fuse.user }}
+        runAsGroup: {{ .Values.fuse.group }}
+        fsGroup: {{ .Values.fuse.fsGroup }}
+    {{- else }}
       securityContext:
         runAsUser: {{ .Values.user }}
         runAsGroup: {{ .Values.group }}
         fsGroup: {{ .Values.fsGroup }}
+    {{- end }}
     {{- if .Values.worker.serviceAccount }}
       serviceAccountName: {{ .Values.worker.serviceAccount }}
     {{- else if .Values.serviceAccount }}
@@ -99,6 +106,17 @@ spec:
             valueFrom:
               fieldRef:
                 fieldPath: status.podIP
+          {{- end }}
+          {{- if eq .Values.worker.fuseEnabled true }}
+          - name: ALLUXIO_CLIENT_HOSTNAME
+            valueFrom:
+                fieldRef:
+                  fieldPath: status.hostIP
+            securityContext:
+              privileged: true
+              capabilities:
+                add:
+                  - SYS_ADMIN
           {{- end }}
           {{- range $key, $value := .Values.worker.env }}
           - name: "{{ $key }}"
@@ -134,6 +152,13 @@ spec:
             {{- if .Values.mounts -}}
 {{- include "alluxio.worker.otherVolumeMounts" . }}
             {{- end }}
+            {{- if eq .Values.worker.fuseEnabled true }}
+            - name: alluxio-fuse-device
+              mountPath: /dev/fuse
+            - name: alluxio-fuse-mount
+              mountPath: /mnt
+              mountPropagation: Bidirectional
+            {{- end}}
         - name: alluxio-job-worker
           image: {{ .Values.image }}:{{ .Values.imageTag }}
           imagePullPolicy: {{ .Values.imagePullPolicy }}
@@ -207,13 +232,23 @@ spec:
 {{- include "alluxio.worker.secretVolumes" . }}
           {{- end }}
         {{- end }}
-        {{- if .Values.tieredstore }} 
+        {{- if .Values.tieredstore }}
 {{- include "alluxio.worker.tieredstoreVolumes" . }}
         {{- end}}
-        {{- if .Values.mounts }}   
+        {{- if .Values.mounts }}
           {{- range .Values.mounts }}
         - name: "{{ .name }}"
           persistentVolumeClaim:
             claimName: "{{ .name }}"
           {{- end }}
+        {{- end }}
+        {{- if .Values.worker.fuseEnabled }}
+        - name: alluxio-fuse-device
+          hostPath:
+            path: /dev/fuse
+            type: CharDevice
+        - name: alluxio-fuse-mount
+          hostPath:
+            path: /mnt
+            type: DirectoryOrCreate
         {{- end }}
