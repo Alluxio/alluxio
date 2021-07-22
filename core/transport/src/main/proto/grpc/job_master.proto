@@ -123,6 +123,7 @@ message GetJobStatusDetailedPResponse {
 message ListAllPOptions {
   repeated Status status = 1;
   optional string name = 2;
+  optional bool jobIdOnly = 3;
 }
 message ListAllPRequest {
   optional ListAllPOptions options = 1;

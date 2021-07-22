@@ -99,10 +99,13 @@ public class JobMasterClientServiceHandler
   @Override
   public void listAll(ListAllPRequest request, StreamObserver<ListAllPResponse> responseObserver) {
     RpcUtils.call(LOG, (RpcUtils.RpcCallableThrowsIOException<ListAllPResponse>) () -> {
+      List<Long> jobList = mJobMaster.list(request.getOptions());
       ListAllPResponse.Builder builder = ListAllPResponse.newBuilder()
-          .addAllJobIds(mJobMaster.list(request.getOptions()));
-      for (JobInfo jobInfo : mJobMaster.listDetailed()) {
-        builder.addJobInfos(jobInfo.toProto());
+          .addAllJobIds(jobList);
+      if (!(request.getOptions().hasJobIdOnly() && request.getOptions().getJobIdOnly())) {
+        for (Long id : jobList) {
+          builder.addJobInfos(mJobMaster.getStatus(id).toProto());
+        }
       }
       return builder.build();
     }, "listAll", "request=%s", responseObserver, request);

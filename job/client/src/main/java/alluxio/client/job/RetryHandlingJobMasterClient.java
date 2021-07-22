@@ -115,7 +115,9 @@ public final class RetryHandlingJobMasterClient extends AbstractMasterClient
   @Override
   public List<Long> list(ListAllPOptions option) throws IOException {
     return retryRPC(() -> mClient.listAll(
-        ListAllPRequest.newBuilder().setOptions(option).build()).getJobIdsList(),
+        ListAllPRequest.newBuilder()
+            .setOptions(option.toBuilder().setJobIdOnly(true)).build())
+            .getJobIdsList(),
         RPC_LOG, "List", "");
   }
 
