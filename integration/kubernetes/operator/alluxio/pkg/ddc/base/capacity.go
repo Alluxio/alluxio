@@ -19,11 +19,11 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-// Caculate cache capacity
+// Calculate cache capacity
 func (b *TemplateEngine) GetNewAvailableForCacheInCluster() (totalClusterCapacity uint64, err error) {
 	var (
 		nodeList        *corev1.NodeList = &corev1.NodeList{}
-		avaliblePerNode uint64           = 0
+		availablePerNode uint64          = 0
 	)
 
 	err = b.List(context.TODO(), nodeList, &client.ListOptions{})
@@ -37,7 +37,7 @@ func (b *TemplateEngine) GetNewAvailableForCacheInCluster() (totalClusterCapacit
 			continue
 		}
 
-		avaliblePerNode, err = b.GetAvailableStorageCapacityOfNode(node)
+		availablePerNode, err = b.GetAvailableStorageCapacityOfNode(node)
 		if err != nil {
 			return
 		}
@@ -48,12 +48,12 @@ func (b *TemplateEngine) GetNewAvailableForCacheInCluster() (totalClusterCapacit
 			continue
 		}
 
-		if avaliblePerNode == 0 {
+		if availablePerNode == 0 {
 			b.Log.V(1).Info("Skip the node because its capacity is 0", "node", node.Name)
 			continue
 		}
 
-		totalClusterCapacity += avaliblePerNode
+		totalClusterCapacity += availablePerNode
 	}
 
 	return totalClusterCapacity, err
