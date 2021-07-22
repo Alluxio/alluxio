@@ -21,15 +21,16 @@ import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 
 import com.codahale.metrics.Meter;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Stopwatch;
+import com.google.common.base.Ticker;
 import com.google.common.io.Closer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.time.Duration;
 import java.util.concurrent.TimeUnit;
 
 import javax.annotation.concurrent.NotThreadSafe;
@@ -61,6 +62,9 @@ public class LocalCacheFileInStream extends FileInStream {
   private long mPosition = 0;
   private boolean mClosed = false;
   private boolean mEOF = false;
+
+  @VisibleForTesting
+  Ticker mTicker = Ticker.systemTicker();
 
   /**
    * Interface to wrap open method of file system.
@@ -128,7 +132,7 @@ public class LocalCacheFileInStream extends FileInStream {
     int totalBytesRead = 0;
     long currentPosition = pos;
     long lengthToRead = Math.min(len, mStatus.getLength() - pos);
-    Stopwatch readTimeStopwatch = Stopwatch.createUnstarted();
+    Stopwatch readTimeStopwatch = Stopwatch.createUnstarted(mTicker);
     // for each page, check if it is available in the cache
     while (totalBytesRead < lengthToRead) {
       long currentPage = currentPosition / mPageSize;

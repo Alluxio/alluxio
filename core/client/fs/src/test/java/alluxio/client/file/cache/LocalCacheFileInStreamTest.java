@@ -55,6 +55,9 @@ import alluxio.wire.FileInfo;
 import alluxio.wire.MountPointInfo;
 import alluxio.wire.SyncPointInfo;
 
+import com.google.common.base.Ticker;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Maps;
 import com.google.common.io.ByteStreams;
 import org.junit.Assert;
 import org.junit.Before;
@@ -70,6 +73,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -437,6 +441,33 @@ public class LocalCacheFileInStreamTest {
     }
   }
 
+  @Test
+  public void cacheMetricCacheHitReadTime() throws Exception {
+    byte[] testData = BufferUtils.getIncreasingByteArray(PAGE_SIZE);
+    AlluxioURI testFileName = new AlluxioURI("/test");
+    Map<AlluxioURI, byte[]> files = ImmutableMap.of(testFileName, testData);
+    StepTicker timeSource = new StepTicker();
+    TimedMockByteArrayCacheManager manager = new TimedMockByteArrayCacheManager(timeSource);
+    Map<String, Long> recordedMetrics = new HashMap<>();
+    TimedByteArrayFileSystem fs = new TimedByteArrayFileSystem(
+        files,
+        (name, value) -> recordedMetrics.compute(name, (k, v) -> v == null ? value : v + value),
+        timeSource
+    );
+    LocalCacheFileInStream stream =
+        new LocalCacheFileInStream(fs.getStatus(testFileName),
+            (status) -> fs.openFile(status, OpenFilePOptions.getDefaultInstance()), manager, sConf);
+    stream.mTicker = timeSource;
+
+    Assert.assertArrayEquals(testData, ByteStreams.toByteArray(stream));
+    long timeReadCache = recordedMetrics.getOrDefault(
+        MetricKey.CLIENT_CACHE_PAGE_READ_CACHE_TIME_NS.getMetricName(), 0L);
+    long timeReadExternal = recordedMetrics.getOrDefault(
+        MetricKey.CLIENT_CACHE_PAGE_READ_EXTERNAL_TIME_NS.getMetricName(), 0L);
+    Assert.assertEquals(timeSource.get(StepTicker.Type.CACHE_HIT), timeReadCache);
+    Assert.assertEquals(timeSource.get(StepTicker.Type.CACHE_MISS), timeReadExternal);
+  }
+
   private LocalCacheFileInStream setupWithSingleFile(byte[] data, CacheManager manager)
       throws Exception {
     Map<AlluxioURI, byte[]> files = new HashMap<>();
@@ -758,6 +789,131 @@ public class LocalCacheFileInStreamTest {
     @Override
     public void close() throws IOException {
       throw new UnsupportedOperationException();
+    }
+  }
+
+  private static class StepTicker extends Ticker {
+    private long mNow = 0;
+    private final Map<Type, Long> mTimeMap = Maps.newEnumMap(Type.class);
+
+    enum Type {
+      CACHE_HIT, CACHE_MISS;
+    }
+
+    public long getNow() {
+      return mNow;
+    }
+
+    public long get(Type type) {
+      return mTimeMap.getOrDefault(type, 0L);
+    }
+
+    public void advance(Type type) {
+      mNow += 1;
+      mTimeMap.compute(type, (k, v) -> v == null ? 1 : v + 1);
+    }
+
+    @Override
+    public long read() {
+      return mNow;
+    }
+  }
+
+  private class TimedByteArrayFileSystem extends ByteArrayFileSystem {
+    private final StepTicker mTicker;
+    private final BiConsumer<String, Long> mCounter;
+
+    TimedByteArrayFileSystem(Map<AlluxioURI, byte[]> files,
+                             BiConsumer<String, Long> counter, StepTicker ticker) {
+      super(files);
+      mTicker = ticker;
+      mCounter = counter;
+    }
+
+    @Override
+    public URIStatus getStatus(AlluxioURI path, GetStatusPOptions options)
+        throws FileDoesNotExistException, IOException, AlluxioException {
+      URIStatus status = super.getStatus(path, options);
+      URIStatus withCacheContextStatus = new URIStatus(status.getFileInfo(), new CacheContext() {
+        @Override
+        public void incrementCounter(String name, long value) {
+          mCounter.accept(name, value);
+        }
+      });
+      return withCacheContextStatus;
+    }
+
+    @Override
+    public FileInStream openFile(AlluxioURI path, OpenFilePOptions options)
+        throws FileDoesNotExistException, OpenDirectoryException, FileIncompleteException,
+        IOException, AlluxioException {
+      FileInStream delegateToStream = super.openFile(path, options);
+      return new TimedMockFileInStream(delegateToStream, mTicker);
+    }
+
+    @Override
+    public FileInStream openFile(URIStatus status, OpenFilePOptions options)
+        throws FileDoesNotExistException, OpenDirectoryException, FileIncompleteException,
+        IOException, AlluxioException {
+      FileInStream delegateToStream = super.openFile(status, options);
+      return new TimedMockFileInStream(delegateToStream, mTicker);
+    }
+  }
+
+  private class TimedMockByteArrayCacheManager extends ByteArrayCacheManager {
+    private final StepTicker mTicker;
+
+    public TimedMockByteArrayCacheManager(StepTicker ticker) {
+      mTicker = ticker;
+    }
+
+    @Override
+    public int get(PageId pageId, int pageOffset, int bytesToRead, byte[] buffer,
+                   int offsetInBuffer, CacheContext cacheContext) {
+      int read = super.get(pageId, pageOffset, bytesToRead, buffer, offsetInBuffer, cacheContext);
+      if (read > 0) {
+        mTicker.advance(StepTicker.Type.CACHE_HIT);
+      }
+      // when cache misses, time elapsed during `get` should not count towards external read metric
+      return read;
+    }
+  }
+
+  private static class TimedMockFileInStream extends FileInStream {
+    private final FileInStream mDelegate;
+    private final StepTicker mTicker;
+
+    public TimedMockFileInStream(FileInStream delegate, StepTicker ticker) {
+      mDelegate = delegate;
+      mTicker = ticker;
+    }
+
+    @Override
+    public int read(ByteBuffer byteBuffer, int off, int len) throws IOException {
+      mTicker.advance(StepTicker.Type.CACHE_MISS);
+      return mDelegate.read(byteBuffer, off, len);
+    }
+
+    @Override
+    public long getPos() throws IOException {
+      return mDelegate.getPos();
+    }
+
+    @Override
+    public long remaining() {
+      return mDelegate.remaining();
+    }
+
+    @Override
+    public void seek(long pos) throws IOException {
+      mDelegate.seek(pos);
+    }
+
+    @Override
+    public int positionedRead(long position, byte[] buffer, int offset, int length)
+        throws IOException {
+      mTicker.advance(StepTicker.Type.CACHE_MISS);
+      return mDelegate.positionedRead(position, buffer, offset, length);
     }
   }
 
