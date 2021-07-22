@@ -138,7 +138,7 @@ journal:
   folder: "/journal"
 
 EOM
-      generateTemplates "$workerFuse"
+      generateTemplates
       ;;
     "hdfs")
       echo "Journal UFS $ufs"
