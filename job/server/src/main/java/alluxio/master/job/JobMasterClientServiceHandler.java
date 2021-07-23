@@ -30,7 +30,6 @@ import alluxio.grpc.RunPRequest;
 import alluxio.grpc.RunPResponse;
 import alluxio.job.JobConfig;
 import alluxio.job.util.SerializationUtils;
-import alluxio.job.wire.JobInfo;
 import alluxio.job.wire.JobWorkerHealth;
 
 import com.google.common.base.Preconditions;

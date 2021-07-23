@@ -138,26 +138,28 @@ public final class ReplicationChecker implements HeartbeatExecutor {
     }
     final Set<Long> activeJobIds = new HashSet<>();
     try {
-      final List<Long> completedEvictJobIds =
-          mReplicationHandler.findJobs("Evict",
-              ImmutableSet.of(Status.RUNNING, Status.CREATED));
-      final List<Long> completedMoveJobIds =
-          mReplicationHandler.findJobs("Move",
-              ImmutableSet.of(Status.RUNNING, Status.CREATED));
-      final List<Long> completedReplicateJobIds =
-          mReplicationHandler.findJobs("Replicate",
-              ImmutableSet.of(Status.RUNNING, Status.CREATED));
+      if (!mActiveJobToInodeID.isEmpty()) {
+        final List<Long> activeEvictJobIds =
+            mReplicationHandler.findJobs("Evict",
+                ImmutableSet.of(Status.RUNNING, Status.CREATED));
+        final List<Long> activeMoveJobIds =
+            mReplicationHandler.findJobs("Move",
+                ImmutableSet.of(Status.RUNNING, Status.CREATED));
+        final List<Long> activeReplicateJobIds =
+            mReplicationHandler.findJobs("Replicate",
+                ImmutableSet.of(Status.RUNNING, Status.CREATED));
 
-      activeJobIds.addAll(completedEvictJobIds);
-      activeJobIds.addAll(completedMoveJobIds);
-      activeJobIds.addAll(completedReplicateJobIds);
+        activeJobIds.addAll(activeEvictJobIds);
+        activeJobIds.addAll(activeMoveJobIds);
+        activeJobIds.addAll(activeReplicateJobIds);
+        mActiveJobToInodeID.keySet().removeIf(jobId -> !activeJobIds.contains(jobId));
+      }
     } catch (IOException e) {
-      // It is possible the job master process is not answering rpcs, log but do not throw the exception
+      // It is possible the job master process is not answering rpcs,
+      // log but do not throw the exception
       // which will kill the replication checker thread.
       LOG.debug("Failed to contact job master to get updated list of replication jobs {}", e);
     }
-
-    mActiveJobToInodeID.keySet().removeIf(jobId -> !activeJobIds.contains(jobId));
 
     Set<Long> inodes;
 
