@@ -4019,6 +4019,20 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
+  public static final PropertyKey USER_CLIENT_CACHE_FILTER_CLASS =
+      new Builder(Name.USER_CLIENT_CACHE_FILTER_CLASS)
+          .setDefaultValue("alluxio.client.file.cache.filter.DefaultCacheFilter")
+          .setDescription("The default cache filter caches everything")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.CLIENT)
+          .build();
+  public static final PropertyKey USER_CLIENT_CACHE_FILTER_CONFIG_FILE =
+      new Builder(Name.USER_CLIENT_CACHE_FILTER_CONFIG_FILE)
+          .setDefaultValue("/tmp/alluxio-filter-config")
+          .setDescription("The alluxio cache filter config file")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.CLIENT)
+          .build();
   public static final PropertyKey USER_CLIENT_CACHE_EVICTOR_CLASS =
       new Builder(Name.USER_CLIENT_CACHE_EVICTOR_CLASS)
           .setDefaultValue("alluxio.client.file.cache.evictor.LRUCacheEvictor")
@@ -6054,6 +6068,10 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.user.client.cache.async.write.threads";
     public static final String USER_CLIENT_CACHE_ENABLED =
         "alluxio.user.client.cache.enabled";
+    public static final String USER_CLIENT_CACHE_FILTER_CLASS =
+        "alluxio.user.client.cache.filter.class";
+    public static final String USER_CLIENT_CACHE_FILTER_CONFIG_FILE =
+        "alluxio.user.client.cache.filter.config-file";
     public static final String USER_CLIENT_CACHE_EVICTION_RETRIES =
         "alluxio.user.client.cache.eviction.retries";
     public static final String USER_CLIENT_CACHE_EVICTOR_CLASS =
