@@ -11,7 +11,7 @@
 
 package alluxio.master.table;
 
-import alluxio.table.common.udb.UdbAttachSpec;
+import alluxio.table.common.udb.UdbAttachOptions;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -152,12 +152,12 @@ public final class DbConfig {
   }
 
   /**
-   * Converts to a {@link UdbAttachSpec}.
+   * Converts to a {@link UdbAttachOptions}.
    *
-   * @return the {@link UdbAttachSpec} object
+   * @return the {@link UdbAttachOptions} object
    */
-  public UdbAttachSpec getUdbAttachSpec() {
-    UdbAttachSpec.Builder builder = new UdbAttachSpec.Builder();
+  public UdbAttachOptions getUdbAttachOptions() {
+    UdbAttachOptions.Builder builder = new UdbAttachOptions.Builder();
     // process included bypassed tables
     for (TableEntry entry : mBypassEntry.getList().getIncludedEntries()) {
       // entry can be a simple name, a pattern, or a table name with partition specifications

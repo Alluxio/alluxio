@@ -30,8 +30,8 @@ import javax.annotation.Nullable;
 /**
  * Tables and partitions inclusion and exclusion specification.
  */
-public final class UdbAttachSpec {
-  private static final Logger LOG = LoggerFactory.getLogger(UdbAttachSpec.class);
+public final class UdbAttachOptions {
+  private static final Logger LOG = LoggerFactory.getLogger(UdbAttachOptions.class);
 
   enum Entry {
     BYPASS, IGNORE, NONE;
@@ -82,7 +82,7 @@ public final class UdbAttachSpec {
    */
   private final Mode mIgnoreMode;
 
-  private UdbAttachSpec(
+  private UdbAttachOptions(
       @Nullable Set<NamePatternWrapper> bypassedTables,
       @Nullable Mode tableBypassMode,
       @Nullable Map<String, Set<NamePatternWrapper>> bypassedPartitions,
@@ -133,7 +133,7 @@ public final class UdbAttachSpec {
    *
    * @param tableName the table name
    * @return true if the table is configured to be bypassed, false otherwise
-   * @see UdbAttachSpec#isFullyBypassedTable(String)
+   * @see UdbAttachOptions#isFullyBypassedTable(String)
    */
   public boolean isBypassedTable(String tableName) {
     boolean isFullyBypassed = isContainedInWrappers(mBypassedTables, tableName);
@@ -162,7 +162,7 @@ public final class UdbAttachSpec {
    *
    * @param tableName the table name
    * @return true if the table is configured to be fully bypassed, false otherwise
-   * @see UdbAttachSpec#isBypassedTable(String)
+   * @see UdbAttachOptions#isBypassedTable(String)
    */
   public boolean isFullyBypassedTable(String tableName) {
     boolean isFullyBypassed = isContainedInWrappers(mBypassedTables, tableName);
@@ -343,7 +343,7 @@ public final class UdbAttachSpec {
   }
 
   /**
-   * Builder for {@link UdbAttachSpec}.
+   * Builder for {@link UdbAttachOptions}.
    */
   public static class Builder {
     private Set<NamePatternWrapper> mBypassedTables;
@@ -519,11 +519,11 @@ public final class UdbAttachSpec {
     }
 
     /**
-     * Build a {@link UdbAttachSpec}.
-     * @return {@link UdbAttachSpec}
+     * Build a {@link UdbAttachOptions}.
+     * @return {@link UdbAttachOptions}
      */
-    public UdbAttachSpec build() {
-      UdbAttachSpec built = new UdbAttachSpec(
+    public UdbAttachOptions build() {
+      UdbAttachOptions built = new UdbAttachOptions(
           mBypassedTables,
           mTableBypassMode,
           mBypassedPartitions,

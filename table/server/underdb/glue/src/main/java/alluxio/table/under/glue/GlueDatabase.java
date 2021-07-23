@@ -21,7 +21,7 @@ import alluxio.master.table.DatabaseInfo;
 import alluxio.table.common.UdbPartition;
 import alluxio.table.common.layout.HiveLayout;
 import alluxio.table.common.udb.PathTranslator;
-import alluxio.table.common.udb.UdbAttachSpec;
+import alluxio.table.common.udb.UdbAttachOptions;
 import alluxio.table.common.udb.UdbConfiguration;
 import alluxio.table.common.udb.UdbContext;
 import alluxio.table.common.udb.UdbTable;
@@ -238,7 +238,7 @@ public class GlueDatabase implements UnderDatabase {
 
   @VisibleForTesting
   private PathTranslator mountAlluxioPaths(Table table, List<Partition> partitions,
-      UdbAttachSpec attachSpec)
+      UdbAttachOptions attachOptions)
       throws IOException {
     String tableName = table.getName();
     AlluxioURI ufsUri;
@@ -247,7 +247,7 @@ public class GlueDatabase implements UnderDatabase {
 
     try {
       PathTranslator pathTranslator = new PathTranslator();
-      if (attachSpec.isFullyBypassedTable(tableName)) {
+      if (attachOptions.isFullyBypassedTable(tableName)) {
         pathTranslator.addMapping(glueUfsUri, glueUfsUri);
         return pathTranslator;
       }
@@ -283,7 +283,7 @@ public class GlueDatabase implements UnderDatabase {
                 mGlueDbName,
                 mGlueConfiguration.get(Property.CATALOG_ID));
           }
-          if (attachSpec.isBypassedPartition(tableName, partitionName)) {
+          if (attachOptions.isBypassedPartition(tableName, partitionName)) {
             pathTranslator.addMapping(partitionUri.getPath(), partitionUri.getPath());
             continue;
           }
@@ -341,7 +341,7 @@ public class GlueDatabase implements UnderDatabase {
   }
 
   @Override
-  public UdbTable getTable(String tableName, UdbAttachSpec attachSpec) throws IOException {
+  public UdbTable getTable(String tableName, UdbAttachOptions attachOptions) throws IOException {
     Table table;
     List<Partition> partitions;
     try {
@@ -352,7 +352,7 @@ public class GlueDatabase implements UnderDatabase {
       table = getClient().getTable(tableRequest).getTable();
 
       partitions = batchGetPartitions(getClient(), tableName);
-      PathTranslator pathTranslator = mountAlluxioPaths(table, partitions, attachSpec);
+      PathTranslator pathTranslator = mountAlluxioPaths(table, partitions, attachOptions);
 
       List<Column> partitionColumns;
       if (table.getPartitionKeys() == null) {

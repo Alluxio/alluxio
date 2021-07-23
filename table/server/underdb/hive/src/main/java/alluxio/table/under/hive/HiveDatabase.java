@@ -22,7 +22,7 @@ import alluxio.resource.CloseableResource;
 import alluxio.table.common.UdbPartition;
 import alluxio.table.common.layout.HiveLayout;
 import alluxio.table.common.udb.PathTranslator;
-import alluxio.table.common.udb.UdbAttachSpec;
+import alluxio.table.common.udb.UdbAttachOptions;
 import alluxio.table.common.udb.UdbConfiguration;
 import alluxio.table.common.udb.UdbContext;
 import alluxio.table.common.udb.UdbTable;
@@ -147,7 +147,7 @@ public class HiveDatabase implements UnderDatabase {
   }
 
   private PathTranslator mountAlluxioPaths(Table table, List<Partition> partitions,
-      UdbAttachSpec attachSpec)
+      UdbAttachOptions attachOptions)
       throws IOException {
     String tableName = table.getTableName();
     AlluxioURI ufsUri;
@@ -156,7 +156,7 @@ public class HiveDatabase implements UnderDatabase {
 
     try {
       PathTranslator pathTranslator = new PathTranslator();
-      if (attachSpec.isFullyBypassedTable(tableName)) {
+      if (attachOptions.isFullyBypassedTable(tableName)) {
         pathTranslator.addMapping(hiveUfsUri, hiveUfsUri);
         return pathTranslator;
       }
@@ -185,7 +185,7 @@ public class HiveDatabase implements UnderDatabase {
             LOG.warn("Error making partition name for table {}, partition {}", tableName,
                 part.getValues().toString());
           }
-          if (attachSpec.isBypassedPartition(tableName, partName)) {
+          if (attachOptions.isBypassedPartition(tableName, partName)) {
             pathTranslator.addMapping(partitionUri.getPath(), partitionUri.getPath());
             continue;
           }
@@ -213,7 +213,7 @@ public class HiveDatabase implements UnderDatabase {
   }
 
   @Override
-  public UdbTable getTable(String tableName, UdbAttachSpec attachSpec) throws IOException {
+  public UdbTable getTable(String tableName, UdbAttachOptions attachOptions) throws IOException {
     try {
       Table table;
       List<Partition> partitions;
@@ -253,7 +253,7 @@ public class HiveDatabase implements UnderDatabase {
         }
       }
 
-      PathTranslator pathTranslator = mountAlluxioPaths(table, partitions, attachSpec);
+      PathTranslator pathTranslator = mountAlluxioPaths(table, partitions, attachOptions);
       List<ColumnStatisticsInfo> colStats =
           columnStats.stream().map(HiveUtils::toProto).collect(Collectors.toList());
       // construct table layout
