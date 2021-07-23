@@ -37,10 +37,13 @@ public class CacheContext {
   private String mCacheIdentifier = null;
 
   /**
-   * Constructs CacheContext.
+   * @return the default CacheContext
    */
-  public CacheContext() {
+  public static CacheContext defaults() {
+    return new CacheContext();
   }
+
+  private CacheContext() {} // prevent instantiation
 
   /**
    * Returns an string as a hint from computation to indicate the file.
