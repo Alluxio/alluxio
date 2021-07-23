@@ -147,6 +147,7 @@ public final class MetricsSystem {
     METRIC_REGISTRY.registerAll(new MemoryUsageGaugeSet());
     METRIC_REGISTRY.registerAll(new ClassLoadingGaugeSet());
     METRIC_REGISTRY.registerAll(new CachedThreadStatesGaugeSet(5, TimeUnit.SECONDS));
+    METRIC_REGISTRY.registerAll(new LogStateCounterSet());
   }
 
   @GuardedBy("MetricsSystem")
