@@ -76,6 +76,13 @@ public interface JobMasterClient extends Client {
   JobServiceSummary getJobServiceSummary() throws IOException;
 
   /**
+   * @return list all job ids
+   */
+  default List<Long> list() throws IOException {
+    return list(ListAllPOptions.getDefaultInstance());
+  }
+
+  /**
    * @param option list options
    * @return the list of ids of all jobs
    */
