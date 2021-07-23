@@ -26,7 +26,7 @@ import (
 type NodeInfo struct {
 	name                     string
 	node                     *corev1.Node
-	avaialbleStorageCapacity uint64
+	availableStorageCapacity uint64
 }
 
 // Sort the NodeInfo by
@@ -41,19 +41,19 @@ func (n NodeInfo) GetName() string {
 }
 
 func (n NodeInfo) GetAvailableStorageCapacity() uint64 {
-	return n.avaialbleStorageCapacity
+	return n.availableStorageCapacity
 }
 
 func (n NodeInfo) GetAvailableStorageCapacityToGiB() string {
-	return fmt.Sprintf("%dGB", n.avaialbleStorageCapacity/1024/1024/1024)
+	return fmt.Sprintf("%dGB", n.availableStorageCapacity/1024/1024/1024)
 }
 
 func (n NodeInfo) GetAvailableStorageCapacityToMiB() string {
-	return fmt.Sprintf("%dMB", n.avaialbleStorageCapacity/1024/1024)
+	return fmt.Sprintf("%dMB", n.availableStorageCapacity/1024/1024)
 }
 
 func (n NodeInfo) GetAvailableStorageCapacityToKiB() string {
-	return fmt.Sprintf("%dKB", n.avaialbleStorageCapacity/1024)
+	return fmt.Sprintf("%dKB", n.availableStorageCapacity/1024)
 }
 
 // Sort from large to small
@@ -62,7 +62,7 @@ func (s SortNodeInfoByCapacity) Swap(i, j int) { s[i], s[j] = s[j], s[i] }
 func (s SortNodeInfoByCapacity) Less(i, j int) bool {
 	// return s[i].CreatedAt.Before(s[j].CreatedAt)
 	// return s[i].LastTransitionTime.Time.After(s[j].LastTransitionTime.Time)
-	return s[i].avaialbleStorageCapacity > s[j].avaialbleStorageCapacity
+	return s[i].availableStorageCapacity > s[j].availableStorageCapacity
 }
 
 // make sort nodeInfo by capacity
@@ -87,7 +87,7 @@ func getSelectedNodelistAndCapacity(nodes []NodeInfo, clusterCapacity uint64, da
 		for i := 0; i < len(nodes); i++ {
 			if currentCapacity < datasetCapacity {
 				selectedNodes = append(selectedNodes, nodes[i])
-				currentCapacity += nodes[i].avaialbleStorageCapacity
+				currentCapacity += nodes[i].availableStorageCapacity
 			} else {
 				// TODO (cheyang) Optimize
 				break
@@ -132,7 +132,7 @@ func (b *TemplateEngine) GetAvailableStorageCapacityOfNode(node corev1.Node) (av
 		labelNamePrefix := common.LabelAnnotationStorageCapacityPrefix + "raw-" + runtime + "-"
 		for label, value := range node.Labels {
 			if label == labelNamePrefix+b.Config.Name {
-				b.Log.V(1).Info("The node is skiped due to the dataset is already here",
+				b.Log.V(1).Info("The node is skipped due to the dataset is already here",
 					"dataset",
 					b.Config.Name,
 					"node",
