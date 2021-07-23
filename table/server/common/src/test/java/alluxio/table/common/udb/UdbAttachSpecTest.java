@@ -234,6 +234,7 @@ public class UdbAttachSpecTest {
     UdbAttachSpec spec = mBuilder.build();
     assertTrue(spec.isIgnoredTable("same_table"));
     assertFalse(spec.isBypassedTable("same_table"));
+    assertFalse(spec.isBypassedPartition("same_table", ANY_PART));
   }
 
   @Test
@@ -243,6 +244,15 @@ public class UdbAttachSpecTest {
     UdbAttachSpec spec = mBuilder.build();
     assertTrue(spec.isIgnoredTable(TABLE(1)));
     assertFalse(spec.isBypassedTable(TABLE(1)));
+    assertFalse(spec.isBypassedPartition(TABLE(1), ANY_PART));
+  }
+
+  @Test
+  public void ignoreTakesPrecedenceOverBypassPartitions() {
+    mBuilder.bypass().include().addPartition(TABLE(1), PART(1));
+    mBuilder.ignore().include().addTable(TABLE(1));
+    UdbAttachSpec spec = mBuilder.build();
+    assertFalse(spec.isBypassedPartition(TABLE(1), PART(1)));
   }
 
   @Test
