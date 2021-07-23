@@ -52,11 +52,10 @@ public class UdbAttachSpecTest {
   /* Inclusion tests */
   @Test
   public void includedTableAndPartitionNames() {
-    UdbAttachSpec.PartitionSpecBuilder partitionBuilder = new UdbAttachSpec.PartitionSpecBuilder();
-    partitionBuilder.include().addName(PART(1)).addName(PART(2));
     mBuilder.bypass()
         .include()
-        .addPartition(TABLE(1), partitionBuilder);
+        .addPartition(TABLE(1), PART(1))
+        .addPartition(TABLE(1), PART(2));
 
     UdbAttachSpec spec = mBuilder.build();
     assertTrue(spec.isBypassedTable(TABLE(1)));
@@ -68,7 +67,7 @@ public class UdbAttachSpecTest {
 
   @Test
   public void includedTableNamesOnly() {
-    mBuilder.bypass().include().addName(TABLE(2));
+    mBuilder.bypass().include().addTable(TABLE(2));
     UdbAttachSpec spec = mBuilder.build();
     assertTrue(spec.isBypassedTable(TABLE(2)));
     assertTrue(spec.isFullyBypassedTable(TABLE(2)));
@@ -79,7 +78,7 @@ public class UdbAttachSpecTest {
 
   @Test
   public void includedNonExistentTable() {
-    mBuilder.bypass().include().addName(TABLE(3));
+    mBuilder.bypass().include().addTable(TABLE(3));
     UdbAttachSpec spec = mBuilder.build();
     assertFalse(spec.isBypassedTable(TABLE(4)));
     assertFalse(spec.isFullyBypassedTable(TABLE(4)));
@@ -90,7 +89,7 @@ public class UdbAttachSpecTest {
 
   @Test
   public void includedTablePatterns() {
-    mBuilder.bypass().include().addPattern(Pattern.compile(TABLE("\\d")));
+    mBuilder.bypass().include().addTable(Pattern.compile(TABLE("\\d")));
     UdbAttachSpec spec = mBuilder.build();
     assertTrue(spec.isBypassedTable(TABLE(1)));
     assertTrue(spec.isBypassedTable(TABLE(2)));
@@ -100,16 +99,13 @@ public class UdbAttachSpecTest {
 
   @Test
   public void includedTableMixedNamesPatternsPartitions() {
-    UdbAttachSpec.PartitionSpecBuilder partitionBuilder = new UdbAttachSpec.PartitionSpecBuilder();
-    partitionBuilder
-        .include()
-        .addNames(ImmutableSet.of(PART(1), PART(2)))
-        .addPattern(Pattern.compile(PART("[a-z]")));
     mBuilder.bypass()
         .include()
-        .addName(TABLE(1))
-        .addPattern(Pattern.compile(TABLE("[a-z]")))
-        .addPartition(TABLE(2), partitionBuilder);
+        .addTable(TABLE(1))
+        .addTable(Pattern.compile(TABLE("[a-z]")))
+        .addPartition(TABLE(2), PART(1))
+        .addPartition(TABLE(2), PART(2))
+        .addPartition(TABLE(2), Pattern.compile(PART("[a-z]")));
 
     UdbAttachSpec spec = mBuilder.build();
     assertTrue(spec.isBypassedTable(TABLE(1)));
@@ -128,35 +124,32 @@ public class UdbAttachSpecTest {
 
   @Test(expected = IllegalArgumentException.class)
   public void rejectTableExplicitNameAndPartitionSpecAtSameTime() {
-    UdbAttachSpec.PartitionSpecBuilder partitionBuilder = new UdbAttachSpec.PartitionSpecBuilder();
-    partitionBuilder.include().addName(PART(1));
     mBuilder.bypass()
         .include()
-        .addName(TABLE(1))
-        .addPartition(TABLE(1), partitionBuilder);
+        .addTable(TABLE(1))
+        .addPartition(TABLE(1), PART(1));
 
     mBuilder.build();
   }
 
   @Test(expected = IllegalArgumentException.class)
   public void rejectInclusionExclusionAtSameTime() {
-    mBuilder.bypass().include().addName(TABLE(1));
-    mBuilder.bypass().exclude().addName(TABLE(2));
+    mBuilder.bypass().include().addTable(TABLE(1));
+    mBuilder.bypass().exclude().addTable(TABLE(2));
     mBuilder.build();
   }
 
   @Test(expected = IllegalArgumentException.class)
   public void rejectInclusionExclusionAtSameTime2() {
-    UdbAttachSpec.PartitionSpecBuilder partitionBuilder = new UdbAttachSpec.PartitionSpecBuilder();
-    partitionBuilder.include().addName(PART(1));
-    partitionBuilder.exclude().addName(PART(2));
-    partitionBuilder.build();
+    mBuilder.bypass().include().addPartition(TABLE(1), PART(1));
+    mBuilder.bypass().exclude().addPartition(TABLE(1), PART(2));
+    mBuilder.build();
   }
 
   /* Exclusion tests */
   @Test
   public void excludedTableNamesOnly() {
-    mBuilder.bypass().exclude().addNames(ImmutableSet.of(TABLE(1), TABLE(2)));
+    mBuilder.bypass().exclude().addTables(ImmutableSet.of(TABLE(1), TABLE(2)));
 
     UdbAttachSpec spec = mBuilder.build();
     assertFalse(spec.isBypassedTable(TABLE(1)));
@@ -171,8 +164,8 @@ public class UdbAttachSpecTest {
   public void excludedTableNamesPatterns() {
     mBuilder.bypass()
         .exclude()
-        .addName(TABLE(0))
-        .addPattern(Pattern.compile(TABLE("[12]")));
+        .addTable(TABLE(0))
+        .addTable(Pattern.compile(TABLE("[12]")));
 
     UdbAttachSpec spec = mBuilder.build();
     assertFalse(spec.isBypassedTable(TABLE(0)));
@@ -187,11 +180,9 @@ public class UdbAttachSpecTest {
 
   @Test
   public void excludedPartitionsOfIncludedTable() {
-    UdbAttachSpec.PartitionSpecBuilder partitionBuilder = new UdbAttachSpec.PartitionSpecBuilder();
-    partitionBuilder.exclude().addName(PART(1));
     mBuilder.bypass()
-        .include()
-        .addPartition(TABLE(1), partitionBuilder);
+        .exclude()
+        .addPartition(TABLE(1), PART(1));
 
     UdbAttachSpec spec = mBuilder.build();
     assertFalse(spec.isBypassedPartition(TABLE(1), PART(1)));
@@ -200,7 +191,7 @@ public class UdbAttachSpecTest {
 
   @Test
   public void excludeEverythingIsIncludeNothing() {
-    mBuilder.bypass().exclude().addPattern(Pattern.compile(".*"));
+    mBuilder.bypass().exclude().addTable(Pattern.compile(".*"));
     UdbAttachSpec spec = mBuilder.build();
     assertFalse(spec.isBypassedTable(ANY_TABLE));
   }
@@ -208,7 +199,7 @@ public class UdbAttachSpecTest {
   @Test
   public void excludeNothingIsIncludeNothing() {
     mBuilder.bypass()
-        .exclude().addNames(Collections.emptySet()).addPatterns(Collections.emptySet());
+        .exclude().addTables(Collections.emptySet()).addTables(Collections.emptySet());
     UdbAttachSpec spec = mBuilder.build();
     assertFalse(spec.isBypassedTable(ANY_TABLE));
   }
@@ -218,10 +209,10 @@ public class UdbAttachSpecTest {
   public void ignoredTables() {
     mBuilder.ignore()
         .include()
-        .addName(TABLE(1))
-        .addNames(ImmutableSet.of(TABLE(2), TABLE(3)))
-        .addPattern(Pattern.compile(TABLE(4)))
-        .addPatterns(ImmutableSet.of(
+        .addTable(TABLE(1))
+        .addTables(ImmutableSet.of(TABLE(2), TABLE(3)))
+        .addTable(Pattern.compile(TABLE(4)))
+        .addTables(ImmutableSet.of(
             Pattern.compile(TABLE(5)),
             Pattern.compile(TABLE(6))
         ));
@@ -238,8 +229,8 @@ public class UdbAttachSpecTest {
 
   @Test
   public void ignoreTakesPrecedenceOverBypass() {
-    mBuilder.bypass().include().addName("same_table");
-    mBuilder.ignore().include().addName("same_table");
+    mBuilder.bypass().include().addTable("same_table");
+    mBuilder.ignore().include().addTable("same_table");
     UdbAttachSpec spec = mBuilder.build();
     assertTrue(spec.isIgnoredTable("same_table"));
     assertFalse(spec.isBypassedTable("same_table"));
@@ -247,8 +238,8 @@ public class UdbAttachSpecTest {
 
   @Test
   public void ignoreTakesPrecedenceOverBypass2() {
-    mBuilder.bypass().include().addName(TABLE(1));
-    mBuilder.ignore().exclude().addName(TABLE(2));
+    mBuilder.bypass().include().addTable(TABLE(1));
+    mBuilder.ignore().exclude().addTable(TABLE(2));
     UdbAttachSpec spec = mBuilder.build();
     assertTrue(spec.isIgnoredTable(TABLE(1)));
     assertFalse(spec.isBypassedTable(TABLE(1)));
@@ -256,8 +247,8 @@ public class UdbAttachSpecTest {
 
   @Test
   public void ignoreNone() {
-    mBuilder.ignore().include().addNames(ImmutableSet.of());
-    mBuilder.ignore().include().addPatterns(ImmutableSet.of());
+    mBuilder.ignore().include().addTables(ImmutableSet.of());
+    mBuilder.ignore().include().addTables(ImmutableSet.of());
     UdbAttachSpec spec = mBuilder.build();
     assertFalse(spec.isIgnoredTable(ANY_TABLE));
   }
