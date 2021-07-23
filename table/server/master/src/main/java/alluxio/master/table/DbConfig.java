@@ -163,61 +163,58 @@ public final class DbConfig {
       // entry can be a simple name, a pattern, or a table name with partition specifications
       if (entry.isPattern()) {
         // adds it as a pattern and we are done
-        builder.bypass().include().addPattern(entry.getPattern());
+        builder.bypass().include().addTable(entry.getPattern());
         continue;
       }
       if (entry.getPartitions().isEmpty()) {
         // no partition specifications, add it as a simple name, and we are done
-        builder.bypass().include().addName(entry.getName());
+        builder.bypass().include().addTable(entry.getName());
         continue;
       }
       // otherwise, process partition specifications
       IncludeExcludeList<NamePatternEntry> partitions = entry.getPartitions();
-      UdbAttachSpec.PartitionSpecBuilder partitionBuilder =
-          new UdbAttachSpec.PartitionSpecBuilder();
+      builder.bypass();
       // process included and excluded partitions
       for (NamePatternEntry partition : partitions.getIncludedEntries()) {
         if (partition.isPattern()) {
-          partitionBuilder.include().addPattern(partition.getPattern());
+          builder.include().addPartition(entry.getTable(), partition.getPattern());
         } else {
-          partitionBuilder.include().addName(partition.getName());
+          builder.include().addPartition(entry.getTable(), partition.getName());
         }
       }
       for (NamePatternEntry partition : partitions.getExcludedEntries()) {
         if (partition.isPattern()) {
-          partitionBuilder.exclude().addPattern(partition.getPattern());
+          builder.exclude().addPartition(entry.getTable(), partition.getPattern());
         } else {
-          partitionBuilder.exclude().addName(partition.getName());
+          builder.exclude().addPartition(entry.getTable(), partition.getName());
         }
       }
-      // finally, add the partition spec with the table name
-      builder.bypass().include().addPartition(entry.getTable(), partitionBuilder);
     }
 
     // process excluded bypassed tables
     for (NamePatternEntry entry : mBypassEntry.getList().getExcludedEntries()) {
       if (entry.isPattern()) {
-        builder.bypass().exclude().addPattern(entry.getPattern());
+        builder.bypass().exclude().addTable(entry.getPattern());
       } else {
-        builder.bypass().exclude().addName(entry.getName());
+        builder.bypass().exclude().addTable(entry.getName());
       }
     }
 
     // process included ignored tables
     for (NamePatternEntry entry : mIgnoreEntry.getList().getIncludedEntries()) {
       if (entry.isPattern()) {
-        builder.ignore().include().addPattern(entry.getPattern());
+        builder.ignore().include().addTable(entry.getPattern());
       } else {
-        builder.ignore().include().addName(entry.getName());
+        builder.ignore().include().addTable(entry.getName());
       }
     }
 
     // process excluded ignored tables
     for (NamePatternEntry entry : mIgnoreEntry.getList().getExcludedEntries()) {
       if (entry.isPattern()) {
-        builder.ignore().exclude().addPattern(entry.getPattern());
+        builder.ignore().exclude().addTable(entry.getPattern());
       } else {
-        builder.ignore().exclude().addName(entry.getName());
+        builder.ignore().exclude().addTable(entry.getName());
       }
     }
     return builder.build();
