@@ -152,7 +152,9 @@ public final class ReplicationChecker implements HeartbeatExecutor {
       activeJobIds.addAll(completedMoveJobIds);
       activeJobIds.addAll(completedReplicateJobIds);
     } catch (IOException e) {
-      throw new RuntimeException(e);
+      // It is possible the job master process is not answering rpcs, log but do not throw the exception
+      // which will kill the replication checker thread.
+      LOG.debug("Failed to contact job master to get updated list of replication jobs {}", e);
     }
 
     mActiveJobToInodeID.keySet().removeIf(jobId -> !activeJobIds.contains(jobId));
