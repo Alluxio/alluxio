@@ -477,6 +477,8 @@ public final class ReplicationCheckerTest {
     Assert.assertEquals(2, replicateRequests.values().toArray()[1]);
     replicateRequests.clear();
 
+    mMockReplicationHandler.setJobStatus(1, Status.RUNNING);
+    mMockReplicationHandler.setJobStatus(2, Status.RUNNING);
     mReplicationChecker.heartbeat();
     Assert.assertEquals(0, replicateRequests.size());
 
