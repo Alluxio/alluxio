@@ -43,7 +43,7 @@ public class CacheContext {
     return new CacheContext();
   }
 
-  private CacheContext() {} // prevent instantiation
+  protected CacheContext() {} // prevent instantiation
 
   /**
    * Returns an string as a hint from computation to indicate the file.

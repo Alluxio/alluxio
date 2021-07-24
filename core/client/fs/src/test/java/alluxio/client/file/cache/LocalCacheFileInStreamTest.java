@@ -460,10 +460,10 @@ public class LocalCacheFileInStreamTest {
     stream.mTicker = timeSource;
 
     Assert.assertArrayEquals(testData, ByteStreams.toByteArray(stream));
-    long timeReadCache = recordedMetrics.getOrDefault(
-        MetricKey.CLIENT_CACHE_PAGE_READ_CACHE_TIME_NS.getMetricName(), 0L);
-    long timeReadExternal = recordedMetrics.getOrDefault(
-        MetricKey.CLIENT_CACHE_PAGE_READ_EXTERNAL_TIME_NS.getMetricName(), 0L);
+    long timeReadCache = recordedMetrics.get(
+        MetricKey.CLIENT_CACHE_PAGE_READ_CACHE_TIME_NS.getMetricName());
+    long timeReadExternal = recordedMetrics.get(
+        MetricKey.CLIENT_CACHE_PAGE_READ_EXTERNAL_TIME_NS.getMetricName());
     Assert.assertEquals(timeSource.get(StepTicker.Type.CACHE_HIT), timeReadCache);
     Assert.assertEquals(timeSource.get(StepTicker.Type.CACHE_MISS), timeReadExternal);
   }
@@ -819,6 +819,20 @@ public class LocalCacheFileInStreamTest {
     }
   }
 
+  private class MockedCacheContext extends CacheContext {
+
+    private final BiConsumer<String, Long> mCounter;
+
+    public MockedCacheContext(BiConsumer<String, Long> counter) {
+      mCounter = counter;
+    }
+
+    @Override
+    public void incrementCounter(String name, long value) {
+      mCounter.accept(name, value);
+    }
+  }
+
   private class TimedByteArrayFileSystem extends ByteArrayFileSystem {
     private final StepTicker mTicker;
     private final BiConsumer<String, Long> mCounter;
@@ -834,12 +848,8 @@ public class LocalCacheFileInStreamTest {
     public URIStatus getStatus(AlluxioURI path, GetStatusPOptions options)
         throws FileDoesNotExistException, IOException, AlluxioException {
       URIStatus status = super.getStatus(path, options);
-      URIStatus withCacheContextStatus = new URIStatus(status.getFileInfo(), new CacheContext() {
-        @Override
-        public void incrementCounter(String name, long value) {
-          mCounter.accept(name, value);
-        }
-      });
+      URIStatus withCacheContextStatus = new URIStatus(status.getFileInfo(),
+          new MockedCacheContext(mCounter));
       return withCacheContextStatus;
     }
 
