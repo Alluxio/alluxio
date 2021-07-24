@@ -59,7 +59,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * An instance of this class can be obtained via {@link AlluxioBlockStore} constructors.
  */
 @ThreadSafe
-public final class AlluxioBlockStore {
+public class AlluxioBlockStore {
   private static final Logger LOG = LoggerFactory.getLogger(AlluxioBlockStore.class);
 
   private final FileSystemContext mContext;
