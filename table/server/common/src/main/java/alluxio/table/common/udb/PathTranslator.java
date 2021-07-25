@@ -29,7 +29,9 @@ import java.io.IOException;
  */
 public class PathTranslator {
   private static final Logger LOG = LoggerFactory.getLogger(PathTranslator.class);
-
+  private static final String SCHEME_AUTHORITY_PREFIX =
+      ConfigurationUtils.getSchemeAuthority(ServerConfiguration.global());
+  private static final AlluxioURI BASE_URI = new AlluxioURI(SCHEME_AUTHORITY_PREFIX);
   private final BiMap<AlluxioURI, AlluxioURI> mPathMap;
 
   /**
@@ -64,7 +66,12 @@ public class PathTranslator {
     AlluxioURI ufsUri = new AlluxioURI(ufsPath);
     // first look for an exact match
     if (mPathMap.inverse().containsKey(ufsUri)) {
-      return mPathMap.inverse().get(ufsUri).toString() + suffix;
+      AlluxioURI match = mPathMap.inverse().get(ufsUri);
+      if (match.equals(ufsUri)) {
+        // bypassed UFS path, return as is
+        return ufsPath;
+      }
+      return checkAndAddSchemeAuthority(mPathMap.inverse().get(ufsUri)) + suffix;
     }
     // otherwise match by longest prefix
     BiMap.Entry<AlluxioURI, AlluxioURI> longestPrefix = null;
@@ -93,15 +100,16 @@ public class PathTranslator {
       String difference = PathUtils.subtractPaths(ufsUri.getPath(),
           longestPrefix.getValue().getPath());
       AlluxioURI mappedUri = longestPrefix.getKey().join(difference);
-      if (!mappedUri.hasScheme()) {
-        // scheme is missing, so prefix with the scheme and authority
-        AlluxioURI baseUri = new AlluxioURI(
-            ConfigurationUtils.getSchemeAuthority(ServerConfiguration.global()) + "/");
-        mappedUri = new AlluxioURI(baseUri, mappedUri.getPath(), false);
-      }
-      return mappedUri.toString() + suffix;
+      return checkAndAddSchemeAuthority(mappedUri) + suffix;
     } catch (InvalidPathException e) {
       throw new IOException(e);
     }
+  }
+
+  private static AlluxioURI checkAndAddSchemeAuthority(AlluxioURI input) {
+    if (!input.hasScheme()) {
+      return new AlluxioURI(BASE_URI, input.getPath(), false);
+    }
+    return input;
   }
 }

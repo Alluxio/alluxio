@@ -11,7 +11,6 @@
 
 package alluxio.worker.grpc;
 
-import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
@@ -21,7 +20,6 @@ import alluxio.exception.status.InvalidArgumentException;
 import alluxio.grpc.Chunk;
 import alluxio.grpc.DataMessage;
 import alluxio.grpc.ReadResponse;
-import alluxio.metrics.MetricInfo;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.network.protocol.databuffer.DataBuffer;
@@ -32,9 +30,7 @@ import alluxio.util.LogUtils;
 import alluxio.util.logging.SamplingLogger;
 import alluxio.wire.BlockReadRequest;
 import alluxio.worker.block.BlockWorker;
-import alluxio.worker.block.UnderFileSystemBlockReader;
 import alluxio.worker.block.io.BlockReader;
-import alluxio.worker.block.io.DelegatingBlockReader;
 
 import com.codahale.metrics.Counter;
 import com.codahale.metrics.Meter;
@@ -568,25 +564,6 @@ public class BlockReadHandler implements StreamObserver<alluxio.grpc.ReadRequest
       }
       BlockReader reader = mWorker.createBlockReader(request);
       context.setBlockReader(reader);
-      if (reader instanceof UnderFileSystemBlockReader
-          || (reader instanceof DelegatingBlockReader
-          && ((DelegatingBlockReader) reader).getDelegate()
-          instanceof UnderFileSystemBlockReader)) {
-        AlluxioURI ufsMountPointUri;
-        if (reader instanceof DelegatingBlockReader) {
-          reader = ((DelegatingBlockReader) reader).getDelegate();
-        }
-        ufsMountPointUri =
-            ((UnderFileSystemBlockReader) reader).getUfsMountPointUri();
-
-        String ufsString = MetricsSystem.escape(ufsMountPointUri);
-        MetricKey counterKey = MetricKey.WORKER_BYTES_READ_UFS;
-        MetricKey meterKey = MetricKey.WORKER_BYTES_READ_UFS_THROUGHPUT;
-        context.setCounter(MetricsSystem.counterWithTags(counterKey.getName(),
-            counterKey.isClusterAggregated(), MetricInfo.TAG_UFS, ufsString));
-        context.setMeter(MetricsSystem.meterWithTags(meterKey.getName(),
-            meterKey.isClusterAggregated(), MetricInfo.TAG_UFS, ufsString));
-      }
     }
 
     /**

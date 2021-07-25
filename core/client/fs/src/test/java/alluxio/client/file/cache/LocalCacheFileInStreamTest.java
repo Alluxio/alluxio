@@ -12,13 +12,12 @@
 package alluxio.client.file.cache;
 
 import alluxio.AlluxioURI;
+import alluxio.client.file.CacheContext;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.MockFileInStream;
 import alluxio.client.file.URIStatus;
-import alluxio.client.quota.CacheQuota;
-import alluxio.client.quota.CacheScope;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
@@ -472,7 +471,7 @@ public class LocalCacheFileInStreamTest {
 
   private URIStatus generateURIStatus(String path, long len) {
     FileInfo info = new FileInfo();
-    info.setFileIdentifier(path);
+    info.setFileId(path.hashCode());
     info.setPath(path);
     info.setLength(len);
     return new URIStatus(info);
@@ -536,7 +535,7 @@ public class LocalCacheFileInStreamTest {
     }
 
     @Override
-    public boolean put(PageId pageId, byte[] page, CacheScope cacheScope, CacheQuota cacheQuota) {
+    public boolean put(PageId pageId, byte[] page, CacheContext cacheContext) {
       mPages.put(pageId, page);
       mPagesCached++;
       return true;
@@ -544,7 +543,7 @@ public class LocalCacheFileInStreamTest {
 
     @Override
     public int get(PageId pageId, int pageOffset, int bytesToRead, byte[] buffer,
-        int offsetInBuffer) {
+        int offsetInBuffer, CacheContext cacheContext) {
       if (!mPages.containsKey(pageId)) {
         return 0;
       }

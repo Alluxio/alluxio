@@ -36,10 +36,13 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import javax.annotation.Nullable;
@@ -279,5 +282,20 @@ public class PlanTracker {
    */
   public Stream<PlanInfo> failed() {
     return mFailed.stream();
+  }
+
+  /**
+   * @param name job name filter
+   * @param statusList status list filter
+   * @return job ids matching conditions
+   */
+  public Set<Long> findJobs(String name, List<Status> statusList) {
+    return mCoordinators.entrySet().stream()
+        .filter(x ->
+            statusList.isEmpty()
+                || statusList.contains(x.getValue().getPlanInfoWire(false).getStatus())
+                && (name == null || name.isEmpty()
+                || x.getValue().getPlanInfoWire(false).getName().equals(name)))
+        .map(Map.Entry::getKey).collect(Collectors.toSet());
   }
 }

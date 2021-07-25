@@ -30,7 +30,6 @@ import java.util.List;
 public class RaftJournalConfiguration {
   private List<InetSocketAddress> mClusterAddresses;
   private long mElectionTimeoutMs;
-  private long mHeartbeatIntervalMs;
   private InetSocketAddress mLocalAddress;
   private long mMaxLogSize;
   private File mPath;
@@ -43,8 +42,6 @@ public class RaftJournalConfiguration {
     return new RaftJournalConfiguration()
         .setClusterAddresses(ConfigurationUtils
             .getEmbeddedJournalAddresses(ServerConfiguration.global(), serviceType))
-        .setHeartbeatIntervalMs(
-            ServerConfiguration.getMs(PropertyKey.MASTER_EMBEDDED_JOURNAL_HEARTBEAT_INTERVAL))
         .setElectionTimeoutMs(
             ServerConfiguration.getMs(PropertyKey.MASTER_EMBEDDED_JOURNAL_ELECTION_TIMEOUT))
         .setLocalAddress(NetworkAddressUtils.getConnectAddress(serviceType,
@@ -60,9 +57,6 @@ public class RaftJournalConfiguration {
     Preconditions.checkState(getMaxLogSize() <= Integer.MAX_VALUE,
         "{} has value {} but must not exceed {}", PropertyKey.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX,
         getMaxLogSize(), Integer.MAX_VALUE);
-    Preconditions.checkState(getHeartbeatIntervalMs() < getElectionTimeoutMs() / 2,
-        "Heartbeat interval (%sms) should be less than half of the election timeout (%sms)",
-        getHeartbeatIntervalMs(), getElectionTimeoutMs());
     Preconditions.checkState(getClusterAddresses().contains(getLocalAddress()),
         "The cluster addresses (%s) must contain the local master address (%s)",
         getClusterAddresses(), getLocalAddress());
@@ -80,13 +74,6 @@ public class RaftJournalConfiguration {
    */
   public long getElectionTimeoutMs() {
     return mElectionTimeoutMs;
-  }
-
-  /**
-   * @return heartbeat interval
-   */
-  public long getHeartbeatIntervalMs() {
-    return mHeartbeatIntervalMs;
   }
 
   /**
@@ -137,15 +124,6 @@ public class RaftJournalConfiguration {
    */
   public RaftJournalConfiguration setElectionTimeoutMs(long electionTimeoutMs) {
     mElectionTimeoutMs = electionTimeoutMs;
-    return this;
-  }
-
-  /**
-   * @param heartbeatIntervalMs heartbeat interval
-   * @return the updated configuration
-   */
-  public RaftJournalConfiguration setHeartbeatIntervalMs(long heartbeatIntervalMs) {
-    mHeartbeatIntervalMs = heartbeatIntervalMs;
     return this;
   }
 

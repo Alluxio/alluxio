@@ -368,6 +368,11 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setDescription("An estimate of the blocks heap size")
           .setMetricType(MetricType.GAUGE)
           .build();
+  public static final MetricKey MASTER_RPC_QUEUE_LENGTH =
+      new Builder("Master.RpcQueueLength")
+          .setDescription("Length of the master rpc queue")
+          .setMetricType(MetricType.GAUGE)
+          .build();
 
   // Backup Restore
   public static final MetricKey MASTER_LAST_BACKUP_ENTRIES_COUNT =
@@ -722,7 +727,7 @@ public final class MetricKey implements Comparable<MetricKey> {
           .build();
   public static final MetricKey CLUSTER_BYTES_READ_UFS_ALL =
       new Builder("Cluster.BytesReadUfsAll")
-          .setDescription("Total number of bytes read from a all Alluxio UFSes by all workers")
+          .setDescription("Total number of bytes read from all Alluxio UFSes by all workers")
           .setMetricType(MetricType.COUNTER)
           .build();
   public static final MetricKey CLUSTER_BYTES_READ_UFS_THROUGHPUT =
@@ -780,6 +785,11 @@ public final class MetricKey implements Comparable<MetricKey> {
   public static final MetricKey CLUSTER_BYTES_WRITTEN_UFS_THROUGHPUT =
       new Builder("Cluster.BytesWrittenUfsThroughput")
           .setDescription("Bytes write per minute throughput to all Alluxio UFSes by all workers")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey CLUSTER_CACHE_HIT_RATE =
+      new Builder("Cluster.CacheHitRate")
+          .setDescription("Cache hit rate: (# bytes read from cache) / (# bytes requested)")
           .setMetricType(MetricType.GAUGE)
           .build();
   public static final MetricKey CLUSTER_CAPACITY_TOTAL =
@@ -1425,6 +1435,24 @@ public final class MetricKey implements Comparable<MetricKey> {
       new Builder("Fuse.BytesRead")
           .setDescription("Total number of bytes read through Fuse.read() operations.")
           .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggregated(false)
+          .build();
+  public static final MetricKey FUSE_WRITING_FILE_COUNT =
+      new Builder("Fuse.WritingFileCount")
+          .setDescription("Total number of files being written concurrently.")
+          .setMetricType(MetricType.GAUGE)
+          .setIsClusterAggregated(false)
+          .build();
+  public static final MetricKey FUSE_READING_FILE_COUNT =
+      new Builder("Fuse.ReadingFileCount")
+          .setDescription("Total number of files being read concurrently.")
+          .setMetricType(MetricType.GAUGE)
+          .setIsClusterAggregated(false)
+          .build();
+  public static final MetricKey FUSE_CACHED_PATH_COUNT =
+      new Builder("Fuse.CachedPathCount")
+          .setDescription("Total number of Alluxio paths to cache for FUSE conversion.")
+          .setMetricType(MetricType.GAUGE)
           .setIsClusterAggregated(false)
           .build();
 

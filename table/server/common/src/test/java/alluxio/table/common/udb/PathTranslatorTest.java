@@ -13,8 +13,12 @@ package alluxio.table.common.udb;
 
 import static org.junit.Assert.assertEquals;
 
+import alluxio.ConfigurationRule;
+import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
 import alluxio.util.io.PathUtils;
 
+import com.google.common.collect.ImmutableMap;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -23,9 +27,21 @@ import org.junit.rules.ExpectedException;
 import java.io.IOException;
 
 public class PathTranslatorTest {
+  private static final String MASTER_HOSTNAME = "master";
+  private static final String MASTER_RPC_PORT = "11111";
+  private static final String ALLUXIO_URI_AUTHORITY = "alluxio://" + MASTER_HOSTNAME;
+  private static final String ALLUXIO_URI_AUTHORITY_WITH_PORT =
+      ALLUXIO_URI_AUTHORITY + ":" + MASTER_RPC_PORT;
 
   @Rule
   public ExpectedException mException = ExpectedException.none();
+
+  @Rule
+  public ConfigurationRule mConfiguration =
+      new ConfigurationRule(
+          ImmutableMap.of(PropertyKey.MASTER_HOSTNAME, MASTER_HOSTNAME,
+            PropertyKey.MASTER_RPC_PORT, MASTER_RPC_PORT),
+          ServerConfiguration.global());
 
   private PathTranslator mTranslator;
 
@@ -109,6 +125,8 @@ public class PathTranslatorTest {
     mTranslator.addMapping("alluxio:///table_b", "ufs://a/table11");
     assertEquals("alluxio:///table_b/part1",
         mTranslator.toAlluxioPath("ufs://a/table11/part1"));
+    assertEquals("alluxio:///table_a/part1",
+        mTranslator.toAlluxioPath("ufs://a/table1/part1"));
   }
 
   @Test
@@ -122,5 +140,66 @@ public class PathTranslatorTest {
         mTranslator.toAlluxioPath("ufs://b/db1/table1/part1"));
     assertEquals("alluxio:///db1/fragments/a/table2/part1",
         mTranslator.toAlluxioPath("ufs://a/db1/table2/part1"));
+  }
+
+  @Test
+  public void alluxioUriWithSchemeOnly() throws Exception {
+    mTranslator.addMapping("alluxio:///db1/tables/table1", "ufs://a/db1/table1");
+    // non-exact match
+    assertEquals("alluxio:///db1/tables/table1/part1",
+        mTranslator.toAlluxioPath("ufs://a/db1/table1/part1"));
+    // exact match
+    assertEquals("alluxio:///db1/tables/table1",
+        mTranslator.toAlluxioPath("ufs://a/db1/table1"));
+    // trailing slash is preserved
+    assertEquals("alluxio:///db1/tables/table1/",
+        mTranslator.toAlluxioPath("ufs://a/db1/table1/"));
+  }
+
+  @Test
+  public void alluxioUriWithSchemeAndAuthority() throws Exception {
+    mTranslator.addMapping(
+        ALLUXIO_URI_AUTHORITY + "/db1/tables/table1", "ufs://a/db1/table1");
+    // non-exact match
+    assertEquals(ALLUXIO_URI_AUTHORITY + "/db1/tables/table1/part1",
+        mTranslator.toAlluxioPath("ufs://a/db1/table1/part1"));
+    // exact match
+    assertEquals(ALLUXIO_URI_AUTHORITY + "/db1/tables/table1",
+        mTranslator.toAlluxioPath("ufs://a/db1/table1"));
+    // trailing slash is preserved
+    assertEquals(ALLUXIO_URI_AUTHORITY + "/db1/tables/table1/",
+        mTranslator.toAlluxioPath("ufs://a/db1/table1/"));
+  }
+
+  @Test
+  public void alluxioUriPurePath() throws Exception {
+    mTranslator.addMapping("/db1/tables/table1", "ufs://a/db1/table1");
+    // non-exact match
+    assertEquals(ALLUXIO_URI_AUTHORITY_WITH_PORT + "/db1/tables/table1/part1",
+        mTranslator.toAlluxioPath("ufs://a/db1/table1/part1"));
+    // exact match
+    assertEquals(ALLUXIO_URI_AUTHORITY_WITH_PORT + "/db1/tables/table1",
+        mTranslator.toAlluxioPath("ufs://a/db1/table1"));
+    // trailing slash is preserved
+    assertEquals(ALLUXIO_URI_AUTHORITY_WITH_PORT + "/db1/tables/table1/",
+        mTranslator.toAlluxioPath("ufs://a/db1/table1/"));
+  }
+
+  @Test
+  public void bypassedUfsUri() throws Exception {
+    mTranslator.addMapping("ufs://a/db1/table1", "ufs://a/db1/table1");
+    assertEquals("ufs://a/db1/table1",
+        mTranslator.toAlluxioPath("ufs://a/db1/table1"));
+    assertEquals("ufs://a/db1/table1/part1",
+        mTranslator.toAlluxioPath("ufs://a/db1/table1/part1"));
+  }
+
+  @Test
+  public void bypassedUfsPath() throws Exception {
+    mTranslator.addMapping("/a/db1/table1", "/a/db1/table1");
+    assertEquals("/a/db1/table1",
+        mTranslator.toAlluxioPath("/a/db1/table1"));
+    assertEquals("/a/db1/table1/part1",
+        mTranslator.toAlluxioPath("/a/db1/table1/part1"));
   }
 }

@@ -112,7 +112,7 @@ Alluxio假定根据按I/O性能从高到低来对多层存储进行排序。
 #### 写数据
 
 用户写新的数据块时，默认情况下会将其写入顶层存储。如果顶层没有足够的可用空间，
-则会尝试下一层促成。如果在所有层上均未找到存储空间，因Alluxio的设计是易失性存储，Alluxio会释放空间来存储新写入的数据块。
+则会尝试下一层存储。如果在所有层上均未找到存储空间，因Alluxio的设计是易失性存储，Alluxio会释放空间来存储新写入的数据块。
 根据块注释策略，空间释放操作会从work中释放数据块。 [块注释政策](#block-annotation-policies)。
 如果空间释放操作无法释放新空间，则写数据将失败。
 
@@ -323,7 +323,7 @@ $ ./bin/alluxio fs load ${PATH_TO_FILE}
 $ ./bin/alluxio fs persist ${PATH_TO_FILE}
 ```
 
-如果您加载到Alluxio的数据不是来自已已配置的UFS，则上述命令很有用。
+如果您加载到Alluxio的数据不是来自已配置的UFS，则上述命令很有用。
 在大多数情况下，用户不必担心手动来持久化保留数据。
 
 ### 设置生存时间(TTL)
@@ -363,9 +363,9 @@ TTL API如下:
 ```
 SetTTL(path，duration，action)
 `path` 		Alluxio命名空间中的路径
-`duration`	TTL动作生效前的毫秒数，这会覆盖任何先前的设值
+`duration`	TTL动作生效前的毫秒数，这会覆盖任何先前的设置
 `action`	生存时间过去后要执行的`action`。 `FREE`将导致文件
-            从Alluxio存储中删除释放，无论其目前钉状态如何。 `DELETE`将导致
+            从Alluxio存储中删除释放，无论其目前的状态如何。 `DELETE`将导致
             文件从Alluxio命名空间和底层存储中删除。
             注意:`DELETE`是某些命令的默认设置，它将导致文件被
             永久删除。
@@ -464,7 +464,7 @@ $ ./bin/alluxio fs stat /foo
 
 并在输出中查找`replicationMin`和`replicationMax`字段。
 
-##检查Alluxio缓存容量和使用情况
+## 检查Alluxio缓存容量和使用情况
 
 Alluxio shell命令`fsadmin report`提供可用空间的简短摘要
 以及其他有用的信息。输出示例如下:

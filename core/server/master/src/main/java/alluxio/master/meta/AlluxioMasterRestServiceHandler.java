@@ -96,6 +96,10 @@ import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URLDecoder;
+import java.time.Instant;
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -134,7 +138,7 @@ public final class AlluxioMasterRestServiceHandler {
   // endpoints
   public static final String GET_INFO = "info";
 
-  // webui endpoints // TODO(william): DRY up these enpoints
+  // webui endpoints // TODO(william): DRY up these endpoints
   public static final String WEBUI_INIT = "webui_init";
   public static final String WEBUI_OVERVIEW = "webui_overview";
   public static final String WEBUI_BROWSE = "webui_browse";
@@ -256,10 +260,10 @@ public final class AlluxioMasterRestServiceHandler {
           .setVersion(RuntimeConstants.VERSION)
           .setLiveWorkerNodes(Integer.toString(mBlockMaster.getWorkerCount()))
           .setCapacity(FormatUtils.getSizeFromBytes(mBlockMaster.getCapacityBytes()))
+          .setClusterId(mMetaMaster.getClusterID())
           .setUsedCapacity(FormatUtils.getSizeFromBytes(mBlockMaster.getUsedBytes()))
           .setFreeCapacity(FormatUtils
               .getSizeFromBytes(mBlockMaster.getCapacityBytes() - mBlockMaster.getUsedBytes()));
-
       ConfigCheckReport report = mMetaMaster.getConfigCheckReport();
       response.setConfigCheckStatus(report.getConfigStatus())
           .setConfigCheckErrors(report.getConfigErrors())
@@ -291,7 +295,7 @@ public final class AlluxioMasterRestServiceHandler {
         long capacityBytes = mountInfo.getUfsCapacityBytes();
         long usedBytes = mountInfo.getUfsUsedBytes();
         long freeBytes = -1;
-        if (capacityBytes >= 0 && usedBytes >= 0 && capacityBytes >= usedBytes) {
+        if (usedBytes >= 0 && capacityBytes >= usedBytes) {
           freeBytes = capacityBytes - usedBytes;
         }
 
@@ -318,6 +322,35 @@ public final class AlluxioMasterRestServiceHandler {
       }
       mMetaMaster.getJournalSpaceMonitor().map(monitor ->
           response.setJournalDiskWarnings(monitor.getJournalDiskWarnings()));
+
+      Gauge entriesSinceGauge = MetricsSystem.METRIC_REGISTRY.getGauges()
+              .get(MetricKey.MASTER_JOURNAL_ENTRIES_SINCE_CHECKPOINT.getName());
+      Gauge lastCkPtGauge = MetricsSystem.METRIC_REGISTRY.getGauges()
+          .get(MetricKey.MASTER_JOURNAL_LAST_CHECKPOINT_TIME.getName());
+
+      if (entriesSinceGauge != null && lastCkPtGauge != null) {
+        long entriesSinceCkpt = (Long) entriesSinceGauge.getValue();
+        long lastCkptTime = (Long) lastCkPtGauge.getValue();
+        long timeSinceCkpt = System.currentTimeMillis() - lastCkptTime;
+        boolean overThreshold = timeSinceCkpt > ServerConfiguration.getMs(
+            PropertyKey.MASTER_WEB_JOURNAL_CHECKPOINT_WARNING_THRESHOLD_TIME);
+        boolean passedThreshold = entriesSinceCkpt > ServerConfiguration
+            .getLong(PropertyKey.MASTER_JOURNAL_CHECKPOINT_PERIOD_ENTRIES);
+        if (passedThreshold && overThreshold) {
+          String time = lastCkptTime > 0 ? ZonedDateTime
+              .ofInstant(Instant.ofEpochMilli(lastCkptTime), ZoneOffset.UTC)
+              .format(DateTimeFormatter.ISO_INSTANT) : "N/A";
+          String advice = ConfigurationUtils.isHaMode(ServerConfiguration.global()) ? ""
+              : "It is recommended to use the fsadmin tool to checkpoint the journal. This will "
+              + "prevent the master from serving requests while checkpointing.";
+          response.setJournalCheckpointTimeWarning(String.format("Journal has not checkpointed in "
+              + "a timely manner since passing the checkpoint threshold (%d/%d). Last checkpoint:"
+              + " %s. %s",
+              entriesSinceCkpt,
+              ServerConfiguration.getLong(PropertyKey.MASTER_JOURNAL_CHECKPOINT_PERIOD_ENTRIES),
+              time, advice));
+        }
+      }
 
       return response;
     }, ServerConfiguration.global());
@@ -378,7 +411,7 @@ public final class AlluxioMasterRestServiceHandler {
               relativeOffset = Long.parseLong(requestOffset);
             }
           } catch (NumberFormatException e) {
-            relativeOffset = 0;
+            // ignore the exception
           }
           // If no param "end" presents, the offset is relative to the beginning; otherwise, it is
           // relative to the end of the file.
@@ -510,7 +543,7 @@ public final class AlluxioMasterRestServiceHandler {
         }
         fileInfos.add(toAdd);
       }
-      Collections.sort(fileInfos, UIFileInfo.PATH_STRING_COMPARE);
+      fileInfos.sort(UIFileInfo.PATH_STRING_COMPARE);
 
       response.setNTotalFile(fileInfos.size());
 
@@ -658,7 +691,7 @@ public final class AlluxioMasterRestServiceHandler {
                 new MasterStorageTierAssoc().getOrderedStorageAliases()));
           }
         }
-        Collections.sort(fileInfos, UIFileInfo.PATH_STRING_COMPARE);
+        fileInfos.sort(UIFileInfo.PATH_STRING_COMPARE);
         response.setNTotalFile(fileInfos.size());
 
         try {
@@ -691,20 +724,18 @@ public final class AlluxioMasterRestServiceHandler {
 
         try {
           long fileSize = logFile.length();
-          String offsetParam = requestOffset;
           long relativeOffset = 0;
           long offset;
           try {
-            if (offsetParam != null) {
-              relativeOffset = Long.parseLong(offsetParam);
+            if (requestOffset != null) {
+              relativeOffset = Long.parseLong(requestOffset);
             }
           } catch (NumberFormatException e) {
-            relativeOffset = 0;
+            // ignore the exception
           }
-          String endParam = requestEnd;
           // If no param "end" presents, the offset is relative to the beginning; otherwise, it is
           // relative to the end of the file.
-          if (endParam.equals("")) {
+          if (requestEnd.equals("")) {
             offset = relativeOffset;
           } else {
             offset = fileSize - relativeOffset;
@@ -996,11 +1027,11 @@ public final class AlluxioMasterRestServiceHandler {
                 ufsUnescaped, new TreeMap<>());
             String alluxioOperation = alluxio.metrics.Metric.getBaseName(metricName)
                 .substring(UFS_OP_SAVED_PREFIX.length());
-            String equavalentOp = DefaultFileSystemMaster.Metrics.UFS_OPS_DESC.get(
+            String equivalentOp = DefaultFileSystemMaster.Metrics.UFS_OPS_DESC.get(
                 DefaultFileSystemMaster.Metrics.UFSOps.valueOf(alluxioOperation));
-            if (equavalentOp != null) {
+            if (equivalentOp != null) {
               alluxioOperation = String.format("%s (Roughly equivalent to %s operation)",
-                  alluxioOperation, equavalentOp);
+                  alluxioOperation, equivalentOp);
             }
             perUfsMap.put(alluxioOperation, entry.getValue().getCount());
             ufsOpsSavedMap.put(ufsUnescaped, perUfsMap);
@@ -1040,17 +1071,37 @@ public final class AlluxioMasterRestServiceHandler {
       response.setUfsOps(ufsOpsMap);
 
       response.setTimeSeriesMetrics(mFileSystemMaster.getTimeSeries());
-      mMetaMaster.getJournalSpaceMonitor().map(monitor -> {
+      mMetaMaster.getJournalSpaceMonitor().ifPresent(monitor -> {
         try {
-          return response.setJournalDiskMetrics(monitor.getDiskInfo());
+          response.setJournalDiskMetrics(monitor.getDiskInfo());
         } catch (IOException e) {
           LogUtils.warnWithException(LOG,
               "Failed to populate journal disk information for WebUI metrics.", e);
         }
-        return response;
       });
       if (response.getJournalDiskMetrics() == null) {
-        response.setJournalDiskMetrics(Collections.EMPTY_LIST);
+        response.setJournalDiskMetrics(Collections.emptyList());
+      }
+
+      Gauge lastCheckpointTimeGauge =
+          gauges.get(MetricKey.MASTER_JOURNAL_LAST_CHECKPOINT_TIME.getName());
+      Gauge entriesSinceCheckpointGauge =
+          gauges.get(MetricKey.MASTER_JOURNAL_ENTRIES_SINCE_CHECKPOINT.getName());
+
+      if (entriesSinceCheckpointGauge != null) {
+        response.setJournalEntriesSinceCheckpoint((long) entriesSinceCheckpointGauge.getValue());
+      }
+      if (lastCheckpointTimeGauge != null) {
+        long lastCheckpointTime = (long) lastCheckpointTimeGauge.getValue();
+        String time;
+        if (lastCheckpointTime > 0) {
+          time = ZonedDateTime
+              .ofInstant(Instant.ofEpochMilli(lastCheckpointTime), ZoneOffset.UTC)
+              .format(DateTimeFormatter.ISO_INSTANT);
+        } else {
+          time = "N/A";
+        }
+        response.setJournalLastCheckpointTime(time);
       }
 
       return response;
