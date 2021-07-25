@@ -20,97 +20,97 @@ import org.apache.log4j.spi.LoggingEvent;
  * fatal, error and warn. The class name is used in log4j.properties
  */
 public class EventCounter extends AppenderSkeleton {
-    private static final int FATAL = 0;
-    private static final int ERROR = 1;
-    private static final int WARN = 2;
-    private static final int INFO = 3;
-    private static EventCounter.EventCounts sCount = new EventCounter.EventCounts();
+  private static final int FATAL = 0;
+  private static final int ERROR = 1;
+  private static final int WARN = 2;
+  private static final int INFO = 3;
+  private static EventCounter.EventCounts sCount = new EventCounter.EventCounts();
 
     /**
      * the constructor of EventCounter.
      */
-    public EventCounter() {
-    }
+  public EventCounter() {
+  }
 
     /**
      * get the number of fatal log.
      * @return the number of fatal log
      */
-    public static long getFatal() {
-        return sCount.get(0);
-    }
+  public static long getFatal() {
+    return sCount.get(0);
+  }
 
     /**
      * get the number of error log.
      * @return the number of error log
      */
-    public static long getError() {
-        return sCount.get(1);
-    }
+  public static long getError() {
+    return sCount.get(1);
+  }
 
     /**
      * get the number of warn log.
      * @return the number of warn log
      */
-    public static long getWarn() {
-        return sCount.get(2);
-    }
+  public static long getWarn() {
+    return sCount.get(2);
+  }
 
     /**
      * get the number of info log.
      * @return the number of info log
      */
-    public static long getInfo() {
-        return sCount.get(3);
-    }
+  public static long getInfo() {
+    return sCount.get(3);
+  }
 
     /**
      * add the number of corresponding level log.
      * @param event event of generating log
      * @return
      */
-    public void append(LoggingEvent event) {
-        Level level = event.getLevel();
-        if (level.equals(Level.INFO)) {
-            sCount.incr(3);
-        } else if (level.equals(Level.WARN)) {
-            sCount.incr(2);
-        } else if (level.equals(Level.ERROR)) {
-            sCount.incr(1);
-        } else if (level.equals(Level.FATAL)) {
-            sCount.incr(0);
-        }
+  public void append(LoggingEvent event) {
+    Level level = event.getLevel();
+    if (level.equals(Level.INFO)) {
+      sCount.incr(3);
+    } else if (level.equals(Level.WARN)) {
+      sCount.incr(2);
+    } else if (level.equals(Level.ERROR)) {
+      sCount.incr(1);
+    } else if (level.equals(Level.FATAL)) {
+      sCount.incr(0);
     }
+  }
 
     /**
      * Release any resources allocated within the appender such as file
      * handles, network connections, etc.
      */
-    public void close() {
-    }
+  public void close() {
+  }
 
     /**
      * Configurators call this method to determine if the appender
      * requires a layout.
      * @return if the appender requires a layout
      */
-    public boolean requiresLayout() {
-        return false;
+  public boolean requiresLayout() {
+    return false;
+  }
+
+  private static class EventCounts {
+    private final long[] mCounts;
+
+    private EventCounts() {
+      mCounts = new long[]{0L, 0L, 0L, 0L};
     }
 
-    private static class EventCounts {
-        private final long[] mCounts;
-
-        private EventCounts() {
-            mCounts = new long[]{0L, 0L, 0L, 0L};
-        }
-
-        private synchronized void incr(int i) {
-            mCounts[i]++;
-        }
-
-        private synchronized long get(int i) {
-            return mCounts[i];
-        }
+    private synchronized void incr(int i) {
+      mCounts[i]++;
     }
+
+    private synchronized long get(int i) {
+      return mCounts[i];
+    }
+  }
 }
