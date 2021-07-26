@@ -271,36 +271,44 @@ start_worker() {
       echo "Cache path ${cache} is not a directory; aborting"
       exit 2
     fi
+    if [[ -z $(ls -a "${cache}" ) ]]; then
+      echo "Cache path ${cache} is an empty directory; skipping cache population"
+    else 
+      echo "Populating worker ramcache(s) with contents from ${cache}"
 
-    echo "Populating worker ramcache(s) with contents from ${cache}"
+      get_ramdisk_array # see alluxio-common.sh
+      for dir in "${RAMDISKARRAY[@]}"; do
+        if [[ ! -e "${dir}" ]]; then
+          echo "Alluxio has a configured ramcache path ${dir}, but that path does not exist"
+          exit 2
+        fi
+        if [[ ! -d "${dir}" ]]; then
+          echo "Alluxio has a configured ramcache path ${dir}, but that path is not a directory"
+          exit 2
+        fi
 
-    get_ramdisk_array # see alluxio-common.sh
-    for dir in "${RAMDISKARRAY[@]}"; do
-      if [[ ! -e "${dir}" ]]; then
-        echo "Alluxio has a configured ramcache path ${dir}, but that path does not exist"
-        exit 2
-      fi
-      if [[ ! -d "${dir}" ]]; then
-        echo "Alluxio has a configured ramcache path ${dir}, but that path is not a directory"
-        exit 2
-      fi
+        echo "Populating worker ramcache at ${dir} with ${cache}/${dir}"
+        if [[ ! -e "${cache}/${dir}" ]]; then
+          echo "Path does not exist: ${cache}/${dir}"
+          exit 2
+        fi
+        if [[ ! -d "${cache}/${dir}" ]]; then
+          echo "Path is not a directory: ${cache}/${dir}"
+          exit 2
+        fi
 
-      echo "Populating worker ramcache at ${dir} with ${cache}/${dir}"
-      if [[ ! -e "${cache}/${dir}" ]]; then
-        echo "Path does not exist: ${cache}/${dir}"
-        exit 2
-      fi
-      if [[ ! -d "${cache}/${dir}" ]]; then
-        echo "Path is not a directory: ${cache}/${dir}"
-        exit 2
-      fi
+        # recursively delete all (including hidden) files of the ramdisk
+        find "${dir}" -mindepth 1 -delete
 
-      cp -a "${cache}/${dir}/." "${dir}/"
-      if [[ ${?} -ne 0 ]]; then
-        echo "Failed to populate ramcache at ${dir} with ${cache}/${dir}"
-        exit 2
-      fi
-    done
+        # recursively copy all contents of the src directory
+        # (including hidden files) to the destination directory
+        cp -dR "${cache}/${dir}/." "${dir}/"
+        if [[ ${?} -ne 0 ]]; then
+          echo "Failed to populate ramcache at ${dir} with ${cache}/${dir}"
+          exit 2
+        fi
+      done
+    fi
   fi
 
   echo "Starting worker @ $(hostname -f). Logging to ${ALLUXIO_LOGS_DIR}"

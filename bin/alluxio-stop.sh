@@ -75,12 +75,21 @@ stop_proxies() {
 }
 
 stop_worker() {
-  if [[ ! -z "${cache}" ]] ; then
+  if [[ ! -z "${cache}" ]]; then
     echo "Cache directory: ${cache}"
-    mkdir -p "${cache}"
-    if [[ ${?} -ne 0 ]]; then
-      echo "Failed to create directory: ${cache}"
-      exit 2
+    if [[ -d "${cache}" ]]; then
+      echo "Directory already exists at ${cache}; overwritting its contents"
+      # recursively delete all (including hidden) files of the ramdisk
+      find "${cache}" -mindepth 1 -delete
+    elif [[ -e "${cache}" ]]; then
+      echo "Non-directory file already exists at the path ${cache}; aborting"
+      exit 1
+    else
+      mkdir -p "${cache}"
+      if [[ ${?} -ne 0 ]]; then
+        echo "Failed to create directory: ${cache}"
+        exit 2
+      fi
     fi
 
     get_ramdisk_array # see alluxio-common.sh
@@ -100,7 +109,10 @@ stop_worker() {
         echo "Failed to create directory: ${cache}/${dir}"
         exit 2
       fi
-      cp -a "${dir}/." "${cache}/${dir}/"
+
+      # recursively copy all contents of the src directory
+      # (including hidden files) to the destination directory
+      cp -dR "${dir}/." "${cache}/${dir}/"
       if [[ ${?} -ne 0 ]]; then
         echo "Failed to copy worker ramcache from ${dir} to ${cache}/${dir}"
         exit 1
