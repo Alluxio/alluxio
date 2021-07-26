@@ -37,9 +37,10 @@ alluxio.master.metastore=ROCKS
 
 * `alluxio.master.metastore.dir`: A local directory for writing RocksDB data.
 Default: `${work_dir}/metastore`
-* `alluxio.master.metastore.inode.cache.max.size`: A hard limit on the size of the inode cache.
-Increase this to improve performance if you have spare master memory. Every million inodes
-takes roughly 1GB of memory. Default: `10000000` (10 million)
+* `alluxio.master.metastore.inode.cache.max.size`: A hard limit on the number of entries in the on-heap inode cache.
+Increase this to improve performance if you have spare master memory. 
+We recommend a conservative estimate of caching of 1 million files for every 4GB of total heap space available to the master JVM process. 
+Because the default java heap size for the Alluxio master process is set to 8GB, 2 million files will be cached in the default configuration.
 
 ### Advanced Tuning Properties
 
