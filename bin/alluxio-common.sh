@@ -17,22 +17,51 @@ if [[ "$-" == *x* ]]; then
 fi
 BIN=$(cd "$( dirname "$( readlink "$0" || echo "$0" )" )"; pwd)
 
-# Utility functions for alluxio scripts 
+### Utility functions for alluxio scripts ###
+
+# Fetches the specified property from Alluxio configuration
+function get_alluxio_property() {
+  local property_key="${1:-}"
+  if [[ -z ${property_key} ]]; then
+    echo "No property provided to get_alluxio_property()"
+    exit 1
+  fi
+
+  local property=$(${BIN}/alluxio getConf ${property_key})
+  if [[ ${?} -ne 0 ]]; then
+    echo "Failed to fetch value for Alluxio property key: ${property_key}"
+    exit 1
+  fi
+
+  echo "${property}"
+}
 
 # Generates an array of ramdisk paths in global variable RAMDISKARRAY 
 function get_ramdisk_array() {
-  local tier_path=$(${BIN}/alluxio getConf alluxio.worker.tieredstore.level0.dirs.path)
-  local medium_type=$(${BIN}/alluxio getConf alluxio.worker.tieredstore.level0.dirs.mediumtype)
+  local tier_path=$(get_alluxio_property "alluxio.worker.tieredstore.level0.dirs.path")
+  local medium_type=$(get_alluxio_property "alluxio.worker.tieredstore.level0.dirs.mediumtype")
   local patharray
   local mediumtypearray
+
+  # Use "Internal Field Separator (IFS)" variable to split strings on a
+  # delimeter and parse into an array
+  # - https://stackoverflow.com/a/918931
   local oldifs=$IFS
   IFS=','
   read -ra patharray <<< "$tier_path"
   read -ra mediumtypearray <<< "$medium_type"
-  
+
+  # iterate over the array elements using indices
+  # - https://stackoverflow.com/a/6723516
   RAMDISKARRAY=()
   for i in "${!patharray[@]}"; do 
     if [ "${mediumtypearray[$i]}" = "MEM" ]; then
+      local dir=${patharray[$i]}
+      if [[ -z "${dir}" ]]; then
+        echo "Alluxio has a configured ramcache with an empty path"
+        exit 1
+      fi
+
       RAMDISKARRAY+=(${patharray[$i]})
     fi
   done
