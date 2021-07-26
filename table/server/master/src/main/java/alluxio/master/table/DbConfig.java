@@ -15,19 +15,13 @@ import alluxio.table.common.udb.UdbAttachOptions;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.core.JsonParseException;
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.DeserializationContext;
-import com.fasterxml.jackson.databind.JsonDeserializer;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.google.common.base.MoreObjects;
 import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
 import java.util.Collections;
 import java.util.Objects;
 import java.util.Set;
@@ -50,18 +44,15 @@ import javax.annotation.Nullable;
  *
  * 2. Second level objects:
  *    i.   BypassTablesSpecObject :=
- *             {"tables": BypassIncludeTablePartitionList | BypassTablesIncludeExcludeObject}
+ *             {"tables": BypassTablesIncludeExcludeObject}
  *    ii.  IgnoreTablesSpecObject :=
- *             {"tables": SimpleNameRegexList | SimpleIncludeExcludeObject}
- *    Each of the `tables` fields accepts either one of the followings:
- *      a) an array (`BypassIncludeTablePartitionList` or `SimpleNameRegexList`)
- *      b) an object (`BypassTablesIncludeExcludeObject` or `SimpleIncludeExcludeObject`)
+ *             {"tables": SimpleIncludeExcludeObject}
  *
  * 3. Inclusion/exclusion lists and objects:
- *    i.   SimpleNameRegexList := [ (NameLiteral | RegexObject)* ]
- *         SimpleNameRegexList is an mixed array of name literals and regex objects.
+ *    i.   SimpleNameRegexList := [ (NameObject | RegexObject)* ]
+ *         SimpleNameRegexList is an mixed array of name and regex objects.
  *    ii.  BypassIncludeTablePartitionList :=
- *             [ (NameLiteral | RegexObject | BypassTablePartitionSpecObject)* ]
+ *             [ (NameObject | RegexObject | BypassTablePartitionSpecObject)* ]
  *         BypassIncludeTablePartitionList is a superset of SimpleNameRegexList, with the additional
  *         capability of containing BypassTablePartitionSpecObjects.
  *    iv.  SimpleIncludeExcludeObject :=
@@ -74,37 +65,43 @@ import javax.annotation.Nullable;
  *         In case of an inclusion list, further partition specifications are allowed, while
  *         in case of an exclusion list, only names and regexes are allowed.
  *
- * 4. Table partition specification object:
+ * 4. Table/partition specification object:
  *    i.   BypassTablePartitionSpecObject :=
  *           {
+ *             "type": "partition_spec",
  *             "table": NameLiteral,
- *             "partitions": SimpleNameRegexList | SimpleIncludeExcludeObject
+ *             "partitions": SimpleIncludeExcludeObject
  *           }
  *       BypassTablePartitionSpecObject has a `table` field that contains the table name for which
  *       the partition specification is bound to. The `partitions` field follows the same
  *       convention that allows either an array of included items, or an object that allows
  *       to explicitly specify inclusions and exclusions.
- *
- * 5. Others:
- *    i.   NameLiteral
+ *    ii.  NameObject := {"type": "name", "name": NameLiteral}
  *         A string literal for table and partition names.
- *    ii.  RegexLiteral
- *         A string representation of a regular expression.
- *    ii.  RegexObject := {"regex": RegexLiteral}
+ *    iii. RegexObject := {"type":"regex", "regex": RegexLiteral}
  *         An object with a `regex` field that contains a regex literal.
+ *    iv.  RegexLiteral
+ *         A string representation of a regular expression.
+ *    v.   NameLiteral
+ *         An exact name for a table or partition.
  *
  * An example:
  * {                  <- DbConfig
  *   "bypass": {        <- BypassTablesSpecObject
  *     "tables": {        <- BypassTablesIncludeExcludeObject
  *       "include": [       <- BypassIncludeTablePartitionList
- *         "table1",          <- NameLiteral
- *         {                    <- BypassTablePartitionSpecObject
+ *         {                  <- NameObject
+ *           "type": "name",
+ *           "name": "table1",   <- NameLiteral
+ *         },
+ *         {                         <- BypassTablePartitionSpecObject
+ *           "type": "partition_spec",
  *           "table": "table2",
  *           "partitions": {         <- SimpleIncludeExcludeObject
  *             "exclude": [           <- SimpleNameRegexList
- *               "part1",
+ *               {"type": "name", "name": "part1"},
  *               {                        <- RegexObject
+ *                 "type": "regex",
  *                 "regex": "part\\d\\d"    <-RegexLiteral
  *               }
  *             ]
@@ -114,7 +111,10 @@ import javax.annotation.Nullable;
  *     }
  *   },
  *   "ignore": {        <- IgnoreTablesSpecObject
- *     "tables": ["table4"]  <- SimpleNameRegexList
+ *     "tables": {
+ *       "include": [
+ *         {"type": "name", "name": "table4"}
+ *     }
  *   }
  * }
  */
@@ -159,87 +159,88 @@ public final class DbConfig {
   public UdbAttachOptions getUdbAttachOptions() {
     UdbAttachOptions.Builder builder = new UdbAttachOptions.Builder();
     // process included bypassed tables
-    for (TableEntry entry : mBypassEntry.getList().getIncludedEntries()) {
+    builder.bypass().include();
+    for (TablePartitionSpecObject entry : mBypassEntry.getTables().getIncludedEntries()) {
       // entry can be a simple name, a pattern, or a table name with partition specifications
-      if (entry.isPattern()) {
-        // adds it as a pattern and we are done
-        builder.bypass().include().addTable(entry.getPattern());
-        continue;
-      }
-      if (entry.getPartitions().isEmpty()) {
-        // no partition specifications, add it as a simple name, and we are done
-        builder.bypass().include().addTable(entry.getName());
-        continue;
+      switch (entry.getType()) {
+        case NAME:
+          builder.addTable(((NameObject) entry).getName());
+          continue;
+        case REGEX:
+          builder.addTable(((RegexObject) entry).getPattern());
+          continue;
+        default:
       }
       // otherwise, process partition specifications
-      IncludeExcludeList<NamePatternEntry> partitions = entry.getPartitions();
-      builder.bypass();
+      PartitionSpecObject casted = (PartitionSpecObject) entry;
+      IncludeExcludeObject<NameOrRegexObject, NameOrRegexObject> list = casted.getPartitions();
       // process included and excluded partitions
-      for (NamePatternEntry partition : partitions.getIncludedEntries()) {
-        if (partition.isPattern()) {
-          builder.include().addPartition(entry.getTable(), partition.getPattern());
-        } else {
-          builder.include().addPartition(entry.getTable(), partition.getName());
-        }
+      Set<NameOrRegexObject> partitions;
+      if (list.hasIncludedEntries()) {
+        builder.include();
+        partitions = list.getIncludedEntries();
+      } else {
+        builder.exclude();
+        partitions = list.getExcludedEntries();
       }
-      for (NamePatternEntry partition : partitions.getExcludedEntries()) {
-        if (partition.isPattern()) {
-          builder.exclude().addPartition(entry.getTable(), partition.getPattern());
-        } else {
-          builder.exclude().addPartition(entry.getTable(), partition.getName());
+      for (NameOrRegexObject partition : partitions) {
+        switch (partition.getType()) {
+          case NAME:
+            builder.addPartition(casted.getTableName(), ((NameObject) partition).getName());
+            break;
+          case REGEX:
+            builder.addPartition(casted.getTableName(), ((RegexObject) partition).getPattern());
+            break;
+          default:
         }
       }
     }
-
     // process excluded bypassed tables
-    for (NamePatternEntry entry : mBypassEntry.getList().getExcludedEntries()) {
-      if (entry.isPattern()) {
-        builder.bypass().exclude().addTable(entry.getPattern());
-      } else {
-        builder.bypass().exclude().addTable(entry.getName());
-      }
+    builder.bypass().exclude();
+    addTables(builder, mBypassEntry.getTables().getExcludedEntries());
+    // process ignored tables
+    builder.ignore();
+    Set<NameOrRegexObject> tables;
+    if (mIgnoreEntry.getTables().hasIncludedEntries()) {
+      builder.include();
+      tables = mIgnoreEntry.getTables().getIncludedEntries();
+    } else {
+      builder.exclude();
+      tables = mIgnoreEntry.getTables().getExcludedEntries();
     }
+    addTables(builder, tables);
 
-    // process included ignored tables
-    for (NamePatternEntry entry : mIgnoreEntry.getList().getIncludedEntries()) {
-      if (entry.isPattern()) {
-        builder.ignore().include().addTable(entry.getPattern());
-      } else {
-        builder.ignore().include().addTable(entry.getName());
-      }
-    }
-
-    // process excluded ignored tables
-    for (NamePatternEntry entry : mIgnoreEntry.getList().getExcludedEntries()) {
-      if (entry.isPattern()) {
-        builder.ignore().exclude().addTable(entry.getPattern());
-      } else {
-        builder.ignore().exclude().addTable(entry.getName());
-      }
-    }
     return builder.build();
+  }
+
+  private static void addTables(UdbAttachOptions.Builder builder, Set<NameOrRegexObject> tables) {
+    for (NameOrRegexObject entry : tables) {
+      switch (entry.getType()) {
+        case NAME:
+          builder.addTable(((NameObject) entry).getName());
+          break;
+        case REGEX:
+          builder.addTable(((RegexObject) entry).getPattern());
+          break;
+        default:
+      }
+    }
   }
 
   @Override
   public boolean equals(Object other) {
-    if (!checkReferenceAndClassEquality(this, other)) {
+    if (other == null) {
+      return false;
+    }
+    if (this == other) {
+      return true;
+    }
+    if (!(other instanceof DbConfig)) {
       return false;
     }
     DbConfig that = (DbConfig) other;
     return Objects.equals(mBypassEntry, that.mBypassEntry)
         && Objects.equals(mIgnoreEntry, that.mIgnoreEntry);
-  }
-
-  private static boolean checkReferenceAndClassEquality(Object self, Object other) {
-    if (self == other) {
-      return true;
-    }
-    if (other == null) {
-      return false;
-    }
-    // we dont compare by instanceof because we dont want to compare
-    // a subclass instance with a superclass instance.
-    return self.getClass() == other.getClass();
   }
 
   @Override
@@ -248,27 +249,24 @@ public final class DbConfig {
   }
 
   /**
-   * Type alias for TablesEntry<TableEntry>.
+   * Type alias for TablesEntry<TablePartitionSpecObject, NameOrRegexObject>.
    */
-  @JsonDeserialize(using = BypassTablesSpecDeserializer.class)
-  static final class BypassTablesSpec extends TablesEntry<TableEntry> {
-    // inherited: IncludeExcludeList<TableEntry>
-    // this is the BypassTablesObject from syntax specification
-
-    BypassTablesSpec(@Nullable IncludeExcludeList<TableEntry> list) {
+  static final class BypassTablesSpec
+      extends TablesEntry<TablePartitionSpecObject, NameOrRegexObject> {
+    @JsonCreator
+    BypassTablesSpec(@JsonProperty(FIELD_TABLES) @Nullable
+                         IncludeExcludeObject<TablePartitionSpecObject, NameOrRegexObject> list) {
       super(list);
     }
   }
 
   /**
-   * Type alias for TablesEntry<NamePatternEntry>.
+   * Type alias for TablesEntry<NameOrRegexObject, NameOrRegexObject>.
    */
-  @JsonDeserialize(using = IgnoreTablesSpecDeserializer.class)
-  static final class IgnoreTablesSpec extends TablesEntry<NamePatternEntry> {
-    // inherited: IncludeExcludeList<NamePatternEntry>
-    // this is the SimpleIncludeExcludeObject from syntax specification
-
-    IgnoreTablesSpec(@Nullable IncludeExcludeList<NamePatternEntry> list) {
+  static final class IgnoreTablesSpec extends TablesEntry<NameOrRegexObject, NameOrRegexObject> {
+    @JsonCreator
+    IgnoreTablesSpec(@JsonProperty(FIELD_TABLES) @Nullable
+                         IncludeExcludeObject<NameOrRegexObject, NameOrRegexObject> list) {
       super(list);
     }
   }
@@ -276,434 +274,341 @@ public final class DbConfig {
   /**
    * The "tables" object: {"tables": ... }.
    * Base class for BypassTablesSpec and IgnoreTablesSpec.
-   * @param <T> the type of entry contained
+   * @param <IncludeT> the type of included entries of IncludeExcludeObject
+   * @param <ExcludeT> the type of excluded entries of ExcludeExcludeObject
    */
-  static class TablesEntry<T extends NamePatternEntry> {
+  static class TablesEntry<IncludeT extends TablePartitionSpecObject,
+                           ExcludeT extends TablePartitionSpecObject> {
     static final String FIELD_TABLES = "tables";
 
-    private final IncludeExcludeList<T> mList;
+    private final IncludeExcludeObject<IncludeT, ExcludeT> mTables;
 
-    protected TablesEntry(@Nullable IncludeExcludeList<T> list) {
-      mList = list == null ? IncludeExcludeList.empty() : list;
+    @JsonCreator
+    protected TablesEntry(
+        @JsonProperty(FIELD_TABLES) @Nullable IncludeExcludeObject<IncludeT, ExcludeT> list) {
+      mTables = list == null ? IncludeExcludeObject.empty() : list;
     }
 
-    IncludeExcludeList<T> getList() {
-      return mList;
+    IncludeExcludeObject<IncludeT, ExcludeT> getTables() {
+      return mTables;
     }
 
     @Override
     public boolean equals(Object other) {
-      if (!checkReferenceAndClassEquality(this, other)) {
+      if (other == null) {
+        return false;
+      }
+      if (this == other) {
+        return true;
+      }
+      if (!(other instanceof TablesEntry)) {
         return false;
       }
       TablesEntry that = (TablesEntry) other;
-      return Objects.equals(mList, that.mList);
+      return Objects.equals(mTables, that.mTables);
     }
 
     @Override
     public int hashCode() {
-      return Objects.hashCode(mList);
+      return Objects.hashCode(mTables);
     }
+
+    @Override
+    public String toString() {
+      return MoreObjects.toStringHelper(this)
+          .add(FIELD_TABLES, mTables)
+          .toString();
+    }
+  }
+
+  @JsonTypeInfo(
+      use = JsonTypeInfo.Id.NAME,
+      include = JsonTypeInfo.As.PROPERTY,
+      property = TablePartitionSpecObject.FIELD_TYPE)
+  @JsonSubTypes({
+      @JsonSubTypes.Type(value = NameObject.class, name = TablePartitionSpecObject.TYPE_NAME),
+      @JsonSubTypes.Type(value = RegexObject.class, name = TablePartitionSpecObject.TYPE_REGEX),
+      @JsonSubTypes.Type(value = PartitionSpecObject.class,
+                         name = TablePartitionSpecObject.TYPE_PARTITION_SPEC)})
+  interface TablePartitionSpecObject {
+    String FIELD_TYPE = "type";
+    String TYPE_NAME = "name";
+    String TYPE_REGEX = "regex";
+    String TYPE_PARTITION_SPEC = "partition_spec";
+
+    enum Type {
+      NAME(TYPE_NAME), REGEX(TYPE_REGEX), PARTITION_SPEC(TYPE_PARTITION_SPEC);
+
+      private final String mType;
+
+      Type(String type) {
+        mType = type;
+      }
+
+      @Override
+      public String toString() {
+        return mType;
+      }
+    }
+
+    Type getType();
   }
 
   /**
-   * Deserialize to an IncludeExcludeList of given inner type T.
-   * When the contained object is an array, an include list is implied.
-   * @param <T> the contained inner entry type
+   * Tag interface that's implemented for {@link NameObject} and {@link RegexObject}.
    */
-  static class TablesEntryDeserializer<T extends NamePatternEntry> {
-    IncludeExcludeList<T> deserializeToList(
-        Class<T> type, JsonParser jp, DeserializationContext cxt)
-        throws IOException, JsonProcessingException {
-      ObjectMapper mapper = (ObjectMapper) jp.getCodec();
-      JsonNode node = mapper.readTree(jp);
-      if (node == null) {
-        return null;
-      }
-      if (!node.hasNonNull(TablesEntry.FIELD_TABLES)) {
-        throw new JsonParseException(
-            mapper.treeAsTokens(node),
-            String.format("field `%s` missing or is null", TablesEntry.FIELD_TABLES)
-        );
-      }
-      node = node.get(TablesEntry.FIELD_TABLES);
-      IncludeExcludeListDeserializer<T> deserializer = new IncludeExcludeListDeserializer<>();
-      return deserializer.deserialize(type, mapper.treeAsTokens(node), cxt);
-    }
-  }
+  interface NameOrRegexObject extends TablePartitionSpecObject {}
 
-  static final class IgnoreTablesSpecDeserializer extends JsonDeserializer<IgnoreTablesSpec> {
-    @Override
-    public IgnoreTablesSpec deserialize(JsonParser jp, DeserializationContext cxt)
-        throws IOException, JsonProcessingException {
-      TablesEntryDeserializer<NamePatternEntry> deserializer = new TablesEntryDeserializer<>();
-      IncludeExcludeList<NamePatternEntry> list =
-          deserializer.deserializeToList(NamePatternEntry.class, jp, cxt);
-      return new IgnoreTablesSpec(list);
-    }
-  }
+  abstract static class AbstractSpecObject implements TablePartitionSpecObject {
+    protected final Type mType;
 
-  static final class BypassTablesSpecDeserializer extends JsonDeserializer<BypassTablesSpec> {
-    @Override
-    public BypassTablesSpec deserialize(JsonParser jp, DeserializationContext cxt)
-        throws IOException, JsonProcessingException {
-      TablesEntryDeserializer<TableEntry> deserializer = new TablesEntryDeserializer<>();
-      IncludeExcludeList<TableEntry> list =
-          deserializer.deserializeToList(TableEntry.class, jp, cxt);
-      return new BypassTablesSpec(list);
-    }
-  }
-
-  /**
-   * On top of a regular NamePatternEntry, contains additional partition specification.
-   */
-  @JsonDeserialize(using = TableEntryDeserializer.class)
-  static class TableEntry extends NamePatternEntry {
-    static final String FIELD_TABLE = "table";
-    static final String FIELD_PARTITIONS = "partitions";
-
-    private final IncludeExcludeList<NamePatternEntry> mPartitions;
-
-    /**
-     * Creates an instance with a specific table name and no partition specification.
-     *
-     * @param tableName table name
-     */
-    TableEntry(String tableName) {
-      this(tableName, IncludeExcludeList.empty());
+    protected AbstractSpecObject(Type type) {
+      mType = type;
     }
 
-    /**
-     * Creates an instance with a specific table name and possibly partitions specifications.
-     *
-     * @param tableName table name
-     * @param partitions partitions
-     */
-    TableEntry(String tableName, IncludeExcludeList<NamePatternEntry> partitions) {
-      super(tableName);
-      mPartitions = partitions;
-    }
-
-    /**
-     * Creates an instance from a {@link NamePatternEntry} with no partition specification.
-     * @param namePatternEntry name entry
-     */
-    TableEntry(NamePatternEntry namePatternEntry) {
-      super(namePatternEntry);
-      mPartitions = IncludeExcludeList.empty();
-    }
-
-    IncludeExcludeList<NamePatternEntry> getPartitions() {
-      return mPartitions;
-    }
-
-    /**
-     * Returns table name if the entry is not a regex entry.
-     * @return table name, null if the entry is a regex entry
-     */
-    @Nullable
-    String getTable() {
-      return getName();
+    public Type getType() {
+      return mType;
     }
 
     @Override
     public boolean equals(Object other) {
-      return super.equals(other);
+      if (other == null) {
+        return false;
+      }
+      if (this == other) {
+        return true;
+      }
+      if (!(other instanceof AbstractSpecObject)) {
+        return false;
+      }
+      AbstractSpecObject casted = (AbstractSpecObject) other;
+      return getType() == casted.getType();
     }
 
     @Override
     public int hashCode() {
-      return super.hashCode();
+      return Objects.hashCode(mType);
     }
   }
 
-  // Accepts a simple table name, an regular expression, or
-  // an object of form: {"table": "tableName", "partitions": ["part1", "part2"]}
-  static final class TableEntryDeserializer extends JsonDeserializer<TableEntry> {
-    @Override
-    public TableEntry deserialize(JsonParser jp, DeserializationContext cxt)
-        throws IOException, JsonProcessingException {
-      ObjectMapper mapper = (ObjectMapper) jp.getCodec();
-      JsonNode node = mapper.readTree(jp);
-      // try deserialize as a `NamePatternEntry` object first
-      try {
-        NamePatternEntryDeserializer deserializer = new NamePatternEntryDeserializer();
-        NamePatternEntry namePatternEntry =
-            deserializer.deserialize(mapper.treeAsTokens(node), cxt);
-        return new TableEntry(namePatternEntry);
-      } catch (JsonProcessingException e) {
-        // ignore, and try deserialize as a `TableEntry` object
-      }
-      if (node == null) {
-        return null;
-      }
-      // a BypassTablePartitionSpec object
-      if (!node.hasNonNull(TableEntry.FIELD_TABLE)) {
-        throw new JsonParseException(
-            mapper.treeAsTokens(node),
-            String.format("invalid syntax, expecting table name, regex, "
-                + "or an object with a `%s` field", TableEntry.FIELD_TABLE)
-        );
-      }
-      String tableName = node.get(TableEntry.FIELD_TABLE).asText();
-      JsonNode partitionsList = node.get(TableEntry.FIELD_PARTITIONS);
-      if (partitionsList == null) {
-        LOG.warn("Partition specification is not found, use literal table name instead: {}",
-            node);
-        return new TableEntry(tableName);
-      }
-      IncludeExcludeListDeserializer<NamePatternEntry> deserializer =
-          new IncludeExcludeListDeserializer<>();
-      IncludeExcludeList<NamePatternEntry> partitions = deserializer.deserialize(
-          NamePatternEntry.class, mapper.treeAsTokens(partitionsList), cxt);
-      if (partitions == null) {
-        partitions = IncludeExcludeList.empty();
-      }
-      return new TableEntry(tableName, partitions);
-    }
-  }
-
-  /**
-   * Wrapper of a explicit name or a regular expression.
-   */
-  @JsonDeserialize(using = NamePatternEntryDeserializer.class)
-  static class NamePatternEntry {
-    static final String FIELD_REGEX = "regex";
-
-    private final boolean mIsPattern;
-    private final Pattern mPattern;
+  static class NameObject extends AbstractSpecObject implements NameOrRegexObject {
+    static final String FIELD_NAME = "name";
     private final String mName;
 
-    /**
-     * Creates an entry with a simple name.
-     *
-     * @param name table or partition name
-     */
-    NamePatternEntry(String name) {
-      Preconditions.checkArgument(!name.isEmpty(), "empty name");
-      mIsPattern = false;
-      mPattern = null;
+    @JsonCreator
+    public NameObject(@JsonProperty(FIELD_NAME) String name) {
+      super(Type.NAME);
+      Preconditions.checkArgument(name != null, "Name is null");
+      Preconditions.checkArgument(!name.isEmpty(), "Empty name");
       mName = name;
     }
 
-    /**
-     * Creates an instance with a regex.
-     *
-     * @param regex regex
-     */
-    NamePatternEntry(Pattern regex) {
-      mIsPattern = true;
-      mPattern = regex;
-      mName = null;
-    }
-
-    /**
-     * Copy constructor.
-     *
-     * @param namePatternEntry instance to copy
-     */
-    NamePatternEntry(NamePatternEntry namePatternEntry) {
-      mIsPattern = namePatternEntry.mIsPattern;
-      mName = namePatternEntry.mName;
-      mPattern = namePatternEntry.mPattern;
-    }
-
-    /**
-     * @return if the entry contains a pattern
-     */
-    boolean isPattern() {
-      return mIsPattern;
-    }
-
-    /**
-     * @return pattern if the entry contains a pattern, null otherwise
-     */
-    @Nullable
-    Pattern getPattern() {
-      return mPattern;
-    }
-
-    /**
-     * @return name if the entry contains a name, null otherwise
-     */
-    @Nullable
-    String getName() {
+    public String getName() {
       return mName;
     }
 
     @Override
     public boolean equals(Object other) {
-      if (!checkReferenceAndClassEquality(this, other)) {
+      if (!super.equals(other)) {
         return false;
       }
-      NamePatternEntry entry = (NamePatternEntry) other;
-      if (mIsPattern) {
-        return Objects.equals(mPattern.pattern(), entry.mPattern.pattern());
-      } else {
-        return Objects.equals(mName, entry.mName);
+      if (!(other instanceof NameObject)) {
+        return false;
       }
+      NameObject casted = (NameObject) other;
+      return Objects.equals(mName, casted.mName);
     }
 
     @Override
     public int hashCode() {
-      if (mIsPattern) {
-        return Objects.hashCode(mPattern.pattern());
-      } else {
-        return Objects.hashCode(mName);
-      }
+      return super.hashCode() * 31 + Objects.hashCode(mName);
     }
-  }
 
-  /**
-   * Deserializer of NamePatternEntry
-   *
-   * Accepts
-   * 1. a plain name: "table1"
-   * 2. an object of form: {"regex": "<regex>"}
-   */
-  static final class NamePatternEntryDeserializer extends JsonDeserializer<NamePatternEntry> {
     @Override
-    public NamePatternEntry deserialize(JsonParser jp, DeserializationContext cxt)
-        throws IOException, JsonProcessingException {
-      ObjectMapper mapper = (ObjectMapper) jp.getCodec();
-      JsonNode node = mapper.readTree(jp);
-      if (node == null) {
-        return null;
-      }
-      if (node.isTextual()) {
-        // a simple name
-        return new NamePatternEntry(node.asText());
-      }
-      if (!node.isObject()) {
-        throw new JsonParseException(
-            mapper.treeAsTokens(node),
-            String.format("invalid syntax, expecting name or an object with a `%s` field",
-                NamePatternEntry.FIELD_REGEX)
-        );
-      }
-      if (!node.hasNonNull(NamePatternEntry.FIELD_REGEX)) {
-        throw new JsonParseException(
-            mapper.treeAsTokens(node),
-            String.format("invalid syntax, `%s` field missing or is null",
-                NamePatternEntry.FIELD_REGEX)
-        );
-      }
-      // a RegexObject object
-      JsonNode regexNode = node.get(NamePatternEntry.FIELD_REGEX);
-      try {
-        Pattern regex = Pattern.compile(regexNode.asText());
-        return new NamePatternEntry(regex);
-      } catch (PatternSyntaxException e) {
-        throw new JsonParseException(
-            mapper.treeAsTokens(regexNode), "invalid regex syntax", e);
-      }
+    public String toString() {
+      return MoreObjects.toStringHelper(this)
+          .add(FIELD_TYPE, mType)
+          .add(FIELD_NAME, mName)
+          .toString();
     }
   }
 
-  /**
-   * A wrapper for included and excluded elements.
-   * @param <INCLUDEDT> type of included entry
-   */
-  static class IncludeExcludeList<INCLUDEDT extends NamePatternEntry> {
-    static final String FIELD_INCLUDE = "include";
-    static final String FIELD_EXCLUDE = "exclude";
-
-    @JsonProperty(FIELD_INCLUDE)
-    private final Set<INCLUDEDT> mIncludedEntries;
-    @JsonProperty(FIELD_EXCLUDE)
-    private final Set<NamePatternEntry> mExcludedEntries;
-
-    private static final IncludeExcludeList EMPTY_INSTANCE =
-        new IncludeExcludeList(Collections.emptySet(), Collections.emptySet());
-
-    /**
-     * Creates an implicit include-only list.
-     *
-     * @param entries included {@link NamePatternEntry}s
-     */
-    IncludeExcludeList(@Nullable Set<INCLUDEDT> entries) {
-      this(entries, Collections.emptySet());
-    }
-
-    /**
-     * Creates an empty list.
-     * @param <T> type of contained entry
-     * @return an empty list
-     */
-    static <T extends NamePatternEntry> IncludeExcludeList<T> empty() {
-      return (IncludeExcludeList<T>) EMPTY_INSTANCE;
-    }
-
-    boolean isEmpty() {
-      return mIncludedEntries.isEmpty() && mExcludedEntries.isEmpty();
-    }
+  static class RegexObject extends AbstractSpecObject implements NameOrRegexObject {
+    static final String FIELD_REGEX = "regex";
+    private final Pattern mPattern;
 
     @JsonCreator
-    IncludeExcludeList(
-        @JsonProperty(FIELD_INCLUDE) @Nullable Set<INCLUDEDT> included,
-        @JsonProperty(FIELD_EXCLUDE) @Nullable Set<NamePatternEntry> excluded) {
-      mIncludedEntries = included == null ? Collections.emptySet() : included;
-      mExcludedEntries = excluded == null ? Collections.emptySet() : excluded;
-      // included and excluded cannot be both non-empty at the same time
-      Preconditions.checkArgument(
-          mIncludedEntries.isEmpty() || mExcludedEntries.isEmpty());
+    public RegexObject(@JsonProperty(FIELD_REGEX) String pattern) {
+      super(Type.REGEX);
+      Preconditions.checkArgument(pattern != null, "Pattern is null");
+      try {
+        mPattern = Pattern.compile(pattern);
+      } catch (PatternSyntaxException e) {
+        throw new IllegalArgumentException("Invalid regex syntax", e);
+      }
     }
 
-    Set<NamePatternEntry> getExcludedEntries() {
-      return mExcludedEntries;
-    }
-
-    Set<INCLUDEDT> getIncludedEntries() {
-      return mIncludedEntries;
+    public Pattern getPattern() {
+      return mPattern;
     }
 
     @Override
     public boolean equals(Object other) {
-      if (!checkReferenceAndClassEquality(this, other)) {
+      if (!super.equals(other)) {
         return false;
       }
-      IncludeExcludeList list = (IncludeExcludeList) other;
-      return Objects.equals(mIncludedEntries, list.mIncludedEntries)
-          && Objects.equals(mExcludedEntries, list.mExcludedEntries);
+      if (!(other instanceof RegexObject)) {
+        return false;
+      }
+      RegexObject casted = (RegexObject) other;
+      return Objects.equals(mPattern.pattern(), casted.mPattern.pattern());
+    }
+
+    @Override
+    public int hashCode() {
+      return super.hashCode() * 31 + Objects.hashCode(mPattern.pattern());
+    }
+
+    @Override
+    public String toString() {
+      return MoreObjects.toStringHelper(this)
+          .add(FIELD_TYPE, mType)
+          .add(FIELD_REGEX, mPattern.pattern())
+          .toString();
+    }
+  }
+
+  static class PartitionSpecObject extends AbstractSpecObject {
+    static final String FIELD_TABLE = "table";
+    static final String FIELD_PARTITIONS = "partitions";
+    private final String mTableName;
+    private final IncludeExcludeObject<NameOrRegexObject, NameOrRegexObject> mPartitions;
+
+    @JsonCreator
+    public PartitionSpecObject(
+        @JsonProperty(FIELD_TABLE) String tableName,
+        @JsonProperty(FIELD_PARTITIONS)
+            IncludeExcludeObject<NameOrRegexObject, NameOrRegexObject> partitions
+    ) {
+      super(Type.PARTITION_SPEC);
+      Preconditions.checkArgument(tableName != null, "Table name is null");
+      Preconditions.checkArgument(partitions != null, "Partitions is null");
+      mTableName = tableName;
+      mPartitions = partitions;
+    }
+
+    public String getTableName() {
+      return mTableName;
+    }
+
+    public IncludeExcludeObject<NameOrRegexObject, NameOrRegexObject> getPartitions() {
+      return mPartitions;
+    }
+
+    @Override
+    public boolean equals(Object other) {
+      if (!super.equals(other)) {
+        return false;
+      }
+      if (!(other instanceof PartitionSpecObject)) {
+        return false;
+      }
+      PartitionSpecObject casted = (PartitionSpecObject) other;
+      // partitions are deliberately excluded in `equals` impl to avoid conflicts
+      // when there's a NameObject and a PartitionSpecObject with the same table name
+      // in the set of IncludeExcludeObject
+      return Objects.equals(mTableName, casted.mTableName);
+    }
+
+    @Override
+    public int hashCode() {
+      return super.hashCode() * 31 + Objects.hashCode(mTableName);
+    }
+
+    @Override
+    public String toString() {
+      return MoreObjects.toStringHelper(this)
+          .add(FIELD_TYPE, mType)
+          .add(FIELD_TABLE, mTableName)
+          .add(FIELD_PARTITIONS, mPartitions)
+          .toString();
+    }
+  }
+
+  static class IncludeExcludeObject<IncludeT extends TablePartitionSpecObject,
+                                    ExcludeT extends TablePartitionSpecObject> {
+    static final String FIELD_INCLUDE = "include";
+    static final String FIELD_EXCLUDE = "exclude";
+    private static final IncludeExcludeObject EMPTY_INSTANCE =
+        new IncludeExcludeObject(null, null);
+
+    private final Set<IncludeT> mIncludedEntries;
+    private final Set<ExcludeT> mExcludedEntries;
+
+    @JsonCreator
+    public IncludeExcludeObject(@JsonProperty(FIELD_INCLUDE) @Nullable Set<IncludeT> included,
+                                @JsonProperty(FIELD_EXCLUDE) @Nullable Set<ExcludeT> excluded) {
+      // both included and excluded cannot be non-empty at the same time
+      Preconditions.checkArgument(
+          included == null || excluded == null || included.isEmpty() || excluded.isEmpty(),
+          "Either include or exclude can be specified, but not both"
+      );
+      mIncludedEntries = included == null ? Collections.emptySet() : included;
+      mExcludedEntries = excluded == null ? Collections.emptySet() : excluded;
+    }
+
+    public static <IncludeT extends TablePartitionSpecObject,
+                   ExcludeT extends TablePartitionSpecObject>
+            IncludeExcludeObject<IncludeT, ExcludeT> empty() {
+      return EMPTY_INSTANCE;
+    }
+
+    public boolean hasIncludedEntries() {
+      return !mIncludedEntries.isEmpty();
+    }
+
+    public boolean hasExcludedEntries() {
+      return !mExcludedEntries.isEmpty();
+    }
+
+    public Set<IncludeT> getIncludedEntries() {
+      return mIncludedEntries;
+    }
+
+    public Set<ExcludeT> getExcludedEntries() {
+      return mExcludedEntries;
+    }
+
+    @Override
+    public boolean equals(Object other) {
+      if (other == null) {
+        return false;
+      }
+      if (this == other) {
+        return true;
+      }
+      if (!(other instanceof IncludeExcludeObject)) {
+        return false;
+      }
+      IncludeExcludeObject casted = (IncludeExcludeObject) other;
+      return Objects.equals(mIncludedEntries, casted.mIncludedEntries)
+          && Objects.equals(mExcludedEntries, casted.mExcludedEntries);
     }
 
     @Override
     public int hashCode() {
       return Objects.hash(mIncludedEntries, mExcludedEntries);
     }
-  }
 
-  /**
-   * Deserializer for IncludeExcludeList.
-   * Handles the case with an implicit list of included entries.
-   * @param <INCLUDEDT> the type for included entries
-   */
-  static class IncludeExcludeListDeserializer<INCLUDEDT extends NamePatternEntry> {
-    IncludeExcludeList<INCLUDEDT> deserialize(
-        Class<INCLUDEDT> type, JsonParser jp, DeserializationContext cxt)
-        throws IOException, JsonProcessingException {
-      ObjectMapper mapper = (ObjectMapper) jp.getCodec();
-      JsonNode node = mapper.readTree(jp);
-      if (node == null) {
-        return null;
+    @Override
+    public String toString() {
+      MoreObjects.ToStringHelper helper = MoreObjects.toStringHelper(this);
+      if (hasIncludedEntries()) {
+        helper.add(FIELD_INCLUDE, mIncludedEntries);
+      } else {
+        helper.add(FIELD_EXCLUDE, mExcludedEntries);
       }
-      if (node.isArray()) {
-        // in case of an array, an included list is implied
-        Set<INCLUDEDT> entries = mapper.convertValue(
-            node,
-            mapper.getTypeFactory().constructCollectionType(Set.class, type)
-        );
-        return new IncludeExcludeList<>(entries);
-      }
-      if (node.isObject()) {
-        // otherwise, deserialize as an IncludeExcludeList object
-        return mapper.convertValue(
-            node,
-            mapper.getTypeFactory().constructParametricType(IncludeExcludeList.class, type)
-        );
-      }
-      throw new JsonParseException(mapper.treeAsTokens(node),
-          "invalid syntax, expecting array or object");
+      return helper.toString();
     }
   }
 }
