@@ -24,6 +24,8 @@ public final class ListBucketOptions {
   private String mMarker;
   private String mPrefix;
   private int mMaxKeys;
+  private String mDelimiter;
+  private String mEncodingType;
 
   /**
    * Creates a default {@link ListBucketOptions}.
@@ -41,6 +43,8 @@ public final class ListBucketOptions {
     mMarker = "";
     mPrefix = "";
     mMaxKeys = DEFAULT_MAX_KEYS;
+    mDelimiter = "/";
+    mEncodingType = "url";
   }
 
   /**
@@ -62,6 +66,20 @@ public final class ListBucketOptions {
    */
   public int getMaxKeys() {
     return mMaxKeys;
+  }
+
+  /**
+   * @return the delimiter
+   */
+  public String getDelimiter() {
+    return mDelimiter;
+  }
+
+  /**
+   * @return the encoding type
+   */
+  public String getEncodingType() {
+    return mEncodingType;
   }
 
   /**
@@ -91,6 +109,24 @@ public final class ListBucketOptions {
     return this;
   }
 
+  /**
+   * @param delimiter the delimiter
+   * @return the updated object
+   */
+  public ListBucketOptions setDelimiter(String delimiter) {
+    mDelimiter = delimiter;
+    return this;
+  }
+
+  /**
+   * @param encodingType the encoding type
+   * @return the updated object
+   */
+  public ListBucketOptions setEncodingType(String encodingType) {
+    mEncodingType = encodingType;
+    return this;
+  }
+
   @Override
   public boolean equals(Object o) {
     if (this == o) {
@@ -102,12 +138,15 @@ public final class ListBucketOptions {
     ListBucketOptions that = (ListBucketOptions) o;
     return Objects.equal(mMarker, that.mMarker)
         && Objects.equal(mPrefix, that.mPrefix)
-        && Objects.equal(mMaxKeys, that.mMaxKeys);
+        && Objects.equal(mMaxKeys, that.mMaxKeys)
+        && Objects.equal(mDelimiter, that.mDelimiter)
+        && Objects.equal(mEncodingType, that.mEncodingType)
+        ;
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(mMarker, mPrefix, mMaxKeys);
+    return Objects.hashCode(mMarker, mPrefix, mMaxKeys, mDelimiter, mEncodingType);
   }
 
   @Override
@@ -116,6 +155,8 @@ public final class ListBucketOptions {
         .add("marker", mMarker)
         .add("prefix", mPrefix)
         .add("maxKeys", mMaxKeys)
+        .add("delimiter", mDelimiter)
+        .add("encodingType", mEncodingType)
         .toString();
   }
 }

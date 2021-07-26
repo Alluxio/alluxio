@@ -28,6 +28,8 @@ import com.codahale.metrics.Gauge;
 import com.codahale.metrics.Meter;
 import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.Timer;
+import com.codahale.metrics.jvm.CachedThreadStatesGaugeSet;
+import com.codahale.metrics.jvm.ClassLoadingGaugeSet;
 import com.codahale.metrics.jvm.GarbageCollectorMetricSet;
 import com.codahale.metrics.jvm.JvmAttributeGaugeSet;
 import com.codahale.metrics.jvm.MemoryUsageGaugeSet;
@@ -143,6 +145,8 @@ public final class MetricsSystem {
     METRIC_REGISTRY.registerAll(new JvmAttributeGaugeSet());
     METRIC_REGISTRY.registerAll(new GarbageCollectorMetricSet());
     METRIC_REGISTRY.registerAll(new MemoryUsageGaugeSet());
+    METRIC_REGISTRY.registerAll(new ClassLoadingGaugeSet());
+    METRIC_REGISTRY.registerAll(new CachedThreadStatesGaugeSet(5, TimeUnit.SECONDS));
   }
 
   @GuardedBy("MetricsSystem")

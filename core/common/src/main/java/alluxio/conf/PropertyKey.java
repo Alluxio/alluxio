@@ -1712,31 +1712,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
-  public static final PropertyKey MASTER_EMBEDDED_JOURNAL_HEARTBEAT_INTERVAL =
-      new Builder(Name.MASTER_EMBEDDED_JOURNAL_HEARTBEAT_INTERVAL)
-          .setDescription(
-              "The period between sending heartbeats from the embedded journal primary to "
-                  + "followers. This should be less than half of the election timeout "
-                  + String.format("{%s}", Name.MASTER_EMBEDDED_JOURNAL_ELECTION_TIMEOUT)
-                  + ", because the election is driven by heart beats.")
-          .setDefaultValue("3s")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.MASTER)
-          .build();
-  /**
-   * @deprecated appender batch size is used by copycat dependency which is removed
-   */
-  @Deprecated
-  public static final PropertyKey MASTER_EMBEDDED_JOURNAL_APPENDER_BATCH_SIZE =
-      new Builder(Name.MASTER_EMBEDDED_JOURNAL_APPENDER_BATCH_SIZE)
-          .setDescription("Amount of data that is appended from leader to followers "
-              + "in a single heartbeat. Setting higher values might require increasing "
-              + "election timeout due to increased network delay. Setting lower values "
-              + "might stall knowledge propagation between the leader and followers.")
-          .setDefaultValue("512KB")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.MASTER)
-          .build();
   public static final PropertyKey MASTER_EMBEDDED_JOURNAL_CATCHUP_RETRY_WAIT =
       new Builder(Name.MASTER_EMBEDDED_JOURNAL_CATCHUP_RETRY_WAIT)
           .setDefaultValue("1s")
@@ -1779,30 +1754,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
-  /**
-   * @deprecated storage level is used by copycat dependency which is removed
-   */
-  @Deprecated
-  public static final PropertyKey MASTER_EMBEDDED_JOURNAL_STORAGE_LEVEL =
-      new Builder(Name.MASTER_EMBEDDED_JOURNAL_STORAGE_LEVEL)
-          .setDescription("The storage level for storing embedded journal logs. Use DISK for "
-              + "maximum durability. Use MAPPED for better performance, but some risk of "
-              + "losing state in case of power loss or host failure. Use MEMORY for "
-              + "optimal performance, but no state persistence across cluster restarts.")
-          .setDefaultValue("DISK")
-          .setScope(Scope.MASTER)
-          .build();
-  /**
-   * @deprecated journal shutdown timeout is used by copycat dependency which is removed
-   */
-  @Deprecated
-  public static final PropertyKey MASTER_EMBEDDED_JOURNAL_SHUTDOWN_TIMEOUT =
-      new Builder(Name.MASTER_EMBEDDED_JOURNAL_SHUTDOWN_TIMEOUT)
-          .setDefaultValue("10sec")
-          .setDescription("Maximum time to wait for embedded journal to stop on shutdown.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.MASTER)
-          .build();
   public static final PropertyKey MASTER_EMBEDDED_JOURNAL_WRITE_LOCAL_FIRST_ENABLED =
       new Builder(Name.MASTER_EMBEDDED_JOURNAL_WRITE_LOCAL_FIRST_ENABLED)
           .setDefaultValue(true)
@@ -1832,17 +1783,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       new Builder(Name.MASTER_EMBEDDED_JOURNAL_SNAPSHOT_REPLICATION_CHUNK_SIZE)
           .setDefaultValue("4MB")
           .setDescription("The stream chunk size used by masters to replicate snapshots.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.MASTER)
-          .build();
-  /**
-   * @deprecated snapshot wait timeout is used by copycat dependency which is removed
-   */
-  @Deprecated
-  public static final PropertyKey MASTER_EMBEDDED_JOURNAL_TRIGGERED_SNAPSHOT_WAIT_TIMEOUT =
-      new Builder(Name.MASTER_EMBEDDED_JOURNAL_TRIGGERED_SNAPSHOT_WAIT_TIMEOUT)
-          .setDefaultValue("2hour")
-          .setDescription("Maximum time to wait for the triggered snapshot to finish.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
@@ -2602,6 +2542,16 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       new Builder(Name.MASTER_WEB_PORT)
           .setDefaultValue(19999)
           .setDescription("The port Alluxio web UI runs on.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.MASTER)
+          .build();
+  public static final PropertyKey MASTER_WEB_JOURNAL_CHECKPOINT_WARNING_THRESHOLD_TIME =
+      new Builder(Name.MASTER_WEB_JOURNAL_CHECKPOINT_WARNING_THRESHOLD_TIME)
+          .setDefaultValue(Constants.DAY * 3)
+          .setIsHidden(true)
+          .setDescription("The amount of time since the last checkpoint and when the number of "
+              + "journal entries is greater than " + Name.MASTER_JOURNAL_CHECKPOINT_PERIOD_ENTRIES
+              + " which causes a warning to be displayed in the web UI ")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
@@ -5662,24 +5612,16 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.embedded.journal.addresses";
     public static final String MASTER_EMBEDDED_JOURNAL_ELECTION_TIMEOUT =
         "alluxio.master.embedded.journal.election.timeout";
-    public static final String MASTER_EMBEDDED_JOURNAL_APPENDER_BATCH_SIZE =
-        "alluxio.master.embedded.journal.appender.batch.size";
     public static final String MASTER_EMBEDDED_JOURNAL_CATCHUP_RETRY_WAIT =
         "alluxio.master.embedded.journal.catchup.retry.wait";
     public static final String MASTER_EMBEDDED_JOURNAL_ENTRY_SIZE_MAX =
         "alluxio.master.embedded.journal.entry.size.max";
     public static final String MASTER_EMBEDDED_JOURNAL_FLUSH_SIZE_MAX =
         "alluxio.master.embedded.journal.flush.size.max";
-    public static final String MASTER_EMBEDDED_JOURNAL_HEARTBEAT_INTERVAL =
-        "alluxio.master.embedded.journal.heartbeat.interval";
     public static final String MASTER_EMBEDDED_JOURNAL_PORT =
         "alluxio.master.embedded.journal.port";
     public static final String MASTER_EMBEDDED_JOURNAL_RETRY_CACHE_EXPIRY_TIME =
         "alluxio.master.embedded.journal.retry.cache.expiry.time";
-    public static final String MASTER_EMBEDDED_JOURNAL_STORAGE_LEVEL =
-        "alluxio.master.embedded.journal.storage.level";
-    public static final String MASTER_EMBEDDED_JOURNAL_SHUTDOWN_TIMEOUT =
-        "alluxio.master.embedded.journal.shutdown.timeout";
     public static final String MASTER_EMBEDDED_JOURNAL_WRITE_LOCAL_FIRST_ENABLED =
         "alluxio.master.embedded.journal.write.local.first.enabled";
     public static final String MASTER_EMBEDDED_JOURNAL_WRITE_REMOTE_ENABLED =
@@ -5688,8 +5630,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.embedded.journal.write.timeout";
     public static final String MASTER_EMBEDDED_JOURNAL_SNAPSHOT_REPLICATION_CHUNK_SIZE =
         "alluxio.master.embedded.journal.snapshot.replication.chunk.size";
-    public static final String MASTER_EMBEDDED_JOURNAL_TRIGGERED_SNAPSHOT_WAIT_TIMEOUT =
-        "alluxio.master.embedded.journal.triggered.snapshot.wait.timeout";
     public static final String MASTER_EMBEDDED_JOURNAL_TRANSPORT_REQUEST_TIMEOUT_MS =
         "alluxio.master.embedded.journal.transport.request.timeout.ms";
     public static final String MASTER_EMBEDDED_JOURNAL_TRANSPORT_MAX_INBOUND_MESSAGE_SIZE =
@@ -5818,6 +5758,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String MASTER_WEB_BIND_HOST = "alluxio.master.web.bind.host";
     public static final String MASTER_WEB_HOSTNAME = "alluxio.master.web.hostname";
     public static final String MASTER_WEB_PORT = "alluxio.master.web.port";
+    public static final String MASTER_WEB_JOURNAL_CHECKPOINT_WARNING_THRESHOLD_TIME =
+        "alluxio.master.journal.checkpoint.warning.threshold.time";
     public static final String MASTER_WHITELIST = "alluxio.master.whitelist";
     public static final String MASTER_WORKER_CONNECT_WAIT_TIME =
         "alluxio.master.worker.connect.wait.time";

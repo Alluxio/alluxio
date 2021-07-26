@@ -16,6 +16,7 @@ import { IScopedPropertyInfo, IStorageTierInfo } from '../../constants';
 export interface IOverview {
   debug: boolean;
   capacity: string;
+  clusterId: string;
   configCheckErrors: IScopedPropertyInfo[];
   configCheckStatus: string;
   configCheckWarns: IScopedPropertyInfo[];
@@ -23,6 +24,7 @@ export interface IOverview {
   diskFreeCapacity: string;
   diskUsedCapacity: string;
   freeCapacity: string;
+  journalCheckpointTimeWarning: string;
   journalDiskWarnings: string[];
   liveWorkerNodes: number;
   masterNodeAddress: string;

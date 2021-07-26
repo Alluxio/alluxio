@@ -15,6 +15,7 @@ import static alluxio.client.file.cache.CacheManager.State.NOT_IN_USE;
 import static alluxio.client.file.cache.CacheManager.State.READ_ONLY;
 import static alluxio.client.file.cache.CacheManager.State.READ_WRITE;
 
+import alluxio.client.file.CacheContext;
 import alluxio.client.file.cache.store.PageStoreOptions;
 import alluxio.client.quota.CacheQuota;
 import alluxio.client.quota.CacheScope;
@@ -246,7 +247,7 @@ public class LocalCacheManager implements CacheManager {
   }
 
   @Override
-  public boolean put(PageId pageId, byte[] page, CacheScope scope, CacheQuota quota) {
+  public boolean put(PageId pageId, byte[] page, CacheContext cacheContext) {
     LOG.debug("put({},{} bytes) enters", pageId, page.length);
     if (mState.get() != READ_WRITE) {
       Metrics.PUT_NOT_READY_ERRORS.inc();
@@ -254,7 +255,7 @@ public class LocalCacheManager implements CacheManager {
       return false;
     }
     if (!mAsyncWrite) {
-      boolean ok = putInternal(pageId, page, scope, quota);
+      boolean ok = putInternal(pageId, page, cacheContext);
       LOG.debug("put({},{} bytes) exits: {}", pageId, page.length, ok);
       if (!ok) {
         Metrics.PUT_ERRORS.inc();
@@ -268,7 +269,7 @@ public class LocalCacheManager implements CacheManager {
     try {
       mAsyncCacheExecutor.submit(() -> {
         try {
-          boolean ok = putInternal(pageId, page, scope, quota);
+          boolean ok = putInternal(pageId, page, cacheContext);
           if (!ok) {
             Metrics.PUT_ERRORS.inc();
           }
@@ -289,11 +290,11 @@ public class LocalCacheManager implements CacheManager {
     return true;
   }
 
-  private boolean putInternal(PageId pageId, byte[] page, CacheScope scope, CacheQuota quota) {
+  private boolean putInternal(PageId pageId, byte[] page, CacheContext cacheContext) {
     PutResult result = PutResult.OK;
     boolean forcedToEvict = false;
     for (int i = 0; i <= mMaxEvictionRetries; i++) {
-      result = putAttempt(pageId, page, scope, quota, forcedToEvict);
+      result = putAttempt(pageId, page, cacheContext, forcedToEvict);
       switch (result) {
         case OK:
           return true;
@@ -326,7 +327,7 @@ public class LocalCacheManager implements CacheManager {
     return false;
   }
 
-  private PutResult putAttempt(PageId pageId, byte[] page, CacheScope scope, CacheQuota quota,
+  private PutResult putAttempt(PageId pageId, byte[] page, CacheContext cacheContext,
       boolean forcedToEvict) {
     LOG.debug("putInternal({},{} bytes) enters", pageId, page.length);
     PageInfo victimPageInfo = null;
@@ -339,9 +340,11 @@ public class LocalCacheManager implements CacheManager {
           // TODO(binfan): we should return more informative result in the future
           return PutResult.OK;
         }
-        scopeToEvict = checkScopeToEvict(page.length, scope, quota, forcedToEvict);
+        scopeToEvict = checkScopeToEvict(page.length, cacheContext.getCacheScope(),
+            cacheContext.getCacheQuota(), forcedToEvict);
         if (scopeToEvict == null) {
-          mMetaStore.addPage(pageId, new PageInfo(pageId, page.length, scope));
+          mMetaStore
+              .addPage(pageId, new PageInfo(pageId, page.length, cacheContext.getCacheScope()));
         } else {
           if (mQuotaEnabled) {
             victimPageInfo = ((QuotaMetaStore) mMetaStore).evict(scopeToEvict);
@@ -394,9 +397,11 @@ public class LocalCacheManager implements CacheManager {
           return PutResult.BENIGN_RACING;
         }
         // Check if we are able to insert page after evicting victim page
-        scopeToEvict = checkScopeToEvict(page.length, scope, quota, false);
+        scopeToEvict = checkScopeToEvict(page.length, cacheContext.getCacheScope(),
+            cacheContext.getCacheQuota(), false);
         if (scopeToEvict == null) {
-          mMetaStore.addPage(pageId, new PageInfo(pageId, page.length, scope));
+          mMetaStore
+              .addPage(pageId, new PageInfo(pageId, page.length, cacheContext.getCacheScope()));
         }
       }
       // phase2: remove victim and add new page in pagestore
@@ -449,7 +454,7 @@ public class LocalCacheManager implements CacheManager {
 
   @Override
   public int get(PageId pageId, int pageOffset, int bytesToRead, byte[] buffer,
-      int offsetInBuffer) {
+      int offsetInBuffer, CacheContext cacheContext) {
     Preconditions.checkArgument(pageOffset <= mPageSize,
         "Read exceeds page boundary: offset=%s size=%s", pageOffset, mPageSize);
     Preconditions.checkArgument(bytesToRead <= buffer.length - offsetInBuffer,

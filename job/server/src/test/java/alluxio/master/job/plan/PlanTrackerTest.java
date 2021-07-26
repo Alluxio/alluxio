@@ -23,11 +23,13 @@ import alluxio.exception.status.ResourceExhaustedException;
 import alluxio.job.JobServerContext;
 import alluxio.job.SleepJobConfig;
 import alluxio.job.meta.JobIdGenerator;
+import alluxio.job.wire.Status;
 import alluxio.master.job.command.CommandManager;
 import alluxio.master.job.workflow.WorkflowTracker;
 import alluxio.util.FormatUtils;
 import alluxio.wire.WorkerInfo;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import org.junit.Before;
 import org.junit.Rule;
@@ -76,6 +78,17 @@ public class PlanTrackerTest {
     fillJobTracker(CAPACITY);
     mException.expect(ResourceExhaustedException.class);
     addJob(100);
+  }
+
+  @Test
+  public void testJobListing() throws Exception {
+    assertEquals("tracker should be empty", 0, mTracker.coordinators().size());
+    assertEquals(0, mTracker.findJobs("Sleep", ImmutableList.of(Status.CREATED)).size());
+    addJob(500);
+    assertEquals(1, mTracker.findJobs("Sleep", ImmutableList.of(Status.CREATED)).size());
+    finishAllJobs();
+    assertEquals(0, mTracker.findJobs("Sleep", ImmutableList.of(Status.CREATED)).size());
+    assertEquals(1, mTracker.findJobs("Sleep", ImmutableList.of(Status.FAILED)).size());
   }
 
   @Test
