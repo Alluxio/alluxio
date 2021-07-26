@@ -148,10 +148,11 @@ public final class BlockMasterWorkerServiceHandler extends
     RegisterWorkerPOptions options = request.getOptions();
     final long startTime = request.getStartTime();
     final String version = request.getVersion();
+    final String revision = request.getRevision();
     RpcUtils.call(LOG,
         (RpcUtils.RpcCallableThrowsIOException<RegisterWorkerPResponse>) () -> {
           mBlockMaster.workerRegister(workerId, storageTiers, totalBytesOnTiers, usedBytesOnTiers,
-              currBlocksOnLocationMap, lostStorageMap, startTime, version, options);
+              currBlocksOnLocationMap, lostStorageMap, startTime, version, revision, options);
           return RegisterWorkerPResponse.getDefaultInstance();
         }, "registerWorker", "request=%s", responseObserver, request);
   }

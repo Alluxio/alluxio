@@ -28,11 +28,13 @@ public class StaticWorkerMeta {
   /** The id of the worker. */
   final long mId;
   /** Start time of the worker in ms. */
-  final long mStartTimeMs;
+  final long mRegisterTimeMs;
   /** the start time of worker. */
   long mStartTime;
   /** the version of worker. */
   String mVersion;
+  /** the revision of worker. */
+  String mRevision;
 
   /**
    * Constructor.
@@ -43,6 +45,6 @@ public class StaticWorkerMeta {
   public StaticWorkerMeta(long id, WorkerNetAddress address) {
     mId = id;
     mWorkerAddress = Preconditions.checkNotNull(address, "address");
-    mStartTimeMs = CommonUtils.getCurrentMs();
+    mRegisterTimeMs = CommonUtils.getCurrentMs();
   }
 }
