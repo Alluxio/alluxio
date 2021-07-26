@@ -775,6 +775,56 @@ public final class AlluxioFileInStreamTest {
     }
   }
 
+  @Test
+  public void testUnbufferAroundRead() throws Exception {
+    byte[] buffer = new byte[(int) (FILE_LENGTH / 2)];
+    mTestStream.unbuffer();
+    mTestStream.read(buffer);
+    mTestStream.unbuffer();
+    mTestStream.close();
+
+    assertArrayEquals(BufferUtils.getIncreasingByteArray((int) (FILE_LENGTH / 2)), buffer);
+  }
+
+  @Test
+  public void testMultiUnbufferAroundSeek() throws Exception {
+    int seekAmount = (int) (BLOCK_LENGTH / 2);
+    int readAmount = (int) (BLOCK_LENGTH * 2);
+    byte[] buffer = new byte[readAmount];
+    mTestStream.unbuffer();
+    mTestStream.seek(seekAmount);
+    mTestStream.unbuffer();
+    mTestStream.read(buffer);
+    assertArrayEquals(BufferUtils.getIncreasingByteArray(seekAmount, readAmount), buffer);
+
+    byte[] expected = mBlockSource != BlockInStreamSource.REMOTE ? new byte[0]
+        : BufferUtils.getIncreasingByteArray((int) BLOCK_LENGTH, (int) BLOCK_LENGTH);
+
+    mTestStream.unbuffer();
+    mTestStream.seek(seekAmount + readAmount);
+    mTestStream.unbuffer();
+    mTestStream.seek((long) (BLOCK_LENGTH * 3.1));
+    mTestStream.unbuffer();
+    assertEquals(BufferUtils.byteToInt((byte) (BLOCK_LENGTH * 3.1)), mTestStream.read());
+    mTestStream.seek(FILE_LENGTH);
+  }
+
+  @Test
+  public void testMultiUnbufferAroundSkip() throws Exception {
+    int skipAmount = (int) (BLOCK_LENGTH / 2);
+    int readAmount = (int) (BLOCK_LENGTH * 2);
+    byte[] buffer = new byte[readAmount];
+    mTestStream.unbuffer();
+    mTestStream.skip(skipAmount);
+    mTestStream.unbuffer();
+    mTestStream.read(buffer);
+    assertArrayEquals(BufferUtils.getIncreasingByteArray(skipAmount, readAmount), buffer);
+
+    assertEquals(0, mTestStream.skip(0));
+    assertEquals(BLOCK_LENGTH / 2, mTestStream.skip(BLOCK_LENGTH / 2));
+    assertEquals(BufferUtils.byteToInt((byte) (BLOCK_LENGTH * 3)), mTestStream.read());
+  }
+
   /**
    * Tests that reading dataRead bytes into a buffer will properly write those bytes to the cache
    * streams and that the correct bytes are read from the {@link FileInStream}.
