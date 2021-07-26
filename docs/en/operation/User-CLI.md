@@ -854,6 +854,20 @@ A lower value means slower execution but also being nicer to the other users of 
 $ ./bin/alluxio fs distributedLoad --replication 2 --active-jobs 2000 /data/today
 ```
 
+Or you can include some workers or exclude some workers by using options `--host-file <host-file>`, `--hosts`, `--excluded-host-file <host-file>`,
+`--excluded-hosts`, `--locality-file <locality-file>`, `--locality`, `--excluded-host-file <host-file>` and `--excluded-locality`.
+
+```console
+$ ./bin/alluxio fs distributedLoad /data/today --hosts host1,host2
+$ ./bin/alluxio fs distributedLoad /data/today --host-file /tmp/hostfile
+$ ./bin/alluxio fs distributedLoad /data/today --excluded-hosts host1,host2
+$ ./bin/alluxio fs distributedLoad /data/today --excluded-file /tmp/hostfile-exclude
+$ ./bin/alluxio fs distributedLoad /data/today --locality ROCK1,ROCK2
+$ ./bin/alluxio fs distributedLoad /data/today --locality-file /tmp/localityfile
+$ ./bin/alluxio fs distributedLoad /data/today --excluded-locality ROCK1,ROCK2
+$ ./bin/alluxio fs distributedLoad /data/today --excluded-locality-file /tmp/localityfile-exclude
+```
+
 ### distributedMv
 
 The `distributedMv` command moves a file or directory in the Alluxio file system distributed across workers
