@@ -23,7 +23,7 @@ The ROCKS metastore uses a mixture of memory and disk. Metadata eventually gets
 written to disk, but a large, in-memory cache stores recently-accessed metadata. The
 cache buffers writes, asynchronously flushing them to RocksDB as the cache fills up.
 The default cache size is dynamically set to be (JVM Heap size / 4KB).
-In the default configuration of 8GB heap size, we will cache 2 million inodes.
+In the default configuration of 8GB heap size, Alluxio master will cache 2 million inodes.
 The cache performs LRU-style eviction, with an asynchronous evictor evicting from a
 high water mark (default 85%) down to a low water mark (default 80%).
 
@@ -41,7 +41,7 @@ Default: `${work_dir}/metastore`
 * `alluxio.master.metastore.inode.cache.max.size`: A hard limit on the number of entries in the on-heap inode cache.
 Increase this to improve performance if you have spare master memory. 
 The default value for this configuration is dynamically set to be (JVM Heap size / 4KB).
-For example, when xmx setting is set to the default 8GB, we will cache 2 million inodes.
+For example, when xmx setting is set to the default 8GB, Alluxio master will cache 2 million inodes.
 
 ### Advanced Tuning Properties
 
