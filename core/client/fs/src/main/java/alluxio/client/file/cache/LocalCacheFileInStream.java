@@ -106,6 +106,9 @@ public class LocalCacheFileInStream extends FileInStream {
     byte[] b = new byte[buf.remaining()];
     int totalBytesRead =
         readInternal(b, off, len, ReadType.READ_INTO_BYTE_BUFFER, mPosition, false);
+    if (totalBytesRead == -1) {
+      return -1;
+    }
     buf.put(b, off, totalBytesRead);
     return totalBytesRead;
   }

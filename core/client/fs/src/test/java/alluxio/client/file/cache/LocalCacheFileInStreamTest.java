@@ -122,6 +122,24 @@ public class LocalCacheFileInStreamTest {
   }
 
   @Test
+  public void readEmptyFileThroughReadByteBufferMethod() throws Exception {
+    int fileSize = 0;
+    byte[] fileData = BufferUtils.getIncreasingByteArray(fileSize);
+    ByteArrayCacheManager manager = new ByteArrayCacheManager();
+    LocalCacheFileInStream stream = setupWithSingleFile(fileData, manager);
+
+    byte[] readData = new byte[fileSize];
+    ByteBuffer buffer = ByteBuffer.wrap(readData);
+    try {
+      int totalBytesRead = stream.read(buffer, 0, fileSize + 1);
+      Assert.assertEquals(-1, totalBytesRead);
+    } catch (Exception e) {
+      e.printStackTrace();
+      Assert.fail(e.getMessage());
+    }
+  }
+
+  @Test
   public void readIllegalLengthThroughReadByteBufferMethod() throws Exception {
     int fileSize = 10;
     byte[] fileData = BufferUtils.getIncreasingByteArray(fileSize);
