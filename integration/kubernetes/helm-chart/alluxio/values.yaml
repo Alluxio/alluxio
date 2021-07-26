@@ -307,9 +307,13 @@ fuse:
   user: 0
   group: 0
   fsGroup: 0
+  # fuse args specific to standalone fuse
   args:
     - fuse
     - --fuse-opts=allow_other
+  # fuse options specific to worker-embedded fuse
+  mountOptions:
+    - allow_other
   # Mount path in the host
   mountPath: /mnt/alluxio-fuse
   resources:

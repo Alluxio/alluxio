@@ -156,7 +156,7 @@ spec:
             - name: alluxio-fuse-device
               mountPath: /dev/fuse
             - name: alluxio-fuse-mount
-              mountPath: /mnt
+              mountPath: {{ .Values.fuse.mountPath | dir }}
               mountPropagation: Bidirectional
             {{- end}}
         - name: alluxio-job-worker
@@ -249,6 +249,6 @@ spec:
             type: CharDevice
         - name: alluxio-fuse-mount
           hostPath:
-            path: /mnt
+            path: {{ .Values.fuse.mountPath | dir }}
             type: DirectoryOrCreate
         {{- end }}
