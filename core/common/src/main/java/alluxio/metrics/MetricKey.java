@@ -1181,14 +1181,14 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setIsClusterAggregated(false)
           .build();
   public static final MetricKey CLIENT_CACHE_PAGE_READ_CACHE_TIME_NS =
-      new Builder("Client.CachePageReadCacheTimeMs")
+      new Builder("Client.CachePageReadCacheTimeNanos")
           .setDescription("Time in nanoseconds taken to read a page from the client cache "
               + "when the cache hits.")
           .setMetricType(MetricType.METER)
           .setIsClusterAggregated(false)
           .build();
   public static final MetricKey CLIENT_CACHE_PAGE_READ_EXTERNAL_TIME_NS =
-      new Builder("Client.CachePageReadExternalTimeMs")
+      new Builder("Client.CachePageReadExternalTimeNanos")
           .setDescription("Time in nanoseconds taken to read a page from external source "
               + "when the cache misses.")
           .setMetricType(MetricType.METER)
