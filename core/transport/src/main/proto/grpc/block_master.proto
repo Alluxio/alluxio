@@ -256,6 +256,8 @@ message RegisterWorkerPRequest {
   optional int64 startTime = 9;
   /** the version of the worker. */
   optional string version = 10;
+  /** the revision of the worker. */
+  optional string revision = 11;
 }
 message RegisterWorkerPResponse {}
 

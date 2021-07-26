@@ -903,7 +903,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
       Map<String, Long> totalBytesOnTiers, Map<String, Long> usedBytesOnTiers,
       Map<BlockLocation, List<Long>> currentBlocksOnLocation,
       Map<String, StorageList> lostStorage, long startTime, String version,
-      RegisterWorkerPOptions options)
+      String revision, RegisterWorkerPOptions options)
       throws NotFoundException {
 
     MasterWorkerInfo worker = mWorkers.getFirstByField(ID_INDEX, workerId);
@@ -917,6 +917,8 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
     }
     worker.setVersion(version);
     worker.setRealStartTime(startTime);
+    worker.setRevision(revision);
+
     // Gather all blocks on this worker.
     HashSet<Long> blocks = new HashSet<>();
     for (List<Long> blockIds : currentBlocksOnLocation.values()) {

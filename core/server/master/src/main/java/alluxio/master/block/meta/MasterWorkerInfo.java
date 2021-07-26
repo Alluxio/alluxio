@@ -292,7 +292,7 @@ public final class MasterWorkerInfo {
               - mLastUpdatedTimeMs.get()) / Constants.SECOND_MS));
           break;
         case START_TIME_MS:
-          info.setStartTimeMs(mMeta.mStartTimeMs);
+          info.setStartTimeMs(mMeta.mRegisterTimeMs);
           break;
         case STATE:
           if (isLiveWorker) {
@@ -435,7 +435,7 @@ public final class MasterWorkerInfo {
    * @return the start time in milliseconds
    */
   public long getStartTime() {
-    return mMeta.mStartTimeMs;
+    return mMeta.mRegisterTimeMs;
   }
 
   /**
@@ -629,6 +629,14 @@ public final class MasterWorkerInfo {
   }
 
   /**
+   * Sets the revision of worker.
+   * @param revision the version of worker
+   */
+  public void setRevision(String revision) {
+    mMeta.mRevision = revision;
+  }
+
+  /**
    * No locking required.
    *
    * @return the start time of worker
@@ -645,4 +653,14 @@ public final class MasterWorkerInfo {
   public String getVersion() {
     return mMeta.mVersion;
   }
+
+  /**
+   * No locking required.
+   *
+   * @return the version of worker
+   */
+  public String getRevision() {
+    return mMeta.mRevision;
+  }
+
 }

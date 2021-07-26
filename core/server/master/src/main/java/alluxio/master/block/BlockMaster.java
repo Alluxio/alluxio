@@ -195,7 +195,7 @@ public interface BlockMaster extends Master, ContainerIdGenerable {
       Map<String, Long> totalBytesOnTiers, Map<String, Long> usedBytesOnTiers,
       Map<Block.BlockLocation, List<Long>> currentBlocksOnLocation,
       Map<String, StorageList> lostStorage, long startTime, String version,
-      RegisterWorkerPOptions options)
+      String revision, RegisterWorkerPOptions options)
       throws NotFoundException;
 
   /**

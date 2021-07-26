@@ -229,13 +229,15 @@ public class BlockMasterClient extends AbstractMasterClient {
    * @param configList a list of configurations
    * @param startTime the start time of worker
    * @param version the version of worker
+   * @param revision the revision of worker
    */
   // TODO(yupeng): rename to workerBlockReport or workerInitialize?
   public void register(final long workerId, final List<String> storageTierAliases,
       final Map<String, Long> totalBytesOnTiers, final Map<String, Long> usedBytesOnTiers,
       final Map<BlockStoreLocation, List<Long>> currentBlocksOnLocation,
       final Map<String, List<String>> lostStorage, final long startTime,
-      final String version, final List<ConfigProperty> configList) throws IOException {
+      final String version, final String revision,
+      final List<ConfigProperty> configList) throws IOException {
 
     final RegisterWorkerPOptions options =
         RegisterWorkerPOptions.newBuilder().addAllConfigs(configList).build();
@@ -252,7 +254,7 @@ public class BlockMasterClient extends AbstractMasterClient {
         .putAllUsedBytesOnTiers(usedBytesOnTiers)
         .addAllCurrentBlocks(currentBlocks)
         .putAllLostStorage(lostStorageMap)
-        .setStartTime(startTime).setVersion(version)
+        .setStartTime(startTime).setVersion(version).setRevision(revision)
         .setOptions(options).build();
 
     retryRPC(() -> {
