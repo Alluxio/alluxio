@@ -80,7 +80,11 @@ stop_worker() {
     if [[ -d "${cache}" ]]; then
       echo "Directory already exists at ${cache}; overwritting its contents"
       # recursively delete all (including hidden) files of the ramdisk
-      find "${cache}" -mindepth 1 -delete
+      # - avoiding deleting the directory itself to avoid permission
+      #   changes/requirements on the parent directory
+      shopt -s dotglob
+      rm -rf "${cache}/"*
+      shopt -u dotglob
     elif [[ -e "${cache}" ]]; then
       echo "Non-directory file already exists at the path ${cache}; aborting"
       exit 1
@@ -112,7 +116,7 @@ stop_worker() {
 
       # recursively copy all contents of the src directory
       # (including hidden files) to the destination directory
-      cp -dR "${dir}/." "${cache}/${dir}/"
+      cp -R "${dir}/." "${cache}/${dir}/"
       if [[ ${?} -ne 0 ]]; then
         echo "Failed to copy worker ramcache from ${dir} to ${cache}/${dir}"
         exit 1

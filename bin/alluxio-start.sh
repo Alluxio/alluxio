@@ -298,11 +298,15 @@ start_worker() {
         fi
 
         # recursively delete all (including hidden) files of the ramdisk
-        find "${dir}" -mindepth 1 -delete
+        # - avoiding deleting the directory itself to avoid permission
+        #   changes/requirements on the parent directory
+        shopt -s dotglob
+        rm -rf "${dir}/"*
+        shopt -u dotglob
 
         # recursively copy all contents of the src directory
         # (including hidden files) to the destination directory
-        cp -dR "${cache}/${dir}/." "${dir}/"
+        cp -R "${cache}/${dir}/." "${dir}/"
         if [[ ${?} -ne 0 ]]; then
           echo "Failed to populate ramcache at ${dir} with ${cache}/${dir}"
           exit 2
