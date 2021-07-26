@@ -873,7 +873,7 @@ public class ConcurrentBlockMasterTest {
     long workerId = mBlockMaster.getWorkerId(address);
     mBlockMaster.workerRegister(workerId, Arrays.asList("MEM"), MEM_CAPACITY,
         MEM_USAGE_EMPTY, NO_BLOCKS_ON_LOCATION, NO_LOST_STORAGE,
-        mStartTime, ProjectConstants.VERSION,ProjectConstants.REVISION,
+        mStartTime, ProjectConstants.VERSION, ProjectConstants.REVISION,
         RegisterWorkerPOptions.getDefaultInstance());
     return workerId;
   }

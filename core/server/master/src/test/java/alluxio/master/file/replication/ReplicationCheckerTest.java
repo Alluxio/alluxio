@@ -256,7 +256,7 @@ public final class ReplicationCheckerTest {
       mBlockMaster.workerRegister(workerId, ImmutableList.of(Constants.MEDIUM_MEM),
           ImmutableMap.of(Constants.MEDIUM_MEM, 100L),
           ImmutableMap.of(Constants.MEDIUM_MEM, 0L), NO_BLOCKS_ON_LOCATION, NO_LOST_STORAGE,
-          mStartTime, ProjectConstants.VERSION,ProjectConstants.REVISION,
+          mStartTime, ProjectConstants.VERSION, ProjectConstants.REVISION,
           RegisterWorkerPOptions.getDefaultInstance());
       mKnownWorkers.add(workerId);
     }

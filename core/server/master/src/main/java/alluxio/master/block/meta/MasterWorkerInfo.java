@@ -662,5 +662,4 @@ public final class MasterWorkerInfo {
   public String getRevision() {
     return mMeta.mRevision;
   }
-
 }

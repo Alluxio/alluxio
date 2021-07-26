@@ -147,11 +147,11 @@ public final class AlluxioMasterRestServiceHandlerTest {
 
     mBlockMaster.workerRegister(worker1, tiers, WORKER1_TOTAL_BYTES_ON_TIERS,
         WORKER1_USED_BYTES_ON_TIERS, NO_BLOCKS_ON_LOCATIONS, NO_LOST_STORAGE,
-        mStartTime, ProjectConstants.VERSION,ProjectConstants.REVISION,
+        mStartTime, ProjectConstants.VERSION, ProjectConstants.REVISION,
         RegisterWorkerPOptions.getDefaultInstance());
     mBlockMaster.workerRegister(worker2, tiers, WORKER2_TOTAL_BYTES_ON_TIERS,
         WORKER2_USED_BYTES_ON_TIERS, NO_BLOCKS_ON_LOCATIONS, NO_LOST_STORAGE,
-        mStartTime, ProjectConstants.VERSION,ProjectConstants.REVISION,
+        mStartTime, ProjectConstants.VERSION, ProjectConstants.REVISION,
         RegisterWorkerPOptions.getDefaultInstance());
 
     String filesPinnedProperty = MetricKey.MASTER_FILES_PINNED.getName();

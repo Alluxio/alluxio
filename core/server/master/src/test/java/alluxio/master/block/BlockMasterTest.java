@@ -245,7 +245,7 @@ public class BlockMasterTest {
     mBlockMaster.workerRegister(workerId, Arrays.asList(Constants.MEDIUM_MEM),
         ImmutableMap.of(Constants.MEDIUM_MEM, 100L),
         memUsage, ImmutableMap.of(blockLoc, orphanedBlocks), NO_LOST_STORAGE,
-        mStartTime, ProjectConstants.VERSION,ProjectConstants.REVISION,
+        mStartTime, ProjectConstants.VERSION, ProjectConstants.REVISION,
         RegisterWorkerPOptions.getDefaultInstance());
 
     // Check that the worker heartbeat tells the worker to remove the blocks.
@@ -262,7 +262,7 @@ public class BlockMasterTest {
     mBlockMaster.workerRegister(worker, Arrays.asList(Constants.MEDIUM_MEM),
         ImmutableMap.of(Constants.MEDIUM_MEM, 100L),
         initialUsedBytesOnTiers, NO_BLOCKS_ON_LOCATION, NO_LOST_STORAGE,
-        mStartTime, ProjectConstants.VERSION,ProjectConstants.REVISION,
+        mStartTime, ProjectConstants.VERSION, ProjectConstants.REVISION,
         RegisterWorkerPOptions.getDefaultInstance());
 
     // Update used bytes with a worker heartbeat.
@@ -281,7 +281,7 @@ public class BlockMasterTest {
     mBlockMaster.workerRegister(worker, Arrays.asList(Constants.MEDIUM_MEM),
         ImmutableMap.of(Constants.MEDIUM_MEM, 100L),
         ImmutableMap.of(Constants.MEDIUM_MEM, 0L), NO_BLOCKS_ON_LOCATION, NO_LOST_STORAGE,
-        mStartTime, ProjectConstants.VERSION,ProjectConstants.REVISION,
+        mStartTime, ProjectConstants.VERSION, ProjectConstants.REVISION,
         RegisterWorkerPOptions.getDefaultInstance());
     long blockId = 1L;
     mBlockMaster.commitBlock(worker, 50L, Constants.MEDIUM_MEM,
@@ -301,13 +301,13 @@ public class BlockMasterTest {
     mBlockMaster.workerRegister(worker1, Arrays.asList(Constants.MEDIUM_MEM),
         ImmutableMap.of(Constants.MEDIUM_MEM, 100L),
         ImmutableMap.of(Constants.MEDIUM_MEM, 0L), NO_BLOCKS_ON_LOCATION, NO_LOST_STORAGE,
-        mStartTime, ProjectConstants.VERSION,ProjectConstants.REVISION,
+        mStartTime, ProjectConstants.VERSION, ProjectConstants.REVISION,
         RegisterWorkerPOptions.getDefaultInstance());
     long worker2 = mBlockMaster.getWorkerId(NET_ADDRESS_2);
     mBlockMaster.workerRegister(worker2, Arrays.asList(Constants.MEDIUM_MEM),
         ImmutableMap.of(Constants.MEDIUM_MEM, 100L),
         ImmutableMap.of(Constants.MEDIUM_MEM, 0L), NO_BLOCKS_ON_LOCATION, NO_LOST_STORAGE,
-        mStartTime, ProjectConstants.VERSION,ProjectConstants.REVISION,
+        mStartTime, ProjectConstants.VERSION, ProjectConstants.REVISION,
         RegisterWorkerPOptions.getDefaultInstance());
 
     // Commit blockId to worker1.
@@ -344,7 +344,7 @@ public class BlockMasterTest {
         ImmutableMap.of(Constants.MEDIUM_MEM, 100L, Constants.MEDIUM_HDD, 300L),
         ImmutableMap.of(Constants.MEDIUM_MEM, 0L, Constants.MEDIUM_HDD, 0L),
         NO_BLOCKS_ON_LOCATION, NO_LOST_STORAGE,
-        mStartTime, ProjectConstants.VERSION,ProjectConstants.REVISION,
+        mStartTime, ProjectConstants.VERSION, ProjectConstants.REVISION,
         RegisterWorkerPOptions.getDefaultInstance());
 
     Map<String, StorageList> lostStorageOnWorker1 = new HashMap<>();
@@ -395,7 +395,7 @@ public class BlockMasterTest {
     mBlockMaster.workerRegister(worker1, Arrays.asList(Constants.MEDIUM_MEM),
         ImmutableMap.of(Constants.MEDIUM_MEM, 100L),
         ImmutableMap.of(Constants.MEDIUM_MEM, 0L), NO_BLOCKS_ON_LOCATION, NO_LOST_STORAGE,
-        mStartTime, ProjectConstants.VERSION,ProjectConstants.REVISION,
+        mStartTime, ProjectConstants.VERSION, ProjectConstants.REVISION,
         RegisterWorkerPOptions.getDefaultInstance());
     mBlockMaster.commitBlock(worker1, 50L, Constants.MEDIUM_MEM,
         Constants.MEDIUM_MEM, blockId, blockLength);

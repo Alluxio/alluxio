@@ -189,6 +189,7 @@ public interface BlockMaster extends Master, ContainerIdGenerable {
    * @param options the options that may contain worker configuration
    * @param startTime the start time of worker
    * @param version the version of worker
+   * @param revision the revision of worker
    * @throws NotFoundException if workerId cannot be found
    */
   void workerRegister(long workerId, List<String> storageTiers,
