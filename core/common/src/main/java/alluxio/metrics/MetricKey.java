@@ -846,6 +846,12 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setMetricType(MetricType.COUNTER)
           .setIsClusterAggregated(true)
           .build();
+  public static final MetricKey WORKER_ACTIVE_CLIENTS =
+      new Builder("Worker.ActiveClientCount")
+          .setDescription("The number of active client reading or writing to this worker")
+          .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggregated(true)
+          .build();
   public static final MetricKey WORKER_ASYNC_CACHE_DUPLICATE_REQUESTS =
       new Builder("Worker.AsyncCacheDuplicateRequests")
           .setDescription("Total number of duplicated async cache request received by this worker")

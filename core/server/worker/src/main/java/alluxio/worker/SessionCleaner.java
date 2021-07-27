@@ -14,12 +14,18 @@ package alluxio.worker;
 import alluxio.conf.ServerConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.Sessions;
+import alluxio.metrics.MetricKey;
+import alluxio.metrics.MetricsSystem;
 import alluxio.util.CommonUtils;
+import alluxio.worker.block.DefaultBlockWorker;
 
+import com.codahale.metrics.Counter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.concurrent.NotThreadSafe;
+import javax.annotation.concurrent.ThreadSafe;
+
 import java.io.Closeable;
 import java.util.ArrayList;
 import java.util.List;
@@ -85,6 +91,7 @@ public final class SessionCleaner implements Runnable, Closeable {
         for (SessionCleanable sc : mSessionCleanables) {
           sc.cleanupSession(session);
         }
+        Metrics.WORKER_ACTIVE_CLIENTS.dec();
       }
     }
   }
@@ -94,5 +101,13 @@ public final class SessionCleaner implements Runnable, Closeable {
    */
   public void close() {
     mRunning = false;
+  }
+
+  @ThreadSafe
+  public static final class Metrics {
+    private static final Counter WORKER_ACTIVE_CLIENTS =
+        MetricsSystem.counter(MetricKey.WORKER_ACTIVE_CLIENTS.getName());
+
+    private Metrics() {} // prevent instantiation
   }
 }
