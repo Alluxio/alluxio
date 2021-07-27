@@ -125,17 +125,22 @@ The configuration file is in JSON format, and can contain these configurations:
    ```json
    {
      "bypass": {
-       "tables": [
-         "table1",
-         {"regex": "table[23]"},
-         {
-           "table": "table4", 
-           "partitions": [
-             "table4_part1", 
-             {"regex": "table4_part[23]"}
-           ]
-         }
-       ]
+       "tables": {
+         "include": [
+           {"type": "name", "name": "table1"},
+           {"type": "regex", "regex": "table[23]"},
+           {
+             "type": "partition_spec",
+             "table": "table4", 
+             "partitions": {
+               "include": [
+                 {"type": "name", "name": "table4_part1"}, 
+                 {"type": "regex", "regex": "table4_part[23]"}
+               ]
+             }
+           }
+         ]
+       }
      }
    }
    ```
@@ -170,10 +175,12 @@ The configuration file is in JSON format, and can contain these configurations:
    ```json
    {
      "ignore": {
-       "tables": [
-         "table1",
-         {"regex": "table[a-z]"}
-       ]
+       "tables": {
+         "include": [
+           {"type": "name", "name": "table1"},
+           {"type": "regex", "regex": "table[a-z]"}
+        ]
+       }
      }
    }
    ```
@@ -191,21 +198,24 @@ The configuration file is in JSON format, and can contain these configurations:
    ```json
    {
      "bypass": {
-       "tables": [
-         {
-           "table": "partially_bypassed_table", 
-           "partitions": {
-             "exclude": ["normally_mounted_part"]
+       "tables": {
+         "include": [
+           {
+             "type": "partition_spec",
+             "table": "partially_bypassed_table", 
+             "partitions": {
+               "exclude": [{"type": "name", "name": "normally_mounted_part"}]
+             }
            }
-         }
-       ]
+         ]
+       }
      },
      "ignore": {
        "tables": {
          "exclude": [
-           "partially_bypassed_table",
-           "not_ignored_table1",
-           {"regex":  "not_ignored_table[23]"}
+           {"type": "name", "name": "partially_bypassed_table"},
+           {"type": "name", "name": "not_ignored_table1"},
+           {"type": "regex", "regex": "not_ignored_table[23]"}
          ]
        }
      }
@@ -217,30 +227,39 @@ The configuration file is in JSON format, and can contain these configurations:
    tables of the parent database, and any other partitions of the parent table, will be bypassed or 
    ignored.
    
-   Note that to exclude a partition from a table, you need to specify the table in inclusion mode, 
-   and specify that partition inside the exclusion list of the table's partition specification.
-   It is an error to specify partitions of a table inside an exclusion list:
-   
-   ```json
-   {
-     "tables": {
-       "exclude": [
-         {"table": "table1", "partitions": ["part1"]}
-       ]
-     }
-   }
-   ```
-   
-   In the previous example, 
-   partition `normally_mounted_part` of table `partially_bypassed_table` is excluded from 
+   In the above example,
+   partition `normally_mounted_part` of table `partially_bypassed_table` is excluded from
    bypassing, meaning that the partition will be mounted normally, and any other partitions of
-   `partially_bypassed_table` are bypassed. Likewise, all tables except for 
+   `partially_bypassed_table` are bypassed. Likewise, all tables except for
    `not_ignored_table1|2|3`, and `partially_bypassed_table` are ignored.
+   
+   You can use either inclusion or exclusion mode for one entry, but not both. However, the 
+   bypass entry and ignore entry can have modes that are different from each other.
+   
+   > **Note**: to exclude a partition from a table, you need to specify the table in inclusion 
+   > mode, and specify that partition inside the exclusion list of the table's partition 
+   > specification. It is an error to specify partitions of a table inside an exclusion list:
+   >
+   > ```json
+   > {
+   >   "tables": {
+   >     "exclude": [
+   >        {
+   >          "type": "partition_spec", 
+   >          "table": "table1", 
+   >          "partitions": {
+   >            "exclude": [ {"type": "name", "name": "part1"} ]
+   >          }
+   >        }
+   >      ]
+   >    }
+   > }
+   > ```
    
    > **Note:** since ignoring takes precedence over bypassing, when both bypassing and ignoring 
    > are enabled, and exclusion mode is used for ignoring, make sure to add the bypassed tables to 
    > the exclusion list. Otherwise, the bypassing configuration will be overridden and have no 
-   > effect.
+   > effect. See the `partially_bypassed_table` in the previous example.
    
    > **Note:** An empty exclusion list **does not** cause all tables or partitions to be 
    > bypassed or ignored. Instead, it has no effect: no tables or partitions will be bypassed or 
@@ -254,9 +273,11 @@ Examples for common use cases:
    ```json
    {
      "bypass": {
-       "tables": [
-         {"regex": ".*"}
-       ]
+       "tables": {
+         "include": [
+           {"type":"regex", "regex": ".*"}
+         ]
+       }
      }
    }
    ```
@@ -267,7 +288,9 @@ Examples for common use cases:
    {
      "bypass": {
        "tables": {
-         "exclude": [ "not_bypassed_table" ]
+         "exclude": [
+           {"type": "name", "name": "not_bypassed_table"} 
+         ]
        }
      }
    }
@@ -278,61 +301,23 @@ Examples for common use cases:
    ```json
    {
      "bypass": {
-       "tables": [  
-         {"regex": "fully_bypassed_table\\d"},
-         {
-           "table": "partially_bypassed_table1", 
-           "partitions": [
-             {"regex": "bypassed_part_[a-z]"}
-           ]
-         }
-       ]
+       "tables": {
+         "include": [
+           {"type":"regex", "regex": "fully_bypassed_table\\d"},
+           {
+             "type": "partition_spec",
+             "table": "partially_bypassed_table1", 
+             "partitions": {
+               "include": [
+                 {"type": "regex", "regex": "bypassed_part_[a-z]"}
+               ]
+             }
+           }
+         ]
+       }
      }
    }
    ```
-   
-4. Bypassing all partitions matching a pattern, of a group of tables matching another pattern:
-
-   ```json
-   {
-     "bypass": {
-       "tables": [
-         {
-           "table": "partially_bypassed_table1", 
-           "partitions": [
-             {"regex": "table1_part_[a-z]"}
-           ]
-         },
-         {
-           "table": "partially_bypassed_table2",
-           "partitions": [
-             {"regex": "table2_part_[a-z]"}
-           ]
-         }
-       ]
-     }
-   }
-   ```
-
-   You have to specify every individual table, even though they can be captured by a pattern. It 
-   might be tempting to write something like:
-
-   ```json
-   {
-     "bypass": {
-       "tables": [
-         {
-           "regex": "partially_bypassed_table(\\d)", 
-           "partitions": [
-             {"regex": "table$1_part_[a-z]"}
-           ]
-         }
-       ]
-     }
-   }
-   ```
-   
-   However, this is not supported.
 
 ### Exploring Attached Databases
 
