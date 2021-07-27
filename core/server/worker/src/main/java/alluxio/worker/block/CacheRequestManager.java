@@ -81,7 +81,7 @@ public class CacheRequestManager {
   /**
    * Handles a request to cache a block. If it's async cache, it wouldn't throw exception.
    *
-   * @param request the async cache request fields will be available
+   * @param request the cache request fields will be available
    */
   public void submitRequest(CacheRequest request) throws IOException, AlluxioException {
     CACHE_REQUESTS.inc();
@@ -93,7 +93,7 @@ public class CacheRequestManager {
     }
     boolean async = request.getAsync();
     if (!async) {
-      new CacheTask(request).runSync();
+      runSyncCacheTask(request);
     } else {
       try {
         mCacheExecutor.submit(new CacheTask(request));
@@ -116,6 +116,56 @@ public class CacheRequestManager {
   }
 
   /**
+   * The method to cache the block synchronously.
+   * @param request the cache request fields will be available
+   */
+  private void runSyncCacheTask(CacheRequest request) throws IOException, AlluxioException {
+
+    long blockId = request.getBlockId();
+    long blockLength = request.getLength();
+    boolean result = false;
+    try {
+      result = cacheBlock(request);
+    } catch (Exception e) {
+      mPendingCacheRequests.remove(blockId);
+      throw e;
+    } finally {
+      if (result) {
+        CACHE_BLOCKS_SIZE.inc(blockLength);
+        CACHE_SUCCEEDED_BLOCKS.inc();
+      } else {
+        CACHE_FAILED_BLOCKS.inc();
+      }
+    }
+  }
+
+  private boolean cacheBlock(CacheRequest request) throws IOException, AlluxioException {
+    boolean result;
+    boolean isSourceLocal = mLocalWorkerHostname.equals(request.getSourceHost());
+    long blockId = request.getBlockId();
+    long blockLength = request.getLength();
+    // Check if the block has already been cached on this worker
+    if (mBlockWorker.hasBlockMeta(blockId)) {
+      LOG.debug("block already cached: {}", blockId);
+      return true;
+    }
+    Protocol.OpenUfsBlockOptions openUfsBlockOptions = request.getOpenUfsBlockOptions();
+    // Depends on the request, cache the target block from different sources
+    if (isSourceLocal) {
+      CACHE_UFS_BLOCKS.inc();
+      result = cacheBlockFromUfs(blockId, blockLength, openUfsBlockOptions);
+    } else {
+      CACHE_REMOTE_BLOCKS.inc();
+      InetSocketAddress sourceAddress =
+          new InetSocketAddress(request.getSourceHost(), request.getSourcePort());
+      result =
+          cacheBlockFromRemoteWorker(blockId, blockLength, sourceAddress, openUfsBlockOptions);
+    }
+    LOG.debug("Result of caching block {}: {}", blockId, result);
+    return result;
+  }
+
+  /**
    * Caches the block via the local worker to read from UFS.
    *
    * @param blockId block ID
@@ -128,6 +178,7 @@ public class CacheRequestManager {
     try (BlockReader reader = mBlockWorker.createUfsBlockReader(
         Sessions.ASYNC_CACHE_UFS_SESSION_ID, blockId, 0, false, openUfsBlockOptions)) {
       // Read the entire block, caching to block store will be handled internally in UFS block store
+      // when close the reader.
       // Note that, we read from UFS with a smaller buffer to avoid high pressure on heap
       // memory when concurrent async requests are received and thus trigger GC.
       long offset = 0;
@@ -228,7 +279,7 @@ public class CacheRequestManager {
       long blockLength = mRequest.getLength();
       boolean result = false;
       try {
-        result = cacheBlock(blockId, blockLength);
+        result = cacheBlock(mRequest);
       } catch (Exception e) {
         LOG.warn("cache task failed. request: {}", mRequest, e);
       } finally {
@@ -240,54 +291,6 @@ public class CacheRequestManager {
         }
         mPendingCacheRequests.remove(blockId);
       }
-    }
-
-    /**
-     * The method to cache the block synchronously.
-     */
-    public void runSync() throws IOException, AlluxioException {
-
-      long blockId = mRequest.getBlockId();
-      long blockLength = mRequest.getLength();
-      boolean result = false;
-      try {
-        result = cacheBlock(blockId, blockLength);
-      } catch (Exception e) {
-        mPendingCacheRequests.remove(blockId);
-        throw e;
-      } finally {
-        if (result) {
-          CACHE_BLOCKS_SIZE.inc(blockLength);
-          CACHE_SUCCEEDED_BLOCKS.inc();
-        } else {
-          CACHE_FAILED_BLOCKS.inc();
-        }
-      }
-    }
-
-    private boolean cacheBlock(long blockId, long blockLength)
-        throws IOException, AlluxioException {
-      boolean result;
-      boolean isSourceLocal = mLocalWorkerHostname.equals(mRequest.getSourceHost());
-      // Check if the block has already been cached on this worker
-      if (mBlockWorker.hasBlockMeta(blockId)) {
-        LOG.debug("block already cached: {}", blockId);
-        return true;
-      }
-      Protocol.OpenUfsBlockOptions openUfsBlockOptions = mRequest.getOpenUfsBlockOptions();
-      // Depends on the request, cache the target block from different sources
-      if (isSourceLocal) {
-        CACHE_UFS_BLOCKS.inc();
-        result = cacheBlockFromUfs(blockId, blockLength, openUfsBlockOptions);
-      } else {
-        CACHE_REMOTE_BLOCKS.inc();
-        InetSocketAddress sourceAddress =
-            new InetSocketAddress(mRequest.getSourceHost(), mRequest.getSourcePort());
-        result =
-            cacheBlockFromRemoteWorker(blockId, blockLength, sourceAddress, openUfsBlockOptions);
-      }
-      LOG.debug("Result of caching block {}: {}", blockId, result);
-      return result;
     }
   }
   // Metrics
