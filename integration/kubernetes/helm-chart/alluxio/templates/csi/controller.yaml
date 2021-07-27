@@ -44,6 +44,7 @@ spec:
         role: alluxio-csi-controller
     spec:
       hostNetwork: {{ .Values.csi.controllerPlugin.hostNetwork }}
+      dnsPolicy: {{ .Values.csi.controllerPlugin.dnsPolicy }}
       serviceAccountName: csi-controller-sa
       containers:
         - name: csi-provisioner

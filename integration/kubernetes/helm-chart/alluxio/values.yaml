@@ -494,6 +494,7 @@ csi:
   imagePullPolicy: IfNotPresent
   controllerPlugin:
     hostNetwork: true
+    dnsPolicy: ClusterFirstWithHostNet
     provisioner:
       # for kubernates 1.13 or above
       image: quay.io/k8scsi/csi-provisioner:v1.4.0
@@ -515,6 +516,7 @@ csi:
   # Will run fuse daemon inside csi nodeserver
   nodePlugin:
     hostNetwork: true
+    dnsPolicy: ClusterFirstWithHostNet
     nodeserver:
       resources:
         # The default xmx is 8G
@@ -547,4 +549,4 @@ csi:
     - entry_timeout=36000
     - attr_timeout=36000
     - max_readahead=0
-  javaOptions: "-Dalluxio.user.metadata.cache.enabled=true"
+  javaOptions: "-Dalluxio.user.metadata.cache.enabled=true "
