@@ -419,8 +419,11 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
 
   @Override
   public long lockBlock(long sessionId, long blockId) {
-    Metrics.WORKER_ACTIVE_CLIENTS.inc();
-    return mLocalBlockStore.lockBlockNoException(sessionId, blockId);
+    long lockId = mLocalBlockStore.lockBlockNoException(sessionId, blockId);
+    if (lockId != INVALID_LOCK_ID) {
+      Metrics.WORKER_ACTIVE_CLIENTS.inc();
+    }
+    return lockId;
   }
 
   @Override
