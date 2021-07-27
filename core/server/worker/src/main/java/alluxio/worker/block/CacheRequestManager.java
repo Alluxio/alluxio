@@ -125,16 +125,17 @@ public class CacheRequestManager {
    */
   private boolean cacheBlockFromUfs(long blockId, long blockSize,
       Protocol.OpenUfsBlockOptions openUfsBlockOptions) throws IOException, AlluxioException {
-    BlockReader reader = mBlockWorker.createUfsBlockReader(Sessions.ASYNC_CACHE_UFS_SESSION_ID,
-        blockId, 0, false, openUfsBlockOptions);
-    // Read the entire block, caching to block store will be handled internally in UFS block store
-    // Note that, we read from UFS with a smaller buffer to avoid high pressure on heap
-    // memory when concurrent async requests are received and thus trigger GC.
-    long offset = 0;
-    while (offset < blockSize) {
-      long bufferSize = Math.min(8L * Constants.MB, blockSize - offset);
-      reader.read(offset, bufferSize);
-      offset += bufferSize;
+    try (BlockReader reader = mBlockWorker.createUfsBlockReader(
+        Sessions.ASYNC_CACHE_UFS_SESSION_ID, blockId, 0, false, openUfsBlockOptions)) {
+      // Read the entire block, caching to block store will be handled internally in UFS block store
+      // Note that, we read from UFS with a smaller buffer to avoid high pressure on heap
+      // memory when concurrent async requests are received and thus trigger GC.
+      long offset = 0;
+      while (offset < blockSize) {
+        long bufferSize = Math.min(8L * Constants.MB, blockSize - offset);
+        reader.read(offset, bufferSize);
+        offset += bufferSize;
+      }
     }
     return true;
   }
