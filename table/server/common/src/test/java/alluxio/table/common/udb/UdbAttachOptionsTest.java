@@ -12,6 +12,7 @@
 package alluxio.table.common.udb;
 
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 
 import com.google.common.collect.ImmutableSet;
@@ -122,28 +123,25 @@ public class UdbAttachOptionsTest {
     assertTrue(spec.isBypassedPartition(getTableName("a"), getPartitionName("a")));
   }
 
-  @Test(expected = IllegalArgumentException.class)
+  @Test
   public void rejectTableExplicitNameAndPartitionSpecAtSameTime() {
-    mBuilder.bypass()
-        .include()
-        .addTable(getTableName(1))
-        .addPartition(getTableName(1), getPartitionName(1));
-
-    mBuilder.build();
+    mBuilder.bypass().include().addTable(getTableName(1));
+    assertThrows(IllegalStateException.class,
+        () -> mBuilder.addPartition(getTableName(1), getPartitionName(1)));
   }
 
-  @Test(expected = IllegalArgumentException.class)
+  @Test
   public void rejectInclusionExclusionAtSameTime() {
     mBuilder.bypass().include().addTable(getTableName(1));
-    mBuilder.bypass().exclude().addTable(getTableName(2));
-    mBuilder.build();
+    assertThrows(IllegalStateException.class,
+        () -> mBuilder.bypass().exclude().addTable(getTableName(2)));
   }
 
-  @Test(expected = IllegalArgumentException.class)
+  @Test
   public void rejectInclusionExclusionAtSameTime2() {
     mBuilder.bypass().include().addPartition(getTableName(1), getPartitionName(1));
-    mBuilder.bypass().exclude().addPartition(getTableName(1), getPartitionName(2));
-    mBuilder.build();
+    assertThrows(IllegalStateException.class,
+        () -> mBuilder.bypass().exclude().addPartition(getTableName(1), getPartitionName(2)));
   }
 
   /* Exclusion tests */
@@ -198,8 +196,7 @@ public class UdbAttachOptionsTest {
 
   @Test
   public void excludeNothingIsIncludeNothing() {
-    mBuilder.bypass()
-        .exclude().addTables(Collections.emptySet()).addTables(Collections.emptySet());
+    mBuilder.bypass().exclude().addTables(Collections.emptySet());
     UdbAttachOptions spec = mBuilder.build();
     assertFalse(spec.isBypassedTable(ANY_TABLE));
   }
@@ -257,7 +254,6 @@ public class UdbAttachOptionsTest {
 
   @Test
   public void ignoreNone() {
-    mBuilder.ignore().include().addTables(ImmutableSet.of());
     mBuilder.ignore().include().addTables(ImmutableSet.of());
     UdbAttachOptions spec = mBuilder.build();
     assertFalse(spec.isIgnoredTable(ANY_TABLE));
