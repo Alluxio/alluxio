@@ -368,6 +368,11 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setDescription("An estimate of the blocks heap size")
           .setMetricType(MetricType.GAUGE)
           .build();
+  public static final MetricKey MASTER_RPC_QUEUE_LENGTH =
+      new Builder("Master.RpcQueueLength")
+          .setDescription("Length of the master rpc queue")
+          .setMetricType(MetricType.GAUGE)
+          .build();
 
   // Backup Restore
   public static final MetricKey MASTER_LAST_BACKUP_ENTRIES_COUNT =
@@ -722,7 +727,7 @@ public final class MetricKey implements Comparable<MetricKey> {
           .build();
   public static final MetricKey CLUSTER_BYTES_READ_UFS_ALL =
       new Builder("Cluster.BytesReadUfsAll")
-          .setDescription("Total number of bytes read from a all Alluxio UFSes by all workers")
+          .setDescription("Total number of bytes read from all Alluxio UFSes by all workers")
           .setMetricType(MetricType.COUNTER)
           .build();
   public static final MetricKey CLUSTER_BYTES_READ_UFS_THROUGHPUT =
@@ -782,6 +787,11 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setDescription("Bytes write per minute throughput to all Alluxio UFSes by all workers")
           .setMetricType(MetricType.GAUGE)
           .build();
+  public static final MetricKey CLUSTER_CACHE_HIT_RATE =
+      new Builder("Cluster.CacheHitRate")
+          .setDescription("Cache hit rate: (# bytes read from cache) / (# bytes requested)")
+          .setMetricType(MetricType.GAUGE)
+          .build();
   public static final MetricKey CLUSTER_CAPACITY_TOTAL =
       new Builder("Cluster.CapacityTotal")
           .setDescription("Total capacity (in bytes) on all tiers, on all workers of Alluxio")
@@ -835,6 +845,48 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setDescription("The number of active write-RPCs managed by this worker")
           .setMetricType(MetricType.COUNTER)
           .setIsClusterAggregated(true)
+          .build();
+  public static final MetricKey WORKER_ACTIVE_CLIENTS =
+      new Builder("Worker.ActiveClients")
+          .setDescription("The number of clients actively reading from or writing to this worker")
+          .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggregated(true)
+          .build();
+  public static final MetricKey WORKER_ASYNC_CACHE_DUPLICATE_REQUESTS =
+      new Builder("Worker.AsyncCacheDuplicateRequests")
+          .setDescription("Total number of duplicated async cache request received by this worker")
+          .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggregated(false)
+          .build();
+  public static final MetricKey WORKER_ASYNC_CACHE_FAILED_BLOCKS =
+      new Builder("Worker.AsyncCacheFailedBlocks")
+          .setDescription("Total number of async cache failed blocks in this worker")
+          .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggregated(false)
+          .build();
+  public static final MetricKey WORKER_ASYNC_CACHE_REMOTE_BLOCKS =
+      new Builder("Worker.AsyncCacheRemoteBlocks")
+          .setDescription("Total number of blocks that need to be async cached from remote source")
+          .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggregated(false)
+          .build();
+  public static final MetricKey WORKER_ASYNC_CACHE_REQUESTS =
+      new Builder("Worker.AsyncCacheRequests")
+          .setDescription("Total number of async cache request received by this worker")
+          .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggregated(false)
+          .build();
+  public static final MetricKey WORKER_ASYNC_CACHE_SUCCEEDED_BLOCKS =
+      new Builder("Worker.AsyncCacheSucceededBlocks")
+          .setDescription("Total number of async cache succeeded blocks in this worker")
+          .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggregated(false)
+          .build();
+  public static final MetricKey WORKER_ASYNC_CACHE_UFS_BLOCKS =
+      new Builder("Worker.AsyncCacheUfsBlocks")
+          .setDescription("Total number of blocks that need to be async cached from local source")
+          .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggregated(false)
           .build();
   public static final MetricKey WORKER_BLOCKS_ACCESSED =
       new Builder("Worker.BlocksAccessed")
@@ -1425,6 +1477,24 @@ public final class MetricKey implements Comparable<MetricKey> {
       new Builder("Fuse.BytesRead")
           .setDescription("Total number of bytes read through Fuse.read() operations.")
           .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggregated(false)
+          .build();
+  public static final MetricKey FUSE_WRITING_FILE_COUNT =
+      new Builder("Fuse.WritingFileCount")
+          .setDescription("Total number of files being written concurrently.")
+          .setMetricType(MetricType.GAUGE)
+          .setIsClusterAggregated(false)
+          .build();
+  public static final MetricKey FUSE_READING_FILE_COUNT =
+      new Builder("Fuse.ReadingFileCount")
+          .setDescription("Total number of files being read concurrently.")
+          .setMetricType(MetricType.GAUGE)
+          .setIsClusterAggregated(false)
+          .build();
+  public static final MetricKey FUSE_CACHED_PATH_COUNT =
+      new Builder("Fuse.CachedPathCount")
+          .setDescription("Total number of Alluxio paths to cache for FUSE conversion.")
+          .setMetricType(MetricType.GAUGE)
           .setIsClusterAggregated(false)
           .build();
 

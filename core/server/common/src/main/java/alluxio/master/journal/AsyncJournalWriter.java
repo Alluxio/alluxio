@@ -136,10 +136,18 @@ public final class AsyncJournalWriter {
   private final Set<FlushTicket> mTicketSet = new ConcurrentHashSet<>();
 
   /**
+   * If this is UFS journal, we have one AsyncJournalWriter threads per journal.
+   * We use this suffix to distinguish different threads.
+   * If this is RAFT embedded journal, there is only one AsyncJournalWriter thread.
+   */
+  private String mJournalName = "Raft";
+
+  /**
    * Dedicated thread for writing and flushing entries in journal queue.
    * It goes over the {@code mTicketList} after every flush session and releases waiters.
    */
-  private Thread mFlushThread = new Thread(this::doFlush, "AsyncJournalWriterThread");
+  private Thread mFlushThread = new Thread(this::doFlush,
+      "AsyncJournalWriterThread-" + mJournalName);
 
   /**
    * Used to give permits to flush thread to start processing immediately.
@@ -171,6 +179,19 @@ public final class AsyncJournalWriter {
         TimeUnit.MILLISECONDS);
     mJournalSinks = journalSinks;
     mFlushThread.start();
+  }
+
+  /**
+   * Creates a {@link AsyncJournalWriter}.
+   *
+   * @param journalWriter a journal writer to write to
+   * @param journalSinks a supplier for journal sinks
+   * @param journalName the journal source name
+   */
+  public AsyncJournalWriter(JournalWriter journalWriter, Supplier<Set<JournalSink>> journalSinks,
+      String journalName) {
+    this(journalWriter, journalSinks);
+    mJournalName = journalName;
   }
 
   /**

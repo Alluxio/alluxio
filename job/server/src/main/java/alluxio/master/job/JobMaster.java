@@ -24,6 +24,7 @@ import alluxio.exception.JobDoesNotExistException;
 import alluxio.exception.status.ResourceExhaustedException;
 import alluxio.grpc.GrpcService;
 import alluxio.grpc.JobCommand;
+import alluxio.grpc.ListAllPOptions;
 import alluxio.grpc.RegisterCommand;
 import alluxio.grpc.ServiceType;
 import alluxio.heartbeat.HeartbeatContext;
@@ -37,6 +38,7 @@ import alluxio.job.plan.PlanConfig;
 import alluxio.job.wire.JobInfo;
 import alluxio.job.wire.JobServiceSummary;
 import alluxio.job.wire.JobWorkerHealth;
+import alluxio.job.wire.Status;
 import alluxio.job.wire.TaskInfo;
 import alluxio.job.wire.WorkflowInfo;
 import alluxio.job.workflow.WorkflowConfig;
@@ -71,6 +73,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.stream.Collectors;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -276,12 +279,18 @@ public class JobMaster extends AbstractMaster implements NoopJournaled {
 
   /**
    * @return list of all job ids
+   * @param options listing options
    */
-  public List<Long> list() {
-    ArrayList<Long> allIds = Lists.newArrayList(mPlanTracker.list());
-    allIds.addAll(mWorkflowTracker.list());
-    Collections.sort(allIds);
-    return allIds;
+  public List<Long> list(ListAllPOptions options) {
+    List<Long> ids = new ArrayList<>();
+    ids.addAll(mPlanTracker.findJobs(options.getName(),
+        options.getStatusList().stream()
+            .map(status -> Status.valueOf(status.name())).collect(Collectors.toList())));
+    ids.addAll(mWorkflowTracker.findJobs(options.getName(),
+        options.getStatusList().stream()
+            .map(status -> Status.valueOf(status.name())).collect(Collectors.toList())));
+    Collections.sort(ids);
+    return ids;
   }
 
   /**

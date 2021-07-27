@@ -81,8 +81,8 @@ spec:
             topologyKey: kubernetes.io/hostname
       containers:
         - name: alluxio-fuse
-          image: {{ .Values.fuse.image }}:{{ .Values.fuse.imageTag }}
-          imagePullPolicy: {{ .Values.fuse.imagePullPolicy }}
+          image: {{ .Values.image }}:{{ .Values.imageTag }}
+          imagePullPolicy: {{ .Values.imagePullPolicy }}
           {{- if .Values.fuse.resources  }}
           resources:
             {{- if .Values.fuse.resources.limits }}

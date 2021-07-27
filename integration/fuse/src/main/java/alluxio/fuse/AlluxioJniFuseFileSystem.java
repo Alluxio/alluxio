@@ -179,6 +179,15 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
     mIsUserGroupTranslation = conf.getBoolean(PropertyKey.FUSE_USER_GROUP_TRANSLATION_ENABLED);
     mMaxUmountWaitTime = (int) conf.getMs(PropertyKey.FUSE_UMOUNT_TIMEOUT);
     mAuthPolicy = AuthPolicyFactory.create(mFileSystem, conf, this);
+    MetricsSystem.registerGaugeIfAbsent(
+        MetricsSystem.getMetricName(MetricKey.FUSE_READING_FILE_COUNT.getName()),
+        mOpenFileEntries::size);
+    MetricsSystem.registerGaugeIfAbsent(
+        MetricsSystem.getMetricName(MetricKey.FUSE_WRITING_FILE_COUNT.getName()),
+        mCreateFileEntries::size);
+    MetricsSystem.registerGaugeIfAbsent(
+        MetricsSystem.getMetricName(MetricKey.FUSE_CACHED_PATH_COUNT.getName()),
+        mPathResolverCache::size);
   }
 
   @Override

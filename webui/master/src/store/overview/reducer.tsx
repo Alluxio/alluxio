@@ -16,6 +16,7 @@ import { IOverviewState, OverviewActionTypes } from './types';
 export const initialOverviewState: IOverviewState = {
   data: {
     capacity: '',
+    clusterId: '',
     configCheckErrors: [],
     configCheckStatus: '',
     configCheckWarns: [],
@@ -24,6 +25,7 @@ export const initialOverviewState: IOverviewState = {
     diskFreeCapacity: '',
     diskUsedCapacity: '',
     freeCapacity: '',
+    journalCheckpointTimeWarning: '',
     journalDiskWarnings: [],
     liveWorkerNodes: 0,
     masterNodeAddress: '',

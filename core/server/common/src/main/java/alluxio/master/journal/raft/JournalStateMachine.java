@@ -40,7 +40,6 @@ import org.apache.ratis.protocol.RaftGroupId;
 import org.apache.ratis.protocol.RaftGroupMemberId;
 import org.apache.ratis.protocol.RaftPeerId;
 import org.apache.ratis.server.RaftServer;
-import org.apache.ratis.server.impl.RaftServerProxy;
 import org.apache.ratis.server.protocol.TermIndex;
 import org.apache.ratis.server.raftlog.RaftLog;
 import org.apache.ratis.server.storage.RaftStorage;
@@ -295,14 +294,14 @@ public class JournalStateMachine extends BaseStateMachine {
   }
 
   @Override
-  public void notifyIndexUpdate(long term, long index) {
-    super.notifyIndexUpdate(term, index);
+  public void notifyTermIndexUpdated(long term, long index) {
+    super.notifyTermIndexUpdated(term, index);
     CompletableFuture.runAsync(mJournalSystem::updateGroup);
   }
 
   private long getNextIndex() {
     try {
-      return ((RaftServerProxy) mServer).getImpl(mRaftGroupId).getState().getLog().getNextIndex();
+      return mServer.getDivision(mRaftGroupId).getRaftLog().getNextIndex();
     } catch (IOException e) {
       throw new IllegalStateException("Cannot obtain raft log index", e);
     }
