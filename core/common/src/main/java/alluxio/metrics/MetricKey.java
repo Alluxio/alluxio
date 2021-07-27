@@ -836,48 +836,6 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setMetricType(MetricType.COUNTER)
           .setIsClusterAggregated(true)
           .build();
-  public static final MetricKey WORKER_ASYNC_CACHE_DUPLICATE_REQUESTS =
-      new Builder("Worker.AsyncCacheDuplicateRequests")
-          .setDescription("Total number of duplicated async cache request received by this worker")
-          .setMetricType(MetricType.COUNTER)
-          .setIsClusterAggregated(false)
-          .build();
-  public static final MetricKey WORKER_ASYNC_CACHE_FAILED_BLOCKS =
-      new Builder("Worker.AsyncCacheFailedBlocks")
-          .setDescription("Total number of async cache failed blocks in this worker")
-          .setMetricType(MetricType.COUNTER)
-          .setIsClusterAggregated(false)
-          .build();
-  public static final MetricKey WORKER_ASYNC_CACHE_REMOTE_BLOCKS =
-      new Builder("Worker.AsyncCacheRemoteBlocks")
-          .setDescription("Total number of blocks that need to be async cached from remote source")
-          .setMetricType(MetricType.COUNTER)
-          .setIsClusterAggregated(false)
-          .build();
-  public static final MetricKey WORKER_ASYNC_CACHE_REQUESTS =
-      new Builder("Worker.AsyncCacheRequests")
-          .setDescription("Total number of async cache request received by this worker")
-          .setMetricType(MetricType.COUNTER)
-          .setIsClusterAggregated(false)
-          .build();
-  public static final MetricKey WORKER_ASYNC_CACHE_SUCCEEDED_BLOCKS =
-      new Builder("Worker.AsyncCacheSucceededBlocks")
-          .setDescription("Total number of async cache succeeded blocks in this worker")
-          .setMetricType(MetricType.COUNTER)
-          .setIsClusterAggregated(false)
-          .build();
-  public static final MetricKey WORKER_ASYNC_CACHE_UFS_BLOCKS =
-      new Builder("Worker.AsyncCacheUfsBlocks")
-          .setDescription("Total number of blocks that need to be async cached from local source")
-          .setMetricType(MetricType.COUNTER)
-          .setIsClusterAggregated(false)
-          .build();
-  public static final MetricKey WORKER_ASYNC_CACHE_BLOCKS_SIZE =
-      new Builder("Worker.AsyncCacheBlocksSize")
-          .setDescription("Total number of bytes that being cached through async cache requests")
-          .setMetricType(MetricType.COUNTER)
-          .setIsClusterAggregated(false)
-          .build();
   public static final MetricKey WORKER_BLOCKS_ACCESSED =
       new Builder("Worker.BlocksAccessed")
           .setDescription("Total number of times any one of the blocks in this worker is accessed.")
@@ -1085,7 +1043,7 @@ public final class MetricKey implements Comparable<MetricKey> {
           .build();
   public static final MetricKey WORKER_CACHE_FAILED_BLOCKS =
       new Builder("Worker.CacheFailedBlocks")
-          .setDescription("Total number of async cache blocks in this worker")
+          .setDescription("Total number of failed cache blocks in this worker")
           .setMetricType(MetricType.COUNTER)
           .setIsClusterAggregated(false)
           .build();

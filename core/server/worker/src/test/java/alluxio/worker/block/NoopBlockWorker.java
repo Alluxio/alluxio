@@ -16,7 +16,6 @@ import alluxio.exception.BlockAlreadyExistsException;
 import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.InvalidWorkerStateException;
 import alluxio.exception.WorkerOutOfSpaceException;
-import alluxio.grpc.AsyncCacheRequest;
 import alluxio.grpc.CacheRequest;
 import alluxio.grpc.GrpcService;
 import alluxio.grpc.ServiceType;
@@ -164,14 +163,8 @@ public class NoopBlockWorker implements BlockWorker {
   }
 
   @Override
-  public void asyncCache(AsyncCacheRequest request) {
+  public void cache(CacheRequest request) {
     // noop
-  }
-
-  @Override
-  public boolean cache(CacheRequest request) {
-    // noop
-    return false;
   }
 
   @Override

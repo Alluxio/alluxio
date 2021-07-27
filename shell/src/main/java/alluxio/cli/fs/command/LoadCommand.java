@@ -12,7 +12,6 @@
 package alluxio.cli.fs.command;
 
 import alluxio.AlluxioURI;
-import alluxio.Constants;
 import alluxio.annotation.PublicApi;
 import alluxio.cli.CommandUtils;
 import alluxio.client.block.AlluxioBlockStore;
@@ -29,12 +28,10 @@ import alluxio.exception.AlluxioException;
 import alluxio.exception.PreconditionMessage;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.grpc.CacheRequest;
-import alluxio.grpc.CacheResponse;
 import alluxio.grpc.OpenFilePOptions;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.resource.CloseableResource;
 import alluxio.util.FileSystemOptions;
-import alluxio.util.ThreadFactoryUtils;
 import alluxio.wire.BlockInfo;
 import alluxio.wire.WorkerNetAddress;
 
@@ -44,14 +41,7 @@ import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -61,13 +51,14 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 @PublicApi
 public final class LoadCommand extends AbstractFileSystemCommand {
-  // todo(jianjian) add option for timeout and parallelism(compatibility?)
-  private static final int DEFAULT_PARALLELISM = 4;
 
-  private static final Option LOCAL_OPTION = Option.builder().longOpt("local").required(false)
-      .hasArg(false).desc("load the file to local worker.").build();
-
-  private static final long DEFAULT_TIMEOUT = 20 * Constants.MINUTE_MS;
+  private static final Option LOCAL_OPTION =
+      Option.builder()
+          .longOpt("local")
+          .required(false)
+          .hasArg(false)
+          .desc("load the file to local worker.")
+          .build();
 
   /**
    * Constructs a new instance to load a file or directory in Alluxio space.
@@ -91,30 +82,9 @@ public final class LoadCommand extends AbstractFileSystemCommand {
   @Override
   protected void runPlainPath(AlluxioURI plainPath, CommandLine cl)
       throws AlluxioException, IOException {
-    ExecutorService service = Executors.newFixedThreadPool(DEFAULT_PARALLELISM,
-        ThreadFactoryUtils.build("load-cli-%d", true));
 
-    List<LoadTask> tasks = new ArrayList<>();
+    load(plainPath, cl.hasOption(LOCAL_OPTION.getLongOpt()));
 
-    load(plainPath, cl.hasOption(LOCAL_OPTION.getLongOpt()), tasks);
-    try {
-      List<Future<Boolean>> futures =
-          service.invokeAll(tasks, DEFAULT_TIMEOUT, TimeUnit.MILLISECONDS);
-      for (Future<Boolean> future : futures) {
-        if (!future.isCancelled()) {
-          try {
-            boolean result = future.get();
-            // TODO(jianjian): post process failure blocks
-          } catch (ExecutionException e) {
-            System.out.println("Fatal error: " + e);
-          }
-        }
-      }
-    } catch (InterruptedException e) {
-      System.out.println("Load interrupted, exiting.");
-    } finally {
-      service.shutdownNow();
-    }
     System.out.println(plainPath + " loaded");
   }
 
@@ -133,7 +103,7 @@ public final class LoadCommand extends AbstractFileSystemCommand {
    * @param filePath The {@link AlluxioURI} path to load into Alluxio
    * @param local whether to load data to local worker even when the data is already loaded remotely
    */
-  private void load(AlluxioURI filePath, boolean local, List<LoadTask> tasks)
+  private void load(AlluxioURI filePath, boolean local)
       throws AlluxioException, IOException {
     URIStatus status = mFileSystem.getStatus(filePath);
 
@@ -141,7 +111,7 @@ public final class LoadCommand extends AbstractFileSystemCommand {
       List<URIStatus> statuses = mFileSystem.listStatus(filePath);
       for (URIStatus uriStatus : statuses) {
         AlluxioURI newPath = new AlluxioURI(uriStatus.getPath());
-        load(newPath, local, tasks);
+        load(newPath, local);
       }
     } else {
       if (local) {
@@ -156,12 +126,12 @@ public final class LoadCommand extends AbstractFileSystemCommand {
         return;
       }
 
-      queueLoadTasks(filePath, status, local, tasks);
+      runLoadTask(filePath, status, local);
     }
   }
 
-  private void queueLoadTasks(AlluxioURI filePath, URIStatus status, boolean local,
-      List<LoadTask> tasks) throws IOException {
+  private void runLoadTask(AlluxioURI filePath, URIStatus status, boolean local)
+      throws IOException {
     AlluxioConfiguration conf = mFsContext.getPathConf(filePath);
     OpenFilePOptions options = FileSystemOptions.openFileDefaults(conf);
     BlockLocationPolicy policy = Preconditions.checkNotNull(
@@ -183,7 +153,7 @@ public final class LoadCommand extends AbstractFileSystemCommand {
       }
       Protocol.OpenUfsBlockOptions openUfsBlockOptions =
           new InStreamOptions(status, options, conf).getOpenUfsBlockOptions(blockId);
-      tasks.add(new LoadTask(blockId, dataSource, local, status, openUfsBlockOptions));
+      cacheBlock(blockId, dataSource, local, status, openUfsBlockOptions);
     }
   }
 
@@ -202,48 +172,29 @@ public final class LoadCommand extends AbstractFileSystemCommand {
     CommandUtils.checkNumOfArgsNoLessThan(this, cl, 1);
   }
 
-  private class LoadTask implements Callable<Boolean> {
-    private final long mBlockId;
-    private final WorkerNetAddress mDataSource;
-    private final boolean mLocal;
-    private final URIStatus mStatus;
-    private final Protocol.OpenUfsBlockOptions mOptions;
-
-    LoadTask(long blockId, WorkerNetAddress dataSource, boolean local, URIStatus status,
-        Protocol.OpenUfsBlockOptions options) {
-      mBlockId = blockId;
-      mDataSource = dataSource;
-      mLocal = local;
-      mStatus = status;
-      mOptions = options;
-    }
-
-    @Override
-    public Boolean call() throws Exception {
-      BlockInfo info = mStatus.getBlockInfo(mBlockId);
-      long blockLength = info.getLength();
-      CacheRequest request = CacheRequest.newBuilder().setBlockId(mBlockId).setLength(blockLength)
-          .setOpenUfsBlockOptions(mOptions)
-          .setSourceHost(mDataSource.getHost()).setSourcePort(mDataSource.getDataPort()).build();
-      // TODO(jianjian) support FUSE processLocalWorker?
-      WorkerNetAddress worker;
-      try {
-        if (mLocal) {
-          // send request to local worker
-          worker = mFsContext.getNodeLocalWorker();
-        } else { // send request to data source
-          worker = mDataSource;
-        }
-        try (CloseableResource<BlockWorkerClient> blockWorker =
-            mFsContext.acquireBlockWorkerClient(worker)) {
-          CacheResponse response = blockWorker.get().cache(request);
-          return response.getSuccess();
-        }
-      } catch (Exception e) {
-        System.out.printf("Failed to complete cache request for block %d of file %s: %s", mBlockId,
-            mStatus.getPath(), e.toString());
+  private void cacheBlock(long blockId, WorkerNetAddress dataSource, boolean local,
+      URIStatus status, Protocol.OpenUfsBlockOptions options) {
+    BlockInfo info = status.getBlockInfo(blockId);
+    long blockLength = info.getLength();
+    CacheRequest request = CacheRequest.newBuilder().setBlockId(blockId).setLength(blockLength)
+        .setOpenUfsBlockOptions(options).setSourceHost(dataSource.getHost())
+        .setSourcePort(dataSource.getDataPort()).build();
+    // TODO(jianjian) support FUSE processLocalWorker?
+    WorkerNetAddress worker;
+    try {
+      if (local) {
+        // send request to local worker
+        worker = mFsContext.getNodeLocalWorker();
+      } else { // send request to data source
+        worker = dataSource;
       }
-      return false;
+      try (CloseableResource<BlockWorkerClient> blockWorker =
+          mFsContext.acquireBlockWorkerClient(worker)) {
+        blockWorker.get().cache(request);
+      }
+    } catch (Exception e) {
+      System.out.printf("Failed to complete cache request for block %d of file %s: %s", blockId,
+          status.getPath(), e.toString());
     }
   }
 }

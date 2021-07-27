@@ -21,13 +21,13 @@ import alluxio.WorkerStorageTierAssoc;
 import alluxio.client.file.FileSystemContext;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
+import alluxio.exception.AlluxioException;
 import alluxio.exception.BlockAlreadyExistsException;
 import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.InvalidWorkerStateException;
 import alluxio.exception.WorkerOutOfSpaceException;
 import alluxio.exception.status.UnavailableException;
-import alluxio.grpc.AsyncCacheRequest;
 import alluxio.grpc.CacheRequest;
 import alluxio.grpc.GrpcService;
 import alluxio.grpc.ServiceType;
@@ -540,13 +540,8 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
   }
 
   @Override
-  public void asyncCache(AsyncCacheRequest request) {
+  public void cache(CacheRequest request) throws IOException, AlluxioException {
     mCacheManager.submitRequest(request);
-  }
-
-  @Override
-  public boolean cache(CacheRequest request) {
-    return mCacheManager.submitRequest(request);
   }
 
   @Override

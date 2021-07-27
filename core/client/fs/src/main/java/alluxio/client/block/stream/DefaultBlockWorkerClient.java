@@ -15,8 +15,6 @@ import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.exception.status.UnauthenticatedException;
-import alluxio.grpc.AsyncCacheRequest;
-import alluxio.grpc.AsyncCacheResponse;
 import alluxio.grpc.BlockWorkerGrpc;
 import alluxio.grpc.CacheRequest;
 import alluxio.grpc.CacheResponse;
@@ -216,28 +214,28 @@ public class DefaultBlockWorkerClient implements BlockWorkerClient {
   }
 
   @Override
-  public void asyncCache(final AsyncCacheRequest request) {
-    mRpcAsyncStub.withDeadlineAfter(mRpcTimeoutMs, TimeUnit.MILLISECONDS)
-        .asyncCache(request, new StreamObserver<AsyncCacheResponse>() {
-          @Override
-          public void onNext(AsyncCacheResponse value) {
-            // we don't use response from the RPC
-          }
+  public void cache(CacheRequest request) {
+    boolean async = request.getAsync();
+    if (async) {
+      mRpcAsyncStub.withDeadlineAfter(mRpcTimeoutMs, TimeUnit.MILLISECONDS).cache(request,
+          new StreamObserver<CacheResponse>() {
+            @Override
+            public void onNext(CacheResponse value) {
+              // we don't use response from the RPC
+            }
 
-          @Override
-          public void onError(Throwable t) {
-            LOG.warn("Error sending async cache request {} to worker {}.", request, mAddress, t);
-          }
+            @Override
+            public void onError(Throwable t) {
+              LOG.warn("Error sending async cache request {} to worker {}.", request, mAddress, t);
+            }
 
-          @Override
-          public void onCompleted() {
-            // we don't use response from the RPC
-          }
-        });
-  }
-
-  @Override
-  public CacheResponse cache(CacheRequest request) {
-    return mRpcBlockingStub.withDeadlineAfter(mRpcTimeoutMs, TimeUnit.MILLISECONDS).cache(request);
+            @Override
+            public void onCompleted() {
+              // we don't use response from the RPC
+            }
+          });
+    } else {
+      mRpcBlockingStub.withDeadlineAfter(mRpcTimeoutMs, TimeUnit.MILLISECONDS).cache(request);
+    }
   }
 }

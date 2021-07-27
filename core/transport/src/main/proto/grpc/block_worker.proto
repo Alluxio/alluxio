@@ -20,7 +20,6 @@ service BlockWorker {
   // Replaces ShortCircuitBlockWriteHandler.
   rpc CreateLocalBlock (stream CreateLocalBlockRequest) returns (stream CreateLocalBlockResponse);
 
-  rpc AsyncCache (AsyncCacheRequest) returns (AsyncCacheResponse);
   rpc Cache (CacheRequest) returns (CacheResponse);
   rpc RemoveBlock (RemoveBlockRequest) returns (RemoveBlockResponse);
   rpc MoveBlock (MoveBlockRequest) returns (MoveBlockResponse);
@@ -109,21 +108,7 @@ message WriteResponse {
   // Errors will be handled by standard gRPC stream APIs.
 }
 
-// Request for caching a block asynchronously
-// next available id: 6
-message AsyncCacheRequest {
-  optional int64 block_id = 1;
-  // TODO(calvin): source host and port should be replace with WorkerNetAddress
-  optional string source_host = 2;
-  optional int32 source_port = 3;
-  optional alluxio.proto.dataserver.OpenUfsBlockOptions open_ufs_block_options = 4;
-  optional int64 length = 5;
-}
-
-// Response for an async cache request
-message AsyncCacheResponse {}
-
-// Request for caching a block synchronously
+// Request for caching a block synchronously/asynchronously
 // next available id: 6
 message CacheRequest {
   optional int64 block_id = 1;
@@ -132,13 +117,11 @@ message CacheRequest {
   optional int32 source_port = 3;
   optional alluxio.proto.dataserver.OpenUfsBlockOptions open_ufs_block_options = 4;
   optional int64 length = 5;
+  optional bool async = 6;
 }
 
-// Response for an cache request
-message CacheResponse {
-  optional bool success = 1;
-}
-
+// Response for an async cache request
+message CacheResponse {}
 
 // next available id: 3
 message OpenLocalBlockRequest {

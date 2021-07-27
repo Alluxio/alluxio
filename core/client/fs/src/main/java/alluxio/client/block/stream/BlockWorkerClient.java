@@ -11,9 +11,7 @@
 
 package alluxio.client.block.stream;
 
-import alluxio.grpc.AsyncCacheRequest;
 import alluxio.grpc.CacheRequest;
-import alluxio.grpc.CacheResponse;
 import alluxio.grpc.ClearMetricsRequest;
 import alluxio.grpc.ClearMetricsResponse;
 import alluxio.grpc.CreateLocalBlockRequest;
@@ -145,17 +143,10 @@ public interface BlockWorkerClient extends Closeable {
   ClearMetricsResponse clearMetrics(ClearMetricsRequest request);
 
   /**
-   * Caches a block asynchronously.
+   * Caches a block.
    *
-   * @param request the async cache request
+   * @param request the cache request
+   * @throws StatusRuntimeException if any error occurs
    */
-  void asyncCache(AsyncCacheRequest request);
-
-  /**
-   * Caches a block synchronously.
-   *
-   * @param request the async cache request
-   * @return the response from server
-   */
-  CacheResponse cache(CacheRequest request);
+  void cache(CacheRequest request);
 }
