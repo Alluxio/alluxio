@@ -176,9 +176,12 @@ public final class LoadCommand extends AbstractFileSystemCommand {
       URIStatus status, Protocol.OpenUfsBlockOptions options) {
     BlockInfo info = status.getBlockInfo(blockId);
     long blockLength = info.getLength();
-    CacheRequest request = CacheRequest.newBuilder().setBlockId(blockId).setLength(blockLength)
-        .setOpenUfsBlockOptions(options).setSourceHost(dataSource.getHost())
-        .setSourcePort(dataSource.getDataPort()).build();
+    CacheRequest request = CacheRequest.newBuilder()
+                                      .setBlockId(blockId)
+                                      .setLength(blockLength)
+                                      .setOpenUfsBlockOptions(options)
+                                      .setSourceHost(dataSource.getHost())
+                                      .setSourcePort(dataSource.getDataPort()).build();
     // TODO(jianjian) support FUSE processLocalWorker?
     WorkerNetAddress worker;
     try {
