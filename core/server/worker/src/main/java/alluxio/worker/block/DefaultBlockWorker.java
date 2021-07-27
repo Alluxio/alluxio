@@ -370,6 +370,7 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
       throw new WorkerOutOfSpaceException(ExceptionMessage.CANNOT_REQUEST_SPACE
           .getMessageWithUrl(RuntimeConstants.ALLUXIO_DEBUG_DOCS_URL, address, blockId), e);
     }
+    Metrics.WORKER_ACTIVE_CLIENTS.inc();
     return createdBlock.getPath();
   }
 
@@ -633,6 +634,7 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
     while (retryPolicy.attempt()) {
       BlockReader reader = createLocalBlockReader(sessionId, blockId, request.getStart());
       if (reader != null) {
+        Metrics.WORKER_ACTIVE_CLIENTS.inc();
         return reader;
       }
       boolean checkUfs =
@@ -644,6 +646,7 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
       }
       // When the block does not exist in Alluxio but exists in UFS, try to open the UFS block.
       try {
+        Metrics.WORKER_ACTIVE_CLIENTS.inc();
         return createUfsBlockReader(request.getSessionId(), request.getId(), request.getStart(),
             request.isPositionShort(), request.getOpenUfsBlockOptions());
       } catch (Exception e) {
@@ -666,6 +669,7 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
   public void cleanupSession(long sessionId) {
     mLocalBlockStore.cleanupSession(sessionId);
     mUnderFileSystemBlockStore.cleanupSession(sessionId);
+    Metrics.WORKER_ACTIVE_CLIENTS.dec();
   }
 
   /**

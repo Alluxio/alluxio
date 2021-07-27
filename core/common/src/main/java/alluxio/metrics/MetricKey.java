@@ -847,7 +847,7 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setIsClusterAggregated(true)
           .build();
   public static final MetricKey WORKER_ACTIVE_CLIENTS =
-      new Builder("Worker.ActiveClientCount")
+      new Builder("Worker.ActiveClients")
           .setDescription("The number of active client reading or writing to this worker")
           .setMetricType(MetricType.COUNTER)
           .setIsClusterAggregated(true)
