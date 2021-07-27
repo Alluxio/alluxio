@@ -19,6 +19,7 @@ import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Preconditions;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -366,28 +367,49 @@ public final class DbConfig {
       mType = type;
     }
 
-    public Type getType() {
-      return mType;
-    }
+    /**
+     * Compare by a subclass's implementation.
+     * Subclasses must override this method to compare by its fields, etc.
+     * @param other the object to compare
+     * @return if the two objects are equal
+     */
+    protected abstract boolean isEqual(AbstractSpecObject other);
 
-    @Override
-    public boolean equals(Object other) {
+    protected <T extends AbstractSpecObject> boolean isEqual(Object other, Class<T> subType) {
       if (other == null) {
         return false;
       }
       if (this == other) {
         return true;
       }
-      if (!(other instanceof AbstractSpecObject)) {
+      if (subType != other.getClass()) {
         return false;
       }
-      AbstractSpecObject casted = (AbstractSpecObject) other;
-      return getType() == casted.getType();
+      return mType == ((AbstractSpecObject) other).mType && isEqual(subType.cast(other));
     }
+
+    @SuppressWarnings("EqualsWhichDoesntCheckParameterClass")
+    @SuppressFBWarnings("EQ_UNUSUAL")
+    @Override
+    public boolean equals(Object other) {
+      // getClass ensures comparison is made using the subclass's impl of isEqual
+      // so it will be safe to downcast `other` into the subtype
+      return isEqual(other, getClass());
+    }
+
+    /**
+     * Subclass's {@link Object#hashCode()} implementation.
+     * @return hash code
+     */
+    protected abstract int generateHashCode();
 
     @Override
     public int hashCode() {
-      return Objects.hashCode(mType);
+      return generateHashCode();
+    }
+
+    public Type getType() {
+      return mType;
     }
   }
 
@@ -408,20 +430,14 @@ public final class DbConfig {
     }
 
     @Override
-    public boolean equals(Object other) {
-      if (!super.equals(other)) {
-        return false;
-      }
-      if (!(other instanceof NameObject)) {
-        return false;
-      }
+    protected boolean isEqual(AbstractSpecObject other) {
       NameObject casted = (NameObject) other;
       return Objects.equals(mName, casted.mName);
     }
 
     @Override
-    public int hashCode() {
-      return super.hashCode() * 31 + Objects.hashCode(mName);
+    public int generateHashCode() {
+      return Objects.hash(mType, mName);
     }
 
     @Override
@@ -453,20 +469,14 @@ public final class DbConfig {
     }
 
     @Override
-    public boolean equals(Object other) {
-      if (!super.equals(other)) {
-        return false;
-      }
-      if (!(other instanceof RegexObject)) {
-        return false;
-      }
+    protected boolean isEqual(AbstractSpecObject other) {
       RegexObject casted = (RegexObject) other;
       return Objects.equals(mPattern.pattern(), casted.mPattern.pattern());
     }
 
     @Override
-    public int hashCode() {
-      return super.hashCode() * 31 + Objects.hashCode(mPattern.pattern());
+    public int generateHashCode() {
+      return Objects.hash(mType, mPattern.pattern());
     }
 
     @Override
@@ -506,13 +516,7 @@ public final class DbConfig {
     }
 
     @Override
-    public boolean equals(Object other) {
-      if (!super.equals(other)) {
-        return false;
-      }
-      if (!(other instanceof PartitionSpecObject)) {
-        return false;
-      }
+    protected boolean isEqual(AbstractSpecObject other) {
       PartitionSpecObject casted = (PartitionSpecObject) other;
       // partitions are deliberately excluded in `equals` impl to avoid conflicts
       // when there's a NameObject and a PartitionSpecObject with the same table name
@@ -521,8 +525,8 @@ public final class DbConfig {
     }
 
     @Override
-    public int hashCode() {
-      return super.hashCode() * 31 + Objects.hashCode(mTableName);
+    public int generateHashCode() {
+      return Objects.hash(mType, mTableName);
     }
 
     @Override
