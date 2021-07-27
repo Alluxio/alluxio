@@ -26,74 +26,74 @@ public class EventCounter extends AppenderSkeleton {
   private static final int INFO = 3;
   private static EventCounter.EventCounts sCount = new EventCounter.EventCounts();
 
-    /**
-     * the constructor of EventCounter.
-     */
+  /**
+   * the constructor of EventCounter.
+   */
   public EventCounter() {
   }
 
-    /**
-     * get the number of fatal log.
-     * @return the number of fatal log
-     */
+  /**
+   * get the number of fatal log.
+   * @return the number of fatal log
+   */
   public static long getFatal() {
-    return sCount.get(0);
+    return sCount.get(FATAL);
   }
 
-    /**
-     * get the number of error log.
-     * @return the number of error log
-     */
+  /**
+   * get the number of error log.
+   * @return the number of error log
+   */
   public static long getError() {
-    return sCount.get(1);
+    return sCount.get(ERROR);
   }
 
-    /**
-     * get the number of warn log.
-     * @return the number of warn log
-     */
+  /**
+   * get the number of warn log.
+   * @return the number of warn log
+   */
   public static long getWarn() {
-    return sCount.get(2);
+    return sCount.get(WARN);
   }
 
-    /**
-     * get the number of info log.
-     * @return the number of info log
-     */
+  /**
+   * get the number of info log.
+   * @return the number of info log
+   */
   public static long getInfo() {
-    return sCount.get(3);
+    return sCount.get(INFO);
   }
 
-    /**
-     * add the number of corresponding level log.
-     * @param event event of generating log
-     * @return
-     */
+  /**
+   * add the number of corresponding level log.
+   * @param event event of generating log
+   * @return
+   */
   public void append(LoggingEvent event) {
     Level level = event.getLevel();
     if (level.equals(Level.INFO)) {
-      sCount.incr(3);
+      sCount.incr(INFO);
     } else if (level.equals(Level.WARN)) {
-      sCount.incr(2);
+      sCount.incr(WARN);
     } else if (level.equals(Level.ERROR)) {
-      sCount.incr(1);
+      sCount.incr(ERROR);
     } else if (level.equals(Level.FATAL)) {
-      sCount.incr(0);
+      sCount.incr(FATAL);
     }
   }
 
-    /**
-     * Release any resources allocated within the appender such as file
-     * handles, network connections, etc.
-     */
+  /**
+   * Release any resources allocated within the appender such as file
+   * handles, network connections, etc.
+   */
   public void close() {
   }
 
-    /**
-     * Configurators call this method to determine if the appender
-     * requires a layout.
-     * @return if the appender requires a layout
-     */
+  /**
+   * Configurators call this method to determine if the appender
+   * requires a layout.
+   * @return if the appender requires a layout
+   */
   public boolean requiresLayout() {
     return false;
   }
