@@ -416,6 +416,16 @@ public final class UdbAttachOptions {
       return this;
     }
 
+    private void assertStateModeIsNotNone() {
+      Preconditions.checkState(mMode != Mode.NONE,
+          "Invalid inclusion/exclusion mode, must be either include or exclude");
+    }
+
+    private void assertStateEntryIsNotNone() {
+      Preconditions.checkState(mEntry != Entry.NONE,
+          "Invalid entry, must be either bypass or ignore");
+    }
+
     /**
      * Add a table by name.
      * @param name table name
@@ -435,26 +445,33 @@ public final class UdbAttachOptions {
     }
 
     private Builder addTable(NamePatternWrapper item) {
-      Preconditions.checkArgument(mMode != Mode.NONE);
+      assertStateModeIsNotNone();
+      assertStateEntryIsNotNone();
       Mode opposite = mMode.opposite();
       switch (mEntry) {
         case BYPASS:
           if (mTableBypassMode == Mode.NONE) {
             mTableBypassMode = mMode;
           }
-          Preconditions.checkArgument(mTableBypassMode == mMode);
+          Preconditions.checkState(mTableBypassMode == mMode,
+              "Either inclusion or exclusion mode can be used but not both, "
+              + "there are already bypassed tables in {} mode",
+              mTableBypassMode);
           mBypassedTables.add(item);
           break;
         case IGNORE:
           if (mIgnoreMode == Mode.NONE) {
             mIgnoreMode = mMode;
           }
-          Preconditions.checkArgument(mIgnoreMode == mMode);
+          Preconditions.checkState(mIgnoreMode == mMode,
+              "Either inclusion or exclusion mode can be used but not both, "
+                  + "there are already ignored tables in {} mode",
+              mIgnoreMode);
           mIgnoredTables.add(item);
           break;
         case NONE:
         default:
-          throw new IllegalStateException();
+          // unreachable
       }
       return this;
     }
@@ -500,18 +517,30 @@ public final class UdbAttachOptions {
     }
 
     private Builder addPartition(String tableName, NamePatternWrapper partition) {
+      assertStateModeIsNotNone();
+      assertStateEntryIsNotNone();
       // forbid adding partition to ignored tables
-      Preconditions.checkArgument(mEntry == Entry.BYPASS);
-      // forbid mMode == NONE
-      Preconditions.checkArgument(mMode != Mode.NONE);
+      Preconditions.checkState(mEntry == Entry.BYPASS,
+          "Ignored table {} cannot have partition specifications",
+          tableName);
       // forbid including and excluding partitions for a table at the same time
-      Preconditions.checkArgument(!(mPartitionModes.containsKey(tableName)
-          && mPartitionModes.get(tableName) == mMode.opposite()));
+      Preconditions.checkState(!(mPartitionModes.containsKey(tableName)
+          && mPartitionModes.get(tableName) == mMode.opposite()),
+          "Either inclusion or exclusion mode can be used but not both, "
+              + "table {} already has {} partitions",
+          tableName,
+          mMode.opposite());
       // forbid adding partitions when tables are excluded
-      Preconditions.checkArgument(mTableBypassMode != Mode.EXCLUDE);
+      Preconditions.checkState(mTableBypassMode != Mode.EXCLUDE,
+          "Table {} is specified with exclusion mode, "
+              + "cannot have partition specification",
+          tableName);
       // forbid both plain name and partition spec for a table at the same time
-      Preconditions.checkArgument(mBypassedTables.stream()
-              .noneMatch(wrapper -> wrapper.isPlainName() && wrapper.matches(tableName)));
+      Preconditions.checkState(mBypassedTables.stream()
+          .noneMatch(wrapper -> wrapper.isPlainName() && wrapper.matches(tableName)),
+          "Table {} is already specified with exact name, "
+              + "ignoring any partition specifications",
+          tableName);
 
       mPartitionModes.put(tableName, mMode);
       mBypassedPartitions.compute(tableName, (tblName, partSet) -> addOrNewSet(partSet, partition));
