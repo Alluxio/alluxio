@@ -548,13 +548,13 @@ public final class DbConfig {
     @JsonCreator
     public IncludeExcludeObject(@JsonProperty(FIELD_INCLUDE) @Nullable Set<IncludeT> included,
                                 @JsonProperty(FIELD_EXCLUDE) @Nullable Set<ExcludeT> excluded) {
-      // both included and excluded cannot be non-empty at the same time
-      Preconditions.checkArgument(
-          included == null || excluded == null || included.isEmpty() || excluded.isEmpty(),
-          "Either include or exclude can be specified, but not both"
-      );
       mIncludedEntries = included == null ? Collections.emptySet() : included;
       mExcludedEntries = excluded == null ? Collections.emptySet() : excluded;
+      // included and excluded cannot be non-empty at the same time
+      Preconditions.checkArgument(
+          mIncludedEntries.isEmpty() || mExcludedEntries.isEmpty(),
+          "Either include or exclude can be specified, but not both"
+      );
     }
 
     public static <IncludeT extends TablePartitionSpecObject,
