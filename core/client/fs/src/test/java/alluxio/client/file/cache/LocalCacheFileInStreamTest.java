@@ -55,6 +55,7 @@ import alluxio.wire.FileInfo;
 import alluxio.wire.MountPointInfo;
 import alluxio.wire.SyncPointInfo;
 
+import com.google.common.base.Stopwatch;
 import com.google.common.base.Ticker;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
@@ -456,8 +457,8 @@ public class LocalCacheFileInStreamTest {
     );
     LocalCacheFileInStream stream =
         new LocalCacheFileInStream(fs.getStatus(testFileName),
-            (status) -> fs.openFile(status, OpenFilePOptions.getDefaultInstance()), manager, sConf);
-    stream.mTicker = timeSource;
+            (status) -> fs.openFile(status, OpenFilePOptions.getDefaultInstance()), manager, sConf,
+            Stopwatch.createUnstarted(timeSource));
 
     Assert.assertArrayEquals(testData, ByteStreams.toByteArray(stream));
     long timeReadCache = recordedMetrics.get(
