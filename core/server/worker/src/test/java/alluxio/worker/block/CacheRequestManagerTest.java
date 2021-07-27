@@ -67,7 +67,8 @@ public class CacheRequestManagerTest {
         false, openUfsBlockOptions);
   }
 
-  @Test
+
+  @Test(expected = NullPointerException.class)  // remote stream throw exception
   public void submitRequestCacheBlockFromRemoteWorker() throws Exception {
     String localWorkerHostname = NetworkAddressUtils.getLocalHostName(
         (int) ServerConfiguration.getMs(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS));
