@@ -408,8 +408,8 @@ public class AlluxioFileInStream extends FileInStream {
               dataSource.getContainerHost(), host);
           host = dataSource.getContainerHost();
         }
-        AsyncCacheRequest request =
-            AsyncCacheRequest.newBuilder().setBlockId(blockId).setLength(blockLength)
+        CacheRequest request =
+            CacheRequest.newBuilder().setBlockId(blockId).setLength(blockLength)
                 .setOpenUfsBlockOptions(mOptions.getOpenUfsBlockOptions(blockId))
                 .setSourceHost(host).setSourcePort(dataSource.getDataPort())
                 .setAsync(true).build();
