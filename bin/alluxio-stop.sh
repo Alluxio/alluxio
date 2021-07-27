@@ -10,31 +10,28 @@
 # See the NOTICE file distributed with this work for information regarding copyright ownership.
 #
 
-LAUNCHER=
-# If debugging is enabled propagate that through to sub-shells
-if [[ "$-" == *x* ]]; then
-  LAUNCHER="bash -x"
-fi
-BIN=$(cd "$( dirname "$( readlink "$0" || echo "$0" )" )"; pwd)
+. $(dirname "$0")/alluxio-common.sh
 
-USAGE="Usage: alluxio-stop.sh [-h] [component]
+USAGE="Usage: alluxio-stop.sh [-h] [component] [-c cache]
 Where component is one of:
-  all               \tStop all masters, proxies, and workers.
-  job_master        \tStop local job master.
-  job_masters       \tStop job masters on master nodes.
-  job_worker        \tStop local job worker.
-  job_workers       \tStop job workers on worker nodes.
-  local             \tStop all processes locally.
-  master            \tStop local primary master.
-  secondary_master  \tStop local secondary master.
-  masters           \tStop masters on master nodes.
-  proxy             \tStop local proxy.
-  proxies           \tStop proxies on master and worker nodes.
-  worker            \tStop local worker.
-  workers           \tStop workers on worker nodes.
-  logserver         \tStop the logserver
+  all [-c cache]      \tStop all masters, proxies, and workers.
+  job_master          \tStop local job master.
+  job_masters         \tStop job masters on master nodes.
+  job_worker          \tStop local job worker.
+  job_workers         \tStop job workers on worker nodes.
+  local [-c cache]    \tStop all processes locally.
+  master              \tStop local primary master.
+  secondary_master    \tStop local secondary master.
+  masters             \tStop masters on master nodes.
+  proxy               \tStop local proxy.
+  proxies             \tStop proxies on master and worker nodes.
+  worker  [-c cache]  \tStop local worker.
+  workers [-c cache]  \tStop workers on worker nodes.
+  logserver           \tStop the logserver
 
--h  display this help."
+-c cache   save the worker ramcache(s) from the worker node(s) to the
+           specified directory (relative to each worker node's host filesystem).
+-h         display this help."
 
 DEFAULT_LIBEXEC_DIR="${BIN}/../libexec"
 ALLUXIO_LIBEXEC_DIR=${ALLUXIO_LIBEXEC_DIR:-${DEFAULT_LIBEXEC_DIR}}
@@ -78,11 +75,64 @@ stop_proxies() {
 }
 
 stop_worker() {
+  if [[ ! -z "${cache}" ]]; then
+    echo "Cache directory: ${cache}"
+    if [[ -d "${cache}" ]]; then
+      echo "Directory already exists at ${cache}; overwritting its contents"
+      # recursively delete all (including hidden) files of the ramdisk
+      # - avoiding deleting the directory itself to avoid permission
+      #   changes/requirements on the parent directory
+      shopt -s dotglob
+      rm -rf "${cache}/"*
+      shopt -u dotglob
+    elif [[ -e "${cache}" ]]; then
+      echo "Non-directory file already exists at the path ${cache}; aborting"
+      exit 1
+    else
+      mkdir -p "${cache}"
+      if [[ ${?} -ne 0 ]]; then
+        echo "Failed to create directory: ${cache}"
+        exit 2
+      fi
+    fi
+
+    get_ramdisk_array # see alluxio-common.sh
+    for dir in "${RAMDISKARRAY[@]}"; do
+      if [[ ! -e "${dir}" ]]; then
+        echo "Alluxio has a configured ramcache path ${dir}, but that path does not exist"
+        exit 2
+      fi
+      if [[ ! -d "${dir}" ]]; then
+        echo "Alluxio has a configured ramcache path ${dir}, but that path is not a directory"
+        exit 2
+      fi
+
+      echo "Saving worker ramcache at ${dir} to ${cache}/${dir}"
+      mkdir -p "${cache}/${dir}"
+      if [[ ${?} -ne 0 ]]; then
+        echo "Failed to create directory: ${cache}/${dir}"
+        exit 2
+      fi
+
+      # recursively copy all contents of the src directory
+      # (including hidden files) to the destination directory
+      cp -R "${dir}/." "${cache}/${dir}/"
+      if [[ ${?} -ne 0 ]]; then
+        echo "Failed to copy worker ramcache from ${dir} to ${cache}/${dir}"
+        exit 1
+      fi
+    done
+  fi
+
   ${LAUNCHER} "${BIN}/alluxio" "killAll" "alluxio.worker.AlluxioWorker"
 }
 
 stop_workers() {
-  ${LAUNCHER} "${BIN}/alluxio-workers.sh" "${BIN}/alluxio-stop.sh" "worker"
+  start_opts=""
+  if [[ -n ${cache} ]]; then
+    start_opts="-c ${cache}"
+  fi
+  ${LAUNCHER} "${BIN}/alluxio-workers.sh" "${BIN}/alluxio-stop.sh" "worker" ${start_opts}
 }
 
 stop_logserver() {
@@ -91,6 +141,20 @@ stop_logserver() {
 
 
 WHAT=${1:--h}
+
+# shift argument index for getopts
+shift
+while getopts "c:" o; do
+  case "${o}" in
+    c)
+      cache="${OPTARG}"
+      ;;
+    *)
+      echo -e "${USAGE}" >&2
+      exit 1
+      ;;
+  esac
+done
 
 case "${WHAT}" in
   all)
