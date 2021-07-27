@@ -13,6 +13,7 @@ package alluxio.worker.block;
 
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import alluxio.Sessions;
 import alluxio.client.file.FileSystemContext;
@@ -21,12 +22,15 @@ import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.CacheRequest;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.util.network.NetworkAddressUtils;
+import alluxio.worker.block.io.BlockReader;
+import alluxio.worker.block.io.BlockWriter;
 import alluxio.worker.grpc.GrpcExecutors;
 
 import org.junit.Before;
 import org.junit.Test;
 
 import java.io.IOException;
+import java.net.InetSocketAddress;
 import java.util.Random;
 
 /**
@@ -62,12 +66,15 @@ public class CacheRequestManagerTest {
     CacheRequest request = CacheRequest.newBuilder().setBlockId(blockId).setLength(blockLength)
         .setOpenUfsBlockOptions(openUfsBlockOptions).setSourceHost(localWorkerHostname)
         .setSourcePort(port).build();
+    BlockReader mockBlockReader = mock(BlockReader.class);
+    when(mBlockWorker.createUfsBlockReader(Sessions.ASYNC_CACHE_UFS_SESSION_ID, blockId, 0, false,
+        openUfsBlockOptions)).thenReturn(mockBlockReader);
     mCacheRequestManager.submitRequest(request);
     verify(mBlockWorker).createUfsBlockReader(Sessions.ASYNC_CACHE_UFS_SESSION_ID, blockId, 0,
         false, openUfsBlockOptions);
   }
 
-  @Test(expected = NullPointerException.class)  // remote stream throw exception
+  @Test(expected = NullPointerException.class) // remote reader throw exception
   public void submitRequestCacheBlockFromRemoteWorker() throws Exception {
     String localWorkerHostname = NetworkAddressUtils.getLocalHostName(
         (int) ServerConfiguration.getMs(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS));
@@ -80,10 +87,59 @@ public class CacheRequestManagerTest {
     CacheRequest request = CacheRequest.newBuilder().setBlockId(blockId).setLength(blockLength)
         .setOpenUfsBlockOptions(openUfsBlockOptions).setSourceHost(fakeRemoteWorker)
         .setSourcePort(port).build();
+
+    BlockWriter writer = mock(BlockWriter.class);
+    when(mBlockWorker.createBlockWriter(Sessions.ASYNC_CACHE_WORKER_SESSION_ID, blockId))
+        .thenReturn(writer);
     mCacheRequestManager.submitRequest(request);
     verify(mBlockWorker).createBlock(Sessions.ASYNC_CACHE_WORKER_SESSION_ID, blockId, 0, "",
         blockLength);
     verify(mBlockWorker).createBlockWriter(Sessions.ASYNC_CACHE_WORKER_SESSION_ID, blockId);
-    // since the remoteWorker is fake, we can not verify the following data writing process
+    verify(mBlockWorker).commitBlock(Sessions.ASYNC_CACHE_WORKER_SESSION_ID, blockId, false);
+  }
+
+  @Test
+  public void submitAsyncRequestCacheBlockFromUfs() throws Exception {
+    String localWorkerHostname = NetworkAddressUtils.getLocalHostName(
+        (int) ServerConfiguration.getMs(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS));
+    int port = mRandom.nextInt(5000);
+    long blockId = mRandom.nextLong();
+    long blockLength = mRandom.nextLong();
+    Protocol.OpenUfsBlockOptions openUfsBlockOptions = Protocol.OpenUfsBlockOptions.newBuilder()
+        .setMaxUfsReadConcurrency(10).setUfsPath("/a").build();
+    CacheRequest request = CacheRequest.newBuilder().setBlockId(blockId).setLength(blockLength)
+        .setOpenUfsBlockOptions(openUfsBlockOptions).setSourceHost(localWorkerHostname)
+        .setSourcePort(port).setAsync(true).build();
+    BlockReader mockBlockReader = mock(BlockReader.class);
+    when(mBlockWorker.createUfsBlockReader(Sessions.ASYNC_CACHE_UFS_SESSION_ID, blockId, 0, false,
+        openUfsBlockOptions)).thenReturn(mockBlockReader);
+    mCacheRequestManager.submitRequest(request);
+    Thread.sleep(100);
+    verify(mBlockWorker).createUfsBlockReader(Sessions.ASYNC_CACHE_UFS_SESSION_ID, blockId, 0,
+        false, openUfsBlockOptions);
+  }
+
+  @Test(expected = NullPointerException.class) // remote reader throw exception
+  public void submitAsyncRequestCacheBlockFromRemoteWorker() throws Exception {
+    String localWorkerHostname = NetworkAddressUtils.getLocalHostName(
+        (int) ServerConfiguration.getMs(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS));
+    String fakeRemoteWorker = localWorkerHostname + "1";
+    int port = mRandom.nextInt(5000);
+    long blockId = mRandom.nextLong();
+    long blockLength = mRandom.nextLong();
+    Protocol.OpenUfsBlockOptions openUfsBlockOptions = Protocol.OpenUfsBlockOptions.newBuilder()
+        .setMaxUfsReadConcurrency(10).setUfsPath("/a").build();
+    BlockWriter writer = mock(BlockWriter.class);
+    when(mBlockWorker.createBlockWriter(Sessions.ASYNC_CACHE_WORKER_SESSION_ID, blockId))
+        .thenReturn(writer);
+    CacheRequest request = CacheRequest.newBuilder().setBlockId(blockId).setLength(blockLength)
+        .setOpenUfsBlockOptions(openUfsBlockOptions).setSourceHost(fakeRemoteWorker)
+        .setSourcePort(port).setAsync(true).build();
+    mCacheRequestManager.submitRequest(request);
+    Thread.sleep(100);
+    verify(mBlockWorker).createBlock(Sessions.ASYNC_CACHE_WORKER_SESSION_ID, blockId, 0, "",
+        blockLength);
+    verify(mBlockWorker).createBlockWriter(Sessions.ASYNC_CACHE_WORKER_SESSION_ID, blockId);
+    verify(mBlockWorker).commitBlock(Sessions.ASYNC_CACHE_WORKER_SESSION_ID, blockId, false);
   }
 }
