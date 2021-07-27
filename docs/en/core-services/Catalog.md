@@ -111,7 +111,7 @@ information.
 
 To specify a configuration file for the UDB, append an option `-o catalog.db.config.file` to
 `attachdb` command.
-Each time the configuration file is changed, you can use `alluxio table sync` to apply the changes.
+Each time the configuration file is changed, use `alluxio table sync` to apply the changes.
 
 The configuration file is in JSON format, and can contain these configurations:
 
@@ -145,32 +145,31 @@ The configuration file is in JSON format, and can contain these configurations:
    }
    ```
 
-   You can specify which tables and partitions within these tables should be bypassed from Alluxio.
-   There are 2 ways to specify tables and partitions:
+   There are 2 ways to specify which tables and partitions within these tables should be 
+   bypassed from Alluxio.
     
-   1. Plain names: Use the exact name of a table or partition;
-   2. Regular expressions: Use a pattern to capture a set of table or partition names. The pattern
-      is matched as a whole on the names, i.e., it is as if the patterns were enclosed in a pair 
+   1. Plain names: exact names of tables or partitions;
+   2. Regular expressions: patterns to capture a set of table or partition names. The patterns
+      are matched as a whole on the names, i.e., it is as if the patterns were enclosed in a pair 
       of `^` and `$`.
-       
-   All partitions, if any, of a table specified using exact name or regular expression, will be 
-   bypassed. In other words, the table is "fully" bypassed. 
+
+   Additionally, for tables, you can specify only some partitions of a table to be bypassed, 
+   and the rest to be mounted normally. 
+   
+   If a table is specified by its exact name or captured by a pattern, all partitions of the table, 
+   if any, are bypassed. In other words, the table is "fully" bypassed.
     
-   Additionally, you can specify some partitions of a table to be bypassed, like
-   `table4` in the above example. In this case, only listed partitions will be bypassed, the rest 
-   will be mounted normally.
-    
-   In the above example, table 1 is specified by its exact name, and will be fully bypassed. 
-   Table 2 and 3 are matched by the regular expression, and will be fully bypassed.
-   Partition 1, 2 and 3 of table 4 are bypassed, and any other partitions, if any, are not.
+   In the above example, table 1, 2, and 3 are fully bypassed.
+   Partition 1, 2, and 3 of table 4 are bypassed, and any other partitions, if any, are not.
    
 2. Ignoring tables:
 
    You can specify some tables to be ignored when attaching the database to Alluxio. Compared to 
-   bypassed tables, Alluxio will not try to mount the ignored tables, therefore they will be 
+   bypassed tables, Alluxio will not try to mount the ignored tables, therefore they are 
    invisible to the Alluxio client. 
    
-   The syntax for configuring ignored tables is similar to that of bypassing:
+   The syntax for configuring ignored tables is similar to that of bypassing, except that 
+   ignoring only some partitions of a table is not supported.
 
    ```json
    {
@@ -184,16 +183,14 @@ The configuration file is in JSON format, and can contain these configurations:
      }
    }
    ```
-    
-   Tables are ignored as a whole. Ignoring individual partitions is not currently supported.
 
-   > **Note:** if the same table is configured to be ignored and bypassed at the same time, it will 
-   be ignored.
+   > **Note:** ignoring takes precedence over bypassing. If the same table is configured to be 
+   > ignored and bypassed at the same time, it will be ignored.
 
 3. Excluding tables and partitions from bypassing or ignoring:
 
    Sometimes it is useful to exclude some tables and partitions from the bypassed or ignored list.
-   To do so, the syntax supports an exclusion mode in tables and partitions specifications:
+   To do so, use the exclusion mode in tables and partitions specifications:
    
    ```json
    {
@@ -223,22 +220,23 @@ The configuration file is in JSON format, and can contain these configurations:
    ```
    
    You can use names and regular expressions inside the exclusion list, just like in inclusion mode.
-   In exclusion mode, the excluded tables and partitions will be mounted normally, but any other
-   tables of the parent database, and any other partitions of the parent table, will be bypassed or 
+   In exclusion mode, the excluded tables and partitions are mounted normally, but any other
+   tables of the parent database, or any other partitions of the parent table, are bypassed or 
    ignored.
    
    In the above example,
    partition `normally_mounted_part` of table `partially_bypassed_table` is excluded from
-   bypassing, meaning that the partition will be mounted normally, and any other partitions of
+   bypassing, meaning that the partition is mounted normally, and any other partitions of
    `partially_bypassed_table` are bypassed. Likewise, all tables except for
    `not_ignored_table1|2|3`, and `partially_bypassed_table` are ignored.
+
+   The bypass entry and ignore entry can each have different modes.
+   For each entry, you can use either inclusion or exclusion mode, but not both.
    
-   You can use either inclusion or exclusion mode for one entry, but not both. However, the 
-   bypass entry and ignore entry can have modes that are different from each other.
-   
-   > **Note**: to exclude a partition from a table, you need to specify the table in inclusion 
-   > mode, and specify that partition inside the exclusion list of the table's partition 
-   > specification. It is an error to specify partitions of a table inside an exclusion list:
+   > **Note**: to exclude a partition from a table, specify the table in inclusion 
+   > mode, and specify the partition inside the exclusion list of the table's partition 
+   > specification. See the `partially_bypassed_table` in the above example.
+   > The following is an error example that tries to specify partitions for an excluded table:
    >
    > ```json
    > {
@@ -248,7 +246,7 @@ The configuration file is in JSON format, and can contain these configurations:
    >          "type": "partition_spec", 
    >          "table": "table1", 
    >          "partitions": {
-   >            "exclude": [ {"type": "name", "name": "part1"} ]
+   >            "include": [ {"type": "name", "name": "part1"} ]
    >          }
    >        }
    >      ]
@@ -256,12 +254,11 @@ The configuration file is in JSON format, and can contain these configurations:
    > }
    > ```
    
-   > **Note:** since ignoring takes precedence over bypassing, when both bypassing and ignoring 
-   > are enabled, and exclusion mode is used for ignoring, make sure to add the bypassed tables to 
-   > the exclusion list. Otherwise, the bypassing configuration will be overridden and have no 
-   > effect. See the `partially_bypassed_table` in the previous example.
+   > **Note:** when exclusion mode is used for ignoring, make sure to add any bypassed tables 
+   > to the exclusion list. Otherwise, the bypassing configuration is overridden and has no effect. 
+   > See the `partially_bypassed_table` in the previous example.
    
-   > **Note:** An empty exclusion list **does not** cause all tables or partitions to be 
+   > **Note:** an empty exclusion list **does not** cause all tables or partitions to be 
    > bypassed or ignored. Instead, it has no effect: no tables or partitions will be bypassed or 
    > ignored. To bypass or ignore all tables or partitions, use an inclusion list with the 
    > catch-all regular expression: `.*`.
