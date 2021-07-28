@@ -39,7 +39,12 @@ public final class NodeInfo implements Comparable<NodeInfo> {
    * @param workerInfo the worker info
    */
   public NodeInfo(WorkerInfo workerInfo) {
-    mHost = workerInfo.getAddress().getHost();
+    if (!workerInfo.getAddress().getContainerHost().equals("")) {
+      mHost = workerInfo.getAddress().getHost() + "("
+              + workerInfo.getAddress().getContainerHost() + ")";
+    } else {
+      mHost = workerInfo.getAddress().getHost();
+    }
     mWebPort = workerInfo.getAddress().getWebPort();
     mLastContactSec = Integer.toString(workerInfo.getLastContactSec());
     mWorkerState = workerInfo.getState();
