@@ -18,7 +18,7 @@ import java.util.List;
  * Registry of all reconfigurable listeners.
  */
 public class ReconfigurableRegistry {
-  private static final List<Reconfigurable> sListenerList = new LinkedList<>();
+  private static final List<Reconfigurable> LISTENER_LIST = new LinkedList<>();
 
   /**
    * Add a listener.
@@ -26,7 +26,7 @@ public class ReconfigurableRegistry {
    * @param listener the given property listener
    */
   public static synchronized void register(Reconfigurable listener) {
-    sListenerList.add(listener);
+    LISTENER_LIST.add(listener);
   }
 
   /**
@@ -35,7 +35,7 @@ public class ReconfigurableRegistry {
    * @return true if the instance is removed
    */
   public static synchronized boolean unregister(Reconfigurable listener) {
-    return sListenerList.remove(listener);
+    return LISTENER_LIST.remove(listener);
   }
 
   /**
@@ -45,7 +45,7 @@ public class ReconfigurableRegistry {
    * @return false if no listener related to the given property, otherwise, return false
    */
   public static synchronized boolean update() {
-    for (Reconfigurable listener : sListenerList) {
+    for (Reconfigurable listener : LISTENER_LIST) {
       listener.update();
     }
     return true;
