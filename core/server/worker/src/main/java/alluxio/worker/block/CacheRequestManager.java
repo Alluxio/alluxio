@@ -230,6 +230,14 @@ public class CacheRequestManager {
     }
   }
 
+  /**
+   * only public to test since we want to mock remoteBlockReader.
+   * @param blockId block ID
+   * @param blockSize block size
+   * @param sourceAddress remote source address
+   * @param openUfsBlockOptions options to open the UFS file
+   * @return remote block reader
+   */
   @VisibleForTesting
   public RemoteBlockReader getRemoteBlockReader(long blockId, long blockSize,
       InetSocketAddress sourceAddress, Protocol.OpenUfsBlockOptions openUfsBlockOptions) {

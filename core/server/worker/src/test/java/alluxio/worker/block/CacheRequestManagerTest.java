@@ -103,7 +103,6 @@ public class CacheRequestManagerTest {
     verify(mBlockWorker).commitBlock(Sessions.ASYNC_CACHE_WORKER_SESSION_ID, blockId, false);
   }
 
-
   @Test
   public void submitAsyncRequestCacheBlockFromUfs() throws Exception {
     String localWorkerHostname = NetworkAddressUtils.getLocalHostName(
@@ -158,8 +157,8 @@ public class CacheRequestManagerTest {
         .thenReturn(reader);
     ReadableByteChannel readerChannel = mock(ReadableByteChannel.class);
     when(reader.getChannel()).thenReturn(readerChannel);
-    int TRANSFER_BUFFER_SIZE = 4 * Constants.MB;
-    ByteBuffer buffer = ByteBuffer.allocateDirect(TRANSFER_BUFFER_SIZE);
+    int bufferSize = 4 * Constants.MB;
+    ByteBuffer buffer = ByteBuffer.allocateDirect(bufferSize);
     when(readerChannel.read(buffer)).thenReturn(-1);
     BlockWriter writer = mock(BlockWriter.class);
     when(mBlockWorker.createBlockWriter(Sessions.ASYNC_CACHE_WORKER_SESSION_ID, blockId))
