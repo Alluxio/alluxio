@@ -858,15 +858,31 @@ Or you can include some workers or exclude some workers by using options `--host
 `--excluded-hosts`, `--locality-file <locality-file>`, `--locality`, `--excluded-host-file <host-file>` and `--excluded-locality`.
 
 ```console
+# Only include host1 and host2
 $ ./bin/alluxio fs distributedLoad /data/today --hosts host1,host2
+# Only include the workset from host file /tmp/hostfile
 $ ./bin/alluxio fs distributedLoad /data/today --host-file /tmp/hostfile
+# Include all workers except host1 and host2 
 $ ./bin/alluxio fs distributedLoad /data/today --excluded-hosts host1,host2
+# Include all workers except the workerset in the excluded host file /tmp/hostfile-exclude
 $ ./bin/alluxio fs distributedLoad /data/today --excluded-file /tmp/hostfile-exclude
+# Include workers which's locality identify belong to ROCK1 or ROCK2
 $ ./bin/alluxio fs distributedLoad /data/today --locality ROCK1,ROCK2
+# Include workers which's locality identify belong to the localities in the locality file
 $ ./bin/alluxio fs distributedLoad /data/today --locality-file /tmp/localityfile
+# Include all workers except which's locality belong to ROCK1 or ROCK2 
 $ ./bin/alluxio fs distributedLoad /data/today --excluded-locality ROCK1,ROCK2
+# Include all workers except which's locality belong to the localities in the excluded locality file
 $ ./bin/alluxio fs distributedLoad /data/today --excluded-locality-file /tmp/localityfile-exclude
+
+# Conflict cases
+# `--excluded-hosts` have the higher priority then `--hosts`，so host2 will be execluded, only host3 is included.
+$ ./bin/alluxio fs distributedLoad /data/today --excluded-hosts host1,host2 --hosts host2,host3
+# `--excluded-locality` have the higher priority then `--locality`，so workers in ROCK2 will be execluded, only workers in ROCK3 will be included.
+$ ./bin/alluxio fs distributedLoad /data/today --excluded-locality ROCK1,ROCK2 --locality ROCK2,ROCK3
 ```
+
+See examples for [Tiered Locality Example]({{ '/en/operation/Tiered-Locality.html' | relativize_url }}#Example)
 
 ### distributedMv
 
