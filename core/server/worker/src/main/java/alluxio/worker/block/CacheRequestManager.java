@@ -210,8 +210,9 @@ public class CacheRequestManager {
       LOG.debug("block already cached: {}", blockId);
       return true;
     }
-    try (BlockReader reader =
-        new RemoteBlockReader(mFsContext, blockId, blockSize, sourceAddress, openUfsBlockOptions);
+    try (
+        BlockReader reader =
+            getRemoteBlockReader(blockId, blockSize, sourceAddress, openUfsBlockOptions);
          BlockWriter writer = mBlockWorker
              .createBlockWriter(Sessions.ASYNC_CACHE_WORKER_SESSION_ID, blockId)) {
       BufferUtils.transfer(reader.getChannel(), writer.getChannel());
@@ -227,6 +228,13 @@ public class CacheRequestManager {
       }
       throw e;
     }
+  }
+
+  @VisibleForTesting
+  public RemoteBlockReader getRemoteBlockReader(long blockId, long blockSize,
+      InetSocketAddress sourceAddress, Protocol.OpenUfsBlockOptions openUfsBlockOptions) {
+    return new RemoteBlockReader(mFsContext, blockId, blockSize, sourceAddress,
+        openUfsBlockOptions);
   }
 
   /**
