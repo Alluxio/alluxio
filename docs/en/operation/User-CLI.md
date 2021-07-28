@@ -857,6 +857,9 @@ $ ./bin/alluxio fs distributedLoad --replication 2 --active-jobs 2000 /data/toda
 Or you can include some workers or exclude some workers by using options `--host-file <host-file>`, `--hosts`, `--excluded-host-file <host-file>`,
 `--excluded-hosts`, `--locality-file <locality-file>`, `--locality`, `--excluded-host-file <host-file>` and `--excluded-locality`.
 
+Note: Do not use `--host-file <host-file>`, `--hosts`, `--locality-file <locality-file>`, `--locality` with
+`--excluded-host-file <host-file>`, `--excluded-hosts`, `--excluded-host-file <host-file>`, `--excluded-locality` together.
+
 ```console
 # Only include host1 and host2
 $ ./bin/alluxio fs distributedLoad /data/today --hosts host1,host2
@@ -876,10 +879,10 @@ $ ./bin/alluxio fs distributedLoad /data/today --excluded-locality ROCK1,ROCK2
 $ ./bin/alluxio fs distributedLoad /data/today --excluded-locality-file /tmp/localityfile-exclude
 
 # Conflict cases
-# `--excluded-hosts` have the higher priority then `--hosts`，so host2 will be execluded, only host3 is included.
-$ ./bin/alluxio fs distributedLoad /data/today --excluded-hosts host1,host2 --hosts host2,host3
-# `--excluded-locality` have the higher priority then `--locality`，so workers in ROCK2 will be execluded, only workers in ROCK3 will be included.
-$ ./bin/alluxio fs distributedLoad /data/today --excluded-locality ROCK1,ROCK2 --locality ROCK2,ROCK3
+# The `--hosts` and `--locality` are `OR` relationship, so host2,host3 and workers in ROCK2,ROCKS3 will be included.
+$ ./bin/alluxio fs distributedLoad /data/today --locality ROCK2,ROCK3 --hosts host2,host3
+# The `--excluded-hosts` and `--excluded-locality` are `OR` relationship, so host2,host3 and workers in ROCK2,ROCKS3 will be excluded.
+$ ./bin/alluxio fs distributedLoad /data/today --excluded-hosts host2,host3 --excluded-locality ROCK2,ROCK3
 ```
 
 See examples for [Tiered Locality Example]({{ '/en/operation/Tiered-Locality.html' | relativize_url }}#Example)
