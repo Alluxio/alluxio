@@ -40,8 +40,7 @@ public final class NodeInfo implements Comparable<NodeInfo> {
    */
   public NodeInfo(WorkerInfo workerInfo) {
     if (!workerInfo.getAddress().getContainerHost().equals("")) {
-      mHost = workerInfo.getAddress().getHost() + "("
-              + workerInfo.getAddress().getContainerHost() + ")";
+      mHost = String.format("%s (%s)",workerInfo.getAddress().getHost(),workerInfo.getAddress().getContainerHost());
     } else {
       mHost = workerInfo.getAddress().getHost();
     }
