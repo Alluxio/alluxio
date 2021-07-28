@@ -122,7 +122,7 @@ public class LocalCacheFileInStreamTest {
   }
 
   @Test
-  public void readEmptyFileThroughReadByteBufferMethod() throws Exception {
+  public void readEmptyFileThroughReadByteBuffer() throws Exception {
     int fileSize = 0;
     byte[] fileData = BufferUtils.getIncreasingByteArray(fileSize);
     ByteArrayCacheManager manager = new ByteArrayCacheManager();
@@ -135,7 +135,7 @@ public class LocalCacheFileInStreamTest {
   }
 
   @Test
-  public void readIllegalLengthThroughReadByteBufferMethod() throws Exception {
+  public void readThroughReadByteBuffer() throws Exception {
     int fileSize = 10;
     byte[] fileData = BufferUtils.getIncreasingByteArray(fileSize);
     ByteArrayCacheManager manager = new ByteArrayCacheManager();
