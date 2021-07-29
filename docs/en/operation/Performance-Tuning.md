@@ -214,6 +214,19 @@ Increasing the number of threads can decrease the staleness of the UFS path cach
 but may impact performance by increasing work on the Alluxio master, as well as consuming UFS bandwidth.
 If this is set to 0, the cache is disabled and the `ONCE` setting will behave like the `ALWAYS` setting.
 
+### Metadata Sync
+
+If the content on the UFS are modified without going through Alluxio, Alluxio needs to sync its metadata with the UFS to reflect those changes in Alluxio namespace. 
+The cost of metadata sync scales linearly with the number of files in the directory that is being synced. 
+If metadata sync operation happens frequently on large directories, more threads may be allocated to speed up this process. 
+Two configurations are relevant here. 
+
+'alluxio.master.metadata.sync.concurrency.level' controls the concurrency that is used in a single sync operation.
+Adjust this to 1x to 2x core count on the master node to speed up the speed of metadata sync.
+
+'alluxio.master.metadata.sync.executor.pool.size' controls the number of threads performing sync operations.
+This defaults to the number of cores in the system, but can be adjusted to 2x or 4x number of cores if we expect many concurrent sync operations. 
+
 ## Worker Tuning
 
 ### Block reading thread pool size
@@ -245,6 +258,17 @@ parameter should be set based on `dfs.datanode.handler.count`. For instance, if 
 Alluxio workers matches the the number of HDFS datanodes, set
 `alluxio.worker.ufs.instream.cache.max.size=<value of HDFS setting dfs.datanode.handler.count>`
 under the assumption that the workload is spread evenly over Alluxio workers.
+
+## Job Service Tuning
+
+### Job Service Capacity
+Job service limits the total number of currently running jobs to control its resource usage. 
+If jobs tend to be created in large batches, consider increasing `alluxio.job.master.job.capacity` to a larger value than the default 100K. 
+
+### Job Service Throughput
+When there are many concurrent jobs running, and a higher throughput is desired, consider increasing `alluxio.job.worker.threadpool.size` configuration. 
+This allows each job worker to run with more parallel threads. The drawback is it will compete for resources on the worker machines. 
+Recommend 2x core count if most jobs are running in off peak hours only and 1/2 to 1x core count if jobs are running in all hours. 
 
 ## Client Tuning
 
