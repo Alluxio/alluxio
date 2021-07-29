@@ -27,13 +27,14 @@ public class EventCounter extends AppenderSkeleton {
   private static EventCounter.EventCounts sCount = new EventCounter.EventCounts();
 
   /**
-   * the constructor of EventCounter.
+   * The constructor of EventCounter.
    */
   public EventCounter() {
   }
 
   /**
-   * get the number of fatal log.
+   * Get the number of fatal log.
+   *
    * @return the number of fatal log
    */
   public static long getFatal() {
@@ -41,7 +42,8 @@ public class EventCounter extends AppenderSkeleton {
   }
 
   /**
-   * get the number of error log.
+   * Get the number of error log.
+   *
    * @return the number of error log
    */
   public static long getError() {
@@ -49,7 +51,8 @@ public class EventCounter extends AppenderSkeleton {
   }
 
   /**
-   * get the number of warn log.
+   * Get the number of warn log.
+   *
    * @return the number of warn log
    */
   public static long getWarn() {
@@ -57,7 +60,8 @@ public class EventCounter extends AppenderSkeleton {
   }
 
   /**
-   * get the number of info log.
+   * Get the number of info log.
+   *
    * @return the number of info log
    */
   public static long getInfo() {
@@ -65,7 +69,8 @@ public class EventCounter extends AppenderSkeleton {
   }
 
   /**
-   * add the number of corresponding level log.
+   * Add the number of corresponding level log.
+   *
    * @param event event of generating log
    * @return
    */
@@ -92,6 +97,7 @@ public class EventCounter extends AppenderSkeleton {
   /**
    * Configurators call this method to determine if the appender
    * requires a layout.
+   *
    * @return if the appender requires a layout
    */
   public boolean requiresLayout() {
