@@ -59,4 +59,10 @@ public class DefaultJournalMaster implements JournalMaster {
     checkQuorumOpSupported();
     ((RaftJournalSystem) mJournalSystem).removeQuorumServer(serverAddress);
   }
+
+  @Override
+  public void transferLeadership(NetAddress newLeaderAddress) throws IOException {
+    checkQuorumOpSupported();
+    ((RaftJournalSystem) mJournalSystem).transferLeadership(newLeaderAddress);
+  }
 }

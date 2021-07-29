@@ -55,4 +55,9 @@ service JournalMasterClientService {
      * Removes a server from embedded journal quorum.
      */
     rpc RemoveQuorumServer(RemoveQuorumServerPRequest) returns (RemoveQuorumServerPResponse);
+
+    /**
+     * Transfers the leadership from the current leader to another designated leader.
+     */
+    rpc TransferLeadership(RemoveQuorumServerPRequest) returns (RemoveQuorumServerPResponse);
 }

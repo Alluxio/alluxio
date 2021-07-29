@@ -74,4 +74,11 @@ public class RetryHandlingJournalMasterClient extends AbstractMasterClient
         RemoveQuorumServerPRequest.newBuilder().setServerAddress(serverAddress).build()),
         RPC_LOG, "RemoveQuorumServer",  "serverAddress=%s", serverAddress);
   }
+
+  @Override
+  public void transferLeadership(NetAddress newLeaderNetAddress) throws AlluxioStatusException {
+    retryRPC(() -> mClient.transferLeadership(
+        RemoveQuorumServerPRequest.newBuilder().setServerAddress(newLeaderNetAddress).build()),
+        RPC_LOG, "TransferLeadership", "serverAddress=%s", newLeaderNetAddress);
+  }
 }

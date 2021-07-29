@@ -56,4 +56,13 @@ public class JournalMasterClientServiceHandler
       return RemoveQuorumServerPResponse.getDefaultInstance();
     }, "removeQuorumServer", "request=%s", responseObserver, request);
   }
+
+  @Override
+  public void transferLeadership(RemoveQuorumServerPRequest request,
+      StreamObserver<RemoveQuorumServerPResponse> responseObserver) {
+    RpcUtils.call(LOG, () -> {
+      mJournalMaster.transferLeadership(request.getServerAddress());
+      return RemoveQuorumServerPResponse.getDefaultInstance();
+    }, "transferLeadership", "request=%s", responseObserver, request);
+  }
 }

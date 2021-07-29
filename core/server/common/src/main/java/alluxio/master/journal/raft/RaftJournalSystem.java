@@ -881,6 +881,38 @@ public class RaftJournalSystem extends AbstractJournalSystem {
   }
 
   /**
+   * Transfers the leadership of the quorum to another server.
+   *
+   * @param newLeaderNetAddress the address of the server
+   * @throws IOException if error occurred while performing the operation
+   */
+  public synchronized void transferLeadership(NetAddress newLeaderNetAddress) throws IOException {
+    InetSocketAddress serverAddress = InetSocketAddress
+            .createUnresolved(newLeaderNetAddress.getHost(), newLeaderNetAddress.getRpcPort());
+    RaftPeerId newLeaderPeerId = RaftJournalUtils.getPeerId(serverAddress);
+
+    // --- the change in priorities seems to be necessary otherwise the transfer fails ---
+    List<RaftPeer> peersWithNewPriorities = new ArrayList<>();
+    for (RaftPeer peer : mRaftGroup.getPeers()) {
+      peersWithNewPriorities.add(
+              RaftPeer.newBuilder(peer)
+              .setPriority(peer.getId().equals(newLeaderPeerId) ? 2 : 1)
+              .build()
+      );
+    }
+    mServer.setConfiguration(new SetConfigurationRequest(mClientId, mPeerId,
+            mRaftGroup.getGroupId(), nextCallId(), peersWithNewPriorities));
+    // --- end of updating priorities ---
+
+    try (RaftClient client = createClient()) {
+      RaftClientReply reply = client.admin().transferLeadership(newLeaderPeerId, 30_000);
+      if (reply.getException() != null) {
+        throw reply.getException();
+      }
+    }
+  }
+
+  /**
    * Adds a server to the quorum.
    *
    * @param serverNetAddress the address of the server

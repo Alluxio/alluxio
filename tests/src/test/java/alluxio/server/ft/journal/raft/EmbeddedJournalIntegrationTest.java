@@ -257,6 +257,38 @@ public final class EmbeddedJournalIntegrationTest extends BaseIntegrationTest {
   }
 
   @Test
+  public void transferLeadership() throws Exception {
+    mCluster = MultiProcessCluster.newBuilder(PortCoordination.EMBEDDED_JOURNAL_FAILOVER)
+            .setClusterName("TransferLeadership")
+            .setNumMasters(NUM_MASTERS)
+            .setNumWorkers(0)
+            .addProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.EMBEDDED.toString())
+            .addProperty(PropertyKey.MASTER_JOURNAL_FLUSH_TIMEOUT_MS, "5min")
+            // To make the test run faster.
+            .addProperty(PropertyKey.MASTER_EMBEDDED_JOURNAL_ELECTION_TIMEOUT, "750ms")
+            .build();
+    mCluster.start();
+
+    int idx = mCluster.getPrimaryMasterIndex(5_000);
+    int newLeaderIdx = (idx + 1) % NUM_MASTERS;
+    NetAddress serverAddress = mCluster.getJournalMasterClientForMaster().getQuorumInfo()
+            .getServerInfoList().get(newLeaderIdx).getServerAddress();
+
+    mCluster.getJournalMasterClientForMaster().transferLeadership(serverAddress);
+
+    WaitForOptions options = WaitForOptions.defaults().setTimeoutMs(30_000);
+    CommonUtils.waitFor("leadership to transfer", () -> {
+      try {
+        return mCluster.getPrimaryMasterIndex(5_000) == newLeaderIdx;
+      } catch (Throwable e) {
+        e.printStackTrace();
+        return false;
+      }
+    }, options);
+    mCluster.notifySuccess();
+  }
+
+  @Test
   public void growCluster() throws Exception {
     mCluster = MultiProcessCluster.newBuilder(PortCoordination.EMBEDDED_JOURNAL_GROW)
         .setClusterName("EmbeddedJournalAddMaster").setNumMasters(2).setNumWorkers(0)
