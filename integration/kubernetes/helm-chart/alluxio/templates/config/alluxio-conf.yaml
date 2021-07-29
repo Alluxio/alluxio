@@ -85,12 +85,12 @@
   {{- $workerJavaOpts = print "-Dalluxio.worker.fuse.enabled=true" | append $workerJavaOpts }}
   {{- $workerJavaOpts = print "-Dalluxio.worker.fuse.mount.alluxio.path=/" | append $workerJavaOpts }}
   {{- $workerJavaOpts = printf "-Dalluxio.worker.fuse.mount.point=%v" .Values.fuse.mountPath | append $workerJavaOpts }}
-  {{- range .Values.fuse.mountOptions}}
-    {{- $workerJavaOpts = printf "%v" . | append $workerJavaOpts }}
+  {{- if .Values.fuse.mountOptions }}
+  {{- $workerJavaOpts = concat $workerJavaOpts .Values.fuse.mountOptions }}
   {{- end }}
   {{- $workerJavaOpts = print "-Dalluxio.user.hostname=${ALLUXIO_CLIENT_HOSTNAME}" | append $workerJavaOpts }}
-  {{- range .Values.fuse.jvmOptions}}
-    {{- $workerJavaOpts = printf "%v" . | append $workerJavaOpts }}
+  {{- if .Values.fuse.jvmOptions }}
+    {{- $workerJavaOpts = concat $workerJavaOpts .Values.fuse.jvmOptions }}
   {{- end }}
 {{- end }}
 

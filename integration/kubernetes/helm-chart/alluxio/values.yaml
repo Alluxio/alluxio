@@ -311,7 +311,7 @@ fuse:
   args:
     - fuse
     - --fuse-opts=allow_other
-  # fuse options specific to worker-embedded fuse
+  # fuse options specific to fuse embedded in the worker process
   mountOptions:
     - allow_other
   # Mount path in the host
