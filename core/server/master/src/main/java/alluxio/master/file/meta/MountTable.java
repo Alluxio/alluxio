@@ -316,19 +316,21 @@ public final class MountTable implements DelegatingJournaled {
   @Nullable
   public ReverseResolution reverseResolve(AlluxioURI ufsUri) {
     // TODO(ggezer): Consider alternative mount table representations for optimizing this method.
-    for (Map.Entry<String, MountInfo> mountInfoEntry : getMountTable().entrySet()) {
-      try {
-        if (mountInfoEntry.getValue().getUfsUri().isAncestorOf(ufsUri)) {
-          return new ReverseResolution(mountInfoEntry.getValue(),
-              reverseResolve(mountInfoEntry.getValue().getAlluxioUri(),
-                  mountInfoEntry.getValue().getUfsUri(), ufsUri));
+    try (LockResource r = new LockResource(mReadLock)) {
+      for (Map.Entry<String, MountInfo> mountInfoEntry : mState.getMountTable().entrySet()) {
+        try {
+          if (mountInfoEntry.getValue().getUfsUri().isAncestorOf(ufsUri)) {
+            return new ReverseResolution(mountInfoEntry.getValue(),
+                reverseResolve(mountInfoEntry.getValue().getAlluxioUri(),
+                    mountInfoEntry.getValue().getUfsUri(), ufsUri));
+          }
+        } catch (InvalidPathException e) {
+          // expected when ufsUri does not belong to this particular mountPoint
+          LOG.debug(Throwables.getStackTraceAsString(e));
         }
-      } catch (InvalidPathException e) {
-        // expected when ufsUri does not belong to this particular mountPoint
-        LOG.debug(Throwables.getStackTraceAsString(e));
       }
+      return null;
     }
-    return null;
   }
 
   /**
