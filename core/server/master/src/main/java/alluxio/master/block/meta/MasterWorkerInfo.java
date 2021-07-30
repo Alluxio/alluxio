@@ -37,6 +37,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.stream.Collectors;
 
@@ -100,6 +101,7 @@ public final class MasterWorkerInfo {
   private final AtomicLong mLastUpdatedTimeMs;
   /** Worker metadata, this field is thread safe. */
   private final StaticWorkerMeta mMeta;
+  private final AtomicReference<WorkerTimeMeta> mWorkerTimeMeta;
 
   /** If true, the worker is considered registered. */
   @GuardedBy("mStatusLock")
@@ -133,6 +135,7 @@ public final class MasterWorkerInfo {
    */
   public MasterWorkerInfo(long id, WorkerNetAddress address) {
     mMeta = new StaticWorkerMeta(id, address);
+    mWorkerTimeMeta = new AtomicReference<>();
     mUsage = new WorkerUsageMeta();
     mBlocks = new HashSet<>();
     mToRemoveBlocks = new HashSet<>();
@@ -617,15 +620,15 @@ public final class MasterWorkerInfo {
    * @param version the version of worker
    */
   public void setVersion(String version) {
-    mMeta.mVersion = version;
+    mWorkerTimeMeta.get().setVersion(version);
   }
 
   /**
-   * Sets the start time  of worker.
+   * Sets the start time of worker.
    * @param startTime the version of worker
    */
   public void setRealStartTime(long startTime) {
-    mMeta.mStartTime = startTime;
+    mWorkerTimeMeta.get().setStartTime(startTime);
   }
 
   /**
@@ -633,7 +636,7 @@ public final class MasterWorkerInfo {
    * @param revision the version of worker
    */
   public void setRevision(String revision) {
-    mMeta.mRevision = revision;
+    mWorkerTimeMeta.get().setRevision(revision);
   }
 
   /**
@@ -642,7 +645,7 @@ public final class MasterWorkerInfo {
    * @return the start time of worker
    */
   public long getRealStartTime() {
-    return mMeta.mStartTime;
+    return mWorkerTimeMeta.get().getStartTime();
   }
 
   /**
@@ -651,7 +654,7 @@ public final class MasterWorkerInfo {
    * @return the version of worker
    */
   public String getVersion() {
-    return mMeta.mVersion;
+    return mWorkerTimeMeta.get().getVersion();
   }
 
   /**
@@ -660,6 +663,6 @@ public final class MasterWorkerInfo {
    * @return the version of worker
    */
   public String getRevision() {
-    return mMeta.mRevision;
+    return mWorkerTimeMeta.get().getRevision();
   }
 }
