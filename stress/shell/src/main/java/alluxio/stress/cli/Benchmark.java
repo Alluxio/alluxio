@@ -69,15 +69,28 @@ public abstract class Benchmark<T extends TaskResult> {
    */
   public abstract void prepare() throws Exception;
 
+  /**
+   * Perform post-run cleanups.
+   */
+  public void cleanup() throws Exception {}
+
   protected static void mainInternal(String[] args, Benchmark benchmark) {
+    int exitCode = 0;
     try {
       String result = benchmark.run(args);
       System.out.println(result);
-      System.exit(0);
     } catch (Exception e) {
       e.printStackTrace();
-      System.exit(-1);
+      exitCode = -1;
+    } finally {
+      try {
+        benchmark.cleanup();
+      } catch (Exception e) {
+        e.printStackTrace();
+        exitCode = -1;
+      }
     }
+    System.exit(exitCode);
   }
 
   /**
@@ -147,7 +160,7 @@ public abstract class Benchmark<T extends TaskResult> {
       }
 
       // aggregate the results
-      final String s = result.aggregator().aggregate(Collections.singletonList(result)).toJson();
+      final String s = result.aggregator().aggregate(Collections.singletonList(result)).toString();
       return s;
     } else {
       // Spawn a new process

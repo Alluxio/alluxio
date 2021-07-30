@@ -1,17 +1,30 @@
 package alluxio.stress.cli;
 
+import alluxio.AlluxioURI;
 import alluxio.ClientContext;
+import alluxio.client.file.FileSystemContext;
+import alluxio.collections.Pair;
 import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
+import alluxio.exception.status.AlluxioStatusException;
+import alluxio.grpc.CreateDirectoryPOptions;
+import alluxio.grpc.CreateFilePOptions;
+import alluxio.grpc.DeletePOptions;
+import alluxio.grpc.SetAttributePOptions;
 import alluxio.master.MasterClientContext;
+import alluxio.resource.CloseableResource;
 import alluxio.stress.CachingBlockMasterClient;
 import alluxio.stress.rpc.GetPinnedFileIdsParameters;
 import alluxio.stress.rpc.RegisterWorkerParameters;
 import alluxio.stress.rpc.RpcTaskResult;
+import alluxio.util.CommonUtils;
 import alluxio.util.FormatUtils;
 import alluxio.util.executor.ExecutorServiceFactories;
 import alluxio.worker.file.FileSystemMasterClient;
 import com.beust.jcommander.ParametersDelegate;
+import com.google.common.base.Stopwatch;
+import com.google.common.collect.ImmutableList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -19,10 +32,12 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class GetPinnedFileIdsBench extends Benchmark<RpcTaskResult> {
   private static final Logger LOG = LoggerFactory.getLogger(GetPinnedFileIdsBench.class);
@@ -31,6 +46,13 @@ public class GetPinnedFileIdsBench extends Benchmark<RpcTaskResult> {
   private GetPinnedFileIdsParameters mParameters = new GetPinnedFileIdsParameters();
 
   private final InstancedConfiguration mConf = InstancedConfiguration.defaults();
+  private final FileSystemContext mFileSystemContext;
+  private final AlluxioURI mBaseUri;
+
+  {
+    mFileSystemContext = FileSystemContext.create(mConf);
+    mBaseUri = new AlluxioURI(mParameters.mBasePath);
+  }
 
   @Override
   public RpcTaskResult runLocal() throws Exception {
@@ -83,34 +105,91 @@ public class GetPinnedFileIdsBench extends Benchmark<RpcTaskResult> {
         pool.awaitTermination(30, TimeUnit.SECONDS);
       }
     }
-
-    return null;
   }
 
   @Override
   public void prepare() throws Exception {
-    // TODO(bowen): you should be able to prepare something here
-    //  for example we are getting the pinned file IDs, then those files should be
-    //  prepared in Alluxio. You should find a way to generate those file IDs.
-    //  The alluxio.CLIENT.file.FileSystemMasterClient has RPCs that can probably be
-    //  used to fake those files?
-    //  StressMasterBench is doing similar thing but calling from the FileSystem.createFile API.
-    //  I think we can either call the alluxio.client.file.FileSystemMasterClient API or the
-    //  FileSystem API.
+    try (CloseableResource<alluxio.client.file.FileSystemMasterClient> client =
+             mFileSystemContext.acquireMasterClientResource()) {
+      client.get().createDirectory(mBaseUri,
+              CreateDirectoryPOptions.newBuilder().setAllowExists(true).build());
+    }
+    int fileNameLength = (int) Math.max(8, Math.log10(mParameters.mNumFiles));
+
+    LOG.info("Generating {} test files", mParameters.mNumFiles);
+    Stream.generate(() -> mBaseUri.join(CommonUtils.randomAlphaNumString(fileNameLength)))
+        .limit(mParameters.mNumFiles)
+        .parallel()
+        .forEach((fileUri) -> {
+            try (CloseableResource<alluxio.client.file.FileSystemMasterClient> client =
+                     mFileSystemContext.acquireMasterClientResource()) {
+              client.get().createFile(fileUri,
+                  CreateFilePOptions
+                      .newBuilder()
+                      .setBlockSizeBytes(mConf.getBytes(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT))
+                      .build());
+              client.get().setAttribute(fileUri,
+                  SetAttributePOptions
+                      .newBuilder()
+                      .setPinned(true)
+                      .build());
+            } catch (AlluxioStatusException e) {
+              LOG.warn("Exception during file creation of {}", fileUri, e);
+            }
+        });
+  }
+
+  @Override
+  public void cleanup() throws Exception {
+    try (CloseableResource<alluxio.client.file.FileSystemMasterClient> client =
+             mFileSystemContext.acquireMasterClientResource()) {
+      client.get().delete(mBaseUri, DeletePOptions.newBuilder().setRecursive(true).build());
+    }
   }
 
   private RpcTaskResult runRPC() throws Exception {
     FileSystemMasterClient client = new FileSystemMasterClient(MasterClientContext
             .newBuilder(ClientContext.create(mConf)).build());
-    // TODO(bowen): keep calling client.getPinList() during the duration and collect results
+    RpcTaskResult result = new RpcTaskResult();
+    result.setBaseParameters(mBaseParameters);
+    result.setParameters(mParameters);
 
-    return null;
+    long durationMs = FormatUtils.parseTimeSize(mParameters.mDuration);
+    Stopwatch durationStopwatch = Stopwatch.createStarted();
+    Stopwatch pointStopwatch = Stopwatch.createUnstarted();
+
+    while (durationStopwatch.elapsed(TimeUnit.MILLISECONDS) < durationMs) {
+      try {
+        pointStopwatch.reset();
+        pointStopwatch.start();
+
+        Set<Long> pinned = client.getPinList();
+
+        pointStopwatch.stop();
+
+        if (pinned.size() != mParameters.mNumFiles) {
+          result.addError(String.format("Unexpected number of files: %d", pinned.size()));
+          return result;
+        }
+        result.addPoint(new RpcTaskResult.Point(pointStopwatch.elapsed(TimeUnit.NANOSECONDS)));
+      } catch (Exception e) {
+        LOG.error("Failed when running", e);
+        result.addError(e.getMessage());
+      }
+    }
+    return result;
   }
 
   /**
    * @param args command-line arguments
    */
   public static void main(String[] args) {
+    /* args = */ ImmutableList.of(
+        "--duration", "30s",
+        "--in-process",
+        "--num-files", "500000",
+        "--concurrency", "20")
+        .toArray(new String[0]);
     mainInternal(args, new GetPinnedFileIdsBench());
   }
 }

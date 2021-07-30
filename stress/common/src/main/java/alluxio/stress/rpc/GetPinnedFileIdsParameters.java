@@ -15,4 +15,11 @@ public class GetPinnedFileIdsParameters extends Parameters {
   public String mDuration = "30s";
 
   // TODO(bowen): define your parameters here, similar to RegisterWorkerParameters
+  @Parameter(names = {"--num-files"},
+          description = "The number of pinned files")
+  public int mNumFiles = 100;
+
+  @Parameter(names = {"--base-dir"},
+      description = "The base directory path URI to perform operations in")
+  public String mBasePath = "/get-pin-list-bench-base";
 }

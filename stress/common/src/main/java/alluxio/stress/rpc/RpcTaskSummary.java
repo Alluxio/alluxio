@@ -13,21 +13,30 @@ package alluxio.stress.rpc;
 
 import alluxio.stress.BaseParameters;
 import alluxio.stress.GraphGenerator;
+import alluxio.stress.Parameters;
 import alluxio.stress.Summary;
 import alluxio.stress.worker.UfsIOParameters;
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.google.common.math.Quantiles;
 
+import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 public class RpcTaskSummary implements Summary {
   private List<RpcTaskResult.Point> mPoints;
   private List<String> mErrors;
   private BaseParameters mBaseParameters;
-  private RegisterWorkerParameters mParameters;
+  private Parameters mParameters;
   public long mCount;
-  // TODO(jiacheng): calculate p50 p99
   public long mTotalDurationMs;
   public double mAvgDurationMs;
+  public double m5Percentile;
+  public double m25Percentile;
+  public double mMedian;
+  public double m75Percentile;
+  public double m95Percentile;
 
   /**
    * Used for deserialization.
@@ -49,6 +58,12 @@ public class RpcTaskSummary implements Summary {
       mTotalDurationMs += p.mDurationMs;
     }
     mAvgDurationMs = (mCount == 0) ? 0.0 : mTotalDurationMs / (mCount + 0.0000001);
+    Map<Integer, Double> percentiles = getPercentiles(5, 25, 50, 75, 95);
+    m5Percentile = percentiles.get(5);
+    m25Percentile = percentiles.get(25);
+    mMedian = percentiles.get(50);
+    m75Percentile = percentiles.get(75);
+    m95Percentile = percentiles.get(95);
   }
 
   @Override
@@ -58,8 +73,21 @@ public class RpcTaskSummary implements Summary {
 
   @Override
   public String toString() {
-    return String.format("RpcTaskSummary: {Points=%s, Errors=%s}%n",
-            mPoints, mErrors);
+    return String.format("RpcTaskSummary: Data points: %d, Errors: %d%n" +
+        "Total: %.3e, Average: %.3e, Median: %.3e%n"
+        + "5 Percentile: %.3e%n25 Percentile: %.3e%n75 Percentile: %.3e%n95 Percentile: %.3e%n",
+        mPoints.size(), mErrors.size(), (double) mTotalDurationMs, mAvgDurationMs, mMedian,
+        m5Percentile, m25Percentile, m75Percentile, m95Percentile);
+  }
+
+  public Map<Integer, Double> getPercentiles(int... indices) {
+     indices = Arrays.stream(indices)
+        .map((index) -> Math.max(0, Math.min(100, index)))
+        .toArray();
+    return Quantiles
+        .percentiles()
+        .indexes(indices)
+        .compute(mPoints.stream().map((p) -> p.mDurationMs).collect(Collectors.toList()));
   }
 
   /**
@@ -107,14 +135,14 @@ public class RpcTaskSummary implements Summary {
   /**
    * @return the task specific {@link UfsIOParameters}
    * */
-  public RegisterWorkerParameters getParameters() {
+  public Parameters getParameters() {
     return mParameters;
   }
 
   /**
    * @param parameters the {@link UfsIOParameters}
    * */
-  public void setParameters(RegisterWorkerParameters parameters) {
+  public void setParameters(Parameters parameters) {
     mParameters = parameters;
   }
 }
