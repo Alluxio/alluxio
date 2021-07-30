@@ -276,15 +276,14 @@ public final class EmbeddedJournalIntegrationTest extends BaseIntegrationTest {
 
     mCluster.getJournalMasterClientForMaster().transferLeadership(serverAddress);
 
-    WaitForOptions options = WaitForOptions.defaults().setTimeoutMs(30_000);
     CommonUtils.waitFor("leadership to transfer", () -> {
       try {
         return mCluster.getPrimaryMasterIndex(5_000) == newLeaderIdx;
-      } catch (Throwable e) {
-        e.printStackTrace();
-        return false;
+      } catch (Exception exc) {
+        throw new RuntimeException(exc);
       }
-    }, options);
+    });
+
     mCluster.notifySuccess();
   }
 

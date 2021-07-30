@@ -68,17 +68,9 @@ public class QuorumRemoveCommand extends AbstractFsAdminCommand {
     }
 
     String serverAddress = cl.getOptionValue(ADDRESS_OPTION_NAME);
-    // Extract hostname:port from given address.
-    String hostName;
-    int port;
-    try {
-      hostName = serverAddress.substring(0, serverAddress.indexOf(":"));
-      port = Integer.parseInt(serverAddress.substring(serverAddress.indexOf(":") + 1));
-    } catch (Exception e) {
-      throw new InvalidArgumentException(ExceptionMessage.INVALID_ADDRESS_VALUE.getMessage());
-    }
+    NetAddress address = QuorumCommand.stingToAddress(serverAddress);
 
-    jmClient.removeQuorumServer(NetAddress.newBuilder().setHost(hostName).setRpcPort(port).build());
+    jmClient.removeQuorumServer(address);
     mPrintStream.println(String.format(OUTPUT_RESULT, serverAddress, domainVal));
 
     return 0;

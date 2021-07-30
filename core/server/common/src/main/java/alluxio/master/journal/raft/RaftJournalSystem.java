@@ -890,24 +890,30 @@ public class RaftJournalSystem extends AbstractJournalSystem {
     InetSocketAddress serverAddress = InetSocketAddress
             .createUnresolved(newLeaderNetAddress.getHost(), newLeaderNetAddress.getRpcPort());
     RaftPeerId newLeaderPeerId = RaftJournalUtils.getPeerId(serverAddress);
-
     // --- the change in priorities seems to be necessary otherwise the transfer fails ---
+    List<RaftPeer> oldPeers = new ArrayList<>(mRaftGroup.getPeers());
     List<RaftPeer> peersWithNewPriorities = new ArrayList<>();
-    for (RaftPeer peer : mRaftGroup.getPeers()) {
+    for (RaftPeer peer : oldPeers) {
       peersWithNewPriorities.add(
               RaftPeer.newBuilder(peer)
               .setPriority(peer.getId().equals(newLeaderPeerId) ? 2 : 1)
               .build()
       );
     }
-    mServer.setConfiguration(new SetConfigurationRequest(mClientId, mPeerId,
-            mRaftGroup.getGroupId(), nextCallId(), peersWithNewPriorities));
     // --- end of updating priorities ---
-
     try (RaftClient client = createClient()) {
-      RaftClientReply reply = client.admin().transferLeadership(newLeaderPeerId, 30_000);
+      RaftClientReply reply = client.admin().setConfiguration(peersWithNewPriorities);
       if (reply.getException() != null) {
         throw reply.getException();
+      }
+      RaftClientReply reply1 = client.admin().transferLeadership(newLeaderPeerId, 30_000);
+      if (reply1.getException() != null) {
+        throw reply1.getException();
+      }
+      // reset the peers to have the old priorities
+      RaftClientReply reply2 = client.admin().setConfiguration(oldPeers);
+      if (reply2.getException() != null) {
+        throw reply2.getException();
       }
     }
   }
