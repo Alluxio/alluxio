@@ -15,6 +15,7 @@ import alluxio.grpc.SetAttributePOptions;
 import alluxio.master.MasterClientContext;
 import alluxio.resource.CloseableResource;
 import alluxio.stress.CachingBlockMasterClient;
+import alluxio.stress.PinListFileSystemMasterClient;
 import alluxio.stress.rpc.GetPinnedFileIdsParameters;
 import alluxio.stress.rpc.RegisterWorkerParameters;
 import alluxio.stress.rpc.RpcTaskResult;
@@ -135,6 +136,7 @@ public class GetPinnedFileIdsBench extends Benchmark<RpcTaskResult> {
                       .build());
             } catch (AlluxioStatusException e) {
               LOG.warn("Exception during file creation of {}", fileUri, e);
+              System.exit(-1);
             }
         });
   }
@@ -148,8 +150,8 @@ public class GetPinnedFileIdsBench extends Benchmark<RpcTaskResult> {
   }
 
   private RpcTaskResult runRPC() throws Exception {
-    FileSystemMasterClient client = new FileSystemMasterClient(MasterClientContext
-            .newBuilder(ClientContext.create(mConf)).build());
+    PinListFileSystemMasterClient client = new PinListFileSystemMasterClient(
+        MasterClientContext.newBuilder(ClientContext.create(mConf)).build());
     RpcTaskResult result = new RpcTaskResult();
     result.setBaseParameters(mBaseParameters);
     result.setParameters(mParameters);
@@ -163,12 +165,12 @@ public class GetPinnedFileIdsBench extends Benchmark<RpcTaskResult> {
         pointStopwatch.reset();
         pointStopwatch.start();
 
-        Set<Long> pinned = client.getPinList();
+        int numPinnedFiles = client.getPinListLength();
 
         pointStopwatch.stop();
 
-        if (pinned.size() != mParameters.mNumFiles) {
-          result.addError(String.format("Unexpected number of files: %d", pinned.size()));
+        if (numPinnedFiles != mParameters.mNumFiles) {
+          result.addError(String.format("Unexpected number of files: %d", numPinnedFiles));
           return result;
         }
         result.addPoint(new RpcTaskResult.Point(pointStopwatch.elapsed(TimeUnit.NANOSECONDS)));
@@ -184,12 +186,6 @@ public class GetPinnedFileIdsBench extends Benchmark<RpcTaskResult> {
    * @param args command-line arguments
    */
   public static void main(String[] args) {
-    /* args = */ ImmutableList.of(
-        "--duration", "30s",
-        "--in-process",
-        "--num-files", "500000",
-        "--concurrency", "20")
-        .toArray(new String[0]);
     mainInternal(args, new GetPinnedFileIdsBench());
   }
 }
