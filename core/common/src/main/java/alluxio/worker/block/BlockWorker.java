@@ -11,7 +11,6 @@
 
 package alluxio.worker.block;
 
-import alluxio.exception.AlluxioException;
 import alluxio.exception.BlockAlreadyExistsException;
 import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.InvalidWorkerStateException;
@@ -29,6 +28,7 @@ import alluxio.worker.block.meta.TempBlockMeta;
 
 import java.io.IOException;
 import java.util.Set;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicReference;
 
 import javax.annotation.Nullable;
@@ -309,9 +309,9 @@ public interface BlockWorker extends Worker, SessionCleanable {
   /**
    * Submits the cache request to cache manager to execute.
    *
-   * @param request the async cache request
+   * @param request the cache request
    */
-  void cache(CacheRequest request) throws IOException, AlluxioException;
+  void cache(CacheRequest request) throws ExecutionException, InterruptedException;
 
   /**
    * Sets the pinlist for the underlying block store.

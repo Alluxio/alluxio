@@ -36,7 +36,9 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.Objects;
+import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.atomic.AtomicLong;
@@ -56,7 +58,7 @@ public class CacheRequestManager {
   private final ExecutorService mCacheExecutor;
   /** The block worker. */
   private final BlockWorker mBlockWorker;
-  private final ConcurrentHashMap<Long, CacheRequest> mPendingCacheRequests;
+  private final ConcurrentHashMap<Long, CacheRequest> mActiveCacheRequests;
   private final String mLocalWorkerHostname;
   private final FileSystemContext mFsContext;
   /** Keeps track of the number of rejected cache requests. */
@@ -72,7 +74,7 @@ public class CacheRequestManager {
     mCacheExecutor = service;
     mBlockWorker = blockWorker;
     mFsContext = fsContext;
-    mPendingCacheRequests = new ConcurrentHashMap<>();
+    mActiveCacheRequests = new ConcurrentHashMap<>();
     mLocalWorkerHostname =
         NetworkAddressUtils.getLocalHostName(
             (int) ServerConfiguration.getMs(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS));
@@ -83,20 +85,23 @@ public class CacheRequestManager {
    *
    * @param request the cache request fields will be available
    */
-  public void submitRequest(CacheRequest request) throws IOException, AlluxioException {
+  public void submitRequest(CacheRequest request) throws ExecutionException, InterruptedException {
     CACHE_REQUESTS.inc();
     long blockId = request.getBlockId();
-    if (mPendingCacheRequests.putIfAbsent(blockId, request) != null) {
+    if (mActiveCacheRequests.putIfAbsent(blockId, request) != null) {
       // This block is already planned.
       LOG.debug("request already planned: {}", request);
       return;
     }
     boolean async = request.getAsync();
     if (!async) {
-      runSyncCacheTask(request);
+      CACHE_REQUESTS_SYNC.inc();
+      // use ThreadPool to limit the resource usage
+      mCacheExecutor.submit(new CacheTask(request)).get();
     } else {
+      CACHE_REQUESTS_ASYNC.inc();
       try {
-        mCacheExecutor.submit(new CacheTask(request));
+        mCacheExecutor.submit(new AsyncCacheTask(request));
       } catch (RejectedExecutionException e) {
         // RejectedExecutionException may be thrown in extreme cases when the
         // gRPC thread pool is drained due to highly concurrent caching workloads. In these cases,
@@ -110,31 +115,137 @@ public class CacheRequestManager {
       } catch (Exception e) {
         LOG.warn("Failed to submit async cache request. request: {}", request, e);
         CACHE_FAILED_BLOCKS.inc();
-        mPendingCacheRequests.remove(blockId);
+        mActiveCacheRequests.remove(blockId);
       }
     }
   }
 
   /**
-   * The method to cache the block synchronously.
-   * @param request the cache request fields will be available
+   * CacheTask is a callable task that can be considered equal if the blockId of the request is the
+   * same.
    */
-  private void runSyncCacheTask(CacheRequest request) throws IOException, AlluxioException {
+  @VisibleForTesting
+  class CacheTask implements Callable<Void> {
+    private final CacheRequest mRequest;
 
-    long blockId = request.getBlockId();
-    long blockLength = request.getLength();
-    boolean result = false;
-    try {
-      result = cacheBlock(request);
-    } catch (Exception e) {
-      mPendingCacheRequests.remove(blockId);
-      throw e;
-    } finally {
-      if (result) {
-        CACHE_BLOCKS_SIZE.inc(blockLength);
-        CACHE_SUCCEEDED_BLOCKS.inc();
-      } else {
-        CACHE_FAILED_BLOCKS.inc();
+    /**
+     * Constructor for an CacheTask.
+     *
+     * @param request an CacheRequest
+     */
+    CacheTask(CacheRequest request) {
+      mRequest = request;
+    }
+
+    @Override
+    public int hashCode() {
+      // Only care about the block id being the same.
+      // Do not care if the source host or port is different.
+      return Objects.hash(mRequest.getBlockId());
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+      if (this == obj) {
+        return true;
+      }
+      if (!(obj instanceof CacheTask)) {
+        return false;
+      }
+      CacheTask that = ((CacheTask) obj);
+      if (mRequest == that.mRequest) {
+        return true;
+      }
+      if (this.mRequest == null || that.mRequest == null) {
+        return false;
+      }
+      // Only care about the block id being the same.
+      // Do not care if the source host or port is different.
+      return mRequest.getBlockId() == that.mRequest.getBlockId();
+    }
+
+    @Override
+    public Void call() throws IOException, AlluxioException {
+      long blockId = mRequest.getBlockId();
+      long blockLength = mRequest.getLength();
+      boolean result = false;
+      try {
+        result = cacheBlock(mRequest);
+      } catch (Exception e) {
+        mActiveCacheRequests.remove(blockId);
+        throw e;
+      } finally {
+        if (result) {
+          CACHE_BLOCKS_SIZE.inc(blockLength);
+          CACHE_SUCCEEDED_BLOCKS.inc();
+        } else {
+          CACHE_FAILED_BLOCKS.inc();
+        }
+      }
+      return null;
+    }
+  }
+  /**
+   * AsyncCacheTask is a runnable task that can be considered equal if the blockId of the request is
+   * the same.
+   */
+  @VisibleForTesting
+  class AsyncCacheTask implements Runnable {
+    private final CacheRequest mRequest;
+
+    /**
+     * Constructor for an CacheTask.
+     *
+     * @param request an CacheRequest
+     */
+    AsyncCacheTask(CacheRequest request) {
+      mRequest = request;
+    }
+
+    @Override
+    public int hashCode() {
+      // Only care about the block id being the same.
+      // Do not care if the source host or port is different.
+      return Objects.hash(mRequest.getBlockId());
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+      if (this == obj) {
+        return true;
+      }
+      if (!(obj instanceof AsyncCacheTask)) {
+        return false;
+      }
+      AsyncCacheTask that = ((AsyncCacheTask) obj);
+      if (mRequest == that.mRequest) {
+        return true;
+      }
+      if (this.mRequest == null || that.mRequest == null) {
+        return false;
+      }
+      // Only care about the block id being the same.
+      // Do not care if the source host or port is different.
+      return mRequest.getBlockId() == that.mRequest.getBlockId();
+    }
+
+    @Override
+    public void run() {
+      long blockId = mRequest.getBlockId();
+      long blockLength = mRequest.getLength();
+      boolean result = false;
+      try {
+        result = cacheBlock(mRequest);
+      } catch (Exception e) {
+        LOG.warn("cache task failed. request: {}", mRequest, e);
+      } finally {
+        if (result) {
+          CACHE_BLOCKS_SIZE.inc(blockLength);
+          CACHE_SUCCEEDED_BLOCKS.inc();
+        } else {
+          CACHE_FAILED_BLOCKS.inc();
+        }
+        mActiveCacheRequests.remove(blockId);
       }
     }
   }
@@ -245,73 +356,13 @@ public class CacheRequestManager {
         openUfsBlockOptions);
   }
 
-  /**
-   * CacheTask is a runnable task that can be considered equal if
-   * the blockId of the request is the same.
-   */
-  @VisibleForTesting
-  class CacheTask implements Runnable {
-    private final CacheRequest mRequest;
-
-    /**
-     * Constructor for an CacheTask.
-     *
-     * @param request an CacheRequest
-     */
-    CacheTask(CacheRequest request) {
-      mRequest = request;
-    }
-
-    @Override
-    public int hashCode() {
-      // Only care about the block id being the same.
-      // Do not care if the source host or port is different.
-      return Objects.hash(mRequest.getBlockId());
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-      if (this == obj) {
-        return true;
-      }
-      if (!(obj instanceof CacheTask)) {
-        return false;
-      }
-      CacheTask that = ((CacheTask) obj);
-      if (mRequest == that.mRequest) {
-        return true;
-      }
-      if (this.mRequest == null || that.mRequest == null) {
-        return false;
-      }
-      // Only care about the block id being the same.
-      // Do not care if the source host or port is different.
-      return mRequest.getBlockId() == that.mRequest.getBlockId();
-    }
-
-    @Override
-    public void run() {
-      long blockId = mRequest.getBlockId();
-      long blockLength = mRequest.getLength();
-      boolean result = false;
-      try {
-        result = cacheBlock(mRequest);
-      } catch (Exception e) {
-        LOG.warn("cache task failed. request: {}", mRequest, e);
-      } finally {
-        if (result) {
-          CACHE_BLOCKS_SIZE.inc(blockLength);
-          CACHE_SUCCEEDED_BLOCKS.inc();
-        } else {
-          CACHE_FAILED_BLOCKS.inc();
-        }
-        mPendingCacheRequests.remove(blockId);
-      }
-    }
-  }
   // Metrics
   private static final Counter CACHE_REQUESTS
           = MetricsSystem.counter(MetricKey.WORKER_CACHE_REQUESTS.getName());
+  private static final Counter CACHE_REQUESTS_ASYNC
+      = MetricsSystem.counter(MetricKey.WORKER_CACHE_REQUESTS_ASYNC.getName());
+  private static final Counter CACHE_REQUESTS_SYNC
+      = MetricsSystem.counter(MetricKey.WORKER_CACHE_REQUESTS_SYNC.getName());
   private static final Counter CACHE_FAILED_BLOCKS =
           MetricsSystem.counter(MetricKey.WORKER_CACHE_FAILED_BLOCKS.getName());
   private static final Counter CACHE_REMOTE_BLOCKS =

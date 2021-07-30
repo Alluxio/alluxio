@@ -70,10 +70,11 @@ public final class GrpcExecutors {
   private GrpcExecutors() {}
 
   /**
-   * This executor passes impersonation information to the real worker thread. The proxy user is
-   * tracked by {@link AuthenticatedClientUser#sUserThreadLocal}. This executor delegates operations
-   * to the underlying executor while setting the ThreadLocal context for execution.
-   */
+   * This executor passes impersonation information to the real worker thread.
+   * The proxy user is tracked by {@link AuthenticatedClientUser#sUserThreadLocal}.
+   * This executor delegates operations to the underlying executor while setting the
+   * ThreadLocal context for execution.
+   * */
   private static class ImpersonateThreadPoolExecutor extends AbstractExecutorService {
     private final ExecutorService mDelegate;
 

@@ -1075,6 +1075,18 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setMetricType(MetricType.COUNTER)
           .setIsClusterAggregated(false)
           .build();
+  public static final MetricKey WORKER_CACHE_REQUESTS_ASYNC =
+      new Builder("Worker.CacheRequestsAsync")
+          .setDescription("Total number of async cache request received by this worker")
+          .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggregated(false)
+          .build();
+  public static final MetricKey WORKER_CACHE_REQUESTS_SYNC =
+      new Builder("Worker.CacheRequestsSync")
+          .setDescription("Total number of sync cache request received by this worker")
+          .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggregated(false)
+          .build();
   public static final MetricKey WORKER_CACHE_SUCCEEDED_BLOCKS =
       new Builder("Worker.CacheSucceededBlocks")
           .setDescription("Total number of cache succeeded blocks in this worker")
