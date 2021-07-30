@@ -30,7 +30,6 @@ public class StaticWorkerMeta {
   /** Start time of the worker in ms. */
   final long mRegisterTimeMs;
 
-
   /**
    * Constructor.
    *
