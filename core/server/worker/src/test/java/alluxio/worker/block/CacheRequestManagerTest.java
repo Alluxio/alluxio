@@ -68,7 +68,7 @@ public class CacheRequestManagerTest {
         (int) ServerConfiguration.getMs(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS));
     int port = mRandom.nextInt(5000);
     long blockId = mRandom.nextLong();
-    long blockLength = mRandom.nextLong();
+    long blockLength = mRandom.nextInt(5000);
     Protocol.OpenUfsBlockOptions openUfsBlockOptions = Protocol.OpenUfsBlockOptions.newBuilder()
         .setMaxUfsReadConcurrency(10).setUfsPath("/a").build();
     CacheRequest request = CacheRequest.newBuilder().setBlockId(blockId).setLength(blockLength)
@@ -89,7 +89,7 @@ public class CacheRequestManagerTest {
     String fakeRemoteWorker = localWorkerHostname + "1";
     int port = mRandom.nextInt(5000);
     long blockId = mRandom.nextLong();
-    long blockLength = mRandom.nextLong();
+    long blockLength = mRandom.nextInt(5000);
     Protocol.OpenUfsBlockOptions options = Protocol.OpenUfsBlockOptions.newBuilder()
         .setMaxUfsReadConcurrency(10).setUfsPath("/a").build();
     CacheRequest request = CacheRequest.newBuilder().setBlockId(blockId).setLength(blockLength)
@@ -109,7 +109,7 @@ public class CacheRequestManagerTest {
         (int) ServerConfiguration.getMs(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS));
     int port = mRandom.nextInt(5000);
     long blockId = mRandom.nextLong();
-    long blockLength = mRandom.nextLong();
+    long blockLength = mRandom.nextInt(5000);
     Protocol.OpenUfsBlockOptions openUfsBlockOptions = Protocol.OpenUfsBlockOptions.newBuilder()
         .setMaxUfsReadConcurrency(10).setUfsPath("/a").build();
     CacheRequest request = CacheRequest.newBuilder().setBlockId(blockId).setLength(blockLength)
@@ -131,7 +131,7 @@ public class CacheRequestManagerTest {
     String fakeRemoteWorker = localWorkerHostname + "1";
     int port = mRandom.nextInt(5000);
     long blockId = mRandom.nextLong();
-    long blockLength = mRandom.nextLong();
+    long blockLength = mRandom.nextInt(5000);
     Protocol.OpenUfsBlockOptions options = Protocol.OpenUfsBlockOptions.newBuilder()
         .setMaxUfsReadConcurrency(10).setUfsPath("/a").build();
     CacheRequest request = CacheRequest.newBuilder().setBlockId(blockId).setLength(blockLength)
