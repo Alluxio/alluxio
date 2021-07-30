@@ -70,14 +70,13 @@ public class CacheRequestManager {
    * @param fsContext context
    */
   public CacheRequestManager(ExecutorService service, BlockWorker blockWorker,
-                             FileSystemContext fsContext) {
+      FileSystemContext fsContext) {
     mCacheExecutor = service;
     mBlockWorker = blockWorker;
     mFsContext = fsContext;
     mActiveCacheRequests = new ConcurrentHashMap<>();
-    mLocalWorkerHostname =
-        NetworkAddressUtils.getLocalHostName(
-            (int) ServerConfiguration.getMs(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS));
+    mLocalWorkerHostname = NetworkAddressUtils.getLocalHostName(
+        (int) ServerConfiguration.getMs(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS));
   }
 
   /**
