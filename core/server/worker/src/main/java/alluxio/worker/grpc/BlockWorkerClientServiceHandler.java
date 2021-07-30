@@ -15,6 +15,7 @@ import alluxio.RpcUtils;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.client.file.FileSystemContext;
+import alluxio.exception.status.AlluxioStatusException;
 import alluxio.grpc.BlockWorkerGrpc;
 import alluxio.grpc.CacheRequest;
 import alluxio.grpc.CacheResponse;
@@ -52,6 +53,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Collections;
 import java.util.Map;
+import java.util.concurrent.ExecutionException;
 
 /**
  * Server side implementation of the gRPC BlockWorker interface.
@@ -149,7 +151,11 @@ public class BlockWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorker
   @Override
   public void cache(CacheRequest request, StreamObserver<CacheResponse> responseObserver) {
     RpcUtils.call(LOG, () -> {
-      mBlockWorker.cache(request);
+      try {
+        mBlockWorker.cache(request);
+      } catch (ExecutionException | InterruptedException e) {
+        throw AlluxioStatusException.fromThrowable(e);
+      }
       return CacheResponse.getDefaultInstance();
     }, "cache", "request=%s", responseObserver, request);
   }
