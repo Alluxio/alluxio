@@ -57,7 +57,9 @@ public class RaftJournalConfiguration {
     Preconditions.checkState(getMaxLogSize() <= Integer.MAX_VALUE,
         "{} has value {} but must not exceed {}", PropertyKey.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX,
         getMaxLogSize(), Integer.MAX_VALUE);
-    Preconditions.checkState(getClusterAddresses().contains(getLocalAddress()),
+    Preconditions.checkState(getClusterAddresses().contains(getLocalAddress())
+            || NetworkAddressUtils.containsLocalIp(getClusterAddresses(),
+        ServerConfiguration.global()),
         "The cluster addresses (%s) must contain the local master address (%s)",
         getClusterAddresses(), getLocalAddress());
   }
