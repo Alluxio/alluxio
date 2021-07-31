@@ -63,7 +63,7 @@ public class LocalCacheFileInStream extends FileInStream {
   private boolean mClosed = false;
   private boolean mEOF = false;
 
-  Stopwatch mStopwatch;
+  private final Stopwatch mStopwatch;
 
   /**
    * Interface to wrap open method of file system.
