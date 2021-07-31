@@ -11,15 +11,18 @@
 
 package alluxio.stress.fuse;
 
-import alluxio.stress.client.ClientIOOperation;
-
-public enum FUSEBenchOperation {
+/**
+ * The operations for the FUSE stress tests.
+ *
+ * Currently, only streaming reading is supported, that is, reading the whole file.
+ */
+public enum FuseIOOperation {
   /* first step read operation */
   READ("read");
 
   private final String mName;
 
-  FUSEBenchOperation(String name) {
+  FuseIOOperation(String name) {
     mName = name;
   }
 
@@ -34,8 +37,8 @@ public enum FUSEBenchOperation {
    * @param text the instance type in string
    * @return the created instance
    */
-  public static FUSEBenchOperation fromString(String text) {
-    for (FUSEBenchOperation type : FUSEBenchOperation.values()) {
+  public static FuseIOOperation fromString(String text) {
+    for (FuseIOOperation type : FuseIOOperation.values()) {
       if (type.toString().equalsIgnoreCase(text)) {
         return type;
       }

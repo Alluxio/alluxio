@@ -15,13 +15,13 @@ import alluxio.Constants;
 import alluxio.stress.BaseParameters;
 import alluxio.stress.StressConstants;
 import alluxio.stress.cli.Benchmark;
-import alluxio.stress.client.ClientIOTaskResult;
 import alluxio.stress.common.SummaryStatistics;
-import alluxio.stress.fuse.FUSEBenchParameters;
-import alluxio.stress.fuse.FUSEBenchTaskResult;
+import alluxio.stress.fuse.FuseIOParameters;
+import alluxio.stress.fuse.FuseIOTaskResult;
 import alluxio.util.CommonUtils;
 import alluxio.util.FormatUtils;
 import alluxio.util.executor.ExecutorServiceFactories;
+
 import com.beust.jcommander.ParametersDelegate;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.slf4j.Logger;
@@ -30,19 +30,23 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
-
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 /**
  * Single node stress test.
  */
-public class StressFuseBench extends Benchmark<FUSEBenchTaskResult> {
-  private static final Logger LOG = LoggerFactory.getLogger(StressFuseBench.class);
+public class FuseIOBench extends Benchmark<FuseIOTaskResult> {
+  private static final Logger LOG = LoggerFactory.getLogger(FuseIOBench.class);
 
   @ParametersDelegate
-  private FUSEBenchParameters mParameters = new FUSEBenchParameters();
+  private FuseIOParameters mParameters = new FuseIOParameters();
 
   /** Set to true after the first barrier is passed. */
   private volatile boolean mStartBarrierPassed = false;
@@ -50,38 +54,42 @@ public class StressFuseBench extends Benchmark<FUSEBenchTaskResult> {
   /**
    * Creates instance.
    */
-  public StressFuseBench() {
+  public FuseIOBench() {
   }
 
   /**
    * @param args command-line arguments
    */
   public static void main(String[] args) {
-    mainInternal(args, new StressFuseBench());
+    mainInternal(args, new FuseIOBench());
   }
 
   @Override
   public void prepare() throws Exception {
-
+    if (mParameters.mReadRandom) {
+      // random read will be supported in the future.
+      LOG.warn("Random read is not supported for now. Read sequentially");
+      mParameters.mReadRandom = false;
+    }
   }
 
   @Override
-  public FUSEBenchTaskResult runLocal() throws Exception {
+  public FuseIOTaskResult runLocal() throws Exception {
     List<Integer> threadCounts = new ArrayList<>(mParameters.mThreads);
     threadCounts.sort(Comparator.comparingInt(i -> i));
 
-    FUSEBenchTaskResult taskResult = new FUSEBenchTaskResult();
+    FuseIOTaskResult taskResult = new FuseIOTaskResult();
     taskResult.setBaseParameters(mBaseParameters);
     taskResult.setParameters(mParameters);
 
     for (Integer numThreads: threadCounts) {
-      FUSEBenchTaskResult.ThreadCountResult threadCountResult = runForThreadCount(numThreads);
+      FuseIOTaskResult.ThreadCountResult threadCountResult = runForThreadCount(numThreads);
       taskResult.addThreadCountResults(numThreads, threadCountResult);
     }
     return taskResult;
   }
 
-  private FUSEBenchTaskResult.ThreadCountResult runForThreadCount(int numThreads) throws Exception {
+  private FuseIOTaskResult.ThreadCountResult runForThreadCount(int numThreads) throws Exception {
     LOG.info("Running benchmark for thread count: " + numThreads);
     ExecutorService service =
             ExecutorServiceFactories.fixedThreadPool("bench-thread", numThreads).create();
@@ -97,7 +105,7 @@ public class StressFuseBench extends Benchmark<FUSEBenchTaskResult> {
 
     List<Callable<Void>> callables = new ArrayList<>(numThreads);
     for (int i = 0; i < numThreads; i++) {
-      callables.add(new BenchThread(context, i));
+      callables.add(new BenchThread(context, i, numThreads));
     }
     service.invokeAll(callables, FormatUtils.parseTimeSize(mBaseParameters.mBenchTimeout),
             TimeUnit.MILLISECONDS);
@@ -105,7 +113,7 @@ public class StressFuseBench extends Benchmark<FUSEBenchTaskResult> {
     service.shutdownNow();
     service.awaitTermination(30, TimeUnit.SECONDS);
 
-    FUSEBenchTaskResult.ThreadCountResult result = context.getResult();
+    FuseIOTaskResult.ThreadCountResult result = context.getResult();
 
     LOG.info(String.format("thread count: %d, errors: %d, IO throughput (MB/s): %f", numThreads,
             result.getErrors().size(), result.getIOMBps()));
@@ -178,7 +186,7 @@ public class StressFuseBench extends Benchmark<FUSEBenchTaskResult> {
     private final long mEndMs;
 
     /** The results. Access must be synchronized for thread safety. */
-    private FUSEBenchTaskResult.ThreadCountResult mThreadCountResult;
+    private FuseIOTaskResult.ThreadCountResult mThreadCountResult;
 
     public BenchContext(long startMs, long endMs) {
       mStartMs = startMs;
@@ -193,7 +201,7 @@ public class StressFuseBench extends Benchmark<FUSEBenchTaskResult> {
       return mEndMs;
     }
 
-    public synchronized void mergeThreadResult(FUSEBenchTaskResult.ThreadCountResult threadResult) {
+    public synchronized void mergeThreadResult(FuseIOTaskResult.ThreadCountResult threadResult) {
       if (mThreadCountResult == null) {
         mThreadCountResult = threadResult;
       } else {
@@ -205,7 +213,7 @@ public class StressFuseBench extends Benchmark<FUSEBenchTaskResult> {
       }
     }
 
-    public synchronized FUSEBenchTaskResult.ThreadCountResult getResult() {
+    public synchronized FuseIOTaskResult.ThreadCountResult getResult() {
       return mThreadCountResult;
     }
   }
@@ -215,15 +223,15 @@ public class StressFuseBench extends Benchmark<FUSEBenchTaskResult> {
     private final List<String> mFilesPath;
     private final int mThreadId;
 
-    private final FUSEBenchTaskResult.ThreadCountResult mThreadCountResult =
-            new FUSEBenchTaskResult.ThreadCountResult();
+    private final FuseIOTaskResult.ThreadCountResult mThreadCountResult =
+            new FuseIOTaskResult.ThreadCountResult();
 
-    private BenchThread(BenchContext context, int threadId) {
+    private BenchThread(BenchContext context, int threadId, int numThreads) {
       mContext = context;
       mThreadId = threadId;
       mFilesPath = new ArrayList<>();
-      for (int i = mThreadId; i < 1000; i += mParameters.mThreads) {
-        mFilesPath.add(mParameters.mBasePath + i);
+      for (int i = mThreadId; i < 10; i += numThreads) {
+        mFilesPath.add(mParameters.mLocalPath + i);
       }
     }
 
@@ -235,6 +243,11 @@ public class StressFuseBench extends Benchmark<FUSEBenchTaskResult> {
         LOG.error(Thread.currentThread().getName() + ": failed", e);
         mThreadCountResult.addErrorMessage(e.getMessage());
       }
+
+      // Update thread count result
+      mThreadCountResult.setEndMs(CommonUtils.getCurrentMs());
+      mContext.mergeThreadResult(mThreadCountResult);
+
       return null;
     }
 
