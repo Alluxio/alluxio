@@ -11,12 +11,16 @@
 
 package alluxio.fuse;
 
+import alluxio.jnifuse.FuseException;
+
 /**
  * An interface for unmounting the mounted Fuse applications.
  */
 public interface FuseUmountable {
   /**
    * Unmounts the Fuse application.
+   * @param force true to throw an exception and treat umount as a no-op
+   *              when umount timeouts due to the fuse device is busy.
    */
-  void umount();
+  void umount(boolean force) throws FuseException;
 }
