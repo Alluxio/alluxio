@@ -40,7 +40,7 @@ function printUsage {
   echo -e "                \t NOTE: This command requires a valid ufs path to run tests against."
   echo -e "  readJournal   \t Read an Alluxio journal file from stdin and write a human-readable version of it to stdout."
   echo -e "  upgradeJournal\t Upgrade an Alluxio journal version 0 (Alluxio version < 1.5.0) to an Alluxio journal version 1 (Alluxio version >= 1.5.0)."
-  echo -e "  killAll <WORD>\t Kill processes containing the WORD."
+  echo -e "  killAll [-s] <WORD>\t Kill processes containing the WORD (if '-s' specified, processes won't be forcibly killed even if operation is timeout)."
   echo -e "  copyDir <PATH>\t Copy the PATH to all master/worker nodes."
   echo -e "  clearCache    \t Clear OS buffer cache of the machine."
   echo -e "  docGen        \t Generate docs automatically."
@@ -79,31 +79,52 @@ EOF
 }
 
 function killAll {
-  if [[ $# -ne 1 ]]; then
-    echo "Usage: alluxio killAll <WORD>" >&2
+  if [[ $# -gt 2  ]]; then
+    echo "Usage: alluxio killAll [-s] <WORD> (if '-s' specified, processes won't be forcibly killed even if operation is timeout.)" >&2
     exit 2
   fi
-
-  keyword=$1
-  count=0
+  if [[ "$1" == "-s" ]]; then
+    keyword=$2
+    soft_kill_option=true
+  else
+    keyword=$1
+    soft_kill_option=false
+  fi
+  local success_count=0
+  local failed_count=0
   for pid in $(ps -Aww -o pid,command | grep -i "[j]ava" | grep ${keyword} | awk '{print $1}'); do
     kill -15 ${pid} > /dev/null 2>&1
     local maxWait=120
     local cnt=${maxWait}
+    fail_to_kill=false
     while kill -0 ${pid} > /dev/null 2>&1; do
       if [[ ${cnt} -gt 1 ]]; then
         # still not dead, wait
         cnt=$(expr ${cnt} - 1)
         sleep 1
+      elif [[ "${soft_kill_option}" = true ]] ; then
+        # waited long enough, give up killing the process
+        echo "Process [${pid}] did not complete after "${maxWait}" seconds, failing to kill it." >&2
+        fail_to_kill=true
+        break;
       else
-        # waited long enough, kill the process
-        echo "Process did not complete after "${maxWait}" seconds, killing." >&2
+        # waited long enough, forcibly kill the process
+        echo "Process [${pid}] did not complete after "${maxWait}" seconds, forcibly killing it." >&2
         kill -9 ${pid} 2> /dev/null
       fi
     done
-    count=$(expr ${count} + 1)
+    if [[ "$fail_to_kill" = true ]]; then
+      failed_count=$(expr ${failed_count} + 1)
+    else
+      success_count=$(expr ${success_count} + 1)
+    fi
   done
-  echo "Killed ${count} process(es) on $(hostname)"
+  if [[ $success_count -gt 0 ]]; then
+    echo "Successfully Killed ${success_count} process(es) successfully on $(hostname)"
+  fi
+  if [[ $failed_count -gt 0 ]]; then
+    echo "Soft kill option -s specified, failed to kill ${failed_count} process(es) on $(hostname)"
+  fi
 }
 
 function copyDir {
