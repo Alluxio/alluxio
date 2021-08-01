@@ -96,7 +96,7 @@ public class FuseManager implements Closeable {
   public void close() throws IOException {
     if (mFuseUmountable != null) {
       try {
-        mFuseUmountable.umount();
+        mFuseUmountable.umount(true);
       } catch (Throwable throwable) {
         LOG.error("Failed to umount worker internal Fuse application", throwable);
       }

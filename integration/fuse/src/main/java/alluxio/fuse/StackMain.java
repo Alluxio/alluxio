@@ -47,7 +47,7 @@ public class StackMain {
       fs.mount(true, false, fuseOpts);
     } catch (Exception e) {
       e.printStackTrace();
-      fs.umount();
+      fs.umount(true);
       System.exit(1);
     }
   }

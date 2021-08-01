@@ -34,6 +34,7 @@ import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import sun.misc.Signal;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -120,7 +121,7 @@ public final class AlluxioFuse {
     CommonUtils.PROCESS_TYPE.set(CommonUtils.ProcessType.CLIENT);
     MetricsSystem.startSinks(conf.get(PropertyKey.METRICS_CONF_FILE));
     try (FileSystem fs = FileSystem.Factory.create(fsContext)) {
-      launchFuse(fs, conf, opts, true);
+      FuseUmountable fuseUmountable = launchFuse(fs, conf, opts, true);
     } catch (IOException e) {
       LOG.error("Failed to launch FUSE", e);
       System.exit(-1);
@@ -149,6 +150,10 @@ public final class AlluxioFuse {
       final List<String> fuseOpts = opts.getFuseOpts();
       if (conf.getBoolean(PropertyKey.FUSE_JNIFUSE_ENABLED)) {
         final AlluxioJniFuseFileSystem fuseFs = new AlluxioJniFuseFileSystem(fs, opts, conf);
+
+        FuseSignalHandler fuseSignalHandler = new FuseSignalHandler(fuseFs);
+        Signal.handle(new Signal("TERM"), fuseSignalHandler);
+
         try {
           LOG.info("Mounting AlluxioJniFuseFileSystem: mount point=\"{}\", OPTIONS=\"{}\"",
               opts.getMountPoint(), fuseOpts.toArray(new String[0]));
@@ -158,10 +163,7 @@ public final class AlluxioFuse {
           // only try to umount file system when exception occurred.
           // jni-fuse registers JVM shutdown hook to ensure fs.umount()
           // will be executed when this process is exiting.
-          // TODO(lu) add umount check and force umount
-          // the mount may be failed but leave the fuse mounts running
-          // which will block the whole worker operations and even system operations
-          fuseFs.umount();
+          fuseFs.umount(true);
           throw new IOException(String.format("Failed to mount alluxio path %s to mount point %s",
               opts.getAlluxioRoot(), opts.getMountPoint()), e);
         }

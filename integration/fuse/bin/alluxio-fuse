@@ -88,9 +88,22 @@ umount_fuse() {
     echo "${mount_point} not mounted" >&2
     return 1
   else
-    echo "Unmount fuse at ${mount_point} (PID: ${fuse_pid})."
     kill ${fuse_pid}
-    return $?
+    local maxWait=60
+    local cnt=${maxWait}
+    while kill -0 ${fuse_pid} > /dev/null 2>&1; do
+      if [[ ${cnt} -gt 1 ]]; then
+        # still not dead, wait
+        cnt=$(expr ${cnt} - 1)
+        sleep 1
+      else
+        # waited long enough, giving up umount
+        echo "Failed to umount fuse process ["${fuse_pid}"] after waiting for "${maxWait}" seconds." >&2
+        return 1
+      fi
+    done
+    echo "Successfully unmount fuse at ${mount_point} (PID: ${fuse_pid})."
+    return 0
   fi
 }
 

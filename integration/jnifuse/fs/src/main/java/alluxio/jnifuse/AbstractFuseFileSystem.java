@@ -85,7 +85,7 @@ public abstract class AbstractFuseFileSystem implements FuseFileSystem {
     final String[] args = arg;
     try {
       if (SecurityUtils.canHandleShutdownHooks()) {
-        Runtime.getRuntime().addShutdownHook(new Thread(this::umount));
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> this.umount(true)));
       }
       int res;
       if (blocking) {
@@ -112,7 +112,7 @@ public abstract class AbstractFuseFileSystem implements FuseFileSystem {
     return libFuse.fuse_main_real(this, arg.length, arg);
   }
 
-  public void umount() {
+  public void umount(boolean force) {
     if (!mounted.get()) {
       return;
     }
