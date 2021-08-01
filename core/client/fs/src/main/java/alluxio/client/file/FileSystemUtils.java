@@ -153,12 +153,19 @@ public final class FileSystemUtils {
   public static void persistAndWait(final FileSystem fs, final AlluxioURI uri,
       long persistenceWaitTime, int timeoutMs) throws FileDoesNotExistException, IOException,
       AlluxioException, TimeoutException, InterruptedException {
+    LOG.debug("Start to persist {}", uri.getPath());
     fs.persist(uri, ScheduleAsyncPersistencePOptions
         .newBuilder().setPersistenceWaitTime(persistenceWaitTime).build());
+    LOG.debug("Waiting for persist result for path {}, with persistence wait time {}"
+            + " and time out {}",
+        uri.getPath(), persistenceWaitTime, timeoutMs);
     CommonUtils.waitForResult(String.format("%s to be persisted", uri) , () -> {
       try {
+        LOG.debug("Polling file system master for the status of {}", uri);
         return fs.getStatus(uri);
       } catch (Exception e) {
+        LOG.debug("Exception when attempting to getStatus while waiting for persistence {}",
+            e.toString());
         Throwables.throwIfUnchecked(e);
         throw new RuntimeException(e);
       }

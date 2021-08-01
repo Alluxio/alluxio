@@ -16,9 +16,13 @@ import alluxio.client.job.JobMasterClient;
 import alluxio.client.job.JobMasterClientPool;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.status.NotFoundException;
+import alluxio.grpc.ListAllPOptions;
 import alluxio.job.wire.Status;
 
 import java.io.IOException;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -46,6 +50,20 @@ public final class DefaultReplicationHandler implements ReplicationHandler {
     } catch (NotFoundException e) {
       // if the job status doesn't exist, assume the job has failed
       return Status.FAILED;
+    } finally {
+      mJobMasterClientPool.release(client);
+    }
+  }
+
+  @Override
+  public List<Long> findJobs(String jobName, Set<Status> status) throws IOException {
+    final JobMasterClient client = mJobMasterClientPool.acquire();
+    try {
+      return client.list(ListAllPOptions.newBuilder().setName(jobName)
+          .addAllStatus(status.stream().map(Status::toProto).collect(Collectors.toSet()))
+          .build());
+    } finally {
+      mJobMasterClientPool.release(client);
     }
   }
 

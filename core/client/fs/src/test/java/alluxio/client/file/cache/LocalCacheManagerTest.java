@@ -21,6 +21,7 @@ import static org.junit.Assert.fail;
 
 import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
+import alluxio.client.file.CacheContext;
 import alluxio.client.file.cache.evictor.CacheEvictor;
 import alluxio.client.file.cache.evictor.FIFOCacheEvictor;
 import alluxio.client.file.cache.evictor.UnevictableCacheEvictor;
@@ -349,18 +350,20 @@ public final class LocalCacheManagerTest {
     mCacheManager = createLocalCacheManager(mConf, mMetaStore, mPageStore);
     CacheScope scope = CacheScope.create("schema.table.partition");
 
+    CacheContext context = CacheContext.defaults().setCacheScope(scope);
     // insufficient partition quota
-    assertFalse(mCacheManager.put(PAGE_ID1, PAGE1, scope, new CacheQuota(
-        ImmutableMap.of(CacheScope.Level.PARTITION, (long) PAGE1.length - 1))));
+    assertFalse(mCacheManager
+        .put(PAGE_ID1, PAGE1, context.setCacheQuota(new CacheQuota(
+            ImmutableMap.of(CacheScope.Level.PARTITION, (long) PAGE1.length - 1)))));
     // insufficient table quota
-    assertFalse(mCacheManager.put(PAGE_ID1, PAGE1, scope, new CacheQuota(
-        ImmutableMap.of(CacheScope.Level.TABLE, (long) PAGE1.length - 1))));
+    assertFalse(mCacheManager.put(PAGE_ID1, PAGE1, context.setCacheQuota(new CacheQuota(
+        ImmutableMap.of(CacheScope.Level.TABLE, (long) PAGE1.length - 1)))));
     // insufficient schema quota
-    assertFalse(mCacheManager.put(PAGE_ID1, PAGE1, scope, new CacheQuota(
-        ImmutableMap.of(CacheScope.Level.SCHEMA, (long) PAGE1.length - 1))));
+    assertFalse(mCacheManager.put(PAGE_ID1, PAGE1, context.setCacheQuota(new CacheQuota(
+        ImmutableMap.of(CacheScope.Level.SCHEMA, (long) PAGE1.length - 1)))));
     // insufficient global quota
-    assertFalse(mCacheManager.put(PAGE_ID1, PAGE1, scope, new CacheQuota(
-        ImmutableMap.of(CacheScope.Level.GLOBAL, (long) PAGE1.length - 1))));
+    assertFalse(mCacheManager.put(PAGE_ID1, PAGE1, context.setCacheQuota(new CacheQuota(
+        ImmutableMap.of(CacheScope.Level.GLOBAL, (long) PAGE1.length - 1)))));
     // without quota
     assertTrue(mCacheManager.put(PAGE_ID1, PAGE1));
   }
@@ -381,9 +384,11 @@ public final class LocalCacheManagerTest {
       CacheQuota quota =
           new CacheQuota(ImmutableMap.of(cacheScope.level(),
               (long) PAGE1.length + PAGE2.length - 1));
-      assertTrue(mCacheManager.put(PAGE_ID1, PAGE1, partitionCacheScope, quota));
+      CacheContext context = CacheContext.defaults().setCacheScope(partitionCacheScope)
+          .setCacheQuota(quota);
+      assertTrue(mCacheManager.put(PAGE_ID1, PAGE1, context));
       assertEquals(PAGE1.length, mCacheManager.get(PAGE_ID1, PAGE1.length, mBuf, 0));
-      assertTrue(mCacheManager.put(PAGE_ID2, PAGE2, partitionCacheScope, quota));
+      assertTrue(mCacheManager.put(PAGE_ID2, PAGE2, context));
       assertEquals(0, mCacheManager.get(PAGE_ID1, PAGE1.length, mBuf, 0));
       assertEquals(PAGE2.length, mCacheManager.get(PAGE_ID2, PAGE2.length, mBuf, 0));
     }
@@ -407,7 +412,9 @@ public final class LocalCacheManagerTest {
       int cacheSize = CACHE_SIZE_BYTES / PAGE_SIZE_BYTES;
       for (int i = 0; i < 2 * cacheSize; i++) {
         PageId pageId = new PageId("3", i);
-        assertTrue(mCacheManager.put(pageId, page(i, PAGE_SIZE_BYTES), partitionCacheScope, quota));
+        CacheContext context = CacheContext.defaults().setCacheScope(partitionCacheScope)
+            .setCacheQuota(quota);
+        assertTrue(mCacheManager.put(pageId, page(i, PAGE_SIZE_BYTES), context));
         if (i >= cacheSize) {
           PageId id = new PageId("3", i - cacheSize + 1);
           assertEquals(
@@ -435,9 +442,13 @@ public final class LocalCacheManagerTest {
           partitionCacheScope1.level(), (long) PAGE1.length + PAGE2.length,
           cacheScope.level(), (long) PAGE1.length + PAGE2.length - 1
       ));
-      assertTrue(mCacheManager.put(PAGE_ID1, PAGE1, partitionCacheScope1, quota));
+      CacheContext context1 = CacheContext.defaults().setCacheScope(partitionCacheScope1)
+          .setCacheQuota(quota);
+      assertTrue(mCacheManager.put(PAGE_ID1, PAGE1, context1));
       assertEquals(PAGE1.length, mCacheManager.get(PAGE_ID1, PAGE1.length, mBuf, 0));
-      assertTrue(mCacheManager.put(PAGE_ID2, PAGE2, partitionCacheScope2, quota));
+      CacheContext context2 = CacheContext.defaults().setCacheScope(partitionCacheScope2)
+          .setCacheQuota(quota);
+      assertTrue(mCacheManager.put(PAGE_ID2, PAGE2, context2));
       assertEquals(0, mCacheManager.get(PAGE_ID1, PAGE1.length, mBuf, 0));
       assertEquals(PAGE2.length, mCacheManager.get(PAGE_ID2, PAGE2.length, mBuf, 0));
     }

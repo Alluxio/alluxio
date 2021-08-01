@@ -23,7 +23,7 @@ public class CacheContextTest {
 
   @Test
   public void defaults() {
-    CacheContext defaultContext = new CacheContext();
+    CacheContext defaultContext = CacheContext.defaults();
     assertEquals(CacheQuota.UNLIMITED, defaultContext.getCacheQuota());
     assertEquals(CacheScope.GLOBAL, defaultContext.getCacheScope());
     assertNull(defaultContext.getCacheIdentifier());
@@ -31,7 +31,7 @@ public class CacheContextTest {
 
   @Test
   public void setters() {
-    CacheContext context = new CacheContext()
+    CacheContext context = CacheContext.defaults()
         .setCacheQuota(new CacheQuota())
         .setCacheScope(CacheScope.create("db.table"))
         .setCacheIdentifier("1234");

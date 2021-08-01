@@ -104,14 +104,15 @@ public final class UnderFileSystemBlockReader extends BlockReader {
    * @param ufsManager the manager of ufs
    * @param positionShort whether the client op is a positioned read to a small buffer
    * @param ufsInStreamCache the UFS in stream cache
+   * @param user the user that requests the block reader
    * @return the block reader
    */
   public static UnderFileSystemBlockReader create(UnderFileSystemBlockMeta blockMeta, long offset,
       boolean positionShort, BlockStore localBlockStore, UfsManager ufsManager,
-      UfsInputStreamCache ufsInStreamCache) throws IOException {
+      UfsInputStreamCache ufsInStreamCache, String user) throws IOException {
     UnderFileSystemBlockReader ufsBlockReader =
         new UnderFileSystemBlockReader(blockMeta, positionShort, localBlockStore, ufsManager,
-            ufsInStreamCache);
+            ufsInStreamCache, user);
     ufsBlockReader.init(offset);
     return ufsBlockReader;
   }
@@ -124,10 +125,11 @@ public final class UnderFileSystemBlockReader extends BlockReader {
    * @param ufsManager the manager of ufs
    * @param positionShort whether the client op is a positioned read to a small buffer
    * @param ufsInStreamCache the UFS in stream cache
+   * @param user the user that requests the block reader
    */
   private UnderFileSystemBlockReader(UnderFileSystemBlockMeta blockMeta, boolean positionShort,
-      BlockStore localBlockStore, UfsManager ufsManager, UfsInputStreamCache ufsInStreamCache)
-      throws IOException {
+      BlockStore localBlockStore, UfsManager ufsManager, UfsInputStreamCache ufsInStreamCache,
+      String user) throws IOException {
     mInitialBlockSize = blockMeta.getBlockSize();
     mBlockMeta = blockMeta;
     mLocalBlockStore = localBlockStore;
@@ -141,8 +143,14 @@ public final class UnderFileSystemBlockReader extends BlockReader {
     String ufsString = MetricsSystem.escape(mUfsMountPointUri);
     MetricKey counterKey = MetricKey.WORKER_BYTES_READ_UFS;
     MetricKey meterKey = MetricKey.WORKER_BYTES_READ_UFS_THROUGHPUT;
-    mCounter = MetricsSystem.counterWithTags(counterKey.getName(),
-        counterKey.isClusterAggregated(), MetricInfo.TAG_UFS, ufsString);
+    if (user != null) {
+      mCounter = MetricsSystem.counterWithTags(counterKey.getName(),
+          counterKey.isClusterAggregated(), MetricInfo.TAG_UFS, ufsString,
+          MetricInfo.TAG_USER, user);
+    } else {
+      mCounter = MetricsSystem.counterWithTags(counterKey.getName(),
+          counterKey.isClusterAggregated(), MetricInfo.TAG_UFS, ufsString);
+    }
     mMeter = MetricsSystem.meterWithTags(meterKey.getName(),
         meterKey.isClusterAggregated(), MetricInfo.TAG_UFS, ufsString);
   }

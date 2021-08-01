@@ -70,6 +70,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -115,6 +116,13 @@ public final class ReplicationCheckerTest {
         return mJobStatus.get(jobId);
       }
       return Status.RUNNING;
+    }
+
+    @Override
+    public List<Long> findJobs(String jobName, Set<Status> statusList) throws IOException {
+      return mJobStatus.entrySet().stream()
+          .filter(x -> statusList.isEmpty() || statusList.contains(x.getValue()))
+          .map(x -> x.getKey()).collect(Collectors.toList());
     }
 
     @Override
@@ -474,6 +482,8 @@ public final class ReplicationCheckerTest {
     Assert.assertEquals(2, replicateRequests.values().toArray()[1]);
     replicateRequests.clear();
 
+    mMockReplicationHandler.setJobStatus(1, Status.RUNNING);
+    mMockReplicationHandler.setJobStatus(2, Status.RUNNING);
     mReplicationChecker.heartbeat();
     Assert.assertEquals(0, replicateRequests.size());
 
