@@ -19,7 +19,6 @@ import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Preconditions;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -229,19 +228,16 @@ public final class DbConfig {
   }
 
   @Override
-  public boolean equals(Object other) {
-    if (other == null) {
-      return false;
-    }
-    if (this == other) {
+  public boolean equals(Object o) {
+    if (this == o) {
       return true;
     }
-    if (!(other instanceof DbConfig)) {
+    if (o == null || getClass() != o.getClass()) {
       return false;
     }
-    DbConfig that = (DbConfig) other;
-    return Objects.equals(mBypassEntry, that.mBypassEntry)
-        && Objects.equals(mIgnoreEntry, that.mIgnoreEntry);
+    DbConfig config = (DbConfig) o;
+    return Objects.equals(mBypassEntry, config.mBypassEntry)
+        && Objects.equals(mIgnoreEntry, config.mIgnoreEntry);
   }
 
   @Override
@@ -295,23 +291,20 @@ public final class DbConfig {
     }
 
     @Override
-    public boolean equals(Object other) {
-      if (other == null) {
-        return false;
-      }
-      if (this == other) {
+    public boolean equals(Object o) {
+      if (this == o) {
         return true;
       }
-      if (!(other instanceof TablesEntry)) {
+      if (o == null || getClass() != o.getClass()) {
         return false;
       }
-      TablesEntry that = (TablesEntry) other;
+      TablesEntry<?, ?> that = (TablesEntry<?, ?>) o;
       return Objects.equals(mTables, that.mTables);
     }
 
     @Override
     public int hashCode() {
-      return Objects.hashCode(mTables);
+      return Objects.hash(mTables);
     }
 
     @Override
@@ -367,45 +360,21 @@ public final class DbConfig {
       mType = type;
     }
 
-    /**
-     * Compare by a subclass's implementation.
-     * Subclasses must override this method to compare by its fields, etc.
-     * @param other the object to compare
-     * @return if the two objects are equal
-     */
-    protected abstract boolean isEqual(AbstractSpecObject other);
-
-    protected <T extends AbstractSpecObject> boolean isEqual(Object other, Class<T> subType) {
-      if (other == null) {
-        return false;
-      }
-      if (this == other) {
+    @Override
+    public boolean equals(Object o) {
+      if (this == o) {
         return true;
       }
-      if (subType != other.getClass()) {
+      if (o == null || getClass() != o.getClass()) {
         return false;
       }
-      return mType == ((AbstractSpecObject) other).mType && isEqual(subType.cast(other));
+      AbstractSpecObject that = (AbstractSpecObject) o;
+      return mType == that.mType;
     }
-
-    @SuppressWarnings("EqualsWhichDoesntCheckParameterClass")
-    @SuppressFBWarnings("EQ_UNUSUAL")
-    @Override
-    public boolean equals(Object other) {
-      // getClass ensures comparison is made using the subclass's impl of isEqual
-      // so it will be safe to downcast `other` into the subtype
-      return isEqual(other, getClass());
-    }
-
-    /**
-     * Subclass's {@link Object#hashCode()} implementation.
-     * @return hash code
-     */
-    protected abstract int generateHashCode();
 
     @Override
     public int hashCode() {
-      return generateHashCode();
+      return Objects.hash(mType);
     }
 
     public Type getType() {
@@ -430,14 +399,23 @@ public final class DbConfig {
     }
 
     @Override
-    protected boolean isEqual(AbstractSpecObject other) {
-      NameObject casted = (NameObject) other;
-      return Objects.equals(mName, casted.mName);
+    public boolean equals(Object o) {
+      if (this == o) {
+        return true;
+      }
+      if (o == null || getClass() != o.getClass()) {
+        return false;
+      }
+      if (!super.equals(o)) {
+        return false;
+      }
+      NameObject that = (NameObject) o;
+      return Objects.equals(mName, that.mName);
     }
 
     @Override
-    public int generateHashCode() {
-      return Objects.hash(mType, mName);
+    public int hashCode() {
+      return Objects.hash(super.hashCode(), mName);
     }
 
     @Override
@@ -469,14 +447,23 @@ public final class DbConfig {
     }
 
     @Override
-    protected boolean isEqual(AbstractSpecObject other) {
-      RegexObject casted = (RegexObject) other;
-      return Objects.equals(mPattern.pattern(), casted.mPattern.pattern());
+    public boolean equals(Object o) {
+      if (this == o) {
+        return true;
+      }
+      if (o == null || getClass() != o.getClass()) {
+        return false;
+      }
+      if (!super.equals(o)) {
+        return false;
+      }
+      RegexObject that = (RegexObject) o;
+      return Objects.equals(mPattern, that.mPattern);
     }
 
     @Override
-    public int generateHashCode() {
-      return Objects.hash(mType, mPattern.pattern());
+    public int hashCode() {
+      return Objects.hash(super.hashCode(), mPattern);
     }
 
     @Override
@@ -516,17 +503,26 @@ public final class DbConfig {
     }
 
     @Override
-    protected boolean isEqual(AbstractSpecObject other) {
-      PartitionSpecObject casted = (PartitionSpecObject) other;
+    public boolean equals(Object o) {
+      if (this == o) {
+        return true;
+      }
+      if (o == null || getClass() != o.getClass()) {
+        return false;
+      }
+      if (!super.equals(o)) {
+        return false;
+      }
+      PartitionSpecObject that = (PartitionSpecObject) o;
       // partitions are deliberately excluded in `equals` impl to avoid conflicts
       // when there's a NameObject and a PartitionSpecObject with the same table name
       // in the set of IncludeExcludeObject
-      return Objects.equals(mTableName, casted.mTableName);
+      return Objects.equals(mTableName, that.mTableName);
     }
 
     @Override
-    public int generateHashCode() {
-      return Objects.hash(mType, mTableName);
+    public int hashCode() {
+      return Objects.hash(super.hashCode(), mTableName);
     }
 
     @Override
@@ -584,19 +580,16 @@ public final class DbConfig {
     }
 
     @Override
-    public boolean equals(Object other) {
-      if (other == null) {
-        return false;
-      }
-      if (this == other) {
+    public boolean equals(Object o) {
+      if (this == o) {
         return true;
       }
-      if (!(other instanceof IncludeExcludeObject)) {
+      if (o == null || getClass() != o.getClass()) {
         return false;
       }
-      IncludeExcludeObject casted = (IncludeExcludeObject) other;
-      return Objects.equals(mIncludedEntries, casted.mIncludedEntries)
-          && Objects.equals(mExcludedEntries, casted.mExcludedEntries);
+      IncludeExcludeObject<?, ?> that = (IncludeExcludeObject<?, ?>) o;
+      return Objects.equals(mIncludedEntries, that.mIncludedEntries)
+          && Objects.equals(mExcludedEntries, that.mExcludedEntries);
     }
 
     @Override
