@@ -41,7 +41,6 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Future;
 import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -86,7 +85,7 @@ public class CacheRequestManager {
    *
    * @param request the cache request fields will be available
    */
-  public void submitRequest(CacheRequest request) throws AlluxioException,IOException {
+  public void submitRequest(CacheRequest request) throws AlluxioException, IOException {
     CACHE_REQUESTS.inc();
     long blockId = request.getBlockId();
     if (mActiveCacheRequests.putIfAbsent(blockId, request) != null) {
@@ -103,7 +102,6 @@ public class CacheRequestManager {
       submitASyncRequest(request, blockId);
     }
     mActiveCacheRequests.remove(blockId);
-
   }
 
   private void submitSyncRequest(CacheRequest request, long blockId)
@@ -119,7 +117,6 @@ public class CacheRequestManager {
       } else {
         throw new IOException(e.getMessage());
       }
-
     } catch (InterruptedException e) {
       Thread.currentThread().interrupt();
       throw new CancelledException(

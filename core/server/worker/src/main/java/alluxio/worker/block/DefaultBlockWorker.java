@@ -72,7 +72,6 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicReference;
 
 import javax.annotation.Nullable;
@@ -550,8 +549,8 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
   }
 
   @Override
-  public void cache(CacheRequest request) throws AlluxioException,IOException {
-      mCacheManager.submitRequest(request);
+  public void cache(CacheRequest request) throws AlluxioException, IOException {
+    mCacheManager.submitRequest(request);
   }
 
   @Override

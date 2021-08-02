@@ -29,7 +29,6 @@ import alluxio.worker.block.meta.TempBlockMeta;
 
 import java.io.IOException;
 import java.util.Set;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicReference;
 
 import javax.annotation.Nullable;
@@ -312,7 +311,7 @@ public interface BlockWorker extends Worker, SessionCleanable {
    *
    * @param request the cache request
    */
-  void cache(CacheRequest request) throws AlluxioException,IOException;
+  void cache(CacheRequest request) throws AlluxioException, IOException;
 
   /**
    * Sets the pinlist for the underlying block store.
