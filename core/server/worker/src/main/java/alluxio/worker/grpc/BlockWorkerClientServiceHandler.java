@@ -151,11 +151,7 @@ public class BlockWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorker
   @Override
   public void cache(CacheRequest request, StreamObserver<CacheResponse> responseObserver) {
     RpcUtils.call(LOG, () -> {
-      try {
-        mBlockWorker.cache(request);
-      } catch (ExecutionException | InterruptedException e) {
-        throw AlluxioStatusException.fromThrowable(e);
-      }
+      mBlockWorker.cache(request);
       return CacheResponse.getDefaultInstance();
     }, "cache", "request=%s", responseObserver, request);
   }

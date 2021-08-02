@@ -18,6 +18,7 @@ import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.BlockAlreadyExistsException;
+import alluxio.exception.status.CancelledException;
 import alluxio.grpc.CacheRequest;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
@@ -40,6 +41,7 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
 import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -84,7 +86,7 @@ public class CacheRequestManager {
    *
    * @param request the cache request fields will be available
    */
-  public void submitRequest(CacheRequest request) throws ExecutionException, InterruptedException {
+  public void submitRequest(CacheRequest request) throws AlluxioException,IOException {
     CACHE_REQUESTS.inc();
     long blockId = request.getBlockId();
     if (mActiveCacheRequests.putIfAbsent(blockId, request) != null) {
@@ -95,27 +97,53 @@ public class CacheRequestManager {
     boolean async = request.getAsync();
     if (!async) {
       CACHE_REQUESTS_SYNC.inc();
-      // use ThreadPool to limit the resource usage
-      mCacheExecutor.submit(new CacheTask(request)).get();
+      submitSyncRequest(request, blockId);
     } else {
       CACHE_REQUESTS_ASYNC.inc();
-      try {
-        mCacheExecutor.submit(new AsyncCacheTask(request));
-      } catch (RejectedExecutionException e) {
-        // RejectedExecutionException may be thrown in extreme cases when the
-        // gRPC thread pool is drained due to highly concurrent caching workloads. In these cases,
-        // return as async caching is at best effort.
-        mNumRejected.incrementAndGet();
-        SAMPLING_LOG.warn(String.format(
-            "Failed to cache block locally (async & best effort) as the thread pool is at capacity."
-                + " To increase, update the parameter '%s'. numRejected: {} error: {}",
-            PropertyKey.Name.WORKER_NETWORK_ASYNC_CACHE_MANAGER_THREADS_MAX), mNumRejected.get(),
-            e.toString());
-      } catch (Exception e) {
-        LOG.warn("Failed to submit async cache request. request: {}", request, e);
-        CACHE_FAILED_BLOCKS.inc();
-        mActiveCacheRequests.remove(blockId);
+      submitASyncRequest(request, blockId);
+    }
+    mActiveCacheRequests.remove(blockId);
+
+  }
+
+  private void submitSyncRequest(CacheRequest request, long blockId)
+      throws IOException, AlluxioException {
+    try {
+      // use ThreadPool to limit the resource usage
+      mCacheExecutor.submit(new CacheTask(request)).get();
+    } catch (ExecutionException e) {
+      CACHE_FAILED_BLOCKS.inc();
+      mActiveCacheRequests.remove(blockId);
+      if (e.getCause() instanceof AlluxioException) {
+        throw new AlluxioException(e.getMessage());
+      } else {
+        throw new IOException(e.getMessage());
       }
+
+    } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
+      throw new CancelledException(
+          "Fail to finish cache request synchronously. Interrupted while waiting for response.");
+    }
+  }
+
+  private void submitASyncRequest(CacheRequest request, long blockId) {
+    try {
+      mCacheExecutor.submit(new CacheTask(request));
+    } catch (RejectedExecutionException e) {
+      // RejectedExecutionException may be thrown in extreme cases when the
+      // gRPC thread pool is drained due to highly concurrent caching workloads. In these cases,
+      // return as async caching is at best effort.
+      mNumRejected.incrementAndGet();
+      SAMPLING_LOG.warn(String.format(
+          "Failed to cache block locally (async & best effort) as the thread pool is at capacity."
+              + " To increase, update the parameter '%s'. numRejected: {} error: {}",
+          PropertyKey.Name.WORKER_NETWORK_ASYNC_CACHE_MANAGER_THREADS_MAX), mNumRejected.get(),
+          e.toString());
+    } catch (Exception e) {
+      LOG.warn("Failed to submit async cache request. request: {}", request, e);
+      CACHE_FAILED_BLOCKS.inc();
+      mActiveCacheRequests.remove(blockId);
     }
   }
 
@@ -180,72 +208,9 @@ public class CacheRequestManager {
         } else {
           CACHE_FAILED_BLOCKS.inc();
         }
-      }
-      return null;
-    }
-  }
-  /**
-   * AsyncCacheTask is a runnable task that can be considered equal if the blockId of the request is
-   * the same.
-   */
-  @VisibleForTesting
-  class AsyncCacheTask implements Runnable {
-    private final CacheRequest mRequest;
-
-    /**
-     * Constructor for an CacheTask.
-     *
-     * @param request an CacheRequest
-     */
-    AsyncCacheTask(CacheRequest request) {
-      mRequest = request;
-    }
-
-    @Override
-    public int hashCode() {
-      // Only care about the block id being the same.
-      // Do not care if the source host or port is different.
-      return Objects.hash(mRequest.getBlockId());
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-      if (this == obj) {
-        return true;
-      }
-      if (!(obj instanceof AsyncCacheTask)) {
-        return false;
-      }
-      AsyncCacheTask that = ((AsyncCacheTask) obj);
-      if (mRequest == that.mRequest) {
-        return true;
-      }
-      if (this.mRequest == null || that.mRequest == null) {
-        return false;
-      }
-      // Only care about the block id being the same.
-      // Do not care if the source host or port is different.
-      return mRequest.getBlockId() == that.mRequest.getBlockId();
-    }
-
-    @Override
-    public void run() {
-      long blockId = mRequest.getBlockId();
-      long blockLength = mRequest.getLength();
-      boolean result = false;
-      try {
-        result = cacheBlock(mRequest);
-      } catch (Exception e) {
-        LOG.warn("cache task failed. request: {}", mRequest, e);
-      } finally {
-        if (result) {
-          CACHE_BLOCKS_SIZE.inc(blockLength);
-          CACHE_SUCCEEDED_BLOCKS.inc();
-        } else {
-          CACHE_FAILED_BLOCKS.inc();
-        }
         mActiveCacheRequests.remove(blockId);
       }
+      return null;
     }
   }
 

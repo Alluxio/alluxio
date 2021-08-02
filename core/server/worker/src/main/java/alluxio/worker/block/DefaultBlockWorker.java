@@ -21,6 +21,7 @@ import alluxio.WorkerStorageTierAssoc;
 import alluxio.client.file.FileSystemContext;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
+import alluxio.exception.AlluxioException;
 import alluxio.exception.BlockAlreadyExistsException;
 import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.ExceptionMessage;
@@ -549,8 +550,8 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
   }
 
   @Override
-  public void cache(CacheRequest request) throws ExecutionException, InterruptedException {
-    mCacheManager.submitRequest(request);
+  public void cache(CacheRequest request) throws AlluxioException,IOException {
+      mCacheManager.submitRequest(request);
   }
 
   @Override

@@ -11,6 +11,7 @@
 
 package alluxio.worker.block;
 
+import alluxio.exception.AlluxioException;
 import alluxio.exception.BlockAlreadyExistsException;
 import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.InvalidWorkerStateException;
@@ -311,7 +312,7 @@ public interface BlockWorker extends Worker, SessionCleanable {
    *
    * @param request the cache request
    */
-  void cache(CacheRequest request) throws ExecutionException, InterruptedException;
+  void cache(CacheRequest request) throws AlluxioException,IOException;
 
   /**
    * Sets the pinlist for the underlying block store.
