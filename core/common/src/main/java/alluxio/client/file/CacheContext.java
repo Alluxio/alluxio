@@ -43,7 +43,11 @@ public class CacheContext {
     return new CacheContext();
   }
 
-  private CacheContext() {} // prevent instantiation
+  /**
+   * Expected to be inherited in PrestoDB or other local cache caller.
+   * Subclasses could override the callback methods such as incrementCounter
+   */
+  protected CacheContext() {}
 
   /**
    * Returns an string as a hint from computation to indicate the file.
