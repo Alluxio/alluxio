@@ -19,7 +19,9 @@ import alluxio.exception.ExceptionMessage;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.grpc.NetAddress;
 
+import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.Options;
 
 import java.io.IOException;
 
@@ -27,6 +29,9 @@ import java.io.IOException;
  * Command for transferring the leadership to another master within a quorum.
  */
 public class QuorumTransferLeaderCommand extends AbstractFsAdminCommand {
+
+  public static final String ADDRESS_OPTION_NAME = "address";
+
   public static final String OUTPUT_RESULT = "Transferred leadership to server: %s";
 
   /**
@@ -37,10 +42,18 @@ public class QuorumTransferLeaderCommand extends AbstractFsAdminCommand {
     super(context);
   }
 
+  /**
+   * @return command's description
+   */
+  @VisibleForTesting
+  public static String description() {
+    return "Transfers leadership of the quorum to the master located at <hostname>:<port>";
+  }
+
   @Override
   public int run(CommandLine cl) throws IOException {
     JournalMasterClient jmClient = mMasterJournalMasterClient;
-    String serverAddress = cl.getArgList().get(0);
+    String serverAddress = cl.getOptionValue(ADDRESS_OPTION_NAME);
     NetAddress address = QuorumCommand.stingToAddress(serverAddress);
 
     jmClient.transferLeadership(address);
@@ -50,10 +63,9 @@ public class QuorumTransferLeaderCommand extends AbstractFsAdminCommand {
 
   @Override
   public void validateArgs(CommandLine cl) throws InvalidArgumentException {
-    if (cl.getArgList().size() != 1) {
-      throw new InvalidArgumentException(
-              ExceptionMessage.INVALID_ARGS_NUM.getMessage(1, cl.getArgs().length)
-      );
+    if (!cl.hasOption(ADDRESS_OPTION_NAME)) {
+      throw new InvalidArgumentException(ExceptionMessage.INVALID_OPTION
+              .getMessage(String.format("[%s]", ADDRESS_OPTION_NAME)));
     }
   }
 
@@ -64,11 +76,17 @@ public class QuorumTransferLeaderCommand extends AbstractFsAdminCommand {
 
   @Override
   public String getUsage() {
-    return String.format("%s <HostName:Port>", getCommandName());
+    return String.format("%s -%s <HostName:Port>", getCommandName(), ADDRESS_OPTION_NAME);
   }
 
   @Override
   public String getDescription() {
-    return "Transfers leadership of the quorum to the master located at <hostname>:<port>";
+    return description();
+  }
+
+  @Override
+  public Options getOptions() {
+    return new Options().addOption(ADDRESS_OPTION_NAME, true,
+            "Server address that will take over as leader");
   }
 }

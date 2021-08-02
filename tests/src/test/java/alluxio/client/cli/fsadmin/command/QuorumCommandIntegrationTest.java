@@ -19,6 +19,7 @@ import alluxio.cli.fsadmin.FileSystemAdminShell;
 import alluxio.cli.fsadmin.journal.QuorumCommand;
 import alluxio.cli.fsadmin.journal.QuorumInfoCommand;
 import alluxio.cli.fsadmin.journal.QuorumRemoveCommand;
+import alluxio.cli.fsadmin.journal.QuorumTransferLeaderCommand;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.exception.ExceptionMessage;
@@ -181,6 +182,34 @@ public final class QuorumCommandIntegrationTest extends BaseIntegrationTest {
   }
 
   @Test
+  public void transferLeader() throws Exception {
+    int numMasters = 3;
+    mCluster = MultiProcessCluster.newBuilder(PortCoordination.QUORUM_SHELL_REMOVE)
+            .setClusterName("QuorumShellTransferLeader").setNumMasters(numMasters).setNumWorkers(0)
+            .addProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.EMBEDDED.toString())
+            .addProperty(PropertyKey.MASTER_JOURNAL_FLUSH_TIMEOUT_MS, "5min")
+            // To make the test run faster.
+            .addProperty(PropertyKey.MASTER_EMBEDDED_JOURNAL_ELECTION_TIMEOUT, "750ms").build();
+    mCluster.start();
+
+    String output;
+    try (FileSystemAdminShell shell = new FileSystemAdminShell(ServerConfiguration.global())) {
+      int newLeaderIdx = (mCluster.getPrimaryMasterIndex(5_000) + 1) % numMasters;
+      QuorumServerInfo serverInfo = mCluster.getJournalMasterClientForMaster().getQuorumInfo()
+              .getServerInfoList().get(newLeaderIdx);
+      String newLeaderAddr = String.format("%s:%s", serverInfo.getServerAddress().getHost(),
+              serverInfo.getServerAddress().getRpcPort());
+
+      mOutput.reset();
+      shell.run("journal", "quorum", "transferLeader", "-address" , newLeaderAddr);
+      output = mOutput.toString().trim();
+      Assert.assertEquals(output, String.format(QuorumTransferLeaderCommand.OUTPUT_RESULT,
+              newLeaderAddr));
+    }
+    mCluster.notifySuccess();
+  }
+
+  @Test
   public void quorumCommand() throws Exception {
     mCluster = MultiProcessCluster.newBuilder(PortCoordination.QUORUM_SHELL)
         .setClusterName("QuorumShell").setNumMasters(3).setNumWorkers(0)
@@ -218,10 +247,25 @@ public final class QuorumCommandIntegrationTest extends BaseIntegrationTest {
       shell.run("journal", "quorum", "remove", "-op1", "val1");
       output = mOutput.toString().trim();
       Assert.assertEquals(QuorumRemoveCommand.description(), lastLine(output));
-
+      mOutput.reset();
       shell.run("journal", "quorum", "remove", "-op1", "val1", "-op2", "val2", "-op3", "val3");
       output = mOutput.toString().trim();
       Assert.assertEquals(QuorumRemoveCommand.description(), lastLine(output));
+
+      // Validate option counts are validated for "quorum", "transferLeader"
+      mOutput.reset();
+      shell.run("journal", "quorum", "transferLeader");
+      output = mOutput.toString().trim();
+      Assert.assertEquals(QuorumTransferLeaderCommand.description(), lastLine(output));
+      mOutput.reset();
+      shell.run("journal", "quorum", "transferLeader", "-op1", "val1");
+      output = mOutput.toString().trim();
+      Assert.assertEquals(QuorumTransferLeaderCommand.description(), lastLine(output));
+      mOutput.reset();
+      shell.run("journal", "quorum", "transferLeader", "-op1", "val1", "-op2", "val2", "-op3",
+              "val3");
+      output = mOutput.toString().trim();
+      Assert.assertEquals(QuorumTransferLeaderCommand.description(), lastLine(output));
 
       // Validate option validation works for "quorum info".
       mOutput.reset();
@@ -242,6 +286,12 @@ public final class QuorumCommandIntegrationTest extends BaseIntegrationTest {
       mOutput.reset();
       shell.run("journal", "quorum", "remove", "-domain", "JOB_MASTER", "-address",
           "hostname:invalid_port");
+      output = mOutput.toString().trim();
+      Assert.assertEquals(ExceptionMessage.INVALID_ADDRESS_VALUE.getMessage(), output);
+
+      // Validate -address is validated for transferLeader.
+      mOutput.reset();
+      shell.run("journal", "quorum", "transferLeader", "-address", "hostname:invalid_port");
       output = mOutput.toString().trim();
       Assert.assertEquals(ExceptionMessage.INVALID_ADDRESS_VALUE.getMessage(), output);
     }
