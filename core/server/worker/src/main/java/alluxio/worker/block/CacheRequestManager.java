@@ -112,13 +112,13 @@ public class CacheRequestManager {
     } catch (ExecutionException e) {
       CACHE_FAILED_BLOCKS.inc();
       mActiveCacheRequests.remove(blockId);
-      if (e.getCause() instanceof AlluxioException) {
-        throw new AlluxioException(e.getMessage());
+      Throwable cause = e.getCause();
+      if (cause instanceof AlluxioException) {
+        throw new AlluxioException(cause.getMessage(), cause);
       } else {
-        throw new IOException(e.getMessage());
+        throw new IOException(cause);
       }
     } catch (InterruptedException e) {
-      Thread.currentThread().interrupt();
       throw new CancelledException(
           "Fail to finish cache request synchronously. Interrupted while waiting for response.");
     }
