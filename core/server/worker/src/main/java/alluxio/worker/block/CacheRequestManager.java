@@ -41,6 +41,7 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
 import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -96,37 +97,12 @@ public class CacheRequestManager {
     boolean async = request.getAsync();
     if (!async) {
       CACHE_REQUESTS_SYNC.inc();
-      submitSyncRequest(request, blockId);
     } else {
       CACHE_REQUESTS_ASYNC.inc();
-      submitASyncRequest(request, blockId);
     }
-    mActiveCacheRequests.remove(blockId);
-  }
-
-  private void submitSyncRequest(CacheRequest request, long blockId)
-      throws IOException, AlluxioException {
+    Future<Void> future = null;
     try {
-      // use ThreadPool to limit the resource usage
-      mCacheExecutor.submit(new CacheTask(request)).get();
-    } catch (ExecutionException e) {
-      CACHE_FAILED_BLOCKS.inc();
-      mActiveCacheRequests.remove(blockId);
-      Throwable cause = e.getCause();
-      if (cause instanceof AlluxioException) {
-        throw new AlluxioException(cause.getMessage(), cause);
-      } else {
-        throw new IOException(cause);
-      }
-    } catch (InterruptedException e) {
-      throw new CancelledException(
-          "Fail to finish cache request synchronously. Interrupted while waiting for response.");
-    }
-  }
-
-  private void submitASyncRequest(CacheRequest request, long blockId) {
-    try {
-      mCacheExecutor.submit(new CacheTask(request));
+      future = mCacheExecutor.submit(new CacheTask(request));
     } catch (RejectedExecutionException e) {
       // RejectedExecutionException may be thrown in extreme cases when the
       // gRPC thread pool is drained due to highly concurrent caching workloads. In these cases,
@@ -137,10 +113,23 @@ public class CacheRequestManager {
               + " To increase, update the parameter '%s'. numRejected: {} error: {}",
           PropertyKey.Name.WORKER_NETWORK_ASYNC_CACHE_MANAGER_THREADS_MAX), mNumRejected.get(),
           e.toString());
-    } catch (Exception e) {
-      LOG.warn("Failed to submit async cache request. request: {}", request, e);
-      CACHE_FAILED_BLOCKS.inc();
       mActiveCacheRequests.remove(blockId);
+    }
+    if (future != null && !async) {
+      try {
+        future.get();
+      } catch (ExecutionException e) {
+        CACHE_FAILED_BLOCKS.inc();
+        Throwable cause = e.getCause();
+        if (cause instanceof AlluxioException) {
+          throw new AlluxioException(cause.getMessage(), cause);
+        } else {
+          throw new IOException(cause);
+        }
+      } catch (InterruptedException e) {
+        throw new CancelledException(
+            "Fail to finish cache request synchronously. Interrupted while waiting for response.");
+      }
     }
   }
 
