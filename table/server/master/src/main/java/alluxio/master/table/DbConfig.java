@@ -159,68 +159,76 @@ public final class DbConfig {
   public UdbAttachOptions getUdbAttachOptions() {
     UdbAttachOptions.Builder builder = new UdbAttachOptions.Builder();
     // process included bypassed tables
-    builder.bypass().include();
-    for (TablePartitionSpecObject entry : mBypassEntry.getTables().getIncludedEntries()) {
-      // entry can be a simple name, a pattern, or a table name with partition specifications
-      switch (entry.getType()) {
-        case NAME:
-          builder.addTable(((NameObject) entry).getName());
+    if (mBypassEntry.getTables().hasIncludedEntries()) {
+      builder.setBypassedTablesMode(UdbAttachOptions.Mode.INCLUDE);
+      addTables(builder,
+          UdbAttachOptions.Entry.BYPASS, mBypassEntry.getTables().getIncludedEntries());
+      for (TablePartitionSpecObject entry : mBypassEntry.getTables().getIncludedEntries()) {
+        if (entry.getType() != TablePartitionSpecObject.Type.PARTITION_SPEC) {
           continue;
-        case REGEX:
-          builder.addTable(((RegexObject) entry).getPattern());
-          continue;
-        default:
-      }
-      // otherwise, process partition specifications
-      PartitionSpecObject casted = (PartitionSpecObject) entry;
-      IncludeExcludeObject<NameOrRegexObject, NameOrRegexObject> list = casted.getPartitions();
-      // process included and excluded partitions
-      Set<NameOrRegexObject> partitions;
-      if (list.hasIncludedEntries()) {
-        builder.include();
-        partitions = list.getIncludedEntries();
-      } else {
-        builder.exclude();
-        partitions = list.getExcludedEntries();
-      }
-      for (NameOrRegexObject partition : partitions) {
-        switch (partition.getType()) {
-          case NAME:
-            builder.addPartition(casted.getTableName(), ((NameObject) partition).getName());
-            break;
-          case REGEX:
-            builder.addPartition(casted.getTableName(), ((RegexObject) partition).getPattern());
-            break;
-          default:
+        }
+        // otherwise, process partition specifications
+        PartitionSpecObject casted = (PartitionSpecObject) entry;
+        IncludeExcludeObject<NameOrRegexObject, NameOrRegexObject> list = casted.getPartitions();
+        // process included and excluded partitions
+        Set<NameOrRegexObject> partitions;
+        if (list.hasIncludedEntries()) {
+          builder.setBypassedPartitionsMode(casted.getTableName(), UdbAttachOptions.Mode.INCLUDE);
+          partitions = list.getIncludedEntries();
+        } else {
+          builder.setBypassedPartitionsMode(casted.getTableName(), UdbAttachOptions.Mode.EXCLUDE);
+          partitions = list.getExcludedEntries();
+        }
+        for (NameOrRegexObject partition : partitions) {
+          switch (partition.getType()) {
+            case NAME:
+              builder.addBypassedPartition(
+                  casted.getTableName(), ((NameObject) partition).getName());
+              break;
+            case REGEX:
+              builder.addBypassedPartition(
+                  casted.getTableName(), ((RegexObject) partition).getPattern());
+              break;
+            default:
+          }
         }
       }
+    } else {
+      builder.setBypassedTablesMode(UdbAttachOptions.Mode.EXCLUDE);
+      addTables(builder, UdbAttachOptions.Entry.BYPASS,
+          mBypassEntry.getTables().getExcludedEntries());
     }
-    // process excluded bypassed tables
-    builder.bypass().exclude();
-    addTables(builder, mBypassEntry.getTables().getExcludedEntries());
     // process ignored tables
-    builder.ignore();
     Set<NameOrRegexObject> tables;
     if (mIgnoreEntry.getTables().hasIncludedEntries()) {
-      builder.include();
+      builder.setIgnoredTablesMode(UdbAttachOptions.Mode.INCLUDE);
       tables = mIgnoreEntry.getTables().getIncludedEntries();
     } else {
-      builder.exclude();
+      builder.setIgnoredTablesMode(UdbAttachOptions.Mode.EXCLUDE);
       tables = mIgnoreEntry.getTables().getExcludedEntries();
     }
-    addTables(builder, tables);
+    addTables(builder, UdbAttachOptions.Entry.IGNORE, tables);
 
     return builder.build();
   }
 
-  private static void addTables(UdbAttachOptions.Builder builder, Set<NameOrRegexObject> tables) {
-    for (NameOrRegexObject entry : tables) {
-      switch (entry.getType()) {
+  private static void addTables(UdbAttachOptions.Builder builder, UdbAttachOptions.Entry entry,
+                                Set<? extends TablePartitionSpecObject> tables) {
+    for (TablePartitionSpecObject object : tables) {
+      switch (object.getType()) {
         case NAME:
-          builder.addTable(((NameObject) entry).getName());
+          if (entry == UdbAttachOptions.Entry.BYPASS) {
+            builder.addBypassedTable(((NameObject) object).getName());
+          } else if (entry == UdbAttachOptions.Entry.IGNORE) {
+            builder.addIgnoredTable(((NameObject) object).getName());
+          }
           break;
         case REGEX:
-          builder.addTable(((RegexObject) entry).getPattern());
+          if (entry == UdbAttachOptions.Entry.BYPASS) {
+            builder.addBypassedTable(((RegexObject) object).getPattern());
+          } else if (entry == UdbAttachOptions.Entry.IGNORE) {
+            builder.addIgnoredTable(((RegexObject) object).getPattern());
+          }
           break;
         default:
       }

@@ -12,10 +12,9 @@
 package alluxio.table.common.udb;
 
 import alluxio.collections.Pair;
+
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Preconditions;
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,30 +27,24 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.regex.Pattern;
 
-import javax.annotation.Nullable;
-
 /**
  * Tables and partitions inclusion and exclusion specification.
  */
 public final class UdbAttachOptions {
   private static final Logger LOG = LoggerFactory.getLogger(UdbAttachOptions.class);
 
-  enum Entry {
+  /**
+   * Bypass/ignore entries.
+   */
+  public enum Entry {
     BYPASS, IGNORE, NONE;
   }
 
-  enum Mode {
+  /**
+   * Inclusion/exclusion modes of tables and partitions.
+   */
+  public enum Mode {
     INCLUDE, EXCLUDE, NONE;
-
-    public Mode opposite() {
-      if (this == INCLUDE) {
-        return EXCLUDE;
-      } else if (this == EXCLUDE) {
-        return INCLUDE;
-      } else {
-        return NONE;
-      }
-    }
   }
 
   /**
@@ -79,34 +72,16 @@ public final class UdbAttachOptions {
   private final Mode mIgnoreMode;
 
   private UdbAttachOptions(
-      @Nullable Set<Name> bypassedTables,
-      @Nullable Mode tableBypassMode,
-      @Nullable Map<String, Pair<Mode, Set<Name>>> bypassedPartitions,
-      @Nullable Set<Name> ignoredTables,
-      @Nullable Mode ignoreMode) {
-    // ImmutableMap/Set.copyOf() ensures no null keys and values
-    mBypassedTables = ImmutableSet.copyOf(replaceNullWithEmpty(bypassedTables));
-    mIgnoredTables = ImmutableSet.copyOf(replaceNullWithEmpty(ignoredTables));
-    mBypassedPartitions = ImmutableMap.copyOf(replaceNullWithEmpty(bypassedPartitions));
-
-    if (mBypassedTables.isEmpty()) {
-      mTableBypassMode = Mode.NONE;
-    } else {
-      Preconditions.checkArgument(tableBypassMode != null && tableBypassMode != Mode.NONE);
-      mTableBypassMode = tableBypassMode;
-    }
-    if (mIgnoredTables.isEmpty()) {
-      mIgnoreMode = Mode.NONE;
-    } else {
-      Preconditions.checkArgument(ignoreMode != null && ignoreMode != Mode.NONE);
-      mIgnoreMode = ignoreMode;
-    }
-    for (Pair<Mode, Set<Name>> entry : mBypassedPartitions.values()) {
-      Mode partitionMode = entry.getFirst();
-      Set<Name> partitions = entry.getSecond();
-      Preconditions.checkArgument(!partitions.isEmpty());
-      Preconditions.checkArgument(partitionMode != null && partitionMode != Mode.NONE);
-    }
+      Set<Name> bypassedTables,
+      Mode tableBypassMode,
+      Map<String, Pair<Mode, Set<Name>>> bypassedPartitions,
+      Set<Name> ignoredTables,
+      Mode ignoreMode) {
+    mBypassedTables = bypassedTables;
+    mIgnoredTables = ignoredTables;
+    mBypassedPartitions = bypassedPartitions;
+    mTableBypassMode = tableBypassMode;
+    mIgnoreMode = ignoreMode;
   }
 
   /**
@@ -117,8 +92,8 @@ public final class UdbAttachOptions {
    * @see UdbAttachOptions#isFullyBypassedTable(String)
    */
   public boolean isBypassedTable(String tableName) {
-    boolean isFullyBypassed = isContainedInWrappers(mBypassedTables, tableName);
-    if (isFullyBypassed) {
+    boolean isSpecifiedByName = isContainedInWrappers(mBypassedTables, tableName);
+    if (isSpecifiedByName) {
       if (mTableBypassMode == Mode.EXCLUDE) {
         return false;
       }
@@ -126,8 +101,8 @@ public final class UdbAttachOptions {
     }
     boolean hasBypassedPartition = mBypassedPartitions.containsKey(tableName);
     if (hasBypassedPartition) {
-      // no need to check if mTableBypassMode here, bc if a table has partition specifications,
-      // it must be include mode
+      // no need to check mTableBypassMode here, bc if a table has partition specifications,
+      // it must be in inclusion mode (or none)
       return shadowedByIgnore(tableName, true);
     }
     // the table is not listed in any way
@@ -318,125 +293,87 @@ public final class UdbAttachOptions {
    * Builder for {@link UdbAttachOptions}.
    */
   public static class Builder {
-    private Set<Name> mBypassedTables;
-    private Set<Name> mIgnoredTables;
-    private Map<String, Pair<Mode, Set<Name>>> mBypassedPartitions;
+    private final Set<Name> mBypassedTables;
+    private final Set<Name> mIgnoredTables;
+    private final Map<String, Set<Name>> mBypassedPartitions;
+    private final Map<String, Mode> mPartitionBypassModes;
     private Mode mTableBypassMode;
     private Mode mIgnoreMode;
-
-    private Entry mEntry;
-    private Mode mMode;
 
     /**
      * Creates a new builder.
      */
     public Builder() {
-      reset();
-      create();
-    }
-
-    private void reset() {
-      mEntry = Entry.NONE;
-      mMode = Mode.NONE;
-    }
-
-    private void create() {
       mTableBypassMode = Mode.NONE;
       mIgnoreMode = Mode.NONE;
       mBypassedTables = new HashSet<>();
       mIgnoredTables = new HashSet<>();
       mBypassedPartitions = new HashMap<>();
+      mPartitionBypassModes = new HashMap<>();
     }
 
     /**
-     * Set entry to bypass.
+     * Include or exclude the bypassed tables.
+     * @param mode {@link Mode} of the tables
      * @return this builder
      */
-    public Builder bypass() {
-      reset();
-      mEntry = Entry.BYPASS;
+    public Builder setBypassedTablesMode(Mode mode) {
+      mTableBypassMode = mode;
       return this;
     }
 
     /**
-     * Set entry to ignore.
+     * Include or exclude the ignored tables.
+     * @param mode {@link Mode} of the tables
      * @return this builder
      */
-    public Builder ignore() {
-      reset();
-      mEntry = Entry.IGNORE;
+    public Builder setIgnoredTablesMode(Mode mode) {
+      mIgnoreMode = mode;
       return this;
     }
 
     /**
-     * Set mode to include.
-     * @return this builder
-     */
-    public Builder include() {
-      mMode = Mode.INCLUDE;
-      return this;
-    }
-
-    /**
-     * Set mode to exclude.
-     * @return this builder
-     */
-    public Builder exclude() {
-      mMode = Mode.EXCLUDE;
-      return this;
-    }
-
-    private void assertStateModeIsNotNone() {
-      Preconditions.checkState(mMode != Mode.NONE,
-          "Invalid inclusion/exclusion mode, must be either include or exclude");
-    }
-
-    private void assertStateEntryIsNotNone() {
-      Preconditions.checkState(mEntry != Entry.NONE,
-          "Invalid entry, must be either bypass or ignore");
-    }
-
-    /**
-     * Add a table by its exact name.
+     * Add a table by its exact name to the bypass entry.
      * @param name table name
      * @return this builder
      */
-    public Builder addTable(String name) {
-      return addTable(new ExactName(name));
+    public Builder addBypassedTable(String name) {
+      return addTable(new ExactName(name), Entry.BYPASS);
     }
 
     /**
-     * Add a table by pattern.
+     * Add a table by pattern to the bypass entry.
      * @param pattern pattern
      * @return this builder
      */
-    public Builder addTable(Pattern pattern) {
-      return addTable(new PatternName(pattern));
+    public Builder addBypassedTable(Pattern pattern) {
+      return addTable(new PatternName(pattern), Entry.BYPASS);
     }
 
-    private Builder addTable(Name item) {
-      assertStateModeIsNotNone();
-      assertStateEntryIsNotNone();
-      Mode opposite = mMode.opposite();
-      switch (mEntry) {
+    /**
+     * Add a table by its exact name to the ignore entry.
+     * @param name table name
+     * @return this builder
+     */
+    public Builder addIgnoredTable(String name) {
+      return addTable(new ExactName(name), Entry.IGNORE);
+    }
+
+    /**
+     * Add a table by pattern to the ignore entry.
+     * @param pattern pattern
+     * @return this builder
+     */
+    public Builder addIgnoredTable(Pattern pattern) {
+      return addTable(new PatternName(pattern), Entry.IGNORE);
+    }
+
+    private Builder addTable(Name item, Entry entry) {
+      switch (entry) {
         case BYPASS:
-          if (mTableBypassMode == Mode.NONE) {
-            mTableBypassMode = mMode;
-          }
-          Preconditions.checkState(mTableBypassMode == mMode,
-              "Either inclusion or exclusion mode can be used but not both, "
-              + "there are already bypassed tables in {} mode",
-              mTableBypassMode);
           mBypassedTables.add(item);
           break;
         case IGNORE:
-          if (mIgnoreMode == Mode.NONE) {
-            mIgnoreMode = mMode;
-          }
-          Preconditions.checkState(mIgnoreMode == mMode,
-              "Either inclusion or exclusion mode can be used but not both, "
-                  + "there are already ignored tables in {} mode",
-              mIgnoreMode);
           mIgnoredTables.add(item);
           break;
         case NONE:
@@ -447,22 +384,13 @@ public final class UdbAttachOptions {
     }
 
     /**
-     * Add multiple tables at once.
-     * @param items set of tables. contained elements must be either strings or patterns
+     * Include or exclude the partitions of a bypassed tabls.
+     * @param tableName name of the parent table
+     * @param mode {@link Mode} of the tables
      * @return this builder
      */
-    public Builder addTables(Set<Object> items) {
-      items.forEach((item) -> {
-        Name wrapper;
-        if (item instanceof String) {
-          wrapper = new ExactName((String) item);
-        } else if (item instanceof Pattern) {
-          wrapper = new PatternName((Pattern) item);
-        } else {
-          throw new IllegalArgumentException("Table name must be string or pattern");
-        }
-        addTable(wrapper);
-      });
+    public Builder setBypassedPartitionsMode(String tableName, Mode mode) {
+      mPartitionBypassModes.put(tableName, mode);
       return this;
     }
 
@@ -472,8 +400,8 @@ public final class UdbAttachOptions {
      * @param partitionName partition name
      * @return this builder
      */
-    public Builder addPartition(String tableName, String partitionName) {
-      return addPartition(tableName, new ExactName(partitionName));
+    public Builder addBypassedPartition(String tableName, String partitionName) {
+      return addBypassedPartition(tableName, new ExactName(partitionName));
     }
 
     /**
@@ -482,42 +410,17 @@ public final class UdbAttachOptions {
      * @param partitionPattern partition pattern
      * @return this builder
      */
-    public Builder addPartition(String tableName, Pattern partitionPattern) {
-      return addPartition(tableName, new PatternName(partitionPattern));
+    public Builder addBypassedPartition(String tableName, Pattern partitionPattern) {
+      return addBypassedPartition(tableName, new PatternName(partitionPattern));
     }
 
-    private Builder addPartition(String tableName, Name partition) {
-      assertStateModeIsNotNone();
-      assertStateEntryIsNotNone();
-      // forbid adding partition to ignored tables
-      Preconditions.checkState(mEntry == Entry.BYPASS,
-          "Ignored table {} cannot have partition specifications",
-          tableName);
-      // forbid including and excluding partitions for a table at the same time
-      Preconditions.checkState(!(mBypassedPartitions.containsKey(tableName)
-          && mBypassedPartitions.get(tableName).getFirst() == mMode.opposite()),
-          "Either inclusion or exclusion mode can be used but not both, "
-              + "table {} already has {} partitions",
-          tableName,
-          mMode.opposite());
-      // forbid adding partitions when tables are excluded
-      Preconditions.checkState(mTableBypassMode != Mode.EXCLUDE,
-          "Table {} is specified with exclusion mode, "
-              + "cannot have partition specification",
-          tableName);
-      // forbid both plain name and partition spec for a table at the same time
-      Preconditions.checkState(mBypassedTables.stream()
-          .noneMatch(wrapper -> wrapper instanceof ExactName && wrapper.matches(tableName)),
-          "Table {} is already specified with exact name, "
-              + "ignoring any partition specifications",
-          tableName);
-
-      mBypassedPartitions.compute(tableName, (tblName, pairOfModeSet) -> {
-        if (pairOfModeSet == null) {
-          return new Pair<>(mMode, Sets.newHashSet(partition));
+    private Builder addBypassedPartition(String tableName, Name partition) {
+      mBypassedPartitions.compute(tableName, (tblName, set) -> {
+        if (set == null) {
+          return Sets.newHashSet(partition);
         } else {
-          pairOfModeSet.getSecond().add(partition);
-          return pairOfModeSet;
+          set.add(partition);
+          return set;
         }
       });
       return this;
@@ -528,16 +431,52 @@ public final class UdbAttachOptions {
      * @return {@link UdbAttachOptions}
      */
     public UdbAttachOptions build() {
-      UdbAttachOptions built = new UdbAttachOptions(
+      if (!mBypassedTables.isEmpty()) {
+        Preconditions.checkState(mTableBypassMode != null && mTableBypassMode != Mode.NONE,
+            "Missing inclusion/exclusion mode for bypassed tables");
+      } else {
+        // override mode to NONE when no tables are given
+        mTableBypassMode = Mode.NONE;
+      }
+      if (!mIgnoredTables.isEmpty()) {
+        Preconditions.checkState(mIgnoreMode != null && mIgnoreMode != Mode.NONE,
+            "Missing inclusion/exclusion mode for ignored tables");
+      } else {
+        mIgnoreMode = Mode.NONE;
+      }
+      Map<String, Pair<Mode, Set<Name>>> partitions = new HashMap<>();
+      if (!mBypassedPartitions.isEmpty()) {
+        // forbid adding partitions when tables are excluded
+        Preconditions.checkState(mTableBypassMode != Mode.EXCLUDE,
+            "Tables are specified with exclusion mode, cannot have partition specification");
+        for (Map.Entry<String, Set<Name>> entry : mBypassedPartitions.entrySet()) {
+          String tableName = entry.getKey();
+          Set<Name> partitionNames = entry.getValue();
+          // make sure this table has associated partition mode
+          Preconditions.checkState(mPartitionBypassModes.containsKey(tableName)
+              && mPartitionBypassModes.get(tableName) != Mode.NONE,
+              "Missing partitions mode for table {}",
+              tableName);
+          // forbid both exact name and partition spec for a table at the same time
+          Preconditions.checkState(mBypassedTables.stream()
+                  .noneMatch(name -> name instanceof ExactName && name.matches(tableName)),
+              "Table {} is already specified with exact name, "
+                  + "cannot have partition specification at the same time",
+              tableName);
+          Preconditions.checkState(!partitionNames.isEmpty(),
+              "Empty partition specification set for table {}",
+              tableName);
+          partitions.put(tableName,
+              new Pair<>(mPartitionBypassModes.get(tableName), partitionNames));
+        }
+      }
+      return new UdbAttachOptions(
           mBypassedTables,
           mTableBypassMode,
-          mBypassedPartitions,
+          partitions,
           mIgnoredTables,
           mIgnoreMode
       );
-      reset();
-      create();
-      return built;
     }
   }
 }
