@@ -11,6 +11,7 @@
 
 package alluxio.table.common.udb;
 
+import com.google.common.base.MoreObjects;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
@@ -55,7 +56,7 @@ public final class UdbAttachOptions {
    * Bypassed tables.
    * When this set is empty, mTableBypassMode is set to NONE.
    */
-  private final Set<NamePatternWrapper> mBypassedTables;
+  private final Set<Name> mBypassedTables;
   /**
    * Mode of bypassed tables: included or excluded.
    */
@@ -65,7 +66,7 @@ public final class UdbAttachOptions {
    * This map has the same key set as mPartitionBypassModes.
    * When a value is empty, the corresponding mode in mPartitionBypassModes is set to NONE.
    */
-  private final Map<String, Set<NamePatternWrapper>> mBypassedPartitions;
+  private final Map<String, Set<Name>> mBypassedPartitions;
   /**
    * Modes of bypassed partitions.
    */
@@ -76,18 +77,18 @@ public final class UdbAttachOptions {
    * Tables are ignored as a whole, no partition configuration is needed.
    * When this set is empty, mIgnoreMode is set to NONE.
    */
-  private final Set<NamePatternWrapper> mIgnoredTables;
+  private final Set<Name> mIgnoredTables;
   /**
    * Mode of ignored tables: included or excluded.
    */
   private final Mode mIgnoreMode;
 
   private UdbAttachOptions(
-      @Nullable Set<NamePatternWrapper> bypassedTables,
+      @Nullable Set<Name> bypassedTables,
       @Nullable Mode tableBypassMode,
-      @Nullable Map<String, Set<NamePatternWrapper>> bypassedPartitions,
+      @Nullable Map<String, Set<Name>> bypassedPartitions,
       @Nullable Map<String, Mode> partitionBypassModes,
-      @Nullable Set<NamePatternWrapper> ignoredTables,
+      @Nullable Set<Name> ignoredTables,
       @Nullable Mode ignoreMode) {
     // ImmutableMap/Set.copyOf() ensures no null keys and values
     mBypassedTables = ImmutableSet.copyOf(replaceNullWithEmpty(bypassedTables));
@@ -95,7 +96,7 @@ public final class UdbAttachOptions {
     bypassedPartitions = ImmutableMap.copyOf(replaceNullWithEmpty(bypassedPartitions));
     partitionBypassModes = ImmutableMap.copyOf(replaceNullWithEmpty(partitionBypassModes));
     mPartitionBypassModes = new HashMap<>();
-    mBypassedPartitions = new HashMap<>();
+    mBypassedPartitions = new HashMap<String, Set<Name>>();
 
     if (mBypassedTables.isEmpty()) {
       mTableBypassMode = Mode.NONE;
@@ -109,9 +110,9 @@ public final class UdbAttachOptions {
       Preconditions.checkArgument(ignoreMode != null && ignoreMode != Mode.NONE);
       mIgnoreMode = ignoreMode;
     }
-    for (Map.Entry<String, Set<NamePatternWrapper>> entry : bypassedPartitions.entrySet()) {
+    for (Map.Entry<String, Set<Name>> entry : bypassedPartitions.entrySet()) {
       String tableName = entry.getKey();
-      Set<NamePatternWrapper> partitions = entry.getValue();
+      Set<Name> partitions = entry.getValue();
       Preconditions.checkArgument(
           partitionBypassModes.containsKey(tableName),
           "Missing inclusion or exclusion mode for partitions of table {}",
@@ -225,7 +226,7 @@ public final class UdbAttachOptions {
     return mightBeShadowedIfTrue;
   }
 
-  private static boolean isContainedInWrappers(Set<NamePatternWrapper> wrappers, String name) {
+  private static boolean isContainedInWrappers(Set<Name> wrappers, String name) {
     return wrappers.stream().anyMatch(p -> p.matches(name));
   }
 
@@ -265,80 +266,90 @@ public final class UdbAttachOptions {
   }
 
   /**
-   * Wrapper that is either a pattern or a plain name.
+   * Abstract name for tables and partitions.
    */
-  static class NamePatternWrapper {
-    private final Pattern mPattern;
-    private final String mPlainName;
-
-    NamePatternWrapper(String plainName) {
-      Preconditions.checkArgument(!plainName.isEmpty(), "empty name");
-      mPattern = null;
-      mPlainName = plainName;
-    }
-
-    NamePatternWrapper(Pattern regex) {
-      mPattern = regex;
-      mPlainName = null;
-    }
-
-    boolean isPattern() {
-      return mPattern != null;
-    }
-
-    boolean isPlainName() {
-      return mPlainName != null;
-    }
-
-    @Nullable
-    Pattern getPattern() {
-      return mPattern;
-    }
-
-    @Nullable
-    String getPlainName() {
-      return mPlainName;
-    }
-
+  interface Name {
     /**
-     * Check whether a name either matches the pattern, or equals to the plain name.
-     * @param name the name to check
-     * @return true when the name matches the pattern or equals to the plain name, false otherwise
+     * Checks whether the argument name matches the configured name pattern.
+     *
+     * @param name the concrete name to check for
+     * @return true if the names match, false otherwise
      */
-    boolean matches(String name) {
-      if (isPattern()) {
-        return mPattern.matcher(name).matches();
-      } else {
-        return mPlainName.equals(name);
-      }
+    boolean matches(String name);
+  }
+
+  static class ExactName implements Name {
+    private final String mExactName;
+
+    public ExactName(String exactName) {
+      Preconditions.checkArgument(!exactName.isEmpty(), "empty name");
+      mExactName = exactName;
     }
 
     @Override
-    public boolean equals(Object other) {
-      if (this == other) {
+    public boolean matches(String name) {
+      return mExactName.equals(name);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+      if (this == o) {
         return true;
       }
-      if (other == null) {
+      if (o == null || getClass() != o.getClass()) {
         return false;
       }
-      if (getClass() != other.getClass()) {
-        return false;
-      }
-      NamePatternWrapper entry = (NamePatternWrapper) other;
-      if (isPattern()) {
-        return Objects.equals(mPattern.pattern(), entry.mPattern.pattern());
-      } else {
-        return Objects.equals(mPlainName, entry.mPlainName);
-      }
+      ExactName exactName = (ExactName) o;
+      return Objects.equals(mExactName, exactName.mExactName);
     }
 
     @Override
     public int hashCode() {
-      if (isPattern()) {
-        return Objects.hashCode(mPattern.pattern());
-      } else {
-        return Objects.hashCode(mPlainName);
+      return Objects.hash(mExactName);
+    }
+
+    @Override
+    public String toString() {
+      return MoreObjects.toStringHelper(this)
+          .add("exactName", mExactName)
+          .toString();
+    }
+  }
+
+  static class PatternName implements Name {
+    private final Pattern mPattern;
+
+    public PatternName(Pattern pattern) {
+      mPattern = pattern;
+    }
+
+    @Override
+    public boolean matches(String name) {
+      return mPattern.matcher(name).matches();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+      if (this == o) {
+        return true;
       }
+      if (o == null || getClass() != o.getClass()) {
+        return false;
+      }
+      PatternName that = (PatternName) o;
+      return Objects.equals(mPattern, that.mPattern);
+    }
+
+    @Override
+    public int hashCode() {
+      return Objects.hash(mPattern);
+    }
+
+    @Override
+    public String toString() {
+      return MoreObjects.toStringHelper(this)
+          .add("pattern", mPattern)
+          .toString();
     }
   }
 
@@ -346,9 +357,9 @@ public final class UdbAttachOptions {
    * Builder for {@link UdbAttachOptions}.
    */
   public static class Builder {
-    private Set<NamePatternWrapper> mBypassedTables;
-    private Set<NamePatternWrapper> mIgnoredTables;
-    private Map<String, Set<NamePatternWrapper>> mBypassedPartitions;
+    private Set<Name> mBypassedTables;
+    private Set<Name> mIgnoredTables;
+    private Map<String, Set<Name>> mBypassedPartitions;
     private Map<String, Mode> mPartitionModes;
     private Mode mTableBypassMode;
     private Mode mIgnoreMode;
@@ -427,12 +438,12 @@ public final class UdbAttachOptions {
     }
 
     /**
-     * Add a table by name.
+     * Add a table by its exact name.
      * @param name table name
      * @return this builder
      */
     public Builder addTable(String name) {
-      return addTable(new NamePatternWrapper(name));
+      return addTable(new ExactName(name));
     }
 
     /**
@@ -441,10 +452,10 @@ public final class UdbAttachOptions {
      * @return this builder
      */
     public Builder addTable(Pattern pattern) {
-      return addTable(new NamePatternWrapper(pattern));
+      return addTable(new PatternName(pattern));
     }
 
-    private Builder addTable(NamePatternWrapper item) {
+    private Builder addTable(Name item) {
       assertStateModeIsNotNone();
       assertStateEntryIsNotNone();
       Mode opposite = mMode.opposite();
@@ -483,11 +494,11 @@ public final class UdbAttachOptions {
      */
     public Builder addTables(Set<Object> items) {
       items.forEach((item) -> {
-        NamePatternWrapper wrapper;
+        Name wrapper;
         if (item instanceof String) {
-          wrapper = new NamePatternWrapper((String) item);
+          wrapper = new ExactName((String) item);
         } else if (item instanceof Pattern) {
-          wrapper = new NamePatternWrapper((Pattern) item);
+          wrapper = new PatternName((Pattern) item);
         } else {
           throw new IllegalArgumentException("Table name must be string or pattern");
         }
@@ -497,13 +508,13 @@ public final class UdbAttachOptions {
     }
 
     /**
-     * Add a partition by name.
+     * Add a partition by its exact name.
      * @param tableName the containing table
      * @param partitionName partition name
      * @return this builder
      */
     public Builder addPartition(String tableName, String partitionName) {
-      return addPartition(tableName, new NamePatternWrapper(partitionName));
+      return addPartition(tableName, new ExactName(partitionName));
     }
 
     /**
@@ -513,10 +524,10 @@ public final class UdbAttachOptions {
      * @return this builder
      */
     public Builder addPartition(String tableName, Pattern partitionPattern) {
-      return addPartition(tableName, new NamePatternWrapper(partitionPattern));
+      return addPartition(tableName, new PatternName(partitionPattern));
     }
 
-    private Builder addPartition(String tableName, NamePatternWrapper partition) {
+    private Builder addPartition(String tableName, Name partition) {
       assertStateModeIsNotNone();
       assertStateEntryIsNotNone();
       // forbid adding partition to ignored tables
@@ -537,7 +548,7 @@ public final class UdbAttachOptions {
           tableName);
       // forbid both plain name and partition spec for a table at the same time
       Preconditions.checkState(mBypassedTables.stream()
-          .noneMatch(wrapper -> wrapper.isPlainName() && wrapper.matches(tableName)),
+          .noneMatch(wrapper -> wrapper instanceof ExactName && wrapper.matches(tableName)),
           "Table {} is already specified with exact name, "
               + "ignoring any partition specifications",
           tableName);
