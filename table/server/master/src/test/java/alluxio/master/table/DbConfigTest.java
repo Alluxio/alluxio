@@ -218,11 +218,11 @@ public class DbConfigTest {
         mMapper.readValue(include(name("table1"), regex("^table[2]$")).toString(),
             new TypeReference<IncludeExcludeObject<NameOrRegexObject, NameOrRegexObject>>() {});
     assertEquals(
-        list.getIncludedEntries(),
         ImmutableSet.of(
             new NameObject("table1"),
             new RegexObject("^table[2]$")
-        )
+        ),
+        list.getIncludedEntries()
     );
     assertEquals(ImmutableSet.of(), list.getExcludedEntries());
   }

@@ -466,12 +466,12 @@ public final class DbConfig {
         return false;
       }
       RegexObject that = (RegexObject) o;
-      return Objects.equals(mPattern, that.mPattern);
+      return Objects.equals(mPattern.pattern(), that.mPattern.pattern());
     }
 
     @Override
     public int hashCode() {
-      return Objects.hash(super.hashCode(), mPattern);
+      return Objects.hash(super.hashCode(), mPattern.pattern());
     }
 
     @Override
