@@ -44,12 +44,13 @@ spec:
         role: alluxio-csi-controller
     spec:
       hostNetwork: {{ .Values.csi.controllerPlugin.hostNetwork }}
+      dnsPolicy: {{ .Values.csi.controllerPlugin.dnsPolicy }}
       serviceAccountName: csi-controller-sa
       containers:
         - name: csi-provisioner
           image: {{ .Values.csi.controllerPlugin.provisioner.image }}
           args:
-            - "-v=5"
+            - "--v=5"
             - "--csi-address=$(ADDRESS)"
             - "--timeout=60s"
             - "--volume-name-prefix=alluxio"
@@ -77,6 +78,7 @@ spec:
           imagePullPolicy: {{ .Values.csi.imagePullPolicy }}
           command: ["/usr/local/bin/alluxio-csi"]
           args:
+            - --v=5
             - "--nodeid=$(NODE_ID)"
             - "--endpoint=$(CSI_ENDPOINT)"
           env:
@@ -86,6 +88,9 @@ spec:
                   fieldPath: spec.nodeName
             - name: CSI_ENDPOINT
               value: unix://csi/csi.sock
+          envFrom:
+            - configMapRef:
+                name: {{ template "alluxio.fullname" . }}-config
           volumeMounts:
             - mountPath: /csi
               name: socket-dir

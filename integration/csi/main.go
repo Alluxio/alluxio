@@ -18,7 +18,7 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/Alluxio/alluxio-csi/alluxio"
+	"github.com/Alluxio/integration/csi/alluxio"
 	"github.com/golang/glog"
 	"github.com/spf13/cobra"
 )
