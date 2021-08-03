@@ -13,10 +13,14 @@ package alluxio.table.under.hive.util;
 
 import alluxio.resource.CloseableResource;
 import alluxio.resource.DynamicResourcePool;
+
 import org.apache.hadoop.hive.metastore.IMetaStoreClient;
 
 import java.io.IOException;
 
+/**
+ * A pool for hive clients.
+ */
 public abstract class HiveClientPool extends DynamicResourcePool<IMetaStoreClient> {
   protected HiveClientPool(Options options) {
     super(options);
