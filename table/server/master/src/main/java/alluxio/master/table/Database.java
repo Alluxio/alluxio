@@ -71,6 +71,7 @@ public class Database implements Journaled {
   private final Map<String, Table> mTables;
   private final UnderDatabase mUdb;
   private final CatalogConfiguration mConfig;
+  // Todo(bowen): use UdbFilterSpec to get ignored tables once that PR is merged
   private final Set<String> mIgnoreTables;
   private final String mConfigPath;
   private DbConfig mDbConfig;
@@ -240,6 +241,9 @@ public class Database implements Journaled {
     // sync each table in parallel, with the executor service
     List<Callable<Void>> tasks = new ArrayList<>(udbTableNames.size());
     final Database thisDb = this;
+    // ignored tables should not be mounted
+    // Todo(bowen): use UdbFilterSpec to get ignored tables once that PR is merged
+    mUdb.mount(Sets.difference(udbTableNames, mIgnoreTables), mDbConfig.getUdbBypassSpec());
     for (String tableName : udbTableNames) {
       if (mIgnoreTables.contains(tableName)) {
         // this table should be ignored.
@@ -251,7 +255,7 @@ public class Database implements Journaled {
         // Save all exceptions
         try {
           Table previousTable = mTables.get(tableName);
-          UdbTable udbTable = mUdb.getTable(tableName, mDbConfig.getUdbBypassSpec());
+          UdbTable udbTable = mUdb.getTable(tableName);
           Table newTable = Table.create(thisDb, udbTable, previousTable);
 
           if (newTable != null) {

@@ -36,32 +36,31 @@ public class UdbUtils {
   /**
    * Mount ufs path to alluxio path.
    *
-   * @param tableName Table name
    * @param ufsUri the uri of ufs
-   * @param tableUri the alluxio uri for table
+   * @param alluxioUri alluxio uri of the mount point
    * @param udbContext udb context
    * @param udbConfiguration Udb configurations
-   * @return table uri
+   * @return mounted Alluxio path
    * @throws IOException
    * @throws AlluxioException
    */
-  public static String mountAlluxioPath(String tableName, AlluxioURI ufsUri, AlluxioURI tableUri,
-      UdbContext udbContext, UdbConfiguration udbConfiguration)
+  public static String mountAlluxioPath(AlluxioURI ufsUri, AlluxioURI alluxioUri,
+                                        UdbContext udbContext, UdbConfiguration udbConfiguration)
       throws IOException, AlluxioException {
     if (Objects.equals(ufsUri.getScheme(), Constants.SCHEME)) {
       // already an alluxio uri, return the alluxio uri
       return ufsUri.toString();
     }
     try {
-      tableUri = udbContext.getFileSystem().reverseResolve(ufsUri);
-      LOG.debug("Trying to mount table {} location {}, but it is already mounted at location {}",
-          tableName, ufsUri, tableUri);
-      return tableUri.getPath();
+      alluxioUri = udbContext.getFileSystem().reverseResolve(ufsUri);
+      LOG.debug("Trying to mount ufs location {}, but it is already mounted at location {}",
+          ufsUri, alluxioUri);
+      return alluxioUri.getPath();
     } catch (InvalidPathException e) {
       // ufs path not mounted, continue
     }
     // make sure the parent exists
-    udbContext.getFileSystem().createDirectory(tableUri.getParent(),
+    udbContext.getFileSystem().createDirectory(alluxioUri.getParent(),
         CreateDirectoryPOptions.newBuilder().setRecursive(true).setAllowExists(true).build());
     Map<String, String> mountOptionMap = udbConfiguration.getMountOption(
         String.format("%s://%s/", ufsUri.getScheme(), ufsUri.getAuthority().toString()));
@@ -75,10 +74,10 @@ public class UdbUtils {
         option.putProperties(entry.getKey(), entry.getValue());
       }
     }
-    udbContext.getFileSystem().mount(tableUri, ufsUri, option.build());
+    udbContext.getFileSystem().mount(alluxioUri, ufsUri, option.build());
 
-    LOG.info("mounted table {} location {} to Alluxio location {} with mountOption {}",
-        tableName, ufsUri, tableUri, option.build());
-    return tableUri.getPath();
+    LOG.info("mounted ufs location {} to Alluxio location {} with mountOption {}",
+        ufsUri, alluxioUri, option.build());
+    return alluxioUri.getPath();
   }
 }
