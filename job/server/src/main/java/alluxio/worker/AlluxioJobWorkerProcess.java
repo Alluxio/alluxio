@@ -20,8 +20,6 @@ import alluxio.grpc.GrpcServer;
 import alluxio.grpc.GrpcServerAddress;
 import alluxio.grpc.GrpcServerBuilder;
 import alluxio.grpc.GrpcService;
-import alluxio.metrics.MetricsSystem;
-import alluxio.metrics.sink.MetricsServlet;
 import alluxio.security.user.ServerUserState;
 import alluxio.underfs.JobUfsManager;
 import alluxio.underfs.UfsManager;
@@ -83,8 +81,6 @@ public final class AlluxioJobWorkerProcess implements JobWorkerProcess {
 
   /** The manager for all ufs. */
   private UfsManager mUfsManager;
-
-  private final MetricsServlet mMetricsServlet = new MetricsServlet(MetricsSystem.METRIC_REGISTRY);
 
   /**
    * Constructor of {@link AlluxioJobWorker}.
@@ -172,7 +168,6 @@ public final class AlluxioJobWorkerProcess implements JobWorkerProcess {
     // NOTE: the order to start different services is sensitive. If you change it, do it cautiously.
 
     // Start serving the web server, this will not block.
-    mWebServer.addHandler(mMetricsServlet.getHandler());
     mWebServer.start();
 
     // Start each worker

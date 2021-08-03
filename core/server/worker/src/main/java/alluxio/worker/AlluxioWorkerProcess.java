@@ -15,8 +15,6 @@ import alluxio.Constants;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.metrics.MetricsSystem;
-import alluxio.metrics.sink.MetricsServlet;
-import alluxio.metrics.sink.PrometheusMetricsServlet;
 import alluxio.network.ChannelType;
 import alluxio.underfs.UfsManager;
 import alluxio.underfs.WorkerUfsManager;
@@ -64,10 +62,6 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
 
   /** If started (i.e. not null), this server is used to serve local data transfer. */
   private DataServer mDomainSocketDataServer;
-
-  private final MetricsServlet mMetricsServlet = new MetricsServlet(MetricsSystem.METRIC_REGISTRY);
-  private final PrometheusMetricsServlet mPMetricsServlet = new PrometheusMetricsServlet(
-      MetricsSystem.METRIC_REGISTRY);
 
   /** The worker registry. */
   private WorkerRegistry mRegistry;
@@ -234,8 +228,6 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
     startWorkers();
 
     // Start serving the web server, this will not block.
-    mWebServer.addHandler(mMetricsServlet.getHandler());
-    mWebServer.addHandler(mPMetricsServlet.getHandler());
     mWebServer.start();
 
     // Start monitor jvm

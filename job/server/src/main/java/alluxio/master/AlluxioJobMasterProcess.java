@@ -27,8 +27,6 @@ import alluxio.master.journal.JournalMasterClientServiceHandler;
 import alluxio.master.journal.JournalSystem;
 import alluxio.master.journal.JournalUtils;
 import alluxio.master.journal.raft.RaftJournalSystem;
-import alluxio.metrics.MetricsSystem;
-import alluxio.metrics.sink.MetricsServlet;
 import alluxio.security.user.ServerUserState;
 import alluxio.underfs.JobUfsManager;
 import alluxio.underfs.UfsManager;
@@ -72,8 +70,6 @@ public class AlluxioJobMasterProcess extends MasterProcess {
 
   /** The manager for all ufs. */
   private UfsManager mUfsManager;
-
-  private final MetricsServlet mMetricsServlet = new MetricsServlet(MetricsSystem.METRIC_REGISTRY);
 
   AlluxioJobMasterProcess(JournalSystem journalSystem) {
     super(journalSystem, ServiceType.JOB_MASTER_RPC, ServiceType.JOB_MASTER_WEB);
@@ -194,7 +190,6 @@ public class AlluxioJobMasterProcess extends MasterProcess {
     stopRejectingWebServer();
     mWebServer =
         new JobMasterWebServer(ServiceType.JOB_MASTER_WEB.getServiceName(), mWebBindAddress, this);
-    mWebServer.addHandler(mMetricsServlet.getHandler());
     mWebServer.start();
   }
 
