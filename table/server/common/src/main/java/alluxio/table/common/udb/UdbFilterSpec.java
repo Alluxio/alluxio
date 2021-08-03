@@ -19,7 +19,6 @@ import com.google.common.collect.Sets;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -184,21 +183,6 @@ public final class UdbFilterSpec {
 
   private static boolean matchedByTemplates(Set<NameTemplate> templates, String name) {
     return templates.stream().anyMatch(p -> p.matches(name));
-  }
-
-  private static <T> T replaceNullWith(T nullable, T defaultOnNull) {
-    if (nullable == null) {
-      return defaultOnNull;
-    }
-    return nullable;
-  }
-
-  private static <K, V> Map<K, V>  replaceNullWithEmpty(Map<K, V> someMap) {
-    return replaceNullWith(someMap, Collections.emptyMap());
-  }
-
-  private static <K> Set<K> replaceNullWithEmpty(Set<K> someSet) {
-    return replaceNullWith(someSet, Collections.emptySet());
   }
 
   /**
