@@ -80,7 +80,7 @@ EOF
 
 function killAll {
   if [[ $# -gt 2  ]]; then
-    echo "Usage: alluxio killAll [-s] <WORD> (if '-s' specified, processes won't be forcibly killed even if operation is timeout.)" >&2
+    echo "Usage: alluxio killAll [-s] <WORD>\t Kill processes containing the WORD (if '-s' specified, processes won't be forcibly killed even if the operation exceeds the timeout)." >&2
     exit 2
   fi
   if [[ "$1" == "-s" ]]; then
