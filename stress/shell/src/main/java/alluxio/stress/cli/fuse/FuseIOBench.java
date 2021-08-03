@@ -39,6 +39,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
 /**
  * Single node stress test.
  */
@@ -67,8 +68,8 @@ public class FuseIOBench extends Benchmark<FuseIOTaskResult> {
   @Override
   public void prepare() throws Exception {
     if (mParameters.mReadRandom) {
-      // random read will be supported in the future.
       LOG.warn("Random read is not supported for now. Read sequentially");
+      // TODO: support random read
       mParameters.mReadRandom = false;
     }
   }
@@ -92,7 +93,7 @@ public class FuseIOBench extends Benchmark<FuseIOTaskResult> {
   private FuseIOTaskResult.ThreadCountResult runForThreadCount(int numThreads) throws Exception {
     LOG.info("Running benchmark for thread count: " + numThreads);
     ExecutorService service =
-            ExecutorServiceFactories.fixedThreadPool("bench-thread", numThreads).create();
+        ExecutorServiceFactories.fixedThreadPool("bench-thread", numThreads).create();
     long durationMs = FormatUtils.parseTimeSize(mParameters.mDuration);
     long warmupMs = FormatUtils.parseTimeSize(mParameters.mWarmup);
     long startMs = mBaseParameters.mStartMs;
@@ -108,7 +109,7 @@ public class FuseIOBench extends Benchmark<FuseIOTaskResult> {
       callables.add(new BenchThread(context, i, numThreads));
     }
     service.invokeAll(callables, FormatUtils.parseTimeSize(mBaseParameters.mBenchTimeout),
-            TimeUnit.MILLISECONDS);
+        TimeUnit.MILLISECONDS);
 
     service.shutdownNow();
     service.awaitTermination(30, TimeUnit.SECONDS);
@@ -116,13 +117,13 @@ public class FuseIOBench extends Benchmark<FuseIOTaskResult> {
     FuseIOTaskResult.ThreadCountResult result = context.getResult();
 
     LOG.info(String.format("thread count: %d, errors: %d, IO throughput (MB/s): %f", numThreads,
-            result.getErrors().size(), result.getIOMBps()));
+        result.getErrors().size(), result.getIOMBps()));
 
     return result;
   }
 
   /**
-   * Read the log file from java agent log file.
+   * Reads the log file from java agent log file.
    *
    * @param startMs start time for profiling
    * @param endMs end time for profiling
@@ -131,20 +132,20 @@ public class FuseIOBench extends Benchmark<FuseIOTaskResult> {
    */
   @SuppressFBWarnings(value = "DMI_HARDCODED_ABSOLUTE_FILENAME")
   public synchronized Map<String, SummaryStatistics> addAdditionalResult(
-          long startMs, long endMs) throws IOException {
+      long startMs, long endMs) throws IOException {
     Map<String, SummaryStatistics> summaryStatistics = new HashMap<>();
 
     Map<String, MethodStatistics> nameStatistics =
-            processMethodProfiles(startMs, endMs, profileInput -> {
-              if (profileInput.getIsttfb()) {
-                return profileInput.getMethod();
-              }
-              return null;
-            });
+        processMethodProfiles(startMs, endMs, profileInput -> {
+          if (profileInput.getIsttfb()) {
+            return profileInput.getMethod();
+          }
+          return null;
+        });
     if (!nameStatistics.isEmpty()) {
       for (Map.Entry<String, MethodStatistics> entry : nameStatistics.entrySet()) {
         summaryStatistics.put(
-                entry.getKey(), toSummaryStatistics(entry.getValue()));
+            entry.getKey(), toSummaryStatistics(entry.getValue()));
       }
     }
 
@@ -161,13 +162,13 @@ public class FuseIOBench extends Benchmark<FuseIOTaskResult> {
     float[] responseTimePercentile = new float[101];
     for (int i = 0; i <= 100; i++) {
       responseTimePercentile[i] =
-              (float) methodStatistics.getTimeNs().getValueAtPercentile(i) / Constants.MS_NANO;
+          (float) methodStatistics.getTimeNs().getValueAtPercentile(i) / Constants.MS_NANO;
     }
 
     float[] responseTime99Percentile = new float[StressConstants.TIME_99_COUNT];
     for (int i = 0; i < responseTime99Percentile.length; i++) {
       responseTime99Percentile[i] = (float) methodStatistics.getTimeNs()
-              .getValueAtPercentile(100.0 - 1.0 / (Math.pow(10.0, i))) / Constants.MS_NANO;
+          .getValueAtPercentile(100.0 - 1.0 / (Math.pow(10.0, i))) / Constants.MS_NANO;
     }
 
     float[] maxResponseTimesMs = new float[StressConstants.MAX_TIME_COUNT];
@@ -177,8 +178,8 @@ public class FuseIOBench extends Benchmark<FuseIOTaskResult> {
     }
 
     return new SummaryStatistics(methodStatistics.getNumSuccess(),
-            responseTimePercentile,
-            responseTime99Percentile, maxResponseTimesMs);
+        responseTimePercentile,
+        responseTime99Percentile, maxResponseTimesMs);
   }
 
   private final class BenchContext {
@@ -224,14 +225,14 @@ public class FuseIOBench extends Benchmark<FuseIOTaskResult> {
     private final int mThreadId;
 
     private final FuseIOTaskResult.ThreadCountResult mThreadCountResult =
-            new FuseIOTaskResult.ThreadCountResult();
+        new FuseIOTaskResult.ThreadCountResult();
 
     private BenchThread(BenchContext context, int threadId, int numThreads) {
       mContext = context;
       mThreadId = threadId;
       mFilesPath = new ArrayList<>();
-      for (int i = mThreadId; i < 10; i += numThreads) {
-        mFilesPath.add(mParameters.mLocalPath + i);
+      for (int i = mThreadId; i < 1000; i += numThreads) {
+        mFilesPath.add(mParameters.mLocalPath + "/fuseIOBench/data-" + i);
       }
     }
 
@@ -259,23 +260,21 @@ public class FuseIOBench extends Benchmark<FuseIOTaskResult> {
       long waitMs = mContext.getStartMs() - CommonUtils.getCurrentMs();
       if (waitMs < 0) {
         throw new IllegalStateException(String.format(
-                "Thread missed barrier. Set the start time to a later time. start: %d current: %d",
-                mContext.getStartMs(), CommonUtils.getCurrentMs()));
+            "Thread missed barrier. Set the start time to a later time. start: %d current: %d",
+            mContext.getStartMs(), CommonUtils.getCurrentMs()));
       }
       CommonUtils.sleepMs(waitMs);
       mStartBarrierPassed = true;
 
       for (int i = 0; i < mFilesPath.size(); i++) {
         if (!Thread.currentThread().isInterrupted() && (
-                CommonUtils.getCurrentMs() < mContext.getEndMs())) {
+            CommonUtils.getCurrentMs() < mContext.getEndMs())) {
           int ioBytes = applyOperation(mFilesPath.get(i));
 
           long currentMs = CommonUtils.getCurrentMs();
           // Start recording after the warmup
-          if (currentMs > recordMs) {
-            if (ioBytes > 0) {
-              mThreadCountResult.incrementIOBytes(ioBytes);
-            }
+          if (currentMs > recordMs && ioBytes > 0) {
+            mThreadCountResult.incrementIOBytes(ioBytes);
           }
         }
       }

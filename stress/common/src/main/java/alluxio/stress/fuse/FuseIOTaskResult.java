@@ -37,7 +37,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
- * The task result for the Fuse stress tests.
+ * The task result for the Fuse IO stress tests.
  */
 public final class FuseIOTaskResult implements TaskResult, Summary {
   private long mRecordStartMs;
@@ -72,14 +72,14 @@ public final class FuseIOTaskResult implements TaskResult, Summary {
   }
 
   /**
-   * @return the parameters
+   * @return the Fuse IO parameters
    */
   public FuseIOParameters getParameters() {
     return mParameters;
   }
 
   /**
-   * @param parameters the parameters
+   * @param parameters the Fuse IO parameters
    */
   public void setParameters(FuseIOParameters parameters) {
     mParameters = parameters;
@@ -110,7 +110,7 @@ public final class FuseIOTaskResult implements TaskResult, Summary {
    * @param timeToFirstByte time to first statistics
    */
   public void setTimeToFirstBytePerThread(Map<Integer, Map<String,
-          SummaryStatistics>> timeToFirstByte) {
+      SummaryStatistics>> timeToFirstByte) {
     mTimeToFirstByte = timeToFirstByte;
   }
 
@@ -119,7 +119,7 @@ public final class FuseIOTaskResult implements TaskResult, Summary {
    * @param statistics FuseIOTaskResultStatistics
    */
   public void putTimeToFirstBytePerThread(Integer numThreads,
-                                          Map<String, SummaryStatistics> statistics) {
+      Map<String, SummaryStatistics> statistics) {
     mTimeToFirstByte.put(numThreads, statistics);
   }
 
@@ -196,7 +196,7 @@ public final class FuseIOTaskResult implements TaskResult, Summary {
 
   private void getTimeToFistByteData(String series, LineGraph lineGraph) {
     for (Map.Entry<Integer, Map<String, SummaryStatistics>> threadEntry :
-            mTimeToFirstByte.entrySet()) {
+        mTimeToFirstByte.entrySet()) {
       for (Map.Entry<String, SummaryStatistics> methodEntry :
           threadEntry.getValue().entrySet()) {
         lineGraph.addDataSeries(series
@@ -230,7 +230,7 @@ public final class FuseIOTaskResult implements TaskResult, Summary {
         FuseIOTaskResult taskResult = it.next();
         if (it.hasNext()) {
           throw new IOException(
-                  "Fuse is a single node test, so multiple task results cannot be aggregated.");
+              "FuseIO is a single node test, so multiple task results cannot be aggregated.");
         }
         return taskResult;
       }
@@ -252,7 +252,7 @@ public final class FuseIOTaskResult implements TaskResult, Summary {
       List<Graph> graphs = new ArrayList<>();
       // expecting FuseIOTaskResult, or will throw ClassCastException
       List<FuseIOTaskResult> summaries =
-              results.stream().map(x -> (FuseIOTaskResult) x).collect(Collectors.toList());
+          results.stream().map(x -> (FuseIOTaskResult) x).collect(Collectors.toList());
 
       // Iterate over all operations
       for (FuseIOOperation operation : FuseIOOperation.values()) {
@@ -425,10 +425,10 @@ public final class FuseIOTaskResult implements TaskResult, Summary {
     }
 
     /**
-     * @param errMesssage the error message to add
+     * @param errMessage the error message to add
      */
-    public void addErrorMessage(String errMesssage) {
-      mErrors.add(errMesssage);
+    public void addErrorMessage(String errMessage) {
+      mErrors.add(errMessage);
     }
 
     /**
