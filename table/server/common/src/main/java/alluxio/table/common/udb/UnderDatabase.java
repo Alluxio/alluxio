@@ -38,10 +38,10 @@ public interface UnderDatabase {
 
   /**
    * @param tableName the table name
-   * @param attachOptions table and partition attach specification
+   * @param filterSpec table and partition filter specification
    * @return the {@link UdbTable} for the specified table name
    */
-  UdbTable getTable(String tableName, UdbAttachOptions attachOptions) throws IOException;
+  UdbTable getTable(String tableName, UdbFilterSpec filterSpec) throws IOException;
 
   /**
    * @return the {@link UdbContext}

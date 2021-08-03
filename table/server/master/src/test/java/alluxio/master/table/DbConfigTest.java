@@ -316,5 +316,5 @@ public class DbConfigTest {
     }
   }
 
-  // Todo(bowen): add test to cover DbConfig.getUdbAttachOptions
+  // Todo(bowen): add test to cover DbConfig.getUdbFilterSpec
 }

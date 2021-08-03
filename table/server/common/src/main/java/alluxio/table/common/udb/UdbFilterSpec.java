@@ -28,10 +28,10 @@ import java.util.Set;
 import java.util.regex.Pattern;
 
 /**
- * Tables and partitions inclusion and exclusion specification.
+ * Tables and partitions filtering specification.
  */
-public final class UdbAttachOptions {
-  private static final Logger LOG = LoggerFactory.getLogger(UdbAttachOptions.class);
+public final class UdbFilterSpec {
+  private static final Logger LOG = LoggerFactory.getLogger(UdbFilterSpec.class);
 
   /**
    * Bypass/ignore entries.
@@ -71,7 +71,7 @@ public final class UdbAttachOptions {
    */
   private final Mode mIgnoreMode;
 
-  private UdbAttachOptions(
+  private UdbFilterSpec(
       Set<Name> bypassedTables,
       Mode tableBypassMode,
       Map<String, Pair<Mode, Set<Name>>> bypassedPartitions,
@@ -89,7 +89,7 @@ public final class UdbAttachOptions {
    *
    * @param tableName the table name
    * @return true if the table is configured to be bypassed, false otherwise
-   * @see UdbAttachOptions#isFullyBypassedTable(String)
+   * @see UdbFilterSpec#isFullyBypassedTable(String)
    */
   public boolean isBypassedTable(String tableName) {
     boolean isSpecifiedByName = isContainedInWrappers(mBypassedTables, tableName);
@@ -118,7 +118,7 @@ public final class UdbAttachOptions {
    *
    * @param tableName the table name
    * @return true if the table is configured to be fully bypassed, false otherwise
-   * @see UdbAttachOptions#isBypassedTable(String)
+   * @see UdbFilterSpec#isBypassedTable(String)
    */
   public boolean isFullyBypassedTable(String tableName) {
     boolean isFullyBypassed = isContainedInWrappers(mBypassedTables, tableName);
@@ -290,7 +290,7 @@ public final class UdbAttachOptions {
   }
 
   /**
-   * Builder for {@link UdbAttachOptions}.
+   * Builder for {@link UdbFilterSpec}.
    */
   public static class Builder {
     private final Set<Name> mBypassedTables;
@@ -427,10 +427,10 @@ public final class UdbAttachOptions {
     }
 
     /**
-     * Build a {@link UdbAttachOptions}.
-     * @return {@link UdbAttachOptions}
+     * Build a {@link UdbFilterSpec}.
+     * @return {@link UdbFilterSpec}
      */
-    public UdbAttachOptions build() {
+    public UdbFilterSpec build() {
       if (!mBypassedTables.isEmpty()) {
         Preconditions.checkState(mTableBypassMode != null && mTableBypassMode != Mode.NONE,
             "Missing inclusion/exclusion mode for bypassed tables");
@@ -470,7 +470,7 @@ public final class UdbAttachOptions {
               new Pair<>(mPartitionBypassModes.get(tableName), partitionNames));
         }
       }
-      return new UdbAttachOptions(
+      return new UdbFilterSpec(
           mBypassedTables,
           mTableBypassMode,
           partitions,

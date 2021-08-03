@@ -15,19 +15,19 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 
-import alluxio.table.common.udb.UdbAttachOptions.Mode;
+import alluxio.table.common.udb.UdbFilterSpec.Mode;
 
 import org.junit.Before;
 import org.junit.Test;
 
 import java.util.regex.Pattern;
 
-public class UdbAttachOptionsTest {
-  private UdbAttachOptions.Builder mBuilder;
+public class UdbFilterSpecTest {
+  private UdbFilterSpec.Builder mBuilder;
 
   @Before
   public void before() {
-    mBuilder = new UdbAttachOptions.Builder();
+    mBuilder = new UdbFilterSpec.Builder();
   }
 
   private static final String ANY_TABLE = "any_table";
@@ -57,7 +57,7 @@ public class UdbAttachOptionsTest {
         .addBypassedPartition(getTableName(1), getPartitionName(1))
         .addBypassedPartition(getTableName(1), getPartitionName(2));
 
-    UdbAttachOptions spec = mBuilder.build();
+    UdbFilterSpec spec = mBuilder.build();
     assertTrue(spec.isBypassedTable(getTableName(1)));
     assertFalse(spec.isFullyBypassedTable(getTableName(1)));
     assertTrue(spec.isBypassedPartition(getTableName(1), getPartitionName(1)));
@@ -69,7 +69,7 @@ public class UdbAttachOptionsTest {
   public void includedTableNamesOnly() {
     mBuilder.setBypassedTablesMode(Mode.INCLUDE)
         .addBypassedTable(getTableName(2));
-    UdbAttachOptions spec = mBuilder.build();
+    UdbFilterSpec spec = mBuilder.build();
     assertTrue(spec.isBypassedTable(getTableName(2)));
     assertTrue(spec.isFullyBypassedTable(getTableName(2)));
     assertTrue(spec.isBypassedPartition(getTableName(2), getPartitionName(1)));
@@ -81,7 +81,7 @@ public class UdbAttachOptionsTest {
   public void includedNonExistentTable() {
     mBuilder.setBypassedTablesMode(Mode.INCLUDE)
         .addBypassedTable(getTableName(3));
-    UdbAttachOptions spec = mBuilder.build();
+    UdbFilterSpec spec = mBuilder.build();
     assertFalse(spec.isBypassedTable(getTableName(4)));
     assertFalse(spec.isFullyBypassedTable(getTableName(4)));
     assertFalse(spec.isBypassedPartition(getTableName(4), getPartitionName(1)));
@@ -93,7 +93,7 @@ public class UdbAttachOptionsTest {
   public void includedTablePatterns() {
     mBuilder.setBypassedTablesMode(Mode.INCLUDE)
         .addBypassedTable(Pattern.compile(getTableName("\\d")));
-    UdbAttachOptions spec = mBuilder.build();
+    UdbFilterSpec spec = mBuilder.build();
     assertTrue(spec.isBypassedTable(getTableName(1)));
     assertTrue(spec.isBypassedTable(getTableName(2)));
     assertTrue(spec.isFullyBypassedTable(getTableName(1)));
@@ -110,7 +110,7 @@ public class UdbAttachOptionsTest {
         .addBypassedPartition(getTableName(2), getPartitionName(2))
         .addBypassedPartition(getTableName(2), Pattern.compile(getPartitionName("[a-z]")));
 
-    UdbAttachOptions spec = mBuilder.build();
+    UdbFilterSpec spec = mBuilder.build();
     assertTrue(spec.isBypassedTable(getTableName(1)));
     assertTrue(spec.isBypassedTable(getTableName(2)));
     assertTrue(spec.isBypassedTable(getTableName("a")));
@@ -150,7 +150,7 @@ public class UdbAttachOptionsTest {
         .addBypassedTable(getTableName(1))
         .addBypassedTable(getTableName(2));
 
-    UdbAttachOptions spec = mBuilder.build();
+    UdbFilterSpec spec = mBuilder.build();
     assertFalse(spec.isBypassedTable(getTableName(1)));
     assertFalse(spec.isBypassedTable(getTableName(2)));
     assertFalse(spec.isFullyBypassedTable(getTableName(1)));
@@ -165,7 +165,7 @@ public class UdbAttachOptionsTest {
         .addBypassedTable(getTableName(0))
         .addBypassedTable(Pattern.compile(getTableName("[12]")));
 
-    UdbAttachOptions spec = mBuilder.build();
+    UdbFilterSpec spec = mBuilder.build();
     assertFalse(spec.isBypassedTable(getTableName(0)));
     assertFalse(spec.isBypassedTable(getTableName(1)));
     assertFalse(spec.isBypassedTable(getTableName(2)));
@@ -181,7 +181,7 @@ public class UdbAttachOptionsTest {
     mBuilder.setBypassedPartitionsMode(getTableName(1), Mode.EXCLUDE)
         .addBypassedPartition(getTableName(1), getPartitionName(1));
 
-    UdbAttachOptions spec = mBuilder.build();
+    UdbFilterSpec spec = mBuilder.build();
     assertFalse(spec.isBypassedPartition(getTableName(1), getPartitionName(1)));
     assertTrue(spec.isBypassedPartition(getTableName(1), getPartitionName(2)));
   }
@@ -190,14 +190,14 @@ public class UdbAttachOptionsTest {
   public void excludeEverythingIsIncludeNothing() {
     mBuilder.setBypassedTablesMode(Mode.EXCLUDE)
         .addBypassedTable(Pattern.compile(".*"));
-    UdbAttachOptions spec = mBuilder.build();
+    UdbFilterSpec spec = mBuilder.build();
     assertFalse(spec.isBypassedTable(ANY_TABLE));
   }
 
   @Test
   public void excludeNothingIsIncludeNothing() {
     mBuilder.setBypassedTablesMode(Mode.EXCLUDE);
-    UdbAttachOptions spec = mBuilder.build();
+    UdbFilterSpec spec = mBuilder.build();
     assertFalse(spec.isBypassedTable(ANY_TABLE));
   }
 
@@ -208,7 +208,7 @@ public class UdbAttachOptionsTest {
         .addIgnoredTable(getTableName(1))
         .addIgnoredTable(Pattern.compile(getTableName(2)));
 
-    UdbAttachOptions spec = mBuilder.build();
+    UdbFilterSpec spec = mBuilder.build();
     assertTrue(spec.isIgnoredTable(getTableName(1)));
     assertTrue(spec.isIgnoredTable(getTableName(2)));
     assertFalse(spec.isIgnoredTable(getTableName(3)));
@@ -220,7 +220,7 @@ public class UdbAttachOptionsTest {
         .addBypassedTable("same_table")
         .setIgnoredTablesMode(Mode.INCLUDE)
         .addIgnoredTable("same_table");
-    UdbAttachOptions spec = mBuilder.build();
+    UdbFilterSpec spec = mBuilder.build();
     assertTrue(spec.isIgnoredTable("same_table"));
     assertFalse(spec.isBypassedTable("same_table"));
     assertFalse(spec.isBypassedPartition("same_table", ANY_PART));
@@ -232,7 +232,7 @@ public class UdbAttachOptionsTest {
         .addBypassedTable(getTableName(1))
         .setIgnoredTablesMode(Mode.EXCLUDE)
         .addIgnoredTable(getTableName(2));
-    UdbAttachOptions spec = mBuilder.build();
+    UdbFilterSpec spec = mBuilder.build();
     assertTrue(spec.isIgnoredTable(getTableName(1)));
     assertFalse(spec.isBypassedTable(getTableName(1)));
     assertFalse(spec.isBypassedPartition(getTableName(1), ANY_PART));
@@ -244,7 +244,7 @@ public class UdbAttachOptionsTest {
         .addBypassedPartition(getTableName(1), getPartitionName(1))
         .setIgnoredTablesMode(Mode.INCLUDE)
         .addIgnoredTable(getTableName(1));
-    UdbAttachOptions spec = mBuilder.build();
+    UdbFilterSpec spec = mBuilder.build();
     assertFalse(spec.isBypassedPartition(getTableName(1), getPartitionName(1)));
   }
 
@@ -252,7 +252,7 @@ public class UdbAttachOptionsTest {
   public void ignoreNone() {
     mBuilder.setIgnoredTablesMode(Mode.INCLUDE);
     // no tables added
-    UdbAttachOptions spec = mBuilder.build();
+    UdbFilterSpec spec = mBuilder.build();
     assertFalse(spec.isIgnoredTable(ANY_TABLE));
   }
 }
