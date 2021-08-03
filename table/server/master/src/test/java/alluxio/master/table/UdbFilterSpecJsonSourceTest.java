@@ -11,23 +11,23 @@
 
 package alluxio.master.table;
 
-import static alluxio.master.table.DbConfig.AbstractSpecObject.FIELD_TYPE;
-import static alluxio.master.table.DbConfig.BypassTablesSpec;
-import static alluxio.master.table.DbConfig.IncludeExcludeObject;
-import static alluxio.master.table.DbConfig.NameObject;
-import static alluxio.master.table.DbConfig.PartitionSpecObject;
-import static alluxio.master.table.DbConfig.RegexObject;
-import static alluxio.master.table.DbConfig.TablePartitionSpecObject.TYPE_PARTITION_SPEC;
-import static alluxio.master.table.DbConfig.TablePartitionSpecObject.TYPE_NAME;
-import static alluxio.master.table.DbConfig.TablePartitionSpecObject.TYPE_REGEX;
+import static alluxio.master.table.UdbFilterSpecJsonSource.AbstractSpecObject.FIELD_TYPE;
+import static alluxio.master.table.UdbFilterSpecJsonSource.BypassTablesSpec;
+import static alluxio.master.table.UdbFilterSpecJsonSource.IncludeExcludeObject;
+import static alluxio.master.table.UdbFilterSpecJsonSource.NameObject;
+import static alluxio.master.table.UdbFilterSpecJsonSource.PartitionSpecObject;
+import static alluxio.master.table.UdbFilterSpecJsonSource.RegexObject;
+import static alluxio.master.table.UdbFilterSpecJsonSource.TablePartitionSpecObject.TYPE_PARTITION_SPEC;
+import static alluxio.master.table.UdbFilterSpecJsonSource.TablePartitionSpecObject.TYPE_NAME;
+import static alluxio.master.table.UdbFilterSpecJsonSource.TablePartitionSpecObject.TYPE_REGEX;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 
-import alluxio.master.table.DbConfig.NameOrRegexObject;
-import alluxio.master.table.DbConfig.TablePartitionSpecObject;
-import alluxio.master.table.DbConfig.TablePartitionSpecObject.Type;
-import alluxio.master.table.DbConfig.TablesEntry;
+import alluxio.master.table.UdbFilterSpecJsonSource.NameOrRegexObject;
+import alluxio.master.table.UdbFilterSpecJsonSource.TablePartitionSpecObject;
+import alluxio.master.table.UdbFilterSpecJsonSource.TablePartitionSpecObject.Type;
+import alluxio.master.table.UdbFilterSpecJsonSource.TablesEntry;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -44,7 +44,7 @@ import org.junit.Test;
 import java.util.Arrays;
 import java.util.List;
 
-public class DbConfigTest {
+public class UdbFilterSpecJsonSourceTest {
   private ObjectMapper mMapper;
 
   @Before
@@ -311,8 +311,8 @@ public class DbConfigTest {
         "{\"bypass\": null, \"ignore\": null}"
     );
     for (String source : sources) {
-      DbConfig config = mMapper.readValue(source, DbConfig.class);
-      assertEquals(DbConfig.empty(), config);
+      UdbFilterSpecJsonSource config = mMapper.readValue(source, UdbFilterSpecJsonSource.class);
+      assertEquals(UdbFilterSpecJsonSource.empty(), config);
     }
   }
 

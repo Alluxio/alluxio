@@ -31,15 +31,16 @@ import java.util.regex.PatternSyntaxException;
 import javax.annotation.Nullable;
 
 /**
- * The Alluxio db config file.
+ * Json representation of the UDB filtering specification, typically specified by
+ * {@link CatalogProperty#DB_CONFIG_FILE} when attaching a database.
  *
  * Syntax specification:
  * 1. Top level object:
- *    DbConfig :=
+ *    RootObject :=
  *        {"bypass": BypassTablesSpecObject}
  *        | {"ignore": IgnoreTablesSpecObject}
  *        | {"bypass": BypassTablesSpecObject, "ignore": IgnoreTablesSpecObject}
- *    DbConfig is the outermost object of the json config file. Currently allows
+ *    RootObject is the outermost object of the json config file. Currently allows
  *    configurations for bypassing and ignoring tables and partitions.
  *
  * 2. Second level objects:
@@ -86,7 +87,7 @@ import javax.annotation.Nullable;
  *         An exact name for a table or partition.
  *
  * An example:
- * {                  <- DbConfig
+ * {                  <- RootObject
  *   "bypass": {        <- BypassTablesSpecObject
  *     "tables": {        <- BypassTablesIncludeExcludeObject
  *       "include": [       <- BypassIncludeTablePartitionList
@@ -118,8 +119,8 @@ import javax.annotation.Nullable;
  *   }
  * }
  */
-public final class DbConfig {
-  private static final Logger LOG = LoggerFactory.getLogger(DbConfig.class);
+public final class UdbFilterSpecJsonSource {
+  private static final Logger LOG = LoggerFactory.getLogger(UdbFilterSpecJsonSource.class);
 
   static final String FIELD_BYPASS = "bypass";
   static final String FIELD_IGNORE = "ignore";
@@ -127,7 +128,8 @@ public final class DbConfig {
   private final BypassTablesSpec mBypassEntry;
   private final IgnoreTablesSpec mIgnoreEntry;
 
-  private static final DbConfig EMPTY_INSTANCE = new DbConfig(null, null);
+  private static final UdbFilterSpecJsonSource EMPTY_INSTANCE =
+      new UdbFilterSpecJsonSource(null, null);
 
   /**
    * Json creator.
@@ -136,8 +138,9 @@ public final class DbConfig {
    * @param ignoreEntry ignore entry
    */
   @JsonCreator
-  public DbConfig(@JsonProperty(FIELD_BYPASS) @Nullable BypassTablesSpec bypassEntry,
-                  @JsonProperty(FIELD_IGNORE) @Nullable IgnoreTablesSpec ignoreEntry) {
+  public UdbFilterSpecJsonSource(
+      @JsonProperty(FIELD_BYPASS) @Nullable BypassTablesSpec bypassEntry,
+      @JsonProperty(FIELD_IGNORE) @Nullable IgnoreTablesSpec ignoreEntry) {
     mBypassEntry = bypassEntry == null ? new BypassTablesSpec(null) : bypassEntry;
     mIgnoreEntry = ignoreEntry == null ? new IgnoreTablesSpec(null) : ignoreEntry;
   }
@@ -147,7 +150,7 @@ public final class DbConfig {
    *
    * @return an empty config instance
    */
-  public static DbConfig empty() {
+  public static UdbFilterSpecJsonSource empty() {
     return EMPTY_INSTANCE;
   }
 
@@ -243,9 +246,9 @@ public final class DbConfig {
     if (o == null || getClass() != o.getClass()) {
       return false;
     }
-    DbConfig config = (DbConfig) o;
-    return Objects.equals(mBypassEntry, config.mBypassEntry)
-        && Objects.equals(mIgnoreEntry, config.mIgnoreEntry);
+    UdbFilterSpecJsonSource that = (UdbFilterSpecJsonSource) o;
+    return Objects.equals(mBypassEntry, that.mBypassEntry)
+        && Objects.equals(mIgnoreEntry, that.mIgnoreEntry);
   }
 
   @Override

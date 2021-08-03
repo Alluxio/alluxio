@@ -71,7 +71,7 @@ public class Database implements Journaled {
   private final UnderDatabase mUdb;
   private final CatalogConfiguration mConfig;
   private final String mConfigPath;
-  private DbConfig mDbConfig;
+  private UdbFilterSpecJsonSource mFilterSpecJsonSource;
   private final long mUdbSyncTimeoutMs =
       ServerConfiguration.getMs(PropertyKey.TABLE_CATALOG_UDB_SYNC_TIMEOUT);
 
@@ -86,7 +86,7 @@ public class Database implements Journaled {
     mUdb = udb;
     mConfig = config;
     mConfigPath = mConfig.get(CatalogProperty.DB_CONFIG_FILE);
-    mDbConfig = DbConfig.empty();
+    mFilterSpecJsonSource = UdbFilterSpecJsonSource.empty();
   }
 
   /**
@@ -207,7 +207,7 @@ public class Database implements Journaled {
     // Synchronization is necessary if accessed concurrently from multiple threads
     SyncStatus.Builder builder = SyncStatus.newBuilder();
 
-    loadDbConfig();
+    loadFilterSpec();
     DatabaseInfo newDbInfo = mUdb.getDatabaseInfo();
     if (!newDbInfo.equals(mDatabaseInfo)) {
       applyAndJournal(context, Journal.JournalEntry.newBuilder()
@@ -225,7 +225,7 @@ public class Database implements Journaled {
     // sync each table in parallel, with the executor service
     List<Callable<Void>> tasks = new ArrayList<>(udbTableNames.size());
     final Database thisDb = this;
-    UdbFilterSpec filterSpec = mDbConfig.getUdbFilterSpec();
+    UdbFilterSpec filterSpec = mFilterSpecJsonSource.getUdbFilterSpec();
     for (String tableName : udbTableNames) {
       if (filterSpec.isIgnoredTable(tableName)) {
         // this table should be ignored.
@@ -339,7 +339,7 @@ public class Database implements Journaled {
     return builder.build();
   }
 
-  private void loadDbConfig() throws IOException {
+  private void loadFilterSpec() throws IOException {
     if (!mConfigPath.equals(CatalogProperty.DB_CONFIG_FILE.getDefaultValue())) {
       if (!Files.exists(Paths.get(mConfigPath))) {
         throw new FileNotFoundException(mConfigPath);
@@ -347,10 +347,10 @@ public class Database implements Journaled {
       ObjectMapper mapper = new ObjectMapper();
       File configFile = new File(mConfigPath);
       if (configFile.length() == 0) {
-        mDbConfig = DbConfig.empty();
+        mFilterSpecJsonSource = UdbFilterSpecJsonSource.empty();
       } else {
         try {
-          mDbConfig = mapper.readValue(configFile, DbConfig.class);
+          mFilterSpecJsonSource = mapper.readValue(configFile, UdbFilterSpecJsonSource.class);
         } catch (JsonProcessingException e) {
           LOG.error("Failed to deserialize UDB config file {}, stays unsynced", mConfigPath, e);
           throw e;
