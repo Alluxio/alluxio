@@ -42,6 +42,7 @@ spec:
         role: alluxio-csi-nodeplugin
     spec:
       hostNetwork: {{ .Values.csi.nodePlugin.hostNetwork }}
+      dnsPolicy: {{ .Values.csi.nodePlugin.dnsPolicy }}
       containers:
         - name: node-driver-registrar
           image: {{ .Values.csi.nodePlugin.driverRegistrar.image }}
@@ -101,6 +102,7 @@ spec:
           imagePullPolicy: {{ .Values.csi.imagePullPolicy }}
           command: ["/usr/local/bin/alluxio-csi"]
           args :
+            - --v=5
             - "--nodeid=$(NODE_ID)"
             - "--endpoint=$(CSI_ENDPOINT)"
           env:

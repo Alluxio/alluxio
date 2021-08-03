@@ -3,7 +3,6 @@ module github.com/Alluxio/integration/csi
 go 1.15
 
 require (
-	github.com/Alluxio/alluxio-csi v0.0.0-20210426175157-bbf121c94da5
 	github.com/container-storage-interface/spec v1.1.0
 	github.com/golang/glog v0.0.0-20210429001901-424d2337a529
 	github.com/kubernetes-csi/csi-lib-utils v0.7.0 // indirect
