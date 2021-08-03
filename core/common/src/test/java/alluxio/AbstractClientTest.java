@@ -137,11 +137,6 @@ public final class AbstractClientTest {
       public synchronized InetSocketAddress getAddress() {
         return baseAddress;
       }
-
-      @Override
-      public synchronized InetSocketAddress getConfAddress() {
-        return confAddress;
-      }
     };
 
     ArgumentCaptor<InetSocketAddress> argument = ArgumentCaptor.forClass(InetSocketAddress.class);
