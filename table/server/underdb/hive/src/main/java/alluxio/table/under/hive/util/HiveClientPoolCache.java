@@ -38,7 +38,7 @@ public class HiveClientPoolCache {
       if (pool != null) {
         return pool;
       } else {
-        return new HiveClientPool(connectionURI);
+        return new DefaultHiveClientPool(connectionURI);
       }
     });
   }

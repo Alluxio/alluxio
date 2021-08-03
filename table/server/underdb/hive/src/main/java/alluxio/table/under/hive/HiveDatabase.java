@@ -32,6 +32,7 @@ import alluxio.table.under.hive.util.HiveClientPoolCache;
 import alluxio.table.under.hive.util.HiveClientPool;
 import alluxio.util.io.PathUtils;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
 import org.apache.hadoop.hive.common.FileUtils;
 import org.apache.hadoop.hive.metastore.IMetaStoreClient;
@@ -83,6 +84,16 @@ public class HiveDatabase implements UnderDatabase {
     mConnectionUri = connectionUri;
     mHiveDbName = hiveDbName;
     mClientPool = CLIENT_POOL_CACHE.getPool(connectionUri);
+  }
+
+  @VisibleForTesting
+  HiveDatabase(UdbContext udbContext, UdbConfiguration configuration,
+               HiveClientPool clientPool, String connectionUri, String hiveDbName) {
+    mUdbContext = udbContext;
+    mConfiguration = configuration;
+    mConnectionUri = connectionUri;
+    mHiveDbName = hiveDbName;
+    mClientPool = clientPool;
   }
 
   /**
