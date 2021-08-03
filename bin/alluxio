@@ -40,7 +40,7 @@ function printUsage {
   echo -e "                \t NOTE: This command requires a valid ufs path to run tests against."
   echo -e "  readJournal   \t Read an Alluxio journal file from stdin and write a human-readable version of it to stdout."
   echo -e "  upgradeJournal\t Upgrade an Alluxio journal version 0 (Alluxio version < 1.5.0) to an Alluxio journal version 1 (Alluxio version >= 1.5.0)."
-  echo -e "  killAll [-s] <WORD>\t Kill processes containing the WORD (if '-s' specified, processes won't be forcibly killed even if operation is timeout)."
+  echo -e "  killAll [-s] <WORD>\t Kill processes containing the WORD (if '-s' specified, processes won't be forcibly killed even if the operation exceeds the timeout)."
   echo -e "  copyDir <PATH>\t Copy the PATH to all master/worker nodes."
   echo -e "  clearCache    \t Clear OS buffer cache of the machine."
   echo -e "  docGen        \t Generate docs automatically."
