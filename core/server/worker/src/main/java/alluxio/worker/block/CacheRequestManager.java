@@ -86,7 +86,8 @@ public class CacheRequestManager {
    *
    * @param request the cache request fields will be available
    */
-  public void submitRequest(CacheRequest request) throws AlluxioException, IOException {
+  public void submitRequest(CacheRequest request)
+      throws AlluxioException, IOException {
     CACHE_REQUESTS.inc();
     long blockId = request.getBlockId();
     if (mActiveCacheRequests.putIfAbsent(blockId, request) != null) {
@@ -109,11 +110,15 @@ public class CacheRequestManager {
       // return as async caching is at best effort.
       mNumRejected.incrementAndGet();
       SAMPLING_LOG.warn(String.format(
-          "Failed to cache block locally (async & best effort) as the thread pool is at capacity."
+          "Failed to cache block locally as the thread pool is at capacity."
               + " To increase, update the parameter '%s'. numRejected: {} error: {}",
           PropertyKey.Name.WORKER_NETWORK_ASYNC_CACHE_MANAGER_THREADS_MAX), mNumRejected.get(),
           e.toString());
       mActiveCacheRequests.remove(blockId);
+      if (!async) {
+        throw new CancelledException(
+            "Fail to finish cache request synchronously as the thread pool is at capacity.", e);
+      }
     }
     if (future != null && !async) {
       try {
@@ -128,7 +133,8 @@ public class CacheRequestManager {
         }
       } catch (InterruptedException e) {
         throw new CancelledException(
-            "Fail to finish cache request synchronously. Interrupted while waiting for response.");
+            "Fail to finish cache request synchronously. Interrupted while waiting for response.",
+            e);
       }
     }
   }
