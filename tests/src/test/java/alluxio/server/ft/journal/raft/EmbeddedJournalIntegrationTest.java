@@ -265,21 +265,24 @@ public final class EmbeddedJournalIntegrationTest extends BaseIntegrationTest {
             .setNumWorkers(0)
             .addProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.EMBEDDED.toString())
             .addProperty(PropertyKey.MASTER_JOURNAL_FLUSH_TIMEOUT_MS, "5min")
-            // To make the test run faster.
             .addProperty(PropertyKey.MASTER_EMBEDDED_JOURNAL_ELECTION_TIMEOUT, "750ms")
             .build();
     mCluster.start();
 
-    int idx = mCluster.getPrimaryMasterIndex(MASTER_INDEX_WAIT_TIME);
-    int newLeaderIdx = (idx + 1) % NUM_MASTERS;
-    NetAddress serverAddress = mCluster.getJournalMasterClientForMaster().getQuorumInfo()
-            .getServerInfoList().get(newLeaderIdx).getServerAddress();
+    int newLeaderIdx = (mCluster.getPrimaryMasterIndex(MASTER_INDEX_WAIT_TIME) + 1) % NUM_MASTERS;
+    // `getPrimaryMasterIndex` uses the same `mMasterAddresses` variable as getMasterAddresses
+    // we can therefore access to the new leader's address this way
+    MasterNetAddress newLeaderAddr = mCluster.getMasterAddresses().get(newLeaderIdx);
+    NetAddress netAddress = NetAddress.newBuilder().setHost(newLeaderAddr.getHostname())
+            .setRpcPort(newLeaderAddr.getEmbeddedJournalPort()).build();
 
-    mCluster.getJournalMasterClientForMaster().transferLeadership(serverAddress);
+    mCluster.getJournalMasterClientForMaster().transferLeadership(netAddress);
 
     CommonUtils.waitFor("leadership to transfer", () -> {
       try {
-        return mCluster.getPrimaryMasterIndex(MASTER_INDEX_WAIT_TIME) == newLeaderIdx;
+        // wait until the address of the new leader matches the one we designated as the new leader
+        return mCluster.getMasterAddresses()
+                .get(mCluster.getPrimaryMasterIndex(MASTER_INDEX_WAIT_TIME)).equals(newLeaderAddr);
       } catch (Exception exc) {
         throw new RuntimeException(exc);
       }

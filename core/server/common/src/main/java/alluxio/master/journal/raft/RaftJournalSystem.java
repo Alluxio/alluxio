@@ -65,6 +65,7 @@ import org.apache.ratis.server.RaftServer;
 import org.apache.ratis.server.RaftServerConfigKeys;
 import org.apache.ratis.thirdparty.com.google.protobuf.UnsafeByteOperations;
 import org.apache.ratis.util.LifeCycle;
+import org.apache.ratis.util.NetUtils;
 import org.apache.ratis.util.SizeInBytes;
 import org.apache.ratis.util.TimeDuration;
 import org.slf4j.Logger;
@@ -889,14 +890,17 @@ public class RaftJournalSystem extends AbstractJournalSystem {
   public synchronized void transferLeadership(NetAddress newLeaderNetAddress) throws IOException {
     InetSocketAddress serverAddress = InetSocketAddress
             .createUnresolved(newLeaderNetAddress.getHost(), newLeaderNetAddress.getRpcPort());
-    RaftPeerId newLeaderPeerId = RaftJournalUtils.getPeerId(serverAddress);
-    // --- the change in priorities seems to be necessary otherwise the transfer fails ---
     List<RaftPeer> oldPeers = new ArrayList<>(mRaftGroup.getPeers());
-    // if you cannot find the newLeaderPeerId in the quorum, throw exception
-    if (oldPeers.stream().map(RaftPeer::getId).noneMatch(peerId -> peerId == newLeaderPeerId)) {
-      throw new IOException("Address given is not part of the quorum.");
+    // The NetUtil function is used by Ratis to convert InetSocketAddress to string
+    String strAddr = NetUtils.address2String(serverAddress);
+    // if you cannot find the address in the quorum, throw exception.
+    if (oldPeers.stream().map(RaftPeer::getAddress).noneMatch(addr -> addr.equals(strAddr))) {
+      throw new IOException(String.format("<%s> is not part of the quorum <%s>.",
+              strAddr, oldPeers.stream().map(RaftPeer::getAddress).collect(Collectors.toList())));
     }
 
+    RaftPeerId newLeaderPeerId = RaftJournalUtils.getPeerId(serverAddress);
+    // --- the change in priorities seems to be necessary otherwise the transfer fails ---
     List<RaftPeer> peersWithNewPriorities = new ArrayList<>();
     for (RaftPeer peer : oldPeers) {
       peersWithNewPriorities.add(
@@ -907,19 +911,25 @@ public class RaftJournalSystem extends AbstractJournalSystem {
     }
     // --- end of updating priorities ---
     try (RaftClient client = createClient()) {
+      LOG.info("Applying new peer state before transferring leadership: <{}>",
+              peersWithNewPriorities);
       RaftClientReply reply = client.admin().setConfiguration(peersWithNewPriorities);
       if (!reply.isSuccess()) {
         throw reply.getException();
       }
+      LOG.info("Transferring leadership to master with address <{}> and with RaftPeerId <{}>",
+              serverAddress, newLeaderPeerId);
       RaftClientReply reply1 = client.admin().transferLeadership(newLeaderPeerId, 30_000);
       if (!reply1.isSuccess()) {
         throw reply1.getException();
       }
       // reset the peers to have the old priorities
+      LOG.info("Resetting peer state to before transfer: <{}>", oldPeers);
       RaftClientReply reply2 = client.admin().setConfiguration(oldPeers);
       if (!reply2.isSuccess()) {
         throw reply2.getException();
       }
+      LOG.info("Successfully reset peer state");
     }
   }
 

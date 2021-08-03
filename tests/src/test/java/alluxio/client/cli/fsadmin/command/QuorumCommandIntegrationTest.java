@@ -27,6 +27,7 @@ import alluxio.grpc.JournalDomain;
 import alluxio.grpc.QuorumServerInfo;
 import alluxio.grpc.QuorumServerState;
 import alluxio.master.journal.JournalType;
+import alluxio.multi.process.MasterNetAddress;
 import alluxio.multi.process.MultiProcessCluster;
 import alluxio.multi.process.PortCoordination;
 import alluxio.testutils.BaseIntegrationTest;
@@ -196,16 +197,17 @@ public final class QuorumCommandIntegrationTest extends BaseIntegrationTest {
     String output;
     try (FileSystemAdminShell shell = new FileSystemAdminShell(ServerConfiguration.global())) {
       int newLeaderIdx = (mCluster.getPrimaryMasterIndex(MASTER_INDEX_WAIT_TIME) + 1) % numMasters;
-      QuorumServerInfo serverInfo = mCluster.getJournalMasterClientForMaster().getQuorumInfo()
-              .getServerInfoList().get(newLeaderIdx);
-      String newLeaderAddr = String.format("%s:%s", serverInfo.getServerAddress().getHost(),
-              serverInfo.getServerAddress().getRpcPort());
+      // `getPrimaryMasterIndex` uses the same `mMasterAddresses` variable as getMasterAddresses
+      // we can therefore access to the new leader's address this ways
+      MasterNetAddress netAddress = mCluster.getMasterAddresses().get(newLeaderIdx);
+      String newLeaderAddr = String.format("%s:%s", netAddress.getHostname(),
+              netAddress.getEmbeddedJournalPort());
 
       mOutput.reset();
       shell.run("journal", "quorum", "elect", "-address" , newLeaderAddr);
       output = mOutput.toString().trim();
-      Assert.assertEquals(output, String.format(QuorumTransferLeaderCommand.OUTPUT_RESULT,
-              newLeaderAddr));
+      Assert.assertEquals(String.format(QuorumTransferLeaderCommand.OUTPUT_RESULT, newLeaderAddr),
+              output);
     }
     mCluster.notifySuccess();
   }
