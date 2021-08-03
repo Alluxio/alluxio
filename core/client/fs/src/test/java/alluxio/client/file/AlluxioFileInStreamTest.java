@@ -505,7 +505,8 @@ public final class AlluxioFileInStreamTest {
   public void shortSeekForwardCachingPartiallyReadBlocks() throws IOException {
     OpenFilePOptions options =
         OpenFilePOptions.newBuilder().setReadType(ReadPType.CACHE_PROMOTE).build();
-    mTestStream = new AlluxioFileInStream(mStatus, new InStreamOptions(mStatus, options, mConf), mContext);
+    mTestStream =
+        new AlluxioFileInStream(mStatus, new InStreamOptions(mStatus, options, mConf), mContext);
     int seekAmount = (int) (BLOCK_LENGTH / 4);
     int readAmount = (int) (BLOCK_LENGTH * 2 - BLOCK_LENGTH / 2);
     byte[] buffer = new byte[readAmount];
@@ -550,7 +551,8 @@ public final class AlluxioFileInStreamTest {
   public void seekBackwardToFileBeginning() throws IOException {
     OpenFilePOptions options =
         OpenFilePOptions.newBuilder().setReadType(ReadPType.CACHE_PROMOTE).build();
-    mTestStream = new AlluxioFileInStream(mStatus, new InStreamOptions(mStatus, options, mConf), mContext);
+    mTestStream =
+        new AlluxioFileInStream(mStatus, new InStreamOptions(mStatus, options, mConf), mContext);
     int seekAmount = (int) (BLOCK_LENGTH / 4 + BLOCK_LENGTH);
 
     // Seek forward.
