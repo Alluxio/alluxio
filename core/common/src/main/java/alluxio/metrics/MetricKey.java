@@ -846,6 +846,12 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setMetricType(MetricType.COUNTER)
           .setIsClusterAggregated(true)
           .build();
+  public static final MetricKey WORKER_ACTIVE_CLIENTS =
+      new Builder("Worker.ActiveClients")
+          .setDescription("The number of clients actively reading from or writing to this worker")
+          .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggregated(true)
+          .build();
   public static final MetricKey WORKER_ASYNC_CACHE_DUPLICATE_REQUESTS =
       new Builder("Worker.AsyncCacheDuplicateRequests")
           .setDescription("Total number of duplicated async cache request received by this worker")
@@ -1435,6 +1441,24 @@ public final class MetricKey implements Comparable<MetricKey> {
       new Builder("Fuse.BytesRead")
           .setDescription("Total number of bytes read through Fuse.read() operations.")
           .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggregated(false)
+          .build();
+  public static final MetricKey FUSE_WRITING_FILE_COUNT =
+      new Builder("Fuse.WritingFileCount")
+          .setDescription("Total number of files being written concurrently.")
+          .setMetricType(MetricType.GAUGE)
+          .setIsClusterAggregated(false)
+          .build();
+  public static final MetricKey FUSE_READING_FILE_COUNT =
+      new Builder("Fuse.ReadingFileCount")
+          .setDescription("Total number of files being read concurrently.")
+          .setMetricType(MetricType.GAUGE)
+          .setIsClusterAggregated(false)
+          .build();
+  public static final MetricKey FUSE_CACHED_PATH_COUNT =
+      new Builder("Fuse.CachedPathCount")
+          .setDescription("Total number of Alluxio paths to cache for FUSE conversion.")
+          .setMetricType(MetricType.GAUGE)
           .setIsClusterAggregated(false)
           .build();
 

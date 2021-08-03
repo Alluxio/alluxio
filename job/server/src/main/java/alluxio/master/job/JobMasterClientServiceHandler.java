@@ -30,7 +30,6 @@ import alluxio.grpc.RunPRequest;
 import alluxio.grpc.RunPResponse;
 import alluxio.job.JobConfig;
 import alluxio.job.util.SerializationUtils;
-import alluxio.job.wire.JobInfo;
 import alluxio.job.wire.JobWorkerHealth;
 
 import com.google.common.base.Preconditions;
@@ -79,8 +78,8 @@ public class JobMasterClientServiceHandler
   public void getJobStatusDetailed(GetJobStatusDetailedPRequest request,
                                    StreamObserver<GetJobStatusDetailedPResponse>
                                        responseObserver) {
-    RpcUtils.call(LOG, (RpcUtils.RpcCallableThrowsIOException<GetJobStatusDetailedPResponse>) () ->
-    {
+    RpcUtils.call(LOG, (RpcUtils.RpcCallableThrowsIOException<GetJobStatusDetailedPResponse>) ()
+        -> {
       return GetJobStatusDetailedPResponse.newBuilder()
           .setJobInfo(mJobMaster.getStatus(request.getJobId(), true).toProto()).build();
     }, "getJobStatusDetailed", "request=%s", responseObserver, request);
@@ -99,10 +98,13 @@ public class JobMasterClientServiceHandler
   @Override
   public void listAll(ListAllPRequest request, StreamObserver<ListAllPResponse> responseObserver) {
     RpcUtils.call(LOG, (RpcUtils.RpcCallableThrowsIOException<ListAllPResponse>) () -> {
+      List<Long> jobList = mJobMaster.list(request.getOptions());
       ListAllPResponse.Builder builder = ListAllPResponse.newBuilder()
-          .addAllJobIds(mJobMaster.list());
-      for (JobInfo jobInfo : mJobMaster.listDetailed()) {
-        builder.addJobInfos(jobInfo.toProto());
+          .addAllJobIds(jobList);
+      if (!(request.getOptions().hasJobIdOnly() && request.getOptions().getJobIdOnly())) {
+        for (Long id : jobList) {
+          builder.addJobInfos(mJobMaster.getStatus(id).toProto());
+        }
       }
       return builder.build();
     }, "listAll", "request=%s", responseObserver, request);

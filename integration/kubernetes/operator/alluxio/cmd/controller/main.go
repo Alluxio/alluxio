@@ -64,7 +64,7 @@ func main() {
 	flag.BoolVar(&development, "development", true,
 		"Enable development mode for pillar controller.")
 	flag.DurationVar(&resyncPeriod, "resync-period", DefaultResyncPeriod, "Resync interval of the dataset")
-	flag.Float64Var(&percentageOfNodeStorageCapacity, "capacity-percentage", DefaultStoragePercentage, "Set the percentage of capaicty")
+	flag.Float64Var(&percentageOfNodeStorageCapacity, "capacity-percentage", DefaultStoragePercentage, "Set the percentage of capacity")
 	flag.StringVar(&reservedStorage, "reserved", "1GiB", "reserved storage for every node")
 	flag.StringVar(&cacheStoreType, "cache-store-type", "MEM", "the cache store type is MEM or DISK")
 	flag.StringVar(&cacheStoragePath, "cache-storage-path", "/dev/shm", "the path of cache storage")
