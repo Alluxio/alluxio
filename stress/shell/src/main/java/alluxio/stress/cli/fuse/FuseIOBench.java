@@ -69,7 +69,7 @@ public class FuseIOBench extends Benchmark<FuseIOTaskResult> {
   public void prepare() throws Exception {
     if (mParameters.mReadRandom) {
       LOG.warn("Random read is not supported for now. Read sequentially");
-      // TODO: support random read
+      // TODO(Shawn): support random read
       mParameters.mReadRandom = false;
     }
   }

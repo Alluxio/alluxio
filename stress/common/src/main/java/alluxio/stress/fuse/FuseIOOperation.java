@@ -17,7 +17,7 @@ package alluxio.stress.fuse;
 public enum FuseIOOperation {
   /** Currently, only streaming reading is supported, that is, reading the whole file. */
   READ("read");
-  // TODO (Shawn): Support other types of read
+  // TODO(Shawn): Support other types of read
 
   private final String mName;
 
