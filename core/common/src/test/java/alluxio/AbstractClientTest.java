@@ -125,40 +125,6 @@ public final class AbstractClientTest {
   }
 
   @Test
-  public void confAddress() throws Exception {
-    ClientContext context = Mockito.mock(ClientContext.class);
-    Mockito.when(context.getClusterConf()).thenReturn(
-        new InstancedConfiguration(ConfigurationUtils.defaults()));
-
-    InetSocketAddress baseAddress = new InetSocketAddress("0.0.0.0", 2000);
-    InetSocketAddress confAddress = new InetSocketAddress("0.0.0.0", 2001);
-    final alluxio.Client client = new BaseTestClient(context) {
-      @Override
-      public synchronized InetSocketAddress getAddress() {
-        return baseAddress;
-      }
-    };
-
-    ArgumentCaptor<InetSocketAddress> argument = ArgumentCaptor.forClass(InetSocketAddress.class);
-
-    Mockito.doThrow(new RuntimeException("test"))
-            .when(context)
-            .loadConfIfNotLoaded(argument.capture());
-    Mockito.doReturn(Mockito.mock(BaseUserState.class))
-            .when(context)
-            .getUserState();
-
-    try {
-      client.connect();
-      Assert.fail();
-    } catch (Exception e) {
-      // ignore any exceptions. It's expected.
-    }
-
-    Assert.assertEquals(confAddress, argument.getValue());
-  }
-
-  @Test
   public void serviceNotFound() throws Exception {
     mExpectedException.expect(NotFoundException.class);
     final AbstractClient client = new TestServiceNotFoundClient();
