@@ -52,7 +52,7 @@ interface IBrowseProps {
   queryStringSuffix: string;
   request: IRequest;
   textAreaHeight: number;
-  upateRequestParameter: (reqParam: string, value: string | undefined) => void;
+  updateRequestParameter: (reqParam: string, value: string | undefined) => void;
 }
 
 export type AllProps = IPropsFromState & IBrowseProps & IPropsFromDispatch;
@@ -254,13 +254,13 @@ export class BrowsePresenter extends React.Component<AllProps> {
 
   private createInputChangeHandler(reqParam: string): (e: React.ChangeEvent<HTMLInputElement>) => void {
     return (event: React.ChangeEvent<HTMLInputElement>): void => {
-      this.props.upateRequestParameter(reqParam, event.target.value);
+      this.props.updateRequestParameter(reqParam, event.target.value);
     };
   }
 
   private createButtonHandler(reqParam: string, value: string | undefined): () => void {
     return (): void => {
-      this.props.upateRequestParameter(reqParam, value);
+      this.props.updateRequestParameter(reqParam, value);
     };
   }
 

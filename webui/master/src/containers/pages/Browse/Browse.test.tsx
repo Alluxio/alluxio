@@ -42,7 +42,7 @@ describe('Browse', () => {
       loading: false,
       textAreaHeight: 0,
       request: {},
-      upateRequestParameter: sinon.spy(),
+      updateRequestParameter: sinon.spy(),
     };
   });
 
