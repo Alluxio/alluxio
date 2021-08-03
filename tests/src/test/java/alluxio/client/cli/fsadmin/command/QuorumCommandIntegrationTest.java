@@ -183,6 +183,7 @@ public final class QuorumCommandIntegrationTest extends BaseIntegrationTest {
 
   @Test
   public void transferLeader() throws Exception {
+    final int MASTER_INDEX_WAIT_TIME = 5_000;
     int numMasters = 3;
     mCluster = MultiProcessCluster.newBuilder(PortCoordination.QUORUM_SHELL_REMOVE)
             .setClusterName("QuorumShellTransferLeader").setNumMasters(numMasters).setNumWorkers(0)
@@ -194,14 +195,14 @@ public final class QuorumCommandIntegrationTest extends BaseIntegrationTest {
 
     String output;
     try (FileSystemAdminShell shell = new FileSystemAdminShell(ServerConfiguration.global())) {
-      int newLeaderIdx = (mCluster.getPrimaryMasterIndex(5_000) + 1) % numMasters;
+      int newLeaderIdx = (mCluster.getPrimaryMasterIndex(MASTER_INDEX_WAIT_TIME) + 1) % numMasters;
       QuorumServerInfo serverInfo = mCluster.getJournalMasterClientForMaster().getQuorumInfo()
               .getServerInfoList().get(newLeaderIdx);
       String newLeaderAddr = String.format("%s:%s", serverInfo.getServerAddress().getHost(),
               serverInfo.getServerAddress().getRpcPort());
 
       mOutput.reset();
-      shell.run("journal", "quorum", "transferLeader", "-address" , newLeaderAddr);
+      shell.run("journal", "quorum", "elect", "-address" , newLeaderAddr);
       output = mOutput.toString().trim();
       Assert.assertEquals(output, String.format(QuorumTransferLeaderCommand.OUTPUT_RESULT,
               newLeaderAddr));
@@ -252,17 +253,17 @@ public final class QuorumCommandIntegrationTest extends BaseIntegrationTest {
       output = mOutput.toString().trim();
       Assert.assertEquals(QuorumRemoveCommand.description(), lastLine(output));
 
-      // Validate option counts are validated for "quorum", "transferLeader"
+      // Validate option counts are validated for "quorum", "elect"
       mOutput.reset();
-      shell.run("journal", "quorum", "transferLeader");
+      shell.run("journal", "quorum", "elect");
       output = mOutput.toString().trim();
       Assert.assertEquals(QuorumTransferLeaderCommand.description(), lastLine(output));
       mOutput.reset();
-      shell.run("journal", "quorum", "transferLeader", "-op1", "val1");
+      shell.run("journal", "quorum", "elect", "-op1", "val1");
       output = mOutput.toString().trim();
       Assert.assertEquals(QuorumTransferLeaderCommand.description(), lastLine(output));
       mOutput.reset();
-      shell.run("journal", "quorum", "transferLeader", "-op1", "val1", "-op2", "val2", "-op3",
+      shell.run("journal", "quorum", "elect", "-op1", "val1", "-op2", "val2", "-op3",
               "val3");
       output = mOutput.toString().trim();
       Assert.assertEquals(QuorumTransferLeaderCommand.description(), lastLine(output));
@@ -291,7 +292,7 @@ public final class QuorumCommandIntegrationTest extends BaseIntegrationTest {
 
       // Validate -address is validated for transferLeader.
       mOutput.reset();
-      shell.run("journal", "quorum", "transferLeader", "-address", "hostname:invalid_port");
+      shell.run("journal", "quorum", "elect", "-address", "hostname:invalid_port");
       output = mOutput.toString().trim();
       Assert.assertEquals(ExceptionMessage.INVALID_ADDRESS_VALUE.getMessage(), output);
     }

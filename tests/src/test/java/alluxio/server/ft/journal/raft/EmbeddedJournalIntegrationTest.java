@@ -258,6 +258,7 @@ public final class EmbeddedJournalIntegrationTest extends BaseIntegrationTest {
 
   @Test
   public void transferLeadership() throws Exception {
+    final int MASTER_INDEX_WAIT_TIME = 5_000;
     mCluster = MultiProcessCluster.newBuilder(PortCoordination.EMBEDDED_JOURNAL_FAILOVER)
             .setClusterName("TransferLeadership")
             .setNumMasters(NUM_MASTERS)
@@ -269,7 +270,7 @@ public final class EmbeddedJournalIntegrationTest extends BaseIntegrationTest {
             .build();
     mCluster.start();
 
-    int idx = mCluster.getPrimaryMasterIndex(5_000);
+    int idx = mCluster.getPrimaryMasterIndex(MASTER_INDEX_WAIT_TIME);
     int newLeaderIdx = (idx + 1) % NUM_MASTERS;
     NetAddress serverAddress = mCluster.getJournalMasterClientForMaster().getQuorumInfo()
             .getServerInfoList().get(newLeaderIdx).getServerAddress();
@@ -278,7 +279,7 @@ public final class EmbeddedJournalIntegrationTest extends BaseIntegrationTest {
 
     CommonUtils.waitFor("leadership to transfer", () -> {
       try {
-        return mCluster.getPrimaryMasterIndex(5_000) == newLeaderIdx;
+        return mCluster.getPrimaryMasterIndex(MASTER_INDEX_WAIT_TIME) == newLeaderIdx;
       } catch (Exception exc) {
         throw new RuntimeException(exc);
       }

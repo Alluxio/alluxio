@@ -37,7 +37,7 @@ public class QuorumCommand extends AbstractFsAdminCommand {
   static {
     SUB_COMMANDS.put("info", QuorumInfoCommand::new);
     SUB_COMMANDS.put("remove", QuorumRemoveCommand::new);
-    SUB_COMMANDS.put("transferLeader", QuorumTransferLeaderCommand::new);
+    SUB_COMMANDS.put("elect", QuorumTransferLeaderCommand::new);
   }
 
   private Map<String, Command> mSubCommands = new HashMap<>();
@@ -96,7 +96,7 @@ public class QuorumCommand extends AbstractFsAdminCommand {
    * @return a NetAddress object composed of a hostname and a port
    * @throws InvalidArgumentException
    */
-  public static NetAddress stingToAddress(String serverAddress) throws InvalidArgumentException {
+  public static NetAddress stringToAddress(String serverAddress) throws InvalidArgumentException {
     String hostName;
     int port;
     try {

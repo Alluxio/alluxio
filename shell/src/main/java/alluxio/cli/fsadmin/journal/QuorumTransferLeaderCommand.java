@@ -17,7 +17,6 @@ import alluxio.client.journal.JournalMasterClient;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.status.InvalidArgumentException;
-import alluxio.grpc.NetAddress;
 
 import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.cli.CommandLine;
@@ -54,9 +53,8 @@ public class QuorumTransferLeaderCommand extends AbstractFsAdminCommand {
   public int run(CommandLine cl) throws IOException {
     JournalMasterClient jmClient = mMasterJournalMasterClient;
     String serverAddress = cl.getOptionValue(ADDRESS_OPTION_NAME);
-    NetAddress address = QuorumCommand.stingToAddress(serverAddress);
 
-    jmClient.transferLeadership(address);
+    jmClient.transferLeadership(QuorumCommand.stringToAddress(serverAddress));
     mPrintStream.println(String.format(OUTPUT_RESULT, serverAddress));
     return 0;
   }

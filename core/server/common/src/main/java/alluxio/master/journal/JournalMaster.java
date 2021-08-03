@@ -39,7 +39,7 @@ public interface JournalMaster {
   void removeQuorumServer(NetAddress serverAddress) throws IOException;
 
   /**
-   * Changes the leader master within a quorum. This method is supported only for
+   * Changes the leading master of the journal quorum. This method is supported only for
    * {@link alluxio.master.journal.JournalType#EMBEDDED} journal.
    *
    * @param newLeaderAddress server address to remove from quorum

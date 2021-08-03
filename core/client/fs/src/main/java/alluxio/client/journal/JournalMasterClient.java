@@ -37,7 +37,7 @@ public interface JournalMasterClient extends Closeable {
   void removeQuorumServer(NetAddress serverAddress) throws AlluxioStatusException;
 
   /**
-   * Changes the leadership of the quorum to another master.
+   * Changes the leading master of the quorum.
    *
    * @param newLeaderNetAddress server address of the new leader
    * @throws AlluxioStatusException
