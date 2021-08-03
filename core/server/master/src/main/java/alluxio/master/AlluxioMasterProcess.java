@@ -320,7 +320,7 @@ public class AlluxioMasterProcess extends MasterProcess {
 
       serverBuilder.executor(mRPCExecutor);
       MetricsSystem.registerGaugeIfAbsent(MetricKey.MASTER_RPC_QUEUE_LENGTH.getName(),
-              mRPCExecutor::getQueuedTaskCount);
+              mRPCExecutor::getQueuedSubmissionCount);
 
       for (Master master : mRegistry.getServers()) {
         registerServices(serverBuilder, master.getServices());

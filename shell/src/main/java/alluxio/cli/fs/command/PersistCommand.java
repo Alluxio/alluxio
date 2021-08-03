@@ -220,6 +220,7 @@ public final class PersistCommand extends AbstractFileSystemCommand {
           }
         } catch (InterruptedException e) {
           Thread.currentThread().interrupt();
+          LOG.warn("Interrupted while waiting for persistence ", e);
           throw e;
         } catch (TimeoutException e) {
           String timeoutMsg =

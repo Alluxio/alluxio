@@ -11,8 +11,7 @@
 
 package alluxio.client.file.cache;
 
-import alluxio.client.quota.CacheQuota;
-import alluxio.client.quota.CacheScope;
+import alluxio.client.file.CacheContext;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.metrics.MetricKey;
@@ -151,7 +150,7 @@ public interface CacheManager extends AutoCloseable {
    * @return true if the put was successful, false otherwise
    */
   default boolean put(PageId pageId, byte[] page) {
-    return put(pageId, page, CacheScope.GLOBAL, CacheQuota.UNLIMITED);
+    return put(pageId, page, CacheContext.defaults());
   }
 
   /**
@@ -160,11 +159,10 @@ public interface CacheManager extends AutoCloseable {
    *
    * @param pageId page identifier
    * @param page page data
-   * @param cacheScope scope of this request
-   * @param cacheQuota cache quota
+   * @param cacheContext cache related context
    * @return true if the put was successful, false otherwise
    */
-  boolean put(PageId pageId, byte[] page, CacheScope cacheScope, CacheQuota cacheQuota);
+  boolean put(PageId pageId, byte[] page, CacheContext cacheContext);
 
   /**
    * Reads the entire page if the queried page is found in the cache, stores the result in buffer.
@@ -190,7 +188,25 @@ public interface CacheManager extends AutoCloseable {
    * @param offsetInBuffer offset in the destination buffer to write
    * @return number of bytes read, 0 if page is not found, -1 on errors
    */
-  int get(PageId pageId, int pageOffset, int bytesToRead, byte[] buffer, int offsetInBuffer);
+  default int get(PageId pageId, int pageOffset, int bytesToRead, byte[] buffer,
+      int offsetInBuffer) {
+    return get(pageId, pageOffset, bytesToRead, buffer, offsetInBuffer, CacheContext.defaults());
+  }
+
+  /**
+   * Reads a part of a page if the queried page is found in the cache, stores the result in
+   * buffer.
+   *
+   * @param pageId page identifier
+   * @param pageOffset offset into the page
+   * @param bytesToRead number of bytes to read in this page
+   * @param buffer destination buffer to write
+   * @param offsetInBuffer offset in the destination buffer to write
+   * @param cacheContext cache related context
+   * @return number of bytes read, 0 if page is not found, -1 on errors
+   */
+  int get(PageId pageId, int pageOffset, int bytesToRead, byte[] buffer, int offsetInBuffer,
+      CacheContext cacheContext);
 
   /**
    * Deletes a page from the cache.
