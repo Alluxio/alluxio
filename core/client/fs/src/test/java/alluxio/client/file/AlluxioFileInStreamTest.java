@@ -186,7 +186,8 @@ public final class AlluxioFileInStreamTest {
   }
 
   @After
-  public void after() {
+  public void after() throws Exception {
+    mTestStream.close();
     ClientTestUtils.resetClient(mConf);
     mMockedStaticBlockStore.close();
   }
@@ -199,7 +200,6 @@ public final class AlluxioFileInStreamTest {
     for (int i = 0; i < mFileSize; i++) {
       assertEquals(i & 0xff, mTestStream.read());
     }
-    mTestStream.close();
   }
 
   /**
@@ -235,8 +235,6 @@ public final class AlluxioFileInStreamTest {
     byte[] buffer = new byte[dataRead];
     mTestStream.read(buffer);
     assertEquals(true, mInStreams.get(0).isClosed());
-    mTestStream.close();
-
     assertArrayEquals(BufferUtils.getIncreasingByteArray(dataRead), buffer);
   }
 
@@ -260,8 +258,6 @@ public final class AlluxioFileInStreamTest {
     for (int i = 0; i < mNumBlocks; i++) {
       assertEquals(true, mInStreams.get(i).isClosed());
     }
-    mTestStream.close();
-
     assertArrayEquals(BufferUtils.getIncreasingByteArray(dataRead), buffer);
   }
 
@@ -295,7 +291,6 @@ public final class AlluxioFileInStreamTest {
       assertArrayEquals(BufferUtils.getIncreasingByteArray(offset, chunksize), buffer);
       offset += chunksize;
     }
-    mTestStream.close();
   }
 
   /**
@@ -795,7 +790,6 @@ public final class AlluxioFileInStreamTest {
     assertEquals(1, mTestStream.getPos());
     mTestStream.read(new byte[(int) mFileSize], 0, (int) mFileSize);
     assertEquals(mFileSize, mTestStream.getPos());
-    mTestStream.close();
   }
 
   // See https://github.com/Alluxio/alluxio/issues/13828
@@ -822,8 +816,6 @@ public final class AlluxioFileInStreamTest {
   private void testReadBuffer(int dataRead) throws Exception {
     byte[] buffer = new byte[dataRead];
     mTestStream.read(buffer);
-    mTestStream.close();
-
     assertArrayEquals(BufferUtils.getIncreasingByteArray(dataRead), buffer);
   }
 
