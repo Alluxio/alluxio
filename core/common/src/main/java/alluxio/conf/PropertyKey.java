@@ -4830,6 +4830,24 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.CLIENT)
           .build();
+  public static final PropertyKey FUSE_WEB_BIND_HOST =
+      new Builder(Name.FUSE_WEB_BIND_HOST)
+          .setDefaultValue("0.0.0.0")
+          .setDescription("The hostname Alluxio FUSE web UI binds to.")
+          .setScope(Scope.MASTER)
+          .build();
+  public static final PropertyKey FUSE_WEB_HOSTNAME =
+      new Builder(Name.FUSE_WEB_HOSTNAME)
+          .setDescription("The hostname of Alluxio FUSE web UI.")
+          .setScope(Scope.ALL)
+          .build();
+  public static final PropertyKey FUSE_WEB_PORT =
+      new Builder(Name.FUSE_WEB_PORT)
+          .setDefaultValue(49999)
+          .setDescription("The port Alluxio FUSE web UI runs on.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.MASTER)
+          .build();
 
   //
   // Security related properties
@@ -6213,6 +6231,9 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.fuse.umount.timeout";
     public static final String FUSE_USER_GROUP_TRANSLATION_ENABLED =
         "alluxio.fuse.user.group.translation.enabled";
+    public static final String FUSE_WEB_BIND_HOST = "alluxio.fuse.web.bind.host";
+    public static final String FUSE_WEB_HOSTNAME = "alluxio.fuse.web.hostname";
+    public static final String FUSE_WEB_PORT = "alluxio.fuse.web.port";
 
     //
     // Security related properties
