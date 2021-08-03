@@ -173,7 +173,11 @@ public abstract class AbstractClient implements Client {
       throws IOException {
     // Bootstrap once for clients
     if (!isConnected()) {
+<<<<<<< HEAD
       mContext.loadConfIfNotLoaded(getConfAddress());
+=======
+      mContext.loadConfIfNotLoaded(mAddress);
+>>>>>>> 29f33981f5 (Previously it is assumed an independent config server, that would cause extra rpc call to get the config server, and not necessary. Remove ConfAddress, use mAddress instead.)
     }
   }
 
@@ -317,11 +321,6 @@ public abstract class AbstractClient implements Client {
 
   @Override
   public synchronized InetSocketAddress getAddress() throws UnavailableException {
-    return mAddress;
-  }
-
-  @Override
-  public synchronized InetSocketAddress getConfAddress() throws UnavailableException {
     return mAddress;
   }
 
