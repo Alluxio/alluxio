@@ -892,6 +892,11 @@ public class RaftJournalSystem extends AbstractJournalSystem {
     RaftPeerId newLeaderPeerId = RaftJournalUtils.getPeerId(serverAddress);
     // --- the change in priorities seems to be necessary otherwise the transfer fails ---
     List<RaftPeer> oldPeers = new ArrayList<>(mRaftGroup.getPeers());
+    // if you cannot find the newLeaderPeerId in the quorum, throw exception
+    if (oldPeers.stream().map(RaftPeer::getId).noneMatch(peerId -> peerId == newLeaderPeerId)) {
+      throw new IOException("Address given is not part of the quorum.");
+    }
+
     List<RaftPeer> peersWithNewPriorities = new ArrayList<>();
     for (RaftPeer peer : oldPeers) {
       peersWithNewPriorities.add(
@@ -903,16 +908,16 @@ public class RaftJournalSystem extends AbstractJournalSystem {
     // --- end of updating priorities ---
     try (RaftClient client = createClient()) {
       RaftClientReply reply = client.admin().setConfiguration(peersWithNewPriorities);
-      if (reply.getException() != null) {
+      if (!reply.isSuccess()) {
         throw reply.getException();
       }
       RaftClientReply reply1 = client.admin().transferLeadership(newLeaderPeerId, 30_000);
-      if (reply1.getException() != null) {
+      if (!reply1.isSuccess()) {
         throw reply1.getException();
       }
       // reset the peers to have the old priorities
       RaftClientReply reply2 = client.admin().setConfiguration(oldPeers);
-      if (reply2.getException() != null) {
+      if (!reply2.isSuccess()) {
         throw reply2.getException();
       }
     }

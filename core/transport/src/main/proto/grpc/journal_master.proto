@@ -41,6 +41,14 @@ message RemoveQuorumServerPRequest {
 }
 message RemoveQuorumServerPResponse {}
 
+// TransferLeadership API
+message TransferLeadershipPOptions {}
+message TransferLeadershipPRequest {
+    optional TransferLeadershipPOptions options = 1;
+    optional NetAddress serverAddress = 2;
+}
+message TransferLeadershipPResponse {}
+
 /**
   * This interface contains journal master service endpoints for Alluxio clients.
   */
@@ -59,5 +67,5 @@ service JournalMasterClientService {
     /**
      * Transfers the leadership from the current leader to another designated leader.
      */
-    rpc TransferLeadership(RemoveQuorumServerPRequest) returns (RemoveQuorumServerPResponse);
+    rpc TransferLeadership(TransferLeadershipPRequest) returns (TransferLeadershipPResponse);
 }

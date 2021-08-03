@@ -17,6 +17,8 @@ import alluxio.grpc.GetQuorumInfoPResponse;
 import alluxio.grpc.JournalMasterClientServiceGrpc;
 import alluxio.grpc.RemoveQuorumServerPRequest;
 import alluxio.grpc.RemoveQuorumServerPResponse;
+import alluxio.grpc.TransferLeadershipPRequest;
+import alluxio.grpc.TransferLeadershipPResponse;
 
 import io.grpc.stub.StreamObserver;
 import org.slf4j.Logger;
@@ -58,11 +60,11 @@ public class JournalMasterClientServiceHandler
   }
 
   @Override
-  public void transferLeadership(RemoveQuorumServerPRequest request,
-      StreamObserver<RemoveQuorumServerPResponse> responseObserver) {
+  public void transferLeadership(TransferLeadershipPRequest request,
+      StreamObserver<TransferLeadershipPResponse> responseObserver) {
     RpcUtils.call(LOG, () -> {
       mJournalMaster.transferLeadership(request.getServerAddress());
-      return RemoveQuorumServerPResponse.getDefaultInstance();
+      return TransferLeadershipPResponse.getDefaultInstance();
     }, "transferLeadership", "request=%s", responseObserver, request);
   }
 }
