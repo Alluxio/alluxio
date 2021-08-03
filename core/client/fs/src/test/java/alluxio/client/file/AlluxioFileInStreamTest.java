@@ -22,7 +22,6 @@ import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -59,6 +58,10 @@ import org.junit.runners.Parameterized;
 import org.mockito.MockedStatic;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
+import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
+import org.powermock.modules.junit4.PowerMockRunnerDelegate;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -73,7 +76,9 @@ import java.util.List;
  * It is a parameterized test that checks different caching behaviors when the blocks are located at
  * different locations.
  */
-@RunWith(Parameterized.class)
+@RunWith(PowerMockRunner.class)
+@PowerMockRunnerDelegate(Parameterized.class)
+@PrepareForTest({AlluxioBlockStore.class})
 public final class AlluxioFileInStreamTest {
   private static final long BLOCK_LENGTH = 100L;
   private final BlockInStreamSource mBlockSource;
@@ -146,8 +151,8 @@ public final class AlluxioFileInStreamTest {
           public void close() {}
         });
     mBlockStore = mock(AlluxioBlockStore.class);
-    mMockedStaticBlockStore = mockStatic(AlluxioBlockStore.class);
-    mMockedStaticBlockStore.when(() -> AlluxioBlockStore.create(any())).thenReturn(mBlockStore);
+    PowerMockito.mockStatic(AlluxioBlockStore.class);
+    PowerMockito.when(AlluxioBlockStore.create(mContext)).thenReturn(mBlockStore);
 
     // Set up BufferedBlockInStreams and caching streams
     mInStreams = new ArrayList<>();
@@ -189,7 +194,6 @@ public final class AlluxioFileInStreamTest {
   public void after() throws Exception {
     mTestStream.close();
     ClientTestUtils.resetClient(mConf);
-    mMockedStaticBlockStore.close();
   }
 
   /**

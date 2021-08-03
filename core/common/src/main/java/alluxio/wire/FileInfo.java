@@ -259,7 +259,6 @@ public final class FileInfo implements Serializable {
    * @param blockId the block ID
    * @return the corresponding block info or null
    */
-  @Nullable
   public FileBlockInfo getFileBlockInfo(long blockId) {
     return mFileBlockInfoMap.get(blockId);
   }
