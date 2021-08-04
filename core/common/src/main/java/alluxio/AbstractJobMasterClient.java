@@ -15,13 +15,13 @@ import alluxio.exception.status.UnavailableException;
 import alluxio.master.MasterClientContext;
 import alluxio.master.MasterInquireClient;
 import alluxio.retry.RetryPolicy;
+
+import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.function.Supplier;
 
 import javax.annotation.concurrent.ThreadSafe;
 
-
-import java.net.InetSocketAddress;
 
 /**
  * The base class for job master clients.
@@ -56,6 +56,15 @@ public abstract class AbstractJobMasterClient extends AbstractMasterClient{
                                 Supplier<RetryPolicy> retryPolicySupplier) {
         super(clientConf, address, retryPolicySupplier);
         mConfMasterInquireClient = clientConf.getConfMasterInquireClient();
+    }
+
+    @Override
+    protected void beforeConnect()
+            throws IOException {
+        // Bootstrap once for clients
+        if (!isConnected()) {
+            mContext.loadConfIfNotLoaded(mConfAddress);
+        }
     }
 
     @Override

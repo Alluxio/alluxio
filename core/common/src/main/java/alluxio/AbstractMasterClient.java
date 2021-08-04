@@ -16,6 +16,7 @@ import alluxio.master.MasterClientContext;
 import alluxio.master.MasterInquireClient;
 import alluxio.retry.RetryPolicy;
 
+import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.function.Supplier;
 
@@ -53,12 +54,24 @@ public abstract class AbstractMasterClient extends AbstractClient {
   }
 
   @Override
+  protected void beforeConnect()
+          throws IOException {
+    // Bootstrap once for clients
+    if (!isConnected()) {
+      mContext.loadConfIfNotLoaded(mAddress);
+    }
+  }
+
+  @Override
   public synchronized InetSocketAddress getAddress() throws UnavailableException {
     return mMasterInquireClient.getPrimaryRpcAddress();
   }
 
   @Override
   public synchronized InetSocketAddress getConfAddress() throws UnavailableException {
+    if (mAddress != null)
+      return mAddress;
+
     return mMasterInquireClient.getPrimaryRpcAddress();
   }
 }

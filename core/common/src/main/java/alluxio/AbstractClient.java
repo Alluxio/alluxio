@@ -59,6 +59,11 @@ public abstract class AbstractClient implements Client {
 
   protected InetSocketAddress mAddress;
 
+  /** Address to load configuration, which may differ from {@code mAddress}.
+   * In Job Master client, the master address is the job master server's
+   * the config server address is the master server's */
+  protected InetSocketAddress mConfAddress;
+
   /** Underlying channel to the target service. */
   protected GrpcChannel mChannel;
 
@@ -169,13 +174,8 @@ public abstract class AbstractClient implements Client {
    * additional operations before the connection is connected.
    * loading the cluster defaults
    */
-  protected void beforeConnect()
-      throws IOException {
-    // Bootstrap once for clients
-    if (!isConnected()) {
-      mContext.loadConfIfNotLoaded(getConfAddress());
-    }
-  }
+  protected abstract void beforeConnect()
+      throws IOException;
 
   /**
    * This method is called after the connection is disconnected. Implementations should clean up any
@@ -215,6 +215,7 @@ public abstract class AbstractClient implements Client {
       // failover).
       try {
         mAddress = getAddress();
+        mConfAddress = getConfAddress();
       } catch (UnavailableException e) {
         LOG.debug("Failed to determine {} rpc address ({}): {}",
             getServiceName(), retryPolicy.getAttemptCount(), e.toString());
