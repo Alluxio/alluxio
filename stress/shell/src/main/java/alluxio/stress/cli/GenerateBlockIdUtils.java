@@ -35,7 +35,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
-public class RpcBenchUtils {
+public class GenerateBlockIdUtils {
   private static final Logger LOG = LoggerFactory.getLogger(RpcBenchUtils.class);
 
   public static final long BLOCK_ID_START = 100_000_000L;
@@ -43,7 +43,7 @@ public class RpcBenchUtils {
 
   public static InstancedConfiguration sConf = InstancedConfiguration.defaults();
 
-  private RpcBenchUtils() {}
+  private GenerateBlockIdUtils() {}
 
   // TODO(Jiacheng): move this back to prepare()
   public static void prepareBlocksInMaster(Map<BlockStoreLocation, List<Long>> locToBlocks) throws InterruptedException {

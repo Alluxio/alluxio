@@ -28,17 +28,6 @@ public class RegisterWorkerParameters extends RpcBenchParameters {
           description = "For each registerWorker RPC, should this be same worker or different worker.")
   public boolean mSameWorker = false;
 
-  // TODO(jiacheng): registerWorker RPCs should only be invoked once on each thread
-  //  this param should be removed
-//  @Parameter(names = {"--duration"},
-//          description = "The length of time to run the benchmark. (1m, 10m, 60s, 10000ms, etc.)")
-//  public String mDuration = "30s";
-
-  // TODO(jiacheng): this will be the default
-  @Parameter(names = {"--rpc"},
-          description = "The RPC to simulate")
-  public String mRpc = "registerWorker";
-
   @Parameter(names = {"--tiers"})
   /**
    * Examples: "100,200,300;1000,1500;2000"

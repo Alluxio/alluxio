@@ -58,10 +58,8 @@ public class RegisterWorkerBench extends RpcBench<RegisterWorkerParameters> {
   public void prepare() throws InterruptedException {
     LOG.info("Task ID is {}", mBaseParameters.mId);
 
-    // TODO(jiacheng): ideally this benchmark should be able to generate blocks in a distributed manner
     Map<BlockStoreLocation, List<Long>> blockMap = GenerateBlockIdUtils.generateBlockIdOnTiers(mParameters.mTiers);
 
-    // How to guarantee these blocks don't clash with existing files on the master
     BlockMasterClient client =
             new BlockMasterClient(MasterClientContext
                     .newBuilder(ClientContext.create(mConf))
@@ -71,15 +69,6 @@ public class RegisterWorkerBench extends RpcBench<RegisterWorkerParameters> {
     // Prepare these block IDs concurrently
     LOG.info("Preparing block IDs at the master");
     GenerateBlockIdUtils.prepareBlocksInMaster(blockMap);
-  }
-
-  private static List<Long> generateRandomBlockIds(int number) {
-    List<Long> results = new ArrayList<>(number);
-    for (int i = 0; i < number; i++) {
-      long blockId = ThreadLocalRandom.current().nextLong();
-      results.add(ThreadLocalRandom.current().nextLong());
-    }
-    return results;
   }
 
   /**
