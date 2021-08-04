@@ -24,8 +24,8 @@ import alluxio.metrics.MetricsSystem;
 import alluxio.retry.RetryUtils;
 import alluxio.util.CommonUtils;
 import alluxio.util.io.FileUtils;
-
 import alluxio.util.network.NetworkAddressUtils;
+
 import com.google.common.base.Preconditions;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
