@@ -40,7 +40,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public class GetPinnedFileIdsBench extends Benchmark<RpcTaskResult> {
+public class GetPinnedFileIdsBench extends RpcBench<GetPinnedFileIdsParameters> {
   private static final Logger LOG = LoggerFactory.getLogger(GetPinnedFileIdsBench.class);
 
   @ParametersDelegate
@@ -56,59 +56,6 @@ public class GetPinnedFileIdsBench extends Benchmark<RpcTaskResult> {
   }
 
   @Override
-  public RpcTaskResult runLocal() throws Exception {
-    LOG.debug("Running locally with {} threads", mParameters.mConcurrency);
-    ExecutorService pool = null;
-    List<CompletableFuture<RpcTaskResult>> futures = new ArrayList<>();
-    try {
-      pool = ExecutorServiceFactories.fixedThreadPool("rpc-thread", mParameters.mConcurrency)
-              .create();
-      for (int i = 0; i < mParameters.mConcurrency; i++) {
-        CompletableFuture<RpcTaskResult> future = CompletableFuture.supplyAsync(() -> {
-          RpcTaskResult threadResult = new RpcTaskResult();
-          threadResult.setBaseParameters(mBaseParameters);
-          threadResult.setParameters(mParameters);
-          try {
-            RpcTaskResult r = runRPC();
-            threadResult.setPoints(r.getPoints());
-            threadResult.setErrors(r.getErrors());
-            return threadResult;
-          } catch (Exception e) {
-            LOG.error("Failed to execute RPC", e);
-            threadResult.addError(e.getMessage());
-            return threadResult;
-          }
-        }, pool);
-        futures.add(future);
-      }
-      LOG.info("{} jobs submitted", futures.size());
-
-      // Collect the result
-      CompletableFuture[] cfs = futures.toArray(new CompletableFuture[0]);
-      List<RpcTaskResult> results = CompletableFuture.allOf(cfs)
-              .thenApply(f -> futures.stream()
-                      .map(CompletableFuture::join)
-                      .collect(Collectors.toList())
-              ).get();
-      LOG.info("{} futures collected: {}", results.size(),
-              results.size() > 0 ? results.get(0) : "[]");
-      return RpcTaskResult.reduceList(results);
-    } catch (Exception e) {
-      LOG.error("Failed to execute RPC in pool", e);
-      RpcTaskResult result = new RpcTaskResult();
-      result.setBaseParameters(mBaseParameters);
-      result.setParameters(mParameters);
-      result.addError(e.getMessage());
-      return result;
-    } finally {
-      if (pool != null) {
-        pool.shutdownNow();
-        pool.awaitTermination(30, TimeUnit.SECONDS);
-      }
-    }
-  }
-
-  @Override
   public void prepare() throws Exception {
     try (CloseableResource<alluxio.client.file.FileSystemMasterClient> client =
              mFileSystemContext.acquireMasterClientResource()) {
@@ -117,6 +64,7 @@ public class GetPinnedFileIdsBench extends Benchmark<RpcTaskResult> {
     }
     int fileNameLength = (int) Math.max(8, Math.log10(mParameters.mNumFiles));
 
+    // TODO(jiacheng): Extract this to use a threadpool in RpcBench
     LOG.info("Generating {} test files", mParameters.mNumFiles);
     Stream.generate(() -> mBaseUri.join(CommonUtils.randomAlphaNumString(fileNameLength)))
         .limit(mParameters.mNumFiles)
@@ -149,7 +97,8 @@ public class GetPinnedFileIdsBench extends Benchmark<RpcTaskResult> {
     }
   }
 
-  private RpcTaskResult runRPC() throws Exception {
+  @Override
+  public RpcTaskResult runRPC() throws Exception {
     PinListFileSystemMasterClient client = new PinListFileSystemMasterClient(
         MasterClientContext.newBuilder(ClientContext.create(mConf)).build());
     RpcTaskResult result = new RpcTaskResult();
@@ -180,6 +129,11 @@ public class GetPinnedFileIdsBench extends Benchmark<RpcTaskResult> {
       }
     }
     return result;
+  }
+
+  @Override
+  public GetPinnedFileIdsParameters getParameters() {
+    return mParameters;
   }
 
   /**

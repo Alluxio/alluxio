@@ -7,6 +7,7 @@ import alluxio.master.MasterClientContext;
 import alluxio.stress.CachingBlockMasterClient;
 import alluxio.stress.rpc.RegisterWorkerParameters;
 import alluxio.stress.rpc.RpcTaskResult;
+import alluxio.stress.rpc.WorkerHeartbeatParameters;
 import alluxio.util.FormatUtils;
 import alluxio.util.executor.ExecutorServiceFactories;
 import alluxio.util.network.NetworkAddressUtils;
@@ -28,14 +29,14 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
-public class WorkerHeartbeatBench extends Benchmark<RpcTaskResult> {
+public class WorkerHeartbeatBench extends RpcBench<RegisterWorkerParameters>{
   private static final Logger LOG = LoggerFactory.getLogger(WorkerHeartbeatBench.class);
 
   @ParametersDelegate
-  private RegisterWorkerParameters mParameters = new RegisterWorkerParameters();
+  // TODO(jiacheng): parameters
+  private WorkerHeartbeatParameters mParameters = new WorkerHeartbeatParameters();
 
   private final InstancedConfiguration mConf = InstancedConfiguration.defaults();
 
@@ -43,61 +44,8 @@ public class WorkerHeartbeatBench extends Benchmark<RpcTaskResult> {
   private List<LocationBlockIdListEntry> mLocationBlockIdList;
 
   @Override
-  public RpcTaskResult runLocal() throws Exception {
-    LOG.debug("Running locally with {} threads", mParameters.mConcurrency);
-    ExecutorService pool = null;
-    List<CompletableFuture<RpcTaskResult>> futures = new ArrayList<>();
-    try {
-      pool = ExecutorServiceFactories.fixedThreadPool("rpc-thread", mParameters.mConcurrency)
-              .create();
-      for (int i = 0; i < mParameters.mConcurrency; i++) {
-        CompletableFuture<RpcTaskResult> future = CompletableFuture.supplyAsync(() -> {
-          RpcTaskResult threadResult = new RpcTaskResult();
-          threadResult.setBaseParameters(mBaseParameters);
-          threadResult.setParameters(mParameters);
-          try {
-            RpcTaskResult r = runRPC();
-            threadResult.setPoints(r.getPoints());
-            threadResult.setErrors(r.getErrors());
-            return threadResult;
-          } catch (Exception e) {
-            LOG.error("Failed to execute RPC", e);
-            threadResult.addError(e.getMessage());
-            return threadResult;
-          }
-        }, pool);
-        futures.add(future);
-      }
-      LOG.info("{} jobs submitted", futures.size());
-
-      // Collect the result
-      CompletableFuture[] cfs = futures.toArray(new CompletableFuture[0]);
-      List<RpcTaskResult> results = CompletableFuture.allOf(cfs)
-              .thenApply(f -> futures.stream()
-                      .map(CompletableFuture::join)
-                      .collect(Collectors.toList())
-              ).get();
-      LOG.info("{} futures collected: {}", results.size(),
-              results.size() > 0 ? results.get(0) : "[]");
-      return RpcTaskResult.reduceList(results);
-    } catch (Exception e) {
-      LOG.error("Failed to execute RPC in pool", e);
-      RpcTaskResult result = new RpcTaskResult();
-      result.setBaseParameters(mBaseParameters);
-      result.setParameters(mParameters);
-      result.addError(e.getMessage());
-      return result;
-    } finally {
-      if (pool != null) {
-        pool.shutdownNow();
-        pool.awaitTermination(30, TimeUnit.SECONDS);
-      }
-    }
-  }
-
-  private RpcTaskResult runRPC() throws Exception {
+  public RpcTaskResult runRPC() throws Exception {
     // Use a mocked client to save conversion
-    LOG.info("Using the MockBlockMasterClient");
     CachingBlockMasterClient client =
             new CachingBlockMasterClient(MasterClientContext
                     .newBuilder(ClientContext.create(mConf))
@@ -113,7 +61,7 @@ public class WorkerHeartbeatBench extends Benchmark<RpcTaskResult> {
     result.setParameters(mParameters);
 
     // Stop after certain time has elapsed
-    RpcTaskResult taskResult = fakeBlockHeartbeat(client, endTime);
+    RpcTaskResult taskResult = simulateBlockHeartbeat(client, endTime);
     LOG.info("Got {}", taskResult);
     result.merge(taskResult);
 
@@ -121,7 +69,12 @@ public class WorkerHeartbeatBench extends Benchmark<RpcTaskResult> {
     return result;
   }
 
-  private RpcTaskResult fakeBlockHeartbeat(alluxio.worker.block.BlockMasterClient client, Instant endTime) {
+  @Override
+  public RegisterWorkerParameters getParameters() {
+    return null;
+  }
+
+  private RpcTaskResult simulateBlockHeartbeat(alluxio.worker.block.BlockMasterClient client, Instant endTime) {
     RpcTaskResult result = new RpcTaskResult();
     // prepare a worker ID
     int startPort = 9999;
@@ -163,6 +116,7 @@ public class WorkerHeartbeatBench extends Benchmark<RpcTaskResult> {
     long i = 0;
     // TODO(jiacheng): the preparation includes getting Id and registering the worker
     //  can this be moved to the prepare() step?
+    //  Reuse the worker
     while (Instant.now().isBefore(endTime)) {
       Instant s = Instant.now();
       try {
@@ -191,8 +145,8 @@ public class WorkerHeartbeatBench extends Benchmark<RpcTaskResult> {
   public void prepare() throws Exception {
     LOG.info("Task ID is {}", mBaseParameters.mId);
 
-    // TODO(jiacheng): ideally this benchmark should be able to generate blocks in a distributed manner
-    Map<BlockStoreLocation, List<Long>> blockMap = RpcBenchUtils.generateBlockIdOnTiers(mParameters.mTiers);
+    // TODO(jiacheng): Use the same logic as RegisterWorkerBench
+    Map<BlockStoreLocation, List<Long>> blockMap = GenerateBlockIdUtils.generateBlockIdOnTiers(mParameters.mTiers);
 
     BlockMasterClient client =
             new BlockMasterClient(MasterClientContext

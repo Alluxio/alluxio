@@ -22,10 +22,7 @@ import java.util.Map;
 /**
  * Parameters used in the UFS I/O throughput test.
  * */
-public class RegisterWorkerParameters extends Parameters {
-  @Parameter(names = {"--concurrency"},
-          description = "simulate this many workers on one machine")
-  public int mConcurrency = 2;
+public class RegisterWorkerParameters extends RpcBenchParameters {
 
   @Parameter(names = {"--fake-same-worker"},
           description = "For each registerWorker RPC, should this be same worker or different worker.")
@@ -33,9 +30,9 @@ public class RegisterWorkerParameters extends Parameters {
 
   // TODO(jiacheng): registerWorker RPCs should only be invoked once on each thread
   //  this param should be removed
-  @Parameter(names = {"--duration"},
-          description = "The length of time to run the benchmark. (1m, 10m, 60s, 10000ms, etc.)")
-  public String mDuration = "30s";
+//  @Parameter(names = {"--duration"},
+//          description = "The length of time to run the benchmark. (1m, 10m, 60s, 10000ms, etc.)")
+//  public String mDuration = "30s";
 
   // TODO(jiacheng): this will be the default
   @Parameter(names = {"--rpc"},
