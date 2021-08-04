@@ -1,6 +1,5 @@
 package alluxio.stress.cli;
 
-import alluxio.stress.Parameters;
 import alluxio.stress.rpc.RpcBenchParameters;
 import alluxio.stress.rpc.RpcTaskResult;
 import alluxio.util.executor.ExecutorServiceFactories;
@@ -8,29 +7,48 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public abstract class RpcBench<T extends RpcBenchParameters> extends Benchmark<RpcTaskResult> {
   private static final Logger LOG = LoggerFactory.getLogger(RpcBench.class);
+  private ExecutorService mPool = null;
 
   public abstract RpcTaskResult runRPC() throws Exception;
 
   public abstract T getParameters();
+
+  public ExecutorService getPool() {
+    if (mPool == null) {
+      mPool = ExecutorServiceFactories
+          .fixedThreadPool("rpc-thread", getParameters().mConcurrency).create();
+    }
+    return mPool;
+  }
+
+  @Override
+  public void cleanup() throws Exception {
+    if (mPool != null) {
+      mPool.shutdownNow();
+      mPool.awaitTermination(30, TimeUnit.SECONDS);
+    }
+  }
 
   @Override
   public RpcTaskResult runLocal() throws Exception {
     RpcBenchParameters rpcBenchParameters = getParameters();
     // TODO(jiacheng): refactor this and rename
     LOG.debug("Running locally with {} threads", rpcBenchParameters.mConcurrency);
-    ExecutorService pool = null;
     List<CompletableFuture<RpcTaskResult>> futures = new ArrayList<>();
     try {
-      pool = ExecutorServiceFactories.fixedThreadPool("rpc-thread", rpcBenchParameters.mConcurrency)
-              .create();
       for (int i = 0; i < rpcBenchParameters.mConcurrency; i++) {
         CompletableFuture<RpcTaskResult> future = CompletableFuture.supplyAsync(() -> {
           RpcTaskResult threadResult = new RpcTaskResult();
@@ -46,7 +64,7 @@ public abstract class RpcBench<T extends RpcBenchParameters> extends Benchmark<R
             threadResult.addError(e.getMessage());
             return threadResult;
           }
-        }, pool);
+        }, getPool());
         futures.add(future);
       }
       LOG.info("{} jobs submitted", futures.size());
@@ -68,11 +86,6 @@ public abstract class RpcBench<T extends RpcBenchParameters> extends Benchmark<R
       result.setParameters(rpcBenchParameters);
       result.addError(e.getMessage());
       return result;
-    } finally {
-      if (pool != null) {
-        pool.shutdownNow();
-        pool.awaitTermination(30, TimeUnit.SECONDS);
-      }
     }
   }
 
