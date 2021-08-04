@@ -53,6 +53,7 @@ import org.junit.Rule;
 import org.junit.Test;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
@@ -288,6 +289,36 @@ public final class EmbeddedJournalIntegrationTest extends BaseIntegrationTest {
       }
     });
 
+    mCluster.notifySuccess();
+  }
+
+  @Test
+  public void transferLeadershipOutsideCluster() throws Exception {
+    mCluster = MultiProcessCluster.newBuilder(PortCoordination.EMBEDDED_JOURNAL_FAILOVER)
+            .setClusterName("TransferLeadership")
+            .setNumMasters(NUM_MASTERS)
+            .setNumWorkers(0)
+            .addProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.EMBEDDED.toString())
+            .addProperty(PropertyKey.MASTER_JOURNAL_FLUSH_TIMEOUT_MS, "5min")
+            .addProperty(PropertyKey.MASTER_EMBEDDED_JOURNAL_ELECTION_TIMEOUT, "750ms")
+            .build();
+    mCluster.start();
+
+    NetAddress netAddress = NetAddress.newBuilder().setHost("hostname").setRpcPort(0).build();
+
+    try {
+      mCluster.getJournalMasterClientForMaster().transferLeadership(netAddress);
+      Assert.fail("Should have thrown exception");
+    } catch (IOException e) {
+      Assert.assertTrue(e.getMessage().startsWith(String.format("<%s:%d> is not part of the quorum",
+              netAddress.getHost(), netAddress.getRpcPort())));
+
+      for (MasterNetAddress address : mCluster.getMasterAddresses()) {
+        String host = address.getHostname();
+        int port = address.getEmbeddedJournalPort();
+        Assert.assertTrue(e.getMessage().contains(String.format("%s:%d", host, port)));
+      }
+    }
     mCluster.notifySuccess();
   }
 

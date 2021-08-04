@@ -17,9 +17,9 @@ import alluxio.SystemErrRule;
 import alluxio.SystemOutRule;
 import alluxio.cli.fsadmin.FileSystemAdminShell;
 import alluxio.cli.fsadmin.journal.QuorumCommand;
+import alluxio.cli.fsadmin.journal.QuorumElectCommand;
 import alluxio.cli.fsadmin.journal.QuorumInfoCommand;
 import alluxio.cli.fsadmin.journal.QuorumRemoveCommand;
-import alluxio.cli.fsadmin.journal.QuorumTransferLeaderCommand;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.exception.ExceptionMessage;
@@ -206,7 +206,7 @@ public final class QuorumCommandIntegrationTest extends BaseIntegrationTest {
       mOutput.reset();
       shell.run("journal", "quorum", "elect", "-address" , newLeaderAddr);
       output = mOutput.toString().trim();
-      Assert.assertEquals(String.format(QuorumTransferLeaderCommand.OUTPUT_RESULT, newLeaderAddr),
+      Assert.assertEquals(String.format(QuorumElectCommand.OUTPUT_SUCCESS, newLeaderAddr),
               output);
     }
     mCluster.notifySuccess();
@@ -259,16 +259,16 @@ public final class QuorumCommandIntegrationTest extends BaseIntegrationTest {
       mOutput.reset();
       shell.run("journal", "quorum", "elect");
       output = mOutput.toString().trim();
-      Assert.assertEquals(QuorumTransferLeaderCommand.description(), lastLine(output));
+      Assert.assertEquals(QuorumElectCommand.description(), lastLine(output));
       mOutput.reset();
       shell.run("journal", "quorum", "elect", "-op1", "val1");
       output = mOutput.toString().trim();
-      Assert.assertEquals(QuorumTransferLeaderCommand.description(), lastLine(output));
+      Assert.assertEquals(QuorumElectCommand.description(), lastLine(output));
       mOutput.reset();
       shell.run("journal", "quorum", "elect", "-op1", "val1", "-op2", "val2", "-op3",
               "val3");
       output = mOutput.toString().trim();
-      Assert.assertEquals(QuorumTransferLeaderCommand.description(), lastLine(output));
+      Assert.assertEquals(QuorumElectCommand.description(), lastLine(output));
 
       // Validate option validation works for "quorum info".
       mOutput.reset();

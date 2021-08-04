@@ -27,17 +27,19 @@ import java.io.IOException;
 /**
  * Command for transferring the leadership to another master within a quorum.
  */
-public class QuorumTransferLeaderCommand extends AbstractFsAdminCommand {
+public class QuorumElectCommand extends AbstractFsAdminCommand {
 
   public static final String ADDRESS_OPTION_NAME = "address";
 
-  public static final String OUTPUT_RESULT = "Transferred leadership to server: %s";
+  public static final String OUTPUT_SUCCESS = "Transferred leadership to server: %s";
+  public static final String OUTPUT_FAIL = "Leadership was not transferred to %s. The leader "
+          + "remains %s";
 
   /**
    * @param context fsadmin command context
    * @param alluxioConf Alluxio configuration
    */
-  public QuorumTransferLeaderCommand(Context context, AlluxioConfiguration alluxioConf) {
+  public QuorumElectCommand(Context context, AlluxioConfiguration alluxioConf) {
     super(context);
   }
 
@@ -55,7 +57,7 @@ public class QuorumTransferLeaderCommand extends AbstractFsAdminCommand {
     String serverAddress = cl.getOptionValue(ADDRESS_OPTION_NAME);
 
     jmClient.transferLeadership(QuorumCommand.stringToAddress(serverAddress));
-    mPrintStream.println(String.format(OUTPUT_RESULT, serverAddress));
+    mPrintStream.println(String.format(OUTPUT_SUCCESS, serverAddress));
     return 0;
   }
 
