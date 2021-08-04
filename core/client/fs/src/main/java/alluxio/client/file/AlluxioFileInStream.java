@@ -272,8 +272,13 @@ public class AlluxioFileInStream extends FileInStream {
         len -= bytesRead;
         retry = mRetryPolicySupplier.get();
         lastException = null;
+        BlockInStream.BlockInStreamSource source = mCachedPositionedReadStream.getSource();
+        if (source != BlockInStream.BlockInStreamSource.NODE_LOCAL
+            && source != BlockInStream.BlockInStreamSource.PROCESS_LOCAL) {
+          triggerAsyncCaching(mCachedPositionedReadStream);
+        }
         if (bytesRead == mBlockSize - offset) {
-          closeBlockInStream(mCachedPositionedReadStream);
+          mCachedPositionedReadStream.close();
           mCachedPositionedReadStream = null;
         }
       } catch (IOException e) {
@@ -376,64 +381,65 @@ public class AlluxioFileInStream extends FileInStream {
           || blockSource == BlockInStream.BlockInStreamSource.PROCESS_LOCAL) {
         return;
       }
-      // best effort to cache this block
-      try {
-        triggerAsyncCaching(stream);
-      } catch (Exception e) {
-        LOG.warn("Failed to complete async cache request (best effort) for block {} of file {}: {}",
-            stream.getId(), mStatus.getPath(), e.toString());
-      }
+      triggerAsyncCaching(stream);
     }
   }
 
   // Send an async cache request to a worker based on read type and passive cache options.
   // Note that, this is best effort and exception shall be caught and ignored
   @VisibleForTesting
-  void triggerAsyncCaching(BlockInStream stream) throws Exception {
-    final long blockId = stream.getId();
-    final BlockInfo blockInfo = mStatus.getBlockInfo(blockId);
-    if (blockInfo == null) {
-      return;
-    }
-    boolean cache = ReadType.fromProto(mOptions.getOptions().getReadType()).isCache();
-    boolean overReplicated = mStatus.getReplicationMax() > 0
-        && blockInfo.getLocations().size() >= mStatus.getReplicationMax();
-    cache = cache && !overReplicated;
-    // Get relevant information from the stream.
-    WorkerNetAddress dataSource = stream.getAddress();
-    if (cache && (mLastBlockIdCached != blockId)) {
-      // Construct the async cache request
-      long blockLength = mOptions.getBlockInfo(blockId).getLength();
-      String host = dataSource.getHost();
-      // issues#11172: If the worker is in a container, use the container hostname
-      // to establish the connection.
-      if (!dataSource.getContainerHost().equals("")) {
-        LOG.debug("Worker is in a container. Use container host {} instead of physical host {}",
-            dataSource.getContainerHost(), host);
-        host = dataSource.getContainerHost();
+  boolean triggerAsyncCaching(BlockInStream stream) {
+    try {
+      final long blockId = stream.getId();
+      final BlockInfo blockInfo = mStatus.getBlockInfo(blockId);
+      if (blockInfo == null) {
+        return true;
       }
-      AsyncCacheRequest request =
-          AsyncCacheRequest.newBuilder().setBlockId(blockId).setLength(blockLength)
-              .setOpenUfsBlockOptions(mOptions.getOpenUfsBlockOptions(blockId))
-              .setSourceHost(host).setSourcePort(dataSource.getDataPort())
-              .build();
-      if (mPassiveCachingEnabled && mContext.hasProcessLocalWorker()) {
-        mContext.getProcessLocalWorker().asyncCache(request);
-        mLastBlockIdCached = blockId;
-        return;
+      boolean cache = ReadType.fromProto(mOptions.getOptions().getReadType()).isCache();
+      boolean overReplicated = mStatus.getReplicationMax() > 0
+          && blockInfo.getLocations().size() >= mStatus.getReplicationMax();
+      cache = cache && !overReplicated;
+      // Get relevant information from the stream.
+      WorkerNetAddress dataSource = stream.getAddress();
+      if (cache && (mLastBlockIdCached != blockId)) {
+        // Construct the async cache request
+        long blockLength = mOptions.getBlockInfo(blockId).getLength();
+        String host = dataSource.getHost();
+        // issues#11172: If the worker is in a container, use the container hostname
+        // to establish the connection.
+        if (!dataSource.getContainerHost().equals("")) {
+          LOG.debug("Worker is in a container. Use container host {} instead of physical host {}",
+              dataSource.getContainerHost(), host);
+          host = dataSource.getContainerHost();
+        }
+        AsyncCacheRequest request =
+            AsyncCacheRequest.newBuilder().setBlockId(blockId).setLength(blockLength)
+                .setOpenUfsBlockOptions(mOptions.getOpenUfsBlockOptions(blockId))
+                .setSourceHost(host).setSourcePort(dataSource.getDataPort())
+                .build();
+        if (mPassiveCachingEnabled && mContext.hasProcessLocalWorker()) {
+          mContext.getProcessLocalWorker().asyncCache(request);
+          mLastBlockIdCached = blockId;
+          return true;
+        }
+        WorkerNetAddress worker;
+        if (mPassiveCachingEnabled && mContext.hasNodeLocalWorker()) {
+          // send request to local worker
+          worker = mContext.getNodeLocalWorker();
+        } else { // send request to data source
+          worker = dataSource;
+        }
+        try (CloseableResource<BlockWorkerClient> blockWorker =
+                 mContext.acquireBlockWorkerClient(worker)) {
+          blockWorker.get().asyncCache(request);
+          mLastBlockIdCached = blockId;
+        }
       }
-      WorkerNetAddress worker;
-      if (mPassiveCachingEnabled && mContext.hasNodeLocalWorker()) {
-        // send request to local worker
-        worker = mContext.getNodeLocalWorker();
-      } else { // send request to data source
-        worker = dataSource;
-      }
-      try (CloseableResource<BlockWorkerClient> blockWorker =
-               mContext.acquireBlockWorkerClient(worker)) {
-        blockWorker.get().asyncCache(request);
-        mLastBlockIdCached = blockId;
-      }
+      return true;
+    } catch (Exception e) {
+      LOG.warn("Failed to complete async cache request (best effort) for block {} of file {}: {}",
+          stream.getId(), mStatus.getPath(), e.toString());
+      return false;
     }
   }
 
