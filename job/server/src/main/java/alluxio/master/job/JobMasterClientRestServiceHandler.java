@@ -15,6 +15,7 @@ import alluxio.Constants;
 import alluxio.RestUtils;
 import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.ListAllPOptions;
+import alluxio.grpc.Status;
 import alluxio.job.JobConfig;
 import alluxio.job.ServiceConstants;
 import alluxio.job.wire.JobInfo;
@@ -127,16 +128,23 @@ public final class JobMasterClientRestServiceHandler {
 
   /**
    * Lists all the jobs in the history.
+   * @param status the target status of jobs
    *
    * @return the response of the names of all the jobs
    */
   @GET
   @Path(ServiceConstants.LIST)
-  public Response list() {
+  public Response list(@QueryParam("status") final String status) {
     return RestUtils.call(new RestUtils.RestCallable<List<Long>>() {
       @Override
       public List<Long> call() throws Exception {
-        return mJobMaster.list(ListAllPOptions.getDefaultInstance());
+        if (status != null) {
+          return mJobMaster.list(ListAllPOptions.newBuilder()
+              .addStatus(Status.valueOf(status))
+              .build());
+        } else {
+          return mJobMaster.list(ListAllPOptions.getDefaultInstance());
+        }
       }
     }, ServerConfiguration.global());
   }
