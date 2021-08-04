@@ -3306,8 +3306,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       new Builder(Template.WORKER_TIERED_STORE_LEVEL_DIRS_PATH, 0)
           .setDefaultSupplier(() -> OSUtils.isLinux() ? "/mnt/ramdisk" : "/Volumes/ramdisk",
               "/mnt/ramdisk on Linux, /Volumes/ramdisk on OSX")
-          .setDescription("A comma-separated list of paths (eg., /mnt/ramdisk1,/mnt/ramdisk2,/dev/sda1) "
-              + "of storage directories for the top storage tier. "
+          .setDescription("A comma-separated list of paths (eg., /mnt/ramdisk1,/mnt/ramdisk2,"
+              + "/mnt/ssd/alluxio/cache1) of storage directories for the top storage tier. "
               + "Note that for MacOS, the root directory should be `/Volumes/` and not `/mnt/`.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
@@ -3332,7 +3332,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
                   + "For any \"MEM\"-type media (i.e, the ramdisks), this value should be set "
                   + "equivalent to the value specified by %s.",
               PropertyKey.WORKER_TIERED_STORE_LEVEL0_DIRS_PATH.mName,
-              PropertyKey.WORKER_RAMDISK_SIZE.mName))
+              Name.WORKER_RAMDISK_SIZE))
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
@@ -3361,8 +3361,9 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey WORKER_TIERED_STORE_LEVEL1_DIRS_PATH =
       new Builder(Template.WORKER_TIERED_STORE_LEVEL_DIRS_PATH, 1)
-          .setDescription("A comma-separated list of paths (eg., /dev/sda2,/dev/sda3,/dev/sdb1) "
-              + "of storage directories for the second storage tier. ")
+          .setDescription("A comma-separated list of paths (eg., /mnt/ssd/alluxio/cache2,"
+              + "/mnt/ssd/alluxio/cache3,/mnt/hdd/alluxio/cache1) of storage directories "
+              + "for the second storage tier.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
@@ -3411,8 +3412,9 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey WORKER_TIERED_STORE_LEVEL2_DIRS_PATH =
       new Builder(Template.WORKER_TIERED_STORE_LEVEL_DIRS_PATH, 2)
-          .setDescription("A comma-separated list of paths (eg., /dev/sda4,/dev/sdb2,/dev/sdb3) "
-              + "of storage directories for the third storage tier. ")
+          .setDescription("A comma-separated list of paths (eg., /mnt/ssd/alluxio/cache4,"
+              + "/mnt/hdd/alluxio/cache2,/mnt/hdd/alluxio/cache3) of storage directories "
+              + "for the third storage tier.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
