@@ -36,7 +36,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * A pool for hive clients, since hive clients are not thread safe.
  */
 @ThreadSafe
-public final class DefaultHiveClientPool extends HiveClientPool {
+public final class DefaultHiveClientPool extends AbstractHiveClientPool {
   private static final ScheduledExecutorService GC_EXECUTOR =
       new ScheduledThreadPoolExecutor(1, ThreadFactoryUtils.build("HiveClientPool-GC-%d", true));
   private static final HiveMetaHookLoader NOOP_HOOK = table -> null;

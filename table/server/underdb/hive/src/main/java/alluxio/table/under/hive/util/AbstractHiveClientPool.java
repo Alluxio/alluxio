@@ -21,8 +21,8 @@ import java.io.IOException;
 /**
  * A pool for hive clients.
  */
-public abstract class HiveClientPool extends DynamicResourcePool<IMetaStoreClient> {
-  protected HiveClientPool(Options options) {
+public abstract class AbstractHiveClientPool extends DynamicResourcePool<IMetaStoreClient> {
+  protected AbstractHiveClientPool(Options options) {
     super(options);
   }
 
