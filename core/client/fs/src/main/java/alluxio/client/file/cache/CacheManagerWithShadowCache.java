@@ -14,6 +14,9 @@ package alluxio.client.file.cache;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
 import alluxio.client.file.CacheContext;
+import alluxio.client.metrics.LocalCacheMetrics;
+import alluxio.client.metrics.MetricKeyInScope;
+import alluxio.client.metrics.MetricsInScope;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.metrics.MetricKey;
@@ -54,6 +57,7 @@ public class CacheManagerWithShadowCache implements CacheManager {
   private BloomFilter<PageId> mWorkingSetBloomFilter;
   private long mShadowCachePages = 0;
   private double mAvgPageSize;
+  private MetricsInScope mMetricsInScope;
 
   /**
    * @param cacheManager the real cache manager
@@ -82,6 +86,7 @@ public class CacheManagerWithShadowCache implements CacheManager {
         BloomFilter.create(PageIdFunnel.FUNNEL, mBloomFilterExpectedInsertions);
     mScheduler.scheduleAtFixedRate(this::switchBloomFilter, 0, windowMs / mNumBloomFilter,
         MILLISECONDS);
+    mMetricsInScope = LocalCacheMetrics.Factory.get(conf).getShadowCacheMetricsInScope();
   }
 
   /**
@@ -103,7 +108,8 @@ public class CacheManagerWithShadowCache implements CacheManager {
     Metrics.SHADOW_CACHE_PAGES.inc(mShadowCachePages - oldPages);
     long oldBytes = Metrics.SHADOW_CACHE_BYTES.getCount();
     mShadowCacheBytes = (long) (mShadowCachePages * mAvgPageSize);
-    Metrics.SHADOW_CACHE_BYTES.inc(mShadowCacheBytes - oldBytes);
+    long bytesDiff = mShadowCacheBytes - oldBytes;
+    Metrics.SHADOW_CACHE_BYTES.inc(bytesDiff);
   }
 
   @Override
@@ -126,6 +132,8 @@ public class CacheManagerWithShadowCache implements CacheManager {
       if (cacheContext != null) {
         cacheContext
             .incrementCounter(MetricKey.CLIENT_CACHE_SHADOW_CACHE_BYTES.getName(), pageLength);
+        mMetricsInScope.inc(cacheContext.getCacheScope(),
+            MetricKeyInScope.BYTES_IN_CACHE, pageLength);
       }
     }
   }
@@ -173,6 +181,7 @@ public class CacheManagerWithShadowCache implements CacheManager {
     for (int i = 0; i < mSegmentBloomFilters.length(); ++i) {
       mWorkingSetBloomFilter.putAll(mSegmentBloomFilters.get(i));
     }
+    mMetricsInScope.switchOrClear();
   }
 
   /**
@@ -229,8 +238,12 @@ public class CacheManagerWithShadowCache implements CacheManager {
       Metrics.SHADOW_CACHE_BYTES_HIT.inc(bytesToRead);
       mShadowCachePageHit.getAndIncrement();
       mShadowCacheByteHit.getAndAdd(bytesToRead);
+      mMetricsInScope
+          .inc(cacheContext.getCacheScope(), MetricKeyInScope.BYTES_READ_CACHE, bytesToRead);
     } else {
       updateBloomFilterAndWorkingSet(pageId, bytesToRead, cacheContext);
+      mMetricsInScope
+          .inc(cacheContext.getCacheScope(), MetricKeyInScope.BYTES_READ_EXTERNAL, bytesToRead);
     }
     Metrics.SHADOW_CACHE_PAGES_READ.inc();
     Metrics.SHADOW_CACHE_BYTES_READ.inc(bytesToRead);
