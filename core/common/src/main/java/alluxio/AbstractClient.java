@@ -59,6 +59,9 @@ public abstract class AbstractClient implements Client {
 
   protected InetSocketAddress mAddress;
 
+  /** Address to load configuration, which may differ from {@code mAddress}. */
+  protected InetSocketAddress mConfAddress;
+
   /** Underlying channel to the target service. */
   protected GrpcChannel mChannel;
 
@@ -173,7 +176,7 @@ public abstract class AbstractClient implements Client {
       throws IOException {
     // Bootstrap once for clients
     if (!isConnected()) {
-      mContext.loadConfIfNotLoaded(mAddress);
+      mContext.loadConfIfNotLoaded(mConfAddress);
     }
   }
 
@@ -215,6 +218,7 @@ public abstract class AbstractClient implements Client {
       // failover).
       try {
         mAddress = getAddress();
+        mConfAddress = getConfAddress();
       } catch (UnavailableException e) {
         LOG.debug("Failed to determine {} rpc address ({}): {}",
             getServiceName(), retryPolicy.getAttemptCount(), e.toString());
@@ -317,6 +321,14 @@ public abstract class AbstractClient implements Client {
 
   @Override
   public synchronized InetSocketAddress getAddress() throws UnavailableException {
+    return mAddress;
+  }
+
+  @Override
+  public synchronized InetSocketAddress getConfAddress() throws UnavailableException {
+    if (mConfAddress != null) {
+      return mConfAddress;
+    }
     return mAddress;
   }
 
