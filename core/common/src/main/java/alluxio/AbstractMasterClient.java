@@ -55,4 +55,13 @@ public abstract class AbstractMasterClient extends AbstractClient {
   public synchronized InetSocketAddress getAddress() throws UnavailableException {
     return mMasterInquireClient.getPrimaryRpcAddress();
   }
+
+  @Override
+  public synchronized InetSocketAddress getConfAddress() throws UnavailableException {
+    if (mAddress != null) {
+      return mAddress;
+    }
+
+    return mMasterInquireClient.getPrimaryRpcAddress();
+  }
 }
