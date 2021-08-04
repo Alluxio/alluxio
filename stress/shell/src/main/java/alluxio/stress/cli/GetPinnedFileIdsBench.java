@@ -3,10 +3,9 @@ package alluxio.stress.cli;
 import alluxio.AlluxioURI;
 import alluxio.ClientContext;
 import alluxio.client.file.FileSystemContext;
-import alluxio.collections.Pair;
+import alluxio.client.file.FileSystemMasterClient;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
@@ -14,31 +13,19 @@ import alluxio.grpc.DeletePOptions;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.master.MasterClientContext;
 import alluxio.resource.CloseableResource;
-import alluxio.stress.CachingBlockMasterClient;
 import alluxio.stress.PinListFileSystemMasterClient;
 import alluxio.stress.rpc.GetPinnedFileIdsParameters;
-import alluxio.stress.rpc.RegisterWorkerParameters;
 import alluxio.stress.rpc.RpcTaskResult;
 import alluxio.util.CommonUtils;
 import alluxio.util.FormatUtils;
-import alluxio.util.executor.ExecutorServiceFactories;
-import alluxio.worker.file.FileSystemMasterClient;
 import com.beust.jcommander.ParametersDelegate;
 import com.google.common.base.Stopwatch;
-import com.google.common.collect.ImmutableList;
+import com.google.common.base.Supplier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.time.Instant;
-import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 public class GetPinnedFileIdsBench extends RpcBench<GetPinnedFileIdsParameters> {
   private static final Logger LOG = LoggerFactory.getLogger(GetPinnedFileIdsBench.class);
@@ -62,31 +49,34 @@ public class GetPinnedFileIdsBench extends RpcBench<GetPinnedFileIdsParameters> 
       client.get().createDirectory(mBaseUri,
               CreateDirectoryPOptions.newBuilder().setAllowExists(true).build());
     }
-    int fileNameLength = (int) Math.max(8, Math.log10(mParameters.mNumFiles));
+    int numFiles = mParameters.mNumFiles;
+    int fileNameLength = (int) Math.max(8, Math.log10(numFiles));
 
-    // TODO(jiacheng): Extract this to use a threadpool in RpcBench
-    LOG.info("Generating {} test files", mParameters.mNumFiles);
-    Stream.generate(() -> mBaseUri.join(CommonUtils.randomAlphaNumString(fileNameLength)))
-        .limit(mParameters.mNumFiles)
-        .parallel()
-        .forEach((fileUri) -> {
-            try (CloseableResource<alluxio.client.file.FileSystemMasterClient> client =
-                     mFileSystemContext.acquireMasterClientResource()) {
-              client.get().createFile(fileUri,
-                  CreateFilePOptions
-                      .newBuilder()
-                      .setBlockSizeBytes(mConf.getBytes(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT))
-                      .build());
-              client.get().setAttribute(fileUri,
-                  SetAttributePOptions
-                      .newBuilder()
-                      .setPinned(true)
-                      .build());
-            } catch (AlluxioStatusException e) {
-              LOG.warn("Exception during file creation of {}", fileUri, e);
-              System.exit(-1);
-            }
-        });
+    CompletableFuture<Void>[] futures = new CompletableFuture[numFiles];
+    LOG.info("Generating {} test files", numFiles);
+    for (int i = 0; i < numFiles; i++) {
+      AlluxioURI fileUri = mBaseUri.join(CommonUtils.randomAlphaNumString(fileNameLength));
+      CompletableFuture<Void> future = CompletableFuture.supplyAsync((Supplier<Void>) () -> {
+        try (CloseableResource<FileSystemMasterClient> client =
+                 mFileSystemContext.acquireMasterClientResource()) {
+          client.get().createFile(fileUri,
+              CreateFilePOptions
+                  .newBuilder()
+                  .setBlockSizeBytes(mConf.getBytes(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT))
+                  .build());
+          client.get().setAttribute(fileUri,
+              SetAttributePOptions
+                  .newBuilder()
+                  .setPinned(true)
+                  .build());
+        } catch (AlluxioStatusException e) {
+          LOG.warn("Exception during file creation of {}", fileUri, e);
+        }
+        return null;
+      }, getPool());
+      futures[i] = (future);
+    }
+    CompletableFuture.allOf(futures).join();
   }
 
   @Override
@@ -95,6 +85,7 @@ public class GetPinnedFileIdsBench extends RpcBench<GetPinnedFileIdsParameters> 
              mFileSystemContext.acquireMasterClientResource()) {
       client.get().delete(mBaseUri, DeletePOptions.newBuilder().setRecursive(true).build());
     }
+    super.cleanup();
   }
 
   @Override

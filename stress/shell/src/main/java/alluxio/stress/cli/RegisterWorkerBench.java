@@ -55,7 +55,7 @@ public class RegisterWorkerBench extends RpcBench<RegisterWorkerParameters> {
   private AtomicInteger mPortToAssign = new AtomicInteger(50000);
 
   @Override
-  public void prepare() throws InterruptedException {
+  public void prepare() throws Exception {
     LOG.info("Task ID is {}", mBaseParameters.mId);
 
     Map<BlockStoreLocation, List<Long>> blockMap = GenerateBlockIdUtils.generateBlockIdOnTiers(mParameters.mTiers);

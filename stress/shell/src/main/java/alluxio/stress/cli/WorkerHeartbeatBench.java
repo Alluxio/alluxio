@@ -10,7 +10,6 @@ import alluxio.stress.rpc.RegisterWorkerParameters;
 import alluxio.stress.rpc.RpcTaskResult;
 import alluxio.stress.rpc.WorkerHeartbeatParameters;
 import alluxio.util.FormatUtils;
-import alluxio.util.executor.ExecutorServiceFactories;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.wire.WorkerNetAddress;
 import alluxio.worker.block.BlockMasterClient;
@@ -32,11 +31,6 @@ import java.util.Arrays;
 import java.util.Deque;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 
 public class WorkerHeartbeatBench extends RpcBench<WorkerHeartbeatParameters>{
   private static final Logger LOG = LoggerFactory.getLogger(WorkerHeartbeatBench.class);

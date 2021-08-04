@@ -15,7 +15,6 @@ import alluxio.ClientContext;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.master.MasterClientContext;
-import alluxio.stress.rpc.RpcTaskResult;
 import alluxio.util.executor.ExecutorServiceFactories;
 import alluxio.worker.block.BlockMasterClient;
 import alluxio.worker.block.BlockStoreLocation;
@@ -29,14 +28,12 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 
 public class GenerateBlockIdUtils {
-  private static final Logger LOG = LoggerFactory.getLogger(RpcBenchUtils.class);
+  private static final Logger LOG = LoggerFactory.getLogger(GenerateBlockIdUtils.class);
 
   public static final long BLOCK_ID_START = 100_000_000L;
   public static final int CONCURRENCY = 20;
