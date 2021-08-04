@@ -12,7 +12,7 @@
 
 . $(dirname "$0")/alluxio-common.sh
 
-USAGE="Usage: alluxio-stop.sh [-h] [component] [-c cache]
+USAGE="Usage: alluxio-stop.sh [-h] [component] [-c cache] [-s]
 Where component is one of:
   all [-c cache]      \tStop all masters, proxies, and workers.
   job_master          \tStop local job master.
@@ -31,47 +31,87 @@ Where component is one of:
 
 -c cache   save the worker ramcache(s) from the worker node(s) to the
            specified directory (relative to each worker node's host filesystem).
+-s         processes won't be forcibly killed even if operation is timeout.
 -h         display this help."
 
 DEFAULT_LIBEXEC_DIR="${BIN}/../libexec"
 ALLUXIO_LIBEXEC_DIR=${ALLUXIO_LIBEXEC_DIR:-${DEFAULT_LIBEXEC_DIR}}
 . ${ALLUXIO_LIBEXEC_DIR}/alluxio-config.sh
+declare -a KILL_COMMAND
+
+generate_kill_command() {
+  unset KILL_COMMAND
+  local process_class=$1
+  KILL_COMMAND+=("${BIN}/alluxio" "killAll")
+  if [[ "${soft_kill}" = true ]]; then
+    KILL_COMMAND+=("-s")
+  fi
+  KILL_COMMAND+=("${process_class}")
+}
+
+generate_cluster_kill_command() {
+  unset KILL_COMMAND
+  local script_type=$1
+  local process_type=$2
+  if [[ "${script_type}" = "master" ]]; then
+    KILL_COMMAND+=("${BIN}/alluxio-masters.sh" "${BIN}/alluxio-stop.sh")
+  elif [[ "${script_type}" = "worker" ]]; then
+    KILL_COMMAND+=("${BIN}/alluxio-workers.sh" "${BIN}/alluxio-stop.sh")
+  else
+    echo "Error: Invalid script_type: ${script_type} "
+    exit 1
+  fi
+  KILL_COMMAND+=("${process_type}")
+  if [[ "${soft_kill}" = true ]]; then
+    KILL_COMMAND+=("-s")
+  fi
+}
 
 stop_job_master() {
-  ${LAUNCHER} "${BIN}/alluxio" "killAll" "alluxio.master.AlluxioJobMaster"
+  generate_kill_command "alluxio.master.AlluxioJobMaster"
+  ${LAUNCHER} "${KILL_COMMAND[@]}"
 }
 
 stop_job_masters() {
-  ${LAUNCHER} "${BIN}/alluxio-masters.sh" "${BIN}/alluxio-stop.sh" "job_master"
+  generate_cluster_kill_command "master" "job_master"
+  ${LAUNCHER} "${KILL_COMMAND[@]}"
 }
 
 stop_job_worker() {
-  ${LAUNCHER} "${BIN}/alluxio" "killAll" "alluxio.worker.AlluxioJobWorker"
+  generate_kill_command "alluxio.worker.AlluxioJobWorker"
+  ${LAUNCHER} "${KILL_COMMAND[@]}"
 }
 
 stop_job_workers() {
-  ${LAUNCHER} "${BIN}/alluxio-workers.sh" "${BIN}/alluxio-stop.sh" "job_worker"
+  generate_cluster_kill_command "worker" "job_worker"
+  ${LAUNCHER} "${KILL_COMMAND[@]}"
 }
 
 stop_master() {
   if [[ ${ALLUXIO_MASTER_SECONDARY} == "true" ]]; then
-    ${LAUNCHER} "${BIN}/alluxio" "killAll" "alluxio.master.AlluxioSecondaryMaster"
+    generate_kill_command "alluxio.master.AlluxioSecondaryMaster"
+    ${LAUNCHER} "${KILL_COMMAND[@]}"
   else
-    ${LAUNCHER} "${BIN}/alluxio" "killAll" "alluxio.master.AlluxioMaster"
+    generate_kill_command "alluxio.master.AlluxioMaster"
+    ${LAUNCHER} "${KILL_COMMAND[@]}"
   fi
 }
 
 stop_masters() {
-  ${LAUNCHER} "${BIN}/alluxio-masters.sh" "${BIN}/alluxio-stop.sh" "master"
+  generate_cluster_kill_command "master" "master"
+  ${LAUNCHER} "${KILL_COMMAND[@]}"
 }
 
 stop_proxy() {
-  ${LAUNCHER} "${BIN}/alluxio" "killAll" "alluxio.proxy.AlluxioProxy"
+  generate_kill_command "alluxio.proxy.AlluxioProxy"
+  ${LAUNCHER} "${KILL_COMMAND[@]}"
 }
 
 stop_proxies() {
-  ${LAUNCHER} "${BIN}/alluxio-masters.sh" "${BIN}/alluxio-stop.sh" "proxy"
-  ${LAUNCHER} "${BIN}/alluxio-workers.sh" "${BIN}/alluxio-stop.sh" "proxy"
+  generate_cluster_kill_command "master" "proxy"
+  ${LAUNCHER} "${KILL_COMMAND[@]}"
+  generate_cluster_kill_command "worker" "proxy"
+  ${LAUNCHER} "${KILL_COMMAND[@]}"
 }
 
 stop_worker() {
@@ -123,8 +163,8 @@ stop_worker() {
       fi
     done
   fi
-
-  ${LAUNCHER} "${BIN}/alluxio" "killAll" "alluxio.worker.AlluxioWorker"
+  generate_kill_command "alluxio.worker.AlluxioWorker"
+  ${LAUNCHER} "${KILL_COMMAND[@]}"
 }
 
 stop_workers() {
@@ -132,11 +172,13 @@ stop_workers() {
   if [[ -n ${cache} ]]; then
     start_opts="-c ${cache}"
   fi
-  ${LAUNCHER} "${BIN}/alluxio-workers.sh" "${BIN}/alluxio-stop.sh" "worker" ${start_opts}
+  generate_cluster_kill_command "worker" "worker"
+  ${LAUNCHER} "${KILL_COMMAND[@]}" ${start_opts}
 }
 
 stop_logserver() {
-    ${LAUNCHER} "${BIN}/alluxio" "killAll" "alluxio.logserver.AlluxioLogServer"
+  generate_kill_command "alluxio.logserver.AlluxioLogServer"
+  ${LAUNCHER} "${KILL_COMMAND[@]}"
 }
 
 
@@ -144,10 +186,13 @@ WHAT=${1:--h}
 
 # shift argument index for getopts
 shift
-while getopts "c:" o; do
+while getopts "c:s" o; do
   case "${o}" in
     c)
       cache="${OPTARG}"
+      ;;
+    s)
+      soft_kill=true
       ;;
     *)
       echo -e "${USAGE}" >&2

@@ -127,6 +127,32 @@ public class LocalCacheFileInStreamTest {
   }
 
   @Test
+  public void readEmptyFileThroughReadByteBuffer() throws Exception {
+    int fileSize = 0;
+    byte[] fileData = BufferUtils.getIncreasingByteArray(fileSize);
+    ByteArrayCacheManager manager = new ByteArrayCacheManager();
+    LocalCacheFileInStream stream = setupWithSingleFile(fileData, manager);
+
+    byte[] readData = new byte[fileSize];
+    ByteBuffer buffer = ByteBuffer.wrap(readData);
+    int totalBytesRead = stream.read(buffer, 0, fileSize + 1);
+    Assert.assertEquals(-1, totalBytesRead);
+  }
+
+  @Test
+  public void readThroughReadByteBuffer() throws Exception {
+    int fileSize = 10;
+    byte[] fileData = BufferUtils.getIncreasingByteArray(fileSize);
+    ByteArrayCacheManager manager = new ByteArrayCacheManager();
+    LocalCacheFileInStream stream = setupWithSingleFile(fileData, manager);
+
+    byte[] readData = new byte[fileSize];
+    ByteBuffer buffer = ByteBuffer.wrap(readData);
+    int totalBytesRead = stream.read(buffer, 0, fileSize + 1);
+    Assert.assertEquals(fileSize, totalBytesRead);
+  }
+
+  @Test
   public void readPartialPage() throws Exception {
     int fileSize = PAGE_SIZE;
     byte[] testData = BufferUtils.getIncreasingByteArray(fileSize);

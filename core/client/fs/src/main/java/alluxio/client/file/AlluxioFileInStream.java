@@ -30,6 +30,7 @@ import alluxio.wire.BlockInfo;
 import alluxio.wire.BlockLocation;
 import alluxio.wire.WorkerNetAddress;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Supplier;
 import com.google.common.io.Closer;
@@ -386,16 +387,20 @@ public class AlluxioFileInStream extends FileInStream {
 
   // Send an async cache request to a worker based on read type and passive cache options.
   // Note that, this is best effort
-  private void triggerAsyncCaching(BlockInStream stream) {
+  @VisibleForTesting
+  boolean triggerAsyncCaching(BlockInStream stream) {
+    final long blockId = stream.getId();
+    final BlockInfo blockInfo = mStatus.getBlockInfo(blockId);
+    if (blockInfo == null) {
+      return false;
+    }
     try {
       boolean cache = ReadType.fromProto(mOptions.getOptions().getReadType()).isCache();
       boolean overReplicated = mStatus.getReplicationMax() > 0
-          && mStatus.getFileBlockInfos().get((int) (getPos() / mBlockSize))
-          .getBlockInfo().getLocations().size() >= mStatus.getReplicationMax();
+          && blockInfo.getLocations().size() >= mStatus.getReplicationMax();
       cache = cache && !overReplicated;
       // Get relevant information from the stream.
       WorkerNetAddress dataSource = stream.getAddress();
-      long blockId = stream.getId();
       if (cache && (mLastBlockIdCached != blockId)) {
         // Construct the async cache request
         long blockLength = mOptions.getBlockInfo(blockId).getLength();
@@ -415,7 +420,7 @@ public class AlluxioFileInStream extends FileInStream {
         if (mPassiveCachingEnabled && mContext.hasProcessLocalWorker()) {
           mContext.getProcessLocalWorker().asyncCache(request);
           mLastBlockIdCached = blockId;
-          return;
+          return true;
         }
         WorkerNetAddress worker;
         if (mPassiveCachingEnabled && mContext.hasNodeLocalWorker()) {
@@ -430,9 +435,11 @@ public class AlluxioFileInStream extends FileInStream {
           mLastBlockIdCached = blockId;
         }
       }
+      return true;
     } catch (Exception e) {
       LOG.warn("Failed to complete async cache request (best effort) for block {} of file {}: {}",
           stream.getId(), mStatus.getPath(), e.toString());
+      return false;
     }
   }
 
