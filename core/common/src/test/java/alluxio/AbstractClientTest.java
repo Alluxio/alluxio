@@ -82,6 +82,15 @@ public final class AbstractClientTest {
     public synchronized InetSocketAddress getConfAddress() throws UnavailableException {
       return mAddress;
     }
+
+    @Override
+    protected void beforeConnect()
+            throws IOException {
+      // Bootstrap once for clients
+      if (!isConnected()) {
+        mContext.loadConfIfNotLoaded(mConfAddress);
+      }
+    }
   }
 
   private static class TestServiceNotFoundClient extends BaseTestClient {
