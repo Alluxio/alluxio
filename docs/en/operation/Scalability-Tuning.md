@@ -34,7 +34,8 @@ If RocksDB is used, most file metadata is stored off-heap,
 and the size of the heap impacts how many files’ metadata can be cached on the heap. See the
 [RocksDB section]({{ '/en/operation/Metastore.html#rocksdb-metastore' | relativize_url }}) for more
 information.
-* Size of disk required for journal storage - Each file takes approximately 4 KB on disk.
+* Size of disk required for journal storage - At peak, there may be two snapshot of the journal during checkpointing. 
+Thus, we need to reserve approximately 4KB (2x2KB) on the disk for each file. 
 * Latency of journal replay - The journal replay, which is the majority of the cold startup time for
 a master, takes time proportional to the number of files in the system.
 * Latency of journal backup - The journal backup takes time proportional to the number of files in
@@ -111,9 +112,6 @@ clients.
 * Amount of network bandwidth required by the worker - We recommend at least 10 MB/s per concurrent
 client. This resource is less important if a majority of tasks have locality and use short circuit.
 
-The metric "Worker.ActiveClients" displays the current number of clients connected to a particular worker,
-and can be used to estimate the peak usage.
-
 ## Alluxio Master Configuration
 
 ### Heap Size
@@ -142,7 +140,7 @@ When setting the heap size, ensure that there is enough memory allocated for off
 For example, spawning `4000` threads with a default thread stack size of `1 MB` requires at least
 `4 GB` of off-heap space available.
 * Network buffers are often allocated from a pool of direct memory in Java. 
-The configuration controlling the maximum size of direct memory allocated defaults to the xmx setting, 
+The configuration controlling the maximum size of direct memory allocated defaults to the `-Xmx` setting, 
 which can leave very little space for the other critical processes in the system. 
 We recommend setting it to 10GB for both Alluxio Master and Alluxio Workers in a typical deployment, and only increase it
 if the number of concurrent clients/RPC threads are increased.
@@ -180,13 +178,13 @@ We recommend at least 8 GB of disk space for writing logs. The write speed of th
 least 128 MB/s.
 
 When using embedded journal, the disk space is proportional to the namespace size and typical number
-of write operations within a snapshot period. We recommend at least 8 GB of disk space plus 8GB for
+of write operations within a snapshot period. We recommend at least 8 GB of disk space plus 8 GB for
 each 1 million files in the namespace. The read and write speed of the disk should be at least
 512 MB/s. We recommend a dedicated SSD for the embedded journal.
 
 When using RocksDB as the storage backend for the file system metadata, the disk space required is 
 proportional to the namespace size.
-We recommend 4GB of disk space for each 1 million files in the name space.
+We recommend 4 GB of disk space for each 1 million files in the name space.
 
 ### Operating System Limits
 
