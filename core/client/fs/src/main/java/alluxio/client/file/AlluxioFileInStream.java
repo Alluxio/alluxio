@@ -386,15 +386,15 @@ public class AlluxioFileInStream extends FileInStream {
   }
 
   // Send an async cache request to a worker based on read type and passive cache options.
-  // Note that, this is best effort and exception shall be caught and ignored
+  // Note that, this is best effort
   @VisibleForTesting
   boolean triggerAsyncCaching(BlockInStream stream) {
+    final long blockId = stream.getId();
+    final BlockInfo blockInfo = mStatus.getBlockInfo(blockId);
+    if (blockInfo == null) {
+      return false;
+    }
     try {
-      final long blockId = stream.getId();
-      final BlockInfo blockInfo = mStatus.getBlockInfo(blockId);
-      if (blockInfo == null) {
-        return true;
-      }
       boolean cache = ReadType.fromProto(mOptions.getOptions().getReadType()).isCache();
       boolean overReplicated = mStatus.getReplicationMax() > 0
           && blockInfo.getLocations().size() >= mStatus.getReplicationMax();
