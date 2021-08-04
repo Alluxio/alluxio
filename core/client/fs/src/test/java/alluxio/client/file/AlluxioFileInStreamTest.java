@@ -791,6 +791,54 @@ public final class AlluxioFileInStreamTest {
   }
 
   @Test
+  public void unbufferAroundRead() throws Exception {
+    byte[] buffer = new byte[(int) (mFileSize / 2)];
+    mTestStream.unbuffer();
+    mTestStream.read(buffer);
+    mTestStream.unbuffer();
+    assertArrayEquals(BufferUtils.getIncreasingByteArray((int) (mFileSize / 2)), buffer);
+  }
+
+  @Test
+  public void multiUnbufferAroundSeek() throws Exception {
+    int seekAmount = (int) (BLOCK_LENGTH / 2);
+    int readAmount = (int) (BLOCK_LENGTH * 2);
+    byte[] buffer = new byte[readAmount];
+    mTestStream.unbuffer();
+    mTestStream.seek(seekAmount);
+    mTestStream.unbuffer();
+    mTestStream.read(buffer);
+    assertArrayEquals(BufferUtils.getIncreasingByteArray(seekAmount, readAmount), buffer);
+
+    byte[] expected = mBlockSource != BlockInStreamSource.REMOTE ? new byte[0]
+        : BufferUtils.getIncreasingByteArray((int) BLOCK_LENGTH, (int) BLOCK_LENGTH);
+
+    mTestStream.unbuffer();
+    mTestStream.seek(seekAmount + readAmount);
+    mTestStream.unbuffer();
+    mTestStream.seek((long) (BLOCK_LENGTH * 3.1));
+    mTestStream.unbuffer();
+    assertEquals(BufferUtils.byteToInt((byte) (BLOCK_LENGTH * 3.1)), mTestStream.read());
+    mTestStream.seek(mFileSize);
+  }
+
+  @Test
+  public void multiUnbufferAroundSkip() throws Exception {
+    int skipAmount = (int) (BLOCK_LENGTH / 2);
+    int readAmount = (int) (BLOCK_LENGTH * 2);
+    byte[] buffer = new byte[readAmount];
+    mTestStream.unbuffer();
+    mTestStream.skip(skipAmount);
+    mTestStream.unbuffer();
+    mTestStream.read(buffer);
+    assertArrayEquals(BufferUtils.getIncreasingByteArray(skipAmount, readAmount), buffer);
+
+    assertEquals(0, mTestStream.skip(0));
+    assertEquals(BLOCK_LENGTH / 2, mTestStream.skip(BLOCK_LENGTH / 2));
+    assertEquals(BufferUtils.byteToInt((byte) (BLOCK_LENGTH * 3)), mTestStream.read());
+  }
+
+  @Test
   public void getPos() throws Exception {
     assertEquals(0, mTestStream.getPos());
     mTestStream.read();

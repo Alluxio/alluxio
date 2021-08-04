@@ -457,4 +457,14 @@ public class AlluxioFileInStream extends FileInStream {
 
     mFailedWorkers.put(workerAddress, System.currentTimeMillis());
   }
+
+  @Override
+  public void unbuffer() {
+    if (mBlockInStream != null) {
+      mBlockInStream.unbuffer();
+    }
+    if (mCachedPositionedReadStream != null) {
+      mCachedPositionedReadStream.unbuffer();
+    }
+  }
 }

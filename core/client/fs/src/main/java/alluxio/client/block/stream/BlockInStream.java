@@ -520,4 +520,15 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
   public long getId() {
     return mId;
   }
+
+  /**
+   * Close the buffer source for cache stream.
+   */
+  public void unbuffer() {
+    try {
+      closeDataReader();
+    } catch (IOException e) {
+      LOG.error("Failed to close DataReader", e);
+    }
+  }
 }
