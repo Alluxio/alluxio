@@ -22,53 +22,52 @@ import java.util.function.Supplier;
 
 import javax.annotation.concurrent.ThreadSafe;
 
-
 /**
  * The base class for job master clients.
  */
 @ThreadSafe
 public abstract class AbstractJobMasterClient extends AbstractMasterClient{
-    /** Address to load configuration, which may differ from {@code mAddress}. */
-    protected InetSocketAddress mConfAddress;
+  /** Address to load configuration, which may differ from {@code mAddress}. */
+  protected InetSocketAddress mConfAddress;
 
-    /** Client for determining configuration RPC address,
-     * which may be different from target address. */
-    private final MasterInquireClient mConfMasterInquireClient;
+  /** Client for determining configuration RPC address,
+   * which may be different from target address. */
+  private final MasterInquireClient mConfMasterInquireClient;
 
-    /**
-     * Creates a new master client base.
-     *
-     * @param clientConf master client configuration
-     */
-    public AbstractJobMasterClient(MasterClientContext clientConf) {
-        super(clientConf);
-        mConfMasterInquireClient = clientConf.getConfMasterInquireClient();
+  /**
+   * Creates a new master client base.
+   *
+   * @param clientConf master client configuration
+   */
+  public AbstractJobMasterClient(MasterClientContext clientConf) {
+    super(clientConf);
+    mConfMasterInquireClient = clientConf.getConfMasterInquireClient();
+  }
+
+  /**
+   * Creates a new master client base.
+   *
+   * @param clientConf master client configuration
+   * @param address address to connect to
+   * @param retryPolicySupplier retry policy to use
+   */
+  public AbstractJobMasterClient(MasterClientContext clientConf, InetSocketAddress address,
+                              Supplier<RetryPolicy> retryPolicySupplier) {
+    super(clientConf, address, retryPolicySupplier);
+    mConfMasterInquireClient = clientConf.getConfMasterInquireClient();
+  }
+
+  @Override
+  protected void beforeConnect()
+          throws IOException {
+    // Bootstrap once for clients
+    if (!isConnected()) {
+      mContext.loadConfIfNotLoaded(mConfAddress);
     }
+  }
 
-    /**
-     * Creates a new master client base.
-     *
-     * @param clientConf master client configuration
-     * @param address address to connect to
-     * @param retryPolicySupplier retry policy to use
-     */
-    public AbstractJobMasterClient(MasterClientContext clientConf, InetSocketAddress address,
-                                Supplier<RetryPolicy> retryPolicySupplier) {
-        super(clientConf, address, retryPolicySupplier);
-        mConfMasterInquireClient = clientConf.getConfMasterInquireClient();
-    }
-
-    @Override
-    protected void beforeConnect()
-            throws IOException {
-        // Bootstrap once for clients
-        if (!isConnected()) {
-            mContext.loadConfIfNotLoaded(mConfAddress);
-        }
-    }
-
-    @Override
-    public synchronized InetSocketAddress getConfAddress() throws UnavailableException {
-        return mConfMasterInquireClient.getPrimaryRpcAddress();
-    }
+  @Override
+  public synchronized InetSocketAddress getConfAddress() throws UnavailableException {
+    return mConfMasterInquireClient.getPrimaryRpcAddress();
+  }
 }
