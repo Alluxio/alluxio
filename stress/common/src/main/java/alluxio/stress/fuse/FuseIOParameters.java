@@ -28,7 +28,7 @@ public final class FuseIOParameters extends Parameters {
   public static final String FIELD_READ_RANDOM = "mReadRandom";
 
   @Parameter(names = {"--operation"},
-      description = "the operation to perform. Options are [read]",
+      description = "the operation to perform. Options are [Read]",
       converter = FuseIOOperationConverter.class,
       required = true)
   public FuseIOOperation mOperation;
@@ -37,8 +37,16 @@ public final class FuseIOParameters extends Parameters {
   public List<Integer> mThreads = Collections.singletonList(1);
 
   @Parameter(names = {"--localPath"},
-      description = "The local filesystem directory to perform operations in")
-  public String mLocalPath = "/mnt/alluxio-fuse";
+      description = "The local filesystem directory or Fuse mount point to perform operations in")
+  public String mLocalPath = "/mnt/alluxio-fuse/fuse-io-bench";
+
+  @Parameter(names = {"--file-size"},
+          description = "The files size for IO operations. (1g, 4g, etc.)")
+  public String mFileSize = "100k";
+
+  @Parameter(names = {"--num-files"},
+      description = "The number of files for the test")
+  public int mNumFiles = 1000;
 
   @Parameter(names = {"--duration"},
       description = "The length of time to run the benchmark. (1m, 10m, 60s, 10000ms, etc.)")
@@ -58,6 +66,7 @@ public final class FuseIOParameters extends Parameters {
 
   /**
    * Converts from String to FuseIOOperation instance.
+   *
    * @return FuseIOOperation of this bench
    */
   public static class FuseIOOperationConverter implements IStringConverter<FuseIOOperation> {

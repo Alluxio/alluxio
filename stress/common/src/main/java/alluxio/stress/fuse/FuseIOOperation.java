@@ -15,8 +15,11 @@ package alluxio.stress.fuse;
  * The operations for the FUSE stress tests.
  */
 public enum FuseIOOperation {
+  /** The write operation, for writing data for the read operations. */
+  WRITE("Write"),
+
   /** Currently, only streaming reading is supported, that is, reading the whole file. */
-  READ("read");
+  READ("Read");
   // TODO(Shawn): Support other types of read
 
   private final String mName;

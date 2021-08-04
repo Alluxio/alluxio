@@ -16,6 +16,7 @@ import alluxio.stress.BaseParameters;
 import alluxio.stress.StressConstants;
 import alluxio.stress.cli.Benchmark;
 import alluxio.stress.common.SummaryStatistics;
+import alluxio.stress.fuse.FuseIOOperation;
 import alluxio.stress.fuse.FuseIOParameters;
 import alluxio.stress.fuse.FuseIOTaskResult;
 import alluxio.util.CommonUtils;
@@ -67,10 +68,21 @@ public class FuseIOBench extends Benchmark<FuseIOTaskResult> {
 
   @Override
   public void prepare() throws Exception {
+    for (Integer numOfThreads: mParameters.mThreads) {
+      if (numOfThreads > mParameters.mNumFiles) {
+        throw new IllegalArgumentException(String
+            .format("Number of threads (%d) must be larger than number of files (%d)",
+                numOfThreads, mParameters.mNumFiles));
+      }
+    }
     if (mParameters.mReadRandom) {
       LOG.warn("Random read is not supported for now. Read sequentially");
       // TODO(Shawn): support random read
       mParameters.mReadRandom = false;
+    }
+    if (mParameters.mOperation == FuseIOOperation.WRITE) {
+      LOG.warn("Cannot write repeatedly, so warmup is not possible. Setting warmup to 0s.");
+      mParameters.mWarmup = "0s";
     }
   }
 
@@ -231,8 +243,8 @@ public class FuseIOBench extends Benchmark<FuseIOTaskResult> {
       mContext = context;
       mThreadId = threadId;
       mFilesPath = new ArrayList<>();
-      for (int i = mThreadId; i < 1000; i += numThreads) {
-        mFilesPath.add(mParameters.mLocalPath + "/fuseIOBench/data-" + i);
+      for (int i = mThreadId; i < mParameters.mNumFiles; i += numThreads) {
+        mFilesPath.add(mParameters.mLocalPath + "/data-" + i);
       }
     }
 
@@ -285,6 +297,12 @@ public class FuseIOBench extends Benchmark<FuseIOTaskResult> {
         case READ: {
           byte[] bytes = Files.readAllBytes(Paths.get(filePath));
           return bytes.length;
+        }
+        case WRITE: {
+          byte[] bytesToWrite = new byte[(int) FormatUtils.parseSpaceSize(mParameters.mFileSize)];
+          Arrays.fill(bytesToWrite, (byte) 'A');
+          Files.write(Paths.get(filePath), bytesToWrite);
+          return bytesToWrite.length;
         }
         default:
           throw new IllegalStateException("Unknown operation: " + mParameters.mOperation);

@@ -393,7 +393,6 @@ public class StressClientIOBench extends Benchmark<ClientIOTaskResult> {
           }
         }
       }
-
       switch (mParameters.mOperation) {
         case READ_ARRAY: {
           int bytesRead = mInStream.read(mBuffer);
