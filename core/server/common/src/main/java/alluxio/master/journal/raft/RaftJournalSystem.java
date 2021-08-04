@@ -910,26 +910,43 @@ public class RaftJournalSystem extends AbstractJournalSystem {
       );
     }
     // --- end of updating priorities ---
+    final int TRANSFER_LEADER_WAIT_MS = 30_000;
     try (RaftClient client = createClient()) {
-      LOG.info("Applying new peer state before transferring leadership: <{}>",
-              peersWithNewPriorities);
+      LOG.info("Applying new peer state before transferring leadership: {}",
+              peersToString(peersWithNewPriorities));
+      // set peers to have new priorities
       RaftClientReply reply = client.admin().setConfiguration(peersWithNewPriorities);
-      if (!reply.isSuccess()) {
-        throw reply.getException();
-      }
+      processReply(reply);
+      // transfer leadership
       LOG.info("Transferring leadership to master with address <{}> and with RaftPeerId <{}>",
               serverAddress, newLeaderPeerId);
-      RaftClientReply reply1 = client.admin().transferLeadership(newLeaderPeerId, 30_000);
-      if (!reply1.isSuccess()) {
-        throw reply1.getException();
-      }
+      reply = client.admin().transferLeadership(newLeaderPeerId, TRANSFER_LEADER_WAIT_MS);
+      processReply(reply);
       // reset the peers to have the old priorities
-      LOG.info("Resetting peer state to before transfer: <{}>", oldPeers);
-      RaftClientReply reply2 = client.admin().setConfiguration(oldPeers);
-      if (!reply2.isSuccess()) {
-        throw reply2.getException();
-      }
+      LOG.info("Resetting peer state to before transfer: {}", peersToString(oldPeers));
+      reply = client.admin().setConfiguration(oldPeers);
+      processReply(reply);
       LOG.info("Successfully reset peer state");
+    }
+  }
+
+  /**
+   * @param peers to be printed into a string
+   * @return the peers as a comma delimited list
+   */
+  private String peersToString(List<RaftPeer> peers) {
+    return "[" + peers.stream().map(RaftPeer::toString).collect(Collectors.joining(", ")) + "]";
+  }
+
+  /**
+   * @param reply from the ratis operation
+   * @throws IOException
+   */
+  private void processReply(RaftClientReply reply) throws IOException {
+    if (!reply.isSuccess()) {
+      throw reply.getException() != null
+              ? reply.getException()
+              : new IOException(String.format("reply <%s> failed", reply));
     }
   }
 
