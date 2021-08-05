@@ -37,6 +37,7 @@ public abstract class RpcBench<T extends RpcBenchParameters> extends Benchmark<R
   @Override
   public void cleanup() throws Exception {
     if (mPool != null) {
+      LOG.debug("Terminating thread pool");
       mPool.shutdownNow();
       mPool.awaitTermination(30, TimeUnit.SECONDS);
     }

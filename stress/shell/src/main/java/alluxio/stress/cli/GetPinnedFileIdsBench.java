@@ -34,13 +34,8 @@ public class GetPinnedFileIdsBench extends RpcBench<GetPinnedFileIdsParameters> 
   private GetPinnedFileIdsParameters mParameters = new GetPinnedFileIdsParameters();
 
   private final InstancedConfiguration mConf = InstancedConfiguration.defaults();
-  private final FileSystemContext mFileSystemContext;
-  private final AlluxioURI mBaseUri;
-
-  {
-    mFileSystemContext = FileSystemContext.create(mConf);
-    mBaseUri = new AlluxioURI(mParameters.mBasePath);
-  }
+  private final FileSystemContext mFileSystemContext = FileSystemContext.create(mConf);
+  private final AlluxioURI mBaseUri = new AlluxioURI(mParameters.mBasePath);
 
   @Override
   public void prepare() throws Exception {
@@ -83,6 +78,7 @@ public class GetPinnedFileIdsBench extends RpcBench<GetPinnedFileIdsParameters> 
   public void cleanup() throws Exception {
     try (CloseableResource<alluxio.client.file.FileSystemMasterClient> client =
              mFileSystemContext.acquireMasterClientResource()) {
+      LOG.info("Deleting test directory {}", mBaseUri);
       client.get().delete(mBaseUri, DeletePOptions.newBuilder().setRecursive(true).build());
     }
     super.cleanup();
