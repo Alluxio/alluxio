@@ -23,6 +23,7 @@ import alluxio.job.plan.meta.PlanInfo;
 import alluxio.job.wire.Status;
 import alluxio.job.wire.TaskInfo;
 import alluxio.master.job.command.CommandManager;
+import alluxio.util.ExceptionUtils;
 import alluxio.wire.WorkerInfo;
 
 import com.google.common.base.Objects;
@@ -123,9 +124,9 @@ public final class PlanCoordinator {
     } catch (Exception e) {
       LOG.warn("Failed to select executor. {})", e.toString());
       LOG.info("Exception: ", e);
-      mPlanInfo.setStatus(Status.FAILED);
       mPlanInfo.setErrorType(ErrorUtils.getErrorType(e));
       mPlanInfo.setErrorMessage(e.getMessage());
+      mPlanInfo.setStatus(Status.FAILED);
       return;
     }
     if (taskAddressToArgs.isEmpty()) {
@@ -194,9 +195,9 @@ public final class PlanCoordinator {
   public void setJobAsFailed(String errorType, String errorMessage) {
     synchronized (mPlanInfo) {
       if (!mPlanInfo.getStatus().isFinished()) {
-        mPlanInfo.setStatus(Status.FAILED);
         mPlanInfo.setErrorType(errorType);
         mPlanInfo.setErrorMessage(errorMessage);
+        mPlanInfo.setStatus(Status.FAILED);
       }
     }
   }
@@ -252,22 +253,10 @@ public final class PlanCoordinator {
     for (TaskInfo info : taskInfoList) {
       switch (info.getStatus()) {
         case FAILED:
-          if (mPlanInfo.getErrorMessage().isEmpty()) {
-            mPlanInfo.setErrorType(info.getErrorType());
-            mPlanInfo.setErrorMessage("Task execution failed: " + info.getErrorMessage());
-            LOG.info("Job failed Id={} Config={} Error={}", mPlanInfo.getId(),
-                mPlanInfo.getJobConfig(), info.getErrorMessage());
-          }
-          // setStatus after setting the message to propagate error message up
-          // through statusChangeCallback
-          mPlanInfo.setStatus(Status.FAILED);
+          setJobAsFailed(info.getErrorType(), "Task execution failed: " + info.getErrorMessage());
           return;
         case CANCELED:
           if (mPlanInfo.getStatus() != Status.FAILED) {
-            if (mPlanInfo.getStatus() != Status.CANCELED) {
-              LOG.info("Job cancelled Id={} Config={}",
-                  mPlanInfo.getId(), mPlanInfo.getJobConfig());
-            }
             mPlanInfo.setStatus(Status.CANCELED);
           }
           return;
@@ -296,13 +285,11 @@ public final class PlanCoordinator {
         // Try to join first, so that in case of failure we don't move to a completed state yet
         mPlanInfo.setResult(join(taskInfoList));
         mPlanInfo.setStatus(Status.COMPLETED);
-        LOG.info("Job completed Id={} Config={}", mPlanInfo.getId(), mPlanInfo.getJobConfig());
       } catch (Exception e) {
-        mPlanInfo.setStatus(Status.FAILED);
-        mPlanInfo.setErrorType(ErrorUtils.getErrorType(e));
-        mPlanInfo.setErrorMessage(e.getMessage());
-        LOG.info("Job failed when joining tasks Id={} Config={} Error={}", mPlanInfo.getId(),
-            mPlanInfo.getJobConfig(), e.getMessage());
+        LOG.warn("Job error when joining tasks Job Id={} Config={} \n {}",
+            mPlanInfo.getId(), mPlanInfo.getJobConfig(),
+            org.apache.commons.lang3.exception.ExceptionUtils.getStackTrace(e));
+        setJobAsFailed(ErrorUtils.getErrorType(e), e.getMessage());
       }
     }
   }
