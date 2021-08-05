@@ -9,18 +9,15 @@ import org.slf4j.LoggerFactory;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Consumer;
-import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 public abstract class RpcBench<T extends RpcBenchParameters> extends Benchmark<RpcTaskResult> {
   private static final Logger LOG = LoggerFactory.getLogger(RpcBench.class);
-  private ExecutorService mPool = null;
+  protected ExecutorService mPool = null;
 
   public abstract RpcTaskResult runRPC() throws Exception;
 
@@ -34,6 +31,11 @@ public abstract class RpcBench<T extends RpcBenchParameters> extends Benchmark<R
     return mPool;
   }
 
+  public <S> CompletableFuture<S> submitJob(Supplier<S> s) {
+    CompletableFuture<S> f = CompletableFuture.supplyAsync(s, mPool);
+    return f;
+  }
+
   @Override
   public void cleanup() throws Exception {
     if (mPool != null) {
@@ -45,8 +47,7 @@ public abstract class RpcBench<T extends RpcBenchParameters> extends Benchmark<R
   @Override
   public RpcTaskResult runLocal() throws Exception {
     RpcBenchParameters rpcBenchParameters = getParameters();
-    // TODO(jiacheng): refactor this and rename
-    LOG.debug("Running locally with {} threads", rpcBenchParameters.mConcurrency);
+    LOG.info("Running locally with {} threads", rpcBenchParameters.mConcurrency);
     List<CompletableFuture<RpcTaskResult>> futures = new ArrayList<>();
     try {
       for (int i = 0; i < rpcBenchParameters.mConcurrency; i++) {
@@ -88,5 +89,4 @@ public abstract class RpcBench<T extends RpcBenchParameters> extends Benchmark<R
       return result;
     }
   }
-
 }

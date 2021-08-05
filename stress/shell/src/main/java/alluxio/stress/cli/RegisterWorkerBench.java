@@ -25,6 +25,7 @@ import alluxio.worker.block.BlockMasterClient;
 
 import alluxio.worker.block.BlockStoreLocation;
 import com.beust.jcommander.ParametersDelegate;
+import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import org.slf4j.Logger;
@@ -33,10 +34,11 @@ import org.slf4j.LoggerFactory;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Deque;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -50,15 +52,16 @@ public class RegisterWorkerBench extends RpcBench<RegisterWorkerParameters> {
 
   private final InstancedConfiguration mConf = InstancedConfiguration.defaults();
 
-  private final List<Long> mBlockIds = new ArrayList<>();
   private List<LocationBlockIdListEntry> mLocationBlockIdList;
   private AtomicInteger mPortToAssign = new AtomicInteger(50000);
+
+  private Deque<Long> mWorkerPool = new ArrayDeque<>();
 
   @Override
   public void prepare() throws Exception {
     LOG.info("Task ID is {}", mBaseParameters.mId);
 
-    Map<BlockStoreLocation, List<Long>> blockMap = GenerateBlockIdUtils.generateBlockIdOnTiers(mParameters.mTiers);
+    Map<BlockStoreLocation, List<Long>> blockMap = RpcBenchPreparationUtils.generateBlockIdOnTiers(mParameters.mTiers);
 
     BlockMasterClient client =
             new BlockMasterClient(MasterClientContext
@@ -68,7 +71,14 @@ public class RegisterWorkerBench extends RpcBench<RegisterWorkerParameters> {
 
     // Prepare these block IDs concurrently
     LOG.info("Preparing block IDs at the master");
-    GenerateBlockIdUtils.prepareBlocksInMaster(blockMap);
+    RpcBenchPreparationUtils.prepareBlocksInMaster(blockMap, getPool(), mParameters.mConcurrency);
+
+    // Prepare worker IDs
+    int numWorkers = mParameters.mConcurrency;
+    mWorkerPool = RpcBenchPreparationUtils.prepareWorkerIds(client, numWorkers);
+    Preconditions.checkState(mWorkerPool.size() == numWorkers, "Expecting %s workers but registered %s",
+            numWorkers, mWorkerPool.size());
+    LOG.info("All workers registered {}", mWorkerPool);
   }
 
   /**
@@ -79,58 +89,37 @@ public class RegisterWorkerBench extends RpcBench<RegisterWorkerParameters> {
   }
 
   /**
-   * Use cases:
-   * 1. Simulate new worker registration
+   * // TODO(Jiacheng)
+   * Simulate new worker registration
+   *
    * examples:
    * For 30s, keep generating new worker registration calls, each one containing 100K block IDs
    * The concurrency you get is concurrency * cluster-limit
    * Each job worker (number controlled by cluster-limit) will spawn a threadpool with size of
    * concurrency, and each thread keeps generating new RPCs.
-   * bin/alluxio runClass alluxio.stress.cli.RpcBench --concurrency 2 --cluster-limit 1 --duration 30s --rpc registerWorker --block-count 100000
+   * bin/alluxio runClass alluxio.stress.cli.RpcBench --concurrency 2 --cluster-limit 1 --duration 30s --block-count 100000
    *
-   * 2. Simulate same worker registration
-   * bin/alluxio runClass alluxio.stress.cli.RpcBench --concurrency 20 --cluster-limit 1 --duration 30s --rpc registerWorker --block-count 100000 --fake-same-worker
-   * With high concurrency, there will be contention over the synchronized(worker) critical sections observed.
-   *
-   * 3. TODO: Simulate contention over block lock DefaultBlockMaster.mBlockLocks
-   * */
-  private RpcTaskResult simulateRegisterWorker(alluxio.worker.block.BlockMasterClient client, Instant endTime) {
+   */
+  private RpcTaskResult simulateRegisterWorker(alluxio.worker.block.BlockMasterClient client) {
     RpcTaskResult result = new RpcTaskResult();
     long i = 0;
 
-    WorkerNetAddress address;
-    long workerId = -1;
+    if (mWorkerPool == null) {
+      result.addError("Worker ID pool is null");
+      return result;
+    }
+    if (mWorkerPool.isEmpty()) {
+      result.addError("No more worker IDs for use");
+      return result;
+    }
+    long workerId = mWorkerPool.poll();
     String hostname = NetworkAddressUtils.getLocalHostName(500);
     LOG.info("Detected local hostname {}", hostname);
-    // TODO(jiacheng): need this?
-    if (mParameters.mSameWorker) {
-      LOG.info("Simulating the same worker registering again.");
-      address = new WorkerNetAddress().setHost(hostname)
-              .setDataPort(mPortToAssign.getAndIncrement())
-              .setRpcPort(mPortToAssign.getAndIncrement());
-      try {
-        workerId = client.getId(address);
-        LOG.info("Got worker ID {}", workerId);
-      } catch (Exception e) {
-        LOG.error("Failed to run iter {}", i, e);
-        result.addError(e.getMessage());
-        return result;
-      }
-    } else {
-      LOG.info("Simulating a new worker each time");
-    }
 
-    // TODO(jiacheng): default?
-    if (mParameters.mOnce) {
-      LOG.info("Only run once");
-      // If specified to run once, ignore the time stamp and run once
-      runOnce(client, result, i, workerId, hostname);
-    } else {
-      // Otherwise, keep running for as many times as possible
-      while (Instant.now().isBefore(endTime)) {
-        runOnce(client, result, i, workerId, hostname);
-      }
-    }
+    // Each client will simulate only one worker register RPC
+    // Because the number of concurrent register RPCs is the variable we want to control
+    // And we want these RPCs to invoke at roughly the same time
+    runOnce(client, result, i, workerId, hostname);
 
     return result;
   }
@@ -193,7 +182,7 @@ public class RegisterWorkerBench extends RpcBench<RegisterWorkerParameters> {
     result.setParameters(mParameters);
 
     // Stop after certain time has elapsed
-    RpcTaskResult taskResult = simulateRegisterWorker(client, endTime);
+    RpcTaskResult taskResult = simulateRegisterWorker(client);
     LOG.info("Received task result {}", taskResult);
     result.merge(taskResult);
 

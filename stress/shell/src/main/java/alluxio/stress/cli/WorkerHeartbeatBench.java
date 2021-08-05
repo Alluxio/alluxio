@@ -4,30 +4,23 @@ import alluxio.ClientContext;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.grpc.LocationBlockIdListEntry;
 import alluxio.master.MasterClientContext;
-import alluxio.resource.ResourcePool;
 import alluxio.stress.CachingBlockMasterClient;
-import alluxio.stress.rpc.RegisterWorkerParameters;
 import alluxio.stress.rpc.RpcTaskResult;
 import alluxio.stress.rpc.WorkerHeartbeatParameters;
 import alluxio.util.FormatUtils;
-import alluxio.util.network.NetworkAddressUtils;
-import alluxio.wire.WorkerNetAddress;
 import alluxio.worker.block.BlockMasterClient;
 import alluxio.worker.block.BlockStoreLocation;
 import com.beust.jcommander.ParametersDelegate;
 import com.google.common.base.Preconditions;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Deque;
 import java.util.List;
 import java.util.Map;
@@ -45,6 +38,11 @@ public class WorkerHeartbeatBench extends RpcBench<WorkerHeartbeatParameters>{
 
   private Deque<Long> mWorkerPool = new ArrayDeque<>();
 
+  private static final long CAPACITY = 20L * 1024 * 1024 * 1024; // 20GB
+  private static final Map<String, Long> CAPACITY_MEM = ImmutableMap.of("MEM", CAPACITY);
+  private static final Map<String, Long> USED_MEM_EMPTY = ImmutableMap.of("MEM", 0L);
+  private static final BlockStoreLocation BLOCK_LOCATION_MEM = new BlockStoreLocation("MEM", 0, "MEM");
+
   @Override
   public RpcTaskResult runRPC() throws Exception {
     RpcTaskResult result = new RpcTaskResult();
@@ -52,10 +50,14 @@ public class WorkerHeartbeatBench extends RpcBench<WorkerHeartbeatParameters>{
     result.setParameters(mParameters);
 
     if (mWorkerPool == null) {
-      result.addError("Worker pool is null");
-      throw new NullPointerException("Worker pool is null");
+      result.addError("Worker ID pool is null");
+      return result;
     }
     // Get the worker to use
+    if (mWorkerPool.isEmpty()) {
+      result.addError("No more worker IDs for use");
+      return result;
+    }
     long workerId = mWorkerPool.poll();
     LOG.info("Acquired worker ID {}", workerId);
 
@@ -88,22 +90,16 @@ public class WorkerHeartbeatBench extends RpcBench<WorkerHeartbeatParameters>{
                                                Instant endTime) {
     RpcTaskResult result = new RpcTaskResult();
 
-    // TODO(jiacheng): constant
-    long cap = 20L * 1024 * 1024 * 1024; // 20GB
-    Map<String, Long> capMap = ImmutableMap.of("MEM", cap);
-    Map<String, Long> usedMap = ImmutableMap.of("MEM", 0L);
-    BlockStoreLocation mem = new BlockStoreLocation("MEM", 0, "MEM");
-
     // Keep sending heartbeats
     long i = 0;
     while (Instant.now().isBefore(endTime)) {
       Instant s = Instant.now();
       try {
         client.heartbeat(workerId,
-                capMap,
-                usedMap,
+                CAPACITY_MEM,
+                USED_MEM_EMPTY,
                 new ArrayList<>(), // no removed blocks
-                ImmutableMap.of(mem, mBlockIds), // added blocks
+                ImmutableMap.of(BLOCK_LOCATION_MEM, mBlockIds), // added blocks
                 ImmutableMap.of(), // lost storage
                 new ArrayList<>()); // metrics
         Instant e = Instant.now();
@@ -123,7 +119,7 @@ public class WorkerHeartbeatBench extends RpcBench<WorkerHeartbeatParameters>{
   public void prepare() throws Exception {
     // Prepare blocks in the master
     LOG.info("Task ID is {}", mBaseParameters.mId);
-    Map<BlockStoreLocation, List<Long>> blockMap = GenerateBlockIdUtils.generateBlockIdOnTiers(mParameters.mTiers);
+    Map<BlockStoreLocation, List<Long>> blockMap = RpcBenchPreparationUtils.generateBlockIdOnTiers(mParameters.mTiers);
 
     BlockMasterClient client =
             new BlockMasterClient(MasterClientContext
@@ -133,41 +129,11 @@ public class WorkerHeartbeatBench extends RpcBench<WorkerHeartbeatParameters>{
 
     // Prepare these block IDs concurrently
     LOG.info("Preparing block IDs at the master");
-    GenerateBlockIdUtils.prepareBlocksInMaster(blockMap);
+    RpcBenchPreparationUtils.prepareBlocksInMaster(blockMap, getPool(), mParameters.mConcurrency);
 
     // Prepare simulated workers
     int numWorkers = mParameters.mConcurrency;
-    for (int i = 0; i < numWorkers; i++) {
-      LOG.info("Preparing number {}", i);
-
-      // prepare a worker ID
-      int startPort = 9999;
-      long workerId;
-      String hostname = NetworkAddressUtils.getLocalHostName(500);
-      LOG.info("Detected local hostname {}", hostname);
-      WorkerNetAddress address = new WorkerNetAddress().setHost(hostname).setDataPort(startPort++).setRpcPort(startPort++);
-      workerId = client.getId(address);
-      LOG.info("Created worker ID {}", workerId);
-
-      // Register worker
-      // TODO(jiacheng): constant
-      List<String> tierAliases = new ArrayList<>();
-      tierAliases.add("MEM");
-      long cap = 20L * 1024 * 1024 * 1024; // 20GB
-      Map<String, Long> capMap = ImmutableMap.of("MEM", cap);
-      Map<String, Long> usedMap = ImmutableMap.of("MEM", 0L);
-      BlockStoreLocation mem = new BlockStoreLocation("MEM", 0, "MEM");
-      client.register(workerId,
-              tierAliases,
-              capMap,
-              usedMap,
-              ImmutableMap.of(mem, new ArrayList<>()),
-              ImmutableMap.of("MEM", new ArrayList<>()), // lost storage
-              ImmutableList.of()); // extra config
-      LOG.info("Worker {} registered", workerId);
-
-      mWorkerPool.offer(workerId);
-    }
+    mWorkerPool = RpcBenchPreparationUtils.prepareWorkerIds(client, numWorkers);
     Preconditions.checkState(mWorkerPool.size() == numWorkers, "Expecting %s workers but registered %s",
             numWorkers, mWorkerPool.size());
     LOG.info("All workers registered {}", mWorkerPool);

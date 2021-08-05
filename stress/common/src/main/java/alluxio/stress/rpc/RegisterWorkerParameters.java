@@ -34,10 +34,4 @@ public class RegisterWorkerParameters extends RpcBenchParameters {
    * Use semi-colon to separate tiers, use commas to separate dirs
    * */
   public String mTiers;
-
-  // TODO(jiacheng): registerWorker RPCs should only be invoked once on each thread
-  //  this param should be the default behavior and then removed
-  @Parameter(names = {"--once"}, description = "If this is set to true, --duration will be "
-          + "ignored and each simulated worker will send the request once.")
-  public boolean mOnce = false;
 }
