@@ -519,7 +519,7 @@ public class InodeTree implements DelegatingJournaled {
         // The path does not end up at the target inode id. Repeat the traversal.
       } catch (InvalidPathException e) {
         // ignore and repeat the loop
-        LOG.debug("Inode lookup id {} computed path {} mismatch id. Repeating.", id, uri);
+        LOG.info("Inode lookup id {} computed path {} mismatch id. Repeating.", id, uri);
       } finally {
         if (!valid && inodePath != null) {
           inodePath.close();
@@ -710,7 +710,7 @@ public class InodeTree implements DelegatingJournaled {
       }
     }
 
-    LOG.debug("createPath {}", path);
+    LOG.info("createPath {}", path);
 
     String[] pathComponents = inodePath.mPathComponents;
     String name = path.getName();
@@ -903,7 +903,7 @@ public class InodeTree implements DelegatingJournaled {
     Inode inode = Inode.wrap(newInode);
     inodePath.addNextInode(inode);
     createdInodes.add(inode);
-    LOG.debug("createFile: File Created: {} parent: {}", newInode, currentInodeDirectory);
+    LOG.info("createFile: File Created: {} parent: {}", newInode, currentInodeDirectory);
     return createdInodes;
   }
 

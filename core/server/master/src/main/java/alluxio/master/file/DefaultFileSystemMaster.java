@@ -1152,7 +1152,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
           listStatusInternal(context, rpcContext, childInodePath, auditContext, nextDescendantType,
               resultStream, depth + 1, counter);
         } catch (InvalidPathException | FileDoesNotExistException e) {
-          LOG.debug("Path \"{}\" is invalid, has been ignored.",
+          LOG.info("Path \"{}\" is invalid, has been ignored.",
               PathUtils.concatPath("/", childComponentsHint));
         }
       }
@@ -1305,7 +1305,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
         }
       }
     } catch (InvalidPathException e) {
-      LOG.debug("Path \"{}\" is invalid, has been ignored.",
+      LOG.info("Path \"{}\" is invalid, has been ignored.",
           PathUtils.concatPath(inodePath.getUri().getPath()));
     }
   }
@@ -2284,7 +2284,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
         mMountTable.checkUnderWritableMountPoint(dstPath);
         renameInternal(rpcContext, srcInodePath, dstInodePath, context);
         auditContext.setSrcInode(srcInodePath.getInode()).setSucceeded(true);
-        LOG.debug("Renamed {} to {}", srcPath, dstPath);
+        LOG.info("Renamed {} to {}", srcPath, dstPath);
       }
     }
   }
@@ -2292,7 +2292,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
   private boolean shouldPersistPath(String path) {
     for (String pattern : mPersistBlacklist) {
       if (path.contains(pattern)) {
-        LOG.debug("Not persisting path {} because it is in {}: {}", path,
+        LOG.info("Not persisting path {} because it is in {}: {}", path,
             PropertyKey.Name.MASTER_PERSISTENCE_BLACKLIST, mPersistBlacklist);
         return false;
       }
@@ -2374,7 +2374,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
     // frameworks that use rename as a commit operation.
     if (context.getPersist() && srcInode.isFile() && !srcInode.isPersisted()
         && shouldPersistPath(dstInodePath.toString())) {
-      LOG.debug("Schedule Async Persist on rename for File {}", srcInodePath);
+      LOG.info("Schedule Async Persist on rename for File {}", srcInodePath);
       mInodeTree.updateInode(rpcContext, UpdateInodeEntry.newBuilder()
           .setId(srcInode.getId())
           .setPersistenceState(PersistenceState.TO_BE_PERSISTED.name())
@@ -2392,7 +2392,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
     // If a directory is being renamed with persist on rename, attempt to persist children
     if (srcInode.isDirectory() && context.getPersist()
         && shouldPersistPath(dstInodePath.toString())) {
-      LOG.debug("Schedule Async Persist on rename for Dir: {}", dstInodePath);
+      LOG.info("Schedule Async Persist on rename for Dir: {}", dstInodePath);
       try (LockedInodePathList descendants = mInodeTree.getDescendants(srcInodePath)) {
         for (LockedInodePath childPath : descendants) {
           Inode childInode = childPath.getInode();
@@ -2400,7 +2400,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
           if (childInode.isFile() && !childInode.isPersisted()
               && shouldPersistPath(
                   childPath.toString().substring(srcInodePath.toString().length()))) {
-            LOG.debug("Schedule Async Persist on rename for Child File: {}", childPath);
+            LOG.info("Schedule Async Persist on rename for Child File: {}", childPath);
             mInodeTree.updateInode(rpcContext, UpdateInodeEntry.newBuilder()
                 .setId(childInode.getId())
                 .setPersistenceState(PersistenceState.TO_BE_PERSISTED.name())
@@ -2447,7 +2447,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
     String srcName = srcPath.getName();
     String dstName = dstPath.getName();
 
-    LOG.debug("Renaming {} to {}", srcPath, dstPath);
+    LOG.info("Renaming {} to {}", srcPath, dstPath);
     if (dstInodePath.fullPathExists()) {
       throw new InvalidPathException("Destination path: " + dstPath + " already exists.");
     }
@@ -2707,7 +2707,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
     InodeSyncStream sync = new InodeSyncStream(new LockingScheme(path, LockPattern.READ, false),
         this, rpcContext, syncDescendantType, commonOptions, isGetFileInfo, true, true, loadAlways);
     if (sync.sync().equals(FAILED)) {
-      LOG.debug("Failed to load metadata for path from UFS: {}", path);
+      LOG.info("Failed to load metadata for path from UFS: {}", path);
     }
   }
 
@@ -3335,7 +3335,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
         InodeSyncStream sync = new InodeSyncStream(scheme, this, rpcContext,
             DescendantType.ALL, options, false, false, false, false);
         if (sync.sync().equals(FAILED)) {
-          LOG.debug("Active full sync on {} didn't sync any paths.", path);
+          LOG.info("Active full sync on {} didn't sync any paths.", path);
         }
         long end = System.currentTimeMillis();
         LOG.info("Ended an active full sync of {} in {}ms", path.toString(), end - start);
@@ -3354,7 +3354,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
                 DescendantType.ONE, options, false, false, false, false);
             if (sync.sync().equals(FAILED)) {
               // Use debug because this can be a noisy log
-              LOG.debug("Incremental sync on {} didn't sync any paths.", path);
+              LOG.info("Incremental sync on {} didn't sync any paths.", path);
             }
             return null;
           });
@@ -3558,7 +3558,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
     // If the file is persisted in UFS, also update corresponding owner/group/permission.
     if ((ownerGroupChanged || modeChanged) && updateUfs && inode.isPersisted()) {
       if ((inode instanceof InodeFile) && !inode.asFile().isCompleted()) {
-        LOG.debug("Alluxio does not propagate chown/chgrp/chmod to UFS for incomplete files.");
+        LOG.info("Alluxio does not propagate chown/chgrp/chmod to UFS for incomplete files.");
       } else {
         checkUfsMode(inodePath.getUri(), OperationType.WRITE);
         MountTable.Resolution resolution = mMountTable.resolve(inodePath.getUri());
@@ -3566,7 +3566,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
         try (CloseableResource<UnderFileSystem> ufsResource = resolution.acquireUfsResource()) {
           UnderFileSystem ufs = ufsResource.get();
           if (ufs.isObjectStorage()) {
-            LOG.debug("setOwner/setMode is not supported to object storage UFS via Alluxio. "
+            LOG.info("setOwner/setMode is not supported to object storage UFS via Alluxio. "
                 + "UFS: " + ufsUri + ". This has no effect on the underlying object.");
           } else {
             String owner = null;
@@ -3835,7 +3835,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
           String mountPointUri = resolution.getUfsMountPointUri().toString();
           tempUfsPath = PathUtils.concatUfsPath(mountPointUri,
               PathUtils.getPersistentTmpPath(resolution.getUri().toString()));
-          LOG.debug("Generate tmp ufs path {} from ufs path {} for persistence.",
+          LOG.info("Generate tmp ufs path {} from ufs path {} for persistence.",
               tempUfsPath, resolution.getUri().toString());
         }
       }
@@ -3846,7 +3846,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
       long jobId;
       JobMasterClient client = mJobMasterClientPool.acquire();
       try {
-        LOG.debug("Schedule async persist job for {}", uri.getPath());
+        LOG.info("Schedule async persist job for {}", uri.getPath());
         jobId = client.run(config);
       } finally {
         mJobMasterClientPool.release(client);
@@ -3878,7 +3878,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
      */
     @Override
     public void heartbeat() throws InterruptedException {
-      LOG.debug("Async Persist heartbeat start");
+      LOG.info("Async Persist heartbeat start");
       java.util.concurrent.TimeUnit.SECONDS.sleep(mQuietPeriodSeconds);
       // Process persist requests.
       for (long fileId : mPersistRequests.keySet()) {
@@ -3903,7 +3903,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
               .lockFullInodePath(fileId, LockPattern.READ)) {
             uri = inodePath.getUri();
           } catch (FileDoesNotExistException e) {
-            LOG.debug("The file (id={}) to be persisted was not found. Likely this file has been "
+            LOG.info("The file (id={}) to be persisted was not found. Likely this file has been "
                 + "removed by users", fileId, e);
             continue;
           }
@@ -3928,13 +3928,13 @@ public final class DefaultFileSystemMaster extends CoreMaster
         } catch (FileDoesNotExistException | InvalidPathException e) {
           LOG.warn("The file {} (id={}) to be persisted was not found : {}", uri, fileId,
               e.toString());
-          LOG.debug("Exception: ", e);
+          LOG.info("Exception: ", e);
         } catch (UnavailableException e) {
           LOG.warn("Failed to persist file {}, will retry later: {}", uri, e.toString());
           remove = false;
         } catch (ResourceExhaustedException e) {
           LOG.warn("The job service is busy, will retry later: {}", e.toString());
-          LOG.debug("Exception: ", e);
+          LOG.info("Exception: ", e);
           mQuietPeriodSeconds = (mQuietPeriodSeconds == 0) ? 1 :
               Math.min(MAX_QUIET_PERIOD_SECONDS, mQuietPeriodSeconds * 2);
           remove = false;
@@ -3944,7 +3944,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
         } catch (Exception e) {
           LOG.warn("Unexpected exception encountered when scheduling the persist job for file {} "
               + "(id={}) : {}", uri, fileId, e.toString());
-          LOG.debug("Exception: ", e);
+          LOG.info("Exception: ", e);
         } finally {
           if (remove) {
             mPersistRequests.remove(fileId);
@@ -4060,7 +4060,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
       } catch (FileDoesNotExistException | InvalidPathException e) {
         LOG.warn("The file {} (id={}) to be persisted was not found: {}", job.getUri(), fileId,
             e.toString());
-        LOG.debug("Exception: ", e);
+        LOG.info("Exception: ", e);
         // Cleanup the temporary file.
         if (ufsClient != null) {
           try (CloseableResource<UnderFileSystem> ufsResource = ufsClient.acquireUfsResource()) {
@@ -4072,7 +4072,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
             "Unexpected exception encountered when trying to complete persistence of a file {} "
                 + "(id={}) : {}",
             job.getUri(), fileId, e.toString());
-        LOG.debug("Exception: ", e);
+        LOG.info("Exception: ", e);
         if (ufsClient != null) {
           try (CloseableResource<UnderFileSystem> ufsResource = ufsClient.acquireUfsResource()) {
             cleanup(ufsResource.get(), tempUfsPath);
@@ -4137,7 +4137,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
           try {
             mkdirSuccess = ufs.mkdirs(dir, options);
           } catch (IOException e) {
-            LOG.debug("Persistence job {}: Exception Directory {}: ", jobId, dir, e);
+            LOG.info("Persistence job {}: Exception Directory {}: ", jobId, dir, e);
           }
           if (mkdirSuccess) {
             List<AclEntry> allAcls =
@@ -4147,7 +4147,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
             ufs.setAclEntries(dir, allAcls);
           } else {
             if (ufs.isDirectory(dir)) {
-              LOG.debug("Persistence job {}: UFS directory {} already exists", jobId, dir);
+              LOG.info("Persistence job {}: UFS directory {} already exists", jobId, dir);
             } else {
               LOG.error("Persistence job {}: UFS path {} is an existing file", jobId, dir);
             }
@@ -4186,13 +4186,13 @@ public final class DefaultFileSystemMaster extends CoreMaster
             } catch (alluxio.exception.status.NotFoundException e) {
               LOG.warn("Persist job (id={}) for file {} (id={}) to cancel was not found: {}",
                   job.getId(), job.getUri(), fileId, e.toString());
-              LOG.debug("Exception: ", e);
+              LOG.info("Exception: ", e);
               mPersistJobs.remove(fileId);
               continue;
             } catch (Exception e) {
               LOG.warn("Unexpected exception encountered when cancelling a persist job (id={}) for "
                   + "file {} (id={}) : {}", job.getId(), job.getUri(), fileId, e.toString());
-              LOG.debug("Exception: ", e);
+              LOG.info("Exception: ", e);
             } finally {
               mJobMasterClientPool.release(client);
             }
@@ -4235,7 +4235,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
           LOG.warn("Exception encountered when trying to retrieve the status of a "
                   + " persist job (id={}) for file {} (id={}): {}.", jobId, job.getUri(), fileId,
               e.toString());
-          LOG.debug("Exception: ", e);
+          LOG.info("Exception: ", e);
           mPersistJobs.remove(fileId);
           mPersistRequests.put(fileId, job.getTimer());
         } finally {
@@ -4570,7 +4570,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
           String primaryGroup = CommonUtils.getPrimaryGroupName(user, ServerConfiguration.global());
           ugi = user + "," + primaryGroup;
         } catch (IOException e) {
-          LOG.debug("Failed to get primary group for user {}.", user);
+          LOG.info("Failed to get primary group for user {}.", user);
           ugi = user + ",N/A";
         }
       }

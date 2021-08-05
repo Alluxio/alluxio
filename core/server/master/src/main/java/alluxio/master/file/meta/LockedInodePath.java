@@ -21,6 +21,8 @@ import alluxio.master.metastore.ReadOnlyInodeStore;
 import alluxio.util.io.PathUtils;
 
 import com.google.common.base.Preconditions;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.Closeable;
 import java.util.List;
@@ -55,6 +57,8 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public class LockedInodePath implements Closeable {
+  private static final Logger LOG = LoggerFactory.getLogger(LockedInodePath.class);
+
   /**
    * The root inode of the inode tree. This is needed to bootstrap the inode path.
    */
@@ -231,6 +235,8 @@ public class LockedInodePath implements Closeable {
    *         the current thread has added or deleted inodes since the last call to traverse()
    */
   public boolean fullPathExists() {
+    LOG.info("numLocks: {}, mLockList: {}, pathComponents: {}", mLockList.numInodes(),
+            mLockList);
     return mLockList.numInodes() == mPathComponents.length;
   }
 

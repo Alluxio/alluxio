@@ -152,8 +152,12 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
   public void createDirectory(final AlluxioURI path,
       final CreateDirectoryPOptions options) throws AlluxioStatusException {
     retryRPC(
-        () -> mClient.createDirectory(CreateDirectoryPRequest.newBuilder()
-            .setPath(getTransportPath(path)).setOptions(options).build()),
+        () -> {
+          CreateDirectoryPRequest build = CreateDirectoryPRequest.newBuilder()
+                  .setPath(getTransportPath(path)).setOptions(options).build();
+          RPC_LOG.info("RPC CreateDirectory request: {}", build);
+          return mClient.createDirectory(build);
+        },
         RPC_LOG, "CreateDirectory", "path=%s,options=%s", path, options);
   }
 
@@ -161,9 +165,12 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
   public URIStatus createFile(final AlluxioURI path, final CreateFilePOptions options)
       throws AlluxioStatusException {
     return retryRPC(
-        () -> new URIStatus(GrpcUtils.fromProto(mClient.createFile(CreateFilePRequest.newBuilder()
-            .setPath(getTransportPath(path)).setOptions(options).build()).getFileInfo())),
-        RPC_LOG, "CreateFile", "path=%s,options=%s", path, options);
+        () -> {
+          CreateFilePRequest build = CreateFilePRequest.newBuilder()
+                  .setPath(getTransportPath(path)).setOptions(options).build();
+          RPC_LOG.info("RPC CreateFile request: {}", build);
+          return new URIStatus(GrpcUtils.fromProto(mClient.createFile(build).getFileInfo()));
+        }, RPC_LOG, "CreateFile", "path=%s,options=%s", path, options);
   }
 
   @Override
@@ -177,9 +184,12 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
   @Override
   public void delete(final AlluxioURI path, final DeletePOptions options)
       throws AlluxioStatusException {
-    retryRPC(() -> mClient.remove(DeletePRequest.newBuilder().setPath(getTransportPath(path))
-        .setOptions(options).build()), RPC_LOG, "Delete",
-        "path=%s,options=%s", path, options);
+    retryRPC(() -> {
+      DeletePRequest build = DeletePRequest.newBuilder().setPath(getTransportPath(path))
+              .setOptions(options).build();
+      RPC_LOG.info("RPC delete request: {}", build);
+      return mClient.remove(build);
+      }, RPC_LOG, "Delete", "path=%s,options=%s", path, options);
   }
 
   @Override

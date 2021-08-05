@@ -220,13 +220,13 @@ public abstract class AbstractClient implements Client {
         mAddress = getAddress();
         mConfAddress = getConfAddress();
       } catch (UnavailableException e) {
-        LOG.debug("Failed to determine {} rpc address ({}): {}",
+        LOG.info("Failed to determine {} rpc address ({}): {}",
             getServiceName(), retryPolicy.getAttemptCount(), e.toString());
         continue;
       }
       try {
         beforeConnect();
-        LOG.debug("Alluxio client (version {}) is trying to connect with {} @ {}",
+        LOG.info("Alluxio client (version {}) is trying to connect with {} @ {}",
             RuntimeConstants.VERSION, getServiceName(), mAddress);
         mChannel = GrpcChannelBuilder
             .newBuilder(GrpcServerAddress.create(mAddress), mContext.getClusterConf())
@@ -238,11 +238,11 @@ public abstract class AbstractClient implements Client {
         mConnected = true;
         afterConnect();
         checkVersion(getServiceVersion());
-        LOG.debug("Alluxio client (version {}) is connected with {} @ {}", RuntimeConstants.VERSION,
+        LOG.info("Alluxio client (version {}) is connected with {} @ {}", RuntimeConstants.VERSION,
             getServiceName(), mAddress);
         return;
       } catch (IOException e) {
-        LOG.debug("Failed to connect ({}) with {} @ {}", retryPolicy.getAttemptCount(),
+        LOG.info("Failed to connect ({}) with {} @ {}", retryPolicy.getAttemptCount(),
             getServiceName(), mAddress, e);
         lastConnectFailure = e;
         if (e instanceof UnauthenticatedException) {
@@ -294,7 +294,7 @@ public abstract class AbstractClient implements Client {
   public synchronized void disconnect() {
     if (mConnected) {
       Preconditions.checkNotNull(mChannel, PreconditionMessage.CHANNEL_NULL_WHEN_CONNECTED);
-      LOG.debug("Disconnecting from the {} @ {}", getServiceName(), mAddress);
+      LOG.info("Disconnecting from the {} @ {}", getServiceName(), mAddress);
       beforeDisconnect();
       mChannel.shutdown();
       mConnected = false;
@@ -374,14 +374,14 @@ public abstract class AbstractClient implements Client {
     String debugDesc = logger.isDebugEnabled() ? String.format(description, args) : null;
     // TODO(binfan): create RPC context so we could get RPC duration from metrics timer directly
     long startMs = System.currentTimeMillis();
-    logger.debug("Enter: {}({})", rpcName, debugDesc);
+    logger.info("Enter: {}({})", rpcName, debugDesc);
     try (Timer.Context ctx = MetricsSystem.timer(getQualifiedMetricName(rpcName)).time()) {
       V ret = retryRPCInternal(retryPolicy, rpc, () -> {
         MetricsSystem.counter(getQualifiedRetryMetricName(rpcName)).inc();
         return null;
       });
       long duration = System.currentTimeMillis() - startMs;
-      logger.debug("Exit (OK): {}({}) in {} ms", rpcName, debugDesc, duration);
+      logger.info("Exit (OK): {}({}) in {} ms", rpcName, debugDesc, duration);
       if (duration >= mRpcThreshold) {
         logger.warn("{}({}) returned {} in {} ms (>={} ms)",
             rpcName, String.format(description, args), ret, duration, mRpcThreshold);
@@ -390,7 +390,7 @@ public abstract class AbstractClient implements Client {
     } catch (Exception e) {
       long duration = System.currentTimeMillis() - startMs;
       MetricsSystem.counter(getQualifiedFailureMetricName(rpcName)).inc();
-      logger.debug("Exit (ERROR): {}({}) in {} ms: {}",
+      logger.info("Exit (ERROR): {}({}) in {} ms: {}",
           rpcName, debugDesc, duration, e.toString());
       if (duration >= mRpcThreshold) {
         logger.warn("{}({}) exits with exception [{}] in {} ms (>={}ms)",
@@ -421,7 +421,7 @@ public abstract class AbstractClient implements Client {
           throw se;
         }
       }
-      LOG.debug("Rpc failed ({}): {}", retryPolicy.getAttemptCount(), ex.toString());
+      LOG.info("Rpc failed ({}): {}", retryPolicy.getAttemptCount(), ex.toString());
       onRetry.get();
       disconnect();
     }

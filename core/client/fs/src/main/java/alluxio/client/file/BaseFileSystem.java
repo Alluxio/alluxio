@@ -140,7 +140,7 @@ public class BaseFileSystem implements FileSystem {
           .checkAccessDefaults(mFsContext.getPathConf(path))
           .toBuilder().mergeFrom(options).build();
       client.checkAccess(path, mergedOptions);
-      LOG.debug("Checked access {}, options: {}", path.getPath(), mergedOptions);
+      LOG.info("Checked access {}, options: {}", path.getPath(), mergedOptions);
       return null;
     });
   }
@@ -153,7 +153,7 @@ public class BaseFileSystem implements FileSystem {
       CreateDirectoryPOptions mergedOptions = FileSystemOptions.createDirectoryDefaults(
           mFsContext.getPathConf(path)).toBuilder().mergeFrom(options).build();
       client.createDirectory(path, mergedOptions);
-      LOG.debug("Created directory {}, options: {}", path.getPath(), mergedOptions);
+      LOG.info("Created directory {}, options: {}", path.getPath(), mergedOptions);
       return null;
     });
   }
@@ -166,7 +166,7 @@ public class BaseFileSystem implements FileSystem {
       CreateFilePOptions mergedOptions = FileSystemOptions.createFileDefaults(
           mFsContext.getPathConf(path)).toBuilder().mergeFrom(options).build();
       URIStatus status = client.createFile(path, mergedOptions);
-      LOG.debug("Created file {}, options: {}", path.getPath(), mergedOptions);
+      LOG.info("Created file {}, options: {}", path.getPath(), mergedOptions);
       OutStreamOptions outStreamOptions =
           new OutStreamOptions(mergedOptions, mFsContext.getClientContext(),
               mFsContext.getPathConf(path));
@@ -190,7 +190,7 @@ public class BaseFileSystem implements FileSystem {
       DeletePOptions mergedOptions = FileSystemOptions.deleteDefaults(
           mFsContext.getPathConf(path)).toBuilder().mergeFrom(options).build();
       client.delete(path, mergedOptions);
-      LOG.debug("Deleted {}, options: {}", path.getPath(), mergedOptions);
+      LOG.info("Deleted {}, options: {}", path.getPath(), mergedOptions);
       return null;
     });
   }
@@ -220,7 +220,7 @@ public class BaseFileSystem implements FileSystem {
       FreePOptions mergedOptions = FileSystemOptions.freeDefaults(mFsContext.getPathConf(path))
           .toBuilder().mergeFrom(options).build();
       client.free(path, mergedOptions);
-      LOG.debug("Freed {}, options: {}", path.getPath(), mergedOptions);
+      LOG.info("Freed {}, options: {}", path.getPath(), mergedOptions);
       return null;
     });
   }
@@ -331,7 +331,7 @@ public class BaseFileSystem implements FileSystem {
           mFsContext.getPathConf(alluxioPath)).toBuilder().mergeFrom(options).build();
       // TODO(calvin): Make this fail on the master side
       client.mount(alluxioPath, ufsPath, mergedOptions);
-      LOG.debug("Mount {} to {}", ufsPath, alluxioPath.getPath());
+      LOG.info("Mount {} to {}", ufsPath, alluxioPath.getPath());
       return null;
     });
   }
@@ -344,7 +344,7 @@ public class BaseFileSystem implements FileSystem {
       MountPOptions mergedOptions = FileSystemOptions.mountDefaults(
           mFsContext.getPathConf(alluxioPath)).toBuilder().mergeFrom(options).build();
       client.updateMount(alluxioPath, mergedOptions);
-      LOG.debug("UpdateMount on {}", alluxioPath.getPath());
+      LOG.info("UpdateMount on {}", alluxioPath.getPath());
       return null;
     });
   }
@@ -368,7 +368,7 @@ public class BaseFileSystem implements FileSystem {
           FileSystemOptions.scheduleAsyncPersistDefaults(mFsContext.getPathConf(path)).toBuilder()
               .mergeFrom(options).build();
       client.scheduleAsyncPersist(path, mergedOptions);
-      LOG.debug("Scheduled persist for {}, options: {}", path.getPath(), mergedOptions);
+      LOG.info("Scheduled persist for {}, options: {}", path.getPath(), mergedOptions);
       return null;
     });
   }
@@ -415,7 +415,7 @@ public class BaseFileSystem implements FileSystem {
           .toBuilder().mergeFrom(options).build();
       // TODO(calvin): Update this code on the master side.
       client.rename(src, dst, mergedOptions);
-      LOG.debug("Renamed {} to {}, options: {}", src.getPath(), dst.getPath(), mergedOptions);
+      LOG.info("Renamed {} to {}, options: {}", src.getPath(), dst.getPath(), mergedOptions);
       return null;
     });
   }
@@ -424,7 +424,7 @@ public class BaseFileSystem implements FileSystem {
   public AlluxioURI reverseResolve(AlluxioURI ufsUri) throws IOException, AlluxioException {
     return rpc(client -> {
       AlluxioURI path = client.reverseResolve(ufsUri);
-      LOG.debug("Reverse resolved {} to {}", ufsUri, path.getPath());
+      LOG.info("Reverse resolved {} to {}", ufsUri, path.getPath());
       return path;
     });
   }
@@ -437,7 +437,7 @@ public class BaseFileSystem implements FileSystem {
       SetAclPOptions mergedOptions = FileSystemOptions.setAclDefaults(
           mFsContext.getPathConf(path)).toBuilder().mergeFrom(options).build();
       client.setAcl(path, action, entries, mergedOptions);
-      LOG.debug("Set ACL for {}, entries: {} options: {}", path.getPath(), entries,
+      LOG.info("Set ACL for {}, entries: {} options: {}", path.getPath(), entries,
           mergedOptions);
       return null;
     });
@@ -452,7 +452,7 @@ public class BaseFileSystem implements FileSystem {
             .toBuilder().mergeFrom(options).build();
     rpc(client -> {
       client.setAttribute(path, mergedOptions);
-      LOG.debug("Set attributes for {}, options: {}", path.getPath(), options);
+      LOG.info("Set attributes for {}, options: {}", path.getPath(), options);
       return null;
     });
   }
@@ -467,7 +467,7 @@ public class BaseFileSystem implements FileSystem {
       throws FileDoesNotExistException, IOException, AlluxioException {
     rpc(client -> {
       client.startSync(path);
-      LOG.debug("Start syncing for {}", path.getPath());
+      LOG.info("Start syncing for {}", path.getPath());
       return null;
     });
   }
@@ -481,7 +481,7 @@ public class BaseFileSystem implements FileSystem {
       throws FileDoesNotExistException, IOException, AlluxioException {
     rpc(client -> {
       client.stopSync(path);
-      LOG.debug("Stop syncing for {}", path.getPath());
+      LOG.info("Stop syncing for {}", path.getPath());
       return null;
     });
   }
@@ -494,7 +494,7 @@ public class BaseFileSystem implements FileSystem {
       UnmountPOptions mergedOptions = FileSystemOptions.unmountDefaults(
           mFsContext.getPathConf(path)).toBuilder().mergeFrom(options).build();
       client.unmount(path);
-      LOG.debug("Unmounted {}, options: {}", path.getPath(), mergedOptions);
+      LOG.info("Unmounted {}, options: {}", path.getPath(), mergedOptions);
       return null;
     });
   }
