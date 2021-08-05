@@ -16,8 +16,8 @@ import org.apache.log4j.Level;
 import org.apache.log4j.spi.LoggingEvent;
 
 /**
- * A log4J Appender that simply counts logging events in three levels:
- * fatal, error and warn. The class name is used in log4j.properties
+ * A log4J Appender that simply counts logging events in four levels:
+ * FATAL, ERROR WARN and INFO. The class name is used in log4j.properties
  */
 public class EventCounter extends AppenderSkeleton {
   private static final int FATAL = 0;
@@ -72,7 +72,6 @@ public class EventCounter extends AppenderSkeleton {
    * Add the number of corresponding level log.
    *
    * @param event event of generating log
-   * @return
    */
   public void append(LoggingEvent event) {
     Level level = event.getLevel();
