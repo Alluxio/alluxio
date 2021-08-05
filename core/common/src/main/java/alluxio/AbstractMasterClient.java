@@ -16,7 +16,6 @@ import alluxio.master.MasterClientContext;
 import alluxio.master.MasterInquireClient;
 import alluxio.retry.RetryPolicy;
 
-import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.function.Supplier;
 
@@ -51,15 +50,6 @@ public abstract class AbstractMasterClient extends AbstractClient {
       Supplier<RetryPolicy> retryPolicySupplier) {
     super(clientConf, address, retryPolicySupplier);
     mMasterInquireClient = clientConf.getMasterInquireClient();
-  }
-
-  @Override
-  protected void beforeConnect()
-          throws IOException {
-    // Bootstrap once for clients
-    if (!isConnected()) {
-      mContext.loadConfIfNotLoaded(mAddress);
-    }
   }
 
   @Override

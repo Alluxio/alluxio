@@ -82,16 +82,7 @@ public final class AbstractClientTest {
     public synchronized InetSocketAddress getConfAddress() throws UnavailableException {
       return mAddress;
     }
-
-    @Override
-    protected void beforeConnect()
-            throws IOException {
-      // Bootstrap once for clients
-      if (!isConnected()) {
-        mContext.loadConfIfNotLoaded(mConfAddress);
-      }
-    }
-  }
+}
 
   private static class TestServiceNotFoundClient extends BaseTestClient {
     protected long getRemoteServiceVersion() throws AlluxioStatusException {
@@ -142,7 +133,7 @@ public final class AbstractClientTest {
   public void confAddress() throws Exception {
     ClientContext context = Mockito.mock(ClientContext.class);
     Mockito.when(context.getClusterConf()).thenReturn(
-            new InstancedConfiguration(ConfigurationUtils.defaults()));
+        new InstancedConfiguration(ConfigurationUtils.defaults()));
 
     InetSocketAddress baseAddress = new InetSocketAddress("0.0.0.0", 2000);
     InetSocketAddress confAddress = new InetSocketAddress("0.0.0.0", 2000);

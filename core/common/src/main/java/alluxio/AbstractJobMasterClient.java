@@ -58,16 +58,11 @@ public abstract class AbstractJobMasterClient extends AbstractMasterClient{
   }
 
   @Override
-  protected void beforeConnect()
-          throws IOException {
-    // Bootstrap once for clients
-    if (!isConnected()) {
-      mContext.loadConfIfNotLoaded(mConfAddress);
-    }
-  }
-
-  @Override
   public synchronized InetSocketAddress getConfAddress() throws UnavailableException {
-    return mConfMasterInquireClient.getPrimaryRpcAddress();
+    if (mConfAddress == null) {
+      mConfAddress = mConfMasterInquireClient.getPrimaryRpcAddress();
+    }
+
+    return mConfAddress;
   }
 }
