@@ -11,6 +11,7 @@
 
 package alluxio.client.job;
 
+import alluxio.AbstractJobMasterClient;
 import alluxio.AbstractMasterClient;
 import alluxio.Constants;
 import alluxio.grpc.CancelPRequest;
@@ -48,7 +49,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * clients.
  */
 @ThreadSafe
-public final class RetryHandlingJobMasterClient extends AbstractMasterClient
+public final class RetryHandlingJobMasterClient extends AbstractJobMasterClient
     implements JobMasterClient {
   private static final Logger RPC_LOG = LoggerFactory.getLogger(JobMasterClient.class);
   private JobMasterClientServiceGrpc.JobMasterClientServiceBlockingStub mClient = null;
