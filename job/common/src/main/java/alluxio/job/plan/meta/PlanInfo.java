@@ -198,7 +198,7 @@ public final class PlanInfo implements Comparable<PlanInfo> {
         if (status.isFinished()) {
           if (status.equals(Status.COMPLETED)) {
             // for completed jobs
-            LOG.debug("Job completed, Id={} Config={} Error={}",
+            LOG.debug("Job completed, Id={} Config={}",
                 oldStatus.name(), status.name(),
                 getId(), getJobConfig());
           } else {
