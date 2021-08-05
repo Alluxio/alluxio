@@ -180,11 +180,6 @@ public class SharedGrpcDataReader implements DataReader {
     }
 
     @Override
-    public boolean isShortCircuit() {
-      return false;
-    }
-
-    @Override
     public void close() throws IOException {}
   }
 }
