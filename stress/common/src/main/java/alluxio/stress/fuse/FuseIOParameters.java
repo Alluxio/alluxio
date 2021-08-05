@@ -41,8 +41,12 @@ public final class FuseIOParameters extends Parameters {
   public String mLocalPath = "/mnt/alluxio-fuse/fuse-io-bench";
 
   @Parameter(names = {"--file-size"},
-          description = "The files size for IO operations. (1g, 4g, etc.)")
+          description = "The files size for IO operations. (100k, 1m, 1g, etc.)")
   public String mFileSize = "100k";
+
+  @Parameter(names = {"--buffer-size"},
+          description = "The buffer size for IO operations. (1k, 16k, etc.)")
+  public String mBufferSize = "64k";
 
   @Parameter(names = {"--num-files"},
       description = "The number of files for the test")

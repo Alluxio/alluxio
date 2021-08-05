@@ -28,9 +28,9 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -235,6 +235,11 @@ public class FuseIOBench extends Benchmark<FuseIOTaskResult> {
     private final BenchContext mContext;
     private final List<String> mFilesPath;
     private final int mThreadId;
+    private final byte[] mBuffer;
+    private final long mFileSize;
+
+    private FileInputStream mInStream = null;
+    private FileOutputStream mOutStream = null;
 
     private final FuseIOTaskResult.ThreadCountResult mThreadCountResult =
         new FuseIOTaskResult.ThreadCountResult();
@@ -246,6 +251,11 @@ public class FuseIOBench extends Benchmark<FuseIOTaskResult> {
       for (int i = mThreadId; i < mParameters.mNumFiles; i += numThreads) {
         mFilesPath.add(mParameters.mLocalPath + "/data-" + i);
       }
+
+      mBuffer = new byte[(int) FormatUtils.parseSpaceSize(mParameters.mBufferSize)];
+      Arrays.fill(mBuffer, (byte) 'A');
+
+      mFileSize = FormatUtils.parseSpaceSize(mParameters.mFileSize);
     }
 
     @Override
@@ -268,6 +278,7 @@ public class FuseIOBench extends Benchmark<FuseIOTaskResult> {
       // When to start recording measurements
       long recordMs = mContext.getStartMs() + FormatUtils.parseTimeSize(mParameters.mWarmup);
       mThreadCountResult.setRecordStartMs(recordMs);
+      boolean isRead = FuseIOOperation.isRead(mParameters.mOperation);
 
       long waitMs = mContext.getStartMs() - CommonUtils.getCurrentMs();
       if (waitMs < 0) {
@@ -279,33 +290,75 @@ public class FuseIOBench extends Benchmark<FuseIOTaskResult> {
       mStartBarrierPassed = true;
 
       for (int i = 0; i < mFilesPath.size(); i++) {
-        if (!Thread.currentThread().isInterrupted() && (
-            CommonUtils.getCurrentMs() < mContext.getEndMs())) {
-          int ioBytes = applyOperation(mFilesPath.get(i));
+        String filePath = mFilesPath.get(i);
+        while (!Thread.currentThread().isInterrupted() && (!isRead
+            || CommonUtils.getCurrentMs() < mContext.getEndMs())) {
+          long ioBytes = applyOperation(filePath);
 
           long currentMs = CommonUtils.getCurrentMs();
           // Start recording after the warmup
-          if (currentMs > recordMs && ioBytes > 0) {
-            mThreadCountResult.incrementIOBytes(ioBytes);
+          if (currentMs > recordMs) {
+            if (ioBytes > 0) {
+              mThreadCountResult.incrementIOBytes(ioBytes);
+              // Writing one file is done in one applyOperation call; start writing next file
+              if (!isRead) {
+                break;
+              }
+            } else if (i == mFilesPath.size() - 1) {
+              // Done reading the last file. Finish too early.
+              throw new IllegalArgumentException(String.format("Thread %d finishes reading all "
+                  + "its files before the bench ends. For more accurate result, use more files, "
+                  + "or larger files, or shorter durations."));
+            } else {
+              // Done reading this file.
+              break;
+            }
           }
         }
       }
     }
 
-    private int applyOperation(String filePath) throws IOException {
+    private long applyOperation(String filePath) throws IOException {
+      if (FuseIOOperation.isRead(mParameters.mOperation) && mInStream == null) {
+        mInStream = new FileInputStream(filePath);
+      }
       switch (mParameters.mOperation) {
         case READ: {
-          byte[] bytes = Files.readAllBytes(Paths.get(filePath));
-          return bytes.length;
+          int bytesRead = mInStream.read(mBuffer);
+          if (bytesRead < 0) {
+            closeInStream();
+          }
+          return bytesRead;
         }
         case WRITE: {
-          byte[] bytesToWrite = new byte[(int) FormatUtils.parseSpaceSize(mParameters.mFileSize)];
-          Arrays.fill(bytesToWrite, (byte) 'A');
-          Files.write(Paths.get(filePath), bytesToWrite);
-          return bytesToWrite.length;
+          mOutStream = new FileOutputStream(filePath, true);
+          long currentOffset = 0;
+          while (true) {
+            int bytesToWrite = (int) Math.min(mFileSize - currentOffset, mBuffer.length);
+            if (bytesToWrite == 0) {
+              mOutStream.close();
+              mOutStream = null;
+              break;
+            }
+            mOutStream.write(mBuffer);
+            currentOffset += bytesToWrite;
+          }
+          return mFileSize;
         }
         default:
           throw new IllegalStateException("Unknown operation: " + mParameters.mOperation);
+      }
+    }
+
+    private void closeInStream() {
+      try {
+        if (mInStream != null) {
+          mInStream.close();
+        }
+      } catch (IOException e) {
+        mThreadCountResult.addErrorMessage(e.getMessage());
+      } finally {
+        mInStream = null;
       }
     }
   }

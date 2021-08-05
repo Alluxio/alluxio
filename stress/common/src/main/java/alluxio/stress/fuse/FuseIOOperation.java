@@ -19,8 +19,22 @@ public enum FuseIOOperation {
   WRITE("Write"),
 
   /** Currently, only streaming reading is supported, that is, reading the whole file. */
-  READ("Read");
+  READ("Read"),
   // TODO(Shawn): Support other types of read
+  ;
+
+  /**
+   * @param operation the operation
+   * @return true if the operation is a read
+   */
+  public static boolean isRead(FuseIOOperation operation) {
+    switch (operation) {
+      case READ:
+        return true;
+      default:
+        return false;
+    }
+  }
 
   private final String mName;
 
