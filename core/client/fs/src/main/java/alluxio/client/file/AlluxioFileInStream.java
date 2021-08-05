@@ -445,16 +445,17 @@ public class AlluxioFileInStream extends FileInStream {
 
   private void handleRetryableException(BlockInStream stream, IOException e) {
     WorkerNetAddress workerAddress = stream.getAddress();
-    LOG.warn("Failed to read block {} of file {} from worker {}, will retry: {}",
-        stream.getId(), mStatus.getPath(), workerAddress, e.getMessage());
+    LOG.warn("Failed to read block {} of file {} from worker {}. "
+        + "This worker will be skipped for future read operations, will retry: {}.",
+        stream.getId(), mStatus.getPath(), workerAddress, e.toString());
     try {
       stream.close();
     } catch (Exception ex) {
       // Do not throw doing a best effort close
       LOG.warn("Failed to close input stream for block {} of file {}: {}",
-          stream.getId(), mStatus.getPath(), ex.getMessage());
+          stream.getId(), mStatus.getPath(), ex.toString());
     }
-
+    // TODO(lu) consider recovering failed workers
     mFailedWorkers.put(workerAddress, System.currentTimeMillis());
   }
 
