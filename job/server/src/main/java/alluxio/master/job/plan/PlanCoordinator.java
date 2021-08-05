@@ -301,6 +301,8 @@ public final class PlanCoordinator {
         mPlanInfo.setStatus(Status.FAILED);
         mPlanInfo.setErrorType(ErrorUtils.getErrorType(e));
         mPlanInfo.setErrorMessage(e.getMessage());
+        LOG.info("Job failed when joining tasks Id={} Config={} Error={}", mPlanInfo.getId(),
+            mPlanInfo.getJobConfig(), e.getMessage());
       }
     }
   }
