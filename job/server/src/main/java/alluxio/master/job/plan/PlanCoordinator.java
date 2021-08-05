@@ -277,7 +277,6 @@ public final class PlanCoordinator {
           }
           break;
         case COMPLETED:
-          LOG.info("Job completed Id={} Config={}", mPlanInfo.getId(), mPlanInfo.getJobConfig());
           completed++;
           break;
         case CREATED:
@@ -297,6 +296,7 @@ public final class PlanCoordinator {
         // Try to join first, so that in case of failure we don't move to a completed state yet
         mPlanInfo.setResult(join(taskInfoList));
         mPlanInfo.setStatus(Status.COMPLETED);
+        LOG.info("Job completed Id={} Config={}", mPlanInfo.getId(), mPlanInfo.getJobConfig());
       } catch (Exception e) {
         mPlanInfo.setStatus(Status.FAILED);
         mPlanInfo.setErrorType(ErrorUtils.getErrorType(e));
