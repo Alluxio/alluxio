@@ -241,11 +241,6 @@ public final class GrpcDataReader implements DataReader {
     }
 
     @Override
-    public boolean isShortCircuit() {
-      return false;
-    }
-
-    @Override
     public void close() throws IOException {}
   }
 }

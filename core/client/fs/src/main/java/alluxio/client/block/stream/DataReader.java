@@ -45,10 +45,5 @@ public interface DataReader extends Closeable {
      * @return the created object
      */
     DataReader create(long offset, long len) throws IOException;
-
-    /**
-     * @return whether this factory generates data readers which perform short-circuit reads
-     */
-    boolean isShortCircuit();
   }
 }

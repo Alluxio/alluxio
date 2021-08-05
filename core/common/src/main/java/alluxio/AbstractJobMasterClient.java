@@ -22,21 +22,25 @@ import java.util.function.Supplier;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * The base class for master clients.
+ * The base class for job master clients.
  */
 @ThreadSafe
-public abstract class AbstractMasterClient extends AbstractClient {
-  /** Client for determining the master RPC address. */
-  private final MasterInquireClient mMasterInquireClient;
+public abstract class AbstractJobMasterClient extends AbstractMasterClient{
+  /** Address to load configuration, which may differ from {@code mAddress}. */
+  protected InetSocketAddress mConfAddress;
+
+  /** Client for determining configuration RPC address,
+   * which may be different from target address. */
+  private final MasterInquireClient mConfMasterInquireClient;
 
   /**
    * Creates a new master client base.
    *
    * @param clientConf master client configuration
    */
-  public AbstractMasterClient(MasterClientContext clientConf) {
-    super(clientConf, null);
-    mMasterInquireClient = clientConf.getMasterInquireClient();
+  public AbstractJobMasterClient(MasterClientContext clientConf) {
+    super(clientConf);
+    mConfMasterInquireClient = clientConf.getConfMasterInquireClient();
   }
 
   /**
@@ -46,23 +50,14 @@ public abstract class AbstractMasterClient extends AbstractClient {
    * @param address address to connect to
    * @param retryPolicySupplier retry policy to use
    */
-  public AbstractMasterClient(MasterClientContext clientConf, InetSocketAddress address,
-      Supplier<RetryPolicy> retryPolicySupplier) {
+  public AbstractJobMasterClient(MasterClientContext clientConf, InetSocketAddress address,
+                              Supplier<RetryPolicy> retryPolicySupplier) {
     super(clientConf, address, retryPolicySupplier);
-    mMasterInquireClient = clientConf.getMasterInquireClient();
-  }
-
-  @Override
-  public synchronized InetSocketAddress getAddress() throws UnavailableException {
-    return mMasterInquireClient.getPrimaryRpcAddress();
+    mConfMasterInquireClient = clientConf.getConfMasterInquireClient();
   }
 
   @Override
   public synchronized InetSocketAddress getConfAddress() throws UnavailableException {
-    if (mAddress != null) {
-      return mAddress;
-    }
-
-    return mMasterInquireClient.getPrimaryRpcAddress();
+    return mConfMasterInquireClient.getPrimaryRpcAddress();
   }
 }
