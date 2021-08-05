@@ -16,7 +16,6 @@ import alluxio.master.MasterClientContext;
 import alluxio.master.MasterInquireClient;
 import alluxio.retry.RetryPolicy;
 
-import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.function.Supplier;
 

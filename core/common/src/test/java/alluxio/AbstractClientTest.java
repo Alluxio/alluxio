@@ -82,7 +82,7 @@ public final class AbstractClientTest {
     public synchronized InetSocketAddress getConfAddress() throws UnavailableException {
       return mAddress;
     }
-}
+  }
 
   private static class TestServiceNotFoundClient extends BaseTestClient {
     protected long getRemoteServiceVersion() throws AlluxioStatusException {
