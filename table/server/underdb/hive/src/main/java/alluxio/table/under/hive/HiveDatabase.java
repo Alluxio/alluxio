@@ -29,9 +29,10 @@ import alluxio.table.common.udb.UdbTable;
 import alluxio.table.common.udb.UdbUtils;
 import alluxio.table.common.udb.UnderDatabase;
 import alluxio.table.under.hive.util.HiveClientPoolCache;
-import alluxio.table.under.hive.util.HiveClientPool;
+import alluxio.table.under.hive.util.AbstractHiveClientPool;
 import alluxio.util.io.PathUtils;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
 import org.apache.hadoop.hive.common.FileUtils;
 import org.apache.hadoop.hive.metastore.IMetaStoreClient;
@@ -74,15 +75,25 @@ public class HiveDatabase implements UnderDatabase {
 
   private static final HiveClientPoolCache CLIENT_POOL_CACHE = new HiveClientPoolCache();
   /** Hive client is not thread-safe, so use a client pool for concurrency. */
-  private final HiveClientPool mClientPool;
+  private final AbstractHiveClientPool mClientPool;
 
   private HiveDatabase(UdbContext udbContext, UdbConfiguration configuration,
       String connectionUri, String hiveDbName) {
+    this(udbContext,
+        configuration,
+        connectionUri,
+        hiveDbName,
+        CLIENT_POOL_CACHE.getPool(connectionUri));
+  }
+
+  @VisibleForTesting
+  HiveDatabase(UdbContext udbContext, UdbConfiguration configuration,
+               String connectionUri, String hiveDbName, AbstractHiveClientPool clientPool) {
     mUdbContext = udbContext;
     mConfiguration = configuration;
     mConnectionUri = connectionUri;
     mHiveDbName = hiveDbName;
-    mClientPool = CLIENT_POOL_CACHE.getPool(connectionUri);
+    mClientPool = clientPool;
   }
 
   /**

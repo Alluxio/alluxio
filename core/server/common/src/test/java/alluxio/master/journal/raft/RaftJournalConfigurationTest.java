@@ -15,6 +15,8 @@ import static org.junit.Assert.assertEquals;
 
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
+import alluxio.master.journal.JournalUtils;
+import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
 
 import com.google.common.collect.Sets;
@@ -22,8 +24,11 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.io.File;
 import java.net.InetSocketAddress;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 
 /**
  * Units tests for {@link RaftJournalConfiguration}.
@@ -99,6 +104,32 @@ public final class RaftJournalConfigurationTest {
         InetSocketAddress.createUnresolved("host2", 20),
         InetSocketAddress.createUnresolved("host3", 10)),
         new HashSet<>(conf.getClusterAddresses()));
+  }
+
+  @Test
+  public void checkConfWhenLocalHostNameDiffWithRaftNodesHostName() {
+    List<InetSocketAddress> clusterAddresses = new ArrayList<>();
+    // Construct localAddress, its hostname is null and local ip is default 0.0.0.0.
+    InetSocketAddress localAddress = new InetSocketAddress(10);
+    // Construct raftNodeAddress1, its hostname derived from localHostName, So
+    // raftNodeAddress1's hostname is different with localAddress hostname, but
+    // their ip both point to the local node.
+    InetSocketAddress raftNodeAddress1 = new InetSocketAddress(NetworkAddressUtils
+        .getLocalHostName((int) ServerConfiguration.global()
+        .getMs(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS)), 10);
+    InetSocketAddress raftNodeAddress2 = new InetSocketAddress("host2", 20);
+    InetSocketAddress raftNodeAddress3 = new InetSocketAddress("host3", 30);
+    clusterAddresses.add(raftNodeAddress1);
+    clusterAddresses.add(raftNodeAddress2);
+    clusterAddresses.add(raftNodeAddress3);
+    RaftJournalConfiguration conf = new RaftJournalConfiguration()
+        .setClusterAddresses(clusterAddresses)
+        .setElectionTimeoutMs(
+            ServerConfiguration.getMs(PropertyKey.MASTER_EMBEDDED_JOURNAL_ELECTION_TIMEOUT))
+        .setLocalAddress(localAddress)
+        .setMaxLogSize(ServerConfiguration.getBytes(PropertyKey.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX))
+        .setPath(new File(JournalUtils.getJournalLocation().getPath()));
+    conf.validate();
   }
 
   private RaftJournalConfiguration getConf(ServiceType serviceType) {

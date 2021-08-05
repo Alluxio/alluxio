@@ -64,7 +64,7 @@ export function withFetchDataFromPath<T extends IFetchDataFromPathProps>(
         <WrappedComponent
           {...this.props}
           {...this.state}
-          upateRequestParameter={this.updateRequestParameter}
+          updateRequestParameter={this.updateRequestParameter}
           queryStringSuffix={this.getQueryStringSuffix()}
         />
       );
