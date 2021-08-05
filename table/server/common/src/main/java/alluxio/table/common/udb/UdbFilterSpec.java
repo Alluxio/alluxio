@@ -439,17 +439,17 @@ public final class UdbFilterSpec {
           // make sure this table has associated partition mode
           Preconditions.checkState(mPartitionBypassModes.containsKey(tableName)
               && mPartitionBypassModes.get(tableName) != Mode.NONE,
-              "Missing partitions mode for table {}",
+              "Missing partitions mode for table %s",
               tableName);
           // forbid both exact name and partition spec for a table at the same time
           Preconditions.checkState(mBypassedTables.stream()
                   .noneMatch(template -> template instanceof ExactNameTemplate
                       && template.matches(tableName)),
-              "Table {} is already specified with exact name, "
+              "Table %s is already specified with exact name, "
                   + "cannot have partition specification at the same time",
               tableName);
           Preconditions.checkState(!partitionNameTemplates.isEmpty(),
-              "Empty partition specification set for table {}",
+              "Empty partition specification set for table %s",
               tableName);
           partitions.put(tableName,
               new Pair<>(mPartitionBypassModes.get(tableName), partitionNameTemplates));
