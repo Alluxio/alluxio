@@ -71,7 +71,7 @@ public class Database implements Journaled {
   private final UnderDatabase mUdb;
   private final CatalogConfiguration mConfig;
   private final String mConfigPath;
-  private UdbFilterSpecJsonSource mFilterSpecJsonSource;
+  private UdbFilterSpec mFilterSpec;
   private final long mUdbSyncTimeoutMs =
       ServerConfiguration.getMs(PropertyKey.TABLE_CATALOG_UDB_SYNC_TIMEOUT);
 
@@ -86,7 +86,7 @@ public class Database implements Journaled {
     mUdb = udb;
     mConfig = config;
     mConfigPath = mConfig.get(CatalogProperty.DB_CONFIG_FILE);
-    mFilterSpecJsonSource = UdbFilterSpecJsonSource.empty();
+    mFilterSpec = UdbFilterSpec.empty();
   }
 
   /**
@@ -225,9 +225,8 @@ public class Database implements Journaled {
     // sync each table in parallel, with the executor service
     List<Callable<Void>> tasks = new ArrayList<>(udbTableNames.size());
     final Database thisDb = this;
-    UdbFilterSpec filterSpec = mFilterSpecJsonSource.getUdbFilterSpec();
     for (String tableName : udbTableNames) {
-      if (filterSpec.isIgnoredTable(tableName)) {
+      if (mFilterSpec.isIgnoredTable(tableName)) {
         // this table should be ignored.
         builder.addTablesIgnored(tableName);
         tablesSynced.incrementAndGet();
@@ -237,7 +236,7 @@ public class Database implements Journaled {
         // Save all exceptions
         try {
           Table previousTable = mTables.get(tableName);
-          UdbTable udbTable = mUdb.getTable(tableName, filterSpec);
+          UdbTable udbTable = mUdb.getTable(tableName, mFilterSpec);
           Table newTable = Table.create(thisDb, udbTable, previousTable);
 
           if (newTable != null) {
@@ -340,22 +339,26 @@ public class Database implements Journaled {
   }
 
   private void loadFilterSpec() throws IOException {
-    if (!mConfigPath.equals(CatalogProperty.DB_CONFIG_FILE.getDefaultValue())) {
-      if (!Files.exists(Paths.get(mConfigPath))) {
-        throw new FileNotFoundException(mConfigPath);
-      }
-      ObjectMapper mapper = new ObjectMapper();
-      File configFile = new File(mConfigPath);
-      if (configFile.length() == 0) {
-        mFilterSpecJsonSource = UdbFilterSpecJsonSource.empty();
-      } else {
-        try {
-          mFilterSpecJsonSource = mapper.readValue(configFile, UdbFilterSpecJsonSource.class);
-        } catch (JsonProcessingException e) {
-          LOG.error("Failed to deserialize UDB config file {}, stays unsynced", mConfigPath, e);
-          throw e;
-        }
-      }
+    if (mConfigPath.equals(CatalogProperty.DB_CONFIG_FILE.getDefaultValue())) {
+      return;
+    }
+    if (!Files.exists(Paths.get(mConfigPath))) {
+      throw new FileNotFoundException(mConfigPath);
+    }
+    ObjectMapper mapper = new ObjectMapper();
+    File configFile = new File(mConfigPath);
+    if (configFile.length() == 0) {
+      mFilterSpec = UdbFilterSpec.empty();
+      return;
+    }
+    try {
+      mFilterSpec = mapper.readValue(configFile, UdbFilterSpecJsonSource.class).getUdbFilterSpec();
+    } catch (JsonProcessingException e) {
+      LOG.error("Failed to deserialize UDB config file {}", mConfigPath, e);
+      throw e;
+    } catch (Exception e) {
+      LOG.error("Failed to get filter config, error: {}", e.getMessage(), e);
+      throw new IOException("Failed to get filter specification", e);
     }
   }
 

@@ -19,6 +19,7 @@ import com.google.common.collect.Sets;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -31,6 +32,12 @@ import java.util.regex.Pattern;
  */
 public final class UdbFilterSpec {
   private static final Logger LOG = LoggerFactory.getLogger(UdbFilterSpec.class);
+  private static final UdbFilterSpec EMPTY_INSTANCE =
+      new UdbFilterSpec(Collections.emptySet(),
+          Mode.NONE,
+          Collections.emptyMap(),
+          Collections.emptySet(),
+          Mode.NONE);
 
   /**
    * Bypass/ignore entries.
@@ -81,6 +88,10 @@ public final class UdbFilterSpec {
     mBypassedPartitions = bypassedPartitions;
     mTableBypassMode = tableBypassMode;
     mIgnoreMode = ignoreMode;
+  }
+
+  public static UdbFilterSpec empty() {
+    return EMPTY_INSTANCE;
   }
 
   /**
