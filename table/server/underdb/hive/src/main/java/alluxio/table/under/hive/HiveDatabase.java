@@ -186,7 +186,7 @@ public class HiveDatabase implements UnderDatabase {
                 part.getValues().toString());
           }
           if (filterSpec.isBypassedPartition(tableName, partName)) {
-            pathTranslator.addMapping(partitionUri.getPath(), partitionUri.getPath());
+            pathTranslator.addMapping(hiveUfsUri, hiveUfsUri);
             continue;
           }
           alluxioUri = new AlluxioURI(PathUtils.concatPath(
