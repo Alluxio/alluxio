@@ -12,7 +12,6 @@
 package alluxio.client.job;
 
 import alluxio.AbstractJobMasterClient;
-import alluxio.AbstractMasterClient;
 import alluxio.Constants;
 import alluxio.grpc.CancelPRequest;
 import alluxio.grpc.GetAllWorkerHealthPRequest;
