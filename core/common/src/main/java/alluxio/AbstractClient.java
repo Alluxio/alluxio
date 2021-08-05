@@ -322,7 +322,6 @@ public abstract class AbstractClient implements Client {
 
   @Override
   public synchronized InetSocketAddress getConfAddress() throws UnavailableException {
-
     return mAddress;
   }
 
