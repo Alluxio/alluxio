@@ -170,7 +170,7 @@ public abstract class AbstractClient implements Client {
    * loading the cluster defaults
    */
   protected void beforeConnect()
-          throws IOException {
+      throws IOException {
     // Bootstrap once for clients
     if (!isConnected()) {
       mContext.loadConfIfNotLoaded(getConfAddress());
