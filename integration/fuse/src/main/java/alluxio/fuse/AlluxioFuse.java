@@ -122,12 +122,12 @@ public final class AlluxioFuse {
     CommonUtils.PROCESS_TYPE.set(CommonUtils.ProcessType.CLIENT);
     MetricsSystem.startSinks(conf.get(PropertyKey.METRICS_CONF_FILE));
     if (conf.getBoolean(PropertyKey.FUSE_WEB_ENABLED)) {
-      FuseWebServer mWebServer = new FuseWebServer(
+      FuseWebServer webServer = new FuseWebServer(
           NetworkAddressUtils.ServiceType.FUSE_WEB.getServiceName(),
           NetworkAddressUtils.getBindAddress(
               NetworkAddressUtils.ServiceType.FUSE_WEB,
               ServerConfiguration.global()));
-      mWebServer.start();
+      webServer.start();
     }
     try (FileSystem fs = FileSystem.Factory.create(fsContext)) {
       launchFuse(fs, conf, opts, true);
