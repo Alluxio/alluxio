@@ -354,11 +354,11 @@ public class Database implements Journaled {
     try {
       mFilterSpec = mapper.readValue(configFile, UdbFilterSpecJsonSource.class).getUdbFilterSpec();
     } catch (JsonProcessingException e) {
-      LOG.error("Failed to deserialize UDB config file {}", mConfigPath, e);
-      throw e;
-    } catch (Exception e) {
-      LOG.error("Failed to get filter config, error: {}", e.getMessage(), e);
-      throw new IOException("Failed to get filter specification", e);
+      LOG.error("Failed to parse UDB config file {}, likely syntax error", mConfigPath, e);
+      throw new IOException(String.format("Failed to parse UDB config file %s", mConfigPath), e);
+    } catch (IllegalArgumentException e) {
+      LOG.error("Filter specification contains invalid configuration", e);
+      throw new IOException("Filter specification contains invalid configuration", e);
     }
   }
 

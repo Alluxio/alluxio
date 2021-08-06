@@ -15,6 +15,8 @@ import alluxio.collections.Pair;
 
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -83,11 +85,55 @@ public final class UdbFilterSpec {
       Map<String, Pair<Mode, Set<NameTemplate>>> bypassedPartitions,
       Set<NameTemplate> ignoredTables,
       Mode ignoreMode) {
-    mBypassedTables = bypassedTables;
-    mIgnoredTables = ignoredTables;
-    mBypassedPartitions = bypassedPartitions;
-    mTableBypassMode = tableBypassMode;
-    mIgnoreMode = ignoreMode;
+    mBypassedTables = ImmutableSet.copyOf(bypassedTables);
+    mIgnoredTables = ImmutableSet.copyOf(ignoredTables);
+    mBypassedPartitions = ImmutableMap.copyOf(bypassedPartitions);
+
+    if (!mBypassedTables.isEmpty()) {
+      Preconditions.checkArgument(tableBypassMode != null && tableBypassMode != Mode.NONE,
+          "Missing inclusion/exclusion mode for bypassed tables");
+      mTableBypassMode = tableBypassMode;
+    } else {
+      // override mode to NONE when no tables are given
+      mTableBypassMode = Mode.NONE;
+    }
+    if (!mIgnoredTables.isEmpty()) {
+      Preconditions.checkArgument(ignoreMode != null && ignoreMode != Mode.NONE,
+          "Missing inclusion/exclusion mode for ignored tables");
+      mIgnoreMode = ignoreMode;
+    } else {
+      mIgnoreMode = Mode.NONE;
+    }
+    if (!mBypassedPartitions.isEmpty()) {
+      // forbid having partition spec when tables are excluded
+      Preconditions.checkArgument(mTableBypassMode != Mode.EXCLUDE,
+          "Tables are specified with exclusion mode, cannot have partition specification");
+      for (Map.Entry<String, Pair<Mode, Set<NameTemplate>>> entry :
+          mBypassedPartitions.entrySet()) {
+        String tableName = entry.getKey();
+        Mode partitionMode = entry.getValue().getFirst();
+        Set<NameTemplate> partitionNameTemplates = entry.getValue().getSecond();
+        // forbid empty table name
+        Preconditions.checkArgument(!tableName.isEmpty(),
+            "Empty table name specified with partition specification %s",
+            partitionNameTemplates);
+        // forbid empty spec
+        Preconditions.checkArgument(!partitionNameTemplates.isEmpty(),
+            "Empty partition specification set for table %s",
+            tableName);
+        // forbid NONE mode
+        Preconditions.checkArgument(partitionMode != Mode.NONE,
+            "Invalid mode %s for partitions of table %s, must be either include or exclude",
+            partitionMode, tableName);
+        // forbid both exact name and partition spec for a table at the same time
+        Preconditions.checkArgument(mBypassedTables.stream()
+                .noneMatch(template -> template instanceof ExactNameTemplate
+                    && template.matches(tableName)),
+            "Table %s is already specified with exact name, "
+                + "cannot have partition specification at the same time",
+            tableName);
+      }
+    }
   }
 
   public static UdbFilterSpec empty() {
@@ -290,10 +336,10 @@ public final class UdbFilterSpec {
    * Builder for {@link UdbFilterSpec}.
    */
   public static class Builder {
-    private final Set<NameTemplate> mBypassedTables;
-    private final Set<NameTemplate> mIgnoredTables;
-    private final Map<String, Set<NameTemplate>> mBypassedPartitions;
-    private final Map<String, Mode> mPartitionBypassModes;
+    private Set<NameTemplate> mBypassedTables;
+    private Set<NameTemplate> mIgnoredTables;
+    private Map<String, Set<NameTemplate>> mBypassedPartitions;
+    private Map<String, Mode> mPartitionBypassModes;
     private Mode mTableBypassMode;
     private Mode mIgnoreMode;
 
@@ -425,56 +471,35 @@ public final class UdbFilterSpec {
 
     /**
      * Build a {@link UdbFilterSpec}.
+     * The builder should not be used after this method returns.
      * @return {@link UdbFilterSpec}
+     * @throws IllegalArgumentException when invalid or conflicting configurations
+     *                                          have been provided
      */
     public UdbFilterSpec build() {
-      if (!mBypassedTables.isEmpty()) {
-        Preconditions.checkState(mTableBypassMode != null && mTableBypassMode != Mode.NONE,
-            "Missing inclusion/exclusion mode for bypassed tables");
-      } else {
-        // override mode to NONE when no tables are given
-        mTableBypassMode = Mode.NONE;
+      ImmutableMap.Builder<String, Pair<Mode, Set<NameTemplate>>> partitionsBuilder
+          = ImmutableMap.builder();
+      for (Map.Entry<String, Set<NameTemplate>> entry : mBypassedPartitions.entrySet()) {
+        String tableName = entry.getKey();
+        Set<NameTemplate> partitionNameTemplates = entry.getValue();
+        partitionsBuilder.put(tableName, new Pair<>(
+            mPartitionBypassModes.getOrDefault(tableName, Mode.NONE), partitionNameTemplates));
       }
-      if (!mIgnoredTables.isEmpty()) {
-        Preconditions.checkState(mIgnoreMode != null && mIgnoreMode != Mode.NONE,
-            "Missing inclusion/exclusion mode for ignored tables");
-      } else {
-        mIgnoreMode = Mode.NONE;
-      }
-      Map<String, Pair<Mode, Set<NameTemplate>>> partitions = new HashMap<>();
-      if (!mBypassedPartitions.isEmpty()) {
-        // forbid adding partitions when tables are excluded
-        Preconditions.checkState(mTableBypassMode != Mode.EXCLUDE,
-            "Tables are specified with exclusion mode, cannot have partition specification");
-        for (Map.Entry<String, Set<NameTemplate>> entry : mBypassedPartitions.entrySet()) {
-          String tableName = entry.getKey();
-          Set<NameTemplate> partitionNameTemplates = entry.getValue();
-          // make sure this table has associated partition mode
-          Preconditions.checkState(mPartitionBypassModes.containsKey(tableName)
-              && mPartitionBypassModes.get(tableName) != Mode.NONE,
-              "Missing partitions mode for table %s",
-              tableName);
-          // forbid both exact name and partition spec for a table at the same time
-          Preconditions.checkState(mBypassedTables.stream()
-                  .noneMatch(template -> template instanceof ExactNameTemplate
-                      && template.matches(tableName)),
-              "Table %s is already specified with exact name, "
-                  + "cannot have partition specification at the same time",
-              tableName);
-          Preconditions.checkState(!partitionNameTemplates.isEmpty(),
-              "Empty partition specification set for table %s",
-              tableName);
-          partitions.put(tableName,
-              new Pair<>(mPartitionBypassModes.get(tableName), partitionNameTemplates));
-        }
-      }
-      return new UdbFilterSpec(
+      UdbFilterSpec built = new UdbFilterSpec(
           mBypassedTables,
           mTableBypassMode,
-          partitions,
+          partitionsBuilder.build(),
           mIgnoredTables,
           mIgnoreMode
       );
+      // release references to prevent reuse of builder
+      mBypassedTables = ImmutableSet.of();
+      mTableBypassMode = Mode.NONE;
+      mBypassedPartitions = ImmutableMap.of();
+      mPartitionBypassModes = ImmutableMap.of();
+      mIgnoredTables = ImmutableSet.of();
+      mIgnoreMode = Mode.NONE;
+      return built;
     }
   }
 }

@@ -256,11 +256,6 @@ public final class UdbFilterSpecJsonSource {
     return Objects.hash(mBypassEntry, mIgnoreEntry);
   }
 
-  // todo(bowen): cryptic error message when an exclusion list contains a partition_spec
-  // object: Could not resolve type id 'partition_spec' as a subtype of
-  // `alluxio.master.table.UdbFilterSpecJsonSource$NameOrRegexObject`:
-  // Class `alluxio.master.table.UdbFilterSpecJsonSource$PartitionSpecObject` not subtype of
-  // `alluxio.master.table.UdbFilterSpecJsonSource$NameOrRegexObject`
   /**
    * Type alias for TablesEntry<TablePartitionSpecObject, NameOrRegexObject>.
    */

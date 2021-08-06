@@ -131,7 +131,7 @@ public class UdbFilterSpecTest {
         .addBypassedTable(getTableName(1))
         .setBypassedPartitionsMode(getTableName(1), Mode.INCLUDE)
         .addBypassedPartition(getTableName(1), getPartitionName(1));
-    assertThrows(IllegalStateException.class, () -> mBuilder.build());
+    assertThrows(IllegalArgumentException.class, () -> mBuilder.build());
   }
 
   @Test
@@ -140,7 +140,7 @@ public class UdbFilterSpecTest {
         .addBypassedTable(getTableName(1))
         .setBypassedPartitionsMode(getTableName(2), Mode.INCLUDE)
         .addBypassedPartition(getTableName(2), getPartitionName(1));
-    assertThrows(IllegalStateException.class, () -> mBuilder.build());
+    assertThrows(IllegalArgumentException.class, () -> mBuilder.build());
   }
 
   /* Exclusion tests */
