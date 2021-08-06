@@ -266,6 +266,9 @@ public class FuseIOBench extends Benchmark<FuseIOTaskResult> {
       } catch (Exception e) {
         LOG.error(Thread.currentThread().getName() + ": failed", e);
         mThreadCountResult.addErrorMessage(e.getMessage());
+      } finally {
+        closeInStream();
+        closeOutStream();
       }
 
       // Update thread count result
