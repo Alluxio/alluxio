@@ -240,6 +240,7 @@ public class FuseIOBench extends Benchmark<FuseIOTaskResult> {
 
     private FileInputStream mInStream = null;
     private FileOutputStream mOutStream = null;
+    private long mCurrentOffset;
 
     private final FuseIOTaskResult.ThreadCountResult mThreadCountResult =
         new FuseIOTaskResult.ThreadCountResult();
@@ -290,31 +291,31 @@ public class FuseIOBench extends Benchmark<FuseIOTaskResult> {
       mStartBarrierPassed = true;
 
       for (int i = 0; i < mFilesPath.size(); i++) {
+        mCurrentOffset = 0;
         String filePath = mFilesPath.get(i);
-        while (!Thread.currentThread().isInterrupted() && (!isRead
-            || CommonUtils.getCurrentMs() < mContext.getEndMs())) {
+        while (!Thread.currentThread().isInterrupted()) {
+          if (isRead && CommonUtils.getCurrentMs() > mContext.getEndMs()) {
+            closeInStream();
+            return;
+          }
           long ioBytes = applyOperation(filePath);
 
-          long currentMs = CommonUtils.getCurrentMs();
           // Start recording after the warmup
-          if (currentMs > recordMs) {
+          if (CommonUtils.getCurrentMs() > recordMs) {
             if (ioBytes > 0) {
               mThreadCountResult.incrementIOBytes(ioBytes);
-              // Writing one file is done in one applyOperation call; start writing next file
-              if (!isRead) {
-                break;
-              }
-            } else if (i == mFilesPath.size() - 1) {
-              // Done reading the last file. Finish too early.
-              throw new IllegalArgumentException(String.format("Thread %d finishes reading all "
-                  + "its files before the bench ends. For more accurate result, use more files, "
-                  + "or larger files, or shorter durations."));
             } else {
-              // Done reading this file.
+              // Done reading/writing one file
               break;
             }
           }
         }
+      }
+      // Done reading all files
+      if (isRead) {
+        throw new IllegalArgumentException(String.format("Thread %d finishes reading all its files"
+            + "before the bench ends. For more accurate result, use more files, or larger files, "
+            + "or a shorter duration"));
       }
     }
 
@@ -331,19 +332,17 @@ public class FuseIOBench extends Benchmark<FuseIOTaskResult> {
           return bytesRead;
         }
         case WRITE: {
-          mOutStream = new FileOutputStream(filePath, true);
-          long currentOffset = 0;
-          while (true) {
-            int bytesToWrite = (int) Math.min(mFileSize - currentOffset, mBuffer.length);
-            if (bytesToWrite == 0) {
-              mOutStream.close();
-              mOutStream = null;
-              break;
-            }
-            mOutStream.write(mBuffer);
-            currentOffset += bytesToWrite;
+          if (mOutStream == null) {
+            mOutStream = new FileOutputStream(filePath);
           }
-          return mFileSize;
+          int bytesToWrite = (int) Math.min(mFileSize - mCurrentOffset, mBuffer.length);
+          if (bytesToWrite == 0) {
+            closeOutStream();
+            return -1;
+          }
+          mOutStream.write(mBuffer, 0, mBuffer.length);
+          mCurrentOffset += bytesToWrite;
+          return bytesToWrite;
         }
         default:
           throw new IllegalStateException("Unknown operation: " + mParameters.mOperation);
@@ -359,6 +358,18 @@ public class FuseIOBench extends Benchmark<FuseIOTaskResult> {
         mThreadCountResult.addErrorMessage(e.getMessage());
       } finally {
         mInStream = null;
+      }
+    }
+
+    private void closeOutStream() {
+      try {
+        if (mOutStream != null) {
+          mOutStream.close();
+        }
+      } catch (IOException e) {
+        mThreadCountResult.addErrorMessage(e.getMessage());
+      } finally {
+        mOutStream = null;
       }
     }
   }
