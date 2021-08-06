@@ -10,10 +10,11 @@ import alluxio.exception.status.AlluxioStatusException;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.DeletePOptions;
+import alluxio.grpc.FileSystemMasterWorkerServiceGrpc;
+import alluxio.grpc.GetPinnedFileIdsPRequest;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.master.MasterClientContext;
 import alluxio.resource.CloseableResource;
-import alluxio.stress.PinListFileSystemMasterClient;
 import alluxio.stress.rpc.GetPinnedFileIdsParameters;
 import alluxio.stress.rpc.RpcTaskResult;
 import alluxio.util.CommonUtils;
@@ -24,6 +25,7 @@ import com.google.common.base.Supplier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
@@ -128,5 +130,35 @@ public class GetPinnedFileIdsBench extends RpcBench<GetPinnedFileIdsParameters> 
    */
   public static void main(String[] args) {
     mainInternal(args, new GetPinnedFileIdsBench());
+  }
+
+  /**
+   * Helper client that is used to minimizes the deserialization overhead by calling
+   * getPinnedFileIdsCount instead of getPinnedFileIdsList
+   */
+  private static class PinListFileSystemMasterClient
+      extends alluxio.worker.file.FileSystemMasterClient {
+    private static final Logger LOG =
+        LoggerFactory.getLogger(PinListFileSystemMasterClient.class);
+    private FileSystemMasterWorkerServiceGrpc.FileSystemMasterWorkerServiceBlockingStub mClient =
+        null;
+
+    public PinListFileSystemMasterClient(MasterClientContext conf) {
+      super(conf);
+    }
+
+    @Override
+    protected void afterConnect() throws IOException {
+      mClient = FileSystemMasterWorkerServiceGrpc.newBlockingStub(mChannel);
+    }
+
+    public int getPinListLength() throws IOException {
+      return retryRPC(() -> mClient
+          .withDeadlineAfter(
+              mContext.getClusterConf().getMs(PropertyKey.WORKER_MASTER_PERIODICAL_RPC_TIMEOUT),
+              TimeUnit.MILLISECONDS)
+          .getPinnedFileIds(GetPinnedFileIdsPRequest.newBuilder().build()).getPinnedFileIdsCount(),
+          LOG, "GetPinList", "");
+    }
   }
 }
