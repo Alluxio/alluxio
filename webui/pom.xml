@@ -53,7 +53,7 @@
             </goals>
             <phase>process-sources</phase>
             <configuration>
-              <arguments>install --production --no-save --no-package-lock --no-shrinkwrap</arguments>
+              <arguments>ci</arguments>
             </configuration>
           </execution>
         </executions>
@@ -96,8 +96,7 @@
               <arguments>
                 <argument>node_modules/.bin/lerna</argument>
                 <argument>bootstrap</argument>
-                <argument>--</argument>
-                <argument>--production  --no-save --no-package-lock --no-shrinkwrap</argument>
+                <argument>--ci</argument>
               </arguments>
             </configuration>
           </execution>
@@ -170,6 +169,8 @@
             <exclude>**/node_modules/**</exclude>
             <exclude>node/**</exclude>
             <exclude>**/build/**</exclude>
+            <exclude>**/*.snap</exclude>
+            <exclude>**/coverage/**</exclude>
             <!-- auto-generated css -->
             <exclude>**/*.css</exclude>
           </excludes>

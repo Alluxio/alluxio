@@ -18,6 +18,6 @@ exports[`withFetchData HOC Shallow component Matches snapshot - renders WrappedC
       "path": "",
     }
   }
-  upateRequestParameter={[Function]}
+  updateRequestParameter={[Function]}
 />
 `;

@@ -188,3 +188,6 @@
 
 0.6.24
 - Fix Alluxio CSI `nodeplugin.yaml` indentation
+
+0.6.25
+- Fix Alluxio CSI `nodeplugin.yaml` indentation, add support for dns plocy & change CSI log level

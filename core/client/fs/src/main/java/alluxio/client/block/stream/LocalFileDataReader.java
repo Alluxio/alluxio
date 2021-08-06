@@ -166,11 +166,6 @@ public final class LocalFileDataReader implements DataReader {
     }
 
     @Override
-    public boolean isShortCircuit() {
-      return true;
-    }
-
-    @Override
     public void close() throws IOException {
       if (mClosed) {
         return;
