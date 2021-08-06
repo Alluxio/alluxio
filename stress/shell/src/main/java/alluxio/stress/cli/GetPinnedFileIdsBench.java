@@ -38,6 +38,12 @@ public class GetPinnedFileIdsBench extends RpcBench<GetPinnedFileIdsParameters> 
   private final InstancedConfiguration mConf = InstancedConfiguration.defaults();
   private final FileSystemContext mFileSystemContext = FileSystemContext.create(mConf);
   private final AlluxioURI mBaseUri = new AlluxioURI(mParameters.mBasePath);
+  private final Stopwatch mDurationStopwatch = Stopwatch.createUnstarted();
+  private final Stopwatch mPointStopwatch = Stopwatch.createUnstarted();
+  private final long mDurationMs = FormatUtils.parseTimeSize(mParameters.mDuration);
+  private final PinListFileSystemMasterClient mWorkerClient =
+      new PinListFileSystemMasterClient(
+          MasterClientContext.newBuilder(ClientContext.create(mConf)).build());
 
   @Override
   public void prepare() throws Exception {
@@ -88,30 +94,24 @@ public class GetPinnedFileIdsBench extends RpcBench<GetPinnedFileIdsParameters> 
 
   @Override
   public RpcTaskResult runRPC() throws Exception {
-    PinListFileSystemMasterClient client = new PinListFileSystemMasterClient(
-        MasterClientContext.newBuilder(ClientContext.create(mConf)).build());
     RpcTaskResult result = new RpcTaskResult();
     result.setBaseParameters(mBaseParameters);
     result.setParameters(mParameters);
 
-    long durationMs = FormatUtils.parseTimeSize(mParameters.mDuration);
-    Stopwatch durationStopwatch = Stopwatch.createStarted();
-    Stopwatch pointStopwatch = Stopwatch.createUnstarted();
-
-    while (durationStopwatch.elapsed(TimeUnit.MILLISECONDS) < durationMs) {
+    mDurationStopwatch.reset().start();
+    while (mDurationStopwatch.elapsed(TimeUnit.MILLISECONDS) < mDurationMs) {
       try {
-        pointStopwatch.reset();
-        pointStopwatch.start();
+        mPointStopwatch.reset().start();
 
-        int numPinnedFiles = client.getPinListLength();
+        int numPinnedFiles = mWorkerClient.getPinListLength();
 
-        pointStopwatch.stop();
+        mPointStopwatch.stop();
 
         if (numPinnedFiles != mParameters.mNumFiles) {
           result.addError(String.format("Unexpected number of files: %d", numPinnedFiles));
           return result;
         }
-        result.addPoint(new RpcTaskResult.Point(pointStopwatch.elapsed(TimeUnit.NANOSECONDS)));
+        result.addPoint(new RpcTaskResult.Point(mPointStopwatch.elapsed(TimeUnit.NANOSECONDS)));
       } catch (Exception e) {
         LOG.error("Failed when running", e);
         result.addError(e.getMessage());
