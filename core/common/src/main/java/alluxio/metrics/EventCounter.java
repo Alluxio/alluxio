@@ -33,7 +33,7 @@ public class EventCounter extends AppenderSkeleton {
   }
 
   /**
-   * Get the number of fatal log.
+   * Gets the number of fatal log.
    *
    * @return the number of fatal log
    */
@@ -42,7 +42,7 @@ public class EventCounter extends AppenderSkeleton {
   }
 
   /**
-   * Get the number of error log.
+   * Gets the number of error log.
    *
    * @return the number of error log
    */
@@ -51,7 +51,7 @@ public class EventCounter extends AppenderSkeleton {
   }
 
   /**
-   * Get the number of warn log.
+   * Gets the number of warn log.
    *
    * @return the number of warn log
    */
@@ -60,7 +60,7 @@ public class EventCounter extends AppenderSkeleton {
   }
 
   /**
-   * Get the number of info log.
+   * Gets the number of info log.
    *
    * @return the number of info log
    */
