@@ -318,7 +318,7 @@ public class FuseIOBench extends Benchmark<FuseIOTaskResult> {
       if (isRead) {
         throw new IllegalArgumentException(String.format("Thread %d finishes reading all its files"
             + "before the bench ends. For more accurate result, use more files, or larger files, "
-            + "or a shorter duration"));
+            + "or a shorter duration", mThreadId));
       }
     }
 
