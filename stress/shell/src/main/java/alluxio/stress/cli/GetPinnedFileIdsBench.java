@@ -108,7 +108,8 @@ public class GetPinnedFileIdsBench extends RpcBench<GetPinnedFileIdsParameters> 
         mPointStopwatch.stop();
 
         if (numPinnedFiles != mParameters.mNumFiles) {
-          result.addError(String.format("Unexpected number of files: %d", numPinnedFiles));
+          result.addError(String.format("Unexpected number of files: %d, expected %d",
+              numPinnedFiles, mParameters.mNumFiles));
           return result;
         }
         result.addPoint(new RpcTaskResult.Point(mPointStopwatch.elapsed(TimeUnit.NANOSECONDS)));
@@ -133,8 +134,15 @@ public class GetPinnedFileIdsBench extends RpcBench<GetPinnedFileIdsParameters> 
   }
 
   /**
-   * Helper client that is used to minimizes the deserialization overhead by calling
-   * getPinnedFileIdsCount instead of getPinnedFileIdsList
+   * Helper client that is used to minimize the deserialization overhead by calling
+   * getPinnedFileIdsCount instead of getPinnedFileIdsList.
+   *
+   * By calling getPinnedFileIdsList, GRPC deserializes the IDs from the response, which in this
+   * benchmark are irrelevant, since we only care about the length of the list. By getting only
+   * the count of the IDs, we avoid the deserialization of the IDs.
+   * We want to minimize the client side cost while measuring the RPC performance, so that the
+   * collected results can get as close as possible to what the server side
+   * (in this benchmark's case the master) can achieve.
    */
   private static class PinListFileSystemMasterClient
       extends alluxio.worker.file.FileSystemMasterClient {
