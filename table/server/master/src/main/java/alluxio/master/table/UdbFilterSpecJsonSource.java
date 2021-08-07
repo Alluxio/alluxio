@@ -12,6 +12,8 @@
 package alluxio.master.table;
 
 import alluxio.table.common.udb.UdbFilterSpec;
+import alluxio.table.common.udb.UdbFilterSpec.EntryMode;
+import alluxio.table.common.udb.UdbFilterSpec.EntryType;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -163,9 +165,9 @@ public final class UdbFilterSpecJsonSource {
     UdbFilterSpec.Builder builder = new UdbFilterSpec.Builder();
     // process included bypassed tables
     if (mBypassEntry.getTables().hasIncludedEntries()) {
-      builder.setBypassedTablesMode(UdbFilterSpec.Mode.INCLUDE);
+      builder.setBypassedTablesMode(EntryMode.INCLUDE);
       addTables(builder,
-          UdbFilterSpec.Entry.BYPASS, mBypassEntry.getTables().getIncludedEntries());
+          EntryType.BYPASS, mBypassEntry.getTables().getIncludedEntries());
       for (TablePartitionSpecObject entry : mBypassEntry.getTables().getIncludedEntries()) {
         if (entry.getType() != TablePartitionSpecObject.Type.PARTITION_SPEC) {
           continue;
@@ -176,10 +178,10 @@ public final class UdbFilterSpecJsonSource {
         // process included and excluded partitions
         Set<NameOrRegexObject> partitions;
         if (list.hasIncludedEntries()) {
-          builder.setBypassedPartitionsMode(casted.getTableName(), UdbFilterSpec.Mode.INCLUDE);
+          builder.setBypassedPartitionsMode(casted.getTableName(), EntryMode.INCLUDE);
           partitions = list.getIncludedEntries();
         } else {
-          builder.setBypassedPartitionsMode(casted.getTableName(), UdbFilterSpec.Mode.EXCLUDE);
+          builder.setBypassedPartitionsMode(casted.getTableName(), EntryMode.EXCLUDE);
           partitions = list.getExcludedEntries();
         }
         for (NameOrRegexObject partition : partitions) {
@@ -197,39 +199,39 @@ public final class UdbFilterSpecJsonSource {
         }
       }
     } else {
-      builder.setBypassedTablesMode(UdbFilterSpec.Mode.EXCLUDE);
-      addTables(builder, UdbFilterSpec.Entry.BYPASS,
+      builder.setBypassedTablesMode(EntryMode.EXCLUDE);
+      addTables(builder, EntryType.BYPASS,
           mBypassEntry.getTables().getExcludedEntries());
     }
     // process ignored tables
     Set<NameOrRegexObject> tables;
     if (mIgnoreEntry.getTables().hasIncludedEntries()) {
-      builder.setIgnoredTablesMode(UdbFilterSpec.Mode.INCLUDE);
+      builder.setIgnoredTablesMode(EntryMode.INCLUDE);
       tables = mIgnoreEntry.getTables().getIncludedEntries();
     } else {
-      builder.setIgnoredTablesMode(UdbFilterSpec.Mode.EXCLUDE);
+      builder.setIgnoredTablesMode(EntryMode.EXCLUDE);
       tables = mIgnoreEntry.getTables().getExcludedEntries();
     }
-    addTables(builder, UdbFilterSpec.Entry.IGNORE, tables);
+    addTables(builder, EntryType.IGNORE, tables);
 
     return builder.build();
   }
 
-  private static void addTables(UdbFilterSpec.Builder builder, UdbFilterSpec.Entry entry,
+  private static void addTables(UdbFilterSpec.Builder builder, EntryType entryType,
                                 Set<? extends TablePartitionSpecObject> tables) {
     for (TablePartitionSpecObject object : tables) {
       switch (object.getType()) {
         case NAME:
-          if (entry == UdbFilterSpec.Entry.BYPASS) {
+          if (entryType == EntryType.BYPASS) {
             builder.addBypassedTable(((NameObject) object).getName());
-          } else if (entry == UdbFilterSpec.Entry.IGNORE) {
+          } else if (entryType == EntryType.IGNORE) {
             builder.addIgnoredTable(((NameObject) object).getName());
           }
           break;
         case REGEX:
-          if (entry == UdbFilterSpec.Entry.BYPASS) {
+          if (entryType == EntryType.BYPASS) {
             builder.addBypassedTable(((RegexObject) object).getPattern());
-          } else if (entry == UdbFilterSpec.Entry.IGNORE) {
+          } else if (entryType == EntryType.IGNORE) {
             builder.addIgnoredTable(((RegexObject) object).getPattern());
           }
           break;
