@@ -42,26 +42,69 @@ public final class UdbFilterSpec {
           EntryMode.NONE);
 
   /**
-   * Bypass/ignore entries.
+   * Type of entries.
    */
   public enum EntryType {
-    BYPASS, IGNORE, NONE;
+    /**
+     * Bypassed entries.
+     *
+     * Tables and partitions specified in these entries are not mounted to Alluxio's file system,
+     * but are visible to SDS clients. Clients are instructed to access their data directly
+     * from the UFS.
+     *
+     */
+    BYPASS,
+    /**
+     * Ignored entries.
+     *
+     * Tables specified in these entries are not visible to SDS clients, nor can they be accessed
+     * through Alluxio's file system.
+     */
+    IGNORE,
+    /**
+     * The none type.
+     *
+     * A placeholder type that is invalid for any real configuration.
+     */
+    NONE
   }
 
   /**
-   * Inclusion/exclusion modes of tables and partitions.
+   * Inclusion/exclusion modes of entries.
    */
   public enum EntryMode {
-    INCLUDE, EXCLUDE, NONE;
+    /**
+     * Inclusion mode.
+     *
+     * This mode indicates that the configuration should be applied to the items specified
+     * by the entry.
+     */
+    INCLUDE,
+    /**
+     * Exclusion mode.
+     *
+     * This mode indicates that the configuration should be applied to any item other than
+     * the items specified by the entry.
+     * An empty exclusion entry does not cause the configuration to be applied to all items,
+     * instead it is the same as an empty inclusion entry.
+     */
+    EXCLUDE,
+    /**
+     * The none mode.
+     *
+     * A placeholder mode that is invalid for any real configuration.
+     */
+    NONE
   }
 
   /**
    * Bypassed tables.
-   * When this set is empty, mTableBypassMode is set to NONE.
+   * When this set is empty, {@link #mTableBypassMode} is set to {@link EntryMode#NONE}.
    */
   private final Set<NameTemplate> mBypassedTables;
   /**
-   * Mode of bypassed tables: included or excluded.
+   * Mode of bypassed tables.
+   * {@link EntryMode#NONE} if {@link #mBypassedTables} is empty.
    */
   private final EntryMode mTableBypassMode;
   /**
@@ -71,11 +114,12 @@ public final class UdbFilterSpec {
   /**
    * Ignored tables.
    * Tables are ignored as a whole, no partition configuration is needed.
-   * When this set is empty, mIgnoreMode is set to NONE.
+   * When this set is empty, mIgnoreMode is set to {@link EntryMode#NONE}.
    */
   private final Set<NameTemplate> mIgnoredTables;
   /**
-   * Mode of ignored tables: included or excluded.
+   * Mode of ignored tables.
+   * {@link EntryMode#NONE} if {@link #mIgnoredTables} is empty.
    */
   private final EntryMode mIgnoreMode;
 
@@ -136,12 +180,16 @@ public final class UdbFilterSpec {
     }
   }
 
+  /**
+   * Returns an empty instance.
+   * @return empty instance
+   */
   public static UdbFilterSpec empty() {
     return EMPTY_INSTANCE;
   }
 
   /**
-   * Checks if a table should be bypassed.
+   * Checks if a table is bypassed.
    *
    * @param tableName the table name
    * @return true if the table is configured to be bypassed, false otherwise
@@ -170,7 +218,8 @@ public final class UdbFilterSpec {
   }
 
   /**
-   * Checks if all partitions of a table should be bypassed.
+   * Checks if a table is fully bypassed.
+   * A table is fully bypassed, if all its partitions are bypassed.
    *
    * @param tableName the table name
    * @return true if the table is configured to be fully bypassed, false otherwise
@@ -193,11 +242,11 @@ public final class UdbFilterSpec {
   }
 
   /**
-   * Checks by a partition's name if it should be bypassed.
+   * Checks if a partition of a table is bypassed.
    *
-   * @param tableName the table name
+   * @param tableName the name of the table where the partition belongs
    * @param partitionName the partition name
-   * @return true if the partition should be bypassed, false otherwise
+   * @return true if the partition is bypassed, false otherwise
    */
   public boolean isBypassedPartition(String tableName, String partitionName) {
     if (isFullyBypassedTable(tableName)) {
@@ -212,6 +261,16 @@ public final class UdbFilterSpec {
     return shadowedByIgnore(tableName, handleInclusionExclusion(partitionMode, isBypassed));
   }
 
+  /**
+   * Handles inclusion and exclusion logic.
+   *
+   * Inverts {@code selected} on {@link EntryMode#EXCLUDE} mode, does nothing on
+   * {@link EntryMode#INCLUDE} mode.
+   * @param entryMode the mode of the entry
+   * @param selected whether an item is specified by an entry
+   * @return {@code selected} on {@link EntryMode#INCLUDE} mode,
+   *         {@code !selected} on {@link EntryMode#EXCLUDE} mode
+   */
   private static boolean handleInclusionExclusion(EntryMode entryMode, boolean selected) {
     switch (entryMode) {
       case INCLUDE:
@@ -356,7 +415,7 @@ public final class UdbFilterSpec {
     }
 
     /**
-     * Include or exclude the bypassed tables.
+     * Sets the mode of bypassed tables.
      * @param entryMode {@link EntryMode} of the tables
      * @return this builder
      */
@@ -366,7 +425,7 @@ public final class UdbFilterSpec {
     }
 
     /**
-     * Include or exclude the ignored tables.
+     * Sets the mode of ignored tables.
      * @param entryMode {@link EntryMode} of the tables
      * @return this builder
      */
@@ -376,7 +435,7 @@ public final class UdbFilterSpec {
     }
 
     /**
-     * Add a table by its exact name to the bypass entry.
+     * Adds a table by its exact name to the bypass entry.
      * @param name table name
      * @return this builder
      */
@@ -385,7 +444,7 @@ public final class UdbFilterSpec {
     }
 
     /**
-     * Add a table by pattern to the bypass entry.
+     * Adds a table by pattern to the bypass entry.
      * @param pattern pattern
      * @return this builder
      */
@@ -394,7 +453,7 @@ public final class UdbFilterSpec {
     }
 
     /**
-     * Add a table by its exact name to the ignore entry.
+     * Adds a table by its exact name to the ignore entry.
      * @param name table name
      * @return this builder
      */
@@ -403,7 +462,7 @@ public final class UdbFilterSpec {
     }
 
     /**
-     * Add a table by pattern to the ignore entry.
+     * Adds a table by pattern to the ignore entry.
      * @param pattern pattern
      * @return this builder
      */
@@ -427,7 +486,7 @@ public final class UdbFilterSpec {
     }
 
     /**
-     * Include or exclude the partitions of a bypassed tabls.
+     * Sets the mode of the partitions of a bypassed table.
      * @param tableName name of the parent table
      * @param entryMode {@link EntryMode} of the tables
      * @return this builder
@@ -438,7 +497,7 @@ public final class UdbFilterSpec {
     }
 
     /**
-     * Add a partition by its exact name.
+     * Adds a partition by its exact name.
      * @param tableName the containing table
      * @param partitionName partition name
      * @return this builder
@@ -448,7 +507,7 @@ public final class UdbFilterSpec {
     }
 
     /**
-     * Add a partition by pattern.
+     * Adds a partition by pattern.
      * @param tableName the containing table
      * @param partitionPattern partition pattern
      * @return this builder
@@ -470,11 +529,11 @@ public final class UdbFilterSpec {
     }
 
     /**
-     * Build a {@link UdbFilterSpec}.
+     * Builds a {@link UdbFilterSpec}.
      * The builder should not be used after this method returns.
      * @return {@link UdbFilterSpec}
      * @throws IllegalArgumentException when invalid or conflicting configurations
-     *                                          have been provided
+     *                                  have been provided
      */
     public UdbFilterSpec build() {
       ImmutableMap.Builder<String, Pair<EntryMode, Set<NameTemplate>>> partitionsBuilder
