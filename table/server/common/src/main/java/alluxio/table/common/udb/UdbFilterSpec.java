@@ -95,7 +95,7 @@ public final class UdbFilterSpec {
    * Bypassed tables.
    * When this set is empty, {@link #mTableBypassMode} is set to {@link EntryMode#NONE}.
    */
-  private final Set<NameTemplate> mBypassedTables;
+  private final Set<EntryName> mBypassedTables;
   /**
    * Mode of bypassed tables.
    * {@link EntryMode#NONE} if {@link #mBypassedTables} is empty.
@@ -104,13 +104,13 @@ public final class UdbFilterSpec {
   /**
    * Map of table names to their bypassed partitions and mode.
    */
-  private final Map<String, Pair<EntryMode, Set<NameTemplate>>> mBypassedPartitions;
+  private final Map<String, Pair<EntryMode, Set<EntryName>>> mBypassedPartitions;
   /**
    * Ignored tables.
    * Tables are ignored as a whole, no partition configuration is needed.
    * When this set is empty, mIgnoreMode is set to {@link EntryMode#NONE}.
    */
-  private final Set<NameTemplate> mIgnoredTables;
+  private final Set<EntryName> mIgnoredTables;
   /**
    * Mode of ignored tables.
    * {@link EntryMode#NONE} if {@link #mIgnoredTables} is empty.
@@ -118,10 +118,10 @@ public final class UdbFilterSpec {
   private final EntryMode mIgnoreMode;
 
   private UdbFilterSpec(
-      Set<NameTemplate> bypassedTables,
+      Set<EntryName> bypassedTables,
       EntryMode tableBypassMode,
-      Map<String, Pair<EntryMode, Set<NameTemplate>>> bypassedPartitions,
-      Set<NameTemplate> ignoredTables,
+      Map<String, Pair<EntryMode, Set<EntryName>>> bypassedPartitions,
+      Set<EntryName> ignoredTables,
       EntryMode ignoreMode) {
     mBypassedTables = ImmutableSet.copyOf(bypassedTables);
     mIgnoredTables = ImmutableSet.copyOf(ignoredTables);
@@ -146,17 +146,17 @@ public final class UdbFilterSpec {
       // forbid having partition spec when tables are excluded
       Preconditions.checkArgument(mTableBypassMode != EntryMode.EXCLUDE,
           "Tables are specified with exclusion mode, cannot have partition specification");
-      for (Map.Entry<String, Pair<EntryMode, Set<NameTemplate>>> entry :
+      for (Map.Entry<String, Pair<EntryMode, Set<EntryName>>> entry :
           mBypassedPartitions.entrySet()) {
         String tableName = entry.getKey();
         EntryMode partitionMode = entry.getValue().getFirst();
-        Set<NameTemplate> partitionNameTemplates = entry.getValue().getSecond();
+        Set<EntryName> partitionEntryNames = entry.getValue().getSecond();
         // forbid empty table name
         Preconditions.checkArgument(!tableName.isEmpty(),
             "Empty table name specified with partition specification %s",
-            partitionNameTemplates);
+            partitionEntryNames);
         // forbid empty spec
-        Preconditions.checkArgument(!partitionNameTemplates.isEmpty(),
+        Preconditions.checkArgument(!partitionEntryNames.isEmpty(),
             "Empty partition specification set for table %s",
             tableName);
         // forbid NONE mode
@@ -165,7 +165,7 @@ public final class UdbFilterSpec {
             partitionMode, tableName);
         // forbid both exact name and partition spec for a table at the same time
         Preconditions.checkArgument(mBypassedTables.stream()
-                .noneMatch(template -> template instanceof ExactNameTemplate
+                .noneMatch(template -> template instanceof ExactEntryName
                     && template.matches(tableName)),
             "Table %s is already specified with exact name, "
                 + "cannot have partition specification at the same time",
@@ -293,14 +293,14 @@ public final class UdbFilterSpec {
     return mightBeShadowedIfTrue;
   }
 
-  private static boolean matchedByTemplates(Set<NameTemplate> templates, String name) {
+  private static boolean matchedByTemplates(Set<EntryName> templates, String name) {
     return templates.stream().anyMatch(p -> p.matches(name));
   }
 
   /**
    * Abstract name for tables and partitions.
    */
-  interface NameTemplate {
+  interface EntryName {
     /**
      * Checks whether the argument name matches the configured name pattern.
      *
@@ -310,10 +310,11 @@ public final class UdbFilterSpec {
     boolean matches(String name);
   }
 
-  static class ExactNameTemplate implements NameTemplate {
+  static class ExactEntryName implements EntryName {
     private final String mExactName;
 
-    public ExactNameTemplate(String exactName) {
+    public ExactEntryName(String exactName) {
+      Preconditions.checkNotNull(exactName, "exactName");
       Preconditions.checkArgument(!exactName.isEmpty(), "empty name");
       mExactName = exactName;
     }
@@ -331,7 +332,7 @@ public final class UdbFilterSpec {
       if (o == null || getClass() != o.getClass()) {
         return false;
       }
-      ExactNameTemplate that = (ExactNameTemplate) o;
+      ExactEntryName that = (ExactEntryName) o;
       return Objects.equals(mExactName, that.mExactName);
     }
 
@@ -348,11 +349,11 @@ public final class UdbFilterSpec {
     }
   }
 
-  static class PatternNameTemplate implements NameTemplate {
+  static class PatternEntryName implements EntryName {
     private final Pattern mPattern;
 
-    public PatternNameTemplate(Pattern pattern) {
-      mPattern = pattern;
+    public PatternEntryName(Pattern pattern) {
+      mPattern = Preconditions.checkNotNull(pattern, "pattern");
     }
 
     @Override
@@ -368,7 +369,7 @@ public final class UdbFilterSpec {
       if (o == null || getClass() != o.getClass()) {
         return false;
       }
-      PatternNameTemplate that = (PatternNameTemplate) o;
+      PatternEntryName that = (PatternEntryName) o;
       return Objects.equals(mPattern, that.mPattern);
     }
 
@@ -389,9 +390,9 @@ public final class UdbFilterSpec {
    * Builder for {@link UdbFilterSpec}.
    */
   public static class Builder {
-    private final Set<NameTemplate> mBypassedTables;
-    private final Set<NameTemplate> mIgnoredTables;
-    private final Map<String, Set<NameTemplate>> mBypassedPartitions;
+    private final Set<EntryName> mBypassedTables;
+    private final Set<EntryName> mIgnoredTables;
+    private final Map<String, Set<EntryName>> mBypassedPartitions;
     private final Map<String, EntryMode> mPartitionBypassModes;
     private EntryMode mTableBypassMode;
     private EntryMode mIgnoreMode;
@@ -434,7 +435,7 @@ public final class UdbFilterSpec {
      * @return this builder
      */
     public Builder addBypassedTable(String name) {
-      return addTable(new ExactNameTemplate(name), EntryType.BYPASS);
+      return addTable(new ExactEntryName(name), EntryType.BYPASS);
     }
 
     /**
@@ -443,7 +444,7 @@ public final class UdbFilterSpec {
      * @return this builder
      */
     public Builder addBypassedTable(Pattern pattern) {
-      return addTable(new PatternNameTemplate(pattern), EntryType.BYPASS);
+      return addTable(new PatternEntryName(pattern), EntryType.BYPASS);
     }
 
     /**
@@ -452,7 +453,7 @@ public final class UdbFilterSpec {
      * @return this builder
      */
     public Builder addIgnoredTable(String name) {
-      return addTable(new ExactNameTemplate(name), EntryType.IGNORE);
+      return addTable(new ExactEntryName(name), EntryType.IGNORE);
     }
 
     /**
@@ -461,10 +462,10 @@ public final class UdbFilterSpec {
      * @return this builder
      */
     public Builder addIgnoredTable(Pattern pattern) {
-      return addTable(new PatternNameTemplate(pattern), EntryType.IGNORE);
+      return addTable(new PatternEntryName(pattern), EntryType.IGNORE);
     }
 
-    private Builder addTable(NameTemplate item, EntryType entryType) {
+    private Builder addTable(EntryName item, EntryType entryType) {
       switch (entryType) {
         case BYPASS:
           mBypassedTables.add(item);
@@ -496,7 +497,7 @@ public final class UdbFilterSpec {
      * @return this builder
      */
     public Builder addBypassedPartition(String tableName, String partitionName) {
-      return addBypassedPartition(tableName, new ExactNameTemplate(partitionName));
+      return addBypassedPartition(tableName, new ExactEntryName(partitionName));
     }
 
     /**
@@ -506,10 +507,10 @@ public final class UdbFilterSpec {
      * @return this builder
      */
     public Builder addBypassedPartition(String tableName, Pattern partitionPattern) {
-      return addBypassedPartition(tableName, new PatternNameTemplate(partitionPattern));
+      return addBypassedPartition(tableName, new PatternEntryName(partitionPattern));
     }
 
-    private Builder addBypassedPartition(String tableName, NameTemplate partition) {
+    private Builder addBypassedPartition(String tableName, EntryName partition) {
       mBypassedPartitions.compute(tableName, (tblName, set) -> {
         if (set == null) {
           return Sets.newHashSet(partition);
@@ -529,13 +530,13 @@ public final class UdbFilterSpec {
      *                                  have been provided
      */
     public UdbFilterSpec build() {
-      ImmutableMap.Builder<String, Pair<EntryMode, Set<NameTemplate>>> partitionsBuilder
+      ImmutableMap.Builder<String, Pair<EntryMode, Set<EntryName>>> partitionsBuilder
           = ImmutableMap.builder();
-      for (Map.Entry<String, Set<NameTemplate>> entry : mBypassedPartitions.entrySet()) {
+      for (Map.Entry<String, Set<EntryName>> entry : mBypassedPartitions.entrySet()) {
         String tableName = entry.getKey();
-        Set<NameTemplate> partitionNameTemplates = entry.getValue();
+        Set<EntryName> partitionEntryNames = entry.getValue();
         partitionsBuilder.put(tableName, new Pair<>(
-            mPartitionBypassModes.getOrDefault(tableName, EntryMode.NONE), partitionNameTemplates));
+            mPartitionBypassModes.getOrDefault(tableName, EntryMode.NONE), partitionEntryNames));
       }
       return new UdbFilterSpec(
           mBypassedTables,
