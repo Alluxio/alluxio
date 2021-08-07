@@ -165,8 +165,7 @@ The configuration file is in JSON format, and can contain these configurations:
 2. Ignoring tables:
 
    You can specify some tables to be ignored when attaching the database to Alluxio. Compared to 
-   bypassed tables, Alluxio will not try to mount the ignored tables, therefore they are 
-   invisible to the Alluxio client. 
+   bypassed tables, they are invisible to the Alluxio client, therefore cannot be accessed at all.
    
    The syntax for configuring ignored tables is similar to that of bypassing, except that 
    ignoring only some partitions of a table is not supported.
