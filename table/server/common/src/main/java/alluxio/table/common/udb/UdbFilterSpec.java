@@ -60,13 +60,7 @@ public final class UdbFilterSpec {
      * Tables specified in these entries are not visible to SDS clients, nor can they be accessed
      * through Alluxio's file system.
      */
-    IGNORE,
-    /**
-     * The none type.
-     *
-     * A placeholder type that is invalid for any real configuration.
-     */
-    NONE
+    IGNORE
   }
 
   /**
@@ -478,9 +472,8 @@ public final class UdbFilterSpec {
         case IGNORE:
           mIgnoredTables.add(item);
           break;
-        case NONE:
         default:
-          // unreachable
+          throw new IllegalStateException(String.format("Invalid entry type: %s", entryType));
       }
       return this;
     }
