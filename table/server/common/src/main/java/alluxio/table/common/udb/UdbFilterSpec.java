@@ -389,10 +389,10 @@ public final class UdbFilterSpec {
    * Builder for {@link UdbFilterSpec}.
    */
   public static class Builder {
-    private Set<NameTemplate> mBypassedTables;
-    private Set<NameTemplate> mIgnoredTables;
-    private Map<String, Set<NameTemplate>> mBypassedPartitions;
-    private Map<String, EntryMode> mPartitionBypassModes;
+    private final Set<NameTemplate> mBypassedTables;
+    private final Set<NameTemplate> mIgnoredTables;
+    private final Map<String, Set<NameTemplate>> mBypassedPartitions;
+    private final Map<String, EntryMode> mPartitionBypassModes;
     private EntryMode mTableBypassMode;
     private EntryMode mIgnoreMode;
 
@@ -537,21 +537,13 @@ public final class UdbFilterSpec {
         partitionsBuilder.put(tableName, new Pair<>(
             mPartitionBypassModes.getOrDefault(tableName, EntryMode.NONE), partitionNameTemplates));
       }
-      UdbFilterSpec built = new UdbFilterSpec(
+      return new UdbFilterSpec(
           mBypassedTables,
           mTableBypassMode,
           partitionsBuilder.build(),
           mIgnoredTables,
           mIgnoreMode
       );
-      // release references to prevent reuse of builder
-      mBypassedTables = ImmutableSet.of();
-      mTableBypassMode = EntryMode.NONE;
-      mBypassedPartitions = ImmutableMap.of();
-      mPartitionBypassModes = ImmutableMap.of();
-      mIgnoredTables = ImmutableSet.of();
-      mIgnoreMode = EntryMode.NONE;
-      return built;
     }
   }
 }
