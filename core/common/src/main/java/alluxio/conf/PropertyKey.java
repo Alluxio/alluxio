@@ -3508,8 +3508,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
-  public static final PropertyKey WORKER_REGISTRY_GET_TIMEOUT_MS  =
-      new Builder(Name.WORKER_REGISTRY_GET_TIMEOUT_MS)
+  public static final PropertyKey WORKER_REGISTRY_TIMEOUT  =
+      new Builder(Name.WORKER_REGISTRY_TIMEOUT)
           .setDefaultValue("600000")
           .setDescription("The timeout of getting a worker from the registry.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
