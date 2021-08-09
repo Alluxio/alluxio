@@ -61,7 +61,7 @@ public final class PlanCoordinator {
    * List of all job workers at the time when the job was started. If this coordinator was created
    * to represent an already-completed job, this list will be empty.
    */
-  private final List<WorkerInfo> mWorkersInfoList;
+  private List<WorkerInfo> mWorkersInfoList;
   /**
    * Map containing the worker info for every task associated with the coordinated job. If this
    * coordinator was created to represent an already-completed job, this map will be empty.
@@ -155,6 +155,7 @@ public final class PlanCoordinator {
       mCommandManager.submitCancelTaskCommand(mPlanInfo.getId(), taskId,
           mTaskIdToWorkerInfo.get(taskId).getId());
     }
+    mWorkersInfoList = null;
   }
 
   /**
@@ -168,6 +169,9 @@ public final class PlanCoordinator {
         mPlanInfo.setTaskInfo(taskInfo.getTaskId(), taskInfo);
       }
       updateStatus();
+    }
+    if (isJobFinished()) {
+      mWorkersInfoList = null;
     }
   }
 
@@ -198,6 +202,7 @@ public final class PlanCoordinator {
         mPlanInfo.setErrorType(errorType);
         mPlanInfo.setErrorMessage(errorMessage);
       }
+      mWorkersInfoList = null;
     }
   }
 
