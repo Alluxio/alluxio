@@ -127,6 +127,9 @@ public class RpcTaskResult implements TaskResult {
     mPoints.addAll(r.mPoints);
   }
 
+  /**
+   * An aggregator that merges multiple {@link RpcTaskResult}.
+   */
   public static final class Aggregator implements TaskResult.Aggregator<RpcTaskResult> {
     @Override
     public Summary aggregate(Iterable<RpcTaskResult> results) throws Exception {

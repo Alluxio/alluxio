@@ -56,6 +56,10 @@ public class RpcBenchPreparationUtils {
 
   /**
    * Prepare all relevant block IDs on the master side concurrently.
+   *
+   * @param locToBlocks a map from block location to block IDs
+   * @param pool the thread pool to submit to
+   * @param concurrency number of threads/concurrent clients
    */
   public static void prepareBlocksInMaster(Map<BlockStoreLocation, List<Long>> locToBlocks,
                                            ExecutorService pool,
