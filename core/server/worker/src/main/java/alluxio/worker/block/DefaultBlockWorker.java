@@ -561,7 +561,6 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
     } catch (Exception e) {
       LOG.warn("Failed to submit async cache request. request: {}", request, e);
     }
-
   }
 
   @Override
