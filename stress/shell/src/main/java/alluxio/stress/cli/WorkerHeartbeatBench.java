@@ -11,6 +11,10 @@
 
 package alluxio.stress.cli;
 
+import static alluxio.stress.cli.RpcBenchPreparationUtils.CAPACITY_MEM;
+import static alluxio.stress.cli.RpcBenchPreparationUtils.LOST_STORAGE;
+import static alluxio.stress.cli.RpcBenchPreparationUtils.USED_MEM_EMPTY;
+
 import alluxio.ClientContext;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.grpc.Command;
@@ -35,7 +39,6 @@ import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayDeque;
-import java.util.ArrayList;
 import java.util.Deque;
 import java.util.List;
 import java.util.Map;
@@ -57,13 +60,6 @@ public class WorkerHeartbeatBench extends RpcBench<BlockMasterBenchParameters> {
   private static final Logger LOG = LoggerFactory.getLogger(WorkerHeartbeatBench.class);
 
   // Constants used for the RPC simulation
-  private static final long CAPACITY = 20L * 1024 * 1024 * 1024; // 20GB
-  private static final Map<String, Long> CAPACITY_MEM = ImmutableMap.of("MEM", CAPACITY);
-  private static final Map<String, Long> USED_MEM_EMPTY = ImmutableMap.of("MEM", 0L);
-  private static final BlockStoreLocation BLOCK_LOCATION_MEM =
-      new BlockStoreLocation("MEM", 0, "MEM");
-  private static final Map<String, List<String>> LOST_STORAGE =
-      ImmutableMap.of("MEM", new ArrayList<>());
   private static final List<Metric> EMPTY_METRICS = ImmutableList.of();
   private static final List<Long> EMPTY_REMOVED_BLOCKS = ImmutableList.of();
 
