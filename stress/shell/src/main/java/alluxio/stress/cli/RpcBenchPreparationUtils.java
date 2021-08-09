@@ -50,7 +50,7 @@ public class RpcBenchPreparationUtils {
   private static final BlockStoreLocation BLOCK_LOCATION_MEM =
       new BlockStoreLocation("MEM", 0, "MEM");
 
-  public static InstancedConfiguration sConf = InstancedConfiguration.defaults();
+  public static final InstancedConfiguration sConf = InstancedConfiguration.defaults();
 
   private RpcBenchPreparationUtils() {}
 
