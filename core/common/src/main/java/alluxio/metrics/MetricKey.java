@@ -356,7 +356,7 @@ public final class MetricKey implements Comparable<MetricKey> {
   public static final MetricKey MASTER_TOTAL_BLOCKS =
       new Builder("Master.TotalBlocks")
           .setDescription("Total number of blocks in Alluxio")
-          .setMetricType(MetricType.COUNTER)
+          .setMetricType(MetricType.GAUGE)
           .build();
   public static final MetricKey MASTER_INODE_HEAP_SIZE =
       new Builder("Master.InodeHeapSize")
