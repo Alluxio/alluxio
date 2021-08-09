@@ -117,6 +117,15 @@ public final class UdbFilterSpec {
    */
   private final EntryMode mIgnoreMode;
 
+  /**
+   * Constraints that the constructor must check, and if violated, must throw an exception:
+   * 1. NONE mode is only allowed on an empty entry;
+   * 2. if tables are specified in EXCLUDE mode, they cannot have partition specifications;
+   * 3. a table cannot be specified by its exact name while also having partition specifications;
+   *
+   * Optional constraints:
+   * 1. tables are not ignored and bypassed at the same time (indicates misconfiguration);
+   */
   private UdbFilterSpec(
       Set<EntryName> bypassedTables,
       EntryMode tableBypassMode,
@@ -127,6 +136,7 @@ public final class UdbFilterSpec {
     mIgnoredTables = ImmutableSet.copyOf(ignoredTables);
     mBypassedPartitions = ImmutableMap.copyOf(bypassedPartitions);
 
+    // constraint 1: no NONE mode for non-empty entries
     if (!mBypassedTables.isEmpty()) {
       Preconditions.checkArgument(tableBypassMode != null && tableBypassMode != EntryMode.NONE,
           "Missing inclusion/exclusion mode for bypassed tables");
@@ -143,7 +153,7 @@ public final class UdbFilterSpec {
       mIgnoreMode = EntryMode.NONE;
     }
     if (!mBypassedPartitions.isEmpty()) {
-      // forbid having partition spec when tables are excluded
+      // constraint 2: forbid having partition spec when tables are excluded
       Preconditions.checkArgument(mTableBypassMode != EntryMode.EXCLUDE,
           "Tables are specified with exclusion mode, cannot have partition specification");
       for (Map.Entry<String, Pair<EntryMode, Set<EntryName>>> entry :
@@ -163,7 +173,7 @@ public final class UdbFilterSpec {
         Preconditions.checkArgument(partitionMode != EntryMode.NONE,
             "Invalid mode %s for partitions of table %s, must be either include or exclude",
             partitionMode, tableName);
-        // forbid both exact name and partition spec for a table at the same time
+        // constraint 3: forbid both exact name and partition spec for a table at the same time
         Preconditions.checkArgument(mBypassedTables.stream()
                 .noneMatch(template -> template instanceof ExactEntryName
                     && template.matches(tableName)),
@@ -190,25 +200,22 @@ public final class UdbFilterSpec {
    * @see UdbFilterSpec#isFullyBypassedTable(String)
    */
   public boolean isBypassedTable(String tableName) {
-    boolean isSpecifiedByName = matchedByTemplates(mBypassedTables, tableName);
-    if (isSpecifiedByName) {
-      if (mTableBypassMode == EntryMode.EXCLUDE) {
-        return false;
-      }
-      return shadowedByIgnore(tableName, true);
+    // first check if the table is specified by exact name or regex
+    if (matchedByTemplates(mBypassedTables, tableName)) {
+      // invert the result if mode is exclusion
+      return mTableBypassMode != EntryMode.EXCLUDE;
     }
-    boolean hasBypassedPartition = mBypassedPartitions.containsKey(tableName);
-    if (hasBypassedPartition) {
-      // no need to check mTableBypassMode here, bc if a table has partition specifications,
-      // it must be in inclusion mode (or none)
-      return shadowedByIgnore(tableName, true);
+    // then check if the table has partition specification
+    if (mBypassedPartitions.containsKey(tableName)) {
+      // the following constraints enforced by constructor uphold:
+      // mBypassedPartitions.get(tableName) is not empty
+      // mTableBypassMode is EntryMode.INCLUDE
+      // therefore no need to check mTableBypassMode here
+      return true;
     }
-    // the table is not listed in any way
-    if (mTableBypassMode == EntryMode.EXCLUDE) {
-      return shadowedByIgnore(tableName, true);
-    } else {
-      return false;
-    }
+    // or else, the table is not listed in any way
+    // check if the table is selected by being NOT excluded
+    return mTableBypassMode == EntryMode.EXCLUDE;
   }
 
   /**
@@ -221,7 +228,7 @@ public final class UdbFilterSpec {
    */
   public boolean isFullyBypassedTable(String tableName) {
     boolean isFullyBypassed = matchedByTemplates(mBypassedTables, tableName);
-    return shadowedByIgnore(tableName, handleInclusionExclusion(mTableBypassMode, isFullyBypassed));
+    return handleInclusionExclusion(mTableBypassMode, isFullyBypassed);
   }
 
   /**
@@ -231,8 +238,12 @@ public final class UdbFilterSpec {
    * @return true if the table is ignored, false otherwise
    */
   public boolean isIgnoredTable(String tableName) {
-    boolean isIgnored = matchedByTemplates(mIgnoredTables, tableName);
-    return handleInclusionExclusion(mIgnoreMode, isIgnored);
+    boolean isIgnored =
+        handleInclusionExclusion(mIgnoreMode, matchedByTemplates(mIgnoredTables, tableName));
+    if (isIgnored && isBypassedTable(tableName)) {
+      LOG.warn("Ignored table {} is also bypassed, bypassing will have no effect", tableName);
+    }
+    return isIgnored;
   }
 
   /**
@@ -252,7 +263,7 @@ public final class UdbFilterSpec {
     EntryMode partitionMode = mBypassedPartitions.get(tableName).getFirst();
     boolean isBypassed =
         matchedByTemplates(mBypassedPartitions.get(tableName).getSecond(), partitionName);
-    return shadowedByIgnore(tableName, handleInclusionExclusion(partitionMode, isBypassed));
+    return handleInclusionExclusion(partitionMode, isBypassed);
   }
 
   /**
@@ -273,24 +284,11 @@ public final class UdbFilterSpec {
         return !selected;
       case NONE:
       default:
+        // NONE mode only occurs with an empty entry
+        // therefore, selected is expected to be false
+        Preconditions.checkState(!selected, "selected is true on NONE mode entry");
         return false;
     }
-  }
-
-  /**
-   * Checks if a table is shadowed by ignoring when it is also bypassed.
-   * @param tableName the table name
-   * @param mightBeShadowedIfTrue the return value of {@link #isBypassedTable(String)}, etc
-   * @return false if the table is shadowed by ignoring, mightBeShadowedIfTrue if it is not
-   */
-  private boolean shadowedByIgnore(String tableName, boolean mightBeShadowedIfTrue) {
-    if (mightBeShadowedIfTrue && isIgnoredTable(tableName)) {
-      // todo(bowen): this warning is never triggered because if a table is ignored,
-      // it will not be checked for bypassing, given the current implementation in Database
-      LOG.warn("Table {} is set to be bypassed but it is also ignored", tableName);
-      return false;
-    }
-    return mightBeShadowedIfTrue;
   }
 
   private static boolean matchedByTemplates(Set<EntryName> templates, String name) {

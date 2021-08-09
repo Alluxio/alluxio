@@ -209,40 +209,6 @@ public class UdbFilterSpecTest {
   }
 
   @Test
-  public void ignoreTakesPrecedenceOverBypass() {
-    mBuilder.setBypassedTablesMode(EntryMode.INCLUDE)
-        .addBypassedTable("same_table")
-        .setIgnoredTablesMode(EntryMode.INCLUDE)
-        .addIgnoredTable("same_table");
-    UdbFilterSpec spec = mBuilder.build();
-    assertTrue(spec.isIgnoredTable("same_table"));
-    assertFalse(spec.isBypassedTable("same_table"));
-    assertFalse(spec.isBypassedPartition("same_table", ANY_PART));
-  }
-
-  @Test
-  public void ignoreTakesPrecedenceOverBypass2() {
-    mBuilder.setBypassedTablesMode(EntryMode.INCLUDE)
-        .addBypassedTable(getTableName(1))
-        .setIgnoredTablesMode(EntryMode.EXCLUDE)
-        .addIgnoredTable(getTableName(2));
-    UdbFilterSpec spec = mBuilder.build();
-    assertTrue(spec.isIgnoredTable(getTableName(1)));
-    assertFalse(spec.isBypassedTable(getTableName(1)));
-    assertFalse(spec.isBypassedPartition(getTableName(1), ANY_PART));
-  }
-
-  @Test
-  public void ignoreTakesPrecedenceOverBypassPartitions() {
-    mBuilder.setBypassedPartitionsMode(getTableName(1), EntryMode.INCLUDE)
-        .addBypassedPartition(getTableName(1), getPartitionName(1))
-        .setIgnoredTablesMode(EntryMode.INCLUDE)
-        .addIgnoredTable(getTableName(1));
-    UdbFilterSpec spec = mBuilder.build();
-    assertFalse(spec.isBypassedPartition(getTableName(1), getPartitionName(1)));
-  }
-
-  @Test
   public void ignoreNone() {
     mBuilder.setIgnoredTablesMode(EntryMode.INCLUDE);
     // no tables added
