@@ -15,8 +15,6 @@ import alluxio.RpcUtils;
 import alluxio.grpc.BlockHeartbeatPRequest;
 import alluxio.grpc.BlockHeartbeatPResponse;
 import alluxio.grpc.BlockMasterWorkerServiceGrpc;
-import alluxio.grpc.CommitBlockInUfsPRequest;
-import alluxio.grpc.CommitBlockInUfsPResponse;
 import alluxio.grpc.CommitBlockPRequest;
 import alluxio.grpc.CommitBlockPResponse;
 import alluxio.grpc.GetWorkerIdPRequest;
@@ -104,17 +102,6 @@ public final class BlockMasterWorkerServiceHandler extends
           mediumType, blockId, length);
       return CommitBlockPResponse.getDefaultInstance();
     }, "commitBlock", "request=%s", responseObserver, request);
-  }
-
-  @Override
-  public void commitBlockInUfs(CommitBlockInUfsPRequest request,
-      StreamObserver<CommitBlockInUfsPResponse> responseObserver) {
-
-    RpcUtils.call(LOG,
-        (RpcUtils.RpcCallableThrowsIOException<CommitBlockInUfsPResponse>) () -> {
-          mBlockMaster.commitBlockInUFS(request.getBlockId(), request.getLength());
-          return CommitBlockInUfsPResponse.getDefaultInstance();
-        }, "commitBlock", "request=%s", responseObserver, request);
   }
 
   @Override

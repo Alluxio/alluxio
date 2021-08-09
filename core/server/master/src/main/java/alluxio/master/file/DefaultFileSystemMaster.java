@@ -1525,7 +1525,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
     long currLength = fileLength;
     for (long blockId : blockIds) {
       long currentBlockSize = Math.min(currLength, blockSize);
-      mBlockMaster.commitBlockInUFS(blockId, currentBlockSize);
+      // mBlockMaster.commitBlockInUFS(blockId, currentBlockSize);
       currLength -= currentBlockSize;
     }
   }
@@ -4079,20 +4079,6 @@ public final class DefaultFileSystemMaster extends CoreMaster
           }
         }
         mPersistRequests.put(fileId, job.getTimer());
-      }
-
-      // Cleanup possible staging UFS blocks files due to fast durable write fallback.
-      // Note that this is best effort
-      if (ufsClient != null) {
-        for (long blockId : blockIds) {
-          String ufsBlockPath = alluxio.worker.BlockUtils.getUfsBlockPath(ufsClient, blockId);
-          try (CloseableResource<UnderFileSystem> ufsResource = ufsClient.acquireUfsResource()) {
-            alluxio.util.UnderFileSystemUtils.deleteFileIfExists(ufsResource.get(), ufsBlockPath);
-          } catch (Exception e) {
-            LOG.warn("Failed to clean up staging UFS block file {}: {}",
-                ufsBlockPath, e.toString());
-          }
-        }
       }
     }
 

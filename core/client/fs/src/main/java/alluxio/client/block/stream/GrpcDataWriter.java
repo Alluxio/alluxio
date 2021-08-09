@@ -142,21 +142,6 @@ public final class GrpcDataWriter implements DataWriter {
               .build();
       builder.setCreateUfsFileOptions(ufsFileOptions);
     }
-    // two cases to use UFS_FALLBACK_BLOCK endpoint:
-    // (1) this writer is created by the fallback of a short-circuit writer, or
-    boolean alreadyFallback = type == RequestType.UFS_FALLBACK_BLOCK;
-    // (2) the write type is async when UFS tier is enabled.
-    boolean possibleToFallback = type == RequestType.ALLUXIO_BLOCK
-        && options.getWriteType() == alluxio.client.WriteType.ASYNC_THROUGH
-        && conf.getBoolean(PropertyKey.USER_FILE_UFS_TIER_ENABLED);
-    if (alreadyFallback || possibleToFallback) {
-      // Overwrite to use the fallback-enabled endpoint in case (2)
-      builder.setType(RequestType.UFS_FALLBACK_BLOCK);
-      Protocol.CreateUfsBlockOptions ufsBlockOptions = Protocol.CreateUfsBlockOptions.newBuilder()
-          .setMountId(options.getMountId())
-          .setFallback(alreadyFallback).build();
-      builder.setCreateUfsBlockOptions(ufsBlockOptions);
-    }
     // check if we need to pin block on create
     builder.setPinOnCreate(options.getWriteType() == WriteType.ASYNC_THROUGH);
     builder.setSpaceToReserve(reservedBytes);
@@ -204,23 +189,6 @@ public final class GrpcDataWriter implements DataWriter {
     } finally {
       buf.release();
     }
-  }
-
-  /**
-   * Notifies the server UFS fallback endpoint to start writing a new block by resuming the given
-   * number of bytes from block store.
-   *
-   * @param pos number of bytes already written to block store
-   */
-  public void writeFallbackInitRequest(long pos) throws IOException {
-    Preconditions.checkState(mPartialRequest.getType() == RequestType.UFS_FALLBACK_BLOCK);
-    Protocol.CreateUfsBlockOptions ufsBlockOptions = mPartialRequest.getCreateUfsBlockOptions()
-        .toBuilder().setBytesInBlockStore(pos).build();
-    WriteRequest writeRequest = WriteRequest.newBuilder().setCommand(
-        mPartialRequest.toBuilder().setOffset(0).setCreateUfsBlockOptions(ufsBlockOptions))
-        .build();
-    mPosToQueue = pos;
-    mStream.send(writeRequest, mDataTimeoutMs);
   }
 
   @Override

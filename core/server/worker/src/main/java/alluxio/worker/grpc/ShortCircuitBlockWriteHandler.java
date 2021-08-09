@@ -104,12 +104,6 @@ class ShortCircuitBlockWriteHandler implements StreamObserver<CreateLocalBlockRe
       @Override
       public void exceptionCaught(Throwable throwable) {
         if (mSessionId != INVALID_SESSION_ID) {
-          // In case the client is a UfsFallbackDataWriter, DO NOT clean the temp blocks.
-          if (throwable instanceof alluxio.exception.WorkerOutOfSpaceException
-              && request.hasCleanupOnFailure() && !request.getCleanupOnFailure()) {
-            mResponseObserver.onError(GrpcExceptionUtils.fromThrowable(throwable));
-            return;
-          }
           mBlockWorker.cleanupSession(mSessionId);
           mSessionId = INVALID_SESSION_ID;
         }

@@ -45,7 +45,6 @@ message Chunk {
 enum RequestType {
   ALLUXIO_BLOCK = 0;
   UFS_FILE = 1;
-  UFS_FALLBACK_BLOCK = 2;
 }
 
 // The read request.
@@ -86,7 +85,6 @@ message WriteRequestCommand {
   optional bool flush = 5;
   // Cancel, close and error will be handled by standard gRPC stream APIs.
   optional alluxio.proto.dataserver.CreateUfsFileOptions create_ufs_file_options = 6;
-  optional alluxio.proto.dataserver.CreateUfsBlockOptions create_ufs_block_options = 7;
   optional string medium_type = 8;
   optional bool pin_on_create = 9;
   optional int64 space_to_reserve = 10;

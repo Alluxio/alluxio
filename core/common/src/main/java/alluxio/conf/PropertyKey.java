@@ -3961,14 +3961,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "DELETE (default) or FREE")
           .setScope(Scope.CLIENT)
           .build();
-  public static final PropertyKey USER_FILE_UFS_TIER_ENABLED =
-      new Builder(Name.USER_FILE_UFS_TIER_ENABLED)
-          .setDescription("When workers run out of available memory, whether the client can skip "
-              + "writing data to Alluxio but fallback to write to UFS without stopping the "
-              + "application. This property only works when the write type is ASYNC_THROUGH.")
-          .setDefaultValue(false)
-          .setScope(Scope.CLIENT)
-          .build();
   public static final PropertyKey USER_BLOCK_READ_METRICS_ENABLED =
       new Builder(Name.USER_BLOCK_READ_METRICS_ENABLED)
           .setDescription("Whether detailed block read metrics will be recorded and sink.")
@@ -6079,7 +6071,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.user.file.replication.durable";
     public static final String USER_FILE_SEQUENTIAL_PREAD_THRESHOLD =
         "alluxio.user.file.sequential.pread.threshold";
-    public static final String USER_FILE_UFS_TIER_ENABLED = "alluxio.user.file.ufs.tier.enabled";
     public static final String USER_FILE_WAITCOMPLETED_POLL_MS =
         "alluxio.user.file.waitcompleted.poll";
     public static final String USER_FILE_CREATE_TTL =

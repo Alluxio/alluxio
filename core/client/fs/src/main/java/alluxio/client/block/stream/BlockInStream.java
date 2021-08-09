@@ -208,7 +208,6 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
     ReadRequest.Builder builder = ReadRequest.newBuilder()
         .setBlockId(blockId)
         .setPromote(ReadType.fromProto(options.getOptions().getReadType()).isPromote())
-        .setOpenUfsBlockOptions(options.getOpenUfsBlockOptions(blockId)) // Add UFS fallback options
         .setPositionShort(options.getPositionShort())
         .setChunkSize(chunkSize);
     DataReader.Factory factory;

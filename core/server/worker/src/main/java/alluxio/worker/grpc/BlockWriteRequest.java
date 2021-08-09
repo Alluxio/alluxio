@@ -25,7 +25,6 @@ public final class BlockWriteRequest extends WriteRequest {
   /** Which tier this block writes to. */
   private final int mTier;
   private final String mMediumType;
-  private final Protocol.CreateUfsBlockOptions mCreateUfsBlockOptions;
 
   /**
    * @param request block request in proto
@@ -34,11 +33,6 @@ public final class BlockWriteRequest extends WriteRequest {
     super(request);
     mTier = request.getCommand().getTier();
     mMediumType = request.getCommand().getMediumType();
-    if (request.getCommand().hasCreateUfsBlockOptions()) {
-      mCreateUfsBlockOptions = request.getCommand().getCreateUfsBlockOptions();
-    } else {
-      mCreateUfsBlockOptions = null;
-    }
   }
 
   /**
@@ -55,24 +49,9 @@ public final class BlockWriteRequest extends WriteRequest {
     return mMediumType;
   }
 
-  /**
-   * @return the options to create blocks in UFS
-   */
-  @javax.annotation.Nullable
-  public Protocol.CreateUfsBlockOptions getCreateUfsBlockOptions() {
-    return mCreateUfsBlockOptions;
-  }
-
-  /**
-   * @return whether the request has the options to create blocks in UFS
-   */
-  public boolean hasCreateUfsBlockOptions() {
-    return mCreateUfsBlockOptions != null;
-  }
-
   @Override
   protected MoreObjects.ToStringHelper toStringHelper() {
     return super.toStringHelper().add("tier", mTier)
-        .add("createUfsBlockOptions", mCreateUfsBlockOptions);
+        .add("mediumType", mMediumType);
   }
 }

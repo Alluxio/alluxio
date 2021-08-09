@@ -89,10 +89,6 @@ public final class LocalFileDataWriter implements DataWriter {
           CreateLocalBlockRequest.newBuilder().setBlockId(blockId).setTier(options.getWriteTier())
               .setSpaceToReserve(reservedBytes).setMediumType(options.getMediumType())
               .setPinOnCreate(options.getWriteType() == WriteType.ASYNC_THROUGH);
-      if (options.getWriteType() == WriteType.ASYNC_THROUGH
-          && conf.getBoolean(PropertyKey.USER_FILE_UFS_TIER_ENABLED)) {
-        builder.setCleanupOnFailure(false);
-      }
       CreateLocalBlockRequest createRequest = builder.build();
 
       GrpcBlockingStream<CreateLocalBlockRequest, CreateLocalBlockResponse> stream =

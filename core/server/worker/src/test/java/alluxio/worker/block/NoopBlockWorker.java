@@ -64,20 +64,9 @@ public class NoopBlockWorker implements BlockWorker {
   }
 
   @Override
-  public void commitBlockInUfs(long blockId, long length) throws IOException {
-    // noop
-  }
-
-  @Override
   public String createBlock(long sessionId, long blockId, int tier, String medium,
       long initialBytes)
       throws BlockAlreadyExistsException, WorkerOutOfSpaceException, IOException {
-    return null;
-  }
-
-  @Nullable
-  @Override
-  public TempBlockMeta getTempBlockMeta(long sessionId, long blockId) {
     return null;
   }
 

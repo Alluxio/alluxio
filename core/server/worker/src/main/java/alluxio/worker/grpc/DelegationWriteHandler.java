@@ -62,9 +62,6 @@ public class DelegationWriteHandler implements StreamObserver<alluxio.grpc.Write
       case UFS_FILE:
         return new UfsFileWriteHandler(mWorkerProcess.getUfsManager(), mResponseObserver,
             mUserInfo);
-      case UFS_FALLBACK_BLOCK:
-        return new UfsFallbackBlockWriteHandler(mWorkerProcess.getWorker(BlockWorker.class),
-            mWorkerProcess.getUfsManager(), mResponseObserver, mUserInfo, mDomainSocketEnabled);
       default:
         throw new IllegalArgumentException(String.format("Invalid request type %s",
             request.getCommand().getType().name()));

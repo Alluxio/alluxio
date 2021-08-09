@@ -60,29 +60,19 @@ public interface DataWriter extends Closeable, Cancelable {
       boolean shortCircuit = alluxioConf.getBoolean(PropertyKey.USER_SHORT_CIRCUIT_ENABLED);
       boolean shortCircuitPreferred =
           alluxioConf.getBoolean(PropertyKey.USER_SHORT_CIRCUIT_PREFERRED);
-      boolean ufsFallbackEnabled = options.getWriteType() == WriteType.ASYNC_THROUGH
-          && alluxioConf.getBoolean(PropertyKey.USER_FILE_UFS_TIER_ENABLED);
       boolean workerIsLocal = CommonUtils.isLocalHost(address, alluxioConf);
 
-      if (workerIsLocal && context.hasProcessLocalWorker() && !ufsFallbackEnabled) {
+      if (workerIsLocal && context.hasProcessLocalWorker()) {
         LOG.debug("Creating worker process local output stream for block {} @ {}",
             blockId, address);
         return BlockWorkerDataWriter.create(context, blockId, blockSize, options);
       }
       LOG.debug("Doesn't create worker process local output stream for block {} @ {} "
-          + "(data locates in local worker: {}, client locates in local worker process: {}, "
-          + "ufs fallback enabled: {})", blockId, address,
-          workerIsLocal, context.hasProcessLocalWorker(), ufsFallbackEnabled);
+          + "(data locates in local worker: {}, client locates in local worker process: {})",
+          blockId, address, workerIsLocal, context.hasProcessLocalWorker());
 
       boolean domainSocketSupported = NettyUtils.isDomainSocketSupported(address);
-      if (workerIsLocal && shortCircuit
-          && (shortCircuitPreferred || !domainSocketSupported)) {
-        if (ufsFallbackEnabled) {
-          LOG.info("Creating UFS-fallback short circuit output stream for block {} @ {}", blockId,
-              address);
-          return UfsFallbackLocalFileDataWriter.create(
-              context, address, blockId, blockSize, options);
-        }
+      if (workerIsLocal && shortCircuit && (shortCircuitPreferred || !domainSocketSupported)) {
         LOG.debug("Creating short circuit output stream for block {} @ {}", blockId, address);
         return LocalFileDataWriter.create(context, address, blockId, blockSize, options);
       } else {

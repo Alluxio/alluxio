@@ -39,6 +39,7 @@ public final class RemovedKey {
   private static final String V2_3_0 = "v2.3.0";
   private static final String V2_4_0 = "v2.4.0";
   private static final String V2_6_0 = "v2.6.0";
+  private static final String V2_6_2 = "v2.6.2";
 
   /**
    * @param version the version since which a property has been removed
@@ -102,6 +103,7 @@ public final class RemovedKey {
       put("alluxio.user.file.copyfromlocal.write.location.policy.class", replacedSince(V2_0_0,
           PropertyKey.USER_FILE_COPYFROMLOCAL_BLOCK_LOCATION_POLICY.getName()));
       put("alluxio.user.file.seek.buffer.size.bytes", removedSince(V2_0_0));
+      put("alluxio.user.file.ufs.tier.enabled", removedSince(V2_6_2));
       put("alluxio.user.file.write.avoid.eviction.policy.reserved.size.bytes",
           replacedSince(V2_0_0,
               PropertyKey.USER_BLOCK_AVOID_EVICTION_POLICY_RESERVED_BYTES.getName()));

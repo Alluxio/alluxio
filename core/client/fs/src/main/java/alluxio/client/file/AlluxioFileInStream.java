@@ -414,7 +414,6 @@ public class AlluxioFileInStream extends FileInStream {
         }
         AsyncCacheRequest request =
             AsyncCacheRequest.newBuilder().setBlockId(blockId).setLength(blockLength)
-                .setOpenUfsBlockOptions(mOptions.getOpenUfsBlockOptions(blockId))
                 .setSourceHost(host).setSourcePort(dataSource.getDataPort())
                 .build();
         if (mPassiveCachingEnabled && mContext.hasProcessLocalWorker()) {

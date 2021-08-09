@@ -84,14 +84,6 @@ public interface BlockWorker extends Worker, SessionCleanable {
       IOException, WorkerOutOfSpaceException;
 
   /**
-   * Commits a block in UFS.
-   *
-   * @param blockId the id of the block to commit
-   * @param length length of the block to commit
-   */
-  void commitBlockInUfs(long blockId, long length) throws IOException;
-
-  /**
    * Creates a block in Alluxio managed space.
    * Calls {@link #createBlockWriter} to get a writer for writing to the block.
    * The block will be temporary until it is committed by {@link #commitBlock} .
@@ -110,15 +102,6 @@ public interface BlockWorker extends Worker, SessionCleanable {
    */
   String createBlock(long sessionId, long blockId, int tier, String medium, long initialBytes)
       throws BlockAlreadyExistsException, WorkerOutOfSpaceException, IOException;
-
-  /**
-   * @param sessionId the id of the session to get this file
-   * @param blockId the id of the block
-   *
-   * @return metadata of the block or null if the temp block does not exist
-   */
-  @Nullable
-  TempBlockMeta getTempBlockMeta(long sessionId, long blockId);
 
   /**
    * Creates a {@link BlockWriter} for an existing temporary block which is already created by
