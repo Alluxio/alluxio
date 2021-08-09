@@ -36,11 +36,13 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 
+/**
+ * Utilities for the preparation step in RPC benchmark testing.
+ */
 public class RpcBenchPreparationUtils {
   private static final Logger LOG = LoggerFactory.getLogger(RpcBenchPreparationUtils.class);
 
   private static final String[] TIER_NAMES = new String[]{"MEM", "SSD", "HDD"};
-
   private static final long CAPACITY = 20L * 1024 * 1024 * 1024; // 20GB
   private static final Map<String, Long> CAPACITY_MEM = ImmutableMap.of("MEM", CAPACITY);
   private static final Map<String, Long> USED_MEM_EMPTY = ImmutableMap.of("MEM", 0L);
@@ -50,6 +52,9 @@ public class RpcBenchPreparationUtils {
 
   private RpcBenchPreparationUtils() {}
 
+  /**
+   * Prepare all relevant block IDs on the master side concurrently.
+   */
   public static void prepareBlocksInMaster(Map<BlockStoreLocation, List<Long>> locToBlocks, ExecutorService pool, int concurrency) {
     // Partition the wanted block IDs to smaller jobs in order to utilize concurrency
     List<List<Long>> jobs = new ArrayList<>();
@@ -91,6 +96,9 @@ public class RpcBenchPreparationUtils {
     CompletableFuture.allOf(futures).join();
   }
 
+  /**
+   * Reserves a list of worker IDs from the master.
+   */
   static Deque<Long> prepareWorkerIds(BlockMasterClient client, int numWorkers) throws IOException {
     Deque<Long> workerPool = new ArrayDeque<>();
     int freePort = 40000;
