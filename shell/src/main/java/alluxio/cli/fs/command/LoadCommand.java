@@ -51,7 +51,6 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 @PublicApi
 public final class LoadCommand extends AbstractFileSystemCommand {
-
   private static final Option LOCAL_OPTION =
       Option.builder()
           .longOpt("local")
@@ -82,9 +81,7 @@ public final class LoadCommand extends AbstractFileSystemCommand {
   @Override
   protected void runPlainPath(AlluxioURI plainPath, CommandLine cl)
       throws AlluxioException, IOException {
-
     load(plainPath, cl.hasOption(LOCAL_OPTION.getLongOpt()));
-
     System.out.println(plainPath + " loaded");
   }
 
@@ -93,7 +90,6 @@ public final class LoadCommand extends AbstractFileSystemCommand {
     String[] args = cl.getArgs();
     AlluxioURI path = new AlluxioURI(args[0]);
     runWildCardCmd(path, cl);
-
     return 0;
   }
 
@@ -106,7 +102,6 @@ public final class LoadCommand extends AbstractFileSystemCommand {
   private void load(AlluxioURI filePath, boolean local)
       throws AlluxioException, IOException {
     URIStatus status = mFileSystem.getStatus(filePath);
-
     if (status.isFolder()) {
       List<URIStatus> statuses = mFileSystem.listStatus(filePath);
       for (URIStatus uriStatus : statuses) {
@@ -176,13 +171,9 @@ public final class LoadCommand extends AbstractFileSystemCommand {
       URIStatus status, Protocol.OpenUfsBlockOptions options) {
     BlockInfo info = status.getBlockInfo(blockId);
     long blockLength = info.getLength();
-    CacheRequest request = CacheRequest.newBuilder()
-                                      .setBlockId(blockId)
-                                      .setLength(blockLength)
-                                      .setOpenUfsBlockOptions(options)
-                                      .setSourceHost(dataSource.getHost())
-                                      .setSourcePort(dataSource.getDataPort()).build();
-    // TODO(jianjian) support FUSE processLocalWorker?
+    CacheRequest request = CacheRequest.newBuilder().setBlockId(blockId).setLength(blockLength)
+        .setOpenUfsBlockOptions(options).setSourceHost(dataSource.getHost())
+        .setSourcePort(dataSource.getDataPort()).build();
     WorkerNetAddress worker;
     try {
       if (local) {

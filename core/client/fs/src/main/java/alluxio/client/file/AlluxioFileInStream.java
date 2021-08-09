@@ -399,7 +399,6 @@ public class AlluxioFileInStream extends FileInStream {
       if (cache && (mLastBlockIdCached != blockId)) {
         // Construct the async cache request
         long blockLength = mOptions.getBlockInfo(blockId).getLength();
-
         String host = dataSource.getHost();
         // issues#11172: If the worker is in a container, use the container hostname
         // to establish the connection.

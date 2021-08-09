@@ -16,6 +16,7 @@ import alluxio.exception.BlockAlreadyExistsException;
 import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.InvalidWorkerStateException;
 import alluxio.exception.WorkerOutOfSpaceException;
+import alluxio.grpc.AsyncCacheRequest;
 import alluxio.grpc.CacheRequest;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.wire.BlockReadRequest;
@@ -305,6 +306,16 @@ public interface BlockWorker extends Worker, SessionCleanable {
    * @throws BlockDoesNotExistException if lock id cannot be found
    */
   void unlockBlock(long lockId) throws BlockDoesNotExistException;
+
+  /**
+   * Submits the async cache request to async cache manager to execute.
+   *
+   * @param request the async cache request
+   *
+   * @deprecated This method will be deprecated as of v3.0, use {@link cache}
+   */
+  @Deprecated
+  void asyncCache(AsyncCacheRequest request);
 
   /**
    * Submits the cache request to cache manager to execute.

@@ -55,7 +55,7 @@ import java.util.Set;
 
 import javax.annotation.concurrent.ThreadSafe;
 
-// todo (jianjian): rename AlluxioBlockStore since it would get confused by BlockStore
+// TODO (jianjian): rename AlluxioBlockStore since it would get confused by BlockStore
 /**
  * Alluxio Block Store client. This is an internal client for all block level operations in Alluxio.
  * An instance of this class can be obtained via {@link AlluxioBlockStore} constructors.
@@ -176,8 +176,7 @@ public final class AlluxioBlockStore {
 
   /**
    * Gets the data source and type of data source of a block. This method is primarily responsible
-   * for determining the data source and type of data source. The latest BlockInfo will be fetched
-   * from the master to ensure the locations are up to date. It takes a map of failed workers and
+   * for determining the data source and type of data source. It takes a map of failed workers and
    * their most recently failed time and tries to update it when BlockInStream created failed,
    * attempting to avoid reading from a recently failed worker.
    *

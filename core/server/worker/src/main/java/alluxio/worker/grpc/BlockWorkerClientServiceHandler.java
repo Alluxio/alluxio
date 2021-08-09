@@ -15,6 +15,8 @@ import alluxio.RpcUtils;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.client.file.FileSystemContext;
+import alluxio.grpc.AsyncCacheRequest;
+import alluxio.grpc.AsyncCacheResponse;
 import alluxio.grpc.BlockWorkerGrpc;
 import alluxio.grpc.CacheRequest;
 import alluxio.grpc.CacheResponse;
@@ -144,6 +146,15 @@ public class BlockWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorker
         (ServerCallStreamObserver<CreateLocalBlockResponse>) responseObserver;
     serverCallStreamObserver.setOnCancelHandler(handler::onCancel);
     return handler;
+  }
+
+  @Override
+  public void asyncCache(AsyncCacheRequest request,
+      StreamObserver<AsyncCacheResponse> responseObserver) {
+    RpcUtils.call(LOG, () -> {
+      mBlockWorker.asyncCache(request);
+      return AsyncCacheResponse.getDefaultInstance();
+    }, "asyncCache", "request=%s", responseObserver, request);
   }
 
   @Override

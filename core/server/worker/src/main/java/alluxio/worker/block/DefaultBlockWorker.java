@@ -28,6 +28,7 @@ import alluxio.exception.ExceptionMessage;
 import alluxio.exception.InvalidWorkerStateException;
 import alluxio.exception.WorkerOutOfSpaceException;
 import alluxio.exception.status.UnavailableException;
+import alluxio.grpc.AsyncCacheRequest;
 import alluxio.grpc.CacheRequest;
 import alluxio.grpc.GrpcService;
 import alluxio.grpc.ServiceType;
@@ -546,6 +547,21 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
   public void unlockBlock(long lockId) throws BlockDoesNotExistException {
     mLocalBlockStore.unlockBlock(lockId);
     Metrics.WORKER_ACTIVE_CLIENTS.dec();
+  }
+
+  @Override
+  public void asyncCache(AsyncCacheRequest request) {
+    CacheRequest cacheRequest =
+        CacheRequest.newBuilder().setBlockId(request.getBlockId()).setLength(request.getLength())
+            .setOpenUfsBlockOptions(request.getOpenUfsBlockOptions())
+            .setSourceHost(request.getSourceHost()).setSourcePort(request.getSourcePort())
+            .setAsync(true).build();
+    try {
+      mCacheManager.submitRequest(cacheRequest);
+    } catch (Exception e) {
+      LOG.warn("Failed to submit async cache request. request: {}", request, e);
+    }
+
   }
 
   @Override
