@@ -52,7 +52,7 @@ public abstract class RpcBench<T extends RpcBenchParameters> extends Benchmark<R
    * If the thread pool is not yet initialized, creates the pool.
    *
    * @return the thread pool
-   * */
+   */
   public ExecutorService getPool() {
     if (mPool == null) {
       mPool = ExecutorServiceFactories
