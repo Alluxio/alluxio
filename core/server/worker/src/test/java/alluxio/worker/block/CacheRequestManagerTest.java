@@ -13,6 +13,7 @@ package alluxio.worker.block;
 
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -78,8 +79,8 @@ public class CacheRequestManagerTest {
     when(mBlockWorker.createUfsBlockReader(Sessions.ASYNC_CACHE_UFS_SESSION_ID, blockId, 0, false,
         openUfsBlockOptions)).thenReturn(mockBlockReader);
     mCacheRequestManager.submitRequest(request);
-    verify(mBlockWorker).createUfsBlockReader(Sessions.ASYNC_CACHE_UFS_SESSION_ID, blockId, 0,
-        false, openUfsBlockOptions);
+    verify(mBlockWorker, timeout(100)).createUfsBlockReader(Sessions.ASYNC_CACHE_UFS_SESSION_ID,
+        blockId, 0, false, openUfsBlockOptions);
   }
 
   @Test
@@ -97,10 +98,12 @@ public class CacheRequestManagerTest {
         .setSourcePort(port).build();
     setupMockReaderWriter(fakeRemoteWorker, port, blockId, blockLength, options);
     mCacheRequestManager.submitRequest(request);
-    verify(mBlockWorker).createBlock(Sessions.ASYNC_CACHE_WORKER_SESSION_ID, blockId, 0, "",
-        blockLength);
-    verify(mBlockWorker).createBlockWriter(Sessions.ASYNC_CACHE_WORKER_SESSION_ID, blockId);
-    verify(mBlockWorker).commitBlock(Sessions.ASYNC_CACHE_WORKER_SESSION_ID, blockId, false);
+    verify(mBlockWorker, timeout(100)).createBlock(Sessions.ASYNC_CACHE_WORKER_SESSION_ID, blockId,
+        0, "", blockLength);
+    verify(mBlockWorker, timeout(100)).createBlockWriter(Sessions.ASYNC_CACHE_WORKER_SESSION_ID,
+        blockId);
+    verify(mBlockWorker, timeout(100)).commitBlock(Sessions.ASYNC_CACHE_WORKER_SESSION_ID, blockId,
+        false);
   }
 
   @Test
@@ -119,9 +122,8 @@ public class CacheRequestManagerTest {
     when(mBlockWorker.createUfsBlockReader(Sessions.ASYNC_CACHE_UFS_SESSION_ID, blockId, 0, false,
         openUfsBlockOptions)).thenReturn(mockBlockReader);
     mCacheRequestManager.submitRequest(request);
-    Thread.sleep(100);  //sleep since it's async
-    verify(mBlockWorker).createUfsBlockReader(Sessions.ASYNC_CACHE_UFS_SESSION_ID, blockId, 0,
-        false, openUfsBlockOptions);
+    verify(mBlockWorker, timeout(100)).createUfsBlockReader(Sessions.ASYNC_CACHE_UFS_SESSION_ID,
+        blockId, 0, false, openUfsBlockOptions);
   }
 
   @Test
@@ -139,11 +141,12 @@ public class CacheRequestManagerTest {
         .setSourcePort(port).setAsync(true).build();
     setupMockReaderWriter(fakeRemoteWorker, port, blockId, blockLength, options);
     mCacheRequestManager.submitRequest(request);
-    Thread.sleep(100); //sleep since it's async
-    verify(mBlockWorker).createBlock(Sessions.ASYNC_CACHE_WORKER_SESSION_ID, blockId, 0, "",
-        blockLength);
-    verify(mBlockWorker).createBlockWriter(Sessions.ASYNC_CACHE_WORKER_SESSION_ID, blockId);
-    verify(mBlockWorker).commitBlock(Sessions.ASYNC_CACHE_WORKER_SESSION_ID, blockId, false);
+    verify(mBlockWorker, timeout(100)).createBlock(Sessions.ASYNC_CACHE_WORKER_SESSION_ID, blockId,
+        0, "", blockLength);
+    verify(mBlockWorker, timeout(100)).createBlockWriter(Sessions.ASYNC_CACHE_WORKER_SESSION_ID,
+        blockId);
+    verify(mBlockWorker, timeout(100)).commitBlock(Sessions.ASYNC_CACHE_WORKER_SESSION_ID, blockId,
+        false);
   }
 
   private void setupMockReaderWriter(String source, int port, long blockId, long blockLength,
