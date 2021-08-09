@@ -79,8 +79,8 @@ public class CacheRequestManagerTest {
     when(mBlockWorker.createUfsBlockReader(Sessions.ASYNC_CACHE_UFS_SESSION_ID, blockId, 0, false,
         openUfsBlockOptions)).thenReturn(mockBlockReader);
     mCacheRequestManager.submitRequest(request);
-    verify(mBlockWorker, timeout(100)).createUfsBlockReader(Sessions.ASYNC_CACHE_UFS_SESSION_ID,
-        blockId, 0, false, openUfsBlockOptions);
+    verify(mBlockWorker).createUfsBlockReader(Sessions.ASYNC_CACHE_UFS_SESSION_ID, blockId, 0,
+        false, openUfsBlockOptions);
   }
 
   @Test
@@ -94,16 +94,14 @@ public class CacheRequestManagerTest {
     Protocol.OpenUfsBlockOptions options = Protocol.OpenUfsBlockOptions.newBuilder()
         .setMaxUfsReadConcurrency(10).setUfsPath("/a").build();
     CacheRequest request = CacheRequest.newBuilder().setBlockId(blockId).setLength(blockLength)
-        .setOpenUfsBlockOptions(options).setSourceHost(fakeRemoteWorker)
-        .setSourcePort(port).build();
+        .setOpenUfsBlockOptions(options).setSourceHost(fakeRemoteWorker).setSourcePort(port)
+        .build();
     setupMockReaderWriter(fakeRemoteWorker, port, blockId, blockLength, options);
     mCacheRequestManager.submitRequest(request);
-    verify(mBlockWorker, timeout(100)).createBlock(Sessions.ASYNC_CACHE_WORKER_SESSION_ID, blockId,
-        0, "", blockLength);
-    verify(mBlockWorker, timeout(100)).createBlockWriter(Sessions.ASYNC_CACHE_WORKER_SESSION_ID,
-        blockId);
-    verify(mBlockWorker, timeout(100)).commitBlock(Sessions.ASYNC_CACHE_WORKER_SESSION_ID, blockId,
-        false);
+    verify(mBlockWorker).createBlock(Sessions.ASYNC_CACHE_WORKER_SESSION_ID, blockId, 0, "",
+        blockLength);
+    verify(mBlockWorker).createBlockWriter(Sessions.ASYNC_CACHE_WORKER_SESSION_ID, blockId);
+    verify(mBlockWorker).commitBlock(Sessions.ASYNC_CACHE_WORKER_SESSION_ID, blockId, false);
   }
 
   @Test
@@ -122,7 +120,7 @@ public class CacheRequestManagerTest {
     when(mBlockWorker.createUfsBlockReader(Sessions.ASYNC_CACHE_UFS_SESSION_ID, blockId, 0, false,
         openUfsBlockOptions)).thenReturn(mockBlockReader);
     mCacheRequestManager.submitRequest(request);
-    verify(mBlockWorker, timeout(100)).createUfsBlockReader(Sessions.ASYNC_CACHE_UFS_SESSION_ID,
+    verify(mBlockWorker, timeout(30000)).createUfsBlockReader(Sessions.ASYNC_CACHE_UFS_SESSION_ID,
         blockId, 0, false, openUfsBlockOptions);
   }
 
@@ -137,24 +135,22 @@ public class CacheRequestManagerTest {
     Protocol.OpenUfsBlockOptions options = Protocol.OpenUfsBlockOptions.newBuilder()
         .setMaxUfsReadConcurrency(10).setUfsPath("/a").build();
     CacheRequest request = CacheRequest.newBuilder().setBlockId(blockId).setLength(blockLength)
-        .setOpenUfsBlockOptions(options).setSourceHost(fakeRemoteWorker)
-        .setSourcePort(port).setAsync(true).build();
+        .setOpenUfsBlockOptions(options).setSourceHost(fakeRemoteWorker).setSourcePort(port)
+        .setAsync(true).build();
     setupMockReaderWriter(fakeRemoteWorker, port, blockId, blockLength, options);
     mCacheRequestManager.submitRequest(request);
-    verify(mBlockWorker, timeout(100)).createBlock(Sessions.ASYNC_CACHE_WORKER_SESSION_ID, blockId,
-        0, "", blockLength);
-    verify(mBlockWorker, timeout(100)).createBlockWriter(Sessions.ASYNC_CACHE_WORKER_SESSION_ID,
+    verify(mBlockWorker, timeout(30000)).createBlock(Sessions.ASYNC_CACHE_WORKER_SESSION_ID,
+        blockId, 0, "", blockLength);
+    verify(mBlockWorker, timeout(30000)).createBlockWriter(Sessions.ASYNC_CACHE_WORKER_SESSION_ID,
         blockId);
-    verify(mBlockWorker, timeout(100)).commitBlock(Sessions.ASYNC_CACHE_WORKER_SESSION_ID, blockId,
-        false);
+    verify(mBlockWorker, timeout(30000)).commitBlock(Sessions.ASYNC_CACHE_WORKER_SESSION_ID,
+        blockId, false);
   }
 
   private void setupMockReaderWriter(String source, int port, long blockId, long blockLength,
-      Protocol.OpenUfsBlockOptions options)
-      throws IOException, BlockDoesNotExistException, BlockAlreadyExistsException,
-      InvalidWorkerStateException {
-    InetSocketAddress sourceAddress =
-        new InetSocketAddress(source, port);
+      Protocol.OpenUfsBlockOptions options) throws IOException, BlockDoesNotExistException,
+      BlockAlreadyExistsException, InvalidWorkerStateException {
+    InetSocketAddress sourceAddress = new InetSocketAddress(source, port);
     RemoteBlockReader reader = mock(RemoteBlockReader.class);
     when(mCacheRequestManager.getRemoteBlockReader(blockId, blockLength, sourceAddress, options))
         .thenReturn(reader);
