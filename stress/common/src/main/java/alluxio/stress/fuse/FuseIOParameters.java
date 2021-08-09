@@ -28,7 +28,7 @@ public final class FuseIOParameters extends Parameters {
   public static final String FIELD_READ_RANDOM = "mReadRandom";
 
   @Parameter(names = {"--operation"},
-      description = "the operation to perform. Options are [Readf]",
+      description = "the operation to perform. Options are [Read]",
       converter = FuseIOOperationConverter.class,
       required = true)
   public FuseIOOperation mOperation;
