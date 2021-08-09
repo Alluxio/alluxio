@@ -163,13 +163,11 @@ public final class PlanCoordinator {
    *
    * @param taskInfoList List of @TaskInfo instances to update
    */
-  public void updateTasks(List<TaskInfo> taskInfoList) {
-    synchronized (mPlanInfo) {
-      for (TaskInfo taskInfo : taskInfoList) {
-        mPlanInfo.setTaskInfo(taskInfo.getTaskId(), taskInfo);
-      }
-      updateStatus();
+  public synchronized void updateTasks(List<TaskInfo> taskInfoList) {
+    for (TaskInfo taskInfo : taskInfoList) {
+      mPlanInfo.setTaskInfo(taskInfo.getTaskId(), taskInfo);
     }
+    updateStatus();
     if (isJobFinished()) {
       mWorkersInfoList = null;
     }
