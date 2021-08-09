@@ -19,6 +19,7 @@ import alluxio.stress.rpc.GetPinnedFileIdsParameters;
 import alluxio.stress.rpc.RpcTaskResult;
 import alluxio.util.CommonUtils;
 import alluxio.util.FormatUtils;
+
 import com.beust.jcommander.ParametersDelegate;
 import com.google.common.base.Stopwatch;
 import com.google.common.base.Supplier;

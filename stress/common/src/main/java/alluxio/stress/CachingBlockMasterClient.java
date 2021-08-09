@@ -1,10 +1,21 @@
-package alluxio.stress;
+/*
+ * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
+ * (the "License"). You may not use this work except in compliance with the License, which is
+ * available at www.apache.org/licenses/LICENSE-2.0
+ *
+ * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+ * either express or implied, as more fully set forth in the License.
+ *
+ * See the NOTICE file distributed with this work for information regarding copyright ownership.
+ */
 
+package alluxio.stress;
 
 import alluxio.grpc.LocationBlockIdListEntry;
 import alluxio.master.MasterClientContext;
 import alluxio.worker.block.BlockMasterClient;
 import alluxio.worker.block.BlockStoreLocation;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -27,13 +38,16 @@ public class CachingBlockMasterClient extends BlockMasterClient {
    * Creates a new instance and caches the converted proto.
    *
    * @param conf master client configuration
+   * @param locationBlockIdList location block id list
    */
-  public CachingBlockMasterClient(MasterClientContext conf, List<LocationBlockIdListEntry> locationBlockIdList) {
+  public CachingBlockMasterClient(MasterClientContext conf,
+                                  List<LocationBlockIdListEntry> locationBlockIdList) {
     super(conf);
     LOG.debug("Init CachingBlockMasterClient");
     mLocationBlockIdList = locationBlockIdList;
   }
 
+  // Todo(jiacheng): Compile error: method does not override or implement a method from a supertype
   @Override
   public List<LocationBlockIdListEntry> convertBlockListMapToProto(
           Map<BlockStoreLocation, List<Long>> blockListOnLocation) {

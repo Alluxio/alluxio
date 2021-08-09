@@ -12,6 +12,7 @@ import alluxio.stress.rpc.RpcTaskResult;
 import alluxio.util.FormatUtils;
 import alluxio.worker.block.BlockMasterClient;
 import alluxio.worker.block.BlockStoreLocation;
+
 import com.beust.jcommander.ParametersDelegate;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
@@ -41,15 +42,17 @@ import java.util.Map;
  * $ bin/alluxio runClass alluxio.stress.cli.WorkerHeartbeatBench --concurrency 2 \
  *   --cluster-limit 1 --tiers "1000,1000,1000;5000,5000" --duration 30s
  */
-public class WorkerHeartbeatBench extends RpcBench<BlockMasterBenchParameters>{
+public class WorkerHeartbeatBench extends RpcBench<BlockMasterBenchParameters> {
   private static final Logger LOG = LoggerFactory.getLogger(WorkerHeartbeatBench.class);
 
   // Constants used for the RPC simulation
   private static final long CAPACITY = 20L * 1024 * 1024 * 1024; // 20GB
   private static final Map<String, Long> CAPACITY_MEM = ImmutableMap.of("MEM", CAPACITY);
   private static final Map<String, Long> USED_MEM_EMPTY = ImmutableMap.of("MEM", 0L);
-  private static final BlockStoreLocation BLOCK_LOCATION_MEM = new BlockStoreLocation("MEM", 0, "MEM");
-  private static final Map<String, List<String>> LOST_STORAGE = ImmutableMap.of("MEM", new ArrayList<>());
+  private static final BlockStoreLocation BLOCK_LOCATION_MEM =
+      new BlockStoreLocation("MEM", 0, "MEM");
+  private static final Map<String, List<String>> LOST_STORAGE =
+      ImmutableMap.of("MEM", new ArrayList<>());
   private static final List<Metric> EMPTY_METRICS = ImmutableList.of();
   private static final List<Long> EMPTY_REMOVED_BLOCKS = ImmutableList.of();
 
@@ -103,7 +106,8 @@ public class WorkerHeartbeatBench extends RpcBench<BlockMasterBenchParameters>{
     return mParameters;
   }
 
-  private RpcTaskResult simulateBlockHeartbeat(alluxio.worker.block.BlockMasterClient client, long workerId,
+  private RpcTaskResult simulateBlockHeartbeat(alluxio.worker.block.BlockMasterClient client,
+                                               long workerId,
                                                Instant endTime) {
     RpcTaskResult result = new RpcTaskResult();
 
@@ -113,14 +117,14 @@ public class WorkerHeartbeatBench extends RpcBench<BlockMasterBenchParameters>{
       Instant s = Instant.now();
       try {
         Command cmd = client.heartbeat(workerId,
-                CAPACITY_MEM,
-                USED_MEM_EMPTY,
-                EMPTY_REMOVED_BLOCKS,
-                // Will use the prepared block list instead of converting on the fly
-                // So an empty map will be used here
-                ImmutableMap.of(),
-                LOST_STORAGE,
-                EMPTY_METRICS);
+            CAPACITY_MEM,
+            USED_MEM_EMPTY,
+            EMPTY_REMOVED_BLOCKS,
+            // Will use the prepared block list instead of converting on the fly
+            // So an empty map will be used here
+            ImmutableMap.of(),
+            LOST_STORAGE,
+            EMPTY_METRICS);
         LOG.debug("Received command from heartbeat {}", cmd);
         Instant e = Instant.now();
         Duration d = Duration.between(s, e);
@@ -145,7 +149,8 @@ public class WorkerHeartbeatBench extends RpcBench<BlockMasterBenchParameters>{
 
     // Prepare block IDs to use for this test
     // We prepare the IDs before test starts so each RPC does not waste time in the conversion
-    Map<BlockStoreLocation, List<Long>> blockMap = RpcBenchPreparationUtils.generateBlockIdOnTiers(mParameters.mTiers);
+    Map<BlockStoreLocation, List<Long>> blockMap =
+        RpcBenchPreparationUtils.generateBlockIdOnTiers(mParameters.mTiers);
     BlockMasterClient client =
             new BlockMasterClient(MasterClientContext
                     .newBuilder(ClientContext.create(mConf))
@@ -160,8 +165,9 @@ public class WorkerHeartbeatBench extends RpcBench<BlockMasterBenchParameters>{
     int numWorkers = mParameters.mConcurrency;
     LOG.info("Register {} simulated workers for the test", numWorkers);
     mWorkerPool = RpcBenchPreparationUtils.prepareWorkerIds(client, numWorkers);
-    Preconditions.checkState(mWorkerPool.size() == numWorkers, "Expecting %s workers but registered %s",
-            numWorkers, mWorkerPool.size());
+    Preconditions.checkState(mWorkerPool.size() == numWorkers,
+        "Expecting %s workers but registered %s",
+        numWorkers, mWorkerPool.size());
     RpcBenchPreparationUtils.registerWorkers(client, mWorkerPool);
     LOG.info("All workers registered with the master {}", mWorkerPool);
   }
