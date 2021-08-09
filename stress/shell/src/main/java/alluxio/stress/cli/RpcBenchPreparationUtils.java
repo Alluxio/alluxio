@@ -19,7 +19,6 @@ import alluxio.util.network.NetworkAddressUtils;
 import alluxio.wire.WorkerNetAddress;
 import alluxio.worker.block.BlockMasterClient;
 import alluxio.worker.block.BlockStoreLocation;
-import com.google.common.base.Preconditions;
 import com.google.common.base.Supplier;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -52,25 +51,23 @@ public class RpcBenchPreparationUtils {
   private RpcBenchPreparationUtils() {}
 
   public static void prepareBlocksInMaster(Map<BlockStoreLocation, List<Long>> locToBlocks, ExecutorService pool, int concurrency) {
-    // Calculate the ranges
+    // Partition the wanted block IDs to smaller jobs in order to utilize concurrency
     List<List<Long>> jobs = new ArrayList<>();
     for (Map.Entry<BlockStoreLocation, List<Long>> e : locToBlocks.entrySet()) {
       List<Long> v = e.getValue();
-
       jobs.addAll(Lists.partition(v, Math.min(v.size() / concurrency, 1_000)));
     }
 
-    LOG.info("Split into {} jobs", jobs.size());
+    LOG.info("Split block ID generation into {} jobs", jobs.size());
     for (List<Long> job : jobs) {
       LOG.info("Block ids: [{},{}]", job.get(0), job.get(job.size() - 1));
     }
 
     long blockSize = sConf.getBytes(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT);
-
     CompletableFuture[] futures = new CompletableFuture[jobs.size()];
     for (int i = 0; i < jobs.size(); i++) {
       List<Long> job = jobs.get(i);
-      LOG.info("Submit job {}", i);
+      LOG.info("Generating block IDs in range {}", i);
       CompletableFuture<Void> future = CompletableFuture.supplyAsync((Supplier<Void>) () -> {
               BlockMasterClient client =
                       new BlockMasterClient(MasterClientContext
@@ -80,6 +77,7 @@ public class RpcBenchPreparationUtils {
               try {
                 for (Long blockId : job) {
                   client.commitBlockInUfs(blockId, blockSize);
+                  finishedCount++;
                 }
               } catch (IOException e) {
                 LOG.error("Failed to commitBlockInUfs with finishedCount {}", finishedCount, e);
@@ -93,25 +91,27 @@ public class RpcBenchPreparationUtils {
     CompletableFuture.allOf(futures).join();
   }
 
-  public static Deque<Long> prepareWorkerIds(BlockMasterClient client, int numWorkers) throws IOException {
-    // Prepare simulated workers
+  static Deque<Long> prepareWorkerIds(BlockMasterClient client, int numWorkers) throws IOException {
     Deque<Long> workerPool = new ArrayDeque<>();
+    int freePort = 40000;
     for (int i = 0; i < numWorkers; i++) {
-      LOG.info("Preparing number {}", i);
+      LOG.info("Preparing worker {}", i);
 
-      // prepare a worker ID
-      int startPort = 9999;
+      // Prepare a worker ID
+      // The addresses are different in order to get different worker IDs
       long workerId;
       String hostname = NetworkAddressUtils.getLocalHostName(500);
       LOG.info("Detected local hostname {}", hostname);
-      WorkerNetAddress address = new WorkerNetAddress().setHost(hostname).setDataPort(startPort++).setRpcPort(startPort++);
+      WorkerNetAddress address = new WorkerNetAddress().setHost(hostname)
+              .setDataPort(freePort++)
+              .setRpcPort(freePort++)
+              .setWebPort(freePort++);
       workerId = client.getId(address);
-      LOG.info("Created worker ID {}", workerId);
+      LOG.info("Created worker ID {} on {}", workerId, address);
 
       // Register worker
       List<String> tierAliases = new ArrayList<>();
       tierAliases.add("MEM");
-      // TODO(jiacheng): propagate IOException better?
       client.register(workerId,
               tierAliases,
               CAPACITY_MEM,
@@ -123,13 +123,15 @@ public class RpcBenchPreparationUtils {
 
       workerPool.offer(workerId);
     }
-    Preconditions.checkState(workerPool.size() == numWorkers, "Expecting %s workers but registered %s",
-            numWorkers, workerPool.size());
-    LOG.info("All workers registered {}", workerPool);
     return workerPool;
   }
 
-  public static Map<BlockStoreLocation, List<Long>> generateBlockIdOnTiers(String tiersConfig) {
+  /**
+   * Generates block IDs according to the storage tier/dir setup.
+   * In order to avoid block ID colliding with existing blocks, this will generate IDs
+   * decreasingly from the {@link Long#MAX_VALUE}.
+   */
+  static Map<BlockStoreLocation, List<Long>> generateBlockIdOnTiers(String tiersConfig) {
     Map<BlockStoreLocation, List<Long>> blockMap = new HashMap<>();
 
     LOG.info("Tier and dir config is {}", tiersConfig);
@@ -147,7 +149,7 @@ public class RpcBenchPreparationUtils {
 
         LOG.info("Found dir with {} blocks", dir);
         long num = Long.parseLong(dir);
-        List<Long> blockIds = generateBlockIds(blockIdStart, num);
+        List<Long> blockIds = generateDecreasingNumbers(blockIdStart, num);
 
         blockMap.put(loc, blockIds);
 
@@ -158,7 +160,7 @@ public class RpcBenchPreparationUtils {
     return blockMap;
   }
 
-  public static List<Long> generateBlockIds(long start, long count) {
+  private static List<Long> generateDecreasingNumbers(long start, long count) {
     LOG.info("Generating block Ids ({}, {}]", start - count, start);
     List<Long> list = new ArrayList<>();
     for (long i = 0; i < count; i++) {

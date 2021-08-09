@@ -2,6 +2,7 @@ package alluxio.stress.cli;
 
 import alluxio.ClientContext;
 import alluxio.conf.InstancedConfiguration;
+import alluxio.grpc.Command;
 import alluxio.grpc.LocationBlockIdListEntry;
 import alluxio.master.MasterClientContext;
 import alluxio.stress.CachingBlockMasterClient;
@@ -27,21 +28,19 @@ import java.util.Map;
 
 public class WorkerHeartbeatBench extends RpcBench<WorkerHeartbeatParameters>{
   private static final Logger LOG = LoggerFactory.getLogger(WorkerHeartbeatBench.class);
+  private static final long CAPACITY = 20L * 1024 * 1024 * 1024; // 20GB
+  private static final Map<String, Long> CAPACITY_MEM = ImmutableMap.of("MEM", CAPACITY);
+  private static final Map<String, Long> USED_MEM_EMPTY = ImmutableMap.of("MEM", 0L);
+  private static final BlockStoreLocation BLOCK_LOCATION_MEM = new BlockStoreLocation("MEM", 0, "MEM");
 
   @ParametersDelegate
   private WorkerHeartbeatParameters mParameters = new WorkerHeartbeatParameters();
 
   private final InstancedConfiguration mConf = InstancedConfiguration.defaults();
-
-  private final List<Long> mBlockIds = new ArrayList<>();
-  private List<LocationBlockIdListEntry> mLocationBlockIdList;
-
+  // Worker IDs to use in the testing stage
   private Deque<Long> mWorkerPool = new ArrayDeque<>();
-
-  private static final long CAPACITY = 20L * 1024 * 1024 * 1024; // 20GB
-  private static final Map<String, Long> CAPACITY_MEM = ImmutableMap.of("MEM", CAPACITY);
-  private static final Map<String, Long> USED_MEM_EMPTY = ImmutableMap.of("MEM", 0L);
-  private static final BlockStoreLocation BLOCK_LOCATION_MEM = new BlockStoreLocation("MEM", 0, "MEM");
+  // The prepared RPC contents
+  private List<LocationBlockIdListEntry> mLocationBlockIdList;
 
   @Override
   public RpcTaskResult runRPC() throws Exception {
@@ -70,14 +69,12 @@ public class WorkerHeartbeatBench extends RpcBench<WorkerHeartbeatParameters>{
     long durationMs = FormatUtils.parseTimeSize(mParameters.mDuration);
     Instant startTime = Instant.now();
     Instant endTime = startTime.plus(durationMs, ChronoUnit.MILLIS);
-    LOG.info("Start time {}, end time {}", startTime, endTime);
+    LOG.info("Test start time {}, end time {}", startTime, endTime);
 
     // Stop after certain time has elapsed
     RpcTaskResult taskResult = simulateBlockHeartbeat(client, workerId, endTime);
-    LOG.info("Got {}", taskResult);
+    LOG.info("Test finished with results: {}", taskResult);
     result.merge(taskResult);
-
-    LOG.info("Run finished");
     return result;
   }
 
@@ -90,25 +87,28 @@ public class WorkerHeartbeatBench extends RpcBench<WorkerHeartbeatParameters>{
                                                Instant endTime) {
     RpcTaskResult result = new RpcTaskResult();
 
-    // Keep sending heartbeats
+    // Keep sending heartbeats until the expected end time
     long i = 0;
     while (Instant.now().isBefore(endTime)) {
       Instant s = Instant.now();
       try {
-        client.heartbeat(workerId,
+        Command cmd = client.heartbeat(workerId,
                 CAPACITY_MEM,
                 USED_MEM_EMPTY,
                 new ArrayList<>(), // no removed blocks
-                ImmutableMap.of(BLOCK_LOCATION_MEM, mBlockIds), // added blocks
+                ImmutableMap.of(BLOCK_LOCATION_MEM, new ArrayList<>()), // added blocks
                 ImmutableMap.of(), // lost storage
                 new ArrayList<>()); // metrics
+        LOG.debug("Received command from heartbeat {}", cmd);
         Instant e = Instant.now();
-        RpcTaskResult.Point p = new RpcTaskResult.Point(Duration.between(s, e).toMillis());
+        Duration d = Duration.between(s, e);
+        RpcTaskResult.Point p = new RpcTaskResult.Point(d.toMillis());
+        LOG.debug("Iter {} took {}ns", i, d.toNanos());
         result.addPoint(p);
-        LOG.info("Iter {} took {}", i, Duration.between(s, e).toMillis());
       } catch (Exception e) {
         LOG.error("Failed to run blockHeartbeat {}", i, e);
         result.addError(e.getMessage());
+        // Keep trying even when an exception is met
       }
     }
 
@@ -117,10 +117,13 @@ public class WorkerHeartbeatBench extends RpcBench<WorkerHeartbeatParameters>{
 
   @Override
   public void prepare() throws Exception {
-    // Prepare blocks in the master
+    // The task ID is different for local and cluster executions
+    // So including that in the log can help associate the log to the run
     LOG.info("Task ID is {}", mBaseParameters.mId);
-    Map<BlockStoreLocation, List<Long>> blockMap = RpcBenchPreparationUtils.generateBlockIdOnTiers(mParameters.mTiers);
 
+    // Prepare block IDs to use for this test
+    // We prepare the IDs before test starts so each RPC does not waste time in the conversion
+    Map<BlockStoreLocation, List<Long>> blockMap = RpcBenchPreparationUtils.generateBlockIdOnTiers(mParameters.mTiers);
     BlockMasterClient client =
             new BlockMasterClient(MasterClientContext
                     .newBuilder(ClientContext.create(mConf))
@@ -133,6 +136,7 @@ public class WorkerHeartbeatBench extends RpcBench<WorkerHeartbeatParameters>{
 
     // Prepare simulated workers
     int numWorkers = mParameters.mConcurrency;
+    LOG.info("Register {} simulated workers for the test", numWorkers);
     mWorkerPool = RpcBenchPreparationUtils.prepareWorkerIds(client, numWorkers);
     Preconditions.checkState(mWorkerPool.size() == numWorkers, "Expecting %s workers but registered %s",
             numWorkers, mWorkerPool.size());

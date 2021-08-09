@@ -67,6 +67,9 @@ public abstract class Benchmark<T extends TaskResult> {
   /**
    * Prepares to run the test.
    */
+  // TODO(bowen): When the test runs in cluster mode, the prepare step will execute
+  //  both in the command side and on each job worker side. We should separate the logic
+  //  into two different calls instead of relying on the same prepare().
   public abstract void prepare() throws Exception;
 
   /**
