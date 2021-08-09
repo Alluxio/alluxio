@@ -16,6 +16,7 @@ import alluxio.stress.GraphGenerator;
 import alluxio.stress.Parameters;
 import alluxio.stress.Summary;
 import alluxio.stress.worker.UfsIOParameters;
+
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.google.common.math.Quantiles;
 
@@ -35,11 +36,11 @@ public class RpcTaskSummary implements Summary {
   public long mCount;
   public long mTotalDurationNs;
   public double mAvgDurationNs;
-  public double m5Percentile;
-  public double m25Percentile;
+  public double mPercentile5th;
+  public double mPercentile25th;
   public double mMedian;
-  public double m75Percentile;
-  public double m95Percentile;
+  public double mPercentile75th;
+  public double mPercentile95th;
 
   /**
    * Used for deserialization.
@@ -47,6 +48,10 @@ public class RpcTaskSummary implements Summary {
   @JsonCreator
   public RpcTaskSummary() {}
 
+  /**
+   * Creates a summary from a task result.
+   * @param r task result
+   */
   public RpcTaskSummary(RpcTaskResult r) {
     mParameters = r.getParameters();
     mBaseParameters = r.getBaseParameters();
@@ -62,11 +67,11 @@ public class RpcTaskSummary implements Summary {
     }
     mAvgDurationNs = (mCount == 0) ? 0.0 : mTotalDurationNs / ((double) mCount);
     Map<Integer, Double> percentiles = getPercentiles(5, 25, 50, 75, 95);
-    m5Percentile = percentiles.get(5);
-    m25Percentile = percentiles.get(25);
+    mPercentile5th = percentiles.get(5);
+    mPercentile25th = percentiles.get(25);
     mMedian = percentiles.get(50);
-    m75Percentile = percentiles.get(75);
-    m95Percentile = percentiles.get(95);
+    mPercentile75th = percentiles.get(75);
+    mPercentile95th = percentiles.get(95);
   }
 
   @Override
@@ -76,15 +81,20 @@ public class RpcTaskSummary implements Summary {
 
   @Override
   public String toString() {
-    return String.format("RpcTaskSummary: Data points: %d, Errors: %d%n" +
-        "Total: %.3e, Average: %.3e, Median: %.3e%n"
+    return String.format("RpcTaskSummary: Data points: %d, Errors: %d%n"
+        + "Total: %.3e, Average: %.3e, Median: %.3e%n"
         + "5 Percentile: %.3e%n25 Percentile: %.3e%n75 Percentile: %.3e%n95 Percentile: %.3e%n",
         mPoints.size(), mErrors.size(), (double) mTotalDurationNs, mAvgDurationNs, mMedian,
-        m5Percentile, m25Percentile, m75Percentile, m95Percentile);
+        mPercentile5th, mPercentile25th, mPercentile75th, mPercentile95th);
   }
 
+  /**
+   * Gets percentiles of the results at different indices.
+   * @param indices the indices of the percentiles, e.g. 50th or 75th
+   * @return a map of indices to percentiles
+   */
   public Map<Integer, Double> getPercentiles(int... indices) {
-     indices = Arrays.stream(indices)
+    indices = Arrays.stream(indices)
         .map((index) -> Math.max(0, Math.min(100, index)))
         .toArray();
     return Quantiles

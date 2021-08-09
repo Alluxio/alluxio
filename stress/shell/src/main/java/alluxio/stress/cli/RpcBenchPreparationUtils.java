@@ -19,6 +19,7 @@ import alluxio.util.network.NetworkAddressUtils;
 import alluxio.wire.WorkerNetAddress;
 import alluxio.worker.block.BlockMasterClient;
 import alluxio.worker.block.BlockStoreLocation;
+
 import com.google.common.base.Supplier;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -46,7 +47,8 @@ public class RpcBenchPreparationUtils {
   private static final long CAPACITY = 20L * 1024 * 1024 * 1024; // 20GB
   private static final Map<String, Long> CAPACITY_MEM = ImmutableMap.of("MEM", CAPACITY);
   private static final Map<String, Long> USED_MEM_EMPTY = ImmutableMap.of("MEM", 0L);
-  private static final BlockStoreLocation BLOCK_LOCATION_MEM = new BlockStoreLocation("MEM", 0, "MEM");
+  private static final BlockStoreLocation BLOCK_LOCATION_MEM =
+      new BlockStoreLocation("MEM", 0, "MEM");
 
   public static InstancedConfiguration sConf = InstancedConfiguration.defaults();
 
@@ -55,7 +57,9 @@ public class RpcBenchPreparationUtils {
   /**
    * Prepare all relevant block IDs on the master side concurrently.
    */
-  public static void prepareBlocksInMaster(Map<BlockStoreLocation, List<Long>> locToBlocks, ExecutorService pool, int concurrency) {
+  public static void prepareBlocksInMaster(Map<BlockStoreLocation, List<Long>> locToBlocks,
+                                           ExecutorService pool,
+                                           int concurrency) {
     // Partition the wanted block IDs to smaller jobs in order to utilize concurrency
     List<List<Long>> jobs = new ArrayList<>();
     for (Map.Entry<BlockStoreLocation, List<Long>> e : locToBlocks.entrySet()) {
@@ -74,20 +78,20 @@ public class RpcBenchPreparationUtils {
       List<Long> job = jobs.get(i);
       LOG.info("Generating block IDs in range {}", i);
       CompletableFuture<Void> future = CompletableFuture.supplyAsync((Supplier<Void>) () -> {
-              BlockMasterClient client =
-                      new BlockMasterClient(MasterClientContext
-                              .newBuilder(ClientContext.create(sConf))
-                              .build());
-              long finishedCount = 0;
-              try {
-                for (Long blockId : job) {
-                  client.commitBlockInUfs(blockId, blockSize);
-                  finishedCount++;
-                }
-              } catch (IOException e) {
-                LOG.error("Failed to commitBlockInUfs with finishedCount {}", finishedCount, e);
-              }
-              return null;
+        BlockMasterClient client =
+            new BlockMasterClient(MasterClientContext
+                .newBuilder(ClientContext.create(sConf))
+                .build());
+        long finishedCount = 0;
+        try {
+          for (Long blockId : job) {
+            client.commitBlockInUfs(blockId, blockSize);
+            finishedCount++;
+          }
+        } catch (IOException e) {
+          LOG.error("Failed to commitBlockInUfs with finishedCount {}", finishedCount, e);
+        }
+        return null;
       }, pool);
       futures[i] = (future);
     }

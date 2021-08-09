@@ -16,6 +16,7 @@ import alluxio.stress.Parameters;
 import alluxio.stress.Summary;
 import alluxio.stress.TaskResult;
 import alluxio.util.JsonSerializable;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.MoreObjects;
 
@@ -153,6 +154,10 @@ public class RpcTaskResult implements TaskResult {
   public static class Point implements JsonSerializable {
     public long mDurationNs;
 
+    /**
+     * Creates a new data point.
+     * @param ns time in nanosecond in this data point
+     */
     public Point(@JsonProperty("duration") long ns) {
       mDurationNs = ns;
     }
@@ -170,6 +175,11 @@ public class RpcTaskResult implements TaskResult {
         .add("mErrors", mErrors).toString();
   }
 
+  /**
+   * Merge multiple task results into one.
+   * @param results the results to aggregate
+   * @return aggregated result
+   */
   // TODO(jiacheng): merge this with the aggregator
   public static RpcTaskResult reduceList(Iterable<RpcTaskResult> results) {
     RpcTaskResult aggreResult = new RpcTaskResult();

@@ -21,8 +21,8 @@ import alluxio.stress.rpc.BlockMasterBenchParameters;
 import alluxio.stress.rpc.RpcTaskResult;
 import alluxio.util.FormatUtils;
 import alluxio.worker.block.BlockMasterClient;
-
 import alluxio.worker.block.BlockStoreLocation;
+
 import com.beust.jcommander.ParametersDelegate;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
@@ -38,7 +38,6 @@ import java.util.ArrayList;
 import java.util.Deque;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * A benchmarking tool for the RegisterWorker RPC.
@@ -61,7 +60,8 @@ public class RegisterWorkerBench extends RpcBench<BlockMasterBenchParameters> {
   private static final Map<String, Long> CAPACITY_MEM = ImmutableMap.of("MEM", CAPACITY);
   private static final Map<String, Long> USED_MEM_EMPTY = ImmutableMap.of("MEM", 0L);
   private static final List<String> TIER_ALIASES = ImmutableList.of("MEM", "SSD", "HDD");
-  private static final Map<String, List<String>> LOST_STORAGE = ImmutableMap.of("MEM", new ArrayList<>());
+  private static final Map<String, List<String>> LOST_STORAGE =
+      ImmutableMap.of("MEM", new ArrayList<>());
   private static final List<ConfigProperty> EMPTY_CONFIG = ImmutableList.of();
 
   @ParametersDelegate
@@ -80,7 +80,8 @@ public class RegisterWorkerBench extends RpcBench<BlockMasterBenchParameters> {
     LOG.info("Task ID is {}", mBaseParameters.mId);
 
     // Generate block IDs heuristically
-    Map<BlockStoreLocation, List<Long>> blockMap = RpcBenchPreparationUtils.generateBlockIdOnTiers(mParameters.mTiers);
+    Map<BlockStoreLocation, List<Long>> blockMap =
+        RpcBenchPreparationUtils.generateBlockIdOnTiers(mParameters.mTiers);
     BlockMasterClient client =
             new BlockMasterClient(MasterClientContext
                     .newBuilder(ClientContext.create(mConf))
@@ -95,8 +96,9 @@ public class RegisterWorkerBench extends RpcBench<BlockMasterBenchParameters> {
     // Prepare worker IDs
     int numWorkers = mParameters.mConcurrency;
     mWorkerPool = RpcBenchPreparationUtils.prepareWorkerIds(client, numWorkers);
-    Preconditions.checkState(mWorkerPool.size() == numWorkers, "Expecting %s workers but registered %s",
-            numWorkers, mWorkerPool.size());
+    Preconditions.checkState(mWorkerPool.size() == numWorkers,
+        "Expecting %s workers but registered %s",
+        numWorkers, mWorkerPool.size());
     LOG.info("Prepared worker IDs: {}", mWorkerPool);
   }
 
@@ -129,7 +131,10 @@ public class RegisterWorkerBench extends RpcBench<BlockMasterBenchParameters> {
     return result;
   }
 
-  private void runOnce(alluxio.worker.block.BlockMasterClient client, RpcTaskResult result, long i, long workerId) {
+  private void runOnce(alluxio.worker.block.BlockMasterClient client,
+                       RpcTaskResult result,
+                       long i,
+                       long workerId) {
     // TODO(jiacheng): The 1st reported RPC time is always very long, this does
     //  not match with the time recorded by Jaeger.
     //  I suspect it's the time spend in establishing the connection.
@@ -137,14 +142,14 @@ public class RegisterWorkerBench extends RpcBench<BlockMasterBenchParameters> {
     try {
       Instant s = Instant.now();
       client.register(workerId,
-              TIER_ALIASES,
-              CAPACITY_MEM,
-              USED_MEM_EMPTY,
-              // Will use the prepared block list instead of converting on the fly
-              // So an empty block list will be used here
-              ImmutableMap.of(),
-              LOST_STORAGE, // lost storage
-              EMPTY_CONFIG); // extra config
+          TIER_ALIASES,
+          CAPACITY_MEM,
+          USED_MEM_EMPTY,
+          // Will use the prepared block list instead of converting on the fly
+          // So an empty block list will be used here
+          ImmutableMap.of(),
+          LOST_STORAGE, // lost storage
+          EMPTY_CONFIG); // extra config
 
       Instant e = Instant.now();
       RpcTaskResult.Point p = new RpcTaskResult.Point(Duration.between(s, e).toNanos());

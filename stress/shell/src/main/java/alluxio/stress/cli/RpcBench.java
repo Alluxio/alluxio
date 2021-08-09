@@ -3,6 +3,7 @@ package alluxio.stress.cli;
 import alluxio.stress.rpc.RpcBenchParameters;
 import alluxio.stress.rpc.RpcTaskResult;
 import alluxio.util.executor.ExecutorServiceFactories;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -31,8 +32,7 @@ public abstract class RpcBench<T extends RpcBenchParameters> extends Benchmark<R
   }
 
   public <S> CompletableFuture<S> submitJob(Supplier<S> s) {
-    CompletableFuture<S> f = CompletableFuture.supplyAsync(s, mPool);
-    return f;
+    return CompletableFuture.supplyAsync(s, mPool);
   }
 
   @Override
