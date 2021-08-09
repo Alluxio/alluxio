@@ -343,7 +343,7 @@ public class FuseIOBench extends Benchmark<FuseIOTaskResult> {
             closeOutStream();
             return -1;
           }
-          mOutStream.write(mBuffer, 0, mBuffer.length);
+          mOutStream.write(mBuffer, 0, bytesToWrite);
           mCurrentOffset += bytesToWrite;
           return bytesToWrite;
         }
