@@ -35,7 +35,11 @@ import java.util.concurrent.TimeUnit;
  * Then it will keep calling the GetPinnedFileIds RPC by the specified load until the specified
  * duration has elapsed.
  *
- * TODO(bowen): add example commandline usage here
+ * Example:
+ * 4 simulated workers running on 2 job workers, requesting a total number of 100k pinned files
+ * for a total of 5 seconds:
+ * $ bin/alluxio runClass alluxio.stress.cli.GetPinnedFileIdsBench --concurrency 2
+ *    --cluster-limit 2 --num-files 100000 --duration 5s
  */
 public class GetPinnedFileIdsBench extends RpcBench<GetPinnedFileIdsParameters> {
   private static final Logger LOG = LoggerFactory.getLogger(GetPinnedFileIdsBench.class);
@@ -61,6 +65,7 @@ public class GetPinnedFileIdsBench extends RpcBench<GetPinnedFileIdsParameters> 
 
     try (CloseableResource<alluxio.client.file.FileSystemMasterClient> client =
              mFileSystemContext.acquireMasterClientResource()) {
+      LOG.info("Creating temporary directory {} for benchmark", mBaseUri);
       client.get().createDirectory(mBaseUri,
               CreateDirectoryPOptions.newBuilder().setAllowExists(true).build());
     }
@@ -68,7 +73,7 @@ public class GetPinnedFileIdsBench extends RpcBench<GetPinnedFileIdsParameters> 
     int fileNameLength = (int) Math.max(8, Math.log10(numFiles));
 
     CompletableFuture<Void>[] futures = new CompletableFuture[numFiles];
-    LOG.info("Generating {} test files at the master", numFiles);
+    LOG.info("Generating {} pinned test files at the master", numFiles);
     for (int i = 0; i < numFiles; i++) {
       AlluxioURI fileUri = mBaseUri.join(CommonUtils.randomAlphaNumString(fileNameLength));
       CompletableFuture<Void> future = CompletableFuture.supplyAsync((Supplier<Void>) () -> {

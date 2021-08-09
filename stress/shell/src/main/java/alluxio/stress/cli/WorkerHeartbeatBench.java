@@ -124,8 +124,8 @@ public class WorkerHeartbeatBench extends RpcBench<BlockMasterBenchParameters>{
         LOG.debug("Received command from heartbeat {}", cmd);
         Instant e = Instant.now();
         Duration d = Duration.between(s, e);
-        RpcTaskResult.Point p = new RpcTaskResult.Point(d.toMillis());
-        LOG.debug("Iter {} took {}ns", i, d.toNanos());
+        RpcTaskResult.Point p = new RpcTaskResult.Point(d.toNanos());
+        LOG.debug("Iter {} took {}ns", i, p.mDurationNs);
         result.addPoint(p);
       } catch (Exception e) {
         LOG.error("Failed to run blockHeartbeat {}", i, e);

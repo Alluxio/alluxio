@@ -151,16 +151,15 @@ public class RpcTaskResult implements TaskResult {
    * Each point stands for one successful RPC.
    */
   public static class Point implements JsonSerializable {
-    // TODO(bowen): change time to ns
-    public long mDurationMs;
+    public long mDurationNs;
 
-    public Point(@JsonProperty("duration") long ms) {
-      mDurationMs = ms;
+    public Point(@JsonProperty("duration") long ns) {
+      mDurationNs = ns;
     }
 
     @Override
     public String toString() {
-      return String.format("Point: {duration: %sms}", mDurationMs);
+      return String.format("Point: {duration: %sns}", mDurationNs);
     }
   }
 
