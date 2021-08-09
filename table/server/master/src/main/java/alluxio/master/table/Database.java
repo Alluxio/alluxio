@@ -207,7 +207,9 @@ public class Database implements Journaled {
     // Synchronization is necessary if accessed concurrently from multiple threads
     SyncStatus.Builder builder = SyncStatus.newBuilder();
 
+    // sync the filter spec from config file
     loadFilterSpec();
+
     DatabaseInfo newDbInfo = mUdb.getDatabaseInfo();
     if (!newDbInfo.equals(mDatabaseInfo)) {
       applyAndJournal(context, Journal.JournalEntry.newBuilder()
@@ -338,6 +340,11 @@ public class Database implements Journaled {
     return builder.build();
   }
 
+  /**
+   * Loads filter spec from config file specified by {@link CatalogProperty#DB_CONFIG_FILE}.
+   * @throws IOException when fails to parse the file or the configuration is invalid
+   * @throws FileNotFoundException when the config file does not exist
+   */
   private void loadFilterSpec() throws IOException {
     if (mConfigPath.equals(CatalogProperty.DB_CONFIG_FILE.getDefaultValue())) {
       return;
