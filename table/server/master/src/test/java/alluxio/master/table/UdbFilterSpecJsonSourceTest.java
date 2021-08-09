@@ -38,19 +38,13 @@ import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import org.junit.Before;
 import org.junit.Test;
 
 import java.util.Arrays;
 import java.util.List;
 
 public class UdbFilterSpecJsonSourceTest {
-  private ObjectMapper mMapper;
-
-  @Before
-  public void before() {
-    mMapper = new ObjectMapper();
-  }
+  private ObjectMapper mMapper = new ObjectMapper();
 
   private static ObjectNode newObjectNode() {
     return new ObjectNode(new JsonNodeFactory(false));

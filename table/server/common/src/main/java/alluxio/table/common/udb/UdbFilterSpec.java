@@ -285,7 +285,7 @@ public final class UdbFilterSpec {
    */
   private boolean shadowedByIgnore(String tableName, boolean mightBeShadowedIfTrue) {
     if (mightBeShadowedIfTrue && isIgnoredTable(tableName)) {
-      // todo(bowen): this warning is never triggered bc if a table is ignored,
+      // todo(bowen): this warning is never triggered because if a table is ignored,
       // it will not be checked for bypassing, given the current implementation in Database
       LOG.warn("Table {} is set to be bypassed but it is also ignored", tableName);
       return false;
@@ -530,8 +530,8 @@ public final class UdbFilterSpec {
      *                                  have been provided
      */
     public UdbFilterSpec build() {
-      ImmutableMap.Builder<String, Pair<EntryMode, Set<EntryName>>> partitionsBuilder
-          = ImmutableMap.builder();
+      ImmutableMap.Builder<String, Pair<EntryMode, Set<EntryName>>> partitionsBuilder =
+          ImmutableMap.builder();
       for (Map.Entry<String, Set<EntryName>> entry : mBypassedPartitions.entrySet()) {
         String tableName = entry.getKey();
         Set<EntryName> partitionEntryNames = entry.getValue();

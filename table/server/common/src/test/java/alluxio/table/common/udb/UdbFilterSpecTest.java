@@ -17,18 +17,12 @@ import static org.junit.Assert.assertTrue;
 
 import alluxio.table.common.udb.UdbFilterSpec.EntryMode;
 
-import org.junit.Before;
 import org.junit.Test;
 
 import java.util.regex.Pattern;
 
 public class UdbFilterSpecTest {
-  private UdbFilterSpec.Builder mBuilder;
-
-  @Before
-  public void before() {
-    mBuilder = new UdbFilterSpec.Builder();
-  }
+  private UdbFilterSpec.Builder mBuilder = new UdbFilterSpec.Builder();
 
   private static final String ANY_TABLE = "any_table";
   private static final String ANY_PART = "any_part";
