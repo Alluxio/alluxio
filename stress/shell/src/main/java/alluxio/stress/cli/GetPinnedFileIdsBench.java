@@ -29,6 +29,14 @@ import java.io.IOException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
+/**
+ * A benchmarking tool for the GetPinnedFileIds RPC.
+ * The test will generate a specified number of test files and pin them.
+ * Then it will keep calling the GetPinnedFileIds RPC by the specified load until the specified
+ * duration has elapsed.
+ *
+ * TODO(bowen): add example commandline usage here
+ */
 public class GetPinnedFileIdsBench extends RpcBench<GetPinnedFileIdsParameters> {
   private static final Logger LOG = LoggerFactory.getLogger(GetPinnedFileIdsBench.class);
 
@@ -47,6 +55,10 @@ public class GetPinnedFileIdsBench extends RpcBench<GetPinnedFileIdsParameters> 
 
   @Override
   public void prepare() throws Exception {
+    // The task ID is different for local and cluster executions
+    // So including that in the log can help associate the log to the run
+    LOG.info("Task ID is {}", mBaseParameters.mId);
+
     try (CloseableResource<alluxio.client.file.FileSystemMasterClient> client =
              mFileSystemContext.acquireMasterClientResource()) {
       client.get().createDirectory(mBaseUri,
@@ -56,7 +68,7 @@ public class GetPinnedFileIdsBench extends RpcBench<GetPinnedFileIdsParameters> 
     int fileNameLength = (int) Math.max(8, Math.log10(numFiles));
 
     CompletableFuture<Void>[] futures = new CompletableFuture[numFiles];
-    LOG.info("Generating {} test files", numFiles);
+    LOG.info("Generating {} test files at the master", numFiles);
     for (int i = 0; i < numFiles; i++) {
       AlluxioURI fileUri = mBaseUri.join(CommonUtils.randomAlphaNumString(fileNameLength));
       CompletableFuture<Void> future = CompletableFuture.supplyAsync((Supplier<Void>) () -> {
@@ -80,6 +92,7 @@ public class GetPinnedFileIdsBench extends RpcBench<GetPinnedFileIdsParameters> 
       futures[i] = (future);
     }
     CompletableFuture.allOf(futures).join();
+    LOG.info("Test files generated");
   }
 
   @Override
@@ -134,7 +147,7 @@ public class GetPinnedFileIdsBench extends RpcBench<GetPinnedFileIdsParameters> 
   }
 
   /**
-   * Helper client that is used to minimize the deserialization overhead by calling
+   * A helper client that is used to minimize the deserialization overhead by calling
    * getPinnedFileIdsCount instead of getPinnedFileIdsList.
    *
    * By calling getPinnedFileIdsList, GRPC deserializes the IDs from the response, which in this

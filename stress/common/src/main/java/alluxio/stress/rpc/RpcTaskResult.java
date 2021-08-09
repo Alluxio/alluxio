@@ -22,12 +22,21 @@ import com.google.common.base.MoreObjects;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * This object holds the results from one RPC benchmark test run, containing all
+ * successful and failed RPCs.
+ * For one successful run, the result is a data point.
+ * For one failed run, the result is an error.
+ */
 public class RpcTaskResult implements TaskResult {
   private List<Point> mPoints;
   private List<String> mErrors;
   private BaseParameters mBaseParameters;
   private Parameters mParameters;
 
+  /**
+   * Constructor.
+   */
   public RpcTaskResult() {
     mPoints = new ArrayList<>();
     mErrors = new ArrayList<>();
@@ -35,61 +44,71 @@ public class RpcTaskResult implements TaskResult {
 
   /**
    * @return the {@link BaseParameters}
-   * */
+   */
   public BaseParameters getBaseParameters() {
     return mBaseParameters;
   }
 
   /**
    * @param baseParameters the {@link BaseParameters} to use
-   * */
+   */
   public void setBaseParameters(BaseParameters baseParameters) {
     mBaseParameters = baseParameters;
   }
 
   /**
-   * @return the {@link UfsIOParameters}
-   * */
+   * @return the {@link Parameters}
+   */
   public Parameters getParameters() {
     return mParameters;
   }
 
   /**
-   * @param parameters the {@link UfsIOParameters} to use
-   * */
+   * @param parameters the {@link Parameters} to use
+   */
   public void setParameters(Parameters parameters) {
     mParameters = parameters;
   }
 
   /**
    * @param errorMsg an error msg to add
-   * */
+   */
   public void addError(String errorMsg) {
     mErrors.add(errorMsg);
   }
 
   /**
    * @return all the error messages
-   * */
+   */
   public List<String> getErrors() {
     return mErrors;
   }
 
   /**
    * @param errors the errors
-   * */
+   */
   public void setErrors(List<String> errors) {
     mErrors = errors;
   }
 
+  /**
+   * @param p the data point to add to the results
+   */
   public void addPoint(Point p) {
     mPoints.add(p);
   }
 
+  /**
+   * @return all data points from successful RPCs
+   */
   public List<Point> getPoints() {
     return mPoints;
   }
 
+  /**
+   *
+   * @param points data points
+   */
   public void setPoints(List<Point> points) {
     mPoints = points;
   }
@@ -99,6 +118,9 @@ public class RpcTaskResult implements TaskResult {
     return new Aggregator();
   }
 
+  /**
+   * @param r another result to merge into this one
+   */
   public void merge(RpcTaskResult r) {
     mErrors.addAll(r.mErrors);
     mPoints.addAll(r.mPoints);
@@ -111,7 +133,7 @@ public class RpcTaskResult implements TaskResult {
     }
 
     /**
-     * Reduce a list of {@link IOTaskResult} into one.
+     * Reduce a list of {@link RpcTaskResult} into one.
      *
      * @param results a list of results to combine
      * @return the combined result
@@ -125,7 +147,11 @@ public class RpcTaskResult implements TaskResult {
     }
   }
 
+  /**
+   * Each point stands for one successful RPC.
+   */
   public static class Point implements JsonSerializable {
+    // TODO(bowen): change time to ns
     public long mDurationMs;
 
     public Point(@JsonProperty("duration") long ms) {
@@ -141,10 +167,11 @@ public class RpcTaskResult implements TaskResult {
   @Override
   public String toString() {
     return MoreObjects.toStringHelper(this)
-            .add("mPoints", mPoints)
-            .add("mErrors", mErrors).toString();
+        .add("mPoints", mPoints)
+        .add("mErrors", mErrors).toString();
   }
 
+  // TODO(jiacheng): merge this with the aggregator
   public static RpcTaskResult reduceList(Iterable<RpcTaskResult> results) {
     RpcTaskResult aggreResult = new RpcTaskResult();
     for (RpcTaskResult r : results) {

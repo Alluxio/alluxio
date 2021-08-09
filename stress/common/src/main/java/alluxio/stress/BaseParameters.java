@@ -31,10 +31,8 @@ public final class BaseParameters {
   public static final String HELP_FLAG = "--help";
   public static final String PROFILE_AGENT = "--profile-agent";
   public static final String BENCH_TIMEOUT = "--bench-timeout";
-
   public static final long UNDEFINED_START_MS = -1;
   public static final String AGENT_OUTPUT_PATH = "/tmp/stress_client.log";
-
   public static final String DEFAULT_TASK_ID = "local-task-0";
 
   // Public flags

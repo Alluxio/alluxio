@@ -4,6 +4,7 @@ import alluxio.ClientContext;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.grpc.Command;
 import alluxio.grpc.LocationBlockIdListEntry;
+import alluxio.grpc.Metric;
 import alluxio.master.MasterClientContext;
 import alluxio.stress.CachingBlockMasterClient;
 import alluxio.stress.rpc.BlockMasterBenchParameters;
@@ -13,6 +14,7 @@ import alluxio.worker.block.BlockMasterClient;
 import alluxio.worker.block.BlockStoreLocation;
 import com.beust.jcommander.ParametersDelegate;
 import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,12 +28,30 @@ import java.util.Deque;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * A benchmarking tool for the WorkerHeartbeat RPC.
+ * The test will generate a specified number of blocks in the master (without associated files).
+ * The test will also register the simulated workers with the master.
+ * Then it will keep generating heartbeats with the specified load and sending heartbeats to
+ * the master nonstop, until the specified time has elapsed.
+ *
+ * Example:
+ * Each job worker runs 2 simulated workers, each having 3000 blocks on tier 0 and 10000 blocks
+ * on tier 1. Keep sending heartbeats for 30s.
+ * $ bin/alluxio runClass alluxio.stress.cli.WorkerHeartbeatBench --concurrency 2 \
+ *   --cluster-limit 1 --tiers "1000,1000,1000;5000,5000" --duration 30s
+ */
 public class WorkerHeartbeatBench extends RpcBench<BlockMasterBenchParameters>{
   private static final Logger LOG = LoggerFactory.getLogger(WorkerHeartbeatBench.class);
+
+  // Constants used for the RPC simulation
   private static final long CAPACITY = 20L * 1024 * 1024 * 1024; // 20GB
   private static final Map<String, Long> CAPACITY_MEM = ImmutableMap.of("MEM", CAPACITY);
   private static final Map<String, Long> USED_MEM_EMPTY = ImmutableMap.of("MEM", 0L);
   private static final BlockStoreLocation BLOCK_LOCATION_MEM = new BlockStoreLocation("MEM", 0, "MEM");
+  private static final Map<String, List<String>> LOST_STORAGE = ImmutableMap.of("MEM", new ArrayList<>());
+  private static final List<Metric> EMPTY_METRICS = ImmutableList.of();
+  private static final List<Long> EMPTY_REMOVED_BLOCKS = ImmutableList.of();
 
   @ParametersDelegate
   private BlockMasterBenchParameters mParameters = new BlockMasterBenchParameters();
@@ -95,10 +115,12 @@ public class WorkerHeartbeatBench extends RpcBench<BlockMasterBenchParameters>{
         Command cmd = client.heartbeat(workerId,
                 CAPACITY_MEM,
                 USED_MEM_EMPTY,
-                new ArrayList<>(), // no removed blocks
-                ImmutableMap.of(BLOCK_LOCATION_MEM, new ArrayList<>()), // added blocks
-                ImmutableMap.of(), // lost storage
-                new ArrayList<>()); // metrics
+                EMPTY_REMOVED_BLOCKS,
+                // Will use the prepared block list instead of converting on the fly
+                // So an empty map will be used here
+                ImmutableMap.of(),
+                LOST_STORAGE,
+                EMPTY_METRICS);
         LOG.debug("Received command from heartbeat {}", cmd);
         Instant e = Instant.now();
         Duration d = Duration.between(s, e);

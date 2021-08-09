@@ -24,6 +24,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+/**
+ * This object is used to summarize the RPC stress test results.
+ */
 public class RpcTaskSummary implements Summary {
   private List<RpcTaskResult.Point> mPoints;
   private List<String> mErrors;

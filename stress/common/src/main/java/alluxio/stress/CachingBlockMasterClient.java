@@ -12,17 +12,19 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Use this class to avoid map-list conversion at the client side
- * So if you are running all processes on the same machine,
- * the client side work affect the performance less.
- * */
+ * Use this class to avoid the map-list conversion at the client side.
+ * This reduces the client side work so the time measurement for the whole RPC better reflects
+ * the time taken at the master side.
+ * Also reducing the workload on the client side will avoid the test becoming CPU-bound on the
+ * client side, when the concurrency is high.
+ */
 public class CachingBlockMasterClient extends BlockMasterClient {
   private static final Logger LOG = LoggerFactory.getLogger(CachingBlockMasterClient.class);
 
-  private List<LocationBlockIdListEntry> mLocationBlockIdList;
+  private final List<LocationBlockIdListEntry> mLocationBlockIdList;
 
   /**
-   * Creates a new instance of {@link BlockMasterClient} for the worker.
+   * Creates a new instance and caches the converted proto.
    *
    * @param conf master client configuration
    */

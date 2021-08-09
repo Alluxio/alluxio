@@ -14,13 +14,12 @@ package alluxio.stress.rpc;
 import com.beust.jcommander.Parameter;
 
 /**
- *
- * */
+ * Parameters for generating different stress on the BlockMaster.
+ */
 public class BlockMasterBenchParameters extends RpcBenchParameters {
-  @Parameter(names = {"--tiers"})
-  /**
-   * Examples: "100,200,300;1000,1500;2000"
-   * Use semi-colon to separate tiers, use commas to separate dirs
-   * */
+  @Parameter(names = {"--tiers"},
+      description = "The number of blocks in each storage dir and tier. "
+          + "Use semi-colon to separate tiers, use commas to separate dirs. "
+          + "Example: \"100,200,300;1000,1500;2000\"")
   public String mTiers;
 }
