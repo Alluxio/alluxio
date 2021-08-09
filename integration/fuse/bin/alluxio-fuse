@@ -89,17 +89,22 @@ umount_fuse() {
     return 1
   else
     kill ${fuse_pid}
-    local maxWait=60
+    local maxWait=120
     local cnt=${maxWait}
     while kill -0 ${fuse_pid} > /dev/null 2>&1; do
       if [[ ${cnt} -gt 1 ]]; then
         # still not dead, wait
         cnt=$(expr ${cnt} - 1)
         sleep 1
-      else
+      elif [[ "${SOFT_KILL_OPT}" = true ]] ; then
         # waited long enough, giving up umount
-        echo "Failed to umount fuse process ["${fuse_pid}"] after waiting for "${maxWait}" seconds." >&2
+        echo "Soft kill option '-s' is specified. Failed to umount fuse process ["${fuse_pid}"] after waiting for "${maxWait}" seconds." >&2
         return 1
+      else
+        # waited long enough, forcibly kill the process
+        echo "Fuse process [${fuse_pid}] did not complete after "${maxWait}" seconds, forcibly killing it." >&2
+        kill -9 ${fuse_pid} 2> /dev/null
+        break;
       fi
     done
     echo "Successfully unmount fuse at ${mount_point} (PID: ${fuse_pid})."
@@ -151,6 +156,11 @@ Usage:\talluxio-fuse mount [-n] [-o <mount option>] <mount_point> [alluxio_path]
 -n \tno-daemon. This launches the process in the foreground and logs to stdout
 -s \tstackFS. This launches StackFS process for testing purpose"
 
+UMOUNT_USAGE="
+Usage:\n\talluxio-fuse umount [-s] <mount_point>\n\tuse mount stat to show mount points
+
+-s \tif '-s' specified, fuse process won't be forcibly killed even if the umount operation is timeout."
+
 if [[ $# -lt 1 ]]; then
   echo -e "${USAGE_MSG}" >&2
   exit 1
@@ -199,11 +209,24 @@ case $1 in
     exit 1
     ;;
   umount|unmount)
-    if [[ $# -eq 2 ]]; then
-      umount_fuse $2
+    shift
+      while getopts "s" option; do
+        case "${option}" in
+          s)
+            SOFT_KILL_OPT=true
+            ;;
+          *)
+          echo -e "${UMOUNT_USAGE}" >&2
+          exit 1
+          ;;
+        esac
+      done
+    shift $((${OPTIND} - 1))
+    if [[ $# -eq 1 ]]; then
+      umount_fuse $1
       exit $?
     fi
-    echo -e "Usage\n\talluxio-fuse umount mount_point\n\tuse mount stat to show mount points" >&2
+    echo -e "${UMOUNT_USAGE}" >&2
     exit 1
     ;;
   stat)
