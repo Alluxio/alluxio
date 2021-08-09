@@ -42,6 +42,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.atomic.LongAdder;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -62,6 +63,7 @@ public class RocksBlockStore implements BlockStore {
   private final RocksStore mRocksStore;
   private final AtomicReference<ColumnFamilyHandle> mBlockMetaColumn = new AtomicReference<>();
   private final AtomicReference<ColumnFamilyHandle> mBlockLocationsColumn = new AtomicReference<>();
+  private final LongAdder mSize = new LongAdder();
 
   /**
    * Creates and initializes a rocks block store.
@@ -122,6 +124,7 @@ public class RocksBlockStore implements BlockStore {
     try {
       // Overwrites the key if it already exists.
       db().put(mBlockMetaColumn.get(), mDisableWAL, Longs.toByteArray(id), meta.toByteArray());
+      mSize.increment();
     } catch (RocksDBException e) {
       throw new RuntimeException(e);
     }
@@ -131,6 +134,7 @@ public class RocksBlockStore implements BlockStore {
   public void removeBlock(long id) {
     try {
       db().delete(mBlockMetaColumn.get(), mDisableWAL, Longs.toByteArray(id));
+      mSize.decrement();
     } catch (RocksDBException e) {
       throw new RuntimeException(e);
     }
@@ -139,6 +143,11 @@ public class RocksBlockStore implements BlockStore {
   @Override
   public void clear() {
     mRocksStore.clear();
+  }
+
+  @Override
+  public long size() {
+    return mSize.longValue();
   }
 
   @Override

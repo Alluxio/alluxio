@@ -71,7 +71,6 @@ import alluxio.wire.BlockInfo;
 import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
 
-import com.codahale.metrics.Counter;
 import com.codahale.metrics.Gauge;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
@@ -950,7 +949,6 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
 
     // Invalidate cache to trigger new build of worker info list
     mWorkerInfoCache.invalidate(WORKER_INFO_CACHE_KEY);
-    Metrics.TOTAL_BLOCKS.inc(currentBlocksOnLocation.size());
     LOG.info("registerWorker(): {}", worker);
   }
 
@@ -991,7 +989,6 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
       processWorkerRemovedBlocks(worker, removedBlockIds);
       processWorkerAddedBlocks(worker, addedBlocks);
       List<Long> toRemoveBlocks = worker.getToRemoveBlocks();
-      Metrics.TOTAL_BLOCKS.inc(addedBlocks.size() - removedBlockIds.size());
       if (toRemoveBlocks.isEmpty()) {
         workerCommand = Command.newBuilder().setCommandType(CommandType.Nothing).build();
       } else {
@@ -1042,7 +1039,6 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
         workerInfo.removeBlock(removedBlockId);
       }
     }
-    Metrics.TOTAL_BLOCKS.dec(removedBlockIds.size());
   }
 
   /**
@@ -1305,16 +1301,13 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
    * Class that contains metrics related to BlockMaster.
    */
   public static final class Metrics {
-    private static final Counter TOTAL_BLOCKS =
-        MetricsSystem.counter(MetricKey.MASTER_TOTAL_BLOCKS.getName());
-
     /**
      * Registers metric gauges.
      *
      * @param master the block master handle
      */
     @VisibleForTesting
-    public static void registerGauges(final BlockMaster master) {
+    public static void registerGauges(final DefaultBlockMaster master) {
       MetricsSystem.registerGaugeIfAbsent(MetricKey.CLUSTER_CAPACITY_TOTAL.getName(),
           master::getCapacityBytes);
 
@@ -1323,6 +1316,9 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
 
       MetricsSystem.registerGaugeIfAbsent(MetricKey.CLUSTER_CAPACITY_FREE.getName(),
           () -> master.getCapacityBytes() - master.getUsedBytes());
+
+      MetricsSystem.registerGaugeIfAbsent(MetricKey.MASTER_TOTAL_BLOCKS.getName(),
+          () -> master.mBlockStore.size());
 
       for (int i = 0; i < master.getGlobalStorageTierAssoc().size(); i++) {
         String alias = master.getGlobalStorageTierAssoc().getAlias(i);
