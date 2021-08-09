@@ -65,7 +65,7 @@ public class SharedGrpcDataReader implements DataReader {
   }
 
   private static ReentrantReadWriteLock getLock(long blockId) {
-    return BLOCK_LOCKS[HASH_FUNC.hashLong(blockId).asInt() % BLOCK_LOCKS.length];
+    return BLOCK_LOCKS[math.floorMod(HASH_FUNC.hashLong(blockId).asInt(), BLOCK_LOCKS.length)];
   }
 
   private final long mBlockId;
