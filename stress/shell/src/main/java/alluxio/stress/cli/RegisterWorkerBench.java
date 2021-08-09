@@ -12,10 +12,13 @@
 package alluxio.stress.cli;
 
 import alluxio.ClientContext;
+import alluxio.StorageTierAssoc;
+import alluxio.WorkerStorageTierAssoc;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.grpc.ConfigProperty;
 import alluxio.grpc.LocationBlockIdListEntry;
 import alluxio.master.MasterClientContext;
+import alluxio.security.authentication.AuthenticationServer;
 import alluxio.stress.CachingBlockMasterClient;
 import alluxio.stress.rpc.BlockMasterBenchParameters;
 import alluxio.stress.rpc.RpcTaskResult;
@@ -27,6 +30,7 @@ import com.beust.jcommander.ParametersDelegate;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import org.apache.avro.generic.GenericData;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,6 +40,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Deque;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -129,17 +134,51 @@ public class RegisterWorkerBench extends RpcBench<BlockMasterBenchParameters> {
     return result;
   }
 
+  private List<String> simulateTierAliases(String tierConfig) {
+    String[] parts = tierConfig.split(";");
+    LOG.info("Simulate {} tiers with config {}", parts.length, tierConfig);
+    List<String> aliases = new ArrayList<>();
+    for (int i = 0; i < parts.length; i++) {
+      aliases.add(TIER_ALIASES.get(i));
+    }
+    return aliases;
+  }
+
+  private Map<String, Long> simulateCapacityMap(List<String> tierAliases) {
+    Map<String, Long> capMap = new HashMap<>();
+    for (String t : tierAliases) {
+      capMap.put(t, CAPACITY);
+    }
+    return capMap;
+  }
+
+  private Map<String, Long> simulateUsedMap(List<String> tierAliases) {
+    Map<String, Long> usedMap = new HashMap<>();
+    for (String t : tierAliases) {
+      usedMap.put(t, 0L);
+    }
+    return usedMap;
+  }
+
   private void runOnce(alluxio.worker.block.BlockMasterClient client, RpcTaskResult result, long i, long workerId) {
+    List<String> tierAliases = simulateTierAliases(mParameters.mTiers);
+    LOG.info("Tier aliases: {}", tierAliases);
+    Map<String, Long> capacityMap = simulateCapacityMap(tierAliases);
+    Map<String, Long> usedMap = simulateUsedMap(tierAliases);
+    LOG.info("Capacity: {}, Used: {}", capacityMap, usedMap);
+
     // TODO(jiacheng): The 1st reported RPC time is always very long, this does
     //  not match with the time recorded by Jaeger.
     //  I suspect it's the time spend in establishing the connection.
     //  The easiest way out is just to ignore the 1st point.
     try {
       Instant s = Instant.now();
+      // TODO(jiacheng): generate maps/lists based on the tiers
+
       client.register(workerId,
-              TIER_ALIASES,
-              CAPACITY_MEM,
-              USED_MEM_EMPTY,
+              tierAliases,
+              capacityMap,
+              usedMap,
               // Will use the prepared block list instead of converting on the fly
               // So an empty block list will be used here
               ImmutableMap.of(),
@@ -149,7 +188,7 @@ public class RegisterWorkerBench extends RpcBench<BlockMasterBenchParameters> {
       Instant e = Instant.now();
       RpcTaskResult.Point p = new RpcTaskResult.Point(Duration.between(s, e).toNanos());
       result.addPoint(p);
-      LOG.info("Iter {} took {}", i, p.mDurationNs);
+      LOG.info("Iter {} took {}ns", i, p.mDurationNs);
     } catch (Exception e) {
       LOG.error("Failed to run iter {}", i, e);
       result.addError(e.getMessage());

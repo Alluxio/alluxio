@@ -1,5 +1,6 @@
 package alluxio.stress.cli;
 
+import alluxio.stress.TaskResult;
 import alluxio.stress.rpc.RpcBenchParameters;
 import alluxio.stress.rpc.RpcTaskResult;
 import alluxio.util.executor.ExecutorServiceFactories;
@@ -79,7 +80,7 @@ public abstract class RpcBench<T extends RpcBenchParameters> extends Benchmark<R
               ).get();
       LOG.info("{} futures collected: {}", results.size(),
               results.size() > 0 ? results.get(0) : "[]");
-      return RpcTaskResult.reduceList(results);
+      return RpcTaskResult.Aggregator.reduceList(results);
     } catch (Exception e) {
       LOG.error("Failed to execute RPC in pool", e);
       RpcTaskResult result = new RpcTaskResult();

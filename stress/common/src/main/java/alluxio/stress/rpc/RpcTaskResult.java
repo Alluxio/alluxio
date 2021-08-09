@@ -126,7 +126,7 @@ public class RpcTaskResult implements TaskResult {
     mPoints.addAll(r.mPoints);
   }
 
-  private static final class Aggregator implements TaskResult.Aggregator<RpcTaskResult> {
+  public static final class Aggregator implements TaskResult.Aggregator<RpcTaskResult> {
     @Override
     public Summary aggregate(Iterable<RpcTaskResult> results) throws Exception {
       return new RpcTaskSummary(reduceList(results));
@@ -168,14 +168,5 @@ public class RpcTaskResult implements TaskResult {
     return MoreObjects.toStringHelper(this)
         .add("mPoints", mPoints)
         .add("mErrors", mErrors).toString();
-  }
-
-  // TODO(jiacheng): merge this with the aggregator
-  public static RpcTaskResult reduceList(Iterable<RpcTaskResult> results) {
-    RpcTaskResult aggreResult = new RpcTaskResult();
-    for (RpcTaskResult r : results) {
-      aggreResult.merge(r);
-    }
-    return aggreResult;
   }
 }

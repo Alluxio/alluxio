@@ -187,9 +187,11 @@ public final class StressBenchDefinition
           try {
             return JsonSerializable.fromJson(entry.getValue().trim(), new TaskResult[0]);
           } catch (IOException | ClassNotFoundException e) {
-            error.set(new IOException(String
-                .format("Failed to parse task output from %s into result class",
-                    entry.getKey().getAddress().getHost()), e));
+            error.set(new IOException(
+                String.format("Failed to parse task output from %s into result class %s: %s",
+                    entry.getKey().getAddress().getHost(), TaskResult.class,
+                    entry.getValue().trim()),
+                e));
           }
           return null;
         }).collect(Collectors.toList());
