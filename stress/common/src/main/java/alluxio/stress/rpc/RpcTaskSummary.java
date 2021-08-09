@@ -60,7 +60,7 @@ public class RpcTaskSummary implements Summary {
     for (RpcTaskResult.Point p : mPoints) {
       mTotalDurationNs += p.mDurationNs;
     }
-    mAvgDurationNs = (mCount == 0) ? 0.0 : mTotalDurationNs / (mCount + 0.0000001);
+    mAvgDurationNs = (mCount == 0) ? 0.0 : mTotalDurationNs / ((double) mCount);
     Map<Integer, Double> percentiles = getPercentiles(5, 25, 50, 75, 95);
     m5Percentile = percentiles.get(5);
     m25Percentile = percentiles.get(25);
