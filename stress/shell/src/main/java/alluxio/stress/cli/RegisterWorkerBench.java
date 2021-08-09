@@ -16,7 +16,7 @@ import alluxio.conf.InstancedConfiguration;
 import alluxio.grpc.LocationBlockIdListEntry;
 import alluxio.master.MasterClientContext;
 import alluxio.stress.CachingBlockMasterClient;
-import alluxio.stress.rpc.RegisterWorkerParameters;
+import alluxio.stress.rpc.BlockMasterBenchParameters;
 import alluxio.stress.rpc.RpcTaskResult;
 import alluxio.util.FormatUtils;
 import alluxio.util.network.NetworkAddressUtils;
@@ -42,18 +42,27 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
- * A tool to simulate RPC
- * */
-public class RegisterWorkerBench extends RpcBench<RegisterWorkerParameters> {
+ * // TODO(Jiacheng): what is the best place for example
+ * Simulate new worker registration
+ *
+ * Examples:
+ * For 30s, keep generating new worker registration calls, each one containing 100K block IDs
+ * The concurrency you get is concurrency * cluster-limit
+ * Each job worker (number controlled by cluster-limit) will spawn a threadpool with size of
+ * concurrency, and each thread keeps generating new RPCs.
+ * $ bin/alluxio runClass alluxio.stress.cli.RegisterWorkerBench --concurrency 2 \
+ *   --cluster-limit 1 --duration 30s --block-count 100000
+ *
+ */
+public class RegisterWorkerBench extends RpcBench<BlockMasterBenchParameters> {
   private static final Logger LOG = LoggerFactory.getLogger(RegisterWorkerBench.class);
 
   @ParametersDelegate
-  private RegisterWorkerParameters mParameters = new RegisterWorkerParameters();
+  private BlockMasterBenchParameters mParameters = new BlockMasterBenchParameters();
 
   private final InstancedConfiguration mConf = InstancedConfiguration.defaults();
 
   private List<LocationBlockIdListEntry> mLocationBlockIdList;
-  private AtomicInteger mPortToAssign = new AtomicInteger(50000);
 
   private Deque<Long> mWorkerPool = new ArrayDeque<>();
 
@@ -78,7 +87,7 @@ public class RegisterWorkerBench extends RpcBench<RegisterWorkerParameters> {
     mWorkerPool = RpcBenchPreparationUtils.prepareWorkerIds(client, numWorkers);
     Preconditions.checkState(mWorkerPool.size() == numWorkers, "Expecting %s workers but registered %s",
             numWorkers, mWorkerPool.size());
-    LOG.info("All workers registered {}", mWorkerPool);
+    LOG.info("Prepared worker IDs: {}", mWorkerPool);
   }
 
   /**
@@ -88,18 +97,6 @@ public class RegisterWorkerBench extends RpcBench<RegisterWorkerParameters> {
     mainInternal(args, new RegisterWorkerBench());
   }
 
-  /**
-   * // TODO(Jiacheng)
-   * Simulate new worker registration
-   *
-   * examples:
-   * For 30s, keep generating new worker registration calls, each one containing 100K block IDs
-   * The concurrency you get is concurrency * cluster-limit
-   * Each job worker (number controlled by cluster-limit) will spawn a threadpool with size of
-   * concurrency, and each thread keeps generating new RPCs.
-   * bin/alluxio runClass alluxio.stress.cli.RpcBench --concurrency 2 --cluster-limit 1 --duration 30s --block-count 100000
-   *
-   */
   private RpcTaskResult simulateRegisterWorker(alluxio.worker.block.BlockMasterClient client) {
     RpcTaskResult result = new RpcTaskResult();
     long i = 0;
@@ -114,7 +111,6 @@ public class RegisterWorkerBench extends RpcBench<RegisterWorkerParameters> {
     }
     long workerId = mWorkerPool.poll();
     String hostname = NetworkAddressUtils.getLocalHostName(500);
-    LOG.info("Detected local hostname {}", hostname);
 
     // Each client will simulate only one worker register RPC
     // Because the number of concurrent register RPCs is the variable we want to control
@@ -131,13 +127,6 @@ public class RegisterWorkerBench extends RpcBench<RegisterWorkerParameters> {
     //  I suspect it's the time spend in establishing the connection.
     //  The easiest way out is just to ignore the 1st point.
     try {
-      if (!mParameters.mSameWorker) {
-        // If use different worker, get a different address and workerId every time
-        address = new WorkerNetAddress().setHost(hostname).setDataPort(mPortToAssign.getAndIncrement()).setRpcPort(mPortToAssign.getAndIncrement());
-        workerId = client.getId(address);
-        LOG.info("Got new worker ID {}", workerId);
-      }
-
       List<String> tierAliases = new ArrayList<>();
       tierAliases.add("MEM");
       long cap = 20L * 1024 * 1024 * 1024; // 20GB
@@ -191,7 +180,7 @@ public class RegisterWorkerBench extends RpcBench<RegisterWorkerParameters> {
   }
 
   @Override
-  public RegisterWorkerParameters getParameters() {
+  public BlockMasterBenchParameters getParameters() {
     return mParameters;
   }
 }

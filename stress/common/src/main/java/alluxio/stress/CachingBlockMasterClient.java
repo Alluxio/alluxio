@@ -28,13 +28,14 @@ public class CachingBlockMasterClient extends BlockMasterClient {
    */
   public CachingBlockMasterClient(MasterClientContext conf, List<LocationBlockIdListEntry> locationBlockIdList) {
     super(conf);
-    LOG.debug("Init MockBlockMasterClient");
+    LOG.debug("Init CachingBlockMasterClient");
     mLocationBlockIdList = locationBlockIdList;
   }
 
   @Override
   public List<LocationBlockIdListEntry> convertBlockListMapToProto(
           Map<BlockStoreLocation, List<Long>> blockListOnLocation) {
+    LOG.debug("Using the cached block list proto");
     return mLocationBlockIdList;
   }
 }

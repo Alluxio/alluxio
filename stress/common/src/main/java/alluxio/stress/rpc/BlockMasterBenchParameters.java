@@ -11,23 +11,12 @@
 
 package alluxio.stress.rpc;
 
-import alluxio.stress.Parameters;
-
-import com.beust.jcommander.DynamicParameter;
 import com.beust.jcommander.Parameter;
 
-import java.util.HashMap;
-import java.util.Map;
-
 /**
- * Parameters used in the UFS I/O throughput test.
+ *
  * */
-public class RegisterWorkerParameters extends RpcBenchParameters {
-
-  @Parameter(names = {"--fake-same-worker"},
-          description = "For each registerWorker RPC, should this be same worker or different worker.")
-  public boolean mSameWorker = false;
-
+public class BlockMasterBenchParameters extends RpcBenchParameters {
   @Parameter(names = {"--tiers"})
   /**
    * Examples: "100,200,300;1000,1500;2000"

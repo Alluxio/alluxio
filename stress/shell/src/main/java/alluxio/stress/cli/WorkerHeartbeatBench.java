@@ -6,8 +6,8 @@ import alluxio.grpc.Command;
 import alluxio.grpc.LocationBlockIdListEntry;
 import alluxio.master.MasterClientContext;
 import alluxio.stress.CachingBlockMasterClient;
+import alluxio.stress.rpc.BlockMasterBenchParameters;
 import alluxio.stress.rpc.RpcTaskResult;
-import alluxio.stress.rpc.WorkerHeartbeatParameters;
 import alluxio.util.FormatUtils;
 import alluxio.worker.block.BlockMasterClient;
 import alluxio.worker.block.BlockStoreLocation;
@@ -26,7 +26,7 @@ import java.util.Deque;
 import java.util.List;
 import java.util.Map;
 
-public class WorkerHeartbeatBench extends RpcBench<WorkerHeartbeatParameters>{
+public class WorkerHeartbeatBench extends RpcBench<BlockMasterBenchParameters>{
   private static final Logger LOG = LoggerFactory.getLogger(WorkerHeartbeatBench.class);
   private static final long CAPACITY = 20L * 1024 * 1024 * 1024; // 20GB
   private static final Map<String, Long> CAPACITY_MEM = ImmutableMap.of("MEM", CAPACITY);
@@ -34,7 +34,7 @@ public class WorkerHeartbeatBench extends RpcBench<WorkerHeartbeatParameters>{
   private static final BlockStoreLocation BLOCK_LOCATION_MEM = new BlockStoreLocation("MEM", 0, "MEM");
 
   @ParametersDelegate
-  private WorkerHeartbeatParameters mParameters = new WorkerHeartbeatParameters();
+  private BlockMasterBenchParameters mParameters = new BlockMasterBenchParameters();
 
   private final InstancedConfiguration mConf = InstancedConfiguration.defaults();
   // Worker IDs to use in the testing stage
@@ -79,7 +79,7 @@ public class WorkerHeartbeatBench extends RpcBench<WorkerHeartbeatParameters>{
   }
 
   @Override
-  public WorkerHeartbeatParameters getParameters() {
+  public BlockMasterBenchParameters getParameters() {
     return mParameters;
   }
 
@@ -140,7 +140,8 @@ public class WorkerHeartbeatBench extends RpcBench<WorkerHeartbeatParameters>{
     mWorkerPool = RpcBenchPreparationUtils.prepareWorkerIds(client, numWorkers);
     Preconditions.checkState(mWorkerPool.size() == numWorkers, "Expecting %s workers but registered %s",
             numWorkers, mWorkerPool.size());
-    LOG.info("All workers registered {}", mWorkerPool);
+    RpcBenchPreparationUtils.registerWorkers(client, mWorkerPool);
+    LOG.info("All workers registered with the master {}", mWorkerPool);
   }
 
   /**

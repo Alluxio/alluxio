@@ -108,22 +108,25 @@ public class RpcBenchPreparationUtils {
               .setWebPort(freePort++);
       workerId = client.getId(address);
       LOG.info("Created worker ID {} on {}", workerId, address);
+      workerPool.offer(workerId);
+    }
+    return workerPool;
+  }
 
-      // Register worker
+  static void registerWorkers(BlockMasterClient client, Deque<Long> workerIds) throws IOException {
+    for (long w : workerIds) {
+      LOG.info("Worker {} registering", w);
       List<String> tierAliases = new ArrayList<>();
       tierAliases.add("MEM");
-      client.register(workerId,
+      client.register(w,
               tierAliases,
               CAPACITY_MEM,
               USED_MEM_EMPTY,
               ImmutableMap.of(BLOCK_LOCATION_MEM, new ArrayList<>()),
               ImmutableMap.of("MEM", new ArrayList<>()), // lost storage
               ImmutableList.of()); // extra config
-      LOG.info("Worker {} registered", workerId);
-
-      workerPool.offer(workerId);
     }
-    return workerPool;
+    LOG.info("All workers registered");
   }
 
   /**
