@@ -195,15 +195,13 @@ public final class PlanCoordinator {
    * @param errorType Error type to set for failure
    * @param errorMessage Error message to set for failure
    */
-  public void setJobAsFailed(String errorType, String errorMessage) {
-    synchronized (mPlanInfo) {
-      if (!mPlanInfo.getStatus().isFinished()) {
-        mPlanInfo.setStatus(Status.FAILED);
-        mPlanInfo.setErrorType(errorType);
-        mPlanInfo.setErrorMessage(errorMessage);
-      }
-      mWorkersInfoList = null;
+  public synchronized void setJobAsFailed(String errorType, String errorMessage) {
+    if (!mPlanInfo.getStatus().isFinished()) {
+      mPlanInfo.setStatus(Status.FAILED);
+      mPlanInfo.setErrorType(errorType);
+      mPlanInfo.setErrorMessage(errorMessage);
     }
+    mWorkersInfoList = null;
   }
 
   /**
