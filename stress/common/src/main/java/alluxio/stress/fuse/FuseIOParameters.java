@@ -36,7 +36,7 @@ public final class FuseIOParameters extends Parameters {
   @Parameter(names = {"--threads"}, description = "the number of concurrent threads to use")
   public List<Integer> mThreads = Collections.singletonList(1);
 
-  @Parameter(names = {"--localPath"},
+  @Parameter(names = {"--local-path"},
       description = "The local filesystem directory or Fuse mount point to perform operations in")
   public String mLocalPath = "/mnt/alluxio-fuse/fuse-io-bench";
 
