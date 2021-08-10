@@ -175,6 +175,22 @@ public class JournalContextTest {
   }
 
   @Test
+  public void journalClosedTest() throws Exception {
+    // Secondary journals will be closed for operation.
+    mJournalSystem.losePrimacy();
+    // Validate that createJournalContext fails for secondary journals.
+    boolean failedAsExpected = false;
+    try {
+      mBlockMaster.createJournalContext();
+    } catch (UnavailableException e) {
+      failedAsExpected = true;
+    }
+    assertTrue(failedAsExpected);
+    // Validate that we haven't leaked state lock while creating journal context.
+    assertEquals(0, mMasterContext.getStateLockManager().getSharedWaitersAndHolders().size());
+  }
+
+  @Test
   public void stateChangeFairness() throws Exception {
     JournalContext journalContext = mBlockMaster.createJournalContext();
 
