@@ -143,6 +143,12 @@ $ ${ALLUXIO_HOME}/integration/fuse/bin/alluxio-fuse unmount /mnt/people
 Unmount fuse at /mnt/people (PID:97626).
 ```
 
+You can add `-s` to make the unmount more gracefully. Fuse process won't be forcibly killed if fuse device is busy ( If Fuse process is forcibly killed, it may cause unknown errors on the related busy files). For example,
+
+```console
+$ ${ALLUXIO_HOME}/integration/fuse/bin/alluxio-fuse unmount -s /mnt/people
+```
+
 ### Check the Alluxio POSIX API mounting status
 
 To list the mount points; on the node where the file system is mounted run:

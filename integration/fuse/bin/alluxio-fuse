@@ -98,7 +98,7 @@ umount_fuse() {
         sleep 1
       elif [[ "${SOFT_KILL_OPT}" = true ]] ; then
         # waited long enough, giving up umount
-        echo "Soft kill option '-s' is specified. Failed to umount fuse process ["${fuse_pid}"] after waiting for "${maxWait}" seconds." >&2
+        echo "Failed to umount fuse process ["${fuse_pid}"] after waiting for "${maxWait}" seconds. Fuse device is busy and soft kill option -s is specified." >&2
         return 1
       else
         # waited long enough, forcibly kill the process
@@ -159,7 +159,7 @@ Usage:\talluxio-fuse mount [-n] [-o <mount option>] <mount_point> [alluxio_path]
 UMOUNT_USAGE="
 Usage:\n\talluxio-fuse umount [-s] <mount_point>\n\tuse mount stat to show mount points
 
--s \tif '-s' specified, fuse process won't be forcibly killed even if the umount operation is timeout."
+-s \tif '-s' specified, fuse process won't be forcibly killed if fuse device is busy."
 
 if [[ $# -lt 1 ]]; then
   echo -e "${USAGE_MSG}" >&2
