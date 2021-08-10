@@ -23,6 +23,10 @@ public enum GrpcNetworkGroup {
    * Networking group for Streaming traffic.
    */
   STREAMING,
+  /**
+   * Networking group for secret exchange.
+   */
+  SECRET
   ;
 
   /**
