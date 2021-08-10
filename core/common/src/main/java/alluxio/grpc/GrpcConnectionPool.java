@@ -82,7 +82,6 @@ public class GrpcConnectionPool {
   private synchronized SslContextProvider getSslContextProvider(AlluxioConfiguration conf) {
     if (mSslContextProvider == null) {
       mSslContextProvider = SslContextProvider.Factory.create(conf);
-      mSslContextProvider.init(conf);
     }
     return mSslContextProvider;
   }
