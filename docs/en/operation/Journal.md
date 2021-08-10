@@ -300,15 +300,22 @@ $ ./bin/alluxio fsadmin journal quorum remove -domain <MASTER | JOB_MASTER> -add
 
 3- Verify that the removed member is no longer shown in the quorum info.
 
-#### Transferring leadership to a specific master
+##### Transferring leadership to a specific master
 To aid in debugging and to add flexibility, it is possible to manually change the leader of an embedded journal cluster.
-To specify which master needs to take over, you need to run:
+
+1- Check current quorum state:
+```console
+$ ./bin/alluxio fsadmin journal quorum info -domain MASTER
+```
+This will print out node status for all currently participating members of the embedded journal cluster. You should select one 
+of the `AVAILABLE` masters.
+
+2- Transfer the leadership to an available master:
 ```console
 $ ./bin/alluxio fsadmin journal quorum elect -address <HostName:Port>
 ```
-where `Port` is the `alluxio.master.embedded.journal.port` of the master that is selected to take over.
-
-In effect, this command runs a rigged election in favor of the designated master.  
+The `elect` command makes sure that the leadership has transferred to the designated master before returning and displaying
+a success message. If the transfer is not successful, it will print a failure message.
 
 #### UFS Journal Cluster
 
