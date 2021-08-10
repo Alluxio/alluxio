@@ -29,13 +29,16 @@ public interface SslContextProvider {
     private Factory() {} // prevent instantiation
 
     /**
-     * Creates {@link SslContextProvider} implementation based on Alluxio configuration.
+     * Creates and initializes {@link SslContextProvider} implementation
+     * based on Alluxio configuration.
      *
      * @return the generated {@link SslContextProvider} instance
      */
     public static SslContextProvider create(AlluxioConfiguration conf) {
-      return CommonUtils.createNewClassInstance(
+      SslContextProvider provider = CommonUtils.createNewClassInstance(
           conf.getClass(PropertyKey.NETWORK_TLS_SSL_CONTEXT_PROVIDER_CLASSNAME), null, null);
+      provider.init(conf);
+      return provider;
     }
   }
 
