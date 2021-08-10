@@ -2687,6 +2687,12 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.SERVER)
           .build();
+  public static final PropertyKey SECONDARY_MASTER_WEB_ENABLED =
+      new Builder(Name.SECONDARY_MASTER_WEB_ENABLED)
+          .setDefaultValue(false)
+          .setDescription("Whether to enable second master web server.")
+          .setScope(Scope.SERVER)
+          .build();
 
   //
   // File system master related properties
@@ -5802,6 +5808,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     //
     public static final String SECONDARY_MASTER_METASTORE_DIR =
         "alluxio.secondary.master.metastore.dir";
+    public static final String SECONDARY_MASTER_WEB_ENABLED =
+        "alluxio.secondary.master.web.enabled";
 
     //
     // Worker related properties

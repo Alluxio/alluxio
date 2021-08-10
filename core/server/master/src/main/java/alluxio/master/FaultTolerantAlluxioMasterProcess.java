@@ -60,6 +60,11 @@ final class FaultTolerantAlluxioMasterProcess extends AlluxioMasterProcess {
       PrimarySelector leaderSelector) {
     super(journalSystem);
     try {
+      if (ServerConfiguration.getBoolean(PropertyKey.SECONDARY_MASTER_WEB_ENABLED)
+          && mWebServer != null) {
+        mWebServer.stop();
+        mWebServer = null;
+      }
       stopServing();
     } catch (Exception e) {
       throw new RuntimeException(e);
@@ -89,7 +94,9 @@ final class FaultTolerantAlluxioMasterProcess extends AlluxioMasterProcess {
       LOG.error(e.getMessage(), e);
       throw new RuntimeException(e);
     }
-    startServingWebServer();
+    if (ServerConfiguration.getBoolean(PropertyKey.SECONDARY_MASTER_WEB_ENABLED)) {
+      startServingWebServer();
+    }
 
     while (!Thread.interrupted()) {
       if (!mRunning) {

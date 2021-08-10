@@ -150,7 +150,9 @@ public class AlluxioMasterProcess extends MasterProcess {
   public void start() throws Exception {
     mJournalSystem.start();
     mJournalSystem.gainPrimacy();
-    startServingWebServer();
+    if (ServerConfiguration.getBoolean(PropertyKey.SECONDARY_MASTER_WEB_ENABLED)) {
+      startServingWebServer();
+    }
     startMasters(true);
     startServing();
   }
@@ -158,7 +160,8 @@ public class AlluxioMasterProcess extends MasterProcess {
   @Override
   public void stop() throws Exception {
     stopRejectingServers();
-    if (mWebServer != null) {
+    if (ServerConfiguration.getBoolean(PropertyKey.SECONDARY_MASTER_WEB_ENABLED)
+        && mWebServer != null) {
       mWebServer.stop();
       mWebServer = null;
     }
@@ -279,6 +282,9 @@ public class AlluxioMasterProcess extends MasterProcess {
     startServingRPCServer();
     LOG.info("Alluxio master web server version {} starting{}. webAddress={}",
         RuntimeConstants.VERSION, startMessage, mWebBindAddress);
+    if (!ServerConfiguration.getBoolean(PropertyKey.SECONDARY_MASTER_WEB_ENABLED)) {
+      startServingWebServer();
+    }
     startJvmMonitorProcess();
     LOG.info(
         "Alluxio master version {} started{}. bindAddress={}, connectAddress={}, webAddress={}",
@@ -356,6 +362,11 @@ public class AlluxioMasterProcess extends MasterProcess {
     }
     if (mJvmPauseMonitor != null) {
       mJvmPauseMonitor.stop();
+    }
+    if (!ServerConfiguration.getBoolean(PropertyKey.SECONDARY_MASTER_WEB_ENABLED)
+        && mWebServer != null) {
+      mWebServer.stop();
+      mWebServer = null;
     }
     MetricsSystem.stopSinks();
   }
