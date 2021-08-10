@@ -161,21 +161,6 @@ public final class AlluxioBlockStore {
 
   /**
    * Gets the data source and type of data source of a block. This method is primarily responsible
-   * for determining the data source and type of data source. The latest BlockInfo will be fetched
-   * from the master to ensure the locations are up to date.
-   *
-   * @param info the info of the block to read
-   * @param status the URIStatus associated with the read request
-   * @param policy the policy determining the Alluxio worker location
-   * @return the data source and type of data source of the block
-   */
-  public Pair<WorkerNetAddress, BlockInStreamSource> getDataSourceAndType(BlockInfo info,
-      URIStatus status, BlockLocationPolicy policy) throws IOException {
-    return getDataSourceAndType(info, status, policy, ImmutableMap.of());
-  }
-
-  /**
-   * Gets the data source and type of data source of a block. This method is primarily responsible
    * for determining the data source and type of data source. It takes a map of failed workers and
    * their most recently failed time and tries to update it when BlockInStream created failed,
    * attempting to avoid reading from a recently failed worker.

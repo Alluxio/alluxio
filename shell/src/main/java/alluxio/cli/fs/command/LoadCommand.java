@@ -36,6 +36,7 @@ import alluxio.wire.BlockInfo;
 import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableMap;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
@@ -120,7 +121,6 @@ public final class LoadCommand extends AbstractFileSystemCommand {
         System.out.println(filePath + " already in Alluxio fully");
         return;
       }
-
       runLoadTask(filePath, status, local);
     }
   }
@@ -133,7 +133,6 @@ public final class LoadCommand extends AbstractFileSystemCommand {
         BlockLocationPolicy.Factory
             .create(conf.get(PropertyKey.USER_UFS_BLOCK_READ_LOCATION_POLICY), conf),
         PreconditionMessage.UFS_READ_LOCATION_POLICY_UNSPECIFIED);
-
     WorkerNetAddress dataSource;
     List<Long> blockIds = status.getBlockIds();
     for (long blockId : blockIds) {
@@ -141,9 +140,8 @@ public final class LoadCommand extends AbstractFileSystemCommand {
         dataSource = mFsContext.getNodeLocalWorker();
       } else { // send request to data source
         AlluxioBlockStore blockStore = AlluxioBlockStore.create(mFsContext);
-
-        Pair<WorkerNetAddress, BlockInStream.BlockInStreamSource> dataSourceAndType =
-            blockStore.getDataSourceAndType(status.getBlockInfo(blockId), status, policy);
+        Pair<WorkerNetAddress, BlockInStream.BlockInStreamSource> dataSourceAndType = blockStore
+            .getDataSourceAndType(status.getBlockInfo(blockId), status, policy, ImmutableMap.of());
         dataSource = dataSourceAndType.getFirst();
       }
       Protocol.OpenUfsBlockOptions openUfsBlockOptions =
