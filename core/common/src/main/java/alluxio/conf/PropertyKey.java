@@ -3514,7 +3514,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDescription("This is the timeout controlling how long to wait for " 
               + "worker threads to start. All workers that extend implements " 
               + "`alluxio.worker.Worker` will be initialized, like " 
-              + "`alluxio.worker.block.BlockWorker`. If there are  many blocks in "
+              + "`alluxio.worker.block.BlockWorker`. If there are many blocks in "
               + "the worker tiered storage, consider tuning this timeout up so the "
               + "worker does not timeout from scanning all existing blocks.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
