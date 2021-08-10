@@ -21,6 +21,7 @@ import alluxio.master.metastore.ReadOnlyInodeStore;
 import alluxio.util.io.PathUtils;
 
 import com.google.common.base.Preconditions;
+import com.sun.org.apache.xpath.internal.axes.PathComponent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -236,7 +237,7 @@ public class LockedInodePath implements Closeable {
    */
   public boolean fullPathExists() {
     LOG.info("numLocks: {}, mLockList: {}, pathComponents: {}", mLockList.numInodes(),
-            mLockList);
+            mLockList, mPathComponents);
     return mLockList.numInodes() == mPathComponents.length;
   }
 

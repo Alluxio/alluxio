@@ -14,6 +14,8 @@ package alluxio.master.file.meta;
 import alluxio.concurrent.LockMode;
 
 import com.google.common.base.Preconditions;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.List;
 import java.util.concurrent.locks.Lock;
@@ -31,6 +33,8 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public class CompositeInodeLockList implements InodeLockList {
+  private static final Logger LOG = LoggerFactory.getLogger(CompositeInodeLockList.class);
+
   /** The base lock list for this composite list. */
   private final InodeLockList mBaseLockList;
   /** An extension lock list for taking additional locks on top of the locks in mBaseLockList. */
@@ -163,5 +167,10 @@ public class CompositeInodeLockList implements InodeLockList {
   @Override
   public void close() {
     mSubLockList.close();
+  }
+
+  @Override
+  public String toString() {
+    return String.format("base lock list: <%s> | sub lock list <%s>", mBaseListSize, mSubLockList);
   }
 }

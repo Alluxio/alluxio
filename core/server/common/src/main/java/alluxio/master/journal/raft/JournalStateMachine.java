@@ -239,7 +239,7 @@ public class JournalStateMachine extends BaseStateMachine {
     try {
       JournalQueryRequest queryRequest = JournalQueryRequest.parseFrom(
           request.getContent().asReadOnlyByteBuffer());
-      LOG.debug("Received query request: {}", queryRequest);
+      LOG.info("Received query request: {}", queryRequest);
       // give snapshot manager a chance to handle snapshot related requests
       Message reply = mSnapshotManager.handleRequest(queryRequest);
       if (reply != null) {
@@ -409,10 +409,13 @@ public class JournalStateMachine extends BaseStateMachine {
     } else if (entry.getSequenceNumber() < 0) {
       // Negative sequence numbers indicate special entries used to indicate that a new primary is
       // starting to serve.
+      LOG.info("entry sequence #{}: Negative sequence numbers indicate special entries used to " +
+              "indicate that a new primary isstarting to serve", entry.getSequenceNumber());
       mLastPrimaryStartSequenceNumber = entry.getSequenceNumber();
     } else if (entry.toBuilder().clearSequenceNumber().build()
         .equals(JournalEntry.getDefaultInstance())) {
       // Ignore empty entries, they are created during snapshotting.
+      LOG.info("entry #{} is empty, ignoring it", entry.getSequenceNumber());
     } else {
       applySingleEntry(entry);
     }
@@ -425,11 +428,12 @@ public class JournalStateMachine extends BaseStateMachine {
       return;
     }
     long newSN = entry.getSequenceNumber();
+    LOG.info("applying single entry #{}", newSN);
     if (newSN < mNextSequenceNumberToRead) {
       // This can happen due to retried writes. For example, if flushing [3, 4] fails, we will
       // retry, and the log may end up looking like [1, 2, 3, 4, 3, 4] if the original request
       // eventually succeeds. Once we've read the first "4", we must ignore the next two entries.
-      LOG.debug("Ignoring duplicate journal entry with SN {} when next SN is {}", newSN,
+      LOG.info("Ignoring duplicate journal entry with SN {} when next SN is {}", newSN,
           mNextSequenceNumberToRead);
       return;
     }
@@ -469,7 +473,7 @@ public class JournalStateMachine extends BaseStateMachine {
       SAMPLING_LOG.info("Skip taking snapshot when it is not allowed by the journal system.");
       return RaftLog.INVALID_LOG_INDEX;
     }
-    LOG.debug("Calling snapshot");
+    LOG.info("Calling snapshot");
     Preconditions.checkState(!mSnapshotting, "Cannot call snapshot multiple times concurrently");
     mSnapshotting = true;
     try (Timer.Context ctx = MetricsSystem

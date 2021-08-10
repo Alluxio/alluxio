@@ -75,26 +75,29 @@ public final class MasterJournalContext implements JournalContext {
     RetryPolicy retry = new TimeoutRetry(FLUSH_RETRY_TIMEOUT_MS, FLUSH_RETRY_INTERVAL_MS);
     while (retry.attempt()) {
       try {
+        LOG.info("trying to flush flushCounter={}, attempt#{}", mFlushCounter, retry.getAttemptCount());
         mAsyncJournalWriter.flush(mFlushCounter);
         return;
       } catch (NotLeaderException | JournalClosedException e) {
-        throw new UnavailableException(String.format("Failed to complete request: %s",
-            e.getMessage()), e);
+        String s = String.format("Failed to complete request: %s", e.getMessage());
+        LOG.info(s);
+        throw new UnavailableException(s, e);
       } catch (AlluxioStatusException e) {
         // Note that we cannot actually cancel the journal flush because it could be partially
         // written already
         if (e.getStatus().equals(Status.CANCELLED)) {
-          LOG.warn("Journal flush interrupted because the RPC was cancelled. ", e);
+          LOG.info("Journal flush interrupted because the RPC was cancelled. ", e);
         } else {
-          LOG.warn("Journal flush failed. retrying...", e);
+          LOG.info("Journal flush failed. retrying...", e);
         }
       } catch (IOException e) {
         if (e instanceof AlluxioStatusException
             && ((AlluxioStatusException) e).getStatusCode() == Status.Code.CANCELLED) {
-          throw new UnavailableException(String.format("Failed to complete request: %s",
-              e.getMessage()), e);
+          String s = String.format("Failed to complete request: %s", e.getMessage());
+          LOG.info(s);
+          throw new UnavailableException(s, e);
         }
-        LOG.warn("Journal flush failed. retrying...", e);
+        LOG.info("Journal flush failed. retrying...", e);
       } catch (Throwable e) {
         ProcessUtils.fatalError(LOG, e, "Journal flush failed");
       }
