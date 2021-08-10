@@ -21,7 +21,7 @@ component-owner-mapping:
   build: 
     - yuzhu
   conf: 
-    - bf8086
+    - ggezer
   core: 
     - ggezer
   deploy: 
@@ -33,9 +33,9 @@ component-owner-mapping:
   examples: 
     - LuQQiu
   integration: 
-    - jiacheliu3
+    - LuQQiu
   job: 
-    - bf8086
+    - yuzhu
   libexec: 
     - ggezer
   minicluster: 
@@ -43,12 +43,12 @@ component-owner-mapping:
   shell: 
     - LuQQiu
   stress: 
-    - HelloHorizon
-  table: 
     - yuzhu
+  table: 
+    - HelloHorizon
   tests: 
     - ggezer
   underfs: 
-    - bf8086
+    - ggezer
   webui: 
     - tieujason330
