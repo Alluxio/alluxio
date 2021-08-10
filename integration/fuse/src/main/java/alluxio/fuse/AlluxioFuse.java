@@ -18,11 +18,13 @@ import alluxio.client.file.FileSystemContext;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
 import alluxio.jnifuse.FuseException;
 import alluxio.metrics.MetricsSystem;
 import alluxio.retry.RetryUtils;
 import alluxio.util.CommonUtils;
 import alluxio.util.io.FileUtils;
+import alluxio.util.network.NetworkAddressUtils;
 
 import com.google.common.base.Preconditions;
 import org.apache.commons.cli.CommandLine;
@@ -119,6 +121,14 @@ public final class AlluxioFuse {
     }
     CommonUtils.PROCESS_TYPE.set(CommonUtils.ProcessType.CLIENT);
     MetricsSystem.startSinks(conf.get(PropertyKey.METRICS_CONF_FILE));
+    if (conf.getBoolean(PropertyKey.FUSE_WEB_ENABLED)) {
+      FuseWebServer webServer = new FuseWebServer(
+          NetworkAddressUtils.ServiceType.FUSE_WEB.getServiceName(),
+          NetworkAddressUtils.getBindAddress(
+              NetworkAddressUtils.ServiceType.FUSE_WEB,
+              ServerConfiguration.global()));
+      webServer.start();
+    }
     try (FileSystem fs = FileSystem.Factory.create(fsContext)) {
       launchFuse(fs, conf, opts, true);
     } catch (IOException e) {

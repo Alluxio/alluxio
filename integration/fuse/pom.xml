@@ -45,6 +45,11 @@
     <!-- Internal dependencies -->
     <dependency>
       <groupId>org.alluxio</groupId>
+      <version>${project.version}</version>
+      <artifactId>alluxio-core-server-common</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.alluxio</groupId>
       <artifactId>alluxio-core-client-fs</artifactId>
       <version>${project.version}</version>
     </dependency>
