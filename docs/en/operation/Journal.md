@@ -300,6 +300,16 @@ $ ./bin/alluxio fsadmin journal quorum remove -domain <MASTER | JOB_MASTER> -add
 
 3- Verify that the removed member is no longer shown in the quorum info.
 
+#### Transferring leadership to a specific master
+To aid in debugging and to add flexibility, it is possible to manually change the leader of an embedded journal cluster.
+To specify which master needs to take over, you need to run:
+```console
+$ ./bin/alluxio fsadmin journal quorum elect -address <HostName:Port>
+```
+where `Port` is the `alluxio.master.embedded.journal.port` of the master that is selected to take over.
+
+In effect, this command runs a rigged election in favor of the designated master.  
+
 #### UFS Journal Cluster
 
 To add a master to an HA Alluxio cluster, you can simply start a new Alluxio master process, with
