@@ -57,14 +57,12 @@ public class GetPinnedFileIdsBench extends RpcBench<GetPinnedFileIdsParameters> 
   private static final Logger LOG = LoggerFactory.getLogger(GetPinnedFileIdsBench.class);
 
   @ParametersDelegate
-  private GetPinnedFileIdsParameters mParameters = new GetPinnedFileIdsParameters();
+  private final GetPinnedFileIdsParameters mParameters = new GetPinnedFileIdsParameters();
 
   private final InstancedConfiguration mConf = InstancedConfiguration.defaults();
   private final FileSystemContext mFileSystemContext = FileSystemContext.create(mConf);
-  private final AlluxioURI mBaseUri = new AlluxioURI(mParameters.mBasePath);
   private final Stopwatch mDurationStopwatch = Stopwatch.createUnstarted();
   private final Stopwatch mPointStopwatch = Stopwatch.createUnstarted();
-  private final long mDurationMs = FormatUtils.parseTimeSize(mParameters.mDuration);
   private final PinListFileSystemMasterClient mWorkerClient =
       new PinListFileSystemMasterClient(
           MasterClientContext.newBuilder(ClientContext.create(mConf)).build());
@@ -75,10 +73,11 @@ public class GetPinnedFileIdsBench extends RpcBench<GetPinnedFileIdsParameters> 
     // So including that in the log can help associate the log to the run
     LOG.info("Task ID is {}", mBaseParameters.mId);
 
+    AlluxioURI baseUri = new AlluxioURI(mParameters.mBasePath);
     try (CloseableResource<alluxio.client.file.FileSystemMasterClient> client =
              mFileSystemContext.acquireMasterClientResource()) {
-      LOG.info("Creating temporary directory {} for benchmark", mBaseUri);
-      client.get().createDirectory(mBaseUri,
+      LOG.info("Creating temporary directory {} for benchmark", baseUri);
+      client.get().createDirectory(baseUri,
               CreateDirectoryPOptions.newBuilder().setAllowExists(true).build());
     }
     int numFiles = mParameters.mNumFiles;
@@ -87,7 +86,7 @@ public class GetPinnedFileIdsBench extends RpcBench<GetPinnedFileIdsParameters> 
     CompletableFuture<Void>[] futures = new CompletableFuture[numFiles];
     LOG.info("Generating {} pinned test files at the master", numFiles);
     for (int i = 0; i < numFiles; i++) {
-      AlluxioURI fileUri = mBaseUri.join(CommonUtils.randomAlphaNumString(fileNameLength));
+      AlluxioURI fileUri = baseUri.join(CommonUtils.randomAlphaNumString(fileNameLength));
       CompletableFuture<Void> future = CompletableFuture.supplyAsync((Supplier<Void>) () -> {
         try (CloseableResource<FileSystemMasterClient> client =
                  mFileSystemContext.acquireMasterClientResource()) {
@@ -114,10 +113,13 @@ public class GetPinnedFileIdsBench extends RpcBench<GetPinnedFileIdsParameters> 
 
   @Override
   public void cleanup() throws Exception {
+    AlluxioURI baseUri = new AlluxioURI(mParameters.mBasePath);
     try (CloseableResource<alluxio.client.file.FileSystemMasterClient> client =
              mFileSystemContext.acquireMasterClientResource()) {
-      LOG.info("Deleting test directory {}", mBaseUri);
-      client.get().delete(mBaseUri, DeletePOptions.newBuilder().setRecursive(true).build());
+      LOG.info("Deleting test directory {}", baseUri);
+      client.get().delete(baseUri, DeletePOptions.newBuilder().setRecursive(true).build());
+    } catch (AlluxioStatusException e) {
+      LOG.warn("Failed to delete test directory {}, manual cleanup needed", baseUri, e);
     }
     super.cleanup();
   }
@@ -129,7 +131,8 @@ public class GetPinnedFileIdsBench extends RpcBench<GetPinnedFileIdsParameters> 
     result.setParameters(mParameters);
 
     mDurationStopwatch.reset().start();
-    while (mDurationStopwatch.elapsed(TimeUnit.MILLISECONDS) < mDurationMs) {
+    long durationMs = FormatUtils.parseTimeSize(mParameters.mDuration);
+    while (mDurationStopwatch.elapsed(TimeUnit.MILLISECONDS) < durationMs) {
       try {
         mPointStopwatch.reset().start();
 
@@ -137,6 +140,8 @@ public class GetPinnedFileIdsBench extends RpcBench<GetPinnedFileIdsParameters> 
 
         mPointStopwatch.stop();
 
+        // todo(bowen): assertion may fail when running in cluster mode due to
+        // unwanted extra runs of prepare()
         if (numPinnedFiles != mParameters.mNumFiles) {
           result.addError(String.format("Unexpected number of files: %d, expected %d",
               numPinnedFiles, mParameters.mNumFiles));
