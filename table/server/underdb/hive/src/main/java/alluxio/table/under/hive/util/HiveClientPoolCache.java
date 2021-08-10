@@ -18,7 +18,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * This class implements a cache for Client connection pools for Hive Clients.
  */
 public class HiveClientPoolCache {
-  private final Map<String, HiveClientPool> mClientPools;
+  private final Map<String, AbstractHiveClientPool> mClientPools;
 
   /**
    * Constructor for the Client Pool cache.
@@ -33,12 +33,12 @@ public class HiveClientPoolCache {
    * @param connectionURI connection which serves as key
    * @return hive client pool
    */
-  public HiveClientPool getPool(String connectionURI) {
+  public AbstractHiveClientPool getPool(String connectionURI) {
     return mClientPools.compute(connectionURI, (uri, pool) -> {
       if (pool != null) {
         return pool;
       } else {
-        return new HiveClientPool(connectionURI);
+        return new DefaultHiveClientPool(connectionURI);
       }
     });
   }

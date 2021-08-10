@@ -3022,7 +3022,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               return "1GB";
             }
           }, "2/3 of total system memory, or 1GB if system memory size cannot be determined")
-          .setDescription("Memory capacity of each worker node. "
+          .setDescription("The allocated memory for each worker node's ramdisk(s). "
                   + "It is recommended to set this value explicitly.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
@@ -3306,8 +3306,9 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       new Builder(Template.WORKER_TIERED_STORE_LEVEL_DIRS_PATH, 0)
           .setDefaultSupplier(() -> OSUtils.isLinux() ? "/mnt/ramdisk" : "/Volumes/ramdisk",
               "/mnt/ramdisk on Linux, /Volumes/ramdisk on OSX")
-          .setDescription("The path of storage directory for the top storage tier. Note "
-              + "for MacOS the value should be `/Volumes/`.")
+          .setDescription("A comma-separated list of paths (eg., /mnt/ramdisk1,/mnt/ramdisk2,"
+              + "/mnt/ssd/alluxio/cache1) of storage directories for the top storage tier. "
+              + "Note that for MacOS, the root directory should be `/Volumes/` and not `/mnt/`.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
@@ -3316,7 +3317,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDefaultValue(
               String.format("${%s}", Template.WORKER_TIERED_STORE_LEVEL_ALIAS.format(0)))
           .setDescription(String.format(
-              "A list of media types (e.g., \"MEM,SSD,SSD\") for each storage "
+              "A comma-separated list of media types (e.g., \"MEM,MEM,SSD\") for each storage "
                   + "directory on the top storage tier specified by %s.",
               PropertyKey.WORKER_TIERED_STORE_LEVEL0_DIRS_PATH.mName))
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
@@ -3325,7 +3326,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey WORKER_TIERED_STORE_LEVEL0_DIRS_QUOTA =
       new Builder(Template.WORKER_TIERED_STORE_LEVEL_DIRS_QUOTA, 0)
           .setDefaultValue(String.format("${%s}", Name.WORKER_RAMDISK_SIZE))
-          .setDescription("The capacity of the top storage tier.")
+          .setDescription(String.format(
+              "A comma-separated list of capacities (e.g., \"500MB,500MB,5GB\") for each storage "
+                  + "directory on the top storage tier specified by %s. "
+                  + "For any \"MEM\"-type media (i.e, the ramdisks), this value should be set "
+                  + "equivalent to the value specified by %s.",
+              PropertyKey.WORKER_TIERED_STORE_LEVEL0_DIRS_PATH.mName,
+              Name.WORKER_RAMDISK_SIZE))
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
@@ -3354,7 +3361,9 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey WORKER_TIERED_STORE_LEVEL1_DIRS_PATH =
       new Builder(Template.WORKER_TIERED_STORE_LEVEL_DIRS_PATH, 1)
-          .setDescription("The path of storage directory for the second storage tier.")
+          .setDescription("A comma-separated list of paths (eg., /mnt/ssd/alluxio/cache2,"
+              + "/mnt/ssd/alluxio/cache3,/mnt/hdd/alluxio/cache1) of storage directories "
+              + "for the second storage tier.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
@@ -3363,7 +3372,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDefaultValue(
               String.format("${%s}", Template.WORKER_TIERED_STORE_LEVEL_ALIAS.format(1)))
           .setDescription(String.format(
-              "A list of media types (e.g., \"MEM,SSD,SSD\") for each storage "
+              "A list of media types (e.g., \"SSD,SSD,HDD\") for each storage "
                   + "directory on the second storage tier specified by %s.",
               PropertyKey.WORKER_TIERED_STORE_LEVEL1_DIRS_PATH.mName))
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
@@ -3371,7 +3380,10 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey WORKER_TIERED_STORE_LEVEL1_DIRS_QUOTA =
       new Builder(Template.WORKER_TIERED_STORE_LEVEL_DIRS_QUOTA, 1)
-          .setDescription("The capacity of the second storage tier.")
+          .setDescription(String.format(
+              "A comma-separated list of capacities (e.g., \"5GB,5GB,50GB\") for each storage "
+                  + "directory on the second storage tier specified by %s.",
+              PropertyKey.WORKER_TIERED_STORE_LEVEL1_DIRS_PATH.mName))
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
@@ -3400,7 +3412,9 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey WORKER_TIERED_STORE_LEVEL2_DIRS_PATH =
       new Builder(Template.WORKER_TIERED_STORE_LEVEL_DIRS_PATH, 2)
-          .setDescription("The path of storage directory for the third storage tier.")
+          .setDescription("A comma-separated list of paths (eg., /mnt/ssd/alluxio/cache4,"
+              + "/mnt/hdd/alluxio/cache2,/mnt/hdd/alluxio/cache3) of storage directories "
+              + "for the third storage tier.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
@@ -3409,7 +3423,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDefaultValue(
               String.format("${%s}", Template.WORKER_TIERED_STORE_LEVEL_ALIAS.format(2)))
           .setDescription(String.format(
-              "A list of media types (e.g., \"MEM,SSD,SSD\") for each storage "
+              "A list of media types (e.g., \"SSD,HDD,HDD\") for each storage "
                   + "directory on the third storage tier specified by %s.",
               PropertyKey.WORKER_TIERED_STORE_LEVEL2_DIRS_PATH.mName))
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
@@ -3417,7 +3431,10 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey WORKER_TIERED_STORE_LEVEL2_DIRS_QUOTA =
       new Builder(Template.WORKER_TIERED_STORE_LEVEL_DIRS_QUOTA, 2)
-          .setDescription("The capacity of the third storage tier.")
+          .setDescription(String.format(
+              "A comma-separated list of capacities (e.g., \"5GB,50GB,50GB\") for each storage "
+                  + "directory on the third storage tier specified by %s.",
+              PropertyKey.WORKER_TIERED_STORE_LEVEL2_DIRS_PATH.mName))
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
@@ -4830,6 +4847,29 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.CLIENT)
           .build();
+  public static final PropertyKey FUSE_WEB_ENABLED =
+      new Builder(Name.FUSE_WEB_ENABLED)
+          .setDefaultValue(false)
+          .setDescription("Whether to enable FUSE web server.")
+          .setScope(Scope.CLIENT)
+          .build();
+  public static final PropertyKey FUSE_WEB_BIND_HOST =
+      new Builder(Name.FUSE_WEB_BIND_HOST)
+          .setDefaultValue("0.0.0.0")
+          .setDescription("The hostname Alluxio FUSE web UI binds to.")
+          .setScope(Scope.CLIENT)
+          .build();
+  public static final PropertyKey FUSE_WEB_HOSTNAME =
+      new Builder(Name.FUSE_WEB_HOSTNAME)
+          .setDescription("The hostname of Alluxio FUSE web UI.")
+          .setScope(Scope.ALL)
+          .build();
+  public static final PropertyKey FUSE_WEB_PORT =
+      new Builder(Name.FUSE_WEB_PORT)
+          .setDefaultValue(49999)
+          .setDescription("The port Alluxio FUSE web UI runs on.")
+          .setScope(Scope.CLIENT)
+          .build();
 
   //
   // Security related properties
@@ -6213,6 +6253,10 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.fuse.umount.timeout";
     public static final String FUSE_USER_GROUP_TRANSLATION_ENABLED =
         "alluxio.fuse.user.group.translation.enabled";
+    public static final String FUSE_WEB_ENABLED = "alluxio.fuse.web.enabled";
+    public static final String FUSE_WEB_BIND_HOST = "alluxio.fuse.web.bind.host";
+    public static final String FUSE_WEB_HOSTNAME = "alluxio.fuse.web.hostname";
+    public static final String FUSE_WEB_PORT = "alluxio.fuse.web.port";
 
     //
     // Security related properties
