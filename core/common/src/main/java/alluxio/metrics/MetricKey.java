@@ -1475,6 +1475,24 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setMetricType(MetricType.GAUGE)
           .setIsClusterAggregated(false)
           .build();
+  public static final MetricKey TOTAL_EXTRA_TIME =
+       new Builder("JvmPauseMonitor.totalExtraTime")
+           .setDescription("Total extra sleep time.")
+           .setMetricType(MetricType.GAUGE)
+           .setIsClusterAggregated(false)
+           .build();
+  public static final MetricKey INFO_TIME_EXCEEDED =
+       new Builder("JvmPauseMonitor.infoTimeExceeded")
+           .setDescription("Times extra sleep time exceed INFO.")
+           .setMetricType(MetricType.GAUGE)
+           .setIsClusterAggregated(false)
+           .build();
+  public static final MetricKey WARN_TIME_EXCEEDED =
+       new Builder("JvmPauseMonitor.warnTimeExceeded")
+           .setDescription("Times extra sleep time exceed WARN.")
+           .setMetricType(MetricType.GAUGE)
+           .setIsClusterAggregated(false)
+           .build();
 
   /**
    * Registers the given key to the global key map.
