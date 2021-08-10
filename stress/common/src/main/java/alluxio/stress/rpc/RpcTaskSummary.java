@@ -34,8 +34,8 @@ public class RpcTaskSummary implements Summary {
   private BaseParameters mBaseParameters;
   private Parameters mParameters;
   public long mCount;
-  public long mTotalDurationNs;
-  public double mAvgDurationNs;
+  public long mTotalDurationMs;
+  public double mAvgDurationMs;
   public double mPercentile5th;
   public double mPercentile25th;
   public double mMedian;
@@ -63,9 +63,9 @@ public class RpcTaskSummary implements Summary {
 
   private void calculate() {
     for (RpcTaskResult.Point p : mPoints) {
-      mTotalDurationNs += p.mDurationNs;
+      mTotalDurationMs += p.mDurationMs;
     }
-    mAvgDurationNs = (mCount == 0) ? 0.0 : mTotalDurationNs / ((double) mCount);
+    mAvgDurationMs = (mCount == 0) ? 0.0 : mTotalDurationMs / ((double) mCount);
     Map<Integer, Double> percentiles = getPercentiles(5, 25, 50, 75, 95);
     mPercentile5th = percentiles.get(5);
     mPercentile25th = percentiles.get(25);
@@ -84,7 +84,7 @@ public class RpcTaskSummary implements Summary {
     return String.format("RpcTaskSummary: Data points: %d, Errors: %d%n"
         + "Total: %.3e, Average: %.3e, Median: %.3e%n"
         + "5 Percentile: %.3e%n25 Percentile: %.3e%n75 Percentile: %.3e%n95 Percentile: %.3e%n",
-        mPoints.size(), mErrors.size(), (double) mTotalDurationNs, mAvgDurationNs, mMedian,
+        mPoints.size(), mErrors.size(), (double) mTotalDurationMs, mAvgDurationMs, mMedian,
         mPercentile5th, mPercentile25th, mPercentile75th, mPercentile95th);
   }
 
@@ -100,7 +100,7 @@ public class RpcTaskSummary implements Summary {
     return Quantiles
         .percentiles()
         .indexes(indices)
-        .compute(mPoints.stream().map((p) -> p.mDurationNs).collect(Collectors.toList()));
+        .compute(mPoints.stream().map((p) -> p.mDurationMs).collect(Collectors.toList()));
   }
 
   /**

@@ -183,9 +183,9 @@ public class RegisterWorkerBench extends RpcBench<BlockMasterBenchParameters> {
               EMPTY_CONFIG); // extra config
 
       Instant e = Instant.now();
-      RpcTaskResult.Point p = new RpcTaskResult.Point(Duration.between(s, e).toNanos());
+      RpcTaskResult.Point p = new RpcTaskResult.Point(Duration.between(s, e).toMillis());
       result.addPoint(p);
-      LOG.info("Iter {} took {}ns", i, p.mDurationNs);
+      LOG.debug("Iter {} took {}ns", i, p.mDurationMs);
     } catch (Exception e) {
       LOG.error("Failed to run iter {}", i, e);
       result.addError(e.getMessage());

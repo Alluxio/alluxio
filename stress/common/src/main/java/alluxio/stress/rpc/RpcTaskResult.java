@@ -155,19 +155,19 @@ public class RpcTaskResult implements TaskResult {
    * Each point stands for one successful RPC.
    */
   public static class Point implements JsonSerializable {
-    public long mDurationNs;
+    public long mDurationMs;
 
     /**
      * Creates a new data point.
-     * @param ns time in nanosecond in this data point
+     * @param ms time in nanosecond in this data point
      */
-    public Point(@JsonProperty("duration") long ns) {
-      mDurationNs = ns;
+    public Point(@JsonProperty("duration") long ms) {
+      mDurationMs = ms;
     }
 
     @Override
     public String toString() {
-      return String.format("Point: {duration: %sns}", mDurationNs);
+      return String.format("Point: {duration: %sms}", mDurationMs);
     }
   }
 

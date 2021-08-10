@@ -140,14 +140,14 @@ public class GetPinnedFileIdsBench extends RpcBench<GetPinnedFileIdsParameters> 
 
         mPointStopwatch.stop();
 
-        // todo(bowen): assertion may fail when running in cluster mode due to
-        // unwanted extra runs of prepare()
+        // TODO(bowen): assertion may fail when running in cluster mode due to
+        //  unwanted extra runs of prepare()
         if (numPinnedFiles != mParameters.mNumFiles) {
           result.addError(String.format("Unexpected number of files: %d, expected %d",
               numPinnedFiles, mParameters.mNumFiles));
           return result;
         }
-        result.addPoint(new RpcTaskResult.Point(mPointStopwatch.elapsed(TimeUnit.NANOSECONDS)));
+        result.addPoint(new RpcTaskResult.Point(mPointStopwatch.elapsed(TimeUnit.MILLISECONDS)));
       } catch (Exception e) {
         LOG.error("Failed when running", e);
         result.addError(e.getMessage());
