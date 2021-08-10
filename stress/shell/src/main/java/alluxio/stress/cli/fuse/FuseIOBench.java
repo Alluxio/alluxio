@@ -67,6 +67,19 @@ public class FuseIOBench extends Benchmark<FuseIOTaskResult> {
   }
 
   @Override
+  public String getBenchDescription() {
+    return "This stress bench is designed for testing the reading throughput of Fuse-based "
+        + "POSIX API.\nTo write data, run `bin/alluxio runClass alluxio.stress.cli.fuse."
+        + "fuseIOBench --operation Write`\nTo read data, run `bin/alluxio runClass "
+        + "alluxio.stress.cli.fuse.fuseIOBench --operation Read`\nYou can further adjust "
+        + "the parameters specified above. Make sure the local path is successfully mounted\n"
+        + "For example, to read 100 files of size 100MB with 5 threads at local path /home/"
+        + "ec2-user/fuseIOTest and 5 seconds of warmup time, run `bin/alluxio runClass "
+        + "alluxio.stress.cli.fuse.fuseIOBench --operation Write --file-size 100m --threads 5"
+        + "--num-files 100 --local-path /home/ec2-user/fuseIOTest --warmup 5s`";
+  }
+
+  @Override
   public void prepare() throws Exception {
     for (Integer numOfThreads: mParameters.mThreads) {
       if (numOfThreads > mParameters.mNumFiles) {

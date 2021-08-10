@@ -54,6 +54,11 @@ public class UfsIOBench extends Benchmark<IOTaskResult> {
   private final UUID mTaskId = UUID.randomUUID();
 
   @Override
+  public String getBenchDescription() {
+    return "";
+  }
+
+  @Override
   public IOTaskResult runLocal() throws Exception {
     // UfsIOBench is invoked from the job worker then runs in a standalone process
     // The process type should be set to keep consistent

@@ -73,6 +73,11 @@ public class StressMasterBench extends Benchmark<MasterBenchTaskResult> {
   }
 
   @Override
+  public String getBenchDescription() {
+    return "";
+  }
+
+  @Override
   public void prepare() throws Exception {
     if (mParameters.mFixedCount <= 0) {
       throw new IllegalStateException(
