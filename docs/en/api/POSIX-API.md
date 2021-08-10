@@ -143,7 +143,7 @@ $ ${ALLUXIO_HOME}/integration/fuse/bin/alluxio-fuse unmount /mnt/people
 Unmount fuse at /mnt/people (PID:97626).
 ```
 
-You can add `-s` to make the unmount more gracefully. Fuse process won't be forcibly killed if fuse device is busy ( If Fuse process is forcibly killed, it may cause unknown errors on the related busy files). For example,
+By default, the `unmount` operation will wait for 120 seconds for any in-progress read/write operations to finish. If read/write operations haven't finished after 120 seconds, the fuse process will be forcibly killed which may cause read/write operations to fail. You can add `-s` to avoid the fuse process being killed if there are remaining in-progress read/write operations after the timeout. For example,
 
 ```console
 $ ${ALLUXIO_HOME}/integration/fuse/bin/alluxio-fuse unmount -s /mnt/people

@@ -55,7 +55,7 @@ $ integration/fuse/bin/alluxio-fuse umount /mnt/people
 Unmount fuse at /mnt/people (PID: 97626).
 ```
 
-可以添加 `-s`参数来更优雅的卸载Alluxio-FUSE。如果挂载的文件正在读写，那么Fuse 进程不会被强行结束（如果Fuse进程被强行结束，可能会导致相应正在读写的文件异常）。例如：
+默认情况下，如果有任何读写操作未完成，`unmount` 操作会等待最多 120s 。如果 120s 后读写操作仍未完成，那么 Fuse 进程会被强行结束，这会导致正在读写的文件失败，你可以添加 `-s` 参数来避免 Fuse 进程被强行结束。例如：
 
 ```console
 $ ${ALLUXIO_HOME}/integration/fuse/bin/alluxio-fuse unmount -s /mnt/people
