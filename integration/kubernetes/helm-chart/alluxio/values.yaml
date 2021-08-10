@@ -494,6 +494,7 @@ csi:
   imagePullPolicy: IfNotPresent
   controllerPlugin:
     hostNetwork: true
+    dnsPolicy: ClusterFirstWithHostNet
     provisioner:
       # for kubernates 1.13 or above
       image: quay.io/k8scsi/csi-provisioner:v1.4.0
@@ -515,6 +516,7 @@ csi:
   # Will run fuse daemon inside csi nodeserver
   nodePlugin:
     hostNetwork: true
+    dnsPolicy: ClusterFirstWithHostNet
     nodeserver:
       resources:
         # The default xmx is 8G
@@ -532,7 +534,7 @@ csi:
           memory: 100Mi
         requests:
           cpu: 10m
-        memory: 20Mi
+          memory: 20Mi
 
   # for csi client
   clientEnabled: false

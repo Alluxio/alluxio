@@ -9,152 +9,103 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.stress.cli.client;
+package alluxio.stress.cli.fuse;
 
 import alluxio.Constants;
-import alluxio.conf.PropertyKey;
 import alluxio.stress.BaseParameters;
 import alluxio.stress.StressConstants;
 import alluxio.stress.cli.Benchmark;
-import alluxio.stress.client.ClientIOOperation;
-import alluxio.stress.client.ClientIOParameters;
-import alluxio.stress.client.ClientIOTaskResult;
 import alluxio.stress.common.SummaryStatistics;
+import alluxio.stress.fuse.FuseIOOperation;
+import alluxio.stress.fuse.FuseIOParameters;
+import alluxio.stress.fuse.FuseIOTaskResult;
 import alluxio.util.CommonUtils;
 import alluxio.util.FormatUtils;
 import alluxio.util.executor.ExecutorServiceFactories;
 
 import com.beust.jcommander.ParametersDelegate;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.FSDataInputStream;
-import org.apache.hadoop.fs.FSDataOutputStream;
-import org.apache.hadoop.fs.FileSystem;
-import org.apache.hadoop.fs.Path;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
-import java.net.URI;
-import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
- * Single node client IO stress test.
+ * Single node stress test.
  */
-public class StressClientIOBench extends Benchmark<ClientIOTaskResult> {
-  private static final Logger LOG = LoggerFactory.getLogger(StressClientIOBench.class);
+public class FuseIOBench extends Benchmark<FuseIOTaskResult> {
+  private static final Logger LOG = LoggerFactory.getLogger(FuseIOBench.class);
 
   @ParametersDelegate
-  private ClientIOParameters mParameters = new ClientIOParameters();
+  private FuseIOParameters mParameters = new FuseIOParameters();
 
-  /** Cached FS instances. */
-  private FileSystem[] mCachedFs;
-    /** Set to true after the first barrier is passed. */
+  /** Set to true after the first barrier is passed. */
   private volatile boolean mStartBarrierPassed = false;
 
   /**
    * Creates instance.
    */
-  public StressClientIOBench() {
+  public FuseIOBench() {
   }
 
   /**
    * @param args command-line arguments
    */
   public static void main(String[] args) {
-    mainInternal(args, new StressClientIOBench());
+    mainInternal(args, new FuseIOBench());
   }
 
   @Override
   public void prepare() throws Exception {
-    if (mBaseParameters.mCluster && mBaseParameters.mClusterLimit != 1) {
-      throw new IllegalArgumentException(String.format(
-          "%s is a single-node client IO stress test, so it cannot be run in cluster mode without"
-              + " flag '%s 1'.", this.getClass().getName(), BaseParameters.CLUSTER_LIMIT_FLAG));
-    }
-    if (FormatUtils.parseSpaceSize(mParameters.mFileSize) < FormatUtils
-        .parseSpaceSize(mParameters.mBufferSize)) {
-      throw new IllegalArgumentException(String
-          .format("File size (%s) must be larger than buffer size (%s)", mParameters.mFileSize,
-              mParameters.mBufferSize));
-    }
-    if (mParameters.mOperation == ClientIOOperation.WRITE) {
-      LOG.warn("Cannot write repeatedly, so warmup is not possible. Setting warmup to 0s.");
-      mParameters.mWarmup = "0s";
-    }
-    if (!mBaseParameters.mDistributed) {
-      // set hdfs conf for preparation client
-      Configuration hdfsConf = new Configuration();
-      hdfsConf.set(PropertyKey.Name.USER_FILE_DELETE_UNCHECKED, "true");
-      hdfsConf.set(PropertyKey.Name.USER_FILE_WRITE_TYPE_DEFAULT, "MUST_CACHE");
-      FileSystem prepareFs = FileSystem.get(new URI(mParameters.mBasePath), hdfsConf);
-
-      // initialize the base, for only the non-distributed task (the cluster launching task)
-      Path path = new Path(mParameters.mBasePath);
-
-      if (!ClientIOOperation.isRead(mParameters.mOperation)) {
-        prepareFs.delete(path, true);
-        prepareFs.mkdirs(path);
+    for (Integer numOfThreads: mParameters.mThreads) {
+      if (numOfThreads > mParameters.mNumFiles) {
+        throw new IllegalArgumentException(String
+            .format("Number of threads (%d) must be larger than number of files (%d)",
+                numOfThreads, mParameters.mNumFiles));
       }
     }
-
-    ClientIOWritePolicy.setMaxWorkers(mParameters.mWriteNumWorkers);
-
-    // set hdfs conf for all test clients
-    Configuration hdfsConf = new Configuration();
-    // do not cache these clients
-    hdfsConf.set(
-        String.format("fs.%s.impl.disable.cache", (new URI(mParameters.mBasePath)).getScheme()),
-        "true");
-    hdfsConf.set(PropertyKey.Name.USER_BLOCK_WRITE_LOCATION_POLICY,
-        ClientIOWritePolicy.class.getName());
-    for (Map.Entry<String, String> entry : mParameters.mConf.entrySet()) {
-      hdfsConf.set(entry.getKey(), entry.getValue());
+    if (mParameters.mReadRandom) {
+      LOG.warn("Random read is not supported for now. Read sequentially");
+      // TODO(Shawn): support random read
+      mParameters.mReadRandom = false;
     }
-    mCachedFs = new FileSystem[mParameters.mClients];
-    for (int i = 0; i < mCachedFs.length; i++) {
-      mCachedFs[i] = FileSystem.get(new URI(mParameters.mBasePath), hdfsConf);
+    if (mParameters.mOperation == FuseIOOperation.WRITE) {
+      LOG.warn("Cannot write repeatedly, so warmup is not possible. Setting warmup to 0s.");
+      mParameters.mWarmup = "0s";
     }
   }
 
   @Override
-  public ClientIOTaskResult runLocal() throws Exception {
+  public FuseIOTaskResult runLocal() throws Exception {
     List<Integer> threadCounts = new ArrayList<>(mParameters.mThreads);
     threadCounts.sort(Comparator.comparingInt(i -> i));
 
-    ClientIOTaskResult taskResult = new ClientIOTaskResult();
+    FuseIOTaskResult taskResult = new FuseIOTaskResult();
     taskResult.setBaseParameters(mBaseParameters);
     taskResult.setParameters(mParameters);
-    for (Integer numThreads : threadCounts) {
-      ClientIOTaskResult.ThreadCountResult threadCountResult = runForThreadCount(numThreads);
-      if (!mBaseParameters.mProfileAgent.isEmpty()) {
-        taskResult.putTimeToFirstBytePerThread(numThreads,
-            addAdditionalResult(
-                threadCountResult.getRecordStartMs(),
-                threadCountResult.getEndMs()));
-      }
+
+    for (Integer numThreads: threadCounts) {
+      FuseIOTaskResult.ThreadCountResult threadCountResult = runForThreadCount(numThreads);
       taskResult.addThreadCountResults(numThreads, threadCountResult);
     }
-
     return taskResult;
   }
 
-  private ClientIOTaskResult.ThreadCountResult runForThreadCount(int numThreads) throws Exception {
+  private FuseIOTaskResult.ThreadCountResult runForThreadCount(int numThreads) throws Exception {
     LOG.info("Running benchmark for thread count: " + numThreads);
     ExecutorService service =
         ExecutorServiceFactories.fixedThreadPool("bench-thread", numThreads).create();
-
     long durationMs = FormatUtils.parseTimeSize(mParameters.mDuration);
     long warmupMs = FormatUtils.parseTimeSize(mParameters.mWarmup);
     long startMs = mBaseParameters.mStartMs;
@@ -167,7 +118,7 @@ public class StressClientIOBench extends Benchmark<ClientIOTaskResult> {
 
     List<Callable<Void>> callables = new ArrayList<>(numThreads);
     for (int i = 0; i < numThreads; i++) {
-      callables.add(new BenchThread(context, mCachedFs[i % mCachedFs.length], i));
+      callables.add(new BenchThread(context, i, numThreads));
     }
     service.invokeAll(callables, FormatUtils.parseTimeSize(mBaseParameters.mBenchTimeout),
         TimeUnit.MILLISECONDS);
@@ -175,7 +126,7 @@ public class StressClientIOBench extends Benchmark<ClientIOTaskResult> {
     service.shutdownNow();
     service.awaitTermination(30, TimeUnit.SECONDS);
 
-    ClientIOTaskResult.ThreadCountResult result = context.getResult();
+    FuseIOTaskResult.ThreadCountResult result = context.getResult();
 
     LOG.info(String.format("thread count: %d, errors: %d, IO throughput (MB/s): %f", numThreads,
         result.getErrors().size(), result.getIOMBps()));
@@ -184,7 +135,7 @@ public class StressClientIOBench extends Benchmark<ClientIOTaskResult> {
   }
 
   /**
-   * Read the log file from java agent log file.
+   * Reads the log file from java agent log file.
    *
    * @param startMs start time for profiling
    * @param endMs end time for profiling
@@ -248,7 +199,7 @@ public class StressClientIOBench extends Benchmark<ClientIOTaskResult> {
     private final long mEndMs;
 
     /** The results. Access must be synchronized for thread safety. */
-    private ClientIOTaskResult.ThreadCountResult mThreadCountResult;
+    private FuseIOTaskResult.ThreadCountResult mThreadCountResult;
 
     public BenchContext(long startMs, long endMs) {
       mStartMs = startMs;
@@ -263,7 +214,7 @@ public class StressClientIOBench extends Benchmark<ClientIOTaskResult> {
       return mEndMs;
     }
 
-    public synchronized void mergeThreadResult(ClientIOTaskResult.ThreadCountResult threadResult) {
+    public synchronized void mergeThreadResult(FuseIOTaskResult.ThreadCountResult threadResult) {
       if (mThreadCountResult == null) {
         mThreadCountResult = threadResult;
       } else {
@@ -275,53 +226,37 @@ public class StressClientIOBench extends Benchmark<ClientIOTaskResult> {
       }
     }
 
-    public synchronized ClientIOTaskResult.ThreadCountResult getResult() {
+    public synchronized FuseIOTaskResult.ThreadCountResult getResult() {
       return mThreadCountResult;
     }
   }
 
   private final class BenchThread implements Callable<Void> {
     private final BenchContext mContext;
-    private final Path mFilePath;
-    private final FileSystem mFs;
-    private final byte[] mBuffer;
-    private final ByteBuffer mByteBuffer;
+    private final List<String> mFilesPath;
     private final int mThreadId;
+    private final byte[] mBuffer;
     private final long mFileSize;
-    private final long mMaxOffset;
-    private final Iterator<Long> mLongs;
-    private final long mBlockSize;
 
-    private final ClientIOTaskResult.ThreadCountResult mThreadCountResult =
-        new ClientIOTaskResult.ThreadCountResult();
-
-    private FSDataInputStream mInStream = null;
-    private FSDataOutputStream mOutStream = null;
+    private FileInputStream mInStream = null;
+    private FileOutputStream mOutStream = null;
     private long mCurrentOffset;
 
-    private BenchThread(BenchContext context, FileSystem fs, int threadId) {
+    private final FuseIOTaskResult.ThreadCountResult mThreadCountResult =
+        new FuseIOTaskResult.ThreadCountResult();
+
+    private BenchThread(BenchContext context, int threadId, int numThreads) {
       mContext = context;
       mThreadId = threadId;
-
-      int fileId = mThreadId;
-      if (mParameters.mReadSameFile) {
-        // all threads read the first file
-        fileId = 0;
+      mFilesPath = new ArrayList<>();
+      for (int i = mThreadId; i < mParameters.mNumFiles; i += numThreads) {
+        mFilesPath.add(mParameters.mLocalPath + "/data-" + i);
       }
-      mFilePath = new Path(mParameters.mBasePath, "data-" + fileId);
-
-      mFs = fs;
 
       mBuffer = new byte[(int) FormatUtils.parseSpaceSize(mParameters.mBufferSize)];
       Arrays.fill(mBuffer, (byte) 'A');
-      mByteBuffer = ByteBuffer.wrap(mBuffer);
 
       mFileSize = FormatUtils.parseSpaceSize(mParameters.mFileSize);
-      mCurrentOffset = mFileSize;
-      mMaxOffset = mFileSize - mBuffer.length;
-      mBlockSize = FormatUtils.parseSpaceSize(mParameters.mBlockSize);
-
-      mLongs = new Random().longs(0, mMaxOffset).iterator();
     }
 
     @Override
@@ -333,6 +268,7 @@ public class StressClientIOBench extends Benchmark<ClientIOTaskResult> {
         mThreadCountResult.addErrorMessage(e.getMessage());
       } finally {
         closeInStream();
+        closeOutStream();
       }
 
       // Update thread count result
@@ -346,7 +282,7 @@ public class StressClientIOBench extends Benchmark<ClientIOTaskResult> {
       // When to start recording measurements
       long recordMs = mContext.getStartMs() + FormatUtils.parseTimeSize(mParameters.mWarmup);
       mThreadCountResult.setRecordStartMs(recordMs);
-      boolean isRead = ClientIOOperation.isRead(mParameters.mOperation);
+      boolean isRead = FuseIOOperation.isRead(mParameters.mOperation);
 
       long waitMs = mContext.getStartMs() - CommonUtils.getCurrentMs();
       if (waitMs < 0) {
@@ -357,85 +293,58 @@ public class StressClientIOBench extends Benchmark<ClientIOTaskResult> {
       CommonUtils.sleepMs(waitMs);
       mStartBarrierPassed = true;
 
-      while (!Thread.currentThread().isInterrupted() && (!isRead
-          || CommonUtils.getCurrentMs() < mContext.getEndMs())) {
-        int ioBytes = applyOperation();
-
-        long currentMs = CommonUtils.getCurrentMs();
-        // Start recording after the warmup
-        if (currentMs > recordMs) {
-          if (ioBytes > 0) {
-            mThreadCountResult.incrementIOBytes(ioBytes);
+      for (int i = 0; i < mFilesPath.size(); i++) {
+        mCurrentOffset = 0;
+        String filePath = mFilesPath.get(i);
+        while (!Thread.currentThread().isInterrupted()) {
+          if (isRead && CommonUtils.getCurrentMs() > mContext.getEndMs()) {
+            closeInStream();
+            return;
           }
-          if (mParameters.mOperation == ClientIOOperation.WRITE && ioBytes < 0) {
-            // done writing. done with the thread.
-            break;
+          long ioBytes = applyOperation(filePath);
+
+          // Start recording after the warmup
+          if (CommonUtils.getCurrentMs() > recordMs) {
+            if (ioBytes > 0) {
+              mThreadCountResult.incrementIOBytes(ioBytes);
+            } else {
+              // Done reading/writing one file
+              break;
+            }
           }
         }
+      }
+      // Done reading all files
+      if (isRead) {
+        throw new IllegalArgumentException(String.format("Thread %d finishes reading all its files"
+            + "before the bench ends. For more accurate result, use more files, or larger files, "
+            + "or a shorter duration", mThreadId));
       }
     }
 
-    private int applyOperation() throws IOException {
-      if (ClientIOOperation.isRead(mParameters.mOperation)) {
-        if (mInStream == null) {
-          mInStream = mFs.open(mFilePath);
-        }
-        if (mParameters.mReadRandom) {
-          mCurrentOffset = mLongs.next();
-          if (!ClientIOOperation.isPosRead(mParameters.mOperation)) {
-            // must seek if not a positioned read
-            mInStream.seek(mCurrentOffset);
-          }
-        } else {
-          mCurrentOffset += mBuffer.length;
-          if (mCurrentOffset > mMaxOffset) {
-            mCurrentOffset = 0;
-          }
-        }
+    private long applyOperation(String filePath) throws IOException {
+      if (FuseIOOperation.isRead(mParameters.mOperation) && mInStream == null) {
+        mInStream = new FileInputStream(filePath);
       }
       switch (mParameters.mOperation) {
-        case READ_ARRAY: {
+        case READ: {
           int bytesRead = mInStream.read(mBuffer);
           if (bytesRead < 0) {
             closeInStream();
-            mInStream = mFs.open(mFilePath);
           }
           return bytesRead;
-        }
-        case READ_BYTE_BUFFER: {
-          int bytesRead = mInStream.read(mByteBuffer);
-          if (bytesRead < 0) {
-            closeInStream();
-            mInStream = mFs.open(mFilePath);
-          }
-          return bytesRead;
-        }
-        case READ_FULLY: {
-          int toRead = Math.min(mBuffer.length, (int) (mFileSize - mInStream.getPos()));
-          mInStream.readFully(mBuffer, 0, toRead);
-          if (mInStream.getPos() == mFileSize) {
-            closeInStream();
-            mInStream = mFs.open(mFilePath);
-          }
-          return toRead;
-        }
-        case POS_READ: {
-          return mInStream.read(mCurrentOffset, mBuffer, 0, mBuffer.length);
-        }
-        case POS_READ_FULLY: {
-          mInStream.readFully(mCurrentOffset, mBuffer, 0, mBuffer.length);
-          return mBuffer.length;
         }
         case WRITE: {
           if (mOutStream == null) {
-            mOutStream = mFs.create(mFilePath, false, mBuffer.length, (short) 1, mBlockSize);
+            mOutStream = new FileOutputStream(filePath);
           }
-          int bytesToWrite = (int) Math.min(mFileSize - mOutStream.getPos(), mBuffer.length);
+          int bytesToWrite = (int) Math.min(mFileSize - mCurrentOffset, mBuffer.length);
           if (bytesToWrite == 0) {
-            mOutStream.close();
+            closeOutStream();
             return -1;
           }
-          mOutStream.write(mBuffer, 0, bytesToWrite);
+          mOutStream.write(mBuffer, 0, mBuffer.length);
+          mCurrentOffset += bytesToWrite;
           return bytesToWrite;
         }
         default:
@@ -452,6 +361,18 @@ public class StressClientIOBench extends Benchmark<ClientIOTaskResult> {
         mThreadCountResult.addErrorMessage(e.getMessage());
       } finally {
         mInStream = null;
+      }
+    }
+
+    private void closeOutStream() {
+      try {
+        if (mOutStream != null) {
+          mOutStream.close();
+        }
+      } catch (IOException e) {
+        mThreadCountResult.addErrorMessage(e.getMessage());
+      } finally {
+        mOutStream = null;
       }
     }
   }

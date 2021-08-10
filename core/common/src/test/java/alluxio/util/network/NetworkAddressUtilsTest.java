@@ -12,6 +12,8 @@
 package alluxio.util.network;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 import alluxio.ConfigurationRule;
 import alluxio.ConfigurationTestUtils;
@@ -29,6 +31,8 @@ import org.junit.Test;
 import java.io.Closeable;
 import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Tests for the {@link NetworkAddressUtils} class.
@@ -40,6 +44,33 @@ public class NetworkAddressUtilsTest {
   @After
   public void after() {
     mConfiguration = ConfigurationTestUtils.defaults();
+  }
+
+  @Test
+  public void testContainsLocalIP() {
+    List<InetSocketAddress> clusterAddresses = new ArrayList<>();
+    InetSocketAddress raftNodeAddress1 = new InetSocketAddress(NetworkAddressUtils
+        .getLocalHostName(
+            (int) mConfiguration.getMs(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS)),
+        10);
+    InetSocketAddress raftNodeAddress2 = new InetSocketAddress("host2", 20);
+    InetSocketAddress raftNodeAddress3 = new InetSocketAddress("host3", 30);
+    clusterAddresses.add(raftNodeAddress1);
+    clusterAddresses.add(raftNodeAddress2);
+    clusterAddresses.add(raftNodeAddress3);
+    assertTrue(NetworkAddressUtils.containsLocalIp(clusterAddresses, mConfiguration));
+  }
+
+  @Test
+  public void testNotContainsLocalIP() {
+    List<InetSocketAddress> clusterAddresses = new ArrayList<>();
+    InetSocketAddress raftNodeAddress1 = new InetSocketAddress("host1", 10);
+    InetSocketAddress raftNodeAddress2 = new InetSocketAddress("host2", 20);
+    InetSocketAddress raftNodeAddress3 = new InetSocketAddress("host3", 30);
+    clusterAddresses.add(raftNodeAddress1);
+    clusterAddresses.add(raftNodeAddress2);
+    clusterAddresses.add(raftNodeAddress3);
+    assertFalse(NetworkAddressUtils.containsLocalIp(clusterAddresses, mConfiguration));
   }
 
   /**

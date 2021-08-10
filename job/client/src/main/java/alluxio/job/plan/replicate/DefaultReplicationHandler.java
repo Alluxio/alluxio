@@ -50,15 +50,21 @@ public final class DefaultReplicationHandler implements ReplicationHandler {
     } catch (NotFoundException e) {
       // if the job status doesn't exist, assume the job has failed
       return Status.FAILED;
+    } finally {
+      mJobMasterClientPool.release(client);
     }
   }
 
   @Override
   public List<Long> findJobs(String jobName, Set<Status> status) throws IOException {
     final JobMasterClient client = mJobMasterClientPool.acquire();
-    return client.list(ListAllPOptions.newBuilder().setName(jobName)
-        .addAllStatus(status.stream().map(Status::toProto).collect(Collectors.toSet()))
-        .build());
+    try {
+      return client.list(ListAllPOptions.newBuilder().setName(jobName)
+          .addAllStatus(status.stream().map(Status::toProto).collect(Collectors.toSet()))
+          .build());
+    } finally {
+      mJobMasterClientPool.release(client);
+    }
   }
 
   @Override
