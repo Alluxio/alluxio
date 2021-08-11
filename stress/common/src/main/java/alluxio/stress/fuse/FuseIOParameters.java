@@ -52,6 +52,10 @@ public final class FuseIOParameters extends Parameters {
       description = "The number of files for the test")
   public int mNumFiles = 1000;
 
+  @Parameter(names = {"--num-dirs"},
+      description = "The number of directories that the files will be evenly distributed into")
+  public int mNumDirs = 1;
+
   @Parameter(names = {"--duration"},
       description = "The length of time to run the benchmark. (1m, 10m, 60s, 10000ms, etc.)")
   public String mDuration = "30s";

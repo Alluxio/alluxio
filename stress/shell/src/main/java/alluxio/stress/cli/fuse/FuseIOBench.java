@@ -31,6 +31,8 @@ import org.slf4j.LoggerFactory;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -75,6 +77,11 @@ public class FuseIOBench extends Benchmark<FuseIOTaskResult> {
                 numOfThreads, mParameters.mNumFiles));
       }
     }
+    if (mParameters.mNumDirs > mParameters.mNumFiles) {
+      throw new IllegalArgumentException(String
+          .format("Number of files (%d) must be larger than number of directories (%d)",
+              mParameters.mNumFiles, mParameters.mNumDirs));
+    }
     if (mParameters.mReadRandom) {
       LOG.warn("Random read is not supported for now. Read sequentially");
       // TODO(Shawn): support random read
@@ -83,6 +90,9 @@ public class FuseIOBench extends Benchmark<FuseIOTaskResult> {
     if (mParameters.mOperation == FuseIOOperation.WRITE) {
       LOG.warn("Cannot write repeatedly, so warmup is not possible. Setting warmup to 0s.");
       mParameters.mWarmup = "0s";
+    }
+    for (int i = 0; i < mParameters.mNumDirs; i++) {
+      Files.createDirectories(Paths.get(mParameters.mLocalPath + "/" + i));
     }
   }
 
@@ -233,7 +243,9 @@ public class FuseIOBench extends Benchmark<FuseIOTaskResult> {
 
   private final class BenchThread implements Callable<Void> {
     private final BenchContext mContext;
-    private final List<String> mFilesPath;
+    private final int mNumDirWithExtraFile;
+    private final int mNumFilePerDir;
+    private final int mNumFilesToWrite;
     private final int mThreadId;
     private final byte[] mBuffer;
     private final long mFileSize;
@@ -241,6 +253,8 @@ public class FuseIOBench extends Benchmark<FuseIOTaskResult> {
     private FileInputStream mInStream = null;
     private FileOutputStream mOutStream = null;
     private long mCurrentOffset;
+    private int mDirId;
+    private int mFileId;
 
     private final FuseIOTaskResult.ThreadCountResult mThreadCountResult =
         new FuseIOTaskResult.ThreadCountResult();
@@ -248,14 +262,40 @@ public class FuseIOBench extends Benchmark<FuseIOTaskResult> {
     private BenchThread(BenchContext context, int threadId, int numThreads) {
       mContext = context;
       mThreadId = threadId;
-      mFilesPath = new ArrayList<>();
-      for (int i = mThreadId; i < mParameters.mNumFiles; i += numThreads) {
-        mFilesPath.add(mParameters.mLocalPath + "/data-" + i);
+
+      mNumFilePerDir = mParameters.mNumFiles / mParameters.mNumDirs;
+      mNumDirWithExtraFile = mParameters.mNumFiles % mParameters.mNumDirs;
+      int numFilePerThread = mParameters.mNumFiles / numThreads;
+      int numThreadWithExtraFile = mParameters.mNumFiles % numThreads;
+      if (mThreadId < numThreadWithExtraFile) {
+        // First numThreadWithExtraFile number of threads need to write 1 more file than the rest
+        mNumFilesToWrite = numFilePerThread + 1;
+      } else {
+        mNumFilesToWrite = numFilePerThread;
+      }
+      // Calculate the path of the first file to process
+      int numFilesWritten = numFilePerThread * mThreadId
+          + Math.min(mThreadId, numThreadWithExtraFile);
+      int dirId = 0;
+      while (true) {
+        int numFilesInDir;
+        if (dirId < mNumDirWithExtraFile) {
+          numFilesInDir = mNumFilePerDir + 1;
+        } else {
+          numFilesInDir = mNumFilePerDir;
+        }
+        if (numFilesWritten >= numFilesInDir) {
+          numFilesWritten -= numFilesInDir;
+          dirId += 1;
+        } else {
+          mDirId = dirId;
+          mFileId = numFilesWritten;
+          break;
+        }
       }
 
       mBuffer = new byte[(int) FormatUtils.parseSpaceSize(mParameters.mBufferSize)];
       Arrays.fill(mBuffer, (byte) 'A');
-
       mFileSize = FormatUtils.parseSpaceSize(mParameters.mFileSize);
     }
 
@@ -293,9 +333,11 @@ public class FuseIOBench extends Benchmark<FuseIOTaskResult> {
       CommonUtils.sleepMs(waitMs);
       mStartBarrierPassed = true;
 
-      for (int i = 0; i < mFilesPath.size(); i++) {
+      int fileCounter = 0;
+      while (fileCounter < mNumFilesToWrite ) {
         mCurrentOffset = 0;
-        String filePath = mFilesPath.get(i);
+        String filePath = mParameters.mLocalPath + "/" + mDirId + "/" + mFileId;
+        LOG.info(filePath);
         while (!Thread.currentThread().isInterrupted()) {
           if (isRead && CommonUtils.getCurrentMs() > mContext.getEndMs()) {
             closeInStream();
@@ -312,6 +354,16 @@ public class FuseIOBench extends Benchmark<FuseIOTaskResult> {
               break;
             }
           }
+        }
+        fileCounter += 1;
+        mFileId += 1;
+        // Need to process in the next directory
+        if (mDirId < mNumDirWithExtraFile && mFileId == mNumFilePerDir + 1) {
+          mDirId += 1;
+          mFileId = 0;
+        } else if (mDirId >= mNumDirWithExtraFile && mFileId == mNumFilePerDir) {
+          mDirId += 1;
+          mFileId = 0;
         }
       }
       // Done reading all files
