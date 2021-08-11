@@ -71,12 +71,12 @@ $ ./bin/alluxio fsadmin journal quorum info -domain <MASTER | JOB_MASTER>
 
 ```console
 # Remove a member from leader election quorum.
-$ ./bin/alluxio fsadmin journal quorum remove -domain <MASTER | JOB_MASTER> -address <HostName:Port>
+$ ./bin/alluxio fsadmin journal quorum remove -domain <MASTER | JOB_MASTER> -address <HOSTNAME:PORT>
 ```
 
 ```console
 # Elect a specific member of the quorum as the new leader.
-$ ./bin/alluxio fsadmin journal quorum elect -address <HostName:Port>
+$ ./bin/alluxio fsadmin journal quorum elect -address <HOSTNAME:PORT>
 ```
 
 **checkpoint:** is used to create a checkpoint in the primary master journal system.

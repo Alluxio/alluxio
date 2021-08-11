@@ -282,37 +282,34 @@ after a node failure an explicit action is required.
 Please note `-domain` parameter in below commands. This is because embedded journal based leader election is supported
 for both regular masters and job service masters. You should supply correct value based on which cluster you intend to work on.
 
-1- Check current quorum state:
-
+1. Check current quorum state:
 ```console
 $ ./bin/alluxio fsadmin journal quorum info -domain <MASTER | JOB_MASTER>
 ```
-
 This will print out node status for all currently participating members of the embedded journal cluster. You should verify
 that the removed master is shown as `UNAVAILABLE`.
 
-2- Remove member from the quorum:
-
+2. Remove member from the quorum:
 `-address` option below should reflect the exact address that is returned by the `.. quorum info` command provided above.
 ```console
-$ ./bin/alluxio fsadmin journal quorum remove -domain <MASTER | JOB_MASTER> -address <HostName:Port>
+$ ./bin/alluxio fsadmin journal quorum remove -domain <MASTER | JOB_MASTER> -address <HOSTNAME:PORT>
 ```
 
-3- Verify that the removed member is no longer shown in the quorum info.
+3. Verify that the removed member is no longer shown in the quorum info.
 
 ##### Transferring leadership to a specific master
 To aid in debugging and to add flexibility, it is possible to manually change the leader of an embedded journal cluster.
 
-1- Check current quorum state:
+1. Check current quorum state:
 ```console
 $ ./bin/alluxio fsadmin journal quorum info -domain MASTER
 ```
 This will print out node status for all currently participating members of the embedded journal cluster. You should select one 
 of the `AVAILABLE` masters.
 
-2- Transfer the leadership to an available master:
+2. Transfer the leadership to an available master:
 ```console
-$ ./bin/alluxio fsadmin journal quorum elect -address <HostName:Port>
+$ ./bin/alluxio fsadmin journal quorum elect -address <HOSTNAME:PORT>
 ```
 The `elect` command makes sure that the leadership has transferred to the designated master before returning and displaying
 a success message. If the transfer is not successful, it will print a failure message.
