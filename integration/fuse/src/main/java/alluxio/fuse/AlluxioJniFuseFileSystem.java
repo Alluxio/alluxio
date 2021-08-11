@@ -30,6 +30,7 @@ import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.jnifuse.AbstractFuseFileSystem;
 import alluxio.jnifuse.ErrorCodes;
+import alluxio.jnifuse.FuseException;
 import alluxio.jnifuse.FuseFillDir;
 import alluxio.jnifuse.struct.FileStat;
 import alluxio.jnifuse.struct.FuseFileInfo;
@@ -726,7 +727,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
   }
 
   @Override
-  public void umount() {
+  public void umount(boolean force) throws FuseException {
     // Release operation is async, we will try our best efforts to
     // close all opened file in/out stream before umounting the fuse
     if (!mCreateFileEntries.isEmpty() || !mOpenFileEntries.isEmpty()) {
@@ -772,8 +773,11 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
       LOG.error("Unmounting {} when device is busy in reading/writing files. "
           + "{} fileInStream and {} fileOutStream remain open.",
           mMountPoint, mCreateFileEntries.size(), mOpenFileEntries.size());
+      if (!force) {
+        throw new FuseException("Timed out for umount due to device is busy.");
+      }
     }
-    super.umount();
+    super.umount(force);
   }
 
   @VisibleForTesting
