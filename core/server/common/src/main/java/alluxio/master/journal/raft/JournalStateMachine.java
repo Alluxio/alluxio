@@ -409,6 +409,7 @@ public class JournalStateMachine extends BaseStateMachine {
     } else if (entry.getSequenceNumber() < 0) {
       // Negative sequence numbers indicate special entries used to indicate that a new primary is
       // starting to serve.
+      
       LOG.info("entry sequence #{}: Negative sequence numbers indicate special entries used to " +
               "indicate that a new primary isstarting to serve", entry.getSequenceNumber());
       mLastPrimaryStartSequenceNumber = entry.getSequenceNumber();
