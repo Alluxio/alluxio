@@ -80,4 +80,25 @@ public class RocksBlockStoreTest {
       assertEquals(workerIdStart + i, locations.get(0).getWorkerId());
     }
   }
+
+  @Test
+  public void blockSize() throws Exception {
+    final int blockCount = 5;
+    final int workerIdStart = 100000;
+    RocksBlockStore blockStore = new RocksBlockStore(mFolder.newFolder().getAbsolutePath());
+    // create blocks and locations
+    for (int i = 0; i < blockCount; i++) {
+      blockStore.putBlock(i, Block.BlockMeta.newBuilder().setLength(i).build());
+      blockStore
+          .addLocation(i, Block.BlockLocation.newBuilder().setWorkerId(workerIdStart + i).build());
+    }
+
+    assertEquals(blockCount, blockStore.size());
+    // create blocks and locations
+    for (int i = 0; i < blockCount; i++) {
+      blockStore.removeBlock(i);
+    }
+
+    assertEquals(0, blockStore.size());
+  }
 }
