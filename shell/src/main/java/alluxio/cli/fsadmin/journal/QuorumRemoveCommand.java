@@ -18,7 +18,6 @@ import alluxio.conf.AlluxioConfiguration;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.grpc.JournalDomain;
-import alluxio.grpc.NetAddress;
 
 import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.cli.CommandLine;
@@ -68,17 +67,7 @@ public class QuorumRemoveCommand extends AbstractFsAdminCommand {
     }
 
     String serverAddress = cl.getOptionValue(ADDRESS_OPTION_NAME);
-    // Extract hostname:port from given address.
-    String hostName;
-    int port;
-    try {
-      hostName = serverAddress.substring(0, serverAddress.indexOf(":"));
-      port = Integer.parseInt(serverAddress.substring(serverAddress.indexOf(":") + 1));
-    } catch (Exception e) {
-      throw new InvalidArgumentException(ExceptionMessage.INVALID_ADDRESS_VALUE.getMessage());
-    }
-
-    jmClient.removeQuorumServer(NetAddress.newBuilder().setHost(hostName).setRpcPort(port).build());
+    jmClient.removeQuorumServer(QuorumCommand.stringToAddress(serverAddress));
     mPrintStream.println(String.format(OUTPUT_RESULT, serverAddress, domainVal));
 
     return 0;

@@ -72,6 +72,11 @@ public final class NetworkAddressUtils {
    */
   public enum ServiceType {
     /**
+     * FUSE web service (Jetty).
+     */
+    FUSE_WEB("Alluxio FUSE Web service", PropertyKey.FUSE_WEB_HOSTNAME,
+        PropertyKey.FUSE_WEB_BIND_HOST, PropertyKey.FUSE_WEB_PORT),
+    /**
      * Job master Raft service (Netty). The bind and connect hosts are the same because the
      * underlying Raft implementation doesn't differentiate between bind and connect hosts.
      */

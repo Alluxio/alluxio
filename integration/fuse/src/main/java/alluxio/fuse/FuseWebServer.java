@@ -11,16 +11,23 @@
 
 package alluxio.fuse;
 
-import alluxio.jnifuse.FuseException;
+import alluxio.web.WebServer;
+
+import java.net.InetSocketAddress;
+import javax.annotation.concurrent.NotThreadSafe;
 
 /**
- * An interface for unmounting the mounted Fuse applications.
+ * Fuse web server.
  */
-public interface FuseUmountable {
+@NotThreadSafe
+public final class FuseWebServer extends WebServer {
   /**
-   * Unmounts the Fuse application.
-   * @param force true to throw an exception and treat umount as a no-op
-   *              when umount timeouts due to the fuse device is busy.
+   * Creates a new instance of {@link FuseWebServer}. It pairs URLs with servlets.
+   *
+   * @param serviceName name of the web service
+   * @param address address of the server
    */
-  void umount(boolean force) throws FuseException;
+  public FuseWebServer(String serviceName, InetSocketAddress address) {
+    super(serviceName, address);
+  }
 }

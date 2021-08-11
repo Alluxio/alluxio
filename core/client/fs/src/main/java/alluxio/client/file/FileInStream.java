@@ -100,9 +100,4 @@ public abstract class FileInStream extends InputStream
     }
     return nread;
   }
-
-  /**
-   * Close the buffer source for cache stream.
-   */
-  public void unbuffer() {}
 }
