@@ -14,41 +14,45 @@
 component-owner-mapping:
   default_component: # handles components that were not added to this mapping yet
     - ggezer
-  assembly: 
+  assembly:
     - yuzhu
-  bin: 
+  bin:
     - LuQQiu
-  build: 
+  build:
     - yuzhu
-  conf: 
+  conf:
     - ggezer
-  core: 
+  core/client/fs/src/main/java/alluxio/client/file/cache/:
+    - beinan
+  core:
     - ggezer
-  deploy: 
-    - LuQQiu
-  dev: 
+  dev:
     - Xenorith
-  docs: 
+  docs:
     - apc999
-  examples: 
+  examples:
     - LuQQiu
-  integration: 
+  integration/csi:
+    - ssz1997
+  integration/jnifuse:
+    - maobaolong
+  integration:
     - LuQQiu
-  job: 
+  job:
     - yuzhu
-  libexec: 
+  libexec:
     - ggezer
-  minicluster: 
+  minicluster:
     - ggezer
-  shell: 
+  shell:
     - LuQQiu
-  stress: 
+  stress:
     - yuzhu
-  table: 
+  table:
     - HelloHorizon
-  tests: 
+  tests:
     - ggezer
-  underfs: 
+  underfs:
     - ggezer
-  webui: 
+  webui:
     - tieujason330
