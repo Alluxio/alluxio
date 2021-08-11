@@ -56,7 +56,8 @@ Back up to a specific directory on the leading master's local filesystem.
 ./bin/alluxio fsadmin backup /opt/alluxio/backups/ --local
 Backup Host        : AlluxioSandboxEJSC-masters-1                          
 Backup URI         : file:///opt/alluxio/backups/alluxio-backup-2020-10-13-1602619298086.gz
-Backup Entry Count : 4```
+Backup Entry Count : 4
+```
 
 ### journal
 The `journal` command provides several sub-commands for journal management.
@@ -70,7 +71,12 @@ $ ./bin/alluxio fsadmin journal quorum info -domain <MASTER | JOB_MASTER>
 
 ```console
 # Remove a member from leader election quorum.
-$ ./bin/alluxio fsadmin journal quorum remove -domain <MASTER | JOB_MASTER> -address <Member_Address>
+$ ./bin/alluxio fsadmin journal quorum remove -domain <MASTER | JOB_MASTER> -address <HOSTNAME:PORT>
+```
+
+```console
+# Elect a specific member of the quorum as the new leader.
+$ ./bin/alluxio fsadmin journal quorum elect -address <HOSTNAME:PORT>
 ```
 
 **checkpoint:** is used to create a checkpoint in the primary master journal system.
