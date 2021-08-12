@@ -15,13 +15,16 @@ import alluxio.Constants;
 import alluxio.master.AlluxioJobMasterProcess;
 import alluxio.util.io.PathUtils;
 
+import org.eclipse.jetty.servlet.FilterHolder;
 import org.eclipse.jetty.servlet.ServletHolder;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.servlet.ServletContainer;
 
 import java.net.InetSocketAddress;
+import java.util.EnumSet;
 
 import javax.annotation.concurrent.NotThreadSafe;
+import javax.servlet.DispatcherType;
 import javax.servlet.ServletException;
 
 /**
@@ -60,5 +63,9 @@ public final class JobMasterWebServer extends WebServer {
     ServletHolder servletHolder = new ServletHolder("Alluxio Job Master Web Service", servlet);
     mServletContextHandler
         .addServlet(servletHolder, PathUtils.concatPath(Constants.REST_API_PREFIX, "*"));
+    RedirectFilter redirectFilter = new RedirectFilter(jobMaster.getPrimarySelector());
+    FilterHolder filterHolder = new FilterHolder(redirectFilter);
+    mServletContextHandler.addFilter(filterHolder,"/*",
+        EnumSet.of(DispatcherType.REQUEST, DispatcherType.FORWARD, DispatcherType.INCLUDE));
   }
 }

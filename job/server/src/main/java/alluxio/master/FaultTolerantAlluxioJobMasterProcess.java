@@ -61,6 +61,7 @@ final class FaultTolerantAlluxioJobMasterProcess extends AlluxioJobMasterProcess
       throw new RuntimeException(e);
     }
 
+    startServingWebServer();
     while (!Thread.interrupted()) {
       if (mServingThread == null) {
         // We are in secondary mode. Nothing to do until we become the primary.
@@ -110,5 +111,10 @@ final class FaultTolerantAlluxioJobMasterProcess extends AlluxioJobMasterProcess
     } catch (TimeoutException e) {
       return false;
     }
+  }
+
+  @Override
+  public PrimarySelector getPrimarySelector() {
+    return mLeaderSelector;
   }
 }

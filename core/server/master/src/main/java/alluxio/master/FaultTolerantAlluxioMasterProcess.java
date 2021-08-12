@@ -83,6 +83,9 @@ final class FaultTolerantAlluxioMasterProcess extends AlluxioMasterProcess {
       mJournalSystem.waitForCatchup();
     }
 
+    MetricsSystem.startSinks(ServerConfiguration.get(PropertyKey.METRICS_CONF_FILE));
+    startJvmMonitorProcess();
+    startServingWebServer();
     try {
       mLeaderSelector.start(getRpcAddress());
     } catch (IOException e) {
@@ -215,5 +218,10 @@ final class FaultTolerantAlluxioMasterProcess extends AlluxioMasterProcess {
     } catch (TimeoutException e) {
       return false;
     }
+  }
+
+  @Override
+  public PrimarySelector getPrimarySelector() {
+    return mLeaderSelector;
   }
 }

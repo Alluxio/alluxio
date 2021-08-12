@@ -157,6 +157,9 @@ public class AlluxioMasterProcess extends MasterProcess {
     mJournalSystem.start();
     mJournalSystem.gainPrimacy();
     startMasters(true);
+    MetricsSystem.startSinks(ServerConfiguration.get(PropertyKey.METRICS_CONF_FILE));
+    startJvmMonitorProcess();
+    startServingWebServer();
     startServing();
   }
 
@@ -166,6 +169,11 @@ public class AlluxioMasterProcess extends MasterProcess {
     if (isServing()) {
       stopServing();
     }
+    stopWebServer();
+    if (mJvmPauseMonitor != null) {
+      mJvmPauseMonitor.stop();
+    }
+    MetricsSystem.stopSinks();
     closeMasters();
     mJournalSystem.stop();
   }
@@ -247,7 +255,8 @@ public class AlluxioMasterProcess extends MasterProcess {
    * server and starting web ui.
    */
   protected void startServingWebServer() {
-    stopRejectingWebServer();
+    LOG.info("Alluxio master web server version {} starting. webAddress={}",
+        RuntimeConstants.VERSION, mWebBindAddress);
     mWebServer =
         new MasterWebServer(ServiceType.MASTER_WEB.getServiceName(), mWebBindAddress, this);
     // reset master web port
@@ -257,6 +266,17 @@ public class AlluxioMasterProcess extends MasterProcess {
     mWebServer.addHandler(mPMetricsServlet.getHandler());
     // start web ui
     mWebServer.start();
+  }
+
+  /**
+   * Stop web server.
+   * @throws Exception if failed when close web server
+   */
+  protected void stopWebServer() throws Exception {
+    if (mWebServer != null) {
+      mWebServer.stop();
+      mWebServer = null;
+    }
   }
 
   /**
@@ -280,12 +300,8 @@ public class AlluxioMasterProcess extends MasterProcess {
    * @param stopMessage empty string or the message that the master loses the leadership
    */
   protected void startServing(String startMessage, String stopMessage) {
-    MetricsSystem.startSinks(ServerConfiguration.get(PropertyKey.METRICS_CONF_FILE));
+    stopRejectingServers();
     startServingRPCServer();
-    LOG.info("Alluxio master web server version {} starting{}. webAddress={}",
-        RuntimeConstants.VERSION, startMessage, mWebBindAddress);
-    startServingWebServer();
-    startJvmMonitorProcess();
     LOG.info(
         "Alluxio master version {} started{}. bindAddress={}, connectAddress={}, webAddress={}",
         RuntimeConstants.VERSION, startMessage, mRpcBindAddress, mRpcConnectAddress,
@@ -301,7 +317,6 @@ public class AlluxioMasterProcess extends MasterProcess {
    */
   protected void startServingRPCServer() {
     try {
-      stopRejectingRpcServer();
       LOG.info("Starting Alluxio master gRPC server on address {}", mRpcBindAddress);
       GrpcServerBuilder serverBuilder = GrpcServerBuilder.forAddress(
           GrpcServerAddress.create(mRpcConnectAddress.getHostName(), mRpcBindAddress),
@@ -360,14 +375,6 @@ public class AlluxioMasterProcess extends MasterProcess {
         Thread.currentThread().interrupt();
       }
     }
-    if (mJvmPauseMonitor != null) {
-      mJvmPauseMonitor.stop();
-    }
-    if (mWebServer != null) {
-      mWebServer.stop();
-      mWebServer = null;
-    }
-    MetricsSystem.stopSinks();
   }
 
   @Override

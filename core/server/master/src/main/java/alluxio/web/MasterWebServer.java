@@ -21,6 +21,7 @@ import alluxio.util.io.PathUtils;
 import com.google.common.base.Preconditions;
 import org.eclipse.jetty.servlet.DefaultServlet;
 import org.eclipse.jetty.servlet.ErrorPageErrorHandler;
+import org.eclipse.jetty.servlet.FilterHolder;
 import org.eclipse.jetty.servlet.ServletHolder;
 import org.eclipse.jetty.util.resource.Resource;
 import org.glassfish.jersey.server.ResourceConfig;
@@ -31,8 +32,10 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.util.EnumSet;
 
 import javax.annotation.concurrent.NotThreadSafe;
+import javax.servlet.DispatcherType;
 import javax.servlet.ServletException;
 
 /**
@@ -80,6 +83,12 @@ public final class MasterWebServer extends WebServer {
     ServletHolder servletHolder = new ServletHolder("Alluxio Master Web Service", servlet);
     mServletContextHandler
         .addServlet(servletHolder, PathUtils.concatPath(Constants.REST_API_PREFIX, "*"));
+
+    RedirectFilter redirectFilter = new RedirectFilter(masterProcess.getPrimarySelector(),
+        ()-> mFileSystem.getConf().getInt(PropertyKey.MASTER_WEB_PORT));
+    FilterHolder filterHolder = new FilterHolder(redirectFilter);
+    mServletContextHandler.addFilter(filterHolder,"/*",
+        EnumSet.of(DispatcherType.REQUEST, DispatcherType.FORWARD, DispatcherType.INCLUDE));
 
     // STATIC assets
     try {

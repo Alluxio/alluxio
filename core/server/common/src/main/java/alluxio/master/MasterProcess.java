@@ -25,6 +25,7 @@ import alluxio.network.RejectingServer;
 import alluxio.util.CommonUtils;
 import alluxio.util.ConfigurationUtils;
 import alluxio.util.WaitForOptions;
+import alluxio.util.interfaces.Scoped;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.web.WebServer;
 
@@ -37,6 +38,7 @@ import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.util.Map;
 import java.util.concurrent.TimeoutException;
+import java.util.function.Consumer;
 
 /**
  * Defines a set of methods which any {@link MasterProcess} should implement.
@@ -64,7 +66,6 @@ public abstract class MasterProcess implements Process {
    * Rejecting servers for used by backup masters to reserve ports but reject connection requests.
    */
   private RejectingServer mRejectingRpcServer;
-  private RejectingServer mRejectingWebServer;
 
   /** The RPC server. */
   protected GrpcServer mGrpcServer;
@@ -183,28 +184,41 @@ public abstract class MasterProcess implements Process {
       mRejectingRpcServer = new RejectingServer(mRpcBindAddress);
       mRejectingRpcServer.start();
     }
-    if (mRejectingWebServer == null) {
-      mRejectingWebServer = new RejectingServer(mWebBindAddress);
-      mRejectingWebServer.start();
-    }
   }
 
-  protected void stopRejectingRpcServer() {
+  protected void stopRejectingServers() {
     if (mRejectingRpcServer != null) {
       mRejectingRpcServer.stopAndJoin();
       mRejectingRpcServer = null;
     }
   }
 
-  protected void stopRejectingWebServer() {
-    if (mRejectingWebServer != null) {
-      mRejectingWebServer.stopAndJoin();
-      mRejectingWebServer = null;
-    }
-  }
+  public PrimarySelector getPrimarySelector() {
+    return new PrimarySelector() {
+      @Override
+      public void start(InetSocketAddress localAddress) throws IOException {
 
-  protected void stopRejectingServers() {
-    stopRejectingRpcServer();
-    stopRejectingWebServer();
+      }
+
+      @Override
+      public void stop() throws IOException {
+
+      }
+
+      @Override
+      public State getState() {
+        return State.PRIMARY;
+      }
+
+      @Override
+      public Scoped onStateChange(Consumer<State> listener) {
+        return null;
+      }
+
+      @Override
+      public void waitForState(State state) throws InterruptedException {
+
+      }
+    };
   }
 }
