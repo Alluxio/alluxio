@@ -24,7 +24,7 @@ import java.util.Map;
 /**
  * A set of counters for the os metric.
  */
-public class OperationSystemCounterSet implements MetricSet {
+public class OperationSystemGaugeSet implements MetricSet {
 
   private OperatingSystemMXBean mOsmxb = (OperatingSystemMXBean)
           ManagementFactory.getOperatingSystemMXBean();
