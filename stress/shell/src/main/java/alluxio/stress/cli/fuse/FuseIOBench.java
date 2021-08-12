@@ -334,7 +334,7 @@ public class FuseIOBench extends Benchmark<FuseIOTaskResult> {
       mStartBarrierPassed = true;
 
       int fileCounter = 0;
-      while (fileCounter < mNumFilesToWrite ) {
+      while (fileCounter < mNumFilesToWrite) {
         mCurrentOffset = 0;
         String filePath = mParameters.mLocalPath + "/" + mDirId + "/" + mFileId;
         LOG.info(filePath);
