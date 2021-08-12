@@ -146,7 +146,7 @@ public class GetPinnedFileIdsBench extends RpcBench<GetPinnedFileIdsParameters> 
         if (numPinnedFiles != mParameters.mNumFiles) {
           result.addError(String.format("Unexpected number of files: %d, expected %d",
               numPinnedFiles, mParameters.mNumFiles));
-          return result;
+          continue;
         }
         result.addPoint(
             new RpcTaskResult.Point(mPointStopwatch.get().elapsed(TimeUnit.MILLISECONDS)));
