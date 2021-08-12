@@ -75,9 +75,6 @@ public class WorkerHeartbeatBench extends RpcBench<BlockMasterBenchParameters> {
   @Override
   public RpcTaskResult runRPC() throws Exception {
     RpcTaskResult result = new RpcTaskResult();
-    result.setBaseParameters(mBaseParameters);
-    result.setParameters(mParameters);
-
     if (mWorkerPool == null) {
       result.addError("Worker ID pool is null");
       return result;
@@ -104,8 +101,7 @@ public class WorkerHeartbeatBench extends RpcBench<BlockMasterBenchParameters> {
     // Stop after certain time has elapsed
     RpcTaskResult taskResult = simulateBlockHeartbeat(client, workerId, endTime);
     LOG.info("Test finished with results: {}", taskResult);
-    result.merge(taskResult);
-    return result;
+    return taskResult;
   }
 
   @Override

@@ -176,10 +176,6 @@ public class RegisterWorkerBench extends RpcBench<BlockMasterBenchParameters> {
                     .newBuilder(ClientContext.create(mConf))
                     .build(), mLocationBlockIdList);
 
-    RpcTaskResult result = new RpcTaskResult();
-    result.setBaseParameters(mBaseParameters);
-    result.setParameters(mParameters);
-
     long durationMs = FormatUtils.parseTimeSize(mParameters.mDuration);
     Instant startTime = Instant.now();
     Instant endTime = startTime.plus(durationMs, ChronoUnit.MILLIS);
@@ -187,10 +183,9 @@ public class RegisterWorkerBench extends RpcBench<BlockMasterBenchParameters> {
 
     RpcTaskResult taskResult = simulateRegisterWorker(client, endTime);
     LOG.info("Received task result {}", taskResult);
-    result.merge(taskResult);
-
     LOG.info("Run finished");
-    return result;
+
+    return taskResult;
   }
 
   @Override

@@ -129,8 +129,6 @@ public class GetPinnedFileIdsBench extends RpcBench<GetPinnedFileIdsParameters> 
   @Override
   public RpcTaskResult runRPC() throws Exception {
     RpcTaskResult result = new RpcTaskResult();
-    result.setBaseParameters(mBaseParameters);
-    result.setParameters(mParameters);
 
     mDurationStopwatch.get().reset().start();
     long durationMs = FormatUtils.parseTimeSize(mParameters.mDuration);
