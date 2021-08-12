@@ -87,7 +87,7 @@ public final class MasterWebServer extends WebServer {
     RedirectFilter redirectFilter = new RedirectFilter(masterProcess.getPrimarySelector(),
         ()-> mFileSystem.getConf().getInt(PropertyKey.MASTER_WEB_PORT));
     FilterHolder filterHolder = new FilterHolder(redirectFilter);
-    mServletContextHandler.addFilter(filterHolder,"/*",
+    mServletContextHandler.addFilter(filterHolder, "/*",
         EnumSet.of(DispatcherType.REQUEST, DispatcherType.FORWARD, DispatcherType.INCLUDE));
 
     // STATIC assets

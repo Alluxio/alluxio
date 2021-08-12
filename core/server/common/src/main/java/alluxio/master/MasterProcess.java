@@ -193,32 +193,44 @@ public abstract class MasterProcess implements Process {
     }
   }
 
+  /**
+   * Return primary selector.
+   * @return primary selector
+   */
   public PrimarySelector getPrimarySelector() {
-    return new PrimarySelector() {
-      @Override
-      public void start(InetSocketAddress localAddress) throws IOException {
+    return SingleMasterPrimarySelector.INSTANCE;
+  }
 
-      }
+  /**
+   * A primary selector when only have one master node.
+   */
+  public static class SingleMasterPrimarySelector implements PrimarySelector{
 
-      @Override
-      public void stop() throws IOException {
+    public static final SingleMasterPrimarySelector INSTANCE = new SingleMasterPrimarySelector();
 
-      }
+    private SingleMasterPrimarySelector() {
+    }
 
-      @Override
-      public State getState() {
-        return State.PRIMARY;
-      }
+    @Override
+    public void start(InetSocketAddress localAddress) throws IOException {
+    }
 
-      @Override
-      public Scoped onStateChange(Consumer<State> listener) {
-        return null;
-      }
+    @Override
+    public void stop() throws IOException {
+    }
 
-      @Override
-      public void waitForState(State state) throws InterruptedException {
+    @Override
+    public State getState() {
+      return State.PRIMARY;
+    }
 
-      }
-    };
+    @Override
+    public Scoped onStateChange(Consumer<State> listener) {
+      return null;
+    }
+
+    @Override
+    public void waitForState(State state) throws InterruptedException {
+    }
   }
 }

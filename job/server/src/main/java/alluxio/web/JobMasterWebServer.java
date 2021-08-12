@@ -65,7 +65,7 @@ public final class JobMasterWebServer extends WebServer {
         .addServlet(servletHolder, PathUtils.concatPath(Constants.REST_API_PREFIX, "*"));
     RedirectFilter redirectFilter = new RedirectFilter(jobMaster.getPrimarySelector());
     FilterHolder filterHolder = new FilterHolder(redirectFilter);
-    mServletContextHandler.addFilter(filterHolder,"/*",
+    mServletContextHandler.addFilter(filterHolder, "/*",
         EnumSet.of(DispatcherType.REQUEST, DispatcherType.FORWARD, DispatcherType.INCLUDE));
   }
 }

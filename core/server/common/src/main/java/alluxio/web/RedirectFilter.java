@@ -56,7 +56,7 @@ public class RedirectFilter implements Filter {
   /**
    * Initializes the redirect filter.
    *
-   * @param primarySelector primary selector.
+   * @param primarySelector primary selector
    */
   public RedirectFilter(PrimarySelector primarySelector) {
     this(primarySelector, null);
@@ -65,8 +65,8 @@ public class RedirectFilter implements Filter {
   /**
    * Initializes the redirect filter.
    *
-   * @param primarySelector primary selector.
-   * @param getWebPortSupplier the supplier to get primary master web port.
+   * @param primarySelector primary selector
+   * @param getWebPortSupplier the supplier to get primary master web port
    */
   public RedirectFilter(PrimarySelector primarySelector, Supplier<Integer> getWebPortSupplier) {
     mPrimarySelector = primarySelector;
@@ -75,7 +75,6 @@ public class RedirectFilter implements Filter {
 
   @Override
   public void init(FilterConfig filterConfig) throws ServletException {
-
   }
 
   @Override
@@ -104,14 +103,15 @@ public class RedirectFilter implements Filter {
       if (mGetWebPortSupplier != null) {
         int webPort = mGetWebPortSupplier.get();
         // Forward the request.
-        String leaderWebAddress = "http://" + primaryAddress.getHostString() + ":" + webPort +httpRequest.getRequestURI();
+        String leaderWebAddress = "http://" + primaryAddress.getHostString() + ":"
+            + webPort + httpRequest.getRequestURI();
         LOG.debug("redirect request to {}", leaderWebAddress);
         httpResponse.sendRedirect(leaderWebAddress);
         return;
       }
       httpResponse.sendError(500,
-              "The current node is not the primary node, and the primary node is located in " +
-                      primaryAddress);
+          "The current node is not the primary node, and the primary node is located in "
+          + primaryAddress);
     } catch (UnavailableException e) {
       httpResponse.sendError(500, "The primary is unavailable.");
     }
@@ -119,7 +119,6 @@ public class RedirectFilter implements Filter {
 
   @Override
   public void destroy() {
-
   }
 
   private boolean isPrimary() {
@@ -127,8 +126,8 @@ public class RedirectFilter implements Filter {
   }
 
   private InetSocketAddress getPrimaryAddress() throws UnavailableException {
-    MasterInquireClient client =
-            MasterInquireClient.Factory.create(ServerConfiguration.global(), ServerUserState.global());
+    MasterInquireClient client = MasterInquireClient.Factory.create(
+        ServerConfiguration.global(), ServerUserState.global());
 
     return client.getPrimaryRpcAddress();
   }
