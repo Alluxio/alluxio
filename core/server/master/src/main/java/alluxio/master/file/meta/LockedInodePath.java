@@ -236,8 +236,8 @@ public class LockedInodePath implements Closeable {
    *         the current thread has added or deleted inodes since the last call to traverse()
    */
   public boolean fullPathExists() {
-    LOG.info("numLocks: {}, mLockList: {}, pathComponents: {}", mLockList.numInodes(),
-            mLockList, mPathComponents);
+//    LOG.info("numLocks: {}, mLockList: {}, pathComponents: {}", mLockList.numInodes(),
+//            mLockList, mPathComponents);
     return mLockList.numInodes() == mPathComponents.length;
   }
 

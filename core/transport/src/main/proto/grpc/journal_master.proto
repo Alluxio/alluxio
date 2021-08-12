@@ -21,6 +21,7 @@ enum JournalDomain {
 message QuorumServerInfo {
     optional NetAddress serverAddress = 1;
     optional QuorumServerState serverState = 2;
+    optional bool isLeader = 3;
 }
 
 // GetQuorumInfo API

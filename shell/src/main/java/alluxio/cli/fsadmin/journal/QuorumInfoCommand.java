@@ -36,7 +36,7 @@ public class QuorumInfoCommand extends AbstractFsAdminCommand {
 
   public static final String OUTPUT_HEADER_DOMAIN = "Journal domain\t: %s";
   public static final String OUTPUT_HEADER_QUORUM_SIZE = "Quorum size\t: %d";
-  public static final String OUTPUT_SERVER_INFO = "%s\t %s:%s";
+  public static final String OUTPUT_SERVER_INFO = "%s\t %s:%s\t%s";
 
   /**
    * @param context fsadmin command context
@@ -72,10 +72,11 @@ public class QuorumInfoCommand extends AbstractFsAdminCommand {
     mPrintStream.println(String.format(OUTPUT_HEADER_DOMAIN, quorumInfo.getDomain()));
     mPrintStream
         .println(String.format(OUTPUT_HEADER_QUORUM_SIZE, quorumInfo.getServerInfoList().size()));
-    mPrintStream.println("STATE\t\tSERVER ADDRESS");
+    mPrintStream.println("STATE\t\tSERVER ADDRESS\t\tLEADER");
     for (QuorumServerInfo serverState : quorumInfo.getServerInfoList()) {
       String serverStateStr = String.format(OUTPUT_SERVER_INFO, serverState.getServerState(),
-          serverState.getServerAddress().getHost(), serverState.getServerAddress().getRpcPort());
+          serverState.getServerAddress().getHost(), serverState.getServerAddress().getRpcPort(),
+              serverState.getIsLeader());
       mPrintStream.println(serverStateStr);
     }
 

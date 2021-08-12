@@ -799,7 +799,9 @@ public class RaftJournalSystem extends AbstractJournalSystem {
       NetAddress memberAddress = NetAddress.newBuilder().setHost(hp.getHost())
           .setRpcPort(hp.getPort()).build();
 
-      quorumMemberStateList.add(QuorumServerInfo.newBuilder().setServerAddress(memberAddress)
+      quorumMemberStateList.add(QuorumServerInfo.newBuilder()
+              .setIsLeader(false)
+              .setServerAddress(memberAddress)
           .setServerState(member.getLastRpcElapsedTimeMs() > mConf.getElectionTimeoutMs()
               ? QuorumServerState.UNAVAILABLE : QuorumServerState.AVAILABLE).build());
     }
@@ -809,6 +811,7 @@ public class RaftJournalSystem extends AbstractJournalSystem {
         .setRpcPort(localAddress.getPort())
         .build();
     quorumMemberStateList.add(QuorumServerInfo.newBuilder()
+            .setIsLeader(true)
         .setServerAddress(self)
         .setServerState(QuorumServerState.AVAILABLE).build());
     return quorumMemberStateList;
