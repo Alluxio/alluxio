@@ -32,6 +32,8 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 
+import java.lang.Math;
+
 /**
  * A shared gRPC data reader that cache blocks data for multi-thread accessing.
  *
