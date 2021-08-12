@@ -72,15 +72,14 @@ public class FuseIOBench extends Benchmark<FuseIOTaskResult> {
   public void prepare() throws Exception {
     if (mParameters.mNumFiles % mParameters.mNumDirs != 0) {
       throw new IllegalArgumentException(String
-          .format("Number of files (%d) must be a multiple of number of directories (%d)",
+          .format("Number of files (%d) must be a multiple of the number of directories (%d)",
               mParameters.mNumFiles, mParameters.mNumDirs));
     }
-    int numFilesPerDir = mParameters.mNumFiles / mParameters.mNumDirs;
     for (Integer numOfThreads: mParameters.mThreads) {
       if (mParameters.mNumFiles % numOfThreads != 0) {
         throw new IllegalArgumentException(String
-            .format("Number of files (%d) must be a multiple of the number threads (%d)",
-                numOfThreads, numFilesPerDir));
+            .format("Number of files (%d) must be a multiple of the number of threads (%d)",
+                    mParameters.mNumFiles, numOfThreads));
       }
     }
     if (mParameters.mReadRandom) {
