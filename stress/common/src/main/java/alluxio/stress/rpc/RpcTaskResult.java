@@ -44,6 +44,32 @@ public class RpcTaskResult implements TaskResult {
   }
 
   /**
+   * Constructor with only parameters.
+   *
+   * @param baseParameters base parameters
+   * @param rpcBenchParameters test specific parameters
+   */
+  public RpcTaskResult(BaseParameters baseParameters,
+       RpcBenchParameters rpcBenchParameters) {
+    mPoints = new ArrayList<>();
+    mErrors = new ArrayList<>();
+    mBaseParameters = baseParameters;
+    mParameters = rpcBenchParameters;
+  }
+
+  /**
+   * A copy constructor.
+   *
+   * @param source the result to copy from
+   */
+  public RpcTaskResult(RpcTaskResult source) {
+    mPoints = source.mPoints;
+    mErrors = source.mErrors;
+    mBaseParameters = source.mBaseParameters;
+    mParameters = source.mParameters;
+  }
+
+  /**
    * @return the {@link BaseParameters}
    */
   @Nullable

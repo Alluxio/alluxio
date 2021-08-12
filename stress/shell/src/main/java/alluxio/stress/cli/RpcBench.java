@@ -23,7 +23,6 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 
 /**
  * A benchmarking tool to simulate stress on RPCs.
@@ -97,15 +96,14 @@ public abstract class RpcBench<T extends RpcBenchParameters> extends Benchmark<R
       LOG.info("{} jobs submitted", futures.size());
 
       // Collect the result
-      CompletableFuture[] cfs = futures.toArray(new CompletableFuture[0]);
-      List<RpcTaskResult> results = CompletableFuture.allOf(cfs)
-              .thenApply(f -> futures.stream()
-                      .map(CompletableFuture::join)
-                      .collect(Collectors.toList())
-              ).get();
-      LOG.info("{} futures collected: {}", results.size(),
-              results.size() > 0 ? results.get(0) : "[]");
-      return RpcTaskResult.Aggregator.reduceList(results);
+      RpcTaskResult merged = futures.stream()
+          .map(CompletableFuture::join)
+          .reduce(new RpcTaskResult(mBaseParameters, rpcBenchParameters),
+              (sum, one) -> {
+                sum.merge(one);
+                return sum;
+              });
+      return merged;
     } catch (Exception e) {
       LOG.error("Failed to execute RPC in pool", e);
       RpcTaskResult result = new RpcTaskResult();
