@@ -23,6 +23,7 @@ import alluxio.stress.CachingBlockMasterClient;
 import alluxio.stress.rpc.BlockMasterBenchParameters;
 import alluxio.stress.rpc.RpcTaskResult;
 import alluxio.stress.rpc.TierAlias;
+import alluxio.util.FormatUtils;
 import alluxio.worker.block.BlockMasterClient;
 import alluxio.worker.block.BlockStoreLocation;
 
@@ -35,6 +36,7 @@ import org.slf4j.LoggerFactory;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.List;
@@ -108,7 +110,8 @@ public class RegisterWorkerBench extends RpcBench<BlockMasterBenchParameters> {
     mainInternal(args, new RegisterWorkerBench());
   }
 
-  private RpcTaskResult simulateRegisterWorker(alluxio.worker.block.BlockMasterClient client) {
+  private RpcTaskResult simulateRegisterWorker(alluxio.worker.block.BlockMasterClient client,
+                                               Instant endTime) {
     RpcTaskResult result = new RpcTaskResult();
     long i = 0;
 
@@ -125,7 +128,9 @@ public class RegisterWorkerBench extends RpcBench<BlockMasterBenchParameters> {
     // Each client will simulate only one worker register RPC
     // Because the number of concurrent register RPCs is the variable we want to control
     // And we want these RPCs to invoke at roughly the same time
-    runOnce(client, result, i, workerId);
+    while (Instant.now().isBefore(endTime)) {
+      runOnce(client, result, i, workerId);
+    }
 
     return result;
   }
@@ -175,7 +180,12 @@ public class RegisterWorkerBench extends RpcBench<BlockMasterBenchParameters> {
     result.setBaseParameters(mBaseParameters);
     result.setParameters(mParameters);
 
-    RpcTaskResult taskResult = simulateRegisterWorker(client);
+    long durationMs = FormatUtils.parseTimeSize(mParameters.mDuration);
+    Instant startTime = Instant.now();
+    Instant endTime = startTime.plus(durationMs, ChronoUnit.MILLIS);
+    LOG.info("Test start time {}, end time {}", startTime, endTime);
+
+    RpcTaskResult taskResult = simulateRegisterWorker(client, endTime);
     LOG.info("Received task result {}", taskResult);
     result.merge(taskResult);
 
