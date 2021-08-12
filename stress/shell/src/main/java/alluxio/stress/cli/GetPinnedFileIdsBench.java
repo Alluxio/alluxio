@@ -61,8 +61,10 @@ public class GetPinnedFileIdsBench extends RpcBench<GetPinnedFileIdsParameters> 
 
   private final InstancedConfiguration mConf = InstancedConfiguration.defaults();
   private final FileSystemContext mFileSystemContext = FileSystemContext.create(mConf);
-  private final Stopwatch mDurationStopwatch = Stopwatch.createUnstarted();
-  private final Stopwatch mPointStopwatch = Stopwatch.createUnstarted();
+  private final ThreadLocal<Stopwatch> mDurationStopwatch =
+      ThreadLocal.withInitial(Stopwatch::createUnstarted);
+  private final ThreadLocal<Stopwatch> mPointStopwatch =
+      ThreadLocal.withInitial(Stopwatch::createUnstarted);
   private final PinListFileSystemMasterClient mWorkerClient =
       new PinListFileSystemMasterClient(
           MasterClientContext.newBuilder(ClientContext.create(mConf)).build());
@@ -130,16 +132,16 @@ public class GetPinnedFileIdsBench extends RpcBench<GetPinnedFileIdsParameters> 
     result.setBaseParameters(mBaseParameters);
     result.setParameters(mParameters);
 
-    mDurationStopwatch.reset().start();
+    mDurationStopwatch.get().reset().start();
     long durationMs = FormatUtils.parseTimeSize(mParameters.mDuration);
     LOG.info("Beginning benchmark, running for {} ms", durationMs);
-    while (mDurationStopwatch.elapsed(TimeUnit.MILLISECONDS) < durationMs) {
+    while (mDurationStopwatch.get().elapsed(TimeUnit.MILLISECONDS) < durationMs) {
       try {
-        mPointStopwatch.reset().start();
+        mPointStopwatch.get().reset().start();
 
         int numPinnedFiles = mWorkerClient.getPinListLength();
 
-        mPointStopwatch.stop();
+        mPointStopwatch.get().stop();
 
         // TODO(bowen): assertion may fail when running in cluster mode due to
         //  unwanted extra runs of prepare()
@@ -148,7 +150,8 @@ public class GetPinnedFileIdsBench extends RpcBench<GetPinnedFileIdsParameters> 
               numPinnedFiles, mParameters.mNumFiles));
           return result;
         }
-        result.addPoint(new RpcTaskResult.Point(mPointStopwatch.elapsed(TimeUnit.MILLISECONDS)));
+        result.addPoint(
+            new RpcTaskResult.Point(mPointStopwatch.get().elapsed(TimeUnit.MILLISECONDS)));
       } catch (Exception e) {
         LOG.error("Failed when running", e);
         result.addError(e.getMessage());
