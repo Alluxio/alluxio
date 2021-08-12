@@ -47,7 +47,6 @@ public class CachingBlockMasterClient extends BlockMasterClient {
     mLocationBlockIdList = locationBlockIdList;
   }
 
-  // Todo(jiacheng): Compile error: method does not override or implement a method from a supertype
   @Override
   public List<LocationBlockIdListEntry> convertBlockListMapToProto(
           Map<BlockStoreLocation, List<Long>> blockListOnLocation) {

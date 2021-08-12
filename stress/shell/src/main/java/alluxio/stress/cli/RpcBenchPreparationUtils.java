@@ -167,7 +167,7 @@ public class RpcBenchPreparationUtils {
         BlockStoreLocation loc = new BlockStoreLocation(TIER_NAMES[i], j);
 
         LOG.info("Found dir with {} blocks", dir);
-        long num = Long.parseLong(dir);
+        int num = Integer.parseInt(dir);
         List<Long> blockIds = generateDecreasingNumbers(blockIdStart, num);
 
         blockMap.put(loc, blockIds);
@@ -179,9 +179,9 @@ public class RpcBenchPreparationUtils {
     return blockMap;
   }
 
-  private static List<Long> generateDecreasingNumbers(long start, long count) {
+  private static List<Long> generateDecreasingNumbers(long start, int count) {
     LOG.info("Generating block Ids ({}, {}]", start - count, start);
-    List<Long> list = new ArrayList<>();
+    List<Long> list = new ArrayList<>(count);
     for (long i = 0; i < count; i++) {
       list.add(start - i);
     }

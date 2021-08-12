@@ -12,7 +12,6 @@
 package alluxio.stress.rpc;
 
 import alluxio.stress.BaseParameters;
-import alluxio.stress.Parameters;
 import alluxio.stress.Summary;
 import alluxio.stress.TaskResult;
 import alluxio.util.JsonSerializable;
@@ -20,20 +19,21 @@ import alluxio.util.JsonSerializable;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.MoreObjects;
 
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
 /**
  * This object holds the results from one RPC benchmark test run, containing all
  * successful and failed RPCs.
- * For one successful run, the result is a data point.
- * For one failed run, the result is an error.
+ * For a successful RPC call, the result is a data point.
+ * For a failed RPC call, the result is an error.
  */
 public class RpcTaskResult implements TaskResult {
   private List<Point> mPoints;
   private List<String> mErrors;
   private BaseParameters mBaseParameters;
-  private Parameters mParameters;
+  private RpcBenchParameters mParameters;
 
   /**
    * Constructor.
@@ -46,6 +46,7 @@ public class RpcTaskResult implements TaskResult {
   /**
    * @return the {@link BaseParameters}
    */
+  @Nullable
   public BaseParameters getBaseParameters() {
     return mBaseParameters;
   }
@@ -58,16 +59,17 @@ public class RpcTaskResult implements TaskResult {
   }
 
   /**
-   * @return the {@link Parameters}
+   * @return the {@link RpcBenchParameters}
    */
-  public Parameters getParameters() {
+  @Nullable
+  public RpcBenchParameters getParameters() {
     return mParameters;
   }
 
   /**
-   * @param parameters the {@link Parameters} to use
+   * @param parameters the {@link RpcBenchParameters} to use
    */
-  public void setParameters(Parameters parameters) {
+  public void setParameters(RpcBenchParameters parameters) {
     mParameters = parameters;
   }
 
@@ -141,7 +143,7 @@ public class RpcTaskResult implements TaskResult {
      *
      * @param results a list of results to combine
      * @return the combined result
-     * */
+     */
     public static RpcTaskResult reduceList(Iterable<RpcTaskResult> results) {
       RpcTaskResult aggreResult = new RpcTaskResult();
       for (RpcTaskResult r : results) {
@@ -159,7 +161,7 @@ public class RpcTaskResult implements TaskResult {
 
     /**
      * Creates a new data point.
-     * @param ms time in nanosecond in this data point
+     * @param ms time in millisecond in this data point
      */
     public Point(@JsonProperty("duration") long ms) {
       mDurationMs = ms;

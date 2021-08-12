@@ -25,5 +25,5 @@ public class RpcBenchParameters extends Parameters {
 
   @Parameter(names = {"--duration"},
       description = "The length of time to run the benchmark. (1m, 10m, 60s, 10000ms, etc.)")
-  public String mDuration = "30s";
+  public String mDuration = "5s";
 }

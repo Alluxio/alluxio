@@ -19,7 +19,6 @@ import alluxio.master.MasterClientContext;
 import alluxio.stress.CachingBlockMasterClient;
 import alluxio.stress.rpc.BlockMasterBenchParameters;
 import alluxio.stress.rpc.RpcTaskResult;
-import alluxio.util.FormatUtils;
 import alluxio.worker.block.BlockMasterClient;
 import alluxio.worker.block.BlockStoreLocation;
 
@@ -27,16 +26,15 @@ import com.beust.jcommander.ParametersDelegate;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Maps;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.time.Duration;
 import java.time.Instant;
-import java.time.temporal.ChronoUnit;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Deque;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -132,7 +130,7 @@ public class RegisterWorkerBench extends RpcBench<BlockMasterBenchParameters> {
     return result;
   }
 
-  private List<String> simulateTierAliases(String tierConfig) {
+  private static List<String> simulateTierAliases(String tierConfig) {
     String[] parts = tierConfig.split(";");
     LOG.info("Simulate {} tiers with config {}", parts.length, tierConfig);
     List<String> aliases = new ArrayList<>();
@@ -142,29 +140,11 @@ public class RegisterWorkerBench extends RpcBench<BlockMasterBenchParameters> {
     return aliases;
   }
 
-  private Map<String, Long> simulateCapacityMap(List<String> tierAliases) {
-    Map<String, Long> capMap = new HashMap<>();
-    for (String t : tierAliases) {
-      capMap.put(t, CAPACITY);
-    }
-    return capMap;
-  }
-
-  private Map<String, Long> simulateUsedMap(List<String> tierAliases) {
-    Map<String, Long> usedMap = new HashMap<>();
-    for (String t : tierAliases) {
-      usedMap.put(t, 0L);
-    }
-    return usedMap;
-  }
-
   private void runOnce(alluxio.worker.block.BlockMasterClient client,
                        RpcTaskResult result, long i, long workerId) {
     List<String> tierAliases = simulateTierAliases(mParameters.mTiers);
-    LOG.info("Tier aliases: {}", tierAliases);
-    Map<String, Long> capacityMap = simulateCapacityMap(tierAliases);
-    Map<String, Long> usedMap = simulateUsedMap(tierAliases);
-    LOG.info("Capacity: {}, Used: {}", capacityMap, usedMap);
+    Map<String, Long> capacityMap = Maps.toMap(tierAliases, (tier) -> CAPACITY);
+    Map<String, Long> usedMap = Maps.toMap(tierAliases, (tier) -> 0L);
 
     try {
       Instant s = Instant.now();
@@ -199,11 +179,6 @@ public class RegisterWorkerBench extends RpcBench<BlockMasterBenchParameters> {
             new CachingBlockMasterClient(MasterClientContext
                     .newBuilder(ClientContext.create(mConf))
                     .build(), mLocationBlockIdList);
-
-    long durationMs = FormatUtils.parseTimeSize(mParameters.mDuration);
-    Instant startTime = Instant.now();
-    Instant endTime = startTime.plus(durationMs, ChronoUnit.MILLIS);
-    LOG.info("Start time {}, end time {}", startTime, endTime);
 
     RpcTaskResult result = new RpcTaskResult();
     result.setBaseParameters(mBaseParameters);

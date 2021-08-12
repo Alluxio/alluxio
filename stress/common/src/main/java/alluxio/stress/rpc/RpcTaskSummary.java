@@ -13,13 +13,12 @@ package alluxio.stress.rpc;
 
 import alluxio.stress.BaseParameters;
 import alluxio.stress.GraphGenerator;
-import alluxio.stress.Parameters;
 import alluxio.stress.Summary;
-import alluxio.stress.worker.UfsIOParameters;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.google.common.math.Quantiles;
 
+import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -32,7 +31,7 @@ public class RpcTaskSummary implements Summary {
   private List<RpcTaskResult.Point> mPoints;
   private List<String> mErrors;
   private BaseParameters mBaseParameters;
-  private Parameters mParameters;
+  private RpcBenchParameters mParameters;
   public long mCount;
   public long mTotalDurationMs;
   public double mAvgDurationMs;
@@ -105,57 +104,58 @@ public class RpcTaskSummary implements Summary {
 
   /**
    * @return the points recorded
-   * */
+   */
   public List<RpcTaskResult.Point> getPoints() {
     return mPoints;
   }
 
   /**
    * @param points the data points
-   * */
+   */
   public void setPoints(List<RpcTaskResult.Point> points) {
     mPoints = points;
   }
 
   /**
    * @return the errors recorded
-   * */
+   */
   public List<String> getErrors() {
     return mErrors;
   }
 
   /**
    * @param errors the errors
-   * */
+   */
   public void setErrors(List<String> errors) {
     mErrors = errors;
   }
 
   /**
    * @return the {@link BaseParameters}
-   * */
+   */
   public BaseParameters getBaseParameters() {
     return mBaseParameters;
   }
 
   /**
    * @param baseParameters the {@link BaseParameters}
-   * */
+   */
   public void setBaseParameters(BaseParameters baseParameters) {
     mBaseParameters = baseParameters;
   }
 
   /**
-   * @return the task specific {@link UfsIOParameters}
-   * */
-  public Parameters getParameters() {
+   * @return the task specific {@link RpcBenchParameters}
+   */
+  @Nullable
+  public RpcBenchParameters getParameters() {
     return mParameters;
   }
 
   /**
-   * @param parameters the {@link UfsIOParameters}
-   * */
-  public void setParameters(Parameters parameters) {
+   * @param parameters the {@link RpcBenchParameters}
+   */
+  public void setParameters(RpcBenchParameters parameters) {
     mParameters = parameters;
   }
 }

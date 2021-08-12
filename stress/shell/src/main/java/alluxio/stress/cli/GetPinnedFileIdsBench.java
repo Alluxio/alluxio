@@ -81,7 +81,7 @@ public class GetPinnedFileIdsBench extends RpcBench<GetPinnedFileIdsParameters> 
               CreateDirectoryPOptions.newBuilder().setAllowExists(true).build());
     }
     int numFiles = mParameters.mNumFiles;
-    int fileNameLength = (int) Math.max(8, Math.log10(numFiles));
+    int fileNameLength = (int) Math.ceil(Math.max(8, Math.log10(numFiles)));
 
     CompletableFuture<Void>[] futures = new CompletableFuture[numFiles];
     LOG.info("Generating {} pinned test files at the master", numFiles);
@@ -132,6 +132,7 @@ public class GetPinnedFileIdsBench extends RpcBench<GetPinnedFileIdsParameters> 
 
     mDurationStopwatch.reset().start();
     long durationMs = FormatUtils.parseTimeSize(mParameters.mDuration);
+    LOG.info("Beginning benchmark, running for {} ms", durationMs);
     while (mDurationStopwatch.elapsed(TimeUnit.MILLISECONDS) < durationMs) {
       try {
         mPointStopwatch.reset().start();
