@@ -11,20 +11,24 @@
 
 package alluxio.stress.cli;
 
+import static alluxio.stress.cli.RpcBenchPreparationUtils.CAPACITY;
+import static alluxio.stress.cli.RpcBenchPreparationUtils.EMPTY_CONFIG;
+import static alluxio.stress.cli.RpcBenchPreparationUtils.LOST_STORAGE;
+
 import alluxio.ClientContext;
 import alluxio.conf.InstancedConfiguration;
-import alluxio.grpc.ConfigProperty;
 import alluxio.grpc.LocationBlockIdListEntry;
 import alluxio.master.MasterClientContext;
 import alluxio.stress.CachingBlockMasterClient;
 import alluxio.stress.rpc.BlockMasterBenchParameters;
 import alluxio.stress.rpc.RpcTaskResult;
+import alluxio.stress.rpc.TierAlias;
+import alluxio.util.FormatUtils;
 import alluxio.worker.block.BlockMasterClient;
 import alluxio.worker.block.BlockStoreLocation;
 
 import com.beust.jcommander.ParametersDelegate;
 import com.google.common.base.Preconditions;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import org.slf4j.Logger;
@@ -32,11 +36,12 @@ import org.slf4j.LoggerFactory;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayDeque;
-import java.util.ArrayList;
 import java.util.Deque;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * A benchmarking tool for the RegisterWorker RPC.
@@ -54,17 +59,11 @@ import java.util.Map;
 public class RegisterWorkerBench extends RpcBench<BlockMasterBenchParameters> {
   private static final Logger LOG = LoggerFactory.getLogger(RegisterWorkerBench.class);
 
-  // Constants used for the RPC simulation
-  private static final long CAPACITY = 20L * 1024 * 1024 * 1024; // 20GB
-  private static final Map<String, Long> CAPACITY_MEM = ImmutableMap.of("MEM", CAPACITY);
-  private static final Map<String, Long> USED_MEM_EMPTY = ImmutableMap.of("MEM", 0L);
-  private static final List<String> TIER_ALIASES = ImmutableList.of("MEM", "SSD", "HDD");
-  private static final Map<String, List<String>> LOST_STORAGE =
-      ImmutableMap.of("MEM", new ArrayList<>());
-  private static final List<ConfigProperty> EMPTY_CONFIG = ImmutableList.of();
-
   @ParametersDelegate
   private BlockMasterBenchParameters mParameters = new BlockMasterBenchParameters();
+  private List<String> mTierAliases;
+  private Map<String, Long> mCapacityMap;
+  private Map<String, Long> mUsedMap;
 
   private final InstancedConfiguration mConf = InstancedConfiguration.defaults();
 
@@ -78,6 +77,9 @@ public class RegisterWorkerBench extends RpcBench<BlockMasterBenchParameters> {
     // So including that in the log can help associate the log to the run
     LOG.info("Task ID is {}", mBaseParameters.mId);
 
+    mTierAliases = getTierAliases(mParameters.mTiers);
+    mCapacityMap = Maps.toMap(mTierAliases, (tier) -> CAPACITY);
+    mUsedMap = Maps.toMap(mTierAliases, (tier) -> 0L);
     // Generate block IDs heuristically
     Map<BlockStoreLocation, List<Long>> blockMap =
         RpcBenchPreparationUtils.generateBlockIdOnTiers(mParameters.mTiers);
@@ -108,7 +110,8 @@ public class RegisterWorkerBench extends RpcBench<BlockMasterBenchParameters> {
     mainInternal(args, new RegisterWorkerBench());
   }
 
-  private RpcTaskResult simulateRegisterWorker(alluxio.worker.block.BlockMasterClient client) {
+  private RpcTaskResult simulateRegisterWorker(alluxio.worker.block.BlockMasterClient client,
+                                               Instant endTime) {
     RpcTaskResult result = new RpcTaskResult();
     long i = 0;
 
@@ -125,27 +128,20 @@ public class RegisterWorkerBench extends RpcBench<BlockMasterBenchParameters> {
     // Each client will simulate only one worker register RPC
     // Because the number of concurrent register RPCs is the variable we want to control
     // And we want these RPCs to invoke at roughly the same time
-    runOnce(client, result, i, workerId);
+    while (Instant.now().isBefore(endTime)) {
+      runOnce(client, result, i, workerId);
+    }
 
     return result;
   }
 
-  private static List<String> simulateTierAliases(String tierConfig) {
-    String[] parts = tierConfig.split(";");
-    LOG.info("Simulate {} tiers with config {}", parts.length, tierConfig);
-    List<String> aliases = new ArrayList<>();
-    for (int i = 0; i < parts.length; i++) {
-      aliases.add(TIER_ALIASES.get(i));
-    }
-    return aliases;
+  private static List<String> getTierAliases(Map<TierAlias, List<Integer>> tierConfig) {
+    LOG.info("Simulate {} tiers with config {}", tierConfig.size(), tierConfig);
+    return tierConfig.keySet().stream().map(TierAlias::toString).collect(Collectors.toList());
   }
 
   private void runOnce(alluxio.worker.block.BlockMasterClient client,
                        RpcTaskResult result, long i, long workerId) {
-    List<String> tierAliases = simulateTierAliases(mParameters.mTiers);
-    Map<String, Long> capacityMap = Maps.toMap(tierAliases, (tier) -> CAPACITY);
-    Map<String, Long> usedMap = Maps.toMap(tierAliases, (tier) -> 0L);
-
     try {
       Instant s = Instant.now();
       // TODO(jiacheng): The 1st reported RPC time is always very long, this does
@@ -153,9 +149,9 @@ public class RegisterWorkerBench extends RpcBench<BlockMasterBenchParameters> {
       //  I suspect it's the time spend in establishing the connection.
       //  The easiest way out is just to ignore the 1st point.
       client.register(workerId,
-              tierAliases,
-              capacityMap,
-              usedMap,
+              mTierAliases,
+              mCapacityMap,
+              mUsedMap,
               // Will use the prepared block list instead of converting on the fly
               // So an empty block list will be used here
               ImmutableMap.of(),
@@ -180,16 +176,16 @@ public class RegisterWorkerBench extends RpcBench<BlockMasterBenchParameters> {
                     .newBuilder(ClientContext.create(mConf))
                     .build(), mLocationBlockIdList);
 
-    RpcTaskResult result = new RpcTaskResult();
-    result.setBaseParameters(mBaseParameters);
-    result.setParameters(mParameters);
+    long durationMs = FormatUtils.parseTimeSize(mParameters.mDuration);
+    Instant startTime = Instant.now();
+    Instant endTime = startTime.plus(durationMs, ChronoUnit.MILLIS);
+    LOG.info("Test start time {}, end time {}", startTime, endTime);
 
-    RpcTaskResult taskResult = simulateRegisterWorker(client);
+    RpcTaskResult taskResult = simulateRegisterWorker(client, endTime);
     LOG.info("Received task result {}", taskResult);
-    result.merge(taskResult);
-
     LOG.info("Run finished");
-    return result;
+
+    return taskResult;
   }
 
   @Override

@@ -11,10 +11,14 @@
 
 package alluxio.stress.cli;
 
+import static alluxio.stress.rpc.TierAlias.MEM;
+
 import alluxio.ClientContext;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
+import alluxio.grpc.ConfigProperty;
 import alluxio.master.MasterClientContext;
+import alluxio.stress.rpc.TierAlias;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.wire.WorkerNetAddress;
 import alluxio.worker.block.BlockMasterClient;
@@ -43,12 +47,14 @@ import java.util.concurrent.ExecutorService;
 public class RpcBenchPreparationUtils {
   private static final Logger LOG = LoggerFactory.getLogger(RpcBenchPreparationUtils.class);
 
-  private static final String[] TIER_NAMES = new String[]{"MEM", "SSD", "HDD"};
-  private static final long CAPACITY = 20L * 1024 * 1024 * 1024; // 20GB
-  private static final Map<String, Long> CAPACITY_MEM = ImmutableMap.of("MEM", CAPACITY);
-  private static final Map<String, Long> USED_MEM_EMPTY = ImmutableMap.of("MEM", 0L);
-  private static final BlockStoreLocation BLOCK_LOCATION_MEM =
-      new BlockStoreLocation("MEM", 0, "MEM");
+  public static final long CAPACITY = 20L * 1024 * 1024 * 1024; // 20GB
+  public static final Map<String, Long> CAPACITY_MEM = ImmutableMap.of(MEM.toString(), CAPACITY);
+  public static final Map<String, Long> USED_MEM_EMPTY = ImmutableMap.of(MEM.toString(), 0L);
+  public static final BlockStoreLocation BLOCK_LOCATION_MEM =
+      new BlockStoreLocation(MEM.toString(), 0, MEM.toString());
+  public static final Map<String, List<String>> LOST_STORAGE =
+      ImmutableMap.of(MEM.toString(), ImmutableList.of());
+  public static final List<ConfigProperty> EMPTY_CONFIG = ImmutableList.of();
 
   private static InstancedConfiguration sConf = InstancedConfiguration.defaults();
 
@@ -132,15 +138,13 @@ public class RpcBenchPreparationUtils {
   static void registerWorkers(BlockMasterClient client, Deque<Long> workerIds) throws IOException {
     for (long w : workerIds) {
       LOG.info("Worker {} registering", w);
-      List<String> tierAliases = new ArrayList<>();
-      tierAliases.add("MEM");
       client.register(w,
-              tierAliases,
-              CAPACITY_MEM,
-              USED_MEM_EMPTY,
-              ImmutableMap.of(BLOCK_LOCATION_MEM, new ArrayList<>()),
-              ImmutableMap.of("MEM", new ArrayList<>()), // lost storage
-              ImmutableList.of()); // extra config
+          ImmutableList.of(MEM.toString()),
+          CAPACITY_MEM,
+          USED_MEM_EMPTY,
+          ImmutableMap.of(BLOCK_LOCATION_MEM, ImmutableList.of()),
+          LOST_STORAGE, // lost storage
+          EMPTY_CONFIG); // extra config
     }
     LOG.info("All workers registered");
   }
@@ -150,32 +154,22 @@ public class RpcBenchPreparationUtils {
    * In order to avoid block ID colliding with existing blocks, this will generate IDs
    * decreasingly from the {@link Long#MAX_VALUE}.
    */
-  static Map<BlockStoreLocation, List<Long>> generateBlockIdOnTiers(String tiersConfig) {
+  static Map<BlockStoreLocation, List<Long>> generateBlockIdOnTiers(
+      Map<TierAlias, List<Integer>> tiersConfig) {
     Map<BlockStoreLocation, List<Long>> blockMap = new HashMap<>();
 
-    LOG.info("Tier and dir config is {}", tiersConfig);
-    String[] tiers = tiersConfig.split(";");
-
     long blockIdStart = Long.MAX_VALUE;
-    for (int i = 0; i < tiers.length; i++) {
-      String tierConfig = tiers[i];
-      LOG.info("Found tier {}", TIER_NAMES[i]);
-
-      String[] dirConfigs = tierConfig.split(",");
-      for (int j = 0; j < dirConfigs.length; j++) {
-        String dir = dirConfigs[j];
-        BlockStoreLocation loc = new BlockStoreLocation(TIER_NAMES[i], j);
-
-        LOG.info("Found dir with {} blocks", dir);
-        int num = Integer.parseInt(dir);
-        List<Long> blockIds = generateDecreasingNumbers(blockIdStart, num);
-
+    for (Map.Entry<TierAlias, List<Integer>> tierConfig : tiersConfig.entrySet()) {
+      List<Integer> dirConfigs = tierConfig.getValue();
+      for (int i = 0; i < dirConfigs.size(); i++) {
+        int dirNumBlocks = dirConfigs.get(i);
+        LOG.info("Found dir on tier {} with {} blocks", tierConfig.getKey(), dirNumBlocks);
+        BlockStoreLocation loc = new BlockStoreLocation(tierConfig.getKey().toString(), i);
+        List<Long> blockIds = generateDecreasingNumbers(blockIdStart, dirNumBlocks);
         blockMap.put(loc, blockIds);
-
-        blockIdStart -= num;
+        blockIdStart -= dirNumBlocks;
       }
     }
-
     return blockMap;
   }
 

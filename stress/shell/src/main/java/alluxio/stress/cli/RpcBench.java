@@ -82,8 +82,7 @@ public abstract class RpcBench<T extends RpcBenchParameters> extends Benchmark<R
           threadResult.setParameters(rpcBenchParameters);
           try {
             RpcTaskResult r = runRPC();
-            threadResult.setPoints(r.getPoints());
-            threadResult.setErrors(r.getErrors());
+            threadResult.merge(r);
             return threadResult;
           } catch (Exception e) {
             LOG.error("Failed to execute RPC", e);
