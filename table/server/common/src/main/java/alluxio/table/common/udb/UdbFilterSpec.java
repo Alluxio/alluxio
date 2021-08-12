@@ -124,7 +124,8 @@ public final class UdbFilterSpec {
    * 3. a table cannot be specified by its exact name while also having partition specifications;
    *
    * Optional constraints:
-   * 1. tables are not ignored and bypassed at the same time (indicates misconfiguration);
+   * 1. a table should not be ignored and bypassed at the same time (indicates
+   *    misconfiguration). Otherwise, a warning is logged in {@link #isIgnoredTable(String)};
    */
   private UdbFilterSpec(
       Set<EntryName> bypassedTables,
