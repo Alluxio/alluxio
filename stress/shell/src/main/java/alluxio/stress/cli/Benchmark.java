@@ -58,7 +58,7 @@ public abstract class Benchmark<T extends TaskResult> {
   protected BaseParameters mBaseParameters = new BaseParameters();
 
   /**
-   * Get the description of the bench. Shown with the usage of parameters.
+   * Get the description of the bench.
    *
    * @return string of the bench description
    */

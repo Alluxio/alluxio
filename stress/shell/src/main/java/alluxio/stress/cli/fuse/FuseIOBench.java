@@ -72,11 +72,15 @@ public class FuseIOBench extends Benchmark<FuseIOTaskResult> {
         + "POSIX API.\nTo write data, run `bin/alluxio runClass alluxio.stress.cli.fuse."
         + "fuseIOBench --operation Write`\nTo read data, run `bin/alluxio runClass "
         + "alluxio.stress.cli.fuse.fuseIOBench --operation Read`\nYou can further adjust "
-        + "the parameters specified above. Make sure the local path is successfully mounted\n"
-        + "For example, to read 100 files of size 100MB with 5 threads at local path /home/"
-        + "ec2-user/fuseIOTest and 5 seconds of warmup time, run `bin/alluxio runClass "
-        + "alluxio.stress.cli.fuse.fuseIOBench --operation Write --file-size 100m --threads 5"
-        + "--num-files 100 --local-path /home/ec2-user/fuseIOTest --warmup 5s`";
+        + "the parameters specified above. Note that \"--operation\" is required, the "
+        + "\"--local-path\" can be a local filesystem path or a mounted fuse path, and test files "
+        + " need to be written first before reading.\nFor example, run `bin/alluxio runClass "
+        + "alluxio.stress.cli.fuse.fuseIOBench --operation Write --local-path /mnt/alluxio-fuse"
+        + "/FuseIOTest --num-files 100 --file-size 100m --threads 32` to write the test files "
+        + "first, then run `bin/alluxio runClass alluxio.stress.cli.fuse.fuseIOBench "
+        + "--operation Read --local-path /mnt/alluxio-fuse/FuseIOTest --num-files 100 "
+        + "--file-size 100m --threads 16 --warmup 15s --duration 30s` to test the reading "
+        + "throughput.\n";
   }
 
   @Override
