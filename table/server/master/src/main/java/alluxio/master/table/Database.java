@@ -342,7 +342,14 @@ public class Database implements Journaled {
 
   /**
    * Loads filter spec from config file specified by {@link CatalogProperty#DB_CONFIG_FILE}.
-   * @throws IOException when fails to parse the file or the configuration is invalid
+   * 1. When the user does not specify a config file, {@link UdbFilterSpec#empty()} is used;
+   * 2. When the user specifies a non-existent config file, {@link FileNotFoundException} is thrown;
+   * 3. When the file exists but is empty ({@code {@link File#length()} == 0}),
+   *    {@link UdbFilterSpec#empty()} is used;
+   * 4. Otherwise, the config file is parsed as {@link UdbFilterSpecJsonSource}. When the file
+   *    has invalid syntax or invalid configuration, {@link IOException} is thrown.
+   *
+   * @throws IOException when the file contains invalid syntax or configuration
    * @throws FileNotFoundException when the config file does not exist
    */
   private void loadFilterSpec() throws IOException {
