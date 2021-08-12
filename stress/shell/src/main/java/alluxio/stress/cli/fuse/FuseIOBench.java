@@ -79,7 +79,7 @@ public class FuseIOBench extends Benchmark<FuseIOTaskResult> {
       if (mParameters.mNumFiles % numOfThreads != 0) {
         throw new IllegalArgumentException(String
             .format("Number of files (%d) must be a multiple of the number of threads (%d)",
-                    mParameters.mNumFiles, numOfThreads));
+                mParameters.mNumFiles, numOfThreads));
       }
     }
     if (mParameters.mReadRandom) {
