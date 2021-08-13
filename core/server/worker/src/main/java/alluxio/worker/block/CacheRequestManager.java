@@ -23,6 +23,7 @@ import alluxio.grpc.CacheRequest;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.proto.dataserver.Protocol;
+import alluxio.util.CommonUtils;
 import alluxio.util.io.BufferUtils;
 import alluxio.util.logging.SamplingLogger;
 import alluxio.util.network.NetworkAddressUtils;
@@ -43,6 +44,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.RejectedExecutionException;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicLong;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -90,12 +92,25 @@ public class CacheRequestManager {
       throws AlluxioException, IOException {
     CACHE_REQUESTS.inc();
     long blockId = request.getBlockId();
-    if (mActiveCacheRequests.putIfAbsent(blockId, request) != null) {
-      // This block is already planned.
+    boolean async = request.getAsync();
+    if (mActiveCacheRequests.putIfAbsent(blockId, request) != null && async) {
+      // This block is already planned and just log since it's best effort.
       LOG.debug("request already planned: {}", request);
       return;
     }
-    boolean async = request.getAsync();
+    if (mActiveCacheRequests.putIfAbsent(blockId, request) != null && !async) {
+      // This block is already planned, wait for the block to be loaded.
+      try {
+        CommonUtils.waitFor("block to be loaded", () -> mActiveCacheRequests.containsKey(blockId));
+      } catch (InterruptedException e) {
+        throw new CancelledException("Fail to finish cache request synchronously. "
+            + "Interrupted while waiting for block to be loaded.", e);
+      } catch (TimeoutException e) {
+        throw new CancelledException("Fail to finish cache request synchronously due to timeout",
+            e);
+      }
+      return;
+    }
     if (!async) {
       CACHE_REQUESTS_SYNC.inc();
     } else {
@@ -190,9 +205,6 @@ public class CacheRequestManager {
       boolean result = false;
       try {
         result = cacheBlock(mRequest);
-      } catch (Exception e) {
-        mActiveCacheRequests.remove(blockId);
-        throw e;
       } finally {
         if (result) {
           CACHE_BLOCKS_SIZE.inc(blockLength);
@@ -243,7 +255,7 @@ public class CacheRequestManager {
   private boolean cacheBlockFromUfs(long blockId, long blockSize,
       Protocol.OpenUfsBlockOptions openUfsBlockOptions) throws IOException, AlluxioException {
     try (BlockReader reader = mBlockWorker.createUfsBlockReader(
-        Sessions.ASYNC_CACHE_UFS_SESSION_ID, blockId, 0, false, openUfsBlockOptions)) {
+        Sessions.CACHE_UFS_SESSION_ID, blockId, 0, false, openUfsBlockOptions)) {
       // Read the entire block, caching to block store will be handled internally in UFS block store
       // when close the reader.
       // Note that, we read from UFS with a smaller buffer to avoid high pressure on heap
@@ -271,7 +283,7 @@ public class CacheRequestManager {
       InetSocketAddress sourceAddress, Protocol.OpenUfsBlockOptions openUfsBlockOptions)
       throws IOException, AlluxioException {
     try {
-      mBlockWorker.createBlock(Sessions.ASYNC_CACHE_WORKER_SESSION_ID, blockId, 0, "", blockSize);
+      mBlockWorker.createBlock(Sessions.CACHE_WORKER_SESSION_ID, blockId, 0, "", blockSize);
     } catch (BlockAlreadyExistsException e) {
       // It is already cached
       LOG.debug("block already cached: {}", blockId);
@@ -281,15 +293,15 @@ public class CacheRequestManager {
         BlockReader reader =
             getRemoteBlockReader(blockId, blockSize, sourceAddress, openUfsBlockOptions);
          BlockWriter writer = mBlockWorker
-             .createBlockWriter(Sessions.ASYNC_CACHE_WORKER_SESSION_ID, blockId)) {
+             .createBlockWriter(Sessions.CACHE_WORKER_SESSION_ID, blockId)) {
       BufferUtils.transfer(reader.getChannel(), writer.getChannel());
-      mBlockWorker.commitBlock(Sessions.ASYNC_CACHE_WORKER_SESSION_ID, blockId, false);
+      mBlockWorker.commitBlock(Sessions.CACHE_WORKER_SESSION_ID, blockId, false);
       return true;
     } catch (AlluxioException | IOException e) {
       LOG.warn("Failed to async cache block {} from remote worker ({}) on copying the block: {}",
           blockId, sourceAddress, e.toString());
       try {
-        mBlockWorker.abortBlock(Sessions.ASYNC_CACHE_WORKER_SESSION_ID, blockId);
+        mBlockWorker.abortBlock(Sessions.CACHE_WORKER_SESSION_ID, blockId);
       } catch (AlluxioException | IOException ee) {
         LOG.warn("Failed to abort block {}: {}", blockId, ee.toString());
       }
