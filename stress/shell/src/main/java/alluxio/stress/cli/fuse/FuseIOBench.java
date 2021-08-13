@@ -162,7 +162,7 @@ public class FuseIOBench extends Benchmark<FuseIOTaskResult> {
             entry.getKey(), toSummaryStatistics(entry.getValue()));
       }
     }
-   
+
     return summaryStatistics;
   }
 
