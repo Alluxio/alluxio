@@ -21,7 +21,6 @@ import alluxio.proto.meta.Block;
 
 import com.google.common.io.Files;
 import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
@@ -32,10 +31,9 @@ import java.util.List;
 
 @RunWith(Parameterized.class)
 public class BlockStoreTest {
-  
   @Parameterized.Parameters
-  public static Collection<Object[]> data() throws Exception{
-    return Arrays.asList(new Object[][]{
+  public static Collection<Object[]> data() throws Exception {
+    return Arrays.asList(new Object[][] {
         {new RocksBlockStore(Files.createTempDir().getAbsolutePath())},
         {new HeapBlockStore()}
     });
@@ -116,8 +114,4 @@ public class BlockStoreTest {
     assertEquals(0, mBlockStore.size());
     mBlockStore.clear();
   }
-
-
-
-
 }
