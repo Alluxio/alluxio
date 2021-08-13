@@ -72,7 +72,7 @@ public class FuseIOBench extends Benchmark<FuseIOTaskResult> {
         + "POSIX API. To write data, run `bin/alluxio runClass alluxio.stress.cli.fuse."
         + "fuseIOBench --operation Write`. To read data, run `bin/alluxio runClass "
         + "alluxio.stress.cli.fuse.fuseIOBench --operation Read`. You can further adjust "
-        + "the parameters specified above. Note that the \"--operation\" is required, the "
+        + "the parameters specified below. Note that the \"--operation\" is required, the "
         + "\"--local-path\" can be a local filesystem path or a mounted fuse path, and test files "
         + "need to be written first before reading.\nFor example, run `bin/alluxio runClass "
         + "alluxio.stress.cli.fuse.fuseIOBench --operation Write --local-path /mnt/alluxio-fuse"

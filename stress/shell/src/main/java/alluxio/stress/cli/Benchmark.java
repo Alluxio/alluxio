@@ -117,14 +117,14 @@ public abstract class Benchmark<T extends TaskResult> {
     try {
       jc.parse(args);
       if (mBaseParameters.mHelp) {
-        jc.usage();
         System.out.println(getBenchDescription());
+        jc.usage();
         System.exit(0);
       }
     } catch (Exception e) {
       LOG.error("Failed to parse command: ", e);
-      jc.usage();
       System.out.println(getBenchDescription());
+      jc.usage();
       throw e;
     }
 
