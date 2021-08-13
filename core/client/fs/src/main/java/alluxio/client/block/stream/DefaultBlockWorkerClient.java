@@ -215,14 +215,14 @@ public class DefaultBlockWorkerClient implements BlockWorkerClient {
   @Override
   public void cache(CacheRequest request) {
     boolean async = request.getAsync();
-    if (async) {
-      try {
-        mRpcBlockingStub.withDeadlineAfter(mRpcTimeoutMs, TimeUnit.MILLISECONDS).cache(request);
-      } catch (Exception e) {
+    try {
+      mRpcBlockingStub.withDeadlineAfter(mRpcTimeoutMs, TimeUnit.MILLISECONDS).cache(request);
+    } catch (Exception e) {
+      if (!async) {
+        throw e;
+      } else {
         LOG.warn("Error sending async cache request {} to worker {}.", request, mAddress, e);
       }
-    } else {
-      mRpcBlockingStub.withDeadlineAfter(mRpcTimeoutMs, TimeUnit.MILLISECONDS).cache(request);
     }
   }
 }
