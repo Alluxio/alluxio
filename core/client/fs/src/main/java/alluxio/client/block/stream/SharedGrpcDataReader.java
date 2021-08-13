@@ -25,14 +25,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.lang.Math;
 import java.nio.ByteBuffer;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
-
-import java.lang.Math;
 
 /**
  * A shared gRPC data reader that cache blocks data for multi-thread accessing.
@@ -67,7 +66,7 @@ public class SharedGrpcDataReader implements DataReader {
   }
 
   private static ReentrantReadWriteLock getLock(long blockId) {
-    return BLOCK_LOCKS[math.floorMod(HASH_FUNC.hashLong(blockId).asInt(), BLOCK_LOCKS.length)];
+    return BLOCK_LOCKS[Math.floorMod(HASH_FUNC.hashLong(blockId).asInt(), BLOCK_LOCKS.length)];
   }
 
   private final long mBlockId;
