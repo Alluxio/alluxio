@@ -220,15 +220,9 @@ public final class AsyncJournalWriter {
      * resulting read of the counter AFTER the entry is added is guaranteed to be greater than or
      * equal to the counter for the entries in the queue.
      */
-
-    SAMPLING_LOG.info("appendEntry sequence # {}", entry.getSequenceNumber());
-    SAMPLING_LOG.info("appendEntry entry: <{}> ", entry);
-    long before = mCounter.incrementAndGet();
-    SAMPLING_LOG.info("counter before mQueue.offer: {}", before);
+    mCounter.incrementAndGet();
     mQueue.offer(entry);
-    long after = mCounter.get();
-    SAMPLING_LOG.info("counter after mQueue.offer: {}", after);
-    return after;
+    return mCounter.get();
   }
 
   /**
@@ -345,7 +339,7 @@ public final class AsyncJournalWriter {
       } catch (IOException | JournalClosedException exc) {
         // Add the error logging here since the actual flush error may be overwritten
         // by the future meaningless ratis.protocol.AlreadyClosedException
-        SAMPLING_LOG.info("Failed to flush journal entry: " + exc.getMessage(), exc);
+        SAMPLING_LOG.warn("Failed to flush journal entry: " + exc.getMessage(), exc);
         Metrics.JOURNAL_FLUSH_FAILURE.inc();
         // Release only tickets that have been flushed. Fail the rest.
         Iterator<FlushTicket> ticketIterator = mTicketSet.iterator();
@@ -370,7 +364,6 @@ public final class AsyncJournalWriter {
    * @param targetCounter the counter to flush
    */
   public void flush(final long targetCounter) throws IOException, JournalClosedException {
-    SAMPLING_LOG.info("flush targetCounter: {}", targetCounter);
     // Return if flushed.
     if (targetCounter <= mFlushCounter.get()) {
       return;
@@ -404,9 +397,7 @@ public final class AsyncJournalWriter {
        * Client can only try to reacquire the permit it has given
        * because the permit may or may not have been used by the flush thread.
        */
-      SAMPLING_LOG.info("flush targetCounter: {} | flushed normally normally", targetCounter);
       mFlushSemaphore.tryAcquire();
-      SAMPLING_LOG.info("flush - acquired semaphore");
     }
   }
 
