@@ -47,7 +47,7 @@ import java.util.Random;
  */
 public class CacheRequestManagerTest {
   private CacheRequestManager mCacheRequestManager;
-  private Random mRandom;
+  private final Random mRandom = new Random();
   private BlockWorker mBlockWorker;
   private FileSystemContext mFsContext;
 
