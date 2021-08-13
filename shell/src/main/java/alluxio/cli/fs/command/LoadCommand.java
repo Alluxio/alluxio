@@ -122,6 +122,7 @@ public final class LoadCommand extends AbstractFileSystemCommand {
         return;
       }
       runLoadTask(filePath, status, local);
+      System.out.println(filePath + " loaded");
     }
   }
 
@@ -132,7 +133,7 @@ public final class LoadCommand extends AbstractFileSystemCommand {
     BlockLocationPolicy policy = Preconditions.checkNotNull(
         BlockLocationPolicy.Factory
             .create(conf.get(PropertyKey.USER_UFS_BLOCK_READ_LOCATION_POLICY), conf),
-        PreconditionMessage.UFS_READ_LOCATION_POLICY_UNSPECIFIED);
+        "UFS read location policy Required");
     WorkerNetAddress dataSource;
     List<Long> blockIds = status.getBlockIds();
     for (long blockId : blockIds) {
@@ -172,16 +173,9 @@ public final class LoadCommand extends AbstractFileSystemCommand {
     CacheRequest request = CacheRequest.newBuilder().setBlockId(blockId).setLength(blockLength)
         .setOpenUfsBlockOptions(options).setSourceHost(dataSource.getHost())
         .setSourcePort(dataSource.getDataPort()).build();
-    WorkerNetAddress worker;
     try {
-      if (local) {
-        // send request to local worker
-        worker = mFsContext.getNodeLocalWorker();
-      } else { // send request to data source
-        worker = dataSource;
-      }
       try (CloseableResource<BlockWorkerClient> blockWorker =
-          mFsContext.acquireBlockWorkerClient(worker)) {
+          mFsContext.acquireBlockWorkerClient(dataSource)) {
         blockWorker.get().cache(request);
       }
     } catch (Exception e) {
