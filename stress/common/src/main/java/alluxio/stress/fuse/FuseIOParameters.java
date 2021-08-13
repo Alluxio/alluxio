@@ -46,12 +46,12 @@ public final class FuseIOParameters extends Parameters {
   public String mBufferSize = "64k";
 
   @Parameter(names = {"--num-files-per-dir"},
-      description = "The number of files per directory for the test")
+      description = "The number of files per directory")
   public int mNumFilesPerDir = 1000;
 
   @Parameter(names = {"--num-dirs"},
       description = "The number of directories that the files will be evenly distributed into."
-          + "It is suggested to be a multiple of the number of threads.")
+          + "It must be at least the number of threads and preferably a multiple of it.")
   public int mNumDirs = 1;
 
   @Parameter(names = {"--duration"},

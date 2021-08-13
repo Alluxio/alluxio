@@ -71,8 +71,10 @@ public class FuseIOBench extends Benchmark<FuseIOTaskResult> {
   @Override
   public void prepare() throws Exception {
     if (mParameters.mThreads > mParameters.mNumDirs) {
-      LOG.warn("Some threads are not being used. It is suggested to make the number of "
-          + "directories a multiple of the number of threads.");
+      throw new IllegalArgumentException(String.format(
+          "Some of the threads are not being used. Please set the number of directories to "
+              + "be at least the number of threads, preferably a multiple of it."
+      ));
     }
     if (mParameters.mReadRandom) {
       LOG.warn("Random read is not supported for now. Read sequentially");
@@ -160,7 +162,7 @@ public class FuseIOBench extends Benchmark<FuseIOTaskResult> {
             entry.getKey(), toSummaryStatistics(entry.getValue()));
       }
     }
-
+   
     return summaryStatistics;
   }
 
@@ -291,7 +293,7 @@ public class FuseIOBench extends Benchmark<FuseIOTaskResult> {
       for (int dirId = mThreadId; dirId < mParameters.mNumDirs; dirId += mParameters.mThreads) {
         for (int fileId = 0; fileId < mParameters.mNumFilesPerDir; fileId++) {
           mCurrentOffset = 0;
-          String filePath = mParameters.mLocalPath + "/" + dirId + "/" + fileId;
+          String filePath = String.format("%s/%d/%d", mParameters.mLocalPath, dirId, fileId);
           while (!Thread.currentThread().isInterrupted()) {
             if (isRead && CommonUtils.getCurrentMs() > mContext.getEndMs()) {
               closeInStream();
@@ -299,14 +301,13 @@ public class FuseIOBench extends Benchmark<FuseIOTaskResult> {
             }
             long ioBytes = applyOperation(filePath);
 
+            // Done reading/writing one file
+            if (ioBytes < 0) {
+              break;
+            }
             // Start recording after the warmup
             if (CommonUtils.getCurrentMs() > recordMs) {
-              if (ioBytes > 0) {
-                mThreadCountResult.incrementIOBytes(ioBytes);
-              } else {
-                // Done reading/writing one file
-                break;
-              }
+              mThreadCountResult.incrementIOBytes(ioBytes);
             }
           }
         }
