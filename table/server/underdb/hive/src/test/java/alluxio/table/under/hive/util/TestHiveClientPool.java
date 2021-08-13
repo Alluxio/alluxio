@@ -62,6 +62,11 @@ public class TestHiveClientPool extends AbstractHiveClientPool {
 
   @Override
   public CloseableResource<IMetaStoreClient> acquireClientResource() throws IOException {
-    throw new UnsupportedOperationException("acquireClientResource");
+    return new CloseableResource<IMetaStoreClient>(acquire()) {
+      @Override
+      public void close() {
+        release(get());
+      }
+    };
   }
 }
