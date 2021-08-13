@@ -70,17 +70,9 @@ public class FuseIOBench extends Benchmark<FuseIOTaskResult> {
 
   @Override
   public void prepare() throws Exception {
-    if (mParameters.mNumFiles % mParameters.mNumDirs != 0) {
-      throw new IllegalArgumentException(String
-          .format("Number of files (%d) must be a multiple of the number of directories (%d)",
-              mParameters.mNumFiles, mParameters.mNumDirs));
-    }
-    for (Integer numOfThreads: mParameters.mThreads) {
-      if (mParameters.mNumFiles % numOfThreads != 0) {
-        throw new IllegalArgumentException(String
-            .format("Number of files (%d) must be a multiple of the number of threads (%d)",
-                mParameters.mNumFiles, numOfThreads));
-      }
+    if (mParameters.mThreads > mParameters.mNumDirs) {
+      LOG.warn("Some threads are not being used. It is suggested to make the number of "
+          + "directories a multiple of the number of threads.");
     }
     if (mParameters.mReadRandom) {
       LOG.warn("Random read is not supported for now. Read sequentially");
@@ -104,11 +96,9 @@ public class FuseIOBench extends Benchmark<FuseIOTaskResult> {
     FuseIOTaskResult taskResult = new FuseIOTaskResult();
     taskResult.setBaseParameters(mBaseParameters);
     taskResult.setParameters(mParameters);
+    FuseIOTaskResult.ThreadCountResult threadCountResult = runForThreadCount(mParameters.mThreads);
+    taskResult.addThreadCountResults(mParameters.mThreads, threadCountResult);
 
-    for (Integer numThreads: threadCounts) {
-      FuseIOTaskResult.ThreadCountResult threadCountResult = runForThreadCount(numThreads);
-      taskResult.addThreadCountResults(numThreads, threadCountResult);
-    }
     return taskResult;
   }
 
@@ -246,14 +236,10 @@ public class FuseIOBench extends Benchmark<FuseIOTaskResult> {
     private final int mThreadId;
     private final byte[] mBuffer;
     private final long mFileSize;
-    private final int mNumFilesPerThread;
-    private final int mNumFilesPerDir;
 
     private FileInputStream mInStream = null;
     private FileOutputStream mOutStream = null;
     private long mCurrentOffset;
-    private int mDirId;
-    private int mFileId;
 
     private final FuseIOTaskResult.ThreadCountResult mThreadCountResult =
         new FuseIOTaskResult.ThreadCountResult();
@@ -261,11 +247,6 @@ public class FuseIOBench extends Benchmark<FuseIOTaskResult> {
     private BenchThread(BenchContext context, int threadId, int numThreads) {
       mContext = context;
       mThreadId = threadId;
-      mNumFilesPerThread = mParameters.mNumFiles / numThreads;
-      mNumFilesPerDir = mParameters.mNumFiles / mParameters.mNumDirs;
-      // Calculate the path of the first file to process for this thread
-      mDirId = mThreadId *  mNumFilesPerThread / mNumFilesPerDir;
-      mFileId = mThreadId * mNumFilesPerThread % mNumFilesPerDir;
 
       mBuffer = new byte[(int) FormatUtils.parseSpaceSize(mParameters.mBufferSize)];
       Arrays.fill(mBuffer, (byte) 'A');
@@ -307,30 +288,27 @@ public class FuseIOBench extends Benchmark<FuseIOTaskResult> {
       CommonUtils.sleepMs(waitMs);
       mStartBarrierPassed = true;
 
-      for (int i = 0; i < mNumFilesPerThread; i++) {
-        mCurrentOffset = 0;
-        String filePath = mParameters.mLocalPath + "/" + mDirId + "/" + mFileId;
-        while (!Thread.currentThread().isInterrupted()) {
-          if (isRead && CommonUtils.getCurrentMs() > mContext.getEndMs()) {
-            closeInStream();
-            return;
-          }
-          long ioBytes = applyOperation(filePath);
+      for (int dirId = mThreadId; dirId < mParameters.mNumDirs; dirId += mParameters.mThreads) {
+        for (int fileId = 0; fileId < mParameters.mNumFilesPerDir; fileId++) {
+          mCurrentOffset = 0;
+          String filePath = mParameters.mLocalPath + "/" + dirId + "/" + fileId;
+          while (!Thread.currentThread().isInterrupted()) {
+            if (isRead && CommonUtils.getCurrentMs() > mContext.getEndMs()) {
+              closeInStream();
+              return;
+            }
+            long ioBytes = applyOperation(filePath);
 
-          // Start recording after the warmup
-          if (CommonUtils.getCurrentMs() > recordMs) {
-            if (ioBytes > 0) {
-              mThreadCountResult.incrementIOBytes(ioBytes);
-            } else {
-              // Done reading/writing one file
-              break;
+            // Start recording after the warmup
+            if (CommonUtils.getCurrentMs() > recordMs) {
+              if (ioBytes > 0) {
+                mThreadCountResult.incrementIOBytes(ioBytes);
+              } else {
+                // Done reading/writing one file
+                break;
+              }
             }
           }
-        }
-        mFileId += 1;
-        if (mFileId == mNumFilesPerDir) {
-          mDirId += 1;
-          mFileId = 0;
         }
       }
       // Done reading all files
