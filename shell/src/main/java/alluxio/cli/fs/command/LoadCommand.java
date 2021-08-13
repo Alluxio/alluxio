@@ -82,7 +82,6 @@ public final class LoadCommand extends AbstractFileSystemCommand {
   protected void runPlainPath(AlluxioURI plainPath, CommandLine cl)
       throws AlluxioException, IOException {
     load(plainPath, cl.hasOption(LOCAL_OPTION.getLongOpt()));
-    System.out.println(plainPath + " loaded");
   }
 
   @Override

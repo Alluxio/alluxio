@@ -93,24 +93,25 @@ public class CacheRequestManager {
     CACHE_REQUESTS.inc();
     long blockId = request.getBlockId();
     boolean async = request.getAsync();
-    if (mActiveCacheRequests.putIfAbsent(blockId, request) != null && async) {
-      // This block is already planned and just log since it's best effort.
-      LOG.debug("request already planned: {}", request);
-      return;
-    }
-    if (mActiveCacheRequests.putIfAbsent(blockId, request) != null && !async) {
-      // This block is already planned, wait for the block to be loaded.
-      try {
-        CommonUtils.waitFor("block to be loaded", () -> mActiveCacheRequests.containsKey(blockId));
-      } catch (InterruptedException e) {
-        throw new CancelledException("Fail to finish cache request synchronously. "
-            + "Interrupted while waiting for block to be loaded.", e);
-      } catch (TimeoutException e) {
-        throw new CancelledException("Fail to finish cache request synchronously due to timeout",
-            e);
+    if (mActiveCacheRequests.putIfAbsent(blockId, request) != null) {
+      // This block is already planned and just just return.
+      if (async) {
+        LOG.debug("request already planned: {}", request);
+      } else {
+        try {
+          CommonUtils.waitFor("block to be loaded",
+              () -> mActiveCacheRequests.containsKey(blockId));
+        } catch (InterruptedException e) {
+          throw new CancelledException("Fail to finish cache request synchronously. "
+              + "Interrupted while waiting for block to be loaded by another request.", e);
+        } catch (TimeoutException e) {
+          throw new CancelledException("Fail to finish cache request synchronously due to timeout",
+              e);
+        }
       }
       return;
     }
+
     if (!async) {
       CACHE_REQUESTS_SYNC.inc();
     } else {
