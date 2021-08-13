@@ -84,8 +84,6 @@ public interface BlockStore extends Iterable<Block> {
   void close();
 
   /**
-   * Get the number of blocks in the block store.
-   *
    * @return size of the block store
    */
   long size();

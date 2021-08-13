@@ -268,20 +268,13 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
         ExecutorServiceFactories.cachedThreadPool(Constants.BLOCK_MASTER_NAME));
   }
 
-  /**
-   * Creates a new instance of {@link DefaultBlockMaster}.
-   *
-   * @param metricsMaster the metrics master
-   * @param masterContext the context for Alluxio master
-   * @param clock the clock to use for determining the time
-   * @param executorServiceFactory a factory for creating the executor service to use for running
-   *        maintenance threads
-   */
+  @VisibleForTesting
   DefaultBlockMaster(MetricsMaster metricsMaster, CoreMasterContext masterContext, Clock clock,
-      ExecutorServiceFactory executorServiceFactory) {
+      ExecutorServiceFactory executorServiceFactory, BlockStore blockStore) {
     super(masterContext, clock, executorServiceFactory);
     Preconditions.checkNotNull(metricsMaster, "metricsMaster");
-    mBlockStore = masterContext.getBlockStoreFactory().get();
+
+    mBlockStore = blockStore;
     mGlobalStorageTierAssoc = new MasterStorageTierAssoc();
     mMetricsMaster = metricsMaster;
     Metrics.registerGauges(this);
@@ -295,6 +288,21 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
             return constructWorkerInfoList();
           }
         });
+  }
+
+  /**
+   * Creates a new instance of {@link DefaultBlockMaster}.
+   *
+   * @param metricsMaster the metrics master
+   * @param masterContext the context for Alluxio master
+   * @param clock the clock to use for determining the time
+   * @param executorServiceFactory a factory for creating the executor service to use for running
+   *        maintenance threads
+   */
+  DefaultBlockMaster(MetricsMaster metricsMaster, CoreMasterContext masterContext, Clock clock,
+      ExecutorServiceFactory executorServiceFactory) {
+    this(metricsMaster, masterContext, clock, executorServiceFactory,
+        masterContext.getBlockStoreFactory().get());
   }
 
   @Override
