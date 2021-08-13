@@ -80,12 +80,18 @@ public class RedirectFilter implements Filter {
   @Override
   public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
           throws IOException, ServletException {
-    HttpServletResponse httpResponse = (HttpServletResponse) response;
+    if (!(response instanceof HttpServletResponse
+            && request instanceof HttpServletRequest)) {
+      // Not http servlet, continue
+      chain.doFilter(request, response);
+      return;
+    }
     if (isPrimary()) {
       // The master is the primary, continue
       chain.doFilter(request, response);
       return;
     }
+    HttpServletResponse httpResponse = (HttpServletResponse) response;
     HttpServletRequest httpRequest = (HttpServletRequest) request;
     String path = httpRequest.getRequestURI();
     // Do not redirect for some path
