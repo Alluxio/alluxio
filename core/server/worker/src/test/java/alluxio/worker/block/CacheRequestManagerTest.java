@@ -55,7 +55,6 @@ public class CacheRequestManagerTest {
   private String mLocalWorkerHostname;
   private Protocol.OpenUfsBlockOptions mOptions;
 
-
   /**
    * Sets up all dependencies before a test runs.
    */
@@ -73,7 +72,6 @@ public class CacheRequestManagerTest {
 
   @Test
   public void submitRequestCacheBlockFromUfs() throws Exception {
-
     CacheRequest request = CacheRequest.newBuilder().setBlockId(BLOCK_ID).setLength(CHUNK_SIZE)
         .setOpenUfsBlockOptions(mOptions).setSourceHost(mLocalWorkerHostname)
         .setSourcePort(PORT).build();
@@ -113,9 +111,7 @@ public class CacheRequestManagerTest {
 
   @Test
   public void submitAsyncRequestCacheBlockFromRemoteWorker() throws Exception {
-
     String fakeRemoteWorker = mLocalWorkerHostname + "1";
-
     CacheRequest request = CacheRequest.newBuilder().setBlockId(BLOCK_ID).setLength(CHUNK_SIZE)
         .setOpenUfsBlockOptions(mOptions).setSourceHost(fakeRemoteWorker).setSourcePort(PORT)
         .setAsync(true).build();

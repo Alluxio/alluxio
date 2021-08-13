@@ -25,7 +25,6 @@ import alluxio.collections.Pair;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.AlluxioException;
-import alluxio.exception.PreconditionMessage;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.grpc.CacheRequest;
 import alluxio.grpc.OpenFilePOptions;
