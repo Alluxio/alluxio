@@ -67,7 +67,6 @@ public class StressClientIOBench extends Benchmark<ClientIOTaskResult> {
    * Creates instance.
    */
   public StressClientIOBench() {
-    // TODO(David) Fill in description
   }
 
   /**
@@ -79,6 +78,7 @@ public class StressClientIOBench extends Benchmark<ClientIOTaskResult> {
 
   @Override
   public String getBenchDescription() {
+    // TODO(David) Fill in description
     return "";
   }
 
