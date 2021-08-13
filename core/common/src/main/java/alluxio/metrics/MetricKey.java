@@ -348,6 +348,11 @@ public final class MetricKey implements Comparable<MetricKey> {
               + "Use this metric to monitor whether your journal is running out of disk space.")
           .setMetricType(MetricType.GAUGE)
           .build();
+  public static final MetricKey MASTER_LOST_FILE_COUNT =
+      new Builder("Master.LostFileCount")
+          .setDescription("Count of lost file")
+          .setMetricType(MetricType.GAUGE)
+          .build();
   public static final MetricKey MASTER_TOTAL_PATHS =
       new Builder("Master.TotalPaths")
           .setDescription("Total number of files and directory in Alluxio namespace")
