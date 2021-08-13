@@ -187,6 +187,8 @@ public final class StressBenchDefinition
           try {
             return JsonSerializable.fromJson(entry.getValue().trim(), new TaskResult[0]);
           } catch (IOException | ClassNotFoundException e) {
+            // add log here because the exception details are lost at the client side
+            LOG.warn("Failed to parse result into class {}", TaskResult.class, e);
             error.set(new IOException(
                 String.format("Failed to parse task output from %s into result class %s: %s",
                     entry.getKey().getAddress().getHost(), TaskResult.class,

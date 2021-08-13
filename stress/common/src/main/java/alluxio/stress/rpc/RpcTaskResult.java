@@ -16,6 +16,7 @@ import alluxio.stress.Summary;
 import alluxio.stress.TaskResult;
 import alluxio.util.JsonSerializable;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.MoreObjects;
 
@@ -188,12 +189,14 @@ public class RpcTaskResult implements TaskResult {
    * Each point stands for one successful RPC.
    */
   public static class Point implements JsonSerializable {
+    @JsonProperty("duration")
     public long mDurationMs;
 
     /**
      * Creates a new data point.
      * @param ms time in millisecond in this data point
      */
+    @JsonCreator
     public Point(@JsonProperty("duration") long ms) {
       mDurationMs = ms;
     }
