@@ -108,6 +108,7 @@ message WriteResponse {
   // Errors will be handled by standard gRPC stream APIs.
 }
 // Request for caching a block asynchronously
+// Deprecated and will be removed in v3.0
 message AsyncCacheRequest {
   optional int64 block_id = 1;
   // TODO(calvin): source host and port should be replace with WorkerNetAddress
