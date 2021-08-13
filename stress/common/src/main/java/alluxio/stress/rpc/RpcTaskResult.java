@@ -21,6 +21,7 @@ import com.google.common.base.MoreObjects;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -171,9 +172,13 @@ public class RpcTaskResult implements TaskResult {
      * @return the combined result
      */
     public static RpcTaskResult reduceList(Iterable<RpcTaskResult> results) {
-      RpcTaskResult aggreResult = new RpcTaskResult();
-      for (RpcTaskResult r : results) {
-        aggreResult.merge(r);
+      Iterator<RpcTaskResult> iterator = results.iterator();
+      if (!iterator.hasNext()) {
+        return new RpcTaskResult();
+      }
+      RpcTaskResult aggreResult = new RpcTaskResult(iterator.next());
+      while (iterator.hasNext()) {
+        aggreResult.merge(iterator.next());
       }
       return aggreResult;
     }
