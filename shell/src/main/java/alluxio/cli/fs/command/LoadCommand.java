@@ -133,7 +133,7 @@ public final class LoadCommand extends AbstractFileSystemCommand {
     BlockLocationPolicy policy = Preconditions.checkNotNull(
         BlockLocationPolicy.Factory
             .create(conf.get(PropertyKey.USER_UFS_BLOCK_READ_LOCATION_POLICY), conf),
-        "UFS read location policy Required");
+        "UFS read location policy Required when loading files");
     WorkerNetAddress dataSource;
     List<Long> blockIds = status.getBlockIds();
     for (long blockId : blockIds) {
