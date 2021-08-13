@@ -118,7 +118,7 @@ message AsyncCacheRequest {
 }
 
 // Request for caching a block synchronously/asynchronously
-// next available id: 6
+// next available id: 7
 message CacheRequest {
   optional int64 block_id = 1;
   // TODO(calvin): source host and port should be replace with WorkerNetAddress
