@@ -313,12 +313,12 @@ public class CacheRequestManager {
   }
 
   // Metrics
-  private static final Counter CACHE_REQUESTS
-          = MetricsSystem.counter(MetricKey.WORKER_CACHE_REQUESTS.getName());
-  private static final Counter CACHE_REQUESTS_ASYNC
-      = MetricsSystem.counter(MetricKey.WORKER_CACHE_REQUESTS_ASYNC.getName());
-  private static final Counter CACHE_REQUESTS_SYNC
-      = MetricsSystem.counter(MetricKey.WORKER_CACHE_REQUESTS_SYNC.getName());
+  private static final Counter CACHE_REQUESTS =
+      MetricsSystem.counter(MetricKey.WORKER_CACHE_REQUESTS.getName());
+  private static final Counter CACHE_REQUESTS_ASYNC =
+      MetricsSystem.counter(MetricKey.WORKER_CACHE_REQUESTS_ASYNC.getName());
+  private static final Counter CACHE_REQUESTS_SYNC =
+      MetricsSystem.counter(MetricKey.WORKER_CACHE_REQUESTS_SYNC.getName());
   private static final Counter CACHE_FAILED_BLOCKS =
           MetricsSystem.counter(MetricKey.WORKER_CACHE_FAILED_BLOCKS.getName());
   private static final Counter CACHE_REMOTE_BLOCKS =
