@@ -12,7 +12,6 @@
 package alluxio.table.under.hive;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
@@ -26,7 +25,6 @@ import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.InvalidPathException;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.MountPOptions;
-import alluxio.resource.CloseableResource;
 import alluxio.table.common.udb.UdbBypassSpec;
 import alluxio.table.common.udb.UdbConfiguration;
 import alluxio.table.common.udb.UdbContext;
@@ -66,6 +64,7 @@ public class HiveDatabaseTest {
   public static final String DB_TYPE = "hive";
   public static final String CONNECTION_URI = "thrift://not_running:9083";
   private static final Map<String, String> CONF = new HashMap<>();
+  private static final UdbBypassSpec EMPTY_BYPASS_SPEC = new UdbBypassSpec(ImmutableMap.of());
 
   @Rule
   public ExpectedException mExpection = ExpectedException.none();
@@ -79,6 +78,9 @@ public class HiveDatabaseTest {
 
   private UdbContext mUdbContext;
   private UdbConfiguration mUdbConf;
+  private final MountRecordingFileSystem mFs = new MountRecordingFileSystem();
+  private final IMetaStoreClient mMockedClient = Mockito.mock(IMetaStoreClient.class);
+  private final MockedHiveClientPool mClientPool = new MockedHiveClientPool(mMockedClient);
 
   @Before
   public void before() {
@@ -137,51 +139,55 @@ public class HiveDatabaseTest {
 
   @Test
   public void notGroupingMountPointsTablesOnly() throws Exception {
-    MountRecordingFileSystem fs = new MountRecordingFileSystem();
-    mUdbContext = new UdbContext(null, fs, DB_TYPE, CONNECTION_URI, DB_NAME, DB_NAME);
-    mUdbConf =
-        new UdbConfiguration(ImmutableMap.of(UdbProperty.GROUP_MOUNT_POINTS.getName(), "false"));
     TestTable table = new TestTable("table1");
+    mockTablesAndPartitions(mMockedClient,
+        ImmutableList.of(table.toHiveTable()), ImmutableList.of());
+    UdbContext udbContext = new UdbContext(null, mFs, DB_TYPE, CONNECTION_URI, DB_NAME, DB_NAME);
+    UdbConfiguration udbConf =
+        new UdbConfiguration(ImmutableMap.of(UdbProperty.GROUP_MOUNT_POINTS.getName(), "false"));
     HiveDatabase database = new HiveDatabase(
-        mUdbContext,
-        mUdbConf,
-        mUdbContext.getConnectionUri(),
-        mUdbContext.getUdbDbName(),
-        new MockedHiveClientPool(
-            ImmutableList.of(table.toHiveTable()),
-            ImmutableList.of())
+        udbContext,
+        udbConf,
+        udbContext.getConnectionUri(),
+        udbContext.getUdbDbName(),
+        mClientPool
     );
+    database.mount(ImmutableSet.of(table.getName()), EMPTY_BYPASS_SPEC);
 
-    UdbBypassSpec bypassSpec = new UdbBypassSpec(ImmutableMap.of());
-    database.mount(ImmutableSet.of(table.getName()), bypassSpec);
-    assertEquals(mUdbContext.getTableLocation(table.getName()),
-        fs.getMountPoints().inverse().get(new AlluxioURI(table.getLocation())));
+    AlluxioURI expectedTableLocation = udbContext.getTableLocation(table.getName());
+    AlluxioURI actualTableLocation =
+        mFs.getMountPoints().inverse().get(new AlluxioURI(table.getLocation()));
+    assertEquals(expectedTableLocation, actualTableLocation);
   }
 
   @Test
   public void notGroupingMountPointsWithPartitions() throws Exception {
-    MountRecordingFileSystem fs = new MountRecordingFileSystem();
-    mUdbContext = new UdbContext(null, fs, DB_TYPE, CONNECTION_URI, DB_NAME, DB_NAME);
-    mUdbConf =
-        new UdbConfiguration(ImmutableMap.of(UdbProperty.GROUP_MOUNT_POINTS.getName(), "false"));
     TestTable table = new TestTable("table1").setPartitionKeys(ImmutableList.of("col1", "col2"));
     TestPartition partition = new TestPartition(table, ImmutableList.of("1", "2"));
+    mockTablesAndPartitions(mMockedClient,
+        ImmutableList.of(table.toHiveTable()),
+        ImmutableList.of(partition.toHivePartition()));
+    UdbContext udbContext = new UdbContext(null, mFs, DB_TYPE, CONNECTION_URI, DB_NAME, DB_NAME);
+    UdbConfiguration udbConf =
+        new UdbConfiguration(ImmutableMap.of(UdbProperty.GROUP_MOUNT_POINTS.getName(), "false"));
     HiveDatabase database = new HiveDatabase(
-        mUdbContext,
-        mUdbConf,
-        mUdbContext.getConnectionUri(),
-        mUdbContext.getUdbDbName(),
-        new MockedHiveClientPool(
-            ImmutableList.of(table.toHiveTable()),
-            ImmutableList.of(partition.toHivePartition()))
+        udbContext,
+        udbConf,
+        udbContext.getConnectionUri(),
+        udbContext.getUdbDbName(),
+        mClientPool
     );
+    database.mount(ImmutableSet.of(table.getName()), EMPTY_BYPASS_SPEC);
 
-    UdbBypassSpec bypassSpec = new UdbBypassSpec(ImmutableMap.of());
-    database.mount(ImmutableSet.of(table.getName()), bypassSpec);
-    AlluxioURI pathInAlluxio = fs.getMountPoints().inverse().get(new AlluxioURI(table.getLocation()));
-    assertEquals(mUdbContext.getTableLocation(table.getName()), pathInAlluxio);
-    assertTrue(pathInAlluxio.isAncestorOf(
-        fs.reverseResolve(new AlluxioURI(table.getLocation()).join(partition.getName()))));
+    AlluxioURI actualTableMountPoint =
+        mFs.getMountPoints().inverse().get(new AlluxioURI(table.getLocation()));
+    AlluxioURI expectedTableMountPoint = udbContext.getTableLocation(table.getName());
+    assertEquals(expectedTableMountPoint, actualTableMountPoint);
+
+    AlluxioURI expectedPartitionMountPoint = expectedTableMountPoint.join(partition.getName());
+    AlluxioURI actualPartitionMountPoint =
+        mFs.reverseResolve(new AlluxioURI(partition.getLocation()));
+    assertEquals(actualPartitionMountPoint, expectedPartitionMountPoint);
   }
 
   private static class TestTable {
@@ -278,46 +284,47 @@ public class HiveDatabaseTest {
     }
   }
 
+  private static void mockTablesAndPartitions(IMetaStoreClient mockedClient,
+                                              List<Table> tables,
+                                              List<Partition> partitions) {
+    try {
+      Database db = new Database();
+      db.setName(DB_NAME);
+      db.setLocationUri(CONNECTION_URI);
+      when(mockedClient.getDatabase(DB_NAME)).thenReturn(db);
+
+      for (Table table : tables) {
+        String tableName = table.getTableName();
+        when(mockedClient.getTable(DB_NAME, tableName)).thenReturn(table);
+        when(mockedClient.listPartitions(eq(DB_NAME), eq(tableName), eq((short) -1)))
+            .thenReturn(partitions);
+      }
+    } catch (TException e) {
+      throw new IllegalStateException("Unexpected exception from a mocked client", e);
+    }
+  }
+
   private static class MockedHiveClientPool extends TestHiveClientPool {
     private final IMetaStoreClient mMockedClient;
 
-    public MockedHiveClientPool(List<Table> tables, List<Partition> partitions) {
+    public MockedHiveClientPool(IMetaStoreClient mockedClient) {
       super();
-      mMockedClient = Mockito.mock(IMetaStoreClient.class);
-      try {
-        Database db = new Database();
-        db.setName(DB_NAME);
-        db.setLocationUri(CONNECTION_URI);
-        when(mMockedClient.getDatabase(DB_NAME)).thenReturn(db);
-
-        for (Table table : tables) {
-          String tableName = table.getTableName();
-          when(mMockedClient.getTable(DB_NAME, tableName)).thenReturn(table);
-          when(mMockedClient.listPartitions(eq(DB_NAME), eq(tableName), eq((short) -1)))
-              .thenReturn(partitions);
-        }
-      } catch (TException e) {
-        // mocked client does not really throw exception
-      }
+      mMockedClient = mockedClient;
     }
 
     @Override
     protected IMetaStoreClient createNewResource() throws IOException {
       return mMockedClient;
     }
-    @Override
-    public CloseableResource<IMetaStoreClient> acquireClientResource() throws IOException {
-      return new CloseableResource<IMetaStoreClient>(acquire()) {
-        @Override
-        public void close() {
-          release(get());
-        }
-      };
-    }
   }
 
   /**
    * A dummy file system that records all mount points.
+   *
+   * Usage notes: to test whether a table or a partition is mounted at the right location in
+   * Alluxio, prepare the expected in-Alluxio path using the same logic in production code,
+   * and get the actual mount point via {@link #getMountPoints()}
+   * or {@link #reverseResolve(AlluxioURI)}.
    */
   private static class MountRecordingFileSystem extends DelegatingFileSystem {
     private final BiMap<AlluxioURI, AlluxioURI> mMountPoints;
@@ -337,6 +344,15 @@ public class HiveDatabaseTest {
       // pretend the directory is created successfully and do nothing
     }
 
+    /**
+     * Given a UFS path, resolves its corresponding path in Alluxio, if the UFS path or one of
+     * its ancestor directories is mounted in Alluxio.
+     *
+     * This should not be used in tests to get the expected in-Alluxio path of a UFS path.
+     * Instead, manually create the expected path according to the logic in production code
+     * that derives in-Alluxio paths from UFS paths (e.g. table locations are derived from DB name
+     * and table name by {@link UdbContext#getTableLocation(String)}).
+     */
     @Override
     public AlluxioURI reverseResolve(AlluxioURI ufsUri) throws IOException, AlluxioException {
       if (mMountPoints.inverse().containsKey(ufsUri)) {
