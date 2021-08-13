@@ -302,7 +302,7 @@ public class FuseIOBench extends Benchmark<FuseIOTaskResult> {
             long ioBytes = applyOperation(filePath);
 
             // Done reading/writing one file
-            if (ioBytes < 0) {
+            if (ioBytes <= 0) {
               break;
             }
             // Start recording after the warmup
