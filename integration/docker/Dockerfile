@@ -60,7 +60,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends software-proper
   rm -rf /var/lib/apt/lists/*
 
 # Install arthas(https://github.com/alibaba/arthas) for analyzing performance bottleneck
-RUN wget -qO /tmp/arthas.zip "http://maven.aliyun.com/repository/public/com/taobao/arthas/arthas-packaging/3.4.6/arthas-packaging-3.4.6-bin.zip" && \
+RUN wget -qO /tmp/arthas.zip "https://github.com/alibaba/arthas/releases/download/arthas-all-3.4.6/arthas-bin.zip" && \
   mkdir -p /opt/arthas && \
   unzip /tmp/arthas.zip -d /opt/arthas && \
   rm /tmp/arthas.zip
