@@ -34,24 +34,17 @@ import alluxio.util.FormatUtils;
 import com.beust.jcommander.ParametersDelegate;
 import com.google.common.base.Stopwatch;
 import com.google.common.base.Supplier;
+import com.google.common.collect.ImmutableList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 /**
  * A benchmarking tool for the GetPinnedFileIds RPC.
- * The test will generate a specified number of test files and pin them.
- * Then it will keep calling the GetPinnedFileIds RPC by the specified load until the specified
- * duration has elapsed.
- *
- * Example:
- * 4 simulated workers running on 2 job workers, requesting a total number of 100k pinned files
- * for a total of 5 seconds:
- * $ bin/alluxio runClass alluxio.stress.cli.GetPinnedFileIdsBench --concurrency 2
- *    --cluster-limit 2 --num-files 100000 --duration 5s
  */
 public class GetPinnedFileIdsBench extends RpcBench<GetPinnedFileIdsParameters> {
   private static final Logger LOG = LoggerFactory.getLogger(GetPinnedFileIdsBench.class);
@@ -71,7 +64,19 @@ public class GetPinnedFileIdsBench extends RpcBench<GetPinnedFileIdsParameters> 
 
   @Override
   public String getBenchDescription() {
-    return null;
+    return String.join("\n", ImmutableList.of(
+        "A benchmarking tool for the GetPinnedFileIds RPC.",
+        "The test will generate a specified number of test files and pin them. "
+            + "Then it will keep calling the GetPinnedFileIds RPC by the specified load until the "
+            + "specified duration has elapsed.",
+        "",
+        "Example:",
+        "4 simulated workers running on 2 job workers, requesting a total number of 100k pinned "
+            + "files for a total of 5 seconds:",
+        "$ bin/alluxio runClass alluxio.stress.cli.GetPinnedFileIdsBench --concurrency 2 "
+            + "--cluster-limit 2 --num-files 100000 --duration 5s",
+        ""
+    ));
   }
 
   @Override
