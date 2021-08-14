@@ -74,17 +74,33 @@ public abstract class Benchmark<T extends TaskResult> {
   /**
    * Prepares to run the test.
    */
+  // TODO(bowen): When the test runs in cluster mode, the prepare step will execute
+  //  both in the command side and on each job worker side. We should separate the logic
+  //  into two different calls instead of relying on the same prepare().
   public abstract void prepare() throws Exception;
 
+  /**
+   * Perform post-run cleanups.
+   */
+  public void cleanup() throws Exception {}
+
   protected static void mainInternal(String[] args, Benchmark benchmark) {
+    int exitCode = 0;
     try {
       String result = benchmark.run(args);
       System.out.println(result);
-      System.exit(0);
     } catch (Exception e) {
       e.printStackTrace();
-      System.exit(-1);
+      exitCode = -1;
+    } finally {
+      try {
+        benchmark.cleanup();
+      } catch (Exception e) {
+        e.printStackTrace();
+        exitCode = -1;
+      }
     }
+    System.exit(exitCode);
   }
 
   /**
