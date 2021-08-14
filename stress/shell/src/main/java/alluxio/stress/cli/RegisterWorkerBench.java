@@ -70,6 +70,11 @@ public class RegisterWorkerBench extends RpcBench<BlockMasterBenchParameters> {
   private Deque<Long> mWorkerPool = new ArrayDeque<>();
 
   @Override
+  public String getBenchDescription() {
+    return null;
+  }
+
+  @Override
   public void prepare() throws Exception {
     // The task ID is different for local and cluster executions
     // So including that in the log can help associate the log to the run
