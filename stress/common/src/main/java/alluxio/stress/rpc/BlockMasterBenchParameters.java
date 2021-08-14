@@ -26,8 +26,8 @@ import java.util.stream.Collectors;
 public class BlockMasterBenchParameters extends RpcBenchParameters {
   @Parameter(names = {"--tiers"}, converter = TierParser.class,
       description = "The number of blocks in each storage dir and tier. "
-          + "List tiers in the order of MEM, SSD and HDD separated by semicolon, list dirs"
-          + "inside each tier separated by comma."
+          + "List tiers in the order of MEM, SSD and HDD separated by semicolon, list dirs "
+          + "inside each tier separated by comma. "
           + "Example: \"100,200,300;1000,1500;2000\"")
   public Map<TierAlias, List<Integer>> mTiers;
 
