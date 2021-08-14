@@ -39,7 +39,7 @@ import java.util.stream.Collectors;
 /**
  * Abstract class for parameters of stress tests.
  */
-@JsonTypeInfo(use= Id.CLASS, include = As.PROPERTY, property = JsonSerializable.CLASS_NAME_FIELD)
+@JsonTypeInfo(use = Id.CLASS, include = As.PROPERTY, property = JsonSerializable.CLASS_NAME_FIELD)
 public abstract class Parameters {
   private static final Logger LOG = LoggerFactory.getLogger(Parameters.class);
 
