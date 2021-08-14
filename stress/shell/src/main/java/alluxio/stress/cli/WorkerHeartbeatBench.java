@@ -45,16 +45,6 @@ import java.util.Map;
 
 /**
  * A benchmarking tool for the WorkerHeartbeat RPC.
- * The test will generate a specified number of blocks in the master (without associated files).
- * The test will also register the simulated workers with the master.
- * Then it will keep generating heartbeats with the specified load and sending heartbeats to
- * the master nonstop, until the specified time has elapsed.
- *
- * Example:
- * Each job worker runs 2 simulated workers, each having 3000 blocks on tier 0 and 10000 blocks
- * on tier 1. Keep sending heartbeats for 30s.
- * $ bin/alluxio runClass alluxio.stress.cli.WorkerHeartbeatBench --concurrency 2 \
- *   --cluster-limit 1 --tiers "1000,1000,1000;5000,5000" --duration 30s
  */
 public class WorkerHeartbeatBench extends RpcBench<BlockMasterBenchParameters> {
   private static final Logger LOG = LoggerFactory.getLogger(WorkerHeartbeatBench.class);
@@ -146,7 +136,20 @@ public class WorkerHeartbeatBench extends RpcBench<BlockMasterBenchParameters> {
 
   @Override
   public String getBenchDescription() {
-    return null;
+    return String.join("\n", ImmutableList.of(
+        "A benchmarking tool for the WorkerHeartbeat RPC.",
+        "The test will generate a specified number of blocks in the master (without associated "
+            + "files). The test will also register the simulated workers with the master. "
+            + "Then it will keep generating heartbeats with the specified load and sending "
+            + "heartbeats to the master nonstop, until the specified time has elapsed.",
+        "",
+        "Example:",
+        "Each job worker runs 2 simulated workers, each having 3000 blocks on tier 0 and 10000 "
+            + "blocks on tier 1. Keep sending heartbeats for 30s:",
+        "$ bin/alluxio runClass alluxio.stress.cli.WorkerHeartbeatBench --concurrency 2 "
+            + "--cluster-limit 1 --tiers \"1000,1000,1000;5000,5000\" --duration 30s",
+        ""
+    ));
   }
 
   @Override

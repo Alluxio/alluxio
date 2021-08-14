@@ -28,6 +28,7 @@ import alluxio.worker.block.BlockStoreLocation;
 
 import com.beust.jcommander.ParametersDelegate;
 import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import org.slf4j.Logger;
@@ -43,16 +44,6 @@ import java.util.stream.Collectors;
 
 /**
  * A benchmarking tool for the RegisterWorker RPC.
- * The test will generate a specified number of blocks in the master (without associated files).
- * Then it will trigger the specified number of simulated workers to register at once.
- * Each simulated worker will have the specified number of blocks, in order to incur
- * the controlled stress on the master side.
- *
- * Example:
- * Each job worker runs 2 simulated workers, each having 3000 blocks on tier 0 and 10000 blocks
- * on tier 1.
- * $ bin/alluxio runClass alluxio.stress.cli.RegisterWorkerBench --concurrency 2 \
- *   --cluster-limit 1 --tiers "1000,1000,1000;5000,5000"
  */
 public class RegisterWorkerBench extends RpcBench<BlockMasterBenchParameters> {
   private static final Logger LOG = LoggerFactory.getLogger(RegisterWorkerBench.class);
@@ -71,7 +62,21 @@ public class RegisterWorkerBench extends RpcBench<BlockMasterBenchParameters> {
 
   @Override
   public String getBenchDescription() {
-    return null;
+    return String.join("\n", ImmutableList.of(
+        "A benchmarking tool for the RegisterWorker RPC.",
+        "The test will generate a specified number of blocks in the master (without associated "
+            + "files). Then it will trigger the specified number of simulated workers to register "
+            + "at once.",
+        "Each simulated worker will have the specified number of blocks, in order to incur "
+            + "the controlled stress on the master side.",
+        "",
+        "Example:",
+        "Each job worker runs 2 simulated workers, each having 3000 blocks on tier 0 and 10000 "
+            + "blocks on tier 1:",
+        "$ bin/alluxio runClass alluxio.stress.cli.RegisterWorkerBench --concurrency 2 "
+            + "--cluster-limit 1 --tiers \"1000,1000,1000;5000,5000\"",
+        ""
+    ));
   }
 
   @Override
