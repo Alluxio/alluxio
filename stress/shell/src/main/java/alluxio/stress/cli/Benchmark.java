@@ -163,7 +163,7 @@ public abstract class Benchmark<T extends TaskResult> {
       }
 
       // aggregate the results
-      final String s = result.aggregator().aggregate(Collections.singletonList(result)).toString();
+      final String s = result.aggregator().aggregate(Collections.singletonList(result)).toJson();
       return s;
     } else {
       // Spawn a new process
