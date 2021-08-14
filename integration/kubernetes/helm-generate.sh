@@ -98,7 +98,7 @@ function generateMasterServiceTemplates {
 }
 
 function generateCsiTemplates {
-  echo "Genertating csi templates"
+  echo "Generating csi templates"
   helm template --name-template ${RELEASE_NAME} helm-chart/alluxio/ --set csi.enabled=true --show-only templates/csi/controller-rbac.yaml -f $dir/config.yaml > "$dir/csi/alluxio-csi-controller-rbac.yaml.template"
   helm template --name-template ${RELEASE_NAME} helm-chart/alluxio/ --set csi.enabled=true --show-only templates/csi/controller.yaml -f $dir/config.yaml > "$dir/csi/alluxio-csi-controller.yaml.template"
   helm template --name-template ${RELEASE_NAME} helm-chart/alluxio/ --set csi.enabled=true --show-only templates/csi/driver.yaml -f $dir/config.yaml > "$dir/csi/alluxio-csi-driver.yaml.template"

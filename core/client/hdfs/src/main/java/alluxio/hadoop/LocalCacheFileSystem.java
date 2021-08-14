@@ -11,14 +11,19 @@
 
 package alluxio.hadoop;
 
+import static com.google.common.hash.Hashing.md5;
+import static java.nio.charset.StandardCharsets.UTF_8;
+
 import alluxio.AlluxioURI;
 import alluxio.Constants;
+import alluxio.client.file.CacheContext;
 import alluxio.client.file.URIStatus;
 import alluxio.client.file.cache.CacheManager;
 import alluxio.client.file.cache.LocalCacheFileInStream;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.metrics.MetricsConfig;
 import alluxio.metrics.MetricsSystem;
+import alluxio.wire.FileInfo;
 
 import com.google.common.base.Preconditions;
 import org.apache.hadoop.fs.FSDataInputStream;
@@ -121,7 +126,22 @@ public class LocalCacheFileSystem extends org.apache.hadoop.fs.FileSystem {
     if (mCacheManager == null) {
       return mExternalFileSystem.open(path, bufferSize);
     }
-    URIStatus status = HadoopUtils.toAlluxioUriStatus(mExternalFileSystem.getFileStatus(path));
+    FileStatus externalFileStatus = mExternalFileSystem.getFileStatus(path);
+    // Note that, we don't set have fileId here because fileId is Alluxio specific
+    FileInfo info = new FileInfo()
+        .setLength(externalFileStatus.getLen())
+        .setPath(externalFileStatus.getPath().toString())
+        .setFolder(externalFileStatus.isDirectory())
+        .setBlockSizeBytes(externalFileStatus.getBlockSize())
+        .setLastModificationTimeMs(externalFileStatus.getModificationTime())
+        .setLastAccessTimeMs(externalFileStatus.getAccessTime())
+        .setOwner(externalFileStatus.getOwner())
+        .setGroup(externalFileStatus.getGroup());
+    // FilePath is a unique identifier for a file, however it can be a long string
+    // hence using md5 hash of the file path as the identifier in the cache.
+    CacheContext context = CacheContext.defaults().setCacheIdentifier(
+        md5().hashString(externalFileStatus.getPath().toString(), UTF_8).toString());
+    URIStatus status = new URIStatus(info, context);
     return open(status, bufferSize);
   }
 

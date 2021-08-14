@@ -16,6 +16,8 @@ import alluxio.exception.AlluxioException;
 import alluxio.job.wire.Status;
 
 import java.io.IOException;
+import java.util.List;
+import java.util.Set;
 
 /**
  * Interface for adjusting the replication level of blocks.
@@ -28,6 +30,14 @@ public interface ReplicationHandler {
    * @throws IOException if a non-Alluxio error is encountered
    */
   Status getJobStatus(long jobId) throws IOException;
+
+  /**
+   * @param jobName name of the job
+   * @param statusList job status
+   * @return a list of job ids that match the criteria
+   * @throws IOException if a non-Alluxio error is encountered
+   */
+  List<Long> findJobs(String jobName, Set<Status> statusList) throws IOException;
 
   /**
    * Decreases the block replication level by a target number of replicas.

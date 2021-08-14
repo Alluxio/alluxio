@@ -78,7 +78,13 @@ public final class DistributedLoadCommand extends AbstractDistributedJobCommand 
           .hasArg(true)
           .numberOfArgs(1)
           .argName("hosts")
-          .desc("A list of worker hosts separated by comma")
+          .desc("A list of worker hosts separated by comma."
+              + " When host and locality options are not set,"
+              + " all hosts will be selected unless explicitly excluded by setting excluded option"
+              + "('excluded-hosts', 'excluded-host-file', 'excluded-locality'"
+              + " and 'excluded-locality-file')."
+              + " Only one of the 'hosts' and 'host-file' should be set,"
+              + " and it should not be set with excluded option together.")
           .build();
   private static final Option HOST_FILE_OPTION =
       Option.builder()
@@ -87,7 +93,37 @@ public final class DistributedLoadCommand extends AbstractDistributedJobCommand 
           .hasArg(true)
           .numberOfArgs(1)
           .argName("host-file")
-          .desc("Host File contains worker hosts, each line has a worker host")
+          .desc("Host File contains worker hosts, each line has a worker host."
+              + " When host and locality options are not set,"
+              + " all hosts will be selected unless explicitly excluded by setting excluded option"
+              + "('excluded-hosts', 'excluded-host-file', 'excluded-locality'"
+              + " and 'excluded-locality-file')."
+              + " Only one of the 'hosts' and 'host-file' should be set,"
+              + " and it should not be set with excluded option together.")
+          .build();
+  private static final Option EXCLUDED_HOSTS_OPTION =
+      Option.builder()
+          .longOpt("excluded-hosts")
+          .required(false)
+          .hasArg(true)
+          .numberOfArgs(1)
+          .argName("excluded-hosts")
+          .desc("A list of excluded worker hosts separated by comma."
+              + " Only one of the 'excluded-hosts' and 'excluded-host-file' should be set,"
+              + " and it should not be set with 'hosts', 'host-file', 'locality'"
+              + " and 'locality-file' together.")
+          .build();
+  private static final Option EXCLUDED_HOST_FILE_OPTION =
+      Option.builder()
+          .longOpt("excluded-host-file")
+          .required(false)
+          .hasArg(true)
+          .numberOfArgs(1)
+          .argName("excluded-host-file")
+          .desc("Host File contains excluded worker hosts, each line has a worker host."
+              + " Only one of the 'excluded-hosts' and 'excluded-host-file' should be set,"
+              + " and it should not be set with 'hosts', 'host-file', 'locality'"
+              + " and 'locality-file' together.")
           .build();
   private static final Option LOCALITY_OPTION =
       Option.builder()
@@ -96,7 +132,13 @@ public final class DistributedLoadCommand extends AbstractDistributedJobCommand 
           .hasArg(true)
           .numberOfArgs(1)
           .argName("locality")
-          .desc("A list of worker locality separated by comma")
+          .desc("A list of worker locality separated by comma."
+              + " When host and locality options are not set,"
+              + " all hosts will be selected unless explicitly excluded by setting excluded option"
+              + "('excluded-hosts', 'excluded-host-file', 'excluded-locality'"
+              + " and 'excluded-locality-file')."
+              + " Only one of the 'locality' and 'locality-file' should be set,"
+              + " and it should not be set with excluded option together.")
           .build();
   private static final Option LOCALITY_FILE_OPTION =
       Option.builder()
@@ -105,7 +147,39 @@ public final class DistributedLoadCommand extends AbstractDistributedJobCommand 
           .hasArg(true)
           .numberOfArgs(1)
           .argName("locality-file")
-          .desc("Locality File contains worker localities, each line has a worker locality")
+          .argName("locality-file")
+          .desc("Locality File contains worker localities, each line has a worker locality."
+              + " When host and locality options are not set,"
+              + " all hosts will be selected unless explicitly excluded by setting excluded option"
+              + "('excluded-hosts', 'excluded-host-file', 'excluded-locality'"
+              + " and 'excluded-locality-file')."
+              + " Only one of the 'locality' and 'locality-file' should be set,"
+              + " and it should not be set with excluded option together.")
+          .build();
+  private static final Option EXCLUDED_LOCALITY_OPTION =
+      Option.builder()
+          .longOpt("excluded-locality")
+          .required(false)
+          .hasArg(true)
+          .numberOfArgs(1)
+          .argName("excluded-locality")
+          .desc("A list of excluded worker locality separated by comma."
+              + " Only one of the 'excluded-locality' and 'excluded-locality-file' should be set,"
+              + " and it should not be set with 'hosts', 'host-file', 'locality'"
+              + " and 'locality-file' together.")
+          .build();
+  private static final Option EXCLUDED_LOCALITY_FILE_OPTION =
+      Option.builder()
+          .longOpt("excluded-locality-file")
+          .required(false)
+          .hasArg(true)
+          .numberOfArgs(1)
+          .argName("excluded-locality-file")
+          .desc("Locality File contains excluded worker localities,"
+              + " each line has a worker locality."
+              + " Only one of the 'excluded-locality' and 'excluded-locality-file' should be set,"
+              + " and it should not be set with 'hosts', 'host-file', 'locality'"
+              + " and 'locality-file' together.")
           .build();
 
   /**
@@ -138,8 +212,12 @@ public final class DistributedLoadCommand extends AbstractDistributedJobCommand 
   @Override
   public String getUsage() {
     return "distributedLoad [--replication <num>] [--active-jobs <num>] [--index] "
-        + "[--hosts <host1,host2,...,hostN>] [--host-file <hostFilePath>] "
-        + "[--locality <locality1,locality2,...,localityN>] [--locality-file <localityFilePath>] "
+        + "[--hosts <host1>,<host2>,...,<hostN>] [--host-file <hostFilePath>] "
+        + "[--excluded-hosts <host1>,<host2>,...,<hostN>] [--excluded-host-file <hostFilePath>] "
+        + "[--locality <locality1>,<locality2>,...,<localityN>] "
+        + "[--locality-file <localityFilePath>] "
+        + "[--excluded-locality <locality1>,<locality2>,...,<localityN>] "
+        + "[--excluded-locality-file <localityFilePath>] "
         + "<path>";
   }
 
@@ -157,13 +235,22 @@ public final class DistributedLoadCommand extends AbstractDistributedJobCommand 
     String[] args = cl.getArgs();
     int replication = FileSystemShellUtils.getIntArg(cl, REPLICATION_OPTION, DEFAULT_REPLICATION);
     Set<String> workerSet = new HashSet<>();
+    Set<String> excludedWorkerSet = new HashSet<>();
     Set<String> localityIds = new HashSet<>();
+    Set<String> excludedLocalityIds = new HashSet<>();
     if (cl.hasOption(HOST_FILE_OPTION.getLongOpt())) {
       String hostFile = cl.getOptionValue(HOST_FILE_OPTION.getLongOpt()).trim();
       readLinesToSet(workerSet, hostFile);
     } else if (cl.hasOption(HOSTS_OPTION.getLongOpt())) {
       String argOption = cl.getOptionValue(HOSTS_OPTION.getLongOpt()).trim();
       readItemsFromOptionString(workerSet, argOption);
+    }
+    if (cl.hasOption(EXCLUDED_HOST_FILE_OPTION.getLongOpt())) {
+      String hostFile = cl.getOptionValue(EXCLUDED_HOST_FILE_OPTION.getLongOpt()).trim();
+      readLinesToSet(excludedWorkerSet, hostFile);
+    } else if (cl.hasOption(EXCLUDED_HOSTS_OPTION.getLongOpt())) {
+      String argOption = cl.getOptionValue(EXCLUDED_HOSTS_OPTION.getLongOpt()).trim();
+      readItemsFromOptionString(excludedWorkerSet, argOption);
     }
     if (cl.hasOption(LOCALITY_FILE_OPTION.getLongOpt())) {
       String localityFile = cl.getOptionValue(LOCALITY_FILE_OPTION.getLongOpt()).trim();
@@ -172,15 +259,24 @@ public final class DistributedLoadCommand extends AbstractDistributedJobCommand 
       String argOption = cl.getOptionValue(LOCALITY_OPTION.getLongOpt()).trim();
       readItemsFromOptionString(localityIds, argOption);
     }
+    if (cl.hasOption(EXCLUDED_LOCALITY_FILE_OPTION.getLongOpt())) {
+      String localityFile = cl.getOptionValue(EXCLUDED_LOCALITY_FILE_OPTION.getLongOpt()).trim();
+      readLinesToSet(excludedLocalityIds, localityFile);
+    } else if (cl.hasOption(EXCLUDED_LOCALITY_OPTION.getLongOpt())) {
+      String argOption = cl.getOptionValue(EXCLUDED_LOCALITY_OPTION.getLongOpt()).trim();
+      readItemsFromOptionString(excludedLocalityIds, argOption);
+    }
 
     if (!cl.hasOption(INDEX_FILE.getLongOpt())) {
       AlluxioURI path = new AlluxioURI(args[0]);
-      DistributedLoadUtils.distributedLoad(this, path, replication, workerSet, localityIds);
+      DistributedLoadUtils.distributedLoad(this, path, replication, workerSet,
+          excludedWorkerSet, localityIds, excludedLocalityIds);
     } else {
       try (BufferedReader reader = new BufferedReader(new FileReader(args[0]))) {
         for (String filename; (filename = reader.readLine()) != null; ) {
           AlluxioURI path = new AlluxioURI(filename);
-          DistributedLoadUtils.distributedLoad(this, path, replication, workerSet, localityIds);
+          DistributedLoadUtils.distributedLoad(this, path, replication, workerSet,
+              excludedWorkerSet, localityIds, excludedLocalityIds);
         }
       }
     }

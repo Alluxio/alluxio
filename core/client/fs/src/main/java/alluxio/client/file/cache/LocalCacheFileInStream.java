@@ -11,10 +11,9 @@
 
 package alluxio.client.file.cache;
 
+import alluxio.client.file.CacheContext;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.URIStatus;
-import alluxio.client.quota.CacheQuota;
-import alluxio.client.quota.CacheScope;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.AlluxioException;
@@ -22,13 +21,17 @@ import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 
 import com.codahale.metrics.Meter;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
+import com.google.common.base.Stopwatch;
+import com.google.common.base.Ticker;
 import com.google.common.io.Closer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.util.concurrent.TimeUnit;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -47,10 +50,8 @@ public class LocalCacheFileInStream extends FileInStream {
   /** Local store to store pages. */
   private final CacheManager mCacheManager;
   private final boolean mQuotaEnabled;
-  /** Scope of the file. */
-  private final CacheScope mCacheScope;
-  /** Cache Scope. */
-  private final CacheQuota mCacheQuota;
+  /** Cache related context of this file. */
+  private final CacheContext mCacheContext;
   /** File info, fetched from external FS. */
   private final URIStatus mStatus;
   private final FileInStreamOpener mExternalFileInStreamOpener;
@@ -61,6 +62,8 @@ public class LocalCacheFileInStream extends FileInStream {
   private long mPosition = 0;
   private boolean mClosed = false;
   private boolean mEOF = false;
+
+  private final Stopwatch mStopwatch;
 
   /**
    * Interface to wrap open method of file system.
@@ -85,19 +88,25 @@ public class LocalCacheFileInStream extends FileInStream {
    */
   public LocalCacheFileInStream(URIStatus status, FileInStreamOpener fileOpener,
       CacheManager cacheManager, AlluxioConfiguration conf) {
+    this(status, fileOpener, cacheManager, conf, Stopwatch.createUnstarted(Ticker.systemTicker()));
+  }
+
+  @VisibleForTesting
+  LocalCacheFileInStream(URIStatus status, FileInStreamOpener fileOpener,
+      CacheManager cacheManager, AlluxioConfiguration conf, Stopwatch stopwatch) {
     mPageSize = conf.getBytes(PropertyKey.USER_CLIENT_CACHE_PAGE_SIZE);
     mExternalFileInStreamOpener = fileOpener;
     mCacheManager = cacheManager;
     mStatus = status;
+    // Currently quota is only supported when it is set by external systems in status context
     mQuotaEnabled = conf.getBoolean(PropertyKey.USER_CLIENT_CACHE_QUOTA_ENABLED);
-    if (mQuotaEnabled) {
-      mCacheQuota = status.getCacheQuota();
-      mCacheScope = status.getCacheScope();
+    if (mQuotaEnabled && status.getCacheContext() != null) {
+      mCacheContext = status.getCacheContext();
     } else {
-      mCacheQuota = CacheQuota.UNLIMITED;
-      mCacheScope = CacheScope.GLOBAL;
+      mCacheContext = CacheContext.defaults();
     }
     Metrics.registerGauges();
+    mStopwatch = stopwatch;
   }
 
   @Override
@@ -110,7 +119,10 @@ public class LocalCacheFileInStream extends FileInStream {
     byte[] b = new byte[buf.remaining()];
     int totalBytesRead =
         readInternal(b, off, len, ReadType.READ_INTO_BYTE_BUFFER, mPosition, false);
-    buf.put(b, off, len);
+    if (totalBytesRead == -1) {
+      return -1;
+    }
+    buf.put(b, off, totalBytesRead);
     return totalBytesRead;
   }
 
@@ -135,23 +147,49 @@ public class LocalCacheFileInStream extends FileInStream {
       int currentPageOffset = (int) (currentPosition % mPageSize);
       int bytesLeftInPage =
           (int) Math.min(mPageSize - currentPageOffset, lengthToRead - totalBytesRead);
-      PageId pageId = new PageId(mStatus.getFileIdentifier(), currentPage);
+      PageId pageId;
+      CacheContext cacheContext = mStatus.getCacheContext();
+      if (cacheContext != null && cacheContext.getCacheIdentifier() != null) {
+        pageId = new PageId(cacheContext.getCacheIdentifier(), currentPage);
+      } else {
+        pageId = new PageId(Long.toString(mStatus.getFileId()), currentPage);
+      }
+      mStopwatch.reset().start();
       int bytesRead =
-          mCacheManager.get(pageId, currentPageOffset, bytesLeftInPage, b, off + totalBytesRead);
+          mCacheManager.get(pageId, currentPageOffset, bytesLeftInPage, b, off + totalBytesRead,
+              mCacheContext);
+      mStopwatch.stop();
       if (bytesRead > 0) {
         totalBytesRead += bytesRead;
         currentPosition += bytesRead;
         Metrics.BYTES_READ_CACHE.mark(bytesRead);
+        if (cacheContext != null) {
+          cacheContext
+              .incrementCounter(MetricKey.CLIENT_CACHE_BYTES_READ_CACHE.getMetricName(), bytesRead);
+          cacheContext.incrementCounter(
+              MetricKey.CLIENT_CACHE_PAGE_READ_CACHE_TIME_NS.getMetricName(),
+              mStopwatch.elapsed(TimeUnit.NANOSECONDS));
+        }
       } else {
         // on local cache miss, read a complete page from external storage. This will always make
         // progress or throw an exception
+        mStopwatch.reset().start();
         byte[] page = readExternalPage(currentPosition, readType);
+        mStopwatch.stop();
         if (page.length > 0) {
           System.arraycopy(page, currentPageOffset, b, off + totalBytesRead, bytesLeftInPage);
           totalBytesRead += bytesLeftInPage;
           currentPosition += bytesLeftInPage;
           Metrics.BYTES_REQUESTED_EXTERNAL.mark(bytesLeftInPage);
-          mCacheManager.put(pageId, page, mCacheScope, mCacheQuota);
+          if (cacheContext != null) {
+            cacheContext.incrementCounter(
+                MetricKey.CLIENT_CACHE_BYTES_REQUESTED_EXTERNAL.getMetricName(), bytesLeftInPage);
+            cacheContext.incrementCounter(
+                MetricKey.CLIENT_CACHE_PAGE_READ_EXTERNAL_TIME_NS.getMetricName(),
+                mStopwatch.elapsed(TimeUnit.NANOSECONDS)
+            );
+          }
+          mCacheManager.put(pageId, page, mCacheContext);
         }
       }
       if (!isPositionedRead) {

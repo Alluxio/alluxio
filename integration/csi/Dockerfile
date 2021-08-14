@@ -13,13 +13,13 @@ FROM golang:1.15.13-alpine as dev
 
 ENV GO111MODULE=on
 
-RUN mkdir -p $GOPATH/src/github.com/Alluxio/alluxio-csi
-COPY . $GOPATH/src/github.com/Alluxio/alluxio-csi
+RUN mkdir -p /alluxio-csi
+COPY . /alluxio-csi
 
 FROM dev as build
 
-RUN cd $GOPATH/src/github.com/Alluxio/alluxio-csi && \
+RUN cd /alluxio-csi && \
     CGO_ENABLED=0 go build -o /usr/local/bin/alluxio-csi
 
-FROM alluxio/alluxio-fuse:latest as final
+FROM alluxio/alluxio:latest as final
 COPY --from=build /usr/local/bin/alluxio-csi /usr/local/bin/

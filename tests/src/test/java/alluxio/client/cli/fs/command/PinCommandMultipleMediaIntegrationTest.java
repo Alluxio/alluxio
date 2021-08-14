@@ -68,7 +68,7 @@ public final class PinCommandMultipleMediaIntegrationTest extends BaseIntegratio
           .setProperty(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, "CACHE_THROUGH")
           .setProperty(PropertyKey.USER_FILE_RESERVED_BYTES, SIZE_BYTES / 2)
           // multiple media
-          .setProperty(PropertyKey.MASTER_REPLICATION_CHECK_INTERVAL_MS, "100ms")
+          .setProperty(PropertyKey.MASTER_REPLICATION_CHECK_INTERVAL_MS, "500ms")
           .setProperty(PropertyKey.WORKER_TIERED_STORE_LEVELS, "2")
           .setProperty(PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_ALIAS
               .format(1), Constants.MEDIUM_SSD)

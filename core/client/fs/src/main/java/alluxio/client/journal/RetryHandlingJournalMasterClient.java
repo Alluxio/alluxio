@@ -20,6 +20,7 @@ import alluxio.grpc.JournalMasterClientServiceGrpc;
 import alluxio.grpc.NetAddress;
 import alluxio.grpc.RemoveQuorumServerPRequest;
 import alluxio.grpc.ServiceType;
+import alluxio.grpc.TransferLeadershipPRequest;
 import alluxio.master.MasterClientContext;
 
 import org.slf4j.Logger;
@@ -73,5 +74,12 @@ public class RetryHandlingJournalMasterClient extends AbstractMasterClient
     retryRPC(() -> mClient.removeQuorumServer(
         RemoveQuorumServerPRequest.newBuilder().setServerAddress(serverAddress).build()),
         RPC_LOG, "RemoveQuorumServer",  "serverAddress=%s", serverAddress);
+  }
+
+  @Override
+  public void transferLeadership(NetAddress newLeaderNetAddress) throws AlluxioStatusException {
+    retryRPC(() -> mClient.transferLeadership(
+        TransferLeadershipPRequest.newBuilder().setServerAddress(newLeaderNetAddress).build()),
+        RPC_LOG, "TransferLeadership", "serverAddress=%s", newLeaderNetAddress);
   }
 }

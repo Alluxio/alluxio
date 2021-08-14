@@ -179,9 +179,8 @@ public class RaftJournalTest {
     // Wait for sequences to be caught up.
     catchupFuture.waitTermination();
     Assert.assertEquals(catchupIndex + 1, countingMaster.getApplyCount());
-    // Wait for 2 heart-beat period and verify follower master state hasn't changed.
-    Thread.sleep(
-        2 * ServerConfiguration.getMs(PropertyKey.MASTER_EMBEDDED_JOURNAL_HEARTBEAT_INTERVAL));
+    // Wait for election timeout and verify follower master state hasn't changed.
+    Thread.sleep(ServerConfiguration.getMs(PropertyKey.MASTER_EMBEDDED_JOURNAL_ELECTION_TIMEOUT));
     Assert.assertEquals(catchupIndex + 1, countingMaster.getApplyCount());
     // Exit backup mode and wait until follower master acquires the current knowledge.
     mFollowerJournalSystem.resume();
@@ -236,8 +235,7 @@ public class RaftJournalTest {
     // Restart the follower.
     mFollowerJournalSystem.stop();
     mFollowerJournalSystem.start();
-    Thread.sleep(
-        2 * ServerConfiguration.getMs(PropertyKey.MASTER_EMBEDDED_JOURNAL_HEARTBEAT_INTERVAL));
+    Thread.sleep(ServerConfiguration.getMs(PropertyKey.MASTER_EMBEDDED_JOURNAL_ELECTION_TIMEOUT));
 
     // Verify that all entries are replayed despite the snapshot was requested while some entries
     // are queued up during suspension.
@@ -396,13 +394,15 @@ public class RaftJournalTest {
   }
 
   private void promoteFollower() throws Exception {
-    System.out.printf("Leader is leader? %s", mLeaderJournalSystem.isLeader());
-    changeToFollower(mLeaderJournalSystem);
-    System.out.printf("Follower is leader? %s", mFollowerJournalSystem.isLeader());
+    Assert.assertTrue(mLeaderJournalSystem.isLeader());
+    Assert.assertFalse(mFollowerJournalSystem.isLeader());
+    // Triggering rigged election via reflection to switch the leader.
     changeToFollower(mLeaderJournalSystem);
     changeToCandidate(mFollowerJournalSystem);
-    CommonUtils.waitFor("follower becomes leader",
-        () -> mFollowerJournalSystem.isLeader(), mWaitOptions);
+    CommonUtils.waitFor("follower becomes leader", () -> mFollowerJournalSystem.isLeader(),
+        mWaitOptions);
+    Assert.assertFalse(mLeaderJournalSystem.isLeader());
+    Assert.assertTrue(mFollowerJournalSystem.isLeader());
     mFollowerJournalSystem.gainPrimacy();
   }
 
@@ -474,7 +474,6 @@ public class RaftJournalTest {
   private List<RaftJournalSystem> createJournalSystems(int journalSystemCount) throws Exception {
     // Override defaults for faster quorum formation.
     ServerConfiguration.set(PropertyKey.MASTER_EMBEDDED_JOURNAL_ELECTION_TIMEOUT, 550);
-    ServerConfiguration.set(PropertyKey.MASTER_EMBEDDED_JOURNAL_HEARTBEAT_INTERVAL, 250);
 
     List<InetSocketAddress> clusterAddresses = new ArrayList<>(journalSystemCount);
     List<Integer> freePorts = getFreePorts(journalSystemCount);
@@ -534,7 +533,7 @@ public class RaftJournalTest {
     Class<?> raftServerImpl = (Class.forName("org.apache.ratis.server.impl.RaftServerImpl"));
     Method method = raftServerImpl.getDeclaredMethod("changeToCandidate", boolean.class);
     method.setAccessible(true);
-    method.invoke(serverImpl, false);
+    method.invoke(serverImpl, true);
   }
 
   @VisibleForTesting

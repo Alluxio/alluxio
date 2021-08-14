@@ -38,6 +38,7 @@ public final class MasterWebUIOverview implements Serializable {
   private Map<Scope, List<InconsistentProperty>> mConfigCheckErrors;
   private Map<Scope, List<InconsistentProperty>> mConfigCheckWarns;
   private String mCapacity;
+  private String mClusterId;
   private String mDiskCapacity;
   private String mDiskFreeCapacity;
   private String mDiskUsedCapacity;
@@ -64,6 +65,15 @@ public final class MasterWebUIOverview implements Serializable {
    */
   public String getCapacity() {
     return mCapacity;
+  }
+
+  /**
+   * Gets cluster id.
+   *
+   * @return the cluster id
+   */
+  public String getClusterId() {
+    return mClusterId;
   }
 
   /**
@@ -241,6 +251,17 @@ public final class MasterWebUIOverview implements Serializable {
    */
   public MasterWebUIOverview setCapacity(String capacity) {
     mCapacity = capacity;
+    return this;
+  }
+
+  /**
+   * Sets cluster id.
+   *
+   * @param clusterId the cluster id
+   * @return the updated {@link MasterWebUIOverview} instance
+   */
+  public MasterWebUIOverview setClusterId(String clusterId) {
+    mClusterId = clusterId;
     return this;
   }
 
@@ -455,6 +476,7 @@ public final class MasterWebUIOverview implements Serializable {
   @Override
   public String toString() {
     return MoreObjects.toStringHelper(this).add("capacity", mCapacity)
+        .add("clusterId", mClusterId)
         .add("configCheckErrorNum", mConfigCheckErrorNum)
         .add("configCheckErrors", mConfigCheckErrors).add("configCheckStatus", mConfigCheckStatus)
         .add("configCheckWarnNum", mConfigCheckWarnNum)

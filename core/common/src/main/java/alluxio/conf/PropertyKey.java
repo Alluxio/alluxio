@@ -1712,31 +1712,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
-  public static final PropertyKey MASTER_EMBEDDED_JOURNAL_HEARTBEAT_INTERVAL =
-      new Builder(Name.MASTER_EMBEDDED_JOURNAL_HEARTBEAT_INTERVAL)
-          .setDescription(
-              "The period between sending heartbeats from the embedded journal primary to "
-                  + "followers. This should be less than half of the election timeout "
-                  + String.format("{%s}", Name.MASTER_EMBEDDED_JOURNAL_ELECTION_TIMEOUT)
-                  + ", because the election is driven by heart beats.")
-          .setDefaultValue("3s")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.MASTER)
-          .build();
-  /**
-   * @deprecated appender batch size is used by copycat dependency which is removed
-   */
-  @Deprecated
-  public static final PropertyKey MASTER_EMBEDDED_JOURNAL_APPENDER_BATCH_SIZE =
-      new Builder(Name.MASTER_EMBEDDED_JOURNAL_APPENDER_BATCH_SIZE)
-          .setDescription("Amount of data that is appended from leader to followers "
-              + "in a single heartbeat. Setting higher values might require increasing "
-              + "election timeout due to increased network delay. Setting lower values "
-              + "might stall knowledge propagation between the leader and followers.")
-          .setDefaultValue("512KB")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.MASTER)
-          .build();
   public static final PropertyKey MASTER_EMBEDDED_JOURNAL_CATCHUP_RETRY_WAIT =
       new Builder(Name.MASTER_EMBEDDED_JOURNAL_CATCHUP_RETRY_WAIT)
           .setDefaultValue("1s")
@@ -1779,30 +1754,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
-  /**
-   * @deprecated storage level is used by copycat dependency which is removed
-   */
-  @Deprecated
-  public static final PropertyKey MASTER_EMBEDDED_JOURNAL_STORAGE_LEVEL =
-      new Builder(Name.MASTER_EMBEDDED_JOURNAL_STORAGE_LEVEL)
-          .setDescription("The storage level for storing embedded journal logs. Use DISK for "
-              + "maximum durability. Use MAPPED for better performance, but some risk of "
-              + "losing state in case of power loss or host failure. Use MEMORY for "
-              + "optimal performance, but no state persistence across cluster restarts.")
-          .setDefaultValue("DISK")
-          .setScope(Scope.MASTER)
-          .build();
-  /**
-   * @deprecated journal shutdown timeout is used by copycat dependency which is removed
-   */
-  @Deprecated
-  public static final PropertyKey MASTER_EMBEDDED_JOURNAL_SHUTDOWN_TIMEOUT =
-      new Builder(Name.MASTER_EMBEDDED_JOURNAL_SHUTDOWN_TIMEOUT)
-          .setDefaultValue("10sec")
-          .setDescription("Maximum time to wait for embedded journal to stop on shutdown.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.MASTER)
-          .build();
   public static final PropertyKey MASTER_EMBEDDED_JOURNAL_WRITE_LOCAL_FIRST_ENABLED =
       new Builder(Name.MASTER_EMBEDDED_JOURNAL_WRITE_LOCAL_FIRST_ENABLED)
           .setDefaultValue(true)
@@ -1832,17 +1783,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       new Builder(Name.MASTER_EMBEDDED_JOURNAL_SNAPSHOT_REPLICATION_CHUNK_SIZE)
           .setDefaultValue("4MB")
           .setDescription("The stream chunk size used by masters to replicate snapshots.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.MASTER)
-          .build();
-  /**
-   * @deprecated snapshot wait timeout is used by copycat dependency which is removed
-   */
-  @Deprecated
-  public static final PropertyKey MASTER_EMBEDDED_JOURNAL_TRIGGERED_SNAPSHOT_WAIT_TIMEOUT =
-      new Builder(Name.MASTER_EMBEDDED_JOURNAL_TRIGGERED_SNAPSHOT_WAIT_TIMEOUT)
-          .setDefaultValue("2hour")
-          .setDescription("Maximum time to wait for the triggered snapshot to finish.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
@@ -3082,7 +3022,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               return "1GB";
             }
           }, "2/3 of total system memory, or 1GB if system memory size cannot be determined")
-          .setDescription("Memory capacity of each worker node. "
+          .setDescription("The allocated memory for each worker node's ramdisk(s). "
                   + "It is recommended to set this value explicitly.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
@@ -3366,8 +3306,9 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       new Builder(Template.WORKER_TIERED_STORE_LEVEL_DIRS_PATH, 0)
           .setDefaultSupplier(() -> OSUtils.isLinux() ? "/mnt/ramdisk" : "/Volumes/ramdisk",
               "/mnt/ramdisk on Linux, /Volumes/ramdisk on OSX")
-          .setDescription("The path of storage directory for the top storage tier. Note "
-              + "for MacOS the value should be `/Volumes/`.")
+          .setDescription("A comma-separated list of paths (eg., /mnt/ramdisk1,/mnt/ramdisk2,"
+              + "/mnt/ssd/alluxio/cache1) of storage directories for the top storage tier. "
+              + "Note that for MacOS, the root directory should be `/Volumes/` and not `/mnt/`.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
@@ -3376,7 +3317,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDefaultValue(
               String.format("${%s}", Template.WORKER_TIERED_STORE_LEVEL_ALIAS.format(0)))
           .setDescription(String.format(
-              "A list of media types (e.g., \"MEM,SSD,SSD\") for each storage "
+              "A comma-separated list of media types (e.g., \"MEM,MEM,SSD\") for each storage "
                   + "directory on the top storage tier specified by %s.",
               PropertyKey.WORKER_TIERED_STORE_LEVEL0_DIRS_PATH.mName))
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
@@ -3385,7 +3326,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey WORKER_TIERED_STORE_LEVEL0_DIRS_QUOTA =
       new Builder(Template.WORKER_TIERED_STORE_LEVEL_DIRS_QUOTA, 0)
           .setDefaultValue(String.format("${%s}", Name.WORKER_RAMDISK_SIZE))
-          .setDescription("The capacity of the top storage tier.")
+          .setDescription(String.format(
+              "A comma-separated list of capacities (e.g., \"500MB,500MB,5GB\") for each storage "
+                  + "directory on the top storage tier specified by %s. "
+                  + "For any \"MEM\"-type media (i.e, the ramdisks), this value should be set "
+                  + "equivalent to the value specified by %s.",
+              PropertyKey.WORKER_TIERED_STORE_LEVEL0_DIRS_PATH.mName,
+              Name.WORKER_RAMDISK_SIZE))
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
@@ -3414,7 +3361,9 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey WORKER_TIERED_STORE_LEVEL1_DIRS_PATH =
       new Builder(Template.WORKER_TIERED_STORE_LEVEL_DIRS_PATH, 1)
-          .setDescription("The path of storage directory for the second storage tier.")
+          .setDescription("A comma-separated list of paths (eg., /mnt/ssd/alluxio/cache2,"
+              + "/mnt/ssd/alluxio/cache3,/mnt/hdd/alluxio/cache1) of storage directories "
+              + "for the second storage tier.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
@@ -3423,7 +3372,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDefaultValue(
               String.format("${%s}", Template.WORKER_TIERED_STORE_LEVEL_ALIAS.format(1)))
           .setDescription(String.format(
-              "A list of media types (e.g., \"MEM,SSD,SSD\") for each storage "
+              "A list of media types (e.g., \"SSD,SSD,HDD\") for each storage "
                   + "directory on the second storage tier specified by %s.",
               PropertyKey.WORKER_TIERED_STORE_LEVEL1_DIRS_PATH.mName))
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
@@ -3431,7 +3380,10 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey WORKER_TIERED_STORE_LEVEL1_DIRS_QUOTA =
       new Builder(Template.WORKER_TIERED_STORE_LEVEL_DIRS_QUOTA, 1)
-          .setDescription("The capacity of the second storage tier.")
+          .setDescription(String.format(
+              "A comma-separated list of capacities (e.g., \"5GB,5GB,50GB\") for each storage "
+                  + "directory on the second storage tier specified by %s.",
+              PropertyKey.WORKER_TIERED_STORE_LEVEL1_DIRS_PATH.mName))
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
@@ -3460,7 +3412,9 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey WORKER_TIERED_STORE_LEVEL2_DIRS_PATH =
       new Builder(Template.WORKER_TIERED_STORE_LEVEL_DIRS_PATH, 2)
-          .setDescription("The path of storage directory for the third storage tier.")
+          .setDescription("A comma-separated list of paths (eg., /mnt/ssd/alluxio/cache4,"
+              + "/mnt/hdd/alluxio/cache2,/mnt/hdd/alluxio/cache3) of storage directories "
+              + "for the third storage tier.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
@@ -3469,7 +3423,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDefaultValue(
               String.format("${%s}", Template.WORKER_TIERED_STORE_LEVEL_ALIAS.format(2)))
           .setDescription(String.format(
-              "A list of media types (e.g., \"MEM,SSD,SSD\") for each storage "
+              "A list of media types (e.g., \"SSD,HDD,HDD\") for each storage "
                   + "directory on the third storage tier specified by %s.",
               PropertyKey.WORKER_TIERED_STORE_LEVEL2_DIRS_PATH.mName))
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
@@ -3477,7 +3431,10 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey WORKER_TIERED_STORE_LEVEL2_DIRS_QUOTA =
       new Builder(Template.WORKER_TIERED_STORE_LEVEL_DIRS_QUOTA, 2)
-          .setDescription("The capacity of the third storage tier.")
+          .setDescription(String.format(
+              "A comma-separated list of capacities (e.g., \"5GB,50GB,50GB\") for each storage "
+                  + "directory on the third storage tier specified by %s.",
+              PropertyKey.WORKER_TIERED_STORE_LEVEL2_DIRS_PATH.mName))
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
@@ -4890,6 +4847,29 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.CLIENT)
           .build();
+  public static final PropertyKey FUSE_WEB_ENABLED =
+      new Builder(Name.FUSE_WEB_ENABLED)
+          .setDefaultValue(false)
+          .setDescription("Whether to enable FUSE web server.")
+          .setScope(Scope.CLIENT)
+          .build();
+  public static final PropertyKey FUSE_WEB_BIND_HOST =
+      new Builder(Name.FUSE_WEB_BIND_HOST)
+          .setDefaultValue("0.0.0.0")
+          .setDescription("The hostname Alluxio FUSE web UI binds to.")
+          .setScope(Scope.CLIENT)
+          .build();
+  public static final PropertyKey FUSE_WEB_HOSTNAME =
+      new Builder(Name.FUSE_WEB_HOSTNAME)
+          .setDescription("The hostname of Alluxio FUSE web UI.")
+          .setScope(Scope.ALL)
+          .build();
+  public static final PropertyKey FUSE_WEB_PORT =
+      new Builder(Name.FUSE_WEB_PORT)
+          .setDefaultValue(49999)
+          .setDescription("The port Alluxio FUSE web UI runs on.")
+          .setScope(Scope.CLIENT)
+          .build();
 
   //
   // Security related properties
@@ -4985,6 +4965,27 @@ public final class PropertyKey implements Comparable<PropertyKey> {
                   + "their target master upon being used for new RPCs.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.ALL)
+          .build();
+  //
+  // Network TLS support
+  //
+  public static final PropertyKey NETWORK_TLS_SSL_CONTEXT_PROVIDER_CLASSNAME =
+      new Builder(Name.NETWORK_TLS_SSL_CONTEXT_PROVIDER_CLASSNAME)
+          .setDescription(
+              "Full name of the class that will be instantiated for providing SSL contexts.")
+          .setDefaultValue("alluxio.util.network.tls.DefaultSslContextProvider")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.ALL)
+          .setIsHidden(true)
+          .build();
+  public static final PropertyKey NETWORK_TLS_ENABLED =
+      new Builder(Name.NETWORK_TLS_ENABLED)
+          .setDescription("If true, enables TLS on all network communication between all Alluxio "
+              + "clients, masters, and workers.")
+          .setDefaultValue(false)
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.ALL)
+          .setIsHidden(true)
           .build();
 
   //
@@ -5672,24 +5673,16 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.embedded.journal.addresses";
     public static final String MASTER_EMBEDDED_JOURNAL_ELECTION_TIMEOUT =
         "alluxio.master.embedded.journal.election.timeout";
-    public static final String MASTER_EMBEDDED_JOURNAL_APPENDER_BATCH_SIZE =
-        "alluxio.master.embedded.journal.appender.batch.size";
     public static final String MASTER_EMBEDDED_JOURNAL_CATCHUP_RETRY_WAIT =
         "alluxio.master.embedded.journal.catchup.retry.wait";
     public static final String MASTER_EMBEDDED_JOURNAL_ENTRY_SIZE_MAX =
         "alluxio.master.embedded.journal.entry.size.max";
     public static final String MASTER_EMBEDDED_JOURNAL_FLUSH_SIZE_MAX =
         "alluxio.master.embedded.journal.flush.size.max";
-    public static final String MASTER_EMBEDDED_JOURNAL_HEARTBEAT_INTERVAL =
-        "alluxio.master.embedded.journal.heartbeat.interval";
     public static final String MASTER_EMBEDDED_JOURNAL_PORT =
         "alluxio.master.embedded.journal.port";
     public static final String MASTER_EMBEDDED_JOURNAL_RETRY_CACHE_EXPIRY_TIME =
         "alluxio.master.embedded.journal.retry.cache.expiry.time";
-    public static final String MASTER_EMBEDDED_JOURNAL_STORAGE_LEVEL =
-        "alluxio.master.embedded.journal.storage.level";
-    public static final String MASTER_EMBEDDED_JOURNAL_SHUTDOWN_TIMEOUT =
-        "alluxio.master.embedded.journal.shutdown.timeout";
     public static final String MASTER_EMBEDDED_JOURNAL_WRITE_LOCAL_FIRST_ENABLED =
         "alluxio.master.embedded.journal.write.local.first.enabled";
     public static final String MASTER_EMBEDDED_JOURNAL_WRITE_REMOTE_ENABLED =
@@ -5698,8 +5691,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.embedded.journal.write.timeout";
     public static final String MASTER_EMBEDDED_JOURNAL_SNAPSHOT_REPLICATION_CHUNK_SIZE =
         "alluxio.master.embedded.journal.snapshot.replication.chunk.size";
-    public static final String MASTER_EMBEDDED_JOURNAL_TRIGGERED_SNAPSHOT_WAIT_TIMEOUT =
-        "alluxio.master.embedded.journal.triggered.snapshot.wait.timeout";
     public static final String MASTER_EMBEDDED_JOURNAL_TRANSPORT_REQUEST_TIMEOUT_MS =
         "alluxio.master.embedded.journal.transport.request.timeout.ms";
     public static final String MASTER_EMBEDDED_JOURNAL_TRANSPORT_MAX_INBOUND_MESSAGE_SIZE =
@@ -6283,6 +6274,10 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.fuse.umount.timeout";
     public static final String FUSE_USER_GROUP_TRANSLATION_ENABLED =
         "alluxio.fuse.user.group.translation.enabled";
+    public static final String FUSE_WEB_ENABLED = "alluxio.fuse.web.enabled";
+    public static final String FUSE_WEB_BIND_HOST = "alluxio.fuse.web.bind.host";
+    public static final String FUSE_WEB_HOSTNAME = "alluxio.fuse.web.hostname";
+    public static final String FUSE_WEB_PORT = "alluxio.fuse.web.port";
 
     //
     // Security related properties
@@ -6306,6 +6301,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String SECURITY_LOGIN_USERNAME = "alluxio.security.login.username";
     public static final String AUTHENTICATION_INACTIVE_CHANNEL_REAUTHENTICATE_PERIOD =
         "alluxio.security.stale.channel.purge.interval";
+
+    //
+    // Network TLS support
+    //
+    public static final String NETWORK_TLS_SSL_CONTEXT_PROVIDER_CLASSNAME =
+        "alluxio.network.tls.ssl.context.provider.classname";
+    public static final String NETWORK_TLS_ENABLED = "alluxio.network.tls.enabled";
 
     //
     // Job service

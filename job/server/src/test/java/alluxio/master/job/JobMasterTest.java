@@ -25,6 +25,7 @@ import alluxio.conf.ServerConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.status.ResourceExhaustedException;
+import alluxio.grpc.ListAllPOptions;
 import alluxio.job.JobConfig;
 import alluxio.job.JobServerContext;
 import alluxio.job.SleepJobConfig;
@@ -52,6 +53,7 @@ import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -123,10 +125,33 @@ public final class JobMasterTest {
             anyList(), anyLong(), any(JobConfig.class), any(Consumer.class)))
         .thenReturn(coordinator);
     TestPlanConfig jobConfig = new TestPlanConfig("/test");
+    List<Long> jobIdList = new ArrayList<>();
     for (long i = 0; i < TEST_JOB_MASTER_JOB_CAPACITY; i++) {
-      mJobMaster.run(jobConfig);
+      jobIdList.add(mJobMaster.run(jobConfig));
     }
-    Assert.assertEquals(TEST_JOB_MASTER_JOB_CAPACITY, mJobMaster.list().size());
+    final List<Long> list = mJobMaster.list(ListAllPOptions.getDefaultInstance());
+    Assert.assertEquals(jobIdList, list);
+    Assert.assertEquals(TEST_JOB_MASTER_JOB_CAPACITY,
+        mJobMaster.list(ListAllPOptions.getDefaultInstance()).size());
+  }
+
+  @Test
+  public void list() throws Exception {
+    PlanCoordinator coordinator = PowerMockito.mock(PlanCoordinator.class);
+    mockStatic(PlanCoordinator.class);
+    when(
+        PlanCoordinator.create(any(CommandManager.class), any(JobServerContext.class),
+            anyList(), anyLong(), any(JobConfig.class), any(Consumer.class)))
+        .thenReturn(coordinator);
+    TestPlanConfig jobConfig = new TestPlanConfig("/test");
+    List<Long> jobIdList = new ArrayList<>();
+    for (long i = 0; i < TEST_JOB_MASTER_JOB_CAPACITY; i++) {
+      jobIdList.add(mJobMaster.run(jobConfig));
+    }
+    final List<Long> list = mJobMaster.list(ListAllPOptions.getDefaultInstance());
+    Assert.assertEquals(jobIdList, list);
+    Assert.assertEquals(TEST_JOB_MASTER_JOB_CAPACITY,
+        mJobMaster.list(ListAllPOptions.getDefaultInstance()).size());
   }
 
   @Test

@@ -188,6 +188,20 @@ Detailed descriptions of those metrics are in [cluster metrics]({{ '/en/referenc
 without accessing UFSes. Performance improvement can be significant if the target UFS is remote or slow in response.
 Costs can be saved if the underlying storage charges are based on requests.
 
+## JVM metrics
+
+You can get JVM related metrics via `jvm_exporter` as a Java agent.
+
+Download [jmx_prometheus_javaagent-0.16.0.jar](https://repo1.maven.org/maven2/io/prometheus/jmx/jmx_prometheus_javaagent/0.16.0/jmx_prometheus_javaagent-0.16.0.jar) and run:
+
+```bash
+java -javaagent:./jmx_prometheus_javaagent-0.16.0.jar=8080:config.yaml -jar yourJar.jar
+```
+
+Metrics will now be accessible at http://localhost:8080/metrics.
+
+`config.yaml` file provides the configuration for jmx_exporter. Empty file can be used for a quick start. For more information, please refer to [jmx_exporter documentation](https://github.com/prometheus/jmx_exporter).
+
 ## Grafana Web UI with Prometheus
 
 Grafana is a metrics analytics and visualization software used for visualizing time series data. You can use Grafana to better visualize the various metrics that Alluxio collects. The software allows users to more easily see changes in memory, storage, and completed operations in Alluxio.

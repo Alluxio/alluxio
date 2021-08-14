@@ -126,6 +126,7 @@ public class PromoteTask extends AbstractBlockManagementTask {
       try {
         BlockMeta blockMeta = mEvictorView.getBlockMeta(blockId);
         if (blockMeta == null) {
+          LOG.debug("Block:{} exist but not available for promotion.", blockId);
           continue;
         }
         bytesToAllocate += blockMeta.getBlockSize();

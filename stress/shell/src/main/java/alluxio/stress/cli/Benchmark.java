@@ -58,6 +58,13 @@ public abstract class Benchmark<T extends TaskResult> {
   protected BaseParameters mBaseParameters = new BaseParameters();
 
   /**
+   * Get the description of the bench.
+   *
+   * @return string of the bench description
+   */
+  public abstract String getBenchDescription();
+
+  /**
    * Runs the test locally, in process.
    *
    * @return the task result
@@ -126,11 +133,13 @@ public abstract class Benchmark<T extends TaskResult> {
     try {
       jc.parse(args);
       if (mBaseParameters.mHelp) {
+        System.out.println(getBenchDescription());
         jc.usage();
         System.exit(0);
       }
     } catch (Exception e) {
       LOG.error("Failed to parse command: ", e);
+      System.out.println(getBenchDescription());
       jc.usage();
       throw e;
     }

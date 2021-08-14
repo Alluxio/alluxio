@@ -3846,6 +3846,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
       long jobId;
       JobMasterClient client = mJobMasterClientPool.acquire();
       try {
+        LOG.debug("Schedule async persist job for {}", uri.getPath());
         jobId = client.run(config);
       } finally {
         mJobMasterClientPool.release(client);
@@ -3877,6 +3878,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
      */
     @Override
     public void heartbeat() throws InterruptedException {
+      LOG.debug("Async Persist heartbeat start");
       java.util.concurrent.TimeUnit.SECONDS.sleep(mQuietPeriodSeconds);
       // Process persist requests.
       for (long fileId : mPersistRequests.keySet()) {
