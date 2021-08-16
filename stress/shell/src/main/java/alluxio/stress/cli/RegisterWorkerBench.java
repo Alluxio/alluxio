@@ -71,10 +71,12 @@ public class RegisterWorkerBench extends RpcBench<BlockMasterBenchParameters> {
             + "the controlled stress on the master side.",
         "",
         "Example:",
-        "Each job worker runs 2 simulated workers, each having 3000 blocks on tier 0 and 10000 "
-            + "blocks on tier 1:",
-        "$ bin/alluxio runClass alluxio.stress.cli.RegisterWorkerBench --concurrency 2 "
-            + "--cluster-limit 1 --tiers \"1000,1000,1000;5000,5000\"",
+        "# 2 job workers will be chosen to run the benchmark",
+        "# Each job worker runs 3 simulated workers",
+        "# Each simulated worker has 3000 blocks on tier 0 and 10000 on tier 1",
+        "# Each simulated worker sends the register RPC once",
+        "$ bin/alluxio runClass alluxio.stress.cli.RegisterWorkerBench --concurrency 3 \\",
+        "--cluster --cluster-limit 2 --tiers \"1000,1000,1000;5000,5000\"",
         ""
     ));
   }

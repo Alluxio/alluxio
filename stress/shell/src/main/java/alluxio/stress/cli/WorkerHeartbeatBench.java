@@ -144,10 +144,12 @@ public class WorkerHeartbeatBench extends RpcBench<BlockMasterBenchParameters> {
             + "heartbeats to the master nonstop, until the specified time has elapsed.",
         "",
         "Example:",
-        "Each job worker runs 2 simulated workers, each having 3000 blocks on tier 0 and 10000 "
-            + "blocks on tier 1. Keep sending heartbeats for 30s:",
-        "$ bin/alluxio runClass alluxio.stress.cli.WorkerHeartbeatBench --concurrency 2 "
-            + "--cluster-limit 1 --tiers \"1000,1000,1000;5000,5000\" --duration 30s",
+        "# 2 job workers will be chosen to run the benchmark",
+        "# Each job worker runs 3 threads each simulating one worker",
+        "# Each worker will have 3000 blocks on tier 0 and 10000 blocks on tier 1",
+        "# Keep sending heartbeats for 30s",
+        "$ bin/alluxio runClass alluxio.stress.cli.WorkerHeartbeatBench --concurrency 3 \\",
+        "--cluster --cluster-limit 2 --tiers \"1000,1000,1000;5000,5000\" --duration 30s",
         ""
     ));
   }
