@@ -30,6 +30,7 @@ import alluxio.master.journal.AbstractJournalSystem;
 import alluxio.master.journal.AsyncJournalWriter;
 import alluxio.master.journal.CatchupFuture;
 import alluxio.master.journal.Journal;
+import alluxio.metrics.sink.RatisDropwizardExports;
 import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.util.CommonUtils;
 import alluxio.util.LogUtils;
@@ -168,6 +169,9 @@ public class RaftJournalSystem extends AbstractJournalSystem {
   private final RaftJournalConfiguration mConf;
   /** Controls whether state machine can take snapshots. */
   private final AtomicBoolean mSnapshotAllowed;
+
+  private final Map<String, RatisDropwizardExports> ratisMetricsMap =
+      new ConcurrentHashMap<>();
 
   /**
    * Listens to the Ratis server to detect gaining or losing primacy. The lifecycle for this
@@ -374,6 +378,7 @@ public class RaftJournalSystem extends AbstractJournalSystem {
         PropertyKey.MASTER_EMBEDDED_JOURNAL_TRANSPORT_MAX_INBOUND_MESSAGE_SIZE);
     GrpcConfigKeys.setMessageSizeMax(properties,
         SizeInBytes.valueOf(messageSize));
+    RatisDropwizardExports.registerRatisMetricReporters(ratisMetricsMap);
 
     // TODO(feng): clean up embedded journal configuration
     // build server
