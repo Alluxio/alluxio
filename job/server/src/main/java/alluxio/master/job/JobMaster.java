@@ -49,6 +49,8 @@ import alluxio.master.job.workflow.WorkflowTracker;
 import alluxio.master.journal.NoopJournaled;
 import alluxio.master.job.plan.PlanCoordinator;
 import alluxio.master.job.plan.PlanTracker;
+import alluxio.metrics.MetricKey;
+import alluxio.metrics.MetricsSystem;
 import alluxio.resource.LockResource;
 import alluxio.underfs.UfsManager;
 import alluxio.util.CommonUtils;
@@ -171,6 +173,14 @@ public class JobMaster extends AbstractMaster implements NoopJournaled {
         mWorkflowTracker);
 
     mWorkerHealth = new ConcurrentHashMap<>();
+
+    MetricsSystem.registerGaugeIfAbsent(
+        MetricKey.MASTER_JOB_COUNT.getName(),
+        () -> MetricsSystem.counter(MetricKey.MASTER_JOB_CANCELED.getName()).getCount()
+            + MetricsSystem.counter(MetricKey.MASTER_JOB_COMPLETED.getName()).getCount()
+            + MetricsSystem.counter(MetricKey.MASTER_JOB_CREATED.getName()).getCount()
+            + MetricsSystem.counter(MetricKey.MASTER_JOB_FAILED.getName()).getCount()
+            + MetricsSystem.counter(MetricKey.MASTER_JOB_RUNNING.getName()).getCount());
   }
 
   /**

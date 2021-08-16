@@ -652,6 +652,37 @@ public final class MetricKey implements Comparable<MetricKey> {
               + "Use this metric to monitor when your master boot-up time is high。")
           .setMetricType(MetricType.GAUGE)
           .build();
+  // Job metrics
+  public static final MetricKey MASTER_JOB_CANCELED =
+      new Builder("Master.JobCanceled")
+          .setDescription("The number of canceled status job")
+          .setMetricType(MetricType.COUNTER)
+          .build();
+  public static final MetricKey MASTER_JOB_COMPLETED =
+      new Builder("Master.JobCompleted")
+          .setDescription("The number of completed status job")
+          .setMetricType(MetricType.COUNTER)
+          .build();
+  public static final MetricKey MASTER_JOB_COUNT =
+      new Builder("Master.JobCount")
+          .setDescription("The number of all status job")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey MASTER_JOB_CREATED =
+      new Builder("Master.JobCreated")
+          .setDescription("The number of created status job")
+          .setMetricType(MetricType.COUNTER)
+          .build();
+  public static final MetricKey MASTER_JOB_FAILED =
+      new Builder("Master.JobFailed")
+          .setDescription("The number of failed status job")
+          .setMetricType(MetricType.COUNTER)
+          .build();
+  public static final MetricKey MASTER_JOB_RUNNING =
+      new Builder("Master.JobRunning")
+          .setDescription("The number of running status job")
+          .setMetricType(MetricType.COUNTER)
+          .build();
 
   // Cluster metrics
   public static final MetricKey CLUSTER_ACTIVE_RPC_READ_COUNT =
