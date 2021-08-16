@@ -36,10 +36,9 @@ further coordinate distributed tasks for the job.
 ### Distributed Tasks
 These tasks are run on the job worker, and eventually report back to the job master.
 
-## More Consistent Results
-When testing results are inconsistent and wildy variable, it makes trusting the
-results more difficult. Therefore, there are some additional features that help
-StressBench to be more consistent with results.
+## Consistent Results
+When testing results are inconsistent and wildy variable, it makes trusting the results more
+difficult. Therefore, there are some features that help StressBench to be consistent with results.
 
 ### Barriers
 Barriers are one way that StressBench tries to achieve consistent results. This allows distributed
