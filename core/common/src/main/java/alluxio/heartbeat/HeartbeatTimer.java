@@ -15,6 +15,13 @@ package alluxio.heartbeat;
  * An interface for heartbeat timers. The {@link HeartbeatThread} calls the {@link #tick()} method.
  */
 public interface HeartbeatTimer {
+
+  /**
+   * Set the heartbeat interval.
+   * @param intervalMs the heartbeat interval
+   */
+  default void setIntervalMs(long intervalMs) {}
+
   /**
    * Waits until next heartbeat should be executed.
    *
