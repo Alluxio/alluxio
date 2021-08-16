@@ -296,6 +296,9 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
             return constructWorkerInfoList();
           }
         });
+
+    MetricsSystem.registerGaugeIfAbsent(MetricKey.MASTER_LOST_BLOCK_COUNT.getName(),
+        this::getLostBlocksCount);
   }
 
   @Override

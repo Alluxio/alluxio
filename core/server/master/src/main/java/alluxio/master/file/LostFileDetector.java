@@ -44,8 +44,8 @@ final class LostFileDetector implements HeartbeatExecutor {
   public LostFileDetector(FileSystemMaster fileSystemMaster, InodeTree inodeTree) {
     mFileSystemMaster = fileSystemMaster;
     mInodeTree = inodeTree;
-    MetricsSystem.registerGaugeIfAbsent(MetricKey.MASTER_LOST_FILE_COUNT.getName(),
-        mFileSystemMaster::getLostFiles);
+    MetricsSystem.registerCachedGaugeIfAbsent(MetricKey.MASTER_LOST_FILE_COUNT.getName(),
+        mFileSystemMaster.getLostFiles()::size);
   }
 
   @Override

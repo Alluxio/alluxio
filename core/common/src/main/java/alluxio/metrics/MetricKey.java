@@ -353,6 +353,11 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setDescription("Count of lost file")
           .setMetricType(MetricType.GAUGE)
           .build();
+  public static final MetricKey MASTER_LOST_BLOCK_COUNT =
+      new Builder("Master.LostBlockCount")
+          .setDescription("Count of lost block")
+          .setMetricType(MetricType.GAUGE)
+          .build();
   public static final MetricKey MASTER_TOTAL_PATHS =
       new Builder("Master.TotalPaths")
           .setDescription("Total number of files and directory in Alluxio namespace")
