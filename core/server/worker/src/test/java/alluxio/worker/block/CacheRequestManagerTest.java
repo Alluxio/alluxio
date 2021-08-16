@@ -1,7 +1,7 @@
 /*
- * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the "License"). You may not use this work except in compliance with the License, which is
- * available at www.apache.org/licenses/LICENSE-2.0
+ * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0 (the
+ * "License"). You may not use this work except in compliance with the License, which is available
+ * at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
  * either express or implied, as more fully set forth in the License.
@@ -11,35 +11,42 @@
 
 package alluxio.worker.block;
 
+import static org.junit.Assert.assertTrue;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import alluxio.AlluxioTestDirectory;
+import alluxio.AlluxioURI;
+import alluxio.ConfigurationRule;
 import alluxio.Constants;
 import alluxio.Sessions;
 import alluxio.client.file.FileSystemContext;
+import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
-import alluxio.exception.BlockAlreadyExistsException;
-import alluxio.exception.BlockDoesNotExistException;
-import alluxio.exception.InvalidWorkerStateException;
 import alluxio.grpc.CacheRequest;
 import alluxio.proto.dataserver.Protocol;
+import alluxio.underfs.UfsManager;
+import alluxio.underfs.UnderFileSystem;
+import alluxio.underfs.UnderFileSystemConfiguration;
+import alluxio.util.CommonUtils;
 import alluxio.util.network.NetworkAddressUtils;
-import alluxio.worker.block.io.BlockReader;
-import alluxio.worker.block.io.BlockWriter;
+import alluxio.worker.file.FileSystemMasterClient;
 import alluxio.worker.grpc.GrpcExecutors;
 
+import com.google.common.collect.ImmutableMap;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.ReadableByteChannel;
-import java.nio.channels.WritableByteChannel;
 
 /**
  * Unit tests for {@link CacheRequestManager}.
@@ -51,72 +58,93 @@ public class CacheRequestManagerTest {
 
   private CacheRequestManager mCacheRequestManager;
   private BlockWorker mBlockWorker;
-  private FileSystemContext mFsContext;
-  private String mLocalWorkerHostname;
-  private Protocol.OpenUfsBlockOptions mOptions;
+  private String mRootUfs;
+  private final String mLocalWorkerHostname = NetworkAddressUtils.getLocalHostName(
+      (int) ServerConfiguration.getMs(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS));
+  private final Protocol.OpenUfsBlockOptions mOpenUfsBlockOptions = Protocol.OpenUfsBlockOptions
+      .newBuilder().setMaxUfsReadConcurrency(10).setUfsPath("/CacheRequestManagerTest").build();
+  private final InstancedConfiguration mConf = ServerConfiguration.global();
+  private final String mMemDir =
+      AlluxioTestDirectory.createTemporaryDirectory(Constants.MEDIUM_MEM).getAbsolutePath();
+
+  @Rule
+  public ConfigurationRule mConfigurationRule = new ConfigurationRule(
+      new ImmutableMap.Builder<PropertyKey, String>()
+          .put(PropertyKey.WORKER_TIERED_STORE_LEVELS, "1")
+          .put(PropertyKey.WORKER_TIERED_STORE_LEVEL0_ALIAS, Constants.MEDIUM_MEM)
+          .put(PropertyKey.WORKER_TIERED_STORE_LEVEL0_DIRS_MEDIUMTYPE, Constants.MEDIUM_MEM)
+          .put(PropertyKey.WORKER_TIERED_STORE_LEVEL0_DIRS_QUOTA, "1GB")
+          .put(PropertyKey.WORKER_TIERED_STORE_LEVEL0_DIRS_PATH, mMemDir)
+          .put(PropertyKey.WORKER_RPC_PORT, "0")
+          .put(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS, AlluxioTestDirectory
+              .createTemporaryDirectory("CacheRequestManagerTest").getAbsolutePath())
+          .build(),
+      mConf);
 
   /**
    * Sets up all dependencies before a test runs.
    */
   @Before
   public void before() throws IOException {
-    mBlockWorker = mock(DefaultBlockWorker.class);
-    mFsContext = mock(FileSystemContext.class);
-    mCacheRequestManager = spy(new CacheRequestManager(GrpcExecutors.CACHE_MANAGER_EXECUTOR,
-        mBlockWorker, mFsContext));
-    mLocalWorkerHostname = NetworkAddressUtils.getLocalHostName(
-        (int) ServerConfiguration.getMs(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS));
-    mOptions = Protocol.OpenUfsBlockOptions.newBuilder()
-        .setMaxUfsReadConcurrency(10).setUfsPath("/a").build();
+    BlockMasterClient blockMasterClient = mock(BlockMasterClient.class);
+    BlockMasterClientPool blockMasterClientPool = spy(new BlockMasterClientPool());
+    when(blockMasterClientPool.createNewResource()).thenReturn(blockMasterClient);
+    TieredBlockStore blockStore = new TieredBlockStore();
+    FileSystemMasterClient fileSystemMasterClient = mock(FileSystemMasterClient.class);
+    Sessions sessions = mock(Sessions.class);
+    // Connect to the real UFS for testing
+    UfsManager ufsManager = mock(UfsManager.class);
+    mRootUfs = ServerConfiguration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
+    UfsManager.UfsClient ufsClient = new UfsManager.UfsClient(
+        () -> UnderFileSystem.Factory.create(mRootUfs,
+            UnderFileSystemConfiguration.defaults(ServerConfiguration.global())),
+        new AlluxioURI(mRootUfs));
+    when(ufsManager.get(anyLong())).thenReturn(ufsClient);
+    mBlockWorker = spy(new DefaultBlockWorker(blockMasterClientPool, fileSystemMasterClient,
+        sessions, blockStore, ufsManager));
+    FileSystemContext context = mock(FileSystemContext.class);
+    mCacheRequestManager =
+        spy(new CacheRequestManager(GrpcExecutors.CACHE_MANAGER_EXECUTOR, mBlockWorker, context));
   }
 
   @Test
   public void submitRequestCacheBlockFromUfs() throws Exception {
     CacheRequest request = CacheRequest.newBuilder().setBlockId(BLOCK_ID).setLength(CHUNK_SIZE)
-        .setOpenUfsBlockOptions(mOptions).setSourceHost(mLocalWorkerHostname)
+        .setOpenUfsBlockOptions(mOpenUfsBlockOptions).setSourceHost(mLocalWorkerHostname)
         .setSourcePort(PORT).build();
-    BlockReader mockBlockReader = mock(BlockReader.class);
-    when(mBlockWorker.createUfsBlockReader(Sessions.CACHE_UFS_SESSION_ID, BLOCK_ID, 0, false,
-        mOptions)).thenReturn(mockBlockReader);
     mCacheRequestManager.submitRequest(request);
-    verify(mBlockWorker).createUfsBlockReader(Sessions.CACHE_UFS_SESSION_ID, BLOCK_ID, 0,
-        false, mOptions);
+    assertTrue(mBlockWorker.hasBlockMeta(BLOCK_ID));
   }
 
   @Test
   public void submitRequestCacheBlockFromRemoteWorker() throws Exception {
     String fakeRemoteWorker = mLocalWorkerHostname + "1";
     CacheRequest request = CacheRequest.newBuilder().setBlockId(BLOCK_ID).setLength(CHUNK_SIZE)
-        .setOpenUfsBlockOptions(mOptions).setSourceHost(fakeRemoteWorker).setSourcePort(PORT)
-        .build();
-    setupMockReaderWriter(fakeRemoteWorker, PORT, BLOCK_ID, CHUNK_SIZE, mOptions);
+        .setOpenUfsBlockOptions(mOpenUfsBlockOptions).setSourceHost(fakeRemoteWorker)
+        .setSourcePort(PORT).build();
+    setupMockRemoteReader(fakeRemoteWorker, PORT, BLOCK_ID, CHUNK_SIZE, mOpenUfsBlockOptions);
     mCacheRequestManager.submitRequest(request);
-    verify(mBlockWorker).createBlock(Sessions.CACHE_WORKER_SESSION_ID, BLOCK_ID, 0, "", CHUNK_SIZE);
-    verify(mBlockWorker).createBlockWriter(Sessions.CACHE_WORKER_SESSION_ID, BLOCK_ID);
-    verify(mBlockWorker).commitBlock(Sessions.CACHE_WORKER_SESSION_ID, BLOCK_ID, false);
+    assertTrue(mBlockWorker.hasBlockMeta(BLOCK_ID));
   }
 
   @Test
   public void submitAsyncRequestCacheBlockFromUfs() throws Exception {
     CacheRequest request = CacheRequest.newBuilder().setBlockId(BLOCK_ID).setLength(CHUNK_SIZE)
-        .setOpenUfsBlockOptions(mOptions).setSourceHost(mLocalWorkerHostname)
+        .setOpenUfsBlockOptions(mOpenUfsBlockOptions).setSourceHost(mLocalWorkerHostname)
         .setSourcePort(PORT).setAsync(true).build();
-    BlockReader mockBlockReader = mock(BlockReader.class);
-    when(mBlockWorker.createUfsBlockReader(Sessions.CACHE_UFS_SESSION_ID, BLOCK_ID, 0, false,
-        mOptions)).thenReturn(mockBlockReader);
     mCacheRequestManager.submitRequest(request);
-    verify(mBlockWorker, timeout(30000)).createUfsBlockReader(Sessions.CACHE_UFS_SESSION_ID,
-        BLOCK_ID, 0, false, mOptions);
+    CommonUtils.waitFor("wait for async cache", () -> mBlockWorker.hasBlockMeta(BLOCK_ID));
   }
 
   @Test
   public void submitAsyncRequestCacheBlockFromRemoteWorker() throws Exception {
     String fakeRemoteWorker = mLocalWorkerHostname + "1";
     CacheRequest request = CacheRequest.newBuilder().setBlockId(BLOCK_ID).setLength(CHUNK_SIZE)
-        .setOpenUfsBlockOptions(mOptions).setSourceHost(fakeRemoteWorker).setSourcePort(PORT)
-        .setAsync(true).build();
-    setupMockReaderWriter(fakeRemoteWorker, PORT, BLOCK_ID, CHUNK_SIZE, mOptions);
+        .setOpenUfsBlockOptions(mOpenUfsBlockOptions).setSourceHost(fakeRemoteWorker)
+        .setSourcePort(PORT).setAsync(true).build();
+    setupMockRemoteReader(fakeRemoteWorker, PORT, BLOCK_ID, CHUNK_SIZE, mOpenUfsBlockOptions);
     mCacheRequestManager.submitRequest(request);
+    CommonUtils.waitFor("wait for async cache", () -> mBlockWorker.hasBlockMeta(BLOCK_ID));
     verify(mBlockWorker, timeout(30000)).createBlock(Sessions.CACHE_WORKER_SESSION_ID,
         BLOCK_ID, 0, "", CHUNK_SIZE);
     verify(mBlockWorker, timeout(30000)).createBlockWriter(Sessions.CACHE_WORKER_SESSION_ID,
@@ -125,9 +153,8 @@ public class CacheRequestManagerTest {
         BLOCK_ID, false);
   }
 
-  private void setupMockReaderWriter(String source, int port, long blockId, long blockLength,
-      Protocol.OpenUfsBlockOptions options) throws IOException, BlockDoesNotExistException,
-      BlockAlreadyExistsException, InvalidWorkerStateException {
+  private void setupMockRemoteReader(String source, int port, long blockId, long blockLength,
+      Protocol.OpenUfsBlockOptions options) throws IOException {
     InetSocketAddress sourceAddress = new InetSocketAddress(source, port);
     RemoteBlockReader reader = mock(RemoteBlockReader.class);
     when(mCacheRequestManager.getRemoteBlockReader(blockId, blockLength, sourceAddress, options))
@@ -137,10 +164,5 @@ public class CacheRequestManagerTest {
     int bufferSize = 4 * Constants.MB;
     ByteBuffer buffer = ByteBuffer.allocateDirect(bufferSize);
     when(readerChannel.read(buffer)).thenReturn(-1);
-    BlockWriter writer = mock(BlockWriter.class);
-    when(mBlockWorker.createBlockWriter(Sessions.CACHE_WORKER_SESSION_ID, blockId))
-        .thenReturn(writer);
-    WritableByteChannel writerChannel = mock(WritableByteChannel.class);
-    when(writer.getChannel()).thenReturn(writerChannel);
   }
 }
