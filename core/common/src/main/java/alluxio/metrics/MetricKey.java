@@ -1483,13 +1483,15 @@ public final class MetricKey implements Comparable<MetricKey> {
            .build();
   public static final MetricKey INFO_TIME_EXCEEDED =
        new Builder("JvmPauseMonitor.infoTimeExceeded")
-           .setDescription("The times sleep time exceed mInfoThreshold , need to record a info level log.")
+           .setDescription("The times sleep time exceed threshold of info level,"
+                   + " need to record a info level log.")
            .setMetricType(MetricType.GAUGE)
            .setIsClusterAggregated(false)
            .build();
   public static final MetricKey WARN_TIME_EXCEEDED =
        new Builder("JvmPauseMonitor.warnTimeExceeded")
-           .setDescription("the times sleep time exceed mWarnThreshold , need to record a warn level log.")
+           .setDescription("the times sleep time exceed threshold of warn level,"
+                   + " need to record a warn level log.")
            .setMetricType(MetricType.GAUGE)
            .setIsClusterAggregated(false)
            .build();
