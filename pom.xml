@@ -141,7 +141,7 @@
     <catalyst.version>1.2.1</catalyst.version>
     <glusterfs-hadoop.version>2.3.13</glusterfs-hadoop.version>
     <grpc.version>1.28.1</grpc.version>
-    <netty.version>4.1.51.Final</netty.version>
+    <netty.version>4.1.55.Final</netty.version>
     <rocksdb.version>5.15.10</rocksdb.version>
     <hadoop.version>3.3.0</hadoop.version>
     <jacoco.version>0.8.5</jacoco.version>
