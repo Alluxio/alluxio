@@ -29,12 +29,16 @@ public class RatisDropwizardExports extends DropwizardExports {
   /**
    * Creates a new DropwizardExports with a {@link DefaultSampleBuilder}.
    *
-   * @param registry a metric registry to export in prometheus.
+   * @param registry a metric registry to export in prometheus
    */
   public RatisDropwizardExports(MetricRegistry registry) {
     super(registry, new RatisNameRewriteSampleBuilder());
   }
 
+  /**
+   * Register ratis metric to metricRegistry.
+   * @param ratisMetricsMap a map to store the registered metrics
+   */
   public static void registerRatisMetricReporters(
       Map<String, RatisDropwizardExports> ratisMetricsMap) {
     MetricRegistries.global().addReporterRegistration(

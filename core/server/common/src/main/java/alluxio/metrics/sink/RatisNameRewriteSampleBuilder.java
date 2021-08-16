@@ -43,7 +43,6 @@ public class RatisNameRewriteSampleBuilder extends DefaultSampleBuilder {
     mFollowerPatterns
         .add(Pattern.compile("follower_([^_]*)_.*"));
     mFollowerPatterns.add(Pattern.compile("([^_]*)_peerCommitIndex"));
-
   }
 
   @Override
@@ -61,11 +60,7 @@ public class RatisNameRewriteSampleBuilder extends DefaultSampleBuilder {
             "Ratis dropwizard {} metrics are converted to {} with tag "
                 + "keys/values {},{}", dropwizardName, name, names, values);
       }
-      return super
-          .createSample(name, nameSuffix,
-              names,
-              values, value);
-
+      return super.createSample(name, nameSuffix, names, values, value);
     } else {
       return super
           .createSample(dropwizardName, nameSuffix, additionalLabelNames,

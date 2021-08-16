@@ -170,7 +170,7 @@ public class RaftJournalSystem extends AbstractJournalSystem {
   /** Controls whether state machine can take snapshots. */
   private final AtomicBoolean mSnapshotAllowed;
 
-  private final Map<String, RatisDropwizardExports> ratisMetricsMap =
+  private final Map<String, RatisDropwizardExports> mRatisMetricsMap =
       new ConcurrentHashMap<>();
 
   /**
@@ -378,7 +378,7 @@ public class RaftJournalSystem extends AbstractJournalSystem {
         PropertyKey.MASTER_EMBEDDED_JOURNAL_TRANSPORT_MAX_INBOUND_MESSAGE_SIZE);
     GrpcConfigKeys.setMessageSizeMax(properties,
         SizeInBytes.valueOf(messageSize));
-    RatisDropwizardExports.registerRatisMetricReporters(ratisMetricsMap);
+    RatisDropwizardExports.registerRatisMetricReporters(mRatisMetricsMap);
 
     // TODO(feng): clean up embedded journal configuration
     // build server
