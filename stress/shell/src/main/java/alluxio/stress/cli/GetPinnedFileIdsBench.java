@@ -72,10 +72,10 @@ public class GetPinnedFileIdsBench extends RpcBench<GetPinnedFileIdsParameters> 
         "Example:",
         "# 2 job workers will be chosen to run the benchmark",
         "# Each job worker runs 3 simulated clients",
-        "# Each client keeps requesting a total number of 100k pinned files for "
-            + "a total of 5 seconds",
+        "# Each client keeps requesting a total number of 10k pinned files for "
+            + "a total of 100 milliseconds",
         "$ bin/alluxio runClass alluxio.stress.cli.GetPinnedFileIdsBench --concurrency 3 \\",
-        "--cluster --cluster-limit 2 --num-files 100000 --duration 5s",
+        "--cluster --cluster-limit 2 --num-files 10000 --duration 100ms",
         ""
     ));
   }
