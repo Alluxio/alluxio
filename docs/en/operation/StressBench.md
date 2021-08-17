@@ -16,11 +16,13 @@ environment by simply running the command line.
 
 The StressBench is consisted of different tests to help you test the metadata and IO performance of
 the Alluxio system. The following benchmark tools are currently supported:
-* `StressMasterBench` - A benchmark tool measuring the master performance of Alluxio.
-* `StressClientBench` - A benchmark tool measuring the IO performance of Alluxio through the client.
-* `StressWorkerBench` - A benchmark tool measuring the IO performance of Alluxio with single node.
-* `UfsIOBench` - A benchmark tool measuring the IO performance to UFS.
 * `FuseIOBench` - A benchmark tool measuring the IO performance of Alluxio through Fuse interface.
+* `RpcBench` - A benchmark tool which simulates RPCs with a specified load and concurrency.
+* `StressClientBench` - A benchmark tool measuring the IO performance of Alluxio through the client.
+* `StressMasterBench` - A benchmark tool measuring the master performance of Alluxio.
+* `StressWorkerBench` - A benchmark tool measuring the IO performance of Alluxio with single node.
+* `UfsIOBench` - A benchmark tool measuring the IO throughput between the Alluxio cluster and the
+  UFS.
 
 ## High-Level Design
 StressBench is a job that runs with the job service. Therefore, the design follows what the job
@@ -37,7 +39,7 @@ further coordinate distributed tasks for the job.
 These tasks are run on the job worker, and eventually report back to the job master.
 
 ## Consistent Results
-When testing results are inconsistent and wildy variable, it makes trusting the results more
+When testing results are inconsistent and wildly variable, it makes trusting the results more
 difficult. Therefore, there are some features that help StressBench to be consistent with results.
 
 ### Barriers
@@ -53,7 +55,7 @@ Another way to improve the consistency of results is to run tests with warmups a
 defined amount of time. If a particular thread or task is finished first, it would also provide any
 load to the system instead of ending with an idle stage. That means tasks could start at the same
 times and end at the same times, which will ensure the system is under load during the whole testing
-time.
+period.
 
 Therefore, StressBench tests should have a warmup period and duration period. For example, the
 master test has a `--warmup` flag and a `--duration` flag. This ensures all tasks and threads will do
