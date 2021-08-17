@@ -4847,6 +4847,29 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.CLIENT)
           .build();
+  public static final PropertyKey FUSE_WEB_ENABLED =
+      new Builder(Name.FUSE_WEB_ENABLED)
+          .setDefaultValue(false)
+          .setDescription("Whether to enable FUSE web server.")
+          .setScope(Scope.CLIENT)
+          .build();
+  public static final PropertyKey FUSE_WEB_BIND_HOST =
+      new Builder(Name.FUSE_WEB_BIND_HOST)
+          .setDefaultValue("0.0.0.0")
+          .setDescription("The hostname Alluxio FUSE web UI binds to.")
+          .setScope(Scope.CLIENT)
+          .build();
+  public static final PropertyKey FUSE_WEB_HOSTNAME =
+      new Builder(Name.FUSE_WEB_HOSTNAME)
+          .setDescription("The hostname of Alluxio FUSE web UI.")
+          .setScope(Scope.ALL)
+          .build();
+  public static final PropertyKey FUSE_WEB_PORT =
+      new Builder(Name.FUSE_WEB_PORT)
+          .setDefaultValue(49999)
+          .setDescription("The port Alluxio FUSE web UI runs on.")
+          .setScope(Scope.CLIENT)
+          .build();
 
   //
   // Security related properties
@@ -4942,6 +4965,27 @@ public final class PropertyKey implements Comparable<PropertyKey> {
                   + "their target master upon being used for new RPCs.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.ALL)
+          .build();
+  //
+  // Network TLS support
+  //
+  public static final PropertyKey NETWORK_TLS_SSL_CONTEXT_PROVIDER_CLASSNAME =
+      new Builder(Name.NETWORK_TLS_SSL_CONTEXT_PROVIDER_CLASSNAME)
+          .setDescription(
+              "Full name of the class that will be instantiated for providing SSL contexts.")
+          .setDefaultValue("alluxio.util.network.tls.DefaultSslContextProvider")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.ALL)
+          .setIsHidden(true)
+          .build();
+  public static final PropertyKey NETWORK_TLS_ENABLED =
+      new Builder(Name.NETWORK_TLS_ENABLED)
+          .setDescription("If true, enables TLS on all network communication between all Alluxio "
+              + "clients, masters, and workers.")
+          .setDefaultValue(false)
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.ALL)
+          .setIsHidden(true)
           .build();
 
   //
@@ -6230,6 +6274,10 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.fuse.umount.timeout";
     public static final String FUSE_USER_GROUP_TRANSLATION_ENABLED =
         "alluxio.fuse.user.group.translation.enabled";
+    public static final String FUSE_WEB_ENABLED = "alluxio.fuse.web.enabled";
+    public static final String FUSE_WEB_BIND_HOST = "alluxio.fuse.web.bind.host";
+    public static final String FUSE_WEB_HOSTNAME = "alluxio.fuse.web.hostname";
+    public static final String FUSE_WEB_PORT = "alluxio.fuse.web.port";
 
     //
     // Security related properties
@@ -6253,6 +6301,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String SECURITY_LOGIN_USERNAME = "alluxio.security.login.username";
     public static final String AUTHENTICATION_INACTIVE_CHANNEL_REAUTHENTICATE_PERIOD =
         "alluxio.security.stale.channel.purge.interval";
+
+    //
+    // Network TLS support
+    //
+    public static final String NETWORK_TLS_SSL_CONTEXT_PROVIDER_CLASSNAME =
+        "alluxio.network.tls.ssl.context.provider.classname";
+    public static final String NETWORK_TLS_ENABLED = "alluxio.network.tls.enabled";
 
     //
     // Job service
