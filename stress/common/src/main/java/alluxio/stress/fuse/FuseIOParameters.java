@@ -21,7 +21,6 @@ import com.beust.jcommander.Parameter;
  * ser/de without all the getters and setters.
  */
 public final class FuseIOParameters extends Parameters {
-
   @Parameter(names = {"--operation"},
       description = "the operation to perform. Options are [Read]",
       converter = FuseIOOperationConverter.class,
