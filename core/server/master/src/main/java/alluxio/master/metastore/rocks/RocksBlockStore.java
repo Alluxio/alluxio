@@ -122,9 +122,13 @@ public class RocksBlockStore implements BlockStore {
   @Override
   public void putBlock(long id, BlockMeta meta) {
     try {
+      byte[] buf = db().get(mBlockMetaColumn.get(), Longs.toByteArray(id));
       // Overwrites the key if it already exists.
       db().put(mBlockMetaColumn.get(), mDisableWAL, Longs.toByteArray(id), meta.toByteArray());
-      mSize.increment();
+      if (buf == null) {
+        // key did not exist before
+        mSize.increment();
+      }
     } catch (RocksDBException e) {
       throw new RuntimeException(e);
     }
@@ -133,8 +137,12 @@ public class RocksBlockStore implements BlockStore {
   @Override
   public void removeBlock(long id) {
     try {
+      byte[] buf = db().get(mBlockMetaColumn.get(), Longs.toByteArray(id));
       db().delete(mBlockMetaColumn.get(), mDisableWAL, Longs.toByteArray(id));
-      mSize.decrement();
+      if (buf != null) {
+        // Key existed before
+        mSize.decrement();
+      }
     } catch (RocksDBException e) {
       throw new RuntimeException(e);
     }
@@ -142,6 +150,7 @@ public class RocksBlockStore implements BlockStore {
 
   @Override
   public void clear() {
+    mSize.reset();
     mRocksStore.clear();
   }
 
@@ -152,6 +161,7 @@ public class RocksBlockStore implements BlockStore {
 
   @Override
   public void close() {
+    mSize.reset();
     mRocksStore.close();
   }
 
