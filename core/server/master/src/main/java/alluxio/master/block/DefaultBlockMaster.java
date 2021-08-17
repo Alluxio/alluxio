@@ -1325,7 +1325,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
       MetricsSystem.registerGaugeIfAbsent(MetricKey.CLUSTER_CAPACITY_FREE.getName(),
           () -> master.getCapacityBytes() - master.getUsedBytes());
 
-      MetricsSystem.registerGaugeIfAbsent(MetricKey.MASTER_TOTAL_BLOCKS.getName(),
+      MetricsSystem.registerGaugeIfAbsent(MetricKey.MASTER_UNIQUE_BLOCKS.getName(),
           () -> master.mBlockStore.size());
 
       for (int i = 0; i < master.getGlobalStorageTierAssoc().size(); i++) {

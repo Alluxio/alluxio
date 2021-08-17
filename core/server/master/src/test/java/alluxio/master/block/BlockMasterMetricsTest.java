@@ -80,7 +80,7 @@ public final class BlockMasterMetricsTest {
     BlockStore blockStore = Mockito.mock(BlockStore.class);
     when(blockStore.size()).thenReturn(100L);
     Whitebox.setInternalState(mBlockMaster, "mBlockStore", blockStore);
-    assertEquals(100L, getGauge(MetricKey.MASTER_TOTAL_BLOCKS.getName()));
+    assertEquals(100L, getGauge(MetricKey.MASTER_UNIQUE_BLOCKS.getName()));
   }
 
   public void testMetricWorkers() {
