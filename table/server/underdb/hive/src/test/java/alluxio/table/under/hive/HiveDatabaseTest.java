@@ -37,7 +37,6 @@ import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
 import org.apache.hadoop.hive.common.FileUtils;
 import org.apache.hadoop.hive.metastore.IMetaStoreClient;
 import org.apache.hadoop.hive.metastore.api.Database;
@@ -56,13 +55,16 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public class HiveDatabaseTest {
 
   private static final String DB_NAME = "test";
-  public static final String DB_TYPE = "hive";
-  public static final String CONNECTION_URI = "thrift://not_running:9083";
+  private static final String DB_TYPE = "hive";
+  private static final String CONNECTION_URI = "thrift://not_running:9083";
+  private static final String DB_LOCATION = PathUtils.concatPath("hdfs://node1/", DB_NAME);
+  private static final String DB_ALT_LOCATION = PathUtils.concatPath("hdfs://node2/", DB_NAME);
   private static final Map<String, String> CONF = new HashMap<>();
   private static final UdbBypassSpec EMPTY_BYPASS_SPEC = new UdbBypassSpec(ImmutableMap.of());
 
@@ -81,6 +83,8 @@ public class HiveDatabaseTest {
   private final MountRecordingFileSystem mFs = new MountRecordingFileSystem();
   private final IMetaStoreClient mMockedClient = Mockito.mock(IMetaStoreClient.class);
   private final MockedHiveClientPool mClientPool = new MockedHiveClientPool(mMockedClient);
+  private final UdbContext mUdbContextWithFs =
+      new UdbContext(null, mFs, DB_TYPE, CONNECTION_URI, DB_NAME, DB_NAME);
 
   @Before
   public void before() {
@@ -138,73 +142,182 @@ public class HiveDatabaseTest {
   }
 
   @Test
-  public void notGroupingMountPointsTablesOnly() throws Exception {
-    TestTable table = new TestTable("table1");
-    mockTablesAndPartitions(mMockedClient,
-        ImmutableList.of(table.toHiveTable()), ImmutableList.of());
-    UdbContext udbContext = new UdbContext(null, mFs, DB_TYPE, CONNECTION_URI, DB_NAME, DB_NAME);
-    UdbConfiguration udbConf =
-        new UdbConfiguration(ImmutableMap.of(UdbProperty.GROUP_MOUNT_POINTS.getName(), "false"));
-    HiveDatabase database = new HiveDatabase(
-        udbContext,
-        udbConf,
-        udbContext.getConnectionUri(),
-        udbContext.getUdbDbName(),
-        mClientPool
-    );
-    database.mount(ImmutableSet.of(table.getName()), EMPTY_BYPASS_SPEC);
+  public void mountTablesOnly() throws Exception {
+    Map<TestTable, List<TestPartition>> tables = ImmutableList.of("table1", "table2").stream()
+        .map((name) -> TestTable.createWithNoPartitions(name, DB_LOCATION))
+        .collect(ImmutableMap.toImmutableMap((table) -> table, (table) -> ImmutableList.of()));
+    UdbConfiguration udbConf = getUdbConfigWithGroupMountEnabled(false);
+    createDatabaseAndMountTables(tables, udbConf);
 
-    AlluxioURI expectedTableLocation = udbContext.getTableLocation(table.getName());
-    AlluxioURI actualTableLocation =
-        mFs.getMountPoints().inverse().get(new AlluxioURI(table.getLocation()));
-    assertEquals(expectedTableLocation, actualTableLocation);
+    Map<AlluxioURI, AlluxioURI> expectedMountPoints = tables.keySet().stream().collect(
+        ImmutableMap.toImmutableMap(
+            // key: the mount point of the table in Alluxio
+            (table) -> mUdbContextWithFs.getTableLocation(table.getName()),
+            // value: the ufs uri of the table
+            (table) -> new AlluxioURI(table.getLocation())
+    ));
+    assertEquals(expectedMountPoints, mFs.getMountPoints());
   }
 
   @Test
-  public void notGroupingMountPointsWithPartitions() throws Exception {
-    TestTable table = new TestTable("table1").setPartitionKeys(ImmutableList.of("col1", "col2"));
-    TestPartition partition = new TestPartition(table, ImmutableList.of("1", "2"));
-    mockTablesAndPartitions(mMockedClient,
-        ImmutableList.of(table.toHiveTable()),
-        ImmutableList.of(partition.toHivePartition()));
-    UdbContext udbContext = new UdbContext(null, mFs, DB_TYPE, CONNECTION_URI, DB_NAME, DB_NAME);
+  public void mountTableWithPartitions() throws Exception {
+    TestTable table =
+        TestTable.createWithPartitionKeys("table1", DB_LOCATION, ImmutableList.of("key1"));
+    List<TestPartition> partitions = ImmutableList.of(
+        TestPartition.createWithKeyValue(table.getLocation(),
+            ImmutableList.of("key1"), ImmutableList.of("value1")),
+        TestPartition.createWithKeyValue(table.getLocation(),
+            ImmutableList.of("key1"), ImmutableList.of("value2")));
+    UdbConfiguration udbConf = getUdbConfigWithGroupMountEnabled(false);
+    createDatabaseAndMountTables(ImmutableMap.of(table, partitions), udbConf);
+
+    AlluxioURI tableMountPoint = mUdbContextWithFs.getTableLocation(table.getName());
+    // no separate mount point for the partitions since they're co-located with the parent table,
+    // which is already mounted
+    assertEquals(ImmutableMap.of(tableMountPoint, new AlluxioURI(table.getLocation())),
+        mFs.getMountPoints());
+  }
+
+  @Test
+  public void mountTableWithPartitionOfDifferentPrefix() throws Exception {
+    TestTable table = TestTable.createWithDummyPartitionKeys("table1", DB_LOCATION);
+    TestPartition partition =
+        TestPartition.createWithDummyValues(PathUtils.concatPath(DB_ALT_LOCATION, table.getName()));
     UdbConfiguration udbConf =
-        new UdbConfiguration(ImmutableMap.of(UdbProperty.GROUP_MOUNT_POINTS.getName(), "false"));
-    HiveDatabase database = new HiveDatabase(
-        udbContext,
-        udbConf,
-        udbContext.getConnectionUri(),
-        udbContext.getUdbDbName(),
-        mClientPool
-    );
-    database.mount(ImmutableSet.of(table.getName()), EMPTY_BYPASS_SPEC);
+        new UdbConfiguration(ImmutableMap.of(
+            UdbProperty.GROUP_MOUNT_POINTS.getName(), "false",
+            Property.ALLOW_DIFF_PART_LOC_PREFIX.getName(), "true"
+        ));
+    createDatabaseAndMountTables(ImmutableMap.of(table, ImmutableList.of(partition)), udbConf);
 
-    AlluxioURI actualTableMountPoint =
-        mFs.getMountPoints().inverse().get(new AlluxioURI(table.getLocation()));
-    AlluxioURI expectedTableMountPoint = udbContext.getTableLocation(table.getName());
-    assertEquals(expectedTableMountPoint, actualTableMountPoint);
+    AlluxioURI tableMountPoint = mUdbContextWithFs.getTableLocation(table.getName());
+    AlluxioURI partitionMountPoint = tableMountPoint.join(partition.getName());
+    assertEquals(
+        ImmutableMap.of(
+            tableMountPoint, new AlluxioURI(table.getLocation()),
+            partitionMountPoint, new AlluxioURI(partition.getLocation())),
+        mFs.getMountPoints());
+  }
 
-    AlluxioURI expectedPartitionMountPoint = expectedTableMountPoint.join(partition.getName());
-    AlluxioURI actualPartitionMountPoint =
-        mFs.reverseResolve(new AlluxioURI(partition.getLocation()));
-    assertEquals(actualPartitionMountPoint, expectedPartitionMountPoint);
+  @Test
+  public void mountTableWithPartitionDisallowingDifferentPrefix() throws Exception {
+    TestTable table = TestTable.createWithDummyPartitionKeys("table1", DB_LOCATION);
+    TestPartition partition =
+        TestPartition.createWithDummyValues(PathUtils.concatPath(DB_ALT_LOCATION, table.getName()));
+    UdbConfiguration udbConf =
+        new UdbConfiguration(ImmutableMap.of(
+            UdbProperty.GROUP_MOUNT_POINTS.getName(), "false",
+            Property.ALLOW_DIFF_PART_LOC_PREFIX.getName(), "false"
+        ));
+    createDatabaseAndMountTables(ImmutableMap.of(table, ImmutableList.of(partition)), udbConf);
+
+    AlluxioURI tableMountPoint = mUdbContextWithFs.getTableLocation(table.getName());
+    // the partition is ignored
+    assertEquals(
+        "The partition should be ignored since it has a different location prefix"
+            + "and configuration disallowing such partitions",
+        ImmutableMap.of(tableMountPoint, new AlluxioURI(table.getLocation())),
+        mFs.getMountPoints());
+  }
+
+  @Test
+  public void groupingMountPointsTablesOnly() throws Exception {
+    Map<TestTable, List<TestPartition>> tables = ImmutableList.of("table1", "table2").stream()
+        .map((name) -> TestTable.createWithNoPartitions(name, DB_LOCATION))
+        .collect(ImmutableMap.toImmutableMap(Function.identity(), (table) -> ImmutableList.of()));
+    UdbConfiguration udbConf = getUdbConfigWithGroupMountEnabled(true);
+    createDatabaseAndMountTables(tables, udbConf);
+
+    AlluxioURI dbUfsLocation = new AlluxioURI(DB_LOCATION);
+    AlluxioURI dbMountPoint = mUdbContext.getFragmentLocation(dbUfsLocation);
+    // all the tables share the same location prefix at the database level
+    // so the mount points are grouped
+    assertEquals(
+        ImmutableMap.of(dbMountPoint, dbUfsLocation),
+        mFs.getMountPoints());
+  }
+
+  @Test
+  public void groupingMountPointsWithColocatedPartitions() throws Exception {
+    TestTable table = TestTable.createWithDummyPartitionKeys("table1", DB_LOCATION);
+    TestPartition partition = TestPartition.createColocatedWithDummyValues(table);
+    UdbConfiguration udbConf = getUdbConfigWithGroupMountEnabled(true);
+    createDatabaseAndMountTables(ImmutableMap.of(table, ImmutableList.of(partition)), udbConf);
+
+    AlluxioURI dbUfsLocation = new AlluxioURI(DB_LOCATION);
+    AlluxioURI dbMountPoint = mUdbContext.getFragmentLocation(dbUfsLocation);
+    assertEquals(
+        ImmutableMap.of(dbMountPoint, dbUfsLocation),
+        mFs.getMountPoints());
+  }
+
+  @Test
+  public void groupingMountPointsWithNonColocatedPartitions() throws Exception {
+    TestTable table = TestTable.createWithDummyPartitionKeys("table1", DB_LOCATION);
+    TestPartition colocatedPartition = TestPartition.createColocatedWithDummyValues(table);
+    TestPartition nonColocatedPartition = TestPartition.createWithDummyValues(DB_ALT_LOCATION);
+    UdbConfiguration udbConf =
+        new UdbConfiguration(ImmutableMap.of(
+            UdbProperty.GROUP_MOUNT_POINTS.getName(), "true",
+            Property.ALLOW_DIFF_PART_LOC_PREFIX.getName(), "true"
+        ));
+    createDatabaseAndMountTables(
+        ImmutableMap.of(table, ImmutableList.of(colocatedPartition, nonColocatedPartition)),
+        udbConf);
+
+    AlluxioURI dbUfsLocation = new AlluxioURI(DB_LOCATION);
+    AlluxioURI dbMountPoint = mUdbContext.getFragmentLocation(dbUfsLocation);
+    AlluxioURI partitionUfsLocation = new AlluxioURI(nonColocatedPartition.getLocation());
+    AlluxioURI partitionMountPoint =
+        mUdbContext.getTableLocation(table.getName()).join(nonColocatedPartition.getName());
+    assertEquals(
+        ImmutableMap.of(dbMountPoint, dbUfsLocation, partitionMountPoint, partitionUfsLocation),
+        mFs.getMountPoints());
+  }
+
+  @Test
+  public void groupingMountPointsWithNonColocatedTables() throws Exception {
+    TestTable colocatedTable = TestTable.createWithNoPartitions("colocated", DB_LOCATION);
+    TestTable nonColocatedTable = TestTable.createWithNoPartitions("nonColocated", DB_ALT_LOCATION);
+    UdbConfiguration udbConf = getUdbConfigWithGroupMountEnabled(true);
+    createDatabaseAndMountTables(
+        ImmutableMap.of(colocatedTable, ImmutableList.of(), nonColocatedTable, ImmutableList.of()),
+        udbConf);
+
+    AlluxioURI dbUfsLocation = new AlluxioURI(DB_LOCATION);
+    AlluxioURI dbMountPoint = mUdbContext.getFragmentLocation(dbUfsLocation);
+    AlluxioURI nonColocatedLocation = new AlluxioURI(nonColocatedTable.getLocation());
+    AlluxioURI nonColocatedMountPoint = mUdbContext.getTableLocation(nonColocatedTable.getName());
+    assertEquals(
+        ImmutableMap.of(dbMountPoint, dbUfsLocation, nonColocatedMountPoint, nonColocatedLocation),
+        mFs.getMountPoints());
   }
 
   private static class TestTable {
+    public static final List<String> DUMMY_PARTITION_KEYS = ImmutableList.of("col1", "col2");
+    public static final List<String> DUMMY_PARTITION_VALUES = ImmutableList.of("val1", "val2");
     private final String mName;
-    private String mLocation;
-    private List<String> mPartitionKeys;
+    private final String mLocation;
+    private final List<String> mPartitionKeys;
 
-    public TestTable(String name) {
+    private TestTable(String name, String location, List<String> partitionKeys) {
       mName = name;
-      mLocation = PathUtils.concatPath(CONNECTION_URI, DB_NAME, mName);
-      mPartitionKeys = ImmutableList.of();
+      mLocation = location;
+      mPartitionKeys = partitionKeys;
     }
 
-    public TestTable(TestTable table) {
-      mName = table.mName;
-      mLocation = table.mLocation;
-      mPartitionKeys = table.mPartitionKeys;
+    public static TestTable createWithPartitionKeys(String name,
+                                                    String locationPrefix,
+                                                    List<String> keys) {
+      return new TestTable(name, PathUtils.concatPath(locationPrefix, name), keys);
+    }
+
+    public static TestTable createWithDummyPartitionKeys(String name, String locationPrefix) {
+      return createWithPartitionKeys(name, locationPrefix, DUMMY_PARTITION_KEYS);
+    }
+
+    public static TestTable createWithNoPartitions(String name, String locationPrefix) {
+      return createWithPartitionKeys(name, locationPrefix, ImmutableList.of());
     }
 
     public String getName() {
@@ -215,29 +328,17 @@ public class HiveDatabaseTest {
       return mLocation;
     }
 
-    public TestTable setLocationPrefix(String locationPrefix) {
-      mLocation = PathUtils.concatPath(locationPrefix, mName);
-      return this;
-    }
-
-    public List<String> getPartitionKeys() {
-      return mPartitionKeys;
-    }
-
-    public TestTable setPartitionKeys(List<String> partitionKeys) {
-      mPartitionKeys = partitionKeys;
-      return this;
-    }
-
     public Table toHiveTable() {
       Table table = new Table();
       table.setTableName(mName);
       table.setDbName(DB_NAME);
-      table.setPartitionKeys(mPartitionKeys.stream().map((key) -> {
-        FieldSchema schema = new FieldSchema();
-        schema.setName(key);
-        return schema;
-      }).collect(Collectors.toList()));
+      table.setPartitionKeys(
+          mPartitionKeys.stream().map((key) -> {
+            FieldSchema schema = new FieldSchema();
+            schema.setName(key);
+            return schema;
+          }).collect(Collectors.toList())
+      );
       StorageDescriptor tableSd = new StorageDescriptor();
       tableSd.setLocation(mLocation);
       table.setSd(tableSd);
@@ -246,15 +347,38 @@ public class HiveDatabaseTest {
   }
 
   private static class TestPartition {
+    private final List<String> mKeys;
     private final List<String> mValues;
     private final String mPartitionName;
-    private String mLocation;
+    private final String mLocation;
 
-    public TestPartition(TestTable parentTable, List<String> values) {
-      Preconditions.checkArgument(parentTable.getPartitionKeys().size() == values.size());
+    private TestPartition(List<String> keys, List<String> values,
+                          String partitionName, String location) {
+      mKeys = keys;
       mValues = values;
-      mPartitionName = FileUtils.makePartName(parentTable.getPartitionKeys(), mValues);
-      mLocation = PathUtils.concatPath(parentTable.getLocation(), mPartitionName);
+      mPartitionName = partitionName;
+      mLocation = location;
+    }
+
+    public static TestPartition createWithKeyValue(String locationPrefix,
+                                                   List<String> keys, List<String> values) {
+      Preconditions.checkArgument(keys.size() == values.size());
+      String partName = FileUtils.makePartName(keys, values);
+      return new TestPartition(keys, values, partName,
+          PathUtils.concatPath(locationPrefix, partName));
+    }
+
+    public static TestPartition createWithDummyValues(String locationPrefix) {
+      return createWithKeyValue(locationPrefix,
+          TestTable.DUMMY_PARTITION_KEYS, TestTable.DUMMY_PARTITION_VALUES);
+    }
+
+    public static TestPartition createColocatedWithDummyValues(TestTable parentTable) {
+      return createWithDummyValues(parentTable.getLocation());
+    }
+
+    public List<String> getKeys() {
+      return mKeys;
     }
 
     public List<String> getValues() {
@@ -269,11 +393,6 @@ public class HiveDatabaseTest {
       return mLocation;
     }
 
-    public TestPartition setLocationPrefix(String locationPrefix) {
-      mLocation = PathUtils.concatPath(locationPrefix, mPartitionName);
-      return this;
-    }
-
     public Partition toHivePartition() {
       Partition part = new Partition();
       part.setValues(mValues);
@@ -284,20 +403,47 @@ public class HiveDatabaseTest {
     }
   }
 
+  private static UdbConfiguration getUdbConfigWithGroupMountEnabled(boolean isEnabled) {
+    return new UdbConfiguration(
+        ImmutableMap.of(UdbProperty.GROUP_MOUNT_POINTS.getName(),
+        ((Boolean) isEnabled).toString()));
+  }
+
+  private HiveDatabase createDatabaseAndMountTables(
+      Map<TestTable, List<TestPartition>> tablePartitions,
+      UdbConfiguration configuration)
+      throws IOException {
+    ImmutableMap.Builder<Table, List<Partition>> builder  = new ImmutableMap.Builder<>();
+    tablePartitions.forEach((table, partitions) -> builder.put(
+        table.toHiveTable(),
+        partitions.stream().map(TestPartition::toHivePartition).collect(Collectors.toList())));
+    mockTablesAndPartitions(mMockedClient, builder.build());
+    HiveDatabase database = new HiveDatabase(
+        mUdbContextWithFs,
+        configuration,
+        mUdbContextWithFs.getConnectionUri(),
+        mUdbContextWithFs.getUdbDbName(),
+        mClientPool
+    );
+    database.mount(
+        tablePartitions.keySet().stream().map(TestTable::getName).collect(Collectors.toSet()),
+        EMPTY_BYPASS_SPEC);
+    return database;
+  }
+
   private static void mockTablesAndPartitions(IMetaStoreClient mockedClient,
-                                              List<Table> tables,
-                                              List<Partition> partitions) {
+                                              Map<Table, List<Partition>> tablePartitions) {
     try {
       Database db = new Database();
       db.setName(DB_NAME);
-      db.setLocationUri(CONNECTION_URI);
+      db.setLocationUri(DB_LOCATION);
       when(mockedClient.getDatabase(DB_NAME)).thenReturn(db);
 
-      for (Table table : tables) {
-        String tableName = table.getTableName();
-        when(mockedClient.getTable(DB_NAME, tableName)).thenReturn(table);
+      for (Map.Entry<Table, List<Partition>> entry: tablePartitions.entrySet()) {
+        String tableName = entry.getKey().getTableName();
+        when(mockedClient.getTable(DB_NAME, tableName)).thenReturn(entry.getKey());
         when(mockedClient.listPartitions(eq(DB_NAME), eq(tableName), eq((short) -1)))
-            .thenReturn(partitions);
+            .thenReturn(entry.getValue());
       }
     } catch (TException e) {
       throw new IllegalStateException("Unexpected exception from a mocked client", e);
@@ -352,6 +498,8 @@ public class HiveDatabaseTest {
      * Instead, manually create the expected path according to the logic in production code
      * that derives in-Alluxio paths from UFS paths (e.g. table locations are derived from DB name
      * and table name by {@link UdbContext#getTableLocation(String)}).
+     *
+     * @throws InvalidPathException when neither the UFS uri nor any of its ancestors is mounted
      */
     @Override
     public AlluxioURI reverseResolve(AlluxioURI ufsUri) throws IOException, AlluxioException {

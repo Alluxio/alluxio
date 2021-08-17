@@ -11,7 +11,6 @@
 
 package alluxio.table.under.hive.util;
 
-import alluxio.exception.status.UnimplementedException;
 import alluxio.resource.CloseableResource;
 import alluxio.util.ThreadFactoryUtils;
 
@@ -25,8 +24,8 @@ import java.util.concurrent.ScheduledThreadPoolExecutor;
  * A pool that does nothing, used for testing.
  */
 public class TestHiveClientPool extends AbstractHiveClientPool {
-  private static final ScheduledExecutorService GC_EXECUTOR =
-      new ScheduledThreadPoolExecutor(1, ThreadFactoryUtils.build("TestHiveClientPool-GC-%d", true));
+  private static final ScheduledExecutorService GC_EXECUTOR = new ScheduledThreadPoolExecutor(1,
+      ThreadFactoryUtils.build("TestHiveClientPool-GC-%d", true));
   /**
    * Creates a new instance with default options from {@link Options#defaultOptions()}.
    */
