@@ -108,6 +108,7 @@ public class FuseIOBench extends Benchmark<FuseIOTaskResult> {
           "Some of the threads are not being used. Please set the number of directories to "
               + "be at least the number of threads, preferably a multiple of it."
       ));
+    }
     if (mParameters.mOperation == FuseIOOperation.WRITE) {
       LOG.warn("Cannot write repeatedly, so warmup is not possible. Setting warmup to 0s.");
       mParameters.mWarmup = "0s";
