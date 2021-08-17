@@ -306,11 +306,11 @@ public class FuseIOBench extends Benchmark<FuseIOTaskResult> {
       CommonUtils.sleepMs(waitMs);
       mStartBarrierPassed = true;
 
-      if (mParameters.mOperation == FuseIOOperation.LISTFILE) {
+      if (mParameters.mOperation == FuseIOOperation.LIST_FILE) {
         for (int dirId = mThreadId; dirId < mParameters.mNumDirs; dirId += mParameters.mThreads) {
           String dirPath = String.format("%s/%d", mParameters.mLocalPath, dirId);
           File dir = new File(dirPath);
-          dir.listFiles().toString();
+          dir.listFiles();
         }
         return;
       }
