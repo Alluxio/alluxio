@@ -28,6 +28,7 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -72,17 +73,20 @@ public class FuseIOBench extends Benchmark<FuseIOTaskResult> {
   public String getBenchDescription() {
     return "This stress bench is designed for testing the reading throughput of Fuse-based "
         + "POSIX API. To write data, run `bin/alluxio runClass alluxio.stress.cli.fuse."
-        + "fuseIOBench --operation Write`. To read data, run `bin/alluxio runClass "
-        + "alluxio.stress.cli.fuse.fuseIOBench --operation Read`. You can further adjust "
-        + "the parameters specified below. Note that the \"--operation\" is required, the "
-        + "\"--local-path\" can be a local filesystem path or a mounted fuse path, and test files "
-        + "need to be written first before reading.\nFor example, run `bin/alluxio runClass "
-        + "alluxio.stress.cli.fuse.fuseIOBench --operation Write --local-path /mnt/alluxio-fuse"
-        + "/FuseIOTest --num-files 100 --file-size 100m --threads 32` to write the test files "
-        + "first, then run `bin/alluxio runClass alluxio.stress.cli.fuse.fuseIOBench "
-        + "--operation Read --local-path /mnt/alluxio-fuse/FuseIOTest --num-files 100 "
-        + "--file-size 100m --threads 16 --warmup 15s --duration 30s` to test the reading "
-        + "throughput.\n";
+        + "fuseIOBench --operation Write`. To cache file metadata, run `bin/alluxio runClass "
+        + "alluxio.stress.cli.fuse.fuseIOBench --operation ListFile`. To read data, run "
+        + "`bin/alluxio runClass alluxio.stress.cli.fuse.fuseIOBench --operation Read`. You can "
+        + "further adjust the parameters specified below. Note that the \"--operation\" is "
+        + "required, the \"--local-path\" can be a local filesystem path or a mounted fuse path, "
+        + "and test files need to be written first before reading.\nFor example, run `bin/alluxio "
+        + "runClass alluxio.stress.cli.fuse.fuseIOBench --operation Write --local-path "
+        + "/mnt/alluxio-fuse/FuseIOTest --num-dirs 10 --num-files-per-dir 10 --file-size 100m "
+        + "--threads 32` to write the test files first, then run `bin/alluxio runClass alluxio."
+        + "stress.cli.fuse.fuseIOBench --operation ListFile --local-path /mnt/alluxio-fuse/"
+        + "FuseIOTest --threads 32` to cache the metadata of the files, and finally run "
+        + "`bin/alluxio runClass alluxio.stress.cli.fuse.fuseIOBench --operation Read --local-path "
+        + "/mnt/alluxio-fuse/FuseIOTest --num-dirs 10 --num-files-per-dir 10 --file-size 100m "
+        + "--threads 16 --warmup 15s --duration 30s` to test the reading throughput.\n";
   }
 
   @Override
@@ -93,17 +97,12 @@ public class FuseIOBench extends Benchmark<FuseIOTaskResult> {
               + "be at least the number of threads, preferably a multiple of it."
       ));
     }
-    if (mParameters.mReadRandom) {
-      LOG.warn("Random read is not supported for now. Read sequentially");
-      // TODO(Shawn): support random read
-      mParameters.mReadRandom = false;
-    }
     if (mParameters.mOperation == FuseIOOperation.WRITE) {
       LOG.warn("Cannot write repeatedly, so warmup is not possible. Setting warmup to 0s.");
       mParameters.mWarmup = "0s";
-    }
-    for (int i = 0; i < mParameters.mNumDirs; i++) {
-      Files.createDirectories(Paths.get(mParameters.mLocalPath + "/" + i));
+      for (int i = 0; i < mParameters.mNumDirs; i++) {
+        Files.createDirectories(Paths.get(mParameters.mLocalPath + "/" + i));
+      }
     }
   }
 
@@ -306,6 +305,15 @@ public class FuseIOBench extends Benchmark<FuseIOTaskResult> {
       }
       CommonUtils.sleepMs(waitMs);
       mStartBarrierPassed = true;
+
+      if (mParameters.mOperation == FuseIOOperation.LISTFILE) {
+        for (int dirId = mThreadId; dirId < mParameters.mNumDirs; dirId += mParameters.mThreads) {
+          String dirPath = String.format("%s/%d", mParameters.mLocalPath, dirId);
+          File dir = new File(dirPath);
+          dir.listFiles().toString();
+        }
+        return;
+      }
 
       for (int dirId = mThreadId; dirId < mParameters.mNumDirs; dirId += mParameters.mThreads) {
         for (int fileId = 0; fileId < mParameters.mNumFilesPerDir; fileId++) {
