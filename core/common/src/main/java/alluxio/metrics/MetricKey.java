@@ -353,10 +353,10 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setDescription("Total number of files and directory in Alluxio namespace")
           .setMetricType(MetricType.GAUGE)
           .build();
-  public static final MetricKey MASTER_TOTAL_BLOCKS =
-      new Builder("Master.TotalBlocks")
-          .setDescription("Total number of blocks in Alluxio")
-          .setMetricType(MetricType.COUNTER)
+  public static final MetricKey MASTER_UNIQUE_BLOCKS =
+      new Builder("Master.UniqueBlocks")
+          .setDescription("Total number of unique blocks in Alluxio")
+          .setMetricType(MetricType.GAUGE)
           .build();
   public static final MetricKey MASTER_INODE_HEAP_SIZE =
       new Builder("Master.InodeHeapSize")
