@@ -93,11 +93,6 @@ public class FuseIOBench extends Benchmark<FuseIOTaskResult> {
               + "be at least the number of threads, preferably a multiple of it."
       ));
     }
-    if (mParameters.mReadRandom) {
-      LOG.warn("Random read is not supported for now. Read sequentially");
-      // TODO(Shawn): support random read
-      mParameters.mReadRandom = false;
-    }
     if (mParameters.mOperation == FuseIOOperation.WRITE) {
       LOG.warn("Cannot write repeatedly, so warmup is not possible. Setting warmup to 0s.");
       mParameters.mWarmup = "0s";
