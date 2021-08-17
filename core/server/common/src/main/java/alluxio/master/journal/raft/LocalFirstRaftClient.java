@@ -16,12 +16,12 @@ import alluxio.conf.PropertyKey;
 import alluxio.util.LogUtils;
 
 import org.apache.ratis.client.RaftClient;
-import org.apache.ratis.protocol.AlreadyClosedException;
 import org.apache.ratis.protocol.ClientId;
 import org.apache.ratis.protocol.Message;
-import org.apache.ratis.protocol.NotLeaderException;
 import org.apache.ratis.protocol.RaftClientReply;
 import org.apache.ratis.protocol.RaftClientRequest;
+import org.apache.ratis.protocol.exceptions.AlreadyClosedException;
+import org.apache.ratis.protocol.exceptions.NotLeaderException;
 import org.apache.ratis.server.RaftServer;
 import org.apache.ratis.util.TimeDuration;
 import org.slf4j.Logger;
@@ -44,6 +44,7 @@ public class LocalFirstRaftClient implements Closeable {
   private final Supplier<RaftClient> mClientSupplier;
   private ClientId mLocalClientId;
   private volatile RaftClient mClient;
+  private boolean mEnableRemoteClient;
 
   /**
    * @param server the local raft server
@@ -56,7 +57,10 @@ public class LocalFirstRaftClient implements Closeable {
     mServer = server;
     mClientSupplier = clientSupplier;
     mLocalClientId = localClientId;
-    if (!configuration.getBoolean(PropertyKey.MASTER_EMBEDDED_JOURNAL_WRITE_LOCAL_FIRST_ENABLED)) {
+    mEnableRemoteClient = configuration.getBoolean(
+        PropertyKey.MASTER_EMBEDDED_JOURNAL_WRITE_REMOTE_ENABLED);
+    if (mEnableRemoteClient && !configuration.getBoolean(
+        PropertyKey.MASTER_EMBEDDED_JOURNAL_WRITE_LOCAL_FIRST_ENABLED)) {
       ensureClient();
     }
   }
@@ -70,7 +74,7 @@ public class LocalFirstRaftClient implements Closeable {
    */
   public CompletableFuture<RaftClientReply> sendAsync(Message message,
       TimeDuration timeout) throws IOException {
-    if (mClient == null) {
+    if (!mEnableRemoteClient || mClient == null) {
       return sendLocalRequest(message, timeout);
     } else {
       return sendRemoteRequest(message);
@@ -80,16 +84,24 @@ public class LocalFirstRaftClient implements Closeable {
   private CompletableFuture<RaftClientReply> sendLocalRequest(Message message,
       TimeDuration timeout) throws IOException {
     LOG.trace("Sending local message {}", message);
-    return mServer.submitClientRequestAsync(
-        new RaftClientRequest(mLocalClientId, null, RaftJournalSystem.RAFT_GROUP_ID,
-            RaftJournalSystem.nextCallId(), message, RaftClientRequest.writeRequestType(), null))
+    // ClientId, ServerId, and GroupId must not be null
+    RaftClientRequest request = RaftClientRequest.newBuilder()
+            .setClientId(mLocalClientId)
+            .setServerId(mServer.getId())
+            .setGroupId(RaftJournalSystem.RAFT_GROUP_ID)
+            .setCallId(RaftJournalSystem.nextCallId())
+            .setMessage(message)
+            .setType(RaftClientRequest.writeRequestType())
+            .setSlidingWindowEntry(null)
+            .build();
+    return mServer.submitClientRequestAsync(request)
         .thenApply(reply -> handleLocalException(message, reply, timeout));
   }
 
   private RaftClientReply handleLocalException(Message message, RaftClientReply reply,
       TimeDuration timeout) {
     LOG.trace("Message {} received reply {}", message, reply);
-    if (reply.getException() != null) {
+    if (mEnableRemoteClient && reply.getException() != null) {
       if (reply.getException() instanceof NotLeaderException) {
         LOG.info("Local master is no longer a leader, falling back to remote client.");
         try {
@@ -117,7 +129,7 @@ public class LocalFirstRaftClient implements Closeable {
       try {
         mClient.close();
       } catch (IOException e) {
-        LogUtils.warnWithException(LOG, "Failed to close client: {}", e.getMessage());
+        LogUtils.warnWithException(LOG, "Failed to close client: {}", e.toString());
       }
       mClient = mClientSupplier.get();
     }
@@ -126,7 +138,7 @@ public class LocalFirstRaftClient implements Closeable {
   private CompletableFuture<RaftClientReply> sendRemoteRequest(Message message) {
     ensureClient();
     LOG.trace("Sending remote message {}", message);
-    return mClient.sendAsync(message).exceptionally(t -> {
+    return mClient.async().send(message).exceptionally(t -> {
       handleRemoteException(t);
       throw new CompletionException(t.getCause());
     });

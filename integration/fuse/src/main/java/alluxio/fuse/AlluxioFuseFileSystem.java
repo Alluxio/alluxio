@@ -31,9 +31,7 @@ import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.master.MasterClientContext;
-import alluxio.util.CommonUtils;
 import alluxio.util.ConfigurationUtils;
-import alluxio.util.WaitForOptions;
 import alluxio.wire.BlockMasterInfo;
 
 import com.google.common.annotations.VisibleForTesting;
@@ -67,7 +65,6 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicLong;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -78,10 +75,10 @@ import javax.annotation.concurrent.ThreadSafe;
  * Implements the FUSE callbacks defined by jnr-fuse.
  */
 @ThreadSafe
-public final class AlluxioFuseFileSystem extends FuseStubFS {
+public final class AlluxioFuseFileSystem extends FuseStubFS
+    implements FuseUmountable {
   private static final Logger LOG = LoggerFactory.getLogger(AlluxioFuseFileSystem.class);
   private static final int MAX_OPEN_FILES = Integer.MAX_VALUE;
-  private static final int MAX_OPEN_WAITTIME_MS = 5000;
   /**
    * df command will treat -1 as an unknown value.
    */
@@ -110,16 +107,18 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
   private static final long GID = AlluxioFuseUtils.getGid(System.getProperty("user.name"));
 
   // Open file managements
-  private static final IndexDefinition<OpenFileEntry, Long> ID_INDEX =
-      new IndexDefinition<OpenFileEntry, Long>(true) {
+  private static final IndexDefinition<OpenFileEntry<FileInStream, FileOutStream>, Long>
+      ID_INDEX =
+      new IndexDefinition<OpenFileEntry<FileInStream, FileOutStream>, Long>(true) {
         @Override
         public Long getFieldValue(OpenFileEntry o) {
           return o.getId();
         }
       };
 
-  private static final IndexDefinition<OpenFileEntry, String> PATH_INDEX =
-      new IndexDefinition<OpenFileEntry, String>(true) {
+  private static final IndexDefinition<OpenFileEntry<FileInStream, FileOutStream>, String>
+      PATH_INDEX =
+      new IndexDefinition<OpenFileEntry<FileInStream, FileOutStream>, String>(true) {
         @Override
         public String getFieldValue(OpenFileEntry o) {
           return o.getPath();
@@ -137,7 +136,7 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
   private final LoadingCache<String, AlluxioURI> mPathResolverCache;
 
   // Table of open files with corresponding InputStreams and OutputStreams
-  private final IndexedSet<OpenFileEntry> mOpenFiles;
+  private final IndexedSet<OpenFileEntry<FileInStream, FileOutStream>> mOpenFiles;
 
   private AtomicLong mNextOpenFileId = new AtomicLong(0);
   private final String mFsName;
@@ -149,7 +148,7 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
    * @param opts options
    * @param conf Alluxio configuration
    */
-  public AlluxioFuseFileSystem(FileSystem fs, AlluxioFuseOptions opts, AlluxioConfiguration conf) {
+  public AlluxioFuseFileSystem(FileSystem fs, FuseMountOptions opts, AlluxioConfiguration conf) {
     super();
     mFsName = conf.get(PropertyKey.FUSE_FS_NAME);
     mFileSystem = fs;
@@ -254,7 +253,7 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
         LOG.info("Change group of file {} to {}", path, groupName);
         mFileSystem.setAttribute(uri, optionsBuilder.build());
       } else {
-        LOG.info("Change owner of file {} to {}", path, groupName);
+        LOG.info("Change owner of file {} to {}", path, userName);
         mFileSystem.setAttribute(uri, optionsBuilder.build());
       }
     } catch (Throwable t) {
@@ -394,7 +393,8 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
       if (!status.isCompleted()) {
         // Always block waiting for file to be completed except when the file is writing
         // We do not want to block the writing process
-        if (!mOpenFiles.contains(PATH_INDEX, path) && !waitForFileCompleted(turi)) {
+        if (!mOpenFiles.contains(PATH_INDEX, path)
+            && !AlluxioFuseUtils.waitForFileCompleted(mFileSystem, turi)) {
           LOG.error("File {} is not completed", path);
         }
         status = mFileSystem.getStatus(turi);
@@ -550,7 +550,7 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
       try {
         is = mFileSystem.openFile(uri);
       } catch (FileIncompleteException e) {
-        if (waitForFileCompleted(uri)) {
+        if (AlluxioFuseUtils.waitForFileCompleted(mFileSystem, uri)) {
           is = mFileSystem.openFile(uri);
         } else {
           throw e;
@@ -570,7 +570,7 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
       return AlluxioFuseUtils.getErrorCode(t);
     }
     long fid = mNextOpenFileId.getAndIncrement();
-    mOpenFiles.add(new OpenFileEntry(fid, path, is, null));
+    mOpenFiles.add(new OpenFileEntry<>(fid, path, is, null));
     fi.fh.set(fid);
 
     return 0;
@@ -603,40 +603,49 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
       LOG.error("Cannot read more than Integer.MAX_VALUE");
       return -ErrorCodes.EINVAL();
     }
-    final int sz = (int) size;
+
     final long fd = fi.fh.get();
-    OpenFileEntry oe = mOpenFiles.getFirstByField(ID_INDEX, fd);
+    OpenFileEntry<FileInStream, FileOutStream> oe = mOpenFiles.getFirstByField(ID_INDEX, fd);
     if (oe == null) {
       LOG.error("Cannot find fd for {} in table", path);
       return -ErrorCodes.EBADFD();
     }
-
-    int rd = 0;
-    int nread = 0;
     if (oe.getIn() == null) {
       LOG.error("{} was not open for reading", path);
       return -ErrorCodes.EBADFD();
     }
-    try {
-      oe.getIn().seek(offset);
-      final byte[] dest = new byte[sz];
-      while (rd >= 0 && nread < size) {
-        rd = oe.getIn().read(dest, nread, sz - nread);
-        if (rd >= 0) {
-          nread += rd;
+    int rd = 0;
+    int nread = 0;
+    synchronized (oe) {
+      if (!mOpenFiles.contains(oe)) {
+        LOG.error("Cannot find fd for {} in table", path);
+        return -ErrorCodes.EBADFD();
+      }
+      FileInStream is = oe.getIn();
+      try {
+        if (offset - is.getPos() < is.remaining()) {
+          is.seek(offset);
+          final int sz = (int) size;
+          final byte[] dest = new byte[sz];
+          while (rd >= 0 && nread < sz) {
+            rd = oe.getIn().read(dest, nread, sz - nread);
+            if (rd >= 0) {
+              nread += rd;
+            }
+          }
+
+          if (nread == -1) { // EOF
+            nread = 0;
+          } else if (nread > 0) {
+            buf.put(0, dest, 0, nread);
+          }
         }
+      } catch (Throwable t) {
+        LOG.error("Failed to read file={}, offset={}, size={}", path, offset,
+            size, t);
+        return AlluxioFuseUtils.getErrorCode(t);
       }
-
-      if (nread == -1) { // EOF
-        nread = 0;
-      } else if (nread > 0) {
-        buf.put(0, dest, 0, nread);
-      }
-    } catch (Throwable t) {
-      LOG.error("Failed to read file={}, offset={}, size={}", path, offset, size, t);
-      return AlluxioFuseUtils.getErrorCode(t);
     }
-
     return nread;
   }
 
@@ -699,13 +708,14 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
     OpenFileEntry oe;
     final long fd = fi.fh.get();
     oe = mOpenFiles.getFirstByField(ID_INDEX, fd);
-    mOpenFiles.remove(oe);
-    if (oe == null) {
+    if (oe == null || !mOpenFiles.remove(oe)) {
       LOG.error("Cannot find fd for {} in table", path);
       return -ErrorCodes.EBADFD();
     }
     try {
-      oe.close();
+      synchronized (oe) {
+        oe.close();
+      }
     } catch (IOException e) {
       LOG.error("Failed closing {} [in]", path, e);
     }
@@ -929,30 +939,6 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
   }
 
   /**
-   * Waits for the file to complete before opening it.
-   *
-   * @param uri the file path to check
-   * @return whether the file is completed or not
-   */
-  private boolean waitForFileCompleted(AlluxioURI uri) {
-    try {
-      CommonUtils.waitFor("file completed", () -> {
-        try {
-          return mFileSystem.getStatus(uri).isCompleted();
-        } catch (Exception e) {
-          throw new RuntimeException(e);
-        }
-      }, WaitForOptions.defaults().setTimeoutMs(MAX_OPEN_WAITTIME_MS));
-      return true;
-    } catch (InterruptedException ie) {
-      Thread.currentThread().interrupt();
-      return false;
-    } catch (TimeoutException te) {
-      return false;
-    }
-  }
-
-  /**
    * Exposed for testing.
    */
   LoadingCache<String, AlluxioURI> getPathResolverCache() {
@@ -969,7 +955,7 @@ public final class AlluxioFuseFileSystem extends FuseStubFS {
   }
 
   @Override
-  public void umount() {
+  public void umount(boolean force) {
     LOG.info("Umount AlluxioFuseFileSystem");
     super.umount();
   }

@@ -18,6 +18,7 @@ import alluxio.metrics.MetricsSystem;
 import alluxio.util.logging.SamplingLogger;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Stopwatch;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -31,6 +32,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
@@ -70,12 +72,19 @@ public abstract class Cache<K, V> implements Closeable {
   @VisibleForTesting
   final EvictionThread mEvictionThread;
 
+  private final StatsCounter mStatsCounter;
+
   /**
    * @param conf cache configuration
    * @param name a name for the cache
-   * @param metricKey the metric key of the cache
+   * @param evictionsKey the cache evictions metric key
+   * @param hitsKey the cache hits metrics key
+   * @param loadTimesKey the load times metrics key
+   * @param missesKey the misses metrics key
+   * @param sizeKey the size metrics key
    */
-  public Cache(CacheConfiguration conf, String name, MetricKey metricKey) {
+  public Cache(CacheConfiguration conf, String name, MetricKey evictionsKey, MetricKey hitsKey,
+               MetricKey loadTimesKey, MetricKey missesKey, MetricKey sizeKey) {
     mMaxSize = conf.getMaxSize();
     mHighWaterMark = conf.getHighWaterMark();
     mLowWaterMark = conf.getLowWaterMark();
@@ -85,8 +94,9 @@ public abstract class Cache<K, V> implements Closeable {
     mEvictionThread = new EvictionThread();
     mEvictionThread.setDaemon(true);
     // The eviction thread is started lazily when we first reach the high water mark.
+    mStatsCounter = new StatsCounter(evictionsKey, hitsKey, loadTimesKey, missesKey);
 
-    MetricsSystem.registerGaugeIfAbsent(metricKey.getName(), mMap::size);
+    MetricsSystem.registerGaugeIfAbsent(sizeKey.getName(), mMap::size);
   }
 
   /**
@@ -108,10 +118,14 @@ public abstract class Cache<K, V> implements Closeable {
     }
     Entry result = mMap.compute(key, (k, entry) -> {
       if (entry != null) {
+        mStatsCounter.recordHit();
         entry.mReferenced = true;
         return entry;
       }
+      mStatsCounter.recordMiss();
+      final Stopwatch stopwatch = Stopwatch.createStarted();
       Optional<V> value = load(key);
+      mStatsCounter.recordLoad(stopwatch.elapsed(TimeUnit.NANOSECONDS));
       if (value.isPresent()) {
         onCacheUpdate(key, value.get());
         Entry newEntry = new Entry(key, value.get());
@@ -145,8 +159,13 @@ public abstract class Cache<K, V> implements Closeable {
   private Optional<V> getSkipCache(K key) {
     Entry entry = mMap.get(key);
     if (entry == null) {
-      return load(key);
+      mStatsCounter.recordMiss();
+      final Stopwatch stopwatch = Stopwatch.createStarted();
+      final Optional<V> result = load(key);
+      mStatsCounter.recordLoad(stopwatch.elapsed(TimeUnit.NANOSECONDS));
+      return result;
     }
+    mStatsCounter.recordHit();
     return Optional.ofNullable(entry.mValue);
   }
 
@@ -333,6 +352,7 @@ public abstract class Cache<K, V> implements Closeable {
         evictionCount += evictBatch();
       }
       if (evictionCount > 0) {
+        mStatsCounter.recordEvictions(evictionCount);
         LOG.debug("{}: Evicted {} entries in {}ms", mName, evictionCount,
             (System.nanoTime() - evictionStart) / Constants.MS_NANO);
       }

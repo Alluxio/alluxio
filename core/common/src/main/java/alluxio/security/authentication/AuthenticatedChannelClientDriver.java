@@ -115,7 +115,8 @@ public class AuthenticatedChannelClientDriver implements StreamObserver<SaslMess
 
   @Override
   public void onError(Throwable throwable) {
-    LOG.debug("Received error for channel: {}. Error: {}", mChannelKey.toStringShort(), throwable);
+    LOG.debug("Authentication stream failed for client. Channel: {}. Error: {}",
+        mChannelKey.toStringShort(), throwable);
     closeAuthenticatedChannel(false);
 
     // Fail blocked waiters.
@@ -124,8 +125,7 @@ public class AuthenticatedChannelClientDriver implements StreamObserver<SaslMess
 
   @Override
   public void onCompleted() {
-    LOG.debug("Authenticated channel revoked by server for channel: {}",
-        mChannelKey.toStringShort());
+    LOG.debug("Authentication revoked by server. Channel: {}", mChannelKey.toStringShort());
     closeAuthenticatedChannel(false);
   }
 
@@ -133,7 +133,7 @@ public class AuthenticatedChannelClientDriver implements StreamObserver<SaslMess
    * Stops authenticated session with the server by releasing the long poll.
    */
   public void close() {
-    LOG.debug("Closing authentication for channel: {}", mChannelKey.toStringShort());
+    LOG.debug("Authentication client-driver closing. Channel: {}", mChannelKey.toStringShort());
     closeAuthenticatedChannel(true);
   }
 

@@ -16,18 +16,47 @@ package alluxio.stress.master;
  */
 public enum Operation {
   // Create files
-  CreateFile, // create fixed-N, create more in extra
-  GetBlockLocations, // call for fixed-N
-  GetFileStatus, // call for fixed-N
-  ListDir, // call for fixed-N
-  ListDirLocated, // call for fixed-N
-  OpenFile, // open for fixed-N
+  CREATE_FILE("CreateFile"), // create fixed-N, create more in extra
+  GET_BLOCK_LOCATIONS("GetBlockLocations"), // call for fixed-N
+  GET_FILE_STATUS("GetFileStatus"), // call for fixed-N
+  LIST_DIR("ListDir"), // call for fixed-N
+  LIST_DIR_LOCATED("ListDirLocated"), // call for fixed-N
+  OPEN_FILE("OpenFile"), // open for fixed-N
 
   // Dependent on CreateFile
-  RenameFile, // rename fixed-N, then rename in extra, need plenty of extra
-  DeleteFile, // delete fixed-N, then delete from extra, need plenty of extra
+  RENAME_FILE("RenameFile"), // rename fixed-N, then rename in extra, need plenty of extra
+  DELETE_FILE("DeleteFile"), // delete fixed-N, then delete from extra, need plenty of extra
 
   // Create dirs
-  CreateDir, // create fixed-N, create more in extra
+  CREATE_DIR("CreateDir"), // create fixed-N, create more in extra
   ;
+
+  private final String mName;
+
+  /**
+   * @param name Name of the operation
+   */
+  Operation(String name) {
+    mName = name;
+  }
+
+  @Override
+  public String toString() {
+    return mName;
+  }
+
+  /**
+   * Creates an instance type from the string. This method is case insensitive.
+   *
+   * @param text the instance type in string
+   * @return the created instance
+   */
+  public static Operation fromString(String text) {
+    for (Operation type : Operation.values()) {
+      if (type.toString().equalsIgnoreCase(text)) {
+        return type;
+      }
+    }
+    throw new IllegalArgumentException("No constant with text " + text + " found");
+  }
 }

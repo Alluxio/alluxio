@@ -113,7 +113,7 @@ final class UfsJournalCheckpointWriter extends FilterOutputStream {
     } catch (IOException e) {
       if (!mUfs.exists(dst)) {
         LOG.warn("Failed to commit checkpoint from {} to {} with error {}.",
-            mTmpCheckpointFileLocation, dst, e.getMessage());
+            mTmpCheckpointFileLocation, dst, e.toString());
       }
       try {
         mUfs.deleteFile(mTmpCheckpointFileLocation.toString());

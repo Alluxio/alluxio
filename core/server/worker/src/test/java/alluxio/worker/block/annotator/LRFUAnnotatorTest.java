@@ -50,11 +50,11 @@ public class LRFUAnnotatorTest extends AbstractBlockAnnotatorTest {
       expectedList.add(i);
     }
 
-    validateIterator(mBlockIterator.getIterator(BlockStoreLocation.anyTier(), BlockOrder.Natural),
+    validateIterator(mBlockIterator.getIterator(BlockStoreLocation.anyTier(), BlockOrder.NATURAL),
         expectedList.iterator());
 
     Collections.reverse(expectedList);
-    validateIterator(mBlockIterator.getIterator(BlockStoreLocation.anyTier(), BlockOrder.Reverse),
+    validateIterator(mBlockIterator.getIterator(BlockStoreLocation.anyTier(), BlockOrder.REVERSE),
         expectedList.iterator());
   }
 }

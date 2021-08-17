@@ -27,9 +27,8 @@ import alluxio.master.journal.JournalMasterClientServiceHandler;
 import alluxio.master.journal.JournalSystem;
 import alluxio.master.journal.JournalUtils;
 import alluxio.master.journal.raft.RaftJournalSystem;
+import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
-import alluxio.metrics.sink.MetricsServlet;
-import alluxio.metrics.sink.PrometheusMetricsServlet;
 import alluxio.resource.CloseableResource;
 import alluxio.security.user.ServerUserState;
 import alluxio.underfs.MasterUfsManager;
@@ -50,7 +49,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.InetSocketAddress;
 import java.net.URI;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 
 import javax.annotation.Nullable;
@@ -63,10 +61,6 @@ import javax.annotation.concurrent.ThreadSafe;
 @NotThreadSafe
 public class AlluxioMasterProcess extends MasterProcess {
   private static final Logger LOG = LoggerFactory.getLogger(AlluxioMasterProcess.class);
-
-  private final MetricsServlet mMetricsServlet = new MetricsServlet(MetricsSystem.METRIC_REGISTRY);
-  private final PrometheusMetricsServlet mPMetricsServlet = new PrometheusMetricsServlet(
-      MetricsSystem.METRIC_REGISTRY);
 
   /** The master registry. */
   private final MasterRegistry mRegistry;
@@ -89,7 +83,7 @@ public class AlluxioMasterProcess extends MasterProcess {
   /** The manager of all ufs. */
   private final MasterUfsManager mUfsManager;
 
-  private ExecutorService mRPCExecutor = null;
+  private ForkJoinPool mRPCExecutor = null;
 
   /**
    * Creates a new {@link AlluxioMasterProcess}.
@@ -251,10 +245,6 @@ public class AlluxioMasterProcess extends MasterProcess {
     mWebServer =
         new MasterWebServer(ServiceType.MASTER_WEB.getServiceName(), mWebBindAddress, this);
     // reset master web port
-    // Add the metrics servlet to the web server.
-    mWebServer.addHandler(mMetricsServlet.getHandler());
-    // Add the prometheus metrics servlet to the web server.
-    mWebServer.addHandler(mPMetricsServlet.getHandler());
     // start web ui
     mWebServer.start();
   }
@@ -281,6 +271,7 @@ public class AlluxioMasterProcess extends MasterProcess {
    */
   protected void startServing(String startMessage, String stopMessage) {
     MetricsSystem.startSinks(ServerConfiguration.get(PropertyKey.METRICS_CONF_FILE));
+    startServingRPCServer();
     LOG.info("Alluxio master web server version {} starting{}. webAddress={}",
         RuntimeConstants.VERSION, startMessage, mWebBindAddress);
     startServingWebServer();
@@ -289,7 +280,8 @@ public class AlluxioMasterProcess extends MasterProcess {
         "Alluxio master version {} started{}. bindAddress={}, connectAddress={}, webAddress={}",
         RuntimeConstants.VERSION, startMessage, mRpcBindAddress, mRpcConnectAddress,
         mWebBindAddress);
-    startServingRPCServer();
+    // Blocks until RPC server is shut down. (via #stopServing)
+    mGrpcServer.awaitTermination();
     LOG.info("Alluxio master ended{}", stopMessage);
   }
 
@@ -304,7 +296,6 @@ public class AlluxioMasterProcess extends MasterProcess {
       GrpcServerBuilder serverBuilder = GrpcServerBuilder.forAddress(
           GrpcServerAddress.create(mRpcConnectAddress.getHostName(), mRpcBindAddress),
           ServerConfiguration.global(), ServerUserState.global());
-
       mRPCExecutor = new ForkJoinPool(
           ServerConfiguration.getInt(PropertyKey.MASTER_RPC_EXECUTOR_PARALLELISM),
           ThreadFactoryUtils.buildFjp("master-rpc-pool-thread-%d", true),
@@ -318,6 +309,9 @@ public class AlluxioMasterProcess extends MasterProcess {
           TimeUnit.MILLISECONDS);
 
       serverBuilder.executor(mRPCExecutor);
+      MetricsSystem.registerGaugeIfAbsent(MetricKey.MASTER_RPC_QUEUE_LENGTH.getName(),
+              mRPCExecutor::getQueuedSubmissionCount);
+
       for (Master master : mRegistry.getServers()) {
         registerServices(serverBuilder, master.getServices());
       }
@@ -331,9 +325,6 @@ public class AlluxioMasterProcess extends MasterProcess {
       mGrpcServer = serverBuilder.build().start();
       mSafeModeManager.notifyRpcServerStarted();
       LOG.info("Started Alluxio master gRPC server on address {}", mRpcConnectAddress);
-
-      // Wait until the server is shut down.
-      mGrpcServer.awaitTermination();
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
@@ -374,6 +365,26 @@ public class AlluxioMasterProcess extends MasterProcess {
     return "Alluxio master @" + mRpcConnectAddress;
   }
 
+  private static void validateRPCExecutor() {
+    int parallelism = ServerConfiguration.getInt(PropertyKey.MASTER_RPC_EXECUTOR_PARALLELISM);
+    Preconditions.checkArgument(parallelism > 0,
+            String.format("Cannot start Alluxio master gRPC thread pool with %s=%s! "
+                            + "The parallelism must be greater than 0!",
+                    PropertyKey.MASTER_RPC_EXECUTOR_PARALLELISM.toString(), parallelism));
+    int maxPoolSize = ServerConfiguration.getInt(PropertyKey.MASTER_RPC_EXECUTOR_MAX_POOL_SIZE);
+    Preconditions.checkArgument(parallelism <= maxPoolSize,
+            String.format("Cannot start Alluxio master gRPC thread pool with "
+                            + "%s=%s greater than %s=%s!",
+                    PropertyKey.MASTER_RPC_EXECUTOR_PARALLELISM.toString(), parallelism,
+                    PropertyKey.MASTER_RPC_EXECUTOR_MAX_POOL_SIZE.toString(), maxPoolSize));
+    long keepAliveMs = ServerConfiguration.getMs(PropertyKey.MASTER_RPC_EXECUTOR_KEEPALIVE);
+    Preconditions.checkArgument(keepAliveMs > 0L,
+            String.format("Cannot start Alluxio master gRPC thread pool with %s=%s. "
+                            + "The keepalive time must be greater than 0!",
+                    PropertyKey.MASTER_RPC_EXECUTOR_KEEPALIVE.toString(),
+                    keepAliveMs));
+  }
+
   /**
    * Factory for creating {@link AlluxioMasterProcess}.
    */
@@ -385,6 +396,7 @@ public class AlluxioMasterProcess extends MasterProcess {
      * @return a new instance of {@link MasterProcess} using the given sockets for the master
      */
     public static AlluxioMasterProcess create() {
+      validateRPCExecutor();
       URI journalLocation = JournalUtils.getJournalLocation();
       JournalSystem journalSystem = new JournalSystem.Builder()
           .setLocation(journalLocation).build(ProcessType.MASTER);

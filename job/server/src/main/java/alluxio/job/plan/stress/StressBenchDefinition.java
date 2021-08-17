@@ -12,6 +12,7 @@
 package alluxio.job.plan.stress;
 
 import alluxio.collections.Pair;
+import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.job.RunTaskContext;
@@ -21,6 +22,7 @@ import alluxio.resource.CloseableResource;
 import alluxio.stress.BaseParameters;
 import alluxio.stress.worker.UfsIOParameters;
 import alluxio.underfs.UnderFileSystem;
+import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.util.JsonSerializable;
 import alluxio.stress.TaskResult;
 import alluxio.stress.job.StressBenchConfig;
@@ -86,6 +88,7 @@ public final class StressBenchDefinition
     workerList = workerList.subList(0, clusterLimit);
 
     for (WorkerInfo worker : workerList) {
+      LOG.info("Generating job for worker {}", worker.getId());
       ArrayList<String> args = new ArrayList<>(2);
       // Add the worker hostname + worker id as the unique task id for each distributed task.
       // The worker id is used since there may be multiple workers on a single host.
@@ -103,7 +106,10 @@ public final class StressBenchDefinition
       if (ufsUri.startsWith(entry.getValue().getUfsUri())) {
         try (CloseableResource<UnderFileSystem> resource = runTaskContext.getUfsManager()
             .get(entry.getValue().getMountId()).acquireUfsResource()) {
-          return resource.get().getConfiguration().toMap();
+          AlluxioConfiguration configuration = resource.get().getConfiguration();
+          if (configuration instanceof UnderFileSystemConfiguration) {
+            return ((UnderFileSystemConfiguration) configuration).getMountSpecificConf();
+          }
         }
       }
     }
@@ -181,9 +187,13 @@ public final class StressBenchDefinition
           try {
             return JsonSerializable.fromJson(entry.getValue().trim(), new TaskResult[0]);
           } catch (IOException | ClassNotFoundException e) {
-            error.set(new IOException(String
-                .format("Failed to parse task output from %s into result class",
-                    entry.getKey().getAddress().getHost()), e));
+            // add log here because the exception details are lost at the client side
+            LOG.warn("Failed to parse result into class {}", TaskResult.class, e);
+            error.set(new IOException(
+                String.format("Failed to parse task output from %s into result class %s: %s",
+                    entry.getKey().getAddress().getHost(), TaskResult.class,
+                    entry.getValue().trim()),
+                e));
           }
           return null;
         }).collect(Collectors.toList());

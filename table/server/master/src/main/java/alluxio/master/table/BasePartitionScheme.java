@@ -30,17 +30,24 @@ public abstract class BasePartitionScheme implements PartitionScheme {
    * @param partitions list of partitions
    */
   public BasePartitionScheme(List<Partition> partitions) {
-    mPartitions = Collections.unmodifiableList(partitions);
-    Map<String, Partition> specToPartition = new HashMap<>(mPartitions.size());
+    mPartitions = partitions;
+    mSpecToPartition = new HashMap<>();
     for (Partition partition : mPartitions) {
-      specToPartition.put(partition.getSpec(), partition);
+      mSpecToPartition.put(partition.getSpec(), partition);
     }
-    mSpecToPartition = Collections.unmodifiableMap(specToPartition);
+  }
+
+  @Override
+  public void addPartitions(List<Partition> partitions) {
+    mPartitions.addAll(partitions);
+    for (Partition partition : mPartitions) {
+      mSpecToPartition.put(partition.getSpec(), partition);
+    }
   }
 
   @Override
   public List<Partition> getPartitions() {
-    return mPartitions;
+    return Collections.unmodifiableList(mPartitions);
   }
 
   @Override

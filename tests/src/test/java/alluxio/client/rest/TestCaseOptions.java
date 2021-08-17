@@ -32,6 +32,7 @@ public final class TestCaseOptions {
   private boolean mPrettyPrint;
   private String mContentType;
   private String mMD5;
+  private String mAuthorization;
 
   /**
    * @return the default {@link TestCaseOptions}
@@ -46,6 +47,7 @@ public final class TestCaseOptions {
     mPrettyPrint = false;
     mContentType = JSON_CONTENT_TYPE;
     mMD5 = null;
+    mAuthorization = null;
   }
 
   /**
@@ -81,6 +83,13 @@ public final class TestCaseOptions {
    */
   public String getMD5() {
     return mMD5;
+  }
+
+  /**
+   * @return the authorization header
+   */
+  public String getAuthorization() {
+    return mAuthorization;
   }
 
   /**
@@ -128,6 +137,15 @@ public final class TestCaseOptions {
     return this;
   }
 
+  /**
+   * @param authorization the authorization header
+   * @return the updated options object
+   */
+  public TestCaseOptions setAuthorization(String authorization) {
+    mAuthorization = authorization;
+    return this;
+  }
+
   @Override
   public boolean equals(Object o) {
     if (this == o) {
@@ -141,12 +159,13 @@ public final class TestCaseOptions {
         && Objects.equal(mInputStream, that.mInputStream)
         && mPrettyPrint == that.mPrettyPrint
         && Objects.equal(mContentType, that.mContentType)
-        && Objects.equal(mMD5, that.mMD5);
+        && Objects.equal(mMD5, that.mMD5)
+        && Objects.equal(mAuthorization, that.mAuthorization);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(mBody, mInputStream, mPrettyPrint, mContentType, mMD5);
+    return Objects.hashCode(mBody, mInputStream, mPrettyPrint, mContentType, mMD5, mAuthorization);
   }
 
   @Override
@@ -157,6 +176,7 @@ public final class TestCaseOptions {
         .add("pretty print", mPrettyPrint)
         .add("content type", mContentType)
         .add("MD5", mMD5)
+        .add("authorization", mAuthorization)
         .toString();
   }
 }

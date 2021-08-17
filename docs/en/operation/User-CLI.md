@@ -50,9 +50,9 @@ $ ./bin/alluxio format
 $ ./bin/alluxio format -s
 ```
 
-### formatMaster
+### formatJournal
 
-The `formatMaster` command formats the Alluxio master.
+The `formatJournal` command formats the Alluxio master journal on this host.
 
 The Alluxio master stores various forms of metadata, including:
 - file system operations
@@ -60,18 +60,41 @@ The Alluxio master stores various forms of metadata, including:
 - journal transactions
 - under storage file metadata
 
-All this information is deleted if `formatMaster` is run.,
+All this information is deleted if `formatJournal` is run.,
 
-> Warning: `formatMaster` should only be called while the cluster is not running.
+> Warning: `formatJournal` should only be called while the cluster is not running.
 
 
 ```console
-$ ./bin/alluxio formatMaster
+$ ./bin/alluxio formatJournal
+```
+
+### formatMasters
+
+The `formatMasters` command formats the Alluxio masters.
+
+This command defers to [formatJournal](#formatjournal),
+but if the UFS is an embedded journal it will format all master nodes listed in the 'conf/masters' file
+instead of just this host.
+
+The Alluxio master stores various forms of metadata, including:
+- file system operations
+- where files are located on workers
+- journal transactions
+- under storage file metadata
+
+All this information is deleted if `formatMasters` is run.,
+
+> Warning: `formatMasters` should only be called while the cluster is not running.
+
+
+```console
+$ ./bin/alluxio formatMasters
 ```
 
 ### formatWorker
 
-The `formatWorker` command formats the Alluxio worker.
+The `formatWorker` command formats the Alluxio worker on this host.
 
 An Alluxio worker caches files and objects.
 
@@ -87,13 +110,10 @@ $ ./bin/alluxio formatWorker
 ### bootstrapConf
 
 The `bootstrapConf` command generates the bootstrap configuration file
-`${ALLUXIO_HOME}/conf/alluxio-env.sh` with the specified `ALLUXIO_MASTER_HOSTNAME`,
-if the configuration file does not exist.
+`${ALLUXIO_HOME}/conf/alluxio-site.properties` with `alluxio.master.hostname`
+set to the passed in value if the configuration file does not exist.
 
-In addition, worker memory size and the ramdisk folder will be set in the configuration file
-in accordance to the state of the machine:
-* type: Mac or Linux
-* total memory size
+<!-- Generated configuration file is empty except for "alluxio.master.hostname" -->
 
 ```console
 $ ./bin/alluxio bootstrapConf <ALLUXIO_MASTER_HOSTNAME>
@@ -109,7 +129,7 @@ See [File System Operations](#file-system-operations).
 
 The `fsadmin` command is meant for administrators of the Alluxio cluster.
 It provides added tools for diagnostics and troubleshooting.
-For more information see the [main page]({{ '/en/operation/Admin-CLI.html' | relativize_url }}).
+For more information see the [Admin CLI main page]({{ '/en/operation/Admin-CLI.html' | relativize_url }}).
 
 > Note: This command requires the Alluxio cluster to be running.
 
@@ -159,6 +179,7 @@ where `[generic options]` can be one of the following values:
 * `leader`: Prints the hostname of the job master service leader.
 * `ls`: Prints the IDs of the most recent jobs, running and finished, in the history up to the capacity set in `alluxio.job.master.job.capacity`.
 * `stat [-v] <id>`:Displays the status info for the specific job. Use -v flag to display the status of every task.
+* `cancel <id>`: Cancels the job with the corresponding id asynchronously.
 
 ```console
 # Prints the hostname of the job master service leader.
@@ -208,31 +229,25 @@ Status: CANCELED
 The `logLevel` command returns the current value of or updates the log level of a particular class
 on specific instances. Users are able to change Alluxio server-side log levels at runtime.
 
-The command follows the format `alluxio logLevel --logName=NAME [--target=<master|worker|host:port>] [--level=LEVEL]`,
+The command follows the format `alluxio logLevel --logName=NAME [--target=<master|workers|job_master|job_workers|host:port>] [--level=LEVEL]`,
 where:
 * `--logName <arg>` indicates the logger's class (e.g. `alluxio.master.file.DefaultFileSystemMaster`)
 * `--target <arg>` lists the Alluxio master or workers to set.
-The target could be of the form `<master|workers|host:webPort>` and multiple targets can be listed as comma-separated entries.
+The target could be of the form `<master|workers|job_master|job_workers|host:webPort>` and multiple targets can be listed as comma-separated entries.
 The `host:webPort` format can only be used when referencing a worker.
-The default target value is all masters and workers.
+The default target value is the primary master, primary job master, all workers and job workers.
 * `--level <arg>` If provided, the command changes to the given logger level,
 otherwise it returns the current logger level.
 
-For example, the following command sets the logger level of the class `alluxio.heartbeat.HeartbeatContext` to
-`DEBUG` on master as well as a worker at `192.168.100.100:30000`:
-
-```console
-$ ./bin/alluxio logLevel --logName=alluxio.heartbeat.HeartbeatContext \
-  --target=master,192.168.100.100:30000 --level=DEBUG
-```
-
-And the following command returns the log level of the class `alluxio.heartbeat.HeartbeatContext` among all the workers:
-```console
-$ ./bin/alluxio logLevel --logName=alluxio.heartbeat.HeartbeatContext \
-  --target=workers
-```
+See [here]({{ '/en/operation/Basic-Logging.html#modifying-server-logging-at-runtime' | relativize_url }})
+for more examples.
 
 > Note: This command requires the Alluxio cluster to be running.
+> You are not able to set the logger level on the standby masters.
+> The standby masters/job masters do not have a running web server.
+> So they are not accepting the requests from this command.
+> If you want to modify the logger level for standby masters,
+> update the `log4j.properties` and restart the process.
 
 ### runClass
 
@@ -243,9 +258,35 @@ For example, to run the multi-mount demo:
 $ ./bin/alluxio runClass alluxio.examples.MultiMount <HDFS_URL>
 ```
 
+### runTest
+
+The `runTest` command runs end-to-end tests on an Alluxio cluster.
+
+The usage is `runTest [--directory <path>] [--operation <operation type>] [--readType <read type>] [--writeType <write type>]`.
+  * `--directory`
+    Alluxio path for the tests working directory.
+    Default: `${ALLUXIO_HOME}`
+  * `--operation`
+    The operation to test, one of BASIC or BASIC_NON_BYTE_BUFFER. By default
+    both operations are tested.
+  * `--readType`
+    The read type to use, one of NO_CACHE, CACHE, CACHE_PROMOTE. By default all readTypes are tested.
+  * `--writeType`
+    The write type to use, one of MUST_CACHE, CACHE_THROUGH, THROUGH, ASYNC_THROUGH. By default all writeTypes are tested.
+
+```console
+$ ./bin/alluxio runTest
+
+$ ./bin/alluxio runTest --operation BASIC --readType CACHE --writeType MUST_CACHE
+```
+
+> Note: This command requires the Alluxio cluster to be running.
+
 ### runTests
 
-The `runTests` command runs end-to-end tests on an Alluxio cluster to provide a comprehensive sanity check.
+The `runTests` command runs all the end-to-end tests on an Alluxio cluster to provide a comprehensive sanity check.
+
+This command is equivalent to running [runTest](#runtest) with all the default flag values.
 
 ```console
 $ ./bin/alluxio runTests
@@ -261,17 +302,17 @@ The `runJournalCrashTest` simulates a failover to test recovery from the journal
 
 ### runHmsTests
 
-The `runHmsTests` aims to validate the configuration, connectivity, and permissions of an existing hive metastore 
+The `runHmsTests` aims to validate the configuration, connectivity, and permissions of an existing hive metastore
 which is an important component in compute workflows with Alluxio.
 
 * `-h` provides detailed guidance.
 * `-m <hive_metastore_uris>` (required) the full hive metastore uris to connect to an existing hive metastore.
-* `-d <databse_name>` the database to run tests against. Use `default` database if not provided.
-* `-t` tables to run tests against. Run tests against five out of all tables in the given database if not provided.
-* `-st` socket timeout of hive metastore client in minutes.
+* `-d <database_name>` the database to run tests against. Use `default` database if not provided.
+* `-t [table_name_1,table_name_2,...]` tables to run tests against. Run tests against five out of all tables in the given database if not provided.
+* `-st <timeout>` socket timeout of hive metastore client in minutes.
 
-```
-$ ./bin/alluxio runHmsTests -m thrift://<hms_host>:<hms_port> -d tpcds -t store_sales,web_sales 
+```console
+$ ./bin/alluxio runHmsTests -m thrift://<hms_host>:<hms_port> -d tpcds -t store_sales,web_sales
 ```
 
 This tool is suggested to run from compute application environments and checks
@@ -284,20 +325,19 @@ This tool is suggested to run from compute application environments and checks
 ### runHdfsMountTests
 
 The `runHdfsMountTests` command aims to validate the configuration, connectivity and permissions of an HDFS path.
-It validates various aspects for connecting to HDFS with the given Alluxio configurations and identifies issues 
+It validates various aspects for connecting to HDFS with the given Alluxio configurations and identifies issues
 before the path is mounted to Alluxio.
 This tool will validate a few criteria and return the feedback.
 If a test failed, advice will be given correspondingly on how the user can rectify the setup.
 
-Options:
-
+Usage: `runHdfsMountTests [--readonly] [--shared] [--option <key=val>] <hdfsURI>`
 * `--help` provides detailed guidance.
 * `--readonly` specifies the mount point should be readonly in Alluxio.
 * `--shared` specifies the mount point should be accessible for all Alluxio users.
 * `--option <key>=<val>` passes an property to this mount point.
-* `<hdfs-path>` specifies the HDFS path you want to validate (then mount to Alluxio)
+* `<hdfs-path>` (required) specifies the HDFS path you want to validate (then mount to Alluxio)
 
-The arguments to this command should be consistent to what you give to the 
+The arguments to this command should be consistent to what you give to the
 [Mount command](#mount), in order to validate the setup for the mount.
 
 ```console
@@ -312,28 +352,27 @@ $ bin/alluxio runHdfsMountTests --readonly --option alluxio.underfs.version=2.7 
   hdfs://<hdfs-path>
 ```
 
-> Note: This command DOES NOT mount the HDFS path to Alluxio. 
+> Note: This command DOES NOT mount the HDFS path to Alluxio.
 > This command does not require the Alluxio cluster to be running.
 
 ### runUfsIOTest
 
 The `runUfsIOTest` command measures the read/write IO throughput from Alluxio cluster to the target HDFS.
 
-Options:
-
+Usage: `runUfsIOTest --path <hdfs-path> [--io-size <io-size>] [--threads <thread-num>] [--cluster] [--cluster-limit <worker-num>] --java-opt <java-opt>`
 * `-h, --help` provides detailed guidance.
-* `--path <hdfs-path>` specifies the path to write/read temporary data in. This is a compulsory field.
+* `--path <hdfs-path>` (required) specifies the path to write/read temporary data in.
 * `--io-size <io-size>` specifies the amount of data each thread writes/reads. It defaults to "4G".
 * `--threads <thread-num>` specifies the number of threads to concurrently use on each worker. It defaults to 4.
 * `--cluster` specifies the benchmark is run in the Alluxio cluster. If not specified, this benchmark will run locally.
 * `--cluster-limit <worker-num>` specifies how many Alluxio workers to run the benchmark concurrently.
-       If `>0`, it will only run on that number of workers. 
-       If `0`, it will run on all available cluster workers. 
-       If `<0`, will run on the workers from the end of the worker list. 
+       If `>0`, it will only run on that number of workers.
+       If `0`, it will run on all available cluster workers.
+       If `<0`, will run on the workers from the end of the worker list.
        This flag is only used if `--cluster` is enabled.
        This default to 0.
-* `--java-opt <java-opt>` The java options to add to the command line to for the task. 
-       This can be repeated. The options must be quoted and prefixed with a space. 
+* `--java-opt <java-opt>` The java options to add to the command line to for the task.
+       This can be repeated. The options must be quoted and prefixed with a space.
        For example: `--java-opt " -Xmx4g" --java-opt " -Xms2g"`.
 
 Examples:
@@ -342,7 +381,7 @@ Examples:
 $ bin/alluxio runUfsIOTest --path hdfs://<hdfs-address>
 
 # This invokes the I/O benchmark to HDFS in the Alluxio cluster
-# 1 worker will be used. 4 threads will be created, each writing then reading 4G of data 
+# 1 worker will be used. 4 threads will be created, each writing then reading 4G of data
 $ bin/alluxio runUfsIOTest --path hdfs://<hdfs-address> --cluster --cluster-limit 1
 
 # This invokes the I/O benchmark to HDFS in the Alluxio cluster
@@ -360,8 +399,9 @@ $ bin/alluxio runUfsIOTest --path hdfs://<hdfs-address> --cluster --cluster-limi
 The `runUfsTests` aims to test the integration between Alluxio and the given UFS. UFS tests
 validate the semantics Alluxio expects of the UFS.
 
-`--help` provides detailed guidance.
-`--path <ufs_path>` (required) the full UFS path to run tests against.
+Usage: `runUfsTests --path <ufs_path>`
+* `--help` provides detailed guidance.
+* `--path <ufs_path>` (required) the full UFS path to run tests against.
 
 The usage of this command includes:
 * Test if the given UFS credentials are valid before mounting the UFS to an Alluxio cluster.
@@ -388,12 +428,12 @@ The `readJournal` command parses the current journal and outputs a human readabl
 Note this command may take a while depending on the size of the journal.
 Note that Alluxio master is required to stop before reading the local embedded journal.
 
-`-help` provides detailed guidance.
-`-start <arg>` the start log sequence number (exclusive). Set to `0` by default.
-`-end <arg>` the end log sequence number (exclusive). Set to `+inf` by default.
-`-inputDir <arg>` the input directory on-disk to read journal content from. (Default: Read from system configuration.)
-`-outputDir <arg>` the output directory to write journal content to. (Default: journal_dump-${timestamp})
-`-master <arg>` (advanced) the name of the master (e.g. FileSystemMaster, BlockMaster). Set to FileSystemMaster by default.
+* `-help` provides detailed guidance.
+* `-start <arg>` the start log sequence number (exclusive). (Default: `0`)
+* `-end <arg>` the end log sequence number (exclusive). (Default: `+inf`)
+* `-inputDir <arg>` the input directory on-disk to read journal content from. (Default: Read from system configuration)
+* `-outputDir <arg>` the output directory to write journal content to. (Default: journal_dump-${timestamp})
+* `-master <arg>` (advanced) the name of the master (e.g. FileSystemMaster, BlockMaster). (Default: "FileSystemMaster")
 
 ```console
 $ ./bin/alluxio readJournal
@@ -402,7 +442,7 @@ Dumping journal of type EMBEDDED to /Users/alluxio/journal_dump-1602698211916
 2020-10-14 10:56:52,254 INFO  RaftJournalDumper - Read 223 entries from log /Users/alluxio/alluxio/journal/raft/02511d47-d67c-49a3-9011-abb3109a44c1/current/log_0-222.
 ```
 
-> Note: This command does not require the Alluxio cluster to be running.
+> Note: This command requires that the Alluxio cluster is **NOT** running.
 
 ### upgradeJournal
 
@@ -425,7 +465,8 @@ The `killAll` command kills all processes containing the specified word.
 
 ### copyDir
 
-The `copyDir` command copies the directory at `PATH` to all worker nodes listed in `conf/workers`.
+The `copyDir` command copies the directory at `PATH` to all master nodes listed in `conf/masters`
+and all worker nodes listed in `conf/workers`.
 
 ```console
 $ ./bin/alluxio copyDir conf/alluxio-site.properties
@@ -443,6 +484,12 @@ The `clearCache` command drops the OS buffer cache.
 
 The `docGen` command autogenerates documentation based on the current source code.
 
+Usage: `docGen [--metric] [--conf]`
+* `--metric` flag indicates to generate Metric docs
+* `--conf` flag indicates to generate Configuration docs
+
+Supplying neither flag will default to generating both docs.
+
 > Note: This command does not require the Alluxio cluster to be running.
 
 ### table
@@ -452,6 +499,9 @@ See [Table Operations](#table-operations).
 ### version
 
 The `version` command prints Alluxio version.
+
+Usage: `version --revision [revision_length]`
+* `-r,--revision [revision_length]` Prints the git revision along with the Alluxio version. Optionally specify the revision length.
 
 ```console
 $ ./bin/alluxio version
@@ -593,6 +643,10 @@ If an inconsistent file or directory exists only in under storage, its metadata 
 If an inconsistent file exists in Alluxio and its data is fully present in Alluxio,
 its metadata will be loaded to Alluxio again.
 
+If the `-t <thread count>` option is specified, the provided number of threads will be used when
+repairing consistency. Defaults to the number of CPU cores available,
+* This option has no effect if `-r` is not specified
+
 NOTE: This command requires a read lock on the subtree being checked, meaning writes and updates
 to files or directories in the subtree cannot be completed until this command completes.
 
@@ -679,7 +733,14 @@ Adding `-R` option also changes the owner of child file and child directory recu
 The `copyFromLocal` command copies the contents of a file in the local file system into Alluxio.
 If the node you run the command from has an Alluxio worker, the data will be available on that worker.
 Otherwise, the data will be copied to a random remote node running an Alluxio worker.
-If a directory is specified, the directory and all its contents will be copied recursively.
+If a directory is specified, the directory and all its contents will be copied recursively
+(parallel at file level up to the number of available threads).
+
+Usage: `copyFromLocal [--thread <num>] [--buffersize <bytes>] <src> <remoteDst>`
+* `--thread <num>` (optional) Number of threads used to copy files in parallel, default value is CPU cores * 2
+* `--buffersize <bytes>` (optional) Read buffer size in bytes, default is 8MB when copying from local and 64MB when copying to local
+* `<src>` file or directory path on the local filesystem
+* `<remoteDst>` file or directory path on the Alluxio filesystem
 
 For example, `copyFromLocal` can be used as a quick way to inject data into the system for processing:
 
@@ -691,6 +752,11 @@ $ ./bin/alluxio fs copyFromLocal /local/data /input
 
 The `copyToLocal` command copies a file in Alluxio to the local file system.
 If a directory is specified, the directory and all its contents will be copied recursively.
+
+Usage: `copyToLocal [--buffersize <bytes>] <src> <localDst>`
+* `--buffersize <bytes>` (optional) file transfer buffer size in bytes
+* `<src>` file or directory path on the Alluxio filesystem
+* `<localDst>` file or directory path on the local filesystem
 
 For example, `copyToLocal` can be used as a quick way to download output data
 for additional investigation or debugging.
@@ -705,25 +771,38 @@ $ wc -l part-00000
 The `count` command outputs the number of files and folders matching a prefix as well as the total
 size of the files.
 `count` works recursively and accounts for any nested directories and files.
-`count` is best utilized when the user has some predefined naming conventions for their files.
 
-For example, if data files are stored by their date, `count` can be used to determine the number of
-data files and their total size for any date, month, or year.
+Usage: `count [-h] <dir>`
+* `-h` (optional) print sizes in human readable format (e.g. 1KB 234MB 2GB)
+* `<dir>` file or directory path in the Alluxio filesystem
 
 ```console
-$ ./bin/alluxio fs count /data/2014
+$ ./bin/alluxio fs count -h /LICENSE
+File Count               Folder Count             Folder Size
+1                        0                        26.41KB
 ```
+
+`count` is best utilized when the user has some predefined naming conventions for their files.
+For example, if data files are stored by their date, `count` can be used to determine the number of
+data files and their total size for any date, month, or year.
 
 ### cp
 
 The `cp` command copies a file or directory in the Alluxio file system
 or between the local file system and Alluxio file system.
 
-Scheme `file` indicates the local file system
-whereas scheme `alluxio` or no scheme indicates the Alluxio file system.
+Scheme `file://` indicates the local file system
+whereas scheme `alluxio://` or no scheme indicates the Alluxio file system.
 
 If the `-R` option is used and the source designates a directory,
 `cp` copies the entire subtree at source to the destination.
+
+Usage: `cp [--thread <num>] [--buffersize <bytes>] [--preserve] <src> <dst>`
+* `--thread <num>` (optional) Number of threads used to copy files in parallel, default value is CPU cores * 2
+* `--buffersize <bytes>` (optional) Read buffer size in bytes, default is 8MB when copying from local and 64MB when copying to local
+* `--preserve` (optional) Preserve file permission attributes when copying files. All ownership, permissions and ACLs will be preserved.
+* `<src>` source file or directory path
+* `<dst>` destination file or directory path
 
 For example, `cp` can be used to copy files between under storage systems.
 
@@ -738,22 +817,75 @@ using the job service.
 
 If the source designates a directory, `distributedCp` copies the entire subtree at source to the destination.
 
+Options:
+* `--active-jobs`: Limits how many jobs can be submitted to the Alluxio job service at the same time.
+Later jobs must wait until some earlier jobs to finish. The default value is `3000`.
+A lower value means slower execution but also being nicer to the other users of the job service.
+
 ```console
-$ ./bin/alluxio fs distributedCp /data/1023 /data/1024
+$ ./bin/alluxio fs distributedCp --active-jobs 2000 /data/1023 /data/1024
 ```
 
 ### distributedLoad
 
-The `distributedLoad` command loads a file or directory from the under storage system into Alluxio storage distributed 
+The `distributedLoad` command loads a file or directory from the under storage system into Alluxio storage distributed
 across workers using the job service. The job is a no-op if the file is already loaded into Alluxio.
 
 If `distributedLoad` is run on a directory, files in the directory will be recursively loaded and each file will be loaded
 on a random worker.
-The `--replication` flag can be used to load the data into multiple workers.
+
+Options:
+
+* `--replication`: Specifies how many workers to load each file into. The default value is `1`.
+* `--active-jobs`: Limits how many jobs can be submitted to the Alluxio job service at the same time.
+Later jobs must wait until some earlier jobs to finish. The default value is `3000`.
+A lower value means slower execution but also being nicer to the other users of the job service.
+* `--host-file <host-file>`: Specifies a file contains worker hosts to load target data, each line has a worker host.
+* `--hosts`: Specifies a list of worker hosts separated by comma to load target data.
+* `--excluded-host-file <host-file>`: Specifies a file contains worker hosts which shouldn't load target data, each line has a worker host.
+* `--excluded-hosts`: Specifies a list of worker hosts separated by comma which shouldn't load target data.
+* `--locality-file <locality-file>`: Specifies a file contains worker locality to load target data, each line has a locality.
+* `--locality`: Specifies a list of worker locality separated by comma to load target data.
+* `--excluded-locality-file <locality-file>`: Specifies a file contains worker locality which shouldn't load target data, each line has a worker locality.
+* `--excluded-locality`: Specifies a list of worker locality separated by comma which shouldn't load target data.
+* `--index`: Specifies a file that lists all files to be loaded
 
 ```console
-$ ./bin/alluxio fs distributedLoad --replication 2 /data/today
+$ ./bin/alluxio fs distributedLoad --replication 2 --active-jobs 2000 /data/today
 ```
+
+Or you can include some workers or exclude some workers by using options `--host-file <host-file>`, `--hosts`, `--excluded-host-file <host-file>`,
+`--excluded-hosts`, `--locality-file <locality-file>`, `--locality`, `--excluded-host-file <host-file>` and `--excluded-locality`.
+
+Note: Do not use `--host-file <host-file>`, `--hosts`, `--locality-file <locality-file>`, `--locality` with
+`--excluded-host-file <host-file>`, `--excluded-hosts`, `--excluded-host-file <host-file>`, `--excluded-locality` together.
+
+```console
+# Only include host1 and host2
+$ ./bin/alluxio fs distributedLoad /data/today --hosts host1,host2
+# Only include the workset from host file /tmp/hostfile
+$ ./bin/alluxio fs distributedLoad /data/today --host-file /tmp/hostfile
+# Include all workers except host1 and host2 
+$ ./bin/alluxio fs distributedLoad /data/today --excluded-hosts host1,host2
+# Include all workers except the workerset in the excluded host file /tmp/hostfile-exclude
+$ ./bin/alluxio fs distributedLoad /data/today --excluded-file /tmp/hostfile-exclude
+# Include workers which's locality identify belong to ROCK1 or ROCK2
+$ ./bin/alluxio fs distributedLoad /data/today --locality ROCK1,ROCK2
+# Include workers which's locality identify belong to the localities in the locality file
+$ ./bin/alluxio fs distributedLoad /data/today --locality-file /tmp/localityfile
+# Include all workers except which's locality belong to ROCK1 or ROCK2 
+$ ./bin/alluxio fs distributedLoad /data/today --excluded-locality ROCK1,ROCK2
+# Include all workers except which's locality belong to the localities in the excluded locality file
+$ ./bin/alluxio fs distributedLoad /data/today --excluded-locality-file /tmp/localityfile-exclude
+
+# Conflict cases
+# The `--hosts` and `--locality` are `OR` relationship, so host2,host3 and workers in ROCK2,ROCKS3 will be included.
+$ ./bin/alluxio fs distributedLoad /data/today --locality ROCK2,ROCK3 --hosts host2,host3
+# The `--excluded-hosts` and `--excluded-locality` are `OR` relationship, so host2,host3 and workers in ROCK2,ROCKS3 will be excluded.
+$ ./bin/alluxio fs distributedLoad /data/today --excluded-hosts host2,host3 --excluded-locality ROCK2,ROCK3
+```
+
+See examples for [Tiered Locality Example]({{ '/en/operation/Tiered-Locality.html' | relativize_url }}#Example)
 
 ### distributedMv
 
@@ -768,14 +900,15 @@ $ ./bin/alluxio fs distributedMv /data/1023 /data/1024
 
 ### du
 
-The `du` command outputs the total size and in Alluxio size of files and folders.
+The `du` command outputs the total size and amount stored in Alluxio of files and folders.
+If a directory is specified, it will display the sizes of all files in this directory.
 
-If a directory is specified, it will display the total size and in Alluxio size of all files in this directory.
-If the `-s` option is used, it will display the aggregate summary of file lengths being displayed.
-
-By default, `du` prints the size in bytes. If the `-h` option is used, it will print sizes in human readable format (e.g., 1KB 234MB 2GB).
-
-The `--memory` option will print the in memory size as well.
+Usage: `du [-s] [-h] [--memory] [-g] <dir>`
+* `-s` (optional) display the aggregate summary of file lengths being displayed
+* `-h` (optional) print sizes in human readable format (e.g. 1KB 234MB 2GB)
+* `-m,--memory` (optional) display the in memory size and in memory percentage
+* `-g` (optional) display information for In-Alluxio data size under the path, grouped by worker
+* `<dir>` file or directory path in the Alluxio filesystem
 
 ```console
 # Shows the size information of all the files in root directory
@@ -820,6 +953,9 @@ The `free` command does not delete any data from the under storage system,
 only removing the blocks of those files in Alluxio space to reclaim space.
 Metadata is not affected by this operation; a freed file will still show up if an `ls` command is run.
 
+Usage: `free [-f]`
+* `-f` force to free files even pinned
+
 For example, `free` can be used to manually manage Alluxio's data caching.
 
 ```console
@@ -844,6 +980,14 @@ For example, `getfacl` can be used to verify that an ACL is changed successfully
 
 ```console
 $ ./bin/alluxio fs getfacl /testdir/testfile
+```
+
+### getSyncPathList
+
+The `getSyncPathList` command gets all the paths that are under active syncing right now.
+
+```console
+$ ./bin/alluxio fs getSyncPathList
 ```
 
 ### getUsedBytes
@@ -938,9 +1082,9 @@ By default, it loads metadata only at the first time at which a directory is lis
 * `-p` option lists all pinned files.
 * `-R` option also recursively lists child directories, displaying the entire subtree starting from the input path.
 * `--sort` sorts the result by the given option. Possible values are size, creationTime, inMemoryPercentage, lastModificationTime, lastAccessTime and path.
+* `-r` reverses the sorting order.
 * `--timestamp` display the timestamp of the given option. Possible values are creationTime, lastModificationTime, and lastAccessTime.
 The default option is lastModificationTime.
-* `-r` reverses the sorting order.
 
 For example, `ls` can be used to browse the file system.
 
@@ -1037,6 +1181,12 @@ This is a server side data operation and will take time depending on how large t
 After persist is complete, the file in Alluxio will be backed by the file in the under storage,
 and will still be available if the Alluxio blocks are evicted or otherwise lost.
 
+Usage: `persist [-p <parallelism>] [-t <timeout>] [-w <wait time>] <dir>`
+* `-p,--parallelism <parallelism>]` (optional) Number of concurrent persist operations. (Default: 4)
+* `-t,--timeout <timeout>` (optional) Time in milliseconds for a single file persist to time out. (Default: 20 minutes)
+* `-w,--wait <wait time>` (optional) The time to wait in milliseconds before persisting. (Default: 0)
+* `<dir>` file or directory path in the Alluxio filesystem
+
 If you are persisting multiple files, you can use the `--parallelism <#>` option to submit `#` of
 persist commands in parallel. For example, if your folder has 10,000 files, persisting with a
 parallelism factor of 10 will persist 10 files at a time until all 10,000 files are persisted.
@@ -1085,11 +1235,15 @@ $ ./bin/alluxio fs rm --alluxioOnly /tmp/unused-file2
 
 The `setfacl` command modifies the access control list associated with a specified file or directory.
 
-The`-R` option applies operations to all files and directories recursively.
-The `-m` option modifies the ACL by adding/overwriting new entries.
-The `-x` option removes specific ACL entries.
-The `-b` option removes all ACL entries, except for the base entries.
-The `-k` option removes all the default ACL entries.
+* The`-R` option applies operations to all files and directories recursively.
+* The `set` option fully replaces the ACL while discarding existing entries.
+New ACL must be a comma separated list of entries, and must include user, group,
+and other for compatibility with permission bits.
+* The `-m` option modifies the ACL by adding/overwriting new entries.
+* The `-x` option removes specific ACL entries.
+* The `-b` option removes all ACL entries, except for the base entries.
+* The `-d` option indicates that operations apply to the default ACL
+* The `-k` option removes all the default ACL entries.
 
 For example, `setfacl` can be used to give read and execute permissions to a user named `testuser`.
 
@@ -1102,10 +1256,12 @@ $ ./bin/alluxio fs setfacl -m "user:testuser:r-x" /testdir/testfile
 The `setReplication` command sets the max and/or min replication level of a file or all files under
 a directory recursively. This is a metadata operation and will not cause any replication to be
 created or removed immediately. The replication level of the target file or directory will be
-changed automatically in background. This command takes an argument of `--min` to specify the
-minimal replication level and `--max` for the maximal replication. Specify -1 as the argument of
-`--max` option to indicate no limit of the maximum number of replicas. If the specified path is a
-directory and `-R` is specified, it will recursively set all files in this directory.
+changed automatically in background.
+
+* The `--min` option specifies the minimal replication level
+* The `--max` optional specifies the maximal replication level. Specify -1 as the argument of
+`--max` option to indicate no limit of the maximum number of replicas.
+* If the specified path is a directory and `-R` is specified, it will recursively set all files in this directory.
 
 For example, `setReplication` can be used to ensure the replication level of a file has at least
 one copy and at most three copies in Alluxio:
@@ -1132,6 +1288,14 @@ or with action `free` just remove the contents from Alluxio to make room for mor
 $ ./bin/alluxio fs setTtl /data/good-for-one-day 86400000
 # After 1 day, free the file from Alluxio
 $ ./bin/alluxio fs setTtl --action free /data/good-for-one-day 86400000
+```
+
+### startSync
+
+The `startSync` command starts the automatic syncing process of the specified path.
+
+```console
+$ ./bin/alluxio fs startSync /data/2014
 ```
 
 ### stat
@@ -1161,6 +1325,14 @@ $ ./bin/alluxio fs stat /data/2015
 
 # Displays the size of file
 $ ./bin/alluxio fs stat -f %z /data/2015/logs-1.txt
+```
+
+### stopSync
+
+The `stopSync` command stops the automatic syncing process of the specified path.
+
+```console
+$ ./bin/alluxio fs stopSync /data/2014
 ```
 
 ### tail
@@ -1245,6 +1417,17 @@ For example, `unsetTtl` can be used if a regularly managed file requires manual 
 $ ./bin/alluxio fs unsetTtl /data/yesterday/data-not-yet-analyzed
 ```
 
+### updateMount
+
+The `updateMount` command updates options for a mount point while keeping the Alluxio metadata under the path.
+
+Usage: `updateMount [--readonly] [--shared] [--option <key=val>] <alluxioPath>`
+* `--readonly` (optional) mount point is readonly in Alluxio
+* `--shared` (optional) mount point is shared
+* `--option <key>=<val>` (optional) options for this mount point.
+For security reasons, no options from existing mount point will be inherited.
+* `<alluxioPath>` Directory path in the Alluxio filesystem
+
 ## Table Operations
 
 ```console
@@ -1287,11 +1470,16 @@ Here are the attach command options:
   * `-o|--option <key=value>`: (multiple) additional properties associated with the attached db and UDB
 
 Here are the additional properties possible for the `-o` options:
-  * `udb-<UDB_TYPE>.mount-option.{<UFS_PREFIX>}.<MOUNT_PROPERTY>`: specify a mount option for a
+  * `udb-<UDB_TYPE>.mount.option.{<UFS_PREFIX>}.<MOUNT_PROPERTY>`: specify a mount option for a
   particular UFS path
     * `<UDB_TYPE>`: the UDB type
-    * `<UFS_PREFIX>`: the UFS path prefix that the mount properties are for
+    * `<UFS_PREFIX>`: the UFS path prefix, or a regex string starts with `regex:` that the mount properties are for
     * `<MOUNT_PROPERTY>`: an Alluxio mount property
+  * `catalog.db.config.file`: the config file for the UDB, 
+    you can configure which tables and partitions to bypass from Alluxio in a configuration specified 
+    by this option. 
+    See [UDB Configuration File]({{ '/en/core-services/Catalog.html#udb-configuration-file' | relativize_url }}) 
+    for details.
   * `catalog.db.ignore.udb.tables`: comma-separated list of table names to ignore from the UDB
   * `catalog.db.sync.threads`: number of parallel threads to use to sync with the UDB. If too large,
   the sync may overload the UDB, and if set too low, syncing a database with many tables make take
@@ -1302,18 +1490,33 @@ Here are the additional properties possible for the `-o` options:
 For the `hive` udb type, during the attach process, the Alluxio catalog will auto-mount all the
 table/partition locations in the specified database, to Alluxio. You can supply the mount options
 for the possible table locations with the
-option `-o udb-hive.mount-option.{scheme/authority}.key=value`.
+option `-o udb-hive.mount.option.{scheme/authority}.key=value` or
+`-o udb-hive.mount.option.{regex:REGEX}.key=value`
 
 ```console
 $ ./bin/alluxio table attachdb hive thrift://HOSTNAME:9083 hive_db_name --db=alluxio_db_name  \
-  -o udb-hive.mount-option.{s3a://bucket1}.aws.accessKeyId=abc \
-  -o udb-hive.mount-option.{s3a://bucket2}.aws.accessKeyId=123
+  -o udb-hive.mount.option.{s3a://bucket1}.aws.accessKeyId=abc \
+  -o udb-hive.mount.option.{s3a://bucket2}.aws.accessKeyId=123
 ```
 
 This command will attach the database `hive_db_name` (of type `hive`) from the URI
 `thrift://HOSTNAME:9083` to the Alluxio catalog, using the same database name `alluxio_db_name`.
 When paths are mounted for `s3a://bucket1`, the mount option `aws.accessKeyId=abc` will be used,
 and when paths are mounted for `s3a://bucket2`, the mount option `aws.accessKeyId=123` will be used.
+
+Or using regex expression if the options are same the two buckets.
+
+```console
+$ ./bin/alluxio table attachdb hive thrift://HOSTNAME:9083 hive_db_name --db=alluxio_db_name  \
+  -o udb-hive.mount.option.{regex:s3a://bucket.*}.aws.accessKeyId=abc
+```
+
+Besides mount options, there are some additional properties with the `-o` options:
+  * `udb-hive.<UDB_PROPERTY>`: specify the UDB options for the Hive UDB. The options
+  are as follows
+    * `allow.diff.partition.location.prefix`: Whether to mount partitions that do not share
+  the same location prefix with table location(true/false, default false)
+
 
 ### Glue UDB
 For `glue` udb type, there are some additional properties with the `-o` options:
@@ -1330,7 +1533,7 @@ For `glue` udb type, there are some additional properties with the `-o` options:
     * `aws.proxy.password`: The proxy password
     * `table.column.statistics`: Enable table column statistics(true/false)
     * `partition.column.statistics`: Enable partition column statistics(true/false)
-    
+
 You can supply the mount options for the `glue` as follows:
 
 ```console
@@ -1343,8 +1546,8 @@ $ ./bin/alluxio table attachdb --db alluxio_db_name glue null glue_db_name \
 
 This command will attach the database `glue_db_name` (of type `glue`) to the Alluxio catalog,
 using the same database name `alluxio_db_name`. Please notice that `glue` udb does not need the
-URI as `hive` udb. When `glue` udb access to AWS glue, the aws region `udb-glue.aws.region`, AWS 
-catalog id `udb-glue.aws.catalog.id` and AWS credentials, `udb-glue.aws.accesskey` and 
+URI as `hive` udb. When `glue` udb access to AWS glue, the aws region `udb-glue.aws.region`, AWS
+catalog id `udb-glue.aws.catalog.id` and AWS credentials, `udb-glue.aws.accesskey` and
 `udb-glue.aws.secretkey` , need to be provided.
 
 ### detachdb
@@ -1395,7 +1598,7 @@ The sync will update, add, remove catalog metadata according to the changes foun
 database and tables.
 For example, if the under database is `hive`, and the metadata of its tables is updated
 in the Hive Metastore (like `MSCK REPAIR` or other commands), then this `sync` command will
-update the Alluxio metadata with the updated Hive metadata. 
+update the Alluxio metadata with the updated Hive metadata.
 If an existing Alluxio partition or table is updated and previously had a transformation, then the
 transformation is invalidated, and must be re-triggered via the `transform` command.
 
@@ -1420,9 +1623,9 @@ format.
 > In 2.1.0, the supported file formats which can be transformed are: parquet and csv
 > file formats. The resulting transformations are in the parquet file format. Additional formats
 > for input and output will be implemented in future versions.
-> For the coalesce feature, by default it will coalesce into a maximum of 100 files, 
+> For the coalesce feature, by default it will coalesce into a maximum of 100 files,
 > with each file no smaller than 2GB.
- 
+
 The definition format takes a form of configuration separated by semicolon and specifies the details of the output
 format. Available configurations are:
 

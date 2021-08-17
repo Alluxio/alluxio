@@ -16,6 +16,7 @@ import alluxio.conf.ServerConfiguration;
 import alluxio.exception.JournalClosedException;
 import alluxio.master.journal.JournalWriter;
 import alluxio.proto.journal.Journal.JournalEntry;
+import alluxio.util.FormatUtils;
 
 import com.google.common.base.Preconditions;
 import org.apache.ratis.protocol.Message;
@@ -41,6 +42,8 @@ public class RaftJournalWriter implements JournalWriter {
   private static final Logger LOG = LoggerFactory.getLogger(RaftJournalWriter.class);
   // How long to wait for a response from the cluster before giving up and trying again.
   private final long mWriteTimeoutMs;
+  private final long mEntrySizeMax;
+  private final long mFlushBatchBytes;
 
   private final AtomicLong mNextSequenceNumberToWrite;
   private final AtomicLong mLastSubmittedSequenceNumber;
@@ -50,6 +53,7 @@ public class RaftJournalWriter implements JournalWriter {
 
   private volatile boolean mClosed;
   private JournalEntry.Builder mJournalEntryBuilder;
+  private final AtomicLong mCurrentJournalEntrySize;
 
   /**
    * @param nextSequenceNumberToWrite the sequence number for the writer to begin writing at
@@ -62,25 +66,42 @@ public class RaftJournalWriter implements JournalWriter {
     mNextSequenceNumberToWrite = new AtomicLong(nextSequenceNumberToWrite);
     mLastSubmittedSequenceNumber = new AtomicLong(-1);
     mLastCommittedSequenceNumber = new AtomicLong(-1);
+    mCurrentJournalEntrySize = new AtomicLong(0);
     mClient = client;
     mClosed = false;
     mWriteTimeoutMs =
         ServerConfiguration.getMs(PropertyKey.MASTER_EMBEDDED_JOURNAL_WRITE_TIMEOUT);
+    // journal entry size max is the hard limit set by underlying ratis
+    // use a smaller value to guarantee we don't pass the hard limit
+    mEntrySizeMax = ServerConfiguration
+        .getBytes(PropertyKey.MASTER_EMBEDDED_JOURNAL_ENTRY_SIZE_MAX);
+    mFlushBatchBytes = mEntrySizeMax / 3;
   }
 
   @Override
-  public void write(JournalEntry entry) throws JournalClosedException {
+  public void write(JournalEntry entry) throws IOException, JournalClosedException {
     if (mClosed) {
       throw new JournalClosedException("Cannot write to journal. Journal writer has been closed");
     }
     Preconditions.checkState(entry.getAllFields().size() <= 1,
         "Raft journal entries should never set multiple fields, but found %s", entry);
+    if (mCurrentJournalEntrySize.get() > mFlushBatchBytes) {
+      flush();
+    }
     if (mJournalEntryBuilder == null) {
       mJournalEntryBuilder = JournalEntry.newBuilder();
+      mCurrentJournalEntrySize.set(0);
     }
     LOG.trace("Writing entry {}: {}", mNextSequenceNumberToWrite, entry);
     mJournalEntryBuilder.addJournalEntries(entry.toBuilder()
         .setSequenceNumber(mNextSequenceNumberToWrite.getAndIncrement()).build());
+    long size = entry.getSerializedSize();
+    if (size > mEntrySizeMax) {
+      LOG.error("Journal entry size ({}) is bigger than the max allowed size ({}) defined by {}",
+          FormatUtils.getSizeFromBytes(size), FormatUtils.getSizeFromBytes(mEntrySizeMax),
+          PropertyKey.MASTER_EMBEDDED_JOURNAL_ENTRY_SIZE_MAX.getName());
+    }
+    mCurrentJournalEntrySize.addAndGet(size);
   }
 
   @Override

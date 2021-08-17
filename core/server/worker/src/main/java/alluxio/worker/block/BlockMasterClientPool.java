@@ -31,7 +31,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * thread is done using the client.
  */
 @ThreadSafe
-public final class BlockMasterClientPool extends ResourcePool<BlockMasterClient> {
+public class BlockMasterClientPool extends ResourcePool<BlockMasterClient> {
   private final Queue<BlockMasterClient> mClientList;
   private final MasterClientContext mMasterContext;
 
@@ -56,7 +56,7 @@ public final class BlockMasterClientPool extends ResourcePool<BlockMasterClient>
   }
 
   @Override
-  protected BlockMasterClient createNewResource() {
+  public BlockMasterClient createNewResource() {
     BlockMasterClient client = new BlockMasterClient(mMasterContext);
     mClientList.add(client);
     return client;

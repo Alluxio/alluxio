@@ -13,17 +13,15 @@ package alluxio.worker.block;
 
 import alluxio.Sessions;
 import alluxio.exception.BlockDoesNotExistException;
-import alluxio.exception.InvalidWorkerStateException;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.util.ThreadFactoryUtils;
 
 import com.codahale.metrics.Counter;
+import com.google.common.annotations.VisibleForTesting;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.concurrent.ThreadSafe;
-import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
@@ -33,6 +31,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 /**
  * Asynchronous block removal service.
  */
@@ -41,7 +41,6 @@ public class AsyncBlockRemover {
   private static final Logger LOG = LoggerFactory.getLogger(AsyncBlockRemover.class);
 
   private static final int DEFAULT_BLOCK_REMOVER_POOL_SIZE = 10;
-  private static final int INVALID_BLOCK_ID = -1;
 
   private final BlockWorker mBlockWorker;
   /** This list is used for queueing blocks to be removed by BlockWorker. */
@@ -49,9 +48,9 @@ public class AsyncBlockRemover {
   /** This set is used for recording blocks in BlockRemover. */
   private final Set<Long> mRemovingBlocks;
   private final ExecutorService mRemoverPool;
-  private final Counter mTakeCount;
-  private final Counter mRemovedSuccessCount;
-
+  private final Counter mTryRemoveCount;
+  private final Counter mRemovedCount;
+  private final int mPoolSize;
   private volatile boolean mShutdown = false;
 
   /**
@@ -59,24 +58,37 @@ public class AsyncBlockRemover {
    * @param worker block worker
    */
   public AsyncBlockRemover(BlockWorker worker) {
-    mBlockWorker = worker;
-    mBlocksToRemove = new LinkedBlockingQueue<>();
-    mRemovingBlocks = Collections.newSetFromMap(new ConcurrentHashMap<>());
-    mTakeCount = MetricsSystem.counter(MetricKey.WORKER_BLOCK_REMOVER_TRY_REMOVE_COUNT
-        .getName());
-    mRemovedSuccessCount =
-        MetricsSystem.counter(MetricKey.WORKER_BLOCK_REMOVER_REMOVED_COUNT
-            .getName());
-    MetricsSystem.registerGaugeIfAbsent(
-        MetricKey.WORKER_BLOCK_REMOVER_TRY_REMOVE_BLOCKS_SIZE.getName(),
-        () -> mBlocksToRemove.size());
-    MetricsSystem.registerGaugeIfAbsent(
-        MetricKey.WORKER_BLOCK_REMOVER_REMOVING_BLOCKS_SIZE.getName(),
-        () -> mRemovingBlocks.size());
+    this(worker, DEFAULT_BLOCK_REMOVER_POOL_SIZE, new LinkedBlockingQueue<>(),
+        Collections.newSetFromMap(new ConcurrentHashMap<>()));
+  }
 
-    mRemoverPool = Executors.newFixedThreadPool(DEFAULT_BLOCK_REMOVER_POOL_SIZE,
+  /**
+   * Constructor of AsyncBlockRemover.
+   *
+   * @param worker block worker
+   * @param threads number of threads
+   * @param blocksToRemove blocks to remove
+   * @param removingBlocks blocks being removed
+   */
+  @VisibleForTesting
+  public AsyncBlockRemover(BlockWorker worker, int threads, BlockingQueue<Long> blocksToRemove,
+      Set<Long> removingBlocks) {
+    mBlockWorker = worker;
+    mPoolSize = threads;
+    mBlocksToRemove = blocksToRemove;
+    mRemovingBlocks = removingBlocks;
+    mTryRemoveCount = MetricsSystem.counter(
+        MetricKey.WORKER_BLOCK_REMOVER_TRY_REMOVE_COUNT.getName());
+    mRemovedCount = MetricsSystem.counter(
+        MetricKey.WORKER_BLOCK_REMOVER_REMOVED_COUNT.getName());
+    MetricsSystem.registerGaugeIfAbsent(
+        MetricKey.WORKER_BLOCK_REMOVER_TRY_REMOVE_BLOCKS_SIZE.getName(), mBlocksToRemove::size);
+    MetricsSystem.registerGaugeIfAbsent(
+        MetricKey.WORKER_BLOCK_REMOVER_REMOVING_BLOCKS_SIZE.getName(), mRemovingBlocks::size);
+
+    mRemoverPool = Executors.newFixedThreadPool(mPoolSize,
         ThreadFactoryUtils.build("block-removal-service-%d", true));
-    for (int i = 0; i < DEFAULT_BLOCK_REMOVER_POOL_SIZE; i++) {
+    for (int i = 0; i < mPoolSize; i++) {
       mRemoverPool.execute(new BlockRemover());
     }
   }
@@ -110,41 +122,34 @@ public class AsyncBlockRemover {
   }
 
   private class BlockRemover implements Runnable {
-    private String mThreadName;
-
     @Override
     public void run() {
-      mThreadName = Thread.currentThread().getName();
-      long blockToBeRemoved;
+      String threadName = Thread.currentThread().getName();
       while (true) {
-        blockToBeRemoved = INVALID_BLOCK_ID;
+        Long blockToBeRemoved = null;
         try {
           blockToBeRemoved = mBlocksToRemove.take();
-          mTakeCount.inc();
+          mTryRemoveCount.inc();
           mBlockWorker.removeBlock(Sessions.MASTER_COMMAND_SESSION_ID, blockToBeRemoved);
-          mRemovedSuccessCount.inc();
-          LOG.debug("Block {} is removed in thread {}.", blockToBeRemoved, mThreadName);
+          mRemovedCount.inc();
+          LOG.debug("Block {} is removed in thread {}.", blockToBeRemoved, threadName);
         } catch (InterruptedException e) {
           Thread.currentThread().interrupt();
           // Only log warning if interrupted not due to a shutdown.
           if (!mShutdown) {
-            LOG.warn("{} got interrupted while it was cleaning block {}.", mThreadName,
+            LOG.warn("{} got interrupted while it was cleaning block {}.", threadName,
                 blockToBeRemoved);
           }
           break;
-        } catch (IOException e) {
-          LOG.warn("IOException occurred while {} was cleaning block {}, exception is {}.",
-              mThreadName, blockToBeRemoved, e.getMessage());
         } catch (BlockDoesNotExistException e) {
-          LOG.warn("{}: block {} may be deleted already. exception is {}.",
-              mThreadName, blockToBeRemoved, e.getMessage());
-        } catch (InvalidWorkerStateException e) {
-          LOG.warn("{}: invalid block state for block {}, exception is {}.",
-              mThreadName, blockToBeRemoved, e.getMessage());
+          // Ignore the case when block is already removed. This could happen when master is asking
+          // worker to remove blocks based on stale information
         } catch (Exception e) {
-          LOG.warn("Unexpected exception: {}.", e);
+          LOG.warn("Failed to remove block {} instructed by master. This is best-effort and "
+              + "will be tried later. threadName {}, error {}", blockToBeRemoved,
+              threadName, e.getMessage());
         } finally {
-          if (blockToBeRemoved != INVALID_BLOCK_ID) {
+          if (blockToBeRemoved != null) {
             mRemovingBlocks.remove(blockToBeRemoved);
           }
         }

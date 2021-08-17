@@ -126,7 +126,7 @@ public class TierManagementTaskProvider implements ManagementTaskProvider {
         .getStorageTierAssoc().intersectionList()) {
       // Check if the intersection needs alignment.
       if (alignEnabled && !mMetadataManager.getBlockIterator().aligned(intersection.getFirst(),
-          intersection.getSecond(), BlockOrder.Natural,
+          intersection.getSecond(), BlockOrder.NATURAL,
           (blockId) -> !evictorView.isBlockEvictable(blockId))) {
         LOG.debug("Alignment needed between: {} - {}", intersection.getFirst().tierAlias(),
             intersection.getSecond().tierAlias());
@@ -146,7 +146,7 @@ public class TierManagementTaskProvider implements ManagementTaskProvider {
         if (currentUsedRatio < quotaRatio) {
           // Check if there is anything to move from lower tier.
           Iterator<Long> lowBlocks = mMetadataManager.getBlockIterator()
-              .getIterator(intersection.getSecond(), BlockOrder.Reverse);
+              .getIterator(intersection.getSecond(), BlockOrder.REVERSE);
           while (lowBlocks.hasNext()) {
             if (evictorView.isBlockEvictable(lowBlocks.next())) {
               LOG.debug("Promotions needed from {} to {}", intersection.getSecond().tierAlias(),

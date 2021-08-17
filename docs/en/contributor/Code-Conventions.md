@@ -182,49 +182,55 @@ public MyClass {
 }
 ```
 
-### Use Parameterized Logging
+Note that, each class must use its own logger based on the class name,
+like `LoggerFactory.getLogger(MyClass.class)` in above example,
+so its output can easily be searched for.
+The location of the output of SLF4J loggers can be found for
+[server logs]({{ '/en/operation/Basic-Logging.html' | relativize_url }}#server-logs)
+and [application logs]({{ '/en/operation/Basic-Logging.html' | relativize_url }}#application-logs).
 
-If applicable, logging should be parameterized, to provide good performance and consistent style.
+### Best Practice
 
-```java
+1. When applicable, logging should be parameterized, to provide good performance and consistent
+style.
+  ```java
 // Recommended: Parameterized logging
 LOG.debug("Client {} registered with {}", mClient, mHostname);
-
-// Not Recommended: Non-parameterized logging, hard to read and expensive due to String
+  ```
+  ```java
+// Not recommended: Non-parameterized logging, hard to read and expensive due to String
 // concatenation regardless of if DEBUG is enabled
-LOG.debug("Client " + mClient + " registered with " + mHostname);
-```
+  LOG.debug("Client " + mClient + " registered with " + mHostname);
+  ```
 
-### Error Messages Should Be Descriptive
-
+2. Error Messages Should Be Descriptive.
 Error messages should include enough detail and context to determine the issue and potential
 solution. This is important for quick diagnosis or fixes of errors.
-
-```java
+  ```java
 // Recommended: error messages with context
 LOG.error("Client {} failed to register to {}", mClient, mHostname, exception);
-
-// Not Recommended: There is no information on which client failed, or what the issue was 
+  ```
+  ```java
+// Not recommended: There is no information on which client failed, or what the issue was
 LOG.error("Client failed to register");
-```
+  ```
 
-### Log Messages Should Be Readable
-
+3. Log messages should be concise and readable.
 Log messages should be written with readability in mind. Here are some tips for writing good log
 messages.
-
-* Log levels INFO and above should be easily human readable
+  * Log levels `INFO` and above should be easily human readable
   * Log files should be concise and easy to read, noise reduces the value of logs
-* Keep the amount of additional words to a minimum
-* Clearly indicate if a variable reference is being printed by formatting the output as `variable: value`
-* Ensure objects being logged have appropriate `toString()` implementations
-* Use appropriate logger names
-  * Provides a key based on class name which can easily be searched for
-  * Example: `private static final Logger LOG = LoggerFactory.getLogger(AlluxioMaster.class);`
+  * Keep the amount of additional words to a minimum
+  * Clearly indicate if a variable reference is being printed by formatting the output as `variable: value`
+  * Ensure objects being logged have appropriate `toString()` implementations
 
-### Log Level Guidelines
+4. Error level logs should have troubleshooting pointers if applicable
 
-There are several levels of logging. Here are the guidelines for deciding which level to use.
+### Which logging level to use
+
+There are several levels of logging, see detailed explanation of
+[different Levels]({{ '/en/operation/Basic-Logging.html' | relativize_url }}#configuring-log-levels)
+Here are the guidelines for deciding which level to use.
 
 #### Error Log Level
 
@@ -232,7 +238,13 @@ Error level logging (`LOG.error`) indicates system level problems which cannot b
 from. It should always be accompanied by a stack trace.
 
 ```java
+// Recommended
 LOG.error("Failed to do something due to an exception", e);
+```
+
+```java
+// Not recommended: stack trace will not be logged
+LOG.error("Failed to do something due to an exception {}", e);
 ```
 
 **When to Use**
@@ -254,7 +266,18 @@ and Alluxio behavior. Warn level logs are accompanied by an exception message. T
 trace may be found in debug level logs.
 
 ```java
+// Recommended
 LOG.warn("Failed to do something: {}", e.toString());
+// Recommended
+LOG.warn("Failed to do something: {}", e);
+```
+
+```java
+// Not recommended: this will print out the stack trace
+LOG.warn("Failed to do something", e);
+// Not recommended: the exception class name is not included
+LOG.warn("Failed to do something", e.getMessage());
+
 ```
 
 **When to Use**
@@ -308,7 +331,9 @@ LOG.debug("Failed to connect to {} due to exception", mAddress, e);
 if (LOG.isDebugEnabled()) {
     LOG.debug("Failed to connect to address {} due to exception", host + ":" + port, e);
 }
+```
 
+```java
 // Not recommended: string concatenation is always performed
 LOG.debug("Failed to connect to {} due to exception", host + ":" + port, e);
 ```
@@ -367,7 +392,7 @@ public void handleRawUserInput(String date) throws InvalidDateException {
     throw new RuntimeExcepiton("date " + date + " is invalid", e);
   }
 }
-```  
+```
 
 #### Design code to minimize use of checked exceptions
 
@@ -503,7 +528,7 @@ resources.
 Closer closer = new Closer();
 closer.register(resource1);
 closer.register(resource2);
-closer.close();  
+closer.close();
 ```
 
 If both calls to `close()` throw an exception, the first exception will be thrown and the second
@@ -514,8 +539,8 @@ exception will be added as a suppressed exception of the first one.
 From the Closer javadoc:
 
 ```java
-Closer closer = Closer.create();   
-try {   
+Closer closer = Closer.create();
+try {
   InputStream in = closer.register(openInputStream());
   OutputStream out = closer.register(openOutputStream());
   // do stuff

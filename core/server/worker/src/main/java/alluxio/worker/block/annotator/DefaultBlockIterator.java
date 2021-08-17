@@ -315,10 +315,10 @@ public class DefaultBlockIterator implements BlockIterator {
         new ArrayList<>(mPerDirOrderedSets.size());
     for (BlockStoreLocation dirLocation : locations) {
       switch (order) {
-        case Natural:
+        case NATURAL:
           iteratorList.add(mPerDirOrderedSets.get(dirLocation).getAscendingIterator());
           break;
-        case Reverse:
+        case REVERSE:
           iteratorList.add(mPerDirOrderedSets.get(dirLocation).getDescendingIterator());
           break;
         default:

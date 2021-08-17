@@ -12,6 +12,7 @@
 package alluxio.underfs.wasb;
 
 import alluxio.AlluxioURI;
+import alluxio.Constants;
 import alluxio.conf.PropertyKey;
 import alluxio.underfs.UfsFileStatus;
 import alluxio.underfs.UfsStatus;
@@ -37,12 +38,6 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public class WasbUnderFileSystem extends HdfsUnderFileSystem {
   private static final Logger LOG = LoggerFactory.getLogger(WasbUnderFileSystem.class);
-
-  /** Constant for the wasb URI scheme. */
-  public static final String SCHEME_INSECURE = "wasb://";
-
-  /** Constant for the wasbs URI scheme. */
-  public static final String SCHEME_SECURE = "wasbs://";
 
   /**
    * Prepares the configuration for this Wasb as an HDFS configuration.
@@ -80,7 +75,8 @@ public class WasbUnderFileSystem extends HdfsUnderFileSystem {
    */
   public static WasbUnderFileSystem createInstance(AlluxioURI uri,
       UnderFileSystemConfiguration conf) {
-    Configuration wasbConf = createConfiguration(conf, uri.getScheme().startsWith(SCHEME_SECURE));
+    Configuration wasbConf = createConfiguration(conf,
+        uri.getScheme().startsWith(Constants.HEADER_WASBS));
     return new WasbUnderFileSystem(uri, conf, wasbConf);
   }
 

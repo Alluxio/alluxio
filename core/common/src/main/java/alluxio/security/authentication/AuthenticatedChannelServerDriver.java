@@ -85,7 +85,6 @@ public class AuthenticatedChannelServerDriver implements StreamObserver<SaslMess
 
   private void closeAuthenticatedChannel(boolean signalOwner) {
     if (mChannelAuthenticated) {
-      LOG.debug("Closing authenticated channel for {}", mChannelRef);
       mAuthenticationServer.unregisterChannel(mChannelId);
       mChannelAuthenticated = false;
     }
@@ -135,11 +134,14 @@ public class AuthenticatedChannelServerDriver implements StreamObserver<SaslMess
 
   @Override
   public void onError(Throwable throwable) {
+    LOG.debug("Authentication stream failed for server. Channel: {}. Error: {}",
+        mChannelRef, throwable);
     closeAuthenticatedChannel(false);
   }
 
   @Override
   public void onCompleted() {
+    LOG.debug("Authentication closed by client. Channel: {}.", mChannelRef);
     closeAuthenticatedChannel(true);
   }
 
@@ -147,7 +149,7 @@ public class AuthenticatedChannelServerDriver implements StreamObserver<SaslMess
    * Completes authenticated channel.
    */
   public void close() {
-    LOG.debug("Closing authentication for channel: {}", mChannelRef);
+    LOG.debug("Authentication server-driver closing. Channel: {}", mChannelRef);
     closeAuthenticatedChannel(true);
   }
 }

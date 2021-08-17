@@ -39,6 +39,8 @@ import alluxio.grpc.GetMountTablePRequest;
 import alluxio.grpc.GetMountTablePResponse;
 import alluxio.grpc.GetNewBlockIdForFilePRequest;
 import alluxio.grpc.GetNewBlockIdForFilePResponse;
+import alluxio.grpc.GetStateLockHoldersPRequest;
+import alluxio.grpc.GetStateLockHoldersPResponse;
 import alluxio.grpc.GetStatusPOptions;
 import alluxio.grpc.GetStatusPRequest;
 import alluxio.grpc.GetStatusPResponse;
@@ -244,7 +246,7 @@ public final class FileSystemMasterClientServiceHandler
             resultStream);
         // Return just something.
         return null;
-      }, "ListStatus", false, "request: %s", request);
+      }, "ListStatus", false, "request=%s", request);
     } catch (Exception e) {
       resultStream.fail(e);
     } finally {
@@ -295,7 +297,7 @@ public final class FileSystemMasterClientServiceHandler
       List<alluxio.grpc.SyncPointInfo> syncPointInfoList =
           pathList.stream().map(SyncPointInfo::toProto).collect(Collectors.toList());
       return GetSyncPathListPResponse.newBuilder().addAllSyncPaths(syncPointInfoList).build();
-    }, "getSyncPathList", "request", responseObserver, request);
+    }, "getSyncPathList", "request=%s", responseObserver, request);
   }
 
   @Override
@@ -409,6 +411,15 @@ public final class FileSystemMasterClientServiceHandler
               .withTracker(new GrpcCallTracker(responseObserver)));
       return SetAclPResponse.newBuilder().build();
     }, "setAcl", "request=%s", responseObserver, request);
+  }
+
+  @Override
+  public void getStateLockHolders(GetStateLockHoldersPRequest request,
+                                  StreamObserver<GetStateLockHoldersPResponse> responseObserver) {
+    RpcUtils.call(LOG, () -> {
+      final List<String> holders = mFileSystemMaster.getStateLockSharedWaitersAndHolders();
+      return GetStateLockHoldersPResponse.newBuilder().addAllThreads(holders).build();
+    }, "getStateLockHolders", "request=%s", responseObserver, request);
   }
 
   /**

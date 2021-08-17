@@ -30,11 +30,13 @@ import java.util.stream.Collectors;
  * It provides handling for submitting multiple jobs and handling retries of them.
  */
 public abstract class AbstractDistributedJobCommand extends AbstractFileSystemCommand {
-  private static final int DEFAULT_ACTIVE_JOBS = 3000;
+  protected static final int DEFAULT_ACTIVE_JOBS = 3000;
 
   protected List<JobAttempt> mSubmittedJobAttempts;
   protected int mActiveJobs;
   protected final JobMasterClient mClient;
+  private int mFailedCount;
+  private int mCompletedCount;
 
   protected AbstractDistributedJobCommand(FileSystemContext fsContext) {
     super(fsContext);
@@ -43,6 +45,8 @@ public abstract class AbstractDistributedJobCommand extends AbstractFileSystemCo
     mClient = JobMasterClient.Factory.create(
         JobMasterClientContext.newBuilder(clientContext).build());
     mActiveJobs = DEFAULT_ACTIVE_JOBS;
+    mFailedCount = 0;
+    mCompletedCount = 0;
   }
 
   protected void drain() {
@@ -65,9 +69,11 @@ public abstract class AbstractDistributedJobCommand extends AbstractFileSystemCo
             return true;
           case CANCELED:
           case COMPLETED:
+            mCompletedCount++;
             removed.set(true);
             return false;
           case FAILED:
+            mFailedCount++;
             removed.set(true);
             return false;
           default:
@@ -79,5 +85,19 @@ public abstract class AbstractDistributedJobCommand extends AbstractFileSystemCo
       }
       CommonUtils.sleepMs(5);
     }
+  }
+
+  /**
+   * Gets the number of failed job.
+   */
+  protected int getFailedCount() {
+    return mFailedCount;
+  }
+
+  /**
+   * Gets the number of completed job.
+   */
+  protected int getCompletedCount() {
+    return mCompletedCount;
   }
 }

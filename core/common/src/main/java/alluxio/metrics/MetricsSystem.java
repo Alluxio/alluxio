@@ -22,11 +22,14 @@ import alluxio.util.CommonUtils;
 import alluxio.util.ConfigurationUtils;
 import alluxio.util.network.NetworkAddressUtils;
 
+import com.codahale.metrics.CachedGauge;
 import com.codahale.metrics.Counter;
 import com.codahale.metrics.Gauge;
 import com.codahale.metrics.Meter;
 import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.Timer;
+import com.codahale.metrics.jvm.CachedThreadStatesGaugeSet;
+import com.codahale.metrics.jvm.ClassLoadingGaugeSet;
 import com.codahale.metrics.jvm.GarbageCollectorMetricSet;
 import com.codahale.metrics.jvm.JvmAttributeGaugeSet;
 import com.codahale.metrics.jvm.MemoryUsageGaugeSet;
@@ -97,7 +100,8 @@ public final class MetricsSystem {
     WORKER("Worker"),
     CLUSTER("Cluster"),
     CLIENT("Client"),
-    PROXY("Proxy");
+    PROXY("Proxy"),
+    FUSE("Fuse");
 
     private String mValue;
 
@@ -141,6 +145,9 @@ public final class MetricsSystem {
     METRIC_REGISTRY.registerAll(new JvmAttributeGaugeSet());
     METRIC_REGISTRY.registerAll(new GarbageCollectorMetricSet());
     METRIC_REGISTRY.registerAll(new MemoryUsageGaugeSet());
+    METRIC_REGISTRY.registerAll(new ClassLoadingGaugeSet());
+    METRIC_REGISTRY.registerAll(new CachedThreadStatesGaugeSet(5, TimeUnit.SECONDS));
+    METRIC_REGISTRY.registerAll(new LogStateCounterSet());
   }
 
   @GuardedBy("MetricsSystem")
@@ -197,8 +204,19 @@ public final class MetricsSystem {
         break;
     }
     AlluxioConfiguration conf = new InstancedConfiguration(ConfigurationUtils.defaults());
-    return sourceKey != null && conf.isSet(sourceKey)
-        ? conf.get(sourceKey) : NetworkAddressUtils.getLocalHostMetricName(sResolveTimeout);
+    if (sourceKey != null && conf.isSet(sourceKey)) {
+      return conf.get(sourceKey);
+    }
+    String hostName;
+    // Avoid throwing RuntimeException when hostname
+    // is not resolved on metrics reporting
+    try {
+      hostName = NetworkAddressUtils.getLocalHostMetricName(sResolveTimeout);
+    } catch (RuntimeException e) {
+      hostName = "unknown";
+      LOG.error("Can't find local host name", e);
+    }
+    return hostName;
   }
 
   /**
@@ -487,7 +505,8 @@ public final class MetricsSystem {
 
   /**
    * Get or add meter with the given name.
-   * The returned meter may be changed due to {@link #resetAllMetrics}
+   * Please don't save the Meter instance since
+   * the returned Meter instance may not be used due to {@link #resetAllMetrics}
    *
    * @param name the name of the metric
    * @return a meter object with the qualified metric name
@@ -519,7 +538,8 @@ public final class MetricsSystem {
 
   /**
    * Get or add timer with the given name.
-   * The returned timer may be changed due to {@link #resetAllMetrics}
+   * Please don't save the Timer instance since
+   * the returned Timer instance may not be used due to {@link #resetAllMetrics}
    *
    * @param name the name of the metric
    * @return a timer object with the qualified metric name
@@ -538,6 +558,24 @@ public final class MetricsSystem {
   public static synchronized <T> void registerGaugeIfAbsent(String name, Gauge<T> metric) {
     if (!METRIC_REGISTRY.getMetrics().containsKey(name)) {
       METRIC_REGISTRY.register(name, metric);
+    }
+  }
+
+  /**
+   * Registers a cached gauge if it has not been registered.
+   *
+   * @param name the gauge name
+   * @param metric the gauge
+   * @param <T> the type
+   */
+  public static synchronized <T> void registerCachedGaugeIfAbsent(String name, Gauge<T> metric) {
+    if (!METRIC_REGISTRY.getMetrics().containsKey(name)) {
+      METRIC_REGISTRY.register(name, new CachedGauge<T>(10, TimeUnit.MINUTES) {
+        @Override
+        protected T loadValue() {
+          return metric.getValue();
+        }
+      });
     }
   }
 

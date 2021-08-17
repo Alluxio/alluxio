@@ -22,18 +22,18 @@ package alluxio.stress.client;
  */
 public enum ClientIOOperation {
   /** The write operation, for writing data for the read operations. */
-  Write,
+  WRITE("Write"),
 
   /** Streaming read api, using arrays. */
-  ReadArray,
+  READ_ARRAY("ReadArray"),
   /** Streaming read api, using byte buffers. */
-  ReadByteBuffer,
+  READ_BYTE_BUFFER("ReadByteBuffer"),
   /** Streaming read fully api. */
-  ReadFully,
+  READ_FULLY("ReadFully"),
   /** Positioned read api. */
-  PosRead,
+  POS_READ("PosRead"),
   /** Positioned read fully api. */
-  PosReadFully,
+  POS_READ_FULLY("PosReadFully"),
   ;
 
   /**
@@ -42,11 +42,11 @@ public enum ClientIOOperation {
    */
   public static boolean isRead(ClientIOOperation operation) {
     switch (operation) {
-      case ReadArray:
-      case ReadByteBuffer:
-      case ReadFully:
-      case PosRead:
-      case PosReadFully:
+      case READ_ARRAY:
+      case READ_BYTE_BUFFER:
+      case READ_FULLY:
+      case POS_READ:
+      case POS_READ_FULLY:
         return true;
       default:
         return false;
@@ -59,11 +59,37 @@ public enum ClientIOOperation {
    */
   public static boolean isPosRead(ClientIOOperation operation) {
     switch (operation) {
-      case PosRead:
-      case PosReadFully:
+      case POS_READ:
+      case POS_READ_FULLY:
         return true;
       default:
         return false;
     }
+  }
+
+  private final String mName;
+
+  ClientIOOperation(String name) {
+    mName = name;
+  }
+
+  @Override
+  public String toString() {
+    return mName;
+  }
+
+  /**
+   * Creates an instance type from the string. This method is case insensitive.
+   *
+   * @param text the instance type in string
+   * @return the created instance
+   */
+  public static ClientIOOperation fromString(String text) {
+    for (ClientIOOperation type : ClientIOOperation.values()) {
+      if (type.toString().equalsIgnoreCase(text)) {
+        return type;
+      }
+    }
+    throw new IllegalArgumentException("No constant with text " + text + " found");
   }
 }

@@ -14,8 +14,16 @@ package alluxio.util;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.concurrent.GuardedBy;
+import java.io.ByteArrayOutputStream;
+import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.io.UnsupportedEncodingException;
+import java.lang.management.ManagementFactory;
+import java.lang.management.ThreadInfo;
+import java.lang.management.ThreadMXBean;
+import java.nio.charset.Charset;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 
@@ -24,6 +32,8 @@ import java.util.concurrent.TimeUnit;
  */
 public final class ThreadUtils {
   private static final Logger LOG = LoggerFactory.getLogger(ThreadUtils.class);
+  private static final ThreadMXBean THREAD_BEAN =
+      ManagementFactory.getThreadMXBean();
 
   /**
    * @param thread a thread
@@ -42,11 +52,7 @@ public final class ThreadUtils {
    * Logs a stack trace for all threads currently running in the JVM, similar to jstack.
    */
   public static void logAllThreads() {
-    StringBuilder sb = new StringBuilder("Dumping all threads:\n");
-    for (Thread t : Thread.getAllStackTraces().keySet()) {
-      sb.append(formatStackTrace(t));
-    }
-    LOG.info(sb.toString());
+    logThreadInfo(LOG, "Dumping all threads:", 0);
   }
 
   /**
@@ -90,6 +96,93 @@ public final class ThreadUtils {
    */
   public static String getThreadIdentifier(Thread thread) {
     return String.format("%d(%s)", thread.getId(), thread.getName());
+  }
+
+  private static String getTaskName(long id, String name) {
+    if (name == null) {
+      return Long.toString(id);
+    }
+    return id + " (" + name + ")";
+  }
+
+  /**
+   * Prints the information and stack traces of all threads.
+   *
+   * @param stream the stream to
+   * @param title  a string title for the stack trace
+   */
+  public static synchronized void printThreadInfo(PrintStream stream,
+      String title) {
+    final int STACK_DEPTH = 20;
+    boolean contention = THREAD_BEAN.isThreadContentionMonitoringEnabled();
+    long[] threadIds = THREAD_BEAN.getAllThreadIds();
+    stream.println("Process Thread Dump: " + title);
+    stream.println(threadIds.length + " active threads");
+    for (long tid : threadIds) {
+      ThreadInfo info = THREAD_BEAN.getThreadInfo(tid, STACK_DEPTH);
+      if (info == null) {
+        stream.println("  Inactive");
+        continue;
+      }
+      stream.println("Thread "
+          + getTaskName(info.getThreadId(), info.getThreadName()) + ":");
+      Thread.State state = info.getThreadState();
+      stream.println("  State: " + state);
+      stream.println("  Blocked count: " + info.getBlockedCount());
+      stream.println("  Waited count: " + info.getWaitedCount());
+      if (contention) {
+        stream.println("  Blocked time: " + info.getBlockedTime());
+        stream.println("  Waited time: " + info.getWaitedTime());
+      }
+      if (state == Thread.State.WAITING) {
+        stream.println("  Waiting on " + info.getLockName());
+      } else if (state == Thread.State.BLOCKED) {
+        stream.println("  Blocked on " + info.getLockName());
+        stream.println("  Blocked by "
+            + getTaskName(info.getLockOwnerId(), info.getLockOwnerName()));
+      }
+      stream.println("  Stack:");
+      for (StackTraceElement frame : info.getStackTrace()) {
+        stream.println("    " + frame.toString());
+      }
+    }
+    stream.flush();
+  }
+
+  /**
+   * The value of the previous log time, unit is ms.
+   */
+  @GuardedBy("ThreadUtils.class")
+  private static long sPreviousLogTime = 0;
+
+  /**
+   * Log the current thread stacks at INFO level.
+   * @param log the logger that logs the stack trace
+   * @param title a descriptive title for the call stacks
+   * @param minInterval the minimum time from the last, unit is second
+   */
+  public static void logThreadInfo(Logger log,
+      String title,
+      long minInterval) {
+    boolean dumpStack = false;
+    if (log.isInfoEnabled()) {
+      synchronized (ThreadUtils.class) {
+        long now = System.nanoTime() / 1000000;
+        if (now - sPreviousLogTime >= minInterval * 1000) {
+          sPreviousLogTime = now;
+          dumpStack = true;
+        }
+      }
+      if (dumpStack) {
+        try {
+          ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+          printThreadInfo(new PrintStream(buffer, false, "UTF-8"), title);
+          log.info(buffer.toString(Charset.defaultCharset().name()));
+        } catch (UnsupportedEncodingException ignored) {
+          // swallow the nit exception to keep silent.
+        }
+      }
+    }
   }
 
   private ThreadUtils() {} // prevent instantiation of utils class

@@ -14,6 +14,7 @@ package alluxio.cli.fs.command;
 import alluxio.AlluxioURI;
 import alluxio.annotation.PublicApi;
 import alluxio.cli.CommandUtils;
+import alluxio.cli.fs.FileSystemShellUtils;
 import alluxio.cli.fs.command.job.JobAttempt;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.URIStatus;
@@ -33,6 +34,8 @@ import alluxio.retry.RetryPolicy;
 import alluxio.util.io.PathUtils;
 
 import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.Option;
+import org.apache.commons.cli.Options;
 
 import java.io.IOException;
 
@@ -45,6 +48,30 @@ import javax.annotation.concurrent.ThreadSafe;
 @PublicApi
 public class DistributedCpCommand extends AbstractDistributedJobCommand {
   private String mWriteType;
+
+  private static final Option ACTIVE_JOB_COUNT_OPTION =
+      Option.builder()
+          .longOpt("active-jobs")
+          .required(false)
+          .hasArg(true)
+          .numberOfArgs(1)
+          .type(Number.class)
+          .argName("active job count")
+          .desc("Number of active jobs that can run at the same time. Later jobs must wait. "
+                  + "The default upper limit is "
+                  + AbstractDistributedJobCommand.DEFAULT_ACTIVE_JOBS)
+          .build();
+
+  private static final Option OVERWRITE_OPTION =
+      Option.builder()
+          .longOpt("overwrite")
+          .required(false)
+          .hasArg(true)
+          .numberOfArgs(1)
+          .type(Boolean.class)
+          .argName("overwrite")
+          .desc("Whether to overwrite the destination. Default is true.")
+          .build();
 
   /**
    * @param fsContext the filesystem context of Alluxio
@@ -59,12 +86,34 @@ public class DistributedCpCommand extends AbstractDistributedJobCommand {
   }
 
   @Override
+  public Options getOptions() {
+    return new Options().addOption(ACTIVE_JOB_COUNT_OPTION)
+        .addOption(OVERWRITE_OPTION);
+  }
+
+  @Override
   public void validateArgs(CommandLine cl) throws InvalidArgumentException {
     CommandUtils.checkNumOfArgsEquals(this, cl, 2);
   }
 
   @Override
+  public String getUsage() {
+    return "distributedCp [--active-jobs <num>] <src> <dst>";
+  }
+
+  @Override
+  public String getDescription() {
+    return "Copies a file or directory in parallel at file level.";
+  }
+
+  @Override
   public int run(CommandLine cl) throws AlluxioException, IOException {
+    mActiveJobs = FileSystemShellUtils.getIntArg(cl, ACTIVE_JOB_COUNT_OPTION,
+            AbstractDistributedJobCommand.DEFAULT_ACTIVE_JOBS);
+    System.out.format("Allow up to %s active jobs%n", mActiveJobs);
+
+    boolean overwrite = FileSystemShellUtils.getBoolArg(cl, OVERWRITE_OPTION, true);
+
     String[] args = cl.getArgs();
     AlluxioURI srcPath = new AlluxioURI(args[0]);
     AlluxioURI dstPath = new AlluxioURI(args[1]);
@@ -77,13 +126,13 @@ public class DistributedCpCommand extends AbstractDistributedJobCommand {
     AlluxioConfiguration conf = mFsContext.getPathConf(dstPath);
     mWriteType = conf.get(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT);
 
-    distributedCp(srcPath, dstPath);
+    distributedCp(srcPath, dstPath, overwrite);
     return 0;
   }
 
-  private CopyJobAttempt newJob(String srcPath, String dstPath) {
+  private CopyJobAttempt newJob(String srcPath, String dstPath, boolean overwrite) {
     CopyJobAttempt jobAttempt = new CopyJobAttempt(mClient,
-        new MigrateConfig(srcPath, dstPath, mWriteType, true),
+        new MigrateConfig(srcPath, dstPath, mWriteType, overwrite),
         new CountingRetry(3));
 
     jobAttempt.run();
@@ -91,12 +140,12 @@ public class DistributedCpCommand extends AbstractDistributedJobCommand {
     return jobAttempt;
   }
 
-  private void distributedCp(AlluxioURI srcPath, AlluxioURI dstPath)
+  private void distributedCp(AlluxioURI srcPath, AlluxioURI dstPath, boolean overwrite)
       throws IOException, AlluxioException {
     if (mFileSystem.getStatus(srcPath).isFolder()) {
       createFolders(srcPath, dstPath);
     }
-    copy(srcPath, dstPath);
+    copy(srcPath, dstPath, overwrite);
     // Wait remaining jobs to complete.
     drain();
   }
@@ -122,37 +171,27 @@ public class DistributedCpCommand extends AbstractDistributedJobCommand {
     }
   }
 
-  private void copy(AlluxioURI srcPath, AlluxioURI dstPath)
+  private void copy(AlluxioURI srcPath, AlluxioURI dstPath, boolean overwrite)
       throws IOException, AlluxioException {
 
     for (URIStatus srcInnerStatus : mFileSystem.listStatus(srcPath)) {
       String dstInnerPath = computeTargetPath(srcInnerStatus.getPath(),
           srcPath.getPath(), dstPath.getPath());
       if (srcInnerStatus.isFolder()) {
-        copy(new AlluxioURI(srcInnerStatus.getPath()), new AlluxioURI(dstInnerPath));
+        copy(new AlluxioURI(srcInnerStatus.getPath()), new AlluxioURI(dstInnerPath), overwrite);
       } else {
-        addJob(srcInnerStatus.getPath(), dstInnerPath);
+        addJob(srcInnerStatus.getPath(), dstInnerPath, overwrite);
       }
     }
   }
 
-  private void addJob(String srcPath, String dstPath) {
+  private void addJob(String srcPath, String dstPath, boolean overwrite) {
     if (mSubmittedJobAttempts.size() >= mActiveJobs) {
       // Wait one job to complete.
       waitJob();
     }
     System.out.println("Copying " + srcPath + " to " + dstPath);
-    mSubmittedJobAttempts.add(newJob(srcPath, dstPath));
-  }
-
-  @Override
-  public String getUsage() {
-    return "distributedCp <src> <dst>";
-  }
-
-  @Override
-  public String getDescription() {
-    return "Copies a file or directory in parallel at file level.";
+    mSubmittedJobAttempts.add(newJob(srcPath, dstPath, overwrite));
   }
 
   private static String computeTargetPath(String path, String source, String destination)

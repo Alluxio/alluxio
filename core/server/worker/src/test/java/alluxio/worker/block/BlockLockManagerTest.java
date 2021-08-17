@@ -11,13 +11,14 @@
 
 package alluxio.worker.block;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertTrue;
 
-import alluxio.conf.ServerConfiguration;
-import alluxio.conf.PropertyKey;
 import alluxio.collections.ConcurrentHashSet;
+import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
 import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.InvalidWorkerStateException;
@@ -30,23 +31,19 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
-import org.junit.runner.RunWith;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CyclicBarrier;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Unit tests for {@link BlockLockManager}.
  */
-@RunWith(PowerMockRunner.class)
-@PrepareForTest(BlockMetadataManager.class)
 public final class BlockLockManagerTest {
   private static final long TEST_SESSION_ID = 2;
+  private static final long TEST_SESSION_ID2 = 3;
   private static final long TEST_BLOCK_ID = 9;
 
   private BlockLockManager mLockManager;
@@ -63,14 +60,12 @@ public final class BlockLockManagerTest {
    * Sets up all dependencies before a test runs.
    */
   @Before
-  public void before() throws Exception {
-    BlockMetadataManager mockMetaManager = PowerMockito.mock(BlockMetadataManager.class);
-    PowerMockito.when(mockMetaManager.hasBlockMeta(TEST_BLOCK_ID)).thenReturn(true);
+  public void before() {
     mLockManager = new BlockLockManager();
   }
 
   @After
-  public void after() throws Exception {
+  public void after() {
     ServerConfiguration.reset();
   }
 
@@ -83,6 +78,47 @@ public final class BlockLockManagerTest {
     long lockId1 = mLockManager.lockBlock(TEST_SESSION_ID, TEST_BLOCK_ID, BlockLockType.READ);
     long lockId2 = mLockManager.lockBlock(TEST_SESSION_ID, TEST_BLOCK_ID, BlockLockType.READ);
     assertNotEquals(lockId1, lockId2);
+  }
+
+  @Test
+  public void tryLockBlock() {
+    // Read-lock on can both get through
+    long lockId1 = mLockManager.tryLockBlock(TEST_SESSION_ID, TEST_BLOCK_ID, BlockLockType.READ,
+        1, TimeUnit.MINUTES);
+    long lockId2 = mLockManager.tryLockBlock(TEST_SESSION_ID, TEST_BLOCK_ID, BlockLockType.READ,
+        1, TimeUnit.MINUTES);
+    assertNotEquals(lockId1, lockId2);
+  }
+
+  @Test
+  public void tryLockBlockWithReadLockLocked() throws Exception {
+    // Hold a read-lock on test block
+    long lockId1 = mLockManager.lockBlock(TEST_SESSION_ID, TEST_BLOCK_ID, BlockLockType.READ);
+    // Read-lock on the same block should get through
+    long lockId2 = mLockManager.tryLockBlock(TEST_SESSION_ID2, TEST_BLOCK_ID, BlockLockType.READ,
+        1, TimeUnit.SECONDS);
+    assertNotEquals(BlockWorker.INVALID_LOCK_ID, lockId2);
+    mLockManager.unlockBlock(lockId2);
+    // Write-lock should fail
+    long lockId3 = mLockManager.tryLockBlock(TEST_SESSION_ID2, TEST_BLOCK_ID, BlockLockType.WRITE,
+        1, TimeUnit.SECONDS);
+    assertEquals(BlockWorker.INVALID_LOCK_ID, lockId3);
+    mLockManager.unlockBlock(lockId1);
+  }
+
+  @Test
+  public void tryLockBlockWithWriteLockLocked() throws Exception {
+    // Hold a write-lock on test block
+    long lockId1 = mLockManager.lockBlock(TEST_SESSION_ID, TEST_BLOCK_ID, BlockLockType.WRITE);
+    // Read-lock should fail
+    long lockId2 = mLockManager.tryLockBlock(TEST_SESSION_ID2, TEST_BLOCK_ID, BlockLockType.READ,
+        1, TimeUnit.SECONDS);
+    assertEquals(BlockWorker.INVALID_LOCK_ID, lockId2);
+    // Write-lock should fail
+    long lockId3 = mLockManager.tryLockBlock(TEST_SESSION_ID2, TEST_BLOCK_ID, BlockLockType.WRITE,
+        1, TimeUnit.SECONDS);
+    assertEquals(BlockWorker.INVALID_LOCK_ID, lockId3);
+    mLockManager.unlockBlock(lockId1);
   }
 
   /**

@@ -60,6 +60,7 @@ public class TableMasterJournalIntegrationTest {
   public static LocalAlluxioClusterResource sClusterResource =
       new LocalAlluxioClusterResource.Builder()
           .setProperty(PropertyKey.WORKER_RAMDISK_SIZE, WORKER_CAPACITY_BYTES)
+          .setProperty(PropertyKey.TABLE_JOURNAL_PARTITIONS_CHUNK_SIZE, 3)
           .setNumWorkers(1).build();
 
   @Rule
@@ -109,6 +110,11 @@ public class TableMasterJournalIntegrationTest {
     tableMaster.syncDatabase(DB_NAME);
     checkTable(tableMaster, DB_NAME, 2, 3);
 
+    // Drop a table to create a 'remove_table' entry
+    genTable(1, 10, true);
+    tableMaster.syncDatabase(DB_NAME);
+    checkTable(tableMaster, DB_NAME, 1, 10);
+
     restartMaster();
 
     TableMaster tableMasterRestart =
@@ -117,7 +123,7 @@ public class TableMasterJournalIntegrationTest {
     checkDb(tableMasterRestart, DB_NAME, oldInfo);
     tableMasterRestart.syncDatabase(DB_NAME);
     checkDb(tableMasterRestart, DB_NAME, newInfo);
-    checkTable(tableMasterRestart, DB_NAME, 2, 3);
+    checkTable(tableMasterRestart, DB_NAME, 1, 10);
   }
 
   private void checkDb(TableMaster tableMaster, String dbName, DatabaseInfo dbInfo)

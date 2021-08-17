@@ -15,6 +15,7 @@ import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.mock;
 
+import alluxio.Constants;
 import alluxio.StorageTierAssoc;
 import alluxio.WorkerStorageTierAssoc;
 import alluxio.metrics.MetricInfo;
@@ -32,8 +33,8 @@ import org.junit.Test;
  * Unit tests for {@link DefaultBlockWorker.Metrics}.
  */
 public final class BlockWorkerMetricsTest {
-  private static final String MEM = "MEM";
-  private static final String HDD = "HDD";
+  private static final String MEM = Constants.MEDIUM_MEM;
+  private static final String HDD = Constants.MEDIUM_HDD;
 
   private BlockWorker mBlockWorker;
   private BlockStoreMeta mBlockStoreMeta;

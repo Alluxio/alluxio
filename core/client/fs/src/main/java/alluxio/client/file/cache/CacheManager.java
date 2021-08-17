@@ -11,7 +11,9 @@
 
 package alluxio.client.file.cache;
 
+import alluxio.client.file.CacheContext;
 import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.resource.LockResource;
@@ -82,17 +84,13 @@ public interface CacheManager extends AutoCloseable {
     public static CacheManager get(AlluxioConfiguration conf) throws IOException {
       // TODO(feng): support multiple cache managers
       if (CACHE_MANAGER.get() == null) {
-        if (CACHE_INIT_LOCK.tryLock()) {
-          try {
-            if (CACHE_MANAGER.get() == null) {
-              CACHE_MANAGER.set(create(conf));
-            }
-          } catch (IOException e) {
-            Metrics.CREATE_ERRORS.inc();
-            throw new IOException("Failed to create CacheManager", e);
-          } finally {
-            CACHE_INIT_LOCK.unlock();
+        try (LockResource lockResource = new LockResource(CACHE_INIT_LOCK)) {
+          if (CACHE_MANAGER.get() == null) {
+            CACHE_MANAGER.set(create(conf));
           }
+        } catch (IOException e) {
+          Metrics.CREATE_ERRORS.inc();
+          throw new IOException("Failed to create CacheManager", e);
         }
       }
       return CACHE_MANAGER.get();
@@ -104,6 +102,12 @@ public interface CacheManager extends AutoCloseable {
      */
     static CacheManager create(AlluxioConfiguration conf) throws IOException {
       try {
+        boolean isShadowCacheEnabled =
+            conf.getBoolean(PropertyKey.USER_CLIENT_CACHE_SHADOW_ENABLED);
+        if (isShadowCacheEnabled) {
+          return new NoExceptionCacheManager(
+              new CacheManagerWithShadowCache(LocalCacheManager.create(conf), conf));
+        }
         return new NoExceptionCacheManager(LocalCacheManager.create(conf));
       } catch (IOException e) {
         Metrics.CREATE_ERRORS.inc();
@@ -145,7 +149,20 @@ public interface CacheManager extends AutoCloseable {
    * @param page page data
    * @return true if the put was successful, false otherwise
    */
-  boolean put(PageId pageId, byte[] page);
+  default boolean put(PageId pageId, byte[] page) {
+    return put(pageId, page, CacheContext.defaults());
+  }
+
+  /**
+   * Puts a page into the cache manager with scope and quota respected. This method is best effort.
+   * It is possible that this put operation returns without page written.
+   *
+   * @param pageId page identifier
+   * @param page page data
+   * @param cacheContext cache related context
+   * @return true if the put was successful, false otherwise
+   */
+  boolean put(PageId pageId, byte[] page, CacheContext cacheContext);
 
   /**
    * Reads the entire page if the queried page is found in the cache, stores the result in buffer.
@@ -171,7 +188,25 @@ public interface CacheManager extends AutoCloseable {
    * @param offsetInBuffer offset in the destination buffer to write
    * @return number of bytes read, 0 if page is not found, -1 on errors
    */
-  int get(PageId pageId, int pageOffset, int bytesToRead, byte[] buffer, int offsetInBuffer);
+  default int get(PageId pageId, int pageOffset, int bytesToRead, byte[] buffer,
+      int offsetInBuffer) {
+    return get(pageId, pageOffset, bytesToRead, buffer, offsetInBuffer, CacheContext.defaults());
+  }
+
+  /**
+   * Reads a part of a page if the queried page is found in the cache, stores the result in
+   * buffer.
+   *
+   * @param pageId page identifier
+   * @param pageOffset offset into the page
+   * @param bytesToRead number of bytes to read in this page
+   * @param buffer destination buffer to write
+   * @param offsetInBuffer offset in the destination buffer to write
+   * @param cacheContext cache related context
+   * @return number of bytes read, 0 if page is not found, -1 on errors
+   */
+  int get(PageId pageId, int pageOffset, int bytesToRead, byte[] buffer, int offsetInBuffer,
+      CacheContext cacheContext);
 
   /**
    * Deletes a page from the cache.

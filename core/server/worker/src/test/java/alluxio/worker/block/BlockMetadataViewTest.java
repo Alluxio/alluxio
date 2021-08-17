@@ -18,10 +18,12 @@ import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
+import alluxio.Constants;
 import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.master.block.BlockId;
 import alluxio.worker.block.meta.BlockMeta;
+import alluxio.worker.block.meta.DefaultBlockMeta;
 import alluxio.worker.block.meta.StorageDir;
 import alluxio.worker.block.meta.StorageDirEvictorView;
 import alluxio.worker.block.meta.StorageDirView;
@@ -146,7 +148,7 @@ public final class BlockMetadataViewTest {
    */
   @Test
   public void getTierNotExisting() {
-    String badTierAlias = "HDD";
+    String badTierAlias = Constants.MEDIUM_HDD;
     mThrown.expect(IllegalArgumentException.class);
     mThrown.expectMessage(ExceptionMessage.TIER_VIEW_ALIAS_NOT_FOUND.getMessage(badTierAlias));
     mMetadataView.getTierView(badTierAlias);
@@ -160,7 +162,7 @@ public final class BlockMetadataViewTest {
     StorageDir dir = mMetaManager.getTiers().get(TEST_TIER_ORDINAL).getDir(TEST_DIR);
 
     // Add one block to test dir, expect block meta found
-    BlockMeta blockMeta = new BlockMeta(TEST_BLOCK_ID, TEST_BLOCK_SIZE, dir);
+    BlockMeta blockMeta = new DefaultBlockMeta(TEST_BLOCK_ID, TEST_BLOCK_SIZE, dir);
     dir.addBlockMeta(blockMeta);
     assertEquals(blockMeta, mMetadataView.getBlockMeta(TEST_BLOCK_ID));
     assertTrue(mMetadataView.isBlockEvictable(TEST_BLOCK_ID));
@@ -253,7 +255,7 @@ public final class BlockMetadataViewTest {
 
     // Do some operations on metadata
     StorageDir dir = mMetaManager.getTiers().get(TEST_TIER_ORDINAL).getDir(TEST_DIR);
-    BlockMeta blockMeta = new BlockMeta(TEST_BLOCK_ID, TEST_BLOCK_SIZE, dir);
+    BlockMeta blockMeta = new DefaultBlockMeta(TEST_BLOCK_ID, TEST_BLOCK_SIZE, dir);
     try {
       dir.addBlockMeta(blockMeta);
     } catch (Exception e) {
@@ -275,7 +277,7 @@ public final class BlockMetadataViewTest {
 
     // Do some operations on metadata
     StorageDir dir = mMetaManager.getTiers().get(TEST_TIER_ORDINAL + 1).getDir(TEST_DIR);
-    BlockMeta blockMeta = new BlockMeta(TEST_BLOCK_ID, TEST_BLOCK_SIZE, dir);
+    BlockMeta blockMeta = new DefaultBlockMeta(TEST_BLOCK_ID, TEST_BLOCK_SIZE, dir);
     try {
       dir.addBlockMeta(blockMeta);
     } catch (Exception e) {

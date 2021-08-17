@@ -22,6 +22,7 @@ import alluxio.resource.CloseableResource;
 import alluxio.resource.LockResource;
 import alluxio.wire.WorkerNetAddress;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -61,7 +62,8 @@ public class BufferCachingGrpcDataReader {
   private final ReentrantReadWriteLock mBufferLocks = new ReentrantReadWriteLock();
 
   /** The next pos to read. */
-  private long mPosToRead;
+  @VisibleForTesting
+  protected long mPosToRead;
 
   /**
    * Creates an instance of {@link BufferCachingGrpcDataReader}.
@@ -72,7 +74,8 @@ public class BufferCachingGrpcDataReader {
    * @param readRequest the read request
    * @param stream the underlying gRPC stream to read data
    */
-  private BufferCachingGrpcDataReader(WorkerNetAddress address,
+  @VisibleForTesting
+  protected BufferCachingGrpcDataReader(WorkerNetAddress address,
       CloseableResource<BlockWorkerClient> client, long dataTimeoutMs,
       ReadRequest readRequest, GrpcBlockingStream<ReadRequest, ReadResponse> stream) {
     mAddress = address;
@@ -121,7 +124,8 @@ public class BufferCachingGrpcDataReader {
    * @return a chunk of data
    */
   @Nullable
-  private DataBuffer readChunk() throws IOException {
+  @VisibleForTesting
+  protected DataBuffer readChunk() throws IOException {
     Preconditions.checkState(!mClient.get().isShutdown(),
         "Data reader is closed while reading data chunks.");
     DataBuffer buffer = null;
@@ -140,8 +144,8 @@ public class BufferCachingGrpcDataReader {
       mStream.send(mReadRequest.toBuilder().setOffsetReceived(mPosToRead).build());
     } catch (Exception e) {
       // nothing is done as the receipt is sent at best effort
-      LOG.debug("Failed to send receipt of data to worker {} for request {}: {}.", mAddress,
-          mReadRequest, e.getMessage());
+      LOG.debug("Failed to send receipt of data to worker {} for request {}", mAddress,
+          mReadRequest, e);
     }
     Preconditions.checkState(mPosToRead - mReadRequest.getOffset() <= mReadRequest.getLength());
     return buffer;
@@ -200,7 +204,7 @@ public class BufferCachingGrpcDataReader {
     AlluxioConfiguration alluxioConf = context.getClusterConf();
     int readerBufferSizeMessages = alluxioConf
         .getInt(PropertyKey.USER_STREAMING_READER_BUFFER_SIZE_MESSAGES);
-    long dataTimeoutMs = alluxioConf.getMs(PropertyKey.USER_STREAMING_DATA_TIMEOUT);
+    long dataTimeoutMs = alluxioConf.getMs(PropertyKey.USER_STREAMING_DATA_READ_TIMEOUT);
 
     CloseableResource<BlockWorkerClient> client = context.acquireBlockWorkerClient(address);
 

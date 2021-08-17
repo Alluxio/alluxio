@@ -210,6 +210,7 @@ message LoadMetadataPOptions {
   optional bool createAncestors = 2;
   optional fscommon.LoadDescendantPType loadDescendantType = 3;
   optional FileSystemMasterCommonPOptions commonOptions = 4;
+  optional LoadMetadataPType loadType = 5;
 }
 
 enum PAclEntryType {
@@ -287,6 +288,7 @@ message FileInfo {
   optional int32 replicationMin = 30;
   optional int64 lastAccessTimeMs = 31;
   map<string, bytes> xattr = 32;
+  repeated string mediumType = 33;
 }
 
 message GetFilePathPResponse {
@@ -476,6 +478,15 @@ message UpdateUfsModePRequest {
   optional UpdateUfsModePOptions options = 2;
 }
 
+message GetStateLockHoldersPResponse {
+  repeated string threads = 1;
+}
+message GetStateLockHoldersPOptions {}
+message GetStateLockHoldersPRequest {
+  optional GetStateLockHoldersPOptions options = 1;
+}
+
+
 /**
  * This interface contains file system master service endpoints for Alluxio clients.
  */
@@ -605,6 +616,8 @@ service FileSystemMasterClientService {
    * Updates the ufs mode for a ufs path under one or more mount points.
    */
   rpc UpdateUfsMode(UpdateUfsModePRequest) returns (UpdateUfsModePResponse);
+
+  rpc GetStateLockHolders(GetStateLockHoldersPRequest) returns (GetStateLockHoldersPResponse);
 }
 
 message FileSystemHeartbeatPResponse {

@@ -108,7 +108,7 @@ public interface UnderFileSystem extends Closeable {
         } catch (Throwable e) {
           // Catching Throwable rather than Exception to catch service loading errors
           errors.add(e);
-          LOG.warn("Failed to create UnderFileSystem by factory {}: {}", factory, e.getMessage());
+          LOG.warn("Failed to create UnderFileSystem by factory {}: {}", factory, e.toString());
         } finally {
           Thread.currentThread().setContextClassLoader(previousClassLoader);
         }

@@ -40,7 +40,6 @@ import alluxio.util.webui.WebUtils;
 import alluxio.web.WorkerWebServer;
 import alluxio.wire.AlluxioWorkerInfo;
 import alluxio.wire.Capacity;
-import alluxio.wire.LogInfo;
 import alluxio.wire.WorkerWebUIBlockInfo;
 import alluxio.wire.WorkerWebUIInit;
 import alluxio.wire.WorkerWebUILogs;
@@ -336,7 +335,7 @@ public final class AlluxioWorkerRestServiceHandler {
             }
           } catch (Exception e) {
             // The file might have been deleted, log a warning and ignore this file.
-            LOG.warn("Unable to get file info for fileId {}. {}", fileId, e.getMessage());
+            LOG.warn("Unable to get file info for fileId {}. {}", fileId, e.toString());
           }
         }
         response.setFileInfos(uiFileInfos);
@@ -601,11 +600,6 @@ public final class AlluxioWorkerRestServiceHandler {
   @Path(LOG_LEVEL)
   public Response logLevel(@QueryParam(LOG_ARGUMENT_NAME) final String logName,
       @QueryParam(LOG_ARGUMENT_LEVEL) final String level) {
-    return RestUtils.call(new RestUtils.RestCallable<LogInfo>() {
-      @Override
-      public LogInfo call() throws Exception {
-        return LogUtils.setLogLevel(logName, level);
-      }
-    }, ServerConfiguration.global());
+    return RestUtils.call(() -> LogUtils.setLogLevel(logName, level), ServerConfiguration.global());
   }
 }

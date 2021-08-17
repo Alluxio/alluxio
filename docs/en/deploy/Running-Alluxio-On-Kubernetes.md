@@ -81,9 +81,16 @@ spec:
   hostPath:
     path: /tmp/alluxio-journal-0
 ```
->Note: By default each journal volume should be at least 1Gi, because each Alluxio master Pod
+Note:
+- By default each journal volume should be at least 1Gi, because each Alluxio master Pod
 will have one PersistentVolumeClaim that requests for 1Gi storage. You will see how to configure
 the journal size in later sections.
+- If this `hostPath` is not already present on the host, Kubernetes can be configured to create it. However
+the assigned user:group permissions may prevent the Alluxio masters & workers from accessing it.
+Please ensure the permissions are set to allow the pods to access the directory.
+  - See the [Kubernetes volume docs](https://kubernetes.io/docs/concepts/storage/volumes/#hostpath) for more details
+  - From Alluxio v2.1 on, Alluxio Docker containers will run as non-root user `alluxio`
+with UID 1000 and GID 1000 by default.
 
 Then create the persistent volume with `kubectl`:
 ```console
@@ -448,16 +455,11 @@ Once the configuration is finalized in a file named `config.yaml`, install as fo
 $ helm install alluxio -f config.yaml alluxio-charts/alluxio
 ```
 
-#### Uninstall
-
-Uninstall Alluxio as follows:
-```console
-$ helm delete alluxio
-```
+In order to configure the Alluxio Master pod for use, you will need to format the Alluxio journal.
 
 #### Format Journal
 
-The master Pods in the StatefulSet use a `initContainer` to format the journal on startup..
+The master Pods in the StatefulSet use a `initContainer` to format the journal on startup.
 This `initContainer` is switched on by `journal.format.runFormat=true`.
 By default, the journal is not formatted when the master starts.
 
@@ -473,6 +475,22 @@ $ helm upgrade alluxio -f config.yaml --set journal.format.runFormat=true alluxi
 Or you can trigger the journal formatting at deployment.
 ```console
 $ helm install alluxio -f config.yaml --set journal.format.runFormat=true alluxio-charts/alluxio
+```
+
+> Note: From Alluxio v2.1 on, Alluxio Docker containers will run as non-root user `alluxio`
+with UID 1000 and GID 1000 by default.
+You should make sure the journal is formatted using the same user that the Alluxio master Pod runs as.
+
+#### Configure Worker Volumes
+
+Additional configuration is required for the Alluxio Worker pod to be ready for use.
+See the section for [enabling worker short-circuit access]({{ '/en/deploy/Running-Alluxio-On-Kubernetes.html' | relativize_url }}#enable-short-circuit-access).
+
+#### Uninstall
+
+Uninstall Alluxio as follows:
+```console
+$ helm delete alluxio
 ```
 
 {% endnavtab %}
@@ -611,16 +629,7 @@ $ kubectl create -f ./master/
 $ kubectl create -f ./worker/
 ```
 
-#### Uninstall
-
-Uninstall Alluxio as follows:
-```console
-$ kubectl delete -f ./worker/
-$ kubectl delete -f ./master/
-$ kubectl delete configmap alluxio-config
-```
-> Note: This will delete all resources under `./master/` and `./worker/`.
-Be careful if you have persistent volumes or other important resources you want to keep under those directories.
+In order to configure the Alluxio Master pod for use, you will need to format the Alluxio journal.
 
 #### Format Journal
 
@@ -639,9 +648,14 @@ This `initContainer` will run `alluxio formatJournal` when the Pod is created an
       mountPath: /journal
 ```
 
-> Note: From Alluxio v2.1 on, Alluxio Docker containers except Fuse will run as non-root user `alluxio`
+> Note: From Alluxio v2.1 on, Alluxio Docker containers will run as non-root user `alluxio`
 with UID 1000 and GID 1000 by default.
 You should make sure the journal is formatted using the same user that the Alluxio master Pod runs as.
+
+#### Configure Worker Volumes
+
+Additional configuration is required for the Alluxio Worker pod to be ready for use.
+See the section for [enabling worker short-circuit access]({{ '/en/deploy/Running-Alluxio-On-Kubernetes.html' | relativize_url }}#enable-short-circuit-access).
 
 #### Upgrade
 
@@ -731,6 +745,17 @@ You can do more comprehensive verification following [Verify Alluxio]({{ '/en/de
   {% endcollapsible %}
 {% endaccordion %}
 
+#### Uninstall
+
+Uninstall Alluxio as follows:
+```console
+$ kubectl delete -f ./worker/
+$ kubectl delete -f ./master/
+$ kubectl delete configmap alluxio-config
+```
+> Note: This will delete all resources under `./master/` and `./worker/`.
+Be careful if you have persistent volumes or other important resources you want to keep under those directories.
+
 {% endnavtab %}
 {% endnavtabs %}
 
@@ -790,6 +815,212 @@ $ kubectl get pv
 $ kubectl get pvc
 ```
 
+### Enable remote logging
+
+Alluxio supports a centralized log server that collects logs for all Alluxio processes. 
+You can find the specific section at [Remote logging]({{ '/en/operation/Remote-Logging.html' | relativize_url }}).
+This can be enabled on K8s too, so that all Alluxio pods will send logs to this log server.
+
+{% navtabs logging %}
+{% navtab helm %}
+**Step 1: Configure the log server**
+
+By default, the Alluxio remote log server is not started.
+You can enable the log server by configuring the following properties:
+```properties
+logserver:
+  enabled: true
+```
+
+If you are just testing and it is okay to discard logs, you can use an `emptyDir` to store the logs in the log server.
+```properties
+logserver:
+  enabled: true
+  # volumeType controls the type of log volume.
+  # It can be "persistentVolumeClaim" or "hostPath" or "emptyDir"
+  volumeType: emptyDir
+  # Attributes to use when the log volume is emptyDir
+  medium: ""
+  size: 4Gi
+```
+
+For a production environment, you should always persist the logs with a Persistent Volume.
+When you specify the `logserver.volumeType` to be `persistentVolumeClaim`, 
+the Helm Chart will create a PVC.
+If you are not using dynamic provisioning for PVs, you will need to manually create the PV.
+Remember to make sure the selectors for PVC and PV match with each other.
+```properties
+logserver:
+  enabled: true
+  # volumeType controls the type of log volume.
+  # It can be "persistentVolumeClaim" or "hostPath" or "emptyDir"
+  volumeType: persistentVolumeClaim
+  # Attributes to use if the log volume is PVC
+  pvcName: alluxio-logserver-logs
+  accessModes:
+    - ReadWriteOnce
+  storageClass: standard
+  # If you are dynamically provisioning PVs, the selector on the PVC should be empty.
+  # Ref: https://kubernetes.io/docs/concepts/storage/persistent-volumes/#class-1
+  selector: {}
+  # If you are manually allocating PV for the logserver,
+  # it is recommended to use selectors to make sure the PV and PVC match as expected.
+  # You can specify selectors like below:
+  # Example:
+  # selector:
+  #   matchLabels:
+  #     role: alluxio-logserver
+  #     app: alluxio
+  #     chart: alluxio-<chart version>
+  #     release: alluxio
+  #     heritage: Helm
+  #     dc: data-center-1
+  #     region: us-east
+```
+
+**Step 2: Helm install with the updated configuration**
+
+When you enable the remote log server, it will be managed by a K8s Deployment.
+If you specify the volume type to be `persistentVolumeClaim`, a PVC will be created and mounted.
+You will need to provision a PV for the PVC.
+Then there will be a Service created for the Deployment, which all other Alluxio pods send logs to.
+{% endnavtab %}
+
+{% navtab kubectl %}
+**Step 1: Configure log server location with environment variables**
+
+Add `ALLUXIO_LOGSERVER_HOSTNAME` and `ALLUXIO_LOGSERVER_PORT` properties to the configmap.
+```properties
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  ..omitted
+data:
+  ..omitted
+  ALLUXIO_LOGSERVER_HOSTNAME: alluxio-logserver
+  ALLUXIO_LOGSERVER_PORT: "45600"
+```
+> Note: The value for `ALLUXIO_LOGSERVER_PORT` must be a string or kubectl will fail to read it.
+
+**Step 2: Configure and start log server**
+
+In the sample YAML directory (e.g. `singleMaster-localJournal`), the `logserver/` directory
+contains all resources for the log server, including a Deployment, a Service and a PVC if needed.
+
+First you can prepare the YAML file and configure what volume to use for the Deployment.
+```console
+$ cp logserver/alluxio-logserver-deployment.yaml.template logserver/alluxio-logserver-deployment.yaml
+```
+
+If you are testing and it is okay to discard logs, you can use an `emptyDir` for the volume like below:
+```properties
+  volumes:      
+  - name: alluxio-logs
+    emptyDir:
+      medium: 
+      sizeLimit: "4Gi"
+``` 
+
+And the volume should be mounted to the log server container at `/opt/alluxio/logs`. 
+```properties
+  volumeMounts:
+  - name: alluxio-logs
+    mountPath: /opt/alluxio/logs
+```
+
+For a production environment, you should always persist the logs with a Persistent Volume.
+```properties
+  volumes:      
+  - name: alluxio-logs
+    persistentVolumeClaim:
+      claimName: "alluxio-logserver-logs"
+```
+
+There is also a YAML template for PVC `alluxio-logserver-logs`.
+```console
+$ cp logserver/alluxio-logserver-pvc.yaml.template logserver/alluxio-logserver-pvc.yaml
+```
+
+You can further configure the resource and selector for the PVC, according to your environment.
+```properties
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: alluxio-logserver-logs
+  ..omitted
+spec:
+  volumeMode: Filesystem
+  resources:
+    requests:
+      storage: 4Gi
+  storageClassName: standard
+  accessModes:
+    - ReadWriteOnce
+  # If you are using dynamic provisioning, leave the selector empty.
+  selector: {}
+  # If you are manually allocating PV for the logserver,
+  # it is recommended to use selectors to make sure the PV and PVC match as expected.
+  # You can specify selectors like below:
+  # Example:
+  # selector:
+  #   matchLabels:
+  #     role: alluxio-logserver
+  #     app: alluxio
+  #     chart: alluxio-<chart version>
+  #     release: alluxio
+  #     heritage: Helm
+  #     dc: data-center-1
+  #     region: us-east
+```
+
+Create the PVC when you are ready.
+```console
+$ kubectl create -f alluxio-logserver-pvc.yaml
+```
+
+(Optional) If you are not using dynamic provisioning, you need to prepare the PV yourself.
+Remember to make sure the selectors on the PVC and PV match with each other.
+
+After you configure the volume in the Deployment, you can go ahead to create it.
+```console
+$ kubectl create -f alluxio-logserver-deployment.yaml
+```
+
+There is also a Service associated to the Deployment.
+```console
+$ cp logserver/alluxio-logserver-service.yaml.template logserver/alluxio-logserver-service.yaml
+$ kubectl create -f logserver/alluxio-logserver-service.yaml
+```
+
+**Step 3: Restart other Alluxio pods**
+
+You need to restart your other Alluxio pods (masters, workers, FUSE etc) so they
+capture the updated environment variables and send logs to the remote log server.
+
+{% endnavtab %}
+{% endnavtabs %}
+
+**Verify log server**
+
+You can go into the log server pod and verify the logs exist.
+
+```console
+$ kubectl exec -it <logserver-pod-name> bash
+# In the logserver pod
+bash-4.4$ pwd
+/opt/alluxio
+# You should see logs collected from other Alluxio pods
+bash-4.4$ ls -al logs
+total 16
+drwxrwsr-x    4 1001     bin           4096 Jan 12 03:14 .
+drwxr-xr-x    1 alluxio  alluxio         18 Jan 12 02:38 ..
+drwxr-sr-x    2 alluxio  bin           4096 Jan 12 03:14 job_master
+-rw-r--r--    1 alluxio  bin            600 Jan 12 03:14 logserver.log
+drwxr-sr-x    2 alluxio  bin           4096 Jan 12 03:14 master
+drwxr-sr-x    2 alluxio  bin           4096 Jan 12 03:14 worker
+drwxr-sr-x    2 alluxio  bin           4096 Jan 12 03:14 job_worker
+```
+
 ## Advanced Setup
 
 ### POSIX API
@@ -830,6 +1061,40 @@ $ helm upgrade alluxio -f config.yaml \
   alluxio-charts/alluxio
 ```
 
+{% accordion posixHelm %}
+  {% collapsible Advanced POSIX API Configuration %}
+- Alluxio fuse/client configuration:
+```properties
+properties:
+  alluxio.user.metadata.cache.enabled: true
+  alluxio.user.metadata.cache.expiration.time: 2day
+  alluxio.user.metadata.cache.max.size: "1000000"
+  alluxio.user.direct.memory.io.enabled: true
+  alluxio.fuse.logging.threshold: 1000ms
+```
+- Alluxio fuse java opts
+```properties
+fuse:
+  jvmOptions: " -Xmx16G -Xms16G -XX:MaxDirectMemorySize=32g"
+```
+- Alluxio fuse mount options
+```properties
+fuse:
+  args:
+    - fuse
+    - --fuse-opts=kernel_cache,ro,max_read=131072,attr_timeout=7200,entry_timeout=7200
+```
+- Alluxio fuse environment variables
+```properties
+fuse:
+  env:
+    MAX_IDLE_THREADS: "64"
+```
+
+[POSIX API docs]({{ '/en/api/POSIX-API.html' | relative_url }}) provides more details about how to configure Alluxio POSIX API.
+  {% endcollapsible %}
+{% endaccordion %}
+
 {% endnavtab %}
 {% navtab kubectl %}
 
@@ -841,10 +1106,8 @@ Note:
 - The container running the Alluxio FUSE daemon must have the `securityContext.privileged=true` with
 `SYS_ADMIN` capabilities.
 Application containers that require Alluxio access do not need this privilege.
-- A different Docker image
-[alluxio/{{site.ALLUXIO_DOCKER_IMAGE}}-fuse](https://hub.docker.com/r/alluxio/{{site.ALLUXIO_DOCKER_IMAGE}}-fuse/)
-based on `ubuntu` instead of `alpine` is needed to run the FUSE daemon.
-Application containers can run on any Docker image.
+
+- Application containers can run on any Docker image.
 
 Verify that a container can simply mount the Alluxio FileSystem without any custom binaries or
 capabilities using a `hostPath` mount of location `/alluxio-fuse`:
@@ -855,6 +1118,43 @@ $ kubectl create -f alluxio-fuse-client.yaml
 
 If using the template, Alluxio is mounted at `/alluxio-fuse` and can be accessed via the POSIX-API
 across multiple containers.
+
+{% accordion posixKubernetes %}
+  {% collapsible Advanced POSIX API Configuration %}
+- Alluxio fuse/client java opts can be set in `alluxio-configmap.yaml`:
+```yaml
+  ALLUXIO_FUSE_JAVA_OPTS: |-
+    -Dalluxio.user.hostname=${ALLUXIO_CLIENT_HOSTNAME} 
+    -Dalluxio.user.metadata.cache.enabled=true 
+    -Dalluxio.user.metadata.cache.expiration.time=40min 
+    -Dalluxio.user.metadata.cache.max.size=10000000 
+    -Dalluxio.user.logging.threshold=1000ms 
+    -Dalluxio.fuse.logging.threshold=1000ms 
+```
+Note that if Alluxio Worker and Alluxio Fuse is co-located in the same node, Alluxio fuse
+can read from the worker storage directly to improve read performance. 
+In this case, Alluxio Fuse need to know about the worker storage information.
+This is why worker storage configuration is set in `ALLUXIO_JAVA_OPTS` shared by all Alluxio containers.
+- Alluxio fuse mount options can be set in `alluxio-fuse.yaml`:
+```yaml
+containers:
+  - name: alluxio-fuse
+    args:
+      - fuse
+      - --fuse-opts=kernel_cache,max_read=131072,attr_timeout=7200,entry_timeout=7200
+```
+- Alluxio fuse environment variables can be set in `alluxio-fuse.yaml`:
+```yaml
+containers:
+  - name: alluxio-fuse
+    env:
+      - name: "MAX_IDLE_THREADS"
+        value: "64"
+```
+
+[POSIX API docs]({{ '/en/api/POSIX-API.html' | relative_url }}) provides more details about how to configure Alluxio POSIX API.
+  {% endcollapsible %}
+{% endaccordion %}
 
 {% endnavtab %}
 {% endnavtabs %}
@@ -1062,6 +1362,215 @@ and `volumeMounts` of each container if existing.
 {% endnavtab %}
 {% endnavtabs %}
 
+### Kubernetes Configuration Options
+
+The following options are provided in our Helm chart as additional
+parameters for experienced Kubernetes users.
+
+#### ServiceAccounts
+
+[By default](https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account/#use-the-default-service-account-to-access-the-api-server)
+Kubernetes will assign the namespace's `default` ServiceAccount
+to new pods in a namespace. You may specify for Alluxio pods to use
+any existing ServiceAccounts you may have in your cluster through
+the following:
+
+{% navtabs serviceAccounts %}
+{% navtab helm %}
+
+You may specify a top-level Helm value `serviceAccount` which will
+apply to the Master, Worker, and FUSE pods in the chart.
+```properties
+serviceAccount: sa-alluxio
+```
+
+You can override the top-level Helm value by specifying a value
+for the specific component's `serviceAccount` like below:
+```properties
+master:
+  serviceAccount: sa-alluxio-master
+
+worker:
+  serviceAccount: sa-alluxio-worker
+```
+
+{% endnavtab %}
+{% navtab kubectl %}
+
+You may add a `serviceAccountName` field to any of the Alluxio Pod template
+specs to have the Pod run using the matching ServiceAccount. For example:
+```properties
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: alluxio-master
+spec:
+  template:
+    spec:
+      serviceAccountName: sa-alluxio
+```
+
+{% endnavtab %}
+{% endnavtabs %}
+
+#### Node Selectors & Tolerations
+
+Kubernetes provides many options to control the scheduling of pods
+onto nodes in the cluster. The most direct of which is a
+[node selector](https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/#nodeselector).
+
+However, Kubernetes will avoid scheduling pods on any tainted nodes.
+To allow certain pods to schedule on such nodes, Kubernetes allows
+you to specify tolerations for those taints. See
+[the Kubernetes documentation on taints and tolerations](https://kubernetes.io/docs/concepts/scheduling-eviction/taint-and-toleration/)
+for more details.
+
+{% navtabs selectorsTolerations %}
+{% navtab helm %}
+
+You may specify a node selector in JSON as a top-level Helm value,
+`nodeSelector`, which will apply to all pods in the chart. Similarly,
+you may specify a list of tolerations in JSON as a top-level Helm value,
+`tolerations`, which will also apply to all pods in the chart.
+```properties
+nodeSelector: {"app": "alluxio"}
+
+tolerations: [ {"key": "env", "operator": "Equal", "value": "prod", "effect": "NoSchedule"} ]
+```
+
+You can **override** the top-level `nodeSelector` by specifying a value
+for the specific component's `nodeSelector`.
+```properties
+master:
+  nodeSelector: {"app": "alluxio-master"}
+
+worker:
+  nodeSelector: {"app": "alluxio-worker"}
+```
+
+You can **append** to the top-level `tolerations` by specifying a value
+for the specific component's `tolerations`.
+```properties
+logserver:
+  tolerations: [ {"key": "app", "operator": "Equal", "value": "logging", "effect": "NoSchedule"} ]
+```
+
+{% endnavtab %}
+{% navtab kubectl %}
+
+You may add `nodeSelector` and `tolerations` fields to any of the Alluxio Pod template
+specs. For example:
+```properties
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: alluxio-master
+spec:
+  template:
+    spec:
+      nodeSelector:
+        app: alluxio
+      tolerations:
+        - effect: NoSchedule
+          key: env
+          operator: Equal
+          value: prod
+```
+
+{% endnavtab %}
+{% endnavtabs %}
+
+#### Host Aliases
+
+If you wish to add or override hostname resolution in the pods,
+Kubernetes exposes the containers' `/etc/hosts` file via
+[host aliases](https://kubernetes.io/docs/concepts/services-networking/add-entries-to-pod-etc-hosts-with-host-aliases/).
+This can be particularly useful for providing hostname addresses
+for services not managed by Kubernetes, like HDFS.
+
+{% navtabs hostAliases %}
+{% navtab helm %}
+
+You may specify a top-level Helm value `hostAliases` which will
+apply to the Master and Worker pods in the chart.
+```properties
+hostAliases:
+- ip: "127.0.0.1"
+  hostnames:
+    - "foo.local"
+    - "bar.local"
+- ip: "10.1.2.3"
+  hostnames:
+    - "foo.remote"
+    - "bar.remote"
+```
+
+{% endnavtab %}
+{% navtab kubectl %}
+
+You may add the `hostAliases` field to any of the Alluxio Pod template
+specs. For example:
+```properties
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: alluxio-master
+spec:
+  template:
+    spec:
+      hostAliases:
+      - ip: "127.0.0.1"
+        hostnames:
+          - "foo.local"
+          - "bar.local"
+      - ip: "10.1.2.3"
+        hostnames:
+          - "foo.remote"
+          - "bar.local"
+```
+
+{% endnavtab %}
+{% endnavtabs %}
+
+#### Deployment Strategy
+
+[By default](https://kubernetes.io/docs/concepts/workloads/controllers/deployment/#strategy)
+Kubernetes will use the 'RollingUpdate' deployment strategy to progressively
+upgrade Pods when changes are detected.
+
+{% navtabs deployStrategy %}
+{% navtab helm %}
+
+The Helm chart currently only supports `strategy` for the logging server deployment:
+```properties
+logserver:
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 25%
+      maxSurge: 1
+```
+
+{% endnavtab %}
+{% navtab kubectl %}
+
+You may add a `strategy` field to any of the Alluxio Pod template
+specs to have the Pod run using the matching ServiceAccount. For example:
+```properties
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: alluxio-master
+spec:
+  template:
+    spec:
+      strategy:
+        type: Recreate
+```
+
+{% endnavtab %}
+{% endnavtabs %}
+
 ## Troubleshooting
 
 {% accordion worker_host %}
@@ -1086,7 +1595,7 @@ $ nc -zv <IP> 29999
   {% endcollapsible %}
 
   {% collapsible Permission Denied %}
-From Alluxio v2.1 on, Alluxio Docker containers except Fuse will run as non-root user `alluxio` with
+From Alluxio v2.1 on, Alluxio Docker containers will run as non-root user `alluxio` with
 UID 1000 and GID 1000 by default.
 Kubernetes [`hostPath`](https://kubernetes.io/docs/concepts/storage/volumes/#hostpath) volumes
 are only writable by root so you need to update the permission accordingly.

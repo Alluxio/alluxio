@@ -30,12 +30,18 @@ import alluxio.util.CommonUtils;
 import alluxio.util.ConfigurationUtils;
 import alluxio.util.executor.ExecutorServiceFactories;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Iterators;
 import com.google.common.collect.Sets;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
@@ -66,6 +72,8 @@ public class Database implements Journaled {
   private final UnderDatabase mUdb;
   private final CatalogConfiguration mConfig;
   private final Set<String> mIgnoreTables;
+  private final String mConfigPath;
+  private DbConfig mDbConfig;
   private final long mUdbSyncTimeoutMs =
       ServerConfiguration.getMs(PropertyKey.TABLE_CATALOG_UDB_SYNC_TIMEOUT);
 
@@ -81,6 +89,8 @@ public class Database implements Journaled {
     mConfig = config;
     mIgnoreTables = Sets.newHashSet(
         ConfigurationUtils.parseAsList(mConfig.get(CatalogProperty.DB_IGNORE_TABLES), ","));
+    mConfigPath = mConfig.get(CatalogProperty.DB_CONFIG_FILE);
+    mDbConfig = DbConfig.empty();
   }
 
   /**
@@ -201,6 +211,18 @@ public class Database implements Journaled {
     // Synchronization is necessary if accessed concurrently from multiple threads
     SyncStatus.Builder builder = SyncStatus.newBuilder();
 
+    if (!mConfigPath.equals(CatalogProperty.DB_CONFIG_FILE.getDefaultValue())) {
+      if (!Files.exists(Paths.get(mConfigPath))) {
+        throw new FileNotFoundException(mConfigPath);
+      }
+      ObjectMapper mapper = new ObjectMapper();
+      try {
+        mDbConfig = mapper.readValue(new File(mConfigPath), DbConfig.class);
+      } catch (JsonProcessingException e) {
+        LOG.error("Failed to deserialize UDB config file {}, stays unsynced", mConfigPath, e);
+        throw e;
+      }
+    }
     DatabaseInfo newDbInfo = mUdb.getDatabaseInfo();
     if (!newDbInfo.equals(mDatabaseInfo)) {
       applyAndJournal(context, Journal.JournalEntry.newBuilder()
@@ -229,15 +251,21 @@ public class Database implements Journaled {
         // Save all exceptions
         try {
           Table previousTable = mTables.get(tableName);
-          UdbTable udbTable = mUdb.getTable(tableName);
+          UdbTable udbTable = mUdb.getTable(tableName, mDbConfig.getUdbBypassSpec());
           Table newTable = Table.create(thisDb, udbTable, previousTable);
 
           if (newTable != null) {
             // table was created or was updated
-            alluxio.proto.journal.Table.AddTableEntry addTableEntry = newTable.toJournalProto();
+            alluxio.proto.journal.Table.AddTableEntry addTableEntry
+                = newTable.getTableJournalProto();
             Journal.JournalEntry entry =
                 Journal.JournalEntry.newBuilder().setAddTable(addTableEntry).build();
             applyAndJournal(context, entry);
+            // separate the possible big table entry into multiple smaller table partitions entry
+            newTable.getTablePartitionsJournalProto().forEach((partitionsEntry) -> {
+              applyAndJournal(context, Journal.JournalEntry
+                  .newBuilder().setAddTablePartitions(partitionsEntry).build());
+            });
             synchronized (builder) {
               builder.addTablesUpdated(tableName);
             }
@@ -349,6 +377,9 @@ public class Database implements Journaled {
     if (entry.hasAddTable()) {
       return applyAddTable(context, entry);
     }
+    if (entry.hasAddTablePartitions()) {
+      return applyAddTablePartitions(context, entry);
+    }
     if (entry.hasRemoveTable()) {
       return applyRemoveTable(context, entry);
     }
@@ -410,6 +441,38 @@ public class Database implements Journaled {
     return true;
   }
 
+  private boolean applyAddTablePartitions(@Nullable JournalContext context,
+      Journal.JournalEntry entry) {
+    alluxio.proto.journal.Table.AddTablePartitionsEntry addTablePartitions
+        = entry.getAddTablePartitions();
+    if (!addTablePartitions.getDbName().equals(mName)) {
+      return false;
+    }
+
+    mTables.compute(addTablePartitions.getTableName(), (key, existingTable) -> {
+      if (existingTable != null) {
+        if (addTablePartitions.getVersion() == existingTable.getVersion()) {
+          LOG.info("Adding {} partitions to table {}.{}", addTablePartitions.getPartitionsCount(),
+              mName, addTablePartitions.getTableName());
+          if (context != null) {
+            context.append(entry);
+          }
+          existingTable.addPartitions(addTablePartitions);
+          return existingTable;
+        }
+        LOG.info("Will not add partitions to table {}.{}, because of mismatched versions. "
+                + "version-to-add-partitions: {} existing-version: {}",
+            mName, addTablePartitions.getTableName(),
+            addTablePartitions.getVersion(), existingTable.getVersion());
+      }
+      LOG.debug("Cannot add partitions to table {}.{}, because it does not exist.", mName,
+          addTablePartitions.getTableName());
+      return existingTable;
+    });
+
+    return true;
+  }
+
   private boolean applyRemoveTable(@Nullable JournalContext context, Journal.JournalEntry entry) {
     alluxio.proto.journal.Table.RemoveTableEntry removeTable = entry.getRemoveTable();
     if (!removeTable.getDbName().equals(mName)) {
@@ -447,14 +510,19 @@ public class Database implements Journaled {
     final Iterator<Table> it = getTables().iterator();
     return new Iterator<Journal.JournalEntry>() {
       private Table mEntry = null;
+      private Iterator<alluxio.proto.journal.Table.AddTablePartitionsEntry> mPartitionIterator;
 
       @Override
       public boolean hasNext() {
         if (mEntry != null) {
           return true;
         }
+        if (mPartitionIterator != null && mPartitionIterator.hasNext()) {
+          return true;
+        }
         if (it.hasNext()) {
           mEntry = it.next();
+          mPartitionIterator = mEntry.getTablePartitionsJournalProto().iterator();
           return true;
         }
         return false;
@@ -465,16 +533,24 @@ public class Database implements Journaled {
         if (!hasNext()) {
           throw new NoSuchElementException();
         }
-        Table table = mEntry;
-        mEntry = null;
-        alluxio.proto.journal.Table.AddTableEntry addTableEntry = table.toJournalProto();
-        return Journal.JournalEntry.newBuilder().setAddTable(addTableEntry).build();
+        if (mEntry != null) {
+          Table table = mEntry;
+          mEntry = null;
+          alluxio.proto.journal.Table.AddTableEntry addTableEntry = table.getTableJournalProto();
+          return Journal.JournalEntry.newBuilder().setAddTable(addTableEntry).build();
+        }
+        if (mPartitionIterator != null && mPartitionIterator.hasNext()) {
+          return Journal.JournalEntry.newBuilder()
+              .setAddTablePartitions(mPartitionIterator.next()).build();
+        }
+        // should not reach here
+        throw new NoSuchElementException();
       }
 
       @Override
       public void remove() {
         throw new UnsupportedOperationException(
-            "GetTableIteratorr#Iterator#remove is not supported.");
+            "GetTableIterator#Iterator#remove is not supported.");
       }
     };
   }

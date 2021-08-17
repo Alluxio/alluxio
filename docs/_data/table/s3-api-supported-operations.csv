@@ -1,5 +1,6 @@
 S3Feature,Status
 "List Buckets",Supported
+"List Objects",Supported
 "Delete Buckets",Supported
 "Create Bucket",Supported
 "Bucket Lifecycle","Not Supported"

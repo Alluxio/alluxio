@@ -23,8 +23,9 @@ import alluxio.exception.WorkerOutOfSpaceException;
 import alluxio.worker.block.allocator.Allocator;
 import alluxio.worker.block.annotator.EmulatingBlockIterator;
 import alluxio.worker.block.evictor.Evictor;
-import alluxio.worker.block.meta.AbstractBlockMeta;
 import alluxio.worker.block.meta.BlockMeta;
+import alluxio.worker.block.meta.DefaultBlockMeta;
+import alluxio.worker.block.meta.DefaultStorageTier;
 import alluxio.worker.block.meta.StorageDir;
 import alluxio.worker.block.meta.StorageTier;
 import alluxio.worker.block.meta.TempBlockMeta;
@@ -69,14 +70,22 @@ public final class BlockMetadataManager {
   /** Used to get iterators per locations. */
   private BlockIterator mBlockIterator;
 
+  /** Deprecated evictors. */
+  private static final String DEPRECATED_LRU_EVICTOR = "alluxio.worker.block.evictor.LRUEvictor";
+  private static final String DEPRECATED_PARTIAL_LRUEVICTOR =
+      "alluxio.worker.block.evictor.PartialLRUEvictor";
+  private static final String DEPRECATED_LRFU_EVICTOR = "alluxio.worker.block.evictor.LRFUEvictor";
+  private static final String DEPRECATED_GREEDY_EVICTOR =
+      "alluxio.worker.block.evictor.GreedyEvictor";
+
   private BlockMetadataManager() {
     try {
       mStorageTierAssoc = new WorkerStorageTierAssoc();
       mAliasToTiers = new HashMap<>(mStorageTierAssoc.size());
       mTiers = new ArrayList<>(mStorageTierAssoc.size());
       for (int tierOrdinal = 0; tierOrdinal < mStorageTierAssoc.size(); tierOrdinal++) {
-        StorageTier tier = StorageTier.newStorageTier(mStorageTierAssoc.getAlias(tierOrdinal),
-            mStorageTierAssoc.size() > 1);
+        StorageTier tier = DefaultStorageTier
+            .newStorageTier(mStorageTierAssoc.getAlias(tierOrdinal), mStorageTierAssoc.size() > 1);
         mTiers.add(tier);
         mAliasToTiers.put(tier.getTierAlias(), tier);
       }
@@ -84,13 +93,31 @@ public final class BlockMetadataManager {
       if (ServerConfiguration.isSet(PropertyKey.WORKER_EVICTOR_CLASS)) {
         LOG.warn(String.format("Evictor is being emulated. Please use %s instead.",
             PropertyKey.Name.WORKER_BLOCK_ANNOTATOR_CLASS));
-        // Create emulating block iterator.
-        BlockMetadataEvictorView initManagerView = new BlockMetadataEvictorView(this,
-            Collections.<Long>emptySet(), Collections.<Long>emptySet());
-        mBlockIterator = new EmulatingBlockIterator(this,
+        String evictorType = ServerConfiguration.get(PropertyKey.WORKER_EVICTOR_CLASS);
+        switch (evictorType) {
+          case DEPRECATED_LRU_EVICTOR:
+          case DEPRECATED_PARTIAL_LRUEVICTOR:
+          case DEPRECATED_GREEDY_EVICTOR:
+            LOG.warn("Evictor is deprecated, switching to LRUAnnotator");
+            ServerConfiguration.set(PropertyKey.WORKER_BLOCK_ANNOTATOR_CLASS,
+                "alluxio.worker.block.annotator.LRUAnnotator");
+            mBlockIterator = new DefaultBlockIterator(this, BlockAnnotator.Factory.create());
+            break;
+          case DEPRECATED_LRFU_EVICTOR:
+            LOG.warn("Evictor is deprecated, switching to LRFUAnnotator");
+            ServerConfiguration.set(PropertyKey.WORKER_BLOCK_ANNOTATOR_CLASS,
+                "alluxio.worker.block.annotator.LRFUAnnotator");
+            mBlockIterator = new DefaultBlockIterator(this, BlockAnnotator.Factory.create());
+            break;
+          default:
+            //For user defined evictor
+            BlockMetadataEvictorView initManagerView = new BlockMetadataEvictorView(this,
+                Collections.<Long>emptySet(), Collections.<Long>emptySet());
+            mBlockIterator = new EmulatingBlockIterator(this,
             Evictor.Factory.create(initManagerView, Allocator.Factory.create(initManagerView)));
+        }
       } else {
-        // Create default block iterator.
+        // Create default block iterator
         mBlockIterator = new DefaultBlockIterator(this, BlockAnnotator.Factory.create());
       }
     } catch (BlockAlreadyExistsException | IOException | WorkerOutOfSpaceException e) {
@@ -154,7 +181,7 @@ public final class BlockMetadataManager {
       throw new BlockAlreadyExistsException(ExceptionMessage.ADD_EXISTING_BLOCK.getMessage(blockId,
           blockMeta.getBlockLocation().tierAlias()));
     }
-    BlockMeta block = new BlockMeta(Preconditions.checkNotNull(tempBlockMeta));
+    BlockMeta block = new DefaultBlockMeta(Preconditions.checkNotNull(tempBlockMeta));
     StorageDir dir = tempBlockMeta.getParentDir();
     dir.removeTempBlockMeta(tempBlockMeta);
     dir.addBlockMeta(block);
@@ -178,10 +205,10 @@ public final class BlockMetadataManager {
     blockDir2.removeBlockMeta(blockMeta2);
 
     // Add new block metas with new block id and sizes.
-    blockDir1
-        .addBlockMeta(new BlockMeta(blockMeta2.getBlockId(), blockMeta2.getBlockSize(), blockDir1));
-    blockDir2
-        .addBlockMeta(new BlockMeta(blockMeta1.getBlockId(), blockMeta1.getBlockSize(), blockDir2));
+    blockDir1.addBlockMeta(new DefaultBlockMeta(blockMeta2.getBlockId(),
+        blockMeta2.getBlockSize(), blockDir1));
+    blockDir2.addBlockMeta(new DefaultBlockMeta(blockMeta1.getBlockId(),
+        blockMeta1.getBlockSize(), blockDir2));
   }
 
   /**
@@ -216,6 +243,17 @@ public final class BlockMetadataManager {
     if (location.equals(BlockStoreLocation.anyTier())) {
       for (StorageTier tier : mTiers) {
         spaceAvailable += tier.getAvailableBytes();
+      }
+      return spaceAvailable;
+    } else if (!location.mediumType().isEmpty()
+        && location.equals(
+        BlockStoreLocation.anyDirInAnyTierWithMedium(location.mediumType()))) {
+      for (StorageTier tier : mTiers) {
+        for (StorageDir dir : tier.getStorageDirs()) {
+          if (dir.getDirMedium().equals(location.mediumType())) {
+            spaceAvailable += dir.getAvailableBytes();
+          }
+        }
       }
       return spaceAvailable;
     }
@@ -265,7 +303,7 @@ public final class BlockMetadataManager {
     if (dir == null) {
       return null;
     }
-    return AbstractBlockMeta.commitPath(dir, blockId);
+    return DefaultBlockMeta.commitPath(dir, blockId);
   }
 
   /**
@@ -274,7 +312,7 @@ public final class BlockMetadataManager {
    * @return the metadata of this block store
    */
   public BlockStoreMeta getBlockStoreMeta() {
-    return BlockStoreMeta.Factory.create(this);
+    return new DefaultBlockStoreMeta(this, false);
   }
 
   /**
@@ -283,7 +321,7 @@ public final class BlockMetadataManager {
    * @return the full metadata of this block store
    */
   public BlockStoreMeta getBlockStoreMetaFull() {
-    return BlockStoreMeta.Factory.createFull(this);
+    return new DefaultBlockStoreMeta(this, true);
   }
 
   /**
@@ -441,7 +479,7 @@ public final class BlockMetadataManager {
     StorageDir dstDir = tempBlockMeta.getParentDir();
     srcDir.removeBlockMeta(blockMeta);
     BlockMeta newBlockMeta =
-        new BlockMeta(blockMeta.getBlockId(), blockMeta.getBlockSize(), dstDir);
+        new DefaultBlockMeta(blockMeta.getBlockId(), blockMeta.getBlockSize(), dstDir);
     dstDir.removeTempBlockMeta(tempBlockMeta);
     dstDir.addBlockMeta(newBlockMeta);
     return newBlockMeta;
@@ -495,7 +533,7 @@ public final class BlockMetadataManager {
     }
     StorageDir oldDir = blockMeta.getParentDir();
     oldDir.removeBlockMeta(blockMeta);
-    BlockMeta newBlockMeta = new BlockMeta(blockMeta.getBlockId(), blockSize, newDir);
+    BlockMeta newBlockMeta = new DefaultBlockMeta(blockMeta.getBlockId(), blockSize, newDir);
     newDir.addBlockMeta(newBlockMeta);
     return newBlockMeta;
   }

@@ -21,6 +21,12 @@ import java.util.List;
  */
 public interface PartitionScheme {
   /**
+   * Add a list of partitions.
+   * @param partitions partitions to add
+   */
+  void addPartitions(List<Partition> partitions);
+
+  /**
    * Get a list of partitions.
    *
    * @return a list of partitions

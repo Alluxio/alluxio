@@ -28,6 +28,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.net.URI;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -148,7 +149,7 @@ public abstract class AbstractUfsManager implements UfsManager {
       try {
         connectUfs(fs);
       } catch (IOException e) {
-        LOG.warn("Failed to perform initial connect to UFS {}: {}", ufsUri, e.getMessage());
+        LOG.warn("Failed to perform initial connect to UFS {}: {}", ufsUri, e.toString());
       }
       return fs;
     }
@@ -213,10 +214,10 @@ public abstract class AbstractUfsManager implements UfsManager {
   }
 
   @Override
-  public UfsClient getJournal() {
+  public UfsClient getJournal(URI location) {
     synchronized (this) {
       if (mJournalUfsClient == null) {
-        addMount(IdUtils.UFS_JOURNAL_MOUNT_ID, new AlluxioURI("/dummy_journal_mount_point"),
+        addMount(IdUtils.UFS_JOURNAL_MOUNT_ID, new AlluxioURI(location.toString()),
             UfsJournal.getJournalUfsConf());
         try {
           mJournalUfsClient = get(IdUtils.UFS_JOURNAL_MOUNT_ID);

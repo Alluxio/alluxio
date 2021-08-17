@@ -231,6 +231,14 @@ public class InstancedConfigurationTest {
   }
 
   @Test
+  public void getEnumDifferentCase() {
+    // Keep configuration backwards compatible: ALLUXIO-3402
+    mConfiguration.set(PropertyKey.WEB_THREADS, "Value");
+    assertEquals(
+        TestEnum.VALUE, mConfiguration.getEnum(PropertyKey.WEB_THREADS, TestEnum.class));
+  }
+
+  @Test
   public void getMalformedEnum() {
     mConfiguration.set(PropertyKey.WEB_THREADS, "not_a_value");
     mThrown.expect(RuntimeException.class);

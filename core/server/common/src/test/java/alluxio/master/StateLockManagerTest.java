@@ -11,10 +11,14 @@
 
 package alluxio.master;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.resource.LockResource;
 import alluxio.util.CommonUtils;
+import alluxio.util.ThreadUtils;
 
 import com.google.common.util.concurrent.SettableFuture;
 import org.junit.Assert;
@@ -22,6 +26,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
+import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.locks.Lock;
@@ -132,6 +137,23 @@ public class StateLockManagerTest {
     // Signal exit and wait for the exclusive locker.
     exclusiveHolderThread.unlockExit();
     exclusiveHolderThread.join();
+  }
+
+  @Test
+  public void testGetStateLockSharedWaitersAndHolders() throws Throwable {
+    final StateLockManager stateLockManager = new StateLockManager();
+
+    assertEquals(0, stateLockManager.getSharedWaitersAndHolders().size());
+
+    for (int i = 1; i < 10; i++) {
+      StateLockingThread sharedHolderThread = new StateLockingThread(stateLockManager, false);
+      sharedHolderThread.start();
+      sharedHolderThread.waitUntilStateLockAcquired();
+      final List<String> sharedWaitersAndHolders = stateLockManager.getSharedWaitersAndHolders();
+      assertEquals(i, sharedWaitersAndHolders.size());
+      assertTrue(sharedWaitersAndHolders.contains(
+          ThreadUtils.getThreadIdentifier(sharedHolderThread)));
+    }
   }
 
   /**

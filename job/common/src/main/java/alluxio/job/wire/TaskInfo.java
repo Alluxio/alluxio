@@ -282,8 +282,7 @@ public class TaskInfo implements JobInfo {
       result = mResult == null ? null : ByteBuffer.wrap(SerializationUtils.serialize(mResult));
     } catch (IOException e) {
       // TODO(bradley) better error handling
-      LOG.warn("Failed to serialize {} : {}", mResult, e.getMessage());
-      LOG.warn("Exception: ", e);
+      LOG.error("Failed to serialize {}", mResult, e);
     }
 
     alluxio.grpc.JobInfo.Builder taskInfoBuilder =

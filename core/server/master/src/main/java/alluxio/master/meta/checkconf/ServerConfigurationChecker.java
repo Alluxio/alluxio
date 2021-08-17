@@ -128,7 +128,7 @@ public class ServerConfigurationChecker {
   public synchronized void logConfigReport() {
     ConfigStatus reportStatus = mConfigCheckReport.getConfigStatus();
     if (reportStatus.equals(ConfigStatus.PASSED)) {
-      LOG.info(CONSISTENT_CONFIGURATION_INFO);
+      LOG.debug(CONSISTENT_CONFIGURATION_INFO);
     } else if (reportStatus.equals(ConfigStatus.WARN)) {
       LOG.warn("{}\nWarnings: {}", INCONSISTENT_CONFIGURATION_INFO,
           mConfigCheckReport.getConfigWarns().values().stream()

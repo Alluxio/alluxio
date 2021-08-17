@@ -23,7 +23,7 @@ readonly SPARK_HOME="${SPARK_HOME:-"/usr/lib/spark"}"
 readonly HIVE_HOME="${HIVE_HOME:-"/usr/lib/hive"}"
 readonly HADOOP_HOME="${HADOOP_HOME:-"/usr/lib/hadoop"}"
 readonly PRESTO_HOME="$(/usr/share/google/get_metadata_value attributes/alluxio_presto_home || echo "/usr/lib/presto")"
-readonly ALLUXIO_VERSION="2.5.0-SNAPSHOT"
+readonly ALLUXIO_VERSION="2.7.0-SNAPSHOT"
 readonly ALLUXIO_DOWNLOAD_URL="https://downloads.alluxio.io/downloads/files/${ALLUXIO_VERSION}/alluxio-${ALLUXIO_VERSION}-bin.tar.gz"
 readonly ALLUXIO_HOME="/opt/alluxio"
 readonly ALLUXIO_SITE_PROPERTIES="${ALLUXIO_HOME}/conf/alluxio-site.properties"
@@ -150,7 +150,7 @@ Type=simple
 User=alluxio
 WorkingDirectory=${ALLUXIO_HOME}
 ExecStart=${ALLUXIO_HOME}/bin/launch-process master -c
-Restart=on-failure
+Restart=no
 [Install]
 WantedBy=multi-user.target
 EOF
@@ -165,7 +165,7 @@ Type=simple
 User=alluxio
 WorkingDirectory=${ALLUXIO_HOME}
 ExecStart=${ALLUXIO_HOME}/bin/launch-process job_master -c
-Restart=on-failure
+Restart=no
 [Install]
 WantedBy=multi-user.target
 EOF
@@ -182,7 +182,7 @@ Type=simple
 User=alluxio
 WorkingDirectory=${ALLUXIO_HOME}
 ExecStart=${ALLUXIO_HOME}/bin/launch-process worker -c
-Restart=on-failure
+Restart=no
 [Install]
 WantedBy=multi-user.target
 EOF
@@ -197,7 +197,7 @@ Type=simple
 User=alluxio
 WorkingDirectory=${ALLUXIO_HOME}
 ExecStart=${ALLUXIO_HOME}/bin/launch-process job_worker -c
-Restart=on-failure
+Restart=no
 [Install]
 WantedBy=multi-user.target
 EOF

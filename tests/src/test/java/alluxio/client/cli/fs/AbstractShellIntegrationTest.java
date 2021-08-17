@@ -42,6 +42,7 @@ public abstract class AbstractShellIntegrationTest extends BaseIntegrationTest {
           .setProperty(PropertyKey.MASTER_TTL_CHECKER_INTERVAL_MS, Integer.MAX_VALUE)
           .setProperty(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, "CACHE_THROUGH")
           .setProperty(PropertyKey.USER_FILE_RESERVED_BYTES, SIZE_BYTES / 2)
+          .setProperty(PropertyKey.CONF_DYNAMIC_UPDATE_ENABLED, true)
           .build();
 
   @Rule

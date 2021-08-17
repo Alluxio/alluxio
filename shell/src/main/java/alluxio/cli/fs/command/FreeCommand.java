@@ -15,6 +15,7 @@ import alluxio.AlluxioURI;
 import alluxio.annotation.PublicApi;
 import alluxio.cli.CommandUtils;
 import alluxio.client.file.FileSystemContext;
+import alluxio.client.file.URIStatus;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.status.InvalidArgumentException;
@@ -78,11 +79,16 @@ public final class FreeCommand extends AbstractFileSystemCommand {
     try {
       CommonUtils.waitFor("file to be freed. Another user may be loading it.", () -> {
         try {
-          boolean freed = mFileSystem.getStatus(path).getInAlluxioPercentage() == 0;
-          if (!freed) {
+          URIStatus fileStatus = mFileSystem.getStatus(path);
+          if (fileStatus.getLength() == 0 && !fileStatus.isFolder()) {
+            // `getInAlluxioPercentage()` will always return 100,
+            // but 'free' on an empty file should be a no-op
+            return true;
+          }
+          if (fileStatus.getInAlluxioPercentage() >= 0) {
             mFileSystem.free(path, options);
           }
-          return freed;
+          return fileStatus.getInAlluxioPercentage() == 0;
         } catch (Exception e) {
           Throwables.propagateIfPossible(e);
           throw new RuntimeException(e);

@@ -11,6 +11,8 @@
 
 package alluxio.cli.fsadmin;
 
+import alluxio.Constants;
+
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -22,13 +24,13 @@ public class FileSystemAdminShellUtilsTest {
   @Test
   public void compareTierNames() {
     Assert.assertTrue("MEM should be placed before SSD",
-        FileSystemAdminShellUtils.compareTierNames("MEM", "SSD") < 0);
+        FileSystemAdminShellUtils.compareTierNames(Constants.MEDIUM_MEM, Constants.MEDIUM_SSD) < 0);
     Assert.assertTrue("MEM should be placed before HDD",
-        FileSystemAdminShellUtils.compareTierNames("MEM", "HDD") < 0);
+        FileSystemAdminShellUtils.compareTierNames(Constants.MEDIUM_MEM, Constants.MEDIUM_HDD) < 0);
     Assert.assertTrue("HDD should be placed after SSD",
-        FileSystemAdminShellUtils.compareTierNames("HDD", "SSD") > 0);
+        FileSystemAdminShellUtils.compareTierNames(Constants.MEDIUM_HDD, Constants.MEDIUM_SSD) > 0);
     Assert.assertTrue("HDD should be placed before DOM",
-        FileSystemAdminShellUtils.compareTierNames("DOM", "HDD") > 0);
+        FileSystemAdminShellUtils.compareTierNames("DOM", Constants.MEDIUM_HDD) > 0);
     Assert.assertTrue("RAM should be placed after DOM",
         FileSystemAdminShellUtils.compareTierNames("RAM", "DOM") > 0);
   }

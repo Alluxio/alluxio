@@ -60,22 +60,37 @@ public interface DataWriter extends Closeable, Cancelable {
       boolean shortCircuit = alluxioConf.getBoolean(PropertyKey.USER_SHORT_CIRCUIT_ENABLED);
       boolean shortCircuitPreferred =
           alluxioConf.getBoolean(PropertyKey.USER_SHORT_CIRCUIT_PREFERRED);
+      boolean ufsFallbackEnabled = options.getWriteType() == WriteType.ASYNC_THROUGH
+          && alluxioConf.getBoolean(PropertyKey.USER_FILE_UFS_TIER_ENABLED);
+      boolean workerIsLocal = CommonUtils.isLocalHost(address, alluxioConf);
 
-      if (CommonUtils.isLocalHost(address, alluxioConf)
-          && shortCircuit
-          && (shortCircuitPreferred || !NettyUtils.isDomainSocketSupported(address))) {
-        if (options.getWriteType() == WriteType.ASYNC_THROUGH
-            && alluxioConf.getBoolean(PropertyKey.USER_FILE_UFS_TIER_ENABLED)) {
+      if (workerIsLocal && context.hasProcessLocalWorker() && !ufsFallbackEnabled) {
+        LOG.debug("Creating worker process local output stream for block {} @ {}",
+            blockId, address);
+        return BlockWorkerDataWriter.create(context, blockId, blockSize, options);
+      }
+      LOG.debug("Doesn't create worker process local output stream for block {} @ {} "
+          + "(data locates in local worker: {}, client locates in local worker process: {}, "
+          + "ufs fallback enabled: {})", blockId, address,
+          workerIsLocal, context.hasProcessLocalWorker(), ufsFallbackEnabled);
+
+      boolean domainSocketSupported = NettyUtils.isDomainSocketSupported(address);
+      if (workerIsLocal && shortCircuit
+          && (shortCircuitPreferred || !domainSocketSupported)) {
+        if (ufsFallbackEnabled) {
           LOG.info("Creating UFS-fallback short circuit output stream for block {} @ {}", blockId,
               address);
           return UfsFallbackLocalFileDataWriter.create(
               context, address, blockId, blockSize, options);
         }
         LOG.debug("Creating short circuit output stream for block {} @ {}", blockId, address);
-        return LocalFileDataWriter.create(context, address, blockId, options);
+        return LocalFileDataWriter.create(context, address, blockId, blockSize, options);
       } else {
-        LOG.debug("Creating gRPC output stream for block {} @ {} from client {}", blockId, address,
-            NetworkAddressUtils.getClientHostName(alluxioConf));
+        LOG.debug("Creating gRPC output stream for block {} @ {} from client {} "
+            + "(data locates in local worker: {}, shortCircuitEnabled: {}, "
+            + "shortCircuitPreferred: {}, domainSocketSupported: {})",
+            blockId, address, NetworkAddressUtils.getClientHostName(alluxioConf),
+            workerIsLocal, shortCircuit, shortCircuitPreferred, domainSocketSupported);
         return GrpcDataWriter
             .create(context, address, blockId, blockSize, RequestType.ALLUXIO_BLOCK,
                 options);

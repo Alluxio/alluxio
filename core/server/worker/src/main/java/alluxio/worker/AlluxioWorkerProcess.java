@@ -11,13 +11,10 @@
 
 package alluxio.worker;
 
-import alluxio.conf.ServerConfiguration;
 import alluxio.Constants;
 import alluxio.conf.PropertyKey;
-import alluxio.RuntimeConstants;
+import alluxio.conf.ServerConfiguration;
 import alluxio.metrics.MetricsSystem;
-import alluxio.metrics.sink.MetricsServlet;
-import alluxio.metrics.sink.PrometheusMetricsServlet;
 import alluxio.network.ChannelType;
 import alluxio.underfs.UfsManager;
 import alluxio.underfs.WorkerUfsManager;
@@ -34,6 +31,7 @@ import alluxio.web.WorkerWebServer;
 import alluxio.wire.TieredIdentity;
 import alluxio.wire.WorkerNetAddress;
 import alluxio.worker.block.BlockWorker;
+import alluxio.worker.grpc.GrpcDataServer;
 
 import io.netty.channel.unix.DomainSocketAddress;
 import org.slf4j.Logger;
@@ -65,10 +63,6 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
   /** If started (i.e. not null), this server is used to serve local data transfer. */
   private DataServer mDomainSocketDataServer;
 
-  private final MetricsServlet mMetricsServlet = new MetricsServlet(MetricsSystem.METRIC_REGISTRY);
-  private final PrometheusMetricsServlet mPMetricsServlet = new PrometheusMetricsServlet(
-      MetricsSystem.METRIC_REGISTRY);
-
   /** The worker registry. */
   private WorkerRegistry mRegistry;
 
@@ -85,7 +79,7 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
   private InetSocketAddress mRpcConnectAddress;
 
   /** Worker start time in milliseconds. */
-  private long mStartTimeMs;
+  private final long mStartTimeMs;
 
   /** The manager for all ufs. */
   private UfsManager mUfsManager;
@@ -116,7 +110,7 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
       // registered at worker registry, so the maximum timeout here is set to the multiply of
       // the number of factories by the default timeout of getting a worker from the registry.
       CommonUtils.invokeAll(callables,
-          (long) callables.size() * Constants.DEFAULT_REGISTRY_GET_TIMEOUT_MS);
+          (long) callables.size() * 10 * Constants.DEFAULT_REGISTRY_GET_TIMEOUT_MS);
 
       // Setup web server
       mWebServer =
@@ -147,8 +141,7 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
         mBindSocket.close();
       }
       // Setup Data server
-      mDataServer =
-          DataServer.Factory.create(mRpcConnectAddress.getHostName(), mRpcBindAddress, this);
+      mDataServer = new GrpcDataServer(mRpcConnectAddress.getHostName(), mRpcBindAddress, this);
 
       // Setup domain socket data server
       if (isDomainSocketEnabled()) {
@@ -159,7 +152,7 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
               PathUtils.concatPath(domainSocketPath, UUID.randomUUID().toString());
         }
         LOG.info("Domain socket data server is enabled at {}.", domainSocketPath);
-        mDomainSocketDataServer = DataServer.Factory.create(mRpcConnectAddress.getHostName(),
+        mDomainSocketDataServer = new GrpcDataServer(mRpcConnectAddress.getHostName(),
             new DomainSocketAddress(domainSocketPath), this);
         // Share domain socket so that clients can access it.
         FileUtils.changeLocalFileToFullPermission(domainSocketPath);
@@ -233,11 +226,8 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
     // Requirement: NetAddress set in WorkerContext, so block worker can initialize BlockMasterSync
     // Consequence: worker id is granted
     startWorkers();
-    LOG.info("Started {} with id {}", this, mRegistry.get(BlockWorker.class).getWorkerId());
 
     // Start serving the web server, this will not block.
-    mWebServer.addHandler(mMetricsServlet.getHandler());
-    mWebServer.addHandler(mPMetricsServlet.getHandler());
     mWebServer.start();
 
     // Start monitor jvm
@@ -251,9 +241,8 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
     }
 
     // Start serving RPC, this will block
-    LOG.info("Alluxio worker version {} started. "
-            + "bindHost={}, connectHost={}, rpcPort={}, webPort={}",
-        RuntimeConstants.VERSION,
+    LOG.info("Alluxio worker started. id={}, bindHost={}, connectHost={}, rpcPort={}, webPort={}",
+        mRegistry.get(BlockWorker.class).getWorkerId(),
         NetworkAddressUtils.getBindHost(ServiceType.WORKER_RPC, ServerConfiguration.global()),
         NetworkAddressUtils.getConnectHost(ServiceType.WORKER_RPC, ServerConfiguration.global()),
         NetworkAddressUtils.getPort(ServiceType.WORKER_RPC, ServerConfiguration.global()),

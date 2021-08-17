@@ -41,7 +41,7 @@ public class SwiftOutputStream extends OutputStream {
       mOutputStream  = httpCon.getOutputStream();
       mHttpCon = httpCon;
     } catch (Exception e) {
-      LOG.error(e.getMessage());
+      LOG.error("Failed to construct SwiftOutputStream", e);
       throw new IOException(e);
     }
   }
@@ -76,7 +76,7 @@ public class SwiftOutputStream extends OutputStream {
       }
       is.close();
     } catch (Exception e) {
-      LOG.error(e.getMessage());
+      LOG.error("Failed to close SwiftOutputStream", e);
       if (is != null) {
         is.close();
       }

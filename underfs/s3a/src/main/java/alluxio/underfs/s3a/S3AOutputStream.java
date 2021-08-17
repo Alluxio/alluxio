@@ -150,7 +150,7 @@ public class S3AOutputStream extends OutputStream {
       PutObjectRequest putReq = new PutObjectRequest(mBucketName, path, mFile).withMetadata(meta);
       mManager.upload(putReq).waitForUploadResult();
     } catch (Exception e) {
-      LOG.error("Failed to upload {}: {}", path, e.toString());
+      LOG.error("Failed to upload {}", path, e);
       throw new IOException(e);
     } finally {
       // Delete the temporary file on the local machine if the transfer manager completed the

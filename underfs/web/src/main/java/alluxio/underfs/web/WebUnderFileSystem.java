@@ -239,7 +239,7 @@ public class WebUnderFileSystem extends ConsistentUnderFileSystem {
         Date parsedDate = dateFormat.parse(datetime);
         timestamp = parsedDate.getTime();
       } catch (Exception e) {
-        LOG.error("Failed to format {} to a timestamp, {}", datetime, e.getMessage());
+        LOG.error("Failed to format {} to a timestamp", datetime, e);
       }
     }
     return timestamp;
@@ -251,7 +251,7 @@ public class WebUnderFileSystem extends ConsistentUnderFileSystem {
     try {
       doc = Jsoup.connect(path).get();
     } catch (Exception e) {
-      LOG.error("Failed to get content from URL {}, {}", path, e.getMessage());
+      LOG.error("Failed to get content from URL {}", path, e);
       return null;
     }
 

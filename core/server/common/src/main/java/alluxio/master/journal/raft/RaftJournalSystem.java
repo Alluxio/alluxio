@@ -57,6 +57,7 @@ import org.apache.ratis.protocol.RaftGroupId;
 import org.apache.ratis.protocol.RaftPeer;
 import org.apache.ratis.protocol.RaftPeerId;
 import org.apache.ratis.protocol.SetConfigurationRequest;
+import org.apache.ratis.protocol.exceptions.LeaderNotReadyException;
 import org.apache.ratis.retry.ExponentialBackoffRetry;
 import org.apache.ratis.retry.RetryPolicy;
 import org.apache.ratis.rpc.SupportedRpcType;
@@ -64,6 +65,7 @@ import org.apache.ratis.server.RaftServer;
 import org.apache.ratis.server.RaftServerConfigKeys;
 import org.apache.ratis.thirdparty.com.google.protobuf.UnsafeByteOperations;
 import org.apache.ratis.util.LifeCycle;
+import org.apache.ratis.util.NetUtils;
 import org.apache.ratis.util.SizeInBytes;
 import org.apache.ratis.util.TimeDuration;
 import org.slf4j.Logger;
@@ -77,9 +79,12 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.OptionalLong;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
@@ -263,8 +268,6 @@ public class RaftJournalSystem extends AbstractJournalSystem {
       LOG.debug("Overriding election timeout to {}ms for single master cluster.",
           SINGLE_MASTER_ELECTION_TIMEOUT_MS);
       conf.setElectionTimeoutMs(SINGLE_MASTER_ELECTION_TIMEOUT_MS);
-      // Use the highest heartbeat internal relative to election timeout.
-      conf.setHeartbeatIntervalMs((SINGLE_MASTER_ELECTION_TIMEOUT_MS / 2) - 1);
     }
     // Validate the conf.
     conf.validate();
@@ -285,14 +288,6 @@ public class RaftJournalSystem extends AbstractJournalSystem {
     }
     mStateMachine = new JournalStateMachine(mJournals, this);
 
-    List<InetSocketAddress> addresses = mConf.getClusterAddresses();
-    InetSocketAddress localAddress = mConf.getLocalAddress();
-    mPeerId = RaftJournalUtils.getPeerId(localAddress);
-    Set<RaftPeer> peers = addresses.stream()
-        .map(addr -> new RaftPeer(RaftJournalUtils.getPeerId(addr), addr))
-        .collect(Collectors.toSet());
-    mRaftGroup = RaftGroup.valueOf(RAFT_GROUP_ID, peers);
-
     RaftProperties properties = new RaftProperties();
     Parameters parameters = new Parameters();
 
@@ -300,7 +295,7 @@ public class RaftJournalSystem extends AbstractJournalSystem {
     RaftConfigKeys.Rpc.setType(properties, SupportedRpcType.GRPC);
 
     // RPC port
-    GrpcConfigKeys.Server.setPort(properties, localAddress.getPort());
+    GrpcConfigKeys.Server.setPort(properties, mConf.getLocalAddress().getPort());
 
     // storage path
     maybeMigrateOldJournal();
@@ -310,6 +305,25 @@ public class RaftJournalSystem extends AbstractJournalSystem {
     // segment size
     RaftServerConfigKeys.Log.setSegmentSizeMax(properties,
         SizeInBytes.valueOf(mConf.getMaxLogSize()));
+
+    // the following configurations need to be changed when the single journal entry
+    // is unexpectedly big.
+    RaftServerConfigKeys.Log.Appender.setBufferByteLimit(properties,
+        SizeInBytes.valueOf(ServerConfiguration.global()
+            .getBytes(PropertyKey.MASTER_EMBEDDED_JOURNAL_ENTRY_SIZE_MAX)));
+    // this property defines the maximum allowed size of the concurrent journal flush requests.
+    // if the total size of the journal entries contained in the flush requests
+    // are bigger than the given threshold, Ratis may error out as
+    // `Log entry size 117146048 exceeds the max buffer limit of 104857600`
+    RaftServerConfigKeys.Write.setByteLimit(properties,
+        SizeInBytes.valueOf(ServerConfiguration.global()
+            .getBytes(PropertyKey.MASTER_EMBEDDED_JOURNAL_FLUSH_SIZE_MAX)));
+    // this property defines the maximum allowed size of the concurrent journal write IO tasks.
+    // if the total size of the journal entries contained in the write IO tasks
+    // are bigger than the given threshold, ratis may error out as
+    // `SegmentedRaftLogWorker: elementNumBytes = 78215699 > byteLimit = 67108864`
+    RaftServerConfigKeys.Log.setQueueByteLimit(properties, (int) ServerConfiguration
+        .global().getBytes(PropertyKey.MASTER_EMBEDDED_JOURNAL_FLUSH_SIZE_MAX));
 
     // election timeout, heartbeat timeout is automatically 1/2 of the value
     final TimeDuration leaderElectionMinTimeout = TimeDuration.valueOf(
@@ -344,6 +358,18 @@ public class RaftJournalSystem extends AbstractJournalSystem {
     RaftServerConfigKeys.Log.Appender.setInstallSnapshotEnabled(
         properties, false);
 
+    /*
+     * Soft disable RPC level safety.
+     *
+     * Without these overrides, the leader will step down upon detecting a long running GC over
+     * 10sec. This is not desirable for a single master cluster. Additionally, reduced safety should
+     * be provided via standard leader election in clustered mode.
+     */
+    RaftServerConfigKeys.Rpc.setSlownessTimeout(properties,
+        TimeDuration.valueOf(Long.MAX_VALUE, TimeUnit.MILLISECONDS));
+    RaftServerConfigKeys.LeaderElection.setLeaderStepDownWaitTime(properties,
+        TimeDuration.valueOf(Long.MAX_VALUE, TimeUnit.MILLISECONDS));
+
     long messageSize = ServerConfiguration.global().getBytes(
         PropertyKey.MASTER_EMBEDDED_JOURNAL_TRANSPORT_MAX_INBOUND_MESSAGE_SIZE);
     GrpcConfigKeys.setMessageSizeMax(properties,
@@ -358,6 +384,24 @@ public class RaftJournalSystem extends AbstractJournalSystem {
         .setProperties(properties)
         .setParameters(parameters)
         .build();
+  }
+
+  /**
+   * @return current raft group
+   */
+  @VisibleForTesting
+  public synchronized RaftGroup getCurrentGroup() {
+    try {
+      Iterator<RaftGroup> groupIter = mServer.getGroups().iterator();
+      Preconditions.checkState(groupIter.hasNext(), "no group info found");
+      RaftGroup group = groupIter.next();
+      Preconditions.checkState(group.getGroupId() == RAFT_GROUP_ID,
+          String.format("Invalid group id %s, expecting %s", group.getGroupId(), RAFT_GROUP_ID));
+      return group;
+    } catch (IOException | IllegalStateException e) {
+      LogUtils.warnWithException(LOG, "Failed to get raft group, falling back to initial group", e);
+      return mRaftGroup;
+    }
   }
 
   private RaftClient createClient() {
@@ -540,6 +584,8 @@ public class RaftJournalSystem extends AbstractJournalSystem {
     return services;
   }
 
+  private static final long JOURNAL_STAT_LOG_MAX_INTERVAL_MS = 30000L;
+
   /**
    * Attempts to catch up. If the master loses leadership during this method, it will return early.
    *
@@ -553,6 +599,30 @@ public class RaftJournalSystem extends AbstractJournalSystem {
     // Wait for any outstanding snapshot to complete.
     CommonUtils.waitFor("snapshotting to finish", () -> !stateMachine.isSnapshotting(),
         WaitForOptions.defaults().setTimeoutMs(10 * Constants.MINUTE_MS));
+    OptionalLong endCommitIndex = OptionalLong.empty();
+    try {
+      // raft peer IDs are unique, so there should really only ever be one result.
+      // If for some reason there is more than one..it should be fine as it only
+      // affects the completion time estimate in the logs.
+      synchronized (this) { // synchronized to appease findbugs; shouldn't make any difference
+        RaftPeerId serverId = mServer.getId();
+        Optional<RaftProtos.CommitInfoProto> commitInfo = getGroupInfo().getCommitInfos().stream()
+            .filter(commit -> serverId.equals(RaftPeerId.valueOf(commit.getServer().getId())))
+            .findFirst();
+        if (commitInfo.isPresent()) {
+          endCommitIndex = OptionalLong.of(commitInfo.get().getCommitIndex());
+        } else {
+          throw new IOException("Commit info was not present. Couldn't find the current server's "
+              + "latest commit");
+        }
+      }
+    } catch (IOException e) {
+      LogUtils.warnWithException(LOG, "Failed to get raft log information before replay."
+          + " Replay statistics will not be available", e);
+    }
+
+    RaftJournalProgressLogger progressLogger =
+        new RaftJournalProgressLogger(mStateMachine, endCommitIndex);
 
     // Loop until we lose leadership or convince ourselves that we are caught up and we are the only
     // master serving. To convince ourselves of this, we need to accomplish three steps:
@@ -585,8 +655,14 @@ public class RaftJournalSystem extends AbstractJournalSystem {
       } catch (TimeoutException | ExecutionException | IOException e) {
         ex = e;
       }
+
       if (ex != null) {
-        LOG.info("Exception submitting term start entry: {}", ex.toString());
+        // LeaderNotReadyException typically indicates Ratis is still replaying the journal.
+        if (ex instanceof LeaderNotReadyException) {
+          progressLogger.logProgress();
+        } else {
+          LOG.info("Exception submitting term start entry: {}", ex.toString());
+        }
         // avoid excessive retries when server is not ready
         Thread.sleep(waitBeforeRetry);
         continue;
@@ -622,6 +698,17 @@ public class RaftJournalSystem extends AbstractJournalSystem {
   @Override
   public synchronized void startInternal() throws InterruptedException, IOException {
     LOG.info("Initializing Raft Journal System");
+    InetSocketAddress localAddress = mConf.getLocalAddress();
+    mPeerId = RaftJournalUtils.getPeerId(localAddress);
+    List<InetSocketAddress> addresses = mConf.getClusterAddresses();
+    Set<RaftPeer> peers = addresses.stream()
+        .map(addr -> RaftPeer.newBuilder()
+                .setId(RaftJournalUtils.getPeerId(addr))
+                .setAddress(addr)
+                .build()
+        )
+        .collect(Collectors.toSet());
+    mRaftGroup = RaftGroup.valueOf(RAFT_GROUP_ID, peers);
     initServer();
     List<InetSocketAddress> clusterAddresses = mConf.getClusterAddresses();
     LOG.info("Starting Raft journal system. Cluster addresses: {}. Local address: {}",
@@ -631,7 +718,8 @@ public class RaftJournalSystem extends AbstractJournalSystem {
       mServer.start();
     } catch (IOException e) {
       String errorMessage = ExceptionMessage.FAILED_RAFT_BOOTSTRAP
-          .getMessage(Arrays.toString(clusterAddresses.toArray()), e.getCause().toString());
+          .getMessage(Arrays.toString(clusterAddresses.toArray()),
+              e.getCause() == null ? e : e.getCause().toString());
       throw new IOException(errorMessage, e.getCause());
     }
     LOG.info("Started Raft Journal System in {}ms", System.currentTimeMillis() - startTime);
@@ -648,7 +736,7 @@ public class RaftJournalSystem extends AbstractJournalSystem {
             .setRpcPort(localAddress.getPort()))
         .build();
     RaftClient client = createClient();
-    client.sendReadOnlyAsync(Message.valueOf(
+    client.async().sendReadOnly(Message.valueOf(
         UnsafeByteOperations.unsafeWrap(
             JournalQueryRequest
                 .newBuilder()
@@ -736,16 +824,23 @@ public class RaftJournalSystem extends AbstractJournalSystem {
   public synchronized CompletableFuture<RaftClientReply> sendMessageAsync(
       RaftPeerId server, Message message) {
     RaftClient client = createClient();
-    return client.getClientRpc().sendRequestAsync(
-        new RaftClientRequest(mRawClientId, server, RAFT_GROUP_ID, nextCallId(), message,
-            RaftClientRequest.staleReadRequestType(0), null)
-    ).whenComplete((reply, t) -> {
-      try {
-        client.close();
-      } catch (IOException e) {
-        throw new CompletionException(e);
-      }
-    });
+    RaftClientRequest request = RaftClientRequest.newBuilder()
+            .setClientId(mRawClientId)
+            .setServerId(server)
+            .setGroupId(RAFT_GROUP_ID)
+            .setCallId(nextCallId())
+            .setMessage(message)
+            .setType(RaftClientRequest.staleReadRequestType(0))
+            .setSlidingWindowEntry(null)
+            .build();
+    return client.getClientRpc().sendRequestAsync(request)
+            .whenComplete((reply, t) -> {
+              try {
+                client.close();
+              } catch (IOException e) {
+                throw new CompletionException(e);
+              }
+            });
   }
 
   private GroupInfoReply getGroupInfo() throws IOException {
@@ -777,12 +872,81 @@ public class RaftJournalSystem extends AbstractJournalSystem {
     RaftPeerId peerId = RaftJournalUtils.getPeerId(serverAddress);
     try (RaftClient client = createClient()) {
       Collection<RaftPeer> peers = mServer.getGroups().iterator().next().getPeers();
-      RaftClientReply reply = client.setConfiguration(peers.stream()
+      RaftClientReply reply = client.admin().setConfiguration(peers.stream()
           .filter(peer -> !peer.getId().equals(peerId))
-          .toArray(RaftPeer[]::new));
+          .collect(Collectors.toList()));
       if (reply.getException() != null) {
         throw reply.getException();
       }
+    }
+  }
+
+  /**
+   * Transfers the leadership of the quorum to another server.
+   *
+   * @param newLeaderNetAddress the address of the server
+   * @throws IOException if error occurred while performing the operation
+   */
+  public synchronized void transferLeadership(NetAddress newLeaderNetAddress) throws IOException {
+    InetSocketAddress serverAddress = InetSocketAddress
+            .createUnresolved(newLeaderNetAddress.getHost(), newLeaderNetAddress.getRpcPort());
+    List<RaftPeer> oldPeers = new ArrayList<>(mRaftGroup.getPeers());
+    // The NetUtil function is used by Ratis to convert InetSocketAddress to string
+    String strAddr = NetUtils.address2String(serverAddress);
+    // if you cannot find the address in the quorum, throw exception.
+    if (oldPeers.stream().map(RaftPeer::getAddress).noneMatch(addr -> addr.equals(strAddr))) {
+      throw new IOException(String.format("<%s> is not part of the quorum <%s>.",
+              strAddr, oldPeers.stream().map(RaftPeer::getAddress).collect(Collectors.toList())));
+    }
+
+    RaftPeerId newLeaderPeerId = RaftJournalUtils.getPeerId(serverAddress);
+    // --- the change in priorities seems to be necessary otherwise the transfer fails ---
+    List<RaftPeer> peersWithNewPriorities = new ArrayList<>();
+    for (RaftPeer peer : oldPeers) {
+      peersWithNewPriorities.add(
+              RaftPeer.newBuilder(peer)
+              .setPriority(peer.getId().equals(newLeaderPeerId) ? 2 : 1)
+              .build()
+      );
+    }
+    // --- end of updating priorities ---
+    final int TRANSFER_LEADER_WAIT_MS = 30_000;
+    try (RaftClient client = createClient()) {
+      LOG.info("Applying new peer state before transferring leadership: {}",
+              peersToString(peersWithNewPriorities));
+      // set peers to have new priorities
+      RaftClientReply reply = client.admin().setConfiguration(peersWithNewPriorities);
+      processReply(reply);
+      // transfer leadership
+      LOG.info("Transferring leadership to master with address <{}> and with RaftPeerId <{}>",
+              serverAddress, newLeaderPeerId);
+      reply = client.admin().transferLeadership(newLeaderPeerId, TRANSFER_LEADER_WAIT_MS);
+      processReply(reply);
+      // reset the peers to have the old priorities
+      LOG.info("Resetting peer state to before transfer: {}", peersToString(oldPeers));
+      reply = client.admin().setConfiguration(oldPeers);
+      processReply(reply);
+      LOG.info("Successfully reset peer state");
+    }
+  }
+
+  /**
+   * @param peers to be printed into a string
+   * @return the peers as a comma delimited list
+   */
+  private String peersToString(List<RaftPeer> peers) {
+    return "[" + peers.stream().map(RaftPeer::toString).collect(Collectors.joining(", ")) + "]";
+  }
+
+  /**
+   * @param reply from the ratis operation
+   * @throws IOException
+   */
+  private void processReply(RaftClientReply reply) throws IOException {
+    if (!reply.isSuccess()) {
+      throw reply.getException() != null
+              ? reply.getException()
+              : new IOException(String.format("reply <%s> failed", reply));
     }
   }
 
@@ -800,7 +964,10 @@ public class RaftJournalSystem extends AbstractJournalSystem {
     if (peers.stream().anyMatch((peer) -> peer.getId().equals(peerId))) {
       return;
     }
-    RaftPeer newPeer = new RaftPeer(peerId, serverAddress);
+    RaftPeer newPeer = RaftPeer.newBuilder()
+            .setId(peerId)
+            .setAddress(serverAddress)
+            .build();
     List<RaftPeer> newPeers = new ArrayList<>(peers);
     newPeers.add(newPeer);
     RaftClientReply reply = mServer.setConfiguration(
@@ -854,5 +1021,21 @@ public class RaftJournalSystem extends AbstractJournalSystem {
   public void notifyLeadershipStateChanged(boolean isLeader) {
     mPrimarySelector.notifyStateChanged(
         isLeader ? PrimarySelector.State.PRIMARY : PrimarySelector.State.SECONDARY);
+  }
+
+  @VisibleForTesting
+  synchronized RaftServer getRaftServer() {
+    return mServer;
+  }
+
+  /**
+   * Updates raft group with the current values from raft server.
+   */
+  public synchronized void updateGroup() {
+    RaftGroup newGroup = getCurrentGroup();
+    if (!newGroup.equals(mRaftGroup)) {
+      LOG.info("Raft group updated: old {}, new {}", mRaftGroup, newGroup);
+      mRaftGroup = newGroup;
+    }
   }
 }

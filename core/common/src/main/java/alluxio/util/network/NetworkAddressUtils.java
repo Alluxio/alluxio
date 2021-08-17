@@ -14,7 +14,6 @@ package alluxio.util.network;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.status.AlluxioStatusException;
-import alluxio.exception.status.UnauthenticatedException;
 import alluxio.grpc.GetServiceVersionPRequest;
 import alluxio.grpc.GrpcChannel;
 import alluxio.grpc.GrpcChannelBuilder;
@@ -26,7 +25,6 @@ import alluxio.util.OSUtils;
 import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.base.Preconditions;
-import io.grpc.StatusRuntimeException;
 import io.netty.channel.unix.DomainSocketAddress;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -73,6 +71,11 @@ public final class NetworkAddressUtils {
    * bind address.
    */
   public enum ServiceType {
+    /**
+     * FUSE web service (Jetty).
+     */
+    FUSE_WEB("Alluxio FUSE Web service", PropertyKey.FUSE_WEB_HOSTNAME,
+        PropertyKey.FUSE_WEB_BIND_HOST, PropertyKey.FUSE_WEB_PORT),
     /**
      * Job master Raft service (Netty). The bind and connect hosts are the same because the
      * underlying Raft implementation doesn't differentiate between bind and connect hosts.
@@ -650,7 +653,7 @@ public final class NetworkAddressUtils {
       address = new DomainSocketAddress(netAddress.getDomainSocketPath());
     } else {
       String host = netAddress.getHost();
-      // ALLUXIO-11172: If the worker is in a container, use the container hostname
+      // issues#11172: If the worker is in a container, use the container hostname
       // to establish the connection.
       if (!netAddress.getContainerHost().equals("")) {
         LOG.debug("Worker is in a container. Use container host {} instead of physical host {}",
@@ -667,13 +670,13 @@ public final class NetworkAddressUtils {
   /**
    * Test if the input address is serving an Alluxio service. This method make use of the
    * gRPC protocol for performing service communication.
+   * This methods throws UnauthenticatedException if the user is not authenticated,
+   * StatusRuntimeException If the host not reachable or does not serve the given service.
    *
    * @param address the network address to ping
    * @param serviceType the Alluxio service type
    * @param conf Alluxio configuration
    * @param userState the UserState
-   * @throws UnauthenticatedException If the user is not authenticated
-   * @throws StatusRuntimeException If the host not reachable or does not serve the given service
    */
   public static void pingService(InetSocketAddress address, alluxio.grpc.ServiceType serviceType,
       AlluxioConfiguration conf, UserState userState)
@@ -695,5 +698,29 @@ public final class NetworkAddressUtils {
     } finally {
       channel.shutdown();
     }
+  }
+
+  /**
+   * @param clusterAddresses addresses of all nodes in the Raft cluster
+   * @param conf Alluxio configuration
+   * @return true if the cluster addresses contain the local IP, false otherwise
+   */
+  public static boolean containsLocalIp(List<InetSocketAddress> clusterAddresses,
+      AlluxioConfiguration conf) {
+    String localAddressIp = getLocalIpAddress((int) conf.getMs(PropertyKey
+        .NETWORK_HOST_RESOLUTION_TIMEOUT_MS));
+    for (InetSocketAddress addr : clusterAddresses) {
+      String clusterNodeIp;
+      try {
+        clusterNodeIp = InetAddress.getByName(addr.getHostName()).getHostAddress();
+        if (clusterNodeIp.equals(localAddressIp)) {
+          return true;
+        }
+      } catch (UnknownHostException e) {
+        LOG.error("Get raft cluster node ip by hostname({}) failed",
+            addr.getHostName(), e);
+      }
+    }
+    return false;
   }
 }

@@ -52,7 +52,7 @@ public final class S3RestUtils {
         AuthenticatedClientUser.set(ServerUserState.global().getUser().getName());
       }
     } catch (IOException e) {
-      LOG.warn("Failed to set AuthenticatedClientUser in REST service handler: {}", e.getMessage());
+      LOG.warn("Failed to set AuthenticatedClientUser in REST service handler: {}", e.toString());
       return createErrorResponse(new S3Exception(e, resource, S3ErrorCode.INTERNAL_ERROR));
     }
 

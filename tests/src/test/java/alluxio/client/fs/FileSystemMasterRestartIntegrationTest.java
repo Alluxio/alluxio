@@ -330,6 +330,7 @@ public class FileSystemMasterRestartIntegrationTest extends BaseIntegrationTest 
    * Tests journal is updated with access time asynchronously before master is stopped.
    */
   @Test
+  @LocalAlluxioClusterResource.Config(confParams = {PropertyKey.Name.MASTER_METASTORE, "HEAP"})
   public void updateAccessTimeAsyncFlush() throws Exception {
     String parentName = "d1";
     AlluxioURI parentPath = new AlluxioURI("/" + parentName);
@@ -363,6 +364,7 @@ public class FileSystemMasterRestartIntegrationTest extends BaseIntegrationTest 
    * Tests journal is not updated with access time asynchronously after delete.
    */
   @Test
+  @LocalAlluxioClusterResource.Config(confParams = {PropertyKey.Name.MASTER_METASTORE, "HEAP"})
   public void updateAccessTimeAsyncFlushAfterDelete() throws Exception {
     String parentName = "d1";
     AlluxioURI parentPath = new AlluxioURI("/" + parentName);

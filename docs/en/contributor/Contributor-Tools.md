@@ -51,6 +51,29 @@ And then check the box next to "developer" in the window pane.
 > Note: Alluxio 2.2 moved generated gRPC proto source files into `alluxio/core/transport/target/generated-sources/protobuf/`.
 You will need to mark the directory as "Generated Sources Root" for IntelliJ to resolve the source files.
 
+#### Run Alluxio processes within IntelliJ IDEA
+1. Run `dev/intellij/install-runconfig.sh`
+2. Restart IntelliJ IDEA
+3. Edit `conf/alluxio-site.properties`
+```console
+  alluxio.home={alluxio.home}
+  alluxio.master.hostname=localhost
+  alluxio.master.journal.type=UFS
+```
+4. Edit `conf/log4j.properties` to print log in console
+```console
+  log4j.rootLogger=INFO, ${alluxio.logger.type}, ${alluxio.remote.logger.type}, stdout
+  log4j.threshold=ALL
+  log4j.appender.stdout=org.apache.log4j.ConsoleAppender
+  log4j.appender.stdout.layout=org.apache.log4j.PatternLayout
+  log4j.appender.stdout.layout.ConversionPattern=%d{ISO8601} %-5p %c{2} (%F:%M(%L)) - %m%n
+```
+5. Format the Alluxio master by running `bin/alluxio formatMaster`
+6. In Intellij, start Alluxio master process by selecting `Run > Run > AlluxioMaster`
+7. Prepare the RamFS and format the Alluxio Worker with `bin/alluxio-mount.sh SudoMount && bin/alluxio formatWorker`
+8. In Intellij, start Alluxio worker process by selecting `Run > Run > AlluxioWorker`
+9. Verify the Alluxio cluster is up as [Running Alluxio Locally]({{ '/en/deploy/Running-Alluxio-Locally.html#verify-alluxio-is-running' | relativize_url }})
+
 ## Maven Targets and Plugins
 
 Before pushing changes or submitting pull requests, we recommend running various maven targets on
@@ -187,7 +210,7 @@ To run those tests, please install the libraries referenced in
 
 ## Modifying a gRPC definition
 
-Alluxio uses [gRPC](https://grpc.io/) 1.28.1 for RPC communication between clients and servers. The `.proto`
+Alluxio uses [gRPC](https://grpc.io/) 1.37.0 for RPC communication between clients and servers. The `.proto`
 files defined in `core/transport/src/grpc/` are used to auto-generate Java code for calling the
 RPCs on clients and implementing the RPCs on servers. To regenerate Java code after changing 
 a gRPC definition, you must rebuild `alluxio-core-transport` module with `'generate'` maven profile.

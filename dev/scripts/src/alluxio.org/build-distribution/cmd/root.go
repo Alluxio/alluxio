@@ -20,6 +20,7 @@ import (
 var (
 	customUfsModuleFlag string
 	debugFlag           bool
+	includedLibJarsFlag string
 	ufsModulesFlag      string
 )
 
@@ -42,8 +43,13 @@ func checkRootFlags() error {
 // common flags that are used regardless of subcommand type
 // these flags provide additional settings unrelated to tarball generation
 func additionalFlags(cmd *flag.FlagSet) {
-	cmd.StringVar(&customUfsModuleFlag, "custom-ufs-module", "", "a pipe-separated pair of the module name and its comma-separated maven arguments. ex. hadoop-x.y|-pl,underfs/hdfs,-Pufs-hadoop-X,-Dufs.hadoop.version=x.y.z")
+	cmd.StringVar(&customUfsModuleFlag, "custom-ufs-module", "",
+		"a percent-separated list of custom ufs modules which has the form of a pipe-separated pair of the module name and its comma-separated maven arguments."+
+			" e.g. hadoop-a.b|-pl,underfs/hdfs,-Pufs-hadoop-A,-Dufs.hadoop.version=a.b.c%hadoop-x.y|-pl,underfs/hdfs,-Pufs-hadoop-X,-Dufs.hadoop.version=x.y.z")
 	cmd.BoolVar(&debugFlag, "debug", false, "whether to run this tool in debug mode to generate additional console output")
 	cmd.StringVar(&ufsModulesFlag, "ufs-modules", strings.Join(defaultModules(ufsModules), ","),
 		fmt.Sprintf("a comma-separated list of ufs modules to compile into the distribution tarball(s). Specify 'all' to build all ufs modules. Supported ufs modules: [%v]", strings.Join(validModules(ufsModules), ",")))
+	cmd.StringVar(&includedLibJarsFlag, "lib-jars", "all",
+		"a comma-separated list of jars under lib/ to include in addition to all underfs-hdfs modules. All jars under lib/ will be included by default."+
+			" e.g. underfs-cos,table-server-underdb-glue")
 }

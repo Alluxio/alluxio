@@ -50,7 +50,7 @@ import java.util.function.Supplier;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * GCS FS {@link UnderFileSystem} implementation based on the jets3t library.
+ * Google Cloud Storage {@link UnderFileSystem} implementation based on the jets3t library.
  */
 @ThreadSafe
 public class GCSUnderFileSystem extends ObjectUnderFileSystem {
@@ -333,7 +333,7 @@ public class GCSUnderFileSystem extends ObjectUnderFileSystem {
       }
     } catch (ServiceException e) {
       LOG.warn("Failed to get Google account owner, proceeding with defaults owner {}. {}",
-          accountOwner, e.getMessage());
+          accountOwner, e.toString());
     }
 
     short bucketMode =
@@ -342,7 +342,7 @@ public class GCSUnderFileSystem extends ObjectUnderFileSystem {
       GSAccessControlList acl = mClient.getBucketAcl(mBucketName);
       bucketMode = GCSUtils.translateBucketAcl(acl, accountOwnerId);
     } catch (ServiceException e) {
-      LOG.warn("Failed to inherit bucket ACLs, proceeding with defaults. {}", e.getMessage());
+      LOG.warn("Failed to inherit bucket ACLs, proceeding with defaults. {}", e.toString());
     }
 
     // No group in GCS ACL, returns the account owner for group.

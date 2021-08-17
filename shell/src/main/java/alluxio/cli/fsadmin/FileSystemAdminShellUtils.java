@@ -12,6 +12,7 @@
 package alluxio.cli.fsadmin;
 
 import alluxio.ClientContext;
+import alluxio.Constants;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.FileSystemMasterClient;
 import alluxio.conf.AlluxioConfiguration;
@@ -79,7 +80,8 @@ public final class FileSystemAdminShellUtils {
     // MEM, SSD, and HDD are the most commonly used Alluxio tier alias,
     // so we want them to show before other tier names
     // MEM, SSD, and HDD are sorted according to the speed of access
-    List<String> tierOrder = Arrays.asList("MEM", "SSD", "HDD");
+    List<String> tierOrder = Arrays.asList(Constants.MEDIUM_MEM, Constants.MEDIUM_SSD,
+        Constants.MEDIUM_HDD);
     int rank = tierOrder.indexOf(input);
     if (rank == -1) {
       return Integer.MAX_VALUE;

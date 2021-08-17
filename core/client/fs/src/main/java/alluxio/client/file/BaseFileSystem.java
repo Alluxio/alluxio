@@ -272,11 +272,15 @@ public class BaseFileSystem implements FileSystem {
   public URIStatus getStatus(AlluxioURI path, final GetStatusPOptions options)
       throws FileDoesNotExistException, IOException, AlluxioException {
     checkUri(path);
-    return rpc(client -> {
+    URIStatus status = rpc(client -> {
       GetStatusPOptions mergedOptions = FileSystemOptions.getStatusDefaults(
           mFsContext.getPathConf(path)).toBuilder().mergeFrom(options).build();
       return client.getStatus(path, mergedOptions);
     });
+    if (!status.isCompleted()) {
+      LOG.warn("File {} is not yet completed. getStatus will see incomplete metadata.", path);
+    }
+    return status;
   }
 
   @Override
@@ -523,17 +527,24 @@ public class BaseFileSystem implements FileSystem {
     if (uri.hasAuthority()) {
       LOG.warn("The URI authority (hostname and port) is ignored and not required in URIs passed "
           + "to the Alluxio Filesystem client.");
-      /* Even if we choose to log the warning, check if the Configuration host matches what the
-       * user passes. If not, throw an exception letting the user know they don't match.
-       */
-      Authority configured =
-          MasterInquireClient.Factory
-              .create(mFsContext.getClusterConf(), mFsContext.getClientContext().getUserState())
-              .getConnectDetails().toAuthority();
-      if (!configured.equals(uri.getAuthority())) {
-        throw new IllegalArgumentException(
-            String.format("The URI authority %s does not match the configured " + "value of %s.",
-                uri.getAuthority(), configured));
+
+      AlluxioConfiguration conf = mFsContext.getClusterConf();
+      boolean skipAuthorityCheck = conf.isSet(PropertyKey.USER_SKIP_AUTHORITY_CHECK)
+              && conf.getBoolean(PropertyKey.USER_SKIP_AUTHORITY_CHECK);
+      if (!skipAuthorityCheck) {
+        /* Even if we choose to log the warning, check if the Configuration host matches what the
+         * user passes. If not, throw an exception letting the user know they don't match.
+         */
+        Authority configured =
+                MasterInquireClient.Factory
+                        .create(mFsContext.getClusterConf(),
+                                mFsContext.getClientContext().getUserState())
+                        .getConnectDetails().toAuthority();
+        if (!configured.equals(uri.getAuthority())) {
+          throw new IllegalArgumentException(
+                  String.format("The URI authority %s does not match the configured value of %s.",
+                          uri.getAuthority(), configured));
+        }
       }
     }
   }

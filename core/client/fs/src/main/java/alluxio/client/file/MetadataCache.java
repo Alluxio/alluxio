@@ -151,6 +151,15 @@ public final class MetadataCache {
   }
 
   /**
+   * Invalidates the cache of path.
+   *
+   * @param path the path
+   */
+  public void invalidate(AlluxioURI path) {
+    mCache.invalidate(path.getPath());
+  }
+
+  /**
    * @return the cache size
    */
   @VisibleForTesting

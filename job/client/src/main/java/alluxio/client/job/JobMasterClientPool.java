@@ -51,7 +51,7 @@ public final class JobMasterClientPool extends ResourcePool<JobMasterClient> {
   }
 
   @Override
-  protected JobMasterClient createNewResource() {
+  public JobMasterClient createNewResource() {
     JobMasterClient client = JobMasterClient.Factory.create(mMasterContext);
     mClientList.add(client);
     return client;

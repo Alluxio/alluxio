@@ -15,14 +15,16 @@ You can invoke the following command line utility to get all the subcommands:
 ```console
 $ ./bin/alluxio fsadmin
 Usage: alluxio fsadmin [generic options]
-	 [backup [directory] [--local]]                            
-	 [doctor [category]]                                       
-	 [getBlockInfo [blockId]]                                  
-	 [journal [checkpoint] [quorum]]                           
-	 [metrics [clear]]                                         
-	 [pathConf [add] [show] [list] [remove]]                   
-	 [report [category] [category args]]                       
-	 [ufs [--mode <noAccess/readOnly/readWrite>] <ufsPath>] 
+	 [backup [directory] [--local]]
+	 [doctor [category]]
+	 [getBlockInfo [blockId]]
+	 [journal [checkpoint] [quorum]]
+	 [metrics [clear]]
+	 [pathConf [add] [show] [list] [remove]]
+	 [report [category] [category args]]
+	 [statelock]
+	 [ufs [--mode <noAccess/readOnly/readWrite>] <ufsPath>]
+
 ```
 
 ## Operations
@@ -54,7 +56,8 @@ Back up to a specific directory on the leading master's local filesystem.
 ./bin/alluxio fsadmin backup /opt/alluxio/backups/ --local
 Backup Host        : AlluxioSandboxEJSC-masters-1                          
 Backup URI         : file:///opt/alluxio/backups/alluxio-backup-2020-10-13-1602619298086.gz
-Backup Entry Count : 4```
+Backup Entry Count : 4
+```
 
 ### journal
 The `journal` command provides several sub-commands for journal management.
@@ -68,7 +71,12 @@ $ ./bin/alluxio fsadmin journal quorum info -domain <MASTER | JOB_MASTER>
 
 ```console
 # Remove a member from leader election quorum.
-$ ./bin/alluxio fsadmin journal quorum remove -domain <MASTER | JOB_MASTER> -address <Member_Address>
+$ ./bin/alluxio fsadmin journal quorum remove -domain <MASTER | JOB_MASTER> -address <HOSTNAME:PORT>
+```
+
+```console
+# Elect a specific member of the quorum as the new leader.
+$ ./bin/alluxio fsadmin journal quorum elect -address <HOSTNAME:PORT>
 ```
 
 **checkpoint:** is used to create a checkpoint in the primary master journal system.
@@ -272,6 +280,11 @@ Timestamp: 10-24-2019 17:15:22:946       Id: 1603922372008       Name: Persist  
 
 10 Longest Running Jobs:
 ```
+
+### statelock
+
+The `statelock` command provides information about the waiters and holders of the alluxio statelock.
+This command can help diagnose any long running requests issued by users or the Alluxio system.
 
 ### ufs
 

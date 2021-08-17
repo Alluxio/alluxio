@@ -11,7 +11,9 @@
 
 package alluxio.job.plan.replicate;
 
+import alluxio.AlluxioURI;
 import alluxio.client.block.AlluxioBlockStore;
+import alluxio.client.file.URIStatus;
 import alluxio.collections.Pair;
 import alluxio.job.plan.AbstractVoidPlanDefinition;
 import alluxio.job.RunTaskContext;
@@ -95,8 +97,13 @@ public final class ReplicateDefinition
   @Override
   public SerializableVoid runTask(ReplicateConfig config, SerializableVoid arg,
       RunTaskContext context) throws Exception {
-    JobUtils.loadBlock(context.getFileSystem(), context.getFsContext(),
-        config.getPath(), config.getBlockId());
+    // TODO(jiri): Replace with internal client that uses file ID once the internal client is
+    // factored out of the core server module. The reason to prefer using file ID for this job is
+    // to avoid the the race between "replicate" and "rename", so that even a file to replicate is
+    // renamed, the job is still working on the correct file.
+    URIStatus status = context.getFileSystem().getStatus(new AlluxioURI(config.getPath()));
+
+    JobUtils.loadBlock(status, context.getFsContext(), config.getBlockId());
     LOG.info("Replicated file " + config.getPath() + " block " + config.getBlockId());
     return null;
   }

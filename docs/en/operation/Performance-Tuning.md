@@ -18,21 +18,23 @@ The following is a checklist to run through to address common problems when tuni
 1. Are all nodes working?
 
    Check that the Alluxio cluster is healthy. You can check the web user interface at
-   `http://MasterHost:19999` to see if the masters and workers are working correctly from a browser.
-   Alternatively, you can run `bin/alluxio fsadmin report` to collect similar information from the console.
-   Important metrics to verify if any nodes are out of service are the number of lost workers and
-   the last heartbeat time.
+   `http://<master hostname>:19999` to see if the master is reachable from a browser.
+   Similarly, workers can be reached by clicking on the "workers" tab of the Alluxio master UI
+   or by navigating to `http://<worker hostname>:30000/`
+   Alternatively, run `bin/alluxio fsadmin report` to collect similar information from the console.
+   Both the web interfaces and command-line output contain metrics to verify if any nodes are out of
+   service and the last known heartbeat times.
 
 1. Are short-circuit operations working?
 
-   If the compute application is running co-located with Alluxio workers, check that the
+   If a compute application is running co-located with Alluxio workers, check that the
    application is performing short-circuit reads and writes with its local Alluxio worker.
    Monitor the metrics values for `cluster.BytesReadRemoteThroughput` and `cluster.BytesReadLocalThroughput`
-   while the application is running (Metrics can be viewed through `alluxio fsadmin report metrics`. ).
+   while the application is running (Metrics can be viewed through `alluxio fsadmin report metrics`).
    If the local throughput is zero or significantly lower than the remote alluxio read throughput,
    the compute application is likely not interfacing with a local Alluxio worker.
-   The Alluxio client uses hostname matching to discover a local Alluxio worker;
-   check that the client and worker use the same hostname string.
+   The Alluxio client uses hostname matching to determine the existence of a local Alluxio worker.
+   Check that the client and worker use the same hostname string.
    Configuring `alluxio.user.hostname` and `alluxio.worker.hostname` sets the client and worker
    hostnames respectively.
 
@@ -50,7 +52,7 @@ The following is a checklist to run through to address common problems when tuni
 
 1. Are there error messages containing "DeadlineExceededException" in the user logs?
 
-   This could indicate that the client is timing out when communicating with the Alluxio worker.
+   This could indicate that the client is timing out when communicating with an Alluxio worker.
    To increase the timeout, configure `alluxio.user.streaming.data.timeout`, which has a default of `30s`.
 
    If write operations are timing out, configure `alluxio.user.streaming.writer.close.timeout`,
@@ -72,8 +74,8 @@ The following is a checklist to run through to address common problems when tuni
 ALLUXIO_JAVA_OPTS=" -XX:+PrintGCDetails -XX:+PrintTenuringDistribution -XX:+PrintGCTimeStamps"
 ```
 
-   Restart the Alluxio servers and check the output in `logs/master.out` or `logs/worker.out`
-   for masters and workers respectively.
+   Restart the Alluxio servers and check the output in `${ALLUXIO_HOME}/logs/master.out` or
+   `${ALLUXIO_HOME}/logs/worker.out` for masters and workers respectively.
 
 Also check out the [metrics system][2] for better insight in how the Alluxio service is performing.
 
@@ -212,6 +214,19 @@ Increasing the number of threads can decrease the staleness of the UFS path cach
 but may impact performance by increasing work on the Alluxio master, as well as consuming UFS bandwidth.
 If this is set to 0, the cache is disabled and the `ONCE` setting will behave like the `ALWAYS` setting.
 
+### Metadata Sync
+
+If the content on the UFS are modified without going through Alluxio, Alluxio needs to sync its metadata with the UFS to reflect those changes in Alluxio namespace. 
+The cost of metadata sync scales linearly with the number of files in the directory that is being synced. 
+If metadata sync operation happens frequently on large directories, more threads may be allocated to speed up this process. 
+Two configurations are relevant here. 
+
+`alluxio.master.metadata.sync.concurrency.level` controls the concurrency that is used in a single sync operation.
+Adjust this to 1x to 2x virtual core count on the master node to speed up the speed of metadata sync.
+
+`alluxio.master.metadata.sync.executor.pool.size` controls the number of threads performing sync operations.
+This defaults to the number of virtual cores in the system, but can be adjusted to 2x or 4x number of virtual cores if we expect many concurrent sync operations. 
+
 ## Worker Tuning
 
 ### Block reading thread pool size
@@ -243,6 +258,22 @@ parameter should be set based on `dfs.datanode.handler.count`. For instance, if 
 Alluxio workers matches the the number of HDFS datanodes, set
 `alluxio.worker.ufs.instream.cache.max.size=<value of HDFS setting dfs.datanode.handler.count>`
 under the assumption that the workload is spread evenly over Alluxio workers.
+
+## Job Service Tuning
+
+### Job Service Capacity
+Job service limits the total number of currently running jobs to control its resource usage.
+Note that a single CLI command such as distributedLoad can trigger many jobs to be created, one for each file. 
+If jobs tend to be created in large batches, consider increasing `alluxio.job.master.job.capacity` to a larger value than the default 100K. 
+Job submissions will be rejected if the job service is out of capacity.
+
+There are configurations which control the capacity and parallelism for commands such as `DistributedLoad`.
+Please consult the CLI documentation for more details.
+
+### Job Service Throughput
+When there are many concurrent jobs running, and a higher throughput is desired, consider increasing `alluxio.job.worker.threadpool.size` configuration. 
+This allows each job worker to run with more parallel threads. The drawback is it will compete for resources on the worker machines. 
+Recommend 2x virtual core count if most jobs are running in off peak hours only and 1/2 to 1x virtual core count if jobs are running in all hours. 
 
 ## Client Tuning
 
@@ -284,7 +315,7 @@ store dominates the run time of the workload.
 Alluxio provides a way to only incur the cost of writing the data to Alluxio (fast) on the critical
 path. Users should configure the following Alluxio properties in the compute framework:
 
-```
+```properties
 # Writes data only to Alluxio before returning a successful write
 alluxio.user.file.writetype.default=ASYNC_THROUGH
 # Does not persist the data automatically to the underlying storage, this is important because

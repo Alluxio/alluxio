@@ -140,7 +140,6 @@ $ docker run -d \
     -v /mnt:/mnt:rshared \
     --cap-add SYS_ADMIN \
     --device /dev/fuse \
-    -e ALLUXIO_JAVA_OPTS=" -Dalluxio.fuse.jnifuse.enabled=true " \
     registry.cn-huhehaote.aliyuncs.com/alluxio/alluxio-fuse:2.3.0-SNAPSHOT-b7629dc fuse \
     --fuse-opts=kernel_cache
 ```
@@ -151,7 +150,6 @@ $ docker run -d \
 - `--cap-add SYS_ADMIN`：赋予容器`SYS_ADMIN`权限
 - `--device /dev/fuse`：容器共享宿主机的设备`/dev/fuse`
 - `--fuse-opts=kernel_cache`：设置FUSE参数，`kernel_cache`表示使用`page cahce`
-- `ALLUXIO_JAVA_OPTS`中设置了`alluxio.fuse.jnifuse.enabled=true`，表示使用`jnifuse`，这将在本文第三部分调优中详细解释
 
 ### 测试Alluxio集群
 
@@ -240,8 +238,8 @@ LICENSE
         <td>描述</td>
     </tr>
     <tr>
-        <td>`alluxio.fuse.jnifuse.enable`d</td>
-        <td>false</td>
+        <td>`alluxio.fuse.jnifuse.enabled`</td>
+        <td>true</td>
         <td>true</td>
         <td>使用jnifuse(true)，否则使用jnrfuse(false)。</td>
     </tr>
@@ -361,7 +359,7 @@ tieredstore:
     path: /alluxio/ram
 
 fuse:
-  enaabled: true
+  enabled: true
   clientEnabled: true
   mountPath: /mnt/alluxio-fuse
   image: registry.cn-huhehaote.aliyuncs.com/alluxio/alluxio-fuse

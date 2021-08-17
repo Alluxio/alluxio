@@ -15,6 +15,8 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
+import alluxio.Constants;
+
 import org.junit.Before;
 import org.junit.Test;
 
@@ -26,9 +28,12 @@ import java.util.Map;
  */
 public final class BlockHeartbeatReporterTest {
   private static final int SESSION_ID = 1;
-  private static final BlockStoreLocation MEM_LOC = new BlockStoreLocation("MEM", 0, "MEM");
-  private static final BlockStoreLocation SSD_LOC = new BlockStoreLocation("SSD", 0, "SSD");
-  private static final BlockStoreLocation HDD_LOC = new BlockStoreLocation("HDD", 0, "HDD");
+  private static final BlockStoreLocation MEM_LOC =
+      new BlockStoreLocation(Constants.MEDIUM_MEM, 0, Constants.MEDIUM_MEM);
+  private static final BlockStoreLocation SSD_LOC =
+      new BlockStoreLocation(Constants.MEDIUM_SSD, 0, Constants.MEDIUM_SSD);
+  private static final BlockStoreLocation HDD_LOC =
+      new BlockStoreLocation(Constants.MEDIUM_HDD, 0, Constants.MEDIUM_HDD);
   BlockHeartbeatReporter mReporter;
 
   /**
@@ -40,7 +45,8 @@ public final class BlockHeartbeatReporterTest {
   }
 
   private void moveBlock(long blockId, BlockStoreLocation newLocation) {
-    BlockStoreLocation unusedOldLocation = new BlockStoreLocation("MEM", 0, "MEM");
+    BlockStoreLocation unusedOldLocation =
+        new BlockStoreLocation(Constants.MEDIUM_MEM, 0, Constants.MEDIUM_MEM);
     mReporter.onMoveBlockByWorker(SESSION_ID, blockId, unusedOldLocation, newLocation);
   }
 

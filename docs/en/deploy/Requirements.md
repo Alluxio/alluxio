@@ -11,7 +11,7 @@ priority: 9
 
 ## General Requirements
 
-Listed below are the generic requirements to run Alluxio in local or cluster mode
+Listed below are the generic requirements to run Alluxio locally or as a cluster.
 
 For large scale deployments and tuning suggestions, see
 [Scalability Tuning]({{ '/en/operation/Scalability-Tuning.html' | relativize_url }})
@@ -22,7 +22,7 @@ and [Performance Tuning]({{ '/en/operation/Performance-Tuning.html' | relativize
   * CentOS - 6.8 or 7
   * RHEL - 7.x
   * Ubuntu - 16.04
-* Alluxio requires version 8 or 11 of the JDK. Other  versions are not supported:
+* Alluxio requires version 8 or 11 of the JDK. Other versions are not supported:
   * Java JDK 8 or 11 (Oracle or OpenJDK distributions supported)
 * Alluxio works on IPv4 networks only.
 * Allow the following ports and protocols:
@@ -36,7 +36,7 @@ Note that these are bare minimum requirements to run the software.
 Running Alluxio at scale and under high load will increase these requirements.
 
 * Minimum 4 GB disk space
-* Minimum 4 GB memory (6 GB if embedded journal is used)
+* Minimum 4 GB memory (6 GB if using embedded journal)
 * Minimum 4 CPU cores
 * Allow the following ports and protocols:
   * Inbound TCP 19998 - The Alluxio master's default RPC port
@@ -51,9 +51,9 @@ Running Alluxio at scale and under high load will increase these requirements.
 
 There are Alluxio-specific requirements for cluster nodes running the worker process:
 
-* minimum 1 GB disk space
-* minimum 1 GB memory
-* minimum 2 CPU cores
+* Minimum 1 GB disk space
+* Minimum 1 GB memory
+* Minimum 2 CPU cores
 * Allow the following ports and protocols:
   * Inbound TCP 29999 - The Alluxio worker's default RPC port
   * Inbound TCP 30000 - The Alluxio worker's default web UI port: `http://<worker-hostname>:30000`
@@ -64,16 +64,13 @@ There are Alluxio-specific requirements for cluster nodes running the worker pro
 
 #### Worker Cache
 
-Alluxio Workers need to be configured with storage to use as the caching layer.
-By default, they set up a
+Alluxio workers need configure a storage volume to use as the caching layer.
+By default, workers will set up a
 [RAMFS](https://www.kernel.org/doc/Documentation/filesystems/ramfs-rootfs-initramfs.txt) but this
-can be modified to use a different storage volume.
-By providing a different directory in `alluxio.worker.tieredstore.level%d.dirs.path`, users can
-setup Alluxio to use a different directory backed by a different storage medium.
-For users looking to get started with the defaults, run the command `./bin/alluxio-mount.sh
-SudoMount workers` with any sudo privileged account.
-This should be run after setting `alluxio.worker.ramdisk.size` in the `alluxio-site.properties`
-file and adding all workers to the `conf/workers` file.
+can be modified to use a different storage volume by setting a different directory for the
+`alluxio.worker.tieredstore.level%d.dirs.path` property in `alluxio-site.properties`.
+To get started with the default configuration, set `alluxio.worker.ramdisk.size` in
+`alluxio-site.properties`, add worker hostnames in `conf/workers`, then run the following command:
 
 ```console
 $ ./bin/alluxio-mount.sh SudoMount workers
@@ -102,8 +99,9 @@ Running Alluxio Fuse under high load will increase these requirements.
 
 ## Additional Requirements
 
-Alluxio can also aggregate logs into a remote server to view in a unified place.
-Below are the port and resource requirements for the Logging Server.
+Alluxio can aggregate logs and send them to a remote server.
+This is useful to be able to view logs for the entire cluster from a single location.
+Below are the port and resource requirements for the remote logging server.
 
 ### Remote Logging Server Requirements
 

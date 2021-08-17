@@ -190,25 +190,27 @@ message GetConfigHashPResponse {
   * to query cluster configuration.
   */
 service MetaMasterConfigurationService {
-    /**
-     * Returns a list of Alluxio runtime configuration information.
-     */
-    rpc GetConfiguration (GetConfigurationPOptions) returns (GetConfigurationPResponse);
+  /**
+   * Returns a list of Alluxio runtime configuration information.
+   */
+  rpc GetConfiguration (GetConfigurationPOptions) returns (GetConfigurationPResponse);
 
-    /**
-     * Sets a property for a path.
-     */
-    rpc SetPathConfiguration (SetPathConfigurationPRequest) returns (SetPathConfigurationPResponse);
+  /**
+   * Sets a property for a path.
+   */
+  rpc SetPathConfiguration (SetPathConfigurationPRequest) returns (SetPathConfigurationPResponse);
 
-    /**
-     * Removes properties for a path, if the keys are empty, it means remove all properties.
-     */
-    rpc RemovePathConfiguration (RemovePathConfigurationPRequest) returns (RemovePathConfigurationPResponse);
+  /**
+   * Removes properties for a path, if the keys are empty, it means remove all properties.
+   */
+  rpc RemovePathConfiguration (RemovePathConfigurationPRequest) returns (RemovePathConfigurationPResponse);
 
-    /**
-     * Returns the hashes of cluster and path level configurations.
-     */
-    rpc GetConfigHash (GetConfigHashPOptions) returns (GetConfigHashPResponse);
+  /**
+   * Returns the hashes of cluster and path level configurations.
+   */
+  rpc GetConfigHash (GetConfigHashPOptions) returns (GetConfigHashPResponse);
+
+  rpc UpdateConfiguration(UpdateConfigurationPRequest) returns (UpdateConfigurationPResponse);
 }
 
 message GetMasterIdPOptions {}
@@ -242,6 +244,14 @@ message MasterHeartbeatPRequest {
 }
 message MasterHeartbeatPResponse {
   optional MetaCommand command = 1;
+}
+
+message UpdateConfigurationPRequest {
+  map<string, string> properties = 1;
+}
+
+message UpdateConfigurationPResponse {
+  map<string, bool> status = 1;
 }
 
 /**

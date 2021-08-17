@@ -11,35 +11,31 @@
 
 package alluxio.client.file.cache;
 
+import static org.junit.Assert.assertThrows;
+
 import alluxio.ConfigurationTestUtils;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.exception.PageNotFoundException;
 
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 
 /**
  * Tests for the {@link DefaultMetaStore} class.
  */
-public final class DefaultMetaStoreTest {
-  @Rule
-  public final ExpectedException mThrown = ExpectedException.none();
-
-  private final PageId mPage = new PageId("1L", 2L);
-  private final PageInfo mPageInfo = new PageInfo(mPage, 1024);
-  private InstancedConfiguration mConf = ConfigurationTestUtils.defaults();
-
-  private DefaultMetaStore mMetaStore;
+public class DefaultMetaStoreTest {
+  protected final PageId mPage = new PageId("1L", 2L);
+  protected final PageInfo mPageInfo = new PageInfo(mPage, 1024);
+  protected final InstancedConfiguration mConf = ConfigurationTestUtils.defaults();
+  protected DefaultMetaStore mMetaStore;
 
   /**
    * Sets up the instances.
    */
   @Before
   public void before() {
-    mMetaStore = new DefaultMetaStore(CacheEvictor.create(mConf));
+    mMetaStore = new DefaultMetaStore(mConf);
   }
 
   @Test
@@ -65,8 +61,9 @@ public final class DefaultMetaStoreTest {
 
   @Test
   public void removeNotExist() throws Exception {
-    mThrown.expect(PageNotFoundException.class);
-    mMetaStore.removePage(mPage);
+    assertThrows(PageNotFoundException.class, () -> {
+      Assert.assertEquals(mPageInfo, mMetaStore.removePage(mPage));
+    });
   }
 
   @Test
@@ -84,7 +81,14 @@ public final class DefaultMetaStoreTest {
 
   @Test
   public void getPageInfoNotExist() throws Exception {
-    mThrown.expect(PageNotFoundException.class);
-    mMetaStore.getPageInfo(mPage);
+    assertThrows(PageNotFoundException.class, () -> mMetaStore.getPageInfo(mPage));
+  }
+
+  @Test
+  public void evict() throws Exception {
+    mMetaStore.addPage(mPage, mPageInfo);
+    Assert.assertEquals(mPageInfo, mMetaStore.evict());
+    mMetaStore.removePage(mPageInfo.getPageId());
+    Assert.assertNull(mMetaStore.evict());
   }
 }

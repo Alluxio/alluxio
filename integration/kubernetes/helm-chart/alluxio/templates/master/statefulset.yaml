@@ -39,6 +39,7 @@ spec:
       role: alluxio-master
       name: {{ $fullName }}-master
   serviceName: {{ $fullName }}-master
+  podManagementPolicy: Parallel
   replicas: {{ $masterCount }}
   template:
     metadata:
@@ -49,7 +50,19 @@ spec:
         release: {{ .Release.Name }}
         heritage: {{ .Release.Service }}
         role: alluxio-master
+    {{- if or .Values.master.podAnnotations .Values.metrics.enabled }}
+      annotations:
+      {{- with .Values.master.podAnnotations }}
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.metrics.podAnnotations }}
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+    {{- end }}
     spec:
+      {{ if .Values.hostAliases }}
+      {{- include "alluxio.hostAliases" . | nindent 6 }}
+      {{ end }}
       hostNetwork: {{ $hostNetwork }}
       dnsPolicy: {{ .Values.master.dnsPolicy | default ($hostNetwork | ternary "ClusterFirstWithHostNet" "ClusterFirst") }}
       nodeSelector:
@@ -58,15 +71,27 @@ spec:
       {{- else if .Values.nodeSelector }}
 {{ toYaml .Values.nodeSelector | trim | indent 8  }}
       {{- end }}
+      tolerations:
+      {{- if .Values.master.tolerations }}
+{{ toYaml .Values.master.tolerations | trim | indent 8  }}
+      {{- end }}
+      {{- if .Values.tolerations }}
+{{ toYaml .Values.tolerations | trim | indent 8  }}
+      {{- end }}
       securityContext:
+        runAsUser: {{ .Values.user }}
+        runAsGroup: {{ .Values.group }}
         fsGroup: {{ .Values.fsGroup }}
+    {{- if .Values.master.serviceAccount }}
+      serviceAccountName: {{ .Values.master.serviceAccount }}
+    {{- else if .Values.serviceAccount }}
+      serviceAccountName: {{ .Values.serviceAccount }}
+    {{- end }}
       initContainers:
       {{- if .Values.journal.format.runFormat}}
       - name: journal-format
         image: {{ .Values.image }}:{{ .Values.imageTag }}
         imagePullPolicy: {{ .Values.imagePullPolicy }}
-        securityContext:
-          runAsUser: {{ .Values.user }}
         command: ["alluxio","formatJournal"]
         volumeMounts:
           - name: alluxio-journal
@@ -76,9 +101,6 @@ spec:
         - name: alluxio-master
           image: {{ .Values.image }}:{{ .Values.imageTag }}
           imagePullPolicy: {{ .Values.imagePullPolicy }}
-          securityContext:
-            runAsUser: {{ .Values.user }}
-            runAsGroup: {{ .Values.group }}
           {{- if .Values.master.resources  }}
 {{ include "alluxio.master.resources" . | indent 10 }}
           {{- end }}
@@ -101,8 +123,8 @@ spec:
                 fieldPath: status.podIP
           {{- end }}
           {{- range $key, $value := .Values.master.env }}
-            - name: "{{ $key }}"
-              value: "{{ $value }}"
+          - name: "{{ $key }}"
+            value: "{{ $value }}"
           {{- end }}
           envFrom:
           - configMapRef:
@@ -132,6 +154,10 @@ spec:
             name: embedded
           {{- end }}
           volumeMounts:
+            {{- if .Values.metrics.enabled }}
+            - name: {{ $fullName }}-metrics-volume
+              mountPath: /config/metrics
+            {{- end }}
             {{- if $needJournalVolume }}
             - name: alluxio-journal
               mountPath: /journal
@@ -154,9 +180,6 @@ spec:
         - name: alluxio-job-master
           image: {{ .Values.image }}:{{ .Values.imageTag }}
           imagePullPolicy: {{ .Values.imagePullPolicy }}
-          securityContext:
-            runAsUser: {{ .Values.user }}
-            runAsGroup: {{ .Values.group }}
           {{- if .Values.jobMaster.resources  }}
 {{ include "alluxio.jobMaster.resources" . | indent 10 }}
           {{- end }}
@@ -210,6 +233,10 @@ spec:
             name: job-embedded
           {{- end }}
           volumeMounts:
+          {{- if .Values.metrics.enabled }}
+          - name: {{ $fullName }}-metrics-volume
+            mountPath: /config/metrics
+          {{- end }}
           {{- if .Values.secrets }}
             {{- if .Values.secrets.master }}
 {{- include "alluxio.master.secretVolumeMounts" . }}
@@ -223,6 +250,11 @@ spec:
           {{- end }}
       restartPolicy: Always
       volumes:
+        {{- if .Values.metrics.enabled }}
+        - name: {{ $fullName }}-metrics-volume
+          configMap:
+            name: {{ $fullName }}-metrics
+        {{- end }}
         {{- if .Values.secrets }}
           {{- if .Values.secrets.master }}
             {{- range $key, $val := .Values.secrets.master }}

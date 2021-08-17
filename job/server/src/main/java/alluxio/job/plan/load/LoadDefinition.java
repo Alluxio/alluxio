@@ -14,6 +14,7 @@ package alluxio.job.plan.load;
 import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.client.block.BlockWorkerInfo;
+import alluxio.client.file.URIStatus;
 import alluxio.collections.Pair;
 import alluxio.exception.status.FailedPreconditionException;
 import alluxio.job.plan.AbstractVoidPlanDefinition;
@@ -24,6 +25,7 @@ import alluxio.job.util.JobUtils;
 import alluxio.job.util.SerializableVoid;
 import alluxio.util.CommonUtils;
 import alluxio.wire.FileBlockInfo;
+import alluxio.wire.TieredIdentity.LocalityTier;
 import alluxio.wire.WorkerInfo;
 
 import com.google.common.base.MoreObjects;
@@ -72,7 +74,43 @@ public final class LoadDefinition
     List<BlockWorkerInfo> workers = new ArrayList<>();
     for (BlockWorkerInfo worker : context.getFsContext().getCachedWorkers()) {
       if (jobWorkersByAddress.containsKey(worker.getNetAddress().getHost())) {
-        workers.add(worker);
+        String workerHost = worker.getNetAddress().getHost().toUpperCase();
+        if (!isEmptySet(config.getExcludedWorkerSet())
+            && config.getExcludedWorkerSet().contains(workerHost)) {
+          continue;
+        }
+        // If specified the locality id, the candidate worker must match one at least
+        boolean match = false;
+        if (worker.getNetAddress().getTieredIdentity().getTiers() != null) {
+          if (!(isEmptySet(config.getLocalityIds())
+              && isEmptySet(config.getExcludedLocalityIds()))) {
+            boolean exclude = false;
+            for (LocalityTier tier : worker.getNetAddress().getTieredIdentity().getTiers()) {
+              if (!isEmptySet(config.getExcludedLocalityIds())
+                  && config.getExcludedLocalityIds().contains(tier.getValue().toUpperCase())) {
+                exclude = true;
+                break;
+              }
+              if (!isEmptySet(config.getLocalityIds())
+                  && config.getLocalityIds().contains(tier.getValue().toUpperCase())) {
+                match = true;
+                break;
+              }
+            }
+            if (exclude) {
+              continue;
+            }
+          }
+        }
+        // Add current worker as candidate worker
+        // if it matches the given locality id or contained in the given worker set
+        // Or user specified neither worker-set nor locality id
+        if ((isEmptySet(config.getWorkerSet()) && isEmptySet(config.getLocalityIds()))
+            || match
+            || (!isEmptySet(config.getWorkerSet())
+                && config.getWorkerSet().contains(workerHost))) {
+          workers.add(worker);
+        }
       } else {
         LOG.warn("Worker on host {} has no local job worker", worker.getNetAddress().getHost());
         missingJobWorkerHosts.add(worker.getNetAddress().getHost());
@@ -138,12 +176,22 @@ public final class LoadDefinition
   @Override
   public SerializableVoid runTask(LoadConfig config, ArrayList<LoadTask> tasks,
       RunTaskContext context) throws Exception {
+
+    // TODO(jiri): Replace with internal client that uses file ID once the internal client is
+    // factored out of the core server module. The reason to prefer using file ID for this job is
+    // to avoid the the race between "replicate" and "rename", so that even a file to replicate is
+    // renamed, the job is still working on the correct file.
+    URIStatus status = context.getFileSystem().getStatus(new AlluxioURI(config.getFilePath()));
+
     for (LoadTask task : tasks) {
-      JobUtils.loadBlock(
-          context.getFileSystem(), context.getFsContext(), config.getFilePath(), task.getBlockId());
-      LOG.info("Loaded block " + task.getBlockId());
+      JobUtils.loadBlock(status, context.getFsContext(), task.getBlockId());
+      LOG.info("Loaded file " + config.getFilePath() + " block " + task.getBlockId());
     }
     return null;
+  }
+
+  private boolean isEmptySet(Set s) {
+    return s == null || s.isEmpty();
   }
 
   /**

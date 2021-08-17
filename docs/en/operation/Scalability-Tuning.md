@@ -23,17 +23,19 @@ configuration tuning for large scale deployments.
 
 ### Number of Files in Alluxio
 
-Files refers to files and directories. The number of files in Alluxio can be monitored through the
-metric `Master.TotalPaths`. A third party metrics collector can be used to monitor the rate of
+In this section "files" refers to regular files and directories.
+The number of files in Alluxio can be monitored through the metric `Master.TotalPaths`.
+A third party metrics collector can be used to monitor the rate of
 change of this metric to determine how the number of files are growing over time.
 
 The number of files in Alluxio impacts the following:
-* Size of heap required by the master - Each file takes approximately 1 - 2 kb. If RocksDB is used,
-most file metadata is stored off-heap, and the size of the heap impacts how many files’ metadata can
-be cached on heap. See the
+* Size of heap required by the master - Each file and its directory structure takes approximately 4KB. 
+If RocksDB is used, most file metadata is stored off-heap, 
+and the size of the heap impacts how many files’ metadata can be cached on the heap. See the
 [RocksDB section]({{ '/en/operation/Metastore.html#rocksdb-metastore' | relativize_url }}) for more
 information.
-* Size of disk required for journal storage - Each file takes approximately 1 - 2 kb on disk.
+* Size of disk required for journal storage - At peak, there may be two snapshot of the journal during checkpointing. 
+Thus, we need to reserve approximately 4KB (2x2KB) on the disk for each file. 
 * Latency of journal replay - The journal replay, which is the majority of the cold startup time for
 a master, takes time proportional to the number of files in the system.
 * Latency of journal backup - The journal backup takes time proportional to the number of files in
@@ -59,7 +61,7 @@ clients and then convert to a operations/second metric
 * 1 per Alluxio worker in the cluster
 * Max of
 	* Number of concurrent clients of the system as calculated above
-	* (alluxio.worker.block.master.client.pool.size + alluxio.user.file.master.client.pool.size.max)
+	* (`alluxio.worker.block.master.client.pool.size` + `alluxio.user.file.master.client.pool.size.max`)
 	per user per service using the Alluxio client
 
 For example, in a deployment with 2 users, 50 Presto worker nodes (with 200 task concurrency), and
@@ -110,21 +112,26 @@ clients.
 * Amount of network bandwidth required by the worker - We recommend at least 10 MB/s per concurrent
 client. This resource is less important if a majority of tasks have locality and use short circuit.
 
-
 ## Alluxio Master Configuration
 
 ### Heap Size
 
 The Alluxio master heap size controls the total number of files that can fit into the master memory.
-If using the ROCKS off-heap metastore, the master heap size must be large enough to fit the inode
-cache.
-Provision roughly 2 KB of space for each inode.
+Each file or directory will be represented by an inode in Alluxio, containing all its metadata.
+In general you should provision roughly 2 KB of space for each inode.
+
+If using `HEAP` metastore, all the inodes will be stored in the master heap. Therefore the master heap
+size must be large enough to fit ALL inodes.
+
+If using the `ROCKS` off-heap metastore, the master heap size must be large enough to fit the inode
+cache. See the [RocksDB section]({{ '/en/operation/Metastore.html#rocksdb-metastore' | relativize_url }})
+for more information.
+ 
 The following JVM options, set in `alluxio-env.sh`, determine the respective maximum heap sizes for
 the Alluxio master and standby master processes to `256 GB`:
 
 ```bash
 ALLUXIO_MASTER_JAVA_OPTS+=" -Xms256g -Xmx256g "
-ALLUXIO_SECONDARY_MASTER_JAVA_OPTS+=" -Xms256g -Xmx256g "
 ```
 
 * As a rule of thumb set the min and max heap size equal to avoid heap resizing.
@@ -132,6 +139,15 @@ ALLUXIO_SECONDARY_MASTER_JAVA_OPTS+=" -Xms256g -Xmx256g "
 When setting the heap size, ensure that there is enough memory allocated for off heap storage.
 For example, spawning `4000` threads with a default thread stack size of `1 MB` requires at least
 `4 GB` of off-heap space available.
+* Network buffers are often allocated from a pool of direct memory in Java. 
+The configuration controlling the maximum size of direct memory allocated defaults to the `-Xmx` setting, 
+which can leave very little space for the other critical processes in the system. 
+We recommend setting it to 10GB for both Alluxio Master and Alluxio Workers in a typical deployment, and only increase it
+if the number of concurrent clients/RPC threads are increased.
+
+```bash
+ALLUXIO_JAVA_OPTS+=" -XX:MaxDirectMemorySize=10g "
+```
 
 ### Number of Cores
 
@@ -139,7 +155,7 @@ The Alluxio Master’s ability to handle concurrent requests and parallelize rec
 (ie. full sync, check consistency) scales with the number of cores available. In addition,
 background processes of the Alluxio Master also require cores.
 
-Alluxio microbenchmarks, show the following operation throughputs on 4vCores (r5.xlarge) on the
+Alluxio microbenchmarks, show the following operation throughput on 4vCores (r5.xlarge) on the
 master. There are 32 clients. The journal is on HDFS.
 * Create File - 3000 ops/second
 * List Status (file) - 65000 ops/second
@@ -162,9 +178,13 @@ We recommend at least 8 GB of disk space for writing logs. The write speed of th
 least 128 MB/s.
 
 When using embedded journal, the disk space is proportional to the namespace size and typical number
-of write operations within a snapshot period. We recommend at least 8 GB of disk space plus 2 GB for
+of write operations within a snapshot period. We recommend at least 8 GB of disk space plus 8 GB for
 each 1 million files in the namespace. The read and write speed of the disk should be at least
 512 MB/s. We recommend a dedicated SSD for the embedded journal.
+
+When using RocksDB as the storage backend for the file system metadata, the disk space required is 
+proportional to the namespace size.
+We recommend 4 GB of disk space for each 1 million files in the name space.
 
 ### Operating System Limits
 
@@ -224,11 +244,13 @@ Increase the interval to reduce the number of heartbeat checks.
 
 ### Heap Size
 
-Alluxio workers require modest amounts of memory because off-heap storage is used for data storage.
-Therefore, a 4 GB heap is sufficient for Alluxio workers.
+Alluxio workers require modest amounts of memory for metadata because off-heap storage is used for data storage.
+However, data transfer will create buffers that consume heap or direct memory.
+We recommend about 64MB (from the heap or direct memory) per expected concurrent client.
 
+As a beginning, you can set both to 8G and tune up when you see the worker running out of heap/direct memory. 
 ```properties
-ALLUXIO_WORKER_JAVA_OPTS+=" -Xms4g -Xmx4g"
+ALLUXIO_WORKER_JAVA_OPTS+=" -Xms8g -Xmx8g -XX:MaxDirectMemorySize=8g"
 ```
 
 ### Number of Cores
@@ -248,7 +270,7 @@ The Alluxio worker’s network bandwidth to UFS determines the rate at which it 
 or populate the cache from the underlying storage. If the network link is shared with the compute
 nodes, the async caching options will need to be managed in order to ensure the appropriate ratio
 between serving client requests and populating the cache is respected.
-We recommend having a separate link for bandwidth the UFS. For every 10 Gbit/s bandwidth to compute
+We recommend having a separate link for bandwidth to the UFS. For every 10 Gbit/s bandwidth to compute
 nodes (across workers), we recommend having 1 Gbit/s bandwidth (across workers) to the UFS. This
 gives a ratio of at least 10:1. The UFS link throughput can be greatly decreased based on the
 expected cache hit ratio.

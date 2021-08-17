@@ -35,6 +35,8 @@ public final class FileSystemMasterAuditContext implements AuditContext {
   private AuthType mAuthType;
   private String mIp;
   private Inode mSrcInode;
+  private long mCreationTimeNs;
+  private long mExecutionTimeNs;
 
   @Override
   public FileSystemMasterAuditContext setAllowed(boolean allowed) {
@@ -126,6 +128,18 @@ public final class FileSystemMasterAuditContext implements AuditContext {
   }
 
   /**
+   * Sets mCreationTimeNs field.
+   *
+   * @param creationTimeNs the System.nanoTime() when this operation create,
+   *                     it only can be used to compute operation mExecutionTime
+   * @return this {@link AuditContext} instance
+   */
+  public FileSystemMasterAuditContext setCreationTimeNs(long creationTimeNs) {
+    mCreationTimeNs = creationTimeNs;
+    return this;
+  }
+
+  /**
    * Constructor of {@link FileSystemMasterAuditContext}.
    *
    * @param asyncAuditLogWriter
@@ -140,6 +154,7 @@ public final class FileSystemMasterAuditContext implements AuditContext {
     if (mAsyncAuditLogWriter == null) {
       return;
     }
+    mExecutionTimeNs = System.nanoTime() - mCreationTimeNs;
     mAsyncAuditLogWriter.append(this);
   }
 
@@ -149,15 +164,17 @@ public final class FileSystemMasterAuditContext implements AuditContext {
       short mode = mSrcInode.getMode();
       return String.format(
           "succeeded=%b\tallowed=%b\tugi=%s (AUTH=%s)\tip=%s\tcmd=%s\tsrc=%s\tdst=%s\t"
-              + "perm=%s:%s:%s%s%s",
+              + "perm=%s:%s:%s%s%s\texecutionTimeUs=%d",
           mSucceeded, mAllowed, mUgi, mAuthType, mIp, mCommand, mSrcPath, mDstPath,
           mSrcInode.getOwner(), mSrcInode.getGroup(),
-          Mode.extractOwnerBits(mode), Mode.extractGroupBits(mode), Mode.extractOtherBits(mode));
+          Mode.extractOwnerBits(mode), Mode.extractGroupBits(mode), Mode.extractOtherBits(mode),
+          mExecutionTimeNs / 1000);
     } else {
       return String.format(
           "succeeded=%b\tallowed=%b\tugi=%s (AUTH=%s)\tip=%s\tcmd=%s\tsrc=%s\tdst=%s\t"
-              + "perm=null",
-          mSucceeded, mAllowed, mUgi, mAuthType, mIp, mCommand, mSrcPath, mDstPath);
+              + "perm=null\texecutionTimeUs=%d",
+          mSucceeded, mAllowed, mUgi, mAuthType, mIp, mCommand, mSrcPath, mDstPath,
+          mExecutionTimeNs / 1000);
     }
   }
 }

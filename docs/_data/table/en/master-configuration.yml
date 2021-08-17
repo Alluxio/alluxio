@@ -24,6 +24,8 @@ alluxio.master.backup.state.lock.interrupt.cycle.enabled:
   'This controls whether RPCs that are waiting/holding state-lock in shared-mode will be interrupted while state-lock is taken exclusively.'
 alluxio.master.backup.state.lock.interrupt.cycle.interval:
   'The interval at which the RPCs that are waiting/holding state-lock in shared-mode will be interrupted while state-lock is taken exclusively.'
+alluxio.master.backup.suspend.timeout:
+  'Timeout for when suspend request is not followed by a backup request.'
 alluxio.master.backup.transport.timeout:
   'Request timeout for backup messaging.'
 alluxio.master.bind.host:
@@ -52,10 +54,14 @@ alluxio.master.embedded.journal.catchup.retry.wait:
   'Time for embedded journal leader to wait before retrying a catch up.'
 alluxio.master.embedded.journal.election.timeout:
   'The election timeout for the embedded journal. When this period elapses without a master receiving any messages, the master will attempt to become the primary.Election timeout will be waited initially when the cluster is forming. So larger values for election timeout will cause longer start-up time. Smaller values might introduce instability to leadership.'
-alluxio.master.embedded.journal.heartbeat.interval:
-  'The period between sending heartbeats from the embedded journal primary to followers. This should be less than half of the election timeout {alluxio.master.embedded.journal.election.timeout}, because the election is driven by heart beats.'
+alluxio.master.embedded.journal.entry.size.max:
+  'The maximum single journal entry size allowed to be flushed. This value should be smaller than 30MB. If you update this value, please also update the value of alluxio.master.embedded.journal.flush.size.max '
+alluxio.master.embedded.journal.flush.size.max:
+  'The maximum size in bytes of journal entries allowed in concurrent journal flushing (journal IO to standby masters and IO to local disks).'
 alluxio.master.embedded.journal.port:
   'The port to use for embedded journal communication with other masters.'
+alluxio.master.embedded.journal.retry.cache.expiry.time:
+  'The time for embedded journal server retry cache to expire. Setting a bigger value allows embedded journal server to cache the responses for a longer time in case of journal writer retries, but will take up more memory in master.'
 alluxio.master.embedded.journal.shutdown.timeout:
   'Maximum time to wait for embedded journal to stop on shutdown.'
 alluxio.master.embedded.journal.snapshot.replication.chunk.size:
@@ -86,8 +92,12 @@ alluxio.master.heartbeat.timeout:
   'Timeout between leader master and standby master indicating a lost master.'
 alluxio.master.hostname:
   'The hostname of Alluxio master.'
+alluxio.master.journal.catchup.protect.enabled:
+  '(Experimental) make sure the journal catchup finish before joining the quorum in fault tolerant mode when starting the master process and before the current master becoming the leader.This is added to prevent frequently leadership transition during heavy journal catchup stage. Catchup is only implemented in ufs journal with Zookeeper.'
 alluxio.master.journal.checkpoint.period.entries:
   'The number of journal entries to write before creating a new journal checkpoint.'
+alluxio.master.journal.exit.on.demotion:
+  '(Experimental) When this flag is set to true, the master process may start as the primary or secondary in a quorum, but at any point in time after becoming a primary it is demoted to secondary, the process will shut down. This leaves the responsibility of restarting the master to re-join the quorum (e.g. in case of a journal failure on a particular node) to an external entity such as kubernetes or systemd.'
 alluxio.master.journal.flush.batch.time:
   'Time to wait for batching journal writes.'
 alluxio.master.journal.flush.timeout:
@@ -104,6 +114,10 @@ alluxio.master.journal.log.size.bytes.max:
   'If a log file is bigger than this value, it will rotate to next file.'
 alluxio.master.journal.retry.interval:
   'The amount of time to sleep between retrying journal flushes'
+alluxio.master.journal.space.monitor.interval:
+  'How often to check and update information on space utilization of the journal disk. This is currently only compatible with linux-basedsystems and when alluxio.master.journal.type is configured to EMBEDDED'
+alluxio.master.journal.space.monitor.percent.free.threshold:
+  'When the percent of free space on any disk which backs the journal falls below this percentage, begin logging warning messages to let administrators know the journal disk(s) may be running low on space.'
 alluxio.master.journal.tailer.shutdown.quiet.wait.time:
   'Before the standby master shuts down its tailer thread, there should be no update to the leader master''s journal in this specified time period.'
 alluxio.master.journal.tailer.sleep.time:
@@ -128,8 +142,10 @@ alluxio.master.lock.pool.low.watermark:
   'Low watermark of lock pool size. When the size grows over the high watermark, a background thread will try to evict unused locks until the size reaches the low watermark.'
 alluxio.master.log.config.report.heartbeat.interval:
   'The interval for periodically logging the configuration check report.'
+alluxio.master.lost.worker.detection.interval:
+  'The interval between Alluxio master detections to find lost workers based on updates from Alluxio workers.'
 alluxio.master.lost.worker.file.detection.interval:
-  'The interval between Alluxio master detections to find lost workers and files based on updates from Alluxio workers.'
+  'The interval between Alluxio master detections to find lost files based on updates from Alluxio workers.'
 alluxio.master.metadata.sync.concurrency.level:
   'The maximum number of concurrent sync tasks running for a given sync operation'
 alluxio.master.metadata.sync.executor.pool.size:
@@ -156,6 +172,8 @@ alluxio.master.metastore.inode.iteration.crawler.count:
   'The number of threads used during inode tree enumeration.'
 alluxio.master.metastore.iterator.readahead.size:
   'The read-ahead size (in bytes) for metastore iterators.'
+alluxio.master.metrics.heap.enabled:
+  'Enable master heap estimate metrics'
 alluxio.master.metrics.service.threads:
   'The number of threads in metrics master executor pool for parallel processing metrics submitted by workers or clients and update cluster metrics.'
 alluxio.master.metrics.time.series.interval:
@@ -248,6 +266,8 @@ alluxio.master.ufs.active.sync.thread.pool.size:
   'Max number of threads used to perform active sync'
 alluxio.master.ufs.block.location.cache.capacity:
   'The capacity of the UFS block locations cache. This cache caches UFS block locations for files that are persisted but not in Alluxio space, so that listing status of these files do not need to repeatedly ask UFS for their block locations. If this is set to 0, the cache will be disabled.'
+alluxio.master.ufs.journal.max.catchup.time:
+  'The maximum time to wait for ufs journal catching up before listening to Zookeeper state change. This is added to prevent frequently leadership transition during heavy journal replay stage.'
 alluxio.master.ufs.path.cache.capacity:
   'The capacity of the UFS path cache. This cache is used to approximate the `ONCE` metadata load behavior (see `alluxio.user.file.metadata.load.type`). Larger caches will consume more memory, but will better approximate the `ONCE` behavior.'
 alluxio.master.ufs.path.cache.threads:

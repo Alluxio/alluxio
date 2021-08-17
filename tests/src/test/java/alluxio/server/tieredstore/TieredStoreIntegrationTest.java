@@ -63,7 +63,6 @@ public class TieredStoreIntegrationTest extends BaseIntegrationTest {
           .setProperty(PropertyKey.WORKER_RAMDISK_SIZE, MEM_CAPACITY_BYTES)
           .setProperty(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT, 1000)
           .setProperty(PropertyKey.USER_FILE_BUFFER_BYTES, String.valueOf(100))
-          .setProperty(PropertyKey.WORKER_FILE_BUFFER_SIZE, String.valueOf(100))
           .setProperty(PropertyKey.WORKER_TIERED_STORE_LEVEL0_HIGH_WATERMARK_RATIO, 0.8)
           .setProperty(PropertyKey.USER_FILE_RESERVED_BYTES, String.valueOf(100))
           .setProperty(PropertyKey.WORKER_MANAGEMENT_TIER_ALIGN_ENABLED, String.valueOf(false))
@@ -256,7 +255,6 @@ public class TieredStoreIntegrationTest extends BaseIntegrationTest {
     int fileLen = 8 * Constants.MB;
     mLocalAlluxioClusterResource
         .setProperty(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT, "4MB")
-        .setProperty(PropertyKey.WORKER_FILE_BUFFER_SIZE, "1MB")
         .setProperty(PropertyKey.WORKER_ALLOCATOR_CLASS, GreedyAllocator.class.getName())
         .setProperty(PropertyKey.WORKER_TIERED_STORE_LEVELS, "1")
         .setProperty(PropertyKey.WORKER_TIERED_STORE_LEVEL0_DIRS_PATH, String.join(",",

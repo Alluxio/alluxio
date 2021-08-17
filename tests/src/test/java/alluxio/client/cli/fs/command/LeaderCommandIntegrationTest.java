@@ -24,8 +24,8 @@ public final class LeaderCommandIntegrationTest extends AbstractFileSystemShellT
   @Test
   public void leader() {
     sFsShell.run("leader");
-    String expected =
-        sLocalAlluxioCluster.getLocalAlluxioMaster().getAddress().getHostName() + "\n";
+    String expected = "This command will be deprecated as of v3.0, please use masterInfo command\n"
+        + sLocalAlluxioCluster.getLocalAlluxioMaster().getAddress().getHostName() + "\n";
     Assert.assertEquals(expected, mOutput.toString());
   }
 

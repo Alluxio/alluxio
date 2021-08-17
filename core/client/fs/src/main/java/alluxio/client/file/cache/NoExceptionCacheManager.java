@@ -11,6 +11,7 @@
 
 package alluxio.client.file.cache;
 
+import alluxio.client.file.CacheContext;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 
@@ -45,6 +46,17 @@ public class NoExceptionCacheManager implements CacheManager {
   }
 
   @Override
+  public boolean put(PageId pageId, byte[] page, CacheContext cacheContext) {
+    try {
+      return mCacheManager.put(pageId, page, cacheContext);
+    } catch (Exception e) {
+      LOG.error("Failed to put page {}, cacheContext {}", pageId, cacheContext, e);
+      Metrics.PUT_ERRORS.inc();
+      return false;
+    }
+  }
+
+  @Override
   public int get(PageId pageId, int bytesToRead, byte[] buffer, int offsetInBuffer) {
     try {
       return mCacheManager.get(pageId, bytesToRead, buffer, offsetInBuffer);
@@ -59,9 +71,23 @@ public class NoExceptionCacheManager implements CacheManager {
   public int get(PageId pageId, int pageOffset, int bytesToRead, byte[] buffer,
       int offsetInBuffer) {
     try {
-      return mCacheManager.get(pageId, pageOffset,  bytesToRead, buffer, offsetInBuffer);
+      return mCacheManager.get(pageId, pageOffset, bytesToRead, buffer, offsetInBuffer);
     } catch (Exception e) {
       LOG.error("Failed to get page {}, offset {}", pageId, pageOffset, e);
+      Metrics.GET_ERRORS.inc();
+      return -1;
+    }
+  }
+
+  @Override
+  public int get(PageId pageId, int pageOffset, int bytesToRead, byte[] buffer,
+      int offsetInBuffer, CacheContext cacheContext) {
+    try {
+      return mCacheManager
+          .get(pageId, pageOffset, bytesToRead, buffer, offsetInBuffer, cacheContext);
+    } catch (Exception e) {
+      LOG.error("Failed to get page {}, offset {} cacheContext {}", pageId, pageOffset,
+          cacheContext, e);
       Metrics.GET_ERRORS.inc();
       return -1;
     }

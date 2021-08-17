@@ -36,7 +36,9 @@ public final class RemovedKey {
 
   private static final String V2_0_0 = "v2.0.0";
   private static final String V2_1_0 = "v2.1.0";
+  private static final String V2_3_0 = "v2.3.0";
   private static final String V2_4_0 = "v2.4.0";
+  private static final String V2_6_0 = "v2.6.0";
 
   /**
    * @param version the version since which a property has been removed
@@ -79,6 +81,10 @@ public final class RemovedKey {
       put("alluxio.master.retry", removedSince(V2_0_0));
       put("alluxio.master.worker.threads.max", removedSince(V2_0_0));
       put("alluxio.master.worker.threads.min", removedSince(V2_0_0));
+      put("alluxio.master.embedded.journal.appender.batch.size", removedSince(V2_4_0));
+      put("alluxio.master.embedded.journal.storage.level", removedSince(V2_4_0));
+      put("alluxio.master.embedded.journal.shutdown.timeout", removedSince(V2_4_0));
+      put("alluxio.master.embedded.journal.triggered.snapshot.wait.timeout", removedSince(V2_4_0));
       put("alluxio.network.netty.heartbeat.timeout", removedSince(V2_0_0));
       put("alluxio.network.thrift.frame.size.bytes.max", removedSince(V2_0_0));
       put("alluxio.underfs.object.store.read.retry.base.sleep", removedSince(V2_0_0));
@@ -129,7 +135,9 @@ public final class RemovedKey {
       put("alluxio.worker.data.bind.host", removedSince(V2_0_0));
       put("alluxio.worker.data.hostname", removedSince(V2_0_0));
       put("alluxio.worker.data.port", replacedSince(V2_0_0, PropertyKey.WORKER_RPC_PORT.getName()));
+      put("alluxio.worker.data.server.class", removedSince(V2_6_0));
       put("alluxio.worker.filesystem.heartbeat.interval", removedSince(V2_1_0));
+      put("alluxio.worker.file.buffer.size", removedSince(V2_6_0));
       put("alluxio.worker.file.persist.pool.size", removedSince(V2_1_0));
       put("alluxio.worker.file.persist.rate.limit", removedSince(V2_1_0));
       put("alluxio.worker.file.persist.rate.limit.enabled", removedSince(V2_1_0));
@@ -149,6 +157,8 @@ public final class RemovedKey {
       put("alluxio.worker.network.netty.writer.buffer.size.packets", removedSince(V2_0_0));
       put("alluxio.worker.tieredstore.reserver.enabled", removedSince(V2_0_0));
       put("alluxio.worker.tieredstore.retry", removedSince(V2_0_0));
+      put("alluxio.worker.evictor.lrfu.attenuation.factor", removedSince(V2_3_0));
+      put("alluxio.worker.evictor.lrfu.step.factor", removedSince(V2_3_0));
       put("fs.swift.apikey", replacedSince(V2_0_0, PropertyKey.Name.SWIFT_PASSWORD_KEY));
       put("fs.swift.use.public.url", removedSince(V2_0_0));
       put(Template.WORKER_TIERED_STORE_LEVEL_RESERVED_RATIO.format(0),

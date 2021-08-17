@@ -267,7 +267,7 @@ public class S3ALowLevelOutputStream extends OutputStream {
       waitForAllPartsUpload();
       completeMultiPartUpload();
     } catch (Exception e) {
-      LOG.error("Failed to upload {}: {}", mKey, e.toString());
+      LOG.error("Failed to upload {}", mKey, e);
       throw new IOException(e);
     }
   }

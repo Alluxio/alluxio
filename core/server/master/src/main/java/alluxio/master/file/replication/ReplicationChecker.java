@@ -14,6 +14,8 @@ package alluxio.master.file.replication;
 import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.client.job.JobMasterClientPool;
+import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
 import alluxio.exception.BlockInfoException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.JobDoesNotExistException;
@@ -22,6 +24,7 @@ import alluxio.exception.status.UnavailableException;
 import alluxio.heartbeat.HeartbeatExecutor;
 import alluxio.job.plan.replicate.DefaultReplicationHandler;
 import alluxio.job.plan.replicate.ReplicationHandler;
+import alluxio.job.wire.Status;
 import alluxio.master.SafeModeManager;
 import alluxio.master.block.BlockMaster;
 import alluxio.master.file.meta.InodeFile;
@@ -33,11 +36,14 @@ import alluxio.util.logging.SamplingLogger;
 import alluxio.wire.BlockInfo;
 import alluxio.wire.BlockLocation;
 
+import com.google.common.collect.HashBiMap;
+import com.google.common.collect.ImmutableSet;
 import org.apache.commons.lang3.tuple.ImmutableTriple;
 import org.apache.commons.lang3.tuple.Triple;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -45,7 +51,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.TimeUnit;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -57,7 +62,9 @@ import javax.annotation.concurrent.ThreadSafe;
 public final class ReplicationChecker implements HeartbeatExecutor {
   private static final Logger LOG = LoggerFactory.getLogger(ReplicationChecker.class);
   private static final Logger SAMPLING_LOG = new SamplingLogger(LOG, 10L * Constants.MINUTE_MS);
-  private static final long MAX_QUIET_PERIOD_SECONDS = 64;
+
+  /** Maximum number of active jobs to be submitted to the job service. **/
+  private final int mMaxActiveJobs;
 
   /** Handler to the inode tree. */
   private final InodeTree mInodeTree;
@@ -68,11 +75,7 @@ public final class ReplicationChecker implements HeartbeatExecutor {
   /** Manager of master safe mode state. */
   private final SafeModeManager mSafeModeManager;
 
-  /**
-   * Quiet period for job service flow control (in seconds). When job service refuses starting new
-   * jobs, we use exponential backoff to alleviate the job service pressure.
-   */
-  private long mQuietPeriodSeconds;
+  private final HashBiMap<Long, Long> mActiveJobToInodeID;
 
   private enum Mode {
     EVICT,
@@ -109,7 +112,11 @@ public final class ReplicationChecker implements HeartbeatExecutor {
     mBlockMaster = blockMaster;
     mSafeModeManager = safeModeManager;
     mReplicationHandler = replicationHandler;
-    mQuietPeriodSeconds = 0;
+
+    // Do not use more than 10% of the job service
+    mMaxActiveJobs = Math.max(1,
+        (int) (ServerConfiguration.getInt(PropertyKey.JOB_MASTER_JOB_CAPACITY) * 0.1));
+    mActiveJobToInodeID = HashBiMap.create();
   }
 
   /**
@@ -129,8 +136,31 @@ public final class ReplicationChecker implements HeartbeatExecutor {
     if (mSafeModeManager.isInSafeMode()) {
       return;
     }
+    final Set<Long> activeJobIds = new HashSet<>();
+    try {
+      if (!mActiveJobToInodeID.isEmpty()) {
+        final List<Long> activeEvictJobIds =
+            mReplicationHandler.findJobs("Evict",
+                ImmutableSet.of(Status.RUNNING, Status.CREATED));
+        final List<Long> activeMoveJobIds =
+            mReplicationHandler.findJobs("Move",
+                ImmutableSet.of(Status.RUNNING, Status.CREATED));
+        final List<Long> activeReplicateJobIds =
+            mReplicationHandler.findJobs("Replicate",
+                ImmutableSet.of(Status.RUNNING, Status.CREATED));
 
-    TimeUnit.SECONDS.sleep(mQuietPeriodSeconds);
+        activeJobIds.addAll(activeEvictJobIds);
+        activeJobIds.addAll(activeMoveJobIds);
+        activeJobIds.addAll(activeReplicateJobIds);
+        mActiveJobToInodeID.keySet().removeIf(jobId -> !activeJobIds.contains(jobId));
+      }
+    } catch (IOException e) {
+      // It is possible the job master process is not answering rpcs,
+      // log but do not throw the exception
+      // which will kill the replication checker thread.
+      LOG.debug("Failed to contact job master to get updated list of replication jobs {}", e);
+    }
+
     Set<Long> inodes;
 
     // Check the set of files that could possibly be under-replicated
@@ -162,11 +192,11 @@ public final class ReplicationChecker implements HeartbeatExecutor {
   private Map<String, String> findMisplacedBlock(
       InodeFile file, BlockInfo blockInfo) {
     Set<String> pinnedMediumTypes = file.getMediumTypes();
-    Map<String, String> movement = new HashMap<>();
     if (pinnedMediumTypes.isEmpty()) {
       // nothing needs to be moved
       return Collections.emptyMap();
     }
+    Map<String, String> movement = new HashMap<>();
     // at least pinned to one medium type
     String firstPinnedMedium = pinnedMediumTypes.iterator().next();
     int minReplication = file.getReplicationMin();
@@ -200,6 +230,12 @@ public final class ReplicationChecker implements HeartbeatExecutor {
   private void checkMisreplicated(Set<Long> inodes, ReplicationHandler handler)
       throws InterruptedException {
     for (long inodeId : inodes) {
+      if (mActiveJobToInodeID.size() >= mMaxActiveJobs) {
+        return;
+      }
+      if (mActiveJobToInodeID.containsValue(inodeId)) {
+        continue;
+      }
       // Throw if interrupted.
       if (Thread.interrupted()) {
         throw new InterruptedException("ReplicationChecker interrupted.");
@@ -214,7 +250,7 @@ public final class ReplicationChecker implements HeartbeatExecutor {
             // Cannot find this block in Alluxio from BlockMaster, possibly persisted in UFS
           } catch (UnavailableException e) {
             // The block master is not available, wait for the next heartbeat
-            LOG.warn("The block master is not available: {}", e.getMessage());
+            LOG.warn("The block master is not available: {}", e.toString());
             return;
           }
           if (blockInfo == null) {
@@ -226,27 +262,35 @@ public final class ReplicationChecker implements HeartbeatExecutor {
           for (Map.Entry<String, String> entry
               : findMisplacedBlock(file, blockInfo).entrySet()) {
             try {
-              handler.migrate(inodePath.getUri(), blockId, entry.getKey(), entry.getValue());
+              final long jobId =
+                  handler.migrate(inodePath.getUri(), blockId, entry.getKey(), entry.getValue());
+              mActiveJobToInodeID.put(jobId, inodeId);
             } catch (Exception e) {
               LOG.warn(
                   "Unexpected exception encountered when starting a migration job (uri={},"
                       + " block ID={}, workerHost= {}) : {}",
-                  inodePath.getUri(), blockId, entry.getKey(), e.getMessage());
+                  inodePath.getUri(), blockId, entry.getKey(), e.toString());
               LOG.debug("Exception: ", e);
             }
           }
         }
       } catch (FileDoesNotExistException e) {
-        LOG.warn("Failed to check replication level for inode id {} : {}", inodeId, e.getMessage());
+        LOG.warn("Failed to check replication level for inode id {} : {}", inodeId, e.toString());
       }
     }
   }
 
-  private void check(Set<Long> inodes, ReplicationHandler handler, Mode mode)
+  private Set<Long> check(Set<Long> inodes, ReplicationHandler handler, Mode mode)
       throws InterruptedException {
-    Set<Long> lostBlocks = mBlockMaster.getLostBlocks();
-    Set<Triple<AlluxioURI, Long, Integer>> requests = new HashSet<>();
+    Set<Long> processedFileIds = new HashSet<>();
     for (long inodeId : inodes) {
+      if (mActiveJobToInodeID.size() >= mMaxActiveJobs) {
+        return processedFileIds;
+      }
+      if (mActiveJobToInodeID.containsValue(inodeId)) {
+        continue;
+      }
+      Set<Triple<AlluxioURI, Long, Integer>> requests = new HashSet<>();
       // Throw if interrupted.
       if (Thread.interrupted()) {
         throw new InterruptedException("ReplicationChecker interrupted.");
@@ -264,8 +308,8 @@ public final class ReplicationChecker implements HeartbeatExecutor {
             // Cannot find this block in Alluxio from BlockMaster, possibly persisted in UFS
           } catch (UnavailableException e) {
             // The block master is not available, wait for the next heartbeat
-            LOG.warn("The block master is not available: {}", e.getMessage());
-            return;
+            LOG.warn("The block master is not available: {}", e.toString());
+            return processedFileIds;
           }
           int currentReplicas = (blockInfo == null) ? 0 : blockInfo.getLocations().size();
           switch (mode) {
@@ -288,7 +332,7 @@ public final class ReplicationChecker implements HeartbeatExecutor {
               }
               if (currentReplicas < minReplicas) {
                 // if this file is not persisted and block master thinks it is lost, no effort made
-                if (!file.isPersisted() && lostBlocks.contains(blockId)) {
+                if (!file.isPersisted() && mBlockMaster.isBlockLost(blockId)) {
                   continue;
                 }
                 requests.add(new ImmutableTriple<>(inodePath.getUri(), blockId,
@@ -300,42 +344,42 @@ public final class ReplicationChecker implements HeartbeatExecutor {
           }
         }
       } catch (FileDoesNotExistException e) {
-        LOG.warn("Failed to check replication level for inode id {} : {}", inodeId, e.getMessage());
+        LOG.warn("Failed to check replication level for inode id {} : {}", inodeId, e.toString());
       }
-    }
-    for (Triple<AlluxioURI, Long, Integer> entry : requests) {
-      AlluxioURI uri = entry.getLeft();
-      long blockId = entry.getMiddle();
-      int numReplicas = entry.getRight();
-      try {
-        switch (mode) {
-          case EVICT:
-            handler.evict(uri, blockId, numReplicas);
-            mQuietPeriodSeconds /= 2;
-            break;
-          case REPLICATE:
-            handler.replicate(uri, blockId, numReplicas);
-            mQuietPeriodSeconds /= 2;
-            break;
-          default:
-            LOG.warn("Unexpected replication mode {}.", mode);
+
+      for (Triple<AlluxioURI, Long, Integer> entry : requests) {
+        AlluxioURI uri = entry.getLeft();
+        long blockId = entry.getMiddle();
+        int numReplicas = entry.getRight();
+        try {
+          long jobId;
+          switch (mode) {
+            case EVICT:
+              jobId = handler.evict(uri, blockId, numReplicas);
+              break;
+            case REPLICATE:
+              jobId = handler.replicate(uri, blockId, numReplicas);
+              break;
+            default:
+              throw new RuntimeException(String.format("Unexpected replication mode {}.", mode));
+          }
+          processedFileIds.add(inodeId);
+          mActiveJobToInodeID.put(jobId, inodeId);
+        } catch (JobDoesNotExistException | ResourceExhaustedException e) {
+          LOG.warn("The job service is busy, will retry later. {}", e.toString());
+          return processedFileIds;
+        } catch (UnavailableException e) {
+          LOG.warn("Unable to complete the replication check: {}, will retry later.", e.toString());
+          return processedFileIds;
+        } catch (Exception e) {
+          SAMPLING_LOG.warn(
+              "Unexpected exception encountered when starting a {} job (uri={},"
+                  + " block ID={}, num replicas={}) : {}",
+              mode, uri, blockId, numReplicas, e.toString());
+          LOG.debug("Job service unexpected exception: ", e);
         }
-      } catch (JobDoesNotExistException | ResourceExhaustedException e) {
-        LOG.warn("The job service is busy, will retry later. {}", e.toString());
-        mQuietPeriodSeconds = (mQuietPeriodSeconds == 0) ? 1 :
-            Math.min(MAX_QUIET_PERIOD_SECONDS, mQuietPeriodSeconds * 2);
-        return;
-      } catch (UnavailableException e) {
-        LOG.warn("Unable to complete the replication check: {}, will retry later.",
-            e.getMessage());
-        return;
-      } catch (Exception e) {
-        SAMPLING_LOG.warn(
-            "Unexpected exception encountered when starting a {} job (uri={},"
-                + " block ID={}, num replicas={}) : {}",
-            mode, uri, blockId, numReplicas, e.getMessage());
-        LOG.debug("Job service unexpected exception: ", e);
       }
     }
+    return processedFileIds;
   }
 }

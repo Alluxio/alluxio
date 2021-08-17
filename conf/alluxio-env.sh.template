@@ -22,6 +22,11 @@
 # (https://docs.alluxio.io/os/user/stable/en/reference/Properties-List.html),
 # and is respected by both external jobs and Alluxio servers (or shell).
 
+# JVM is required to run Alluxio.
+# If its path is not set in Shell, please specify either of following environment variables
+# JAVA_HOME
+# JAVA
+
 # The directory where log files are stored. (Default: ${ALLUXIO_HOME}/logs).
 # ALLUXIO_LOGS_DIR
 

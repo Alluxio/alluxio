@@ -54,12 +54,12 @@ import javax.annotation.Nullable;
  * The base class for all the {@link FileSystemShell} test classes.
  */
 public abstract class AbstractFileSystemShellTest extends AbstractShellIntegrationTest {
-  public static LocalAlluxioCluster sLocalAlluxioCluster = null;
-  public static FileSystem sFileSystem = null;
-  public static FileSystemShell sFsShell = null;
+  public static LocalAlluxioCluster sLocalAlluxioCluster;
+  public static FileSystem sFileSystem;
+  public static FileSystemShell sFsShell;
   protected static JobMaster sJobMaster;
-  protected static LocalAlluxioJobCluster sLocalAlluxioJobCluster = null;
-  protected static JobShell sJobShell = null;
+  protected static LocalAlluxioJobCluster sLocalAlluxioJobCluster;
+  protected static JobShell sJobShell;
 
   /*
    * The user and group mappings for testing are:
@@ -129,9 +129,15 @@ public abstract class AbstractFileSystemShellTest extends AbstractShellIntegrati
 
   @AfterClass
   public static void afterClass() throws Exception {
-    sFsShell.close();
-    sLocalAlluxioJobCluster.stop();
-    sJobShell.close();
+    if (sFsShell != null) {
+      sFsShell.close();
+    }
+    if (sLocalAlluxioJobCluster != null) {
+      sLocalAlluxioJobCluster.stop();
+    }
+    if (sJobShell != null) {
+      sJobShell.close();
+    }
   }
 
   /**

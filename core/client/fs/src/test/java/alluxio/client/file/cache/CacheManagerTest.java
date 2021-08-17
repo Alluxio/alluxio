@@ -13,11 +13,18 @@ package alluxio.client.file.cache;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertNotNull;
 
 import alluxio.ConfigurationTestUtils;
 import alluxio.conf.InstancedConfiguration;
 
 import org.junit.Test;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 public class CacheManagerTest {
   private InstancedConfiguration mConf = ConfigurationTestUtils.defaults();
@@ -26,6 +33,30 @@ public class CacheManagerTest {
   public void factoryGet() throws Exception {
     CacheManager manager = CacheManager.Factory.get(mConf);
     assertEquals(manager, CacheManager.Factory.get(mConf));
+  }
+
+  @Test
+  public void factoryGetConcurrently() throws Exception {
+    CacheManager.Factory.clear();
+    int cnt = 10;
+    List<Future<CacheManager>> cacheManagersList = new ArrayList<>(cnt);
+    ExecutorService executorService = Executors.newFixedThreadPool(cnt);
+    for (int i = 0; i < cnt; i++) {
+      cacheManagersList.add(executorService.submit(() -> {
+        try {
+          return CacheManager.Factory.get(mConf);
+        } catch (Exception e) {
+          return null;
+        }
+      }));
+    }
+
+    CacheManager checkedCacheManager = CacheManager.Factory.get(mConf);
+    for (Future<CacheManager> f : cacheManagersList) {
+      CacheManager cacheManager = f.get();
+      assertNotNull(cacheManager);
+      assertEquals(cacheManager, checkedCacheManager);
+    }
   }
 
   @Test

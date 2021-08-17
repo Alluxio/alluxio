@@ -12,6 +12,7 @@
 package alluxio.cli;
 
 import alluxio.AlluxioURI;
+import alluxio.Constants;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.util.OSUtils;
@@ -49,7 +50,7 @@ public final class RamDiskMountPrivilegeValidationTask extends AbstractValidatio
 
     String path = mConf.get(PropertyKey.WORKER_TIERED_STORE_LEVEL0_DIRS_PATH);
     String alias = mConf.get(PropertyKey.WORKER_TIERED_STORE_LEVEL0_ALIAS);
-    if (!alias.equals("MEM")) {
+    if (!alias.equals(Constants.MEDIUM_MEM)) {
       msg.append("Top tier storage is not memory, skip validation.");
       return new ValidationTaskResult(ValidationUtils.State.SKIPPED, getName(),
               msg.toString(), advice.toString());

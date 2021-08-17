@@ -130,7 +130,7 @@ public class StorageDirViewTest {
     Assert.assertTrue(mTestDirView.getEvictableBlocks().isEmpty());
 
     // Add one block to test dir, expect this block to be evictable
-    BlockMeta blockMeta = new BlockMeta(TEST_BLOCK_ID, TEST_BLOCK_SIZE, mTestDir);
+    BlockMeta blockMeta = new DefaultBlockMeta(TEST_BLOCK_ID, TEST_BLOCK_SIZE, mTestDir);
     mTestDir.addBlockMeta(blockMeta);
     Assert.assertEquals(TEST_BLOCK_SIZE, mTestDirView.getEvitableBytes());
     Assert.assertThat(mTestDirView.getEvictableBlocks(),

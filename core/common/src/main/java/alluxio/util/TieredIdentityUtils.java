@@ -80,10 +80,12 @@ public final class TieredIdentityUtils {
       return Optional.empty();
     }
     for (TieredIdentity.LocalityTier tier : tieredIdentity.getTiers()) {
+      if (tier == null) {
+        return Optional.of(identities.get(0));
+      }
       for (TieredIdentity identity : identities) {
         for (TieredIdentity.LocalityTier otherTier : identity.getTiers()) {
-          if (tier != null
-              && matches(tier, otherTier, conf.getBoolean(PropertyKey.LOCALITY_COMPARE_NODE_IP))) {
+          if (matches(tier, otherTier, conf.getBoolean(PropertyKey.LOCALITY_COMPARE_NODE_IP))) {
             return Optional.of(identity);
           }
         }

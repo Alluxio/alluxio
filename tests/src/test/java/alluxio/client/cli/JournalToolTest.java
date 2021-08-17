@@ -39,8 +39,9 @@ import alluxio.testutils.IntegrationTestUtils;
 import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.util.io.PathUtils;
 
-import org.apache.ratis.server.impl.RaftServerConstants;
+import org.apache.ratis.server.RaftServerConfigKeys;
 import org.apache.ratis.server.storage.RaftStorage;
+import org.apache.ratis.server.storage.RaftStorageImpl;
 import org.apache.ratis.statemachine.impl.SimpleStateMachineStorage;
 import org.apache.ratis.statemachine.impl.SingleFileSnapshotInfo;
 import org.hamcrest.Matchers;
@@ -70,6 +71,7 @@ public class JournalToolTest extends BaseIntegrationTest {
   @Rule
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
       new LocalAlluxioClusterResource.Builder()
+          .setIncludeSecondary(true)
           .setProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.UFS.toString())
           .setProperty(PropertyKey.MASTER_JOURNAL_CHECKPOINT_PERIOD_ENTRIES,
               Integer.toString(CHECKPOINT_SIZE))
@@ -133,14 +135,13 @@ public class JournalToolTest extends BaseIntegrationTest {
 
     assertNonemptyFileExists(PathUtils.concatPath(mDumpDir, "edits.txt"));
     assertNonemptyFileExists(PathUtils.concatPath(checkpointDir, "INODE_DIRECTORY_ID_GENERATOR"));
-    for (String subPath : Arrays.asList("HEAP_INODE_STORE", "INODE_COUNTER",
-        "PINNED_INODE_FILE_IDS", "REPLICATION_LIMITED_FILE_IDS", "TO_BE_PERSISTED_FILE_IDS")) {
+    for (String subPath : Arrays.asList("INODE_COUNTER", "PINNED_INODE_FILE_IDS",
+        "REPLICATION_LIMITED_FILE_IDS", "TO_BE_PERSISTED_FILE_IDS")) {
       assertNonemptyFileExists(PathUtils.concatPath(checkpointDir, "INODE_TREE", subPath));
     }
   }
 
   @Test
-
   @LocalAlluxioClusterResource.Config(confParams = {PropertyKey.Name.MASTER_JOURNAL_TYPE,
       "EMBEDDED", PropertyKey.Name.MASTER_METASTORE, "HEAP"})
   public void dumpHeapCheckpointFromEmbeddedJournal() throws Throwable {
@@ -217,10 +218,10 @@ public class JournalToolTest extends BaseIntegrationTest {
   }
 
   private long getCurrentRatisSnapshotIndex(String journalFolder) throws Throwable {
-    try (RaftStorage storage = new RaftStorage(
+    try (RaftStorage storage = new RaftStorageImpl(
         new File(RaftJournalUtils.getRaftJournalDir(new File(journalFolder)),
             RaftJournalSystem.RAFT_GROUP_UUID.toString()),
-        RaftServerConstants.StartupOption.REGULAR)) {
+            RaftServerConfigKeys.Log.CorruptionPolicy.getDefault())) {
       SimpleStateMachineStorage stateMachineStorage = new SimpleStateMachineStorage();
       stateMachineStorage.init(storage);
       SingleFileSnapshotInfo snapshot = stateMachineStorage.getLatestSnapshot();

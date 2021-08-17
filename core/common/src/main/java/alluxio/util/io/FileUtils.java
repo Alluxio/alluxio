@@ -14,6 +14,7 @@ package alluxio.util.io;
 import alluxio.AlluxioURI;
 import alluxio.exception.InvalidPathException;
 
+import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -35,6 +36,7 @@ import java.nio.file.attribute.PosixFilePermission;
 import java.nio.file.attribute.PosixFilePermissions;
 import java.nio.file.attribute.UserPrincipal;
 import java.nio.file.attribute.UserPrincipalLookupService;
+import java.util.HashSet;
 import java.util.Set;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -132,6 +134,48 @@ public final class FileUtils {
       mode += permission.contains(action) ? 1 : 0;
     }
     return (short) mode;
+  }
+
+  /**
+   * Translate mode to posix file permissions.
+   *
+   * @param mode the file mode
+   * @return posix file permissions
+   */
+  public static Set<PosixFilePermission> translateModeToPosixPermissions(int mode) {
+    Set<PosixFilePermission> perms = new HashSet<>();
+    // add owners permission
+    Preconditions.checkArgument(mode >= 0, "Mode can not be a negative value");
+    if ((mode & 0400) != 0) {
+      perms.add(PosixFilePermission.OWNER_READ);
+    }
+    if ((mode & 0200) != 0) {
+      perms.add(PosixFilePermission.OWNER_WRITE);
+    }
+    if ((mode & 0100) != 0) {
+      perms.add(PosixFilePermission.OWNER_EXECUTE);
+    }
+    // add group permissions
+    if ((mode & 0040) != 0) {
+      perms.add(PosixFilePermission.GROUP_READ);
+    }
+    if ((mode & 0020) != 0) {
+      perms.add(PosixFilePermission.GROUP_WRITE);
+    }
+    if ((mode & 0010) != 0) {
+      perms.add(PosixFilePermission.GROUP_EXECUTE);
+    }
+    // add others permissions
+    if ((mode & 0004) != 0) {
+      perms.add(PosixFilePermission.OTHERS_READ);
+    }
+    if ((mode & 0002) != 0) {
+      perms.add(PosixFilePermission.OTHERS_WRITE);
+    }
+    if ((mode & 0001) != 0) {
+      perms.add(PosixFilePermission.OTHERS_EXECUTE);
+    }
+    return perms;
   }
 
   /**

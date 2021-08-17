@@ -14,6 +14,7 @@ package alluxio.master.block;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.when;
 
+import alluxio.Constants;
 import alluxio.MasterStorageTierAssoc;
 import alluxio.StorageTierAssoc;
 import alluxio.master.block.DefaultBlockMaster.Metrics;
@@ -31,8 +32,8 @@ import org.mockito.Mockito;
  * Unit tests for {@link DefaultBlockMaster.Metrics}.
  */
 public final class BlockMasterMetricsTest {
-  private static final String MEM = "MEM";
-  private static final String HDD = "HDD";
+  private static final String MEM = Constants.MEDIUM_MEM;
+  private static final String HDD = Constants.MEDIUM_HDD;
 
   private BlockMaster mBlockMaster;
 
