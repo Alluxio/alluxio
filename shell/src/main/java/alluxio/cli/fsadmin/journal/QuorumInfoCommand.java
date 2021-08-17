@@ -19,14 +19,14 @@ import alluxio.exception.ExceptionMessage;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.grpc.GetQuorumInfoPResponse;
 import alluxio.grpc.JournalDomain;
-import alluxio.grpc.QuorumServerInfo;
-
 import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Options;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Command for querying journal quorum information.
@@ -36,7 +36,7 @@ public class QuorumInfoCommand extends AbstractFsAdminCommand {
 
   public static final String OUTPUT_HEADER_DOMAIN = "Journal domain\t: %s";
   public static final String OUTPUT_HEADER_QUORUM_SIZE = "Quorum size\t: %d";
-  public static final String OUTPUT_SERVER_INFO = "%s\t %s:%s";
+  public static final String OUTPUT_SERVER_INFO = "%-11s | %-8s | %-6s | %s%n";
 
   /**
    * @param context fsadmin command context
@@ -69,16 +69,20 @@ public class QuorumInfoCommand extends AbstractFsAdminCommand {
     }
 
     GetQuorumInfoPResponse quorumInfo = jmClient.getQuorumInfo();
+    List<String[]> table = quorumInfo.getServerInfoList().stream().map(info -> new String[]{
+            info.getServerState().toString(),
+            Integer.toString(info.getPriority()),
+            Boolean.toString(info.getIsLeader()),
+            String.format("%s:%d", info.getServerAddress().getHost(), info.getServerAddress().getRpcPort()),
+    }).collect(Collectors.toList());
+    table.add(0, new String[]{"STATE", "PRIORITY", "LEADER", "SERVER ADDRESS"});
+
     mPrintStream.println(String.format(OUTPUT_HEADER_DOMAIN, quorumInfo.getDomain()));
     mPrintStream
         .println(String.format(OUTPUT_HEADER_QUORUM_SIZE, quorumInfo.getServerInfoList().size()));
-    mPrintStream.println("STATE\t\tSERVER ADDRESS");
-    for (QuorumServerInfo serverState : quorumInfo.getServerInfoList()) {
-      String serverStateStr = String.format(OUTPUT_SERVER_INFO, serverState.getServerState(),
-          serverState.getServerAddress().getHost(), serverState.getServerAddress().getRpcPort());
-      mPrintStream.println(serverStateStr);
+    for (String[] output : table) {
+      mPrintStream.printf(OUTPUT_SERVER_INFO, output);
     }
-
     return 0;
   }
 

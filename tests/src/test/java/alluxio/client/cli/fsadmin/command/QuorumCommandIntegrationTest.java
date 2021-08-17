@@ -99,9 +99,14 @@ public final class QuorumCommandIntegrationTest extends BaseIntegrationTest {
       for (String address : journalAddresses.split(",")) {
         String hostName = address.substring(0, address.indexOf(":"));
         String port = address.substring(address.indexOf(":") + 1);
+        MasterNetAddress leaderAddress =
+                mCluster.getMasterAddresses().get(mCluster.getPrimaryMasterIndex(5_000));
+        boolean isLeader =
+                (hostName.equals(leaderAddress.getHostname()) && port.equals(Long.toString(leaderAddress.getEmbeddedJournalPort())));
 
-        Assert.assertTrue(output.contains(String.format(QuorumInfoCommand.OUTPUT_SERVER_INFO,
-            QuorumServerState.AVAILABLE.name(), hostName, port)));
+        String format = String.format(QuorumInfoCommand.OUTPUT_SERVER_INFO,
+                QuorumServerState.AVAILABLE.name(), "0", isLeader, address).trim();
+        Assert.assertTrue(output.contains(format));
       }
 
       // Validate quorum state is updated as expected after a fail-over.
