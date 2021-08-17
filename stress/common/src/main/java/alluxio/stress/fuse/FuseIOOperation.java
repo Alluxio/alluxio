@@ -17,7 +17,8 @@ package alluxio.stress.fuse;
 public enum FuseIOOperation {
   /** Write operation to test the write throughput or prepare data for reading. */
   WRITE("Write"),
-  /** List the files to cache metadata on client side, separating metadata and data performance. */
+  /** List the files before reading can help cache the metadata and gain more accurate reading
+   *  performance, if client-side metadata cache is enabled. */
   LIST_FILE("ListFile"),
 
   /** Now only streaming reading is supported, that is, sequentially read the written files. */

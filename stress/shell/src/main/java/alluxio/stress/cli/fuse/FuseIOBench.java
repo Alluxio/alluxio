@@ -24,6 +24,7 @@ import alluxio.util.FormatUtils;
 import alluxio.util.executor.ExecutorServiceFactories;
 
 import com.beust.jcommander.ParametersDelegate;
+import com.google.common.collect.ImmutableList;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -71,22 +72,32 @@ public class FuseIOBench extends Benchmark<FuseIOTaskResult> {
 
   @Override
   public String getBenchDescription() {
-    return "This stress bench is designed for testing the reading throughput of Fuse-based "
-        + "POSIX API. To write data, run `bin/alluxio runClass alluxio.stress.cli.fuse."
-        + "fuseIOBench --operation Write`. To cache file metadata, run `bin/alluxio runClass "
-        + "alluxio.stress.cli.fuse.fuseIOBench --operation ListFile`. To read data, run "
-        + "`bin/alluxio runClass alluxio.stress.cli.fuse.fuseIOBench --operation Read`. You can "
-        + "further adjust the parameters specified below. Note that the \"--operation\" is "
-        + "required, the \"--local-path\" can be a local filesystem path or a mounted fuse path, "
-        + "and test files need to be written first before reading.\nFor example, run `bin/alluxio "
-        + "runClass alluxio.stress.cli.fuse.fuseIOBench --operation Write --local-path "
-        + "/mnt/alluxio-fuse/FuseIOTest --num-dirs 10 --num-files-per-dir 10 --file-size 100m "
-        + "--threads 32` to write the test files first, then run `bin/alluxio runClass alluxio."
-        + "stress.cli.fuse.fuseIOBench --operation ListFile --local-path /mnt/alluxio-fuse/"
-        + "FuseIOTest --threads 32` to cache the metadata of the files, and finally run "
-        + "`bin/alluxio runClass alluxio.stress.cli.fuse.fuseIOBench --operation Read --local-path "
-        + "/mnt/alluxio-fuse/FuseIOTest --num-dirs 10 --num-files-per-dir 10 --file-size 100m "
-        + "--threads 16 --warmup 15s --duration 30s` to test the reading throughput.\n";
+    return String.join("\n", ImmutableList.of(
+        "A stress bench for testing the reading throughput of Fuse-based POSIX API.",
+        "To run the test, write the data first, then list the files to cache the metadata, "
+            + "finally perform the read operation to test the throughput.",
+        "Note that \"--operation\" is required, the \"--local-path\" can be a local "
+            + "filesystem path or a mounted Fuse path, the test files need to be written "
+            + "first before reading, and set alluxio.user.metadata.cache.enabled=true before "
+            + "mounting the Alluxio Fuse to ensure the metadata could be cached.",
+        "",
+        "Example:",
+        "# The test data will be written to /mnt/alluxio-fuse/FuseIOTest",
+        "# Files will be evenly distributed into 10 directories, each contains 100 files of "
+            + "size 100 MB",
+        "# 32 threads will be used for writing the data, and 16 threads will be used for "
+            + "testing the reading throughput",
+        "# 5 seconds of warmup time and 30 seconds of actual reading test time",
+        "$ bin/alluxio runClass alluxio.stress.cli.fuse.fuseIOBench --operation Write \\",
+        "--local-path /mnt/alluxio-fuse/FuseIOTest --num-dirs 10 --num-files-per-dir 10 \\",
+        "--file-size 100m --threads 32",
+        "$ bin/alluxio runClass alluxio.stress.cli.fuse.fuseIOBench --operation ListFile \\",
+        "--local-path /mnt/alluxio-fuse/FuseIOTest",
+        "$ bin/alluxio runClass alluxio.stress.cli.fuse.fuseIOBench --operation Read \\",
+        "--local-path /mnt/alluxio-fuse/FuseIOTest --num-dirs 10 --num-files-per-dir 10 \\",
+        "--file-size 100m --threads 16 --warmup 15s --duration 30s",
+        ""
+    ));
   }
 
   @Override
