@@ -74,16 +74,17 @@ public class FuseIOBench extends Benchmark<FuseIOTaskResult> {
   public String getBenchDescription() {
     return String.join("\n", ImmutableList.of(
         "A stress bench for testing the reading throughput of Fuse-based POSIX API.",
-        "To run the test, write the data first, then list the files to cache the metadata, "
-            + "finally perform the read operation to test the throughput.",
+        "To run the test, data must be written first by executing \"Write\" operation, then "
+            + "run \"Read\" operation to test the reading throughput. Optionally one can run "
+            + "\"ListFile\" before \"Read\" to cache the metadata of the test files and eliminate "
+            + "the effect of metadata operations while getting the reading throughput data.",
         "Note that \"--operation\" is required, the \"--local-path\" can be a local "
-            + "filesystem path or a mounted Fuse path, the test files need to be written "
-            + "first before reading, and set alluxio.user.metadata.cache.enabled=true before "
-            + "mounting the Alluxio Fuse to ensure the metadata could be cached.",
+            + "filesystem path or a mounted Fuse path, and if one wants to cache the metadata, "
+            + "set alluxio.user.metadata.cache.enabled=true when mounting the Alluxio Fuse.",
         "",
         "Example:",
         "# The test data will be written to /mnt/alluxio-fuse/FuseIOTest",
-        "# Files will be evenly distributed into 10 directories, each contains 100 files of "
+        "# Files will be evenly distributed into 10 directories, each contains 10 files of "
             + "size 100 MB",
         "# 32 threads will be used for writing the data, and 16 threads will be used for "
             + "testing the reading throughput",
@@ -107,7 +108,6 @@ public class FuseIOBench extends Benchmark<FuseIOTaskResult> {
           "Some of the threads are not being used. Please set the number of directories to "
               + "be at least the number of threads, preferably a multiple of it."
       ));
-    }
     if (mParameters.mOperation == FuseIOOperation.WRITE) {
       LOG.warn("Cannot write repeatedly, so warmup is not possible. Setting warmup to 0s.");
       mParameters.mWarmup = "0s";
