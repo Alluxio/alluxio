@@ -25,16 +25,24 @@ import alluxio.ConfigurationRule;
 import alluxio.Constants;
 import alluxio.Sessions;
 import alluxio.client.file.FileSystemContext;
+import alluxio.client.file.URIStatus;
+import alluxio.client.file.options.InStreamOptions;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.CacheRequest;
+import alluxio.grpc.OpenFilePOptions;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.underfs.UfsManager;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.util.CommonUtils;
+import alluxio.util.FileSystemOptions;
+import alluxio.util.io.BufferUtils;
 import alluxio.util.network.NetworkAddressUtils;
+import alluxio.wire.BlockInfo;
+import alluxio.wire.FileBlockInfo;
+import alluxio.wire.FileInfo;
 import alluxio.worker.file.FileSystemMasterClient;
 import alluxio.worker.grpc.GrpcExecutors;
 
@@ -43,10 +51,12 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.ReadableByteChannel;
+import java.util.Collections;
 
 /**
  * Unit tests for {@link CacheRequestManager}.
@@ -61,8 +71,7 @@ public class CacheRequestManagerTest {
   private String mRootUfs;
   private final String mLocalWorkerHostname = NetworkAddressUtils.getLocalHostName(
       (int) ServerConfiguration.getMs(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS));
-  private final Protocol.OpenUfsBlockOptions mOpenUfsBlockOptions = Protocol.OpenUfsBlockOptions
-      .newBuilder().setMaxUfsReadConcurrency(10).setUfsPath("/CacheRequestManagerTest").build();
+  private Protocol.OpenUfsBlockOptions mOpenUfsBlockOptions;
   private final InstancedConfiguration mConf = ServerConfiguration.global();
   private final String mMemDir =
       AlluxioTestDirectory.createTemporaryDirectory(Constants.MEDIUM_MEM).getAbsolutePath();
@@ -105,6 +114,21 @@ public class CacheRequestManagerTest {
     FileSystemContext context = mock(FileSystemContext.class);
     mCacheRequestManager =
         spy(new CacheRequestManager(GrpcExecutors.CACHE_MANAGER_EXECUTOR, mBlockWorker, context));
+
+    String testFilePath = File.createTempFile("temp", null, new File(mRootUfs)).getAbsolutePath();
+    byte[] buffer = BufferUtils.getIncreasingByteArray(CHUNK_SIZE * 5);
+    BufferUtils.writeBufferToFile(testFilePath, buffer);
+
+    BlockInfo info = new BlockInfo().setBlockId(BLOCK_ID).setLength(CHUNK_SIZE  * 5);
+    URIStatus dummyStatus = new URIStatus(new FileInfo().setPersisted(true)
+        .setUfsPath(testFilePath)
+        .setBlockIds(Collections.singletonList(BLOCK_ID))
+        .setLength(CHUNK_SIZE * 5)
+        .setBlockSizeBytes(CHUNK_SIZE)
+        .setFileBlockInfos(Collections.singletonList(new FileBlockInfo().setBlockInfo(info))));
+    OpenFilePOptions readOptions = FileSystemOptions.openFileDefaults(mConf);
+    InStreamOptions options = new InStreamOptions(dummyStatus, readOptions, mConf);
+    mOpenUfsBlockOptions = options.getOpenUfsBlockOptions(BLOCK_ID);
   }
 
   @Test
