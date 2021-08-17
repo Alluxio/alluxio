@@ -4971,7 +4971,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   //
   public static final PropertyKey NETWORK_TLS_SSL_CONTEXT_PROVIDER_CLASSNAME =
       new Builder(Name.NETWORK_TLS_SSL_CONTEXT_PROVIDER_CLASSNAME)
-          .setDescription("")
+          .setDescription(
+              "Full name of the class that will be instantiated for providing SSL contexts.")
           .setDefaultValue("alluxio.util.network.tls.DefaultSslContextProvider")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.ALL)

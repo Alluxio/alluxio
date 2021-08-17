@@ -77,6 +77,12 @@ public class StressClientIOBench extends Benchmark<ClientIOTaskResult> {
   }
 
   @Override
+  public String getBenchDescription() {
+    // TODO(David) Fill in description
+    return "";
+  }
+
+  @Override
   public void prepare() throws Exception {
     if (mBaseParameters.mCluster && mBaseParameters.mClusterLimit != 1) {
       throw new IllegalArgumentException(String.format(

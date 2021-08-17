@@ -57,6 +57,8 @@ public final class DistributedLoadUtils {
         localityIds, excludedLocalityIds);
     // Wait remaining jobs to complete.
     command.drain();
+    System.out.println(String.format("Completed count is %d,Failed count is %d.",
+            command.getCompletedCount(), command.getFailedCount()));
   }
 
   /**
