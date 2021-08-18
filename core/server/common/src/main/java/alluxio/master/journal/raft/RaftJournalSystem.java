@@ -235,6 +235,7 @@ public class RaftJournalSystem extends AbstractJournalSystem {
     mSnapshotAllowed = new AtomicBoolean(true);
     mPrimarySelector = new RaftPrimarySelector();
     mAsyncJournalWriter = new AtomicReference<>();
+    super.registerMetrics();
   }
 
   private void maybeMigrateOldJournal() {

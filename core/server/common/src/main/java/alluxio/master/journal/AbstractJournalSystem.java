@@ -51,7 +51,6 @@ public abstract class AbstractJournalSystem implements JournalSystem {
     Preconditions.checkState(!mRunning, "Journal is already running");
     startInternal();
     mRunning = true;
-    registerMetrics();
   }
 
   @Override
