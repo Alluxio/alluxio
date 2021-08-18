@@ -38,7 +38,7 @@ public class PrometheusMetricsServlet implements Sink {
    * @param registry the metric registry to register
    */
   public PrometheusMetricsServlet(MetricRegistry registry) {
-    mCollectorRegistry = new CollectorRegistry();
+    mCollectorRegistry = CollectorRegistry.defaultRegistry;
     mCollectorRegistry.register(new DropwizardExports(registry));
   }
 
