@@ -71,6 +71,7 @@ public class QuorumElectCommand extends AbstractFsAdminCommand {
 
     MasterInquireClient inquireClient = MasterInquireClient.Factory
             .create(mConf, FileSystemContext.create(mConf).getClientContext().getUserState());
+    boolean success = true;
     // wait for confirmation of leadership transfer
     try {
       CommonUtils.waitFor("Waiting for leadership transfer to finalize", () -> {
@@ -84,6 +85,7 @@ public class QuorumElectCommand extends AbstractFsAdminCommand {
       });
       mPrintStream.println(String.format(TRANSFER_SUCCESS, serverAddress));
     } catch (Exception e) {
+      success = false;
       mPrintStream.println(String.format(TRANSFER_FAILED, serverAddress, e));
     }
     // Resetting RaftPeer priorities using a separate RPC because the old leader has shut down
@@ -93,9 +95,10 @@ public class QuorumElectCommand extends AbstractFsAdminCommand {
       jmClient.resetPriorities();
       mPrintStream.println(RESET_SUCCESS);
     } catch (Exception e) {
+      success = false;
       mPrintStream.println(String.format(RESET_FAILED, e));
     }
-    return 0;
+    return success ? 0 : -1;
   }
 
   @Override
