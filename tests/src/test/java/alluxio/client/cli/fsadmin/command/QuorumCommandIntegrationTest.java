@@ -101,8 +101,8 @@ public final class QuorumCommandIntegrationTest extends BaseIntegrationTest {
         String port = address.substring(address.indexOf(":") + 1);
         MasterNetAddress leaderAddress =
                 mCluster.getMasterAddresses().get(mCluster.getPrimaryMasterIndex(5_000));
-        boolean isLeader =
-                (hostName.equals(leaderAddress.getHostname()) && port.equals(Long.toString(leaderAddress.getEmbeddedJournalPort())));
+        boolean isLeader = (hostName.equals(leaderAddress.getHostname())
+                && port.equals(Long.toString(leaderAddress.getEmbeddedJournalPort())));
 
         String format = String.format(QuorumInfoCommand.OUTPUT_SERVER_INFO,
                 QuorumServerState.AVAILABLE.name(), "0", isLeader, address).trim();
