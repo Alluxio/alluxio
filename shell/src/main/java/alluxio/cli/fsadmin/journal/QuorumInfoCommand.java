@@ -19,6 +19,7 @@ import alluxio.exception.ExceptionMessage;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.grpc.GetQuorumInfoPResponse;
 import alluxio.grpc.JournalDomain;
+
 import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Options;
@@ -73,7 +74,8 @@ public class QuorumInfoCommand extends AbstractFsAdminCommand {
             info.getServerState().toString(),
             Integer.toString(info.getPriority()),
             Boolean.toString(info.getIsLeader()),
-            String.format("%s:%d", info.getServerAddress().getHost(), info.getServerAddress().getRpcPort()),
+            String.format("%s:%d", info.getServerAddress().getHost(),
+                    info.getServerAddress().getRpcPort()),
     }).collect(Collectors.toList());
     table.add(0, new String[]{"STATE", "PRIORITY", "LEADER", "SERVER ADDRESS"});
 
