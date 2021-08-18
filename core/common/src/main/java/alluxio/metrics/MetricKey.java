@@ -350,7 +350,7 @@ public final class MetricKey implements Comparable<MetricKey> {
           .build();
   public static final MetricKey MASTER_LOST_FILE_COUNT =
       new Builder("Master.LostFileCount")
-          .setDescription("Count of lost file")
+          .setDescription("Count of lost files")
           .setMetricType(MetricType.GAUGE)
           .build();
   public static final MetricKey MASTER_LOST_BLOCK_COUNT =
