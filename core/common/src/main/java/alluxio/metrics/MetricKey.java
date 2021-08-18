@@ -544,6 +544,11 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setDescription("Total number of SetAttribute operations")
           .setMetricType(MetricType.COUNTER)
           .build();
+  public static final MetricKey MASTER_UFS_METADATA_ACCESS_COUNT =
+      new Builder("Master.UfsMetadataAccessCount")
+          .setDescription("Total number of files accessed ufs metadata")
+          .setMetricType(MetricType.COUNTER)
+          .build();
   public static final MetricKey MASTER_UNMOUNT_OPS =
       new Builder("Master.UnmountOps")
           .setDescription("Total number of Unmount operations")

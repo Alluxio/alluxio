@@ -20,6 +20,7 @@ import alluxio.conf.PropertyKey;
 import alluxio.exception.status.UnimplementedException;
 import alluxio.metrics.Metric;
 import alluxio.metrics.MetricInfo;
+import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.security.authentication.AuthenticatedClientUser;
 import alluxio.security.authorization.AccessControlList;
@@ -33,6 +34,7 @@ import alluxio.underfs.options.MkdirsOptions;
 import alluxio.underfs.options.OpenOptions;
 import alluxio.util.SecurityUtils;
 
+import com.codahale.metrics.Counter;
 import com.codahale.metrics.Timer;
 import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
@@ -160,6 +162,7 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
     return call(new UfsCallable<OutputStream>() {
       @Override
       public OutputStream call() throws IOException {
+        Metrics.UFS_METADATA_ACCESS.inc();
         return mUnderFileSystem.create(path);
       }
 
@@ -180,6 +183,7 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
     return call(new UfsCallable<OutputStream>() {
       @Override
       public OutputStream call() throws IOException {
+        Metrics.UFS_METADATA_ACCESS.inc();
         return mUnderFileSystem.create(path, options);
       }
 
@@ -200,6 +204,7 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
     return call(new UfsCallable<OutputStream>() {
       @Override
       public OutputStream call() throws IOException {
+        Metrics.UFS_METADATA_ACCESS.inc();
         return mUnderFileSystem.createNonexistingFile(path);
       }
 
@@ -221,6 +226,7 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
     return call(new UfsCallable<OutputStream>() {
       @Override
       public OutputStream call() throws IOException {
+        Metrics.UFS_METADATA_ACCESS.inc();
         return mUnderFileSystem.createNonexistingFile(path, options);
       }
 
@@ -241,6 +247,7 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
     return call(new UfsCallable<Boolean>() {
       @Override
       public Boolean call() throws IOException {
+        Metrics.UFS_METADATA_ACCESS.inc();
         return mUnderFileSystem.deleteDirectory(path);
       }
 
@@ -262,6 +269,7 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
     return call(new UfsCallable<Boolean>() {
       @Override
       public Boolean call() throws IOException {
+        Metrics.UFS_METADATA_ACCESS.inc();
         return mUnderFileSystem.deleteDirectory(path, options);
       }
 
@@ -282,6 +290,7 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
     return call(new UfsCallable<Boolean>() {
       @Override
       public Boolean call() throws IOException {
+        Metrics.UFS_METADATA_ACCESS.inc();
         return mUnderFileSystem.deleteExistingDirectory(path);
       }
 
@@ -303,6 +312,7 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
     return call(new UfsCallable<Boolean>() {
       @Override
       public Boolean call() throws IOException {
+        Metrics.UFS_METADATA_ACCESS.inc();
         return mUnderFileSystem.deleteExistingDirectory(path, options);
       }
 
@@ -323,6 +333,7 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
     return call(new UfsCallable<Boolean>() {
       @Override
       public Boolean call() throws IOException {
+        Metrics.UFS_METADATA_ACCESS.inc();
         return mUnderFileSystem.deleteFile(path);
       }
 
@@ -343,6 +354,7 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
     return call(new UfsCallable<Boolean>() {
       @Override
       public Boolean call() throws IOException {
+        Metrics.UFS_METADATA_ACCESS.inc();
         return mUnderFileSystem.deleteExistingFile(path);
       }
 
@@ -363,6 +375,7 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
     return call(new UfsCallable<Boolean>() {
       @Override
       public Boolean call() throws IOException {
+        Metrics.UFS_METADATA_ACCESS.inc();
         return mUnderFileSystem.exists(path);
       }
 
@@ -384,6 +397,7 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
     return call(new UfsCallable<Pair<AccessControlList, DefaultAccessControlList>>() {
       @Override
       public Pair<AccessControlList, DefaultAccessControlList> call() throws IOException {
+        Metrics.UFS_METADATA_ACCESS.inc();
         return mUnderFileSystem.getAclPair(path);
       }
 
@@ -404,6 +418,7 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
     return call(new UfsCallable<Long>() {
       @Override
       public Long call() throws IOException {
+        Metrics.UFS_METADATA_ACCESS.inc();
         return mUnderFileSystem.getBlockSizeByte(path);
       }
 
@@ -444,6 +459,7 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
     return call(new UfsCallable<UfsDirectoryStatus>() {
       @Override
       public UfsDirectoryStatus call() throws IOException {
+        Metrics.UFS_METADATA_ACCESS.inc();
         return mUnderFileSystem.getDirectoryStatus(path);
       }
 
@@ -464,6 +480,7 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
     return call(new UfsCallable<UfsDirectoryStatus>() {
       @Override
       public UfsDirectoryStatus call() throws IOException {
+        Metrics.UFS_METADATA_ACCESS.inc();
         return mUnderFileSystem.getExistingDirectoryStatus(path);
       }
 
@@ -484,6 +501,7 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
     return call(new UfsCallable<List<String>>() {
       @Override
       public List<String> call() throws IOException {
+        Metrics.UFS_METADATA_ACCESS.inc();
         return mUnderFileSystem.getFileLocations(path);
       }
 
@@ -505,6 +523,7 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
     return call(new UfsCallable<List<String>>() {
       @Override
       public List<String> call() throws IOException {
+        Metrics.UFS_METADATA_ACCESS.inc();
         return mUnderFileSystem.getFileLocations(path, options);
       }
 
@@ -525,6 +544,7 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
     return call(new UfsCallable<UfsFileStatus>() {
       @Override
       public UfsFileStatus call() throws IOException {
+        Metrics.UFS_METADATA_ACCESS.inc();
         return mUnderFileSystem.getFileStatus(path);
       }
 
@@ -545,6 +565,7 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
     return call(new UfsCallable<UfsFileStatus>() {
       @Override
       public UfsFileStatus call() throws IOException {
+        Metrics.UFS_METADATA_ACCESS.inc();
         return mUnderFileSystem.getExistingFileStatus(path);
       }
 
@@ -566,6 +587,7 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
       return call(new UfsCallable<String>() {
         @Override
         public String call() throws IOException {
+          Metrics.UFS_METADATA_ACCESS.inc();
           return mUnderFileSystem.getFingerprint(path);
         }
 
@@ -595,6 +617,7 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
     return call(new UfsCallable<Long>() {
       @Override
       public Long call() throws IOException {
+        Metrics.UFS_METADATA_ACCESS.inc();
         return mUnderFileSystem.getSpace(path, type);
       }
 
@@ -615,6 +638,7 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
     return call(new UfsCallable<UfsStatus>() {
       @Override
       public UfsStatus call() throws IOException {
+        Metrics.UFS_METADATA_ACCESS.inc();
         return mUnderFileSystem.getStatus(path);
       }
 
@@ -635,6 +659,7 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
     return call(new UfsCallable<UfsStatus>() {
       @Override
       public UfsStatus call() throws IOException {
+        Metrics.UFS_METADATA_ACCESS.inc();
         return mUnderFileSystem.getExistingStatus(path);
       }
 
@@ -660,6 +685,7 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
     return call(new UfsCallable<Boolean>() {
       @Override
       public Boolean call() throws IOException {
+        Metrics.UFS_METADATA_ACCESS.inc();
         return mUnderFileSystem.isDirectory(path);
       }
 
@@ -680,6 +706,7 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
     return call(new UfsCallable<Boolean>() {
       @Override
       public Boolean call() throws IOException {
+        Metrics.UFS_METADATA_ACCESS.inc();
         return mUnderFileSystem.isExistingDirectory(path);
       }
 
@@ -700,6 +727,7 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
     return call(new UfsCallable<Boolean>() {
       @Override
       public Boolean call() throws IOException {
+        Metrics.UFS_METADATA_ACCESS.inc();
         return mUnderFileSystem.isFile(path);
       }
 
@@ -730,6 +758,7 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
     return call(new UfsCallable<UfsStatus[]>() {
       @Override
       public UfsStatus[] call() throws IOException {
+        Metrics.UFS_METADATA_ACCESS.inc();
         return filterInvalidPaths(mUnderFileSystem.listStatus(path), path);
       }
 
@@ -751,6 +780,7 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
     return call(new UfsCallable<UfsStatus[]>() {
       @Override
       public UfsStatus[] call() throws IOException {
+        Metrics.UFS_METADATA_ACCESS.inc();
         return filterInvalidPaths(mUnderFileSystem.listStatus(path, options), path);
       }
 
@@ -799,6 +829,7 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
     return call(new UfsCallable<Boolean>() {
       @Override
       public Boolean call() throws IOException {
+        Metrics.UFS_METADATA_ACCESS.inc();
         return mUnderFileSystem.mkdirs(path);
       }
 
@@ -819,6 +850,7 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
     return call(new UfsCallable<Boolean>() {
       @Override
       public Boolean call() throws IOException {
+        Metrics.UFS_METADATA_ACCESS.inc();
         return mUnderFileSystem.mkdirs(path, options);
       }
 
@@ -839,6 +871,7 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
     return call(new UfsCallable<InputStream>() {
       @Override
       public InputStream call() throws IOException {
+        Metrics.UFS_METADATA_ACCESS.inc();
         return mUnderFileSystem.open(path);
       }
 
@@ -859,6 +892,7 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
     return call(new UfsCallable<InputStream>() {
       @Override
       public InputStream call() throws IOException {
+        Metrics.UFS_METADATA_ACCESS.inc();
         return mUnderFileSystem.open(path, options);
       }
 
@@ -879,6 +913,7 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
     return call(new UfsCallable<InputStream>() {
       @Override
       public InputStream call() throws IOException {
+        Metrics.UFS_METADATA_ACCESS.inc();
         return mUnderFileSystem.openExistingFile(path);
       }
 
@@ -900,6 +935,7 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
     return call(new UfsCallable<InputStream>() {
       @Override
       public InputStream call() throws IOException {
+        Metrics.UFS_METADATA_ACCESS.inc();
         return mUnderFileSystem.openExistingFile(path, options);
       }
 
@@ -920,6 +956,7 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
     return call(new UfsCallable<Boolean>() {
       @Override
       public Boolean call() throws IOException {
+        Metrics.UFS_METADATA_ACCESS.inc();
         return mUnderFileSystem.renameDirectory(src, dst);
       }
 
@@ -940,6 +977,7 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
     return call(new UfsCallable<Boolean>() {
       @Override
       public Boolean call() throws IOException {
+        Metrics.UFS_METADATA_ACCESS.inc();
         return mUnderFileSystem.renameRenamableDirectory(src, dst);
       }
 
@@ -960,6 +998,7 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
     return call(new UfsCallable<Boolean>() {
       @Override
       public Boolean call() throws IOException {
+        Metrics.UFS_METADATA_ACCESS.inc();
         return mUnderFileSystem.renameFile(src, dst);
       }
 
@@ -980,6 +1019,7 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
     return call(new UfsCallable<Boolean>() {
       @Override
       public Boolean call() throws IOException {
+        Metrics.UFS_METADATA_ACCESS.inc();
         return mUnderFileSystem.renameRenamableFile(src, dst);
       }
 
@@ -1005,6 +1045,7 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
     call(new UfsCallable<Void>() {
       @Override
       public Void call() throws IOException {
+        Metrics.UFS_METADATA_ACCESS.inc();
         mUnderFileSystem.setAclEntries(path, aclEntries);
         return null;
       }
@@ -1027,6 +1068,7 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
     call(new UfsCallable<Void>() {
       @Override
       public Void call() throws IOException {
+        Metrics.UFS_METADATA_ACCESS.inc();
         mUnderFileSystem.setOwner(path, owner, group);
         return null;
       }
@@ -1048,6 +1090,7 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
     call(new UfsCallable<Void>() {
       @Override
       public Void call() throws IOException {
+        Metrics.UFS_METADATA_ACCESS.inc();
         mUnderFileSystem.setMode(path, mode);
         return null;
       }
@@ -1257,5 +1300,12 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
   // TODO(calvin): This should not be in this class
   private String getQualifiedFailureMetricName(String metricName) {
     return getQualifiedMetricName(metricName + "Failures");
+  }
+
+  public static final class Metrics {
+    private static final Counter UFS_METADATA_ACCESS =
+        MetricsSystem.counter(MetricKey.MASTER_UFS_METADATA_ACCESS_COUNT.getName());
+
+    private Metrics() {} // prevent instantiation
   }
 }
