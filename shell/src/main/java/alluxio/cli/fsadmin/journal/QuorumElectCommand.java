@@ -37,8 +37,10 @@ public class QuorumElectCommand extends AbstractFsAdminCommand {
 
   public static final String ADDRESS_OPTION_NAME = "address";
 
-  public static final String OUTPUT_SUCCESS = "Transferred leadership to server: %s";
-  public static final String OUTPUT_FAIL = "Leadership was not transferred to %s.";
+  public static final String TRANSFER_SUCCESS = "Transferred leadership to server: %s";
+  public static final String TRANSFER_FAILED = "Leadership was not transferred to %s: %s";
+  public static final String RESET_SUCCESS = "Quorum priorities were reset to 1";
+  public static final String RESET_FAILED = "Quorum priorities failed to be reset: %s";
 
   private final AlluxioConfiguration mConf;
 
@@ -80,12 +82,19 @@ public class QuorumElectCommand extends AbstractFsAdminCommand {
         }
         return leaderAddress.getHostName().equals(address.getHost());
       });
+      mPrintStream.println(String.format(TRANSFER_SUCCESS, serverAddress));
     } catch (Exception e) {
-      mPrintStream.println(String.format(OUTPUT_FAIL, serverAddress));
-      return 0;
+      mPrintStream.println(String.format(TRANSFER_FAILED, serverAddress, e));
     }
-
-    mPrintStream.println(String.format(OUTPUT_SUCCESS, serverAddress));
+    // Resetting RaftPeer priorities using a separate RPC because the old leader has shut down
+    // its RPC server. We want to reset them regardless of transfer success because the original
+    // setting of priorities may have succeeded while the transfer might not have.
+    try {
+      jmClient.resetPriorities();
+      mPrintStream.println(RESET_SUCCESS);
+    } catch (Exception e) {
+      mPrintStream.println(String.format(RESET_FAILED, e));
+    }
     return 0;
   }
 

@@ -882,6 +882,28 @@ public class RaftJournalSystem extends AbstractJournalSystem {
   }
 
   /**
+   * Resets RaftPeer priorities.
+   *
+   * @throws IOException
+   */
+  public synchronized void resetPriorities() throws IOException {
+    List<RaftPeer> resetPeers = new ArrayList<>();
+    final int NEUTRAL_PRIORITY = 1;
+    for (RaftPeer peer : mRaftGroup.getPeers()) {
+      resetPeers.add(
+              RaftPeer.newBuilder(peer)
+              .setPriority(NEUTRAL_PRIORITY)
+              .build()
+      );
+    }
+    LOG.info("Resetting RaftPeer priorities");
+    try (RaftClient client = createClient()) {
+      RaftClientReply reply = client.admin().setConfiguration(resetPeers);
+      processReply(reply);
+    }
+  }
+
+  /**
    * Transfers the leadership of the quorum to another server.
    *
    * @param newLeaderNetAddress the address of the server
@@ -910,30 +932,25 @@ public class RaftJournalSystem extends AbstractJournalSystem {
       );
     }
     // --- end of updating priorities ---
-    final int TRANSFER_LEADER_WAIT_MS = 30_000;
     try (RaftClient client = createClient()) {
       String stringPeers = "[" + peersWithNewPriorities.stream().map(RaftPeer::toString)
                       .collect(Collectors.joining(", ")) + "]";
       LOG.info("Applying new peer state before transferring leadership: {}", stringPeers);
       // set peers to have new priorities
       RaftClientReply reply = client.admin().setConfiguration(peersWithNewPriorities);
-      if (!reply.isSuccess()) {
-        throw reply.getException() != null
-                ? reply.getException()
-                : new IOException(String.format("reply <%s> failed", reply));
-      }
+      processReply(reply);
       // transfer leadership
-      LOG.info("Transferring leadership to master with address <{}> and with RaftPeerId " +
-                      "<{}>",
+      LOG.info("Transferring leadership to master with address <{}> and with RaftPeerId <{}>",
               serverAddress, newLeaderPeerId);
       // fire and forget: need to immediately return as the master will shut down its RPC servers
       // once the TransferLeadershipRequest is initiated.
-      final int sleepTimeMs = 3_000;
+      final int SLEEP_TIME_MS = 3_000;
+      final int TRANSFER_LEADER_WAIT_MS = 30_000;
       new Thread(() -> {
         try {
-          Thread.sleep(sleepTimeMs);
+          Thread.sleep(SLEEP_TIME_MS);
           client.admin().transferLeadership(newLeaderPeerId, TRANSFER_LEADER_WAIT_MS);
-        } catch(Throwable t){
+        } catch (Throwable t) {
           LOG.error("caught an error: {}", t.getMessage());
           /* checking the transfer happens in {@link QuorumElectCommand} */
         }
@@ -941,6 +958,18 @@ public class RaftJournalSystem extends AbstractJournalSystem {
       LOG.info("Transferring leadership initiated");
     } catch (Throwable t) {
       throw new IOException(t);
+    }
+  }
+
+  /**
+   * @param reply from the ratis operation
+   * @throws IOException
+   */
+  private void processReply(RaftClientReply reply) throws IOException {
+    if (!reply.isSuccess()) {
+      throw reply.getException() != null
+              ? reply.getException()
+              : new IOException(String.format("reply <%s> failed", reply));
     }
   }
 
