@@ -355,7 +355,7 @@ public final class MetricKey implements Comparable<MetricKey> {
           .build();
   public static final MetricKey MASTER_LOST_BLOCK_COUNT =
       new Builder("Master.LostBlockCount")
-          .setDescription("Count of lost block")
+          .setDescription("Count of lost unique blocks")
           .setMetricType(MetricType.GAUGE)
           .build();
   public static final MetricKey MASTER_TOTAL_PATHS =
