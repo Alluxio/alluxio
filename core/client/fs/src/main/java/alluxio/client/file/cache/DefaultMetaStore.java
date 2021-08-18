@@ -24,6 +24,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.WeakHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 import javax.annotation.Nullable;
 
@@ -35,6 +36,8 @@ public class DefaultMetaStore implements MetaStore {
   private static final Logger LOG = LoggerFactory.getLogger(DefaultMetaStore.class);
   /** A map from PageId to page info. */
   private final Map<PageId, PageInfo> mPageMap = new HashMap<>();
+  /** A map from fileId to file info.*/
+  private final Map<String, FileInfo> mFileMap = new WeakHashMap<>();
   /** The number of logical bytes used. */
   private final AtomicLong mBytes = new AtomicLong(0);
   /** The number of pages stored. */
@@ -55,6 +58,26 @@ public class DefaultMetaStore implements MetaStore {
   @VisibleForTesting
   public DefaultMetaStore(CacheEvictor evictor) {
     mEvictor = evictor;
+  }
+
+  @Override
+  public boolean hasFile(String fileId) {
+    return mFileMap.containsKey(fileId);
+  }
+
+  @Override
+  public void addFile(String fileId, FileInfo fileInfo) {
+    mFileMap.put(fileId, fileInfo);
+  }
+
+  @Override
+  public void removeFile(String fileId) {
+    mFileMap.remove(fileId);
+  }
+
+  @Override
+  public FileInfo getFile(String fileId) {
+    return mFileMap.get(fileId);
   }
 
   @Override

@@ -24,6 +24,8 @@ import javax.annotation.Nullable;
  * Cache related context.
  */
 public class CacheContext {
+
+  public static final int LAST_MODIFICATION_TIME_NOT_SET = 0;
   /** Used in Prestodb to indicate the cache quota for a file. */
   private CacheQuota mCacheQuota = CacheQuota.UNLIMITED;
 
@@ -40,6 +42,8 @@ public class CacheContext {
    * We don't set Alluxio fileId because in local cache files do not have Alluxio fileId assigned.
    */
   private String mCacheIdentifier = null;
+
+  private long mLastModificationTimeMs = LAST_MODIFICATION_TIME_NOT_SET;
 
   /**
    * @return the default CacheContext
@@ -90,6 +94,13 @@ public class CacheContext {
   }
 
   /**
+   * @return the last modification time of the source data file
+   */
+  public long getLastModificationTimeMs() {
+    return mLastModificationTimeMs;
+  }
+
+  /**
    * @param identifier the id to use
    * @return the updated {@code CacheContext}
    */
@@ -126,6 +137,15 @@ public class CacheContext {
   }
 
   /**
+   * @param lastModificationTimeMs the last modification time
+   * @return the updated {@code CacheContext}
+   */
+  public CacheContext setLastModificationTimeMs(long lastModificationTimeMs) {
+    mLastModificationTimeMs = lastModificationTimeMs;
+    return this;
+  }
+
+  /**
    * Increments the counter {@code name} by {@code value}.
    * <p>
    * Default implementation does nothing. Subclass can implement its own tracking mechanism.
@@ -149,7 +169,8 @@ public class CacheContext {
     return Objects.equals(mCacheIdentifier, that.mCacheIdentifier)
         && Objects.equals(mHiveCacheContext, that.mHiveCacheContext)
         && Objects.equals(mCacheQuota, that.mCacheQuota)
-        && Objects.equals(mCacheScope, that.mCacheScope);
+        && Objects.equals(mCacheScope, that.mCacheScope)
+        && Objects.equals(mLastModificationTimeMs, that.mLastModificationTimeMs);
   }
 
   @Override
@@ -164,6 +185,7 @@ public class CacheContext {
         .add("cacheQuota", mCacheQuota)
         .add("cacheScope", mCacheScope)
         .add("hiveCacheContext", mHiveCacheContext)
+        .add("lastModificationTimeMs", mLastModificationTimeMs)
         .toString();
   }
 }

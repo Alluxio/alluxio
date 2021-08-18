@@ -32,6 +32,31 @@ public interface MetaStore {
   }
 
   /**
+   * @param fileId file ID
+   * @return if a file is cached
+   */
+  boolean hasFile(String fileId);
+
+  /**
+   * Add a new file to metastore.
+   * @param fileId file ID
+   * @param fileInfo file info
+   */
+  void addFile(String fileId, FileInfo fileInfo);
+
+  /**
+   * Remove a file from metastore.
+   * @param fileId file ID
+   */
+  void removeFile(String fileId);
+
+  /**
+   * @param fileId file ID
+   * @return file info
+   */
+  FileInfo getFile(String fileId);
+
+  /**
    * @param pageId page identifier
    * @return if a page is stored in cache
    */

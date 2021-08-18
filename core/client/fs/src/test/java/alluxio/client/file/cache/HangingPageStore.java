@@ -23,6 +23,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * A PageStore can hang on put, get or delete.
  */
 class HangingPageStore extends LocalPageStore {
+
   private AtomicBoolean mDeleteHanging = new AtomicBoolean(false);
   private AtomicBoolean mGetHanging = new AtomicBoolean(false);
   private AtomicBoolean mPutHanging = new AtomicBoolean(false);
@@ -33,25 +34,30 @@ class HangingPageStore extends LocalPageStore {
   }
 
   @Override
-  public void delete(PageId pageId) throws IOException, PageNotFoundException {
-    // never quit
-    while (mDeleteHanging.get()) {}
-    super.delete(pageId);
-  }
-
-  @Override
-  public int get(PageId pageId, int pageOffset, int bytesToRead, byte[] buffer, int bufferOffset)
+  public void delete(PageId pageId, long lastModificationTimeMs)
       throws IOException, PageNotFoundException {
     // never quit
-    while (mGetHanging.get()) {}
-    return super.get(pageId, pageOffset, bytesToRead, buffer, bufferOffset);
+    while (mDeleteHanging.get()) {
+    }
+    super.delete(pageId, lastModificationTimeMs);
   }
 
   @Override
-  public void put(PageId pageId, byte[] page) throws IOException {
+  public int get(PageId pageId, long lastModificationTimeMs, int pageOffset, int bytesToRead,
+      byte[] buffer, int bufferOffset)
+      throws IOException, PageNotFoundException {
     // never quit
-    while (mPutHanging.get()) {}
-    super.put(pageId, page);
+    while (mGetHanging.get()) {
+    }
+    return super.get(pageId, lastModificationTimeMs, pageOffset, bytesToRead, buffer, bufferOffset);
+  }
+
+  @Override
+  public void put(PageId pageId, byte[] page, PageInfo pageInfo) throws IOException {
+    // never quit
+    while (mPutHanging.get()) {
+    }
+    super.put(pageId, page, pageInfo);
     mPut.getAndIncrement();
   }
 

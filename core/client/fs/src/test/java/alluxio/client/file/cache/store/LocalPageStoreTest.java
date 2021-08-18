@@ -16,8 +16,11 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
+import alluxio.client.file.cache.FileInfo;
 import alluxio.client.file.cache.PageId;
+import alluxio.client.file.cache.PageInfo;
 import alluxio.client.file.cache.PageStore;
+import alluxio.client.quota.CacheScope;
 
 import org.junit.Before;
 import org.junit.Rule;
@@ -30,6 +33,10 @@ import java.nio.file.Paths;
 import java.util.Arrays;
 
 public class LocalPageStoreTest {
+
+  private static final byte[] TEST_PAGE = "test".getBytes();
+  private static final int TEST_PAGE_SIZE = TEST_PAGE.length;
+  private static final FileInfo TEST_FILE_INFO = new FileInfo(CacheScope.GLOBAL, 100);
 
   @Rule
   public TemporaryFolder mTemp = new TemporaryFolder();
@@ -55,7 +62,7 @@ public class LocalPageStoreTest {
     long numFiles = 100;
     for (int i = 0; i < numFiles; i++) {
       PageId id = new PageId(Integer.toString(i), 0);
-      pageStore.put(id, "test".getBytes());
+      pageStore.put(id, TEST_PAGE, new PageInfo(id, TEST_PAGE_SIZE, TEST_FILE_INFO));
     }
     assertEquals(1, Files.list(
         Paths.get(mOptions.getRootDir(), Long.toString(mOptions.getPageSize()))).count());
@@ -69,7 +76,7 @@ public class LocalPageStoreTest {
     long numFiles = numBuckets * 10;
     for (int i = 0; i < numFiles; i++) {
       PageId id = new PageId(Integer.toString(i), 0);
-      pageStore.put(id, "test".getBytes());
+      pageStore.put(id, TEST_PAGE, new PageInfo(id, TEST_PAGE_SIZE, TEST_FILE_INFO));
     }
     assertEquals(10, Files.list(
         Paths.get(mOptions.getRootDir(), Long.toString(mOptions.getPageSize()))).count());
@@ -79,10 +86,10 @@ public class LocalPageStoreTest {
   public void cleanFileAndDirectory() throws Exception {
     LocalPageStore pageStore = new LocalPageStore(mOptions);
     PageId pageId = new PageId("0", 0);
-    pageStore.put(pageId, "test".getBytes());
-    Path p = pageStore.getFilePath(pageId);
+    pageStore.put(pageId, TEST_PAGE, new PageInfo(pageId, TEST_PAGE_SIZE, TEST_FILE_INFO));
+    Path p = pageStore.getFilePath(pageId, TEST_FILE_INFO.getLastModificationTimeMs());
     assertTrue(Files.exists(p));
-    pageStore.delete(pageId);
+    pageStore.delete(pageId, TEST_FILE_INFO.getLastModificationTimeMs());
     assertFalse(Files.exists(p));
     assertFalse(Files.exists(p.getParent()));
   }
@@ -90,9 +97,10 @@ public class LocalPageStoreTest {
   private void helloWorldTest(PageStore store) throws Exception {
     String msg = "Hello, World!";
     PageId id = new PageId("0", 0);
-    store.put(id, msg.getBytes());
+    store.put(id, msg.getBytes(), new PageInfo(id, msg.getBytes().length, TEST_FILE_INFO));
     byte[] buf = new byte[1024];
-    assertEquals(msg.getBytes().length, store.get(id, buf));
+    assertEquals(msg.getBytes().length,
+        store.get(id, TEST_FILE_INFO.getLastModificationTimeMs(), buf));
     assertArrayEquals(msg.getBytes(), Arrays.copyOfRange(buf, 0, msg.getBytes().length));
   }
 }

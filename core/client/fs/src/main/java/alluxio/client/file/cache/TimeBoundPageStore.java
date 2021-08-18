@@ -18,6 +18,7 @@ import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 
 import com.codahale.metrics.Counter;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
 import com.google.common.util.concurrent.SimpleTimeLimiter;
@@ -35,9 +36,11 @@ import java.util.concurrent.TimeoutException;
 import java.util.stream.Stream;
 
 /**
- * A wrapper class on PageStore with timeout. Note that, this page store will not queue any request.
+ * A wrapper class on PageStore with timeout. Note that, this page store will not queue any
+ * request.
  */
 public class TimeBoundPageStore implements PageStore {
+
   private final PageStore mPageStore;
   private final long mTimeoutMs;
   private final TimeLimiter mTimeLimter;
@@ -45,7 +48,7 @@ public class TimeBoundPageStore implements PageStore {
 
   /**
    * @param pageStore page store
-   * @param options time out in ms
+   * @param options   time out in ms
    */
   public TimeBoundPageStore(PageStore pageStore, PageStoreOptions options) {
     mPageStore = Preconditions.checkNotNull(pageStore, "pageStore");
@@ -56,9 +59,10 @@ public class TimeBoundPageStore implements PageStore {
   }
 
   @Override
-  public void put(PageId pageId, byte[] page) throws ResourceExhaustedException, IOException {
+  public void put(PageId pageId, byte[] page, PageInfo pageInfo)
+      throws ResourceExhaustedException, IOException {
     Callable<Void> callable = () -> {
-      mPageStore.put(pageId, page);
+      mPageStore.put(pageId, page, pageInfo);
       return null;
     };
     try {
@@ -83,10 +87,12 @@ public class TimeBoundPageStore implements PageStore {
   }
 
   @Override
-  public int get(PageId pageId, int pageOffset, int bytesToRead, byte[] buffer, int bufferOffset)
+  public int get(PageId pageId, long lastModificationTimeMs, int pageOffset, int bytesToRead,
+      byte[] buffer, int bufferOffset)
       throws IOException, PageNotFoundException {
     Callable<Integer> callable = () ->
-        mPageStore.get(pageId, pageOffset, bytesToRead, buffer, bufferOffset);
+        mPageStore
+            .get(pageId, lastModificationTimeMs, pageOffset, bytesToRead, buffer, bufferOffset);
     try {
       return mTimeLimter.callWithTimeout(callable, mTimeoutMs, TimeUnit.MILLISECONDS);
     } catch (InterruptedException e) {
@@ -105,9 +111,10 @@ public class TimeBoundPageStore implements PageStore {
   }
 
   @Override
-  public void delete(PageId pageId) throws IOException, PageNotFoundException {
+  public void delete(PageId pageId, long lastModificationTimeMs)
+      throws IOException, PageNotFoundException {
     Callable<Void> callable = () -> {
-      mPageStore.delete(pageId);
+      mPageStore.delete(pageId, lastModificationTimeMs);
       return null;
     };
     try {
@@ -141,6 +148,14 @@ public class TimeBoundPageStore implements PageStore {
   public void close() throws Exception {
     mExecutorService.shutdown();
     mPageStore.close();
+  }
+
+  /**
+   * @return return the underlying page store for test purpose
+   */
+  @VisibleForTesting
+  public PageStore getPageStore() {
+    return mPageStore;
   }
 
   private static final class Metrics {

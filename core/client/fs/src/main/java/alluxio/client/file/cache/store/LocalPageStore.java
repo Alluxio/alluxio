@@ -11,9 +11,11 @@
 
 package alluxio.client.file.cache.store;
 
+import alluxio.client.file.cache.FileInfo;
 import alluxio.client.file.cache.PageId;
 import alluxio.client.file.cache.PageInfo;
 import alluxio.client.file.cache.PageStore;
+import alluxio.client.quota.CacheScope;
 import alluxio.exception.PageNotFoundException;
 import alluxio.exception.status.ResourceExhaustedException;
 
@@ -22,6 +24,8 @@ import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.RandomAccessFile;
@@ -29,6 +33,7 @@ import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Properties;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
@@ -36,18 +41,25 @@ import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
- * The {@link LocalPageStore} is an implementation of {@link PageStore} which
- * stores all pages in a directory somewhere on the local disk.
+ * The {@link LocalPageStore} is an implementation of {@link PageStore} which stores all pages in a
+ * directory somewhere on the local disk.
  */
 @NotThreadSafe
 public class LocalPageStore implements PageStore {
+
   private static final Logger LOG = LoggerFactory.getLogger(LocalPageStore.class);
   private static final String ERROR_NO_SPACE_LEFT = "No space left on device";
+  public static final String FILE_METADATA_FILENAME = "metadata.properties";
+  /**
+   * The depth of the file level directory from root-path.
+   */
+  public static final int FILE_LEVEL_DIR_DEPTH = 3;
   private final String mRoot;
   private final long mPageSize;
   private final long mCapacity;
   private final int mFileBuckets;
   private final Pattern mPagePattern;
+  private final Pattern mFilePattern;
 
   /**
    * Creates a new instance of {@link LocalPageStore}.
@@ -61,19 +73,26 @@ public class LocalPageStore implements PageStore {
     mFileBuckets = options.getFileBuckets();
     // normalize the path to deal with trailing slash
     Path rootDir = Paths.get(mRoot);
-    // pattern encoding root_path/page_size(ulong)/bucket(uint)/file_id(str)/page_idx(ulong)/
-    mPagePattern = Pattern.compile(
-        String.format("%s/%d/(\\d+)/([^/]+)/(\\d+)", Pattern.quote(rootDir.toString()), mPageSize));
+    // pattern encoding for each page
+    // root_path/page_size(ulong)/bucket(uint)/file_id(str)/mtime(long)/page_idx(ulong)/
+    mPagePattern = Pattern.compile(String
+        .format("%s/%d/(\\d+)/([^/]+)/(\\d+)/(\\d+)", Pattern.quote(rootDir.toString()),
+            mPageSize));
+    // pattern encoding for the directory of each file
+    mFilePattern = Pattern.compile(
+        String.format("%s/%d/(\\d+)/([^/]+)", Pattern.quote(rootDir.toString()), mPageSize));
   }
 
   @Override
-  public void put(PageId pageId, byte[] page) throws ResourceExhaustedException, IOException {
-    Path p = getFilePath(pageId);
+  public void put(PageId pageId, byte[] page, PageInfo pageInfo)
+      throws ResourceExhaustedException, IOException {
+    Path p = getFilePath(pageId, pageInfo.getFileInfo().getLastModificationTimeMs());
     try {
       if (!Files.exists(p)) {
         Path parent =
             Preconditions.checkNotNull(p.getParent(), "parent of cache file should not be null");
         Files.createDirectories(parent);
+        createFileMetadata(pageId, pageInfo.getFileInfo());
         Files.createFile(p);
       }
       // extra try to ensure output stream is closed
@@ -90,14 +109,26 @@ public class LocalPageStore implements PageStore {
     }
   }
 
+  private void createFileMetadata(PageId pageId, FileInfo fileInfo) throws IOException {
+    Path metaDataPath = getFileMetaDataPath(pageId);
+    Properties metadata = new Properties();
+    metadata.setProperty("LastModificationTimeMs",
+        String.valueOf(fileInfo.getLastModificationTimeMs()));
+    metadata.setProperty("Scope", String.valueOf(fileInfo.getScope()));
+    try (FileOutputStream fos = new FileOutputStream(metaDataPath.toFile(), false)) {
+      metadata.store(fos, "Metadata for " + pageId.getFileId());
+    }
+  }
+
   @Override
-  public int get(PageId pageId, int pageOffset, int bytesToRead, byte[] buffer, int bufferOffset)
+  public int get(PageId pageId, long lastModificationTimeMs, int pageOffset, int bytesToRead,
+      byte[] buffer, int bufferOffset)
       throws IOException, PageNotFoundException {
     Preconditions.checkArgument(pageOffset >= 0, "page offset should be non-negative");
     Preconditions.checkArgument(buffer.length >= bufferOffset,
         "page offset %s should be " + "less or equal than buffer length %s", bufferOffset,
         buffer.length);
-    Path p = getFilePath(pageId);
+    Path p = getFilePath(pageId, lastModificationTimeMs);
     if (!Files.exists(p)) {
       throw new PageNotFoundException(p.toString());
     }
@@ -127,8 +158,9 @@ public class LocalPageStore implements PageStore {
   }
 
   @Override
-  public void delete(PageId pageId) throws IOException, PageNotFoundException {
-    Path p = getFilePath(pageId);
+  public void delete(PageId pageId, long lastModificationTimeMs)
+      throws IOException, PageNotFoundException {
+    Path p = getFilePath(pageId, lastModificationTimeMs);
     if (!Files.exists(p)) {
       throw new PageNotFoundException(p.toString());
     }
@@ -154,13 +186,26 @@ public class LocalPageStore implements PageStore {
 
   /**
    * @param pageId page Id
+   * @param lastModificationTimeMs last modified time
    * @return the local file system path to store this page
    */
   @VisibleForTesting
-  public Path getFilePath(PageId pageId) {
+  public Path getFilePath(PageId pageId, long lastModificationTimeMs) {
     // TODO(feng): encode fileId with URLEncoder to escape invalid characters for file name
     return Paths.get(mRoot, Long.toString(mPageSize), getFileBucket(pageId.getFileId()),
-        pageId.getFileId(), Long.toString(pageId.getPageIndex()));
+        pageId.getFileId(), Long.toString(lastModificationTimeMs),
+        Long.toString(pageId.getPageIndex()));
+  }
+
+  /**
+   * @param pageId page Id
+   * @return the local file system path to store the metadata of the file of this page
+   */
+  @VisibleForTesting
+  public Path getFileMetaDataPath(PageId pageId) {
+    // TODO(feng): encode fileId with URLEncoder to escape invalid characters for file name
+    return Paths.get(mRoot, Long.toString(mPageSize), getFileBucket(pageId.getFileId()),
+        pageId.getFileId(), FILE_METADATA_FILENAME);
   }
 
   private String getFileBucket(String fileId) {
@@ -183,7 +228,7 @@ public class LocalPageStore implements PageStore {
       if (!fileBucket.equals(getFileBucket(fileId))) {
         return null;
       }
-      String fileName = Preconditions.checkNotNull(matcher.group(3));
+      String fileName = Preconditions.checkNotNull(matcher.group(4));
       long pageIndex = Long.parseLong(fileName);
       return new PageId(fileId, pageIndex);
     } catch (NumberFormatException e) {
@@ -196,7 +241,7 @@ public class LocalPageStore implements PageStore {
    * @return the corresponding page info for the file otherwise null
    */
   @Nullable
-  private PageInfo getPageInfo(Path path) {
+  private PageInfo getPageInfo(Path path, FileInfo fileInfo) {
     PageId pageId = getPageId(path);
     long pageSize;
     if (pageId == null) {
@@ -209,7 +254,7 @@ public class LocalPageStore implements PageStore {
       LOG.error("Failed to get file size for " + path, e);
       return null;
     }
-    return new PageInfo(pageId, pageSize);
+    return new PageInfo(pageId, pageSize, fileInfo);
   }
 
   @Override
@@ -220,7 +265,40 @@ public class LocalPageStore implements PageStore {
   @Override
   public Stream<PageInfo> getPages() throws IOException {
     Path rootDir = Paths.get(mRoot);
-    return Files.walk(rootDir).filter(Files::isRegularFile).map(this::getPageInfo);
+    return Files.walk(rootDir, FILE_LEVEL_DIR_DEPTH).filter(this::isFileLevelDir)
+        .flatMap(pathToFileDir -> {
+          try {
+            FileInfo fileInfo = loadFileInfo(pathToFileDir);
+            //TODO(beinan): remove all the stale sub-folder
+            // whose timestamp is less than last modified time in fileInfo
+            return Files
+                //only the pages stored in the sub-folder of lastModificationTimeMs would be visited
+                .walk(pathToFileDir.resolve(Long.toString(fileInfo.getLastModificationTimeMs())))
+                .filter(Files::isRegularFile)
+                .map(pathToPage -> getPageInfo(pathToPage, fileInfo));
+          } catch (IOException e) {
+            LOG.error("Failed to go through the pages under " + pathToFileDir, e);
+            return Stream
+                .empty(); //empty stream would be used which won't break the parent streaming.
+          }
+        });
+  }
+
+  private FileInfo loadFileInfo(Path path) throws IOException {
+    File metaDataFile = new File(path.toFile(), FILE_METADATA_FILENAME);
+    Properties fileMetaData = new Properties();
+    try (FileInputStream is = new FileInputStream(metaDataFile)) {
+      fileMetaData.load(is);
+    }
+    return new FileInfo(
+        CacheScope.create(fileMetaData.getProperty("Scope")),
+        Long.parseLong(fileMetaData.getProperty("LastModificationTimeMs"))
+    );
+  }
+
+  private boolean isFileLevelDir(Path path) {
+    Matcher matcher = mFilePattern.matcher(path.toString());
+    return matcher.matches();
   }
 
   @Override

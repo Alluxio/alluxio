@@ -36,6 +36,7 @@ import java.util.stream.Stream;
  * class does not need to provide thread-safety.
  */
 public interface PageStore extends AutoCloseable {
+
   Logger LOG = LoggerFactory.getLogger(PageStore.class);
 
   /**
@@ -81,7 +82,7 @@ public interface PageStore extends AutoCloseable {
    * Gets store path given root directory and store type.
    *
    * @param storeType the type of the page store
-   * @param rootDir the root directory path
+   * @param rootDir   the root directory path
    * @return the store directory path
    */
   static Path getStorePath(PageStoreType storeType, String rootDir) {
@@ -89,8 +90,8 @@ public interface PageStore extends AutoCloseable {
   }
 
   /**
-   * Initializes a page store at the configured location.
-   * Data from different store type will be removed.
+   * Initializes a page store at the configured location. Data from different store type will be
+   * removed.
    *
    * @param options initialize a new page store based on the options
    * @throws IOException when failed to clean up the specific location
@@ -114,54 +115,61 @@ public interface PageStore extends AutoCloseable {
   /**
    * Writes a new page from a source channel to the store.
    *
-   * @param pageId page identifier
-   * @param page page data
+   * @param pageId   page identifier
+   * @param page     page data
+   * @param pageInfo page info
    * @throws ResourceExhaustedException when there is not enough space found on disk
-   * @throws IOException when the store fails to write this page
+   * @throws IOException                when the store fails to write this page
    */
-  void put(PageId pageId, byte[] page) throws ResourceExhaustedException, IOException;
+  void put(PageId pageId, byte[] page, PageInfo pageInfo)
+      throws ResourceExhaustedException, IOException;
 
   /**
    * Gets a page from the store to the destination buffer.
    *
-   * @param pageId page identifier
-   * @param buffer destination buffer
+   * @param pageId                 page identifier
+   * @param lastModificationTimeMs last modified time of this page
+   * @param buffer                 destination buffer
    * @return the number of bytes read
-   * @throws IOException when the store fails to read this page
+   * @throws IOException           when the store fails to read this page
    * @throws PageNotFoundException when the page isn't found in the store
    */
-  default int get(PageId pageId, byte[] buffer) throws IOException, PageNotFoundException {
-    return get(pageId, 0, buffer.length, buffer, 0);
+  default int get(PageId pageId, long lastModificationTimeMs, byte[] buffer)
+      throws IOException, PageNotFoundException {
+    return get(pageId, lastModificationTimeMs, 0, buffer.length, buffer, 0);
   }
 
   /**
    * Gets part of a page from the store to the destination buffer.
    *
-   * @param pageId page identifier
-   * @param pageOffset offset within page
-   * @param bytesToRead bytes to read in this page
-   * @param buffer destination buffer
-   * @param bufferOffset offset in buffer
+   * @param pageId                 page identifier
+   * @param lastModificationTimeMs last modification time in ms
+   * @param pageOffset             offset within page
+   * @param bytesToRead            bytes to read in this page
+   * @param buffer                 destination buffer
+   * @param bufferOffset           offset in buffer
    * @return the number of bytes read
-   * @throws IOException when the store fails to read this page
-   * @throws PageNotFoundException when the page isn't found in the store
+   * @throws IOException              when the store fails to read this page
+   * @throws PageNotFoundException    when the page isn't found in the store
    * @throws IllegalArgumentException when the page offset exceeds the page size
    */
-  int get(PageId pageId, int pageOffset, int bytesToRead, byte[] buffer, int bufferOffset)
+  int get(PageId pageId, long lastModificationTimeMs, int pageOffset, int bytesToRead,
+      byte[] buffer, int bufferOffset)
       throws IOException, PageNotFoundException;
 
   /**
    * Deletes a page from the store.
    *
-   * @param pageId page identifier
-   * @throws IOException when the store fails to delete this page
+   * @param pageId                 page identifier
+   * @param lastModificationTimeMs last modified time
+   * @throws IOException           when the store fails to delete this page
    * @throws PageNotFoundException when the page isn't found in the store
    */
-  void delete(PageId pageId) throws IOException, PageNotFoundException;
+  void delete(PageId pageId, long lastModificationTimeMs) throws IOException, PageNotFoundException;
 
   /**
-   * Gets a stream of all pages from the page store. This stream needs to be closed as it may
-   * open IO resources.
+   * Gets a stream of all pages from the page store. This stream needs to be closed as it may open
+   * IO resources.
    *
    * @return a stream of all pages from page store
    * @throws IOException if any error occurs
@@ -177,9 +185,9 @@ public interface PageStore extends AutoCloseable {
    * Metrics.
    */
   final class Metrics {
+
     /**
-     * Number of failures when cleaning out the existing cache directory
-     * to initialize a new cache.
+     * Number of failures when cleaning out the existing cache directory to initialize a new cache.
      */
     private static final Counter CACHE_CLEAN_ERRORS =
         MetricsSystem.counter(MetricKey.CLIENT_CACHE_CLEAN_ERRORS.getName());
