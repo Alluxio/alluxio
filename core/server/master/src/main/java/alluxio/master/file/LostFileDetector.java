@@ -20,6 +20,8 @@ import alluxio.master.file.meta.Inode;
 import alluxio.master.file.meta.LockedInodePath;
 import alluxio.master.file.meta.PersistenceState;
 import alluxio.master.journal.JournalContext;
+import alluxio.metrics.MetricKey;
+import alluxio.metrics.MetricsSystem;
 import alluxio.proto.journal.File.UpdateInodeEntry;
 
 import org.slf4j.Logger;
@@ -42,6 +44,8 @@ final class LostFileDetector implements HeartbeatExecutor {
   public LostFileDetector(FileSystemMaster fileSystemMaster, InodeTree inodeTree) {
     mFileSystemMaster = fileSystemMaster;
     mInodeTree = inodeTree;
+    MetricsSystem.registerCachedGaugeIfAbsent(MetricKey.MASTER_LOST_FILE_COUNT.getName(),
+        mFileSystemMaster.getLostFiles()::size);
   }
 
   @Override
