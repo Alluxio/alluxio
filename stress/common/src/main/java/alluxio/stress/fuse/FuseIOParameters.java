@@ -21,9 +21,6 @@ import com.beust.jcommander.Parameter;
  * ser/de without all the getters and setters.
  */
 public final class FuseIOParameters extends Parameters {
-  /** This must match the member name. */
-  public static final String FIELD_READ_RANDOM = "mReadRandom";
-
   @Parameter(names = {"--operation"},
       description = "the operation to perform. Options are [Read]",
       converter = FuseIOOperationConverter.class,
@@ -62,13 +59,6 @@ public final class FuseIOParameters extends Parameters {
       description = "The length of time to warmup before recording measurements. (1m, 10m, 60s, "
           + "10000ms, etc.)")
   public String mWarmup = "15s";
-
-  @Parameter(names = {"--read-random"},
-      description = "If true, threads read the file from random offsets. For streaming "
-          + "operations, seek() is called to read random offsets. If false, the file is read "
-          + "sequentially.")
-  @Parameters.BooleanDescription(trueDescription = "Random", falseDescription = "Sequential")
-  public boolean mReadRandom = false;
 
   /**
    * Converts from String to FuseIOOperation instance.

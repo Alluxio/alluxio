@@ -27,9 +27,7 @@ import com.google.common.base.Splitter;
 
 import java.io.IOException;
 import java.text.DateFormat;
-import java.util.Arrays;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -256,58 +254,49 @@ public final class FuseIOTaskResult implements TaskResult, Summary {
 
       // Iterate over all operations
       for (FuseIOOperation operation : FuseIOOperation.values()) {
-        for (Boolean readRandom : Arrays.asList(false, true)) {
-          List<FuseIOTaskResult> opSummaries =
-              summaries.stream().filter(x -> x.mParameters.mOperation == operation)
-                  .filter(x -> x.mParameters.mReadRandom == readRandom)
-                  .collect(Collectors.toList());
+        List<FuseIOTaskResult> opSummaries =
+            summaries.stream().filter(x -> x.mParameters.mOperation == operation)
+                .collect(Collectors.toList());
 
-          if (!opSummaries.isEmpty()) {
-            // first() is the list of common field names, second() is the list of unique field names
-            Pair<List<String>, List<String>> fieldNames = Parameters.partitionFieldNames(
-                opSummaries.stream().map(x -> x.mParameters).collect(Collectors.toList()));
+        if (!opSummaries.isEmpty()) {
+          // first() is the list of common field names, second() is the list of unique field names
+          Pair<List<String>, List<String>> fieldNames = Parameters.partitionFieldNames(
+              opSummaries.stream().map(x -> x.mParameters).collect(Collectors.toList()));
 
-            // Split up common description into 100 character chunks, for the sub title
-            List<String> subTitle = new ArrayList<>(Splitter.fixedLength(100).splitToList(
-                opSummaries.get(0).mParameters.getDescription(fieldNames.getFirst())));
+          // Split up common description into 100 character chunks, for the sub title
+          List<String> subTitle = new ArrayList<>(Splitter.fixedLength(100).splitToList(
+              opSummaries.get(0).mParameters.getDescription(fieldNames.getFirst())));
 
-            for (FuseIOTaskResult summary : opSummaries) {
-              String series = summary.mParameters.getDescription(fieldNames.getSecond());
-              subTitle.add(series + ": " + DateFormat.getDateTimeInstance()
-                  .format(summary.computeLastEndMs()));
-            }
-
-            LineGraph responseTimeGraph = new LineGraph(String
-                .format("%s - %s - Throughput", operation,
-                    opSummaries.get(0).mParameters.getDescription(
-                        Collections.singletonList(FuseIOParameters.FIELD_READ_RANDOM))),
-                subTitle, "# Threads", "Throughput (MB/s)");
-
-            LineGraph numSuccessGraph = new LineGraph(String
-                .format("%s - %s - API calls", operation,
-                    opSummaries.get(0).mParameters.getDescription(
-                        Collections.singletonList(FuseIOParameters.FIELD_READ_RANDOM))),
-                subTitle, "# Threads", "# API calls");
-
-            LineGraph timeToFirstByteGraph = new LineGraph(String
-                .format("%s - %s - Time To First Byte", operation,
-                    opSummaries.get(0).mParameters.getDescription(
-                        Collections.singletonList(FuseIOParameters.FIELD_READ_RANDOM))),
-                subTitle, "# Threads", "Time To First Byte (Ms)");
-
-            for (FuseIOTaskResult summary : opSummaries) {
-              String series = summary.mParameters.getDescription(fieldNames.getSecond());
-              responseTimeGraph.addDataSeries(series, summary.getThroughputData());
-              responseTimeGraph.setErrors(series, summary.collectErrors());
-
-              summary.getNumSuccessData(series, numSuccessGraph);
-
-              summary.getTimeToFistByteData(series, timeToFirstByteGraph);
-            }
-            graphs.add(responseTimeGraph);
-            graphs.add(numSuccessGraph);
-            graphs.add(timeToFirstByteGraph);
+          for (FuseIOTaskResult summary : opSummaries) {
+            String series = summary.mParameters.getDescription(fieldNames.getSecond());
+            subTitle.add(series + ": " + DateFormat.getDateTimeInstance()
+                .format(summary.computeLastEndMs()));
           }
+
+          LineGraph responseTimeGraph = new LineGraph(String
+              .format("%s - Throughput"),
+              subTitle, "# Threads", "Throughput (MB/s)");
+
+          LineGraph numSuccessGraph = new LineGraph(String
+              .format("%s - API calls", operation),
+              subTitle, "# Threads", "# API calls");
+
+          LineGraph timeToFirstByteGraph = new LineGraph(String
+              .format("%s - Time To First Byte"),
+              subTitle, "# Threads", "Time To First Byte (Ms)");
+
+          for (FuseIOTaskResult summary : opSummaries) {
+            String series = summary.mParameters.getDescription(fieldNames.getSecond());
+            responseTimeGraph.addDataSeries(series, summary.getThroughputData());
+            responseTimeGraph.setErrors(series, summary.collectErrors());
+
+            summary.getNumSuccessData(series, numSuccessGraph);
+
+            summary.getTimeToFistByteData(series, timeToFirstByteGraph);
+          }
+          graphs.add(responseTimeGraph);
+          graphs.add(numSuccessGraph);
+          graphs.add(timeToFirstByteGraph);
         }
       }
 
