@@ -928,18 +928,19 @@ public class RaftJournalSystem extends AbstractJournalSystem {
               serverAddress, newLeaderPeerId);
       // fire and forget: need to immediately return as the master will shut down its RPC servers
       // once the TransferLeadershipRequest is initiated.
-      Thread.sleep(3_000);
+      final int sleepTimeMs = 3_000;
       new Thread(() -> {
         try {
+          Thread.sleep(sleepTimeMs);
           client.admin().transferLeadership(newLeaderPeerId, TRANSFER_LEADER_WAIT_MS);
         } catch(Throwable t){
           LOG.error("caught an error: {}", t.getMessage());
           /* checking the transfer happens in {@link QuorumElectCommand} */
         }
       }).start();
-      LOG.info("TransferLeadershipRequest sent");
+      LOG.info("Transferring leadership initiated");
     } catch (Throwable t) {
-      LOG.error(t.getMessage());
+      throw new IOException(t);
     }
   }
 
