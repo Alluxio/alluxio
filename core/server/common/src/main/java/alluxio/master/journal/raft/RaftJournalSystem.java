@@ -912,41 +912,34 @@ public class RaftJournalSystem extends AbstractJournalSystem {
     // --- end of updating priorities ---
     final int TRANSFER_LEADER_WAIT_MS = 30_000;
     try (RaftClient client = createClient()) {
-      LOG.info("Applying new peer state before transferring leadership: {}",
-              peersToString(peersWithNewPriorities));
+      String stringPeers = "[" + peersWithNewPriorities.stream().map(RaftPeer::toString)
+                      .collect(Collectors.joining(", ")) + "]";
+      LOG.info("Applying new peer state before transferring leadership: {}", stringPeers);
       // set peers to have new priorities
       RaftClientReply reply = client.admin().setConfiguration(peersWithNewPriorities);
-      processReply(reply);
+      if (!reply.isSuccess()) {
+        throw reply.getException() != null
+                ? reply.getException()
+                : new IOException(String.format("reply <%s> failed", reply));
+      }
       // transfer leadership
-      LOG.info("Transferring leadership to master with address <{}> and with RaftPeerId <{}>",
+      LOG.info("Transferring leadership to master with address <{}> and with RaftPeerId " +
+                      "<{}>",
               serverAddress, newLeaderPeerId);
-      reply = client.admin().transferLeadership(newLeaderPeerId, TRANSFER_LEADER_WAIT_MS);
-      processReply(reply);
-      // reset the peers to have the old priorities
-      LOG.info("Resetting peer state to before transfer: {}", peersToString(oldPeers));
-      reply = client.admin().setConfiguration(oldPeers);
-      processReply(reply);
-      LOG.info("Successfully reset peer state");
-    }
-  }
-
-  /**
-   * @param peers to be printed into a string
-   * @return the peers as a comma delimited list
-   */
-  private String peersToString(List<RaftPeer> peers) {
-    return "[" + peers.stream().map(RaftPeer::toString).collect(Collectors.joining(", ")) + "]";
-  }
-
-  /**
-   * @param reply from the ratis operation
-   * @throws IOException
-   */
-  private void processReply(RaftClientReply reply) throws IOException {
-    if (!reply.isSuccess()) {
-      throw reply.getException() != null
-              ? reply.getException()
-              : new IOException(String.format("reply <%s> failed", reply));
+      // fire and forget: need to immediately return as the master will shut down its RPC servers
+      // once the TransferLeadershipRequest is initiated.
+      Thread.sleep(3_000);
+      new Thread(() -> {
+        try {
+          client.admin().transferLeadership(newLeaderPeerId, TRANSFER_LEADER_WAIT_MS);
+        } catch(Throwable t){
+          LOG.error("caught an error: {}", t.getMessage());
+          /* checking the transfer happens in {@link QuorumElectCommand} */
+        }
+      }).start();
+      LOG.info("TransferLeadershipRequest sent");
+    } catch (Throwable t) {
+      LOG.error(t.getMessage());
     }
   }
 
