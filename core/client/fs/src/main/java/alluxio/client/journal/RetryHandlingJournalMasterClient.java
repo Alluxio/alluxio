@@ -19,6 +19,7 @@ import alluxio.grpc.GetQuorumInfoPResponse;
 import alluxio.grpc.JournalMasterClientServiceGrpc;
 import alluxio.grpc.NetAddress;
 import alluxio.grpc.RemoveQuorumServerPRequest;
+import alluxio.grpc.ResetPrioritiesPRequest;
 import alluxio.grpc.ServiceType;
 import alluxio.grpc.TransferLeadershipPRequest;
 import alluxio.master.MasterClientContext;
@@ -81,5 +82,11 @@ public class RetryHandlingJournalMasterClient extends AbstractMasterClient
     retryRPC(() -> mClient.transferLeadership(
         TransferLeadershipPRequest.newBuilder().setServerAddress(newLeaderNetAddress).build()),
         RPC_LOG, "TransferLeadership", "serverAddress=%s", newLeaderNetAddress);
+  }
+
+  @Override
+  public void resetPriorities() throws AlluxioStatusException {
+    retryRPC(() -> mClient.resetPriorities(ResetPrioritiesPRequest.getDefaultInstance()),
+            RPC_LOG, "ResetPriorities", "");
   }
 }

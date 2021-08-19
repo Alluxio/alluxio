@@ -123,9 +123,7 @@ public final class PlanCoordinator {
     } catch (Exception e) {
       LOG.warn("Failed to select executor. {})", e.toString());
       LOG.info("Exception: ", e);
-      mPlanInfo.setStatus(Status.FAILED);
-      mPlanInfo.setErrorType(ErrorUtils.getErrorType(e));
-      mPlanInfo.setErrorMessage(e.getMessage());
+      setJobAsFailed(ErrorUtils.getErrorType(e), e.getMessage());
       return;
     }
     if (taskAddressToArgs.isEmpty()) {
@@ -253,22 +251,10 @@ public final class PlanCoordinator {
     for (TaskInfo info : taskInfoList) {
       switch (info.getStatus()) {
         case FAILED:
-          if (mPlanInfo.getErrorMessage().isEmpty()) {
-            mPlanInfo.setErrorType(info.getErrorType());
-            mPlanInfo.setErrorMessage("Task execution failed: " + info.getErrorMessage());
-            LOG.info("Job failed Id={} Config={} Error={}", mPlanInfo.getId(),
-                mPlanInfo.getJobConfig(), info.getErrorMessage());
-          }
-          // setStatus after setting the message to propagate error message up
-          // through statusChangeCallback
-          mPlanInfo.setStatus(Status.FAILED);
+          setJobAsFailed(info.getErrorType(), "Task execution failed: " + info.getErrorMessage());
           return;
         case CANCELED:
           if (mPlanInfo.getStatus() != Status.FAILED) {
-            if (mPlanInfo.getStatus() != Status.CANCELED) {
-              LOG.info("Job cancelled Id={} Config={}",
-                  mPlanInfo.getId(), mPlanInfo.getJobConfig());
-            }
             mPlanInfo.setStatus(Status.CANCELED);
           }
           return;
@@ -278,7 +264,6 @@ public final class PlanCoordinator {
           }
           break;
         case COMPLETED:
-          LOG.info("Job completed Id={} Config={}", mPlanInfo.getId(), mPlanInfo.getJobConfig());
           completed++;
           break;
         case CREATED:
@@ -299,9 +284,9 @@ public final class PlanCoordinator {
         mPlanInfo.setResult(join(taskInfoList));
         mPlanInfo.setStatus(Status.COMPLETED);
       } catch (Exception e) {
-        mPlanInfo.setStatus(Status.FAILED);
-        mPlanInfo.setErrorType(ErrorUtils.getErrorType(e));
-        mPlanInfo.setErrorMessage(e.getMessage());
+        LOG.warn("Job error when joining tasks Job Id={} Config={}",
+            mPlanInfo.getId(), mPlanInfo.getJobConfig(), e);
+        setJobAsFailed(ErrorUtils.getErrorType(e), e.getMessage());
       }
     }
   }

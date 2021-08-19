@@ -16,17 +16,11 @@ import alluxio.stress.Parameters;
 import com.beust.jcommander.IStringConverter;
 import com.beust.jcommander.Parameter;
 
-import java.util.Collections;
-import java.util.List;
-
 /**
  * This class holds all the Fuse IO related parameters. All fields are public for easier json
  * ser/de without all the getters and setters.
  */
 public final class FuseIOParameters extends Parameters {
-  /** This must match the member name. */
-  public static final String FIELD_READ_RANDOM = "mReadRandom";
-
   @Parameter(names = {"--operation"},
       description = "the operation to perform. Options are [Read]",
       converter = FuseIOOperationConverter.class,
@@ -34,7 +28,7 @@ public final class FuseIOParameters extends Parameters {
   public FuseIOOperation mOperation;
 
   @Parameter(names = {"--threads"}, description = "the number of concurrent threads to use")
-  public List<Integer> mThreads = Collections.singletonList(1);
+  public int mThreads = 1;
 
   @Parameter(names = {"--local-path"},
       description = "The local filesystem directory or Fuse mount point to perform operations in")
@@ -48,9 +42,14 @@ public final class FuseIOParameters extends Parameters {
           description = "The buffer size for IO operations. (1k, 16k, etc.)")
   public String mBufferSize = "64k";
 
-  @Parameter(names = {"--num-files"},
-      description = "The number of files for the test")
-  public int mNumFiles = 1000;
+  @Parameter(names = {"--num-files-per-dir"},
+      description = "The number of files per directory")
+  public int mNumFilesPerDir = 1000;
+
+  @Parameter(names = {"--num-dirs"},
+      description = "The number of directories that the files will be evenly distributed into."
+          + "It must be at least the number of threads and preferably a multiple of it.")
+  public int mNumDirs = 1;
 
   @Parameter(names = {"--duration"},
       description = "The length of time to run the benchmark. (1m, 10m, 60s, 10000ms, etc.)")
@@ -60,13 +59,6 @@ public final class FuseIOParameters extends Parameters {
       description = "The length of time to warmup before recording measurements. (1m, 10m, 60s, "
           + "10000ms, etc.)")
   public String mWarmup = "15s";
-
-  @Parameter(names = {"--read-random"},
-      description = "If true, threads read the file from random offsets. For streaming "
-          + "operations, seek() is called to read random offsets. If false, the file is read "
-          + "sequentially.")
-  @Parameters.BooleanDescription(trueDescription = "Random", falseDescription = "Sequential")
-  public boolean mReadRandom = false;
 
   /**
    * Converts from String to FuseIOOperation instance.

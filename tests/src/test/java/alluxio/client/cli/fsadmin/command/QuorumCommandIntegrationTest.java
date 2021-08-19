@@ -188,11 +188,11 @@ public final class QuorumCommandIntegrationTest extends BaseIntegrationTest {
   }
 
   @Test
-  public void transferLeader() throws Exception {
+  public void elect() throws Exception {
     final int MASTER_INDEX_WAIT_TIME = 5_000;
     int numMasters = 3;
     mCluster = MultiProcessCluster.newBuilder(PortCoordination.QUORUM_SHELL_REMOVE)
-            .setClusterName("QuorumShellTransferLeader").setNumMasters(numMasters).setNumWorkers(0)
+            .setClusterName("QuorumShellElect").setNumMasters(numMasters).setNumWorkers(0)
             .addProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.EMBEDDED.toString())
             .addProperty(PropertyKey.MASTER_JOURNAL_FLUSH_TIMEOUT_MS, "5min")
             // To make the test run faster.
@@ -211,8 +211,9 @@ public final class QuorumCommandIntegrationTest extends BaseIntegrationTest {
       mOutput.reset();
       shell.run("journal", "quorum", "elect", "-address" , newLeaderAddr);
       output = mOutput.toString().trim();
-      Assert.assertEquals(String.format(QuorumElectCommand.OUTPUT_SUCCESS, newLeaderAddr),
-              output);
+      String expected = String.format(QuorumElectCommand.TRANSFER_SUCCESS + "\n"
+              + QuorumElectCommand.RESET_SUCCESS, newLeaderAddr);
+      Assert.assertEquals(expected, output);
     }
     mCluster.notifySuccess();
   }
