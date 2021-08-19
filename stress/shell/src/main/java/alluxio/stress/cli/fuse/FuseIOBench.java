@@ -75,13 +75,12 @@ public class FuseIOBench extends Benchmark<FuseIOTaskResult> {
     return String.join("\n", ImmutableList.of(
         "A stress bench for testing the reading throughput of Fuse-based POSIX API.",
         "To run the test, data must be written first by executing \"Write\" operation, then "
-            + "run \"Read\" operation to test the reading throughput. Optionally one can run "
+            + "run \"Read\" operation to test the reading throughput. Optionally one can set "
+            + "alluxio.user.metadata.cache.enabled=true when mounting Alluxio Fuse and run "
             + "\"ListFile\" before \"Read\" to cache the metadata of the test files and eliminate "
             + "the effect of metadata operations while getting the reading throughput data.",
-        "If one wants to cache the metadata, be sure to set alluxio.user.metadata.cache.enabled="
-            + "true when mounting the Alluxio Fuse.",
-        "Note that in the parameters \"--operation\" is required, and \"--local-path\" can be a "
-            + "local filesystem path or a mounted Fuse path.",
+        "Note that \"--operation\" is required, and \"--local-path\" can be a local filesystem "
+            + "path or a mounted Fuse path.",
         "",
         "Example:",
         "# The test data will be written to /mnt/alluxio-fuse/FuseIOTest",
