@@ -293,6 +293,26 @@ public final class EmbeddedJournalIntegrationTest extends BaseIntegrationTest {
   }
 
   @Test
+  public void resetPriorities() throws Exception {
+    mCluster = MultiProcessCluster.newBuilder(PortCoordination.EMBEDDED_JOURNAL_FAILOVER)
+            .setClusterName("TransferLeadership")
+            .setNumMasters(NUM_MASTERS)
+            .setNumWorkers(0)
+            .addProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.EMBEDDED.toString())
+            .addProperty(PropertyKey.MASTER_JOURNAL_FLUSH_TIMEOUT_MS, "5min")
+            .addProperty(PropertyKey.MASTER_EMBEDDED_JOURNAL_ELECTION_TIMEOUT, "750ms")
+            .build();
+    mCluster.start();
+
+    try {
+      mCluster.getJournalMasterClientForMaster().resetPriorities();
+    } catch (Exception e) {
+      throw new RuntimeException(e);
+    }
+    mCluster.notifySuccess();
+  }
+
+  @Test
   public void transferLeadershipOutsideCluster() throws Exception {
     mCluster = MultiProcessCluster.newBuilder(PortCoordination.EMBEDDED_JOURNAL_FAILOVER)
             .setClusterName("TransferLeadership")

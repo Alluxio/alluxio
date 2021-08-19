@@ -49,6 +49,13 @@ message TransferLeadershipPRequest {
 }
 message TransferLeadershipPResponse {}
 
+// ResetPriorities API
+message ResetPrioritiesPOptions {}
+message ResetPrioritiesPRequest {
+    optional ResetPrioritiesPOptions options = 1;
+}
+message ResetPrioritiesPResponse {}
+
 /**
   * This interface contains journal master service endpoints for Alluxio clients.
   */
@@ -68,4 +75,9 @@ service JournalMasterClientService {
      * Transfers the leadership from the current leader to another designated leader.
      */
     rpc TransferLeadership(TransferLeadershipPRequest) returns (TransferLeadershipPResponse);
+
+    /**
+     * Reset all the RaftPeer priorities.
+     */
+    rpc ResetPriorities(ResetPrioritiesPRequest) returns (ResetPrioritiesPResponse);
 }
