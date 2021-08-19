@@ -166,7 +166,7 @@
 {{- /*        ALLUXIO_FUSE_JAVA_OPTS         */}}
 {{- /* ===================================== */}}
 {{- $fuseJavaOpts := list }}
-{{- if ne .Values.worker.fuseEnabled true }}
+{{- if eq .Values.worker.fuseEnabled false }}
   {{- $fuseJavaOpts = print "-Dalluxio.user.hostname=${ALLUXIO_CLIENT_HOSTNAME}" | append $fuseJavaOpts }}
   {{- range $key, $val := .Values.fuse.properties }}
     {{- $fuseJavaOpts = printf "-D%v=%v" $key $val | append $fuseJavaOpts }}
@@ -204,7 +204,7 @@ data:
   ALLUXIO_JOB_WORKER_JAVA_OPTS: |-
     {{- /* Format ALLUXIO_JOB_WORKER_JAVA_OPTS list to one line */}}
     {{ range $key := $jobWorkerJavaOpts }}{{ printf "%v " $key }}{{ end }}
-  {{- if ne .Values.worker.fuseEnabled true }}
+  {{- if eq .Values.worker.fuseEnabled false }}
   ALLUXIO_FUSE_JAVA_OPTS: |-
     {{- /* Format ALLUXIO_FUSE_JAVA_OPTS list to one line */}}
     {{ range $key := $fuseJavaOpts }}{{ printf "%v " $key }}{{ end }}
