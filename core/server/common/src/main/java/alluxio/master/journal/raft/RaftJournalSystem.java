@@ -30,6 +30,7 @@ import alluxio.master.journal.AbstractJournalSystem;
 import alluxio.master.journal.AsyncJournalWriter;
 import alluxio.master.journal.CatchupFuture;
 import alluxio.master.journal.Journal;
+import alluxio.metrics.sink.RatisDropwizardExports;
 import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.util.CommonUtils;
 import alluxio.util.LogUtils;
@@ -168,6 +169,9 @@ public class RaftJournalSystem extends AbstractJournalSystem {
   private final RaftJournalConfiguration mConf;
   /** Controls whether state machine can take snapshots. */
   private final AtomicBoolean mSnapshotAllowed;
+
+  private final Map<String, RatisDropwizardExports> mRatisMetricsMap =
+      new ConcurrentHashMap<>();
 
   /**
    * Listens to the Ratis server to detect gaining or losing primacy. The lifecycle for this
@@ -374,6 +378,7 @@ public class RaftJournalSystem extends AbstractJournalSystem {
         PropertyKey.MASTER_EMBEDDED_JOURNAL_TRANSPORT_MAX_INBOUND_MESSAGE_SIZE);
     GrpcConfigKeys.setMessageSizeMax(properties,
         SizeInBytes.valueOf(messageSize));
+    RatisDropwizardExports.registerRatisMetricReporters(mRatisMetricsMap);
 
     // TODO(feng): clean up embedded journal configuration
     // build server
@@ -882,6 +887,28 @@ public class RaftJournalSystem extends AbstractJournalSystem {
   }
 
   /**
+   * Resets RaftPeer priorities.
+   *
+   * @throws IOException
+   */
+  public synchronized void resetPriorities() throws IOException {
+    List<RaftPeer> resetPeers = new ArrayList<>();
+    final int NEUTRAL_PRIORITY = 1;
+    for (RaftPeer peer : mRaftGroup.getPeers()) {
+      resetPeers.add(
+              RaftPeer.newBuilder(peer)
+              .setPriority(NEUTRAL_PRIORITY)
+              .build()
+      );
+    }
+    LOG.info("Resetting RaftPeer priorities");
+    try (RaftClient client = createClient()) {
+      RaftClientReply reply = client.admin().setConfiguration(resetPeers);
+      processReply(reply);
+    }
+  }
+
+  /**
    * Transfers the leadership of the quorum to another server.
    *
    * @param newLeaderNetAddress the address of the server
@@ -910,32 +937,33 @@ public class RaftJournalSystem extends AbstractJournalSystem {
       );
     }
     // --- end of updating priorities ---
-    final int TRANSFER_LEADER_WAIT_MS = 30_000;
     try (RaftClient client = createClient()) {
-      LOG.info("Applying new peer state before transferring leadership: {}",
-              peersToString(peersWithNewPriorities));
+      String stringPeers = "[" + peersWithNewPriorities.stream().map(RaftPeer::toString)
+                      .collect(Collectors.joining(", ")) + "]";
+      LOG.info("Applying new peer state before transferring leadership: {}", stringPeers);
       // set peers to have new priorities
       RaftClientReply reply = client.admin().setConfiguration(peersWithNewPriorities);
       processReply(reply);
       // transfer leadership
       LOG.info("Transferring leadership to master with address <{}> and with RaftPeerId <{}>",
               serverAddress, newLeaderPeerId);
-      reply = client.admin().transferLeadership(newLeaderPeerId, TRANSFER_LEADER_WAIT_MS);
-      processReply(reply);
-      // reset the peers to have the old priorities
-      LOG.info("Resetting peer state to before transfer: {}", peersToString(oldPeers));
-      reply = client.admin().setConfiguration(oldPeers);
-      processReply(reply);
-      LOG.info("Successfully reset peer state");
+      // fire and forget: need to immediately return as the master will shut down its RPC servers
+      // once the TransferLeadershipRequest is initiated.
+      final int SLEEP_TIME_MS = 3_000;
+      final int TRANSFER_LEADER_WAIT_MS = 30_000;
+      new Thread(() -> {
+        try {
+          Thread.sleep(SLEEP_TIME_MS);
+          client.admin().transferLeadership(newLeaderPeerId, TRANSFER_LEADER_WAIT_MS);
+        } catch (Throwable t) {
+          LOG.error("caught an error: {}", t.getMessage());
+          /* checking the transfer happens in {@link QuorumElectCommand} */
+        }
+      }).start();
+      LOG.info("Transferring leadership initiated");
+    } catch (Throwable t) {
+      throw new IOException(t);
     }
-  }
-
-  /**
-   * @param peers to be printed into a string
-   * @return the peers as a comma delimited list
-   */
-  private String peersToString(List<RaftPeer> peers) {
-    return "[" + peers.stream().map(RaftPeer::toString).collect(Collectors.joining(", ")) + "]";
   }
 
   /**
