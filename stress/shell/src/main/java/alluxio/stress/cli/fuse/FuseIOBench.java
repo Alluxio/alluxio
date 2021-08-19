@@ -78,25 +78,27 @@ public class FuseIOBench extends Benchmark<FuseIOTaskResult> {
             + "run \"Read\" operation to test the reading throughput. Optionally one can run "
             + "\"ListFile\" before \"Read\" to cache the metadata of the test files and eliminate "
             + "the effect of metadata operations while getting the reading throughput data.",
-        "Note that \"--operation\" is required, the \"--local-path\" can be a local "
-            + "filesystem path or a mounted Fuse path, and if one wants to cache the metadata, "
-            + "set alluxio.user.metadata.cache.enabled=true when mounting the Alluxio Fuse.",
+        "If one wants to cache the metadata, be sure to set alluxio.user.metadata.cache.enabled="
+            + "true when mounting the Alluxio Fuse.",
+        "Note that in the parameters \"--operation\" is required, and \"--local-path\" can be a "
+            + "local filesystem path or a mounted Fuse path.",
         "",
         "Example:",
         "# The test data will be written to /mnt/alluxio-fuse/FuseIOTest",
-        "# Files will be evenly distributed into 10 directories, each contains 10 files of "
+        "# Files will be evenly distributed into 32 directories, each contains 10 files of "
             + "size 100 MB",
+        "# Metadata of the test files will be cached",
         "# 32 threads will be used for writing the data, and 16 threads will be used for "
             + "testing the reading throughput",
         "# 5 seconds of warmup time and 30 seconds of actual reading test time",
         "$ bin/alluxio runClass alluxio.stress.cli.fuse.fuseIOBench --operation Write \\",
-        "--local-path /mnt/alluxio-fuse/FuseIOTest --num-dirs 10 --num-files-per-dir 10 \\",
+        "--local-path /mnt/alluxio-fuse/FuseIOTest --num-dirs 32 --num-files-per-dir 10 \\",
         "--file-size 100m --threads 32",
         "$ bin/alluxio runClass alluxio.stress.cli.fuse.fuseIOBench --operation ListFile \\",
         "--local-path /mnt/alluxio-fuse/FuseIOTest",
         "$ bin/alluxio runClass alluxio.stress.cli.fuse.fuseIOBench --operation Read \\",
-        "--local-path /mnt/alluxio-fuse/FuseIOTest --num-dirs 10 --num-files-per-dir 10 \\",
-        "--file-size 100m --threads 16 --warmup 15s --duration 30s",
+        "--local-path /mnt/alluxio-fuse/FuseIOTest --num-dirs 32 --num-files-per-dir 10 \\",
+        "--file-size 100m --threads 16 --warmup 5s --duration 30s",
         ""
     ));
   }
