@@ -28,6 +28,7 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import javax.servlet.ServletContext;
@@ -147,7 +148,7 @@ public final class JobMasterClientRestServiceHandler {
                   .map(Status::valueOf)
                   .map(Status::toProto)
                   .collect(Collectors.toList()))
-              .setName(name)
+              .setName(Objects.toString(name, ""))
               .build());
         } else {
           return mJobMaster.list(ListAllPOptions.getDefaultInstance());
