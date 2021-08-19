@@ -13,7 +13,6 @@ package alluxio.stress.cli;
 
 import alluxio.ClientContext;
 import alluxio.client.job.JobMasterClient;
-import alluxio.conf.PropertyKey;
 import alluxio.job.JobConfig;
 import alluxio.stress.BaseParameters;
 import alluxio.stress.StressConstants;
@@ -27,18 +26,12 @@ import alluxio.worker.job.JobMasterClientContext;
 
 import com.beust.jcommander.ParametersDelegate;
 import org.HdrHistogram.Histogram;
-import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.FileSystem;
-import org.apache.hadoop.fs.Path;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.net.URI;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -71,49 +64,22 @@ public class StressJobServiceBench extends Benchmark<JobServiceBenchTaskResult> 
   @Override
   public void prepare() throws Exception {
 
-    if (!mBaseParameters.mDistributed) {
-      // set hdfs conf for preparation client
-      Configuration hdfsConf = new Configuration();
-      // force delete, create dirs through to UFS
-      hdfsConf.set(PropertyKey.Name.USER_FILE_DELETE_UNCHECKED, "true");
-      hdfsConf.set(PropertyKey.Name.USER_FILE_WRITE_TYPE_DEFAULT, "CACHE_THROUGH");
-      // more threads for parallel deletes for cleanup
-      hdfsConf.set(PropertyKey.Name.USER_FILE_MASTER_CLIENT_POOL_SIZE_MAX, "256");
-      FileSystem prepareFs = FileSystem.get(new URI(mParameters.mBasePath), hdfsConf);
 
-      // initialize the base, for only the non-distributed task (the cluster launching task)
-      Path path = new Path(mParameters.mBasePath);
 
-      // the base path depends on the operation
-      Path basePath = new Path(path, "dirs");
 
-        // these are read operations. the directory must exist
-        if (!prepareFs.exists(basePath)) {
-          throw new IllegalStateException(String
-              .format("base path (%s) must exist for operation (%s)", basePath,
-                  mParameters.mOperation));
-        }
-      }
-
-    // set hdfs conf for all test clients
-    Configuration hdfsConf = new Configuration();
-    // do not cache these clients
-    hdfsConf.set(
-        String.format("fs.%s.impl.disable.cache", (new URI(mParameters.mBasePath)).getScheme()),
-        "true");
-    for (Map.Entry<String, String> entry : mParameters.mConf.entrySet()) {
-      hdfsConf.set(entry.getKey(), entry.getValue());
-    }
     mJobMasterClients = new JobMasterClient[mParameters.mClients];
     for (int i = 0; i < mParameters.mClients; i++) {
       mJobMasterClients[i] = JobMasterClient.Factory.create(
           JobMasterClientContext.newBuilder(ClientContext.create()).build());
     }
-    //create files for given parameter
+    //create files for given parameter mFilePerRequest*mThread
+
+
 //    fs.mkdirs();
 //    fs.create();
 //    byte[] fileData = new byte[(int) FormatUtils.parseSpaceSize(mParameters.mCreateFileSize)];
 //    Arrays.fill(fileData, (byte) 0x7A);
+
 
   }
 
@@ -125,34 +91,41 @@ public class StressJobServiceBench extends Benchmark<JobServiceBenchTaskResult> 
 
   @Override
   public JobServiceBenchTaskResult runLocal() throws Exception {
-    ExecutorService service =
-        ExecutorServiceFactories.fixedThreadPool("bench-thread", mParameters.mThreads).create();
+    // for loop here to literate either on list of request size or num of concurrent requests
+    for (int target:mParameters.mTargetThroughput
+         ) {
 
 
+      ExecutorService service =
+          ExecutorServiceFactories.fixedThreadPool("bench-thread", mParameters.mNumRequests).create();
 
+      long durationMs = FormatUtils.parseTimeSize(mParameters.mDuration);
+      long warmupMs = FormatUtils.parseTimeSize(mParameters.mWarmup);
+      long startMs = mBaseParameters.mStartMs;
+      if (mBaseParameters.mStartMs == BaseParameters.UNDEFINED_START_MS) {
+        startMs = CommonUtils.getCurrentMs() + 1000;
+      }
+      long endMs = startMs + warmupMs + durationMs;
+      JobConfig config = null;
+      BenchContext context = new BenchContext(config, startMs, endMs);
+      //construct config and send request using wild card matching
+      List<Callable<Void>> callables = new ArrayList<>(mParameters.mNumRequests);
+      for (int i = 0; i < mParameters.mNumRequests; i++) {
+        callables.add(new BenchThread(context, mJobMasterClients[i % mJobMasterClients.length]));
+      }
+      service.invokeAll(callables, FormatUtils.parseTimeSize(mBaseParameters.mBenchTimeout),
+          TimeUnit.MILLISECONDS);
+      //record finish time/total finished jobs here, report to Summary
 
-    long durationMs = FormatUtils.parseTimeSize(mParameters.mDuration);
-    long warmupMs = FormatUtils.parseTimeSize(mParameters.mWarmup);
-    long startMs = mBaseParameters.mStartMs;
-    if (mBaseParameters.mStartMs == BaseParameters.UNDEFINED_START_MS) {
-      startMs = CommonUtils.getCurrentMs() + 1000;
+      service.shutdownNow();
+      service.awaitTermination(30, TimeUnit.SECONDS);
+      //
+      for (int i = 0; i < mParameters.mClients; i++) {
+        mJobMasterClients[i].close();
+      }
+      //merge context result
     }
-    long endMs = startMs + warmupMs + durationMs;
-    JobConfig config = null;
-    BenchContext context = new BenchContext(config,startMs, endMs);
 
-    List<Callable<Void>> callables = new ArrayList<>(mParameters.mThreads);
-    for (int i = 0; i < mParameters.mThreads; i++) {
-      callables.add(new BenchThread(context, mJobMasterClients[i % mJobMasterClients.length]));
-    }
-    service.invokeAll(callables, FormatUtils.parseTimeSize(mBaseParameters.mBenchTimeout),
-        TimeUnit.MILLISECONDS);
-
-    service.shutdownNow();
-    service.awaitTermination(30, TimeUnit.SECONDS);
-    for (int i = 0; i < mParameters.mClients; i++) {
-      mJobMasterClients[i].close();
-    }
 
     return context.getResult();
   }

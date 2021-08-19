@@ -17,7 +17,10 @@ import com.beust.jcommander.DynamicParameter;
 import com.beust.jcommander.IStringConverter;
 import com.beust.jcommander.Parameter;
 
+import java.lang.reflect.Array;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -35,11 +38,12 @@ public final class JobServiceBenchParameters extends Parameters {
       required = true)
   public JobServiceBenchOperation mOperation;
 
+
   @Parameter(names = {"--clients"}, description = "the number of fs client instances to use")
   public int mClients = 1;
 
-  @Parameter(names = {"--threads"}, description = "the number of concurrent threads to use")
-  public int mThreads = 256;
+  @Parameter(names = {"--requests"}, description = "the number of concurrent requests")
+  public int mNumRequests = 256;
 
   @Parameter(names = {"--files-per-request"},
       description = "the number of files to be loaded in each request.")
@@ -47,7 +51,7 @@ public final class JobServiceBenchParameters extends Parameters {
 
   @Parameter(names = {"--target-throughput"},
       description = "the target throughput to issue operations. (ops / s)")
-  public int mTargetThroughput = 1000;
+  public List<Integer> mTargetThroughput = Arrays.asList(1,2,3);
 
   @Parameter(names = {"--base"},
       description = "The base directory path URI to perform operations in")

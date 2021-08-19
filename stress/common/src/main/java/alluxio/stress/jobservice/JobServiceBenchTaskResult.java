@@ -260,7 +260,7 @@ public final class JobServiceBenchTaskResult implements TaskResult {
         mergingTaskResult.merge(result);
       }
 
-      return new MasterBenchSummary(mergingTaskResult, nodes, errors);
+      return new JobServiceBenchSummary(mergingTaskResult, nodes, errors);
     }
   }
 }
