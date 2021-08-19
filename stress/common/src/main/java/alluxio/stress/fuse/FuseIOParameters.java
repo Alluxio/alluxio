@@ -22,7 +22,8 @@ import com.beust.jcommander.Parameter;
  */
 public final class FuseIOParameters extends Parameters {
   @Parameter(names = {"--operation"},
-      description = "the operation to perform. Options are [Read]",
+      description = "The operation to perform. Options are [Read, Write, ListFile], where "
+          + "\"Write\" and \"ListFile\" are for testing read performance, not individual tests.",
       converter = FuseIOOperationConverter.class,
       required = true)
   public FuseIOOperation mOperation;
@@ -35,11 +36,11 @@ public final class FuseIOParameters extends Parameters {
   public String mLocalPath = "/mnt/alluxio-fuse/fuse-io-bench";
 
   @Parameter(names = {"--file-size"},
-          description = "The files size for IO operations. (100k, 1m, 1g, etc.)")
+      description = "The files size for IO operations. (100k, 1m, 1g, etc.)")
   public String mFileSize = "100k";
 
   @Parameter(names = {"--buffer-size"},
-          description = "The buffer size for IO operations. (1k, 16k, etc.)")
+      description = "The buffer size for IO operations. (1k, 16k, etc.)")
   public String mBufferSize = "64k";
 
   @Parameter(names = {"--num-files-per-dir"},
