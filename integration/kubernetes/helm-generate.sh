@@ -202,7 +202,7 @@ function main {
   if [ "$3" = "--worker-fuse" ]; then
     workerFuse=true
   else
-    echo "Unknown options $3"
+    echo "Unknown option $3"
     printUsage
     exit 1
   fi
