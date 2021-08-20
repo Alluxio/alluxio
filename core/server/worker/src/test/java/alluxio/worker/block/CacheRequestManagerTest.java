@@ -62,9 +62,9 @@ import java.util.Collections;
  * Unit tests for {@link CacheRequestManager}.
  */
 public class CacheRequestManagerTest {
-  private static final long BLOCK_ID = 2L;
+  // block id has to be 0 otherwise would causing start position bug
+  private static final long BLOCK_ID = 0L;
   private static final int CHUNK_SIZE = 128;
-  private static final int BLOCK_LENGTH = CHUNK_SIZE*5;
   private static final int PORT = 22;
 
   private CacheRequestManager mCacheRequestManager;
@@ -117,15 +117,12 @@ public class CacheRequestManagerTest {
         spy(new CacheRequestManager(GrpcExecutors.CACHE_MANAGER_EXECUTOR, mBlockWorker, context));
     // Write an actual file to UFS
     String testFilePath = File.createTempFile("temp", null, new File(mRootUfs)).getAbsolutePath();
-    byte[] buffer = BufferUtils.getIncreasingByteArray(BLOCK_LENGTH);
+    byte[] buffer = BufferUtils.getIncreasingByteArray(CHUNK_SIZE);
     BufferUtils.writeBufferToFile(testFilePath, buffer);
-    System.out.println(buffer.length);
     // create options
-    BlockInfo info = new BlockInfo().setBlockId(BLOCK_ID).setLength(BLOCK_LENGTH);
-    URIStatus dummyStatus = new URIStatus(new FileInfo().setPersisted(true)
-        .setUfsPath(testFilePath)
-        .setBlockIds(Collections.singletonList(BLOCK_ID))
-        .setLength(BLOCK_LENGTH)
+    BlockInfo info = new BlockInfo().setBlockId(BLOCK_ID).setLength(CHUNK_SIZE);
+    URIStatus dummyStatus = new URIStatus(new FileInfo().setPersisted(true).setUfsPath(testFilePath)
+        .setBlockIds(Collections.singletonList(BLOCK_ID)).setLength(CHUNK_SIZE)
         .setBlockSizeBytes(CHUNK_SIZE)
         .setFileBlockInfos(Collections.singletonList(new FileBlockInfo().setBlockInfo(info))));
     OpenFilePOptions readOptions = FileSystemOptions.openFileDefaults(mConf);
@@ -135,7 +132,7 @@ public class CacheRequestManagerTest {
 
   @Test
   public void submitRequestCacheBlockFromUfs() throws Exception {
-    CacheRequest request = CacheRequest.newBuilder().setBlockId(BLOCK_ID).setLength(BLOCK_LENGTH)
+    CacheRequest request = CacheRequest.newBuilder().setBlockId(BLOCK_ID).setLength(CHUNK_SIZE)
         .setOpenUfsBlockOptions(mOpenUfsBlockOptions).setSourceHost(mLocalWorkerHostname)
         .setSourcePort(PORT).build();
     mCacheRequestManager.submitRequest(request);
@@ -145,17 +142,17 @@ public class CacheRequestManagerTest {
   @Test
   public void submitRequestCacheBlockFromRemoteWorker() throws Exception {
     String fakeRemoteWorker = mLocalWorkerHostname + "1";
-    CacheRequest request = CacheRequest.newBuilder().setBlockId(BLOCK_ID).setLength(BLOCK_LENGTH)
+    CacheRequest request = CacheRequest.newBuilder().setBlockId(BLOCK_ID).setLength(CHUNK_SIZE)
         .setOpenUfsBlockOptions(mOpenUfsBlockOptions).setSourceHost(fakeRemoteWorker)
         .setSourcePort(PORT).build();
-    setupMockRemoteReader(fakeRemoteWorker, PORT, BLOCK_ID, BLOCK_LENGTH, mOpenUfsBlockOptions);
+    setupMockRemoteReader(fakeRemoteWorker, PORT, BLOCK_ID, CHUNK_SIZE, mOpenUfsBlockOptions);
     mCacheRequestManager.submitRequest(request);
     assertTrue(mBlockWorker.hasBlockMeta(BLOCK_ID));
   }
 
   @Test
   public void submitAsyncRequestCacheBlockFromUfs() throws Exception {
-    CacheRequest request = CacheRequest.newBuilder().setBlockId(BLOCK_ID).setLength(BLOCK_LENGTH)
+    CacheRequest request = CacheRequest.newBuilder().setBlockId(BLOCK_ID).setLength(CHUNK_SIZE)
         .setOpenUfsBlockOptions(mOpenUfsBlockOptions).setSourceHost(mLocalWorkerHostname)
         .setSourcePort(PORT).setAsync(true).build();
     mCacheRequestManager.submitRequest(request);
@@ -165,10 +162,10 @@ public class CacheRequestManagerTest {
   @Test
   public void submitAsyncRequestCacheBlockFromRemoteWorker() throws Exception {
     String fakeRemoteWorker = mLocalWorkerHostname + "1";
-    CacheRequest request = CacheRequest.newBuilder().setBlockId(BLOCK_ID).setLength(BLOCK_LENGTH)
+    CacheRequest request = CacheRequest.newBuilder().setBlockId(BLOCK_ID).setLength(CHUNK_SIZE)
         .setOpenUfsBlockOptions(mOpenUfsBlockOptions).setSourceHost(fakeRemoteWorker)
         .setSourcePort(PORT).setAsync(true).build();
-    setupMockRemoteReader(fakeRemoteWorker, PORT, BLOCK_ID, BLOCK_LENGTH, mOpenUfsBlockOptions);
+    setupMockRemoteReader(fakeRemoteWorker, PORT, BLOCK_ID, CHUNK_SIZE, mOpenUfsBlockOptions);
     mCacheRequestManager.submitRequest(request);
     CommonUtils.waitFor("wait for async cache", () -> mBlockWorker.hasBlockMeta(BLOCK_ID));
   }
