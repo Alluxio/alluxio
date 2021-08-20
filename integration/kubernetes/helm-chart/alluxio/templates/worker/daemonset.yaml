@@ -261,5 +261,5 @@ spec:
         - name: alluxio-fuse-mount
           hostPath:
             path: {{ .Values.fuse.mountPath | dir }}
-            type: DirectoryOrCreate
+            type: Directory
         {{- end }}

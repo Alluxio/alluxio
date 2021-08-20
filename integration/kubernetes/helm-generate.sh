@@ -24,8 +24,8 @@ function printUsage {
   echo -e " local             \t Use a local destination for UFS journal."
   echo -e " hdfs              \t Use HDFS for UFS journal."
   echo
-  echo "OPTS allows parameters. Currently the options are:"
-  echo -e " --enable-workerFuse\tEnable FUSE in worker container."
+  echo "OPTS are the options for generating desired YAML template. Currently the options are:"
+  echo -e " --worker-fuse     \t Launch FUSE application in the worker process inside worker container."
 }
 
 function generateTemplates {
@@ -199,10 +199,14 @@ function generateAllTemplates {
 
 workerFuse=false
 function main {
-  mode=$1
-  if [ "$3" = "--enable-workerFuse" ]; then
+  if [ "$3" = "--worker-fuse" ]; then
     workerFuse=true
+  else
+    echo "Unknown options $3"
+    printUsage
+    exit 1
   fi
+  mode=$1
   case $mode in
     "single-ufs")
       echo "Generating templates for $mode"
