@@ -394,8 +394,8 @@ public class StressMasterBench extends Benchmark<MasterBenchTaskResult> {
         if (!useStopCount && CommonUtils.getCurrentMs() >= mContext.getEndMs()) {
           break;
         }
-        if (useStopCount
-            && (localCounter = mContext.getCounter().getAndIncrement()) >= mParameters.mStopCount) {
+        localCounter = mContext.getCounter().getAndIncrement();
+        if (useStopCount && localCounter >= mParameters.mStopCount) {
           break;
         }
 
