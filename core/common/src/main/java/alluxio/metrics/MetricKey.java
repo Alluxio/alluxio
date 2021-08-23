@@ -1452,6 +1452,13 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setMetricType(MetricType.COUNTER)
           .setIsClusterAggregated(false)
           .build();
+  public static final MetricKey CLIENT_META_DATA_CACHE_SIZE =
+      new Builder("Client.MetadataCacheSize")
+          .setDescription("Size of cached metadata. Only valid if the filesystem is"
+              + "alluxio.client.file.MetadataCachingBaseFileSystem.")
+          .setMetricType(MetricType.GAUGE)
+          .setIsClusterAggregated(false)
+          .build();
 
   // Fuse operation timer and failure counter metrics are added dynamically.
   // Other Fuse related metrics are added here
