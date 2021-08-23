@@ -19,6 +19,7 @@ import alluxio.exception.ExceptionMessage;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.grpc.GetQuorumInfoPResponse;
 import alluxio.grpc.JournalDomain;
+import alluxio.grpc.NetAddress;
 import alluxio.grpc.QuorumServerInfo;
 
 import com.google.common.annotations.VisibleForTesting;
@@ -39,7 +40,7 @@ public class QuorumInfoCommand extends AbstractFsAdminCommand {
 
   public static final String OUTPUT_HEADER_DOMAIN = "Journal domain\t: %s";
   public static final String OUTPUT_HEADER_QUORUM_SIZE = "Quorum size\t: %d";
-  public static final String OUTPUT_HEADER_LEADING_MASTER = "Leading master address\t: %s";
+  public static final String OUTPUT_HEADER_LEADING_MASTER = "Quorum leader\t: %s";
   public static final String OUTPUT_SERVER_INFO = "%-11s | %-8s | %s%n";
 
   /**
@@ -76,19 +77,13 @@ public class QuorumInfoCommand extends AbstractFsAdminCommand {
 
     Optional<QuorumServerInfo> leadingMasterInfoOpt = quorumInfo.getServerInfoList().stream()
             .filter(QuorumServerInfo::getIsLeader).findFirst();
-    if (!leadingMasterInfoOpt.isPresent()) {
-      mPrintStream.println("No leading master was found");
-      return -1;
-    }
-    String leadingMasterAddr = String.format("%s:%d",
-            leadingMasterInfoOpt.get().getServerAddress().getHost(),
-            leadingMasterInfoOpt.get().getServerAddress().getRpcPort());
+    String leadingMasterAddr = leadingMasterInfoOpt.isPresent()
+            ? netAddressToString(leadingMasterInfoOpt.get().getServerAddress()) : "UNKNOWN";
 
     List<String[]> table = quorumInfo.getServerInfoList().stream().map(info -> new String[]{
             info.getServerState().toString(),
             Integer.toString(info.getPriority()),
-            String.format("%s:%d", info.getServerAddress().getHost(),
-                    info.getServerAddress().getRpcPort()),
+            netAddressToString(info.getServerAddress()),
     }).collect(Collectors.toList());
     table.add(0, new String[]{"STATE", "PRIORITY", "SERVER ADDRESS"});
 
@@ -101,6 +96,10 @@ public class QuorumInfoCommand extends AbstractFsAdminCommand {
       mPrintStream.printf(OUTPUT_SERVER_INFO, output);
     }
     return 0;
+  }
+
+  String netAddressToString(NetAddress address) {
+    return String.format("%s:%d", address.getHost(), address.getRpcPort());
   }
 
   @Override
