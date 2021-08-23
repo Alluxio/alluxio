@@ -79,6 +79,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -804,7 +805,10 @@ public class RaftJournalSystem extends AbstractJournalSystem {
       NetAddress memberAddress = NetAddress.newBuilder().setHost(hp.getHost())
           .setRpcPort(hp.getPort()).build();
 
-      quorumMemberStateList.add(QuorumServerInfo.newBuilder().setServerAddress(memberAddress)
+      quorumMemberStateList.add(QuorumServerInfo.newBuilder()
+              .setIsLeader(false)
+              .setPriority(member.getId().getPriority())
+              .setServerAddress(memberAddress)
           .setServerState(member.getLastRpcElapsedTimeMs() > mConf.getElectionTimeoutMs()
               ? QuorumServerState.UNAVAILABLE : QuorumServerState.AVAILABLE).build());
     }
@@ -814,8 +818,11 @@ public class RaftJournalSystem extends AbstractJournalSystem {
         .setRpcPort(localAddress.getPort())
         .build();
     quorumMemberStateList.add(QuorumServerInfo.newBuilder()
-        .setServerAddress(self)
+            .setIsLeader(true)
+            .setPriority(mRaftGroup.getPeer(mPeerId).getPriority())
+            .setServerAddress(self)
         .setServerState(QuorumServerState.AVAILABLE).build());
+    quorumMemberStateList.sort(Comparator.comparing(info -> info.getServerAddress().toString()));
     return quorumMemberStateList;
   }
 

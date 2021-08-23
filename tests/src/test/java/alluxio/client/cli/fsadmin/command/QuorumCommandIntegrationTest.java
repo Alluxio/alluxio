@@ -97,11 +97,9 @@ public final class QuorumCommandIntegrationTest extends BaseIntegrationTest {
       String journalAddresses =
           ServerConfiguration.get(PropertyKey.MASTER_EMBEDDED_JOURNAL_ADDRESSES);
       for (String address : journalAddresses.split(",")) {
-        String hostName = address.substring(0, address.indexOf(":"));
-        String port = address.substring(address.indexOf(":") + 1);
-
-        Assert.assertTrue(output.contains(String.format(QuorumInfoCommand.OUTPUT_SERVER_INFO,
-            QuorumServerState.AVAILABLE.name(), hostName, port)));
+        String format = String.format(QuorumInfoCommand.OUTPUT_SERVER_INFO,
+                QuorumServerState.AVAILABLE.name(), "0", address).trim();
+        Assert.assertTrue(output.contains(format));
       }
 
       // Validate quorum state is updated as expected after a fail-over.
