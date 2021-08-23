@@ -190,4 +190,7 @@
 - Fix Alluxio CSI `nodeplugin.yaml` indentation
 
 0.6.25
-- Fix Alluxio CSI `nodeplugin.yaml` indentation, add support for dns policy & change CSI log level
+- Fix Alluxio CSI `nodeplugin.yaml` indentation, add support for dns plocy & change CSI log level
+
+0.6.26
+- Add livenessProbe and readinessProbe to values.yaml to allow for overriding
