@@ -117,17 +117,6 @@ spec:
               capabilities:
                 add:
                   - SYS_ADMIN
-          {{- if not .Values.worker.hostNetwork }}
-          - name: ALLUXIO_CLIENT_CONTAINER_HOSTNAME
-            valueFrom:
-              fieldRef:
-                fieldPath: status.podIP
-            securityContext:
-              privileged: true
-              capabilities:
-                add:
-                  - SYS_ADMIN
-          {{- end }}
           {{- end }}
           {{- range $key, $value := .Values.worker.env }}
           - name: "{{ $key }}"
