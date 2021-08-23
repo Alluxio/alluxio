@@ -55,7 +55,7 @@ func (cs *controllerServer) CreateVolume(ctx context.Context, req *csi.CreateVol
 	}
 	alluxioPath, exist := params["alluxioPath"]
 	if !exist {
-		return nil, status.Error(codes.InvalidArgument, "alluxioPath missing in paramters")
+		return nil, status.Error(codes.InvalidArgument, "alluxioPath missing in parameters")
 	}
 
 	switch pathType {
@@ -94,7 +94,7 @@ func (cs *controllerServer) isDirectory(alluxioPath string) error {
 			alluxioPath, string(stdoutStderr), err)
 		return err
 	}
-	glog.V(4).Infof("IsDirecoty command stdout/stderr is: %s", string(stdoutStderr))
+	glog.V(4).Infof("IsDirectory command stdout/stderr is: %s", string(stdoutStderr))
 	return nil
 }
 
