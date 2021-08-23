@@ -108,7 +108,7 @@ RUN if [ ${ALLUXIO_USERNAME} != "root" ] \
     && [ ${ALLUXIO_GID} -ne 0 ]; then \
       addgroup --gid ${ALLUXIO_GID} ${ALLUXIO_GROUP} && \
       adduser --system --uid ${ALLUXIO_UID} -G ${ALLUXIO_GROUP} ${ALLUXIO_USERNAME} && \
-      echo "${ALLUXIO_USERNAME} ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers && \
+      addgroup ${ALLUXIO_USERNAME} root && \
       mkdir -p /journal && \
       chown -R ${ALLUXIO_UID}:${ALLUXIO_GID} /journal && \
       chmod -R g=u /journal && \
