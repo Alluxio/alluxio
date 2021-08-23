@@ -15,6 +15,7 @@
 # - https://stackoverflow.com/questions/30085621/why-does-chown-increase-size-of-docker-image
 # - https://github.com/moby/moby/issues/5505
 # - https://github.com/moby/moby/issues/6119
+
 FROM alpine:3.10.2
 # Note that downloads for *-SNAPSHOT tarballs are not available
 ARG ALLUXIO_TARBALL=http://downloads.alluxio.io/downloads/files/2.7.0-SNAPSHOT/alluxio-2.7.0-SNAPSHOT-bin.tar.gz
@@ -35,33 +36,32 @@ RUN if [ ${ENABLE_DYNAMIC_USER} = "true" ] ; then \
 # The following setup is modified from cheyang/fuse2:ubuntu1604-customize to be applied on alpine
 WORKDIR /
 
+ENV MAX_IDLE_THREADS "64"
+
 # fuse3 requires meson 0.42, available from stretch-backports
 # wget depends on ca-certificates
 
 RUN \
-  apk update && app upgrade && \
-  apk add --no-cache build-base ca-certificates pkgconfig wget eudev git && \
-  apk add --no-cache gcc make cmake gettext-dev libtool autoconf automake
-
-RUN \
-   git clone https://github.com/cheyang/libfuse.git && \
-   cd libfuse && \
-   git checkout fuse_2_9_5_customize_multi_threads_no_logging
-
-#ADD libfuse /libfuse
-
-WORKDIR "/libfuse"
-
-RUN bash makeconf.sh && \
+  apk update && apk upgrade && \
+  apk add --no-cache ca-certificates wget bash && \
+  apk add --no-cache --virtual .build-deps \
+  build-base pkgconfig eudev git gcc make cmake gettext-dev libtool autoconf automake && \
+  git clone https://github.com/cheyang/libfuse.git && \
+  cd libfuse && \
+  git checkout fuse_2_9_5_customize_multi_threads_no_logging && \
+  bash makeconf.sh && \
   ./configure && \
   make -j8 && \
-  make install
+  make install && \
+  cd .. && \
+  rm -rf libfuse && \
+  apk del --no-cache .build-deps
+  
+#ADD libfuse /libfuse
+
+#WORKDIR "/libfuse"
 
 ENV LD_LIBRARY_PATH "/usr/local/lib:${LD_LIBRARY_PATH}"
-
-ENV MAX_IDLE_THREADS "64"
-
-WORKDIR /
 
 ARG ALLUXIO_USERNAME=alluxio
 ARG ALLUXIO_GROUP=alluxio
