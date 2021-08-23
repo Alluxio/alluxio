@@ -19,6 +19,7 @@ import alluxio.exception.ExceptionMessage;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.grpc.GetQuorumInfoPResponse;
 import alluxio.grpc.JournalDomain;
+import alluxio.grpc.QuorumServerInfo;
 
 import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.cli.CommandLine;
@@ -27,6 +28,7 @@ import org.apache.commons.cli.Options;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -37,7 +39,8 @@ public class QuorumInfoCommand extends AbstractFsAdminCommand {
 
   public static final String OUTPUT_HEADER_DOMAIN = "Journal domain\t: %s";
   public static final String OUTPUT_HEADER_QUORUM_SIZE = "Quorum size\t: %d";
-  public static final String OUTPUT_SERVER_INFO = "%-11s | %-8s | %-6s | %s%n";
+  public static final String OUTPUT_HEADER_LEADING_MASTER = "Leading master address\t: %s";
+  public static final String OUTPUT_SERVER_INFO = "%-11s | %-8s | %s%n";
 
   /**
    * @param context fsadmin command context
@@ -70,18 +73,30 @@ public class QuorumInfoCommand extends AbstractFsAdminCommand {
     }
 
     GetQuorumInfoPResponse quorumInfo = jmClient.getQuorumInfo();
+
+    Optional<QuorumServerInfo> leadingMasterInfoOpt = quorumInfo.getServerInfoList().stream()
+            .filter(QuorumServerInfo::getIsLeader).findFirst();
+    if (!leadingMasterInfoOpt.isPresent()) {
+      mPrintStream.println("No leading master was found");
+      return -1;
+    }
+    String leadingMasterAddr = String.format("%s:%d",
+            leadingMasterInfoOpt.get().getServerAddress().getHost(),
+            leadingMasterInfoOpt.get().getServerAddress().getRpcPort());
+
     List<String[]> table = quorumInfo.getServerInfoList().stream().map(info -> new String[]{
             info.getServerState().toString(),
             Integer.toString(info.getPriority()),
-            Boolean.toString(info.getIsLeader()),
             String.format("%s:%d", info.getServerAddress().getHost(),
                     info.getServerAddress().getRpcPort()),
     }).collect(Collectors.toList());
-    table.add(0, new String[]{"STATE", "PRIORITY", "LEADER", "SERVER ADDRESS"});
+    table.add(0, new String[]{"STATE", "PRIORITY", "SERVER ADDRESS"});
 
     mPrintStream.println(String.format(OUTPUT_HEADER_DOMAIN, quorumInfo.getDomain()));
     mPrintStream
         .println(String.format(OUTPUT_HEADER_QUORUM_SIZE, quorumInfo.getServerInfoList().size()));
+    mPrintStream.println(String.format(OUTPUT_HEADER_LEADING_MASTER, leadingMasterAddr));
+    mPrintStream.println();
     for (String[] output : table) {
       mPrintStream.printf(OUTPUT_SERVER_INFO, output);
     }
