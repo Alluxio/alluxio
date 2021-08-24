@@ -36,6 +36,8 @@ import java.io.IOException;
 public final class RpcUtils {
   private RpcUtils() {} // prevent instantiation
 
+  public static SensitiveMask SMASK = null; 
+
   /**
    * Calls the given {@link RpcCallableThrowsIOException} and handles any exceptions thrown. If the
    * RPC fails, a warning or error will be logged.
@@ -107,7 +109,7 @@ public final class RpcUtils {
       String methodName, boolean failureOk, String description, Object... args)
       throws StatusException {
     // avoid string format for better performance if debug is off
-    String debugDesc = logger.isDebugEnabled() ? String.format(description, args) : null;
+    String debugDesc = logger.isDebugEnabled() ? String.format(description, SMASK == null ? args : SMASK.maskAndToString(args)) : null;
     try (Timer.Context ctx = MetricsSystem.timer(getQualifiedMetricName(methodName)).time()) {
       MetricsSystem.counter(getQualifiedInProgressMetricName(methodName)).inc();
       logger.debug("Enter: {}: {}", methodName, debugDesc);
@@ -120,7 +122,7 @@ public final class RpcUtils {
         MetricsSystem.counter(getQualifiedFailureMetricName(methodName)).inc();
         if (!logger.isDebugEnabled()) {
           logger.warn("Exit (Error): {}: {}, Error={}", methodName,
-              String.format(description, args), e.toString());
+              String.format(description, SMASK == null ? args : SMASK.maskAndToString(args)), e.toString());
         }
       }
       throw AlluxioStatusException.fromAlluxioException(e).toGrpcStatusException();
@@ -130,12 +132,14 @@ public final class RpcUtils {
         MetricsSystem.counter(getQualifiedFailureMetricName(methodName)).inc();
         if (!logger.isDebugEnabled()) {
           logger.warn("Exit (Error): {}: {}, Error={}", methodName,
-              String.format(description, args), e.toString());
+              String.format(description,
+                  SMASK == null ? args : SMASK.maskAndToString(args)), e.toString());
         }
       }
       throw AlluxioStatusException.fromIOException(e).toGrpcStatusException();
     } catch (RuntimeException e) {
-      logger.error("Exit (Error): {}: {}", methodName, String.format(description, args), e);
+      logger.error("Exit (Error): {}: {}", methodName,
+          String.format(description, SMASK == null ? args : SMASK.maskAndToString(args)), e);
       MetricsSystem.counter(getQualifiedFailureMetricName(methodName)).inc();
       throw new InternalException(e).toGrpcStatusException();
     } finally {
