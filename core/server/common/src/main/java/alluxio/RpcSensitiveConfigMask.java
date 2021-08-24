@@ -45,35 +45,47 @@ public class RpcSensitiveConfigMask implements SensitiveConfigMask {
     return strBuilder.toString();
   }
 
-  public void traverseAndMask(Logger logger, GeneratedMessageV3 gmV3, StringBuilder strBuilder) {
-    Field[] fields = gmV3.getClass().getDeclaredFields();
-    for(Field f : fields) {
-      if (Modifier.isStatic(f.getModifiers())) {
+  /**
+   * Traverse the object, and filter credential for FieldMap.
+   * @param logger logger writer
+   * @param generateMessageV3 object
+   * @param strBuilder string builder
+   */
+  public void traverseAndMask(Logger logger, GeneratedMessageV3 generateMessageV3,
+                              StringBuilder strBuilder) {
+    Field[] fields = generateMessageV3.getClass().getDeclaredFields();
+    for(Field field : fields) {
+      if (Modifier.isStatic(field.getModifiers())) {
         continue;
       }
 
       try {
-        Object obj = f.get(gmV3);
+        Object obj = field.get(generateMessageV3);
         if (obj instanceof GeneratedMessageV3) {
           traverseAndMask(logger, (GeneratedMessageV3) obj, strBuilder);
-        } else if (obj instanceof com.google.protobuf.MapField<java.lang.String, java.lang.String>) {
-          strBuilder.append("properties{\n");
-          com.google.protobuf.MapField<java.lang.String, java.lang.String> t =
-              (com.google.protobuf.MapField<java.lang.String, java.lang.String>) obj;
-          for ( String key : t.getMap().keySet()) {
-            if (!CredentialConfigItems.CREDENTIALS.contains(key)) {
-              strBuilder.append("key:\"").append(key).append("\"\nvalue:\"")
-                  .append(t.getMap().get(key)).append("\"\n");
-            } else {
-              strBuilder.append("key:\"").append(key).append("\"\nvalue:\"Masked\"\n");
+        } else if (obj instanceof MapField) {
+          try {
+            MapField<String, String> t = (MapField<String, String>) obj;
+            strBuilder.append("properties{\n");
+            for (String key : t.getMap().keySet()) {
+              if (!CredentialConfigItems.CREDENTIALS.contains(key)) {
+                strBuilder.append("key:\"").append(key).append("\"\nvalue:\"")
+                    .append(t.getMap().get(key)).append(" \"\n");
+              } else {
+                strBuilder.append("key:\"").append(key).append("\"\nvalue:\"Masked\"\n");
+              }
             }
+            strBuilder.append("\n");
+          } catch (ClassCastException e) {
+            logger.error("Error found during log generating, exception:{}, object:{}",
+                e.toString(), generateMessageV3.toString());
+            strBuilder.append(obj.toString()).append("\n");
           }
-          strBuilder.append("\n");
         } else {
-          strBuilder.append(obj.toString());
+          strBuilder.append(obj.toString()).append("\n");
         }
       } catch (IllegalAccessException e) {
-        logger.error("IllegalAccessException:{} for object:{}", e.toString(), gmV3.toString());
+        logger.error("IllegalAccessException:{} for object:{}", e.toString(), generateMessageV3.toString());
       }
     }
   }
