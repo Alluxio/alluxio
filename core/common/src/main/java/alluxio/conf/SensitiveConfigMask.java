@@ -11,6 +11,8 @@
 
 package alluxio.conf;
 
+import org.slf4j.Logger;
+
 /**
  * Mask some sensitive information.
  */
@@ -21,5 +23,5 @@ public interface SensitiveConfigMask {
    * @param args the object to be masked and printed as a string
    * @return a string with sentitive information masked
    */
-  public String maskAndToString(Object... args);
+  public String maskAndToString(Logger logger, Object... args);
 }

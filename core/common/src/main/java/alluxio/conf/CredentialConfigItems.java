@@ -18,6 +18,9 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.HashSet;
 
+/**
+ * record property keys whose values are supposed to be credential.
+ */
 public final class CredentialConfigItems {
   private static final Logger LOG = LoggerFactory.getLogger(CredentialConfigItems.class);
   public static final HashSet<String>  CREDENTIALS;
