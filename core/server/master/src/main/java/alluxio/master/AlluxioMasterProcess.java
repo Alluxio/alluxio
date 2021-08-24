@@ -14,6 +14,7 @@ package alluxio.master;
 import static alluxio.util.network.NetworkAddressUtils.ServiceType;
 
 import alluxio.AlluxioURI;
+import alluxio.RpcSensitiveConfigMask;
 import alluxio.RuntimeConstants;
 import alluxio.concurrent.jsr.ForkJoinPool;
 import alluxio.conf.PropertyKey;
@@ -333,6 +334,7 @@ public class AlluxioMasterProcess extends MasterProcess {
           (int) ServerConfiguration.getBytes(PropertyKey.MASTER_NETWORK_MAX_INBOUND_MESSAGE_SIZE));
       mGrpcServer = serverBuilder.build().start();
       mSafeModeManager.notifyRpcServerStarted();
+      RpcSensitiveConfigMask.activeMask();
       LOG.info("Started Alluxio master gRPC server on address {}", mRpcConnectAddress);
     } catch (IOException e) {
       throw new RuntimeException(e);

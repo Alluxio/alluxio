@@ -20,6 +20,7 @@ public interface SensitiveConfigMask {
 
   /**
    * mask sensitive information and output a string for log.
+   * @param logger log writer
    * @param args the object to be masked and printed as a string
    * @return a string with sentitive information masked
    */

@@ -29,6 +29,13 @@ public class RpcSensitiveConfigMask implements SensitiveConfigMask {
 
   static {
     RPCSENSITIVECMASK = new RpcSensitiveConfigMask();
+    activeMask();
+  }
+
+  /**
+   * Active rpc mask.
+   */
+  public static void activeMask() {
     RpcUtils.SMASK = RPCSENSITIVECMASK;
   }
 
