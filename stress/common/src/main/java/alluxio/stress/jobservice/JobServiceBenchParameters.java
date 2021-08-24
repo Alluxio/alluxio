@@ -47,11 +47,11 @@ public final class JobServiceBenchParameters extends Parameters {
 
   @Parameter(names = {"--files-per-request"},
       description = "the number of files to be loaded in each request.")
-  public int mFilesPerRequest = 1000;
+  public int mNumFilesPerRequest = 1000;
 
-  @Parameter(names = {"--target-throughput"},
+  @Parameter(names = {"--target-scalability"},
       description = "the target throughput to issue operations. (ops / s)")
-  public List<Integer> mTargetThroughput = Arrays.asList(1,2,3);
+  public int mTargetScalability = 1000;
 
   @Parameter(names = {"--base"},
       description = "The base directory path URI to perform operations in")
@@ -66,9 +66,9 @@ public final class JobServiceBenchParameters extends Parameters {
   @KeylessDescription
   public String mTag = "";
 
-  @Parameter(names = {"--create-file-size"},
+  @Parameter(names = {"--file-size"},
       description = "The size of a file for the Create op, allowed to be 0. (0, 1m, 2k, 8k, etc.)")
-  public String mCreateFileSize = "0";
+  public int mFileSize = 128;
 
   @Parameter(names = {"--duration"},
       description = "The length of time to run the benchmark. (1m, 10m, 60s, 10000ms, etc.)")
