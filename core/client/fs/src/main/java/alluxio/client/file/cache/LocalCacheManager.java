@@ -175,6 +175,14 @@ public class LocalCacheManager implements CacheManager {
   }
 
   /**
+   * @return pageStore for testing
+   */
+  @VisibleForTesting
+  public PageStore getPageStore() {
+    return mPageStore;
+  }
+
+  /**
    * @param pageId page identifier
    * @return the page lock id
    */

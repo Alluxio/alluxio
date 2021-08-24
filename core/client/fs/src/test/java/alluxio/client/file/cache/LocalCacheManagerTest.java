@@ -26,7 +26,6 @@ import alluxio.client.file.cache.evictor.CacheEvictor;
 import alluxio.client.file.cache.evictor.FIFOCacheEvictor;
 import alluxio.client.file.cache.evictor.UnevictableCacheEvictor;
 import alluxio.client.file.cache.store.LocalPageStore;
-import alluxio.client.file.cache.store.LocalPageStoreOptions;
 import alluxio.client.file.cache.store.PageStoreOptions;
 import alluxio.client.quota.CacheQuota;
 import alluxio.client.quota.CacheScope;
@@ -626,8 +625,6 @@ public final class LocalCacheManagerTest {
     PageId pageUuid = new PageId(UUID.randomUUID().toString(), 0);
     mPageStore.put(PAGE_ID1, PAGE1, PAGE_INFO_1);
     mPageStore.put(pageUuid, PAGE2, PAGE_INFO_2);
-    String rootDir = mPageStoreOptions.getRootDir();
-    LocalPageStoreOptions options = mPageStoreOptions.toOptions();
     Path pagePath = ((LocalPageStore) ((TimeBoundPageStore) mPageStore).getPageStore())
         .getFilePath(PAGE_ID1, 0);
     FileUtils.createFile(
@@ -646,7 +643,6 @@ public final class LocalCacheManagerTest {
     PageId pageUuid = new PageId(UUID.randomUUID().toString(), 0);
     mPageStore.put(PAGE_ID1, PAGE1, PAGE_INFO_1);
     mPageStore.put(pageUuid, PAGE2, PAGE_INFO_2);
-    String rootDir = mPageStoreOptions.getRootDir();
     Path pagePath = ((LocalPageStore) ((TimeBoundPageStore) mPageStore).getPageStore())
         .getFilePath(PAGE_ID1, 0);
     FileUtils.createFile(Paths.get(pagePath.getParent().toString(), "invalidPageFile").toString());
