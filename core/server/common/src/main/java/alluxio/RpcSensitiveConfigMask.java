@@ -67,6 +67,7 @@ public class RpcSensitiveConfigMask implements SensitiveConfigMask {
       }
 
       try {
+        field.setAccessible(true);
         Object obj = field.get(generateMessageV3);
         if (obj instanceof GeneratedMessageV3) {
           traverseAndMask(logger, (GeneratedMessageV3) obj, strBuilder);
@@ -89,7 +90,7 @@ public class RpcSensitiveConfigMask implements SensitiveConfigMask {
             strBuilder.append(obj.toString()).append("\n");
           }
         } else {
-          strBuilder.append(obj.toString()).append("\n");
+          strBuilder.append(field.getName()).append(":").append(obj.toString()).append("\n");
         }
       } catch (IllegalAccessException e) {
         logger.error("IllegalAccessException:{} for object:{}", e.toString(), generateMessageV3.toString());
