@@ -11,6 +11,7 @@
 
 package alluxio;
 
+import alluxio.conf.SensitiveConfigMask;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.exception.status.InternalException;
@@ -36,7 +37,7 @@ import java.io.IOException;
 public final class RpcUtils {
   private RpcUtils() {} // prevent instantiation
 
-  public static SensitiveMask SMASK = null; 
+  public static SensitiveConfigMask SMASK = null;
 
   /**
    * Calls the given {@link RpcCallableThrowsIOException} and handles any exceptions thrown. If the

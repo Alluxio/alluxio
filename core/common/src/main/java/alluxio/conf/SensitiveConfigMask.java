@@ -9,12 +9,12 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio;
+package alluxio.conf;
 
 /**
  * Mask some sensitive information.
  */
-public interface SensitiveMask {
+public interface SensitiveConfigMask {
 
   /**
    * mask sensitive information and output a string for log.
