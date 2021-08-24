@@ -31,9 +31,9 @@ public final class BaseParameters {
   public static final String HELP_FLAG = "--help";
   public static final String PROFILE_AGENT = "--profile-agent";
   public static final String BENCH_TIMEOUT = "--bench-timeout";
-
   public static final long UNDEFINED_START_MS = -1;
   public static final String AGENT_OUTPUT_PATH = "/tmp/stress_client.log";
+  public static final String DEFAULT_TASK_ID = "local-task-0";
 
   // Public flags
   @Parameter(names = {CLUSTER_FLAG},
@@ -65,7 +65,7 @@ public final class BaseParameters {
   // Hidden flags
   @Parameter(names = {ID_FLAG},
       description = "Any string to uniquely identify this invocation", hidden = true)
-  public String mId = "local-task-0";
+  public String mId = DEFAULT_TASK_ID;
 
   @Parameter(names = {DISTRIBUTED_FLAG},
       description = "If true, this is a distributed task, not a local task. This is "

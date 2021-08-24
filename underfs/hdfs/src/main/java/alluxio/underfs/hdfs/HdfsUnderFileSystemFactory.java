@@ -47,7 +47,7 @@ public class HdfsUnderFileSystemFactory implements UnderFileSystemFactory {
   public boolean supportsPath(String path) {
     // This loads the static configuration from the JVM's system properties and the site properties
     // file at the time of instantiation. Because of this, setting the property
-    // UNDERFS_HDFS_PREFIXES programatically *not* work.
+    // UNDERFS_HDFS_PREFIXES programmatically *not* work.
     AlluxioConfiguration conf = new InstancedConfiguration(ConfigurationUtils.defaults());
 
     if (path != null) {
@@ -68,7 +68,7 @@ public class HdfsUnderFileSystemFactory implements UnderFileSystemFactory {
   public boolean supportsPath(String path, UnderFileSystemConfiguration conf) {
     if (path != null) {
       // This loads the configuration from the JVM's system properties and the site properties file
-      // on disk. Because of this, setting the property UNDERFS_HDFS_PREFIXES programatically *not*
+      // on disk. Because of this, setting the property UNDERFS_HDFS_PREFIXES programmatically *not*
       // work.
       AlluxioConfiguration alluxioConf = new InstancedConfiguration(ConfigurationUtils.defaults());
 

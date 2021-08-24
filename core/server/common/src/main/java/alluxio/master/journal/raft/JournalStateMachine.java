@@ -216,6 +216,9 @@ public class JournalStateMachine extends BaseStateMachine {
         SAMPLING_LOG.warn("Failed to get raft group info: {}", e.getMessage());
       }
       long index = mSnapshotManager.maybeCopySnapshotFromFollower();
+      if (index != RaftLog.INVALID_LOG_INDEX) {
+        mSnapshotLastIndex = index;
+      }
       mLastCheckPointTime = System.currentTimeMillis();
       return index;
     } else {

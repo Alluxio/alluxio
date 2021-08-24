@@ -222,6 +222,9 @@ public class NetworkAddressUtilsTest {
 
     // connect host and wildcard bind host with port
     switch (service) {
+      case FUSE_WEB:
+        mConfiguration.set(PropertyKey.FUSE_WEB_PORT, "20000");
+        break;
       case JOB_MASTER_RAFT:
         mConfiguration.set(PropertyKey.JOB_MASTER_EMBEDDED_JOURNAL_PORT, "20000");
         break;

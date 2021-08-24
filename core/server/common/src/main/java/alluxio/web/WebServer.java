@@ -14,6 +14,9 @@ package alluxio.web;
 import alluxio.AlluxioURI;
 import alluxio.conf.ServerConfiguration;
 import alluxio.conf.PropertyKey;
+import alluxio.metrics.MetricsSystem;
+import alluxio.metrics.sink.MetricsServlet;
+import alluxio.metrics.sink.PrometheusMetricsServlet;
 
 import com.google.common.base.Preconditions;
 import org.eclipse.jetty.security.ConstraintMapping;
@@ -50,6 +53,9 @@ public abstract class WebServer {
   private final ServerConnector mServerConnector;
   private final ConstraintSecurityHandler mSecurityHandler;
   protected final ServletContextHandler mServletContextHandler;
+  private final MetricsServlet mMetricsServlet = new MetricsServlet(MetricsSystem.METRIC_REGISTRY);
+  private final PrometheusMetricsServlet mPMetricsServlet = new PrometheusMetricsServlet(
+      MetricsSystem.METRIC_REGISTRY);
 
   /**
    * Creates a new instance of {@link WebServer}. It pairs URLs with servlets and sets the webapp
@@ -103,7 +109,8 @@ public abstract class WebServer {
 
     mServletContextHandler.addServlet(StacksServlet.class, "/stacks");
     HandlerList handlers = new HandlerList();
-    handlers.setHandlers(new Handler[] {mServletContextHandler, new DefaultHandler()});
+    handlers.setHandlers(new Handler[] {mMetricsServlet.getHandler(), mPMetricsServlet.getHandler(),
+        mServletContextHandler, new DefaultHandler()});
     mServer.setHandler(handlers);
   }
 
