@@ -95,9 +95,9 @@ public class RpcSensitiveConfigMask implements SensitiveConfigMask {
             }
 
             if (writeObject) {
-              strBuilder.append(((MapField<?, ?>) obj).getMap());
+              strBuilder.append(((MapField<?, ?>) obj).getMap()).append("\n");
             }
-            strBuilder.append("\n}\n");
+            strBuilder.append("}\n");
           } catch (ClassCastException e) {
             // in case of cast failure, just print it.
             strBuilder.append(obj).append("\n");
