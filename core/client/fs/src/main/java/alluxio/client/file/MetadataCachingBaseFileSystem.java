@@ -80,7 +80,7 @@ public class MetadataCachingBaseFileSystem extends BaseFileSystem {
     // asynchronously update access time.
     mAccessTimeUpdater = new ThreadPoolExecutor(0, masterClientThreads, THREAD_KEEPALIVE_SECOND,
         TimeUnit.SECONDS, new SynchronousQueue<>());
-    MetricsSystem.registerGaugeIfAbsent(
+    MetricsSystem.registerCachedGaugeIfAbsent(
         MetricsSystem.getMetricName(MetricKey.CLIENT_META_DATA_CACHE_SIZE.getName()),
         mMetadataCache::size);
   }
