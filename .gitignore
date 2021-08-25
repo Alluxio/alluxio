@@ -20,7 +20,6 @@
 /client/
 /conf/alluxio-env.sh
 /conf/alluxio-env.sh.bootstrap.bk
-/conf/metrics.properties
 /data/
 /dev/scripts/*.tar.gz
 /dev/scripts/tarballs
