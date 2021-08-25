@@ -22,7 +22,7 @@ import java.util.Set;
  */
 public class CredentialConfigItemsTest {
   public final class MockPropertyKey {
-    private static final String mPrivateString1 = "str";
+    private static final String MPRIVATESTRING1 = "str";
   }
 
   @Test
@@ -34,10 +34,12 @@ public class CredentialConfigItemsTest {
 
   @Test
   public void testException() {
-    Set<?> credentialSet = (Set<?>) CredentialConfigItems.getUnmodifiableSetCredential("not_exist_class");
+    Set<?> credentialSet = (Set<?>) CredentialConfigItems
+        .getUnmodifiableSetCredential("not_exist_class");
     assertEquals(0, credentialSet.size());
 
-    credentialSet = (Set<?>) CredentialConfigItems.getUnmodifiableSetCredential("CredentialConfigItemsTest.MockPropertyKey");
+    credentialSet = (Set<?>) CredentialConfigItems
+        .getUnmodifiableSetCredential("CredentialConfigItemsTest.MockPropertyKey");
     assertEquals(0, credentialSet.size());
   }
 }
