@@ -334,7 +334,6 @@ public class AlluxioMasterProcess extends MasterProcess {
           (int) ServerConfiguration.getBytes(PropertyKey.MASTER_NETWORK_MAX_INBOUND_MESSAGE_SIZE));
       mGrpcServer = serverBuilder.build().start();
       mSafeModeManager.notifyRpcServerStarted();
-      RpcSensitiveConfigMask.activeMask();
       LOG.info("Started Alluxio master gRPC server on address {}", mRpcConnectAddress);
     } catch (IOException e) {
       throw new RuntimeException(e);

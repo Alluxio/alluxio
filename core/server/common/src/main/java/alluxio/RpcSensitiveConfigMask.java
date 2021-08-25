@@ -30,14 +30,7 @@ public class RpcSensitiveConfigMask implements SensitiveConfigMask {
 
   static {
     RPCSENSITIVECMASK = new RpcSensitiveConfigMask();
-    activeMask();
-  }
-
-  /**
-   * Active rpc mask.
-   */
-  public static void activeMask() {
-    RpcUtils.SMASK = RPCSENSITIVECMASK;
+    //activeMask();
   }
 
   @Override
@@ -62,7 +55,7 @@ public class RpcSensitiveConfigMask implements SensitiveConfigMask {
   public void traverseAndMask(Logger logger, GeneratedMessageV3 generateMessageV3,
                               StringBuilder strBuilder) {
     Field[] fields = generateMessageV3.getClass().getDeclaredFields();
-    for(Field field : fields) {
+    for (Field field : fields) {
       if (Modifier.isStatic(field.getModifiers())) {
         continue;
       }
@@ -71,6 +64,7 @@ public class RpcSensitiveConfigMask implements SensitiveConfigMask {
         field.setAccessible(true);
         Object obj = field.get(generateMessageV3);
         if (obj == null) {
+          continue;
         } else if (obj instanceof GeneratedMessageV3) {
           traverseAndMask(logger, (GeneratedMessageV3) obj, strBuilder);
         } else if (obj instanceof MapField) {
@@ -78,15 +72,15 @@ public class RpcSensitiveConfigMask implements SensitiveConfigMask {
             MapField<String, String> t = (MapField<String, String>) obj;
             strBuilder.append("properties{\n");
             boolean writeObject = false;
-            for (Map.Entry<String,String> entry : t.getMap().entrySet()) {
-              if (entry.getKey() instanceof String && entry.getValue() instanceof String)
-              {
+            for (Map.Entry<String, String> entry : t.getMap().entrySet()) {
+              if (entry.getKey() instanceof String && entry.getValue() instanceof String) {
                 if (!CredentialConfigItems.getCredentials().contains(entry.getKey())) {
-                  strBuilder.append("key:\"").append(entry.getKey() ).append("\"\nvalue:\"")
+                  strBuilder.append("key:\"").append(entry.getKey()).append("\"\nvalue:\"")
                       .append(entry.getValue()).append(" \"\n");
                 } else {
-                  logger.debug("find credential {}", entry.getKey() );
-                  strBuilder.append("key:\"").append(entry.getKey()).append("\"\nvalue:\"Masked\"\n");
+                  logger.debug("find credential {}", entry.getKey());
+                  strBuilder.append("key:\"").append(entry.getKey())
+                      .append("\"\nvalue:\"Masked\"\n");
                 }
               } else {
                 writeObject = true;
@@ -106,11 +100,13 @@ public class RpcSensitiveConfigMask implements SensitiveConfigMask {
           if (field.getType().isPrimitive() || field.getType().isEnum() || obj instanceof String) {
             strBuilder.append(field.getName()).append(":").append(obj.toString()).append("\n");
           } else {
-            strBuilder.append(field.getName()).append(":{\n").append(obj.toString()).append("\n}\n");
+            strBuilder.append(field.getName()).append(":{\n")
+                .append(obj.toString()).append("\n}\n");
           }
         }
       } catch (IllegalAccessException e) {
-        logger.error("IllegalAccessException:{} for object:{}", e.toString(), generateMessageV3.toString());
+        logger.error("IllegalAccessException:{} for object:{}",
+            e.toString(), generateMessageV3.toString());
       }
     }
   }
