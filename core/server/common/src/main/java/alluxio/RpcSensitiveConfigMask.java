@@ -30,7 +30,6 @@ public class RpcSensitiveConfigMask implements SensitiveConfigMask {
 
   static {
     RPCSENSITIVECMASK = new RpcSensitiveConfigMask();
-    //activeMask();
   }
 
   @Override
@@ -78,7 +77,6 @@ public class RpcSensitiveConfigMask implements SensitiveConfigMask {
                   strBuilder.append("key:\"").append(entry.getKey()).append("\"\nvalue:\"")
                       .append(entry.getValue()).append(" \"\n");
                 } else {
-                  logger.debug("find credential {}", entry.getKey());
                   strBuilder.append("key:\"").append(entry.getKey())
                       .append("\"\nvalue:\"Masked\"\n");
                 }
@@ -105,8 +103,10 @@ public class RpcSensitiveConfigMask implements SensitiveConfigMask {
           }
         }
       } catch (IllegalAccessException e) {
-        logger.error("IllegalAccessException:{} for object:{}",
-            e.toString(), generateMessageV3.toString());
+        if (logger != null) {
+          logger.error("IllegalAccessException:{} for object:{}",
+              e.toString(), generateMessageV3.toString());
+        }
       }
     }
   }

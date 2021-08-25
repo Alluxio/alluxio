@@ -28,13 +28,13 @@ public final class CredentialConfigItems {
   private static final Set<String> CREDENTIALS;
 
   static {
-    CREDENTIALS = getUnmodifiableSetCredential();
+    CREDENTIALS = getUnmodifiableSetCredential("alluxio.conf.PropertyKey");
   }
 
-  private static Set<String> getUnmodifiableSetCredential() {
+  protected static Set<String> getUnmodifiableSetCredential(String propertyClass) {
     Set<String> credentials = new HashSet<>();
     try {
-      Class clazz = Class.forName("alluxio.conf.PropertyKey");
+      Class clazz = Class.forName(propertyClass);
       Field[] fields = clazz.getFields();
       for (Field field : fields) {
         if (field.getType() == PropertyKey.class && Modifier.isStatic(field.getModifiers())) {
