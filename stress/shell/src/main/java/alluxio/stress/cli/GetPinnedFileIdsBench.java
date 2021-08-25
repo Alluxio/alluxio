@@ -86,6 +86,12 @@ public class GetPinnedFileIdsBench extends RpcBench<GetPinnedFileIdsParameters> 
     // So including that in the log can help associate the log to the run
     LOG.info("Task ID is {}", mBaseParameters.mId);
 
+    // the preparation is done by the invoking client
+    // so skip preparation when running in job worker
+    if (mBaseParameters.mDistributed) {
+      return;
+    }
+
     AlluxioURI baseUri = new AlluxioURI(mParameters.mBasePath);
     try (CloseableResource<alluxio.client.file.FileSystemMasterClient> client =
              mFileSystemContext.acquireMasterClientResource()) {
@@ -126,13 +132,16 @@ public class GetPinnedFileIdsBench extends RpcBench<GetPinnedFileIdsParameters> 
 
   @Override
   public void cleanup() throws Exception {
-    AlluxioURI baseUri = new AlluxioURI(mParameters.mBasePath);
-    try (CloseableResource<alluxio.client.file.FileSystemMasterClient> client =
-             mFileSystemContext.acquireMasterClientResource()) {
-      LOG.info("Deleting test directory {}", baseUri);
-      client.get().delete(baseUri, DeletePOptions.newBuilder().setRecursive(true).build());
-    } catch (AlluxioStatusException e) {
-      LOG.warn("Failed to delete test directory {}, manual cleanup needed", baseUri, e);
+    // skip cleanup in job worker as the test files are to be cleaned up by the client
+    if (!mBaseParameters.mDistributed) {
+      AlluxioURI baseUri = new AlluxioURI(mParameters.mBasePath);
+      try (CloseableResource<alluxio.client.file.FileSystemMasterClient> client =
+               mFileSystemContext.acquireMasterClientResource()) {
+        LOG.info("Deleting test directory {}", baseUri);
+        client.get().delete(baseUri, DeletePOptions.newBuilder().setRecursive(true).build());
+      } catch (AlluxioStatusException e) {
+        LOG.warn("Failed to delete test directory {}, manual cleanup needed", baseUri, e);
+      }
     }
     super.cleanup();
   }
@@ -152,8 +161,6 @@ public class GetPinnedFileIdsBench extends RpcBench<GetPinnedFileIdsParameters> 
 
         mPointStopwatch.get().stop();
 
-        // TODO(bowen): assertion may fail when running in cluster mode due to
-        //  unwanted extra runs of prepare()
         if (numPinnedFiles != mParameters.mNumFiles) {
           result.addError(String.format("Unexpected number of files: %d, expected %d",
               numPinnedFiles, mParameters.mNumFiles));
