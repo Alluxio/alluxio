@@ -89,6 +89,7 @@ public class GetPinnedFileIdsBench extends RpcBench<GetPinnedFileIdsParameters> 
     // the preparation is done by the invoking client
     // so skip preparation when running in job worker
     if (mBaseParameters.mDistributed) {
+      LOG.info("Skipping preparation in distributed execution");
       return;
     }
 
@@ -133,9 +134,11 @@ public class GetPinnedFileIdsBench extends RpcBench<GetPinnedFileIdsParameters> 
   @Override
   public void cleanup() throws Exception {
     // skip cleanup in job worker as the test files are to be cleaned up by the client
-    if (!mBaseParameters.mDistributed) {
+    if (mBaseParameters.mDistributed) {
+      LOG.info("Skipping cleanup in distributed execution");
+    } else {
       AlluxioURI baseUri = new AlluxioURI(mParameters.mBasePath);
-      try (CloseableResource<alluxio.client.file.FileSystemMasterClient> client =
+      try (CloseableResource<FileSystemMasterClient> client =
                mFileSystemContext.acquireMasterClientResource()) {
         LOG.info("Deleting test directory {}", baseUri);
         client.get().delete(baseUri, DeletePOptions.newBuilder().setRecursive(true).build());
