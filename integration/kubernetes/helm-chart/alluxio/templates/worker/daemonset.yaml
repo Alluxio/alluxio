@@ -108,15 +108,11 @@ spec:
                 fieldPath: status.podIP
           {{- end }}
           {{- if eq .Values.worker.fuseEnabled true }}
-          - name: ALLUXIO_CLIENT_HOSTNAME
-            valueFrom:
-                fieldRef:
-                  fieldPath: status.hostIP
-            securityContext:
-              privileged: true
-              capabilities:
-                add:
-                  - SYS_ADMIN
+          securityContext:
+            privileged: true
+            capabilities:
+              add:
+                - SYS_ADMIN
           {{- end }}
           {{- range $key, $value := .Values.worker.env }}
           - name: "{{ $key }}"
