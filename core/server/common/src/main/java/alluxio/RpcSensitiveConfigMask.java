@@ -81,7 +81,7 @@ public class RpcSensitiveConfigMask implements SensitiveConfigMask {
             for (Map.Entry<String,String> entry : t.getMap().entrySet()) {
               if (entry.getKey() instanceof String && entry.getValue() instanceof String)
               {
-                if (!CredentialConfigItems.CREDENTIALS.contains(entry.getKey())) {
+                if (!CredentialConfigItems.getCredentials().contains(entry.getKey())) {
                   strBuilder.append("key:\"").append(entry.getKey() ).append("\"\nvalue:\"")
                       .append(entry.getValue()).append(" \"\n");
                 } else {

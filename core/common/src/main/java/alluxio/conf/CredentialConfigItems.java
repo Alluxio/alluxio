@@ -16,17 +16,23 @@ import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
+import java.util.Collections;
 import java.util.HashSet;
+import java.util.Set;
 
 /**
  * record property keys whose values are supposed to be credential.
  */
 public final class CredentialConfigItems {
   private static final Logger LOG = LoggerFactory.getLogger(CredentialConfigItems.class);
-  public static final HashSet<String>  CREDENTIALS;
+  private static final Set<String> CREDENTIALS;
 
   static {
-    CREDENTIALS = new HashSet<>();
+    CREDENTIALS = getUnmodifiableSetCredential();
+  }
+
+  private static Set<String> getUnmodifiableSetCredential() {
+    Set<String> credentials = new HashSet<>();
     try {
       Class clazz = Class.forName("alluxio.conf.PropertyKey");
       Field[] fields = clazz.getFields();
@@ -34,7 +40,7 @@ public final class CredentialConfigItems {
         if (field.getType() == PropertyKey.class && Modifier.isStatic(field.getModifiers())) {
           PropertyKey tmp = (PropertyKey) field.get(null);
           if (tmp.getDisplayType() == PropertyKey.DisplayType.CREDENTIALS) {
-            CREDENTIALS.add(tmp.getName());
+            credentials.add(tmp.getName());
           }
         }
       }
@@ -43,5 +49,15 @@ public final class CredentialConfigItems {
     } catch (IllegalAccessException e) {
       LOG.error("IllegalAccessException:{}", e.toString());
     }
+
+    return Collections.unmodifiableSet(credentials);
+  }
+
+  /**
+   * return SCREDENTIAL set.
+   * @return CREDENTIALS
+   */
+  public static Set<String> getCredentials() {
+    return CREDENTIALS;
   }
 }
