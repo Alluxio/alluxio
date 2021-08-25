@@ -80,18 +80,6 @@ RUN chmod +x /usr/local/bin/tini
 
 RUN apk add --no-cache openjdk8 openjdk8-jre-lib unzip vim
 
-# Install arthas(https://github.com/alibaba/arthas) for analyzing performance bottleneck
-RUN wget -qO /tmp/arthas.zip "http://maven.aliyun.com/repository/public/com/taobao/arthas/arthas-packaging/3.4.6/arthas-packaging-3.4.6-bin.zip" && \
-  mkdir -p /opt/arthas && \
-  unzip /tmp/arthas.zip -d /opt/arthas && \
-  rm /tmp/arthas.zip
-
-# Install async-profiler(https://github.com/jvm-profiling-tools/async-profiler/releases/tag/v1.8.3)
-RUN wget -qO /tmp/async-profiler-1.8.3-linux-x64.tar.gz "https://github.com/jvm-profiling-tools/async-profiler/releases/download/v1.8.3/async-profiler-1.8.3-linux-x64.tar.gz" && \
-  tar -xvf /tmp/async-profiler-1.8.3-linux-x64.tar.gz -C /opt && \
-  mv /opt/async-profiler-* /opt/async-profiler && \
-  rm /tmp/async-profiler-1.8.3-linux-x64.tar.gz
-
 ENV JAVA_HOME /usr/lib/jvm/java-1.8-openjdk
 
 # disable JVM DNS cache
