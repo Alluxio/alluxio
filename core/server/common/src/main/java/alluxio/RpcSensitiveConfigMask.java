@@ -20,6 +20,7 @@ import org.slf4j.Logger;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
+import java.util.Map;
 
 /**
  * RpcSensitiveConfigMask is going to mask the credential in properties.
@@ -69,28 +70,44 @@ public class RpcSensitiveConfigMask implements SensitiveConfigMask {
       try {
         field.setAccessible(true);
         Object obj = field.get(generateMessageV3);
-        if (obj instanceof GeneratedMessageV3) {
+        if (obj == null) {
+        } else if (obj instanceof GeneratedMessageV3) {
           traverseAndMask(logger, (GeneratedMessageV3) obj, strBuilder);
         } else if (obj instanceof MapField) {
           try {
             MapField<String, String> t = (MapField<String, String>) obj;
             strBuilder.append("properties{\n");
-            for (String key : t.getMap().keySet()) {
-              if (!CredentialConfigItems.CREDENTIALS.contains(key)) {
-                strBuilder.append("key:\"").append(key).append("\"\nvalue:\"")
-                    .append(t.getMap().get(key)).append(" \"\n");
+            boolean writeObject = false;
+            for (Map.Entry<String,String> entry : t.getMap().entrySet()) {
+              if (entry.getKey() instanceof String && entry.getValue() instanceof String)
+              {
+                if (!CredentialConfigItems.CREDENTIALS.contains(entry.getKey())) {
+                  strBuilder.append("key:\"").append(entry.getKey() ).append("\"\nvalue:\"")
+                      .append(entry.getValue()).append(" \"\n");
+                } else {
+                  logger.debug("find credential {}", entry.getKey() );
+                  strBuilder.append("key:\"").append(entry.getKey()).append("\"\nvalue:\"Masked\"\n");
+                }
               } else {
-                strBuilder.append("key:\"").append(key).append("\"\nvalue:\"Masked\"\n");
+                writeObject = true;
+                break;
               }
             }
-            strBuilder.append("\n");
+
+            if (writeObject) {
+              strBuilder.append(((MapField<?, ?>) obj).getMap());
+            }
+            strBuilder.append("\n}\n");
           } catch (ClassCastException e) {
-            logger.error("Error found during log generating, exception:{}, object:{}",
-                e.toString(), generateMessageV3.toString());
-            strBuilder.append(obj.toString()).append("\n");
+            // in case of cast failure, just print it.
+            strBuilder.append(obj).append("\n");
           }
         } else {
-          strBuilder.append(field.getName()).append(":").append(obj.toString()).append("\n");
+          if (field.getType().isPrimitive() || field.getType().isEnum() || obj instanceof String) {
+            strBuilder.append(field.getName()).append(":").append(obj.toString()).append("\n");
+          } else {
+            strBuilder.append(field.getName()).append(":{\n").append(obj.toString()).append("\n}\n");
+          }
         }
       } catch (IllegalAccessException e) {
         logger.error("IllegalAccessException:{} for object:{}", e.toString(), generateMessageV3.toString());
