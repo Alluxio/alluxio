@@ -34,12 +34,12 @@ public class OperationSystemGaugeSet implements MetricSet {
   public Map<String, Metric> getMetrics() {
     final Map<String, Metric> gauges = new HashMap<>();
     try {
-        mOsmxb = (OperatingSystemMXBean) ManagementFactory.getOperatingSystemMXBean();
-        mUnixb = (UnixOperatingSystemMXBean) ManagementFactory.getOperatingSystemMXBean();
-    } catch (Throwable e){
+      mOsmxb = (OperatingSystemMXBean) ManagementFactory.getOperatingSystemMXBean();
+      mUnixb = (UnixOperatingSystemMXBean) ManagementFactory.getOperatingSystemMXBean();
+    } catch (Throwable e) {
       return gauges;
     }
-    if(mOsmxb instanceof OperatingSystemMXBean && mUnixb instanceof UnixOperatingSystemMXBean){
+    if (mOsmxb instanceof OperatingSystemMXBean && mUnixb instanceof UnixOperatingSystemMXBean) {
       gauges.put("os.freePhysicalMemory", new CachedGauge(10, TimeUnit.MINUTES) {
         @Override
         protected Long loadValue() {
