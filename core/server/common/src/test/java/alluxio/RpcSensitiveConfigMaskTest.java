@@ -32,7 +32,8 @@ public class RpcSensitiveConfigMaskTest {
     int i = 101;
     Assert.assertEquals("101",
         RpcSensitiveConfigMask.CREDENTIAL_FIELD_MASKER.maskAndToString(null, i)[0]);
-    String[] strings = RpcSensitiveConfigMask.CREDENTIAL_FIELD_MASKER.maskAndToString(null, i, atest);
+    String[] strings = RpcSensitiveConfigMask.CREDENTIAL_FIELD_MASKER
+        .maskAndToString(null, i, atest);
     Assert.assertEquals("101", strings[0]);
     Assert.assertEquals("atest", strings[1]);
   }
