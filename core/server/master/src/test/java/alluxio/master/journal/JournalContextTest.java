@@ -11,6 +11,7 @@
 
 package alluxio.master.journal;
 
+import static org.junit.Assert.fail;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -172,6 +173,22 @@ public class JournalContextTest {
       thread2.interrupt();
       thread2.join();
     }
+  }
+
+  // See https://github.com/Alluxio/alluxio/issues/13904
+  @Test
+  public void journalClosedTest() throws Exception {
+    // Secondary journals will be closed for operation.
+    mJournalSystem.losePrimacy();
+    // Validate that createJournalContext fails for secondary journals.
+    try {
+      mBlockMaster.createJournalContext();
+      fail("journal context creation should fail in secondary journal.");
+    } catch (UnavailableException e) {
+      // expected.
+    }
+    // Validate that we haven't leaked state lock while creating journal context.
+    assertEquals(0, mMasterContext.getStateLockManager().getSharedWaitersAndHolders().size());
   }
 
   @Test

@@ -251,13 +251,6 @@ public class LocalCacheFileInStream extends FileInStream {
     mPosition = pos;
   }
 
-  @Override
-  public void unbuffer() {
-    if (mExternalFileInStream != null) {
-      mExternalFileInStream.unbuffer();
-    }
-  }
-
   /**
    * Convenience method to ensure the stream is not closed.
    */
