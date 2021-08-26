@@ -37,7 +37,7 @@ import java.io.IOException;
 public final class RpcUtils {
   private RpcUtils() {} // prevent instantiation
 
-  public static final SensitiveConfigMask RPCSENSITIVECONFMASKER =
+  public static final SensitiveConfigMask SENSITIVEMASKER =
       RpcSensitiveConfigMask.RPCSENSITIVECMASKER;
 
   /**
@@ -112,7 +112,7 @@ public final class RpcUtils {
       throws StatusException {
     // avoid string format for better performance if debug is off
     String debugDesc = logger.isDebugEnabled() ? String.format(description,
-        RPCSENSITIVECONFMASKER == null ? args : RPCSENSITIVECONFMASKER.maskObjects(logger, args)) : null;
+        SENSITIVEMASKER == null ? args : SENSITIVEMASKER.maskObjects(logger, args)) : null;
     try (Timer.Context ctx = MetricsSystem.timer(getQualifiedMetricName(methodName)).time()) {
       MetricsSystem.counter(getQualifiedInProgressMetricName(methodName)).inc();
       logger.debug("Enter: {}: {}", methodName, debugDesc);
@@ -126,7 +126,7 @@ public final class RpcUtils {
         if (!logger.isDebugEnabled()) {
           logger.warn("Exit (Error): {}: {}, Error={}", methodName,
               String.format(description,
-                  RPCSENSITIVECONFMASKER == null ? args : RPCSENSITIVECONFMASKER.maskObjects(logger, args)),
+                  SENSITIVEMASKER == null ? args : SENSITIVEMASKER.maskObjects(logger, args)),
               e.toString());
         }
       }
@@ -138,7 +138,7 @@ public final class RpcUtils {
         if (!logger.isDebugEnabled()) {
           logger.warn("Exit (Error): {}: {}, Error={}", methodName,
               String.format(description,
-                  RPCSENSITIVECONFMASKER == null ? args : RPCSENSITIVECONFMASKER.maskObjects(logger, args)),
+                  SENSITIVEMASKER == null ? args : SENSITIVEMASKER.maskObjects(logger, args)),
               e.toString());
         }
       }
@@ -146,7 +146,7 @@ public final class RpcUtils {
     } catch (RuntimeException e) {
       logger.error("Exit (Error): {}: {}", methodName,
           String.format(description,
-              RPCSENSITIVECONFMASKER == null ? args : RPCSENSITIVECONFMASKER.maskObjects(logger, args)), e);
+              SENSITIVEMASKER == null ? args : SENSITIVEMASKER.maskObjects(logger, args)), e);
       MetricsSystem.counter(getQualifiedFailureMetricName(methodName)).inc();
       throw new InternalException(e).toGrpcStatusException();
     } finally {
