@@ -39,7 +39,7 @@ public class RpcSensitiveConfigMask implements SensitiveConfigMask {
   }
 
   @Override
-  public Object [] maskObjects(Logger logger, Object... args) {
+  public Object[] maskObjects(Logger logger, Object... args) {
     /**
      * This function is to mask MountPOption, and those who are referring to it.
      * If something else need be masked, extra code change is required.
@@ -51,26 +51,26 @@ public class RpcSensitiveConfigMask implements SensitiveConfigMask {
       if (args[i] instanceof MountPOptions) {
         MountPOptions.Builder newMP = MountPOptions.newBuilder((MountPOptions) args[i]);
         newMP.clearProperties();
-        generateAndMask(newMP, ((MountPOptions) args[i]).getPropertiesMap());
+        copyAndMaskProperties(newMP, ((MountPOptions) args[i]).getPropertiesMap());
         objects[i] = newMP.build();
       } else if (args[i] instanceof MountPRequest) {
         MountPRequest.Builder mpR = MountPRequest.newBuilder((MountPRequest) args[i]);
         MountPOptions.Builder newMP = mpR.getOptionsBuilder();
         newMP.clearProperties();
-        generateAndMask(newMP, ((MountPRequest) args[i]).getOptions().getPropertiesMap());
+        copyAndMaskProperties(newMP, ((MountPRequest) args[i]).getOptions().getPropertiesMap());
         objects[i] = mpR.build();
       } else if (args[i] instanceof UfsInfo) {
         UfsInfo.Builder ufsInfo = UfsInfo.newBuilder((UfsInfo) args[i]);
         MountPOptions.Builder newMP = ufsInfo.getPropertiesBuilder();
         newMP.clearProperties();
-        generateAndMask(newMP, ((UfsInfo) args[i]).getProperties().getPropertiesMap());
+        copyAndMaskProperties(newMP, ((UfsInfo) args[i]).getProperties().getPropertiesMap());
         objects[i] = ufsInfo.build();
       } else if (args[i] instanceof GetUfsInfoPResponse) {
         GetUfsInfoPResponse.Builder getUfsInfoResponse =
             GetUfsInfoPResponse.newBuilder((GetUfsInfoPResponse) args[i]);
         MountPOptions.Builder newMP = getUfsInfoResponse.getUfsInfoBuilder().getPropertiesBuilder();
         newMP.clearProperties();
-        generateAndMask(newMP,
+        copyAndMaskProperties(newMP,
             ((GetUfsInfoPResponse) args[i]).getUfsInfo().getProperties().getPropertiesMap());
         objects[i] = getUfsInfoResponse.build();
       } else if (args[i] instanceof UpdateMountPRequest) {
@@ -78,7 +78,7 @@ public class RpcSensitiveConfigMask implements SensitiveConfigMask {
             UpdateMountPRequest.newBuilder((UpdateMountPRequest) args[i]);
         MountPOptions.Builder newMP = updateMountPRequest.getOptionsBuilder();
         newMP.clearProperties();
-        generateAndMask(newMP, ((UpdateMountPRequest) args[i]).getOptions().getPropertiesMap());
+        copyAndMaskProperties(newMP, ((UpdateMountPRequest) args[i]).getOptions().getPropertiesMap());
         objects[i] = updateMountPRequest.build();
       } else {
         objects[i] = args[i];
@@ -88,7 +88,7 @@ public class RpcSensitiveConfigMask implements SensitiveConfigMask {
     return objects;
   }
 
-  protected void generateAndMask(MountPOptions.Builder builder, Map<String, String> rawMap) {
+  protected void copyAndMaskProperties(MountPOptions.Builder builder, Map<String, String> rawMap) {
     for (Entry entry : rawMap.entrySet()) {
       if (!CredentialPropertyKeys.getCredentials().contains(entry.getKey())) {
         builder.putProperties((String) entry.getKey(), (String) entry.getValue());
@@ -99,7 +99,7 @@ public class RpcSensitiveConfigMask implements SensitiveConfigMask {
   }
 
   @Override
-  public String [] maskAndToString(Logger logger, Object... args) {
+  public String[] maskAndToString(Logger logger, Object... args) {
     /**
      * Using a generic way to mask any credential in MapField in protobuf generated code.
      * As long as the credential is added in MapField, no necessary to change the code.

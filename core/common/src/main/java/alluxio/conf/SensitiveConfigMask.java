@@ -24,7 +24,7 @@ public interface SensitiveConfigMask {
    * @param args the objects to be masked
    * @return an array of objects maksed
    */
-  Object [] maskObjects(Logger logger, Object... args);
+  Object[] maskObjects(Logger logger, Object... args);
 
   /**
    * mask sensitive information and output a string for log.
@@ -32,5 +32,5 @@ public interface SensitiveConfigMask {
    * @param args the objects to be masked and printed as a string
    * @return a string array with sensitive information masked
    */
-  String [] maskAndToString(Logger logger, Object... args);
+  String[] maskAndToString(Logger logger, Object... args);
 }
