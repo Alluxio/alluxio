@@ -202,7 +202,7 @@ public final class QuorumCommandIntegrationTest extends BaseIntegrationTest {
               netAddress.getEmbeddedJournalPort());
 
       mOutput.reset();
-      shell.run("journal", "quorum", "elect", "-address" , newLeaderAddr);
+      shell.run("journal", "quorum", "transferLeader", "-address" , newLeaderAddr);
       output = mOutput.toString().trim();
       String expected = String.format(QuorumElectCommand.TRANSFER_SUCCESS + "\n"
               + QuorumElectCommand.RESET_SUCCESS, newLeaderAddr);
@@ -254,17 +254,17 @@ public final class QuorumCommandIntegrationTest extends BaseIntegrationTest {
       output = mOutput.toString().trim();
       Assert.assertEquals(QuorumRemoveCommand.description(), lastLine(output));
 
-      // Validate option counts are validated for "quorum", "elect"
+      // Validate option counts are validated for "quorum", "transferLeader"
       mOutput.reset();
-      shell.run("journal", "quorum", "elect");
+      shell.run("journal", "quorum", "transferLeader");
       output = mOutput.toString().trim();
       Assert.assertEquals(QuorumElectCommand.description(), lastLine(output));
       mOutput.reset();
-      shell.run("journal", "quorum", "elect", "-op1", "val1");
+      shell.run("journal", "quorum", "transferLeader", "-op1", "val1");
       output = mOutput.toString().trim();
       Assert.assertEquals(QuorumElectCommand.description(), lastLine(output));
       mOutput.reset();
-      shell.run("journal", "quorum", "elect", "-op1", "val1", "-op2", "val2", "-op3",
+      shell.run("journal", "quorum", "transferLeader", "-op1", "val1", "-op2", "val2", "-op3",
               "val3");
       output = mOutput.toString().trim();
       Assert.assertEquals(QuorumElectCommand.description(), lastLine(output));
@@ -293,7 +293,7 @@ public final class QuorumCommandIntegrationTest extends BaseIntegrationTest {
 
       // Validate -address is validated for transferLeader.
       mOutput.reset();
-      shell.run("journal", "quorum", "elect", "-address", "hostname:invalid_port");
+      shell.run("journal", "quorum", "transferLeader", "-address", "hostname:invalid_port");
       output = mOutput.toString().trim();
       Assert.assertEquals(ExceptionMessage.INVALID_ADDRESS_VALUE.getMessage(), output);
     }
