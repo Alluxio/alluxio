@@ -9,13 +9,7 @@
 # See the NOTICE file distributed with this work for information regarding copyright ownership.
 #
 
-# Use a multi-stage build to include artifacts without using a chown
-# chown in bash nearly doubles the image size of the docker image.
-# See:
-# - https://stackoverflow.com/questions/30085621/why-does-chown-increase-size-of-docker-image
-# - https://github.com/moby/moby/issues/5505
-# - https://github.com/moby/moby/issues/6119
-
+# For production use, we use alpine as base image to minimize alluxio image size
 FROM alpine:3.10.2
 # Note that downloads for *-SNAPSHOT tarballs are not available
 ARG ALLUXIO_TARBALL=http://downloads.alluxio.io/downloads/files/2.7.0-SNAPSHOT/alluxio-2.7.0-SNAPSHOT-bin.tar.gz
@@ -33,14 +27,12 @@ RUN if [ ${ENABLE_DYNAMIC_USER} = "true" ] ; then \
        chmod -R 777 /opt/* ; \
     fi
 
-# The following setup is modified from cheyang/fuse2:ubuntu1604-customize to be applied on alpine
+# The following libfuse setup is modified from cheyang/fuse2:ubuntu1604-customize to be applied on alpine
 WORKDIR /
 
 ENV MAX_IDLE_THREADS "64"
 
-# fuse3 requires meson 0.42, available from stretch-backports
 # wget depends on ca-certificates
-
 RUN \
   apk update && apk upgrade && \
   apk add --no-cache ca-certificates wget bash && \
@@ -56,10 +48,6 @@ RUN \
   cd .. && \
   rm -rf libfuse && \
   apk del --no-cache .build-deps
-  
-#ADD libfuse /libfuse
-
-#WORKDIR "/libfuse"
 
 ENV LD_LIBRARY_PATH "/usr/local/lib:${LD_LIBRARY_PATH}"
 
@@ -68,9 +56,6 @@ ARG ALLUXIO_GROUP=alluxio
 ARG ALLUXIO_UID=1000
 ARG ALLUXIO_GID=1000
 ARG ENABLE_DYNAMIC_USER=true
-
-# Specify versions for known vulnerabilities reported by trivy scan
-# RUN apk --no-cache --update add bash libc6-compat shadow tini 'libbz2>=1.0.6-r7' 'sqlite-libs>=3.28.0-r3' && \
 
 # Add Tini
 # - https://github.com/krallin/tini
