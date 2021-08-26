@@ -78,7 +78,8 @@ public class RpcSensitiveConfigMask implements SensitiveConfigMask {
             UpdateMountPRequest.newBuilder((UpdateMountPRequest) args[i]);
         MountPOptions.Builder newMP = updateMountPRequest.getOptionsBuilder();
         newMP.clearProperties();
-        copyAndMaskProperties(newMP, ((UpdateMountPRequest) args[i]).getOptions().getPropertiesMap());
+        copyAndMaskProperties(newMP, ((UpdateMountPRequest) args[i])
+            .getOptions().getPropertiesMap());
         objects[i] = updateMountPRequest.build();
       } else {
         objects[i] = args[i];
