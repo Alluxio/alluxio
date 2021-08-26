@@ -18,28 +18,24 @@ import org.junit.Test;
 import java.util.Set;
 
 /**
- * CredentialConfigItems test.
+ * CredentialPropertyKeys test.
  */
 public class CredentialConfigItemsTest {
-  public final class MockPropertyKey {
-    private static final String MPRIVATESTRING1 = "str";
-  }
-
   @Test
   public void getCredentials() {
-    Set<?> credentialSet = (Set<?>) CredentialConfigItems.getCredentials();
+    Set<?> credentialSet = (Set<?>) CredentialPropertyKeys.getCredentials();
     assertEquals(true, credentialSet.contains("aws.accessKeyId"));
     assertEquals(false, credentialSet.contains("aws.accessKeyId11"));
   }
 
   @Test
   public void testException() {
-    Set<?> credentialSet = (Set<?>) CredentialConfigItems
-        .getUnmodifiableSetCredential("not_exist_class");
+    Set<?> credentialSet = (Set<?>) CredentialPropertyKeys
+        .findCredentialPropertyKeys("not_exist_class");
     assertEquals(0, credentialSet.size());
 
-    credentialSet = (Set<?>) CredentialConfigItems
-        .getUnmodifiableSetCredential("CredentialConfigItemsTest.MockPropertyKey");
+    credentialSet = (Set<?>) CredentialPropertyKeys
+        .findCredentialPropertyKeys("CredentialConfigItemsTest.MockPropertyKey");
     assertEquals(0, credentialSet.size());
   }
 }

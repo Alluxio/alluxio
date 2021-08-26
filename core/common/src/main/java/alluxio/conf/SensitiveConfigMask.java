@@ -30,7 +30,7 @@ public interface SensitiveConfigMask {
    * mask sensitive information and output a string for log.
    * @param logger log writer
    * @param args the objects to be masked and printed as a string
-   * @return a string array with sentitive information masked
+   * @return a string array with sensitive information masked
    */
   String [] maskAndToString(Logger logger, Object... args);
 }

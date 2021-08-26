@@ -27,12 +27,12 @@ public class RpcSensitiveConfigMaskTest {
   public void maskAndToStringSimple() {
     String atest = "atest";
     Assert.assertEquals(atest,
-        RpcSensitiveConfigMask.RPCSENSITIVECMASKER.maskAndToString(null, atest)[0]);
+        RpcSensitiveConfigMask.CREDENTIAL_FIELD_MASKER.maskAndToString(null, atest)[0]);
 
     int i = 101;
     Assert.assertEquals("101",
-        RpcSensitiveConfigMask.RPCSENSITIVECMASKER.maskAndToString(null, i)[0]);
-    String[] strings = RpcSensitiveConfigMask.RPCSENSITIVECMASKER.maskAndToString(null, i, atest);
+        RpcSensitiveConfigMask.CREDENTIAL_FIELD_MASKER.maskAndToString(null, i)[0]);
+    String[] strings = RpcSensitiveConfigMask.CREDENTIAL_FIELD_MASKER.maskAndToString(null, i, atest);
     Assert.assertEquals("101", strings[0]);
     Assert.assertEquals("atest", strings[1]);
   }
@@ -44,7 +44,7 @@ public class RpcSensitiveConfigMaskTest {
     prop.put("key1", "value1");
     prop.put("aws.accessKeyId", "aws.accessKeyId");
     MountPOptions mmp = mmB.build();
-    String [] masked = RpcSensitiveConfigMask.RPCSENSITIVECMASKER.maskAndToString(null, mmp);
+    String [] masked = RpcSensitiveConfigMask.CREDENTIAL_FIELD_MASKER.maskAndToString(null, mmp);
     Assert.assertEquals(false, masked[0].contains("mycredential"));
     Assert.assertEquals(true, masked[0].contains("key1"));
     Assert.assertEquals(true, masked[0].contains("Masked"));
@@ -59,7 +59,7 @@ public class RpcSensitiveConfigMaskTest {
     ub.getPropertiesBuilder().getMutableProperties().put("aws.accessKeyId", "aws.accessKeyId");
     UfsInfo ui = ub.build();
 
-    String[] masked = RpcSensitiveConfigMask.RPCSENSITIVECMASKER.maskAndToString(null, ui);
+    String[] masked = RpcSensitiveConfigMask.CREDENTIAL_FIELD_MASKER.maskAndToString(null, ui);
     Assert.assertEquals(false, masked[0].contains("mycredential"));
     Assert.assertEquals(true, masked[0].contains("key1"));
     Assert.assertEquals(true, masked[0].contains("Masked"));
@@ -72,7 +72,7 @@ public class RpcSensitiveConfigMaskTest {
     BlockHeartbeatPOptions.Builder hb = BlockHeartbeatPOptions.newBuilder();
     BlockHeartbeatPOptions bp = hb.build();
 
-    String[] masked = RpcSensitiveConfigMask.RPCSENSITIVECMASKER.maskAndToString(null, bp);
+    String[] masked = RpcSensitiveConfigMask.CREDENTIAL_FIELD_MASKER.maskAndToString(null, bp);
   }
 
   @Test
@@ -82,7 +82,7 @@ public class RpcSensitiveConfigMaskTest {
       mpb.putProperties("key1", "value1");
       mpb.putProperties("aws.accessKeyId", "mycredential");
       String result = String.format("{%s}",
-          RpcSensitiveConfigMask.RPCSENSITIVECMASKER.maskObjects(null, mpb.build()));
+          RpcSensitiveConfigMask.CREDENTIAL_FIELD_MASKER.maskObjects(null, mpb.build()));
       Assert.assertEquals(true, result.contains("key1"));
       Assert.assertEquals(true, result.contains("value1"));
       Assert.assertEquals(true, result.contains("Masked"));
@@ -96,7 +96,7 @@ public class RpcSensitiveConfigMaskTest {
       mpb.putProperties("key1", "value1");
       mpb.putProperties("aws.accessKeyId", "mycredential");
       String result = String.format("{%s}",
-          RpcSensitiveConfigMask.RPCSENSITIVECMASKER.maskObjects(null, obj.build()));
+          RpcSensitiveConfigMask.CREDENTIAL_FIELD_MASKER.maskObjects(null, obj.build()));
       Assert.assertEquals(true, result.contains("key1"));
       Assert.assertEquals(true, result.contains("value1"));
       Assert.assertEquals(true, result.contains("Masked"));
@@ -110,7 +110,7 @@ public class RpcSensitiveConfigMaskTest {
       mpb.putProperties("key1", "value1");
       mpb.putProperties("aws.accessKeyId", "mycredential");
       String result = String.format("{%s}",
-          RpcSensitiveConfigMask.RPCSENSITIVECMASKER.maskObjects(null, obj.build()));
+          RpcSensitiveConfigMask.CREDENTIAL_FIELD_MASKER.maskObjects(null, obj.build()));
       Assert.assertEquals(true, result.contains("key1"));
       Assert.assertEquals(true, result.contains("value1"));
       Assert.assertEquals(true, result.contains("Masked"));
@@ -124,7 +124,7 @@ public class RpcSensitiveConfigMaskTest {
       mpb.putProperties("key1", "value1");
       mpb.putProperties("aws.accessKeyId", "mycredential");
       String result = String.format("{%s}",
-          RpcSensitiveConfigMask.RPCSENSITIVECMASKER.maskObjects(null, obj.build()));
+          RpcSensitiveConfigMask.CREDENTIAL_FIELD_MASKER.maskObjects(null, obj.build()));
       Assert.assertEquals(true, result.contains("key1"));
       Assert.assertEquals(true, result.contains("value1"));
       Assert.assertEquals(true, result.contains("Masked"));
@@ -138,7 +138,7 @@ public class RpcSensitiveConfigMaskTest {
       mpb.putProperties("key1", "value1");
       mpb.putProperties("aws.accessKeyId", "mycredential");
       String result = String.format("{%s}",
-          RpcSensitiveConfigMask.RPCSENSITIVECMASKER.maskObjects(null, obj.build()));
+          RpcSensitiveConfigMask.CREDENTIAL_FIELD_MASKER.maskObjects(null, obj.build()));
       Assert.assertEquals(true, result.contains("key1"));
       Assert.assertEquals(true, result.contains("value1"));
       Assert.assertEquals(true, result.contains("Masked"));
@@ -150,7 +150,7 @@ public class RpcSensitiveConfigMaskTest {
       String astr = "astr";
 
       String result = String.format("{%s}",
-          RpcSensitiveConfigMask.RPCSENSITIVECMASKER.maskObjects(null, astr));
+          RpcSensitiveConfigMask.CREDENTIAL_FIELD_MASKER.maskObjects(null, astr));
       Assert.assertEquals(false, result.contains("mycredential"));
       Assert.assertEquals(false, result.contains("Masked"));
       Assert.assertEquals(true, result.contains(astr));

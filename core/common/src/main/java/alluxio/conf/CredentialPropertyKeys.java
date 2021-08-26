@@ -21,17 +21,17 @@ import java.util.HashSet;
 import java.util.Set;
 
 /**
- * record property keys whose values are supposed to be credential.
+ *  This class stores names of property keys whose values are credential.
  */
-public final class CredentialConfigItems {
-  private static final Logger LOG = LoggerFactory.getLogger(CredentialConfigItems.class);
+public final class CredentialPropertyKeys {
+  private static final Logger LOG = LoggerFactory.getLogger(CredentialPropertyKeys.class);
   private static final Set<String> CREDENTIALS;
 
   static {
-    CREDENTIALS = getUnmodifiableSetCredential("alluxio.conf.PropertyKey");
+    CREDENTIALS = findCredentialPropertyKeys("alluxio.conf.PropertyKey");
   }
 
-  protected static Set<String> getUnmodifiableSetCredential(String propertyClass) {
+  protected static Set<String> findCredentialPropertyKeys(String propertyClass) {
     Set<String> credentials = new HashSet<>();
     try {
       Class clazz = Class.forName(propertyClass);
@@ -44,17 +44,15 @@ public final class CredentialConfigItems {
           }
         }
       }
-    } catch (ClassNotFoundException e) {
-      LOG.error("can't find alluxio.conf.PropertyKey, can't build credential config items.");
-    } catch (IllegalAccessException e) {
-      LOG.error("IllegalAccessException:{}", e.toString());
+    } catch (ClassNotFoundException | IllegalAccessException e) {
+      LOG.error("Failed to parse class alluxio.conf.PropertyKey", e);
     }
 
     return Collections.unmodifiableSet(credentials);
   }
 
   /**
-   * return SCREDENTIAL set.
+   * return CREDENTIAL set.
    * @return CREDENTIALS
    */
   public static Set<String> getCredentials() {
