@@ -163,24 +163,20 @@ abstract class AbstractWriteHandler<T extends WriteRequestContext<?>> {
       write(request);
       return;
     }
-    try {
-      Preconditions.checkState(!request.hasCommand(),
-          "write request command should not come with data buffer");
-      Preconditions.checkState(buffer.readableBytes() > 0,
-          "invalid data size from write request message");
-      if (!tryAcquireSemaphore()) {
-        return;
-      }
-      mSerializingExecutor.execute(() -> {
-        try {
-          writeData(buffer);
-        } finally {
-          mSemaphore.release();
-        }
-      });
-    } finally {
-      buffer.release();
+    Preconditions.checkState(!request.hasCommand(),
+        "write request command should not come with data buffer");
+    Preconditions.checkState(buffer.readableBytes() > 0,
+        "invalid data size from write request message");
+    if (!tryAcquireSemaphore()) {
+      return;
     }
+    mSerializingExecutor.execute(() -> {
+      try {
+        writeData(buffer);
+      } finally {
+        mSemaphore.release();
+      }
+    });
   }
 
   /**
@@ -293,6 +289,8 @@ abstract class AbstractWriteHandler<T extends WriteRequestContext<?>> {
     } catch (Exception e) {
       LOG.error("Failed to write data for request {}", mContext.getRequest(), e);
       abort(new Error(AlluxioStatusException.fromThrowable(e), true));
+    } finally {
+      buf.release();
     }
   }
 
