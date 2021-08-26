@@ -235,7 +235,7 @@ public final class JobServiceBenchTaskResult implements TaskResult {
 
   private static final class Aggregator implements TaskResult.Aggregator<JobServiceBenchTaskResult> {
     @Override
-    public MasterBenchSummary aggregate(Iterable<JobServiceBenchTaskResult> results) throws Exception {
+    public JobServiceBenchSummary aggregate(Iterable<JobServiceBenchTaskResult> results) throws Exception {
       List<String> nodes = new ArrayList<>();
       Map<String, List<String>> errors = new HashMap<>();
       JobServiceBenchTaskResult mergingTaskResult = null;

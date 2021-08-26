@@ -11,17 +11,23 @@
 
 package alluxio.stress.cli;
 
+import alluxio.AlluxioURI;
 import alluxio.ClientContext;
+import alluxio.client.file.FileOutStream;
+import alluxio.client.file.FileSystem;
+import alluxio.client.file.FileSystemContext;
 import alluxio.client.job.JobMasterClient;
-import alluxio.job.plan.load.LoadConfig;
+import alluxio.conf.InstancedConfiguration;
+import alluxio.exception.AlluxioException;
+import alluxio.grpc.CreateFilePOptions;
 import alluxio.job.wire.JobInfo;
 import alluxio.job.wire.Status;
 import alluxio.stress.BaseParameters;
 import alluxio.stress.StressConstants;
 import alluxio.stress.jobservice.JobServiceBenchParameters;
 import alluxio.stress.jobservice.JobServiceBenchTaskResult;
-import alluxio.stress.master.MasterBenchParameters;
 import alluxio.util.CommonUtils;
+import alluxio.util.ConfigurationUtils;
 import alluxio.util.FormatUtils;
 import alluxio.util.executor.ExecutorServiceFactories;
 import alluxio.util.io.BufferUtils;
@@ -39,8 +45,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
@@ -73,13 +77,15 @@ public class StressJobServiceBench extends Benchmark<JobServiceBenchTaskResult> 
 
   @Override
   public void prepare() throws Exception {
-
+    FileSystemContext fsContext =
+        FileSystemContext.create(new InstancedConfiguration(ConfigurationUtils.defaults()));
+    FileSystem fileSystem = FileSystem.Factory.create(fsContext);
     long start = CommonUtils.getCurrentMs();
-    deletePaths(mParameters.mBasePath);
+    deletePaths(fileSystem,mParameters.mBasePath);
     long end = CommonUtils.getCurrentMs();
     LOG.info("Cleanup delete took: {} s", (end - start) / 1000.0);
 
-    createFiles(mParameters.mBasePath, mParameters.mNumFilesPerRequest, mParameters.mNumRequests,
+    createFiles(fileSystem,mParameters.mBasePath, mParameters.mNumFilesPerDir, mParameters.mNumDirs,
         mParameters.mFileSize);
 
     mJobMasterClients = new JobMasterClient[mParameters.mClients];
@@ -87,12 +93,9 @@ public class StressJobServiceBench extends Benchmark<JobServiceBenchTaskResult> 
       mJobMasterClients[i] = JobMasterClient.Factory
           .create(JobMasterClientContext.newBuilder(ClientContext.create()).build());
     }
-
-
-
   }
 
-  private void createFiles(String basePath, int numFiles, int numDirs, int fileSize)
+  private void createFiles(FileSystem fileSystem, String basePath, int numFiles, int numDirs, int fileSize)
       throws IOException {
     final File baseDir = new File(basePath);
     if (!baseDir.mkdirs()) {
@@ -109,8 +112,20 @@ public class StressJobServiceBench extends Benchmark<JobServiceBenchTaskResult> 
       }
     }
   }
+  private static void createByteFile(FileSystem fs, AlluxioURI fileURI, CreateFilePOptions options,
+      int len) {
+    try (FileOutStream os = fs.createFile(fileURI, options)) {
+      byte[] arr = new byte[len];
+      for (int k = 0; k < len; k++) {
+        arr[k] = (byte) k;
+      }
+      os.write(arr);
+    } catch (IOException | AlluxioException e) {
+      throw new RuntimeException(e);
+    }
+  }
 
-  private void deletePaths(String basePath) throws IOException {
+  private void deletePaths(FileSystem fileSystem, String basePath) throws IOException {
     File file = new File(basePath);
     if (!file.exists()) {
       return;
@@ -131,7 +146,7 @@ public class StressJobServiceBench extends Benchmark<JobServiceBenchTaskResult> 
   @Override
   public JobServiceBenchTaskResult runLocal() throws Exception {
     ExecutorService service =
-        ExecutorServiceFactories.fixedThreadPool("bench-thread", mParameters.mNumRequests).create();
+        ExecutorServiceFactories.fixedThreadPool("bench-thread", mParameters.mNumDirs).create();
 
     long durationMs = FormatUtils.parseTimeSize(mParameters.mDuration);
     long warmupMs = FormatUtils.parseTimeSize(mParameters.mWarmup);
@@ -140,24 +155,19 @@ public class StressJobServiceBench extends Benchmark<JobServiceBenchTaskResult> 
       startMs = CommonUtils.getCurrentMs() + 1000;
     }
     long endMs = startMs + warmupMs + durationMs;
+    JobMasterClient client = JobMasterClient.Factory
+        .create(JobMasterClientContext.newBuilder(ClientContext.create()).build());
     BenchContext context = new BenchContext(startMs, endMs);
-    List<Callable<Void>> callables = new ArrayList<>(mParameters.mNumRequests);
-    for (int i = 0; i < mParameters.mNumRequests; i++) {
+    List<Callable<Void>> callables = new ArrayList<>(mParameters.mNumDirs);
+    for (int i = 0; i < mParameters.mNumDirs; i++) {
 
-      callables.add(new BenchThread(context, mTestDirs[i], mJobMasterClients[i % mJobMasterClients.length]));
+      callables.add(new BenchThread(context, mTestDirs[i], client));
     }
     service.invokeAll(callables, FormatUtils.parseTimeSize(mBaseParameters.mBenchTimeout),
         TimeUnit.MILLISECONDS);
-    // record finish time/total finished jobs here, report to Summary
-
-
     service.shutdownNow();
     service.awaitTermination(30, TimeUnit.SECONDS);
-    //
-    for (int i = 0; i < mParameters.mClients; i++) {
-      mJobMasterClients[i].close();
-    }
-    // merge context result
+    client.close();
     return context.getResult();
   }
 
@@ -257,10 +267,10 @@ public class StressJobServiceBench extends Benchmark<JobServiceBenchTaskResult> 
       }
       CommonUtils.sleepMs(waitMs);
       long startNs = System.nanoTime();
-      long jobId = applyOperation();
+      applyOperation();
       while (!Thread.currentThread().isInterrupted()&& CommonUtils.getCurrentMs() < mContext.getEndMs()) {
 
-        JobInfo status = mJobMasterClient.getJobStatus(jobId);
+        JobInfo status = mJobMasterClient.getJobStatus();
         if (status.getStatus() == Status.COMPLETED){
         long endNs = System.nanoTime();
 
@@ -276,18 +286,15 @@ public class StressJobServiceBench extends Benchmark<JobServiceBenchTaskResult> 
       }
     }
 
-    private long applyOperation() throws IOException {
+    private void applyOperation() throws IOException {
       long counter = mContext.getCounter().getAndIncrement();
 
       switch (mParameters.mOperation) {
         case DISTRIBUTED_LOAD:
           // send distributed load task to job service and wait for result
-          LoadConfig config =
-              new LoadConfig(mPath.toString(), 1, new HashSet<>(), new HashSet<>(), new HashSet<>(),
-                  new HashSet<>());
-          long jobId = mJobMasterClient.run(config);
+
           // wait for job complete
-          return jobId;
+          return;
 
         default:
           throw new IllegalStateException("Unknown operation: " + mParameters.mOperation);
