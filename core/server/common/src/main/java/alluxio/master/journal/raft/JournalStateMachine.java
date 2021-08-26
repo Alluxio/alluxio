@@ -62,6 +62,7 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -106,6 +107,7 @@ public class JournalStateMachine extends BaseStateMachine {
   private volatile long mNextSequenceNumberToRead = 0;
   private volatile boolean mSnapshotting = false;
   private volatile boolean mIsLeader = false;
+  private Map<Long, String> mLeaderInfo;
 
   /**
    * This callback is used for interrupting someone who suspends the journal applier to work on
@@ -148,6 +150,7 @@ public class JournalStateMachine extends BaseStateMachine {
     LOG.info("Initialized new journal state machine");
     mJournalSystem = journalSystem;
     mSnapshotManager = new SnapshotReplicationManager(journalSystem, mStorage);
+    mLeaderInfo = new HashMap<>();
 
     MetricsSystem.registerGaugeIfAbsent(
         MetricKey.MASTER_EMBEDDED_JOURNAL_SNAPSHOT_LAST_INDEX.getName(),
@@ -676,12 +679,18 @@ public class JournalStateMachine extends BaseStateMachine {
   public void notifyLeaderChanged(RaftGroupMemberId groupMemberId, RaftPeerId raftPeerId) {
     if (mRaftGroupId == groupMemberId.getGroupId()) {
       mIsLeader = groupMemberId.getPeerId() == raftPeerId;
+      updateLeaderInfo(raftPeerId);
       mJournalSystem.notifyLeadershipStateChanged(mIsLeader);
     } else {
       LOG.warn("Received notification for unrecognized group {}, current group is {}",
           groupMemberId.getGroupId(), mRaftGroupId);
     }
   }
+
+  private void updateLeaderInfo(RaftPeerId raftPeerId) {
+    mLeaderInfo.put(getLastAppliedTermIndex().getTerm(), raftPeerId.toString());
+  }
+
 
   /**
    * @return the snapshot replication manager
@@ -695,5 +704,12 @@ public class JournalStateMachine extends BaseStateMachine {
    */
   public synchronized boolean isSuspended() {
     return mJournalApplier.isSuspended();
+  }
+
+  /**
+   * @return the group's leader information
+   */
+  public Map<Long, String> getLeaderInfo() {
+    return mLeaderInfo;
   }
 }
