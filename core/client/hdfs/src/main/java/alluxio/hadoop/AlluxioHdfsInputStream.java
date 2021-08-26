@@ -17,7 +17,6 @@ import com.google.common.base.Preconditions;
 import org.apache.hadoop.fs.FSDataInputStream;
 
 import java.io.IOException;
-import java.nio.ByteBuffer;
 
 /**
  * A wrapper class to translate Hadoop FileSystem FSDataInputStream to Alluxio FileSystem
@@ -46,11 +45,6 @@ public class AlluxioHdfsInputStream extends FileInStream {
   @Override
   public int read() throws IOException {
     return mInput.read();
-  }
-
-  @Override
-  public int read(ByteBuffer buf) throws IOException {
-    return mInput.read(buf);
   }
 
   @Override

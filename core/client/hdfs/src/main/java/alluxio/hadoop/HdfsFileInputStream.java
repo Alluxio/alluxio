@@ -18,11 +18,9 @@ import alluxio.exception.AlluxioException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileDoesNotExistException;
 
-import org.apache.hadoop.fs.ByteBufferReadable;
 import org.apache.hadoop.fs.FileSystem.Statistics;
 import org.apache.hadoop.fs.PositionedReadable;
 import org.apache.hadoop.fs.Seekable;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,7 +28,7 @@ import java.io.EOFException;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.ByteBuffer;
+
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -38,8 +36,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * {@link FileInStream} with additional statistics gathering in a {@link Statistics} object.
  */
 @NotThreadSafe
-public class HdfsFileInputStream extends InputStream implements Seekable, PositionedReadable,
-    ByteBufferReadable {
+public class HdfsFileInputStream extends InputStream implements Seekable, PositionedReadable {
   private static final Logger LOG = LoggerFactory.getLogger(HdfsFileInputStream.class);
 
   private final Statistics mStatistics;
@@ -127,18 +124,6 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
     }
 
     int bytesRead = mInputStream.read(buffer, offset, length);
-    if (bytesRead != -1 && mStatistics != null) {
-      mStatistics.incrementBytesRead(bytesRead);
-    }
-    return bytesRead;
-  }
-
-  @Override
-  public int read(ByteBuffer buf) throws IOException {
-    if (mClosed) {
-      throw new IOException(ExceptionMessage.READ_CLOSED_STREAM.getMessage());
-    }
-    int bytesRead = mInputStream.read(buf);
     if (bytesRead != -1 && mStatistics != null) {
       mStatistics.incrementBytesRead(bytesRead);
     }
