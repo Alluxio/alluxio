@@ -22,7 +22,7 @@ func Release(args []string) error {
 	generateFlags(releaseCmd)
 	releaseCmd.Parse(args[2:]) // error handling by flag.ExitOnError
 
-	if err := handleUfsModules(); err != nil {
+	if err := handleUfsModulesAndLibJars(); err != nil {
 		return err
 	}
 	if err := generateTarballs(); err != nil {
