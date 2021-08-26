@@ -12,7 +12,7 @@
 package alluxio;
 
 import alluxio.conf.SensitiveConfigMask;
-import alluxio.conf.CredentialConfigItems;
+import alluxio.conf.CredentialPropertyKeys;
 import alluxio.grpc.MountPOptions;
 import alluxio.grpc.MountPRequest;
 import alluxio.grpc.UfsInfo;
@@ -32,10 +32,10 @@ import java.util.Map;
  * RpcSensitiveConfigMask is going to mask the credential in properties.
  */
 public class RpcSensitiveConfigMask implements SensitiveConfigMask {
-  public static final RpcSensitiveConfigMask RPCSENSITIVECMASKER;
+  public static final RpcSensitiveConfigMask CREDENTIAL_FIELD_MASKER;
 
   static {
-    RPCSENSITIVECMASKER = new RpcSensitiveConfigMask();
+    CREDENTIAL_FIELD_MASKER = new RpcSensitiveConfigMask();
   }
 
   @Override
@@ -90,7 +90,7 @@ public class RpcSensitiveConfigMask implements SensitiveConfigMask {
 
   protected void generateAndMask(MountPOptions.Builder builder, Map<String, String> rawMap) {
     for (Entry entry : rawMap.entrySet()) {
-      if (!CredentialConfigItems.getCredentials().contains(entry.getKey())) {
+      if (!CredentialPropertyKeys.getCredentials().contains(entry.getKey())) {
         builder.putProperties((String) entry.getKey(), (String) entry.getValue());
       } else {
         builder.putProperties((String) entry.getKey(), "Masked");
@@ -148,7 +148,7 @@ public class RpcSensitiveConfigMask implements SensitiveConfigMask {
             boolean writeObject = false;
             for (Map.Entry<String, String> entry : t.getMap().entrySet()) {
               if (entry.getKey() instanceof String && entry.getValue() instanceof String) {
-                if (!CredentialConfigItems.getCredentials().contains(entry.getKey())) {
+                if (!CredentialPropertyKeys.getCredentials().contains(entry.getKey())) {
                   strBuilder.append("key:\"").append(entry.getKey()).append("\"\nvalue:\"")
                       .append(entry.getValue()).append(" \"\n");
                 } else {
