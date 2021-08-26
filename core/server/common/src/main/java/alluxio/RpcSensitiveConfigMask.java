@@ -13,12 +13,18 @@ package alluxio;
 
 import alluxio.conf.SensitiveConfigMask;
 import alluxio.conf.CredentialConfigItems;
+import alluxio.grpc.MountPOptions;
+import alluxio.grpc.MountPRequest;
+import alluxio.grpc.UfsInfo;
+import alluxio.grpc.GetUfsInfoPResponse;
+import alluxio.grpc.UpdateMountPRequest;
 
 import com.google.protobuf.GeneratedMessageV3;
 import com.google.protobuf.MapField;
 import org.slf4j.Logger;
 
 import java.lang.reflect.Field;
+import java.util.Map.Entry;
 import java.lang.reflect.Modifier;
 import java.util.Map;
 
@@ -33,16 +39,85 @@ public class RpcSensitiveConfigMask implements SensitiveConfigMask {
   }
 
   @Override
-  public String maskAndToString(Logger logger, Object... args) {
-    StringBuilder strBuilder = new StringBuilder();
-    for (Object obj : args) {
-      if (obj instanceof com.google.protobuf.GeneratedMessageV3) {
-        traverseAndMask(logger, (GeneratedMessageV3) obj, strBuilder);
+  public Object [] maskObjects(Logger logger, Object... args) {
+    /**
+     * This function is to mark MountPOption, and it's referring message.
+     * If something else need be masked, extra code change is required.
+     * And also if a new proto message referring direct/indirect to MountPOption,
+     * extra code should be added here.
+     */
+    Object [] objects = new Object[args.length];
+    for (int i = 0; i < args.length; i++) {
+      if (args[i] instanceof MountPOptions) {
+        MountPOptions.Builder newMP = MountPOptions.newBuilder((MountPOptions) args[i]);
+        newMP.clearProperties();
+        generateAndMask(newMP, ((MountPOptions) args[i]).getPropertiesMap());
+        objects[i] = newMP.build();
+      } else if (args[i] instanceof MountPRequest) {
+        MountPRequest.Builder mpR = MountPRequest.newBuilder((MountPRequest) args[i]);
+        MountPOptions.Builder newMP = mpR.getOptionsBuilder();
+        newMP.clearProperties();
+        generateAndMask(newMP, ((MountPRequest) args[i]).getOptions().getPropertiesMap());
+        objects[i] = mpR.build();
+      } else if (args[i] instanceof UfsInfo) {
+        UfsInfo.Builder ufsInfo = UfsInfo.newBuilder((UfsInfo) args[i]);
+        MountPOptions.Builder newMP = ufsInfo.getPropertiesBuilder();
+        newMP.clearProperties();
+        generateAndMask(newMP, ((UfsInfo) args[i]).getProperties().getPropertiesMap());
+        objects[i] = ufsInfo.build();
+      } else if (args[i] instanceof GetUfsInfoPResponse) {
+        GetUfsInfoPResponse.Builder getUfsInfoResponse =
+            GetUfsInfoPResponse.newBuilder((GetUfsInfoPResponse) args[i]);
+        MountPOptions.Builder newMP = getUfsInfoResponse.getUfsInfoBuilder().getPropertiesBuilder();
+        newMP.clearProperties();
+        generateAndMask(newMP,
+            ((GetUfsInfoPResponse) args[i]).getUfsInfo().getProperties().getPropertiesMap());
+        objects[i] = getUfsInfoResponse.build();
+      } else if (args[i] instanceof UpdateMountPRequest) {
+        UpdateMountPRequest.Builder updateMountPRequest =
+            UpdateMountPRequest.newBuilder((UpdateMountPRequest) args[i]);
+        MountPOptions.Builder newMP = updateMountPRequest.getOptionsBuilder();
+        newMP.clearProperties();
+        generateAndMask(newMP, ((UpdateMountPRequest) args[i]).getOptions().getPropertiesMap());
+        objects[i] = updateMountPRequest.build();
       } else {
-        strBuilder.append(obj);
+        objects[i] = args[i];
       }
     }
-    return strBuilder.toString();
+
+    return objects;
+  }
+
+  protected void generateAndMask(MountPOptions.Builder builder, Map<String, String> rawMap) {
+    for (Entry entry : rawMap.entrySet()) {
+      if (!CredentialConfigItems.getCredentials().contains(entry.getKey())) {
+        builder.putProperties((String) entry.getKey(), (String) entry.getValue());
+      } else {
+        builder.putProperties((String) entry.getKey(), "Masked");
+      }
+    }
+  }
+
+  @Override
+  public String [] maskAndToString(Logger logger, Object... args) {
+    /**
+     * Using a generic way to mask any credential in MapField in protobuf generated code.
+     * As long as the credential is added in MapField, no necessary to change the code.
+     * No extra change is required if a new proto message referring to
+     * existing credential holder is added
+     */
+    String [] strings = new String[args.length];
+    for (int i = 0; i < args.length; i++) {
+      StringBuilder strBuilder = new StringBuilder();
+
+      if (args[i] instanceof com.google.protobuf.GeneratedMessageV3) {
+        traverseAndMask(logger, (GeneratedMessageV3) args[i], strBuilder);
+        strings[i] = strBuilder.toString();
+      } else {
+        strings[i] = strBuilder.append(args[i]).toString();
+      }
+    }
+    return strings;
   }
 
   /**
@@ -51,7 +126,7 @@ public class RpcSensitiveConfigMask implements SensitiveConfigMask {
    * @param generateMessageV3 object
    * @param strBuilder string builder
    */
-  public void traverseAndMask(Logger logger, GeneratedMessageV3 generateMessageV3,
+  protected void traverseAndMask(Logger logger, GeneratedMessageV3 generateMessageV3,
                               StringBuilder strBuilder) {
     Field[] fields = generateMessageV3.getClass().getDeclaredFields();
     for (Field field : fields) {

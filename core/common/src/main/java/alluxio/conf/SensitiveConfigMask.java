@@ -19,10 +19,18 @@ import org.slf4j.Logger;
 public interface SensitiveConfigMask {
 
   /**
+   * Copy and mask objects' sensitive information.
+   * @param logger log writer
+   * @param args the objects to be masked
+   * @return an array of objects maksed
+   */
+  Object [] maskObjects(Logger logger, Object... args);
+
+  /**
    * mask sensitive information and output a string for log.
    * @param logger log writer
-   * @param args the object to be masked and printed as a string
-   * @return a string with sentitive information masked
+   * @param args the objects to be masked and printed as a string
+   * @return a string array with sentitive information masked
    */
-  public String maskAndToString(Logger logger, Object... args);
+  String [] maskAndToString(Logger logger, Object... args);
 }
