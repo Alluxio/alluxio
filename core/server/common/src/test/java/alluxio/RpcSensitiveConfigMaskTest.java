@@ -11,9 +11,13 @@
 
 package alluxio;
 
-import alluxio.grpc.*;
+import alluxio.grpc.MountPOptions;
+import alluxio.grpc.MountPRequest;
+import alluxio.grpc.UfsInfo;
+import alluxio.grpc.BlockHeartbeatPOptions;
+import alluxio.grpc.GetUfsInfoPResponse;
+import alluxio.grpc.UpdateMountPRequest;
 
-import org.eclipse.jetty.server.UserIdentity;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -77,7 +81,8 @@ public class RpcSensitiveConfigMaskTest {
       MountPOptions.Builder mpb = MountPOptions.newBuilder();
       mpb.putProperties("key1", "value1");
       mpb.putProperties("aws.accessKeyId", "mycredential");
-      String result = String.format("{%s}", RpcSensitiveConfigMask.RPCSENSITIVECMASK.maskObjects(null, mpb.build()));
+      String result = String.format("{%s}",
+          RpcSensitiveConfigMask.RPCSENSITIVECMASK.maskObjects(null, mpb.build()));
       Assert.assertEquals(true, result.contains("key1"));
       Assert.assertEquals(true, result.contains("value1"));
       Assert.assertEquals(true, result.contains("Masked"));
@@ -90,7 +95,8 @@ public class RpcSensitiveConfigMaskTest {
       MountPOptions.Builder mpb = obj.getOptionsBuilder();
       mpb.putProperties("key1", "value1");
       mpb.putProperties("aws.accessKeyId", "mycredential");
-      String result = String.format("{%s}", RpcSensitiveConfigMask.RPCSENSITIVECMASK.maskObjects(null, obj.build()));
+      String result = String.format("{%s}",
+          RpcSensitiveConfigMask.RPCSENSITIVECMASK.maskObjects(null, obj.build()));
       Assert.assertEquals(true, result.contains("key1"));
       Assert.assertEquals(true, result.contains("value1"));
       Assert.assertEquals(true, result.contains("Masked"));
@@ -103,7 +109,8 @@ public class RpcSensitiveConfigMaskTest {
       MountPOptions.Builder mpb = obj.getPropertiesBuilder();
       mpb.putProperties("key1", "value1");
       mpb.putProperties("aws.accessKeyId", "mycredential");
-      String result = String.format("{%s}", RpcSensitiveConfigMask.RPCSENSITIVECMASK.maskObjects(null, obj.build()));
+      String result = String.format("{%s}",
+          RpcSensitiveConfigMask.RPCSENSITIVECMASK.maskObjects(null, obj.build()));
       Assert.assertEquals(true, result.contains("key1"));
       Assert.assertEquals(true, result.contains("value1"));
       Assert.assertEquals(true, result.contains("Masked"));
@@ -116,7 +123,8 @@ public class RpcSensitiveConfigMaskTest {
       MountPOptions.Builder mpb = obj.getUfsInfoBuilder().getPropertiesBuilder();
       mpb.putProperties("key1", "value1");
       mpb.putProperties("aws.accessKeyId", "mycredential");
-      String result = String.format("{%s}", RpcSensitiveConfigMask.RPCSENSITIVECMASK.maskObjects(null, obj.build()));
+      String result = String.format("{%s}",
+          RpcSensitiveConfigMask.RPCSENSITIVECMASK.maskObjects(null, obj.build()));
       Assert.assertEquals(true, result.contains("key1"));
       Assert.assertEquals(true, result.contains("value1"));
       Assert.assertEquals(true, result.contains("Masked"));
@@ -130,7 +138,8 @@ public class RpcSensitiveConfigMaskTest {
       MountPOptions.Builder mpb = obj.getOptionsBuilder();
       mpb.putProperties("key1", "value1");
       mpb.putProperties("aws.accessKeyId", "mycredential");
-      String result = String.format("{%s}", RpcSensitiveConfigMask.RPCSENSITIVECMASK.maskObjects(null, obj.build()));
+      String result = String.format("{%s}",
+          RpcSensitiveConfigMask.RPCSENSITIVECMASK.maskObjects(null, obj.build()));
       Assert.assertEquals(true, result.contains("key1"));
       Assert.assertEquals(true, result.contains("value1"));
       Assert.assertEquals(true, result.contains("Masked"));
@@ -141,7 +150,8 @@ public class RpcSensitiveConfigMaskTest {
     {
       String astr = "astr";
 
-      String result = String.format("{%s}", RpcSensitiveConfigMask.RPCSENSITIVECMASK.maskObjects(null, astr));
+      String result = String.format("{%s}",
+          RpcSensitiveConfigMask.RPCSENSITIVECMASK.maskObjects(null, astr));
       Assert.assertEquals(false, result.contains("mycredential"));
       Assert.assertEquals(false, result.contains("Masked"));
       Assert.assertEquals(true, result.contains(astr));
