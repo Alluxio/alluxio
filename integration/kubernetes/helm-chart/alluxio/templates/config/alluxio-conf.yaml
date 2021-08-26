@@ -88,6 +88,7 @@
   {{- if .Values.fuse.mountOptions }}
   {{- $workerJavaOpts = printf "-Dalluxiuo.worker.fuse.mount.options=%v" .Values.fuse.mountOptions | append $workerJavaOpts }}
   {{- end }}
+  {{- $workerJavaOpts = print "-Dalluxio.user.hostname=${ALLUXIO_CLIENT_HOSTNAME}" | append $workerJavaOpts }}
   {{- if .Values.fuse.jvmOptions }}
     {{- $workerJavaOpts = concat $workerJavaOpts .Values.fuse.jvmOptions }}
   {{- end }}
@@ -166,6 +167,7 @@
 {{- /* ===================================== */}}
 {{- $fuseJavaOpts := list }}
 {{- if eq .Values.worker.fuseEnabled false }}
+  {{- $fuseJavaOpts = print "-Dalluxio.user.hostname=${ALLUXIO_CLIENT_HOSTNAME}" | append $fuseJavaOpts }}
   {{- range $key, $val := .Values.fuse.properties }}
     {{- $fuseJavaOpts = printf "-D%v=%v" $key $val | append $fuseJavaOpts }}
   {{- end }}
