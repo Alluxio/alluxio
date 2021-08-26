@@ -433,8 +433,6 @@ public class BlockReadHandler implements StreamObserver<alluxio.grpc.ReadRequest
                     "Exception occurred while sending data for read request {}.",
                     mContext.getRequest(), e);
                 setError(new Error(AlluxioStatusException.fromThrowable(e), true));
-              } finally {
-                finalChunk.release();
               }
             });
           }
@@ -444,6 +442,10 @@ public class BlockReadHandler implements StreamObserver<alluxio.grpc.ReadRequest
               mContext.getRequest(), mContext.getRequest().getSessionId(),
               e);
           setError(new Error(AlluxioStatusException.fromThrowable(e), true));
+        } finally {
+          if (chunk != null) {
+            chunk.release();
+          }
         }
         continue;
       }
@@ -518,9 +520,8 @@ public class BlockReadHandler implements StreamObserver<alluxio.grpc.ReadRequest
           }
           transferMs = System.currentTimeMillis() - startTransferMs;
           return new NettyDataBuffer(buf);
-        } catch (Throwable e) {
+        } finally {
           buf.release();
-          throw e;
         }
       } finally {
         long durationMs = System.currentTimeMillis() - startMs;
