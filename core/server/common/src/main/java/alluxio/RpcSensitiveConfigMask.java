@@ -32,16 +32,16 @@ import java.util.Map;
  * RpcSensitiveConfigMask is going to mask the credential in properties.
  */
 public class RpcSensitiveConfigMask implements SensitiveConfigMask {
-  public static final RpcSensitiveConfigMask RPCSENSITIVECMASK;
+  public static final RpcSensitiveConfigMask RPCSENSITIVECMASKER;
 
   static {
-    RPCSENSITIVECMASK = new RpcSensitiveConfigMask();
+    RPCSENSITIVECMASKER = new RpcSensitiveConfigMask();
   }
 
   @Override
   public Object [] maskObjects(Logger logger, Object... args) {
     /**
-     * This function is to mark MountPOption, and it's referring message.
+     * This function is to mask MountPOption, and those who are referring to it.
      * If something else need be masked, extra code change is required.
      * And also if a new proto message referring direct/indirect to MountPOption,
      * extra code should be added here.
