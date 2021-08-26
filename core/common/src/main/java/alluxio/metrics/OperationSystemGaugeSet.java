@@ -39,38 +39,36 @@ public class OperationSystemGaugeSet implements MetricSet {
     } catch (Throwable e) {
       return gauges;
     }
-    if (mOsmxb instanceof OperatingSystemMXBean && mUnixb instanceof UnixOperatingSystemMXBean) {
-      gauges.put("os.freePhysicalMemory", new CachedGauge(10, TimeUnit.MINUTES) {
-        @Override
-        protected Long loadValue() {
-          return mOsmxb.getFreePhysicalMemorySize();
-        }
-      });
-      gauges.put("os.totalPhysicalMemory", new CachedGauge<Long>(10, TimeUnit.MINUTES) {
-        @Override
-        protected Long loadValue() {
-          return mOsmxb.getTotalPhysicalMemorySize();
-        }
-      });
-      gauges.put("os.cpuLoad", new CachedGauge<Double>(10, TimeUnit.MINUTES) {
-        @Override
-        protected Double loadValue() {
-          return mOsmxb.getSystemCpuLoad();
-        }
-      });
-      gauges.put("os.maxFileCount", new CachedGauge<Long>(10, TimeUnit.MINUTES) {
-        @Override
-        protected Long loadValue() {
-          return mUnixb.getMaxFileDescriptorCount();
-        }
-      });
-      gauges.put("os.openFileCount", new CachedGauge<Long>(10, TimeUnit.MINUTES) {
-        @Override
-        protected Long loadValue() {
-          return mUnixb.getOpenFileDescriptorCount();
-        }
-      });
-    }
+    gauges.put("os.freePhysicalMemory", new CachedGauge(10, TimeUnit.MINUTES) {
+      @Override
+      protected Long loadValue() {
+        return mOsmxb.getFreePhysicalMemorySize();
+      }
+    });
+    gauges.put("os.totalPhysicalMemory", new CachedGauge<Long>(10, TimeUnit.MINUTES) {
+      @Override
+      protected Long loadValue() {
+        return mOsmxb.getTotalPhysicalMemorySize();
+      }
+    });
+    gauges.put("os.cpuLoad", new CachedGauge<Double>(10, TimeUnit.MINUTES) {
+      @Override
+      protected Double loadValue() {
+        return mOsmxb.getSystemCpuLoad();
+      }
+    });
+    gauges.put("os.maxFileCount", new CachedGauge<Long>(10, TimeUnit.MINUTES) {
+      @Override
+      protected Long loadValue() {
+        return mUnixb.getMaxFileDescriptorCount();
+      }
+    });
+    gauges.put("os.openFileCount", new CachedGauge<Long>(10, TimeUnit.MINUTES) {
+      @Override
+      protected Long loadValue() {
+        return mUnixb.getOpenFileDescriptorCount();
+      }
+    });
     return gauges;
   }
 }
