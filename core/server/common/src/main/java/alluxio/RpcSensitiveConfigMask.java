@@ -25,7 +25,7 @@ import java.util.Map.Entry;
 import java.util.Map;
 
 /**
- * RpcSensitiveConfigMask is going to mask the credential in properties.
+ * RpcSensitiveConfigMask is going to mask the credential RPC messages.
  */
 public class RpcSensitiveConfigMask implements SensitiveConfigMask {
   public static final RpcSensitiveConfigMask CREDENTIAL_FIELD_MASKER;

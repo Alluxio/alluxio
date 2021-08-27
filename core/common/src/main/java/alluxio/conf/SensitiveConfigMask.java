@@ -22,7 +22,7 @@ public interface SensitiveConfigMask {
    * Copy and mask objects' sensitive information.
    * @param logger log writer
    * @param args the objects to be masked
-   * @return an array of objects maksed
+   * @return an array of objects masked
    */
   Object[] maskObjects(Logger logger, Object... args);
 }

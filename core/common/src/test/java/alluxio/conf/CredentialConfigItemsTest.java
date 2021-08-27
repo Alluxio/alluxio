@@ -18,7 +18,7 @@ import org.junit.Test;
 import java.util.Set;
 
 /**
- * CredentialPropertyKeys test.
+ * Unit tests for {@link CredentialPropertyKeys}.
  */
 public class CredentialConfigItemsTest {
   @Test
