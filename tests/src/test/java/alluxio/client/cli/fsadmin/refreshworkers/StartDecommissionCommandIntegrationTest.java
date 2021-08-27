@@ -25,15 +25,15 @@ import java.io.IOException;
 public final  class StartDecommissionCommandIntegrationTest extends AbstractFsAdminShellTest {
   @Test
   public void starDecommission() throws IOException {
-    int errCode = mFsAdminShell.run("refreshWorkers", "start"
-        ,"--excluded-worker", "host1");
+    int errCode = mFsAdminShell.run("refreshWorkers", "start",
+        "--excluded-worker", "host1");
     assertEquals("", mErrOutput.toString());
     assertEquals(0, errCode);
     errCode = mFsAdminShell.run("refreshWorkers", "start");
     assertEquals("", mErrOutput.toString());
     assertEquals(0, errCode);
-    errCode = mFsAdminShell.run("refreshWorkers", "start", "--exclude-hosts"
-    , "host1", "host2");
+    errCode = mFsAdminShell.run("refreshWorkers", "start", "--exclude-hosts",
+        "host1", "host2");
     assertEquals("", mErrOutput.toString());
     assertEquals(0, errCode);
   }
