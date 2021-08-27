@@ -73,7 +73,9 @@ public class MaxThroughput extends Suite<MaxThroughputSummary> {
 
     List<String> baseArgs = new ArrayList<>(Arrays.asList(args));
 
-    prepareBeforeAllTests(baseArgs);
+    if (mParameters.mSkipPrepare) {
+      prepareBeforeAllTests(baseArgs);
+    }
 
     int lower = 0;
     int upper = Integer.MAX_VALUE;

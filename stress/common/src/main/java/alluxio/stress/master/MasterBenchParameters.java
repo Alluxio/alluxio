@@ -96,6 +96,10 @@ public final class MasterBenchParameters extends Parameters {
 
   public Map<String, String> mConf = new HashMap<>();
 
+  @Parameter(names = {"--skip-prepare"},
+      description = "If true, skip the prepare.")
+  public boolean mSkipPrepare = false;
+
   /**
    * Converts from String to Operation instance.
    */
