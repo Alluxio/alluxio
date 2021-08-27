@@ -28,7 +28,7 @@ import alluxio.client.file.cache.evictor.UnevictableCacheEvictor;
 import alluxio.client.file.cache.store.LocalPageStore;
 import alluxio.client.file.cache.store.PageStoreOptions;
 import alluxio.client.metrics.LocalCacheMetrics.Factory;
-import alluxio.client.metrics.MetricsInScope;
+import alluxio.client.metrics.ScopedMetrics;
 import alluxio.client.quota.CacheQuota;
 import alluxio.client.quota.CacheScope;
 import alluxio.conf.AlluxioConfiguration;
@@ -420,8 +420,8 @@ public final class LocalCacheManagerTest {
     CacheScope[] quotaCacheScopes =
         {partitionCacheScope, tableCacheScope, schemaCacheScope, CacheScope.GLOBAL};
     for (CacheScope cacheScope : quotaCacheScopes) {
-      MetricsInScope localCacheMetricsInScope = Factory.get(mConf).getLocalCacheMetricsInScope();
-      localCacheMetricsInScope.switchOrClear();
+      ScopedMetrics localCacheScopedMetrics = Factory.get(mConf).getLocalCacheMetricsInScope();
+      localCacheScopedMetrics.switchOrClear();
       mMetaStore = new QuotaMetaStore(mConf);
       mPageStore = PageStore.create(PageStoreOptions.create(mConf));
       mCacheManager = createLocalCacheManager(mConf, mMetaStore, mPageStore);
@@ -448,8 +448,8 @@ public final class LocalCacheManagerTest {
     CacheScope[] quotaCacheScopes =
         {partitionCacheScope, tableCacheScope, schemaCacheScope, CacheScope.GLOBAL};
     for (CacheScope cacheScope : quotaCacheScopes) {
-      MetricsInScope localCacheMetricsInScope = Factory.get(mConf).getLocalCacheMetricsInScope();
-      localCacheMetricsInScope.switchOrClear();
+      ScopedMetrics localCacheScopedMetrics = Factory.get(mConf).getLocalCacheMetricsInScope();
+      localCacheScopedMetrics.switchOrClear();
       mMetaStore = new QuotaMetaStore(mConf);
       mPageStore = PageStore.create(PageStoreOptions.create(mConf));
       mCacheManager = createLocalCacheManager(mConf, mMetaStore, mPageStore);
@@ -480,8 +480,8 @@ public final class LocalCacheManagerTest {
     CacheScope schemaCacheScope = CacheScope.create("schema");
     CacheScope[] quotaCacheScopes = {tableCacheScope, schemaCacheScope, CacheScope.GLOBAL};
     for (CacheScope cacheScope : quotaCacheScopes) {
-      MetricsInScope localCacheMetricsInScope = Factory.get(mConf).getLocalCacheMetricsInScope();
-      localCacheMetricsInScope.switchOrClear();
+      ScopedMetrics localCacheScopedMetrics = Factory.get(mConf).getLocalCacheMetricsInScope();
+      localCacheScopedMetrics.switchOrClear();
       mMetaStore = new QuotaMetaStore(mConf);
       mPageStore = PageStore.create(PageStoreOptions.create(mConf));
       mCacheManager = createLocalCacheManager(mConf, mMetaStore, mPageStore);

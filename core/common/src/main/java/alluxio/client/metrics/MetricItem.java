@@ -14,24 +14,24 @@ package alluxio.client.metrics;
 import com.codahale.metrics.Counter;
 
 /**
- * Metric item for each scope, might contains multiple keys defined in MetricKeyInScope.
+ * Metric item for each scope, might contain multiple keys defined in MetricKeyInScope.
  */
 public class MetricItem {
   private final Counter[] mCounters;
 
   MetricItem() {
-    mCounters = new Counter[MetricKeyInScope.values().length];
-    for (int i = 0; i < MetricKeyInScope.values().length; i++) {
+    mCounters = new Counter[ScopedMetricKey.values().length];
+    for (int i = 0; i < ScopedMetricKey.values().length; i++) {
       mCounters[i] = new Counter();
     }
   }
 
-  long inc(MetricKeyInScope key, long n) {
+  long inc(ScopedMetricKey key, long n) {
     mCounters[key.ordinal()].inc(n);
     return getCount(key);
   }
 
-  long getCount(MetricKeyInScope key) {
+  long getCount(ScopedMetricKey key) {
     return mCounters[key.ordinal()].getCount();
   }
 }
