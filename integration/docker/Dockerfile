@@ -57,7 +57,13 @@ ARG ALLUXIO_UID=1000
 ARG ALLUXIO_GID=1000
 ARG ENABLE_DYNAMIC_USER=true
 
-RUN apk add --no-cache openjdk8 openjdk8-jre-lib unzip vim tini
+# Add Tini for Alluxio helm charts
+# - https://github.com/krallin/tini
+ENV TINI_VERSION v0.18.0
+ADD https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini /usr/local/bin/tini
+RUN chmod +x /usr/local/bin/tini
+
+RUN apk add --no-cache openjdk8 openjdk8-jre-lib unzip vim
 
 ENV JAVA_HOME /usr/lib/jvm/java-1.8-openjdk
 
