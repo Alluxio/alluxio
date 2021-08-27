@@ -19,9 +19,9 @@ import alluxio.conf.PropertyKey;
  */
 public class LocalCacheMetrics {
 
-  private MetricsInScope mLocalCacheMetricsInScope;
+  private ScopedMetrics mLocalCacheScopedMetrics;
 
-  private MetricsInScope mShadowCacheMetricsInScope;
+  private ScopedMetrics mShadowCacheScopedMetrics;
 
   private LocalCacheMetrics() {
   }
@@ -30,24 +30,24 @@ public class LocalCacheMetrics {
    * Expose the metrics breakdown by scope for local cache.
    * @return metrics breakdown for local cache
    */
-  public MetricsInScope getLocalCacheMetricsInScope() {
-    return mLocalCacheMetricsInScope;
+  public ScopedMetrics getLocalCacheMetricsInScope() {
+    return mLocalCacheScopedMetrics;
   }
 
-  private void setLocalCacheMetricsInScope(MetricsInScope localCacheMetricsInScope) {
-    mLocalCacheMetricsInScope = localCacheMetricsInScope;
+  private void setLocalCacheMetricsInScope(ScopedMetrics localCacheScopedMetrics) {
+    mLocalCacheScopedMetrics = localCacheScopedMetrics;
   }
 
   /**
    * Expose the metrics breakdown by scope for shadow cache.
    * @return metrics breakdown for shadow cache
    */
-  public MetricsInScope getShadowCacheMetricsInScope() {
-    return mShadowCacheMetricsInScope;
+  public ScopedMetrics getShadowCacheMetricsInScope() {
+    return mShadowCacheScopedMetrics;
   }
 
-  private void setShadowCacheMetricsInScope(MetricsInScope shadowCacheMetricsInScope) {
-    mShadowCacheMetricsInScope = shadowCacheMetricsInScope;
+  private void setShadowCacheMetricsInScope(ScopedMetrics shadowCacheScopedMetrics) {
+    mShadowCacheScopedMetrics = shadowCacheScopedMetrics;
   }
 
   /**
@@ -75,15 +75,15 @@ public class LocalCacheMetrics {
       LocalCacheMetrics metrics = new LocalCacheMetrics();
       if (conf.getBoolean(PropertyKey.USER_CLIENT_CACHE_QUOTA_ENABLED)
           || conf.getBoolean(PropertyKey.USER_CLIENT_CACHE_METRICS_BREAKDOWN_ENABLED)) {
-        metrics.setLocalCacheMetricsInScope(new ConcurrentMetricsInScope());
+        metrics.setLocalCacheMetricsInScope(new ConcurrentScopedMetrics());
       } else {
-        metrics.setLocalCacheMetricsInScope(new NoOpMetricsInScope());
+        metrics.setLocalCacheMetricsInScope(new NoOpScopedMetrics());
       }
       if (conf.getBoolean(PropertyKey.USER_CLIENT_CACHE_SHADOW_METRICS_BREAKDOWN_ENABLED)) {
         int numOfSegments = conf.getInt(PropertyKey.USER_CLIENT_CACHE_SHADOW_BLOOMFILTER_NUM);
-        metrics.setShadowCacheMetricsInScope(new SegmentedMetricsInScope(numOfSegments));
+        metrics.setShadowCacheMetricsInScope(new SegmentedScopedMetrics(numOfSegments));
       } else {
-        metrics.setShadowCacheMetricsInScope(new NoOpMetricsInScope());
+        metrics.setShadowCacheMetricsInScope(new NoOpScopedMetrics());
       }
       return metrics;
     }

@@ -18,11 +18,11 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
-class ConcurrentMetricsInScope implements MetricsInScope {
+class ConcurrentScopedMetrics implements ScopedMetrics {
 
   Map<CacheScope, MetricItem> mMetrics;
 
-  ConcurrentMetricsInScope() {
+  ConcurrentScopedMetrics() {
     mMetrics = new ConcurrentHashMap<>();
   }
 
@@ -32,13 +32,13 @@ class ConcurrentMetricsInScope implements MetricsInScope {
   }
 
   @Override
-  public long inc(CacheScope scope, MetricKeyInScope metricKeyInScope, long n) {
-    return getMetricItem(scope).inc(metricKeyInScope, n);
+  public long inc(CacheScope scope, ScopedMetricKey scopedMetricKey, long n) {
+    return getMetricItem(scope).inc(scopedMetricKey, n);
   }
 
   @Override
-  public long getCount(CacheScope scope, MetricKeyInScope metricKeyInScope) {
-    return getMetricItem(scope).getCount(metricKeyInScope);
+  public long getCount(CacheScope scope, ScopedMetricKey scopedMetricKey) {
+    return getMetricItem(scope).getCount(scopedMetricKey);
   }
 
   @Override

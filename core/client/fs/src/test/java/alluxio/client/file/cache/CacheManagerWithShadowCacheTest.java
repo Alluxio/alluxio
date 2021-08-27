@@ -19,8 +19,8 @@ import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
 import alluxio.client.file.CacheContext;
 import alluxio.client.metrics.LocalCacheMetrics.Factory;
-import alluxio.client.metrics.MetricKeyInScope;
-import alluxio.client.metrics.MetricsInScope;
+import alluxio.client.metrics.ScopedMetricKey;
+import alluxio.client.metrics.ScopedMetrics;
 import alluxio.client.quota.CacheScope;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
@@ -35,7 +35,6 @@ import java.util.HashMap;
  * Tests for the {@link LocalCacheManager} class.
  */
 public final class CacheManagerWithShadowCacheTest {
-
   private static final int PAGE_SIZE_BYTES = Constants.KB;
   private static final int BLOOMFILTER_NUM = 4;
   private static final PageId PAGE_ID1 = new PageId("0L", 0L);
@@ -45,7 +44,7 @@ public final class CacheManagerWithShadowCacheTest {
   private final byte[] mBuf = new byte[PAGE_SIZE_BYTES];
   private CacheManagerWithShadowCache mCacheManager;
   private InstancedConfiguration mConf = ConfigurationTestUtils.defaults();
-  private MetricsInScope mMetricsInScope;
+  private ScopedMetrics mScopedMetrics;
 
   @Before
   public void before() throws Exception {
@@ -54,9 +53,9 @@ public final class CacheManagerWithShadowCacheTest {
     mConf.set(PropertyKey.USER_CLIENT_CACHE_SHADOW_METRICS_BREAKDOWN_ENABLED, true);
     mCacheManager = new CacheManagerWithShadowCache(new KVCacheManager(), mConf);
     mCacheManager.stopUpdate();
-    mMetricsInScope = Factory.get(mConf).getShadowCacheMetricsInScope();
+    mScopedMetrics = Factory.get(mConf).getShadowCacheMetricsInScope();
     for (int i = 0; i < BLOOMFILTER_NUM; i++) {
-      mMetricsInScope.switchOrClear();
+      mScopedMetrics.switchOrClear();
     }
   }
 
@@ -176,21 +175,21 @@ public final class CacheManagerWithShadowCacheTest {
         .setCacheScope(scope);
     mCacheManager.put(PAGE_ID1, PAGE1, context);
 
-    assertEquals(PAGE1.length, mMetricsInScope.getCount(scope, MetricKeyInScope.BYTES_IN_CACHE));
-    assertEquals(0, mMetricsInScope.getCount(scope, MetricKeyInScope.BYTES_READ_CACHE));
-    assertEquals(0, mMetricsInScope.getCount(scope, MetricKeyInScope.BYTES_READ_EXTERNAL));
+    assertEquals(PAGE1.length, mScopedMetrics.getCount(scope, ScopedMetricKey.BYTES_IN_CACHE));
+    assertEquals(0, mScopedMetrics.getCount(scope, ScopedMetricKey.BYTES_READ_CACHE));
+    assertEquals(0, mScopedMetrics.getCount(scope, ScopedMetricKey.BYTES_READ_EXTERNAL));
 
     mCacheManager.get(PAGE_ID1, 0, PAGE1.length, mBuf, 0, context);
-    assertEquals(PAGE1.length, mMetricsInScope.getCount(scope, MetricKeyInScope.BYTES_IN_CACHE));
-    assertEquals(PAGE1.length, mMetricsInScope.getCount(scope, MetricKeyInScope.BYTES_READ_CACHE));
-    assertEquals(0, mMetricsInScope.getCount(scope, MetricKeyInScope.BYTES_READ_EXTERNAL));
+    assertEquals(PAGE1.length, mScopedMetrics.getCount(scope, ScopedMetricKey.BYTES_IN_CACHE));
+    assertEquals(PAGE1.length, mScopedMetrics.getCount(scope, ScopedMetricKey.BYTES_READ_CACHE));
+    assertEquals(0, mScopedMetrics.getCount(scope, ScopedMetricKey.BYTES_READ_EXTERNAL));
 
     mCacheManager.get(PAGE_ID2, 0, PAGE2.length, mBuf, 0, context);
     assertEquals(PAGE1.length + PAGE2.length,
-        mMetricsInScope.getCount(scope, MetricKeyInScope.BYTES_IN_CACHE));
-    assertEquals(PAGE1.length, mMetricsInScope.getCount(scope, MetricKeyInScope.BYTES_READ_CACHE));
+        mScopedMetrics.getCount(scope, ScopedMetricKey.BYTES_IN_CACHE));
+    assertEquals(PAGE1.length, mScopedMetrics.getCount(scope, ScopedMetricKey.BYTES_READ_CACHE));
     assertEquals(PAGE2.length,
-        mMetricsInScope.getCount(scope, MetricKeyInScope.BYTES_READ_EXTERNAL));
+        mScopedMetrics.getCount(scope, ScopedMetricKey.BYTES_READ_EXTERNAL));
   }
 
   @Test
@@ -200,12 +199,12 @@ public final class CacheManagerWithShadowCacheTest {
         .setCacheScope(scope);
     mCacheManager.put(PAGE_ID1, PAGE1, context);
     for (int i = 0; i < BLOOMFILTER_NUM; i++) {
-      assertEquals(PAGE1.length, mMetricsInScope.getCount(scope, MetricKeyInScope.BYTES_IN_CACHE));
+      assertEquals(PAGE1.length, mScopedMetrics.getCount(scope, ScopedMetricKey.BYTES_IN_CACHE));
       mCacheManager.switchBloomFilter();
     }
-    assertEquals(0, mMetricsInScope.getCount(scope, MetricKeyInScope.BYTES_IN_CACHE));
+    assertEquals(0, mScopedMetrics.getCount(scope, ScopedMetricKey.BYTES_IN_CACHE));
     mCacheManager.put(PAGE_ID2, PAGE1, context);
-    assertEquals(PAGE2.length, mMetricsInScope.getCount(scope, MetricKeyInScope.BYTES_IN_CACHE));
+    assertEquals(PAGE2.length, mScopedMetrics.getCount(scope, ScopedMetricKey.BYTES_IN_CACHE));
   }
 
   @Test
@@ -231,7 +230,6 @@ public final class CacheManagerWithShadowCacheTest {
   }
 
   private class KVCacheManager implements CacheManager {
-
     private final HashMap<PageId, byte[]> mCache = new HashMap<>();
 
     @Override
@@ -270,7 +268,6 @@ public final class CacheManagerWithShadowCacheTest {
     }
 
     @Override
-    public void close() throws Exception {
-    }
+    public void close() throws Exception {}
   }
 }

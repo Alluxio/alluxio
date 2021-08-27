@@ -19,17 +19,17 @@ import java.util.Set;
 /**
  * Provide an aggregated view for segmented metrics such as the metrics for shadow cache.
  */
-public class SegmentedMetricsInScope implements MetricsInScope {
+public class SegmentedScopedMetrics implements ScopedMetrics {
 
   private final int mNumOfSegments;
-  private final MetricsInScope[] mSegmentedMetrics;
+  private final ScopedMetrics[] mSegmentedMetrics;
   private int mCurrentSegmentIndex;
 
-  SegmentedMetricsInScope(int numOfSegments) {
+  SegmentedScopedMetrics(int numOfSegments) {
     mNumOfSegments = numOfSegments;
-    mSegmentedMetrics = new MetricsInScope[numOfSegments];
+    mSegmentedMetrics = new ScopedMetrics[numOfSegments];
     for (int i = 0; i < numOfSegments; i++) {
-      mSegmentedMetrics[i] = new ConcurrentMetricsInScope();
+      mSegmentedMetrics[i] = new ConcurrentScopedMetrics();
     }
   }
 
@@ -50,15 +50,15 @@ public class SegmentedMetricsInScope implements MetricsInScope {
   }
 
   @Override
-  public long inc(CacheScope scope, MetricKeyInScope metricKeyInScope, long n) {
-    return mSegmentedMetrics[mCurrentSegmentIndex].inc(scope, metricKeyInScope, n);
+  public long inc(CacheScope scope, ScopedMetricKey scopedMetricKey, long n) {
+    return mSegmentedMetrics[mCurrentSegmentIndex].inc(scope, scopedMetricKey, n);
   }
 
   @Override
-  public long getCount(CacheScope scope, MetricKeyInScope metricKeyInScope) {
+  public long getCount(CacheScope scope, ScopedMetricKey scopedMetricKey) {
     long sum = 0;
     for (int i = 0; i < mNumOfSegments; i++) {
-      sum += mSegmentedMetrics[i].getCount(scope, metricKeyInScope);
+      sum += mSegmentedMetrics[i].getCount(scope, scopedMetricKey);
     }
     return sum;
   }

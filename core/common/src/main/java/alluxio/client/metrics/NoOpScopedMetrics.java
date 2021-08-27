@@ -19,7 +19,7 @@ import java.util.Set;
 /**
  * No operation metrics collector.
  */
-class NoOpMetricsInScope implements MetricsInScope {
+class NoOpScopedMetrics implements ScopedMetrics {
 
   @Override
   public Set<CacheScope> getAllCacheScopes() {
@@ -27,12 +27,12 @@ class NoOpMetricsInScope implements MetricsInScope {
   }
 
   @Override
-  public long inc(CacheScope scope, MetricKeyInScope metricKeyInScope, long n) {
+  public long inc(CacheScope scope, ScopedMetricKey scopedMetricKey, long n) {
     return 0;
   }
 
   @Override
-  public long getCount(CacheScope scope, MetricKeyInScope metricKeyInScope) {
+  public long getCount(CacheScope scope, ScopedMetricKey scopedMetricKey) {
     return 0;
   }
 

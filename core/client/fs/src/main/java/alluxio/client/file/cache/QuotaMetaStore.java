@@ -13,8 +13,8 @@ package alluxio.client.file.cache;
 
 import alluxio.client.file.cache.evictor.CacheEvictor;
 import alluxio.client.metrics.LocalCacheMetrics;
-import alluxio.client.metrics.MetricKeyInScope;
-import alluxio.client.metrics.MetricsInScope;
+import alluxio.client.metrics.ScopedMetricKey;
+import alluxio.client.metrics.ScopedMetrics;
 import alluxio.client.quota.CacheScope;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.exception.PageNotFoundException;
@@ -29,8 +29,8 @@ import javax.annotation.Nullable;
  * A metastore implementation that tracking usage associated with each cache scope.
  */
 public class QuotaMetaStore extends DefaultMetaStore {
-  /** Track the number of bytes on each scope. */
-  private final MetricsInScope mMetricsInScope;
+  /** Collect metrics such as number of bytes on each scope. */
+  private final ScopedMetrics mScopedMetrics;
   private final Map<CacheScope, CacheEvictor> mCacheEvictors;
   private final Supplier<CacheEvictor> mSupplier;
 
@@ -39,7 +39,7 @@ public class QuotaMetaStore extends DefaultMetaStore {
    */
   public QuotaMetaStore(AlluxioConfiguration conf) {
     super(conf);
-    mMetricsInScope = LocalCacheMetrics.Factory.get(conf).getLocalCacheMetricsInScope();
+    mScopedMetrics = LocalCacheMetrics.Factory.get(conf).getLocalCacheMetricsInScope();
     mCacheEvictors = new ConcurrentHashMap<>();
     mSupplier = () -> CacheEvictor.create(conf);
   }
@@ -49,7 +49,7 @@ public class QuotaMetaStore extends DefaultMetaStore {
     super.addPage(pageId, pageInfo);
     for (CacheScope cacheScope = pageInfo.getScope(); cacheScope != CacheScope.GLOBAL; cacheScope =
         cacheScope.parent()) {
-      mMetricsInScope.inc(cacheScope, MetricKeyInScope.BYTES_IN_CACHE, pageInfo.getPageSize());
+      mScopedMetrics.inc(cacheScope, ScopedMetricKey.BYTES_IN_CACHE, pageInfo.getPageSize());
       CacheEvictor evictor = mCacheEvictors.computeIfAbsent(cacheScope, k -> mSupplier.get());
       evictor.updateOnPut(pageId);
     }
@@ -71,7 +71,7 @@ public class QuotaMetaStore extends DefaultMetaStore {
     PageInfo pageInfo = super.removePage(pageId);
     for (CacheScope cacheScope = pageInfo.getScope(); cacheScope != CacheScope.GLOBAL; cacheScope =
         cacheScope.parent()) {
-      mMetricsInScope.dec(cacheScope, MetricKeyInScope.BYTES_IN_CACHE, pageInfo.getPageSize());
+      mScopedMetrics.dec(cacheScope, ScopedMetricKey.BYTES_IN_CACHE, pageInfo.getPageSize());
       CacheEvictor evictor = mCacheEvictors.computeIfAbsent(cacheScope, k -> mSupplier.get());
       evictor.updateOnDelete(pageId);
     }
@@ -86,7 +86,7 @@ public class QuotaMetaStore extends DefaultMetaStore {
     if (cacheScope == CacheScope.GLOBAL) {
       return bytes();
     }
-    return mMetricsInScope.getCount(cacheScope, MetricKeyInScope.BYTES_IN_CACHE);
+    return mScopedMetrics.getCount(cacheScope, ScopedMetricKey.BYTES_IN_CACHE);
   }
 
   @Override
@@ -95,7 +95,7 @@ public class QuotaMetaStore extends DefaultMetaStore {
     for (CacheEvictor evictor : mCacheEvictors.values()) {
       evictor.reset();
     }
-    mMetricsInScope.switchOrClear();
+    mScopedMetrics.switchOrClear();
   }
 
   /**

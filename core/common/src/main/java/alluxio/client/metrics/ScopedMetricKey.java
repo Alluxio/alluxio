@@ -14,11 +14,12 @@ package alluxio.client.metrics;
 /**
  * Metric keys of each scope.
  */
-public enum MetricKeyInScope {
-  /** Bytes stored in cache.*/
+public enum ScopedMetricKey {
+  /** Bytes stored of this scope in cache.*/
   BYTES_IN_CACHE,
-  /** Cache hits. Bytes read from cache.*/
+  /** Cache hits. Bytes read of this scope from cache.*/
   BYTES_READ_CACHE,
-  /** Bytes read from external, may be larger than requests due to reading complete pages.*/
+  /** Bytes read of this scope from external,
+   * may be larger than requests due to reading complete pages.*/
   BYTES_READ_EXTERNAL;
 }

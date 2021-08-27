@@ -15,8 +15,8 @@ import alluxio.client.file.CacheContext;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.URIStatus;
 import alluxio.client.metrics.LocalCacheMetrics;
-import alluxio.client.metrics.MetricKeyInScope;
-import alluxio.client.metrics.MetricsInScope;
+import alluxio.client.metrics.ScopedMetricKey;
+import alluxio.client.metrics.ScopedMetrics;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.AlluxioException;
@@ -46,36 +46,24 @@ public class LocalCacheFileInStream extends FileInStream {
 
   private static final Logger LOG = LoggerFactory.getLogger(LocalCacheFileInStream.class);
 
-  /**
-   * Page size in bytes.
-   */
+  /** Page size in bytes.*/
   protected final long mPageSize;
 
   private final Closer mCloser = Closer.create();
 
-  /**
-   * Local store to store pages.
-   */
+  /** Local store to store pages. */
   private final CacheManager mCacheManager;
   private final boolean mQuotaEnabled;
-  /**
-   * Cache related context of this file.
-   */
+  /** Cache related context of this file. */
   private final CacheContext mCacheContext;
-  /**
-   * File info, fetched from external FS.
-   */
+  /** File info, fetched from external FS. */
   private final URIStatus mStatus;
   private final FileInStreamOpener mExternalFileInStreamOpener;
-  private final MetricsInScope mMetricsInScope;
+  private final ScopedMetrics mScopedMetrics;
 
-  /**
-   * Stream reading from the external file system, opened once.
-   */
+  /** Stream reading from the external file system, opened once. */
   private FileInStream mExternalFileInStream;
-  /**
-   * Current position of the stream, relative to the start of the file.
-   */
+  /** Current position of the stream, relative to the start of the file. */
   private long mPosition = 0;
   private boolean mClosed = false;
   private boolean mEOF = false;
@@ -86,7 +74,6 @@ public class LocalCacheFileInStream extends FileInStream {
    * Interface to wrap open method of file system.
    */
   public interface FileInStreamOpener {
-
     /**
      * Opens an FSDataInputStream at the indicated Path.
      *
@@ -99,10 +86,10 @@ public class LocalCacheFileInStream extends FileInStream {
   /**
    * Constructor when the {@link URIStatus} is already available.
    *
-   * @param status       file status
-   * @param fileOpener   open file in the external file system if a cache miss occurs
+   * @param status file status
+   * @param fileOpener open file in the external file system if a cache miss occurs
    * @param cacheManager local cache manager
-   * @param conf         configuration
+   * @param conf configuration
    */
   public LocalCacheFileInStream(URIStatus status, FileInStreamOpener fileOpener,
       CacheManager cacheManager, AlluxioConfiguration conf) {
@@ -125,7 +112,7 @@ public class LocalCacheFileInStream extends FileInStream {
     }
     Metrics.registerGauges();
     mStopwatch = stopwatch;
-    mMetricsInScope = LocalCacheMetrics.Factory.get(conf).getLocalCacheMetricsInScope();
+    mScopedMetrics = LocalCacheMetrics.Factory.get(conf).getLocalCacheMetricsInScope();
   }
 
   @Override
@@ -188,8 +175,8 @@ public class LocalCacheFileInStream extends FileInStream {
           cacheContext.incrementCounter(
               MetricKey.CLIENT_CACHE_PAGE_READ_CACHE_TIME_NS.getMetricName(),
               mStopwatch.elapsed(TimeUnit.NANOSECONDS));
-          mMetricsInScope
-              .inc(cacheContext.getCacheScope(), MetricKeyInScope.BYTES_READ_CACHE, bytesRead);
+          mScopedMetrics
+              .inc(cacheContext.getCacheScope(), ScopedMetricKey.BYTES_READ_CACHE, bytesRead);
         }
       } else {
         // on local cache miss, read a complete page from external storage. This will always make
@@ -209,8 +196,8 @@ public class LocalCacheFileInStream extends FileInStream {
                 MetricKey.CLIENT_CACHE_PAGE_READ_EXTERNAL_TIME_NS.getMetricName(),
                 mStopwatch.elapsed(TimeUnit.NANOSECONDS)
             );
-            mMetricsInScope
-                .inc(cacheContext.getCacheScope(), MetricKeyInScope.BYTES_READ_EXTERNAL, bytesRead);
+            mScopedMetrics
+                .inc(cacheContext.getCacheScope(), ScopedMetricKey.BYTES_READ_EXTERNAL, bytesRead);
           }
           mCacheManager.put(pageId, page, mCacheContext);
         }
@@ -352,20 +339,13 @@ public class LocalCacheFileInStream extends FileInStream {
   }
 
   private static final class Metrics {
-
-    /**
-     * Cache hits.
-     */
+    /** Cache hits. */
     private static final Meter BYTES_READ_CACHE =
         MetricsSystem.meter(MetricKey.CLIENT_CACHE_BYTES_READ_CACHE.getName());
-    /**
-     * Bytes read from external, may be larger than requests due to reading complete pages.
-     */
+    /** Bytes read from external, may be larger than requests due to reading complete pages. */
     private static final Meter BYTES_READ_EXTERNAL =
         MetricsSystem.meter(MetricKey.CLIENT_CACHE_BYTES_READ_EXTERNAL.getName());
-    /**
-     * Cache misses.
-     */
+    /** Cache misses. */
     private static final Meter BYTES_REQUESTED_EXTERNAL =
         MetricsSystem.meter(MetricKey.CLIENT_CACHE_BYTES_REQUESTED_EXTERNAL.getName());
 

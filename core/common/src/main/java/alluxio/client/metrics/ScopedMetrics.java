@@ -18,7 +18,7 @@ import java.util.Set;
 /**
  * Provide a map-like interface to keep and collect the metrics of each CacheScope.
  */
-public interface MetricsInScope {
+public interface ScopedMetrics {
 
   /**
    * Get the set of all the scopes.
@@ -29,30 +29,30 @@ public interface MetricsInScope {
   /**
    * Increment the counter of the given scope by n.
    * @param scope the scope of the metrics
-   * @param metricKeyInScope the key of the metrics
+   * @param scopedMetricKey the key of the metrics
    * @param n the amount by which the counter will be increased
    * @return the new value of the counter
    */
-  long inc(CacheScope scope, MetricKeyInScope metricKeyInScope, long n);
+  long inc(CacheScope scope, ScopedMetricKey scopedMetricKey, long n);
 
   /**
    * Decrement the counter of the given scope by n.
    * @param scope the scope of the metrics
-   * @param metricKeyInScope the key of the metrics
+   * @param scopedMetricKey the key of the metrics
    * @param n the amount by which the counter will be decreased
    * @return the new value of the counter
    */
-  default long dec(CacheScope scope, MetricKeyInScope metricKeyInScope, long n) {
-    return inc(scope, metricKeyInScope, -n);
+  default long dec(CacheScope scope, ScopedMetricKey scopedMetricKey, long n) {
+    return inc(scope, scopedMetricKey, -n);
   }
 
   /**
    * Returns current value of the given scope.
    * @param scope the scope of the metrics
-   * @param metricKeyInScope the key of the metrics
+   * @param scopedMetricKey the key of the metrics
    * @return current value of the given scope
    */
-  long getCount(CacheScope scope, MetricKeyInScope metricKeyInScope);
+  long getCount(CacheScope scope, ScopedMetricKey scopedMetricKey);
 
   /**
    * If the metrics are segmented, remove the oldest segment and create a new one.
