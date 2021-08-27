@@ -22,60 +22,6 @@ import org.junit.Assert;
 import org.junit.Test;
 
 public class RpcSensitiveConfigMaskTest {
-
-  @Test
-  public void maskAndToStringSimple() {
-    String atest = "atest";
-    Assert.assertEquals(atest,
-        RpcSensitiveConfigMask.CREDENTIAL_FIELD_MASKER.maskAndToString(null, atest)[0]);
-
-    int i = 101;
-    Assert.assertEquals("101",
-        RpcSensitiveConfigMask.CREDENTIAL_FIELD_MASKER.maskAndToString(null, i)[0]);
-    String[] strings = RpcSensitiveConfigMask.CREDENTIAL_FIELD_MASKER
-        .maskAndToString(null, i, atest);
-    Assert.assertEquals("101", strings[0]);
-    Assert.assertEquals("atest", strings[1]);
-  }
-
-  @Test
-  public void maskAndToStringMountPOption() {
-    MountPOptions.Builder mmB = MountPOptions.newBuilder();
-    java.util.Map<java.lang.String, java.lang.String> prop = mmB.getMutableProperties();
-    prop.put("key1", "value1");
-    prop.put("aws.accessKeyId", "aws.accessKeyId");
-    MountPOptions mmp = mmB.build();
-    String [] masked = RpcSensitiveConfigMask.CREDENTIAL_FIELD_MASKER.maskAndToString(null, mmp);
-    Assert.assertEquals(false, masked[0].contains("mycredential"));
-    Assert.assertEquals(true, masked[0].contains("key1"));
-    Assert.assertEquals(true, masked[0].contains("Masked"));
-    Assert.assertEquals(true, masked[0].contains("aws.accessKeyId"));
-    Assert.assertEquals(true, masked[0].contains("value1"));
-  }
-
-  @Test
-  public void maskAndToStringNested() {
-    UfsInfo.Builder ub = UfsInfo.newBuilder();
-    ub.getPropertiesBuilder().getMutableProperties().put("key1", "value1");
-    ub.getPropertiesBuilder().getMutableProperties().put("aws.accessKeyId", "aws.accessKeyId");
-    UfsInfo ui = ub.build();
-
-    String[] masked = RpcSensitiveConfigMask.CREDENTIAL_FIELD_MASKER.maskAndToString(null, ui);
-    Assert.assertEquals(false, masked[0].contains("mycredential"));
-    Assert.assertEquals(true, masked[0].contains("key1"));
-    Assert.assertEquals(true, masked[0].contains("Masked"));
-    Assert.assertEquals(true, masked[0].contains("aws.accessKeyId"));
-    Assert.assertEquals(true, masked[0].contains("value1"));
-  }
-
-  @Test
-  public void maskAndToStringRPC() {
-    BlockHeartbeatPOptions.Builder hb = BlockHeartbeatPOptions.newBuilder();
-    BlockHeartbeatPOptions bp = hb.build();
-
-    String[] masked = RpcSensitiveConfigMask.CREDENTIAL_FIELD_MASKER.maskAndToString(null, bp);
-  }
-
   @Test
   public void maskObjectsAll() {
     {
