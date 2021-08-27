@@ -24,16 +24,15 @@ import alluxio.master.journal.checkpoint.CheckpointName;
 import alluxio.proto.journal.Journal;
 import alluxio.resource.CloseableIterator;
 import alluxio.table.common.udb.UdbContext;
+import alluxio.table.common.udb.UdbFilterSpec;
 import alluxio.table.common.udb.UdbTable;
 import alluxio.table.common.udb.UnderDatabase;
 import alluxio.util.CommonUtils;
-import alluxio.util.ConfigurationUtils;
 import alluxio.util.executor.ExecutorServiceFactories;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Iterators;
-import com.google.common.collect.Sets;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -71,9 +70,8 @@ public class Database implements Journaled {
   private final Map<String, Table> mTables;
   private final UnderDatabase mUdb;
   private final CatalogConfiguration mConfig;
-  private final Set<String> mIgnoreTables;
   private final String mConfigPath;
-  private DbConfig mDbConfig;
+  private UdbFilterSpec mFilterSpec;
   private final long mUdbSyncTimeoutMs =
       ServerConfiguration.getMs(PropertyKey.TABLE_CATALOG_UDB_SYNC_TIMEOUT);
 
@@ -87,10 +85,8 @@ public class Database implements Journaled {
     mTables = new ConcurrentHashMap<>();
     mUdb = udb;
     mConfig = config;
-    mIgnoreTables = Sets.newHashSet(
-        ConfigurationUtils.parseAsList(mConfig.get(CatalogProperty.DB_IGNORE_TABLES), ","));
     mConfigPath = mConfig.get(CatalogProperty.DB_CONFIG_FILE);
-    mDbConfig = DbConfig.empty();
+    mFilterSpec = UdbFilterSpec.empty();
   }
 
   /**
@@ -211,18 +207,9 @@ public class Database implements Journaled {
     // Synchronization is necessary if accessed concurrently from multiple threads
     SyncStatus.Builder builder = SyncStatus.newBuilder();
 
-    if (!mConfigPath.equals(CatalogProperty.DB_CONFIG_FILE.getDefaultValue())) {
-      if (!Files.exists(Paths.get(mConfigPath))) {
-        throw new FileNotFoundException(mConfigPath);
-      }
-      ObjectMapper mapper = new ObjectMapper();
-      try {
-        mDbConfig = mapper.readValue(new File(mConfigPath), DbConfig.class);
-      } catch (JsonProcessingException e) {
-        LOG.error("Failed to deserialize UDB config file {}, stays unsynced", mConfigPath, e);
-        throw e;
-      }
-    }
+    // sync the filter spec from config file
+    loadFilterSpec();
+
     DatabaseInfo newDbInfo = mUdb.getDatabaseInfo();
     if (!newDbInfo.equals(mDatabaseInfo)) {
       applyAndJournal(context, Journal.JournalEntry.newBuilder()
@@ -241,7 +228,7 @@ public class Database implements Journaled {
     List<Callable<Void>> tasks = new ArrayList<>(udbTableNames.size());
     final Database thisDb = this;
     for (String tableName : udbTableNames) {
-      if (mIgnoreTables.contains(tableName)) {
+      if (mFilterSpec.isIgnoredTable(tableName)) {
         // this table should be ignored.
         builder.addTablesIgnored(tableName);
         tablesSynced.incrementAndGet();
@@ -251,7 +238,7 @@ public class Database implements Journaled {
         // Save all exceptions
         try {
           Table previousTable = mTables.get(tableName);
-          UdbTable udbTable = mUdb.getTable(tableName, mDbConfig.getUdbBypassSpec());
+          UdbTable udbTable = mUdb.getTable(tableName, mFilterSpec);
           Table newTable = Table.create(thisDb, udbTable, previousTable);
 
           if (newTable != null) {
@@ -351,6 +338,41 @@ public class Database implements Journaled {
       }
     }
     return builder.build();
+  }
+
+  /**
+   * Loads filter spec from config file specified by {@link CatalogProperty#DB_CONFIG_FILE}.
+   * 1. When the user does not specify a config file, {@link UdbFilterSpec#empty()} is used;
+   * 2. When the user specifies a non-existent config file, {@link FileNotFoundException} is thrown;
+   * 3. When the file exists but is empty ({@code {@link File#length()} == 0}),
+   *    {@link UdbFilterSpec#empty()} is used;
+   * 4. Otherwise, the config file is parsed as {@link UdbFilterSpecJsonSource}. When the file
+   *    has invalid syntax or invalid configuration, {@link IOException} is thrown.
+   *
+   * @throws IOException when the file contains invalid syntax or configuration
+   * @throws FileNotFoundException when the config file does not exist
+   */
+  private void loadFilterSpec() throws IOException {
+    if (mConfigPath.equals(CatalogProperty.DB_CONFIG_FILE.getDefaultValue())) {
+      return;
+    }
+    if (!Files.exists(Paths.get(mConfigPath))) {
+      throw new FileNotFoundException(mConfigPath);
+    }
+    ObjectMapper mapper = new ObjectMapper();
+    File configFile = new File(mConfigPath);
+    if (configFile.length() == 0) {
+      mFilterSpec = UdbFilterSpec.empty();
+      return;
+    }
+    try {
+      mFilterSpec = mapper.readValue(configFile, UdbFilterSpecJsonSource.class).getUdbFilterSpec();
+    } catch (JsonProcessingException e) {
+      throw new IOException(
+          String.format("Failed to parse UDB config file %s, likely syntax error", mConfigPath), e);
+    } catch (IllegalArgumentException e) {
+      throw new IOException("Filter specification contains invalid configuration", e);
+    }
   }
 
   @Override

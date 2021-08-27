@@ -102,43 +102,218 @@ $ ${ALLUXIO_HOME}/bin/alluxio table attachdb --db alluxio_db hive \
     thrift://metastore_host:9083 default
 ```
 
+> **Note:** When databases are attached, all tables are synced from the configured UDB.
+If out-of-band updates occur to the database or table and the user wants query results to reflect
+the updates, the database must be synced. See [Syncing Databases](#syncing-databases) for more
+information.
+
 #### UDB Configuration File
 
 To specify a configuration file for the UDB, append an option `-o catalog.db.config.file` to
 `attachdb` command.
-Each time the configuration file is changed, you can use `alluxio table sync` to apply the changes.
+Each time the configuration file is changed, use `alluxio table sync` to apply the changes.
 
 The configuration file is in JSON format, and can contain these configurations:
 
-1. Tables and partitions bypassing specification:
+1. Bypassing tables and partitions:
 
-    You can specify some tables and partitions to be bypassed from Alluxio, so that they will not be
-    cached in Alluxio, instead clients will be directed to access them directly from the UDB. 
-    This can be helpful when some tables and partitions are large, and accommodating them in the cache
-    is undesirable. An example configuration is like the following:
+   You can specify some tables and partitions to be bypassed from Alluxio, so that data will not be
+   cached in the Alluxio file system, instead computing frameworks will be directed to access data directly from the UFS.
+   This can be helpful when some tables and partitions are large, and accommodating them in the cache
+   is undesirable. An example configuration is like the following:
 
-    ```json
-    {
-      "bypass": {
-        "tables": [
-          "table1",
-          {"table": "table2", "partitions": ["table2_part1", "table2_part2"]}
-        ]
-      }
-    }
-    ```
+   ```json
+   {
+     "bypass": {
+       "tables": {
+         "include": [
+           {"type": "name", "name": "table1"},
+           {"type": "regex", "regex": "table[23]"},
+           {
+             "type": "partition_spec",
+             "table": "table4", 
+             "partitions": {
+               "include": [
+                 {"type": "name", "name": "table4_part1"}, 
+                 {"type": "regex", "regex": "table4_part[23]"}
+               ]
+             }
+           }
+         ]
+       }
+     }
+   }
+   ```
 
-    You can specify which tables and partitions within these tables should be bypassed from Alluxio.
-    By specifying only the table name, all partitions of that table, if any, will be bypassed. 
-    Otherwise, you can specify specific partitions to bypass.
+   There are 2 ways to specify which tables and partitions within these tables should be 
+   bypassed from Alluxio.
     
-    In the example above, table 1 is fully bypassed. Partition 1 and 2 of table 2 are bypassed, 
-    and any other partitions, if any, are not.
+   1. Plain names: exact names of tables or partitions;
+   2. Regular expressions: patterns to capture a set of table or partition names. The patterns
+      are matched as a whole on the names, i.e., it is as if the patterns were enclosed in a pair 
+      of `^` and `$`.
 
-> **Note:** When databases are attached, all tables are synced from the configured UDB.
-If out-of-band updates occur to the database or table and the user wants query results to reflect
-the updates, the database must be synced. See [Syncing Databases](#syncing-databases) for more
-information. 
+   Additionally, for tables, you can specify only some partitions of a table to be bypassed, 
+   and the rest to be mounted normally. 
+   
+   If a table is specified by its exact name or captured by a pattern, all partitions of the table, 
+   if any, are bypassed. In other words, the table is "fully" bypassed.
+    
+   In the above example, table 1, 2, and 3 are fully bypassed.
+   Partition 1, 2, and 3 of table 4 are bypassed, and any other partitions, if any, are not.
+   
+2. Ignoring tables:
+
+   You can specify some tables to be ignored when attaching the database to Alluxio. Compared to 
+   bypassed tables, they are invisible to the Alluxio client, therefore cannot be accessed at all.
+   
+   The syntax for configuring ignored tables is similar to that of bypassing, except that 
+   ignoring only some partitions of a table is not supported.
+
+   ```json
+   {
+     "ignore": {
+       "tables": {
+         "include": [
+           {"type": "name", "name": "table1"},
+           {"type": "regex", "regex": "table[a-z]"}
+        ]
+       }
+     }
+   }
+   ```
+
+   > **Note:** ignoring takes precedence over bypassing. If the same table is configured to be 
+   > ignored and bypassed at the same time, it will be ignored.
+
+3. Excluding tables and partitions from bypassing or ignoring:
+
+   Sometimes it is useful to exclude some tables and partitions from the bypassed or ignored list.
+   To do so, use the exclusion mode in tables and partitions specifications:
+   
+   ```json
+   {
+     "bypass": {
+       "tables": {
+         "include": [
+           {
+             "type": "partition_spec",
+             "table": "partially_bypassed_table", 
+             "partitions": {
+               "exclude": [{"type": "name", "name": "normally_mounted_part"}]
+             }
+           }
+         ]
+       }
+     },
+     "ignore": {
+       "tables": {
+         "exclude": [
+           {"type": "name", "name": "partially_bypassed_table"},
+           {"type": "name", "name": "not_ignored_table1"},
+           {"type": "regex", "regex": "not_ignored_table[23]"}
+         ]
+       }
+     }
+   }
+   ```
+   
+   You can use names and regular expressions inside the exclusion list, just like in inclusion mode.
+   In exclusion mode, the excluded tables and partitions are mounted normally, but any other
+   tables of the parent database, or any other partitions of the parent table, are bypassed or 
+   ignored.
+   
+   In the above example,
+   partition `normally_mounted_part` of table `partially_bypassed_table` is excluded from
+   bypassing, meaning that the partition is mounted normally, and any other partitions of
+   `partially_bypassed_table` are bypassed. Likewise, all tables except for
+   `not_ignored_table1|2|3`, and `partially_bypassed_table` are ignored.
+
+   The bypass entry and ignore entry can each have different modes.
+   For each entry, you can use either inclusion or exclusion mode, but not both.
+   
+   > **Note**: to exclude a partition from a table, specify the table in inclusion 
+   > mode, and specify the partition inside the exclusion list of the table's partition 
+   > specification. See the `partially_bypassed_table` in the above example.
+   > The following is an error example that tries to specify partitions for an excluded table:
+   >
+   > ```json
+   > {
+   >   "tables": {
+   >     "exclude": [
+   >        {
+   >          "type": "partition_spec", 
+   >          "table": "table1", 
+   >          "partitions": {
+   >            "include": [ {"type": "name", "name": "part1"} ]
+   >          }
+   >        }
+   >      ]
+   >    }
+   > }
+   > ```
+   
+   > **Note:** when exclusion mode is used for ignoring, make sure to add any bypassed tables 
+   > to the exclusion list. Otherwise, the bypassing configuration is overridden and has no effect. 
+   > See the `partially_bypassed_table` in the previous example.
+   
+   > **Note:** an empty exclusion list **does not** cause all tables or partitions to be 
+   > bypassed or ignored. Instead, it has no effect: no tables or partitions will be bypassed or 
+   > ignored. To bypass or ignore all tables or partitions, use an inclusion list with the 
+   > catch-all regular expression: `.*`.
+   
+Examples for common use cases:
+
+1. Bypassing all tables of a database:
+
+   ```json
+   {
+     "bypass": {
+       "tables": {
+         "include": [
+           {"type":"regex", "regex": ".*"}
+         ]
+       }
+     }
+   }
+   ```
+
+2. Bypassing all tables except for a specific one `not_bypassed_table`:
+
+   ```json
+   {
+     "bypass": {
+       "tables": {
+         "exclude": [
+           {"type": "name", "name": "not_bypassed_table"} 
+         ]
+       }
+     }
+   }
+   ```
+   
+3. Bypassing all partitions of some tables, and some partitions of some other table:
+
+   ```json
+   {
+     "bypass": {
+       "tables": {
+         "include": [
+           {"type":"regex", "regex": "fully_bypassed_table\\d"},
+           {
+             "type": "partition_spec",
+             "table": "partially_bypassed_table1", 
+             "partitions": {
+               "include": [
+                 {"type": "regex", "regex": "bypassed_part_[a-z]"}
+               ]
+             }
+           }
+         ]
+       }
+     }
+   }
+   ```
 
 ### Exploring Attached Databases
 
