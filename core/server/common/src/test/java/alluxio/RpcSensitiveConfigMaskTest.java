@@ -14,7 +14,6 @@ package alluxio;
 import alluxio.grpc.MountPOptions;
 import alluxio.grpc.MountPRequest;
 import alluxio.grpc.UfsInfo;
-import alluxio.grpc.BlockHeartbeatPOptions;
 import alluxio.grpc.GetUfsInfoPResponse;
 import alluxio.grpc.UpdateMountPRequest;
 

@@ -19,13 +19,9 @@ import alluxio.grpc.UfsInfo;
 import alluxio.grpc.GetUfsInfoPResponse;
 import alluxio.grpc.UpdateMountPRequest;
 
-import com.google.protobuf.GeneratedMessageV3;
-import com.google.protobuf.MapField;
 import org.slf4j.Logger;
 
-import java.lang.reflect.Field;
 import java.util.Map.Entry;
-import java.lang.reflect.Modifier;
 import java.util.Map;
 
 /**
