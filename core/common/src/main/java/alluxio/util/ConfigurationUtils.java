@@ -79,6 +79,7 @@ public final class ConfigurationUtils {
   private static final Object DEFAULT_PROPERTIES_LOCK = new Object();
   private static final String MASTERS = "masters";
   private static final String WORKERS = "workers";
+  private static final String EXCLUDE_WORKERS = "exclude_workers";
 
   private ConfigurationUtils() {} // prevent instantiation
 
@@ -666,6 +667,16 @@ public final class ConfigurationUtils {
    */
   public static Set<String> getWorkerHostnames(AlluxioConfiguration conf) {
     return readNodeList(WORKERS, conf);
+  }
+
+  /**
+   * Gets list of exclude workers in conf directory.
+   *
+   * @param conf configuration
+   * @return exclude workers hostnames
+   */
+  public static Set<String> getExWorkerHostnames(AlluxioConfiguration conf) {
+    return readNodeList(EXCLUDE_WORKERS, conf);
   }
 
   /**

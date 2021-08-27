@@ -98,4 +98,11 @@ public interface BlockMasterClient extends Client {
    * @return amount of used space in bytes
    */
   long getUsedBytes() throws IOException;
+
+  /**
+   * Start worker decommission process.
+   * @param excludedWorkerSet workers that we want to decommission
+   * @return true if worker decommission success, otherwise false
+   */
+  boolean startDecommission(final Set<String> excludedWorkerSet) throws IOException;
 }

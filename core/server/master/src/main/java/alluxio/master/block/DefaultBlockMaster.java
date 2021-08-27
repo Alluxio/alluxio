@@ -554,6 +554,21 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
     return workerInfoList;
   }
 
+  @Override
+  public boolean startDecommission(Set<String> excludedWorkerSet) {
+    // TODO(bingbzheng): handle block gracefully and so on.
+    for (MasterWorkerInfo worker : mWorkers) {
+      try (LockResource r = worker.lockWorkerMeta(
+          EnumSet.of(WorkerMetaLockSection.BLOCKS), false)) {
+        String workerHost = worker.getWorkerAddress().getHost();
+        if (excludedWorkerSet.contains(workerHost)) {
+          processLostWorker(worker);
+        }
+      }
+    }
+    return true;
+  }
+
   /**
    * Locks the {@link MasterWorkerInfo} properly and convert it to a {@link WorkerInfo}.
    */

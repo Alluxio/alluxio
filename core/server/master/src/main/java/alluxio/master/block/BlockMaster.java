@@ -95,6 +95,14 @@ public interface BlockMaster extends Master, ContainerIdGenerable {
       throws UnavailableException, InvalidArgumentException;
 
   /**
+   * Start worker decommission.
+   *
+   * @param excludedWrokerSet the GetWorkerReportOptions defines the info range
+   * @return true if succeed, otherwise false
+   */
+  boolean startDecommission(Set<String> excludedWrokerSet) throws UnavailableException;
+
+  /**
    * @return a list of worker lost storage information
    */
   List<WorkerLostStorageInfo> getWorkerLostStorage();

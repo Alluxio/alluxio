@@ -22,6 +22,7 @@ import alluxio.grpc.GetUsedBytesPOptions;
 import alluxio.grpc.GetWorkerInfoListPOptions;
 import alluxio.grpc.GetWorkerLostStoragePOptions;
 import alluxio.grpc.ServiceType;
+import alluxio.grpc.StartDecommissionPOptions;
 import alluxio.grpc.WorkerLostStorageInfo;
 import alluxio.master.MasterClientContext;
 import alluxio.grpc.GrpcUtils;
@@ -159,5 +160,17 @@ public final class RetryHandlingBlockMasterClient extends AbstractMasterClient
     return retryRPC(
         () -> mClient.getUsedBytes(GetUsedBytesPOptions.getDefaultInstance()).getBytes(),
         RPC_LOG, "GetUsedBytes", "");
+  }
+
+  /**
+   * Start worker decommission process.
+   * @param excludedWorkerSet workers that we want to decommission
+   * @return true if worker decommission success, otherwise false
+   */
+  public boolean startDecommission(final Set<String> excludedWorkerSet) throws IOException {
+    return retryRPC(
+        () -> mClient.startDecommission(StartDecommissionPOptions.newBuilder()
+            .addAllExcludeWorkers(excludedWorkerSet).build()).getSucceed(),
+        RPC_LOG, "StartDecommission", "");
   }
 }

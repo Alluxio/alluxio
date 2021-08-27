@@ -109,6 +109,13 @@ message GetWorkerLostStoragePResponse {
   repeated WorkerLostStorageInfo workerLostStorageInfo = 1;
 }
 
+message StartDecommissionPOptions {
+  repeated string excludeWorkers = 1;
+}
+message StartDecommissionPResponse {
+  optional bool succeed = 1;
+}
+
 /**
  * This interface contains block master service endpoints for Alluxio clients.
  */
@@ -145,9 +152,14 @@ service BlockMasterClientService {
   rpc GetWorkerReport(GetWorkerReportPOptions) returns (GetWorkerInfoListPResponse);
 
   /**
-   * Returns a list of worker lost storage information
+   * Returns a list of worker lost storage information.
    */
   rpc GetWorkerLostStorage(GetWorkerLostStoragePOptions) returns (GetWorkerLostStoragePResponse);
+
+  /**
+  * Start the worker decommission process.
+  */
+  rpc StartDecommission(StartDecommissionPOptions) returns (StartDecommissionPResponse);
 }
 
 message TierList {

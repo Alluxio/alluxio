@@ -31,6 +31,8 @@ import alluxio.grpc.GetWorkerLostStoragePOptions;
 import alluxio.grpc.GetWorkerLostStoragePResponse;
 import alluxio.grpc.GetWorkerReportPOptions;
 import alluxio.grpc.GrpcUtils;
+import alluxio.grpc.StartDecommissionPOptions;
+import alluxio.grpc.StartDecommissionPResponse;
 
 import com.google.common.base.Preconditions;
 import io.grpc.stub.StreamObserver;
@@ -38,6 +40,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -152,5 +155,16 @@ public final class BlockMasterClientServiceHandler
         () -> GetWorkerLostStoragePResponse.newBuilder()
             .addAllWorkerLostStorageInfo(mBlockMaster.getWorkerLostStorage()).build(),
         "GetWorkerLostStorage", "options=%s", responseObserver, options);
+  }
+
+  @Override
+  public void startDecommission(StartDecommissionPOptions options,
+      StreamObserver<StartDecommissionPResponse> responseObserver) {
+    Set<String> excludedWorkerSet = options.getExcludeWorkersList()
+        .stream().collect(Collectors.toSet());
+    RpcUtils.call(LOG,
+        () -> StartDecommissionPResponse.newBuilder()
+            .setSucceed(mBlockMaster.startDecommission(excludedWorkerSet)).build(),
+        "startDecommission", "options=%s", responseObserver, options);
   }
 }
