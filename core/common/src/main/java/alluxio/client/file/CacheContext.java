@@ -162,9 +162,9 @@ public class CacheContext {
   public String toString() {
     return MoreObjects.toStringHelper(this)
         .add("cacheIdentifier", mCacheIdentifier)
-        .add("cacheHiveContext", mHiveCacheContext)
         .add("cacheQuota", mCacheQuota)
         .add("cacheScope", mCacheScope)
+        .add("hiveCacheContext", mHiveCacheContext)
         .toString();
   }
 }
