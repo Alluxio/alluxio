@@ -43,10 +43,9 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public class LocalCacheFileInStream extends FileInStream {
-
   private static final Logger LOG = LoggerFactory.getLogger(LocalCacheFileInStream.class);
 
-  /** Page size in bytes.*/
+  /** Page size in bytes. */
   protected final long mPageSize;
 
   private final Closer mCloser = Closer.create();
@@ -201,7 +200,7 @@ public class LocalCacheFileInStream extends FileInStream {
     }
     if (totalBytesRead > len || (totalBytesRead < len && currentPosition < mStatus.getLength())) {
       throw new IOException(String.format("Invalid number of bytes read - "
-              + "bytes to read = %d, actual bytes read = %d, bytes remains in file %d",
+          + "bytes to read = %d, actual bytes read = %d, bytes remains in file %d",
           len, totalBytesRead, remaining()));
     }
     return totalBytesRead;
