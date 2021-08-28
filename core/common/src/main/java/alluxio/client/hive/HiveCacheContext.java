@@ -81,8 +81,8 @@ public class HiveCacheContext {
   public String toString() {
     return MoreObjects.toStringHelper(this)
         .add("database", mDatabase)
+        .add("partition", mPartition)
         .add("table", mTable)
-        .add("Partition", mPartition)
         .toString();
   }
 }
