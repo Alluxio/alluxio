@@ -11,13 +11,13 @@
 
 package alluxio.client.metrics;
 
+import static org.junit.Assert.assertEquals;
+
 import alluxio.client.quota.CacheScope;
 
 import com.google.common.collect.ImmutableSet;
 import org.junit.Before;
 import org.junit.Test;
-
-import static org.junit.Assert.assertEquals;
 
 public class SegmentedScopedMetricsTest {
   public static final int NUM_OF_SEGMENTS = 4;
