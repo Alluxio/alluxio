@@ -75,7 +75,11 @@ public class UfsJournalSystem extends AbstractJournalSystem {
     MetricsSystem.registerGaugeIfAbsent(
         MetricKey.MASTER_UFS_JOURNAL_INITIAL_REPLAY_TIME_MS.getName(),
         () -> mInitialCatchupTimeMs);
-    super.registerMetrics();
+    try {
+      super.registerMetrics();
+    } catch (RuntimeException e){
+      return;
+    }
   }
 
   @Override
