@@ -93,7 +93,8 @@ ENV JAVA_HOME /usr/lib/jvm/java-1.8.0-openjdk
 RUN echo "networkaddress.cache.ttl=0" >> ${JAVA_HOME}/jre/lib/security/java.security
 
 RUN \
-    yum install -y vim-enhanced net-tools telnet telnet-server openssh-server
+    yum install -y vim-enhanced net-tools telnet telnet-server openssh-server && \
+    yum clean all
 
 # add the following for native libraries needed by rocksdb
 ENV LD_LIBRARY_PATH /lib64:${LD_LIBRARY_PATH}
