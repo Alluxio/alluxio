@@ -77,7 +77,7 @@ public class UfsJournalSystem extends AbstractJournalSystem {
         () -> mInitialCatchupTimeMs);
     try {
       super.registerMetrics();
-    } catch (RuntimeException e){
+    } catch (RuntimeException e) {
       return;
     }
   }

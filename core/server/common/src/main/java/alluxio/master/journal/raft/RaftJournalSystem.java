@@ -237,7 +237,7 @@ public class RaftJournalSystem extends AbstractJournalSystem {
     mAsyncJournalWriter = new AtomicReference<>();
     try {
       super.registerMetrics();
-    } catch (RuntimeException e){
+    } catch (RuntimeException e) {
       return;
     }
   }
