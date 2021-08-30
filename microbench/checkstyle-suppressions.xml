@@ -1,0 +1,24 @@
+<!--
+
+    The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
+    (the "License"). You may not use this work except in compliance with the License, which is
+    available at www.apache.org/licenses/LICENSE-2.0
+
+    This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+    either express or implied, as more fully set forth in the License.
+
+    See the NOTICE file distributed with this work for information regarding copyright ownership.
+
+-->
+<!DOCTYPE suppressions PUBLIC "-//Puppy Crawl//DTD Suppressions 1.1//EN"
+        "http://www.puppycrawl.com/dtds/suppressions_1_1.dtd">
+<suppressions>
+    <suppress files="[/\\]target[/\\]" checks=".*" />
+    <!-- Suppresses files in the src/test folder. To be used for rules which only apply to
+         production code. -->
+    <suppress files="[\\/]src[\\/]test[\\/].*|[\\/]generated-test-sources[\\/].*"
+              id="ProductionScope" />
+    <!-- Suppresses files in the src/main folder. To be used for rules which only apply to test
+         code. -->
+    <suppress files="[\\/]src[\\/]main[\\/].*|[\\/]generated-sources[\\/].*" id="TestScope" />
+</suppressions>

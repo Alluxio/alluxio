@@ -1,14 +1,15 @@
 <!--
-  ~ The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
-  ~ (the "License"). You may not use this work except in compliance with the License, which is
-  ~ available at www.apache.org/licenses/LICENSE-2.0
-  ~
-  ~ This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
-  ~ either express or implied, as more fully set forth in the License.
-  ~
-  ~ See the NOTICE file distributed with this work for information regarding copyright ownership.
-  -->
 
+    The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
+    (the "License"). You may not use this work except in compliance with the License, which is
+    available at www.apache.org/licenses/LICENSE-2.0
+
+    This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+    either express or implied, as more fully set forth in the License.
+
+    See the NOTICE file distributed with this work for information regarding copyright ownership.
+
+-->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
@@ -20,11 +21,6 @@
     <artifactId>alluxio-microbench</artifactId>
     <name>Alluxio Microbenchmarks</name>
     <packaging>jar</packaging>
-
-    <!--
-       This is the demo/sample template build script for building Java benchmarks with JMH.
-       Edit as needed.
-    -->
 
     <dependencies>
         <!-- internal dependencies -->
@@ -48,17 +44,9 @@
     </dependencies>
 
     <properties>
+        <build.path>${project.parent.basedir}/build</build.path>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-
-        <!--
-            JMH version to use with this project.
-          -->
         <jmh.version>1.33</jmh.version>
-
-        <!--
-            Java source/target to use for compilation.
-          -->
-        <javac.target>1.8</javac.target>
 
         <!--
             Name of the benchmark Uber-JAR to generate.
@@ -70,12 +58,10 @@
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.8.0</version>
+                <artifactId>maven-checkstyle-plugin</artifactId>
                 <configuration>
-                    <compilerVersion>${javac.target}</compilerVersion>
-                    <source>${javac.target}</source>
-                    <target>${javac.target}</target>
+                    <suppressionsLocation>checkstyle-suppressions.xml</suppressionsLocation>
+                    <suppressionsFileExpression>checkstyle.suppressions.file</suppressionsFileExpression>
                 </configuration>
             </plugin>
             <plugin>
@@ -115,46 +101,5 @@
                 </executions>
             </plugin>
         </plugins>
-        <pluginManagement>
-            <plugins>
-                <plugin>
-                    <artifactId>maven-clean-plugin</artifactId>
-                    <version>2.5</version>
-                </plugin>
-                <plugin>
-                    <artifactId>maven-deploy-plugin</artifactId>
-                    <version>2.8.1</version>
-                </plugin>
-                <plugin>
-                    <artifactId>maven-install-plugin</artifactId>
-                    <version>2.5.1</version>
-                </plugin>
-                <plugin>
-                    <artifactId>maven-jar-plugin</artifactId>
-                    <version>2.4</version>
-                </plugin>
-                <plugin>
-                    <artifactId>maven-javadoc-plugin</artifactId>
-                    <version>2.9.1</version>
-                </plugin>
-                <plugin>
-                    <artifactId>maven-resources-plugin</artifactId>
-                    <version>2.6</version>
-                </plugin>
-                <plugin>
-                    <artifactId>maven-site-plugin</artifactId>
-                    <version>3.3</version>
-                </plugin>
-                <plugin>
-                    <artifactId>maven-source-plugin</artifactId>
-                    <version>2.2.1</version>
-                </plugin>
-                <plugin>
-                    <artifactId>maven-surefire-plugin</artifactId>
-                    <version>2.17</version>
-                </plugin>
-            </plugins>
-        </pluginManagement>
     </build>
-
 </project>
