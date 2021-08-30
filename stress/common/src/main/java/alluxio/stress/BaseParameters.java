@@ -34,6 +34,7 @@ public final class BaseParameters {
   public static final long UNDEFINED_START_MS = -1;
   public static final String AGENT_OUTPUT_PATH = "/tmp/stress_client.log";
   public static final String DEFAULT_TASK_ID = "local-task-0";
+  public static final String START_DELAY_MS = "--start-delay";
 
   // Public flags
   @Parameter(names = {CLUSTER_FLAG},
@@ -86,4 +87,8 @@ public final class BaseParameters {
 
   @Parameter(names = {"-h", HELP_FLAG}, help = true)
   public boolean mHelp = false;
+
+  @Parameter(names = {START_DELAY_MS},
+          description = "The start delay for the distributed tasks, in ms.")
+  public long mStartDelay = 10000;
 }
