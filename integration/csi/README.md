@@ -4,14 +4,14 @@ This module implement container storage interface(https://github.com/container-s
 
 ## Requirements
 
-Kubernetes 1.14 or higher, RBAC enbaled in API server(https://kubernetes.io/docs/reference/access-authn-authz/rbac/).
+Kubernetes 1.14 or higher, RBAC enabled in API server(https://kubernetes.io/docs/reference/access-authn-authz/rbac/).
 
 ## Usage
 
 
 ### Build docker image
 
-Please run `docker build . -t alluxio/alluxio-csi:<version_tag>` to bulid CSI docker image. Alluxio doesn't provide official CSI docker image currently.
+Please run `docker build . -t alluxio/alluxio-csi:<version_tag>` to build CSI docker image. Alluxio doesn't provide official CSI docker image currently.
 You need to build the image by yourself.
 
 ### Deploy
@@ -23,13 +23,13 @@ You need to deploy `alluxio-csi-controller`, `alluxio-csi-nodeplugin`, `alluxio-
 We provide two types of provisioning methods. For static provisioning, you need to create `PersistentVolume` and `PersistentVolumeClaim` first.
 For dynamic provisioning, you need to create `StorageClass` and  `PersistentVolumeClaim`.
 
-All these examples will be gernerated after running `helm-generate.sh`.
+All these examples will be generated after running `helm-generate.sh`.
 
 ### Configuration
 
-You can customize alluxio volumes via serveral configurations.
+You can customize alluxio volumes via several configurations.
 
-The options you can customized:
+The options you can customize:
 | Options | Description |
 | --- | --- |
 | `alluxioPath` | The path in alluxio |

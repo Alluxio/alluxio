@@ -24,28 +24,22 @@ import (
 	"strings"
 )
 
-const (
-	// The version of the hadoop client that the Alluxio client will be built for
-	defaultHadoopClient = "hadoop-3.3"
-)
-
 var (
-	hadoopDistributionFlag = defaultHadoopClient
-	targetFlag             string
-	mvnArgsFlag            string
-	skipUIFlag             bool
-	skipHelmFlag           bool
+	customUfsModuleFlag string
+	skipUIFlag          bool
+	skipHelmFlag        bool
 )
 
 func Single(args []string) error {
 	singleCmd := flag.NewFlagSet("single", flag.ExitOnError)
 	// flags
-	singleCmd.StringVar(&hadoopDistributionFlag, "hadoop-distribution", defaultHadoopClient, "the hadoop distribution to build this Alluxio distribution tarball")
+	generateFlags(singleCmd)
+	singleCmd.StringVar(&customUfsModuleFlag, "custom-ufs-module", "",
+		"a percent-separated list of custom ufs modules which has the form of a pipe-separated pair of the module name and its comma-separated maven arguments."+
+			" e.g. hadoop-a.b|-pl,underfs/hdfs,-Pufs-hadoop-A,-Dufs.hadoop.version=a.b.c%hadoop-x.y|-pl,underfs/hdfs,-Pufs-hadoop-X,-Dufs.hadoop.version=x.y.z")
 	singleCmd.BoolVar(&skipUIFlag, "skip-ui", false, fmt.Sprintf("set this flag to skip building the webui. This will speed up the build times "+
 		"but the generated tarball will have no Alluxio WebUI although REST services will still be available."))
 	singleCmd.BoolVar(&skipHelmFlag, "skip-helm", true, fmt.Sprintf("set this flag to skip using Helm to generate YAML templates for K8s deployment scenarios"))
-	generateFlags(singleCmd)
-	additionalFlags(singleCmd)
 	singleCmd.Parse(args[2:]) // error handling by flag.ExitOnError
 
 	if customUfsModuleFlag != "" {
@@ -61,20 +55,8 @@ func Single(args []string) error {
 			}
 		}
 	}
-	if err := updateRootFlags(); err != nil {
+	if err := handleUfsModulesAndLibJars(); err != nil {
 		return err
-	}
-	if err := checkRootFlags(); err != nil {
-		return err
-	}
-	if includedLibJarsFlag != "all" {
-		uncheckedJars := strings.Split(includedLibJarsFlag, ",")
-		for _, jar := range uncheckedJars {
-			_, ok := libJars[jar]
-			if !ok {
-				return fmt.Errorf("lib jar %v not recognized", jar)
-			}
-		}
 	}
 	if debugFlag {
 		fmt.Fprintf(os.Stdout, "hadoopDistributionFlag=: %s\n", hadoopDistributionFlag)
@@ -88,18 +70,10 @@ func Single(args []string) error {
 			fmt.Fprintf(os.Stdout, "ufsModule=: %s\n", ufsModule)
 		}
 	}
-	if err := generateTarball([]string{}, skipUIFlag, skipHelmFlag); err != nil {
+	if err := generateTarball(skipUIFlag, skipHelmFlag); err != nil {
 		return err
 	}
 	return nil
-}
-
-// flags used by single and release to generate tarball
-func generateFlags(cmd *flag.FlagSet) {
-	cmd.StringVar(&mvnArgsFlag, "mvn-args", "", `a comma-separated list of additional Maven arguments to build with, e.g. -mvn-args "-Pspark,-Dhadoop.version=2.2.0"`)
-	cmd.StringVar(&targetFlag, "target", fmt.Sprintf("alluxio-%v-bin.tar.gz", versionMarker),
-		fmt.Sprintf("an optional target name for the generated tarball. The default is alluxio-%v.tar.gz. The string %q will be substituted with the built version. "+
-			`Note that trailing ".tar.gz" will be stripped to determine the name for the Root directory of the generated tarball`, versionMarker, versionMarker))
 }
 
 func replace(path, old, new string) {
@@ -233,14 +207,8 @@ func addAdditionalFiles(srcPath, dstPath string, hadoopVersion version, version 
 		"LICENSE",
 	}
 
-	if includedLibJarsFlag == "all" {
-		for jar := range libJars {
-			pathsToCopy = append(pathsToCopy, fmt.Sprintf("lib/alluxio-%v-%v.jar", jar, version))
-		}
-	} else {
-		for _, jar := range strings.Split(includedLibJarsFlag, ",") {
-			pathsToCopy = append(pathsToCopy, fmt.Sprintf("lib/alluxio-%v-%v.jar", jar, version))
-		}
+	for _, jar := range strings.Split(includedLibJarsFlag, ",") {
+		pathsToCopy = append(pathsToCopy, fmt.Sprintf("lib/alluxio-%v-%v.jar", jar, version))
 	}
 
 	if includeYarnIntegration(hadoopVersion) {
@@ -266,7 +234,7 @@ func addAdditionalFiles(srcPath, dstPath string, hadoopVersion version, version 
 	addModules(srcPath, dstPath, "underfs", ufsModulesFlag, version, ufsModules)
 }
 
-func generateTarball(hadoopClients []string, skipUI bool, skipHelm bool) error {
+func generateTarball(skipUI, skipHelm bool) error {
 	hadoopVersion, ok := hadoopDistributions[hadoopDistributionFlag]
 	if !ok {
 		hadoopVersion = parseVersion(hadoopDistributionFlag)

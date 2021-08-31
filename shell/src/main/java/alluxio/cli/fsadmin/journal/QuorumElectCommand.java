@@ -37,8 +37,10 @@ public class QuorumElectCommand extends AbstractFsAdminCommand {
 
   public static final String ADDRESS_OPTION_NAME = "address";
 
-  public static final String OUTPUT_SUCCESS = "Transferred leadership to server: %s";
-  public static final String OUTPUT_FAIL = "Leadership was not transferred to %s.";
+  public static final String TRANSFER_SUCCESS = "Transferred leadership to server: %s";
+  public static final String TRANSFER_FAILED = "Leadership was not transferred to %s: %s";
+  public static final String RESET_SUCCESS = "Quorum priorities were reset to 1";
+  public static final String RESET_FAILED = "Quorum priorities failed to be reset: %s";
 
   private final AlluxioConfiguration mConf;
 
@@ -69,6 +71,7 @@ public class QuorumElectCommand extends AbstractFsAdminCommand {
 
     MasterInquireClient inquireClient = MasterInquireClient.Factory
             .create(mConf, FileSystemContext.create(mConf).getClientContext().getUserState());
+    boolean success = true;
     // wait for confirmation of leadership transfer
     try {
       CommonUtils.waitFor("Waiting for leadership transfer to finalize", () -> {
@@ -80,13 +83,22 @@ public class QuorumElectCommand extends AbstractFsAdminCommand {
         }
         return leaderAddress.getHostName().equals(address.getHost());
       });
+      mPrintStream.println(String.format(TRANSFER_SUCCESS, serverAddress));
     } catch (Exception e) {
-      mPrintStream.println(String.format(OUTPUT_FAIL, serverAddress));
-      return 0;
+      success = false;
+      mPrintStream.println(String.format(TRANSFER_FAILED, serverAddress, e));
     }
-
-    mPrintStream.println(String.format(OUTPUT_SUCCESS, serverAddress));
-    return 0;
+    // Resetting RaftPeer priorities using a separate RPC because the old leader has shut down
+    // its RPC server. We want to reset them regardless of transfer success because the original
+    // setting of priorities may have succeeded while the transfer might not have.
+    try {
+      jmClient.resetPriorities();
+      mPrintStream.println(RESET_SUCCESS);
+    } catch (Exception e) {
+      success = false;
+      mPrintStream.println(String.format(RESET_FAILED, e));
+    }
+    return success ? 0 : -1;
   }
 
   @Override
@@ -99,12 +111,12 @@ public class QuorumElectCommand extends AbstractFsAdminCommand {
 
   @Override
   public String getCommandName() {
-    return "transferLeader";
+    return "elect";
   }
 
   @Override
   public String getUsage() {
-    return String.format("%s -%s <HostName:Port>", getCommandName(), ADDRESS_OPTION_NAME);
+    return String.format("%s -%s <HOSTNAME:PORT>", getCommandName(), ADDRESS_OPTION_NAME);
   }
 
   @Override

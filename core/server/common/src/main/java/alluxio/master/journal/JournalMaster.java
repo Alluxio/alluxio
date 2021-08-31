@@ -46,4 +46,11 @@ public interface JournalMaster {
    * @throws IOException if error occurs while performing the operation
    */
   void transferLeadership(NetAddress newLeaderAddress) throws IOException;
+
+  /**
+   * Resets RaftPeer priorities.
+   *
+   * @throws IOException if error occurs while performing the operation
+   */
+  void resetPriorities() throws IOException;
 }

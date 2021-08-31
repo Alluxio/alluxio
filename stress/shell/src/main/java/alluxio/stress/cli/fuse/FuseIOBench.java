@@ -24,10 +24,12 @@ import alluxio.util.FormatUtils;
 import alluxio.util.executor.ExecutorServiceFactories;
 
 import com.beust.jcommander.ParametersDelegate;
+import com.google.common.collect.ImmutableList;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -70,19 +72,34 @@ public class FuseIOBench extends Benchmark<FuseIOTaskResult> {
 
   @Override
   public String getBenchDescription() {
-    return "This stress bench is designed for testing the reading throughput of Fuse-based "
-        + "POSIX API. To write data, run `bin/alluxio runClass alluxio.stress.cli.fuse."
-        + "fuseIOBench --operation Write`. To read data, run `bin/alluxio runClass "
-        + "alluxio.stress.cli.fuse.fuseIOBench --operation Read`. You can further adjust "
-        + "the parameters specified below. Note that the \"--operation\" is required, the "
-        + "\"--local-path\" can be a local filesystem path or a mounted fuse path, and test files "
-        + "need to be written first before reading.\nFor example, run `bin/alluxio runClass "
-        + "alluxio.stress.cli.fuse.fuseIOBench --operation Write --local-path /mnt/alluxio-fuse"
-        + "/FuseIOTest --num-files 100 --file-size 100m --threads 32` to write the test files "
-        + "first, then run `bin/alluxio runClass alluxio.stress.cli.fuse.fuseIOBench "
-        + "--operation Read --local-path /mnt/alluxio-fuse/FuseIOTest --num-files 100 "
-        + "--file-size 100m --threads 16 --warmup 15s --duration 30s` to test the reading "
-        + "throughput.\n";
+    return String.join("\n", ImmutableList.of(
+        "A stress bench for testing the reading throughput of Fuse-based POSIX API.",
+        "To run the test, data must be written first by executing \"Write\" operation, then "
+            + "run \"Read\" operation to test the reading throughput. Optionally one can set "
+            + "alluxio.user.metadata.cache.enabled=true when mounting Alluxio Fuse and run "
+            + "\"ListFile\" before \"Read\" to cache the metadata of the test files and eliminate "
+            + "the effect of metadata operations while getting the reading throughput data.",
+        "Note that \"--operation\" is required, and \"--local-path\" can be a local filesystem "
+            + "path or a mounted Fuse path.",
+        "",
+        "Example:",
+        "# The test data will be written to /mnt/alluxio-fuse/FuseIOTest",
+        "# Files will be evenly distributed into 32 directories, each contains 10 files of "
+            + "size 100 MB",
+        "# Metadata of the test files will be cached",
+        "# 32 threads will be used for writing the data, and 16 threads will be used for "
+            + "testing the reading throughput",
+        "# 5 seconds of warmup time and 30 seconds of actual reading test time",
+        "$ bin/alluxio runClass alluxio.stress.cli.fuse.fuseIOBench --operation Write \\",
+        "--local-path /mnt/alluxio-fuse/FuseIOTest --num-dirs 32 --num-files-per-dir 10 \\",
+        "--file-size 100m --threads 32",
+        "$ bin/alluxio runClass alluxio.stress.cli.fuse.fuseIOBench --operation ListFile \\",
+        "--local-path /mnt/alluxio-fuse/FuseIOTest",
+        "$ bin/alluxio runClass alluxio.stress.cli.fuse.fuseIOBench --operation Read \\",
+        "--local-path /mnt/alluxio-fuse/FuseIOTest --num-dirs 32 --num-files-per-dir 10 \\",
+        "--file-size 100m --threads 16 --warmup 5s --duration 30s",
+        ""
+    ));
   }
 
   @Override
@@ -93,17 +110,12 @@ public class FuseIOBench extends Benchmark<FuseIOTaskResult> {
               + "be at least the number of threads, preferably a multiple of it."
       ));
     }
-    if (mParameters.mReadRandom) {
-      LOG.warn("Random read is not supported for now. Read sequentially");
-      // TODO(Shawn): support random read
-      mParameters.mReadRandom = false;
-    }
     if (mParameters.mOperation == FuseIOOperation.WRITE) {
       LOG.warn("Cannot write repeatedly, so warmup is not possible. Setting warmup to 0s.");
       mParameters.mWarmup = "0s";
-    }
-    for (int i = 0; i < mParameters.mNumDirs; i++) {
-      Files.createDirectories(Paths.get(mParameters.mLocalPath + "/" + i));
+      for (int i = 0; i < mParameters.mNumDirs; i++) {
+        Files.createDirectories(Paths.get(mParameters.mLocalPath + "/" + i));
+      }
     }
   }
 
@@ -307,6 +319,15 @@ public class FuseIOBench extends Benchmark<FuseIOTaskResult> {
       CommonUtils.sleepMs(waitMs);
       mStartBarrierPassed = true;
 
+      if (mParameters.mOperation == FuseIOOperation.LIST_FILE) {
+        for (int dirId = mThreadId; dirId < mParameters.mNumDirs; dirId += mParameters.mThreads) {
+          String dirPath = String.format("%s/%d", mParameters.mLocalPath, dirId);
+          File dir = new File(dirPath);
+          dir.listFiles();
+        }
+        return;
+      }
+
       for (int dirId = mThreadId; dirId < mParameters.mNumDirs; dirId += mParameters.mThreads) {
         for (int fileId = 0; fileId < mParameters.mNumFilesPerDir; fileId++) {
           mCurrentOffset = 0;
@@ -331,7 +352,7 @@ public class FuseIOBench extends Benchmark<FuseIOTaskResult> {
       }
       // Done reading all files
       if (isRead) {
-        throw new IllegalArgumentException(String.format("Thread %d finishes reading all its files"
+        throw new IllegalArgumentException(String.format("Thread %d finishes reading all its files "
             + "before the bench ends. For more accurate result, use more files, or larger files, "
             + "or a shorter duration", mThreadId));
       }

@@ -348,15 +348,25 @@ public final class MetricKey implements Comparable<MetricKey> {
               + "Use this metric to monitor whether your journal is running out of disk space.")
           .setMetricType(MetricType.GAUGE)
           .build();
+  public static final MetricKey MASTER_LOST_FILE_COUNT =
+      new Builder("Master.LostFileCount")
+          .setDescription("Count of lost files")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey MASTER_LOST_BLOCK_COUNT =
+      new Builder("Master.LostBlockCount")
+          .setDescription("Count of lost unique blocks")
+          .setMetricType(MetricType.GAUGE)
+          .build();
   public static final MetricKey MASTER_TOTAL_PATHS =
       new Builder("Master.TotalPaths")
           .setDescription("Total number of files and directory in Alluxio namespace")
           .setMetricType(MetricType.GAUGE)
           .build();
-  public static final MetricKey MASTER_TOTAL_BLOCKS =
-      new Builder("Master.TotalBlocks")
-          .setDescription("Total number of blocks in Alluxio")
-          .setMetricType(MetricType.COUNTER)
+  public static final MetricKey MASTER_UNIQUE_BLOCKS =
+      new Builder("Master.UniqueBlocks")
+          .setDescription("Total number of unique blocks in Alluxio")
+          .setMetricType(MetricType.GAUGE)
           .build();
   public static final MetricKey MASTER_INODE_HEAP_SIZE =
       new Builder("Master.InodeHeapSize")
@@ -1442,6 +1452,14 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setMetricType(MetricType.COUNTER)
           .setIsClusterAggregated(false)
           .build();
+  public static final MetricKey CLIENT_META_DATA_CACHE_SIZE =
+      new Builder("Client.MetadataCacheSize")
+          .setDescription("The total number of files and directories whose metadata is cached "
+              + "on the client-side. Only valid if the filesystem is"
+              + "alluxio.client.file.MetadataCachingBaseFileSystem.")
+          .setMetricType(MetricType.GAUGE)
+          .setIsClusterAggregated(false)
+          .build();
 
   // Fuse operation timer and failure counter metrics are added dynamically.
   // Other Fuse related metrics are added here
@@ -1475,6 +1493,28 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setMetricType(MetricType.GAUGE)
           .setIsClusterAggregated(false)
           .build();
+  public static final MetricKey TOTAL_EXTRA_TIME =
+       new Builder("JvmPauseMonitor.totalExtraTime")
+           .setDescription("The total time that JVM slept and didn't do GC")
+           .setMetricType(MetricType.GAUGE)
+           .setIsClusterAggregated(false)
+           .build();
+  public static final MetricKey INFO_TIME_EXCEEDED =
+       new Builder("JvmPauseMonitor.infoTimeExceeded")
+           .setDescription(String.format("The total number of times that JVM slept and the sleep"
+               + " period is larger than the info level threshold defined by %s",
+               PropertyKey.JVM_MONITOR_INFO_THRESHOLD_MS.getName()))
+           .setMetricType(MetricType.GAUGE)
+           .setIsClusterAggregated(false)
+           .build();
+  public static final MetricKey WARN_TIME_EXCEEDED =
+       new Builder("JvmPauseMonitor.warnTimeExceeded")
+            .setDescription(String.format("The total number of times that JVM slept and the sleep"
+                + " period is larger than the warn level threshold defined by %s",
+                PropertyKey.JVM_MONITOR_WARN_THRESHOLD_MS.getName()))
+           .setMetricType(MetricType.GAUGE)
+           .setIsClusterAggregated(false)
+           .build();
 
   /**
    * Registers the given key to the global key map.

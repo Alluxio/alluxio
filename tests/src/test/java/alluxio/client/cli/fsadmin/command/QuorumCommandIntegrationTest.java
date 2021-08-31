@@ -97,11 +97,9 @@ public final class QuorumCommandIntegrationTest extends BaseIntegrationTest {
       String journalAddresses =
           ServerConfiguration.get(PropertyKey.MASTER_EMBEDDED_JOURNAL_ADDRESSES);
       for (String address : journalAddresses.split(",")) {
-        String hostName = address.substring(0, address.indexOf(":"));
-        String port = address.substring(address.indexOf(":") + 1);
-
-        Assert.assertTrue(output.contains(String.format(QuorumInfoCommand.OUTPUT_SERVER_INFO,
-            QuorumServerState.AVAILABLE.name(), hostName, port)));
+        String format = String.format(QuorumInfoCommand.OUTPUT_SERVER_INFO,
+                QuorumServerState.AVAILABLE.name(), "0", address).trim();
+        Assert.assertTrue(output.contains(format));
       }
 
       // Validate quorum state is updated as expected after a fail-over.
@@ -183,11 +181,11 @@ public final class QuorumCommandIntegrationTest extends BaseIntegrationTest {
   }
 
   @Test
-  public void transferLeader() throws Exception {
+  public void elect() throws Exception {
     final int MASTER_INDEX_WAIT_TIME = 5_000;
     int numMasters = 3;
     mCluster = MultiProcessCluster.newBuilder(PortCoordination.QUORUM_SHELL_REMOVE)
-            .setClusterName("QuorumShellTransferLeader").setNumMasters(numMasters).setNumWorkers(0)
+            .setClusterName("QuorumShellElect").setNumMasters(numMasters).setNumWorkers(0)
             .addProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.EMBEDDED.toString())
             .addProperty(PropertyKey.MASTER_JOURNAL_FLUSH_TIMEOUT_MS, "5min")
             // To make the test run faster.
@@ -206,8 +204,9 @@ public final class QuorumCommandIntegrationTest extends BaseIntegrationTest {
       mOutput.reset();
       shell.run("journal", "quorum", "elect", "-address" , newLeaderAddr);
       output = mOutput.toString().trim();
-      Assert.assertEquals(String.format(QuorumElectCommand.OUTPUT_SUCCESS, newLeaderAddr),
-              output);
+      String expected = String.format(QuorumElectCommand.TRANSFER_SUCCESS + "\n"
+              + QuorumElectCommand.RESET_SUCCESS, newLeaderAddr);
+      Assert.assertEquals(expected, output);
     }
     mCluster.notifySuccess();
   }
