@@ -1700,23 +1700,23 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           // use jobMasterHostname:jobMasterEmbeddedJournalPort by default.
           .setScope(Scope.ALL)
           .build();
-    public static final PropertyKey MASTER_EMBEDDED_JOURNAL_MIN_ELECTION_TIMEOUT =
+  public static final PropertyKey MASTER_EMBEDDED_JOURNAL_MIN_ELECTION_TIMEOUT =
       new Builder(Name.MASTER_EMBEDDED_JOURNAL_MIN_ELECTION_TIMEOUT)
-              .setDescription("The min election timeout for the embedded journal.")
-      .setDefaultValue("10s")
-      .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-      .setScope(Scope.MASTER)
-      .build();
+          .setDescription("The min election timeout for the embedded journal.")
+          .setDefaultValue("10s")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.MASTER)
+          .build();
   public static final PropertyKey MASTER_EMBEDDED_JOURNAL_MAX_ELECTION_TIMEOUT =
       new Builder(Name.MASTER_EMBEDDED_JOURNAL_MAX_ELECTION_TIMEOUT)
           .setDescription(String.format(
-                  "The max election timeout for the embedded journal. When a random period between "
-                          + "${%s} and ${%s} elapses without a master receiving any messages, the master "
-                          + "will attempt to become the primary Election timeout will be waited initially "
-                          + "when the cluster is forming. So larger values for election timeout will cause "
-                          + "longer start-up time. Smaller values might introduce instability to leadership.",
-                  Name.MASTER_EMBEDDED_JOURNAL_MIN_ELECTION_TIMEOUT,
-                  Name.MASTER_EMBEDDED_JOURNAL_MAX_ELECTION_TIMEOUT))
+              "The max election timeout for the embedded journal. When a random period between "
+              + "${%s} and ${%s} elapses without a master receiving any messages, the master "
+              + "will attempt to become the primary Election timeout will be waited initially "
+              + "when the cluster is forming. So larger values for election timeout will cause "
+              + "longer start-up time. Smaller values might introduce instability to leadership.",
+              Name.MASTER_EMBEDDED_JOURNAL_MIN_ELECTION_TIMEOUT,
+              Name.MASTER_EMBEDDED_JOURNAL_MAX_ELECTION_TIMEOUT))
           // TODO(qian0817): dynamically set here
           .setDefaultValue("20s")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)

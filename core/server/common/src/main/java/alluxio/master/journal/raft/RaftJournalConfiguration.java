@@ -43,10 +43,10 @@ public class RaftJournalConfiguration {
     return new RaftJournalConfiguration()
         .setClusterAddresses(ConfigurationUtils
             .getEmbeddedJournalAddresses(ServerConfiguration.global(), serviceType))
-            .setElectionMinTimeoutMs(
-                  ServerConfiguration.getMs(PropertyKey.MASTER_EMBEDDED_JOURNAL_MIN_ELECTION_TIMEOUT))
-            .setElectionMaxTimeoutMs(
-                  ServerConfiguration.getMs(PropertyKey.MASTER_EMBEDDED_JOURNAL_MAX_ELECTION_TIMEOUT))
+        .setElectionMinTimeoutMs(
+            ServerConfiguration.getMs(PropertyKey.MASTER_EMBEDDED_JOURNAL_MIN_ELECTION_TIMEOUT))
+        .setElectionMaxTimeoutMs(
+            ServerConfiguration.getMs(PropertyKey.MASTER_EMBEDDED_JOURNAL_MAX_ELECTION_TIMEOUT))
         .setLocalAddress(NetworkAddressUtils.getConnectAddress(serviceType,
             ServerConfiguration.global()))
         .setMaxLogSize(ServerConfiguration.getBytes(PropertyKey.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX))

@@ -55,7 +55,8 @@ alluxio.master.embedded.journal.catchup.retry.wait:
 alluxio.master.embedded.journal.election.timeout.max:
   'The max election timeout for the embedded journal. When this period between alluxio.master.embedded.journal.election.timeout.min and alluxio.master.embedded.journal.election.timeout.max elapses without a master receiving any messages, the master will attempt to become the primary.Election timeout will be waited initially when the cluster is forming. So larger values for election timeout will cause longer start-up time. Smaller values might introduce instability to leadership.'
 alluxio.master.embedded.journal.election.timeout.min:
-  'The min election timeout for the embedded journal.'alluxio.master.embedded.journal.entry.size.max:
+  'The min election timeout for the embedded journal.'
+alluxio.master.embedded.journal.entry.size.max:
   'The maximum single journal entry size allowed to be flushed. This value should be smaller than 30MB. If you update this value, please also update the value of alluxio.master.embedded.journal.flush.size.max '
 alluxio.master.embedded.journal.flush.size.max:
   'The maximum size in bytes of journal entries allowed in concurrent journal flushing (journal IO to standby masters and IO to local disks).'
