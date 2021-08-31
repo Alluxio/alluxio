@@ -15,25 +15,22 @@ import alluxio.RestUtils;
 import alluxio.StreamCache;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileOutStream;
+import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.web.ProxyWebServer;
-
 import com.google.common.io.ByteStreams;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 
-import java.io.InputStream;
-
 import javax.annotation.concurrent.NotThreadSafe;
 import javax.servlet.ServletContext;
-import javax.ws.rs.Consumes;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
+import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import java.io.InputStream;
+import java.util.HashMap;
 
 /**
  * This class is a REST handler for stream resources.
@@ -44,87 +41,103 @@ import javax.ws.rs.core.Response;
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 public final class StreamsRestServiceHandler {
-  public static final String SERVICE_PREFIX = "streams";
+    public static final String SERVICE_PREFIX = "streams";
 
-  public static final String ID_PARAM = "{id}/";
+    public static final String ID_PARAM = "{id}/";
 
-  public static final String CLOSE = "close";
-  public static final String READ = "read";
-  public static final String WRITE = "write";
+    public static final String CLOSE = "close";
+    public static final String READ  = "read";
+    public static final String WRITE = "write";
 
-  private final StreamCache mStreamCache;
+    private HashMap<String, StreamCache> mStreamCaches;
 
-  /**
-   * Constructs a new {@link StreamsRestServiceHandler}.
-   *
-   * @param context context for the servlet
-   */
-  public StreamsRestServiceHandler(@Context ServletContext context) {
-    mStreamCache =
-        (StreamCache) context.getAttribute(ProxyWebServer.STREAM_CACHE_SERVLET_RESOURCE_KEY);
-  }
+    /**
+     * Constructs a new {@link StreamsRestServiceHandler}.
+     *
+     * @param context context for the servlet
+     */
+    public StreamsRestServiceHandler(@Context ServletContext context) {
 
-  /**
-   * @summary closes a stream
-   * @param id the stream id
-   * @return the response object
-   */
-  @POST
-  @Path(ID_PARAM + CLOSE)
-  @ApiOperation(value = "Closes the stream associated with the id", response = java.lang.Void.class)
-  public Response close(@PathParam("id") final Integer id) {
-    return RestUtils.call((RestUtils.RestCallable<Void>) () -> {
-      // When a stream is invalidated from the cache, the removal listener of the cache will
-      // automatically close the stream.
-      if (mStreamCache.invalidate(id) == null) {
-        throw new IllegalArgumentException("stream does not exist");
-      }
-      return null;
-    }, ServerConfiguration.global());
-  }
+        mStreamCaches =
+                (HashMap<String, StreamCache>) context.getAttribute(ProxyWebServer.STREAM_CACHE_SERVLET_RESOURCE_POOL_KEY);
+    }
 
-  /**
-   * @summary reads from a stream
-   * @param id the stream id
-   * @return the response object
-   */
-  @POST
-  @Path(ID_PARAM + READ)
-  @ApiOperation(value = "Returns the input stream associated with the id",
-      response = java.io.InputStream.class)
-  @Produces(MediaType.APPLICATION_OCTET_STREAM)
-  public Response read(@PathParam("id") final Integer id) {
-    // TODO(jiri): Support reading a file range.
-    return RestUtils.call(new RestUtils.RestCallable<InputStream>() {
-      @Override
-      public InputStream call() throws Exception {
-        FileInStream is = mStreamCache.getInStream(id);
-        if (is != null) {
-          return is;
+    public StreamCache getStreamCache(String name) {
+        if (mStreamCaches.containsKey(name)) {
+            return mStreamCaches.get(name);
+        } else {
+            InstancedConfiguration mSConf = ServerConfiguration.global();
+            mSConf.set(PropertyKey.SECURITY_LOGIN_USERNAME, name);
+            StreamCache mFileSystem = new StreamCache(ServerConfiguration.getMs(PropertyKey.PROXY_STREAM_CACHE_TIMEOUT_MS));
+            mStreamCaches.put(name, mFileSystem);
+            return mFileSystem;
         }
-        throw new IllegalArgumentException("stream does not exist");
-      }
-    }, ServerConfiguration.global());
-  }
+    }
 
-  /**
-   * @summary writes to a stream
-   * @param id the stream id
-   * @param is the input stream
-   * @return the response object
-   */
-  @POST
-  @Path(ID_PARAM + WRITE)
-  @ApiOperation(value = "Writes to the given output stream associated with the id",
-      response = java.lang.Integer.class)
-  @Consumes(MediaType.APPLICATION_OCTET_STREAM)
-  public Response write(@PathParam("id") final Integer id, final InputStream is) {
-    return RestUtils.call(() -> {
-      FileOutStream os = mStreamCache.getOutStream(id);
-      if (os != null) {
-        return ByteStreams.copy(is, os);
-      }
-      throw new IllegalArgumentException("stream does not exist");
-    }, ServerConfiguration.global());
-  }
+    /**
+     * @param id the stream id
+     * @return the response object
+     * @summary closes a stream
+     */
+    @POST
+    @Path(ID_PARAM + CLOSE)
+    @ApiOperation(value = "Closes the stream associated with the id", response = java.lang.Void.class)
+    public Response close(@PathParam("id") final Integer id) {
+        return RestUtils.call((RestUtils.RestCallable<Void>) () -> {
+            StreamCache mStreamCache = getStreamCache("");
+            // When a stream is invalidated from the cache, the removal listener of the cache will
+            // automatically close the stream.
+            if (mStreamCache.invalidate(id) == null) {
+                throw new IllegalArgumentException("stream does not exist");
+            }
+            return null;
+        }, ServerConfiguration.global());
+    }
+
+    /**
+     * @param id the stream id
+     * @return the response object
+     * @summary reads from a stream
+     */
+    @POST
+    @Path(ID_PARAM + READ)
+    @ApiOperation(value = "Returns the input stream associated with the id",
+            response = java.io.InputStream.class)
+    @Produces(MediaType.APPLICATION_OCTET_STREAM)
+    public Response read(@PathParam("id") final Integer id) {
+        // TODO(jiri): Support reading a file range.
+        StreamCache mStreamCache = getStreamCache("");
+        return RestUtils.call(new RestUtils.RestCallable<InputStream>() {
+            @Override
+            public InputStream call() throws Exception {
+                FileInStream is = mStreamCache.getInStream(id);
+                if (is != null) {
+                    return is;
+                }
+                throw new IllegalArgumentException("stream does not exist");
+            }
+        }, ServerConfiguration.global());
+    }
+
+    /**
+     * @param id the stream id
+     * @param is the input stream
+     * @return the response object
+     * @summary writes to a stream
+     */
+    @POST
+    @Path(ID_PARAM + WRITE)
+    @ApiOperation(value = "Writes to the given output stream associated with the id",
+            response = java.lang.Integer.class)
+    @Consumes(MediaType.APPLICATION_OCTET_STREAM)
+    public Response write(@PathParam("id") final Integer id, final InputStream is) {
+        StreamCache mStreamCache = getStreamCache("");
+        return RestUtils.call(() -> {
+            FileOutStream os = mStreamCache.getOutStream(id);
+            if (os != null) {
+                return ByteStreams.copy(is, os);
+            }
+            throw new IllegalArgumentException("stream does not exist");
+        }, ServerConfiguration.global());
+    }
 }
