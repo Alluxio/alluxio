@@ -22,6 +22,7 @@ import alluxio.stress.StressConstants;
 import alluxio.stress.TaskResult;
 import alluxio.stress.job.StressBenchConfig;
 import alluxio.util.ConfigurationUtils;
+import alluxio.util.FormatUtils;
 import alluxio.util.ShellUtils;
 
 import com.beust.jcommander.JCommander;
@@ -118,8 +119,9 @@ public abstract class Benchmark<T extends TaskResult> {
     commandArgs.addAll(mBaseParameters.mJavaOpts.stream().map(String::trim)
         .collect(Collectors.toList()));
     String className = this.getClass().getCanonicalName();
+    long mStartDelay = FormatUtils.parseTimeSize(mBaseParameters.mStartDelay);
     return new StressBenchConfig(className, commandArgs,
-            mBaseParameters.mStartDelay, mBaseParameters.mClusterLimit);
+            mStartDelay, mBaseParameters.mClusterLimit);
   }
 
   /**

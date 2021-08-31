@@ -90,5 +90,5 @@ public final class BaseParameters {
 
   @Parameter(names = {START_DELAY_MS},
           description = "The start delay for the distributed tasks, in ms.")
-  public long mStartDelay = 10000;
+  public String mStartDelay = "10000ms";
 }
