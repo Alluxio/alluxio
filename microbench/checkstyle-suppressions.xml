@@ -10,9 +10,14 @@
     See the NOTICE file distributed with this work for information regarding copyright ownership.
 
 -->
-<!DOCTYPE suppressions PUBLIC "-//Puppy Crawl//DTD Suppressions 1.1//EN"
-        "http://www.puppycrawl.com/dtds/suppressions_1_1.dtd">
+<!DOCTYPE suppressions PUBLIC
+        "-//Checkstyle//DTD SuppressionFilter Configuration 1.2//EN"
+        "https://checkstyle.org/dtds/suppressions_1_2.dtd">
 <suppressions>
+    <!-- Does not require java doc on methods and types, as they are typically benchmark methods and params. -->
+    <suppress files="[\\/]src[\\/]main[\\/].*" message="Missing a Javadoc comment" checks="JavadocMethod" />
+    <suppress files="[\\/]src[\\/]main[\\/].*" message="Missing a Javadoc comment" checks="JavadocType" />
+    <!-- Suppresses files in the target folder. -->
     <suppress files="[/\\]target[/\\]" checks=".*" />
     <!-- Suppresses files in the src/test folder. To be used for rules which only apply to
          production code. -->
