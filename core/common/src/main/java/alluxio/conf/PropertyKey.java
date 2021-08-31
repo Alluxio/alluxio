@@ -2675,6 +2675,24 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
+  public static final PropertyKey MASTER_RPC_TIME_WARNING_THRESHOLD =
+      new Builder(Name.MASTER_RPC_TIME_WARNING_THRESHOLD)
+          .setDescription("RPCs that take more than this to finish will log a warning message.")
+          .setScope(Scope.MASTER)
+          .setDefaultValue("1s")
+          .build();
+  public static final PropertyKey MASTER_RPC_REQUEST_SIZE_WARNING_THRESHOLD =
+      new Builder(Name.MASTER_RPC_REQUEST_SIZE_WARNING_THRESHOLD)
+          .setDescription("RPCs requests that are larger than this will log a warning message.")
+          .setScope(Scope.MASTER)
+          .setDefaultValue("1MB")
+          .build();
+  public static final PropertyKey MASTER_RPC_RESPONSE_SIZE_WARNING_THRESHOLD =
+      new Builder(Name.MASTER_RPC_RESPONSE_SIZE_WARNING_THRESHOLD)
+          .setDescription("RPCs responses that are larger than this will log a warning message.")
+          .setScope(Scope.MASTER)
+          .setDefaultValue("1MB")
+          .build();
 
   //
   // Secondary master related properties
@@ -5764,6 +5782,12 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.rpc.executor.max.pool.size";
     public static final String MASTER_RPC_EXECUTOR_KEEPALIVE =
         "alluxio.master.rpc.executor.keepalive";
+    public static final String MASTER_RPC_RESPONSE_SIZE_WARNING_THRESHOLD =
+        "alluxio.master.rpc.response.size.warning.threshold";
+    public static final String MASTER_RPC_REQUEST_SIZE_WARNING_THRESHOLD =
+        "alluxio.master.rpc.request.size.warning.threshold";
+    public static final String MASTER_RPC_TIME_WARNING_THRESHOLD =
+        "alluxio.master.rpc.time.warning.threshold";
     public static final String MASTER_SERVING_THREAD_TIMEOUT =
         "alluxio.master.serving.thread.timeout";
     public static final String MASTER_SKIP_ROOT_ACL_CHECK =
