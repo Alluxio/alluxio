@@ -37,7 +37,7 @@ import java.io.IOException;
 public final class RpcUtils {
   private RpcUtils() {} // prevent instantiation
 
-  public static final SensitiveConfigMask SENSITIVE_MASKER =
+  public static final SensitiveConfigMask SENSITIVE_CONFIG_MASKER =
       RpcSensitiveConfigMask.CREDENTIAL_FIELD_MASKER;
 
   /**
@@ -112,7 +112,7 @@ public final class RpcUtils {
       throws StatusException {
     // avoid string format for better performance if debug is off
     String debugDesc = logger.isDebugEnabled() ? String.format(description,
-        SENSITIVE_MASKER == null ? args : SENSITIVE_MASKER.maskObjects(logger, args)) : null;
+        SENSITIVE_CONFIG_MASKER == null ? args : SENSITIVE_CONFIG_MASKER.maskObjects(logger, args)) : null;
     try (Timer.Context ctx = MetricsSystem.timer(getQualifiedMetricName(methodName)).time()) {
       MetricsSystem.counter(getQualifiedInProgressMetricName(methodName)).inc();
       logger.debug("Enter: {}: {}", methodName, debugDesc);
@@ -126,7 +126,7 @@ public final class RpcUtils {
         if (!logger.isDebugEnabled()) {
           logger.warn("Exit (Error): {}: {}, Error={}", methodName,
               String.format(description,
-                  SENSITIVE_MASKER == null ? args : SENSITIVE_MASKER.maskObjects(logger, args)),
+                  SENSITIVE_CONFIG_MASKER == null ? args : SENSITIVE_CONFIG_MASKER.maskObjects(logger, args)),
               e.toString());
         }
       }
@@ -138,7 +138,7 @@ public final class RpcUtils {
         if (!logger.isDebugEnabled()) {
           logger.warn("Exit (Error): {}: {}, Error={}", methodName,
               String.format(description,
-                  SENSITIVE_MASKER == null ? args : SENSITIVE_MASKER.maskObjects(logger, args)),
+                  SENSITIVE_CONFIG_MASKER == null ? args : SENSITIVE_CONFIG_MASKER.maskObjects(logger, args)),
               e.toString());
         }
       }
@@ -146,7 +146,7 @@ public final class RpcUtils {
     } catch (RuntimeException e) {
       logger.error("Exit (Error): {}: {}", methodName,
           String.format(description,
-              SENSITIVE_MASKER == null ? args : SENSITIVE_MASKER.maskObjects(logger, args)), e);
+              SENSITIVE_CONFIG_MASKER == null ? args : SENSITIVE_CONFIG_MASKER.maskObjects(logger, args)), e);
       MetricsSystem.counter(getQualifiedFailureMetricName(methodName)).inc();
       throw new InternalException(e).toGrpcStatusException();
     } finally {
