@@ -194,3 +194,6 @@
 
 0.6.26
 - Add livenessProbe and readinessProbe to values.yaml to allow for overriding
+
+0.6.27
+- Enable Fuse process embedded in worker process
