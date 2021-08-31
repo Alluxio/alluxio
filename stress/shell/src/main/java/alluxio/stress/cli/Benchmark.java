@@ -74,9 +74,6 @@ public abstract class Benchmark<T extends TaskResult> {
   /**
    * Prepares to run the test.
    */
-  // TODO(bowen): When the test runs in cluster mode, the prepare step will execute
-  //  both in the command side and on each job worker side. We should separate the logic
-  //  into two different calls instead of relying on the same prepare().
   public abstract void prepare() throws Exception;
 
   /**
@@ -144,9 +141,6 @@ public abstract class Benchmark<T extends TaskResult> {
       throw e;
     }
 
-    // prepare the benchmark.
-    prepare();
-
     if (!mBaseParameters.mProfileAgent.isEmpty()) {
       mBaseParameters.mJavaOpts.add("-javaagent:" + mBaseParameters.mProfileAgent
           + "=" + BaseParameters.AGENT_OUTPUT_PATH);
@@ -164,6 +158,8 @@ public abstract class Benchmark<T extends TaskResult> {
     }
 
     // run locally
+    // prepare the benchmark.
+    prepare();
     if (mBaseParameters.mInProcess) {
       // run in process
       T result = runLocal();
