@@ -355,7 +355,13 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
   public void resetState() {
     mBlockStore.clear();
     mJournaledNextContainerId = 0;
-    mBlockContainerIdGenerator.setNextContainerId(0);
+    long startContainerId = 0L;
+    if (ServerConfiguration.getBoolean(
+        PropertyKey.MASTER_BLOCK_CONTAINER_ID_START_FROM_TIMESTAMP)) {
+      startContainerId = System.currentTimeMillis() / 1000;
+    }
+    LOG.info("The start container id is {}", startContainerId);
+    mBlockContainerIdGenerator.setNextContainerId(startContainerId);
   }
 
   @Override

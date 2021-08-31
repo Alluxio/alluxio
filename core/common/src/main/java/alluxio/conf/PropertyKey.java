@@ -2675,6 +2675,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
+  public static final PropertyKey
+      MASTER_BLOCK_CONTAINER_ID_START_FROM_TIMESTAMP =
+      new Builder(Name.MASTER_BLOCK_CONTAINER_ID_START_FROM_TIMESTAMP)
+          .setDescription("If enabled, the first container id is current timestamp")
+          .setScope(Scope.MASTER)
+          .setDefaultValue(false)
+          .build();
 
   //
   // Secondary master related properties
@@ -5834,6 +5841,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.journal.gc.threshold";
     public static final String MASTER_JOURNAL_TEMPORARY_FILE_GC_THRESHOLD_MS =
         "alluxio.master.journal.temporary.file.gc.threshold";
+    public static final String MASTER_BLOCK_CONTAINER_ID_START_FROM_TIMESTAMP =
+        "alluxio.master.block.container.id.start.from.timestamp";
 
     //
     // File system master related properties
