@@ -11,8 +11,8 @@
 
 -->
 <FindBugsFilter>
-    <Match>
-        <!-- Skip generated source files -->
-        <Class name="~.*jmh_generated.*"/>
-    </Match>
+  <Match>
+    <!-- Skip generated source files -->
+    <Class name="~.*jmh_generated.*"/>
+  </Match>
 </FindBugsFilter>
