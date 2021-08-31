@@ -50,7 +50,8 @@ public final class BaseParameters {
 
   @Parameter(names = {CLUSTER_START_DELAY_FLAG},
       description = "The start delay for the jobs to wait before starting the benchmark, "
-          + "used to synchronize the jobs")
+          + "used to synchronize the jobs. For example, --start-delay 10000ms,"
+              + "--start-delay 15s, --start-delay 2m")
   public String mClusterStartDelay = "10s";
 
   @Parameter(names = {JAVA_OPT_FLAG},
