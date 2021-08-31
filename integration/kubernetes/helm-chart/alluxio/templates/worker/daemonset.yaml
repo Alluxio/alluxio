@@ -73,8 +73,9 @@ spec:
         runAsGroup: {{ .Values.worker.group }}
         fsGroup: {{ .Values.worker.fsGroup }}
     {{- if eq .Values.worker.fuseEnabled true }}
-    {{- if or (or (ne .Values.worker.user 0) (ne .Values.worker.group 0)) (ne .Values.worker.fsGroup 0) }}
+    {{- if or (or (ne .Values.worker.user 0.0) (ne .Values.worker.group 0.0)) (ne .Values.worker.fsGroup 0.0) }}
     {{- fail ".Values.worker.{user, group, fsGroup} have to be 0 in order to launch Fuse in worker process" }}
+    {{- end }}
     {{- end }}
     {{- if .Values.worker.serviceAccount }}
       serviceAccountName: {{ .Values.worker.serviceAccount }}
