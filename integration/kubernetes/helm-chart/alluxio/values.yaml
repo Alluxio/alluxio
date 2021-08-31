@@ -173,6 +173,10 @@ worker:
     - --no-format
   # Properties for the worker component
   properties:
+  # Worker pod security context
+  user: 1000
+  group: 1000
+  fsGroup: 1000
   resources:
     limits:
       cpu: "4"
@@ -198,6 +202,10 @@ worker:
   # The ServiceAccount provided here will have precedence over
   # the global `serviceAccount`
   serviceAccount:
+  # Set fuseEnabled to true will embed Fuse in worker process and
+  # escalated privileges and capabilities will be granted to the worker pod.
+  # Also be sure to give root access to the pod by setting the
+  # worker node security context values to 0 to turn on Fuse in worker.
   fuseEnabled: false
 
 jobWorker:
