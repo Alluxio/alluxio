@@ -18,10 +18,6 @@ import alluxio.stress.common.SummaryStatistics;
 import alluxio.stress.graph.BarGraph;
 import alluxio.stress.graph.Graph;
 import alluxio.stress.graph.LineGraph;
-import alluxio.stress.master.MasterBenchParameters;
-import alluxio.stress.master.MasterBenchTaskResult;
-import alluxio.stress.master.MasterBenchTaskResultStatistics;
-import alluxio.stress.master.Operation;
 
 import com.google.common.base.Splitter;
 
@@ -39,13 +35,12 @@ import java.util.zip.DataFormatException;
 public final class JobServiceBenchSummary implements Summary {
   private long mDurationMs;
   private long mEndTimeMs;
-  private MasterBenchParameters mParameters;
+  private JobServiceBenchParameters mParameters;
   private List<String> mNodes;
   private Map<String, List<String>> mErrors;
 
   private float mThroughput;
   private SummaryStatistics mStatistics;
-
   private Map<String, SummaryStatistics> mStatisticsPerMethod;
 
   /**
@@ -64,20 +59,19 @@ public final class JobServiceBenchSummary implements Summary {
    */
   public JobServiceBenchSummary(JobServiceBenchTaskResult mergedTaskResults, List<String> nodes,
       Map<String, List<String>> errors) throws DataFormatException {
-    mStatistics = mergedTaskResults.getStatistics().toMasterBenchSummaryStatistics();
+    mStatistics = mergedTaskResults.getStatistics().toBenchSummaryStatistics();
 
     mStatisticsPerMethod = new HashMap<>();
-    for (Map.Entry<String, MasterBenchTaskResultStatistics> entry :
+    for (Map.Entry<String, JobServiceBenchTaskResultStatistics> entry :
         mergedTaskResults.getStatisticsPerMethod().entrySet()) {
       final String key = entry.getKey();
-      final MasterBenchTaskResultStatistics value = entry.getValue();
+      final JobServiceBenchTaskResultStatistics value = entry.getValue();
 
-      mStatisticsPerMethod.put(key, value.toMasterBenchSummaryStatistics());
+      mStatisticsPerMethod.put(key, value.toBenchSummaryStatistics());
     }
-
     mDurationMs = mergedTaskResults.getEndMs() - mergedTaskResults.getRecordStartMs();
     mEndTimeMs = mergedTaskResults.getEndMs();
-    mThroughput = ((float) mStatistics.mNumSuccess / mDurationMs) * 1000.0f;
+    mThroughput = ((float) mergedTaskResults.mNumSuccess / mDurationMs) * 1000.0f;
     mParameters = mergedTaskResults.getParameters();
     mNodes = nodes;
     mErrors = errors;
@@ -114,14 +108,14 @@ public final class JobServiceBenchSummary implements Summary {
   /**
    * @return the parameters
    */
-  public MasterBenchParameters getParameters() {
+  public JobServiceBenchParameters getParameters() {
     return mParameters;
   }
 
   /**
    * @param parameters the parameters
    */
-  public void setParameters(MasterBenchParameters parameters) {
+  public void setParameters(JobServiceBenchParameters parameters) {
     mParameters = parameters;
   }
 
@@ -166,7 +160,6 @@ public final class JobServiceBenchSummary implements Summary {
   public void setEndTimeMs(long endTimeMs) {
     mEndTimeMs = endTimeMs;
   }
-
   /**
    * @return the statistics
    */
@@ -192,7 +185,7 @@ public final class JobServiceBenchSummary implements Summary {
    * @param statisticsPerMethod the statistics per method map
    */
   public void setStatisticsPerMethod(Map<String, SummaryStatistics>
-                                         statisticsPerMethod) {
+      statisticsPerMethod) {
     mStatisticsPerMethod = statisticsPerMethod;
   }
 
@@ -227,7 +220,7 @@ public final class JobServiceBenchSummary implements Summary {
           results.stream().map(x -> (JobServiceBenchSummary) x).collect(Collectors.toList());
 
       // Iterate over all operations
-      for (Operation operation : Operation.values()) {
+      for (JobServiceBenchOperation operation : JobServiceBenchOperation.values()) {
         List<JobServiceBenchSummary> opSummaries = summaries.stream()
             .filter(x -> x.mParameters.mOperation == operation)
             .collect(Collectors.toList());
@@ -254,7 +247,6 @@ public final class JobServiceBenchSummary implements Summary {
             new LineGraph(operation + " - Response Time (ms)", subTitle, "Percentile",
                 "Response Time (ms)");
         graphs.add(responseTimeGraph);
-
         Map<String, LineGraph> responseTimeGraphPerMethod = new HashMap<>();
 
         // Maps method name to max number of calls

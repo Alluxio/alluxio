@@ -26,25 +26,22 @@ import java.util.Map;
  * The task result for the master stress tests.
  */
 public final class JobServiceBenchTaskResult implements TaskResult {
-
+  public long mNumSuccess;
   private long mRecordStartMs;
   private long mEndMs;
   private long mDurationMs;
   private BaseParameters mBaseParameters;
   private JobServiceBenchParameters mParameters;
   private List<String> mErrors;
-
-  private MasterBenchTaskResultStatistics mStatistics;
-
-  private Map<String, MasterBenchTaskResultStatistics> mStatisticsPerMethod;
-
+  private JobServiceBenchTaskResultStatistics mStatistics;
+  private Map<String, JobServiceBenchTaskResultStatistics> mStatisticsPerMethod;
   /**
    * Creates an instance.
    */
   public JobServiceBenchTaskResult() {
     // Default constructor required for json deserialization
     mErrors = new ArrayList<>();
-    mStatistics = new MasterBenchTaskResultStatistics();
+    mStatistics = new JobServiceBenchTaskResultStatistics();
     mStatisticsPerMethod = new HashMap<>();
   }
 
@@ -55,7 +52,6 @@ public final class JobServiceBenchTaskResult implements TaskResult {
    */
   public void merge(JobServiceBenchTaskResult result) throws Exception {
     mStatistics.merge(result.mStatistics);
-
     mRecordStartMs = result.mRecordStartMs;
     if (result.mEndMs > mEndMs) {
       mEndMs = result.mEndMs;
@@ -63,11 +59,10 @@ public final class JobServiceBenchTaskResult implements TaskResult {
     mBaseParameters = result.mBaseParameters;
     mParameters = result.mParameters;
     mErrors.addAll(result.mErrors);
-
-    for (Map.Entry<String, MasterBenchTaskResultStatistics> entry :
+    for (Map.Entry<String, JobServiceBenchTaskResultStatistics> entry :
         result.mStatisticsPerMethod.entrySet()) {
       final String key = entry.getKey();
-      final MasterBenchTaskResultStatistics value = entry.getValue();
+      final JobServiceBenchTaskResultStatistics value = entry.getValue();
 
       if (!mStatisticsPerMethod.containsKey(key)) {
         mStatisticsPerMethod.put(key, value);
@@ -127,7 +122,6 @@ public final class JobServiceBenchTaskResult implements TaskResult {
   public void setParameters(JobServiceBenchParameters parameters) {
     mParameters = parameters;
   }
-
   /**
    * @return the array of max response times (in ns)
    */
@@ -194,29 +188,29 @@ public final class JobServiceBenchTaskResult implements TaskResult {
   /**
    * @return the statistics
    */
-  public MasterBenchTaskResultStatistics getStatistics() {
+  public JobServiceBenchTaskResultStatistics getStatistics() {
     return mStatistics;
   }
 
   /**
    * @param statistics the statistics
    */
-  public void setStatistics(MasterBenchTaskResultStatistics statistics) {
+  public void setStatistics(JobServiceBenchTaskResultStatistics statistics) {
     mStatistics = statistics;
   }
 
   /**
    * @return the statistics per method
    */
-  public Map<String, MasterBenchTaskResultStatistics> getStatisticsPerMethod() {
+  public Map<String, JobServiceBenchTaskResultStatistics> getStatisticsPerMethod() {
     return mStatisticsPerMethod;
   }
 
   /**
    * @param statisticsPerMethod the statistics per method
    */
-  public void setStatisticsPerMethod(Map<String, MasterBenchTaskResultStatistics>
-                                         statisticsPerMethod) {
+  public void setStatisticsPerMethod(Map<String, JobServiceBenchTaskResultStatistics>
+      statisticsPerMethod) {
     mStatisticsPerMethod = statisticsPerMethod;
   }
 
@@ -224,7 +218,7 @@ public final class JobServiceBenchTaskResult implements TaskResult {
    * @param method the name of the method to insert statistics for
    * @param statistics the statistics for the method
    */
-  public void putStatisticsForMethod(String method, MasterBenchTaskResultStatistics statistics) {
+  public void putStatisticsForMethod(String method, JobServiceBenchTaskResultStatistics statistics) {
     mStatisticsPerMethod.put(method, statistics);
   }
 
@@ -243,7 +237,7 @@ public final class JobServiceBenchTaskResult implements TaskResult {
       for (TaskResult taskResult : results) {
         if (!(taskResult instanceof JobServiceBenchTaskResult)) {
           throw new IOException(
-              "TaskResult is not of type MasterBenchTaskResult. class: " + taskResult.getClass()
+              "TaskResult is not of type JobServiceBenchTaskResult. class: " + taskResult.getClass()
                   .getName());
         }
         JobServiceBenchTaskResult result = (JobServiceBenchTaskResult) taskResult;
