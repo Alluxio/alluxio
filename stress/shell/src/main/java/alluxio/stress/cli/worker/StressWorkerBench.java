@@ -68,6 +68,12 @@ public class StressWorkerBench extends Benchmark<WorkerBenchTaskResult> {
   }
 
   @Override
+  public String getBenchDescription() {
+    // TODO(David) Fill in description
+    return "";
+  }
+
+  @Override
   public void prepare() throws Exception {
     mFilePath = new Path(mParameters.mBasePath, "data");
 

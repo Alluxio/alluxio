@@ -122,8 +122,20 @@ spec:
           envFrom:
           - configMapRef:
               name: {{ template "alluxio.fullname" . }}-config
-{{ include "alluxio.worker.readinessProbe" . | indent 10 }}
-{{ include "alluxio.worker.livenessProbe" . | indent 10 }}
+          readinessProbe:
+            tcpSocket:
+              port: rpc
+            initialDelaySeconds: {{ .Values.worker.readinessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.worker.readinessProbe.periodSeconds }}
+            timeoutSeconds: {{ .Values.worker.readinessProbe.timeoutSeconds }}
+            failureThreshold: {{ .Values.worker.readinessProbe.failureThreshold }}
+          livenessProbe:
+            tcpSocket:
+              port: rpc
+            initialDelaySeconds: {{ .Values.worker.livenessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.worker.livenessProbe.periodSeconds }}
+            timeoutSeconds: {{ .Values.worker.livenessProbe.timeoutSeconds }}
+            failureThreshold: {{ .Values.worker.livenessProbe.failureThreshold }}
           ports:
           - containerPort: {{ .Values.worker.ports.rpc }}
             name: rpc
@@ -185,8 +197,20 @@ spec:
           envFrom:
           - configMapRef:
               name: {{ template "alluxio.fullname" . }}-config
-{{ include "alluxio.jobWorker.readinessProbe" . | indent 10 }}
-{{ include "alluxio.jobWorker.livenessProbe" . | indent 10 }}
+          readinessProbe:
+            tcpSocket:
+              port: job-rpc
+            initialDelaySeconds: {{ .Values.jobWorker.readinessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.jobWorker.readinessProbe.periodSeconds }}
+            timeoutSeconds: {{ .Values.jobWorker.readinessProbe.timeoutSeconds }}
+            failureThreshold: {{ .Values.jobWorker.readinessProbe.failureThreshold }}
+          livenessProbe:
+            tcpSocket:
+              port: job-rpc
+            initialDelaySeconds: {{ .Values.jobWorker.livenessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.jobWorker.livenessProbe.periodSeconds }}
+            timeoutSeconds: {{ .Values.jobWorker.livenessProbe.timeoutSeconds }}
+            failureThreshold: {{ .Values.jobWorker.livenessProbe.failureThreshold }}
           ports:
           - containerPort: {{ .Values.jobWorker.ports.rpc }}
             name: job-rpc

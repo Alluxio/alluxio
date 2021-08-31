@@ -77,6 +77,11 @@ public final class AbstractClientTest {
     protected long getRemoteServiceVersion() throws AlluxioStatusException {
       return mRemoteServiceVersion;
     }
+
+    @Override
+    public synchronized InetSocketAddress getConfAddress() throws UnavailableException {
+      return mAddress;
+    }
   }
 
   private static class TestServiceNotFoundClient extends BaseTestClient {
@@ -131,7 +136,7 @@ public final class AbstractClientTest {
         new InstancedConfiguration(ConfigurationUtils.defaults()));
 
     InetSocketAddress baseAddress = new InetSocketAddress("0.0.0.0", 2000);
-    InetSocketAddress confAddress = new InetSocketAddress("0.0.0.0", 2001);
+    InetSocketAddress confAddress = new InetSocketAddress("0.0.0.0", 2000);
     final alluxio.Client client = new BaseTestClient(context) {
       @Override
       public synchronized InetSocketAddress getAddress() {

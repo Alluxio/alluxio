@@ -348,15 +348,25 @@ public final class MetricKey implements Comparable<MetricKey> {
               + "Use this metric to monitor whether your journal is running out of disk space.")
           .setMetricType(MetricType.GAUGE)
           .build();
+  public static final MetricKey MASTER_LOST_FILE_COUNT =
+      new Builder("Master.LostFileCount")
+          .setDescription("Count of lost files")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey MASTER_LOST_BLOCK_COUNT =
+      new Builder("Master.LostBlockCount")
+          .setDescription("Count of lost unique blocks")
+          .setMetricType(MetricType.GAUGE)
+          .build();
   public static final MetricKey MASTER_TOTAL_PATHS =
       new Builder("Master.TotalPaths")
           .setDescription("Total number of files and directory in Alluxio namespace")
           .setMetricType(MetricType.GAUGE)
           .build();
-  public static final MetricKey MASTER_TOTAL_BLOCKS =
-      new Builder("Master.TotalBlocks")
-          .setDescription("Total number of blocks in Alluxio")
-          .setMetricType(MetricType.COUNTER)
+  public static final MetricKey MASTER_UNIQUE_BLOCKS =
+      new Builder("Master.UniqueBlocks")
+          .setDescription("Total number of unique blocks in Alluxio")
+          .setMetricType(MetricType.GAUGE)
           .build();
   public static final MetricKey MASTER_INODE_HEAP_SIZE =
       new Builder("Master.InodeHeapSize")
@@ -846,6 +856,12 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setMetricType(MetricType.COUNTER)
           .setIsClusterAggregated(true)
           .build();
+  public static final MetricKey WORKER_ACTIVE_CLIENTS =
+      new Builder("Worker.ActiveClients")
+          .setDescription("The number of clients actively reading from or writing to this worker")
+          .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggregated(true)
+          .build();
   public static final MetricKey WORKER_ASYNC_CACHE_DUPLICATE_REQUESTS =
       new Builder("Worker.AsyncCacheDuplicateRequests")
           .setDescription("Total number of duplicated async cache request received by this worker")
@@ -1180,6 +1196,20 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setMetricType(MetricType.METER)
           .setIsClusterAggregated(false)
           .build();
+  public static final MetricKey CLIENT_CACHE_PAGE_READ_CACHE_TIME_NS =
+      new Builder("Client.CachePageReadCacheTimeNanos")
+          .setDescription("Time in nanoseconds taken to read a page from the client cache "
+              + "when the cache hits.")
+          .setMetricType(MetricType.METER)
+          .setIsClusterAggregated(false)
+          .build();
+  public static final MetricKey CLIENT_CACHE_PAGE_READ_EXTERNAL_TIME_NS =
+      new Builder("Client.CachePageReadExternalTimeNanos")
+          .setDescription("Time in nanoseconds taken to read a page from external source "
+              + "when the cache misses.")
+          .setMetricType(MetricType.METER)
+          .setIsClusterAggregated(false)
+          .build();
   public static final MetricKey CLIENT_CACHE_BYTES_EVICTED =
       new Builder("Client.CacheBytesEvicted")
           .setDescription("Total number of bytes evicted from the client cache.")
@@ -1422,6 +1452,14 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setMetricType(MetricType.COUNTER)
           .setIsClusterAggregated(false)
           .build();
+  public static final MetricKey CLIENT_META_DATA_CACHE_SIZE =
+      new Builder("Client.MetadataCacheSize")
+          .setDescription("The total number of files and directories whose metadata is cached "
+              + "on the client-side. Only valid if the filesystem is"
+              + "alluxio.client.file.MetadataCachingBaseFileSystem.")
+          .setMetricType(MetricType.GAUGE)
+          .setIsClusterAggregated(false)
+          .build();
 
   // Fuse operation timer and failure counter metrics are added dynamically.
   // Other Fuse related metrics are added here
@@ -1437,6 +1475,46 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setMetricType(MetricType.COUNTER)
           .setIsClusterAggregated(false)
           .build();
+  public static final MetricKey FUSE_WRITING_FILE_COUNT =
+      new Builder("Fuse.WritingFileCount")
+          .setDescription("Total number of files being written concurrently.")
+          .setMetricType(MetricType.GAUGE)
+          .setIsClusterAggregated(false)
+          .build();
+  public static final MetricKey FUSE_READING_FILE_COUNT =
+      new Builder("Fuse.ReadingFileCount")
+          .setDescription("Total number of files being read concurrently.")
+          .setMetricType(MetricType.GAUGE)
+          .setIsClusterAggregated(false)
+          .build();
+  public static final MetricKey FUSE_CACHED_PATH_COUNT =
+      new Builder("Fuse.CachedPathCount")
+          .setDescription("Total number of Alluxio paths to cache for FUSE conversion.")
+          .setMetricType(MetricType.GAUGE)
+          .setIsClusterAggregated(false)
+          .build();
+  public static final MetricKey TOTAL_EXTRA_TIME =
+       new Builder("JvmPauseMonitor.totalExtraTime")
+           .setDescription("The total time that JVM slept and didn't do GC")
+           .setMetricType(MetricType.GAUGE)
+           .setIsClusterAggregated(false)
+           .build();
+  public static final MetricKey INFO_TIME_EXCEEDED =
+       new Builder("JvmPauseMonitor.infoTimeExceeded")
+           .setDescription(String.format("The total number of times that JVM slept and the sleep"
+               + " period is larger than the info level threshold defined by %s",
+               PropertyKey.JVM_MONITOR_INFO_THRESHOLD_MS.getName()))
+           .setMetricType(MetricType.GAUGE)
+           .setIsClusterAggregated(false)
+           .build();
+  public static final MetricKey WARN_TIME_EXCEEDED =
+       new Builder("JvmPauseMonitor.warnTimeExceeded")
+            .setDescription(String.format("The total number of times that JVM slept and the sleep"
+                + " period is larger than the warn level threshold defined by %s",
+                PropertyKey.JVM_MONITOR_WARN_THRESHOLD_MS.getName()))
+           .setMetricType(MetricType.GAUGE)
+           .setIsClusterAggregated(false)
+           .build();
 
   /**
    * Registers the given key to the global key map.

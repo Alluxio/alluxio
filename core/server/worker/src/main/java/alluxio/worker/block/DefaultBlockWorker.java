@@ -57,6 +57,7 @@ import alluxio.worker.block.meta.TempBlockMeta;
 import alluxio.worker.file.FileSystemMasterClient;
 import alluxio.worker.grpc.GrpcExecutors;
 
+import com.codahale.metrics.Counter;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import com.google.common.io.Closer;
@@ -288,6 +289,7 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
   public void abortBlock(long sessionId, long blockId) throws BlockAlreadyExistsException,
       BlockDoesNotExistException, InvalidWorkerStateException, IOException {
     mLocalBlockStore.abortBlock(sessionId, blockId);
+    Metrics.WORKER_ACTIVE_CLIENTS.dec();
   }
 
   @Override
@@ -327,6 +329,7 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
     } finally {
       mBlockMasterClientPool.release(blockMasterClient);
       mLocalBlockStore.unlockBlock(lockId);
+      Metrics.WORKER_ACTIVE_CLIENTS.dec();
     }
   }
 
@@ -367,6 +370,7 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
       throw new WorkerOutOfSpaceException(ExceptionMessage.CANNOT_REQUEST_SPACE
           .getMessageWithUrl(RuntimeConstants.ALLUXIO_DEBUG_DOCS_URL, address, blockId), e);
     }
+    Metrics.WORKER_ACTIVE_CLIENTS.inc();
     return createdBlock.getPath();
   }
 
@@ -415,7 +419,11 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
 
   @Override
   public long lockBlock(long sessionId, long blockId) {
-    return mLocalBlockStore.lockBlockNoException(sessionId, blockId);
+    long lockId = mLocalBlockStore.lockBlockNoException(sessionId, blockId);
+    if (lockId != INVALID_LOCK_ID) {
+      Metrics.WORKER_ACTIVE_CLIENTS.inc();
+    }
+    return lockId;
   }
 
   @Override
@@ -536,6 +544,7 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
   @Override
   public void unlockBlock(long lockId) throws BlockDoesNotExistException {
     mLocalBlockStore.unlockBlock(lockId);
+    Metrics.WORKER_ACTIVE_CLIENTS.dec();
   }
 
   @Override
@@ -628,6 +637,7 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
     while (retryPolicy.attempt()) {
       BlockReader reader = createLocalBlockReader(sessionId, blockId, request.getStart());
       if (reader != null) {
+        Metrics.WORKER_ACTIVE_CLIENTS.inc();
         return reader;
       }
       boolean checkUfs =
@@ -639,6 +649,7 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
       }
       // When the block does not exist in Alluxio but exists in UFS, try to open the UFS block.
       try {
+        Metrics.WORKER_ACTIVE_CLIENTS.inc();
         return createUfsBlockReader(request.getSessionId(), request.getId(), request.getStart(),
             request.isPositionShort(), request.getOpenUfsBlockOptions());
       } catch (Exception e) {
@@ -661,6 +672,7 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
   public void cleanupSession(long sessionId) {
     mLocalBlockStore.cleanupSession(sessionId);
     mUnderFileSystemBlockStore.cleanupSession(sessionId);
+    Metrics.WORKER_ACTIVE_CLIENTS.dec();
   }
 
   /**
@@ -670,6 +682,8 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
    */
   @ThreadSafe
   public static final class Metrics {
+    private static final Counter WORKER_ACTIVE_CLIENTS =
+        MetricsSystem.counter(MetricKey.WORKER_ACTIVE_CLIENTS.getName());
 
     /**
      * Registers metric gauges.

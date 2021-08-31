@@ -95,6 +95,16 @@ master:
   # JVM options specific to the master container
   jvmOptions:
   nodeSelector: {}
+  readinessProbe:
+    initialDelaySeconds: 10
+    periodSeconds: 10
+    timeoutSeconds: 1
+    failureThreshold: 3
+  livenessProbe:
+    initialDelaySeconds: 15
+    periodSeconds: 30
+    timeoutSeconds: 5
+    failureThreshold: 2
   tolerations: []
   podAnnotations: {}
   # The ServiceAccount provided here will have precedence over
@@ -119,6 +129,16 @@ jobMaster:
     web: 20002
   # JVM options specific to the jobMaster container
   jvmOptions:
+  readinessProbe:
+    initialDelaySeconds: 10
+    periodSeconds: 10
+    timeoutSeconds: 1
+    failureThreshold: 3
+  livenessProbe:
+    initialDelaySeconds: 15
+    periodSeconds: 30
+    timeoutSeconds: 5
+    failureThreshold: 2
 
 # Alluxio supports journal type of UFS and EMBEDDED
 # UFS journal with HDFS example
@@ -197,6 +217,16 @@ worker:
   # JVM options specific to the worker container
   jvmOptions:
   nodeSelector: {}
+  readinessProbe:
+    initialDelaySeconds: 10
+    periodSeconds: 10
+    timeoutSeconds: 1
+    failureThreshold: 3
+  livenessProbe:
+    initialDelaySeconds: 15
+    periodSeconds: 30
+    timeoutSeconds: 5
+    failureThreshold: 2
   tolerations: []
   podAnnotations: {}
   # The ServiceAccount provided here will have precedence over
@@ -226,6 +256,16 @@ jobWorker:
     web: 30003
   # JVM options specific to the jobWorker container
   jvmOptions:
+  readinessProbe:
+    initialDelaySeconds: 10
+    periodSeconds: 10
+    timeoutSeconds: 1
+    failureThreshold: 3
+  livenessProbe:
+    initialDelaySeconds: 15
+    periodSeconds: 30
+    timeoutSeconds: 5
+    failureThreshold: 2
 
 # Tiered Storage
 # emptyDir example
@@ -498,16 +538,17 @@ logserver:
 #     - "example1.com"
 #     - "example2.com"
 
-# kubernates CSI plugin
+# kubernetes CSI plugin
 csi:
   enabled: false
   image: alluxio/alluxio-csi
-  imageTag: 2.6.0-SNAPSHOT
+  imageTag: 2.7.0-SNAPSHOT
   imagePullPolicy: IfNotPresent
   controllerPlugin:
     hostNetwork: true
+    dnsPolicy: ClusterFirstWithHostNet
     provisioner:
-      # for kubernates 1.13 or above
+      # for kubernetes 1.13 or above
       image: quay.io/k8scsi/csi-provisioner:v1.4.0
       resources:
         limits:
@@ -527,6 +568,7 @@ csi:
   # Will run fuse daemon inside csi nodeserver
   nodePlugin:
     hostNetwork: true
+    dnsPolicy: ClusterFirstWithHostNet
     nodeserver:
       resources:
         # The default xmx is 8G
@@ -544,7 +586,7 @@ csi:
           memory: 100Mi
         requests:
           cpu: 10m
-        memory: 20Mi
+          memory: 20Mi
 
   # for csi client
   clientEnabled: false

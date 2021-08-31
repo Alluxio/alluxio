@@ -224,7 +224,8 @@ public class MetricsStore {
             long total =
                 MetricsSystem.counter(MetricKey.CLUSTER_BYTES_READ_DIRECT.getName()).getCount()
                 + MetricsSystem.counter(MetricKey.CLUSTER_BYTES_READ_REMOTE.getName()).getCount()
-                + MetricsSystem.counter(MetricKey.CLUSTER_BYTES_READ_DOMAIN.getName()).getCount();
+                + MetricsSystem.counter(MetricKey.CLUSTER_BYTES_READ_DOMAIN.getName()).getCount()
+                + MetricsSystem.counter(MetricKey.CLUSTER_BYTES_READ_LOCAL.getName()).getCount();
             if (total > 0) {
               return 1 - cacheMisses / (1.0 * total);
             }

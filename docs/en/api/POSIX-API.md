@@ -143,6 +143,12 @@ $ ${ALLUXIO_HOME}/integration/fuse/bin/alluxio-fuse unmount /mnt/people
 Unmount fuse at /mnt/people (PID:97626).
 ```
 
+By default, the `unmount` operation will wait for 120 seconds for any in-progress read/write operations to finish. If read/write operations haven't finished after 120 seconds, the fuse process will be forcibly killed which may cause read/write operations to fail. You can add `-s` to avoid the fuse process being killed if there are remaining in-progress read/write operations after the timeout. For example,
+
+```console
+$ ${ALLUXIO_HOME}/integration/fuse/bin/alluxio-fuse unmount -s /mnt/people
+```
+
 ### Check the Alluxio POSIX API mounting status
 
 To list the mount points; on the node where the file system is mounted run:

@@ -126,7 +126,7 @@ func (b *TemplateEngine) AssignNodesToCache(datasetUFSTotalBytes uint64) (expect
 	var (
 		nodeList                      *corev1.NodeList = &corev1.NodeList{}
 		totalAvailableClusterCapacity uint64           = 0
-		avaliblePerNode               uint64           = 0
+		availablePerNode              uint64           = 0
 		currentCachedCapacityBytes    uint64           = 0
 	)
 	// 0. The current cache capacity and worker number
@@ -166,12 +166,12 @@ func (b *TemplateEngine) AssignNodesToCache(datasetUFSTotalBytes uint64) (expect
 		}
 
 		// nodes = append(nodes, &node)
-		avaliblePerNode, err = b.GetAvailableStorageCapacityOfNode(node)
+		availablePerNode, err = b.GetAvailableStorageCapacityOfNode(node)
 		if err != nil {
 			return
 		}
 
-		if avaliblePerNode == 0 {
+		if availablePerNode == 0 {
 			b.Log.Info("Skip the node because its capacity is 0", "node", node.Name)
 			continue
 		}
@@ -179,7 +179,7 @@ func (b *TemplateEngine) AssignNodesToCache(datasetUFSTotalBytes uint64) (expect
 		var info NodeInfo = NodeInfo{
 			name: node.Name,
 			node: &node,
-			avaialbleStorageCapacity: avaliblePerNode,
+			availableStorageCapacity: availablePerNode,
 		}
 
 		// The node with taints will be skipped
@@ -189,10 +189,10 @@ func (b *TemplateEngine) AssignNodesToCache(datasetUFSTotalBytes uint64) (expect
 		}
 
 		nodeInfos = append(nodeInfos, info)
-		totalAvailableClusterCapacity += avaliblePerNode
+		totalAvailableClusterCapacity += availablePerNode
 		b.Log.V(1).Info("Node to add",
 			"node", node.Name,
-			"available storage", avaliblePerNode,
+			"available storage", availablePerNode,
 			"totalAvailableClusterCapacity", totalAvailableClusterCapacity)
 	}
 
@@ -334,6 +334,9 @@ func (b *TemplateEngine) labelCachedNode(selectedNode NodeInfo, needed uint64) (
 	err = retry.RetryOnConflict(retry.DefaultBackoff, func() error {
 		nodeName := selectedNode.GetName()
 		node, err := kubeclient.GetNode(b.Client, nodeName)
+		if node == nil {
+			return err
+		}
 		toUpdate := node.DeepCopy()
 		if toUpdate.Labels == nil {
 			toUpdate.Labels = make(map[string]string)
@@ -409,7 +412,7 @@ func (b *TemplateEngine) Setup(ctx common.ReconcileRequestContext) (ready bool, 
 
 	// 1. Setup Master
 	if shouldSetupMaster {
-		desriedNum, err := b.SetupMaster()
+		desiredNum, err := b.SetupMaster()
 		if err != nil {
 			b.Log.Error(err, "SetupMaster")
 			return ready, err
@@ -422,7 +425,7 @@ func (b *TemplateEngine) Setup(ctx common.ReconcileRequestContext) (ready bool, 
 				return err
 			}
 			runtimeToUpdate.Status.MasterPhase = data.RuntimePhaseNotReady
-			runtimeToUpdate.Status.DesiredMasterNumberScheduled = desriedNum
+			runtimeToUpdate.Status.DesiredMasterNumberScheduled = desiredNum
 			runtimeToUpdate.Status.ValueFileConfigmap = dataset.Name + "-" + b.Type() + "-values"
 			if len(runtimeToUpdate.Status.Conditions) == 0 {
 				runtimeToUpdate.Status.Conditions = []data.RuntimeCondition{}
@@ -487,7 +490,7 @@ func (b *TemplateEngine) Setup(ctx common.ReconcileRequestContext) (ready bool, 
 		return masterReady, err
 	}
 
-	// Update the conidtion of the runtime
+	// Update the condition of the runtime
 	err = retry.RetryOnConflict(retry.DefaultBackoff, func() error {
 		runtime, err := utils.GetRuntime(b.Client, b.Config.Name, b.Config.Namespace)
 		if err != nil {
@@ -527,7 +530,7 @@ func (b *TemplateEngine) Setup(ctx common.ReconcileRequestContext) (ready bool, 
 	}
 
 	if shouldSetupWorkers {
-		desriedNum, err := b.SetupWorkers(dataset)
+		desiredNum, err := b.SetupWorkers(dataset)
 		if err != nil {
 			b.Log.Error(err, "SetupWorker")
 			return ready, err
@@ -540,9 +543,9 @@ func (b *TemplateEngine) Setup(ctx common.ReconcileRequestContext) (ready bool, 
 			runtimeToUpdate := runtime.DeepCopy()
 
 			runtimeToUpdate.Status.WorkerPhase = data.RuntimePhaseNotReady
-			runtimeToUpdate.Status.DesiredWorkerNumberScheduled = desriedNum
+			runtimeToUpdate.Status.DesiredWorkerNumberScheduled = desiredNum
 			runtimeToUpdate.Status.FusePhase = data.RuntimePhaseNotReady
-			runtimeToUpdate.Status.DesiredFuseNumberScheduled = desriedNum
+			runtimeToUpdate.Status.DesiredFuseNumberScheduled = desiredNum
 			if len(runtimeToUpdate.Status.Conditions) == 0 {
 				runtimeToUpdate.Status.Conditions = []data.RuntimeCondition{}
 			}

@@ -17,8 +17,7 @@ import static org.junit.Assert.assertTrue;
 
 import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
-import alluxio.client.quota.CacheQuota;
-import alluxio.client.quota.CacheScope;
+import alluxio.client.file.CacheContext;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.util.io.BufferUtils;
@@ -33,6 +32,7 @@ import java.util.HashMap;
  */
 public final class CacheManagerWithShadowCacheTest {
   private static final int PAGE_SIZE_BYTES = Constants.KB;
+  private static final int BLOOMFILTER_NUM = 4;
   private static final PageId PAGE_ID1 = new PageId("0L", 0L);
   private static final PageId PAGE_ID2 = new PageId("1L", 1L);
   private static final byte[] PAGE1 = BufferUtils.getIncreasingByteArray(PAGE_SIZE_BYTES);
@@ -44,6 +44,7 @@ public final class CacheManagerWithShadowCacheTest {
   @Before
   public void before() throws Exception {
     mConf.set(PropertyKey.USER_CLIENT_CACHE_SHADOW_WINDOW, "20s");
+    mConf.set(PropertyKey.USER_CLIENT_CACHE_SHADOW_BLOOMFILTER_NUM, BLOOMFILTER_NUM);
     mCacheManager = new CacheManagerWithShadowCache(new KVCacheManager(), mConf);
     mCacheManager.stopUpdate();
   }
@@ -130,10 +131,26 @@ public final class CacheManagerWithShadowCacheTest {
   }
 
   @Test
-  public void getExist() throws Exception {
+  public void getExistInWindow() throws Exception {
     mCacheManager.put(PAGE_ID1, PAGE1);
     assertEquals(PAGE_SIZE_BYTES, mCacheManager.get(PAGE_ID1, PAGE1.length, mBuf, 0));
     assertArrayEquals(PAGE1, mBuf);
+    assertEquals(mCacheManager.getShadowCacheBytes(), PAGE1.length);
+  }
+
+  @Test
+  public void getExistInRollingWindow() throws Exception {
+    mCacheManager.put(PAGE_ID1, PAGE1);
+    for (int i = 0; i < BLOOMFILTER_NUM; i++) {
+      mCacheManager.switchBloomFilter();
+    }
+    mCacheManager.put(PAGE_ID2, PAGE1);
+    //PAGE_ID1 is evicted, only PAGE_ID2 in the shadow cache
+    assertEquals(mCacheManager.getShadowCacheBytes(), PAGE2.length);
+    //PAGE_ID1 is not in the shadow cache but still in the normal cache
+    assertEquals(PAGE_SIZE_BYTES, mCacheManager.get(PAGE_ID1, PAGE1.length, mBuf, 0));
+    //PAGE_ID1 is added to the shadow cache again by 'get'
+    assertEquals(mCacheManager.getShadowCacheBytes(), PAGE1.length + PAGE2.length);
   }
 
   @Test
@@ -167,7 +184,7 @@ public final class CacheManagerWithShadowCacheTest {
     private final HashMap<PageId, byte[]> mCache = new HashMap<>();
 
     @Override
-    public boolean put(PageId pageId, byte[] page, CacheScope cacheScope, CacheQuota cacheQuota) {
+    public boolean put(PageId pageId, byte[] page, CacheContext cacheContext) {
       if (!mCache.containsKey(pageId)) {
         mCache.put(pageId, page);
       }
@@ -176,7 +193,7 @@ public final class CacheManagerWithShadowCacheTest {
 
     @Override
     public int get(PageId pageId, int pageOffset, int bytesToRead, byte[] buffer,
-        int offsetInBuffer) {
+        int offsetInBuffer, CacheContext cacheContext) {
       if (!mCache.containsKey(pageId)) {
         return 0;
       }

@@ -119,6 +119,51 @@ If `alluxio.user.app.id` is configured, multiple clients can be combined into a 
 {% endfor %}
 </table>
 
+## Fuse Metrics
+
+Fuse is a long-running Alluxio client. 
+Depending on the launching ways, Fuse metrics show as
+* client metrics when Fuse client is launching in a standalone AlluxioFuse process.
+* worker metrics when Fuse client is embedded in the AlluxioWorker process.
+
+<table class="table table-striped">
+<tr><th>Name</th><th>Type</th><th>Description</th></tr>
+{% for item in site.data.table.fuse-metrics %}
+  <tr>
+    <td><a class="anchor" name="{{ item.metricName }}"></a> {{ item.metricName }}</td>
+    <td>{{ item.metricType }}</td>
+    <td>{{ site.data.table.en.fuse-metrics[item.metricName] }}</td>
+  </tr>
+{% endfor %}
+</table>
+
+When a user or an application runs a filesystem command under Fuse mount point, 
+this command will be processed and translated by operating system which will trigger the related Fuse operations
+exposed in [AlluxioFuse](https://github.com/Alluxio/alluxio/blob/db01aae966849e88d342a71609ab3d910215afeb/integration/fuse/src/main/java/alluxio/fuse/AlluxioJniFuseFileSystem.java).
+The count of how many times each operation is called, and the duration of each call will be recorded with metrics name `Fuse.<FUSE_OPERATION_NAME>` dynamically.
+
+The important Fuse metrics include:
+| Metric Name | Description |
+|-------------------------|-----------------------------------------------------|
+| Fuse.readdir | The duration metrics of listing a directory |
+| Fuse.getattr | The duration metrics of getting the metadata of a file |
+| Fuse.open | The duration metrics of opening a file for read |
+| Fuse.read | The duration metrics of reading a part of a file |
+| Fuse.create | The duration metrics of creating a file for write |
+| Fuse.write | The duration metrics of writing a file |
+| Fuse.release | The duration metrics of closing a file after read or write. Note that release is async so fuse threads will not wait for release to finish |
+| Fuse.mkdir | The duration metrics of creating a directory |
+| Fuse.unlink | The duration metrics of removing a file or a directory |
+| Fuse.rename | The duration metrics of renaming a file or a directory |
+| Fuse.chmod | The duration metrics of modifying the mode of a file or a directory |
+| Fuse.chown | The duration metrics of modifying the user and/or group ownership of a file or a directory |
+
+Fuse related metrics include:
+* Worker metrics with `Direct` keyword. When Fuse is embedded in worker process, it can go through worker internal API to read from / write to this worker.
+The related metrics are ended with `Direct`. For example, `Worker.BytesReadDirect` shows how many bytes are served by this worker to its embedded Fuse client for read.
+* If `alluxio.user.block.read.metrics.enabled=true` is configured, `Client.BlockReadChunkRemote` will be recorded. 
+This metric shows the duration statistics of reading data from remote workers via gRPC.
+
 ## Process Common Metrics
 
 The following metrics are collected on each instance (Master, Worker or Client).

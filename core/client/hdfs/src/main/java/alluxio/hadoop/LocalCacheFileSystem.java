@@ -139,7 +139,7 @@ public class LocalCacheFileSystem extends org.apache.hadoop.fs.FileSystem {
         .setGroup(externalFileStatus.getGroup());
     // FilePath is a unique identifier for a file, however it can be a long string
     // hence using md5 hash of the file path as the identifier in the cache.
-    CacheContext context = new CacheContext().setCacheIdentifier(
+    CacheContext context = CacheContext.defaults().setCacheIdentifier(
         md5().hashString(externalFileStatus.getPath().toString(), UTF_8).toString());
     URIStatus status = new URIStatus(info, context);
     return open(status, bufferSize);

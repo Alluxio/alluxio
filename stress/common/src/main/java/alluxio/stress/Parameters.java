@@ -13,7 +13,11 @@ package alluxio.stress;
 
 import alluxio.AlluxioURI;
 import alluxio.collections.Pair;
+import alluxio.util.JsonSerializable;
 
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.fasterxml.jackson.annotation.JsonTypeInfo.As;
+import com.fasterxml.jackson.annotation.JsonTypeInfo.Id;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.type.MapType;
@@ -35,6 +39,7 @@ import java.util.stream.Collectors;
 /**
  * Abstract class for parameters of stress tests.
  */
+@JsonTypeInfo(use = Id.CLASS, include = As.PROPERTY, property = JsonSerializable.CLASS_NAME_FIELD)
 public abstract class Parameters {
   private static final Logger LOG = LoggerFactory.getLogger(Parameters.class);
 

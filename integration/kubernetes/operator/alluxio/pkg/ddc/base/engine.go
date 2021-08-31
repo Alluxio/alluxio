@@ -33,7 +33,7 @@ type Engine interface {
 	// Schedule the Kubernetes nodes to run the cache system
 	// 1. Order the nodes by memory capacity, from the largest
 	AssignNodesToCache(datasetUFSTotalBytes uint64) (desiredNum uint32, err error)
-	// update the status of rutime
+	// update the status of runtime
 	UpdateRuntimeStatus(runtime *data.Runtime) (ready bool, err error)
 	// update the status of worker
 	UpdateCacheStateOfDataset() (err error)
@@ -74,7 +74,7 @@ type Implement interface {
 	SetupMaster() (desiredNum uint32, err error)
 	// setup the cache worker
 	SetupWorkers(dataset *data.Dataset) (desiredNum uint32, err error)
-	// update the status of rutime
+	// update the status of runtime
 	UpdateRuntimeStatus(runtime *data.Runtime) (ready bool, err error)
 	// update the status of worker
 	// UpdateCacheStateOfDataset() (err error)
@@ -82,7 +82,7 @@ type Implement interface {
 	PrepareUFS() (err error)
 	// Set the Runtime Max Memory
 	SetRuntimeMaxMemory(nodeName string, humanReadableMax string) (err error)
-	// Get the current cached capaicty and the workers number
+	// Get the current cached capacity and the workers number
 	GetCurrentCachedCapacity() (totalCapacity uint64, workerNum uint32, err error)
 
 	// Preload the data in the Cache System

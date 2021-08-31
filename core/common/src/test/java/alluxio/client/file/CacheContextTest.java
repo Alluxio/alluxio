@@ -14,6 +14,7 @@ package alluxio.client.file;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 
+import alluxio.client.hive.HiveCacheContext;
 import alluxio.client.quota.CacheQuota;
 import alluxio.client.quota.CacheScope;
 
@@ -23,20 +24,23 @@ public class CacheContextTest {
 
   @Test
   public void defaults() {
-    CacheContext defaultContext = new CacheContext();
+    CacheContext defaultContext = CacheContext.defaults();
     assertEquals(CacheQuota.UNLIMITED, defaultContext.getCacheQuota());
     assertEquals(CacheScope.GLOBAL, defaultContext.getCacheScope());
     assertNull(defaultContext.getCacheIdentifier());
+    assertNull(defaultContext.getHiveCacheContext());
   }
 
   @Test
   public void setters() {
-    CacheContext context = new CacheContext()
+    CacheContext context = CacheContext.defaults()
         .setCacheQuota(new CacheQuota())
         .setCacheScope(CacheScope.create("db.table"))
-        .setCacheIdentifier("1234");
+        .setCacheIdentifier("1234")
+        .setHiveCacheContext(new HiveCacheContext("db", "tb", "partition"));
     assertEquals(new CacheQuota(), context.getCacheQuota());
     assertEquals(CacheScope.create("db.table"), context.getCacheScope());
     assertEquals("1234", context.getCacheIdentifier());
+    assertEquals(new HiveCacheContext("db", "tb", "partition"), context.getHiveCacheContext());
   }
 }

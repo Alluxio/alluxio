@@ -119,6 +119,9 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-jar-plugin</artifactId>
+        <configuration>
+          <forceCreation>true</forceCreation>
+        </configuration>
         <executions>
           <execution>
             <id>empty-javadoc-jar</id>
@@ -146,6 +149,9 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-source-plugin</artifactId>
+        <configuration>
+          <forceCreation>true</forceCreation>
+        </configuration>
         <executions>
           <execution>
             <id>attach-sources</id>
@@ -181,9 +187,9 @@
                   <exclude>commons-logging:commons-logging</exclude>
                   <!-- Leave log4j unshaded so downstream users can configure logging -->
                   <exclude>log4j:log4j</exclude>
-                  <exclude>org.apache.logging.log4j:log4j-api</exclude>  
-                  <exclude>org.apache.logging.log4j:log4j-core</exclude> 
-                  <exclude>org.apache.logging.log4j:log4j-slf4j-impl</exclude> 
+                  <exclude>org.apache.logging.log4j:log4j-api</exclude>
+                  <exclude>org.apache.logging.log4j:log4j-core</exclude>
+                  <exclude>org.apache.logging.log4j:log4j-slf4j-impl</exclude>
                 </excludes>
               </artifactSet>
               <filters>

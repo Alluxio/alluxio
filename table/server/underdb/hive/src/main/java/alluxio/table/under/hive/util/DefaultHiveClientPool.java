@@ -17,7 +17,6 @@ import static alluxio.conf.PropertyKey.TABLE_UDB_HIVE_CLIENTPOOL_MIN;
 import alluxio.Constants;
 import alluxio.conf.ServerConfiguration;
 import alluxio.resource.CloseableResource;
-import alluxio.resource.DynamicResourcePool;
 import alluxio.util.ThreadFactoryUtils;
 
 import org.apache.hadoop.hive.conf.HiveConf;
@@ -37,7 +36,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * A pool for hive clients, since hive clients are not thread safe.
  */
 @ThreadSafe
-public final class HiveClientPool extends DynamicResourcePool<IMetaStoreClient> {
+public final class DefaultHiveClientPool extends AbstractHiveClientPool {
   private static final ScheduledExecutorService GC_EXECUTOR =
       new ScheduledThreadPoolExecutor(1, ThreadFactoryUtils.build("HiveClientPool-GC-%d", true));
   private static final HiveMetaHookLoader NOOP_HOOK = table -> null;
@@ -50,7 +49,7 @@ public final class HiveClientPool extends DynamicResourcePool<IMetaStoreClient> 
    *
    * @param connectionUri the connect uri for the hive metastore
    */
-  public HiveClientPool(String connectionUri) {
+  public DefaultHiveClientPool(String connectionUri) {
     super(Options.defaultOptions()
         .setMinCapacity(ServerConfiguration.getInt(TABLE_UDB_HIVE_CLIENTPOOL_MIN))
         .setMaxCapacity(ServerConfiguration.getInt(TABLE_UDB_HIVE_CLIENTPOOL_MAX))
@@ -101,9 +100,7 @@ public final class HiveClientPool extends DynamicResourcePool<IMetaStoreClient> 
         .getLastAccessTimeMs() > mGcThresholdMs;
   }
 
-  /**
-   * @return a closeable resource for the hive client
-   */
+  @Override
   public CloseableResource<IMetaStoreClient> acquireClientResource() throws IOException {
     return new CloseableResource<IMetaStoreClient>(acquire()) {
       @Override

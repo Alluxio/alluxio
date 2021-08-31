@@ -95,11 +95,6 @@ public class TestBlockInStream extends BlockInStream {
     }
 
     @Override
-    public boolean isShortCircuit() {
-      return mShortCircuit;
-    }
-
-    @Override
     public void close() {}
   }
 }
