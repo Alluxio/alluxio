@@ -968,8 +968,6 @@ public class RaftJournalSystem extends AbstractJournalSystem {
         }
       }).start();
       LOG.info("Transferring leadership initiated");
-    } catch (Throwable t) {
-      throw new IOException(t);
     }
   }
 

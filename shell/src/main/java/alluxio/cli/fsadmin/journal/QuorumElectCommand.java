@@ -22,12 +22,12 @@ import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.NetAddress;
 import alluxio.master.MasterInquireClient;
 import alluxio.util.CommonUtils;
+import alluxio.util.WaitForOptions;
 
 import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Options;
 
-import java.io.IOException;
 import java.net.InetSocketAddress;
 
 /**
@@ -39,8 +39,6 @@ public class QuorumElectCommand extends AbstractFsAdminCommand {
 
   public static final String TRANSFER_SUCCESS = "Transferred leadership to server: %s";
   public static final String TRANSFER_FAILED = "Leadership was not transferred to %s: %s";
-  public static final String RESET_SUCCESS = "Quorum priorities were reset to 1";
-  public static final String RESET_FAILED = "Quorum priorities failed to be reset: %s";
 
   private final AlluxioConfiguration mConf;
 
@@ -62,43 +60,31 @@ public class QuorumElectCommand extends AbstractFsAdminCommand {
   }
 
   @Override
-  public int run(CommandLine cl) throws IOException {
+  public int run(CommandLine cl) {
     JournalMasterClient jmClient = mMasterJournalMasterClient;
     String serverAddress = cl.getOptionValue(ADDRESS_OPTION_NAME);
-    NetAddress address = QuorumCommand.stringToAddress(serverAddress);
-
-    jmClient.transferLeadership(address);
-
     MasterInquireClient inquireClient = MasterInquireClient.Factory
             .create(mConf, FileSystemContext.create(mConf).getClientContext().getUserState());
-    boolean success = true;
-    // wait for confirmation of leadership transfer
     try {
-      CommonUtils.waitFor("Waiting for leadership transfer to finalize", () -> {
-        InetSocketAddress leaderAddress;
+      NetAddress address = QuorumCommand.stringToAddress(serverAddress);
+      jmClient.transferLeadership(address);
+      // wait for confirmation of leadership transfer
+      final int TIMEOUT_3MIN = 3 * 60 * 1000; // in milliseconds
+      CommonUtils.waitFor("Waiting for election to finalize", () -> {
         try {
-          leaderAddress = inquireClient.getPrimaryRpcAddress();
+          InetSocketAddress leaderAddress = inquireClient.getPrimaryRpcAddress();
+          return leaderAddress.getHostName().equals(address.getHost());
         } catch (UnavailableException e) {
           return false;
         }
-        return leaderAddress.getHostName().equals(address.getHost());
-      });
+      }, WaitForOptions.defaults().setTimeoutMs(TIMEOUT_3MIN));
+
       mPrintStream.println(String.format(TRANSFER_SUCCESS, serverAddress));
+      return 0;
     } catch (Exception e) {
-      success = false;
-      mPrintStream.println(String.format(TRANSFER_FAILED, serverAddress, e));
+      mPrintStream.println(String.format(TRANSFER_FAILED, serverAddress, e.getMessage()));
+      return -1;
     }
-    // Resetting RaftPeer priorities using a separate RPC because the old leader has shut down
-    // its RPC server. We want to reset them regardless of transfer success because the original
-    // setting of priorities may have succeeded while the transfer might not have.
-    try {
-      jmClient.resetPriorities();
-      mPrintStream.println(RESET_SUCCESS);
-    } catch (Exception e) {
-      success = false;
-      mPrintStream.println(String.format(RESET_FAILED, e));
-    }
-    return success ? 0 : -1;
   }
 
   @Override
