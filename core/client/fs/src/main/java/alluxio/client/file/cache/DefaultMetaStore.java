@@ -68,11 +68,13 @@ public class DefaultMetaStore implements MetaStore {
   @Override
   public void addFile(String fileId, FileInfo fileInfo) {
     mFileMap.put(fileId, fileInfo);
+    Metrics.FILES.inc();
   }
 
   @Override
   public void removeFile(String fileId) {
     mFileMap.remove(fileId);
+    Metrics.FILES.dec();
   }
 
   @Override
@@ -168,5 +170,8 @@ public class DefaultMetaStore implements MetaStore {
     /** Pages stored in the cache. */
     private static final Counter PAGES =
         MetricsSystem.counter(MetricKey.CLIENT_CACHE_PAGES.getName());
+    /** Files stored in the cache. */
+    private static final Counter FILES =
+        MetricsSystem.counter(MetricKey.CLIENT_CACHE_FILES.getName());
   }
 }
