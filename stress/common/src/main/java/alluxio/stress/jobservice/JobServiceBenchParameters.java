@@ -30,8 +30,7 @@ import java.util.Map;
 public final class JobServiceBenchParameters extends Parameters {
 
   @Parameter(names = {"--operation"},
-      description = "the operation to perform. Options are [CreateFile, GetBlockLocations, "
-          + "GetFileStatus, OpenFile, CreateDir, ListDir, ListDirLocated, RenameFile, DeleteFile]",
+      description = "the operation to perform. Options are [DistributedLoad]",
       converter = OperationConverter.class,
       required = true)
   public JobServiceBenchOperation mOperation;
@@ -43,8 +42,7 @@ public final class JobServiceBenchParameters extends Parameters {
   @Parameter(names = {"--num-dirs"}, description = "the number of directories")
   public int mNumDirs = 256;
 
-  @Parameter(names = {"--files-per-dir"},
-      description = "the number of files in each directory.")
+  @Parameter(names = {"--files-per-dir"}, description = "the number of files in each directory.")
   public int mNumFilesPerDir = 1000;
 
   @Parameter(names = {"--scalability-mode"},

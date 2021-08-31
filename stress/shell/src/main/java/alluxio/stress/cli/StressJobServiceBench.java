@@ -20,43 +20,32 @@ import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.job.JobMasterClient;
 import alluxio.conf.InstancedConfiguration;
-import alluxio.conf.ServerConfiguration;
 import alluxio.exception.AlluxioException;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.DeletePOptions;
 import alluxio.grpc.WritePType;
-import alluxio.job.wire.JobInfo;
-import alluxio.job.wire.Status;
 import alluxio.stress.BaseParameters;
 import alluxio.stress.StressConstants;
 import alluxio.stress.jobservice.JobServiceBenchParameters;
 import alluxio.stress.jobservice.JobServiceBenchTaskResult;
 import alluxio.stress.jobservice.JobServiceBenchTaskResultStatistics;
-import alluxio.stress.master.MasterBenchTaskResultStatistics;
 import alluxio.util.CommonUtils;
 import alluxio.util.ConfigurationUtils;
 import alluxio.util.FormatUtils;
 import alluxio.util.executor.ExecutorServiceFactories;
-import alluxio.util.io.BufferUtils;
 import alluxio.worker.job.JobMasterClientContext;
 
 import com.beust.jcommander.ParametersDelegate;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.HdrHistogram.Histogram;
-
-import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -89,11 +78,12 @@ public class StressJobServiceBench extends Benchmark<JobServiceBenchTaskResult> 
         FileSystemContext.create(new InstancedConfiguration(ConfigurationUtils.defaults()));
     FileSystem fileSystem = FileSystem.Factory.create(fsContext);
     long start = CommonUtils.getCurrentMs();
-    deletePaths(fileSystem,mParameters.mBasePath);
+    deleteBasePath(fileSystem);
     long end = CommonUtils.getCurrentMs();
     LOG.info("Cleanup delete took: {} s", (end - start) / 1000.0);
 
-    createFiles(fileSystem,mParameters.mNumFilesPerDir, mParameters.mNumDirs, mParameters.mFileSize);
+    createFiles(fileSystem, mParameters.mNumFilesPerDir, mParameters.mNumDirs,
+        mParameters.mFileSize);
   }
 
   private void createFiles(FileSystem fs, int numFiles, int numDirs, int fileSize)
@@ -104,10 +94,11 @@ public class StressJobServiceBench extends Benchmark<JobServiceBenchTaskResult> 
       for (int fileId = 0; fileId < numFiles; fileId++) {
         String filePath =
             String.format("%s/%s/%d/%d", mParameters.mBasePath, mBaseParameters.mId, dirId, fileId);
-        createByteFile(fs,new AlluxioURI(filePath),options,fileSize);
+        createByteFile(fs, new AlluxioURI(filePath), options, fileSize);
       }
     }
   }
+
   private void createByteFile(FileSystem fs, AlluxioURI fileURI, CreateFilePOptions options,
       int len) throws IOException, AlluxioException {
     try (FileOutStream os = fs.createFile(fileURI, options)) {
@@ -119,9 +110,12 @@ public class StressJobServiceBench extends Benchmark<JobServiceBenchTaskResult> 
     }
   }
 
-  private void deletePaths(FileSystem fs, String basePath) throws IOException, AlluxioException {
-    DeletePOptions options = DeletePOptions.newBuilder().setRecursive(true).build();
-    fs.delete(new AlluxioURI(basePath),options);
+  private void deleteBasePath(FileSystem fs) throws IOException, AlluxioException {
+    AlluxioURI path = new AlluxioURI(mParameters.mBasePath);
+    if (fs.exists(path)) {
+      DeletePOptions options = DeletePOptions.newBuilder().setRecursive(true).build();
+      fs.delete(path, options);
+    }
   }
 
 
@@ -147,7 +141,8 @@ public class StressJobServiceBench extends Benchmark<JobServiceBenchTaskResult> 
     BenchContext context = new BenchContext(startMs, endMs);
     List<Callable<Void>> callables = new ArrayList<>(mParameters.mNumDirs);
     for (int dirId = 0; dirId < mParameters.mNumDirs; dirId++) {
-      String filePath = String.format("%s/%s/%d", mParameters.mBasePath, mBaseParameters.mId, dirId);
+      String filePath =
+          String.format("%s/%s/%d", mParameters.mBasePath, mBaseParameters.mId, dirId);
       callables.add(new BenchThread(context, filePath));
     }
     service.invokeAll(callables, FormatUtils.parseTimeSize(mBaseParameters.mBenchTimeout),
@@ -202,21 +197,21 @@ public class StressJobServiceBench extends Benchmark<JobServiceBenchTaskResult> 
         mResult.addErrorMessage(e.getMessage());
       }
     }
+
     @SuppressFBWarnings(value = "DMI_HARDCODED_ABSOLUTE_FILENAME")
     public synchronized void addAdditionalResult() throws IOException {
       if (mResult == null) {
         return;
       }
       Map<String, MethodStatistics> nameStatistics =
-          processMethodProfiles(mResult.getRecordStartMs(), mResult.getEndMs(),
-              profileInput -> {
-                String method = profileInput.getMethod();
-                if (profileInput.getType().contains("RPC")) {
-                  final int classNameDivider = profileInput.getMethod().lastIndexOf(".");
-                  method = profileInput.getMethod().substring(classNameDivider + 1);
-                }
-                return profileInput.getType() + ":" + method;
-              });
+          processMethodProfiles(mResult.getRecordStartMs(), mResult.getEndMs(), profileInput -> {
+            String method = profileInput.getMethod();
+            if (profileInput.getType().contains("RPC")) {
+              final int classNameDivider = profileInput.getMethod().lastIndexOf(".");
+              method = profileInput.getMethod().substring(classNameDivider + 1);
+            }
+            return profileInput.getType() + ":" + method;
+          });
 
       for (Map.Entry<String, MethodStatistics> entry : nameStatistics.entrySet()) {
         final JobServiceBenchTaskResultStatistics stats = new JobServiceBenchTaskResultStatistics();
@@ -226,6 +221,7 @@ public class StressJobServiceBench extends Benchmark<JobServiceBenchTaskResult> 
         mResult.putStatisticsForMethod(entry.getKey(), stats);
       }
     }
+
     public synchronized JobServiceBenchTaskResult getResult() {
       return mResult;
     }
@@ -281,11 +277,11 @@ public class StressJobServiceBench extends Benchmark<JobServiceBenchTaskResult> 
       applyOperation(mPath);
       long endNs = System.nanoTime();
 
-        mResult.incrementNumSuccess(1);
+      mResult.incrementNumSuccess(1);
 
-        // record response times
-        long responseTimeNs = endNs - startNs;
-        mResponseTimeNs.recordValue(responseTimeNs);
+      // record response times
+      long responseTimeNs = endNs - startNs;
+      mResponseTimeNs.recordValue(responseTimeNs);
 
     }
 
@@ -294,10 +290,12 @@ public class StressJobServiceBench extends Benchmark<JobServiceBenchTaskResult> 
       switch (mParameters.mOperation) {
         case DISTRIBUTED_LOAD:
           // send distributed load task to job service and wait for result
+          int numReplication = 1;
           FileSystemContext fsContext =
               FileSystemContext.create(new InstancedConfiguration(ConfigurationUtils.defaults()));
           DistributedLoadCommand cmd = new DistributedLoadCommand(fsContext);
-          DistributedLoadUtils.distributedLoad(cmd, new AlluxioURI(dirPath), 1, new HashSet<>(),new HashSet<>(),new HashSet<>(),new HashSet<>());
+          DistributedLoadUtils.distributedLoad(cmd, new AlluxioURI(dirPath), numReplication,
+              new HashSet<>(), new HashSet<>(), new HashSet<>(), new HashSet<>());
           // wait for job complete
           return;
 
