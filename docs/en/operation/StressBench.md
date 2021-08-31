@@ -53,7 +53,7 @@ Common options are options that all benchmarks accept:
   Omit to use all available job workers.
 * `--cluster-start-delay`: specify the start delay before starting the benchmark, used to
   synchronize the jobs.
-* `--java-opts`: additional JVM options
+* `--java-opt`: additional JVM options
 * `--profile-agent`: profile agent to use during benchmark
 * `--bench-timeout`: the maximum time a benchmark should run for
 * `--help`: print usage, description and benchmark-specific options of a benchmark
