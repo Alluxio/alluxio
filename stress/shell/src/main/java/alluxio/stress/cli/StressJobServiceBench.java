@@ -49,7 +49,6 @@ import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * Job Service stress bench.
@@ -128,17 +127,14 @@ public class StressJobServiceBench extends Benchmark<JobServiceBenchTaskResult> 
   public JobServiceBenchTaskResult runLocal() throws Exception {
     ExecutorService service =
         ExecutorServiceFactories.fixedThreadPool("bench-thread", mParameters.mNumDirs).create();
-
     long timeOutMs = FormatUtils.parseTimeSize(mBaseParameters.mBenchTimeout);
-    long warmupMs = FormatUtils.parseTimeSize(mParameters.mWarmup);
     long startMs = mBaseParameters.mStartMs;
     if (mBaseParameters.mStartMs == BaseParameters.UNDEFINED_START_MS) {
       startMs = CommonUtils.getCurrentMs() + 1000;
     }
-    long endMs = startMs + warmupMs + timeOutMs;
     JobMasterClient client = JobMasterClient.Factory
         .create(JobMasterClientContext.newBuilder(ClientContext.create()).build());
-    BenchContext context = new BenchContext(startMs, endMs);
+    BenchContext context = new BenchContext(startMs);
     List<Callable<Void>> callables = new ArrayList<>(mParameters.mNumDirs);
     for (int dirId = 0; dirId < mParameters.mNumDirs; dirId++) {
       String filePath =
@@ -157,31 +153,21 @@ public class StressJobServiceBench extends Benchmark<JobServiceBenchTaskResult> 
 
   private final class BenchContext {
     private final long mStartMs;
-    private final long mEndMs;
-    private final AtomicLong mCounter;
 
     /**
      * The results. Access must be synchronized for thread safety.
      */
     private JobServiceBenchTaskResult mResult;
 
-    public BenchContext(long startMs, long endMs) {
+    public BenchContext(long startMs) {
       mStartMs = startMs;
-      mEndMs = endMs;
-      mCounter = new AtomicLong();
     }
 
     public long getStartMs() {
       return mStartMs;
     }
 
-    public long getEndMs() {
-      return mEndMs;
-    }
 
-    public AtomicLong getCounter() {
-      return mCounter;
-    }
 
     public synchronized void mergeThreadResult(JobServiceBenchTaskResult threadResult) {
       if (mResult == null) {
@@ -209,7 +195,6 @@ public class StressJobServiceBench extends Benchmark<JobServiceBenchTaskResult> 
             }
             return profileInput.getType() + ":" + method;
           });
-
       for (Map.Entry<String, MethodStatistics> entry : nameStatistics.entrySet()) {
         final JobServiceBenchTaskResultStatistics stats = new JobServiceBenchTaskResultStatistics();
         stats.encodeResponseTimeNsRaw(entry.getValue().getTimeNs());
@@ -244,24 +229,19 @@ public class StressJobServiceBench extends Benchmark<JobServiceBenchTaskResult> 
       } catch (Exception e) {
         mResult.addErrorMessage(e.getMessage());
       }
-
       // Update local thread result
       mResult.setEndMs(CommonUtils.getCurrentMs());
       mResult.getStatistics().encodeResponseTimeNsRaw(mResponseTimeNs);
       mResult.setParameters(mParameters);
       mResult.setBaseParameters(mBaseParameters);
-
       // merge local thread result with full result
       mContext.mergeThreadResult(mResult);
-
       return null;
     }
 
     private void runInternal() throws Exception {
       // When to start recording measurements
-      long recordMs = mContext.getStartMs() + FormatUtils.parseTimeSize(mParameters.mWarmup);
-      mResult.setRecordStartMs(recordMs);
-
+      mResult.setRecordStartMs(mContext.getStartMs());
       long waitMs = mContext.getStartMs() - CommonUtils.getCurrentMs();
       if (waitMs < 0) {
         throw new IllegalStateException(String.format(
@@ -294,7 +274,6 @@ public class StressJobServiceBench extends Benchmark<JobServiceBenchTaskResult> 
               new HashSet<>(), new HashSet<>(), new HashSet<>(), new HashSet<>());
           // wait for job complete
           return;
-
         default:
           throw new IllegalStateException("Unknown operation: " + mParameters.mOperation);
       }
