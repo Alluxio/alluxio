@@ -168,7 +168,6 @@ public class StressJobServiceBench extends Benchmark<JobServiceBenchTaskResult> 
     }
 
 
-
     public synchronized void mergeThreadResult(JobServiceBenchTaskResult threadResult) {
       if (mResult == null) {
         mResult = threadResult;
