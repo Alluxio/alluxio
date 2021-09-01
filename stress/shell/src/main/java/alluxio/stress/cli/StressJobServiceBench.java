@@ -56,9 +56,10 @@ import java.util.concurrent.atomic.AtomicLong;
  */
 public class StressJobServiceBench extends Benchmark<JobServiceBenchTaskResult> {
   private static final Logger LOG = LoggerFactory.getLogger(StressJobServiceBench.class);
-
+  public static final int MAX_RESPONSE_TIME_BUCKET_INDEX = 0;
   @ParametersDelegate
   private JobServiceBenchParameters mParameters = new JobServiceBenchParameters();
+
 
   /**
    * Creates instance.
@@ -79,11 +80,12 @@ public class StressJobServiceBench extends Benchmark<JobServiceBenchTaskResult> 
     FileSystem fileSystem = FileSystem.Factory.create(fsContext);
     long start = CommonUtils.getCurrentMs();
     deleteBasePath(fileSystem);
-    long end = CommonUtils.getCurrentMs();
-    LOG.info("Cleanup delete took: {} s", (end - start) / 1000.0);
-
+    long deleteEnd = CommonUtils.getCurrentMs();
+    LOG.info("Cleanup delete took: {} s", (deleteEnd - start) / 1000.0);
     createFiles(fileSystem, mParameters.mNumFilesPerDir, mParameters.mNumDirs,
         mParameters.mFileSize);
+    long createEnd = CommonUtils.getCurrentMs();
+    LOG.info("Create files took: {} s", (createEnd - deleteEnd) / 1000.0);
   }
 
   private void createFiles(FileSystem fs, int numFiles, int numDirs, int fileSize)
@@ -129,13 +131,13 @@ public class StressJobServiceBench extends Benchmark<JobServiceBenchTaskResult> 
     ExecutorService service =
         ExecutorServiceFactories.fixedThreadPool("bench-thread", mParameters.mNumDirs).create();
 
-    long durationMs = FormatUtils.parseTimeSize(mParameters.mDuration);
+    long timeOutMs = FormatUtils.parseTimeSize(mBaseParameters.mBenchTimeout);
     long warmupMs = FormatUtils.parseTimeSize(mParameters.mWarmup);
     long startMs = mBaseParameters.mStartMs;
     if (mBaseParameters.mStartMs == BaseParameters.UNDEFINED_START_MS) {
       startMs = CommonUtils.getCurrentMs() + 1000;
     }
-    long endMs = startMs + warmupMs + durationMs;
+    long endMs = startMs + warmupMs + timeOutMs;
     JobMasterClient client = JobMasterClient.Factory
         .create(JobMasterClientContext.newBuilder(ClientContext.create()).build());
     BenchContext context = new BenchContext(startMs, endMs);
@@ -145,8 +147,7 @@ public class StressJobServiceBench extends Benchmark<JobServiceBenchTaskResult> 
           String.format("%s/%s/%d", mParameters.mBasePath, mBaseParameters.mId, dirId);
       callables.add(new BenchThread(context, filePath));
     }
-    service.invokeAll(callables, FormatUtils.parseTimeSize(mBaseParameters.mBenchTimeout),
-        TimeUnit.MILLISECONDS);
+    service.invokeAll(callables, timeOutMs, TimeUnit.MILLISECONDS);
     service.shutdownNow();
     service.awaitTermination(30, TimeUnit.SECONDS);
     client.close();
@@ -276,13 +277,13 @@ public class StressJobServiceBench extends Benchmark<JobServiceBenchTaskResult> 
       long startNs = System.nanoTime();
       applyOperation(mPath);
       long endNs = System.nanoTime();
-
       mResult.incrementNumSuccess(1);
-
       // record response times
       long responseTimeNs = endNs - startNs;
       mResponseTimeNs.recordValue(responseTimeNs);
-
+      long[] maxResponseTimeNs = mResult.getStatistics().mMaxResponseTimeNs;
+      if (responseTimeNs > maxResponseTimeNs[MAX_RESPONSE_TIME_BUCKET_INDEX]) {
+        maxResponseTimeNs[MAX_RESPONSE_TIME_BUCKET_INDEX] = responseTimeNs;}
     }
 
     private void applyOperation(String dirPath) throws IOException, AlluxioException {

@@ -14,7 +14,6 @@ package alluxio.stress.jobservice;
 import alluxio.Constants;
 import alluxio.stress.StressConstants;
 import alluxio.stress.common.SummaryStatistics;
-import alluxio.stress.master.MasterBenchTaskResult;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.HdrHistogram.Histogram;
@@ -28,7 +27,7 @@ import java.util.zip.DataFormatException;
  */
 public class JobServiceBenchTaskResultStatistics {
   public long mNumSuccess;
-
+  public static final int MAX_RESPONSE_BUCKETS = 1;
   @SuppressFBWarnings(value = "EI_EXPOSE_REP2")
   public byte[] mResponseTimeNsRaw;
   @SuppressFBWarnings(value = "EI_EXPOSE_REP2")
@@ -39,7 +38,7 @@ public class JobServiceBenchTaskResultStatistics {
    */
   public JobServiceBenchTaskResultStatistics() {
     // Default constructor required for json deserialization
-    mMaxResponseTimeNs = new long[StressConstants.MAX_TIME_COUNT];
+    mMaxResponseTimeNs = new long[MAX_RESPONSE_BUCKETS];
     Arrays.fill(mMaxResponseTimeNs, -1);
   }
 
@@ -112,7 +111,7 @@ public class JobServiceBenchTaskResultStatistics {
               / Constants.MS_NANO;
     }
 
-    float[] maxResponseTimesMs = new float[StressConstants.MAX_TIME_COUNT];
+    float[] maxResponseTimesMs = new float[MAX_RESPONSE_BUCKETS];
     Arrays.fill(maxResponseTimesMs, -1);
     for (int i = 0; i < mMaxResponseTimeNs.length; i++) {
       maxResponseTimesMs[i] = (float) mMaxResponseTimeNs[i] / Constants.MS_NANO;

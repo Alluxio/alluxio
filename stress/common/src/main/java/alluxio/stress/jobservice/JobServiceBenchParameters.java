@@ -59,9 +59,6 @@ public final class JobServiceBenchParameters extends Parameters {
       description = "The size of a file for the Create op, allowed to be 0. (0, 1m, 2k, 8k, etc.)")
   public int mFileSize = 128;
 
-  @Parameter(names = {"--duration"},
-      description = "The length of time to run the benchmark. (1m, 10m, 60s, 10000ms, etc.)")
-  public String mDuration = "30s";
 
   @Parameter(names = {"--warmup"},
       description = "The length of time to warmup before recording measurements. (1m, 10m, 60s, "

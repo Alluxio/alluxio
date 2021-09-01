@@ -29,7 +29,6 @@ public final class JobServiceBenchTaskResult implements TaskResult {
   public long mNumSuccess;
   private long mRecordStartMs;
   private long mEndMs;
-  private long mDurationMs;
   private BaseParameters mBaseParameters;
   private JobServiceBenchParameters mParameters;
   private List<String> mErrors;
@@ -52,10 +51,8 @@ public final class JobServiceBenchTaskResult implements TaskResult {
    */
   public void merge(JobServiceBenchTaskResult result) throws Exception {
     mStatistics.merge(result.mStatistics);
-    mRecordStartMs = result.mRecordStartMs;
-    if (result.mEndMs > mEndMs) {
-      mEndMs = result.mEndMs;
-    }
+    mRecordStartMs = Math.min(mRecordStartMs, result.mRecordStartMs);
+    mEndMs = Math.max(mEndMs, result.mEndMs);
     mBaseParameters = result.mBaseParameters;
     mParameters = result.mParameters;
     mErrors.addAll(result.mErrors);
@@ -70,20 +67,6 @@ public final class JobServiceBenchTaskResult implements TaskResult {
         mStatisticsPerMethod.get(key).merge(value);
       }
     }
-  }
-
-  /**
-   * @return the duration (in ms)
-   */
-  public long getDurationMs() {
-    return mDurationMs;
-  }
-
-  /**
-   * @param durationMs the duration (in ms)
-   */
-  public void setDurationMs(long durationMs) {
-    mDurationMs = durationMs;
   }
 
   /**
