@@ -27,6 +27,8 @@ RUN if [ ${ENABLE_DYNAMIC_USER} = "true" ] ; then \
        chmod -R 777 /opt/* ; \
     fi
 
+ADD dockerfile-common.sh /
+
 # The following libfuse setup is modified from cheyang/fuse2:ubuntu1604-customize to be applied on alpine
 WORKDIR /
 
@@ -38,14 +40,7 @@ RUN \
   apk add --no-cache ca-certificates wget bash && \
   apk add --no-cache --virtual .build-deps \
   build-base pkgconfig eudev git gcc make cmake gettext-dev libtool autoconf automake && \
-  git clone https://github.com/cheyang/libfuse.git && \
-  cd libfuse && \
-  git checkout fuse_2_9_5_customize_multi_threads_no_logging && \
-  bash makeconf.sh && \
-  ./configure && \
-  make -j8 && \
-  make install && \
-  cd .. && \
+  ./dockerfile-common.sh install-libfuse
   rm -rf libfuse && \
   apk del --no-cache .build-deps
 
@@ -82,11 +77,7 @@ RUN if [ ${ALLUXIO_USERNAME} != "root" ] \
       addgroup --gid ${ALLUXIO_GID} ${ALLUXIO_GROUP} && \
       adduser --system --uid ${ALLUXIO_UID} -G ${ALLUXIO_GROUP} ${ALLUXIO_USERNAME} && \
       addgroup ${ALLUXIO_USERNAME} root && \
-      mkdir -p /journal && \
-      chown -R ${ALLUXIO_UID}:${ALLUXIO_GID} /journal && \
-      chmod -R g=u /journal && \
-      mkdir /mnt/alluxio-fuse && \
-      chown -R ${ALLUXIO_UID}:${ALLUXIO_GID} /mnt/alluxio-fuse; \
+      ./dockerfile-common.sh user-operation ${ALLUXIO_UID} ${ALLUXIO_GID}; \
     fi
 
 # Docker 19.03+ required to expand variables in --chown argument
@@ -95,10 +86,7 @@ COPY --chown=${ALLUXIO_USERNAME}:${ALLUXIO_GROUP} conf /opt/alluxio/conf/
 COPY --chown=${ALLUXIO_USERNAME}:${ALLUXIO_GROUP} entrypoint.sh /
 
 RUN if [ ${ENABLE_DYNAMIC_USER} = "true" ] ; then \
-       chmod -R 777 /journal; \
-       chmod -R 777 /mnt; \
-       # Enable user_allow_other option for fuse in non-root mode
-       echo "user_allow_other" >> /etc/fuse.conf; \
+       ./dockerfile-common.sh enable-dynamic-user; \
     fi
 
 USER ${ALLUXIO_UID}
