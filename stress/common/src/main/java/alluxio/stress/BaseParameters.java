@@ -23,6 +23,7 @@ import java.util.List;
 public final class BaseParameters {
   public static final String CLUSTER_FLAG = "--cluster";
   public static final String CLUSTER_LIMIT_FLAG = "--cluster-limit";
+  public static final String CLUSTER_START_DELAY_FLAG = "--cluster-start-delay";
   public static final String DISTRIBUTED_FLAG = "--distributed";
   public static final String ID_FLAG = "--id";
   public static final String IN_PROCESS_FLAG = "--in-process";
@@ -46,6 +47,12 @@ public final class BaseParameters {
           + " will run on all available cluster workers. If < 0, will run on the workers from the"
           + " end of the worker list. This flag is only used if " + CLUSTER_FLAG + " is enabled.")
   public int mClusterLimit = 0;
+
+  @Parameter(names = {CLUSTER_START_DELAY_FLAG},
+      description = "The start delay for the jobs to wait before starting the benchmark, "
+          + "used to synchronize the jobs. For example, --cluster-start-delay 10000ms,"
+              + "--cluster-start-delay 15s, --cluster-start-delay 2m")
+  public String mClusterStartDelay = "10s";
 
   @Parameter(names = {JAVA_OPT_FLAG},
       description = "The java options to add to the command line to for the task. This can be "
