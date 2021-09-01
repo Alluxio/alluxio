@@ -1864,5 +1864,11 @@ the memory consumed by the ramdisk combined with the JVM memory options
 It is recommended to allow for some overhead as memory may be consumed
 by other processes as well.
 
+**Aside:** There is currently an [open issue](https://github.com/Alluxio/alluxio/issues/12277)
+in Alluxio where Alluxio's interpretation of byte sizes differs from
+Kubernetes (due to Kubernetes distinguishing between "-bibytes").
+This is unlikely to cause `OOMKilled` errors unless you are operating on
+very tight memory margins.
+
   {% endcollapsible %}
 {% endaccordion %}
