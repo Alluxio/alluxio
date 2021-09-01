@@ -233,8 +233,9 @@ public class InodeTree implements DelegatingJournaled {
   public void initializeRoot(String owner, String group, Mode mode, JournalContext context)
       throws UnavailableException {
     if (mState.getRoot() == null) {
+      long directoryId = mDirectoryIdGenerator.getNewDirectoryId(context);
       MutableInodeDirectory root = MutableInodeDirectory.create(
-          mDirectoryIdGenerator.getNewDirectoryId(context), NO_PARENT, ROOT_INODE_NAME,
+          0, NO_PARENT, ROOT_INODE_NAME,
           CreateDirectoryContext
               .mergeFrom(CreateDirectoryPOptions.newBuilder().setMode(mode.toProto()))
               .setOwner(owner).setGroup(group));
