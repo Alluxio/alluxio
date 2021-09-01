@@ -13,8 +13,6 @@ package alluxio.stress.jobservice;
 
 import alluxio.stress.BaseParameters;
 import alluxio.stress.TaskResult;
-import alluxio.stress.master.MasterBenchSummary;
-import alluxio.stress.master.MasterBenchTaskResultStatistics;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -200,7 +198,8 @@ public final class JobServiceBenchTaskResult implements TaskResult {
    * @param method the name of the method to insert statistics for
    * @param statistics the statistics for the method
    */
-  public void putStatisticsForMethod(String method, JobServiceBenchTaskResultStatistics statistics) {
+  public void putStatisticsForMethod(String method,
+      JobServiceBenchTaskResultStatistics statistics) {
     mStatisticsPerMethod.put(method, statistics);
   }
 
@@ -209,9 +208,11 @@ public final class JobServiceBenchTaskResult implements TaskResult {
     return new Aggregator();
   }
 
-  private static final class Aggregator implements TaskResult.Aggregator<JobServiceBenchTaskResult> {
+  private static final class Aggregator
+      implements TaskResult.Aggregator<JobServiceBenchTaskResult> {
     @Override
-    public JobServiceBenchSummary aggregate(Iterable<JobServiceBenchTaskResult> results) throws Exception {
+    public JobServiceBenchSummary aggregate(Iterable<JobServiceBenchTaskResult> results)
+        throws Exception {
       List<String> nodes = new ArrayList<>();
       Map<String, List<String>> errors = new HashMap<>();
       JobServiceBenchTaskResult mergingTaskResult = null;

@@ -52,14 +52,13 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
- * Job Service stress bench
+ * Job Service stress bench.
  */
 public class StressJobServiceBench extends Benchmark<JobServiceBenchTaskResult> {
   private static final Logger LOG = LoggerFactory.getLogger(StressJobServiceBench.class);
   public static final int MAX_RESPONSE_TIME_BUCKET_INDEX = 0;
   @ParametersDelegate
   private JobServiceBenchParameters mParameters = new JobServiceBenchParameters();
-
 
   /**
    * Creates instance.
@@ -120,7 +119,6 @@ public class StressJobServiceBench extends Benchmark<JobServiceBenchTaskResult> 
     }
   }
 
-
   @Override
   public String getBenchDescription() {
     return "";
@@ -157,7 +155,6 @@ public class StressJobServiceBench extends Benchmark<JobServiceBenchTaskResult> 
     return context.getResult();
   }
 
-
   private final class BenchContext {
     private final long mStartMs;
     private final long mEndMs;
@@ -173,7 +170,6 @@ public class StressJobServiceBench extends Benchmark<JobServiceBenchTaskResult> 
       mEndMs = endMs;
       mCounter = new AtomicLong();
     }
-
 
     public long getStartMs() {
       return mStartMs;
@@ -227,7 +223,6 @@ public class StressJobServiceBench extends Benchmark<JobServiceBenchTaskResult> 
       return mResult;
     }
   }
-
 
   private final class BenchThread implements Callable<Void> {
     private final BenchContext mContext;
@@ -283,11 +278,11 @@ public class StressJobServiceBench extends Benchmark<JobServiceBenchTaskResult> 
       mResponseTimeNs.recordValue(responseTimeNs);
       long[] maxResponseTimeNs = mResult.getStatistics().mMaxResponseTimeNs;
       if (responseTimeNs > maxResponseTimeNs[MAX_RESPONSE_TIME_BUCKET_INDEX]) {
-        maxResponseTimeNs[MAX_RESPONSE_TIME_BUCKET_INDEX] = responseTimeNs;}
+        maxResponseTimeNs[MAX_RESPONSE_TIME_BUCKET_INDEX] = responseTimeNs;
+      }
     }
 
     private void applyOperation(String dirPath) throws IOException, AlluxioException {
-
       switch (mParameters.mOperation) {
         case DISTRIBUTED_LOAD:
           // send distributed load task to job service and wait for result

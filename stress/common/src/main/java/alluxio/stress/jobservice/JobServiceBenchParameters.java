@@ -13,15 +13,8 @@ package alluxio.stress.jobservice;
 
 import alluxio.stress.Parameters;
 
-import com.beust.jcommander.DynamicParameter;
 import com.beust.jcommander.IStringConverter;
 import com.beust.jcommander.Parameter;
-
-import java.lang.reflect.Array;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 /**
  * This holds all the parameters. All fields are public for easier json ser/de without all the
@@ -34,7 +27,6 @@ public final class JobServiceBenchParameters extends Parameters {
       converter = OperationConverter.class,
       required = true)
   public JobServiceBenchOperation mOperation;
-
 
   @Parameter(names = {"--clients"}, description = "the number of fs client instances to use")
   public int mClients = 1;
@@ -54,17 +46,14 @@ public final class JobServiceBenchParameters extends Parameters {
   @PathDescription(aliasFieldName = "mBaseAlias")
   public String mBasePath = "alluxio://localhost:19998/stress-job-service-base";
 
-
   @Parameter(names = {"--file-size"},
       description = "The size of a file for the Create op, allowed to be 0. (0, 1m, 2k, 8k, etc.)")
   public int mFileSize = 128;
-
 
   @Parameter(names = {"--warmup"},
       description = "The length of time to warmup before recording measurements. (1m, 10m, 60s, "
           + "10000ms, etc.)")
   public String mWarmup = "30s";
-
 
   /**
    * Converts from String to Operation instance.
