@@ -23,7 +23,6 @@ import com.google.common.base.Splitter;
 
 import java.text.DateFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -31,9 +30,10 @@ import java.util.stream.Collectors;
 import java.util.zip.DataFormatException;
 
 /**
- * The summary for the master stress tests.
+ * The summary for the job service stress tests.
  */
 public final class JobServiceBenchSummary implements Summary {
+  private long mDurationMs;
   private long mEndTimeMs;
   private JobServiceBenchParameters mParameters;
   private List<String> mNodes;
@@ -67,11 +67,12 @@ public final class JobServiceBenchSummary implements Summary {
       final JobServiceBenchTaskResultStatistics value = entry.getValue();
       mStatisticsPerMethod.put(key, value.toBenchSummaryStatistics());
     }
+    long startTimeMs = mergedTaskResults.getRecordStartMs();
     mEndTimeMs = mergedTaskResults.getEndMs();
     mParameters = mergedTaskResults.getParameters();
-    long duration = mergedTaskResults.getEndMs() - mergedTaskResults.getRecordStartMs();
-    mThroughput = ((float) mergedTaskResults.mNumSuccess * mParameters.mNumDirs
-        * mParameters.mNumFilesPerDir / duration) * 1000.0f;
+    mDurationMs = mEndTimeMs - startTimeMs;
+    mThroughput = ((float) mStatistics.mNumSuccess * mParameters.mNumDirs
+        * mParameters.mNumFilesPerDir / mDurationMs) * 1000.0f;
     mNodes = nodes;
     mErrors = errors;
   }
@@ -88,6 +89,20 @@ public final class JobServiceBenchSummary implements Summary {
    */
   public void setThroughput(float throughput) {
     mThroughput = throughput;
+  }
+
+  /**
+   * @return the duration (in ms)
+   */
+  public long getDurationMs() {
+    return mDurationMs;
+  }
+
+  /**
+   * @param durationMs the duration (in ms)
+   */
+  public void setDurationMs(long durationMs) {
+    mDurationMs = durationMs;
   }
 
   /**
@@ -169,8 +184,7 @@ public final class JobServiceBenchSummary implements Summary {
   /**
    * @param statisticsPerMethod the statistics per method map
    */
-  public void setStatisticsPerMethod(Map<String, SummaryStatistics>
-      statisticsPerMethod) {
+  public void setStatisticsPerMethod(Map<String, SummaryStatistics> statisticsPerMethod) {
     mStatisticsPerMethod = statisticsPerMethod;
   }
 

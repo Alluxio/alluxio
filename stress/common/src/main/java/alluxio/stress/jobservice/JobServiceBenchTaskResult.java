@@ -23,10 +23,9 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * The task result for the master stress tests.
+ * The task result for the job service stress tests.
  */
 public final class JobServiceBenchTaskResult implements TaskResult {
-  public long mNumSuccess;
   private long mRecordStartMs;
   private long mEndMs;
   private BaseParameters mBaseParameters;
