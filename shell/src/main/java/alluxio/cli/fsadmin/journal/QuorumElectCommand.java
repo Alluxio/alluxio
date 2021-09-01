@@ -111,12 +111,12 @@ public class QuorumElectCommand extends AbstractFsAdminCommand {
 
   @Override
   public String getCommandName() {
-    return "transferLeader";
+    return "elect";
   }
 
   @Override
   public String getUsage() {
-    return String.format("%s -%s <HostName:Port>", getCommandName(), ADDRESS_OPTION_NAME);
+    return String.format("%s -%s <HOSTNAME:PORT>", getCommandName(), ADDRESS_OPTION_NAME);
   }
 
   @Override
