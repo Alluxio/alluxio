@@ -9,13 +9,8 @@
 # See the NOTICE file distributed with this work for information regarding copyright ownership.
 #
 
-# Use a multi-stage build to include artifacts without using a chown
-# chown in bash nearly doubles the image size of the docker image.
-# See:
-# - https://stackoverflow.com/questions/30085621/why-does-chown-increase-size-of-docker-image
-# - https://github.com/moby/moby/issues/5505
-# - https://github.com/moby/moby/issues/6119
-FROM alpine:3.10.2 AS extractor
+# For production use, we use alpine as base image to minimize alluxio image size
+FROM alpine:3.10.2
 # Note that downloads for *-SNAPSHOT tarballs are not available
 ARG ALLUXIO_TARBALL=http://downloads.alluxio.io/downloads/files/2.7.0-SNAPSHOT/alluxio-2.7.0-SNAPSHOT-bin.tar.gz
 # (Alert):It's not recommended to set this Argument to true, unless you know exactly what you are doing
@@ -32,46 +27,45 @@ RUN if [ ${ENABLE_DYNAMIC_USER} = "true" ] ; then \
        chmod -R 777 /opt/* ; \
     fi
 
-# instead of ubuntu:16.04, use alluxio/alluxio-ubuntu:ubuntu1604-customize
-# applies optimizations in libfuse on top of ubuntu:16.04
-# it is based off cheyang/fuse2:ubuntu1604-customize
-FROM alluxio/alluxio-ubuntu:1604-customize
+# The following libfuse setup is modified from cheyang/fuse2:ubuntu1604-customize to be applied on alpine
+WORKDIR /
+
+ENV MAX_IDLE_THREADS "64"
+
+# wget depends on ca-certificates
+RUN \
+  apk update && apk upgrade && \
+  apk add --no-cache ca-certificates wget bash && \
+  apk add --no-cache --virtual .build-deps \
+  build-base pkgconfig eudev git gcc make cmake gettext-dev libtool autoconf automake && \
+  git clone https://github.com/cheyang/libfuse.git && \
+  cd libfuse && \
+  git checkout fuse_2_9_5_customize_multi_threads_no_logging && \
+  bash makeconf.sh && \
+  ./configure && \
+  make -j8 && \
+  make install && \
+  cd .. && \
+  rm -rf libfuse && \
+  apk del --no-cache .build-deps
+
+ENV LD_LIBRARY_PATH "/usr/local/lib:${LD_LIBRARY_PATH}"
+
 ARG ALLUXIO_USERNAME=alluxio
 ARG ALLUXIO_GROUP=alluxio
 ARG ALLUXIO_UID=1000
 ARG ALLUXIO_GID=1000
 ARG ENABLE_DYNAMIC_USER=true
 
-# Specify versions for known vulnerabilities reported by trivy scan
-# RUN apk --no-cache --update add bash libc6-compat shadow tini 'libbz2>=1.0.6-r7' 'sqlite-libs>=3.28.0-r3' && \
-#    rm -rf /var/cache/apk/*
-
-# Add Tini
+# Add Tini for Alluxio helm charts
 # - https://github.com/krallin/tini
 ENV TINI_VERSION v0.18.0
 ADD https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini /usr/local/bin/tini
 RUN chmod +x /usr/local/bin/tini
 
-RUN apt-get update && apt-get install -y --no-install-recommends software-properties-common && \
-  add-apt-repository -y ppa:openjdk-r/ppa && \
-  apt-get update && \
-  apt-get install -y --no-install-recommends openjdk-8-jdk openjdk-8-jre-headless unzip vim && \
-  apt-get clean && \
-  rm -rf /var/lib/apt/lists/*
+RUN apk add --no-cache openjdk8 openjdk8-jre-lib unzip vim
 
-# Install arthas(https://github.com/alibaba/arthas) for analyzing performance bottleneck
-RUN wget -qO /tmp/arthas.zip "http://maven.aliyun.com/repository/public/com/taobao/arthas/arthas-packaging/3.4.6/arthas-packaging-3.4.6-bin.zip" && \
-  mkdir -p /opt/arthas && \
-  unzip /tmp/arthas.zip -d /opt/arthas && \
-  rm /tmp/arthas.zip
-
-# Install async-profiler(https://github.com/jvm-profiling-tools/async-profiler/releases/tag/v1.8.3)
-RUN wget -qO /tmp/async-profiler-1.8.3-linux-x64.tar.gz "https://github.com/jvm-profiling-tools/async-profiler/releases/download/v1.8.3/async-profiler-1.8.3-linux-x64.tar.gz" && \
-  tar -xvf /tmp/async-profiler-1.8.3-linux-x64.tar.gz -C /opt && \
-  mv /opt/async-profiler-* /opt/async-profiler && \
-  rm /tmp/async-profiler-1.8.3-linux-x64.tar.gz
-
-ENV JAVA_HOME /usr/lib/jvm/java-8-openjdk-amd64
+ENV JAVA_HOME /usr/lib/jvm/java-1.8-openjdk
 
 # disable JVM DNS cache
 RUN echo "networkaddress.cache.ttl=0" >> ${JAVA_HOME}/jre/lib/security/java.security
@@ -86,8 +80,8 @@ RUN if [ ${ALLUXIO_USERNAME} != "root" ] \
     && [ ${ALLUXIO_UID} -ne 0 ] \
     && [ ${ALLUXIO_GID} -ne 0 ]; then \
       addgroup --gid ${ALLUXIO_GID} ${ALLUXIO_GROUP} && \
-      adduser --system --uid ${ALLUXIO_UID} --gid ${ALLUXIO_GID} ${ALLUXIO_USERNAME} && \
-      usermod -a -G root ${ALLUXIO_USERNAME} && \
+      adduser --system --uid ${ALLUXIO_UID} -G ${ALLUXIO_GROUP} ${ALLUXIO_USERNAME} && \
+      addgroup ${ALLUXIO_USERNAME} root && \
       mkdir -p /journal && \
       chown -R ${ALLUXIO_UID}:${ALLUXIO_GID} /journal && \
       chmod -R g=u /journal && \
@@ -97,7 +91,6 @@ RUN if [ ${ALLUXIO_USERNAME} != "root" ] \
 
 # Docker 19.03+ required to expand variables in --chown argument
 # https://github.com/moby/buildkit/pull/926#issuecomment-503943557
-COPY --chown=${ALLUXIO_USERNAME}:${ALLUXIO_GROUP} --from=extractor /opt/ /opt/
 COPY --chown=${ALLUXIO_USERNAME}:${ALLUXIO_GROUP} conf /opt/alluxio/conf/
 COPY --chown=${ALLUXIO_USERNAME}:${ALLUXIO_GROUP} entrypoint.sh /
 
