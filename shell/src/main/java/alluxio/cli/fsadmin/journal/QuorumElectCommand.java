@@ -28,6 +28,7 @@ import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Options;
 
+import java.io.IOException;
 import java.net.InetSocketAddress;
 
 /**
@@ -37,8 +38,8 @@ public class QuorumElectCommand extends AbstractFsAdminCommand {
 
   public static final String ADDRESS_OPTION_NAME = "address";
 
-  public static final String TRANSFER_SUCCESS = "Transferred leadership to server: %s";
-  public static final String TRANSFER_FAILED = "Leadership was not transferred to %s: %s";
+  public static final String TRANSFER_SUCCESS = "Successfully elected %s as new leader.";
+  public static final String TRANSFER_FAILED = "Election of %s failed: %s";
 
   private final AlluxioConfiguration mConf;
 
@@ -60,13 +61,13 @@ public class QuorumElectCommand extends AbstractFsAdminCommand {
   }
 
   @Override
-  public int run(CommandLine cl) {
+  public int run(CommandLine cl) throws IOException {
     JournalMasterClient jmClient = mMasterJournalMasterClient;
     String serverAddress = cl.getOptionValue(ADDRESS_OPTION_NAME);
+    NetAddress address = QuorumCommand.stringToAddress(serverAddress);
     MasterInquireClient inquireClient = MasterInquireClient.Factory
             .create(mConf, FileSystemContext.create(mConf).getClientContext().getUserState());
     try {
-      NetAddress address = QuorumCommand.stringToAddress(serverAddress);
       jmClient.transferLeadership(address);
       // wait for confirmation of leadership transfer
       final int TIMEOUT_3MIN = 3 * 60 * 1000; // in milliseconds

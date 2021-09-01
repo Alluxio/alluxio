@@ -170,6 +170,8 @@ public class RaftJournalSystem extends AbstractJournalSystem {
   private final RaftJournalConfiguration mConf;
   /** Controls whether state machine can take snapshots. */
   private final AtomicBoolean mSnapshotAllowed;
+  /** Controls whether or not the quorum leadership can be transferred. */
+  private final AtomicBoolean mTransferLeaderAllowed;
 
   private final Map<String, RatisDropwizardExports> mRatisMetricsMap =
       new ConcurrentHashMap<>();
@@ -234,6 +236,7 @@ public class RaftJournalSystem extends AbstractJournalSystem {
     mConf = processRaftConfiguration(conf);
     mJournals = new ConcurrentHashMap<>();
     mSnapshotAllowed = new AtomicBoolean(true);
+    mTransferLeaderAllowed = new AtomicBoolean(false);
     mPrimarySelector = new RaftPrimarySelector();
     mAsyncJournalWriter = new AtomicReference<>();
   }
@@ -467,6 +470,7 @@ public class RaftJournalSystem extends AbstractJournalSystem {
     mRaftJournalWriter = new RaftJournalWriter(nextSN, client);
     mAsyncJournalWriter
         .set(new AsyncJournalWriter(mRaftJournalWriter, () -> getJournalSinks(null)));
+    mTransferLeaderAllowed.set(true);
   }
 
   @Override
@@ -475,6 +479,7 @@ public class RaftJournalSystem extends AbstractJournalSystem {
       // Avoid duplicate shut down Ratis server
       return;
     }
+    mTransferLeaderAllowed.set(false);
     try {
       // Close async writer first to flush pending entries.
       mAsyncJournalWriter.get().close();
@@ -922,6 +927,12 @@ public class RaftJournalSystem extends AbstractJournalSystem {
    * @throws IOException if error occurred while performing the operation
    */
   public synchronized void transferLeadership(NetAddress newLeaderNetAddress) throws IOException {
+    final boolean allowed = mTransferLeaderAllowed.getAndSet(false);
+    if (!allowed) {
+      throw new IOException("transfer is not allowed at the moment because the master is "
+              + (mRaftJournalWriter == null ? "still gaining primacy" : "already transferring the"
+              + "leadership"));
+    }
     InetSocketAddress serverAddress = InetSocketAddress
             .createUnresolved(newLeaderNetAddress.getHost(), newLeaderNetAddress.getRpcPort());
     List<RaftPeer> oldPeers = new ArrayList<>(mRaftGroup.getPeers());
@@ -929,12 +940,13 @@ public class RaftJournalSystem extends AbstractJournalSystem {
     String strAddr = NetUtils.address2String(serverAddress);
     // if you cannot find the address in the quorum, throw exception.
     if (oldPeers.stream().map(RaftPeer::getAddress).noneMatch(addr -> addr.equals(strAddr))) {
+      mTransferLeaderAllowed.set(true);
       throw new IOException(String.format("<%s> is not part of the quorum <%s>.",
               strAddr, oldPeers.stream().map(RaftPeer::getAddress).collect(Collectors.toList())));
     }
 
     RaftPeerId newLeaderPeerId = RaftJournalUtils.getPeerId(serverAddress);
-    // --- the change in priorities seems to be necessary otherwise the transfer fails ---
+    /* update priorities to enable transfer */
     List<RaftPeer> peersWithNewPriorities = new ArrayList<>();
     for (RaftPeer peer : oldPeers) {
       peersWithNewPriorities.add(
@@ -943,17 +955,13 @@ public class RaftJournalSystem extends AbstractJournalSystem {
               .build()
       );
     }
-    // --- end of updating priorities ---
     try (RaftClient client = createClient()) {
       String stringPeers = "[" + peersWithNewPriorities.stream().map(RaftPeer::toString)
                       .collect(Collectors.joining(", ")) + "]";
       LOG.info("Applying new peer state before transferring leadership: {}", stringPeers);
-      // set peers to have new priorities
       RaftClientReply reply = client.admin().setConfiguration(peersWithNewPriorities);
       processReply(reply);
-      // transfer leadership
-      LOG.info("Transferring leadership to master with address <{}> and with RaftPeerId <{}>",
-              serverAddress, newLeaderPeerId);
+      /* transfer leadership */
       // fire and forget: need to immediately return as the master will shut down its RPC servers
       // once the TransferLeadershipRequest is initiated.
       final int SLEEP_TIME_MS = 3_000;
@@ -961,13 +969,22 @@ public class RaftJournalSystem extends AbstractJournalSystem {
       new Thread(() -> {
         try {
           Thread.sleep(SLEEP_TIME_MS);
-          client.admin().transferLeadership(newLeaderPeerId, TRANSFER_LEADER_WAIT_MS);
+          RaftClientReply reply1 = client.admin().transferLeadership(newLeaderPeerId,
+                  TRANSFER_LEADER_WAIT_MS);
+          processReply(reply1);
         } catch (Throwable t) {
-          LOG.error("caught an error: {}", t.getMessage());
+          LOG.error("caught an error when executing transfer: {}", t.getMessage());
+          // we only allow transfers again if the transfer is unsuccessful: a success means it
+          // will soon lose primacy
+          mTransferLeaderAllowed.set(true);
           /* checking the transfer happens in {@link QuorumElectCommand} */
         }
       }).start();
-      LOG.info("Transferring leadership initiated");
+      LOG.info("Transferring leadership to master with address <{}> and with RaftPeerId <{}> "
+              + "initiated", serverAddress, newLeaderPeerId);
+    } catch (IOException ioe) {
+      mTransferLeaderAllowed.set(true);
+      throw ioe;
     }
   }
 
@@ -976,6 +993,7 @@ public class RaftJournalSystem extends AbstractJournalSystem {
    * @throws IOException
    */
   private void processReply(RaftClientReply reply) throws IOException {
+    // RaftException extends IOException
     if (!reply.isSuccess()) {
       throw reply.getException() != null
               ? reply.getException()
