@@ -110,4 +110,3 @@ WORKDIR /opt/alluxio
 ENV PATH="/opt/alluxio/bin:${PATH}"
 
 ENTRYPOINT ["/entrypoint.sh"]
-
