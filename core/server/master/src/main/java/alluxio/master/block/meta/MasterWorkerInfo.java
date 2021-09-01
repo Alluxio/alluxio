@@ -99,7 +99,7 @@ public final class MasterWorkerInfo {
   /** Worker's last updated time in ms. */
   private final AtomicLong mLastUpdatedTimeMs;
   /** Worker metadata, this field is thread safe. */
-  private final StaticWorkerMeta mMeta;
+  public final StaticWorkerMeta mMeta;
 
   /** If true, the worker is considered registered. */
   @GuardedBy("mStatusLock")
@@ -109,16 +109,17 @@ public final class MasterWorkerInfo {
 
   /** Worker usage data. */
   @GuardedBy("mUsageLock")
-  private final WorkerUsageMeta mUsage;
+  public final WorkerUsageMeta mUsage;
   /** Locks the worker usage data. */
   private final ReentrantReadWriteLock mUsageLock;
 
+  // TODO(jiacheng): temporarily made public for easy prototyping
   /** Ids of blocks the worker contains. */
   @GuardedBy("mBlockListLock")
-  private Set<Long> mBlocks;
+  public Set<Long> mBlocks;
   /** Ids of blocks the worker should remove. */
   @GuardedBy("mBlockListLock")
-  private final Set<Long> mToRemoveBlocks;
+  public Set<Long> mToRemoveBlocks;
   /** Locks the 2 block sets above. */
   private final ReentrantReadWriteLock mBlockListLock;
 
@@ -173,6 +174,7 @@ public final class MasterWorkerInfo {
    * @param blocks set of block ids on this worker
    * @return A Set of blocks removed (or lost) from this worker
    */
+  // TODO(jiacheng): The name is so not what it does, rename it
   public Set<Long> register(final StorageTierAssoc globalStorageTierAssoc,
       final List<String> storageTierAliases, final Map<String, Long> totalBytesOnTiers,
       final Map<String, Long> usedBytesOnTiers, final Set<Long> blocks) {

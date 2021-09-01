@@ -66,10 +66,10 @@ public class WorkerUsageMeta {
    *   }
    * </pre></blockquote>
    */
-  void updateUsage(final StorageTierAssoc globalStorageTierAssoc,
-                   final List<String> storageTierAliases,
-                   final Map<String, Long> totalBytesOnTiers,
-                   final Map<String, Long> usedBytesOnTiers)
+  public void updateUsage(final StorageTierAssoc globalStorageTierAssoc,
+                          final List<String> storageTierAliases,
+                          final Map<String, Long> totalBytesOnTiers,
+                          final Map<String, Long> usedBytesOnTiers)
       throws IllegalArgumentException {
     // If the storage aliases do not have strictly increasing ordinal value based on the total
     // ordering, throw an error

@@ -56,6 +56,7 @@ import javax.annotation.concurrent.ThreadSafe;
 public class BlockMasterClient extends AbstractMasterClient {
   private static final Logger LOG = LoggerFactory.getLogger(BlockMasterClient.class);
   private BlockMasterWorkerServiceGrpc.BlockMasterWorkerServiceBlockingStub mClient = null;
+  private BlockMasterWorkerServiceGrpc.BlockMasterWorkerServiceStub mAsyncClient = null;
 
   /**
    * Creates a new instance of {@link BlockMasterClient} for the worker.
@@ -254,6 +255,28 @@ public class BlockMasterClient extends AbstractMasterClient {
 
     retryRPC(() -> {
       mClient.registerWorker(request);
+      return null;
+    }, LOG, "Register", "workerId=%d", workerId);
+  }
+
+  // TODO(jiacheng): add a streaming call:
+  //  add to the proto definition
+  //  generate the client code
+  public void registerStream(final long workerId, final List<String> storageTierAliases,
+                       final Map<String, Long> totalBytesOnTiers, final Map<String, Long> usedBytesOnTiers,
+                       final Map<BlockStoreLocation, List<Long>> currentBlocksOnLocation,
+                       final Map<String, List<String>> lostStorage,
+                       final List<ConfigProperty> configList) throws IOException {
+
+    RegisterStream stream = new RegisterStream(mAsyncClient, workerId, storageTierAliases, totalBytesOnTiers, usedBytesOnTiers,
+            currentBlocksOnLocation, lostStorage, configList);
+
+    retryRPC(() -> {
+      try {
+        stream.registerSync();
+      } catch (InterruptedException e) {
+        LOG.warn("Interrupted", e);
+      }
       return null;
     }, LOG, "Register", "workerId=%d", workerId);
   }

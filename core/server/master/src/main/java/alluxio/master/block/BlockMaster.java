@@ -195,6 +195,18 @@ public interface BlockMaster extends Master, ContainerIdGenerable {
       Map<String, StorageList> lostStorage, RegisterWorkerPOptions options)
       throws NotFoundException;
 
+  // TODO(jiacheng): Separate the metadata and list registration calls
+  void workerRegisterStart(long workerId, List<String> storageTiers,
+                           Map<String, Long> totalBytesOnTiers, Map<String, Long> usedBytesOnTiers,
+                           Map<Block.BlockLocation, List<Long>> currentBlocksOnLocation,
+                           Map<String, StorageList> lostStorage, RegisterWorkerPOptions options)
+          throws NotFoundException;
+
+  void workerRegisterStream(long workerId, Map<Block.BlockLocation, List<Long>> currentBlocksOnLocation)
+          throws NotFoundException;
+
+  void workerRegisterFinish(long workerId) throws NotFoundException;
+
   /**
    * Updates metadata when a worker periodically heartbeats with the master.
    *

@@ -26,7 +26,7 @@ public class StaticWorkerMeta {
   /** Worker's address. */
   final WorkerNetAddress mWorkerAddress;
   /** The id of the worker. */
-  final long mId;
+  public final long mId;
   /** Start time of the worker in ms. */
   final long mStartTimeMs;
 

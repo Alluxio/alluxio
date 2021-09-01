@@ -26,11 +26,13 @@ import alluxio.grpc.LocationBlockIdListEntry;
 import alluxio.grpc.RegisterWorkerPOptions;
 import alluxio.grpc.RegisterWorkerPRequest;
 import alluxio.grpc.RegisterWorkerPResponse;
+import alluxio.grpc.RegisterWorkerStreamPResponse;
 import alluxio.grpc.StorageList;
 import alluxio.metrics.Metric;
 import alluxio.proto.meta.Block;
 
 import com.google.common.base.Preconditions;
+import io.grpc.StatusException;
 import io.grpc.stub.StreamObserver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -153,6 +155,87 @@ public final class BlockMasterWorkerServiceHandler extends
           return RegisterWorkerPResponse.getDefaultInstance();
         }, "registerWorker", "request=%s", responseObserver, request);
   }
+
+  @Override
+  public io.grpc.stub.StreamObserver<alluxio.grpc.RegisterWorkerStreamPRequest> registerWorkerStream(
+          io.grpc.stub.StreamObserver<alluxio.grpc.RegisterWorkerStreamPResponse> responseObserver) {
+    return new StreamObserver<alluxio.grpc.RegisterWorkerStreamPRequest>() {
+      long mWorkerId = -1;
+
+      @Override
+      public void onNext(alluxio.grpc.RegisterWorkerStreamPRequest chunk) {
+        if (LOG.isDebugEnabled()) {
+          LOG.debug("Register worker request is {} bytes, containing {} blocks",
+                  chunk.getSerializedSize(),
+                  chunk.getCurrentBlocksCount());
+        }
+
+        final long workerId = chunk.getWorkerId();
+        final boolean isHead = chunk.getIsHead();
+
+        if (mWorkerId == -1) {
+          LOG.info("Associate worker id {} with StreamObserver", mWorkerId);
+          mWorkerId = workerId;
+        }
+
+        // TODO(jiacheng): surround with RpcUtils and try-catch
+        //  note the metrics
+        if (isHead) {
+          final List<String> storageTiers = chunk.getStorageTiersList();
+          final Map<String, Long> totalBytesOnTiers = chunk.getTotalBytesOnTiersMap();
+          final Map<String, Long> usedBytesOnTiers = chunk.getUsedBytesOnTiersMap();
+          final Map<String, StorageList> lostStorageMap = chunk.getLostStorageMap();
+
+          final Map<Block.BlockLocation, List<Long>> currBlocksOnLocationMap =
+                  reconstructBlocksOnLocationMap(chunk.getCurrentBlocksList(), workerId);
+
+          RegisterWorkerPOptions options = chunk.getOptions();
+
+          // TODO(jiacheng): what are the metrics?
+          RpcUtils.callAndNoReturn(LOG,
+                  () -> {
+                    mBlockMaster.workerRegisterStart(workerId, storageTiers, totalBytesOnTiers, usedBytesOnTiers,
+                            currBlocksOnLocationMap, lostStorageMap, options);
+                    return null;
+                  }, "registerWorkerStream", false,
+                  "what to put here?", responseObserver, null);
+
+        } else {
+          final Map<Block.BlockLocation, List<Long>> currBlocksOnLocationMap =
+                  reconstructBlocksOnLocationMap(chunk.getCurrentBlocksList(), workerId);
+
+          RpcUtils.callAndNoReturn(LOG,
+                  () -> {
+                    mBlockMaster.workerRegisterStream(workerId, currBlocksOnLocationMap);
+                    return null;
+                  }, "registerWorkerStream", false,
+                  "what to put here?", responseObserver, null);
+        }
+
+      }
+
+      @Override
+      public void onError(Throwable t) {
+        LOG.error("Error in streaming", t);
+      }
+
+      @Override
+      public void onCompleted() {
+
+        LOG.info("Register stream completed");
+
+        Preconditions.checkState(mWorkerId != -1, "workerId is still -1 for StreamObserver!");
+
+        // This will send the response back and complete the call
+        RpcUtils.call(LOG,
+                (RpcUtils.RpcCallableThrowsIOException<RegisterWorkerStreamPResponse>) () -> {
+                  mBlockMaster.workerRegisterFinish(mWorkerId);
+                  return RegisterWorkerStreamPResponse.getDefaultInstance();
+                }, "registerWorkerStream", "what to put here?", responseObserver, this);
+      }
+    };
+  }
+
 
   /**
    * This converts the flattened list of block locations back to a map.

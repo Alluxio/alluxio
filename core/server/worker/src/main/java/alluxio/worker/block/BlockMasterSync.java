@@ -93,7 +93,8 @@ public final class BlockMasterSync implements HeartbeatExecutor {
         .getMs(PropertyKey.WORKER_BLOCK_HEARTBEAT_TIMEOUT_MS);
     mAsyncBlockRemover = new AsyncBlockRemover(mBlockWorker);
 
-    registerWithMaster();
+//    registerWithMaster();
+    registerWithMasterStream();
     mLastSuccessfulHeartbeatMs = System.currentTimeMillis();
   }
 
@@ -101,16 +102,28 @@ public final class BlockMasterSync implements HeartbeatExecutor {
    * Registers with the Alluxio master. This should be called before the continuous heartbeat thread
    * begins.
    */
-  private void registerWithMaster() throws IOException {
+//  private void registerWithMaster() throws IOException {
+//    BlockStoreMeta storeMeta = mBlockWorker.getStoreMetaFull();
+//    StorageTierAssoc storageTierAssoc = new WorkerStorageTierAssoc();
+//    List<ConfigProperty> configList =
+//        ConfigurationUtils.getConfiguration(ServerConfiguration.global(), Scope.WORKER);
+//    mMasterClient.register(mWorkerId.get(),
+//        storageTierAssoc.getOrderedStorageAliases(), storeMeta.getCapacityBytesOnTiers(),
+//        storeMeta.getUsedBytesOnTiers(), storeMeta.getBlockListByStorageLocation(),
+//        storeMeta.getLostStorage(), configList);
+//  }
+
+  private void registerWithMasterStream() throws IOException {
     BlockStoreMeta storeMeta = mBlockWorker.getStoreMetaFull();
     StorageTierAssoc storageTierAssoc = new WorkerStorageTierAssoc();
     List<ConfigProperty> configList =
-        ConfigurationUtils.getConfiguration(ServerConfiguration.global(), Scope.WORKER);
-    mMasterClient.register(mWorkerId.get(),
-        storageTierAssoc.getOrderedStorageAliases(), storeMeta.getCapacityBytesOnTiers(),
-        storeMeta.getUsedBytesOnTiers(), storeMeta.getBlockListByStorageLocation(),
-        storeMeta.getLostStorage(), configList);
+            ConfigurationUtils.getConfiguration(ServerConfiguration.global(), Scope.WORKER);
+    mMasterClient.registerStream(mWorkerId.get(),
+            storageTierAssoc.getOrderedStorageAliases(), storeMeta.getCapacityBytesOnTiers(),
+            storeMeta.getUsedBytesOnTiers(), storeMeta.getBlockListByStorageLocation(),
+            storeMeta.getLostStorage(), configList);
   }
+
 
   /**
    * Heartbeats to the master node about the change in the worker's managed space.
@@ -186,7 +199,8 @@ public final class BlockMasterSync implements HeartbeatExecutor {
       // Master requests re-registration
       case Register:
         mWorkerId.set(mMasterClient.getId(mWorkerAddress));
-        registerWithMaster();
+//        registerWithMaster();
+        registerWithMasterStream();
         break;
       // Unknown request
       case Unknown:

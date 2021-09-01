@@ -79,6 +79,7 @@ import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterators;
+import com.google.common.collect.Sets;
 import com.google.common.util.concurrent.Striped;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.slf4j.Logger;
@@ -964,6 +965,164 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
   }
 
   @Override
+  public void workerRegisterStart(long workerId, List<String> storageTiers,
+                           Map<String, Long> totalBytesOnTiers, Map<String, Long> usedBytesOnTiers,
+                           Map<alluxio.proto.meta.Block.BlockLocation, List<Long>> currentBlocksOnLocation,
+                           Map<String, StorageList> lostStorage, RegisterWorkerPOptions options)
+          throws NotFoundException {
+
+    MasterWorkerInfo worker = mWorkers.getFirstByField(ID_INDEX, workerId);
+
+    if (worker == null) {
+      worker = findUnregisteredWorker(workerId);
+    }
+
+    if (worker == null) {
+      throw new NotFoundException(ExceptionMessage.NO_WORKER_FOUND.getMessage(workerId));
+    }
+
+    // Lock all the locks
+    // TODO(jiacheng): the locking mechanism should change, across all these
+    //  calls the locks should be held
+    try (LockResource r = worker.lockWorkerMeta(EnumSet.of(
+            WorkerMetaLockSection.STATUS,
+            WorkerMetaLockSection.USAGE,
+            WorkerMetaLockSection.BLOCKS), false)) {
+
+      // Reset the block and toRemove block sets
+      // TODO(jiacheng): Now the worker is not usable anymore, make sure it cannot be used by anyone
+      //  What happens to the existing locations? Will they be seen?
+      Set<Long> temp = Sets.union(worker.mBlocks, worker.mToRemoveBlocks);
+      worker.mBlocks = new HashSet<>();
+      worker.mToRemoveBlocks = temp;
+
+      // [NEEDED] update the usage
+      worker.mUsage.updateUsage(mGlobalStorageTierAssoc, storageTiers,
+              totalBytesOnTiers, usedBytesOnTiers);
+
+      // [NO NEED] Detect any lost blocks on this worker.
+//      Set<Long> removedBlocks = worker.register(mGlobalStorageTierAssoc, storageTiers,
+//              totalBytesOnTiers, usedBytesOnTiers, blocks);
+      // [NO NEED]: process removed blocks
+      // because we don't know what blocks are removed yet
+//      processWorkerRemovedBlocks(worker, removedBlocks);
+
+      // [CHANGE] we do not want it to add to the block locations
+      // TODO(jiacheng): we are updating the locations in the stream, which
+      //  results in unstable views
+      processWorkerAddedBlocks(worker, currentBlocksOnLocation);
+
+      // [NEEDED]
+      processWorkerOrphanedBlocks(worker);
+
+      // [NEEDED]
+      worker.addLostStorage(lostStorage);
+    }
+
+    if (options.getConfigsCount() > 0) {
+      for (BiConsumer<Address, List<ConfigProperty>> function : mWorkerRegisteredListeners) {
+        WorkerNetAddress workerAddress = worker.getWorkerAddress();
+        function.accept(new Address(workerAddress.getHost(), workerAddress.getRpcPort()),
+                options.getConfigsList());
+      }
+    }
+
+  }
+
+  @Override
+  public void workerRegisterStream(long workerId, Map<alluxio.proto.meta.Block.BlockLocation, List<Long>> currentBlocksOnLocation)
+          throws NotFoundException {
+    MasterWorkerInfo worker = mWorkers.getFirstByField(ID_INDEX, workerId);
+
+    if (worker == null) {
+      worker = findUnregisteredWorker(workerId);
+    }
+
+    if (worker == null) {
+      throw new NotFoundException(ExceptionMessage.NO_WORKER_FOUND.getMessage(workerId));
+    }
+
+    // A batch of blocks are added to the worker
+    // Lock all the locks
+    try (LockResource r = worker.lockWorkerMeta(EnumSet.of(
+            WorkerMetaLockSection.STATUS,
+            WorkerMetaLockSection.USAGE,
+            WorkerMetaLockSection.BLOCKS), false)) {
+      // [NO NEED] Detect any lost blocks on this worker.
+//      Set<Long> removedBlocks = worker.register(mGlobalStorageTierAssoc, storageTiers,
+//              totalBytesOnTiers, usedBytesOnTiers, blocks);
+      // [NO NEED]: process removed blocks
+      // because we don't know what blocks are removed yet
+//      processWorkerRemovedBlocks(worker, removedBlocks);
+
+      // [CHANGE] we do not want to add them to the block locations here
+      // TODO(jiacheng): we are updating the locations in the stream, which
+      //  results in unstable views
+      processWorkerAddedBlocks(worker, currentBlocksOnLocation);
+
+      // If a block is not recognized then yes we need to mark it
+      processWorkerOrphanedBlocks(worker);
+    }
+
+    // Update the TS at the end of the process
+    worker.updateLastUpdatedTimeMs();
+
+    LOG.info("Finished batch for worker {} locations {}", workerId, currentBlocksOnLocation.entrySet());
+  }
+
+  @Override
+  public void workerRegisterFinish(long workerId) throws NotFoundException {
+    // TODO(jiacheng): Should the removed blocks be detected here?
+
+    MasterWorkerInfo worker = mWorkers.getFirstByField(ID_INDEX, workerId);
+
+    if (worker == null) {
+      worker = findUnregisteredWorker(workerId);
+    }
+
+    if (worker == null) {
+      throw new NotFoundException(ExceptionMessage.NO_WORKER_FOUND.getMessage(workerId));
+    }
+
+    try (LockResource r = worker.lockWorkerMeta(EnumSet.of(
+            WorkerMetaLockSection.STATUS,
+            WorkerMetaLockSection.USAGE,
+            WorkerMetaLockSection.BLOCKS), false)) {
+      // [NEEDED] Detect any lost blocks on this worker.
+      Set<Long> removedBlocks;
+      if (worker.mIsRegistered) {
+        // This is a re-register of an existing worker. Assume the new block ownership data is more
+        // up-to-date and update the existing block information.
+        LOG.info("re-registering an existing workerId: {}", worker.mMeta.mId);
+
+        // The toRemoveBlocks field contains all the updates
+        removedBlocks = worker.mToRemoveBlocks;
+      } else {
+        LOG.info("registering a new worker: {}", worker.mMeta.mId);
+        removedBlocks = Collections.emptySet();
+      }
+
+      // [NEEDED]: process removed blocks
+      // because we don't know what blocks are removed yet
+      processWorkerRemovedBlocks(worker, removedBlocks);
+
+      // [NO NEED] all blocks have been processed
+//      processWorkerAddedBlocks(worker, currentBlocksOnLocation);
+      // [NO NEED] all blocks have been processed
+//      processWorkerOrphanedBlocks(worker);
+    }
+
+    recordWorkerRegistration(workerId);
+
+    // Update the TS at the end of the process
+    worker.updateLastUpdatedTimeMs();
+
+    // Invalidate cache to trigger new build of worker info list
+    mWorkerInfoCache.invalidate(WORKER_INFO_CACHE_KEY);
+    LOG.info("workerRegisterFinish(): {}", worker);
+  }
+
+  @Override
   public Command workerHeartbeat(long workerId, Map<String, Long> capacityBytesOnTiers,
       Map<String, Long> usedBytesOnTiers, List<Long> removedBlockIds,
       Map<BlockLocation, List<Long>> addedBlocks,
@@ -1015,6 +1174,57 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
     Preconditions.checkNotNull(workerCommand, "Worker heartbeat response command is null!");
 
     return workerCommand;
+  }
+
+  private void addBlocksToWorker(MasterWorkerInfo workerInfo,
+                                        Map<BlockLocation, List<Long>> addedBlockIds) {
+    long invalidBlockCount = 0;
+    for (Map.Entry<BlockLocation, List<Long>> entry : addedBlockIds.entrySet()) {
+      for (long blockId : entry.getValue()) {
+        try (LockResource r = lockBlock(blockId)) {
+          Optional<BlockMeta> block = mBlockStore.getBlock(blockId);
+          if (block.isPresent()) {
+            workerInfo.addBlock(blockId);
+          } else {
+            invalidBlockCount++;
+            LOG.debug("Invalid block: {} from worker {}.", blockId,
+                    workerInfo.getWorkerAddress().getHost());
+          }
+        }
+      }
+    }
+    if (invalidBlockCount > 0) {
+      LOG.warn("{} invalid blocks found on worker {} in total", invalidBlockCount,
+              workerInfo.getWorkerAddress().getHost());
+    }
+  }
+
+  private void addBlocksToLocations(MasterWorkerInfo workerInfo,
+                                        Map<BlockLocation, List<Long>> addedBlockIds) {
+    long invalidBlockCount = 0;
+    for (Map.Entry<BlockLocation, List<Long>> entry : addedBlockIds.entrySet()) {
+      for (long blockId : entry.getValue()) {
+        try (LockResource r = lockBlock(blockId)) {
+          Optional<BlockMeta> block = mBlockStore.getBlock(blockId);
+          if (block.isPresent()) {
+            BlockLocation location = entry.getKey();
+            Preconditions.checkState(location.getWorkerId() == workerInfo.getId(),
+                    "BlockLocation has a different workerId %s from the request sender's workerId %s",
+                    location.getWorkerId(), workerInfo.getId());
+            mBlockStore.addLocation(blockId, location);
+            mLostBlocks.remove(blockId);
+          } else {
+            invalidBlockCount++;
+            LOG.debug("Invalid block: {} from worker {}.", blockId,
+                    workerInfo.getWorkerAddress().getHost());
+          }
+        }
+      }
+    }
+    if (invalidBlockCount > 0) {
+      LOG.warn("{} invalid blocks found on worker {} in total", invalidBlockCount,
+              workerInfo.getWorkerAddress().getHost());
+    }
   }
 
   private void processWorkerMetrics(String hostname, List<Metric> metrics) {
