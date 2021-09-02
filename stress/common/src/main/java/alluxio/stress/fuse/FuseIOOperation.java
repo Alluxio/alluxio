@@ -25,8 +25,18 @@ public enum FuseIOOperation {
   LIST_FILE("ListFile"),
 
   /** Now only streaming reading is supported, that is, sequentially read the written files. */
-  READ("Read"),
-  // TODO(Shawn): Support other types of read
+  /**
+   * Read data stored in local worker via local Fuse mount point.
+   */
+  LOCAL_READ("LocalRead"),
+  /**
+   * Read data stored in other worker nodes via local Fuse mount point.
+   */
+  REMOTE_READ("RemoteRead"),
+  /**
+   * Read <numAllFiles>/<numWorker> files evenly from all workers through local Fuse mount point.
+   */
+  CLUSTER_READ("ClusterRead")
   ;
 
   /**
@@ -35,7 +45,9 @@ public enum FuseIOOperation {
    */
   public static boolean isRead(FuseIOOperation operation) {
     switch (operation) {
-      case READ:
+      case LOCAL_READ:
+      case REMOTE_READ:
+      case CLUSTER_READ:
         return true;
       default:
         return false;
