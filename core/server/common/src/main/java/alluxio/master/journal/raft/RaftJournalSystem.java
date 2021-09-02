@@ -916,7 +916,7 @@ public class RaftJournalSystem extends AbstractJournalSystem {
     LOG.info("Resetting RaftPeer priorities");
     try (RaftClient client = createClient()) {
       RaftClientReply reply = client.admin().setConfiguration(resetPeers);
-      processReply(reply);
+      processReply(reply, "failed to reset master priorities to 1");
     }
   }
 
@@ -960,7 +960,7 @@ public class RaftJournalSystem extends AbstractJournalSystem {
                       .collect(Collectors.joining(", ")) + "]";
       LOG.info("Applying new peer state before transferring leadership: {}", stringPeers);
       RaftClientReply reply = client.admin().setConfiguration(peersWithNewPriorities);
-      processReply(reply);
+      processReply(reply, "failed to set master priorities before initiating election");
       /* transfer leadership */
       LOG.info("Transferring leadership to master with address <{}> and with RaftPeerId <{}>",
               serverAddress, newLeaderPeerId);
@@ -973,7 +973,7 @@ public class RaftJournalSystem extends AbstractJournalSystem {
           Thread.sleep(SLEEP_TIME_MS);
           RaftClientReply reply1 = client.admin().transferLeadership(newLeaderPeerId,
                   TRANSFER_LEADER_WAIT_MS);
-          processReply(reply1);
+          processReply(reply1, "election failed");
         } catch (Throwable t) {
           LOG.error("caught an error when executing transfer: {}", t.getMessage());
           // we only allow transfers again if the transfer is unsuccessful: a success means it
@@ -993,11 +993,13 @@ public class RaftJournalSystem extends AbstractJournalSystem {
    * @param reply from the ratis operation
    * @throws IOException
    */
-  private void processReply(RaftClientReply reply) throws IOException {
+  private void processReply(RaftClientReply reply, String msgToUser) throws IOException {
     if (!reply.isSuccess()) {
-      throw reply.getException() != null
+      IOException ioe = reply.getException() != null
               ? reply.getException()
               : new IOException(String.format("reply <%s> failed", reply));
+      LOG.error("{}. Error: {}", msgToUser, ioe);
+      throw new IOException(msgToUser);
     }
   }
 

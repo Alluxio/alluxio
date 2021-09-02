@@ -17,6 +17,7 @@ import alluxio.client.file.FileSystemContext;
 import alluxio.client.journal.JournalMasterClient;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.exception.ExceptionMessage;
+import alluxio.exception.status.AlluxioStatusException;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.NetAddress;
@@ -30,6 +31,7 @@ import org.apache.commons.cli.Options;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.util.concurrent.TimeoutException;
 
 /**
  * Command for transferring the leadership to another master within a quorum.
@@ -38,8 +40,8 @@ public class QuorumElectCommand extends AbstractFsAdminCommand {
 
   public static final String ADDRESS_OPTION_NAME = "address";
 
-  public static final String TRANSFER_SUCCESS = "Successfully elected %s as new leader.";
-  public static final String TRANSFER_FAILED = "Election of %s failed: %s";
+  public static final String TRANSFER_SUCCESS = "Successfully elected %s as the new leader";
+  public static final String TRANSFER_FAILED = "Failed to elect %s as the new leader: %s";
 
   private final AlluxioConfiguration mConf;
 
@@ -82,10 +84,13 @@ public class QuorumElectCommand extends AbstractFsAdminCommand {
 
       mPrintStream.println(String.format(TRANSFER_SUCCESS, serverAddress));
       return 0;
-    } catch (Exception e) {
+    } catch (AlluxioStatusException e) {
       mPrintStream.println(String.format(TRANSFER_FAILED, serverAddress, e.getMessage()));
-      return -1;
+    } catch (InterruptedException | TimeoutException e) {
+      mPrintStream.println(String.format(TRANSFER_FAILED, serverAddress, "the election was "
+              + "initiated but never completed"));
     }
+    return -1;
   }
 
   @Override
