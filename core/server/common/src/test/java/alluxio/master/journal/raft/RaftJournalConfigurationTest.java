@@ -124,8 +124,10 @@ public final class RaftJournalConfigurationTest {
     clusterAddresses.add(raftNodeAddress3);
     RaftJournalConfiguration conf = new RaftJournalConfiguration()
         .setClusterAddresses(clusterAddresses)
-        .setElectionTimeoutMs(
-            ServerConfiguration.getMs(PropertyKey.MASTER_EMBEDDED_JOURNAL_ELECTION_TIMEOUT))
+        .setElectionMinTimeoutMs(
+            ServerConfiguration.getMs(PropertyKey.MASTER_EMBEDDED_JOURNAL_MIN_ELECTION_TIMEOUT))
+        .setElectionMaxTimeoutMs(
+            ServerConfiguration.getMs(PropertyKey.MASTER_EMBEDDED_JOURNAL_MAX_ELECTION_TIMEOUT))
         .setLocalAddress(localAddress)
         .setMaxLogSize(ServerConfiguration.getBytes(PropertyKey.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX))
         .setPath(new File(JournalUtils.getJournalLocation().getPath()));
