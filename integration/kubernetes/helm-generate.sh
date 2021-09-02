@@ -199,12 +199,14 @@ function generateAllTemplates {
 
 workerFuse=false
 function main {
-  if [ "$3" = "--worker-fuse" ]; then
-    workerFuse=true
-  else
-    echo "Unknown option $3"
-    printUsage
-    exit 1
+  if [ $# -eq 3 ]; then
+    if [ "$3" = "--worker-fuse" ]; then
+      workerFuse=true
+    else
+      echo "Unknown option $3"
+      printUsage
+      exit 1
+    fi
   fi
   mode=$1
   case $mode in
