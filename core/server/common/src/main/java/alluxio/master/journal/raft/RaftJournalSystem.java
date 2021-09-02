@@ -930,7 +930,7 @@ public class RaftJournalSystem extends AbstractJournalSystem {
     final boolean allowed = mTransferLeaderAllowed.getAndSet(false);
     if (!allowed) {
       throw new IOException("transfer is not allowed at the moment because the master is "
-              + (mRaftJournalWriter == null ? "still gaining primacy" : "already transferring the"
+              + (mRaftJournalWriter == null ? "still gaining primacy" : "already transferring the "
               + "leadership"));
     }
     InetSocketAddress serverAddress = InetSocketAddress
