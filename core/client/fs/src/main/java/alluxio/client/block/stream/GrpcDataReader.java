@@ -171,7 +171,8 @@ public final class GrpcDataReader implements DataReader {
     }
     mPosToRead += buffer.readableBytes();
     if (mPosToRead == mReadRequest.getLength()) {
-      // finish reading all the data, close gRPC stream earlier to release resources. Helpful in millions of small file Fuse read case
+      // finish reading all the data, close gRPC stream earlier to release resources
+      // potentially improve machine learning millions of small file read throughput
       LOG.debug("Finished reading all data, close gRPC stream");
       close();
       return buffer;
