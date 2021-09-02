@@ -258,6 +258,41 @@ public final class EmbeddedJournalIntegrationTest extends BaseIntegrationTest {
   }
 
   @Test
+  public void transferLeadership() throws Exception {
+    final int MASTER_INDEX_WAIT_TIME = 5_000;
+    mCluster = MultiProcessCluster.newBuilder(PortCoordination.EMBEDDED_JOURNAL_FAILOVER)
+            .setClusterName("TransferLeadership")
+            .setNumMasters(NUM_MASTERS)
+            .setNumWorkers(0)
+            .addProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.EMBEDDED.toString())
+            .addProperty(PropertyKey.MASTER_JOURNAL_FLUSH_TIMEOUT_MS, "5min")
+            .addProperty(PropertyKey.MASTER_EMBEDDED_JOURNAL_ELECTION_TIMEOUT, "750ms")
+            .build();
+    mCluster.start();
+
+    int newLeaderIdx = (mCluster.getPrimaryMasterIndex(MASTER_INDEX_WAIT_TIME) + 1) % NUM_MASTERS;
+    // `getPrimaryMasterIndex` uses the same `mMasterAddresses` variable as getMasterAddresses
+    // we can therefore access to the new leader's address this way
+    MasterNetAddress newLeaderAddr = mCluster.getMasterAddresses().get(newLeaderIdx);
+    NetAddress netAddress = NetAddress.newBuilder().setHost(newLeaderAddr.getHostname())
+            .setRpcPort(newLeaderAddr.getEmbeddedJournalPort()).build();
+
+    mCluster.getJournalMasterClientForMaster().transferLeadership(netAddress);
+
+    CommonUtils.waitFor("leadership to transfer", () -> {
+      try {
+        // wait until the address of the new leader matches the one we designated as the new leader
+        return mCluster.getMasterAddresses()
+                .get(mCluster.getPrimaryMasterIndex(MASTER_INDEX_WAIT_TIME)).equals(newLeaderAddr);
+      } catch (Exception exc) {
+        throw new RuntimeException(exc);
+      }
+    });
+
+    mCluster.notifySuccess();
+  }
+
+  @Test
   public void repeatedTransferLeadership() throws Exception {
     final int MASTER_INDEX_WAIT_TIME = 5_000;
     mCluster = MultiProcessCluster.newBuilder(PortCoordination.EMBEDDED_JOURNAL_FAILOVER)
@@ -321,7 +356,6 @@ public final class EmbeddedJournalIntegrationTest extends BaseIntegrationTest {
       Assert.fail("Should have thrown exception");
     } catch (IOException ioe) {
       // expected exception thrown
-      Assert.assertTrue(ioe.getMessage().contains("already transferring the leadership"));
     }
     mCluster.notifySuccess();
   }

@@ -183,7 +183,7 @@ public final class QuorumCommandIntegrationTest extends BaseIntegrationTest {
   @Test
   public void elect() throws Exception {
     final int MASTER_INDEX_WAIT_TIME = 5_000;
-    int numMasters = 5;
+    int numMasters = 3;
     mCluster = MultiProcessCluster.newBuilder(PortCoordination.QUORUM_SHELL_REMOVE)
             .setClusterName("QuorumShellElect").setNumMasters(numMasters).setNumWorkers(0)
             .addProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.EMBEDDED.toString())
@@ -193,7 +193,7 @@ public final class QuorumCommandIntegrationTest extends BaseIntegrationTest {
     mCluster.start();
 
     try (FileSystemAdminShell shell = new FileSystemAdminShell(ServerConfiguration.global())) {
-      int newLeaderIdx = (mCluster.getPrimaryMasterIndex(MASTER_INDEX_WAIT_TIME) + 2) % numMasters;
+      int newLeaderIdx = (mCluster.getPrimaryMasterIndex(MASTER_INDEX_WAIT_TIME) + 1) % numMasters;
       // `getPrimaryMasterIndex` uses the same `mMasterAddresses` variable as getMasterAddresses
       // we can therefore access to the new leader's address this ways
       MasterNetAddress netAddress = mCluster.getMasterAddresses().get(newLeaderIdx);

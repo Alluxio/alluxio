@@ -962,6 +962,8 @@ public class RaftJournalSystem extends AbstractJournalSystem {
       RaftClientReply reply = client.admin().setConfiguration(peersWithNewPriorities);
       processReply(reply);
       /* transfer leadership */
+      LOG.info("Transferring leadership to master with address <{}> and with RaftPeerId <{}>",
+              serverAddress, newLeaderPeerId);
       // fire and forget: need to immediately return as the master will shut down its RPC servers
       // once the TransferLeadershipRequest is initiated.
       final int SLEEP_TIME_MS = 3_000;
@@ -980,11 +982,10 @@ public class RaftJournalSystem extends AbstractJournalSystem {
           /* checking the transfer happens in {@link QuorumElectCommand} */
         }
       }).start();
-      LOG.info("Transferring leadership to master with address <{}> and with RaftPeerId <{}> "
-              + "initiated", serverAddress, newLeaderPeerId);
-    } catch (IOException ioe) {
+      LOG.info("Transferring leadership initiated");
+    } catch (Throwable t) {
       mTransferLeaderAllowed.set(true);
-      throw ioe;
+      throw new IOException(t);
     }
   }
 
@@ -993,7 +994,6 @@ public class RaftJournalSystem extends AbstractJournalSystem {
    * @throws IOException
    */
   private void processReply(RaftClientReply reply) throws IOException {
-    // RaftException extends IOException
     if (!reply.isSuccess()) {
       throw reply.getException() != null
               ? reply.getException()
