@@ -5203,9 +5203,11 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
 
   public static final PropertyKey ZOOKEEPER_JOB_ELECTION_PATH =
-      new Builder(Name.ZOOKEEPER_JOB_ELECTION_PATH).setDefaultValue("/job_election").build();
+      new Builder(Name.ZOOKEEPER_JOB_ELECTION_PATH)
+          .setDefaultValue("/alluxio/job_election").build();
   public static final PropertyKey ZOOKEEPER_JOB_LEADER_PATH =
-      new Builder(Name.ZOOKEEPER_JOB_LEADER_PATH).setDefaultValue("/job_leader").build();
+      new Builder(Name.ZOOKEEPER_JOB_LEADER_PATH)
+          .setDefaultValue("/alluxio/job_leader").build();
 
   //
   // JVM Monitor related properties
