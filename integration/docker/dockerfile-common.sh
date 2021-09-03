@@ -11,9 +11,9 @@
 #
 
 function installLibfuse {
-  git clone https://github.com/cheyang/libfuse.git
+  git clone https://github.com/Alluxio/libfuse.git
   cd libfuse
-  git checkout fuse_2_9_5_customize_multi_threads_no_logging
+  git checkout fuse_2_9_5_customize_multi_threads
   bash makeconf.sh
   ./configure
   make -j8
@@ -22,11 +22,33 @@ function installLibfuse {
 }
 
 function userOperation {
-  mkdir -p /journal
-  chown -R $1:$2 /journal
-  chmod -R g=u /journal
-  mkdir /mnt/alluxio-fuse
-  chown -R $1:$2 /mnt/alluxio-fuse
+  if [ $# -ne 5 ]; then
+    echo "Error: user-operation invalid input"
+    exit 1
+  fi
+  username=$1
+  groupName=$2
+  uid=$3
+  gid=$4
+  if [ "$username" !=  "root" ] \
+      && [ "$groupName" != "root" ] \
+      && [ $uid -ne 0 ] \
+      && [ $gid -ne 0 ]; then
+    if [ "$5" = "alpine" ]; then
+      addgroup --gid $gid $groupName
+      adduser --system --uid $uid -G $groupName $username
+      addgroup $username root
+    elif [ "$5" = "centos" ]; then
+      groupadd --gid $gid $groupName
+      useradd --system -m --uid $uid --gid $gid $username
+      usermod -a -G root $username
+    fi
+    mkdir -p /journal
+    chown -R $uid:$gid /journal
+    chmod -R g=u /journal
+    mkdir /mnt/alluxio-fuse
+    chown -R $uid:$gid /mnt/alluxio-fuse
+  fi
 }
 
 function enableDynamicUser {
@@ -38,20 +60,18 @@ function enableDynamicUser {
 
 function main {
   command=$1
-  uid=$2
-  gid=$3
   case $command in
     "install-libfuse")
       installLibfuse 
       ;;
     "user-operation")
-      userOperation $uid $gid
+      userOperation $2 $3 $4 $5 $6
       ;;
     "enable-dynamic-user")
       enableDynamicUser
       ;;
     *)
-      echo "Error: dockerfile-common unknown commands"
+      echo "Error: dockerfile-common unknown command"
       exit 1
   esac
 }

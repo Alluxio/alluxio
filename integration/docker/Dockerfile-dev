@@ -12,14 +12,14 @@
 # Use CentOS as base image for alluxio-dev image
 FROM centos:7
 
-# Note that downloads for *-SNAPSHOT tarballs are not available
+# Note that downloads for *-SNAPSHOT tarballs are not available.
 ARG ALLUXIO_TARBALL=http://downloads.alluxio.io/downloads/files/2.7.0-SNAPSHOT/alluxio-2.7.0-SNAPSHOT-bin.tar.gz
 # (Alert):It's not recommended to set this Argument to true, unless you know exactly what you are doing
 ARG ENABLE_DYNAMIC_USER=false
 
 ADD ${ALLUXIO_TARBALL} /opt/
-# if the tarball was remote, it needs to be untarred
-# use ln -s instead of mv to avoid issues with Centos (see https://github.com/moby/moby/issues/27358)
+# If the tarball was remote, it needs to be untarred.
+# Use ln -s instead of mv to avoid issues with Centos. (see https://github.com/moby/moby/issues/27358)
 RUN cd /opt && \
     (if ls | grep -q ".tar.gz"; then tar -xzf *.tar.gz && rm *.tar.gz; fi) && \
     ln -s alluxio-* alluxio
@@ -30,7 +30,7 @@ RUN if [ ${ENABLE_DYNAMIC_USER} = "true" ] ; then \
 
 ADD dockerfile-common.sh /
 
-# The following libfuse setup is modified from cheyang/fuse2:ubuntu1604-customize to be applied on centOS
+# The following libfuse setup is modified from cheyang/fuse2:ubuntu1604-customize to be applied on centOS.
 WORKDIR /
 
 ENV MAX_IDLE_THREADS "64"
@@ -50,7 +50,7 @@ ARG ALLUXIO_UID=1000
 ARG ALLUXIO_GID=1000
 ARG ENABLE_DYNAMIC_USER=true
 
-# Add Tini for quick work-around for alluxio helm charts
+# add Tini for alluxio helm charts
 # - https://github.com/krallin/tini
 ENV TINI_VERSION v0.18.0
 ADD https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini /usr/local/bin/tini
@@ -62,13 +62,13 @@ RUN \
     yum install -y unzip vim && \
     yum clean all
 
-# Install arthas(https://github.com/alibaba/arthas) for analyzing performance bottleneck
+# Install arthas(https://github.com/alibaba/arthas) for analyzing performance bottleneck.
 RUN wget -qO /tmp/arthas.zip "https://github.com/alibaba/arthas/releases/download/arthas-all-3.4.6/arthas-bin.zip" && \
     mkdir -p /opt/arthas && \
     unzip /tmp/arthas.zip -d /opt/arthas && \
     rm /tmp/arthas.zip
 
-# Install async-profiler(https://github.com/jvm-profiling-tools/async-profiler/releases/tag/v1.8.3)
+# Install async-profiler(https://github.com/jvm-profiling-tools/async-profiler/releases/tag/v1.8.3).
 RUN wget -qO /tmp/async-profiler-1.8.3-linux-x64.tar.gz "https://github.com/jvm-profiling-tools/async-profiler/releases/download/v1.8.3/async-profiler-1.8.3-linux-x64.tar.gz" && \
     tar -xvf /tmp/async-profiler-1.8.3-linux-x64.tar.gz -C /opt && \
     mv /opt/async-profiler-* /opt/async-profiler && \
@@ -82,17 +82,9 @@ RUN echo "networkaddress.cache.ttl=0" >> ${JAVA_HOME}/jre/lib/security/java.secu
 # add the following for native libraries needed by rocksdb
 ENV LD_LIBRARY_PATH /lib64:${LD_LIBRARY_PATH}
 
-# if Alluxio user, group, gid, and uid aren't root|0
-# then create the alluxio user and set file permissions accordingly
-RUN if [ ${ALLUXIO_USERNAME} != "root" ] \
-    && [ ${ALLUXIO_GROUP} != "root" ] \
-    && [ ${ALLUXIO_UID} -ne 0 ] \
-    && [ ${ALLUXIO_GID} -ne 0 ]; then \
-      groupadd --gid ${ALLUXIO_GID} ${ALLUXIO_GROUP} && \
-      useradd --system -m --uid ${ALLUXIO_UID} --gid ${ALLUXIO_GID} ${ALLUXIO_USERNAME} && \
-      usermod -a -G root ${ALLUXIO_USERNAME} && \
-      ./dockerfile-common.sh user-operation ${ALLUXIO_UID} ${ALLUXIO_GID}; \
-    fi
+# If Alluxio user, group, gid, and uid aren't root|0,
+# then create the alluxio user and set file permissions accordingly.
+RUN ./dockerfile-common.sh user-operation ${ALLUXIO_USERNAME} ${ALLUXIO_GROUP} ${ALLUXIO_UID} ${ALLUXIO_GID} centos
 
 # Docker 19.03+ required to expand variables in --chown argument
 # https://github.com/moby/buildkit/pull/926#issuecomment-503943557

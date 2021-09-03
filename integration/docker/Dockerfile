@@ -9,16 +9,16 @@
 # See the NOTICE file distributed with this work for information regarding copyright ownership.
 #
 
-# For production use, we use alpine as base image to minimize alluxio image size
+# For production use, we use alpine as base image to minimize alluxio image size.
 FROM alpine:3.10.2
-# Note that downloads for *-SNAPSHOT tarballs are not available
+# Note that downloads for *-SNAPSHOT tarballs are not available.
 ARG ALLUXIO_TARBALL=http://downloads.alluxio.io/downloads/files/2.7.0-SNAPSHOT/alluxio-2.7.0-SNAPSHOT-bin.tar.gz
 # (Alert):It's not recommended to set this Argument to true, unless you know exactly what you are doing
 ARG ENABLE_DYNAMIC_USER=false
 
 ADD ${ALLUXIO_TARBALL} /opt/
-# if the tarball was remote, it needs to be untarred
-# use ln -s instead of mv to avoid issues with Centos (see https://github.com/moby/moby/issues/27358)
+# If the tarball was remote, it needs to be untarred.
+# Use ln -s instead of mv to avoid issues with Centos. (see https://github.com/moby/moby/issues/27358)
 RUN cd /opt && \
     (if ls | grep -q ".tar.gz"; then tar -xzf *.tar.gz && rm *.tar.gz; fi) && \
     ln -s alluxio-* alluxio
@@ -29,7 +29,7 @@ RUN if [ ${ENABLE_DYNAMIC_USER} = "true" ] ; then \
 
 ADD dockerfile-common.sh /
 
-# The following libfuse setup is modified from cheyang/fuse2:ubuntu1604-customize to be applied on alpine
+# The following libfuse setup is modified from cheyang/fuse2:ubuntu1604-customize to be applied on alpine.
 WORKDIR /
 
 ENV MAX_IDLE_THREADS "64"
@@ -40,7 +40,7 @@ RUN \
   apk add --no-cache ca-certificates wget bash && \
   apk add --no-cache --virtual .build-deps \
   build-base pkgconfig eudev git gcc make cmake gettext-dev libtool autoconf automake && \
-  ./dockerfile-common.sh install-libfuse
+  ./dockerfile-common.sh install-libfuse && \
   rm -rf libfuse && \
   apk del --no-cache .build-deps
 
@@ -52,7 +52,7 @@ ARG ALLUXIO_UID=1000
 ARG ALLUXIO_GID=1000
 ARG ENABLE_DYNAMIC_USER=true
 
-# Add Tini for Alluxio helm charts
+# add Tini for Alluxio helm charts
 # - https://github.com/krallin/tini
 ENV TINI_VERSION v0.18.0
 ADD https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini /usr/local/bin/tini
@@ -68,17 +68,9 @@ RUN echo "networkaddress.cache.ttl=0" >> ${JAVA_HOME}/jre/lib/security/java.secu
 # add the following for native libraries needed by rocksdb
 ENV LD_LIBRARY_PATH /lib64:${LD_LIBRARY_PATH}
 
-# if Alluxio user, group, gid, and uid aren't root|0
-# then create the alluxio user and set file permissions accordingly
-RUN if [ ${ALLUXIO_USERNAME} != "root" ] \
-    && [ ${ALLUXIO_GROUP} != "root" ] \
-    && [ ${ALLUXIO_UID} -ne 0 ] \
-    && [ ${ALLUXIO_GID} -ne 0 ]; then \
-      addgroup --gid ${ALLUXIO_GID} ${ALLUXIO_GROUP} && \
-      adduser --system --uid ${ALLUXIO_UID} -G ${ALLUXIO_GROUP} ${ALLUXIO_USERNAME} && \
-      addgroup ${ALLUXIO_USERNAME} root && \
-      ./dockerfile-common.sh user-operation ${ALLUXIO_UID} ${ALLUXIO_GID}; \
-    fi
+# If Alluxio user, group, gid, and uid aren't root|0,
+# then create the alluxio user and set file permissions accordingly.
+RUN ./dockerfile-common.sh user-operation ${ALLUXIO_USERNAME} ${ALLUXIO_GROUP} ${ALLUXIO_UID} ${ALLUXIO_GID} alpine
 
 # Docker 19.03+ required to expand variables in --chown argument
 # https://github.com/moby/buildkit/pull/926#issuecomment-503943557

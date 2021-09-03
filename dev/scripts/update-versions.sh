@@ -100,7 +100,7 @@ function update_k8s() {
 
 function update_dockerfiles() {
     perl -pi -e "s/${1}/${2}/g" integration/docker/Dockerfile
-    perl -pi -e "s/${1}/${2}/g" integration/docker/Dockerfile.fuse
+    perl -pi -e "s/${1}/${2}/g" integration/docker/Dockerfile-dev
 }
 
 
