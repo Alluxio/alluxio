@@ -23,7 +23,7 @@ function installLibfuse {
 
 function userOperation {
   if [ $# -ne 5 ]; then
-    echo "Error: user-operation invalid input"
+    echo "Error: user-operation: 5 parameters needed. $# provided."
     exit 1
   fi
   username=$1
@@ -42,6 +42,9 @@ function userOperation {
       groupadd --gid $gid $groupName
       useradd --system -m --uid $uid --gid $gid $username
       usermod -a -G root $username
+    else
+      echo "Error: user-operation: unknown operating system or not supported."
+      exit 1
     fi
     mkdir -p /journal
     chown -R $uid:$gid /journal
@@ -71,7 +74,7 @@ function main {
       enableDynamicUser
       ;;
     *)
-      echo "Error: dockerfile-common unknown command"
+      echo "Error: dockerfile-common.sh unknown command."
       exit 1
   esac
 }
