@@ -28,8 +28,6 @@ public final class JobServiceBenchParameters extends Parameters {
       required = true)
   public JobServiceBenchOperation mOperation;
 
-  @Parameter(names = {"--clients"}, description = "the number of fs client instances to use")
-  public int mClients = 1;
 
   @Parameter(names = {"--num-dirs"}, description = "the number of directories")
   public int mNumDirs = 256;
@@ -37,23 +35,14 @@ public final class JobServiceBenchParameters extends Parameters {
   @Parameter(names = {"--files-per-dir"}, description = "the number of files in each directory.")
   public int mNumFilesPerDir = 1000;
 
-  @Parameter(names = {"--scalability-mode"},
-      description = "the target scalability to issue operations.")
-  public String mScalabilityMode = "numRequests";
 
   @Parameter(names = {"--base"},
       description = "The base directory path URI to perform operations in")
-  @PathDescription(aliasFieldName = "mBaseAlias")
   public String mBasePath = "alluxio://localhost:19998/stress-job-service-base";
 
   @Parameter(names = {"--file-size"},
       description = "The size of a file for the Create op, allowed to be 0. (0, 1m, 2k, 8k, etc.)")
   public int mFileSize = 128;
-
-  @Parameter(names = {"--warmup"},
-      description = "The length of time to warmup before recording measurements. (1m, 10m, 60s, "
-          + "10000ms, etc.)")
-  public String mWarmup = "30s";
 
   /**
    * Converts from String to Operation instance.

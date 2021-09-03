@@ -12,7 +12,7 @@
 package alluxio.stress.jobservice;
 
 /**
- * The operations for the master stress tests.
+ * The operations for the job service stress tests.
  */
 public enum JobServiceBenchOperation {
   DISTRIBUTED_LOAD("DistributedLoad");
