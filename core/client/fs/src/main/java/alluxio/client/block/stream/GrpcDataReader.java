@@ -170,7 +170,7 @@ public final class GrpcDataReader implements DataReader {
       return null;
     }
     mPosToRead += buffer.readableBytes();
-    if (mPosToRead == mReadRequest.getLength()) {
+    if (mPosToRead - mReadRequest.getOffset() == mReadRequest.getLength()) {
       // finish reading all the data, close gRPC stream earlier to release resources
       // potentially improve machine learning millions of small file read throughput
       LOG.debug("Finished reading all data, close gRPC stream");
