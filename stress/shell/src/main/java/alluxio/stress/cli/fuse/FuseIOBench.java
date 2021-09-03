@@ -150,6 +150,12 @@ public class FuseIOBench extends Benchmark<FuseIOTaskResult> {
       }
       // Find 0-based id, and make sure dirs and workers are 1-to-1.
       File[] workerDirs = localPath.listFiles();
+      if (workerDirs == null) {
+        throw new IOException(String.format(
+            "--local-path %s is not a valid path for this bench. Make sure using the correct path",
+                mParameters.mLocalPath
+        ));
+      }
       int numWorkers;
       try (JobMasterClient client = JobMasterClient.Factory.create(
           JobMasterClientContext.newBuilder(ClientContext.create(new InstancedConfiguration(
@@ -157,7 +163,7 @@ public class FuseIOBench extends Benchmark<FuseIOTaskResult> {
         numWorkers = client.getAllWorkerHealth().size();
       }
       if (numWorkers != workerDirs.length) {
-        throw new IllegalStateException("Some worker crashed or joined after data are written."
+        throw new IllegalStateException("Some worker crashed or joined after data are written. "
                 + "The test is stopped.");
       }
       mWorkerDirNames = Arrays.asList(workerDirs).stream()
