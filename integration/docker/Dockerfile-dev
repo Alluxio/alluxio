@@ -50,7 +50,7 @@ ARG ALLUXIO_UID=1000
 ARG ALLUXIO_GID=1000
 ARG ENABLE_DYNAMIC_USER=true
 
-# add Tini for alluxio helm charts
+# add Tini for alluxio helm charts (https://github.com/Alluxio/alluxio/pull/12233)
 # - https://github.com/krallin/tini
 ENV TINI_VERSION v0.18.0
 ADD https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini /usr/local/bin/tini
