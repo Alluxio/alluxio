@@ -151,7 +151,6 @@ public class LocalCacheFileInStream extends FileInStream {
       int bytesLeftInPage =
           (int) Math.min(mPageSize - currentPageOffset, lengthToRead - totalBytesRead);
       PageId pageId;
-
       if (cacheContext != null && cacheContext.getCacheIdentifier() != null) {
         pageId = new PageId(cacheContext.getCacheIdentifier(), currentPage);
       } else {

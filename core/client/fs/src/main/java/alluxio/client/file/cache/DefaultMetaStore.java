@@ -19,6 +19,7 @@ import alluxio.metrics.MetricsSystem;
 
 import com.codahale.metrics.Counter;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -79,7 +80,7 @@ public class DefaultMetaStore implements MetaStore {
 
   @Override
   public FileInfo getFile(String fileId) {
-    return mFileMap.get(fileId);
+    return Preconditions.checkNotNull(mFileMap.get(fileId));
   }
 
   @Override

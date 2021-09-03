@@ -62,7 +62,7 @@ public class LocalPageStoreTest {
     long numFiles = 100;
     for (int i = 0; i < numFiles; i++) {
       PageId id = new PageId(Integer.toString(i), 0);
-      pageStore.put(id, TEST_PAGE, new PageInfo(id, TEST_PAGE_SIZE, TEST_FILE_INFO));
+      pageStore.put(new PageInfo(id, TEST_PAGE_SIZE, TEST_FILE_INFO), TEST_PAGE);
     }
     assertEquals(1, Files.list(
         Paths.get(mOptions.getRootDir(), Long.toString(mOptions.getPageSize()))).count());
@@ -76,7 +76,7 @@ public class LocalPageStoreTest {
     long numFiles = numBuckets * 10;
     for (int i = 0; i < numFiles; i++) {
       PageId id = new PageId(Integer.toString(i), 0);
-      pageStore.put(id, TEST_PAGE, new PageInfo(id, TEST_PAGE_SIZE, TEST_FILE_INFO));
+      pageStore.put(new PageInfo(id, TEST_PAGE_SIZE, TEST_FILE_INFO), TEST_PAGE);
     }
     assertEquals(10, Files.list(
         Paths.get(mOptions.getRootDir(), Long.toString(mOptions.getPageSize()))).count());
@@ -86,10 +86,11 @@ public class LocalPageStoreTest {
   public void cleanFileAndDirectory() throws Exception {
     LocalPageStore pageStore = new LocalPageStore(mOptions);
     PageId pageId = new PageId("0", 0);
-    pageStore.put(pageId, TEST_PAGE, new PageInfo(pageId, TEST_PAGE_SIZE, TEST_FILE_INFO));
-    Path p = pageStore.getFilePath(pageId, TEST_FILE_INFO.getLastModificationTimeMs());
+    PageInfo pageInfo = new PageInfo(pageId, TEST_PAGE_SIZE, TEST_FILE_INFO);
+    pageStore.put(pageInfo, TEST_PAGE);
+    Path p = pageStore.getFilePath(pageInfo);
     assertTrue(Files.exists(p));
-    pageStore.delete(pageId, TEST_FILE_INFO.getLastModificationTimeMs());
+    pageStore.delete(pageInfo);
     assertFalse(Files.exists(p));
     assertFalse(Files.exists(p.getParent()));
   }
@@ -97,10 +98,11 @@ public class LocalPageStoreTest {
   private void helloWorldTest(PageStore store) throws Exception {
     String msg = "Hello, World!";
     PageId id = new PageId("0", 0);
-    store.put(id, msg.getBytes(), new PageInfo(id, msg.getBytes().length, TEST_FILE_INFO));
+    PageInfo pageInfo = new PageInfo(id, msg.getBytes().length, TEST_FILE_INFO);
+    store.put(pageInfo, msg.getBytes());
     byte[] buf = new byte[1024];
     assertEquals(msg.getBytes().length,
-        store.get(id, TEST_FILE_INFO.getLastModificationTimeMs(), buf));
+        store.get(pageInfo, buf));
     assertArrayEquals(msg.getBytes(), Arrays.copyOfRange(buf, 0, msg.getBytes().length));
   }
 }

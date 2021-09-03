@@ -25,7 +25,7 @@ import javax.annotation.Nullable;
  */
 public class CacheContext {
 
-  public static final int LAST_MODIFICATION_TIME_NOT_SET = 0;
+  public static final long LAST_MODIFICATION_TIME_NOT_SET = 0;
   /** Used in Prestodb to indicate the cache quota for a file. */
   private CacheQuota mCacheQuota = CacheQuota.UNLIMITED;
 
@@ -94,7 +94,7 @@ public class CacheContext {
   }
 
   /**
-   * @return the last modification time of the source data file
+   * @return the last modification time in ms of the source data file
    */
   public long getLastModificationTimeMs() {
     return mLastModificationTimeMs;

@@ -72,8 +72,8 @@ public class FileInfo {
   @Override
   public String toString() {
     return MoreObjects.toStringHelper(this)
-        .add("mCacheScope", mCacheScope)
-        .add("mLastModificationTimeMs", mLastModificationTimeMs)
+        .add("cacheScope", mCacheScope)
+        .add("lastModificationTimeMs", mLastModificationTimeMs)
         .toString();
   }
 }

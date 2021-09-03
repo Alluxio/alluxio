@@ -379,7 +379,7 @@ public class LocalCacheManager implements CacheManager {
       }
       if (scopeToEvict == null) {
         try {
-          mPageStore.put(pageId, page, newPageInfo);
+          mPageStore.put(newPageInfo, page);
           // Bytes written to the cache
           MetricsSystem.meter(MetricKey.CLIENT_CACHE_BYTES_WRITTEN_CACHE.getName())
               .mark(page.length);
@@ -427,7 +427,7 @@ public class LocalCacheManager implements CacheManager {
       // Regardless of enoughSpace, delete the victim as it has been removed from the metastore
       PageId victim = victimPageInfo.getPageId();
       try {
-        mPageStore.delete(victim, victimPageInfo.getFileInfo().getLastModificationTimeMs());
+        mPageStore.delete(victimPageInfo);
         // Bytes evicted from the cache
         MetricsSystem.meter(MetricKey.CLIENT_CACHE_BYTES_EVICTED.getName())
             .mark(victimPageInfo.getPageSize());
@@ -446,7 +446,7 @@ public class LocalCacheManager implements CacheManager {
         return PutResult.INSUFFICIENT_SPACE_EVICTED;
       }
       try {
-        mPageStore.put(pageId, page, newPageInfo);
+        mPageStore.put(newPageInfo, page);
         // Bytes written to the cache
         MetricsSystem.meter(MetricKey.CLIENT_CACHE_BYTES_WRITTEN_CACHE.getName()).mark(page.length);
         return PutResult.OK;
@@ -512,25 +512,29 @@ public class LocalCacheManager implements CacheManager {
     }
     ReadWriteLock pageLock = getPageLock(pageId);
     try (LockResource r = new LockResource(pageLock.readLock())) {
+      PageInfo pageInfo;
       try (LockResource r2 = new LockResource(mMetaLock.readLock())) {
-        mMetaStore.getPageInfo(pageId); //check if page exists and refresh LRU items
+        pageInfo = mMetaStore.getPageInfo(pageId); //check if page exists and refresh LRU items
       } catch (PageNotFoundException e) {
         LOG.debug("get({},pageOffset={}) fails due to page not found", pageId, pageOffset);
         return 0;
       }
-      FileInfo fileInfo = mMetaStore.getFile(pageId.getFileId());
-      if (fileInfo != null && cacheContext.getLastModificationTimeMs() > fileInfo
+
+      if (cacheContext.getLastModificationTimeMs() > pageInfo.getFileInfo()
           .getLastModificationTimeMs()) {
-        PageInfo pageInfo = null;
+        //evict the stale page
         try (LockResource r2 = new LockResource(mMetaLock.writeLock())) {
           pageInfo = mMetaStore.getPageInfo(pageId);
-          mMetaStore.removePage(pageId);
+          if (cacheContext.getLastModificationTimeMs() > pageInfo.getFileInfo()
+              .getLastModificationTimeMs()) {
+            mMetaStore.removePage(pageId);
+          }
         } catch (PageNotFoundException e) {
-          // best effort to remove this page from meta store
+          // best effort to remove the stale page from meta store
           // ignore the exception
         } //release the lock on meta store
         try {
-          mPageStore.delete(pageId, pageInfo.getFileInfo().getLastModificationTimeMs());
+          mPageStore.delete(pageInfo);
           MetricsSystem.meter(MetricKey.CLIENT_CACHE_BYTES_EVICTED.getMetricName())
               .mark(pageInfo.getPageSize());
           MetricsSystem.meter(MetricKey.CLIENT_CACHE_PAGES_EVICTED.getMetricName())
@@ -540,8 +544,14 @@ public class LocalCacheManager implements CacheManager {
           // ignore the exception
         }
         return 0;
+      } else if (cacheContext.getLastModificationTimeMs() < pageInfo.getFileInfo()
+          .getLastModificationTimeMs()) {
+        // Cached page is newer than we expect, it might be caused by
+        // the underlying data file got changed during the presto query running
+        //TODO(beinan): add a metrics to count the number of this invalid state
+        return 0;
       }
-      int bytesRead = getPage(pageId, cacheContext.getLastModificationTimeMs(), pageOffset,
+      int bytesRead = getPage(pageInfo, pageOffset,
           bytesToRead, buffer, offsetInBuffer);
       if (bytesRead <= 0) {
         Metrics.GET_ERRORS.inc();
@@ -581,7 +591,7 @@ public class LocalCacheManager implements CacheManager {
           return false;
         }
       }
-      boolean ok = deletePage(pageId, pageInfo.getFileInfo().getLastModificationTimeMs());
+      boolean ok = deletePage(pageInfo);
       LOG.debug("delete({}) exits, success: {}", pageId, ok);
       if (!ok) {
         Metrics.DELETE_STORE_DELETE_ERRORS.inc();
@@ -655,7 +665,7 @@ public class LocalCacheManager implements CacheManager {
             }
           }
           if (!enoughSpace) {
-            mPageStore.delete(pageId, pageInfo.getFileInfo().getLastModificationTimeMs());
+            mPageStore.delete(pageInfo);
             discardedPages++;
             discardedBytes += pageInfo.getPageSize();
           }
@@ -686,34 +696,33 @@ public class LocalCacheManager implements CacheManager {
   /**
    * Attempts to delete a page from the page store. The page lock must be acquired before calling
    * this method. The metastore must be updated before calling this method.
-   *
-   * @param pageId page id
+   * @param pageInfo page info
    * @return true if successful, false otherwise
    */
-  private boolean deletePage(PageId pageId, long lastModificationTimeMs) {
+  private boolean deletePage(PageInfo pageInfo) {
     try {
-      mPageStore.delete(pageId, lastModificationTimeMs);
+      mPageStore.delete(pageInfo);
     } catch (IOException | PageNotFoundException e) {
-      LOG.error("Failed to delete page {} from pageStore", pageId, e);
+      LOG.error("Failed to delete page {} from pageStore", pageInfo.getPageId(), e);
       return false;
     }
     return true;
   }
 
-  private int getPage(PageId pageId, long lastModificationTimeMs, int pageOffset, int bytesToRead,
+  private int getPage(PageInfo pageInfo, int pageOffset, int bytesToRead,
       byte[] buffer,
       int bufferOffset) {
     try {
       int ret = mPageStore
-          .get(pageId, lastModificationTimeMs, pageOffset, bytesToRead, buffer, bufferOffset);
+          .get(pageInfo, pageOffset, bytesToRead, buffer, bufferOffset);
       if (ret != bytesToRead) {
         // data read from page store is inconsistent from the metastore
         LOG.error("Failed to read page {}: supposed to read {} bytes, {} bytes actually read",
-            pageId, bytesToRead, ret);
+            pageInfo.getPageId(), bytesToRead, ret);
         return -1;
       }
     } catch (IOException | PageNotFoundException e) {
-      LOG.error("Failed to get existing page {} from pageStore", pageId, e);
+      LOG.error("Failed to get existing page {} from pageStore", pageInfo.getPageId(), e);
       return -1;
     }
     return bytesToRead;

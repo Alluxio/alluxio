@@ -19,6 +19,7 @@ import alluxio.Constants;
 import alluxio.client.file.cache.CacheManager;
 import alluxio.client.file.cache.LocalCacheManager;
 import alluxio.client.file.cache.PageId;
+import alluxio.client.file.cache.PageInfo;
 import alluxio.client.file.cache.PageStore;
 import alluxio.client.file.cache.store.LocalPageStore;
 import alluxio.client.file.cache.store.PageStoreType;
@@ -215,7 +216,8 @@ public final class LocalCacheManagerIntegrationTest extends BaseIntegrationTest 
     // creates with an invalid page file stored
     String rootDir = PageStore.getStorePath(PageStoreType.LOCAL,
         mConf.get(PropertyKey.USER_CLIENT_CACHE_DIR)).toString();
-    Path pagePath = ((LocalPageStore)  mCacheManager.getPageStore()).getFilePath(PAGE_ID, 0);
+    Path pagePath = ((LocalPageStore) mCacheManager.getPageStore())
+        .getFilePath(new PageInfo(PAGE_ID, PAGE_SIZE_BYTES));
     FileUtils.createFile(Paths.get(pagePath.getParent().toString(), "invalidPageFile").toString());
     mCacheManager = LocalCacheManager.create(mConf);
     assertEquals(0, mCacheManager.get(PAGE_ID, PAGE_SIZE_BYTES, mBuffer, 0));

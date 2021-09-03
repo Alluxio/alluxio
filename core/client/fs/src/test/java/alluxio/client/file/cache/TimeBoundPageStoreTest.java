@@ -75,33 +75,33 @@ public class TimeBoundPageStoreTest {
 
   @Test
   public void put() throws Exception {
-    mTimeBoundPageStore.put(PAGE_ID, PAGE, PAGE_INFO);
+    mTimeBoundPageStore.put(PAGE_INFO, PAGE);
     assertEquals(PAGE.length,
-        mPageStore.get(PAGE_ID, FILE_INFO.getLastModificationTimeMs(), 0, PAGE.length, mBuf, 0));
+        mPageStore.get(PAGE_INFO, 0, PAGE.length, mBuf, 0));
     assertArrayEquals(PAGE, mBuf);
   }
 
   @Test
   public void get() throws Exception {
-    mPageStore.put(PAGE_ID, PAGE, PAGE_INFO);
+    mPageStore.put(PAGE_INFO, PAGE);
     assertEquals(PAGE.length, mTimeBoundPageStore
-        .get(PAGE_ID, FILE_INFO.getLastModificationTimeMs(), 0, PAGE.length, mBuf, 0));
+        .get(PAGE_INFO, 0, PAGE.length, mBuf, 0));
     assertArrayEquals(PAGE, mBuf);
   }
 
   @Test
   public void delete() throws Exception {
-    mPageStore.put(PAGE_ID, PAGE, PAGE_INFO);
-    mTimeBoundPageStore.delete(PAGE_ID, FILE_INFO.getLastModificationTimeMs());
+    mPageStore.put(PAGE_INFO, PAGE);
+    mTimeBoundPageStore.delete(PAGE_INFO);
     assertThrows(PageNotFoundException.class, () ->
-        mPageStore.get(PAGE_ID, FILE_INFO.getLastModificationTimeMs(), 0, PAGE.length, mBuf, 0));
+        mPageStore.get(PAGE_INFO, 0, PAGE.length, mBuf, 0));
   }
 
   @Test
   public void putTimeout() throws Exception {
     mPageStore.setPutHanging(true);
     try {
-      mTimeBoundPageStore.put(PAGE_ID, PAGE, PAGE_INFO);
+      mTimeBoundPageStore.put(PAGE_INFO, PAGE);
       fail();
     } catch (IOException e) {
       assertTrue(e.getCause() instanceof TimeoutException);
@@ -113,7 +113,7 @@ public class TimeBoundPageStoreTest {
     mPageStore.setGetHanging(true);
     try {
       mTimeBoundPageStore
-          .get(PAGE_ID, FILE_INFO.getLastModificationTimeMs(), 0, PAGE.length, mBuf, 0);
+          .get(PAGE_INFO, 0, PAGE.length, mBuf, 0);
       fail();
     } catch (IOException e) {
       assertTrue(e.getCause() instanceof TimeoutException);
@@ -124,7 +124,7 @@ public class TimeBoundPageStoreTest {
   public void deleteTimeout() throws Exception {
     mPageStore.setDeleteHanging(true);
     try {
-      mTimeBoundPageStore.delete(PAGE_ID, FILE_INFO.getLastModificationTimeMs());
+      mTimeBoundPageStore.delete(PAGE_INFO);
       fail();
     } catch (IOException e) {
       assertTrue(e.getCause() instanceof TimeoutException);
@@ -177,7 +177,7 @@ public class TimeBoundPageStoreTest {
       int index = i;
       futures.add(executor.submit(() -> {
         try {
-          mTimeBoundPageStore.put(pageId, PAGE, PAGE_INFO);
+          mTimeBoundPageStore.put(PAGE_INFO, PAGE);
         } catch (Exception e) {
           exceptions[index] = e;
         }

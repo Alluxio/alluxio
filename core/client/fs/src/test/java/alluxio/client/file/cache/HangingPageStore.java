@@ -34,30 +34,30 @@ class HangingPageStore extends LocalPageStore {
   }
 
   @Override
-  public void delete(PageId pageId, long lastModificationTimeMs)
+  public void delete(PageInfo pageInfo)
       throws IOException, PageNotFoundException {
     // never quit
     while (mDeleteHanging.get()) {
     }
-    super.delete(pageId, lastModificationTimeMs);
+    super.delete(pageInfo);
   }
 
   @Override
-  public int get(PageId pageId, long lastModificationTimeMs, int pageOffset, int bytesToRead,
+  public int get(PageInfo pageInfo, int pageOffset, int bytesToRead,
       byte[] buffer, int bufferOffset)
       throws IOException, PageNotFoundException {
     // never quit
     while (mGetHanging.get()) {
     }
-    return super.get(pageId, lastModificationTimeMs, pageOffset, bytesToRead, buffer, bufferOffset);
+    return super.get(pageInfo, pageOffset, bytesToRead, buffer, bufferOffset);
   }
 
   @Override
-  public void put(PageId pageId, byte[] page, PageInfo pageInfo) throws IOException {
+  public void put(PageInfo pageInfo, byte[] page) throws IOException {
     // never quit
     while (mPutHanging.get()) {
     }
-    super.put(pageId, page, pageInfo);
+    super.put(pageInfo, page);
     mPut.getAndIncrement();
   }
 

@@ -49,7 +49,7 @@ public class LocalPageStore implements PageStore {
 
   private static final Logger LOG = LoggerFactory.getLogger(LocalPageStore.class);
   private static final String ERROR_NO_SPACE_LEFT = "No space left on device";
-  public static final String FILE_METADATA_FILENAME = "metadata.properties";
+  private static final String FILE_METADATA_FILENAME = "metadata.properties";
   /**
    * The depth of the file level directory from root-path.
    */
@@ -84,9 +84,10 @@ public class LocalPageStore implements PageStore {
   }
 
   @Override
-  public void put(PageId pageId, byte[] page, PageInfo pageInfo)
+  public void put(PageInfo pageInfo, byte[] page)
       throws ResourceExhaustedException, IOException {
-    Path p = getFilePath(pageId, pageInfo.getFileInfo().getLastModificationTimeMs());
+    PageId pageId = pageInfo.getPageId();
+    Path p = getFilePath(pageInfo);
     try {
       if (!Files.exists(p)) {
         Path parent =
@@ -121,14 +122,14 @@ public class LocalPageStore implements PageStore {
   }
 
   @Override
-  public int get(PageId pageId, long lastModificationTimeMs, int pageOffset, int bytesToRead,
+  public int get(PageInfo pageInfo, int pageOffset, int bytesToRead,
       byte[] buffer, int bufferOffset)
       throws IOException, PageNotFoundException {
     Preconditions.checkArgument(pageOffset >= 0, "page offset should be non-negative");
     Preconditions.checkArgument(buffer.length >= bufferOffset,
         "page offset %s should be " + "less or equal than buffer length %s", bufferOffset,
         buffer.length);
-    Path p = getFilePath(pageId, lastModificationTimeMs);
+    Path p = getFilePath(pageInfo);
     if (!Files.exists(p)) {
       throw new PageNotFoundException(p.toString());
     }
@@ -139,7 +140,8 @@ public class LocalPageStore implements PageStore {
       int bytesSkipped = localFile.skipBytes(pageOffset);
       if (pageOffset != bytesSkipped) {
         throw new IOException(
-            String.format("Failed to read page %s (%s) from offset %s: %s bytes skipped", pageId, p,
+            String.format("Failed to read page %s (%s) from offset %s: %s bytes skipped",
+                pageInfo.getPageId(), p,
                 pageOffset, bytesSkipped));
       }
       int bytesRead = 0;
@@ -158,9 +160,9 @@ public class LocalPageStore implements PageStore {
   }
 
   @Override
-  public void delete(PageId pageId, long lastModificationTimeMs)
+  public void delete(PageInfo pageInfo)
       throws IOException, PageNotFoundException {
-    Path p = getFilePath(pageId, lastModificationTimeMs);
+    Path p = getFilePath(pageInfo);
     if (!Files.exists(p)) {
       throw new PageNotFoundException(p.toString());
     }
@@ -185,15 +187,15 @@ public class LocalPageStore implements PageStore {
   }
 
   /**
-   * @param pageId page Id
-   * @param lastModificationTimeMs last modified time
+   * @param pageInfo page info
    * @return the local file system path to store this page
    */
   @VisibleForTesting
-  public Path getFilePath(PageId pageId, long lastModificationTimeMs) {
+  public Path getFilePath(PageInfo pageInfo) {
+    PageId pageId = pageInfo.getPageId();
     // TODO(feng): encode fileId with URLEncoder to escape invalid characters for file name
     return Paths.get(mRoot, Long.toString(mPageSize), getFileBucket(pageId.getFileId()),
-        pageId.getFileId(), Long.toString(lastModificationTimeMs),
+        pageId.getFileId(), Long.toString(pageInfo.getFileInfo().getLastModificationTimeMs()),
         Long.toString(pageId.getPageIndex()));
   }
 

@@ -104,9 +104,9 @@ public class RocksPageStore implements PageStore {
   }
 
   @Override
-  public void put(PageId pageId, byte[] page, PageInfo pageInfo) throws IOException {
+  public void put(PageInfo pageInfo, byte[] page) throws IOException {
     try {
-      byte[] key = getKeyFromPageId(pageId);
+      byte[] key = getKeyFromPageId(pageInfo.getPageId());
       mDb.put(key, page);
     } catch (RocksDBException e) {
       throw new IOException("Failed to store page", e);
@@ -114,14 +114,14 @@ public class RocksPageStore implements PageStore {
   }
 
   @Override
-  public int get(PageId pageId, long lastModificationTimeMs, int pageOffset, int bytesToRead,
+  public int get(PageInfo pageInfo, int pageOffset, int bytesToRead,
       byte[] buffer, int bufferOffset)
       throws IOException, PageNotFoundException {
     Preconditions.checkArgument(pageOffset >= 0, "page offset should be non-negative");
     try {
-      byte[] page = mDb.get(getKeyFromPageId(pageId));
+      byte[] page = mDb.get(getKeyFromPageId(pageInfo.getPageId()));
       if (page == null) {
-        throw new PageNotFoundException(new String(getKeyFromPageId(pageId)));
+        throw new PageNotFoundException(new String(getKeyFromPageId(pageInfo.getPageId())));
       }
       Preconditions.checkArgument(pageOffset <= page.length,
           "page offset %s exceeded page size %s", pageOffset, page.length);
@@ -129,8 +129,8 @@ public class RocksPageStore implements PageStore {
         int bytesSkipped = (int) bais.skip(pageOffset);
         if (pageOffset != bytesSkipped) {
           throw new IOException(
-              String.format("Failed to read page %s from offset %s: %s bytes skipped", pageId,
-                  pageOffset, bytesSkipped));
+              String.format("Failed to read page %s from offset %s: %s bytes skipped",
+                  pageInfo.getPageId(), pageOffset, bytesSkipped));
         }
         int bytesRead = 0;
         int bytesLeft = Math.min(page.length - pageOffset, buffer.length - bufferOffset);
@@ -151,9 +151,9 @@ public class RocksPageStore implements PageStore {
   }
 
   @Override
-  public void delete(PageId pageId, long lastModificationTimeMs) throws PageNotFoundException {
+  public void delete(PageInfo pageInfo) throws PageNotFoundException {
     try {
-      byte[] key = getKeyFromPageId(pageId);
+      byte[] key = getKeyFromPageId(pageInfo.getPageId());
       mDb.delete(key);
     } catch (RocksDBException e) {
       throw new PageNotFoundException("Failed to remove page", e);
