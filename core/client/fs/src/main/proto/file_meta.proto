@@ -1,0 +1,6 @@
+package alluxio.proto.client.file.cache;
+
+message ProtoFileMeta {
+  required uint64 lastModificationTime = 1;
+  optional string scope = 2;
+}

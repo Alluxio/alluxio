@@ -626,7 +626,7 @@ public final class LocalCacheManagerTest {
     mPageStore.put(PAGE_INFO_1, PAGE1);
     mPageStore.put(new PageInfo(pageUuid, PAGE2.length, FILE_INFO), PAGE2);
     Path pagePath = ((LocalPageStore) ((TimeBoundPageStore) mPageStore).getPageStore())
-        .getFilePath(PAGE_INFO_1);
+        .getPageFilePath(PAGE_INFO_1);
     FileUtils.createFile(
         Paths.get(pagePath.getParent().toString(), "invalidPageFile").toString());
     mCacheManager = LocalCacheManager.create(mConf, mMetaStore, mPageStore);
@@ -644,7 +644,7 @@ public final class LocalCacheManagerTest {
     mPageStore.put(PAGE_INFO_1, PAGE1);
     mPageStore.put(new PageInfo(pageUuid, PAGE2.length, FILE_INFO), PAGE2);
     Path pagePath = ((LocalPageStore) ((TimeBoundPageStore) mPageStore).getPageStore())
-        .getFilePath(PAGE_INFO_1);
+        .getPageFilePath(PAGE_INFO_1);
     FileUtils.createFile(Paths.get(pagePath.getParent().toString(), "invalidPageFile").toString());
     mCacheManager = createLocalCacheManager(mConf, mMetaStore, mPageStore);
     assertEquals(0, mCacheManager.get(PAGE_ID1, PAGE1.length, mBuf, 0));

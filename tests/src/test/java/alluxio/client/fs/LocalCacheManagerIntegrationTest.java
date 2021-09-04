@@ -217,7 +217,7 @@ public final class LocalCacheManagerIntegrationTest extends BaseIntegrationTest 
     String rootDir = PageStore.getStorePath(PageStoreType.LOCAL,
         mConf.get(PropertyKey.USER_CLIENT_CACHE_DIR)).toString();
     Path pagePath = ((LocalPageStore) mCacheManager.getPageStore())
-        .getFilePath(new PageInfo(PAGE_ID, PAGE_SIZE_BYTES));
+        .getPageFilePath(new PageInfo(PAGE_ID, PAGE_SIZE_BYTES));
     FileUtils.createFile(Paths.get(pagePath.getParent().toString(), "invalidPageFile").toString());
     mCacheManager = LocalCacheManager.create(mConf);
     assertEquals(0, mCacheManager.get(PAGE_ID, PAGE_SIZE_BYTES, mBuffer, 0));

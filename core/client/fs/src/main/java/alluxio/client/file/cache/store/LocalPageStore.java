@@ -18,9 +18,12 @@ import alluxio.client.file.cache.PageStore;
 import alluxio.client.quota.CacheScope;
 import alluxio.exception.PageNotFoundException;
 import alluxio.exception.status.ResourceExhaustedException;
+import alluxio.proto.client.file.cache.FileMeta.ProtoFileMeta;
+import alluxio.proto.client.file.cache.FileMeta.ProtoFileMeta.Builder;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
+import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -33,7 +36,6 @@ import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Properties;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
@@ -49,7 +51,7 @@ public class LocalPageStore implements PageStore {
 
   private static final Logger LOG = LoggerFactory.getLogger(LocalPageStore.class);
   private static final String ERROR_NO_SPACE_LEFT = "No space left on device";
-  private static final String FILE_METADATA_FILENAME = "metadata.properties";
+  private static final String FILE_METADATA_FILENAME = "metadata";
   /**
    * The depth of the file level directory from root-path.
    */
@@ -87,37 +89,46 @@ public class LocalPageStore implements PageStore {
   public void put(PageInfo pageInfo, byte[] page)
       throws ResourceExhaustedException, IOException {
     PageId pageId = pageInfo.getPageId();
-    Path p = getFilePath(pageInfo);
+    Path pagePath = getPageFilePath(pageInfo);
+    Path timestampPath = Preconditions
+        .checkNotNull(pagePath.getParent(), "timestamp path should not be null");
     try {
-      if (!Files.exists(p)) {
-        Path parent =
-            Preconditions.checkNotNull(p.getParent(), "parent of cache file should not be null");
-        Files.createDirectories(parent);
-        createFileMetadata(pageId, pageInfo.getFileInfo());
-        Files.createFile(p);
+      if (!Files.exists(pagePath)) {
+        if (!Files.exists(timestampPath)) { //new timestamp, new file or file got updated
+          Path fileLevelPath = Preconditions
+              .checkNotNull(timestampPath.getParent(), "file level path should not be null");
+          if (Files.exists(fileLevelPath)) {
+            //clear stale timestamp folders
+            FileUtils.cleanDirectory(fileLevelPath.toFile());
+          } else {
+            Files.createDirectories(fileLevelPath);
+          }
+          createFileMetadata(pageInfo);
+          Files.createDirectories(timestampPath);
+        }
+        Files.createFile(pagePath);
       }
       // extra try to ensure output stream is closed
-      try (FileOutputStream fos = new FileOutputStream(p.toFile(), false)) {
+      try (FileOutputStream fos = new FileOutputStream(pagePath.toFile(), false)) {
         fos.write(page);
       }
     } catch (Exception e) {
-      Files.deleteIfExists(p);
+      Files.deleteIfExists(pagePath);
       if (e.getMessage().contains(ERROR_NO_SPACE_LEFT)) {
         throw new ResourceExhaustedException(
             String.format("%s is full, configured with %d bytes", mRoot, mCapacity), e);
       }
-      throw new IOException("Failed to write file " + p + " for page " + pageId);
+      throw new IOException("Failed to write file " + timestampPath + " for page " + pageId, e);
     }
   }
 
-  private void createFileMetadata(PageId pageId, FileInfo fileInfo) throws IOException {
-    Path metaDataPath = getFileMetaDataPath(pageId);
-    Properties metadata = new Properties();
-    metadata.setProperty("LastModificationTimeMs",
-        String.valueOf(fileInfo.getLastModificationTimeMs()));
-    metadata.setProperty("Scope", String.valueOf(fileInfo.getScope()));
+  private void createFileMetadata(PageInfo pageInfo) throws IOException {
+    Path metaDataPath = getFileMetaDataPath(pageInfo.getPageId());
+    Builder fileMetaBuilder = ProtoFileMeta.newBuilder();
+    fileMetaBuilder.setLastModificationTime(pageInfo.getFileInfo().getLastModificationTimeMs());
+    fileMetaBuilder.setScope(pageInfo.getFileInfo().getScope().getScopeId());
     try (FileOutputStream fos = new FileOutputStream(metaDataPath.toFile(), false)) {
-      metadata.store(fos, "Metadata for " + pageId.getFileId());
+      fileMetaBuilder.build().writeTo(fos);
     }
   }
 
@@ -129,7 +140,7 @@ public class LocalPageStore implements PageStore {
     Preconditions.checkArgument(buffer.length >= bufferOffset,
         "page offset %s should be " + "less or equal than buffer length %s", bufferOffset,
         buffer.length);
-    Path p = getFilePath(pageInfo);
+    Path p = getPageFilePath(pageInfo);
     if (!Files.exists(p)) {
       throw new PageNotFoundException(p.toString());
     }
@@ -162,7 +173,7 @@ public class LocalPageStore implements PageStore {
   @Override
   public void delete(PageInfo pageInfo)
       throws IOException, PageNotFoundException {
-    Path p = getFilePath(pageInfo);
+    Path p = getPageFilePath(pageInfo);
     if (!Files.exists(p)) {
       throw new PageNotFoundException(p.toString());
     }
@@ -191,7 +202,7 @@ public class LocalPageStore implements PageStore {
    * @return the local file system path to store this page
    */
   @VisibleForTesting
-  public Path getFilePath(PageInfo pageInfo) {
+  public Path getPageFilePath(PageInfo pageInfo) {
     PageId pageId = pageInfo.getPageId();
     // TODO(feng): encode fileId with URLEncoder to escape invalid characters for file name
     return Paths.get(mRoot, Long.toString(mPageSize), getFileBucket(pageId.getFileId()),
@@ -271,11 +282,21 @@ public class LocalPageStore implements PageStore {
         .flatMap(pathToFileDir -> {
           try {
             FileInfo fileInfo = loadFileInfo(pathToFileDir);
-            //TODO(beinan): remove all the stale sub-folder
-            // whose timestamp is less than last modified time in fileInfo
+            // remove all the stale sub-folder
+            // the timestamp of which is not equal to the last modified time in fileInfo
+            Files.list(pathToFileDir)
+                .filter(path -> Files.isDirectory(path) && !path.getFileName().toString()
+                    .equals(String.valueOf(fileInfo.getLastModificationTimeMs())))
+                .forEach(path -> {
+                  try {
+                    FileUtils.cleanDirectory(path.toFile());
+                  } catch (IOException e) {
+                    LOG.error("Failed to remove the stale folder " + path, e);
+                  }
+                });
             return Files
                 //only the pages stored in the sub-folder of lastModificationTimeMs would be visited
-                .walk(pathToFileDir.resolve(Long.toString(fileInfo.getLastModificationTimeMs())))
+                .list(pathToFileDir.resolve(Long.toString(fileInfo.getLastModificationTimeMs())))
                 .filter(Files::isRegularFile)
                 .map(pathToPage -> getPageInfo(pathToPage, fileInfo));
           } catch (IOException e) {
@@ -288,14 +309,13 @@ public class LocalPageStore implements PageStore {
 
   private FileInfo loadFileInfo(Path path) throws IOException {
     File metaDataFile = new File(path.toFile(), FILE_METADATA_FILENAME);
-    Properties fileMetaData = new Properties();
     try (FileInputStream is = new FileInputStream(metaDataFile)) {
-      fileMetaData.load(is);
+      ProtoFileMeta fileMetaData = ProtoFileMeta.parseFrom(is);
+      return new FileInfo(
+          fileMetaData.hasScope() ? CacheScope.create(fileMetaData.getScope()) : CacheScope.GLOBAL,
+          fileMetaData.getLastModificationTime()
+      );
     }
-    return new FileInfo(
-        CacheScope.create(fileMetaData.getProperty("Scope")),
-        Long.parseLong(fileMetaData.getProperty("LastModificationTimeMs"))
-    );
   }
 
   private boolean isFileLevelDir(Path path) {

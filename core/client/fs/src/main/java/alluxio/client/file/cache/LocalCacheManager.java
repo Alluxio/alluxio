@@ -469,6 +469,11 @@ public class LocalCacheManager implements CacheManager {
     FileInfo fileInfo;
     if (mMetaStore.hasFile(pageId.getFileId())) {
       fileInfo = mMetaStore.getFile(pageId.getFileId());
+      //if the expected timestamp in cacheContext is newer than the timestamp we stored in metastore
+      //replace the file info in metastore.
+      //else if the expected timestamp is older than the timestamp we stored,
+      //do nothing, just use the current file info in metastore
+      //because we're reading the updated data file
       if (cacheContext.getLastModificationTimeMs() > fileInfo.getLastModificationTimeMs()) {
         mMetaStore.removeFile(pageId.getFileId());
         fileInfo = new FileInfo(cacheContext.getCacheScope(),

@@ -31,6 +31,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 public class LocalPageStoreTest {
 
@@ -88,11 +91,91 @@ public class LocalPageStoreTest {
     PageId pageId = new PageId("0", 0);
     PageInfo pageInfo = new PageInfo(pageId, TEST_PAGE_SIZE, TEST_FILE_INFO);
     pageStore.put(pageInfo, TEST_PAGE);
-    Path p = pageStore.getFilePath(pageInfo);
+    Path p = pageStore.getPageFilePath(pageInfo);
     assertTrue(Files.exists(p));
     pageStore.delete(pageInfo);
     assertFalse(Files.exists(p));
     assertFalse(Files.exists(p.getParent()));
+  }
+
+  @Test
+  public void reloadAllPagesFromDisk() throws Exception {
+    LocalPageStore pageStore = new LocalPageStore(mOptions);
+    for (int i = 0; i < 5; i++) {
+      for (int pageIndex = 0; pageIndex < 5; pageIndex++) {
+        PageId id = new PageId(Integer.toString(i), pageIndex);
+        FileInfo fileInfo = new FileInfo(CacheScope.create("test.table.p" + i), 100);
+        pageStore.put(new PageInfo(id, TEST_PAGE_SIZE, fileInfo), TEST_PAGE);
+      }
+    }
+    Map<PageId, PageInfo> pages = pageStore.getPages()
+        .collect(Collectors.toMap(PageInfo::getPageId, Function
+            .identity()));
+    assertEquals(25, pages.size());
+    for (int i = 0; i < 5; i++) {
+      for (int pageIndex = 0; pageIndex < 5; pageIndex++) {
+        PageId id = new PageId(Integer.toString(i), pageIndex);
+        assertEquals("test.table.p" + i,
+            pages.get(id).getFileInfo().getScope().getScopeId());
+        assertEquals(100,
+            pages.get(id).getFileInfo().getLastModificationTimeMs());
+      }
+    }
+  }
+
+  @Test
+  public void reloadAllPagesWithMixedModifiedTime() throws Exception {
+    LocalPageStore pageStore = new LocalPageStore(mOptions);
+    String testFileId = "testfile";
+    //put stale pages, lastModificationTime is 100
+    for (int pageIndex = 0; pageIndex < 5; pageIndex++) {
+      PageId id = new PageId(testFileId, pageIndex);
+      FileInfo fileInfo = new FileInfo(CacheScope.GLOBAL, 100);
+      pageStore.put(new PageInfo(id, TEST_PAGE_SIZE, fileInfo), TEST_PAGE);
+    }
+    //put new pages, lastModificationTime is 200
+    for (int pageIndex = 0; pageIndex < 5; pageIndex++) {
+      PageId id = new PageId(testFileId, pageIndex);
+      FileInfo fileInfo = new FileInfo(CacheScope.GLOBAL, 200);
+      pageStore.put(new PageInfo(id, TEST_PAGE_SIZE, fileInfo), TEST_PAGE);
+    }
+    Map<PageId, PageInfo> pages = pageStore.getPages()
+        .collect(Collectors.toMap(PageInfo::getPageId, Function
+            .identity()));
+    assertEquals(5, pages.size());
+    for (int pageIndex = 0; pageIndex < 5; pageIndex++) {
+      PageId id = new PageId(testFileId, pageIndex);
+      assertEquals(CacheScope.GLOBAL,
+          pages.get(id).getFileInfo().getScope());
+      assertEquals(200,
+          pages.get(id).getFileInfo().getLastModificationTimeMs());
+    }
+  }
+
+  @Test
+  public void cleanStalePageFiles() throws Exception {
+    LocalPageStore pageStore = new LocalPageStore(mOptions);
+    String testFileId = "testfile";
+    PageId id = new PageId(testFileId, 0);
+    //put a stale page
+    byte[] stalePage = "stale page".getBytes();
+    FileInfo staleFileInfo = new FileInfo(CacheScope.GLOBAL, 100);
+    PageInfo stalePageInfo = new PageInfo(id, stalePage.length, staleFileInfo);
+    pageStore.put(stalePageInfo, stalePage);
+    //put a new page with the same page id
+    byte[] newPage = "new page".getBytes();
+    FileInfo newFileInfo = new FileInfo(CacheScope.GLOBAL, 200);
+    PageInfo newPageInfo = new PageInfo(id, newPage.length, newFileInfo);
+    pageStore.put(newPageInfo, newPage);
+
+    byte[] buf = new byte[1024];
+    assertEquals(newPage.length, pageStore.get(newPageInfo, buf));
+    assertArrayEquals(newPage, Arrays.copyOfRange(buf, 0, newPage.length));
+
+    assertFalse("check if page file path has been deleted",
+        Files.exists(pageStore.getPageFilePath(stalePageInfo)));
+    assertFalse("check if modification timestamp path has been deleted",
+        Files.exists(pageStore.getPageFilePath(stalePageInfo).getParent()));
   }
 
   private void helloWorldTest(PageStore store) throws Exception {
