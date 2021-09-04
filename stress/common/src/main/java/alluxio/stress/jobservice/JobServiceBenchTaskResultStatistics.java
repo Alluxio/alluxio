@@ -110,7 +110,6 @@ public class JobServiceBenchTaskResultStatistics {
           (float) responseTime.getValueAtPercentile(100.0 - 1.0 / (Math.pow(10.0, i)))
               / Constants.MS_NANO;
     }
-
     float[] maxResponseTimesMs = new float[MAX_RESPONSE_BUCKETS];
     Arrays.fill(maxResponseTimesMs, -1);
     for (int i = 0; i < mMaxResponseTimeNs.length; i++) {

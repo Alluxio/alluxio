@@ -35,6 +35,10 @@ import java.util.zip.DataFormatException;
 public final class JobServiceBenchSummary implements Summary {
   private long mDurationMs;
   private long mEndTimeMs;
+
+
+
+  private long mRecordStartTimeMs;
   private JobServiceBenchParameters mParameters;
   private List<String> mNodes;
   private Map<String, List<String>> mErrors;
@@ -42,6 +46,7 @@ public final class JobServiceBenchSummary implements Summary {
   private float mThroughput;
   private SummaryStatistics mStatistics;
   private Map<String, SummaryStatistics> mStatisticsPerMethod;
+
 
   /**
    * Creates an instance.
@@ -67,16 +72,23 @@ public final class JobServiceBenchSummary implements Summary {
       final JobServiceBenchTaskResultStatistics value = entry.getValue();
       mStatisticsPerMethod.put(key, value.toBenchSummaryStatistics());
     }
-    long startTimeMs = mergedTaskResults.getRecordStartMs();
+    mRecordStartTimeMs = mergedTaskResults.getRecordStartMs();
     mEndTimeMs = mergedTaskResults.getEndMs();
     mParameters = mergedTaskResults.getParameters();
-    mDurationMs = mEndTimeMs - startTimeMs;
-    mThroughput = ((float) mStatistics.mNumSuccess * mParameters.mNumDirs
-        * mParameters.mNumFilesPerDir / mDurationMs) * 1000.0f;
+    mDurationMs = mEndTimeMs - mRecordStartTimeMs;
+    mThroughput =
+        ((float) mStatistics.mNumSuccess * mParameters.mNumFilesPerDir / mDurationMs) * 1000.0f;
     mNodes = nodes;
     mErrors = errors;
   }
 
+  public long getRecordStartTimeMs() {
+    return mRecordStartTimeMs;
+  }
+
+  public void setRecordStartTimeMs(long mRecordStartTimeMs) {
+    this.mRecordStartTimeMs = mRecordStartTimeMs;
+  }
   /**
    * @return the throughput
    */
