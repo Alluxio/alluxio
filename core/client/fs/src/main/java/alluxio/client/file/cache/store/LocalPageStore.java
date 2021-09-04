@@ -103,6 +103,9 @@ public class LocalPageStore implements PageStore {
           } else {
             Files.createDirectories(fileLevelPath);
           }
+          //TODO(beinan): risk of race condition, the pageInfo with an older fileInfo might win.
+          // But we always have a most up-to-date fileInfo in the memory,
+          // we can still guarantee the freshness of the pages returned by the LocalCacheManager
           createFileMetadata(pageInfo);
           Files.createDirectories(timestampPath);
         }

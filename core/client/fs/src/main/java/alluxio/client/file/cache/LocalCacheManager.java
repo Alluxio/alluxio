@@ -345,18 +345,21 @@ public class LocalCacheManager implements CacheManager {
       try (LockResource r2 = new LockResource(mMetaLock.writeLock())) {
         if (mMetaStore.hasPage(pageId)) {
           LOG.debug("{} is already inserted before", pageId);
-          FileInfo fileInfo = mMetaStore.getFile(pageId.getFileId());
-          if (fileInfo != null && cacheContext.getLastModificationTimeMs() > fileInfo
-              .getLastModificationTimeMs()) {
-            LOG.debug("Existing page {} is no longer valid. Trying remove it.", pageId);
-            try {
+          try {
+            PageInfo pageInfo = mMetaStore.getPageInfo(pageId);
+            //file info contains the latest lastModificationTime of this file
+            FileInfo fileInfo = mMetaStore.getFile(pageId.getFileId());
+            // the client puts a newer page
+            // or there has been newer pages of this file in cache
+            if (isStale(cacheContext, pageInfo, fileInfo)) {
+              LOG.debug("Existing page {} is no longer valid. Trying remove it.", pageId);
               mMetaStore.removePage(pageId);
-            } catch (PageNotFoundException e) {
-              LOG.debug("The invalid page {} has been removed already.", pageId);
+            } else {
+              // TODO(binfan): we should return more informative result in the future
+              return PutResult.OK;
             }
-          } else {
-            // TODO(binfan): we should return more informative result in the future
-            return PutResult.OK;
+          } catch (PageNotFoundException e) {
+            LOG.debug("The page {} that might be invalid has been removed already.", pageId);
           }
         }
         scopeToEvict = checkScopeToEvict(page.length, cacheContext.getCacheScope(),
@@ -473,7 +476,7 @@ public class LocalCacheManager implements CacheManager {
       //replace the file info in metastore.
       //else if the expected timestamp is older than the timestamp we stored,
       //do nothing, just use the current file info in metastore
-      //because we're reading the updated data file
+      //because we're always reading the updated under data file
       if (cacheContext.getLastModificationTimeMs() > fileInfo.getLastModificationTimeMs()) {
         mMetaStore.removeFile(pageId.getFileId());
         fileInfo = new FileInfo(cacheContext.getCacheScope(),
@@ -518,20 +521,20 @@ public class LocalCacheManager implements CacheManager {
     ReadWriteLock pageLock = getPageLock(pageId);
     try (LockResource r = new LockResource(pageLock.readLock())) {
       PageInfo pageInfo;
+      FileInfo fileInfo;
       try (LockResource r2 = new LockResource(mMetaLock.readLock())) {
         pageInfo = mMetaStore.getPageInfo(pageId); //check if page exists and refresh LRU items
+        fileInfo = mMetaStore.getFile(pageId.getFileId());
       } catch (PageNotFoundException e) {
         LOG.debug("get({},pageOffset={}) fails due to page not found", pageId, pageOffset);
         return 0;
       }
-
-      if (cacheContext.getLastModificationTimeMs() > pageInfo.getFileInfo()
-          .getLastModificationTimeMs()) {
+      if (isStale(cacheContext, pageInfo, fileInfo)) {
         //evict the stale page
         try (LockResource r2 = new LockResource(mMetaLock.writeLock())) {
           pageInfo = mMetaStore.getPageInfo(pageId);
-          if (cacheContext.getLastModificationTimeMs() > pageInfo.getFileInfo()
-              .getLastModificationTimeMs()) {
+          fileInfo = mMetaStore.getFile(pageId.getFileId());
+          if (isStale(cacheContext, pageInfo, fileInfo)) {
             mMetaStore.removePage(pageId);
           }
         } catch (PageNotFoundException e) {
@@ -554,7 +557,6 @@ public class LocalCacheManager implements CacheManager {
         // Cached page is newer than we expect, it might be caused by
         // the underlying data file got changed during the presto query running
         //TODO(beinan): add a metrics to count the number of this invalid state
-        return 0;
       }
       int bytesRead = getPage(pageInfo, pageOffset,
           bytesToRead, buffer, offsetInBuffer);
@@ -573,6 +575,14 @@ public class LocalCacheManager implements CacheManager {
       LOG.debug("get({},pageOffset={}) exits", pageId, pageOffset);
       return bytesRead;
     }
+  }
+
+  private boolean isStale(CacheContext cacheContext, PageInfo pageInfo, FileInfo fileInfo) {
+    // the client is asking a newer page
+    // or there has been newer pages of this file in cache
+    return cacheContext.getLastModificationTimeMs() > pageInfo.getFileInfo()
+        .getLastModificationTimeMs() || fileInfo.getLastModificationTimeMs() > pageInfo
+        .getFileInfo().getLastModificationTimeMs();
   }
 
   @Override
@@ -667,6 +677,9 @@ public class LocalCacheManager implements CacheManager {
                 mMetaStore.bytes() + pageInfo.getPageSize() <= mPageStore.getCacheSize();
             if (enoughSpace) {
               mMetaStore.addPage(pageId, pageInfo);
+              if (!mMetaStore.hasFile(pageId.getFileId())) {
+                mMetaStore.addFile(pageId.getFileId(), pageInfo.getFileInfo());
+              }
             }
           }
           if (!enoughSpace) {

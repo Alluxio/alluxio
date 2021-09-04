@@ -199,6 +199,17 @@ public final class LocalCacheManagerTest {
   }
 
   @Test
+  public void putExistWithNewerTimestamp() throws Exception {
+    CacheContext context = CacheContext.defaults();
+    context.setLastModificationTimeMs(100);
+    assertTrue(mCacheManager.put(PAGE_ID1, PAGE1, context));
+    context.setLastModificationTimeMs(200);
+    assertTrue(mCacheManager.put(PAGE_ID1, PAGE2, context));
+    assertEquals(PAGE2.length, mCacheManager.get(PAGE_ID1, 0, PAGE2.length, mBuf, 0, context));
+    assertArrayEquals(PAGE2, mBuf);
+  }
+
+  @Test
   public void putEvict() throws Exception {
     mConf.set(PropertyKey.USER_CLIENT_CACHE_SIZE, PAGE_SIZE_BYTES);
     mCacheManager = createLocalCacheManager();
@@ -441,7 +452,9 @@ public final class LocalCacheManagerTest {
 
   @Test
   public void putWithQuotaMoreThanCacheCapacity() throws Exception {
+    int cachePages = 5;
     mConf.set(PropertyKey.USER_CLIENT_CACHE_QUOTA_ENABLED, true);
+    mConf.set(PropertyKey.USER_CLIENT_CACHE_SIZE, PAGE_SIZE_BYTES * cachePages);
     CacheScope partitionCacheScope = CacheScope.create("schema.table.partition");
     CacheScope tableCacheScope = CacheScope.create("schema.table");
     CacheScope schemaCacheScope = CacheScope.create("schema");
@@ -517,6 +530,35 @@ public final class LocalCacheManagerTest {
     mCacheManager.put(PAGE_ID1, PAGE1);
     assertEquals(PAGE_SIZE_BYTES, mCacheManager.get(PAGE_ID1, PAGE1.length, mBuf, 0));
     assertArrayEquals(PAGE1, mBuf);
+  }
+
+  @Test
+  public void getExistStale() throws Exception {
+    CacheContext context = CacheContext.defaults();
+    context.setLastModificationTimeMs(100);
+    mCacheManager.put(PAGE_ID1, PAGE1, context);
+    context.setLastModificationTimeMs(200);
+    assertEquals(0, mCacheManager.get(PAGE_ID1, 0, PAGE1.length, mBuf, 0, context));
+    //test the stale page should be evicted
+    context.setLastModificationTimeMs(100);
+    assertEquals(0, mCacheManager.get(PAGE_ID1, 0, PAGE1.length, mBuf, 0, context));
+  }
+
+  @Test
+  public void getExistInUpdatedFile() throws Exception {
+    CacheContext context = CacheContext.defaults();
+    //page1 and page2 are in the same file
+    context.setLastModificationTimeMs(100);
+    mCacheManager.put(PAGE_ID1, PAGE1, context);
+    //put a newer page2 into cache
+    context.setLastModificationTimeMs(200);
+    PageId pageId2 = new PageId(PAGE_ID1.getFileId(), 2L);
+    mCacheManager.put(pageId2, PAGE2, context);
+    //page1 should be evicted, because we know the file got updated
+    context.setLastModificationTimeMs(100);
+    assertEquals(0, mCacheManager.get(PAGE_ID1, 0, PAGE1.length, mBuf, 0, context));
+    context.setLastModificationTimeMs(100);
+    assertEquals(PAGE2.length, mCacheManager.get(pageId2, 0, PAGE2.length, mBuf, 0, context));
   }
 
   @Test
