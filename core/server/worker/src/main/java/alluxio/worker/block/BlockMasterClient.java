@@ -85,6 +85,7 @@ public class BlockMasterClient extends AbstractMasterClient {
   @Override
   protected void afterConnect() throws IOException {
     mClient = BlockMasterWorkerServiceGrpc.newBlockingStub(mChannel);
+    mAsyncClient = BlockMasterWorkerServiceGrpc.newStub(mChannel);
   }
 
   /**
@@ -230,34 +231,34 @@ public class BlockMasterClient extends AbstractMasterClient {
    * @param configList a list of configurations
    */
   // TODO(yupeng): rename to workerBlockReport or workerInitialize?
-  public void register(final long workerId, final List<String> storageTierAliases,
-      final Map<String, Long> totalBytesOnTiers, final Map<String, Long> usedBytesOnTiers,
-      final Map<BlockStoreLocation, List<Long>> currentBlocksOnLocation,
-      final Map<String, List<String>> lostStorage,
-      final List<ConfigProperty> configList) throws IOException {
-
-    final RegisterWorkerPOptions options =
-        RegisterWorkerPOptions.newBuilder().addAllConfigs(configList).build();
-
-    final List<LocationBlockIdListEntry> currentBlocks
-        = convertBlockListMapToProto(currentBlocksOnLocation);
-
-    final Map<String, StorageList> lostStorageMap = lostStorage.entrySet().stream()
-        .collect(Collectors.toMap(Map.Entry::getKey,
-            e -> StorageList.newBuilder().addAllStorage(e.getValue()).build()));
-
-    final RegisterWorkerPRequest request = RegisterWorkerPRequest.newBuilder().setWorkerId(workerId)
-        .addAllStorageTiers(storageTierAliases).putAllTotalBytesOnTiers(totalBytesOnTiers)
-        .putAllUsedBytesOnTiers(usedBytesOnTiers)
-        .addAllCurrentBlocks(currentBlocks)
-        .putAllLostStorage(lostStorageMap)
-        .setOptions(options).build();
-
-    retryRPC(() -> {
-      mClient.registerWorker(request);
-      return null;
-    }, LOG, "Register", "workerId=%d", workerId);
-  }
+//  public void register(final long workerId, final List<String> storageTierAliases,
+//      final Map<String, Long> totalBytesOnTiers, final Map<String, Long> usedBytesOnTiers,
+//      final Map<BlockStoreLocation, List<Long>> currentBlocksOnLocation,
+//      final Map<String, List<String>> lostStorage,
+//      final List<ConfigProperty> configList) throws IOException {
+//
+//    final RegisterWorkerPOptions options =
+//        RegisterWorkerPOptions.newBuilder().addAllConfigs(configList).build();
+//
+//    final List<LocationBlockIdListEntry> currentBlocks
+//        = convertBlockListMapToProto(currentBlocksOnLocation);
+//
+//    final Map<String, StorageList> lostStorageMap = lostStorage.entrySet().stream()
+//        .collect(Collectors.toMap(Map.Entry::getKey,
+//            e -> StorageList.newBuilder().addAllStorage(e.getValue()).build()));
+//
+//    final RegisterWorkerPRequest request = RegisterWorkerPRequest.newBuilder().setWorkerId(workerId)
+//        .addAllStorageTiers(storageTierAliases).putAllTotalBytesOnTiers(totalBytesOnTiers)
+//        .putAllUsedBytesOnTiers(usedBytesOnTiers)
+//        .addAllCurrentBlocks(currentBlocks)
+//        .putAllLostStorage(lostStorageMap)
+//        .setOptions(options).build();
+//
+//    retryRPC(() -> {
+//      mClient.registerWorker(request);
+//      return null;
+//    }, LOG, "Register", "workerId=%d", workerId);
+//  }
 
   // TODO(jiacheng): add a streaming call:
   //  add to the proto definition

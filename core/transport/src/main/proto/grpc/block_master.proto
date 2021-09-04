@@ -269,7 +269,7 @@ message RegisterWorkerStreamPRequest {
   map<string, int64> usedBytesOnTiers = 4;
   /** the map of list of blocks on each tier (deprecated since 2.0, replaced by currentBlocks*/
   map<string, TierList> currentBlocksOnTiers = 5;
-  optional RegisterWorkerPOptions options = 6;
+  optional RegisterWorkerStreamPOptions options = 6;
   /** the map of tier alias to a list of lost storage paths. */
   map<string, StorageList> lostStorage = 7;
   /** use repeated fields to represent mapping from BlockStoreLocationProto to TierList */
@@ -307,7 +307,9 @@ service BlockMasterWorkerService {
   /**
    * Registers a worker.
    */
-  rpc RegisterWorker(RegisterWorkerPRequest) returns (RegisterWorkerPResponse);
+  /**
+   * rpc RegisterWorker(RegisterWorkerPRequest) returns (RegisterWorkerPResponse);
+   */
 
   /**
    * Register request in the streaming way

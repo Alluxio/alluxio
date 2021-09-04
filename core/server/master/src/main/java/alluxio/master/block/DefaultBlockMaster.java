@@ -34,6 +34,7 @@ import alluxio.grpc.ConfigProperty;
 import alluxio.grpc.GrpcService;
 import alluxio.grpc.GrpcUtils;
 import alluxio.grpc.RegisterWorkerPOptions;
+import alluxio.grpc.RegisterWorkerStreamPOptions;
 import alluxio.grpc.ServiceType;
 import alluxio.grpc.StorageList;
 import alluxio.grpc.WorkerLostStorageInfo;
@@ -303,8 +304,8 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
    * @param executorServiceFactory a factory for creating the executor service to use for running
    *        maintenance threads
    */
-  DefaultBlockMaster(MetricsMaster metricsMaster, CoreMasterContext masterContext, Clock clock,
-      ExecutorServiceFactory executorServiceFactory) {
+  public DefaultBlockMaster(MetricsMaster metricsMaster, CoreMasterContext masterContext, Clock clock,
+                            ExecutorServiceFactory executorServiceFactory) {
     this(metricsMaster, masterContext, clock, executorServiceFactory,
         masterContext.getBlockStoreFactory().get());
   }
@@ -964,11 +965,32 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
     LOG.info("registerWorker(): {}", worker);
   }
 
+  public LockResource lockWorker(long workerId) throws NotFoundException {
+    MasterWorkerInfo worker = mWorkers.getFirstByField(ID_INDEX, workerId);
+
+    if (worker == null) {
+      worker = findUnregisteredWorker(workerId);
+    }
+
+    if (worker == null) {
+      throw new NotFoundException(ExceptionMessage.NO_WORKER_FOUND.getMessage(workerId));
+    }
+
+    return worker.lockWorkerMeta(EnumSet.of(
+            WorkerMetaLockSection.STATUS,
+            WorkerMetaLockSection.USAGE,
+            WorkerMetaLockSection.BLOCKS), false);
+  }
+
+  public void unlockWorker(LockResource r) {
+    r.close();
+  }
+
   @Override
   public void workerRegisterStart(long workerId, List<String> storageTiers,
                            Map<String, Long> totalBytesOnTiers, Map<String, Long> usedBytesOnTiers,
                            Map<alluxio.proto.meta.Block.BlockLocation, List<Long>> currentBlocksOnLocation,
-                           Map<String, StorageList> lostStorage, RegisterWorkerPOptions options)
+                           Map<String, StorageList> lostStorage, RegisterWorkerStreamPOptions options)
           throws NotFoundException {
 
     MasterWorkerInfo worker = mWorkers.getFirstByField(ID_INDEX, workerId);
@@ -1101,6 +1123,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
         LOG.info("registering a new worker: {}", worker.mMeta.mId);
         removedBlocks = Collections.emptySet();
       }
+      LOG.info("{} blocks to remove from the worker", removedBlocks.size());
 
       // [NEEDED]: process removed blocks
       // because we don't know what blocks are removed yet
@@ -1112,6 +1135,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
 //      processWorkerOrphanedBlocks(worker);
     }
 
+    LOG.info("{} - Marking user usable", Thread.currentThread().getId());
     recordWorkerRegistration(workerId);
 
     // Update the TS at the end of the process

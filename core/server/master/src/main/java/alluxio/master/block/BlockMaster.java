@@ -20,11 +20,13 @@ import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.Command;
 import alluxio.grpc.ConfigProperty;
 import alluxio.grpc.RegisterWorkerPOptions;
+import alluxio.grpc.RegisterWorkerStreamPOptions;
 import alluxio.grpc.StorageList;
 import alluxio.grpc.WorkerLostStorageInfo;
 import alluxio.master.Master;
 import alluxio.metrics.Metric;
 import alluxio.proto.meta.Block;
+import alluxio.resource.LockResource;
 import alluxio.wire.Address;
 import alluxio.wire.BlockInfo;
 import alluxio.wire.WorkerInfo;
@@ -195,11 +197,15 @@ public interface BlockMaster extends Master, ContainerIdGenerable {
       Map<String, StorageList> lostStorage, RegisterWorkerPOptions options)
       throws NotFoundException;
 
+  LockResource lockWorker(long workerId) throws NotFoundException;
+
+  void unlockWorker(LockResource r);
+
   // TODO(jiacheng): Separate the metadata and list registration calls
   void workerRegisterStart(long workerId, List<String> storageTiers,
                            Map<String, Long> totalBytesOnTiers, Map<String, Long> usedBytesOnTiers,
                            Map<Block.BlockLocation, List<Long>> currentBlocksOnLocation,
-                           Map<String, StorageList> lostStorage, RegisterWorkerPOptions options)
+                           Map<String, StorageList> lostStorage, RegisterWorkerStreamPOptions options)
           throws NotFoundException;
 
   void workerRegisterStream(long workerId, Map<Block.BlockLocation, List<Long>> currentBlocksOnLocation)

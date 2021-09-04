@@ -22,6 +22,7 @@ import alluxio.grpc.ConfigProperty;
 import alluxio.grpc.Scope;
 import alluxio.heartbeat.HeartbeatExecutor;
 import alluxio.metrics.MetricsSystem;
+import alluxio.util.CommonUtils;
 import alluxio.util.ConfigurationUtils;
 import alluxio.wire.WorkerNetAddress;
 
@@ -30,6 +31,8 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
 import javax.annotation.concurrent.NotThreadSafe;
@@ -74,6 +77,8 @@ public final class BlockMasterSync implements HeartbeatExecutor {
   /** Last System.currentTimeMillis() timestamp when a heartbeat successfully completed. */
   private long mLastSuccessfulHeartbeatMs;
 
+  private AtomicBoolean mRegistered = new AtomicBoolean(false);
+
   /**
    * Creates a new instance of {@link BlockMasterSync}.
    *
@@ -93,6 +98,7 @@ public final class BlockMasterSync implements HeartbeatExecutor {
         .getMs(PropertyKey.WORKER_BLOCK_HEARTBEAT_TIMEOUT_MS);
     mAsyncBlockRemover = new AsyncBlockRemover(mBlockWorker);
 
+    // TODO(jiacheng): This is changed to streaming
 //    registerWithMaster();
     registerWithMasterStream();
     mLastSuccessfulHeartbeatMs = System.currentTimeMillis();
@@ -114,6 +120,7 @@ public final class BlockMasterSync implements HeartbeatExecutor {
 //  }
 
   private void registerWithMasterStream() throws IOException {
+    CommonUtils.sleepMs(10_000);
     BlockStoreMeta storeMeta = mBlockWorker.getStoreMetaFull();
     StorageTierAssoc storageTierAssoc = new WorkerStorageTierAssoc();
     List<ConfigProperty> configList =
@@ -122,6 +129,7 @@ public final class BlockMasterSync implements HeartbeatExecutor {
             storageTierAssoc.getOrderedStorageAliases(), storeMeta.getCapacityBytesOnTiers(),
             storeMeta.getUsedBytesOnTiers(), storeMeta.getBlockListByStorageLocation(),
             storeMeta.getLostStorage(), configList);
+    mRegistered.set(true);
   }
 
 
@@ -130,6 +138,11 @@ public final class BlockMasterSync implements HeartbeatExecutor {
    */
   @Override
   public void heartbeat() {
+    if (!mRegistered.get()) {
+      LOG.info("Skip heartbeat before register completes");
+      return;
+    }
+
     // Prepare metadata for the next heartbeat
     BlockHeartbeatReport blockReport = mBlockWorker.getReport();
     BlockStoreMeta storeMeta = mBlockWorker.getStoreMeta();
@@ -199,6 +212,7 @@ public final class BlockMasterSync implements HeartbeatExecutor {
       // Master requests re-registration
       case Register:
         mWorkerId.set(mMasterClient.getId(mWorkerAddress));
+        // TODO(jiacheng): This is changed to streaming
 //        registerWithMaster();
         registerWithMasterStream();
         break;
