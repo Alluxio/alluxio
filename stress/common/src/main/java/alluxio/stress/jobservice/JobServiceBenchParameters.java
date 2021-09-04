@@ -28,13 +28,11 @@ public final class JobServiceBenchParameters extends Parameters {
       required = true)
   public JobServiceBenchOperation mOperation;
 
-
   @Parameter(names = {"--num-dirs"}, description = "the number of directories")
   public int mNumDirs = 256;
 
   @Parameter(names = {"--files-per-dir"}, description = "the number of files in each directory.")
   public int mNumFilesPerDir = 1000;
-
 
   @Parameter(names = {"--base"},
       description = "The base directory path URI to perform operations in")

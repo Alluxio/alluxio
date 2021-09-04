@@ -35,9 +35,6 @@ import java.util.zip.DataFormatException;
 public final class JobServiceBenchSummary implements Summary {
   private long mDurationMs;
   private long mEndTimeMs;
-
-
-
   private long mRecordStartTimeMs;
   private JobServiceBenchParameters mParameters;
   private List<String> mNodes;
@@ -46,7 +43,6 @@ public final class JobServiceBenchSummary implements Summary {
   private float mThroughput;
   private SummaryStatistics mStatistics;
   private Map<String, SummaryStatistics> mStatisticsPerMethod;
-
 
   /**
    * Creates an instance.
@@ -82,13 +78,20 @@ public final class JobServiceBenchSummary implements Summary {
     mErrors = errors;
   }
 
+  /**
+   * @return the recordStartTimeMs
+   */
   public long getRecordStartTimeMs() {
     return mRecordStartTimeMs;
   }
 
-  public void setRecordStartTimeMs(long mRecordStartTimeMs) {
-    this.mRecordStartTimeMs = mRecordStartTimeMs;
+  /**
+   * @param recordStartTimeMs the recordStartTimeMs
+   */
+  public void setRecordStartTimeMs(long recordStartTimeMs) {
+    mRecordStartTimeMs = recordStartTimeMs;
   }
+
   /**
    * @return the throughput
    */
