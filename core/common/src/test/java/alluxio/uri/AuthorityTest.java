@@ -38,7 +38,9 @@ public class AuthorityTest {
     assertTrue(Authority.fromString("") instanceof NoAuthority);
     assertTrue(Authority.fromString(null) instanceof NoAuthority);
 
-    assertTrue(Authority.fromString("localhost") instanceof UnknownAuthority);
+    assertTrue(Authority.fromString("logical") instanceof LogicalMasterAuthority);
+    assertTrue(Authority.fromString("localhost") instanceof LogicalMasterAuthority);
+
     assertTrue(Authority.fromString("f3,321:sad") instanceof UnknownAuthority);
     assertTrue(Authority.fromString("localhost:") instanceof UnknownAuthority);
     assertTrue(Authority.fromString("127.0.0.1:19998,") instanceof UnknownAuthority);

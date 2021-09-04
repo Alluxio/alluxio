@@ -17,12 +17,14 @@ import alluxio.client.file.URIStatus;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.PreconditionMessage;
 import alluxio.uri.Authority;
+import alluxio.uri.LogicalMasterAuthority;
 import alluxio.uri.MultiMasterAuthority;
 import alluxio.uri.SingleMasterAuthority;
 import alluxio.uri.UnknownAuthority;
 import alluxio.uri.ZookeeperAuthority;
 
 import com.google.common.base.Preconditions;
+import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 
 import java.io.IOException;
@@ -68,7 +70,7 @@ public final class FileSystem extends AbstractFileSystem {
   }
 
   @Override
-  protected Map<String, Object> getConfigurationFromUri(URI uri) {
+  protected Map<String, Object> getConfigurationFromUri(URI uri, Configuration conf) {
     AlluxioURI alluxioUri = new AlluxioURI(uri.toString());
     Map<String, Object> alluxioConfProperties = new HashMap<>();
 
@@ -92,6 +94,30 @@ public final class FileSystem extends AbstractFileSystem {
       alluxioConfProperties.put(PropertyKey.MASTER_RPC_ADDRESSES.getName(),
               authority.getMasterAddresses());
       // Unset the zookeeper configuration to support alluxio URI has the highest priority
+      alluxioConfProperties.put(PropertyKey.ZOOKEEPER_ENABLED.getName(), false);
+      alluxioConfProperties.put(PropertyKey.ZOOKEEPER_ADDRESS.getName(), null);
+    } else if (alluxioUri.getAuthority() instanceof LogicalMasterAuthority) {
+      LogicalMasterAuthority authority = (LogicalMasterAuthority) alluxioUri.getAuthority();
+      String generalConfName = PropertyKey.MASTER_RPC_ADDRESSES.getName();
+      String specializedConfName = generalConfName + "." + authority.getLogicalName();
+      if (conf.get(specializedConfName) != null) {
+        // If user set alluxio.master.rpc.addresses.[logicalName]
+        String masterAddress = conf.get(specializedConfName);
+        alluxioConfProperties.put(PropertyKey.MASTER_RPC_ADDRESSES.getName(), masterAddress);
+      } else if (conf.get(generalConfName) != null) {
+        // If user set alluxio.master.rpc.addresses
+        // but not alluxio.master.rpc.addresses.[logicalName]
+        String masterAddress = conf.get(generalConfName);
+        alluxioConfProperties.put(PropertyKey.MASTER_RPC_ADDRESSES.getName(), masterAddress);
+      } else {
+        // regard as single master address
+        alluxioConfProperties.put(
+            PropertyKey.MASTER_HOSTNAME.getName(), authority.getLogicalName());
+        int defaultPort = Integer.parseInt(PropertyKey.MASTER_RPC_PORT.getDefaultValue());
+        alluxioConfProperties.put(PropertyKey.MASTER_RPC_PORT.getName(), defaultPort);
+        alluxioConfProperties.put(PropertyKey.MASTER_EMBEDDED_JOURNAL_ADDRESSES.getName(), null);
+        alluxioConfProperties.put(PropertyKey.MASTER_RPC_ADDRESSES.getName(), null);
+      }
       alluxioConfProperties.put(PropertyKey.ZOOKEEPER_ENABLED.getName(), false);
       alluxioConfProperties.put(PropertyKey.ZOOKEEPER_ADDRESS.getName(), null);
     }

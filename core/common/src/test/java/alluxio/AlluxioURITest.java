@@ -18,6 +18,7 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assume.assumeTrue;
 
 import alluxio.uri.Authority;
+import alluxio.uri.LogicalMasterAuthority;
 import alluxio.uri.MultiMasterAuthority;
 import alluxio.uri.NoAuthority;
 import alluxio.uri.SingleMasterAuthority;
@@ -556,7 +557,10 @@ public class AlluxioURITest {
     assertTrue(new AlluxioURI("file:///b/c").getAuthority()
         instanceof NoAuthority);
 
-    assertTrue(new AlluxioURI("file", Authority.fromString("localhost"), "/b/c").getAuthority()
+    assertTrue(new AlluxioURI("file", Authority.fromString("logical"), "/b/c").getAuthority()
+        instanceof LogicalMasterAuthority);
+
+    assertTrue(new AlluxioURI("file", Authority.fromString("localhost:"), "/b/c").getAuthority()
         instanceof UnknownAuthority);
   }
 

@@ -46,6 +46,7 @@ import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.collect.Lists;
 import com.google.common.net.HostAndPort;
+import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.BlockLocation;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.Path;
@@ -142,6 +143,48 @@ public class AbstractFileSystemTest {
     assertTrue(hfs.mFileSystem.getConf().getBoolean(PropertyKey.ZOOKEEPER_ENABLED));
     assertEquals("host1:2181,host2:2181,host3:2181",
         hfs.mFileSystem.getConf().get(PropertyKey.ZOOKEEPER_ADDRESS));
+  }
+
+  @Test
+  public void fsShouldSetPropertyConfWithLogicalUriConfig() throws Exception {
+    URI uri = URI.create("alluxio://alluxio-ha/path");
+    Configuration conf = getConf();
+    conf.set(
+        PropertyKey.MASTER_RPC_ADDRESSES.getName() + ".alluxio-ha",
+        "host1:19998,host2:19998,host3:19998");
+    conf.set(
+        PropertyKey.MASTER_RPC_ADDRESSES.getName(),
+        "host4:19998,host5:19998,host6:19998");
+    AbstractFileSystem afs = new alluxio.hadoop.FileSystem();
+    afs.initialize(uri, conf);
+    assertEquals("host1:19998,host2:19998,host3:19998",
+        afs.mFileSystem.getConf().get(PropertyKey.MASTER_RPC_ADDRESSES));
+    assertFalse(afs.mFileSystem.getConf().getBoolean(PropertyKey.ZOOKEEPER_ENABLED));
+  }
+
+  @Test
+  public void fsShouldSetPropertyConfWithLogicalUriDefaultConfig() throws Exception {
+    URI uri = URI.create("alluxio://alluxio-ha/path");
+    Configuration conf = getConf();
+    conf.set(
+        PropertyKey.MASTER_RPC_ADDRESSES.getName(),
+        "host1:19998,host2:19998,host3:19998");
+    AbstractFileSystem afs = new alluxio.hadoop.FileSystem();
+    afs.initialize(uri, conf);
+    assertEquals("host1:19998,host2:19998,host3:19998",
+        afs.mFileSystem.getConf().get(PropertyKey.MASTER_RPC_ADDRESSES));
+    assertFalse(afs.mFileSystem.getConf().getBoolean(PropertyKey.ZOOKEEPER_ENABLED));
+  }
+
+  @Test
+  public void fsShouldSetPropertyConfWithLogicalUriWithSingleMaster() throws Exception {
+    URI uri = URI.create("alluxio://host1/path");
+    AbstractFileSystem afs = new alluxio.hadoop.FileSystem();
+    afs.initialize(uri, getConf());
+    assertEquals("host1",
+        afs.mFileSystem.getConf().get(PropertyKey.MASTER_HOSTNAME));
+    assertEquals(Integer.parseInt(PropertyKey.MASTER_RPC_PORT.getDefaultValue()),
+        afs.mFileSystem.getConf().getInt(PropertyKey.MASTER_RPC_PORT));
   }
 
   @Test
