@@ -15,6 +15,7 @@ import static java.util.stream.Collectors.toList;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.eq;
@@ -147,27 +148,10 @@ public class AbstractFileSystemTest {
 
   @Test
   public void fsShouldSetPropertyConfWithLogicalUriConfig() throws Exception {
-    URI uri = URI.create("alluxio://alluxio-ha/path");
+    URI uri = URI.create("alluxio://logical/path");
     Configuration conf = getConf();
     conf.set(
-        PropertyKey.MASTER_RPC_ADDRESSES.getName() + ".alluxio-ha",
-        "host1:19998,host2:19998,host3:19998");
-    conf.set(
-        PropertyKey.MASTER_RPC_ADDRESSES.getName(),
-        "host4:19998,host5:19998,host6:19998");
-    AbstractFileSystem afs = new alluxio.hadoop.FileSystem();
-    afs.initialize(uri, conf);
-    assertEquals("host1:19998,host2:19998,host3:19998",
-        afs.mFileSystem.getConf().get(PropertyKey.MASTER_RPC_ADDRESSES));
-    assertFalse(afs.mFileSystem.getConf().getBoolean(PropertyKey.ZOOKEEPER_ENABLED));
-  }
-
-  @Test
-  public void fsShouldSetPropertyConfWithLogicalUriDefaultConfig() throws Exception {
-    URI uri = URI.create("alluxio://alluxio-ha/path");
-    Configuration conf = getConf();
-    conf.set(
-        PropertyKey.MASTER_RPC_ADDRESSES.getName(),
+        PropertyKey.MASTER_RPC_ADDRESSES.getName() + ".logical",
         "host1:19998,host2:19998,host3:19998");
     AbstractFileSystem afs = new alluxio.hadoop.FileSystem();
     afs.initialize(uri, conf);
@@ -177,14 +161,31 @@ public class AbstractFileSystemTest {
   }
 
   @Test
-  public void fsShouldSetPropertyConfWithLogicalUriWithSingleMaster() throws Exception {
-    URI uri = URI.create("alluxio://host1/path");
+  public void fsShouldTriggersWarningWithUnknownLogicalUriWith() throws Exception {
+    URI uri = URI.create("alluxio://logical/path");
     AbstractFileSystem afs = new alluxio.hadoop.FileSystem();
-    afs.initialize(uri, getConf());
-    assertEquals("host1",
-        afs.mFileSystem.getConf().get(PropertyKey.MASTER_HOSTNAME));
-    assertEquals(Integer.parseInt(PropertyKey.MASTER_RPC_PORT.getDefaultValue()),
-        afs.mFileSystem.getConf().getInt(PropertyKey.MASTER_RPC_PORT));
+    assertThrows(Exception.class,()-> afs.initialize(uri, getConf()));
+  }
+
+  @Test
+  public void fsShouldSetPropertyConfWithZkLogicalUriConfig() throws Exception {
+    URI uri = URI.create("alluxio://zk@logical/path");
+    Configuration conf = getConf();
+    conf.set(
+        PropertyKey.ZOOKEEPER_ADDRESS.getName() + ".logical",
+        "host1:2181,host2:2181,host3:2181");
+    AbstractFileSystem afs = new alluxio.hadoop.FileSystem();
+    afs.initialize(uri, conf);
+    assertEquals("host1:2181,host2:2181,host3:2181",
+        afs.mFileSystem.getConf().get(PropertyKey.ZOOKEEPER_ADDRESS));
+    assertTrue(afs.mFileSystem.getConf().getBoolean(PropertyKey.ZOOKEEPER_ENABLED));
+  }
+
+  @Test
+  public void fsShouldTriggersWarningWithUnknownZkLogicalUriWith() {
+    URI uri = URI.create("alluxio://zk@logical/path");
+    AbstractFileSystem afs = new alluxio.hadoop.FileSystem();
+    assertThrows(Exception.class,()-> afs.initialize(uri, getConf()));
   }
 
   @Test

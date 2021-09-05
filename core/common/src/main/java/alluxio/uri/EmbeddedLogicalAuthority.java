@@ -16,7 +16,7 @@ import java.util.Objects;
 /**
  * A logical host authority implementation.
  */
-public class LogicalMasterAuthority implements Authority {
+public class EmbeddedLogicalAuthority implements Authority {
   private static final long serialVersionUID = 324309674172413319L;
 
   /**
@@ -27,7 +27,7 @@ public class LogicalMasterAuthority implements Authority {
   /**
    * @param logicalName the logical host
    */
-  public LogicalMasterAuthority(String logicalName) {
+  public EmbeddedLogicalAuthority(String logicalName) {
     mLogicalName = logicalName;
   }
 
@@ -51,7 +51,7 @@ public class LogicalMasterAuthority implements Authority {
     if (o == null || getClass() != o.getClass()) {
       return false;
     }
-    LogicalMasterAuthority that = (LogicalMasterAuthority) o;
+    EmbeddedLogicalAuthority that = (EmbeddedLogicalAuthority) o;
     return Objects.equals(mLogicalName, that.mLogicalName);
   }
 

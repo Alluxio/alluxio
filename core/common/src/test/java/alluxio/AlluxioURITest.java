@@ -18,12 +18,12 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assume.assumeTrue;
 
 import alluxio.uri.Authority;
-import alluxio.uri.LogicalMasterAuthority;
+import alluxio.uri.EmbeddedLogicalAuthority;
 import alluxio.uri.MultiMasterAuthority;
 import alluxio.uri.NoAuthority;
 import alluxio.uri.SingleMasterAuthority;
-import alluxio.uri.UnknownAuthority;
 import alluxio.uri.ZookeeperAuthority;
+import alluxio.uri.ZookeeperLogicalAuthority;
 import alluxio.util.OSUtils;
 
 import com.google.common.testing.EqualsTester;
@@ -558,10 +558,10 @@ public class AlluxioURITest {
         instanceof NoAuthority);
 
     assertTrue(new AlluxioURI("file", Authority.fromString("logical"), "/b/c").getAuthority()
-        instanceof LogicalMasterAuthority);
+        instanceof EmbeddedLogicalAuthority);
 
-    assertTrue(new AlluxioURI("file", Authority.fromString("localhost:"), "/b/c").getAuthority()
-        instanceof UnknownAuthority);
+    assertTrue(new AlluxioURI("file", Authority.fromString("zk@logical"), "/b/c").getAuthority()
+        instanceof ZookeeperLogicalAuthority);
   }
 
   /**

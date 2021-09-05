@@ -38,8 +38,9 @@ public class AuthorityTest {
     assertTrue(Authority.fromString("") instanceof NoAuthority);
     assertTrue(Authority.fromString(null) instanceof NoAuthority);
 
-    assertTrue(Authority.fromString("logical") instanceof LogicalMasterAuthority);
-    assertTrue(Authority.fromString("localhost") instanceof LogicalMasterAuthority);
+    assertTrue(Authority.fromString("logical") instanceof EmbeddedLogicalAuthority);
+
+    assertTrue(Authority.fromString("zk@logical") instanceof ZookeeperLogicalAuthority);
 
     assertTrue(Authority.fromString("f3,321:sad") instanceof UnknownAuthority);
     assertTrue(Authority.fromString("localhost:") instanceof UnknownAuthority);
@@ -49,7 +50,6 @@ public class AuthorityTest {
 
     assertTrue(Authority.fromString("zk@") instanceof UnknownAuthority);
     assertTrue(Authority.fromString("zk@;") instanceof UnknownAuthority);
-    assertTrue(Authority.fromString("zk@localhost") instanceof UnknownAuthority);
     assertTrue(Authority.fromString("zk@127.0.0.1:port") instanceof UnknownAuthority);
     assertTrue(Authority.fromString("zk@127.0.0.1:2181,") instanceof UnknownAuthority);
     assertTrue(Authority.fromString("zk@127.0.0.1:2181,localhost") instanceof UnknownAuthority);
@@ -112,6 +112,20 @@ public class AuthorityTest {
     authority = (ZookeeperAuthority) Authority.fromString("zk@host1:2181+host2:2181+host3:2181");
     assertEquals("zk@host1:2181,host2:2181,host3:2181", authority.toString());
     assertEquals("host1:2181,host2:2181,host3:2181", authority.getZookeeperAddress());
+  }
+
+  @Test
+  public void zookeeperLogicalAuthorityTest() {
+    ZookeeperLogicalAuthority authority = (ZookeeperLogicalAuthority) Authority.fromString("zk@logical");
+    assertEquals("zk@logical", authority.toString());
+    assertEquals("logical", authority.getLogicalName());
+  }
+
+  @Test
+  public void embeddedLogicalAuthorityTest() {
+    EmbeddedLogicalAuthority authority = (EmbeddedLogicalAuthority) Authority.fromString("logical");
+    assertEquals("logical", authority.toString());
+    assertEquals("logical", authority.getLogicalName());
   }
 
   @Test
