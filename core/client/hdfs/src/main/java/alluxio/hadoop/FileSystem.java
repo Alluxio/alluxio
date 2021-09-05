@@ -16,24 +16,16 @@ import alluxio.Constants;
 import alluxio.client.file.URIStatus;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.PreconditionMessage;
-import alluxio.uri.Authority;
-import alluxio.uri.EmbeddedLogicalAuthority;
-import alluxio.uri.MultiMasterAuthority;
-import alluxio.uri.SingleMasterAuthority;
-import alluxio.uri.UnknownAuthority;
-import alluxio.uri.ZookeeperAuthority;
-import alluxio.uri.ZookeeperLogicalAuthority;
-
+import alluxio.uri.*;
 import com.google.common.base.Preconditions;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 
+import javax.annotation.concurrent.NotThreadSafe;
 import java.io.IOException;
 import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
-
-import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * An Alluxio client API compatible with Apache Hadoop {@link org.apache.hadoop.fs.FileSystem}
@@ -107,7 +99,7 @@ public final class FileSystem extends AbstractFileSystem {
         alluxioConfProperties.put(PropertyKey.MASTER_RPC_ADDRESSES.getName(), masterAddress);
       } else {
         throw new IllegalStateException(
-            String.format("Invalid uri. You must set %s to use the logical name ",confName));
+            String.format("Invalid uri. You must set %s to use the logical name ", confName));
       }
       alluxioConfProperties.put(PropertyKey.ZOOKEEPER_ENABLED.getName(), false);
       alluxioConfProperties.put(PropertyKey.ZOOKEEPER_ADDRESS.getName(), null);
@@ -122,7 +114,7 @@ public final class FileSystem extends AbstractFileSystem {
         alluxioConfProperties.put(PropertyKey.ZOOKEEPER_ADDRESS.getName(), zkAddress);
       } else {
         throw new IllegalStateException(
-            String.format("Invalid uri. You must set %s to use the logical name ",confName));
+            String.format("Invalid uri. You must set %s to use the logical name ", confName));
       }
     }
     return alluxioConfProperties;

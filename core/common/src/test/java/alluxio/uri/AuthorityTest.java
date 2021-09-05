@@ -11,13 +11,11 @@
 
 package alluxio.uri;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-
 import org.junit.Test;
 
 import java.util.Arrays;
+
+import static org.junit.Assert.*;
 
 /**
  * Unit tests for {@link Authority}.
@@ -116,7 +114,8 @@ public class AuthorityTest {
 
   @Test
   public void zookeeperLogicalAuthorityTest() {
-    ZookeeperLogicalAuthority authority = (ZookeeperLogicalAuthority) Authority.fromString("zk@logical");
+    ZookeeperLogicalAuthority authority =
+        (ZookeeperLogicalAuthority) Authority.fromString("zk@logical");
     assertEquals("zk@logical", authority.toString());
     assertEquals("logical", authority.getLogicalName());
   }

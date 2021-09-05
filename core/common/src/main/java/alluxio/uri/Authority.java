@@ -52,8 +52,8 @@ public interface Authority extends Comparable<Authority>, Serializable {
     if (matcher.matches()) {
       return new MultiMasterAuthority(authority.replaceAll("[;+]", ","));
     }
-    matcher=ZOOKEEPER_LOGICAL_MASTER_AUTH.matcher(authority);
-    if (matcher.matches()){
+    matcher = ZOOKEEPER_LOGICAL_MASTER_AUTH.matcher(authority);
+    if (matcher.matches()) {
       return new ZookeeperLogicalAuthority(matcher.group(1));
     }
     matcher = LOGICAL_MASTER_AUTH.matcher(authority);
