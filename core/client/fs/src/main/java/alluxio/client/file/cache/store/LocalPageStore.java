@@ -43,18 +43,15 @@ import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
- * The {@link LocalPageStore} is an implementation of {@link PageStore} which stores all pages in a
- * directory somewhere on the local disk.
+ * The {@link LocalPageStore} is an implementation of {@link PageStore} which
+ * stores all pages in a directory somewhere on the local disk.
  */
 @NotThreadSafe
 public class LocalPageStore implements PageStore {
-
   private static final Logger LOG = LoggerFactory.getLogger(LocalPageStore.class);
   private static final String ERROR_NO_SPACE_LEFT = "No space left on device";
   private static final String FILE_METADATA_FILENAME = "metadata";
-  /**
-   * The depth of the file level directory from root-path.
-   */
+  /** The depth of the file level directory from root-path. */
   public static final int FILE_LEVEL_DIR_DEPTH = 3;
   private final String mRoot;
   private final long mPageSize;
@@ -76,11 +73,12 @@ public class LocalPageStore implements PageStore {
     // normalize the path to deal with trailing slash
     Path rootDir = Paths.get(mRoot);
     // pattern encoding for each page
-    // root_path/page_size(ulong)/bucket(uint)/file_id(str)/mtime(long)/page_idx(ulong)/
+    // root_path/page_size(ulong)/bucket(uint)/file_id(str)/mtime(ulong)/page_idx(ulong)/
     mPagePattern = Pattern.compile(String
         .format("%s/%d/(\\d+)/([^/]+)/(\\d+)/(\\d+)", Pattern.quote(rootDir.toString()),
             mPageSize));
     // pattern encoding for the directory of each file
+    // root_path/page_size(ulong)/bucket(uint)/file_id(str)/
     mFilePattern = Pattern.compile(
         String.format("%s/%d/(\\d+)/([^/]+)", Pattern.quote(rootDir.toString()), mPageSize));
   }

@@ -36,11 +36,9 @@ import java.util.concurrent.TimeoutException;
 import java.util.stream.Stream;
 
 /**
- * A wrapper class on PageStore with timeout. Note that, this page store will not queue any
- * request.
+ * A wrapper class on PageStore with timeout. Note that, this page store will not queue any request.
  */
 public class TimeBoundPageStore implements PageStore {
-
   private final PageStore mPageStore;
   private final long mTimeoutMs;
   private final TimeLimiter mTimeLimter;
@@ -48,7 +46,7 @@ public class TimeBoundPageStore implements PageStore {
 
   /**
    * @param pageStore page store
-   * @param options   time out in ms
+   * @param options time out in ms
    */
   public TimeBoundPageStore(PageStore pageStore, PageStoreOptions options) {
     mPageStore = Preconditions.checkNotNull(pageStore, "pageStore");

@@ -38,7 +38,7 @@ public class PageInfo {
   /**
    * @param pageId page id
    * @param pageSize page size in bytes
-   * @param fileInfo file info for this page
+   * @param fileInfo file info of this page
    */
   public PageInfo(PageId pageId, long pageSize, FileInfo fileInfo) {
     mPageId = pageId;
