@@ -161,7 +161,7 @@ public class AbstractFileSystemTest {
   }
 
   @Test
-  public void fsShouldTriggersWarningWithUnknownLogicalUriWith() throws Exception {
+  public void fsShouldTriggersExceptionWithUnknownLogicalUriWith() throws Exception {
     URI uri = URI.create("alluxio://logical/path");
     AbstractFileSystem afs = new alluxio.hadoop.FileSystem();
     assertThrows(Exception.class, () -> afs.initialize(uri, getConf()));
@@ -182,7 +182,7 @@ public class AbstractFileSystemTest {
   }
 
   @Test
-  public void fsShouldTriggersWarningWithUnknownZkLogicalUriWith() {
+  public void fsShouldTriggersExceptionWithUnknownZkLogicalUriWith() {
     URI uri = URI.create("alluxio://zk@logical/path");
     AbstractFileSystem afs = new alluxio.hadoop.FileSystem();
     assertThrows(Exception.class, () -> afs.initialize(uri, getConf()));
