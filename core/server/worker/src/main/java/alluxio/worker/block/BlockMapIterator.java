@@ -54,6 +54,7 @@ public class BlockMapIterator implements Iterator<List<LocationBlockIdListEntry>
         mTierToBlocks.put(locationProto, blockList);
       }
     }
+    LOG.info("Locations: {}", mTierToBlocks.keySet());
 
     // Initialize the iteration statuses
     mBlockStoreLocationProtoList = new ArrayList<>(mTierToBlocks.keySet());
@@ -111,8 +112,8 @@ public class BlockMapIterator implements Iterator<List<LocationBlockIdListEntry>
 
       // Progress the iterator based on the break condition
       if (!currentIterator.hasNext()) {
-        System.out.println("Tier has been consumed");
-        LOG.info("Tier has been consumed.");
+//        System.out.println("Tier has been consumed");
+//        LOG.info("Tier has been consumed.");
         // We keep filling in from the next tier
         // Update the pointer and continue
         mCurrentBlockLocationIndex++;
@@ -128,8 +129,8 @@ public class BlockMapIterator implements Iterator<List<LocationBlockIdListEntry>
         LOG.info("Continue with the next tier {}", mBlockStoreLocationProtoList.get(mCurrentBlockLocationIndex));
         continue;
       } else {
-        System.out.format("Batch has been filled, counter is %s%n", mCounter);
-        LOG.info("Batch has been filled, now counter is {}", mCounter);
+//        System.out.format("Batch has been filled, counter is %s%n", mCounter);
+//        LOG.info("Batch has been filled, now counter is {}", mCounter);
         return result;
       }
     }

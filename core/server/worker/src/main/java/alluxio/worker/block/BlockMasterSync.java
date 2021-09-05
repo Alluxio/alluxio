@@ -77,6 +77,7 @@ public final class BlockMasterSync implements HeartbeatExecutor {
   /** Last System.currentTimeMillis() timestamp when a heartbeat successfully completed. */
   private long mLastSuccessfulHeartbeatMs;
 
+  // TODO(jiacheng): When is this set to false?
   private AtomicBoolean mRegistered = new AtomicBoolean(false);
 
   /**

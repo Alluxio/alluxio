@@ -307,9 +307,8 @@ service BlockMasterWorkerService {
   /**
    * Registers a worker.
    */
-  /**
-   * rpc RegisterWorker(RegisterWorkerPRequest) returns (RegisterWorkerPResponse);
-   */
+   // TODO(jiacheng): This option should be kept around
+   rpc RegisterWorker(RegisterWorkerPRequest) returns (RegisterWorkerPResponse);
 
   /**
    * Register request in the streaming way

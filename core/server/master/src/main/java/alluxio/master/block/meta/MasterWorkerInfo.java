@@ -613,4 +613,12 @@ public final class MasterWorkerInfo {
   public LockResource lockWorkerMeta(EnumSet<WorkerMetaLockSection> lockTypes, boolean isShared) {
     return new LockResource(new WorkerMetaLock(lockTypes, isShared, this));
   }
+
+  public int getBlockCount() {
+    return mBlocks.size();
+  }
+
+  public int getToRemoveBlockCount() {
+    return mToRemoveBlocks.size();
+  }
 }

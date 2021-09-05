@@ -867,7 +867,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
       if (worker == null) {
         continue;
       }
-
+      LOG.info("Located this worker {}", workerId);
       mWorkers.add(worker);
       workers.remove(worker);
       if (workers == mLostWorkers) {
@@ -986,13 +986,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
     r.close();
   }
 
-  @Override
-  public void workerRegisterStart(long workerId, List<String> storageTiers,
-                           Map<String, Long> totalBytesOnTiers, Map<String, Long> usedBytesOnTiers,
-                           Map<alluxio.proto.meta.Block.BlockLocation, List<Long>> currentBlocksOnLocation,
-                           Map<String, StorageList> lostStorage, RegisterWorkerStreamPOptions options)
-          throws NotFoundException {
-
+  public MasterWorkerInfo getWorker(long workerId) throws NotFoundException {
     MasterWorkerInfo worker = mWorkers.getFirstByField(ID_INDEX, workerId);
 
     if (worker == null) {
@@ -1003,13 +997,20 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
       throw new NotFoundException(ExceptionMessage.NO_WORKER_FOUND.getMessage(workerId));
     }
 
+    return worker;
+  }
+
+  @Override
+  public void workerRegisterStart(WorkerRegisterContext context, List<String> storageTiers,
+                           Map<String, Long> totalBytesOnTiers, Map<String, Long> usedBytesOnTiers,
+                           Map<alluxio.proto.meta.Block.BlockLocation, List<Long>> currentBlocksOnLocation,
+                           Map<String, StorageList> lostStorage, RegisterWorkerStreamPOptions options)
+          throws NotFoundException {
     // Lock all the locks
     // TODO(jiacheng): the locking mechanism should change, across all these
     //  calls the locks should be held
-    try (LockResource r = worker.lockWorkerMeta(EnumSet.of(
-            WorkerMetaLockSection.STATUS,
-            WorkerMetaLockSection.USAGE,
-            WorkerMetaLockSection.BLOCKS), false)) {
+
+      MasterWorkerInfo worker = context.mWorker;
 
       // Reset the block and toRemove block sets
       // TODO(jiacheng): Now the worker is not usable anymore, make sure it cannot be used by anyone
@@ -1039,104 +1040,79 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
 
       // [NEEDED]
       worker.addLostStorage(lostStorage);
-    }
 
-    if (options.getConfigsCount() > 0) {
-      for (BiConsumer<Address, List<ConfigProperty>> function : mWorkerRegisteredListeners) {
-        WorkerNetAddress workerAddress = worker.getWorkerAddress();
-        function.accept(new Address(workerAddress.getHost(), workerAddress.getRpcPort()),
-                options.getConfigsList());
+      // TODO(jiacheng): This block can just not hold the lock
+      if (options.getConfigsCount() > 0) {
+        for (BiConsumer<Address, List<ConfigProperty>> function : mWorkerRegisteredListeners) {
+          WorkerNetAddress workerAddress = worker.getWorkerAddress();
+          function.accept(new Address(workerAddress.getHost(), workerAddress.getRpcPort()),
+                  options.getConfigsList());
+        }
       }
-    }
-
   }
 
   @Override
-  public void workerRegisterStream(long workerId, Map<alluxio.proto.meta.Block.BlockLocation, List<Long>> currentBlocksOnLocation)
+  // This context is already locked
+  public void workerRegisterStream(WorkerRegisterContext context, Map<alluxio.proto.meta.Block.BlockLocation, List<Long>> currentBlocksOnLocation)
           throws NotFoundException {
-    MasterWorkerInfo worker = mWorkers.getFirstByField(ID_INDEX, workerId);
+    MasterWorkerInfo worker = context.mWorker;
 
-    if (worker == null) {
-      worker = findUnregisteredWorker(workerId);
-    }
-
-    if (worker == null) {
-      throw new NotFoundException(ExceptionMessage.NO_WORKER_FOUND.getMessage(workerId));
-    }
-
-    // A batch of blocks are added to the worker
-    // Lock all the locks
-    try (LockResource r = worker.lockWorkerMeta(EnumSet.of(
-            WorkerMetaLockSection.STATUS,
-            WorkerMetaLockSection.USAGE,
-            WorkerMetaLockSection.BLOCKS), false)) {
-      // [NO NEED] Detect any lost blocks on this worker.
+    // [NO NEED] Detect any lost blocks on this worker.
 //      Set<Long> removedBlocks = worker.register(mGlobalStorageTierAssoc, storageTiers,
 //              totalBytesOnTiers, usedBytesOnTiers, blocks);
-      // [NO NEED]: process removed blocks
-      // because we don't know what blocks are removed yet
+    // [NO NEED]: process removed blocks
+    // because we don't know what blocks are removed yet
 //      processWorkerRemovedBlocks(worker, removedBlocks);
 
-      // [CHANGE] we do not want to add them to the block locations here
-      // TODO(jiacheng): we are updating the locations in the stream, which
-      //  results in unstable views
-      processWorkerAddedBlocks(worker, currentBlocksOnLocation);
+    // [CHANGE] we do not want to add them to the block locations here
+    // TODO(jiacheng): we are updating the locations in the stream, which
+    //  results in unstable views
+    processWorkerAddedBlocks(worker, currentBlocksOnLocation);
 
-      // If a block is not recognized then yes we need to mark it
-      processWorkerOrphanedBlocks(worker);
-    }
+    // If a block is not recognized then yes we need to mark it
+    processWorkerOrphanedBlocks(worker);
 
     // Update the TS at the end of the process
     worker.updateLastUpdatedTimeMs();
 
-    LOG.info("Finished batch for worker {} locations {}", workerId, currentBlocksOnLocation.entrySet());
+    LOG.info("Finished batch for worker {} locations {}", worker.getId(), currentBlocksOnLocation.entrySet());
   }
 
   @Override
-  public void workerRegisterFinish(long workerId) throws NotFoundException {
+  public void workerRegisterFinish(WorkerRegisterContext context) throws NotFoundException {
     // TODO(jiacheng): Should the removed blocks be detected here?
 
-    MasterWorkerInfo worker = mWorkers.getFirstByField(ID_INDEX, workerId);
+    MasterWorkerInfo worker = context.mWorker;
 
-    if (worker == null) {
-      worker = findUnregisteredWorker(workerId);
+    // [NEEDED] Detect any lost blocks on this worker.
+    Set<Long> removedBlocks;
+    if (worker.mIsRegistered) {
+      // This is a re-register of an existing worker. Assume the new block ownership data is more
+      // up-to-date and update the existing block information.
+      LOG.info("re-registering an existing workerId: {}", worker.mMeta.mId);
+
+      // The toRemoveBlocks field contains all the updates
+      removedBlocks = worker.mToRemoveBlocks;
+    } else {
+      LOG.info("registering a new worker: {}", worker.mMeta.mId);
+      removedBlocks = Collections.emptySet();
     }
+    LOG.info("{} blocks to remove from the worker", removedBlocks.size());
 
-    if (worker == null) {
-      throw new NotFoundException(ExceptionMessage.NO_WORKER_FOUND.getMessage(workerId));
-    }
+    // [NEEDED]: process removed blocks
+    // because we don't know what blocks are removed yet
+    processWorkerRemovedBlocks(worker, removedBlocks);
 
-    try (LockResource r = worker.lockWorkerMeta(EnumSet.of(
-            WorkerMetaLockSection.STATUS,
-            WorkerMetaLockSection.USAGE,
-            WorkerMetaLockSection.BLOCKS), false)) {
-      // [NEEDED] Detect any lost blocks on this worker.
-      Set<Long> removedBlocks;
-      if (worker.mIsRegistered) {
-        // This is a re-register of an existing worker. Assume the new block ownership data is more
-        // up-to-date and update the existing block information.
-        LOG.info("re-registering an existing workerId: {}", worker.mMeta.mId);
-
-        // The toRemoveBlocks field contains all the updates
-        removedBlocks = worker.mToRemoveBlocks;
-      } else {
-        LOG.info("registering a new worker: {}", worker.mMeta.mId);
-        removedBlocks = Collections.emptySet();
-      }
-      LOG.info("{} blocks to remove from the worker", removedBlocks.size());
-
-      // [NEEDED]: process removed blocks
-      // because we don't know what blocks are removed yet
-      processWorkerRemovedBlocks(worker, removedBlocks);
-
-      // [NO NEED] all blocks have been processed
+    // [NO NEED] all blocks have been processed
 //      processWorkerAddedBlocks(worker, currentBlocksOnLocation);
-      // [NO NEED] all blocks have been processed
+    // [NO NEED] all blocks have been processed
 //      processWorkerOrphanedBlocks(worker);
-    }
 
-    LOG.info("{} - Marking user usable", Thread.currentThread().getId());
-    recordWorkerRegistration(workerId);
+    // Mark registered successfully
+    worker.mIsRegistered = true;
+
+    LOG.info("{} - Marking worker usable", Thread.currentThread().getId());
+    recordWorkerRegistration(worker.getId());
 
     // Update the TS at the end of the process
     worker.updateLastUpdatedTimeMs();
@@ -1320,6 +1296,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
       }
     }
     if (invalidBlockCount > 0) {
+      System.out.format("%s invalid blocks found on worker %s%n", invalidBlockCount, workerInfo.getId());
       LOG.warn("{} invalid blocks found on worker {} in total", invalidBlockCount,
           workerInfo.getWorkerAddress().getHost());
     }
@@ -1540,6 +1517,42 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
   @Override
   public void registerNewWorkerConfListener(BiConsumer<Address, List<ConfigProperty>> function) {
     mWorkerRegisteredListeners.add(function);
+  }
+
+  @Override
+  public int getBlockCount(long workerId) throws NotFoundException {
+    MasterWorkerInfo worker = mWorkers.getFirstByField(ID_INDEX, workerId);
+
+    if (worker == null) {
+      worker = findUnregisteredWorker(workerId);
+    }
+
+    if (worker == null) {
+      throw new NotFoundException(ExceptionMessage.NO_WORKER_FOUND.getMessage(workerId));
+    }
+
+    try (LockResource r = worker.lockWorkerMeta(
+            EnumSet.of(WorkerMetaLockSection.BLOCKS), true)) {
+      return worker.getBlockCount();
+    }
+  }
+
+  @Override
+  public int getToRemoveBlockCount(long workerId) throws NotFoundException {
+    MasterWorkerInfo worker = mWorkers.getFirstByField(ID_INDEX, workerId);
+
+    if (worker == null) {
+      worker = findUnregisteredWorker(workerId);
+    }
+
+    if (worker == null) {
+      throw new NotFoundException(ExceptionMessage.NO_WORKER_FOUND.getMessage(workerId));
+    }
+
+    try (LockResource r = worker.lockWorkerMeta(
+            EnumSet.of(WorkerMetaLockSection.BLOCKS), true)) {
+      return worker.getToRemoveBlockCount();
+    }
   }
 
   /**

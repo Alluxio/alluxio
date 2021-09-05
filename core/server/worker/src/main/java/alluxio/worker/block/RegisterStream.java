@@ -15,6 +15,7 @@ import io.grpc.stub.StreamObserver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -62,6 +63,7 @@ public class RegisterStream {
     StreamObserver<RegisterWorkerStreamPResponse> responseObserver = new StreamObserver<RegisterWorkerStreamPResponse>() {
       @Override
       public void onNext(RegisterWorkerStreamPResponse res) {
+        System.out.format("Received response %s%n", res);
         LOG.info("register got response {}", res);
       }
 
@@ -78,7 +80,6 @@ public class RegisterStream {
         mFinishLatch.countDown();
       }
     };
-
     mRequestObserver = asyncClient.registerWorkerStream(responseObserver);
   }
 
@@ -107,7 +108,7 @@ public class RegisterStream {
         RegisterWorkerStreamPRequest request;
 
         // If it is the 1st request, include metadata
-        System.out.format("Generating %s request%n", iter);
+        System.out.format("Generating request iter %s%n", iter);
         if (iter == 0) {
           System.out.println("Generating header request of the stream");
           request = RegisterWorkerStreamPRequest.newBuilder()
@@ -130,6 +131,7 @@ public class RegisterStream {
         }
 
         // Send the request
+        System.out.println("Sending request " + iter);
         mRequestObserver.onNext(request);
 
         // TODO(jiacheng): what to do here
@@ -153,14 +155,16 @@ public class RegisterStream {
     }
     // Mark the end of requests
     LOG.info("All requests have been sent. Completing the client side.");
-    System.out.format("Completing stream%n");
+    System.out.format("Completing client side stream%n");
     mRequestObserver.onCompleted();
 
     // Receiving happens asynchronously
     // TODO(jiacheng): configurable
     LOG.info("Waiting on the latch");
-    mFinishLatch.await(1, TimeUnit.MINUTES);
+    System.out.format("%s - Waiting on the latch %n", Instant.now());
+    mFinishLatch.await();
     LOG.info("Latch returned");
+    System.out.format("%s - Stop waiting on the latch%n", Instant.now());
   }
 
   // TODO(jiacheng): a call to complete or close?

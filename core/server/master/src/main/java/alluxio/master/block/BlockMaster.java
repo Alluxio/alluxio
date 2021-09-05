@@ -24,6 +24,7 @@ import alluxio.grpc.RegisterWorkerStreamPOptions;
 import alluxio.grpc.StorageList;
 import alluxio.grpc.WorkerLostStorageInfo;
 import alluxio.master.Master;
+import alluxio.master.block.meta.MasterWorkerInfo;
 import alluxio.metrics.Metric;
 import alluxio.proto.meta.Block;
 import alluxio.resource.LockResource;
@@ -201,17 +202,19 @@ public interface BlockMaster extends Master, ContainerIdGenerable {
 
   void unlockWorker(LockResource r);
 
+  MasterWorkerInfo getWorker(long workerId) throws NotFoundException;
+
   // TODO(jiacheng): Separate the metadata and list registration calls
-  void workerRegisterStart(long workerId, List<String> storageTiers,
+  void workerRegisterStart(WorkerRegisterContext context, List<String> storageTiers,
                            Map<String, Long> totalBytesOnTiers, Map<String, Long> usedBytesOnTiers,
                            Map<Block.BlockLocation, List<Long>> currentBlocksOnLocation,
                            Map<String, StorageList> lostStorage, RegisterWorkerStreamPOptions options)
           throws NotFoundException;
 
-  void workerRegisterStream(long workerId, Map<Block.BlockLocation, List<Long>> currentBlocksOnLocation)
+  void workerRegisterStream(WorkerRegisterContext context, Map<Block.BlockLocation, List<Long>> currentBlocksOnLocation)
           throws NotFoundException;
 
-  void workerRegisterFinish(long workerId) throws NotFoundException;
+  void workerRegisterFinish(WorkerRegisterContext context) throws NotFoundException;
 
   /**
    * Updates metadata when a worker periodically heartbeats with the master.
@@ -278,4 +281,8 @@ public interface BlockMaster extends Master, ContainerIdGenerable {
    * @param function the function to register
    */
   void registerNewWorkerConfListener(BiConsumer<Address, List<ConfigProperty>> function);
+
+  int getBlockCount(long workerId) throws NotFoundException;
+
+  int getToRemoveBlockCount(long workerId) throws NotFoundException;
 }

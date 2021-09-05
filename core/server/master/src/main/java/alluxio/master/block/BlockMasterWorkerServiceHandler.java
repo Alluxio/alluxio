@@ -43,6 +43,7 @@ import io.grpc.stub.StreamObserver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
@@ -134,8 +135,9 @@ public final class BlockMasterWorkerServiceHandler extends
   public void getWorkerId(GetWorkerIdPRequest request,
       StreamObserver<GetWorkerIdPResponse> responseObserver) {
     RpcUtils.call(LOG, (RpcUtils.RpcCallableThrowsIOException<GetWorkerIdPResponse>) () -> {
+      long id = mBlockMaster.getWorkerId(GrpcUtils.fromProto(request.getWorkerNetAddress()));
       return GetWorkerIdPResponse.newBuilder()
-          .setWorkerId(mBlockMaster.getWorkerId(GrpcUtils.fromProto(request.getWorkerNetAddress())))
+          .setWorkerId(id)
           .build();
     }, "getWorkerId", "request=%s", responseObserver, request);
   }
@@ -173,8 +175,7 @@ public final class BlockMasterWorkerServiceHandler extends
     return new StreamObserver<alluxio.grpc.RegisterWorkerStreamPRequest>() {
       long mWorkerId = -1;
 
-      // Grab locks on the worker
-      LockResource mWorkerLock;
+      WorkerRegisterContext mContext;
 
       @Override
       public void onNext(alluxio.grpc.RegisterWorkerStreamPRequest chunk) {
@@ -192,34 +193,27 @@ public final class BlockMasterWorkerServiceHandler extends
                 workerId,
                 isHead);
 
-        if (mWorkerId == -1) {
-          if (!isHead) {
-            Exception e = new RuntimeException("The StreamObserver has no worker id but it's not the 1st chunk in stream");
-            this.onError(e);
-            return;
-          }
-
-          mWorkerId = workerId;
-          LOG.info("Associate worker id {} with StreamObserver", mWorkerId);
-        }
-
-
         synchronized (this) {
-          if (mWorkerLock == null) {
+          System.out.format("%s - Handling server side registration stream%n", Thread.currentThread().getId());
+          if (mWorkerId == -1) {
             if (!isHead) {
-              Exception e = new RuntimeException("The worker is not locked but it is not the 1st chunk in the stream");
+              Exception e = new RuntimeException("The StreamObserver has no worker id but it's not the 1st chunk in stream");
               this.onError(e);
               return;
             }
-            LOG.info("Locking worker {}", mWorkerId);
-            System.out.format("Locking worker %s%n", mWorkerId);
+
+            mWorkerId = workerId;
+            LOG.info("Associate worker id {} with StreamObserver", mWorkerId);
+
+            LOG.info("Initializing context for {}", mWorkerId);
+            System.out.format("Initializing context for %s%n", mWorkerId);
             try {
-              mWorkerLock = mBlockMaster.lockWorker(mWorkerId);
-              LOG.info("Worker {} locked", mWorkerId);
-              System.out.format("Worker %s locked%n", mWorkerId);
+              mContext = WorkerRegisterContext.create(mBlockMaster, mWorkerId);
+              LOG.info("Context created for {}", mWorkerId);
+              System.out.format("Context created for %s%n", mWorkerId);
             } catch (NotFoundException e) {
-              LOG.error("Worker {} not found, failed to lock", mWorkerId);
-              System.out.format("Worker %s not found, failed to lock%n", mWorkerId);
+              LOG.error("Worker {} not found, failed to create context", mWorkerId);
+              System.out.format("Worker %s not found, failed to create context%n", mWorkerId);
               // TODO(jiacheng): Close the other side?
               this.onError(e);
               return;
@@ -242,7 +236,7 @@ public final class BlockMasterWorkerServiceHandler extends
           // TODO(jiacheng): what are the metrics?
           RpcUtils.callAndNoReturn(LOG,
                   () -> {
-                    mBlockMaster.workerRegisterStart(workerId, storageTiers, totalBytesOnTiers, usedBytesOnTiers,
+                    mBlockMaster.workerRegisterStart(mContext, storageTiers, totalBytesOnTiers, usedBytesOnTiers,
                             currBlocksOnLocationMap, lostStorageMap, options);
                     return null;
                   }, "registerWorkerStream", false,
@@ -254,7 +248,7 @@ public final class BlockMasterWorkerServiceHandler extends
 
           RpcUtils.callAndNoReturn(LOG,
                   () -> {
-                    mBlockMaster.workerRegisterStream(workerId, currBlocksOnLocationMap);
+                    mBlockMaster.workerRegisterStream(mContext, currBlocksOnLocationMap);
                     return null;
                   }, "registerWorkerStream", false,
                   "what to put here?", responseObserver, null);
@@ -266,10 +260,21 @@ public final class BlockMasterWorkerServiceHandler extends
       public void onError(Throwable t) {
         LOG.error("Error receiving the streaming register call", t);
         System.out.format("Error receiving the streaming register call: %s%n", t);
+        try {
+          closeContext();
+        } catch (IOException e) {
+          e.printStackTrace();
+        }
+      }
+
+      void closeContext() throws IOException {
         synchronized (this) {
-          if (mWorkerLock != null) {
+          if (mContext!= null) {
             LOG.info("Unlocking worker {}", mWorkerId);
-            mBlockMaster.unlockWorker(mWorkerLock);
+            System.out.format("Destroying context for %s%n", mWorkerId);
+            mContext.close();
+            LOG.info("Context closed");
+            System.out.println("Context closed");
           }
         }
       }
@@ -285,22 +290,22 @@ public final class BlockMasterWorkerServiceHandler extends
         // This will send the response back and complete the call
         RpcUtils.callAndNoReturn(LOG,
                 () -> {
-                  mBlockMaster.workerRegisterFinish(mWorkerId);
+                  mBlockMaster.workerRegisterFinish(mContext);
                   return null;
                 }, "registerWorkerStream", false, "what to put here", responseObserver, this);
 
-        // Unlock worker
-        synchronized (this) {
-          if (mWorkerLock != null) {
-            LOG.info("{} - Unlocking worker {}", Thread.currentThread().getId(), mWorkerId);
-            System.out.format("Unlocking worker %s%n", mWorkerId);
-            mBlockMaster.unlockWorker(mWorkerLock);
-            LOG.info("{} - Unlocked worker {}", Thread.currentThread().getId(), mWorkerId);
-          }
-        }
-
+        // TODO(jiacheng): Will this block me from reclaiming resources?
         responseObserver.onNext(RegisterWorkerStreamPResponse.getDefaultInstance());
         responseObserver.onCompleted();
+        LOG.info("Completed server side");
+        System.out.println("Completed server side");
+
+        // Reclaim resources
+        try {
+          closeContext();
+        } catch (IOException e) {
+          e.printStackTrace();
+        }
       }
     };
   }
