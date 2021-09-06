@@ -224,8 +224,10 @@ public final class PlanCoordinator {
         }
         taskInfo.setStatus(Status.FAILED);
         taskInfo.setErrorType("JobWorkerLost");
-        taskInfo.setErrorMessage("Job worker was lost before the task could complete");
+        taskInfo.setErrorMessage(String.format("Job worker(%s) was lost before"
+                + "the task(%d) could complete", taskInfo.getWorkerHost(), taskId));
         statusChanged = true;
+        break;
       }
       if (statusChanged) {
         updateStatus();
