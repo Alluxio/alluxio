@@ -82,7 +82,7 @@ public class QuorumElectCommand extends AbstractFsAdminCommand {
           return false;
         }
         return leaderAddress.getHostName().equals(address.getHost())
-                && leaderAddress.getPort()==address.getRpcPort();
+                && leaderAddress.getPort() == address.getRpcPort();
       });
       mPrintStream.println(String.format(TRANSFER_SUCCESS, serverAddress));
     } catch (Exception e) {
