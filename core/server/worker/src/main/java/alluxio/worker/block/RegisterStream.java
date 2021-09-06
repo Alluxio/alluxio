@@ -69,14 +69,13 @@ public class RegisterStream {
 
       @Override
       public void onError(Throwable t) {
-        LOG.error("register received error", t);
-        LOG.info("Closing latch");
+        LOG.error("register received error from server, closing latch: ", t);
         mFinishLatch.countDown();
       }
 
       @Override
       public void onCompleted() {
-        LOG.info("Completed. Closing latch");
+        LOG.info("Complete message received from the server. Closing latch");
         mFinishLatch.countDown();
       }
     };
@@ -150,6 +149,7 @@ public class RegisterStream {
       //  close the stream?
       // Cancel RPC
       System.out.format("Error %s%n", t);
+      // TODO(jiacheng): calling its own onError?
       mRequestObserver.onError(t);
       throw t;
     }

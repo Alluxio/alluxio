@@ -1000,6 +1000,14 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
     return worker;
   }
 
+  void printBlockMap(Map<alluxio.proto.meta.Block.BlockLocation, List<Long>> blockMap) {
+    StringBuilder sb = new StringBuilder();
+    for (Map.Entry<alluxio.proto.meta.Block.BlockLocation, List<Long>> entry : blockMap.entrySet()) {
+      sb.append(String.format("<%s, %s blocks>,", entry.getKey(), entry.getValue().size()));
+    }
+    LOG.info("Finished batch: {}", sb);
+  }
+
   @Override
   public void workerRegisterStart(WorkerRegisterContext context, List<String> storageTiers,
                            Map<String, Long> totalBytesOnTiers, Map<String, Long> usedBytesOnTiers,
@@ -1049,6 +1057,8 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
                   options.getConfigsList());
         }
       }
+
+    printBlockMap(currentBlocksOnLocation);
   }
 
   @Override
@@ -1075,12 +1085,15 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
     // Update the TS at the end of the process
     worker.updateLastUpdatedTimeMs();
 
-    LOG.info("Finished batch for worker {} locations {}", worker.getId(), currentBlocksOnLocation.entrySet());
+    printBlockMap(currentBlocksOnLocation);
   }
 
   @Override
   public void workerRegisterFinish(WorkerRegisterContext context) throws NotFoundException {
     // TODO(jiacheng): Should the removed blocks be detected here?
+    if (context == null) {
+
+    }
 
     MasterWorkerInfo worker = context.mWorker;
 

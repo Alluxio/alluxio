@@ -230,7 +230,7 @@ public final class BlockMasterWorkerServiceHandler extends
           // TODO(jiacheng): If this goes wrong, where is the error thrown to?
           final Map<Block.BlockLocation, List<Long>> currBlocksOnLocationMap =
                   reconstructBlocksOnLocationMap(chunk.getCurrentBlocksList(), workerId);
-
+          printBlockMap(currBlocksOnLocationMap);
           RegisterWorkerStreamPOptions options = chunk.getOptions();
 
           // TODO(jiacheng): what are the metrics?
@@ -245,7 +245,7 @@ public final class BlockMasterWorkerServiceHandler extends
         } else {
           final Map<Block.BlockLocation, List<Long>> currBlocksOnLocationMap =
                   reconstructBlocksOnLocationMap(chunk.getCurrentBlocksList(), workerId);
-
+          printBlockMap(currBlocksOnLocationMap);
           RpcUtils.callAndNoReturn(LOG,
                   () -> {
                     mBlockMaster.workerRegisterStream(mContext, currBlocksOnLocationMap);
@@ -265,6 +265,9 @@ public final class BlockMasterWorkerServiceHandler extends
         } catch (IOException e) {
           e.printStackTrace();
         }
+
+        // TODO(jiacheng): Pass the exception back like this?
+        responseObserver.onError(t);
       }
 
       void closeContext() throws IOException {
@@ -279,13 +282,30 @@ public final class BlockMasterWorkerServiceHandler extends
         }
       }
 
+      void printBlockMap(Map<Block.BlockLocation, List<Long>> blockMap) {
+        StringBuilder sb = new StringBuilder();
+        for (Map.Entry<Block.BlockLocation, List<Long>> entry : blockMap.entrySet()) {
+          sb.append(String.format("<%s, %s blocks>,", entry.getKey(), entry.getValue().size()));
+        }
+        LOG.info("Blocks: {}", sb);
+      }
+
       @Override
       public void onCompleted() {
+        LOG.info("{} - Register stream completed on the client side", Thread.currentThread().getId());
+        System.out.format("Register stream completed on the client side%n");
 
-        LOG.info("{} - Register stream completed", Thread.currentThread().getId());
-        System.out.format("Register stream completed%n");
-
-        Preconditions.checkState(mWorkerId != -1, "workerId is still -1 for StreamObserver!");
+        if (mWorkerId == -1) {
+          LOG.error("Complete message received from the client side but workerId is still -1.");
+          Exception e = new NotFoundException("Complete message received from the client side but workerId is still -1.");
+          responseObserver.onError(e);
+          return;
+        } else if (mContext == null) {
+          LOG.error("Complete message received from the client side but the context is not initialized");
+          Exception e = new NotFoundException("Complete message received from the client side but the context is not initialized");
+          responseObserver.onError(e);
+          return;
+        }
 
         // This will send the response back and complete the call
         RpcUtils.callAndNoReturn(LOG,
