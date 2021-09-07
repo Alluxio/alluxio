@@ -357,7 +357,7 @@ public class StressClientIOBench extends Benchmark<ClientIOTaskResult> {
       long waitMs = mContext.getStartMs() - CommonUtils.getCurrentMs();
       if (waitMs < 0) {
         throw new IllegalStateException(String.format(
-            "Thread missed barrier. Set the start time to a later time. start: %d current: %d",
+            "Thread missed barrier. Increase the start delay. start: %d current: %d",
             mContext.getStartMs(), CommonUtils.getCurrentMs()));
       }
       CommonUtils.sleepMs(waitMs);

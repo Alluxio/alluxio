@@ -239,6 +239,11 @@ public class RaftJournalSystem extends AbstractJournalSystem {
     mTransferLeaderAllowed = new AtomicBoolean(false);
     mPrimarySelector = new RaftPrimarySelector();
     mAsyncJournalWriter = new AtomicReference<>();
+    try {
+      super.registerMetrics();
+    } catch (RuntimeException e) {
+      return;
+    }
   }
 
   private void maybeMigrateOldJournal() {
@@ -272,10 +277,14 @@ public class RaftJournalSystem extends AbstractJournalSystem {
     // if election timeout is not set explicitly.
     // This is to speed up single master cluster boot-up.
     if (conf.getClusterAddresses().size() == 1
-        && !ServerConfiguration.isSetByUser(PropertyKey.MASTER_EMBEDDED_JOURNAL_ELECTION_TIMEOUT)) {
+        && !ServerConfiguration.isSetByUser(
+            PropertyKey.MASTER_EMBEDDED_JOURNAL_MIN_ELECTION_TIMEOUT)
+        && !ServerConfiguration.isSetByUser(
+            PropertyKey.MASTER_EMBEDDED_JOURNAL_MAX_ELECTION_TIMEOUT)) {
       LOG.debug("Overriding election timeout to {}ms for single master cluster.",
           SINGLE_MASTER_ELECTION_TIMEOUT_MS);
-      conf.setElectionTimeoutMs(SINGLE_MASTER_ELECTION_TIMEOUT_MS);
+      conf.setElectionMinTimeoutMs(SINGLE_MASTER_ELECTION_TIMEOUT_MS);
+      conf.setElectionMaxTimeoutMs(2 * SINGLE_MASTER_ELECTION_TIMEOUT_MS);
     }
     // Validate the conf.
     conf.validate();
@@ -335,9 +344,11 @@ public class RaftJournalSystem extends AbstractJournalSystem {
 
     // election timeout, heartbeat timeout is automatically 1/2 of the value
     final TimeDuration leaderElectionMinTimeout = TimeDuration.valueOf(
-        mConf.getElectionTimeoutMs(), TimeUnit.MILLISECONDS);
+        mConf.getMinElectionTimeoutMs(), TimeUnit.MILLISECONDS);
+    final TimeDuration leaderElectionMaxTimeout = TimeDuration.valueOf(
+        mConf.getMaxElectionTimeoutMs(), TimeUnit.MILLISECONDS);
     RaftServerConfigKeys.Rpc.setTimeoutMin(properties, leaderElectionMinTimeout);
-    RaftServerConfigKeys.Rpc.setTimeoutMax(properties, leaderElectionMinTimeout.multiply(2));
+    RaftServerConfigKeys.Rpc.setTimeoutMax(properties, leaderElectionMaxTimeout);
 
     // request timeout
     RaftServerConfigKeys.Rpc.setRequestTimeout(properties,
@@ -421,7 +432,8 @@ public class RaftJournalSystem extends AbstractJournalSystem {
     RetryPolicy retryPolicy = ExponentialBackoffRetry.newBuilder()
         .setBaseSleepTime(TimeDuration.valueOf(100, TimeUnit.MILLISECONDS))
         .setMaxAttempts(10)
-        .setMaxSleepTime(TimeDuration.valueOf(mConf.getElectionTimeoutMs(), TimeUnit.MILLISECONDS))
+        .setMaxSleepTime(
+            TimeDuration.valueOf(mConf.getMaxElectionTimeoutMs(), TimeUnit.MILLISECONDS))
         .build();
     return RaftClient.newBuilder()
         .setRaftGroup(mRaftGroup)
@@ -691,9 +703,9 @@ public class RaftJournalSystem extends AbstractJournalSystem {
         continue;
       }
 
-      // Wait 2 election timeouts so that this master and other masters have time to realize they
+      // Wait election timeout so that this master and other masters have time to realize they
       // are not leader.
-      CommonUtils.sleepMs(2 * mConf.getElectionTimeoutMs());
+      CommonUtils.sleepMs(mConf.getMaxElectionTimeoutMs());
       if (stateMachine.getLastAppliedSequenceNumber() != lastAppliedSN
           || stateMachine.getLastPrimaryStartSequenceNumber() != gainPrimacySN) {
         // Someone has committed a journal entry since we started trying to catch up.
@@ -814,7 +826,7 @@ public class RaftJournalSystem extends AbstractJournalSystem {
               .setIsLeader(false)
               .setPriority(member.getId().getPriority())
               .setServerAddress(memberAddress)
-          .setServerState(member.getLastRpcElapsedTimeMs() > mConf.getElectionTimeoutMs()
+          .setServerState(member.getLastRpcElapsedTimeMs() > mConf.getMaxElectionTimeoutMs()
               ? QuorumServerState.UNAVAILABLE : QuorumServerState.AVAILABLE).build());
     }
     InetSocketAddress localAddress = mConf.getLocalAddress();

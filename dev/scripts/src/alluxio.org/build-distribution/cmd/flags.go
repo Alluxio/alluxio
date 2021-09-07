@@ -25,6 +25,7 @@ const (
 var (
 	debugFlag              bool
 	hadoopDistributionFlag string
+	includedLibJarsFlag    string
 	mvnArgsFlag            string
 	targetFlag             string
 	ufsModulesFlag         string
@@ -34,6 +35,9 @@ var (
 func generateFlags(cmd *flag.FlagSet) {
 	cmd.BoolVar(&debugFlag, "debug", false, "whether to run this tool in debug mode to generate additional console output")
 	cmd.StringVar(&hadoopDistributionFlag, "hadoop-distribution", defaultHadoopClient, "the hadoop distribution to build this Alluxio distribution tarball")
+	cmd.StringVar(&includedLibJarsFlag, "lib-jars", "all",
+		"a comma-separated list of jars under lib/ to include in addition to all underfs-hdfs modules. All jars under lib/ will be included by default."+
+			" e.g. underfs-cos,table-server-underdb-glue")
 	cmd.StringVar(&mvnArgsFlag, "mvn-args", "", `a comma-separated list of additional Maven arguments to build with, e.g. -mvn-args "-Pspark,-Dhadoop.version=2.2.0"`)
 	cmd.StringVar(&targetFlag, "target", fmt.Sprintf("alluxio-%v-bin.tar.gz", versionMarker),
 		fmt.Sprintf("an optional target name for the generated tarball. The default is alluxio-%v.tar.gz. The string %q will be substituted with the built version. "+
@@ -42,14 +46,27 @@ func generateFlags(cmd *flag.FlagSet) {
 		fmt.Sprintf("a comma-separated list of ufs modules to compile into the distribution tarball(s). Specify 'all' to build all ufs modules. Supported ufs modules: [%v]", strings.Join(validModules(ufsModules), ",")))
 }
 
-// parses 'all' to include all known ufs modules or validates given ufs modules are valid
-func handleUfsModules() error {
+// parses 'all' to include all known ufs modules/lib jars or validates given ufs modules/lib jars are valid
+func handleUfsModulesAndLibJars() error {
 	if strings.ToLower(ufsModulesFlag) == "all" {
 		ufsModulesFlag = strings.Join(validModules(ufsModules), ",")
 	} else {
 		for _, module := range strings.Split(ufsModulesFlag, ",") {
 			if _, ok := ufsModules[module]; !ok {
 				return fmt.Errorf("ufs module %v not recognized", module)
+			}
+		}
+	}
+	if strings.ToLower(includedLibJarsFlag) == "all" {
+		var allLibJars []string
+		for jar := range libJars {
+			allLibJars = append(allLibJars, jar)
+		}
+		includedLibJarsFlag = strings.Join(allLibJars, ",")
+	} else {
+		for _, jar := range strings.Split(includedLibJarsFlag, ",") {
+			if _, ok := libJars[jar]; !ok {
+				return fmt.Errorf("lib jar %v not recognized", jar)
 			}
 		}
 	}
