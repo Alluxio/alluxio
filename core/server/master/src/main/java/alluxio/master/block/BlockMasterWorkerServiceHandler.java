@@ -142,32 +142,32 @@ public final class BlockMasterWorkerServiceHandler extends
     }, "getWorkerId", "request=%s", responseObserver, request);
   }
 
-//  @Override
-//  public void registerWorker(RegisterWorkerPRequest request,
-//      StreamObserver<RegisterWorkerPResponse> responseObserver) {
-//    if (LOG.isDebugEnabled()) {
-//      LOG.debug("Register worker request is {} bytes, containing {} blocks",
-//              request.getSerializedSize(),
-//              request.getCurrentBlocksCount());
-//    }
-//
-//    final long workerId = request.getWorkerId();
-//    final List<String> storageTiers = request.getStorageTiersList();
-//    final Map<String, Long> totalBytesOnTiers = request.getTotalBytesOnTiersMap();
-//    final Map<String, Long> usedBytesOnTiers = request.getUsedBytesOnTiersMap();
-//    final Map<String, StorageList> lostStorageMap = request.getLostStorageMap();
-//
-//    final Map<Block.BlockLocation, List<Long>> currBlocksOnLocationMap =
-//        reconstructBlocksOnLocationMap(request.getCurrentBlocksList(), workerId);
-//
-//    RegisterWorkerPOptions options = request.getOptions();
-//    RpcUtils.call(LOG,
-//        (RpcUtils.RpcCallableThrowsIOException<RegisterWorkerPResponse>) () -> {
-//          mBlockMaster.workerRegister(workerId, storageTiers, totalBytesOnTiers, usedBytesOnTiers,
-//              currBlocksOnLocationMap, lostStorageMap, options);
-//          return RegisterWorkerPResponse.getDefaultInstance();
-//        }, "registerWorker", "request=%s", responseObserver, request);
-//  }
+  @Override
+  public void registerWorker(RegisterWorkerPRequest request,
+      StreamObserver<RegisterWorkerPResponse> responseObserver) {
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("Register worker request is {} bytes, containing {} blocks",
+              request.getSerializedSize(),
+              request.getCurrentBlocksCount());
+    }
+
+    final long workerId = request.getWorkerId();
+    final List<String> storageTiers = request.getStorageTiersList();
+    final Map<String, Long> totalBytesOnTiers = request.getTotalBytesOnTiersMap();
+    final Map<String, Long> usedBytesOnTiers = request.getUsedBytesOnTiersMap();
+    final Map<String, StorageList> lostStorageMap = request.getLostStorageMap();
+
+    final Map<Block.BlockLocation, List<Long>> currBlocksOnLocationMap =
+        reconstructBlocksOnLocationMap(request.getCurrentBlocksList(), workerId);
+
+    RegisterWorkerPOptions options = request.getOptions();
+    RpcUtils.call(LOG,
+        (RpcUtils.RpcCallableThrowsIOException<RegisterWorkerPResponse>) () -> {
+          mBlockMaster.workerRegister(workerId, storageTiers, totalBytesOnTiers, usedBytesOnTiers,
+              currBlocksOnLocationMap, lostStorageMap, options);
+          return RegisterWorkerPResponse.getDefaultInstance();
+        }, "registerWorker", "request=%s", responseObserver, request);
+  }
 
   @Override
   public io.grpc.stub.StreamObserver<alluxio.grpc.RegisterWorkerStreamPRequest> registerWorkerStream(

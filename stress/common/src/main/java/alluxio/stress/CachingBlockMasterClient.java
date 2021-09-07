@@ -11,14 +11,22 @@
 
 package alluxio.stress;
 
+import alluxio.grpc.BlockIdList;
+import alluxio.grpc.ConfigProperty;
 import alluxio.grpc.LocationBlockIdListEntry;
 import alluxio.master.MasterClientContext;
 import alluxio.worker.block.BlockMasterClient;
 import alluxio.worker.block.BlockStoreLocation;
 
+import alluxio.worker.block.RegisterStream;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -33,6 +41,8 @@ public class CachingBlockMasterClient extends BlockMasterClient {
   private static final Logger LOG = LoggerFactory.getLogger(CachingBlockMasterClient.class);
 
   private final List<LocationBlockIdListEntry> mLocationBlockIdList;
+  private List<List<LocationBlockIdListEntry>> mBlockBatches;
+  private Iterator<List<LocationBlockIdListEntry>> mBlockBatchIterator;
 
   /**
    * Creates a new instance and caches the converted proto.
@@ -45,6 +55,11 @@ public class CachingBlockMasterClient extends BlockMasterClient {
     super(conf);
     LOG.debug("Init CachingBlockMasterClient");
     mLocationBlockIdList = locationBlockIdList;
+
+    // Pre-generate the request batches
+    mBlockBatches = prepareBlockBatchesForStreaming();
+    LOG.info("Prepared {} batches for requests", mBlockBatches.size());
+    mBlockBatchIterator = mBlockBatches.iterator();
   }
 
   @Override
@@ -54,5 +69,53 @@ public class CachingBlockMasterClient extends BlockMasterClient {
     return mLocationBlockIdList;
   }
 
+  List<List<LocationBlockIdListEntry>> prepareBlockBatchesForStreaming() {
+    // TODO(jiacheng): Avoid converting this back
+    List<List<LocationBlockIdListEntry>> result = new ArrayList<>();
+    for (LocationBlockIdListEntry entry : mLocationBlockIdList) {
+      int len = entry.getValue().getBlockIdCount();
+      // TODO(jiacheng): size configurable
+      if (len <= 1000) {
+        result.add(ImmutableList.of(entry));
+        continue;
+      }
+        // Partition the list into multiple
+      List<Long> list = entry.getValue().getBlockIdList();
+      List<List<Long>> sublists = Lists.partition(list, 1000);
+      LOG.info("Partitioned a LocationBlockIdListEntry of {} blocks into {} sublists", list.size(), sublists.size());
+      System.out.format("Partitioned a LocationBlockIdListEntry of %s blocks into %s sublists%n", list.size(), sublists.size());
+      // Regenerate the protos
+      List<LocationBlockIdListEntry> newList = new ArrayList<>();
+      for (List<Long> sub : sublists) {
+        BlockIdList newBlockList = BlockIdList.newBuilder().addAllBlockId(sub).build();
+        LocationBlockIdListEntry newEntry = LocationBlockIdListEntry.newBuilder()
+                .setKey(entry.getKey()).setValue(newBlockList).build();
+        newList.add(newEntry);
+      }
+      result.add(newList);
+    }
 
+    LOG.info("Partitioned a list of {} into {} sublists", mLocationBlockIdList.size(), result.size());
+    System.out.format("Partitioned a list of %s into %s sublists%n", mLocationBlockIdList.size(), result.size());
+    return result;
+  }
+
+  @Override
+  public void registerStream(final long workerId, final List<String> storageTierAliases,
+                             final Map<String, Long> totalBytesOnTiers, final Map<String, Long> usedBytesOnTiers,
+                             final Map<BlockStoreLocation, List<Long>> currentBlocksOnLocation,
+                             final Map<String, List<String>> lostStorage,
+                             final List<ConfigProperty> configList) throws IOException {
+
+    retryRPC(() -> {
+      try {
+        RegisterStream stream = new RegisterStream(mAsyncClient, workerId, storageTierAliases, totalBytesOnTiers, usedBytesOnTiers,
+                currentBlocksOnLocation, lostStorage, configList, mBlockBatchIterator);
+        stream.registerSync();
+      } catch (InterruptedException e) {
+        LOG.warn("Interrupted", e);
+      }
+      return null;
+    }, LOG, "Register", "workerId=%d", workerId);
+  }
 }

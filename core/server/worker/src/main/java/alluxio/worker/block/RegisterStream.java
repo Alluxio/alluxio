@@ -11,6 +11,7 @@ import alluxio.grpc.RegisterWorkerStreamPOptions;
 import alluxio.grpc.RegisterWorkerStreamPRequest;
 import alluxio.grpc.RegisterWorkerStreamPResponse;
 import alluxio.grpc.StorageList;
+import com.google.common.annotations.VisibleForTesting;
 import io.grpc.stub.StreamObserver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,13 +43,14 @@ public class RegisterStream {
 
   final StreamObserver<RegisterWorkerStreamPRequest> mRequestObserver;
   final CountDownLatch mFinishLatch;
+  Iterator<List<LocationBlockIdListEntry>> mBlockListIterator;
 
-  RegisterStream(final BlockMasterWorkerServiceGrpc.BlockMasterWorkerServiceStub asyncClient,
-                 final long workerId, final List<String> storageTierAliases,
-                 final Map<String, Long> totalBytesOnTiers, final Map<String, Long> usedBytesOnTiers,
-                 final Map<BlockStoreLocation, List<Long>> currentBlocksOnLocation,
-                 final Map<String, List<String>> lostStorage,
-                 final List<ConfigProperty> configList) {
+  public RegisterStream(final BlockMasterWorkerServiceGrpc.BlockMasterWorkerServiceStub asyncClient,
+                        final long workerId, final List<String> storageTierAliases,
+                        final Map<String, Long> totalBytesOnTiers, final Map<String, Long> usedBytesOnTiers,
+                        final Map<BlockStoreLocation, List<Long>> currentBlocksOnLocation,
+                        final Map<String, List<String>> lostStorage,
+                        final List<ConfigProperty> configList) {
     mAsyncClient = asyncClient;
     mWorkerId = workerId;
     mStorageTierAliases = storageTierAliases;
@@ -82,13 +84,32 @@ public class RegisterStream {
     mRequestObserver = asyncClient.registerWorkerStream(responseObserver);
   }
 
+  @VisibleForTesting
+  public RegisterStream(final BlockMasterWorkerServiceGrpc.BlockMasterWorkerServiceStub asyncClient,
+                        final long workerId, final List<String> storageTierAliases,
+                        final Map<String, Long> totalBytesOnTiers, final Map<String, Long> usedBytesOnTiers,
+                        final Map<BlockStoreLocation, List<Long>> currentBlocksOnLocation,
+                        final Map<String, List<String>> lostStorage,
+                        final List<ConfigProperty> configList,
+                        Iterator<List<LocationBlockIdListEntry>> blockListIterator) {
+    this(asyncClient, workerId, storageTierAliases, totalBytesOnTiers, usedBytesOnTiers,
+            currentBlocksOnLocation, lostStorage, configList);
+    mBlockListIterator = blockListIterator;
+  }
+
+
   // TODO(jiacheng): switch to this method
-  void registerSync() throws InterruptedException {
+  public void registerSync() throws InterruptedException {
     try {
 
       // TODO(jiacheng): Decide what blocks to include
       //  This is taking long to finish because of the copy in the constructor
-      Iterator<List<LocationBlockIdListEntry>> blockListIterator = new BlockMapIterator(mCurrentBlocksOnLocation);
+      if (mBlockListIterator == null) {
+        LOG.info("Generate BlockMapIterator");
+        mBlockListIterator = new BlockMapIterator(mCurrentBlocksOnLocation);
+      } else {
+        LOG.info("Using cached iterator");
+      }
 
       // Some extra conversions
       final RegisterWorkerStreamPOptions options =
@@ -98,8 +119,8 @@ public class RegisterStream {
                       e -> StorageList.newBuilder().addAllStorage(e.getValue()).build()));
 
       int iter = 0;
-      while (blockListIterator.hasNext()) {
-        List<LocationBlockIdListEntry> blockBatch = blockListIterator.next();
+      while (mBlockListIterator.hasNext()) {
+        List<LocationBlockIdListEntry> blockBatch = mBlockListIterator.next();
 
         LOG.info("Sending batch {}: {}", iter, blockBatch);
 
