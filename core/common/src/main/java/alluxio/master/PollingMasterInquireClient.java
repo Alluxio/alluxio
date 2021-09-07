@@ -188,6 +188,7 @@ public class PollingMasterInquireClient implements MasterInquireClient {
      * @return the addresses
      */
     public List<InetSocketAddress> getAddresses() {
+
       return mAddresses;
     }
 
