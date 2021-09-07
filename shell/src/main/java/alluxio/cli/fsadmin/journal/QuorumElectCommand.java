@@ -43,15 +43,12 @@ public class QuorumElectCommand extends AbstractFsAdminCommand {
   public static final String RESET_SUCCESS = "Quorum priorities were reset to 1";
   public static final String RESET_FAILED = "Quorum priorities failed to be reset: %s";
 
-  private final AlluxioConfiguration mConf;
-
   /**
    * @param context fsadmin command context
    * @param alluxioConf Alluxio configuration
    */
   public QuorumElectCommand(Context context, AlluxioConfiguration alluxioConf) {
     super(context);
-    mConf = alluxioConf;
   }
 
   /**
