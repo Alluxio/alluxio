@@ -10,6 +10,13 @@
 # See the NOTICE file distributed with this work for information regarding copyright ownership.
 #
 
+# Shared chunk of commands used both in Dockerfile and Dockerfile-dev.
+
+#######################################
+# Install libfuse with MAX_IDLE_THREAD able to be configured.
+# Arguments:
+#   None
+#######################################
 function installLibfuse {
   git clone https://github.com/Alluxio/libfuse.git
   cd libfuse
@@ -21,6 +28,17 @@ function installLibfuse {
   cd ..
 }
 
+#######################################
+# If Alluxio user, group, gid, and uid aren't root|0,
+# create the alluxio user and set file permissions accordingly.
+# Arguments:
+#   $1: the string of the username provided by ALLUXIO_USERNAME in dockerfiles
+#   $2: the string of the group name provided by ALLUXIO_GROUP in dockerfiles
+#   $3: the user id associated with the username provided by ALLUXIO_UID in dockerfiles
+#   $4: the group id associated with the groupName provided by ALLUXIO_GID in dockerfiles
+#   $5: the string of the operating system that the image is based on.
+#       Dockerfile uses "alpine" and Dockerfile-dev uses "centos"
+#######################################
 function userOperation {
   if [ $# -ne 5 ]; then
     echo "Error: user-operation: 5 parameters required. $# provided."
@@ -54,6 +72,11 @@ function userOperation {
   fi
 }
 
+#######################################
+# If ENABLE_DYNAMIC_USER is true, set file permissions accordingly.
+# Arguments:
+#   $1: Boolean value of whether to enable dynamic user
+#######################################
 function enableDynamicUser {
   if [ $# -ne 1 ]; then
     echo "Error: enable-dynamic user: 1 parameter required. $# provided."

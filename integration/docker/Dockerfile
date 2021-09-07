@@ -68,7 +68,7 @@ RUN echo "networkaddress.cache.ttl=0" >> ${JAVA_HOME}/jre/lib/security/java.secu
 # Add the following for native libraries needed by rocksdb
 ENV LD_LIBRARY_PATH /lib64:${LD_LIBRARY_PATH}
 
-# If Alluxio user, group, gid, and uid aren't root|0, create the alluxio user and set file permissions accordingly.
+# If Alluxio user, group, gid, and uid aren't root|0, create the alluxio user and set file permissions accordingly
 RUN ./dockerfile-common.sh user-operation ${ALLUXIO_USERNAME} ${ALLUXIO_GROUP} ${ALLUXIO_UID} ${ALLUXIO_GID} alpine
 
 # Docker 19.03+ required to expand variables in --chown argument
