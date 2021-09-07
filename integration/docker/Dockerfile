@@ -17,8 +17,8 @@ ARG ALLUXIO_TARBALL=http://downloads.alluxio.io/downloads/files/2.7.0-SNAPSHOT/a
 ARG ENABLE_DYNAMIC_USER=false
 
 ADD ${ALLUXIO_TARBALL} /opt/
-# If the tarball was remote, it needs to be untarred.
-# Use ln -s instead of mv to avoid issues with Centos. (see https://github.com/moby/moby/issues/27358)
+# If the tarball was remote, it needs to be untarred
+# Use ln -s instead of mv to avoid issues with Centos (see https://github.com/moby/moby/issues/27358)
 RUN cd /opt && \
     (if ls | grep -q ".tar.gz"; then tar -xzf *.tar.gz && rm *.tar.gz; fi) && \
     ln -s alluxio-* alluxio
@@ -29,7 +29,7 @@ RUN if [ ${ENABLE_DYNAMIC_USER} = "true" ] ; then \
 
 ADD dockerfile-common.sh /
 
-# The following libfuse setup is modified from cheyang/fuse2:ubuntu1604-customize to be applied on alpine.
+# The following libfuse setup is modified from cheyang/fuse2:ubuntu1604-customize to be applied on alpine
 WORKDIR /
 
 ENV MAX_IDLE_THREADS "64"
@@ -62,14 +62,13 @@ RUN apk add --no-cache openjdk8 openjdk8-jre-lib unzip vim
 
 ENV JAVA_HOME /usr/lib/jvm/java-1.8-openjdk
 
-# disable JVM DNS cache
+# Disable JVM DNS cache
 RUN echo "networkaddress.cache.ttl=0" >> ${JAVA_HOME}/jre/lib/security/java.security
 
-# add the following for native libraries needed by rocksdb
+# Add the following for native libraries needed by rocksdb
 ENV LD_LIBRARY_PATH /lib64:${LD_LIBRARY_PATH}
 
-# If Alluxio user, group, gid, and uid aren't root|0,
-# then create the alluxio user and set file permissions accordingly.
+# If Alluxio user, group, gid, and uid aren't root|0, create the alluxio user and set file permissions accordingly.
 RUN ./dockerfile-common.sh user-operation ${ALLUXIO_USERNAME} ${ALLUXIO_GROUP} ${ALLUXIO_UID} ${ALLUXIO_GID} alpine
 
 # Docker 19.03+ required to expand variables in --chown argument
@@ -77,7 +76,7 @@ RUN ./dockerfile-common.sh user-operation ${ALLUXIO_USERNAME} ${ALLUXIO_GROUP} $
 COPY --chown=${ALLUXIO_USERNAME}:${ALLUXIO_GROUP} conf /opt/alluxio/conf/
 COPY --chown=${ALLUXIO_USERNAME}:${ALLUXIO_GROUP} entrypoint.sh /
 
-RUN RUN ./dockerfile-common.sh enable-dynamic-user ${ENABLE_DYNAMIC_USER}
+RUN ./dockerfile-common.sh enable-dynamic-user ${ENABLE_DYNAMIC_USER}
 
 USER ${ALLUXIO_UID}
 
