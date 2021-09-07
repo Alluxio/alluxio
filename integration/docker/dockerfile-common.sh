@@ -23,7 +23,7 @@ function installLibfuse {
 
 function userOperation {
   if [ $# -ne 5 ]; then
-    echo "Error: user-operation: 5 parameters needed. $# provided."
+    echo "Error: user-operation: 5 parameters required. $# provided."
     exit 1
   fi
   username=$1
@@ -55,6 +55,10 @@ function userOperation {
 }
 
 function enableDynamicUser {
+  if [ $# -ne 1 ]; then
+    echo "Error: enable-dynamic user: 1 parameter required. $# provided."
+    exit 1
+  fi
   if [ "$1" = "true" ]; then
     chmod -R 777 /journal
     chmod -R 777 /mnt
