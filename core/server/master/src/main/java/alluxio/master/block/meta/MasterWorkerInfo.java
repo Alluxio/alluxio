@@ -623,28 +623,11 @@ public final class MasterWorkerInfo {
   }
 
   /**
-   * Sets the start time of worker.
-   * @param startTime the version of worker
-   */
-  public void setRealStartTime(long startTime) {
-    mWorkerTimeMeta.setStartTime(startTime);
-  }
-
-  /**
    * Sets the revision of worker.
    * @param revision the version of worker
    */
   public void setRevision(String revision) {
     mWorkerTimeMeta.setRevision(revision);
-  }
-
-  /**
-   * No locking required.
-   *
-   * @return the start time of worker
-   */
-  public long getRealStartTime() {
-    return mWorkerTimeMeta.getStartTime();
   }
 
   /**

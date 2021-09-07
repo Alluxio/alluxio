@@ -226,8 +226,7 @@ public class BlockMasterClient extends AbstractMasterClient {
    * @param usedBytesOnTiers mapping from storage tier alias to used bytes
    * @param currentBlocksOnLocation mapping from storage tier alias to the list of list of blocks
    * @param lostStorage mapping from storage tier alias to the list of lost storage paths
-   * @param configList a list of configurations
-   * @param startTime the start time of worker
+   * @param configList a list of configuration
    * @param version the version of worker
    * @param revision the revision of worker
    */
@@ -235,7 +234,7 @@ public class BlockMasterClient extends AbstractMasterClient {
   public void register(final long workerId, final List<String> storageTierAliases,
       final Map<String, Long> totalBytesOnTiers, final Map<String, Long> usedBytesOnTiers,
       final Map<BlockStoreLocation, List<Long>> currentBlocksOnLocation,
-      final Map<String, List<String>> lostStorage, final long startTime,
+      final Map<String, List<String>> lostStorage,
       final String version, final String revision,
       final List<ConfigProperty> configList) throws IOException {
 
@@ -254,7 +253,7 @@ public class BlockMasterClient extends AbstractMasterClient {
         .putAllUsedBytesOnTiers(usedBytesOnTiers)
         .addAllCurrentBlocks(currentBlocks)
         .putAllLostStorage(lostStorageMap)
-        .setStartTime(startTime).setVersion(version).setRevision(revision)
+        .setVersion(version).setRevision(revision)
         .setOptions(options).build();
 
     retryRPC(() -> {

@@ -86,8 +86,7 @@ public final class BlockMasterSync implements HeartbeatExecutor {
    * @param masterClientPool the Alluxio master client pool
    */
   BlockMasterSync(BlockWorker blockWorker, AtomicReference<Long> workerId,
-      WorkerNetAddress workerAddress, BlockMasterClientPool masterClientPool,
-      long startTime) throws IOException {
+      WorkerNetAddress workerAddress, BlockMasterClientPool masterClientPool) throws IOException {
     mBlockWorker = blockWorker;
     mWorkerId = workerId;
     mWorkerAddress = workerAddress;
@@ -99,7 +98,6 @@ public final class BlockMasterSync implements HeartbeatExecutor {
 
     registerWithMaster();
     mLastSuccessfulHeartbeatMs = System.currentTimeMillis();
-    mStartTime = startTime;
   }
 
   /**
@@ -114,7 +112,7 @@ public final class BlockMasterSync implements HeartbeatExecutor {
     mMasterClient.register(mWorkerId.get(),
         storageTierAssoc.getOrderedStorageAliases(), storeMeta.getCapacityBytesOnTiers(),
         storeMeta.getUsedBytesOnTiers(), storeMeta.getBlockListByStorageLocation(),
-        storeMeta.getLostStorage(), mStartTime, ProjectConstants.VERSION,
+        storeMeta.getLostStorage(), ProjectConstants.VERSION,
         ProjectConstants.REVISION, configList);
   }
 

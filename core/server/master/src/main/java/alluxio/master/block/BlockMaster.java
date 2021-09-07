@@ -187,7 +187,6 @@ public interface BlockMaster extends Master, ContainerIdGenerable {
    * @param currentBlocksOnLocation a mapping from storage tier alias to a list of blocks
    * @param lostStorage a mapping from storage tier alias to a list of lost storage paths
    * @param options the options that may contain worker configuration
-   * @param startTime the start time of worker
    * @param version the version of worker
    * @param revision the revision of worker
    * @throws NotFoundException if workerId cannot be found
@@ -195,7 +194,7 @@ public interface BlockMaster extends Master, ContainerIdGenerable {
   void workerRegister(long workerId, List<String> storageTiers,
       Map<String, Long> totalBytesOnTiers, Map<String, Long> usedBytesOnTiers,
       Map<Block.BlockLocation, List<Long>> currentBlocksOnLocation,
-      Map<String, StorageList> lostStorage, long startTime, String version,
+      Map<String, StorageList> lostStorage, String version,
       String revision, RegisterWorkerPOptions options)
       throws NotFoundException;
 

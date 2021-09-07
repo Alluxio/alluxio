@@ -171,7 +171,6 @@ public final class FileSystemMasterTest {
   private List<Metric> mMetrics;
   private long mWorkerId1;
   private long mWorkerId2;
-  private long mStartTime;
 
   private String mJournalFolder;
   private String mUnderFS;
@@ -224,7 +223,6 @@ public final class FileSystemMasterTest {
             .setRecursive(true));
     mJournalFolder = mTestFolder.newFolder().getAbsolutePath();
     startServices();
-    mStartTime = System.currentTimeMillis();
   }
 
   /**
@@ -2722,7 +2720,7 @@ public final class FileSystemMasterTest {
             Constants.MEDIUM_SSD, (long) Constants.MB),
         ImmutableMap.of(Constants.MEDIUM_MEM, (long) Constants.KB,
             Constants.MEDIUM_SSD, (long) Constants.KB), ImmutableMap.of(),
-        new HashMap<String, StorageList>(), mStartTime, ProjectConstants.VERSION,
+        new HashMap<String, StorageList>(), ProjectConstants.VERSION,
         ProjectConstants.REVISION, RegisterWorkerPOptions.getDefaultInstance());
     mWorkerId2 = mBlockMaster.getWorkerId(
         new WorkerNetAddress().setHost("remote").setRpcPort(80).setDataPort(81).setWebPort(82));
@@ -2733,7 +2731,7 @@ public final class FileSystemMasterTest {
         ImmutableMap.of(Constants.MEDIUM_MEM, (long) Constants.KB,
             Constants.MEDIUM_SSD, (long) Constants.KB),
         ImmutableMap.of(), new HashMap<String, StorageList>(),
-        mStartTime, ProjectConstants.VERSION,
+        ProjectConstants.VERSION,
         ProjectConstants.REVISION, RegisterWorkerPOptions.getDefaultInstance());
   }
 
