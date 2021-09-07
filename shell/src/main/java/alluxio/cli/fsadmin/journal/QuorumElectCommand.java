@@ -13,14 +13,15 @@ package alluxio.cli.fsadmin.journal;
 
 import alluxio.cli.fsadmin.command.AbstractFsAdminCommand;
 import alluxio.cli.fsadmin.command.Context;
-import alluxio.client.file.FileSystemContext;
 import alluxio.client.journal.JournalMasterClient;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.exception.ExceptionMessage;
+import alluxio.exception.status.AlluxioStatusException;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.exception.status.UnavailableException;
+import alluxio.grpc.GetQuorumInfoPResponse;
 import alluxio.grpc.NetAddress;
-import alluxio.master.MasterInquireClient;
+import alluxio.grpc.QuorumServerInfo;
 import alluxio.util.CommonUtils;
 
 import com.google.common.annotations.VisibleForTesting;
@@ -28,7 +29,7 @@ import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Options;
 
 import java.io.IOException;
-import java.net.InetSocketAddress;
+import java.util.Optional;
 
 /**
  * Command for transferring the leadership to another master within a quorum.
@@ -68,21 +69,24 @@ public class QuorumElectCommand extends AbstractFsAdminCommand {
     NetAddress address = QuorumCommand.stringToAddress(serverAddress);
 
     jmClient.transferLeadership(address);
-
-    MasterInquireClient inquireClient = MasterInquireClient.Factory
-            .create(mConf, FileSystemContext.create(mConf).getClientContext().getUserState());
     boolean success = true;
     // wait for confirmation of leadership transfer
     try {
       CommonUtils.waitFor("Waiting for leadership transfer to finalize", () -> {
-        InetSocketAddress leaderAddress;
         try {
-          leaderAddress = inquireClient.getPrimaryRpcAddress();
+          GetQuorumInfoPResponse quorumInfo = jmClient.getQuorumInfo();
+
+          Optional<QuorumServerInfo>
+                  leadingMasterInfoOpt = quorumInfo.getServerInfoList().stream()
+                  .filter(QuorumServerInfo::getIsLeader).findFirst();
+          String leadingMasterAddr = leadingMasterInfoOpt.isPresent()
+                  ? netAddressToString(leadingMasterInfoOpt.get().getServerAddress()) : "UNKNOWN";
+          return leadingMasterAddr.equals(netAddressToString(address));
         } catch (UnavailableException e) {
           return false;
+        } catch (AlluxioStatusException e) {
+          return false;
         }
-        return leaderAddress.getHostName().equals(address.getHost())
-                && leaderAddress.getPort() == address.getRpcPort();
       });
       mPrintStream.println(String.format(TRANSFER_SUCCESS, serverAddress));
     } catch (Exception e) {
@@ -129,5 +133,9 @@ public class QuorumElectCommand extends AbstractFsAdminCommand {
   public Options getOptions() {
     return new Options().addOption(ADDRESS_OPTION_NAME, true,
             "Server address that will take over as leader");
+  }
+
+  String netAddressToString(NetAddress address) {
+    return String.format("%s:%d", address.getHost(), address.getRpcPort());
   }
 }
