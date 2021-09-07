@@ -36,7 +36,8 @@ function get_alluxio_property() {
   echo "${property}"
 }
 
-# Generates an array of ramdisk paths in global variable RAMDISKARRAY 
+# Generates an array of ramdisk paths in global variable RAMDISKARRAY
+# - Only examines level0 of the tiered store for "MEM"-type paths
 function get_ramdisk_array() {
   local tier_path=$(get_alluxio_property "alluxio.worker.tieredstore.level0.dirs.path")
   local medium_type=$(get_alluxio_property "alluxio.worker.tieredstore.level0.dirs.mediumtype")

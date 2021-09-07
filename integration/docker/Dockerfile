@@ -60,7 +60,21 @@ RUN chmod +x /usr/local/bin/tini
 
 RUN apk add --no-cache openjdk8 openjdk8-jre-lib unzip vim
 
+<<<<<<< HEAD
 ENV JAVA_HOME /usr/lib/jvm/java-1.8-openjdk
+||||||| df5dcab8bc
+# Install arthas(https://github.com/alibaba/arthas) for analyzing performance bottleneck
+RUN wget -qO /tmp/arthas.zip "http://maven.aliyun.com/repository/public/com/taobao/arthas/arthas-packaging/3.4.6/arthas-packaging-3.4.6-bin.zip" && \
+  mkdir -p /opt/arthas && \
+  unzip /tmp/arthas.zip -d /opt/arthas && \
+  rm /tmp/arthas.zip
+=======
+# Install arthas(https://github.com/alibaba/arthas) for analyzing performance bottleneck
+RUN wget -qO /tmp/arthas.zip "https://github.com/alibaba/arthas/releases/download/arthas-all-3.4.6/arthas-bin.zip" && \
+  mkdir -p /opt/arthas && \
+  unzip /tmp/arthas.zip -d /opt/arthas && \
+  rm /tmp/arthas.zip
+>>>>>>> 60803aed421919b01038f9db8bc4dda86d1cb3cd
 
 # Disable JVM DNS cache
 RUN echo "networkaddress.cache.ttl=0" >> ${JAVA_HOME}/jre/lib/security/java.security

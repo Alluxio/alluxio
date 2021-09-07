@@ -11,7 +11,7 @@
 
 package alluxio.worker.job;
 
-import alluxio.AbstractMasterClient;
+import alluxio.AbstractJobMasterClient;
 import alluxio.Constants;
 import alluxio.grpc.JobCommand;
 import alluxio.grpc.JobHeartbeatPRequest;
@@ -36,7 +36,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * workers.
  */
 @ThreadSafe
-public final class RetryHandlingJobMasterClient extends AbstractMasterClient
+public final class RetryHandlingJobMasterClient extends AbstractJobMasterClient
     implements JobMasterClient {
   private static final Logger RPC_LOG = LoggerFactory.getLogger(JobMasterClient.class);
   private JobMasterWorkerServiceGrpc.JobMasterWorkerServiceBlockingStub mClient = null;

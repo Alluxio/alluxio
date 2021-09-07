@@ -57,6 +57,8 @@ public final class DistributedLoadUtils {
         localityIds, excludedLocalityIds);
     // Wait remaining jobs to complete.
     command.drain();
+    System.out.println(String.format("Completed count is %d,Failed count is %d.",
+            command.getCompletedCount(), command.getFailedCount()));
   }
 
   /**
@@ -89,7 +91,7 @@ public final class DistributedLoadUtils {
       URIStatus status, int replication, Set<String> workerSet, Set<String> excludedWorkerSet,
       Set<String> localityIds, Set<String> excludedLocalityIds) {
     AlluxioURI filePath = new AlluxioURI(status.getPath());
-    if (status.getInAlluxioPercentage() == 100) {
+    if (status.getInAlluxioPercentage() == 100 && replication == 1) {
       // The file has already been fully loaded into Alluxio.
       System.out.println(filePath + " is already fully loaded in Alluxio");
       return;

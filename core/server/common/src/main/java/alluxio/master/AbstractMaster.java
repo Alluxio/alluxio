@@ -144,7 +144,12 @@ public abstract class AbstractMaster implements Master {
           "Failed to acquire state-lock due to ongoing backup activity.");
     }
 
-    return new StateChangeJournalContext(mJournal.createJournalContext(), sharedLockResource);
+    try {
+      return new StateChangeJournalContext(mJournal.createJournalContext(), sharedLockResource);
+    } catch (UnavailableException e) {
+      sharedLockResource.close();
+      throw e;
+    }
   }
 
   @Override

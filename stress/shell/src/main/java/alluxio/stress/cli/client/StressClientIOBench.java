@@ -77,6 +77,12 @@ public class StressClientIOBench extends Benchmark<ClientIOTaskResult> {
   }
 
   @Override
+  public String getBenchDescription() {
+    // TODO(David) Fill in description
+    return "";
+  }
+
+  @Override
   public void prepare() throws Exception {
     if (mBaseParameters.mCluster && mBaseParameters.mClusterLimit != 1) {
       throw new IllegalArgumentException(String.format(
@@ -351,7 +357,7 @@ public class StressClientIOBench extends Benchmark<ClientIOTaskResult> {
       long waitMs = mContext.getStartMs() - CommonUtils.getCurrentMs();
       if (waitMs < 0) {
         throw new IllegalStateException(String.format(
-            "Thread missed barrier. Set the start time to a later time. start: %d current: %d",
+            "Thread missed barrier. Increase the start delay. start: %d current: %d",
             mContext.getStartMs(), CommonUtils.getCurrentMs()));
       }
       CommonUtils.sleepMs(waitMs);
@@ -393,7 +399,6 @@ public class StressClientIOBench extends Benchmark<ClientIOTaskResult> {
           }
         }
       }
-
       switch (mParameters.mOperation) {
         case READ_ARRAY: {
           int bytesRead = mInStream.read(mBuffer);

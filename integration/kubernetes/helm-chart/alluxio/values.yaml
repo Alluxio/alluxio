@@ -95,6 +95,16 @@ master:
   # JVM options specific to the master container
   jvmOptions:
   nodeSelector: {}
+  readinessProbe:
+    initialDelaySeconds: 10
+    periodSeconds: 10
+    timeoutSeconds: 1
+    failureThreshold: 3
+  livenessProbe:
+    initialDelaySeconds: 15
+    periodSeconds: 30
+    timeoutSeconds: 5
+    failureThreshold: 2
   tolerations: []
   podAnnotations: {}
   # The ServiceAccount provided here will have precedence over
@@ -119,6 +129,16 @@ jobMaster:
     web: 20002
   # JVM options specific to the jobMaster container
   jvmOptions:
+  readinessProbe:
+    initialDelaySeconds: 10
+    periodSeconds: 10
+    timeoutSeconds: 1
+    failureThreshold: 3
+  livenessProbe:
+    initialDelaySeconds: 15
+    periodSeconds: 30
+    timeoutSeconds: 5
+    failureThreshold: 2
 
 # Alluxio supports journal type of UFS and EMBEDDED
 # UFS journal with HDFS example
@@ -193,11 +213,26 @@ worker:
   # JVM options specific to the worker container
   jvmOptions:
   nodeSelector: {}
+  readinessProbe:
+    initialDelaySeconds: 10
+    periodSeconds: 10
+    timeoutSeconds: 1
+    failureThreshold: 3
+  livenessProbe:
+    initialDelaySeconds: 15
+    periodSeconds: 30
+    timeoutSeconds: 5
+    failureThreshold: 2
   tolerations: []
   podAnnotations: {}
   # The ServiceAccount provided here will have precedence over
   # the global `serviceAccount`
   serviceAccount:
+  # Setting fuseEnabled to true will embed Fuse in worker process. The worker pods will
+  # launch the Alluxio workers using privileged containers with `SYS_ADMIN` capability.
+  # Be sure to give root access to the pod by setting the global user/group/fsGroup
+  # values to `0` to turn on Fuse in worker.
+  fuseEnabled: false
 
 jobWorker:
   args:
@@ -217,6 +252,16 @@ jobWorker:
     web: 30003
   # JVM options specific to the jobWorker container
   jvmOptions:
+  readinessProbe:
+    initialDelaySeconds: 10
+    periodSeconds: 10
+    timeoutSeconds: 1
+    failureThreshold: 3
+  livenessProbe:
+    initialDelaySeconds: 15
+    periodSeconds: 30
+    timeoutSeconds: 5
+    failureThreshold: 2
 
 # Tiered Storage
 # emptyDir example
@@ -306,9 +351,12 @@ fuse:
   user: 0
   group: 0
   fsGroup: 0
+  # fuse args specific to standalone fuse
   args:
     - fuse
     - --fuse-opts=allow_other
+  # fuse options specific to fuse embedded in the worker process, separated by comma without whitespace
+  mountOptions: allow_other
   # Mount path in the host
   mountPath: /mnt/alluxio-fuse
   resources:
@@ -486,17 +534,17 @@ logserver:
 #     - "example1.com"
 #     - "example2.com"
 
-# kubernates CSI plugin
+# kubernetes CSI plugin
 csi:
   enabled: false
   image: alluxio/alluxio-csi
-  imageTag: 2.6.0-SNAPSHOT
+  imageTag: 2.7.0-SNAPSHOT
   imagePullPolicy: IfNotPresent
   controllerPlugin:
     hostNetwork: true
     dnsPolicy: ClusterFirstWithHostNet
     provisioner:
-      # for kubernates 1.13 or above
+      # for kubernetes 1.13 or above
       image: quay.io/k8scsi/csi-provisioner:v1.4.0
       resources:
         limits:

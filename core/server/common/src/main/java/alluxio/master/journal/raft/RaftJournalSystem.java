@@ -30,6 +30,7 @@ import alluxio.master.journal.AbstractJournalSystem;
 import alluxio.master.journal.AsyncJournalWriter;
 import alluxio.master.journal.CatchupFuture;
 import alluxio.master.journal.Journal;
+import alluxio.metrics.sink.RatisDropwizardExports;
 import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.util.CommonUtils;
 import alluxio.util.LogUtils;
@@ -65,6 +66,7 @@ import org.apache.ratis.server.RaftServer;
 import org.apache.ratis.server.RaftServerConfigKeys;
 import org.apache.ratis.thirdparty.com.google.protobuf.UnsafeByteOperations;
 import org.apache.ratis.util.LifeCycle;
+import org.apache.ratis.util.NetUtils;
 import org.apache.ratis.util.SizeInBytes;
 import org.apache.ratis.util.TimeDuration;
 import org.slf4j.Logger;
@@ -77,6 +79,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -168,6 +171,9 @@ public class RaftJournalSystem extends AbstractJournalSystem {
   /** Controls whether state machine can take snapshots. */
   private final AtomicBoolean mSnapshotAllowed;
 
+  private final Map<String, RatisDropwizardExports> mRatisMetricsMap =
+      new ConcurrentHashMap<>();
+
   /**
    * Listens to the Ratis server to detect gaining or losing primacy. The lifecycle for this
    * object is the same as the lifecycle of the {@link RaftJournalSystem}. When the Ratis server
@@ -230,6 +236,11 @@ public class RaftJournalSystem extends AbstractJournalSystem {
     mSnapshotAllowed = new AtomicBoolean(true);
     mPrimarySelector = new RaftPrimarySelector();
     mAsyncJournalWriter = new AtomicReference<>();
+    try {
+      super.registerMetrics();
+    } catch (RuntimeException e) {
+      return;
+    }
   }
 
   private void maybeMigrateOldJournal() {
@@ -263,10 +274,14 @@ public class RaftJournalSystem extends AbstractJournalSystem {
     // if election timeout is not set explicitly.
     // This is to speed up single master cluster boot-up.
     if (conf.getClusterAddresses().size() == 1
-        && !ServerConfiguration.isSetByUser(PropertyKey.MASTER_EMBEDDED_JOURNAL_ELECTION_TIMEOUT)) {
+        && !ServerConfiguration.isSetByUser(
+            PropertyKey.MASTER_EMBEDDED_JOURNAL_MIN_ELECTION_TIMEOUT)
+        && !ServerConfiguration.isSetByUser(
+            PropertyKey.MASTER_EMBEDDED_JOURNAL_MAX_ELECTION_TIMEOUT)) {
       LOG.debug("Overriding election timeout to {}ms for single master cluster.",
           SINGLE_MASTER_ELECTION_TIMEOUT_MS);
-      conf.setElectionTimeoutMs(SINGLE_MASTER_ELECTION_TIMEOUT_MS);
+      conf.setElectionMinTimeoutMs(SINGLE_MASTER_ELECTION_TIMEOUT_MS);
+      conf.setElectionMaxTimeoutMs(2 * SINGLE_MASTER_ELECTION_TIMEOUT_MS);
     }
     // Validate the conf.
     conf.validate();
@@ -326,9 +341,11 @@ public class RaftJournalSystem extends AbstractJournalSystem {
 
     // election timeout, heartbeat timeout is automatically 1/2 of the value
     final TimeDuration leaderElectionMinTimeout = TimeDuration.valueOf(
-        mConf.getElectionTimeoutMs(), TimeUnit.MILLISECONDS);
+        mConf.getMinElectionTimeoutMs(), TimeUnit.MILLISECONDS);
+    final TimeDuration leaderElectionMaxTimeout = TimeDuration.valueOf(
+        mConf.getMaxElectionTimeoutMs(), TimeUnit.MILLISECONDS);
     RaftServerConfigKeys.Rpc.setTimeoutMin(properties, leaderElectionMinTimeout);
-    RaftServerConfigKeys.Rpc.setTimeoutMax(properties, leaderElectionMinTimeout.multiply(2));
+    RaftServerConfigKeys.Rpc.setTimeoutMax(properties, leaderElectionMaxTimeout);
 
     // request timeout
     RaftServerConfigKeys.Rpc.setRequestTimeout(properties,
@@ -373,6 +390,7 @@ public class RaftJournalSystem extends AbstractJournalSystem {
         PropertyKey.MASTER_EMBEDDED_JOURNAL_TRANSPORT_MAX_INBOUND_MESSAGE_SIZE);
     GrpcConfigKeys.setMessageSizeMax(properties,
         SizeInBytes.valueOf(messageSize));
+    RatisDropwizardExports.registerRatisMetricReporters(mRatisMetricsMap);
 
     // TODO(feng): clean up embedded journal configuration
     // build server
@@ -411,7 +429,8 @@ public class RaftJournalSystem extends AbstractJournalSystem {
     RetryPolicy retryPolicy = ExponentialBackoffRetry.newBuilder()
         .setBaseSleepTime(TimeDuration.valueOf(100, TimeUnit.MILLISECONDS))
         .setMaxAttempts(10)
-        .setMaxSleepTime(TimeDuration.valueOf(mConf.getElectionTimeoutMs(), TimeUnit.MILLISECONDS))
+        .setMaxSleepTime(
+            TimeDuration.valueOf(mConf.getMaxElectionTimeoutMs(), TimeUnit.MILLISECONDS))
         .build();
     return RaftClient.newBuilder()
         .setRaftGroup(mRaftGroup)
@@ -679,9 +698,9 @@ public class RaftJournalSystem extends AbstractJournalSystem {
         continue;
       }
 
-      // Wait 2 election timeouts so that this master and other masters have time to realize they
+      // Wait election timeout so that this master and other masters have time to realize they
       // are not leader.
-      CommonUtils.sleepMs(2 * mConf.getElectionTimeoutMs());
+      CommonUtils.sleepMs(mConf.getMaxElectionTimeoutMs());
       if (stateMachine.getLastAppliedSequenceNumber() != lastAppliedSN
           || stateMachine.getLastPrimaryStartSequenceNumber() != gainPrimacySN) {
         // Someone has committed a journal entry since we started trying to catch up.
@@ -798,8 +817,11 @@ public class RaftJournalSystem extends AbstractJournalSystem {
       NetAddress memberAddress = NetAddress.newBuilder().setHost(hp.getHost())
           .setRpcPort(hp.getPort()).build();
 
-      quorumMemberStateList.add(QuorumServerInfo.newBuilder().setServerAddress(memberAddress)
-          .setServerState(member.getLastRpcElapsedTimeMs() > mConf.getElectionTimeoutMs()
+      quorumMemberStateList.add(QuorumServerInfo.newBuilder()
+              .setIsLeader(false)
+              .setPriority(member.getId().getPriority())
+              .setServerAddress(memberAddress)
+          .setServerState(member.getLastRpcElapsedTimeMs() > mConf.getMaxElectionTimeoutMs()
               ? QuorumServerState.UNAVAILABLE : QuorumServerState.AVAILABLE).build());
     }
     InetSocketAddress localAddress = mConf.getLocalAddress();
@@ -808,8 +830,11 @@ public class RaftJournalSystem extends AbstractJournalSystem {
         .setRpcPort(localAddress.getPort())
         .build();
     quorumMemberStateList.add(QuorumServerInfo.newBuilder()
-        .setServerAddress(self)
+            .setIsLeader(true)
+            .setPriority(mRaftGroup.getPeer(mPeerId).getPriority())
+            .setServerAddress(self)
         .setServerState(QuorumServerState.AVAILABLE).build());
+    quorumMemberStateList.sort(Comparator.comparing(info -> info.getServerAddress().toString()));
     return quorumMemberStateList;
   }
 
@@ -877,6 +902,98 @@ public class RaftJournalSystem extends AbstractJournalSystem {
       if (reply.getException() != null) {
         throw reply.getException();
       }
+    }
+  }
+
+  /**
+   * Resets RaftPeer priorities.
+   *
+   * @throws IOException
+   */
+  public synchronized void resetPriorities() throws IOException {
+    List<RaftPeer> resetPeers = new ArrayList<>();
+    final int NEUTRAL_PRIORITY = 1;
+    for (RaftPeer peer : mRaftGroup.getPeers()) {
+      resetPeers.add(
+              RaftPeer.newBuilder(peer)
+              .setPriority(NEUTRAL_PRIORITY)
+              .build()
+      );
+    }
+    LOG.info("Resetting RaftPeer priorities");
+    try (RaftClient client = createClient()) {
+      RaftClientReply reply = client.admin().setConfiguration(resetPeers);
+      processReply(reply);
+    }
+  }
+
+  /**
+   * Transfers the leadership of the quorum to another server.
+   *
+   * @param newLeaderNetAddress the address of the server
+   * @throws IOException if error occurred while performing the operation
+   */
+  public synchronized void transferLeadership(NetAddress newLeaderNetAddress) throws IOException {
+    InetSocketAddress serverAddress = InetSocketAddress
+            .createUnresolved(newLeaderNetAddress.getHost(), newLeaderNetAddress.getRpcPort());
+    List<RaftPeer> oldPeers = new ArrayList<>(mRaftGroup.getPeers());
+    // The NetUtil function is used by Ratis to convert InetSocketAddress to string
+    String strAddr = NetUtils.address2String(serverAddress);
+    // if you cannot find the address in the quorum, throw exception.
+    if (oldPeers.stream().map(RaftPeer::getAddress).noneMatch(addr -> addr.equals(strAddr))) {
+      throw new IOException(String.format("<%s> is not part of the quorum <%s>.",
+              strAddr, oldPeers.stream().map(RaftPeer::getAddress).collect(Collectors.toList())));
+    }
+
+    RaftPeerId newLeaderPeerId = RaftJournalUtils.getPeerId(serverAddress);
+    // --- the change in priorities seems to be necessary otherwise the transfer fails ---
+    List<RaftPeer> peersWithNewPriorities = new ArrayList<>();
+    for (RaftPeer peer : oldPeers) {
+      peersWithNewPriorities.add(
+              RaftPeer.newBuilder(peer)
+              .setPriority(peer.getId().equals(newLeaderPeerId) ? 2 : 1)
+              .build()
+      );
+    }
+    // --- end of updating priorities ---
+    try (RaftClient client = createClient()) {
+      String stringPeers = "[" + peersWithNewPriorities.stream().map(RaftPeer::toString)
+                      .collect(Collectors.joining(", ")) + "]";
+      LOG.info("Applying new peer state before transferring leadership: {}", stringPeers);
+      // set peers to have new priorities
+      RaftClientReply reply = client.admin().setConfiguration(peersWithNewPriorities);
+      processReply(reply);
+      // transfer leadership
+      LOG.info("Transferring leadership to master with address <{}> and with RaftPeerId <{}>",
+              serverAddress, newLeaderPeerId);
+      // fire and forget: need to immediately return as the master will shut down its RPC servers
+      // once the TransferLeadershipRequest is initiated.
+      final int SLEEP_TIME_MS = 3_000;
+      final int TRANSFER_LEADER_WAIT_MS = 30_000;
+      new Thread(() -> {
+        try {
+          Thread.sleep(SLEEP_TIME_MS);
+          client.admin().transferLeadership(newLeaderPeerId, TRANSFER_LEADER_WAIT_MS);
+        } catch (Throwable t) {
+          LOG.error("caught an error: {}", t.getMessage());
+          /* checking the transfer happens in {@link QuorumElectCommand} */
+        }
+      }).start();
+      LOG.info("Transferring leadership initiated");
+    } catch (Throwable t) {
+      throw new IOException(t);
+    }
+  }
+
+  /**
+   * @param reply from the ratis operation
+   * @throws IOException
+   */
+  private void processReply(RaftClientReply reply) throws IOException {
+    if (!reply.isSuccess()) {
+      throw reply.getException() != null
+              ? reply.getException()
+              : new IOException(String.format("reply <%s> failed", reply));
     }
   }
 
