@@ -16,6 +16,7 @@ import alluxio.cli.fsadmin.command.Context;
 import alluxio.client.journal.JournalMasterClient;
 
 import alluxio.conf.AlluxioConfiguration;
+
 import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.cli.CommandLine;
 
