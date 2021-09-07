@@ -52,7 +52,7 @@ ARG ALLUXIO_UID=1000
 ARG ALLUXIO_GID=1000
 ARG ENABLE_DYNAMIC_USER=true
 
-# add Tini for Alluxio helm charts (https://github.com/Alluxio/alluxio/pull/12233)
+# Add Tini for Alluxio helm charts (https://github.com/Alluxio/alluxio/pull/12233)
 # - https://github.com/krallin/tini
 ENV TINI_VERSION v0.18.0
 ADD https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini /usr/local/bin/tini
@@ -77,9 +77,7 @@ RUN ./dockerfile-common.sh user-operation ${ALLUXIO_USERNAME} ${ALLUXIO_GROUP} $
 COPY --chown=${ALLUXIO_USERNAME}:${ALLUXIO_GROUP} conf /opt/alluxio/conf/
 COPY --chown=${ALLUXIO_USERNAME}:${ALLUXIO_GROUP} entrypoint.sh /
 
-RUN if [ ${ENABLE_DYNAMIC_USER} = "true" ] ; then \
-       ./dockerfile-common.sh enable-dynamic-user; \
-    fi
+RUN RUN ./dockerfile-common.sh enable-dynamic-user ${ENABLE_DYNAMIC_USER}
 
 USER ${ALLUXIO_UID}
 

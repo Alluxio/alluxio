@@ -55,23 +55,26 @@ function userOperation {
 }
 
 function enableDynamicUser {
-  chmod -R 777 /journal; \
-  chmod -R 777 /mnt; \
-  # Enable user_allow_other option for fuse in non-root mode
-  echo "user_allow_other" >> /etc/fuse.conf; \
+  if [ "$1" = "true" ]; then
+    chmod -R 777 /journal
+    chmod -R 777 /mnt
+    # Enable user_allow_other option for fuse in non-root mode
+    echo "user_allow_other" >> /etc/fuse.conf
+  fi
 }
 
 function main {
   command=$1
+  shift
   case $command in
     "install-libfuse")
       installLibfuse 
       ;;
     "user-operation")
-      userOperation $2 $3 $4 $5 $6
+      userOperation "$@"
       ;;
     "enable-dynamic-user")
-      enableDynamicUser
+      enableDynamicUser "$@"
       ;;
     *)
       echo "Error: dockerfile-common.sh unknown command."
