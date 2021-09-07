@@ -38,6 +38,7 @@ public class QuorumCommand extends AbstractFsAdminCommand {
     SUB_COMMANDS.put("info", QuorumInfoCommand::new);
     SUB_COMMANDS.put("remove", QuorumRemoveCommand::new);
     SUB_COMMANDS.put("elect", QuorumElectCommand::new);
+    SUB_COMMANDS.put("reset",QuorumResetPriorityCommand::new);
   }
 
   private Map<String, Command> mSubCommands = new HashMap<>();
