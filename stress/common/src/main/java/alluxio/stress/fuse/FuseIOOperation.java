@@ -26,15 +26,17 @@ public enum FuseIOOperation {
 
   /** Now only streaming reading is supported, that is, sequentially read the written files. */
   /**
-   * Read data stored in local worker via local Fuse mount point.
+   * Each job worker, or client, will read the files it wrote through local Fuse mount point.
    */
   LOCAL_READ("LocalRead"),
   /**
-   * Read data stored in other worker nodes via local Fuse mount point.
+   * Each job worker will evenly read the files written by other job workers via local Fuse mount
+   * point.
    */
   REMOTE_READ("RemoteRead"),
   /**
-   * Read <numAllFiles>/<numWorker> files evenly from all workers through local Fuse mount point.
+   * Read <numAllFiles>/<numJobWorker> number of files evenly from all directories created by all
+   * job workers through local Fuse mount point.
    */
   CLUSTER_READ("ClusterRead")
   ;

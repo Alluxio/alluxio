@@ -64,10 +64,10 @@ public final class FuseIOTaskResult implements TaskResult {
         fuseIOParameters = taskResult.getParameters();
         baseParameters = taskResult.getBaseParameters();
 
-        String workerUniqueId = taskResult.getBaseParameters().mId;
-        nodes.add(workerUniqueId);
-        individualThroughput.put(workerUniqueId, taskResult.getIOMBps());
-        errors.put(workerUniqueId, taskResult.getErrors());
+        String jobWorkerUniqueId = taskResult.getBaseParameters().mId;
+        nodes.add(jobWorkerUniqueId);
+        individualThroughput.put(jobWorkerUniqueId, taskResult.getIOMBps());
+        errors.put(jobWorkerUniqueId, taskResult.getErrors());
       }
 
       float ioMBps = (float) ioBytes / (endMs - recordStartMs) * 1000.0f / Constants.MB;

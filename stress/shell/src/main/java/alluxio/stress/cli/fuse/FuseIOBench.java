@@ -59,10 +59,10 @@ public class FuseIOBench extends Benchmark<FuseIOTaskResult> {
   @ParametersDelegate
   private FuseIOParameters mParameters = new FuseIOParameters();
 
-  /** Names of the directories created by workers for the test, also unique ids of the workers. */
-  private List<String> mWorkerDirNames;
-  /** 0-based id of this worker/job worker. */
-  private int mWorkerZeroBasedId;
+  /** Names of the directories created for the test, also unique ids of the job workers. */
+  private List<String> mJobWorkerDirNames;
+  /** 0-based id of this job worker. */
+  private int mJobWorkerZeroBasedId;
   /** Set to true after the first barrier is passed. */
   private volatile boolean mStartBarrierPassed = false;
 
@@ -86,10 +86,12 @@ public class FuseIOBench extends Benchmark<FuseIOTaskResult> {
         "To run the test, data must be written first by executing \"Write\" operation, then "
             + "run \"Read\" operation to test the reading throughput. The three different options "
             + "of read are: ",
-        "LocalRead: Read data stored only in local worker via local Fuse mount point",
-        "RemoteRead: Read data stored in other worker nodes evenly via local Fuse mount point.",
-        "ClusterRead: Read <numAllFiles>/<numWorker> number of files evenly from all workers via "
-            + "local Fuse mount point.",
+        "LocalRead: Each job worker, or client, will read the files it wrote through local Fuse "
+            + "mount point.",
+        "RemoteRead: Each job worker will evenly read the files written by other job workers "
+            + "through local Fuse mount point.",
+        "ClusterRead: Read <numAllFiles>/<numJobWorker> number of files evenly from all "
+            + "directories created by all job workers through local Fuse mount point.",
         "Optionally one can set alluxio.user.metadata.cache.enabled=true when mounting Alluxio "
             + "Fuse and run \"ListFile\" before \"Read\" to cache the metadata of the test files "
             + "and eliminate the effect of metadata operations while getting the reading "
@@ -140,43 +142,43 @@ public class FuseIOBench extends Benchmark<FuseIOTaskResult> {
         Files.createDirectories(Paths.get(String.format(
             "%s/%s/dir-%d", mParameters.mLocalPath, mBaseParameters.mId, i)));
       }
-    } else {
-      if ((mParameters.mOperation == FuseIOOperation.REMOTE_READ
-          || mParameters.mOperation == FuseIOOperation.CLUSTER_READ)
-          && !mBaseParameters.mDistributed) {
-        throw new IllegalArgumentException(String.format(
-            "Single-node Fuse IO stress bench doesn't support RemoteRead or ClusterRead."
-        ));
-      }
-      // Find 0-based id, and make sure dirs and workers are 1-to-1.
-      File[] workerDirs = localPath.listFiles();
-      if (workerDirs == null) {
-        throw new IOException(String.format(
-            "--local-path %s is not a valid path for this bench. Make sure using the correct path",
-                mParameters.mLocalPath
-        ));
-      }
-      int numWorkers;
-      try (JobMasterClient client = JobMasterClient.Factory.create(
-          JobMasterClientContext.newBuilder(ClientContext.create(new InstancedConfiguration(
-              ConfigurationUtils.defaults()))).build())) {
-        numWorkers = client.getAllWorkerHealth().size();
-      }
-      if (numWorkers != workerDirs.length) {
-        throw new IllegalStateException("Some worker crashed or joined after data are written. "
-                + "The test is stopped.");
-      }
-      mWorkerDirNames = Arrays.asList(workerDirs).stream()
-              .map(file -> file.getName())
-              .collect(Collectors.toList());
-      try {
-        mWorkerZeroBasedId = mWorkerDirNames.indexOf(mBaseParameters.mId);
-      } catch (Exception e) {
-        throw new IllegalStateException(String.format(
-            "Directory %s is not found. Please use this bench to generate test files. If this is "
-                + "the case, some worker crashed or joined after data is written. The test is "
-                + "stopped.", mBaseParameters.mId));
-      }
+      return;
+    }
+    if ((mParameters.mOperation == FuseIOOperation.REMOTE_READ
+        || mParameters.mOperation == FuseIOOperation.CLUSTER_READ)
+        && !mBaseParameters.mDistributed) {
+      throw new IllegalArgumentException(String.format(
+          "Single-node Fuse IO stress bench doesn't support RemoteRead or ClusterRead."
+      ));
+    }
+    // find 0-based id, and make sure directories and job workers are 1-to-1
+    File[] jobWorkerDirs = localPath.listFiles();
+    if (jobWorkerDirs == null) {
+      throw new IOException(String.format(
+          "--local-path %s is not a valid path for this bench. Make sure using the correct path",
+              mParameters.mLocalPath
+      ));
+    }
+    int numJobWorkers;
+    try (JobMasterClient client = JobMasterClient.Factory.create(
+        JobMasterClientContext.newBuilder(ClientContext.create(new InstancedConfiguration(
+            ConfigurationUtils.defaults()))).build())) {
+      numJobWorkers = client.getAllWorkerHealth().size();
+    }
+    if (numJobWorkers != jobWorkerDirs.length) {
+      throw new IllegalStateException("Some worker crashed or joined after data are written. "
+          + "The test is stopped.");
+    }
+    mJobWorkerDirNames = Arrays.asList(jobWorkerDirs).stream()
+        .map(file -> file.getName())
+        .collect(Collectors.toList());
+    try {
+      mJobWorkerZeroBasedId = mJobWorkerDirNames.indexOf(mBaseParameters.mId);
+    } catch (Exception e) {
+      throw new IllegalStateException(String.format(
+          "Directory %s is not found. Please use this bench to generate test files, and make sure "
+              + "no job worker crashes or joins after data is written. The test is stopped.",
+              mBaseParameters.mId));
     }
   }
 
@@ -214,7 +216,7 @@ public class FuseIOBench extends Benchmark<FuseIOTaskResult> {
 
     FuseIOTaskResult result = context.getResult();
 
-    LOG.info(String.format("worker id: %s, errors: %d, IO throughput (MB/s): %f",
+    LOG.info(String.format("job worker id: %s, errors: %d, IO throughput (MB/s): %f",
         mBaseParameters.mId, result.getErrors().size(), result.getIOMBps()));
 
     return result;
@@ -338,7 +340,7 @@ public class FuseIOBench extends Benchmark<FuseIOTaskResult> {
       Arrays.fill(mBuffer, (byte) 'A');
 
       mFileSize = FormatUtils.parseSpaceSize(mParameters.mFileSize);
-      // Actual time to start measurement
+      // actual time to start measurement
       mRecordMs = mContext.getStartMs() + FormatUtils.parseTimeSize(mParameters.mWarmup);
     }
 
@@ -354,7 +356,7 @@ public class FuseIOBench extends Benchmark<FuseIOTaskResult> {
         closeOutStream();
       }
 
-      // Update bench result by merging in individual thread result
+      // update bench result by merging in individual thread result
       mFuseIOTaskResult.setEndMs(CommonUtils.getCurrentMs());
       mContext.mergeThreadResult(mFuseIOTaskResult);
 
@@ -374,48 +376,58 @@ public class FuseIOBench extends Benchmark<FuseIOTaskResult> {
       CommonUtils.sleepMs(waitMs);
       mStartBarrierPassed = true;
 
+
       if (mParameters.mOperation == FuseIOOperation.LIST_FILE) {
-        for (String workerDirNames: mWorkerDirNames) {
-          for (int dirId = mThreadId; dirId < mParameters.mNumDirs; dirId += mParameters.mThreads) {
+        for (String nameJobWorkerDir: mJobWorkerDirNames) {
+          for (int testDirId = mThreadId; testDirId < mParameters.mNumDirs;
+              testDirId += mParameters.mThreads) {
             String dirPath = String.format("%s/%s/dir-%d", mParameters.mLocalPath,
-                workerDirNames, dirId);
+                nameJobWorkerDir, testDirId);
             File dir = new File(dirPath);
             dir.listFiles();
           }
         }
-      } else if (mParameters.mOperation == FuseIOOperation.WRITE
+        return;
+      }
+      if (mParameters.mOperation == FuseIOOperation.WRITE
           || mParameters.mOperation == FuseIOOperation.LOCAL_READ) {
-        for (int dirId = mThreadId; dirId < mParameters.mNumDirs; dirId += mParameters.mThreads) {
-          for (int fileId = 0; fileId < mParameters.mNumFilesPerDir; fileId++) {
+        for (int testDirId = mThreadId; testDirId < mParameters.mNumDirs;
+            testDirId += mParameters.mThreads) {
+          for (int testFileId = 0; testFileId < mParameters.mNumFilesPerDir; testFileId++) {
             String filePath = String.format("%s/%s/dir-%d/file-%d", mParameters.mLocalPath,
-                mBaseParameters.mId, dirId, fileId);
+                mBaseParameters.mId, testDirId, testFileId);
             processFile(filePath, isRead);
           }
         }
-      } else {
-        for (int dirRead = 0; dirRead < mWorkerDirNames.size(); dirRead++) {
-          int indexCurrentDir = (dirRead + mWorkerZeroBasedId) % mWorkerDirNames.size();
-          // Skip itself if the operation is remote read.
-          if (indexCurrentDir == mWorkerZeroBasedId
+        finishProcessingFiles();
+        return;
+      }
+      if (mParameters.mOperation == FuseIOOperation.REMOTE_READ
+          || mParameters.mOperation == FuseIOOperation.CLUSTER_READ) {
+        for (int numJobWorkerDirProcessed = 0; numJobWorkerDirProcessed < mJobWorkerDirNames.size();
+            numJobWorkerDirProcessed++) {
+          // find which job worker directory to read
+          int indexCurrentJobWorkerDir = (numJobWorkerDirProcessed + mJobWorkerZeroBasedId)
+              % mJobWorkerDirNames.size();
+          // skip itself if the operation is remote read
+          if (indexCurrentJobWorkerDir == mJobWorkerZeroBasedId
               && mParameters.mOperation == FuseIOOperation.REMOTE_READ) {
-            indexCurrentDir++;
+            indexCurrentJobWorkerDir = (indexCurrentJobWorkerDir + 1) % mJobWorkerDirNames.size();
           }
-          String nameCurrentDir = mWorkerDirNames.get(indexCurrentDir);
-          for (int dirId = mThreadId; dirId < mParameters.mNumDirs; dirId += mParameters.mThreads) {
-            for (int fileId = mWorkerZeroBasedId; fileId < mParameters.mNumFilesPerDir;
-                fileId += mWorkerDirNames.size()) {
+          String nameCurrentJobWorkerDir = mJobWorkerDirNames.get(indexCurrentJobWorkerDir);
+
+          // find which files to read under this job worker directory
+          for (int testDirId = mJobWorkerZeroBasedId; testDirId < mParameters.mNumDirs;
+              testDirId += mJobWorkerDirNames.size()) {
+            for (int testFileId = mThreadId; testFileId < mParameters.mNumDirs;
+                testFileId += mParameters.mThreads) {
               String filePath = String.format("%s/%s/dir-%d/file-%d", mParameters.mLocalPath,
-                  nameCurrentDir, dirId, fileId);
+                  nameCurrentJobWorkerDir, testDirId, testFileId);
               processFile(filePath, isRead);
             }
           }
         }
-      }
-      // Done reading all files
-      if (isRead) {
-        throw new IllegalArgumentException(String.format("Thread %d finishes reading all its files "
-            + "before the bench ends. For more accurate result, use more files, or larger files, "
-            + "or a shorter duration", mThreadId));
+        finishProcessingFiles();
       }
     }
 
@@ -428,11 +440,11 @@ public class FuseIOBench extends Benchmark<FuseIOTaskResult> {
         }
         long ioBytes = applyOperation(filePath);
 
-        // Done reading/writing one file
+        // done reading/writing one file
         if (ioBytes <= 0) {
           break;
         }
-        // Start recording after the warmup
+        // start recording after the warmup
         if (CommonUtils.getCurrentMs() > mFuseIOTaskResult.getRecordStartMs()) {
           mFuseIOTaskResult.incrementIOBytes(ioBytes);
         }
@@ -471,6 +483,14 @@ public class FuseIOBench extends Benchmark<FuseIOTaskResult> {
         }
         default:
           throw new IllegalStateException("Unknown operation: " + mParameters.mOperation);
+      }
+    }
+
+    private void finishProcessingFiles() {
+      if (FuseIOOperation.isRead(mParameters.mOperation)) {
+        throw new IllegalArgumentException(String.format("Thread %d finishes reading all its files "
+            + "before the bench ends. For more accurate result, use more files, or larger files, "
+            + "or a shorter duration", mThreadId));
       }
     }
 

@@ -24,8 +24,10 @@ import java.util.Map;
  * The summary for Fuse IO stress bench.
  */
 public class FuseIOSummary implements Summary {
-  private Map<String, Float> mIndividualThroughput;
+  // key: unique ids of job workers. value: throughput of each job worker
+  private Map<String, Float> mClientsThroughput;
   private List<String> mNodes;
+  // key: unique ids of job workers. value: error messages from each job worker.
   private Map<String, List<String>> mErrors;
   private FuseIOParameters mParameters;
   private BaseParameters mBaseParameters;
@@ -38,10 +40,10 @@ public class FuseIOSummary implements Summary {
    * Creates an instance.
    */
   public FuseIOSummary() {
-    // Default constructor required for json deserialization
+    // default constructor required for json deserialization
     mNodes = new ArrayList<>();
     mErrors = new HashMap<>();
-    mIndividualThroughput = new HashMap<>();
+    mClientsThroughput = new HashMap<>();
   }
 
   /**
@@ -49,18 +51,18 @@ public class FuseIOSummary implements Summary {
    *
    * @param parameters the parameters for the Fuse IO stress bench
    * @param baseParameters the base parameters for the Fuse IO stress bench
-   * @param nodes the unique ids of all workers
-   * @param errors all errors reported by workers
+   * @param nodes the unique ids of all job workers
+   * @param errors all errors reported by job workers
    * @param recordStartMs the timestamp starting counting bytes
    * @param endMs the timestamp that the test ends
    * @param ioBytes total number of bytes processed by workers
    * @param ioMBps aggregated throughput data
-   * @param individualThroughput the throughput data of each worker
+   * @param clientsThroughput the throughput data of each job worker
    */
   public FuseIOSummary(FuseIOParameters parameters, BaseParameters baseParameters,
       List<String> nodes, Map<String, List<String>> errors, long recordStartMs, long endMs,
-      long ioBytes, float ioMBps, Map<String, Float> individualThroughput) {
-    mIndividualThroughput = individualThroughput;
+      long ioBytes, float ioMBps, Map<String, Float> clientsThroughput) {
+    mClientsThroughput = clientsThroughput;
     mNodes = nodes;
     mErrors = errors;
     mParameters = parameters;
@@ -77,28 +79,28 @@ public class FuseIOSummary implements Summary {
   }
 
   /**
-   * @return a map mapping worker unique id to its throughput
+   * @return a map mapping job worker unique id to its throughput
    */
-  public Map<String, Float> getIndividualThroughput() {
-    return mIndividualThroughput;
+  public Map<String, Float> getClientsThroughput() {
+    return mClientsThroughput;
   }
 
   /**
-   * @param individualThroughput the map mapping worker unique id to its throughput
+   * @param clientsThroughput the map mapping job worker unique id to its throughput
    */
-  public void setIndividualThroughput(Map<String, Float> individualThroughput) {
-    mIndividualThroughput = individualThroughput;
+  public void setClientsThroughput(Map<String, Float> clientsThroughput) {
+    mClientsThroughput = clientsThroughput;
   }
 
   /**
-   * @return the list of the unique ids of workers
+   * @return the list of the unique ids of job workers
    */
   public List<String> getNodes() {
     return mNodes;
   }
 
   /**
-   * @param nodes the list of the unique ids of workers
+   * @param nodes the list of the unique ids of job workers
    */
   public void setNodes(List<String> nodes) {
     mNodes = nodes;
