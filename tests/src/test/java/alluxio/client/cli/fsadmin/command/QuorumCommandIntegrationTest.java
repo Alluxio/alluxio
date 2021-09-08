@@ -196,7 +196,6 @@ public final class QuorumCommandIntegrationTest extends BaseIntegrationTest {
             .build();
     mCluster.start();
 
-    String output;
     try (FileSystemAdminShell shell = new FileSystemAdminShell(ServerConfiguration.global())) {
       int newLeaderIdx = (mCluster.getPrimaryMasterIndex(MASTER_INDEX_WAIT_TIME) + 1) % numMasters;
       // `getPrimaryMasterIndex` uses the same `mMasterAddresses` variable as getMasterAddresses
@@ -207,9 +206,8 @@ public final class QuorumCommandIntegrationTest extends BaseIntegrationTest {
 
       mOutput.reset();
       shell.run("journal", "quorum", "elect", "-address" , newLeaderAddr);
-      output = mOutput.toString().trim();
-      String expected = String.format(QuorumElectCommand.TRANSFER_SUCCESS + "\n"
-              + QuorumElectCommand.RESET_SUCCESS, newLeaderAddr);
+      String output = mOutput.toString().trim();
+      String expected = String.format(QuorumElectCommand.TRANSFER_SUCCESS, newLeaderAddr);
       Assert.assertEquals(expected, output);
     }
     mCluster.notifySuccess();
