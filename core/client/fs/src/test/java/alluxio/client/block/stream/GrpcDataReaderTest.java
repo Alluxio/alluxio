@@ -93,7 +93,6 @@ public final class GrpcDataReaderTest {
     try (DataReader reader = create(0, 10)) {
       setReadResponses(mClient, 0, 0, 0);
       assertEquals(null, reader.readChunk());
-      verify(mRequestObserver, never()).onCompleted();
     }
     validateReadRequestSent(mClient, 0, 10, true, CHUNK_SIZE);
   }
@@ -104,14 +103,12 @@ public final class GrpcDataReaderTest {
   @Test(timeout = 1000 * 60)
   public void readFullFile() throws Exception {
     long length = CHUNK_SIZE * 1024 + CHUNK_SIZE / 3;
-    // the outer try close() should be a no-op
     try (DataReader reader = create(0, length)) {
       long checksum = setReadResponses(mClient, length, 0, length - 1);
       long checksumActual = checkChunks(reader, 0, length);
       assertEquals(checksum, checksumActual);
-      // stream close immediately after reading all data
-      validateReadRequestSent(mClient, 0, length, true, CHUNK_SIZE);
     }
+    validateReadRequestSent(mClient, 0, length, true, CHUNK_SIZE);
   }
 
   /**
@@ -123,33 +120,13 @@ public final class GrpcDataReaderTest {
     long offset = 10;
     long checksumStart = 100;
     long bytesToRead = length / 3;
+
     try (DataReader reader = create(offset, length)) {
       long checksum = setReadResponses(mClient, length, checksumStart, bytesToRead - 1);
       long checksumActual = checkChunks(reader, checksumStart, bytesToRead);
       assertEquals(checksum, checksumActual);
-      // haven't finish reading all the files, stream will not be closed
-      verify(mRequestObserver, never()).onCompleted();
     }
     validateReadRequestSent(mClient, offset, length, true, CHUNK_SIZE);
-  }
-
-  /**
-   * Reads last part of a file, checks the checksum of the part that is read,
-   * and make sure that stream is closed immediately after reading all data.
-   */
-  @Test(timeout = 1000 * 60)
-  public void readLastPartOfFile() throws Exception {
-    long length = CHUNK_SIZE * 1024 + CHUNK_SIZE / 3;
-    long offset = 10;
-    long checksumStart = CHUNK_SIZE * 1024;
-    long bytesToRead = length;
-    try (DataReader reader = create(offset, length)) {
-      long checksum = setReadResponses(mClient, length, checksumStart, bytesToRead - 1);
-      long checksumActual = checkChunks(reader, checksumStart, bytesToRead);
-      assertEquals(checksum, checksumActual);
-      // stream close immediately after reading all data
-      validateReadRequestSent(mClient, offset, length, true, CHUNK_SIZE);
-    }
   }
 
   /**
