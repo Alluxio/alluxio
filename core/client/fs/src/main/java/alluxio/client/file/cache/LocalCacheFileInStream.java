@@ -30,7 +30,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.nio.ByteBuffer;
 import java.util.concurrent.TimeUnit;
 
 import javax.annotation.concurrent.NotThreadSafe;
@@ -111,23 +110,11 @@ public class LocalCacheFileInStream extends FileInStream {
 
   @Override
   public int read(byte[] b, int off, int len) throws IOException {
-    return readInternal(b, off, len, ReadType.READ_INTO_BYTE_ARRAY, mPosition, false);
-  }
-
-  @Override
-  public int read(ByteBuffer buf, int off, int len) throws IOException {
-    byte[] b = new byte[buf.remaining()];
-    int totalBytesRead =
-        readInternal(b, off, len, ReadType.READ_INTO_BYTE_BUFFER, mPosition, false);
-    if (totalBytesRead == -1) {
-      return -1;
-    }
-    buf.put(b, off, totalBytesRead);
-    return totalBytesRead;
+    return readInternal(b, off, len, mPosition, false);
   }
 
   // TODO(binfan): take ByteBuffer once CacheManager takes ByteBuffer to avoid extra mem copy
-  private int readInternal(byte[] b, int off, int len, ReadType readType, long pos,
+  private int readInternal(byte[] b, int off, int len, long pos,
       boolean isPositionedRead) throws IOException {
     Preconditions.checkArgument(len >= 0, "length should be non-negative");
     Preconditions.checkArgument(off >= 0, "offset should be non-negative");
@@ -174,7 +161,7 @@ public class LocalCacheFileInStream extends FileInStream {
         // on local cache miss, read a complete page from external storage. This will always make
         // progress or throw an exception
         mStopwatch.reset().start();
-        byte[] page = readExternalPage(currentPosition, readType);
+        byte[] page = readExternalPage(currentPosition);
         mStopwatch.stop();
         if (page.length > 0) {
           System.arraycopy(page, currentPageOffset, b, off + totalBytesRead, bytesLeftInPage);
@@ -227,7 +214,7 @@ public class LocalCacheFileInStream extends FileInStream {
 
   @Override
   public int positionedRead(long pos, byte[] b, int off, int len) throws IOException {
-    return readInternal(b, off, len, ReadType.READ_INTO_BYTE_ARRAY, pos, true);
+    return readInternal(b, off, len, pos, true);
   }
 
   @Override
@@ -296,25 +283,14 @@ public class LocalCacheFileInStream extends FileInStream {
    * @param pos the position which the page will contain
    * @return a byte array of the page data
    */
-  private synchronized byte[] readExternalPage(long pos, ReadType readType) throws IOException {
+  private synchronized byte[] readExternalPage(long pos) throws IOException {
     long pageStart = pos - (pos % mPageSize);
     FileInStream stream = getExternalFileInStream(pageStart);
     int pageSize = (int) Math.min(mPageSize, mStatus.getLength() - pageStart);
     byte[] page = new byte[pageSize];
-    ByteBuffer buffer = readType == ReadType.READ_INTO_BYTE_BUFFER ? ByteBuffer.wrap(page) : null;
     int totalBytesRead = 0;
     while (totalBytesRead < pageSize) {
-      int bytesRead;
-      switch (readType) {
-        case READ_INTO_BYTE_ARRAY:
-          bytesRead = stream.read(page, totalBytesRead, pageSize - totalBytesRead);
-          break;
-        case READ_INTO_BYTE_BUFFER:
-          bytesRead = stream.read(buffer);
-          break;
-        default:
-          throw new IOException("unsupported read type = " + readType);
-      }
+      int bytesRead = stream.read(page, totalBytesRead, pageSize - totalBytesRead);
       if (bytesRead <= 0) {
         break;
       }
@@ -353,16 +329,5 @@ public class LocalCacheFileInStream extends FileInStream {
             return 0;
           });
     }
-  }
-
-  enum ReadType {
-    /**
-     * read some number of bytes from the input stream and stores them into the buffer array.
-     */
-    READ_INTO_BYTE_ARRAY,
-    /**
-     * read some number of bytes from the input stream and stores them into the ByteBuffer.
-     */
-    READ_INTO_BYTE_BUFFER
   }
 }
