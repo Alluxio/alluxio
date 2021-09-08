@@ -18,7 +18,6 @@ import alluxio.conf.AlluxioConfiguration;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.exception.status.InvalidArgumentException;
-import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.GetQuorumInfoPResponse;
 import alluxio.grpc.NetAddress;
 import alluxio.grpc.QuorumServerInfo;
@@ -64,7 +63,6 @@ public class QuorumElectCommand extends AbstractFsAdminCommand {
     JournalMasterClient jmClient = mMasterJournalMasterClient;
     String serverAddress = cl.getOptionValue(ADDRESS_OPTION_NAME);
     NetAddress address = QuorumCommand.stringToAddress(serverAddress);
-
     jmClient.transferLeadership(address);
     boolean success = true;
     // wait for confirmation of leadership transfer
@@ -76,11 +74,9 @@ public class QuorumElectCommand extends AbstractFsAdminCommand {
           Optional<QuorumServerInfo>
                   leadingMasterInfoOpt = quorumInfo.getServerInfoList().stream()
                   .filter(QuorumServerInfo::getIsLeader).findFirst();
-          String leadingMasterAddr = leadingMasterInfoOpt.isPresent()
-                  ? netAddressToString(leadingMasterInfoOpt.get().getServerAddress()) : "UNKNOWN";
-          return leadingMasterAddr.equals(netAddressToString(address));
-        } catch (UnavailableException e) {
-          return false;
+          NetAddress leaderAddress = leadingMasterInfoOpt.isPresent()
+                  ? leadingMasterInfoOpt.get().getServerAddress() : null;
+          return leaderAddress.equals(address);
         } catch (AlluxioStatusException e) {
           return false;
         }
@@ -130,9 +126,5 @@ public class QuorumElectCommand extends AbstractFsAdminCommand {
   public Options getOptions() {
     return new Options().addOption(ADDRESS_OPTION_NAME, true,
             "Server address that will take over as leader");
-  }
-
-  String netAddressToString(NetAddress address) {
-    return String.format("%s:%d", address.getHost(), address.getRpcPort());
   }
 }
