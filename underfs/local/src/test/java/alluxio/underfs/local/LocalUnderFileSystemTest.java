@@ -12,6 +12,8 @@
 package alluxio.underfs.local;
 
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertEquals;
 
@@ -22,6 +24,7 @@ import alluxio.conf.PropertyKey;
 import alluxio.underfs.UfsDirectoryStatus;
 import alluxio.underfs.UfsFileStatus;
 import alluxio.underfs.UfsMode;
+import alluxio.underfs.UfsStatus;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.underfs.options.DeleteOptions;
@@ -41,6 +44,11 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.file.Files;
+import java.nio.file.LinkOption;
+import java.nio.file.NoSuchFileException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
@@ -263,6 +271,35 @@ public class LocalUnderFileSystemTest {
     UfsFileStatus s = mLocalUfs.getFileStatus(file);
     assertFalse(s.isDirectory());
     assertTrue(s.isFile());
+  }
+
+  @Test
+  public void testBrokenSymlinkSkip() throws IOException {
+    InstancedConfiguration c = new InstancedConfiguration(sConf.copyProperties());
+    c.set(PropertyKey.UNDERFS_LOCAL_SKIP_BROKEN_SYMLINKS, true);
+    mLocalUfs =
+        UnderFileSystem.Factory.create(mLocalUfsRoot, UnderFileSystemConfiguration.defaults(c));
+    Path linkPath = createNonExistentSymlink();
+    assertTrue(Files.exists(linkPath, LinkOption.NOFOLLOW_LINKS));
+    assertFalse(Files.exists(linkPath));
+    UfsStatus[] statuses = mLocalUfs.listStatus(mLocalUfsRoot);
+    assertNotNull(statuses);
+    assertEquals(0, statuses.length);
+  }
+
+  @Test
+  public void testSymlinkNonSkip() throws IOException {
+    Path linkPath = createNonExistentSymlink();
+    assertTrue(Files.exists(linkPath, LinkOption.NOFOLLOW_LINKS));
+    assertFalse(Files.exists(linkPath));
+    assertThrows(NoSuchFileException.class, () -> mLocalUfs.listStatus(mLocalUfsRoot));
+  }
+
+  private Path createNonExistentSymlink() throws IOException {
+
+    Path linkPath = Paths.get(mLocalUfsRoot, "test");
+    return Files.createSymbolicLink(linkPath,
+        Paths.get("/tmp/nonexiststent/alluxio/file"));
   }
 
   private byte[] getBytes() {
