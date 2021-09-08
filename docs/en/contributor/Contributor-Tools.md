@@ -52,7 +52,8 @@ And then check the box next to "developer" in the window pane.
 You will need to mark the directory as "Generated Sources Root" for IntelliJ to resolve the source files.
 
 #### Run Alluxio processes within IntelliJ IDEA
-Start single master alluxio cluster
+
+####Start single master alluxio cluster
 1. Run `dev/intellij/install-runconfig.sh`
 2. Restart IntelliJ IDEA
 3. Edit `conf/alluxio-site.properties`
@@ -75,7 +76,7 @@ Start single master alluxio cluster
 8. In Intellij, start Alluxio worker process by selecting `Run > Run > AlluxioWorker`
 9. Verify the Alluxio cluster is up as [Running Alluxio Locally]({{ '/en/deploy/Running-Alluxio-Locally.html#verify-alluxio-is-running' | relativize_url }})
 
-Start HA mode alluxio cluster
+####Start HA mode alluxio cluster
 1. Execute the following command
 ```console
 mkdir -p /tmp/alluxio-tmp/alluxio-0/journal
