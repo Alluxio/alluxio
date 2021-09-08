@@ -376,7 +376,6 @@ public class FuseIOBench extends Benchmark<FuseIOTaskResult> {
       CommonUtils.sleepMs(waitMs);
       mStartBarrierPassed = true;
 
-
       if (mParameters.mOperation == FuseIOOperation.LIST_FILE) {
         for (String nameJobWorkerDir: mJobWorkerDirNames) {
           for (int testDirId = mThreadId; testDirId < mParameters.mNumDirs;
