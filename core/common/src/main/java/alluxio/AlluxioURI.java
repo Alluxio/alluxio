@@ -492,7 +492,7 @@ public final class AlluxioURI implements Comparable<AlluxioURI>, Serializable {
       String path = mUri.getPath();
       if (path.indexOf('/') == 0 && hasWindowsDrive(path, true) && // has windows drive
           mUri.getScheme() == null && // but no scheme
-          mUri.getAuthority() instanceof NoAuthority) { // or authority
+          (mUri.getAuthority() == null || mUri.getAuthority() instanceof NoAuthority)) { // or authority
         path = path.substring(1); // remove slash before drive
       }
       sb.append(path);
