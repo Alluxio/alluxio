@@ -22,6 +22,7 @@ import alluxio.grpc.GetQuorumInfoPResponse;
 import alluxio.grpc.NetAddress;
 import alluxio.grpc.QuorumServerInfo;
 import alluxio.util.CommonUtils;
+import alluxio.util.WaitForOptions;
 
 import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.cli.CommandLine;
@@ -29,6 +30,7 @@ import org.apache.commons.cli.Options;
 
 import java.io.IOException;
 import java.util.Optional;
+import java.util.concurrent.TimeoutException;
 
 /**
  * Command for transferring the leadership to another master within a quorum.
@@ -37,10 +39,8 @@ public class QuorumElectCommand extends AbstractFsAdminCommand {
 
   public static final String ADDRESS_OPTION_NAME = "address";
 
-  public static final String TRANSFER_SUCCESS = "Transferred leadership to server: %s";
-  public static final String TRANSFER_FAILED = "Leadership was not transferred to %s: %s";
-  public static final String RESET_SUCCESS = "Quorum priorities were reset to 1";
-  public static final String RESET_FAILED = "Quorum priorities failed to be reset: %s";
+  public static final String TRANSFER_SUCCESS = "Successfully elected %s as the new leader";
+  public static final String TRANSFER_FAILED = "Failed to elect %s as the new leader: %s";
 
   /**
    * @param context fsadmin command context
@@ -63,40 +63,34 @@ public class QuorumElectCommand extends AbstractFsAdminCommand {
     JournalMasterClient jmClient = mMasterJournalMasterClient;
     String serverAddress = cl.getOptionValue(ADDRESS_OPTION_NAME);
     NetAddress address = QuorumCommand.stringToAddress(serverAddress);
-    jmClient.transferLeadership(address);
-    boolean success = true;
-    // wait for confirmation of leadership transfer
     try {
-      CommonUtils.waitFor("Waiting for leadership transfer to finalize", () -> {
+      jmClient.transferLeadership(address);
+      // wait for confirmation of leadership transfer
+      final int TIMEOUT_3MIN = 3 * 60 * 1000; // in milliseconds
+      CommonUtils.waitFor("Waiting for election to finalize", () -> {
         try {
           GetQuorumInfoPResponse quorumInfo = jmClient.getQuorumInfo();
 
           Optional<QuorumServerInfo>
-                  leadingMasterInfoOpt = quorumInfo.getServerInfoList().stream()
-                  .filter(QuorumServerInfo::getIsLeader).findFirst();
+              leadingMasterInfoOpt = quorumInfo.getServerInfoList().stream()
+              .filter(QuorumServerInfo::getIsLeader).findFirst();
           NetAddress leaderAddress = leadingMasterInfoOpt.isPresent()
-                  ? leadingMasterInfoOpt.get().getServerAddress() : null;
-          return leaderAddress.equals(address);
+              ? leadingMasterInfoOpt.get().getServerAddress() : null;
+          return address.equals(leaderAddress);
         } catch (AlluxioStatusException e) {
           return false;
         }
-      });
+      }, WaitForOptions.defaults().setTimeoutMs(TIMEOUT_3MIN));
+
       mPrintStream.println(String.format(TRANSFER_SUCCESS, serverAddress));
-    } catch (Exception e) {
-      success = false;
-      mPrintStream.println(String.format(TRANSFER_FAILED, serverAddress, e));
+      return 0;
+    } catch (AlluxioStatusException e) {
+      mPrintStream.println(String.format(TRANSFER_FAILED, serverAddress, e.getMessage()));
+    } catch (InterruptedException | TimeoutException e) {
+      mPrintStream.println(String.format(TRANSFER_FAILED, serverAddress, "the election was "
+              + "initiated but never completed"));
     }
-    // Resetting RaftPeer priorities using a separate RPC because the old leader has shut down
-    // its RPC server. We want to reset them regardless of transfer success because the original
-    // setting of priorities may have succeeded while the transfer might not have.
-    try {
-      jmClient.resetPriorities();
-      mPrintStream.println(RESET_SUCCESS);
-    } catch (Exception e) {
-      success = false;
-      mPrintStream.println(String.format(RESET_FAILED, e));
-    }
-    return success ? 0 : -1;
+    return -1;
   }
 
   @Override
