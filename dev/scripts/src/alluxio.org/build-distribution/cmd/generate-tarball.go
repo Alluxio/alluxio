@@ -195,6 +195,7 @@ func addAdditionalFiles(srcPath, dstPath string, hadoopVersion version, version 
 		"integration/docker/conf/alluxio-env.sh.template",
 		"integration/docker/conf/alluxio-site.properties.template",
 		"integration/docker/Dockerfile",
+		"integration/docker/dockerfile-common.sh",
 		"integration/docker/entrypoint.sh",
 		"integration/fuse/bin/alluxio-fuse",
 		"integration/metrics/docker-compose-master.yaml",
