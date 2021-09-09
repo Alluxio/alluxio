@@ -53,7 +53,7 @@ You will need to mark the directory as "Generated Sources Root" for IntelliJ to 
 
 #### Run Alluxio processes within IntelliJ IDEA
 
-####Start single master alluxio cluster
+##### Start single master alluxio cluster
 1. Run `dev/intellij/install-runconfig.sh`
 2. Restart IntelliJ IDEA
 3. Edit `conf/alluxio-site.properties`
