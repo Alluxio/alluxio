@@ -368,6 +368,13 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setDescription("Total number of unique blocks in Alluxio")
           .setMetricType(MetricType.GAUGE)
           .build();
+  public static final MetricKey MASTER_TOTAL_RPCS =
+      new Builder("Master.TotalRpcs")
+          .setDescription("Throughput of master UFS operations. This metrics indicates how busy the"
+              + " master is serving client and worker requests")
+          .setMetricType(MetricType.TIMER)
+          .setIsClusterAggregated(false)
+          .build();
   public static final MetricKey MASTER_INODE_HEAP_SIZE =
       new Builder("Master.InodeHeapSize")
           .setDescription("An estimate of the inode heap size")
