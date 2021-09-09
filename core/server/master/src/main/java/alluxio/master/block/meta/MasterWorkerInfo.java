@@ -348,6 +348,15 @@ public final class MasterWorkerInfo {
   }
 
   /**
+   * Return the block count of this worker.
+   *
+   * @return the block count of this worker
+   */
+  public long getBlockCount() {
+    return mBlocks.size();
+  }
+
+  /**
    * You should lock externally with {@link MasterWorkerInfo#lockWorkerMeta(EnumSet, boolean)}
    * with {@link WorkerMetaLockSection#USAGE} specified.
    * A shared lock is required.
