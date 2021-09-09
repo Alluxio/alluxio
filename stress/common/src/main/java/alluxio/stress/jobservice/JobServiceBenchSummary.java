@@ -35,7 +35,6 @@ import java.util.zip.DataFormatException;
 public final class JobServiceBenchSummary implements Summary {
   private long mDurationMs;
   private long mEndTimeMs;
-  private long mRecordStartTimeMs;
   private JobServiceBenchParameters mParameters;
   private List<String> mNodes;
   private Map<String, List<String>> mErrors;
@@ -68,27 +67,12 @@ public final class JobServiceBenchSummary implements Summary {
       final JobServiceBenchTaskResultStatistics value = entry.getValue();
       mStatisticsPerMethod.put(key, value.toBenchSummaryStatistics());
     }
-    mRecordStartTimeMs = mergedTaskResults.getRecordStartMs();
     mEndTimeMs = mergedTaskResults.getEndMs();
     mParameters = mergedTaskResults.getParameters();
-    mDurationMs = mEndTimeMs - mRecordStartTimeMs;
+    mDurationMs = mEndTimeMs - mergedTaskResults.getRecordStartMs();
     mThroughput = ((float) mStatistics.mNumSuccess / mDurationMs) * 1000.0f;
     mNodes = nodes;
     mErrors = errors;
-  }
-
-  /**
-   * @return the recordStartTimeMs
-   */
-  public long getRecordStartTimeMs() {
-    return mRecordStartTimeMs;
-  }
-
-  /**
-   * @param recordStartTimeMs the recordStartTimeMs
-   */
-  public void setRecordStartTimeMs(long recordStartTimeMs) {
-    mRecordStartTimeMs = recordStartTimeMs;
   }
 
   /**
