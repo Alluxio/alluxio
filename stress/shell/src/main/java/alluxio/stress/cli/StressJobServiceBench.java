@@ -12,13 +12,11 @@
 package alluxio.stress.cli;
 
 import alluxio.AlluxioURI;
-import alluxio.ClientContext;
 import alluxio.cli.fs.command.DistributedLoadCommand;
 import alluxio.cli.fs.command.DistributedLoadUtils;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
-import alluxio.client.job.JobMasterClient;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.exception.AlluxioException;
 import alluxio.grpc.CreateFilePOptions;
@@ -33,7 +31,6 @@ import alluxio.util.CommonUtils;
 import alluxio.util.ConfigurationUtils;
 import alluxio.util.FormatUtils;
 import alluxio.util.executor.ExecutorServiceFactories;
-import alluxio.worker.job.JobMasterClientContext;
 
 import com.beust.jcommander.ParametersDelegate;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
