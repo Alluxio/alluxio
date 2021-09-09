@@ -74,8 +74,6 @@ public final class BlockMasterSync implements HeartbeatExecutor {
 
   /** Last System.currentTimeMillis() timestamp when a heartbeat successfully completed. */
   private long mLastSuccessfulHeartbeatMs;
-  /** the start time of worker. */
-  private long mStartTime;
 
   /**
    * Creates a new instance of {@link BlockMasterSync}.

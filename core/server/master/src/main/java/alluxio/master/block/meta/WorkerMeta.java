@@ -15,9 +15,7 @@ package alluxio.master.block.meta;
  *An object representation of the worker metadata.This class is not thread safe
  *so accessing or updating the fields need to use AtomicReference<WorkerTimeMeta>.
  */
-public class WorkerTimeMeta {
-  /** the start time of worker. */
-  private long mStartTime;
+public class WorkerMeta {
   /** the version of worker. */
   private String mVersion;
   /** the revision of worker. */
@@ -27,16 +25,7 @@ public class WorkerTimeMeta {
    * Constructor.
    *
    */
-  public WorkerTimeMeta() {
-  }
-
-  /**
-   * Get the start time of worker.
-   *
-   * @return the startTime of worker
-   */
-  public long getStartTime() {
-    return mStartTime;
+  public WorkerMeta() {
   }
 
   /**
@@ -55,15 +44,6 @@ public class WorkerTimeMeta {
    */
   public String getRevision() {
     return mRevision;
-  }
-
-  /**
-   * Set the start time of worker.
-   *
-   * @param startTime  the startTime of worker
-   */
-  public void setStartTime(long startTime) {
-    mStartTime = startTime;
   }
 
   /**

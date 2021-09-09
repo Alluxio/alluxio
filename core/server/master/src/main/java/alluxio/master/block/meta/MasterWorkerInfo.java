@@ -100,7 +100,7 @@ public final class MasterWorkerInfo {
   private final AtomicLong mLastUpdatedTimeMs;
   /** Worker metadata, this field is thread safe. */
   private final StaticWorkerMeta mMeta;
-  private WorkerTimeMeta mWorkerTimeMeta;
+  private WorkerMeta mWorkerMeta;
 
   /** If true, the worker is considered registered. */
   @GuardedBy("mStatusLock")
@@ -134,7 +134,7 @@ public final class MasterWorkerInfo {
    */
   public MasterWorkerInfo(long id, WorkerNetAddress address) {
     mMeta = new StaticWorkerMeta(id, address);
-    mWorkerTimeMeta = new WorkerTimeMeta();
+    mWorkerMeta = new WorkerMeta();
     mUsage = new WorkerUsageMeta();
     mBlocks = new HashSet<>();
     mToRemoveBlocks = new HashSet<>();
@@ -294,7 +294,7 @@ public final class MasterWorkerInfo {
               - mLastUpdatedTimeMs.get()) / Constants.SECOND_MS));
           break;
         case START_TIME_MS:
-          info.setStartTimeMs(mMeta.mRegisterTimeMs);
+          info.setStartTimeMs(mMeta.mStartTimeMs);
           break;
         case STATE:
           if (isLiveWorker) {
@@ -437,7 +437,7 @@ public final class MasterWorkerInfo {
    * @return the start time in milliseconds
    */
   public long getStartTime() {
-    return mMeta.mRegisterTimeMs;
+    return mMeta.mStartTimeMs;
   }
 
   /**
@@ -619,7 +619,7 @@ public final class MasterWorkerInfo {
    * @param version the version of worker
    */
   public void setVersion(String version) {
-    mWorkerTimeMeta.setVersion(version);
+    mWorkerMeta.setVersion(version);
   }
 
   /**
@@ -627,24 +627,24 @@ public final class MasterWorkerInfo {
    * @param revision the version of worker
    */
   public void setRevision(String revision) {
-    mWorkerTimeMeta.setRevision(revision);
+    mWorkerMeta.setRevision(revision);
   }
 
   /**
-   * No locking required.
+   * Gets the version of worker.
    *
    * @return the version of worker
    */
   public String getVersion() {
-    return mWorkerTimeMeta.getVersion();
+    return mWorkerMeta.getVersion();
   }
 
   /**
-   * No locking required.
+   * Gets the revision of worker.
    *
    * @return the version of worker
    */
   public String getRevision() {
-    return mWorkerTimeMeta.getRevision();
+    return mWorkerMeta.getRevision();
   }
 }

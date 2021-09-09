@@ -28,7 +28,7 @@ public class StaticWorkerMeta {
   /** The id of the worker. */
   final long mId;
   /** Start time of the worker in ms. */
-  final long mRegisterTimeMs;
+  final long mStartTimeMs;
 
   /**
    * Constructor.
@@ -39,6 +39,6 @@ public class StaticWorkerMeta {
   public StaticWorkerMeta(long id, WorkerNetAddress address) {
     mId = id;
     mWorkerAddress = Preconditions.checkNotNull(address, "address");
-    mRegisterTimeMs = CommonUtils.getCurrentMs();
+    mStartTimeMs = CommonUtils.getCurrentMs();
   }
 }
