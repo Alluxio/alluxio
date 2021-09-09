@@ -63,8 +63,6 @@ public class LocalCacheFileInStream extends FileInStream {
   private boolean mClosed = false;
   private boolean mEOF = false;
 
-  private final Stopwatch mStopwatch;
-
   /**
    * Interface to wrap open method of file system.
    */
@@ -88,12 +86,6 @@ public class LocalCacheFileInStream extends FileInStream {
    */
   public LocalCacheFileInStream(URIStatus status, FileInStreamOpener fileOpener,
       CacheManager cacheManager, AlluxioConfiguration conf) {
-    this(status, fileOpener, cacheManager, conf, Stopwatch.createUnstarted(Ticker.systemTicker()));
-  }
-
-  @VisibleForTesting
-  LocalCacheFileInStream(URIStatus status, FileInStreamOpener fileOpener,
-      CacheManager cacheManager, AlluxioConfiguration conf, Stopwatch stopwatch) {
     mPageSize = conf.getBytes(PropertyKey.USER_CLIENT_CACHE_PAGE_SIZE);
     mExternalFileInStreamOpener = fileOpener;
     mCacheManager = cacheManager;
@@ -106,7 +98,6 @@ public class LocalCacheFileInStream extends FileInStream {
       mCacheContext = CacheContext.defaults();
     }
     Metrics.registerGauges();
-    mStopwatch = stopwatch;
   }
 
   @Override
@@ -154,11 +145,12 @@ public class LocalCacheFileInStream extends FileInStream {
       } else {
         pageId = new PageId(Long.toString(mStatus.getFileId()), currentPage);
       }
-      mStopwatch.reset().start();
+      Stopwatch stopwatch = createUnstartedStopwatch();
+      stopwatch.start();
       int bytesRead =
           mCacheManager.get(pageId, currentPageOffset, bytesLeftInPage, b, off + totalBytesRead,
               mCacheContext);
-      mStopwatch.stop();
+      stopwatch.stop();
       if (bytesRead > 0) {
         totalBytesRead += bytesRead;
         currentPosition += bytesRead;
@@ -168,14 +160,14 @@ public class LocalCacheFileInStream extends FileInStream {
               .incrementCounter(MetricKey.CLIENT_CACHE_BYTES_READ_CACHE.getMetricName(), bytesRead);
           cacheContext.incrementCounter(
               MetricKey.CLIENT_CACHE_PAGE_READ_CACHE_TIME_NS.getMetricName(),
-              mStopwatch.elapsed(TimeUnit.NANOSECONDS));
+              stopwatch.elapsed(TimeUnit.NANOSECONDS));
         }
       } else {
         // on local cache miss, read a complete page from external storage. This will always make
         // progress or throw an exception
-        mStopwatch.reset().start();
+        stopwatch.reset().start();
         byte[] page = readExternalPage(currentPosition, readType);
-        mStopwatch.stop();
+        stopwatch.stop();
         if (page.length > 0) {
           System.arraycopy(page, currentPageOffset, b, off + totalBytesRead, bytesLeftInPage);
           totalBytesRead += bytesLeftInPage;
@@ -186,7 +178,7 @@ public class LocalCacheFileInStream extends FileInStream {
                 MetricKey.CLIENT_CACHE_BYTES_REQUESTED_EXTERNAL.getMetricName(), bytesLeftInPage);
             cacheContext.incrementCounter(
                 MetricKey.CLIENT_CACHE_PAGE_READ_EXTERNAL_TIME_NS.getMetricName(),
-                mStopwatch.elapsed(TimeUnit.NANOSECONDS)
+                stopwatch.elapsed(TimeUnit.NANOSECONDS)
             );
           }
           mCacheManager.put(pageId, page, mCacheContext);
@@ -202,6 +194,11 @@ public class LocalCacheFileInStream extends FileInStream {
           len, totalBytesRead, remaining()));
     }
     return totalBytesRead;
+  }
+
+  @VisibleForTesting
+  protected Stopwatch createUnstartedStopwatch() {
+    return Stopwatch.createUnstarted(Ticker.systemTicker());
   }
 
   @Override
