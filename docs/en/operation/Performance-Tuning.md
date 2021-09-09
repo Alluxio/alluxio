@@ -141,6 +141,16 @@ alluxio.user.ufs.block.read.location.policy.deterministic.hash.shards=3
 Setting this to 3 means there will be 3 Alluxio workers responsible for reading a particular
 UFS block, and all clients will read that UFS block from one of those 3 workers.
 
+### Cache Hit Ratio
+
+In Alluxio versions 2.6 and before, there are several metrics which indicate the number of bytes read through different means. 
+Together, they can be used to calculate the hit ratio of alluxio. 
+
+The general formula is 1- Cluster.BytesReadUfsAll / (Cluster.BytesReadLocal + Cluster.BytesReadDomain + Cluster.BytesReadRemote)
+
+In Alluxio versions after 2.6, we included an additional metric `Cluster.CacheHitRatio`, which indicates the cache hit ratio. 
+
+
 ## Master Tuning
 
 ### Journal performance tuning
@@ -231,7 +241,6 @@ This defaults to the number of virtual cores in the system, but can be adjusted 
 
 Certain metrics reveal important performance issues or system capacity issues that need to be addressed for Alluxio to perform well.
 The following is a list of key Master metrics that should be monitored closely for performance tuning.
-
 
 
 ## Worker Tuning
