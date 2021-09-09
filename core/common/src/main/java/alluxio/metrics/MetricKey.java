@@ -369,7 +369,7 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setMetricType(MetricType.GAUGE)
           .build();
   public static final MetricKey MASTER_TOTAL_BLOCK_REPLICA_COUNT =
-      new Builder("Master.TotalBlockReplicaCount")
+      new Builder("Master.BlockReplicaCount")
           .setDescription("Total number of block replica count in Alluxio")
           .setMetricType(MetricType.GAUGE)
           .build();
