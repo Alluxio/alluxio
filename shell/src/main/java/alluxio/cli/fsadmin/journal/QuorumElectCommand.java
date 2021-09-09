@@ -13,15 +13,14 @@ package alluxio.cli.fsadmin.journal;
 
 import alluxio.cli.fsadmin.command.AbstractFsAdminCommand;
 import alluxio.cli.fsadmin.command.Context;
-import alluxio.client.file.FileSystemContext;
 import alluxio.client.journal.JournalMasterClient;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.exception.status.InvalidArgumentException;
-import alluxio.exception.status.UnavailableException;
+import alluxio.grpc.GetQuorumInfoPResponse;
 import alluxio.grpc.NetAddress;
-import alluxio.master.MasterInquireClient;
+import alluxio.grpc.QuorumServerInfo;
 import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
 
@@ -30,7 +29,7 @@ import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Options;
 
 import java.io.IOException;
-import java.net.InetSocketAddress;
+import java.util.Optional;
 import java.util.concurrent.TimeoutException;
 
 /**
@@ -43,15 +42,12 @@ public class QuorumElectCommand extends AbstractFsAdminCommand {
   public static final String TRANSFER_SUCCESS = "Successfully elected %s as the new leader";
   public static final String TRANSFER_FAILED = "Failed to elect %s as the new leader: %s";
 
-  private final AlluxioConfiguration mConf;
-
   /**
    * @param context fsadmin command context
    * @param alluxioConf Alluxio configuration
    */
   public QuorumElectCommand(Context context, AlluxioConfiguration alluxioConf) {
     super(context);
-    mConf = alluxioConf;
   }
 
   /**
@@ -67,17 +63,21 @@ public class QuorumElectCommand extends AbstractFsAdminCommand {
     JournalMasterClient jmClient = mMasterJournalMasterClient;
     String serverAddress = cl.getOptionValue(ADDRESS_OPTION_NAME);
     NetAddress address = QuorumCommand.stringToAddress(serverAddress);
-    MasterInquireClient inquireClient = MasterInquireClient.Factory
-            .create(mConf, FileSystemContext.create(mConf).getClientContext().getUserState());
     try {
       jmClient.transferLeadership(address);
       // wait for confirmation of leadership transfer
       final int TIMEOUT_3MIN = 3 * 60 * 1000; // in milliseconds
       CommonUtils.waitFor("Waiting for election to finalize", () -> {
         try {
-          InetSocketAddress leaderAddress = inquireClient.getPrimaryRpcAddress();
-          return leaderAddress.getHostName().equals(address.getHost());
-        } catch (UnavailableException e) {
+          GetQuorumInfoPResponse quorumInfo = jmClient.getQuorumInfo();
+
+          Optional<QuorumServerInfo>
+              leadingMasterInfoOpt = quorumInfo.getServerInfoList().stream()
+              .filter(QuorumServerInfo::getIsLeader).findFirst();
+          NetAddress leaderAddress = leadingMasterInfoOpt.isPresent()
+              ? leadingMasterInfoOpt.get().getServerAddress() : null;
+          return address.equals(leaderAddress);
+        } catch (AlluxioStatusException e) {
           return false;
         }
       }, WaitForOptions.defaults().setTimeoutMs(TIMEOUT_3MIN));
