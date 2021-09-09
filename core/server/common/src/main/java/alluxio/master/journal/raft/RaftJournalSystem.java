@@ -527,8 +527,11 @@ public class RaftJournalSystem extends AbstractJournalSystem {
 
   @Override
   public synchronized Map<String, Long> getCurrentSequenceNumbers() {
-    long currentGlobalState = mStateMachine.getLastAppliedSequenceNumber();
     Map<String, Long> sequenceMap = new HashMap<>();
+    if (mStateMachine == null) {
+      return sequenceMap;
+    }
+    long currentGlobalState = mStateMachine.getLastAppliedSequenceNumber();
     for (String master : mJournals.keySet()) {
       // Return the same global sequence for each master.
       sequenceMap.put(master, currentGlobalState);
