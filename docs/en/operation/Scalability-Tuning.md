@@ -45,6 +45,19 @@ backup duration.
 time proportional to the number of files in the subtree being operated on. This should not impact
 user experience unless the subtree is significantly large (> 10k files).
 
+Other metrics related to the number of files and the number of blocks
+* Master.TotalPath
+* Master.InodeHeapSize (Estimate only)
+* Master.TotalBlocks
+* Master.BlockHeapSize 
+In addition to the total path, the total number of blocks also affects the heap usage, also to a lesser degree. 
+Be sure to monitor this metric if you expect your total data size to be very large or grow quickly.
+
+* Cluster.CapacityTotal
+* Cluster.CapacityUsed
+* Cluster.CapacityFree
+Monitor if worker capacity is always full, consider more workers if that is the case.
+
 ### Number of Concurrent Clients
 
 Concurrent clients represents number of logical Alluxio clients communicating with the Alluxio
@@ -87,6 +100,13 @@ number of cores based on required operation throughput.
 concurrent client. On Linux machines this can be set by modifying `/etc/security/limits.d` and
 checked with the `ulimit` command.
 
+It is also important to monitor key timer metrics, as an abnormally high response rate would indicate the master is under stress.
+* Master.JournalFlushTimer 
+Journal can’t keep up with the flush, master request per second might be too high。 Consider using a more powerful master node.
+
+* Master.ListStatus Timer
+Any of the RPC timer statistics would help here. If the latency is abnormally high, master is under a lot of load.  It might be time for a more powerful master node.
+
 #### Worker
 
 Client connections to the worker are long lived, lasting the duration of a block read. Therefore,
@@ -111,6 +131,10 @@ The number of concurrent clients to the worker impacts the following
 clients.
 * Amount of network bandwidth required by the worker - We recommend at least 10 MB/s per concurrent
 client. This resource is less important if a majority of tasks have locality and use short circuit.
+
+The metric Worker.BlocksEvictionRate is an important measure of how full the Alluxio cache is. 
+When this rate is high, it is a warning sign that the working set is significantly larger than what we can cache, or the access pattern is unfriendly to caching.  Consider increasing the cache size per worker or number of workers.
+
 
 ## Alluxio Master Configuration
 
