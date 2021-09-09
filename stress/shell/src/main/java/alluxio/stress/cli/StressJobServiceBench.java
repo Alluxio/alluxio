@@ -111,7 +111,9 @@ public class StressJobServiceBench extends Benchmark<JobServiceBenchTaskResult> 
   }
 
   private void deleteBasePath(FileSystem fs) throws IOException, AlluxioException {
-    AlluxioURI path = new AlluxioURI(mParameters.mBasePath);
+    String currentWorkerFilePath =
+        String.format("%s/%s", mParameters.mBasePath, mBaseParameters.mId);
+    AlluxioURI path = new AlluxioURI(currentWorkerFilePath);
     if (fs.exists(path)) {
       DeletePOptions options = DeletePOptions.newBuilder().setRecursive(true).build();
       fs.delete(path, options);
@@ -132,8 +134,6 @@ public class StressJobServiceBench extends Benchmark<JobServiceBenchTaskResult> 
     if (mBaseParameters.mStartMs == BaseParameters.UNDEFINED_START_MS) {
       startMs = CommonUtils.getCurrentMs() + 1000;
     }
-    JobMasterClient client = JobMasterClient.Factory
-        .create(JobMasterClientContext.newBuilder(ClientContext.create()).build());
     BenchContext context = new BenchContext(startMs);
     List<Callable<Void>> callables = new ArrayList<>(mParameters.mNumDirs);
     for (int dirId = 0; dirId < mParameters.mNumDirs; dirId++) {
@@ -144,7 +144,6 @@ public class StressJobServiceBench extends Benchmark<JobServiceBenchTaskResult> 
     service.invokeAll(callables, timeOutMs, TimeUnit.MILLISECONDS);
     service.shutdownNow();
     service.awaitTermination(30, TimeUnit.SECONDS);
-    client.close();
     if (!mBaseParameters.mProfileAgent.isEmpty()) {
       context.addAdditionalResult();
     }
@@ -250,7 +249,7 @@ public class StressJobServiceBench extends Benchmark<JobServiceBenchTaskResult> 
       long startNs = System.nanoTime();
       applyOperation(mPath);
       long endNs = System.nanoTime();
-      mResult.incrementNumSuccess(1);
+
       // record response times
       long responseTimeNs = endNs - startNs;
       mResponseTimeNs.recordValue(responseTimeNs);
@@ -268,9 +267,12 @@ public class StressJobServiceBench extends Benchmark<JobServiceBenchTaskResult> 
           FileSystemContext fsContext =
               FileSystemContext.create(new InstancedConfiguration(ConfigurationUtils.defaults()));
           DistributedLoadCommand cmd = new DistributedLoadCommand(fsContext);
-          DistributedLoadUtils.distributedLoad(cmd, new AlluxioURI(dirPath), numReplication,
-              new HashSet<>(), new HashSet<>(), new HashSet<>(), new HashSet<>());
-          // wait for job complete
+          try {
+            DistributedLoadUtils.distributedLoad(cmd, new AlluxioURI(dirPath), numReplication,
+                new HashSet<>(), new HashSet<>(), new HashSet<>(), new HashSet<>());
+          } finally {
+            mResult.incrementNumSuccess(cmd.getCompletedCount());
+          }
           return;
         default:
           throw new IllegalStateException("Unknown operation: " + mParameters.mOperation);

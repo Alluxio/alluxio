@@ -90,14 +90,14 @@ public abstract class AbstractDistributedJobCommand extends AbstractFileSystemCo
   /**
    * Gets the number of failed job.
    */
-  protected int getFailedCount() {
+  public int getFailedCount() {
     return mFailedCount;
   }
 
   /**
    * Gets the number of completed job.
    */
-  protected int getCompletedCount() {
+  public int getCompletedCount() {
     return mCompletedCount;
   }
 }

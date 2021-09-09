@@ -72,8 +72,7 @@ public final class JobServiceBenchSummary implements Summary {
     mEndTimeMs = mergedTaskResults.getEndMs();
     mParameters = mergedTaskResults.getParameters();
     mDurationMs = mEndTimeMs - mRecordStartTimeMs;
-    mThroughput =
-        ((float) mStatistics.mNumSuccess * mParameters.mNumFilesPerDir / mDurationMs) * 1000.0f;
+    mThroughput = ((float) mStatistics.mNumSuccess / mDurationMs) * 1000.0f;
     mNodes = nodes;
     mErrors = errors;
   }
