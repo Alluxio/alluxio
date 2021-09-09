@@ -311,6 +311,9 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
     if (len == 0) {
       return 0;
     }
+    if (mPos == mLength) {
+      return -1;
+    }
     readChunk();
     if (mCurrentChunk == null) {
       mEOF = true;
