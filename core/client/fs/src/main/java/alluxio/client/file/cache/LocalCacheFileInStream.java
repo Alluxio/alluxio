@@ -132,6 +132,7 @@ public class LocalCacheFileInStream extends FileInStream {
     int totalBytesRead = 0;
     long currentPosition = pos;
     long lengthToRead = Math.min(len, mStatus.getLength() - pos);
+    Stopwatch stopwatch = createUnstartedStopwatch();
     // for each page, check if it is available in the cache
     while (totalBytesRead < lengthToRead) {
       long currentPage = currentPosition / mPageSize;
@@ -145,8 +146,7 @@ public class LocalCacheFileInStream extends FileInStream {
       } else {
         pageId = new PageId(Long.toString(mStatus.getFileId()), currentPage);
       }
-      Stopwatch stopwatch = createUnstartedStopwatch();
-      stopwatch.start();
+      stopwatch.reset().start();
       int bytesRead =
           mCacheManager.get(pageId, currentPageOffset, bytesLeftInPage, b, off + totalBytesRead,
               mCacheContext);
