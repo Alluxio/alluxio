@@ -50,8 +50,6 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.file.FileSystemException;
 import java.nio.file.Files;
-import java.nio.file.LinkOption;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.attribute.PosixFileAttributes;
 import java.util.ArrayList;

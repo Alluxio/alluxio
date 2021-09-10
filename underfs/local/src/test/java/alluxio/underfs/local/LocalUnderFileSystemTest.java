@@ -289,6 +289,10 @@ public class LocalUnderFileSystemTest {
 
   @Test
   public void testSymlinkNonSkip() throws IOException {
+    InstancedConfiguration c = new InstancedConfiguration(sConf.copyProperties());
+    c.set(PropertyKey.UNDERFS_LOCAL_SKIP_BROKEN_SYMLINKS, false);
+    mLocalUfs =
+        UnderFileSystem.Factory.create(mLocalUfsRoot, UnderFileSystemConfiguration.defaults(c));
     Path linkPath = createNonExistentSymlink();
     assertTrue(Files.exists(linkPath, LinkOption.NOFOLLOW_LINKS));
     assertFalse(Files.exists(linkPath));
