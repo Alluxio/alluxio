@@ -1689,4 +1689,186 @@ If this is the case, set the following properties to limit the path length:
 > Note: You may see performance degradation due to lack of node locality.
 
   {% endcollapsible %}
+  {% collapsible Worker Pods get OOMKilled by the Kubernetes scheduler %}
+This is most likely caused due to the Kubernetes configured
+[Pod resource limits](https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/#requests-and-limits)
+having the `limits.memory` set too low.
+
+Firstly, double check the configured values for your Alluxio worker Pod `limits.memory`.
+**Note that the Pod consists of two containers, each with their own resource limits.**
+
+Check the configured resource requests and limits using `kubectl describe pod`,
+`kubectl get pod`, or equivalent Kube API requests. eg.,
+
+```
+$ kubectl get po -o json alluxio-worker-xxxxx | jq '.spec.containers[].resources'
+{
+  "limits": {
+    "cpu": "4",
+    "memory": "4G"
+  },
+  "requests": {
+    "cpu": "1",
+    "memory": "2G"
+  }
+}
+{
+  "limits": {
+    "cpu": "4",
+    "memory": "4G"
+  },
+  "requests": {
+    "cpu": "1",
+    "memory": "1G"
+  }
+}
+```
+
+If you used the Helm chart,
+[the default values](https://github.com/Alluxio/alluxio/blob/master/integration/kubernetes/helm-chart/alluxio/values.yaml)
+are:
+
+```
+worker:
+  resources:
+    limits:
+      cpu: "4"
+      memory: "4G"
+    requests:
+      cpu: "1"
+      memory: "2G"
+
+jobWorker:
+  resources:
+    limits:
+      cpu: "4"
+      memory: "4G"
+    requests:
+      cpu: "1"
+      memory: "1G"
+```
+
+- Even if you did not configure any values with Helm, you may still have resource limits in
+  place due to a [LimitRange](https://kubernetes.io/docs/concepts/policy/limit-range/)
+  applied to your namespace
+
+Next, ensure that the nodes that the Alluxio worker pods are running on have
+sufficient resources matching your configured values. You can check that the nodes
+you intend to schedule Alluxio worker Pods on have sufficient resources to meet
+your requests using `kubectl describe node`, `kubectl get node`, or equivalent Kube API requests. eg.,
+```
+$ kubectl get no -o json k8sworkernode-0 | jq '.status.allocatable'
+{
+  "cpu": "8",
+  "ephemeral-storage": "123684658586",
+  "hugepages-1Gi": "0",
+  "hugepages-2Mi": "0",
+  "memory": "64886128Ki",
+  "pods": "110"
+}
+```
+
+Isolating Alluxio worker Pods from other Pods in your Kubernetes cluster can be accomplished
+with the help of [node selectors](https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/#nodeselector)
+and [node taints + tolerations](https://kubernetes.io/docs/concepts/scheduling-eviction/taint-and-toleration/).
+- Keep in mind that the Alluxio worker Pod definition uses a
+  [DaemonSet](https://kubernetes.io/docs/concepts/workloads/controllers/daemonset/),
+  so there will be worker Pods assigned to all eligible nodes
+
+Next, verify the Alluxio workers' configured ramdisk sizes (if any).
+See [the list of Alluxio configuration properties]({{ '/en/reference/Properties-List.html' | relativize_url }})
+for additional details.
+- If you used the Helm chart, the Alluxio site properties are configured using `properties`. eg.,
+
+```
+properties:
+  alluxio.worker.ramdisk.size: 2G
+  alluxio.worker.tieredstore.levels: 1
+  alluxio.worker.tieredstore.level0.alias: MEM
+  alluxio.worker.tieredstore.level0.dirs.mediumtype: MEM
+  alluxio.worker.tieredstore.level0.dirs.path: /dev/shm
+  alluxio.worker.tieredstore.level0.dirs.quota: 2G
+```
+
+- Otherwise, you can view and modify the site properties in the `alluxio-config` ConfigMap. eg.,
+
+```
+$ kubectl get cm -o json alluxio-config | jq '.data.ALLUXIO_WORKER_JAVA_OPTS'
+"-Dalluxio.worker.ramdisk.size=2G
+-Dalluxio.worker.tieredstore.levels=1
+-Dalluxio.worker.tieredstore.level0.alias=MEM
+-Dalluxio.worker.tieredstore.level0.dirs.mediumtype=MEM
+-Dalluxio.worker.tieredstore.level0.dirs.path=/dev/shm
+-Dalluxio.worker.tieredstore.level0.dirs.quota=2G "
+```
+
+**NOTE: Our `DaemonSet` uses `emptyDir` volumes as the Alluxio worker Pod's ramdisk in Kubernetes.**
+```
+spec:
+  template:
+    spec:
+      volumes:
+        - name: mem
+          emptyDir:
+            medium: "Memory"
+            sizeLimit: 1G
+```
+
+This results in the following nuances:
+- `sizeLimit` has no effect on the size of the allocated ramdisk unless
+the `SizeMemoryBackedVolumes` feature gate is enabled
+- As stated in [the Kubernetes emptyDir documentation](https://kubernetes.io/docs/concepts/storage/volumes/#emptydir),
+if no size is specified then memory-backed `emptyDir` volumes will have capacity
+allocated equal to **half the available memory on the host node**. This capacity
+is reflected inside of your containers (for example when running `df -u`). However
+if the combined size of your ramdisk and container memory usage exceeds the pod's
+`limits.memory` then the Kubernetes scheduler will trigger an `OOMKilled` on that pod.
+**This is a very likely overlooked source of memory consumption in Alluxio worker Pods.**
+
+Lastly, verify the Alluxio worker JVM heap and off-heap maximum capacities. These are
+configured with the JVM flags `-Xmx`/`-XX:MaxHeapSize` and `-XX:MaxDirectMemorySize` respectively.
+- See [the Oracle Java documentation](https://docs.oracle.com/javase/8/docs/technotes/tools/windows/java.html)
+for more details.
+
+To adjust those values, you would have to manually update the
+`(...)_JAVA_OPTS` environment variables in the `alluxio-config` ConfigMap.
+For example:
+```
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: alluxio-config
+data:
+  ALLUXIO_JAVA_OPTS: |-
+    -Xmx2g -Dalluxio.master.hostname=alluxio-master-0 ...
+  ALLUXIO_MASTER_JAVA_OPTS: |-
+    -Dalluxio.master.hostname=${ALLUXIO_MASTER_HOSTNAME}
+  ALLUXIO_JOB_MASTER_JAVA_OPTS: |-
+    -Dalluxio.master.hostname=${ALLUXIO_MASTER_HOSTNAME}
+  ALLUXIO_WORKER_JAVA_OPTS: |-
+    -XX:MaxDirectMemorySize=2g -Dalluxio.worker.hostname=${ALLUXIO_WORKER_HOSTNAME} ...
+  ALLUXIO_JOB_WORKER_JAVA_OPTS: |-
+    -XX:MaxDirectMemorySize=1g -Dalluxio.worker.hostname=${ALLUXIO_WORKER_HOSTNAME} ...
+  ALLUXIO_FUSE_JAVA_OPTS: |-
+    -Dalluxio.user.hostname=${ALLUXIO_CLIENT_HOSTNAME} -XX:MaxDirectMemorySize=2g
+  ALLUXIO_WORKER_TIEREDSTORE_LEVEL0_DIRS_PATH: /dev/shm
+```
+
+Thus to avoid worker Pods running into `OOMKilled` errors,
+1. Verify that the nodes your Alluxio worker Pods are scheduled on have
+sufficient memory to satisfy all the `limits.memory` specifications assigned.
+2. Ensure you have configured `alluxio.worker.ramdisk.size` and
+`alluxio.worker.tieredstore.level0.dirs.quota` low enough such that
+the memory consumed by the ramdisk combined with the JVM memory options
+(`-Xmx`, `-XX:MaxDirectMemorySize`) do not exceed the Pod's `limits.memory`.
+It is recommended to allow for some overhead as memory may be consumed
+by other processes as well.
+
+**Aside:** There is currently an [open issue](https://github.com/Alluxio/alluxio/issues/12277)
+in Alluxio where Alluxio's interpretation of byte sizes differs from
+Kubernetes (due to Kubernetes distinguishing between "-bibytes").
+This is unlikely to cause `OOMKilled` errors unless you are operating on
+very tight memory margins.
+
+  {% endcollapsible %}
 {% endaccordion %}

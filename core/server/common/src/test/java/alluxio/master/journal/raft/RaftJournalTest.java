@@ -65,8 +65,8 @@ public class RaftJournalTest {
     // Create and start journal systems.
     List<RaftJournalSystem> journalSystems = startJournalCluster(createJournalSystems(2));
     // Sleep for 2 leader election cycles for leadership to stabilize.
-    Thread
-        .sleep(2 * ServerConfiguration.getMs(PropertyKey.MASTER_EMBEDDED_JOURNAL_ELECTION_TIMEOUT));
+    Thread.sleep(2
+            * ServerConfiguration.getMs(PropertyKey.MASTER_EMBEDDED_JOURNAL_MAX_ELECTION_TIMEOUT));
 
     // Assign references for leader/follower journal systems.
     mLeaderJournalSystem = journalSystems.get(0);
@@ -180,7 +180,8 @@ public class RaftJournalTest {
     catchupFuture.waitTermination();
     Assert.assertEquals(catchupIndex + 1, countingMaster.getApplyCount());
     // Wait for election timeout and verify follower master state hasn't changed.
-    Thread.sleep(ServerConfiguration.getMs(PropertyKey.MASTER_EMBEDDED_JOURNAL_ELECTION_TIMEOUT));
+    Thread.sleep(
+            ServerConfiguration.getMs(PropertyKey.MASTER_EMBEDDED_JOURNAL_MAX_ELECTION_TIMEOUT));
     Assert.assertEquals(catchupIndex + 1, countingMaster.getApplyCount());
     // Exit backup mode and wait until follower master acquires the current knowledge.
     mFollowerJournalSystem.resume();
@@ -235,7 +236,8 @@ public class RaftJournalTest {
     // Restart the follower.
     mFollowerJournalSystem.stop();
     mFollowerJournalSystem.start();
-    Thread.sleep(ServerConfiguration.getMs(PropertyKey.MASTER_EMBEDDED_JOURNAL_ELECTION_TIMEOUT));
+    Thread.sleep(ServerConfiguration.getMs(
+        PropertyKey.MASTER_EMBEDDED_JOURNAL_MAX_ELECTION_TIMEOUT));
 
     // Verify that all entries are replayed despite the snapshot was requested while some entries
     // are queued up during suspension.
@@ -473,7 +475,8 @@ public class RaftJournalTest {
    */
   private List<RaftJournalSystem> createJournalSystems(int journalSystemCount) throws Exception {
     // Override defaults for faster quorum formation.
-    ServerConfiguration.set(PropertyKey.MASTER_EMBEDDED_JOURNAL_ELECTION_TIMEOUT, 550);
+    ServerConfiguration.set(PropertyKey.MASTER_EMBEDDED_JOURNAL_MIN_ELECTION_TIMEOUT, 550);
+    ServerConfiguration.set(PropertyKey.MASTER_EMBEDDED_JOURNAL_MAX_ELECTION_TIMEOUT, 1100);
 
     List<InetSocketAddress> clusterAddresses = new ArrayList<>(journalSystemCount);
     List<Integer> freePorts = getFreePorts(journalSystemCount);
