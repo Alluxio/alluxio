@@ -16,9 +16,10 @@ $ docker build -t alluxio/alluxio-prod --build-arg ALLUXIO_TARBALL=alluxio-${ver
 Starting from v2.6.0, alluxio-fuse image is deprecated. It is embedded in alluxio/alluxio image.
 
 ## Building docker image for development
-Starting from now, Alluxio has a separate image for development. Unlike the default Alluxio Docker 
-image that only installs packages needed for Alluxio service to run, this image installs more 
-development tools, including gcc, make, async-profiler, etc.
+Starting from now, Alluxio has a separate image for development usage. Unlike the default Alluxio 
+Docker image that only installs packages needed for Alluxio service to run, this image installs 
+more development tools, including gcc, make, async-profiler, etc. making it easier to deploy more 
+services along with Alluxio.
 
 To build the development image from the default remote url, run
 ```console
