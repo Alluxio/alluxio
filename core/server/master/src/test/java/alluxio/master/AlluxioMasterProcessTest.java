@@ -229,6 +229,10 @@ public final class AlluxioMasterProcessTest {
     waitForServing(ServiceType.MASTER_WEB);
     assertTrue(isBound(mRpcPort));
     assertTrue(isBound(mWebPort));
+    boolean testMode = ServerConfiguration.getBoolean(PropertyKey.TEST_MODE);
+    ServerConfiguration.set(PropertyKey.TEST_MODE, false);
+    master.waitForReady(5000);
+    ServerConfiguration.set(PropertyKey.TEST_MODE, testMode);
     master.stop();
     assertFalse(isBound(mRpcPort));
     assertFalse(isBound(mWebPort));
