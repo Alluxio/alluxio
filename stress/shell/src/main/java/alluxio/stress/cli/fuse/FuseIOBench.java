@@ -55,6 +55,7 @@ import java.util.stream.Collectors;
  */
 public class FuseIOBench extends Benchmark<FuseIOTaskResult> {
   private static final Logger LOG = LoggerFactory.getLogger(FuseIOBench.class);
+  private static final String TEST_DIR_STRING_FORMAT = "%s/%s/dir-%d";
 
   @ParametersDelegate
   private FuseIOParameters mParameters = new FuseIOParameters();
@@ -140,7 +141,7 @@ public class FuseIOBench extends Benchmark<FuseIOTaskResult> {
       mParameters.mWarmup = "0s";
       for (int i = 0; i < mParameters.mNumDirs; i++) {
         Files.createDirectories(Paths.get(String.format(
-            "%s/%s/dir-%d", mParameters.mLocalPath, mBaseParameters.mId, i)));
+            TEST_DIR_STRING_FORMAT, mParameters.mLocalPath, mBaseParameters.mId, i)));
       }
       return;
     }
@@ -365,8 +366,6 @@ public class FuseIOBench extends Benchmark<FuseIOTaskResult> {
 
     private void runInternal() throws Exception {
       mFuseIOTaskResult.setRecordStartMs(mRecordMs);
-      boolean isRead = FuseIOOperation.isRead(mParameters.mOperation);
-
       long waitMs = mContext.getStartMs() - CommonUtils.getCurrentMs();
       if (waitMs < 0) {
         throw new IllegalStateException(String.format(
@@ -376,58 +375,75 @@ public class FuseIOBench extends Benchmark<FuseIOTaskResult> {
       CommonUtils.sleepMs(waitMs);
       mStartBarrierPassed = true;
 
-      if (mParameters.mOperation == FuseIOOperation.LIST_FILE) {
-        for (String nameJobWorkerDir: mJobWorkerDirNames) {
-          for (int testDirId = mThreadId; testDirId < mParameters.mNumDirs;
-              testDirId += mParameters.mThreads) {
-            String dirPath = String.format("%s/%s/dir-%d", mParameters.mLocalPath,
-                nameJobWorkerDir, testDirId);
-            File dir = new File(dirPath);
-            dir.listFiles();
-          }
+      switch (mParameters.mOperation) {
+        case LIST_FILE: {
+          listFile();
+          break;
         }
-        return;
-      }
-      if (mParameters.mOperation == FuseIOOperation.WRITE
-          || mParameters.mOperation == FuseIOOperation.LOCAL_READ) {
-        for (int testDirId = mThreadId; testDirId < mParameters.mNumDirs;
-            testDirId += mParameters.mThreads) {
-          for (int testFileId = 0; testFileId < mParameters.mNumFilesPerDir; testFileId++) {
-            String filePath = String.format("%s/%s/dir-%d/file-%d", mParameters.mLocalPath,
-                mBaseParameters.mId, testDirId, testFileId);
-            processFile(filePath, isRead);
-          }
+        case WRITE:
+        case LOCAL_READ: {
+          writeOrLocalRead();
+          break;
         }
-        finishProcessingFiles();
-        return;
+        case REMOTE_READ:
+        case CLUSTER_READ: {
+          remoteOrClusterRead();
+          break;
+        }
+        default:
+          throw new IllegalStateException("Unknown operation: " + mParameters.mOperation);
       }
-      if (mParameters.mOperation == FuseIOOperation.REMOTE_READ
-          || mParameters.mOperation == FuseIOOperation.CLUSTER_READ) {
-        for (int numJobWorkerDirProcessed = 0; numJobWorkerDirProcessed < mJobWorkerDirNames.size();
-            numJobWorkerDirProcessed++) {
-          // find which job worker directory to read
-          int indexCurrentJobWorkerDir = (numJobWorkerDirProcessed + mJobWorkerZeroBasedId)
-              % mJobWorkerDirNames.size();
-          // skip itself if the operation is remote read
-          if (indexCurrentJobWorkerDir == mJobWorkerZeroBasedId
-              && mParameters.mOperation == FuseIOOperation.REMOTE_READ) {
-            indexCurrentJobWorkerDir = (indexCurrentJobWorkerDir + 1) % mJobWorkerDirNames.size();
-          }
-          String nameCurrentJobWorkerDir = mJobWorkerDirNames.get(indexCurrentJobWorkerDir);
+    }
 
-          // find which files to read under this job worker directory
-          for (int testDirId = mJobWorkerZeroBasedId; testDirId < mParameters.mNumDirs;
-              testDirId += mJobWorkerDirNames.size()) {
-            for (int testFileId = mThreadId; testFileId < mParameters.mNumDirs;
-                testFileId += mParameters.mThreads) {
-              String filePath = String.format("%s/%s/dir-%d/file-%d", mParameters.mLocalPath,
-                  nameCurrentJobWorkerDir, testDirId, testFileId);
-              processFile(filePath, isRead);
-            }
+    private void listFile() {
+      for (String nameJobWorkerDir : mJobWorkerDirNames) {
+        for (int testDirId = mThreadId; testDirId < mParameters.mNumDirs;
+             testDirId += mParameters.mThreads) {
+          String dirPath = String.format(TEST_DIR_STRING_FORMAT, mParameters.mLocalPath,
+                  nameJobWorkerDir, testDirId);
+          File dir = new File(dirPath);
+          dir.listFiles();
+        }
+      }
+    }
+
+    private void writeOrLocalRead() throws Exception {
+      for (int testDirId = mThreadId; testDirId < mParameters.mNumDirs;
+          testDirId += mParameters.mThreads) {
+        for (int testFileId = 0; testFileId < mParameters.mNumFilesPerDir; testFileId++) {
+          String filePath = String.format(TEST_DIR_STRING_FORMAT + "/file-%d",
+              mParameters.mLocalPath, mBaseParameters.mId, testDirId, testFileId);
+          processFile(filePath, FuseIOOperation.isRead(mParameters.mOperation));
+        }
+      }
+      finishProcessingFiles();
+    }
+
+    private void remoteOrClusterRead() throws Exception {
+      for (int numJobWorkerDirProcessed = 0; numJobWorkerDirProcessed < mJobWorkerDirNames.size();
+          numJobWorkerDirProcessed++) {
+        // find which job worker directory to read
+        int indexCurrentJobWorkerDir = (numJobWorkerDirProcessed + mJobWorkerZeroBasedId)
+            % mJobWorkerDirNames.size();
+        // skip itself if the operation is remote read
+        if (indexCurrentJobWorkerDir == mJobWorkerZeroBasedId
+            && mParameters.mOperation == FuseIOOperation.REMOTE_READ) {
+          indexCurrentJobWorkerDir = (indexCurrentJobWorkerDir + 1) % mJobWorkerDirNames.size();
+        }
+        String nameCurrentJobWorkerDir = mJobWorkerDirNames.get(indexCurrentJobWorkerDir);
+
+        // find which files to read under this job worker directory
+        for (int testDirId = mJobWorkerZeroBasedId; testDirId < mParameters.mNumDirs;
+            testDirId += mJobWorkerDirNames.size()) {
+          for (int testFileId = mThreadId; testFileId < mParameters.mNumDirs;
+              testFileId += mParameters.mThreads) {
+            String filePath = String.format(TEST_DIR_STRING_FORMAT + "/file-%d",
+                mParameters.mLocalPath, mBaseParameters.mId, testDirId, testFileId);
+            processFile(filePath, FuseIOOperation.isRead(mParameters.mOperation));
           }
         }
-        finishProcessingFiles();
       }
+      finishProcessingFiles();
     }
 
     private void processFile(String filePath, boolean isRead) throws IOException {
