@@ -313,7 +313,7 @@ public class FuseIOBench extends Benchmark<FuseIOTaskResult> {
       long waitMs = mContext.getStartMs() - CommonUtils.getCurrentMs();
       if (waitMs < 0) {
         throw new IllegalStateException(String.format(
-            "Thread missed barrier. Set the start time to a later time. start: %d current: %d",
+            "Thread missed barrier. Increase the start delay. start: %d current: %d",
             mContext.getStartMs(), CommonUtils.getCurrentMs()));
       }
       CommonUtils.sleepMs(waitMs);
@@ -352,7 +352,7 @@ public class FuseIOBench extends Benchmark<FuseIOTaskResult> {
       }
       // Done reading all files
       if (isRead) {
-        throw new IllegalArgumentException(String.format("Thread %d finishes reading all its files"
+        throw new IllegalArgumentException(String.format("Thread %d finishes reading all its files "
             + "before the bench ends. For more accurate result, use more files, or larger files, "
             + "or a shorter duration", mThreadId));
       }

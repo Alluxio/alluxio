@@ -368,6 +368,11 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setDescription("Total number of unique blocks in Alluxio")
           .setMetricType(MetricType.GAUGE)
           .build();
+  public static final MetricKey MASTER_TOTAL_BLOCK_REPLICA_COUNT =
+      new Builder("Master.BlockReplicaCount")
+          .setDescription("Total number of block replicas in Alluxio")
+          .setMetricType(MetricType.GAUGE)
+          .build();
   public static final MetricKey MASTER_INODE_HEAP_SIZE =
       new Builder("Master.InodeHeapSize")
           .setDescription("An estimate of the inode heap size")
@@ -1450,6 +1455,14 @@ public final class MetricKey implements Comparable<MetricKey> {
       new Builder("Client.CacheState")
           .setDescription("State of the cache: 0 (NOT_IN_USE), 1 (READ_ONLY) and 2 (READ_WRITE)")
           .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggregated(false)
+          .build();
+  public static final MetricKey CLIENT_META_DATA_CACHE_SIZE =
+      new Builder("Client.MetadataCacheSize")
+          .setDescription("The total number of files and directories whose metadata is cached "
+              + "on the client-side. Only valid if the filesystem is"
+              + "alluxio.client.file.MetadataCachingBaseFileSystem.")
+          .setMetricType(MetricType.GAUGE)
           .setIsClusterAggregated(false)
           .build();
 

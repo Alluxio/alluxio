@@ -171,12 +171,10 @@ public final class DefaultStorageTier implements StorageTier {
         continue;
       }
       foundMountInfo = true;
-      if ((fsType.equalsIgnoreCase("tmpfs") || fsType.equalsIgnoreCase("ramfs"))
-          && size < storageDir.getCapacityBytes()) {
+      if (fsType.equalsIgnoreCase("tmpfs") && size < storageDir.getCapacityBytes()) {
         throw new IllegalStateException(String.format(
-            "%s is smaller than the configured size: %s size: %s, configured size: %s", fsType,
-            fsType, FormatUtils.getSizeFromBytes(size),
-            FormatUtils.getSizeFromBytes(storageDir.getCapacityBytes())));
+            "%s is smaller than the configured size: %s size: %s, configured size: %s",
+            fsType, fsType, size, storageDir.getCapacityBytes()));
       }
       break;
     }

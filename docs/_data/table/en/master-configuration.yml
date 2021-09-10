@@ -52,8 +52,10 @@ alluxio.master.embedded.journal.bind.host:
   'Used to bind embedded journal servers to a proxied host.Proxy hostname will still make use of alluxio.master.embedded.journal.port for bind port.'
 alluxio.master.embedded.journal.catchup.retry.wait:
   'Time for embedded journal leader to wait before retrying a catch up.'
-alluxio.master.embedded.journal.election.timeout:
-  'The election timeout for the embedded journal. When this period elapses without a master receiving any messages, the master will attempt to become the primary.Election timeout will be waited initially when the cluster is forming. So larger values for election timeout will cause longer start-up time. Smaller values might introduce instability to leadership.'
+alluxio.master.embedded.journal.election.timeout.max:
+  'The max election timeout for the embedded journal. When this period between alluxio.master.embedded.journal.election.timeout.min and alluxio.master.embedded.journal.election.timeout.max elapses without a master receiving any messages, the master will attempt to become the primary.Election timeout will be waited initially when the cluster is forming. So larger values for election timeout will cause longer start-up time. Smaller values might introduce instability to leadership.'
+alluxio.master.embedded.journal.election.timeout.min:
+  'The min election timeout for the embedded journal.'
 alluxio.master.embedded.journal.entry.size.max:
   'The maximum single journal entry size allowed to be flushed. This value should be smaller than 30MB. If you update this value, please also update the value of alluxio.master.embedded.journal.flush.size.max '
 alluxio.master.embedded.journal.flush.size.max:
