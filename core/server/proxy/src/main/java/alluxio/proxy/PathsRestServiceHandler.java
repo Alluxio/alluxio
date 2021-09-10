@@ -51,6 +51,8 @@ public final class PathsRestServiceHandler {
 
     public static final String PATH_PARAM = "{path:.*}/";
 
+    public static final String NANE_PARAM = "{name:.*}/";
+
     public static final String CREATE_DIRECTORY = "create-directory";
     public static final String CREATE_FILE      = "create-file";
     public static final String DELETE           = "delete";
@@ -117,12 +119,13 @@ public final class PathsRestServiceHandler {
      * @summary creates a directory
      */
     @POST
-    @Path(PATH_PARAM + CREATE_DIRECTORY)
+    @Path(PATH_PARAM + NANE_PARAM + CREATE_DIRECTORY)
     @ApiOperation(value = "Create a directory at the given path", response = java.lang.Void.class)
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response createDirectory(@PathParam("path") final String path,
+    public Response createDirectory(@PathParam("path") final String path, @PathParam("name") final String name,
                                     final CreateDirectoryPOptions options) {
-        FileSystem mFileSystem = getFileSystem("");
+        System.out.println(path + "_" + name + "CREATE_DIRECTORY");
+        FileSystem mFileSystem = getFileSystem(name);
         return RestUtils.call((RestUtils.RestCallable<Void>) () -> {
             if (options == null) {
                 mFileSystem.createDirectory(new AlluxioURI(path));
@@ -140,14 +143,15 @@ public final class PathsRestServiceHandler {
      * @summary creates a file
      */
     @POST
-    @Path(PATH_PARAM + CREATE_FILE)
+    @Path(PATH_PARAM + NANE_PARAM + CREATE_FILE)
     @ApiOperation(value = "Create a file at the given path, use the id with the streams api",
             response = java.lang.Integer.class)
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response createFile(@PathParam("path") final String path,
+    public Response createFile(@PathParam("path") final String path, @PathParam("name") final String name,
                                final CreateFilePOptions options) {
-        FileSystem  mFileSystem  = getFileSystem("");
-        StreamCache mStreamCache = getStreamCache("");
+        System.out.println(path + "_" + name + "CREATE_FILE");
+        FileSystem  mFileSystem  = getFileSystem(name);
+        StreamCache mStreamCache = getStreamCache(name);
         return RestUtils.call(new RestUtils.RestCallable<Integer>() {
             @Override
             public Integer call() throws Exception {
@@ -169,10 +173,11 @@ public final class PathsRestServiceHandler {
      * @summary deletes a path
      */
     @POST
-    @Path(PATH_PARAM + DELETE)
+    @Path(PATH_PARAM + NANE_PARAM + DELETE)
     @ApiOperation(value = "Delete the given path", response = java.lang.Void.class)
-    public Response delete(@PathParam("path") final String path, final DeletePOptions options) {
-        FileSystem mFileSystem = getFileSystem("");
+    public Response delete(@PathParam("path") final String path, @PathParam("name") final String name, final DeletePOptions options) {
+        System.out.println(path + "_" + name + "DELETE");
+        FileSystem mFileSystem = getFileSystem(name);
         return RestUtils.call(new RestUtils.RestCallable<Void>() {
             @Override
             public Void call() throws Exception {
@@ -192,14 +197,15 @@ public final class PathsRestServiceHandler {
      * @summary Download a file.
      */
     @GET
-    @Path(PATH_PARAM + DOWNLOAD_FILE)
+    @Path(PATH_PARAM + NANE_PARAM + DOWNLOAD_FILE)
     @ApiOperation(value = "Download the given file at the path", response = java.io.InputStream.class)
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
-    public Response downloadFile(@PathParam("path") final String path) {
+    public Response downloadFile(@PathParam("path") final String path, @PathParam("name") final String name) {
+        System.out.println(path+ "_" + name + "DOWNLOAD_FILE");
         AlluxioURI          uri     = new AlluxioURI(path);
         Map<String, Object> headers = new HashMap<>();
         headers.put("Content-Disposition", "attachment; filename=" + uri.getName());
-        FileSystem mFileSystem = getFileSystem("");
+        FileSystem mFileSystem = getFileSystem(name);
         return RestUtils.call(new RestUtils.RestCallable<InputStream>() {
             @Override
             public InputStream call() throws Exception {
@@ -219,10 +225,11 @@ public final class PathsRestServiceHandler {
      * @summary checks whether a path exists
      */
     @POST
-    @Path(PATH_PARAM + EXISTS)
+    @Path(PATH_PARAM + NANE_PARAM + EXISTS)
     @ApiOperation(value = "Check if the given path exists", response = java.lang.Boolean.class)
-    public Response exists(@PathParam("path") final String path, final ExistsPOptions options) {
-        FileSystem mFileSystem = getFileSystem("");
+    public Response exists(@PathParam("path") final String path, @PathParam("name") final String name, final ExistsPOptions options) {
+        System.out.println(path + "_" + name + "EXISTS");
+        FileSystem mFileSystem = getFileSystem(name);
         return RestUtils.call(new RestUtils.RestCallable<Boolean>() {
             @Override
             public Boolean call() throws Exception {
@@ -242,10 +249,11 @@ public final class PathsRestServiceHandler {
      * @summary frees a path
      */
     @POST
-    @Path(PATH_PARAM + FREE)
+    @Path(PATH_PARAM + NANE_PARAM + FREE)
     @ApiOperation(value = "Free the given path", response = java.lang.Void.class)
-    public Response free(@PathParam("path") final String path, final FreePOptions options) {
-        FileSystem mFileSystem = getFileSystem("");
+    public Response free(@PathParam("path") final String path, @PathParam("name") final String name, final FreePOptions options) {
+        System.out.println(path + "_" + name + "FREE");
+        FileSystem mFileSystem = getFileSystem(name);
         return RestUtils.call(new RestUtils.RestCallable<Void>() {
             @Override
             public Void call() throws Exception {
@@ -266,11 +274,12 @@ public final class PathsRestServiceHandler {
      * @summary gets path status
      */
     @POST
-    @Path(PATH_PARAM + GET_STATUS)
+    @Path(PATH_PARAM + NANE_PARAM + GET_STATUS)
     @ApiOperation(value = "Get the file status of the path",
             response = alluxio.client.file.URIStatus.class)
-    public Response getStatus(@PathParam("path") final String path, final GetStatusPOptions options) {
-        FileSystem mFileSystem = getFileSystem("");
+    public Response getStatus(@PathParam("path") final String path, @PathParam("name") final String name, final GetStatusPOptions options) {
+        System.out.println(path + "_" + name + "GET_STATUS");
+        FileSystem mFileSystem = getFileSystem(name);
         return RestUtils.call(new RestUtils.RestCallable<URIStatus>() {
             @Override
             public URIStatus call() throws Exception {
@@ -290,12 +299,13 @@ public final class PathsRestServiceHandler {
      * @summary lists path statuses
      */
     @POST
-    @Path(PATH_PARAM + LIST_STATUS)
+    @Path(PATH_PARAM + NANE_PARAM + LIST_STATUS)
     @ApiOperation(value = "List the URIStatuses of the path's children",
             response = java.util.List.class)
-    public Response listStatus(@PathParam("path") final String path,
+    public Response listStatus(@PathParam("path") final String path, @PathParam("name") final String name,
                                final ListStatusPOptions options) {
-        FileSystem mFileSystem = getFileSystem("");
+        System.out.println(path + "_" + name + "LIST_STATUS");
+        FileSystem mFileSystem = getFileSystem(name);
         return RestUtils.call(new RestUtils.RestCallable<List<URIStatus>>() {
             @Override
             public List<URIStatus> call() throws Exception {
@@ -317,11 +327,11 @@ public final class PathsRestServiceHandler {
      * @summary mounts a UFS path
      */
     @POST
-    @Path(PATH_PARAM + MOUNT)
+    @Path(PATH_PARAM + NANE_PARAM + MOUNT)
     @ApiOperation(value = "Mounts the src to the given Alluxio path", response = java.lang.Void.class)
-    public Response mount(@PathParam("path") final String path, @QueryParam("src") final String src,
+    public Response mount(@PathParam("path") final String path, @PathParam("name") final String name, @QueryParam("src") final String src,
                           final MountPOptions options) {
-        FileSystem mFileSystem = getFileSystem("");
+        FileSystem mFileSystem = getFileSystem(name);
         return RestUtils.call(new RestUtils.RestCallable<Void>() {
             @Override
             public Void call() throws Exception {
@@ -343,13 +353,13 @@ public final class PathsRestServiceHandler {
      * @summary opens a file
      */
     @POST
-    @Path(PATH_PARAM + OPEN_FILE)
+    @Path(PATH_PARAM + NANE_PARAM + OPEN_FILE)
     @ApiOperation(value = "Opens the given path for reading, use the id with the stream api",
             response = java.lang.Integer.class)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response openFile(@PathParam("path") final String path, final OpenFilePOptions options) {
-        FileSystem  mFileSystem  = getFileSystem("");
-        StreamCache mStreamCache = getStreamCache("");
+    public Response openFile(@PathParam("path") final String path, @PathParam("name") final String name, final OpenFilePOptions options) {
+        FileSystem  mFileSystem  = getFileSystem(name);
+        StreamCache mStreamCache = getStreamCache(name);
         return RestUtils.call(new RestUtils.RestCallable<Integer>() {
             @Override
             public Integer call() throws Exception {
@@ -372,11 +382,11 @@ public final class PathsRestServiceHandler {
      * @summary renames a path
      */
     @POST
-    @Path(PATH_PARAM + RENAME)
+    @Path(PATH_PARAM + NANE_PARAM + RENAME)
     @ApiOperation(value = "Rename the src path to the dst path", response = java.lang.Void.class)
-    public Response rename(@PathParam("path") final String path, @QueryParam("dst") final String dst,
+    public Response rename(@PathParam("path") final String path, @PathParam("name") final String name, @QueryParam("dst") final String dst,
                            final RenamePOptions options) {
-        FileSystem mFileSystem = getFileSystem("");
+        FileSystem mFileSystem = getFileSystem(name);
         return RestUtils.call(new RestUtils.RestCallable<Void>() {
             @Override
             public Void call() throws Exception {
@@ -398,11 +408,11 @@ public final class PathsRestServiceHandler {
      * @summary sets an attribute
      */
     @POST
-    @Path(PATH_PARAM + SET_ATTRIBUTE)
+    @Path(PATH_PARAM + NANE_PARAM + SET_ATTRIBUTE)
     @ApiOperation(value = "Update attributes for the path", response = java.lang.Void.class)
-    public Response setAttribute(@PathParam("path") final String path,
+    public Response setAttribute(@PathParam("path") final String path, @PathParam("name") final String name,
                                  final SetAttributePOptions options) {
-        FileSystem mFileSystem = getFileSystem("");
+        FileSystem mFileSystem = getFileSystem(name);
         return RestUtils.call(new RestUtils.RestCallable<Void>() {
             @Override
             public Void call() throws Exception {
@@ -423,11 +433,11 @@ public final class PathsRestServiceHandler {
      * @summary unmounts a path
      */
     @POST
-    @Path(PATH_PARAM + UNMOUNT)
+    @Path(PATH_PARAM + NANE_PARAM + UNMOUNT)
     @ApiOperation(value = "Unmount the path, the path must be a mount point",
             response = java.lang.Void.class)
-    public Response unmount(@PathParam("path") final String path, final UnmountPOptions options) {
-        FileSystem mFileSystem = getFileSystem("");
+    public Response unmount(@PathParam("path") final String path, @PathParam("name") final String name, final UnmountPOptions options) {
+        FileSystem mFileSystem = getFileSystem(name);
         return RestUtils.call(new RestUtils.RestCallable<Void>() {
             @Override
             public Void call() throws Exception {

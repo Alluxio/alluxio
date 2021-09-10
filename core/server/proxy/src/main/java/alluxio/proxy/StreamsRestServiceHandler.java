@@ -43,7 +43,8 @@ import java.util.HashMap;
 public final class StreamsRestServiceHandler {
     public static final String SERVICE_PREFIX = "streams";
 
-    public static final String ID_PARAM = "{id}/";
+    public static final String ID_PARAM   = "{id}/";
+    public static final String NANE_PARAM = "{name:.*}/";
 
     public static final String CLOSE = "close";
     public static final String READ  = "read";
@@ -80,11 +81,12 @@ public final class StreamsRestServiceHandler {
      * @summary closes a stream
      */
     @POST
-    @Path(ID_PARAM + CLOSE)
+    @Path(ID_PARAM + NANE_PARAM + CLOSE)
     @ApiOperation(value = "Closes the stream associated with the id", response = java.lang.Void.class)
-    public Response close(@PathParam("id") final Integer id) {
+    public Response close(@PathParam("id") final Integer id, @PathParam("name") final String name) {
+        System.out.println(id+"_"+name+"close");
         return RestUtils.call((RestUtils.RestCallable<Void>) () -> {
-            StreamCache mStreamCache = getStreamCache("");
+            StreamCache mStreamCache = getStreamCache(name);
             // When a stream is invalidated from the cache, the removal listener of the cache will
             // automatically close the stream.
             if (mStreamCache.invalidate(id) == null) {
@@ -100,13 +102,14 @@ public final class StreamsRestServiceHandler {
      * @summary reads from a stream
      */
     @POST
-    @Path(ID_PARAM + READ)
+    @Path(ID_PARAM + NANE_PARAM + READ)
     @ApiOperation(value = "Returns the input stream associated with the id",
             response = java.io.InputStream.class)
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
-    public Response read(@PathParam("id") final Integer id) {
+    public Response read(@PathParam("id") final Integer id, @PathParam("name") final String name) {
         // TODO(jiri): Support reading a file range.
-        StreamCache mStreamCache = getStreamCache("");
+        System.out.println(id+"_"+name+"read");
+        StreamCache mStreamCache = getStreamCache(name);
         return RestUtils.call(new RestUtils.RestCallable<InputStream>() {
             @Override
             public InputStream call() throws Exception {
@@ -126,12 +129,13 @@ public final class StreamsRestServiceHandler {
      * @summary writes to a stream
      */
     @POST
-    @Path(ID_PARAM + WRITE)
+    @Path(ID_PARAM + NANE_PARAM + WRITE)
     @ApiOperation(value = "Writes to the given output stream associated with the id",
             response = java.lang.Integer.class)
     @Consumes(MediaType.APPLICATION_OCTET_STREAM)
-    public Response write(@PathParam("id") final Integer id, final InputStream is) {
-        StreamCache mStreamCache = getStreamCache("");
+    public Response write(@PathParam("id") final Integer id, @PathParam("name") final String name, final InputStream is) {
+        System.out.println(id+"_"+name+"write");
+        StreamCache mStreamCache = getStreamCache(name);
         return RestUtils.call(() -> {
             FileOutStream os = mStreamCache.getOutStream(id);
             if (os != null) {
