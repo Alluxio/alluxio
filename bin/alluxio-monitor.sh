@@ -82,6 +82,8 @@ print_node_logs() {
       else
         echo -e "    --- EMPTY ---"
       fi
+    else
+      echo -e "    --- EMPTY ---"
     fi
   done
 }

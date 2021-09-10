@@ -20,13 +20,13 @@ import alluxio.retry.RetryPolicy;
 import alluxio.security.user.UserState;
 import alluxio.util.CommonUtils;
 import alluxio.util.ConfigurationUtils;
-import alluxio.util.ShellUtils;
 import alluxio.util.network.NetworkAddressUtils;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.net.InetSocketAddress;
+import java.net.Socket;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -107,7 +107,7 @@ public class MasterHealthCheckClient implements HealthCheckClient {
     /**
      *
      * @param alluxioConf Alluxio configuration
-     * @return a builder which utlizes the given alluxio configuration
+     * @return a builder which utilizes the given alluxio configuration
      */
     public Builder withConfiguration(AlluxioConfiguration alluxioConf) {
       mConf = alluxioConf;
@@ -177,19 +177,9 @@ public class MasterHealthCheckClient implements HealthCheckClient {
 
   /**
    * Runnable for checking if the AlluxioMaster process are running in all the masters hosts.
-   * This include both primary and stand-by masters.
+   * This includes both primary and stand-by masters.
    */
   public final class ProcessCheckRunnable implements Runnable {
-    private String mAlluxioMasterName;
-
-    /**
-     * Creates a new instance of ProcessCheckRunnable.
-     *
-     * @param alluxioMasterName the Alluxio master process name
-     */
-    public ProcessCheckRunnable(String alluxioMasterName) {
-      mAlluxioMasterName = alluxioMasterName;
-    }
 
     @Override
     public void run() {
@@ -199,24 +189,17 @@ public class MasterHealthCheckClient implements HealthCheckClient {
         while (true) {
           List<InetSocketAddress> addresses = client.getMasterRpcAddresses();
           for (InetSocketAddress address : addresses) {
-            String host = address.getHostName();
-            int port = address.getPort();
-            LOG.debug("Master health check on node {}", host);
-            String cmd = String.format("ssh %s %s %s", ShellUtils.COMMON_SSH_OPTS, host,
-                "ps -ef | grep \"" + mAlluxioMasterName + "$\" | "
-                + "grep \"java\" | "
-                + "awk '{ print $2; }'");
-            LOG.debug("Executing: {}", cmd);
-            String output = ShellUtils.execCommand("bash", "-c", cmd);
-            if (output.isEmpty()) {
-              throw new IllegalStateException(
-                  String.format("Master process is not running on the host %s", host));
-            } else if (output.contains("Connection refused")) {
-              throw new IllegalStateException(
-                  String.format("Connection refused while connecting to the host %s on port %d",
-                      host, port));
+            LOG.debug("Master health check on node {}", address.getHostName());
+            try (Socket socket = new Socket(address.getHostName(), address.getPort())) {
+              if (socket.isConnected()) {
+                LOG.debug("Master running on node {} with port {}", address.getHostName(),
+                        address.getPort());
+              } else {
+                throw new IllegalStateException(
+                        String.format("Connection refused while connecting to the host %s "
+                                + "on port %d", address.getHostName(), address.getPort()));
+              }
             }
-            LOG.debug("Master running on node {} with pid={}", host, output);
           }
           CommonUtils.sleepMs(Constants.SECOND_MS);
         }
@@ -271,7 +254,7 @@ public class MasterHealthCheckClient implements HealthCheckClient {
       Future<?> masterServingFuture = mExecutorService.submit(masterRpcCheck);
       if (mProcessCheck) {
         Future<?> processCheckFuture = mExecutorService.submit(
-                new ProcessCheckRunnable(mAlluxioMasterType.getClassName()));
+                new ProcessCheckRunnable());
         CommonUtils.sleepMs(Constants.SECOND_MS);
         // If in HA mode, can't check the RPC service, because the service may not have started
         if (!ConfigurationUtils.isHaMode(mConf)) {
@@ -282,7 +265,7 @@ public class MasterHealthCheckClient implements HealthCheckClient {
             CommonUtils.sleepMs(Constants.SECOND_MS);
           }
         }
-        // Check after a 7 second period if the process is is still alive
+        // Check after a 7 seconds period if the process is still alive
         CommonUtils.sleepMs(7L * Constants.SECOND_MS);
         LOG.debug("Checking the master processes one more time...");
         return !processCheckFuture.isDone();
