@@ -171,11 +171,9 @@ public final class LoadCommand extends AbstractFileSystemCommand {
     CacheRequest request = CacheRequest.newBuilder().setBlockId(blockId).setLength(blockLength)
         .setOpenUfsBlockOptions(options).setSourceHost(dataSource.getHost())
         .setSourcePort(dataSource.getDataPort()).build();
-    try {
-      try (CloseableResource<BlockWorkerClient> blockWorker =
-          mFsContext.acquireBlockWorkerClient(dataSource)) {
-        blockWorker.get().cache(request);
-      }
+    try (CloseableResource<BlockWorkerClient> blockWorker =
+        mFsContext.acquireBlockWorkerClient(dataSource)) {
+      blockWorker.get().cache(request);
     } catch (Exception e) {
       System.out.printf("Failed to complete cache request for block %d of file %s: %s", blockId,
           status.getPath(), e.toString());
