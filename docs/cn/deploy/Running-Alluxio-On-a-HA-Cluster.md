@@ -132,7 +132,7 @@ $ ./bin/alluxio runTests
 
 ## 访问HA Alluxio集群
 
-当应用程序在HA模式下与Alluxio交互时，客户端知道Alluxio HA集群，以便客户端知道如何返现Alluxio leading master。有两种方法可以在客户端上指定HA Alluxio服务地址:
+当应用程序在HA模式下与Alluxio交互时，客户端知道Alluxio HA集群，以便客户端知道如何返现Alluxio leading master。有三种方法可以在客户端上指定HA Alluxio服务地址:
 
 ### 在配置参数或Java Option中指定Alluxio服务
 
@@ -165,14 +165,26 @@ alluxio.zookeeper.address=<ZOOKEEPER_ADDRESS>
 
 ### 使用URL Authority指定Alluxio服务{#ha-authority}
 
-用户还可以通过在URI中完整描述HA集群信息的方式来连接到Alluxio HA集群。从HA Authority获取的配置优先于所有其他形式的配置，如 站点属性或环境变量。
+用户还可以通过在URI中完整描述HA集群信息的方式来连接到Alluxio HA集群。从HA Authority获取的配置优先于所有其他形式的配置，如站点属性或环境变量。
 
-- 使用嵌入式日志时，使用 `alluxio://master_hostname_1:19998`，`master_hostname_2:19998，master_hostname_3:19998/path`
+- 使用嵌入式日志时，使用 `alluxio://master_hostname_1:19998,master_hostname_2:19998,master_hostname_3:19998/path`
 - 使用Zookeeper做leader选举时，使用 `alluxio://zk@<ZOOKEEPER_ADDRESS>/path`。
 
-对于许多应用程序(例如，Hadoop，HBase，Hive和Flink)，可以使用逗号作为URI中多个地址的分隔符，例如 `alluxio://master_hostname_1:19998，master_hostname_2:19998，master_hostname_3:19998/path` 和 `alluxio://zk@zkHost1:2181，zkHost2:2181，zkHost3:2181/path`。
+对于许多应用程序(例如，Hadoop，HBase，Hive和Flink)，可以使用逗号作为URI中多个地址的分隔符，例如 `alluxio://master_hostname_1:19998,master_hostname_2:19998,master_hostname_3:19998/path` 和 `alluxio://zk@zkHost1:2181,zkHost2:2181,zkHost3:2181/path`。
 
 对于URL Authority内不接受逗号的其他一些应用程序(例如Spark)，需要使用分号作为多个地址的分隔符，例如 `alluxio://master_hostname_1:19998; master_hostname_2:19998; master_hostname_3:19998` 和 `alluxio://zk@zkHost1:2181; zkHost2:2181; zkHost3:2181/path`。
+
+### 使用逻辑域名指定 Alluxio 服务
+
+一些框架可能不接受上述两种方式来连接到高可用Alluxio HA集群，因此Alluxio也支持通过逻辑域名的来连接到Alluxio HA集群。
+
+- 当使用嵌入式日志时，使用 `alluxio://[logical-name]`，并在环境变量或站点属性中设置在环境变量或站点属性`alluxio.master.rpc.addresses.[logical-name]`来确定高可用节点的地址。例如设置URI为`alluxio://alluxio-cluster`并添加以下配置到应用配置中：
+
+  `alluxio.master.rpc.addresses.alluxio-cluster=master_hostname_1:19998,master_hostname_2:19998,master_hostname_3:19998`
+
+- 当使用Zookeeper连接到Alluxio HA集群时，使用`alluxio://zk@[logical-name]`，并在环境变量或站点属性中设置在环境变量或站点属性`alluxio.zookeeper.address.[logical-name]`来指定Zookeeper的地址。例如设置URI为`alluxio://zk@alluxio-cluster`并添加以下配置到应用配置中：
+
+  `alluxio.zookeeper.address.alluxio-cluster=zkHost1:2181,zkHost2:2181,zkHost3:2181`
 
 ## 常见操作
 

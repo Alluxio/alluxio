@@ -220,7 +220,7 @@ $ ./bin/alluxio runTests
 
 When an application interacts with Alluxio in HA mode, the client must know about
 the connection information of Alluxio HA cluster, so that the client knows how to discover the Alluxio leading master.
-The following sections list two ways to specify the HA Alluxio service address on the client side.
+The following sections list three ways to specify the HA Alluxio service address on the client side.
 
 ### Specify Alluxio Service in Configuration Parameters or Java Options
 
@@ -277,6 +277,18 @@ For some other applications (e.g., Spark) where comma is not accepted inside a U
 need to use semicolons as the delimiter for multiple addresses,
 like `alluxio://master_hostname_1:19998;master_hostname_2:19998;master_hostname_3:19998`
 and `alluxio://zk@zkHost1:2181;zkHost2:2181;zkHost3:2181/path`.
+
+### Specify Alluxio Service with logical URL Authority 
+
+Some frameworks may not accept either of these ways to connect to a Alluxio HA cluster, so Alluxio also supports connecting to Alluxio HA cluster via a logical name.
+
+- When using embedded logging, use `alluxio://[logical-name]` and set in the environment variable or site properties `alluxio.master.rpc.addresses.[logical-name]` to determine the address of the highly available node. For example, using `alluxio://alluxio-cluster`  as alluxio URI and set the configuration like
+
+`alluxio.master.rpc.addresses.aluxio-cluster=master_hostname_1:19998,master_hostname_2:19998,master_hostname_3:19998`
+
+- When using Zookeeper  leader election, use `alluxio://zk@[logical-name]` and set in the environment variable or site properties `alluxio.zookeeper.address.[logical-name]` to determine zookeeper address. For example, using `alluxio://zk@alluxio-cluster`  as alluxio URI and set the configuration like
+
+  `alluxio.zookeeper.address.aluxio-cluster=zkHost1:2181,zkHost2:2181,zkHost3:2181`
 
 ## Common Operations
 
@@ -377,7 +389,7 @@ to minimize downtime when updating configurations:
 
 1. Update the master configuration on all the master nodes without restarting any master.
 1. Restart the leading master (can be determined by running `bin/alluxio leader`).
-  A new leading master will be elected to continue servicing requests.
+    A new leading master will be elected to continue servicing requests.
 1. Wait for the previous leading master to come up successfully but as a standby master.
 1. Update and restart all remaining standby masters.
 1. Verify the configuration update
