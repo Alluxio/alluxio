@@ -76,7 +76,7 @@ You will need to mark the directory as "Generated Sources Root" for IntelliJ to 
 8. In Intellij, start Alluxio worker process by selecting `Run > Run > AlluxioWorker`
 9. Verify the Alluxio cluster is up as [Running Alluxio Locally]({{ '/en/deploy/Running-Alluxio-Locally.html#verify-alluxio-is-running' | relativize_url }})
 
-##### Start HA mode alluxio cluster
+##### Start a High Availability (HA) Alluxio cluster
 1. Execute the following command
 ```console
 mkdir -p /tmp/alluxio-tmp/alluxio-0/journal
