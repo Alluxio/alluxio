@@ -27,6 +27,8 @@ public interface Authority extends Comparable<Authority>, Serializable {
   // We allow zookeeper/multi_master authorities to be delimited by ',' ';' or '+'.
   Pattern ZOOKEEPER_AUTH = Pattern.compile("^zk@([^:,;+]+:\\d+([,;+][^:,;+]+:\\d+)*)$");
   Pattern MULTI_MASTERS_AUTH = Pattern.compile("^[^:,;+]+:\\d+([,;+][^:,;+]+:\\d+)+$");
+  // allow this URI pattern : alluxio://your_cluster_name/path
+  Pattern NAMESERVICE_AUTH = Pattern.compile("\\w+");
 
   /**
    * Gets the Authority object from the input string.
@@ -49,8 +51,13 @@ public interface Authority extends Comparable<Authority>, Serializable {
         matcher = MULTI_MASTERS_AUTH.matcher(authority);
         if (matcher.matches()) {
           return new MultiMasterAuthority(authority.replaceAll("[;+]", ","));
+        } else {
+          matcher = NAMESERVICE_AUTH.matcher(authority);
+          if (matcher.matches()) {
+            return new NameServiceAuthority(authority);
+          }
+          return new UnknownAuthority(authority);
         }
-        return new UnknownAuthority(authority);
       }
     }
   }

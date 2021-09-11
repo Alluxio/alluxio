@@ -55,6 +55,7 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
@@ -210,6 +211,18 @@ public class FileSystemContext implements Closeable {
     FileSystemContext ctx = new FileSystemContext(clientContext.getClusterConf(), null);
     ctx.init(clientContext, MasterInquireClient.Factory.create(clientContext.getClusterConf(),
         clientContext.getUserState()));
+    return ctx;
+  }
+
+  /**
+   * @param clientContext the {@link alluxio.ClientContext} containing the subject and configuration
+   * @param uri the uri
+   * @return the {@link alluxio.client.file.FileSystemContext}
+   */
+  public static FileSystemContext create(ClientContext clientContext, URI uri) {
+    FileSystemContext ctx = new FileSystemContext(clientContext.getClusterConf(), null);
+    ctx.init(clientContext, MasterInquireClient.Factory.create(clientContext.getClusterConf(),
+                                                               clientContext.getUserState(), uri));
     return ctx;
   }
 
