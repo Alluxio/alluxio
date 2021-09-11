@@ -99,29 +99,29 @@ public final class FileSystem extends AbstractFileSystem {
       alluxioConfProperties.put(PropertyKey.ZOOKEEPER_ADDRESS.getName(), null);
     } else if (alluxioUri.getAuthority() instanceof EmbeddedLogicalAuthority) {
       EmbeddedLogicalAuthority authority = (EmbeddedLogicalAuthority) alluxioUri.getAuthority();
-      String confName = PropertyKey.MASTER_RPC_ADDRESSES.getName()
-          + "." + authority.getLogicalName();
+      String confName = PropertyKey.Template.LOGICAL_MASTER_RPC_ADDRESSES
+          .format(authority.getLogicalName()).getName();
       if (conf.get(confName) != null) {
         // If user set alluxio.master.rpc.addresses.[logicalName]
         String masterAddress = conf.get(confName);
         alluxioConfProperties.put(PropertyKey.MASTER_RPC_ADDRESSES.getName(), masterAddress);
       } else {
-        throw new IllegalStateException(
+        throw new IllegalArgumentException(
             String.format("Invalid uri. You must set %s to use the logical name ", confName));
       }
       alluxioConfProperties.put(PropertyKey.ZOOKEEPER_ENABLED.getName(), false);
       alluxioConfProperties.put(PropertyKey.ZOOKEEPER_ADDRESS.getName(), null);
     } else if (alluxioUri.getAuthority() instanceof ZookeeperLogicalAuthority) {
       ZookeeperLogicalAuthority authority = (ZookeeperLogicalAuthority) alluxioUri.getAuthority();
-      String confName =
-          PropertyKey.ZOOKEEPER_ADDRESS.getName() + "." + authority.getLogicalName();
-      if (conf.get(confName) != null) {
+      String confName = PropertyKey.Template.LOGICAL_ZOOKEEPER_ADDRESS
+          .format(authority.getLogicalName()).getName();
+      String zkAddress = conf.get(confName);
+      if (zkAddress != null) {
         // If user set alluxio.zookeeper.address.[logicalName]
-        String zkAddress = conf.get(confName);
         alluxioConfProperties.put(PropertyKey.ZOOKEEPER_ENABLED.getName(), true);
         alluxioConfProperties.put(PropertyKey.ZOOKEEPER_ADDRESS.getName(), zkAddress);
       } else {
-        throw new IllegalStateException(
+        throw new IllegalArgumentException(
             String.format("Invalid uri. You must set %s to use the logical name ", confName));
       }
     }

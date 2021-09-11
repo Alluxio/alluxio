@@ -6414,6 +6414,10 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   @ThreadSafe
   public enum Template {
     LOCALITY_TIER("alluxio.locality.%s", "alluxio\\.locality\\.(\\w+)"),
+    LOGICAL_MASTER_RPC_ADDRESSES("alluxio.master.rpc.addresses.%s",
+        "alluxio\\.master\\.rpc\\.addresses\\.([a-zA-Z_\\-0-9.]+)"),
+    LOGICAL_ZOOKEEPER_ADDRESS("alluxio.zookeeper.address.%s",
+        "alluxio\\.zookeeper\\.address\\.([a-zA-Z_\\-0-9.]+)"),
     MASTER_IMPERSONATION_GROUPS_OPTION("alluxio.master.security.impersonation.%s.groups",
         "alluxio\\.master\\.security\\.impersonation\\.([a-zA-Z_0-9-\\.@]+)\\.groups"),
     MASTER_IMPERSONATION_USERS_OPTION("alluxio.master.security.impersonation.%s.users",

@@ -151,7 +151,7 @@ public class AbstractFileSystemTest {
     URI uri = URI.create("alluxio://logical/path");
     Configuration conf = getConf();
     conf.set(
-        PropertyKey.MASTER_RPC_ADDRESSES.getName() + ".logical",
+        PropertyKey.Template.LOGICAL_MASTER_RPC_ADDRESSES.format("logical").getName(),
         "host1:19998,host2:19998,host3:19998");
     AbstractFileSystem afs = new alluxio.hadoop.FileSystem();
     afs.initialize(uri, conf);
@@ -172,7 +172,7 @@ public class AbstractFileSystemTest {
     URI uri = URI.create("alluxio://zk@logical/path");
     Configuration conf = getConf();
     conf.set(
-        PropertyKey.ZOOKEEPER_ADDRESS.getName() + ".logical",
+        PropertyKey.Template.LOGICAL_ZOOKEEPER_ADDRESS.format("logical").getName(),
         "host1:2181,host2:2181,host3:2181");
     AbstractFileSystem afs = new alluxio.hadoop.FileSystem();
     afs.initialize(uri, conf);

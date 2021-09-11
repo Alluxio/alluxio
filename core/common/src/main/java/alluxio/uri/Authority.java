@@ -23,8 +23,8 @@ import java.util.regex.Pattern;
  */
 public interface Authority extends Comparable<Authority>, Serializable {
   Logger LOG = LoggerFactory.getLogger(Authority.class);
-  Pattern LOGICAL_MASTER_AUTH = Pattern.compile("^([^:,;@]+)$");
-  Pattern ZOOKEEPER_LOGICAL_MASTER_AUTH = Pattern.compile("^zk@([^:,;@]+)$");
+  Pattern LOGICAL_MASTER_AUTH = Pattern.compile("^([a-zA-Z_\\-0-9.]+)$");
+  Pattern ZOOKEEPER_LOGICAL_MASTER_AUTH = Pattern.compile("^zk@([a-zA-Z_\\-0-9.]+)$");
   Pattern SINGLE_MASTER_AUTH = Pattern.compile("^([^:,;]+):(\\d+)$");
   // We allow zookeeper/multi_master authorities to be delimited by ',' ';' or '+'.
   Pattern ZOOKEEPER_AUTH = Pattern.compile("^zk@([^:,;+]+:\\d+([,;+][^:,;+]+:\\d+)*)$");
