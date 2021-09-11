@@ -12,6 +12,7 @@
 package alluxio.master.journal;
 
 import alluxio.grpc.GetQuorumInfoPResponse;
+import alluxio.grpc.GetTransferLeaderMessagePResponse;
 import alluxio.grpc.NetAddress;
 
 import java.io.IOException;
@@ -57,5 +58,5 @@ public interface JournalMaster {
   /**
    * Gets list of exception message throwing when transfer leader.
    */
-  void getTransferLeaderMessage() throws IOException;
+  GetTransferLeaderMessagePResponse getTransferLeaderMessage();
 }
