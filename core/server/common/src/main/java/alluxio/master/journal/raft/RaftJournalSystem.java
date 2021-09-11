@@ -24,6 +24,7 @@ import alluxio.grpc.NetAddress;
 import alluxio.grpc.QuorumServerInfo;
 import alluxio.grpc.QuorumServerState;
 import alluxio.grpc.ServiceType;
+import alluxio.grpc.TransferLeaderMessage;
 import alluxio.master.Master;
 import alluxio.master.PrimarySelector;
 import alluxio.master.journal.AbstractJournalSystem;
@@ -224,6 +225,7 @@ public class RaftJournalSystem extends AbstractJournalSystem {
   private final ClientId mRawClientId = ClientId.randomId();
   private RaftGroup mRaftGroup;
   private RaftPeerId mPeerId;
+  private List<TransferLeaderMessage> mTransferMsgs;
 
   static long nextCallId() {
     return CALL_ID_COUNTER.getAndIncrement() & Long.MAX_VALUE;
@@ -239,6 +241,7 @@ public class RaftJournalSystem extends AbstractJournalSystem {
     mTransferLeaderAllowed = new AtomicBoolean(false);
     mPrimarySelector = new RaftPrimarySelector();
     mAsyncJournalWriter = new AtomicReference<>();
+    mTransferMsgs = new ArrayList<>();
     try {
       super.registerMetrics();
     } catch (RuntimeException e) {
@@ -941,9 +944,13 @@ public class RaftJournalSystem extends AbstractJournalSystem {
   public synchronized void transferLeadership(NetAddress newLeaderNetAddress) throws IOException {
     final boolean allowed = mTransferLeaderAllowed.getAndSet(false);
     if (!allowed) {
-      throw new IOException("transfer is not allowed at the moment because the master is "
+      IOException exception =
+              new IOException("transfer is not allowed at the moment because the master is "
               + (mRaftJournalWriter == null ? "still gaining primacy" : "already transferring the "
               + "leadership"));
+      mTransferMsgs.add(TransferLeaderMessage.newBuilder()
+              .setMsg(exception.toString()).setIsException(true).build());
+      throw exception;
     }
     InetSocketAddress serverAddress = InetSocketAddress
             .createUnresolved(newLeaderNetAddress.getHost(), newLeaderNetAddress.getRpcPort());
@@ -953,8 +960,11 @@ public class RaftJournalSystem extends AbstractJournalSystem {
     // if you cannot find the address in the quorum, throw exception.
     if (oldPeers.stream().map(RaftPeer::getAddress).noneMatch(addr -> addr.equals(strAddr))) {
       mTransferLeaderAllowed.set(true);
-      throw new IOException(String.format("<%s> is not part of the quorum <%s>.",
+      IOException exception = new IOException(String.format("<%s> is not part of the quorum <%s>.",
               strAddr, oldPeers.stream().map(RaftPeer::getAddress).collect(Collectors.toList())));
+      mTransferMsgs.add(TransferLeaderMessage.newBuilder()
+              .setMsg(exception.toString()).setIsException(true).build());
+      throw exception;
     }
 
     RaftPeerId newLeaderPeerId = RaftJournalUtils.getPeerId(serverAddress);
@@ -1011,8 +1021,19 @@ public class RaftJournalSystem extends AbstractJournalSystem {
               ? reply.getException()
               : new IOException(String.format("reply <%s> failed", reply));
       LOG.error("{}. Error: {}", msgToUser, ioe);
-      throw new IOException(msgToUser);
+      IOException exception = new IOException(msgToUser);
+      mTransferMsgs.add(TransferLeaderMessage.newBuilder()
+              .setMsg(exception.toString()).setIsException(true).build());
+      throw exception;
     }
+  }
+
+  /**
+   * Gets list of exception message throwing when transfer leader.
+   * @return the exception
+   */
+  public synchronized List<TransferLeaderMessage> getTransferLeaderMessage() {
+    return mTransferMsgs;
   }
 
   /**

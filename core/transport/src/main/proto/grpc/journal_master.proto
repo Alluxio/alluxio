@@ -58,6 +58,17 @@ message ResetPrioritiesPRequest {
 }
 message ResetPrioritiesPResponse {}
 
+message TransferLeaderMessage {
+    optional string msg = 1;
+    optional bool isException = 2;
+}
+// GetTransferLeaderMessage API
+message GetTransferLeaderMessageOptions {}
+message GetTransferLeaderMessagePRequest {}
+message GetTransferLeaderMessagePResponse{
+    repeated TransferLeaderMessage transMsg = 1;
+}
+
 /**
   * This interface contains journal master service endpoints for Alluxio clients.
   */
@@ -82,4 +93,9 @@ service JournalMasterClientService {
      * Reset all the RaftPeer priorities.
      */
     rpc ResetPriorities(ResetPrioritiesPRequest) returns (ResetPrioritiesPResponse);
+
+    /**
+     * Gets list of exception message throwing when transfer leader.
+     */
+    rpc GetTransferLeaderMessage(GetTransferLeaderMessagePRequest) returns (GetTransferLeaderMessagePResponse);
 }

@@ -71,4 +71,10 @@ public class DefaultJournalMaster implements JournalMaster {
     checkQuorumOpSupported();
     ((RaftJournalSystem) mJournalSystem).resetPriorities();
   }
+
+  @Override
+  public void getTransferLeaderMessage() {
+    checkQuorumOpSupported();
+    ((RaftJournalSystem) mJournalSystem).getTransferLeaderMessage();
+  }
 }

@@ -19,8 +19,10 @@ import alluxio.exception.ExceptionMessage;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.grpc.GetQuorumInfoPResponse;
+import alluxio.grpc.GetTransferLeaderMessagePResponse;
 import alluxio.grpc.NetAddress;
 import alluxio.grpc.QuorumServerInfo;
+import alluxio.grpc.TransferLeaderMessage;
 import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
 
@@ -69,6 +71,15 @@ public class QuorumElectCommand extends AbstractFsAdminCommand {
       final int TIMEOUT_3MIN = 3 * 60 * 1000; // in milliseconds
       CommonUtils.waitFor("Waiting for election to finalize", () -> {
         try {
+          GetTransferLeaderMessagePResponse transferMsg = jmClient.getTransferLeaderMessage();
+          Optional<TransferLeaderMessage>
+                  exceptionMsgOpt = transferMsg.getTransMsgList().stream()
+                  .filter(TransferLeaderMessage::getIsException).findAny();
+          String msg = exceptionMsgOpt.isPresent() ? exceptionMsgOpt.get().getMsg() : null;
+          if (msg != null) {
+            System.out.println(msg);
+            return false;
+          }
           GetQuorumInfoPResponse quorumInfo = jmClient.getQuorumInfo();
 
           Optional<QuorumServerInfo>

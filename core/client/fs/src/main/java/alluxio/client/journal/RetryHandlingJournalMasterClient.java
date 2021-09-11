@@ -16,6 +16,8 @@ import alluxio.Constants;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.grpc.GetQuorumInfoPRequest;
 import alluxio.grpc.GetQuorumInfoPResponse;
+import alluxio.grpc.GetTransferLeaderMessagePRequest;
+import alluxio.grpc.GetTransferLeaderMessagePResponse;
 import alluxio.grpc.JournalMasterClientServiceGrpc;
 import alluxio.grpc.NetAddress;
 import alluxio.grpc.RemoveQuorumServerPRequest;
@@ -88,5 +90,11 @@ public class RetryHandlingJournalMasterClient extends AbstractMasterClient
   public void resetPriorities() throws AlluxioStatusException {
     retryRPC(() -> mClient.resetPriorities(ResetPrioritiesPRequest.getDefaultInstance()),
             RPC_LOG, "ResetPriorities", "");
+  }
+
+  @Override
+  public GetTransferLeaderMessagePResponse getTransferLeaderMessage() throws AlluxioStatusException {
+    return retryRPC(() -> mClient.getTransferLeaderMessage(GetTransferLeaderMessagePRequest.getDefaultInstance()),
+            RPC_LOG, "GetTransferLeaderMessage",  "");
   }
 }

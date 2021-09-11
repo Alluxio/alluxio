@@ -15,6 +15,8 @@ import alluxio.RpcUtils;
 
 import alluxio.grpc.GetQuorumInfoPRequest;
 import alluxio.grpc.GetQuorumInfoPResponse;
+import alluxio.grpc.GetTransferLeaderMessagePRequest;
+import alluxio.grpc.GetTransferLeaderMessagePResponse;
 import alluxio.grpc.JournalMasterClientServiceGrpc;
 import alluxio.grpc.RemoveQuorumServerPRequest;
 import alluxio.grpc.RemoveQuorumServerPResponse;
@@ -78,5 +80,14 @@ public class JournalMasterClientServiceHandler
       mJournalMaster.resetPriorities();
       return ResetPrioritiesPResponse.getDefaultInstance();
     }, "resetPriorities", "request=%s", responseObserver, request);
+  }
+
+  @Override
+  public void getTransferLeaderMessage(GetTransferLeaderMessagePRequest request,
+                                       StreamObserver<GetTransferLeaderMessagePResponse> responseObserver) {
+    RpcUtils.call(LOG, () -> {
+      mJournalMaster.getTransferLeaderMessage();
+      return GetTransferLeaderMessagePResponse.getDefaultInstance();
+    }, "GetTransferLeaderMessage", "request=%s", responseObserver, request);
   }
 }

@@ -53,4 +53,9 @@ public interface JournalMaster {
    * @throws IOException if error occurs while performing the operation
    */
   void resetPriorities() throws IOException;
+
+  /**
+   * Gets list of exception message throwing when transfer leader.
+   */
+  void getTransferLeaderMessage();
 }
