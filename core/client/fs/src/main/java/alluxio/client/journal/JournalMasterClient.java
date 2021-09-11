@@ -55,7 +55,7 @@ public interface JournalMasterClient extends Closeable {
   /**
    * Resets RaftPeer priorities.
    *
-   * @return list of exception message throwing when transfer leader.
+   * @return list of exception message throwing when transfer leader
    */
   GetTransferLeaderMessagePResponse getTransferLeaderMessage() throws AlluxioStatusException;
 }

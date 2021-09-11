@@ -93,8 +93,10 @@ public class RetryHandlingJournalMasterClient extends AbstractMasterClient
   }
 
   @Override
-  public GetTransferLeaderMessagePResponse getTransferLeaderMessage() throws AlluxioStatusException {
-    return retryRPC(() -> mClient.getTransferLeaderMessage(GetTransferLeaderMessagePRequest.getDefaultInstance()),
-            RPC_LOG, "GetTransferLeaderMessage",  "");
+  public GetTransferLeaderMessagePResponse getTransferLeaderMessage()
+          throws AlluxioStatusException {
+    return retryRPC(() ->
+            mClient.getTransferLeaderMessage(GetTransferLeaderMessagePRequest.getDefaultInstance()),
+        RPC_LOG, "GetTransferLeaderMessage",  "");
   }
 }
