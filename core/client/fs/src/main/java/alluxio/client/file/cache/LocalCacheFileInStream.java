@@ -14,6 +14,9 @@ package alluxio.client.file.cache;
 import alluxio.client.file.CacheContext;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.URIStatus;
+import alluxio.client.metrics.LocalCacheMetrics;
+import alluxio.client.metrics.ScopedMetricKey;
+import alluxio.client.metrics.ScopedMetrics;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.AlluxioException;
@@ -55,6 +58,7 @@ public class LocalCacheFileInStream extends FileInStream {
   /** File info, fetched from external FS. */
   private final URIStatus mStatus;
   private final FileInStreamOpener mExternalFileInStreamOpener;
+  private final ScopedMetrics mScopedMetrics;
 
   /** Stream reading from the external file system, opened once. */
   private FileInStream mExternalFileInStream;
@@ -107,6 +111,7 @@ public class LocalCacheFileInStream extends FileInStream {
     }
     Metrics.registerGauges();
     mStopwatch = stopwatch;
+    mScopedMetrics = LocalCacheMetrics.Factory.get(conf).getLocalCacheMetricsInScope();
   }
 
   @Override
@@ -169,6 +174,8 @@ public class LocalCacheFileInStream extends FileInStream {
           cacheContext.incrementCounter(
               MetricKey.CLIENT_CACHE_PAGE_READ_CACHE_TIME_NS.getMetricName(),
               mStopwatch.elapsed(TimeUnit.NANOSECONDS));
+          mScopedMetrics
+              .inc(cacheContext.getCacheScope(), ScopedMetricKey.BYTES_READ_CACHE, bytesRead);
         }
       } else {
         // on local cache miss, read a complete page from external storage. This will always make
@@ -188,6 +195,8 @@ public class LocalCacheFileInStream extends FileInStream {
                 MetricKey.CLIENT_CACHE_PAGE_READ_EXTERNAL_TIME_NS.getMetricName(),
                 mStopwatch.elapsed(TimeUnit.NANOSECONDS)
             );
+            mScopedMetrics
+                .inc(cacheContext.getCacheScope(), ScopedMetricKey.BYTES_READ_EXTERNAL, bytesRead);
           }
           mCacheManager.put(pageId, page, mCacheContext);
         }

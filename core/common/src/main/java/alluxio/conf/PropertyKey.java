@@ -4055,10 +4055,20 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
+  public static final PropertyKey USER_CLIENT_CACHE_METRICS_BREAKDOWN_ENABLED =
+      new Builder(Name.USER_CLIENT_CACHE_METRICS_BREAKDOWN_ENABLED).setDefaultValue(false)
+          .setDescription(
+              "If this is enabled, a breakdown metrics will be collected on client side")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN).setScope(Scope.CLIENT).build();
   public static final PropertyKey USER_CLIENT_CACHE_SHADOW_ENABLED =
       new Builder(Name.USER_CLIENT_CACHE_SHADOW_ENABLED).setDefaultValue(false).setDescription(
           "If this is enabled, a shadow cache will be created to tracking the working set of "
               + "a past time window, and measure the hit ratio if the working set fits the cache")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN).setScope(Scope.CLIENT).build();
+  public static final PropertyKey USER_CLIENT_CACHE_SHADOW_METRICS_BREAKDOWN_ENABLED =
+      new Builder(Name.USER_CLIENT_CACHE_SHADOW_METRICS_BREAKDOWN_ENABLED).setDefaultValue(false)
+          .setDescription(
+              "If this is enabled, a breakdown metrics will be collected on client side")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN).setScope(Scope.CLIENT).build();
   public static final PropertyKey USER_CLIENT_CACHE_SHADOW_WINDOW =
       new Builder(Name.USER_CLIENT_CACHE_SHADOW_WINDOW).setDefaultValue("24h")
@@ -6077,8 +6087,12 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.user.client.cache.evictor.lfu.logbase";
     public static final String USER_CLIENT_CACHE_EVICTOR_NONDETERMINISTIC_ENABLED =
         "alluxio.user.client.cache.evictor.nondeterministic.enabled";
+    public static final String USER_CLIENT_CACHE_METRICS_BREAKDOWN_ENABLED =
+        "alluxio.user.client.cache.metrics.breakdown.enabled";
     public static final String USER_CLIENT_CACHE_SHADOW_ENABLED =
         "alluxio.user.client.cache.shadow.enabled";
+    public static final String USER_CLIENT_CACHE_SHADOW_METRICS_BREAKDOWN_ENABLED =
+        "alluxio.user.client.cache.shadow.metrics.breakdown.enabled";
     public static final String USER_CLIENT_CACHE_SHADOW_WINDOW =
         "alluxio.user.client.cache.shadow.window";
     public static final String USER_CLIENT_CACHE_SHADOW_MEMORY_OVERHEAD =

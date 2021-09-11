@@ -16,6 +16,7 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import alluxio.client.quota.CacheScope;
+import alluxio.conf.PropertyKey;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -32,6 +33,7 @@ public class QuotaMetaStoreTest extends DefaultMetaStoreTest {
 
   @Before
   public void before() {
+    mConf.set(PropertyKey.USER_CLIENT_CACHE_QUOTA_ENABLED, true);
     mMetaStore = new QuotaMetaStore(mConf);
     mQuotaMetaStore = (QuotaMetaStore) mMetaStore;
   }
