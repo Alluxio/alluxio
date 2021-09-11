@@ -13,6 +13,7 @@
     <description>Huawei OBS Under File System implementation</description>
 
     <properties>
+        <build.path>${project.parent.parent.basedir}/build</build.path>
         <hamcrest.version>1.3</hamcrest.version>
         <obs.version>3.20.6</obs.version>
     </properties>
