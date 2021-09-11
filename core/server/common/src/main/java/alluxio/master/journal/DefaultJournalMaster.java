@@ -73,7 +73,7 @@ public class DefaultJournalMaster implements JournalMaster {
   }
 
   @Override
-  public void getTransferLeaderMessage() throws IOException{
+  public void getTransferLeaderMessage() throws IOException {
     checkQuorumOpSupported();
     ((RaftJournalSystem) mJournalSystem).getTransferLeaderMessage();
   }
