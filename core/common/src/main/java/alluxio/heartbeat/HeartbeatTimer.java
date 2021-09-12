@@ -20,7 +20,9 @@ public interface HeartbeatTimer {
    * Sets the heartbeat interval.
    * @param intervalMs the heartbeat interval in ms
    */
-  default void setIntervalMs(long intervalMs) {}
+  default void setIntervalMs(long intervalMs) {
+    throw new UnsupportedOperationException("Setting interval is not supported");
+  }
 
   /**
    * Waits until next heartbeat should be executed.
