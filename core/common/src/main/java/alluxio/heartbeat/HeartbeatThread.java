@@ -128,7 +128,7 @@ public final class HeartbeatThread implements Runnable {
   }
 
   /**
-   * Update the heartbeat interval.
+   * Updates the heartbeat interval.
    * @param intervalMs the heartbeat interval
    */
   public void updateIntervalMs(long intervalMs) {
