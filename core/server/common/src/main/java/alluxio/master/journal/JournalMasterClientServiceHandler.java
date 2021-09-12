@@ -85,9 +85,7 @@ public class JournalMasterClientServiceHandler
   @Override
   public void getTransferLeaderMessage(GetTransferLeaderMessagePRequest request,
       StreamObserver<GetTransferLeaderMessagePResponse> responseObserver) {
-    RpcUtils.call(LOG, () -> {
-      mJournalMaster.getTransferLeaderMessage();
-      return GetTransferLeaderMessagePResponse.getDefaultInstance();
-    }, "GetTransferLeaderMessage", "request=%s", responseObserver, request);
+    RpcUtils.call(LOG, () -> mJournalMaster.getTransferLeaderMessage(),
+            "GetTransferLeaderMessage", "request=%s", responseObserver, request);
   }
 }

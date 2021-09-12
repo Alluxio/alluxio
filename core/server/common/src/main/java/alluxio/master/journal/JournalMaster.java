@@ -57,6 +57,7 @@ public interface JournalMaster {
 
   /**
    * Gets list of exception message throwing when transfer leader.
+   * @return list of exception message
    */
   GetTransferLeaderMessagePResponse getTransferLeaderMessage();
 }
