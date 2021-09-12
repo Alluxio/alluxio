@@ -74,11 +74,12 @@ public class QuorumElectCommand extends AbstractFsAdminCommand {
           GetTransferLeaderMessagePResponse transferMsg = jmClient.getTransferLeaderMessage();
           Optional<TransferLeaderMessage>
                   exceptionMsgOpt = transferMsg.getTransMsgList().stream()
-                  .filter(TransferLeaderMessage::getIsException).findAny();
-          String msg = exceptionMsgOpt.isPresent() ? exceptionMsgOpt.get().getMsg() : null;
+                  .filter(TransferLeaderMessage::hasMsg).findAny();
+          String msg = exceptionMsgOpt.map(TransferLeaderMessage::getMsg).orElse(null);
           if (msg != null) {
             System.out.println(msg);
-            return false;
+            throw new IOException(
+                    String.format("caught an error when executing transfer: %s", msg));
           }
           GetQuorumInfoPResponse quorumInfo = jmClient.getQuorumInfo();
 
@@ -88,7 +89,7 @@ public class QuorumElectCommand extends AbstractFsAdminCommand {
           NetAddress leaderAddress = leadingMasterInfoOpt.isPresent()
               ? leadingMasterInfoOpt.get().getServerAddress() : null;
           return address.equals(leaderAddress);
-        } catch (AlluxioStatusException e) {
+        } catch (IOException e) {
           return false;
         }
       }, WaitForOptions.defaults().setTimeoutMs(TIMEOUT_3MIN));

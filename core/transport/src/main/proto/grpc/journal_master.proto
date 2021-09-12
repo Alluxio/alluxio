@@ -60,7 +60,6 @@ message ResetPrioritiesPResponse {}
 
 message TransferLeaderMessage {
     optional string msg = 1;
-    optional bool isException = 2;
 }
 // GetTransferLeaderMessage API
 message GetTransferLeaderMessageOptions {}

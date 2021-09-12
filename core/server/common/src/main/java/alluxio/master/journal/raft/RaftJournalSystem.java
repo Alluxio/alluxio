@@ -949,7 +949,7 @@ public class RaftJournalSystem extends AbstractJournalSystem {
               + (mRaftJournalWriter == null ? "still gaining primacy" : "already transferring the "
               + "leadership"));
       mTransferMsgs.add(TransferLeaderMessage.newBuilder()
-              .setMsg(exception.toString()).setIsException(true).build());
+              .setMsg(exception.toString()).build());
       throw exception;
     }
     InetSocketAddress serverAddress = InetSocketAddress
@@ -963,7 +963,7 @@ public class RaftJournalSystem extends AbstractJournalSystem {
       IOException exception = new IOException(String.format("<%s> is not part of the quorum <%s>.",
               strAddr, oldPeers.stream().map(RaftPeer::getAddress).collect(Collectors.toList())));
       mTransferMsgs.add(TransferLeaderMessage.newBuilder()
-              .setMsg(exception.toString()).setIsException(true).build());
+              .setMsg(exception.toString()).build());
       throw exception;
     }
 
@@ -1023,7 +1023,7 @@ public class RaftJournalSystem extends AbstractJournalSystem {
       LOG.error("{}. Error: {}", msgToUser, ioe);
       IOException exception = new IOException(msgToUser);
       mTransferMsgs.add(TransferLeaderMessage.newBuilder()
-              .setMsg(exception.toString()).setIsException(true).build());
+              .setMsg(exception.toString()).build());
       throw exception;
     }
   }
