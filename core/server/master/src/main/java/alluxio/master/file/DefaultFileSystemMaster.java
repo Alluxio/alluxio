@@ -738,7 +738,6 @@ public final class DefaultFileSystemMaster extends CoreMaster
       Thread.currentThread().interrupt();
       LOG.warn("Failed to wait for active sync executor to shut down.");
     }
-
     ReconfigurableRegistry.unregister(this);
   }
 
