@@ -17,7 +17,7 @@ package alluxio.heartbeat;
 public interface HeartbeatTimer {
 
   /**
-   * Set the heartbeat interval.
+   * Sets the heartbeat interval.
    * @param intervalMs the heartbeat interval
    */
   default void setIntervalMs(long intervalMs) {}
