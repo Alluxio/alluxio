@@ -15,6 +15,7 @@ import alluxio.stress.BaseParameters;
 import alluxio.stress.GraphGenerator;
 import alluxio.stress.Summary;
 
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -37,13 +38,10 @@ public class FuseIOSummary implements Summary {
   private float mIOMBps;
 
   /**
-   * Creates an instance.
+   * Default constructor required for json deserialization.
    */
   public FuseIOSummary() {
-    // default constructor required for json deserialization
-    mNodes = new ArrayList<>();
-    mErrors = new HashMap<>();
-    mClientsThroughput = new HashMap<>();
+    new FuseIOSummary(null, null, new ArrayList<>(), new HashMap<>(), 0, 0, 0, 0, new HashMap<>());
   }
 
   /**
@@ -74,6 +72,7 @@ public class FuseIOSummary implements Summary {
   }
 
   @Override
+  @Nullable
   public GraphGenerator graphGenerator() {
     return null;
   }

@@ -380,12 +380,12 @@ public class FuseIOBench extends Benchmark<FuseIOTaskResult> {
           listFile();
           break;
         }
-        case WRITE:
+        case WRITE: // fall through
         case LOCAL_READ: {
           writeOrLocalRead();
           break;
         }
-        case REMOTE_READ:
+        case REMOTE_READ: // fall through
         case CLUSTER_READ: {
           remoteOrClusterRead();
           break;
@@ -471,8 +471,8 @@ public class FuseIOBench extends Benchmark<FuseIOTaskResult> {
         mInStream = new FileInputStream(filePath);
       }
       switch (mParameters.mOperation) {
-        case LOCAL_READ:
-        case REMOTE_READ:
+        case LOCAL_READ: // fall through
+        case REMOTE_READ: // fall through
         case CLUSTER_READ: {
           if (mInStream == null) {
             mInStream = new FileInputStream(filePath);

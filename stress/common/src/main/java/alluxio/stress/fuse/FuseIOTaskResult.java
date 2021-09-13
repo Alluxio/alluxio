@@ -18,6 +18,7 @@ import alluxio.stress.TaskResult;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -187,7 +188,7 @@ public final class FuseIOTaskResult implements TaskResult {
    * @return the list of errors
    */
   public List<String> getErrors() {
-    return mErrors;
+    return Collections.unmodifiableList(mErrors);
   }
 
   /**
