@@ -41,7 +41,7 @@ public class FuseIOSummary implements Summary {
    * Default constructor required for json deserialization.
    */
   public FuseIOSummary() {
-    new FuseIOSummary(null, null, new ArrayList<>(), new HashMap<>(), 0, 0, 0, 0, new HashMap<>());
+    this(null, null, new ArrayList<>(), new HashMap<>(), 0, 0, 0, 0, new HashMap<>());
   }
 
   /**
