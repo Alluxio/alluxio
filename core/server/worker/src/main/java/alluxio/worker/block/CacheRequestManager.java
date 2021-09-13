@@ -24,6 +24,7 @@ import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.util.CommonUtils;
+import alluxio.util.WaitForOptions;
 import alluxio.util.io.BufferUtils;
 import alluxio.util.logging.SamplingLogger;
 import alluxio.util.network.NetworkAddressUtils;
@@ -100,7 +101,8 @@ public class CacheRequestManager {
       } else {
         try {
           CommonUtils.waitFor("block to be loaded",
-              () -> mActiveCacheRequests.containsKey(blockId));
+              () -> !mActiveCacheRequests.containsKey(blockId),
+              WaitForOptions.defaults().setTimeoutMs(30 * Constants.SECOND_MS));
         } catch (InterruptedException e) {
           throw new CancelledException("Fail to finish cache request synchronously. "
               + "Interrupted while waiting for block to be loaded by another request.", e);
