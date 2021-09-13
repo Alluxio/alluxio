@@ -4,13 +4,13 @@ To build your Alluxio Docker image, a Docker 19.03+ is required.
 ## Building docker image for production
 To build the Alluxio Docker image from the default remote url, run
 ```console
-$ docker build -t alluxio/alluxio-prod .
+$ docker build -t alluxio/alluxio .
 ```
 
 To build with a local Alluxio tarball, specify the `ALLUXIO_TARBALL` build argument
 
 ```console
-$ docker build -t alluxio/alluxio-prod --build-arg ALLUXIO_TARBALL=alluxio-${version}.tar.gz .
+$ docker build -t alluxio/alluxio --build-arg ALLUXIO_TARBALL=alluxio-${version}.tar.gz .
 ```
 
 Starting from v2.6.0, alluxio-fuse image is deprecated. It is embedded in alluxio/alluxio image.
@@ -18,7 +18,7 @@ Starting from v2.6.0, alluxio-fuse image is deprecated. It is embedded in alluxi
 ## Building docker image for development
 Starting from now, Alluxio has a separate image for development usage. Unlike the default Alluxio 
 Docker image that only installs packages needed for Alluxio service to run, this image installs 
-more development tools, including gcc, make, async-profiler, etc. making it easier to deploy more 
+more development tools, including gcc, make, async-profiler, etc., making it easier to deploy more 
 services along with Alluxio.
 
 To build the development image from the default remote url, run
@@ -43,7 +43,8 @@ when the image starts.
 
 ```console
 $ docker run -e ALLUXIO_MASTER_HOSTNAME=ec2-203-0-113-25.compute-1.amazonaws.com \
-alluxio/alluxio-[prod|dev] [master|worker|proxy|fuse]
+alluxio/alluxio-[
+|dev] [master|worker|proxy|fuse]
 ```
 
 Additional configuration files can be included when building the image by adding them to the
@@ -56,7 +57,7 @@ to launch a standalone Fuse container:
 
 ```console
 $ docker run -e ALLUXIO_MASTER_HOSTNAME=alluxio-master \
---cap-add SYS_ADMIN --device /dev/fuse alluxio/alluxio-[prod|dev] fuse --fuse-opts=allow_other
+--cap-add SYS_ADMIN --device /dev/fuse alluxio/alluxio fuse --fuse-opts=allow_other
 ```
 
 Note: running FUSE in docker requires adding
