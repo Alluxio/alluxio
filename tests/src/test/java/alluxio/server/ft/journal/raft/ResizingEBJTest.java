@@ -14,11 +14,9 @@ package alluxio.server.ft.journal.raft;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
-import alluxio.AlluxioTestDirectory;
 import alluxio.AlluxioURI;
 import alluxio.client.file.FileSystem;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.NetAddress;
 import alluxio.grpc.QuorumServerInfo;
 import alluxio.grpc.QuorumServerState;
@@ -26,21 +24,17 @@ import alluxio.master.AlluxioMasterProcess;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.journal.JournalType;
 import alluxio.master.journal.raft.RaftJournalSystem;
-import alluxio.multi.process.MasterNetAddress;
 import alluxio.multi.process.MultiProcessCluster;
 import alluxio.multi.process.PortCoordination;
 import alluxio.util.CommonUtils;
-import alluxio.util.network.NetworkAddressUtils;
 
 import org.apache.ratis.protocol.Message;
 import org.junit.Assert;
 import org.junit.Ignore;
 import org.junit.Test;
 
-import java.io.File;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.concurrent.ForkJoinPool;
 
 public class ResizingEBJTest extends BaseEmbeddedJournalTest {
 
@@ -103,7 +97,7 @@ public class ResizingEBJTest extends BaseEmbeddedJournalTest {
 
   @Test
   public void growCluster() throws Exception {
-    mCluster = MultiProcessCluster.newBuilder(PortCoordination.EMBEDDED_JOURNAL_GROW)
+    mCluster = MultiProcessCluster.newBuilder(PortCoordination.allocate(2, 0))
         .setClusterName("EmbeddedJournalAddMaster").setNumMasters(2).setNumWorkers(0)
         .addProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.EMBEDDED.toString())
         .addProperty(PropertyKey.MASTER_JOURNAL_FLUSH_TIMEOUT_MS, "5min")
@@ -122,68 +116,7 @@ public class ResizingEBJTest extends BaseEmbeddedJournalTest {
     Assert.assertEquals(2,
         mCluster.getJournalMasterClientForMaster().getQuorumInfo().getServerInfoList().size());
 
-    // Create and start a new master to join to existing cluster.
-    // Get new master address.
-    MasterNetAddress newMasterAddress = new MasterNetAddress(
-        NetworkAddressUtils.getLocalHostName(
-            (int) ServerConfiguration.getMs(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS)),
-        PortCoordination.EMBEDDED_JOURNAL_GROW_NEWMASTER.get(0).getPort(),
-        PortCoordination.EMBEDDED_JOURNAL_GROW_NEWMASTER.get(1).getPort(),
-        PortCoordination.EMBEDDED_JOURNAL_GROW_NEWMASTER.get(2).getPort());
-
-    // Update RPC and EmbeddedJournal addresses with the new master address.
-    String newBootstrapList = ServerConfiguration.get(PropertyKey.MASTER_EMBEDDED_JOURNAL_ADDRESSES)
-        + "," + newMasterAddress.getHostname() + ":" + newMasterAddress.getEmbeddedJournalPort();
-    String newRpcList = ServerConfiguration.get(PropertyKey.MASTER_RPC_ADDRESSES) + ","
-        + newMasterAddress.getHostname() + ":" + newMasterAddress.getRpcPort();
-    ServerConfiguration.global().set(PropertyKey.MASTER_EMBEDDED_JOURNAL_ADDRESSES,
-        newBootstrapList);
-    ServerConfiguration.global().set(PropertyKey.MASTER_RPC_ADDRESSES, newRpcList);
-
-    // Create a separate working dir for the new master.
-    File newMasterWorkDir =
-        AlluxioTestDirectory.createTemporaryDirectory("EmbeddedJournalAddMaster-NewMaster");
-    newMasterWorkDir.deleteOnExit();
-
-    // Create journal dir for the new master and update configuration.
-    File newMasterJournalDir = new File(newMasterWorkDir, "journal-newmaster");
-    newMasterJournalDir.mkdirs();
-    ServerConfiguration.global().set(PropertyKey.MASTER_JOURNAL_FOLDER,
-        newMasterJournalDir.getAbsolutePath());
-
-    // Update network settings for the new master.
-    ServerConfiguration.global().set(PropertyKey.MASTER_HOSTNAME, newMasterAddress.getHostname());
-    ServerConfiguration.global().set(PropertyKey.MASTER_RPC_PORT,
-        Integer.toString(newMasterAddress.getRpcPort()));
-    ServerConfiguration.global().set(PropertyKey.MASTER_EMBEDDED_JOURNAL_PORT,
-        Integer.toString(newMasterAddress.getEmbeddedJournalPort()));
-
-    // Create and start the new master.
-    mNewMaster = AlluxioMasterProcess.Factory.create();
-    // Update cluster with the new address for further queries to
-    // include the new master. Otherwise clients could fail if stopping
-    // a master causes the new master to become the leader.
-    mCluster.addExternalMasterAddress(newMasterAddress);
-
-    // Submit a common task for starting the master.
-    ForkJoinPool.commonPool().execute(() -> {
-      try {
-        mNewMaster.start();
-      } catch (Exception e) {
-        throw new RuntimeException("Failed to start new master.", e);
-      }
-    });
-
-    // Wait until quorum size is increased to 3.
-    CommonUtils.waitFor("New master is included in quorum", () -> {
-      try {
-        return mCluster.getJournalMasterClientForMaster().getQuorumInfo().getServerInfoList()
-            .stream().filter(x -> x.getServerState() == QuorumServerState.AVAILABLE)
-            .toArray().length == 3;
-      } catch (Exception exc) {
-        throw new RuntimeException(exc);
-      }
-    });
+    addNewMasterToCluster();
 
     // Reacquire FS client after cluster grew.
     fs = mCluster.getFileSystemClient();
@@ -221,7 +154,7 @@ public class ResizingEBJTest extends BaseEmbeddedJournalTest {
   @Test
   public void updateRaftGroup() throws Exception {
     int masterCount = 2;
-    mCluster = MultiProcessCluster.newBuilder(PortCoordination.EMBEDDED_JOURNAL_UPDATE_RAFT_GROUP)
+    mCluster = MultiProcessCluster.newBuilder(PortCoordination.allocate(masterCount, 0))
         .setClusterName("EmbeddedJournalUpdateGroup").setNumMasters(masterCount).setNumWorkers(0)
         .addProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.EMBEDDED.toString())
         .addProperty(PropertyKey.MASTER_JOURNAL_FLUSH_TIMEOUT_MS, "5min")
@@ -241,69 +174,7 @@ public class ResizingEBJTest extends BaseEmbeddedJournalTest {
     Assert.assertEquals(masterCount,
         mCluster.getJournalMasterClientForMaster().getQuorumInfo().getServerInfoList().size());
 
-    // Create and start a new master to join to existing cluster.
-    // Get new master address.
-    MasterNetAddress newMasterAddress = new MasterNetAddress(
-        NetworkAddressUtils.getLocalHostName(
-            (int) ServerConfiguration.getMs(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS)),
-        PortCoordination.EMBEDDED_JOURNAL_UPDATE_RAFT_GROUP_NEW.get(0).getPort(),
-        PortCoordination.EMBEDDED_JOURNAL_UPDATE_RAFT_GROUP_NEW.get(1).getPort(),
-        PortCoordination.EMBEDDED_JOURNAL_UPDATE_RAFT_GROUP_NEW.get(2).getPort());
-
-    // Update RPC and EmbeddedJournal addresses with the new master address.
-    String newBootstrapList = ServerConfiguration.get(PropertyKey.MASTER_EMBEDDED_JOURNAL_ADDRESSES)
-        + "," + newMasterAddress.getHostname() + ":" + newMasterAddress.getEmbeddedJournalPort();
-    String newRpcList = ServerConfiguration.get(PropertyKey.MASTER_RPC_ADDRESSES) + ","
-        + newMasterAddress.getHostname() + ":" + newMasterAddress.getRpcPort();
-    ServerConfiguration.global().set(PropertyKey.MASTER_EMBEDDED_JOURNAL_ADDRESSES,
-        newBootstrapList);
-    ServerConfiguration.global().set(PropertyKey.MASTER_RPC_ADDRESSES, newRpcList);
-
-    // Create a separate working dir for the new master.
-    File newMasterWorkDir =
-        AlluxioTestDirectory.createTemporaryDirectory("EmbeddedJournalUpdateGroup-NewMaster");
-    newMasterWorkDir.deleteOnExit();
-
-    // Create journal dir for the new master and update configuration.
-    File newMasterJournalDir = new File(newMasterWorkDir, "journal-newmaster");
-    newMasterJournalDir.mkdirs();
-    ServerConfiguration.global().set(PropertyKey.MASTER_JOURNAL_FOLDER,
-        newMasterJournalDir.getAbsolutePath());
-
-    // Update network settings for the new master.
-    ServerConfiguration.global().set(PropertyKey.MASTER_HOSTNAME, newMasterAddress.getHostname());
-    ServerConfiguration.global().set(PropertyKey.MASTER_RPC_PORT,
-        Integer.toString(newMasterAddress.getRpcPort()));
-    ServerConfiguration.global().set(PropertyKey.MASTER_EMBEDDED_JOURNAL_PORT,
-        Integer.toString(newMasterAddress.getEmbeddedJournalPort()));
-
-    // Create and start the new master.
-    mNewMaster = AlluxioMasterProcess.Factory.create();
-    // Update cluster with the new address for further queries to
-    // include the new master. Otherwise clients could fail if stopping
-    // a master causes the new master to become the leader.
-    mCluster.addExternalMasterAddress(newMasterAddress);
-
-    // Submit a common task for starting the master.
-    ForkJoinPool.commonPool().execute(() -> {
-      try {
-        mNewMaster.start();
-      } catch (Exception e) {
-        throw new RuntimeException("Failed to start new master.", e);
-      }
-    });
-
-    // Wait until quorum size is increased to 3.
-    CommonUtils.waitFor("New master is included in quorum", () -> {
-      try {
-        return mCluster.getJournalMasterClientForMaster().getQuorumInfo().getServerInfoList()
-            .stream().filter(x -> x.getServerState() == QuorumServerState.AVAILABLE)
-            .toArray().length == masterCount + 1;
-      } catch (Exception exc) {
-        throw new RuntimeException(exc);
-      }
-    });
-
+    AlluxioMasterProcess newMaster = addNewMasterToCluster();
     // Reacquire FS client after cluster grew.
     fs = mCluster.getFileSystemClient();
 
@@ -325,7 +196,7 @@ public class ResizingEBJTest extends BaseEmbeddedJournalTest {
     });
 
     Assert.assertTrue(fs.exists(testDir));
-    FileSystemMaster master = mNewMaster.getMaster(FileSystemMaster.class);
+    FileSystemMaster master = newMaster.getMaster(FileSystemMaster.class);
     RaftJournalSystem journal = ((RaftJournalSystem) master.getMasterContext().getJournalSystem());
     boolean error = journal.getCurrentGroup().getPeers().stream().anyMatch(
         peer -> {

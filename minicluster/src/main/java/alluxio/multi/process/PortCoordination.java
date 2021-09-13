@@ -85,7 +85,13 @@ public class PortCoordination {
   public static final List<ReservedPort> QUORUM_SHELL_INFO = allocate(3, 0);
   public static final List<ReservedPort> QUORUM_SHELL_REMOVE = allocate(5, 0);
 
-  private static synchronized List<ReservedPort> allocate(int numMasters, int numWorkers) {
+  /**
+   * Allocates ports for the purpose of testing.
+   * @param numMasters number of masters
+   * @param numWorkers number of workers
+   * @return list of ports that have now been reserved
+   */
+  public static synchronized List<ReservedPort> allocate(int numMasters, int numWorkers) {
     int needed = numMasters * MultiProcessCluster.PORTS_PER_MASTER
         + numWorkers * MultiProcessCluster.PORTS_PER_WORKER;
     Builder<ReservedPort> ports = ImmutableList.builder();

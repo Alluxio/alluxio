@@ -111,10 +111,10 @@ public class FaultToleranceEBJTest extends BaseEmbeddedJournalTest {
   }
 
   private void snapshotBefore() throws Exception {
-    mCluster = MultiProcessCluster.newBuilder(PortCoordination.EMBEDDED_JOURNAL_FAILOVER)
+    mCluster = MultiProcessCluster.newBuilder(PortCoordination.allocate(NUM_MASTERS, NUM_WORKERS))
             .setClusterName("copySnapshotToMaster")
             .setNumMasters(NUM_MASTERS)
-            .setNumWorkers(0)
+            .setNumWorkers(NUM_WORKERS)
             .addProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.EMBEDDED.toString())
             .addProperty(PropertyKey.MASTER_JOURNAL_FLUSH_TIMEOUT_MS, "5min")
             .addProperty(PropertyKey.MASTER_JOURNAL_CHECKPOINT_PERIOD_ENTRIES, "1000")
