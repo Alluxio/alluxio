@@ -77,8 +77,8 @@ public class StressJobServiceBench extends Benchmark<JobServiceBenchTaskResult> 
     deleteBasePath(fileSystem);
     long deleteEnd = CommonUtils.getCurrentMs();
     LOG.info("Cleanup delete took: {} s", (deleteEnd - start) / 1000.0);
-    createFiles(fileSystem, mParameters.mNumFilesPerDir, mParameters.mNumDirs,
-        mParameters.mFileSize);
+    int fileSize = (int) FormatUtils.parseSpaceSize(mParameters.mFileSize);
+    createFiles(fileSystem, mParameters.mNumFilesPerDir, mParameters.mNumDirs, fileSize);
     long createEnd = CommonUtils.getCurrentMs();
     LOG.info("Create files took: {} s", (createEnd - deleteEnd) / 1000.0);
   }
