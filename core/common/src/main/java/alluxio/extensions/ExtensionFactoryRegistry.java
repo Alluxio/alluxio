@@ -131,19 +131,18 @@ public class ExtensionFactoryRegistry<T extends ExtensionFactory<?, S>,
     Preconditions.checkArgument(path != null, "path may not be null");
 
     List<T> factories = new ArrayList<>(mFactories);
+    List<T> eligibleFactories = select(path, conf, factories);
+    if (!eligibleFactories.isEmpty()) {
+      return eligibleFactories;
+    }
+
+    factories.clear();
     String libDir = PathUtils.concatPath(conf.get(PropertyKey.HOME), "lib");
     String extensionDir = conf.get(PropertyKey.EXTENSIONS_DIR);
     scanLibs(factories, libDir);
     scanExtensions(factories, extensionDir);
 
-    List<T> eligibleFactories = new ArrayList<>();
-    for (T factory : factories) {
-      if (factory.supportsPath(path, conf)) {
-        LOG.debug("Factory implementation {} is eligible for path {}", factory, path);
-        eligibleFactories.add(factory);
-      }
-    }
-
+    eligibleFactories = select(path, conf, factories);
     if (eligibleFactories.isEmpty()) {
       LOG.warn("No factory implementation supports the path {}", path);
     }
@@ -269,5 +268,26 @@ public class ExtensionFactoryRegistry<T extends ExtensionFactory<?, S>,
 
     LOG.debug("Unregistered factory implementation {} - {}", factory.getClass(), factory);
     factories.remove(factory);
+  }
+
+  /**
+   * Selects all the factories that support the given path from the given list of factories.
+   *
+   * @param path path
+   * @param conf configuration of the extension
+   * @param factories list of factories
+   * @return list of factories that support the given path which may be an empty list
+   */
+  public List<T> select(String path, S conf, List<T> factories) {
+    Preconditions.checkArgument(path != null, "path may not be null");
+
+    List<T> eligibleFactories = new ArrayList<>();
+    for (T factory : factories) {
+      if (factory.supportsPath(path, conf)) {
+        LOG.debug("Factory implementation {} is eligible for path {}", factory, path);
+        eligibleFactories.add(factory);
+      }
+    }
+    return eligibleFactories;
   }
 }
