@@ -374,6 +374,7 @@ public final class MetricKey implements Comparable<MetricKey> {
               + " master is serving client and worker requests")
           .setMetricType(MetricType.TIMER)
           .setIsClusterAggregated(false)
+          .build();
   public static final MetricKey MASTER_TOTAL_BLOCK_REPLICA_COUNT =
       new Builder("Master.BlockReplicaCount")
           .setDescription("Total number of block replicas in Alluxio")
