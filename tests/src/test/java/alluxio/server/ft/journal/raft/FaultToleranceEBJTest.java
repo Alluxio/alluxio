@@ -1,0 +1,257 @@
+/*
+ * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
+ * (the "License"). You may not use this work except in compliance with the License, which is
+ * available at www.apache.org/licenses/LICENSE-2.0
+ *
+ * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+ * either express or implied, as more fully set forth in the License.
+ *
+ * See the NOTICE file distributed with this work for information regarding copyright ownership.
+ */
+
+package alluxio.server.ft.journal.raft;
+
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertNotNull;
+
+import alluxio.AlluxioURI;
+import alluxio.Constants;
+import alluxio.client.file.FileSystem;
+import alluxio.conf.PropertyKey;
+import alluxio.exception.FileAlreadyExistsException;
+import alluxio.exception.FileDoesNotExistException;
+import alluxio.master.journal.JournalType;
+import alluxio.master.journal.raft.RaftJournalSystem;
+import alluxio.master.journal.raft.RaftJournalUtils;
+import alluxio.multi.process.MultiProcessCluster;
+import alluxio.multi.process.PortCoordination;
+import alluxio.util.CommonUtils;
+import alluxio.util.WaitForOptions;
+
+import org.apache.commons.io.FileUtils;
+import org.apache.ratis.server.RaftServerConfigKeys;
+import org.apache.ratis.server.storage.RaftStorageImpl;
+import org.apache.ratis.statemachine.impl.SimpleStateMachineStorage;
+import org.apache.ratis.statemachine.impl.SingleFileSnapshotInfo;
+import org.junit.Test;
+
+import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
+
+public class FaultToleranceEBJTest extends BaseEmbeddedJournalTest {
+
+  private static final int RESTART_TIMEOUT_MS = 2 * Constants.MINUTE_MS;
+
+  @Test
+  public void failover() throws Exception {
+    standardBefore();
+    AlluxioURI testDir = new AlluxioURI("/dir");
+    FileSystem fs = mCluster.getFileSystemClient();
+    fs.createDirectory(testDir);
+    mCluster.waitForAndKillPrimaryMaster(RESTART_TIMEOUT_MS);
+    assertTrue(fs.exists(testDir));
+    mCluster.notifySuccess();
+  }
+
+  @Test
+  public void copySnapshotToMaster() throws Exception {
+    snapshotBefore();
+    AlluxioURI testDir = new AlluxioURI("/dir");
+    FileSystem fs = mCluster.getFileSystemClient();
+    fs.createDirectory(testDir);
+    for (int i = 0; i < 2000; i++) {
+      fs.createDirectory(testDir.join("file" + i));
+    }
+    int primaryMasterIndex = mCluster.getPrimaryMasterIndex(5000);
+    String leaderJournalPath = mCluster.getJournalDir(primaryMasterIndex);
+    File raftDir = new File(RaftJournalUtils.getRaftJournalDir(new File(leaderJournalPath)),
+            RaftJournalSystem.RAFT_GROUP_UUID.toString());
+    waitForSnapshot(raftDir);
+    mCluster.stopMasters();
+
+    SimpleStateMachineStorage storage = new SimpleStateMachineStorage();
+    storage.init(new RaftStorageImpl(raftDir,
+            RaftServerConfigKeys.Log.CorruptionPolicy.getDefault()));
+    SingleFileSnapshotInfo snapshot = storage.findLatestSnapshot();
+    assertNotNull(snapshot);
+    mCluster.notifySuccess();
+  }
+
+  @Test
+  public void copySnapshotToFollower() throws Exception {
+    snapshotBefore();
+    int catchUpMasterIndex = (mCluster.getPrimaryMasterIndex(5000) + 1) % NUM_MASTERS;
+
+    AlluxioURI testDir = new AlluxioURI("/dir");
+    FileSystem fs = mCluster.getFileSystemClient();
+    fs.createDirectory(testDir);
+    for (int i = 0; i < 2000; i++) {
+      fs.createDirectory(testDir.join("file" + i));
+    }
+    mCluster.getMetaMasterClient().checkpoint();
+    mCluster.stopMaster(catchUpMasterIndex);
+    File catchupJournalDir = new File(mCluster.getJournalDir(catchUpMasterIndex));
+    FileUtils.deleteDirectory(catchupJournalDir);
+    assertTrue(catchupJournalDir.mkdirs());
+    mCluster.startMaster(catchUpMasterIndex);
+    File raftDir = new File(RaftJournalUtils.getRaftJournalDir(catchupJournalDir),
+            RaftJournalSystem.RAFT_GROUP_UUID.toString());
+    waitForSnapshot(raftDir);
+    mCluster.stopMaster(catchUpMasterIndex);
+    SimpleStateMachineStorage storage = new SimpleStateMachineStorage();
+    storage.init(new RaftStorageImpl(raftDir,
+            RaftServerConfigKeys.Log.CorruptionPolicy.getDefault()));
+    SingleFileSnapshotInfo snapshot = storage.findLatestSnapshot();
+    assertNotNull(snapshot);
+    mCluster.notifySuccess();
+  }
+
+  private void snapshotBefore() throws Exception {
+    mCluster = MultiProcessCluster.newBuilder(PortCoordination.EMBEDDED_JOURNAL_FAILOVER)
+            .setClusterName("copySnapshotToMaster")
+            .setNumMasters(NUM_MASTERS)
+            .setNumWorkers(0)
+            .addProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.EMBEDDED.toString())
+            .addProperty(PropertyKey.MASTER_JOURNAL_FLUSH_TIMEOUT_MS, "5min")
+            .addProperty(PropertyKey.MASTER_JOURNAL_CHECKPOINT_PERIOD_ENTRIES, "1000")
+            .addProperty(PropertyKey.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX, "50KB")
+            .addProperty(PropertyKey.MASTER_EMBEDDED_JOURNAL_MIN_ELECTION_TIMEOUT, "3s")
+            .addProperty(PropertyKey.MASTER_EMBEDDED_JOURNAL_MAX_ELECTION_TIMEOUT, "6s")
+            .addProperty(PropertyKey.MASTER_STANDBY_HEARTBEAT_INTERVAL, "5s")
+            .build();
+    mCluster.start();
+  }
+
+  private void waitForSnapshot(File raftDir) throws InterruptedException, TimeoutException {
+    File snapshotDir = new File(raftDir, "sm");
+    CommonUtils.waitFor("snapshot is downloaded", () -> {
+      File[] files = snapshotDir.listFiles();
+      return files != null && files.length > 1 && files[0].length() > 0;
+    }, WaitForOptions.defaults().setInterval(200).setTimeoutMs(RESTART_TIMEOUT_MS));
+  }
+
+  @Test
+  public void restart() throws Exception {
+    standardBefore();
+    AlluxioURI testDir = new AlluxioURI("/dir");
+    FileSystem fs = mCluster.getFileSystemClient();
+    fs.createDirectory(testDir);
+    restartMasters();
+    assertTrue(fs.exists(testDir));
+    restartMasters();
+    assertTrue(fs.exists(testDir));
+    restartMasters();
+    assertTrue(fs.exists(testDir));
+    mCluster.notifySuccess();
+  }
+
+  @Test
+  public void restartStress() throws Throwable {
+    standardBefore();
+    // Run and verify operations while restarting the cluster multiple times.
+    AtomicReference<Throwable> failure = new AtomicReference<>();
+    AtomicInteger successes = new AtomicInteger(0);
+    FileSystem fs = mCluster.getFileSystemClient();
+    List<FaultToleranceEBJTest.OperationThread> threads = new ArrayList<>();
+    try {
+      for (int i = 0; i < 10; i++) {
+        FaultToleranceEBJTest.OperationThread t =
+                new FaultToleranceEBJTest.OperationThread(fs, i, failure, successes);
+        t.start();
+        threads.add(t);
+      }
+      for (int i = 0; i < 2; i++) {
+        restartMasters();
+        System.out.printf("---------- Iteration %s ----------\n", i);
+        successes.set(0);
+        CommonUtils.waitFor("11 successes", () -> successes.get() >= 11,
+                WaitForOptions.defaults().setTimeoutMs(RESTART_TIMEOUT_MS));
+        if (failure.get() != null) {
+          throw failure.get();
+        }
+      }
+    } finally {
+      threads.forEach(Thread::interrupt);
+      for (Thread t : threads) {
+        t.join();
+      }
+    }
+    mCluster.notifySuccess();
+  }
+
+  private void restartMasters() throws Exception {
+    for (int i = 0; i < NUM_MASTERS; i++) {
+      mCluster.stopMaster(i);
+    }
+    for (int i = 0; i < NUM_MASTERS; i++) {
+      mCluster.startMaster(i);
+    }
+  }
+
+  private static class OperationThread extends Thread {
+    private final FileSystem mFs;
+    private final int mThreadNum;
+    private final AtomicReference<Throwable> mFailure;
+    private final AtomicInteger mSuccessCounter;
+
+    public OperationThread(FileSystem fs, int threadNum, AtomicReference<Throwable> failure,
+                           AtomicInteger successCounter) {
+      super("operation-test-thread-" + threadNum);
+      mFs = fs;
+      mThreadNum = threadNum;
+      mFailure = failure;
+      mSuccessCounter = successCounter;
+    }
+
+    public void run() {
+      try {
+        runInternal();
+      } catch (Exception e) {
+        e.printStackTrace();
+        mFailure.set(e);
+      }
+    }
+
+    public void runInternal() throws Exception {
+      while (!Thread.interrupted()) {
+        for (int i = 0; i < 100; i++) {
+          AlluxioURI dir = formatDirName(i);
+          try {
+            mFs.createDirectory(dir);
+          } catch (FileAlreadyExistsException e) {
+            // This could happen if the operation was retried but actually succeeded server-side on
+            // the first attempt. Alluxio does not de-duplicate retried operations.
+            continue;
+          }
+          if (!mFs.exists(dir)) {
+            mFailure.set(new RuntimeException(String.format("Directory %s does not exist", dir)));
+            return;
+          }
+        }
+        for (int i = 0; i < 100; i++) {
+          AlluxioURI dir = formatDirName(i);
+          try {
+            mFs.delete(dir);
+          } catch (FileDoesNotExistException e) {
+            // This could happen if the operation was retried but actually succeeded server-side on
+            // the first attempt. Alluxio does not de-duplicate retried operations.
+            continue;
+          }
+          if (mFs.exists(dir)) {
+            mFailure.set(new RuntimeException(String.format("Directory %s still exists", dir)));
+            return;
+          }
+        }
+        System.out.println("Success counter: " + mSuccessCounter.incrementAndGet());
+      }
+    }
+
+    private AlluxioURI formatDirName(int dirNum) {
+      return new AlluxioURI(String.format("/dir-%d-%d", mThreadNum, dirNum));
+    }
+  }
+}
