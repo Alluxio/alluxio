@@ -278,8 +278,8 @@ public class ExtensionFactoryRegistry<T extends ExtensionFactory<?, S>,
    * @param factories list of factories
    * @return list of factories that support the given path which may be an empty list
    */
-  public List<T> select(String path, S conf, List<T> factories) {
-    Preconditions.checkArgument(path != null, "path may not be null");
+  private List<T> select(String path, S conf, List<T> factories) {
+    Preconditions.checkNotNull(path, "path may not be null");
 
     List<T> eligibleFactories = new ArrayList<>();
     for (T factory : factories) {
