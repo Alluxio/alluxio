@@ -120,8 +120,8 @@ public final class LoadCommand extends AbstractFileSystemCommand {
         return;
       }
       runLoadTask(filePath, status, local);
-      System.out.println(filePath + " loaded");
     }
+    System.out.println(filePath + " loaded");
   }
 
   private void runLoadTask(AlluxioURI filePath, URIStatus status, boolean local)
