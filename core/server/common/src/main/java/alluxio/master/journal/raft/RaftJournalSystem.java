@@ -236,11 +236,6 @@ public class RaftJournalSystem extends AbstractJournalSystem {
     mSnapshotAllowed = new AtomicBoolean(true);
     mPrimarySelector = new RaftPrimarySelector();
     mAsyncJournalWriter = new AtomicReference<>();
-    try {
-      super.registerMetrics();
-    } catch (RuntimeException e) {
-      return;
-    }
   }
 
   private void maybeMigrateOldJournal() {
@@ -401,6 +396,7 @@ public class RaftJournalSystem extends AbstractJournalSystem {
         .setProperties(properties)
         .setParameters(parameters)
         .build();
+    super.registerMetrics();
   }
 
   /**
@@ -527,11 +523,9 @@ public class RaftJournalSystem extends AbstractJournalSystem {
 
   @Override
   public synchronized Map<String, Long> getCurrentSequenceNumbers() {
-    Map<String, Long> sequenceMap = new HashMap<>();
-    if (mStateMachine == null) {
-      return sequenceMap;
-    }
+    Preconditions.checkState(mStateMachine != null, "State machine not initialized");
     long currentGlobalState = mStateMachine.getLastAppliedSequenceNumber();
+    Map<String, Long> sequenceMap = new HashMap<>();
     for (String master : mJournals.keySet()) {
       // Return the same global sequence for each master.
       sequenceMap.put(master, currentGlobalState);
