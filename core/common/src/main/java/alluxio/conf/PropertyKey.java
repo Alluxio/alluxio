@@ -779,6 +779,15 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.SERVER)
           .build();
+  public static final PropertyKey UNDERFS_LOCAL_SKIP_BROKEN_SYMLINKS =
+      new Builder(Name.UNDERFS_LOCAL_SKIP_BROKEN_SYMLINKS)
+          .setDefaultValue(false)
+          .setDescription("When set to true, any time the local underfs lists a broken "
+              + "symlink, it will treat the entry as if it didn't exist at all."
+              + "")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.SERVER)
+          .build();
   public static final PropertyKey UNDERFS_WEB_HEADER_LAST_MODIFIED =
       new Builder(Name.UNDERFS_WEB_HEADER_LAST_MODIFIED)
           .setDefaultValue("EEE, dd MMM yyyy HH:mm:ss zzz")
@@ -1700,15 +1709,25 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           // use jobMasterHostname:jobMasterEmbeddedJournalPort by default.
           .setScope(Scope.ALL)
           .build();
-  public static final PropertyKey MASTER_EMBEDDED_JOURNAL_ELECTION_TIMEOUT =
-      new Builder(Name.MASTER_EMBEDDED_JOURNAL_ELECTION_TIMEOUT)
-          .setDescription(
-              "The election timeout for the embedded journal. When this period elapses without a "
-                  + "master receiving any messages, the master will attempt to become the primary."
-                  + "Election timeout will be waited initially when the cluster is forming. "
-                  + "So larger values for election timeout will cause longer start-up time. "
-                  + "Smaller values might introduce instability to leadership.")
+  public static final PropertyKey MASTER_EMBEDDED_JOURNAL_MIN_ELECTION_TIMEOUT =
+      new Builder(Name.MASTER_EMBEDDED_JOURNAL_MIN_ELECTION_TIMEOUT)
+          .setDescription("The min election timeout for the embedded journal.")
           .setDefaultValue("10s")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.MASTER)
+          .build();
+  public static final PropertyKey MASTER_EMBEDDED_JOURNAL_MAX_ELECTION_TIMEOUT =
+      new Builder(Name.MASTER_EMBEDDED_JOURNAL_MAX_ELECTION_TIMEOUT)
+          .setDescription(String.format(
+              "The max election timeout for the embedded journal. When a random period between "
+              + "${%s} and ${%s} elapses without a master receiving any messages, the master "
+              + "will attempt to become the primary Election timeout will be waited initially "
+              + "when the cluster is forming. So larger values for election timeout will cause "
+              + "longer start-up time. Smaller values might introduce instability to leadership.",
+              Name.MASTER_EMBEDDED_JOURNAL_MIN_ELECTION_TIMEOUT,
+              Name.MASTER_EMBEDDED_JOURNAL_MAX_ELECTION_TIMEOUT))
+          // TODO(qian0817): dynamically set here
+          .setDefaultValue("20s")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
@@ -3037,7 +3056,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey WORKER_NETWORK_ASYNC_CACHE_MANAGER_THREADS_MAX =
       new Builder(Name.WORKER_NETWORK_ASYNC_CACHE_MANAGER_THREADS_MAX)
-          .setDefaultValue(8)
+          .setDefaultSupplier(() -> 2 * Runtime.getRuntime().availableProcessors(),
+              "2 * {CPU core count}")
           .setDescription("The maximum number of threads used to cache blocks asynchronously in "
               + "the data server.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
@@ -5203,9 +5223,11 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
 
   public static final PropertyKey ZOOKEEPER_JOB_ELECTION_PATH =
-      new Builder(Name.ZOOKEEPER_JOB_ELECTION_PATH).setDefaultValue("/job_election").build();
+      new Builder(Name.ZOOKEEPER_JOB_ELECTION_PATH)
+          .setDefaultValue("/alluxio/job_election").build();
   public static final PropertyKey ZOOKEEPER_JOB_LEADER_PATH =
-      new Builder(Name.ZOOKEEPER_JOB_LEADER_PATH).setDefaultValue("/job_leader").build();
+      new Builder(Name.ZOOKEEPER_JOB_LEADER_PATH)
+          .setDefaultValue("/alluxio/job_leader").build();
 
   //
   // JVM Monitor related properties
@@ -5433,6 +5455,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String UNDERFS_HDFS_IMPL = "alluxio.underfs.hdfs.impl";
     public static final String UNDERFS_HDFS_PREFIXES = "alluxio.underfs.hdfs.prefixes";
     public static final String UNDERFS_HDFS_REMOTE = "alluxio.underfs.hdfs.remote";
+    public static final String UNDERFS_LOCAL_SKIP_BROKEN_SYMLINKS =
+        "alluxio.underfs.local.skip.broken.symlinks";
     public static final String UNDERFS_WEB_HEADER_LAST_MODIFIED =
         "alluxio.underfs.web.header.last.modified";
     public static final String UNDERFS_WEB_CONNECTION_TIMEOUT =
@@ -5671,8 +5695,10 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.embedded.journal.bind.host";
     public static final String MASTER_EMBEDDED_JOURNAL_ADDRESSES =
         "alluxio.master.embedded.journal.addresses";
-    public static final String MASTER_EMBEDDED_JOURNAL_ELECTION_TIMEOUT =
-        "alluxio.master.embedded.journal.election.timeout";
+    public static final String MASTER_EMBEDDED_JOURNAL_MAX_ELECTION_TIMEOUT =
+        "alluxio.master.embedded.journal.election.timeout.max";
+    public static final String MASTER_EMBEDDED_JOURNAL_MIN_ELECTION_TIMEOUT =
+        "alluxio.master.embedded.journal.election.timeout.min";
     public static final String MASTER_EMBEDDED_JOURNAL_CATCHUP_RETRY_WAIT =
         "alluxio.master.embedded.journal.catchup.retry.wait";
     public static final String MASTER_EMBEDDED_JOURNAL_ENTRY_SIZE_MAX =

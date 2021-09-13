@@ -93,7 +93,7 @@ alluxio.worker.tieredstore.level0.dirs.quota=16GB,100GB,100GB
 注意存储空间配置的顺序一定与存储目录的配置相符。
 
 Alluxio在通过`Mount`或`SudoMount`选项启动时，配置并挂载ramdisk。
-这个ramdisk大小是由`alluxio.worker.memory.size`确定的。
+这个ramdisk大小是由`alluxio.worker.ramdisk.size`确定的。
 默认情况下，tier 0设置为MEM并且管理整个ramdisk。
 此时`alluxio.worker.tieredstore.level0.dirs.quota`的值同`alluxio.worker.ramdisk.size`一样。
 如果tier0要使用除默认的ramdisk以外的设备，应该显式地设置`alluxio.worker.tieredstore.level0.dirs.quota`选项。
