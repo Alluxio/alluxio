@@ -220,9 +220,8 @@ public class DefaultBlockWorkerClient implements BlockWorkerClient {
     } catch (Exception e) {
       if (!async) {
         throw e;
-      } else {
-        LOG.warn("Error sending async cache request {} to worker {}.", request, mAddress, e);
       }
+      LOG.warn("Error sending async cache request {} to worker {}.", request, mAddress, e);
     }
   }
 }
