@@ -158,7 +158,7 @@ public class SharedGrpcDataReader implements DataReader {
       mBlockSize = blockSize;
     }
 
-    @edu.umd.cs.findbugs.annotations.SuppressFBWarnings(
+    @alluxio.annotation.SuppressFBWarnings(
         value = "AT_OPERATION_SEQUENCE_ON_CONCURRENT_ABSTRACTION",
         justification = "operation is still atomic guarded by block Ølock")
     @Override

@@ -11,7 +11,7 @@
 
 package alluxio.util.executor;
 
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import alluxio.annotation.SuppressFBWarnings;
 
 import java.util.Collection;
 import java.util.List;
