@@ -11,25 +11,42 @@
 
 package alluxio.server.ft.journal.raft;
 
+import alluxio.conf.PropertyKey;
 import alluxio.grpc.GetQuorumInfoPResponse;
 import alluxio.grpc.NetAddress;
+import alluxio.master.journal.JournalType;
 import alluxio.multi.process.MasterNetAddress;
+import alluxio.multi.process.MultiProcessCluster;
+import alluxio.multi.process.PortCoordination;
 import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
 
+import net.bytebuddy.utility.RandomString;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
 import java.io.IOException;
+import java.util.concurrent.TimeoutException;
 
 public class TransferLeadershipEBJTest extends BaseEmbeddedJournalTest {
 
   private static final int MASTER_INDEX_WAIT_TIME = 5_000; // milliseconds
+  public static final int NUM_MASTERS = 5;
+  public static final int NUM_WORKERS = 0;
 
   @Before
   public void before() throws Exception {
-    standardBefore();
+    mCluster = MultiProcessCluster.newBuilder(PortCoordination.EMBEDDED_JOURNAL_TRANSFER_LEADER)
+        .setClusterName("TransferLeadership-" + RandomString.make(8))
+        .setNumMasters(NUM_MASTERS)
+        .setNumWorkers(NUM_WORKERS)
+        .addProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.EMBEDDED.toString())
+        .addProperty(PropertyKey.MASTER_JOURNAL_FLUSH_TIMEOUT_MS, "5min")
+        .addProperty(PropertyKey.MASTER_EMBEDDED_JOURNAL_MIN_ELECTION_TIMEOUT, "750ms")
+        .addProperty(PropertyKey.MASTER_EMBEDDED_JOURNAL_MAX_ELECTION_TIMEOUT, "1500ms")
+        .build();
+    mCluster.start();
   }
 
   @Test
@@ -38,20 +55,7 @@ public class TransferLeadershipEBJTest extends BaseEmbeddedJournalTest {
     // `getPrimaryMasterIndex` uses the same `mMasterAddresses` variable as getMasterAddresses
     // we can therefore access to the new leader's address this way
     MasterNetAddress newLeaderAddr = mCluster.getMasterAddresses().get(newLeaderIdx);
-    NetAddress netAddress = NetAddress.newBuilder().setHost(newLeaderAddr.getHostname())
-            .setRpcPort(newLeaderAddr.getEmbeddedJournalPort()).build();
-
-    mCluster.getJournalMasterClientForMaster().transferLeadership(netAddress);
-
-    CommonUtils.waitFor("leadership to transfer", () -> {
-      try {
-        // wait until the address of the new leader matches the one we designated as the new leader
-        return mCluster.getMasterAddresses()
-                .get(mCluster.getPrimaryMasterIndex(MASTER_INDEX_WAIT_TIME)).equals(newLeaderAddr);
-      } catch (Exception exc) {
-        throw new RuntimeException(exc);
-      }
-    });
+    transferAndWait(newLeaderAddr);
 
     mCluster.notifySuccess();
   }
@@ -63,21 +67,7 @@ public class TransferLeadershipEBJTest extends BaseEmbeddedJournalTest {
       // `getPrimaryMasterIndex` uses the same `mMasterAddresses` variable as getMasterAddresses
       // we can therefore access to the new leader's address this way
       MasterNetAddress newLeaderAddr = mCluster.getMasterAddresses().get(newLeaderIdx);
-      NetAddress netAddress = NetAddress.newBuilder().setHost(newLeaderAddr.getHostname())
-              .setRpcPort(newLeaderAddr.getEmbeddedJournalPort()).build();
-
-      mCluster.getJournalMasterClientForMaster().transferLeadership(netAddress);
-
-      final int TIMEOUT_3MIN = 3 * 60 * 1000; // in ms
-      CommonUtils.waitFor("leadership to transfer", () -> {
-        try {
-          // wait until the address of the new leader matches the one designated as the new leader
-          return mCluster.getMasterAddresses()
-              .get(mCluster.getPrimaryMasterIndex(MASTER_INDEX_WAIT_TIME)).equals(newLeaderAddr);
-        } catch (Exception exc) {
-          throw new RuntimeException(exc);
-        }
-      }, WaitForOptions.defaults().setTimeoutMs(TIMEOUT_3MIN));
+      transferAndWait(newLeaderAddr);
     }
     mCluster.notifySuccess();
   }
@@ -89,21 +79,7 @@ public class TransferLeadershipEBJTest extends BaseEmbeddedJournalTest {
       // `getPrimaryMasterIndex` uses the same `mMasterAddresses` variable as getMasterAddresses
       // we can therefore access to the new leader's address this way
       MasterNetAddress newLeaderAddr = mCluster.getMasterAddresses().get(newLeaderIdx);
-      NetAddress netAddress = NetAddress.newBuilder().setHost(newLeaderAddr.getHostname())
-              .setRpcPort(newLeaderAddr.getEmbeddedJournalPort()).build();
-
-      mCluster.getJournalMasterClientForMaster().transferLeadership(netAddress);
-
-      final int TIMEOUT_3MIN = 3 * 60 * 1000; // in ms
-      CommonUtils.waitFor("leadership to transfer", () -> {
-        try {
-          // wait until the address of the new leader matches the one designated as the new leader
-          return mCluster.getMasterAddresses()
-              .get(mCluster.getPrimaryMasterIndex(MASTER_INDEX_WAIT_TIME)).equals(newLeaderAddr);
-        } catch (Exception exc) {
-          throw new RuntimeException(exc);
-        }
-      }, WaitForOptions.defaults().setTimeoutMs(TIMEOUT_3MIN));
+      transferAndWait(newLeaderAddr);
 
       GetQuorumInfoPResponse info = mCluster.getJournalMasterClientForMaster().getQuorumInfo();
       // confirms that master priorities get reset to 0 for the new leading master and 1 for the
@@ -153,5 +129,48 @@ public class TransferLeadershipEBJTest extends BaseEmbeddedJournalTest {
       }
     }
     mCluster.notifySuccess();
+  }
+
+  @Test
+  public void transferLeadershipToNewMember() throws Exception {
+    MasterNetAddress newLeaderAddr =
+        addNewMastersToCluster(PortCoordination.EMBEDDED_JOURNAL_TRLEADER_NEW_MASTER).get(0);
+    transferAndWait(newLeaderAddr);
+    mCluster.notifySuccess();
+  }
+
+  @Test
+  public void transferLeadershipToUnavailableMaster() throws Exception {
+    int newLeaderIdx = (mCluster.getPrimaryMasterIndex(MASTER_INDEX_WAIT_TIME) + 1) % NUM_MASTERS;
+    // `getPrimaryMasterIndex` uses the same `mMasterAddresses` variable as getMasterAddresses
+    // we can therefore access to the new leader's address this way
+    MasterNetAddress newLeaderAddr = mCluster.getMasterAddresses().get(newLeaderIdx);
+
+    mCluster.stopMaster(newLeaderIdx);
+
+    try {
+      transferAndWait(newLeaderAddr);
+      Assert.fail("Transfer should have failed");
+    } catch (TimeoutException e) {
+      // expected exception
+    }
+    mCluster.notifySuccess();
+  }
+
+  private void transferAndWait(MasterNetAddress newLeaderAddr) throws Exception {
+    NetAddress netAddress = NetAddress.newBuilder().setHost(newLeaderAddr.getHostname())
+        .setRpcPort(newLeaderAddr.getEmbeddedJournalPort()).build();
+    mCluster.getJournalMasterClientForMaster().transferLeadership(netAddress);
+
+    final int TIMEOUT_3MIN = 3 * 60 * 1000; // in ms
+    CommonUtils.waitFor("leadership to transfer", () -> {
+      try {
+        // wait until the address of the new leader matches the one we designated as the new leader
+        return mCluster.getMasterAddresses()
+            .get(mCluster.getPrimaryMasterIndex(MASTER_INDEX_WAIT_TIME)).equals(newLeaderAddr);
+      } catch (Exception exc) {
+        throw new RuntimeException(exc);
+      }
+    }, WaitForOptions.defaults().setTimeoutMs(TIMEOUT_3MIN));
   }
 }

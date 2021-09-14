@@ -48,7 +48,18 @@ public class FaultToleranceEBJTest extends BaseEmbeddedJournalTest {
 
   @Test
   public void failover() throws Exception {
-    standardBefore();
+    mCluster = MultiProcessCluster.newBuilder(PortCoordination.EMBEDDED_JOURNAL_FAILOVER)
+        .setClusterName("EmbeddedJournalFailover")
+        .setNumMasters(NUM_MASTERS)
+        .setNumWorkers(0)
+        .addProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.EMBEDDED.toString())
+        .addProperty(PropertyKey.MASTER_JOURNAL_FLUSH_TIMEOUT_MS, "5min")
+        // To make the test run faster.
+        .addProperty(PropertyKey.MASTER_EMBEDDED_JOURNAL_MIN_ELECTION_TIMEOUT, "750ms")
+        .addProperty(PropertyKey.MASTER_EMBEDDED_JOURNAL_MAX_ELECTION_TIMEOUT, "1500ms")
+        .build();
+    mCluster.start();
+
     AlluxioURI testDir = new AlluxioURI("/dir");
     FileSystem fs = mCluster.getFileSystemClient();
     fs.createDirectory(testDir);
@@ -111,7 +122,7 @@ public class FaultToleranceEBJTest extends BaseEmbeddedJournalTest {
   }
 
   private void snapshotBefore() throws Exception {
-    mCluster = MultiProcessCluster.newBuilder(PortCoordination.allocate(NUM_MASTERS, NUM_WORKERS))
+    mCluster = MultiProcessCluster.newBuilder(PortCoordination.EMBEDDED_JOURNAL_FAILOVER)
             .setClusterName("copySnapshotToMaster")
             .setNumMasters(NUM_MASTERS)
             .setNumWorkers(NUM_WORKERS)
@@ -136,7 +147,18 @@ public class FaultToleranceEBJTest extends BaseEmbeddedJournalTest {
 
   @Test
   public void restart() throws Exception {
-    standardBefore();
+    mCluster = MultiProcessCluster.newBuilder(PortCoordination.EMBEDDED_JOURNAL_RESTART)
+        .setClusterName("EmbeddedJournalRestart")
+        .setNumMasters(NUM_MASTERS)
+        .setNumWorkers(0)
+        .addProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.EMBEDDED.toString())
+        .addProperty(PropertyKey.MASTER_JOURNAL_FLUSH_TIMEOUT_MS, "5min")
+        // To make the test run faster.
+        .addProperty(PropertyKey.MASTER_EMBEDDED_JOURNAL_MIN_ELECTION_TIMEOUT, "750ms")
+        .addProperty(PropertyKey.MASTER_EMBEDDED_JOURNAL_MAX_ELECTION_TIMEOUT, "1500ms")
+        .build();
+    mCluster.start();
+
     AlluxioURI testDir = new AlluxioURI("/dir");
     FileSystem fs = mCluster.getFileSystemClient();
     fs.createDirectory(testDir);
@@ -151,7 +173,18 @@ public class FaultToleranceEBJTest extends BaseEmbeddedJournalTest {
 
   @Test
   public void restartStress() throws Throwable {
-    standardBefore();
+    mCluster = MultiProcessCluster.newBuilder(PortCoordination.EMBEDDED_JOURNAL_RESTART_STRESS)
+        .setClusterName("EmbeddedJournalRestartStress")
+        .setNumMasters(NUM_MASTERS)
+        .setNumWorkers(0)
+        .addProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.EMBEDDED.toString())
+        .addProperty(PropertyKey.MASTER_JOURNAL_FLUSH_TIMEOUT_MS, "5min")
+        // To make the test run faster.
+        .addProperty(PropertyKey.MASTER_EMBEDDED_JOURNAL_MIN_ELECTION_TIMEOUT, "750ms")
+        .addProperty(PropertyKey.MASTER_EMBEDDED_JOURNAL_MAX_ELECTION_TIMEOUT, "1500ms")
+        .build();
+    mCluster.start();
+
     // Run and verify operations while restarting the cluster multiple times.
     AtomicReference<Throwable> failure = new AtomicReference<>();
     AtomicInteger successes = new AtomicInteger(0);

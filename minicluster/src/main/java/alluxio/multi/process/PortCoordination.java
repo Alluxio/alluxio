@@ -33,6 +33,8 @@ public class PortCoordination {
       // add ports here to avoid conflicting with other processes on those ports.
   ));
 
+  public static final List<ReservedPort> EMBEDDED_JOURNAL_TRANSFER_LEADER = allocate(5, 0);
+  public static final List<ReservedPort> EMBEDDED_JOURNAL_TRLEADER_NEW_MASTER = allocate(1, 0);
   public static final List<ReservedPort> EMBEDDED_JOURNAL_FAILOVER = allocate(3, 0);
   public static final List<ReservedPort> EMBEDDED_JOURNAL_RESTART = allocate(3, 0);
   public static final List<ReservedPort> EMBEDDED_JOURNAL_RESTART_STRESS = allocate(3, 0);
@@ -85,13 +87,7 @@ public class PortCoordination {
   public static final List<ReservedPort> QUORUM_SHELL_INFO = allocate(3, 0);
   public static final List<ReservedPort> QUORUM_SHELL_REMOVE = allocate(5, 0);
 
-  /**
-   * Allocates ports for the purpose of testing.
-   * @param numMasters number of masters
-   * @param numWorkers number of workers
-   * @return list of ports that have now been reserved
-   */
-  public static synchronized List<ReservedPort> allocate(int numMasters, int numWorkers) {
+  private static synchronized List<ReservedPort> allocate(int numMasters, int numWorkers) {
     int needed = numMasters * MultiProcessCluster.PORTS_PER_MASTER
         + numWorkers * MultiProcessCluster.PORTS_PER_WORKER;
     Builder<ReservedPort> ports = ImmutableList.builder();
