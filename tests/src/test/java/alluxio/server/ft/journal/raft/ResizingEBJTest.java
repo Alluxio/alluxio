@@ -16,6 +16,7 @@ import static org.junit.Assert.assertTrue;
 
 import alluxio.AlluxioURI;
 import alluxio.client.file.FileSystem;
+import alluxio.conf.Hash;
 import alluxio.conf.PropertyKey;
 import alluxio.grpc.NetAddress;
 import alluxio.grpc.QuorumServerInfo;
@@ -24,8 +25,10 @@ import alluxio.master.AlluxioMasterProcess;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.journal.JournalType;
 import alluxio.master.journal.raft.RaftJournalSystem;
+import alluxio.multi.process.MasterNetAddress;
 import alluxio.multi.process.MultiProcessCluster;
 import alluxio.multi.process.PortCoordination;
+import alluxio.server.auth.ClusterInitializationIntegrationTest;
 import alluxio.util.CommonUtils;
 
 import org.apache.ratis.protocol.Message;
@@ -33,8 +36,12 @@ import org.junit.Assert;
 import org.junit.Ignore;
 import org.junit.Test;
 
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class ResizingEBJTest extends BaseEmbeddedJournalTest {
 
@@ -164,6 +171,67 @@ public class ResizingEBJTest extends BaseEmbeddedJournalTest {
     Assert.assertTrue(fs.exists(testDir));
 
     mCluster.notifySuccess();
+  }
+
+  @Test
+  public void shipOfTheseus() throws Exception {
+    final int NUM_MASTERS = 5;
+    final int NUM_WORKERS = 0;
+    mCluster = MultiProcessCluster.newBuilder(PortCoordination.EMBEDDED_JOURNAL_THESEUS)
+        .setClusterName("EmbeddedJournalAddMaster")
+        .setNumMasters(NUM_MASTERS)
+        .setNumWorkers(NUM_WORKERS)
+        .addProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.EMBEDDED.toString())
+        .addProperty(PropertyKey.MASTER_JOURNAL_FLUSH_TIMEOUT_MS, "5min")
+        // To make the test run faster.
+        .addProperty(PropertyKey.MASTER_EMBEDDED_JOURNAL_MIN_ELECTION_TIMEOUT, "2s")
+        .addProperty(PropertyKey.MASTER_EMBEDDED_JOURNAL_MAX_ELECTION_TIMEOUT, "4s")
+        .build();
+    mCluster.start();
+
+    AlluxioURI testDir = new AlluxioURI("/" + CommonUtils.randomAlphaNumString(10));
+    FileSystem fs = mCluster.getFileSystemClient();
+    fs.createDirectory(testDir);
+    Assert.assertTrue(fs.exists(testDir));
+
+    List<MasterNetAddress> originalMasters = mCluster.getMasterAddresses();
+    for (int i = 0; i < originalMasters.size(); i++) {
+      mCluster.stopMaster(i);
+      mCluster.getJournalMasterClientForMaster().removeQuorumServer(
+          masterEBJAddr2NetAddr(originalMasters.get(i)));
+      mCluster.startNewMasters(1, false);
+      Thread.sleep(3_000);
+      assertEquals(5,
+          mCluster.getJournalMasterClientForMaster().getQuorumInfo().getServerInfoList().size());
+      fs = mCluster.getFileSystemClient();
+      System.out.printf("killing master %s%n", originalMasters.get(i));
+      assertTrue(fs.exists(testDir));
+    }
+    Set<NetAddress> collect =
+        originalMasters.stream().map(this::masterEBJAddr2NetAddr).collect(Collectors.toSet());
+    List<QuorumServerInfo> infoList = mCluster.getJournalMasterClientForMaster().getQuorumInfo()
+        .getServerInfoList();
+    // assert any unavailable masters are part of the original masters
+    assertTrue(infoList.stream()
+        .filter(info -> info.getServerState() == QuorumServerState.UNAVAILABLE)
+        .allMatch(info -> collect.contains(info.getServerAddress()))
+    );
+    // assert the quorum remained the same size as the start
+    assertEquals(NUM_MASTERS, infoList.stream()
+        .filter(info -> info.getServerState() == QuorumServerState.AVAILABLE).count()
+    );
+    // assert that none of the currently available masters were part of the original masters
+    assertTrue(infoList.stream()
+        .filter(info -> info.getServerState() == QuorumServerState.AVAILABLE)
+        .noneMatch(info -> collect.contains(info.getServerAddress()))
+    );
+
+    mCluster.notifySuccess();
+  }
+
+  private NetAddress masterEBJAddr2NetAddr(MasterNetAddress masterAddr) {
+    return NetAddress.newBuilder().setHost(masterAddr.getHostname())
+        .setRpcPort(masterAddr.getEmbeddedJournalPort()).build();
   }
 
   @Ignore
