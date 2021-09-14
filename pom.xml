@@ -714,6 +714,11 @@
         <version>${ratis.version}</version>
       </dependency>
       <dependency>
+        <artifactId>ratis-client</artifactId>
+        <groupId>org.apache.ratis</groupId>
+        <version>${ratis.version}</version>
+      </dependency>
+      <dependency>
         <artifactId>ratis-grpc</artifactId>
         <groupId>org.apache.ratis</groupId>
         <version>${ratis.version}</version>
