@@ -1033,7 +1033,11 @@ public class RaftJournalSystem extends AbstractJournalSystem {
    * @return the exception
    */
   public synchronized List<TransferLeaderMessage> getTransferLeaderMessage() {
-    return mTransferMsgs;
+    List<TransferLeaderMessage> errorMsg = new ArrayList<>(mTransferMsgs);
+    if (!mTransferMsgs.isEmpty()) {
+      mTransferMsgs.clear();
+    }
+    return errorMsg;
   }
 
   /**
