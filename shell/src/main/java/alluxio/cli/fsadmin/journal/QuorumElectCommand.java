@@ -15,7 +15,6 @@ import static alluxio.master.journal.raft.RaftJournalSystem.RAFT_GROUP_ID;
 
 import alluxio.cli.fsadmin.command.AbstractFsAdminCommand;
 import alluxio.cli.fsadmin.command.Context;
-import alluxio.client.journal.JournalMasterClient;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.status.AlluxioStatusException;
@@ -99,7 +98,6 @@ public class QuorumElectCommand extends AbstractFsAdminCommand {
 
   @Override
   public int run(CommandLine cl) throws IOException {
-    JournalMasterClient jmClient = mMasterJournalMasterClient;
     String strAddr = cl.getOptionValue(ADDRESS_OPTION_NAME);
     NetAddress address = QuorumCommand.stringToAddress(strAddr);
     InetSocketAddress serverAddress = InetSocketAddress
@@ -136,7 +134,7 @@ public class QuorumElectCommand extends AbstractFsAdminCommand {
       // fire and forget: need to immediately return as the master will shut down its RPC servers
       // once the TransferLeadershipRequest is initiated.
       final int SLEEP_TIME_MS = 3_000;
-      final int TRANSFER_LEADER_WAIT_MS = 30_000;
+      final int TRANSFER_LEADER_WAIT_MS = 60_000;
       try {
         Thread.sleep(SLEEP_TIME_MS);
         RaftClientReply reply1 = client.admin().transferLeadership(newLeaderPeerId,
@@ -156,7 +154,7 @@ public class QuorumElectCommand extends AbstractFsAdminCommand {
       final int TIMEOUT_3MIN = 3 * 60 * 1000; // in milliseconds
       CommonUtils.waitFor("Waiting for election to finalize", () -> {
         try {
-          GetQuorumInfoPResponse quorumInfo = jmClient.getQuorumInfo();
+          GetQuorumInfoPResponse quorumInfo = mMasterJournalMasterClient.getQuorumInfo();
 
           Optional<QuorumServerInfo>
               leadingMasterInfoOpt = quorumInfo.getServerInfoList().stream()
