@@ -36,9 +36,6 @@ import java.util.concurrent.ForkJoinPool;
 
 public class BaseEmbeddedJournalTest extends BaseIntegrationTest {
 
-  protected static final int NUM_MASTERS = 5;
-  protected static final int NUM_WORKERS = 0;
-
   @Rule
   public ConfigurationRule mConf =
           new ConfigurationRule(PropertyKey.USER_METRICS_COLLECTION_ENABLED, "false",

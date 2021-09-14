@@ -40,8 +40,12 @@ public class ResizingEBJTest extends BaseEmbeddedJournalTest {
 
   @Test
   public void resizeCluster() throws Exception {
+    final int NUM_MASTERS = 5;
+    final int NUM_WORKERS = 0;
     mCluster = MultiProcessCluster.newBuilder(PortCoordination.EMBEDDED_JOURNAL_RESIZE)
-        .setClusterName("EmbeddedJournalResizing").setNumMasters(5).setNumWorkers(0)
+        .setClusterName("EmbeddedJournalResizing")
+        .setNumMasters(NUM_MASTERS)
+        .setNumWorkers(NUM_WORKERS)
         .addProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.EMBEDDED.toString())
         .addProperty(PropertyKey.MASTER_JOURNAL_FLUSH_TIMEOUT_MS, "5min")
         // To make the test run faster.
@@ -105,8 +109,12 @@ public class ResizingEBJTest extends BaseEmbeddedJournalTest {
 
   @Test
   public void growCluster() throws Exception {
+    final int NUM_MASTERS = 2;
+    final int NUM_WORKERS = 0;
     mCluster = MultiProcessCluster.newBuilder(PortCoordination.EMBEDDED_JOURNAL_GROW)
-        .setClusterName("EmbeddedJournalAddMaster").setNumMasters(2).setNumWorkers(0)
+        .setClusterName("EmbeddedJournalAddMaster")
+        .setNumMasters(NUM_MASTERS)
+        .setNumWorkers(NUM_WORKERS)
         .addProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.EMBEDDED.toString())
         .addProperty(PropertyKey.MASTER_JOURNAL_FLUSH_TIMEOUT_MS, "5min")
         // To make the test run faster.
@@ -124,7 +132,7 @@ public class ResizingEBJTest extends BaseEmbeddedJournalTest {
     Assert.assertEquals(2,
         mCluster.getJournalMasterClientForMaster().getQuorumInfo().getServerInfoList().size());
 
-    addNewMastersToCluster(PortCoordination.EMBEDDED_JOURNAL_GROW_NEWMASTER);
+    addNewMastersToCluster(PortCoordination.EMBEDDED_JOURNAL_GROW_NEW_MASTER);
 
     // Reacquire FS client after cluster grew.
     fs = mCluster.getFileSystemClient();
@@ -161,9 +169,12 @@ public class ResizingEBJTest extends BaseEmbeddedJournalTest {
   @Ignore
   @Test
   public void updateRaftGroup() throws Exception {
-    int masterCount = 2;
+    final int NUM_MASTERS = 2;
+    final int NUM_WORKERS = 0;
     mCluster = MultiProcessCluster.newBuilder(PortCoordination.EMBEDDED_JOURNAL_UPDATE_RAFT_GROUP)
-        .setClusterName("EmbeddedJournalUpdateGroup").setNumMasters(masterCount).setNumWorkers(0)
+        .setClusterName("EmbeddedJournalUpdateGroup")
+        .setNumMasters(NUM_MASTERS)
+        .setNumWorkers(NUM_WORKERS)
         .addProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.EMBEDDED.toString())
         .addProperty(PropertyKey.MASTER_JOURNAL_FLUSH_TIMEOUT_MS, "5min")
         .addProperty(PropertyKey.MASTER_METASTORE, "HEAP")
@@ -179,7 +190,7 @@ public class ResizingEBJTest extends BaseEmbeddedJournalTest {
     Assert.assertTrue(fs.exists(testDir));
 
     // Validate current quorum size.
-    Assert.assertEquals(masterCount,
+    Assert.assertEquals(NUM_MASTERS,
         mCluster.getJournalMasterClientForMaster().getQuorumInfo().getServerInfoList().size());
 
     addNewMastersToCluster(PortCoordination.EMBEDDED_JOURNAL_UPDATE_RAFT_GROUP_NEW);
@@ -198,7 +209,7 @@ public class ResizingEBJTest extends BaseEmbeddedJournalTest {
       try {
         return mCluster.getJournalMasterClientForMaster().getQuorumInfo().getServerInfoList()
             .stream().filter(x -> x.getServerState() == QuorumServerState.AVAILABLE)
-            .toArray().length == masterCount + 2;
+            .toArray().length == NUM_MASTERS + 2;
       } catch (Exception exc) {
         throw new RuntimeException(exc);
       }
