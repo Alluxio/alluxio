@@ -124,12 +124,12 @@ public class QuorumElectCommand extends AbstractFsAdminCommand {
       String stringPeers = "[" + peersWithNewPriorities.stream().map(RaftPeer::toString)
           .collect(Collectors.joining(", ")) + "]";
       mPrintStream.printf(
-          "Applying new peer state before transferring leadership: %s\n", stringPeers);
+          "Applying new peer state before transferring leadership: %s%n", stringPeers);
       RaftClientReply reply = client.admin().setConfiguration(peersWithNewPriorities);
       processReply(reply, "failed to set master priorities before initiating election");
       /* transfer leadership */
       mPrintStream.printf(
-          "Transferring leadership to master with address <%s> and with RaftPeerId <%s>\n",
+          "Transferring leadership to master with address <%s> and with RaftPeerId <%s>%n",
           serverAddress, newLeaderPeerId);
       // fire and forget: need to immediately return as the master will shut down its RPC servers
       // once the TransferLeadershipRequest is initiated.
@@ -141,7 +141,7 @@ public class QuorumElectCommand extends AbstractFsAdminCommand {
             TRANSFER_LEADER_WAIT_MS);
         processReply(reply1, "election failed");
       } catch (Throwable t) {
-        mPrintStream.printf("caught an error when executing transfer: %s\n", t.getMessage());
+        mPrintStream.printf("caught an error when executing transfer: %s%n", t.getMessage());
         return -1;
       }
       mPrintStream.println("Transferring leadership initiated");
@@ -235,7 +235,7 @@ public class QuorumElectCommand extends AbstractFsAdminCommand {
       IOException ioe = reply.getException() != null
           ? reply.getException()
           : new IOException(String.format("reply <%s> failed", reply));
-      mPrintStream.printf("%s. Error: %s\n", msgToUser, ioe);
+      mPrintStream.printf("%s. Error: %s%n", msgToUser, ioe);
       throw new IOException(msgToUser);
     }
   }
