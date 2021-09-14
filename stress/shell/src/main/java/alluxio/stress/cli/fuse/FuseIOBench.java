@@ -56,6 +56,7 @@ import java.util.stream.Collectors;
 public class FuseIOBench extends Benchmark<FuseIOTaskResult> {
   private static final Logger LOG = LoggerFactory.getLogger(FuseIOBench.class);
   private static final String TEST_DIR_STRING_FORMAT = "%s/%s/dir-%d";
+  private static final String TEST_FILE_STRING_FORMAT = "%s/%s/dir-%d/file-%d";
 
   @ParametersDelegate
   private FuseIOParameters mParameters = new FuseIOParameters();
@@ -114,7 +115,7 @@ public class FuseIOBench extends Benchmark<FuseIOTaskResult> {
         "--file-size 100m --threads 32 --cluster",
         "$ bin/alluxio runClass alluxio.stress.cli.fuse.fuseIOBench --operation ListFile \\",
         "--local-path /mnt/alluxio-fuse/FuseIOTest",
-        "$ bin/alluxio runClass alluxio.stress.cli.fuse.fuseIOBench --operation Read \\",
+        "$ bin/alluxio runClass alluxio.stress.cli.fuse.fuseIOBench --operation ClusterRead \\",
         "--local-path /mnt/alluxio-fuse/FuseIOTest --num-dirs 32 --num-files-per-dir 10 \\",
         "--file-size 100m --threads 16 --warmup 5s --duration 30s --cluster",
         ""
@@ -411,9 +412,12 @@ public class FuseIOBench extends Benchmark<FuseIOTaskResult> {
       for (int testDirId = mThreadId; testDirId < mParameters.mNumDirs;
           testDirId += mParameters.mThreads) {
         for (int testFileId = 0; testFileId < mParameters.mNumFilesPerDir; testFileId++) {
-          String filePath = String.format(TEST_DIR_STRING_FORMAT + "/file-%d",
+          String filePath = String.format(TEST_FILE_STRING_FORMAT,
               mParameters.mLocalPath, mBaseParameters.mId, testDirId, testFileId);
-          processFile(filePath, FuseIOOperation.isRead(mParameters.mOperation));
+          boolean stopTest = processFile(filePath, FuseIOOperation.isRead(mParameters.mOperation));
+          if (stopTest) {
+            return;
+          }
         }
       }
       finishProcessingFiles();
@@ -428,7 +432,7 @@ public class FuseIOBench extends Benchmark<FuseIOTaskResult> {
         // skip itself if the operation is remote read
         if (indexCurrentJobWorkerDir == mJobWorkerZeroBasedId
             && mParameters.mOperation == FuseIOOperation.REMOTE_READ) {
-          indexCurrentJobWorkerDir = (indexCurrentJobWorkerDir + 1) % mJobWorkerDirNames.size();
+          continue;
         }
         String nameCurrentJobWorkerDir = mJobWorkerDirNames.get(indexCurrentJobWorkerDir);
 
@@ -437,33 +441,45 @@ public class FuseIOBench extends Benchmark<FuseIOTaskResult> {
             testDirId += mJobWorkerDirNames.size()) {
           for (int testFileId = mThreadId; testFileId < mParameters.mNumDirs;
               testFileId += mParameters.mThreads) {
-            String filePath = String.format(TEST_DIR_STRING_FORMAT + "/file-%d",
-                mParameters.mLocalPath, mBaseParameters.mId, testDirId, testFileId);
-            processFile(filePath, FuseIOOperation.isRead(mParameters.mOperation));
+            String filePath = String.format(TEST_FILE_STRING_FORMAT,
+                mParameters.mLocalPath, nameCurrentJobWorkerDir, testDirId, testFileId);
+            boolean stopTest = processFile(filePath,
+                FuseIOOperation.isRead(mParameters.mOperation));
+            if (stopTest) {
+              return;
+            }
           }
         }
       }
       finishProcessingFiles();
     }
 
-    private void processFile(String filePath, boolean isRead) throws IOException {
+    /**
+     * Method for processing a given file.
+     *
+     * @param filePath the path of the file to process
+     * @param isRead whether the operation is read
+     * @return whether the test should be stopped because of time or interruption
+     */
+    private boolean processFile(String filePath, boolean isRead) throws IOException {
       mCurrentOffset = 0;
       while (!Thread.currentThread().isInterrupted()) {
         if (isRead && CommonUtils.getCurrentMs() > mContext.getEndMs()) {
           closeInStream();
-          return;
+          return true;
         }
         long ioBytes = applyOperation(filePath);
 
         // done reading/writing one file
         if (ioBytes <= 0) {
-          break;
+          return false;
         }
         // start recording after the warmup
         if (CommonUtils.getCurrentMs() > mFuseIOTaskResult.getRecordStartMs()) {
           mFuseIOTaskResult.incrementIOBytes(ioBytes);
         }
       }
+      return true;
     }
 
     private long applyOperation(String filePath) throws IOException {

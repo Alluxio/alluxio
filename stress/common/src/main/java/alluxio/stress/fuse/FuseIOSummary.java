@@ -28,7 +28,7 @@ public class FuseIOSummary implements Summary {
   // key: unique ids of job workers. value: throughput of each job worker
   private Map<String, Float> mClientsThroughput;
   private List<String> mNodes;
-  // key: unique ids of job workers. value: error messages from each job worker.
+  // key: unique ids of job workers. value: error messages from each job worker
   private Map<String, List<String>> mErrors;
   private FuseIOParameters mParameters;
   private BaseParameters mBaseParameters;
