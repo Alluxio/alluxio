@@ -206,7 +206,7 @@ public final class QuorumCommandIntegrationTest extends BaseIntegrationTest {
 
       mOutput.reset();
       shell.run("journal", "quorum", "elect", "-address" , newLeaderAddr);
-      String output = mOutput.toString().trim();
+      String output = lastLine(mOutput.toString().trim());
       String expected = String.format(QuorumElectCommand.TRANSFER_SUCCESS, newLeaderAddr);
       Assert.assertEquals(expected, output);
     }
