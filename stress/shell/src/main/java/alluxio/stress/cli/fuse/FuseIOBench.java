@@ -439,7 +439,7 @@ public class FuseIOBench extends Benchmark<FuseIOTaskResult> {
         // find which files to read under this job worker directory
         for (int testDirId = mJobWorkerZeroBasedId; testDirId < mParameters.mNumDirs;
             testDirId += mJobWorkerDirNames.size()) {
-          for (int testFileId = mThreadId; testFileId < mParameters.mNumDirs;
+          for (int testFileId = mThreadId; testFileId < mParameters.mNumFilesPerDir;
               testFileId += mParameters.mThreads) {
             String filePath = String.format(TEST_FILE_STRING_FORMAT,
                 mParameters.mLocalPath, nameCurrentJobWorkerDir, testDirId, testFileId);
