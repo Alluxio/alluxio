@@ -84,6 +84,9 @@ public class AlluxioJobMasterProcess extends MasterProcess {
     mFileSystem = FileSystem.Factory.create(mFsContext);
     mUfsManager = new JobUfsManager();
     try {
+      if (!mJournalSystem.isFormatted()) {
+        mJournalSystem.format();
+      }
       // Create master.
       mJobMaster = new JobMaster(
           new MasterContext(mJournalSystem, null, mUfsManager), mFileSystem, mFsContext,

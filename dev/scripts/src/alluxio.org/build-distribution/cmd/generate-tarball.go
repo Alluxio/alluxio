@@ -26,7 +26,6 @@ import (
 
 var (
 	customUfsModuleFlag string
-	includedLibJarsFlag string
 	skipUIFlag          bool
 	skipHelmFlag        bool
 )
@@ -38,9 +37,6 @@ func Single(args []string) error {
 	singleCmd.StringVar(&customUfsModuleFlag, "custom-ufs-module", "",
 		"a percent-separated list of custom ufs modules which has the form of a pipe-separated pair of the module name and its comma-separated maven arguments."+
 			" e.g. hadoop-a.b|-pl,underfs/hdfs,-Pufs-hadoop-A,-Dufs.hadoop.version=a.b.c%hadoop-x.y|-pl,underfs/hdfs,-Pufs-hadoop-X,-Dufs.hadoop.version=x.y.z")
-	singleCmd.StringVar(&includedLibJarsFlag, "lib-jars", "all",
-		"a comma-separated list of jars under lib/ to include in addition to all underfs-hdfs modules. All jars under lib/ will be included by default."+
-			" e.g. underfs-cos,table-server-underdb-glue")
 	singleCmd.BoolVar(&skipUIFlag, "skip-ui", false, fmt.Sprintf("set this flag to skip building the webui. This will speed up the build times "+
 		"but the generated tarball will have no Alluxio WebUI although REST services will still be available."))
 	singleCmd.BoolVar(&skipHelmFlag, "skip-helm", true, fmt.Sprintf("set this flag to skip using Helm to generate YAML templates for K8s deployment scenarios"))
@@ -59,16 +55,8 @@ func Single(args []string) error {
 			}
 		}
 	}
-	if err := handleUfsModules(); err != nil {
+	if err := handleUfsModulesAndLibJars(); err != nil {
 		return err
-	}
-	if includedLibJarsFlag != "all" {
-		uncheckedJars := strings.Split(includedLibJarsFlag, ",")
-		for _, jar := range uncheckedJars {
-			if _, ok := libJars[jar]; !ok {
-				return fmt.Errorf("lib jar %v not recognized", jar)
-			}
-		}
 	}
 	if debugFlag {
 		fmt.Fprintf(os.Stdout, "hadoopDistributionFlag=: %s\n", hadoopDistributionFlag)
@@ -207,6 +195,7 @@ func addAdditionalFiles(srcPath, dstPath string, hadoopVersion version, version 
 		"integration/docker/conf/alluxio-env.sh.template",
 		"integration/docker/conf/alluxio-site.properties.template",
 		"integration/docker/Dockerfile",
+		"integration/docker/dockerfile-common.sh",
 		"integration/docker/entrypoint.sh",
 		"integration/fuse/bin/alluxio-fuse",
 		"integration/metrics/docker-compose-master.yaml",
@@ -219,14 +208,8 @@ func addAdditionalFiles(srcPath, dstPath string, hadoopVersion version, version 
 		"LICENSE",
 	}
 
-	if includedLibJarsFlag == "all" {
-		for jar := range libJars {
-			pathsToCopy = append(pathsToCopy, fmt.Sprintf("lib/alluxio-%v-%v.jar", jar, version))
-		}
-	} else {
-		for _, jar := range strings.Split(includedLibJarsFlag, ",") {
-			pathsToCopy = append(pathsToCopy, fmt.Sprintf("lib/alluxio-%v-%v.jar", jar, version))
-		}
+	for _, jar := range strings.Split(includedLibJarsFlag, ",") {
+		pathsToCopy = append(pathsToCopy, fmt.Sprintf("lib/alluxio-%v-%v.jar", jar, version))
 	}
 
 	if includeYarnIntegration(hadoopVersion) {

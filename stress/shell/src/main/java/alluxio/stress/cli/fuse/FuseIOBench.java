@@ -11,10 +11,11 @@
 
 package alluxio.stress.cli.fuse;
 
+import alluxio.annotation.SuppressFBWarnings;
 import alluxio.ClientContext;
-import alluxio.Constants;
 import alluxio.client.job.JobMasterClient;
 import alluxio.conf.InstancedConfiguration;
+import alluxio.Constants;
 import alluxio.stress.BaseParameters;
 import alluxio.stress.StressConstants;
 import alluxio.stress.cli.Benchmark;
@@ -30,7 +31,6 @@ import alluxio.worker.job.JobMasterClientContext;
 
 import com.beust.jcommander.ParametersDelegate;
 import com.google.common.collect.ImmutableList;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -370,7 +370,7 @@ public class FuseIOBench extends Benchmark<FuseIOTaskResult> {
       long waitMs = mContext.getStartMs() - CommonUtils.getCurrentMs();
       if (waitMs < 0) {
         throw new IllegalStateException(String.format(
-            "Thread missed barrier. Set the start time to a later time. start: %d current: %d",
+            "Thread missed barrier. Increase the start delay. start: %d current: %d",
             mContext.getStartMs(), CommonUtils.getCurrentMs()));
       }
       CommonUtils.sleepMs(waitMs);
