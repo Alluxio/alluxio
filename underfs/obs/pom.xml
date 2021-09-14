@@ -18,58 +18,12 @@
         <obs.version>3.20.6</obs.version>
     </properties>
 
-    <repositories>
-        <repository>
-            <id>central</id>
-            <!-- This should be at top, it makes maven try the central repo first and then others and hence faster dep resolution -->
-            <name>Maven Repository</name>
-            <url>https://repo1.maven.org/maven2</url>
-            <releases>
-                <enabled>true</enabled>
-            </releases>
-            <snapshots>
-                <enabled>false</enabled>
-            </snapshots>
-        </repository>
-        <repository>
-            <id>apache-repo</id>
-            <name>Apache Repository</name>
-            <url>https://repository.apache.org/content/repositories/releases</url>
-            <releases>
-                <enabled>true</enabled>
-            </releases>
-            <snapshots>
-                <enabled>false</enabled>
-            </snapshots>
-        </repository>
-        <repository>
-            <id>huaweicloudsdk</id>
-            <url>https://repo.huaweicloud.com/repository/maven/huaweicloudsdk/</url>
-            <releases>
-                <enabled>true</enabled>
-            </releases>
-            <snapshots>
-                <enabled>false</enabled>
-            </snapshots>
-        </repository>
-    </repositories>
-
     <dependencies>
         <!-- External dependencies -->
         <dependency>
-            <groupId>com.huawei.storage</groupId>
+            <groupId>com.huaweicloud</groupId>
             <artifactId>esdk-obs-java</artifactId>
             <version>${obs.version}</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.apache.logging.log4j</groupId>
-                    <artifactId>log4j-core</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.apache.logging.log4j</groupId>
-                    <artifactId>log4j-api</artifactId>
-                </exclusion>
-            </exclusions>
         </dependency>
 
         <!-- Internal dependencies -->
