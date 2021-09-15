@@ -23,7 +23,6 @@ import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.zip.DataFormatException;
 
-// TODO(jianjian): refactor with TaskResultStatistics
 /**
  * Statistics class that is used in {@link JobServiceBenchTaskResult}.
  */
@@ -35,7 +34,6 @@ public class JobServiceBenchTaskResultStatistics extends TaskResultStatistics {
   public JobServiceBenchTaskResultStatistics() {
     // Default constructor required for json deserialization
     super();
-
     mMaxResponseTimeNs = new long[StressConstants.JOB_SERVICE_MAX_RESPONSE_TIME_COUNT];
     Arrays.fill(mMaxResponseTimeNs, -1);
   }
