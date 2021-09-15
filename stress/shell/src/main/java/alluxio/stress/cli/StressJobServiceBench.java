@@ -25,8 +25,6 @@ import alluxio.grpc.DeletePOptions;
 import alluxio.grpc.WritePType;
 import alluxio.stress.BaseParameters;
 import alluxio.stress.StressConstants;
-import alluxio.stress.fuse.FuseIOOperation;
-import alluxio.stress.jobservice.JobServiceBenchOperation;
 import alluxio.stress.jobservice.JobServiceBenchParameters;
 import alluxio.stress.jobservice.JobServiceBenchTaskResult;
 import alluxio.stress.jobservice.JobServiceBenchTaskResultStatistics;
@@ -41,8 +39,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -74,7 +70,6 @@ public class StressJobServiceBench extends Benchmark<JobServiceBenchTaskResult> 
 
   @Override
   public void prepare() throws Exception {}
-
 
   @Override
   public String getBenchDescription() {
@@ -256,7 +251,6 @@ public class StressJobServiceBench extends Benchmark<JobServiceBenchTaskResult> 
         String filePath = String.format("%s/%d", dirPath, fileId);
         createByteFile(fs, new AlluxioURI(filePath), options, fileSize);
       }
-
     }
 
     private void createByteFile(FileSystem fs, AlluxioURI fileURI, CreateFilePOptions options,
