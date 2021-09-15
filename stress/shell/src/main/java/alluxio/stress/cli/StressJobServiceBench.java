@@ -24,6 +24,8 @@ import alluxio.grpc.DeletePOptions;
 import alluxio.grpc.WritePType;
 import alluxio.stress.BaseParameters;
 import alluxio.stress.StressConstants;
+import alluxio.stress.fuse.FuseIOOperation;
+import alluxio.stress.jobservice.JobServiceBenchOperation;
 import alluxio.stress.jobservice.JobServiceBenchParameters;
 import alluxio.stress.jobservice.JobServiceBenchTaskResult;
 import alluxio.stress.jobservice.JobServiceBenchTaskResultStatistics;
@@ -39,6 +41,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -69,53 +73,8 @@ public class StressJobServiceBench extends Benchmark<JobServiceBenchTaskResult> 
   }
 
   @Override
-  public void prepare() throws Exception {
-    FileSystemContext fsContext =
-        FileSystemContext.create(new InstancedConfiguration(ConfigurationUtils.defaults()));
-    FileSystem fileSystem = FileSystem.Factory.create(fsContext);
-    long start = CommonUtils.getCurrentMs();
-    deleteBasePath(fileSystem);
-    long deleteEnd = CommonUtils.getCurrentMs();
-    LOG.info("Cleanup delete took: {} s", (deleteEnd - start) / 1000.0);
-    int fileSize = (int) FormatUtils.parseSpaceSize(mParameters.mFileSize);
-    createFiles(fileSystem, mParameters.mNumFilesPerDir, mParameters.mNumDirs, fileSize);
-    long createEnd = CommonUtils.getCurrentMs();
-    LOG.info("Create files took: {} s", (createEnd - deleteEnd) / 1000.0);
-  }
+  public void prepare() throws Exception {}
 
-  private void createFiles(FileSystem fs, int numFiles, int numDirs, int fileSize)
-      throws IOException, AlluxioException {
-    CreateFilePOptions options =
-        CreateFilePOptions.newBuilder().setRecursive(true).setWriteType(WritePType.THROUGH).build();
-    for (int dirId = 0; dirId < numDirs; dirId++) {
-      for (int fileId = 0; fileId < numFiles; fileId++) {
-        String filePath =
-            String.format("%s/%s/%d/%d", mParameters.mBasePath, mBaseParameters.mId, dirId, fileId);
-        createByteFile(fs, new AlluxioURI(filePath), options, fileSize);
-      }
-    }
-  }
-
-  private void createByteFile(FileSystem fs, AlluxioURI fileURI, CreateFilePOptions options,
-      int len) throws IOException, AlluxioException {
-    try (FileOutStream os = fs.createFile(fileURI, options)) {
-      byte[] arr = new byte[len];
-      for (int k = 0; k < len; k++) {
-        arr[k] = (byte) k;
-      }
-      os.write(arr);
-    }
-  }
-
-  private void deleteBasePath(FileSystem fs) throws IOException, AlluxioException {
-    String currentWorkerFilePath =
-        String.format("%s/%s", mParameters.mBasePath, mBaseParameters.mId);
-    AlluxioURI path = new AlluxioURI(currentWorkerFilePath);
-    if (fs.exists(path)) {
-      DeletePOptions options = DeletePOptions.newBuilder().setRecursive(true).build();
-      fs.delete(path, options);
-    }
-  }
 
   @Override
   public String getBenchDescription() {
@@ -257,12 +216,13 @@ public class StressJobServiceBench extends Benchmark<JobServiceBenchTaskResult> 
     }
 
     private void applyOperation(String dirPath) throws IOException, AlluxioException {
+      FileSystemContext fsContext =
+          FileSystemContext.create(new InstancedConfiguration(ConfigurationUtils.defaults()));
       switch (mParameters.mOperation) {
         case DISTRIBUTED_LOAD:
           // send distributed load task to job service and wait for result
           int numReplication = 1;
-          FileSystemContext fsContext =
-              FileSystemContext.create(new InstancedConfiguration(ConfigurationUtils.defaults()));
+
           DistributedLoadCommand cmd = new DistributedLoadCommand(fsContext);
           try {
             DistributedLoadUtils.distributedLoad(cmd, new AlluxioURI(dirPath), numReplication,
@@ -270,9 +230,51 @@ public class StressJobServiceBench extends Benchmark<JobServiceBenchTaskResult> 
           } finally {
             mResult.incrementNumSuccess(cmd.getCompletedCount());
           }
-          return;
+          break;
+        case CREATE_FILES:
+          FileSystem fileSystem = FileSystem.Factory.create(fsContext);
+          long start = CommonUtils.getCurrentMs();
+          deletePath(fileSystem, dirPath);
+          long deleteEnd = CommonUtils.getCurrentMs();
+          LOG.info("Cleanup delete took: {} s", (deleteEnd - start) / 1000.0);
+          int fileSize = (int) FormatUtils.parseSpaceSize(mParameters.mFileSize);
+          createFiles(fileSystem, mParameters.mNumFilesPerDir, dirPath, fileSize);
+          long createEnd = CommonUtils.getCurrentMs();
+          LOG.info("Create files took: {} s", (createEnd - deleteEnd) / 1000.0);
+          break;
         default:
           throw new IllegalStateException("Unknown operation: " + mParameters.mOperation);
+      }
+    }
+
+    private void createFiles(FileSystem fs, int numFiles, String dirPath, int fileSize)
+        throws IOException, AlluxioException {
+      CreateFilePOptions options = CreateFilePOptions.newBuilder().setRecursive(true)
+          .setWriteType(WritePType.THROUGH).build();
+
+      for (int fileId = 0; fileId < numFiles; fileId++) {
+        String filePath = String.format("%s/%d", dirPath, fileId);
+        createByteFile(fs, new AlluxioURI(filePath), options, fileSize);
+      }
+
+    }
+
+    private void createByteFile(FileSystem fs, AlluxioURI fileURI, CreateFilePOptions options,
+        int len) throws IOException, AlluxioException {
+      try (FileOutStream os = fs.createFile(fileURI, options)) {
+        byte[] arr = new byte[len];
+        for (int k = 0; k < len; k++) {
+          arr[k] = (byte) k;
+        }
+        os.write(arr);
+      }
+    }
+
+    private void deletePath(FileSystem fs, String dirPath) throws IOException, AlluxioException {
+      AlluxioURI path = new AlluxioURI(dirPath);
+      if (fs.exists(path)) {
+        DeletePOptions options = DeletePOptions.newBuilder().setRecursive(true).build();
+        fs.delete(path, options);
       }
     }
   }
