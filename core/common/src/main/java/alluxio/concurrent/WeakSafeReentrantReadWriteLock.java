@@ -11,7 +11,7 @@
 
 package alluxio.concurrent;
 
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import alluxio.annotation.SuppressFBWarnings;
 
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;

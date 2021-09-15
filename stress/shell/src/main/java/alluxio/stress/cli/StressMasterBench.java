@@ -11,6 +11,7 @@
 
 package alluxio.stress.cli;
 
+import alluxio.annotation.SuppressFBWarnings;
 import alluxio.conf.PropertyKey;
 import alluxio.stress.BaseParameters;
 import alluxio.stress.StressConstants;
@@ -25,7 +26,6 @@ import alluxio.util.io.PathUtils;
 
 import com.beust.jcommander.ParametersDelegate;
 import com.google.common.util.concurrent.RateLimiter;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.HdrHistogram.Histogram;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileStatus;

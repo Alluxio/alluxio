@@ -11,6 +11,7 @@
 
 package alluxio.stress.cli.fuse;
 
+import alluxio.annotation.SuppressFBWarnings;
 import alluxio.Constants;
 import alluxio.stress.BaseParameters;
 import alluxio.stress.StressConstants;
@@ -25,7 +26,6 @@ import alluxio.util.executor.ExecutorServiceFactories;
 
 import com.beust.jcommander.ParametersDelegate;
 import com.google.common.collect.ImmutableList;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

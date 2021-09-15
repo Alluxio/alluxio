@@ -11,6 +11,7 @@
 
 package alluxio.worker.grpc;
 
+import alluxio.annotation.SuppressFBWarnings;
 import alluxio.RpcUtils;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
@@ -43,7 +44,6 @@ import alluxio.worker.WorkerProcess;
 import alluxio.worker.block.BlockWorker;
 
 import com.google.common.collect.ImmutableMap;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.grpc.MethodDescriptor;
 import io.grpc.Status;
 import io.grpc.stub.CallStreamObserver;
