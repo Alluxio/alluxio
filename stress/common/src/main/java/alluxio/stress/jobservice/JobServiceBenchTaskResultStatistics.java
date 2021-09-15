@@ -11,17 +11,10 @@
 
 package alluxio.stress.jobservice;
 
-import alluxio.annotation.SuppressFBWarnings;
-import alluxio.Constants;
 import alluxio.stress.StressConstants;
-import alluxio.stress.common.SummaryStatistics;
 import alluxio.stress.common.TaskResultStatistics;
 
-import org.HdrHistogram.Histogram;
-
-import java.nio.ByteBuffer;
 import java.util.Arrays;
-import java.util.zip.DataFormatException;
 
 /**
  * Statistics class that is used in {@link JobServiceBenchTaskResult}.
