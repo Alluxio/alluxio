@@ -474,8 +474,8 @@ public final class S3RestServiceHandler {
       String objectPath = bucketPath + AlluxioURI.SEPARATOR + object;
       AlluxioURI multipartTemporaryDir =
           new AlluxioURI(S3RestUtils.getMultipartTemporaryDirForObject(bucketPath, object));
-      CreateDirectoryPOptions options =
-              CreateDirectoryPOptions.newBuilder().setRecursive(true).setWriteType(getS3WriteType()).build();
+      CreateDirectoryPOptions options = CreateDirectoryPOptions.newBuilder()
+          .setRecursive(true).setWriteType(getS3WriteType()).build();
       try {
         fs.createDirectory(multipartTemporaryDir, options);
         // Use the file ID of multipartTemporaryDir as the upload ID.
