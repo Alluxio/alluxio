@@ -276,6 +276,8 @@ public abstract class DynamicResourcePool<T> implements Pool<T> {
         }
       }
     }, options.getInitialDelayMs(), options.getGcIntervalMs(), TimeUnit.MILLISECONDS);
+
+    registerGauges();
   }
 
   private void registerGauges() {
