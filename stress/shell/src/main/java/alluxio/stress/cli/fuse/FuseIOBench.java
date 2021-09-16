@@ -153,7 +153,6 @@ public class FuseIOBench extends Benchmark<FuseIOTaskResult> {
           "Single-node Fuse IO stress bench doesn't support RemoteRead or ClusterRead."
       ));
     }
-    // find 0-based id, and make sure directories and job workers are 1-to-1
     File[] jobWorkerDirs = localPath.listFiles();
     if (jobWorkerDirs == null) {
       throw new IOException(String.format(
@@ -161,6 +160,12 @@ public class FuseIOBench extends Benchmark<FuseIOTaskResult> {
               mParameters.mLocalPath
       ));
     }
+    if (!mBaseParameters.mDistributed) {
+      // single-node case only has one directory
+      mJobWorkerDirNames = Arrays.asList(mBaseParameters.mId);
+      return;
+    }
+    // for cluster mode, find 0-based id, and make sure directories and job workers are 1-to-1
     int numJobWorkers;
     try (JobMasterClient client = JobMasterClient.Factory.create(
         JobMasterClientContext.newBuilder(ClientContext.create(new InstancedConfiguration(
@@ -168,15 +173,14 @@ public class FuseIOBench extends Benchmark<FuseIOTaskResult> {
       numJobWorkers = client.getAllWorkerHealth().size();
     }
     if (numJobWorkers != jobWorkerDirs.length) {
-      throw new IllegalStateException("Some worker crashed or joined after data are written. "
+      throw new IllegalStateException("Some job worker crashed or joined after data are written. "
           + "The test is stopped.");
     }
     mJobWorkerDirNames = Arrays.asList(jobWorkerDirs).stream()
         .map(file -> file.getName())
         .collect(Collectors.toList());
-    try {
-      mJobWorkerZeroBasedId = mJobWorkerDirNames.indexOf(mBaseParameters.mId);
-    } catch (Exception e) {
+    mJobWorkerZeroBasedId = mJobWorkerDirNames.indexOf(mBaseParameters.mId);
+    if (mJobWorkerZeroBasedId == -1) {
       throw new IllegalStateException(String.format(
           "Directory %s is not found. Please use this bench to generate test files, and make sure "
               + "no job worker crashes or joins after data is written. The test is stopped.",
