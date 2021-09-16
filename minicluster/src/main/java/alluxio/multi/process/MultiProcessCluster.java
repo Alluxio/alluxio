@@ -57,6 +57,8 @@ import org.apache.curator.test.TestingServer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nullable;
+import javax.annotation.concurrent.ThreadSafe;
 import java.io.Closeable;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -71,9 +73,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeoutException;
-
-import javax.annotation.Nullable;
-import javax.annotation.concurrent.ThreadSafe;
+import java.util.stream.Collectors;
+import java.lang.Process;
 
 /**
  * Class for starting, stopping, and interacting with an Alluxio cluster where each master and
@@ -233,7 +234,7 @@ public final class MultiProcessCluster {
         mProperties.put(PropertyKey.ZOOKEEPER_ADDRESS, mCuratorServer.getConnectString());
         break;
       default:
-        throw new IllegalStateException("Unknown deploy mode: " + mDeployMode.toString());
+        throw new IllegalStateException("Unknown deploy mode: " + mDeployMode);
     }
 
     for (Entry<PropertyKey, String> entry :
@@ -297,7 +298,7 @@ public final class MultiProcessCluster {
         fs.getStatus(new AlluxioURI("/"));
         return true;
       } catch (Exception e) {
-        LOG.error("Failed to get status of root directory:", e);
+        System.out.println("Failed to get status of root directory:" + e);
         return false;
       }
     }, WaitForOptions.defaults().setTimeoutMs(timeoutMs));
@@ -406,6 +407,17 @@ public final class MultiProcessCluster {
   public synchronized JournalMasterClient getJournalMasterClientForMaster() {
     Preconditions.checkState(mState == State.STARTED,
         "must be in the started state to create a journal master client, but state was %s", mState);
+
+    int leader;
+    try {
+      leader = mMasterAddresses.get(getPrimaryMasterIndex(5_000)).getEmbeddedJournalPort();
+    } catch (Exception e) {
+      e.printStackTrace();
+      leader = -1;
+    }
+    List<String> list = ServerConfiguration.global().getList(PropertyKey.MASTER_EMBEDDED_JOURNAL_ADDRESSES, ",");
+    String collect = list.stream().map(addr -> addr.split(":")[1]).collect(Collectors.joining(","));
+    System.out.printf("\tGlobal ebj addrs: %s ; leader: %d%n", collect, leader);
 
     return new RetryHandlingJournalMasterClient(
         MasterClientContext.newBuilder(ClientContext.create(ServerConfiguration.global()))
@@ -518,8 +530,31 @@ public final class MultiProcessCluster {
   /**
    * @param i the index of the master to stop
    */
-  public synchronized void stopMaster(int i) throws IOException {
+  public synchronized void stopMaster(int i) {
     mMasters.get(i).close();
+  }
+
+  public synchronized void removeMaster(int i) throws IOException {
+    stopMaster(i);
+    mMasterAddresses.remove(i);
+    mMasters.remove(i);
+    switch (mDeployMode) {
+      case EMBEDDED:
+        String journalAddresses = mMasterAddresses.stream()
+            .map(addr -> String.format("%s:%d", addr.getHostname(), addr.getEmbeddedJournalPort()))
+            .collect(Collectors.joining(","));
+        String rpcAddresses = mMasterAddresses.stream()
+            .map(addr -> String.format("%s:%d", addr.getHostname(), addr.getRpcPort()))
+            .collect(Collectors.joining(","));
+        mProperties.put(PropertyKey.MASTER_EMBEDDED_JOURNAL_ADDRESSES, journalAddresses);
+        mProperties.put(PropertyKey.MASTER_RPC_ADDRESSES, rpcAddresses);
+        ServerConfiguration.set(PropertyKey.MASTER_EMBEDDED_JOURNAL_ADDRESSES, journalAddresses);
+        ServerConfiguration.set(PropertyKey.MASTER_RPC_ADDRESSES, rpcAddresses);
+        break;
+      default:
+        throw new IllegalStateException("Unimplemented deploy mode: " + mDeployMode);
+    }
+    mFilesystemContext = null;
   }
 
   /**
@@ -612,6 +647,10 @@ public final class MultiProcessCluster {
   public synchronized void restartZk() throws Exception {
     Preconditions.checkNotNull(mCuratorServer, "mCuratorServer");
     mCuratorServer.restart();
+  }
+
+  public File getWorkDir() {
+    return mWorkDir;
   }
 
   /**
@@ -717,6 +756,11 @@ public final class MultiProcessCluster {
             addresses.add(
                 InetSocketAddress.createUnresolved(address.getHostname(), address.getRpcPort()));
           }
+          List<String> list = ServerConfiguration.getList(PropertyKey.MASTER_RPC_ADDRESSES, ",");
+          List<String> collect = addresses.stream().map(addr -> String.format("%s:%d", addr.getHostName(),
+              addr.getPort())).collect(Collectors.toList());
+          boolean b = list.containsAll(collect) && collect.size() == list.size();
+          System.out.println("\tglobal " + (b ? "contains" : "NOT CONTAIN") + " all RPC addresses");
           return new PollingMasterInquireClient(addresses, ServerConfiguration.global(),
               ServerUserState.global());
         } else {
