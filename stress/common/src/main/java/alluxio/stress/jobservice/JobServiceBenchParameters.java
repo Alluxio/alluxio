@@ -40,7 +40,7 @@ public final class JobServiceBenchParameters extends Parameters {
 
   @Parameter(names = {"--file-size"},
       description = "The size of a file for the Create op, allowed to be 0. (0, 1m, 2k, 8k, etc.)")
-  public String mFileSize = "100k";
+  public String mFileSize = "1k";
 
   /**
    * Converts from String to Operation instance.
