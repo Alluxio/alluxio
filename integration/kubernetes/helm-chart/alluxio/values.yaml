@@ -17,7 +17,7 @@ fullnameOverride: alluxio
 
 # Docker Image
 image: alluxio/alluxio
-imageTag: 2.7.0-SNAPSHOT
+imageTag: 2.6.2-SNAPSHOT
 imagePullPolicy: IfNotPresent
 
 # Security Context
@@ -538,7 +538,7 @@ logserver:
 csi:
   enabled: false
   image: alluxio/alluxio-csi
-  imageTag: 2.7.0-SNAPSHOT
+  imageTag: 2.6.2-SNAPSHOT
   imagePullPolicy: IfNotPresent
   controllerPlugin:
     hostNetwork: true
