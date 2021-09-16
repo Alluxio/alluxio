@@ -17,7 +17,10 @@ environment by simply running the command line.
 The StressBench is consisted of different tests to help you test the metadata and IO performance of
 the Alluxio system. The following benchmark tools are currently supported:
 * `FuseIOBench` - A benchmark tool measuring the IO performance of Alluxio through Fuse interface.
-* `RpcBench` - A benchmark tool which simulates RPCs with a specified load and concurrency.
+* `RpcBench` - A set of benchmark tools which simulate RPCs with a specified load and concurrency.
+  * `GetPinnedFileIdsBench` - for the `GetPinnedFileIds` RPC
+  * `RegisterWorkerBench` - for the `RegisterWorker` RPC
+  * `WorkerHeartbeatBench` - for the `WorkerHeartbeat` RPC
 * `StressClientBench` - A benchmark tool measuring the IO performance of Alluxio through the client.
 * `StressMasterBench` - A benchmark tool measuring the master performance of Alluxio.
 * `StressWorkerBench` - A benchmark tool measuring the IO performance of Alluxio with single node.
@@ -30,6 +33,35 @@ service supports. There are a few components for StressBench as follows:
 
 ### Client CLI
 The user-facing CLI program allows you to invoke the StressBench tasks through the command line.
+
+**Invoking the benchmarks**
+
+You can run a benchmark by its class name using the `runClass` command. For example,
+
+```console
+$ bin/alluxio runClass alluxio.stress.cli.StressMasterBench --help
+```
+
+invokes the `StressMasterBench` and prints its usage.
+
+**Common options**
+
+Common options are options that all benchmarks accept:
+
+* `--cluster`: run the benchmark with job service.
+* `--cluster-limit`: specify how many job workers are used to run the benchmark in parallel. 
+  Omit to use all available job workers.
+* `--cluster-start-delay`: specify the start delay before starting the benchmark, used to
+  synchronize the jobs.
+* `--java-opt`: additional JVM options
+* `--profile-agent`: profile agent to use during benchmark
+* `--bench-timeout`: the maximum time a benchmark should run for
+* `--help`: print usage, description and benchmark-specific options of a benchmark
+
+**Benchmark specific options**
+
+Each benchmark may define its own set of options. Run the benchmark with the `--help` option to get
+a list of supported options and example usage.
 
 ### Job Definition
 This is the definition of the job master, which is invoked by the client CLI program, and will
@@ -49,6 +81,9 @@ definition will define the timestamp of when the tasks should start. This depend
 of the job workers to be in sync. Then, the tasks themselves can use that start time to ensure all
 tasks and threads start at the defined time. This ensures that all distributed tasks and threads
 start at the same time for the testing.
+
+The default start time is set to 10s from the current time. Use a larger value for 
+`--cluster-start-delay` to accommodate large clusters.
 
 ### Duration-based testing (with warmups)
 Another way to improve the consistency of results is to run tests with warmups and also for a
