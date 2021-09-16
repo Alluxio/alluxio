@@ -42,6 +42,7 @@ public class PortCoordination {
   public static final List<ReservedPort> EMBEDDED_JOURNAL_UPDATE_RAFT_GROUP = allocate(3, 0);
   public static final List<ReservedPort> EMBEDDED_JOURNAL_UPDATE_RAFT_GROUP_NEW = allocate(1, 0);
   public static final List<ReservedPort> EMBEDDED_JOURNAL_THESEUS = allocate(10, 0);
+  public static final List<ReservedPort> EMBEDDED_JOURNAL_THESEUS_GROW = allocate(5, 0);
 
   public static final List<ReservedPort> JOURNAL_MIGRATION = allocate(3, 1);
 

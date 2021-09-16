@@ -16,7 +16,6 @@ import static org.junit.Assert.assertTrue;
 
 import alluxio.AlluxioURI;
 import alluxio.client.file.FileSystem;
-import alluxio.conf.Hash;
 import alluxio.conf.PropertyKey;
 import alluxio.grpc.NetAddress;
 import alluxio.grpc.QuorumServerInfo;
@@ -28,7 +27,6 @@ import alluxio.master.journal.raft.RaftJournalSystem;
 import alluxio.multi.process.MasterNetAddress;
 import alluxio.multi.process.MultiProcessCluster;
 import alluxio.multi.process.PortCoordination;
-import alluxio.server.auth.ClusterInitializationIntegrationTest;
 import alluxio.util.CommonUtils;
 
 import org.apache.ratis.protocol.Message;
@@ -36,12 +34,12 @@ import org.junit.Assert;
 import org.junit.Ignore;
 import org.junit.Test;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 public class ResizingEBJTest extends BaseEmbeddedJournalTest {
 
@@ -119,7 +117,7 @@ public class ResizingEBJTest extends BaseEmbeddedJournalTest {
     final int NUM_MASTERS = 2;
     final int NUM_WORKERS = 0;
     mCluster = MultiProcessCluster.newBuilder(PortCoordination.EMBEDDED_JOURNAL_GROW)
-        .setClusterName("EmbeddedJournalAddMaster")
+        .setClusterName("EmbeddedJournalAddMaster-grow")
         .setNumMasters(NUM_MASTERS)
         .setNumWorkers(NUM_WORKERS)
         .addProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.EMBEDDED.toString())
@@ -178,7 +176,7 @@ public class ResizingEBJTest extends BaseEmbeddedJournalTest {
     final int NUM_MASTERS = 5;
     final int NUM_WORKERS = 0;
     mCluster = MultiProcessCluster.newBuilder(PortCoordination.EMBEDDED_JOURNAL_THESEUS)
-        .setClusterName("EmbeddedJournalAddMaster")
+        .setClusterName("EmbeddedJournalAddMaster-theseus")
         .setNumMasters(NUM_MASTERS)
         .setNumWorkers(NUM_WORKERS)
         .addProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.EMBEDDED.toString())
@@ -194,44 +192,60 @@ public class ResizingEBJTest extends BaseEmbeddedJournalTest {
     fs.createDirectory(testDir);
     Assert.assertTrue(fs.exists(testDir));
 
-    List<MasterNetAddress> originalMasters = mCluster.getMasterAddresses();
-    for (int i = 0; i < originalMasters.size(); i++) {
-      mCluster.stopMaster(i);
-      mCluster.getJournalMasterClientForMaster().removeQuorumServer(
-          masterEBJAddr2NetAddr(originalMasters.get(i)));
-      mCluster.startNewMasters(1, false);
-      Thread.sleep(3_000);
-      assertEquals(5,
-          mCluster.getJournalMasterClientForMaster().getQuorumInfo().getServerInfoList().size());
+    List<MasterNetAddress> originalMasters = new ArrayList<>(mCluster.getMasterAddresses());
+    for (int i = 0; i < originalMasters.size(); i ++) {
+      MasterNetAddress masterNetAddress = originalMasters.get(i);
+      String collect = mCluster.getMasterAddresses().stream()
+          .map(MasterNetAddress::getEmbeddedJournalPort)
+          .sorted().map(port -> Integer.toString(port)).collect(Collectors.joining(","));
+      String collect1 = originalMasters.stream()
+          .map(MasterNetAddress::getEmbeddedJournalPort)
+          .sorted().map(port -> Integer.toString(port)).collect(Collectors.joining(","));
+
+      MasterNetAddress primMaster = mCluster.getMasterAddresses().get(mCluster.getPrimaryMasterIndex(5_000));
+
+      System.out.printf("current quorum: %s; original quorum: %s; leader: %d (%s); removing %d " +
+              "(%s); attempt #%d%n", collect, collect1,
+          primMaster.getEmbeddedJournalPort(),
+          originalMasters.contains(primMaster) ? "og" : "not og",
+          masterNetAddress.getEmbeddedJournalPort(),
+          masterNetAddress.equals(primMaster) ? "leader" : "not leader",
+          6 - originalMasters.size());
+
+      int masterIdx = mCluster.getMasterAddresses().indexOf(masterNetAddress);
+      mCluster.removeMaster(masterIdx);
+      System.out.println("\twait for quorum unavailable");
+      waitForQuorumPropertySize(info -> info.getServerState() == QuorumServerState.UNAVAILABLE, 1);
+
+      System.out.println("\tremoving from ratis quorum");
+      NetAddress toRemove = masterEBJAddr2NetAddr(masterNetAddress);
+      mCluster.getJournalMasterClientForMaster().removeQuorumServer(toRemove);
+      waitForQuorumPropertySize(info -> true, NUM_MASTERS - 1);
+      // each master has 3 ports
+      System.out.println("\tstarting new master");
+      addNewMastersToCluster(PortCoordination.EMBEDDED_JOURNAL_THESEUS_GROW.subList(3 * i,
+          3 * (i + 1)));
+
+      waitForQuorumPropertySize(info -> info.getServerAddress() == toRemove, 0);
+      waitForQuorumPropertySize(info -> true, NUM_MASTERS);
+
       fs = mCluster.getFileSystemClient();
-      System.out.printf("killing master %s%n", originalMasters.get(i));
+      System.out.println("\tchecking dir");
       assertTrue(fs.exists(testDir));
     }
-    Set<NetAddress> collect =
-        originalMasters.stream().map(this::masterEBJAddr2NetAddr).collect(Collectors.toSet());
-    List<QuorumServerInfo> infoList = mCluster.getJournalMasterClientForMaster().getQuorumInfo()
-        .getServerInfoList();
-    // assert any unavailable masters are part of the original masters
-    assertTrue(infoList.stream()
-        .filter(info -> info.getServerState() == QuorumServerState.UNAVAILABLE)
-        .allMatch(info -> collect.contains(info.getServerAddress()))
-    );
+    Set<NetAddress> og = originalMasters.stream().map(this::masterEBJAddr2NetAddr)
+        .collect(Collectors.toSet());
+    Set<NetAddress> curr = mCluster.getJournalMasterClientForMaster().getQuorumInfo()
+        .getServerInfoList().stream().map(QuorumServerInfo::getServerAddress)
+        .collect(Collectors.toSet());
+    Set<NetAddress> intersection = new HashSet<>(og);
+    intersection.retainAll(curr);
+    // assert that none of the current masters are part of the original
+    assertTrue(intersection.isEmpty());
     // assert the quorum remained the same size as the start
-    assertEquals(NUM_MASTERS, infoList.stream()
-        .filter(info -> info.getServerState() == QuorumServerState.AVAILABLE).count()
-    );
-    // assert that none of the currently available masters were part of the original masters
-    assertTrue(infoList.stream()
-        .filter(info -> info.getServerState() == QuorumServerState.AVAILABLE)
-        .noneMatch(info -> collect.contains(info.getServerAddress()))
-    );
+    assertEquals(NUM_MASTERS, curr.size());
 
     mCluster.notifySuccess();
-  }
-
-  private NetAddress masterEBJAddr2NetAddr(MasterNetAddress masterAddr) {
-    return NetAddress.newBuilder().setHost(masterAddr.getHostname())
-        .setRpcPort(masterAddr.getEmbeddedJournalPort()).build();
   }
 
   @Ignore
