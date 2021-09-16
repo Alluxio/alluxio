@@ -11,11 +11,11 @@
 
 package alluxio.stress.master;
 
+import alluxio.annotation.SuppressFBWarnings;
 import alluxio.Constants;
 import alluxio.stress.StressConstants;
 import alluxio.stress.common.SummaryStatistics;
 
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.HdrHistogram.Histogram;
 
 import java.nio.ByteBuffer;

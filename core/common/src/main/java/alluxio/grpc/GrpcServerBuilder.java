@@ -11,6 +11,7 @@
 
 package alluxio.grpc;
 
+import alluxio.annotation.SuppressFBWarnings;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.security.authentication.AuthenticatedUserInjector;
@@ -21,7 +22,6 @@ import alluxio.util.SecurityUtils;
 import alluxio.util.network.tls.SslContextProvider;
 
 import com.google.common.io.Closer;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.grpc.ServerInterceptor;
 import io.grpc.ServerInterceptors;
 import io.grpc.ServerServiceDefinition;
