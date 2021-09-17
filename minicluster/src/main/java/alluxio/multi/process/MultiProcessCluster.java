@@ -662,9 +662,10 @@ public final class MultiProcessCluster {
     Preconditions.checkState(mState == State.STARTED,
         "Must be in a started state to create masters");
     MasterNetAddress address = mMasterAddresses.get(i);
-    File confDir = new File(mWorkDir, "conf-master" + i);
-    File metastoreDir = new File(mWorkDir, "metastore-master" + i);
-    File logsDir = new File(mWorkDir, "logs-master" + i);
+    String extension = "-" + address.getEmbeddedJournalPort();
+    File confDir = new File(mWorkDir, "conf-master" + extension);
+    File metastoreDir = new File(mWorkDir, "metastore-master" + extension);
+    File logsDir = new File(mWorkDir, "logs-master" + extension);
     logsDir.mkdirs();
     Map<PropertyKey, String> conf = new HashMap<>();
     conf.put(PropertyKey.LOGGER_TYPE, "MASTER_LOGGER");
@@ -677,7 +678,7 @@ public final class MultiProcessCluster {
     conf.put(PropertyKey.MASTER_EMBEDDED_JOURNAL_PORT,
         Integer.toString(address.getEmbeddedJournalPort()));
     if (mDeployMode.equals(DeployMode.EMBEDDED)) {
-      File journalDir = new File(mWorkDir, "journal" + i);
+      File journalDir = new File(mWorkDir, "journal" + extension);
       journalDir.mkdirs();
       conf.put(PropertyKey.MASTER_JOURNAL_FOLDER, journalDir.getAbsolutePath());
     }
@@ -783,7 +784,8 @@ public final class MultiProcessCluster {
    */
   private void writeConf() throws IOException {
     for (int i = 0; i < mNumMasters; i++) {
-      File confDir = new File(mWorkDir, "conf-master" + i);
+      File confDir = new File(mWorkDir, "conf-master-" + mMasterAddresses.get(i)
+          .getEmbeddedJournalPort());
       writeConfToFile(confDir, mMasterProperties.getOrDefault(i, new HashMap<>()));
     }
     for (int i = 0; i < mNumWorkers; i++) {

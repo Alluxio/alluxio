@@ -11,7 +11,6 @@
 
 package alluxio.server.ft.journal.raft;
 
-import alluxio.AlluxioTestDirectory;
 import alluxio.ConfigurationRule;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
@@ -29,7 +28,6 @@ import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
 import alluxio.util.network.NetworkAddressUtils;
 
-import net.bytebuddy.utility.RandomString;
 import org.junit.After;
 import org.junit.Rule;
 
@@ -85,17 +83,21 @@ public class BaseEmbeddedJournalTest extends BaseIntegrationTest {
           + newMasterAddress.getHostname() + ":" + newMasterAddress.getRpcPort();
       ServerConfiguration.set(PropertyKey.MASTER_RPC_ADDRESSES, newRpcList);
 
-      // Create a separate working dir for the new master.
-      File newMasterWorkDir =
-          AlluxioTestDirectory.createTemporaryDirectory("NewMaster-" + RandomString.make(8));
-      newMasterWorkDir.deleteOnExit();
-
-      // Create journal dir for the new master and update configuration.
-      File newMasterJournalDir = new File(newMasterWorkDir,
-          "journal-newmaster" + RandomString.make(8));
+      File newMasterWorkDir = mCluster.getWorkDir();
+      String extension = "-" + newMasterAddress.getEmbeddedJournalPort();
+      // Create new dirs for new master and update configuration.
+      File newMasterConfDir = new File(newMasterWorkDir, "conf-master" + extension);
+      newMasterConfDir.mkdir();
+      ServerConfiguration.set(PropertyKey.CONF_DIR, newMasterConfDir);
+      File newMasterMetastoreDir = new File(newMasterWorkDir, "metastore-master" + extension);
+      newMasterMetastoreDir.mkdir();
+      ServerConfiguration.set(PropertyKey.MASTER_METASTORE_DIR, newMasterMetastoreDir);
+      File newMasterLogsDir = new File(newMasterWorkDir, "logs-master" + extension);
+      newMasterLogsDir.mkdir();
+      ServerConfiguration.set(PropertyKey.LOGS_DIR, newMasterLogsDir);
+      File newMasterJournalDir = new File(newMasterWorkDir, "journal" + extension);
       newMasterJournalDir.mkdirs();
-      ServerConfiguration.set(PropertyKey.MASTER_JOURNAL_FOLDER,
-          newMasterJournalDir.getAbsolutePath());
+      ServerConfiguration.set(PropertyKey.MASTER_JOURNAL_FOLDER, newMasterJournalDir);
 
       // Update network settings for the new master.
       ServerConfiguration.set(PropertyKey.MASTER_HOSTNAME, newMasterAddress.getHostname());
@@ -105,8 +107,6 @@ public class BaseEmbeddedJournalTest extends BaseIntegrationTest {
           Integer.toString(newMasterAddress.getWebPort()));
       ServerConfiguration.set(PropertyKey.MASTER_EMBEDDED_JOURNAL_PORT,
           Integer.toString(newMasterAddress.getEmbeddedJournalPort()));
-      ServerConfiguration.set(PropertyKey.MASTER_METASTORE_DIR, new File(mCluster.getWorkDir(),
-          "metastore-master-" + RandomString.make(8)));
 
       // Create and start the new master.
       AlluxioMasterProcess newMaster = AlluxioMasterProcess.Factory.create();

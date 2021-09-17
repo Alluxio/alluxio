@@ -210,7 +210,7 @@ public class ResizingEBJTest extends BaseEmbeddedJournalTest {
           originalMasters.contains(primMaster) ? "og" : "not og",
           masterNetAddress.getEmbeddedJournalPort(),
           masterNetAddress.equals(primMaster) ? "leader" : "not leader",
-          6 - originalMasters.size());
+          i + 1);
 
       int masterIdx = mCluster.getMasterAddresses().indexOf(masterNetAddress);
       mCluster.removeMaster(masterIdx);
@@ -223,8 +223,7 @@ public class ResizingEBJTest extends BaseEmbeddedJournalTest {
       waitForQuorumPropertySize(info -> true, NUM_MASTERS - 1);
       // each master has 3 ports
       System.out.println("\tstarting new master");
-      addNewMastersToCluster(PortCoordination.EMBEDDED_JOURNAL_THESEUS_GROW.subList(3 * i,
-          3 * (i + 1)));
+      mCluster.startNewMasters(1, false);
 
       waitForQuorumPropertySize(info -> info.getServerAddress() == toRemove, 0);
       waitForQuorumPropertySize(info -> true, NUM_MASTERS);
