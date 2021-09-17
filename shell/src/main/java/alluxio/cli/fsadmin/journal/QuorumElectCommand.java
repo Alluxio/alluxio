@@ -15,11 +15,13 @@ import static alluxio.master.journal.raft.RaftJournalSystem.RAFT_GROUP_ID;
 
 import alluxio.cli.fsadmin.command.AbstractFsAdminCommand;
 import alluxio.cli.fsadmin.command.Context;
+import alluxio.client.journal.JournalMasterClient;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.grpc.GetQuorumInfoPResponse;
+import alluxio.grpc.JournalDomain;
 import alluxio.grpc.NetAddress;
 import alluxio.grpc.QuorumServerInfo;
 import alluxio.master.journal.raft.RaftJournalConfiguration;
@@ -47,6 +49,7 @@ import org.apache.ratis.util.TimeDuration;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
@@ -60,13 +63,14 @@ import java.util.stream.Collectors;
 public class QuorumElectCommand extends AbstractFsAdminCommand {
 
   public static final String ADDRESS_OPTION_NAME = "address";
+  public static final String DOMAIN_OPTION_NAME = "domain";
 
   public static final String TRANSFER_SUCCESS = "Successfully elected %s as the new leader";
   public static final String TRANSFER_FAILED = "Failed to elect %s as the new leader: %s";
 
   private final ClientId mRawClientId = ClientId.randomId();
-  private final RaftJournalConfiguration mRaftJournalConf;
-  private final RaftGroup mRaftGroup;
+  private RaftJournalConfiguration mRaftJournalConf;
+  private RaftGroup mRaftGroup;
 
   /**
    * @param context fsadmin command context
@@ -74,18 +78,6 @@ public class QuorumElectCommand extends AbstractFsAdminCommand {
    */
   public QuorumElectCommand(Context context, AlluxioConfiguration alluxioConf) {
     super(context);
-    mRaftJournalConf =
-        RaftJournalConfiguration.defaults(
-            NetworkAddressUtils.ServiceType.MASTER_RAFT);
-    List<InetSocketAddress> addresses = mRaftJournalConf.getClusterAddresses();
-    Set<RaftPeer> peers = addresses.stream()
-        .map(addr -> RaftPeer.newBuilder()
-            .setId(RaftJournalUtils.getPeerId(addr))
-            .setAddress(addr)
-            .build()
-        )
-        .collect(Collectors.toSet());
-    mRaftGroup = RaftGroup.valueOf(RAFT_GROUP_ID, peers);
   }
 
   /**
@@ -98,6 +90,40 @@ public class QuorumElectCommand extends AbstractFsAdminCommand {
 
   @Override
   public int run(CommandLine cl) throws IOException {
+    NetworkAddressUtils.ServiceType serviceType =
+        NetworkAddressUtils.ServiceType.MASTER_RAFT;
+    final JournalMasterClient jmClient;
+    if (cl.hasOption(DOMAIN_OPTION_NAME)) {
+      String domainVal = cl.getOptionValue(DOMAIN_OPTION_NAME);
+      try {
+        JournalDomain domain = JournalDomain.valueOf(domainVal);
+        if (domain == JournalDomain.JOB_MASTER) {
+          jmClient = mJobMasterJournalMasterClient;
+          serviceType = NetworkAddressUtils.ServiceType.JOB_MASTER_RAFT;
+        } else {
+          jmClient = mMasterJournalMasterClient;
+        }
+      } catch (IllegalArgumentException e) {
+        throw new InvalidArgumentException(ExceptionMessage.INVALID_OPTION_VALUE
+            .getMessage(DOMAIN_OPTION_NAME,
+                Arrays.toString(JournalDomain.values())));
+      }
+    } else {
+      jmClient = mMasterJournalMasterClient;
+    }
+
+    mRaftJournalConf =
+        RaftJournalConfiguration.defaults(serviceType);
+    List<InetSocketAddress> addresses = mRaftJournalConf.getClusterAddresses();
+    Set<RaftPeer> peers = addresses.stream()
+        .map(addr -> RaftPeer.newBuilder()
+            .setId(RaftJournalUtils.getPeerId(addr))
+            .setAddress(addr)
+            .build()
+        )
+        .collect(Collectors.toSet());
+    mRaftGroup = RaftGroup.valueOf(RAFT_GROUP_ID, peers);
+
     String strAddr = cl.getOptionValue(ADDRESS_OPTION_NAME);
     NetAddress address = QuorumCommand.stringToAddress(strAddr);
     InetSocketAddress serverAddress = InetSocketAddress
@@ -154,7 +180,7 @@ public class QuorumElectCommand extends AbstractFsAdminCommand {
       final int TIMEOUT_3MIN = 3 * 60 * 1000; // in milliseconds
       CommonUtils.waitFor("Waiting for election to finalize", () -> {
         try {
-          GetQuorumInfoPResponse quorumInfo = mMasterJournalMasterClient.getQuorumInfo();
+          GetQuorumInfoPResponse quorumInfo = jmClient.getQuorumInfo();
 
           Optional<QuorumServerInfo>
               leadingMasterInfoOpt = quorumInfo.getServerInfoList().stream()
@@ -201,8 +227,10 @@ public class QuorumElectCommand extends AbstractFsAdminCommand {
 
   @Override
   public Options getOptions() {
-    return new Options().addOption(ADDRESS_OPTION_NAME, true,
-            "Server address that will take over as leader");
+    return new Options()
+        .addOption(ADDRESS_OPTION_NAME, true,
+            "Server address that will take over as leader")
+        .addOption(DOMAIN_OPTION_NAME, true, "Journal domain");
   }
 
   private RaftClient createClient() {
