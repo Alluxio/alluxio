@@ -234,7 +234,7 @@ public final class MultiProcessCluster {
         mProperties.put(PropertyKey.ZOOKEEPER_ADDRESS, mCuratorServer.getConnectString());
         break;
       default:
-        throw new IllegalStateException("Unknown deploy mode: " + mDeployMode);
+        throw new IllegalStateException("Unknown deploy mode: " + mDeployMode.toString());
     }
 
     for (Entry<PropertyKey, String> entry :
@@ -532,6 +532,10 @@ public final class MultiProcessCluster {
     stopMaster(i);
     mMasterAddresses.remove(i);
     mMasters.remove(i);
+    mNumMasters--;
+    if (mMasterProperties.containsKey(i)) {
+      mMasterProperties.remove(i);
+    }
     switch (mDeployMode) {
       case EMBEDDED:
         String journalAddresses = mMasterAddresses.stream()
@@ -545,9 +549,12 @@ public final class MultiProcessCluster {
         ServerConfiguration.set(PropertyKey.MASTER_EMBEDDED_JOURNAL_ADDRESSES, journalAddresses);
         ServerConfiguration.set(PropertyKey.MASTER_RPC_ADDRESSES, rpcAddresses);
         break;
-      default:
+      case ZOOKEEPER_HA: // zk will take care of fault tolerance
+        break;
+      default: // UFS_NON_HA: can't remove the only master in the cluster
         throw new IllegalStateException("Unimplemented deploy mode: " + mDeployMode);
     }
+    // reset file system context after cluster size shrinks
     mFilesystemContext = null;
   }
 
@@ -641,13 +648,6 @@ public final class MultiProcessCluster {
   public synchronized void restartZk() throws Exception {
     Preconditions.checkNotNull(mCuratorServer, "mCuratorServer");
     mCuratorServer.restart();
-  }
-
-  /**
-   * @return the cluster's working directory
-   */
-  public synchronized File getWorkDir() {
-    return mWorkDir;
   }
 
   /**

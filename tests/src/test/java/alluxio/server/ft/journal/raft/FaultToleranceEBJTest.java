@@ -85,7 +85,7 @@ public class FaultToleranceEBJTest extends BaseEmbeddedJournalTest {
     AlluxioURI testDir = new AlluxioURI("/dir");
     FileSystem fs = mCluster.getFileSystemClient();
     fs.createDirectory(testDir);
-    mCluster.waitForAndKillPrimaryMaster(RESTART_TIMEOUT_MS);
+    mCluster.waitForAndKillPrimaryMaster(MASTER_INDEX_WAIT_TIME);
     assertTrue(fs.exists(testDir));
     mCluster.notifySuccess();
   }
@@ -99,7 +99,7 @@ public class FaultToleranceEBJTest extends BaseEmbeddedJournalTest {
     for (int i = 0; i < 2000; i++) {
       fs.createDirectory(testDir.join("file" + i));
     }
-    int primaryMasterIndex = mCluster.getPrimaryMasterIndex(5000);
+    int primaryMasterIndex = mCluster.getPrimaryMasterIndex(MASTER_INDEX_WAIT_TIME);
     String leaderJournalPath = mCluster.getJournalDir(primaryMasterIndex);
     File raftDir = new File(RaftJournalUtils.getRaftJournalDir(new File(leaderJournalPath)),
             RaftJournalSystem.RAFT_GROUP_UUID.toString());
@@ -117,7 +117,8 @@ public class FaultToleranceEBJTest extends BaseEmbeddedJournalTest {
   @Test
   public void copySnapshotToFollower() throws Exception {
     snapshotBefore();
-    int catchUpMasterIndex = (mCluster.getPrimaryMasterIndex(5000) + 1) % NUM_MASTERS;
+    int catchUpMasterIndex = (mCluster.getPrimaryMasterIndex(MASTER_INDEX_WAIT_TIME) + 1)
+        % NUM_MASTERS;
 
     AlluxioURI testDir = new AlluxioURI("/dir");
     FileSystem fs = mCluster.getFileSystemClient();
@@ -145,10 +146,11 @@ public class FaultToleranceEBJTest extends BaseEmbeddedJournalTest {
 
   private void waitForSnapshot(File raftDir) throws InterruptedException, TimeoutException {
     File snapshotDir = new File(raftDir, "sm");
+    final int RETRY_INTERVAL_MS = 200; // milliseconds
     CommonUtils.waitFor("snapshot is downloaded", () -> {
       File[] files = snapshotDir.listFiles();
       return files != null && files.length > 1 && files[0].length() > 0;
-    }, WaitForOptions.defaults().setInterval(200).setTimeoutMs(RESTART_TIMEOUT_MS));
+    }, WaitForOptions.defaults().setInterval(RETRY_INTERVAL_MS).setTimeoutMs(RESTART_TIMEOUT_MS));
   }
 
   @Test

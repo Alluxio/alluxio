@@ -26,7 +26,6 @@ import alluxio.multi.process.MultiProcessCluster;
 import alluxio.multi.process.PortCoordination;
 import alluxio.util.CommonUtils;
 
-import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.ArrayList;
@@ -48,7 +47,6 @@ public class ResizingEBJTest extends BaseEmbeddedJournalTest {
         .setNumWorkers(NUM_WORKERS)
         .addProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.EMBEDDED.toString())
         .addProperty(PropertyKey.MASTER_JOURNAL_FLUSH_TIMEOUT_MS, "5min")
-        // To make the test run faster.
         .addProperty(PropertyKey.MASTER_EMBEDDED_JOURNAL_MIN_ELECTION_TIMEOUT, "750ms")
         .addProperty(PropertyKey.MASTER_EMBEDDED_JOURNAL_MAX_ELECTION_TIMEOUT, "1500ms")
         .build();
@@ -57,7 +55,7 @@ public class ResizingEBJTest extends BaseEmbeddedJournalTest {
     assertEquals(5,
         mCluster.getJournalMasterClientForMaster().getQuorumInfo().getServerInfoList().size());
 
-    AlluxioURI testDir = new AlluxioURI("/dir");
+    AlluxioURI testDir = new AlluxioURI("/" + CommonUtils.randomAlphaNumString(10));
     FileSystem fs = mCluster.getFileSystemClient();
     fs.createDirectory(testDir);
     assertTrue(fs.exists(testDir));
@@ -104,7 +102,6 @@ public class ResizingEBJTest extends BaseEmbeddedJournalTest {
         .setNumWorkers(NUM_WORKERS)
         .addProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.EMBEDDED.toString())
         .addProperty(PropertyKey.MASTER_JOURNAL_FLUSH_TIMEOUT_MS, "5min")
-        // To make the test run faster.
         .addProperty(PropertyKey.MASTER_EMBEDDED_JOURNAL_MIN_ELECTION_TIMEOUT, "2s")
         .addProperty(PropertyKey.MASTER_EMBEDDED_JOURNAL_MAX_ELECTION_TIMEOUT, "4s")
         .build();
@@ -113,10 +110,10 @@ public class ResizingEBJTest extends BaseEmbeddedJournalTest {
     AlluxioURI testDir = new AlluxioURI("/" + CommonUtils.randomAlphaNumString(10));
     FileSystem fs = mCluster.getFileSystemClient();
     fs.createDirectory(testDir);
-    Assert.assertTrue(fs.exists(testDir));
+    assertTrue(fs.exists(testDir));
 
     // Validate current quorum size.
-    Assert.assertEquals(2,
+    assertEquals(2,
         mCluster.getJournalMasterClientForMaster().getQuorumInfo().getServerInfoList().size());
 
     mCluster.startNewMasters(1, false);
@@ -126,7 +123,7 @@ public class ResizingEBJTest extends BaseEmbeddedJournalTest {
     fs = mCluster.getFileSystemClient();
 
     // Verify cluster is still operational.
-    Assert.assertTrue(fs.exists(testDir));
+    assertTrue(fs.exists(testDir));
 
     // Stop a master on the initial cluster.
     // With the addition of a new master, cluster should now be able to tolerate single master loss.
@@ -136,7 +133,7 @@ public class ResizingEBJTest extends BaseEmbeddedJournalTest {
     waitForQuorumPropertySize(info -> info.getServerState() == QuorumServerState.UNAVAILABLE, 1);
 
     // Verify cluster is still operational.
-    Assert.assertTrue(fs.exists(testDir));
+    assertTrue(fs.exists(testDir));
 
     mCluster.notifySuccess();
   }
@@ -151,16 +148,15 @@ public class ResizingEBJTest extends BaseEmbeddedJournalTest {
         .setNumWorkers(NUM_WORKERS)
         .addProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.EMBEDDED.toString())
         .addProperty(PropertyKey.MASTER_JOURNAL_FLUSH_TIMEOUT_MS, "5min")
-        // To make the test run faster.
-        .addProperty(PropertyKey.MASTER_EMBEDDED_JOURNAL_MIN_ELECTION_TIMEOUT, "2s")
-        .addProperty(PropertyKey.MASTER_EMBEDDED_JOURNAL_MAX_ELECTION_TIMEOUT, "4s")
+        .addProperty(PropertyKey.MASTER_EMBEDDED_JOURNAL_MIN_ELECTION_TIMEOUT, "750ms")
+        .addProperty(PropertyKey.MASTER_EMBEDDED_JOURNAL_MAX_ELECTION_TIMEOUT, "1500ms")
         .build();
     mCluster.start();
 
     AlluxioURI testDir = new AlluxioURI("/" + CommonUtils.randomAlphaNumString(10));
     FileSystem fs = mCluster.getFileSystemClient();
     fs.createDirectory(testDir);
-    Assert.assertTrue(fs.exists(testDir));
+    assertTrue(fs.exists(testDir));
 
     List<MasterNetAddress> originalMasters = new ArrayList<>(mCluster.getMasterAddresses());
     for (MasterNetAddress masterNetAddress : originalMasters) {

@@ -30,7 +30,6 @@ import java.util.concurrent.TimeoutException;
 
 public class TransferLeadershipEBJTest extends BaseEmbeddedJournalTest {
 
-  private static final int MASTER_INDEX_WAIT_TIME = 5_000; // milliseconds
   public static final int NUM_MASTERS = 5;
   public static final int NUM_WORKERS = 0;
 
@@ -96,8 +95,7 @@ public class TransferLeadershipEBJTest extends BaseEmbeddedJournalTest {
     // `getPrimaryMasterIndex` uses the same `mMasterAddresses` variable as getMasterAddresses
     // we can therefore access to the new leader's address this way
     MasterNetAddress newLeaderAddr = mCluster.getMasterAddresses().get(newLeaderIdx);
-    NetAddress netAddress = NetAddress.newBuilder().setHost(newLeaderAddr.getHostname())
-            .setRpcPort(newLeaderAddr.getEmbeddedJournalPort()).build();
+    NetAddress netAddress = masterEBJAddr2NetAddr(newLeaderAddr);
 
     mCluster.getJournalMasterClientForMaster().transferLeadership(netAddress);
     try {

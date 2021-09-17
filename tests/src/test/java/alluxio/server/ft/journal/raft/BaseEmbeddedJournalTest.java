@@ -39,6 +39,8 @@ public class BaseEmbeddedJournalTest extends BaseIntegrationTest {
 
   public MultiProcessCluster mCluster;
 
+  protected static final int MASTER_INDEX_WAIT_TIME = 5_000; // milliseconds
+
   @After
   public void after() throws Exception {
     if (mCluster != null) {
