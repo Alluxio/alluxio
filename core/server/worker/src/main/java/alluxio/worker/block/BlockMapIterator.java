@@ -33,10 +33,10 @@ public class BlockMapIterator implements Iterator<List<LocationBlockIdListEntry>
   Map<BlockStoreLocationProto, List<Long>> mTierToBlocks;
 
   // Keep a global counter of how many blocks have been traversed
-  long mCounter = 0;
+  int mCounter = 0;
 
   // TODO(jiacheng): Lock while the constructor is running?
-  BlockMapIterator(Map<BlockStoreLocation, List<Long>> blockLocationMap) {
+  public BlockMapIterator(Map<BlockStoreLocation, List<Long>> blockLocationMap) {
     mBlockLocationMap = blockLocationMap;
 
     // TODO(jiacheng): Can this merging copy be avoided?
@@ -76,15 +76,16 @@ public class BlockMapIterator implements Iterator<List<LocationBlockIdListEntry>
             || currentIterator.hasNext();
   }
 
-  LocationBlockIdListEntry nextBatchFromTier(BlockStoreLocationProto currentLoc, Iterator<Long> currentIterator) {
+  LocationBlockIdListEntry nextBatchFromTier(BlockStoreLocationProto currentLoc, Iterator<Long> currentIterator,
+                                             int spaceLeft) {
     // Generate the next batch
-    List<Long> blockIdBatch = new ArrayList<>(BATCH_SIZE); // this hint may be incorrect for new worker
-    while (blockIdBatch.size() < BATCH_SIZE && currentIterator.hasNext()) {
+    List<Long> blockIdBatch = new ArrayList<>(spaceLeft); // this hint may be incorrect for new worker
+    while (blockIdBatch.size() < spaceLeft && currentIterator.hasNext()) {
       blockIdBatch.add(currentIterator.next());
       mCounter++;
     }
-    LOG.info("{} blocks added to the batch", blockIdBatch.size());
-    System.out.format("%s blocks added to the batch", blockIdBatch.size());
+//    LOG.info("{} blocks added to the batch", blockIdBatch.size());
+//    System.out.format("%s blocks added to the batch, counter now%s%n", blockIdBatch.size(), mCounter);
 
     // Initialize the LocationBlockIdListEntry
     BlockIdList blockIdList = BlockIdList.newBuilder().addAllBlockId(blockIdBatch).build();
@@ -97,8 +98,8 @@ public class BlockMapIterator implements Iterator<List<LocationBlockIdListEntry>
   @Override
   public List<LocationBlockIdListEntry> next() {
     List<LocationBlockIdListEntry> result = new ArrayList<>();
-    long currentCounter = mCounter;
-    long targetCounter = currentCounter + BATCH_SIZE;
+    int currentCounter = mCounter;
+    int targetCounter = currentCounter + BATCH_SIZE;
 
     while (mCounter < targetCounter) {
       // Find the BlockStoreLocation
@@ -107,7 +108,9 @@ public class BlockMapIterator implements Iterator<List<LocationBlockIdListEntry>
 
       // Generate the next batch
       // This method does NOT progress the pointers
-      LocationBlockIdListEntry batchFromThisTier = nextBatchFromTier(currentLoc, currentIterator);
+      int spaceLeft = targetCounter - mCounter;
+//      System.out.println("Space left: " + spaceLeft);
+      LocationBlockIdListEntry batchFromThisTier = nextBatchFromTier(currentLoc, currentIterator, spaceLeft);
       result.add(batchFromThisTier);
 
       // Progress the iterator based on the break condition
@@ -118,19 +121,19 @@ public class BlockMapIterator implements Iterator<List<LocationBlockIdListEntry>
         // Update the pointer and continue
         mCurrentBlockLocationIndex++;
         if (mCurrentBlockLocationIndex >= mBlockStoreLocationProtoList.size()) {
-          System.out.format("Finished all iterators. %s blocks iterated.%n", mCounter);
+//          System.out.format("Finished all iterators. %s blocks iterated.%n", mCounter);
           LOG.info("Finished all iterators. {} blocks iterated.", mCounter);
           // We break out of the loop when the current iterator is exhausted
           // and all iterators have been exhausted
           LOG.info("Batch container {} tier entries", result.size());
           return result;
         }
-        System.out.println("Continue with the next tier");
+//        System.out.println("Continue with the next tier");
         LOG.info("Continue with the next tier {}", mBlockStoreLocationProtoList.get(mCurrentBlockLocationIndex));
         continue;
       } else {
 //        System.out.format("Batch has been filled, counter is %s%n", mCounter);
-//        LOG.info("Batch has been filled, now counter is {}", mCounter);
+        LOG.info("Batch has been filled, now counter is {}", mCounter);
         return result;
       }
     }

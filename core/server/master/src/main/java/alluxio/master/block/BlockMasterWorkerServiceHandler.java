@@ -187,14 +187,14 @@ public final class BlockMasterWorkerServiceHandler extends
                 chunk.getCurrentBlocksCount(),
                 workerId,
                 isHead);
-        System.out.format("Register worker request is %s bytes, containing %s LocationBlockIdListEntry. Worker %s, isHead %s%n",
-                chunk.getSerializedSize(),
-                chunk.getCurrentBlocksCount(),
-                workerId,
-                isHead);
+//        System.out.format("Register worker request is %s bytes, containing %s LocationBlockIdListEntry. Worker %s, isHead %s%n",
+//                chunk.getSerializedSize(),
+//                chunk.getCurrentBlocksCount(),
+//                workerId,
+//                isHead);
 
         synchronized (this) {
-          System.out.format("%s - Handling server side registration stream%n", Thread.currentThread().getId());
+//          System.out.format("%s - Handling server side registration stream%n", Thread.currentThread().getId());
           if (mWorkerId == -1) {
             if (!isHead) {
               Exception e = new RuntimeException("The StreamObserver has no worker id but it's not the 1st chunk in stream");
@@ -203,17 +203,17 @@ public final class BlockMasterWorkerServiceHandler extends
             }
 
             mWorkerId = workerId;
-            LOG.info("Associate worker id {} with StreamObserver", mWorkerId);
+            LOG.debug("Associate worker id {} with StreamObserver", mWorkerId);
 
-            LOG.info("Initializing context for {}", mWorkerId);
-            System.out.format("Initializing context for %s%n", mWorkerId);
+            LOG.debug("Initializing context for {}", mWorkerId);
+//            System.out.format("Initializing context for %s%n", mWorkerId);
             try {
               mContext = WorkerRegisterContext.create(mBlockMaster, mWorkerId);
-              LOG.info("Context created for {}", mWorkerId);
-              System.out.format("Context created for %s%n", mWorkerId);
+              LOG.debug("Context created for {}", mWorkerId);
+//              System.out.format("Context created for %s%n", mWorkerId);
             } catch (NotFoundException e) {
               LOG.error("Worker {} not found, failed to create context", mWorkerId);
-              System.out.format("Worker %s not found, failed to create context%n", mWorkerId);
+//              System.out.format("Worker %s not found, failed to create context%n", mWorkerId);
               // TODO(jiacheng): Close the other side?
               this.onError(e);
               return;
@@ -259,7 +259,7 @@ public final class BlockMasterWorkerServiceHandler extends
       @Override
       public void onError(Throwable t) {
         LOG.error("Error receiving the streaming register call", t);
-        System.out.format("Error receiving the streaming register call: %s%n", t);
+//        System.out.format("Error receiving the streaming register call: %s%n", t);
         try {
           closeContext();
         } catch (IOException e) {
@@ -273,11 +273,11 @@ public final class BlockMasterWorkerServiceHandler extends
       void closeContext() throws IOException {
         synchronized (this) {
           if (mContext!= null) {
-            LOG.info("Unlocking worker {}", mWorkerId);
-            System.out.format("Destroying context for %s%n", mWorkerId);
+            LOG.debug("Unlocking worker {}", mWorkerId);
+//            System.out.format("Destroying context for %s%n", mWorkerId);
             mContext.close();
-            LOG.info("Context closed");
-            System.out.println("Context closed");
+            LOG.debug("Context closed");
+//            System.out.println("Context closed");
           }
         }
       }
@@ -292,8 +292,8 @@ public final class BlockMasterWorkerServiceHandler extends
 
       @Override
       public void onCompleted() {
-        LOG.info("{} - Register stream completed on the client side", Thread.currentThread().getId());
-        System.out.format("Register stream completed on the client side%n");
+        LOG.debug("{} - Register stream completed on the client side", Thread.currentThread().getId());
+//        System.out.format("Register stream completed on the client side%n");
 
         if (mWorkerId == -1) {
           LOG.error("Complete message received from the client side but workerId is still -1.");
@@ -317,8 +317,8 @@ public final class BlockMasterWorkerServiceHandler extends
         // TODO(jiacheng): Will this block me from reclaiming resources?
         responseObserver.onNext(RegisterWorkerStreamPResponse.getDefaultInstance());
         responseObserver.onCompleted();
-        LOG.info("Completed server side");
-        System.out.println("Completed server side");
+        LOG.debug("Completed server side");
+//        System.out.println("Completed server side");
 
         // Reclaim resources
         try {
@@ -347,7 +347,6 @@ public final class BlockMasterWorkerServiceHandler extends
                       .setTier(e.getKey().getTierAlias())
                       .setMediumType(e.getKey().getMediumType())
                       .setWorkerId(workerId).build();
-              LOG.info("Constructed location {}", loc);
               return loc;
               },
             e -> e.getValue().getBlockIdList(),
@@ -358,10 +357,16 @@ public final class BlockMasterWorkerServiceHandler extends
              * Therefore we just fail on merging.
              */
             (e1, e2) -> {
-              LOG.error("Duplicate locations {} and {}", e1, e2);
-              throw new AssertionError(
+              // TODO(jiacheng): On duplicate, figure out what happened
+              StringBuilder sb = new StringBuilder();
+              for (LocationBlockIdListEntry ee : entries) {
+                sb.append(String.format("%s, ", ee.getKey()));
+              }
+              Error ee =  new AssertionError(
                 String.format("Request contains two block id lists for the "
-                  + "same BlockLocation.%nExisting: %s%n New: %s", e1, e2));
+                  + "same BlockLocation. Worker: %s%nLocations: %s", workerId, sb.toString()));
+              LOG.error("Duplicate locations found for worker {}: {}", workerId, sb.toString(), ee);
+              throw ee;
             }));
   }
 }

@@ -1,14 +1,20 @@
 package alluxio.worker.block;
 
 import alluxio.grpc.LocationBlockIdListEntry;
+import alluxio.proto.meta.Block;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import org.junit.Test;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 public class BlockMapIteratorTest {
   @Test
@@ -29,10 +35,54 @@ public class BlockMapIteratorTest {
     while (iter.hasNext()) {
       List<LocationBlockIdListEntry> entries = iter.next();
 
-      // Validate this
+      // Each batch should not contain duplicate locations
+      Set<Block.BlockLocation> locations = new HashSet<>();
       for (LocationBlockIdListEntry e : entries) {
         System.out.format("<%s, %s>%n", e.getKey(), e.getValue().getBlockIdCount());
+        // No duplicate
+        Block.BlockLocation loc = Block.BlockLocation.newBuilder()
+                .setTier(e.getKey().getTierAlias())
+                .setMediumType(e.getKey().getMediumType())
+                .build();
+        assertFalse(locations.contains(loc));
+        locations.add(loc);
       }
+      System.out.println("This batch contains " + locations.size() +" locations: " + locations);
+    }
+  }
+
+
+  @Test
+  public void convertStreamMergedTiers() {
+    // TODO(jiacheng)
+    BlockStoreLocation memTier = new BlockStoreLocation("MEM", 0);
+    BlockStoreLocation ssdTier = new BlockStoreLocation("SSD", 0);
+    BlockStoreLocation hddTier = new BlockStoreLocation("HDD", 0);
+    List<Integer> memList = ImmutableList.of(100,100);
+    List<Integer> ssdList = ImmutableList.of(101,22);
+    List<Integer> hddList = ImmutableList.of(10,20);
+    Map<String, List<Integer>> blockConfig = ImmutableMap.of("MEM", memList, "SSD", ssdList, "HDD", hddList);
+
+    Map<BlockStoreLocation, List<Long>> blockMap = generateBlockIdOnTiers(blockConfig);
+
+    BlockMapIterator iter = new BlockMapIterator(blockMap);
+
+    while (iter.hasNext()) {
+      List<LocationBlockIdListEntry> entries = iter.next();
+
+      // Each batch should not contain duplicate locations
+      Set<Block.BlockLocation> locations = new HashSet<>();
+      for (LocationBlockIdListEntry e : entries) {
+        System.out.format("<%s, %s>%n", e.getKey(), e.getValue().getBlockIdCount());
+        // No duplicate
+        Block.BlockLocation loc = Block.BlockLocation.newBuilder()
+                .setTier(e.getKey().getTierAlias())
+                .setMediumType(e.getKey().getMediumType())
+                .build();
+        assertFalse(locations.contains(loc));
+        locations.add(loc);
+      }
+      System.out.println("This batch contains " + locations.size() +" locations: " + locations);
     }
   }
 

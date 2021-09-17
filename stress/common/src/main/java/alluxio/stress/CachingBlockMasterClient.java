@@ -15,6 +15,7 @@ import alluxio.grpc.BlockIdList;
 import alluxio.grpc.ConfigProperty;
 import alluxio.grpc.LocationBlockIdListEntry;
 import alluxio.master.MasterClientContext;
+import alluxio.worker.block.BlockMapIterator;
 import alluxio.worker.block.BlockMasterClient;
 import alluxio.worker.block.BlockStoreLocation;
 
@@ -40,7 +41,7 @@ import java.util.Map;
 public class CachingBlockMasterClient extends BlockMasterClient {
   private static final Logger LOG = LoggerFactory.getLogger(CachingBlockMasterClient.class);
 
-  private final List<LocationBlockIdListEntry> mLocationBlockIdList;
+  private List<LocationBlockIdListEntry> mLocationBlockIdList;
   private List<List<LocationBlockIdListEntry>> mBlockBatches;
   private Iterator<List<LocationBlockIdListEntry>> mBlockBatchIterator;
 
@@ -59,6 +60,22 @@ public class CachingBlockMasterClient extends BlockMasterClient {
     // Pre-generate the request batches
     mBlockBatches = prepareBlockBatchesForStreaming();
     LOG.info("Prepared {} batches for requests", mBlockBatches.size());
+
+    mBlockBatchIterator = mBlockBatches.iterator();
+  }
+
+  public CachingBlockMasterClient(MasterClientContext conf,
+                                  Map<BlockStoreLocation, List<Long>> blockMap) {
+    super(conf);
+    LOG.debug("Init CachingBlockMasterClient");
+//    mLocationBlockIdList = locationBlockIdList;
+
+    BlockMapIterator iter = new BlockMapIterator(blockMap);
+
+    // Pre-generate the request batches
+    mBlockBatches = ImmutableList.copyOf(iter);
+    LOG.info("Prepared {} batches for requests", mBlockBatches.size());
+
     mBlockBatchIterator = mBlockBatches.iterator();
   }
 
@@ -85,14 +102,14 @@ public class CachingBlockMasterClient extends BlockMasterClient {
       LOG.info("Partitioned a LocationBlockIdListEntry of {} blocks into {} sublists", list.size(), sublists.size());
       System.out.format("Partitioned a LocationBlockIdListEntry of %s blocks into %s sublists%n", list.size(), sublists.size());
       // Regenerate the protos
-      List<LocationBlockIdListEntry> newList = new ArrayList<>();
       for (List<Long> sub : sublists) {
+        List<LocationBlockIdListEntry> newList = new ArrayList<>();
         BlockIdList newBlockList = BlockIdList.newBuilder().addAllBlockId(sub).build();
         LocationBlockIdListEntry newEntry = LocationBlockIdListEntry.newBuilder()
                 .setKey(entry.getKey()).setValue(newBlockList).build();
         newList.add(newEntry);
+        result.add(newList);
       }
-      result.add(newList);
     }
 
     LOG.info("Partitioned a list of {} into {} sublists", mLocationBlockIdList.size(), result.size());

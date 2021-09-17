@@ -23,6 +23,7 @@ import alluxio.stress.CachingBlockMasterClient;
 import alluxio.stress.rpc.BlockMasterBenchParameters;
 import alluxio.stress.rpc.RpcTaskResult;
 import alluxio.stress.rpc.TierAlias;
+import alluxio.worker.block.BlockMapIterator;
 import alluxio.worker.block.BlockMasterClient;
 import alluxio.worker.block.BlockStoreLocation;
 
@@ -34,6 +35,7 @@ import com.google.common.collect.Maps;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.xml.stream.Location;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayDeque;
@@ -99,7 +101,12 @@ public class StreamRegisterWorkerBench extends RpcBench<BlockMasterBenchParamete
                     .newBuilder(ClientContext.create(mConf))
                     .build());
     mBlockMap = blockMap;
-    mLocationBlockIdList = client.convertBlockListMapToProto(blockMap);
+
+
+//    mLocationBlockIdList = client.convertBlockListMapToProto(blockMap);
+//
+//    // TODO(jiacheng): Only for debugging
+//    debriefBlockListProto(mLocationBlockIdList);
 
     // Prepare these block IDs concurrently
     LOG.info("Preparing blocks at the master");
@@ -113,6 +120,14 @@ public class StreamRegisterWorkerBench extends RpcBench<BlockMasterBenchParamete
         "Expecting %s workers but registered %s",
         numWorkers, mWorkerPool.size());
     LOG.info("Prepared worker IDs: {}", mWorkerPool);
+  }
+
+  private static void debriefBlockListProto(List<LocationBlockIdListEntry> entries) {
+    StringBuilder sb = new StringBuilder();
+    for (LocationBlockIdListEntry e : entries) {
+      sb.append(String.format("%s,", e.getKey()));
+    }
+    LOG.info("Generated locations: {}", sb.toString());
   }
 
   /**
@@ -177,10 +192,14 @@ public class StreamRegisterWorkerBench extends RpcBench<BlockMasterBenchParamete
   @Override
   public RpcTaskResult runRPC() throws Exception {
     // Use a mocked client to save conversion
+//    CachingBlockMasterClient client =
+//            new CachingBlockMasterClient(MasterClientContext
+//                    .newBuilder(ClientContext.create(mConf))
+//                    .build(), mLocationBlockIdList);
     CachingBlockMasterClient client =
             new CachingBlockMasterClient(MasterClientContext
                     .newBuilder(ClientContext.create(mConf))
-                    .build(), mLocationBlockIdList);
+                    .build(), mBlockMap);
 
     RpcTaskResult taskResult = simulateRegisterWorkerStream(client);
     LOG.info("Received task result {}", taskResult);

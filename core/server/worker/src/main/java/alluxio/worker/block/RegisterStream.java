@@ -65,7 +65,7 @@ public class RegisterStream {
     StreamObserver<RegisterWorkerStreamPResponse> responseObserver = new StreamObserver<RegisterWorkerStreamPResponse>() {
       @Override
       public void onNext(RegisterWorkerStreamPResponse res) {
-        System.out.format("Received response %s%n", res);
+//        System.out.format("Received response %s%n", res);
         LOG.info("register got response {}", res);
       }
 
@@ -122,15 +122,20 @@ public class RegisterStream {
       while (mBlockListIterator.hasNext()) {
         List<LocationBlockIdListEntry> blockBatch = mBlockListIterator.next();
 
-        LOG.info("Sending batch {}: {}", iter, blockBatch);
+        // TODO(jiacheng): debug output
+        StringBuilder sb = new StringBuilder();
+        for (LocationBlockIdListEntry e : blockBatch) {
+          sb.append(String.format("%s, ", e.getKey()));
+        }
+        LOG.info("Sending batch {}: {}", iter, sb.toString());
 
         // Generate a request
         RegisterWorkerStreamPRequest request;
 
         // If it is the 1st request, include metadata
-        System.out.format("Generating request iter %s%n", iter);
+//        System.out.format("Generating request iter %s%n", iter);
         if (iter == 0) {
-          System.out.println("Generating header request of the stream");
+//          System.out.println("Generating header request of the stream");
           request = RegisterWorkerStreamPRequest.newBuilder()
                   .setIsHead(true)
                   .setWorkerId(mWorkerId)
@@ -142,7 +147,7 @@ public class RegisterStream {
                   .addAllCurrentBlocks(blockBatch)
                   .build();
         } else {
-          System.out.println("Generating stream chunks");
+//          System.out.println("Generating stream chunks");
           request = RegisterWorkerStreamPRequest.newBuilder()
                   .setIsHead(false)
                   .setWorkerId(mWorkerId)
@@ -151,7 +156,7 @@ public class RegisterStream {
         }
 
         // Send the request
-        System.out.println("Sending request " + iter);
+//        System.out.println("Sending request " + iter);
         mRequestObserver.onNext(request);
 
         // TODO(jiacheng): what to do here
@@ -174,19 +179,18 @@ public class RegisterStream {
       mRequestObserver.onError(t);
       throw t;
     }
+    long threadId = Thread.currentThread().getId();
     // Mark the end of requests
-    LOG.info("All requests have been sent. Completing the client side.");
-    System.out.format("Completing client side stream%n");
+    LOG.info("{} All requests have been sent. Completing the client side.", threadId);
+//    System.out.format("%s %s - Completing client side stream%n", threadId, Instant.now());
     mRequestObserver.onCompleted();
 
     // Receiving happens asynchronously
     // TODO(jiacheng): configurable
-    LOG.info("Waiting on the latch");
-    System.out.format("%s - Waiting on the latch %n", Instant.now());
+    LOG.info("{} - Waiting on the latch", threadId);
+//    System.out.format("%s %s - Waiting on the latch%n", threadId, Instant.now());
     mFinishLatch.await();
-    LOG.info("Latch returned");
-    System.out.format("%s - Stop waiting on the latch%n", Instant.now());
+    LOG.info("{} - Latch returned", threadId);
+//    System.out.format("%s - Stop waiting on the latch%n", Instant.now());
   }
-
-  // TODO(jiacheng): a call to complete or close?
 }
