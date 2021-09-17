@@ -18,12 +18,14 @@ import alluxio.network.protocol.databuffer.NioDataBuffer;
 import alluxio.resource.LockResource;
 import alluxio.wire.WorkerNetAddress;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.hash.HashFunction;
 import com.google.common.hash.Hashing;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.lang.Math;
 import java.nio.ByteBuffer;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -64,7 +66,7 @@ public class SharedGrpcDataReader implements DataReader {
   }
 
   private static ReentrantReadWriteLock getLock(long blockId) {
-    return BLOCK_LOCKS[HASH_FUNC.hashLong(blockId).asInt() % BLOCK_LOCKS.length];
+    return BLOCK_LOCKS[Math.floorMod(HASH_FUNC.hashLong(blockId).asInt(), BLOCK_LOCKS.length)];
   }
 
   private final long mBlockId;
@@ -80,7 +82,8 @@ public class SharedGrpcDataReader implements DataReader {
    * @param readRequest the read request
    * @param reader the cached Grpc data reader for the given block
    */
-  private SharedGrpcDataReader(ReadRequest readRequest, BufferCachingGrpcDataReader reader) {
+  @VisibleForTesting
+  protected SharedGrpcDataReader(ReadRequest readRequest, BufferCachingGrpcDataReader reader) {
     mChunkSize = readRequest.getChunkSize();
     mPosToRead = readRequest.getOffset();
     mBlockId = readRequest.getBlockId();
@@ -136,7 +139,7 @@ public class SharedGrpcDataReader implements DataReader {
   public static class Factory implements DataReader.Factory {
     private final FileSystemContext mContext;
     private final WorkerNetAddress mAddress;
-    private final ReadRequest mReadRequestPartial;
+    private final ReadRequest.Builder mReadRequestBuilder;
     private final long mBlockSize;
 
     /**
@@ -144,43 +147,37 @@ public class SharedGrpcDataReader implements DataReader {
      *
      * @param context the file system context
      * @param address the worker address
-     * @param readRequestPartial the partial read request
+     * @param readRequestBuilder the builder of read request
      * @param blockSize the block size
      */
     public Factory(FileSystemContext context, WorkerNetAddress address,
-        ReadRequest readRequestPartial, long blockSize) {
+        ReadRequest.Builder readRequestBuilder, long blockSize) {
       mContext = context;
       mAddress = address;
-      mReadRequestPartial = readRequestPartial;
+      mReadRequestBuilder = readRequestBuilder;
       mBlockSize = blockSize;
     }
 
-    @edu.umd.cs.findbugs.annotations.SuppressFBWarnings(
+    @alluxio.annotation.SuppressFBWarnings(
         value = "AT_OPERATION_SEQUENCE_ON_CONCURRENT_ABSTRACTION",
         justification = "operation is still atomic guarded by block Ølock")
     @Override
     public DataReader create(long offset, long len) throws IOException {
-      long blockId = mReadRequestPartial.getBlockId();
+      long blockId = mReadRequestBuilder.getBlockId();
       BufferCachingGrpcDataReader reader;
       try (LockResource lockResource = new LockResource(getLock(blockId).writeLock())) {
         reader = BLOCK_READERS.get(blockId);
         if (reader == null) {
           // Even we may only need a portion, create a reader to read the whole block
-          ReadRequest cacheRequest = mReadRequestPartial
-              .toBuilder().setOffset(0).setLength(mBlockSize).build();
+          ReadRequest cacheRequest = mReadRequestBuilder.setOffset(0).setLength(mBlockSize).build();
           reader = BufferCachingGrpcDataReader.create(mContext, mAddress, cacheRequest);
           BLOCK_READERS.put(blockId, reader);
         }
 
         reader.ref();
       }
-      return new SharedGrpcDataReader(mReadRequestPartial
-          .toBuilder().setOffset(offset).setLength(len).build(), reader);
-    }
-
-    @Override
-    public boolean isShortCircuit() {
-      return false;
+      return new SharedGrpcDataReader(
+          mReadRequestBuilder.setOffset(offset).setLength(len).build(), reader);
     }
 
     @Override

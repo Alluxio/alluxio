@@ -26,7 +26,7 @@ public final class TestCommandIntegrationTest extends AbstractFileSystemShellTes
   @Test
   public void testPathIsDirectoryWhenPathNotExist() throws Exception {
     int ret = sFsShell.run("test", "-d", "/testPath");
-    Assert.assertEquals(1, ret);
+    Assert.assertEquals(3, ret);
   }
 
   @Test
@@ -47,7 +47,7 @@ public final class TestCommandIntegrationTest extends AbstractFileSystemShellTes
   @Test
   public void testPathIsFileWhenPathNotExist() throws Exception {
     int ret = sFsShell.run("test", "-f", "/testPath");
-    Assert.assertEquals(1, ret);
+    Assert.assertEquals(3, ret);
   }
 
   @Test
@@ -68,7 +68,7 @@ public final class TestCommandIntegrationTest extends AbstractFileSystemShellTes
   @Test
   public void testPathExistWhenPathNotExist() throws Exception {
     int ret = sFsShell.run("test", "-e", "/testPath");
-    Assert.assertEquals(1, ret);
+    Assert.assertEquals(3, ret);
   }
 
   @Test
@@ -89,7 +89,7 @@ public final class TestCommandIntegrationTest extends AbstractFileSystemShellTes
   @Test
   public void testDirNotEmptyWhenPathNotExist() throws Exception {
     int ret = sFsShell.run("test", "-s", "/testPath");
-    Assert.assertEquals(1, ret);
+    Assert.assertEquals(3, ret);
   }
 
   @Test
@@ -130,7 +130,7 @@ public final class TestCommandIntegrationTest extends AbstractFileSystemShellTes
   @Test
   public void testFileZeroLengthWhenPathNotExist() throws Exception {
     int ret = sFsShell.run("test", "-z", "/testPath");
-    Assert.assertEquals(1, ret);
+    Assert.assertEquals(3, ret);
   }
 
   @Test

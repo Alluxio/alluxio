@@ -14,6 +14,8 @@ package alluxio.master.journal;
 import alluxio.collections.ConcurrentHashSet;
 import alluxio.master.Master;
 import alluxio.master.journal.sink.JournalSink;
+import alluxio.metrics.MetricKey;
+import alluxio.metrics.MetricsSystem;
 import alluxio.resource.LockResource;
 
 import com.google.common.base.Preconditions;
@@ -105,4 +107,13 @@ public abstract class AbstractJournalSystem implements JournalSystem {
    * Stops the journal system.
    */
   protected abstract void stopInternal() throws InterruptedException, IOException;
+
+  protected void registerMetrics() {
+    Map<String, Long> sequenceNumber = getCurrentSequenceNumbers();
+    for (String masterName : sequenceNumber.keySet()) {
+      MetricsSystem.registerGaugeIfAbsent(
+          MetricKey.MASTER_JOURNAL_SEQUENCE_NUMBER.getName() + "." + masterName,
+          () -> getCurrentSequenceNumbers().get(masterName));
+    }
+  }
 }

@@ -11,6 +11,8 @@
 
 package alluxio.wire;
 
+import alluxio.Constants;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.Assert;
 import org.junit.Test;
@@ -54,13 +56,13 @@ public final class BlockMasterInfoTest {
 
     long capacityBytes = random.nextLong();
     Map<String, Long> capacityBytesOnTiers = new HashMap<>();
-    capacityBytesOnTiers.put("MEM", capacityBytes);
+    capacityBytesOnTiers.put(Constants.MEDIUM_MEM, capacityBytes);
     long freeBytes = random.nextLong();
     int liveWorkerNum = random.nextInt(10);
     int lostWorkerNum = random.nextInt(10);
     long usedBytes = random.nextLong();
     Map<String, Long> usedBytesOnTiers = new HashMap<>();
-    usedBytesOnTiers.put("MEM", capacityBytes);
+    usedBytesOnTiers.put(Constants.MEDIUM_MEM, capacityBytes);
 
     result.setCapacityBytes(capacityBytes);
     result.setCapacityBytesOnTiers(capacityBytesOnTiers);

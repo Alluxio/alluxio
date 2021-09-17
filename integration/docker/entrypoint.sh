@@ -164,7 +164,9 @@ function setup_for_dynamic_non_root {
       chmod -R g=u /opt/* /journal
       # Chmod the dirs of tiered stores for alluxio worker
       # to ensure write permission for non-root user.
-      chmod -R 777 ${ALLUXIO_RAM_FOLDER}
+      if [[ -n "${ALLUXIO_RAM_FOLDER}" ]]; then
+        chmod -R 777 "${ALLUXIO_RAM_FOLDER}"
+      fi
       if [[ "$1" == "worker" || "$1" == "worker-only" ]]; then
         echo "${ALLUXIO_JAVA_OPTS} ${ALLUXIO_WORKER_JAVA_OPTS}" | \
           tr ' ' '\n' | \
@@ -178,6 +180,29 @@ function setup_for_dynamic_non_root {
   fi
 }
 
+#######################################
+# Sets the Alluxio ram folder if alluxio top tier is MEM and ram folder isn't explicitly configured.
+# Globals:
+#   ALLUXIO_JAVA_OPTS
+#   ALLUXIO_HOME
+#   ALLUXIO_WORKER_JAVA_OPTS
+# Arguments:
+#   None
+#######################################
+function set_ram_folder_if_needed {
+  local tier_alias=$("${ALLUXIO_HOME}"/bin/alluxio getConf alluxio.worker.tieredstore.level0.alias)
+  if [[ "${tier_alias}" != "MEM" ]]; then
+    # If the top tier is not MEM, skip setting ram folder
+    return
+  fi
+  local full_worker_opts="${ALLUXIO_JAVA_OPTS} ${ALLUXIO_WORKER_JAVA_OPTS}"
+  if [[ "${full_worker_opts}" != *"alluxio.worker.tieredstore.level0.dirs.path"* ]]; then
+    # Docker will set this tmpfs up by default. Its size is configurable through the
+    # --shm-size argument to docker run
+    export ALLUXIO_RAM_FOLDER=${ALLUXIO_RAM_FOLDER:-/dev/shm}
+  fi
+}
+
 function main {
   if [[ "$#" -lt 1 ]]; then
     printUsage
@@ -187,12 +212,7 @@ function main {
   local service="$1"
   OPTIONS="$2"
 
-  # Only set ALLUXIO_RAM_FOLDER if tiered storage isn't explicitly configured
-  if [[ -z "${ALLUXIO_WORKER_TIEREDSTORE_LEVEL0_DIRS_PATH}" ]]; then
-    # Docker will set this tmpfs up by default. Its size is configurable through the
-    # --shm-size argument to docker run
-    export ALLUXIO_RAM_FOLDER=${ALLUXIO_RAM_FOLDER:-/dev/shm}
-  fi
+  set_ram_folder_if_needed
 
   setup_for_dynamic_non_root "$@"
 

@@ -335,7 +335,7 @@ public final class AlluxioWorkerRestServiceHandler {
             }
           } catch (Exception e) {
             // The file might have been deleted, log a warning and ignore this file.
-            LOG.warn("Unable to get file info for fileId {}. {}", fileId, e.getMessage());
+            LOG.warn("Unable to get file info for fileId {}. {}", fileId, e.toString());
           }
         }
         response.setFileInfos(uiFileInfos);

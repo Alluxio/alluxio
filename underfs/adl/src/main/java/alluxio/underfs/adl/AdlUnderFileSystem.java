@@ -38,12 +38,6 @@ import javax.annotation.concurrent.ThreadSafe;
 public class AdlUnderFileSystem extends HdfsUnderFileSystem {
   private static final Logger LOG = LoggerFactory.getLogger(AdlUnderFileSystem.class);
 
-  /** Constant for the adl URI scheme. */
-  public static final String SCHEME_INSECURE = "adl://";
-
-  /** Constant for the adls URI scheme. */
-  public static final String SCHEME_SECURE = "adls://";
-
   /**
    * Prepares the configuration for this Adl as an HDFS configuration.
    *

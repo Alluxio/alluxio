@@ -11,6 +11,7 @@
 
 package alluxio.stress.cli;
 
+import alluxio.annotation.SuppressFBWarnings;
 import alluxio.conf.PropertyKey;
 import alluxio.stress.BaseParameters;
 import alluxio.stress.StressConstants;
@@ -25,7 +26,6 @@ import alluxio.util.io.PathUtils;
 
 import com.beust.jcommander.ParametersDelegate;
 import com.google.common.util.concurrent.RateLimiter;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.HdrHistogram.Histogram;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileStatus;
@@ -73,6 +73,12 @@ public class StressMasterBench extends Benchmark<MasterBenchTaskResult> {
   }
 
   @Override
+  public String getBenchDescription() {
+    // TODO(David) Fill in description
+    return "";
+  }
+
+  @Override
   public void prepare() throws Exception {
     if (mParameters.mFixedCount <= 0) {
       throw new IllegalStateException(
@@ -94,14 +100,14 @@ public class StressMasterBench extends Benchmark<MasterBenchTaskResult> {
 
       // the base path depends on the operation
       Path basePath;
-      if (mParameters.mOperation == Operation.CreateDir) {
+      if (mParameters.mOperation == Operation.CREATE_DIR) {
         basePath = new Path(path, "dirs");
       } else {
         basePath = new Path(path, "files");
       }
 
-      if (mParameters.mOperation == Operation.CreateFile
-          || mParameters.mOperation == Operation.CreateDir) {
+      if (mParameters.mOperation == Operation.CREATE_FILE
+          || mParameters.mOperation == Operation.CREATE_DIR) {
         long start = CommonUtils.getCurrentMs();
         deletePaths(prepareFs, basePath);
         long end = CommonUtils.getCurrentMs();
@@ -332,7 +338,7 @@ public class StressMasterBench extends Benchmark<MasterBenchTaskResult> {
       mContext = context;
       mResponseTimeNs = new Histogram(StressConstants.TIME_HISTOGRAM_MAX,
           StressConstants.TIME_HISTOGRAM_PRECISION);
-      if (mParameters.mOperation == Operation.CreateDir) {
+      if (mParameters.mOperation == Operation.CREATE_DIR) {
         mBasePath =
             new Path(PathUtils.concatPath(mParameters.mBasePath, "dirs", mBaseParameters.mId));
       } else {
@@ -375,17 +381,27 @@ public class StressMasterBench extends Benchmark<MasterBenchTaskResult> {
       long waitMs = mContext.getStartMs() - CommonUtils.getCurrentMs();
       if (waitMs < 0) {
         throw new IllegalStateException(String.format(
-            "Thread missed barrier. Set the start time to a later time. start: %d current: %d",
+            "Thread missed barrier. Increase the start delay. start: %d current: %d",
             mContext.getStartMs(), CommonUtils.getCurrentMs()));
       }
       CommonUtils.sleepMs(waitMs);
 
-      while (!Thread.currentThread().isInterrupted()
-          && ((!useStopCount && CommonUtils.getCurrentMs() < mContext.getEndMs())
-              || (useStopCount && mContext.mCounter.get() < mParameters.mStopCount))) {
+      long localCounter = 0;
+      while (true) {
+        if (Thread.currentThread().isInterrupted()) {
+          break;
+        }
+        if (!useStopCount && CommonUtils.getCurrentMs() >= mContext.getEndMs()) {
+          break;
+        }
+        localCounter = mContext.getCounter().getAndIncrement();
+        if (useStopCount && localCounter >= mParameters.mStopCount) {
+          break;
+        }
+
         mContext.getRateLimiter().acquire();
         long startNs = System.nanoTime();
-        applyOperation();
+        applyOperation(localCounter);
         long endNs = System.nanoTime();
 
         long currentMs = CommonUtils.getCurrentMs();
@@ -408,12 +424,10 @@ public class StressMasterBench extends Benchmark<MasterBenchTaskResult> {
       }
     }
 
-    private void applyOperation() throws IOException {
-      long counter = mContext.getCounter().getAndIncrement();
-
+    private void applyOperation(long counter) throws IOException {
       Path path;
       switch (mParameters.mOperation) {
-        case CreateDir:
+        case CREATE_DIR:
           if (counter < mParameters.mFixedCount) {
             path = new Path(mFixedBasePath, Long.toString(counter));
           } else {
@@ -421,7 +435,7 @@ public class StressMasterBench extends Benchmark<MasterBenchTaskResult> {
           }
           mFs.mkdirs(path);
           break;
-        case CreateFile:
+        case CREATE_FILE:
           if (counter < mParameters.mFixedCount) {
             path = new Path(mFixedBasePath, Long.toString(counter));
           } else {
@@ -429,17 +443,17 @@ public class StressMasterBench extends Benchmark<MasterBenchTaskResult> {
           }
           mFs.create(path).close();
           break;
-        case GetBlockLocations:
+        case GET_BLOCK_LOCATIONS:
           counter = counter % mParameters.mFixedCount;
           path = new Path(mFixedBasePath, Long.toString(counter));
           mFs.getFileBlockLocations(path, 0, 0);
           break;
-        case GetFileStatus:
+        case GET_FILE_STATUS:
           counter = counter % mParameters.mFixedCount;
           path = new Path(mFixedBasePath, Long.toString(counter));
           mFs.getFileStatus(path);
           break;
-        case ListDir:
+        case LIST_DIR:
           FileStatus[] files = mFs.listStatus(mFixedBasePath);
           if (files.length != mParameters.mFixedCount) {
             throw new IOException(String
@@ -447,7 +461,7 @@ public class StressMasterBench extends Benchmark<MasterBenchTaskResult> {
                     mParameters.mFixedCount, files.length));
           }
           break;
-        case ListDirLocated:
+        case LIST_DIR_LOCATED:
           RemoteIterator<LocatedFileStatus> it = mFs.listLocatedStatus(mFixedBasePath);
           int listedFiles = 0;
           while (it.hasNext()) {
@@ -460,12 +474,12 @@ public class StressMasterBench extends Benchmark<MasterBenchTaskResult> {
                     mParameters.mFixedCount, listedFiles));
           }
           break;
-        case OpenFile:
+        case OPEN_FILE:
           counter = counter % mParameters.mFixedCount;
           path = new Path(mFixedBasePath, Long.toString(counter));
           mFs.open(path).close();
           break;
-        case RenameFile:
+        case RENAME_FILE:
           if (counter < mParameters.mFixedCount) {
             path = new Path(mFixedBasePath, Long.toString(counter));
           } else {
@@ -476,7 +490,7 @@ public class StressMasterBench extends Benchmark<MasterBenchTaskResult> {
             throw new IOException(String.format("Failed to rename (%s) to (%s)", path, dst));
           }
           break;
-        case DeleteFile:
+        case DELETE_FILE:
           if (counter < mParameters.mFixedCount) {
             path = new Path(mFixedBasePath, Long.toString(counter));
           } else {

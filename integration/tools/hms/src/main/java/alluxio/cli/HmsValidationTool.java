@@ -94,8 +94,8 @@ public class HmsValidationTool implements ValidationTool {
     } catch (RuntimeException e) {
       // Try not to throw exception on the construction function
       // The hms validation tool itself should return failed message if the given config is invalid
-      LOG.error("Failed to process hms validation tool config from config map {}: {}",
-          configMap, e.getMessage());
+      LOG.error("Failed to process hms validation tool config from config map {}",
+          configMap, e);
     }
     return new HmsValidationTool(metastoreUri, database, tables, socketTimeout);
   }

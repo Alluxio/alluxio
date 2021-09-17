@@ -1,0 +1,3 @@
+metricName,metricType
+Fuse.BytesRead,COUNTER
+Fuse.BytesToRead,COUNTER

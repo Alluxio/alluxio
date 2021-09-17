@@ -145,4 +145,55 @@
 - Add a table of keys and default values for the Helm templates in README
 
 0.6.13
+
 - Add remote logger for Alluxio services, putting the centralized logs in emptyDir/hostPath/PVC
+
+0.6.14
+
+- Migrate master StatefulSet and worker DaemonSet securityContext to Pod-level (see Issue [#13096](https://github.com/Alluxio/alluxio/issues/13096))
+
+0.6.15
+
+- Fix incorrect indentation in logserver secret volume mount
+
+0.6.16
+
+- Change helm-chart fuse hostPath type from File to CharDevice
+
+0.6.17
+
+- Add hostAliases in Master and Worker Pods
+
+0.6.18
+
+- Add support for Node tolerations
+
+0.6.19
+
+- Add serviceAccountName in Master, Worker, and FUSE Pods
+
+0.6.20
+
+- Add Master StatefulSet podManagementPolicy Parallel (see Issue [#13323](https://github.com/Alluxio/alluxio/issues/13323))
+
+0.6.21
+
+- Change logserver PVC default selectors to empty, so dynamic provisioning works by default configuration.
+
+0.6.22
+- Enable configuring logserver Deployment strategy to address [#13422](https://github.com/Alluxio/alluxio/issues/13422)
+
+0.6.23
+- Add Alluxio CSI support
+
+0.6.24
+- Fix Alluxio CSI `nodeplugin.yaml` indentation
+
+0.6.25
+- Fix Alluxio CSI `nodeplugin.yaml` indentation, add support for dns plocy & change CSI log level
+
+0.6.26
+- Add livenessProbe and readinessProbe to values.yaml to allow for overriding
+
+0.6.27
+- Enable Fuse process embedded in worker process

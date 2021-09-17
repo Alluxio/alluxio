@@ -27,6 +27,9 @@ export const initialMetricsState: IMetricsState = {
     operationMetrics: {},
     rpcInvocationMetrics: {},
     timeSeriesMetrics: [],
+    journalDiskMetrics: [],
+    journalLastCheckpointTime: '',
+    journalEntriesSinceCheckpoint: 0,
     totalBytesReadLocal: '',
     totalBytesReadLocalThroughput: '',
     totalBytesReadDomainSocket: '',
@@ -59,12 +62,11 @@ export const metricsReducer: Reducer<IMetricsState> = (state = initialMetricsSta
       return { ...state, loading: true };
     case MetricsActionTypes.FETCH_SUCCESS:
       action.payload.data.timeSeriesMetrics.map((item: { name: string; dataPoints: [] }) => {
-        // only push the latest 20 points of data
         timeSeriesMetrics.push({
           id: item.name,
           xAxisLabel: 'Time Stamp',
-          yAxisLabel: 'Percent (%)',
-          data: transformToNivoFormat(item.dataPoints.slice(-20), 'timeStamp', 'value'),
+          yAxisLabel: item.name.includes('%') ? 'Percent (%)' : 'Raw Throughput (Bytes/Minute)',
+          data: transformToNivoFormat(item.dataPoints, 'timeStamp', 'value'),
         });
       });
       action.payload.data.timeSeriesMetrics = timeSeriesMetrics;

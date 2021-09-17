@@ -105,6 +105,8 @@ public class DefaultMetricsMaster extends CoreMaster implements MetricsMaster, N
 
   private void registerAggregators() {
     // worker metrics
+    registerThroughputGauge(MetricKey.CLUSTER_BYTES_READ_DIRECT.getName(),
+        MetricKey.CLUSTER_BYTES_READ_DIRECT_THROUGHPUT.getName());
     registerThroughputGauge(MetricKey.CLUSTER_BYTES_READ_REMOTE.getName(),
         MetricKey.CLUSTER_BYTES_READ_REMOTE_THROUGHPUT.getName());
     registerThroughputGauge(MetricKey.CLUSTER_BYTES_READ_DOMAIN.getName(),
@@ -170,7 +172,7 @@ public class DefaultMetricsMaster extends CoreMaster implements MetricsMaster, N
   public void start(Boolean isLeader) throws IOException {
     super.start(isLeader);
     if (isLeader) {
-      mMetricsStore.initCounterKeys();
+      mMetricsStore.initMetricKeys();
       mMetricsStore.clear();
       getExecutorService().submit(new HeartbeatThread(
           HeartbeatContext.MASTER_CLUSTER_METRICS_UPDATER, new ClusterMetricsUpdater(),

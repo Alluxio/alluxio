@@ -32,16 +32,19 @@ public final class MasterWebUIOverview implements Serializable {
 
   private boolean mDebug;
   private ConfigStatus mConfigCheckStatus;
-  private int mComfigCheckWarnNum;
+  private int mConfigCheckWarnNum;
   private int mConfigCheckErrorNum;
   private List<StorageTierInfo> mStorageTierInfos;
   private Map<Scope, List<InconsistentProperty>> mConfigCheckErrors;
   private Map<Scope, List<InconsistentProperty>> mConfigCheckWarns;
   private String mCapacity;
+  private String mClusterId;
   private String mDiskCapacity;
   private String mDiskFreeCapacity;
   private String mDiskUsedCapacity;
   private String mFreeCapacity;
+  private List<String> mJournalDiskWarnings;
+  private String mJournalCheckpointTimeWarning;
   private String mLiveWorkerNodes;
   private String mMasterNodeAddress;
   private String mStartTime;
@@ -62,6 +65,15 @@ public final class MasterWebUIOverview implements Serializable {
    */
   public String getCapacity() {
     return mCapacity;
+  }
+
+  /**
+   * Gets cluster id.
+   *
+   * @return the cluster id
+   */
+  public String getClusterId() {
+    return mClusterId;
   }
 
   /**
@@ -146,6 +158,20 @@ public final class MasterWebUIOverview implements Serializable {
   }
 
   /**
+   * @return the journal checkpoint time warning
+   */
+  public String getJournalCheckpointTimeWarning() {
+    return mJournalCheckpointTimeWarning;
+  }
+
+  /**
+   * @return the journal disk warnings
+   */
+  public List<String> getJournalDiskWarnings() {
+    return mJournalDiskWarnings;
+  }
+
+  /**
    * Gets live worker nodes.
    *
    * @return live worker nodes
@@ -209,12 +235,12 @@ public final class MasterWebUIOverview implements Serializable {
   }
 
   /**
-   * Gets comfig check warn num.
+   * Gets config check warn num.
    *
-   * @return the comfig check warn num
+   * @return the config check warn num
    */
-  public int getComfigCheckWarnNum() {
-    return mComfigCheckWarnNum;
+  public int getConfigCheckWarnNum() {
+    return mConfigCheckWarnNum;
   }
 
   /**
@@ -225,6 +251,17 @@ public final class MasterWebUIOverview implements Serializable {
    */
   public MasterWebUIOverview setCapacity(String capacity) {
     mCapacity = capacity;
+    return this;
+  }
+
+  /**
+   * Sets cluster id.
+   *
+   * @param clusterId the cluster id
+   * @return the updated {@link MasterWebUIOverview} instance
+   */
+  public MasterWebUIOverview setClusterId(String clusterId) {
+    mClusterId = clusterId;
     return this;
   }
 
@@ -331,6 +368,24 @@ public final class MasterWebUIOverview implements Serializable {
   }
 
   /**
+   * @param journalCheckpointTimeWarning the journal checkpoint time warning
+   * @return the updated {@link MasterWebUIOverview} object
+   */
+  public MasterWebUIOverview setJournalCheckpointTimeWarning(String journalCheckpointTimeWarning) {
+    mJournalCheckpointTimeWarning = journalCheckpointTimeWarning;
+    return this;
+  }
+
+  /**
+    * @param journalDiskWarnings the list of journal disk warnings
+   * @return the updated {@link MasterWebUIOverview} object
+   */
+  public MasterWebUIOverview setJournalDiskWarnings(List<String> journalDiskWarnings) {
+    mJournalDiskWarnings = journalDiskWarnings;
+    return this;
+  }
+
+  /**
    * Sets live worker nodes.
    *
    * @param liveWorkerNodes the live worker nodes
@@ -414,15 +469,17 @@ public final class MasterWebUIOverview implements Serializable {
    * @return config check warn num
    */
   public MasterWebUIOverview setConfigCheckWarnNum(int configCheckWarnNum) {
-    mComfigCheckWarnNum = configCheckWarnNum;
+    mConfigCheckWarnNum = configCheckWarnNum;
     return this;
   }
 
   @Override
   public String toString() {
     return MoreObjects.toStringHelper(this).add("capacity", mCapacity)
+        .add("clusterId", mClusterId)
         .add("configCheckErrorNum", mConfigCheckErrorNum)
         .add("configCheckErrors", mConfigCheckErrors).add("configCheckStatus", mConfigCheckStatus)
+        .add("configCheckWarnNum", mConfigCheckWarnNum)
         .add("configCheckWarns", mConfigCheckWarns)
         .add("debug", mDebug)
         .add("diskCapacity", mDiskCapacity).add("diskFreeCapacity", mDiskFreeCapacity)

@@ -198,7 +198,7 @@ public class BackupWorkerRole extends AbstractBackupRole {
         LOG.info("Attempt to resume journal application.");
         mJournalSystem.resume();
       } catch (Exception e) {
-        LOG.warn("Failed to resume journal application: {}", e.getMessage());
+        LOG.warn("Failed to resume journal application: {}", e.toString());
       }
     }
     LOG.warn("Backup interrupted successfully.");

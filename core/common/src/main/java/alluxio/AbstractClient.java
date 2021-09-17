@@ -11,6 +11,7 @@
 
 package alluxio;
 
+import alluxio.annotation.SuppressFBWarnings;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.PreconditionMessage;
@@ -35,7 +36,6 @@ import alluxio.util.SecurityUtils;
 
 import com.codahale.metrics.Timer;
 import com.google.common.base.Preconditions;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.grpc.Status;
 import io.grpc.StatusRuntimeException;
 import org.slf4j.Logger;
@@ -58,9 +58,6 @@ public abstract class AbstractClient implements Client {
   private final Supplier<RetryPolicy> mRetryPolicySupplier;
 
   protected InetSocketAddress mAddress;
-
-  /** Address to load configuration, which may differ from {@code mAddress}. */
-  protected InetSocketAddress mConfAddress;
 
   /** Underlying channel to the target service. */
   protected GrpcChannel mChannel;
@@ -124,10 +121,14 @@ public abstract class AbstractClient implements Client {
 
   protected long getRemoteServiceVersion() throws AlluxioStatusException {
     // Calling directly as this method is subject to an encompassing retry loop.
-    return mVersionService
-        .getServiceVersion(
-            GetServiceVersionPRequest.newBuilder().setServiceType(getRemoteServiceType()).build())
-        .getVersion();
+    try {
+      return mVersionService
+          .getServiceVersion(
+              GetServiceVersionPRequest.newBuilder().setServiceType(getRemoteServiceType()).build())
+          .getVersion();
+    } catch (Throwable t) {
+      throw AlluxioStatusException.fromThrowable(t);
+    }
   }
 
   /**
@@ -172,7 +173,7 @@ public abstract class AbstractClient implements Client {
       throws IOException {
     // Bootstrap once for clients
     if (!isConnected()) {
-      mContext.loadConfIfNotLoaded(mConfAddress);
+      mContext.loadConfIfNotLoaded(getConfAddress());
     }
   }
 
@@ -214,7 +215,6 @@ public abstract class AbstractClient implements Client {
       // failover).
       try {
         mAddress = getAddress();
-        mConfAddress = getConfAddress();
       } catch (UnavailableException e) {
         LOG.debug("Failed to determine {} rpc address ({}): {}",
             getServiceName(), retryPolicy.getAttemptCount(), e.toString());
@@ -238,8 +238,8 @@ public abstract class AbstractClient implements Client {
             getServiceName(), mAddress);
         return;
       } catch (IOException e) {
-        LOG.debug("Failed to connect ({}) with {} @ {}: {}", retryPolicy.getAttemptCount(),
-            getServiceName(), mAddress, e.getMessage());
+        LOG.debug("Failed to connect ({}) with {} @ {}", retryPolicy.getAttemptCount(),
+            getServiceName(), mAddress, e);
         lastConnectFailure = e;
         if (e instanceof UnauthenticatedException) {
           // If there has been a failure in opening GrpcChannel, it's possible because
@@ -264,7 +264,7 @@ public abstract class AbstractClient implements Client {
               retryPolicy.getAttemptCount()));
     }
 
-    /**
+    /*
      * Throw as-is if {@link UnauthenticatedException} occurred.
      */
     if (lastConnectFailure instanceof UnauthenticatedException) {
@@ -275,8 +275,12 @@ public abstract class AbstractClient implements Client {
           new ServiceNotFoundException(lastConnectFailure.getMessage(), lastConnectFailure));
     }
 
-    throw new UnavailableException(String.format("Failed to connect to %s @ %s after %s attempts",
-        getServiceName(), mAddress, retryPolicy.getAttemptCount()), lastConnectFailure);
+    throw new UnavailableException(
+        String.format(
+            "Failed to connect to master (%s) after %s attempts."
+                + "Please check if Alluxio master is currently running on \"%s\". Service=\"%s\"",
+            mAddress, retryPolicy.getAttemptCount(), mAddress, getServiceName()),
+        lastConnectFailure);
   }
 
   /**
@@ -318,9 +322,6 @@ public abstract class AbstractClient implements Client {
 
   @Override
   public synchronized InetSocketAddress getConfAddress() throws UnavailableException {
-    if (mConfAddress != null) {
-      return mConfAddress;
-    }
     return mAddress;
   }
 

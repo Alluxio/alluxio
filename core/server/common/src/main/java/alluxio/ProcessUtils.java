@@ -32,7 +32,8 @@ public final class ProcessUtils {
   public static void run(Process process) {
     try {
       LOG.info("Starting {}.", process);
-      LOG.info("Running under Java {}", System.getProperty("java.version"));
+      LOG.info("Alluxio version: {}-{}", RuntimeConstants.VERSION, ProjectConstants.REVISION);
+      LOG.info("Java version: {}", System.getProperty("java.version"));
       process.start();
       LOG.info("Stopping {}.", process);
       System.exit(0);

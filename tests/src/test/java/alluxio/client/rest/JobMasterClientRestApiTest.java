@@ -13,6 +13,7 @@ package alluxio.client.rest;
 
 import alluxio.Constants;
 import alluxio.conf.PropertyKey;
+import alluxio.grpc.ListAllPOptions;
 import alluxio.job.JobConfig;
 import alluxio.job.ServiceConstants;
 import alluxio.job.SleepJobConfig;
@@ -98,7 +99,8 @@ public final class JobMasterClientRestApiTest extends RestApiTest {
   @Test
   public void run() throws Exception {
     final long jobId = startJob(new SleepJobConfig(200));
-    Assert.assertEquals(1, mJobMaster.list().size());
+    Assert.assertEquals(1,
+        mJobMaster.list(ListAllPOptions.getDefaultInstance()).size());
     waitForStatus(jobId, Status.COMPLETED);
   }
 
@@ -118,7 +120,10 @@ public final class JobMasterClientRestApiTest extends RestApiTest {
   @Test
   public void list() throws Exception {
     List<Long> empty = Lists.newArrayList();
-    new TestCase(mHostname, mPort, getEndpoint(ServiceConstants.LIST), NO_PARAMS,
+    Map<String, String> params = Maps.newHashMap();
+    params.put("name", "");
+    params.put("status", "");
+    new TestCase(mHostname, mPort, getEndpoint(ServiceConstants.LIST), params,
         HttpMethod.GET, empty).run();
   }
 

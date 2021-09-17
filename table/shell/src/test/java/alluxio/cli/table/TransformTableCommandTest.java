@@ -42,7 +42,7 @@ public class TransformTableCommandTest {
         .thenReturn(0L);
     TransformTableCommand command =
         new TransformTableCommand(new InstancedConfiguration(ConfigurationUtils.defaults()),
-            client);
+            client, null);
 
     ArgumentCaptor<String> argumentCaptor = ArgumentCaptor.forClass(String.class);
 

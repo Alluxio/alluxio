@@ -12,6 +12,7 @@
 package alluxio.client.rest;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
@@ -134,21 +135,27 @@ public final class S3ClientRestApiTest extends RestApiTest {
     setAttributeOptions = SetAttributePOptions.newBuilder().setOwner("user1").build();
     mFileSystem.setAttribute(new AlluxioURI("/bucket1"), setAttributeOptions);
 
-    ListAllMyBucketsResult expected = new ListAllMyBucketsResult(Collections.EMPTY_LIST);
+    ListAllMyBucketsResult expected = new ListAllMyBucketsResult(Collections.emptyList());
     final TestCaseOptions requestOptions = TestCaseOptions.defaults()
         .setContentType(TestCaseOptions.XML_CONTENT_TYPE);
     new TestCase(mHostname, mPort, S3_SERVICE_PREFIX + "/", NO_PARAMS,
         HttpMethod.GET, expected, requestOptions).run();
 
-    expected = new ListAllMyBucketsResult(Lists.newArrayList("bucket0"));
-    requestOptions.setAuthorization("AWS user0:");
+    expected = new ListAllMyBucketsResult(Lists.newArrayList(testStatus("bucket0")));
+    requestOptions.setAuthorization("AWS4-HMAC-SHA256 Credential=user0/20210631");
     new TestCase(mHostname, mPort, S3_SERVICE_PREFIX + "/", NO_PARAMS,
         HttpMethod.GET, expected, requestOptions).run();
 
-    expected = new ListAllMyBucketsResult(Lists.newArrayList("bucket1"));
-    requestOptions.setAuthorization("AWS user1:");
+    expected = new ListAllMyBucketsResult(Lists.newArrayList(testStatus("bucket1")));
+    requestOptions.setAuthorization("AWS4-HMAC-SHA256 Credential=user1/20210631");
     new TestCase(mHostname, mPort, S3_SERVICE_PREFIX + "/", NO_PARAMS,
         HttpMethod.GET, expected, requestOptions).run();
+  }
+
+  private URIStatus testStatus(String name) {
+    FileInfo f = new FileInfo().setName(name)
+        .setCreationTimeMs(System.currentTimeMillis());
+    return new URIStatus(f);
   }
 
   @Test
@@ -174,7 +181,7 @@ public final class S3ClientRestApiTest extends RestApiTest {
 
     assertEquals("file0", expected.getContents().get(0).getKey());
     assertEquals("file1", expected.getContents().get(1).getKey());
-    assertEquals(Lists.newArrayList("folder0", "folder1"),
+    assertEquals(Lists.newArrayList("folder0/", "folder1/"),
         expected.getCommonPrefixes().getCommonPrefixes());
 
     statuses = mFileSystem.listStatus(new AlluxioURI("/bucket/folder0"));
@@ -191,7 +198,7 @@ public final class S3ClientRestApiTest extends RestApiTest {
 
     assertEquals("folder0/file0", expected.getContents().get(0).getKey());
     assertEquals("folder0/file1", expected.getContents().get(1).getKey());
-    assertEquals(0, expected.getCommonPrefixes().getCommonPrefixes().size());
+    assertNull(expected.getCommonPrefixes());
   }
 
   @Test
@@ -221,7 +228,7 @@ public final class S3ClientRestApiTest extends RestApiTest {
         TestCaseOptions.defaults().setContentType(TestCaseOptions.XML_CONTENT_TYPE)).run();
 
     assertEquals("file0", expected.getContents().get(0).getKey());
-    assertEquals(0, expected.getCommonPrefixes().getCommonPrefixes().size());
+    assertNull(expected.getCommonPrefixes());
 
     parameters.put("marker", nextMarker);
 
@@ -234,7 +241,7 @@ public final class S3ClientRestApiTest extends RestApiTest {
         TestCaseOptions.defaults().setContentType(TestCaseOptions.XML_CONTENT_TYPE)).run();
 
     assertEquals("file1", expected.getContents().get(0).getKey());
-    assertEquals(0, expected.getCommonPrefixes().getCommonPrefixes().size());
+    assertNull(expected.getCommonPrefixes());
 
     parameters.put("marker", nextMarker);
 
@@ -247,7 +254,7 @@ public final class S3ClientRestApiTest extends RestApiTest {
         TestCaseOptions.defaults().setContentType(TestCaseOptions.XML_CONTENT_TYPE)).run();
 
     assertEquals(0, expected.getContents().size());
-    assertEquals(Lists.newArrayList("folder0"),
+    assertEquals(Lists.newArrayList("folder0/"),
         expected.getCommonPrefixes().getCommonPrefixes());
   }
 

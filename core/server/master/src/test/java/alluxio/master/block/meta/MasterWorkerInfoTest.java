@@ -37,13 +37,16 @@ import java.util.Set;
  * Unit tests for {@link MasterWorkerInfo}.
  */
 public final class MasterWorkerInfoTest {
-  private static final List<String> STORAGE_TIER_ALIASES = Lists.newArrayList("MEM", "SSD");
+  private static final List<String> STORAGE_TIER_ALIASES =
+      Lists.newArrayList(Constants.MEDIUM_MEM, Constants.MEDIUM_SSD);
   private static final StorageTierAssoc GLOBAL_STORAGE_TIER_ASSOC = new MasterStorageTierAssoc(
       STORAGE_TIER_ALIASES);
   private static final Map<String, Long> TOTAL_BYTES_ON_TIERS =
-      ImmutableMap.of("MEM", Constants.KB * 3L, "SSD", Constants.KB * 3L);
+      ImmutableMap.of(Constants.MEDIUM_MEM, Constants.KB * 3L,
+          Constants.MEDIUM_SSD, Constants.KB * 3L);
   private static final Map<String, Long> USED_BYTES_ON_TIERS =
-      ImmutableMap.of("MEM", (long) Constants.KB, "SSD", (long) Constants.KB);
+      ImmutableMap.of(Constants.MEDIUM_MEM, (long) Constants.KB,
+          Constants.MEDIUM_SSD, (long) Constants.KB);
   private static final Set<Long> NEW_BLOCKS = Sets.newHashSet(1L, 2L);
   private MasterWorkerInfo mInfo;
 
@@ -79,7 +82,8 @@ public final class MasterWorkerInfoTest {
    */
   @Test
   public void getFreeBytesOnTiers() {
-    assertEquals(ImmutableMap.of("MEM", Constants.KB * 2L, "SSD", Constants.KB * 2L),
+    assertEquals(ImmutableMap.of(Constants.MEDIUM_MEM, Constants.KB * 2L,
+        Constants.MEDIUM_SSD, Constants.KB * 2L),
         mInfo.getFreeBytesOnTiers());
   }
 
@@ -109,7 +113,7 @@ public final class MasterWorkerInfoTest {
         + " totalBytesOnTiers has 2 tiers and usedBytesOnTiers has 1 tiers");
 
     mInfo.register(GLOBAL_STORAGE_TIER_ASSOC, STORAGE_TIER_ALIASES, TOTAL_BYTES_ON_TIERS,
-        ImmutableMap.of("SSD", (long) Constants.KB), NEW_BLOCKS);
+        ImmutableMap.of(Constants.MEDIUM_SSD, (long) Constants.KB), NEW_BLOCKS);
   }
 
   /**
@@ -169,7 +173,8 @@ public final class MasterWorkerInfoTest {
   public void updateUsedBytes() {
     assertEquals(Constants.KB * 2L, mInfo.getUsedBytes());
     Map<String, Long> usedBytesOnTiers =
-        ImmutableMap.of("MEM", Constants.KB * 2L, "SSD", (long) Constants.KB);
+        ImmutableMap.of(Constants.MEDIUM_MEM, Constants.KB * 2L,
+            Constants.MEDIUM_SSD, (long) Constants.KB);
     mInfo.updateUsedBytes(usedBytesOnTiers);
     assertEquals(usedBytesOnTiers, mInfo.getUsedBytesOnTiers());
     assertEquals(Constants.KB * 3L, mInfo.getUsedBytes());
@@ -181,8 +186,8 @@ public final class MasterWorkerInfoTest {
   @Test
   public void updateUsedBytesInTier() {
     assertEquals(Constants.KB * 2L, mInfo.getUsedBytes());
-    mInfo.updateUsedBytes("MEM", Constants.KB * 2L);
+    mInfo.updateUsedBytes(Constants.MEDIUM_MEM, Constants.KB * 2L);
     assertEquals(Constants.KB * 3L, mInfo.getUsedBytes());
-    assertEquals(Constants.KB * 2L, (long) mInfo.getUsedBytesOnTiers().get("MEM"));
+    assertEquals(Constants.KB * 2L, (long) mInfo.getUsedBytesOnTiers().get(Constants.MEDIUM_MEM));
   }
 }

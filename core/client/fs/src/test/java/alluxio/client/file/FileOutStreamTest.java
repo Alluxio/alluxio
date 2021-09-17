@@ -12,11 +12,11 @@
 package alluxio.client.file;
 
 import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.fail;
 import static org.junit.Assert.assertEquals;
-
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertThrows;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyInt;
 import static org.mockito.Matchers.anyLong;
@@ -62,9 +62,7 @@ import com.google.common.collect.Lists;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.invocation.InvocationOnMock;
@@ -89,9 +87,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class FileOutStreamTest {
 
   private static InstancedConfiguration sConf = ConfigurationTestUtils.defaults();
-
-  @Rule
-  public ExpectedException mException = ExpectedException.none();
 
   private static final long BLOCK_LENGTH = 100L;
   private static final AlluxioURI FILE_NAME = new AlluxioURI("/file");
@@ -459,9 +454,9 @@ public class FileOutStreamTest {
     OutStreamOptions options = OutStreamOptions.defaults(mClientContext)
         .setLocationPolicy((getWorkerOptions) -> null)
         .setWriteType(WriteType.CACHE_THROUGH);
-    mException.expect(UnavailableException.class);
-    mException.expectMessage(ExceptionMessage.NO_WORKER_AVAILABLE.getMessage());
-    mTestStream = createTestStream(FILE_NAME, options);
+    Exception e = assertThrows(UnavailableException.class,
+        () -> mTestStream = createTestStream(FILE_NAME, options));
+    assertTrue(e.getMessage().contains(ExceptionMessage.NO_WORKER_AVAILABLE.getMessage()));
   }
 
   private void verifyIncreasingBytesWritten(int len) {

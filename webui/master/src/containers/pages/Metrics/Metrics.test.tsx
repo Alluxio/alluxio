@@ -30,6 +30,7 @@ describe('Metrics', () => {
     history = createBrowserHistory({ keyLength: 0 });
     history.push(routePaths.metrics);
     props = {
+      alluxioStartTime: '',
       data: initialState.metrics.data,
       errors: createAlertErrors(false),
       loading: false,

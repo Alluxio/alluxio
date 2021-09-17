@@ -11,6 +11,7 @@
 
 package alluxio.grpc;
 
+import alluxio.annotation.SuppressFBWarnings;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.security.authentication.AuthenticatedUserInjector;
@@ -18,9 +19,9 @@ import alluxio.security.authentication.AuthenticationServer;
 import alluxio.security.authentication.DefaultAuthenticationServer;
 import alluxio.security.user.UserState;
 import alluxio.util.SecurityUtils;
+import alluxio.util.network.tls.SslContextProvider;
 
 import com.google.common.io.Closer;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.grpc.ServerInterceptor;
 import io.grpc.ServerInterceptors;
 import io.grpc.ServerServiceDefinition;
@@ -28,6 +29,7 @@ import io.grpc.netty.NettyServerBuilder;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.ServerChannel;
+import io.netty.handler.ssl.SslContext;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -62,6 +64,10 @@ public final class GrpcServerBuilder {
     mServices = new HashSet<>();
     mConfiguration = conf;
     mUserState = userState;
+
+    if (conf.getBoolean(alluxio.conf.PropertyKey.NETWORK_TLS_ENABLED)) {
+      sslContext(SslContextProvider.Factory.create(mConfiguration).getServerSSLContext());
+    }
 
     if (SecurityUtils.isAuthenticationEnabled(mConfiguration)) {
       if (mAuthenticationServer == null) {
@@ -241,6 +247,17 @@ public final class GrpcServerBuilder {
    */
   public GrpcServerBuilder intercept(ServerInterceptor interceptor) {
     mNettyServerBuilder = mNettyServerBuilder.intercept(interceptor);
+    return this;
+  }
+
+  /**
+   * Sets TLS context.
+   *
+   * @param sslContext TLS context
+   * @return an updated instance of this {@link GrpcServerBuilder}
+   */
+  public GrpcServerBuilder sslContext(SslContext sslContext) {
+    mNettyServerBuilder = mNettyServerBuilder.sslContext(sslContext);
     return this;
   }
 

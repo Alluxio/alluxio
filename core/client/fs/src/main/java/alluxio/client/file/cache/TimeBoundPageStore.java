@@ -13,6 +13,7 @@ package alluxio.client.file.cache;
 
 import alluxio.client.file.cache.store.PageStoreOptions;
 import alluxio.exception.PageNotFoundException;
+import alluxio.exception.status.ResourceExhaustedException;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 
@@ -24,6 +25,7 @@ import com.google.common.util.concurrent.TimeLimiter;
 
 import java.io.IOException;
 import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.SynchronousQueue;
@@ -54,7 +56,7 @@ public class TimeBoundPageStore implements PageStore {
   }
 
   @Override
-  public void put(PageId pageId, byte[] page) throws IOException {
+  public void put(PageId pageId, byte[] page) throws ResourceExhaustedException, IOException {
     Callable<Void> callable = () -> {
       mPageStore.put(pageId, page);
       return null;
@@ -69,6 +71,10 @@ public class TimeBoundPageStore implements PageStore {
       throw new IOException(e);
     } catch (RejectedExecutionException e) {
       Metrics.STORE_THREADS_REJECTED.inc();
+      throw new IOException(e);
+    } catch (ExecutionException e) {
+      Throwables.propagateIfPossible(e.getCause(), ResourceExhaustedException.class,
+          IOException.class);
       throw new IOException(e);
     } catch (Throwable t) {
       Throwables.propagateIfPossible(t, IOException.class);

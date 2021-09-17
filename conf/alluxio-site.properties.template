@@ -28,4 +28,4 @@
 
 # User properties
 # alluxio.user.file.readtype.default=CACHE
-# alluxio.user.file.writetype.default=MUST_CACHE
+# alluxio.user.file.writetype.default=ASYNC_THROUGH

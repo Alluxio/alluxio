@@ -38,9 +38,10 @@ public interface UnderDatabase {
 
   /**
    * @param tableName the table name
+   * @param bypassSpec table and partition bypass specification
    * @return the {@link UdbTable} for the specified table name
    */
-  UdbTable getTable(String tableName) throws IOException;
+  UdbTable getTable(String tableName, UdbBypassSpec bypassSpec) throws IOException;
 
   /**
    * @return the {@link UdbContext}

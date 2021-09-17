@@ -90,7 +90,7 @@ __Common Values:__
 | --- | --- | --- |
 | `fullnameOverride` | To replace the generated name | `alluxio` |
 | `image` | Docker image | `alluxio/alluxio` |
-| `imageTag` | Docker image tag | `2.5.0-SNAPSHOT` |
+| `imageTag` | Docker image tag | `2.7.0-SNAPSHOT` |
 | `imagePullPolicy` | Docker image pull policy | `IfNotPresent` |
 | `user` | Security Context for user | `1000` |
 | `group` | Security Context for group | `1000` |
@@ -233,7 +233,7 @@ __fuse values:__
 | Parameter | Description | Default |
 | --- | --- | --- |
 | `env` | Extra environment variables for the fuse pod | `{}` |
-| `image` | Docker image | `alluxio/alluxio-fuse` |
+| `image` | Docker image | `alluxio/alluxio` |
 | `imageTag` | Docker image tag | `2.5.0-SNAPSHOT` |
 | `imagePullPolicy` | Docker image pull policy | `IfNotPresent` |
 | `enabled` | Set to true to deploy FUSE | `false` |

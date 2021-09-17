@@ -14,6 +14,7 @@ package alluxio.stress.client;
 import alluxio.stress.Parameters;
 
 import com.beust.jcommander.DynamicParameter;
+import com.beust.jcommander.IStringConverter;
 import com.beust.jcommander.Parameter;
 
 import java.util.Collections;
@@ -32,6 +33,7 @@ public final class ClientIOParameters extends Parameters {
   @Parameter(names = {"--operation"},
       description = "the operation to perform. Options are [ReadArray, ReadByteBuffer, ReadFully,"
           + " PosRead, PosReadFully]",
+      converter = ClientIOOperationConverter.class,
       required = true)
   public ClientIOOperation mOperation;
 
@@ -100,4 +102,15 @@ public final class ClientIOParameters extends Parameters {
           + "configuration values.")
 
   public Map<String, String> mConf = new HashMap<>();
+
+  /**
+   * @return ClientIOOperation of this bench
+   * Converts from String to ClientIOOperation instance.
+   */
+  public static class ClientIOOperationConverter implements IStringConverter<ClientIOOperation> {
+    @Override
+    public ClientIOOperation convert(String value) {
+      return ClientIOOperation.fromString(value);
+    }
+  }
 }

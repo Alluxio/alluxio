@@ -11,8 +11,13 @@
 
 package alluxio.master.journal;
 
+import static org.junit.Assert.fail;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doAnswer;
 
 import alluxio.Constants;
 import alluxio.conf.PropertyKey;
@@ -22,9 +27,14 @@ import alluxio.master.CoreMasterContext;
 import alluxio.master.MasterRegistry;
 import alluxio.master.MasterTestUtils;
 import alluxio.master.StateLockOptions;
+import alluxio.master.block.BlockId;
 import alluxio.master.block.BlockMaster;
 import alluxio.master.block.BlockMasterFactory;
+import alluxio.master.file.InodeSyncStream;
+import alluxio.master.file.meta.PersistenceState;
 import alluxio.master.metrics.MetricsMasterFactory;
+import alluxio.proto.journal.File;
+import alluxio.proto.journal.Journal;
 import alluxio.resource.LockResource;
 import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
@@ -37,9 +47,12 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
+import org.mockito.Mockito;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -162,6 +175,22 @@ public class JournalContextTest {
     }
   }
 
+  // See https://github.com/Alluxio/alluxio/issues/13904
+  @Test
+  public void journalClosedTest() throws Exception {
+    // Secondary journals will be closed for operation.
+    mJournalSystem.losePrimacy();
+    // Validate that createJournalContext fails for secondary journals.
+    try {
+      mBlockMaster.createJournalContext();
+      fail("journal context creation should fail in secondary journal.");
+    } catch (UnavailableException e) {
+      // expected.
+    }
+    // Validate that we haven't leaked state lock while creating journal context.
+    assertEquals(0, mMasterContext.getStateLockManager().getSharedWaitersAndHolders().size());
+  }
+
   @Test
   public void stateChangeFairness() throws Exception {
     JournalContext journalContext = mBlockMaster.createJournalContext();
@@ -211,5 +240,61 @@ public class JournalContextTest {
     }
 
     assertTrue(paused.get());
+  }
+
+  @Test
+  public void mergeJournal() throws Exception {
+    JournalContext journalContext = Mockito.mock(JournalContext.class);
+    List<Journal.JournalEntry> entries = new ArrayList<>();
+    doAnswer(invocationOnMock -> {
+      entries.add(invocationOnMock.getArgument(0));
+      return null;
+    }).when(journalContext).append(any(Journal.JournalEntry.class));
+
+    JournalContext mergeContext = new MergeJournalContext(journalContext,
+        InodeSyncStream::mergeCreateComplete);
+    mergeContext.append(Journal.JournalEntry.newBuilder().setInodeFile(
+        File.InodeFileEntry.newBuilder().setId(
+            BlockId.createBlockId(1, BlockId.getMaxSequenceNumber())).setLength(2)
+            .setPersistenceState(PersistenceState.PERSISTED.name())
+            .setName("test1").build()).build());
+    mergeContext.append(Journal.JournalEntry.newBuilder().setInodeFile(
+        File.InodeFileEntry.newBuilder().setId(
+            BlockId.createBlockId(2, BlockId.getMaxSequenceNumber())).setLength(3)
+            .setPersistenceState(PersistenceState.PERSISTED.name())
+            .setName("test2").build()).build());
+    mergeContext.append(Journal.JournalEntry.newBuilder().setUpdateInode(
+        File.UpdateInodeEntry.newBuilder().setId(
+            BlockId.createBlockId(3, BlockId.getMaxSequenceNumber()))
+            .setName("test3_unchanged").build()).build());
+    mergeContext.append(Journal.JournalEntry.newBuilder().setUpdateInode(
+        File.UpdateInodeEntry.newBuilder().setId(
+            BlockId.createBlockId(2, BlockId.getMaxSequenceNumber()))
+            .setName("test2_updated").build()).build());
+    mergeContext.append(Journal.JournalEntry.newBuilder().setUpdateInodeFile(
+        File.UpdateInodeFileEntry.newBuilder().setId(
+            BlockId.createBlockId(1, BlockId.getMaxSequenceNumber()))
+            .setLength(200).build()).build());
+    mergeContext.close();
+
+    assertEquals(3, entries.size());
+    Journal.JournalEntry entry = entries.get(0);
+    assertNotNull(entry.getInodeFile());
+    assertEquals(BlockId.createBlockId(1, BlockId.getMaxSequenceNumber()),
+        entry.getInodeFile().getId());
+    assertEquals(200, entry.getInodeFile().getLength());
+    assertEquals("test1", entry.getInodeFile().getName());
+    Journal.JournalEntry entry2 = entries.get(1);
+    assertNotNull(entry2.getInodeFile());
+    assertEquals(BlockId.createBlockId(2, BlockId.getMaxSequenceNumber()),
+        entry2.getInodeFile().getId());
+    assertEquals(3, entry2.getInodeFile().getLength());
+    assertEquals("test2_updated", entry2.getInodeFile().getName());
+
+    Journal.JournalEntry entry3 = entries.get(2);
+    assertNotNull(entry3.getUpdateInode());
+    assertEquals(BlockId.createBlockId(3, BlockId.getMaxSequenceNumber()),
+        entry3.getUpdateInode().getId());
+    assertEquals("test3_unchanged", entry3.getUpdateInode().getName());
   }
 }

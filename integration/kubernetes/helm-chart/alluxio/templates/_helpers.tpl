@@ -181,9 +181,9 @@ resources:
 
 {{- define "alluxio.logserver.secretVolumeMounts" -}}
   {{- range $key, $val := .Values.secrets.logserver }}
-            - name: secret-{{ $key }}-volume
-              mountPath: /secrets/{{ $val }}
-              readOnly: true
+          - name: secret-{{ $key }}-volume
+            mountPath: /secrets/{{ $val }}
+            readOnly: true
   {{- end -}}
 {{- end -}}
 
@@ -300,70 +300,6 @@ resources:
   {{- end }}
 {{- end -}}
 
-{{- define "alluxio.master.readinessProbe" -}}
-readinessProbe:
-  tcpSocket:
-    port: {{ index . "port" }}
-{{- end -}}
-
-{{- define "alluxio.jobMaster.readinessProbe" -}}
-readinessProbe:
-  tcpSocket:
-    port: {{ index . "port" }}
-{{- end -}}
-
-{{- define "alluxio.worker.readinessProbe" -}}
-readinessProbe:
-  tcpSocket:
-    port: rpc
-{{- end -}}
-
-{{- define "alluxio.jobWorker.readinessProbe" -}}
-readinessProbe:
-  tcpSocket:
-    port: job-rpc
-{{- end -}}
-
-{{- define "alluxio.master.livenessProbe" -}}
-livenessProbe:
-  tcpSocket:
-    port: {{ index . "port" }}
-  initialDelaySeconds: 15
-  periodSeconds: 30
-  timeoutSeconds: 5
-  failureThreshold: 2
-{{- end -}}
-
-{{- define "alluxio.jobMaster.livenessProbe" -}}
-livenessProbe:
-  tcpSocket:
-    port: {{ index . "port" }}
-  initialDelaySeconds: 15
-  periodSeconds: 30
-  timeoutSeconds: 5
-  failureThreshold: 2
-{{- end -}}
-
-{{- define "alluxio.worker.livenessProbe" -}}
-livenessProbe:
-  tcpSocket:
-    port: rpc
-  initialDelaySeconds: 15
-  periodSeconds: 30
-  timeoutSeconds: 5
-  failureThreshold: 2
-{{- end -}}
-
-{{- define "alluxio.jobWorker.livenessProbe" -}}
-livenessProbe:
-  tcpSocket:
-    port: job-rpc
-  initialDelaySeconds: 15
-  periodSeconds: 30
-  timeoutSeconds: 5
-  failureThreshold: 2
-{{- end -}}
-
 {{- define "alluxio.logserver.log.volume" -}}
 {{- if eq .Values.logserver.volumeType "hostPath" }}
 - name: alluxio-logs
@@ -381,3 +317,15 @@ livenessProbe:
     claimName: "{{ .Values.logserver.pvcName }}"
 {{- end }}
 {{- end -}}
+
+{{- define "alluxio.hostAliases" -}}
+hostAliases:
+{{- range .Values.hostAliases }}
+- ip: {{ .ip }}
+  hostnames:
+  {{- range .hostnames }}
+  - {{ . }}
+  {{- end }}
+{{- end }}
+{{- end -}}
+

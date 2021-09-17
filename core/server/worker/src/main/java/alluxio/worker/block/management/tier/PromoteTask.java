@@ -78,7 +78,7 @@ public class PromoteTask extends AbstractBlockManagementTask {
 
       // Acquire iterator for the tier below.
       Iterator<Long> tierDownIterator =
-          mMetadataManager.getBlockIterator().getIterator(tierDownLoc, BlockOrder.Reverse);
+          mMetadataManager.getBlockIterator().getIterator(tierDownLoc, BlockOrder.REVERSE);
 
       // Acquire and execute promotion transfers.
       BlockOperationResult tierResult = mTransferExecutor.executeTransferList(
@@ -126,6 +126,7 @@ public class PromoteTask extends AbstractBlockManagementTask {
       try {
         BlockMeta blockMeta = mEvictorView.getBlockMeta(blockId);
         if (blockMeta == null) {
+          LOG.debug("Block:{} exist but not available for promotion.", blockId);
           continue;
         }
         bytesToAllocate += blockMeta.getBlockSize();

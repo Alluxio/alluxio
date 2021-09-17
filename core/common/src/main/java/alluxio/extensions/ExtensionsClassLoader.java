@@ -14,8 +14,10 @@ package alluxio.extensions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.net.URL;
 import java.net.URLClassLoader;
+import java.util.Enumeration;
 
 /**
  * An isolated {@link ClassLoader} for loading extensions to core Alluxio. This class loader first
@@ -81,5 +83,16 @@ public class ExtensionsClassLoader extends URLClassLoader {
     } catch (ClassNotFoundException e) {
       return mDefaultClassloader.loadClass(name, resolve);
     }
+  }
+
+  @Override
+  public Enumeration<URL> getResources(String name) throws IOException {
+    Enumeration<URL> resources = super.getResources(name);
+    // Falls back to default class loader if not found in the URL class loader
+    if (!resources.hasMoreElements()) {
+      LOG.debug("Falling back to default class loader for loading resource {}", name);
+      return mDefaultClassloader.getResources(name);
+    }
+    return resources;
   }
 }

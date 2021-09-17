@@ -26,7 +26,7 @@ import java.util.Collection;
 import java.util.Collections;
 
 /**
- * Configuration of a job evicting a block.
+ * Configuration of a job moving a block.
  */
 @ThreadSafe
 @JsonTypeName(MoveConfig.NAME)
@@ -72,7 +72,7 @@ public final class MoveConfig implements PlanConfig {
 
   @Override
   public Collection<String> affectedPaths() {
-    if (StringUtils.isEmpty(mPath)) {
+    if (!StringUtils.isEmpty(mPath)) {
       return ImmutableList.of(mPath);
     }
     return Collections.EMPTY_LIST;

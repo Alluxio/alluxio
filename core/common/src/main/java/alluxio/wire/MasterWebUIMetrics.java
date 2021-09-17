@@ -41,6 +41,9 @@ public final class MasterWebUIMetrics implements Serializable {
   private Map<String, String> mUfsReadSize;
   private Map<String, String> mUfsWriteSize;
   private List<TimeSeries> mTimeSeriesMetrics;
+  private List<JournalDiskInfo> mJournalDiskMetrics;
+  private String mJournalLastCheckpointTime;
+  private long mJournalEntriesSinceCheckpoint;
   private String mCacheHitLocal;
   private String mCacheHitRemote;
   private String mCacheMiss;
@@ -333,6 +336,27 @@ public final class MasterWebUIMetrics implements Serializable {
    */
   public List<TimeSeries> getTimeSeriesMetrics() {
     return mTimeSeriesMetrics;
+  }
+
+  /**
+   * @return the journal disk metrics
+   */
+  public List<JournalDiskInfo> getJournalDiskMetrics() {
+    return mJournalDiskMetrics;
+  }
+
+  /**
+   * @return the last journal checkpoint time
+   */
+  public String getJournalLastCheckpointTime() {
+    return mJournalLastCheckpointTime;
+  }
+
+  /**
+   * @return the last journal checkpoint time
+   */
+  public long getJournalEntriesSinceCheckpoint() {
+    return mJournalEntriesSinceCheckpoint;
   }
 
   /**
@@ -652,11 +676,38 @@ public final class MasterWebUIMetrics implements Serializable {
   }
 
   /**
-   * @param timeSeries the time series metrics to set
+   * @param timeSeries the time series metrics to set. The latest 20 data points will be set
    * @return the updated masterWebUIMetrics object
    */
   public MasterWebUIMetrics setTimeSeriesMetrics(List<TimeSeries> timeSeries) {
-    mTimeSeriesMetrics = timeSeries;
+    mTimeSeriesMetrics = timeSeries.subList(Math.max(timeSeries.size() - 20, 0), timeSeries.size());
+    return this;
+  }
+
+  /**
+   * @param journalDiskMetrics the disk metrics to set
+   * @return the updated {@link MasterWebUIMetrics} object
+   */
+  public MasterWebUIMetrics setJournalDiskMetrics(List<JournalDiskInfo> journalDiskMetrics) {
+    mJournalDiskMetrics = journalDiskMetrics;
+    return this;
+  }
+
+  /**
+   * @param lastCheckpointTime the last journal checkpoint time
+   * @return the updated metrics object
+   */
+  public MasterWebUIMetrics setJournalLastCheckpointTime(String lastCheckpointTime) {
+    mJournalLastCheckpointTime = lastCheckpointTime;
+    return this;
+  }
+
+  /**
+   * @param entriesSinceCheckpoint the last journal checkpoint time
+   * @return the updated metrics object
+   */
+  public MasterWebUIMetrics setJournalEntriesSinceCheckpoint(long entriesSinceCheckpoint) {
+    mJournalEntriesSinceCheckpoint = entriesSinceCheckpoint;
     return this;
   }
 

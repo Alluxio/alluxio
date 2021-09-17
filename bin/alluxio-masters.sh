@@ -64,7 +64,7 @@ for ((i=0; i< ${#pids[@]}; i++)); do
     ret_code=$?
     if [[ ${ret_code} -ne 0 ]]; then
       has_error=1
-      echo "Task on '${HOSTLIST[$i]}' fails, exit code: ${ret_code}"
+      echo "Task on '${HOSTLIST[$i]}' fails, exit code: ${ret_code}" >&2
     fi
 done
 
@@ -72,5 +72,5 @@ done
 if [[ ${has_error} -eq 0 ]]; then
     echo "All tasks finished"
 else
-    echo "There are task failures, look at ${ALLUXIO_TASK_LOG} for details."
+    echo "There are task failures, look at ${ALLUXIO_TASK_LOG} for details." >&2
 fi

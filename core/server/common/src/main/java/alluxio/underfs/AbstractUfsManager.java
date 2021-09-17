@@ -149,7 +149,7 @@ public abstract class AbstractUfsManager implements UfsManager {
       try {
         connectUfs(fs);
       } catch (IOException e) {
-        LOG.warn("Failed to perform initial connect to UFS {}: {}", ufsUri, e.getMessage());
+        LOG.warn("Failed to perform initial connect to UFS {}: {}", ufsUri, e.toString());
       }
       return fs;
     }

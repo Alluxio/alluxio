@@ -117,6 +117,7 @@ get
 give
 group
 handle
+hardcode
 heartbeat
 hide
 ignore
@@ -134,6 +135,7 @@ insert
 install
 integrate
 introduce
+invalidate
 isolate
 journal
 keep
@@ -201,6 +203,7 @@ refine
 reformat
 regen
 regenerate
+register
 reimplement
 relax
 release
@@ -217,6 +220,7 @@ report
 request
 require
 rerun
+reserve
 reset
 resolve
 respect

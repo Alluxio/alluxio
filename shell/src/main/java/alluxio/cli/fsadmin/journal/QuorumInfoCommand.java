@@ -19,6 +19,7 @@ import alluxio.exception.ExceptionMessage;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.grpc.GetQuorumInfoPResponse;
 import alluxio.grpc.JournalDomain;
+import alluxio.grpc.NetAddress;
 import alluxio.grpc.QuorumServerInfo;
 
 import com.google.common.annotations.VisibleForTesting;
@@ -27,6 +28,9 @@ import org.apache.commons.cli.Options;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * Command for querying journal quorum information.
@@ -36,7 +40,8 @@ public class QuorumInfoCommand extends AbstractFsAdminCommand {
 
   public static final String OUTPUT_HEADER_DOMAIN = "Journal domain\t: %s";
   public static final String OUTPUT_HEADER_QUORUM_SIZE = "Quorum size\t: %d";
-  public static final String OUTPUT_SERVER_INFO = "%s\t %s:%s";
+  public static final String OUTPUT_HEADER_LEADING_MASTER = "Quorum leader\t: %s";
+  public static final String OUTPUT_SERVER_INFO = "%-11s | %-8s | %s%n";
 
   /**
    * @param context fsadmin command context
@@ -69,17 +74,32 @@ public class QuorumInfoCommand extends AbstractFsAdminCommand {
     }
 
     GetQuorumInfoPResponse quorumInfo = jmClient.getQuorumInfo();
+
+    Optional<QuorumServerInfo> leadingMasterInfoOpt = quorumInfo.getServerInfoList().stream()
+            .filter(QuorumServerInfo::getIsLeader).findFirst();
+    String leadingMasterAddr = leadingMasterInfoOpt.isPresent()
+            ? netAddressToString(leadingMasterInfoOpt.get().getServerAddress()) : "UNKNOWN";
+
+    List<String[]> table = quorumInfo.getServerInfoList().stream().map(info -> new String[]{
+            info.getServerState().toString(),
+            Integer.toString(info.getPriority()),
+            netAddressToString(info.getServerAddress()),
+    }).collect(Collectors.toList());
+    table.add(0, new String[]{"STATE", "PRIORITY", "SERVER ADDRESS"});
+
     mPrintStream.println(String.format(OUTPUT_HEADER_DOMAIN, quorumInfo.getDomain()));
     mPrintStream
         .println(String.format(OUTPUT_HEADER_QUORUM_SIZE, quorumInfo.getServerInfoList().size()));
-    mPrintStream.println("STATE\t\tSERVER ADDRESS");
-    for (QuorumServerInfo serverState : quorumInfo.getServerInfoList()) {
-      String serverStateStr = String.format(OUTPUT_SERVER_INFO, serverState.getServerState(),
-          serverState.getServerAddress().getHost(), serverState.getServerAddress().getRpcPort());
-      mPrintStream.println(serverStateStr);
+    mPrintStream.println(String.format(OUTPUT_HEADER_LEADING_MASTER, leadingMasterAddr));
+    mPrintStream.println();
+    for (String[] output : table) {
+      mPrintStream.printf(OUTPUT_SERVER_INFO, output);
     }
-
     return 0;
+  }
+
+  String netAddressToString(NetAddress address) {
+    return String.format("%s:%d", address.getHost(), address.getRpcPort());
   }
 
   @Override

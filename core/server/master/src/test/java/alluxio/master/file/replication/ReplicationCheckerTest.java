@@ -22,6 +22,7 @@ import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.RegisterWorkerPOptions;
 import alluxio.grpc.StorageList;
 import alluxio.job.plan.replicate.ReplicationHandler;
+import alluxio.job.wire.Status;
 import alluxio.master.CoreMasterContext;
 import alluxio.master.MasterRegistry;
 import alluxio.master.MasterTestUtils;
@@ -52,6 +53,7 @@ import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import org.junit.After;
@@ -61,11 +63,13 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -78,6 +82,7 @@ public final class ReplicationCheckerTest {
   private static final Mode TEST_MODE = new Mode((short) 0755);
   private static final AlluxioURI TEST_FILE_1 = new AlluxioURI("/test1");
   private static final AlluxioURI TEST_FILE_2 = new AlluxioURI("/test2");
+  private static final AlluxioURI TEST_FILE_3 = new AlluxioURI("/test3");
   private static final List<Long> NO_BLOCKS = ImmutableList.of();
   private static final List<Metric> NO_METRICS = ImmutableList.of();
   private static final Map<Block.BlockLocation, List<Long>> NO_BLOCKS_ON_LOCATION
@@ -94,23 +99,47 @@ public final class ReplicationCheckerTest {
     private final Map<Long, Integer> mReplicateRequests = Maps.newHashMap();
     private final Map<Long, Pair<String, String>>
         mMigrateRequests = Maps.newHashMap();
+    private final List<Long> mJobStatusRequests = Lists.newArrayList();
+    private final Map<Long, Status> mJobStatus = Maps.newHashMap();
+
+    private long mNextJobId = 0;
+
+    public void setJobStatus(long jobId, Status status) {
+      mJobStatus.put(jobId, status);
+    }
+
+    @Override
+    public Status getJobStatus(long jobId) throws IOException {
+      mJobStatusRequests.add(jobId);
+      if (mJobStatus.containsKey(jobId)) {
+        return mJobStatus.get(jobId);
+      }
+      return Status.RUNNING;
+    }
+
+    @Override
+    public List<Long> findJobs(String jobName, Set<Status> statusList) throws IOException {
+      return mJobStatus.entrySet().stream()
+          .filter(x -> statusList.isEmpty() || statusList.contains(x.getValue()))
+          .map(x -> x.getKey()).collect(Collectors.toList());
+    }
 
     @Override
     public long evict(AlluxioURI uri, long blockId, int numReplicas) {
       mEvictRequests.put(blockId, numReplicas);
-      return 0;
+      return ++mNextJobId;
     }
 
     @Override
     public long replicate(AlluxioURI uri, long blockId, int numReplicas) {
       mReplicateRequests.put(blockId, numReplicas);
-      return 0;
+      return ++mNextJobId;
     }
 
     @Override
     public long migrate(AlluxioURI uri, long blockId, String workerHost, String mediumType) {
       mMigrateRequests.put(blockId, new Pair<>(workerHost, mediumType));
-      return 0;
+      return ++mNextJobId;
     }
 
     public Map<Long, Integer> getEvictRequests() {
@@ -126,6 +155,7 @@ public final class ReplicationCheckerTest {
     }
   }
 
+  private CoreMasterContext mContext;
   private InodeStore mInodeStore;
   private InodeTree mInodeTree;
   private BlockMaster mBlockMaster;
@@ -145,14 +175,14 @@ public final class ReplicationCheckerTest {
     ServerConfiguration.set(PropertyKey.MASTER_JOURNAL_TYPE, "UFS");
     MasterRegistry registry = new MasterRegistry();
     JournalSystem journalSystem = JournalTestUtils.createJournalSystem(mTestFolder);
-    CoreMasterContext context = MasterTestUtils.testMasterContext(journalSystem);
-    new MetricsMasterFactory().create(registry, context);
-    mBlockMaster = new BlockMasterFactory().create(registry, context);
+    mContext = MasterTestUtils.testMasterContext(journalSystem);
+    new MetricsMasterFactory().create(registry, mContext);
+    mBlockMaster = new BlockMasterFactory().create(registry, mContext);
     InodeDirectoryIdGenerator directoryIdGenerator = new InodeDirectoryIdGenerator(mBlockMaster);
     UfsManager manager = mock(UfsManager.class);
     MountTable mountTable = new MountTable(manager, mock(MountInfo.class));
     InodeLockManager lockManager = new InodeLockManager();
-    mInodeStore = context.getInodeStoreFactory().apply(lockManager);
+    mInodeStore = mContext.getInodeStoreFactory().apply(lockManager);
     mInodeTree =
         new InodeTree(mInodeStore, mBlockMaster, directoryIdGenerator, mountTable, lockManager);
 
@@ -167,7 +197,7 @@ public final class ReplicationCheckerTest {
 
     mMockReplicationHandler = new MockHandler();
     mReplicationChecker = new ReplicationChecker(mInodeTree, mBlockMaster,
-        context.getSafeModeManager(), mMockReplicationHandler);
+        mContext.getSafeModeManager(), mMockReplicationHandler);
   }
 
   @After
@@ -207,7 +237,8 @@ public final class ReplicationCheckerTest {
    */
   private void addBlockLocationHelper(long blockId, int numLocations) throws Exception {
     // Commit blockId to the first worker.
-    mBlockMaster.commitBlock(createWorkerHelper(0), 50L, "MEM", "MEM", blockId, 20L);
+    mBlockMaster.commitBlock(createWorkerHelper(0), 50L,
+        Constants.MEDIUM_MEM, Constants.MEDIUM_MEM, blockId, 20L);
 
     // Send a heartbeat from other workers saying that it's added blockId.
     for (int i = 1; i < numLocations; i++) {
@@ -227,8 +258,9 @@ public final class ReplicationCheckerTest {
     long workerId = mBlockMaster.getWorkerId(address);
     if (!mKnownWorkers.contains(workerId)) {
       // Do not re-register works, otherwise added block will be removed
-      mBlockMaster.workerRegister(workerId, ImmutableList.of("MEM"), ImmutableMap.of("MEM", 100L),
-          ImmutableMap.of("MEM", 0L), NO_BLOCKS_ON_LOCATION, NO_LOST_STORAGE,
+      mBlockMaster.workerRegister(workerId, ImmutableList.of(Constants.MEDIUM_MEM),
+          ImmutableMap.of(Constants.MEDIUM_MEM, 100L),
+          ImmutableMap.of(Constants.MEDIUM_MEM, 0L), NO_BLOCKS_ON_LOCATION, NO_LOST_STORAGE,
           RegisterWorkerPOptions.getDefaultInstance());
       mKnownWorkers.add(workerId);
     }
@@ -244,9 +276,11 @@ public final class ReplicationCheckerTest {
   private void heartbeatToAddLocationHelper(long blockId, long workerId) throws Exception {
     List<Long> addedBlocks = ImmutableList.of(blockId);
     Block.BlockLocation blockLocation =
-        Block.BlockLocation.newBuilder().setTier("MEM").setMediumType("MEM").build();
+        Block.BlockLocation.newBuilder().setWorkerId(workerId)
+            .setTier(Constants.MEDIUM_MEM).setMediumType(Constants.MEDIUM_MEM).build();
 
-    mBlockMaster.workerHeartbeat(workerId, null, ImmutableMap.of("MEM", 0L), NO_BLOCKS,
+    mBlockMaster.workerHeartbeat(workerId, null,
+        ImmutableMap.of(Constants.MEDIUM_MEM, 0L), NO_BLOCKS,
         ImmutableMap.of(blockLocation, addedBlocks), NO_LOST_STORAGE, NO_METRICS);
   }
 
@@ -295,11 +329,12 @@ public final class ReplicationCheckerTest {
   @Test
   public void heartbeatFileNeedsMove() throws Exception {
     mFileContext.getOptions().setReplicationMin(1);
-    long blockId = createBlockHelper(TEST_FILE_1, mFileContext, "SSD");
+    long blockId = createBlockHelper(TEST_FILE_1, mFileContext, Constants.MEDIUM_SSD);
     addBlockLocationHelper(blockId, 1);
 
     mReplicationChecker.heartbeat();
-    Map<Long, Pair<String, String>> expected = ImmutableMap.of(blockId, new Pair<>("host0", "SSD"));
+    Map<Long, Pair<String, String>> expected =
+        ImmutableMap.of(blockId, new Pair<>("host0", Constants.MEDIUM_SSD));
     Assert.assertEquals(EMPTY, mMockReplicationHandler.getEvictRequests());
     Assert.assertEquals(EMPTY, mMockReplicationHandler.getReplicateRequests());
     Assert.assertEquals(expected, mMockReplicationHandler.getMigrateRequests());
@@ -308,7 +343,7 @@ public final class ReplicationCheckerTest {
   @Test
   public void heartbeatFileDoesnotNeedMove() throws Exception {
     mFileContext.getOptions().setReplicationMin(1);
-    long blockId = createBlockHelper(TEST_FILE_1, mFileContext, "MEM");
+    long blockId = createBlockHelper(TEST_FILE_1, mFileContext, Constants.MEDIUM_MEM);
     addBlockLocationHelper(blockId, 1);
 
     mReplicationChecker.heartbeat();
@@ -349,13 +384,16 @@ public final class ReplicationCheckerTest {
     // Create a worker.
     long workerId = mBlockMaster.getWorkerId(new WorkerNetAddress().setHost("localhost")
         .setRpcPort(80).setDataPort(81).setWebPort(82));
-    mBlockMaster.workerRegister(workerId, Collections.singletonList("MEM"),
-        ImmutableMap.of("MEM", 100L), ImmutableMap.of("MEM", 0L), NO_BLOCKS_ON_LOCATION,
+    mBlockMaster.workerRegister(workerId, Collections.singletonList(Constants.MEDIUM_MEM),
+        ImmutableMap.of(Constants.MEDIUM_MEM, 100L),
+        ImmutableMap.of(Constants.MEDIUM_MEM, 0L), NO_BLOCKS_ON_LOCATION,
         NO_LOST_STORAGE, RegisterWorkerPOptions.getDefaultInstance());
-    mBlockMaster.commitBlock(workerId, 50L, "MEM", "MEM", blockId, 20L);
+    mBlockMaster.commitBlock(workerId, 50L,
+        Constants.MEDIUM_MEM, Constants.MEDIUM_MEM, blockId, 20L);
 
     // Indicate that blockId is removed on the worker.
-    mBlockMaster.workerHeartbeat(workerId, null, ImmutableMap.of("MEM", 0L),
+    mBlockMaster.workerHeartbeat(workerId, null,
+        ImmutableMap.of(Constants.MEDIUM_MEM, 0L),
         ImmutableList.of(blockId), NO_BLOCKS_ON_LOCATION, NO_LOST_STORAGE, NO_METRICS);
 
     mReplicationChecker.heartbeat();
@@ -417,5 +455,47 @@ public final class ReplicationCheckerTest {
 
     Assert.assertEquals(expected2, mMockReplicationHandler.getEvictRequests());
     Assert.assertEquals(expected1, mMockReplicationHandler.getReplicateRequests());
+  }
+
+  @Test
+  public void heartbeatPartial() throws Exception {
+    ServerConfiguration.set(PropertyKey.JOB_MASTER_JOB_CAPACITY, 20);
+    mReplicationChecker = new ReplicationChecker(mInodeTree, mBlockMaster,
+        mContext.getSafeModeManager(), mMockReplicationHandler);
+    mFileContext.getOptions().setReplicationMin(3).setReplicationMax(-1);
+    long blockId1 = createBlockHelper(TEST_FILE_1, mFileContext, "");
+    long blockId2 = createBlockHelper(TEST_FILE_2, mFileContext, "");
+    long blockId3 = createBlockHelper(TEST_FILE_3, mFileContext, "");
+    addBlockLocationHelper(blockId1, 1);
+    addBlockLocationHelper(blockId2, 1);
+    addBlockLocationHelper(blockId3, 1);
+
+    mReplicationChecker.heartbeat();
+    final Map<Long, Integer> replicateRequests = mMockReplicationHandler.getReplicateRequests();
+    Assert.assertEquals(2, replicateRequests.size());
+    Assert.assertEquals(2, replicateRequests.values().toArray()[0]);
+    Assert.assertEquals(2, replicateRequests.values().toArray()[1]);
+    replicateRequests.clear();
+
+    mMockReplicationHandler.setJobStatus(1, Status.RUNNING);
+    mMockReplicationHandler.setJobStatus(2, Status.RUNNING);
+    mReplicationChecker.heartbeat();
+    Assert.assertEquals(0, replicateRequests.size());
+
+    mMockReplicationHandler.setJobStatus(1, Status.FAILED);
+    mReplicationChecker.heartbeat();
+    Assert.assertEquals(1, replicateRequests.size());
+    Assert.assertEquals(2, replicateRequests.values().toArray()[0]);
+
+    replicateRequests.clear();
+    addBlockLocationHelper(blockId1, 3);
+    addBlockLocationHelper(blockId2, 3);
+    mMockReplicationHandler.setJobStatus(2, Status.COMPLETED);
+    mMockReplicationHandler.setJobStatus(3, Status.COMPLETED);
+
+    mReplicationChecker.heartbeat();
+    Assert.assertEquals(1, replicateRequests.size());
+    Assert.assertTrue(replicateRequests.containsKey(blockId3));
+    Assert.assertEquals(2, replicateRequests.values().toArray()[0]);
   }
 }

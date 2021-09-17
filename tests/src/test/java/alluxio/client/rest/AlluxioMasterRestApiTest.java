@@ -15,6 +15,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import alluxio.AlluxioURI;
+import alluxio.Constants;
 import alluxio.RuntimeConstants;
 import alluxio.client.file.FileSystemTestUtils;
 import alluxio.conf.PropertyKey;
@@ -194,7 +195,7 @@ public final class AlluxioMasterRestApiTest extends RestApiTest {
   @Test
   public void getTierCapacity() throws Exception {
     long total = ServerConfiguration.getBytes(PropertyKey.WORKER_RAMDISK_SIZE);
-    Capacity capacity = getInfo(NO_PARAMS).getTierCapacity().get("MEM");
+    Capacity capacity = getInfo(NO_PARAMS).getTierCapacity().get(Constants.MEDIUM_MEM);
     assertEquals(total, capacity.getTotal());
     assertEquals(0, capacity.getUsed());
   }

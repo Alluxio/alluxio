@@ -22,11 +22,14 @@ import alluxio.util.CommonUtils;
 import alluxio.util.ConfigurationUtils;
 import alluxio.util.network.NetworkAddressUtils;
 
+import com.codahale.metrics.CachedGauge;
 import com.codahale.metrics.Counter;
 import com.codahale.metrics.Gauge;
 import com.codahale.metrics.Meter;
 import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.Timer;
+import com.codahale.metrics.jvm.CachedThreadStatesGaugeSet;
+import com.codahale.metrics.jvm.ClassLoadingGaugeSet;
 import com.codahale.metrics.jvm.GarbageCollectorMetricSet;
 import com.codahale.metrics.jvm.JvmAttributeGaugeSet;
 import com.codahale.metrics.jvm.MemoryUsageGaugeSet;
@@ -97,7 +100,8 @@ public final class MetricsSystem {
     WORKER("Worker"),
     CLUSTER("Cluster"),
     CLIENT("Client"),
-    PROXY("Proxy");
+    PROXY("Proxy"),
+    FUSE("Fuse");
 
     private String mValue;
 
@@ -141,6 +145,10 @@ public final class MetricsSystem {
     METRIC_REGISTRY.registerAll(new JvmAttributeGaugeSet());
     METRIC_REGISTRY.registerAll(new GarbageCollectorMetricSet());
     METRIC_REGISTRY.registerAll(new MemoryUsageGaugeSet());
+    METRIC_REGISTRY.registerAll(new ClassLoadingGaugeSet());
+    METRIC_REGISTRY.registerAll(new CachedThreadStatesGaugeSet(5, TimeUnit.SECONDS));
+    METRIC_REGISTRY.registerAll(new LogStateCounterSet());
+    METRIC_REGISTRY.registerAll(new OperationSystemGaugeSet());
   }
 
   @GuardedBy("MetricsSystem")
@@ -498,7 +506,8 @@ public final class MetricsSystem {
 
   /**
    * Get or add meter with the given name.
-   * The returned meter may be changed due to {@link #resetAllMetrics}
+   * Please don't save the Meter instance since
+   * the returned Meter instance may not be used due to {@link #resetAllMetrics}
    *
    * @param name the name of the metric
    * @return a meter object with the qualified metric name
@@ -530,7 +539,8 @@ public final class MetricsSystem {
 
   /**
    * Get or add timer with the given name.
-   * The returned timer may be changed due to {@link #resetAllMetrics}
+   * Please don't save the Timer instance since
+   * the returned Timer instance may not be used due to {@link #resetAllMetrics}
    *
    * @param name the name of the metric
    * @return a timer object with the qualified metric name
@@ -549,6 +559,24 @@ public final class MetricsSystem {
   public static synchronized <T> void registerGaugeIfAbsent(String name, Gauge<T> metric) {
     if (!METRIC_REGISTRY.getMetrics().containsKey(name)) {
       METRIC_REGISTRY.register(name, metric);
+    }
+  }
+
+  /**
+   * Registers a cached gauge if it has not been registered.
+   *
+   * @param name the gauge name
+   * @param metric the gauge
+   * @param <T> the type
+   */
+  public static synchronized <T> void registerCachedGaugeIfAbsent(String name, Gauge<T> metric) {
+    if (!METRIC_REGISTRY.getMetrics().containsKey(name)) {
+      METRIC_REGISTRY.register(name, new CachedGauge<T>(10, TimeUnit.MINUTES) {
+        @Override
+        protected T loadValue() {
+          return metric.getValue();
+        }
+      });
     }
   }
 
@@ -811,6 +839,34 @@ public final class MetricsSystem {
     }
     for (String gauge : METRIC_REGISTRY.getGauges().keySet()) {
       METRIC_REGISTRY.remove(gauge);
+    }
+  }
+
+  /**
+   * A timer context with multiple timers.
+   */
+  public static class MultiTimerContext implements AutoCloseable {
+    private final Timer[] mTimers;
+    private final long mStartTime;
+
+    /**
+     * @param timers timers associated with this context
+     */
+    public MultiTimerContext(Timer... timers) {
+      mTimers = timers;
+      mStartTime = System.nanoTime();
+    }
+
+    /**
+     * Updates the timer with the difference between current and start time. Call to this method
+     * will not reset the start time. Multiple calls result in multiple updates.
+     */
+    @Override
+    public void close() {
+      final long elapsed = System.nanoTime() - mStartTime;
+      for (Timer timer : mTimers) {
+        timer.update(elapsed, TimeUnit.NANOSECONDS);
+      }
     }
   }
 

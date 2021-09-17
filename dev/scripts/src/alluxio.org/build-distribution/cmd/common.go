@@ -63,6 +63,27 @@ var ufsModules = map[string]module{
 	"ufs-hadoop-3.3": {"hadoop-3.3", false, "-pl underfs/hdfs -Pufs-hadoop-3 -Dufs.hadoop.version=3.3.0 -PhdfsActiveSync"},
 }
 
+var libJars = map[string]struct{}{
+	"integration-tools-hms":        {},
+	"integration-tools-validation": {},
+	"table-server-underdb-glue":    {},
+	"table-server-underdb-hive":    {},
+	"underfs-abfs":                 {},
+	"underfs-adl":                  {},
+	"underfs-cephfs":               {},
+	"underfs-cephfs-hadoop":        {},
+	"underfs-cos":                  {},
+	"underfs-cosn":                 {},
+	"underfs-gcs":                  {},
+	"underfs-local":                {},
+	"underfs-oss":                  {},
+	"underfs-ozone":                {},
+	"underfs-s3a":                  {},
+	"underfs-swift":                {},
+	"underfs-wasb":                 {},
+	"underfs-web":                  {},
+}
+
 func validModules(modules map[string]module) []string {
 	result := []string{}
 	for moduleName := range modules {

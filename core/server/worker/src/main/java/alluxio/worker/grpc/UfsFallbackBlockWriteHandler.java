@@ -11,9 +11,6 @@
 
 package alluxio.worker.grpc;
 
-import alluxio.StorageTierAssoc;
-import alluxio.WorkerStorageTierAssoc;
-import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.exception.WorkerOutOfSpaceException;
 import alluxio.exception.status.NotFoundException;
@@ -47,20 +44,16 @@ import javax.annotation.concurrent.NotThreadSafe;
  * This handler handles UFS block write request. Instead of writing a block to tiered storage, this
  * handler writes the block into UFS .
  */
-@edu.umd.cs.findbugs.annotations.SuppressFBWarnings(value = "BC_UNCONFIRMED_CAST_OF_RETURN_VALUE",
+@alluxio.annotation.SuppressFBWarnings(value = "BC_UNCONFIRMED_CAST_OF_RETURN_VALUE",
     justification = "false positive with superclass generics, "
         + "see more description in https://sourceforge.net/p/findbugs/bugs/1242/")
 @NotThreadSafe
 public final class UfsFallbackBlockWriteHandler
     extends AbstractWriteHandler<BlockWriteRequestContext> {
   private static final Logger LOG = LoggerFactory.getLogger(UfsFallbackBlockWriteHandler.class);
-  private static final long FILE_BUFFER_SIZE =
-      ServerConfiguration.getBytes(PropertyKey.WORKER_FILE_BUFFER_SIZE);
 
   /** The Block Worker which handles blocks stored in the Alluxio storage of the worker. */
   private final BlockWorker mWorker;
-  /** An object storing the mapping of tier aliases to ordinals. */
-  private final StorageTierAssoc mStorageTierAssoc = new WorkerStorageTierAssoc();
   private final UfsManager mUfsManager;
   private final BlockWriteHandler mBlockWriteHandler;
   private final boolean mDomainSocketEnabled;
@@ -101,8 +94,7 @@ public final class UfsFallbackBlockWriteHandler
     // if it is already a UFS fallback from short-circuit write, avoid writing to local again
     context.setWritingToLocal(!request.getCreateUfsBlockOptions().getFallback());
     if (context.isWritingToLocal()) {
-      mWorker.createBlockRemote(request.getSessionId(), request.getId(),
-          mStorageTierAssoc.getAlias(request.getTier()),
+      mWorker.createBlock(request.getSessionId(), request.getId(), request.getTier(),
           request.getMediumType(), FILE_BUFFER_SIZE);
     }
     return context;
@@ -278,7 +270,7 @@ public final class UfsFallbackBlockWriteHandler
 
     long sessionId = context.getRequest().getSessionId();
     long blockId = context.getRequest().getId();
-    TempBlockMeta block = mWorker.getBlockStore().getTempBlockMeta(sessionId, blockId);
+    TempBlockMeta block = mWorker.getTempBlockMeta(sessionId, blockId);
     if (block == null) {
       throw new NotFoundException("block " + blockId + " not found");
     }

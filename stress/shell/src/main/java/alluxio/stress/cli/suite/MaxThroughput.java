@@ -73,7 +73,9 @@ public class MaxThroughput extends Suite<MaxThroughputSummary> {
 
     List<String> baseArgs = new ArrayList<>(Arrays.asList(args));
 
-    prepareBeforeAllTests(baseArgs);
+    if (!mParameters.mSkipPrepare) {
+      prepareBeforeAllTests(baseArgs);
+    }
 
     int lower = 0;
     int upper = Integer.MAX_VALUE;
@@ -166,7 +168,7 @@ public class MaxThroughput extends Suite<MaxThroughputSummary> {
    */
   private void createFiles(long numFiles, List<String> args) throws Exception {
     List<String> newArgs = new ArrayList<>(args);
-    updateArgValue(newArgs, "--operation", Operation.CreateFile.toString());
+    updateArgValue(newArgs, "--operation", Operation.CREATE_FILE.toString());
     updateArgValue(newArgs, "--warmup", "0s");
     updateArgValue(newArgs, "--threads", "128");
     updateArgValue(newArgs, "--stop-count", Long.toString(numFiles));
@@ -186,17 +188,17 @@ public class MaxThroughput extends Suite<MaxThroughputSummary> {
 
   private void prepareBeforeAllTests(List<String> args) throws Exception {
     switch (mParameters.mOperation) {
-      case GetBlockLocations: // initial state requires createFile
-      case GetFileStatus:     // initial state requires createFile
-      case ListDir:           // initial state requires createFile
-      case ListDirLocated:    // initial state requires createFile
-      case OpenFile:          // initial state requires createFile
+      case GET_BLOCK_LOCATIONS: // initial state requires createFile
+      case GET_FILE_STATUS:     // initial state requires createFile
+      case LIST_DIR:           // initial state requires createFile
+      case LIST_DIR_LOCATED:    // initial state requires createFile
+      case OPEN_FILE:          // initial state requires createFile
         createFiles(mParameters.mFixedCount, args);
         break;
-      case CreateFile: // do nothing, since creates do not need initial state
-      case CreateDir:  // do nothing, since creates do not need initial state
-      case RenameFile: // do nothing, since creates will happen before each test run
-      case DeleteFile: // do nothing, since creates will happen before each test run
+      case CREATE_FILE: // do nothing, since creates do not need initial state
+      case CREATE_DIR:  // do nothing, since creates do not need initial state
+      case RENAME_FILE: // do nothing, since creates will happen before each test run
+      case DELETE_FILE: // do nothing, since creates will happen before each test run
       default:
         break;
     }
@@ -209,19 +211,19 @@ public class MaxThroughput extends Suite<MaxThroughputSummary> {
    */
   private void prepareBeforeSingleTest(long requiredCount, List<String> args) throws Exception {
     switch (mParameters.mOperation) {
-      case RenameFile: // prepare files
-      case DeleteFile: // prepare files
+      case RENAME_FILE: // prepare files
+      case DELETE_FILE: // prepare files
         // create an extra buffer of created files
         float perWorkerCount = (float) requiredCount / mNumWorkers * 1.5f;
         createFiles(Math.max((long) perWorkerCount, mParameters.mFixedCount), args);
         break;
-      case CreateFile:        // do nothing
-      case GetBlockLocations: // do nothing
-      case GetFileStatus:     // do nothing
-      case ListDir:           // do nothing
-      case ListDirLocated:    // do nothing
-      case OpenFile:          // do nothing
-      case CreateDir:         // do nothing
+      case CREATE_FILE:        // do nothing
+      case GET_BLOCK_LOCATIONS: // do nothing
+      case GET_FILE_STATUS:     // do nothing
+      case LIST_DIR:           // do nothing
+      case LIST_DIR_LOCATED:    // do nothing
+      case OPEN_FILE:          // do nothing
+      case CREATE_DIR:         // do nothing
       default:
         break;
     }

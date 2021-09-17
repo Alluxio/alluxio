@@ -13,6 +13,7 @@ package alluxio.proxy.s3;
 
 import alluxio.client.file.URIStatus;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
@@ -31,6 +32,7 @@ import java.util.stream.Collectors;
  * It will be encoded into an XML string to be returned as a response for the REST call.
  */
 @JacksonXmlRootElement(localName = "ListBucketResult")
+@JsonInclude(JsonInclude.Include.NON_EMPTY)
 public class ListBucketResult {
   private static final Logger LOG = LoggerFactory.getLogger(ListBucketResult.class);
 
@@ -63,6 +65,12 @@ public class ListBucketResult {
   // List of common prefixes (aka. folders)
   private CommonPrefixes mCommonPrefixes;
 
+  // delimiter used to process keys
+  private String mDelimiter;
+
+  // encoding type of params. Usually "url"
+  private String mEncodingType;
+
   /**
    * Creates an {@link ListBucketResult}.
    */
@@ -81,25 +89,20 @@ public class ListBucketResult {
     mPrefix = options.getPrefix();
     mMarker = options.getMarker();
     mMaxKeys = options.getMaxKeys();
+    mDelimiter = options.getDelimiter();
+    mEncodingType = options.getEncodingType();
 
-    Collections.sort(children, new URIStatusComparator());
+    children.sort(new URIStatusComparator());
 
     final List<URIStatus> keys = children.stream()
         .filter((status) -> status.getPath().compareTo(mMarker) > 0)
         .limit(mMaxKeys)
         .collect(Collectors.toList());
 
-    mKeyCount = keys.size();
-    mIsTruncated = mKeyCount == mMaxKeys;
-
-    if (mIsTruncated) {
-      mNextMarker = keys.get(keys.size() - 1).getPath();
-    }
-
     final Map<Boolean, List<URIStatus>> typeToStatus = keys.stream()
-        .collect(Collectors.groupingBy((status) -> status.isFolder()));
-    final List<URIStatus> objectsList = typeToStatus.getOrDefault(false, Collections.EMPTY_LIST);
-    final List<URIStatus> prefixList = typeToStatus.getOrDefault(true, Collections.EMPTY_LIST);
+        .collect(Collectors.groupingBy(URIStatus::isFolder));
+    final List<URIStatus> objectsList = typeToStatus.getOrDefault(false, Collections.emptyList());
+    final List<URIStatus> prefixList = typeToStatus.getOrDefault(true, Collections.emptyList());
 
     mContents = new ArrayList<>();
     for (URIStatus status : objectsList) {
@@ -113,10 +116,21 @@ public class ListBucketResult {
     final ArrayList<String> commonPrefixes = new ArrayList<>();
     for (URIStatus status : prefixList) {
       final String path = status.getPath();
-      commonPrefixes.add(path.substring(mName.length() + 2)); // remove both ends of "/" character
+      // remove both ends of "/" character
+      commonPrefixes.add(path.substring(mName.length() + 2) + mDelimiter);
     }
 
-    mCommonPrefixes = new CommonPrefixes(commonPrefixes);
+    mKeyCount = mContents.size() + commonPrefixes.size();
+    mIsTruncated = mKeyCount == mMaxKeys;
+    if (mIsTruncated) {
+      mNextMarker = keys.get(keys.size() - 1).getPath();
+    }
+
+    if (!commonPrefixes.isEmpty())  {
+      mCommonPrefixes = new CommonPrefixes(commonPrefixes);
+    } else {
+      mCommonPrefixes = null;
+    }
   }
 
   /**
@@ -136,6 +150,14 @@ public class ListBucketResult {
   }
 
   /**
+   * @return the number of keys included in the response
+   */
+  @JacksonXmlProperty(localName = "MaxKeys")
+  public int getMaxKeys() {
+    return mMaxKeys;
+  }
+
+  /**
    * @return false if all results are returned, otherwise true
    */
   @JacksonXmlProperty(localName = "IsTruncated")
@@ -149,6 +171,22 @@ public class ListBucketResult {
   @JacksonXmlProperty(localName = "Prefix")
   public String getPrefix() {
     return mPrefix;
+  }
+
+  /**
+   * @return the delimiter
+   */
+  @JacksonXmlProperty(localName = "Delimiter")
+  public String getDelimiter() {
+    return mDelimiter;
+  }
+
+  /**
+   * @return the encoding type of the result
+   */
+  @JacksonXmlProperty(localName = "EncodingType")
+  public String getEncodingType() {
+    return mEncodingType;
   }
 
   /**

@@ -97,12 +97,12 @@ public final class BlockLockManagerTest {
     // Read-lock on the same block should get through
     long lockId2 = mLockManager.tryLockBlock(TEST_SESSION_ID2, TEST_BLOCK_ID, BlockLockType.READ,
         1, TimeUnit.SECONDS);
-    assertNotEquals(BlockLockManager.INVALID_LOCK_ID, lockId2);
+    assertNotEquals(BlockWorker.INVALID_LOCK_ID, lockId2);
     mLockManager.unlockBlock(lockId2);
     // Write-lock should fail
     long lockId3 = mLockManager.tryLockBlock(TEST_SESSION_ID2, TEST_BLOCK_ID, BlockLockType.WRITE,
         1, TimeUnit.SECONDS);
-    assertEquals(BlockLockManager.INVALID_LOCK_ID, lockId3);
+    assertEquals(BlockWorker.INVALID_LOCK_ID, lockId3);
     mLockManager.unlockBlock(lockId1);
   }
 
@@ -113,11 +113,11 @@ public final class BlockLockManagerTest {
     // Read-lock should fail
     long lockId2 = mLockManager.tryLockBlock(TEST_SESSION_ID2, TEST_BLOCK_ID, BlockLockType.READ,
         1, TimeUnit.SECONDS);
-    assertEquals(BlockLockManager.INVALID_LOCK_ID, lockId2);
+    assertEquals(BlockWorker.INVALID_LOCK_ID, lockId2);
     // Write-lock should fail
     long lockId3 = mLockManager.tryLockBlock(TEST_SESSION_ID2, TEST_BLOCK_ID, BlockLockType.WRITE,
         1, TimeUnit.SECONDS);
-    assertEquals(BlockLockManager.INVALID_LOCK_ID, lockId3);
+    assertEquals(BlockWorker.INVALID_LOCK_ID, lockId3);
     mLockManager.unlockBlock(lockId1);
   }
 

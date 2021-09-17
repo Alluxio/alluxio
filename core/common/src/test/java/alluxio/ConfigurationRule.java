@@ -27,6 +27,7 @@ public final class ConfigurationRule extends AbstractResourceRule {
 
   /**
    * @param keyValuePairs map from configuration keys to the values to set them to
+   * @param conf base configuration
    */
   public ConfigurationRule(Map<PropertyKey, String> keyValuePairs, InstancedConfiguration conf) {
     mKeyValuePairs = keyValuePairs;
@@ -36,6 +37,7 @@ public final class ConfigurationRule extends AbstractResourceRule {
   /**
    * @param key the key of the configuration property to set
    * @param value the value to set it to, can be null to unset this key
+   * @param conf base configuration
    */
   public ConfigurationRule(final PropertyKey key, final String value, InstancedConfiguration conf) {
     // ImmutableMap does not support nullable value, create a map literals

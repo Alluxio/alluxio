@@ -52,7 +52,7 @@ public enum WriteType {
   ASYNC_THROUGH(5),
   /**
    * Do not store the data in Alluxio or Under Storage. This write type should only be used for
-   * testing.
+   * development testing.
    */
   NONE(6),
   ;

@@ -39,6 +39,7 @@ spec:
       role: alluxio-master
       name: {{ $fullName }}-master
   serviceName: {{ $fullName }}-master
+  podManagementPolicy: Parallel
   replicas: {{ $masterCount }}
   template:
     metadata:
@@ -59,6 +60,9 @@ spec:
       {{- end }}
     {{- end }}
     spec:
+      {{ if .Values.hostAliases }}
+      {{- include "alluxio.hostAliases" . | nindent 6 }}
+      {{ end }}
       hostNetwork: {{ $hostNetwork }}
       dnsPolicy: {{ .Values.master.dnsPolicy | default ($hostNetwork | ternary "ClusterFirstWithHostNet" "ClusterFirst") }}
       nodeSelector:
@@ -67,15 +71,27 @@ spec:
       {{- else if .Values.nodeSelector }}
 {{ toYaml .Values.nodeSelector | trim | indent 8  }}
       {{- end }}
+      tolerations:
+      {{- if .Values.master.tolerations }}
+{{ toYaml .Values.master.tolerations | trim | indent 8  }}
+      {{- end }}
+      {{- if .Values.tolerations }}
+{{ toYaml .Values.tolerations | trim | indent 8  }}
+      {{- end }}
       securityContext:
+        runAsUser: {{ .Values.user }}
+        runAsGroup: {{ .Values.group }}
         fsGroup: {{ .Values.fsGroup }}
+    {{- if .Values.master.serviceAccount }}
+      serviceAccountName: {{ .Values.master.serviceAccount }}
+    {{- else if .Values.serviceAccount }}
+      serviceAccountName: {{ .Values.serviceAccount }}
+    {{- end }}
       initContainers:
       {{- if .Values.journal.format.runFormat}}
       - name: journal-format
         image: {{ .Values.image }}:{{ .Values.imageTag }}
         imagePullPolicy: {{ .Values.imagePullPolicy }}
-        securityContext:
-          runAsUser: {{ .Values.user }}
         command: ["alluxio","formatJournal"]
         volumeMounts:
           - name: alluxio-journal
@@ -85,9 +101,6 @@ spec:
         - name: alluxio-master
           image: {{ .Values.image }}:{{ .Values.imageTag }}
           imagePullPolicy: {{ .Values.imagePullPolicy }}
-          securityContext:
-            runAsUser: {{ .Values.user }}
-            runAsGroup: {{ .Values.group }}
           {{- if .Values.master.resources  }}
 {{ include "alluxio.master.resources" . | indent 10 }}
           {{- end }}
@@ -110,15 +123,27 @@ spec:
                 fieldPath: status.podIP
           {{- end }}
           {{- range $key, $value := .Values.master.env }}
-            - name: "{{ $key }}"
-              value: "{{ $value }}"
+          - name: "{{ $key }}"
+            value: "{{ $value }}"
           {{- end }}
           envFrom:
           - configMapRef:
               name: {{ $fullName }}-config
 {{- $probePort := $isHaEmbedded | ternary "embedded" "rpc" }}
-{{ include "alluxio.master.readinessProbe" (dict "port" $probePort) | indent 10 }}
-{{ include "alluxio.master.livenessProbe" (dict "port" $probePort) | indent 10 }}
+          readinessProbe:
+            tcpSocket:
+              port: {{ $probePort }}
+            initialDelaySeconds: {{ .Values.master.readinessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.master.readinessProbe.periodSeconds }}
+            timeoutSeconds: {{ .Values.master.readinessProbe.timeoutSeconds }}
+            failureThreshold: {{ .Values.master.readinessProbe.failureThreshold }}
+          livenessProbe:
+            tcpSocket:
+              port: {{ $probePort }}
+            initialDelaySeconds: {{ .Values.master.livenessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.master.livenessProbe.periodSeconds }}
+            timeoutSeconds: {{ .Values.master.livenessProbe.timeoutSeconds }}
+            failureThreshold: {{ .Values.master.livenessProbe.failureThreshold }}
           ports:
           - containerPort: {{ .Values.master.ports.rpc }}
             name: rpc
@@ -155,9 +180,6 @@ spec:
         - name: alluxio-job-master
           image: {{ .Values.image }}:{{ .Values.imageTag }}
           imagePullPolicy: {{ .Values.imagePullPolicy }}
-          securityContext:
-            runAsUser: {{ .Values.user }}
-            runAsGroup: {{ .Values.group }}
           {{- if .Values.jobMaster.resources  }}
 {{ include "alluxio.jobMaster.resources" . | indent 10 }}
           {{- end }}
@@ -187,8 +209,20 @@ spec:
           - configMapRef:
               name: {{ $fullName }}-config
 {{- $probePort := $isHaEmbedded | ternary "job-embedded" "job-rpc" }}
-{{ include "alluxio.master.readinessProbe" (dict "port" $probePort) | indent 10 }}
-{{ include "alluxio.master.livenessProbe" (dict "port" $probePort) | indent 10 }}
+          readinessProbe:
+            tcpSocket:
+              port: {{ $probePort }}
+            initialDelaySeconds: {{ .Values.jobMaster.readinessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.jobMaster.readinessProbe.periodSeconds }}
+            timeoutSeconds: {{ .Values.jobMaster.readinessProbe.timeoutSeconds }}
+            failureThreshold: {{ .Values.jobMaster.readinessProbe.failureThreshold }}
+          livenessProbe:
+            tcpSocket:
+              port: {{ $probePort }}
+            initialDelaySeconds: {{ .Values.jobMaster.livenessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.jobMaster.livenessProbe.periodSeconds }}
+            timeoutSeconds: {{ .Values.jobMaster.livenessProbe.timeoutSeconds }}
+            failureThreshold: {{ .Values.jobMaster.livenessProbe.failureThreshold }}
           ports:
           - containerPort: {{ .Values.jobMaster.ports.rpc }}
             name: job-rpc

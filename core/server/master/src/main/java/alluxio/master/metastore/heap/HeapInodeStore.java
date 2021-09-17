@@ -14,19 +14,27 @@ package alluxio.master.metastore.heap;
 import static java.util.stream.Collectors.toList;
 
 import alluxio.collections.TwoKeyConcurrentMap;
+import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
 import alluxio.master.file.meta.EdgeEntry;
 import alluxio.master.file.meta.Inode;
 import alluxio.master.file.meta.InodeDirectoryView;
 import alluxio.master.file.meta.MutableInode;
+import alluxio.master.file.meta.MutableInodeDirectory;
+import alluxio.master.file.meta.MutableInodeFile;
 import alluxio.master.journal.checkpoint.CheckpointInputStream;
 import alluxio.master.journal.checkpoint.CheckpointName;
 import alluxio.master.journal.checkpoint.CheckpointOutputStream;
 import alluxio.master.journal.checkpoint.CheckpointType;
 import alluxio.master.metastore.InodeStore;
 import alluxio.master.metastore.ReadOption;
+import alluxio.metrics.MetricKey;
+import alluxio.metrics.MetricsSystem;
 import alluxio.proto.meta.InodeMeta;
+import alluxio.util.ObjectSizeCalculator;
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableSet;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -48,6 +56,18 @@ public class HeapInodeStore implements InodeStore {
   // Map from inode id to ids of children of that inode. The inner maps are ordered by child name.
   private final TwoKeyConcurrentMap<Long, String, Long, Map<String, Long>> mEdges =
       new TwoKeyConcurrentMap<>(() -> new ConcurrentHashMap<>(4));
+
+  /**
+   * Construct a heap inode store.
+   */
+  public HeapInodeStore() {
+    super();
+    if (ServerConfiguration.getBoolean(PropertyKey.MASTER_METRICS_HEAP_ENABLED)) {
+      MetricsSystem.registerCachedGaugeIfAbsent(MetricKey.MASTER_INODE_HEAP_SIZE.getName(),
+          () -> ObjectSizeCalculator.getObjectSize(mInodes,
+          ImmutableSet.of(Long.class, MutableInodeFile.class, MutableInodeDirectory.class)));
+    }
+  }
 
   @Override
   public void remove(Long inodeId) {

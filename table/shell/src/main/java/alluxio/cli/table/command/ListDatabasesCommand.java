@@ -12,6 +12,7 @@
 package alluxio.cli.table.command;
 
 import alluxio.cli.CommandUtils;
+import alluxio.client.file.FileSystemContext;
 import alluxio.client.table.TableMasterClient;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.exception.AlluxioException;
@@ -41,9 +42,11 @@ public class ListDatabasesCommand extends AbstractTableCommand {
    *
    * @param conf alluxio configuration
    * @param client the table master client
+   * @param fsContext the filesystem of Alluxio
    */
-  public ListDatabasesCommand(AlluxioConfiguration conf, TableMasterClient client) {
-    super(conf, client);
+  public ListDatabasesCommand(AlluxioConfiguration conf, TableMasterClient client,
+      FileSystemContext fsContext) {
+    super(conf, client, fsContext);
   }
 
   @Override

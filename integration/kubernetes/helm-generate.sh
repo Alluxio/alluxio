@@ -13,7 +13,7 @@
 readonly RELEASE_NAME='alluxio'
 
 function printUsage {
-  echo "Usage: MODE [UFS]"
+  echo "Usage: MODE [UFS] [OPTS]"
   echo
   echo "MODE is one of:"
   echo -e " single-ufs        \t Generate Alluxio YAML templates for a single-master environment using UFS journal."
@@ -22,7 +22,10 @@ function printUsage {
   echo
   echo "UFS is only for single-ufs mode. It should be one of:"
   echo -e " local             \t Use a local destination for UFS journal."
-  echo -e " hdfs              \t Use HDFS for UFS journal"
+  echo -e " hdfs              \t Use HDFS for UFS journal."
+  echo
+  echo "OPTS are the options for generating desired YAML template. Currently the options are:"
+  echo -e " --worker-fuse     \t Launch FUSE application in the worker process inside worker container."
 }
 
 function generateTemplates {
@@ -36,6 +39,9 @@ function generateTemplates {
   fi
   if [[ ! -d "${dir}/logserver" ]]; then
     mkdir -p ${dir}/logserver
+  fi
+  if [[ ! -d "${dir}/csi" ]]; then
+    mkdir -p ${dir}/csi
   fi
 
   config=./$dir/config.yaml
@@ -57,11 +63,16 @@ EOF
   generateWorkerTemplates
   generateFuseTemplates
   generateLoggingTemplates
+  generateCsiTemplates
 }
 
 function generateConfigTemplates {
   echo "Generating configmap templates into $dir"
-  helm template --name-template ${RELEASE_NAME} helm-chart/alluxio/ --show-only templates/config/alluxio-conf.yaml -f $dir/config.yaml > "$dir/alluxio-configmap.yaml.template"
+  if [ "$workerFuse" = true ]; then
+    helm template --name-template ${RELEASE_NAME} helm-chart/alluxio/ --set worker.fuseEnabled=true --show-only templates/config/alluxio-conf.yaml -f $dir/config.yaml > "$dir/alluxio-configmap.yaml.template"
+  else
+    helm template --name-template ${RELEASE_NAME} helm-chart/alluxio/ --show-only templates/config/alluxio-conf.yaml -f $dir/config.yaml > "$dir/alluxio-configmap.yaml.template"
+  fi
 }
 
 function generateMasterTemplates {
@@ -72,7 +83,11 @@ function generateMasterTemplates {
 
 function generateWorkerTemplates {
   echo "Generating worker templates into $dir"
-  helm template --name-template ${RELEASE_NAME} helm-chart/alluxio/ --show-only templates/worker/daemonset.yaml -f $dir/config.yaml > "$dir/worker/alluxio-worker-daemonset.yaml.template"
+  if [ "$workerFuse" = true ]; then
+    helm template --name-template ${RELEASE_NAME} helm-chart/alluxio/ --set worker.fuseEnabled=true --show-only templates/worker/daemonset.yaml -f $dir/config.yaml > "$dir/worker/alluxio-worker-daemonset.yaml.template"
+  else
+    helm template --name-template ${RELEASE_NAME} helm-chart/alluxio/ --show-only templates/worker/daemonset.yaml -f $dir/config.yaml > "$dir/worker/alluxio-worker-daemonset.yaml.template"
+  fi
   helm template --name-template ${RELEASE_NAME} helm-chart/alluxio/ --show-only templates/worker/domain-socket-pvc.yaml -f $dir/config.yaml > "$dir/worker/alluxio-worker-pvc.yaml.template"
 }
 
@@ -91,6 +106,19 @@ function generateLoggingTemplates {
 
 function generateMasterServiceTemplates {
   helm template --name-template ${RELEASE_NAME} helm-chart/alluxio/ --show-only templates/master/service.yaml -f $dir/config.yaml > "$dir/alluxio-master-service.yaml.template"
+}
+
+function generateCsiTemplates {
+  echo "Generating csi templates"
+  helm template --name-template ${RELEASE_NAME} helm-chart/alluxio/ --set csi.enabled=true --show-only templates/csi/controller-rbac.yaml -f $dir/config.yaml > "$dir/csi/alluxio-csi-controller-rbac.yaml.template"
+  helm template --name-template ${RELEASE_NAME} helm-chart/alluxio/ --set csi.enabled=true --show-only templates/csi/controller.yaml -f $dir/config.yaml > "$dir/csi/alluxio-csi-controller.yaml.template"
+  helm template --name-template ${RELEASE_NAME} helm-chart/alluxio/ --set csi.enabled=true --show-only templates/csi/driver.yaml -f $dir/config.yaml > "$dir/csi/alluxio-csi-driver.yaml.template"
+  helm template --name-template ${RELEASE_NAME} helm-chart/alluxio/ --set csi.enabled=true --show-only templates/csi/nodeplugin.yaml -f $dir/config.yaml > "$dir/csi/alluxio-csi-nodeplugin.yaml.template"
+  helm template --name-template ${RELEASE_NAME} helm-chart/alluxio/ --set csi.clientEnabled=true --show-only templates/csi/storage-class.yaml -f $dir/config.yaml > "$dir/csi/alluxio-storage-class.yaml.template"
+  helm template --name-template ${RELEASE_NAME} helm-chart/alluxio/ --set csi.clientEnabled=true --show-only templates/csi/pvc.yaml -f $dir/config.yaml > "$dir/csi/alluxio-pvc.yaml.template"
+  helm template --name-template ${RELEASE_NAME} helm-chart/alluxio/ --set csi.clientEnabled=true --show-only templates/csi/pvc-static.yaml -f $dir/config.yaml > "$dir/csi/alluxio-pvc-static.yaml.template"
+  helm template --name-template ${RELEASE_NAME} helm-chart/alluxio/ --set csi.clientEnabled=true --show-only templates/csi/pv.yaml -f $dir/config.yaml > "$dir/csi/alluxio-pv.yaml.template"
+  helm template --name-template ${RELEASE_NAME} helm-chart/alluxio/ --set csi.clientEnabled=true --show-only templates/csi/nginx-pod.yaml -f $dir/config.yaml > "$dir/csi/alluxio-nginx-pod.yaml.template"
 }
 
 function generateSingleUfsTemplates {
@@ -169,12 +197,22 @@ function generateAllTemplates {
   generateMultiEmbeddedTemplates
 }
 
+workerFuse=false
 function main {
+  if [ $# -eq 3 ]; then
+    if [ "$3" = "--worker-fuse" ]; then
+      workerFuse=true
+    else
+      echo "Unknown option $3"
+      printUsage
+      exit 1
+    fi
+  fi
   mode=$1
   case $mode in
     "single-ufs")
       echo "Generating templates for $mode"
-      if ! [ $# -eq 2 ]; then
+      if [ $# -lt 2 ]; then
         printUsage
         exit 1
       fi
@@ -196,7 +234,7 @@ function main {
   esac
 }
 
-if [ $# -lt 1 ] || [ $# -gt 2 ]; then
+if [ $# -lt 1 ] || [ $# -gt 3 ]; then
   printUsage
   exit 1
 fi

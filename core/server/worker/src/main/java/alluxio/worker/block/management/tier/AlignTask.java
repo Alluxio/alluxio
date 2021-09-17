@@ -85,8 +85,8 @@ public class AlignTask extends AbstractBlockManagementTask {
 
       // Get list per tier that will be swapped for aligning the intersection.
       Pair<List<Long>, List<Long>> swapLists = mMetadataManager.getBlockIterator().getSwaps(
-          tierUpLoc, BlockOrder.Natural, tierDownLoc, BlockOrder.Reverse, alignRange,
-          BlockOrder.Reverse, (blockId) -> !mEvictorView.isBlockEvictable(blockId));
+          tierUpLoc, BlockOrder.NATURAL, tierDownLoc, BlockOrder.REVERSE, alignRange,
+          BlockOrder.REVERSE, (blockId) -> !mEvictorView.isBlockEvictable(blockId));
 
       Preconditions.checkArgument(swapLists.getFirst().size() == swapLists.getSecond().size());
       LOG.debug("Acquired {} block pairs to align tiers {} - {}", swapLists.getFirst().size(),

@@ -66,8 +66,8 @@ Build the Spark Docker image
 ```console
 $ docker build -t spark-alluxio -f kubernetes/dockerfiles/spark/Dockerfile .
 ```
-> Note: Make sure all your nodes (where the spark-driver and spark-executor pods will run) 
-have this image.
+> Note: **Make sure all your nodes (where the spark-driver and spark-executor pods will run)
+have this image.**
 
 ## Example(s)
 
@@ -81,7 +81,7 @@ worker storage on the host machine directly.
 This improves performance by not communicating with the Alluxio worker using the networking stack.
 
 If domain sockets were not setup when deploying Alluxio as per instructions on
-[this page]({{ '/en/deploy/Running-Alluxio-On-Kubernetes.html' | relativize_url }}#short-circuit-access),
+[this page]({{ '/en/deploy/Running-Alluxio-On-Kubernetes.html' | relativize_url }}#enable-short-circuit-access),
 you can skip mounting the `hostPath` volumes to the Spark executors.
 
 If a domain socket location was setup on hosts running the Alluxio worker process at location
@@ -121,16 +121,11 @@ You can find more about how to mount volumes to Spark executors in Spark
   {% endnavtab %}
 {% endnavtabs %}
 
-Note: 
-- Volume support in Spark was added in version 2.4.0.
-- You may observe a performance hit when not using short-circuit access via a domain socket.
+> Note: 
+> - Volume support in Spark was added in version 2.4.0.
+> - You may observe a performance hit when not using short-circuit access via a domain socket.
 
 ### Run a Spark job
-
-The following command runs an example word count job in the Alluxio location
-`/LICENSE`.
-The output and time taken can be seen in the logs for Spark driver pod. Refer to Spark
-[documentation](https://spark.apache.org/docs/latest/running-on-kubernetes.html) for further instructions.
 
 #### Create the service account (optional)
 
@@ -145,9 +140,19 @@ $ kubectl create clusterrolebinding spark-role --clusterrole=edit \
 
 #### Submit a Spark job
 
+The following command runs an example word count job in the Alluxio location
+`/LICENSE`. Please ensure this file exists in your Alluxio cluster, or otherwise
+change the path to a file which does exist.
+
+The output and time taken can be seen in the logs for Spark driver pod. Refer to
+the Spark [documentation](https://spark.apache.org/docs/latest/running-on-kubernetes.html)
+for further details about running Spark on Kubernetes. For example, you may find
+additional details on some of the flags used in this command
+[here](https://spark.apache.org/docs/latest/running-on-kubernetes.html?q=cluster-info#cluster-mode).
+
 Run the job from the Spark distribution directory
 ```console
-$ ./bin/spark-submit --master k8s://https://<kubernetes-api-server>:8443 \
+$ ./bin/spark-submit --master k8s://https://<kubernetes-api-server>:6443 \
 --deploy-mode cluster --name spark-alluxio --conf spark.executor.instances=1 \
 --class org.apache.spark.examples.JavaWordCount \
 --driver-memory 500m --executor-memory 1g \
@@ -160,10 +165,16 @@ $ ./bin/spark-submit --master k8s://https://<kubernetes-api-server>:8443 \
 local:///opt/spark/examples/jars/spark-examples_2.11-2.4.4.jar \
 alluxio://<alluxio-master>:19998/LICENSE
 ```
-> Note: You can find the address of the Kubernetes API server by running `kubectl cluster-info`.
-You can find more details in Spark [documentation](https://spark.apache.org/docs/latest/running-on-kubernetes.html?q=cluster-info#cluster-mode).
-You should also using the properties corresponding to your 
-[domain socket volume type]({{ '/en/compute/Spark-On-Kubernetes.html#short-circuit-operations' | relativize_url }}).
+
+> Note:
+> - You can find the address and port of the Kubernetes API server by running `kubectl cluster-info`.
+>   - The default Kubernetes API server port is 6443 but may differ based on your cluster's configuration
+> - It is recommended to set the `<alluxio-master>` hostname in this command to the Kubernetes Service
+  name for your Alluxio master (eg., `alluxio-master-0`).
+> - If you are using a different version of Spark, please ensure the path to the
+  `spark-examples_2.11-2.4.4.jar` is correctly set for your version of Spark
+> - You should also take care to ensure the volume properties align with your
+  [domain socket volume type]({{ '/en/compute/Spark-On-Kubernetes.html#short-circuit-operations' | relativize_url }}).
 
 ## Troubleshooting
 

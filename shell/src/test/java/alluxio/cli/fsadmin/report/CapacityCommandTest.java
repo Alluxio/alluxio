@@ -11,6 +11,7 @@
 
 package alluxio.cli.fsadmin.report;
 
+import alluxio.Constants;
 import alluxio.client.block.BlockMasterClient;
 import alluxio.client.block.options.GetWorkerReportOptions;
 import alluxio.wire.WorkerInfo;
@@ -158,13 +159,13 @@ public class CapacityCommandTest {
   private List<WorkerInfo> prepareLongInfoList() {
     List<WorkerInfo> infoList = new ArrayList<>();
     Map<String, Long> capacityBytesOnTiersOne = new HashMap<>();
-    capacityBytesOnTiersOne.put("MEM", 4000000000L);
+    capacityBytesOnTiersOne.put(Constants.MEDIUM_MEM, 4000000000L);
     capacityBytesOnTiersOne.put("RAM", 6000000000L);
-    capacityBytesOnTiersOne.put("HDD", 2000000000L);
+    capacityBytesOnTiersOne.put(Constants.MEDIUM_HDD, 2000000000L);
     Map<String, Long> usedBytesOnTiersOne = new HashMap<>();
-    usedBytesOnTiersOne.put("MEM", 3000000000L);
+    usedBytesOnTiersOne.put(Constants.MEDIUM_MEM, 3000000000L);
     usedBytesOnTiersOne.put("RAM", 5000000000L);
-    usedBytesOnTiersOne.put("HDD", 2000000000L);
+    usedBytesOnTiersOne.put(Constants.MEDIUM_HDD, 2000000000L);
     WorkerInfo firstInfo = new WorkerInfo()
         .setAddress(new WorkerNetAddress().setHost("64.68.90.1"))
         .setCapacityBytes(12000000000L)
@@ -177,12 +178,12 @@ public class CapacityCommandTest {
         .setUsedBytesOnTiers(usedBytesOnTiersOne);
 
     Map<String, Long> capacityBytesOnTiersSec = new HashMap<>();
-    capacityBytesOnTiersSec.put("MEM", 5000000000L);
-    capacityBytesOnTiersSec.put("SSD", 5000000000L);
+    capacityBytesOnTiersSec.put(Constants.MEDIUM_MEM, 5000000000L);
+    capacityBytesOnTiersSec.put(Constants.MEDIUM_SSD, 5000000000L);
     capacityBytesOnTiersSec.put("DOM", 10000000000L);
     Map<String, Long> usedBytesOnTiersSec = new HashMap<>();
-    usedBytesOnTiersSec.put("MEM", 200000000L);
-    usedBytesOnTiersSec.put("SSD", 300000000L);
+    usedBytesOnTiersSec.put(Constants.MEDIUM_MEM, 200000000L);
+    usedBytesOnTiersSec.put(Constants.MEDIUM_SSD, 300000000L);
     usedBytesOnTiersSec.put("DOM", 500000000L);
     WorkerInfo secondInfo = new WorkerInfo()
         .setAddress(new WorkerNetAddress().setHost("216.239.33.96"))
@@ -246,11 +247,11 @@ public class CapacityCommandTest {
   private List<WorkerInfo> prepareLongWorkerNameInfoList() {
     List<WorkerInfo> infoList = new ArrayList<>();
     Map<String, Long> capacityBytesOnTiersOne = new HashMap<>();
-    capacityBytesOnTiersOne.put("MEM", 600000000L);
-    capacityBytesOnTiersOne.put("HDD", 200000000L);
+    capacityBytesOnTiersOne.put(Constants.MEDIUM_MEM, 600000000L);
+    capacityBytesOnTiersOne.put(Constants.MEDIUM_HDD, 200000000L);
     Map<String, Long> usedBytesOnTiersOne = new HashMap<>();
-    usedBytesOnTiersOne.put("MEM", 300000000L);
-    usedBytesOnTiersOne.put("HDD", 200000000L);
+    usedBytesOnTiersOne.put(Constants.MEDIUM_MEM, 300000000L);
+    usedBytesOnTiersOne.put(Constants.MEDIUM_HDD, 200000000L);
     WorkerInfo firstInfo = new WorkerInfo()
         .setAddress(new WorkerNetAddress().setHost("org.alluxio.long.host1"))
         .setCapacityBytes(1200000000L)
@@ -263,11 +264,11 @@ public class CapacityCommandTest {
         .setUsedBytesOnTiers(usedBytesOnTiersOne);
 
     Map<String, Long> capacityBytesOnTiersSec = new HashMap<>();
-    capacityBytesOnTiersSec.put("MEM", 600000000L);
-    capacityBytesOnTiersSec.put("SSD", 600000000L);
+    capacityBytesOnTiersSec.put(Constants.MEDIUM_MEM, 600000000L);
+    capacityBytesOnTiersSec.put(Constants.MEDIUM_SSD, 600000000L);
     Map<String, Long> usedBytesOnTiersSec = new HashMap<>();
-    usedBytesOnTiersSec.put("MEM", 20000000L);
-    usedBytesOnTiersSec.put("SSD", 30000000L);
+    usedBytesOnTiersSec.put(Constants.MEDIUM_MEM, 20000000L);
+    usedBytesOnTiersSec.put(Constants.MEDIUM_SSD, 30000000L);
     WorkerInfo secondInfo = new WorkerInfo()
         .setAddress(new WorkerNetAddress().setHost("org.apache.hdp1"))
         .setCapacityBytes(2000000000L)

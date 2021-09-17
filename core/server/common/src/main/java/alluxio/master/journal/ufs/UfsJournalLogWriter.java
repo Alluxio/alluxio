@@ -318,7 +318,7 @@ final class UfsJournalLogWriter implements JournalWriter {
       checkIsWritable();
     } catch (JournalClosedException e) {
       // Do not throw error, just ignore if the journal is not writable
-      LOG.warn("Skipping completeLog() since journal is not writable. error: {}", e.getMessage());
+      LOG.warn("Skipping completeLog() since journal is not writable. error: {}", e.toString());
       return;
     }
     String current = currentLog.getLocation().toString();
@@ -337,7 +337,7 @@ final class UfsJournalLogWriter implements JournalWriter {
       checkIsWritable();
     } catch (JournalClosedException e) {
       // Do not throw error, just ignore if the journal is not writable
-      LOG.warn("Skipping completeLog() since journal is not writable. error: {}", e.getMessage());
+      LOG.warn("Skipping completeLog() since journal is not writable. error: {}", e.toString());
       return;
     }
     LOG.info(String

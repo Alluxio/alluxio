@@ -17,10 +17,10 @@ package alluxio.master.file;
  * @param <T> type of individual stream item
  */
 public interface ResultStream<T> {
-    /**
-     * Submits a new item to stream.
-     *
-     * @param item the next item
-     */
+  /**
+   * Submits a new item to stream.
+   *
+   * @param item the next item
+   */
   void submit(T item);
 }

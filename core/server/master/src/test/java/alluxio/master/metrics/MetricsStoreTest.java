@@ -35,7 +35,7 @@ public class MetricsStoreTest {
   public void before() {
     MetricsSystem.resetAllMetrics();
     mMetricStore = new MetricsStore(new SystemClock());
-    mMetricStore.initCounterKeys();
+    mMetricStore.initMetricKeys();
   }
 
   @Test

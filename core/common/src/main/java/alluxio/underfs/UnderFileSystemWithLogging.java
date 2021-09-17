@@ -16,12 +16,13 @@ import alluxio.Constants;
 import alluxio.SyncInfo;
 import alluxio.collections.Pair;
 import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.exception.status.UnimplementedException;
-import alluxio.security.authorization.AccessControlList;
 import alluxio.metrics.Metric;
-import alluxio.metrics.MetricsSystem;
 import alluxio.metrics.MetricInfo;
+import alluxio.metrics.MetricsSystem;
 import alluxio.security.authentication.AuthenticatedClientUser;
+import alluxio.security.authorization.AccessControlList;
 import alluxio.security.authorization.AclEntry;
 import alluxio.security.authorization.DefaultAccessControlList;
 import alluxio.underfs.options.CreateOptions;
@@ -42,6 +43,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.List;
 import java.util.Map;
+
 import javax.annotation.Nullable;
 
 /**
@@ -52,13 +54,13 @@ import javax.annotation.Nullable;
  */
 public class UnderFileSystemWithLogging implements UnderFileSystem {
   private static final Logger LOG = LoggerFactory.getLogger(UnderFileSystemWithLogging.class);
-
   private static final String NAME_SEPARATOR = ":";
 
   private final UnderFileSystem mUnderFileSystem;
   private final UnderFileSystemConfiguration mConf;
   private final String mPath;
   private final String mEscapedPath;
+  private final long mLoggingThreshold;
 
   /**
    * Creates a new {@link UnderFileSystemWithLogging} which forwards all calls to the provided
@@ -76,6 +78,7 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
     mUnderFileSystem = ufs;
     mConf = conf;
     mEscapedPath = MetricsSystem.escape(new AlluxioURI(path));
+    mLoggingThreshold = mConf.getMs(PropertyKey.UNDERFS_LOGGING_THRESHOLD);
   }
 
   @Override
@@ -1203,14 +1206,27 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
    */
   private <T> T call(UfsCallable<T> callable) throws IOException {
     String methodName = callable.methodName();
-    LOG.debug("Enter: {}: {}", methodName, callable);
+    long startMs = System.currentTimeMillis();
+    long durationMs;
+    LOG.debug("Enter: {}({})", methodName, callable);
     try (Timer.Context ctx = MetricsSystem.timer(getQualifiedMetricName(methodName)).time()) {
       T ret = callable.call();
-      LOG.debug("Exit (OK): {}: {}", methodName, callable);
+      durationMs = System.currentTimeMillis() - startMs;
+      LOG.debug("Exit (OK): {}({}) in {} ms", methodName, callable, durationMs);
+      if (durationMs >= mLoggingThreshold) {
+        LOG.warn("{}({}) returned OK in {} ms (>={} ms)", methodName,
+            callable, durationMs, mLoggingThreshold);
+      }
       return ret;
     } catch (IOException e) {
+      durationMs = System.currentTimeMillis() - startMs;
       MetricsSystem.counter(getQualifiedFailureMetricName(methodName)).inc();
-      LOG.debug("Exit (Error): {}: {}, Error={}", methodName, callable, e.getMessage());
+      LOG.debug("Exit (Error): {}({}) in {} ms, Error={}",
+          methodName, callable, durationMs, e.toString());
+      if (durationMs >= mLoggingThreshold) {
+        LOG.warn("{}({}) returned \"{}\" in {} ms (>={} ms)", methodName,
+            callable, e.toString(), durationMs, mLoggingThreshold);
+      }
       throw e;
     }
   }

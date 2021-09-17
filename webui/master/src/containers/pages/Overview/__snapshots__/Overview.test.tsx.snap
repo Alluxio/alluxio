@@ -26,6 +26,14 @@ exports[`Overview Shallow component Matches snapshot 1`] = `
           <th
             scope="row"
           >
+            Cluster Id
+          </th>
+          <td />
+        </tr>
+        <tr>
+          <th
+            scope="row"
+          >
             Started
           </th>
           <td />

@@ -246,7 +246,7 @@ public final class FileSystemMasterClientServiceHandler
             resultStream);
         // Return just something.
         return null;
-      }, "ListStatus", false, "request: %s", request);
+      }, "ListStatus", false, "request=%s", request);
     } catch (Exception e) {
       resultStream.fail(e);
     } finally {
@@ -297,7 +297,7 @@ public final class FileSystemMasterClientServiceHandler
       List<alluxio.grpc.SyncPointInfo> syncPointInfoList =
           pathList.stream().map(SyncPointInfo::toProto).collect(Collectors.toList());
       return GetSyncPathListPResponse.newBuilder().addAllSyncPaths(syncPointInfoList).build();
-    }, "getSyncPathList", "request", responseObserver, request);
+    }, "getSyncPathList", "request=%s", responseObserver, request);
   }
 
   @Override

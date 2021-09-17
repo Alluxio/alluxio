@@ -1,4 +1,6 @@
 metricName,metricType
+Client.BlockReadDataChunk,TIMER
+Client.BlockReadDataFromChunk,TIMER
 Client.BytesReadLocal,COUNTER
 Client.BytesReadLocalThroughput,METER
 Client.BytesWrittenLocal,COUNTER
@@ -26,9 +28,11 @@ Client.CachePutAsyncRejectionErrors,COUNTER
 Client.CachePutBenignRacingErrors,COUNTER
 Client.CachePutErrors,COUNTER
 Client.CachePutEvictionErrors,COUNTER
+Client.CachePutInsufficientSpaceErrors,COUNTER
 Client.CachePutNotReadyErrors,COUNTER
 Client.CachePutStoreDeleteErrors,COUNTER
 Client.CachePutStoreWriteErrors,COUNTER
+Client.CachePutStoreWriteNoSpaceErrors,COUNTER
 Client.CacheSpaceAvailable,GAUGE
 Client.CacheSpaceUsed,GAUGE
 Client.CacheSpaceUsedCount,COUNTER

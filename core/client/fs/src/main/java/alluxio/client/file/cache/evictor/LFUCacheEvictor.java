@@ -11,7 +11,6 @@
 
 package alluxio.client.file.cache.evictor;
 
-import alluxio.client.file.cache.CacheEvictor;
 import alluxio.client.file.cache.PageId;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;

@@ -25,8 +25,7 @@ import alluxio.util.WaitForOptions;
 import alluxio.util.network.NetworkAddressUtils;
 
 import com.google.common.annotations.VisibleForTesting;
-import org.apache.ratis.server.impl.RaftServerImpl;
-import org.apache.ratis.server.impl.RaftServerProxy;
+import org.apache.ratis.server.RaftServer;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -66,8 +65,8 @@ public class RaftJournalTest {
     // Create and start journal systems.
     List<RaftJournalSystem> journalSystems = startJournalCluster(createJournalSystems(2));
     // Sleep for 2 leader election cycles for leadership to stabilize.
-    Thread
-        .sleep(2 * ServerConfiguration.getMs(PropertyKey.MASTER_EMBEDDED_JOURNAL_ELECTION_TIMEOUT));
+    Thread.sleep(2
+            * ServerConfiguration.getMs(PropertyKey.MASTER_EMBEDDED_JOURNAL_MAX_ELECTION_TIMEOUT));
 
     // Assign references for leader/follower journal systems.
     mLeaderJournalSystem = journalSystems.get(0);
@@ -180,9 +179,9 @@ public class RaftJournalTest {
     // Wait for sequences to be caught up.
     catchupFuture.waitTermination();
     Assert.assertEquals(catchupIndex + 1, countingMaster.getApplyCount());
-    // Wait for 2 heart-beat period and verify follower master state hasn't changed.
+    // Wait for election timeout and verify follower master state hasn't changed.
     Thread.sleep(
-        2 * ServerConfiguration.getMs(PropertyKey.MASTER_EMBEDDED_JOURNAL_HEARTBEAT_INTERVAL));
+            ServerConfiguration.getMs(PropertyKey.MASTER_EMBEDDED_JOURNAL_MAX_ELECTION_TIMEOUT));
     Assert.assertEquals(catchupIndex + 1, countingMaster.getApplyCount());
     // Exit backup mode and wait until follower master acquires the current knowledge.
     mFollowerJournalSystem.resume();
@@ -237,8 +236,8 @@ public class RaftJournalTest {
     // Restart the follower.
     mFollowerJournalSystem.stop();
     mFollowerJournalSystem.start();
-    Thread.sleep(
-        2 * ServerConfiguration.getMs(PropertyKey.MASTER_EMBEDDED_JOURNAL_HEARTBEAT_INTERVAL));
+    Thread.sleep(ServerConfiguration.getMs(
+        PropertyKey.MASTER_EMBEDDED_JOURNAL_MAX_ELECTION_TIMEOUT));
 
     // Verify that all entries are replayed despite the snapshot was requested while some entries
     // are queued up during suspension.
@@ -397,13 +396,15 @@ public class RaftJournalTest {
   }
 
   private void promoteFollower() throws Exception {
-    System.out.printf("Leader is leader? %s", mLeaderJournalSystem.isLeader());
-    changeToFollower(mLeaderJournalSystem);
-    System.out.printf("Follower is leader? %s", mFollowerJournalSystem.isLeader());
+    Assert.assertTrue(mLeaderJournalSystem.isLeader());
+    Assert.assertFalse(mFollowerJournalSystem.isLeader());
+    // Triggering rigged election via reflection to switch the leader.
     changeToFollower(mLeaderJournalSystem);
     changeToCandidate(mFollowerJournalSystem);
-    CommonUtils.waitFor("follower becomes leader",
-        () -> mFollowerJournalSystem.isLeader(), mWaitOptions);
+    CommonUtils.waitFor("follower becomes leader", () -> mFollowerJournalSystem.isLeader(),
+        mWaitOptions);
+    Assert.assertFalse(mLeaderJournalSystem.isLeader());
+    Assert.assertTrue(mFollowerJournalSystem.isLeader());
     mFollowerJournalSystem.gainPrimacy();
   }
 
@@ -474,8 +475,8 @@ public class RaftJournalTest {
    */
   private List<RaftJournalSystem> createJournalSystems(int journalSystemCount) throws Exception {
     // Override defaults for faster quorum formation.
-    ServerConfiguration.set(PropertyKey.MASTER_EMBEDDED_JOURNAL_ELECTION_TIMEOUT, 550);
-    ServerConfiguration.set(PropertyKey.MASTER_EMBEDDED_JOURNAL_HEARTBEAT_INTERVAL, 250);
+    ServerConfiguration.set(PropertyKey.MASTER_EMBEDDED_JOURNAL_MIN_ELECTION_TIMEOUT, 550);
+    ServerConfiguration.set(PropertyKey.MASTER_EMBEDDED_JOURNAL_MAX_ELECTION_TIMEOUT, 1100);
 
     List<InetSocketAddress> clusterAddresses = new ArrayList<>(journalSystemCount);
     List<Integer> freePorts = getFreePorts(journalSystemCount);
@@ -530,21 +531,33 @@ public class RaftJournalTest {
 
   @VisibleForTesting
   void changeToCandidate(RaftJournalSystem journalSystem) throws Exception {
-    RaftServerImpl serverImpl = ((RaftServerProxy) journalSystem.getRaftServer()).getImpl(
-        RaftJournalSystem.RAFT_GROUP_ID);
-    Method method = serverImpl.getClass().getDeclaredMethod("changeToCandidate");
+    RaftServer.Division serverImpl = journalSystem.getRaftServer()
+            .getDivision(RaftJournalSystem.RAFT_GROUP_ID);
+    Class<?> raftServerImpl = (Class.forName("org.apache.ratis.server.impl.RaftServerImpl"));
+    Method method = raftServerImpl.getDeclaredMethod("changeToCandidate", boolean.class);
     method.setAccessible(true);
-    method.invoke(serverImpl);
+    method.invoke(serverImpl, true);
   }
 
   @VisibleForTesting
   void changeToFollower(RaftJournalSystem journalSystem) throws Exception {
-    RaftServerImpl serverImpl = ((RaftServerProxy) journalSystem.getRaftServer()).getImpl(
-        RaftJournalSystem.RAFT_GROUP_ID);
-    Method method = serverImpl.getClass().getDeclaredMethod("changeToFollower",
+    RaftServer.Division serverImplObj = journalSystem.getRaftServer()
+            .getDivision(RaftJournalSystem.RAFT_GROUP_ID);
+    Class<?> raftServerImplClass = Class.forName("org.apache.ratis.server.impl.RaftServerImpl");
+
+    Method getStateMethod = raftServerImplClass.getDeclaredMethod("getState");
+    getStateMethod.setAccessible(true);
+    Object serverStateObj = getStateMethod.invoke(serverImplObj);
+    Class<?> serverStateClass = Class.forName("org.apache.ratis.server.impl.ServerState");
+    Method getCurrentTermMethod = serverStateClass.getDeclaredMethod("getCurrentTerm");
+    getCurrentTermMethod.setAccessible(true);
+    long currentTermObj = (long) getCurrentTermMethod.invoke(serverStateObj);
+
+    Method changeToFollowerMethod = raftServerImplClass.getDeclaredMethod("changeToFollower",
         long.class, boolean.class, Object.class);
-    method.setAccessible(true);
-    method.invoke(serverImpl, serverImpl.getState().getCurrentTerm(), true, "test");
+
+    changeToFollowerMethod.setAccessible(true);
+    changeToFollowerMethod.invoke(serverImplObj, currentTermObj, true, "test");
   }
 
   /**

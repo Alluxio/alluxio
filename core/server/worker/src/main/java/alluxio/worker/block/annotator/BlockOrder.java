@@ -18,17 +18,17 @@ import java.util.Comparator;
  * along with some utilities.
  */
 public enum BlockOrder {
-  Natural, Reverse;
+  NATURAL, REVERSE;
 
   /**
    * @return the opposite of the order
    */
   public BlockOrder reversed() {
     switch (this) {
-      case Natural:
-        return BlockOrder.Reverse;
-      case Reverse:
-        return BlockOrder.Natural;
+      case NATURAL:
+        return BlockOrder.REVERSE;
+      case REVERSE:
+        return BlockOrder.NATURAL;
       default:
         throw new IllegalArgumentException(String.format("Undefined block order:%s", this));
     }
@@ -39,9 +39,9 @@ public enum BlockOrder {
    */
   public Comparator<Comparable> comparator() {
     switch (this) {
-      case Natural:
+      case NATURAL:
         return Comparator.naturalOrder();
-      case Reverse:
+      case REVERSE:
         return Comparator.reverseOrder();
       default:
         throw new IllegalArgumentException(String.format("Undefined block order:%s", this));

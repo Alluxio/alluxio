@@ -13,6 +13,7 @@ package alluxio.hadoop;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 
 import alluxio.ConfigurationTestUtils;
@@ -24,7 +25,6 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 
 import java.io.IOException;
 import java.net.URI;
@@ -37,9 +37,6 @@ public final class AbstractFileSystemApiTest {
 
   @Rule
   public TestLoggerRule mTestLogger = new TestLoggerRule();
-
-  @Rule
-  public ExpectedException mThrown = ExpectedException.none();
 
   private InstancedConfiguration mConf = ConfigurationTestUtils.defaults();
 
@@ -58,9 +55,10 @@ public final class AbstractFileSystemApiTest {
   @Test
   public void unknownAuthorityTriggersWarning() throws IOException {
     URI unknown = URI.create("alluxio://test/");
-    mThrown.expectMessage("Authority \"test\" is unknown. The client can not be configured with "
-        + "the authority from " + unknown);
-    FileSystem.get(unknown, new org.apache.hadoop.conf.Configuration());
+    Exception e = assertThrows(Exception.class, () ->
+        FileSystem.get(unknown, new org.apache.hadoop.conf.Configuration()));
+    assertTrue(e.getMessage().contains("Authority \"test\" is unknown. "
+        + "The client can not be configured with the authority from " + unknown));
   }
 
   @Test

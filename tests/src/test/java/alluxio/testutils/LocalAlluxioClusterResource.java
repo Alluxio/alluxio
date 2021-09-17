@@ -83,6 +83,9 @@ public final class LocalAlluxioClusterResource implements TestRule {
   /** Number of Alluxio workers in the cluster. */
   private final int mNumWorkers;
 
+  /** Weather to include the secondary master. */
+  private final boolean mIncludeSecondary;
+
   /**
    * If true (default), we start the cluster before running a test method. Otherwise, the method
    * must start the cluster explicitly.
@@ -105,9 +108,10 @@ public final class LocalAlluxioClusterResource implements TestRule {
    * @param numWorkers the number of Alluxio workers to launch
    * @param configuration configuration for configuring the cluster
    */
-  private LocalAlluxioClusterResource(boolean startCluster, int numWorkers,
-      Map<PropertyKey, String> configuration) {
+  private LocalAlluxioClusterResource(boolean startCluster, boolean includeSecondary,
+      int numWorkers, Map<PropertyKey, String> configuration) {
     mStartCluster = startCluster;
+    mIncludeSecondary = includeSecondary;
     mNumWorkers = numWorkers;
     mConfiguration.putAll(configuration);
     MetricsSystem.resetCountersAndGauges();
@@ -142,7 +146,7 @@ public final class LocalAlluxioClusterResource implements TestRule {
   public void start() throws Exception {
     AuthenticatedClientUser.remove();
     // Create a new cluster.
-    mLocalAlluxioCluster = new LocalAlluxioCluster(mNumWorkers);
+    mLocalAlluxioCluster = new LocalAlluxioCluster(mNumWorkers, mIncludeSecondary);
     // Init configuration for integration test
     mLocalAlluxioCluster.initConfiguration(mTestName);
     // Overwrite the test configuration with test specific parameters
@@ -230,6 +234,7 @@ public final class LocalAlluxioClusterResource implements TestRule {
    */
   public static class Builder {
     private boolean mStartCluster;
+    private boolean mIncludeSecondary;
     private int mNumWorkers;
     private Map<PropertyKey, String> mConfiguration;
 
@@ -238,6 +243,7 @@ public final class LocalAlluxioClusterResource implements TestRule {
      */
     public Builder() {
       mStartCluster = true;
+      mIncludeSecondary = false;
       mNumWorkers = 1;
       mConfiguration = new HashMap<>();
     }
@@ -247,6 +253,14 @@ public final class LocalAlluxioClusterResource implements TestRule {
      */
     public Builder setStartCluster(boolean startCluster) {
       mStartCluster = startCluster;
+      return this;
+    }
+
+    /**
+     * @param includeSecondary whether to include the secondary master
+     */
+    public Builder setIncludeSecondary(boolean includeSecondary) {
+      mIncludeSecondary = includeSecondary;
       return this;
     }
 
@@ -271,7 +285,8 @@ public final class LocalAlluxioClusterResource implements TestRule {
      * @return a {@link LocalAlluxioClusterResource} for the current builder values
      */
     public LocalAlluxioClusterResource build() {
-      return new LocalAlluxioClusterResource(mStartCluster, mNumWorkers, mConfiguration);
+      return new LocalAlluxioClusterResource(mStartCluster, mIncludeSecondary, mNumWorkers,
+          mConfiguration);
     }
   }
 

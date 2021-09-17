@@ -45,10 +45,6 @@ import javax.annotation.concurrent.NotThreadSafe;
 public class RocksPageStore implements PageStore {
   private static final Logger LOG = LoggerFactory.getLogger(RocksPageStore.class);
   private static final byte[] CONF_KEY = "CONF".getBytes();
-  // TODO(feng): consider making the overhead ratio configurable
-  // We assume 20% overhead using Rocksdb as a page store, i.e., with 1GB space allocated, we
-  // expect no more than 1024MB/(1+20%)=853MB logical data stored
-  private static final double ROCKS_OVERHEAD_RATIO = 0.2;
 
   private final long mCapacity;
   private final RocksDB mDb;
@@ -96,7 +92,7 @@ public class RocksPageStore implements PageStore {
    */
   private RocksPageStore(RocksPageStoreOptions options, RocksDB rocksDB) {
     mOptions = options;
-    mCapacity = (long) (options.getCacheSize() / (1 + ROCKS_OVERHEAD_RATIO));
+    mCapacity = (long) (options.getCacheSize() / (1 + options.getOverheadRatio()));
     mDb = rocksDB;
   }
 

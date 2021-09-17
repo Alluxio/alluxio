@@ -84,6 +84,11 @@ public interface BlockStore extends Iterable<Block> {
   void close();
 
   /**
+   * @return size of the block store
+   */
+  long size();
+
+  /**
    * Block metadata.
    */
   class Block {

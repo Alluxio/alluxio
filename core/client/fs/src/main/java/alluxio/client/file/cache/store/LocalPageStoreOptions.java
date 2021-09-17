@@ -17,6 +17,10 @@ import com.google.common.base.MoreObjects;
  * Options used to instantiate the {@link LocalPageStore}.
  */
 public class LocalPageStoreOptions extends PageStoreOptions {
+  // We assume there will be some overhead using local fs as a page store,
+  // i.e., with 1GB space allocated, we
+  // expect no more than 1024MB / (1 + LOCAL_OVERHEAD_RATIO) logical data stored
+  private static final double LOCAL_OVERHEAD_RATIO = 0.05;
 
   /**
    * The number of file buckets. It is recommended to set this to a high value if the number of
@@ -29,6 +33,7 @@ public class LocalPageStoreOptions extends PageStoreOptions {
    */
   public LocalPageStoreOptions() {
     mFileBuckets = 1000;
+    mOverheadRatio = LocalPageStoreOptions.LOCAL_OVERHEAD_RATIO;
   }
 
   /**
@@ -58,6 +63,7 @@ public class LocalPageStoreOptions extends PageStoreOptions {
         .add("AlluxioVersion", mAlluxioVersion)
         .add("CacheSize", mCacheSize)
         .add("FileBuckets", mFileBuckets)
+        .add("OverheadRatio", mOverheadRatio)
         .add("PageSize", mPageSize)
         .add("RootDir", mRootDir)
         .add("TimeoutDuration", mTimeoutDuration)

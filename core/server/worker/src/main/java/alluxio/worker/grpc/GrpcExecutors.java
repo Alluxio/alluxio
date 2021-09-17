@@ -17,6 +17,7 @@ import alluxio.conf.PropertyKey;
 import alluxio.security.User;
 import alluxio.security.authentication.AuthenticatedClientUser;
 import alluxio.util.ThreadFactoryUtils;
+import alluxio.util.executor.UniqueBlockingQueue;
 
 import java.util.List;
 import java.util.concurrent.AbstractExecutorService;
@@ -32,17 +33,17 @@ import javax.annotation.concurrent.ThreadSafe;
  * Executors for gRPC block server.
  */
 @ThreadSafe
-final class GrpcExecutors {
+public final class GrpcExecutors {
   private static final long THREAD_STOP_MS = Constants.SECOND_MS * 10;
   private static final int THREADS_MIN = 4;
 
-  public static final ExecutorService ASYNC_CACHE_MANAGER_EXECUTOR =
+  public static final ExecutorService CACHE_MANAGER_EXECUTOR =
       new ImpersonateThreadPoolExecutor(new ThreadPoolExecutor(THREADS_MIN,
           ServerConfiguration.getInt(PropertyKey.WORKER_NETWORK_ASYNC_CACHE_MANAGER_THREADS_MAX),
           THREAD_STOP_MS, TimeUnit.MILLISECONDS,
-          new LinkedBlockingQueue<>(ServerConfiguration.getInt(
-                  PropertyKey.WORKER_NETWORK_ASYNC_CACHE_MANAGER_QUEUE_MAX)),
-          ThreadFactoryUtils.build("AsyncCacheManagerExecutor-%d", true)));
+          new UniqueBlockingQueue<>(ServerConfiguration.getInt(
+              PropertyKey.WORKER_NETWORK_ASYNC_CACHE_MANAGER_QUEUE_MAX)),
+          ThreadFactoryUtils.build("CacheManagerExecutor-%d", true)));
 
   public static final ExecutorService BLOCK_READER_EXECUTOR =
       new ImpersonateThreadPoolExecutor(new ThreadPoolExecutor(THREADS_MIN,

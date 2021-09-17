@@ -11,6 +11,7 @@
 
 package alluxio.cli;
 
+import alluxio.Constants;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.util.FormatUtils;
@@ -78,7 +79,7 @@ public final class StorageSpaceValidationTask extends AbstractValidationTask {
       try {
         Map<String, MountedStorage> storageMap = new HashMap<>();
         File file = new File(dirPaths[0]);
-        if (dirPaths.length == 1 && alias.equals("MEM") && !file.exists()) {
+        if (dirPaths.length == 1 && alias.equals(Constants.MEDIUM_MEM) && !file.exists()) {
           msg.append(String.format("RAM disk is not mounted at %s, skip validation.%n",
                   dirPaths[0]));
           continue;

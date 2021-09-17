@@ -12,6 +12,7 @@
 package alluxio.underfs.cosn;
 
 import alluxio.Constants;
+import alluxio.underfs.hdfs.HdfsUnderFileSystem;
 import alluxio.underfs.hdfs.HdfsUnderFileSystemFactory;
 import alluxio.underfs.UnderFileSystemConfiguration;
 

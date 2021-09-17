@@ -11,7 +11,7 @@
 
 package alluxio.client.job;
 
-import alluxio.AbstractMasterClient;
+import alluxio.AbstractJobMasterClient;
 import alluxio.Constants;
 import alluxio.grpc.CancelPRequest;
 import alluxio.grpc.GetAllWorkerHealthPRequest;
@@ -19,6 +19,7 @@ import alluxio.grpc.GetJobServiceSummaryPRequest;
 import alluxio.grpc.GetJobStatusDetailedPRequest;
 import alluxio.grpc.GetJobStatusPRequest;
 import alluxio.grpc.JobMasterClientServiceGrpc;
+import alluxio.grpc.ListAllPOptions;
 import alluxio.grpc.ListAllPRequest;
 import alluxio.grpc.RunPRequest;
 import alluxio.grpc.ServiceType;
@@ -47,7 +48,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * clients.
  */
 @ThreadSafe
-public final class RetryHandlingJobMasterClient extends AbstractMasterClient
+public final class RetryHandlingJobMasterClient extends AbstractJobMasterClient
     implements JobMasterClient {
   private static final Logger RPC_LOG = LoggerFactory.getLogger(JobMasterClient.class);
   private JobMasterClientServiceGrpc.JobMasterClientServiceBlockingStub mClient = null;
@@ -112,8 +113,11 @@ public final class RetryHandlingJobMasterClient extends AbstractMasterClient
   }
 
   @Override
-  public List<Long> list() throws IOException {
-    return retryRPC(() -> mClient.listAll(ListAllPRequest.getDefaultInstance()).getJobIdsList(),
+  public List<Long> list(ListAllPOptions option) throws IOException {
+    return retryRPC(() -> mClient.listAll(
+        ListAllPRequest.newBuilder()
+            .setOptions(option.toBuilder().setJobIdOnly(true)).build())
+            .getJobIdsList(),
         RPC_LOG, "List", "");
   }
 

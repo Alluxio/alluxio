@@ -105,7 +105,7 @@ alluxio.underfs.s3.disable.dns.buckets:
   可选配置项，指定所有S3请求路径样式。
 alluxio.underfs.s3.endpoint:
   可选配置项，在组织AWS服务请求的时候可以指定某个区域地址来降低数据延迟或者访问某些隔离在不同AWS Region的资源。
-  一个endpoint是某个服务的一个入口地址。举例，s3.cn-north-1.amazonaws.com.cn 就是一个北京区域的亚马逊S3服务的一个endpoing。
+  一个endpoint是某个服务的一个入口地址。举例，s3.cn-north-1.amazonaws.com.cn 就是一个北京区域的亚马逊S3服务的一个endpoint。
 alluxio.underfs.s3.proxy.host:
   可选配置项，指定与S3通信的代理主机。
 alluxio.underfs.s3.proxy.https.only:

@@ -50,6 +50,7 @@ public final class LocalCacheFileInStreamIntegrationTest extends BaseIntegration
           .setProperty(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT, Constants.MB)
           .setProperty(PropertyKey.USER_CLIENT_CACHE_ENABLED, true)
           .setProperty(PropertyKey.USER_CLIENT_CACHE_ASYNC_WRITE_ENABLED, false)
+          .setProperty(PropertyKey.USER_CLIENT_CACHE_STORE_OVERHEAD, 0)
           .build();
 
   @Rule

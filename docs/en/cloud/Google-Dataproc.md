@@ -26,13 +26,17 @@ and Azure Blob Store.
 
 * A project with Cloud Dataproc API and Compute Engine API enabled.
 * A GCS Bucket.
-* Make sure that the gcloud CLI is set up with necessary GCS interoperable storage access keys.
+* The gcloud CLI set up with necessary GCS interoperable storage access keys.
 
 > Note: GCS interoperability should be enabled in the Interoperability tab in
-> [GCS setting](https://console.cloud.google.com/storage/settings).
+> [GCS settings](https://console.cloud.google.com/storage/settings).
 
-A GCS bucket is required if mounted to the root of the Alluxio namespace.
+A GCS bucket is required if mounting the bucket to the root of the Alluxio namespace.
 Alternatively, the root UFS can be reconfigured to be HDFS or any other supported under storage.
+Type of VM instance to be used for Alluxio Master and Worker depends on the workload
+characteristics. General recommended types of VM instances for Alluxio Master are
+n2-highmem-16 or n2-highmem-32. VM instance types of n2-standard-16 or n2-standard-32
+enable use of SSD as Alluxio worker storage tier.
 
 ## Basic Setup
 
@@ -43,7 +47,7 @@ When creating a Dataproc cluster, Alluxio can be installed using an
 
 There are several properties set as metadata labels which control the Alluxio deployment.
 * A required argument is the root UFS address configured using `alluxio_root_ufs_uri`.
-If set to `LOCAL`, the HDFS cluster residing within the same dataproc cluster will be used as Alluxio's root UFS.
+If set to `LOCAL`, the HDFS cluster residing within the same Dataproc cluster will be used as Alluxio's root UFS.
 * Specify properties using the metadata key `alluxio_site_properties`.
 Delimit multiple properties with a semicolon (`;`).
 
@@ -137,7 +141,7 @@ Alluxio is installed and configured in `/opt/alluxio/`. Alluxio services are sta
 
 ## Compute Applications
 
-Spark, Hive and Presto on Dataproc are pre-configured to connect to Alluxio.
+Spark, Hive, and Presto on Dataproc are pre-configured to connect to Alluxio.
 
 {% navtabs compute %}
 {% navtab Spark %}
@@ -202,14 +206,14 @@ For further information, visit our Hive on Alluxio
 
 Note: There are two ways to install Presto on Dataproc.
 * [Optional Component for Presto](https://cloud.google.com/dataproc/docs/concepts/components/presto)
-is the default Presto configuration with the install home as `/usr/lib/presto`.
+is the default Presto configuration with the installation home directory at `/usr/lib/presto`.
 To use this mechanism, no additional configuration is needed for the Alluxio initialization action.
 * If using an initialization action to install an alternate distribution of Presto, override the
-default home directory as it differs from the install home for the optional component.
+default home directory to a different directory than the above default Presto installation.
 Set the metadata label `alluxio_presto_home=/opt/presto-server` with the `gcloud clusters create`
-command to ensure Presto is configured to use Alluxio.
+command to ensure the alternative Presto installation is configured to use Alluxio.
 
-To test Presto on Alluxio, simply run a query on the table created in the Hive section above:
+To test Presto on Alluxio, run the following query on the table created in the Hive section:
 ```console
 presto --execute "select * from u_user limit 10;" --catalog hive --schema default
 ```

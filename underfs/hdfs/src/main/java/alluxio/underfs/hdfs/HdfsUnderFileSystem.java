@@ -14,6 +14,7 @@ package alluxio.underfs.hdfs;
 import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.SyncInfo;
+import alluxio.UfsConstants;
 import alluxio.conf.PropertyKey;
 import alluxio.collections.Pair;
 import alluxio.retry.CountingRetry;
@@ -90,6 +91,13 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
   private static final String HDFS_ACTIVESYNC_PROVIDER_CLASS =
       "alluxio.underfs.hdfs.activesync.SupportedHdfsActiveSyncProvider";
 
+  /** The minimum HDFS production version required for EC. **/
+  private static final String HDFS_EC_MIN_VERSION = "3.0.0";
+
+  /** Name of the class for the HDFS EC Codec Registry. **/
+  private static final String HDFS_EC_CODEC_REGISTRY_CLASS =
+      "org.apache.hadoop.io.erasurecode.CodecRegistry";
+
   private final LoadingCache<String, FileSystem> mUserFs;
   private final HdfsAclProvider mHdfsAclProvider;
 
@@ -148,6 +156,16 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
       // Set Hadoop UGI configuration to ensure UGI can be initialized by the shaded classes for
       // group service.
       UserGroupInformation.setConfiguration(hdfsConf);
+      // When HDFS version is 3.0.0 or later, initialize HDFS EC CodecRegistry here to ensure
+      // RawErasureCoderFactory implementations are loaded by the same classloader of hdfsConf.
+      if (UfsConstants.UFS_HADOOP_VERSION.compareTo(HDFS_EC_MIN_VERSION) >= 0) {
+        try {
+          Class.forName(HDFS_EC_CODEC_REGISTRY_CLASS);
+        } catch (ClassNotFoundException e) {
+          LOG.warn("Cannot initialize HDFS EC CodecRegistry. "
+              + "HDFS EC will not be supported: {}", e.toString());
+        }
+      }
     } finally {
       Thread.currentThread().setContextClassLoader(currentClassLoader);
     }
@@ -280,7 +298,7 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
         }
         return outputStream;
       } catch (IOException e) {
-        LOG.warn("Attempt count {} : {} ", retryPolicy.getAttemptCount(), e.getMessage());
+        LOG.warn("Attempt count {} : {} ", retryPolicy.getAttemptCount(), e.toString());
         te = e;
       }
     }
@@ -365,7 +383,7 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
         Collections.addAll(ret, names);
       }
     } catch (IOException e) {
-      LOG.debug("Unable to get file location for {} : {}", path, e.getMessage());
+      LOG.debug("Unable to get file location for {}", path, e);
     }
     return ret;
   }
@@ -548,7 +566,7 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
         return true;
       } catch (IOException e) {
         LOG.warn("{} try to make directory for {} : {}", retryPolicy.getAttemptCount(), path,
-            e.getMessage());
+            e.toString());
         te = e;
       }
     }
@@ -610,7 +628,7 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
         LOG.debug("Using original API to HDFS");
         return new HdfsUnderFileInputStream(inputStream);
       } catch (IOException e) {
-        LOG.warn("{} try to open {} : {}", retryPolicy.getAttemptCount(), path, e.getMessage());
+        LOG.warn("{} try to open {} : {}", retryPolicy.getAttemptCount(), path, e.toString());
         te = e;
         if (options.getRecoverFailedOpen() && dfs != null && e.getMessage().toLowerCase()
             .startsWith("cannot obtain block length for")) {
@@ -669,15 +687,16 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
       FileStatus fileStatus = hdfs.getFileStatus(new Path(path));
       hdfs.setOwner(fileStatus.getPath(), user, group);
     } catch (IOException e) {
-      LOG.warn("Failed to set owner for {} with user: {}, group: {}", path, user, group);
-      LOG.debug("Exception : ", e);
-      LOG.warn("In order for Alluxio to modify ownership of local files, "
-          + "Alluxio should be running as an HDFS superuser.");
-      if (!Boolean.valueOf(mUfsConf.get(PropertyKey.UNDERFS_ALLOW_SET_OWNER_FAILURE))) {
+      LOG.debug("Exception: ", e);
+      if (!mUfsConf.getBoolean(PropertyKey.UNDERFS_ALLOW_SET_OWNER_FAILURE)) {
+        LOG.warn("Failed to set owner for {} with user: {}, group: {}: {}. "
+            + "Running Alluxio as superuser is required to modify ownership of local files",
+            path, user, group, e.toString());
         throw e;
       } else {
-        LOG.warn("Failure is ignored, which may cause permission inconsistency between "
-            + "Alluxio and HDFS.");
+        LOG.warn("Failed to set owner for {} with user: {}, group: {}: {}. "
+            + "This failure is ignored but may cause permission inconsistency between Alluxio "
+            + "and local under file system", path, user, group, e.toString());
       }
     }
   }
@@ -689,7 +708,7 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
       FileStatus fileStatus = hdfs.getFileStatus(new Path(path));
       hdfs.setPermission(fileStatus.getPath(), new FsPermission(mode));
     } catch (IOException e) {
-      LOG.warn("Fail to set permission for {} with perm {} : {}", path, mode, e.getMessage());
+      LOG.warn("Fail to set permission for {} with perm {} : {}", path, mode, e.toString());
       throw e;
     }
   }
@@ -744,7 +763,7 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
       try {
         return hdfs.delete(new Path(path), recursive);
       } catch (IOException e) {
-        LOG.warn("Attempt count {} : {}", retryPolicy.getAttemptCount(), e.getMessage());
+        LOG.warn("Attempt count {} : {}", retryPolicy.getAttemptCount(), e.toString());
         te = e;
       }
     }
@@ -762,13 +781,15 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
   private FileStatus[] listStatusInternal(String path) throws IOException {
     FileStatus[] files;
     FileSystem hdfs = getFs();
+    Path thePath = new Path(path);
     try {
-      files = hdfs.listStatus(new Path(path));
+      files = hdfs.listStatus(thePath);
     } catch (FileNotFoundException e) {
       return null;
     }
     // Check if path is a file
-    if (files != null && files.length == 1 && files[0].getPath().toString().equals(path)) {
+    if (files != null && files.length == 1
+        && files[0].getPath().toUri().getPath().equals(thePath.toUri().getPath())) {
       return null;
     }
     return files;
@@ -790,7 +811,7 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
         return hdfs.rename(new Path(src), new Path(dst));
       } catch (IOException e) {
         LOG.warn("{} try to rename {} to {} : {}", retryPolicy.getAttemptCount(), src, dst,
-            e.getMessage());
+            e.toString());
         te = e;
       }
     }

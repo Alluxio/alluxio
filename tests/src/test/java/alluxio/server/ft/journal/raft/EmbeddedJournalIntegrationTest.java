@@ -24,10 +24,12 @@ import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
+import alluxio.grpc.GetQuorumInfoPResponse;
 import alluxio.grpc.NetAddress;
 import alluxio.grpc.QuorumServerInfo;
 import alluxio.grpc.QuorumServerState;
 import alluxio.master.AlluxioMasterProcess;
+import alluxio.master.file.FileSystemMaster;
 import alluxio.master.journal.JournalType;
 import alluxio.master.journal.raft.RaftJournalSystem;
 import alluxio.master.journal.raft.RaftJournalUtils;
@@ -40,16 +42,19 @@ import alluxio.util.WaitForOptions;
 import alluxio.util.network.NetworkAddressUtils;
 
 import org.apache.commons.io.FileUtils;
-import org.apache.ratis.server.impl.RaftServerConstants;
-import org.apache.ratis.server.storage.RaftStorage;
+import org.apache.ratis.protocol.Message;
+import org.apache.ratis.server.RaftServerConfigKeys;
+import org.apache.ratis.server.storage.RaftStorageImpl;
 import org.apache.ratis.statemachine.impl.SimpleStateMachineStorage;
 import org.apache.ratis.statemachine.impl.SingleFileSnapshotInfo;
 import org.junit.After;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
@@ -94,8 +99,8 @@ public final class EmbeddedJournalIntegrationTest extends BaseIntegrationTest {
         .addProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.EMBEDDED.toString())
         .addProperty(PropertyKey.MASTER_JOURNAL_FLUSH_TIMEOUT_MS, "5min")
         // To make the test run faster.
-        .addProperty(PropertyKey.MASTER_EMBEDDED_JOURNAL_ELECTION_TIMEOUT, "750ms")
-        .addProperty(PropertyKey.MASTER_EMBEDDED_JOURNAL_HEARTBEAT_INTERVAL, "250ms")
+        .addProperty(PropertyKey.MASTER_EMBEDDED_JOURNAL_MIN_ELECTION_TIMEOUT, "750ms")
+        .addProperty(PropertyKey.MASTER_EMBEDDED_JOURNAL_MAX_ELECTION_TIMEOUT, "1500ms")
         .build();
     mCluster.start();
 
@@ -117,7 +122,8 @@ public final class EmbeddedJournalIntegrationTest extends BaseIntegrationTest {
         .addProperty(PropertyKey.MASTER_JOURNAL_FLUSH_TIMEOUT_MS, "5min")
         .addProperty(PropertyKey.MASTER_JOURNAL_CHECKPOINT_PERIOD_ENTRIES, "1000")
         .addProperty(PropertyKey.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX, "50KB")
-        .addProperty(PropertyKey.MASTER_EMBEDDED_JOURNAL_ELECTION_TIMEOUT, "3s")
+        .addProperty(PropertyKey.MASTER_EMBEDDED_JOURNAL_MIN_ELECTION_TIMEOUT, "3s")
+        .addProperty(PropertyKey.MASTER_EMBEDDED_JOURNAL_MAX_ELECTION_TIMEOUT, "6s")
         .addProperty(PropertyKey.MASTER_STANDBY_HEARTBEAT_INTERVAL, "5s")
         .build();
     mCluster.start();
@@ -136,7 +142,8 @@ public final class EmbeddedJournalIntegrationTest extends BaseIntegrationTest {
     mCluster.stopMasters();
 
     SimpleStateMachineStorage storage = new SimpleStateMachineStorage();
-    storage.init(new RaftStorage(raftDir, RaftServerConstants.StartupOption.REGULAR));
+    storage.init(new RaftStorageImpl(raftDir,
+            RaftServerConfigKeys.Log.CorruptionPolicy.getDefault()));
     SingleFileSnapshotInfo snapshot = storage.findLatestSnapshot();
     assertNotNull(snapshot);
     mCluster.notifySuccess();
@@ -152,7 +159,8 @@ public final class EmbeddedJournalIntegrationTest extends BaseIntegrationTest {
         .addProperty(PropertyKey.MASTER_JOURNAL_FLUSH_TIMEOUT_MS, "5min")
         .addProperty(PropertyKey.MASTER_JOURNAL_CHECKPOINT_PERIOD_ENTRIES, "1000")
         .addProperty(PropertyKey.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX, "10KB")
-        .addProperty(PropertyKey.MASTER_EMBEDDED_JOURNAL_ELECTION_TIMEOUT, "3s")
+        .addProperty(PropertyKey.MASTER_EMBEDDED_JOURNAL_MIN_ELECTION_TIMEOUT, "3s")
+        .addProperty(PropertyKey.MASTER_EMBEDDED_JOURNAL_MAX_ELECTION_TIMEOUT, "6s")
         .addProperty(PropertyKey.MASTER_STANDBY_HEARTBEAT_INTERVAL, "5s")
         .build();
     mCluster.start();
@@ -175,7 +183,8 @@ public final class EmbeddedJournalIntegrationTest extends BaseIntegrationTest {
     waitForSnapshot(raftDir);
     mCluster.stopMaster(catchUpMasterIndex);
     SimpleStateMachineStorage storage = new SimpleStateMachineStorage();
-    storage.init(new RaftStorage(raftDir, RaftServerConstants.StartupOption.REGULAR));
+    storage.init(new RaftStorageImpl(raftDir,
+            RaftServerConfigKeys.Log.CorruptionPolicy.getDefault()));
     SingleFileSnapshotInfo snapshot = storage.findLatestSnapshot();
     assertNotNull(snapshot);
     mCluster.notifySuccess();
@@ -196,8 +205,9 @@ public final class EmbeddedJournalIntegrationTest extends BaseIntegrationTest {
         .addProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.EMBEDDED.toString())
         .addProperty(PropertyKey.MASTER_JOURNAL_FLUSH_TIMEOUT_MS, "5min")
         // To make the test run faster.
-        .addProperty(PropertyKey.MASTER_EMBEDDED_JOURNAL_ELECTION_TIMEOUT, "750ms")
-        .addProperty(PropertyKey.MASTER_EMBEDDED_JOURNAL_HEARTBEAT_INTERVAL, "250ms").build();
+        .addProperty(PropertyKey.MASTER_EMBEDDED_JOURNAL_MIN_ELECTION_TIMEOUT, "750ms")
+        .addProperty(PropertyKey.MASTER_EMBEDDED_JOURNAL_MAX_ELECTION_TIMEOUT, "1500ms")
+        .build();
     mCluster.start();
 
     assertEquals(5,
@@ -254,17 +264,200 @@ public final class EmbeddedJournalIntegrationTest extends BaseIntegrationTest {
   }
 
   @Test
+  public void transferLeadership() throws Exception {
+    final int MASTER_INDEX_WAIT_TIME = 5_000;
+    mCluster = MultiProcessCluster.newBuilder(PortCoordination.EMBEDDED_JOURNAL_FAILOVER)
+            .setClusterName("TransferLeadership")
+            .setNumMasters(NUM_MASTERS)
+            .setNumWorkers(0)
+            .addProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.EMBEDDED.toString())
+            .addProperty(PropertyKey.MASTER_JOURNAL_FLUSH_TIMEOUT_MS, "5min")
+            .addProperty(PropertyKey.MASTER_EMBEDDED_JOURNAL_MIN_ELECTION_TIMEOUT, "750ms")
+            .addProperty(PropertyKey.MASTER_EMBEDDED_JOURNAL_MAX_ELECTION_TIMEOUT, "1500ms")
+            .build();
+    mCluster.start();
+
+    int newLeaderIdx = (mCluster.getPrimaryMasterIndex(MASTER_INDEX_WAIT_TIME) + 1) % NUM_MASTERS;
+    // `getPrimaryMasterIndex` uses the same `mMasterAddresses` variable as getMasterAddresses
+    // we can therefore access to the new leader's address this way
+    MasterNetAddress newLeaderAddr = mCluster.getMasterAddresses().get(newLeaderIdx);
+    NetAddress netAddress = NetAddress.newBuilder().setHost(newLeaderAddr.getHostname())
+            .setRpcPort(newLeaderAddr.getEmbeddedJournalPort()).build();
+
+    mCluster.getJournalMasterClientForMaster().transferLeadership(netAddress);
+
+    CommonUtils.waitFor("leadership to transfer", () -> {
+      try {
+        // wait until the address of the new leader matches the one we designated as the new leader
+        return mCluster.getMasterAddresses()
+                .get(mCluster.getPrimaryMasterIndex(MASTER_INDEX_WAIT_TIME)).equals(newLeaderAddr);
+      } catch (Exception exc) {
+        throw new RuntimeException(exc);
+      }
+    });
+
+    mCluster.notifySuccess();
+  }
+
+  @Test
+  public void repeatedTransferLeadership() throws Exception {
+    final int MASTER_INDEX_WAIT_TIME = 5_000;
+    mCluster = MultiProcessCluster.newBuilder(PortCoordination.EMBEDDED_JOURNAL_FAILOVER)
+            .setClusterName("TransferLeadership")
+            .setNumMasters(NUM_MASTERS)
+            .setNumWorkers(0)
+            .addProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.EMBEDDED.toString())
+            .addProperty(PropertyKey.MASTER_JOURNAL_FLUSH_TIMEOUT_MS, "5min")
+            .addProperty(PropertyKey.MASTER_EMBEDDED_JOURNAL_MIN_ELECTION_TIMEOUT, "750ms")
+            .addProperty(PropertyKey.MASTER_EMBEDDED_JOURNAL_MAX_ELECTION_TIMEOUT, "1500ms")
+            .build();
+    mCluster.start();
+
+    for (int i = 0; i < NUM_MASTERS; i++) {
+      int newLeaderIdx = (mCluster.getPrimaryMasterIndex(MASTER_INDEX_WAIT_TIME) + 1) % NUM_MASTERS;
+      // `getPrimaryMasterIndex` uses the same `mMasterAddresses` variable as getMasterAddresses
+      // we can therefore access to the new leader's address this way
+      MasterNetAddress newLeaderAddr = mCluster.getMasterAddresses().get(newLeaderIdx);
+      NetAddress netAddress = NetAddress.newBuilder().setHost(newLeaderAddr.getHostname())
+              .setRpcPort(newLeaderAddr.getEmbeddedJournalPort()).build();
+
+      mCluster.getJournalMasterClientForMaster().transferLeadership(netAddress);
+
+      final int TIMEOUT_3MIN = 3 * 60 * 1000; // in ms
+      CommonUtils.waitFor("leadership to transfer", () -> {
+        try {
+          // wait until the address of the new leader matches the one designated as the new leader
+          return mCluster.getMasterAddresses()
+              .get(mCluster.getPrimaryMasterIndex(MASTER_INDEX_WAIT_TIME)).equals(newLeaderAddr);
+        } catch (Exception exc) {
+          throw new RuntimeException(exc);
+        }
+      }, WaitForOptions.defaults().setTimeoutMs(TIMEOUT_3MIN));
+    }
+    mCluster.notifySuccess();
+  }
+
+  @Test
+  public void ensureAutoResetPriorities() throws Exception {
+    final int MASTER_INDEX_WAIT_TIME = 5_000;
+    mCluster = MultiProcessCluster.newBuilder(PortCoordination.EMBEDDED_JOURNAL_FAILOVER)
+            .setClusterName("TransferLeadership")
+            .setNumMasters(NUM_MASTERS)
+            .setNumWorkers(0)
+            .addProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.EMBEDDED.toString())
+            .addProperty(PropertyKey.MASTER_JOURNAL_FLUSH_TIMEOUT_MS, "5min")
+            .addProperty(PropertyKey.MASTER_EMBEDDED_JOURNAL_MIN_ELECTION_TIMEOUT, "750ms")
+            .addProperty(PropertyKey.MASTER_EMBEDDED_JOURNAL_MAX_ELECTION_TIMEOUT, "1500ms")
+            .build();
+    mCluster.start();
+
+    for (int i = 0; i < NUM_MASTERS; i++) {
+      int newLeaderIdx = (mCluster.getPrimaryMasterIndex(MASTER_INDEX_WAIT_TIME) + 1) % NUM_MASTERS;
+      // `getPrimaryMasterIndex` uses the same `mMasterAddresses` variable as getMasterAddresses
+      // we can therefore access to the new leader's address this way
+      MasterNetAddress newLeaderAddr = mCluster.getMasterAddresses().get(newLeaderIdx);
+      NetAddress netAddress = NetAddress.newBuilder().setHost(newLeaderAddr.getHostname())
+              .setRpcPort(newLeaderAddr.getEmbeddedJournalPort()).build();
+
+      mCluster.getJournalMasterClientForMaster().transferLeadership(netAddress);
+
+      final int TIMEOUT_3MIN = 3 * 60 * 1000; // in ms
+      CommonUtils.waitFor("leadership to transfer", () -> {
+        try {
+          // wait until the address of the new leader matches the one designated as the new leader
+          return mCluster.getMasterAddresses()
+              .get(mCluster.getPrimaryMasterIndex(MASTER_INDEX_WAIT_TIME)).equals(newLeaderAddr);
+        } catch (Exception exc) {
+          throw new RuntimeException(exc);
+        }
+      }, WaitForOptions.defaults().setTimeoutMs(TIMEOUT_3MIN));
+
+      GetQuorumInfoPResponse info = mCluster.getJournalMasterClientForMaster().getQuorumInfo();
+      // confirms that master priorities get reset to 0 for the new leading master and 1 for the
+      // follower masters (this behavior is default within Apache Ratis 2.0)
+      Assert.assertTrue(info.getServerInfoList().stream().allMatch(masterInfo ->
+          masterInfo.getPriority() == (masterInfo.getIsLeader() ? 0 : 1)
+      ));
+    }
+    mCluster.notifySuccess();
+  }
+
+  @Test
+  public void transferLeadershipWhenAlreadyTransferring() throws Exception {
+    final int MASTER_INDEX_WAIT_TIME = 5_000;
+    mCluster = MultiProcessCluster.newBuilder(PortCoordination.EMBEDDED_JOURNAL_FAILOVER)
+            .setClusterName("TransferLeadership")
+            .setNumMasters(NUM_MASTERS)
+            .setNumWorkers(0)
+            .addProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.EMBEDDED.toString())
+            .addProperty(PropertyKey.MASTER_JOURNAL_FLUSH_TIMEOUT_MS, "5min")
+            .addProperty(PropertyKey.MASTER_EMBEDDED_JOURNAL_MIN_ELECTION_TIMEOUT, "750ms")
+            .addProperty(PropertyKey.MASTER_EMBEDDED_JOURNAL_MAX_ELECTION_TIMEOUT, "1500ms")
+            .build();
+    mCluster.start();
+
+    int newLeaderIdx = (mCluster.getPrimaryMasterIndex(MASTER_INDEX_WAIT_TIME) + 1) % NUM_MASTERS;
+    // `getPrimaryMasterIndex` uses the same `mMasterAddresses` variable as getMasterAddresses
+    // we can therefore access to the new leader's address this way
+    MasterNetAddress newLeaderAddr = mCluster.getMasterAddresses().get(newLeaderIdx);
+    NetAddress netAddress = NetAddress.newBuilder().setHost(newLeaderAddr.getHostname())
+            .setRpcPort(newLeaderAddr.getEmbeddedJournalPort()).build();
+
+    mCluster.getJournalMasterClientForMaster().transferLeadership(netAddress);
+    try {
+      // this second call should throw an exception
+      mCluster.getJournalMasterClientForMaster().transferLeadership(netAddress);
+      Assert.fail("Should have thrown exception");
+    } catch (IOException ioe) {
+      // expected exception thrown
+    }
+    mCluster.notifySuccess();
+  }
+
+  @Test
+  public void transferLeadershipOutsideCluster() throws Exception {
+    mCluster = MultiProcessCluster.newBuilder(PortCoordination.EMBEDDED_JOURNAL_FAILOVER)
+            .setClusterName("TransferLeadership")
+            .setNumMasters(NUM_MASTERS)
+            .setNumWorkers(0)
+            .addProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.EMBEDDED.toString())
+            .addProperty(PropertyKey.MASTER_JOURNAL_FLUSH_TIMEOUT_MS, "5min")
+            .addProperty(PropertyKey.MASTER_EMBEDDED_JOURNAL_MIN_ELECTION_TIMEOUT, "750ms")
+            .addProperty(PropertyKey.MASTER_EMBEDDED_JOURNAL_MAX_ELECTION_TIMEOUT, "1500ms")
+            .build();
+    mCluster.start();
+
+    NetAddress netAddress = NetAddress.newBuilder().setHost("hostname").setRpcPort(0).build();
+
+    try {
+      mCluster.getJournalMasterClientForMaster().transferLeadership(netAddress);
+      Assert.fail("Should have thrown exception");
+    } catch (IOException e) {
+      Assert.assertTrue(e.getMessage().startsWith(String.format("<%s:%d> is not part of the quorum",
+              netAddress.getHost(), netAddress.getRpcPort())));
+
+      for (MasterNetAddress address : mCluster.getMasterAddresses()) {
+        String host = address.getHostname();
+        int port = address.getEmbeddedJournalPort();
+        Assert.assertTrue(e.getMessage().contains(String.format("%s:%d", host, port)));
+      }
+    }
+    mCluster.notifySuccess();
+  }
+
+  @Test
   public void growCluster() throws Exception {
     mCluster = MultiProcessCluster.newBuilder(PortCoordination.EMBEDDED_JOURNAL_GROW)
         .setClusterName("EmbeddedJournalAddMaster").setNumMasters(2).setNumWorkers(0)
         .addProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.EMBEDDED.toString())
         .addProperty(PropertyKey.MASTER_JOURNAL_FLUSH_TIMEOUT_MS, "5min")
         // To make the test run faster.
-        .addProperty(PropertyKey.MASTER_EMBEDDED_JOURNAL_ELECTION_TIMEOUT, "2s")
-        .addProperty(PropertyKey.MASTER_EMBEDDED_JOURNAL_HEARTBEAT_INTERVAL, "250ms").build();
+        .addProperty(PropertyKey.MASTER_EMBEDDED_JOURNAL_MIN_ELECTION_TIMEOUT, "2s")
+        .addProperty(PropertyKey.MASTER_EMBEDDED_JOURNAL_MAX_ELECTION_TIMEOUT, "4s")
+        .build();
     mCluster.start();
 
-    AlluxioURI testDir = new AlluxioURI("/test");
+    AlluxioURI testDir = new AlluxioURI("/" + CommonUtils.randomAlphaNumString(10));
     FileSystem fs = mCluster.getFileSystemClient();
     fs.createDirectory(testDir);
     Assert.assertTrue(fs.exists(testDir));
@@ -368,6 +561,131 @@ public final class EmbeddedJournalIntegrationTest extends BaseIntegrationTest {
     mCluster.notifySuccess();
   }
 
+  @Ignore
+  @Test
+  public void updateRaftGroup() throws Exception {
+    int masterCount = 2;
+    mCluster = MultiProcessCluster.newBuilder(PortCoordination.EMBEDDED_JOURNAL_UPDATE_RAFT_GROUP)
+        .setClusterName("EmbeddedJournalUpdateGroup").setNumMasters(masterCount).setNumWorkers(0)
+        .addProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.EMBEDDED.toString())
+        .addProperty(PropertyKey.MASTER_JOURNAL_FLUSH_TIMEOUT_MS, "5min")
+        .addProperty(PropertyKey.MASTER_METASTORE, "HEAP")
+        // To make the test run faster.
+        .addProperty(PropertyKey.MASTER_EMBEDDED_JOURNAL_MIN_ELECTION_TIMEOUT, "2s")
+        .addProperty(PropertyKey.MASTER_EMBEDDED_JOURNAL_MAX_ELECTION_TIMEOUT, "4s")
+        .build();
+    mCluster.start();
+
+    AlluxioURI testDir = new AlluxioURI("/" + CommonUtils.randomAlphaNumString(10));
+    FileSystem fs = mCluster.getFileSystemClient();
+    fs.createDirectory(testDir);
+    Assert.assertTrue(fs.exists(testDir));
+
+    // Validate current quorum size.
+    Assert.assertEquals(masterCount,
+        mCluster.getJournalMasterClientForMaster().getQuorumInfo().getServerInfoList().size());
+
+    // Create and start a new master to join to existing cluster.
+    // Get new master address.
+    MasterNetAddress newMasterAddress = new MasterNetAddress(
+        NetworkAddressUtils.getLocalHostName(
+            (int) ServerConfiguration.getMs(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS)),
+        PortCoordination.EMBEDDED_JOURNAL_UPDATE_RAFT_GROUP_NEW.get(0).getPort(),
+        PortCoordination.EMBEDDED_JOURNAL_UPDATE_RAFT_GROUP_NEW.get(1).getPort(),
+        PortCoordination.EMBEDDED_JOURNAL_UPDATE_RAFT_GROUP_NEW.get(2).getPort());
+
+    // Update RPC and EmbeddedJournal addresses with the new master address.
+    String newBootstrapList = ServerConfiguration.get(PropertyKey.MASTER_EMBEDDED_JOURNAL_ADDRESSES)
+        + "," + newMasterAddress.getHostname() + ":" + newMasterAddress.getEmbeddedJournalPort();
+    String newRpcList = ServerConfiguration.get(PropertyKey.MASTER_RPC_ADDRESSES) + ","
+        + newMasterAddress.getHostname() + ":" + newMasterAddress.getRpcPort();
+    ServerConfiguration.global().set(PropertyKey.MASTER_EMBEDDED_JOURNAL_ADDRESSES,
+        newBootstrapList);
+    ServerConfiguration.global().set(PropertyKey.MASTER_RPC_ADDRESSES, newRpcList);
+
+    // Create a separate working dir for the new master.
+    File newMasterWorkDir =
+        AlluxioTestDirectory.createTemporaryDirectory("EmbeddedJournalUpdateGroup-NewMaster");
+    newMasterWorkDir.deleteOnExit();
+
+    // Create journal dir for the new master and update configuration.
+    File newMasterJournalDir = new File(newMasterWorkDir, "journal-newmaster");
+    newMasterJournalDir.mkdirs();
+    ServerConfiguration.global().set(PropertyKey.MASTER_JOURNAL_FOLDER,
+        newMasterJournalDir.getAbsolutePath());
+
+    // Update network settings for the new master.
+    ServerConfiguration.global().set(PropertyKey.MASTER_HOSTNAME, newMasterAddress.getHostname());
+    ServerConfiguration.global().set(PropertyKey.MASTER_RPC_PORT,
+        Integer.toString(newMasterAddress.getRpcPort()));
+    ServerConfiguration.global().set(PropertyKey.MASTER_EMBEDDED_JOURNAL_PORT,
+        Integer.toString(newMasterAddress.getEmbeddedJournalPort()));
+
+    // Create and start the new master.
+    mNewMaster = AlluxioMasterProcess.Factory.create();
+    // Update cluster with the new address for further queries to
+    // include the new master. Otherwise clients could fail if stopping
+    // a master causes the new master to become the leader.
+    mCluster.addExternalMasterAddress(newMasterAddress);
+
+    // Submit a common task for starting the master.
+    ForkJoinPool.commonPool().execute(() -> {
+      try {
+        mNewMaster.start();
+      } catch (Exception e) {
+        throw new RuntimeException("Failed to start new master.", e);
+      }
+    });
+
+    // Wait until quorum size is increased to 3.
+    CommonUtils.waitFor("New master is included in quorum", () -> {
+      try {
+        return mCluster.getJournalMasterClientForMaster().getQuorumInfo().getServerInfoList()
+            .stream().filter(x -> x.getServerState() == QuorumServerState.AVAILABLE)
+            .toArray().length == masterCount + 1;
+      } catch (Exception exc) {
+        throw new RuntimeException(exc);
+      }
+    });
+
+    // Reacquire FS client after cluster grew.
+    fs = mCluster.getFileSystemClient();
+
+    // Verify cluster is still operational.
+    Assert.assertTrue(fs.exists(testDir));
+
+    // start one more master
+    mCluster.startNewMasters(1, false);
+
+    // Wait until quorum size equals to new master count.
+    CommonUtils.waitFor("New master is included in quorum", () -> {
+      try {
+        return mCluster.getJournalMasterClientForMaster().getQuorumInfo().getServerInfoList()
+            .stream().filter(x -> x.getServerState() == QuorumServerState.AVAILABLE)
+            .toArray().length == masterCount + 2;
+      } catch (Exception exc) {
+        throw new RuntimeException(exc);
+      }
+    });
+
+    Assert.assertTrue(fs.exists(testDir));
+    FileSystemMaster master = mNewMaster.getMaster(FileSystemMaster.class);
+    RaftJournalSystem journal = ((RaftJournalSystem) master.getMasterContext().getJournalSystem());
+    boolean error = journal.getCurrentGroup().getPeers().stream().anyMatch(
+        peer -> {
+          try {
+            journal.sendMessageAsync(peer.getId(), Message.EMPTY).get();
+            return false;
+          } catch (Exception e) {
+            e.printStackTrace();
+            return true;
+          }
+        }
+    );
+    Assert.assertFalse("error send message to peers", error);
+    mCluster.notifySuccess();
+  }
+
   @Test
   public void restart() throws Exception {
     mCluster = MultiProcessCluster.newBuilder(PortCoordination.EMBEDDED_JOURNAL_RESTART)
@@ -377,8 +695,8 @@ public final class EmbeddedJournalIntegrationTest extends BaseIntegrationTest {
         .addProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.EMBEDDED.toString())
         .addProperty(PropertyKey.MASTER_JOURNAL_FLUSH_TIMEOUT_MS, "5min")
         // To make the test run faster.
-        .addProperty(PropertyKey.MASTER_EMBEDDED_JOURNAL_ELECTION_TIMEOUT, "750ms")
-        .addProperty(PropertyKey.MASTER_EMBEDDED_JOURNAL_HEARTBEAT_INTERVAL, "250ms")
+        .addProperty(PropertyKey.MASTER_EMBEDDED_JOURNAL_MIN_ELECTION_TIMEOUT, "750ms")
+        .addProperty(PropertyKey.MASTER_EMBEDDED_JOURNAL_MAX_ELECTION_TIMEOUT, "1500ms")
         .build();
     mCluster.start();
 
@@ -403,8 +721,8 @@ public final class EmbeddedJournalIntegrationTest extends BaseIntegrationTest {
         .addProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.EMBEDDED.toString())
         .addProperty(PropertyKey.MASTER_JOURNAL_FLUSH_TIMEOUT_MS, "5min")
         // To make the test run faster.
-        .addProperty(PropertyKey.MASTER_EMBEDDED_JOURNAL_ELECTION_TIMEOUT, "750ms")
-        .addProperty(PropertyKey.MASTER_EMBEDDED_JOURNAL_HEARTBEAT_INTERVAL, "250ms")
+        .addProperty(PropertyKey.MASTER_EMBEDDED_JOURNAL_MIN_ELECTION_TIMEOUT, "750ms")
+        .addProperty(PropertyKey.MASTER_EMBEDDED_JOURNAL_MAX_ELECTION_TIMEOUT, "1500ms")
         .build();
     mCluster.start();
 

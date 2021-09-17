@@ -19,12 +19,15 @@ import alluxio.grpc.DataMessage;
 import alluxio.grpc.ReadRequest;
 import alluxio.grpc.ReadResponse;
 import alluxio.grpc.ReadResponseMarshaller;
+import alluxio.metrics.MetricKey;
+import alluxio.metrics.MetricsSystem;
 import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.network.protocol.databuffer.NioDataBuffer;
 import alluxio.resource.CloseableResource;
 import alluxio.util.logging.SamplingLogger;
 import alluxio.wire.WorkerNetAddress;
 
+import com.codahale.metrics.Timer;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
@@ -54,6 +57,7 @@ public final class GrpcDataReader implements DataReader {
 
   private final int mReaderBufferSizeMessages;
   private final long mDataTimeoutMs;
+  private final boolean mDetailedMetricsEnabled;
   private final FileSystemContext mContext;
   private final CloseableResource<BlockWorkerClient> mClient;
   private final ReadRequest mReadRequest;
@@ -82,7 +86,8 @@ public final class GrpcDataReader implements DataReader {
     AlluxioConfiguration alluxioConf = context.getClusterConf();
     mReaderBufferSizeMessages = alluxioConf
         .getInt(PropertyKey.USER_STREAMING_READER_BUFFER_SIZE_MESSAGES);
-    mDataTimeoutMs = alluxioConf.getMs(PropertyKey.USER_STREAMING_DATA_TIMEOUT);
+    mDataTimeoutMs = alluxioConf.getMs(PropertyKey.USER_STREAMING_DATA_READ_TIMEOUT);
+    mDetailedMetricsEnabled = alluxioConf.getBoolean(PropertyKey.USER_BLOCK_READ_METRICS_ENABLED);
     mMarshaller = new ReadResponseMarshaller();
     mClient = mContext.acquireBlockWorkerClient(address);
     mCloseWaitMs = alluxioConf.getMs(PropertyKey.USER_STREAMING_READER_CLOSE_TIMEOUT);
@@ -124,6 +129,16 @@ public final class GrpcDataReader implements DataReader {
 
   @Override
   public DataBuffer readChunk() throws IOException {
+    if (mDetailedMetricsEnabled) {
+      try (Timer.Context ctx = MetricsSystem
+          .timer(MetricKey.CLIENT_BLOCK_READ_CHUNK_REMOTE.getName()).time()) {
+        return readChunkInternal();
+      }
+    }
+    return readChunkInternal();
+  }
+
+  private DataBuffer readChunkInternal() throws IOException {
     Preconditions.checkState(!mClient.get().isShutdown(),
         "Data reader is closed while reading data chunks.");
     DataBuffer buffer = null;
@@ -203,31 +218,26 @@ public final class GrpcDataReader implements DataReader {
   public static class Factory implements DataReader.Factory {
     private final FileSystemContext mContext;
     private final WorkerNetAddress mAddress;
-    private final ReadRequest mReadRequestPartial;
+    private final ReadRequest.Builder mReadRequestBuilder;
 
     /**
      * Creates an instance of {@link GrpcDataReader.Factory} for block reads.
      *
      * @param context the file system context
      * @param address the worker address
-     * @param readRequestPartial the partial read request
+     * @param readRequestBuilder the builder of read request
      */
     public Factory(FileSystemContext context, WorkerNetAddress address,
-        ReadRequest readRequestPartial) {
+        ReadRequest.Builder readRequestBuilder) {
       mContext = context;
       mAddress = address;
-      mReadRequestPartial = readRequestPartial;
+      mReadRequestBuilder = readRequestBuilder;
     }
 
     @Override
     public DataReader create(long offset, long len) throws IOException {
       return new GrpcDataReader(mContext, mAddress,
-          mReadRequestPartial.toBuilder().setOffset(offset).setLength(len).build());
-    }
-
-    @Override
-    public boolean isShortCircuit() {
-      return false;
+          mReadRequestBuilder.setOffset(offset).setLength(len).build());
     }
 
     @Override

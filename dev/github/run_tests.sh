@@ -40,7 +40,7 @@ PATH_BACKUP=${PATH}
 JAVA_HOME=/usr/local/openjdk-8
 PATH=$JAVA_HOME/bin:$PATH
 mvn -Duser.home=/home/jenkins -T 4C clean install -Pdeveloper -Dfindbugs.skip -Dcheckstyle.skip -DskipTests -Dmaven.javadoc.skip \
--Dlicense.skip -Dsurefire.forkCount=2 ${mvn_args} ${mvn_project_list}
+-Dlicense.skip -Dsurefire.forkCount=2 ${mvn_args}
 
 # Set things up so that the current user has a real name and can authenticate.
 myuid=$(id -u)

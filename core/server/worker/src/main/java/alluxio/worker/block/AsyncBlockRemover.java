@@ -12,6 +12,7 @@
 package alluxio.worker.block;
 
 import alluxio.Sessions;
+import alluxio.exception.BlockDoesNotExistException;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.util.ThreadFactoryUtils;
@@ -47,8 +48,8 @@ public class AsyncBlockRemover {
   /** This set is used for recording blocks in BlockRemover. */
   private final Set<Long> mRemovingBlocks;
   private final ExecutorService mRemoverPool;
-  private final Counter mTakeCount;
-  private final Counter mRemovedSuccessCount;
+  private final Counter mTryRemoveCount;
+  private final Counter mRemovedCount;
   private final int mPoolSize;
   private volatile boolean mShutdown = false;
 
@@ -76,11 +77,10 @@ public class AsyncBlockRemover {
     mPoolSize = threads;
     mBlocksToRemove = blocksToRemove;
     mRemovingBlocks = removingBlocks;
-    mTakeCount = MetricsSystem.counter(MetricKey.WORKER_BLOCK_REMOVER_TRY_REMOVE_COUNT
-        .getName());
-    mRemovedSuccessCount =
-        MetricsSystem.counter(MetricKey.WORKER_BLOCK_REMOVER_REMOVED_COUNT
-            .getName());
+    mTryRemoveCount = MetricsSystem.counter(
+        MetricKey.WORKER_BLOCK_REMOVER_TRY_REMOVE_COUNT.getName());
+    mRemovedCount = MetricsSystem.counter(
+        MetricKey.WORKER_BLOCK_REMOVER_REMOVED_COUNT.getName());
     MetricsSystem.registerGaugeIfAbsent(
         MetricKey.WORKER_BLOCK_REMOVER_TRY_REMOVE_BLOCKS_SIZE.getName(), mBlocksToRemove::size);
     MetricsSystem.registerGaugeIfAbsent(
@@ -129,9 +129,9 @@ public class AsyncBlockRemover {
         Long blockToBeRemoved = null;
         try {
           blockToBeRemoved = mBlocksToRemove.take();
-          mTakeCount.inc();
+          mTryRemoveCount.inc();
           mBlockWorker.removeBlock(Sessions.MASTER_COMMAND_SESSION_ID, blockToBeRemoved);
-          mRemovedSuccessCount.inc();
+          mRemovedCount.inc();
           LOG.debug("Block {} is removed in thread {}.", blockToBeRemoved, threadName);
         } catch (InterruptedException e) {
           Thread.currentThread().interrupt();
@@ -141,6 +141,9 @@ public class AsyncBlockRemover {
                 blockToBeRemoved);
           }
           break;
+        } catch (BlockDoesNotExistException e) {
+          // Ignore the case when block is already removed. This could happen when master is asking
+          // worker to remove blocks based on stale information
         } catch (Exception e) {
           LOG.warn("Failed to remove block {} instructed by master. This is best-effort and "
               + "will be tried later. threadName {}, error {}", blockToBeRemoved,

@@ -125,3 +125,17 @@ Alluxio的度量指标信息被分配到各种相关Alluxio组件的实例中。
 * BytesWrittenRemote: 远程写入的字节数目。
 * BytesReadUfs: 从ufs中读取的字节数目。
 * BytesWrittenUfs: 写入ufs的字节数目。
+
+## JVM 指标
+
+您可以以 Java agent 的方式运行 `jvm_exporter` 来获取JVM相关指标。
+
+下载 [jmx_prometheus_javaagent-0.16.0.jar](https://repo1.maven.org/maven2/io/prometheus/jmx/jmx_prometheus_javaagent/0.16.0/jmx_prometheus_javaagent-0.16.0.jar) 并运行：
+
+```bash
+java -javaagent:./jmx_prometheus_javaagent-0.16.0.jar=8080:config.yaml -jar yourJar.jar
+```
+
+您可以在 http://localhost:8080/metrics 访问指标。
+
+配置文件是 YAML 格式，为了快速使用，可以创建空白配置文件，您也可以访问 [jmx_exporter](https://github.com/prometheus/jmx_exporter) 获取更多信息。

@@ -60,7 +60,7 @@ public final class MasterBenchSummary implements Summary {
    */
   public MasterBenchSummary(MasterBenchTaskResult mergedTaskResults, List<String> nodes,
       Map<String, List<String>> errors) throws DataFormatException {
-    mStatistics = mergedTaskResults.getStatistics().toMasterBenchSummaryStatistics();
+    mStatistics = mergedTaskResults.getStatistics().toBenchSummaryStatistics();
 
     mStatisticsPerMethod = new HashMap<>();
     for (Map.Entry<String, MasterBenchTaskResultStatistics> entry :
@@ -68,7 +68,7 @@ public final class MasterBenchSummary implements Summary {
       final String key = entry.getKey();
       final MasterBenchTaskResultStatistics value = entry.getValue();
 
-      mStatisticsPerMethod.put(key, value.toMasterBenchSummaryStatistics());
+      mStatisticsPerMethod.put(key, value.toBenchSummaryStatistics());
     }
 
     mDurationMs = mergedTaskResults.getEndMs() - mergedTaskResults.getRecordStartMs();
@@ -224,9 +224,9 @@ public final class MasterBenchSummary implements Summary {
 
       // Iterate over all operations
       for (Operation operation : Operation.values()) {
-        List<MasterBenchSummary> opSummaries =
-            summaries.stream().filter(x -> x.mParameters.mOperation == operation)
-                .collect(Collectors.toList());
+        List<MasterBenchSummary> opSummaries = summaries.stream()
+            .filter(x -> x.mParameters.mOperation == operation)
+            .collect(Collectors.toList());
 
         if (opSummaries.isEmpty()) {
           continue;

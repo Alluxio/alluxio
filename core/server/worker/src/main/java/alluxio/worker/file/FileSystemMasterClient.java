@@ -38,7 +38,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * A wrapper for the gRPC client to interact with the file system master, used by Alluxio worker.
  */
 @ThreadSafe
-public final class FileSystemMasterClient extends AbstractMasterClient {
+public class FileSystemMasterClient extends AbstractMasterClient {
   private static final Logger LOG = LoggerFactory.getLogger(FileSystemMasterClient.class);
   private FileSystemMasterWorkerServiceGrpc.FileSystemMasterWorkerServiceBlockingStub mClient =
       null;

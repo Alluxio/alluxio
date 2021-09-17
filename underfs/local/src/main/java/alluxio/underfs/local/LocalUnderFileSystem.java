@@ -72,6 +72,8 @@ public class LocalUnderFileSystem extends ConsistentUnderFileSystem
     implements AtomicFileOutputStreamCallback {
   private static final Logger LOG = LoggerFactory.getLogger(LocalUnderFileSystem.class);
 
+  private final boolean mSkipBrokenSymlinks;
+
   /**
    * Constructs a new {@link LocalUnderFileSystem}.
    *
@@ -80,6 +82,7 @@ public class LocalUnderFileSystem extends ConsistentUnderFileSystem
    */
   public LocalUnderFileSystem(AlluxioURI uri, UnderFileSystemConfiguration ufsConf) {
     super(uri, ufsConf);
+    mSkipBrokenSymlinks = ufsConf.getBoolean(PropertyKey.UNDERFS_LOCAL_SKIP_BROKEN_SYMLINKS);
   }
 
   @Override
@@ -283,7 +286,9 @@ public class LocalUnderFileSystem extends ConsistentUnderFileSystem
   public UfsStatus[] listStatus(String path) throws IOException {
     path = stripPath(path);
     File file = new File(path);
-    File[] files = file.listFiles();
+    // By default, exists follows symlinks. If the symlink is invalid .exists() returns false
+    File[] files = mSkipBrokenSymlinks ? file.listFiles(File::exists) : file.listFiles();
+
     if (files != null) {
       UfsStatus[] rtn = new UfsStatus[files.length];
       int i = 0;
@@ -323,7 +328,7 @@ public class LocalUnderFileSystem extends ConsistentUnderFileSystem
           setOwner(file.getPath(), options.getOwner(), options.getGroup());
         } catch (IOException e) {
           LOG.warn("Failed to update the ufs dir ownership, default values will be used: {}",
-              e.getMessage());
+              e.toString());
         }
         return true;
       }
@@ -349,7 +354,7 @@ public class LocalUnderFileSystem extends ConsistentUnderFileSystem
           setOwner(dirToMake.getAbsolutePath(), options.getOwner(), options.getGroup());
         } catch (IOException e) {
           LOG.warn("Failed to update the ufs dir ownership, default values will be used: {}",
-              e.getMessage());
+              e.toString());
         }
       } else {
         return false;
@@ -402,15 +407,16 @@ public class LocalUnderFileSystem extends ConsistentUnderFileSystem
         FileUtils.changeLocalFileGroup(path, group);
       }
     } catch (IOException e) {
-      LOG.warn("Failed to set owner for {} with user: {}, group: {}", path, user, group);
       LOG.debug("Exception: ", e);
-      LOG.warn("In order for Alluxio to modify ownership of local files, "
-          + "Alluxio should be the local file system superuser.");
       if (!mUfsConf.getBoolean(PropertyKey.UNDERFS_ALLOW_SET_OWNER_FAILURE)) {
+        LOG.warn("Failed to set owner for {} with user: {}, group: {}: {}. "
+            + "Running Alluxio as superuser is required to modify ownership of local files",
+            path, user, group, e.toString());
         throw e;
       } else {
-        LOG.warn("Failure is ignored, which may cause permission inconsistency between "
-            + "Alluxio and local under file system.");
+        LOG.warn("Failed to set owner for {} with user: {}, group: {}: {}. "
+            + "This failure is ignored but may cause permission inconsistency between Alluxio "
+            + "and local under file system", path, user, group, e.toString());
       }
     }
   }

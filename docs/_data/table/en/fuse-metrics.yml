@@ -1,0 +1,4 @@
+Fuse.BytesRead:
+  'Total number of bytes read through Fuse.read() operations.'
+Fuse.BytesToRead:
+  'Total number of bytes requested by Fuse.read() operations.'
