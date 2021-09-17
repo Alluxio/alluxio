@@ -115,7 +115,8 @@ public final class FileSystem extends AbstractFileSystem {
         masterRpcAddress.add(address);
       }
 
-      alluxioConfProperties.put(PropertyKey.MASTER_RPC_ADDRESSES.getName(), masterRpcAddress.toString());
+      alluxioConfProperties.put(PropertyKey.MASTER_RPC_ADDRESSES.getName(),
+          masterRpcAddress.toString());
       alluxioConfProperties.put(PropertyKey.ZOOKEEPER_ENABLED.getName(), false);
       alluxioConfProperties.put(PropertyKey.ZOOKEEPER_ADDRESS.getName(), null);
     } else if (alluxioUri.getAuthority() instanceof ZookeeperLogicalAuthority) {
