@@ -395,7 +395,12 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setDescription("Length of the master rpc queue")
           .setMetricType(MetricType.GAUGE)
           .build();
-
+  public static final MetricKey MASTER_ACTIVE_JOB_SIZE =
+      new Builder("Master.ActiveJobSize")
+          .setDescription("Active job size started by master")
+          .setMetricType(MetricType.GAUGE)
+          .setIsClusterAggregated(false)
+          .build();
   // Backup Restore
   public static final MetricKey MASTER_LAST_BACKUP_ENTRIES_COUNT =
       new Builder("Master.LastBackupEntriesCount")
