@@ -26,20 +26,38 @@ The following benchmark suites are currently supported:
 * `StressWorkerBench` - A benchmark tool measuring the IO performance of Alluxio with single node.
 * `UfsIOBench` - A benchmark tool measuring the IO throughput between the Alluxio cluster and the UFS.
 
-## High-Level Design
-Internally, each benchmark in StressBench is implemented as a job that runs with Alluxio job service.
-There are a few components for StressBench as follows:
-
-### Client CLI
+## Examples
+### Basic Examples
 The user-facing CLI program allows you to invoke the StressBench tasks through the command line.
-Run a benchmark by its class name using the `runClass` command, For example,
+Run a benchmark by its class name using the `runClass` command (there is a feature request to implement a generic CLI for StressBench [14083](https://github.com/Alluxio/alluxio/issues/14083)).
+
+For example,
 
 ```console
 $ bin/alluxio runClass alluxio.stress.cli.StressMasterBench --help
 ```
 
 This command invokes the `StressMasterBench` and prints its usage.
-This CLI is still experimental and there is a feature request to implement a generic CLI for StressBench [14083](https://github.com/Alluxio/alluxio/issues/14083).
+
+To test RPC throughput of Alluxio master (e.g., for certain RPCs):
+
+```console
+$ bin/alluxio runClass alluxio.stress.cli.GetPinnedFileIdsBench
+$ bin/alluxio runClass alluxio.stress.cli.RegisterWorkerBench
+$ bin/alluxio runClass alluxio.stress.cli.WorkerHeartbeatBench
+```
+
+To benchmark Alluxio FUSE performance
+```console
+$ bin/alluxio runClass alluxio.stress.cli.fuse.FuseIOBench
+```
+
+To benchamrk job service
+```console
+$ bin/alluxio runClass alluxio.stress.cli.StressJobServiceBench
+```
+
+### Options
 
 Here is the list of common options that all benchmarks accept:
 
@@ -55,11 +73,6 @@ Here is the list of common options that all benchmarks accept:
 Individual benchmark suite may also define its own set of options.
 Run the benchmark with the `--help` option to get a list of supported options and example usage.
 
-### Job Definition
-This is the definition of the job master, which is invoked by the client CLI program, and will further coordinate distributed tasks for the job.
-
-### Distributed Tasks
-These tasks are run on the job worker, and eventually report back to the job master.
 
 ## Ensuring Consistent Results
 When tests are inconsistent and wildly variable, the benchmark results will be less reliable and reproducible. 
