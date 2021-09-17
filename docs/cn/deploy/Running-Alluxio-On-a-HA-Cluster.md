@@ -176,15 +176,52 @@ alluxio.zookeeper.address=<ZOOKEEPER_ADDRESS>
 
 ### 使用逻辑域名指定 Alluxio 服务
 
-一些框架可能不接受上述两种方式来连接到高可用Alluxio HA集群，因此Alluxio也支持通过逻辑域名的来连接到Alluxio HA集群。
+一些框架可能不接受上述两种方式来连接到高可用Alluxio HA集群，因此Alluxio也支持通过逻辑域名的来连接到Alluxio HA集群。为了使用逻辑域名，需要在环境变量或站点属性中设置以下的值。
 
-- 当使用嵌入式日志时，使用 `alluxio://[logical-name]`，并在环境变量或站点属性中设置在环境变量或站点属性`alluxio.master.rpc.addresses.[logical-name]`来确定高可用节点的地址。例如设置URI为`alluxio://alluxio-cluster`并添加以下配置到应用配置中：
+#### 嵌入式日志逻辑域名
 
-  `alluxio.master.rpc.addresses.alluxio-cluster=master_hostname_1:19998,master_hostname_2:19998,master_hostname_3:19998`
+如果你使用的是嵌入式日志，你需要配置以下的值并通过`alluxio://[logical-name]`（例如 `alluxio://my-alluxio-cluster` ）来连接到高可用 alluxio 节点。
 
-- 当使用Zookeeper连接到Alluxio HA集群时，使用`alluxio://zk@[logical-name]`，并在环境变量或站点属性中设置在环境变量或站点属性`alluxio.zookeeper.address.[logical-name]`来指定Zookeeper的地址。例如设置URI为`alluxio://zk@alluxio-cluster`并添加以下配置到应用配置中：
+* alluxio.masters.[逻辑名称] 每个 alluxio master 节点的单独标识符
 
-  `alluxio.zookeeper.address.alluxio-cluster=zkHost1:2181,zkHost2:2181,zkHost3:2181`
+用逗号分割的 alluxio master 节点的 ID，用来确定集群中所有的 alluxio master 节点。例如，你之前使用 `my-alluxio-cluster`作为逻辑域名，并且想使用 `master1,master2,master3` 作为每个 alluxio master 的单独 ID，你可以这么设置：
+
+```
+alluxio.masters.my-alluxio-cluster=master1,master2,master3
+```
+
+* alluxio.master.rpc.address.[逻辑名称].[master 节点 ID] 每个 alluxio master 节点对应的地址
+
+对于之前配置的每个 alluxio master 节点，设置每个 alluxio master 节点的完整地址，例如
+
+```
+alluxio.master.rpc.address.my-alluxio-cluster.master1=master1:19998
+alluxio.master.rpc.address.my-alluxio-cluster.master2=master2:19998
+alluxio.master.rpc.address.my-alluxio-cluster.master3=master3:19998
+```
+
+#### Zookeeper 逻辑域名
+
+如果你使用zookeeper做leader选举时，你需要配置以下的值并通过`alluxio://zk@[logical-name]`（例如 `alluxio://zk@my-alluxio-cluster` ）来连接到高可用 alluxio 节点。
+
+* alluxio.master.zookeeper.nodes.[逻辑名称] 每个 Zookeeper 节点的单独标识符
+
+用逗号分割的 Zookeeper 节点 ID，用来确定集群中所有的 Zookeeper 节点。例如，你之前使用 `my-alluxio-cluster`作为逻辑域名，并且想使用 `node1,node2,node3` 作为每个 Zookeeper 的单独 ID，你可以这么设置：
+
+```
+alluxio.master.zookeeper.nodes.my-alluxio-cluster=node1,node2,node3
+```
+
+* alluxio.master.zookeeper.address.[逻辑域名].[Zookeeper 节点 ID] 每个 Zookeeper 节点对应的地址
+  
+
+对于之前配置的每个 Zookeeper 节点，设置每个 Zookeeper 节点的完整地址，例如
+
+```
+alluxio.master.zookeeper.address.my-alluxio-cluster.node1=host1:2181
+alluxio.master.zookeeper.address.my-alluxio-cluster.node2=host2:2181
+alluxio.master.zookeeper.address.my-alluxio-cluster.node3=host3:2181
+```
 
 ## 常见操作
 

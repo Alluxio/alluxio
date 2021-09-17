@@ -32,6 +32,7 @@ import java.io.IOException;
 import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.StringJoiner;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -99,31 +100,43 @@ public final class FileSystem extends AbstractFileSystem {
       alluxioConfProperties.put(PropertyKey.ZOOKEEPER_ADDRESS.getName(), null);
     } else if (alluxioUri.getAuthority() instanceof EmbeddedLogicalAuthority) {
       EmbeddedLogicalAuthority authority = (EmbeddedLogicalAuthority) alluxioUri.getAuthority();
-      String confName = PropertyKey.Template.LOGICAL_MASTER_RPC_ADDRESSES
+      String masterNamesConfKey = PropertyKey.Template.LOGICAL_MASTERS_NAME
           .format(authority.getLogicalName()).getName();
-      if (conf.get(confName) != null) {
-        // If user set alluxio.master.rpc.addresses.[logicalName]
-        String masterAddress = conf.get(confName);
-        alluxioConfProperties.put(PropertyKey.MASTER_RPC_ADDRESSES.getName(), masterAddress);
-      } else {
-        throw new IllegalArgumentException(
-            String.format("Invalid uri. You must set %s to use the logical name ", confName));
+      String[] masterNames = conf.getTrimmedStrings(masterNamesConfKey);
+      Preconditions.checkArgument(masterNames.length != 0,
+          "Invalid uri. You must set %s to use the logical name ", masterNamesConfKey);
+
+      StringJoiner masterRpcAddress = new StringJoiner(",");
+      for (String masterName : masterNames) {
+        String name = PropertyKey.Template.LOGICAL_MASTER_RPC_ADDRESS
+            .format(authority.getLogicalName(), masterName).getName();
+        String address = conf.get(name);
+        Preconditions.checkArgument(address != null, "You need to set %s", name);
+        masterRpcAddress.add(address);
       }
+
+      alluxioConfProperties.put(PropertyKey.MASTER_RPC_ADDRESSES.getName(), masterRpcAddress.toString());
       alluxioConfProperties.put(PropertyKey.ZOOKEEPER_ENABLED.getName(), false);
       alluxioConfProperties.put(PropertyKey.ZOOKEEPER_ADDRESS.getName(), null);
     } else if (alluxioUri.getAuthority() instanceof ZookeeperLogicalAuthority) {
       ZookeeperLogicalAuthority authority = (ZookeeperLogicalAuthority) alluxioUri.getAuthority();
-      String confName = PropertyKey.Template.LOGICAL_ZOOKEEPER_ADDRESS
+      String zkNodesConfKey = PropertyKey.Template.LOGICAL_ZOOKEEPER_NODES
           .format(authority.getLogicalName()).getName();
-      String zkAddress = conf.get(confName);
-      if (zkAddress != null) {
-        // If user set alluxio.zookeeper.address.[logicalName]
-        alluxioConfProperties.put(PropertyKey.ZOOKEEPER_ENABLED.getName(), true);
-        alluxioConfProperties.put(PropertyKey.ZOOKEEPER_ADDRESS.getName(), zkAddress);
-      } else {
-        throw new IllegalArgumentException(
-            String.format("Invalid uri. You must set %s to use the logical name ", confName));
+      String[] zkNodeNames = conf.getTrimmedStrings(zkNodesConfKey);
+      Preconditions.checkArgument(zkNodeNames.length != 0,
+          "Invalid uri. You must set %s to use the logical name", zkNodesConfKey);
+
+      StringJoiner zkAddress = new StringJoiner(",");
+      for (String zkName : zkNodeNames) {
+        String name = PropertyKey.Template.LOGICAL_ZOOKEEPER_ADDRESS
+            .format(authority.getLogicalName(), zkName).getName();
+        String address = conf.get(name);
+        Preconditions.checkArgument(address != null, "You need to set %s", name);
+        zkAddress.add(address);
       }
+
+      alluxioConfProperties.put(PropertyKey.ZOOKEEPER_ENABLED.getName(), true);
+      alluxioConfProperties.put(PropertyKey.ZOOKEEPER_ADDRESS.getName(), zkAddress.toString());
     }
     return alluxioConfProperties;
   }
