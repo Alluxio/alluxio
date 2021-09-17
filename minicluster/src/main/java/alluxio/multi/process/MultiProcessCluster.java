@@ -523,6 +523,11 @@ public final class MultiProcessCluster {
     mMasters.get(i).close();
   }
 
+  /**
+   * Removes master i from the cluster.
+   * @param i index of the master to be removed
+   * @throws IOException
+   */
   public synchronized void removeMaster(int i) throws IOException {
     stopMaster(i);
     mMasterAddresses.remove(i);
@@ -638,7 +643,10 @@ public final class MultiProcessCluster {
     mCuratorServer.restart();
   }
 
-  public File getWorkDir() {
+  /**
+   * @return the cluster's working directory
+   */
+  public synchronized File getWorkDir() {
     return mWorkDir;
   }
 
