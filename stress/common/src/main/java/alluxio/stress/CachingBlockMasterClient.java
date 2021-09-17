@@ -42,7 +42,7 @@ public class CachingBlockMasterClient extends BlockMasterClient {
   private static final Logger LOG = LoggerFactory.getLogger(CachingBlockMasterClient.class);
 
   private List<LocationBlockIdListEntry> mLocationBlockIdList;
-  private List<List<LocationBlockIdListEntry>> mBlockBatches;
+  public List<List<LocationBlockIdListEntry>> mBlockBatches;
   private Iterator<List<LocationBlockIdListEntry>> mBlockBatchIterator;
 
   /**
@@ -70,7 +70,7 @@ public class CachingBlockMasterClient extends BlockMasterClient {
     LOG.debug("Init CachingBlockMasterClient");
 //    mLocationBlockIdList = locationBlockIdList;
 
-    BlockMapIterator iter = new BlockMapIterator(blockMap);
+    BlockMapIterator iter = new BlockMapIterator(blockMap, conf.getClusterConf());
 
     // Pre-generate the request batches
     mBlockBatches = ImmutableList.copyOf(iter);

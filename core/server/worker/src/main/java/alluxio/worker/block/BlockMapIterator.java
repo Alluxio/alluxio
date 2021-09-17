@@ -1,24 +1,26 @@
 package alluxio.worker.block;
 
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.BlockIdList;
 import alluxio.grpc.BlockStoreLocationProto;
 import alluxio.grpc.LocationBlockIdListEntry;
-import alluxio.proto.journal.Block;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-// TODO(jiacheng): write a unit test for this class
 public class BlockMapIterator implements Iterator<List<LocationBlockIdListEntry>> {
   private static final Logger LOG = LoggerFactory.getLogger(BlockMapIterator.class);
 
-  public static final int BATCH_SIZE = 1000;
+  private AlluxioConfiguration mConf;
+  private int mBatchSize;
 
   Map<BlockStoreLocation, List<Long>> mBlockLocationMap;
 
@@ -35,8 +37,17 @@ public class BlockMapIterator implements Iterator<List<LocationBlockIdListEntry>
   // Keep a global counter of how many blocks have been traversed
   int mCounter = 0;
 
-  // TODO(jiacheng): Lock while the constructor is running?
   public BlockMapIterator(Map<BlockStoreLocation, List<Long>> blockLocationMap) {
+    this(blockLocationMap, ServerConfiguration.global());
+  }
+
+
+  // TODO(jiacheng): Lock while the constructor is running?
+  public BlockMapIterator(Map<BlockStoreLocation, List<Long>> blockLocationMap, AlluxioConfiguration conf) {
+    mConf = conf;
+    mBatchSize = mConf.getInt(PropertyKey.WORKER_REGISTER_BATCH_SIZE);
+
+    LOG.info("Worker register batch size is {}", mBatchSize);
     mBlockLocationMap = blockLocationMap;
 
     // TODO(jiacheng): Can this merging copy be avoided?
@@ -99,7 +110,7 @@ public class BlockMapIterator implements Iterator<List<LocationBlockIdListEntry>
   public List<LocationBlockIdListEntry> next() {
     List<LocationBlockIdListEntry> result = new ArrayList<>();
     int currentCounter = mCounter;
-    int targetCounter = currentCounter + BATCH_SIZE;
+    int targetCounter = currentCounter + mBatchSize;
 
     while (mCounter < targetCounter) {
       // Find the BlockStoreLocation

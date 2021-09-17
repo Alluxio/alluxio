@@ -2703,6 +2703,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   //
   // Worker related properties
   //
+  public static final PropertyKey WORKER_REGISTER_BATCH_SIZE =
+          new Builder(Name.WORKER_REGISTER_BATCH_SIZE)
+                  .setDefaultValue("1000")
+                  .setDescription("When the worker register RPC comes in batches, the upper limit of a batch")
+                  .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+                  .setScope(Scope.WORKER)
+                  .build();
   public static final PropertyKey WORKER_ALLOCATOR_CLASS =
       new Builder(Name.WORKER_ALLOCATOR_CLASS)
           .setDefaultValue("alluxio.worker.block.allocator.MaxFreeAllocator")
@@ -5850,6 +5857,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     //
     // Worker related properties
     //
+    public static final String WORKER_REGISTER_BATCH_SIZE = "alluxio.worker.register.batch.size";
     public static final String WORKER_ALLOCATOR_CLASS = "alluxio.worker.allocator.class";
     public static final String WORKER_BIND_HOST = "alluxio.worker.bind.host";
     public static final String WORKER_BLOCK_HEARTBEAT_INTERVAL_MS =
