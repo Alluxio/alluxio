@@ -284,6 +284,13 @@ Congratulations, you've deployed a basic Dockerized Alluxio cluster! Read on to 
 
 ## Advanced Setup
 
+### Launch Alluxio with the development image
+Starting from v2.6.2, we have another docker image, alluxio-dev, available in Dockerhub for development usage. Unlike the default alluxio/alluxio image that 
+only contains packages needed for Alluxio service to run, this alluxio-dev image installs more development tools, including gcc, make, async-profiler, etc., 
+making it easier for users to deploy more services in the container along with Alluxio. 
+
+To use the development image, simply replace alluxio/alluxio with alluxio/alluxio-dev in the container launching process.
+
 ### Set server configuration
 
 Configuration changes require stopping the Alluxio Docker images, then re-launching
