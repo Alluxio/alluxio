@@ -435,7 +435,7 @@ to minimize downtime when updating configurations:
 
 1. Update the master configuration on all the master nodes without restarting any master.
 1. Restart the leading master (can be determined by running `bin/alluxio leader`).
-    A new leading master will be elected to continue servicing requests.
+  A new leading master will be elected to continue servicing requests.
 1. Wait for the previous leading master to come up successfully but as a standby master.
 1. Update and restart all remaining standby masters.
 1. Verify the configuration update
