@@ -298,7 +298,7 @@ public final class MultiProcessCluster {
         fs.getStatus(new AlluxioURI("/"));
         return true;
       } catch (Exception e) {
-        System.out.println("Failed to get status of root directory:" + e);
+        LOG.error("Failed to get status of root directory:", e);
         return false;
       }
     }, WaitForOptions.defaults().setTimeoutMs(timeoutMs));
@@ -407,17 +407,6 @@ public final class MultiProcessCluster {
   public synchronized JournalMasterClient getJournalMasterClientForMaster() {
     Preconditions.checkState(mState == State.STARTED,
         "must be in the started state to create a journal master client, but state was %s", mState);
-
-    int leader;
-    try {
-      leader = mMasterAddresses.get(getPrimaryMasterIndex(5_000)).getEmbeddedJournalPort();
-    } catch (Exception e) {
-      e.printStackTrace();
-      leader = -1;
-    }
-    List<String> list = ServerConfiguration.global().getList(PropertyKey.MASTER_EMBEDDED_JOURNAL_ADDRESSES, ",");
-    String collect = list.stream().map(addr -> addr.split(":")[1]).collect(Collectors.joining(","));
-    System.out.printf("\tGlobal ebj addrs: %s ; leader: %d%n", collect, leader);
 
     return new RetryHandlingJournalMasterClient(
         MasterClientContext.newBuilder(ClientContext.create(ServerConfiguration.global()))
@@ -530,7 +519,7 @@ public final class MultiProcessCluster {
   /**
    * @param i the index of the master to stop
    */
-  public synchronized void stopMaster(int i) {
+  public synchronized void stopMaster(int i) throws IOException {
     mMasters.get(i).close();
   }
 
@@ -757,11 +746,6 @@ public final class MultiProcessCluster {
             addresses.add(
                 InetSocketAddress.createUnresolved(address.getHostname(), address.getRpcPort()));
           }
-          List<String> list = ServerConfiguration.getList(PropertyKey.MASTER_RPC_ADDRESSES, ",");
-          List<String> collect = addresses.stream().map(addr -> String.format("%s:%d", addr.getHostName(),
-              addr.getPort())).collect(Collectors.toList());
-          boolean b = list.containsAll(collect) && collect.size() == list.size();
-          System.out.println("\tglobal " + (b ? "contains" : "NOT CONTAIN") + " all RPC addresses");
           return new PollingMasterInquireClient(addresses, ServerConfiguration.global(),
               ServerUserState.global());
         } else {

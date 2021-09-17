@@ -138,20 +138,14 @@ public class BaseEmbeddedJournalTest extends BaseIntegrationTest {
 
   protected void waitForQuorumPropertySize(Predicate<? super QuorumServerInfo> pred, int size)
       throws InterruptedException, TimeoutException {
-    final int TIMEOUT_3MIN = 3 * 60 * 1000; // in ms
-    WaitForOptions waitOptions =
-        WaitForOptions.defaults().setTimeoutMs(TIMEOUT_3MIN).setInterval(750);
+    final int TIMEOUT_1MIN = 60 * 1000; // in ms
     CommonUtils.waitFor("quorum property", () -> {
       try {
-        List<QuorumServerInfo> serverInfoList = mCluster.getJournalMasterClientForMaster().getQuorumInfo().getServerInfoList();
-        String collect = serverInfoList.stream().map(info -> String.format("%d (%s)",
-            info.getServerAddress().getRpcPort(), info.getServerState())).collect(Collectors.joining(","));
-        System.out.printf("\tFrom Ratis: %s%n", collect);
-        return serverInfoList.stream().filter(pred).count() == size;
+        return mCluster.getJournalMasterClientForMaster().getQuorumInfo().getServerInfoList()
+            .stream().filter(pred).count() == size;
       } catch (AlluxioStatusException e) {
-        e.printStackTrace();
         return false;
       }
-    }, waitOptions);
+    }, WaitForOptions.defaults().setTimeoutMs(TIMEOUT_1MIN));
   }
 }

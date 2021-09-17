@@ -193,43 +193,21 @@ public class ResizingEBJTest extends BaseEmbeddedJournalTest {
     Assert.assertTrue(fs.exists(testDir));
 
     List<MasterNetAddress> originalMasters = new ArrayList<>(mCluster.getMasterAddresses());
-    for (int i = 0; i < originalMasters.size(); i ++) {
-      MasterNetAddress masterNetAddress = originalMasters.get(i);
-      String collect = mCluster.getMasterAddresses().stream()
-          .map(MasterNetAddress::getEmbeddedJournalPort)
-          .sorted().map(port -> Integer.toString(port)).collect(Collectors.joining(","));
-      String collect1 = originalMasters.stream()
-          .map(MasterNetAddress::getEmbeddedJournalPort)
-          .sorted().map(port -> Integer.toString(port)).collect(Collectors.joining(","));
-
-      MasterNetAddress primMaster = mCluster.getMasterAddresses().get(mCluster.getPrimaryMasterIndex(5_000));
-
-      System.out.printf("current quorum: %s; original quorum: %s; leader: %d (%s); removing %d " +
-              "(%s); attempt #%d%n", collect, collect1,
-          primMaster.getEmbeddedJournalPort(),
-          originalMasters.contains(primMaster) ? "og" : "not og",
-          masterNetAddress.getEmbeddedJournalPort(),
-          masterNetAddress.equals(primMaster) ? "leader" : "not leader",
-          i + 1);
-
+    for (MasterNetAddress masterNetAddress : originalMasters) {
+      // remove a master from the Alluxio cluster (could be the leader)
       int masterIdx = mCluster.getMasterAddresses().indexOf(masterNetAddress);
       mCluster.removeMaster(masterIdx);
-      System.out.println("\twait for quorum unavailable");
       waitForQuorumPropertySize(info -> info.getServerState() == QuorumServerState.UNAVAILABLE, 1);
-
-      System.out.println("\tremoving from ratis quorum");
+      // remove said master from the Ratis quorum
       NetAddress toRemove = masterEBJAddr2NetAddr(masterNetAddress);
       mCluster.getJournalMasterClientForMaster().removeQuorumServer(toRemove);
       waitForQuorumPropertySize(info -> true, NUM_MASTERS - 1);
-      // each master has 3 ports
-      System.out.println("\tstarting new master");
+      // start a new master to replace the lost master
       mCluster.startNewMasters(1, false);
-
       waitForQuorumPropertySize(info -> info.getServerAddress() == toRemove, 0);
       waitForQuorumPropertySize(info -> true, NUM_MASTERS);
-
+      // verify that the cluster is still operational
       fs = mCluster.getFileSystemClient();
-      System.out.println("\tchecking dir");
       assertTrue(fs.exists(testDir));
     }
     Set<NetAddress> og = originalMasters.stream().map(this::masterEBJAddr2NetAddr)
