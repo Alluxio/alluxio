@@ -33,16 +33,11 @@ public class PortCoordination {
       // add ports here to avoid conflicting with other processes on those ports.
   ));
 
-  public static final List<ReservedPort> EMBEDDED_JOURNAL_TRANSFER_LEADER = allocate(5, 0);
-  public static final List<ReservedPort> EMBEDDED_JOURNAL_TRLEADER_NEW_MASTER = allocate(1, 0);
+  public static final List<ReservedPort> EMBEDDED_JOURNAL_TRANSFER_LEADER = allocate(6, 0);
   public static final List<ReservedPort> EMBEDDED_JOURNAL_FAULT_TOLERANCE = allocate(3, 0);
   public static final List<ReservedPort> EMBEDDED_JOURNAL_RESIZE = allocate(5, 0);
-  public static final List<ReservedPort> EMBEDDED_JOURNAL_GROW = allocate(2, 0);
-  public static final List<ReservedPort> EMBEDDED_JOURNAL_GROW_NEW_MASTER = allocate(1, 0);
-  public static final List<ReservedPort> EMBEDDED_JOURNAL_UPDATE_RAFT_GROUP = allocate(3, 0);
-  public static final List<ReservedPort> EMBEDDED_JOURNAL_UPDATE_RAFT_GROUP_NEW = allocate(1, 0);
+  public static final List<ReservedPort> EMBEDDED_JOURNAL_GROW = allocate(3, 0);
   public static final List<ReservedPort> EMBEDDED_JOURNAL_THESEUS = allocate(10, 0);
-  public static final List<ReservedPort> EMBEDDED_JOURNAL_THESEUS_GROW = allocate(5, 0);
 
   public static final List<ReservedPort> JOURNAL_MIGRATION = allocate(3, 1);
 

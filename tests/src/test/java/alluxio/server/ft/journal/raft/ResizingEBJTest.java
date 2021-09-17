@@ -20,18 +20,13 @@ import alluxio.conf.PropertyKey;
 import alluxio.grpc.NetAddress;
 import alluxio.grpc.QuorumServerInfo;
 import alluxio.grpc.QuorumServerState;
-import alluxio.master.AlluxioMasterProcess;
-import alluxio.master.file.FileSystemMaster;
 import alluxio.master.journal.JournalType;
-import alluxio.master.journal.raft.RaftJournalSystem;
 import alluxio.multi.process.MasterNetAddress;
 import alluxio.multi.process.MultiProcessCluster;
 import alluxio.multi.process.PortCoordination;
 import alluxio.util.CommonUtils;
 
-import org.apache.ratis.protocol.Message;
 import org.junit.Assert;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import java.util.ArrayList;
@@ -73,20 +68,7 @@ public class ResizingEBJTest extends BaseEmbeddedJournalTest {
     // Verify cluster is still serving requests.
     assertTrue(fs.exists(testDir));
 
-    CommonUtils.waitFor("Quorum noticing master unavailability", () -> {
-      try {
-        int unavailableCount = 0;
-        for (QuorumServerInfo serverState : mCluster.getJournalMasterClientForMaster()
-            .getQuorumInfo().getServerInfoList()) {
-          if (serverState.getServerState().equals(QuorumServerState.UNAVAILABLE)) {
-            unavailableCount++;
-          }
-        }
-        return unavailableCount >= 2;
-      } catch (Exception exc) {
-        throw new RuntimeException(exc);
-      }
-    });
+    waitForQuorumPropertySize(info -> info.getServerState() == QuorumServerState.UNAVAILABLE, 2);
 
     // Get and verify list of unavailable masters.
     List<NetAddress> unavailableMasters = new LinkedList<>();
@@ -137,7 +119,8 @@ public class ResizingEBJTest extends BaseEmbeddedJournalTest {
     Assert.assertEquals(2,
         mCluster.getJournalMasterClientForMaster().getQuorumInfo().getServerInfoList().size());
 
-    addNewMastersToCluster(PortCoordination.EMBEDDED_JOURNAL_GROW_NEW_MASTER);
+    mCluster.startNewMasters(1, false);
+    waitForQuorumPropertySize(info -> info.getServerState() == QuorumServerState.AVAILABLE, 3);
 
     // Reacquire FS client after cluster grew.
     fs = mCluster.getFileSystemClient();
@@ -147,23 +130,10 @@ public class ResizingEBJTest extends BaseEmbeddedJournalTest {
 
     // Stop a master on the initial cluster.
     // With the addition of a new master, cluster should now be able to tolerate single master loss.
-    mCluster.stopMaster(0);
+    mCluster.removeMaster(0);
 
     // Wait until cluster registers unavailability of the shut down master.
-    CommonUtils.waitFor("Quorum noticing master unavailability", () -> {
-      try {
-        int unavailableCount = 0;
-        for (QuorumServerInfo serverState : mCluster.getJournalMasterClientForMaster()
-            .getQuorumInfo().getServerInfoList()) {
-          if (serverState.getServerState().equals(QuorumServerState.UNAVAILABLE)) {
-            unavailableCount++;
-          }
-        }
-        return unavailableCount == 1;
-      } catch (Exception exc) {
-        throw new RuntimeException(exc);
-      }
-    });
+    waitForQuorumPropertySize(info -> info.getServerState() == QuorumServerState.UNAVAILABLE, 1);
 
     // Verify cluster is still operational.
     Assert.assertTrue(fs.exists(testDir));
@@ -222,73 +192,6 @@ public class ResizingEBJTest extends BaseEmbeddedJournalTest {
     // assert the quorum remained the same size as the start
     assertEquals(NUM_MASTERS, curr.size());
 
-    mCluster.notifySuccess();
-  }
-
-  @Ignore
-  @Test
-  public void updateRaftGroup() throws Exception {
-    final int NUM_MASTERS = 2;
-    final int NUM_WORKERS = 0;
-    mCluster = MultiProcessCluster.newBuilder(PortCoordination.EMBEDDED_JOURNAL_UPDATE_RAFT_GROUP)
-        .setClusterName("EmbeddedJournalUpdateGroup")
-        .setNumMasters(NUM_MASTERS)
-        .setNumWorkers(NUM_WORKERS)
-        .addProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.EMBEDDED.toString())
-        .addProperty(PropertyKey.MASTER_JOURNAL_FLUSH_TIMEOUT_MS, "5min")
-        .addProperty(PropertyKey.MASTER_METASTORE, "HEAP")
-        // To make the test run faster.
-        .addProperty(PropertyKey.MASTER_EMBEDDED_JOURNAL_MIN_ELECTION_TIMEOUT, "2s")
-        .addProperty(PropertyKey.MASTER_EMBEDDED_JOURNAL_MAX_ELECTION_TIMEOUT, "4s")
-        .build();
-    mCluster.start();
-
-    AlluxioURI testDir = new AlluxioURI("/" + CommonUtils.randomAlphaNumString(10));
-    FileSystem fs = mCluster.getFileSystemClient();
-    fs.createDirectory(testDir);
-    Assert.assertTrue(fs.exists(testDir));
-
-    // Validate current quorum size.
-    Assert.assertEquals(NUM_MASTERS,
-        mCluster.getJournalMasterClientForMaster().getQuorumInfo().getServerInfoList().size());
-
-    addNewMastersToCluster(PortCoordination.EMBEDDED_JOURNAL_UPDATE_RAFT_GROUP_NEW);
-    AlluxioMasterProcess newMaster = mNewMasters.get(mNewMasters.size() - 1);
-    // Reacquire FS client after cluster grew.
-    fs = mCluster.getFileSystemClient();
-
-    // Verify cluster is still operational.
-    Assert.assertTrue(fs.exists(testDir));
-
-    // start one more master
-    mCluster.startNewMasters(1, false);
-
-    // Wait until quorum size equals to new master count.
-    CommonUtils.waitFor("New master is included in quorum", () -> {
-      try {
-        return mCluster.getJournalMasterClientForMaster().getQuorumInfo().getServerInfoList()
-            .stream().filter(x -> x.getServerState() == QuorumServerState.AVAILABLE)
-            .toArray().length == NUM_MASTERS + 2;
-      } catch (Exception exc) {
-        throw new RuntimeException(exc);
-      }
-    });
-
-    Assert.assertTrue(fs.exists(testDir));
-    FileSystemMaster master = newMaster.getMaster(FileSystemMaster.class);
-    RaftJournalSystem journal = ((RaftJournalSystem) master.getMasterContext().getJournalSystem());
-    boolean error = journal.getCurrentGroup().getPeers().stream().anyMatch(
-        peer -> {
-          try {
-            journal.sendMessageAsync(peer.getId(), Message.EMPTY).get();
-            return false;
-          } catch (Exception e) {
-            e.printStackTrace();
-            return true;
-          }
-        }
-    );
-    Assert.assertFalse("error send message to peers", error);
     mCluster.notifySuccess();
   }
 }

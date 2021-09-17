@@ -14,12 +14,11 @@ package alluxio.server.ft.journal.raft;
 import alluxio.conf.PropertyKey;
 import alluxio.grpc.GetQuorumInfoPResponse;
 import alluxio.grpc.NetAddress;
+import alluxio.grpc.QuorumServerState;
 import alluxio.master.journal.JournalType;
 import alluxio.multi.process.MasterNetAddress;
 import alluxio.multi.process.MultiProcessCluster;
 import alluxio.multi.process.PortCoordination;
-import alluxio.util.CommonUtils;
-import alluxio.util.WaitForOptions;
 
 import net.bytebuddy.utility.RandomString;
 import org.junit.Assert;
@@ -133,8 +132,10 @@ public class TransferLeadershipEBJTest extends BaseEmbeddedJournalTest {
 
   @Test
   public void transferLeadershipToNewMember() throws Exception {
-    MasterNetAddress newLeaderAddr =
-        addNewMastersToCluster(PortCoordination.EMBEDDED_JOURNAL_TRLEADER_NEW_MASTER).get(0);
+    mCluster.startNewMasters(1, false);
+    waitForQuorumPropertySize(info -> info.getServerState() == QuorumServerState.AVAILABLE,
+        NUM_MASTERS + 1);
+    MasterNetAddress newLeaderAddr = mCluster.getMasterAddresses().get(NUM_MASTERS);
     transferAndWait(newLeaderAddr);
     mCluster.notifySuccess();
   }
@@ -162,15 +163,7 @@ public class TransferLeadershipEBJTest extends BaseEmbeddedJournalTest {
         .setRpcPort(newLeaderAddr.getEmbeddedJournalPort()).build();
     mCluster.getJournalMasterClientForMaster().transferLeadership(netAddress);
 
-    final int TIMEOUT_3MIN = 3 * 60 * 1000; // in ms
-    CommonUtils.waitFor("leadership to transfer", () -> {
-      try {
-        // wait until the address of the new leader matches the one we designated as the new leader
-        return mCluster.getMasterAddresses()
-            .get(mCluster.getPrimaryMasterIndex(MASTER_INDEX_WAIT_TIME)).equals(newLeaderAddr);
-      } catch (Exception exc) {
-        throw new RuntimeException(exc);
-      }
-    }, WaitForOptions.defaults().setTimeoutMs(TIMEOUT_3MIN));
+    waitForQuorumPropertySize(info -> info.getIsLeader()
+        && info.getServerAddress().equals(netAddress), 1);
   }
 }
