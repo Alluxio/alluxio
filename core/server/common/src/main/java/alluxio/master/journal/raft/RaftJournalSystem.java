@@ -396,7 +396,6 @@ public class RaftJournalSystem extends AbstractJournalSystem {
         .setProperties(properties)
         .setParameters(parameters)
         .build();
-    super.registerMetrics();
   }
 
   /**
@@ -725,6 +724,7 @@ public class RaftJournalSystem extends AbstractJournalSystem {
         .collect(Collectors.toSet());
     mRaftGroup = RaftGroup.valueOf(RAFT_GROUP_ID, peers);
     initServer();
+    super.registerMetrics();
     List<InetSocketAddress> clusterAddresses = mConf.getClusterAddresses();
     LOG.info("Starting Raft journal system. Cluster addresses: {}. Local address: {}",
         clusterAddresses, mConf.getLocalAddress());
