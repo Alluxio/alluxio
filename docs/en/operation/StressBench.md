@@ -68,7 +68,6 @@ Here is the list of common options that all benchmarks accept:
 * `--cluster-start-delay`: specify the start delay before starting the benchmark, used to synchronize jobs.
 * `--java-opt`: specify additional JVM options
 * `--help`: print usage, description and benchmark-specific options of a benchmark
-* `--profile-agent`: profile agent to use during benchmark
 
 Individual benchmark suite may also define its own set of options.
 Run the benchmark with the `--help` option to get a list of supported options and example usage.
