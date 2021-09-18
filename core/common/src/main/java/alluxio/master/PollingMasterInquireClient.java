@@ -29,9 +29,10 @@ import alluxio.retry.RetryUtils;
 import alluxio.security.user.UserState;
 import alluxio.uri.Authority;
 import alluxio.uri.MultiMasterAuthority;
-
 import alluxio.util.ConfigurationUtils;
+
 import io.grpc.StatusRuntimeException;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
