@@ -149,7 +149,7 @@ public class AbstractFileSystemTest {
   public void fsShouldSetPropertyConfWithLogicalUriConfig() throws Exception {
     URI uri = URI.create("alluxio://logical/path");
     Configuration conf = getConf();
-    conf.set(PropertyKey.Template.LOGICAL_MASTERS_NAME.format("logical").getName(),
+    conf.set(PropertyKey.Template.LOGICAL_MASTER_NAMESERVICES.format("logical").getName(),
         "master1,master2,master3");
     conf.set(
         PropertyKey.Template.LOGICAL_MASTER_RPC_ADDRESS.format("logical", "master1").getName(),
@@ -178,7 +178,7 @@ public class AbstractFileSystemTest {
   public void fsShouldSetPropertyConfWithZkLogicalUriConfig() throws Exception {
     URI uri = URI.create("alluxio://zk@logical/path");
     Configuration conf = getConf();
-    conf.set(PropertyKey.Template.LOGICAL_ZOOKEEPER_NODES.format("logical").getName(),
+    conf.set(PropertyKey.Template.LOGICAL_ZOOKEEPER_NAMESERVICES.format("logical").getName(),
         "node1,node2,node3");
     conf.set(
         PropertyKey.Template.LOGICAL_ZOOKEEPER_ADDRESS.format("logical", "node1").getName(),

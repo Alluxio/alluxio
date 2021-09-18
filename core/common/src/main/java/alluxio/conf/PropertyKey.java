@@ -6407,14 +6407,9 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       "secretKey"
   };
 
-  /**
-   *
-   */
-  private static final String LOGICAL_NAME_PATTERN_STRING = "([a-zA-Z_\\-0-9\\.]+)";
-  /**
-   *
-   */
-  private static final String NODE_NAME_PATTERN_STRING = "([a-zA-Z_\\-0-9\\.]+)";
+  private static final String NAMESERVICE_PATTERN_STRING = "([a-zA-Z_\\-0-9\\.]+)";
+  private static final String ALLUXIO_MASTER_ID_PATTERN_STRING = "([a-zA-Z_\\-0-9\\.]+)";
+  private static final String ZOOKEEPER_NODE_ID_PATTERN_STRING = "([a-zA-Z_\\-0-9\\.]+)";
 
   /**
    * A set of templates to generate the names of parameterized properties given
@@ -6423,16 +6418,16 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   @ThreadSafe
   public enum Template {
     LOCALITY_TIER("alluxio.locality.%s", "alluxio\\.locality\\.(\\w+)"),
+    LOGICAL_MASTER_NAMESERVICES("alluxio.master.nameservices.%s",
+        String.format("alluxio\\.master\\.nameservices\\.%s", NAMESERVICE_PATTERN_STRING)),
     LOGICAL_MASTER_RPC_ADDRESS("alluxio.master.rpc.address.%s.%s",
         String.format("alluxio\\.master\\.rpc\\.address\\.%s\\.%s",
-            LOGICAL_NAME_PATTERN_STRING, NODE_NAME_PATTERN_STRING)),
-    LOGICAL_MASTERS_NAME("alluxio.master.nameservices.%s",
-        String.format("alluxio\\.masters\\.name\\.%s)", LOGICAL_NAME_PATTERN_STRING)),
-    LOGICAL_ZOOKEEPER_NODES("alluxio.master.zookeeper.nameservices.%s",
-        String.format("alluxio\\.master\\.zookeeper\\.nodes\\.%s)", LOGICAL_NAME_PATTERN_STRING)),
+            NAMESERVICE_PATTERN_STRING, ALLUXIO_MASTER_ID_PATTERN_STRING)),
+    LOGICAL_ZOOKEEPER_NAMESERVICES("alluxio.master.zookeeper.nameservices.%s",
+        String.format("alluxio\\.master\\.zookeeper\\.nameservices\\.%s)", NAMESERVICE_PATTERN_STRING)),
     LOGICAL_ZOOKEEPER_ADDRESS("alluxio.master.zookeeper.address.%s.%s",
         String.format("alluxio\\.master\\.zookeeper\\.address\\.%s\\.%s",
-            LOGICAL_NAME_PATTERN_STRING, NODE_NAME_PATTERN_STRING)),
+            NAMESERVICE_PATTERN_STRING, ZOOKEEPER_NODE_ID_PATTERN_STRING)),
     MASTER_IMPERSONATION_GROUPS_OPTION("alluxio.master.security.impersonation.%s.groups",
         "alluxio\\.master\\.security\\.impersonation\\.([a-zA-Z_0-9-\\.@]+)\\.groups"),
     MASTER_IMPERSONATION_USERS_OPTION("alluxio.master.security.impersonation.%s.users",

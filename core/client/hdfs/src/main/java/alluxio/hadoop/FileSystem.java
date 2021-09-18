@@ -100,7 +100,7 @@ public final class FileSystem extends AbstractFileSystem {
       alluxioConfProperties.put(PropertyKey.ZOOKEEPER_ADDRESS.getName(), null);
     } else if (alluxioUri.getAuthority() instanceof EmbeddedLogicalAuthority) {
       EmbeddedLogicalAuthority authority = (EmbeddedLogicalAuthority) alluxioUri.getAuthority();
-      String masterNamesConfKey = PropertyKey.Template.LOGICAL_MASTERS_NAME
+      String masterNamesConfKey = PropertyKey.Template.LOGICAL_MASTER_NAMESERVICES
           .format(authority.getLogicalName()).getName();
       String[] masterNames = conf.getTrimmedStrings(masterNamesConfKey);
       Preconditions.checkArgument(masterNames.length != 0,
@@ -121,7 +121,7 @@ public final class FileSystem extends AbstractFileSystem {
       alluxioConfProperties.put(PropertyKey.ZOOKEEPER_ADDRESS.getName(), null);
     } else if (alluxioUri.getAuthority() instanceof ZookeeperLogicalAuthority) {
       ZookeeperLogicalAuthority authority = (ZookeeperLogicalAuthority) alluxioUri.getAuthority();
-      String zkNodesConfKey = PropertyKey.Template.LOGICAL_ZOOKEEPER_NODES
+      String zkNodesConfKey = PropertyKey.Template.LOGICAL_ZOOKEEPER_NAMESERVICES
           .format(authority.getLogicalName()).getName();
       String[] zkNodeNames = conf.getTrimmedStrings(zkNodesConfKey);
       Preconditions.checkArgument(zkNodeNames.length != 0,
