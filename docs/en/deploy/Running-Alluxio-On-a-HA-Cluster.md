@@ -290,14 +290,14 @@ If you are using embedded journal, you need to configure the following configura
 to the highly available alluxio node via `alluxio://[logical-name]` , for example
 `alluxio://my-alluxio-cluster`.
 
-* alluxio.masters.[logical-name] unique identifier for each alluxio master node
+* alluxio.master.nameservices.[logical-name] unique identifier for each alluxio master node
 
 A comma-separated ID of the alluxio master node that determine all the alluxio master nodes in the cluster.
 For example, if you previously used `my-alluxio-cluster` as the logical name and wanted to
 use `master1,master2,master3` as individual IDs for each alluxio master, you configure this as such:
 
 ```
-alluxio.masters.my-alluxio-cluster=master1,master2,master3
+alluxio.master.nameservices.my-alluxio-cluster=master1,master2,master3
 ```
 
 * alluxio.master.rpc.address.[logical name]. [master node ID]  RPC Address for each alluxio master node
@@ -315,14 +315,14 @@ alluxio.master.rpc.address.my-alluxio-cluster.master3=master3:19998
 If you are using zookeeper for leader election, you need to configure the following values and connect to
 the highly available alluxio node via `alluxio://zk@[logical-name]` , for example `alluxio://zk@my-alluxio-cluster`.
 
-* alluxio.master.zookeeper.nodes.[logical-name] unique identifier for each Zookeeper node
+* alluxio.master.zookeeper.nameservices.[logical-name] unique identifier for each Zookeeper node
 
 A comma-separated zookeeper node ID that determine all the Zookeeper nodes in the cluster. For example,
 if you previously used `my-alluxio-cluster` as the logical name and wanted to use `node1,node2,node3` as individual
 IDs for each Zookeeper, you would configure this as such:
 
 ```
-alluxio.master.zookeeper.nodes.my-alluxio-cluster=node1,node2,node3
+alluxio.master.zookeeper.nameservices.my-alluxio-cluster=node1,node2,node3
 ```
 
 * alluxio.master.zookeeper.address.[logical-domain]. [Zookeeper node ID] Address foreach Zookeeper node

@@ -182,12 +182,12 @@ alluxio.zookeeper.address=<ZOOKEEPER_ADDRESS>
 
 如果你使用的是嵌入式日志，你需要配置以下的值并通过`alluxio://[logical-name]`（例如 `alluxio://my-alluxio-cluster` ）来连接到高可用 alluxio 节点。
 
-* alluxio.masters.[逻辑名称] 每个 alluxio master 节点的单独标识符
+* alluxio.master.nameservices.[逻辑名称] 每个 alluxio master 节点的单独标识符
 
 用逗号分割的 alluxio master 节点的 ID，用来确定集群中所有的 alluxio master 节点。例如，你之前使用 `my-alluxio-cluster`作为逻辑域名，并且想使用 `master1,master2,master3` 作为每个 alluxio master 的单独 ID，你可以这么设置：
 
 ```
-alluxio.masters.my-alluxio-cluster=master1,master2,master3
+alluxio.master.nameservices.my-alluxio-cluster=master1,master2,master3
 ```
 
 * alluxio.master.rpc.address.[逻辑名称].[master 节点 ID] 每个 alluxio master 节点对应的地址
@@ -204,12 +204,12 @@ alluxio.master.rpc.address.my-alluxio-cluster.master3=master3:19998
 
 如果你使用zookeeper做leader选举时，你需要配置以下的值并通过`alluxio://zk@[logical-name]`（例如 `alluxio://zk@my-alluxio-cluster` ）来连接到高可用 alluxio 节点。
 
-* alluxio.master.zookeeper.nodes.[逻辑名称] 每个 Zookeeper 节点的单独标识符
+* alluxio.master.zookeeper.nameservices.[逻辑名称] 每个 Zookeeper 节点的单独标识符
 
 用逗号分割的 Zookeeper 节点 ID，用来确定集群中所有的 Zookeeper 节点。例如，你之前使用 `my-alluxio-cluster`作为逻辑域名，并且想使用 `node1,node2,node3` 作为每个 Zookeeper 的单独 ID，你可以这么设置：
 
 ```
-alluxio.master.zookeeper.nodes.my-alluxio-cluster=node1,node2,node3
+alluxio.master.zookeeper.nameservices.my-alluxio-cluster=node1,node2,node3
 ```
 
 * alluxio.master.zookeeper.address.[逻辑域名].[Zookeeper 节点 ID] 每个 Zookeeper 节点对应的地址

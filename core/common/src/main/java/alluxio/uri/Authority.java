@@ -24,7 +24,7 @@ import java.util.regex.Pattern;
 public interface Authority extends Comparable<Authority>, Serializable {
   Logger LOG = LoggerFactory.getLogger(Authority.class);
   Pattern LOGICAL_MASTER_AUTH = Pattern.compile("^([a-zA-Z_\\-0-9.]+)$");
-  Pattern ZOOKEEPER_LOGICAL_MASTER_AUTH = Pattern.compile("^zk@([a-zA-Z_\\-0-9.]+)$");
+  Pattern LOGICAL_ZOOKEEPER_AUTH = Pattern.compile("^zk@([a-zA-Z_\\-0-9.]+)$");
   Pattern SINGLE_MASTER_AUTH = Pattern.compile("^([^:,;]+):(\\d+)$");
   // We allow zookeeper/multi_master authorities to be delimited by ',' ';' or '+'.
   Pattern ZOOKEEPER_AUTH = Pattern.compile("^zk@([^:,;+]+:\\d+([,;+][^:,;+]+:\\d+)*)$");
@@ -52,7 +52,7 @@ public interface Authority extends Comparable<Authority>, Serializable {
     if (matcher.matches()) {
       return new MultiMasterAuthority(authority.replaceAll("[;+]", ","));
     }
-    matcher = ZOOKEEPER_LOGICAL_MASTER_AUTH.matcher(authority);
+    matcher = LOGICAL_ZOOKEEPER_AUTH.matcher(authority);
     if (matcher.matches()) {
       return new ZookeeperLogicalAuthority(matcher.group(1));
     }

@@ -6408,6 +6408,15 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   };
 
   /**
+   *
+   */
+  private static final String LOGICAL_NAME_PATTERN_STRING = "([a-zA-Z_\\-0-9\\.]+)";
+  /**
+   *
+   */
+  private static final String NODE_NAME_PATTERN_STRING = "([a-zA-Z_\\-0-9\\.]+)";
+
+  /**
    * A set of templates to generate the names of parameterized properties given
    * different parameters. E.g., * {@code Template.MASTER_TIERED_STORE_GLOBAL_LEVEL_ALIAS.format(0)}
    */
@@ -6415,13 +6424,15 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public enum Template {
     LOCALITY_TIER("alluxio.locality.%s", "alluxio\\.locality\\.(\\w+)"),
     LOGICAL_MASTER_RPC_ADDRESS("alluxio.master.rpc.address.%s.%s",
-        "alluxio\\.master\\.rpc\\.address\\.([a-zA-Z_\\-0-9\\.]+).([a-zA-Z_\\-0-9\\.]+)"),
-    LOGICAL_MASTERS_NAME("alluxio.masters.%s",
-        "alluxio\\.masters\\.name\\.([a-zA-Z_\\-0-9\\.]+)"),
-    LOGICAL_ZOOKEEPER_NODES("alluxio.master.zookeeper.nodes.%s",
-        "alluxio\\.master\\.zookeeper\\.nodes\\.([a-zA-Z_\\-0-9\\.]+)"),
+        String.format("alluxio\\.master\\.rpc\\.address\\.%s\\.%s",
+            LOGICAL_NAME_PATTERN_STRING, NODE_NAME_PATTERN_STRING)),
+    LOGICAL_MASTERS_NAME("alluxio.master.nameservices.%s",
+        String.format("alluxio\\.masters\\.name\\.%s)", LOGICAL_NAME_PATTERN_STRING)),
+    LOGICAL_ZOOKEEPER_NODES("alluxio.master.zookeeper.nameservices.%s",
+        String.format("alluxio\\.master\\.zookeeper\\.nodes\\.%s)", LOGICAL_NAME_PATTERN_STRING)),
     LOGICAL_ZOOKEEPER_ADDRESS("alluxio.master.zookeeper.address.%s.%s",
-        "alluxio\\.master\\.zookeeper\\.address\\.([a-zA-Z_\\-0-9\\.]+)\\.([a-zA-Z_\\-0-9\\.]+)"),
+        String.format("alluxio\\.master\\.zookeeper\\.address\\.%s\\.%s",
+            LOGICAL_NAME_PATTERN_STRING, NODE_NAME_PATTERN_STRING)),
     MASTER_IMPERSONATION_GROUPS_OPTION("alluxio.master.security.impersonation.%s.groups",
         "alluxio\\.master\\.security\\.impersonation\\.([a-zA-Z_0-9-\\.@]+)\\.groups"),
     MASTER_IMPERSONATION_USERS_OPTION("alluxio.master.security.impersonation.%s.users",
