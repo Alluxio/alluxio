@@ -74,7 +74,7 @@ public class OBSUnderFileSystem extends ObjectUnderFileSystem {
    * @return the created {@link OBSUnderFileSystem} instance
    */
   public static OBSUnderFileSystem createInstance(AlluxioURI uri,
-                                                  UnderFileSystemConfiguration conf) throws Exception {
+                                                  UnderFileSystemConfiguration conf) {
     Preconditions.checkArgument(conf.isSet(PropertyKey.OBS_ACCESS_KEY),
         "Property %s is required to connect to OBS", PropertyKey.OBS_ACCESS_KEY);
     Preconditions.checkArgument(conf.isSet(PropertyKey.OBS_SECRET_KEY),
