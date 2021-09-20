@@ -275,6 +275,17 @@ public final class MetricsSystem {
   }
 
   /**
+   * Get metrics name based on class.
+   *
+   * @param obj object for the resource pool
+   * @return metrics string
+   */
+  public static String getResourcePoolMetricName(Object obj) {
+    return MetricsSystem.getMetricName("ResourcePool." + obj.getClass().getName() + "."
+        + Integer.toHexString(System.identityHashCode(obj)));
+  }
+
+  /**
    * Converts a simple string to a qualified metric name based on the process type.
    *
    * @param name the name of the metric

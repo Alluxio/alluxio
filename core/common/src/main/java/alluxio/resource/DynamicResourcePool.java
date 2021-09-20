@@ -13,6 +13,7 @@ package alluxio.resource;
 
 import alluxio.Constants;
 import alluxio.clock.SystemClock;
+import alluxio.metrics.MetricsSystem;
 
 import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
@@ -275,6 +276,14 @@ public abstract class DynamicResourcePool<T> implements Pool<T> {
         }
       }
     }, options.getInitialDelayMs(), options.getGcIntervalMs(), TimeUnit.MILLISECONDS);
+
+    registerGauges();
+  }
+
+  private void registerGauges() {
+    MetricsSystem.registerGaugeIfAbsent(
+        MetricsSystem.getResourcePoolMetricName(this),
+        () -> size());
   }
 
   /**

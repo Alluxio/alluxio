@@ -240,11 +240,6 @@ public class RaftJournalSystem extends AbstractJournalSystem {
     mTransferLeaderAllowed = new AtomicBoolean(false);
     mPrimarySelector = new RaftPrimarySelector();
     mAsyncJournalWriter = new AtomicReference<>();
-    try {
-      super.registerMetrics();
-    } catch (RuntimeException e) {
-      return;
-    }
   }
 
   private void maybeMigrateOldJournal() {
@@ -533,6 +528,7 @@ public class RaftJournalSystem extends AbstractJournalSystem {
 
   @Override
   public synchronized Map<String, Long> getCurrentSequenceNumbers() {
+    Preconditions.checkState(mStateMachine != null, "State machine not initialized");
     long currentGlobalState = mStateMachine.getLastAppliedSequenceNumber();
     Map<String, Long> sequenceMap = new HashMap<>();
     for (String master : mJournals.keySet()) {
@@ -734,6 +730,7 @@ public class RaftJournalSystem extends AbstractJournalSystem {
         .collect(Collectors.toSet());
     mRaftGroup = RaftGroup.valueOf(RAFT_GROUP_ID, peers);
     initServer();
+    super.registerMetrics();
     List<InetSocketAddress> clusterAddresses = mConf.getClusterAddresses();
     LOG.info("Starting Raft journal system. Cluster addresses: {}. Local address: {}",
         clusterAddresses, mConf.getLocalAddress());
