@@ -1396,7 +1396,34 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.SERVER)
           .build();
-
+  public static final PropertyKey OBS_ACCESS_KEY =
+      new Builder(Name.OBS_ACCESS_KEY)
+          .setDescription("The access key of OBS bucket.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.SERVER)
+          .setDisplayType(DisplayType.CREDENTIALS)
+          .build();
+  public static final PropertyKey OBS_ENDPOINT =
+      new Builder(Name.OBS_ENDPOINT)
+          .setDefaultValue("obs.myhwclouds.com")
+          .setDescription("The endpoint of OBS bucket.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.SERVER)
+          .build();
+  public static final PropertyKey OBS_SECRET_KEY =
+      new Builder(Name.OBS_SECRET_KEY)
+          .setDescription("The secret key of OBS bucket.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.SERVER)
+          .setDisplayType(DisplayType.CREDENTIALS)
+          .build();
+  public static final PropertyKey OBS_BUCKET_TYPE =
+      new Builder(Name.OBS_BUCKET_TYPE)
+          .setDefaultValue("obs")
+          .setDescription("The type of bucket (obs/pfs).")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.SERVER)
+          .build();
   //
   // Mount table related properties
   //
@@ -5555,6 +5582,10 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String SWIFT_USER_KEY = "fs.swift.user";
     public static final String KODO_ACCESS_KEY = "fs.kodo.accesskey";
     public static final String KODO_SECRET_KEY = "fs.kodo.secretkey";
+    public static final String OBS_ACCESS_KEY = "fs.obs.accessKey";
+    public static final String OBS_ENDPOINT = "fs.obs.endpoint";
+    public static final String OBS_SECRET_KEY = "fs.obs.secretKey";
+    public static final String OBS_BUCKET_TYPE = "fs.obs.bucketType";
 
     //
     // Master related properties

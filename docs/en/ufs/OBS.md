@@ -55,7 +55,7 @@ Valid values are similar to `obs.cn-east-2.myhuaweicloud.com` and `obs.cn-south-
 Available endpoints are listed in the [Region and Endpoint list](https://developer.huaweicloud.com/en-us/endpoint)
 under the Object Storage Service category.
 
-If you want to use the `PFS` parallel file system, you need to configure in `conf/alluxio-site.properties` as below. The rest of the operations are the same as the `OBS` file system. Add:
+If you want to use the `PFS` parallel file system, please add the following configuration in `conf/alluxio-site.properties`. The rest of the operations are the same as the `OBS` file system. Add:
 
 ```
 # default bucket type is obs

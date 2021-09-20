@@ -46,33 +46,47 @@ import javax.annotation.concurrent.NotThreadSafe;
 public final class OBSOutputStream extends OutputStream {
   private static final Logger LOG = LoggerFactory.getLogger(OBSOutputStream.class);
 
-  /** Bucket name of the Huawei OBS bucket. */
+  /**
+   * Bucket name of the Huawei OBS bucket.
+   */
   private final String mBucketName;
-  /** Key of the file when it is uploaded to OBS. */
+  /**
+   * Key of the file when it is uploaded to OBS.
+   */
   private final String mKey;
-  /** The local file that will be uploaded when the stream is closed. */
+  /**
+   * The local file that will be uploaded when the stream is closed.
+   */
   private final File mFile;
-  /** The OBS client. */
+  /**
+   * The OBS client.
+   */
   private final ObsClient mObsClient;
 
-  /** The outputstream to a local file where the file will be buffered until closed. */
+  /**
+   * The outputstream to a local file where the file will be buffered until closed.
+   */
   private OutputStream mLocalOutputStream;
-  /** The MD5 hash of the file. */
+  /**
+   * The MD5 hash of the file.
+   */
   private MessageDigest mHash;
 
-  /** Flag to indicate this stream has been closed, to ensure close is only done once. */
+  /**
+   * Flag to indicate this stream has been closed, to ensure close is only done once.
+   */
   private AtomicBoolean mClosed = new AtomicBoolean(false);
 
   /**
    * Creates a name instance of {@link OBSOutputStream}.
    *
    * @param bucketName the name of the bucket
-   * @param key the key of the file
-   * @param client the OBS client
-   * @param tmpDirs a list of temporary directories
+   * @param key        the key of the file
+   * @param client     the OBS client
+   * @param tmpDirs    a list of temporary directories
    */
   public OBSOutputStream(String bucketName, String key, ObsClient client,
-      List<String> tmpDirs) throws IOException {
+                         List<String> tmpDirs) throws IOException {
     Preconditions.checkArgument(bucketName != null && !bucketName.isEmpty(),
         "Bucket name must not be null or empty.");
     Preconditions.checkArgument(key != null && !key.isEmpty(),
@@ -121,7 +135,7 @@ public final class OBSOutputStream extends OutputStream {
    * Writes the given number of bytes from the given byte array starting at the given offset to this
    * output stream. Before close, the bytes are all written to local file.
    *
-   * @param b the byte array
+   * @param b   the byte array
    * @param off the start offset in the data
    * @param len the number of bytes to write
    */

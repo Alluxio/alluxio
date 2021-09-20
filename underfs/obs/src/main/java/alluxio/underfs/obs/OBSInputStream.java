@@ -37,16 +37,24 @@ import javax.annotation.concurrent.NotThreadSafe;
 public class OBSInputStream extends MultiRangeObjectInputStream {
   private static final Logger LOG = LoggerFactory.getLogger(OBSInputStream.class);
 
-  /** Bucket name of the OBS bucket. */
+  /**
+   * Bucket name of the OBS bucket.
+   */
   private final String mBucketName;
 
-  /** Key of the file in OBS. */
+  /**
+   * Key of the file in OBS.
+   */
   private final String mKey;
 
-  /** The OBS client. */
+  /**
+   * The OBS client.
+   */
   private final ObsClient mObsClient;
 
-  /** The size of the object in bytes. */
+  /**
+   * The size of the object in bytes.
+   */
   private final long mContentLength;
 
   /**
@@ -58,29 +66,29 @@ public class OBSInputStream extends MultiRangeObjectInputStream {
   /**
    * Creates a new instance of {@link OBSInputStream}.
    *
-   * @param bucketName the name of the bucket
-   * @param key the key of the file
-   * @param client the client for OSS
-   * @param retryPolicy retry policy in case the key does not exist
+   * @param bucketName          the name of the bucket
+   * @param key                 the key of the file
+   * @param client              the client for OSS
+   * @param retryPolicy         retry policy in case the key does not exist
    * @param multiRangeChunkSize the chunk size to use on this stream
    */
   OBSInputStream(String bucketName, String key, ObsClient client, RetryPolicy retryPolicy,
-      long multiRangeChunkSize) throws IOException {
+                 long multiRangeChunkSize) throws IOException {
     this(bucketName, key, client, 0L, retryPolicy, multiRangeChunkSize);
   }
 
   /**
    * Creates a new instance of {@link OBSInputStream}.
    *
-   * @param bucketName the name of the bucket
-   * @param key the key of the file
-   * @param client the OBS client
-   * @param position the position to begin reading from
-   * @param retryPolicy retry policy in case the key does not exist
+   * @param bucketName          the name of the bucket
+   * @param key                 the key of the file
+   * @param client              the OBS client
+   * @param position            the position to begin reading from
+   * @param retryPolicy         retry policy in case the key does not exist
    * @param multiRangeChunkSize the chunk size to use on this stream
    */
   OBSInputStream(String bucketName, String key, ObsClient client, long position,
-      RetryPolicy retryPolicy, long multiRangeChunkSize) throws IOException {
+                 RetryPolicy retryPolicy, long multiRangeChunkSize) throws IOException {
     super(multiRangeChunkSize);
     mBucketName = bucketName;
     mKey = key;

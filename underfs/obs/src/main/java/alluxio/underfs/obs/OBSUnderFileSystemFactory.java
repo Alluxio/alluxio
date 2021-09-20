@@ -12,6 +12,7 @@
 package alluxio.underfs.obs;
 
 import alluxio.AlluxioURI;
+import alluxio.conf.PropertyKey;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.underfs.UnderFileSystemFactory;
@@ -32,7 +33,8 @@ public class OBSUnderFileSystemFactory implements UnderFileSystemFactory {
   /**
    * Constructs a new {@link OBSUnderFileSystemFactory}.
    */
-  public OBSUnderFileSystemFactory() {}
+  public OBSUnderFileSystemFactory() {
+  }
 
   @Override
   public UnderFileSystem create(String path, UnderFileSystemConfiguration conf) {
@@ -57,12 +59,12 @@ public class OBSUnderFileSystemFactory implements UnderFileSystemFactory {
 
   /**
    * @param conf optional configuration object for the UFS
-   *
    * @return true if access, secret and endpoint keys are present, false otherwise
    */
   private boolean checkOBSCredentials(UnderFileSystemConfiguration conf) {
-    return conf.isSet(OBSPropertyKey.OBS_ACCESS_KEY)
-        && conf.isSet(OBSPropertyKey.OBS_SECRET_KEY)
-        && conf.isSet(OBSPropertyKey.OBS_ENDPOINT);
+    return conf.isSet(PropertyKey.OBS_ACCESS_KEY)
+        && conf.isSet(PropertyKey.OBS_SECRET_KEY)
+        && conf.isSet(PropertyKey.OBS_ENDPOINT)
+        && conf.isSet(PropertyKey.OBS_BUCKET_TYPE);
   }
 }

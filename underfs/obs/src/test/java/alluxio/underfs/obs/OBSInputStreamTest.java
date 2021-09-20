@@ -46,7 +46,7 @@ public class OBSInputStreamTest {
   private static final String BUCKET_NAME = "testBucket";
   private static final String OBJECT_KEY = "testObjectKey";
   private static AlluxioConfiguration sConf =
-          new InstancedConfiguration(ConfigurationUtils.defaults());
+      new InstancedConfiguration(ConfigurationUtils.defaults());
 
   private OBSInputStream mOBSInputStream;
   private ObsClient mObsClient;
@@ -80,7 +80,7 @@ public class OBSInputStreamTest {
       when(mObjects[i].getObjectContent()).thenReturn(mInputStreamSpy[i]);
     }
     mOBSInputStream = new OBSInputStream(BUCKET_NAME, OBJECT_KEY, mObsClient, new CountingRetry(1),
-            sConf.getBytes(PropertyKey.UNDERFS_OBJECT_STORE_MULTI_RANGE_CHUNK_SIZE));
+        sConf.getBytes(PropertyKey.UNDERFS_OBJECT_STORE_MULTI_RANGE_CHUNK_SIZE));
   }
 
   @Test

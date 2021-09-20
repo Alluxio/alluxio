@@ -49,13 +49,19 @@ import javax.annotation.concurrent.ThreadSafe;
 public class OBSUnderFileSystem extends ObjectUnderFileSystem {
   private static final Logger LOG = LoggerFactory.getLogger(OBSUnderFileSystem.class);
 
-  /** Suffix for an empty file to flag it as a directory. */
+  /**
+   * Suffix for an empty file to flag it as a directory.
+   */
   private static final String FOLDER_SUFFIX = PATH_SEPARATOR;
 
-  /** Huawei OBS client. */
+  /**
+   * Huawei OBS client.
+   */
   private final ObsClient mClient;
 
-  /** Bucket name of user's configured Alluxio bucket. */
+  /**
+   * Bucket name of user's configured Alluxio bucket.
+   */
   private final String mBucketName;
 
   private final String mBucketType;
@@ -63,22 +69,24 @@ public class OBSUnderFileSystem extends ObjectUnderFileSystem {
   /**
    * Constructs a new instance of {@link OBSUnderFileSystem}.
    *
-   * @param uri the {@link AlluxioURI} for this UFS
+   * @param uri  the {@link AlluxioURI} for this UFS
    * @param conf the configuration for this UFS
    * @return the created {@link OBSUnderFileSystem} instance
    */
   public static OBSUnderFileSystem createInstance(AlluxioURI uri,
-      UnderFileSystemConfiguration conf) throws Exception {
-    Preconditions.checkArgument(conf.isSet(OBSPropertyKey.OBS_ACCESS_KEY),
-        "Property %s is required to connect to OBS", OBSPropertyKey.OBS_ACCESS_KEY);
-    Preconditions.checkArgument(conf.isSet(OBSPropertyKey.OBS_SECRET_KEY),
-        "Property %s is required to connect to OBS", OBSPropertyKey.OBS_SECRET_KEY);
-    Preconditions.checkArgument(conf.isSet(OBSPropertyKey.OBS_ENDPOINT),
-        "Property %s is required to connect to OBS", OBSPropertyKey.OBS_ENDPOINT);
-    String accessKey = conf.get(OBSPropertyKey.OBS_ACCESS_KEY);
-    String secretKey = conf.get(OBSPropertyKey.OBS_SECRET_KEY);
-    String endPoint = conf.get(OBSPropertyKey.OBS_ENDPOINT);
-    String bucketType = conf.get(OBSPropertyKey.OBS_BUCKET_TYPE);
+                                                  UnderFileSystemConfiguration conf) throws Exception {
+    Preconditions.checkArgument(conf.isSet(PropertyKey.OBS_ACCESS_KEY),
+        "Property %s is required to connect to OBS", PropertyKey.OBS_ACCESS_KEY);
+    Preconditions.checkArgument(conf.isSet(PropertyKey.OBS_SECRET_KEY),
+        "Property %s is required to connect to OBS", PropertyKey.OBS_SECRET_KEY);
+    Preconditions.checkArgument(conf.isSet(PropertyKey.OBS_ENDPOINT),
+        "Property %s is required to connect to OBS", PropertyKey.OBS_ENDPOINT);
+    Preconditions.checkArgument(conf.isSet(PropertyKey.OBS_BUCKET_TYPE),
+        "Property %s is required to connect to OBS", PropertyKey.OBS_BUCKET_TYPE);
+    String accessKey = conf.get(PropertyKey.OBS_ACCESS_KEY);
+    String secretKey = conf.get(PropertyKey.OBS_SECRET_KEY);
+    String endPoint = conf.get(PropertyKey.OBS_ENDPOINT);
+    String bucketType = conf.get(PropertyKey.OBS_BUCKET_TYPE);
 
     ObsClient obsClient = new ObsClient(accessKey, secretKey, endPoint);
     String bucketName = UnderFileSystemUtils.getBucketName(uri);
@@ -88,10 +96,10 @@ public class OBSUnderFileSystem extends ObjectUnderFileSystem {
   /**
    * Constructor for {@link OBSUnderFileSystem}.
    *
-   * @param uri the {@link AlluxioURI} for this UFS
-   * @param obsClient Huawei OBS client
+   * @param uri        the {@link AlluxioURI} for this UFS
+   * @param obsClient  Huawei OBS client
    * @param bucketName bucket name of user's configured Alluxio bucket
-   * @param conf configuration for this UFS
+   * @param conf       configuration for this UFS
    */
   protected OBSUnderFileSystem(AlluxioURI uri, ObsClient obsClient, String bucketName,
                                String bucketType, UnderFileSystemConfiguration conf) {
@@ -102,7 +110,8 @@ public class OBSUnderFileSystem extends ObjectUnderFileSystem {
   }
 
   @Override
-  public void cleanup() {}
+  public void cleanup() {
+  }
 
   @Override
   public String getUnderFSType() {
@@ -111,11 +120,13 @@ public class OBSUnderFileSystem extends ObjectUnderFileSystem {
 
   // No ACL integration currently, no-op
   @Override
-  public void setOwner(String path, String user, String group) {}
+  public void setOwner(String path, String user, String group) {
+  }
 
   // No ACL integration currently, no-op
   @Override
-  public void setMode(String path, short mode) throws IOException {}
+  public void setMode(String path, short mode) throws IOException {
+  }
 
   @Override
   protected boolean copyObject(String src, String dst) {
@@ -190,7 +201,7 @@ public class OBSUnderFileSystem extends ObjectUnderFileSystem {
     try {
       result = mClient.listObjects(request);
       if (isEnvironmentPFS() && result.getObjects().size() == 0
-              && !isDirectory(request.getPrefix())) {
+          && !isDirectory(request.getPrefix())) {
         result = null;
       }
     } catch (Exception e) {
@@ -339,7 +350,7 @@ public class OBSUnderFileSystem extends ObjectUnderFileSystem {
     }
     try {
       RenameRequest request = new RenameRequest(mBucketName, stripPrefixIfPresent(src),
-              stripPrefixIfPresent(dst));
+          stripPrefixIfPresent(dst));
       RenameResult response = mClient.renameFolder(request);
       if (isSuccessResponse(response.getStatusCode())) {
         return true;
@@ -352,6 +363,7 @@ public class OBSUnderFileSystem extends ObjectUnderFileSystem {
       return false;
     }
   }
+
   /**
    * @param statusCode 200 OK, 201 Created, 204 No Content
    */
