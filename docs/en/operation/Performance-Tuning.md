@@ -249,6 +249,10 @@ This is most commonly effective in cases where the files being cached are relati
 However, increase this number sparingly, as it will consume more CPU resources on the worker node
 as the number is increased.
 
+Another important property related to async caching is `alluxio.worker.network.async.cache.manager.queue.max`. When a sudden surge of async caching traffic arrives, and Alluxio can no longer hold all the request in the queue, it will start to drop some async caching request, as async caching is strictly an performance optimization.
+Increase this if Alluxio drops many async cache requests.
+Monitor `Worker.AsyncCacheRequests` and `Worker.AsyncCacheSucceededBlocks` to see if the number of blocks cached matches expectations.
+
 ### UFS InStream cache size
 
 Alluxio workers use a pool of open input streams to the UFS controlled by the parameter
