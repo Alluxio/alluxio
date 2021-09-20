@@ -4671,6 +4671,11 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "an exponential backoff. This property determines the maximum duration to retry for"
               + " before giving up. Note that, this value is set to 5s for fs and fsadmin CLIs.")
           .build();
+  public static final PropertyKey USER_RPC_SHUFFLE_MASTERS_ENABLED =
+      new Builder(Name.USER_RPC_SHUFFLE_MASTERS_ENABLED)
+          .setDefaultValue(false)
+          .setDescription("Shuffle the client-side configured master rpc addresses.")
+          .build();
   public static final PropertyKey USER_WORKER_LIST_REFRESH_INTERVAL =
       new Builder(Name.USER_WORKER_LIST_REFRESH_INTERVAL)
           .setDefaultValue("2min")
@@ -6261,6 +6266,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.user.rpc.retry.base.sleep";
     public static final String USER_RPC_RETRY_MAX_DURATION =
         "alluxio.user.rpc.retry.max.duration";
+    public static final String USER_RPC_SHUFFLE_MASTERS_ENABLED =
+        "alluxio.user.rpc.shuffle.masters.enabled";
     public static final String USER_RPC_RETRY_MAX_SLEEP_MS = "alluxio.user.rpc.retry.max.sleep";
     public static final String USER_UFS_BLOCK_LOCATION_ALL_FALLBACK_ENABLED =
         "alluxio.user.ufs.block.location.all.fallback.enabled";
