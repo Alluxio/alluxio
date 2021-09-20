@@ -282,8 +282,7 @@ public abstract class DynamicResourcePool<T> implements Pool<T> {
 
   private void registerGauges() {
     MetricsSystem.registerGaugeIfAbsent(
-        MetricsSystem.getMetricName("ResourcePoolSize_" + getClass().getName() + "_"
-            + Integer.toHexString(System.identityHashCode(this))),
+        MetricsSystem.getResourcePoolMetricName(this),
         () -> size());
   }
 
