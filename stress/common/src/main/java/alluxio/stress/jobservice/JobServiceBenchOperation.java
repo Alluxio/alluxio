@@ -15,8 +15,10 @@ package alluxio.stress.jobservice;
  * The operations for the job service stress tests.
  */
 public enum JobServiceBenchOperation {
+  CREATE_FILES("CreateFiles"),
   DISTRIBUTED_LOAD("DistributedLoad"),
-  CREATE_FILES("CreateFiles");
+  NO_OP("NoOp");
+
   private final String mName;
 
   /**
