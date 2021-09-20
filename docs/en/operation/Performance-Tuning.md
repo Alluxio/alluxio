@@ -146,9 +146,14 @@ UFS block, and all clients will read that UFS block from one of those 3 workers.
 In Alluxio versions 2.6 and before, there are several metrics which indicate the number of bytes read through different means. 
 Together, they can be used to calculate the hit ratio of alluxio. 
 
-The general formula is 1- Cluster.BytesReadUfsAll / (Cluster.BytesReadLocal + Cluster.BytesReadDomain + Cluster.BytesReadRemote)
+The general formula is 1- `Cluster.BytesReadUfsAll`/ (`Cluster.BytesReadLocal` + `Cluster.BytesReadDomain` + `Cluster.BytesReadRemote`)
+The latter part uses the bytes Alluxio reads from the UFS and divide by all the bytes read.
+This computes the cache miss rate. 
+1 - cache miss rate gives us cache hit rate. 
 
 In Alluxio versions after 2.6, we included an additional metric `Cluster.CacheHitRatio`, which indicates the cache hit ratio. 
+Here the cache hit ratio means the percentage of data that is accessed and already in Alluxio storage.
+If there is a drop in the hit ratio, consider boosting cache size or examine the recent access pattern to see why data accesses are going to the ufs.
 
 
 ## Master Tuning
@@ -382,7 +387,7 @@ It is a good place to start when you have a performance issue and may lead to an
 ### Slow Queries / Overall performance 
 Unexpectedly large `Cluster.BytesReadUfs` metric is observed.
 
-When we are going to UFS for the data, we are sacrificing performance and incurring additional cost. This is usually the biggest red flag. 
+When Alluxio is going to UFS for the data, it is sacrificing performance and incurring additional cost. This is usually the biggest red flag. 
 
 Reason:
 There are many possible reasons for this. Here is a partial list to check if it is the root cause for your problem.
@@ -407,7 +412,7 @@ There are many possible reasons for this. Here is a partial list to check if it 
 1. Unbalanced workers
 All of your data access might be going to a small set of workers. Checker worker capacity using either the webui or the `alluxio fsadmin` command. 
 
-###Slow read/write to Alluxio
+### Slow read/write to Alluxio
 This is indicated by read/write throughput metrics in Alluxio, or usually reported by the user. 
 Reason: 
 
@@ -443,7 +448,7 @@ adjust
 
 ### OOM of Alluxio processes
 1. Alluxio process can get killed by system OOM killer and die silently
- * Check dmesg -T | egrep -i 'killed process'
+ * Check `dmesg -T | egrep -i 'killed process'`
  * This will show which process (if any) got killed by OOM killer
 If confirmed OOM issue, start by increasing xmx, directmemory setting of the relevant process
  *  Sometimes the log will show an Out Of Memory exception, this is a Java reported OOM. 

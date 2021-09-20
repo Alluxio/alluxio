@@ -48,7 +48,7 @@ user experience unless the subtree is significantly large (> 10k files).
 Other metrics related to the number of files and the number of blocks
 * Master.TotalPath
 * Master.InodeHeapSize (Estimate only)
-* Master.TotalBlocks
+* MMaster.UniqueBlocks and Master.BlockReplicaCount
 * Master.BlockHeapSize 
 In addition to the total path, the total number of blocks also affects the heap usage, also to a lesser degree. 
 Be sure to monitor this metric if you expect your total data size to be very large or grow quickly.
