@@ -11,10 +11,14 @@
 
 package alluxio.proxy.s3;
 
+import alluxio.client.file.URIStatus;
+
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -30,8 +34,12 @@ public class ListAllMyBucketsResult {
    *
    * @param names names of all of the buckets
    */
-  public ListAllMyBucketsResult(List<String> names) {
-    mBuckets = names.stream().map((name) -> new Bucket(name)).collect(Collectors.toList());
+  public ListAllMyBucketsResult(List<URIStatus> names) {
+    mBuckets =
+        names.stream().map((uriStatus) -> new Bucket(uriStatus.getName(),
+            LocalDateTime.ofEpochSecond(
+                uriStatus.getCreationTimeMs() / 1000L, 0, ZoneOffset.UTC).toString()))
+            .collect(Collectors.toList());
   }
 
   /**
@@ -49,9 +57,11 @@ public class ListAllMyBucketsResult {
   @JacksonXmlRootElement(localName = "Bucket")
   public class Bucket {
     private String mName;
+    private String mCreationDate;
 
-    private Bucket(String name) {
+    private Bucket(String name, String creationDate) {
       mName = name;
+      mCreationDate = creationDate;
     }
 
     /**
@@ -60,6 +70,14 @@ public class ListAllMyBucketsResult {
     @JacksonXmlProperty(localName = "Name")
     public String getName() {
       return mName;
+    }
+
+    /**
+     * @return the creation timestamp for the bucket
+     */
+    @JacksonXmlProperty(localName = "CreationDate")
+    public String getCreationDate() {
+      return mCreationDate;
     }
   }
 }
