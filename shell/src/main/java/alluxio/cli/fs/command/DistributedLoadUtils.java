@@ -162,6 +162,7 @@ public final class DistributedLoadUtils {
           mJobConfig.getFilePath(), mRetryPolicy.getAttemptCount()));
     }
   }
+
   private static class SilentLoadJobAttempt extends JobAttempt {
     private LoadConfig mJobConfig;
 
