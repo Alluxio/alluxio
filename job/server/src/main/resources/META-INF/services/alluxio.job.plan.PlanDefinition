@@ -6,3 +6,4 @@ alluxio.job.plan.replicate.MoveDefinition
 alluxio.job.plan.replicate.ReplicateDefinition
 alluxio.job.plan.stress.StressBenchDefinition
 alluxio.job.plan.transform.CompactDefinition
+alluxio.job.plan.NoopPlanDefinition
