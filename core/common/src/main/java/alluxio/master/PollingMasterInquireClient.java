@@ -16,6 +16,7 @@ import static java.util.stream.Collectors.joining;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.status.AlluxioStatusException;
+import alluxio.exception.status.CancelledException;
 import alluxio.exception.status.DeadlineExceededException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.GetServiceVersionPRequest;
@@ -128,6 +129,9 @@ public class PollingMasterInquireClient implements MasterInquireClient {
         continue;
       } catch (DeadlineExceededException e) {
         LOG.debug("Timeout while connecting to {}", address);
+        continue;
+      } catch (CancelledException e) {
+        LOG.debug("Cancelled while connecting to {}", address);
         continue;
       } catch (AlluxioStatusException e) {
         LOG.error("Error while connecting to {}. {}", address, e);
