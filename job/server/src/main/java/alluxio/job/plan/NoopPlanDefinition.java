@@ -27,6 +27,9 @@ import java.util.Set;
 public class NoopPlanDefinition
     extends AbstractVoidPlanDefinition<NoopPlanConfig, SerializableVoid> {
 
+  /**
+   * Constructs a new instance.
+   */
   public NoopPlanDefinition() {}
 
   @Override

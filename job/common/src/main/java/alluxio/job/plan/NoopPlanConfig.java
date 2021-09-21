@@ -23,6 +23,9 @@ public class NoopPlanConfig implements PlanConfig {
 
   public static final String NAME = "NoOp";
 
+  /**
+   * Constructs a new instance.
+   */
   public NoopPlanConfig() {}
 
   @Override
