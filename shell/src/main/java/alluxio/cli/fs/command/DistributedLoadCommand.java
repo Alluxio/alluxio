@@ -270,16 +270,18 @@ public final class DistributedLoadCommand extends AbstractDistributedJobCommand 
     if (!cl.hasOption(INDEX_FILE.getLongOpt())) {
       AlluxioURI path = new AlluxioURI(args[0]);
       DistributedLoadUtils.distributedLoad(this, path, replication, workerSet,
-          excludedWorkerSet, localityIds, excludedLocalityIds);
+          excludedWorkerSet, localityIds, excludedLocalityIds, true);
     } else {
       try (BufferedReader reader = new BufferedReader(new FileReader(args[0]))) {
         for (String filename; (filename = reader.readLine()) != null; ) {
           AlluxioURI path = new AlluxioURI(filename);
           DistributedLoadUtils.distributedLoad(this, path, replication, workerSet,
-              excludedWorkerSet, localityIds, excludedLocalityIds);
+              excludedWorkerSet, localityIds, excludedLocalityIds, true);
         }
       }
     }
+    System.out.println(String.format("Completed count is %d,Failed count is %d.",
+        getCompletedCount(), getFailedCount()));
     return 0;
   }
 

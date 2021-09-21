@@ -221,7 +221,7 @@ public class StressJobServiceBench extends Benchmark<JobServiceBenchTaskResult> 
           DistributedLoadCommand cmd = new DistributedLoadCommand(fsContext);
           try {
             DistributedLoadUtils.distributedLoad(cmd, new AlluxioURI(dirPath), numReplication,
-                new HashSet<>(), new HashSet<>(), new HashSet<>(), new HashSet<>());
+                new HashSet<>(), new HashSet<>(), new HashSet<>(), new HashSet<>(), false);
           } finally {
             mResult.incrementNumSuccess(cmd.getCompletedCount());
           }
