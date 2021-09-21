@@ -22,6 +22,7 @@ import java.util.Collections;
 public class NoopPlanConfig implements PlanConfig {
 
   public static final String NAME = "NoOp";
+  private static final long serialVersionUID = 1305044963083382523L;
 
   /**
    * Constructs a new instance.
