@@ -19,8 +19,11 @@ import alluxio.Sessions;
 import alluxio.StorageTierAssoc;
 import alluxio.WorkerStorageTierAssoc;
 import alluxio.client.file.FileSystemContext;
+import alluxio.collections.PrefixList;
+import alluxio.conf.ConfigurationValueOptions;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Source;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.BlockAlreadyExistsException;
 import alluxio.exception.BlockDoesNotExistException;
@@ -30,6 +33,7 @@ import alluxio.exception.WorkerOutOfSpaceException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.AsyncCacheRequest;
 import alluxio.grpc.CacheRequest;
+import alluxio.grpc.GetConfigurationPOptions;
 import alluxio.grpc.GrpcService;
 import alluxio.grpc.ServiceType;
 import alluxio.heartbeat.HeartbeatContext;
@@ -47,6 +51,7 @@ import alluxio.security.user.ServerUserState;
 import alluxio.underfs.UfsManager;
 import alluxio.util.executor.ExecutorServiceFactories;
 import alluxio.wire.BlockReadRequest;
+import alluxio.wire.Configuration;
 import alluxio.wire.FileInfo;
 import alluxio.wire.WorkerNetAddress;
 import alluxio.worker.AbstractWorker;
@@ -55,6 +60,8 @@ import alluxio.worker.block.io.BlockReader;
 import alluxio.worker.block.io.BlockWriter;
 import alluxio.worker.block.io.DelegatingBlockReader;
 import alluxio.worker.block.meta.BlockMeta;
+import alluxio.worker.block.meta.PathProperties;
+import alluxio.worker.block.meta.PathPropertiesView;
 import alluxio.worker.block.meta.TempBlockMeta;
 import alluxio.worker.file.FileSystemMasterClient;
 import alluxio.worker.grpc.GrpcExecutors;
@@ -71,6 +78,7 @@ import java.net.InetSocketAddress;
 import java.nio.channels.FileChannel;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
@@ -127,10 +135,14 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
   private Sessions mSessions;
   /** Block Store manager. */
   private final BlockStore mLocalBlockStore;
+  /** List of paths to always keep in memory. */
+  private final PrefixList mWhitelist;
   private WorkerNetAddress mAddress;
 
   /** The under file system block store. */
   private final UnderFileSystemBlockStore mUnderFileSystemBlockStore;
+  /** Path level properties. */
+  private PathProperties mPathProperties;
 
   /**
    * The worker ID for this worker. This is initialized in {@link #start(WorkerNetAddress)} and may
@@ -186,6 +198,8 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
         GrpcExecutors.CACHE_MANAGER_EXECUTOR, this, mFsContext);
     mFuseManager = mResourceCloser.register(new FuseManager(mFsContext));
     mUnderFileSystemBlockStore = new UnderFileSystemBlockStore(mLocalBlockStore, ufsManager);
+    mWhitelist = new PrefixList(ServerConfiguration.getList(PropertyKey.WORKER_WHITELIST, ","));
+    mPathProperties = new PathProperties();
 
     Metrics.registerGauges(this);
   }
@@ -505,6 +519,11 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
   }
 
   @Override
+  public List<String> getWhiteList() {
+    return mWhitelist.getList();
+  }
+
+  @Override
   public BlockReader createUfsBlockReader(long sessionId, long blockId, long offset,
       boolean positionShort, Protocol.OpenUfsBlockOptions options)
       throws BlockDoesNotExistException, IOException {
@@ -682,6 +701,41 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
   public void clearMetrics() {
     // TODO(lu) Create a metrics worker and move this method to metrics worker
     MetricsSystem.resetAllMetrics();
+  }
+
+  @Override
+  public Configuration getConfiguration(GetConfigurationPOptions options) {
+    // NOTE(cc): there is no guarantee that the returned cluster and path configurations are
+    // consistent snapshot of the system's state at a certain time, the path configuration might
+    // be in a newer state. But it's guaranteed that the hashes are respectively correspondent to
+    // the properties.
+    Configuration.Builder builder = Configuration.newBuilder();
+
+    if (!options.getIgnoreClusterConf()) {
+      Set<PropertyKey> keys = ServerConfiguration.keySet();
+      for (PropertyKey key : ServerConfiguration.keySet()) {
+        if (key.isBuiltIn()) {
+          Source source = ServerConfiguration.getSource(key);
+          String value = ServerConfiguration.getOrDefault(key, null,
+                  ConfigurationValueOptions.defaults().useDisplayValue(true)
+                          .useRawValue(options.getRawValue()));
+          builder.addClusterProperty(key.getName(), value, source);
+        }
+      }
+      // NOTE(cc): assumes that ServerConfiguration is read-only when master is running, otherwise,
+      // the following hash might not correspond to the above cluster configuration.
+      builder.setClusterConfHash(ServerConfiguration.hash());
+    }
+
+    if (!options.getIgnorePathConf()) {
+      PathPropertiesView pathProperties = mPathProperties.snapshot();
+      pathProperties.getProperties().forEach((path, properties) ->
+              properties.forEach((key, value) ->
+                      builder.addPathProperty(path, key, value)));
+      builder.setPathConfHash(pathProperties.getHash());
+    }
+
+    return builder.build();
   }
 
   @Override
