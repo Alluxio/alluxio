@@ -204,9 +204,9 @@ public final class MultiProcessCluster {
     }
     List<MasterNetAddress> masterAddresses = generateMasterAddresses(count);
     for (MasterNetAddress newMasterAddress : masterAddresses) {
-      String ID = newMasterAddress.getEmbeddedJournalPort()
+      String id = newMasterAddress.getEmbeddedJournalPort()
           + "-" + RandomString.make(RandomString.DEFAULT_LENGTH);
-      mMasterIds.add(ID);
+      mMasterIds.add(id);
     }
     mMasterAddresses.addAll(masterAddresses);
     mNumMasters = mMasterAddresses.size();
