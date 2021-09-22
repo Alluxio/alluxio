@@ -60,8 +60,6 @@ import alluxio.worker.block.io.BlockReader;
 import alluxio.worker.block.io.BlockWriter;
 import alluxio.worker.block.io.DelegatingBlockReader;
 import alluxio.worker.block.meta.BlockMeta;
-import alluxio.worker.block.meta.PathProperties;
-import alluxio.worker.block.meta.PathPropertiesView;
 import alluxio.worker.block.meta.TempBlockMeta;
 import alluxio.worker.file.FileSystemMasterClient;
 import alluxio.worker.grpc.GrpcExecutors;
@@ -141,8 +139,6 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
 
   /** The under file system block store. */
   private final UnderFileSystemBlockStore mUnderFileSystemBlockStore;
-  /** Path level properties. */
-  private PathProperties mPathProperties;
 
   /**
    * The worker ID for this worker. This is initialized in {@link #start(WorkerNetAddress)} and may
@@ -199,7 +195,6 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
     mFuseManager = mResourceCloser.register(new FuseManager(mFsContext));
     mUnderFileSystemBlockStore = new UnderFileSystemBlockStore(mLocalBlockStore, ufsManager);
     mWhitelist = new PrefixList(ServerConfiguration.getList(PropertyKey.WORKER_WHITELIST, ","));
-    mPathProperties = new PathProperties();
 
     Metrics.registerGauges(this);
   }
@@ -725,14 +720,6 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
       // NOTE(cc): assumes that ServerConfiguration is read-only when master is running, otherwise,
       // the following hash might not correspond to the above cluster configuration.
       builder.setClusterConfHash(ServerConfiguration.hash());
-    }
-
-    if (!options.getIgnorePathConf()) {
-      PathPropertiesView pathProperties = mPathProperties.snapshot();
-      pathProperties.getProperties().forEach((path, properties) ->
-              properties.forEach((key, value) ->
-                      builder.addPathProperty(path, key, value)));
-      builder.setPathConfHash(pathProperties.getHash());
     }
 
     return builder.build();
