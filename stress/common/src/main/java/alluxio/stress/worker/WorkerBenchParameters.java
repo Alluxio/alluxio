@@ -13,6 +13,7 @@ package alluxio.stress.worker;
 
 import alluxio.stress.Parameters;
 
+import alluxio.stress.common.FileSystemParameters;
 import com.beust.jcommander.DynamicParameter;
 import com.beust.jcommander.Parameter;
 
@@ -23,7 +24,7 @@ import java.util.Map;
  * This holds all the parameters. All fields are public for easier json ser/de without all the
  * getters and setters.
  */
-public final class WorkerBenchParameters extends Parameters {
+public final class WorkerBenchParameters extends FileSystemParameters {
   @Parameter(names = {"--base"},
       description = "The base directory path URI to perform operations in")
   @Parameters.PathDescription(aliasFieldName = "mBaseAlias")

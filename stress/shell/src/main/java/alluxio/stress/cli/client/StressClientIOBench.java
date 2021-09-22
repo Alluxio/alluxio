@@ -11,16 +11,25 @@
 
 package alluxio.stress.cli.client;
 
+import alluxio.AlluxioURI;
 import alluxio.Constants;
+import alluxio.client.file.FileInStream;
+import alluxio.client.file.FileOutStream;
+import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
+import alluxio.exception.AlluxioException;
+import alluxio.grpc.CreateFilePOptions;
 import alluxio.stress.BaseParameters;
 import alluxio.stress.StressConstants;
 import alluxio.stress.cli.Benchmark;
+import alluxio.stress.cli.filesystem.StressFileSystemBecn;
 import alluxio.stress.client.ClientIOOperation;
 import alluxio.stress.client.ClientIOParameters;
 import alluxio.stress.client.ClientIOTaskResult;
+import alluxio.stress.common.FileSystemClientType;
 import alluxio.stress.common.SummaryStatistics;
 import alluxio.util.CommonUtils;
+import alluxio.util.ConfigurationUtils;
 import alluxio.util.FormatUtils;
 import alluxio.util.executor.ExecutorServiceFactories;
 
@@ -60,6 +69,10 @@ public class StressClientIOBench extends Benchmark<ClientIOTaskResult> {
 
   /** Cached FS instances. */
   private FileSystem[] mCachedFs;
+
+  /** In case of Alluxio Native API is used,  using the following instead */
+  private alluxio.client.file.FileSystem [] mCachedNativeFs;
+
     /** Set to true after the first barrier is passed. */
   private volatile boolean mStartBarrierPassed = false;
 
@@ -128,9 +141,21 @@ public class StressClientIOBench extends Benchmark<ClientIOTaskResult> {
     for (Map.Entry<String, String> entry : mParameters.mConf.entrySet()) {
       hdfsConf.set(entry.getKey(), entry.getValue());
     }
-    mCachedFs = new FileSystem[mParameters.mClients];
-    for (int i = 0; i < mCachedFs.length; i++) {
-      mCachedFs[i] = FileSystem.get(new URI(mParameters.mBasePath), hdfsConf);
+
+    if (mParameters.mClientType == FileSystemClientType.ALLUXIO_HCFS) {
+      mCachedFs = new FileSystem[mParameters.mClients];
+      for (int i = 0; i < mCachedFs.length; i++) {
+        mCachedFs[i] = FileSystem.get(new URI(mParameters.mBasePath), hdfsConf);
+      }
+    } else {
+      mCachedNativeFs = new alluxio.client.file.FileSystem[mParameters.mClients];
+      for (int i = 0; i < mCachedNativeFs.length; i++) {
+        // TODO(yyong) need figure out how to convert the config
+        //mCachedNativeFs[i] = alluxio.client.file.FileSystem.Factory.get();
+        // .create(new InstancedConfiguration(ConfigurationUtils.defaults()));
+        mCachedNativeFs[i] = alluxio.client.file.FileSystem.Factory
+            .create(new InstancedConfiguration(ConfigurationUtils.defaults()));
+      }
     }
   }
 
@@ -156,6 +181,15 @@ public class StressClientIOBench extends Benchmark<ClientIOTaskResult> {
     return taskResult;
   }
 
+  private BenchThread getBenchThread(BenchContext context, int index) {
+    if (mParameters.mClientType == FileSystemClientType.ALLUXIO_HCFS) {
+      return new AlluxioHDFSBenchThread(context, mCachedFs[index % mCachedFs.length], index);
+    }
+
+    return new AlluxioNativeBenchThread(context,
+        mCachedNativeFs[index % mCachedNativeFs.length], index);
+  }
+
   private ClientIOTaskResult.ThreadCountResult runForThreadCount(int numThreads) throws Exception {
     LOG.info("Running benchmark for thread count: " + numThreads);
     ExecutorService service =
@@ -173,7 +207,7 @@ public class StressClientIOBench extends Benchmark<ClientIOTaskResult> {
 
     List<Callable<Void>> callables = new ArrayList<>(numThreads);
     for (int i = 0; i < numThreads; i++) {
-      callables.add(new BenchThread(context, mCachedFs[i % mCachedFs.length], i));
+      callables.add(getBenchThread(context, i));
     }
     service.invokeAll(callables, FormatUtils.parseTimeSize(mBaseParameters.mBenchTimeout),
         TimeUnit.MILLISECONDS);
@@ -286,26 +320,25 @@ public class StressClientIOBench extends Benchmark<ClientIOTaskResult> {
     }
   }
 
-  private final class BenchThread implements Callable<Void> {
+  private abstract class BenchThread implements Callable<Void> {
     private final BenchContext mContext;
-    private final Path mFilePath;
-    private final FileSystem mFs;
-    private final byte[] mBuffer;
-    private final ByteBuffer mByteBuffer;
-    private final int mThreadId;
-    private final long mFileSize;
-    private final long mMaxOffset;
-    private final Iterator<Long> mLongs;
-    private final long mBlockSize;
+    protected final Path mFilePath;
+    protected final byte[] mBuffer;
+    protected final ByteBuffer mByteBuffer;
+    protected final int mThreadId;
+    protected final long mFileSize;
+    protected final long mMaxOffset;
+    protected final Iterator<Long> mLongs;
+    protected final long mBlockSize;
 
-    private final ClientIOTaskResult.ThreadCountResult mThreadCountResult =
+    protected final ClientIOTaskResult.ThreadCountResult mThreadCountResult =
         new ClientIOTaskResult.ThreadCountResult();
 
-    private FSDataInputStream mInStream = null;
-    private FSDataOutputStream mOutStream = null;
-    private long mCurrentOffset;
+    protected FSDataInputStream mInStream = null;
+    protected FSDataOutputStream mOutStream = null;
+    protected long mCurrentOffset;
 
-    private BenchThread(BenchContext context, FileSystem fs, int threadId) {
+    protected BenchThread(BenchContext context, int threadId) {
       mContext = context;
       mThreadId = threadId;
 
@@ -315,8 +348,6 @@ public class StressClientIOBench extends Benchmark<ClientIOTaskResult> {
         fileId = 0;
       }
       mFilePath = new Path(mParameters.mBasePath, "data-" + fileId);
-
-      mFs = fs;
 
       mBuffer = new byte[(int) FormatUtils.parseSpaceSize(mParameters.mBufferSize)];
       Arrays.fill(mBuffer, (byte) 'A');
@@ -381,7 +412,39 @@ public class StressClientIOBench extends Benchmark<ClientIOTaskResult> {
       }
     }
 
-    private int applyOperation() throws IOException {
+    protected abstract int applyOperation() throws IOException, AlluxioException;
+
+    protected void closeInStream() {
+      try {
+        if (mInStream != null) {
+          mInStream.close();
+        }
+      } catch (IOException e) {
+        mThreadCountResult.addErrorMessage(e.getMessage());
+      } finally {
+        mInStream = null;
+      }
+    }
+  }
+
+  private final class AlluxioHDFSBenchThread extends BenchThread {
+    private final FileSystem mFs;
+
+    private final ClientIOTaskResult.ThreadCountResult mThreadCountResult =
+        new ClientIOTaskResult.ThreadCountResult();
+
+    private FSDataInputStream mInStream = null;
+    private FSDataOutputStream mOutStream = null;
+    private long mCurrentOffset;
+
+    private AlluxioHDFSBenchThread(BenchContext context, FileSystem fs, int threadId) {
+      super(context, threadId);
+
+      mFs = fs;
+    }
+
+    @Override
+    protected int applyOperation() throws IOException {
       if (ClientIOOperation.isRead(mParameters.mOperation)) {
         if (mInStream == null) {
           mInStream = mFs.open(mFilePath);
@@ -448,16 +511,97 @@ public class StressClientIOBench extends Benchmark<ClientIOTaskResult> {
           throw new IllegalStateException("Unknown operation: " + mParameters.mOperation);
       }
     }
+  }
 
-    private void closeInStream() {
-      try {
-        if (mInStream != null) {
-          mInStream.close();
+  private final class AlluxioNativeBenchThread extends BenchThread {
+    private final alluxio.client.file.FileSystem mFs;
+
+    private final ClientIOTaskResult.ThreadCountResult mThreadCountResult =
+        new ClientIOTaskResult.ThreadCountResult();
+
+    private FileInStream mInStream = null;
+    private FileOutStream mOutStream = null;
+
+    private AlluxioNativeBenchThread(BenchContext context, alluxio.client.file.FileSystem fs, int threadId) {
+      super(context, threadId);
+
+      // alluxio.client.file.FileSystem.Factory.get();
+      mFs = fs;
+    }
+
+    @Override
+    protected int applyOperation() throws IOException, AlluxioException {
+      if (ClientIOOperation.isRead(mParameters.mOperation)) {
+        if (mInStream == null) {
+          mInStream = mFs.openFile(new AlluxioURI(mFilePath.toString()));
         }
-      } catch (IOException e) {
-        mThreadCountResult.addErrorMessage(e.getMessage());
-      } finally {
-        mInStream = null;
+        if (mParameters.mReadRandom) {
+          mCurrentOffset = mLongs.next();
+          if (!ClientIOOperation.isPosRead(mParameters.mOperation)) {
+            // must seek if not a positioned read
+            mInStream.seek(mCurrentOffset);
+          }
+        } else {
+          mCurrentOffset += mBuffer.length;
+          if (mCurrentOffset > mMaxOffset) {
+            mCurrentOffset = 0;
+          }
+        }
+      }
+      switch (mParameters.mOperation) {
+        case READ_ARRAY: {
+          int bytesRead = mInStream.read(mBuffer);
+          if (bytesRead < 0) {
+            closeInStream();
+            mInStream = mFs.openFile(new AlluxioURI(mFilePath.toString()));
+          }
+          return bytesRead;
+        }
+        case READ_BYTE_BUFFER: {
+          int bytesRead = mInStream.read(mByteBuffer);
+          if (bytesRead < 0) {
+            closeInStream();
+            mInStream = mFs.openFile(new AlluxioURI(mFilePath.toString()));
+          }
+          return bytesRead;
+        }
+        case READ_FULLY: {
+          throw new UnsupportedOperationException("Not support Read Fully");
+          /*int toRead = Math.min(mBuffer.length, (int) (mFileSize - mInStream.getPos()));
+          // mInStream.readFully(mBuffer, 0, toRead);
+          if (mInStream.getPos() == mFileSize) {
+            closeInStream();
+            //mInStream = mFs.open(mFilePath);
+            mInStream = mFs.openFile(new AlluxioURI(mFilePath.toString()));
+          }
+          return toRead;*/
+        }
+        case POS_READ: {
+          return mInStream.positionedRead(mCurrentOffset, mBuffer, 0, mBuffer.length);
+          //mInStream.read(mCurrentOffset, mBuffer, 0, mBuffer.length);
+        }
+        case POS_READ_FULLY: {
+          throw new UnsupportedOperationException("Not support Read Fully");
+          // mInStream.readFully(mCurrentOffset, mBuffer, 0, mBuffer.length);
+          //return mBuffer.length;
+        }
+        case WRITE: {
+          if (mOutStream == null) {
+            // mOutStream = mFs.create(mFilePath, false, mBuffer.length, (short) 1, mBlockSize);
+            mFs.createFile(new AlluxioURI(mFilePath.toString()),
+                CreateFilePOptions.newBuilder().setBlockSizeBytes(mBlockSize)
+                    .build());
+          }
+          int bytesToWrite = (int) Math.min(mFileSize - mOutStream.getBytesWritten(), mBuffer.length);
+          if (bytesToWrite == 0) {
+            mOutStream.close();
+            return -1;
+          }
+          mOutStream.write(mBuffer, 0, bytesToWrite);
+          return bytesToWrite;
+        }
+        default:
+          throw new IllegalStateException("Unknown operation: " + mParameters.mOperation);
       }
     }
   }
