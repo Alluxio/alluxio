@@ -295,8 +295,8 @@ of change in the UFS.
 We recommend to configure the sync interval exclusively. It is not recommended to consider
 configuring the metadata load type. However, do note the following equivalencies
 
-`alluxio.user.file.metadata.load.type=NEVER` is equivalent to `alluxio.user.metadata.sync.interval=-1`
-`alluxio.user.file.metadata.load.type=ALWAYS` is equivalent to `alluxio.user.metadata.sync.interval=0`
+`alluxio.user.file.metadata.load.type=NEVER` is equivalent to `alluxio.user.file.metadata.sync.interval=-1`
+`alluxio.user.file.metadata.load.type=ALWAYS` is equivalent to `alluxio.user.file.metadata.sync.interval=0`
 
 If the metadata sync interval is configured the metadata load type is ignored.
 
