@@ -110,12 +110,12 @@ public class FuseIOBench extends Benchmark<FuseIOTaskResult> {
         "# 16 threads of each worker will be used for testing the reading throughput with "
             + "ClusterRead.",
         "# 5 seconds of warmup time and 30 seconds of actual reading test time",
-        "$ bin/alluxio runClass alluxio.stress.cli.fuse.fuseIOBench --operation Write \\",
+        "$ bin/alluxio runClass alluxio.stress.cli.fuse.FuseIOBench --operation Write \\",
         "--local-path /mnt/alluxio-fuse/FuseIOTest --num-dirs 32 --num-files-per-dir 10 \\",
         "--file-size 100m --threads 32 --cluster",
-        "$ bin/alluxio runClass alluxio.stress.cli.fuse.fuseIOBench --operation ListFile \\",
+        "$ bin/alluxio runClass alluxio.stress.cli.fuse.FuseIOBench --operation ListFile \\",
         "--local-path /mnt/alluxio-fuse/FuseIOTest",
-        "$ bin/alluxio runClass alluxio.stress.cli.fuse.fuseIOBench --operation ClusterRead \\",
+        "$ bin/alluxio runClass alluxio.stress.cli.fuse.FuseIOBench --operation ClusterRead \\",
         "--local-path /mnt/alluxio-fuse/FuseIOTest --num-dirs 32 --num-files-per-dir 10 \\",
         "--file-size 100m --threads 16 --warmup 5s --duration 30s --cluster",
         ""
