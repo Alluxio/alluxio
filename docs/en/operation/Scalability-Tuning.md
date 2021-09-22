@@ -350,10 +350,14 @@ The following properties tune RPC retry intervals:
 ```properties
 alluxio.user.rpc.retry.max.duration=2min
 alluxio.user.rpc.retry.base.sleep=1s
+alluxio.user.rpc.call.deadline.duration=30sec
 ```
 
 The retry duration and sleep duration should be increased if frequent timeouts are observed
 when a client attempts to communicate with the Alluxio master.
+
+The call deadline duration controls how long to wait for RPC calls with no network response. 
+It should not be more than the sleep duration give chance for transient issues to be retried successfully.
 
 ### Keepalive Time and Timeout
 

@@ -4671,6 +4671,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "an exponential backoff. This property determines the maximum duration to retry for"
               + " before giving up. Note that, this value is set to 5s for fs and fsadmin CLIs.")
           .build();
+  public static final PropertyKey USER_RPC_CALL_DEADLINE_DURATION =
+      new Builder(Name.USER_RPC_CALL_DEADLINE_DURATION)
+          .setDefaultValue("30sec")
+          .setDescription("Alluxio client RPCs could potentially get stuck "
+              + "when underlying keep-alive settings are disabled. "
+              + "This property determines the maximum duration to wait per each invocation.")
+          .build();
   public static final PropertyKey USER_RPC_SHUFFLE_MASTERS_ENABLED =
       new Builder(Name.USER_RPC_SHUFFLE_MASTERS_ENABLED)
           .setDefaultValue(false)
@@ -6266,6 +6273,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.user.rpc.retry.base.sleep";
     public static final String USER_RPC_RETRY_MAX_DURATION =
         "alluxio.user.rpc.retry.max.duration";
+    public static final String USER_RPC_CALL_DEADLINE_DURATION =
+        "alluxio.user.rpc.call.deadline.duration";
     public static final String USER_RPC_SHUFFLE_MASTERS_ENABLED =
         "alluxio.user.rpc.shuffle.masters.enabled";
     public static final String USER_RPC_RETRY_MAX_SLEEP_MS = "alluxio.user.rpc.retry.max.sleep";
