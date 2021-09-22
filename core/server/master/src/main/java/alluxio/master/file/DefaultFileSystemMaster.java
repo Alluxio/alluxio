@@ -48,6 +48,7 @@ import alluxio.exception.status.UnavailableException;
 import alluxio.file.options.DescendantType;
 import alluxio.grpc.DeletePOptions;
 import alluxio.grpc.FileSystemMasterCommonPOptions;
+import alluxio.grpc.GetStatusPOptions;
 import alluxio.grpc.GrpcService;
 import alluxio.grpc.GrpcUtils;
 import alluxio.grpc.LoadDescendantPType;
@@ -1367,6 +1368,11 @@ public final class DefaultFileSystemMaster extends CoreMaster
       throws BlockInfoException, FileDoesNotExistException, InvalidPathException,
       InvalidFileSizeException, FileAlreadyCompletedException, AccessControlException,
       UnavailableException {
+    if (isOperationComplete(context)) {
+      Metrics.COMPLETED_OPERATION_RETRIED_COUNT.inc();
+      LOG.warn("A completed \"completeFile\" operation has been retried. {}", context);
+      return;
+    }
     Metrics.COMPLETE_FILE_OPS.inc();
     // No need to syncMetadata before complete.
     try (RpcContext rpcContext = createRpcContext(context);
@@ -1387,6 +1393,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
             .create(context.getOptions().getAsyncPersistOptionsBuilder()), rpcContext);
       }
       auditContext.setSucceeded(true);
+      cacheOperation(context);
     }
   }
 
@@ -1514,6 +1521,27 @@ public final class DefaultFileSystemMaster extends CoreMaster
   }
 
   /**
+   * Queries InodeTree's operation cache and see if this operation has recently
+   * been applied to its persistent state.
+   *
+   * @param opContext the operation context
+   * @return {@code true} if this operation has recently been processed
+   */
+  private boolean isOperationComplete(OperationContext opContext) {
+    return mInodeTree.isOperationComplete(opContext.getOperationId());
+  }
+
+  /**
+   * Marks this operation as complete in InodeTree's internal retry cache.
+   * This will be queried on each operation to avoid re-executing client RPCs.
+   *
+   * @param opContext the operation context
+   */
+  private void cacheOperation(OperationContext opContext) {
+    mInodeTree.cacheOperation(opContext.getOperationId());
+  }
+
+  /**
    * Commits blocks to BlockMaster for given block list.
    *
    * @param blockIds the list of block ids
@@ -1534,6 +1562,14 @@ public final class DefaultFileSystemMaster extends CoreMaster
   public FileInfo createFile(AlluxioURI path, CreateFileContext context)
       throws AccessControlException, InvalidPathException, FileAlreadyExistsException,
       BlockInfoException, IOException, FileDoesNotExistException {
+    if (isOperationComplete(context)) {
+      Metrics.COMPLETED_OPERATION_RETRIED_COUNT.inc();
+      LOG.warn("A completed \"createFile\" operation has been retried. {}", context);
+      return getFileInfo(path,
+          GetStatusContext.create(GetStatusPOptions.newBuilder()
+              .setCommonOptions(FileSystemMasterCommonPOptions.newBuilder().setSyncIntervalMs(-1))
+              .setLoadMetadataType(LoadMetadataPType.NEVER).setUpdateTimestamps(false)));
+    }
     Metrics.CREATE_FILES_OPS.inc();
     try (RpcContext rpcContext = createRpcContext(context);
         FileSystemMasterAuditContext auditContext =
@@ -1572,6 +1608,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
         }
         createFileInternal(rpcContext, inodePath, context);
         auditContext.setSrcInode(inodePath.getInode()).setSucceeded(true);
+        cacheOperation(context);
         return getFileInfoInternal(inodePath);
       }
     }
@@ -1683,6 +1720,11 @@ public final class DefaultFileSystemMaster extends CoreMaster
   public void delete(AlluxioURI path, DeleteContext context)
       throws IOException, FileDoesNotExistException, DirectoryNotEmptyException,
       InvalidPathException, AccessControlException {
+    if (isOperationComplete(context)) {
+      Metrics.COMPLETED_OPERATION_RETRIED_COUNT.inc();
+      LOG.warn("A completed \"delete\" operation has been retried. {}", context);
+      return;
+    }
     Metrics.DELETE_PATHS_OPS.inc();
     try (RpcContext rpcContext = createRpcContext(context);
         FileSystemMasterAuditContext auditContext =
@@ -1735,6 +1777,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
 
         deleteInternal(rpcContext, inodePath, context);
         auditContext.setSucceeded(true);
+        cacheOperation(context);
       }
     }
   }
@@ -2137,6 +2180,15 @@ public final class DefaultFileSystemMaster extends CoreMaster
   public long createDirectory(AlluxioURI path, CreateDirectoryContext context)
       throws InvalidPathException, FileAlreadyExistsException, IOException, AccessControlException,
       FileDoesNotExistException {
+    if (isOperationComplete(context)) {
+      Metrics.COMPLETED_OPERATION_RETRIED_COUNT.inc();
+      LOG.warn("A completed \"createDirectory\" operation has been retried. {}", context);
+      return getFileInfo(path,
+          GetStatusContext.create(GetStatusPOptions.newBuilder()
+              .setCommonOptions(FileSystemMasterCommonPOptions.newBuilder().setSyncIntervalMs(-1))
+              .setLoadMetadataType(LoadMetadataPType.NEVER).setUpdateTimestamps(false)))
+                  .getFileId();
+    }
     Metrics.CREATE_DIRECTORIES_OPS.inc();
     try (RpcContext rpcContext = createRpcContext(context);
         FileSystemMasterAuditContext auditContext =
@@ -2174,6 +2226,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
         }
         createDirectoryInternal(rpcContext, inodePath, context);
         auditContext.setSrcInode(inodePath.getInode()).setSucceeded(true);
+        cacheOperation(context);
         return inodePath.getInode().getId();
       }
     }
@@ -2235,6 +2288,11 @@ public final class DefaultFileSystemMaster extends CoreMaster
   public void rename(AlluxioURI srcPath, AlluxioURI dstPath, RenameContext context)
       throws FileAlreadyExistsException, FileDoesNotExistException, InvalidPathException,
       IOException, AccessControlException {
+    if (isOperationComplete(context)) {
+      Metrics.COMPLETED_OPERATION_RETRIED_COUNT.inc();
+      LOG.warn("A completed \"rename\" operation has been retried. {}", context);
+      return;
+    }
     Metrics.RENAME_PATH_OPS.inc();
     try (RpcContext rpcContext = createRpcContext(context);
         FileSystemMasterAuditContext auditContext =
@@ -2284,6 +2342,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
         mMountTable.checkUnderWritableMountPoint(dstPath);
         renameInternal(rpcContext, srcInodePath, dstInodePath, context);
         auditContext.setSrcInode(srcInodePath.getInode()).setSucceeded(true);
+        cacheOperation(context);
         LOG.debug("Renamed {} to {}", srcPath, dstPath);
       }
     }
@@ -4410,6 +4469,9 @@ public final class DefaultFileSystemMaster extends CoreMaster
         = MetricsSystem.counter(MetricKey.MASTER_PATHS_UNMOUNTED.getName());
 
     // TODO(peis): Increment the RPCs OPs at the place where we receive the RPCs.
+
+    private static final Counter COMPLETED_OPERATION_RETRIED_COUNT
+        = MetricsSystem.counter(MetricKey.MASTER_COMPLETED_OPERATION_RETRY_COUNT.getName());
     private static final Counter COMPLETE_FILE_OPS
         = MetricsSystem.counter(MetricKey.MASTER_COMPLETE_FILE_OPS.getName());
     private static final Counter CREATE_DIRECTORIES_OPS
