@@ -581,6 +581,12 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setDescription("The size of master edge lock pool")
           .setMetricType(MetricType.GAUGE)
           .build();
+  public static final MetricKey Master_AUDIT_LOG_ENTRIES_SIZE =
+          new Builder("Master.AuditLogEntriesSize")
+                  .setDescription("the size of the audit log entries blocking queue")
+                  .setMetricType(MetricType.GAUGE)
+                  .setIsClusterAggregated(false)
+                  .build();
   // Journal metrics
   public static final MetricKey MASTER_EMBEDDED_JOURNAL_SNAPSHOT_GENERATE_TIMER =
       new Builder("Master.EmbeddedJournalSnapshotGenerateTimer")

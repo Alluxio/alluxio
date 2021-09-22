@@ -682,6 +682,9 @@ public final class DefaultFileSystemMaster extends CoreMaster
       if (ServerConfiguration.getBoolean(PropertyKey.MASTER_AUDIT_LOGGING_ENABLED)) {
         mAsyncAuditLogWriter = new AsyncUserAccessAuditLogWriter();
         mAsyncAuditLogWriter.start();
+        MetricsSystem.registerGaugeIfAbsent(
+                MetricKey.Master_AUDIT_LOG_ENTRIES_SIZE.getName(),
+                () -> mAsyncAuditLogWriter.getAuditLogEntries().size());;
       }
       if (ServerConfiguration.getBoolean(PropertyKey.UNDERFS_CLEANUP_ENABLED)) {
         getExecutorService().submit(
