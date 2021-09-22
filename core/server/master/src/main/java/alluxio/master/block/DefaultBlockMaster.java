@@ -864,10 +864,11 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
   private MasterWorkerInfo recordWorkerRegistration(long workerId) {
     for (IndexedSet<MasterWorkerInfo> workers: Arrays.asList(mTempWorkers, mLostWorkers)) {
       MasterWorkerInfo worker = workers.getFirstByField(ID_INDEX, workerId);
+      // TODO(jiacheng): Handle if neither is processed
       if (worker == null) {
         continue;
       }
-      LOG.info("Located this worker {}", workerId);
+      LOG.debug("Located this worker {}", workerId);
       mWorkers.add(worker);
       workers.remove(worker);
       if (workers == mLostWorkers) {
@@ -1005,7 +1006,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
     for (Map.Entry<alluxio.proto.meta.Block.BlockLocation, List<Long>> entry : blockMap.entrySet()) {
       sb.append(String.format("<%s, %s blocks>,", entry.getKey(), entry.getValue().size()));
     }
-    LOG.info("Finished batch: {}", sb);
+//    LOG.info("Finished batch: {}", sb);
   }
 
   @Override
@@ -1023,7 +1024,8 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
       // Reset the block and toRemove block sets
       // TODO(jiacheng): Now the worker is not usable anymore, make sure it cannot be used by anyone
       //  What happens to the existing locations? Will they be seen?
-      Set<Long> temp = Sets.union(worker.mBlocks, worker.mToRemoveBlocks);
+      Set<Long> temp = new HashSet<>(worker.mBlocks);
+      temp.addAll(worker.mToRemoveBlocks);
       worker.mBlocks = new HashSet<>();
       worker.mToRemoveBlocks = temp;
 
@@ -1090,11 +1092,6 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
 
   @Override
   public void workerRegisterFinish(WorkerRegisterContext context) throws NotFoundException {
-    // TODO(jiacheng): Should the removed blocks be detected here?
-    if (context == null) {
-
-    }
-
     MasterWorkerInfo worker = context.mWorker;
 
     // [NEEDED] Detect any lost blocks on this worker.
@@ -1114,6 +1111,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
 
     // [NEEDED]: process removed blocks
     // because we don't know what blocks are removed yet
+    // TODO(jiacheng): ConcurrentModificationException here when register existing worker!
     processWorkerRemovedBlocks(worker, removedBlocks);
 
     // [NO NEED] all blocks have been processed
@@ -1124,7 +1122,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
     // Mark registered successfully
     worker.mIsRegistered = true;
 
-    LOG.info("{} - Marking worker usable", Thread.currentThread().getId());
+    LOG.debug("{} - Marking worker usable", Thread.currentThread().getId());
     recordWorkerRegistration(worker.getId());
 
     // Update the TS at the end of the process

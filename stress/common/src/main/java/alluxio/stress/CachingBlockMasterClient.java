@@ -54,20 +54,20 @@ public class CachingBlockMasterClient extends BlockMasterClient {
   public CachingBlockMasterClient(MasterClientContext conf,
                                   List<LocationBlockIdListEntry> locationBlockIdList) {
     super(conf);
-    LOG.debug("Init CachingBlockMasterClient");
+    LOG.info("Init CachingBlockMasterClient for single RPC register");
     mLocationBlockIdList = locationBlockIdList;
 
     // Pre-generate the request batches
-    mBlockBatches = prepareBlockBatchesForStreaming();
-    LOG.info("Prepared {} batches for requests", mBlockBatches.size());
+//    mBlockBatches = prepareBlockBatchesForStreaming();
+//    LOG.info("Prepared {} batches for requests", mBlockBatches.size());
 
-    mBlockBatchIterator = mBlockBatches.iterator();
+//    mBlockBatchIterator = mBlockBatches.iterator();
   }
 
   public CachingBlockMasterClient(MasterClientContext conf,
                                   Map<BlockStoreLocation, List<Long>> blockMap) {
     super(conf);
-    LOG.debug("Init CachingBlockMasterClient");
+    LOG.info("Init CachingBlockMasterClient for streaming");
 //    mLocationBlockIdList = locationBlockIdList;
 
     BlockMapIterator iter = new BlockMapIterator(blockMap, conf.getClusterConf());
@@ -82,7 +82,7 @@ public class CachingBlockMasterClient extends BlockMasterClient {
   @Override
   public List<LocationBlockIdListEntry> convertBlockListMapToProto(
           Map<BlockStoreLocation, List<Long>> blockListOnLocation) {
-    LOG.debug("Using the cached block list proto");
+    LOG.info("Using the cached block list proto");
     return mLocationBlockIdList;
   }
 
@@ -100,7 +100,6 @@ public class CachingBlockMasterClient extends BlockMasterClient {
       List<Long> list = entry.getValue().getBlockIdList();
       List<List<Long>> sublists = Lists.partition(list, 1000);
       LOG.info("Partitioned a LocationBlockIdListEntry of {} blocks into {} sublists", list.size(), sublists.size());
-      System.out.format("Partitioned a LocationBlockIdListEntry of %s blocks into %s sublists%n", list.size(), sublists.size());
       // Regenerate the protos
       for (List<Long> sub : sublists) {
         List<LocationBlockIdListEntry> newList = new ArrayList<>();
@@ -113,7 +112,6 @@ public class CachingBlockMasterClient extends BlockMasterClient {
     }
 
     LOG.info("Partitioned a list of {} into {} sublists", mLocationBlockIdList.size(), result.size());
-    System.out.format("Partitioned a list of %s into %s sublists%n", mLocationBlockIdList.size(), result.size());
     return result;
   }
 
@@ -130,6 +128,7 @@ public class CachingBlockMasterClient extends BlockMasterClient {
                 currentBlocksOnLocation, lostStorage, configList, mBlockBatchIterator);
         stream.registerSync();
       } catch (InterruptedException e) {
+        // TODO(jiacheng): handle this
         LOG.warn("Interrupted", e);
       }
       return null;

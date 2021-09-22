@@ -254,6 +254,9 @@ public final class BlockMasterWorkerServiceHandler extends
                   "what to put here?", responseObserver, null);
         }
 
+        // Return an ACK to the worker so it sends the next batch
+        LOG.info("ACK to this batch from worker {}", workerId);
+        responseObserver.onNext(RegisterWorkerStreamPResponse.getDefaultInstance());
       }
 
       @Override
@@ -292,7 +295,7 @@ public final class BlockMasterWorkerServiceHandler extends
 
       @Override
       public void onCompleted() {
-        LOG.debug("{} - Register stream completed on the client side", Thread.currentThread().getId());
+        LOG.info("{} - Register stream completed on the client side", Thread.currentThread().getId());
 //        System.out.format("Register stream completed on the client side%n");
 
         if (mWorkerId == -1) {
@@ -312,12 +315,13 @@ public final class BlockMasterWorkerServiceHandler extends
                 () -> {
                   mBlockMaster.workerRegisterFinish(mContext);
                   return null;
-                }, "registerWorkerStream", false, "what to put here", responseObserver, this);
+                }, "registerWorkerStream", false, "workerId=%s", responseObserver, mWorkerId);
 
         // TODO(jiacheng): Will this block me from reclaiming resources?
-        responseObserver.onNext(RegisterWorkerStreamPResponse.getDefaultInstance());
+        // TODO(jiacheng): Send a response in the last one too?
+//        responseObserver.onNext(RegisterWorkerStreamPResponse.getDefaultInstance());
         responseObserver.onCompleted();
-        LOG.debug("Completed server side");
+        LOG.info("Completed server side");
 //        System.out.println("Completed server side");
 
         // Reclaim resources

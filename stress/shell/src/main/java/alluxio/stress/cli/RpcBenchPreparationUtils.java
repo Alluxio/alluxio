@@ -86,7 +86,6 @@ public class RpcBenchPreparationUtils {
     CompletableFuture[] futures = new CompletableFuture[jobs.size()];
     for (int i = 0; i < jobs.size(); i++) {
       List<Long> job = jobs.get(i);
-      LOG.info("Generating block IDs in range {}", i);
       CompletableFuture<Void> future = CompletableFuture.supplyAsync((Supplier<Void>) () -> {
         BlockMasterClient client =
             new BlockMasterClient(MasterClientContext
@@ -99,6 +98,7 @@ public class RpcBenchPreparationUtils {
             finishedCount++;
           }
         } catch (IOException e) {
+          // TODO(jiacheng): what to do here?
           LOG.error("Failed to commitBlockInUfs with finishedCount {}", finishedCount, e);
         }
         return null;

@@ -313,5 +313,5 @@ service BlockMasterWorkerService {
   /**
    * Register request in the streaming way
    */
-  rpc RegisterWorkerStream(stream RegisterWorkerStreamPRequest) returns (RegisterWorkerStreamPResponse);
+  rpc RegisterWorkerStream(stream RegisterWorkerStreamPRequest) returns (stream RegisterWorkerStreamPResponse);
 }

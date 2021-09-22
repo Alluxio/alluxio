@@ -23,6 +23,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -45,6 +46,8 @@ public class RegisterStream {
   final CountDownLatch mFinishLatch;
   Iterator<List<LocationBlockIdListEntry>> mBlockListIterator;
 
+  Semaphore mBucket = new Semaphore(1);
+
   public RegisterStream(final BlockMasterWorkerServiceGrpc.BlockMasterWorkerServiceStub asyncClient,
                         final long workerId, final List<String> storageTierAliases,
                         final Map<String, Long> totalBytesOnTiers, final Map<String, Long> usedBytesOnTiers,
@@ -66,7 +69,8 @@ public class RegisterStream {
       @Override
       public void onNext(RegisterWorkerStreamPResponse res) {
 //        System.out.format("Received response %s%n", res);
-        LOG.info("register got response {}", res);
+        LOG.info("register got response {}, release 1 token", res);
+        mBucket.release();
       }
 
       @Override
@@ -132,6 +136,11 @@ public class RegisterStream {
         // Generate a request
         RegisterWorkerStreamPRequest request;
 
+        LOG.info("Acquiring one token");
+        // TODO(jiacheng): timeout?
+        mBucket.acquire();
+        LOG.info("Token acquired");
+
         // If it is the 1st request, include metadata
 //        System.out.format("Generating request iter %s%n", iter);
         if (iter == 0) {
@@ -163,7 +172,7 @@ public class RegisterStream {
         if (mFinishLatch.getCount() == 0) {
           // RPC completed or errored before we finished sending.
           // Sending further requests won't error, but they will just be thrown away.
-          LOG.error("");
+          LOG.error("The stream has not finished but the response has seen onError or onComplete");
           System.out.format("The stream has not finished but the response has seen onError or onComplete");
           return;
         }
