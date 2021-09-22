@@ -22,7 +22,6 @@ import alluxio.grpc.CreateFilePOptions;
 import alluxio.stress.BaseParameters;
 import alluxio.stress.StressConstants;
 import alluxio.stress.cli.Benchmark;
-import alluxio.stress.cli.filesystem.StressFileSystemBecn;
 import alluxio.stress.client.ClientIOOperation;
 import alluxio.stress.client.ClientIOParameters;
 import alluxio.stress.client.ClientIOTaskResult;
