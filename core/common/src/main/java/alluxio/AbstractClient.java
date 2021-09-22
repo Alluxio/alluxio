@@ -44,6 +44,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.channels.UnresolvedAddressException;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -88,6 +89,9 @@ public abstract class AbstractClient implements Client {
 
   private final long mRpcThreshold;
 
+  /** Deadline duration for RPC stubs. */
+  protected final long mRpcCallDeadlineDurationMs;
+
   /**
    * Creates a new client base.
    *
@@ -115,6 +119,8 @@ public abstract class AbstractClient implements Client {
     mRetryPolicySupplier = retryPolicySupplier;
     mServiceVersion = Constants.UNKNOWN_SERVICE_VERSION;
     mRpcThreshold = mContext.getClusterConf().getMs(PropertyKey.USER_LOGGING_THRESHOLD);
+    mRpcCallDeadlineDurationMs =
+        mContext.getClusterConf().getMs(PropertyKey.USER_RPC_CALL_DEADLINE_DURATION);
   }
 
   /**
@@ -234,7 +240,8 @@ public abstract class AbstractClient implements Client {
             .setClientType(getServiceName())
             .build();
         // Create stub for version service on host
-        mVersionService = ServiceVersionClientServiceGrpc.newBlockingStub(mChannel);
+        mVersionService = ServiceVersionClientServiceGrpc.newBlockingStub(mChannel)
+            .withDeadlineAfter(mRpcCallDeadlineDurationMs, TimeUnit.MILLISECONDS);
         mConnected = true;
         afterConnect();
         checkVersion(getServiceVersion());
@@ -414,6 +421,7 @@ public abstract class AbstractClient implements Client {
         AlluxioStatusException se = AlluxioStatusException.fromStatusRuntimeException(e);
         if (se.getStatusCode() == Status.Code.UNAVAILABLE
             || se.getStatusCode() == Status.Code.CANCELLED
+            || se.getStatusCode() == Status.Code.DEADLINE_EXCEEDED
             || se.getStatusCode() == Status.Code.UNAUTHENTICATED
             || e.getCause() instanceof UnresolvedAddressException) {
           ex = se;
