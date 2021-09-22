@@ -20,9 +20,7 @@ import alluxio.multi.process.MasterNetAddress;
 import alluxio.multi.process.MultiProcessCluster;
 import alluxio.multi.process.PortCoordination;
 
-import net.bytebuddy.utility.RandomString;
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -34,10 +32,10 @@ public class EmbeddedJournalIntegrationTestTransferLeadership
   public static final int NUM_MASTERS = 5;
   public static final int NUM_WORKERS = 0;
 
-  @Before
-  public void before() throws Exception {
+  @Test
+  public void transferLeadership() throws Exception {
     mCluster = MultiProcessCluster.newBuilder(PortCoordination.EMBEDDED_JOURNAL_TRANSFER_LEADER)
-        .setClusterName("TransferLeadership-" + RandomString.make(8))
+        .setClusterName("EmbeddedJournalTransferLeadership_transferLeadership")
         .setNumMasters(NUM_MASTERS)
         .setNumWorkers(NUM_WORKERS)
         .addProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.EMBEDDED.toString())
@@ -46,10 +44,7 @@ public class EmbeddedJournalIntegrationTestTransferLeadership
         .addProperty(PropertyKey.MASTER_EMBEDDED_JOURNAL_MAX_ELECTION_TIMEOUT, "1500ms")
         .build();
     mCluster.start();
-  }
 
-  @Test
-  public void transferLeadership() throws Exception {
     int newLeaderIdx = (mCluster.getPrimaryMasterIndex(MASTER_INDEX_WAIT_TIME) + 1) % NUM_MASTERS;
     // `getPrimaryMasterIndex` uses the same `mMasterAddresses` variable as getMasterAddresses
     // we can therefore access to the new leader's address this way
@@ -61,6 +56,18 @@ public class EmbeddedJournalIntegrationTestTransferLeadership
 
   @Test
   public void repeatedTransferLeadership() throws Exception {
+    mCluster = MultiProcessCluster
+        .newBuilder(PortCoordination.EMBEDDED_JOURNAL_REPEAT_TRANSFER_LEADER)
+        .setClusterName("EmbeddedJournalTransferLeadership_repeatedTransferLeadership")
+        .setNumMasters(NUM_MASTERS)
+        .setNumWorkers(NUM_WORKERS)
+        .addProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.EMBEDDED.toString())
+        .addProperty(PropertyKey.MASTER_JOURNAL_FLUSH_TIMEOUT_MS, "5min")
+        .addProperty(PropertyKey.MASTER_EMBEDDED_JOURNAL_MIN_ELECTION_TIMEOUT, "750ms")
+        .addProperty(PropertyKey.MASTER_EMBEDDED_JOURNAL_MAX_ELECTION_TIMEOUT, "1500ms")
+        .build();
+    mCluster.start();
+
     for (int i = 0; i < NUM_MASTERS; i++) {
       int newLeaderIdx = (mCluster.getPrimaryMasterIndex(MASTER_INDEX_WAIT_TIME) + 1) % NUM_MASTERS;
       // `getPrimaryMasterIndex` uses the same `mMasterAddresses` variable as getMasterAddresses
@@ -73,6 +80,17 @@ public class EmbeddedJournalIntegrationTestTransferLeadership
 
   @Test
   public void ensureAutoResetPriorities() throws Exception {
+    mCluster = MultiProcessCluster.newBuilder(PortCoordination.EMBEDDED_JOURNAL_RESET_PRIORITIES)
+        .setClusterName("EmbeddedJournalTransferLeadership_ensureAutoResetPriorities")
+        .setNumMasters(NUM_MASTERS)
+        .setNumWorkers(NUM_WORKERS)
+        .addProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.EMBEDDED.toString())
+        .addProperty(PropertyKey.MASTER_JOURNAL_FLUSH_TIMEOUT_MS, "5min")
+        .addProperty(PropertyKey.MASTER_EMBEDDED_JOURNAL_MIN_ELECTION_TIMEOUT, "750ms")
+        .addProperty(PropertyKey.MASTER_EMBEDDED_JOURNAL_MAX_ELECTION_TIMEOUT, "1500ms")
+        .build();
+    mCluster.start();
+
     for (int i = 0; i < NUM_MASTERS; i++) {
       int newLeaderIdx = (mCluster.getPrimaryMasterIndex(MASTER_INDEX_WAIT_TIME) + 1) % NUM_MASTERS;
       // `getPrimaryMasterIndex` uses the same `mMasterAddresses` variable as getMasterAddresses
@@ -91,7 +109,19 @@ public class EmbeddedJournalIntegrationTestTransferLeadership
   }
 
   @Test
-  public void transferLeadershipWhenAlreadyTransferring() throws Exception {
+  public void transferWhenAlreadyTransferring() throws Exception {
+    mCluster = MultiProcessCluster
+        .newBuilder(PortCoordination.EMBEDDED_JOURNAL_ALREADY_TRANSFERRING)
+        .setClusterName("EmbeddedJournalTransferLeadership_transferWhenAlreadyTransferring")
+        .setNumMasters(NUM_MASTERS)
+        .setNumWorkers(NUM_WORKERS)
+        .addProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.EMBEDDED.toString())
+        .addProperty(PropertyKey.MASTER_JOURNAL_FLUSH_TIMEOUT_MS, "5min")
+        .addProperty(PropertyKey.MASTER_EMBEDDED_JOURNAL_MIN_ELECTION_TIMEOUT, "750ms")
+        .addProperty(PropertyKey.MASTER_EMBEDDED_JOURNAL_MAX_ELECTION_TIMEOUT, "1500ms")
+        .build();
+    mCluster.start();
+
     int newLeaderIdx = (mCluster.getPrimaryMasterIndex(MASTER_INDEX_WAIT_TIME) + 1) % NUM_MASTERS;
     // `getPrimaryMasterIndex` uses the same `mMasterAddresses` variable as getMasterAddresses
     // we can therefore access to the new leader's address this way
@@ -111,6 +141,17 @@ public class EmbeddedJournalIntegrationTestTransferLeadership
 
   @Test
   public void transferLeadershipOutsideCluster() throws Exception {
+    mCluster = MultiProcessCluster.newBuilder(PortCoordination.EMBEDDED_JOURNAL_OUTSIDE_CLUSTER)
+        .setClusterName("EmbeddedJournalTransferLeadership_transferLeadership")
+        .setNumMasters(NUM_MASTERS)
+        .setNumWorkers(NUM_WORKERS)
+        .addProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.EMBEDDED.toString())
+        .addProperty(PropertyKey.MASTER_JOURNAL_FLUSH_TIMEOUT_MS, "5min")
+        .addProperty(PropertyKey.MASTER_EMBEDDED_JOURNAL_MIN_ELECTION_TIMEOUT, "750ms")
+        .addProperty(PropertyKey.MASTER_EMBEDDED_JOURNAL_MAX_ELECTION_TIMEOUT, "1500ms")
+        .build();
+    mCluster.start();
+
     NetAddress netAddress = NetAddress.newBuilder().setHost("hostname").setRpcPort(0).build();
 
     try {
@@ -131,6 +172,17 @@ public class EmbeddedJournalIntegrationTestTransferLeadership
 
   @Test
   public void transferLeadershipToNewMember() throws Exception {
+    mCluster = MultiProcessCluster.newBuilder(PortCoordination.EMBEDDED_JOURNAL_NEW_MEMBER)
+        .setClusterName("EmbeddedJournalTransferLeadership_transferLeadershipToNewMember")
+        .setNumMasters(NUM_MASTERS)
+        .setNumWorkers(NUM_WORKERS)
+        .addProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.EMBEDDED.toString())
+        .addProperty(PropertyKey.MASTER_JOURNAL_FLUSH_TIMEOUT_MS, "5min")
+        .addProperty(PropertyKey.MASTER_EMBEDDED_JOURNAL_MIN_ELECTION_TIMEOUT, "750ms")
+        .addProperty(PropertyKey.MASTER_EMBEDDED_JOURNAL_MAX_ELECTION_TIMEOUT, "1500ms")
+        .build();
+    mCluster.start();
+
     mCluster.startNewMasters(1, false);
     waitForQuorumPropertySize(info -> info.getServerState() == QuorumServerState.AVAILABLE,
         NUM_MASTERS + 1);
@@ -141,6 +193,17 @@ public class EmbeddedJournalIntegrationTestTransferLeadership
 
   @Test
   public void transferLeadershipToUnavailableMaster() throws Exception {
+    mCluster = MultiProcessCluster.newBuilder(PortCoordination.EMBEDDED_JOURNAL_UNAVAILABLE_MASTER)
+        .setClusterName("EmbeddedJournalTransferLeadership_transferLeadershipToUnavailableMaster")
+        .setNumMasters(NUM_MASTERS)
+        .setNumWorkers(NUM_WORKERS)
+        .addProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.EMBEDDED.toString())
+        .addProperty(PropertyKey.MASTER_JOURNAL_FLUSH_TIMEOUT_MS, "5min")
+        .addProperty(PropertyKey.MASTER_EMBEDDED_JOURNAL_MIN_ELECTION_TIMEOUT, "750ms")
+        .addProperty(PropertyKey.MASTER_EMBEDDED_JOURNAL_MAX_ELECTION_TIMEOUT, "1500ms")
+        .build();
+    mCluster.start();
+
     int newLeaderIdx = (mCluster.getPrimaryMasterIndex(MASTER_INDEX_WAIT_TIME) + 1) % NUM_MASTERS;
     // `getPrimaryMasterIndex` uses the same `mMasterAddresses` variable as getMasterAddresses
     // we can therefore access to the new leader's address this way
