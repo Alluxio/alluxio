@@ -103,6 +103,10 @@ public final class AsyncUserAccessAuditLogWriter {
     return true;
   }
 
+  /**
+   * Gets the audit log entries.
+   * @return the blocking queue of audit log
+   */
   public LinkedBlockingQueue<AuditContext> getAuditLogEntries() {
     return mAuditLogEntries;
   }
