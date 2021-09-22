@@ -51,6 +51,7 @@ import alluxio.util.network.NetworkAddressUtils;
 
 import com.google.common.base.Preconditions;
 import com.google.common.io.Closer;
+import net.bytebuddy.utility.RandomString;
 import org.apache.commons.io.Charsets;
 import org.apache.commons.io.FileUtils;
 import org.apache.curator.test.TestingServer;
@@ -121,6 +122,8 @@ public final class MultiProcessCluster {
   private File mWorkDir;
   /** Addresses of all masters. Should have the same size as {@link #mMasters}. */
   private List<MasterNetAddress> mMasterAddresses;
+  /** Unique IDs for all masters. Should have the same size as {@link #mMasters} */
+  private List<String> mMasterIds = new ArrayList<>();
   private State mState;
   private TestingServer mCuratorServer;
   private FileSystemContext mFilesystemContext;
@@ -200,6 +203,11 @@ public final class MultiProcessCluster {
       mMasterAddresses = new ArrayList<>();
     }
     List<MasterNetAddress> masterAddresses = generateMasterAddresses(count);
+    for (MasterNetAddress newMasterAddress : masterAddresses) {
+      String ID = newMasterAddress.getEmbeddedJournalPort()
+          + "-" + RandomString.make(RandomString.DEFAULT_LENGTH);
+      mMasterIds.add(ID);
+    }
     mMasterAddresses.addAll(masterAddresses);
     mNumMasters = mMasterAddresses.size();
 
@@ -531,6 +539,7 @@ public final class MultiProcessCluster {
   public synchronized void removeMaster(int i) throws IOException {
     stopMaster(i);
     mMasterAddresses.remove(i);
+    mMasterIds.remove(i);
     mMasters.remove(i);
     mNumMasters--;
     if (mMasterProperties.containsKey(i)) {
@@ -659,7 +668,7 @@ public final class MultiProcessCluster {
     Preconditions.checkState(mState == State.STARTED,
         "Must be in a started state to create masters");
     MasterNetAddress address = mMasterAddresses.get(i);
-    String extension = "-" + address.getEmbeddedJournalPort();
+    String extension = "-" + mMasterIds.get(i);
     File confDir = new File(mWorkDir, "conf-master" + extension);
     File metastoreDir = new File(mWorkDir, "metastore-master" + extension);
     File logsDir = new File(mWorkDir, "logs-master" + extension);
@@ -776,8 +785,8 @@ public final class MultiProcessCluster {
    */
   private void writeConf() throws IOException {
     for (int i = 0; i < mNumMasters; i++) {
-      File confDir = new File(mWorkDir, "conf-master-" + mMasterAddresses.get(i)
-          .getEmbeddedJournalPort());
+      String extension = "-" + mMasterIds.get(i);
+      File confDir = new File(mWorkDir, "conf-master" + extension);
       writeConfToFile(confDir, mMasterProperties.getOrDefault(i, new HashMap<>()));
     }
     for (int i = 0; i < mNumWorkers; i++) {
