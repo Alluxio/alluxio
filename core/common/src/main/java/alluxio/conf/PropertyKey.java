@@ -5533,6 +5533,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String UNDERFS_S3_OWNER_ID_TO_USERNAME_MAPPING =
         "alluxio.underfs.s3.owner.id.to.username.mapping";
     public static final String UNDERFS_S3_PROXY_HOST = "alluxio.underfs.s3.proxy.host";
+    public static final String UNDERFS_S3_PROXY_PORT = "alluxio.underfs.s3.proxy.port";
     public static final String UNDERFS_S3_REGION = "alluxio.underfs.s3.region";
     public static final String UNDERFS_S3_THREADS_MAX = "alluxio.underfs.s3.threads.max";
     public static final String UNDERFS_S3_UPLOAD_THREADS_MAX =
