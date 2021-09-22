@@ -34,8 +34,9 @@ import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.auth.AWSStaticCredentialsProvider;
 import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.auth.DefaultAWSCredentialsProviderChain;
-import com.amazonaws.services.s3.AmazonS3Client;
-import com.amazonaws.services.s3.S3ClientOptions;
+import com.amazonaws.client.builder.AwsClientBuilder;
+import com.amazonaws.services.s3.AmazonS3;
+import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.amazonaws.services.s3.internal.Mimetypes;
 import com.amazonaws.services.s3.model.AccessControlList;
 import com.amazonaws.services.s3.model.CopyObjectRequest;
@@ -89,7 +90,7 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
   private static final String DEFAULT_OWNER = "";
 
   /** AWS-SDK S3 client. */
-  private final AmazonS3Client mClient;
+  private final AmazonS3 mClient;
 
   /** Bucket name of user's configured Alluxio bucket. */
   private final String mBucketName;
@@ -198,26 +199,33 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
     if (conf.isSet(PropertyKey.UNDERFS_S3_SIGNER_ALGORITHM)) {
       clientConf.setSignerOverride(conf.get(PropertyKey.UNDERFS_S3_SIGNER_ALGORITHM));
     }
-
-    AmazonS3Client amazonS3Client = new AmazonS3Client(credentials, clientConf);
+    
+    AmazonS3ClientBuilder clientBuilder = AmazonS3ClientBuilder
+        .standard()
+        .withCredentials(credentials)
+        .withClientConfiguration(clientConf);
 
     // Set a custom endpoint.
-    if (conf.isSet(PropertyKey.UNDERFS_S3_ENDPOINT)) {
-      amazonS3Client.setEndpoint(conf.get(PropertyKey.UNDERFS_S3_ENDPOINT));
+    if (conf.isSet(PropertyKey.UNDERFS_S3_ENDPOINT) && conf.isSet(PropertyKey.UNDERFS_S3_REGION)) {
+      AwsClientBuilder.EndpointConfiguration endpointConfiguration = new AwsClientBuilder
+          .EndpointConfiguration(conf.get(PropertyKey.UNDERFS_S3_ENDPOINT), conf.get(PropertyKey.UNDERFS_S3_REGION));
+      clientBuilder.withEndpointConfiguration(endpointConfiguration);
     }
 
     // Disable DNS style buckets, this enables path style requests.
     if (Boolean.parseBoolean(conf.get(PropertyKey.UNDERFS_S3_DISABLE_DNS_BUCKETS))) {
-      S3ClientOptions clientOptions = S3ClientOptions.builder().setPathStyleAccess(true).build();
-      amazonS3Client.setS3ClientOptions(clientOptions);
+      // TODO(lu) how to disable dns buckets
+      // S3ClientOptions clientOptions = S3ClientOptions.builder().setPathStyleAccess(true).build();
+      // amazonS3Client.setS3ClientOptions(clientOptions);
     }
 
     ExecutorService service = ExecutorServiceFactories
         .fixedThreadPool("alluxio-s3-transfer-manager-worker",
             numTransferThreads).create();
 
+    AmazonS3 amazonS3Client = clientBuilder.build();
     TransferManager transferManager = TransferManagerBuilder.standard()
-        .withS3Client(amazonS3Client).withExecutorFactory(() -> service)
+        .withS3Client(clientBuilder.build()).withExecutorFactory(() -> service)
         .withMultipartCopyThreshold(MULTIPART_COPY_THRESHOLD)
         .build();
 
@@ -236,7 +244,7 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
    * @param conf configuration for this S3A ufs
    * @param streamingUploadEnabled whether streaming upload is enabled
    */
-  protected S3AUnderFileSystem(AlluxioURI uri, AmazonS3Client amazonS3Client, String bucketName,
+  protected S3AUnderFileSystem(AlluxioURI uri, AmazonS3 amazonS3Client, String bucketName,
       ExecutorService executor, TransferManager transferManager, UnderFileSystemConfiguration conf,
       boolean streamingUploadEnabled) {
     super(uri, conf);
