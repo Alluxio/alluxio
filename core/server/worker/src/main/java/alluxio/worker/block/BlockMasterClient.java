@@ -83,7 +83,8 @@ public class BlockMasterClient extends AbstractMasterClient {
 
   @Override
   protected void afterConnect() throws IOException {
-    mClient = BlockMasterWorkerServiceGrpc.newBlockingStub(mChannel);
+    mClient = BlockMasterWorkerServiceGrpc.newBlockingStub(mChannel)
+        .withDeadlineAfter(mRpcCallDeadlineDurationMs, TimeUnit.MILLISECONDS);
   }
 
   /**

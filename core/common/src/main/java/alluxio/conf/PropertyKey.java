@@ -4656,6 +4656,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "an exponential backoff. This property determines the maximum duration to retry for"
               + " before giving up. Note that, this value is set to 5s for fs and fsadmin CLIs.")
           .build();
+  public static final PropertyKey USER_RPC_CALL_DEADLINE_DURATION =
+      new Builder(Name.USER_RPC_CALL_DEADLINE_DURATION)
+          .setDefaultValue("30sec")
+          .setDescription("Alluxio client RPCs could potentially get stuck "
+              + "when underlying keep-alive settings are disabled. "
+              + "This property determines the maximum duration to wait per each invocation.")
+          .build();
   public static final PropertyKey USER_WORKER_LIST_REFRESH_INTERVAL =
       new Builder(Name.USER_WORKER_LIST_REFRESH_INTERVAL)
           .setDefaultValue("2min")
@@ -6194,6 +6201,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.user.rpc.retry.base.sleep";
     public static final String USER_RPC_RETRY_MAX_DURATION =
         "alluxio.user.rpc.retry.max.duration";
+    public static final String USER_RPC_CALL_DEADLINE_DURATION =
+        "alluxio.user.rpc.call.deadline.duration";
     public static final String USER_RPC_RETRY_MAX_SLEEP_MS = "alluxio.user.rpc.retry.max.sleep";
     public static final String USER_UFS_BLOCK_LOCATION_ALL_FALLBACK_ENABLED =
         "alluxio.user.ufs.block.location.all.fallback.enabled";
