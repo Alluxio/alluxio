@@ -69,12 +69,12 @@ public class OBSUnderFileSystem extends ObjectUnderFileSystem {
   /**
    * Constructs a new instance of {@link OBSUnderFileSystem}.
    *
-   * @param uri  the {@link AlluxioURI} for this UFS
+   * @param uri the {@link AlluxioURI} for this UFS
    * @param conf the configuration for this UFS
    * @return the created {@link OBSUnderFileSystem} instance
    */
   public static OBSUnderFileSystem createInstance(AlluxioURI uri,
-                                                  UnderFileSystemConfiguration conf) {
+      UnderFileSystemConfiguration conf) {
     Preconditions.checkArgument(conf.isSet(PropertyKey.OBS_ACCESS_KEY),
         "Property %s is required to connect to OBS", PropertyKey.OBS_ACCESS_KEY);
     Preconditions.checkArgument(conf.isSet(PropertyKey.OBS_SECRET_KEY),
@@ -96,13 +96,13 @@ public class OBSUnderFileSystem extends ObjectUnderFileSystem {
   /**
    * Constructor for {@link OBSUnderFileSystem}.
    *
-   * @param uri        the {@link AlluxioURI} for this UFS
-   * @param obsClient  Huawei OBS client
+   * @param uri the {@link AlluxioURI} for this UFS
+   * @param obsClient Huawei OBS client
    * @param bucketName bucket name of user's configured Alluxio bucket
-   * @param conf       configuration for this UFS
+   * @param conf configuration for this UFS
    */
   protected OBSUnderFileSystem(AlluxioURI uri, ObsClient obsClient, String bucketName,
-                               String bucketType, UnderFileSystemConfiguration conf) {
+      String bucketType, UnderFileSystemConfiguration conf) {
     super(uri, conf);
     mClient = obsClient;
     mBucketName = bucketName;
@@ -334,7 +334,7 @@ public class OBSUnderFileSystem extends ObjectUnderFileSystem {
 
   @Override
   protected InputStream openObject(String key, OpenOptions options,
-                                   RetryPolicy retryPolicy) throws IOException {
+      RetryPolicy retryPolicy) throws IOException {
     try {
       return new OBSInputStream(mBucketName, key, mClient, options.getOffset(), retryPolicy,
           mUfsConf.getBytes(PropertyKey.UNDERFS_OBJECT_STORE_MULTI_RANGE_CHUNK_SIZE));

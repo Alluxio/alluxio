@@ -51,7 +51,7 @@ public class OBSUnderFileSystemTest {
   public void before() throws InterruptedException, ObsException {
     mClient = Mockito.mock(ObsClient.class);
     mOBSUnderFileSystem = new OBSUnderFileSystem(new AlluxioURI(""), mClient, BUCKET_NAME,
-            BUCKET_TYPE, UnderFileSystemConfiguration.defaults(ConfigurationTestUtils.defaults()));
+        BUCKET_TYPE, UnderFileSystemConfiguration.defaults(ConfigurationTestUtils.defaults()));
   }
 
   /**
@@ -60,10 +60,10 @@ public class OBSUnderFileSystemTest {
   @Test
   public void deleteNonRecursiveOnServiceException() throws IOException {
     Mockito.when(mClient.listObjects(Matchers.any(ListObjectsRequest.class)))
-            .thenThrow(ObsException.class);
+        .thenThrow(ObsException.class);
 
     boolean result = mOBSUnderFileSystem.deleteDirectory(PATH,
-            DeleteOptions.defaults().setRecursive(false));
+        DeleteOptions.defaults().setRecursive(false));
     Assert.assertFalse(result);
   }
 
@@ -73,10 +73,10 @@ public class OBSUnderFileSystemTest {
   @Test
   public void deleteRecursiveOnServiceException() throws IOException {
     Mockito.when(mClient.listObjects(Matchers.any(ListObjectsRequest.class)))
-            .thenThrow(ObsException.class);
+        .thenThrow(ObsException.class);
 
     boolean result = mOBSUnderFileSystem.deleteDirectory(PATH,
-            DeleteOptions.defaults().setRecursive(true));
+        DeleteOptions.defaults().setRecursive(true));
     System.out.println(result);
     Assert.assertFalse(result);
   }
@@ -87,7 +87,7 @@ public class OBSUnderFileSystemTest {
   @Test
   public void renameOnServiceException() throws IOException {
     Mockito.when(mClient.listObjects(Matchers.any(ListObjectsRequest.class)))
-            .thenThrow(ObsException.class);
+        .thenThrow(ObsException.class);
 
     boolean result = mOBSUnderFileSystem.renameFile(SRC, DST);
     Assert.assertFalse(result);
@@ -109,21 +109,21 @@ public class OBSUnderFileSystemTest {
      * When PFS, the path object meta is not null. The object meta is same as /xx/file1
      */
     Mockito.when(mClient.getObjectMetadata(BUCKET_NAME, "pfs_file1"))
-            .thenReturn(fileMeta);
+        .thenReturn(fileMeta);
     Mockito.when(mClient.getObjectMetadata(BUCKET_NAME, "pfs_file1/"))
-            .thenReturn(fileMeta);
+        .thenReturn(fileMeta);
     Mockito.when(mClient.getObjectMetadata(BUCKET_NAME, "obs_file1"))
-            .thenReturn(fileMeta);
+        .thenReturn(fileMeta);
     Mockito.when(mClient.getObjectMetadata(BUCKET_NAME, "obs_file1/"))
-            .thenReturn(null);
+        .thenReturn(null);
     Mockito.when(mClient.getObjectMetadata(BUCKET_NAME, "dir1"))
-            .thenReturn(dirMeta);
+        .thenReturn(dirMeta);
     Mockito.when(mClient.getObjectMetadata(BUCKET_NAME, "dir1/"))
-            .thenReturn(dirMeta);
+        .thenReturn(dirMeta);
 
     // PFS Bucket
     mOBSUnderFileSystem = new OBSUnderFileSystem(new AlluxioURI(""), mClient, BUCKET_NAME, "pfs",
-            UnderFileSystemConfiguration.defaults(ConfigurationTestUtils.defaults()));
+        UnderFileSystemConfiguration.defaults(ConfigurationTestUtils.defaults()));
     Assert.assertNotNull(mOBSUnderFileSystem.getObjectStatus("pfs_file1"));
     Assert.assertNull(mOBSUnderFileSystem.getObjectStatus("pfs_file1/"));
     Assert.assertNull(mOBSUnderFileSystem.getObjectStatus("dir1"));
@@ -132,9 +132,9 @@ public class OBSUnderFileSystemTest {
 
     // OBS Bucket
     mOBSUnderFileSystem = new OBSUnderFileSystem(new AlluxioURI(""), mClient, BUCKET_NAME, "obs",
-            UnderFileSystemConfiguration.defaults(ConfigurationTestUtils.defaults()));
+        UnderFileSystemConfiguration.defaults(ConfigurationTestUtils.defaults()));
     Mockito.when(mClient.getObjectMetadata(BUCKET_NAME, "dir1"))
-            .thenReturn(null);
+        .thenReturn(null);
     Assert.assertNotNull(mOBSUnderFileSystem.getObjectStatus("obs_file1"));
     Assert.assertNull(mOBSUnderFileSystem.getObjectStatus("obs_file1/"));
     Assert.assertNull(mOBSUnderFileSystem.getObjectStatus("dir1"));

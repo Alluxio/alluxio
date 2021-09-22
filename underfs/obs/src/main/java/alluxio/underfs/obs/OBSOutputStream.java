@@ -81,12 +81,12 @@ public final class OBSOutputStream extends OutputStream {
    * Creates a name instance of {@link OBSOutputStream}.
    *
    * @param bucketName the name of the bucket
-   * @param key        the key of the file
-   * @param client     the OBS client
-   * @param tmpDirs    a list of temporary directories
+   * @param key the key of the file
+   * @param client the OBS client
+   * @param tmpDirs a list of temporary directories
    */
   public OBSOutputStream(String bucketName, String key, ObsClient client,
-                         List<String> tmpDirs) throws IOException {
+      List<String> tmpDirs) throws IOException {
     Preconditions.checkArgument(bucketName != null && !bucketName.isEmpty(),
         "Bucket name must not be null or empty.");
     Preconditions.checkArgument(key != null && !key.isEmpty(),
@@ -135,7 +135,7 @@ public final class OBSOutputStream extends OutputStream {
    * Writes the given number of bytes from the given byte array starting at the given offset to this
    * output stream. Before close, the bytes are all written to local file.
    *
-   * @param b   the byte array
+   * @param b the byte array
    * @param off the start offset in the data
    * @param len the number of bytes to write
    */
