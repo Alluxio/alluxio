@@ -42,7 +42,8 @@ import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
-public class FaultToleranceEBJTest extends BaseEmbeddedJournalTest {
+public class EmbeddedJournalIntegrationTestFaultTolerance
+    extends EmbeddedJournalIntegrationTestBase {
 
   private static final int RESTART_TIMEOUT_MS = 2 * Constants.MINUTE_MS;
   private static final int NUM_MASTERS = 3;
@@ -102,13 +103,13 @@ public class FaultToleranceEBJTest extends BaseEmbeddedJournalTest {
     int primaryMasterIndex = mCluster.getPrimaryMasterIndex(MASTER_INDEX_WAIT_TIME);
     String leaderJournalPath = mCluster.getJournalDir(primaryMasterIndex);
     File raftDir = new File(RaftJournalUtils.getRaftJournalDir(new File(leaderJournalPath)),
-            RaftJournalSystem.RAFT_GROUP_UUID.toString());
+        RaftJournalSystem.RAFT_GROUP_UUID.toString());
     waitForSnapshot(raftDir);
     mCluster.stopMasters();
 
     SimpleStateMachineStorage storage = new SimpleStateMachineStorage();
     storage.init(new RaftStorageImpl(raftDir,
-            RaftServerConfigKeys.Log.CorruptionPolicy.getDefault()));
+        RaftServerConfigKeys.Log.CorruptionPolicy.getDefault()));
     SingleFileSnapshotInfo snapshot = storage.findLatestSnapshot();
     assertNotNull(snapshot);
     mCluster.notifySuccess();
@@ -133,12 +134,12 @@ public class FaultToleranceEBJTest extends BaseEmbeddedJournalTest {
     assertTrue(catchupJournalDir.mkdirs());
     mCluster.startMaster(catchUpMasterIndex);
     File raftDir = new File(RaftJournalUtils.getRaftJournalDir(catchupJournalDir),
-            RaftJournalSystem.RAFT_GROUP_UUID.toString());
+        RaftJournalSystem.RAFT_GROUP_UUID.toString());
     waitForSnapshot(raftDir);
     mCluster.stopMaster(catchUpMasterIndex);
     SimpleStateMachineStorage storage = new SimpleStateMachineStorage();
     storage.init(new RaftStorageImpl(raftDir,
-            RaftServerConfigKeys.Log.CorruptionPolicy.getDefault()));
+        RaftServerConfigKeys.Log.CorruptionPolicy.getDefault()));
     SingleFileSnapshotInfo snapshot = storage.findLatestSnapshot();
     assertNotNull(snapshot);
     mCluster.notifySuccess();
@@ -177,11 +178,12 @@ public class FaultToleranceEBJTest extends BaseEmbeddedJournalTest {
     AtomicReference<Throwable> failure = new AtomicReference<>();
     AtomicInteger successes = new AtomicInteger(0);
     FileSystem fs = mCluster.getFileSystemClient();
-    List<FaultToleranceEBJTest.OperationThread> threads = new ArrayList<>();
+    List<EmbeddedJournalIntegrationTestFaultTolerance.OperationThread> threads = new ArrayList<>();
     try {
       for (int i = 0; i < 10; i++) {
-        FaultToleranceEBJTest.OperationThread t =
-                new FaultToleranceEBJTest.OperationThread(fs, i, failure, successes);
+        EmbeddedJournalIntegrationTestFaultTolerance.OperationThread t =
+            new EmbeddedJournalIntegrationTestFaultTolerance
+                .OperationThread(fs, i, failure, successes);
         t.start();
         threads.add(t);
       }
@@ -190,7 +192,7 @@ public class FaultToleranceEBJTest extends BaseEmbeddedJournalTest {
         System.out.printf("---------- Iteration %s ----------\n", i);
         successes.set(0);
         CommonUtils.waitFor("11 successes", () -> successes.get() >= 11,
-                WaitForOptions.defaults().setTimeoutMs(RESTART_TIMEOUT_MS));
+            WaitForOptions.defaults().setTimeoutMs(RESTART_TIMEOUT_MS));
         if (failure.get() != null) {
           throw failure.get();
         }
@@ -220,7 +222,7 @@ public class FaultToleranceEBJTest extends BaseEmbeddedJournalTest {
     private final AtomicInteger mSuccessCounter;
 
     public OperationThread(FileSystem fs, int threadNum, AtomicReference<Throwable> failure,
-                           AtomicInteger successCounter) {
+        AtomicInteger successCounter) {
       super("operation-test-thread-" + threadNum);
       mFs = fs;
       mThreadNum = threadNum;
@@ -239,7 +241,8 @@ public class FaultToleranceEBJTest extends BaseEmbeddedJournalTest {
 
     public void runInternal() throws Exception {
       while (!Thread.interrupted()) {
-        for (int i = 0; i < 100; i++) {
+        final int NUM_DIRS = 1_000;
+        for (int i = 0; i < NUM_DIRS; i++) {
           AlluxioURI dir = formatDirName(i);
           try {
             mFs.createDirectory(dir);

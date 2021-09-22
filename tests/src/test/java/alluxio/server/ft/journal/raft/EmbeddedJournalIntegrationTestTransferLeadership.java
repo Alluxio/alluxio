@@ -28,7 +28,8 @@ import org.junit.Test;
 import java.io.IOException;
 import java.util.concurrent.TimeoutException;
 
-public class TransferLeadershipEBJTest extends BaseEmbeddedJournalTest {
+public class EmbeddedJournalIntegrationTestTransferLeadership
+    extends EmbeddedJournalIntegrationTestBase {
 
   public static final int NUM_MASTERS = 5;
   public static final int NUM_WORKERS = 0;
@@ -83,7 +84,7 @@ public class TransferLeadershipEBJTest extends BaseEmbeddedJournalTest {
       // confirms that master priorities get reset to 0 for the new leading master and 1 for the
       // follower masters (this behavior is default within Apache Ratis 2.0)
       Assert.assertTrue(info.getServerInfoList().stream().allMatch(masterInfo ->
-              masterInfo.getPriority() == (masterInfo.getIsLeader() ? 0 : 1)
+          masterInfo.getPriority() == (masterInfo.getIsLeader() ? 0 : 1)
       ));
     }
     mCluster.notifySuccess();
@@ -117,7 +118,7 @@ public class TransferLeadershipEBJTest extends BaseEmbeddedJournalTest {
       Assert.fail("Should have thrown exception");
     } catch (IOException e) {
       Assert.assertTrue(e.getMessage().startsWith(String.format("<%s:%d> is not part of the quorum",
-              netAddress.getHost(), netAddress.getRpcPort())));
+          netAddress.getHost(), netAddress.getRpcPort())));
 
       for (MasterNetAddress address : mCluster.getMasterAddresses()) {
         String host = address.getHostname();

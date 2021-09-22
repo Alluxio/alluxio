@@ -35,7 +35,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-public class ResizingEBJTest extends BaseEmbeddedJournalTest {
+public class EmbeddedJournalIntegrationTestResizing extends EmbeddedJournalIntegrationTestBase {
 
   @Test
   public void resizeCluster() throws Exception {
@@ -97,7 +97,7 @@ public class ResizingEBJTest extends BaseEmbeddedJournalTest {
     final int NUM_MASTERS = 2;
     final int NUM_WORKERS = 0;
     mCluster = MultiProcessCluster.newBuilder(PortCoordination.EMBEDDED_JOURNAL_GROW)
-        .setClusterName("EmbeddedJournalAddMaster-grow")
+        .setClusterName("EmbeddedJournalGrow")
         .setNumMasters(NUM_MASTERS)
         .setNumWorkers(NUM_WORKERS)
         .addProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.EMBEDDED.toString())
@@ -139,11 +139,11 @@ public class ResizingEBJTest extends BaseEmbeddedJournalTest {
   }
 
   @Test
-  public void shipOfTheseus() throws Exception {
+  public void replaceAll() throws Exception {
     final int NUM_MASTERS = 5;
     final int NUM_WORKERS = 0;
-    mCluster = MultiProcessCluster.newBuilder(PortCoordination.EMBEDDED_JOURNAL_THESEUS)
-        .setClusterName("EmbeddedJournalAddMaster-theseus")
+    mCluster = MultiProcessCluster.newBuilder(PortCoordination.EMBEDDED_JOURNAL_REPLACE_ALL)
+        .setClusterName("EmbeddedJournalReplaceAll")
         .setNumMasters(NUM_MASTERS)
         .setNumWorkers(NUM_WORKERS)
         .addProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.EMBEDDED.toString())

@@ -30,12 +30,12 @@ import org.junit.Rule;
 import java.util.concurrent.TimeoutException;
 import java.util.function.Predicate;
 
-public class BaseEmbeddedJournalTest extends BaseIntegrationTest {
+public class EmbeddedJournalIntegrationTestBase extends BaseIntegrationTest {
 
   @Rule
   public ConfigurationRule mConf =
-          new ConfigurationRule(PropertyKey.USER_METRICS_COLLECTION_ENABLED, "false",
-                  ServerConfiguration.global());
+      new ConfigurationRule(PropertyKey.USER_METRICS_COLLECTION_ENABLED, "false",
+          ServerConfiguration.global());
 
   public MultiProcessCluster mCluster;
 

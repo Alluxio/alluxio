@@ -37,7 +37,7 @@ public class PortCoordination {
   public static final List<ReservedPort> EMBEDDED_JOURNAL_FAULT_TOLERANCE = allocate(3, 0);
   public static final List<ReservedPort> EMBEDDED_JOURNAL_RESIZE = allocate(5, 0);
   public static final List<ReservedPort> EMBEDDED_JOURNAL_GROW = allocate(3, 0);
-  public static final List<ReservedPort> EMBEDDED_JOURNAL_THESEUS = allocate(10, 0);
+  public static final List<ReservedPort> EMBEDDED_JOURNAL_REPLACE_ALL = allocate(10, 0);
 
   public static final List<ReservedPort> JOURNAL_MIGRATION = allocate(3, 1);
 
