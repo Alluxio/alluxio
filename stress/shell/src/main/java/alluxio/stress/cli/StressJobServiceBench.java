@@ -237,6 +237,8 @@ public class StressJobServiceBench extends Benchmark<JobServiceBenchTaskResult> 
           long createEnd = CommonUtils.getCurrentMs();
           LOG.info("Create files took: {} s", (createEnd - deleteEnd) / 1000.0);
           break;
+        case NO_OP:
+
         default:
           throw new IllegalStateException("Unknown operation: " + mParameters.mOperation);
       }
