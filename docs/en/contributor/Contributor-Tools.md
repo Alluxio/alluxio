@@ -109,6 +109,20 @@ AVAILABLE   | 0        | localhost:19200
 AVAILABLE   | 0        | localhost:19201
 AVAILABLE   | 0        | localhost:19202
 ```
+In addition, you can also start a High Availability (HA) JobMaster process on this basis.
+
+11. Edit `conf/alluxio-site.properties` and add lines
+```console
+    alluxio.job.master.rpc.addresses=localhost:20001,localhost:20011,localhost:20021
+    alluxio.job.master.embedded.journal.addresses=localhost:20003,localhost:20013,localhost:20023
+```
+12. In Intellij, start Alluxio master 0 process by selecting `Run > Run > AlluxioJobMaster-0`
+13. In Intellij, start Alluxio master 1 process by selecting `Run > Run > AlluxioJobMaster-1`
+14. In Intellij, start Alluxio master 2 process by selecting `Run > Run > AlluxioJobMaster-2`
+15. Verify the HA JobMaster process is up, Run`bin/alluxio job leader`, and you will get message like this:
+```console
+    localhost
+```
 
 ## Maven Targets and Plugins
 
