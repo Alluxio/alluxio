@@ -287,8 +287,8 @@ names, the following configuration options need to be set in your environment va
 #### Use logical name when using embedded journal
 
 If you are using embedded journal, you need to configure the following configuration options and connect
-to the highly available alluxio node via `alluxio://[logical-name]` , for example
-`alluxio://my-alluxio-cluster`.
+to the highly available alluxio node via `alluxio://ebj@[logical-name]` , for example
+`alluxio://ebj@my-alluxio-cluster`.
 
 * alluxio.master.nameservices.[logical-name] unique identifier for each alluxio master node
 

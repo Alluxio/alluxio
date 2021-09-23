@@ -125,8 +125,9 @@ public class AuthorityTest {
 
   @Test
   public void embeddedLogicalAuthorityTest() {
-    EmbeddedLogicalAuthority authority = (EmbeddedLogicalAuthority) Authority.fromString("ebj@logical");
-    assertEquals("logical", authority.toString());
+    EmbeddedLogicalAuthority authority =
+        (EmbeddedLogicalAuthority) Authority.fromString("ebj@logical");
+    assertEquals("ebj@logical", authority.toString());
     assertEquals("logical", authority.getLogicalName());
   }
 

@@ -180,7 +180,7 @@ alluxio.zookeeper.address=<ZOOKEEPER_ADDRESS>
 
 #### 嵌入式日志逻辑域名
 
-如果你使用的是嵌入式日志，你需要配置以下的值并通过`alluxio://[logical-name]`（例如 `alluxio://my-alluxio-cluster` ）来连接到高可用 alluxio 节点。
+如果你使用的是嵌入式日志，你需要配置以下的值并通过`alluxio://ebj@[logical-name]`（例如 `alluxio://ebj@my-alluxio-cluster` ）来连接到高可用 alluxio 节点。
 
 * alluxio.master.nameservices.[逻辑名称] 每个 alluxio master 节点的单独标识符
 
@@ -202,7 +202,7 @@ alluxio.master.rpc.address.my-alluxio-cluster.master3=master3:19998
 
 #### Zookeeper 逻辑域名
 
-如果你使用zookeeper做leader选举时，你需要配置以下的值并通过`alluxio://zk@[logical-name]`（例如 `alluxio://zk@my-alluxio-cluster` ）来连接到高可用 alluxio 节点。
+如果你使用 zookeeper 做 leader 选举时，你需要配置以下的值并通过`alluxio://zk@[logical-name]`（例如 `alluxio://zk@my-alluxio-cluster` ）来连接到高可用 alluxio 节点。
 
 * alluxio.master.zookeeper.nameservices.[逻辑名称] 每个 Zookeeper 节点的单独标识符
 

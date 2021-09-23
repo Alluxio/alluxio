@@ -62,6 +62,6 @@ public class EmbeddedLogicalAuthority implements Authority {
 
   @Override
   public String toString() {
-    return mLogicalName;
+    return "ebj@" + mLogicalName;
   }
 }
