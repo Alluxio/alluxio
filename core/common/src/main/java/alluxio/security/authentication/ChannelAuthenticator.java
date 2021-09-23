@@ -91,8 +91,6 @@ public class ChannelAuthenticator {
           createSaslClientHandler(mChannelKey.getServerAddress(), authScheme, mParentSubject),
           mChannelKey);
 
-      long authTimeoutMs = mConfiguration.getMs(PropertyKey.NETWORK_CONNECTION_AUTH_TIMEOUT);
-
       // Initialize client-server authentication drivers.
       SaslAuthenticationServiceGrpc.SaslAuthenticationServiceStub serverStub =
           SaslAuthenticationServiceGrpc.newStub(mConnection.getChannel());
@@ -101,7 +99,8 @@ public class ChannelAuthenticator {
       mAuthDriver.setServerObserver(requestObserver);
 
       // Start authentication with the target. (This is blocking.)
-      mAuthDriver.startAuthenticatedChannel(authTimeoutMs);
+      long authTimeout = mConfiguration.getMs(PropertyKey.NETWORK_CONNECTION_AUTH_TIMEOUT);
+      mAuthDriver.startAuthenticatedChannel(authTimeout);
 
       // Intercept authenticated channel with channel-id injector.
       mConnection.interceptChannel(new ChannelIdInjector(mChannelKey.getChannelId()));
