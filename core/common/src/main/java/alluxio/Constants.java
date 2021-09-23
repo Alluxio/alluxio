@@ -79,6 +79,7 @@ public final class Constants {
   public static final String HEADER_SWIFT = "swift://";
   public static final String HEADER_WASB = "wasb://";
   public static final String HEADER_WASBS = "wasbs://";
+  public static final String HEADER_OBS = "obs://";
 
   public static final int MAX_PORT = 65535;
 
