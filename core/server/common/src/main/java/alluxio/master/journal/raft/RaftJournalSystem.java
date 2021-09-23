@@ -36,7 +36,6 @@ import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.util.CommonUtils;
 import alluxio.util.LogUtils;
 import alluxio.util.WaitForOptions;
-import alluxio.util.io.FileUtils;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
@@ -72,10 +71,12 @@ import org.apache.ratis.util.SizeInBytes;
 import org.apache.ratis.util.TimeDuration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.apache.commons.io.FileUtils;
 
 import java.io.File;
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.nio.file.AccessDeniedException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -242,13 +243,6 @@ public class RaftJournalSystem extends AbstractJournalSystem {
     mTransferLeaderAllowed = new AtomicBoolean(false);
     mPrimarySelector = new RaftPrimarySelector();
     mAsyncJournalWriter = new AtomicReference<>();
-    mTransferMsgs = new ArrayList<>();
-    mErrorMessages = new HashMap<>();
-    try {
-      super.registerMetrics();
-    } catch (RuntimeException e) {
-      return;
-    }
   }
 
   private void maybeMigrateOldJournal() {
@@ -537,6 +531,7 @@ public class RaftJournalSystem extends AbstractJournalSystem {
 
   @Override
   public synchronized Map<String, Long> getCurrentSequenceNumbers() {
+    Preconditions.checkState(mStateMachine != null, "State machine not initialized");
     long currentGlobalState = mStateMachine.getLastAppliedSequenceNumber();
     Map<String, Long> sequenceMap = new HashMap<>();
     for (String master : mJournals.keySet()) {
@@ -738,6 +733,7 @@ public class RaftJournalSystem extends AbstractJournalSystem {
         .collect(Collectors.toSet());
     mRaftGroup = RaftGroup.valueOf(RAFT_GROUP_ID, peers);
     initServer();
+    super.registerMetrics();
     List<InetSocketAddress> clusterAddresses = mConf.getClusterAddresses();
     LOG.info("Starting Raft journal system. Cluster addresses: {}. Local address: {}",
         clusterAddresses, mConf.getLocalAddress());
@@ -1100,12 +1096,18 @@ public class RaftJournalSystem extends AbstractJournalSystem {
   public void format() throws IOException {
     File journalPath = mConf.getPath();
     if (journalPath.isDirectory()) {
-      org.apache.commons.io.FileUtils.cleanDirectory(mConf.getPath());
+      if (alluxio.util.io.FileUtils.isStorageDirAccessible(journalPath.getPath())) {
+        FileUtils.cleanDirectory(journalPath);
+      } else {
+        throw new AccessDeniedException(journalPath.getPath());
+      }
     } else {
       if (journalPath.exists()) {
-        FileUtils.delete(journalPath.getAbsolutePath());
+        FileUtils.forceDelete(journalPath);
       }
-      journalPath.mkdirs();
+      if (!journalPath.mkdirs()) {
+        throw new AccessDeniedException(journalPath.getPath());
+      }
     }
   }
 
@@ -1117,7 +1119,7 @@ public class RaftJournalSystem extends AbstractJournalSystem {
   }
 
   /**
-   * @return whether it is allowed to take a local shapshot
+   * @return whether it is allowed to take a local snapshot
    */
   public boolean isSnapshotAllowed() {
     return mSnapshotAllowed.get();

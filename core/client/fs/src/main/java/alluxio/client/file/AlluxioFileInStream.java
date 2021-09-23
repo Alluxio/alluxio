@@ -21,7 +21,7 @@ import alluxio.client.file.options.InStreamOptions;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.PreconditionMessage;
-import alluxio.grpc.AsyncCacheRequest;
+import alluxio.grpc.CacheRequest;
 import alluxio.resource.CloseableResource;
 import alluxio.retry.RetryPolicy;
 import alluxio.retry.RetryUtils;
@@ -412,13 +412,13 @@ public class AlluxioFileInStream extends FileInStream {
               dataSource.getContainerHost(), host);
           host = dataSource.getContainerHost();
         }
-        AsyncCacheRequest request =
-            AsyncCacheRequest.newBuilder().setBlockId(blockId).setLength(blockLength)
+        CacheRequest request =
+            CacheRequest.newBuilder().setBlockId(blockId).setLength(blockLength)
                 .setOpenUfsBlockOptions(mOptions.getOpenUfsBlockOptions(blockId))
                 .setSourceHost(host).setSourcePort(dataSource.getDataPort())
-                .build();
+                .setAsync(true).build();
         if (mPassiveCachingEnabled && mContext.hasProcessLocalWorker()) {
-          mContext.getProcessLocalWorker().asyncCache(request);
+          mContext.getProcessLocalWorker().cache(request);
           mLastBlockIdCached = blockId;
           return true;
         }
@@ -431,7 +431,7 @@ public class AlluxioFileInStream extends FileInStream {
         }
         try (CloseableResource<BlockWorkerClient> blockWorker =
                  mContext.acquireBlockWorkerClient(worker)) {
-          blockWorker.get().asyncCache(request);
+          blockWorker.get().cache(request);
           mLastBlockIdCached = blockId;
         }
       }

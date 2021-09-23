@@ -275,6 +275,17 @@ public final class MetricsSystem {
   }
 
   /**
+   * Get metrics name based on class.
+   *
+   * @param obj object for the resource pool
+   * @return metrics string
+   */
+  public static String getResourcePoolMetricName(Object obj) {
+    return MetricsSystem.getMetricName("ResourcePool." + obj.getClass().getName() + "."
+        + Integer.toHexString(System.identityHashCode(obj)));
+  }
+
+  /**
    * Converts a simple string to a qualified metric name based on the process type.
    *
    * @param name the name of the metric
@@ -839,6 +850,34 @@ public final class MetricsSystem {
     }
     for (String gauge : METRIC_REGISTRY.getGauges().keySet()) {
       METRIC_REGISTRY.remove(gauge);
+    }
+  }
+
+  /**
+   * A timer context with multiple timers.
+   */
+  public static class MultiTimerContext implements AutoCloseable {
+    private final Timer[] mTimers;
+    private final long mStartTime;
+
+    /**
+     * @param timers timers associated with this context
+     */
+    public MultiTimerContext(Timer... timers) {
+      mTimers = timers;
+      mStartTime = System.nanoTime();
+    }
+
+    /**
+     * Updates the timer with the difference between current and start time. Call to this method
+     * will not reset the start time. Multiple calls result in multiple updates.
+     */
+    @Override
+    public void close() {
+      final long elapsed = System.nanoTime() - mStartTime;
+      for (Timer timer : mTimers) {
+        timer.update(elapsed, TimeUnit.NANOSECONDS);
+      }
     }
   }
 

@@ -311,6 +311,9 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
     if (len == 0) {
       return 0;
     }
+    if (mPos == mLength) {
+      return -1;
+    }
     readChunk();
     if (mCurrentChunk == null) {
       mEOF = true;
@@ -326,6 +329,10 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
     byteBuffer.position(off).limit(off + toRead);
     mCurrentChunk.readBytes(byteBuffer);
     mPos += toRead;
+    if (mPos == mLength) {
+      // a performance improvement introduced by https://github.com/Alluxio/alluxio/issues/14020
+      closeDataReader();
+    }
     return toRead;
   }
 
