@@ -525,7 +525,6 @@ public class StressClientIOBench extends Benchmark<ClientIOTaskResult> {
                                      int threadId) {
       super(context, threadId);
 
-      // alluxio.client.file.FileSystem.Factory.get();
       mFs = fs;
     }
 
@@ -574,7 +573,6 @@ public class StressClientIOBench extends Benchmark<ClientIOTaskResult> {
         }
         case WRITE: {
           if (mOutStream == null) {
-            // mOutStream = mFs.create(mFilePath, false, mBuffer.length, (short) 1, mBlockSize);
             mFs.createFile(new AlluxioURI(mFilePath.toString()),
                 CreateFilePOptions.newBuilder().setBlockSizeBytes(mBlockSize)
                     .build());
