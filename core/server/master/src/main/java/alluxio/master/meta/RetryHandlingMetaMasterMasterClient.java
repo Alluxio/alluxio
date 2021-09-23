@@ -29,7 +29,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -69,8 +68,7 @@ public final class RetryHandlingMetaMasterMasterClient extends AbstractMasterCli
 
   @Override
   protected void afterConnect() throws IOException {
-    mClient = MetaMasterMasterServiceGrpc.newBlockingStub(mChannel)
-        .withDeadlineAfter(mRpcCallDeadlineDurationMs, TimeUnit.MILLISECONDS);
+    mClient = MetaMasterMasterServiceGrpc.newBlockingStub(mChannel);
   }
 
   /**

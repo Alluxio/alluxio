@@ -39,7 +39,6 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -80,8 +79,7 @@ public final class RetryHandlingJobMasterClient extends AbstractJobMasterClient
 
   @Override
   protected void afterConnect() throws IOException {
-    mClient = JobMasterClientServiceGrpc.newBlockingStub(mChannel)
-        .withDeadlineAfter(mRpcCallDeadlineDurationMs, TimeUnit.MILLISECONDS);
+    mClient = JobMasterClientServiceGrpc.newBlockingStub(mChannel);
   }
 
   @Override
