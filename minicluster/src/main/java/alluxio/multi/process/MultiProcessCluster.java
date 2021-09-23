@@ -541,10 +541,8 @@ public final class MultiProcessCluster {
     mMasterAddresses.remove(i);
     mMasterIds.remove(i);
     mMasters.remove(i);
+    mMasterProperties.remove(i);
     mNumMasters--;
-    if (mMasterProperties.containsKey(i)) {
-      mMasterProperties.remove(i);
-    }
     switch (mDeployMode) {
       case EMBEDDED:
         String journalAddresses = mMasterAddresses.stream()

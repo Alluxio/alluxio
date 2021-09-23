@@ -212,7 +212,6 @@ public class EmbeddedJournalIntegrationTestFaultTolerance
       }
       for (int i = 0; i < 2; i++) {
         restartMasters();
-        System.out.printf("---------- Iteration %s ----------\n", i);
         successes.set(0);
         CommonUtils.waitFor("11 successes", () -> successes.get() >= 11,
             WaitForOptions.defaults().setTimeoutMs(RESTART_TIMEOUT_MS));
@@ -294,7 +293,7 @@ public class EmbeddedJournalIntegrationTestFaultTolerance
             return;
           }
         }
-        System.out.println("Success counter: " + mSuccessCounter.incrementAndGet());
+        mSuccessCounter.incrementAndGet();
       }
     }
 

@@ -42,7 +42,7 @@ public class EmbeddedJournalIntegrationTestResizing extends EmbeddedJournalInteg
     final int NUM_MASTERS = 5;
     final int NUM_WORKERS = 0;
     mCluster = MultiProcessCluster.newBuilder(PortCoordination.EMBEDDED_JOURNAL_RESIZE)
-        .setClusterName("EmbeddedJournalResizing")
+        .setClusterName("EmbeddedJournalResizing_resizeCluster")
         .setNumMasters(NUM_MASTERS)
         .setNumWorkers(NUM_WORKERS)
         .addProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.EMBEDDED.toString())
@@ -97,7 +97,7 @@ public class EmbeddedJournalIntegrationTestResizing extends EmbeddedJournalInteg
     final int NUM_MASTERS = 2;
     final int NUM_WORKERS = 0;
     mCluster = MultiProcessCluster.newBuilder(PortCoordination.EMBEDDED_JOURNAL_GROW)
-        .setClusterName("EmbeddedJournalGrow")
+        .setClusterName("EmbeddedJournalResizing_growCluster")
         .setNumMasters(NUM_MASTERS)
         .setNumWorkers(NUM_WORKERS)
         .addProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.EMBEDDED.toString())
@@ -143,7 +143,7 @@ public class EmbeddedJournalIntegrationTestResizing extends EmbeddedJournalInteg
     final int NUM_MASTERS = 5;
     final int NUM_WORKERS = 0;
     mCluster = MultiProcessCluster.newBuilder(PortCoordination.EMBEDDED_JOURNAL_REPLACE_ALL)
-        .setClusterName("EmbeddedJournalReplaceAll")
+        .setClusterName("EmbeddedJournalResizing_replaceAll")
         .setNumMasters(NUM_MASTERS)
         .setNumWorkers(NUM_WORKERS)
         .addProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.EMBEDDED.toString())
