@@ -1169,7 +1169,7 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setIsClusterAggregated(false)
           .build();
   public static final MetricKey WORKER_BLOCK_READER_THREAD_MAX_COUNT =
-      new Builder("Worker.BlockReaderThreadMaxPoolCount")
+      new Builder("Worker.BlockReaderThreadMaxCount")
           .setDescription("The maximum allowed number of block read "
               + "thread in the reader thread pool")
           .setMetricType(MetricType.GAUGE)
