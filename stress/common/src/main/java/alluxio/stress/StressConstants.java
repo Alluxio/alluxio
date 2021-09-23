@@ -18,6 +18,7 @@ import alluxio.Constants;
  */
 public final class StressConstants {
   public static final int MAX_TIME_COUNT = 20;
+  public static final int JOB_SERVICE_MAX_RESPONSE_TIME_COUNT = 1;
 
   /** The response time histogram can record values up to this amount. */
   public static final long TIME_HISTOGRAM_MAX = Constants.SECOND_NANO * 60 * 30;
