@@ -42,8 +42,9 @@ public interface JournalMasterClient extends Closeable {
    *
    * @param newLeaderNetAddress server address of the prospective new leader
    * @throws AlluxioStatusException
+   * @return the guid of transfer leader command
    */
-  void transferLeadership(NetAddress newLeaderNetAddress) throws AlluxioStatusException;
+  String transferLeadership(NetAddress newLeaderNetAddress) throws AlluxioStatusException;
 
   /**
    * Resets RaftPeer priorities.
@@ -53,9 +54,10 @@ public interface JournalMasterClient extends Closeable {
   void resetPriorities() throws AlluxioStatusException;
 
   /**
-   * Resets RaftPeer priorities.
-   *
-   * @return list of exception message throwing when transfer leader
+   * Gets exception messages thrown when transferring the leader.
+   * @param transferId the guid of transferLeader command
+   * @return exception message throwing when transfer leader
    */
-  GetTransferLeaderMessagePResponse getTransferLeaderMessage() throws AlluxioStatusException;
+  GetTransferLeaderMessagePResponse getTransferLeaderMessage(String transferId)
+          throws AlluxioStatusException;
 }

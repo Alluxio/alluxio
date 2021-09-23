@@ -80,9 +80,10 @@ public class RetryHandlingJournalMasterClient extends AbstractMasterClient
   }
 
   @Override
-  public void transferLeadership(NetAddress newLeaderNetAddress) throws AlluxioStatusException {
-    retryRPC(() -> mClient.transferLeadership(
-        TransferLeadershipPRequest.newBuilder().setServerAddress(newLeaderNetAddress).build()),
+  public String transferLeadership(NetAddress newLeaderNetAddress) throws AlluxioStatusException {
+    return retryRPC(() -> mClient.transferLeadership(
+        TransferLeadershipPRequest.newBuilder()
+        .setServerAddress(newLeaderNetAddress).build()).getTransferId(),
         RPC_LOG, "TransferLeadership", "serverAddress=%s", newLeaderNetAddress);
   }
 
@@ -93,10 +94,11 @@ public class RetryHandlingJournalMasterClient extends AbstractMasterClient
   }
 
   @Override
-  public GetTransferLeaderMessagePResponse getTransferLeaderMessage()
+  public GetTransferLeaderMessagePResponse getTransferLeaderMessage(String transferId)
           throws AlluxioStatusException {
     return retryRPC(() ->
-            mClient.getTransferLeaderMessage(GetTransferLeaderMessagePRequest.getDefaultInstance()),
+        mClient.getTransferLeaderMessage(
+           GetTransferLeaderMessagePRequest.newBuilder().setTransferId(transferId).build()),
         RPC_LOG, "GetTransferLeaderMessage",  "");
   }
 }

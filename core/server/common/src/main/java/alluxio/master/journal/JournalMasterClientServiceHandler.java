@@ -68,8 +68,8 @@ public class JournalMasterClientServiceHandler
   public void transferLeadership(TransferLeadershipPRequest request,
       StreamObserver<TransferLeadershipPResponse> responseObserver) {
     RpcUtils.call(LOG, () -> {
-      mJournalMaster.transferLeadership(request.getServerAddress());
-      return TransferLeadershipPResponse.getDefaultInstance();
+      String transferId = mJournalMaster.transferLeadership(request.getServerAddress());
+      return TransferLeadershipPResponse.newBuilder().setTransferId(transferId).build();
     }, "transferLeadership", "request=%s", responseObserver, request);
   }
 
@@ -85,7 +85,7 @@ public class JournalMasterClientServiceHandler
   @Override
   public void getTransferLeaderMessage(GetTransferLeaderMessagePRequest request,
       StreamObserver<GetTransferLeaderMessagePResponse> responseObserver) {
-    RpcUtils.call(LOG, () -> mJournalMaster.getTransferLeaderMessage(),
+    RpcUtils.call(LOG, () -> mJournalMaster.getTransferLeaderMessage(request.getTransferId()),
             "GetTransferLeaderMessage", "request=%s", responseObserver, request);
   }
 }

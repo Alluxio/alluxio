@@ -62,9 +62,9 @@ public class DefaultJournalMaster implements JournalMaster {
   }
 
   @Override
-  public void transferLeadership(NetAddress newLeaderAddress) throws IOException {
+  public String transferLeadership(NetAddress newLeaderAddress) throws IOException {
     checkQuorumOpSupported();
-    ((RaftJournalSystem) mJournalSystem).transferLeadership(newLeaderAddress);
+    return ((RaftJournalSystem) mJournalSystem).transferLeadership(newLeaderAddress);
   }
 
   @Override
@@ -74,9 +74,10 @@ public class DefaultJournalMaster implements JournalMaster {
   }
 
   @Override
-  public GetTransferLeaderMessagePResponse getTransferLeaderMessage() {
+  public GetTransferLeaderMessagePResponse getTransferLeaderMessage(String transferId) {
     checkQuorumOpSupported();
     return GetTransferLeaderMessagePResponse.newBuilder()
-           .addAllTransMsg(((RaftJournalSystem) mJournalSystem).getTransferLeaderMessage()).build();
+           .setTransMsg(((RaftJournalSystem) mJournalSystem).getTransferLeaderMessage(transferId))
+           .build();
   }
 }

@@ -45,8 +45,9 @@ public interface JournalMaster {
    *
    * @param newLeaderAddress server address to remove from quorum
    * @throws IOException if error occurs while performing the operation
+   * @return the guid of transfer leader command
    */
-  void transferLeadership(NetAddress newLeaderAddress) throws IOException;
+  String transferLeadership(NetAddress newLeaderAddress) throws IOException;
 
   /**
    * Resets RaftPeer priorities.
@@ -56,8 +57,9 @@ public interface JournalMaster {
   void resetPriorities() throws IOException;
 
   /**
-   * Gets list of exception message throwing when transfer leader.
-   * @return list of exception message
+   * Gets exception message throwing when transfer leader.
+   * @param transferId the guid of transferLeader command
+   * @return exception message
    */
-  GetTransferLeaderMessagePResponse getTransferLeaderMessage();
+  GetTransferLeaderMessagePResponse getTransferLeaderMessage(String transferId);
 }

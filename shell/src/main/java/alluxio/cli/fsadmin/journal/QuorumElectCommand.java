@@ -22,7 +22,6 @@ import alluxio.grpc.GetQuorumInfoPResponse;
 import alluxio.grpc.GetTransferLeaderMessagePResponse;
 import alluxio.grpc.NetAddress;
 import alluxio.grpc.QuorumServerInfo;
-import alluxio.grpc.TransferLeaderMessage;
 import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
 
@@ -66,20 +65,18 @@ public class QuorumElectCommand extends AbstractFsAdminCommand {
     String serverAddress = cl.getOptionValue(ADDRESS_OPTION_NAME);
     NetAddress address = QuorumCommand.stringToAddress(serverAddress);
     try {
-      jmClient.transferLeadership(address);
+      String transferId = jmClient.transferLeadership(address);
       // wait for confirmation of leadership transfer
       final int TIMEOUT_3MIN = 3 * 60 * 1000; // in milliseconds
       CommonUtils.waitFor("Waiting for election to finalize", () -> {
         try {
-          GetTransferLeaderMessagePResponse transferMsg = jmClient.getTransferLeaderMessage();
-          Optional<TransferLeaderMessage>
-                  exceptionMsgOpt = transferMsg.getTransMsgList().stream()
-                  .filter(TransferLeaderMessage::hasMsg).findAny();
-          String msg = exceptionMsgOpt.map(TransferLeaderMessage::getMsg).orElse(null);
-          if (msg != null) {
-            System.out.println(msg);
+          GetTransferLeaderMessagePResponse transferMsg =
+                  jmClient.getTransferLeaderMessage(transferId);
+          String errorMessage = transferMsg.getTransMsg().toString();
+          if (!errorMessage.equals("")) {
+            System.out.println(errorMessage);
             throw new IOException(
-                    String.format("caught an error when executing transfer: %s", msg));
+                    String.format("caught an error when executing transfer: %s", errorMessage));
           }
           GetQuorumInfoPResponse quorumInfo = jmClient.getQuorumInfo();
 
