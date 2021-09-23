@@ -309,41 +309,55 @@ Allocation of limited resources to different services such as Presto, Spark and 
 and can have signficant impact on the performance of the tasks or queries.
 Unbalanced resource allocation can even lead to query failures and processes exiting with an error.
 
-### Presto and Alluxio
+### Colocating Compute with Alluxio
 
-When Presto is colocated with Alluxio, memory is often the most contentious resource.
-Presto needs a large amount of memory to be able to efficiently process queries.
-Alluxio also needs memory for caching and metadata management. 
+When Presto or Spark is colocated with Alluxio, memory is often the most contentious resource.
+Both Presto and Spark need a large amount of memory to be able to efficiently process queries.
+Alluxio also needs memory for caching and metadata management, unless SSD or HDD is used as the primary caching medium.
 
 #### Colocated Coordinator and Master
 
-In many deployment settings, Presto coordinator is running on the same node as the Alluxio master.
-They are good candidates to be colocated because Alluxio master consumes large amount of memory due to the metadata it keeps, but Presto coordinator are often less demanding on the memory compared to Presto workers.
+In many deployment settings, Presto coordinator or Spark master is running on the same node as the Alluxio master.
+They are good candidates to be colocated because Alluxio master consumes large amount of memory due to the metadata it keeps, but Presto coordinator and Spark masters are often less demanding on the memory compared to their workers.
 
 The total amount of memory consumed by these two applications are roughly
-Alluxio Heap size + Alluxio offheap size (due to thread stack allocations) + Presto coordinator Heap size  + System resource memory size
+Alluxio JVM size + Presto/Spark JVM size  + System resource memory size
 Linux also needs some memory for its own kernel data structures and other system programs as well.
 So it is recommended to leave at least 10-15GB for that purpose as well.
-If the sum of these four values are near the system total available memory, Out-of-memory killer may be triggered.
+If the sum of these values are near the system total available memory, Out-of-memory killer may be triggered.
 It will choose the process with the highest badness score (frequently the process using the most memory) and kill it.
 This would like kill the Alluxio master and lead to system downtime.
 
-If memory resource is constrained, presto coordinator needs sufficient memory to launch and complete queries. 
-So it would require the highest priority. 
-If alluxio metadata can not fit in the remaining memory, rocksdb-based offheap storage solution should be considered. 
-Then we consider memory required by the thread allocations, this is dependent on the number of threads, so we leave it as the last priority.
+If memory resource is constrained, Presto coordinator / Spark master needs sufficient memory to launch and complete queries. 
+So it would demand the highest priority. 
+If Alluxio metadata can not fit in the remaining memory, RocksDb-based offheap storage solution should be considered. 
+Then we consider memory required by the thread allocations and direct memory, this is dependent on the number of threads, so we leave it as the last priority.
 
 #### Colocated Workers
 
-It is also natural to colocate the Presto workers with Alluxio workers. 
+It is also natural to colocate the Presto / Spark workers with Alluxio workers. 
 However, both of them can require a large amount of memory, so it is important to prioritize their allocations.
 Similar to the master's case, the total memory consumption is 
-ALLUXIO_RAM_DISK_SIZE + ALLUXIO_WORKER_HEAP_SIZE + PRESTO_WORKER_HEAP_SIZE + SYSTEM RESOURCE REQUIREMENT
+ALLUXIO_RAM_DISK_SIZE + ALLUXIO_WORKER_HEAP_SIZE + COMPUTE_WORKER_HEAP_SIZE + SYSTEM RESOURCE REQUIREMENT
+
+When the worker memory is constrained, we recommend the following prioritization.
 System resources contains file descriptor tables and thread allocations, and are limited on the workers, because workers tend to have fewer concurrent accesses compared to master. But we recommend leaving 10-15 GB at least for this purpose as well.
-The next priority should be PRESTO_WORKER_HEAP_SIZE.
-If the presto heap is too small, some queries will simply fail.
+The next priority should be COMPUTE_WORKER_HEAP_SIZE.
+If the compute worker's heap is too small, some queries will simply fail.
 Unfortunately, it is difficult to know much memory a query will need unless you run it.
 Tools such as top can be used to monitor the peak memory consumptions of the presto process.
 ALLUXIO_WORKER_HEAP_SIZE does not need to be very large, but it is critical to ensure it is enough for the correct operation of the Alluxio worker.
 The last priority should be the RAMDISK_SIZE. 
 Uncached data will negatively impact the performance, but will not have any impact on query correctness.
+Alluxio also has the ability to cache on SSD and HDD, thus avoid using the valuable memory resource as ramdisks.
+
+### Balancing Compute Clients with Alluxio
+
+Note that when we colocate compute with Alluxio, compute frameworks are also the clients to Alluxio system.
+This is important because the overall system performance depends on the clients supplying enough work that the Alluxio system can efficiently handle. 
+Given the fixed total system resource, giving too much resource to compute / clients will result in Alluxio not being able to handle such requests.
+Vice versa, giving too much resource to Alluxio will result in not enough requests being generated.
+
+This is usually not a huge issue because of dynamic CPU scheduling on these nodes. 
+However, when containers or strict CPU quotas are enforced, we may run into situations where we have too few or too many requests. 
+The correct balance is heavily dependent on the exact workload. We recommend looking at several metrics such as `Worker.BlocksEvictionRate` , `Cluster.BytesReadLocalThroughput`, and master RPC latency metrics to find clues whether your allocation is too compute heavy or too Alluxio heavy.
