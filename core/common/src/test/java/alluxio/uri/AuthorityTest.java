@@ -38,10 +38,11 @@ public class AuthorityTest {
     assertTrue(Authority.fromString("") instanceof NoAuthority);
     assertTrue(Authority.fromString(null) instanceof NoAuthority);
 
-    assertTrue(Authority.fromString("logical") instanceof EmbeddedLogicalAuthority);
+    assertTrue(Authority.fromString("ebj@logical") instanceof EmbeddedLogicalAuthority);
 
     assertTrue(Authority.fromString("zk@logical") instanceof ZookeeperLogicalAuthority);
 
+    assertTrue(Authority.fromString("localhost") instanceof UnknownAuthority);
     assertTrue(Authority.fromString("f3,321:sad") instanceof UnknownAuthority);
     assertTrue(Authority.fromString("localhost:") instanceof UnknownAuthority);
     assertTrue(Authority.fromString("127.0.0.1:19998,") instanceof UnknownAuthority);
@@ -124,7 +125,7 @@ public class AuthorityTest {
 
   @Test
   public void embeddedLogicalAuthorityTest() {
-    EmbeddedLogicalAuthority authority = (EmbeddedLogicalAuthority) Authority.fromString("logical");
+    EmbeddedLogicalAuthority authority = (EmbeddedLogicalAuthority) Authority.fromString("ebj@logical");
     assertEquals("logical", authority.toString());
     assertEquals("logical", authority.getLogicalName());
   }

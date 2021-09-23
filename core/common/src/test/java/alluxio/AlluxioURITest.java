@@ -22,6 +22,7 @@ import alluxio.uri.EmbeddedLogicalAuthority;
 import alluxio.uri.MultiMasterAuthority;
 import alluxio.uri.NoAuthority;
 import alluxio.uri.SingleMasterAuthority;
+import alluxio.uri.UnknownAuthority;
 import alluxio.uri.ZookeeperAuthority;
 import alluxio.uri.ZookeeperLogicalAuthority;
 import alluxio.util.OSUtils;
@@ -557,11 +558,14 @@ public class AlluxioURITest {
     assertTrue(new AlluxioURI("file:///b/c").getAuthority()
         instanceof NoAuthority);
 
-    assertTrue(new AlluxioURI("file", Authority.fromString("logical"), "/b/c").getAuthority()
+    assertTrue(new AlluxioURI("file", Authority.fromString("ebj@logical"), "/b/c").getAuthority()
         instanceof EmbeddedLogicalAuthority);
 
     assertTrue(new AlluxioURI("file", Authority.fromString("zk@logical"), "/b/c").getAuthority()
         instanceof ZookeeperLogicalAuthority);
+
+    assertTrue(new AlluxioURI("file", Authority.fromString("localhost"), "/b/c").getAuthority()
+        instanceof UnknownAuthority);
   }
 
   /**

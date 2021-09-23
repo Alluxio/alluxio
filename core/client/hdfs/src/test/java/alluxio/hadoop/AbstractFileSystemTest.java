@@ -147,18 +147,18 @@ public class AbstractFileSystemTest {
 
   @Test
   public void fsShouldSetPropertyConfWithLogicalUriConfig() throws Exception {
-    URI uri = URI.create("alluxio://logical/path");
+    URI uri = URI.create("alluxio://ebj@logical/path");
     Configuration conf = getConf();
-    conf.set(PropertyKey.Template.LOGICAL_MASTER_NAMESERVICES.format("logical").getName(),
+    conf.set(PropertyKey.Template.MASTER_LOGICAL_NAMESERVICES.format("logical").getName(),
         "master1,master2,master3");
     conf.set(
-        PropertyKey.Template.LOGICAL_MASTER_RPC_ADDRESS.format("logical", "master1").getName(),
+        PropertyKey.Template.MASTER_LOGICAL_RPC_ADDRESS.format("logical", "master1").getName(),
         "host1:19998");
     conf.set(
-        PropertyKey.Template.LOGICAL_MASTER_RPC_ADDRESS.format("logical", "master2").getName(),
+        PropertyKey.Template.MASTER_LOGICAL_RPC_ADDRESS.format("logical", "master2").getName(),
         "host2:19998");
     conf.set(
-        PropertyKey.Template.LOGICAL_MASTER_RPC_ADDRESS.format("logical", "master3").getName(),
+        PropertyKey.Template.MASTER_LOGICAL_RPC_ADDRESS.format("logical", "master3").getName(),
         "host3:19998");
     AbstractFileSystem afs = new alluxio.hadoop.FileSystem();
     afs.initialize(uri, conf);
@@ -169,7 +169,7 @@ public class AbstractFileSystemTest {
 
   @Test
   public void fsShouldTriggersExceptionWithUnknownLogicalUriWith() throws Exception {
-    URI uri = URI.create("alluxio://logical/path");
+    URI uri = URI.create("alluxio://ebj@logical/path");
     AbstractFileSystem afs = new alluxio.hadoop.FileSystem();
     assertThrows(Exception.class, () -> afs.initialize(uri, getConf()));
   }
@@ -178,16 +178,16 @@ public class AbstractFileSystemTest {
   public void fsShouldSetPropertyConfWithZkLogicalUriConfig() throws Exception {
     URI uri = URI.create("alluxio://zk@logical/path");
     Configuration conf = getConf();
-    conf.set(PropertyKey.Template.LOGICAL_ZOOKEEPER_NAMESERVICES.format("logical").getName(),
+    conf.set(PropertyKey.Template.MASTER_LOGICAL_ZOOKEEPER_NAMESERVICES.format("logical").getName(),
         "node1,node2,node3");
     conf.set(
-        PropertyKey.Template.LOGICAL_ZOOKEEPER_ADDRESS.format("logical", "node1").getName(),
+        PropertyKey.Template.MASTER_LOGICAL_ZOOKEEPER_ADDRESS.format("logical", "node1").getName(),
         "host1:2181");
     conf.set(
-        PropertyKey.Template.LOGICAL_ZOOKEEPER_ADDRESS.format("logical", "node2").getName(),
+        PropertyKey.Template.MASTER_LOGICAL_ZOOKEEPER_ADDRESS.format("logical", "node2").getName(),
         "host2:2181");
     conf.set(
-        PropertyKey.Template.LOGICAL_ZOOKEEPER_ADDRESS.format("logical", "node3").getName(),
+        PropertyKey.Template.MASTER_LOGICAL_ZOOKEEPER_ADDRESS.format("logical", "node3").getName(),
         "host3:2181");
     AbstractFileSystem afs = new alluxio.hadoop.FileSystem();
     afs.initialize(uri, conf);

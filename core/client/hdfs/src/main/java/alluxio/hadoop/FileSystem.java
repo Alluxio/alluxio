@@ -100,7 +100,7 @@ public final class FileSystem extends AbstractFileSystem {
       alluxioConfProperties.put(PropertyKey.ZOOKEEPER_ADDRESS.getName(), null);
     } else if (alluxioUri.getAuthority() instanceof EmbeddedLogicalAuthority) {
       EmbeddedLogicalAuthority authority = (EmbeddedLogicalAuthority) alluxioUri.getAuthority();
-      String masterNamesConfKey = PropertyKey.Template.LOGICAL_MASTER_NAMESERVICES
+      String masterNamesConfKey = PropertyKey.Template.MASTER_LOGICAL_NAMESERVICES
           .format(authority.getLogicalName()).getName();
       String[] masterNames = conf.getTrimmedStrings(masterNamesConfKey);
       Preconditions.checkArgument(masterNames.length != 0,
@@ -108,7 +108,7 @@ public final class FileSystem extends AbstractFileSystem {
 
       StringJoiner masterRpcAddress = new StringJoiner(",");
       for (String masterName : masterNames) {
-        String name = PropertyKey.Template.LOGICAL_MASTER_RPC_ADDRESS
+        String name = PropertyKey.Template.MASTER_LOGICAL_RPC_ADDRESS
             .format(authority.getLogicalName(), masterName).getName();
         String address = conf.get(name);
         Preconditions.checkArgument(address != null, "You need to set %s", name);
@@ -121,7 +121,7 @@ public final class FileSystem extends AbstractFileSystem {
       alluxioConfProperties.put(PropertyKey.ZOOKEEPER_ADDRESS.getName(), null);
     } else if (alluxioUri.getAuthority() instanceof ZookeeperLogicalAuthority) {
       ZookeeperLogicalAuthority authority = (ZookeeperLogicalAuthority) alluxioUri.getAuthority();
-      String zkNodesConfKey = PropertyKey.Template.LOGICAL_ZOOKEEPER_NAMESERVICES
+      String zkNodesConfKey = PropertyKey.Template.MASTER_LOGICAL_ZOOKEEPER_NAMESERVICES
           .format(authority.getLogicalName()).getName();
       String[] zkNodeNames = conf.getTrimmedStrings(zkNodesConfKey);
       Preconditions.checkArgument(zkNodeNames.length != 0,
@@ -129,7 +129,7 @@ public final class FileSystem extends AbstractFileSystem {
 
       StringJoiner zkAddress = new StringJoiner(",");
       for (String zkName : zkNodeNames) {
-        String name = PropertyKey.Template.LOGICAL_ZOOKEEPER_ADDRESS
+        String name = PropertyKey.Template.MASTER_LOGICAL_ZOOKEEPER_ADDRESS
             .format(authority.getLogicalName(), zkName).getName();
         String address = conf.get(name);
         Preconditions.checkArgument(address != null, "You need to set %s", name);
