@@ -12,8 +12,8 @@
 package alluxio.stress.client;
 
 import alluxio.stress.Parameters;
-
 import alluxio.stress.common.FileSystemParameters;
+
 import com.beust.jcommander.DynamicParameter;
 import com.beust.jcommander.IStringConverter;
 import com.beust.jcommander.Parameter;

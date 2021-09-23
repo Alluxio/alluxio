@@ -11,6 +11,9 @@
 
 package alluxio.stress.common;
 
+/**
+ * FileSystemClientType, Alluxio Native API or Alluxio HDFS API.
+ */
 public enum FileSystemClientType {
 
   /** Alluxio file system API. */
@@ -22,6 +25,11 @@ public enum FileSystemClientType {
 
   private final String mName;
 
+  /**
+   * Constructor.
+   *
+   * @param name of the client type
+   */
   FileSystemClientType(String name) {
     mName = name;
   }

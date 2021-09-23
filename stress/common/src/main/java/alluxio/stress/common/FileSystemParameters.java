@@ -17,6 +17,9 @@ import alluxio.stress.Parameters;
 import com.beust.jcommander.IStringConverter;
 import com.beust.jcommander.Parameter;
 
+/**
+ * FileSystem common parameters.
+ */
 public class FileSystemParameters extends Parameters {
   @Parameter(names = {"--clients-type"},
       description = "the client API type. Alluxio native or hadoop compatible client,"
@@ -33,7 +36,8 @@ public class FileSystemParameters extends Parameters {
    * @return FileSystemClientType of this bench
    * Converts from String to FileSystemClientType instance.
    */
-  public static class FileSystemParametersClientTypeConverter implements IStringConverter<FileSystemClientType> {
+  public static class FileSystemParametersClientTypeConverter
+      implements IStringConverter<FileSystemClientType> {
     @Override
     public FileSystemClientType convert(String value) {
       return FileSystemClientType.fromString(value);
