@@ -333,8 +333,6 @@ public class StressClientIOBench extends Benchmark<ClientIOTaskResult> {
     protected final ClientIOTaskResult.ThreadCountResult mThreadCountResult =
         new ClientIOTaskResult.ThreadCountResult();
 
-    protected FSDataInputStream mInStream = null;
-    protected FSDataOutputStream mOutStream = null;
     protected long mCurrentOffset;
 
     protected BenchThread(BenchContext context, int threadId) {
@@ -413,24 +411,11 @@ public class StressClientIOBench extends Benchmark<ClientIOTaskResult> {
 
     protected abstract int applyOperation() throws IOException, AlluxioException;
 
-    protected void closeInStream() {
-      try {
-        if (mInStream != null) {
-          mInStream.close();
-        }
-      } catch (IOException e) {
-        mThreadCountResult.addErrorMessage(e.getMessage());
-      } finally {
-        mInStream = null;
-      }
-    }
+    protected abstract void closeInStream();
   }
 
   private final class AlluxioHDFSBenchThread extends BenchThread {
     private final FileSystem mFs;
-
-    private final ClientIOTaskResult.ThreadCountResult mThreadCountResult =
-        new ClientIOTaskResult.ThreadCountResult();
 
     private FSDataInputStream mInStream = null;
     private FSDataOutputStream mOutStream = null;
@@ -510,13 +495,23 @@ public class StressClientIOBench extends Benchmark<ClientIOTaskResult> {
           throw new IllegalStateException("Unknown operation: " + mParameters.mOperation);
       }
     }
+
+    @Override
+    protected void closeInStream() {
+      try {
+        if (mInStream != null) {
+          mInStream.close();
+        }
+      } catch (IOException e) {
+        mThreadCountResult.addErrorMessage(e.getMessage());
+      } finally {
+        mInStream = null;
+      }
+    }
   }
 
   private final class AlluxioNativeBenchThread extends BenchThread {
     private final alluxio.client.file.FileSystem mFs;
-
-    private final ClientIOTaskResult.ThreadCountResult mThreadCountResult =
-        new ClientIOTaskResult.ThreadCountResult();
 
     private FileInStream mInStream = null;
     private FileOutStream mOutStream = null;
@@ -573,7 +568,7 @@ public class StressClientIOBench extends Benchmark<ClientIOTaskResult> {
         }
         case WRITE: {
           if (mOutStream == null) {
-            mFs.createFile(new AlluxioURI(mFilePath.toString()),
+            mOutStream = mFs.createFile(new AlluxioURI(mFilePath.toString()),
                 CreateFilePOptions.newBuilder().setBlockSizeBytes(mBlockSize)
                     .build());
           }
@@ -588,6 +583,19 @@ public class StressClientIOBench extends Benchmark<ClientIOTaskResult> {
         }
         default:
           throw new IllegalStateException("Unknown operation: " + mParameters.mOperation);
+      }
+    }
+
+    @Override
+    protected void closeInStream() {
+      try {
+        if (mInStream != null) {
+          mInStream.close();
+        }
+      } catch (IOException e) {
+        mThreadCountResult.addErrorMessage(e.getMessage());
+      } finally {
+        mInStream = null;
       }
     }
   }
