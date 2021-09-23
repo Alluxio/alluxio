@@ -69,7 +69,7 @@ public class StressClientIOBench extends Benchmark<ClientIOTaskResult> {
   /** Cached FS instances. */
   private FileSystem[] mCachedFs;
 
-  /** In case of Alluxio Native API is used,  using the following instead */
+  /** In case of Alluxio Native API is used,  using the following instead. */
   private alluxio.client.file.FileSystem [] mCachedNativeFs;
 
     /** Set to true after the first barrier is passed. */
@@ -521,7 +521,8 @@ public class StressClientIOBench extends Benchmark<ClientIOTaskResult> {
     private FileInStream mInStream = null;
     private FileOutStream mOutStream = null;
 
-    private AlluxioNativeBenchThread(BenchContext context, alluxio.client.file.FileSystem fs, int threadId) {
+    private AlluxioNativeBenchThread(BenchContext context, alluxio.client.file.FileSystem fs,
+                                     int threadId) {
       super(context, threadId);
 
       // alluxio.client.file.FileSystem.Factory.get();
@@ -578,7 +579,8 @@ public class StressClientIOBench extends Benchmark<ClientIOTaskResult> {
                 CreateFilePOptions.newBuilder().setBlockSizeBytes(mBlockSize)
                     .build());
           }
-          int bytesToWrite = (int) Math.min(mFileSize - mOutStream.getBytesWritten(), mBuffer.length);
+          int bytesToWrite = (int) Math.min(mFileSize - mOutStream.getBytesWritten(),
+              mBuffer.length);
           if (bytesToWrite == 0) {
             mOutStream.close();
             return -1;
