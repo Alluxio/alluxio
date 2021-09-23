@@ -245,13 +245,17 @@ public class JvmPauseMonitor {
     private final String[] mMemoryPoolNames;
     private final ObjectName mObjectName;
 
+    /**
+     * Creates a new instance of {@link GarbageCollectorMXBeanView}.
+     * @param gcBean which the unmodifiable view should be constructed from
+     */
     public GarbageCollectorMXBeanView(GarbageCollectorMXBean gcBean) {
-      mCollectionCount=gcBean.getCollectionCount();
-      mCollectionTime=gcBean.getCollectionTime();
-      mName=gcBean.getName();
-      mValid=gcBean.isValid();
-      mMemoryPoolNames=gcBean.getMemoryPoolNames();
-      mObjectName=gcBean.getObjectName();
+      mCollectionCount = gcBean.getCollectionCount();
+      mCollectionTime = gcBean.getCollectionTime();
+      mName = gcBean.getName();
+      mValid = gcBean.isValid();
+      mMemoryPoolNames = gcBean.getMemoryPoolNames();
+      mObjectName = gcBean.getObjectName();
     }
 
     @Override
