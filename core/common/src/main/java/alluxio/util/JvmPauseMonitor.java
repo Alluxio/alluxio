@@ -180,6 +180,8 @@ public class JvmPauseMonitor {
     List<GarbageCollectorMXBean> gcBeanList = ManagementFactory.getGarbageCollectorMXBeans();
     Map<String, GarbageCollectorMXBean> gcBeanMap = new HashMap<>();
     for (GarbageCollectorMXBean gcBean : gcBeanList) {
+      // #getGarbageCollectorMXBeans will return the same gc bean
+      // so we need to clone a new gc bean.
       gcBeanMap.put(gcBean.getName(), new GarbageCollectorMXBeanView(gcBean));
     }
     return gcBeanMap;
