@@ -12,6 +12,7 @@
 package alluxio.stress.cli.client;
 
 import alluxio.AlluxioURI;
+import alluxio.annotation.SuppressFBWarnings;
 import alluxio.Constants;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileOutStream;
@@ -564,25 +565,12 @@ public class StressClientIOBench extends Benchmark<ClientIOTaskResult> {
           }
           return bytesRead;
         }
-        case READ_FULLY: {
+        case READ_FULLY:
+        case POS_READ_FULLY: {
           throw new UnsupportedOperationException("Not support Read Fully");
-          /*int toRead = Math.min(mBuffer.length, (int) (mFileSize - mInStream.getPos()));
-          // mInStream.readFully(mBuffer, 0, toRead);
-          if (mInStream.getPos() == mFileSize) {
-            closeInStream();
-            //mInStream = mFs.open(mFilePath);
-            mInStream = mFs.openFile(new AlluxioURI(mFilePath.toString()));
-          }
-          return toRead;*/
         }
         case POS_READ: {
           return mInStream.positionedRead(mCurrentOffset, mBuffer, 0, mBuffer.length);
-          //mInStream.read(mCurrentOffset, mBuffer, 0, mBuffer.length);
-        }
-        case POS_READ_FULLY: {
-          throw new UnsupportedOperationException("Not support Read Fully");
-          // mInStream.readFully(mCurrentOffset, mBuffer, 0, mBuffer.length);
-          //return mBuffer.length;
         }
         case WRITE: {
           if (mOutStream == null) {
