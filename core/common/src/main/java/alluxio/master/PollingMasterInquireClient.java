@@ -124,8 +124,13 @@ public class PollingMasterInquireClient implements MasterInquireClient {
   @Nullable
   private InetSocketAddress getAddress() {
     InetSocketAddress lastConnectAddress = mLastConnectedAddress;
-    if (lastConnectAddress != null && checkMetaServiceHealth(lastConnectAddress)) {
-      return lastConnectAddress;
+    try {
+      if (lastConnectAddress != null && checkMetaServiceHealth(lastConnectAddress)) {
+        return lastConnectAddress;
+      }
+    } catch (AlluxioStatusException e) {
+      LOG.error("Error while connecting to {}. {}", lastConnectAddress, e);
+      return null;
     }
     // Iterate over the masters and try to connect to each of their RPC ports.
     List<InetSocketAddress> addresses;
@@ -138,15 +143,20 @@ public class PollingMasterInquireClient implements MasterInquireClient {
     }
 
     for (InetSocketAddress address : addresses) {
-      if (!address.equals(lastConnectAddress) && checkMetaServiceHealth(address)) {
-        mLastConnectedAddress = address;
-        return address;
+      try {
+        if (!address.equals(lastConnectAddress) && checkMetaServiceHealth(address)) {
+          mLastConnectedAddress = address;
+          return address;
+        }
+      } catch (AlluxioStatusException e) {
+        LOG.error("Error while connecting to {}. {}", address, e);
+        return null;
       }
     }
     return null;
   }
 
-  private boolean checkMetaServiceHealth(InetSocketAddress address) {
+  private boolean checkMetaServiceHealth(InetSocketAddress address) throws AlluxioStatusException {
     try {
       LOG.debug("Checking whether {} is listening for RPCs", address);
       pingMetaService(address);
@@ -158,8 +168,6 @@ public class PollingMasterInquireClient implements MasterInquireClient {
       LOG.debug("Timeout while connecting to {}", address);
     } catch (CancelledException e) {
       LOG.debug("Cancelled while connecting to {}", address);
-    } catch (AlluxioStatusException e) {
-      LOG.error("Error while connecting to {}. {}", address, e);
     }
     return false;
   }
