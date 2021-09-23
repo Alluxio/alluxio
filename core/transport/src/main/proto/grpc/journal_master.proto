@@ -98,7 +98,7 @@ service JournalMasterClientService {
     rpc ResetPriorities(ResetPrioritiesPRequest) returns (ResetPrioritiesPResponse);
 
     /**
-     * Gets list of exception message throwing when transfer leader.
+     * Gets exception message throwing when transfer leader.
      */
     rpc GetTransferLeaderMessage(GetTransferLeaderMessagePRequest) returns (GetTransferLeaderMessagePResponse);
 }

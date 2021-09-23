@@ -56,7 +56,7 @@ public interface JournalMasterClient extends Closeable {
   /**
    * Gets exception messages thrown when transferring the leader.
    * @param transferId the guid of transferLeader command
-   * @return exception message throwing when transfer leader
+   * @return exception message thrown when transferring the leader
    */
   GetTransferLeaderMessagePResponse getTransferLeaderMessage(String transferId)
           throws AlluxioStatusException;

@@ -57,7 +57,7 @@ public interface JournalMaster {
   void resetPriorities() throws IOException;
 
   /**
-   * Gets exception message throwing when transfer leader.
+   * Gets exception messages thrown when transferring the leader.
    * @param transferId the guid of transferLeader command
    * @return exception message
    */

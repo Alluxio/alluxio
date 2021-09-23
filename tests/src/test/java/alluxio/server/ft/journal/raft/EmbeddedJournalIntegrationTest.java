@@ -428,19 +428,15 @@ public final class EmbeddedJournalIntegrationTest extends BaseIntegrationTest {
     mCluster.start();
 
     NetAddress netAddress = NetAddress.newBuilder().setHost("hostname").setRpcPort(0).build();
-
-    try {
-      mCluster.getJournalMasterClientForMaster().transferLeadership(netAddress);
-      Assert.fail("Should have thrown exception");
-    } catch (IOException e) {
-      Assert.assertTrue(e.getMessage().startsWith(String.format("<%s:%d> is not part of the quorum",
-              netAddress.getHost(), netAddress.getRpcPort())));
-
-      for (MasterNetAddress address : mCluster.getMasterAddresses()) {
-        String host = address.getHostname();
-        int port = address.getEmbeddedJournalPort();
-        Assert.assertTrue(e.getMessage().contains(String.format("%s:%d", host, port)));
-      }
+    String transferId = mCluster.getJournalMasterClientForMaster().transferLeadership(netAddress);
+    String errorMsg = mCluster.getJournalMasterClientForMaster()
+            .getTransferLeaderMessage(transferId).getTransMsg().getMsg();
+    Assert.assertTrue(errorMsg.startsWith(String.format("<%s:%d> is not part of the quorum",
+            netAddress.getHost(), netAddress.getRpcPort())));
+    for (MasterNetAddress address : mCluster.getMasterAddresses()) {
+      String host = address.getHostname();
+      int port = address.getEmbeddedJournalPort();
+      Assert.assertTrue(errorMsg.contains(String.format("%s:%d", host, port)));
     }
     mCluster.notifySuccess();
   }
