@@ -137,7 +137,7 @@ public class QuorumElectCommand extends AbstractFsAdminCommand {
 
     RaftPeerId newLeaderPeerId =
         RaftJournalUtils.getPeerId(address.getHost(), address.getRpcPort());
-    /* update priorities to enable transfer */
+    // update priorities to enable transfer
     List<RaftPeer> peersWithNewPriorities = new ArrayList<>();
     for (RaftPeer peer : oldPeers) {
       peersWithNewPriorities.add(
@@ -151,33 +151,30 @@ public class QuorumElectCommand extends AbstractFsAdminCommand {
           .collect(Collectors.joining(", ")) + "]";
       mPrintStream.printf(
           "Applying new peer state before transferring leadership: %s%n", stringPeers);
-      RaftClientReply reply = client.admin().setConfiguration(peersWithNewPriorities);
-      processReply(reply, "failed to set master priorities before initiating election");
-      /* transfer leadership */
+      RaftClientReply setConfigurationReply =
+          client.admin().setConfiguration(peersWithNewPriorities);
+      processReply(setConfigurationReply,
+          "failed to set master priorities before initiating election");
+      // transfer leadership
       mPrintStream.printf(
           "Transferring leadership to master with address <%s> and with RaftPeerId <%s>%n",
           serverAddress, newLeaderPeerId);
       // fire and forget: need to immediately return as the master will shut down its RPC servers
       // once the TransferLeadershipRequest is initiated.
-      final int SLEEP_TIME_MS = 3_000;
-      final int TRANSFER_LEADER_WAIT_MS = 60_000;
       try {
-        Thread.sleep(SLEEP_TIME_MS);
-        RaftClientReply reply1 = client.admin().transferLeadership(newLeaderPeerId,
-            TRANSFER_LEADER_WAIT_MS);
-        processReply(reply1, "election failed");
+        Thread.sleep(3_000);
+        RaftClientReply transferLeadershipReply =
+            client.admin().transferLeadership(newLeaderPeerId, 60_000);
+        processReply(transferLeadershipReply, "election failed");
       } catch (Throwable t) {
         mPrintStream.printf("caught an error when executing transfer: %s%n", t.getMessage());
         return -1;
       }
       mPrintStream.println("Transferring leadership initiated");
-    } catch (Throwable t) {
-      throw new IOException(t);
     }
 
     try {
       // wait for confirmation of leadership transfer
-      final int TIMEOUT_3MIN = 3 * 60 * 1000; // in milliseconds
       CommonUtils.waitFor("Waiting for election to finalize", () -> {
         try {
           GetQuorumInfoPResponse quorumInfo = jmClient.getQuorumInfo();
@@ -191,7 +188,7 @@ public class QuorumElectCommand extends AbstractFsAdminCommand {
         } catch (AlluxioStatusException e) {
           return false;
         }
-      }, WaitForOptions.defaults().setTimeoutMs(TIMEOUT_3MIN));
+      }, WaitForOptions.defaults().setTimeoutMs(3 * 60 * 1000));
 
       mPrintStream.println(String.format(TRANSFER_SUCCESS, serverAddress));
       return 0;
@@ -242,7 +239,7 @@ public class QuorumElectCommand extends AbstractFsAdminCommand {
         .setBaseSleepTime(TimeDuration.valueOf(100, TimeUnit.MILLISECONDS))
         .setMaxAttempts(10)
         .setMaxSleepTime(
-            TimeDuration.valueOf(100000, TimeUnit.MILLISECONDS))
+            TimeDuration.valueOf(100_000, TimeUnit.MILLISECONDS))
         .build();
     return RaftClient.newBuilder()
         .setRaftGroup(mRaftGroup)
