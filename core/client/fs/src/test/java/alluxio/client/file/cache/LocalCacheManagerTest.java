@@ -40,6 +40,7 @@ import alluxio.util.io.BufferUtils;
 import alluxio.util.io.FileUtils;
 import alluxio.util.io.PathUtils;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Streams;
 import org.junit.Before;
@@ -52,9 +53,11 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.file.Paths;
 import java.util.Iterator;
+import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
@@ -328,7 +331,7 @@ public final class LocalCacheManagerTest {
   }
 
   @Test
-  public void putMoreThanCacheCapacity() throws Exception {
+  public void putMoreThanCacheCapacityFIFO() throws Exception {
     int cacheSize = CACHE_SIZE_BYTES / PAGE_SIZE_BYTES;
     for (int i = 0; i < 2 * cacheSize; i++) {
       PageId pageId = new PageId("3", i);
@@ -339,6 +342,43 @@ public final class LocalCacheManagerTest {
             mCacheManager.get(new PageId("3", i - cacheSize), PAGE_SIZE_BYTES, mBuf, 0));
         assertEquals(PAGE_SIZE_BYTES, mCacheManager.get(id, PAGE_SIZE_BYTES, mBuf, 0));
         assertArrayEquals(page(i - cacheSize + 1, PAGE_SIZE_BYTES), mBuf);
+      }
+    }
+  }
+
+  @Test
+  public void putMoreThanCacheCapacityLRU() throws Exception {
+    mMetaStore = new DefaultMetaStore(mConf);
+    mCacheManager = createLocalCacheManager(mConf, mMetaStore, mPageStore);
+    int cacheSize = CACHE_SIZE_BYTES / PAGE_SIZE_BYTES;
+    //fill up the cache
+    for (int i = 0; i < cacheSize; i++) {
+      PageId pageId = new PageId("3", i);
+      mCacheManager.put(pageId, page(i, PAGE_SIZE_BYTES));
+    }
+    //define page index 2,3,5 as active pages
+    List<PageId> activePageIds = ImmutableList.of(2, 3, 5).stream()
+        .map(pageIndex -> new PageId("3", pageIndex)).collect(
+            Collectors.toList());
+    //get active pages 2,3,5 to update LRU
+    activePageIds.forEach(pageId -> mCacheManager.get(pageId, PAGE_SIZE_BYTES, mBuf, 0));
+    //Partially fill up the cache again with new pages
+    for (int i = cacheSize; i < 2 * cacheSize - 3; i++) {
+      PageId pageId = new PageId("3", i);
+      mCacheManager.put(pageId, page(i, PAGE_SIZE_BYTES));
+    }
+    //check page 2,3,5 is still in cache
+    activePageIds.forEach(pageId -> {
+      assertEquals(PAGE_SIZE_BYTES,
+          mCacheManager.get(pageId, PAGE_SIZE_BYTES, mBuf, 0));
+      assertArrayEquals(page((int) pageId.getPageIndex(), PAGE_SIZE_BYTES), mBuf);
+    });
+    //check the pages other than 2,3,5 got evicted
+    for (int i = 0; i < cacheSize; i++) {
+      PageId pageId = new PageId("3", i);
+      if (!activePageIds.contains(pageId)) {
+        assertEquals(0,
+            mCacheManager.get(pageId, PAGE_SIZE_BYTES, mBuf, 0));
       }
     }
   }
@@ -416,11 +456,10 @@ public final class LocalCacheManagerTest {
             .setCacheQuota(quota);
         assertTrue(mCacheManager.put(pageId, page(i, PAGE_SIZE_BYTES), context));
         if (i >= cacheSize) {
-          PageId id = new PageId("3", i - cacheSize + 1);
           assertEquals(
               0, mCacheManager.get(new PageId("3", i - cacheSize), PAGE_SIZE_BYTES, mBuf, 0));
-          assertEquals(PAGE_SIZE_BYTES, mCacheManager.get(id, PAGE_SIZE_BYTES, mBuf, 0));
-          assertArrayEquals(page(i - cacheSize + 1, PAGE_SIZE_BYTES), mBuf);
+          //check the subsequent page is still in cache
+          assertEquals(true, mMetaStore.hasPage(new PageId("3", i - cacheSize + 1)));
         }
       }
     }

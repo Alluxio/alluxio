@@ -76,7 +76,7 @@ import javax.ws.rs.core.Response;
 @NotThreadSafe
 @Path(S3RestServiceHandler.SERVICE_PREFIX)
 @Produces(MediaType.APPLICATION_XML)
-@Consumes({ MediaType.TEXT_XML, MediaType.APPLICATION_XML })
+@Consumes({ MediaType.TEXT_XML, MediaType.APPLICATION_XML, MediaType.APPLICATION_OCTET_STREAM })
 public final class S3RestServiceHandler {
   private static final Logger LOG = LoggerFactory.getLogger(S3RestServiceHandler.class);
 
@@ -474,9 +474,10 @@ public final class S3RestServiceHandler {
       String objectPath = bucketPath + AlluxioURI.SEPARATOR + object;
       AlluxioURI multipartTemporaryDir =
           new AlluxioURI(S3RestUtils.getMultipartTemporaryDirForObject(bucketPath, object));
-
+      CreateDirectoryPOptions options = CreateDirectoryPOptions.newBuilder()
+          .setRecursive(true).setWriteType(getS3WriteType()).build();
       try {
-        fs.createDirectory(multipartTemporaryDir);
+        fs.createDirectory(multipartTemporaryDir, options);
         // Use the file ID of multipartTemporaryDir as the upload ID.
         long uploadId = fs.getStatus(multipartTemporaryDir).getFileId();
         return new InitiateMultipartUploadResult(bucket, object, Long.toString(uploadId));

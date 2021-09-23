@@ -779,6 +779,15 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.SERVER)
           .build();
+  public static final PropertyKey UNDERFS_LOCAL_SKIP_BROKEN_SYMLINKS =
+      new Builder(Name.UNDERFS_LOCAL_SKIP_BROKEN_SYMLINKS)
+          .setDefaultValue(false)
+          .setDescription("When set to true, any time the local underfs lists a broken "
+              + "symlink, it will treat the entry as if it didn't exist at all."
+              + "")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.SERVER)
+          .build();
   public static final PropertyKey UNDERFS_WEB_HEADER_LAST_MODIFIED =
       new Builder(Name.UNDERFS_WEB_HEADER_LAST_MODIFIED)
           .setDefaultValue("EEE, dd MMM yyyy HH:mm:ss zzz")
@@ -3047,7 +3056,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey WORKER_NETWORK_ASYNC_CACHE_MANAGER_THREADS_MAX =
       new Builder(Name.WORKER_NETWORK_ASYNC_CACHE_MANAGER_THREADS_MAX)
-          .setDefaultValue(8)
+          .setDefaultSupplier(() -> 2 * Runtime.getRuntime().availableProcessors(),
+              "2 * {CPU core count}")
           .setDescription("The maximum number of threads used to cache blocks asynchronously in "
               + "the data server.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
@@ -4661,6 +4671,11 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "an exponential backoff. This property determines the maximum duration to retry for"
               + " before giving up. Note that, this value is set to 5s for fs and fsadmin CLIs.")
           .build();
+  public static final PropertyKey USER_RPC_SHUFFLE_MASTERS_ENABLED =
+      new Builder(Name.USER_RPC_SHUFFLE_MASTERS_ENABLED)
+          .setDefaultValue(false)
+          .setDescription("Shuffle the client-side configured master rpc addresses.")
+          .build();
   public static final PropertyKey USER_WORKER_LIST_REFRESH_INTERVAL =
       new Builder(Name.USER_WORKER_LIST_REFRESH_INTERVAL)
           .setDefaultValue("2min")
@@ -5445,6 +5460,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String UNDERFS_HDFS_IMPL = "alluxio.underfs.hdfs.impl";
     public static final String UNDERFS_HDFS_PREFIXES = "alluxio.underfs.hdfs.prefixes";
     public static final String UNDERFS_HDFS_REMOTE = "alluxio.underfs.hdfs.remote";
+    public static final String UNDERFS_LOCAL_SKIP_BROKEN_SYMLINKS =
+        "alluxio.underfs.local.skip.broken.symlinks";
     public static final String UNDERFS_WEB_HEADER_LAST_MODIFIED =
         "alluxio.underfs.web.header.last.modified";
     public static final String UNDERFS_WEB_CONNECTION_TIMEOUT =
@@ -6249,6 +6266,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.user.rpc.retry.base.sleep";
     public static final String USER_RPC_RETRY_MAX_DURATION =
         "alluxio.user.rpc.retry.max.duration";
+    public static final String USER_RPC_SHUFFLE_MASTERS_ENABLED =
+        "alluxio.user.rpc.shuffle.masters.enabled";
     public static final String USER_RPC_RETRY_MAX_SLEEP_MS = "alluxio.user.rpc.retry.max.sleep";
     public static final String USER_UFS_BLOCK_LOCATION_ALL_FALLBACK_ENABLED =
         "alluxio.user.ufs.block.location.all.fallback.enabled";

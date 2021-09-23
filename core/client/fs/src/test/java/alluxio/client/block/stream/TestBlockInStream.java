@@ -91,7 +91,7 @@ public class TestBlockInStream extends BlockInStream {
 
     @Override
     public DataReader create(long offset, long len) {
-      return new TestDataReader(mData, offset, len);
+      return new TestDataReader(mData, 128, offset, len);
     }
 
     @Override

@@ -16,6 +16,7 @@ import alluxio.exception.AlluxioException;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.exception.status.InternalException;
 import alluxio.metrics.Metric;
+import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.security.User;
 import alluxio.security.authentication.AuthenticatedClientUser;
@@ -113,7 +114,8 @@ public final class RpcUtils {
     // avoid string format for better performance if debug is off
     String debugDesc = logger.isDebugEnabled() ? String.format(description,
         processObjects(logger, args)) : null;
-    try (Timer.Context ctx = MetricsSystem.timer(getQualifiedMetricName(methodName)).time()) {
+    try (MetricsSystem.MultiTimerContext ctx = new MetricsSystem.MultiTimerContext(
+        Metrics.TOTAL_RPCS, MetricsSystem.timer(getQualifiedMetricName(methodName)))) {
       MetricsSystem.counter(getQualifiedInProgressMetricName(methodName)).inc();
       logger.debug("Enter: {}: {}", methodName, debugDesc);
       T res = callable.call();
@@ -251,5 +253,11 @@ public final class RpcUtils {
      * @param throwable the exception
      */
     void exceptionCaught(Throwable throwable);
+  }
+
+  private static final class Metrics {
+    /** RPC throughput. */
+    private static final Timer TOTAL_RPCS =
+        MetricsSystem.timer(MetricKey.MASTER_TOTAL_RPCS.getName());
   }
 }

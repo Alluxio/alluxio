@@ -145,6 +145,12 @@ hive> alter table u_user set location "alluxio://master_hostname:port/ml-100k";
 hive> alter table TABLE_NAME set location "hdfs://namenode:port/table/path/in/HDFS";
 ```
 
+### 使用已存在的Hive分区表
+修改分区表的过程与修改非分区表非常相似，不同的地方在于除了改变表位置之外，我们还需要修改所有分区的分区位置。请参阅以下示例：
+```
+hive> alter table TABLE_NAME partition(PARTITION_COLUMN = VALUE) set location "hdfs://namenode:port/table/path/partitionpath";
+```
+
 ## Alluxio作为默认文件系统
 
 Apache Hive也可以使用Alluxio，只需通过一个一般的文件系统接口来替换Hadoop文件系统使用Alluxio。这种方式下，Hive使用Alluxio作为其默认文件系统，它的元数据和中间结果都将存储在Alluxio上。

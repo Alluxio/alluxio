@@ -11,6 +11,7 @@
 
 package alluxio.master.block;
 
+import alluxio.annotation.SuppressFBWarnings;
 import alluxio.Constants;
 import alluxio.MasterStorageTierAssoc;
 import alluxio.Server;
@@ -80,7 +81,6 @@ import com.google.common.cache.LoadingCache;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterators;
 import com.google.common.util.concurrent.Striped;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

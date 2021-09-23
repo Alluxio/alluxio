@@ -11,6 +11,7 @@
 
 package alluxio.master.journal.raft;
 
+import alluxio.annotation.SuppressFBWarnings;
 import alluxio.Constants;
 import alluxio.ProcessUtils;
 import alluxio.conf.PropertyKey;
@@ -31,7 +32,6 @@ import alluxio.util.logging.SamplingLogger;
 
 import com.codahale.metrics.Timer;
 import com.google.common.base.Preconditions;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.apache.ratis.io.MD5Hash;
 import org.apache.ratis.proto.RaftProtos;
 import org.apache.ratis.protocol.Message;

@@ -21,6 +21,7 @@ import alluxio.WorkerStorageTierAssoc;
 import alluxio.client.file.FileSystemContext;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
+import alluxio.exception.AlluxioException;
 import alluxio.exception.BlockAlreadyExistsException;
 import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.ExceptionMessage;
@@ -28,6 +29,7 @@ import alluxio.exception.InvalidWorkerStateException;
 import alluxio.exception.WorkerOutOfSpaceException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.AsyncCacheRequest;
+import alluxio.grpc.CacheRequest;
 import alluxio.grpc.GrpcService;
 import alluxio.grpc.ServiceType;
 import alluxio.heartbeat.HeartbeatContext;
@@ -137,7 +139,7 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
   private final AtomicReference<Long> mWorkerId;
 
   private final FileSystemContext mFsContext;
-  private final AsyncCacheRequestManager mAsyncCacheManager;
+  private final CacheRequestManager mCacheManager;
   private final FuseManager mFuseManager;
   private final UfsManager mUfsManager;
 
@@ -180,8 +182,8 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
     mUfsManager = ufsManager;
     mFsContext = mResourceCloser.register(
         FileSystemContext.create(null, ServerConfiguration.global(), this));
-    mAsyncCacheManager = new AsyncCacheRequestManager(
-        GrpcExecutors.ASYNC_CACHE_MANAGER_EXECUTOR, this, mFsContext);
+    mCacheManager = new CacheRequestManager(
+        GrpcExecutors.CACHE_MANAGER_EXECUTOR, this, mFsContext);
     mFuseManager = mResourceCloser.register(new FuseManager(mFsContext));
     mUnderFileSystemBlockStore = new UnderFileSystemBlockStore(mLocalBlockStore, ufsManager);
 
@@ -549,7 +551,21 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
 
   @Override
   public void asyncCache(AsyncCacheRequest request) {
-    mAsyncCacheManager.submitRequest(request);
+    CacheRequest cacheRequest =
+        CacheRequest.newBuilder().setBlockId(request.getBlockId()).setLength(request.getLength())
+            .setOpenUfsBlockOptions(request.getOpenUfsBlockOptions())
+            .setSourceHost(request.getSourceHost()).setSourcePort(request.getSourcePort())
+            .setAsync(true).build();
+    try {
+      mCacheManager.submitRequest(cacheRequest);
+    } catch (Exception e) {
+      LOG.warn("Failed to submit async cache request. request: {}", request, e);
+    }
+  }
+
+  @Override
+  public void cache(CacheRequest request) throws AlluxioException, IOException {
+    mCacheManager.submitRequest(request);
   }
 
   @Override
