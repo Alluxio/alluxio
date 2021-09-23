@@ -329,7 +329,7 @@ public class OBSUnderFileSystem extends ObjectUnderFileSystem {
 
   @Override
   protected String getRootKey() {
-    return OBSConstants.HEADER_OBS + mBucketName;
+    return Constants.HEADER_OBS + mBucketName;
   }
 
   @Override

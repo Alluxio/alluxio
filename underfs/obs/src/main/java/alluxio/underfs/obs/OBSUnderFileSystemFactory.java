@@ -12,6 +12,7 @@
 package alluxio.underfs.obs;
 
 import alluxio.AlluxioURI;
+import alluxio.Constants;
 import alluxio.conf.PropertyKey;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemConfiguration;
@@ -54,7 +55,7 @@ public class OBSUnderFileSystemFactory implements UnderFileSystemFactory {
 
   @Override
   public boolean supportsPath(String path) {
-    return path != null && path.startsWith(OBSConstants.HEADER_OBS);
+    return path != null && path.startsWith(Constants.HEADER_OBS);
   }
 
   /**
