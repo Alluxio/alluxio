@@ -69,8 +69,7 @@ public class FileSystemMasterClient extends AbstractMasterClient {
 
   @Override
   protected void afterConnect() throws IOException {
-    mClient = FileSystemMasterWorkerServiceGrpc.newBlockingStub(mChannel)
-        .withDeadlineAfter(mRpcCallDeadlineDurationMs, TimeUnit.MILLISECONDS);
+    mClient = FileSystemMasterWorkerServiceGrpc.newBlockingStub(mChannel);
   }
 
   /**
