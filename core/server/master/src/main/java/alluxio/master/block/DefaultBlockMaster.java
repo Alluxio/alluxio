@@ -11,6 +11,7 @@
 
 package alluxio.master.block;
 
+import alluxio.annotation.SuppressFBWarnings;
 import alluxio.Constants;
 import alluxio.MasterStorageTierAssoc;
 import alluxio.Server;
@@ -80,7 +81,6 @@ import com.google.common.cache.LoadingCache;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterators;
 import com.google.common.util.concurrent.Striped;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -1331,6 +1331,8 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
       MetricsSystem.registerGaugeIfAbsent(MetricKey.MASTER_UNIQUE_BLOCKS.getName(),
           () -> master.mBlockStore.size());
 
+      MetricsSystem.registerGaugeIfAbsent(MetricKey.MASTER_TOTAL_BLOCK_REPLICA_COUNT.getName(),
+          () -> master.getBlockReplicaCount());
       for (int i = 0; i < master.getGlobalStorageTierAssoc().size(); i++) {
         String alias = master.getGlobalStorageTierAssoc().getAlias(i);
         // TODO(lu) Add template to dynamically construct metric key
@@ -1377,5 +1379,13 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
     }
 
     private Metrics() {} // prevent instantiation
+  }
+
+  private long getBlockReplicaCount() {
+    long ret = 0;
+    for (MasterWorkerInfo worker : mWorkers) {
+      ret += worker.getBlockCount();
+    }
+    return ret;
   }
 }

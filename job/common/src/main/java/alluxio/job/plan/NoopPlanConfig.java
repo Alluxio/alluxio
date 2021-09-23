@@ -9,9 +9,7 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.job;
-
-import alluxio.job.plan.PlanConfig;
+package alluxio.job.plan;
 
 import com.google.common.base.MoreObjects;
 
@@ -24,7 +22,11 @@ import java.util.Collections;
 public class NoopPlanConfig implements PlanConfig {
 
   public static final String NAME = "NoOp";
+  private static final long serialVersionUID = 1305044963083382523L;
 
+  /**
+   * Constructs a new instance.
+   */
   public NoopPlanConfig() {}
 
   @Override

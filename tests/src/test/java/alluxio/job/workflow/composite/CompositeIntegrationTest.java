@@ -13,7 +13,7 @@ package alluxio.job.workflow.composite;
 
 import static org.junit.Assert.assertEquals;
 
-import alluxio.job.NoopPlanConfig;
+import alluxio.job.plan.NoopPlanConfig;
 import alluxio.job.JobIntegrationTest;
 import alluxio.job.SleepJobConfig;
 import alluxio.job.wire.JobInfo;

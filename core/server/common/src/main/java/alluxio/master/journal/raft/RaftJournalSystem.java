@@ -35,7 +35,6 @@ import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.util.CommonUtils;
 import alluxio.util.LogUtils;
 import alluxio.util.WaitForOptions;
-import alluxio.util.io.FileUtils;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
@@ -71,10 +70,12 @@ import org.apache.ratis.util.SizeInBytes;
 import org.apache.ratis.util.TimeDuration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.apache.commons.io.FileUtils;
 
 import java.io.File;
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.nio.file.AccessDeniedException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -170,6 +171,8 @@ public class RaftJournalSystem extends AbstractJournalSystem {
   private final RaftJournalConfiguration mConf;
   /** Controls whether state machine can take snapshots. */
   private final AtomicBoolean mSnapshotAllowed;
+  /** Controls whether or not the quorum leadership can be transferred. */
+  private final AtomicBoolean mTransferLeaderAllowed;
 
   private final Map<String, RatisDropwizardExports> mRatisMetricsMap =
       new ConcurrentHashMap<>();
@@ -234,13 +237,9 @@ public class RaftJournalSystem extends AbstractJournalSystem {
     mConf = processRaftConfiguration(conf);
     mJournals = new ConcurrentHashMap<>();
     mSnapshotAllowed = new AtomicBoolean(true);
+    mTransferLeaderAllowed = new AtomicBoolean(false);
     mPrimarySelector = new RaftPrimarySelector();
     mAsyncJournalWriter = new AtomicReference<>();
-    try {
-      super.registerMetrics();
-    } catch (RuntimeException e) {
-      return;
-    }
   }
 
   private void maybeMigrateOldJournal() {
@@ -274,10 +273,14 @@ public class RaftJournalSystem extends AbstractJournalSystem {
     // if election timeout is not set explicitly.
     // This is to speed up single master cluster boot-up.
     if (conf.getClusterAddresses().size() == 1
-        && !ServerConfiguration.isSetByUser(PropertyKey.MASTER_EMBEDDED_JOURNAL_ELECTION_TIMEOUT)) {
+        && !ServerConfiguration.isSetByUser(
+            PropertyKey.MASTER_EMBEDDED_JOURNAL_MIN_ELECTION_TIMEOUT)
+        && !ServerConfiguration.isSetByUser(
+            PropertyKey.MASTER_EMBEDDED_JOURNAL_MAX_ELECTION_TIMEOUT)) {
       LOG.debug("Overriding election timeout to {}ms for single master cluster.",
           SINGLE_MASTER_ELECTION_TIMEOUT_MS);
-      conf.setElectionTimeoutMs(SINGLE_MASTER_ELECTION_TIMEOUT_MS);
+      conf.setElectionMinTimeoutMs(SINGLE_MASTER_ELECTION_TIMEOUT_MS);
+      conf.setElectionMaxTimeoutMs(2 * SINGLE_MASTER_ELECTION_TIMEOUT_MS);
     }
     // Validate the conf.
     conf.validate();
@@ -337,9 +340,11 @@ public class RaftJournalSystem extends AbstractJournalSystem {
 
     // election timeout, heartbeat timeout is automatically 1/2 of the value
     final TimeDuration leaderElectionMinTimeout = TimeDuration.valueOf(
-        mConf.getElectionTimeoutMs(), TimeUnit.MILLISECONDS);
+        mConf.getMinElectionTimeoutMs(), TimeUnit.MILLISECONDS);
+    final TimeDuration leaderElectionMaxTimeout = TimeDuration.valueOf(
+        mConf.getMaxElectionTimeoutMs(), TimeUnit.MILLISECONDS);
     RaftServerConfigKeys.Rpc.setTimeoutMin(properties, leaderElectionMinTimeout);
-    RaftServerConfigKeys.Rpc.setTimeoutMax(properties, leaderElectionMinTimeout.multiply(2));
+    RaftServerConfigKeys.Rpc.setTimeoutMax(properties, leaderElectionMaxTimeout);
 
     // request timeout
     RaftServerConfigKeys.Rpc.setRequestTimeout(properties,
@@ -423,7 +428,8 @@ public class RaftJournalSystem extends AbstractJournalSystem {
     RetryPolicy retryPolicy = ExponentialBackoffRetry.newBuilder()
         .setBaseSleepTime(TimeDuration.valueOf(100, TimeUnit.MILLISECONDS))
         .setMaxAttempts(10)
-        .setMaxSleepTime(TimeDuration.valueOf(mConf.getElectionTimeoutMs(), TimeUnit.MILLISECONDS))
+        .setMaxSleepTime(
+            TimeDuration.valueOf(mConf.getMaxElectionTimeoutMs(), TimeUnit.MILLISECONDS))
         .build();
     return RaftClient.newBuilder()
         .setRaftGroup(mRaftGroup)
@@ -472,6 +478,7 @@ public class RaftJournalSystem extends AbstractJournalSystem {
     mRaftJournalWriter = new RaftJournalWriter(nextSN, client);
     mAsyncJournalWriter
         .set(new AsyncJournalWriter(mRaftJournalWriter, () -> getJournalSinks(null)));
+    mTransferLeaderAllowed.set(true);
   }
 
   @Override
@@ -480,6 +487,7 @@ public class RaftJournalSystem extends AbstractJournalSystem {
       // Avoid duplicate shut down Ratis server
       return;
     }
+    mTransferLeaderAllowed.set(false);
     try {
       // Close async writer first to flush pending entries.
       mAsyncJournalWriter.get().close();
@@ -520,6 +528,7 @@ public class RaftJournalSystem extends AbstractJournalSystem {
 
   @Override
   public synchronized Map<String, Long> getCurrentSequenceNumbers() {
+    Preconditions.checkState(mStateMachine != null, "State machine not initialized");
     long currentGlobalState = mStateMachine.getLastAppliedSequenceNumber();
     Map<String, Long> sequenceMap = new HashMap<>();
     for (String master : mJournals.keySet()) {
@@ -691,9 +700,9 @@ public class RaftJournalSystem extends AbstractJournalSystem {
         continue;
       }
 
-      // Wait 2 election timeouts so that this master and other masters have time to realize they
+      // Wait election timeout so that this master and other masters have time to realize they
       // are not leader.
-      CommonUtils.sleepMs(2 * mConf.getElectionTimeoutMs());
+      CommonUtils.sleepMs(mConf.getMaxElectionTimeoutMs());
       if (stateMachine.getLastAppliedSequenceNumber() != lastAppliedSN
           || stateMachine.getLastPrimaryStartSequenceNumber() != gainPrimacySN) {
         // Someone has committed a journal entry since we started trying to catch up.
@@ -721,6 +730,7 @@ public class RaftJournalSystem extends AbstractJournalSystem {
         .collect(Collectors.toSet());
     mRaftGroup = RaftGroup.valueOf(RAFT_GROUP_ID, peers);
     initServer();
+    super.registerMetrics();
     List<InetSocketAddress> clusterAddresses = mConf.getClusterAddresses();
     LOG.info("Starting Raft journal system. Cluster addresses: {}. Local address: {}",
         clusterAddresses, mConf.getLocalAddress());
@@ -814,7 +824,7 @@ public class RaftJournalSystem extends AbstractJournalSystem {
               .setIsLeader(false)
               .setPriority(member.getId().getPriority())
               .setServerAddress(memberAddress)
-          .setServerState(member.getLastRpcElapsedTimeMs() > mConf.getElectionTimeoutMs()
+          .setServerState(member.getLastRpcElapsedTimeMs() > mConf.getMaxElectionTimeoutMs()
               ? QuorumServerState.UNAVAILABLE : QuorumServerState.AVAILABLE).build());
     }
     InetSocketAddress localAddress = mConf.getLocalAddress();
@@ -916,7 +926,7 @@ public class RaftJournalSystem extends AbstractJournalSystem {
     LOG.info("Resetting RaftPeer priorities");
     try (RaftClient client = createClient()) {
       RaftClientReply reply = client.admin().setConfiguration(resetPeers);
-      processReply(reply);
+      processReply(reply, "failed to reset master priorities to 1");
     }
   }
 
@@ -927,6 +937,12 @@ public class RaftJournalSystem extends AbstractJournalSystem {
    * @throws IOException if error occurred while performing the operation
    */
   public synchronized void transferLeadership(NetAddress newLeaderNetAddress) throws IOException {
+    final boolean allowed = mTransferLeaderAllowed.getAndSet(false);
+    if (!allowed) {
+      throw new IOException("transfer is not allowed at the moment because the master is "
+              + (mRaftJournalWriter == null ? "still gaining primacy" : "already transferring the "
+              + "leadership"));
+    }
     InetSocketAddress serverAddress = InetSocketAddress
             .createUnresolved(newLeaderNetAddress.getHost(), newLeaderNetAddress.getRpcPort());
     List<RaftPeer> oldPeers = new ArrayList<>(mRaftGroup.getPeers());
@@ -934,12 +950,13 @@ public class RaftJournalSystem extends AbstractJournalSystem {
     String strAddr = NetUtils.address2String(serverAddress);
     // if you cannot find the address in the quorum, throw exception.
     if (oldPeers.stream().map(RaftPeer::getAddress).noneMatch(addr -> addr.equals(strAddr))) {
+      mTransferLeaderAllowed.set(true);
       throw new IOException(String.format("<%s> is not part of the quorum <%s>.",
               strAddr, oldPeers.stream().map(RaftPeer::getAddress).collect(Collectors.toList())));
     }
 
     RaftPeerId newLeaderPeerId = RaftJournalUtils.getPeerId(serverAddress);
-    // --- the change in priorities seems to be necessary otherwise the transfer fails ---
+    /* update priorities to enable transfer */
     List<RaftPeer> peersWithNewPriorities = new ArrayList<>();
     for (RaftPeer peer : oldPeers) {
       peersWithNewPriorities.add(
@@ -948,15 +965,13 @@ public class RaftJournalSystem extends AbstractJournalSystem {
               .build()
       );
     }
-    // --- end of updating priorities ---
     try (RaftClient client = createClient()) {
       String stringPeers = "[" + peersWithNewPriorities.stream().map(RaftPeer::toString)
                       .collect(Collectors.joining(", ")) + "]";
       LOG.info("Applying new peer state before transferring leadership: {}", stringPeers);
-      // set peers to have new priorities
       RaftClientReply reply = client.admin().setConfiguration(peersWithNewPriorities);
-      processReply(reply);
-      // transfer leadership
+      processReply(reply, "failed to set master priorities before initiating election");
+      /* transfer leadership */
       LOG.info("Transferring leadership to master with address <{}> and with RaftPeerId <{}>",
               serverAddress, newLeaderPeerId);
       // fire and forget: need to immediately return as the master will shut down its RPC servers
@@ -966,14 +981,20 @@ public class RaftJournalSystem extends AbstractJournalSystem {
       new Thread(() -> {
         try {
           Thread.sleep(SLEEP_TIME_MS);
-          client.admin().transferLeadership(newLeaderPeerId, TRANSFER_LEADER_WAIT_MS);
+          RaftClientReply reply1 = client.admin().transferLeadership(newLeaderPeerId,
+                  TRANSFER_LEADER_WAIT_MS);
+          processReply(reply1, "election failed");
         } catch (Throwable t) {
-          LOG.error("caught an error: {}", t.getMessage());
+          LOG.error("caught an error when executing transfer: {}", t.getMessage());
+          // we only allow transfers again if the transfer is unsuccessful: a success means it
+          // will soon lose primacy
+          mTransferLeaderAllowed.set(true);
           /* checking the transfer happens in {@link QuorumElectCommand} */
         }
       }).start();
       LOG.info("Transferring leadership initiated");
     } catch (Throwable t) {
+      mTransferLeaderAllowed.set(true);
       throw new IOException(t);
     }
   }
@@ -982,11 +1003,13 @@ public class RaftJournalSystem extends AbstractJournalSystem {
    * @param reply from the ratis operation
    * @throws IOException
    */
-  private void processReply(RaftClientReply reply) throws IOException {
+  private void processReply(RaftClientReply reply, String msgToUser) throws IOException {
     if (!reply.isSuccess()) {
-      throw reply.getException() != null
+      IOException ioe = reply.getException() != null
               ? reply.getException()
               : new IOException(String.format("reply <%s> failed", reply));
+      LOG.error("{}. Error: {}", msgToUser, ioe);
+      throw new IOException(msgToUser);
     }
   }
 
@@ -1031,12 +1054,18 @@ public class RaftJournalSystem extends AbstractJournalSystem {
   public void format() throws IOException {
     File journalPath = mConf.getPath();
     if (journalPath.isDirectory()) {
-      org.apache.commons.io.FileUtils.cleanDirectory(mConf.getPath());
+      if (alluxio.util.io.FileUtils.isStorageDirAccessible(journalPath.getPath())) {
+        FileUtils.cleanDirectory(journalPath);
+      } else {
+        throw new AccessDeniedException(journalPath.getPath());
+      }
     } else {
       if (journalPath.exists()) {
-        FileUtils.delete(journalPath.getAbsolutePath());
+        FileUtils.forceDelete(journalPath);
       }
-      journalPath.mkdirs();
+      if (!journalPath.mkdirs()) {
+        throw new AccessDeniedException(journalPath.getPath());
+      }
     }
   }
 
@@ -1048,7 +1077,7 @@ public class RaftJournalSystem extends AbstractJournalSystem {
   }
 
   /**
-   * @return whether it is allowed to take a local shapshot
+   * @return whether it is allowed to take a local snapshot
    */
   public boolean isSnapshotAllowed() {
     return mSnapshotAllowed.get();
