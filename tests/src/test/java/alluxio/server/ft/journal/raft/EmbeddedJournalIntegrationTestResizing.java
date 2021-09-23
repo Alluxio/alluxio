@@ -168,9 +168,9 @@ public class EmbeddedJournalIntegrationTestResizing extends EmbeddedJournalInteg
       NetAddress toRemove = masterEBJAddr2NetAddr(masterNetAddress);
       mCluster.getJournalMasterClientForMaster().removeQuorumServer(toRemove);
       waitForQuorumPropertySize(info -> true, NUM_MASTERS - 1);
+      waitForQuorumPropertySize(info -> info.getServerAddress() == toRemove, 0);
       // start a new master to replace the lost master
       mCluster.startNewMasters(1, false);
-      waitForQuorumPropertySize(info -> info.getServerAddress() == toRemove, 0);
       waitForQuorumPropertySize(info -> true, NUM_MASTERS);
       // verify that the cluster is still operational
       fs = mCluster.getFileSystemClient();
