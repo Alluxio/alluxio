@@ -9,8 +9,24 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-export interface IConfigTriple {
-  left: string;
-  middle: string;
-  right: string;
+import { AxiosResponse } from 'axios';
+
+import { IConfigTriple } from '../../../../master/src/constants';
+
+export interface IConfig {
+  configuration: IConfigTriple[];
+  whitelist: string[];
+}
+
+export enum ConfigActionTypes {
+  FETCH_REQUEST = '@@config/FETCH_REQUEST',
+  FETCH_SUCCESS = '@@config/FETCH_SUCCESS',
+  FETCH_ERROR = '@@config/FETCH_ERROR',
+}
+
+export interface IConfigState {
+  readonly data: IConfig;
+  readonly loading: boolean;
+  readonly errors?: AxiosResponse;
+  readonly response?: AxiosResponse;
 }

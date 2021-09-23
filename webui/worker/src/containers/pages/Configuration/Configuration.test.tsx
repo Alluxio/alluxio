@@ -18,7 +18,7 @@ import sinon from 'sinon';
 import { AllProps, ConfigurationPresenter } from './Configuration';
 import { routePaths } from '../../../constants';
 import { createAlertErrors } from '@alluxio/common-ui/src/utilities';
-import { IConfig } from '../../../store/config/types';
+import { IConfig } from '@alluxio/common-ui/src/store/config/types';
 
 configure({ adapter: new Adapter() });
 
