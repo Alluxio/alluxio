@@ -32,6 +32,8 @@ import alluxio.uri.Authority;
 import alluxio.uri.MultiMasterAuthority;
 import alluxio.util.ConfigurationUtils;
 
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
 import com.google.common.collect.Lists;
 import io.grpc.StatusRuntimeException;
 
@@ -59,7 +61,10 @@ public class PollingMasterInquireClient implements MasterInquireClient {
   private final Supplier<RetryPolicy> mRetryPolicySupplier;
   private final AlluxioConfiguration mConfiguration;
   private final UserState mUserState;
-  private volatile InetSocketAddress mLastConnectedAddress;
+  private static final Cache<List<InetSocketAddress>, InetSocketAddress>
+      LAST_CONNECTED_ADDRESS_CACHE = CacheBuilder.newBuilder()
+          .expireAfterWrite(10, TimeUnit.MINUTES)
+          .build();
 
   /**
    * @param masterAddresses the potential master addresses
@@ -88,7 +93,6 @@ public class PollingMasterInquireClient implements MasterInquireClient {
     mRetryPolicySupplier = retryPolicySupplier;
     mConfiguration = alluxioConf;
     mUserState = UserState.Factory.create(mConfiguration);
-    mLastConnectedAddress = null;
   }
 
   /**
@@ -123,7 +127,8 @@ public class PollingMasterInquireClient implements MasterInquireClient {
 
   @Nullable
   private InetSocketAddress getAddress() {
-    InetSocketAddress lastConnectAddress = mLastConnectedAddress;
+    InetSocketAddress lastConnectAddress = LAST_CONNECTED_ADDRESS_CACHE
+        .getIfPresent(mConnectDetails.getAddresses());
     try {
       if (lastConnectAddress != null && checkMetaServiceHealth(lastConnectAddress)) {
         return lastConnectAddress;
@@ -145,7 +150,6 @@ public class PollingMasterInquireClient implements MasterInquireClient {
     for (InetSocketAddress address : addresses) {
       try {
         if (!address.equals(lastConnectAddress) && checkMetaServiceHealth(address)) {
-          mLastConnectedAddress = address;
           return address;
         }
       } catch (AlluxioStatusException e) {
@@ -161,6 +165,7 @@ public class PollingMasterInquireClient implements MasterInquireClient {
       LOG.debug("Checking whether {} is listening for RPCs", address);
       pingMetaService(address);
       LOG.debug("Successfully connected to {}", address);
+      LAST_CONNECTED_ADDRESS_CACHE.put(mConnectDetails.getAddresses(), address);
       return true;
     } catch (UnavailableException e) {
       LOG.debug("Failed to connect to {}", address);
