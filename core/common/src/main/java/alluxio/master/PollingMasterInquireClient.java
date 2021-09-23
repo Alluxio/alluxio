@@ -59,6 +59,7 @@ public class PollingMasterInquireClient implements MasterInquireClient {
   private final Supplier<RetryPolicy> mRetryPolicySupplier;
   private final AlluxioConfiguration mConfiguration;
   private final UserState mUserState;
+  private volatile InetSocketAddress mLastConnectedAddress;
 
   /**
    * @param masterAddresses the potential master addresses
@@ -87,6 +88,7 @@ public class PollingMasterInquireClient implements MasterInquireClient {
     mRetryPolicySupplier = retryPolicySupplier;
     mConfiguration = alluxioConf;
     mUserState = UserState.Factory.create(mConfiguration);
+    mLastConnectedAddress = null;
   }
 
   /**
@@ -121,6 +123,10 @@ public class PollingMasterInquireClient implements MasterInquireClient {
 
   @Nullable
   private InetSocketAddress getAddress() {
+    InetSocketAddress lastConnectAddress = mLastConnectedAddress;
+    if (lastConnectAddress != null && checkMetaServiceHealth(lastConnectAddress)) {
+      return lastConnectAddress;
+    }
     // Iterate over the masters and try to connect to each of their RPC ports.
     List<InetSocketAddress> addresses;
     if (mConfiguration.getBoolean(PropertyKey.USER_RPC_SHUFFLE_MASTERS_ENABLED)) {
@@ -132,27 +138,30 @@ public class PollingMasterInquireClient implements MasterInquireClient {
     }
 
     for (InetSocketAddress address : addresses) {
-      try {
-        LOG.debug("Checking whether {} is listening for RPCs", address);
-        pingMetaService(address);
-        LOG.debug("Successfully connected to {}", address);
+      if (!address.equals(lastConnectAddress) && checkMetaServiceHealth(address)) {
+        mLastConnectedAddress = address;
         return address;
-      } catch (UnavailableException e) {
-        LOG.debug("Failed to connect to {}", address);
-        continue;
-      } catch (DeadlineExceededException e) {
-        LOG.debug("Timeout while connecting to {}", address);
-        continue;
-      } catch (CancelledException e) {
-        LOG.debug("Cancelled while connecting to {}", address);
-        continue;
-      } catch (AlluxioStatusException e) {
-        LOG.error("Error while connecting to {}. {}", address, e);
-        // Breaking the loop on non filtered error.
-        break;
       }
     }
     return null;
+  }
+
+  private boolean checkMetaServiceHealth(InetSocketAddress address) {
+    try {
+      LOG.debug("Checking whether {} is listening for RPCs", address);
+      pingMetaService(address);
+      LOG.debug("Successfully connected to {}", address);
+      return true;
+    } catch (UnavailableException e) {
+      LOG.debug("Failed to connect to {}", address);
+    } catch (DeadlineExceededException e) {
+      LOG.debug("Timeout while connecting to {}", address);
+    } catch (CancelledException e) {
+      LOG.debug("Cancelled while connecting to {}", address);
+    } catch (AlluxioStatusException e) {
+      LOG.error("Error while connecting to {}. {}", address, e);
+    }
+    return false;
   }
 
   private void pingMetaService(InetSocketAddress address) throws AlluxioStatusException {
