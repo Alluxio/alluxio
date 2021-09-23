@@ -309,7 +309,7 @@ Allocation of limited resources to different services such as Presto, Spark and 
 and can have signficant impact on the performance of the tasks or queries.
 Unbalanced resource allocation can even lead to query failures and processes exiting with an error.
 
-### Colocating Compute with Alluxio
+### Memory Allocation between Compute with Alluxio
 
 When Presto or Spark is colocated with Alluxio, memory is often the most contentious resource.
 Both Presto and Spark need a large amount of memory to be able to efficiently process queries.
@@ -351,7 +351,7 @@ The last priority should be the RAMDISK_SIZE.
 Uncached data will negatively impact the performance, but will not have any impact on query correctness.
 Alluxio also has the ability to cache on SSD and HDD, thus avoid using the valuable memory resource as ramdisks.
 
-### Balancing Compute Clients with Alluxio
+### CPU Allocation between Compute and Alluxio
 
 Note that when we colocate compute with Alluxio, compute frameworks are also the clients to Alluxio system.
 This is important because the overall system performance depends on the clients supplying enough work that the Alluxio system can efficiently handle. 
