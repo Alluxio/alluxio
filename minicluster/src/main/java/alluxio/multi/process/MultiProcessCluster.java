@@ -533,10 +533,11 @@ public final class MultiProcessCluster {
 
   /**
    * Removes master i from the cluster.
+   *
    * @param i index of the master to be removed
    * @throws IOException
    */
-  public synchronized void removeMaster(int i) throws IOException {
+  public synchronized void stopAndRemoveMaster(int i) throws IOException {
     stopMaster(i);
     mMasterAddresses.remove(i);
     mMasterIds.remove(i);

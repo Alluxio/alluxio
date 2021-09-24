@@ -127,7 +127,7 @@ public class EmbeddedJournalIntegrationTestResizing extends EmbeddedJournalInteg
 
     // Stop a master on the initial cluster.
     // With the addition of a new master, cluster should now be able to tolerate single master loss.
-    mCluster.removeMaster(0);
+    mCluster.stopAndRemoveMaster(0);
 
     // Wait until cluster registers unavailability of the shut down master.
     waitForQuorumPropertySize(info -> info.getServerState() == QuorumServerState.UNAVAILABLE, 1);
@@ -162,7 +162,7 @@ public class EmbeddedJournalIntegrationTestResizing extends EmbeddedJournalInteg
     for (MasterNetAddress masterNetAddress : originalMasters) {
       // remove a master from the Alluxio cluster (could be the leader)
       int masterIdx = mCluster.getMasterAddresses().indexOf(masterNetAddress);
-      mCluster.removeMaster(masterIdx);
+      mCluster.stopAndRemoveMaster(masterIdx);
       waitForQuorumPropertySize(info -> info.getServerState() == QuorumServerState.UNAVAILABLE, 1);
       // remove said master from the Ratis quorum
       NetAddress toRemove = masterEBJAddr2NetAddr(masterNetAddress);
