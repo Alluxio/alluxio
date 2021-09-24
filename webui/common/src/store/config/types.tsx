@@ -11,7 +11,7 @@
 
 import { AxiosResponse } from 'axios';
 
-import { IConfigTriple } from '../../../../master/src/constants';
+import { IConfigTriple } from '../../constants';
 
 export interface IConfig {
   configuration: IConfigTriple[];

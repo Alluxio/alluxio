@@ -31,10 +31,10 @@ import { IOverviewState } from './overview/types';
 import { IInitState } from './init/types';
 import { initialInitState, initReducer } from './init/reducer';
 import { initSaga } from './init/sagas';
-import { IConfigState } from '../../../common/src/store/config/types';
-import { configReducer } from '../../../common/src/store/config/reducer';
-import { initialConfigState } from '../../../common/src/store/config/reducer';
-import { configSaga } from '../../../common/src/store/config/sagas';
+import { IConfigState } from '@alluxio/common-ui/src/store/config/types';
+import { configReducer } from '@alluxio/common-ui/src/store/config/reducer';
+import { initialConfigState } from '@alluxio/common-ui/src/store/config/reducer';
+import { configSaga } from '@alluxio/common-ui/src/store/config/sagas';
 
 export interface IApplicationState {
   blockInfo: IBlockInfoState;
