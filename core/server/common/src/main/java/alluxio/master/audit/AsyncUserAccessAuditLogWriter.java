@@ -104,11 +104,11 @@ public final class AsyncUserAccessAuditLogWriter {
   }
 
   /**
-   * Gets the audit log entries.
-   * @return the blocking queue of audit log
+   * Gets the size of audit log entries.
+   * @return the size of the audit log blocking queue
    */
-  public LinkedBlockingQueue<AuditContext> getAuditLogEntries() {
-    return mAuditLogEntries;
+  public long getAuditLogEntriesSize() {
+    return mAuditLogEntries.size();
   }
 
   /**
