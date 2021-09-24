@@ -583,7 +583,7 @@ public final class MetricKey implements Comparable<MetricKey> {
           .build();
   public static final MetricKey MASTER_AUDIT_LOG_ENTRIES_SIZE =
           new Builder("Master.AuditLogEntriesSize")
-                  .setDescription("the size of the audit log entries blocking queue")
+                  .setDescription("The size of the audit log entries blocking queue")
                   .setMetricType(MetricType.GAUGE)
                   .setIsClusterAggregated(false)
                   .build();
