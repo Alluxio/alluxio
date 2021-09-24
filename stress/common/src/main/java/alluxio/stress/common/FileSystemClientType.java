@@ -20,7 +20,7 @@ public enum FileSystemClientType {
   ALLUXIO_NATIVE("AlluxioNative"),
 
   /** Alluxio Hadoop Compatible File System API. */
-  ALLUXIO_HCFS("AlluxioHDFS"),
+  ALLUXIO_HDFS("AlluxioHDFS"),
   ;
 
   private final String mName;

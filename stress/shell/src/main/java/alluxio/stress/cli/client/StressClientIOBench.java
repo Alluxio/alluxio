@@ -141,7 +141,7 @@ public class StressClientIOBench extends Benchmark<ClientIOTaskResult> {
       hdfsConf.set(entry.getKey(), entry.getValue());
     }
 
-    if (mParameters.mClientType == FileSystemClientType.ALLUXIO_HCFS) {
+    if (mParameters.mClientType == FileSystemClientType.ALLUXIO_HDFS) {
       mCachedFs = new FileSystem[mParameters.mClients];
       for (int i = 0; i < mCachedFs.length; i++) {
         mCachedFs[i] = FileSystem.get(new URI(mParameters.mBasePath), hdfsConf);
@@ -181,7 +181,7 @@ public class StressClientIOBench extends Benchmark<ClientIOTaskResult> {
   }
 
   private BenchThread getBenchThread(BenchContext context, int index) {
-    if (mParameters.mClientType == FileSystemClientType.ALLUXIO_HCFS) {
+    if (mParameters.mClientType == FileSystemClientType.ALLUXIO_HDFS) {
       return new AlluxioHDFSBenchThread(context, mCachedFs[index % mCachedFs.length], index);
     }
 
