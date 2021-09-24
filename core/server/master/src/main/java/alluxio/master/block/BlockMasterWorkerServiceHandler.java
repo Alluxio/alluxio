@@ -148,9 +148,15 @@ public final class BlockMasterWorkerServiceHandler extends
     RegisterWorkerPOptions options = request.getOptions();
     RpcUtils.call(LOG,
         (RpcUtils.RpcCallableThrowsIOException<RegisterWorkerPResponse>) () -> {
+          if (!mBlockMaster.canRegister()) {
+            // TODO(jiacheng): Check if able to proceed
+            LOG.info("Failed to acquire semaphore for worker {} to register.", workerId);
+            return RegisterWorkerPResponse.newBuilder().setStatus(1).build();
+          }
+          LOG.info("Worker {} admitted", workerId);
           mBlockMaster.workerRegister(workerId, storageTiers, totalBytesOnTiers, usedBytesOnTiers,
               currBlocksOnLocationMap, lostStorageMap, options);
-          return RegisterWorkerPResponse.getDefaultInstance();
+          return RegisterWorkerPResponse.newBuilder().setStatus(0).build();
         }, "registerWorker", "request=%s", responseObserver, request);
   }
 

@@ -195,6 +195,9 @@ public interface BlockMaster extends Master, ContainerIdGenerable {
       Map<String, StorageList> lostStorage, RegisterWorkerPOptions options)
       throws NotFoundException;
 
+
+  boolean canRegister();
+
   /**
    * Updates metadata when a worker periodically heartbeats with the master.
    *

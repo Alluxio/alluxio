@@ -2675,6 +2675,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
+  public static final PropertyKey MASTER_REGISTER_SEMAPHORE =
+      new Builder(Name.MASTER_REGISTER_SEMAPHORE)
+          .setDefaultValue("5")
+          .setDescription("the keep alive time of a thread in master RPC executor service"
+                  + "last used before this thread is terminated (and replaced if necessary).")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.MASTER)
+          .build();
 
   //
   // Secondary master related properties
@@ -5764,6 +5772,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.rpc.executor.max.pool.size";
     public static final String MASTER_RPC_EXECUTOR_KEEPALIVE =
         "alluxio.master.rpc.executor.keepalive";
+    public static final String MASTER_REGISTER_SEMAPHORE =
+            "alluxio.master.register.semaphore";
     public static final String MASTER_SERVING_THREAD_TIMEOUT =
         "alluxio.master.serving.thread.timeout";
     public static final String MASTER_SKIP_ROOT_ACL_CHECK =

@@ -103,6 +103,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
+import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 import java.util.function.BiConsumer;
@@ -203,6 +204,9 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
 
   /** Keeps track of blocks which are no longer in Alluxio storage. */
   private final ConcurrentHashSet<Long> mLostBlocks = new ConcurrentHashSet<>(64, 0.90f, 64);
+
+  private final Semaphore mSemaphore = new Semaphore(ServerConfiguration.getInt(PropertyKey.MASTER_REGISTER_SEMAPHORE));
+
 
   /** This state must be journaled. */
   @GuardedBy("itself")
@@ -908,6 +912,13 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
     return workerId;
   }
 
+  // true: acquired
+  // false: failed to acquire
+  @Override
+  public boolean canRegister() {
+    return mSemaphore.tryAcquire();
+  }
+
   @Override
   public void workerRegister(long workerId, List<String> storageTiers,
       Map<String, Long> totalBytesOnTiers, Map<String, Long> usedBytesOnTiers,
@@ -961,6 +972,10 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
     // Invalidate cache to trigger new build of worker info list
     mWorkerInfoCache.invalidate(WORKER_INFO_CACHE_KEY);
     LOG.info("registerWorker(): {}", worker);
+
+    mSemaphore.release();
+    LOG.info("Semaphore released, now {} available, {} queued", mSemaphore.availablePermits(),
+            mSemaphore.getQueueLength());
   }
 
   @Override
