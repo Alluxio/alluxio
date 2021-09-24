@@ -326,7 +326,7 @@ Linux also needs some memory for its own kernel data structures and other system
 So it is recommended to leave at least 10-15GB for that purpose as well.
 If the sum of these values are near the system total available memory, Out-of-memory killer may be triggered.
 It will choose the process with the highest badness score (frequently the process using the most memory) and kill it.
-This would like kill the Alluxio master and lead to system downtime.
+This would likely kill the Alluxio master and lead to system downtime.
 
 If memory resource is constrained, Presto coordinator / Spark master needs sufficient memory to launch and complete queries. 
 So it would demand the highest priority. 
