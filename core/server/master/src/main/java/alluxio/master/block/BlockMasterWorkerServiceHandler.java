@@ -25,6 +25,7 @@ import alluxio.grpc.GetWorkerIdPRequest;
 import alluxio.grpc.GetWorkerIdPResponse;
 import alluxio.grpc.GrpcUtils;
 import alluxio.grpc.LocationBlockIdListEntry;
+import alluxio.grpc.RegisterWorkerLeasePResponse;
 import alluxio.grpc.RegisterWorkerPOptions;
 import alluxio.grpc.RegisterWorkerPRequest;
 import alluxio.grpc.RegisterWorkerPResponse;
@@ -34,9 +35,11 @@ import alluxio.grpc.StorageList;
 import alluxio.master.block.meta.MasterWorkerInfo;
 import alluxio.master.block.meta.WorkerMetaLockSection;
 import alluxio.metrics.Metric;
+import alluxio.metrics.MetricsSystem;
 import alluxio.proto.meta.Block;
 
 import alluxio.resource.LockResource;
+import com.codahale.metrics.Gauge;
 import com.google.common.base.Preconditions;
 import io.grpc.StatusException;
 import io.grpc.stub.StreamObserver;
@@ -163,10 +166,32 @@ public final class BlockMasterWorkerServiceHandler extends
     RegisterWorkerPOptions options = request.getOptions();
     RpcUtils.call(LOG,
         (RpcUtils.RpcCallableThrowsIOException<RegisterWorkerPResponse>) () -> {
+          if (!mBlockMaster.canRegister()) {
+            // TODO(jiacheng): Check if able to proceed
+            LOG.info("Failed to acquire semaphore for worker {} to register.", workerId);
+            return RegisterWorkerPResponse.newBuilder().setStatus(1).build();
+          }
+          LOG.info("Worker {} admitted", workerId);
           mBlockMaster.workerRegister(workerId, storageTiers, totalBytesOnTiers, usedBytesOnTiers,
               currBlocksOnLocationMap, lostStorageMap, options);
-          return RegisterWorkerPResponse.getDefaultInstance();
+          return RegisterWorkerPResponse.newBuilder().setStatus(0).build();
         }, "registerWorker", "request=%s", responseObserver, request);
+  }
+
+  @Override
+  public void registerWorkerLease(alluxio.grpc.RegisterWorkerLeasePRequest request,
+                                  io.grpc.stub.StreamObserver<alluxio.grpc.RegisterWorkerLeasePResponse> responseObserver) {
+    final long workerId = request.getWorkerId();
+    RpcUtils.call(LOG,
+        (RpcUtils.RpcCallableThrowsIOException<RegisterWorkerLeasePResponse>) () -> {
+          if (!mBlockMaster.canRegister()) {
+            // TODO(jiacheng): Check if able to proceed
+            LOG.info("Failed to acquire semaphore for worker {} to register.", workerId);
+            return RegisterWorkerLeasePResponse.newBuilder().setPermitted(false).build();
+          }
+          LOG.info("Worker {} admitted", workerId);
+          return RegisterWorkerLeasePResponse.newBuilder().setPermitted(true).build();
+        }, "registerWorkerLease", "request=%s", responseObserver, request);
   }
 
   @Override
@@ -197,8 +222,9 @@ public final class BlockMasterWorkerServiceHandler extends
 //          System.out.format("%s - Handling server side registration stream%n", Thread.currentThread().getId());
           if (mWorkerId == -1) {
             if (!isHead) {
-              Exception e = new RuntimeException("The StreamObserver has no worker id but it's not the 1st chunk in stream");
-              this.onError(e);
+              Exception e = new RuntimeException(
+                      String.format("The StreamObserver has no worker id but it's not the 1st chunk in stream: %s", this.toString()));
+              responseObserver.onError(e);
               return;
             }
 
@@ -215,7 +241,7 @@ public final class BlockMasterWorkerServiceHandler extends
               LOG.error("Worker {} not found, failed to create context", mWorkerId);
 //              System.out.format("Worker %s not found, failed to create context%n", mWorkerId);
               // TODO(jiacheng): Close the other side?
-              this.onError(e);
+              responseObserver.onError(e);
               return;
             }
           }
@@ -254,9 +280,13 @@ public final class BlockMasterWorkerServiceHandler extends
                   "what to put here?", responseObserver, null);
         }
 
+        // TODO(jiacheng): Return the master usage to worker
+        Gauge<Double> jvmUsage = (Gauge<Double>) MetricsSystem.METRIC_REGISTRY.getGauges().get("heap.usage");
+        int percentage = (int) Math.floor(100*jvmUsage.getValue());
+
         // Return an ACK to the worker so it sends the next batch
-        LOG.info("ACK to this batch from worker {}", workerId);
-        responseObserver.onNext(RegisterWorkerStreamPResponse.getDefaultInstance());
+        LOG.info("ACK to this batch from worker {}, master usage={}%", workerId, percentage);
+        responseObserver.onNext(RegisterWorkerStreamPResponse.newBuilder().setPercentage(percentage).build());
       }
 
       @Override

@@ -253,7 +253,10 @@ message RegisterWorkerPRequest {
   /** use repeated fields to represent mapping from BlockStoreLocationProto to TierList */
   repeated LocationBlockIdListEntry currentBlocks = 8;
 }
-message RegisterWorkerPResponse {}
+message RegisterWorkerPResponse {
+  /** 0 = success, 1 = wait */
+  optional int64 status = 1;
+}
 
 message RegisterWorkerStreamPOptions {
   repeated grpc.ConfigProperty configs = 1;
@@ -277,7 +280,21 @@ message RegisterWorkerStreamPRequest {
   /** if the request is the 1st, which contains metadata */
   optional bool isHead = 9;
 }
-message RegisterWorkerStreamPResponse {}
+message RegisterWorkerStreamPResponse {
+  /** 0 = success, 1 = wait */
+  optional int64 percentage = 1;
+}
+
+message RegisterWorkerLeasePRequest {
+  /** the id of the worker */
+  optional int64 workerId = 1;
+  /** the expected block numbers */
+  optional int64 blockCount = 2;
+}
+message RegisterWorkerLeasePResponse {
+  optional bool permitted = 1;
+}
+message RegisterWorkerLeasePOptions {}
 
 /**
  * This interface contains block master service endpoints for Alluxio workers.
@@ -308,7 +325,10 @@ service BlockMasterWorkerService {
    * Registers a worker.
    */
    // TODO(jiacheng): This option should be kept around
-   rpc RegisterWorker(RegisterWorkerPRequest) returns (RegisterWorkerPResponse);
+  rpc RegisterWorker(RegisterWorkerPRequest) returns (RegisterWorkerPResponse);
+
+  /** Checks if the worker is able to register */
+  rpc RegisterWorkerLease(RegisterWorkerLeasePRequest) returns(RegisterWorkerLeasePResponse);
 
   /**
    * Register request in the streaming way

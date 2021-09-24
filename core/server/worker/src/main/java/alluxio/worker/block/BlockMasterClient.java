@@ -29,10 +29,12 @@ import alluxio.grpc.LocationBlockIdListEntry;
 import alluxio.grpc.Metric;
 import alluxio.grpc.RegisterWorkerPOptions;
 import alluxio.grpc.RegisterWorkerPRequest;
+import alluxio.grpc.RegisterWorkerPResponse;
 import alluxio.grpc.ServiceType;
 import alluxio.grpc.StorageList;
 import alluxio.master.MasterClientContext;
 import alluxio.grpc.GrpcUtils;
+import alluxio.util.CommonUtils;
 import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.annotations.VisibleForTesting;
@@ -257,7 +259,18 @@ public class BlockMasterClient extends AbstractMasterClient {
         .setOptions(options).build();
 
     retryRPC(() -> {
-      mClient.registerWorker(request);
+      int iter = 0;
+      while (true) {
+        LOG.info("Registering iter {}", iter);
+        RegisterWorkerPResponse response = mClient.registerWorker(request);
+        if (response.getStatus() == 0) {
+          LOG.info("Finished register");
+          break;
+        }
+        LOG.warn("Rejected by the master, try again");
+        CommonUtils.sleepMs(5000);
+        iter++;
+      }
       return null;
     }, LOG, "Register", "workerId=%d", workerId);
   }
@@ -269,11 +282,15 @@ public class BlockMasterClient extends AbstractMasterClient {
                        final List<ConfigProperty> configList) throws IOException {
     retryRPC(() -> {
       try {
-        RegisterStream stream = new RegisterStream(mAsyncClient, workerId, storageTierAliases, totalBytesOnTiers, usedBytesOnTiers,
+        RegisterStream stream = new RegisterStream(
+                mClient, mAsyncClient,
+                workerId, storageTierAliases, totalBytesOnTiers, usedBytesOnTiers,
                 currentBlocksOnLocation, lostStorage, configList);
         stream.registerSync();
       } catch (InterruptedException e) {
         LOG.warn("Interrupted", e);
+      } catch (IOException e) {
+        LOG.error("IOException", e);
       }
       return null;
     }, LOG, "Register", "workerId=%d", workerId);

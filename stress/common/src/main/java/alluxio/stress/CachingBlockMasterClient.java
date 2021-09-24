@@ -15,6 +15,7 @@ import alluxio.grpc.BlockIdList;
 import alluxio.grpc.ConfigProperty;
 import alluxio.grpc.LocationBlockIdListEntry;
 import alluxio.master.MasterClientContext;
+import alluxio.util.CommonUtils;
 import alluxio.worker.block.BlockMapIterator;
 import alluxio.worker.block.BlockMasterClient;
 import alluxio.worker.block.BlockStoreLocation;
@@ -124,12 +125,14 @@ public class CachingBlockMasterClient extends BlockMasterClient {
 
     retryRPC(() -> {
       try {
-        RegisterStream stream = new RegisterStream(mAsyncClient, workerId, storageTierAliases, totalBytesOnTiers, usedBytesOnTiers,
+        RegisterStream stream = new RegisterStream(mClient, mAsyncClient, workerId, storageTierAliases, totalBytesOnTiers, usedBytesOnTiers,
                 currentBlocksOnLocation, lostStorage, configList, mBlockBatchIterator);
         stream.registerSync();
       } catch (InterruptedException e) {
         // TODO(jiacheng): handle this
         LOG.warn("Interrupted", e);
+      } catch (IOException e) {
+        LOG.error("IOException", e);
       }
       return null;
     }, LOG, "Register", "workerId=%d", workerId);

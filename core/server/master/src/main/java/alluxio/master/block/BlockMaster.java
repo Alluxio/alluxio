@@ -216,6 +216,8 @@ public interface BlockMaster extends Master, ContainerIdGenerable {
 
   void workerRegisterFinish(WorkerRegisterContext context) throws NotFoundException;
 
+  boolean canRegister();
+
   /**
    * Updates metadata when a worker periodically heartbeats with the master.
    *
