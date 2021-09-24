@@ -53,21 +53,6 @@ public final class GrpcExecutors {
           TimeUnit.MILLISECONDS, new SynchronousQueue<>(),
           ThreadFactoryUtils.build("BlockDataReaderExecutor-%d", true));
 
-  static {
-    MetricsSystem.registerGaugeIfAbsent(MetricsSystem.getMetricName(
-        MetricKey.WORKER_BLOCK_READER_THREAD_ACTIVELY_COUNT.getName()),
-        BLOCK_READER_THREAD_POOL_EXECUTOR::getActiveCount);
-    MetricsSystem.registerGaugeIfAbsent(MetricsSystem.getMetricName(
-        MetricKey.WORKER_BLOCK_READER_THREAD_CURRENT_COUNT.getName()),
-        BLOCK_READER_THREAD_POOL_EXECUTOR::getPoolSize);
-    MetricsSystem.registerGaugeIfAbsent(MetricsSystem.getMetricName(
-        MetricKey.WORKER_BLOCK_READER_THREAD_MAX_COUNT.getName()),
-        BLOCK_READER_THREAD_POOL_EXECUTOR::getMaximumPoolSize);
-    MetricsSystem.registerGaugeIfAbsent(MetricsSystem.getMetricName(
-        MetricKey.WORKER_BLOCK_READER_COMPLETED_TASK_COUNT.getName()),
-        BLOCK_READER_THREAD_POOL_EXECUTOR::getCompletedTaskCount);
-  }
-
   public static final ExecutorService BLOCK_READER_EXECUTOR =
       new ImpersonateThreadPoolExecutor(BLOCK_READER_THREAD_POOL_EXECUTOR);
 
@@ -85,6 +70,19 @@ public final class GrpcExecutors {
           ThreadFactoryUtils.build("BlockDataWriterExecutor-%d", true));
 
   static {
+    MetricsSystem.registerGaugeIfAbsent(MetricsSystem.getMetricName(
+            MetricKey.WORKER_BLOCK_READER_THREAD_ACTIVELY_COUNT.getName()),
+            BLOCK_READER_THREAD_POOL_EXECUTOR::getActiveCount);
+    MetricsSystem.registerGaugeIfAbsent(MetricsSystem.getMetricName(
+            MetricKey.WORKER_BLOCK_READER_THREAD_CURRENT_COUNT.getName()),
+            BLOCK_READER_THREAD_POOL_EXECUTOR::getPoolSize);
+    MetricsSystem.registerGaugeIfAbsent(MetricsSystem.getMetricName(
+            MetricKey.WORKER_BLOCK_READER_THREAD_MAX_COUNT.getName()),
+            BLOCK_READER_THREAD_POOL_EXECUTOR::getMaximumPoolSize);
+    MetricsSystem.registerGaugeIfAbsent(MetricsSystem.getMetricName(
+            MetricKey.WORKER_BLOCK_READER_COMPLETED_TASK_COUNT.getName()),
+            BLOCK_READER_THREAD_POOL_EXECUTOR::getCompletedTaskCount);
+
     MetricsSystem.registerGaugeIfAbsent(MetricsSystem.getMetricName(
         MetricKey.WORKER_BLOCK_WRITER_THREAD_ACTIVELY_COUNT.getName()),
         BLOCK_WRITE_THREAD_POOL_EXECUTOR::getActiveCount);
