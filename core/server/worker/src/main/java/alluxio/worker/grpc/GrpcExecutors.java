@@ -52,7 +52,6 @@ public final class GrpcExecutors {
           PropertyKey.WORKER_NETWORK_BLOCK_READER_THREADS_MAX), THREAD_STOP_MS,
           TimeUnit.MILLISECONDS, new SynchronousQueue<>(),
           ThreadFactoryUtils.build("BlockDataReaderExecutor-%d", true));
-
   public static final ExecutorService BLOCK_READER_EXECUTOR =
       new ImpersonateThreadPoolExecutor(BLOCK_READER_THREAD_POOL_EXECUTOR);
 
@@ -68,20 +67,22 @@ public final class GrpcExecutors {
           PropertyKey.WORKER_NETWORK_BLOCK_WRITER_THREADS_MAX), THREAD_STOP_MS,
           TimeUnit.MILLISECONDS, new SynchronousQueue<>(),
           ThreadFactoryUtils.build("BlockDataWriterExecutor-%d", true));
+  public static final ExecutorService BLOCK_WRITER_EXECUTOR =
+          new ImpersonateThreadPoolExecutor(BLOCK_WRITE_THREAD_POOL_EXECUTOR);
 
   static {
     MetricsSystem.registerGaugeIfAbsent(MetricsSystem.getMetricName(
-            MetricKey.WORKER_BLOCK_READER_THREAD_ACTIVELY_COUNT.getName()),
-            BLOCK_READER_THREAD_POOL_EXECUTOR::getActiveCount);
+        MetricKey.WORKER_BLOCK_READER_THREAD_ACTIVELY_COUNT.getName()),
+        BLOCK_READER_THREAD_POOL_EXECUTOR::getActiveCount);
     MetricsSystem.registerGaugeIfAbsent(MetricsSystem.getMetricName(
-            MetricKey.WORKER_BLOCK_READER_THREAD_CURRENT_COUNT.getName()),
-            BLOCK_READER_THREAD_POOL_EXECUTOR::getPoolSize);
+        MetricKey.WORKER_BLOCK_READER_THREAD_CURRENT_COUNT.getName()),
+        BLOCK_READER_THREAD_POOL_EXECUTOR::getPoolSize);
     MetricsSystem.registerGaugeIfAbsent(MetricsSystem.getMetricName(
-            MetricKey.WORKER_BLOCK_READER_THREAD_MAX_COUNT.getName()),
-            BLOCK_READER_THREAD_POOL_EXECUTOR::getMaximumPoolSize);
+        MetricKey.WORKER_BLOCK_READER_THREAD_MAX_COUNT.getName()),
+        BLOCK_READER_THREAD_POOL_EXECUTOR::getMaximumPoolSize);
     MetricsSystem.registerGaugeIfAbsent(MetricsSystem.getMetricName(
-            MetricKey.WORKER_BLOCK_READER_COMPLETED_TASK_COUNT.getName()),
-            BLOCK_READER_THREAD_POOL_EXECUTOR::getCompletedTaskCount);
+        MetricKey.WORKER_BLOCK_READER_COMPLETED_TASK_COUNT.getName()),
+        BLOCK_READER_THREAD_POOL_EXECUTOR::getCompletedTaskCount);
 
     MetricsSystem.registerGaugeIfAbsent(MetricsSystem.getMetricName(
         MetricKey.WORKER_BLOCK_WRITER_THREAD_ACTIVELY_COUNT.getName()),
@@ -96,9 +97,6 @@ public final class GrpcExecutors {
         MetricKey.WORKER_BLOCK_WRITER_COMPLETED_TASK_COUNT.getName()),
         BLOCK_WRITE_THREAD_POOL_EXECUTOR::getCompletedTaskCount);
   }
-
-  public static final ExecutorService BLOCK_WRITER_EXECUTOR =
-      new ImpersonateThreadPoolExecutor(BLOCK_WRITE_THREAD_POOL_EXECUTOR);
 
   /**
    * Private constructor.
