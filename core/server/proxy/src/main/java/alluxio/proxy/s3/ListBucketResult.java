@@ -63,7 +63,7 @@ public class ListBucketResult {
   private List<Content> mContents;
 
   // List of common prefixes (aka. folders)
-  private CommonPrefixes mCommonPrefixes;
+  private List<CommonPrefixes> mCommonPrefixes;
 
   // delimiter used to process keys
   private String mDelimiter;
@@ -113,23 +113,17 @@ public class ListBucketResult {
       ));
     }
 
-    final ArrayList<String> commonPrefixes = new ArrayList<>();
+    mCommonPrefixes = new ArrayList<>();
     for (URIStatus status : prefixList) {
       final String path = status.getPath();
       // remove both ends of "/" character
-      commonPrefixes.add(path.substring(mName.length() + 2) + mDelimiter);
+      mCommonPrefixes.add(new CommonPrefixes(path.substring(mName.length() + 2) + mDelimiter));
     }
 
-    mKeyCount = mContents.size() + commonPrefixes.size();
+    mKeyCount = mContents.size() + mCommonPrefixes.size();
     mIsTruncated = mKeyCount == mMaxKeys;
     if (mIsTruncated) {
       mNextMarker = keys.get(keys.size() - 1).getPath();
-    }
-
-    if (!commonPrefixes.isEmpty())  {
-      mCommonPrefixes = new CommonPrefixes(commonPrefixes);
-    } else {
-      mCommonPrefixes = null;
     }
   }
 
@@ -218,7 +212,8 @@ public class ListBucketResult {
    * @return the common prefixes
    */
   @JacksonXmlProperty(localName = "CommonPrefixes")
-  public CommonPrefixes getCommonPrefixes() {
+  @JacksonXmlElementWrapper(useWrapping = false)
+  public List<CommonPrefixes> getCommonPrefixes() {
     return mCommonPrefixes;
   }
 
@@ -226,19 +221,18 @@ public class ListBucketResult {
    * Common Prefixes list placeholder object.
    */
   public class CommonPrefixes {
-    private final List<String> mCommonPrefixes;
+    private final String mPrefix;
 
-    private CommonPrefixes(List<String> commonPrefixes) {
-      mCommonPrefixes = commonPrefixes;
+    private CommonPrefixes(String prefix) {
+      mPrefix = prefix;
     }
 
     /**
-     * @return the list of common prefixes
+     * @return the list prefixes
      */
     @JacksonXmlProperty(localName = "Prefix")
-    @JacksonXmlElementWrapper(useWrapping = false)
-    public List<String> getCommonPrefixes() {
-      return mCommonPrefixes;
+    public String getPrefix() {
+      return mPrefix;
     }
   }
 
