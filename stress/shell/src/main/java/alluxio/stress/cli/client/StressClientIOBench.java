@@ -70,7 +70,7 @@ public class StressClientIOBench extends Benchmark<ClientIOTaskResult> {
   private FileSystem[] mCachedFs;
 
   /** In case of Alluxio Native API is used,  using the following instead. */
-  private alluxio.client.file.FileSystem [] mCachedNativeFs;
+  private alluxio.client.file.FileSystem[] mCachedNativeFs;
 
     /** Set to true after the first barrier is passed. */
   private volatile boolean mStartBarrierPassed = false;
