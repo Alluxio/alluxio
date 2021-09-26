@@ -23,12 +23,13 @@ import com.beust.jcommander.Parameter;
 public class FileSystemParameters extends Parameters {
   @Parameter(names = {"--clients-type"},
       description = "the client API type. Alluxio native or hadoop compatible client,"
-          + " default is AlluxioHCFS",
+          + " default is AlluxioHDFS",
       converter = FileSystemParameters.FileSystemParametersClientTypeConverter.class)
   public FileSystemClientType mClientType = FileSystemClientType.ALLUXIO_HDFS;
 
   @Parameter(names = {"--read-type"},
-      description = "the cache mechanism during read. Options are [NONE, CACHE, CACHE_PROMOTE]",
+      description = "the cache mechanism during read. Options are [NONE, CACHE, CACHE_PROMOTE]"
+          + " default is CACHE",
       converter = FileSystemParameters.FileSystemParametersReadTypeConverter.class)
   public ReadType mReadType = ReadType.CACHE;
 

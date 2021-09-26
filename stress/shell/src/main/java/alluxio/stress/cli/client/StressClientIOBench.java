@@ -69,7 +69,7 @@ public class StressClientIOBench extends Benchmark<ClientIOTaskResult> {
   /** Cached FS instances. */
   private FileSystem[] mCachedFs;
 
-  /** In case of Alluxio Native API is used,  using the following instead. */
+  /** In case the Alluxio Native API is used,  use the following instead. */
   private alluxio.client.file.FileSystem[] mCachedNativeFs;
 
     /** Set to true after the first barrier is passed. */
@@ -142,16 +142,15 @@ public class StressClientIOBench extends Benchmark<ClientIOTaskResult> {
     }
 
     if (mParameters.mClientType == FileSystemClientType.ALLUXIO_HDFS) {
+      LOG.info("Using ALLUXIO HDFS Compatible API to perform the test.");
       mCachedFs = new FileSystem[mParameters.mClients];
       for (int i = 0; i < mCachedFs.length; i++) {
         mCachedFs[i] = FileSystem.get(new URI(mParameters.mBasePath), hdfsConf);
       }
     } else {
+      LOG.info("Using ALLUXIO Native API to perform the test.");
       mCachedNativeFs = new alluxio.client.file.FileSystem[mParameters.mClients];
       for (int i = 0; i < mCachedNativeFs.length; i++) {
-        // TODO(yyong) need figure out how to convert the config
-        //mCachedNativeFs[i] = alluxio.client.file.FileSystem.Factory.get();
-        // .create(new InstancedConfiguration(ConfigurationUtils.defaults()));
         mCachedNativeFs[i] = alluxio.client.file.FileSystem.Factory
             .create(new InstancedConfiguration(ConfigurationUtils.defaults()));
       }
@@ -561,7 +560,7 @@ public class StressClientIOBench extends Benchmark<ClientIOTaskResult> {
         }
         case READ_FULLY:
         case POS_READ_FULLY: {
-          throw new UnsupportedOperationException("Not support Read Fully");
+          throw new UnsupportedOperationException("READ_FULLY and POS_READ_FULLY are not supported!");
         }
         case POS_READ: {
           return mInStream.positionedRead(mCurrentOffset, mBuffer, 0, mBuffer.length);
