@@ -18,8 +18,10 @@ import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileOutStream;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
+import alluxio.conf.Source;
 import alluxio.exception.AlluxioException;
 import alluxio.grpc.CreateFilePOptions;
+import alluxio.hadoop.HadoopConfigurationUtils;
 import alluxio.stress.BaseParameters;
 import alluxio.stress.StressConstants;
 import alluxio.stress.cli.Benchmark;
@@ -149,10 +151,14 @@ public class StressClientIOBench extends Benchmark<ClientIOTaskResult> {
       }
     } else {
       LOG.info("Using ALLUXIO Native API to perform the test.");
+
+      alluxio.conf.AlluxioProperties alluxioProperties = ConfigurationUtils.defaults();
+      alluxioProperties.merge(HadoopConfigurationUtils.getConfigurationFromHadoop(hdfsConf), Source.RUNTIME);
+
       mCachedNativeFs = new alluxio.client.file.FileSystem[mParameters.mClients];
       for (int i = 0; i < mCachedNativeFs.length; i++) {
         mCachedNativeFs[i] = alluxio.client.file.FileSystem.Factory
-            .create(new InstancedConfiguration(ConfigurationUtils.defaults()));
+            .create(new InstancedConfiguration(alluxioProperties));
       }
     }
   }
