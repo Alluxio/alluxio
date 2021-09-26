@@ -61,6 +61,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.Closeable;
 import java.io.IOException;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -131,6 +132,14 @@ public interface FileSystem extends Closeable {
      */
     public static FileSystem create(ClientContext ctx) {
       return create(FileSystemContext.create(ctx));
+    }
+
+    /**
+     * @param ctx the context with the subject and configuration to utilize with the FileSystem
+     * @return a new FileSystem instance
+     */
+    public static FileSystem create(ClientContext ctx, URI uri) {
+      return create(FileSystemContext.create(ctx, uri) );
     }
 
     /**

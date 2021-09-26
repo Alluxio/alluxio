@@ -6549,6 +6549,18 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     TEST_DEPRECATED_TEMPLATE(
         "alluxio.test.%s.format.deprecated.template",
         "alluxio\\.test\\.(\\w+)\\.format\\.deprecated\\.template"),
+
+    /**
+     * Support multi-nameservice zookeeper.
+     */
+    ALLUXIO_NAMESERVICE_ZOOKEEPER_ADDRESS("alluxio.%s.zookeeper.address",
+                                          "alluxio\\.(\\w+)\\.zookeeper\\.address"),
+    ALLUXIO_NAMESERVICE_ZOOKEEPER_ENABLED("alluxio.%s.zookeeper.enabled",
+                                          "alluxio\\.(\\w+)\\.zookeeper\\.enabled"),
+    ALLUXIO_NAMESERVICE_ZOOKEEPER_ELECTION_PATH("alluxio.%s.zookeeper.election.path",
+                                          "alluxio\\.(\\w+)\\.zookeeper\\.election.path"),
+    ALLUXIO_NAMESERVICE_ZOOKEEPER_LEADER_PATH("alluxio.%s.zookeeper.leader.path",
+                                          "alluxio\\.(\\w+)\\.zookeeper\\.leader.path"),
     ;
 
     // puts property creators in a nested class to avoid NPE in enum static initialization

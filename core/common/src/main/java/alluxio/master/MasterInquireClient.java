@@ -23,6 +23,7 @@ import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
 
 import java.net.InetSocketAddress;
+import java.net.URI;
 import java.util.List;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -91,6 +92,58 @@ public interface MasterInquireClient {
           return new PollingMasterInquireClient(addresses, conf, userState);
         } else {
           return new SingleMasterInquireClient(addresses.get(0));
+        }
+      }
+    }
+
+    /**
+     * @param conf      configuration for creating the master inquire client
+     * @param userState the user state for the client
+     * @param uri       a filesystem uri                 
+     * @return a master inquire client
+     */
+    public static MasterInquireClient create(AlluxioConfiguration conf,
+        UserState userState, URI uri) {
+      String nameservice = uri.getAuthority();
+      // uri like this: alluxio://ns1/your/path/
+      if (nameservice != null) {
+        String filterZkEnable = PropertyKey.Name.ZOOKEEPER_ENABLED.replace("alluxio.", "alluxio."
+            + nameservice + ".");
+        if (conf.getBoolean(PropertyKey.getOrBuildCustom(filterZkEnable))) {
+          String filterKey = PropertyKey.Name.ZOOKEEPER_ADDRESS.replace("alluxio.", "alluxio."
+              + nameservice + ".");
+          PropertyKey assemblyKey = PropertyKey.getOrBuildCustom(filterKey);
+          String filterElectionPath = PropertyKey.Name.ZOOKEEPER_ELECTION_PATH.replace("alluxio.", "alluxio."
+              + nameservice + ".");
+          String filterLeaderPath = PropertyKey.Name.ZOOKEEPER_LEADER_PATH.replace("alluxio.", "alluxio."
+              + nameservice + ".");
+          return ZkMasterInquireClient.getClient(conf.get(assemblyKey),
+            conf.get(PropertyKey.getOrBuildCustom(filterElectionPath)),
+             conf.get(PropertyKey.getOrBuildCustom(filterLeaderPath)),
+              conf.getInt(PropertyKey.ZOOKEEPER_LEADER_INQUIRY_RETRY_COUNT),
+              conf.getBoolean(PropertyKey.ZOOKEEPER_AUTH_ENABLED));
+        } else {
+          List<InetSocketAddress> addresses = ConfigurationUtils.getMasterRpcAddresses(conf);
+          if (addresses.size() > 1) {
+            return new PollingMasterInquireClient(addresses, conf, userState);
+          } else {
+            return new SingleMasterInquireClient(addresses.get(0));
+          }
+        }
+      } else {
+        if (conf.getBoolean(PropertyKey.ZOOKEEPER_ENABLED)) {
+          return ZkMasterInquireClient.getClient(conf.get(PropertyKey.ZOOKEEPER_ADDRESS),
+                       conf.get(PropertyKey.ZOOKEEPER_ELECTION_PATH),
+                        conf.get(PropertyKey.ZOOKEEPER_LEADER_PATH),
+              conf.getInt(PropertyKey.ZOOKEEPER_LEADER_INQUIRY_RETRY_COUNT),
+              conf.getBoolean(PropertyKey.ZOOKEEPER_AUTH_ENABLED));
+        } else {
+          List<InetSocketAddress> addresses = ConfigurationUtils.getMasterRpcAddresses(conf);
+          if (addresses.size() > 1) {
+            return new PollingMasterInquireClient(addresses, conf, userState);
+          } else {
+            return new SingleMasterInquireClient(addresses.get(0));
+          }
         }
       }
     }

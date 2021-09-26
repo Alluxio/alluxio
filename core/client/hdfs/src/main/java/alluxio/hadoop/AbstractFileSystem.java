@@ -524,7 +524,7 @@ public abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem
     boolean enableUriValidation =
         (uri.getScheme() == null) || uri.getScheme().equals(Constants.SCHEME);
     mFileSystem = FileSystem.Factory.create(
-        ClientContext.create(subject, mAlluxioConf).setUriValidationEnabled(enableUriValidation));
+        ClientContext.create(subject, mAlluxioConf).setUriValidationEnabled(enableUriValidation), uri);
   }
 
   private Subject getSubjectFromUGI(UserGroupInformation ugi)
