@@ -560,7 +560,8 @@ public class StressClientIOBench extends Benchmark<ClientIOTaskResult> {
         }
         case READ_FULLY:
         case POS_READ_FULLY: {
-          throw new UnsupportedOperationException("READ_FULLY and POS_READ_FULLY are not supported!");
+          throw new UnsupportedOperationException(
+              "READ_FULLY and POS_READ_FULLY are not supported!");
         }
         case POS_READ: {
           return mInStream.positionedRead(mCurrentOffset, mBuffer, 0, mBuffer.length);
