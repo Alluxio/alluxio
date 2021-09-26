@@ -11,15 +11,21 @@
 
 package alluxio.stress.cli;
 
+import alluxio.AlluxioURI;
 import alluxio.annotation.SuppressFBWarnings;
+import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
+import alluxio.exception.AlluxioException;
+import alluxio.grpc.DeletePOptions;
 import alluxio.stress.BaseParameters;
 import alluxio.stress.StressConstants;
+import alluxio.stress.common.FileSystemClientType;
 import alluxio.stress.master.MasterBenchParameters;
 import alluxio.stress.master.MasterBenchTaskResult;
 import alluxio.stress.master.MasterBenchTaskResultStatistics;
 import alluxio.stress.master.Operation;
 import alluxio.util.CommonUtils;
+import alluxio.util.ConfigurationUtils;
 import alluxio.util.FormatUtils;
 import alluxio.util.executor.ExecutorServiceFactories;
 import alluxio.util.io.PathUtils;
@@ -57,7 +63,12 @@ public class StressMasterBench extends Benchmark<MasterBenchTaskResult> {
   private MasterBenchParameters mParameters = new MasterBenchParameters();
 
   private byte[] mFiledata;
+
+  /** Cached FS instances. */
   private FileSystem[] mCachedFs;
+
+  /** In case the Alluxio Native API is used,  use the following instead. */
+  private alluxio.client.file.FileSystem[] mCachedNativeFs;
 
   /**
    * Creates instance.
@@ -137,9 +148,20 @@ public class StressMasterBench extends Benchmark<MasterBenchTaskResult> {
     for (Map.Entry<String, String> entry : mParameters.mConf.entrySet()) {
       hdfsConf.set(entry.getKey(), entry.getValue());
     }
-    mCachedFs = new FileSystem[mParameters.mClients];
-    for (int i = 0; i < mCachedFs.length; i++) {
-      mCachedFs[i] = FileSystem.get(new URI(mParameters.mBasePath), hdfsConf);
+
+    if (mParameters.mClientType == FileSystemClientType.ALLUXIO_HDFS) {
+      LOG.info("Using ALLUXIO HDFS Compatible API to perform the test.");
+      mCachedFs = new FileSystem[mParameters.mClients];
+      for (int i = 0; i < mCachedFs.length; i++) {
+        mCachedFs[i] = FileSystem.get(new URI(mParameters.mBasePath), hdfsConf);
+      }
+    } else {
+      LOG.info("Using ALLUXIO Native API to perform the test.");
+      mCachedNativeFs = new alluxio.client.file.FileSystem[mParameters.mClients];
+      for (int i = 0; i < mCachedNativeFs.length; i++) {
+        mCachedNativeFs[i] = alluxio.client.file.FileSystem.Factory
+            .create(new InstancedConfiguration(ConfigurationUtils.defaults()));
+      }
     }
   }
 
@@ -236,7 +258,7 @@ public class StressMasterBench extends Benchmark<MasterBenchTaskResult> {
 
     List<Callable<Void>> callables = new ArrayList<>(mParameters.mThreads);
     for (int i = 0; i < mParameters.mThreads; i++) {
-      callables.add(new BenchThread(context, mCachedFs[i % mCachedFs.length]));
+      callables.add(getBenchThread(context, i));
     }
     service.invokeAll(callables, FormatUtils.parseTimeSize(mBaseParameters.mBenchTimeout),
         TimeUnit.MILLISECONDS);
@@ -249,6 +271,14 @@ public class StressMasterBench extends Benchmark<MasterBenchTaskResult> {
     }
 
     return context.getResult();
+  }
+
+  private BenchThread getBenchThread(BenchContext context, int index) {
+    if (mParameters.mClientType == FileSystemClientType.ALLUXIO_HDFS) {
+      return new AlluxioHDFSBenchThread(context, mCachedFs[index % mCachedFs.length]);
+    }
+
+    return new AlluxioNativeBenchThread(context, mCachedNativeFs[index % mCachedNativeFs.length]);
   }
 
   private final class BenchContext {
@@ -325,16 +355,15 @@ public class StressMasterBench extends Benchmark<MasterBenchTaskResult> {
     }
   }
 
-  private final class BenchThread implements Callable<Void> {
+  protected abstract class BenchThread implements Callable<Void> {
     private final BenchContext mContext;
     private final Histogram mResponseTimeNs;
-    private final Path mBasePath;
-    private final Path mFixedBasePath;
-    private final FileSystem mFs;
+    protected final Path mBasePath;
+    protected final Path mFixedBasePath;
 
     private final MasterBenchTaskResult mResult = new MasterBenchTaskResult();
 
-    private BenchThread(BenchContext context, FileSystem fs) {
+    private BenchThread(BenchContext context) {
       mContext = context;
       mResponseTimeNs = new Histogram(StressConstants.TIME_HISTOGRAM_MAX,
           StressConstants.TIME_HISTOGRAM_PRECISION);
@@ -346,7 +375,6 @@ public class StressMasterBench extends Benchmark<MasterBenchTaskResult> {
             new Path(PathUtils.concatPath(mParameters.mBasePath, "files", mBaseParameters.mId));
       }
       mFixedBasePath = new Path(mBasePath, "fixed");
-      mFs = fs;
     }
 
     @Override
@@ -424,7 +452,18 @@ public class StressMasterBench extends Benchmark<MasterBenchTaskResult> {
       }
     }
 
-    private void applyOperation(long counter) throws IOException {
+    protected abstract void applyOperation(long counter) throws IOException, AlluxioException;
+  }
+
+  private final class AlluxioHDFSBenchThread extends BenchThread {
+    private final FileSystem mFs;
+
+    private AlluxioHDFSBenchThread(BenchContext context, FileSystem fs) {
+      super(context);
+      mFs = fs;
+    }
+
+    protected void applyOperation(long counter) throws IOException {
       Path path;
       switch (mParameters.mOperation) {
         case CREATE_DIR:
@@ -499,6 +538,83 @@ public class StressMasterBench extends Benchmark<MasterBenchTaskResult> {
           if (!mFs.delete(path, false)) {
             throw new IOException(String.format("Failed to delete (%s)", path));
           }
+          break;
+        default:
+          throw new IllegalStateException("Unknown operation: " + mParameters.mOperation);
+      }
+    }
+  }
+
+  private final class AlluxioNativeBenchThread extends BenchThread {
+    private final alluxio.client.file.FileSystem mFs;
+    private AlluxioNativeBenchThread(BenchContext context, alluxio.client.file.FileSystem fs) {
+      super(context);
+      mFs = fs;
+    }
+
+    protected void applyOperation(long counter) throws IOException, AlluxioException {
+      Path path;
+      switch (mParameters.mOperation) {
+        case CREATE_DIR:
+          if (counter < mParameters.mFixedCount) {
+            path = new Path(mFixedBasePath, Long.toString(counter));
+          } else {
+            path = new Path(mBasePath, Long.toString(counter));
+          }
+          mFs.createDirectory(new AlluxioURI(path.toString()));
+          break;
+        case CREATE_FILE:
+          if (counter < mParameters.mFixedCount) {
+            path = new Path(mFixedBasePath, Long.toString(counter));
+          } else {
+            path = new Path(mBasePath, Long.toString(counter));
+          }
+          mFs.createFile(new AlluxioURI(path.toString())).close();
+          break;
+        case GET_BLOCK_LOCATIONS:
+          counter = counter % mParameters.mFixedCount;
+          path = new Path(mFixedBasePath, Long.toString(counter));
+          mFs.getBlockLocations(new AlluxioURI(path.toString()));
+          break;
+        case GET_FILE_STATUS:
+          counter = counter % mParameters.mFixedCount;
+          path = new Path(mFixedBasePath, Long.toString(counter));
+          mFs.getStatus(new AlluxioURI(path.toString()));
+          break;
+        case LIST_DIR:
+          List<alluxio.client.file.URIStatus> files
+              = mFs.listStatus(new AlluxioURI(mFixedBasePath.toString()));
+          if (files.size() != mParameters.mFixedCount) {
+            throw new IOException(String
+                .format("listing `%s` expected %d files but got %d files", mFixedBasePath,
+                    mParameters.mFixedCount, files.size()));
+          }
+          break;
+        case LIST_DIR_LOCATED:
+          throw new UnsupportedOperationException("LIST_DIR_LOCATED is not supported!");
+        case OPEN_FILE:
+          counter = counter % mParameters.mFixedCount;
+          path = new Path(mFixedBasePath, Long.toString(counter));
+          mFs.openFile(new AlluxioURI(path.toString())).close();
+          break;
+        case RENAME_FILE:
+          if (counter < mParameters.mFixedCount) {
+            path = new Path(mFixedBasePath, Long.toString(counter));
+          } else {
+            path = new Path(mBasePath, Long.toString(counter));
+          }
+          Path dst = new Path(path.toString() + "-renamed");
+          mFs.rename(new AlluxioURI(path.toString()), new AlluxioURI(dst.toString()));
+          break;
+        case DELETE_FILE:
+          if (counter < mParameters.mFixedCount) {
+            path = new Path(mFixedBasePath, Long.toString(counter));
+          } else {
+            path = new Path(mBasePath, Long.toString(counter));
+          }
+
+          mFs.delete(new AlluxioURI(path.toString()),
+              DeletePOptions.newBuilder().setRecursive(false).build());
           break;
         default:
           throw new IllegalStateException("Unknown operation: " + mParameters.mOperation);
