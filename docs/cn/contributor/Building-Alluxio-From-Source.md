@@ -105,7 +105,7 @@ $ ./bin/alluxio-stop.sh local
 ### 计算框架支持
 自Alluxio 1.7开始，编译后位于`{{site.ALLUXIO_CLIENT_JAR_PATH}}`的Alluxio客户端jar包将可适用于不同的计算框架（如：Spark、Flink，Presto等）。
 
-### Apple M1 芯片支持
+### M1芯片支持
 由于目前protoc暂未发行支持M1芯片的版本，在M1的Mac上编译需要使用兼容模式，使用x86_64的版本进行编译。
 ```console
 $ mvn clean compile -DskipTests -Dos.detected.classifier=osx-x86_64
