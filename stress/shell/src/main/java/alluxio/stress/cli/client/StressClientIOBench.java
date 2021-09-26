@@ -153,7 +153,8 @@ public class StressClientIOBench extends Benchmark<ClientIOTaskResult> {
       LOG.info("Using ALLUXIO Native API to perform the test.");
 
       alluxio.conf.AlluxioProperties alluxioProperties = ConfigurationUtils.defaults();
-      alluxioProperties.merge(HadoopConfigurationUtils.getConfigurationFromHadoop(hdfsConf), Source.RUNTIME);
+      alluxioProperties.merge(HadoopConfigurationUtils.getConfigurationFromHadoop(hdfsConf),
+          Source.RUNTIME);
 
       mCachedNativeFs = new alluxio.client.file.FileSystem[mParameters.mClients];
       for (int i = 0; i < mCachedNativeFs.length; i++) {
