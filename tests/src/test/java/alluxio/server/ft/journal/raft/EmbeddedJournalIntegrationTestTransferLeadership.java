@@ -12,7 +12,6 @@
 package alluxio.server.ft.journal.raft;
 
 import alluxio.conf.PropertyKey;
-import alluxio.grpc.GetQuorumInfoPResponse;
 import alluxio.grpc.NetAddress;
 import alluxio.grpc.QuorumServerState;
 import alluxio.master.journal.JournalType;
