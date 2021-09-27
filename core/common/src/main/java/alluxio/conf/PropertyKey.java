@@ -4573,7 +4573,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey USER_NETWORK_RPC_KEEPALIVE_TIME =
       new Builder(Name.USER_NETWORK_RPC_KEEPALIVE_TIME)
-          .setDefaultValue(Long.MAX_VALUE)
+          .setDefaultValue("30sec")
           .setDescription("The amount of time for a rpc client "
               + "to wait for a response before pinging the server to see if it is still alive.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
