@@ -338,51 +338,6 @@ public final class EmbeddedJournalIntegrationTest extends BaseIntegrationTest {
   }
 
   @Test
-  public void ensureAutoResetPriorities() throws Exception {
-    final int MASTER_INDEX_WAIT_TIME = 5_000;
-    mCluster = MultiProcessCluster.newBuilder(PortCoordination.EMBEDDED_JOURNAL_FAILOVER)
-            .setClusterName("TransferLeadership")
-            .setNumMasters(NUM_MASTERS)
-            .setNumWorkers(0)
-            .addProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.EMBEDDED.toString())
-            .addProperty(PropertyKey.MASTER_JOURNAL_FLUSH_TIMEOUT_MS, "5min")
-            .addProperty(PropertyKey.MASTER_EMBEDDED_JOURNAL_MIN_ELECTION_TIMEOUT, "750ms")
-            .addProperty(PropertyKey.MASTER_EMBEDDED_JOURNAL_MAX_ELECTION_TIMEOUT, "1500ms")
-            .build();
-    mCluster.start();
-
-    for (int i = 0; i < NUM_MASTERS; i++) {
-      int newLeaderIdx = (mCluster.getPrimaryMasterIndex(MASTER_INDEX_WAIT_TIME) + 1) % NUM_MASTERS;
-      // `getPrimaryMasterIndex` uses the same `mMasterAddresses` variable as getMasterAddresses
-      // we can therefore access to the new leader's address this way
-      MasterNetAddress newLeaderAddr = mCluster.getMasterAddresses().get(newLeaderIdx);
-      NetAddress netAddress = NetAddress.newBuilder().setHost(newLeaderAddr.getHostname())
-              .setRpcPort(newLeaderAddr.getEmbeddedJournalPort()).build();
-
-      mCluster.getJournalMasterClientForMaster().transferLeadership(netAddress);
-
-      final int TIMEOUT_3MIN = 3 * 60 * 1000; // in ms
-      CommonUtils.waitFor("leadership to transfer", () -> {
-        try {
-          // wait until the address of the new leader matches the one designated as the new leader
-          return mCluster.getMasterAddresses()
-              .get(mCluster.getPrimaryMasterIndex(MASTER_INDEX_WAIT_TIME)).equals(newLeaderAddr);
-        } catch (Exception exc) {
-          throw new RuntimeException(exc);
-        }
-      }, WaitForOptions.defaults().setTimeoutMs(TIMEOUT_3MIN));
-
-      GetQuorumInfoPResponse info = mCluster.getJournalMasterClientForMaster().getQuorumInfo();
-      // confirms that master priorities get reset to 0 for the new leading master and 1 for the
-      // follower masters (this behavior is default within Apache Ratis 2.0)
-      Assert.assertTrue(info.getServerInfoList().stream().allMatch(masterInfo ->
-          masterInfo.getPriority() == (masterInfo.getIsLeader() ? 0 : 1)
-      ));
-    }
-    mCluster.notifySuccess();
-  }
-
-  @Test
   public void transferLeadershipWhenAlreadyTransferring() throws Exception {
     final int MASTER_INDEX_WAIT_TIME = 5_000;
     mCluster = MultiProcessCluster.newBuilder(PortCoordination.EMBEDDED_JOURNAL_FAILOVER)
