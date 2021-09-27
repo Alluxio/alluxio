@@ -646,6 +646,11 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setDescription("Journal entries since last checkpoint")
           .setMetricType(MetricType.GAUGE)
           .build();
+  public static final MetricKey MASTER_JOURNAL_LAST_APPLIED_COMMIT_INDEX =
+          new Builder("Master.JournalLastAppliedCommitIndex")
+                  .setDescription("The last raft log index which was applied to the state machine")
+                  .setMetricType(MetricType.GAUGE)
+                  .build();
 
   public static final MetricKey MASTER_JOURNAL_GAIN_PRIMACY_TIMER =
       new Builder("Master.JournalGainPrimacyTimer")
