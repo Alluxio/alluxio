@@ -553,6 +553,7 @@ public class StressMasterBench extends Benchmark<MasterBenchTaskResult> {
 
   private final class AlluxioNativeBenchThread extends BenchThread {
     private final alluxio.client.file.FileSystem mFs;
+
     private AlluxioNativeBenchThread(BenchContext context, alluxio.client.file.FileSystem fs) {
       super(context);
       mFs = fs;
