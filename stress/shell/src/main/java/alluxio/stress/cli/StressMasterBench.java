@@ -17,6 +17,8 @@ import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.Source;
 import alluxio.exception.AlluxioException;
+import alluxio.grpc.CreateDirectoryPOptions;
+import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.DeletePOptions;
 import alluxio.hadoop.HadoopConfigurationUtils;
 import alluxio.stress.BaseParameters;
@@ -568,7 +570,9 @@ public class StressMasterBench extends Benchmark<MasterBenchTaskResult> {
           } else {
             path = new Path(mBasePath, Long.toString(counter));
           }
-          mFs.createDirectory(new AlluxioURI(path.toString()));
+
+          mFs.createDirectory(new AlluxioURI(path.toString()),
+              CreateDirectoryPOptions.newBuilder().setRecursive(true).build());
           break;
         case CREATE_FILE:
           if (counter < mParameters.mFixedCount) {
@@ -576,7 +580,9 @@ public class StressMasterBench extends Benchmark<MasterBenchTaskResult> {
           } else {
             path = new Path(mBasePath, Long.toString(counter));
           }
-          mFs.createFile(new AlluxioURI(path.toString())).close();
+
+          mFs.createFile(new AlluxioURI(path.toString()),
+              CreateFilePOptions.newBuilder().setRecursive(true).build()).close();
           break;
         case GET_BLOCK_LOCATIONS:
           counter = counter % mParameters.mFixedCount;
