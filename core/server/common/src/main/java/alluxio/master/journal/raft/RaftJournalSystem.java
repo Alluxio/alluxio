@@ -834,7 +834,7 @@ public class RaftJournalSystem extends AbstractJournalSystem {
         .build();
     quorumMemberStateList.add(QuorumServerInfo.newBuilder()
             .setIsLeader(true)
-            .setPriority(mRaftGroup.getPeer(mPeerId).getPriority())
+            .setPriority(roleInfo.getSelf().getPriority())
             .setServerAddress(self)
         .setServerState(QuorumServerState.AVAILABLE).build());
     quorumMemberStateList.sort(Comparator.comparing(info -> info.getServerAddress().toString()));
