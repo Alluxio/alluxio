@@ -24,7 +24,6 @@ import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
-import alluxio.grpc.GetQuorumInfoPResponse;
 import alluxio.grpc.NetAddress;
 import alluxio.grpc.QuorumServerInfo;
 import alluxio.grpc.QuorumServerState;
