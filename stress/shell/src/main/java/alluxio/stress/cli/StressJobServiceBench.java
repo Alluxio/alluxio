@@ -141,12 +141,15 @@ public class StressJobServiceBench extends Benchmark<JobServiceBenchTaskResult> 
       mStartMs = startMs;
       mEndMs = endMs;
     }
+
     public RateLimiter getRateLimiter() {
       return mRateLimiter;
     }
+
     public long getStartMs() {
       return mStartMs;
     }
+
     public long getEndMs() {
       return mEndMs;
     }
@@ -230,9 +233,7 @@ public class StressJobServiceBench extends Benchmark<JobServiceBenchTaskResult> 
       }
       CommonUtils.sleepMs(waitMs);
       applyOperation(mPath);
-
-      }
-
+    }
 
     private void applyOperation(String dirPath)
         throws IOException, AlluxioException, InterruptedException, TimeoutException {
@@ -289,54 +290,57 @@ public class StressJobServiceBench extends Benchmark<JobServiceBenchTaskResult> 
       mResponseTimeNs.recordValue(responseTimeNs);
       long[] maxResponseTimeNs = mResult.getStatistics().mMaxResponseTimeNs;
       if (responseTimeNs > maxResponseTimeNs[MAX_RESPONSE_TIME_BUCKET_INDEX]) {
-        maxResponseTimeNs[MAX_RESPONSE_TIME_BUCKET_INDEX] = responseTimeNs;}
+        maxResponseTimeNs[MAX_RESPONSE_TIME_BUCKET_INDEX] = responseTimeNs;
+      }
     }
 
     private void runDistributedLoad(String dirPath) throws AlluxioException, IOException {
       int numReplication = 1;
       DistributedLoadCommand cmd = new DistributedLoadCommand(mFsContext);
       try {
-        DistributedLoadUtils
-            .distributedLoad(cmd, new AlluxioURI(dirPath), numReplication, new HashSet<>(), new HashSet<>(), new HashSet<>(), new HashSet<>(), false);
+        DistributedLoadUtils.distributedLoad(cmd, new AlluxioURI(dirPath), numReplication,
+            new HashSet<>(), new HashSet<>(), new HashSet<>(), new HashSet<>(), false);
       } finally {
         mResult.incrementNumSuccess(cmd.getCompletedCount());
       }
     }
   }
-    private void createFiles(FileSystem fs, int numFiles, String dirPath, int fileSize)
-        throws IOException, AlluxioException {
-      CreateFilePOptions options = CreateFilePOptions.newBuilder().setRecursive(true)
-          .setWriteType(WritePType.THROUGH).build();
 
-      for (int fileId = 0; fileId < numFiles; fileId++) {
-        String filePath = String.format("%s/%d", dirPath, fileId);
-        createByteFile(fs, new AlluxioURI(filePath), options, fileSize);
-      }
-    }
+  private void createFiles(FileSystem fs, int numFiles, String dirPath, int fileSize)
+      throws IOException, AlluxioException {
+    CreateFilePOptions options =
+        CreateFilePOptions.newBuilder().setRecursive(true).setWriteType(WritePType.THROUGH).build();
 
-    private void createByteFile(FileSystem fs, AlluxioURI fileURI, CreateFilePOptions options,
-        int len) throws IOException, AlluxioException {
-      try (FileOutStream os = fs.createFile(fileURI, options)) {
-        byte[] arr = new byte[len];
-        for (int k = 0; k < len; k++) {
-          arr[k] = (byte) k;
-        }
-        os.write(arr);
-      }
+    for (int fileId = 0; fileId < numFiles; fileId++) {
+      String filePath = String.format("%s/%d", dirPath, fileId);
+      createByteFile(fs, new AlluxioURI(filePath), options, fileSize);
     }
+  }
 
-    private void deletePath(FileSystem fs, String dirPath) throws IOException, AlluxioException {
-      AlluxioURI path = new AlluxioURI(dirPath);
-      if (fs.exists(path)) {
-        DeletePOptions options = DeletePOptions.newBuilder().setRecursive(true).build();
-        fs.delete(path, options);
+  private void createByteFile(FileSystem fs, AlluxioURI fileURI, CreateFilePOptions options,
+      int len) throws IOException, AlluxioException {
+    try (FileOutStream os = fs.createFile(fileURI, options)) {
+      byte[] arr = new byte[len];
+      for (int k = 0; k < len; k++) {
+        arr[k] = (byte) k;
       }
+      os.write(arr);
     }
+  }
+
+  private void deletePath(FileSystem fs, String dirPath) throws IOException, AlluxioException {
+    AlluxioURI path = new AlluxioURI(dirPath);
+    if (fs.exists(path)) {
+      DeletePOptions options = DeletePOptions.newBuilder().setRecursive(true).build();
+      fs.delete(path, options);
+    }
+  }
 
   private void runNoop() throws IOException, InterruptedException, TimeoutException {
     long jobId = mJobMasterClient.run(new NoopPlanConfig());
     // TODO(jianjian): refactor JobTestUtils
-    ImmutableSet<Status> statuses = ImmutableSet.of(Status.COMPLETED, Status.CANCELED, Status.FAILED);
+    ImmutableSet<Status> statuses =
+        ImmutableSet.of(Status.COMPLETED, Status.CANCELED, Status.FAILED);
     final AtomicReference<JobInfo> singleton = new AtomicReference<>();
     CommonUtils.waitFor(
         String.format("job %d to be one of status %s", jobId, Arrays.toString(statuses.toArray())),
@@ -353,7 +357,7 @@ public class StressJobServiceBench extends Benchmark<JobServiceBenchTaskResult> 
           }
         }, WaitForOptions.defaults().setTimeoutMs(30 * Constants.SECOND_MS));
     JobInfo jobInfo = singleton.get();
-    if(jobInfo.getStatus().equals(Status.FAILED)){
+    if (jobInfo.getStatus().equals(Status.FAILED)) {
       throw new IOException(jobInfo.getErrorMessage());
     }
   }
