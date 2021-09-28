@@ -43,6 +43,7 @@ import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.net.HostAndPort;
+import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.BlockLocation;
 import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FSDataOutputStream;
@@ -493,7 +494,7 @@ public abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem
 
     // take the URI properties, hadoop configuration, and given Alluxio configuration and merge
     // all three into a single object.
-    Map<String, Object> uriConfProperties = getConfigurationFromUri(uri);
+    Map<String, Object> uriConfProperties = getConfigurationFromUri(uri, conf);
     Map<String, Object> hadoopConfProperties =
         HadoopConfigurationUtils.getConfigurationFromHadoop(conf);
     LOG.info("Creating Alluxio configuration from Hadoop configuration {}, uri configuration {}",
@@ -717,7 +718,7 @@ public abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem
    *
    * @param uri a Alluxio Uri that may contain connection configuration
    */
-  protected abstract Map<String, Object> getConfigurationFromUri(URI uri);
+  protected abstract Map<String, Object> getConfigurationFromUri(URI uri, Configuration conf);
 
   /**
    * Validates given FS base URI for scheme and authority.
