@@ -21,7 +21,7 @@ import com.beust.jcommander.Parameter;
  * FileSystem common parameters.
  */
 public class FileSystemParameters extends Parameters {
-  @Parameter(names = {"--clients-type"},
+  @Parameter(names = {"--client-type"},
       description = "the client API type. Alluxio native or hadoop compatible client,"
           + " default is AlluxioHDFS",
       converter = FileSystemParameters.FileSystemParametersClientTypeConverter.class)
