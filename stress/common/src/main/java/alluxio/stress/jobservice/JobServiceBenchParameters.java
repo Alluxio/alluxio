@@ -44,7 +44,7 @@ public final class JobServiceBenchParameters extends Parameters {
 
   @Parameter(names = {"--target-throughput"},
       description = "the target throughput to issue operations. (ops / s)")
-  public int mTargetThroughput = 2000;
+  public int mTargetThroughput = 1000;
 
   @Parameter(names = {"--duration"},
       description = "The length of time to run the benchmark. (1m, 10m, 60s, 10000ms, etc.)")
