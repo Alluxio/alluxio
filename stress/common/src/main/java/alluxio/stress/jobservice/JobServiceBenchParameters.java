@@ -28,8 +28,8 @@ public final class JobServiceBenchParameters extends Parameters {
       required = true)
   public JobServiceBenchOperation mOperation;
 
-  @Parameter(names = {"--num-dirs"}, description = "the number of directories")
-  public int mNumDirs = 256;
+  @Parameter(names = {"--threads"}, description = "the number of concurrent threads to use")
+  public int mThreads = 256;
 
   @Parameter(names = {"--files-per-dir"}, description = "the number of files in each directory.")
   public int mNumFilesPerDir = 1000;
@@ -44,7 +44,7 @@ public final class JobServiceBenchParameters extends Parameters {
 
   @Parameter(names = {"--target-throughput"},
       description = "the target throughput to issue operations. (ops / s)")
-  public int mTargetThroughput = 1000;
+  public int mTargetThroughput = 5000;
 
   @Parameter(names = {"--duration"},
       description = "The length of time to run the benchmark. (1m, 10m, 60s, 10000ms, etc.)")

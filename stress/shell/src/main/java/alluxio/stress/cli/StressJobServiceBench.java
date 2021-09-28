@@ -23,7 +23,6 @@ import alluxio.client.file.FileSystemContext;
 import alluxio.client.job.JobMasterClient;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.exception.AlluxioException;
-import alluxio.exception.JobDoesNotExistException;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.DeletePOptions;
 import alluxio.grpc.WritePType;
@@ -102,7 +101,7 @@ public class StressJobServiceBench extends Benchmark<JobServiceBenchTaskResult> 
   @Override
   public JobServiceBenchTaskResult runLocal() throws Exception {
     ExecutorService service =
-        ExecutorServiceFactories.fixedThreadPool("bench-thread", mParameters.mNumDirs).create();
+        ExecutorServiceFactories.fixedThreadPool("bench-thread", mParameters.mThreads).create();
     long timeOutMs = FormatUtils.parseTimeSize(mBaseParameters.mBenchTimeout);
     long durationMs = FormatUtils.parseTimeSize(mParameters.mDuration);
     long warmupMs = FormatUtils.parseTimeSize(mParameters.mWarmup);
@@ -113,8 +112,8 @@ public class StressJobServiceBench extends Benchmark<JobServiceBenchTaskResult> 
     long endMs = startMs + warmupMs + durationMs;
     RateLimiter rateLimiter = RateLimiter.create(mParameters.mTargetThroughput);
     BenchContext context = new BenchContext(rateLimiter, startMs, endMs);
-    List<Callable<Void>> callables = new ArrayList<>(mParameters.mNumDirs);
-    for (int dirId = 0; dirId < mParameters.mNumDirs; dirId++) {
+    List<Callable<Void>> callables = new ArrayList<>(mParameters.mThreads);
+    for (int dirId = 0; dirId < mParameters.mThreads; dirId++) {
       String filePath =
           String.format("%s/%s/%d", mParameters.mBasePath, mBaseParameters.mId, dirId);
       callables.add(new BenchThread(context, filePath));
