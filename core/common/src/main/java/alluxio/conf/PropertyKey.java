@@ -1405,7 +1405,34 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.SERVER)
           .build();
-
+  public static final PropertyKey OBS_ACCESS_KEY =
+      new Builder(Name.OBS_ACCESS_KEY)
+          .setDescription("The access key of OBS bucket.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.SERVER)
+          .setDisplayType(DisplayType.CREDENTIALS)
+          .build();
+  public static final PropertyKey OBS_ENDPOINT =
+      new Builder(Name.OBS_ENDPOINT)
+          .setDefaultValue("obs.myhwclouds.com")
+          .setDescription("The endpoint of OBS bucket.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.SERVER)
+          .build();
+  public static final PropertyKey OBS_SECRET_KEY =
+      new Builder(Name.OBS_SECRET_KEY)
+          .setDescription("The secret key of OBS bucket.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.SERVER)
+          .setDisplayType(DisplayType.CREDENTIALS)
+          .build();
+  public static final PropertyKey OBS_BUCKET_TYPE =
+      new Builder(Name.OBS_BUCKET_TYPE)
+          .setDefaultValue("obs")
+          .setDescription("The type of bucket (obs/pfs).")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.SERVER)
+          .build();
   //
   // Mount table related properties
   //
@@ -5584,6 +5611,10 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String SWIFT_USER_KEY = "fs.swift.user";
     public static final String KODO_ACCESS_KEY = "fs.kodo.accesskey";
     public static final String KODO_SECRET_KEY = "fs.kodo.secretkey";
+    public static final String OBS_ACCESS_KEY = "fs.obs.accessKey";
+    public static final String OBS_ENDPOINT = "fs.obs.endpoint";
+    public static final String OBS_SECRET_KEY = "fs.obs.secretKey";
+    public static final String OBS_BUCKET_TYPE = "fs.obs.bucketType";
 
     //
     // Master related properties
@@ -6426,6 +6457,10 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       "secretKey"
   };
 
+  private static final String NAMESERVICE_PATTERN_STRING = "([a-zA-Z_\\-0-9.]+)";
+  private static final String ALLUXIO_MASTER_ID_PATTERN_STRING = "([a-zA-Z_\\-0-9.]+)";
+  private static final String ZOOKEEPER_NODE_ID_PATTERN_STRING = "([a-zA-Z_\\-0-9.]+)";
+
   /**
    * A set of templates to generate the names of parameterized properties given
    * different parameters. E.g., * {@code Template.MASTER_TIERED_STORE_GLOBAL_LEVEL_ALIAS.format(0)}
@@ -6442,6 +6477,18 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     MASTER_JOURNAL_UFS_OPTION_PROPERTY("alluxio.master.journal.ufs.option.%s",
         "alluxio\\.master\\.journal\\.ufs\\.option\\.(?<nested>(\\w+\\.)*+\\w+)",
         PropertyCreators.NESTED_JOURNAL_PROPERTY_CREATOR),
+    MASTER_LOGICAL_NAMESERVICES("alluxio.master.nameservices.%s",
+        String.format("alluxio\\.master\\.nameservices\\.%s",
+            NAMESERVICE_PATTERN_STRING)),
+    MASTER_LOGICAL_RPC_ADDRESS("alluxio.master.rpc.address.%s.%s",
+        String.format("alluxio\\.master\\.rpc\\.address\\.%s\\.%s",
+            NAMESERVICE_PATTERN_STRING, ALLUXIO_MASTER_ID_PATTERN_STRING)),
+    MASTER_LOGICAL_ZOOKEEPER_NAMESERVICES("alluxio.master.zookeeper.nameservices.%s",
+        String.format("alluxio\\.master\\.zookeeper\\.nameservices\\.%s",
+            NAMESERVICE_PATTERN_STRING)),
+    MASTER_LOGICAL_ZOOKEEPER_ADDRESS("alluxio.master.zookeeper.address.%s.%s",
+        String.format("alluxio\\.master\\.zookeeper\\.address\\.%s\\.%s",
+            NAMESERVICE_PATTERN_STRING, ZOOKEEPER_NODE_ID_PATTERN_STRING)),
     MASTER_MOUNT_TABLE_ALLUXIO("alluxio.master.mount.table.%s.alluxio",
         "alluxio\\.master\\.mount\\.table.(\\w+)\\.alluxio"),
     MASTER_MOUNT_TABLE_OPTION("alluxio.master.mount.table.%s.option",

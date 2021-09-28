@@ -9,8 +9,17 @@
 # See the NOTICE file distributed with this work for information regarding copyright ownership.
 #
 
+# Setup CSI
+# Make sure any changes to CSI installation are made in Dockerfile-dev as well
+FROM golang:1.15.13-alpine AS dev
+ENV GO111MODULE=on
+RUN mkdir -p /alluxio-csi
+COPY ./csi /alluxio-csi
+RUN cd /alluxio-csi && \
+    CGO_ENABLED=0 go build -o /usr/local/bin/alluxio-csi
+
 # For production use, we use alpine as base image to minimize alluxio image size.
-FROM alpine:3.10.2
+FROM alpine:3.10.2 AS final
 # Note that downloads for *-SNAPSHOT tarballs are not available.
 ARG ALLUXIO_TARBALL=http://downloads.alluxio.io/downloads/files/2.7.0-SNAPSHOT/alluxio-2.7.0-SNAPSHOT-bin.tar.gz
 # (Alert):It's not recommended to set this Argument to true, unless you know exactly what you are doing
@@ -75,6 +84,7 @@ RUN ./dockerfile-common.sh user-operation ${ALLUXIO_USERNAME} ${ALLUXIO_GROUP} $
 # https://github.com/moby/buildkit/pull/926#issuecomment-503943557
 COPY --chown=${ALLUXIO_USERNAME}:${ALLUXIO_GROUP} conf /opt/alluxio/conf/
 COPY --chown=${ALLUXIO_USERNAME}:${ALLUXIO_GROUP} entrypoint.sh /
+COPY --from=dev /usr/local/bin/alluxio-csi /usr/local/bin/
 
 RUN ./dockerfile-common.sh enable-dynamic-user ${ENABLE_DYNAMIC_USER}
 
