@@ -187,6 +187,7 @@ public final class GetWorkerReportOptions implements Serializable {
    */
   public static enum WorkerInfoField {
     ADDRESS,
+    BLOCK_COUNT,
     WORKER_CAPACITY_BYTES,
     WORKER_CAPACITY_BYTES_ON_TIERS,
     ID,
