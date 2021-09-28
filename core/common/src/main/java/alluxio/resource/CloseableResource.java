@@ -11,6 +11,12 @@
 
 package alluxio.resource;
 
+import alluxio.conf.PropertyKey;
+import alluxio.util.ConfigurationUtils;
+
+import io.netty.util.ResourceLeakDetector;
+import io.netty.util.ResourceLeakTracker;
+
 import java.io.Closeable;
 
 /**
@@ -20,7 +26,19 @@ import java.io.Closeable;
  * @param <T> the type of the wrapped resource
  */
 public abstract class CloseableResource<T> implements Closeable {
-  private T mResource;
+
+  static {
+    String level = ConfigurationUtils.defaults().get(PropertyKey.LEAK_DETECTOR_LEVEL);
+    ResourceLeakDetector.Level lev = ResourceLeakDetector.Level.valueOf(level);
+    ResourceLeakDetector.setLevel(lev);
+  }
+
+  private static final ResourceLeakDetector<CloseableResource> DETECTOR =
+      AlluxioResourceLeakDetectorFactory.instance()
+          .newResourceLeakDetector(CloseableResource.class);
+
+  private final T mResource;
+  private final ResourceLeakTracker<CloseableResource> mTracker;
 
   /**
    * Creates a {@link CloseableResource} wrapper around the given resource. This resource will
@@ -30,6 +48,7 @@ public abstract class CloseableResource<T> implements Closeable {
    */
   public CloseableResource(T resource) {
     mResource = resource;
+    mTracker = DETECTOR.track(this);
   }
 
   /**
@@ -37,6 +56,12 @@ public abstract class CloseableResource<T> implements Closeable {
    */
   public T get() {
     return mResource;
+  }
+
+  @Override
+  public void close() {
+    mTracker.close(this);
+    closeResource();
   }
 
   /**
