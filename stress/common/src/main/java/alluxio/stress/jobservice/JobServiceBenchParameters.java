@@ -42,6 +42,19 @@ public final class JobServiceBenchParameters extends Parameters {
       description = "The size of a file for the Create op, allowed to be 0. (0, 1m, 2k, 8k, etc.)")
   public String mFileSize = "1k";
 
+  @Parameter(names = {"--target-throughput"},
+      description = "the target throughput to issue operations. (ops / s)")
+  public int mTargetThroughput = 1000;
+
+  @Parameter(names = {"--duration"},
+      description = "The length of time to run the benchmark. (1m, 10m, 60s, 10000ms, etc.)")
+  public String mDuration = "30s";
+
+  @Parameter(names = {"--warmup"},
+      description = "The length of time to warmup before recording measurements. (1m, 10m, 60s, "
+          + "10000ms, etc.)")
+  public String mWarmup = "30s";
+
   /**
    * Converts from String to Operation instance.
    */
