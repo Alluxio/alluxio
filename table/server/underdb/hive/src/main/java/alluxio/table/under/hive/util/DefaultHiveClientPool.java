@@ -104,7 +104,7 @@ public final class DefaultHiveClientPool extends AbstractHiveClientPool {
   public CloseableResource<IMetaStoreClient> acquireClientResource() throws IOException {
     return new CloseableResource<IMetaStoreClient>(acquire()) {
       @Override
-      public void close() {
+      public void closeResource() {
         release(get());
       }
     };

@@ -67,6 +67,5 @@ public abstract class CloseableResource<T> implements Closeable {
   /**
    * Performs any cleanup operations necessary when the resource is no longer in use.
    */
-  @Override
-  public abstract void close();
+  public abstract void closeResource();
 }

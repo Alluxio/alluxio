@@ -149,7 +149,7 @@ public final class AlluxioFileInStreamTest {
     when(mContext.acquireBlockWorkerClient(any()))
         .thenReturn(new CloseableResource<BlockWorkerClient>(client) {
           @Override
-          public void close() {}
+          public void closeResource() {}
         });
     mBlockStore = mock(AlluxioBlockStore.class);
     PowerMockito.mockStatic(AlluxioBlockStore.class);

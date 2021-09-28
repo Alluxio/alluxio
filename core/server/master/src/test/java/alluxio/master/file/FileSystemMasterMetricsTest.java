@@ -65,7 +65,7 @@ public class FileSystemMasterMetricsTest {
     when(ufs.getSpace(ufsDataFolder, UnderFileSystem.SpaceType.SPACE_FREE)).thenReturn(800L);
     when(client.acquireUfsResource()).thenReturn(new CloseableResource<UnderFileSystem>(ufs) {
       @Override
-      public void close() {}
+      public void closeResource() {}
     });
     when(mUfsManager.getRoot()).thenReturn(client);
     assertEquals(1000L, getGauge(MetricKey.CLUSTER_ROOT_UFS_CAPACITY_TOTAL.getName()));
