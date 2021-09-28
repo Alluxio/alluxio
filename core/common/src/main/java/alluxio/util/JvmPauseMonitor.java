@@ -151,15 +151,15 @@ public class JvmPauseMonitor {
       oldBean = gcMXBeanMapBeforeSleep.get(name);
       newBean = gcMXBeanMapAfterSleep.get(name);
       if (oldBean == null) {
-        beanDiffs.add("new GCBean created name= '" + newBean.getName() + "' count="
-            + newBean.getCollectionCount() + " time=" + newBean.getCollectionTime() + "ms");
+        beanDiffs.add(String.format("new GCBean created name='%s' count=%d time=%dms",
+            newBean.getName(), newBean.getCollectionCount(), newBean.getCollectionTime()));
       } else if (newBean == null) {
-        beanDiffs.add("old GCBean canceled name= '" + oldBean.getName() + "' count="
-            + oldBean.getCollectionCount() + " time=" + oldBean.getCollectionTime() + "ms");
+        beanDiffs.add(String.format("old GCBean canceled name= '%s' count=%d time=%dms",
+            oldBean.getName(), oldBean.getCollectionCount(), oldBean.getCollectionTime()));
       } else {
         if (oldBean.getCollectionTime() != newBean.getCollectionTime()
             || oldBean.getCollectionCount() != newBean.getCollectionCount()) {
-          beanDiffs.add(String.format("GC name ='%s' count=%d time=%dms", newBean.getName(),
+          beanDiffs.add(String.format("GC name='%s' count=%d time=%dms", newBean.getName(),
               newBean.getCollectionCount() - oldBean.getCollectionCount(),
               newBean.getCollectionTime() - oldBean.getCollectionTime()));
         }
