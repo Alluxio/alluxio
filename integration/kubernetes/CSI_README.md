@@ -9,21 +9,25 @@ Kubernetes 1.14 or higher, RBAC enabled in API server(https://kubernetes.io/docs
 ## Usage
 
 
-### Build docker image
+### Docker image
 
-Please run `docker build . -t alluxio/alluxio-csi:<version_tag>` to build CSI docker image. Alluxio doesn't provide official CSI docker image currently.
-You need to build the image by yourself.
+The `alluxio/alluxio` docker image now supports CSI. You can build the docker image yourself following the instructions in
+`${ALLUXIO_HOME}/integration/docker/README.md`, section `Building docker image for production` or `Building docker image
+for development` depending on your needs. If you don't build the image locally, Kubernetes will use the latest published `alluxio/alluxio`
+image on Dockerhub.
+
+
 
 ### Deploy
 
-Please use `helm-generate.sh` to generate related templates. All CSI related templates should under `integration/kubernetes/<deploy-mode>/csi` folder.
+Please use `helm-generate.sh` to generate related templates. All CSI related templates will be under `integration/kubernetes/<deploy-mode>/csi` folder.
 
-You need to deploy `alluxio-csi-controller`, `alluxio-csi-nodeplugin`, `alluxio-csi-driver` before mount volume via CSI.
+You need to deploy `alluxio-csi-controller`, `alluxio-csi-nodeplugin`, `alluxio-csi-driver` before mounting volume via CSI.
 
-We provide two types of provisioning methods. For static provisioning, you need to create `PersistentVolume` and `PersistentVolumeClaim` first.
-For dynamic provisioning, you need to create `StorageClass` and  `PersistentVolumeClaim`.
+We provide two types of provisioning methods. For static provisioning, you need to deploy `alluxio-pv.yaml` and `alluxio-pvc-static.yaml` first.
+For dynamic provisioning, you need to deploy `alluxio-storage-class.yaml` and  `alluxio-pvc.yaml` first.
 
-All these examples will be generated after running `helm-generate.sh`.
+To deploy any service, run `kubectl apply -f /file/path`
 
 ### Configuration
 
