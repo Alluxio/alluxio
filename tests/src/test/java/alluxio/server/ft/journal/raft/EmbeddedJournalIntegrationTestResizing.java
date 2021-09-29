@@ -139,7 +139,6 @@ public class EmbeddedJournalIntegrationTestResizing extends EmbeddedJournalInteg
     mCluster.notifySuccess();
   }
 
-  @Ignore
   @Test
   public void replaceAll() throws Exception {
     final int NUM_MASTERS = 5;
