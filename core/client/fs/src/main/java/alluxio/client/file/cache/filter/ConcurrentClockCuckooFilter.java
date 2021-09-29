@@ -330,6 +330,11 @@ public class ConcurrentClockCuckooFilter<T> implements Serializable {
                 numBuckets() * tagsPerBucket() * bitsPerScope / 8.0 / Constants.MB);
     }
 
+    public double expectedFpp() {
+        // TODO(iluoeli): compute real fpp
+        return DEFAULT_FPP;
+    }
+
     public int getItemNumber() {
         return numItems.intValue();
     }
