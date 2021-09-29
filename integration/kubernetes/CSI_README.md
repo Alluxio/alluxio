@@ -11,12 +11,11 @@ Kubernetes 1.14 or higher, RBAC enabled in API server(https://kubernetes.io/docs
 
 ### Docker image
 
-The `alluxio/alluxio` docker image now supports CSI. You can build the docker image yourself following the instructions in
-`${ALLUXIO_HOME}/integration/docker/README.md`, section `Building docker image for production` or `Building docker image
-for development` depending on your needs. If you don't build the image locally, Kubernetes will use the latest published `alluxio/alluxio`
-image on Dockerhub.
+The official `alluxio/alluxio` docker image now supports CSI. By default Kubernetes will pull the latest published `alluxio/alluxio` image on Dockerhub.
 
-
+Alternatively you can build the docker image yourself following the instructions in `${ALLUXIO_HOME}/integration/docker/README.md`,
+section `Building docker image for production` or `Building docker image for development` depending on your needs. Make sure you refer to your
+built image in the deploying yaml files.
 
 ### Deploy
 
