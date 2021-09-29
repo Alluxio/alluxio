@@ -56,7 +56,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 public final class AlluxioWorkerProcess implements WorkerProcess {
   private static final Logger LOG = LoggerFactory.getLogger(AlluxioWorkerProcess.class);
 
-  private final TieredIdentity mTieredIdentitiy;
+  private final TieredIdentity mTieredIdentity;
 
   /** Server for data requests and responses. */
   private DataServer mDataServer;
@@ -92,7 +92,7 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
    * Creates a new instance of {@link AlluxioWorkerProcess}.
    */
   AlluxioWorkerProcess(TieredIdentity tieredIdentity) {
-    mTieredIdentitiy = tieredIdentity;
+    mTieredIdentity = tieredIdentity;
     try {
       mStartTimeMs = System.currentTimeMillis();
       mUfsManager = new WorkerUfsManager();
@@ -336,7 +336,7 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
         .setDataPort(getDataLocalPort())
         .setDomainSocketPath(getDataDomainSocketPath())
         .setWebPort(mWebServer.getLocalPort())
-        .setTieredIdentity(mTieredIdentitiy);
+        .setTieredIdentity(mTieredIdentity);
   }
 
   @Override

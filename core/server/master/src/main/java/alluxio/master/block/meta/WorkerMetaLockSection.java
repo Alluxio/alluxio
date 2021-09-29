@@ -18,5 +18,6 @@ package alluxio.master.block.meta;
 public enum WorkerMetaLockSection {
   STATUS,
   USAGE,
+  WORKER,
   BLOCKS;
 }

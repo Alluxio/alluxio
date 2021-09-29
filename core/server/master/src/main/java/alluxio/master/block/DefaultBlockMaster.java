@@ -890,11 +890,19 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
       // This worker address is already mapped to a worker id.
       long oldWorkerId = existingWorker.getId();
       LOG.warn("The worker {} already exists as id {}.", workerNetAddress, oldWorkerId);
+      try (LockResource r = existingWorker.lockWorkerMeta(
+              EnumSet.of(WorkerMetaLockSection.WORKER), false)) {
+        existingWorker.updateWorkerNetAddress(workerNetAddress.getContainerHost());
+      }
       return oldWorkerId;
     }
 
     existingWorker = findUnregisteredWorker(workerNetAddress);
     if (existingWorker != null) {
+      try (LockResource r = existingWorker.lockWorkerMeta(
+              EnumSet.of(WorkerMetaLockSection.WORKER), false)) {
+        existingWorker.updateWorkerNetAddress(workerNetAddress.getContainerHost());
+      }
       return existingWorker.getId();
     }
 

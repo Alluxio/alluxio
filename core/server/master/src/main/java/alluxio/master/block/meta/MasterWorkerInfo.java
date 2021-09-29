@@ -99,7 +99,11 @@ public final class MasterWorkerInfo {
   /** Worker's last updated time in ms. */
   private final AtomicLong mLastUpdatedTimeMs;
   /** Worker metadata, this field is thread safe. */
+  @GuardedBy("mWorkerLock")
   private final StaticWorkerMeta mMeta;
+
+  /** Locks the worker register status. */
+  private final ReentrantReadWriteLock mWorkerLock;
 
   /** If true, the worker is considered registered. */
   @GuardedBy("mStatusLock")
@@ -142,10 +146,12 @@ public final class MasterWorkerInfo {
     mStatusLock = new ReentrantReadWriteLock();
     mUsageLock = new ReentrantReadWriteLock();
     mBlockListLock = new ReentrantReadWriteLock();
+    mWorkerLock = new ReentrantReadWriteLock();
     mLockTypeToLock = ImmutableMap.of(
         WorkerMetaLockSection.STATUS, mStatusLock,
         WorkerMetaLockSection.USAGE, mUsageLock,
-        WorkerMetaLockSection.BLOCKS, mBlockListLock);
+        WorkerMetaLockSection.BLOCKS, mBlockListLock,
+        WorkerMetaLockSection.WORKER, mWorkerLock);
   }
 
   /**
@@ -599,6 +605,19 @@ public final class MasterWorkerInfo {
   public void updateUsedBytes(String tierAlias, long usedBytesOnTier) {
     mUsage.mUsedBytes += usedBytesOnTier - mUsage.mUsedBytesOnTiers.get(tierAlias);
     mUsage.mUsedBytesOnTiers.put(tierAlias, usedBytesOnTier);
+  }
+
+  /**
+   * Update the container host of the worker net address.
+   *
+   * You should lock externally with {@link MasterWorkerInfo#lockWorkerMeta(EnumSet, boolean)}
+   * with {@link WorkerMetaLockSection#WORKER} specified.
+   * An exclusive lock is required.
+   *
+   * @param containerHost a container host
+   */
+  public void updateWorkerNetAddress(String containerHost) {
+    mMeta.mWorkerAddress.setContainerHost(containerHost);
   }
 
   ReentrantReadWriteLock getLock(WorkerMetaLockSection lockType) {

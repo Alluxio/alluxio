@@ -181,7 +181,6 @@ public final class WorkerNetAddress implements Serializable {
     }
     WorkerNetAddress that = (WorkerNetAddress) o;
     return mHost.equals(that.mHost)
-        && mContainerHost.equals(that.mContainerHost)
         && mRpcPort == that.mRpcPort
         && mDataPort == that.mDataPort
         && mWebPort == that.mWebPort
@@ -191,7 +190,7 @@ public final class WorkerNetAddress implements Serializable {
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(mHost, mContainerHost, mDataPort, mRpcPort, mWebPort,
+    return Objects.hashCode(mHost, mDataPort, mRpcPort, mWebPort,
         mDomainSocketPath, mTieredIdentity);
   }
 
