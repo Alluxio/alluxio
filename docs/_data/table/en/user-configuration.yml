@@ -50,6 +50,14 @@ alluxio.user.client.cache.page.size:
   'Size of each page in client-side cache.'
 alluxio.user.client.cache.quota.enabled:
   'Whether to support cache quota.'
+alluxio.user.client.cache.shadow.bloomfilter.num:
+  'The number of bloom filters used for tracking. Each tracks a segment of window'
+alluxio.user.client.cache.shadow.enabled:
+  'If this is enabled, a shadow cache will be created to tracking the working set of a past time window, and measure the hit ratio if the working set fits the cache'
+alluxio.user.client.cache.shadow.memory.overhead:
+  'The total memory overhead for bloom filters used for tracking'
+alluxio.user.client.cache.shadow.window:
+  'The past time window for the shadow cache to tracking the working set, and it is in the unit of second'
 alluxio.user.client.cache.size:
   'The maximum size of the client-side cache.'
 alluxio.user.client.cache.store.overhead:
@@ -200,6 +208,8 @@ alluxio.user.rpc.retry.max.duration:
   'Alluxio client RPCs automatically retry for transient errors with an exponential backoff. This property determines the maximum duration to retry for before giving up. Note that, this value is set to 5s for fs and fsadmin CLIs.'
 alluxio.user.rpc.retry.max.sleep:
   'Alluxio client RPCs automatically retry for transient errors with an exponential backoff. This property determines the maximum wait time in the backoff.'
+alluxio.user.rpc.shuffle.masters.enabled:
+  'Shuffle the client-side configured master rpc addresses.'
 alluxio.user.short.circuit.enabled:
   'The short circuit read/write which allows the clients to read/write data without going through Alluxio workers if the data is local is enabled if set to true.'
 alluxio.user.short.circuit.preferred:
@@ -229,7 +239,7 @@ alluxio.user.ufs.block.location.all.fallback.enabled:
 alluxio.user.ufs.block.read.concurrency.max:
   'The maximum concurrent readers for one UFS block on one Block Worker.'
 alluxio.user.ufs.block.read.location.policy:
-  'When an Alluxio client reads a file from the UFS, it delegates the read to an Alluxio worker. The client uses this policy to choose which worker to read through. Built-in choices: [<a href="https://docs.alluxio.io/os/javadoc/edge/alluxio/client/block/policy/DeterministicHashPolicy.html">alluxio.client.block.policy.DeterministicHashPolicy</a>, <a href="https://docs.alluxio.io/os/javadoc/edge/alluxio/client/block/policy/LocalFirstAvoidEvictionPolicy.html">alluxio.client.block.policy.LocalFirstAvoidEvictionPolicy</a>, <a href="https://docs.alluxio.io/os/javadoc/edge/alluxio/client/block/policy/LocalFirstPolicy.html">alluxio.client.block.policy.LocalFirstPolicy</a>, <a href="https://docs.alluxio.io/os/javadoc/edge/alluxio/client/block/policy/MostAvailableFirstPolicy.html">alluxio.client.block.policy.MostAvailableFirstPolicy</a>, <a href="https://docs.alluxio.io/os/javadoc/edge/alluxio/client/block/policy/RoundRobinPolicy.html">alluxio.client.block.policy.RoundRobinPolicy</a>, <a href="https://docs.alluxio.io/os/javadoc/edge/alluxio/client/block/policy/SpecificHostPolicy.html">alluxio.client.block.policy.SpecificHostPolicy</a>].'
+  'When an Alluxio client reads a file from the UFS, it delegates the read to an Alluxio worker. The client uses this policy to choose which worker to read through. Built-in choices: [&lt;a href=&quot;https://docs.alluxio.io/os/javadoc/edge/alluxio/client/block/policy/DeterministicHashPolicy.html&quot;&gt;alluxio.client.block.policy.DeterministicHashPolicy&lt;/a&gt;, &lt;a href=&quot;https://docs.alluxio.io/os/javadoc/edge/alluxio/client/block/policy/LocalFirstAvoidEvictionPolicy.html&quot;&gt;alluxio.client.block.policy.LocalFirstAvoidEvictionPolicy&lt;/a&gt;, &lt;a href=&quot;https://docs.alluxio.io/os/javadoc/edge/alluxio/client/block/policy/LocalFirstPolicy.html&quot;&gt;alluxio.client.block.policy.LocalFirstPolicy&lt;/a&gt;, &lt;a href=&quot;https://docs.alluxio.io/os/javadoc/edge/alluxio/client/block/policy/MostAvailableFirstPolicy.html&quot;&gt;alluxio.client.block.policy.MostAvailableFirstPolicy&lt;/a&gt;, &lt;a href=&quot;https://docs.alluxio.io/os/javadoc/edge/alluxio/client/block/policy/RoundRobinPolicy.html&quot;&gt;alluxio.client.block.policy.RoundRobinPolicy&lt;/a&gt;, &lt;a href=&quot;https://docs.alluxio.io/os/javadoc/edge/alluxio/client/block/policy/SpecificHostPolicy.html&quot;&gt;alluxio.client.block.policy.SpecificHostPolicy&lt;/a&gt;].'
 alluxio.user.ufs.block.read.location.policy.deterministic.hash.shards:
   'When alluxio.user.ufs.block.read.location.policy is set to alluxio.client.block.policy.DeterministicHashPolicy, this specifies the number of hash shards.'
 alluxio.user.worker.list.refresh.interval:

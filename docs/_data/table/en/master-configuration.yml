@@ -46,14 +46,12 @@ alluxio.master.daily.backup.time:
   'Default UTC time for writing daily master metadata backups. The accepted time format is hour:minute which is based on a 24-hour clock (E.g., 05:30, 06:00, and 22:04). Backing up metadata requires a pause in master metadata changes, so please set this value to an off-peak time to avoid interfering with other users of the system.'
 alluxio.master.embedded.journal.addresses:
   'A comma-separated list of journal addresses for all masters in the cluster. The format is ''hostname1:port1,hostname2:port2,...''. When left unset, Alluxio uses ${alluxio.master.hostname}:${alluxio.master.embedded.journal.port} by default'
-alluxio.master.embedded.journal.appender.batch.size:
-  'Amount of data that is appended from leader to followers in a single heartbeat. Setting higher values might require increasing election timeout due to increased network delay. Setting lower values might stall knowledge propagation between the leader and followers.'
 alluxio.master.embedded.journal.bind.host:
   'Used to bind embedded journal servers to a proxied host.Proxy hostname will still make use of alluxio.master.embedded.journal.port for bind port.'
 alluxio.master.embedded.journal.catchup.retry.wait:
   'Time for embedded journal leader to wait before retrying a catch up.'
 alluxio.master.embedded.journal.election.timeout.max:
-  'The max election timeout for the embedded journal. When this period between alluxio.master.embedded.journal.election.timeout.min and alluxio.master.embedded.journal.election.timeout.max elapses without a master receiving any messages, the master will attempt to become the primary.Election timeout will be waited initially when the cluster is forming. So larger values for election timeout will cause longer start-up time. Smaller values might introduce instability to leadership.'
+  'The max election timeout for the embedded journal. When a random period between ${alluxio.master.embedded.journal.election.timeout.min} and ${alluxio.master.embedded.journal.election.timeout.max} elapses without a master receiving any messages, the master will attempt to become the primary Election timeout will be waited initially when the cluster is forming. So larger values for election timeout will cause longer start-up time. Smaller values might introduce instability to leadership.'
 alluxio.master.embedded.journal.election.timeout.min:
   'The min election timeout for the embedded journal.'
 alluxio.master.embedded.journal.entry.size.max:
@@ -64,18 +62,12 @@ alluxio.master.embedded.journal.port:
   'The port to use for embedded journal communication with other masters.'
 alluxio.master.embedded.journal.retry.cache.expiry.time:
   'The time for embedded journal server retry cache to expire. Setting a bigger value allows embedded journal server to cache the responses for a longer time in case of journal writer retries, but will take up more memory in master.'
-alluxio.master.embedded.journal.shutdown.timeout:
-  'Maximum time to wait for embedded journal to stop on shutdown.'
 alluxio.master.embedded.journal.snapshot.replication.chunk.size:
   'The stream chunk size used by masters to replicate snapshots.'
-alluxio.master.embedded.journal.storage.level:
-  'The storage level for storing embedded journal logs. Use DISK for maximum durability. Use MAPPED for better performance, but some risk of losing state in case of power loss or host failure. Use MEMORY for optimal performance, but no state persistence across cluster restarts.'
 alluxio.master.embedded.journal.transport.max.inbound.message.size:
   'The maximum size of a message that can be sent to the embedded journal server node.'
 alluxio.master.embedded.journal.transport.request.timeout.ms:
   'Timeout for requests between embedded journal masters.'
-alluxio.master.embedded.journal.triggered.snapshot.wait.timeout:
-  'Maximum time to wait for the triggered snapshot to finish.'
 alluxio.master.embedded.journal.write.local.first.enabled:
   'Whether the journal writer will attempt to write entry locally before falling back to a full remote raft client.'
 alluxio.master.embedded.journal.write.timeout:
@@ -174,6 +166,8 @@ alluxio.master.metastore.inode.iteration.crawler.count:
   'The number of threads used during inode tree enumeration.'
 alluxio.master.metastore.iterator.readahead.size:
   'The read-ahead size (in bytes) for metastore iterators.'
+alluxio.master.metrics.file.size.distribution.buckets:
+  'Master metrics file size buckets'
 alluxio.master.metrics.heap.enabled:
   'Enable master heap estimate metrics'
 alluxio.master.metrics.service.threads:
