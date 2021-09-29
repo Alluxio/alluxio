@@ -90,7 +90,7 @@ public class InodeTreePersistentState implements Journaled {
    * This cache is used by this persistent state and InodeTree
    * for keeping track of recently applied operations on inodes.
    */
-  private final Cache<OperationId, Boolean> mCache;
+  private final Cache<OperationId, Boolean> mOpIdCache;
 
   /**
    * A set of inode ids representing pinned inode files. These are not part of the journaled state,
@@ -135,7 +135,7 @@ public class InodeTreePersistentState implements Journaled {
             .stream().map(FormatUtils::parseSpaceSize).collect(Collectors.toList()));
     mRetryCacheEnabled =
         ServerConfiguration.getBoolean(MASTER_FILE_SYSTEM_OPERATION_RETRY_CACHE_ENABLED);
-    mCache = CacheBuilder.newBuilder()
+    mOpIdCache = CacheBuilder.newBuilder()
         .maximumSize(ServerConfiguration.getInt(MASTER_FILE_SYSTEM_OPERATION_RETRY_CACHE_SIZE))
         .build();
   }
@@ -147,7 +147,7 @@ public class InodeTreePersistentState implements Journaled {
    * @return {@code true} if given op is marked complete
    */
   public boolean isOperationComplete(@Nullable OperationId opId) {
-    return mRetryCacheEnabled && opId != null && (null != mCache.getIfPresent(opId));
+    return mRetryCacheEnabled && opId != null && (null != mOpIdCache.getIfPresent(opId));
   }
 
   /**
@@ -156,7 +156,7 @@ public class InodeTreePersistentState implements Journaled {
    */
   public void cacheOperation(@Nullable OperationId opId) {
     if (mRetryCacheEnabled && opId != null) {
-      mCache.put(opId, true);
+      mOpIdCache.put(opId, true);
     }
   }
 
@@ -798,8 +798,7 @@ public class InodeTreePersistentState implements Journaled {
     mInodeStore.clear();
     mReplicationLimitedFileIds.clear();
     mPinnedInodeFileIds.clear();
-    mCache.invalidateAll();
-    mCache.cleanUp();
+    mOpIdCache.invalidateAll();
   }
 
   @Override

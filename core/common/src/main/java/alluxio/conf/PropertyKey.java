@@ -2721,7 +2721,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey MASTER_FILE_SYSTEM_OPERATION_RETRY_CACHE_ENABLED =
       new Builder(Name.MASTER_FILE_SYSTEM_OPERATION_RETRY_CACHE_ENABLED)
           .setDefaultValue(true)
-          .setDescription("If enabled, each fs operation will be tracked on all masters, "
+          .setDescription("If enabled, each filesystem operation will be tracked on all masters, "
               + "in order to avoid re-execution of client retries.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
@@ -4214,7 +4214,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey USER_FILE_INCLUDE_OPERATION_ID =
       new Builder(Name.USER_FILE_INCLUDE_OPERATION_ID)
           .setDefaultValue(true)
-          .setDescription("Whether to send a unique operation id with designated FS calls.")
+          .setDescription(
+              "Whether to send a unique operation id with designated filesystem operations.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
