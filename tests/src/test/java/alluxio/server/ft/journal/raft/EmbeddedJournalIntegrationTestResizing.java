@@ -181,11 +181,7 @@ public class EmbeddedJournalIntegrationTestResizing extends EmbeddedJournalInteg
       mCluster.startNewMasters(1, false);
       int newGuy = mCluster.getMasterAddresses().get(NUM_MASTERS - 1).getEmbeddedJournalPort();
       System.out.printf("new entrant: %d\n", newGuy);
-      try {
         waitForQuorumPropertySize(info -> true, NUM_MASTERS);
-      } catch (Exception e) {
-        System.out.println(e);
-      }
       // verify that the cluster is still operational
       fs = mCluster.getFileSystemClient();
       assertTrue(fs.exists(testDir));

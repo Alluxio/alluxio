@@ -11,23 +11,7 @@ jobs:
       matrix:
         modules:
           - >-
-            alluxio.client.cli.**,!alluxio.client.cli.fs.**
-          - >-
-            alluxio.client.cli.fs.**
-          - >-
-            alluxio.client.fs.**,!alluxio.client.fs.concurrent.**,!alluxio.client.fs.io.**
-          - >-
-            alluxio.client.fs.concurrent.**,alluxio.client.fs.io.**
-          - >-
-            alluxio.client.**,!alluxio.client.fs.**,!alluxio.client.cli.**
-          - >-
-            alluxio.job.**,alluxio.master.**,alluxio.stress.**
-          - >-
-            alluxio.server.ft.**,!alluxio.server.ft.journal.raft.**,!alluxio.server.ft.journal.ufs.**
-          - >-
-            alluxio.server.ft.journal.raft.**,alluxio.server.ft.journal.ufs.**
-          - >-
-            alluxio.server.**,!alluxio.server.ft.**
+            alluxio.server.ft.journal.raft.**
 
     runs-on: ubuntu-latest
     if: "!contains(github.event.pull_request.title, 'DOCFIX') &&
