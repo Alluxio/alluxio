@@ -133,6 +133,15 @@ public final class MultiProcessCluster {
    */
   private boolean mSuccess;
 
+  /**
+   * Oueee.
+   *
+   * @return oueeeeee
+   */
+  public File getWorkDir() {
+    return mWorkDir;
+  }
+
   private MultiProcessCluster(Map<PropertyKey, String> properties,
       Map<Integer, Map<PropertyKey, String>> masterProperties,
       Map<Integer, Map<PropertyKey, String>> workerProperties, int numMasters, int numWorkers,

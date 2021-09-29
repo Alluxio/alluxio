@@ -150,10 +150,12 @@ public class EmbeddedJournalIntegrationTestResizing extends EmbeddedJournalInteg
         .setNumWorkers(NUM_WORKERS)
         .addProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.EMBEDDED.toString())
         .addProperty(PropertyKey.MASTER_JOURNAL_FLUSH_TIMEOUT_MS, "5min")
-        .addProperty(PropertyKey.MASTER_EMBEDDED_JOURNAL_MIN_ELECTION_TIMEOUT, "750ms")
-        .addProperty(PropertyKey.MASTER_EMBEDDED_JOURNAL_MAX_ELECTION_TIMEOUT, "1500ms")
+        .addProperty(PropertyKey.MASTER_EMBEDDED_JOURNAL_MIN_ELECTION_TIMEOUT, "2s")
+        .addProperty(PropertyKey.MASTER_EMBEDDED_JOURNAL_MAX_ELECTION_TIMEOUT, "4s")
         .build();
     mCluster.start();
+
+    System.out.println(mCluster.getWorkDir());
 
     AlluxioURI testDir = new AlluxioURI("/" + CommonUtils.randomAlphaNumString(10));
     FileSystem fs = mCluster.getFileSystemClient();
@@ -162,6 +164,7 @@ public class EmbeddedJournalIntegrationTestResizing extends EmbeddedJournalInteg
 
     List<MasterNetAddress> originalMasters = new ArrayList<>(mCluster.getMasterAddresses());
     for (MasterNetAddress masterNetAddress : originalMasters) {
+      System.out.println("new round");
       // remove a master from the Alluxio cluster (could be the leader)
       int masterIdx = mCluster.getMasterAddresses().indexOf(masterNetAddress);
       mCluster.stopAndRemoveMaster(masterIdx);
@@ -171,9 +174,18 @@ public class EmbeddedJournalIntegrationTestResizing extends EmbeddedJournalInteg
       mCluster.getJournalMasterClientForMaster().removeQuorumServer(toRemove);
       waitForQuorumPropertySize(info -> true, NUM_MASTERS - 1);
       waitForQuorumPropertySize(info -> info.getServerAddress() == toRemove, 0);
+      int leader = mCluster.getMasterAddresses().get(mCluster.getPrimaryMasterIndex(5_000))
+          .getEmbeddedJournalPort();
+      System.out.printf("leader: %d\n", leader);
       // start a new master to replace the lost master
       mCluster.startNewMasters(1, false);
-      waitForQuorumPropertySize(info -> true, NUM_MASTERS);
+      int newGuy = mCluster.getMasterAddresses().get(NUM_MASTERS - 1).getEmbeddedJournalPort();
+      System.out.printf("new entrant: %d\n", newGuy);
+      try {
+        waitForQuorumPropertySize(info -> true, NUM_MASTERS);
+      } catch (Exception e) {
+        System.out.println(e);
+      }
       // verify that the cluster is still operational
       fs = mCluster.getFileSystemClient();
       assertTrue(fs.exists(testDir));
