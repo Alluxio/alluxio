@@ -83,9 +83,9 @@ public class FreeWorkerTierCommand extends AbstractFsAdminCommand {
 
   @Override
   public String getDescription() {
-    return String.format("free(evict) all blocks from all worker \nusage: %s\n"
-            + "Options:\n"
-            + " -%s, --%s\t%s\n"
+    return String.format("free(evict) all blocks from all worker %nusage: %s%n"
+            + "Options:%n"
+            + " -%s, --%s\t%s%n"
             + " -%s, --%s\t%s",
         getUsage(),
         FORCE_OPTION.getOpt(), FORCE_OPTION.getLongOpt(), FORCE_OPTION.getDescription(),

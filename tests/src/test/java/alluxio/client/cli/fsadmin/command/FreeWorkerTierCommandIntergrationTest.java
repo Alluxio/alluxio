@@ -31,7 +31,7 @@ public class FreeWorkerTierCommandIntergrationTest extends AbstractFsAdminShellT
   final String mFILE1 = "/foobar1";
 
   public void reset() throws Exception {
-    if (!mLocalAlluxioCluster.isStartedWorkers()){
+    if (!mLocalAlluxioCluster.isStartedWorkers()) {
       mLocalAlluxioCluster.startWorkers();
     }
     if (mLocalAlluxioCluster.getClient().exists(new AlluxioURI(mFILE1))) {
@@ -73,7 +73,7 @@ public class FreeWorkerTierCommandIntergrationTest extends AbstractFsAdminShellT
   public void freePersistedBlock() throws Exception {
     reset();
     // The block that persisted block will be removed from worker tier
-    if (mLocalAlluxioCluster.isStartedWorkers()){
+    if (mLocalAlluxioCluster.isStartedWorkers()) {
       FileSystemTestUtils.createByteFile(mLocalAlluxioCluster.getClient(),
           mFILE1, WritePType.CACHE_THROUGH, 10);
       assertEquals(0, mFsAdminShell.run(mCOMMAND));
