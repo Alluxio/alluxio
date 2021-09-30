@@ -292,9 +292,8 @@ public final class MasterWorkerInfo {
   /**
    * Gets the selected field information for this worker.
    *
-   * You should lock externally with {@link MasterWorkerInfo#lockWorkerMeta(EnumSet, boolean)}
-   * with {@link WorkerMetaLockSection#USAGE} specified.
-   * A shared lock is required.
+   * You should lock externally with {@link MasterWorkerInfo#lockWorkerMetaForInfo(Set)}.
+   * The required locks will be determined internally based on the fields.
    *
    * @param fieldRange the client selected fields
    * @param isLiveWorker the worker is live or not
@@ -681,19 +680,21 @@ public final class MasterWorkerInfo {
 
   /**
    * Finds the read locks necessary for required worker information.
+   * Locks the corresponding read locks for the specified worker information fields.
+   * This is a wrapper of {@link MasterWorkerInfo#lockWorkerMeta(EnumSet, boolean)}
    *
-   * @param fieldRange a set of {@link WorkerInfoField} that will be read
-   * @return the required read locks
+   * @param fieldRange a set of {@link WorkerInfoField}
+   * @return a {@link LockResource} of the {@link WorkerMetaLock}
    */
-  public static EnumSet<WorkerMetaLockSection> getLockTypesForInfo(
+  public LockResource lockWorkerMetaForInfo(
       Set<GetWorkerReportOptions.WorkerInfoField> fieldRange) {
-    EnumSet<WorkerMetaLockSection> lockSections = EnumSet.noneOf(WorkerMetaLockSection.class);
+    EnumSet<WorkerMetaLockSection> lockTypes = EnumSet.noneOf(WorkerMetaLockSection.class);
     if (fieldRange.contains(GetWorkerReportOptions.WorkerInfoField.BLOCK_COUNT)) {
-      lockSections.add(WorkerMetaLockSection.BLOCKS);
+      lockTypes.add(WorkerMetaLockSection.BLOCKS);
     }
     if (fieldRange.stream().anyMatch(USAGE_INFO_FIELDS::contains)) {
-      lockSections.add(WorkerMetaLockSection.USAGE);
+      lockTypes.add(WorkerMetaLockSection.USAGE);
     }
-    return lockSections;
+    return lockWorkerMeta(lockTypes, true);
   }
 }

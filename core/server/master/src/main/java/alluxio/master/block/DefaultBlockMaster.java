@@ -662,8 +662,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
    */
   private WorkerInfo extractWorkerInfo(MasterWorkerInfo worker,
       Set<GetWorkerReportOptions.WorkerInfoField> fieldRange, boolean isLiveWorker) {
-    EnumSet<WorkerMetaLockSection> lockSections = MasterWorkerInfo.getLockTypesForInfo(fieldRange);
-    try (LockResource r = worker.lockWorkerMeta(lockSections, true)) {
+    try (LockResource r = worker.lockWorkerMetaForInfo(fieldRange)) {
       return worker.generateWorkerInfo(fieldRange, isLiveWorker);
     }
   }
