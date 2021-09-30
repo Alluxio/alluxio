@@ -395,7 +395,12 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setDescription("Length of the master rpc queue")
           .setMetricType(MetricType.GAUGE)
           .build();
-
+  public static final MetricKey MASTER_HEARTBEAT_TRIGGERED_ACTIVE_JOB_SIZE =
+      new Builder("Master.MasterHeartbeatTriggeredActiveJobSize")
+          .setDescription("Active job size started by master")
+          .setMetricType(MetricType.GAUGE)
+          .setIsClusterAggregated(false)
+          .build();
   // Backup Restore
   public static final MetricKey MASTER_LAST_BACKUP_ENTRIES_COUNT =
       new Builder("Master.LastBackupEntriesCount")
@@ -581,6 +586,12 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setDescription("The size of master edge lock pool")
           .setMetricType(MetricType.GAUGE)
           .build();
+  public static final MetricKey MASTER_AUDIT_LOG_ENTRIES_SIZE =
+          new Builder("Master.AuditLogEntriesSize")
+                  .setDescription("The size of the audit log entries blocking queue")
+                  .setMetricType(MetricType.GAUGE)
+                  .setIsClusterAggregated(false)
+                  .build();
   // Journal metrics
   public static final MetricKey MASTER_EMBEDDED_JOURNAL_SNAPSHOT_GENERATE_TIMER =
       new Builder("Master.EmbeddedJournalSnapshotGenerateTimer")
@@ -646,6 +657,11 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setDescription("Journal entries since last checkpoint")
           .setMetricType(MetricType.GAUGE)
           .build();
+  public static final MetricKey MASTER_JOURNAL_LAST_APPLIED_COMMIT_INDEX =
+          new Builder("Master.JournalLastAppliedCommitIndex")
+                  .setDescription("The last raft log index which was applied to the state machine")
+                  .setMetricType(MetricType.GAUGE)
+                  .build();
 
   public static final MetricKey MASTER_JOURNAL_GAIN_PRIMACY_TIMER =
       new Builder("Master.JournalGainPrimacyTimer")

@@ -28,8 +28,8 @@ public final class JobServiceBenchParameters extends Parameters {
       required = true)
   public JobServiceBenchOperation mOperation;
 
-  @Parameter(names = {"--num-dirs"}, description = "the number of directories")
-  public int mNumDirs = 256;
+  @Parameter(names = {"--threads"}, description = "the number of concurrent threads to use")
+  public int mThreads = 256;
 
   @Parameter(names = {"--files-per-dir"}, description = "the number of files in each directory.")
   public int mNumFilesPerDir = 1000;
@@ -41,6 +41,19 @@ public final class JobServiceBenchParameters extends Parameters {
   @Parameter(names = {"--file-size"},
       description = "The size of a file for the Create op, allowed to be 0. (0, 1m, 2k, 8k, etc.)")
   public String mFileSize = "1k";
+
+  @Parameter(names = {"--target-throughput"},
+      description = "the target throughput to issue operations. (ops / s)")
+  public int mTargetThroughput = 1000;
+
+  @Parameter(names = {"--duration"},
+      description = "The length of time to run the benchmark. (1m, 10m, 60s, 10000ms, etc.)")
+  public String mDuration = "30s";
+
+  @Parameter(names = {"--warmup"},
+      description = "The length of time to warmup before recording measurements. (1m, 10m, 60s, "
+          + "10000ms, etc.)")
+  public String mWarmup = "30s";
 
   /**
    * Converts from String to Operation instance.

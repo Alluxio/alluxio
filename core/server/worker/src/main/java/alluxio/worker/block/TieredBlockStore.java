@@ -814,7 +814,7 @@ public class TieredBlockStore implements BlockStore {
           blocksRemoved++;
           for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
             synchronized (listener) {
-              listener.onRemoveBlockByClient(sessionId, blockMeta.getBlockId());
+              listener.onRemoveBlockByWorker(sessionId, blockMeta.getBlockId());
               listener.onRemoveBlock(sessionId, blockMeta.getBlockId(),
                   blockMeta.getBlockLocation());
             }

@@ -104,6 +104,14 @@ public final class AsyncUserAccessAuditLogWriter {
   }
 
   /**
+   * Gets the size of audit log entries.
+   * @return the size of the audit log blocking queue
+   */
+  public long getAuditLogEntriesSize() {
+    return mAuditLogEntries.size();
+  }
+
+  /**
    * Consumer thread of the queue to perform actual logging of audit info.
    */
   private class AuditLoggingWorker implements Runnable {

@@ -148,6 +148,7 @@ exposed in [AlluxioFuse](https://github.com/Alluxio/alluxio/blob/db01aae966849e8
 The count of how many times each operation is called, and the duration of each call will be recorded with metrics name `Fuse.<FUSE_OPERATION_NAME>` dynamically.
 
 The important Fuse metrics include:
+
 | Metric Name | Description |
 |-------------------------|-----------------------------------------------------|
 | Fuse.readdir | The duration metrics of listing a directory |

@@ -33,6 +33,9 @@ exports[`Workers Shallow component Matches snapshot 1`] = `
                 State
               </th>
               <th>
+                Block Count
+              </th>
+              <th>
                 Workers Capacity
               </th>
               <th>

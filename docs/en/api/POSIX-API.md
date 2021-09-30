@@ -293,7 +293,13 @@ $ ${ALLUXIO_HOME}/integration/fuse/bin/alluxio-fuse mount \
 A special mount option is the `max_idle_threads=N` which defines the maximum number of idle fuse daemon threads allowed.
 If the value is too small, FUSE may frequently create and destroy threads which will introduce extra performance overhead.
 Note that, libfuse introduce this mount option in 3.2 while JNI-Fuse supports 2.9.X during experimental stage.
+<<<<<<< HEAD
 The Alluxio Fuse docker image [alluxio/{{site.ALLUXIO_DOCKER_IMAGE}}](https://hub.docker.com/r/alluxio/{{site.ALLUXIO_DOCKER_IMAGE}}/)
+||||||| a5cc7aac00
+The Alluxio Fuse docker image [alluxio/{{site.ALLUXIO_DOCKER_IMAGE}}-fuse](https://hub.docker.com/r/alluxio/{{site.ALLUXIO_DOCKER_IMAGE}}-fuse/)
+=======
+The Alluxio docker image [alluxio/{{site.ALLUXIO_DOCKER_IMAGE}}](https://hub.docker.com/r/alluxio/{{site.ALLUXIO_DOCKER_IMAGE}}/)
+>>>>>>> ea36bb385d24769e079248015c8e490b6e46e6ed
 enables this property by modifying the [libfuse source code](https://github.com/cheyang/libfuse/tree/fuse_2_9_5_customize_multi_threads_v2).
 
 If you are using alluxio fuse docker image, set the `MAX_IDLE_THREADS` via environment variable:

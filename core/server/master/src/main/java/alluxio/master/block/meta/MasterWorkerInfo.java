@@ -278,6 +278,9 @@ public final class MasterWorkerInfo {
         case ADDRESS:
           info.setAddress(mMeta.mWorkerAddress);
           break;
+        case BLOCK_COUNT:
+          info.setBlockCount(getBlockCount());
+          break;
         case WORKER_CAPACITY_BYTES:
           info.setCapacityBytes(mUsage.mCapacityBytes);
           break;

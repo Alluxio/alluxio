@@ -166,20 +166,20 @@ to turn on GC for each individual process.
 Set in `conf/log4j.properties`:
 
 ```properties
-log4j.logger.alluxio.fuse.AlluxioFuseFileSystem=DEBUG
+log4j.logger.alluxio.fuse.AlluxioJniFuseFileSystem=DEBUG
 ```
 
 You will see debug logs at the beginning and the end of each FUSE API call with its arguments and result
 in `logs/fuse.log`:
 
 ```
-2020-03-03 14:33:35,129 DEBUG AlluxioFuseFileSystem - Enter: chmod(path=/aaa,mode=100644)
-2020-03-03 14:33:35,131 DEBUG AlluxioFuseFileSystem - Exit (0): chmod(path=/aaa,mode=100644) in 2 ms
-2020-03-03 14:33:35,132 DEBUG AlluxioFuseFileSystem - Enter: getattr(path=/aaa)
-2020-03-03 14:33:35,135 DEBUG AlluxioFuseFileSystem - Exit (0): getattr(path=/aaa) in 3 ms
-2020-03-03 14:33:35,138 DEBUG AlluxioFuseFileSystem - Enter: getattr(path=/._aaa)
-2020-03-03 14:33:35,140 DEBUG AlluxioFuseFileSystem - Failed to get info of /._aaa, path does not exist or is invalid
-2020-03-03 14:33:35,140 DEBUG AlluxioFuseFileSystem - Exit (-2): getattr(path=/._aaa) in 2 ms
+2020-03-03 14:33:35,129 DEBUG AlluxioJniFuseFileSystem - Enter: chmod(path=/aaa,mode=100644)
+2020-03-03 14:33:35,131 DEBUG AlluxioJniFuseFileSystem - Exit (0): chmod(path=/aaa,mode=100644) in 2 ms
+2020-03-03 14:33:35,132 DEBUG AlluxioJniFuseFileSystem - Enter: getattr(path=/aaa)
+2020-03-03 14:33:35,135 DEBUG AlluxioJniFuseFileSystem - Exit (0): getattr(path=/aaa) in 3 ms
+2020-03-03 14:33:35,138 DEBUG AlluxioJniFuseFileSystem - Enter: getattr(path=/._aaa)
+2020-03-03 14:33:35,140 DEBUG AlluxioJniFuseFileSystem - Failed to get info of /._aaa, path does not exist or is invalid
+2020-03-03 14:33:35,140 DEBUG AlluxioJniFuseFileSystem - Exit (-2): getattr(path=/._aaa) in 2 ms
 ```
 
 ### Logging RPCs Calls Sent by Client

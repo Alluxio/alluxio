@@ -220,7 +220,7 @@ $ ./bin/alluxio runTests
 
 When an application interacts with Alluxio in HA mode, the client must know about
 the connection information of Alluxio HA cluster, so that the client knows how to discover the Alluxio leading master.
-The following sections list two ways to specify the HA Alluxio service address on the client side.
+The following sections list three ways to specify the HA Alluxio service address on the client side.
 
 ### Specify Alluxio Service in Configuration Parameters or Java Options
 
@@ -277,6 +277,64 @@ For some other applications (e.g., Spark) where comma is not accepted inside a U
 need to use semicolons as the delimiter for multiple addresses,
 like `alluxio://master_hostname_1:19998;master_hostname_2:19998;master_hostname_3:19998`
 and `alluxio://zk@zkHost1:2181;zkHost2:2181;zkHost3:2181/path`.
+
+### Specify Alluxio Service with logical URL Authority 
+
+Some frameworks may not accept either of these ways to connect to a highly available Alluxio HA cluster,
+so Alluxio also supports connecting to an Alluxio HA cluster via a logical name. In order to use logical
+names, the following configuration options need to be set in your environment variables or site properties.
+
+#### Use logical name when using embedded journal
+
+If you are using embedded journal, you need to configure the following configuration options and connect
+to the highly available alluxio node via `alluxio://ebj@[logical-name]` , for example
+`alluxio://ebj@my-alluxio-cluster`.
+
+* alluxio.master.nameservices.[logical-name] unique identifier for each alluxio master node
+
+A comma-separated ID of the alluxio master node that determine all the alluxio master nodes in the cluster.
+For example, if you previously used `my-alluxio-cluster` as the logical name and wanted to
+use `master1,master2,master3` as individual IDs for each alluxio master, you configure this as such:
+
+```
+alluxio.master.nameservices.my-alluxio-cluster=master1,master2,master3
+```
+
+* alluxio.master.rpc.address.[logical name]. [master node ID]  RPC Address for each alluxio master node
+
+For each alluxio master node previously configured, set the full address of each alluxio master node, for example:
+
+```
+alluxio.master.rpc.address.my-alluxio-cluster.master1=master1:19998
+alluxio.master.rpc.address.my-alluxio-cluster.master2=master2:19998
+alluxio.master.rpc.address.my-alluxio-cluster.master3=master3:19998
+```
+
+#### Use logical name when using Zookeeper
+
+If you are using zookeeper for leader election, you need to configure the following values and connect to
+the highly available alluxio node via `alluxio://zk@[logical-name]` , for example `alluxio://zk@my-alluxio-cluster`.
+
+* alluxio.master.zookeeper.nameservices.[logical-name] unique identifier for each Zookeeper node
+
+A comma-separated zookeeper node ID that determine all the Zookeeper nodes in the cluster. For example,
+if you previously used `my-alluxio-cluster` as the logical name and wanted to use `node1,node2,node3` as individual
+IDs for each Zookeeper, you would configure this as such:
+
+```
+alluxio.master.zookeeper.nameservices.my-alluxio-cluster=node1,node2,node3
+```
+
+* alluxio.master.zookeeper.address.[logical-domain]. [Zookeeper node ID] Address foreach Zookeeper node
+  
+
+For each Zookeeper node previously configured, set the full address of each Zookeeper node, for example:
+
+```
+alluxio.master.zookeeper.address.my-alluxio-cluster.node1=host1:2181
+alluxio.master.zookeeper.address.my-alluxio-cluster.node2=host2:2181
+alluxio.master.zookeeper.address.my-alluxio-cluster.node3=host3:2181
+```
 
 ## Common Operations
 
