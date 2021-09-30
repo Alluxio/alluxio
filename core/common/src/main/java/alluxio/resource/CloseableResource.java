@@ -60,7 +60,9 @@ public abstract class CloseableResource<T> implements Closeable {
 
   @Override
   public void close() {
-    mTracker.close(this);
+    if (mTracker != null) {
+      mTracker.close(this);
+    }
     closeResource();
   }
 

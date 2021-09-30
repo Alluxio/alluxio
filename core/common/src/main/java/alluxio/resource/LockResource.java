@@ -12,6 +12,8 @@
 package alluxio.resource;
 
 import com.google.common.annotations.VisibleForTesting;
+import io.netty.util.ResourceLeakDetector;
+import io.netty.util.ResourceLeakTracker;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -33,10 +35,14 @@ import java.util.concurrent.locks.LockSupport;
 public class LockResource implements Closeable {
   private static final Logger LOG = LoggerFactory.getLogger(LockResource.class);
 
+  private static final ResourceLeakDetector<LockResource> DETECTOR =
+      AlluxioResourceLeakDetectorFactory.instance().newResourceLeakDetector(LockResource.class);
+
   // The lock which represents the resource. It should only be written or modified by subclasses
   // attempting to downgrade locks (see RWLockResource).
   protected Lock mLock;
   private final Runnable mCloseAction;
+  private ResourceLeakTracker<LockResource> mTracker;
 
   /**
    * Creates a new instance of {@link LockResource} using the given lock.
@@ -88,8 +94,10 @@ public class LockResource implements Closeable {
           // threads had released the lock, that a final thread would never be able to acquire it.
           LockSupport.parkNanos(10000);
         }
+        mTracker = DETECTOR.track(this);
       } else {
         mLock.lock();
+        mTracker = DETECTOR.track(this);
       }
     }
   }
@@ -112,6 +120,9 @@ public class LockResource implements Closeable {
   public void close() {
     if (mCloseAction != null) {
       mCloseAction.run();
+    }
+    if (mTracker != null) {
+      mTracker.close(this);
     }
     mLock.unlock();
   }
