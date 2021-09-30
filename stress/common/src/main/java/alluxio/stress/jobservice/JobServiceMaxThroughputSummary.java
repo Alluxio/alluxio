@@ -148,14 +148,13 @@ public final class JobServiceMaxThroughputSummary implements Summary {
     public List<Graph> generate(List<? extends Summary> results) {
       List<Graph> graphs = new ArrayList<>();
       // only examine MaxThroughputSummary
-      List<JobServiceMaxThroughputSummary> summaries =
-          results.stream().map(x -> (JobServiceMaxThroughputSummary) x).collect(Collectors.toList());
+      List<JobServiceMaxThroughputSummary> summaries = results.stream()
+          .map(x -> (JobServiceMaxThroughputSummary) x).collect(Collectors.toList());
 
       // Iterate over all operations
       for (JobServiceBenchOperation operation : JobServiceBenchOperation.values()) {
-        List<JobServiceMaxThroughputSummary> opSummaries =
-            summaries.stream().filter(x -> x.mParameters.mOperation == operation)
-                .collect(Collectors.toList());
+        List<JobServiceMaxThroughputSummary> opSummaries = summaries.stream()
+            .filter(x -> x.mParameters.mOperation == operation).collect(Collectors.toList());
 
         if (!opSummaries.isEmpty()) {
           // first() is the list of common field names, second() is the list of unique field names
@@ -163,8 +162,8 @@ public final class JobServiceMaxThroughputSummary implements Summary {
               opSummaries.stream().map(x -> x.mParameters).collect(Collectors.toList()));
 
           // Split up common description into 100 character chunks, for the sub title
-          List<String> subTitle = new ArrayList<>(Splitter.fixedLength(100).splitToList(
-              opSummaries.get(0).mParameters.getDescription(fieldNames.getFirst())));
+          List<String> subTitle = new ArrayList<>(Splitter.fixedLength(100)
+              .splitToList(opSummaries.get(0).mParameters.getDescription(fieldNames.getFirst())));
 
           for (JobServiceMaxThroughputSummary summary : opSummaries) {
             String series = summary.mParameters.getDescription(fieldNames.getSecond());

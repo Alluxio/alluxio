@@ -19,13 +19,8 @@ import alluxio.stress.cli.StressMasterBench;
 import alluxio.stress.jobservice.JobServiceBenchParameters;
 import alluxio.stress.jobservice.JobServiceBenchSummary;
 import alluxio.stress.jobservice.JobServiceMaxThroughputSummary;
-import alluxio.stress.master.MasterBenchParameters;
-import alluxio.stress.master.MasterBenchSummary;
-import alluxio.stress.master.MaxThroughputSummary;
-import alluxio.stress.master.Operation;
 import alluxio.util.CommonUtils;
 import alluxio.util.ConfigurationUtils;
-import alluxio.util.FormatUtils;
 import alluxio.util.JsonSerializable;
 import alluxio.worker.job.JobMasterClientContext;
 
@@ -57,14 +52,13 @@ public class JobServiceMaxThroughput extends Suite<JobServiceMaxThroughputSummar
     mainInternal(args, new JobServiceMaxThroughput());
   }
 
-  private JobServiceMaxThroughput() {
-  }
+  private JobServiceMaxThroughput() {}
 
   @Override
   public JobServiceMaxThroughputSummary runSuite(String[] args) throws Exception {
-    try (JobMasterClient client = JobMasterClient.Factory.create(
-        JobMasterClientContext.newBuilder(ClientContext.create(new InstancedConfiguration(
-            ConfigurationUtils.defaults()))).build())) {
+    try (JobMasterClient client = JobMasterClient.Factory.create(JobMasterClientContext
+        .newBuilder(ClientContext.create(new InstancedConfiguration(ConfigurationUtils.defaults())))
+        .build())) {
       mNumWorkers = client.getAllWorkerHealth().size();
     }
     if (mNumWorkers <= 0) {
@@ -73,11 +67,8 @@ public class JobServiceMaxThroughput extends Suite<JobServiceMaxThroughputSummar
 
     JobServiceMaxThroughputSummary summary = new JobServiceMaxThroughputSummary();
     summary.setParameters(mParameters);
-
     List<String> baseArgs = new ArrayList<>(Arrays.asList(args));
-
-
-    int best = getBest(mParameters.mTargetThroughput, summary, baseArgs);
+    int best = getBestThroughput(mParameters.mTargetThroughput, summary, baseArgs);
     LOG.info("max throughput: " + best);
 
     summary.setEndTimeMs(CommonUtils.getCurrentMs());
@@ -86,9 +77,9 @@ public class JobServiceMaxThroughput extends Suite<JobServiceMaxThroughputSummar
     return summary;
   }
 
-  // TODO(jianjian): possibly refactoring this function to a util
-  private int getBest(int initialThroughput, JobServiceMaxThroughputSummary summary, List<String> baseArgs)
-      throws Exception {
+  // TODO(jianjian): possibly refactoring this function to a util with MaxThroughput
+  private int getBestThroughput(int initialThroughput, JobServiceMaxThroughputSummary summary,
+      List<String> baseArgs) throws Exception {
     int lower = 0;
     int upper = Integer.MAX_VALUE;
     // use the input target throughput as the starting point
@@ -132,9 +123,8 @@ public class JobServiceMaxThroughput extends Suite<JobServiceMaxThroughputSummar
         // throughput was not achieved. decrease.
         next = (lower + next) / 2;
       }
-      LOG.info(
-          "target: " + requestedThroughput + " actual: " + actualThroughput + " [" + lower + " "
-              + next + " " + upper + "]");
+      LOG.info("target: " + requestedThroughput + " actual: " + actualThroughput + " [" + lower
+          + " " + next + " " + upper + "]");
       for (Map.Entry<String, List<String>> entry : mbr.getErrors().entrySet()) {
         for (String error : entry.getValue()) {
           LOG.error(String.format("%s: %s", entry.getKey(), error));
@@ -163,13 +153,11 @@ public class JobServiceMaxThroughput extends Suite<JobServiceMaxThroughputSummar
     }
   }
 
-
   /**
    * @param args the args
    * @return the results
    */
   private JobServiceBenchSummary runSingleTest(List<String> args) throws Exception {
-
     Benchmark b = new StressMasterBench();
     String result = b.run(args.toArray(new String[0]));
     return JsonSerializable.fromJson(result, new JobServiceBenchSummary[0]);
