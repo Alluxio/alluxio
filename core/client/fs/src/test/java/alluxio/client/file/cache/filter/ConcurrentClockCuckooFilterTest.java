@@ -36,7 +36,7 @@ public class ConcurrentClockCuckooFilterTest {
 
   // concurrency configurations
   private static final int DEFAULT_THREAD_AMOUNT = 12;
-  private static final int DEFAULT_TIMEOUT_SECONDS = 10;
+  private static final int DEFAULT_TIMEOUT_SECONDS = 100;
 
   private ConcurrentClockCuckooFilter<Integer> mClockFilter;
 
