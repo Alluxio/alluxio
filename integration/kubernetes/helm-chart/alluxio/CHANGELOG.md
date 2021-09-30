@@ -199,4 +199,4 @@
 - Enable Fuse process embedded in worker process
 
 0.6.28
-- Fix Alluxio CSI docker image reference. Move CSI REAEME.md instructions here
+- Fix Alluxio CSI docker image reference. Add CSI README.md instructions.
