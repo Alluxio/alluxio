@@ -43,7 +43,6 @@ public class CacheManagerWithCuckooShadowCache implements CacheManager {
   private long mShadowCacheBytes = 0;
   private final AtomicLong mShadowCacheByteHit = new AtomicLong(0);
   private long mShadowCachePages = 0;
-  private double mAvgPageSize;
 
   private ScopeInfo scope = new ScopeInfo("table1");
 

@@ -402,8 +402,6 @@ public class ConcurrentClockCuckooFilter<T> implements Serializable {
      * A thread-safe method to update scope statistics.
      */
     private void updateScopeStatistics(int scope, int number, int size) {
-//        scopeToNumber.put(scope, scopeToNumber.getOrDefault(scope, 0) - 1);
-//        scopeToSize.put(scope, scopeToSize.getOrDefault(scope, 0) - size);
         scopeToNumber[scope].addAndGet(number);
         scopeToSize[scope].addAndGet(size);
     }
@@ -453,7 +451,6 @@ public class ConcurrentClockCuckooFilter<T> implements Serializable {
         if (done) {
             // avoid another duplicated key is inserted during runCuckoo.
             if (table.findTagInBuckets(b1, b2, fp)) {
-//                locks.unlockTwoWrite(b1, b2);
                 pos.setStatus(CuckooStatus.FAILURE_KEY_DUPLICATED);
                 return false;
             } else {
@@ -541,7 +538,7 @@ public class ConcurrentClockCuckooFilter<T> implements Serializable {
     private BFSEntry slotBFSSearch(int b1, int b2, int fp) {
         Queue<BFSEntry> queue = new LinkedList<>();
         queue.offer(new BFSEntry(b1, 0, 0));
-        queue.offer(new BFSEntry(b1, 1, 0));
+        queue.offer(new BFSEntry(b2, 1, 0));
         int maxPathLen = Constants.MAX_BFS_PATH_LEN;
         while (!queue.isEmpty()) {
             BFSEntry x = queue.poll();
