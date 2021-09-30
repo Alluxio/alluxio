@@ -292,6 +292,14 @@ public interface BlockStore extends SessionCleanable, Closeable {
       IOException;
 
   /**
+   * a wrap of {@link TieredBlockStore#freeSpace(long, long, long, BlockStoreLocation)} method,
+   * will free up as much space as possible.
+   * @param sessionId the id of the session to move a block
+   * @throws IOException
+   */
+  void tryFreeAllSpace(long sessionId) throws IOException;
+
+  /**
    * Notifies the block store that a block was accessed so the block store could update accordingly
    * the registered listeners such as evictor and allocator on block access.
    *

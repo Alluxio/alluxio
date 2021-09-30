@@ -330,6 +330,18 @@ public class DefaultBlockWorkerTest {
   }
 
   @Test
+  public void removeALLBlock() throws Exception {
+    long sessionId = mRandom.nextLong();
+    for (long blockId = 0L; blockId < 1024L; blockId++) {
+      mBlockWorker.createBlock(sessionId, blockId, 1, "", 1);
+      mBlockWorker.commitBlock(sessionId, blockId, true);
+    }
+    mBlockWorker.removeAllBlock(sessionId);
+    long num = mBlockWorker.getStoreMeta().getUsedBytes();
+    assertEquals(0, mBlockWorker.getStoreMetaFull().getNumberOfBlocks());
+  }
+
+  @Test
   public void requestSpace() throws Exception {
     long blockId = mRandom.nextLong();
     long sessionId = mRandom.nextLong();

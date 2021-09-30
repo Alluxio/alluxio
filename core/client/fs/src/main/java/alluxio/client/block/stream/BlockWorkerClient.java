@@ -26,6 +26,10 @@ import alluxio.grpc.ReadRequest;
 import alluxio.grpc.ReadResponse;
 import alluxio.grpc.RemoveBlockRequest;
 import alluxio.grpc.RemoveBlockResponse;
+import alluxio.grpc.RemoveAllBlockRequest;
+import alluxio.grpc.RemoveAllBlockResponse;
+import alluxio.grpc.TryRemoveAllBlockRequest;
+import alluxio.grpc.TryRemoveAllBlockResponse;
 import alluxio.grpc.WriteRequest;
 import alluxio.grpc.WriteResponse;
 import alluxio.security.user.UserState;
@@ -125,6 +129,24 @@ public interface BlockWorkerClient extends Closeable {
    * @throws StatusRuntimeException if any error occurs
    */
   RemoveBlockResponse removeBlock(RemoveBlockRequest request);
+
+  /**
+   * Removes all blocks from worker.
+   * Will remove all blocks that can be found in worker, whether persistent or not
+   * @param request the Frees block request
+   * @return the response from server
+   * @throws StatusRuntimeException if any error occurs
+   */
+  RemoveAllBlockResponse removeAllBlock(RemoveAllBlockRequest request);
+
+  /**
+   * Try removes all blocks from worker.
+   * only free the block that block Evictable ( not pined or not locked or not marked in tier ).
+   * @param request the remove block request
+   * @return the response from server
+   * @throws StatusRuntimeException if any error occurs
+   */
+  TryRemoveAllBlockResponse tryRemoveAllBlock(TryRemoveAllBlockRequest request);
 
   /**
    * Move a block from worker.

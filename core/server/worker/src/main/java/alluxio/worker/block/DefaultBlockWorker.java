@@ -71,6 +71,7 @@ import java.net.InetSocketAddress;
 import java.nio.channels.FileChannel;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
@@ -535,6 +536,26 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
   public void removeBlock(long sessionId, long blockId)
       throws InvalidWorkerStateException, BlockDoesNotExistException, IOException {
     mLocalBlockStore.removeBlock(sessionId, blockId);
+  }
+
+  @Override
+  public void removeAllBlock(long sessionId)
+      throws InvalidWorkerStateException, IOException {
+    BlockStoreMeta mBlockStoreMeta = getStoreMetaFull();
+    for (List<Long> mBlockIds : mBlockStoreMeta.getBlockList().values()) {
+      for (long mBlockId: mBlockIds) {
+        try {
+          mLocalBlockStore.removeBlock(sessionId, mBlockId);
+        } catch (BlockDoesNotExistException e) {
+          LOG.info("No such block id: " + mBlockId);
+        }
+      }
+    }
+  }
+
+  @Override
+  public void tryRemoveAllBlock(long sessionId) throws IOException {
+    mLocalBlockStore.tryFreeAllSpace(sessionId);
   }
 
   @Override

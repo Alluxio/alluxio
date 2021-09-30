@@ -33,6 +33,10 @@ import alluxio.grpc.ReadRequest;
 import alluxio.grpc.ReadResponse;
 import alluxio.grpc.ReadResponseMarshaller;
 import alluxio.grpc.RemoveBlockRequest;
+import alluxio.grpc.RemoveAllBlockRequest;
+import alluxio.grpc.RemoveAllBlockResponse;
+import alluxio.grpc.TryRemoveAllBlockRequest;
+import alluxio.grpc.TryRemoveAllBlockResponse;
 import alluxio.grpc.RemoveBlockResponse;
 import alluxio.grpc.WriteRequestMarshaller;
 import alluxio.grpc.WriteResponse;
@@ -173,6 +177,26 @@ public class BlockWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorker
       mBlockWorker.removeBlock(sessionId, request.getBlockId());
       return RemoveBlockResponse.getDefaultInstance();
     }, "removeBlock", "request=%s", responseObserver, request);
+  }
+
+  @Override
+  public void removeAllBlock(RemoveAllBlockRequest request,
+                             StreamObserver<RemoveAllBlockResponse> responseObserver) {
+    long sessionId = IdUtils.createSessionId();
+    RpcUtils.call(LOG, () -> {
+      mBlockWorker.removeAllBlock(sessionId);
+      return RemoveAllBlockResponse.getDefaultInstance();
+    }, "removeAllBlock", "request=%s", responseObserver, request);
+  }
+
+  @Override
+  public void tryRemoveAllBlock(TryRemoveAllBlockRequest request,
+                                StreamObserver<TryRemoveAllBlockResponse> responseObserver) {
+    long sessionId = IdUtils.createSessionId();
+    RpcUtils.call(LOG, () -> {
+      mBlockWorker.tryRemoveAllBlock(sessionId);
+      return TryRemoveAllBlockResponse.getDefaultInstance();
+    }, "tryRemoveAllBlock", "request=%s", responseObserver, request);
   }
 
   @Override

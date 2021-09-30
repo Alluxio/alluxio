@@ -286,6 +286,26 @@ public interface BlockWorker extends Worker, SessionCleanable {
       throws InvalidWorkerStateException, BlockDoesNotExistException, IOException;
 
   /**
+   * Frees all block from Alluxio managed space.
+   * Will remove all blocks that can be found in tiers, whether persistent or not
+   *
+   * @param sessionId the id of the client
+   * @throws InvalidWorkerStateException if blockId has not been committed
+   */
+  void removeAllBlock(long sessionId)
+      throws InvalidWorkerStateException, IOException;
+
+  /**
+   * Try to frees all block from Alluxio managed space.
+   * Will free up as much space as possible,
+   * only free the block that block Evictable ( not pined or not locked or not marked in tier ).
+   * The Evictable: {@link BlockMetadataEvictorView#isBlockEvictable(long)}.
+   *
+   * @param sessionId the id of the client
+   */
+  void tryRemoveAllBlock(long sessionId) throws IOException;
+
+  /**
    * Request an amount of space for a block in its storage directory. The block must be a temporary
    * block.
    *

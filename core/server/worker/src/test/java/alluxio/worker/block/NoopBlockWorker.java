@@ -153,6 +153,17 @@ public class NoopBlockWorker implements BlockWorker {
   }
 
   @Override
+  public void removeAllBlock(long sessionId)
+          throws InvalidWorkerStateException, IOException {
+    // noop
+  }
+
+  @Override
+  public void tryRemoveAllBlock(long sessionId) throws IOException {
+    // noop
+  }
+
+  @Override
   public void requestSpace(long sessionId, long blockId, long additionalBytes)
       throws BlockDoesNotExistException, WorkerOutOfSpaceException, IOException {
     // noop

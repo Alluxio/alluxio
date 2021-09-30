@@ -837,6 +837,19 @@ public class TieredBlockStore implements BlockStore {
     }
   }
 
+  @Override
+  public void tryFreeAllSpace(long sessionId) throws IOException {
+    BlockStoreLocation location = BlockStoreLocation.anyTier();
+    try {
+      LOG.debug("tryFreeAllSpace, sessionId={}, ", sessionId);
+      freeSpace(sessionId, 0, getBlockStoreMeta().getCapacityBytes(), location);
+    } catch (WorkerOutOfSpaceException e) {
+      // WorkerOutOfSpaceException is within the expected,
+      // because we are trying to free all space in all tiers
+      LOG.info("Not all space free");
+    }
+  }
+
   /**
    * Gets the most updated view with most recent information on pinned inodes, and currently locked
    * blocks.

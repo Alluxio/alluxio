@@ -36,6 +36,10 @@ import alluxio.grpc.ReadRequest;
 import alluxio.grpc.ReadResponse;
 import alluxio.grpc.RemoveBlockRequest;
 import alluxio.grpc.RemoveBlockResponse;
+import alluxio.grpc.RemoveAllBlockRequest;
+import alluxio.grpc.RemoveAllBlockResponse;
+import alluxio.grpc.TryRemoveAllBlockRequest;
+import alluxio.grpc.TryRemoveAllBlockResponse;
 import alluxio.grpc.WriteRequest;
 import alluxio.grpc.WriteResponse;
 import alluxio.retry.RetryPolicy;
@@ -198,6 +202,18 @@ public class DefaultBlockWorkerClient implements BlockWorkerClient {
   public RemoveBlockResponse removeBlock(final RemoveBlockRequest request) {
     return mRpcBlockingStub.withDeadlineAfter(mRpcTimeoutMs, TimeUnit.MILLISECONDS)
         .removeBlock(request);
+  }
+
+  @Override
+  public RemoveAllBlockResponse removeAllBlock(final RemoveAllBlockRequest request) {
+    return mRpcBlockingStub.withDeadlineAfter(mRpcTimeoutMs, TimeUnit.MILLISECONDS)
+            .removeAllBlock(request);
+  }
+
+  @Override
+  public TryRemoveAllBlockResponse tryRemoveAllBlock(final TryRemoveAllBlockRequest request) {
+    return mRpcBlockingStub.withDeadlineAfter(mRpcTimeoutMs, TimeUnit.MILLISECONDS)
+        .tryRemoveAllBlock(request);
   }
 
   @Override

@@ -22,6 +22,8 @@ service BlockWorker {
   rpc AsyncCache (AsyncCacheRequest) returns (AsyncCacheResponse);
   rpc Cache (CacheRequest) returns (CacheResponse);
   rpc RemoveBlock (RemoveBlockRequest) returns (RemoveBlockResponse);
+  rpc RemoveAllBlock (RemoveAllBlockRequest) returns (RemoveAllBlockResponse);
+  rpc tryRemoveAllBlock (TryRemoveAllBlockRequest) returns (TryRemoveAllBlockResponse);
   rpc MoveBlock (MoveBlockRequest) returns (MoveBlockResponse);
 
   // TODO(lu) Move to metrics worker
@@ -171,6 +173,14 @@ message RemoveBlockRequest {
 }
 
 message RemoveBlockResponse {}
+
+message RemoveAllBlockRequest {}
+
+message RemoveAllBlockResponse {}
+
+message TryRemoveAllBlockRequest {}
+
+message TryRemoveAllBlockResponse {}
 
 message MoveBlockRequest {
   optional int64 block_id = 1;

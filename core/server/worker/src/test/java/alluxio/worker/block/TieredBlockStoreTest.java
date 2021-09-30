@@ -412,6 +412,75 @@ public final class TieredBlockStoreTest {
   }
 
   /**
+   * Tests the {@link TieredBlockStore#tryFreeAllSpace(long)} method.
+   */
+  @Test
+  public void tryFreeAllSpace() throws Exception {
+    TieredBlockStoreTestUtils.cache2(SESSION_ID1, BLOCK_ID1, BLOCK_SIZE, mTestDir1, mMetaManager,
+        mBlockIterator);
+
+    mBlockStore.tryFreeAllSpace(SESSION_ID1);
+
+    // Expect all space will be freed.
+    assertEquals(mTestDir1.getCapacityBytes(), mTestDir1.getAvailableBytes());
+    assertFalse(mTestDir1.hasBlockMeta(BLOCK_ID1));
+    assertFalse(FileUtils.exists(DefaultBlockMeta.commitPath(mTestDir1, BLOCK_ID1)));
+  }
+
+  /**
+   * Tests the {@link TieredBlockStore#tryFreeAllSpace(long)} method.
+   */
+  @Test
+  public void tryFreeAllSpaceWithPinnedBlock() throws Exception {
+    // create a pinned block, this will not be freed.
+    TieredBlockStoreTestUtils.cache(SESSION_ID1, BLOCK_ID1, BLOCK_SIZE, mBlockStore,
+        mTestDir1.toBlockStoreLocation(), true);
+
+    mBlockStore.tryFreeAllSpace(SESSION_ID1);
+
+    // Expect space will not be freed.
+    assertEquals(mTestDir1.getCapacityBytes() - BLOCK_SIZE, mTestDir1.getAvailableBytes());
+    assertTrue(mTestDir1.hasBlockMeta(BLOCK_ID1));
+  }
+
+  /**
+   * Tests the {@link TieredBlockStore#tryFreeAllSpace(long)} method.
+   */
+  @Test
+  public void tryFreeAllSpaceWithLockedBlock() throws Exception {
+    // create a locked block, this will not be freed.
+    TieredBlockStoreTestUtils.cache2(SESSION_ID1, BLOCK_ID1, BLOCK_SIZE, mTestDir1, mMetaManager,
+        mBlockIterator);
+    mBlockStore.lockBlock(SESSION_ID1, BLOCK_ID1);
+
+    mBlockStore.tryFreeAllSpace(SESSION_ID1);
+
+    // Expect space will not be freed.
+    assertEquals(mTestDir1.getCapacityBytes() - BLOCK_SIZE, mTestDir1.getAvailableBytes());
+    assertTrue(mTestDir1.hasBlockMeta(BLOCK_ID1));
+  }
+
+  /**
+   * Tests the {@link TieredBlockStore#tryFreeAllSpace(long)} method.
+   */
+  @Test
+  public void tryFreeAllSpaceMultiDir() throws Exception {
+    // create two blocks in two dirs.
+    TieredBlockStoreTestUtils.cache2(SESSION_ID1, BLOCK_ID1, BLOCK_SIZE, mTestDir1, mMetaManager,
+        mBlockIterator);
+    TieredBlockStoreTestUtils.cache2(SESSION_ID2, BLOCK_ID2, BLOCK_SIZE, mTestDir2, mMetaManager,
+        mBlockIterator);
+
+    mBlockStore.tryFreeAllSpace(SESSION_ID1);
+
+    // Expect sll space will be freed both two dirs.
+    assertEquals(mTestDir1.getCapacityBytes(), mTestDir1.getAvailableBytes());
+    assertEquals(mTestDir2.getCapacityBytes(), mTestDir2.getAvailableBytes());
+    assertFalse(mTestDir1.hasBlockMeta(BLOCK_ID1));
+    assertFalse(mTestDir2.hasBlockMeta(BLOCK_ID2));
+  }
+
+  /**
    * Tests the {@link TieredBlockStore#requestSpace(long, long, long)} method.
    */
   @Test
