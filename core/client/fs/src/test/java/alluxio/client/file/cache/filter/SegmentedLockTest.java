@@ -22,7 +22,7 @@ public class SegmentedLockTest {
   private static final int NUM_BUCKETS = 1024;
   private static final int NUM_LOCKS = 128;
 
-  private SegmentedLock locks;
+  private SegmentedLock mLocks;
 
   @Before
   public void init() {
@@ -30,19 +30,19 @@ public class SegmentedLockTest {
   }
 
   private void create(int numLocks, int numBuckets) {
-    locks = new SegmentedLock(NUM_LOCKS, NUM_BUCKETS);
+    mLocks = new SegmentedLock(NUM_LOCKS, NUM_BUCKETS);
   }
 
   @Test
   public void testConstruct() {
     create(1023, 128);
-    assertEquals(128, locks.getNumLocks());
+    assertEquals(128, mLocks.getNumLocks());
 
     create(1023, 127);
-    assertEquals(128, locks.getNumLocks());
+    assertEquals(128, mLocks.getNumLocks());
 
     create(513, 65);
-    assertEquals(128, locks.getNumLocks());
+    assertEquals(128, mLocks.getNumLocks());
   }
 
   @Test
@@ -50,8 +50,8 @@ public class SegmentedLockTest {
     for (int i = 0; i < NUM_BUCKETS; i++) {
       int r1 = ThreadLocalRandom.current().nextInt(NUM_BUCKETS);
       int r2 = ThreadLocalRandom.current().nextInt(NUM_BUCKETS);
-      locks.lockTwoWrite(r1, r2);
-      locks.unlockTwoWrite(r1, r2);
+      mLocks.lockTwoWrite(r1, r2);
+      mLocks.unlockTwoWrite(r1, r2);
     }
   }
 }

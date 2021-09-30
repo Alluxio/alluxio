@@ -21,21 +21,21 @@ import java.util.Random;
 import java.util.Set;
 
 public class SingleCuckooTableTest {
-  static final int numBuckets = 16;
-  static final int tagsPerBucket = 4;
-  static final int bitsPerTag = 8;
+  static final int NUM_BUCKETS = 16;
+  static final int TAGS_PER_BUCKET = 4;
+  static final int BITS_PER_TAG = 8;
 
   CuckooTable createCuckooTable() {
-    AbstractBitSet bits = new BuiltinBitSet(numBuckets * bitsPerTag * 4);
-    return new SingleCuckooTable(bits, numBuckets, tagsPerBucket, bitsPerTag);
+    AbstractBitSet bits = new BuiltinBitSet(NUM_BUCKETS * BITS_PER_TAG * 4);
+    return new SingleCuckooTable(bits, NUM_BUCKETS, TAGS_PER_BUCKET, BITS_PER_TAG);
   }
 
   @Test
   public void readWriteTagTest() {
     CuckooTable cuckooTable = createCuckooTable();
     Random random = new Random();
-    for (int i = 0; i < numBuckets; i++) {
-      for (int j = 0; j < tagsPerBucket; j++) {
+    for (int i = 0; i < NUM_BUCKETS; i++) {
+      for (int j = 0; j < TAGS_PER_BUCKET; j++) {
         int tag = random.nextInt(0xff);
         cuckooTable.writeTag(i, j, tag);
         int t = cuckooTable.readTag(i, j);
@@ -48,8 +48,8 @@ public class SingleCuckooTableTest {
   public void findTagTest() {
     CuckooTable cuckooTable = createCuckooTable();
     Random random = new Random();
-    for (int i = 0; i < numBuckets; i++) {
-      for (int j = 0; j < tagsPerBucket; j++) {
+    for (int i = 0; i < NUM_BUCKETS; i++) {
+      for (int j = 0; j < TAGS_PER_BUCKET; j++) {
         int tag = random.nextInt(0xff);
         cuckooTable.writeTag(i, j, tag);
         assertTrue(cuckooTable.findTagInBucket(i, tag));
@@ -61,8 +61,8 @@ public class SingleCuckooTableTest {
   public void deleteTagTest() {
     CuckooTable cuckooTable = createCuckooTable();
     Random random = new Random();
-    for (int i = 0; i < numBuckets; i++) {
-      for (int j = 0; j < tagsPerBucket; j++) {
+    for (int i = 0; i < NUM_BUCKETS; i++) {
+      for (int j = 0; j < TAGS_PER_BUCKET; j++) {
         int tag = random.nextInt(0xff);
         cuckooTable.writeTag(i, j, tag);
         assertTrue(cuckooTable.deleteTagFromBucket(i, tag));
@@ -74,8 +74,8 @@ public class SingleCuckooTableTest {
   public void rewriteTest() {
     CuckooTable cuckooTable = createCuckooTable();
     Random random = new Random();
-    for (int i = 0; i < numBuckets; i++) {
-      for (int j = 0; j < tagsPerBucket; j++) {
+    for (int i = 0; i < NUM_BUCKETS; i++) {
+      for (int j = 0; j < TAGS_PER_BUCKET; j++) {
         int tag = random.nextInt(0xff);
         cuckooTable.writeTag(i, j, tag);
         assertTrue(cuckooTable.deleteTagFromBucket(i, tag));
@@ -90,9 +90,9 @@ public class SingleCuckooTableTest {
   public void insertOrKickOneTest() {
     CuckooTable cuckooTable = createCuckooTable();
     Random random = new Random();
-    for (int i = 0; i < numBuckets; i++) {
+    for (int i = 0; i < NUM_BUCKETS; i++) {
       Set<Integer> seen = new HashSet<>();
-      for (int j = 0; j < tagsPerBucket; j++) {
+      for (int j = 0; j < TAGS_PER_BUCKET; j++) {
         int tag = random.nextInt(0xff);
         cuckooTable.writeTag(i, j, tag);
         seen.add(tag);

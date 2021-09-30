@@ -14,48 +14,48 @@ package alluxio.client.file.cache.filter;
 import java.util.concurrent.locks.StampedLock;
 
 public class SegmentedLock {
-  private final int numLocks;
-  private final int bitsOfLock;
-  private final int numBuckets;
-  private final int maskBits;
-  private final StampedLock[] locks;
-  private final int numBucketsPerSegment;
+  private final int mNumLocks;
+  private final int mBitsOfLock;
+  private final int mNumBuckets;
+  private final int mMaskBits;
+  private final StampedLock[] mLocks;
+  private final int mNumBucketsPerSegment;
 
   public SegmentedLock(int numLocks, int numBuckets) {
     int highestBit = Integer.highestOneBit(numLocks);
     if (highestBit < numLocks) {
       numLocks = highestBit << 1;
     }
-    this.numLocks = numLocks;
-    this.bitsOfLock = Integer.numberOfTrailingZeros(numLocks);
-    this.numBuckets = numBuckets;
-    this.numBucketsPerSegment = numBuckets / numLocks;
+    this.mNumLocks = numLocks;
+    this.mBitsOfLock = Integer.numberOfTrailingZeros(numLocks);
+    this.mNumBuckets = numBuckets;
+    this.mNumBucketsPerSegment = numBuckets / numLocks;
     int bitsOfBuckets = Integer.numberOfTrailingZeros(Integer.highestOneBit(numBuckets));
-    this.maskBits = bitsOfBuckets - bitsOfLock;
-    locks = new StampedLock[numLocks];
+    this.mMaskBits = bitsOfBuckets - mBitsOfLock;
+    mLocks = new StampedLock[numLocks];
     for (int i = 0; i < numLocks; i++) {
-      locks[i] = new StampedLock();
+      mLocks[i] = new StampedLock();
     }
   }
 
   public void lockOneRead(int b) {
     int i = getSegmentIndex(b);
-    locks[i].readLock();
+    mLocks[i].readLock();
   }
 
   public void unlockOneRead(int b) {
     int i = getSegmentIndex(b);
-    locks[i].tryUnlockRead();
+    mLocks[i].tryUnlockRead();
   }
 
   public void lockOneWrite(int b) {
     int i = getSegmentIndex(b);
-    locks[i].writeLock();
+    mLocks[i].writeLock();
   }
 
   public void unlockOneWrite(int b) {
     int i = getSegmentIndex(b);
-    locks[i].tryUnlockWrite();
+    mLocks[i].tryUnlockWrite();
   }
 
   public void lockTwoRead(int b1, int b2) {
@@ -66,9 +66,9 @@ public class SegmentedLock {
       i1 = i2;
       i2 = tmp;
     }
-    locks[i1].readLock();
+    mLocks[i1].readLock();
     if (i2 != i1) {
-      locks[i2].readLock();
+      mLocks[i2].readLock();
     }
   }
 
@@ -76,8 +76,8 @@ public class SegmentedLock {
     int i1 = getSegmentIndex(b1);
     int i2 = getSegmentIndex(b2);
     // Question: is unlock order important ?
-    locks[i1].tryUnlockRead();
-    locks[i2].tryUnlockRead();
+    mLocks[i1].tryUnlockRead();
+    mLocks[i2].tryUnlockRead();
   }
 
   public void lockTwoWrite(int b1, int b2) {
@@ -88,9 +88,9 @@ public class SegmentedLock {
       i1 = i2;
       i2 = tmp;
     }
-    locks[i1].writeLock();
+    mLocks[i1].writeLock();
     if (i2 != i1) {
-      locks[i2].writeLock();
+      mLocks[i2].writeLock();
     }
   }
 
@@ -98,8 +98,8 @@ public class SegmentedLock {
     int i1 = getSegmentIndex(b1);
     int i2 = getSegmentIndex(b2);
     // Question: is unlock order important ?
-    locks[i1].tryUnlockWrite();
-    locks[i2].tryUnlockWrite();
+    mLocks[i1].tryUnlockWrite();
+    mLocks[i2].tryUnlockWrite();
   }
 
   public void lockThreeWrite(int b1, int b2, int b3) {
@@ -122,12 +122,12 @@ public class SegmentedLock {
       i1 = i2;
       i2 = tmp;
     }
-    locks[i1].writeLock();
+    mLocks[i1].writeLock();
     if (i2 != i1) {
-      locks[i2].writeLock();
+      mLocks[i2].writeLock();
     }
     if (i3 != i2) {
-      locks[i3].writeLock();
+      mLocks[i3].writeLock();
     }
   }
 
@@ -135,32 +135,32 @@ public class SegmentedLock {
    * Lock ith segment.
    */
   public void lockOneSegmentWrite(int i) {
-    locks[i].writeLock();
+    mLocks[i].writeLock();
   }
 
   public void unlockOneSegmentWrite(int i) {
-    locks[i].tryUnlockWrite();
+    mLocks[i].tryUnlockWrite();
   }
 
   public int getNumLocks() {
-    return numLocks;
+    return mNumLocks;
   }
 
   public int getNumBucketsPerSegment() {
-    return numBucketsPerSegment;
+    return mNumBucketsPerSegment;
   }
 
   /**
    * Get the start index of ith segment.
    */
   public int getSegmentStartPos(int i) {
-    return i << maskBits;
+    return i << mMaskBits;
   }
 
   /**
    * Get the segment index which bucket b belongs to.
    */
   public int getSegmentIndex(int b) {
-    return b >> maskBits;
+    return b >> mMaskBits;
   }
 }

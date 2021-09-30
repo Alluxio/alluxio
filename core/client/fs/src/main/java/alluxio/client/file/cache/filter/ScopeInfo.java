@@ -14,18 +14,18 @@ package alluxio.client.file.cache.filter;
 import java.util.Objects;
 
 public class ScopeInfo {
-  private String scope;
+  private String mScope;
 
   public ScopeInfo(String scope) {
-    this.scope = scope;
+    this.mScope = scope;
   }
 
   public String getScope() {
-    return scope;
+    return mScope;
   }
 
   public void setScope(String scope) {
-    this.scope = scope;
+    this.mScope = scope;
   }
 
   @Override
@@ -35,16 +35,16 @@ public class ScopeInfo {
     if (o == null || getClass() != o.getClass())
       return false;
     ScopeInfo scopeInfo = (ScopeInfo) o;
-    return Objects.equals(scope, scopeInfo.scope);
+    return Objects.equals(mScope, scopeInfo.mScope);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(scope);
+    return Objects.hash(mScope);
   }
 
   @Override
   public String toString() {
-    return "ScopeInfo{" + "scope='" + scope + '\'' + '}';
+    return "ScopeInfo{" + "scope='" + mScope + '\'' + '}';
   }
 }

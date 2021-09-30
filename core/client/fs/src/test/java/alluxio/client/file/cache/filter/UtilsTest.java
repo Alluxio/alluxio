@@ -17,20 +17,20 @@ import static org.junit.Assert.assertTrue;
 import org.junit.Test;
 
 public class UtilsTest {
-  static final int numBuckets = 16;
-  static final int tagsPerBucket = 4;
-  static final int bitsPerTag = 8;
+  static final int NUM_BUCKETS = 16;
+  static final int TAGS_PER_BUCKET = 4;
+  static final int BITS_PER_TAG = 8;
 
   @Test
   public void testGenerateIndexAndTag() {
-    for (int i = 0; i < numBuckets; i++) {
-      for (int j = 0; j < tagsPerBucket; j++) {
+    for (int i = 0; i < NUM_BUCKETS; i++) {
+      for (int j = 0; j < TAGS_PER_BUCKET; j++) {
         IndexAndTag indexAndTag =
-            Utils.generateIndexAndTag(i * numBuckets + j, numBuckets, bitsPerTag);
-        assertTrue(0 <= indexAndTag.index && indexAndTag.index < numBuckets);
-        assertTrue(0 < indexAndTag.tag && indexAndTag.tag <= ((1 << bitsPerTag) - 1));
-        int altIndex = Utils.altIndex(indexAndTag.index, indexAndTag.tag, numBuckets);
-        int altAltIndex = Utils.altIndex(altIndex, indexAndTag.tag, numBuckets);
+            Utils.generateIndexAndTag(i * NUM_BUCKETS + j, NUM_BUCKETS, BITS_PER_TAG);
+        assertTrue(0 <= indexAndTag.index && indexAndTag.index < NUM_BUCKETS);
+        assertTrue(0 < indexAndTag.tag && indexAndTag.tag <= ((1 << BITS_PER_TAG) - 1));
+        int altIndex = Utils.altIndex(indexAndTag.index, indexAndTag.tag, NUM_BUCKETS);
+        int altAltIndex = Utils.altIndex(altIndex, indexAndTag.tag, NUM_BUCKETS);
         assertEquals(indexAndTag.index, altAltIndex);
       }
     }

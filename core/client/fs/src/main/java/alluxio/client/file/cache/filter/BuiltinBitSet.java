@@ -14,29 +14,29 @@ package alluxio.client.file.cache.filter;
 import java.util.BitSet;
 
 public class BuiltinBitSet extends AbstractBitSet {
-  private BitSet bits;
+  private BitSet mBits;
 
   public BuiltinBitSet(int nbits) {
-    bits = new BitSet(nbits);
+    mBits = new BitSet(nbits);
   }
 
   @Override
   public boolean get(int index) {
-    return bits.get(index);
+    return mBits.get(index);
   }
 
   @Override
   public void set(int index) {
-    bits.set(index);
+    mBits.set(index);
   }
 
   @Override
   public void clear(int index) {
-    bits.clear(index);
+    mBits.clear(index);
   }
 
   @Override
   public int size() {
-    return bits.size();
+    return mBits.size();
   }
 }
