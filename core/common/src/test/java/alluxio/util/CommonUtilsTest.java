@@ -12,6 +12,7 @@
 package alluxio.util;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertThat;
@@ -24,7 +25,10 @@ import alluxio.conf.InstancedConfiguration;
 import alluxio.security.group.CachedGroupMapping;
 import alluxio.security.group.GroupMappingService;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import com.google.common.io.Files;
 import org.hamcrest.Matchers;
 import org.junit.Test;
@@ -41,6 +45,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.Callable;
@@ -210,6 +215,26 @@ public class CommonUtilsTest {
           testCase.mCtorArgs);
       assertEquals(o.toString(), testCase.mExpected);
     }
+  }
+
+  @Test
+  public void isCollection() {
+    assertTrue(CommonUtils.isCollection(Sets.newHashSet()));
+    assertTrue(CommonUtils.isCollection(Maps.newHashMap()));
+    assertTrue(CommonUtils.isCollection(Lists.newArrayList()));
+    assertFalse(CommonUtils.isCollection(null));
+    assertFalse(CommonUtils.isCollection(1));
+  }
+
+  @Test
+  public void summarizeCollection() {
+    Set<Integer> set = Sets.newHashSet(1, 2);
+    assertEquals(set.toString(), CommonUtils.summarizeCollection(set, 2));
+    assertEquals("HashSet{2 entries}", CommonUtils.summarizeCollection(set, 1));
+
+    Map<Integer, Long> map = ImmutableMap.of(0, 3L, 1, 1L);
+    assertEquals(map.toString(), CommonUtils.summarizeCollection(map, 2));
+    assertEquals("Map{2 entries}", CommonUtils.summarizeCollection(map, 1));
   }
 
   static class TestClassA {

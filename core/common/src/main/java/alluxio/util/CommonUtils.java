@@ -46,6 +46,7 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
@@ -64,6 +65,7 @@ import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
@@ -881,6 +883,29 @@ public final class CommonUtils {
       }
     }
     return Integer.parseInt(version);
+  }
+
+  /**
+   * @param obj a Java object
+   * @return if this object is an collection
+   */
+  public static boolean isCollection(Object obj) {
+    return obj instanceof Collection || obj instanceof Map;
+  }
+
+  /**
+   * @param obj a Java object
+   * @param limit number of entries
+   * @return a truncated string if this object is a collection larger than limit
+   */
+  public static String summarizeCollection(Object obj, int limit) {
+    if (obj instanceof Collection && ((Collection<?>) obj).size() > limit) {
+      return String.format(
+          "%s{%d entries}", obj.getClass().getSimpleName(), ((Collection<?>) obj).size());
+    } else if (obj instanceof Map && ((Map<?, ?>) obj).size() > limit) {
+      return String.format("Map{%d entries}", ((Map<?, ?>) obj).size());
+    }
+    return obj.toString();
   }
 
   private CommonUtils() {} // prevent instantiation
