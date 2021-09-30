@@ -214,9 +214,7 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
 
     // Disable DNS style buckets, this enables path style requests.
     if (Boolean.parseBoolean(conf.get(PropertyKey.UNDERFS_S3_DISABLE_DNS_BUCKETS))) {
-      // TODO(lu) how to disable dns buckets
-      // S3ClientOptions clientOptions = S3ClientOptions.builder().setPathStyleAccess(true).build();
-      // amazonS3Client.setS3ClientOptions(clientOptions);
+      clientBuilder.enablePathStyleAccess();
     }
 
     ExecutorService service = ExecutorServiceFactories
