@@ -293,7 +293,7 @@ $ ${ALLUXIO_HOME}/integration/fuse/bin/alluxio-fuse mount \
 A special mount option is the `max_idle_threads=N` which defines the maximum number of idle fuse daemon threads allowed.
 If the value is too small, FUSE may frequently create and destroy threads which will introduce extra performance overhead.
 Note that, libfuse introduce this mount option in 3.2 while JNI-Fuse supports 2.9.X during experimental stage.
-The Alluxio Fuse docker image [alluxio/{{site.ALLUXIO_DOCKER_IMAGE}}-fuse](https://hub.docker.com/r/alluxio/{{site.ALLUXIO_DOCKER_IMAGE}}-fuse/)
+The Alluxio Fuse docker image [alluxio/{{site.ALLUXIO_DOCKER_IMAGE}}](https://hub.docker.com/r/alluxio/{{site.ALLUXIO_DOCKER_IMAGE}}/)
 enables this property by modifying the [libfuse source code](https://github.com/cheyang/libfuse/tree/fuse_2_9_5_customize_multi_threads_v2).
 
 If you are using alluxio fuse docker image, set the `MAX_IDLE_THREADS` via environment variable:
@@ -301,7 +301,7 @@ If you are using alluxio fuse docker image, set the `MAX_IDLE_THREADS` via envir
 $ docker run -d --rm \
     ...
     --env MAX_IDLE_THREADS=64 \
-    alluxio/{{site.ALLUXIO_DOCKER_IMAGE}}-fuse fuse
+    alluxio/{{site.ALLUXIO_DOCKER_IMAGE}} fuse
 ```
   {% endcollapsible %}
 {% endaccordion %}
@@ -462,3 +462,204 @@ When encountering the out of direct memory issue, add the following JVM opts to 
 ```bash
 ALLUXIO_FUSE_JAVA_OPTS+=" -XX:MaxDirectMemorySize=8G"
 ```
+
+## Troubleshooting
+
+In this section, we will talk about Alluxio POSIX API related troubleshooting.
+Note that the errors or problems of Alluxio POSIX API may come from the underlying Alluxio system.
+For general troubleshooting, follow the instructions in [troubleshooting documentation]({{ '/en/operation/Troubleshooting.html' | relativize_url }})
+
+### Fuse Input/output error
+
+Unlike Alluxio CLI, user operations against the Alluxio Fuse mount point can only receive error code and the FUSE pre-defined error code message.
+The most common error is I/O error showing below:
+```
+ls /mnt/alluxio-fuse/try.txt
+ls: /mnt/alluxio-fuse/try.txt: Input/output error
+```
+The actual error message is shown in the `logs/fuse.log` (deployed via standalone fuse process) or `logs/worker.log` (deployed via fuse in worker process).
+```
+2021-08-30 12:07:52,489 ERROR AlluxioJniFuseFileSystem - Failed to getattr /:
+alluxio.exception.status.UnavailableException: Failed to connect to master (localhost:19998) after 44 attempts.Please check if Alluxio master is currently running on "localhost:19998". Service="FileSystemMasterClient"
+        at alluxio.AbstractClient.connect(AbstractClient.java:279)
+```
+
+### Enable debug logging
+
+FUSE translates the user operations to Fuse operations. Sometimes the Fuse error comes from some unexpected Fuse operation combinations.
+By enabling debug logging, we are able to understand the sequence and time duration of the Fuse operations.
+
+For example, the normal write workload is a `Fuse.create` operation to create a file output stream, a bunch of `Fuse.write` to write to that output stream,
+and a `Fuse.release` operation to close the output stream. Then a file is written to Alluxio file system.
+However, `echo "text" > file` failed in some operating systems before. The workload becomes a `Fuse.create` to create a file output stream, a `Fuse.release`
+to close the output stream. An empty file is created in the Alluxio file system. Then a `Fuse.open` operation is issued for overwriting which is not supported
+by Alluxio before. After understanding the full workload, it's supported by Alluxio now.
+
+You can modify `${ALLUXIO_HOME}/conf/log4j.properties` to customize logging levels and restart corresponding server processes.
+
+For example, to modify the level for all logs to `DEBUG`, change the `rootLogger` level by modifying the first line of `log4j.properties` as the following:
+```
+log4j.rootLogger=DEBUG, ${alluxio.logger.type}, ${alluxio.remote.logger.type}
+```
+
+To modify the logging level for a particular Java class (e.g., set `alluxio.fuse.AlluxioJniFuseFileSystem` to `DEBUG`), add a new line in the end of this file:
+```
+alluxio.fuse.AlluxioJniFuseFileSystemm=DEBUG
+```
+Then you can know the detailed Fuse operation enter and exit debug logs.
+
+If Fuse is deployed in the worker process, one can modify server logging at runtime.
+For example, you can update the log level of all classes in `alluxio.fuse` package in all workers to `DEBUG` with the following command:
+```
+$ ./bin/alluxio logLevel --logName=alluxio.fuse --target=workers --level=DEBUG
+```
+
+For more information about logging, please check out
+[this page]({{ '/en/operation/Basic-Logging.html' | relativize_url }}).
+
+## Fuse metrics
+
+Check out the [Fuse metrics doc]({{ '/en/reference/Metrics-List.html' | relativize_url }}#fuse-metrics) for how to get Fuse metrics
+and what each metric uses for.
+
+## Performance Investigation
+
+Alluxio POSIX API performance investigation is not easy since many components are involved:
+![Fuse components]({{ '/img/fuse.png' | relativize_url }})
+
+Application
+- The application code and implementation
+- The application available resources
+- The interaction between Application and Alluxio POSIX API
+Alluxio related components
+- Alluxio servers including masters and workers
+- Alluxio FileSystem Java client
+- Alluxio Fuse implementation to connect to the Java client
+Fuse related components
+- JNIFuse, connect libfuse to Alluxio Fuse implementation
+- libfuse, userspace library for FUSE
+- Fuse kernel code
+
+### Application
+
+For application component, we focus on how the interaction between application and Alluxio POSIX API:
+- What operations run against the Alluxio POSIX API
+- What's the concurrency level
+- Is interaction with Alluxio POSIX API the performance bottleneck
+
+Only when understanding the previous questions can we know whether we need to do the performance investigation on Alluxio or Fuse side.
+For example, one tensorflow application do some read operations against the Fuse mount point and do training.
+To make sure whether the interaction with Alluxio POSIX API is the performance bottleneck, we do the following testing
+- Compare the data read throughput between original application and the one that removed the training logic.
+- Compare the data read throughput between Alluxio POSIX API and other data solutions.
+- Ruled out the other possible factors. For example, compare the data read throughput between current resources and the enlarged one.
+
+### Fuse
+
+The Fuse components, especially the libfuse and FUSE kernel code, are known to have performance overhead.
+Instead of Alluxio Fuse which interacts with Alluxio, [Stack Fuse](https://github.com/Alluxio/alluxio/blob/ea36bb385d24769e079248015c8e490b6e46e6ed/integration/fuse/src/main/java/alluxio/fuse/StackFS.java)
+interacts with local filesystem directly.
+
+For example, Alluxio Fuse read go through `Fuse kernel code -> libfuse -> JNIFuse -> AlluxioFuse -> Alluxio client -> Alluxio worker -> read the data stored on Alluxio Worker storage (local filesystem)`.
+Stack FUSE read go through `Fuse kernel code -> libfuse -> JNIFuse -> StackFS -> read the data stored on local filesystem`.
+Local filesystem read go through nothing but directly read from local filesystem.
+As long as the medium type and medium condition are similar among the three read type testing, they are comparable.
+
+By comparing the throughput between local filesystem operations and Stack Fuse operations, we can understand the overhead introduced by Fuse components (Fuse kernel, libfuse, and JNIFuse).
+By comparing the throughput between Stack Fuse operations and Alluxio Fuse operations, we can understand the overhead introduced by Alluxio itself and what's the upper bound performance AlluxioFuse can achieve.
+
+According to the Alluxio whitepaper [design and implement Alluxio POSIX API](https://www.alluxio.io/resources/whitepapers/design-and-implementation-of-alluxio-posix-support/),
+JniFuse does not introduce much overhead.
+
+Launching Stack Fuse is similar to Alluxio Fuse.
+
+First, create the source directory with permission
+```console
+$ sudo mkdir sourceDir
+$ sudo chown $(whoami) sourceDir
+$ chmod 755 sourceDir
+```
+
+Second, create the mount directory as before
+```console
+$ sudo mkdir -p /mnt/people
+$ sudo chown $(whoami) /mnt/people
+$ chmod 755 /mnt/people
+```
+
+Mount the source directory to mount directory using `StackFS`
+```console
+# integration/fuse/bin/alluxio-fuse mount -s [mount_point] [source_dir]
+$ integration/fuse/bin/alluxio-fuse mount -s /mnt/people sourceDir
+```
+
+Check `StackFS` status, unmount `StackFS` exactly the same as Alluxio Fuse
+```console
+# Stat StackFS
+$ integration/fuse/bin/alluxio-fuse mount stat
+
+# Umount StackFS
+# integration/fuse/bin/alluxio-fuse umount [mount_point]
+$ integration/fuse/bin/alluxio-fuse umount /mnt/people
+```
+
+#### libfuse worker threads
+
+The concurrency on Alluxio POSIX API is the joint effort of
+- The concurrency of application operations interacting with Fuse kernel code and libfuse
+- The concurrency of libfuse worker threads interacting with Alluxio POSIX API limited by `MAX_IDLE_THREADS` [libfuse configuration](#configure-mount-point-options).
+
+Enlarge the `MAX_IDLE_THRAEDS` to make sure it's not the performance bottleneck. One can use `jstack` or `visualvm` to see how many libfuse threads exist
+and whether the libfuse threads keep being created/destroyed.
+
+### Alluxio
+
+[Alluxio general performance tuning]({{ '/en/operation/Performance-Tuning.html' | relativize_url }}) provides
+more information about how to investigate and tune the performance of Alluxio Java client and servers.
+
+#### Clock time tracing
+
+Tracing is a good method to understand which operation consumes most of the clock time.
+
+From the `Fuse.<FUSE_OPERATION_NAME>` metrics documented in the [Fuse metrics doc]({{ '/en/reference/Metrics-List.html' | relativize_url }}#fuse-metrics),
+we can know how long each operation consumes and which operation(s) dominate the time spent in Alluxio.
+For example, if the application is metadata heavy, `Fuse.getattr` or `Fuse.readdir` may have much longer total duration compared to other operations.
+If the application is data heavy, `Fuse.read` or `Fuse.write` may consume most of the clock time.
+Fuse metrics help us to narrow down the performance investigation target.
+
+If `Fuse.read` consumes most of the clock time, enables the `alluxio.user.block.read.metrics.enabled=true` and `Client.BlockReadChunkRemote` will be recorded.
+This metric shows the duration statistics of reading data from remote workers via gRPC.
+
+If the application spent relatively long time in RPC calls, try enlarging the client pool sizes based on the workload.
+```
+# How many concurrent gRPC threads allowed to communicate from client to worker for data operations
+alluxio.user.block.worker.client.pool.max
+# How many concurrent gRPC threads allowed to communicate from client to master for block metadata operations
+alluxio.user.block.master.client.pool.size.max
+# How many concurrent gRPC threads allowed to communicate from client to master for file metadata operations
+alluxio.user.file.master.client.pool.size.max
+# How many concurrent gRPC threads allowed to communicate from worker to master for block metadata operations
+alluxio.worker.block.master.client.pool.size
+```
+If thread pool size is not the limitation, try enlarging the CPU/memory resources. gRPC threads consume CPU resources.
+
+One can follow the [opentelemetry doc](https://github.com/Alluxio/alluxio/blob/ea36bb385d24769e079248015c8e490b6e46e6ed/integration/metrics/README.md)
+to trace the gRPC calls. If some gRPC calls take extremely long time and only a small amount of time is used to do actual work, there may be too many concurrent gRPC calls or high resource contention.
+If long time spent in fulfilling the gRPC requests, we can jump to the server side to see where the slowness come from.
+
+#### CPU/memory/lock tracing
+
+[Async Profiler](https://github.com/jvm-profiling-tools/async-profiler) can trace the following kinds of events:
+- CPU cycles
+- Allocations in Java Heap
+- Contented lock attempts, including both Java object monitors and ReentrantLocks
+
+Install async profiler and run the following commands to get the information of target Alluxio process
+```console
+$ cd async-profiler && ./profiler.sh -e alloc -d 30 -f mem.svg `jps | grep AlluxioWorker | awk '{print $1}'`
+$ cd async-profiler && ./profiler.sh -e cpu -d 30 -f cpu.svg `jps | grep AlluxiWorker | awk '{print $1}'`
+$ cd async-profiler && ./profiler.sh -e lock -d 30 -f lock.txt `jps | grep AlluxioWorker | awk '{print $1}'`
+```
+- `-d` define the duration. Try to cover the whole POSIX API testing duration
+- `-e` define the profiling target
+- `-f` define the file name to dump the profile information to
