@@ -11,6 +11,9 @@
 
 package alluxio.resource;
 
+import alluxio.conf.PropertyKey;
+import alluxio.util.ConfigurationUtils;
+
 import io.netty.util.ResourceLeakDetector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,6 +26,12 @@ import org.slf4j.LoggerFactory;
  */
 public class AlluxioResourceLeakDetector<T> extends ResourceLeakDetector<T> {
   private static final Logger LOGGER = LoggerFactory.getLogger(AlluxioResourceLeakDetector.class);
+
+  static {
+    ResourceLeakDetector.Level lev = ResourceLeakDetector.Level.valueOf(
+        ConfigurationUtils.getPropertyValue(PropertyKey.LEAK_DETECTOR_LEVEL));
+    ResourceLeakDetector.setLevel(lev);
+  }
 
   /**
    * Creates a new instance of the leak detector with the specific resource type and sampling
@@ -53,7 +62,7 @@ public class AlluxioResourceLeakDetector<T> extends ResourceLeakDetector<T> {
    * An untraced leak report where there is no information about recent object accesses nor
    * where the stacktrace of where the object was created.
    *
-   * @param resourceType the class name of the resource which was leaked.
+   * @param resourceType the class name of the resource which was leaked
    */
   @Override
   protected void reportUntracedLeak(String resourceType) {
