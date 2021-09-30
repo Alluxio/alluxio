@@ -1,7 +1,7 @@
 /*
- * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the "License"). You may not use this work except in compliance with the License, which is
- * available at www.apache.org/licenses/LICENSE-2.0
+ * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0 (the
+ * "License"). You may not use this work except in compliance with the License, which is available
+ * at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
  * either express or implied, as more fully set forth in the License.
@@ -90,7 +90,7 @@ public final class CacheManagerWithCuckooShadowCacheTest {
     assertTrue(mCacheManager.put(PAGE_ID1, PAGE1));
     assertEquals(PAGE1.length, mCacheManager.get(PAGE_ID1, PAGE1.length, mBuf, 0));
     assertArrayEquals(PAGE1, mBuf);
-    for (int i=0; i < MAX_AGE; i++) {
+    for (int i = 0; i < MAX_AGE; i++) {
       mCacheManager.aging();
     }
     mCacheManager.aging();
@@ -106,13 +106,13 @@ public final class CacheManagerWithCuckooShadowCacheTest {
     assertTrue(mCacheManager.put(PAGE_ID1, PAGE1));
     assertEquals(PAGE1.length, mCacheManager.get(PAGE_ID1, PAGE1.length, mBuf, 0));
     assertArrayEquals(PAGE1, mBuf);
-    for (int i=0; i < MAX_AGE / 2; i++) {
+    for (int i = 0; i < MAX_AGE / 2; i++) {
       mCacheManager.aging();
     }
     assertTrue(mCacheManager.put(PAGE_ID2, PAGE2));
     assertEquals(PAGE2.length, mCacheManager.get(PAGE_ID2, PAGE2.length, mBuf, 0));
     assertArrayEquals(PAGE2, mBuf);
-    for (int i=0; i < MAX_AGE / 2; i++) {
+    for (int i = 0; i < MAX_AGE / 2; i++) {
       mCacheManager.aging();
     }
     mCacheManager.updateWorkingSetSize();
@@ -149,11 +149,11 @@ public final class CacheManagerWithCuckooShadowCacheTest {
       mCacheManager.aging();
     }
     mCacheManager.put(PAGE_ID2, PAGE1);
-    //PAGE_ID1 is evicted, only PAGE_ID2 in the shadow cache
+    // PAGE_ID1 is evicted, only PAGE_ID2 in the shadow cache
     assertEquals(mCacheManager.getShadowCacheBytes(), PAGE2.length);
-    //PAGE_ID1 is not in the shadow cache but still in the normal cache
+    // PAGE_ID1 is not in the shadow cache but still in the normal cache
     assertEquals(PAGE_SIZE_BYTES, mCacheManager.get(PAGE_ID1, PAGE1.length, mBuf, 0));
-    //PAGE_ID1 is added to the shadow cache again by 'get'
+    // PAGE_ID1 is added to the shadow cache again by 'get'
     assertEquals(mCacheManager.getShadowCacheBytes(), PAGE1.length + PAGE2.length);
   }
 

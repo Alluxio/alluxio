@@ -1,7 +1,7 @@
 /*
- * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the "License"). You may not use this work except in compliance with the License, which is
- * available at www.apache.org/licenses/LICENSE-2.0
+ * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0 (the
+ * "License"). You may not use this work except in compliance with the License, which is available
+ * at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
  * either express or implied, as more fully set forth in the License.
@@ -11,6 +11,8 @@
 
 package alluxio.client.file.cache;
 
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
+
 import alluxio.client.file.CacheContext;
 import alluxio.client.file.cache.filter.ConcurrentClockCuckooFilter;
 import alluxio.client.file.cache.filter.ScopeInfo;
@@ -19,17 +21,15 @@ import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
+
 import com.codahale.metrics.Counter;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.hash.BloomFilter;
 import com.google.common.hash.Funnel;
 import com.google.common.hash.PrimitiveSink;
 
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.atomic.AtomicLong;
-
-import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
 /**
  * A wrapper class of CacheManager with shadow cache.
@@ -40,18 +40,16 @@ public class CacheManagerWithCuckooShadowCache implements CacheManager {
   private final AtomicLong mShadowCachePageHit = new AtomicLong(0);
   private final ScheduledExecutorService mScheduler = Executors.newScheduledThreadPool(0);
   private final AtomicLong mShadowCacheByteRead = new AtomicLong(0);
-  private long mShadowCacheBytes = 0;
   private final AtomicLong mShadowCacheByteHit = new AtomicLong(0);
-  private long mShadowCachePages = 0;
-
-  private ScopeInfo scope = new ScopeInfo("table1");
-
   private final int slotsPerBucket = 4;
   private final int bitsPerTag = 8;
   private final int bitsPerClock;
   private final int bitsPerSize;
   private final int bitsPerScope;
   private final ConcurrentClockCuckooFilter<PageId> filter;
+  private long mShadowCacheBytes = 0;
+  private long mShadowCachePages = 0;
+  private ScopeInfo scope = new ScopeInfo("table1");
 
   /**
    * @param cacheManager the real cache manager
@@ -68,14 +66,12 @@ public class CacheManagerWithCuckooShadowCache implements CacheManager {
     long bitsPerSlot = bitsPerTag + bitsPerClock + bitsPerSize + bitsPerScope;
     long totalBuckets = budgetInBits / bitsPerSlot / slotsPerBucket;
     long expectedInsertions = Long.highestOneBit(totalBuckets);
-    filter = ConcurrentClockCuckooFilter.create(
-            CacheManagerWithShadowCache.PageIdFunnel.FUNNEL, expectedInsertions,
-            bitsPerClock, bitsPerSize, bitsPerScope,
-            SlidingWindowType.TIME_BASED, windowMs);
+    filter = ConcurrentClockCuckooFilter.create(CacheManagerWithShadowCache.PageIdFunnel.FUNNEL,
+        expectedInsertions, bitsPerClock, bitsPerSize, bitsPerScope, SlidingWindowType.TIME_BASED,
+        windowMs);
 
     long agingPeriod = windowMs >> bitsPerClock;
-    mScheduler.scheduleAtFixedRate(filter::checkAging, agingPeriod, agingPeriod,
-        MILLISECONDS);
+    mScheduler.scheduleAtFixedRate(filter::checkAging, agingPeriod, agingPeriod, MILLISECONDS);
   }
 
   /**
@@ -105,16 +101,15 @@ public class CacheManagerWithCuckooShadowCache implements CacheManager {
     return mCacheManager.put(pageId, page, cacheContext);
   }
 
-  private void updateClockCuckoo(PageId pageId, int pageLength,
-                                 CacheContext cacheContext) {
+  private void updateClockCuckoo(PageId pageId, int pageLength, CacheContext cacheContext) {
     if (!filter.mightContainAndResetClock(pageId)) {
       // TODO(iluoeli): get real scope
       filter.put(pageId, pageLength, scope);
       updateFalsePositiveRatio();
       updateWorkingSetSize();
       if (cacheContext != null) {
-        cacheContext
-            .incrementCounter(MetricKey.CLIENT_CACHE_SHADOW_CACHE_BYTES.getName(), pageLength);
+        cacheContext.incrementCounter(MetricKey.CLIENT_CACHE_SHADOW_CACHE_BYTES.getName(),
+            pageLength);
       }
     }
   }
@@ -178,8 +173,8 @@ public class CacheManagerWithCuckooShadowCache implements CacheManager {
   }
 
   @Override
-  public int get(PageId pageId, int pageOffset, int bytesToRead, byte[] buffer,
-      int offsetInBuffer, CacheContext cacheContext) {
+  public int get(PageId pageId, int pageOffset, int bytesToRead, byte[] buffer, int offsetInBuffer,
+      CacheContext cacheContext) {
     boolean seen = filter.mightContainAndResetClock(pageId);
     if (seen) {
       Metrics.SHADOW_CACHE_PAGES_HIT.inc();
