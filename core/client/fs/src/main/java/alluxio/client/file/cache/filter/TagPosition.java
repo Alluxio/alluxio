@@ -6,7 +6,7 @@ enum CuckooStatus {
     FAILURE_KEY_NOT_FOUND(2),
     FAILURE_KEY_DUPLICATED(3),
     FAILURE_TABLE_FULL(4),
-    UNDEFINED(4);
+    UNDEFINED(5);
 
     public int code;
 
