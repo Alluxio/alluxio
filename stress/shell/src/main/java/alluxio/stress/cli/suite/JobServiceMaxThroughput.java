@@ -15,7 +15,7 @@ import alluxio.ClientContext;
 import alluxio.client.job.JobMasterClient;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.stress.cli.Benchmark;
-import alluxio.stress.cli.StressMasterBench;
+import alluxio.stress.cli.StressJobServiceBench;
 import alluxio.stress.jobservice.JobServiceBenchParameters;
 import alluxio.stress.jobservice.JobServiceBenchSummary;
 import alluxio.stress.jobservice.JobServiceMaxThroughputSummary;
@@ -158,7 +158,7 @@ public class JobServiceMaxThroughput extends Suite<JobServiceMaxThroughputSummar
    * @return the results
    */
   private JobServiceBenchSummary runSingleTest(List<String> args) throws Exception {
-    Benchmark b = new StressMasterBench();
+    Benchmark b = new StressJobServiceBench();
     String result = b.run(args.toArray(new String[0]));
     return JsonSerializable.fromJson(result, new JobServiceBenchSummary[0]);
   }
