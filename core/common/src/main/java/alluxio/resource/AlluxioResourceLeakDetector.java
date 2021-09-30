@@ -35,6 +35,13 @@ public class AlluxioResourceLeakDetector<T> extends ResourceLeakDetector<T> {
     super(resourceType, samplingInterval);
   }
 
+  /**
+   * A traced leak report which includes records of the recent accesses of the particular object and
+   * the stacktrace of where the particular object was created.
+   *
+   * @param resourceType the class of the resource that was leaked
+   * @param records the stacktrace of where the leaked resource was created
+   */
   @Override
   protected void reportTracedLeak(String resourceType, String records) {
     LOGGER.error("LEAK: {}.close() was not called before resource is garbage-collected. "
@@ -42,6 +49,12 @@ public class AlluxioResourceLeakDetector<T> extends ResourceLeakDetector<T> {
         resourceType, records);
   }
 
+  /**
+   * An untraced leak report where there is no information about recent object accesses nor
+   * where the stacktrace of where the object was created.
+   *
+   * @param resourceType the class name of the resource which was leaked.
+   */
   @Override
   protected void reportUntracedLeak(String resourceType) {
     LOGGER.error("LEAK: {}.close() was not called before resource is garbage-collected. "
