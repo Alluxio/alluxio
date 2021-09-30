@@ -41,15 +41,15 @@ public class CacheManagerWithCuckooShadowCache implements CacheManager {
   private final ScheduledExecutorService mScheduler = Executors.newScheduledThreadPool(0);
   private final AtomicLong mShadowCacheByteRead = new AtomicLong(0);
   private final AtomicLong mShadowCacheByteHit = new AtomicLong(0);
-  private final int slotsPerBucket = 4;
-  private final int bitsPerTag = 8;
-  private final int bitsPerClock;
-  private final int bitsPerSize;
-  private final int bitsPerScope;
-  private final ConcurrentClockCuckooFilter<PageId> filter;
+  private final int mSlotsPerBucket = 4;
+  private final int mBitsPerTag = 8;
+  private final int mBitsPerClock;
+  private final int mBitsPerSize;
+  private final int mBitsPerScope;
+  private final ConcurrentClockCuckooFilter<PageId> mFilter;
   private long mShadowCacheBytes = 0;
   private long mShadowCachePages = 0;
-  private ScopeInfo scope = new ScopeInfo("table1");
+  private ScopeInfo mScope = new ScopeInfo("table1");
 
   /**
    * @param cacheManager the real cache manager
@@ -60,18 +60,18 @@ public class CacheManagerWithCuckooShadowCache implements CacheManager {
 
     long windowMs = conf.getMs(PropertyKey.USER_CLIENT_CACHE_SHADOW_WINDOW);
     long budgetInBits = conf.getBytes(PropertyKey.USER_CLIENT_CACHE_SHADOW_MEMORY_OVERHEAD) * 8;
-    bitsPerClock = conf.getInt(PropertyKey.USER_CLIENT_CACHE_SHADOW_CUCKOO_CLOCK_BITS);
-    bitsPerSize = conf.getInt(PropertyKey.USER_CLIENT_CACHE_SHADOW_CUCKOO_SIZE_BITS);
-    bitsPerScope = conf.getInt(PropertyKey.USER_CLIENT_CACHE_SHADOW_CUCKOO_SCOPE_BITS);
-    long bitsPerSlot = bitsPerTag + bitsPerClock + bitsPerSize + bitsPerScope;
-    long totalBuckets = budgetInBits / bitsPerSlot / slotsPerBucket;
+    mBitsPerClock = conf.getInt(PropertyKey.USER_CLIENT_CACHE_SHADOW_CUCKOO_CLOCK_BITS);
+    mBitsPerSize = conf.getInt(PropertyKey.USER_CLIENT_CACHE_SHADOW_CUCKOO_SIZE_BITS);
+    mBitsPerScope = conf.getInt(PropertyKey.USER_CLIENT_CACHE_SHADOW_CUCKOO_SCOPE_BITS);
+    long bitsPerSlot = mBitsPerTag + mBitsPerClock + mBitsPerSize + mBitsPerScope;
+    long totalBuckets = budgetInBits / bitsPerSlot / mSlotsPerBucket;
     long expectedInsertions = Long.highestOneBit(totalBuckets);
-    filter = ConcurrentClockCuckooFilter.create(CacheManagerWithShadowCache.PageIdFunnel.FUNNEL,
-        expectedInsertions, bitsPerClock, bitsPerSize, bitsPerScope, SlidingWindowType.TIME_BASED,
+    mFilter = ConcurrentClockCuckooFilter.create(CacheManagerWithShadowCache.PageIdFunnel.FUNNEL,
+        expectedInsertions, mBitsPerClock, mBitsPerSize, mBitsPerScope, SlidingWindowType.TIME_BASED,
         windowMs);
 
-    long agingPeriod = windowMs >> bitsPerClock;
-    mScheduler.scheduleAtFixedRate(filter::checkAging, agingPeriod, agingPeriod, MILLISECONDS);
+    long agingPeriod = windowMs >> mBitsPerClock;
+    mScheduler.scheduleAtFixedRate(mFilter::checkAging, agingPeriod, agingPeriod, MILLISECONDS);
   }
 
   /**
@@ -88,10 +88,10 @@ public class CacheManagerWithCuckooShadowCache implements CacheManager {
   @VisibleForTesting
   public void updateWorkingSetSize() {
     long oldPages = Metrics.SHADOW_CACHE_PAGES.getCount();
-    mShadowCachePages = filter.getItemNumber();
+    mShadowCachePages = mFilter.getItemNumber();
     Metrics.SHADOW_CACHE_PAGES.inc(mShadowCachePages - oldPages);
     long oldBytes = Metrics.SHADOW_CACHE_BYTES.getCount();
-    mShadowCacheBytes = filter.getItemSize();
+    mShadowCacheBytes = mFilter.getItemSize();
     Metrics.SHADOW_CACHE_BYTES.inc(mShadowCacheBytes - oldBytes);
   }
 
@@ -102,9 +102,9 @@ public class CacheManagerWithCuckooShadowCache implements CacheManager {
   }
 
   private void updateClockCuckoo(PageId pageId, int pageLength, CacheContext cacheContext) {
-    if (!filter.mightContainAndResetClock(pageId)) {
+    if (!mFilter.mightContainAndResetClock(pageId)) {
       // TODO(iluoeli): get real scope
-      filter.put(pageId, pageLength, scope);
+      mFilter.put(pageId, pageLength, mScope);
       updateFalsePositiveRatio();
       updateWorkingSetSize();
       if (cacheContext != null) {
@@ -118,7 +118,7 @@ public class CacheManagerWithCuckooShadowCache implements CacheManager {
    * Update the false positive ratio statistics.
    */
   private void updateFalsePositiveRatio() {
-    int falsePositiveRatio = (int) filter.expectedFpp() * 100;
+    int falsePositiveRatio = (int) mFilter.expectedFpp() * 100;
     long oldFalsePositiveRatio = Metrics.SHADOW_CACHE_FALSE_POSITIVE_RATIO.getCount();
     Metrics.SHADOW_CACHE_FALSE_POSITIVE_RATIO.inc(falsePositiveRatio - oldFalsePositiveRatio);
   }
@@ -127,7 +127,7 @@ public class CacheManagerWithCuckooShadowCache implements CacheManager {
    * Decrease each item's clock and clean stale items.
    */
   public void aging() {
-    filter.checkAging();
+    mFilter.checkAging();
   }
 
   /**
@@ -175,7 +175,7 @@ public class CacheManagerWithCuckooShadowCache implements CacheManager {
   @Override
   public int get(PageId pageId, int pageOffset, int bytesToRead, byte[] buffer, int offsetInBuffer,
       CacheContext cacheContext) {
-    boolean seen = filter.mightContainAndResetClock(pageId);
+    boolean seen = mFilter.mightContainAndResetClock(pageId);
     if (seen) {
       Metrics.SHADOW_CACHE_PAGES_HIT.inc();
       Metrics.SHADOW_CACHE_BYTES_HIT.inc(bytesToRead);

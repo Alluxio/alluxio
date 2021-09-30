@@ -32,18 +32,18 @@ public class ScopeEncoderTest {
   private static final int DEFAULT_THREAD_AMOUNT = 12;
   private static final int DEFAULT_TIMEOUT_SECONDS = 10;
 
-  private ScopeEncoder scopeEncoder;
+  private ScopeEncoder mScopeEncoder;
 
   @Before
   public void init() {
-    scopeEncoder = new ScopeEncoder(BITS_PER_SCOPE);
+    mScopeEncoder = new ScopeEncoder(BITS_PER_SCOPE);
   }
 
   @Test
   public void testBasic() {
-    int id = scopeEncoder.encode(SCOPE1);
+    int id = mScopeEncoder.encode(SCOPE1);
     assertEquals(0, id);
-    assertEquals(SCOPE1, scopeEncoder.decode(id));
+    assertEquals(SCOPE1, mScopeEncoder.decode(id));
   }
 
   @Test
@@ -54,9 +54,9 @@ public class ScopeEncoderTest {
         for (int i = 0; i < NUM_SCOPES * 16; i++) {
           int r = ThreadLocalRandom.current().nextInt(NUM_SCOPES);
           ScopeInfo scopeInfo = new ScopeInfo("table" + r);
-          int id = scopeEncoder.encode(scopeInfo);
-          assertEquals(scopeInfo, scopeEncoder.decode(id));
-          assertEquals(id, scopeEncoder.encode(scopeInfo));
+          int id = mScopeEncoder.encode(scopeInfo);
+          assertEquals(scopeInfo, mScopeEncoder.decode(id));
+          assertEquals(id, mScopeEncoder.encode(scopeInfo));
           assertTrue(0 <= id && id < NUM_SCOPES);
         }
       });
