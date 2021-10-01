@@ -949,6 +949,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.SERVER)
           .build();
+  public static final PropertyKey UNDERFS_S3_ENDPOINT_REGION =
+      new Builder(Name.UNDERFS_S3_ENDPOINT_REGION)
+          .setDescription("Optionally, set the S3 endpoint region. If not provided, "
+              + "inducted from the endpoint uri or set to null")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.SERVER)
+          .build();
   public static final PropertyKey UNDERFS_S3_OWNER_ID_TO_USERNAME_MAPPING =
       new Builder(Name.UNDERFS_S3_OWNER_ID_TO_USERNAME_MAPPING)
           .setDescription("Optionally, specify a preset s3 canonical id to Alluxio username "
@@ -969,12 +976,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey UNDERFS_S3_PROXY_PORT =
       new Builder(Name.UNDERFS_S3_PROXY_PORT)
           .setDescription("Optionally, specify a proxy port for communicating with S3.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
-          .setScope(Scope.SERVER)
-          .build();
-  public static final PropertyKey UNDERFS_S3_REGION =
-      new Builder(Name.UNDERFS_S3_REGION)
-          .setDescription("Optionally, set the S3 region.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.SERVER)
           .build();
@@ -5530,11 +5531,11 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String UNDERFS_S3_DISABLE_DNS_BUCKETS =
         "alluxio.underfs.s3.disable.dns.buckets";
     public static final String UNDERFS_S3_ENDPOINT = "alluxio.underfs.s3.endpoint";
+    public static final String UNDERFS_S3_ENDPOINT_REGION = "alluxio.underfs.s3.endpoint.region";
     public static final String UNDERFS_S3_OWNER_ID_TO_USERNAME_MAPPING =
         "alluxio.underfs.s3.owner.id.to.username.mapping";
     public static final String UNDERFS_S3_PROXY_HOST = "alluxio.underfs.s3.proxy.host";
     public static final String UNDERFS_S3_PROXY_PORT = "alluxio.underfs.s3.proxy.port";
-    public static final String UNDERFS_S3_REGION = "alluxio.underfs.s3.region";
     public static final String UNDERFS_S3_THREADS_MAX = "alluxio.underfs.s3.threads.max";
     public static final String UNDERFS_S3_UPLOAD_THREADS_MAX =
         "alluxio.underfs.s3.upload.threads.max";
