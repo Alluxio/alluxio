@@ -38,6 +38,7 @@ import com.amazonaws.client.builder.AwsClientBuilder;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.amazonaws.services.s3.internal.Mimetypes;
+import com.amazonaws.services.s3.internal.ServiceUtils;
 import com.amazonaws.services.s3.model.AccessControlList;
 import com.amazonaws.services.s3.model.CopyObjectRequest;
 import com.amazonaws.services.s3.model.DeleteObjectsRequest;
@@ -52,7 +53,9 @@ import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.amazonaws.services.s3.model.S3ObjectSummary;
 import com.amazonaws.services.s3.transfer.TransferManager;
 import com.amazonaws.services.s3.transfer.TransferManagerBuilder;
+import com.amazonaws.util.AwsHostNameUtils;
 import com.amazonaws.util.Base64;
+import com.amazonaws.util.RuntimeHttpUtils;
 import com.google.common.base.Preconditions;
 import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
@@ -64,6 +67,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -88,6 +92,8 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
 
   /** Default owner of objects if owner cannot be determined. */
   private static final String DEFAULT_OWNER = "";
+
+  private static final String S3_SERVICE_NAME = "s3";
 
   /** AWS-SDK S3 client. */
   private final AmazonS3 mClient;
@@ -199,29 +205,26 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
     if (conf.isSet(PropertyKey.UNDERFS_S3_SIGNER_ALGORITHM)) {
       clientConf.setSignerOverride(conf.get(PropertyKey.UNDERFS_S3_SIGNER_ALGORITHM));
     }
-    
+
     AmazonS3ClientBuilder clientBuilder = AmazonS3ClientBuilder
         .standard()
         .withCredentials(credentials)
-        .withClientConfiguration(clientConf);
+        .withClientConfiguration(clientConf)
+        .withPathStyleAccessEnabled(Boolean.parseBoolean(conf
+            .get(PropertyKey.UNDERFS_S3_DISABLE_DNS_BUCKETS)));
 
-    // Set a custom endpoint.
-    if (conf.isSet(PropertyKey.UNDERFS_S3_ENDPOINT) && conf.isSet(PropertyKey.UNDERFS_S3_REGION)) {
-      AwsClientBuilder.EndpointConfiguration endpointConfiguration = new AwsClientBuilder
-          .EndpointConfiguration(conf.get(PropertyKey.UNDERFS_S3_ENDPOINT), conf.get(PropertyKey.UNDERFS_S3_REGION));
+    AwsClientBuilder.EndpointConfiguration endpointConfiguration
+        = createEndpointConfiguration(conf, clientConf);
+    if (endpointConfiguration != null) {
       clientBuilder.withEndpointConfiguration(endpointConfiguration);
     }
 
-    // Disable DNS style buckets, this enables path style requests.
-    if (Boolean.parseBoolean(conf.get(PropertyKey.UNDERFS_S3_DISABLE_DNS_BUCKETS))) {
-      clientBuilder.enablePathStyleAccess();
-    }
+    AmazonS3 amazonS3Client = clientBuilder.build();
 
     ExecutorService service = ExecutorServiceFactories
         .fixedThreadPool("alluxio-s3-transfer-manager-worker",
             numTransferThreads).create();
 
-    AmazonS3 amazonS3Client = clientBuilder.build();
     TransferManager transferManager = TransferManagerBuilder.standard()
         .withS3Client(clientBuilder.build()).withExecutorFactory(() -> service)
         .withMultipartCopyThreshold(MULTIPART_COPY_THRESHOLD)
@@ -229,6 +232,41 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
 
     return new S3AUnderFileSystem(uri, amazonS3Client, bucketName,
         service, transferManager, conf, streamingUploadEnabled);
+  }
+
+  /**
+   * Creates an endpoint configuration.
+   *
+   * @param conf the aluxio conf
+   * @param clientConf the aws conf
+   * @return the endpoint configuration
+   */
+  @Nullable
+  private static AwsClientBuilder.EndpointConfiguration createEndpointConfiguration(
+      UnderFileSystemConfiguration conf, ClientConfiguration clientConf) {
+    if (!conf.isSet(PropertyKey.UNDERFS_S3_ENDPOINT)) {
+      LOG.debug("No endpoint configuration generated, using default s3 endpoint");
+      return null;
+    }
+    String endpoint = conf.get(PropertyKey.UNDERFS_S3_ENDPOINT);
+    final URI epr = RuntimeHttpUtils.toUri(endpoint, clientConf);
+    LOG.debug("Creating endpoint configuration for {}", epr);
+
+    String region;
+    if (conf.isSet(PropertyKey.UNDERFS_S3_REGION)) {
+      region = conf.get(PropertyKey.UNDERFS_S3_REGION);
+    } else if (!ServiceUtils.isS3USStandardEndpoint(endpoint)) {
+      LOG.debug("Parsing region fom non-standard s3 endpoint");
+      region = AwsHostNameUtils.parseRegion(
+          epr.getHost(),
+          S3_SERVICE_NAME);
+    } else {
+      LOG.debug("Standard s3 endpoint, declare region as null");
+      region = null;
+    }
+    LOG.debug("Region for endpoint {}, URI {} is determined as {}",
+        endpoint, epr, region);
+    return new AwsClientBuilder.EndpointConfiguration(endpoint, region);
   }
 
   /**
