@@ -11,6 +11,8 @@
 
 package alluxio.client.file.cache.filter;
 
+import alluxio.Constants;
+
 import com.google.common.hash.Funnel;
 import com.google.common.hash.HashCode;
 import com.google.common.hash.HashFunction;
@@ -36,6 +38,7 @@ public class ConcurrentClockCuckooFilter<T> implements Serializable {
   private static final int MAX_CUCKOO_COUNT = 500;
   private static final int TAGS_PER_BUCKET = 4;
   private static final int DEFAULT_NUM_LOCKS = 4096;
+  private static final int MAX_BFS_PATH_LEN = 5;
 
   // aging configurations
   // we do not want to block user operations for too long,
@@ -654,7 +657,7 @@ public class ConcurrentClockCuckooFilter<T> implements Serializable {
    */
   private boolean runCuckoo(int b1, int b2, int fp, TagPosition pos) {
     mLocks.unlockTwoWrite(b1, b2);
-    int maxPathLen = Constants.MAX_BFS_PATH_LEN;
+    int maxPathLen = MAX_BFS_PATH_LEN;
     CuckooRecord[] cuckooPath = new CuckooRecord[maxPathLen];
     for (int i = 0; i < maxPathLen; i++) {
       cuckooPath[i] = new CuckooRecord();
@@ -744,7 +747,7 @@ public class ConcurrentClockCuckooFilter<T> implements Serializable {
     Queue<BFSEntry> queue = new LinkedList<>();
     queue.offer(new BFSEntry(b1, 0, 0));
     queue.offer(new BFSEntry(b2, 1, 0));
-    int maxPathLen = Constants.MAX_BFS_PATH_LEN;
+    int maxPathLen = MAX_BFS_PATH_LEN;
     while (!queue.isEmpty()) {
       BFSEntry x = queue.poll();
       mLocks.lockOneWrite(x.mBucket);
