@@ -2016,15 +2016,16 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey MASTER_NETWORK_FLOWCONTROL_WINDOW =
         new Builder(Name.MASTER_NETWORK_FLOWCONTROL_WINDOW)
           .setDefaultValue("2MB")
-          .setDescription("The HTTP2 flow control window used by worker gRPC connections. Larger "
-              + "value will allow more data to be buffered but will use more memory.")
+          .setDescription(
+              "The HTTP2 flow control window used by Alluxio master gRPC connections. Larger "
+                  + "value will allow more data to be buffered but will use more memory.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey MASTER_NETWORK_KEEPALIVE_TIME_MS =
       new Builder(Name.MASTER_NETWORK_KEEPALIVE_TIME_MS)
           .setDefaultValue("2h")
-          .setDescription("The amount of time for data server (for block reads and block writes) "
+          .setDescription("The amount of time for Alluxio master gRPC server "
               + "to wait for a response before pinging the client to see if it is still alive.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
@@ -2032,7 +2033,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey MASTER_NETWORK_KEEPALIVE_TIMEOUT_MS =
       new Builder(Name.MASTER_NETWORK_KEEPALIVE_TIMEOUT_MS)
           .setDefaultValue("30sec")
-          .setDescription("The maximum time for a data server (for block reads and block writes) "
+          .setDescription("The maximum time for Alluxio master gRPC server "
               + "to wait for a keepalive response before closing the connection.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
@@ -6044,7 +6045,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String WORKER_NETWORK_KEEPALIVE_TIMEOUT_MS =
         "alluxio.worker.network.keepalive.timeout";
     public static final String WORKER_NETWORK_PERMIT_KEEPALIVE_TIME_MS =
-            "alluxio.worker.network.permit,.keepalive.time";
+            "alluxio.worker.network.permit.keepalive.time";
     public static final String WORKER_NETWORK_MAX_INBOUND_MESSAGE_SIZE =
         "alluxio.worker.network.max.inbound.message.size";
     public static final String WORKER_NETWORK_NETTY_BOSS_THREADS =
