@@ -11,6 +11,7 @@
 
 package alluxio.client.file.cache.filter;
 
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -24,6 +25,8 @@ import org.junit.Test;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 
 public class ConcurrentClockCuckooFilterTest {
   private static final int EXPECTED_INSERTIONS = Constants.KB;
@@ -135,5 +138,57 @@ public class ConcurrentClockCuckooFilterTest {
       });
     }
     ConcurrencyUtils.assertConcurrent(runnables, DEFAULT_TIMEOUT_SECONDS);
+  }
+
+  @Test
+  public void testCountBasedSlingWindowAging() {
+    // expect each operation to age once
+    long windowSize = (1 << BITS_PER_CLOCK);
+    // create a tiny cuckoo filter so that a segment is small enough to make sure
+    // inserted item will be opportunistic aged
+    long expectedInsertions = 128;
+    mClockFilter = ConcurrentClockCuckooFilter.create(Funnels.integerFunnel(), expectedInsertions,
+        BITS_PER_CLOCK, BITS_PER_SIZE, BITS_PER_SCOPE, SlidingWindowType.COUNT_BASED, windowSize);
+    mClockFilter.put(1, 1, SCOPE1);
+    assertEquals(MAX_AGE, mClockFilter.getAge(1));
+    for (int i = 1; i <= MAX_AGE; i++) {
+      mClockFilter.increaseOperationCount(1);
+      // although insertion will fail, opportunistic aging will be carried out
+      mClockFilter.put(1, 1, SCOPE1);
+      assertEquals(MAX_AGE - i, mClockFilter.getAge(1));
+      mClockFilter.aging();
+      assertEquals(MAX_AGE - i, mClockFilter.getAge(1));
+    }
+  }
+
+  @Test
+  public void testTimeBasedSlingWindowAging() throws InterruptedException {
+    // aging each 1s
+    long agingPeriod = Constants.SECOND_MS;
+    long windowSize = agingPeriod << BITS_PER_CLOCK;
+    // create a tiny cuckoo filter so that a segment is small enough to make sure
+    // inserted item will be opportunistic aged
+    long expectedInsertions = 128;
+    mClockFilter = ConcurrentClockCuckooFilter.create(Funnels.integerFunnel(), expectedInsertions,
+        BITS_PER_CLOCK, BITS_PER_SIZE, BITS_PER_SCOPE, SlidingWindowType.TIME_BASED, windowSize);
+    ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(0);
+    scheduler.scheduleAtFixedRate(mClockFilter::aging, agingPeriod, agingPeriod, MILLISECONDS);
+    // before inserting 1, its two buckets may have been opportunistic aged,
+    // so it will probably survived the first aging period
+    mClockFilter.put(1, 1, SCOPE1);
+    assertEquals(MAX_AGE, mClockFilter.getAge(1));
+    for (int i = 1; i <= MAX_AGE; i++) {
+      Thread.sleep(100);
+      // although insertion will fail, opportunistic aging will be carried out
+      mClockFilter.put(1, 1, SCOPE1);
+      // if the item survived the first period, it will have an age of `MAX_AGE - i + 1`;
+      // if the item do not survived the first period, it will have an age of `MAX_AGE - i`;
+      // there is no third case here
+      assertTrue(
+          mClockFilter.getAge(1) == MAX_AGE - i + 1 || mClockFilter.getAge(1) == MAX_AGE - i);
+      Thread.sleep(900);
+      assertTrue(
+          mClockFilter.getAge(1) == MAX_AGE - i + 1 || mClockFilter.getAge(1) == MAX_AGE - i);
+    }
   }
 }

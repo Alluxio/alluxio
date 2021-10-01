@@ -43,8 +43,9 @@ public final class CacheManagerWithCuckooShadowCacheTest {
   private InstancedConfiguration mConf = ConfigurationTestUtils.defaults();
 
   @Before
-  public void before() throws Exception {
-    mConf.set(PropertyKey.USER_CLIENT_CACHE_SHADOW_WINDOW, "20s");
+  public void before() {
+    // enlarge the sliding window to avoid the effect of opportunistic aging
+    mConf.set(PropertyKey.USER_CLIENT_CACHE_SHADOW_WINDOW, "1h");
     mConf.set(PropertyKey.USER_CLIENT_CACHE_SHADOW_MEMORY_OVERHEAD, "1MB");
     mConf.set(PropertyKey.USER_CLIENT_CACHE_SHADOW_CUCKOO_CLOCK_BITS, BITS_PER_CLOCK);
     mCacheManager = new CacheManagerWithCuckooShadowCache(new KVCacheManager(), mConf);

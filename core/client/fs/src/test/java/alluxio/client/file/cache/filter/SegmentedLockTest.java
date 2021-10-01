@@ -13,14 +13,21 @@ package alluxio.client.file.cache.filter;
 
 import static org.junit.Assert.assertEquals;
 
+import alluxio.test.util.ConcurrencyUtils;
+
 import org.junit.Before;
 import org.junit.Test;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 
 public class SegmentedLockTest {
   private static final int NUM_BUCKETS = 1024;
   private static final int NUM_LOCKS = 128;
+
+  private static final int DEFAULT_THREAD_AMOUNT = 12;
+  private static final int DEFAULT_TIMEOUT_SECONDS = 10;
 
   private SegmentedLock mLocks;
 
@@ -46,12 +53,18 @@ public class SegmentedLockTest {
   }
 
   @Test
-  public void testConcurrency() {
-    for (int i = 0; i < NUM_BUCKETS; i++) {
-      int r1 = ThreadLocalRandom.current().nextInt(NUM_BUCKETS);
-      int r2 = ThreadLocalRandom.current().nextInt(NUM_BUCKETS);
-      mLocks.lockTwoWrite(r1, r2);
-      mLocks.unlockTwoWrite(r1, r2);
+  public void testConcurrency() throws Exception {
+    List<Runnable> runnables = new ArrayList<>();
+    for (int k = 0; k < DEFAULT_THREAD_AMOUNT; k++) {
+      runnables.add(() -> {
+        for (int i = 0; i < NUM_BUCKETS; i++) {
+          int r1 = ThreadLocalRandom.current().nextInt(NUM_BUCKETS);
+          int r2 = ThreadLocalRandom.current().nextInt(NUM_BUCKETS);
+          mLocks.lockTwoWrite(r1, r2);
+          mLocks.unlockTwoWrite(r1, r2);
+        }
+      });
     }
+    ConcurrencyUtils.assertConcurrent(runnables, DEFAULT_TIMEOUT_SECONDS);
   }
 }
