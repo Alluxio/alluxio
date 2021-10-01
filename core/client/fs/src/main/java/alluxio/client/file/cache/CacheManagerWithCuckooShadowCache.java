@@ -67,11 +67,11 @@ public class CacheManagerWithCuckooShadowCache implements CacheManager {
     long totalBuckets = budgetInBits / bitsPerSlot / mSlotsPerBucket;
     long expectedInsertions = Long.highestOneBit(totalBuckets);
     mFilter = ConcurrentClockCuckooFilter.create(CacheManagerWithShadowCache.PageIdFunnel.FUNNEL,
-        expectedInsertions, mBitsPerClock, mBitsPerSize, mBitsPerScope, SlidingWindowType.TIME_BASED,
-        windowMs);
+        expectedInsertions, mBitsPerClock, mBitsPerSize, mBitsPerScope,
+        SlidingWindowType.TIME_BASED, windowMs);
 
     long agingPeriod = windowMs >> mBitsPerClock;
-    mScheduler.scheduleAtFixedRate(mFilter::checkAging, agingPeriod, agingPeriod, MILLISECONDS);
+    mScheduler.scheduleAtFixedRate(mFilter::aging, agingPeriod, agingPeriod, MILLISECONDS);
   }
 
   /**
@@ -127,7 +127,7 @@ public class CacheManagerWithCuckooShadowCache implements CacheManager {
    * Decrease each item's clock and clean stale items.
    */
   public void aging() {
-    mFilter.checkAging();
+    mFilter.aging();
   }
 
   /**

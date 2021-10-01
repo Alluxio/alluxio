@@ -15,16 +15,41 @@ import com.google.common.math.DoubleMath;
 
 import java.math.RoundingMode;
 
+/**
+ * This class provides some useful methods for cuckoo filters.
+ */
 public class Utils {
 
+  /**
+   * Compute the bucket on given hash value.
+   *
+   * @param hv the hash value
+   * @param numBuckets the number of buckets
+   * @return the bucket computed
+   */
   public static int indexHash(int hv, int numBuckets) {
     return hv & (numBuckets - 1);
   }
 
+  /**
+   * Compute the alternative index on given hash value and tag.
+   *
+   * @param index the bucket index
+   * @param tag the fingerprint
+   * @param numBuckets the number of buckets
+   * @return the alternative bucket index computed
+   */
   public static int altIndex(int index, int tag, int numBuckets) {
     return Utils.indexHash((int) (index ^ (tag * 0x5bd1e995)), numBuckets);
   }
 
+  /**
+   * Compute the fingerprint on given hash value.
+   *
+   * @param hv the hash value
+   * @param bitsPerTag the number of bits each tag has
+   * @return the fingerprint
+   */
   public static int tagHash(int hv, int bitsPerTag) {
     int tag;
     tag = hv & ((1 << bitsPerTag) - 1);
@@ -34,24 +59,48 @@ public class Utils {
     return tag;
   }
 
+  /**
+   * Compute the bucket and tag on given hash value.
+   *
+   * @param hv the hash value
+   * @param numBuckets the number of buckets
+   * @param bitsPerTag the number of bits each tag has
+   * @return the bucket and fingerprint
+   */
   public static IndexAndTag generateIndexAndTag(long hv, int numBuckets, int bitsPerTag) {
     int idx = Utils.indexHash((int) (hv >> 32), numBuckets);
     int tag = Utils.tagHash((int) hv, bitsPerTag);
     return new IndexAndTag(idx, tag);
   }
 
+  /**
+   * Compute the number of bits of each tag on given fpp.
+   *
+   * @param fpp the false positive probability
+   * @param loadFactor the load factor
+   * @return the optimized number of bits
+   */
   public static int optimalBitsPerTag(double fpp, double loadFactor) {
     return DoubleMath.roundToInt(DoubleMath.log2((1 / fpp) + 3) / loadFactor, RoundingMode.UP);
   }
 
+  /**
+   * Compute the number of buckets using the expected number of insertions, the load factor, and the
+   * number of tags per bucket.
+   *
+   * @param expectedInsertions the expected number of unique items
+   * @param loadFactor the load factor
+   * @param tagsPerBucket the number of slots per bucket has
+   * @return the optimized number of buckets
+   */
   public static long optimalBuckets(long expectedInsertions, double loadFactor, int tagsPerBucket) {
     long bucketsNeeded = DoubleMath
         .roundToLong((1.0 / loadFactor) * expectedInsertions / tagsPerBucket, RoundingMode.UP);
     // get next biggest power of 2
     long bitPos = Long.highestOneBit(bucketsNeeded);
-    if (bucketsNeeded > bitPos)
+    if (bucketsNeeded > bitPos) {
       bitPos = bitPos << 1;
+    }
     return bitPos;
   }
-
 }

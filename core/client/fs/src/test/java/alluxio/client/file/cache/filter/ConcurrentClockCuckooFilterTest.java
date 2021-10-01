@@ -122,7 +122,7 @@ public class ConcurrentClockCuckooFilterTest {
     // then check whether it exists after every insertion.
     assertTrue(mClockFilter.put(1, 1, SCOPE1));
     assertTrue(mClockFilter.mightContain(1));
-    int totalTags = mClockFilter.numBuckets() * mClockFilter.tagsPerBucket();
+    int totalTags = mClockFilter.getNumBuckets() * mClockFilter.getTagsPerBucket();
     List<Runnable> runnables = new ArrayList<>();
     for (int k = 0; k < DEFAULT_THREAD_AMOUNT; k++) {
       runnables.add(() -> {

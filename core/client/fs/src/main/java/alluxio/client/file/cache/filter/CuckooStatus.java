@@ -12,18 +12,18 @@
 package alluxio.client.file.cache.filter;
 
 /**
- * This class stores the bucket index and tag of an item.
+ * This class represents the status of tag position.
  */
-final class IndexAndTag {
-  public final int mBucket;
-  public final int mTag;
+enum CuckooStatus {
+  OK(0), FAILURE(1), FAILURE_KEY_NOT_FOUND(2), FAILURE_KEY_DUPLICATED(3), FAILURE_TABLE_FULL(
+      4), UNDEFINED(5);
+
+  public int mCode;
 
   /**
-   * @param bucketIndex the bucket index
-   * @param tag the tag value
+   * Create a cuckoo status.
    */
-  IndexAndTag(int bucketIndex, int tag) {
-    mBucket = bucketIndex;
-    mTag = tag;
+  CuckooStatus(int code) {
+    mCode = code;
   }
 }
