@@ -305,10 +305,14 @@ public class AlluxioMasterProcess extends MasterProcess {
     LOG.info("Starting gRPC server on address:{}", mRpcBindAddress);
     mGrpcServer = createRPCServer();
 
-    LOG.info("gRPC serving...");
     try {
+      // Start serving.
       mGrpcServer.start();
       mSafeModeManager.notifyRpcServerStarted();
+      // Acquire and log bind port from newly started server.
+      InetSocketAddress listeningAddress = InetSocketAddress
+          .createUnresolved(mRpcBindAddress.getHostName(), mGrpcServer.getBindPort());
+      LOG.info("gRPC server listening on: {}", listeningAddress);
     } catch (IOException e) {
       LOG.error("gRPC serving failed.", e);
       throw new RuntimeException("gRPC serving failed");
