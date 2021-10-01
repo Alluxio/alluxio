@@ -92,7 +92,6 @@ public final class MasterWorkerInfo {
   private static final Logger LOG = LoggerFactory.getLogger(MasterWorkerInfo.class);
   private static final String LIVE_WORKER_STATE = "In Service";
   private static final String LOST_WORKER_STATE = "Out of Service";
-  private static final int BLOCK_SIZE_LIMIT = 100;
 
   /** Worker's last updated time in ms. */
   private final AtomicLong mLastUpdatedTimeMs;
@@ -505,10 +504,8 @@ public final class MasterWorkerInfo {
         .add("capacityBytes", mUsage.mCapacityBytes)
         .add("usedBytes", mUsage.mUsedBytes)
         .add("lastUpdatedTimeMs", mLastUpdatedTimeMs.get())
-        .add("blockCount", mBlocks.size())
-        // We truncate the list of block IDs to print, unless it is for DEBUG logs
-        .add("blocks", LOG.isDebugEnabled() ? mBlocks :
-            CommonUtils.summarizeCollection(mBlocks, BLOCK_SIZE_LIMIT))
+        // We only show the number of blocks unless it is for DEBUG logs
+        .add("blocks", LOG.isDebugEnabled() ? mBlocks : CommonUtils.summarizeCollection(mBlocks))
         .add("lostStorage", mUsage.mLostStorage).toString();
   }
 

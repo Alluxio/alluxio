@@ -229,12 +229,14 @@ public class CommonUtilsTest {
   @Test
   public void summarizeCollection() {
     Set<Integer> set = Sets.newHashSet(1, 2);
-    assertEquals(set.toString(), CommonUtils.summarizeCollection(set, 2));
-    assertEquals("HashSet{2 entries}", CommonUtils.summarizeCollection(set, 1));
+    assertEquals("HashSet{2 entries}", CommonUtils.summarizeCollection(set));
 
     Map<Integer, Long> map = ImmutableMap.of(0, 3L, 1, 1L);
-    assertEquals(map.toString(), CommonUtils.summarizeCollection(map, 2));
-    assertEquals("Map{2 entries}", CommonUtils.summarizeCollection(map, 1));
+    assertEquals("Map{2 entries}", CommonUtils.summarizeCollection(map));
+
+    TestClassA a = new TestClassA();
+    assertEquals(a.toString(), CommonUtils.summarizeCollection(a));
+    assertEquals("null", CommonUtils.summarizeCollection(null));
   }
 
   static class TestClassA {

@@ -377,8 +377,9 @@ public abstract class AbstractClient implements Client {
       long duration = System.currentTimeMillis() - startMs;
       logger.debug("Exit (OK): {}({}) in {} ms", rpcName, debugDesc, duration);
       if (duration >= mRpcThreshold) {
-        logger.warn("{}({}) returned in {} ms (>={} ms)",
-            rpcName, String.format(description, args), duration, mRpcThreshold);
+        logger.warn("{}({}) returned {} in {} ms (>={} ms)",
+            rpcName, String.format(description, args),
+            CommonUtils.summarizeCollection(ret), duration, mRpcThreshold);
       }
       return ret;
     } catch (Exception e) {

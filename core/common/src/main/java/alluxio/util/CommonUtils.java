@@ -54,6 +54,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.Objects;
 import java.util.Random;
 import java.util.StringTokenizer;
 import java.util.concurrent.Callable;
@@ -65,7 +66,6 @@ import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
@@ -895,17 +895,16 @@ public final class CommonUtils {
 
   /**
    * @param obj a Java object
-   * @param limit number of entries
-   * @return a truncated string if this object is a collection larger than limit
+   * @return a string to summarize the object if this is a collection or a map
    */
-  public static String summarizeCollection(Object obj, int limit) {
-    if (obj instanceof Collection && ((Collection<?>) obj).size() > limit) {
+  public static String summarizeCollection(Object obj) {
+    if (obj instanceof Collection) {
       return String.format(
           "%s{%d entries}", obj.getClass().getSimpleName(), ((Collection<?>) obj).size());
-    } else if (obj instanceof Map && ((Map<?, ?>) obj).size() > limit) {
+    } else if (obj instanceof Map) {
       return String.format("Map{%d entries}", ((Map<?, ?>) obj).size());
     }
-    return obj.toString();
+    return Objects.toString(obj);
   }
 
   private CommonUtils() {} // prevent instantiation
