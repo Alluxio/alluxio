@@ -29,6 +29,8 @@ import java.util.concurrent.atomic.AtomicLong;
  * @param <T> the type of item
  */
 public class ConcurrentClockCuckooFilter<T> implements Serializable {
+  private static final long serialVersionUID = 1L;
+
   private static final double DEFAULT_FPP = 0.01;
   private static final double DEFAULT_LOAD_FACTOR = 0.955;
   private static final int MAX_CUCKOO_COUNT = 500;
