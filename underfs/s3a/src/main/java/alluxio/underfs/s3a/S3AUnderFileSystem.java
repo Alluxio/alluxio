@@ -253,8 +253,8 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
     LOG.debug("Creating endpoint configuration for {}", epr);
 
     String region;
-    if (conf.isSet(PropertyKey.UNDERFS_S3_REGION)) {
-      region = conf.get(PropertyKey.UNDERFS_S3_REGION);
+    if (conf.isSet(PropertyKey.UNDERFS_S3_ENDPOINT_REGION)) {
+      region = conf.get(PropertyKey.UNDERFS_S3_ENDPOINT_REGION);
     } else if (!ServiceUtils.isS3USStandardEndpoint(endpoint)) {
       LOG.debug("Parsing region fom non-standard s3 endpoint");
       region = AwsHostNameUtils.parseRegion(
