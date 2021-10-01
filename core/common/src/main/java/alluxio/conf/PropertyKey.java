@@ -2013,6 +2013,41 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDescription("The maximum size of a message that can be sent to the Alluxio master")
           .setScope(Scope.MASTER)
           .build();
+  public static final PropertyKey MASTER_NETWORK_FLOWCONTROL_WINDOW =
+        new Builder(Name.MASTER_NETWORK_FLOWCONTROL_WINDOW)
+          .setDefaultValue("2MB")
+          .setDescription(
+              "The HTTP2 flow control window used by Alluxio master gRPC connections. Larger "
+                  + "value will allow more data to be buffered but will use more memory.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.MASTER)
+          .build();
+  public static final PropertyKey MASTER_NETWORK_KEEPALIVE_TIME_MS =
+      new Builder(Name.MASTER_NETWORK_KEEPALIVE_TIME_MS)
+          .setDefaultValue("2h")
+          .setDescription("The amount of time for Alluxio master gRPC server "
+              + "to wait for a response before pinging the client to see if it is still alive.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.MASTER)
+          .build();
+  public static final PropertyKey MASTER_NETWORK_KEEPALIVE_TIMEOUT_MS =
+      new Builder(Name.MASTER_NETWORK_KEEPALIVE_TIMEOUT_MS)
+          .setDefaultValue("30sec")
+          .setDescription("The maximum time for Alluxio master gRPC server "
+              + "to wait for a keepalive response before closing the connection.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.MASTER)
+          .build();
+  public static final PropertyKey MASTER_NETWORK_PERMIT_KEEPALIVE_TIME_MS =
+      new Builder(Name.MASTER_NETWORK_PERMIT_KEEPALIVE_TIME_MS)
+          .setDefaultValue("30sec")
+          .setDescription(
+              "Specify the most aggressive keep-alive time clients are permitted to configure. "
+                  + "The server will try to detect clients exceeding this rate and when detected "
+                  + "will forcefully close the connection.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.MASTER)
+          .build();
   public static final PropertyKey MASTER_LOST_WORKER_FILE_DETECTION_INTERVAL =
       new Builder(Name.MASTER_LOST_WORKER_FILE_DETECTION_INTERVAL)
           .setDefaultValue("5min")
@@ -3133,6 +3168,17 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDefaultValue("30sec")
           .setDescription("The maximum time for a data server (for block reads and block writes) "
               + "to wait for a keepalive response before closing the connection.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.WORKER)
+          .build();
+  public static final PropertyKey WORKER_NETWORK_PERMIT_KEEPALIVE_TIME_MS =
+      new Builder(
+          Name.WORKER_NETWORK_PERMIT_KEEPALIVE_TIME_MS)
+          .setDefaultValue("5m")
+          .setDescription(
+              "Specify the most aggressive keep-alive time clients are permitted to configure. "
+                  + "The server will try to detect clients exceeding this rate and when detected "
+                  + "will forcefully close the connection.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
@@ -5796,6 +5842,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.metrics.file.size.distribution.buckets";
     public static final String MASTER_NETWORK_MAX_INBOUND_MESSAGE_SIZE =
         "alluxio.master.network.max.inbound.message.size";
+    public static final String MASTER_NETWORK_FLOWCONTROL_WINDOW =
+        "alluxio.master.network.flowcontrol.window";
+    public static final String MASTER_NETWORK_KEEPALIVE_TIME_MS =
+        "alluxio.master.network.keepalive.time";
+    public static final String MASTER_NETWORK_KEEPALIVE_TIMEOUT_MS =
+        "alluxio.master.network.keepalive.timeout";
+    public static final String MASTER_NETWORK_PERMIT_KEEPALIVE_TIME_MS =
+        "alluxio.master.network.permit.keepalive.time";
     public static final String MASTER_PERSISTENCE_INITIAL_INTERVAL_MS =
         "alluxio.master.persistence.initial.interval";
     public static final String MASTER_PERSISTENCE_MAX_TOTAL_WAIT_TIME_MS =
@@ -5990,6 +6044,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.worker.network.keepalive.time";
     public static final String WORKER_NETWORK_KEEPALIVE_TIMEOUT_MS =
         "alluxio.worker.network.keepalive.timeout";
+    public static final String WORKER_NETWORK_PERMIT_KEEPALIVE_TIME_MS =
+            "alluxio.worker.network.permit.keepalive.time";
     public static final String WORKER_NETWORK_MAX_INBOUND_MESSAGE_SIZE =
         "alluxio.worker.network.max.inbound.message.size";
     public static final String WORKER_NETWORK_NETTY_BOSS_THREADS =

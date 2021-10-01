@@ -58,6 +58,8 @@ public final class GrpcDataServer implements DataServer {
       ServerConfiguration.getMs(PropertyKey.WORKER_NETWORK_KEEPALIVE_TIME_MS);
   private final long mKeepAliveTimeoutMs =
       ServerConfiguration.getMs(PropertyKey.WORKER_NETWORK_KEEPALIVE_TIMEOUT_MS);
+  private final long mPermitKeepAliveTimeMs =
+      ServerConfiguration.getMs(PropertyKey.WORKER_NETWORK_PERMIT_KEEPALIVE_TIME_MS);
   private final long mFlowControlWindow =
       ServerConfiguration.getBytes(PropertyKey.WORKER_NETWORK_FLOWCONTROL_WINDOW);
   private final long mMaxInboundMessageSize =
@@ -103,6 +105,7 @@ public final class GrpcDataServer implements DataServer {
           .flowControlWindow((int) mFlowControlWindow)
           .keepAliveTime(mKeepAliveTimeMs, TimeUnit.MILLISECONDS)
           .keepAliveTimeout(mKeepAliveTimeoutMs, TimeUnit.MILLISECONDS)
+          .permitKeepAlive(mPermitKeepAliveTimeMs, TimeUnit.MILLISECONDS)
           .maxInboundMessageSize((int) mMaxInboundMessageSize)
           .build()
           .start();
