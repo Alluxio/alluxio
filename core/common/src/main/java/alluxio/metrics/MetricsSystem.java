@@ -94,13 +94,14 @@ public final class MetricsSystem {
    * An enum of supported instance type.
    */
   public enum InstanceType {
-    JOB_MASTER("JobMaster"),
-    JOB_WORKER("JobWorker"),
+    CLUSTER("Cluster"),
+    SERVER("Server"),
     MASTER("Master"),
     WORKER("Worker"),
-    CLUSTER("Cluster"),
-    CLIENT("Client"),
+    JOB_MASTER("JobMaster"),
+    JOB_WORKER("JobWorker"),
     PROXY("Proxy"),
+    CLIENT("Client"),
     FUSE("Fuse");
 
     private String mValue;
