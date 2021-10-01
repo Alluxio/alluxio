@@ -20,7 +20,6 @@ import java.util.concurrent.locks.StampedLock;
 public class SegmentedLock {
   private final int mNumLocks;
   private final int mBitsOfLock;
-  private final int mNumBuckets;
   private final int mMaskBits;
   private final StampedLock[] mLocks;
   private final int mNumBucketsPerSegment;
@@ -38,7 +37,6 @@ public class SegmentedLock {
     }
     mNumLocks = numLocks;
     mBitsOfLock = Integer.numberOfTrailingZeros(numLocks);
-    mNumBuckets = numBuckets;
     mNumBucketsPerSegment = numBuckets / numLocks;
     int bitsOfBuckets = Integer.numberOfTrailingZeros(Integer.highestOneBit(numBuckets));
     mMaskBits = bitsOfBuckets - mBitsOfLock;

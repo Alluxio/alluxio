@@ -35,14 +35,15 @@ import java.util.concurrent.atomic.AtomicLong;
  * A wrapper class of CacheManager with shadow cache.
  */
 public class CacheManagerWithCuckooShadowCache implements CacheManager {
+  private static final int SLOTS_PER_BUCKET = 4;
+  private static final int BITS_PER_TAG = 8;
+
   private final CacheManager mCacheManager;
   private final AtomicLong mShadowCachePageRead = new AtomicLong(0);
   private final AtomicLong mShadowCachePageHit = new AtomicLong(0);
   private final ScheduledExecutorService mScheduler = Executors.newScheduledThreadPool(0);
   private final AtomicLong mShadowCacheByteRead = new AtomicLong(0);
   private final AtomicLong mShadowCacheByteHit = new AtomicLong(0);
-  private final int mSlotsPerBucket = 4;
-  private final int mBitsPerTag = 8;
   private final int mBitsPerClock;
   private final int mBitsPerSize;
   private final int mBitsPerScope;
@@ -63,8 +64,8 @@ public class CacheManagerWithCuckooShadowCache implements CacheManager {
     mBitsPerClock = conf.getInt(PropertyKey.USER_CLIENT_CACHE_SHADOW_CUCKOO_CLOCK_BITS);
     mBitsPerSize = conf.getInt(PropertyKey.USER_CLIENT_CACHE_SHADOW_CUCKOO_SIZE_BITS);
     mBitsPerScope = conf.getInt(PropertyKey.USER_CLIENT_CACHE_SHADOW_CUCKOO_SCOPE_BITS);
-    long bitsPerSlot = mBitsPerTag + mBitsPerClock + mBitsPerSize + mBitsPerScope;
-    long totalBuckets = budgetInBits / bitsPerSlot / mSlotsPerBucket;
+    long bitsPerSlot = BITS_PER_TAG + mBitsPerClock + mBitsPerSize + mBitsPerScope;
+    long totalBuckets = budgetInBits / bitsPerSlot / SLOTS_PER_BUCKET;
     long expectedInsertions = Long.highestOneBit(totalBuckets);
     mFilter = ConcurrentClockCuckooFilter.create(CacheManagerWithShadowCache.PageIdFunnel.FUNNEL,
         expectedInsertions, mBitsPerClock, mBitsPerSize, mBitsPerScope,

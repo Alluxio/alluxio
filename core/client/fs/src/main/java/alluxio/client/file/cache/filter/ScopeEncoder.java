@@ -12,18 +12,15 @@
 package alluxio.client.file.cache.filter;
 
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * A scope encoder that supports encode/decode scope information.
  */
 public class ScopeEncoder {
-  private final int mBitsPerScope;
   private final int mMaxNumScopes;
+  private final int mScopeMask;
   private final ConcurrentHashMap<ScopeInfo, Integer> mScopeToId;
   private final ConcurrentHashMap<Integer, ScopeInfo> mIdToScope;
-  private final Lock mLock;
   private int mCount; // the next scope id
 
   /**
@@ -32,12 +29,11 @@ public class ScopeEncoder {
    * @param bitsPerScope the number of bits the scope has
    */
   public ScopeEncoder(int bitsPerScope) {
-    mBitsPerScope = bitsPerScope;
     mMaxNumScopes = (1 << bitsPerScope);
+    mScopeMask = mMaxNumScopes - 1;
     mCount = 0;
     mScopeToId = new ConcurrentHashMap<>();
     mIdToScope = new ConcurrentHashMap<>();
-    mLock = new ReentrantLock();
   }
 
   /**
@@ -48,15 +44,26 @@ public class ScopeEncoder {
    */
   public int encode(ScopeInfo scopeInfo) {
     if (!mScopeToId.containsKey(scopeInfo)) {
-      mLock.lock();
-      if (!mScopeToId.containsKey(scopeInfo)) {
-        mScopeToId.put(scopeInfo, mCount);
-        mIdToScope.put(mCount, scopeInfo);
-        mCount++;
+      synchronized (this) {
+        if (!mScopeToId.containsKey(scopeInfo)) {
+          // TODO(iluoeli): make sure scope id is smaller than mMaxNumScopes
+          // Question: If update mScopeToId ahead of updating mIdToScope,
+          // we may read a null scope info in decode.
+          int id = mCount;
+          mCount++;
+          // the following bothersome code is to pass findbugs plugin
+          ScopeInfo oldScope = mIdToScope.putIfAbsent(id, scopeInfo);
+          if (scopeInfo.equals(oldScope)) {
+            scopeInfo = oldScope;
+          }
+          Integer oldId = mScopeToId.putIfAbsent(scopeInfo, id);
+          if (oldId != null) {
+            return oldId & mScopeMask;
+          }
+        }
       }
-      mLock.unlock();
     }
-    return mScopeToId.get(scopeInfo);
+    return mScopeToId.get(scopeInfo) & mScopeMask;
   }
 
   /**
