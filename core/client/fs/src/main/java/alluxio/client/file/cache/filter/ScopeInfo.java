@@ -13,27 +13,45 @@ package alluxio.client.file.cache.filter;
 
 import java.util.Objects;
 
+/**
+ * This class represents a scope.
+ */
 public class ScopeInfo {
   private String mScope;
 
+  /**
+   * Create a scope with specified string.
+   *
+   * @param scope the scope name
+   */
   public ScopeInfo(String scope) {
-    this.mScope = scope;
+    mScope = scope;
   }
 
+  /**
+   * @return the string information of this scope
+   */
   public String getScope() {
     return mScope;
   }
 
+  /**
+   * Set the scope.
+   *
+   * @param scope the scope name
+   */
   public void setScope(String scope) {
-    this.mScope = scope;
+    mScope = scope;
   }
 
   @Override
   public boolean equals(Object o) {
-    if (this == o)
+    if (this == o) {
       return true;
-    if (o == null || getClass() != o.getClass())
+    }
+    if (o == null || getClass() != o.getClass()) {
       return false;
+    }
     ScopeInfo scopeInfo = (ScopeInfo) o;
     return Objects.equals(mScope, scopeInfo.mScope);
   }

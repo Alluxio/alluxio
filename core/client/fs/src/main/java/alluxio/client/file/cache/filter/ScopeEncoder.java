@@ -15,6 +15,9 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
+/**
+ * A scope encoder that supports encode/decode scope information.
+ */
 public class ScopeEncoder {
   private final int mBitsPerScope;
   private final int mMaxNumScopes;
@@ -23,15 +26,26 @@ public class ScopeEncoder {
   private final Lock mLock;
   private int mCount; // the next scope id
 
+  /**
+   * Create a scope encoder.
+   *
+   * @param bitsPerScope the number of bits the scope has
+   */
   public ScopeEncoder(int bitsPerScope) {
-    this.mBitsPerScope = bitsPerScope;
-    this.mMaxNumScopes = (1 << bitsPerScope);
-    this.mCount = 0;
-    this.mScopeToId = new ConcurrentHashMap<>();
-    this.mIdToScope = new ConcurrentHashMap<>();
-    this.mLock = new ReentrantLock();
+    mBitsPerScope = bitsPerScope;
+    mMaxNumScopes = (1 << bitsPerScope);
+    mCount = 0;
+    mScopeToId = new ConcurrentHashMap<>();
+    mIdToScope = new ConcurrentHashMap<>();
+    mLock = new ReentrantLock();
   }
 
+  /**
+   * Encode scope information into integer.
+   *
+   * @param scopeInfo the scope will be encoded
+   * @return the encoded scope
+   */
   public int encode(ScopeInfo scopeInfo) {
     if (!mScopeToId.containsKey(scopeInfo)) {
       mLock.lock();
@@ -45,6 +59,12 @@ public class ScopeEncoder {
     return mScopeToId.get(scopeInfo);
   }
 
+  /**
+   * Decode scope information from integer.
+   *
+   * @param id the encoded scope id will be decoded
+   * @return the decoded scope information
+   */
   public ScopeInfo decode(int id) {
     return mIdToScope.get(id);
   }

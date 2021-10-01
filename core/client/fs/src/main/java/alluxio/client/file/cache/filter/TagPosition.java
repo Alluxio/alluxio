@@ -11,72 +11,112 @@
 
 package alluxio.client.file.cache.filter;
 
-enum CuckooStatus {
-  OK(0), FAILURE(1), FAILURE_KEY_NOT_FOUND(2), FAILURE_KEY_DUPLICATED(3), FAILURE_TABLE_FULL(
-      4), UNDEFINED(5);
-
-  public int code;
-
-  CuckooStatus(int code) {
-    this.code = code;
-  }
-}
-
-
+/**
+ * This class represents a position of a tag.
+ */
 public class TagPosition {
-  public int bucketIndex;
-  public int tagIndex;
-  public CuckooStatus status;
+  public int mBucketIndex;
+  public int mTagIndex;
+  public CuckooStatus mStatus;
 
+  /**
+   * Create a tag position with default parameter.
+   */
   public TagPosition() {
     this(-1, -1, CuckooStatus.UNDEFINED);
   }
 
+  /**
+   * Create a tag position with given position.
+   *
+   * @param bucketIndex the bucket index
+   * @param tagIndex the slot
+   */
   public TagPosition(int bucketIndex, int tagIndex) {
     this(bucketIndex, tagIndex, CuckooStatus.UNDEFINED);
   }
 
+  /**
+   * Create a tag position with given position and status.
+   *
+   * @param bucketIndex the bucket index
+   * @param tagIndex the slot
+   * @param status the status
+   */
   public TagPosition(int bucketIndex, int tagIndex, CuckooStatus status) {
-    this.bucketIndex = bucketIndex;
-    this.tagIndex = tagIndex;
-    this.status = status;
+    mBucketIndex = bucketIndex;
+    mTagIndex = tagIndex;
+    mStatus = status;
   }
 
+  /**
+   * @return true is this tag position represents a valid position
+   */
   boolean valid() {
-    return bucketIndex >= 0 && tagIndex >= 0;
+    return mBucketIndex >= 0 && mTagIndex >= 0;
   }
 
+  /**
+   * @return the bucket index
+   */
   public int getBucketIndex() {
-    return bucketIndex;
+    return mBucketIndex;
   }
 
+  /**
+   * Set the bucket index.
+   *
+   * @param bucketIndex the bucket index
+   */
   public void setBucketIndex(int bucketIndex) {
-    this.bucketIndex = bucketIndex;
+    mBucketIndex = bucketIndex;
   }
 
+  /**
+   * @return the slot index
+   */
   public int getTagIndex() {
-    return tagIndex;
+    return mTagIndex;
   }
 
+  /**
+   * Set the slot index.
+   *
+   * @param tagIndex the slot
+   */
   public void setTagIndex(int tagIndex) {
-    this.tagIndex = tagIndex;
+    mTagIndex = tagIndex;
   }
 
+  /**
+   * @return the status of this tag position
+   */
   public CuckooStatus getStatus() {
-    return status;
+    return mStatus;
   }
 
+  /**
+   * Set the status of this tag position.
+   *
+   * @param status the status
+   */
   public void setStatus(CuckooStatus status) {
-    this.status = status;
+    mStatus = status;
   }
 
+  /**
+   * Set the bucket and slot.
+   *
+   * @param bucket the bucket
+   * @param slot the slot
+   */
   public void setBucketAndSlot(int bucket, int slot) {
-    this.bucketIndex = bucket;
-    this.tagIndex = slot;
+    mBucketIndex = bucket;
+    mTagIndex = slot;
   }
 
   @Override
   public String toString() {
-    return "TagPosition{" + "bucketIndex=" + bucketIndex + ", tagIndex=" + tagIndex + '}';
+    return "TagPosition{" + "bucketIndex=" + mBucketIndex + ", tagIndex=" + mTagIndex + '}';
   }
 }

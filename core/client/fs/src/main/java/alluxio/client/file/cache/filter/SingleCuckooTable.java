@@ -13,19 +13,30 @@ package alluxio.client.file.cache.filter;
 
 import java.util.concurrent.ThreadLocalRandom;
 
+/**
+ * A simple cuckoo table.
+ */
 public class SingleCuckooTable implements CuckooTable {
   private final int mTagsPerBucket;
   private final int mBitsPerTag;
   private AbstractBitSet mBits;
   private int mNumBuckets;
 
+  /**
+   * Create a single cuckoo table on given bit set.
+   *
+   * @param bitSet the bit set will be used as the underlying storage
+   * @param numBuckets the number of buckets this table has
+   * @param tagsPerBucket the number of slots each bucket has
+   * @param bitsPerTag the number of bits each slot has
+   */
   public SingleCuckooTable(AbstractBitSet bitSet, int numBuckets, int tagsPerBucket,
       int bitsPerTag) {
-    this.mBits = bitSet;
-    this.mNumBuckets = numBuckets;
-    this.mTagsPerBucket = tagsPerBucket;
-    this.mBitsPerTag = bitsPerTag;
-    // TODO: check bits.size() and numBuckets*bitsPerTag
+    assert bitSet.size() == numBuckets * tagsPerBucket * bitsPerTag;
+    mBits = bitSet;
+    mNumBuckets = numBuckets;
+    mTagsPerBucket = tagsPerBucket;
+    mBitsPerTag = bitsPerTag;
   }
 
   @Override
@@ -67,46 +78,21 @@ public class SingleCuckooTable implements CuckooTable {
   }
 
   @Override
-  public boolean findTagInBuckets(int i1, int i2, int tag) {
-    for (int j = 0; j < mTagsPerBucket; j++) {
-      if (readTag(i1, j) == tag || readTag(i2, j) == tag) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  @Override
-  public boolean deleteTagFromBucket(int i, int tag) {
-    for (int j = 0; j < mTagsPerBucket; j++) {
-      if (readTag(i, j) == tag) {
-        writeTag(i, j, 0);
-        return true;
-      }
-    }
-    return false;
-  }
-
-  @Override
-  public int insertOrKickoutOne(int i, int tag) {
-    for (int j = 0; j < mTagsPerBucket; j++) {
-      if (readTag(i, j) == 0) {
-        writeTag(i, j, tag);
-        return 0;
-      }
-    }
-    int r = ThreadLocalRandom.current().nextInt(mTagsPerBucket);
-    int oldTag = readTag(i, r);
-    writeTag(i, r, tag);
-    return oldTag;
-  }
-
-  @Override
   public boolean findTagInBucket(int i, int tag, TagPosition position) {
     for (int j = 0; j < mTagsPerBucket; j++) {
       if (readTag(i, j) == tag) {
         position.setBucketIndex(i);
         position.setTagIndex(j);
+        return true;
+      }
+    }
+    return false;
+  }
+
+  @Override
+  public boolean findTagInBuckets(int i1, int i2, int tag) {
+    for (int j = 0; j < mTagsPerBucket; j++) {
+      if (readTag(i1, j) == tag || readTag(i2, j) == tag) {
         return true;
       }
     }
@@ -130,6 +116,17 @@ public class SingleCuckooTable implements CuckooTable {
   }
 
   @Override
+  public boolean deleteTagFromBucket(int i, int tag) {
+    for (int j = 0; j < mTagsPerBucket; j++) {
+      if (readTag(i, j) == tag) {
+        writeTag(i, j, 0);
+        return true;
+      }
+    }
+    return false;
+  }
+
+  @Override
   public boolean deleteTagFromBucket(int i, int tag, TagPosition position) {
     for (int j = 0; j < mTagsPerBucket; j++) {
       if (readTag(i, j) == tag) {
@@ -140,6 +137,20 @@ public class SingleCuckooTable implements CuckooTable {
       }
     }
     return false;
+  }
+
+  @Override
+  public int insertOrKickoutOne(int i, int tag) {
+    for (int j = 0; j < mTagsPerBucket; j++) {
+      if (readTag(i, j) == 0) {
+        writeTag(i, j, tag);
+        return 0;
+      }
+    }
+    int r = ThreadLocalRandom.current().nextInt(mTagsPerBucket);
+    int oldTag = readTag(i, r);
+    writeTag(i, r, tag);
+    return oldTag;
   }
 
   @Override
@@ -174,30 +185,35 @@ public class SingleCuckooTable implements CuckooTable {
   }
 
   @Override
-  public int numTagsPerBuckets() {
+  public int getNumTagsPerBuckets() {
     return mTagsPerBucket;
   }
 
   @Override
-  public int numBuckets() {
+  public int getNumBuckets() {
     return this.mNumBuckets;
   }
 
   @Override
-  public int bitsPerTag() {
+  public int getBitsPerTag() {
     return mBitsPerTag;
   }
 
   @Override
-  public int sizeInBytes() {
+  public int getSizeInBytes() {
     return this.mBits.size() >> 3;
   }
 
   @Override
-  public int sizeInTags() {
+  public int getSizeInTags() {
     return this.mNumBuckets * mTagsPerBucket;
   }
 
+  /**
+   * @param bucketIndex the bucket index
+   * @param posInBucket the slot
+   * @return the start index of tag in bit set for given position
+   */
   private int getTagOffset(int bucketIndex, int posInBucket) {
     return (bucketIndex * mTagsPerBucket * mBitsPerTag) + (posInBucket * mBitsPerTag);
   }

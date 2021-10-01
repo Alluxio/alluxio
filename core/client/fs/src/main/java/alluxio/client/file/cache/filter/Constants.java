@@ -13,6 +13,9 @@ package alluxio.client.file.cache.filter;
 
 import javax.annotation.concurrent.ThreadSafe;
 
+/**
+ * This class defined some constants that are used by cuckoo filter.
+ */
 @ThreadSafe
 public final class Constants {
   public static final int K = 1000;
