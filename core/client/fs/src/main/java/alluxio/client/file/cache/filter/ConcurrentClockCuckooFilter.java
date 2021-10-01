@@ -908,8 +908,9 @@ public class ConcurrentClockCuckooFilter<T> implements Serializable {
               - mAgingCount.get());
     } else {
       long elapsedTime = (System.currentTimeMillis() - mStartTime);
-      bucketsToAge =
-          (int) (mNumBuckets * (elapsedTime / (mWindowSize >> mBitsPerClock)) - mAgingCount.get());
+      bucketsToAge = Math.min(mNumBuckets,
+          (int) (mNumBuckets * (elapsedTime / (double) (mWindowSize >> mBitsPerClock))
+                  - mAgingCount.get()));
     }
     return bucketsToAge;
   }
