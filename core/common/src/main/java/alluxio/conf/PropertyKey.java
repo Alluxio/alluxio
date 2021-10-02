@@ -2780,6 +2780,21 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
+  public static final PropertyKey MASTER_FILE_SYSTEM_OPERATION_RETRY_CACHE_ENABLED =
+      new Builder(Name.MASTER_FILE_SYSTEM_OPERATION_RETRY_CACHE_ENABLED)
+          .setDefaultValue(true)
+          .setDescription("If enabled, each filesystem operation will be tracked on all masters, "
+              + "in order to avoid re-execution of client retries.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.MASTER)
+          .build();
+  public static final PropertyKey MASTER_FILE_SYSTEM_OPERATION_RETRY_CACHE_SIZE =
+      new Builder(Name.MASTER_FILE_SYSTEM_OPERATION_RETRY_CACHE_SIZE)
+          .setDefaultValue(100_000)
+          .setDescription("Size of fs operation retry cache.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.MASTER)
+          .build();
 
   //
   // Worker related properties
@@ -4266,6 +4281,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "bottom going up (-1 identifies the last tier, -2 identifies the second to "
               + "last tier, and so on). If the absolute value of the provided value is "
               + "greater than the number of tiers, it identifies the first tier.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.CLIENT)
+          .build();
+  public static final PropertyKey USER_FILE_INCLUDE_OPERATION_ID =
+      new Builder(Name.USER_FILE_INCLUDE_OPERATION_ID)
+          .setDefaultValue(true)
+          .setDescription(
+              "Whether to send a unique operation id with designated filesystem operations.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
@@ -5956,6 +5979,10 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     //
     public static final String MASTER_FILE_SYSTEM_LISTSTATUS_RESULTS_PER_MESSAGE =
         "alluxio.master.filesystem.liststatus.result.message.length";
+    public static final String MASTER_FILE_SYSTEM_OPERATION_RETRY_CACHE_ENABLED =
+        "alluxio.master.filesystem.operation.retry.cache.enabled";
+    public static final String MASTER_FILE_SYSTEM_OPERATION_RETRY_CACHE_SIZE =
+        "alluxio.master.filesystem.operation.retry.cache.size";
 
     //
     // Secondary master related properties
@@ -6251,6 +6278,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String USER_FILE_WRITE_TYPE_DEFAULT = "alluxio.user.file.writetype.default";
     public static final String USER_FILE_WRITE_TIER_DEFAULT =
         "alluxio.user.file.write.tier.default";
+    public static final String USER_FILE_INCLUDE_OPERATION_ID =
+        "alluxio.user.file.include.operation.id";
     public static final String USER_HOSTNAME = "alluxio.user.hostname";
     public static final String USER_LOCAL_READER_CHUNK_SIZE_BYTES =
         "alluxio.user.local.reader.chunk.size.bytes";

@@ -485,6 +485,11 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setDescription("Total number of succeed Unmount operations")
           .setMetricType(MetricType.COUNTER)
           .build();
+  public static final MetricKey MASTER_COMPLETED_OPERATION_RETRY_COUNT =
+      new Builder("Master.CompletedOperationRetryCount")
+          .setDescription("Total number of completed operations that has been retried by client.")
+          .setMetricType(MetricType.COUNTER)
+          .build();
   public static final MetricKey MASTER_COMPLETE_FILE_OPS =
       new Builder("Master.CompleteFileOps")
           .setDescription("Total number of the CompleteFile operations")

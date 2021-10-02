@@ -402,8 +402,8 @@ public class JournalStateMachine extends BaseStateMachine {
    */
   private void applyEntry(JournalEntry entry) {
     Preconditions.checkState(
-        entry.getAllFields().size() <= 1
-            || (entry.getAllFields().size() == 2 && entry.hasSequenceNumber()),
+        entry.getAllFields().size() <= 2
+            || (entry.getAllFields().size() == 3 && entry.hasSequenceNumber()),
         "Raft journal entries should never set multiple fields in addition to sequence "
             + "number, but found %s",
         entry);
