@@ -229,7 +229,7 @@ public class InodeTree implements DelegatingJournaled {
    * @param opId the operation id
    * @return {@code true} if given op is marked complete
    */
-  public boolean isOperationComplete(OperationId opId) {
+  public boolean isOperationComplete(@Nullable OperationId opId) {
     return mState.isOperationComplete(opId);
   }
 
@@ -237,7 +237,7 @@ public class InodeTree implements DelegatingJournaled {
    * Used to mark an operation as complete in retry-cache.
    * @param opId the operation id
    */
-  public void cacheOperation(OperationId opId) {
+  public void cacheOperation(@Nullable OperationId opId) {
     mState.cacheOperation(opId);
   }
 

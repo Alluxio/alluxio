@@ -11,6 +11,8 @@
 
 package alluxio.server.ft;
 
+import static org.junit.Assert.assertThrows;
+
 import alluxio.AlluxioURI;
 import alluxio.AuthenticatedUserRule;
 import alluxio.Constants;
@@ -89,43 +91,43 @@ public final class FileSystemMasterFaultToleranceIntegrationTest extends BaseInt
         .mergeFrom(CreateFilePOptions.newBuilder().setCommonOptions(FileSystemMasterCommonPOptions
             .newBuilder().setOperationId(new OperationId(UUID.randomUUID()).toFsProto())));
 
-    // Acquire file-system-master of leading master.
-    FileSystemMaster leadingFsMaster = mMultiMasterLocalAlluxioCluster.getLocalAlluxioMaster()
-        .getMasterProcess().getMaster(FileSystemMaster.class);
+    // Run partition tolerance test on leading master.
+    {
+      // Acquire file-system-master of leading master.
+      final FileSystemMaster leadingFsMaster = mMultiMasterLocalAlluxioCluster
+          .getLocalAlluxioMaster().getMasterProcess().getMaster(FileSystemMaster.class);
 
-    // Create the path the first time.
-    leadingFsMaster.createFile(testPath1, context);
-    // Create the path the second time with the same context.
-    // It should just return successfully.
-    FileInfo fileInfo = leadingFsMaster.createFile(testPath1, context);
-    Assert.assertEquals(fileInfo.getFileId(), leadingFsMaster.getFileId(testPath1));
+      // Create the path the first time.
+      leadingFsMaster.createFile(testPath1, context);
+      // Create the path the second time with the same context.
+      // It should just return successfully.
+      FileInfo fileInfo = leadingFsMaster.createFile(testPath1, context);
+      Assert.assertEquals(fileInfo.getFileId(), leadingFsMaster.getFileId(testPath1));
 
-    // Create the file again with a different context.
-    // It should fail with `FileAlreadyExistException`.
-    try {
-      leadingFsMaster.createFile(testPath1, context2);
-      Assert.fail("Retry with a different operation-id should have failed.");
-    } catch (FileAlreadyExistsException e) {
-      // Expected.
+      // Create the file again with a different context.
+      // It should fail with `FileAlreadyExistException`.
+      assertThrows(FileAlreadyExistsException.class,
+          () -> leadingFsMaster.createFile(testPath1, context2));
     }
 
     // Promote secondary to be a leader and reset test state.
     mMultiMasterLocalAlluxioCluster.stopLeader();
     mMultiMasterLocalAlluxioCluster.waitForNewMaster(CLUSTER_WAIT_TIMEOUT_MS);
-    leadingFsMaster = mMultiMasterLocalAlluxioCluster.getLocalAlluxioMaster().getMasterProcess()
-        .getMaster(FileSystemMaster.class);
     mAuthenticatedUser.resetUser();
 
-    // Creating on the new leader with the original operation-id should succeed.
-    fileInfo = leadingFsMaster.createFile(testPath1, context);
-    Assert.assertEquals(fileInfo.getFileId(), leadingFsMaster.getFileId(testPath1));
+    // Run partition tolerance test on the *new* leading master.
+    {
+      // Acquire file-system-master of leading master.
+      final FileSystemMaster leadingFsMaster = mMultiMasterLocalAlluxioCluster
+          .getLocalAlluxioMaster().getMasterProcess().getMaster(FileSystemMaster.class);
 
-    // Creating on the new leader with a different operation-id should fail.
-    try {
-      leadingFsMaster.createFile(testPath1, context2);
-      Assert.fail("Retry with a different operation-id should have failed.");
-    } catch (FileAlreadyExistsException e) {
-      // Expected.
+      // Creating on the new leader with the original operation-id should succeed.
+      FileInfo fileInfo = leadingFsMaster.createFile(testPath1, context);
+      Assert.assertEquals(fileInfo.getFileId(), leadingFsMaster.getFileId(testPath1));
+
+      // Creating on the new leader with a different operation-id should fail.
+      assertThrows(FileAlreadyExistsException.class,
+          () -> leadingFsMaster.createFile(testPath1, context2));
     }
   }
 
@@ -142,45 +144,45 @@ public final class FileSystemMasterFaultToleranceIntegrationTest extends BaseInt
         .mergeFrom(CompleteFilePOptions.newBuilder().setCommonOptions(FileSystemMasterCommonPOptions
             .newBuilder().setOperationId(new OperationId(UUID.randomUUID()).toFsProto())));
 
-    // Acquire file-system-master of leading master.
-    FileSystemMaster leadingFsMaster = mMultiMasterLocalAlluxioCluster.getLocalAlluxioMaster()
-        .getMasterProcess().getMaster(FileSystemMaster.class);
+    // Run partition tolerance test on leading master.
+    {
+      // Acquire file-system-master of leading master.
+      FileSystemMaster leadingFsMaster = mMultiMasterLocalAlluxioCluster.getLocalAlluxioMaster()
+          .getMasterProcess().getMaster(FileSystemMaster.class);
 
-    // Create the path to complete.
-    leadingFsMaster.createFile(testPath1, CreateFileContext.defaults());
+      // Create the path to complete.
+      leadingFsMaster.createFile(testPath1, CreateFileContext.defaults());
 
-    // Complete the path the first time.
-    leadingFsMaster.completeFile(testPath1, context);
-    // Complete the path the second time with the same context.
-    // It should just return successfully.
-    leadingFsMaster.completeFile(testPath1, context);
+      // Complete the path the first time.
+      leadingFsMaster.completeFile(testPath1, context);
+      // Complete the path the second time with the same context.
+      // It should just return successfully.
+      leadingFsMaster.completeFile(testPath1, context);
 
-    // Complete the file again with a different context.
-    // It should fail with `FileAlreadyCompletedException`.
-    try {
-      leadingFsMaster.completeFile(testPath1, context2);
-      Assert.fail("Retry with a different operation-id should have failed.");
-    } catch (FileAlreadyCompletedException e) {
-      // Expected.
+      // Complete the file again with a different context.
+      // It should fail with `FileAlreadyCompletedException`.
+      assertThrows(FileAlreadyCompletedException.class,
+          () -> leadingFsMaster.completeFile(testPath1, context2));
     }
 
     // Promote secondary to be a leader and reset test state.
     mMultiMasterLocalAlluxioCluster.stopLeader();
     mMultiMasterLocalAlluxioCluster.waitForNewMaster(CLUSTER_WAIT_TIMEOUT_MS);
-    leadingFsMaster = mMultiMasterLocalAlluxioCluster.getLocalAlluxioMaster().getMasterProcess()
-        .getMaster(FileSystemMaster.class);
     mAuthenticatedUser.resetUser();
 
-    // Completing the file on the new leader with the original operation-id should succeed.
-    leadingFsMaster.completeFile(testPath1, context);
+    // Run partition tolerance test on the *new* leading master.
+    {
+      // Acquire file-system-master of leading master.
+      FileSystemMaster leadingFsMaster = mMultiMasterLocalAlluxioCluster.getLocalAlluxioMaster()
+          .getMasterProcess().getMaster(FileSystemMaster.class);
 
-    // Creating on the new leader with a different operation-id.
-    // It should fail with `FileAlreadyCompletedException`.
-    try {
-      leadingFsMaster.completeFile(testPath1, context2);
-      Assert.fail("Retry with a different operation-id should have failed.");
-    } catch (FileAlreadyCompletedException e) {
-      // Expected.
+      // Completing the file on the new leader with the original operation-id should succeed.
+      leadingFsMaster.completeFile(testPath1, context);
+
+      // Creating on the new leader with a different operation-id.
+      // It should fail with `FileAlreadyCompletedException`.
+      assertThrows(FileAlreadyCompletedException.class,
+          () -> leadingFsMaster.completeFile(testPath1, context2));
     }
   }
 
@@ -196,47 +198,44 @@ public final class FileSystemMasterFaultToleranceIntegrationTest extends BaseInt
     DeleteContext context2 = DeleteContext
         .mergeFrom(DeletePOptions.newBuilder().setCommonOptions(FileSystemMasterCommonPOptions
             .newBuilder().setOperationId(new OperationId(UUID.randomUUID()).toFsProto())));
+    {
+      // Acquire file-system-master of leading master.
+      FileSystemMaster leadingFsMaster = mMultiMasterLocalAlluxioCluster.getLocalAlluxioMaster()
+          .getMasterProcess().getMaster(FileSystemMaster.class);
 
-    // Acquire file-system-master of leading master.
-    FileSystemMaster leadingFsMaster = mMultiMasterLocalAlluxioCluster.getLocalAlluxioMaster()
-        .getMasterProcess().getMaster(FileSystemMaster.class);
+      // Create the path to delete.
+      leadingFsMaster.createFile(testPath1, CreateFileContext.defaults());
+      leadingFsMaster.completeFile(testPath1, CompleteFileContext.defaults());
 
-    // Create the path to delete.
-    leadingFsMaster.createFile(testPath1, CreateFileContext.defaults());
-    leadingFsMaster.completeFile(testPath1, CompleteFileContext.defaults());
+      // Delete the path the first time.
+      leadingFsMaster.delete(testPath1, context);
+      // Delete the path the second time with the same context.
+      // It should just return successfully.
+      leadingFsMaster.delete(testPath1, context);
 
-    // Delete the path the first time.
-    leadingFsMaster.delete(testPath1, context);
-    // Delete the path the second time with the same context.
-    // It should just return successfully.
-    leadingFsMaster.delete(testPath1, context);
-
-    // Delete the path again with a different context.
-    // It should fail with `FileDoesNotExistException`.
-    try {
-      leadingFsMaster.delete(testPath1, context2);
-      Assert.fail("Retry with a different operation-id should have failed.");
-    } catch (FileDoesNotExistException e) {
-      // Expected.
+      // Delete the path again with a different context.
+      // It should fail with `FileDoesNotExistException`.
+      assertThrows(FileDoesNotExistException.class,
+          () -> leadingFsMaster.delete(testPath1, context2));
     }
 
     // Promote secondary to be a leader and reset test state.
     mMultiMasterLocalAlluxioCluster.stopLeader();
     mMultiMasterLocalAlluxioCluster.waitForNewMaster(CLUSTER_WAIT_TIMEOUT_MS);
-    leadingFsMaster = mMultiMasterLocalAlluxioCluster.getLocalAlluxioMaster().getMasterProcess()
-        .getMaster(FileSystemMaster.class);
     mAuthenticatedUser.resetUser();
 
-    // Deleting the file on the new leader with the original operation-id should succeed.
-    leadingFsMaster.delete(testPath1, context);
+    // Run partition tolerance test on the *new* leading master.
+    {
+      // Acquire file-system-master of leading master.
+      FileSystemMaster leadingFsMaster = mMultiMasterLocalAlluxioCluster.getLocalAlluxioMaster()
+          .getMasterProcess().getMaster(FileSystemMaster.class);
+      // Deleting the file on the new leader with the original operation-id should succeed.
+      leadingFsMaster.delete(testPath1, context);
 
-    // Deleting on the new leader with a different operation-id.
-    // It should fail with `FileDoesNotExistException`.
-    try {
-      leadingFsMaster.delete(testPath1, context2);
-      Assert.fail("Retry with a different operation-id should have failed.");
-    } catch (FileDoesNotExistException e) {
-      // Expected.
+      // Deleting on the new leader with a different operation-id.
+      // It should fail with `FileDoesNotExistException`.
+      assertThrows(FileDoesNotExistException.class,
+          () -> leadingFsMaster.delete(testPath1, context2));
     }
   }
 
@@ -253,45 +252,45 @@ public final class FileSystemMasterFaultToleranceIntegrationTest extends BaseInt
         .mergeFrom(DeletePOptions.newBuilder().setCommonOptions(FileSystemMasterCommonPOptions
             .newBuilder().setOperationId(new OperationId(UUID.randomUUID()).toFsProto())));
 
-    // Acquire file-system-master of leading master.
-    FileSystemMaster leadingFsMaster = mMultiMasterLocalAlluxioCluster.getLocalAlluxioMaster()
-        .getMasterProcess().getMaster(FileSystemMaster.class);
+    // Run partition tolerance test on leading master.
+    {
+      // Acquire file-system-master of leading master.
+      FileSystemMaster leadingFsMaster = mMultiMasterLocalAlluxioCluster.getLocalAlluxioMaster()
+          .getMasterProcess().getMaster(FileSystemMaster.class);
 
-    // Create the path to delete.
-    leadingFsMaster.createDirectory(testPath1, CreateDirectoryContext.defaults());
+      // Create the path to delete.
+      leadingFsMaster.createDirectory(testPath1, CreateDirectoryContext.defaults());
 
-    // Delete the path the first time.
-    leadingFsMaster.delete(testPath1, context);
-    // Delete the path the second time with the same context.
-    // It should just return successfully.
-    leadingFsMaster.delete(testPath1, context);
+      // Delete the path the first time.
+      leadingFsMaster.delete(testPath1, context);
+      // Delete the path the second time with the same context.
+      // It should just return successfully.
+      leadingFsMaster.delete(testPath1, context);
 
-    // Delete the path again with a different context.
-    // It should fail with `FileDoesNotExistException`.
-    try {
-      leadingFsMaster.delete(testPath1, context2);
-      Assert.fail("Retry with a different operation-id should have failed.");
-    } catch (FileDoesNotExistException e) {
-      // Expected.
+      // Delete the path again with a different context.
+      // It should fail with `FileDoesNotExistException`.
+      assertThrows(FileDoesNotExistException.class,
+          () -> leadingFsMaster.delete(testPath1, context2));
     }
 
     // Promote secondary to be a leader and reset test state.
     mMultiMasterLocalAlluxioCluster.stopLeader();
     mMultiMasterLocalAlluxioCluster.waitForNewMaster(CLUSTER_WAIT_TIMEOUT_MS);
-    leadingFsMaster = mMultiMasterLocalAlluxioCluster.getLocalAlluxioMaster().getMasterProcess()
-        .getMaster(FileSystemMaster.class);
     mAuthenticatedUser.resetUser();
 
-    // Deleting the path on the new leader with the original operation-id should succeed.
-    leadingFsMaster.delete(testPath1, context);
+    // Run partition tolerance test on the *new* leading master.
+    {
+      // Acquire file-system-master of leading master.
+      FileSystemMaster leadingFsMaster = mMultiMasterLocalAlluxioCluster.getLocalAlluxioMaster()
+          .getMasterProcess().getMaster(FileSystemMaster.class);
 
-    // Deleting on the new leader with a different operation-id.
-    // It should fail with `FileDoesNotExistException`.
-    try {
-      leadingFsMaster.delete(testPath1, context2);
-      Assert.fail("Retry with a different operation-id should have failed.");
-    } catch (FileDoesNotExistException e) {
-      // Expected.
+      // Deleting the path on the new leader with the original operation-id should succeed.
+      leadingFsMaster.delete(testPath1, context);
+
+      // Deleting on the new leader with a different operation-id.
+      // It should fail with `FileDoesNotExistException`.
+      assertThrows(FileDoesNotExistException.class,
+          () -> leadingFsMaster.delete(testPath1, context2));
     }
   }
 
@@ -309,45 +308,45 @@ public final class FileSystemMasterFaultToleranceIntegrationTest extends BaseInt
         .mergeFrom(RenamePOptions.newBuilder().setCommonOptions(FileSystemMasterCommonPOptions
             .newBuilder().setOperationId(new OperationId(UUID.randomUUID()).toFsProto())));
 
-    // Acquire file-system-master of leading master.
-    FileSystemMaster leadingFsMaster = mMultiMasterLocalAlluxioCluster.getLocalAlluxioMaster()
-        .getMasterProcess().getMaster(FileSystemMaster.class);
+    // Run partition tolerance test on leading master.
+    {
+      // Acquire file-system-master of leading master.
+      FileSystemMaster leadingFsMaster = mMultiMasterLocalAlluxioCluster.getLocalAlluxioMaster()
+          .getMasterProcess().getMaster(FileSystemMaster.class);
 
-    // Create the path to rename.
-    leadingFsMaster.createDirectory(testPath1, CreateDirectoryContext.defaults());
+      // Create the path to rename.
+      leadingFsMaster.createDirectory(testPath1, CreateDirectoryContext.defaults());
 
-    // Rename the path the first time.
-    leadingFsMaster.rename(testPath1, testPath2, context);
-    // Renaming the path the second time with the same context.
-    // It should just return successfully.
-    leadingFsMaster.rename(testPath1, testPath2, context);
+      // Rename the path the first time.
+      leadingFsMaster.rename(testPath1, testPath2, context);
+      // Renaming the path the second time with the same context.
+      // It should just return successfully.
+      leadingFsMaster.rename(testPath1, testPath2, context);
 
-    // Rename the path again with a different context.
-    // It should fail with `FileDoesNotExistException`.
-    try {
-      leadingFsMaster.rename(testPath1, testPath2, context2);
-      Assert.fail("Retry with a different operation-id should have failed.");
-    } catch (FileDoesNotExistException e) {
-      // Expected.
+      // Rename the path again with a different context.
+      // It should fail with `FileDoesNotExistException`.
+      assertThrows(FileDoesNotExistException.class,
+          () -> leadingFsMaster.rename(testPath1, testPath2, context2));
     }
 
     // Promote secondary to be a leader and reset test state.
     mMultiMasterLocalAlluxioCluster.stopLeader();
     mMultiMasterLocalAlluxioCluster.waitForNewMaster(CLUSTER_WAIT_TIMEOUT_MS);
-    leadingFsMaster = mMultiMasterLocalAlluxioCluster.getLocalAlluxioMaster().getMasterProcess()
-        .getMaster(FileSystemMaster.class);
     mAuthenticatedUser.resetUser();
 
-    // Renaming the path on the new leader with the original operation-id should succeed.
-    leadingFsMaster.rename(testPath1, testPath2, context);
+    // Run partition tolerance test on the *new* leading master.
+    {
+      // Acquire file-system-master of leading master.
+      FileSystemMaster leadingFsMaster = mMultiMasterLocalAlluxioCluster.getLocalAlluxioMaster()
+          .getMasterProcess().getMaster(FileSystemMaster.class);
 
-    // Renaming on the new leader with a different operation-id.
-    // It should fail with `FileDoesNotExistException`.
-    try {
-      leadingFsMaster.rename(testPath1, testPath2, context2);
-      Assert.fail("Retry with a different operation-id should have failed.");
-    } catch (FileDoesNotExistException e) {
-      // Expected.
+      // Renaming the path on the new leader with the original operation-id should succeed.
+      leadingFsMaster.rename(testPath1, testPath2, context);
+
+      // Renaming on the new leader with a different operation-id.
+      // It should fail with `FileDoesNotExistException`.
+      assertThrows(FileDoesNotExistException.class,
+          () -> leadingFsMaster.rename(testPath1, testPath2, context2));
     }
   }
 }

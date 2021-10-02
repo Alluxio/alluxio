@@ -65,7 +65,7 @@ public class OperationContext<T extends GeneratedMessageV3.Builder, C extends Op
    * Get embedded operation id, passed via proto options.
    * This is overwritten by operations that include an operation id.
    *
-   * @return the operation id
+   * @return the operation id or {@code null} if not found
    */
   public OperationId getOperationId() {
     return null;

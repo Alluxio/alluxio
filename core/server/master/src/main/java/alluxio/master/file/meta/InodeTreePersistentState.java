@@ -753,10 +753,6 @@ public class InodeTreePersistentState implements Journaled {
 
   @Override
   public boolean processJournalEntry(JournalEntry entry) {
-    // Account for entry in retry-cache.
-    if (entry.hasOperationId()) {
-      cacheOperation(OperationId.fromJournalProto(entry.getOperationId()));
-    }
     // Apply entry.
     if (entry.hasDeleteFile()) {
       applyDelete(entry.getDeleteFile());
@@ -789,6 +785,11 @@ public class InodeTreePersistentState implements Journaled {
       applySetAttribute(entry.getSetAttribute());
     } else {
       return false;
+    }
+
+    // Account for entry in retry-cache before returning.
+    if (entry.hasOperationId()) {
+      cacheOperation(OperationId.fromJournalProto(entry.getOperationId()));
     }
     return true;
   }
