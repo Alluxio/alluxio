@@ -474,7 +474,7 @@ For general troubleshooting, follow the instructions in [troubleshooting documen
 Unlike Alluxio CLI, user operations against the Alluxio Fuse mount point can only receive error code and the FUSE pre-defined error code message.
 The most common error is I/O error showing below:
 ```
-ls /mnt/alluxio-fuse/try.txt
+$ ls /mnt/alluxio-fuse/try.txt
 ls: /mnt/alluxio-fuse/try.txt: Input/output error
 ```
 The actual error message is shown in the `logs/fuse.log` (deployed via standalone fuse process) or `logs/worker.log` (deployed via fuse in worker process).
@@ -493,7 +493,7 @@ For example, the normal write workload is a `Fuse.create` operation to create a 
 and a `Fuse.release` operation to close the output stream. Then a file is written to Alluxio file system.
 However, `echo "text" > file` failed in some operating systems before. The workload becomes a `Fuse.create` to create a file output stream, a `Fuse.release`
 to close the output stream. An empty file is created in the Alluxio file system. Then a `Fuse.open` operation is issued for overwriting which is not supported
-by Alluxio before. After understanding the full workload, it's supported by Alluxio now.
+by Alluxio . After understanding the full workload, we add logic to delete the empty file and recreate a new file output stream in `Fuse.open()` with `overwrite` fuse flag to support this workload.
 
 You can modify `${ALLUXIO_HOME}/conf/log4j.properties` to customize logging levels and restart corresponding server processes.
 
@@ -504,7 +504,7 @@ log4j.rootLogger=DEBUG, ${alluxio.logger.type}, ${alluxio.remote.logger.type}
 
 To modify the logging level for a particular Java class (e.g., set `alluxio.fuse.AlluxioJniFuseFileSystem` to `DEBUG`), add a new line in the end of this file:
 ```
-alluxio.fuse.AlluxioJniFuseFileSystemm=DEBUG
+alluxio.fuse.AlluxioJniFuseFileSystem=DEBUG
 ```
 Then you can know the detailed Fuse operation enter and exit debug logs.
 
@@ -517,14 +517,14 @@ $ ./bin/alluxio logLevel --logName=alluxio.fuse --target=workers --level=DEBUG
 For more information about logging, please check out
 [this page]({{ '/en/operation/Basic-Logging.html' | relativize_url }}).
 
-## Fuse metrics
+### Fuse metrics
 
 Check out the [Fuse metrics doc]({{ '/en/reference/Metrics-List.html' | relativize_url }}#fuse-metrics) for how to get Fuse metrics
 and what each metric uses for.
 
 ## Performance Investigation
 
-Alluxio POSIX API performance investigation is not easy since many components are involved:
+Alluxio POSIX API performance investigation is complicated since many components are involved:
 ![Fuse components]({{ '/img/fuse.png' | relativize_url }})
 
 Application
@@ -542,31 +542,35 @@ Fuse related components
 
 ### Application
 
-For application component, we focus on how the interaction between application and Alluxio POSIX API:
+For application component, we focus on how the application interacts with Alluxio POSIX API:
 - What operations run against the Alluxio POSIX API
 - What's the concurrency level
-- Is interaction with Alluxio POSIX API the performance bottleneck
+- Is interaction with Alluxio POSIX API the performance bottleneck for this application
 
-Only when understanding the previous questions can we know whether we need to do the performance investigation on Alluxio or Fuse side.
-For example, one tensorflow application do some read operations against the Fuse mount point and do training.
+Only when understanding the previous questions can we know whether we need to do the performance investigation on Alluxio POSIX API itself.
+For example, one tensorflow application read data from Alluxio POSIX API and do training on top.
 To make sure whether the interaction with Alluxio POSIX API is the performance bottleneck, we do the following testing
 - Compare the data read throughput between original application and the one that removed the training logic.
 - Compare the data read throughput between Alluxio POSIX API and other data solutions.
-- Ruled out the other possible factors. For example, compare the data read throughput between current resources and the enlarged one.
+- Ruled out the other possible factors. For example, compare the data read throughput between current resource allocations and the enlarged one.
 
 ### Fuse
 
 The Fuse components, especially the libfuse and FUSE kernel code, are known to have performance overhead.
-Instead of Alluxio Fuse which interacts with Alluxio, [Stack Fuse](https://github.com/Alluxio/alluxio/blob/ea36bb385d24769e079248015c8e490b6e46e6ed/integration/fuse/src/main/java/alluxio/fuse/StackFS.java)
-interacts with local filesystem directly.
+[Stack Fuse] (https://github.com/Alluxio/alluxio/blob/ea36bb385d24769e079248015c8e490b6e46e6ed/integration/fuse/src/main/java/alluxio/fuse/StackFS.java)
+is designed and implemented to showcase the overhead of Fuse components.
+Unlike Alluxio Fuse which interacts with Alluxio file system, Stack Fuse interacts with local filesystem directly.
 
-For example, Alluxio Fuse read go through `Fuse kernel code -> libfuse -> JNIFuse -> AlluxioFuse -> Alluxio client -> Alluxio worker -> read the data stored on Alluxio Worker storage (local filesystem)`.
-Stack FUSE read go through `Fuse kernel code -> libfuse -> JNIFuse -> StackFS -> read the data stored on local filesystem`.
-Local filesystem read go through nothing but directly read from local filesystem.
-As long as the medium type and medium condition are similar among the three read type testing, they are comparable.
-
+Alluxio Fuse, Stack Fuse, and local filesystem can be compared when the storage mediums are of same type and condition.
 By comparing the throughput between local filesystem operations and Stack Fuse operations, we can understand the overhead introduced by Fuse components (Fuse kernel, libfuse, and JNIFuse).
 By comparing the throughput between Stack Fuse operations and Alluxio Fuse operations, we can understand the overhead introduced by Alluxio itself and what's the upper bound performance AlluxioFuse can achieve.
+
+For example,
+Alluxio Fuse read go through `Fuse kernel code -> libfuse -> JNIFuse -> AlluxioFuse -> Alluxio client -> Alluxio worker -> read the data stored on Alluxio Worker storage (local filesystem)`.
+Stack FUSE read go through `Fuse kernel code -> libfuse -> JNIFuse -> StackFS -> read the data stored on local filesystem`.
+Local filesystem read go through nothing but directly read from local filesystem.
+When comparing them in cluster read mode, the full dataset is stored in each of the machine for local filesystem read and provided as the source directory for Stack Fsue.
+For AlluxioFuse, each worker node needs to have the full dataset and data replication number is equal to worker number.
 
 According to the Alluxio whitepaper [design and implement Alluxio POSIX API](https://www.alluxio.io/resources/whitepapers/design-and-implementation-of-alluxio-posix-support/),
 JniFuse does not introduce much overhead.
@@ -596,7 +600,7 @@ $ integration/fuse/bin/alluxio-fuse mount -s /mnt/people sourceDir
 Check `StackFS` status, unmount `StackFS` exactly the same as Alluxio Fuse
 ```console
 # Stat StackFS
-$ integration/fuse/bin/alluxio-fuse mount stat
+$ integration/fuse/bin/alluxio-fuse stat
 
 # Umount StackFS
 # integration/fuse/bin/alluxio-fuse umount [mount_point]
@@ -627,10 +631,10 @@ For example, if the application is metadata heavy, `Fuse.getattr` or `Fuse.readd
 If the application is data heavy, `Fuse.read` or `Fuse.write` may consume most of the clock time.
 Fuse metrics help us to narrow down the performance investigation target.
 
-If `Fuse.read` consumes most of the clock time, enables the `alluxio.user.block.read.metrics.enabled=true` and `Client.BlockReadChunkRemote` will be recorded.
+If `Fuse.read` consumes most of the clock time, enables the Alluxio property `alluxio.user.block.read.metrics.enabled=true` and Alluxio metric `Client.BlockReadChunkRemote` will be recorded.
 This metric shows the duration statistics of reading data from remote workers via gRPC.
 
-If the application spent relatively long time in RPC calls, try enlarging the client pool sizes based on the workload.
+If the application spends relatively long time in RPC calls, try enlarging the client pool sizes Alluxio properties based on the workload.
 ```
 # How many concurrent gRPC threads allowed to communicate from client to worker for data operations
 alluxio.user.block.worker.client.pool.max
@@ -641,11 +645,11 @@ alluxio.user.file.master.client.pool.size.max
 # How many concurrent gRPC threads allowed to communicate from worker to master for block metadata operations
 alluxio.worker.block.master.client.pool.size
 ```
-If thread pool size is not the limitation, try enlarging the CPU/memory resources. gRPC threads consume CPU resources.
+If thread pool size is not the limitation, try enlarging the CPU/memory resources. GRPC threads consume CPU resources.
 
-One can follow the [opentelemetry doc](https://github.com/Alluxio/alluxio/blob/ea36bb385d24769e079248015c8e490b6e46e6ed/integration/metrics/README.md)
+One can follow the [Alluxio opentelemetry doc](https://github.com/Alluxio/alluxio/blob/ea36bb385d24769e079248015c8e490b6e46e6ed/integration/metrics/README.md)
 to trace the gRPC calls. If some gRPC calls take extremely long time and only a small amount of time is used to do actual work, there may be too many concurrent gRPC calls or high resource contention.
-If long time spent in fulfilling the gRPC requests, we can jump to the server side to see where the slowness come from.
+If a long time spent in fulfilling the gRPC requests, we can jump to the server side to see where the slowness come from.
 
 #### CPU/memory/lock tracing
 
