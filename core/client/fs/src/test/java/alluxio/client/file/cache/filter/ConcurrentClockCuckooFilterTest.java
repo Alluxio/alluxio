@@ -105,6 +105,26 @@ public class ConcurrentClockCuckooFilterTest {
   }
 
   @Test
+  public void testSizeRange() {
+    // inserted item size should be in range (0, 2^BITS_PER_SIZE]
+    int maxSize = (1 << BITS_PER_SIZE);
+    // should fail to insert an item with a non-positive size
+    assertFalse(mClockFilter.put(1, -1, SCOPE1));
+    assertFalse(mClockFilter.put(1, 0, SCOPE1));
+
+    // should handle an item with a maximum size correctly
+    mClockFilter.put(1, maxSize, SCOPE1);
+    mClockFilter.put(2, maxSize + 1, SCOPE1);
+    assertEquals(2, mClockFilter.getItemNumber(SCOPE1));
+    assertEquals(maxSize + maxSize, mClockFilter.getItemSize(SCOPE1));
+    for (int i = 0; i <= MAX_AGE; i++) {
+      mClockFilter.aging();
+    }
+    assertEquals(0, mClockFilter.getItemNumber(SCOPE1));
+    assertEquals(0, mClockFilter.getItemSize(SCOPE1));
+  }
+
+  @Test
   public void testConcurrentPut() throws Exception {
     List<Runnable> runnables = new ArrayList<>();
     for (int k = 0; k < DEFAULT_THREAD_AMOUNT; k++) {

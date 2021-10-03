@@ -58,6 +58,8 @@ public class ConcurrentClockCuckooFilter<T> implements Serializable {
   private final int mBitsPerClock;
   private final int mBitsPerSize;
   private final int mBitsPerScope;
+  private final int mMaxSize;
+  private final int mSizeMask;
   private final Funnel<? super T> mFunnel;
   private final HashFunction mHasher;
   private final ScopeEncoder mScopeEncoder;
@@ -97,6 +99,8 @@ public class ConcurrentClockCuckooFilter<T> implements Serializable {
     mBitsPerSize = sizeTable.getBitsPerTag();
     mScopeTable = scopeTable;
     mBitsPerScope = scopeTable.getBitsPerTag();
+    mMaxSize = (1 << mBitsPerSize);
+    mSizeMask = mMaxSize - 1;
     mSlidingWindowType = slidingWindowType;
     mWindowSize = windowSize;
     mFunnel = funnel;
@@ -260,11 +264,18 @@ public class ConcurrentClockCuckooFilter<T> implements Serializable {
    * @return true if inserted successfully; false otherwise
    */
   public boolean put(T item, int size, ScopeInfo scopeInfo) {
+    // NOTE: zero size is not allowed in our clock filter, because we use zero size as
+    // a special case to indicate an size overflow (size > mMaxSize), and all the
+    // overflowed size will be revised to mMaxSize in method encodeSize()
+    if (size <= 0) {
+      return false;
+    }
     IndexAndTag indexAndTag = generateIndexAndTag(item);
     int fp = indexAndTag.mTag;
     int b1 = indexAndTag.mBucket;
     int b2 = altIndex(b1, fp);
     int scope = encodeScope(scopeInfo);
+    size = encodeSize(size);
     TagPosition pos = new TagPosition();
     // Generally, we will hold write locks in two places:
     // 1) put/delete;
@@ -355,6 +366,7 @@ public class ConcurrentClockCuckooFilter<T> implements Serializable {
       mNumItems.decrementAndGet();
       int scope = mScopeTable.readTag(pos.getBucketIndex(), pos.getTagIndex());
       int size = mSizeTable.readTag(pos.getBucketIndex(), pos.getTagIndex());
+      size = decodeSize(size);
       updateScopeStatistics(scope, -1, -size);
       // Clear Clock
       mClockTable.writeTag(pos.getBucketIndex(), pos.getTagIndex(), 0);
@@ -565,6 +577,30 @@ public class ConcurrentClockCuckooFilter<T> implements Serializable {
    */
   private int encodeScope(ScopeInfo scopeInfo) {
     return mScopeEncoder.encode(scopeInfo);
+  }
+
+  /**
+   * Encode the original size to internal storage types, used for overflow handling etc.
+   *
+   * @param size the size to be encoded
+   * @return the storage type of the encoded size
+   */
+  private int encodeSize(int size) {
+    size = Math.min(mMaxSize, size);
+    return size;
+  }
+
+  /**
+   * Decode the storage type of size to original integer.
+   *
+   * @param size the storage type of size to be decoded
+   * @return the decoded size of the storage type
+   */
+  private int decodeSize(int size) {
+    if (size == 0) {
+      size = mMaxSize;
+    }
+    return size;
   }
 
   /**
@@ -910,7 +946,7 @@ public class ConcurrentClockCuckooFilter<T> implements Serializable {
       long elapsedTime = (System.currentTimeMillis() - mStartTime);
       bucketsToAge = Math.min(mNumBuckets,
           (int) (mNumBuckets * (elapsedTime / (double) (mWindowSize >> mBitsPerClock))
-                  - mAgingCount.get()));
+              - mAgingCount.get()));
     }
     return bucketsToAge;
   }
@@ -980,6 +1016,7 @@ public class ConcurrentClockCuckooFilter<T> implements Serializable {
         mNumItems.decrementAndGet();
         int scope = mScopeTable.readTag(b, j);
         int size = mSizeTable.readTag(b, j);
+        size = decodeSize(size);
         updateScopeStatistics(scope, -1, -size);
         mTotalBytes.addAndGet(-size);
       }
