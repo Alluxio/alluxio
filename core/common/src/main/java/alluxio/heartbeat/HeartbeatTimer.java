@@ -18,6 +18,7 @@ public interface HeartbeatTimer {
 
   /**
    * Sets the heartbeat interval.
+   *
    * @param intervalMs the heartbeat interval in ms
    */
   default void setIntervalMs(long intervalMs) {
