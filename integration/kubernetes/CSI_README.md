@@ -1,6 +1,7 @@
 # Alluxio CSI
 
 This module implement container storage interface(https://github.com/container-storage-interface/spec) for Alluxio.
+The related source code is at `${ALLUXIO_HOME}/integration/docker/csi`.
 
 ## Requirements
 
