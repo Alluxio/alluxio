@@ -174,6 +174,6 @@ Here is a sample usage demo, where we have one master and three workers. Each cl
 ### Note
 1. Fuse IO Stress Bench only supports reading self-generated test files. It cannot read arbitrary files.
 2. The `Writing` operation is only for generating test files. It is not for measuring writing throughput.
-3. To prevent caching affecting accuracy, each file is only read at most once by each worker. Therefore, the total size of the test files, duration, and number of threads
+3. To prevent caching affecting accuracy, each file is only read at most once by each worker. Therefore, the total size of the test files and duration
 need to be tuned such that no thread should finish reading its designated files. Otherwise, some threads would finish its job and thus affecting accuracy.
 4. To prevent Fuse cache affecting accuracy, it is highly suggested mounting Alluxio test path to two different local path, one for writing and the other for reading. 
