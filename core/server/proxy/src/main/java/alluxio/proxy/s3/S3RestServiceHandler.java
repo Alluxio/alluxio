@@ -43,11 +43,13 @@ import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.security.DigestOutputStream;
 import java.security.MessageDigest;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
@@ -177,6 +179,8 @@ public final class S3RestServiceHandler {
       List<URIStatus> objects;
       try {
         objects = getFileSystem(authorization).listStatus(new AlluxioURI("/"));
+      } catch (FileDoesNotExistException e) {
+        objects = Collections.emptyList();
       } catch (AlluxioException | IOException e) {
         throw new RuntimeException(e);
       }
@@ -206,7 +210,6 @@ public final class S3RestServiceHandler {
    */
   @GET
   @Path(BUCKET_PARAM)
-  //@ReturnType("alluxio.proxy.s3.ListBucketResult")
   public Response getBucket(@HeaderParam("Authorization") String authorization,
                             @PathParam("bucket") final String bucket,
                             @QueryParam("marker") final String markerParam,
@@ -246,6 +249,8 @@ public final class S3RestServiceHandler {
           ListStatusPOptions options = ListStatusPOptions.newBuilder().setRecursive(true).build();
           children = fs.listStatus(new AlluxioURI(path), options);
         }
+      } catch (FileDoesNotExistException e) {
+        children = Collections.emptyList();
       } catch (IOException | AlluxioException e) {
         throw new RuntimeException(e);
       }
@@ -264,7 +269,6 @@ public final class S3RestServiceHandler {
    */
   @PUT
   @Path(BUCKET_PARAM)
-  //@ReturnType("java.lang.Void")
   public Response createBucket(@HeaderParam("Authorization") String authorization,
                                @PathParam("bucket") final String bucket) {
     return S3RestUtils.call(bucket, () -> {
@@ -293,7 +297,6 @@ public final class S3RestServiceHandler {
    */
   @DELETE
   @Path(BUCKET_PARAM)
-  //@ReturnType("java.lang.Void")
   public Response deleteBucket(@HeaderParam("Authorization") String authorization,
                                @PathParam("bucket") final String bucket) {
     return S3RestUtils.call(bucket, () -> {
