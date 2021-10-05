@@ -211,9 +211,8 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
         .withCredentials(credentials)
         .withClientConfiguration(clientConf);
 
-    if (conf.isSet(PropertyKey.UNDERFS_S3_DISABLE_DNS_BUCKETS)) {
-      clientBuilder.withPathStyleAccessEnabled(conf
-          .getBoolean(PropertyKey.UNDERFS_S3_DISABLE_DNS_BUCKETS));
+    if (conf.getBoolean(PropertyKey.UNDERFS_S3_DISABLE_DNS_BUCKETS)) {
+      clientBuilder.withPathStyleAccessEnabled(true);
     }
 
     AwsClientBuilder.EndpointConfiguration endpointConfiguration
