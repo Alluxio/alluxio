@@ -232,7 +232,7 @@ $ bin/alluxio runClass alluxio.stress.cli.fuse.FuseIOBench --operation LocalRead
 ```
 
 ### Testing targets
-#### Single-node mode test
+#### Single node testing
 Single node mode has only one client and the client always reads test files stored in one worker from one mount point. Only `LocalRead` is supported
 because both `RemoteRead` and `ClusterRead` involve reading data in multiple workers. Here is a sample usage demo, where the Alluxio master, worker, 
 and client (standalone Fuse) are co-located on one machine:
@@ -248,7 +248,7 @@ Alluxio internal channel without Grpc involved can be tested.
 * By setting `alluxio.user.file.writetype.default` to `THROUGH`, the throughput of reading from UFS can be tested.
 * ...
 
-#### Cluster mode test
+#### Cluster testing
 To run the test in cluster mode, include `--cluster` argument when running each command. Cluster mode uses job service to run the bench and job workers
 become the clients. Each job worker reads from its local reading mount point. To get a more accurate result, it is highly suggested to having one worker and
 one job worker on each machine. In other words, each worker has a co-located job worker and each job worker has a co-located worker. Under this scenario,
