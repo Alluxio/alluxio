@@ -209,9 +209,12 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
     AmazonS3ClientBuilder clientBuilder = AmazonS3ClientBuilder
         .standard()
         .withCredentials(credentials)
-        .withClientConfiguration(clientConf)
-        .withPathStyleAccessEnabled(Boolean.parseBoolean(conf
-            .get(PropertyKey.UNDERFS_S3_DISABLE_DNS_BUCKETS)));
+        .withClientConfiguration(clientConf);
+
+    if (conf.isSet(PropertyKey.UNDERFS_S3_DISABLE_DNS_BUCKETS)) {
+      clientBuilder.withPathStyleAccessEnabled(conf
+          .getBoolean(PropertyKey.UNDERFS_S3_DISABLE_DNS_BUCKETS));
+    }
 
     AwsClientBuilder.EndpointConfiguration endpointConfiguration
         = createEndpointConfiguration(conf, clientConf);
@@ -255,14 +258,15 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
     String region;
     if (conf.isSet(PropertyKey.UNDERFS_S3_ENDPOINT_REGION)) {
       region = conf.get(PropertyKey.UNDERFS_S3_ENDPOINT_REGION);
-    } else if (!ServiceUtils.isS3USStandardEndpoint(endpoint)) {
+    } else if (ServiceUtils.isS3USStandardEndpoint(endpoint)) {
+      // endpoint is standard s3 endpoint with default region, no need to set region
+      LOG.debug("Standard s3 endpoint, declare region as null");
+      region = null;
+    } else {
       LOG.debug("Parsing region fom non-standard s3 endpoint");
       region = AwsHostNameUtils.parseRegion(
           epr.getHost(),
           S3_SERVICE_NAME);
-    } else {
-      LOG.debug("Standard s3 endpoint, declare region as null");
-      region = null;
     }
     LOG.debug("Region for endpoint {}, URI {} is determined as {}",
         endpoint, epr, region);
