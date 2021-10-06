@@ -43,7 +43,6 @@ import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.security.DigestOutputStream;
@@ -324,6 +323,8 @@ public final class S3RestServiceHandler {
    * @param authorization header parameter authorization
    * @param contentMD5 the optional Base64 encoded 128-bit MD5 digest of the object
    * @param copySource the source path to copy the new file from
+   * @param decodedLength the length of the content when in aws-chunked encoding
+   * @param contentLength the total length of the request body
    * @param bucket the bucket name
    * @param object the object name
    * @param partNumber the identification of the part of the object in multipart upload,
@@ -338,6 +339,9 @@ public final class S3RestServiceHandler {
   public Response createObjectOrUploadPart(@HeaderParam("Authorization") String authorization,
                                            @HeaderParam("Content-MD5") final String contentMD5,
                                            @HeaderParam("x-amz-copy-source") String copySource,
+                                           @HeaderParam("x-amz-decoded-content-length") String
+                                               decodedLength,
+                                           @HeaderParam("Content-Length") String contentLength,
                                            @PathParam("bucket") final String bucket,
                                            @PathParam("object") final String object,
                                            @QueryParam("partNumber") final Integer partNumber,
@@ -381,16 +385,34 @@ public final class S3RestServiceHandler {
       }
       AlluxioURI objectURI = new AlluxioURI(objectPath);
 
-      CreateFilePOptions options =
+      CreateFilePOptions dirOptions =
           CreateFilePOptions.newBuilder().setRecursive(true).setWriteType(getS3WriteType()).build();
       // not copying from an existing file
       if (copySource == null) {
         try {
           MessageDigest md5 = MessageDigest.getInstance("MD5");
-          FileOutStream os = fs.createFile(objectURI, options);
 
+          // The request body can be in the aws-chunked encoding format, or not encoded at all
+          // determine if it's encoded, and then which parts of the stream to read depending on
+          // the encoding type.
+          boolean isChunkedEncoding = decodedLength != null;
+          Integer toRead = null;
+          if (isChunkedEncoding) {
+            toRead = Integer.parseInt(decodedLength);
+            int hexLen = Integer.toHexString(toRead).length();
+            // The chunk header format
+            // hexLen + ";chunk-signature".length() + signature.length + "\r\n".length();
+            // see https://docs.aws.amazon.com/AmazonS3/latest/API/sigv4-streaming.html for
+            // further information
+            int chunkHeaderLen = hexLen + 83;
+            // TODO(zac): verify the chunk header
+            is.skip(chunkHeaderLen);
+          } else {
+            toRead = Integer.parseInt(contentLength);
+          }
+          FileOutStream os = fs.createFile(objectURI, dirOptions);
           try (DigestOutputStream digestOutputStream = new DigestOutputStream(os, md5)) {
-            ByteStreams.copy(is, digestOutputStream);
+            ByteStreams.copy(ByteStreams.limit(is, toRead), digestOutputStream);
           }
 
           byte[] digest = md5.digest();
