@@ -115,7 +115,9 @@ It also means if the clients produce more than X throughput, like X+N, the serve
 ## Fuse IO Stress Bench
 
 The Fuse IO Stress Bench is a tool to measure the reading performance of local folders.
+
 In single node mode, Fuse IO Stress Bench measures the reading performance of a local folder. This folder can be local filesystem folder or any kinds of mount point.
+
 In the cluster mode, it uses Alluxio job service to launch distributed reading jobs mocking the actual distributed training data loading workloads.
 In each worker node, there is one Alluxio worker, one Alluxio job worker, and one Fuse mount point. Each job worker launches a bench job reading data from the local Fuse mount point.
 All the reading data from all job worker will be aggregated to get the cluster read throughput.
@@ -174,11 +176,11 @@ The parameters for the Fuse IO Stress Bench are (other than common parameters fo
 ### Single node testing
 #### Prerequisite
 * A running Alluxio cluster with one master, and one worker.
-* A Fuse mount point. See FUSE-based POSIX API](https://docs.alluxio.io/os/user/stable/en/api/POSIX-API.html) for more details on mounting.
+* A Fuse mount point. See [FUSE-based POSIX API](https://docs.alluxio.io/os/user/stable/en/api/POSIX-API.html) for more details on mounting.
 * (Optional) To prevent operating system cache and Fuse cache from affecting benchmark accuracy, using different mount points for writing and reading test files. 
 
 #### Write test files
-Write the test files by running the benchmark with `--operation Write` into the mount point for writing files. More specifically, run
+Write the test files by running the benchmark with `--operation Write` into the mount point for writing files
 ```console
 $ bin/alluxio runClass alluxio.stress.cli.fuse.FuseIOBench --operation Write --local-path /path/to/writing/mount/point ...
 ```
@@ -189,7 +191,7 @@ $ bin/alluxio runClass alluxio.stress.cli.fuse.FuseIOBench --operation Write --l
 --num-files-per-dir 100 --file-size 1m --threads 32
 ```
 
-`warmup`  and `duration` parameters are not valid in writing. The writing operation will write all the files needed for reading test.
+`warmup`  and `duration` parameters are not valid in writing. The `Write` operation always write all the files needed for reading test.
 
 #### List out test files (optional)
 Listing out the test files could cache the file metadata, so that the metadata operation won't affect reading throughput accuracy in the reading step.
@@ -226,12 +228,13 @@ and client (standalone Fuse) are co-located on one machine:
 [![Watch the video](https://img.youtube.com/vi/pKaFQPFvuxo/maxresdefault.jpg)](https://youtu.be/pKaFQPFvuxo)
 
 By tweaking the setups, the reading performance under more scenarios can also be tested:
-* By writing to worker on one machine and reading from mount point on another machine, the throughput of a remote read using network and Grpc can be tested;
-* By using workerFuse for reading, which needs to be configured in `${ALLUXIO_HOME}/conf/alluxio-site.properties`
-  (see [FUSE-based POSIX API](https://docs.alluxio.io/os/user/stable/en/api/POSIX-API.html#fuse-on-worker-process)), the throughput of reading from
-  Alluxio internal channel without Grpc involved can be tested.
-* By using StackFS mount, the throughput of JNI-fuse without Alluxio can be tested.
-* By setting `alluxio.user.file.writetype.default` to `THROUGH`, the throughput of reading from UFS can be tested.
+* By using Fuse in worker process for reading, which needs to be configured in `${ALLUXIO_HOME}/conf/alluxio-site.properties`
+  (see [FUSE-based POSIX API](https://docs.alluxio.io/os/user/stable/en/api/POSIX-API.html#fuse-on-worker-process)), the local read
+  throughput can be benchmarked. Not gRPC or network involved in the local read.
+* By writing to worker on one machine and reading from the Fuse mount point on another machine, remote read throughput can be benchmarked.
+  Remote read introduces extra gRPC and network overhead compared to local read.
+* By using `StackFS` mount, the throughput of JNI-fuse without Alluxio can be tested.
+* By setting `alluxio.user.file.writetype.default` to `THROUGH` when writing test files, the throughput of reading from UFS can be tested.
 * ...
 
 ### Cluster testing
@@ -246,17 +249,17 @@ The cluster testing is similar to single node testing except that
 - `--cluster` argument needs to be added to each operation so that the bench jobs will be submitted to job master, distributed to job workers, and executed by job workers.
 Each job worker executes one bench job which reads from the co-located Fuse mount point and gets the local read throughput. Cluster throughput is calculated by aggregating the read throughput of each bench job.
 - Two more read operations `RemoteRead` `ClusterRead` are supported besides `LocalRead`.
-* `LocalRead`: Each job worker reads the data written by itself. With the cluster settings, each job worker reads the data from local worker through local Fuse mount point.
-* `RemoteRead`: Each job worker reads the data written by other job workers evenly. With the cluster settings, each job worker reads the data from remote workers through local Fuse mount point.
+1. `LocalRead`: Each job worker reads the data written by itself. With the cluster settings, each job worker reads the data from local worker through local Fuse mount point.
+2. `RemoteRead`: Each job worker reads the data written by other job workers evenly. With the cluster settings, each job worker reads the data from remote workers through local Fuse mount point.
 In a cluster with 3 worker nodes, each worker nodes are written 30MB data. Each job worker will read 15MB data from each of the two remote workers in `RemoteRead` operation.
-* `ClusterRead`: Each job worker reads the data written by all job workers evenly. With the cluster settings, each job worker reads the data from local and remote workers through local Fuse mount point.
+3. `ClusterRead`: Each job worker reads the data written by all job workers evenly. With the cluster settings, each job worker reads the data from local and remote workers through local Fuse mount point.
 In a cluster with 3 worker nodes, each worker node are written 30MB data. Each job worker will read 10MB data from each worker in `ClusterRead` operation.
 
 Here is a sample usage demo, where we have one master and three workers:
 [![Watch the video](https://img.youtube.com/vi/UqmQbYYR4NQ/maxresdefault.jpg)](https://youtu.be/UqmQbYYR4NQ)
 
 ### Limitations
-1. Fuse IO Stress Bench only supports reading self-generated test files.
-2. The `Writing` operation is only for generating test files. It is not for measuring writing throughput.
-3. To prevent caching affecting accuracy, each file is only read at most once by each worker. Therefore, the total size of the test files and duration
+- Fuse IO Stress Bench only supports reading self-generated test files.
+- The `Write` operation is only used for generating test files instead of measuring throughput.
+- To prevent caching affecting accuracy, each file is only read at most once by each worker. Therefore, the total size of the test files and duration
 need to be tested and tuned such that no thread finish reading its designated files before the test duration passed.
