@@ -358,10 +358,14 @@ public final class S3RestServiceHandler {
 
       String objectPath = bucketPath + AlluxioURI.SEPARATOR + object;
 
+      CreateDirectoryPOptions options = CreateDirectoryPOptions.newBuilder()
+          .setRecursive(true)
+          .build();
+
       if (objectPath.endsWith(AlluxioURI.SEPARATOR)) {
         // Need to create a folder
         try {
-          fs.createDirectory(new AlluxioURI(objectPath));
+          fs.createDirectory(new AlluxioURI(objectPath), options);
         } catch (IOException | AlluxioException e) {
           throw toObjectS3Exception(e, objectPath);
         }
@@ -394,7 +398,7 @@ public final class S3RestServiceHandler {
           if (contentMD5 != null && !contentMD5.equals(base64Digest)) {
             // The object may be corrupted, delete the written object and return an error.
             try {
-              fs.delete(objectURI);
+              fs.delete(objectURI, DeletePOptions.newBuilder().setRecursive(true).build());
             } catch (Exception e2) {
               // intend to continue and return BAD_DIGEST S3Exception.
             }
@@ -553,11 +557,11 @@ public final class S3RestServiceHandler {
       try {
         URIStatus status = fs.getStatus(objectURI);
         // TODO(cc): Consider how to respond with the object's ETag.
-        return Response.ok()
-            .lastModified(new Date(status.getLastModificationTimeMs()))
+        return Response.ok().lastModified(new Date(status.getLastModificationTimeMs()))
             .header(S3Constants.S3_ETAG_HEADER, "\"" + status.getLastModificationTimeMs() + "\"")
-            .header(S3Constants.S3_CONTENT_LENGTH_HEADER, status.getLength())
-            .build();
+            .header(S3Constants.S3_CONTENT_LENGTH_HEADER, status.getLength()).build();
+      } catch (FileDoesNotExistException e) {
+        return Response.status(404).build(); // does not exist should simply return a 404
       } catch (Exception e) {
         throw toObjectS3Exception(e, objectPath);
       }
@@ -710,9 +714,13 @@ public final class S3RestServiceHandler {
     // Delete the object.
     String objectPath = bucketPath + AlluxioURI.SEPARATOR + object;
     DeletePOptions options = DeletePOptions.newBuilder().setAlluxioOnly(ServerConfiguration
-        .get(PropertyKey.PROXY_S3_DELETE_TYPE).equals(Constants.S3_DELETE_IN_ALLUXIO_ONLY)).build();
+        .get(PropertyKey.PROXY_S3_DELETE_TYPE).equals(Constants.S3_DELETE_IN_ALLUXIO_ONLY))
+        .setRecursive(true)
+        .build();
     try {
       fs.delete(new AlluxioURI(objectPath), options);
+    } catch (FileDoesNotExistException e) {
+      // intentionally do nothing, this is ok.
     } catch (Exception e) {
       throw toObjectS3Exception(e, objectPath);
     }
