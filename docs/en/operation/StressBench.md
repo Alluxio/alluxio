@@ -191,7 +191,7 @@ $ bin/alluxio runClass alluxio.stress.cli.fuse.FuseIOBench --operation Write --l
 --num-files-per-dir 100 --file-size 1m --threads 32
 ```
 
-`warmup`  and `duration` parameters are not valid in writing. The `Write` operation always write all the files needed for reading test.
+`warmup`  and `duration` parameters are not valid in writing. The `Write` operation always writes all the files needed for reading test.
 
 #### List out test files (optional)
 Listing out the test files could cache the file metadata, so that the metadata operation won't affect reading throughput accuracy in the reading step.
