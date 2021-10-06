@@ -11,23 +11,15 @@
 
 package alluxio.stress.jobservice;
 
-import alluxio.stress.Parameters;
+import alluxio.stress.GeneralParameters;
 
-import com.beust.jcommander.IStringConverter;
 import com.beust.jcommander.Parameter;
 
 /**
  * This holds all the parameters. All fields are public for easier json ser/de without all the
  * getters and setters.
  */
-public final class JobServiceBenchParameters extends Parameters {
-
-  @Parameter(names = {"--operation"},
-      description = "the operation to perform. Options are [DistributedLoad]",
-      converter = OperationConverter.class,
-      required = true)
-  public JobServiceBenchOperation mOperation;
-
+public final class JobServiceBenchParameters extends GeneralParameters<JobServiceBenchOperation> {
   @Parameter(names = {"--threads"}, description = "the number of concurrent threads to use")
   public int mThreads = 256;
 
@@ -54,14 +46,4 @@ public final class JobServiceBenchParameters extends Parameters {
       description = "The length of time to warmup before recording measurements. (1m, 10m, 60s, "
           + "10000ms, etc.)")
   public String mWarmup = "30s";
-
-  /**
-   * Converts from String to Operation instance.
-   */
-  public static class OperationConverter implements IStringConverter<JobServiceBenchOperation> {
-    @Override
-    public JobServiceBenchOperation convert(String value) {
-      return JobServiceBenchOperation.fromString(value);
-    }
-  }
 }

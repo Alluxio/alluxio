@@ -11,10 +11,10 @@
 
 package alluxio.stress.master;
 
+import alluxio.stress.GeneralParameters;
 import alluxio.stress.Parameters;
 
 import com.beust.jcommander.DynamicParameter;
-import com.beust.jcommander.IStringConverter;
 import com.beust.jcommander.Parameter;
 
 import java.util.HashMap;
@@ -24,16 +24,9 @@ import java.util.Map;
  * This holds all the parameters. All fields are public for easier json ser/de without all the
  * getters and setters.
  */
-public final class MasterBenchParameters extends Parameters {
+public final class MasterBenchParameters extends GeneralParameters<MasterBenchOperation> {
   /** The stop count value that is invalid. */
   public static final int STOP_COUNT_INVALID = -1;
-
-  @Parameter(names = {"--operation"},
-      description = "the operation to perform. Options are [CreateFile, GetBlockLocations, "
-          + "GetFileStatus, OpenFile, CreateDir, ListDir, ListDirLocated, RenameFile, DeleteFile]",
-      converter = OperationConverter.class,
-      required = true)
-  public Operation mOperation;
 
   @Parameter(names = {"--clients"}, description = "the number of fs client instances to use")
   public int mClients = 1;
@@ -103,10 +96,5 @@ public final class MasterBenchParameters extends Parameters {
   /**
    * Converts from String to Operation instance.
    */
-  public static class OperationConverter implements IStringConverter<Operation> {
-    @Override
-    public Operation convert(String value) {
-      return Operation.fromString(value);
-    }
-  }
+
 }

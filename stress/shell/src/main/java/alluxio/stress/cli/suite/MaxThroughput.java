@@ -19,7 +19,7 @@ import alluxio.stress.cli.StressMasterBench;
 import alluxio.stress.master.MasterBenchParameters;
 import alluxio.stress.master.MasterBenchSummary;
 import alluxio.stress.master.MaxThroughputSummary;
-import alluxio.stress.master.Operation;
+import alluxio.stress.master.MasterBenchOperation;
 import alluxio.util.CommonUtils;
 import alluxio.util.ConfigurationUtils;
 import alluxio.util.FormatUtils;
@@ -168,7 +168,7 @@ public class MaxThroughput extends Suite<MaxThroughputSummary> {
    */
   private void createFiles(long numFiles, List<String> args) throws Exception {
     List<String> newArgs = new ArrayList<>(args);
-    updateArgValue(newArgs, "--operation", Operation.CREATE_FILE.toString());
+    updateArgValue(newArgs, "--operation", MasterBenchOperation.CREATE_FILE.toString());
     updateArgValue(newArgs, "--warmup", "0s");
     updateArgValue(newArgs, "--threads", "128");
     updateArgValue(newArgs, "--stop-count", Long.toString(numFiles));

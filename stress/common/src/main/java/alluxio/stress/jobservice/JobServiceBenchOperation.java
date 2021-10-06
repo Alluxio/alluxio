@@ -11,10 +11,13 @@
 
 package alluxio.stress.jobservice;
 
+import alluxio.stress.Operation;
+import alluxio.stress.master.MasterBenchOperation;
+
 /**
  * The operations for the job service stress tests.
  */
-public enum JobServiceBenchOperation {
+public enum JobServiceBenchOperation implements Operation<JobServiceBenchOperation> {
   CREATE_FILES("CreateFiles"),
   DISTRIBUTED_LOAD("DistributedLoad"),
   NO_OP("NoOp");
@@ -28,23 +31,15 @@ public enum JobServiceBenchOperation {
     mName = name;
   }
 
+
   @Override
   public String toString() {
     return mName;
   }
 
-  /**
-   * Creates an instance type from the string. This method is case insensitive.
-   *
-   * @param text the instance type in string
-   * @return the created instance
-   */
-  public static JobServiceBenchOperation fromString(String text) {
-    for (JobServiceBenchOperation type : JobServiceBenchOperation.values()) {
-      if (type.toString().equalsIgnoreCase(text)) {
-        return type;
-      }
-    }
-    throw new IllegalArgumentException("No constant with text " + text + " found");
+
+  @Override
+  public JobServiceBenchOperation[] enumValues() {
+    return JobServiceBenchOperation.values();
   }
 }
