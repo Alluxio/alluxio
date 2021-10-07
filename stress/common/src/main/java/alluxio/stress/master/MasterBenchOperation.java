@@ -12,11 +12,12 @@
 package alluxio.stress.master;
 
 import alluxio.stress.Operation;
+import alluxio.stress.jobservice.JobServiceBenchOperation;
 
 /**
  * The operations for the master stress tests.
  */
-public enum MasterBenchOperation implements Operation<MasterBenchOperation> {
+public enum MasterBenchOperation{
   // Create files
   CREATE_FILE("CreateFile"), // create fixed-N, create more in extra
   GET_BLOCK_LOCATIONS("GetBlockLocations"), // call for fixed-N
@@ -47,8 +48,18 @@ public enum MasterBenchOperation implements Operation<MasterBenchOperation> {
     return mName;
   }
 
-  @Override
-  public MasterBenchOperation[] enumValues() {
-    return MasterBenchOperation.values();
+  /**
+   * Creates an instance type from the string. This method is case insensitive.
+   *
+   * @param text the instance type in string
+   * @return the created instance
+   */
+  public static MasterBenchOperation fromString(String text) {
+    for (MasterBenchOperation type : MasterBenchOperation.values()) {
+      if (type.toString().equalsIgnoreCase(text)) {
+        return type;
+      }
+    }
+    throw new IllegalArgumentException("No constant with text " + text + " found");
   }
 }
