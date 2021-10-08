@@ -32,8 +32,7 @@ public class SingleCuckooTable implements CuckooTable {
    * @param tagsPerBucket the number of slots each bucket has
    * @param bitsPerTag the number of bits each slot has
    */
-  public SingleCuckooTable(BitSet bitSet, int numBuckets, int tagsPerBucket,
-                           int bitsPerTag) {
+  public SingleCuckooTable(BitSet bitSet, int numBuckets, int tagsPerBucket, int bitsPerTag) {
     Preconditions.checkArgument(bitSet.size() == numBuckets * tagsPerBucket * bitsPerTag);
     mBits = bitSet;
     mNumBuckets = numBuckets;
@@ -42,8 +41,8 @@ public class SingleCuckooTable implements CuckooTable {
   }
 
   @Override
-  public int readTag(int i, int j) {
-    int tagStartIdx = getTagOffset(i, j);
+  public int readTag(int bucketIndex, int slotIndex) {
+    int tagStartIdx = getTagOffset(bucketIndex, slotIndex);
     int tag = 0;
     // TODO(iluoeli): Optimize me, since per bit operation is inefficient
     for (int k = 0; k < mBitsPerTag; k++) {
@@ -58,10 +57,10 @@ public class SingleCuckooTable implements CuckooTable {
   }
 
   @Override
-  public void writeTag(int i, int j, int t) {
-    int tagStartIdx = getTagOffset(i, j);
+  public void writeTag(int bucketIndex, int slotIndex, int tag) {
+    int tagStartIdx = getTagOffset(bucketIndex, slotIndex);
     for (int k = 0; k < mBitsPerTag; k++) {
-      if ((t & (1L << k)) != 0) {
+      if ((tag & (1L << k)) != 0) {
         mBits.set(tagStartIdx + k);
       } else {
         mBits.clear(tagStartIdx + k);
@@ -70,9 +69,9 @@ public class SingleCuckooTable implements CuckooTable {
   }
 
   @Override
-  public boolean findTagInBucket(int i, int tag) {
-    for (int j = 0; j < mTagsPerBucket; j++) {
-      if (readTag(i, j) == tag) {
+  public boolean findTagInBucket(int bucketIndex, int tag) {
+    for (int slotIndex = 0; slotIndex < mTagsPerBucket; slotIndex++) {
+      if (readTag(bucketIndex, slotIndex) == tag) {
         return true;
       }
     }
@@ -80,11 +79,11 @@ public class SingleCuckooTable implements CuckooTable {
   }
 
   @Override
-  public boolean findTagInBucket(int i, int tag, TagPosition position) {
-    for (int j = 0; j < mTagsPerBucket; j++) {
-      if (readTag(i, j) == tag) {
-        position.setBucketIndex(i);
-        position.setTagIndex(j);
+  public boolean findTagInBucket(int bucketIndex, int tag, TagPosition position) {
+    for (int slotIndex = 0; slotIndex < mTagsPerBucket; slotIndex++) {
+      if (readTag(bucketIndex, slotIndex) == tag) {
+        position.setBucketIndex(bucketIndex);
+        position.setSlotIndex(slotIndex);
         return true;
       }
     }
@@ -92,9 +91,9 @@ public class SingleCuckooTable implements CuckooTable {
   }
 
   @Override
-  public boolean findTagInBuckets(int i1, int i2, int tag) {
-    for (int j = 0; j < mTagsPerBucket; j++) {
-      if (readTag(i1, j) == tag || readTag(i2, j) == tag) {
+  public boolean findTagInBuckets(int bucketIndex1, int bucketIndex2, int tag) {
+    for (int slotIndex = 0; slotIndex < mTagsPerBucket; slotIndex++) {
+      if (readTag(bucketIndex1, slotIndex) == tag || readTag(bucketIndex2, slotIndex) == tag) {
         return true;
       }
     }
@@ -102,26 +101,16 @@ public class SingleCuckooTable implements CuckooTable {
   }
 
   @Override
-  public boolean findTagInBuckets(int i1, int i2, int tag, TagPosition position) {
-    for (int j = 0; j < mTagsPerBucket; j++) {
-      if (readTag(i1, j) == tag) {
-        position.setBucketIndex(i1);
-        position.setTagIndex(j);
+  public boolean findTagInBuckets(int bucketIndex1, int bucketIndex2, int tag,
+      TagPosition position) {
+    for (int slotIndex = 0; slotIndex < mTagsPerBucket; slotIndex++) {
+      if (readTag(bucketIndex1, slotIndex) == tag) {
+        position.setBucketIndex(bucketIndex1);
+        position.setSlotIndex(slotIndex);
         return true;
-      } else if (readTag(i2, j) == tag) {
-        position.setBucketIndex(i2);
-        position.setTagIndex(j);
-        return true;
-      }
-    }
-    return false;
-  }
-
-  @Override
-  public boolean deleteTagFromBucket(int i, int tag) {
-    for (int j = 0; j < mTagsPerBucket; j++) {
-      if (readTag(i, j) == tag) {
-        writeTag(i, j, 0);
+      } else if (readTag(bucketIndex2, slotIndex) == tag) {
+        position.setBucketIndex(bucketIndex2);
+        position.setSlotIndex(slotIndex);
         return true;
       }
     }
@@ -129,12 +118,10 @@ public class SingleCuckooTable implements CuckooTable {
   }
 
   @Override
-  public boolean deleteTagFromBucket(int i, int tag, TagPosition position) {
-    for (int j = 0; j < mTagsPerBucket; j++) {
-      if (readTag(i, j) == tag) {
-        writeTag(i, j, 0);
-        position.setBucketIndex(i);
-        position.setTagIndex(j);
+  public boolean deleteTagFromBucket(int bucketIndex, int tag) {
+    for (int slotIndex = 0; slotIndex < mTagsPerBucket; slotIndex++) {
+      if (readTag(bucketIndex, slotIndex) == tag) {
+        writeTag(bucketIndex, slotIndex, 0);
         return true;
       }
     }
@@ -142,44 +129,57 @@ public class SingleCuckooTable implements CuckooTable {
   }
 
   @Override
-  public int insertOrKickoutOne(int i, int tag) {
-    for (int j = 0; j < mTagsPerBucket; j++) {
-      if (readTag(i, j) == 0) {
-        writeTag(i, j, tag);
+  public boolean deleteTagFromBucket(int bucketIndex, int tag, TagPosition position) {
+    for (int slotIndex = 0; slotIndex < mTagsPerBucket; slotIndex++) {
+      if (readTag(bucketIndex, slotIndex) == tag) {
+        writeTag(bucketIndex, slotIndex, 0);
+        position.setBucketIndex(bucketIndex);
+        position.setSlotIndex(slotIndex);
+        return true;
+      }
+    }
+    return false;
+  }
+
+  @Override
+  public int insertOrKickoutOne(int bucketIndex, int tag) {
+    for (int slotIndex = 0; slotIndex < mTagsPerBucket; slotIndex++) {
+      if (readTag(bucketIndex, slotIndex) == 0) {
+        writeTag(bucketIndex, slotIndex, tag);
         return 0;
       }
     }
     int r = ThreadLocalRandom.current().nextInt(mTagsPerBucket);
-    int oldTag = readTag(i, r);
-    writeTag(i, r, tag);
+    int oldTag = readTag(bucketIndex, r);
+    writeTag(bucketIndex, r, tag);
     return oldTag;
   }
 
   @Override
-  public int insertOrKickoutOne(int i, int tag, TagPosition position) {
-    for (int j = 0; j < mTagsPerBucket; j++) {
-      if (readTag(i, j) == 0) {
-        writeTag(i, j, tag);
-        position.setBucketIndex(i);
-        position.setTagIndex(j);
+  public int insertOrKickoutOne(int bucketIndex, int tag, TagPosition position) {
+    for (int slotIndex = 0; slotIndex < mTagsPerBucket; slotIndex++) {
+      if (readTag(bucketIndex, slotIndex) == 0) {
+        writeTag(bucketIndex, slotIndex, tag);
+        position.setBucketIndex(bucketIndex);
+        position.setSlotIndex(slotIndex);
         return 0;
       }
     }
     int r = ThreadLocalRandom.current().nextInt(mTagsPerBucket);
-    int oldTag = readTag(i, r);
-    writeTag(i, r, tag);
-    position.setBucketIndex(i);
-    position.setTagIndex(r);
+    int oldTag = readTag(bucketIndex, r);
+    writeTag(bucketIndex, r, tag);
+    position.setBucketIndex(bucketIndex);
+    position.setSlotIndex(r);
     return oldTag;
   }
 
   @Override
-  public boolean insert(int i, int tag, TagPosition position) {
-    for (int j = 0; j < mTagsPerBucket; j++) {
-      if (readTag(i, j) == 0) {
-        writeTag(i, j, tag);
-        position.setBucketIndex(i);
-        position.setTagIndex(j);
+  public boolean insert(int bucketIndex, int tag, TagPosition position) {
+    for (int slotIndex = 0; slotIndex < mTagsPerBucket; slotIndex++) {
+      if (readTag(bucketIndex, slotIndex) == 0) {
+        writeTag(bucketIndex, slotIndex, tag);
+        position.setBucketIndex(bucketIndex);
+        position.setSlotIndex(slotIndex);
         return true;
       }
     }

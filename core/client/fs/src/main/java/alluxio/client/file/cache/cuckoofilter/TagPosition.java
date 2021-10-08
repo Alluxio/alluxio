@@ -16,7 +16,7 @@ package alluxio.client.file.cache.cuckoofilter;
  */
 public class TagPosition {
   public int mBucketIndex;
-  public int mTagIndex;
+  public int mSlotIndex;
   public CuckooStatus mStatus;
 
   /**
@@ -30,22 +30,22 @@ public class TagPosition {
    * Create a tag position with given position.
    *
    * @param bucketIndex the bucket index
-   * @param tagIndex the slot
+   * @param slotIndex the slot
    */
-  public TagPosition(int bucketIndex, int tagIndex) {
-    this(bucketIndex, tagIndex, CuckooStatus.UNDEFINED);
+  public TagPosition(int bucketIndex, int slotIndex) {
+    this(bucketIndex, slotIndex, CuckooStatus.UNDEFINED);
   }
 
   /**
    * Create a tag position with given position and status.
    *
    * @param bucketIndex the bucket index
-   * @param tagIndex the slot
+   * @param slotIndex the slot
    * @param status the status
    */
-  public TagPosition(int bucketIndex, int tagIndex, CuckooStatus status) {
+  public TagPosition(int bucketIndex, int slotIndex, CuckooStatus status) {
     mBucketIndex = bucketIndex;
-    mTagIndex = tagIndex;
+    mSlotIndex = slotIndex;
     mStatus = status;
   }
 
@@ -53,7 +53,7 @@ public class TagPosition {
    * @return true is this tag position represents a valid position
    */
   boolean valid() {
-    return mBucketIndex >= 0 && mTagIndex >= 0;
+    return mBucketIndex >= 0 && mSlotIndex >= 0;
   }
 
   /**
@@ -75,17 +75,17 @@ public class TagPosition {
   /**
    * @return the slot index
    */
-  public int getTagIndex() {
-    return mTagIndex;
+  public int getSlotIndex() {
+    return mSlotIndex;
   }
 
   /**
    * Set the slot index.
    *
-   * @param tagIndex the slot
+   * @param slotIndex the slot
    */
-  public void setTagIndex(int tagIndex) {
-    mTagIndex = tagIndex;
+  public void setSlotIndex(int slotIndex) {
+    mSlotIndex = slotIndex;
   }
 
   /**
@@ -112,11 +112,11 @@ public class TagPosition {
    */
   public void setBucketAndSlot(int bucket, int slot) {
     mBucketIndex = bucket;
-    mTagIndex = slot;
+    mSlotIndex = slot;
   }
 
   @Override
   public String toString() {
-    return "TagPosition{" + "bucketIndex=" + mBucketIndex + ", tagIndex=" + mTagIndex + '}';
+    return "TagPosition{" + "bucketIndex=" + mBucketIndex + ", tagIndex=" + mSlotIndex + '}';
   }
 }
