@@ -61,6 +61,7 @@ public class ConcurrentClockCuckooFilter<T> implements Serializable {
   private final int mBitsPerScope;
   private final int mMaxSize;
   private final int mSizeMask;
+  private final int mMaxAge;
   private final Funnel<? super T> mFunnel;
   private final HashFunction mHasher;
   private final ScopeEncoder mScopeEncoder;
@@ -102,6 +103,7 @@ public class ConcurrentClockCuckooFilter<T> implements Serializable {
     mBitsPerScope = scopeTable.getBitsPerTag();
     mMaxSize = (1 << mBitsPerSize);
     mSizeMask = mMaxSize - 1;
+    mMaxAge = (1 << mBitsPerClock) - 1;
     mSlidingWindowType = slidingWindowType;
     mWindowSize = windowSize;
     mFunnel = funnel;
@@ -297,7 +299,7 @@ public class ConcurrentClockCuckooFilter<T> implements Serializable {
       Preconditions.checkState(mTable.readTag(pos.getBucketIndex(), pos.getTagIndex()) == 0);
       Preconditions.checkState(!mTable.findTagInBuckets(b1, b2, fp));
       mTable.writeTag(pos.getBucketIndex(), pos.getTagIndex(), fp);
-      mClockTable.writeTag(pos.getBucketIndex(), pos.getTagIndex(), 0xffffffff);
+      mClockTable.writeTag(pos.getBucketIndex(), pos.getTagIndex(), mMaxAge);
       mScopeTable.writeTag(pos.getBucketIndex(), pos.getTagIndex(), scope);
       mSizeTable.writeTag(pos.getBucketIndex(), pos.getTagIndex(), size);
       // update statistics
@@ -347,7 +349,7 @@ public class ConcurrentClockCuckooFilter<T> implements Serializable {
     found = mTable.findTagInBuckets(b1, b2, tag, pos);
     if (found && shouldReset) {
       // set C to MAX
-      mClockTable.writeTag(pos.getBucketIndex(), pos.getTagIndex(), 0xffffffff);
+      mClockTable.writeTag(pos.getBucketIndex(), pos.getTagIndex(), mMaxAge);
     }
     mLocks.unlockTwoRead(b1, b2);
     return found;
