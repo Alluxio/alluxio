@@ -102,9 +102,6 @@ public final class MasterBenchParameters extends FileSystemParameters {
       description = "If true, skip the prepare.")
   public boolean mSkipPrepare = false;
 
-  @Override public Enum operation() {
-    return mOperation;
-  }
   /**
    * Converts from String to Operation instance.
    */
