@@ -25,17 +25,17 @@ import alluxio.util.JsonSerializable;
 import alluxio.worker.job.JobMasterClientContext;
 
 import com.beust.jcommander.ParametersDelegate;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
 /**
- * A max throughput suite.
+ * A max throughput suite for job service.
  */
-public class JobServiceMaxThroughput extends AbstractMaxThroughput<JobServiceMaxThroughputSummary,JobServiceBenchSummary,JobServiceBenchParameters> {
+public class JobServiceMaxThroughput extends
+    AbstractMaxThroughput<JobServiceMaxThroughputSummary, JobServiceBenchSummary,
+        JobServiceBenchParameters> {
 
   /** Reuse the existing parameters. */
   @ParametersDelegate
@@ -62,20 +62,18 @@ public class JobServiceMaxThroughput extends AbstractMaxThroughput<JobServiceMax
     if (mNumWorkers <= 0) {
       throw new IllegalStateException("No workers available for testing!");
     }
-
     JobServiceMaxThroughputSummary summary = new JobServiceMaxThroughputSummary();
     summary.setParameters(mParameters);
     List<String> baseArgs = new ArrayList<>(Arrays.asList(args));
     int best = getBestThroughput(mParameters.mTargetThroughput, summary, baseArgs, mNumWorkers);
     LOG.info("max throughput: " + best);
-
     summary.setEndTimeMs(CommonUtils.getCurrentMs());
     summary.setMaxThroughput(best);
-
     return summary;
   }
 
-  @Override protected JobServiceBenchSummary runSingleTest(List<String> args) throws Exception {
+  @Override
+  protected JobServiceBenchSummary runSingleTest(List<String> args) throws Exception {
     Benchmark b = new StressJobServiceBench();
     String result = b.run(args.toArray(new String[0]));
     return JsonSerializable.fromJson(result, new JobServiceBenchSummary[0]);

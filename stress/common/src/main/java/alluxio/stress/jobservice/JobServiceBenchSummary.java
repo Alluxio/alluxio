@@ -38,8 +38,6 @@ public final class JobServiceBenchSummary extends GeneralBenchSummary {
   private long mEndTimeMs;
   private JobServiceBenchParameters mParameters;
   private List<String> mNodes;
-
-
   private SummaryStatistics mStatistics;
   private Map<String, SummaryStatistics> mStatisticsPerMethod;
 
@@ -116,7 +114,6 @@ public final class JobServiceBenchSummary extends GeneralBenchSummary {
   public void setNodes(List<String> nodes) {
     mNodes = nodes;
   }
-
 
   /**
    * @return the end time (in ms)
