@@ -11,6 +11,8 @@
 
 package alluxio.client.file.cache.cuckoofilter;
 
+import com.google.common.base.Preconditions;
+
 import java.util.concurrent.ThreadLocalRandom;
 
 /**
@@ -32,7 +34,7 @@ public class SingleCuckooTable implements CuckooTable {
    */
   public SingleCuckooTable(BitSet bitSet, int numBuckets, int tagsPerBucket,
                            int bitsPerTag) {
-    assert bitSet.size() == numBuckets * tagsPerBucket * bitsPerTag;
+    Preconditions.checkArgument(bitSet.size() == numBuckets * tagsPerBucket * bitsPerTag);
     mBits = bitSet;
     mNumBuckets = numBuckets;
     mTagsPerBucket = tagsPerBucket;
