@@ -56,6 +56,7 @@ export class WorkersPresenter extends React.Component<AllProps> {
                     )}
                     <th>Last Heartbeat</th>
                     <th>State</th>
+                    <th>Block Count</th>
                     <th>Workers Capacity</th>
                     <th>Space Used</th>
                     <th>Space Usage</th>
@@ -77,6 +78,7 @@ export class WorkersPresenter extends React.Component<AllProps> {
                       )}
                       <td>{nodeInfo.lastHeartbeat}</td>
                       <td>{nodeInfo.state}</td>
+                      <td>{nodeInfo.blockCount}</td>
                       <td>{nodeInfo.capacity}</td>
                       <td>{nodeInfo.usedMemory}</td>
                       <td>

@@ -46,6 +46,7 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
@@ -53,6 +54,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.Objects;
 import java.util.Random;
 import java.util.StringTokenizer;
 import java.util.concurrent.Callable;
@@ -881,6 +883,28 @@ public final class CommonUtils {
       }
     }
     return Integer.parseInt(version);
+  }
+
+  /**
+   * @param obj a Java object
+   * @return if this object is an collection
+   */
+  public static boolean isCollection(Object obj) {
+    return obj instanceof Collection || obj instanceof Map;
+  }
+
+  /**
+   * @param obj a Java object
+   * @return a string to summarize the object if this is a collection or a map
+   */
+  public static String summarizeCollection(Object obj) {
+    if (obj instanceof Collection) {
+      return String.format(
+          "%s{%d entries}", obj.getClass().getSimpleName(), ((Collection<?>) obj).size());
+    } else if (obj instanceof Map) {
+      return String.format("Map{%d entries}", ((Map<?, ?>) obj).size());
+    }
+    return Objects.toString(obj);
   }
 
   private CommonUtils() {} // prevent instantiation

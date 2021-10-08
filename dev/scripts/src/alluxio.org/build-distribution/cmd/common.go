@@ -79,6 +79,7 @@ var libJars = map[string]struct{}{
 	"underfs-oss":                  {},
 	"underfs-ozone":                {},
 	"underfs-s3a":                  {},
+	"underfs-obs":                  {},
 	"underfs-swift":                {},
 	"underfs-wasb":                 {},
 	"underfs-web":                  {},

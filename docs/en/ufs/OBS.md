@@ -8,37 +8,16 @@ priority: 10
 
 * Table of Contents
 {:toc}
-
 This guide describes how to configure Alluxio with
 [Open Telecom OBS](http://www.huaweicloud.com/en-us/product/obs.html) as the under storage system. Object Storage
 Service (OBS) is a massive, secure and highly reliable cloud storage service provided by Huawei Cloud.
 
 ## Prerequisites
 
-To run an Alluxio cluster on a set of machines, you must deploy Alluxio binaries to each of these
-machines. You can either
-[compile the binaries from Alluxio source code]({{ '/en/contributor/Building-Alluxio-From-Source.html' | relativize_url }}),
-or [download the precompiled binaries directly]({{ '/en/deploy/Running-Alluxio-Locally.html' | relativize_url }}).
+The Alluxio binaries must be available on the machine.
 
-[OBS under storage](https://github.com/Alluxio/alluxio-extensions/tree/master/underfs/obs) is implemented as an under storage extension.
-Clone the [alluxio-extensions](https://github.com/Alluxio/alluxio-extensions/) repo and run the following command under `<alluxio_extensions_home>/underfs/obs`:
-
-```console
-$ mvn package -DskipTests
-```
-
-The built jar can be found under the `<alluxio_extensions_home>/underfs/obs/target`.
-
-Execute the following command on master to install the extension to all masters and workers defined in `conf/masters` and `conf/workers`:
-
-```console
-$ ./bin/alluxio extensions install /PATH/TO/OBS/jar
-```
-
-See [here]({{ '/en/ufs/Ufs-Extensions.html' | relativize_url }}) for more details on Alluxio extension management.
-
-In preparation for using OBS with Alluxio, follow the [OBS quick start guide](https://support-intl.huaweicloud.com/usermanual-obs/en-us_topic_0069825929.html)
-to create a OBS bucket.
+In preparation for using OBS with Alluxio, follow the [OBS quick start guide](https://support-intl.huaweicloud.com/usermanual-obs/en-us_topic_0069825929.html) to create a OBS bucket. In this guide, the OBS bucket is called `OBS_BUCKET`, and the directory in the bucket is called `OBS_DIRECTORY`.
+Alluxio also supports `PFS`(Parallel File System),  witch is an extended file system of OBS. Please see the next section for configuration.
 
 ## Basic setup
 
@@ -75,6 +54,13 @@ to create and manage your keys.
 Valid values are similar to `obs.cn-east-2.myhuaweicloud.com` and `obs.cn-south-1.myhuaweicloud.com`. 
 Available endpoints are listed in the [Region and Endpoint list](https://developer.huaweicloud.com/en-us/endpoint)
 under the Object Storage Service category.
+
+If you want to use the `PFS` parallel file system, please add the following configuration in `conf/alluxio-site.properties`. The rest of the operations are the same as the `OBS` file system. Add:
+
+```
+# default bucket type is obs
+fs.obs.bucketType=pfs
+```
 
 ## Excample: Running Alluxio Locally with OBS
 

@@ -949,6 +949,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.SERVER)
           .build();
+  public static final PropertyKey UNDERFS_S3_ENDPOINT_REGION =
+      new Builder(Name.UNDERFS_S3_ENDPOINT_REGION)
+          .setDescription("Optionally, set the S3 endpoint region. If not provided, "
+              + "inducted from the endpoint uri or set to null")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.SERVER)
+          .build();
   public static final PropertyKey UNDERFS_S3_OWNER_ID_TO_USERNAME_MAPPING =
       new Builder(Name.UNDERFS_S3_OWNER_ID_TO_USERNAME_MAPPING)
           .setDescription("Optionally, specify a preset s3 canonical id to Alluxio username "
@@ -1405,7 +1412,34 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.SERVER)
           .build();
-
+  public static final PropertyKey OBS_ACCESS_KEY =
+      new Builder(Name.OBS_ACCESS_KEY)
+          .setDescription("The access key of OBS bucket.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.SERVER)
+          .setDisplayType(DisplayType.CREDENTIALS)
+          .build();
+  public static final PropertyKey OBS_ENDPOINT =
+      new Builder(Name.OBS_ENDPOINT)
+          .setDefaultValue("obs.myhwclouds.com")
+          .setDescription("The endpoint of OBS bucket.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.SERVER)
+          .build();
+  public static final PropertyKey OBS_SECRET_KEY =
+      new Builder(Name.OBS_SECRET_KEY)
+          .setDescription("The secret key of OBS bucket.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.SERVER)
+          .setDisplayType(DisplayType.CREDENTIALS)
+          .build();
+  public static final PropertyKey OBS_BUCKET_TYPE =
+      new Builder(Name.OBS_BUCKET_TYPE)
+          .setDefaultValue("obs")
+          .setDescription("The type of bucket (obs/pfs).")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.SERVER)
+          .build();
   //
   // Mount table related properties
   //
@@ -1984,6 +2018,41 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       new Builder(Name.MASTER_NETWORK_MAX_INBOUND_MESSAGE_SIZE)
           .setDefaultValue("100MB")
           .setDescription("The maximum size of a message that can be sent to the Alluxio master")
+          .setScope(Scope.MASTER)
+          .build();
+  public static final PropertyKey MASTER_NETWORK_FLOWCONTROL_WINDOW =
+        new Builder(Name.MASTER_NETWORK_FLOWCONTROL_WINDOW)
+          .setDefaultValue("2MB")
+          .setDescription(
+              "The HTTP2 flow control window used by Alluxio master gRPC connections. Larger "
+                  + "value will allow more data to be buffered but will use more memory.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.MASTER)
+          .build();
+  public static final PropertyKey MASTER_NETWORK_KEEPALIVE_TIME_MS =
+      new Builder(Name.MASTER_NETWORK_KEEPALIVE_TIME_MS)
+          .setDefaultValue("2h")
+          .setDescription("The amount of time for Alluxio master gRPC server "
+              + "to wait for a response before pinging the client to see if it is still alive.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.MASTER)
+          .build();
+  public static final PropertyKey MASTER_NETWORK_KEEPALIVE_TIMEOUT_MS =
+      new Builder(Name.MASTER_NETWORK_KEEPALIVE_TIMEOUT_MS)
+          .setDefaultValue("30sec")
+          .setDescription("The maximum time for Alluxio master gRPC server "
+              + "to wait for a keepalive response before closing the connection.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.MASTER)
+          .build();
+  public static final PropertyKey MASTER_NETWORK_PERMIT_KEEPALIVE_TIME_MS =
+      new Builder(Name.MASTER_NETWORK_PERMIT_KEEPALIVE_TIME_MS)
+          .setDefaultValue("30sec")
+          .setDescription(
+              "Specify the most aggressive keep-alive time clients are permitted to configure. "
+                  + "The server will try to detect clients exceeding this rate and when detected "
+                  + "will forcefully close the connection.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey MASTER_LOST_WORKER_FILE_DETECTION_INTERVAL =
@@ -2718,6 +2787,21 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
+  public static final PropertyKey MASTER_FILE_SYSTEM_OPERATION_RETRY_CACHE_ENABLED =
+      new Builder(Name.MASTER_FILE_SYSTEM_OPERATION_RETRY_CACHE_ENABLED)
+          .setDefaultValue(true)
+          .setDescription("If enabled, each filesystem operation will be tracked on all masters, "
+              + "in order to avoid re-execution of client retries.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.MASTER)
+          .build();
+  public static final PropertyKey MASTER_FILE_SYSTEM_OPERATION_RETRY_CACHE_SIZE =
+      new Builder(Name.MASTER_FILE_SYSTEM_OPERATION_RETRY_CACHE_SIZE)
+          .setDefaultValue(100_000)
+          .setDescription("Size of fs operation retry cache.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.MASTER)
+          .build();
 
   //
   // Worker related properties
@@ -3106,6 +3190,17 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDefaultValue("30sec")
           .setDescription("The maximum time for a data server (for block reads and block writes) "
               + "to wait for a keepalive response before closing the connection.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.WORKER)
+          .build();
+  public static final PropertyKey WORKER_NETWORK_PERMIT_KEEPALIVE_TIME_MS =
+      new Builder(
+          Name.WORKER_NETWORK_PERMIT_KEEPALIVE_TIME_MS)
+          .setDefaultValue("5m")
+          .setDescription(
+              "Specify the most aggressive keep-alive time clients are permitted to configure. "
+                  + "The server will try to detect clients exceeding this rate and when detected "
+                  + "will forcefully close the connection.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
@@ -4196,6 +4291,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
+  public static final PropertyKey USER_FILE_INCLUDE_OPERATION_ID =
+      new Builder(Name.USER_FILE_INCLUDE_OPERATION_ID)
+          .setDefaultValue(true)
+          .setDescription(
+              "Whether to send a unique operation id with designated filesystem operations.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.CLIENT)
+          .build();
   public static final PropertyKey USER_LOCAL_READER_CHUNK_SIZE_BYTES =
       new Builder(Name.USER_LOCAL_READER_CHUNK_SIZE_BYTES)
           .setDefaultValue("8MB")
@@ -4546,7 +4649,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey USER_NETWORK_RPC_KEEPALIVE_TIME =
       new Builder(Name.USER_NETWORK_RPC_KEEPALIVE_TIME)
-          .setDefaultValue(Long.MAX_VALUE)
+          .setDefaultValue("30sec")
           .setDescription("The amount of time for a rpc client "
               + "to wait for a response before pinging the server to see if it is still alive.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
@@ -5517,6 +5620,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String UNDERFS_S3_DISABLE_DNS_BUCKETS =
         "alluxio.underfs.s3.disable.dns.buckets";
     public static final String UNDERFS_S3_ENDPOINT = "alluxio.underfs.s3.endpoint";
+    public static final String UNDERFS_S3_ENDPOINT_REGION = "alluxio.underfs.s3.endpoint.region";
     public static final String UNDERFS_S3_OWNER_ID_TO_USERNAME_MAPPING =
         "alluxio.underfs.s3.owner.id.to.username.mapping";
     public static final String UNDERFS_S3_PROXY_HOST = "alluxio.underfs.s3.proxy.host";
@@ -5584,6 +5688,10 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String SWIFT_USER_KEY = "fs.swift.user";
     public static final String KODO_ACCESS_KEY = "fs.kodo.accesskey";
     public static final String KODO_SECRET_KEY = "fs.kodo.secretkey";
+    public static final String OBS_ACCESS_KEY = "fs.obs.accessKey";
+    public static final String OBS_ENDPOINT = "fs.obs.endpoint";
+    public static final String OBS_SECRET_KEY = "fs.obs.secretKey";
+    public static final String OBS_BUCKET_TYPE = "fs.obs.bucketType";
 
     //
     // Master related properties
@@ -5765,6 +5873,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.metrics.file.size.distribution.buckets";
     public static final String MASTER_NETWORK_MAX_INBOUND_MESSAGE_SIZE =
         "alluxio.master.network.max.inbound.message.size";
+    public static final String MASTER_NETWORK_FLOWCONTROL_WINDOW =
+        "alluxio.master.network.flowcontrol.window";
+    public static final String MASTER_NETWORK_KEEPALIVE_TIME_MS =
+        "alluxio.master.network.keepalive.time";
+    public static final String MASTER_NETWORK_KEEPALIVE_TIMEOUT_MS =
+        "alluxio.master.network.keepalive.timeout";
+    public static final String MASTER_NETWORK_PERMIT_KEEPALIVE_TIME_MS =
+        "alluxio.master.network.permit.keepalive.time";
     public static final String MASTER_PERSISTENCE_INITIAL_INTERVAL_MS =
         "alluxio.master.persistence.initial.interval";
     public static final String MASTER_PERSISTENCE_MAX_TOTAL_WAIT_TIME_MS =
@@ -5871,6 +5987,10 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     //
     public static final String MASTER_FILE_SYSTEM_LISTSTATUS_RESULTS_PER_MESSAGE =
         "alluxio.master.filesystem.liststatus.result.message.length";
+    public static final String MASTER_FILE_SYSTEM_OPERATION_RETRY_CACHE_ENABLED =
+        "alluxio.master.filesystem.operation.retry.cache.enabled";
+    public static final String MASTER_FILE_SYSTEM_OPERATION_RETRY_CACHE_SIZE =
+        "alluxio.master.filesystem.operation.retry.cache.size";
 
     //
     // Secondary master related properties
@@ -5959,6 +6079,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.worker.network.keepalive.time";
     public static final String WORKER_NETWORK_KEEPALIVE_TIMEOUT_MS =
         "alluxio.worker.network.keepalive.timeout";
+    public static final String WORKER_NETWORK_PERMIT_KEEPALIVE_TIME_MS =
+            "alluxio.worker.network.permit.keepalive.time";
     public static final String WORKER_NETWORK_MAX_INBOUND_MESSAGE_SIZE =
         "alluxio.worker.network.max.inbound.message.size";
     public static final String WORKER_NETWORK_NETTY_BOSS_THREADS =
@@ -6164,6 +6286,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String USER_FILE_WRITE_TYPE_DEFAULT = "alluxio.user.file.writetype.default";
     public static final String USER_FILE_WRITE_TIER_DEFAULT =
         "alluxio.user.file.write.tier.default";
+    public static final String USER_FILE_INCLUDE_OPERATION_ID =
+        "alluxio.user.file.include.operation.id";
     public static final String USER_HOSTNAME = "alluxio.user.hostname";
     public static final String USER_LOCAL_READER_CHUNK_SIZE_BYTES =
         "alluxio.user.local.reader.chunk.size.bytes";
@@ -6426,6 +6550,10 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       "secretKey"
   };
 
+  private static final String NAMESERVICE_PATTERN_STRING = "([a-zA-Z_\\-0-9.]+)";
+  private static final String ALLUXIO_MASTER_ID_PATTERN_STRING = "([a-zA-Z_\\-0-9.]+)";
+  private static final String ZOOKEEPER_NODE_ID_PATTERN_STRING = "([a-zA-Z_\\-0-9.]+)";
+
   /**
    * A set of templates to generate the names of parameterized properties given
    * different parameters. E.g., * {@code Template.MASTER_TIERED_STORE_GLOBAL_LEVEL_ALIAS.format(0)}
@@ -6442,6 +6570,18 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     MASTER_JOURNAL_UFS_OPTION_PROPERTY("alluxio.master.journal.ufs.option.%s",
         "alluxio\\.master\\.journal\\.ufs\\.option\\.(?<nested>(\\w+\\.)*+\\w+)",
         PropertyCreators.NESTED_JOURNAL_PROPERTY_CREATOR),
+    MASTER_LOGICAL_NAMESERVICES("alluxio.master.nameservices.%s",
+        String.format("alluxio\\.master\\.nameservices\\.%s",
+            NAMESERVICE_PATTERN_STRING)),
+    MASTER_LOGICAL_RPC_ADDRESS("alluxio.master.rpc.address.%s.%s",
+        String.format("alluxio\\.master\\.rpc\\.address\\.%s\\.%s",
+            NAMESERVICE_PATTERN_STRING, ALLUXIO_MASTER_ID_PATTERN_STRING)),
+    MASTER_LOGICAL_ZOOKEEPER_NAMESERVICES("alluxio.master.zookeeper.nameservices.%s",
+        String.format("alluxio\\.master\\.zookeeper\\.nameservices\\.%s",
+            NAMESERVICE_PATTERN_STRING)),
+    MASTER_LOGICAL_ZOOKEEPER_ADDRESS("alluxio.master.zookeeper.address.%s.%s",
+        String.format("alluxio\\.master\\.zookeeper\\.address\\.%s\\.%s",
+            NAMESERVICE_PATTERN_STRING, ZOOKEEPER_NODE_ID_PATTERN_STRING)),
     MASTER_MOUNT_TABLE_ALLUXIO("alluxio.master.mount.table.%s.alluxio",
         "alluxio\\.master\\.mount\\.table.(\\w+)\\.alluxio"),
     MASTER_MOUNT_TABLE_OPTION("alluxio.master.mount.table.%s.option",

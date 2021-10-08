@@ -35,7 +35,7 @@ public final class UnderFileSystemBlockMeta {
    *
    * @param sessionId the session ID
    * @param blockId the block ID
-   * @param options the {@link Protocol.OpenUfsBlockOptions}
+   * @param options the {@link Protocol.OpenUfsBlUfsInputStreamCacheTestockOptions}
    */
   public UnderFileSystemBlockMeta(long sessionId, long blockId,
       Protocol.OpenUfsBlockOptions options) {

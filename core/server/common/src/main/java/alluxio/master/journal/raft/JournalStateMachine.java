@@ -158,6 +158,9 @@ public class JournalStateMachine extends BaseStateMachine {
     MetricsSystem.registerGaugeIfAbsent(
         MetricKey.MASTER_JOURNAL_LAST_CHECKPOINT_TIME.getName(),
         () -> mLastCheckPointTime);
+    MetricsSystem.registerGaugeIfAbsent(
+        MetricKey.MASTER_JOURNAL_LAST_APPLIED_COMMIT_INDEX.getName(),
+        () -> mLastAppliedCommitIndex);
   }
 
   @Override
@@ -399,8 +402,8 @@ public class JournalStateMachine extends BaseStateMachine {
    */
   private void applyEntry(JournalEntry entry) {
     Preconditions.checkState(
-        entry.getAllFields().size() <= 1
-            || (entry.getAllFields().size() == 2 && entry.hasSequenceNumber()),
+        entry.getAllFields().size() <= 2
+            || (entry.getAllFields().size() == 3 && entry.hasSequenceNumber()),
         "Raft journal entries should never set multiple fields in addition to sequence "
             + "number, but found %s",
         entry);
