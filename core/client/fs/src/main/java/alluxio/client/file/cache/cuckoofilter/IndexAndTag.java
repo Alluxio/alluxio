@@ -15,7 +15,7 @@ package alluxio.client.file.cache.cuckoofilter;
  * This class stores the bucket index and tag of an item.
  */
 final class IndexAndTag {
-  public final int mBucket;
+  public final int mBucketIndex;
   public final int mTag;
 
   /**
@@ -23,7 +23,7 @@ final class IndexAndTag {
    * @param tag the tag value
    */
   IndexAndTag(int bucketIndex, int tag) {
-    mBucket = bucketIndex;
+    mBucketIndex = bucketIndex;
     mTag = tag;
   }
 }
