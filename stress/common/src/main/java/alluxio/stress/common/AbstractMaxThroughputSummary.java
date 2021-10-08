@@ -1,7 +1,6 @@
-package alluxio.stress.jobservice;
+package alluxio.stress.common;
 
 import alluxio.collections.Pair;
-import alluxio.stress.GeneralParameters;
 import alluxio.stress.Parameters;
 import alluxio.stress.Summary;
 import alluxio.stress.graph.BarGraph;

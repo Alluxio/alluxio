@@ -11,7 +11,7 @@
 
 package alluxio.stress.jobservice;
 
-import alluxio.stress.GeneralParameters;
+import alluxio.stress.common.GeneralParameters;
 
 import com.beust.jcommander.IStringConverter;
 import com.beust.jcommander.Parameter;

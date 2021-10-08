@@ -1,15 +1,8 @@
 package alluxio.stress.cli.suite;
 
 import alluxio.stress.GeneralBenchSummary;
-import alluxio.stress.GeneralParameters;
-import alluxio.stress.Parameters;
-import alluxio.stress.Summary;
-import alluxio.stress.cli.Benchmark;
-import alluxio.stress.cli.StressJobServiceBench;
-import alluxio.stress.jobservice.AbstractMaxThroughputSummary;
-import alluxio.stress.jobservice.JobServiceBenchSummary;
-import alluxio.stress.jobservice.JobServiceMaxThroughputSummary;
-import alluxio.util.JsonSerializable;
+import alluxio.stress.common.GeneralParameters;
+import alluxio.stress.common.AbstractMaxThroughputSummary;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

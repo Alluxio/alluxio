@@ -11,24 +11,12 @@
 
 package alluxio.stress.jobservice;
 
-import alluxio.collections.Pair;
-import alluxio.stress.Parameters;
-import alluxio.stress.Summary;
-import alluxio.stress.graph.BarGraph;
-import alluxio.stress.graph.Graph;
-
-import com.google.common.base.Splitter;
-
-import java.text.DateFormat;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
+import alluxio.stress.common.AbstractMaxThroughputSummary;
 
 /**
  * The summary for the max throughput test.
  */
-public final class JobServiceMaxThroughputSummary extends AbstractMaxThroughputSummary<JobServiceBenchParameters,JobServiceBenchSummary> {
+public final class JobServiceMaxThroughputSummary extends
+    AbstractMaxThroughputSummary<JobServiceBenchParameters,JobServiceBenchSummary> {
 
 }
