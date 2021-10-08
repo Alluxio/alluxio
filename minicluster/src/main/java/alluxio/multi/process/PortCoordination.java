@@ -32,15 +32,24 @@ public class PortCoordination {
   private static final Set<Integer> SKIP_PORTS = new HashSet(Arrays.asList(
       // add ports here to avoid conflicting with other processes on those ports.
   ));
-
+  // for EmbeddedJournalIntegrationTestFaultTolerance
   public static final List<ReservedPort> EMBEDDED_JOURNAL_FAILOVER = allocate(3, 0);
+  public static final List<ReservedPort> EMBEDDED_JOURNAL_SNAPSHOT_MASTER = allocate(3, 0);
+  public static final List<ReservedPort> EMBEDDED_JOURNAL_SNAPSHOT_FOLLOWER = allocate(3, 0);
   public static final List<ReservedPort> EMBEDDED_JOURNAL_RESTART = allocate(3, 0);
   public static final List<ReservedPort> EMBEDDED_JOURNAL_RESTART_STRESS = allocate(3, 0);
+  // for EmbeddedJournalIntegrationTestResizing
   public static final List<ReservedPort> EMBEDDED_JOURNAL_RESIZE = allocate(5, 0);
-  public static final List<ReservedPort> EMBEDDED_JOURNAL_GROW = allocate(2, 0);
-  public static final List<ReservedPort> EMBEDDED_JOURNAL_GROW_NEWMASTER = allocate(1, 0);
-  public static final List<ReservedPort> EMBEDDED_JOURNAL_UPDATE_RAFT_GROUP = allocate(3, 0);
-  public static final List<ReservedPort> EMBEDDED_JOURNAL_UPDATE_RAFT_GROUP_NEW = allocate(1, 0);
+  public static final List<ReservedPort> EMBEDDED_JOURNAL_GROW = allocate(3, 0);
+  public static final List<ReservedPort> EMBEDDED_JOURNAL_REPLACE_ALL = allocate(10, 0);
+  // for EmbeddedJournalIntegrationTestTransferLeadership
+  public static final List<ReservedPort> EMBEDDED_JOURNAL_TRANSFER_LEADER = allocate(5, 0);
+  public static final List<ReservedPort> EMBEDDED_JOURNAL_REPEAT_TRANSFER_LEADER = allocate(5, 0);
+  public static final List<ReservedPort> EMBEDDED_JOURNAL_RESET_PRIORITIES = allocate(5, 0);
+  public static final List<ReservedPort> EMBEDDED_JOURNAL_ALREADY_TRANSFERRING = allocate(5, 0);
+  public static final List<ReservedPort> EMBEDDED_JOURNAL_OUTSIDE_CLUSTER = allocate(5, 0);
+  public static final List<ReservedPort> EMBEDDED_JOURNAL_NEW_MEMBER = allocate(6, 0);
+  public static final List<ReservedPort> EMBEDDED_JOURNAL_UNAVAILABLE_MASTER = allocate(5, 0);
 
   public static final List<ReservedPort> JOURNAL_MIGRATION = allocate(3, 1);
 

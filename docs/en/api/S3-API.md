@@ -95,12 +95,12 @@ Server: Jetty(9.4.31.v20200723)
 $ curl -i -X GET http://localhost:39999/api/v1/s3/testbucket
 
 HTTP/1.1 200 OK
-Date: Tue, 18 Jun 2019 21:23:56 GMT
+Date: Wed, 22 Sep 2021 07:13:37 GMT
 Content-Type: application/xml
-Content-Length: 191
-Server: Jetty(9.2.z-SNAPSHOT)
+Content-Length: 193
+Server: Jetty(9.4.43.v20210629)
 
-<ListBucketResult><Name>/testbucket</Name><Prefix/><ContinuationToken/><NextContinuationToken/><KeyCount>0</KeyCount><MaxKeys>1000</MaxKeys><IsTruncated>false</IsTruncated></ListBucketResult>
+<ListBucketResult><KeyCount>0</KeyCount><MaxKeys>1000</MaxKeys><Delimiter>/</Delimiter><EncodingType>url</EncodingType><IsTruncated>false</IsTruncated><Name>testbucket</Name></ListBucketResult>
 ```
 
 #### Put an object
@@ -139,16 +139,16 @@ Server: Jetty(9.2.z-SNAPSHOT)
 $ curl -i -X GET http://localhost:39999/api/v1/s3/testbucket
 
 HTTP/1.1 200 OK
-Date: Tue, 18 Jun 2019 21:25:27 GMT
+Date: Wed, 22 Sep 2021 07:15:19 GMT
 Content-Type: application/xml
-Content-Length: 354
-Server: Jetty(9.2.z-SNAPSHOT)
+Content-Length: 306
+Server: Jetty(9.4.43.v20210629)
 
-<ListBucketResult><Name>/testbucket</Name><Prefix/><ContinuationToken/><NextContinuationToken/><KeyCount>1</KeyCount><MaxKeys>1000</MaxKeys><IsTruncated>false</IsTruncated><Contents><Key>testobject</Key><LastModified>2019-06-18T14:24:33.029Z</LastModified><ETag></ETag><Size>27040</Size><StorageClass>STANDARD</StorageClass></Contents></ListBucketResult>
+<ListBucketResult><Contents><LastModified>2021-09-22T15:14:40.754Z</LastModified><Key>testobject</Key><Size>27040</Size></Contents><KeyCount>1</KeyCount><MaxKeys>1000</MaxKeys><Delimiter>/</Delimiter><EncodingType>url</EncodingType><IsTruncated>false</IsTruncated><Name>testbucket</Name></ListBucketResult>
 ```
 
 #### Listing a bucket with multiple objects
-You can upload more files and use the `max-keys` and `continuation-token` as the [GET bucket request parameter](https://docs.aws.amazon.com/AmazonS3/latest/API/v2-RESTBucketGET.html). For example:
+You can upload more files and use the `max-keys` and `marker` as the [GET bucket request parameter](https://docs.aws.amazon.com/AmazonS3/latest/API/API_ListObjects.html). For example:
 
 ```console
 $ curl -i -X PUT -T "LICENSE" http://localhost:39999/api/v1/s3/testbucket/key1
@@ -184,22 +184,22 @@ Server: Jetty(9.2.z-SNAPSHOT)
 $ curl -i -X GET http://localhost:39999/api/v1/s3/testbucket\?max-keys\=2
 
 HTTP/1.1 200 OK
-Date: Tue, 18 Jun 2019 21:26:57 GMT
+Date: Wed, 22 Sep 2021 07:18:18 GMT
 Content-Type: application/xml
-Content-Length: 528
-Server: Jetty(9.2.z-SNAPSHOT)
+Content-Length: 444
+Server: Jetty(9.4.43.v20210629)
 
-<ListBucketResult><Name>/testbucket</Name><Prefix/><ContinuationToken/><NextContinuationToken>key3</NextContinuationToken><KeyCount>2</KeyCount><MaxKeys>2</MaxKeys><IsTruncated>true</IsTruncated><Contents><Key>key1</Key><LastModified>2019-06-18T14:26:05.694Z</LastModified><ETag></ETag><Size>27040</Size><StorageClass>STANDARD</StorageClass></Contents><Contents><Key>key2</Key><LastModified>2019-06-18T14:26:28.153Z</LastModified><ETag></ETag><Size>27040</Size><StorageClass>STANDARD</StorageClass></Contents></ListBucketResult>
+<ListBucketResult><Contents><LastModified>2021-09-22T15:17:39.579Z</LastModified><Key>key1</Key><Size>27040</Size></Contents><Contents><LastModified>2021-09-22T15:17:41.463Z</LastModified><Key>key2</Key><Size>27040</Size></Contents><KeyCount>2</KeyCount><MaxKeys>2</MaxKeys><Delimiter>/</Delimiter><EncodingType>url</EncodingType><NextMarker>/testbucket/key2</NextMarker><IsTruncated>true</IsTruncated><Name>testbucket</Name></ListBucketResult>
 
-$ curl -i -X GET http://localhost:39999/api/v1/s3/testbucket\?max-keys\=2\&continuation-token\=key3
+$ curl -i -X GET http://localhost:39999/api/v1/s3/testbucket\?max-keys\=2\&marker\=\/testbucket\/key2
 
 HTTP/1.1 200 OK
-Date: Tue, 18 Jun 2019 21:28:14 GMT
+Date: Wed, 22 Sep 2021 07:25:21 GMT
 Content-Type: application/xml
-Content-Length: 531
-Server: Jetty(9.2.z-SNAPSHOT)
+Content-Length: 477
+Server: Jetty(9.4.43.v20210629)
 
-<ListBucketResult><Name>/testbucket</Name><Prefix/><ContinuationToken>key3</ContinuationToken><NextContinuationToken/><KeyCount>2</KeyCount><MaxKeys>2</MaxKeys><IsTruncated>false</IsTruncated><Contents><Key>key3</Key><LastModified>2019-06-18T14:26:43.081Z</LastModified><ETag></ETag><Size>27040</Size><StorageClass>STANDARD</StorageClass></Contents><Contents><Key>testobject</Key><LastModified>2019-06-18T14:24:33.029Z</LastModified><ETag></ETag><Size>27040</Size><StorageClass>STANDARD</StorageClass></Contents></ListBucketResult>
+<ListBucketResult><Contents><LastModified>2021-09-22T15:17:39.579Z</LastModified><Key>key1</Key><Size>27040</Size></Contents><Contents><LastModified>2021-09-22T15:17:41.463Z</LastModified><Key>key2</Key><Size>27040</Size></Contents><Marker>/testbucekt/key2</Marker><KeyCount>2</KeyCount><MaxKeys>2</MaxKeys><Delimiter>/</Delimiter><EncodingType>url</EncodingType><NextMarker>/testbucket/key2</NextMarker><IsTruncated>true</IsTruncated><Name>testbucket</Name></ListBucketResult>
 ```
 
 You can also verify those objects are represented as Alluxio files, under `/testbucket` directory.

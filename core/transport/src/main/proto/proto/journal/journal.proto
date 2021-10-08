@@ -16,9 +16,20 @@ import "proto/journal/table.proto";
 // and Spark. We use protobuf version 2.5.0 instead, which is compatible with Hadoop and Spark.
 //
 
-// next available id: 52
+/**
+ * Unique operation id.
+ */
+message JournalOpPId {
+    optional int64 mostSignificantBits = 1;
+    optional int64 leastSignificantBits = 2;
+}
+
+// next available id: 53
 message JournalEntry {
+  // shared fields.
   optional int64 sequence_number = 1;
+  optional JournalOpPId operationId = 52;
+  // action fields.
   optional ActiveSyncTxIdEntry active_sync_tx_id = 34;
   optional AddTableEntry add_table = 43;
   optional AddTablePartitionsEntry add_table_partitions = 51;

@@ -37,6 +37,9 @@ import alluxio.grpc.TtlAction;
 import alluxio.grpc.UnmountPOptions;
 import alluxio.grpc.WritePType;
 import alluxio.security.authorization.Mode;
+import alluxio.wire.OperationId;
+
+import java.util.UUID;
 
 /**
  * This class contains static methods which can be passed Alluxio configuration objects that
@@ -62,7 +65,7 @@ public class FileSystemOptions {
   public static CreateDirectoryPOptions createDirectoryDefaults(AlluxioConfiguration conf) {
     return CreateDirectoryPOptions.newBuilder()
         .setAllowExists(false)
-        .setCommonOptions(commonDefaults(conf))
+        .setCommonOptions(commonDefaults(conf, true))
         .setMode(ModeUtils.applyDirectoryUMask(Mode.defaults(),
             conf.get(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_UMASK)).toProto())
         .setRecursive(false)
@@ -97,7 +100,7 @@ public class FileSystemOptions {
   public static CreateFilePOptions createFileDefaults(AlluxioConfiguration conf) {
     return CreateFilePOptions.newBuilder()
         .setBlockSizeBytes(conf.getBytes(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT))
-        .setCommonOptions(commonDefaults(conf))
+        .setCommonOptions(commonDefaults(conf, true))
         .setMode(ModeUtils.applyFileUMask(Mode.defaults(),
             conf.get(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_UMASK)).toProto())
         .setPersistenceWaitTime(conf.getMs(PropertyKey.USER_FILE_PERSISTENCE_INITIAL_WAIT_TIME))
@@ -117,7 +120,7 @@ public class FileSystemOptions {
   public static DeletePOptions deleteDefaults(AlluxioConfiguration conf) {
     return DeletePOptions.newBuilder()
         .setAlluxioOnly(false)
-        .setCommonOptions(commonDefaults(conf))
+        .setCommonOptions(commonDefaults(conf, true))
         .setRecursive(false)
         .setUnchecked(conf.getBoolean(PropertyKey.USER_FILE_DELETE_UNCHECKED))
         .build();
@@ -139,13 +142,25 @@ public class FileSystemOptions {
    * @param conf Alluxio configuration
    * @return options based on the configuration
    */
-  public static FileSystemMasterCommonPOptions commonDefaults(
-      AlluxioConfiguration conf) {
-    return FileSystemMasterCommonPOptions.newBuilder()
+  public static FileSystemMasterCommonPOptions commonDefaults(AlluxioConfiguration conf) {
+    return commonDefaults(conf, false);
+  }
+
+  /**
+   * @param conf Alluxio configuration
+   * @param withOpId whether to include a unique operation-id (if also enabled by configuration)
+   * @return options based on the configuration
+   */
+  public static FileSystemMasterCommonPOptions commonDefaults(AlluxioConfiguration conf,
+      boolean withOpId) {
+    FileSystemMasterCommonPOptions.Builder builder = FileSystemMasterCommonPOptions.newBuilder()
         .setSyncIntervalMs(conf.getMs(PropertyKey.USER_FILE_METADATA_SYNC_INTERVAL))
         .setTtl(conf.getMs(PropertyKey.USER_FILE_CREATE_TTL))
-        .setTtlAction(conf.getEnum(PropertyKey.USER_FILE_CREATE_TTL_ACTION, TtlAction.class))
-        .build();
+        .setTtlAction(conf.getEnum(PropertyKey.USER_FILE_CREATE_TTL_ACTION, TtlAction.class));
+    if (withOpId && conf.getBoolean(PropertyKey.USER_FILE_INCLUDE_OPERATION_ID)) {
+      builder.setOperationId(new OperationId(UUID.randomUUID()).toFsProto());
+    }
+    return builder.build();
   }
 
   /**
@@ -229,7 +244,7 @@ public class FileSystemOptions {
    */
   public static RenamePOptions renameDefaults(AlluxioConfiguration conf) {
     return RenamePOptions.newBuilder()
-        .setCommonOptions(commonDefaults(conf))
+        .setCommonOptions(commonDefaults(conf, true))
         .setPersist(conf.getBoolean(PropertyKey.USER_FILE_PERSIST_ON_RENAME))
         .build();
   }

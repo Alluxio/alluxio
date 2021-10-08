@@ -133,7 +133,9 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
           .setProperty(PropertyKey.WORKER_RAMDISK_SIZE, "10mb")
           .setProperty(PropertyKey.MASTER_FILE_ACCESS_TIME_UPDATE_PRECISION, 0)
           .setProperty(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT, "1kb")
-          .setProperty(PropertyKey.SECURITY_LOGIN_USERNAME, TEST_USER).build();
+          .setProperty(PropertyKey.SECURITY_LOGIN_USERNAME, TEST_USER)
+          .setProperty(PropertyKey.MASTER_FILE_SYSTEM_OPERATION_RETRY_CACHE_ENABLED, false)
+          .build();
 
   @Rule
   public TestRule mResetRule = sLocalAlluxioClusterResource.getResetResource();

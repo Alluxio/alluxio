@@ -54,6 +54,21 @@ The values of bytes throughput metrics equal to bytes metrics counter value divi
 {% endfor %}
 </table>
 
+## Server Metrics
+
+Metrics shared by the Alluxio server processes.
+
+<table class="table table-striped">
+<tr><th>Name</th><th>Type</th><th>Description</th></tr>
+{% for item in site.data.table.server-metrics %}
+  <tr>
+    <td><a class="anchor" name="{{ item.metricName }}"></a> {{ item.metricName }}</td>
+    <td>{{ item.metricType }}</td>
+    <td>{{ site.data.table.en.server-metrics[item.metricName] }}</td>
+  </tr>
+{% endfor %}
+</table>
+
 ## Master Metrics
 
 Default master metrics:
@@ -143,6 +158,7 @@ exposed in [AlluxioFuse](https://github.com/Alluxio/alluxio/blob/db01aae966849e8
 The count of how many times each operation is called, and the duration of each call will be recorded with metrics name `Fuse.<FUSE_OPERATION_NAME>` dynamically.
 
 The important Fuse metrics include:
+
 | Metric Name | Description |
 |-------------------------|-----------------------------------------------------|
 | Fuse.readdir | The duration metrics of listing a directory |

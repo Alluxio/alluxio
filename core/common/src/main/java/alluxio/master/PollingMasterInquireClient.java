@@ -30,9 +30,11 @@ import alluxio.retry.RetryUtils;
 import alluxio.security.user.UserState;
 import alluxio.uri.Authority;
 import alluxio.uri.MultiMasterAuthority;
+import alluxio.util.ConfigurationUtils;
 
 import com.google.common.collect.Lists;
 import io.grpc.StatusRuntimeException;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -163,8 +165,8 @@ public class PollingMasterInquireClient implements MasterInquireClient {
         ServiceVersionClientServiceGrpc.newBlockingStub(channel)
             .withDeadlineAfter(mConfiguration.getMs(PropertyKey.USER_MASTER_POLLING_TIMEOUT),
                 TimeUnit.MILLISECONDS);
-    ServiceType serviceType
-        = address.getPort() == mConfiguration.getInt(PropertyKey.JOB_MASTER_RPC_PORT)
+    List<InetSocketAddress> addresses = ConfigurationUtils.getJobMasterRpcAddresses(mConfiguration);
+    ServiceType serviceType = addresses.contains(address)
         ? ServiceType.JOB_MASTER_CLIENT_SERVICE : ServiceType.META_MASTER_CLIENT_SERVICE;
     try {
       versionClient.getServiceVersion(GetServiceVersionPRequest.newBuilder()
