@@ -19,7 +19,7 @@ import org.junit.Test;
 public class BuiltinBitSetTest {
   @Test
   public void basicTest() {
-    AbstractBitSet bitSet = new BuiltinBitSet(100);
+    BitSet bitSet = new BuiltinBitSet(100);
     bitSet.set(9);
     assertTrue(bitSet.get(9));
     assertFalse(bitSet.get(8));

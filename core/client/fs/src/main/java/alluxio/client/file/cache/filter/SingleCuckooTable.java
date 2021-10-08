@@ -19,7 +19,7 @@ import java.util.concurrent.ThreadLocalRandom;
 public class SingleCuckooTable implements CuckooTable {
   private final int mTagsPerBucket;
   private final int mBitsPerTag;
-  private AbstractBitSet mBits;
+  private BitSet mBits;
   private int mNumBuckets;
 
   /**
@@ -30,8 +30,8 @@ public class SingleCuckooTable implements CuckooTable {
    * @param tagsPerBucket the number of slots each bucket has
    * @param bitsPerTag the number of bits each slot has
    */
-  public SingleCuckooTable(AbstractBitSet bitSet, int numBuckets, int tagsPerBucket,
-      int bitsPerTag) {
+  public SingleCuckooTable(BitSet bitSet, int numBuckets, int tagsPerBucket,
+                           int bitsPerTag) {
     assert bitSet.size() == numBuckets * tagsPerBucket * bitsPerTag;
     mBits = bitSet;
     mNumBuckets = numBuckets;
