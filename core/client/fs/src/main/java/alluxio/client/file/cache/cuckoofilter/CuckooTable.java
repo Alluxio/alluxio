@@ -9,7 +9,7 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.client.file.cache.filter;
+package alluxio.client.file.cache.cuckoofilter;
 
 /**
  * The cuckoo table that supports to store and access data from <bucket, slot>.

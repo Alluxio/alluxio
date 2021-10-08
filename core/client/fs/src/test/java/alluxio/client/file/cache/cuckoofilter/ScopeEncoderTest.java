@@ -9,9 +9,10 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.client.file.cache.filter;
+package alluxio.client.file.cache.cuckoofilter;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import alluxio.test.util.ConcurrencyUtils;
 
@@ -22,46 +23,41 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 
-public class SegmentedLockTest {
-  private static final int NUM_BUCKETS = 1024;
-  private static final int NUM_LOCKS = 128;
+public class ScopeEncoderTest {
+  private static final int BITS_PER_SCOPE = 8; // 256 scopes at most
+  private static final int NUM_SCOPES = (1 << BITS_PER_SCOPE);
+  private static final ScopeInfo SCOPE1 = new ScopeInfo("table1");
 
+  // concurrency configurations
   private static final int DEFAULT_THREAD_AMOUNT = 12;
   private static final int DEFAULT_TIMEOUT_SECONDS = 10;
 
-  private SegmentedLock mLocks;
+  private ScopeEncoder mScopeEncoder;
 
   @Before
   public void init() {
-    create(NUM_LOCKS, NUM_BUCKETS);
-  }
-
-  private void create(int numLocks, int numBuckets) {
-    mLocks = new SegmentedLock(NUM_LOCKS, NUM_BUCKETS);
+    mScopeEncoder = new ScopeEncoder(BITS_PER_SCOPE);
   }
 
   @Test
-  public void testConstruct() {
-    create(1023, 128);
-    assertEquals(128, mLocks.getNumLocks());
-
-    create(1023, 127);
-    assertEquals(128, mLocks.getNumLocks());
-
-    create(513, 65);
-    assertEquals(128, mLocks.getNumLocks());
+  public void testBasic() {
+    int id = mScopeEncoder.encode(SCOPE1);
+    assertEquals(0, id);
+    assertEquals(SCOPE1, mScopeEncoder.decode(id));
   }
 
   @Test
-  public void testConcurrency() throws Exception {
+  public void testConcurrentEncodeDecode() throws Exception {
     List<Runnable> runnables = new ArrayList<>();
     for (int k = 0; k < DEFAULT_THREAD_AMOUNT; k++) {
       runnables.add(() -> {
-        for (int i = 0; i < NUM_BUCKETS; i++) {
-          int r1 = ThreadLocalRandom.current().nextInt(NUM_BUCKETS);
-          int r2 = ThreadLocalRandom.current().nextInt(NUM_BUCKETS);
-          mLocks.lockTwoWrite(r1, r2);
-          mLocks.unlockTwoWrite(r1, r2);
+        for (int i = 0; i < NUM_SCOPES * 16; i++) {
+          int r = ThreadLocalRandom.current().nextInt(NUM_SCOPES);
+          ScopeInfo scopeInfo = new ScopeInfo("table" + r);
+          int id = mScopeEncoder.encode(scopeInfo);
+          assertEquals(scopeInfo, mScopeEncoder.decode(id));
+          assertEquals(id, mScopeEncoder.encode(scopeInfo));
+          assertTrue(0 <= id && id < NUM_SCOPES);
         }
       });
     }

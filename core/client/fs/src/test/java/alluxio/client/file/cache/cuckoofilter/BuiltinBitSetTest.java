@@ -9,17 +9,19 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.client.file.cache.filter;
+package alluxio.client.file.cache.cuckoofilter;
 
-/**
- * This class represents the type of sliding window.
- */
-public enum SlidingWindowType {
-  COUNT_BASED(0), TIME_BASED(1), NONE(2);
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
-  public final int mType;
+import org.junit.Test;
 
-  SlidingWindowType(int type) {
-    mType = type;
+public class BuiltinBitSetTest {
+  @Test
+  public void basicTest() {
+    BitSet bitSet = new BuiltinBitSet(100);
+    bitSet.set(9);
+    assertTrue(bitSet.get(9));
+    assertFalse(bitSet.get(8));
   }
 }

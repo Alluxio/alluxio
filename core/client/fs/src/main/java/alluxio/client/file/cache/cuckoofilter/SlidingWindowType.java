@@ -9,21 +9,17 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.client.file.cache.filter;
+package alluxio.client.file.cache.cuckoofilter;
 
 /**
- * This class represents the status of tag position.
+ * This class represents the type of sliding window.
  */
-enum CuckooStatus {
-  OK(0), FAILURE(1), FAILURE_KEY_NOT_FOUND(2), FAILURE_KEY_DUPLICATED(3), FAILURE_TABLE_FULL(
-      4), UNDEFINED(5);
+public enum SlidingWindowType {
+  COUNT_BASED(0), TIME_BASED(1), NONE(2);
 
-  public int mCode;
+  public final int mType;
 
-  /**
-   * Create a cuckoo status.
-   */
-  CuckooStatus(int code) {
-    mCode = code;
+  SlidingWindowType(int type) {
+    mType = type;
   }
 }

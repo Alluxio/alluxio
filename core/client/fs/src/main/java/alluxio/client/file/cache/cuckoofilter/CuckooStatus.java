@@ -9,19 +9,21 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.client.file.cache.filter;
+package alluxio.client.file.cache.cuckoofilter;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+/**
+ * This class represents the status of tag position.
+ */
+enum CuckooStatus {
+  OK(0), FAILURE(1), FAILURE_KEY_NOT_FOUND(2), FAILURE_KEY_DUPLICATED(3), FAILURE_TABLE_FULL(
+      4), UNDEFINED(5);
 
-import org.junit.Test;
+  public int mCode;
 
-public class BuiltinBitSetTest {
-  @Test
-  public void basicTest() {
-    BitSet bitSet = new BuiltinBitSet(100);
-    bitSet.set(9);
-    assertTrue(bitSet.get(9));
-    assertFalse(bitSet.get(8));
+  /**
+   * Create a cuckoo status.
+   */
+  CuckooStatus(int code) {
+    mCode = code;
   }
 }
