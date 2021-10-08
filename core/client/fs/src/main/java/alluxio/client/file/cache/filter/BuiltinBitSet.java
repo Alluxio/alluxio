@@ -11,13 +11,11 @@
 
 package alluxio.client.file.cache.filter;
 
-import java.util.BitSet;
-
 /**
  * This class is a wrapper of java's builtin BitSet.
  */
-public class BuiltinBitSet extends AbstractBitSet {
-  private BitSet mBits;
+public class BuiltinBitSet implements BitSet {
+  private java.util.BitSet mBits;
 
   /**
    * Creates a new bit set. All bits are initially {@code false}.
@@ -25,7 +23,7 @@ public class BuiltinBitSet extends AbstractBitSet {
    * @param nbits the number of bits
    */
   public BuiltinBitSet(int nbits) {
-    mBits = new BitSet(nbits);
+    mBits = new java.util.BitSet(nbits);
   }
 
   @Override

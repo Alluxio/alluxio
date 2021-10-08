@@ -26,7 +26,7 @@ public class SingleCuckooTableTest {
   static final int BITS_PER_TAG = 8;
 
   CuckooTable createCuckooTable() {
-    AbstractBitSet bits = new BuiltinBitSet(NUM_BUCKETS * BITS_PER_TAG * 4);
+    BitSet bits = new BuiltinBitSet(NUM_BUCKETS * BITS_PER_TAG * 4);
     return new SingleCuckooTable(bits, NUM_BUCKETS, TAGS_PER_BUCKET, BITS_PER_TAG);
   }
 

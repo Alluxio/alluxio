@@ -12,32 +12,32 @@
 package alluxio.client.file.cache.filter;
 
 /**
- * An abstract BitSet supports get/set/clear.
+ * An interface of BitSet supports get/set/clear.
  */
-public abstract class AbstractBitSet {
+public interface BitSet {
 
   /**
    * @param index the index of the bit to get
    * @return the bit value of the specified index
    */
-  public abstract boolean get(int index);
+  boolean get(int index);
 
   /**
    * Sets the bit at the specified index to {@code true}.
    *
    * @param index the index of the bit to be set
    */
-  public abstract void set(int index);
+  void set(int index);
 
   /**
    * Sets the bit specified by the index to {@code false}.
    *
    * @param index the index of the bit to be cleared
    */
-  public abstract void clear(int index);
+  void clear(int index);
 
   /**
    * @return the number of bits currently in this bit set
    */
-  public abstract int size();
+  int size();
 }

@@ -146,19 +146,19 @@ public class ConcurrentClockCuckooFilter<T> implements Serializable {
     long numBuckets = Utils.optimalBuckets(expectedInsertions, loadFactor, TAGS_PER_BUCKET);
     long numBits = numBuckets * TAGS_PER_BUCKET * bitsPerTag;
     // TODO(iluoeli): check numBits overflow (< INT_MAX)
-    AbstractBitSet bits = new BuiltinBitSet((int) numBits);
+    BitSet bits = new BuiltinBitSet((int) numBits);
     CuckooTable table = new SingleCuckooTable(bits, (int) numBuckets, TAGS_PER_BUCKET, bitsPerTag);
 
-    AbstractBitSet clockBits =
+    BitSet clockBits =
         new BuiltinBitSet((int) (numBuckets * TAGS_PER_BUCKET * bitsPerClock));
     CuckooTable clockTable =
         new SingleCuckooTable(clockBits, (int) numBuckets, TAGS_PER_BUCKET, bitsPerClock);
 
-    AbstractBitSet sizeBits = new BuiltinBitSet((int) (numBuckets * TAGS_PER_BUCKET * bitsPerSize));
+    BitSet sizeBits = new BuiltinBitSet((int) (numBuckets * TAGS_PER_BUCKET * bitsPerSize));
     CuckooTable sizeTable =
         new SingleCuckooTable(sizeBits, (int) numBuckets, TAGS_PER_BUCKET, bitsPerSize);
 
-    AbstractBitSet scopeBits =
+    BitSet scopeBits =
         new BuiltinBitSet((int) (numBuckets * TAGS_PER_BUCKET * bitsPerScope));
     CuckooTable scopeTable =
         new SingleCuckooTable(scopeBits, (int) numBuckets, TAGS_PER_BUCKET, bitsPerScope);
