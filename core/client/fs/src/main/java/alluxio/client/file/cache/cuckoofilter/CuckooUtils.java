@@ -18,7 +18,7 @@ import java.math.RoundingMode;
 /**
  * This class provides some useful methods for cuckoo filters.
  */
-public class Utils {
+public class CuckooUtils {
 
   /**
    * Compute the bucket on given hash value.
@@ -40,7 +40,7 @@ public class Utils {
    * @return the alternative bucket index computed
    */
   public static int altIndex(int index, int tag, int numBuckets) {
-    return Utils.indexHash((int) (index ^ (tag * 0x5bd1e995)), numBuckets);
+    return CuckooUtils.indexHash((int) (index ^ (tag * 0x5bd1e995)), numBuckets);
   }
 
   /**
@@ -68,8 +68,8 @@ public class Utils {
    * @return the bucket and fingerprint
    */
   public static IndexAndTag generateIndexAndTag(long hv, int numBuckets, int bitsPerTag) {
-    int idx = Utils.indexHash((int) (hv >> 32), numBuckets);
-    int tag = Utils.tagHash((int) hv, bitsPerTag);
+    int idx = CuckooUtils.indexHash((int) (hv >> 32), numBuckets);
+    int tag = CuckooUtils.tagHash((int) hv, bitsPerTag);
     return new IndexAndTag(idx, tag);
   }
 

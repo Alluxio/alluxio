@@ -142,8 +142,8 @@ public class ConcurrentClockCuckooFilter<T> implements Serializable {
       SlidingWindowType slidingWindowType, long windowSize, double fpp, double loadFactor,
       HashFunction hasher) {
     // make expectedInsertions a power of 2
-    int bitsPerTag = Utils.optimalBitsPerTag(fpp, loadFactor);
-    long numBuckets = Utils.optimalBuckets(expectedInsertions, loadFactor, TAGS_PER_BUCKET);
+    int bitsPerTag = CuckooUtils.optimalBitsPerTag(fpp, loadFactor);
+    long numBuckets = CuckooUtils.optimalBuckets(expectedInsertions, loadFactor, TAGS_PER_BUCKET);
     long numBits = numBuckets * TAGS_PER_BUCKET * bitsPerTag;
     // TODO(iluoeli): check numBits overflow (< INT_MAX)
     BitSet bits = new BuiltinBitSet((int) numBits);
@@ -533,7 +533,7 @@ public class ConcurrentClockCuckooFilter<T> implements Serializable {
    * @return the bucket computed on given hash value
    */
   private int indexHash(int hv) {
-    return Utils.indexHash(hv, mNumBuckets);
+    return CuckooUtils.indexHash(hv, mNumBuckets);
   }
 
   /**
@@ -543,7 +543,7 @@ public class ConcurrentClockCuckooFilter<T> implements Serializable {
    * @return the fingerprint computed on given hash value
    */
   private int tagHash(int hv) {
-    return Utils.tagHash(hv, mBitsPerTag);
+    return CuckooUtils.tagHash(hv, mBitsPerTag);
   }
 
   /**
@@ -554,7 +554,7 @@ public class ConcurrentClockCuckooFilter<T> implements Serializable {
    * @return the alternative bucket
    */
   private int altIndex(int index, int tag) {
-    return Utils.altIndex(index, tag, mNumBuckets);
+    return CuckooUtils.altIndex(index, tag, mNumBuckets);
   }
 
   /**
@@ -566,7 +566,7 @@ public class ConcurrentClockCuckooFilter<T> implements Serializable {
   private IndexAndTag generateIndexAndTag(T item) {
     HashCode hashCode = mHasher.newHasher().putObject(item, mFunnel).hash();
     long hv = hashCode.asLong();
-    return Utils.generateIndexAndTag(hv, mNumBuckets, mBitsPerTag);
+    return CuckooUtils.generateIndexAndTag(hv, mNumBuckets, mBitsPerTag);
   }
 
   /**
