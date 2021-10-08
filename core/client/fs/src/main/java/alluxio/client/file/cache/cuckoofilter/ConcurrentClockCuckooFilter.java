@@ -13,6 +13,7 @@ package alluxio.client.file.cache.cuckoofilter;
 
 import alluxio.Constants;
 
+import com.google.common.base.Preconditions;
 import com.google.common.hash.Funnel;
 import com.google.common.hash.HashCode;
 import com.google.common.hash.HashFunction;
@@ -246,11 +247,11 @@ public class ConcurrentClockCuckooFilter<T> implements Serializable {
    */
   public static <T> ConcurrentClockCuckooFilter<T> create(Funnel<? super T> funnel,
       long expectedInsertions, int bitsPerClock, int bitsPerSize, int bitsPerScope) {
-    assert funnel != null;
-    assert expectedInsertions > 0;
-    assert bitsPerClock > 0;
-    assert bitsPerSize > 0;
-    assert bitsPerScope > 0;
+    Preconditions.checkNotNull(funnel);
+    Preconditions.checkArgument(expectedInsertions > 0);
+    Preconditions.checkArgument(bitsPerClock > 0);
+    Preconditions.checkArgument(bitsPerSize > 0);
+    Preconditions.checkArgument(bitsPerScope > 0);
     return create(funnel, expectedInsertions, bitsPerClock, bitsPerSize, bitsPerScope,
         SlidingWindowType.NONE, -1, DEFAULT_FPP);
   }
@@ -289,9 +290,12 @@ public class ConcurrentClockCuckooFilter<T> implements Serializable {
       // b1 and b2 should be insertable for fp, which means:
       // 1. b1 or b2 have at least one empty slot (this is guaranteed until we unlock two buckets);
       // 2. b1 and b2 do not contain duplicated fingerprint.
-      assert (pos.getBucketIndex() >= 0 && pos.getTagIndex() >= 0);
-      assert mTable.readTag(pos.getBucketIndex(), pos.getTagIndex()) == 0;
-      assert !mTable.findTagInBuckets(b1, b2, fp);
+      // TODO(iluoeli): check arguments here is inefficient,try remove them once correctness is
+      // validated
+      Preconditions.checkElementIndex(pos.getBucketIndex(), mNumBuckets);
+      Preconditions.checkElementIndex(pos.getTagIndex(), TAGS_PER_BUCKET);
+      Preconditions.checkState(mTable.readTag(pos.getBucketIndex(), pos.getTagIndex()) == 0);
+      Preconditions.checkState(!mTable.findTagInBuckets(b1, b2, fp));
       mTable.writeTag(pos.getBucketIndex(), pos.getTagIndex(), fp);
       mClockTable.writeTag(pos.getBucketIndex(), pos.getTagIndex(), 0xffffffff);
       mScopeTable.writeTag(pos.getBucketIndex(), pos.getTagIndex(), scope);
@@ -385,7 +389,6 @@ public class ConcurrentClockCuckooFilter<T> implements Serializable {
     int numSegments = mLocks.getNumLocks();
     int bucketsPerSegment = mLocks.getNumBucketsPerSegment();
     for (int i = 0; i < numSegments; i++) {
-      assert mSegmentedAgingPointers[i] <= bucketsPerSegment;
       // TODO(iluoeli): avoid acquire locks here since it may be blocked
       // for a long time if this segment is contended by multiple users.
       mLocks.lockOneSegmentWrite(i);
@@ -742,7 +745,7 @@ public class ConcurrentClockCuckooFilter<T> implements Serializable {
     if (x.mPathcode == 0) {
       cuckooPath[0].mBucket = b1;
     } else {
-      assert x.mPathcode == 1;
+      Preconditions.checkState(x.mPathcode == 1);
       cuckooPath[0].mBucket = b2;
     }
     {
@@ -964,7 +967,6 @@ public class ConcurrentClockCuckooFilter<T> implements Serializable {
     int numAgedBuckets = 0;
     while (numAgedBuckets < maxAgingNumber) {
       int remainingBuckets = bucketsPerSegment - mSegmentedAgingPointers[i];
-      assert remainingBuckets >= 0;
       if (remainingBuckets == 0) {
         break;
       }
@@ -1006,7 +1008,6 @@ public class ConcurrentClockCuckooFilter<T> implements Serializable {
         continue;
       }
       int oldClock = mClockTable.readTag(b, j);
-      assert oldClock >= 0;
       if (oldClock > 0) {
         mClockTable.writeTag(b, j, oldClock - 1);
       } else {
