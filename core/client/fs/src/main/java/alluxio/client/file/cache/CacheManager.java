@@ -105,13 +105,16 @@ public interface CacheManager extends AutoCloseable {
         boolean isShadowCacheEnabled =
             conf.getBoolean(PropertyKey.USER_CLIENT_CACHE_SHADOW_ENABLED);
         if (isShadowCacheEnabled) {
-          String shadowCacheType = conf.get(PropertyKey.USER_CLIENT_CACHE_SHADOW_TYPE);
-          if (shadowCacheType.equals("ClockCuckooFilter")) {
-            return new NoExceptionCacheManager(
-                    new CacheManagerWithCuckooShadowCache(LocalCacheManager.create(conf), conf));
-          } else {
-            return new NoExceptionCacheManager(
-                    new CacheManagerWithShadowCache(LocalCacheManager.create(conf), conf));
+          ShadowCacheType shadowCacheType =
+              conf.getEnum(PropertyKey.USER_CLIENT_CACHE_SHADOW_TYPE, ShadowCacheType.class);
+          switch (shadowCacheType) {
+            case MBF:
+              return new NoExceptionCacheManager(
+                  new CacheManagerWithCuckooShadowCache(LocalCacheManager.create(conf), conf));
+            case CCF:
+              return new NoExceptionCacheManager(
+                  new CacheManagerWithShadowCache(LocalCacheManager.create(conf), conf));
+            default:
           }
         }
         return new NoExceptionCacheManager(LocalCacheManager.create(conf));
