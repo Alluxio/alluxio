@@ -3313,6 +3313,15 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
+  public static final PropertyKey WORKER_REGISTER_WINDOW =
+      new Builder(Name.WORKER_REGISTER_WINDOW)
+          .setDefaultValue("0")
+          .setDescription("Instead of registering with the master immediately after starting up, "
+              + "the worker registers at a time randomly picked in the window. "
+              + "This will avoid all workers registering with the master at the same time.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.WORKER)
+          .build();
   public static final PropertyKey WORKER_TIERED_STORE_BLOCK_LOCK_READERS =
       new Builder(Name.WORKER_TIERED_STORE_BLOCK_LOCK_READERS)
           .setDefaultValue(1000)
@@ -6027,6 +6036,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String WORKER_SESSION_TIMEOUT_MS = "alluxio.worker.session.timeout";
     public static final String WORKER_STORAGE_CHECKER_ENABLED =
         "alluxio.worker.storage.checker.enabled";
+    public static final String WORKER_REGISTER_WINDOW = "alluxio.worker.register.window";
     public static final String WORKER_TIERED_STORE_BLOCK_LOCK_READERS =
         "alluxio.worker.tieredstore.block.lock.readers";
     public static final String WORKER_TIERED_STORE_BLOCK_LOCKS =

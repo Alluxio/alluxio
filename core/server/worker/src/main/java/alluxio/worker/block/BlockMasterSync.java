@@ -22,6 +22,7 @@ import alluxio.grpc.ConfigProperty;
 import alluxio.grpc.Scope;
 import alluxio.heartbeat.HeartbeatExecutor;
 import alluxio.metrics.MetricsSystem;
+import alluxio.util.CommonUtils;
 import alluxio.util.ConfigurationUtils;
 import alluxio.wire.WorkerNetAddress;
 
@@ -30,6 +31,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.atomic.AtomicReference;
 
 import javax.annotation.concurrent.NotThreadSafe;
@@ -102,6 +104,14 @@ public final class BlockMasterSync implements HeartbeatExecutor {
    * begins.
    */
   private void registerWithMaster() throws IOException {
+    int backoffWindow = (int) ServerConfiguration.getMs(PropertyKey.WORKER_REGISTER_WINDOW);
+    if (backoffWindow > 0) {
+      int backoffTime = ThreadLocalRandom.current().nextInt((int) ServerConfiguration
+          .getMs(PropertyKey.WORKER_REGISTER_WINDOW));
+      LOG.info("Back off {}ms before registering with the master", backoffTime);
+      CommonUtils.sleepMs(backoffTime);
+    }
+
     BlockStoreMeta storeMeta = mBlockWorker.getStoreMetaFull();
     StorageTierAssoc storageTierAssoc = new WorkerStorageTierAssoc();
     List<ConfigProperty> configList =
