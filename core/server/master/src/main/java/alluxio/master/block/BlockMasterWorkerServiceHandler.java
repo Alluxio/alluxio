@@ -178,8 +178,8 @@ public final class BlockMasterWorkerServiceHandler extends
               String entryReport = entries.stream().map((e) -> e.getKey().toString())
                       .collect(Collectors.joining(","));
               throw new AssertionError(
-                  String.format("Duplicate locations found for worker %s with LocationBlockIdListEntry "
-                      + "objects %s", workerId, entryReport));
+                String.format("Duplicate locations found for worker %s "
+                    + "with LocationBlockIdListEntry objects %s", workerId, entryReport));
             }));
   }
 }
