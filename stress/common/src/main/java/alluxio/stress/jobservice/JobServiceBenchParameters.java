@@ -61,6 +61,9 @@ public final class JobServiceBenchParameters extends GeneralParameters {
     return mOperation;
   }
 
+  /**
+   * Converts from String to Operation instance.
+   */
   public static class OperationConverter implements IStringConverter<JobServiceBenchOperation> {
     @Override
     public JobServiceBenchOperation convert(String value) {

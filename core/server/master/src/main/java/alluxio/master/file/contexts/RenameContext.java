@@ -14,6 +14,7 @@ package alluxio.master.file.contexts;
 import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.RenamePOptions;
 import alluxio.util.FileSystemOptions;
+import alluxio.wire.OperationId;
 
 import com.google.common.base.MoreObjects;
 
@@ -87,6 +88,14 @@ public class RenameContext extends OperationContext<RenamePOptions.Builder, Rena
   public RenameContext setOperationTimeMs(long operationTimeMs) {
     mOperationTimeMs = operationTimeMs;
     return this;
+  }
+
+  @Override
+  public OperationId getOperationId() {
+    if (getOptions().hasCommonOptions() && getOptions().getCommonOptions().hasOperationId()) {
+      return OperationId.fromFsProto(getOptions().getCommonOptions().getOperationId());
+    }
+    return super.getOperationId();
   }
 
   @Override

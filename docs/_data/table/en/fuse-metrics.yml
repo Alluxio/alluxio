@@ -2,3 +2,9 @@ Fuse.BytesRead:
   'Total number of bytes read through Fuse.read() operations.'
 Fuse.BytesToRead:
   'Total number of bytes requested by Fuse.read() operations.'
+Fuse.CachedPathCount:
+  'Total number of Alluxio paths to cache for FUSE conversion.'
+Fuse.ReadingFileCount:
+  'Total number of files being read concurrently.'
+Fuse.WritingFileCount:
+  'Total number of files being written concurrently.'

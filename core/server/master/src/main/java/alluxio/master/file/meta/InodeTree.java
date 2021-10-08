@@ -56,6 +56,7 @@ import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.MkdirsOptions;
 import alluxio.util.CommonUtils;
 import alluxio.util.interfaces.Scoped;
+import alluxio.wire.OperationId;
 
 import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
@@ -220,6 +221,24 @@ public class InodeTree implements DelegatingJournaled {
     mContainerIdGenerator = containerIdGenerator;
     mDirectoryIdGenerator = directoryIdGenerator;
     mMountTable = mountTable;
+  }
+
+  /**
+   * Whether given operation is still cached in retry-cache.
+   *
+   * @param opId the operation id
+   * @return {@code true} if given op is marked complete
+   */
+  public boolean isOperationComplete(@Nullable OperationId opId) {
+    return mState.isOperationComplete(opId);
+  }
+
+  /**
+   * Used to mark an operation as complete in retry-cache.
+   * @param opId the operation id
+   */
+  public void cacheOperation(@Nullable OperationId opId) {
+    mState.cacheOperation(opId);
   }
 
   /**

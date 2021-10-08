@@ -83,7 +83,7 @@ public class RaftJournalWriter implements JournalWriter {
     if (mClosed) {
       throw new JournalClosedException("Cannot write to journal. Journal writer has been closed");
     }
-    Preconditions.checkState(entry.getAllFields().size() <= 1,
+    Preconditions.checkState(entry.getAllFields().size() <= 2,
         "Raft journal entries should never set multiple fields, but found %s", entry);
     if (mCurrentJournalEntrySize.get() > mFlushBatchBytes) {
       flush();

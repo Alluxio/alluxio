@@ -98,4 +98,19 @@ public enum ReadType {
   public ReadPType toProto() {
     return ReadPType.values()[mValue - 1];
   }
+
+  /**
+   * Creates an instance type from the string. This method is case insensitive.
+   *
+   * @param text the instance type in string
+   * @return the created instance
+   */
+  public static ReadType fromString(String text) {
+    for (ReadType type : ReadType.values()) {
+      if (type.toString().equalsIgnoreCase(text)) {
+        return type;
+      }
+    }
+    throw new IllegalArgumentException("No constant with text " + text + " found");
+  }
 }
