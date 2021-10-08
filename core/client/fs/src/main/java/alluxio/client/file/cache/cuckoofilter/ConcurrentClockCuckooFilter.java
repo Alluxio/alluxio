@@ -587,8 +587,7 @@ public class ConcurrentClockCuckooFilter<T> implements Serializable {
    * @return the storage type of the encoded size
    */
   private int encodeSize(int size) {
-    size = Math.min(mMaxSize, size);
-    return size;
+    return Math.min(mMaxSize, size);
   }
 
   /**
@@ -627,15 +626,13 @@ public class ConcurrentClockCuckooFilter<T> implements Serializable {
    */
   private boolean cuckooInsertLoop(int b1, int b2, int fp, TagPosition pos) {
     int maxRetryNum = 1;
-    boolean done = false;
     while (maxRetryNum-- > 0) {
       if (cuckooInsert(b1, b2, fp, pos)) {
-        done = true;
         pos.mStatus = CuckooStatus.OK;
-        break;
+        return true;
       }
     }
-    return done;
+    return false;
   }
 
   /**
