@@ -68,6 +68,13 @@ public class BlockMasterTest {
   private static final WorkerNetAddress NET_ADDRESS_2 = new WorkerNetAddress().setHost("localhost")
       .setRpcPort(83).setDataPort(84).setWebPort(85);
 
+  private static final WorkerNetAddress NET_ADDRESS_CONTAINER_1 = new WorkerNetAddress()
+      .setHost("localhost").setRpcPort(80).setDataPort(81).setWebPort(82)
+      .setContainerHost("127.0.0.1");
+  private static final WorkerNetAddress NET_ADDRESS_CONTAINER_2 = new WorkerNetAddress()
+      .setHost("localhost").setRpcPort(80).setDataPort(81).setWebPort(82)
+      .setContainerHost("127.0.0.2");
+
   private static final List<Long> NO_BLOCKS = ImmutableList.of();
   private static final Map<Block.BlockLocation, List<Long>> NO_BLOCKS_ON_LOCATION
       = ImmutableMap.of();
@@ -202,6 +209,33 @@ public class BlockMasterTest {
     // Check that there are no longer any lost workers and there is a live worker.
     assertEquals(1, mBlockMaster.getWorkerCount());
     assertEquals(0, mBlockMaster.getLostWorkersInfoList().size());
+  }
+
+  @Test
+  public void workerReregisterWithDiffContainerHost() throws Exception {
+    // Register a worker.
+    long worker1 = mBlockMaster.getWorkerId(NET_ADDRESS_CONTAINER_1);
+    mBlockMaster.workerRegister(worker1,
+            ImmutableList.of(Constants.MEDIUM_MEM),
+            ImmutableMap.of(Constants.MEDIUM_MEM, 100L),
+            ImmutableMap.of(Constants.MEDIUM_MEM, 10L),
+            NO_BLOCKS_ON_LOCATION,
+            NO_LOST_STORAGE,
+            RegisterWorkerPOptions.getDefaultInstance());
+
+    // Reregister the worker using a re-getting worker id.
+    long worker2 = mBlockMaster.getWorkerId(NET_ADDRESS_CONTAINER_2);
+    mBlockMaster.workerRegister(worker2,
+            ImmutableList.of(Constants.MEDIUM_MEM),
+            ImmutableMap.of(Constants.MEDIUM_MEM, 100L),
+            ImmutableMap.of(Constants.MEDIUM_MEM, 10L),
+            NO_BLOCKS_ON_LOCATION,
+            NO_LOST_STORAGE,
+            RegisterWorkerPOptions.getDefaultInstance());
+
+    // Check that there is only a live worker, worker1 and worker2 is equal.
+    assertEquals(1, mBlockMaster.getWorkerCount());
+    assertEquals(worker1, worker2);
   }
 
   @Test

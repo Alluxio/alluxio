@@ -102,7 +102,7 @@ public final class MasterWorkerInfo {
   @GuardedBy("mWorkerLock")
   private final StaticWorkerMeta mMeta;
 
-  /** Locks the worker register status. */
+  /** Locks the worker metadata. */
   private final ReentrantReadWriteLock mWorkerLock;
 
   /** If true, the worker is considered registered. */
