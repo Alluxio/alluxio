@@ -11,9 +11,6 @@
 
 package alluxio.stress.jobservice;
 
-import alluxio.stress.Operation;
-import alluxio.stress.master.MasterBenchOperation;
-
 /**
  * The operations for the job service stress tests.
  */

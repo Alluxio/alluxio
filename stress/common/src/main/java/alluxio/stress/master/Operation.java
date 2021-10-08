@@ -11,13 +11,10 @@
 
 package alluxio.stress.master;
 
-import alluxio.stress.Operation;
-import alluxio.stress.jobservice.JobServiceBenchOperation;
-
 /**
  * The operations for the master stress tests.
  */
-public enum MasterBenchOperation{
+public enum Operation {
   // Create files
   CREATE_FILE("CreateFile"), // create fixed-N, create more in extra
   GET_BLOCK_LOCATIONS("GetBlockLocations"), // call for fixed-N
@@ -39,7 +36,7 @@ public enum MasterBenchOperation{
   /**
    * @param name Name of the operation
    */
-  MasterBenchOperation(String name) {
+  Operation(String name) {
     mName = name;
   }
 
@@ -54,8 +51,8 @@ public enum MasterBenchOperation{
    * @param text the instance type in string
    * @return the created instance
    */
-  public static MasterBenchOperation fromString(String text) {
-    for (MasterBenchOperation type : MasterBenchOperation.values()) {
+  public static Operation fromString(String text) {
+    for (Operation type : Operation.values()) {
       if (type.toString().equalsIgnoreCase(text)) {
         return type;
       }

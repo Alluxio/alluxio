@@ -34,7 +34,7 @@ public final class MasterBenchParameters extends GeneralParameters {
           + "GetFileStatus, OpenFile, CreateDir, ListDir, ListDirLocated, RenameFile, DeleteFile]",
       converter = OperationConverter.class,
       required = true)
-  public MasterBenchOperation mOperation;
+  public Operation mOperation;
 
   @Parameter(names = {"--clients"}, description = "the number of fs client instances to use")
   public int mClients = 1;
@@ -107,10 +107,10 @@ public final class MasterBenchParameters extends GeneralParameters {
   /**
    * Converts from String to Operation instance.
    */
-  public static class OperationConverter implements IStringConverter<MasterBenchOperation> {
+  public static class OperationConverter implements IStringConverter<Operation> {
     @Override
-    public MasterBenchOperation convert(String value) {
-      return MasterBenchOperation.fromString(value);
+    public Operation convert(String value) {
+      return Operation.fromString(value);
     }
   }
 }
