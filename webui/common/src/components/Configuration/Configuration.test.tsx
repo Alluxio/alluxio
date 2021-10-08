@@ -15,34 +15,29 @@ import { createBrowserHistory, History, LocationState } from 'history';
 import React from 'react';
 import sinon from 'sinon';
 
-import { AllPropsConfigure } from '@alluxio/common-ui/src/components';
-import { initialState } from '../../../store';
-import { routePaths } from '../../../constants';
-import MasterLogs from './MasterLogs';
-import { createAlertErrors } from '@alluxio/common-ui/src/utilities';
+import { AllPropsConfigure, ConfigurationPresenter } from './Configuration';
+import { createAlertErrors } from '../../utilities';
+import { IConfig } from '../../store/config/types';
 
 configure({ adapter: new Adapter() });
 
-describe('MasterLogs', () => {
+describe('Configuration', () => {
   let history: History<LocationState>;
   let props: AllPropsConfigure;
 
   beforeAll(() => {
     history = createBrowserHistory({ keyLength: 0 });
-    history.push(routePaths.logs);
+    history.push('/config');
+
+    const testData: IConfig = { configuration: [{ left: 'alluxio.', middle: '', right: '' }], whitelist: ['/'] };
+
     props = {
-      location: { search: '' },
-      history: history,
-      fetchRequest: sinon.spy(() => {}),
-      data: initialState.logs.data,
-      refresh: initialState.refresh.data,
-      textAreaHeight: 0,
-      request: {},
-      updateRequestParameter: sinon.spy(() => {}),
-      queryStringSuffix: '',
+      data: testData,
+      class: '',
       errors: createAlertErrors(false),
       loading: false,
-      class: '',
+      fetchRequest: sinon.spy(() => {}),
+      refresh: false,
     };
   });
 
@@ -54,7 +49,7 @@ describe('MasterLogs', () => {
     let shallowWrapper: ShallowWrapper;
 
     beforeAll(() => {
-      shallowWrapper = shallow(<MasterLogs {...props} />);
+      shallowWrapper = shallow(<ConfigurationPresenter {...props} />);
     });
 
     it('Renders without crashing', () => {
@@ -63,6 +58,31 @@ describe('MasterLogs', () => {
 
     it('Matches snapshot', () => {
       expect(shallowWrapper).toMatchSnapshot();
+    });
+
+    it('Searches data with valid search key', () => {
+      shallowWrapper.setState({ searchConfig: 'alluxio.' });
+      expect(
+        shallowWrapper
+          .find('Table')
+          .first()
+          .dive()
+          .find('#filtered-data-body'),
+      ).toHaveLength(1);
+    });
+
+    it('Searches data with invalid search key', () => {
+      const randomStr = Math.random()
+        .toString(36)
+        .substring(7);
+      shallowWrapper.setState({ searchConfig: randomStr });
+      expect(
+        shallowWrapper
+          .find('Table')
+          .first()
+          .dive()
+          .find('#no-data-body'),
+      ).toHaveLength(1);
     });
   });
 });

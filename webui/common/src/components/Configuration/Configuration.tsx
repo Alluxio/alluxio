@@ -10,20 +10,19 @@
  */
 
 import React from 'react';
-import { connect } from 'react-redux';
 import { Input, Table } from 'reactstrap';
 import { AnyAction, compose, Dispatch } from 'redux';
 
-import { withErrors, withLoadingMessage, withFetchData } from '@alluxio/common-ui/src/components';
-import { IConfigTriple } from '../../../constants';
-import { IApplicationState } from '../../../store';
-import { fetchRequest } from '@alluxio/common-ui/src/store/config/actions';
-import { IConfig } from '@alluxio/common-ui/src/store/config/types';
-import { IAlertErrors, ICommonState } from '@alluxio/common-ui/src/constants';
-import { createAlertErrors } from '@alluxio/common-ui/src/utilities';
+import { withErrors, withLoadingMessage, withFetchData } from '../../components/index';
+import { IConfigTriple } from '../../constants';
+import { fetchRequest } from '../../store/config/actions';
+import { IConfig, IConfigState } from '../../store/config/types';
+import { IAlertErrors, ICommonState } from '../../constants';
+import { createAlertErrors } from '../../utilities';
 import './Configuration.scss';
+import { IRefreshState } from '../../store/refresh/types';
 
-interface IPropsFromState extends ICommonState {
+export interface IPropsFromConfigureState extends ICommonState {
   data: IConfig;
 }
 
@@ -31,14 +30,14 @@ interface IPropsFromDispatch {
   fetchRequest: typeof fetchRequest;
 }
 
-export type AllProps = IPropsFromState & IPropsFromDispatch;
+export type AllPropsConfigure = IPropsFromConfigureState & IPropsFromDispatch;
 
 interface IState {
   searchConfig: string;
 }
 
-export class ConfigurationPresenter extends React.Component<AllProps, IState> {
-  constructor(props: AllProps) {
+export class ConfigurationPresenter extends React.Component<AllPropsConfigure, IState> {
+  constructor(props: AllPropsConfigure) {
     super(props);
     this.__searchInputHandler.bind(this);
     this.state = {
@@ -123,8 +122,8 @@ export class ConfigurationPresenter extends React.Component<AllProps, IState> {
   };
 }
 
-const mapStateToProps = ({ config, refresh }: IApplicationState): IPropsFromState => {
-  const errors: IAlertErrors = createAlertErrors(config.errors !== undefined, []);
+export function getConfigurationPropsFromState(config: IConfigState, refresh: IRefreshState): IPropsFromConfigureState {
+  const errors: IAlertErrors = createAlertErrors(config.errors != undefined, []);
   return {
     data: config.data,
     errors: errors,
@@ -132,18 +131,14 @@ const mapStateToProps = ({ config, refresh }: IApplicationState): IPropsFromStat
     refresh: refresh.data,
     class: 'configuration-page',
   };
-};
+}
 
-const mapDispatchToProps = (dispatch: Dispatch): { fetchRequest: () => AnyAction } => ({
+export const mapDispatchToConfigurationProps = (dispatch: Dispatch): { fetchRequest: () => AnyAction } => ({
   fetchRequest: (): AnyAction => dispatch(fetchRequest()),
 });
 
 export default compose(
-  connect(
-    mapStateToProps,
-    mapDispatchToProps,
-  ),
   withFetchData,
   withErrors,
   withLoadingMessage,
-)(ConfigurationPresenter) as typeof React.Component;
+)(ConfigurationPresenter) as React.ComponentType<AllPropsConfigure>;

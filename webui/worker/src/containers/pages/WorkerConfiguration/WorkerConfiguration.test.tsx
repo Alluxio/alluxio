@@ -15,25 +15,23 @@ import { createBrowserHistory, History, LocationState } from 'history';
 import React from 'react';
 import sinon from 'sinon';
 
-import { AllProps, ConfigurationPresenter } from './Configuration';
+import { AllPropsConfigure } from '@alluxio/common-ui/src/components';
+import { initialState } from '../../../store';
+import WorkerConfiguration from './WorkerConfiguration';
 import { routePaths } from '../../../constants';
 import { createAlertErrors } from '@alluxio/common-ui/src/utilities';
-import { IConfig } from '@alluxio/common-ui/src/store/config/types';
 
 configure({ adapter: new Adapter() });
 
 describe('Configuration', () => {
   let history: History<LocationState>;
-  let props: AllProps;
+  let props: AllPropsConfigure;
 
   beforeAll(() => {
     history = createBrowserHistory({ keyLength: 0 });
     history.push(routePaths.config);
-
-    const testData: IConfig = { configuration: [{ left: 'alluxio.', middle: '', right: '' }], whitelist: ['/'] };
-
     props = {
-      data: testData,
+      data: initialState.config.data,
       class: '',
       errors: createAlertErrors(false),
       loading: false,
@@ -50,7 +48,7 @@ describe('Configuration', () => {
     let shallowWrapper: ShallowWrapper;
 
     beforeAll(() => {
-      shallowWrapper = shallow(<ConfigurationPresenter {...props} />);
+      shallowWrapper = shallow(<WorkerConfiguration {...props} />);
     });
 
     it('Renders without crashing', () => {
@@ -59,31 +57,6 @@ describe('Configuration', () => {
 
     it('Matches snapshot', () => {
       expect(shallowWrapper).toMatchSnapshot();
-    });
-
-    it('Searches data with valid search key', () => {
-      shallowWrapper.setState({ searchConfig: 'alluxio.' });
-      expect(
-        shallowWrapper
-          .find('Table')
-          .first()
-          .dive()
-          .find('#filtered-data-body'),
-      ).toHaveLength(1);
-    });
-
-    it('Searches data with invalid search key', () => {
-      const randomStr = Math.random()
-        .toString(36)
-        .substring(7);
-      shallowWrapper.setState({ searchConfig: randomStr });
-      expect(
-        shallowWrapper
-          .find('Table')
-          .first()
-          .dive()
-          .find('#no-data-body'),
-      ).toHaveLength(1);
     });
   });
 });

@@ -15,4 +15,4 @@ export { default as Overview } from './pages/Overview/Overview';
 export { default as WorkerLogs } from './pages/WorkerLogs/WorkerLogs';
 export { default as Metrics } from './pages/Metrics/Metrics';
 export { default as BlockInfo } from './pages/BlockInfo/BlockInfo';
-export { default as Configuration } from './pages/Configuration/Configuration';
+export { default as WorkerConfiguration } from './pages/WorkerConfiguration/WorkerConfiguration';
