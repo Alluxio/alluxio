@@ -14,9 +14,9 @@ package alluxio.client.file.cache;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
 import alluxio.client.file.CacheContext;
-import alluxio.client.file.cache.filter.ConcurrentClockCuckooFilter;
-import alluxio.client.file.cache.filter.ScopeInfo;
-import alluxio.client.file.cache.filter.SlidingWindowType;
+import alluxio.client.file.cache.cuckoofilter.ConcurrentClockCuckooFilter;
+import alluxio.client.file.cache.cuckoofilter.ScopeInfo;
+import alluxio.client.file.cache.cuckoofilter.SlidingWindowType;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.metrics.MetricKey;
