@@ -26,11 +26,11 @@ public class UtilsTest {
     for (int i = 0; i < NUM_BUCKETS; i++) {
       for (int j = 0; j < TAGS_PER_BUCKET; j++) {
         IndexAndTag indexAndTag =
-            Utils.generateIndexAndTag(i * NUM_BUCKETS + j, NUM_BUCKETS, BITS_PER_TAG);
+            CuckooUtils.generateIndexAndTag(i * NUM_BUCKETS + j, NUM_BUCKETS, BITS_PER_TAG);
         assertTrue(0 <= indexAndTag.mBucket && indexAndTag.mBucket < NUM_BUCKETS);
         assertTrue(0 < indexAndTag.mTag && indexAndTag.mTag <= ((1 << BITS_PER_TAG) - 1));
-        int altIndex = Utils.altIndex(indexAndTag.mBucket, indexAndTag.mTag, NUM_BUCKETS);
-        int altAltIndex = Utils.altIndex(altIndex, indexAndTag.mTag, NUM_BUCKETS);
+        int altIndex = CuckooUtils.altIndex(indexAndTag.mBucket, indexAndTag.mTag, NUM_BUCKETS);
+        int altAltIndex = CuckooUtils.altIndex(altIndex, indexAndTag.mTag, NUM_BUCKETS);
         assertEquals(indexAndTag.mBucket, altAltIndex);
       }
     }
