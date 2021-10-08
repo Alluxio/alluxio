@@ -44,10 +44,9 @@ public interface JournalMaster {
    * {@link alluxio.master.journal.JournalType#EMBEDDED} journal.
    *
    * @param newLeaderAddress server address to remove from quorum
-   * @throws IOException if error occurs while performing the operation
    * @return the guid of transfer leader command
    */
-  String transferLeadership(NetAddress newLeaderAddress) throws IOException;
+  String transferLeadership(NetAddress newLeaderAddress);
 
   /**
    * Resets RaftPeer priorities.

@@ -73,10 +73,10 @@ public class QuorumElectCommand extends AbstractFsAdminCommand {
           GetTransferLeaderMessagePResponse transferMsg =
                   jmClient.getTransferLeaderMessage(transferId);
           String errorMessage = transferMsg.getTransMsg().toString();
-          if (!errorMessage.equals("")) {
+          if (errorMessage.isEmpty()) {
             System.out.println(errorMessage);
             throw new IOException(
-                    String.format("caught an error when executing transfer: %s", errorMessage));
+                    String.format("caught an error when executing  transfer: %s", errorMessage));
           }
           GetQuorumInfoPResponse quorumInfo = jmClient.getQuorumInfo();
 

@@ -837,7 +837,7 @@ public class RaftJournalSystem extends AbstractJournalSystem {
         .build();
     quorumMemberStateList.add(QuorumServerInfo.newBuilder()
             .setIsLeader(true)
-            .setPriority(mRaftGroup.getPeer(mPeerId).getPriority())
+            .setPriority(roleInfo.getSelf().getPriority())
             .setServerAddress(self)
         .setServerState(QuorumServerState.AVAILABLE).build());
     quorumMemberStateList.sort(Comparator.comparing(info -> info.getServerAddress().toString()));
@@ -937,10 +937,9 @@ public class RaftJournalSystem extends AbstractJournalSystem {
    * Transfers the leadership of the quorum to another server.
    *
    * @param newLeaderNetAddress the address of the server
-   * @throws IOException if error occurred while performing the operation
    * @return the guid of transfer leader command
    */
-  public synchronized String transferLeadership(NetAddress newLeaderNetAddress) throws IOException {
+  public synchronized String transferLeadership(NetAddress newLeaderNetAddress) {
     final boolean allowed = mTransferLeaderAllowed.getAndSet(false);
     String transferId = UUID.randomUUID().toString();
     if (!allowed) {
@@ -1000,13 +999,16 @@ public class RaftJournalSystem extends AbstractJournalSystem {
           // we only allow transfers again if the transfer is unsuccessful: a success means it
           // will soon lose primacy
           mTransferLeaderAllowed.set(true);
+          mErrorMessages.put(transferId, TransferLeaderMessage.newBuilder()
+                  .setMsg(t.getMessage()).build());
           /* checking the transfer happens in {@link QuorumElectCommand} */
         }
       }).start();
       LOG.info("Transferring leadership initiated");
     } catch (Throwable t) {
       mTransferLeaderAllowed.set(true);
-      throw new IOException(t);
+      mErrorMessages.put(transferId, TransferLeaderMessage.newBuilder()
+              .setMsg(t.getMessage()).build());
     }
     return transferId;
   }
@@ -1036,9 +1038,8 @@ public class RaftJournalSystem extends AbstractJournalSystem {
               ? reply.getException()
               : new IOException(String.format("reply <%s> failed", reply));
       LOG.error("{}. Error: {}", msgToUser, ioe);
-      IOException exception = new IOException(msgToUser);
       mErrorMessages.put(transferID, TransferLeaderMessage.newBuilder()
-              .setMsg(exception.getMessage()).build());
+              .setMsg(msgToUser).build());
     }
   }
 

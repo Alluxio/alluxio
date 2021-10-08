@@ -62,7 +62,7 @@ public class DefaultJournalMaster implements JournalMaster {
   }
 
   @Override
-  public String transferLeadership(NetAddress newLeaderAddress) throws IOException {
+  public String transferLeadership(NetAddress newLeaderAddress) {
     checkQuorumOpSupported();
     return ((RaftJournalSystem) mJournalSystem).transferLeadership(newLeaderAddress);
   }
