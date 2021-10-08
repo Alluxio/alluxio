@@ -11,7 +11,6 @@
 
 package alluxio.stress.master;
 
-import alluxio.stress.GeneralParameters;
 import alluxio.stress.Parameters;
 import alluxio.stress.common.FileSystemParameters;
 
