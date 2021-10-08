@@ -456,12 +456,11 @@ public class ConcurrentClockCuckooFilter<T> implements Serializable {
   }
 
   /**
-   * @param scopeInfo the scope bo be queried
+   * @param scopeInfo the scope to be queried
    * @return the number of items of specified scope in this cuckoo filter
    */
   public int getItemNumber(ScopeInfo scopeInfo) {
-    int scope = encodeScope(scopeInfo);
-    return mScopeToNumber[scope].get();
+    return mScopeToNumber[encodeScope(scopeInfo)].get();
   }
 
   /**
@@ -472,12 +471,11 @@ public class ConcurrentClockCuckooFilter<T> implements Serializable {
   }
 
   /**
-   * @param scopeInfo the scope bo be queried
+   * @param scopeInfo the scope to be queried
    * @return the size of items of specified scope in this cuckoo filter
    */
   public int getItemSize(ScopeInfo scopeInfo) {
-    int scope = encodeScope(scopeInfo);
-    return mScopeToSize[scope].intValue();
+    return mScopeToSize[encodeScope(scopeInfo)].intValue();
   }
 
   /**
