@@ -257,6 +257,8 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
    */
   private LoadingCache<String, List<WorkerInfo>> mWorkerInfoCache;
 
+  private RegisterLeaseManager mRegisterLeaseManager = new RegisterLeaseManager();
+
   /**
    * Creates a new instance of {@link DefaultBlockMaster}.
    *
@@ -906,6 +908,16 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
 
     LOG.info("getWorkerId(): WorkerNetAddress: {} id: {}", workerNetAddress, workerId);
     return workerId;
+  }
+
+  @Override
+  public Optional<RegisterLease> tryAcquireRegisterLease() {
+    return mRegisterLeaseManager.tryAcquireLease();
+  }
+
+  @Override
+  public void releaseRegisterLease(){
+    mRegisterLeaseManager.releaseLease();
   }
 
   @Override

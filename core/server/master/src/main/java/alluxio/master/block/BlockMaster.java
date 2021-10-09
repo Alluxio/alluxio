@@ -35,6 +35,7 @@ import com.google.common.annotations.VisibleForTesting;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
@@ -175,6 +176,10 @@ public interface BlockMaster extends Master, ContainerIdGenerable {
    * @return the worker id for this worker
    */
   long getWorkerId(WorkerNetAddress workerNetAddress);
+
+  Optional<RegisterLease> tryAcquireRegisterLease();
+
+  void releaseRegisterLease();
 
   /**
    * Updates metadata when a worker registers with the master.

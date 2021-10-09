@@ -19,6 +19,9 @@ import alluxio.grpc.CommitBlockInUfsPRequest;
 import alluxio.grpc.CommitBlockInUfsPResponse;
 import alluxio.grpc.CommitBlockPRequest;
 import alluxio.grpc.CommitBlockPResponse;
+import alluxio.grpc.GetConfigReportPResponse;
+import alluxio.grpc.GetRegisterLeasePRequest;
+import alluxio.grpc.GetRegisterLeasePResponse;
 import alluxio.grpc.GetWorkerIdPRequest;
 import alluxio.grpc.GetWorkerIdPResponse;
 import alluxio.grpc.GrpcUtils;
@@ -35,8 +38,10 @@ import io.grpc.stub.StreamObserver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -128,6 +133,18 @@ public final class BlockMasterWorkerServiceHandler extends
   }
 
   @Override
+  public void requestRegisterLease(GetRegisterLeasePRequest request, StreamObserver<GetRegisterLeasePResponse> responseObserver) {
+    RpcUtils.call(LOG, (RpcUtils.RpcCallableThrowsIOException<GetRegisterLeasePResponse>) () -> {
+      Optional<RegisterLease> lease = mBlockMaster.tryAcquireRegisterLease();
+      if (lease.isPresent()) {
+        RegisterLease l = lease.get();
+        return GetRegisterLeasePResponse.newBuilder().setAllowed(true).setExpiryMs(l.mExpireTime.toEpochMilli()).build();
+      }
+      return GetRegisterLeasePResponse.newBuilder().setAllowed(false).build();
+    }, "getRegisterLease", "request=%s", responseObserver, request);
+  }
+
+  @Override
   public void registerWorker(RegisterWorkerPRequest request,
       StreamObserver<RegisterWorkerPResponse> responseObserver) {
     if (LOG.isDebugEnabled()) {
@@ -148,8 +165,17 @@ public final class BlockMasterWorkerServiceHandler extends
     RegisterWorkerPOptions options = request.getOptions();
     RpcUtils.call(LOG,
         (RpcUtils.RpcCallableThrowsIOException<RegisterWorkerPResponse>) () -> {
-          mBlockMaster.workerRegister(workerId, storageTiers, totalBytesOnTiers, usedBytesOnTiers,
-              currBlocksOnLocationMap, lostStorageMap, options);
+          try {
+            mBlockMaster.workerRegister(workerId, storageTiers, totalBytesOnTiers, usedBytesOnTiers,
+                    currBlocksOnLocationMap, lostStorageMap, options);
+            LOG.info("Releasing lease here");
+            mBlockMaster.releaseRegisterLease();
+          } catch (IOException e) {
+            // TODO(jiacheng): This also does not make sense. The worker doesn't know it failed and will retry.
+            LOG.info("Releasing lease when an exception is met");
+            mBlockMaster.releaseRegisterLease();
+            throw e;
+          }
           return RegisterWorkerPResponse.getDefaultInstance();
         }, "registerWorker", "request=%s", responseObserver, request);
   }

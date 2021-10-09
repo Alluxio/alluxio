@@ -233,6 +233,19 @@ message GetWorkerIdPResponse {
   optional int64 workerId = 1;
 }
 
+message GetRegisterLeasePRequest {
+  optional int64 workerId = 1;
+  /** this is not accurate because the worker can add/delete blocks */
+  // TODO(jiacheng): estimatedBlockCount?
+  optional int64 blockCount = 2;
+}
+message GetRegisterLeasePOptions {}
+message GetRegisterLeasePResponse {
+  optional bool allowed = 1;
+  optional int64 expiryMs = 2;
+  optional GetRegisterLeasePOptions options = 3;
+}
+
 message RegisterWorkerPOptions {
   repeated grpc.ConfigProperty configs = 1;
 }
@@ -284,4 +297,9 @@ service BlockMasterWorkerService {
    * Registers a worker.
    */
   rpc RegisterWorker(RegisterWorkerPRequest) returns (RegisterWorkerPResponse);
+
+  /**
+   * Requests a lease to register
+   */
+   rpc RequestRegisterLease(GetRegisterLeasePRequest) returns (GetRegisterLeasePResponse);
 }

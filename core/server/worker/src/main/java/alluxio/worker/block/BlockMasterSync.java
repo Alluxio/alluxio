@@ -19,9 +19,11 @@ import alluxio.WorkerStorageTierAssoc;
 import alluxio.exception.ConnectionFailedException;
 import alluxio.grpc.Command;
 import alluxio.grpc.ConfigProperty;
+import alluxio.grpc.GetRegisterLeasePResponse;
 import alluxio.grpc.Scope;
 import alluxio.heartbeat.HeartbeatExecutor;
 import alluxio.metrics.MetricsSystem;
+import alluxio.util.CommonUtils;
 import alluxio.util.ConfigurationUtils;
 import alluxio.wire.WorkerNetAddress;
 
@@ -106,6 +108,23 @@ public final class BlockMasterSync implements HeartbeatExecutor {
     StorageTierAssoc storageTierAssoc = new WorkerStorageTierAssoc();
     List<ConfigProperty> configList =
         ConfigurationUtils.getConfiguration(ServerConfiguration.global(), Scope.WORKER);
+
+    boolean leaseAcquired = false;
+    int iter = 0;
+    while (!leaseAcquired) {
+      // TODO(jiacheng): Get lease first
+      LOG.info("Acquire lease from the master first, iter {}", iter);
+      GetRegisterLeasePResponse response =  mMasterClient.acquireRegisterLease(mWorkerId.get(), storeMeta.getNumberOfBlocks());
+      // TODO(jiacheng): back off logic here
+      // TODO(jiacheng): Add more logic after the test
+      LOG.info("Lease response: {}", response);
+      leaseAcquired = response.getAllowed();
+      if (leaseAcquired) {
+        CommonUtils.sleepMs(1000);
+      }
+    }
+
+    LOG.info("Lease acquired");
     mMasterClient.register(mWorkerId.get(),
         storageTierAssoc.getOrderedStorageAliases(), storeMeta.getCapacityBytesOnTiers(),
         storeMeta.getUsedBytesOnTiers(), storeMeta.getBlockListByStorageLocation(),

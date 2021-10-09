@@ -2338,6 +2338,12 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "level for files")
           .setScope(Scope.MASTER)
           .build();
+  public static final PropertyKey MASTER_REGISTER_MAX_CONCURRENCY =
+      new Builder(Name.MASTER_REGISTER_MAX_CONCURRENCY)
+          .setDefaultValue("1")
+          .setDescription("How many workers to register at the same time")
+          .setScope(Scope.MASTER)
+          .build();
   public static final PropertyKey MASTER_PRINCIPAL = new Builder(Name.MASTER_PRINCIPAL)
       .setDescription("Kerberos principal for Alluxio master.")
       .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
@@ -5815,6 +5821,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String MASTER_PRINCIPAL = "alluxio.master.principal";
     public static final String MASTER_REPLICATION_CHECK_INTERVAL_MS =
         "alluxio.master.replication.check.interval";
+    public static final String MASTER_REGISTER_MAX_CONCURRENCY =
+        "alluxio.master.register.max.concurrency";
     public static final String MASTER_RPC_PORT = "alluxio.master.rpc.port";
     public static final String MASTER_RPC_EXECUTOR_PARALLELISM =
         "alluxio.master.rpc.executor.parallelism";

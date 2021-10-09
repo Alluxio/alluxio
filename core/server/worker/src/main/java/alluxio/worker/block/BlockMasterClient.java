@@ -23,6 +23,8 @@ import alluxio.grpc.Command;
 import alluxio.grpc.CommitBlockInUfsPRequest;
 import alluxio.grpc.CommitBlockPRequest;
 import alluxio.grpc.ConfigProperty;
+import alluxio.grpc.GetRegisterLeasePRequest;
+import alluxio.grpc.GetRegisterLeasePResponse;
 import alluxio.grpc.GetWorkerIdPRequest;
 import alluxio.grpc.LocationBlockIdListEntry;
 import alluxio.grpc.Metric;
@@ -215,6 +217,13 @@ public class BlockMasterClient extends AbstractMasterClient {
     return retryRPC(() -> mClient.withDeadlineAfter(mContext.getClusterConf()
         .getMs(PropertyKey.WORKER_MASTER_PERIODICAL_RPC_TIMEOUT), TimeUnit.MILLISECONDS)
         .blockHeartbeat(request).getCommand(), LOG, "Heartbeat", "workerId=%d", workerId);
+  }
+
+  public GetRegisterLeasePResponse acquireRegisterLease(final long workerId, final int estimatedBlockCount) throws IOException {
+    return retryRPC(() -> {
+              return mClient.requestRegisterLease(GetRegisterLeasePRequest.newBuilder()
+                      .setWorkerId(workerId).setBlockCount(estimatedBlockCount).build());
+            }, LOG, "GetRegisterLease", "workerId=%d, estimatedBlockCount=%d", workerId, estimatedBlockCount);
   }
 
   /**
