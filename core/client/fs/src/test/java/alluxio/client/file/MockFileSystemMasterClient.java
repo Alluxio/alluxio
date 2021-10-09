@@ -192,11 +192,6 @@ class MockFileSystemMasterClient implements FileSystemMasterClient {
   }
 
   @Override
-  public InetSocketAddress getConfAddress() throws UnavailableException {
-    return null;
-  }
-
-  @Override
   public boolean isConnected() {
     return false;
   }
