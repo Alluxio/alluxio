@@ -130,8 +130,20 @@ spec:
           - configMapRef:
               name: {{ $fullName }}-config
 {{- $probePort := $isHaEmbedded | ternary "embedded" "rpc" }}
-{{ include "alluxio.master.readinessProbe" (dict "port" $probePort) | indent 10 }}
-{{ include "alluxio.master.livenessProbe" (dict "port" $probePort) | indent 10 }}
+          readinessProbe:
+            tcpSocket:
+              port: {{ $probePort }}
+            initialDelaySeconds: {{ .Values.master.readinessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.master.readinessProbe.periodSeconds }}
+            timeoutSeconds: {{ .Values.master.readinessProbe.timeoutSeconds }}
+            failureThreshold: {{ .Values.master.readinessProbe.failureThreshold }}
+          livenessProbe:
+            tcpSocket:
+              port: {{ $probePort }}
+            initialDelaySeconds: {{ .Values.master.livenessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.master.livenessProbe.periodSeconds }}
+            timeoutSeconds: {{ .Values.master.livenessProbe.timeoutSeconds }}
+            failureThreshold: {{ .Values.master.livenessProbe.failureThreshold }}
           ports:
           - containerPort: {{ .Values.master.ports.rpc }}
             name: rpc
@@ -197,8 +209,20 @@ spec:
           - configMapRef:
               name: {{ $fullName }}-config
 {{- $probePort := $isHaEmbedded | ternary "job-embedded" "job-rpc" }}
-{{ include "alluxio.master.readinessProbe" (dict "port" $probePort) | indent 10 }}
-{{ include "alluxio.master.livenessProbe" (dict "port" $probePort) | indent 10 }}
+          readinessProbe:
+            tcpSocket:
+              port: {{ $probePort }}
+            initialDelaySeconds: {{ .Values.jobMaster.readinessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.jobMaster.readinessProbe.periodSeconds }}
+            timeoutSeconds: {{ .Values.jobMaster.readinessProbe.timeoutSeconds }}
+            failureThreshold: {{ .Values.jobMaster.readinessProbe.failureThreshold }}
+          livenessProbe:
+            tcpSocket:
+              port: {{ $probePort }}
+            initialDelaySeconds: {{ .Values.jobMaster.livenessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.jobMaster.livenessProbe.periodSeconds }}
+            timeoutSeconds: {{ .Values.jobMaster.livenessProbe.timeoutSeconds }}
+            failureThreshold: {{ .Values.jobMaster.livenessProbe.failureThreshold }}
           ports:
           - containerPort: {{ .Values.jobMaster.ports.rpc }}
             name: job-rpc

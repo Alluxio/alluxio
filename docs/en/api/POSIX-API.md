@@ -143,6 +143,12 @@ $ ${ALLUXIO_HOME}/integration/fuse/bin/alluxio-fuse unmount /mnt/people
 Unmount fuse at /mnt/people (PID:97626).
 ```
 
+By default, the `unmount` operation will wait for 120 seconds for any in-progress read/write operations to finish. If read/write operations haven't finished after 120 seconds, the fuse process will be forcibly killed which may cause read/write operations to fail. You can add `-s` to avoid the fuse process being killed if there are remaining in-progress read/write operations after the timeout. For example,
+
+```console
+$ ${ALLUXIO_HOME}/integration/fuse/bin/alluxio-fuse unmount -s /mnt/people
+```
+
 ### Check the Alluxio POSIX API mounting status
 
 To list the mount points; on the node where the file system is mounted run:
@@ -287,7 +293,7 @@ $ ${ALLUXIO_HOME}/integration/fuse/bin/alluxio-fuse mount \
 A special mount option is the `max_idle_threads=N` which defines the maximum number of idle fuse daemon threads allowed.
 If the value is too small, FUSE may frequently create and destroy threads which will introduce extra performance overhead.
 Note that, libfuse introduce this mount option in 3.2 while JNI-Fuse supports 2.9.X during experimental stage.
-The Alluxio Fuse docker image [alluxio/{{site.ALLUXIO_DOCKER_IMAGE}}-fuse](https://hub.docker.com/r/alluxio/{{site.ALLUXIO_DOCKER_IMAGE}}-fuse/)
+The Alluxio docker image [alluxio/{{site.ALLUXIO_DOCKER_IMAGE}}](https://hub.docker.com/r/alluxio/{{site.ALLUXIO_DOCKER_IMAGE}}/)
 enables this property by modifying the [libfuse source code](https://github.com/cheyang/libfuse/tree/fuse_2_9_5_customize_multi_threads_v2).
 
 If you are using alluxio fuse docker image, set the `MAX_IDLE_THREADS` via environment variable:
@@ -295,7 +301,7 @@ If you are using alluxio fuse docker image, set the `MAX_IDLE_THREADS` via envir
 $ docker run -d --rm \
     ...
     --env MAX_IDLE_THREADS=64 \
-    alluxio/{{site.ALLUXIO_DOCKER_IMAGE}}-fuse fuse
+    alluxio/{{site.ALLUXIO_DOCKER_IMAGE}} fuse
 ```
   {% endcollapsible %}
 {% endaccordion %}

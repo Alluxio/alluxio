@@ -80,7 +80,8 @@ public final class QuorumCommandIntegrationTest extends BaseIntegrationTest {
         .addProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.EMBEDDED.toString())
         .addProperty(PropertyKey.MASTER_JOURNAL_FLUSH_TIMEOUT_MS, "5min")
         // To make the test run faster.
-        .addProperty(PropertyKey.MASTER_EMBEDDED_JOURNAL_ELECTION_TIMEOUT, "750ms").build();
+        .addProperty(PropertyKey.MASTER_EMBEDDED_JOURNAL_MIN_ELECTION_TIMEOUT, "750ms")
+        .addProperty(PropertyKey.MASTER_EMBEDDED_JOURNAL_MAX_ELECTION_TIMEOUT, "1500ms").build();
     mCluster.start();
 
     String output;
@@ -97,11 +98,9 @@ public final class QuorumCommandIntegrationTest extends BaseIntegrationTest {
       String journalAddresses =
           ServerConfiguration.get(PropertyKey.MASTER_EMBEDDED_JOURNAL_ADDRESSES);
       for (String address : journalAddresses.split(",")) {
-        String hostName = address.substring(0, address.indexOf(":"));
-        String port = address.substring(address.indexOf(":") + 1);
-
-        Assert.assertTrue(output.contains(String.format(QuorumInfoCommand.OUTPUT_SERVER_INFO,
-            QuorumServerState.AVAILABLE.name(), hostName, port)));
+        String format = String.format(QuorumInfoCommand.OUTPUT_SERVER_INFO,
+                QuorumServerState.AVAILABLE.name(), "0", address).trim();
+        Assert.assertTrue(output.contains(format));
       }
 
       // Validate quorum state is updated as expected after a fail-over.
@@ -112,8 +111,8 @@ public final class QuorumCommandIntegrationTest extends BaseIntegrationTest {
         mOutput.reset();
         shell.run("journal", "quorum", "info", "-domain", "MASTER");
         return mOutput.toString().trim().contains(QuorumServerState.UNAVAILABLE.name());
-      }, WaitForOptions.defaults().setTimeoutMs(2
-          * (int) ServerConfiguration.getMs(PropertyKey.MASTER_EMBEDDED_JOURNAL_ELECTION_TIMEOUT)));
+      }, WaitForOptions.defaults().setTimeoutMs(2 * (int) ServerConfiguration.getMs(
+          PropertyKey.MASTER_EMBEDDED_JOURNAL_MAX_ELECTION_TIMEOUT)));
     }
     mCluster.notifySuccess();
   }
@@ -125,7 +124,8 @@ public final class QuorumCommandIntegrationTest extends BaseIntegrationTest {
         .addProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.EMBEDDED.toString())
         .addProperty(PropertyKey.MASTER_JOURNAL_FLUSH_TIMEOUT_MS, "5min")
         // To make the test run faster.
-        .addProperty(PropertyKey.MASTER_EMBEDDED_JOURNAL_ELECTION_TIMEOUT, "750ms").build();
+        .addProperty(PropertyKey.MASTER_EMBEDDED_JOURNAL_MIN_ELECTION_TIMEOUT, "750ms")
+        .addProperty(PropertyKey.MASTER_EMBEDDED_JOURNAL_MAX_ELECTION_TIMEOUT, "1500ms").build();
     mCluster.start();
 
     String output;
@@ -152,8 +152,8 @@ public final class QuorumCommandIntegrationTest extends BaseIntegrationTest {
         } catch (Exception e) {
           return false;
         }
-      }, WaitForOptions.defaults().setTimeoutMs(6
-          * (int) ServerConfiguration.getMs(PropertyKey.MASTER_EMBEDDED_JOURNAL_ELECTION_TIMEOUT)));
+      }, WaitForOptions.defaults().setTimeoutMs(6 * (int) ServerConfiguration.getMs(
+          PropertyKey.MASTER_EMBEDDED_JOURNAL_MAX_ELECTION_TIMEOUT)));
 
       // Remove unavailable masters using shell.
       for (QuorumServerInfo serverInfo : mCluster.getJournalMasterClientForMaster().getQuorumInfo()
@@ -183,18 +183,19 @@ public final class QuorumCommandIntegrationTest extends BaseIntegrationTest {
   }
 
   @Test
-  public void transferLeader() throws Exception {
+  public void elect() throws Exception {
     final int MASTER_INDEX_WAIT_TIME = 5_000;
     int numMasters = 3;
     mCluster = MultiProcessCluster.newBuilder(PortCoordination.QUORUM_SHELL_REMOVE)
-            .setClusterName("QuorumShellTransferLeader").setNumMasters(numMasters).setNumWorkers(0)
+            .setClusterName("QuorumShellElect").setNumMasters(numMasters).setNumWorkers(0)
             .addProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.EMBEDDED.toString())
             .addProperty(PropertyKey.MASTER_JOURNAL_FLUSH_TIMEOUT_MS, "5min")
             // To make the test run faster.
-            .addProperty(PropertyKey.MASTER_EMBEDDED_JOURNAL_ELECTION_TIMEOUT, "750ms").build();
+            .addProperty(PropertyKey.MASTER_EMBEDDED_JOURNAL_MIN_ELECTION_TIMEOUT, "750ms")
+            .addProperty(PropertyKey.MASTER_EMBEDDED_JOURNAL_MAX_ELECTION_TIMEOUT, "1500ms")
+            .build();
     mCluster.start();
 
-    String output;
     try (FileSystemAdminShell shell = new FileSystemAdminShell(ServerConfiguration.global())) {
       int newLeaderIdx = (mCluster.getPrimaryMasterIndex(MASTER_INDEX_WAIT_TIME) + 1) % numMasters;
       // `getPrimaryMasterIndex` uses the same `mMasterAddresses` variable as getMasterAddresses
@@ -205,9 +206,9 @@ public final class QuorumCommandIntegrationTest extends BaseIntegrationTest {
 
       mOutput.reset();
       shell.run("journal", "quorum", "elect", "-address" , newLeaderAddr);
-      output = mOutput.toString().trim();
-      Assert.assertEquals(String.format(QuorumElectCommand.OUTPUT_SUCCESS, newLeaderAddr),
-              output);
+      String output = mOutput.toString().trim();
+      String expected = String.format(QuorumElectCommand.TRANSFER_SUCCESS, newLeaderAddr);
+      Assert.assertEquals(expected, output);
     }
     mCluster.notifySuccess();
   }
@@ -219,7 +220,8 @@ public final class QuorumCommandIntegrationTest extends BaseIntegrationTest {
         .addProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.EMBEDDED.toString())
         .addProperty(PropertyKey.MASTER_JOURNAL_FLUSH_TIMEOUT_MS, "5min")
         // To make the test run faster.
-        .addProperty(PropertyKey.MASTER_EMBEDDED_JOURNAL_ELECTION_TIMEOUT, "750ms").build();
+        .addProperty(PropertyKey.MASTER_EMBEDDED_JOURNAL_MIN_ELECTION_TIMEOUT, "750ms")
+        .addProperty(PropertyKey.MASTER_EMBEDDED_JOURNAL_MAX_ELECTION_TIMEOUT, "1500ms").build();
     mCluster.start();
     try (FileSystemAdminShell shell = new FileSystemAdminShell(ServerConfiguration.global())) {
       String output;

@@ -806,24 +806,8 @@
       <dependency>
         <artifactId>xstream</artifactId>
         <groupId>com.thoughtworks.xstream</groupId>
-        <version>1.4.17</version>
+        <version>1.4.18</version>
         <scope>test</scope>
-      </dependency>
-
-      <!-- Provided scope -->
-      <!--
-         Dependency for SpotBugs Plugin annotations.
-         This enables @ThreadSafe @ThreadNotSafe @SuppressFBWarnings.
-         This library is a super set of com.google.code.findbugs:jsr305
-         Note that this package can be unnecessary for runtime, and the
-         'provided' scope makes it available for compilation and test,
-         but not be packaged into the jar.
-       -->
-      <dependency>
-        <groupId>com.github.spotbugs</groupId>
-        <artifactId>spotbugs-annotations</artifactId>
-        <version>4.0.4</version>
-        <scope>provided</scope>
       </dependency>
     </dependencies>
   </dependencyManagement>
@@ -831,11 +815,6 @@
   <!-- Dependencies to add to all projects. -->
   <dependencies>
     <!-- Dependencies in the compile scope. -->
-    <!-- Spotbugs and concurrency annotations. -->
-    <dependency>
-      <groupId>com.github.spotbugs</groupId>
-      <artifactId>spotbugs-annotations</artifactId>
-    </dependency>
     <!-- System logging. -->
     <dependency>
       <groupId>org.apache.logging.log4j</groupId>

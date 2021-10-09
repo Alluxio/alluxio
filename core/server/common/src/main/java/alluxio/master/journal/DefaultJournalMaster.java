@@ -65,4 +65,10 @@ public class DefaultJournalMaster implements JournalMaster {
     checkQuorumOpSupported();
     ((RaftJournalSystem) mJournalSystem).transferLeadership(newLeaderAddress);
   }
+
+  @Override
+  public void resetPriorities() throws IOException {
+    checkQuorumOpSupported();
+    ((RaftJournalSystem) mJournalSystem).resetPriorities();
+  }
 }

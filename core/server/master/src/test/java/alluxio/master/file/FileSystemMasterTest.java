@@ -196,6 +196,7 @@ public final class FileSystemMasterTest {
           AlluxioTestDirectory.createTemporaryDirectory("workdir").getAbsolutePath());
       put(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS, AlluxioTestDirectory
           .createTemporaryDirectory("FileSystemMasterTest").getAbsolutePath());
+      put(PropertyKey.MASTER_FILE_SYSTEM_OPERATION_RETRY_CACHE_ENABLED, "false");
     }
   }, ServerConfiguration.global());
 

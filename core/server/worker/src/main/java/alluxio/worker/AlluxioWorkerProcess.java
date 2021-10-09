@@ -14,6 +14,7 @@ package alluxio.worker;
 import alluxio.Constants;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
+import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.network.ChannelType;
 import alluxio.underfs.UfsManager;
@@ -238,6 +239,15 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
               ServerConfiguration.getMs(PropertyKey.JVM_MONITOR_WARN_THRESHOLD_MS),
               ServerConfiguration.getMs(PropertyKey.JVM_MONITOR_INFO_THRESHOLD_MS));
       mJvmPauseMonitor.start();
+      MetricsSystem.registerGaugeIfAbsent(
+              MetricsSystem.getMetricName(MetricKey.TOTAL_EXTRA_TIME.getName()),
+              mJvmPauseMonitor::getTotalExtraTime);
+      MetricsSystem.registerGaugeIfAbsent(
+              MetricsSystem.getMetricName(MetricKey.INFO_TIME_EXCEEDED.getName()),
+              mJvmPauseMonitor::getInfoTimeExceeded);
+      MetricsSystem.registerGaugeIfAbsent(
+              MetricsSystem.getMetricName(MetricKey.WARN_TIME_EXCEEDED.getName()),
+              mJvmPauseMonitor::getWarnTimeExceeded);
     }
 
     // Start serving RPC, this will block

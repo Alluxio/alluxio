@@ -17,6 +17,7 @@ import alluxio.network.ChannelType;
 import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
 import alluxio.util.network.NettyUtils;
+import alluxio.util.network.tls.SslContextProvider;
 
 import com.google.common.base.Preconditions;
 import io.grpc.ConnectivityState;
@@ -58,6 +59,9 @@ public class GrpcConnectionPool {
   /** Used to assign order within a network group. */
   private ConcurrentMap<GrpcNetworkGroup, AtomicLong> mNetworkGroupCounters;
 
+  /** Used for obtaining SSL contexts for transport layer. */
+  private SslContextProvider mSslContextProvider;
+
   /**
    * Creates a new {@link GrpcConnectionPool}.
    */
@@ -69,6 +73,17 @@ public class GrpcConnectionPool {
     for (GrpcNetworkGroup group : GrpcNetworkGroup.values()) {
       mNetworkGroupCounters.put(group, new AtomicLong());
     }
+  }
+
+  /**
+   * @param conf Alluxio configuration
+   * @return Ssl context provider instance
+   */
+  private synchronized SslContextProvider getSslContextProvider(AlluxioConfiguration conf) {
+    if (mSslContextProvider == null) {
+      mSslContextProvider = SslContextProvider.Factory.create(conf);
+    }
+    return mSslContextProvider;
   }
 
   /**
@@ -206,7 +221,15 @@ public class GrpcConnectionPool {
     channelBuilder.eventLoopGroup(eventLoopGroup);
     // Use plaintext
     channelBuilder.usePlaintext();
-
+    if (key.getNetworkGroup() == GrpcNetworkGroup.SECRET) {
+      // Use self-signed for SECRET network group.
+      channelBuilder.sslContext(getSslContextProvider(conf).getSelfSignedClientSslContext());
+      channelBuilder.useTransportSecurity();
+    } else if (conf.getBoolean(alluxio.conf.PropertyKey.NETWORK_TLS_ENABLED)) {
+      // Use shared TLS config for other network groups if enabled.
+      channelBuilder.sslContext(getSslContextProvider(conf).getClientSslContext());
+      channelBuilder.useTransportSecurity();
+    }
     return channelBuilder;
   }
 

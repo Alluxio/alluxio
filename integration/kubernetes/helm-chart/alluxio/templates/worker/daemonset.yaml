@@ -52,9 +52,9 @@ spec:
       hostNetwork: {{ $hostNetwork }}
       hostPID: {{ $hostPID }}
       dnsPolicy: {{ .Values.worker.dnsPolicy | default ($hostNetwork | ternary "ClusterFirstWithHostNet" "ClusterFirst") }}
-      {{ if .Values.hostAliases }}
+      {{- if .Values.hostAliases }}
       {{- include "alluxio.hostAliases" . | nindent 6 }}
-      {{ end }}
+      {{- end }}
       nodeSelector:
       {{- if .Values.worker.nodeSelector }}
 {{ toYaml .Values.worker.nodeSelector | trim | indent 8  }}
@@ -72,6 +72,11 @@ spec:
         runAsUser: {{ .Values.user }}
         runAsGroup: {{ .Values.group }}
         fsGroup: {{ .Values.fsGroup }}
+    {{- if eq .Values.worker.fuseEnabled true }}
+    {{- if or (or (ne .Values.user 0.0) (ne .Values.group 0.0)) (ne .Values.fsGroup 0.0) }}
+    {{- fail ".Values.{user, group, fsGroup} have to be 0 in order to launch Fuse in worker process" }}
+    {{- end }}
+    {{- end }}
     {{- if .Values.worker.serviceAccount }}
       serviceAccountName: {{ .Values.worker.serviceAccount }}
     {{- else if .Values.serviceAccount }}
@@ -100,6 +105,17 @@ spec:
               fieldRef:
                 fieldPath: status.podIP
           {{- end }}
+          {{- if eq .Values.worker.fuseEnabled true }}
+          - name: ALLUXIO_CLIENT_HOSTNAME
+            valueFrom:
+              fieldRef:
+                fieldPath: status.hostIP
+          securityContext:
+            privileged: true
+            capabilities:
+              add:
+                - SYS_ADMIN
+          {{- end }}
           {{- range $key, $value := .Values.worker.env }}
           - name: "{{ $key }}"
             value: "{{ $value }}"
@@ -107,8 +123,20 @@ spec:
           envFrom:
           - configMapRef:
               name: {{ template "alluxio.fullname" . }}-config
-{{ include "alluxio.worker.readinessProbe" . | indent 10 }}
-{{ include "alluxio.worker.livenessProbe" . | indent 10 }}
+          readinessProbe:
+            tcpSocket:
+              port: rpc
+            initialDelaySeconds: {{ .Values.worker.readinessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.worker.readinessProbe.periodSeconds }}
+            timeoutSeconds: {{ .Values.worker.readinessProbe.timeoutSeconds }}
+            failureThreshold: {{ .Values.worker.readinessProbe.failureThreshold }}
+          livenessProbe:
+            tcpSocket:
+              port: rpc
+            initialDelaySeconds: {{ .Values.worker.livenessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.worker.livenessProbe.periodSeconds }}
+            timeoutSeconds: {{ .Values.worker.livenessProbe.timeoutSeconds }}
+            failureThreshold: {{ .Values.worker.livenessProbe.failureThreshold }}
           ports:
           - containerPort: {{ .Values.worker.ports.rpc }}
             name: rpc
@@ -134,6 +162,13 @@ spec:
             {{- if .Values.mounts -}}
 {{- include "alluxio.worker.otherVolumeMounts" . }}
             {{- end }}
+            {{- if eq .Values.worker.fuseEnabled true }}
+            - name: alluxio-fuse-device
+              mountPath: /dev/fuse
+            - name: alluxio-fuse-mount
+              mountPath: {{ .Values.fuse.mountPath | dir }}
+              mountPropagation: Bidirectional
+            {{- end}}
         - name: alluxio-job-worker
           image: {{ .Values.image }}:{{ .Values.imageTag }}
           imagePullPolicy: {{ .Values.imagePullPolicy }}
@@ -163,8 +198,20 @@ spec:
           envFrom:
           - configMapRef:
               name: {{ template "alluxio.fullname" . }}-config
-{{ include "alluxio.jobWorker.readinessProbe" . | indent 10 }}
-{{ include "alluxio.jobWorker.livenessProbe" . | indent 10 }}
+          readinessProbe:
+            tcpSocket:
+              port: job-rpc
+            initialDelaySeconds: {{ .Values.jobWorker.readinessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.jobWorker.readinessProbe.periodSeconds }}
+            timeoutSeconds: {{ .Values.jobWorker.readinessProbe.timeoutSeconds }}
+            failureThreshold: {{ .Values.jobWorker.readinessProbe.failureThreshold }}
+          livenessProbe:
+            tcpSocket:
+              port: job-rpc
+            initialDelaySeconds: {{ .Values.jobWorker.livenessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.jobWorker.livenessProbe.periodSeconds }}
+            timeoutSeconds: {{ .Values.jobWorker.livenessProbe.timeoutSeconds }}
+            failureThreshold: {{ .Values.jobWorker.livenessProbe.failureThreshold }}
           ports:
           - containerPort: {{ .Values.jobWorker.ports.rpc }}
             name: job-rpc
@@ -207,13 +254,23 @@ spec:
 {{- include "alluxio.worker.secretVolumes" . }}
           {{- end }}
         {{- end }}
-        {{- if .Values.tieredstore }} 
+        {{- if .Values.tieredstore }}
 {{- include "alluxio.worker.tieredstoreVolumes" . }}
         {{- end}}
-        {{- if .Values.mounts }}   
+        {{- if .Values.mounts }}
           {{- range .Values.mounts }}
         - name: "{{ .name }}"
           persistentVolumeClaim:
             claimName: "{{ .name }}"
           {{- end }}
+        {{- end }}
+        {{- if .Values.worker.fuseEnabled }}
+        - name: alluxio-fuse-device
+          hostPath:
+            path: /dev/fuse
+            type: CharDevice
+        - name: alluxio-fuse-mount
+          hostPath:
+            path: {{ .Values.fuse.mountPath | dir }}
+            type: Directory
         {{- end }}

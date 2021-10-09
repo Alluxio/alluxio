@@ -37,10 +37,17 @@ public interface JournalMasterClient extends Closeable {
   void removeQuorumServer(NetAddress serverAddress) throws AlluxioStatusException;
 
   /**
-   * Changes the leading master of the quorum.
+   * Initiates changing the leading master of the quorum.
    *
-   * @param newLeaderNetAddress server address of the new leader
+   * @param newLeaderNetAddress server address of the prospective new leader
    * @throws AlluxioStatusException
    */
   void transferLeadership(NetAddress newLeaderNetAddress) throws AlluxioStatusException;
+
+  /**
+   * Resets RaftPeer priorities.
+   *
+   * @throws AlluxioStatusException
+   */
+  void resetPriorities() throws AlluxioStatusException;
 }
