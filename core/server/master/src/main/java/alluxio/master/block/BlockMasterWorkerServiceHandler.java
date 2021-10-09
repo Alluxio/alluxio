@@ -136,6 +136,15 @@ public final class BlockMasterWorkerServiceHandler extends
               request.getCurrentBlocksCount());
     }
 
+    // TODO(jiacheng): acquire a semaphore
+    if (!mBlockMaster.tryAcquireLease()) {
+      // TODO(jiacheng): update response
+      responseObserver.onNext(RegisterWorkerPResponse.newBuilder().setAccepted(false).build());
+      responseObserver.onCompleted();
+      LOG.info("Failed to acquire a semaphore. Reject the worker.");
+      return;
+    }
+
     final long workerId = request.getWorkerId();
     final List<String> storageTiers = request.getStorageTiersList();
     final Map<String, Long> totalBytesOnTiers = request.getTotalBytesOnTiersMap();
@@ -150,7 +159,11 @@ public final class BlockMasterWorkerServiceHandler extends
         (RpcUtils.RpcCallableThrowsIOException<RegisterWorkerPResponse>) () -> {
           mBlockMaster.workerRegister(workerId, storageTiers, totalBytesOnTiers, usedBytesOnTiers,
               currBlocksOnLocationMap, lostStorageMap, options);
-          return RegisterWorkerPResponse.getDefaultInstance();
+
+          // TODO(jiacheng): exception?
+          LOG.info("Release the lease after the worker is registered");
+          mBlockMaster.releaseLease();
+          return RegisterWorkerPResponse.newBuilder().setAccepted(true).build();
         }, "registerWorker", "request=%s", responseObserver, request);
   }
 

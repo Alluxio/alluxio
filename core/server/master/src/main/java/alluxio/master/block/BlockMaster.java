@@ -176,6 +176,10 @@ public interface BlockMaster extends Master, ContainerIdGenerable {
    */
   long getWorkerId(WorkerNetAddress workerNetAddress);
 
+  boolean tryAcquireLease();
+
+  void releaseLease();
+
   /**
    * Updates metadata when a worker registers with the master.
    *

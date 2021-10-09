@@ -253,7 +253,9 @@ message RegisterWorkerPRequest {
   /** use repeated fields to represent mapping from BlockStoreLocationProto to TierList */
   repeated LocationBlockIdListEntry currentBlocks = 8;
 }
-message RegisterWorkerPResponse {}
+message RegisterWorkerPResponse {
+  optional bool accepted = 1;
+}
 
 /**
  * This interface contains block master service endpoints for Alluxio workers.

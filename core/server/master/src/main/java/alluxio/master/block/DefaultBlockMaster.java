@@ -103,6 +103,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
+import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 import java.util.function.BiConsumer;
@@ -257,6 +258,8 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
    */
   private LoadingCache<String, List<WorkerInfo>> mWorkerInfoCache;
 
+  private final Semaphore mSemaphore;
+
   /**
    * Creates a new instance of {@link DefaultBlockMaster}.
    *
@@ -291,6 +294,10 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
 
     MetricsSystem.registerGaugeIfAbsent(MetricKey.MASTER_LOST_BLOCK_COUNT.getName(),
         this::getLostBlocksCount);
+
+    int maxConcurrency = ServerConfiguration.global().getInt(PropertyKey.MASTER_REGISTER_MAX_CONCURRENCY);
+    Preconditions.checkState(maxConcurrency > 0, "");
+    mSemaphore = new Semaphore(maxConcurrency);
   }
 
   /**
@@ -906,6 +913,19 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
 
     LOG.info("getWorkerId(): WorkerNetAddress: {} id: {}", workerNetAddress, workerId);
     return workerId;
+  }
+
+  @Override
+  public boolean tryAcquireLease() {
+    if (mSemaphore.tryAcquire()) {
+      return true;
+    }
+    return false;
+  }
+
+  @Override
+  public void releaseLease() {
+    mSemaphore.release();
   }
 
   @Override

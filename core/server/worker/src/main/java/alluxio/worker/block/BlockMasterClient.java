@@ -28,10 +28,12 @@ import alluxio.grpc.LocationBlockIdListEntry;
 import alluxio.grpc.Metric;
 import alluxio.grpc.RegisterWorkerPOptions;
 import alluxio.grpc.RegisterWorkerPRequest;
+import alluxio.grpc.RegisterWorkerPResponse;
 import alluxio.grpc.ServiceType;
 import alluxio.grpc.StorageList;
 import alluxio.master.MasterClientContext;
 import alluxio.grpc.GrpcUtils;
+import alluxio.util.CommonUtils;
 import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.annotations.VisibleForTesting;
@@ -253,7 +255,17 @@ public class BlockMasterClient extends AbstractMasterClient {
         .setOptions(options).build();
 
     retryRPC(() -> {
-      mClient.registerWorker(request);
+      boolean accepted = false;
+      int iter = 0;
+      while (!accepted) {
+        RegisterWorkerPResponse res = mClient.registerWorker(request);
+        accepted = res.getAccepted();
+        LOG.info("Register status: {}, iter: {}", accepted, iter);
+        iter++;
+        if (!accepted) {
+          CommonUtils.sleepMs(1000);
+        }
+      }
       return null;
     }, LOG, "Register", "workerId=%d", workerId);
   }
