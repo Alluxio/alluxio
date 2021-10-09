@@ -19,6 +19,9 @@ import alluxio.stress.Parameters;
 public abstract class GeneralParameters extends Parameters {
 
   /**
+   * Notice the function name can't be getOperation since Jackson would transfer this function in to
+   * json value, break Parameter serialization and cause serialization error
+   * 
    * @return the Operation Enum
    */
   public abstract Enum<?> operation();
