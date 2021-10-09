@@ -122,6 +122,7 @@ public final class BlockMasterSync implements HeartbeatExecutor {
       if (leaseAcquired) {
         CommonUtils.sleepMs(1000);
       }
+      iter++;
     }
 
     LOG.info("Lease acquired");

@@ -221,6 +221,7 @@ public class BlockMasterClient extends AbstractMasterClient {
 
   public GetRegisterLeasePResponse acquireRegisterLease(final long workerId, final int estimatedBlockCount) throws IOException {
     return retryRPC(() -> {
+              LOG.info("Requesting lease with workerId {}, blockCount {}", workerId, estimatedBlockCount);
               return mClient.requestRegisterLease(GetRegisterLeasePRequest.newBuilder()
                       .setWorkerId(workerId).setBlockCount(estimatedBlockCount).build());
             }, LOG, "GetRegisterLease", "workerId=%d, estimatedBlockCount=%d", workerId, estimatedBlockCount);

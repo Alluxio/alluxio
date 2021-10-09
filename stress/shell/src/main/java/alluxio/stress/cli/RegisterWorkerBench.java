@@ -17,12 +17,14 @@ import static alluxio.stress.cli.RpcBenchPreparationUtils.LOST_STORAGE;
 
 import alluxio.ClientContext;
 import alluxio.conf.InstancedConfiguration;
+import alluxio.grpc.GetRegisterLeasePResponse;
 import alluxio.grpc.LocationBlockIdListEntry;
 import alluxio.master.MasterClientContext;
 import alluxio.stress.CachingBlockMasterClient;
 import alluxio.stress.rpc.BlockMasterBenchParameters;
 import alluxio.stress.rpc.RpcTaskResult;
 import alluxio.stress.rpc.TierAlias;
+import alluxio.util.CommonUtils;
 import alluxio.worker.block.BlockMasterClient;
 import alluxio.worker.block.BlockStoreLocation;
 
@@ -57,6 +59,7 @@ public class RegisterWorkerBench extends RpcBench<BlockMasterBenchParameters> {
   private final InstancedConfiguration mConf = InstancedConfiguration.defaults();
 
   private List<LocationBlockIdListEntry> mLocationBlockIdList;
+  private int mBlockCount;
 
   private Deque<Long> mWorkerPool = new ArrayDeque<>();
 
@@ -98,6 +101,11 @@ public class RegisterWorkerBench extends RpcBench<BlockMasterBenchParameters> {
                     .newBuilder(ClientContext.create(mConf))
                     .build());
     mLocationBlockIdList = client.convertBlockListMapToProto(blockMap);
+    int blockCount = 0;
+    for (LocationBlockIdListEntry entry : mLocationBlockIdList) {
+      blockCount += entry.getValue().getBlockIdCount();
+    }
+    mBlockCount = blockCount;
 
     // Prepare these block IDs concurrently
     LOG.info("Preparing blocks at the master");
@@ -151,6 +159,26 @@ public class RegisterWorkerBench extends RpcBench<BlockMasterBenchParameters> {
                        RpcTaskResult result, long i, long workerId) {
     try {
       Instant s = Instant.now();
+
+      // TODO(jiacheng): Acquire the lease
+      boolean leaseAcquired = false;
+      int iter = 0;
+      while (!leaseAcquired) {
+        // TODO(jiacheng): Get lease first
+        LOG.info("Acquire lease from the master first, iter {}", iter);
+        GetRegisterLeasePResponse response =  client.acquireRegisterLease(workerId, mBlockCount);
+        // TODO(jiacheng): back off logic here
+        // TODO(jiacheng): Add more logic after the test
+        LOG.info("Lease response: {}", response);
+        leaseAcquired = response.getAllowed();
+        if (leaseAcquired) {
+          CommonUtils.sleepMs(1000);
+        }
+        iter++;
+      }
+
+      LOG.info("Lease acquired");
+
       // TODO(jiacheng): The 1st reported RPC time is always very long, this does
       //  not match with the time recorded by Jaeger.
       //  I suspect it's the time spend in establishing the connection.
