@@ -27,5 +27,5 @@ public final class StressConstants {
   public static final int TIME_HISTOGRAM_COMPRESSION_LEVEL = 9;
   public static final int TIME_99_COUNT = 6;
 
-  public static long WRITE_FILE_ONCE_MAX_BYTES = Constants.MB * 64;
+  public static final long WRITE_FILE_ONCE_MAX_BYTES = Constants.MB * 64;
 }
