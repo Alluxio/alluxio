@@ -14,6 +14,7 @@ package alluxio.stress.cli;
 import static alluxio.stress.rpc.TierAlias.MEM;
 
 import alluxio.ClientContext;
+import alluxio.ProjectConstants;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.grpc.ConfigProperty;
@@ -144,6 +145,8 @@ public class RpcBenchPreparationUtils {
           USED_MEM_EMPTY,
           ImmutableMap.of(BLOCK_LOCATION_MEM, ImmutableList.of()),
           LOST_STORAGE, // lost storage
+          ProjectConstants.VERSION,
+          ProjectConstants.REVISION,
           EMPTY_CONFIG); // extra config
     }
     LOG.info("All workers registered");
