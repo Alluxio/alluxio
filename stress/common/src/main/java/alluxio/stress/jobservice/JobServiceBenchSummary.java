@@ -12,7 +12,7 @@
 package alluxio.stress.jobservice;
 
 import alluxio.collections.Pair;
-import alluxio.stress.AbstractMaxThroughputSummary;
+import alluxio.stress.common.GeneralBenchSummary;
 import alluxio.stress.Parameters;
 import alluxio.stress.Summary;
 import alluxio.stress.common.SummaryStatistics;
@@ -33,7 +33,7 @@ import java.util.zip.DataFormatException;
 /**
  * The summary for the job service stress tests.
  */
-public final class JobServiceBenchSummary extends AbstractMaxThroughputSummary {
+public final class JobServiceBenchSummary extends GeneralBenchSummary {
   private long mDurationMs;
   private long mEndTimeMs;
   private JobServiceBenchParameters mParameters;

@@ -9,7 +9,9 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.stress;
+package alluxio.stress.common;
+
+import alluxio.stress.Summary;
 
 import java.util.List;
 import java.util.Map;
@@ -17,7 +19,7 @@ import java.util.Map;
 /**
  * abstract class for BenchSummary.
  */
-public abstract class AbstractMaxThroughputSummary implements Summary {
+public abstract class GeneralBenchSummary implements Summary {
   protected float mThroughput;
   protected Map<String, List<String>> mErrors;
 
