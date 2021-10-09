@@ -17,7 +17,7 @@ import java.util.Map;
 /**
  * abstract class for BenchSummary.
  */
-public abstract class GeneralBenchSummary implements Summary {
+public abstract class AbstractMaxThroughputSummary implements Summary {
   protected float mThroughput;
   protected Map<String, List<String>> mErrors;
 
