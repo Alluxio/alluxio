@@ -34,6 +34,7 @@ import alluxio.grpc.WritePType;
 import alluxio.security.User;
 import alluxio.web.ProxyWebServer;
 
+import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import com.google.common.io.BaseEncoding;
@@ -261,6 +262,69 @@ public final class S3RestServiceHandler {
   }
 
   /**
+   * Currently implements the DeleteObjects request type if the query parameter "delete" exists.
+   *
+   * @param bucket the bucket name
+   * @param delete the delete query parameter. Existence indicates to run the DeleteObjects impl
+   * @param contentLength body content length
+   * @param is the input stream to read the request
+   *
+   * @return a {@link DeleteObjectsResult} if this was a DeleteObjects request
+   */
+  @POST
+  @Path(BUCKET_PARAM)
+  public Response postBucket(@PathParam("bucket") final String bucket,
+                             @QueryParam("delete") String delete,
+                             @HeaderParam("Content-Length") int contentLength,
+                             final InputStream is) {
+    return S3RestUtils.call(bucket, () -> {
+      if (delete != null) {
+        try {
+          DeleteObjectsRequest request = new XmlMapper().readerFor(DeleteObjectsRequest.class)
+              .readValue(is);
+          List<DeleteObjectsRequest.DeleteObject> objs =
+               request.getToDelete();
+          List<DeleteObjectsResult.DeletedObject> success = new ArrayList<>();
+          List<DeleteObjectsResult.ErrorObject> errored = new ArrayList<>();
+          objs.sort(Comparator.comparingInt(x -> -1 * x.getKey().length()));
+          objs.forEach(obj -> {
+            try {
+              AlluxioURI uri = new AlluxioURI(AlluxioURI.SEPARATOR + bucket)
+                  .join(AlluxioURI.SEPARATOR + obj.getKey());
+              DeletePOptions options = DeletePOptions.newBuilder().setRecursive(true).build();
+              mFileSystem.delete(uri, options);
+              DeleteObjectsResult.DeletedObject del = new DeleteObjectsResult.DeletedObject();
+              del.setKey(obj.getKey());
+              success.add(del);
+            } catch (FileDoesNotExistException e) {
+              DeleteObjectsResult.DeletedObject del = new DeleteObjectsResult.DeletedObject();
+              del.setKey(obj.getKey());
+              success.add(del);
+            } catch (IOException | AlluxioException e) {
+              DeleteObjectsResult.ErrorObject err = new DeleteObjectsResult.ErrorObject();
+              err.setKey(obj.getKey());
+              err.setMessage(e.getMessage());
+              errored.add(err);
+            }
+          });
+
+          DeleteObjectsResult result = new DeleteObjectsResult();
+          if (!request.getQuiet()) {
+            result.setDeleted(success);
+          }
+          result.setErrored(errored);
+          return result;
+        } catch (IOException e) {
+          LOG.debug("Failed to parse DeleteObjects request:", e);
+          return Response.Status.BAD_REQUEST;
+        }
+      } else {
+        return Response.Status.OK;
+      }
+    });
+  }
+
+  /**
    * @summary creates a bucket
    * @param authorization header parameter authorization
    * @param bucket the bucket name
@@ -403,7 +467,7 @@ public final class S3RestServiceHandler {
             // The chunk header format
             // hexLen + ";chunk-signature".length() + signature.length + "\r\n".length();
             // see https://docs.aws.amazon.com/AmazonS3/latest/API/sigv4-streaming.html for
-            // further information
+            // further information. Everything after the "hexLen" is unchanging
             int chunkHeaderLen = hexLen + 83;
             // TODO(zac): verify the chunk header
             is.skip(chunkHeaderLen);
