@@ -29,6 +29,7 @@ import org.slf4j.LoggerFactory;
 
 /**
  * A wrapper for the gRPC client to interact with the journal master, used by alluxio clients.
+ * It would talk to both JobMaster and Master, so it should inherit AbstractJobMasterClient
  */
 public class RetryHandlingJournalMasterClient extends AbstractJobMasterClient
     implements JournalMasterClient {
