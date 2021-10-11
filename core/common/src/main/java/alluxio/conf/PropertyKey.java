@@ -2047,7 +2047,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey MASTER_NETWORK_PERMIT_KEEPALIVE_TIME_MS =
       new Builder(Name.MASTER_NETWORK_PERMIT_KEEPALIVE_TIME_MS)
-          .setDefaultValue("30sec")
+          .setDefaultValue("60sec")
           .setDescription(
               "Specify the most aggressive keep-alive time clients are permitted to configure. "
                   + "The server will try to detect clients exceeding this rate and when detected "
