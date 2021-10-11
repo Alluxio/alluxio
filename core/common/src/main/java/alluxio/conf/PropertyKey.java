@@ -3225,6 +3225,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
+  public static final PropertyKey WORKER_REGISTER_BATCH_SIZE =
+      new Builder(Name.WORKER_REGISTER_BATCH_SIZE)
+          .setDefaultValue("1000")
+          .setDescription("When the worker register RPC comes in batches, the upper limit of a batch")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.WORKER)
+          .build();
   public static final PropertyKey WORKER_REMOTE_IO_SLOW_THRESHOLD =
       new Builder(Name.WORKER_REMOTE_IO_SLOW_THRESHOLD)
           .setDefaultValue("10s")
@@ -6012,6 +6019,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.worker.network.shutdown.timeout";
     public static final String WORKER_NETWORK_ZEROCOPY_ENABLED =
         "alluxio.worker.network.zerocopy.enabled";
+    public static final String WORKER_REGISTER_BATCH_SIZE =
+        "alluxio.worker.register.batch.size";
     public static final String WORKER_REMOTE_IO_SLOW_THRESHOLD =
         "alluxio.worker.remote.io.slow.threshold";
     public static final String WORKER_BLOCK_MASTER_CLIENT_POOL_SIZE =

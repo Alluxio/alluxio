@@ -355,7 +355,7 @@ public final class MasterWorkerInfo {
    *
    * @return the block count of this worker
    */
-  public long getBlockCount() {
+  public int getBlockCount() {
     return mBlocks.size();
   }
 
@@ -397,8 +397,8 @@ public final class MasterWorkerInfo {
    *
    * @return ids of blocks the worker should remove
    */
-  public List<Long> getToRemoveBlocks() {
-    return new ArrayList<>(mToRemoveBlocks);
+  public Set<Long> getToRemoveBlocks() {
+    return new HashSet<>(mToRemoveBlocks);
   }
 
   /**
@@ -622,5 +622,17 @@ public final class MasterWorkerInfo {
    */
   public LockResource lockWorkerMeta(EnumSet<WorkerMetaLockSection> lockTypes, boolean isShared) {
     return new LockResource(new WorkerMetaLock(lockTypes, isShared, this));
+  }
+
+  public int getToRemoveBlockCount() {
+    return mToRemoveBlocks.size();
+  }
+
+  public void updateUsage(StorageTierAssoc globalStorageTierAssoc, List<String> storageTiers, Map<String, Long> totalBytesOnTiers, Map<String, Long> usedBytesOnTiers) {
+    mUsage.updateUsage(globalStorageTierAssoc, storageTiers, totalBytesOnTiers, usedBytesOnTiers);
+  }
+
+  public void markAllBlocksToRemove() {
+    mToRemoveBlocks.addAll(mBlocks);
   }
 }

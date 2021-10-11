@@ -89,6 +89,17 @@ public final class RpcUtils {
     responseObserver.onCompleted();
   }
 
+  public static void callAndNoReturn(Logger logger, RpcCallableThrowsIOException<Void> callable,
+                                     String methodName, boolean failureOk, String description, StreamObserver responseObserver,
+                                     Object... args) {
+    try {
+      callAndReturn(logger, callable, methodName, failureOk, description, args);
+    } catch (StatusException e) {
+      responseObserver.onError(e);
+      return;
+    }
+  }
+
   /**
    *
    * Calls the given {@link RpcCallableThrowsIOException} and returns its result. Exceptions are

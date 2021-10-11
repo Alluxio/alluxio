@@ -35,6 +35,7 @@ import alluxio.grpc.ConfigProperty;
 import alluxio.grpc.GrpcService;
 import alluxio.grpc.GrpcUtils;
 import alluxio.grpc.RegisterWorkerPOptions;
+import alluxio.grpc.RegisterWorkerStreamPOptions;
 import alluxio.grpc.ServiceType;
 import alluxio.grpc.StorageList;
 import alluxio.grpc.WorkerLostStorageInfo;
@@ -103,6 +104,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
+import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 import java.util.function.BiConsumer;
@@ -964,6 +966,161 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
   }
 
   @Override
+  public LockResource lockWorker(long workerId) throws NotFoundException {
+    MasterWorkerInfo worker = mWorkers.getFirstByField(ID_INDEX, workerId);
+
+    if (worker == null) {
+      worker = findUnregisteredWorker(workerId);
+    }
+
+    if (worker == null) {
+      throw new NotFoundException(ExceptionMessage.NO_WORKER_FOUND.getMessage(workerId));
+    }
+
+    return worker.lockWorkerMeta(EnumSet.of(
+            WorkerMetaLockSection.STATUS,
+            WorkerMetaLockSection.USAGE,
+            WorkerMetaLockSection.BLOCKS), false);
+  }
+
+  @Override
+  public void unlockWorker(LockResource r) {
+    r.close();
+  }
+
+  @Override
+  public MasterWorkerInfo getWorker(long workerId) throws NotFoundException {
+    MasterWorkerInfo worker = mWorkers.getFirstByField(ID_INDEX, workerId);
+
+    if (worker == null) {
+      worker = findUnregisteredWorker(workerId);
+    }
+
+    if (worker == null) {
+      throw new NotFoundException(ExceptionMessage.NO_WORKER_FOUND.getMessage(workerId));
+    }
+
+    return worker;
+  }
+
+  @Override
+  public void workerRegisterStart(WorkerRegisterContext context, List<String> storageTiers,
+                                  Map<String, Long> totalBytesOnTiers, Map<String, Long> usedBytesOnTiers,
+                                  Map<alluxio.proto.meta.Block.BlockLocation, List<Long>> currentBlocksOnLocation,
+                                  Map<String, StorageList> lostStorage, RegisterWorkerStreamPOptions options)
+          throws NotFoundException {
+    MasterWorkerInfo worker = context.mWorker;
+
+    // The worker is locked so we can operate on its blocks without race conditions
+    // We start with assuming all blocks in (mBlocks + mToRemoveBlocks) do not exist.
+    // With each batch we receive, we mark them not-to-be-removed.
+    // Eventually what's left in the mToRemove will be the ones that do not exist anymore.
+    worker.markAllBlocksToRemove();
+    // TODO(jiacheng): remove blocks from mToRemove
+
+    // [NEEDED] update the usage
+    worker.updateUsage(mGlobalStorageTierAssoc, storageTiers,
+            totalBytesOnTiers, usedBytesOnTiers);
+
+    // [NO NEED] Detect any lost blocks on this worker.
+//      Set<Long> removedBlocks = worker.register(mGlobalStorageTierAssoc, storageTiers,
+//              totalBytesOnTiers, usedBytesOnTiers, blocks);
+    // [NO NEED]: process removed blocks
+    // because we don't know what blocks are removed yet
+//      processWorkerRemovedBlocks(worker, removedBlocks);
+
+    // [CHANGE] we do not want it to add to the block locations
+    // TODO(jiacheng): we are updating the locations in the stream, which
+    //  results in unstable views
+    processWorkerAddedBlocks(worker, currentBlocksOnLocation);
+
+    // [NEEDED]
+    processWorkerOrphanedBlocks(worker);
+
+    // [NEEDED]
+    worker.addLostStorage(lostStorage);
+
+    // TODO(jiacheng): This block can just not hold the lock
+    if (options.getConfigsCount() > 0) {
+      for (BiConsumer<Address, List<ConfigProperty>> function : mWorkerRegisteredListeners) {
+        WorkerNetAddress workerAddress = worker.getWorkerAddress();
+        function.accept(new Address(workerAddress.getHost(), workerAddress.getRpcPort()),
+                options.getConfigsList());
+      }
+    }
+  }
+
+  @Override
+  // This context is already locked
+  public void workerRegisterStream(WorkerRegisterContext context, Map<alluxio.proto.meta.Block.BlockLocation, List<Long>> currentBlocksOnLocation)
+          throws NotFoundException {
+    MasterWorkerInfo worker = context.mWorker;
+
+    // TODO(jiacheng): remove blocks from mToRemove
+
+    // [NO NEED] Detect any lost blocks on this worker.
+//      Set<Long> removedBlocks = worker.register(mGlobalStorageTierAssoc, storageTiers,
+//              totalBytesOnTiers, usedBytesOnTiers, blocks);
+    // [NO NEED]: process removed blocks
+    // because we don't know what blocks are removed yet
+//      processWorkerRemovedBlocks(worker, removedBlocks);
+
+    // [CHANGE] we do not want to add them to the block locations here
+    // TODO(jiacheng): we are updating the locations in the stream, which
+    //  results in unstable views
+    processWorkerAddedBlocks(worker, currentBlocksOnLocation);
+
+    // If a block is not recognized then yes we need to mark it
+    processWorkerOrphanedBlocks(worker);
+
+    // Update the TS at the end of the process
+    worker.updateLastUpdatedTimeMs();
+  }
+
+  @Override
+  public void workerRegisterFinish(WorkerRegisterContext context) throws NotFoundException {
+    MasterWorkerInfo worker = context.mWorker;
+
+    // [NEEDED] Detect any lost blocks on this worker.
+    Set<Long> removedBlocks;
+    if (worker.mIsRegistered) {
+      // This is a re-register of an existing worker. Assume the new block ownership data is more
+      // up-to-date and update the existing block information.
+      LOG.info("re-registering an existing workerId: {}", worker.getId());
+
+      // The toRemoveBlocks field contains all the updates
+      removedBlocks = worker.getToRemoveBlocks();
+    } else {
+      LOG.info("registering a new worker: {}", worker.getId());
+      removedBlocks = Collections.emptySet();
+    }
+    LOG.info("{} blocks to remove from the worker", removedBlocks.size());
+
+    // [NEEDED]: process removed blocks
+    // because we don't know what blocks are removed yet
+    // TODO(jiacheng): ConcurrentModificationException here when register existing worker!
+    processWorkerRemovedBlocks(worker, removedBlocks);
+
+    // [NO NEED] all blocks have been processed
+//      processWorkerAddedBlocks(worker, currentBlocksOnLocation);
+    // [NO NEED] all blocks have been processed
+//      processWorkerOrphanedBlocks(worker);
+
+    // Mark registered successfully
+    worker.mIsRegistered = true;
+
+    LOG.debug("{} - Marking worker usable", Thread.currentThread().getId());
+    recordWorkerRegistration(worker.getId());
+
+    // Update the TS at the end of the process
+    worker.updateLastUpdatedTimeMs();
+
+    // Invalidate cache to trigger new build of worker info list
+    mWorkerInfoCache.invalidate(WORKER_INFO_CACHE_KEY);
+    LOG.info("workerRegisterFinish(): {}", worker);
+  }
+
+  @Override
   public Command workerHeartbeat(long workerId, Map<String, Long> capacityBytesOnTiers,
       Map<String, Long> usedBytesOnTiers, List<Long> removedBlockIds,
       Map<BlockLocation, List<Long>> addedBlocks,
@@ -999,7 +1156,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
 
       processWorkerRemovedBlocks(worker, removedBlockIds);
       processWorkerAddedBlocks(worker, addedBlocks);
-      List<Long> toRemoveBlocks = worker.getToRemoveBlocks();
+      Set<Long> toRemoveBlocks = worker.getToRemoveBlocks();
       if (toRemoveBlocks.isEmpty()) {
         workerCommand = Command.newBuilder().setCommandType(CommandType.Nothing).build();
       } else {
@@ -1016,6 +1173,43 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
 
     return workerCommand;
   }
+
+  @Override
+  public int getBlockCount(long workerId) throws NotFoundException {
+    MasterWorkerInfo worker = mWorkers.getFirstByField(ID_INDEX, workerId);
+
+    if (worker == null) {
+      worker = findUnregisteredWorker(workerId);
+    }
+
+    if (worker == null) {
+      throw new NotFoundException(ExceptionMessage.NO_WORKER_FOUND.getMessage(workerId));
+    }
+
+    try (LockResource r = worker.lockWorkerMeta(
+            EnumSet.of(WorkerMetaLockSection.BLOCKS), true)) {
+      return worker.getBlockCount();
+    }
+  }
+
+  @Override
+  public int getToRemoveBlockCount(long workerId) throws NotFoundException {
+    MasterWorkerInfo worker = mWorkers.getFirstByField(ID_INDEX, workerId);
+
+    if (worker == null) {
+      worker = findUnregisteredWorker(workerId);
+    }
+
+    if (worker == null) {
+      throw new NotFoundException(ExceptionMessage.NO_WORKER_FOUND.getMessage(workerId));
+    }
+
+    try (LockResource r = worker.lockWorkerMeta(
+            EnumSet.of(WorkerMetaLockSection.BLOCKS), true)) {
+      return worker.getToRemoveBlockCount();
+    }
+  }
+
 
   private void processWorkerMetrics(String hostname, List<Metric> metrics) {
     if (metrics.isEmpty()) {
@@ -1101,7 +1295,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
    *
    * @param workerInfo The worker metadata object
    */
-  private void processWorkerOrphanedBlocks(MasterWorkerInfo workerInfo) {
+  private void  processWorkerOrphanedBlocks(MasterWorkerInfo workerInfo) {
     long orphanedBlockCount = 0;
     for (long block : workerInfo.getBlocks()) {
       if (!mBlockStore.getBlock(block).isPresent()) {

@@ -30,6 +30,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
 import javax.annotation.concurrent.NotThreadSafe;
@@ -74,6 +75,9 @@ public final class BlockMasterSync implements HeartbeatExecutor {
   /** Last System.currentTimeMillis() timestamp when a heartbeat successfully completed. */
   private long mLastSuccessfulHeartbeatMs;
 
+  // TODO(jiacheng): When is this set to false when the worker is lost?
+  private AtomicBoolean mRegistered = new AtomicBoolean(false);
+
   /**
    * Creates a new instance of {@link BlockMasterSync}.
    *
@@ -110,6 +114,19 @@ public final class BlockMasterSync implements HeartbeatExecutor {
         storageTierAssoc.getOrderedStorageAliases(), storeMeta.getCapacityBytesOnTiers(),
         storeMeta.getUsedBytesOnTiers(), storeMeta.getBlockListByStorageLocation(),
         storeMeta.getLostStorage(), configList);
+  }
+
+  private void registerWithMasterStream() throws IOException {
+    BlockStoreMeta storeMeta = mBlockWorker.getStoreMetaFull();
+    StorageTierAssoc storageTierAssoc = new WorkerStorageTierAssoc();
+    List<ConfigProperty> configList =
+            ConfigurationUtils.getConfiguration(ServerConfiguration.global(), Scope.WORKER);
+    mMasterClient.registerStream(mWorkerId.get(),
+            storageTierAssoc.getOrderedStorageAliases(), storeMeta.getCapacityBytesOnTiers(),
+            storeMeta.getUsedBytesOnTiers(), storeMeta.getBlockListByStorageLocation(),
+            storeMeta.getLostStorage(), configList);
+    LOG.info("Marking the register status to true so heartbeats can continue");
+    mRegistered.set(true);
   }
 
   /**
