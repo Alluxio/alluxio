@@ -56,6 +56,9 @@ public class MetadataCachingBaseFileSystem extends BaseFileSystem {
   private static final int THREAD_TERMINATION_TIMEOUT_MS = 10000;
   private static final URIStatus NOT_FOUND_STATUS = new URIStatus(
       new FileInfo().setCompleted(true));
+  private static final String RESERVED_PATH_PREFIX = "/.client_metadata_reserved";
+  private static final String DROP_CACHE = "drop";
+  private static final String GET_SIZE = "size";
 
   private final MetadataCache mMetadataCache;
   private final ExecutorService mAccessTimeUpdater;
@@ -123,6 +126,11 @@ public class MetadataCachingBaseFileSystem extends BaseFileSystem {
   public URIStatus getStatus(AlluxioURI path, GetStatusPOptions options)
       throws FileDoesNotExistException, IOException, AlluxioException {
     checkUri(path);
+    if (mFsContext.getClusterConf().getBoolean(PropertyKey
+        .USER_CLIENT_HANDLE_METADATA_CACHE_ENABLE) && path.getPath()
+        .startsWith(RESERVED_PATH_PREFIX)) {
+      return clientMetadataCacheOPHandler(path);
+    }
     URIStatus status = mMetadataCache.get(path);
     if (status == null || !status.isCompleted()) {
       try {
@@ -226,5 +234,46 @@ public class MetadataCachingBaseFileSystem extends BaseFileSystem {
       ThreadUtils.shutdownAndAwaitTermination(mAccessTimeUpdater, THREAD_TERMINATION_TIMEOUT_MS);
       super.close();
     }
+  }
+
+  private URIStatus dropMetadataCache(String args) {
+    if (mMetadataCache.size() > 0) {
+      mMetadataCache.invalidateAll();
+    }
+    return new URIStatus(new FileInfo());
+  }
+
+  private URIStatus getMetadataCacheSize() {
+    // The 'ls -l' command will show metadata cache size in the <filesize> field.
+    FileInfo fi = new FileInfo().setLength(mMetadataCache.size());
+    return new URIStatus(fi);
+  }
+
+  /**
+   * @param path include the client operation info, the info pattern as blows
+   *             reserved:cmd:args
+   * @return a mock RUIStatus object
+   */
+  public URIStatus clientMetadataCacheOPHandler(AlluxioURI path) {
+    URIStatus status;
+    String args = null;
+    String[] cmdInfo = path.getPath().split(":");
+    if (cmdInfo.length < 2 || cmdInfo.length > 3) {
+      return new URIStatus(new FileInfo());
+    }
+    if (cmdInfo.length == 3) {
+      args = cmdInfo[2];
+    }
+    switch (cmdInfo[1]) {
+      case DROP_CACHE:
+        status = dropMetadataCache(args);
+        break;
+      case GET_SIZE:
+        status = getMetadataCacheSize();
+        break;
+      default:
+        status = new URIStatus(new FileInfo());
+    }
+    return status;
   }
 }

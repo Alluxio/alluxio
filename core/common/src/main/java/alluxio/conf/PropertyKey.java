@@ -4461,6 +4461,16 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
+  public static final PropertyKey USER_CLIENT_HANDLE_METADATA_CACHE_ENABLE =
+      new Builder(Name.USER_CLIENT_HANDLE_METADATA_CACHE_ENABLE)
+          .setDefaultValue(true)
+          .setDescription("If this is enable, user can operate client metadata cache by "
+              + "executing 'ls' command, the path '/.alluxio_metadata_reserved/' is reserved "
+              + "to identify the client operations. For now, two operations 'drop' and 'size' "
+              + "are supported 'ls /.alluxio_metadata_reserved:drop' to clear metadata cache and "
+              + "'ls -l /.alluxio_metadata_reserved:size' to get metadata cache size.")
+          .setScope(Scope.CLIENT)
+          .build();
   public static final PropertyKey USER_CLIENT_CACHE_STORE_OVERHEAD =
       new Builder(Name.USER_CLIENT_CACHE_STORE_OVERHEAD)
           .setDescription("A fraction value representing the storage overhead writing to disk. "
@@ -6714,6 +6724,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.user.client.cache.timeout.duration";
     public static final String USER_CLIENT_CACHE_TIMEOUT_THREADS =
         "alluxio.user.client.cache.timeout.threads";
+    public static final String USER_CLIENT_HANDLE_METADATA_CACHE_ENABLE =
+        "alluxio.user.client.invalid.metadata.cache.enable";
     public static final String USER_CONF_CLUSTER_DEFAULT_ENABLED =
         "alluxio.user.conf.cluster.default.enabled";
     public static final String USER_CONF_SYNC_INTERVAL = "alluxio.user.conf.sync.interval";
