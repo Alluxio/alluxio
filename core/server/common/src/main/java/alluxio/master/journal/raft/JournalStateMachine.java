@@ -172,6 +172,7 @@ public class JournalStateMachine extends BaseStateMachine {
       mRaftGroupId = groupId;
       mStorage.init(raftStorage);
       loadSnapshot(mStorage.getLatestSnapshot());
+      mSnapshotLastIndex = getLatestSnapshot() != null ? getLatestSnapshot().getIndex() : -1;
     });
   }
 
@@ -180,6 +181,7 @@ public class JournalStateMachine extends BaseStateMachine {
     LOG.info("Reinitializing state machine.");
     mStorage.loadLatestSnapshot();
     loadSnapshot(mStorage.getLatestSnapshot());
+    mSnapshotLastIndex = getLatestSnapshot() != null ? getLatestSnapshot().getIndex() : -1;
     unpause();
   }
 
