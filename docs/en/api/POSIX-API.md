@@ -524,7 +524,12 @@ and what each metric uses for.
 
 ## Performance Investigation
 
-Alluxio POSIX API performance investigation is complicated since many components are involved:
+Alluxio POSIX API is one kind of Alluxio client. Unlike Alluxio shell commands which launch a new JVM for each single command,
+all POSIX operations targeting a single Fuse mount point are processed by a single JVM so much smaller JVM overhead are introduced.
+The latency of metadata operations, small file read/write operations when using Alluxio POSIX API are much smaller compared to Alluxio shell commands.
+However, Alluxio POSIX API introduces the FUSE overhead compared to Alluxio shell commands.
+
+The following graph shows the components involved when using Alluxio POSIX API:
 ![Fuse components]({{ '/img/fuse.png' | relativize_url }})
 
 Application
@@ -539,6 +544,9 @@ Fuse related components
 - JNIFuse, connect libfuse to Alluxio Fuse implementation
 - libfuse, userspace library for FUSE
 - Fuse kernel code
+
+One or more components can introduce the performance overhead for your workload.
+In the following sections, more detailed introduction and analysis for components listed will be given.
 
 ### Application
 
