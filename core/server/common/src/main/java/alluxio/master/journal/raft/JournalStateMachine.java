@@ -198,6 +198,7 @@ public class JournalStateMachine extends BaseStateMachine {
       resetState();
       setLastAppliedTermIndex(snapshot.getTermIndex());
       install(snapshotFile);
+      mSnapshotLastIndex = getLatestSnapshot() != null ? getLatestSnapshot().getIndex() : -1;
     } catch (Exception e) {
       throw new IOException(String.format("Failed to load snapshot %s", snapshot), e);
     }
