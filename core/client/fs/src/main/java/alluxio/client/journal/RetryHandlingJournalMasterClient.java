@@ -11,7 +11,7 @@
 
 package alluxio.client.journal;
 
-import alluxio.AbstractMasterClient;
+import alluxio.AbstractJobMasterClient;
 import alluxio.Constants;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.grpc.GetQuorumInfoPRequest;
@@ -29,8 +29,9 @@ import org.slf4j.LoggerFactory;
 
 /**
  * A wrapper for the gRPC client to interact with the journal master, used by alluxio clients.
+ * It would talk to both JobMaster and Master, so it should inherit AbstractJobMasterClient
  */
-public class RetryHandlingJournalMasterClient extends AbstractMasterClient
+public class RetryHandlingJournalMasterClient extends AbstractJobMasterClient
     implements JournalMasterClient {
   private static final Logger RPC_LOG = LoggerFactory.getLogger(JournalMasterClient.class);
   private JournalMasterClientServiceGrpc.JournalMasterClientServiceBlockingStub mClient = null;
