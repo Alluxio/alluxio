@@ -172,7 +172,6 @@ public class JournalStateMachine extends BaseStateMachine {
       mRaftGroupId = groupId;
       mStorage.init(raftStorage);
       loadSnapshot(mStorage.getLatestSnapshot());
-      mSnapshotLastIndex = getLatestSnapshot() != null ? getLatestSnapshot().getIndex() : -1;
     });
   }
 
@@ -181,7 +180,6 @@ public class JournalStateMachine extends BaseStateMachine {
     LOG.info("Reinitializing state machine.");
     mStorage.loadLatestSnapshot();
     loadSnapshot(mStorage.getLatestSnapshot());
-    mSnapshotLastIndex = getLatestSnapshot() != null ? getLatestSnapshot().getIndex() : -1;
     unpause();
   }
 
@@ -200,6 +198,7 @@ public class JournalStateMachine extends BaseStateMachine {
       resetState();
       setLastAppliedTermIndex(snapshot.getTermIndex());
       install(snapshotFile);
+      mSnapshotLastIndex = getLatestSnapshot() != null ? getLatestSnapshot().getIndex() : -1;
     } catch (Exception e) {
       throw new IOException(String.format("Failed to load snapshot %s", snapshot), e);
     }
