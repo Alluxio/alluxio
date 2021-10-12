@@ -62,11 +62,11 @@ export const rootReducer = (history: History): Reducer<IApplicationState> =>
 export const rootSaga = function*(): IterableIterator<AllEffect<ForkEffect>> {
   yield all([
     fork(blockInfoSaga),
+    fork(configSaga),
     fork(initSaga),
     fork(logsSaga),
     fork(metricsSaga),
     fork(overviewSaga),
-    fork(configSaga),
   ]);
 };
 
