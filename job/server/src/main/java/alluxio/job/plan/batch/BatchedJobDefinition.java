@@ -56,7 +56,7 @@ public final class BatchedJobDefinition
       throws Exception {
     //get job type and config
     String jobType = config.getJobType();
-    Class jobClass = Class.forName(jobType);
+    Class<?> jobClass = Class.forName(jobType); // use enum for get class
     PlanDefinition plan = (PlanDefinition) jobClass.newInstance();
     // convert map to config
     final ObjectMapper mapper = new ObjectMapper();
