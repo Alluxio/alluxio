@@ -30,6 +30,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * Use this class to avoid the map-list conversion at the client side.
@@ -116,19 +117,22 @@ public class CachingBlockMasterClient extends BlockMasterClient {
                              final Map<BlockStoreLocation, List<Long>> currentBlocksOnLocation,
                              final Map<String, List<String>> lostStorage,
                              final List<ConfigProperty> configList) throws IOException {
-
+    AtomicReference<IOException> ioe = new AtomicReference<>();
     retryRPC(() -> {
       try {
         RegisterStream stream = new RegisterStream(mClient, mAsyncClient, workerId, storageTierAliases, totalBytesOnTiers, usedBytesOnTiers,
                 currentBlocksOnLocation, lostStorage, configList, mBlockBatchIterator);
         stream.registerSync();
-      } catch (InterruptedException e) {
-        // TODO(jiacheng): handle this
-        LOG.warn("Interrupted", e);
       } catch (IOException e) {
-        LOG.error("IOException", e);
+        ioe.set(e);
+      } catch (InterruptedException e) {
+        ioe.set(new IOException(e));
       }
       return null;
     }, LOG, "Register", "workerId=%d", workerId);
+
+    if (ioe.get() != null) {
+      throw ioe.get();
+    }
   }
 }

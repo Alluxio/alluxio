@@ -209,6 +209,9 @@ public final class MasterWorkerInfo {
    */
   public void addBlock(long blockId) {
     mBlocks.add(blockId);
+    // This step is added because in the beginning of a stream register
+    // we mark all blocks to be removed
+    mToRemoveBlocks.remove(blockId);
   }
 
   /**

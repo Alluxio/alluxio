@@ -102,12 +102,6 @@ public class StreamRegisterWorkerBench extends RpcBench<BlockMasterBenchParamete
                     .build());
     mBlockMap = blockMap;
 
-
-//    mLocationBlockIdList = client.convertBlockListMapToProto(blockMap);
-//
-//    // TODO(jiacheng): Only for debugging
-//    debriefBlockListProto(mLocationBlockIdList);
-
     // Prepare these block IDs concurrently
     LOG.info("Preparing blocks at the master");
     RpcBenchPreparationUtils.prepareBlocksInMaster(blockMap, getPool(), mParameters.mConcurrency);
@@ -169,7 +163,6 @@ public class StreamRegisterWorkerBench extends RpcBench<BlockMasterBenchParamete
     try {
       Instant s = Instant.now();
 
-      // TODO(jiacheng): Stream register
       client.registerStream(workerId,
               mTierAliases,
               mCapacityMap,
@@ -192,10 +185,6 @@ public class StreamRegisterWorkerBench extends RpcBench<BlockMasterBenchParamete
   @Override
   public RpcTaskResult runRPC() throws Exception {
     // Use a mocked client to save conversion
-//    CachingBlockMasterClient client =
-//            new CachingBlockMasterClient(MasterClientContext
-//                    .newBuilder(ClientContext.create(mConf))
-//                    .build(), mLocationBlockIdList);
     CachingBlockMasterClient client =
             new CachingBlockMasterClient(MasterClientContext
                     .newBuilder(ClientContext.create(mConf))

@@ -75,9 +75,6 @@ public final class BlockMasterSync implements HeartbeatExecutor {
   /** Last System.currentTimeMillis() timestamp when a heartbeat successfully completed. */
   private long mLastSuccessfulHeartbeatMs;
 
-  // TODO(jiacheng): When is this set to false when the worker is lost?
-  private AtomicBoolean mRegistered = new AtomicBoolean(false);
-
   /**
    * Creates a new instance of {@link BlockMasterSync}.
    *
@@ -126,7 +123,6 @@ public final class BlockMasterSync implements HeartbeatExecutor {
             storeMeta.getUsedBytesOnTiers(), storeMeta.getBlockListByStorageLocation(),
             storeMeta.getLostStorage(), configList);
     LOG.info("Marking the register status to true so heartbeats can continue");
-    mRegistered.set(true);
   }
 
   /**

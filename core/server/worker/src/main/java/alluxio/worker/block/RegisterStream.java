@@ -76,20 +76,8 @@ public class RegisterStream {
     StreamObserver<RegisterWorkerStreamPResponse> responseObserver = new StreamObserver<RegisterWorkerStreamPResponse>() {
       @Override
       public void onNext(RegisterWorkerStreamPResponse res) {
-//        System.out.format("Received response %s%n", res);
         LOG.info("Received response {}", res);
         // TODO(jiacheng): If the master instructs the worker to wait， do this in a separate PR
-//        long percentage = res.getPercentage();
-//        if (percentage > 90) {
-//          LOG.info("{} - Master usage is extremely high, slow down", mWorkerId);
-//          CommonUtils.sleepMs(2000);
-//        } else if (percentage > 80) {
-//          LOG.info("{} - Master usage is high, slow down", mWorkerId);
-//          CommonUtils.sleepMs(1000);
-//        } else if (percentage > 70) {
-//          LOG.info("{} - Master usage is a bit high, slow down", mWorkerId);
-//          CommonUtils.sleepMs(500);
-//        }
 
         mBucket.release();
         LOG.info("{} - batch finished, 1 token released", mWorkerId);
@@ -223,13 +211,11 @@ public class RegisterStream {
     long threadId = Thread.currentThread().getId();
     // Mark the end of requests
     LOG.info("{} All requests have been sent. Completing the client side.", threadId);
-//    System.out.format("%s %s - Completing client side stream%n", threadId, Instant.now());
     mRequestObserver.onCompleted();
 
     // Receiving happens asynchronously
     // TODO(jiacheng): configurable
     LOG.info("{} - Waiting on the latch", threadId);
-//    System.out.format("%s %s - Waiting on the latch%n", threadId, Instant.now());
     mFinishLatch.await();
     LOG.info("{} - Latch returned", threadId);
 

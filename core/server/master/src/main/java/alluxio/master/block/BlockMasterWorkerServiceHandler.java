@@ -12,6 +12,7 @@
 package alluxio.master.block;
 
 import alluxio.RpcUtils;
+import alluxio.exception.status.AlluxioStatusException;
 import alluxio.exception.status.NotFoundException;
 import alluxio.grpc.BlockHeartbeatPRequest;
 import alluxio.grpc.BlockHeartbeatPResponse;
@@ -178,65 +179,72 @@ public final class BlockMasterWorkerServiceHandler extends
                 isHead);
 
         synchronized (this) {
-//          System.out.format("%s - Handling server side registration stream%n", Thread.currentThread().getId());
           if (mWorkerId == -1) {
             if (!isHead) {
-              Exception e = new RuntimeException(
+              // TODO(jiacheng): validate
+              IOException e = new NotFoundException(
                       String.format("The StreamObserver has no worker id but it's not the 1st chunk in stream: %s", this.toString()));
-              responseObserver.onError(e);
+              responseObserver.onError(AlluxioStatusException.fromIOException(e).toGrpcStatusException());
               return;
             }
 
             mWorkerId = workerId;
-            LOG.debug("Associate worker id {} with StreamObserver", mWorkerId);
-
             LOG.debug("Initializing context for {}", mWorkerId);
-//            System.out.format("Initializing context for %s%n", mWorkerId);
             try {
               mContext = WorkerRegisterContext.create(mBlockMaster, mWorkerId);
               LOG.debug("Context created for {}", mWorkerId);
-//              System.out.format("Context created for %s%n", mWorkerId);
             } catch (NotFoundException e) {
               LOG.error("Worker {} not found, failed to create context", mWorkerId);
-//              System.out.format("Worker %s not found, failed to create context%n", mWorkerId);
-              // TODO(jiacheng): Close the other side?
-              responseObserver.onError(e);
+              // TODO(jiacheng): syntax sugar for this
+              responseObserver.onError(AlluxioStatusException.fromIOException(e).toGrpcStatusException());
               return;
+              // TODO(jiacheng): what else to cleanup?
             }
           }
         }
 
         if (isHead) {
-          final List<String> storageTiers = chunk.getStorageTiersList();
-          final Map<String, Long> totalBytesOnTiers = chunk.getTotalBytesOnTiersMap();
-          final Map<String, Long> usedBytesOnTiers = chunk.getUsedBytesOnTiersMap();
-          final Map<String, StorageList> lostStorageMap = chunk.getLostStorageMap();
+          try {
+            final List<String> storageTiers = chunk.getStorageTiersList();
+            final Map<String, Long> totalBytesOnTiers = chunk.getTotalBytesOnTiersMap();
+            final Map<String, Long> usedBytesOnTiers = chunk.getUsedBytesOnTiersMap();
+            final Map<String, StorageList> lostStorageMap = chunk.getLostStorageMap();
 
-          // TODO(jiacheng): If this goes wrong, where is the error thrown to?
-          final Map<Block.BlockLocation, List<Long>> currBlocksOnLocationMap =
-                  reconstructBlocksOnLocationMap(chunk.getCurrentBlocksList(), workerId);
-          printBlockMap(currBlocksOnLocationMap);
-          RegisterWorkerStreamPOptions options = chunk.getOptions();
-
-          // TODO(jiacheng): what are the metrics?
-          RpcUtils.callAndNoReturn(LOG,
-                  () -> {
-                    mBlockMaster.workerRegisterStart(mContext, storageTiers, totalBytesOnTiers, usedBytesOnTiers,
-                            currBlocksOnLocationMap, lostStorageMap, options);
-                    return null;
-                  }, "registerWorkerStream", false,
-                  "what to put here?", responseObserver, null);
-
+            // TODO(jiacheng): If this goes wrong, the error is silenced and UNKNOWN error is received on the client side
+            //  the client is not able to know what went wrong
+            final Map<Block.BlockLocation, List<Long>> currBlocksOnLocationMap =
+                    reconstructBlocksOnLocationMap(chunk.getCurrentBlocksList(), workerId);
+            printBlockMap(currBlocksOnLocationMap);
+            RegisterWorkerStreamPOptions options = chunk.getOptions();
+            // TODO(jiacheng): what are the metrics?
+            RpcUtils.callAndNoReturn(LOG,
+                    () -> {
+                      mBlockMaster.workerRegisterStart(mContext, storageTiers, totalBytesOnTiers, usedBytesOnTiers,
+                              currBlocksOnLocationMap, lostStorageMap, options);
+                      return null;
+                    }, "registerWorkerStream", false,
+                    "what to put here?", responseObserver, chunk);
+          } catch (Throwable t) {
+            LOG.error("Throwable should be handled in stream start", t);
+            responseObserver.onError(AlluxioStatusException.fromThrowable(t).toGrpcStatusException());
+            return;
+          }
         } else {
-          final Map<Block.BlockLocation, List<Long>> currBlocksOnLocationMap =
-                  reconstructBlocksOnLocationMap(chunk.getCurrentBlocksList(), workerId);
-          printBlockMap(currBlocksOnLocationMap);
-          RpcUtils.callAndNoReturn(LOG,
-                  () -> {
-                    mBlockMaster.workerRegisterStream(mContext, currBlocksOnLocationMap);
-                    return null;
-                  }, "registerWorkerStream", false,
-                  "what to put here?", responseObserver, null);
+          try {
+            final Map<Block.BlockLocation, List<Long>> currBlocksOnLocationMap =
+                    reconstructBlocksOnLocationMap(chunk.getCurrentBlocksList(), workerId);
+            printBlockMap(currBlocksOnLocationMap);
+            RpcUtils.callAndNoReturn(LOG,
+                    () -> {
+                      mBlockMaster.workerRegisterStream(mContext, currBlocksOnLocationMap);
+                      return null;
+                    }, "registerWorkerStream", false,
+                    "what to put here?", responseObserver, chunk);
+          } catch (Throwable t) {
+            LOG.error("Throwable should be handled in stream", t);
+            responseObserver.onError(AlluxioStatusException.fromThrowable(t).toGrpcStatusException());
+            return;
+          }
         }
 
         // Return an ACK to the worker so it sends the next batch
@@ -254,7 +262,7 @@ public final class BlockMasterWorkerServiceHandler extends
         }
 
         // TODO(jiacheng): Pass the exception back like this?
-        responseObserver.onError(t);
+        responseObserver.onError(AlluxioStatusException.fromThrowable(t).toGrpcStatusException());
       }
 
       void closeContext() throws IOException {
@@ -280,17 +288,17 @@ public final class BlockMasterWorkerServiceHandler extends
       @Override
       public void onCompleted() {
         LOG.info("{} - Register stream completed on the client side", Thread.currentThread().getId());
-//        System.out.format("Register stream completed on the client side%n");
 
+        // TODO(jiacheng): still needed?
         if (mWorkerId == -1) {
           LOG.error("Complete message received from the client side but workerId is still -1.");
-          Exception e = new NotFoundException("Complete message received from the client side but workerId is still -1.");
-          responseObserver.onError(e);
+          IOException e = new NotFoundException("Complete message received from the client side but workerId is still -1.");
+          responseObserver.onError(AlluxioStatusException.fromIOException(e).toGrpcStatusException());
           return;
         } else if (mContext == null) {
           LOG.error("Complete message received from the client side but the context is not initialized");
-          Exception e = new NotFoundException("Complete message received from the client side but the context is not initialized");
-          responseObserver.onError(e);
+          IOException e = new NotFoundException("Complete message received from the client side but the context is not initialized");
+          responseObserver.onError(AlluxioStatusException.fromIOException(e).toGrpcStatusException());
           return;
         }
 

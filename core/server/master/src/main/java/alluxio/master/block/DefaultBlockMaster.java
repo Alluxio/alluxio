@@ -1016,7 +1016,6 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
     // With each batch we receive, we mark them not-to-be-removed.
     // Eventually what's left in the mToRemove will be the ones that do not exist anymore.
     worker.markAllBlocksToRemove();
-    // TODO(jiacheng): remove blocks from mToRemove
 
     // [NEEDED] update the usage
     worker.updateUsage(mGlobalStorageTierAssoc, storageTiers,
@@ -1029,9 +1028,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
     // because we don't know what blocks are removed yet
 //      processWorkerRemovedBlocks(worker, removedBlocks);
 
-    // [CHANGE] we do not want it to add to the block locations
-    // TODO(jiacheng): we are updating the locations in the stream, which
-    //  results in unstable views
+    // TODO(jiacheng): we do not want to add them to the block locations here
     processWorkerAddedBlocks(worker, currentBlocksOnLocation);
 
     // [NEEDED]
@@ -1040,7 +1037,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
     // [NEEDED]
     worker.addLostStorage(lostStorage);
 
-    // TODO(jiacheng): This block can just not hold the lock
+    // TODO(jiacheng): This block can be moved to a non-locked section
     if (options.getConfigsCount() > 0) {
       for (BiConsumer<Address, List<ConfigProperty>> function : mWorkerRegisteredListeners) {
         WorkerNetAddress workerAddress = worker.getWorkerAddress();
@@ -1048,6 +1045,8 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
                 options.getConfigsList());
       }
     }
+
+    throw new RuntimeException("What if this goes wrong");
   }
 
   @Override
@@ -1056,8 +1055,6 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
           throws NotFoundException {
     MasterWorkerInfo worker = context.mWorker;
 
-    // TODO(jiacheng): remove blocks from mToRemove
-
     // [NO NEED] Detect any lost blocks on this worker.
 //      Set<Long> removedBlocks = worker.register(mGlobalStorageTierAssoc, storageTiers,
 //              totalBytesOnTiers, usedBytesOnTiers, blocks);
@@ -1065,9 +1062,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
     // because we don't know what blocks are removed yet
 //      processWorkerRemovedBlocks(worker, removedBlocks);
 
-    // [CHANGE] we do not want to add them to the block locations here
-    // TODO(jiacheng): we are updating the locations in the stream, which
-    //  results in unstable views
+    // TODO(jiacheng): we do not want to add them to the block locations here
     processWorkerAddedBlocks(worker, currentBlocksOnLocation);
 
     // If a block is not recognized then yes we need to mark it
@@ -1075,6 +1070,8 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
 
     // Update the TS at the end of the process
     worker.updateLastUpdatedTimeMs();
+
+    throw new RuntimeException("What if this goes wrong in the stream");
   }
 
   @Override

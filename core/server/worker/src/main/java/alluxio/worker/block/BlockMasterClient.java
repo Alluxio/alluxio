@@ -14,6 +14,7 @@ package alluxio.worker.block;
 import alluxio.AbstractMasterClient;
 import alluxio.Constants;
 import alluxio.conf.PropertyKey;
+import alluxio.exception.status.AlluxioStatusException;
 import alluxio.grpc.BlockHeartbeatPOptions;
 import alluxio.grpc.BlockHeartbeatPRequest;
 import alluxio.grpc.BlockIdList;
@@ -44,6 +45,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -85,6 +87,7 @@ public class BlockMasterClient extends AbstractMasterClient {
   @Override
   protected void afterConnect() throws IOException {
     mClient = BlockMasterWorkerServiceGrpc.newBlockingStub(mChannel);
+    mAsyncClient = BlockMasterWorkerServiceGrpc.newStub(mChannel);
   }
 
   /**
@@ -264,6 +267,7 @@ public class BlockMasterClient extends AbstractMasterClient {
                              final Map<BlockStoreLocation, List<Long>> currentBlocksOnLocation,
                              final Map<String, List<String>> lostStorage,
                              final List<ConfigProperty> configList) throws IOException {
+    AtomicReference<IOException> ioe = new AtomicReference<>();
     retryRPC(() -> {
       try {
         RegisterStream stream = new RegisterStream(
@@ -271,12 +275,16 @@ public class BlockMasterClient extends AbstractMasterClient {
                 workerId, storageTierAliases, totalBytesOnTiers, usedBytesOnTiers,
                 currentBlocksOnLocation, lostStorage, configList);
         stream.registerSync();
-      } catch (InterruptedException e) {
-        LOG.warn("Interrupted", e);
       } catch (IOException e) {
-        LOG.error("IOException", e);
+        ioe.set(e);
+      } catch (InterruptedException e) {
+        ioe.set(new IOException(e));
       }
       return null;
     }, LOG, "Register", "workerId=%d", workerId);
+
+    if (ioe.get() != null) {
+      throw ioe.get();
+    }
   }
 }
