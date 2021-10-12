@@ -123,8 +123,9 @@ In addition, you can also start a High Availability (HA) JobMaster process on th
 ```console
     localhost
 ```
-Furthermore, you can run AlluxioFuse process in intellij, the Alluxio root dir will be mounted to /tmp/alluxio-fuse.
-16. In intellij, start AlluxioFuse process by selecting `Run > Run > AlluxioFuse`
+##### Start an AlluxioFuse process
+1. Start a single master Alluxio cluster, or a High Availability cluster in Intellij.
+2. In Intellij, start AlluxioFuse process by selecting `Run > Run > AlluxioFuse`
 
 ## Maven Targets and Plugins
 

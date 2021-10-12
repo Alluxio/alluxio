@@ -25,7 +25,6 @@
     </extension>
     <method v="2">
       <option name="Make" enabled="true" />
-      <option name="com.soywiz.korge.intellij.UpdateResourceBeforeRunTask" enabled="false" />
     </method>
   </configuration>
 </component>
