@@ -3140,10 +3140,17 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey WORKER_NETWORK_ASYNC_CACHE_MANAGER_THREADS_MAX =
       new Builder(Name.WORKER_NETWORK_ASYNC_CACHE_MANAGER_THREADS_MAX)
-          .setDefaultSupplier(() -> 2 * Runtime.getRuntime().availableProcessors(),
-              "2 * {CPU core count}")
+          .setDefaultSupplier(() -> {
+            int cpuCount = Runtime.getRuntime().availableProcessors();
+            // In container cpuCount is always 1. Use default value 8 otherwise worker won't start.
+            if (cpuCount == 1) {
+              return 8;
+            } else {
+              return 2 * cpuCount;
+            }
+          }, "2 * {CPU core count}, or 8 in case the count is 1 in container environment")
           .setDescription("The maximum number of threads used to cache blocks asynchronously in "
-              + "the data server.")
+                  + "the data server.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
