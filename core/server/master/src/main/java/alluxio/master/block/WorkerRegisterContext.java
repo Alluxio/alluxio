@@ -5,6 +5,7 @@ import alluxio.exception.status.NotFoundException;
 import alluxio.master.block.meta.MasterWorkerInfo;
 import alluxio.master.block.meta.WorkerMetaLockSection;
 import alluxio.resource.LockResource;
+import com.google.common.base.Preconditions;
 
 import java.io.Closeable;
 import java.io.IOException;
@@ -16,7 +17,7 @@ public class WorkerRegisterContext implements Closeable {
   MasterWorkerInfo mWorker;
   BlockMaster mBlockMaster;
 
-  public static WorkerRegisterContext create(BlockMaster blockMaster, long workerId) throws NotFoundException {
+  public static synchronized WorkerRegisterContext create(BlockMaster blockMaster, long workerId) throws NotFoundException {
     WorkerRegisterContext context = new WorkerRegisterContext();
     context.mBlockMaster = blockMaster;
     context.mWorkerId = workerId;
@@ -24,10 +25,12 @@ public class WorkerRegisterContext implements Closeable {
     MasterWorkerInfo info = blockMaster.getWorker(workerId);
     context.mWorker = info;
 
+    System.out.println("Acquiring all worker locks for " + workerId);
     context.mWorkerLock = info.lockWorkerMeta(EnumSet.of(
             WorkerMetaLockSection.STATUS,
             WorkerMetaLockSection.USAGE,
             WorkerMetaLockSection.BLOCKS), false);
+    System.out.println("Acquired all worker locks for " + workerId);
     return context;
   }
 

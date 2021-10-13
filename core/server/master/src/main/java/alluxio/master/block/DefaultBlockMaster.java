@@ -304,7 +304,8 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
    * @param executorServiceFactory a factory for creating the executor service to use for running
    *        maintenance threads
    */
-  DefaultBlockMaster(MetricsMaster metricsMaster, CoreMasterContext masterContext, Clock clock,
+  // TODO(jiacheng): possible to make it not public?
+  public DefaultBlockMaster(MetricsMaster metricsMaster, CoreMasterContext masterContext, Clock clock,
       ExecutorServiceFactory executorServiceFactory) {
     this(metricsMaster, masterContext, clock, executorServiceFactory,
         masterContext.getBlockStoreFactory().get());
@@ -623,8 +624,10 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
         for (long workerId : workerIds) {
           MasterWorkerInfo worker = mWorkers.getFirstByField(ID_INDEX, workerId);
           if (worker != null) {
+            System.out.println("To remove block " + blockId + ", acquire worker block lock for " + workerId);
             try (LockResource r = worker.lockWorkerMeta(
                 EnumSet.of(WorkerMetaLockSection.BLOCKS), false)) {
+              System.out.println("For block " + blockId + " acquired worker block lock for " + workerId);
               worker.updateToRemovedBlock(true, blockId);
             }
           }
@@ -721,10 +724,13 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
     }
 
     try (JournalContext journalContext = createJournalContext()) {
+      System.out.println("Acquiring worker locks to commit block " + blockId + " on worker " + workerId);
       // Lock the worker metadata here to preserve the lock order
       // The worker metadata must be locked before the blocks
       try (LockResource lr = worker.lockWorkerMeta(
           EnumSet.of(WorkerMetaLockSection.USAGE, WorkerMetaLockSection.BLOCKS), false)) {
+        System.out.println("Acquired worker locks to commit block " + blockId + " on worker " + workerId);
+
         try (LockResource r = lockBlock(blockId)) {
           Optional<BlockMeta> block = mBlockStore.getBlock(blockId);
           if (!block.isPresent() || block.get().getLength() != length) {
@@ -986,6 +992,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
   @Override
   public void unlockWorker(LockResource r) {
     r.close();
+    System.out.println("Worker unlocked");
   }
 
   @Override
@@ -1045,8 +1052,6 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
                 options.getConfigsList());
       }
     }
-
-    throw new RuntimeException("What if this goes wrong");
   }
 
   @Override
@@ -1070,8 +1075,6 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
 
     // Update the TS at the end of the process
     worker.updateLastUpdatedTimeMs();
-
-    throw new RuntimeException("What if this goes wrong in the stream");
   }
 
   @Override

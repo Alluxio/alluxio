@@ -31,7 +31,7 @@ import java.util.stream.Collectors;
 
 import static com.esotericsoftware.minlog.Log.info;
 
-public class RegisterStream {
+public class RegisterStream implements Iterator<RegisterWorkerStreamPRequest> {
   private static final Logger LOG = LoggerFactory.getLogger(RegisterStream.class);
   final BlockMasterWorkerServiceGrpc.BlockMasterWorkerServiceBlockingStub mClient;
   final BlockMasterWorkerServiceGrpc.BlockMasterWorkerServiceStub mAsyncClient;
@@ -44,13 +44,17 @@ public class RegisterStream {
   final Map<String, List<String>> mLostStorage;
   final List<ConfigProperty> mConfigList;
 
-  final StreamObserver<RegisterWorkerStreamPRequest> mRequestObserver;
+  StreamObserver<RegisterWorkerStreamPRequest> mRequestObserver;
   final CountDownLatch mFinishLatch;
   Iterator<List<LocationBlockIdListEntry>> mBlockListIterator;
 
   // How many batches active in a stream
   Semaphore mBucket = new Semaphore(1);
   Throwable mError = null;
+
+  RegisterWorkerStreamPOptions mOptions;
+  Map<String, StorageList> mLostStorageMap;
+  int mBatchNumber;
 
   public RegisterStream(
           final BlockMasterWorkerServiceGrpc.BlockMasterWorkerServiceBlockingStub client,
@@ -60,6 +64,23 @@ public class RegisterStream {
           final Map<BlockStoreLocation, List<Long>> currentBlocksOnLocation,
           final Map<String, List<String>> lostStorage,
           final List<ConfigProperty> configList) {
+    this(client, asyncClient, workerId, storageTierAliases, totalBytesOnTiers, usedBytesOnTiers,
+            currentBlocksOnLocation, lostStorage, configList,
+            // TODO(jiacheng): Decide what blocks to include
+            //  This is taking long to finish because of the copy in the constructor
+            new BlockMapIterator(currentBlocksOnLocation));
+  }
+
+  @VisibleForTesting
+  public RegisterStream(
+          final BlockMasterWorkerServiceGrpc.BlockMasterWorkerServiceBlockingStub client,
+          final BlockMasterWorkerServiceGrpc.BlockMasterWorkerServiceStub asyncClient,
+          final long workerId, final List<String> storageTierAliases,
+          final Map<String, Long> totalBytesOnTiers, final Map<String, Long> usedBytesOnTiers,
+          final Map<BlockStoreLocation, List<Long>> currentBlocksOnLocation,
+          final Map<String, List<String>> lostStorage,
+          final List<ConfigProperty> configList,
+          Iterator<List<LocationBlockIdListEntry>> blockListIterator) {
     mClient = client;
     mAsyncClient = asyncClient;
     mWorkerId = workerId;
@@ -70,9 +91,20 @@ public class RegisterStream {
     mLostStorage = lostStorage;
     mConfigList = configList;
 
-
     // Initialize the observer
     mFinishLatch = new CountDownLatch(1);
+
+    // Some extra conversions
+    mOptions = RegisterWorkerStreamPOptions.newBuilder().addAllConfigs(mConfigList).build();
+    mLostStorageMap = mLostStorage.entrySet().stream()
+            .collect(Collectors.toMap(Map.Entry::getKey,
+                    e -> StorageList.newBuilder().addAllStorage(e.getValue()).build()));
+    mBatchNumber = 0;
+
+    mBlockListIterator = blockListIterator;
+  }
+
+  public void registerSync() throws InterruptedException, IOException {
     StreamObserver<RegisterWorkerStreamPResponse> responseObserver = new StreamObserver<RegisterWorkerStreamPResponse>() {
       @Override
       public void onNext(RegisterWorkerStreamPResponse res) {
@@ -96,25 +128,8 @@ public class RegisterStream {
         mFinishLatch.countDown();
       }
     };
-    mRequestObserver = asyncClient.registerWorkerStream(responseObserver);
-  }
+    mRequestObserver = mAsyncClient.registerWorkerStream(responseObserver);
 
-  @VisibleForTesting
-  public RegisterStream(
-          final BlockMasterWorkerServiceGrpc.BlockMasterWorkerServiceBlockingStub client,
-          final BlockMasterWorkerServiceGrpc.BlockMasterWorkerServiceStub asyncClient,
-          final long workerId, final List<String> storageTierAliases,
-          final Map<String, Long> totalBytesOnTiers, final Map<String, Long> usedBytesOnTiers,
-          final Map<BlockStoreLocation, List<Long>> currentBlocksOnLocation,
-          final Map<String, List<String>> lostStorage,
-          final List<ConfigProperty> configList,
-          Iterator<List<LocationBlockIdListEntry>> blockListIterator) {
-    this(client, asyncClient, workerId, storageTierAliases, totalBytesOnTiers, usedBytesOnTiers,
-            currentBlocksOnLocation, lostStorage, configList);
-    mBlockListIterator = blockListIterator;
-  }
-
-  public void registerSync() throws InterruptedException, IOException {
     LOG.info("{} - starting to register", mWorkerId);
     registerInternal();
 
@@ -123,24 +138,8 @@ public class RegisterStream {
 
   public void registerInternal() throws InterruptedException, IOException {
     try {
-      // TODO(jiacheng): Decide what blocks to include
-      //  This is taking long to finish because of the copy in the constructor
-      if (mBlockListIterator == null) {
-        LOG.info("Generate BlockMapIterator");
-        mBlockListIterator = new BlockMapIterator(mCurrentBlocksOnLocation);
-      } else {
-        LOG.info("Using cached iterator");
-      }
-
-      // Some extra conversions
-      final RegisterWorkerStreamPOptions options =
-              RegisterWorkerStreamPOptions.newBuilder().addAllConfigs(mConfigList).build();
-      final Map<String, StorageList> lostStorageMap = mLostStorage.entrySet().stream()
-              .collect(Collectors.toMap(Map.Entry::getKey,
-                      e -> StorageList.newBuilder().addAllStorage(e.getValue()).build()));
-
       int iter = 0;
-      while (mBlockListIterator.hasNext()) {
+      while (hasNext()) {
         List<LocationBlockIdListEntry> blockBatch = mBlockListIterator.next();
 
         // TODO(jiacheng): debug output
@@ -150,54 +149,26 @@ public class RegisterStream {
         }
         LOG.info("Sending batch {}: {}", iter, sb.toString());
 
-        // Generate a request
-        RegisterWorkerStreamPRequest request;
-
+        // Send a request when the master ACKs the previous one
         LOG.info("{} - Acquiring one token", mWorkerId);
         // TODO(jiacheng): timeout?
         Instant start = Instant.now();
         mBucket.acquire();
         Instant end = Instant.now();
-        LOG.info("{} - Token acquired in {}ms, sending next batch",
+        LOG.info("{} - master ACK acquired in {}ms, sending next batch",
                 mWorkerId, Duration.between(start, end).toMillis());
 
-        // If it is the 1st request, include metadata
-//        System.out.format("Generating request iter %s%n", iter);
-        if (iter == 0) {
-//          System.out.println("Generating header request of the stream");
-          request = RegisterWorkerStreamPRequest.newBuilder()
-                  .setIsHead(true)
-                  .setWorkerId(mWorkerId)
-                  .addAllStorageTiers(mStorageTierAliases)
-                  .putAllTotalBytesOnTiers(mTotalBytesOnTiers)
-                  .putAllUsedBytesOnTiers(mUsedBytesOnTiers)
-                  .putAllLostStorage(lostStorageMap)
-                  .setOptions(options)
-                  .addAllCurrentBlocks(blockBatch)
-                  .build();
-        } else {
-//          System.out.println("Generating stream chunks");
-          request = RegisterWorkerStreamPRequest.newBuilder()
-                  .setIsHead(false)
-                  .setWorkerId(mWorkerId)
-                  .addAllCurrentBlocks(blockBatch)
-                  .build();
-        }
-
         // Send the request
-//        System.out.println("Sending request " + iter);
+        RegisterWorkerStreamPRequest request = next();
         mRequestObserver.onNext(request);
 
-        // TODO(jiacheng): what to do here
+        // TODO(jiacheng): what to do here, mark as failed and restart?
         if (mFinishLatch.getCount() == 0) {
           // RPC completed or errored before we finished sending.
           // Sending further requests won't error, but they will just be thrown away.
           LOG.error("The stream has not finished but the response has seen onError or onComplete");
-          System.out.format("The stream has not finished but the response has seen onError or onComplete");
           return;
         }
-
-        iter++;
       }
     } catch (Throwable t) {
       // TODO(jiacheng): throwable?
@@ -223,5 +194,38 @@ public class RegisterStream {
       LOG.error("Received error in register");
       throw new IOException(mError);
     }
+  }
+
+  @Override
+  public boolean hasNext() {
+    return mBlockListIterator.hasNext();
+  }
+
+  @Override
+  public RegisterWorkerStreamPRequest next() {
+    // If it is the 1st request, include metadata
+    RegisterWorkerStreamPRequest request;
+    List<LocationBlockIdListEntry> blockBatch = mBlockListIterator.next();
+    if (mBatchNumber == 0) {
+//          System.out.println("Generating header request of the stream");
+      request = RegisterWorkerStreamPRequest.newBuilder()
+              .setIsHead(true)
+              .setWorkerId(mWorkerId)
+              .addAllStorageTiers(mStorageTierAliases)
+              .putAllTotalBytesOnTiers(mTotalBytesOnTiers)
+              .putAllUsedBytesOnTiers(mUsedBytesOnTiers)
+              .putAllLostStorage(mLostStorageMap)
+              .setOptions(mOptions)
+              .addAllCurrentBlocks(blockBatch)
+              .build();
+    } else {
+      request = RegisterWorkerStreamPRequest.newBuilder()
+              .setIsHead(false)
+              .setWorkerId(mWorkerId)
+              .addAllCurrentBlocks(blockBatch)
+              .build();
+    }
+    mBatchNumber++;
+    return request;
   }
 }

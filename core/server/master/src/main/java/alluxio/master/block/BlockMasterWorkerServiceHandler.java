@@ -311,10 +311,8 @@ public final class BlockMasterWorkerServiceHandler extends
 
         // TODO(jiacheng): Will this block me from reclaiming resources?
         // TODO(jiacheng): Send a response in the last one too?
-//        responseObserver.onNext(RegisterWorkerStreamPResponse.getDefaultInstance());
         responseObserver.onCompleted();
         LOG.info("Completed server side");
-//        System.out.println("Completed server side");
 
         // Reclaim resources
         try {
