@@ -15,7 +15,7 @@ package alluxio.client.file.cache.cuckoofilter;
  * This class is a wrapper of java's builtin BitSet.
  */
 public class BuiltinBitSet implements BitSet {
-  private java.util.BitSet mBits;
+  private final java.util.BitSet mBits;
 
   /**
    * Creates a new bit set. All bits are initially {@code false}.

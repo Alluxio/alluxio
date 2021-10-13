@@ -4402,21 +4402,21 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       new Builder(Name.USER_CLIENT_CACHE_SHADOW_CUCKOO_CLOCK_BITS).setDefaultValue(4)
           .setDescription(
                   "The number of bits of each item's clock field.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
           .setScope(Scope.CLIENT)
           .build();
   public static final PropertyKey USER_CLIENT_CACHE_SHADOW_CUCKOO_SIZE_BITS =
       new Builder(Name.USER_CLIENT_CACHE_SHADOW_CUCKOO_SIZE_BITS).setDefaultValue(20)
           .setDescription(
                   "The number of bits of each item's size field.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
           .setScope(Scope.CLIENT)
           .build();
   public static final PropertyKey USER_CLIENT_CACHE_SHADOW_CUCKOO_SCOPE_BITS =
       new Builder(Name.USER_CLIENT_CACHE_SHADOW_CUCKOO_SCOPE_BITS).setDefaultValue(8)
           .setDescription(
                   "The number of bits of each item's scope field.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
           .setScope(Scope.CLIENT)
           .build();
   public static final PropertyKey USER_CLIENT_CACHE_DIR =

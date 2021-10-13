@@ -21,8 +21,8 @@ import java.util.concurrent.ThreadLocalRandom;
 public class SingleCuckooTable implements CuckooTable {
   private final int mTagsPerBucket;
   private final int mBitsPerTag;
-  private BitSet mBits;
-  private int mNumBuckets;
+  private final BitSet mBits;
+  private final int mNumBuckets;
 
   /**
    * Create a single cuckoo table on given bit set.
@@ -193,7 +193,7 @@ public class SingleCuckooTable implements CuckooTable {
 
   @Override
   public int getNumBuckets() {
-    return this.mNumBuckets;
+    return mNumBuckets;
   }
 
   @Override

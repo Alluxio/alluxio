@@ -21,7 +21,7 @@ import java.math.RoundingMode;
 public class CuckooUtils {
 
   /**
-   * Compute the bucket on given hash value.
+   * Computes the bucket index on given hash value.
    *
    * @param hv the hash value
    * @param numBuckets the number of buckets
@@ -53,10 +53,7 @@ public class CuckooUtils {
   public static int tagHash(int hv, int bitsPerTag) {
     int tag;
     tag = hv & ((1 << bitsPerTag) - 1);
-    if (tag == 0) {
-      tag++;
-    }
-    return tag;
+    return tag == 0 ? 1 : tag;
   }
 
   /**

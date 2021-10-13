@@ -115,6 +115,7 @@ public interface CacheManager extends AutoCloseable {
               return new NoExceptionCacheManager(
                   new CacheManagerWithShadowCache(LocalCacheManager.create(conf), conf));
             default:
+               // fall through intentionally
           }
         }
         return new NoExceptionCacheManager(LocalCacheManager.create(conf));

@@ -16,7 +16,7 @@ package alluxio.client.file.cache.cuckoofilter;
  */
 public interface CuckooTable {
   /**
-   * Read the value of tag in specified position.
+   * Reads the value of tag in specified position.
    *
    * @param bucketIndex the bucket index
    * @param slotIndex the slot in bucket
@@ -58,7 +58,7 @@ public interface CuckooTable {
    * @param bucketIndex1 the first bucket index
    * @param bucketIndex2 the second bucket index
    * @param tag the tag value to find
-   * @return true if the tag is found; false otherwise
+   * @return true if the tag is found in either bucket; false otherwise
    */
   boolean findTagInBuckets(int bucketIndex1, int bucketIndex2, int tag);
 

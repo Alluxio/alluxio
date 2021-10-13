@@ -18,7 +18,7 @@ enum CuckooStatus {
   OK(0), FAILURE(1), FAILURE_KEY_NOT_FOUND(2), FAILURE_KEY_DUPLICATED(3), FAILURE_TABLE_FULL(
       4), UNDEFINED(5);
 
-  public int mCode;
+  public final int mCode;
 
   /**
    * Create a cuckoo status.
