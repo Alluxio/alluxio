@@ -3196,7 +3196,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey WORKER_NETWORK_PERMIT_KEEPALIVE_TIME_MS =
       new Builder(
           Name.WORKER_NETWORK_PERMIT_KEEPALIVE_TIME_MS)
-          .setDefaultValue("5m")
+          .setDefaultValue("30s")
           .setDescription(
               "Specify the most aggressive keep-alive time clients are permitted to configure. "
                   + "The server will try to detect clients exceeding this rate and when detected "
