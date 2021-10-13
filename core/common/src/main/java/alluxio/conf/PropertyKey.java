@@ -3152,7 +3152,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       new Builder(Name.WORKER_NETWORK_ASYNC_CACHE_MANAGER_THREADS_MAX)
           .setDefaultSupplier(() -> Math.max(8, 2 * Runtime.getRuntime().availableProcessors()),
               "2 * {CPU core count}. Runtime.availableProcessors() always returns 1 in container "
-                  + "environment, and thus set a minimum value 2.")
+                  + "environment, and thus set a minimum value 8.")
           .setDescription("The maximum number of threads used to cache blocks asynchronously in "
               + "the data server.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
