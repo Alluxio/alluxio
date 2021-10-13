@@ -38,6 +38,7 @@ import com.beust.jcommander.ParametersDelegate;
 import com.google.common.util.concurrent.RateLimiter;
 import org.HdrHistogram.Histogram;
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.LocatedFileStatus;
@@ -252,7 +253,8 @@ public class StressMasterBench extends Benchmark<MasterBenchTaskResult> {
 
     RateLimiter rateLimiter = RateLimiter.create(mParameters.mTargetThroughput);
 
-    mFiledata = new byte[(int) FormatUtils.parseSpaceSize(mParameters.mCreateFileSize)];
+    long fileSize = FormatUtils.parseSpaceSize(mParameters.mCreateFileSize);
+    mFiledata = new byte[(int) Math.min(fileSize, StressConstants.WRITE_FILE_ONCE_MAX_BYTES)];
     Arrays.fill(mFiledata, (byte) 0x7A);
 
     long durationMs = FormatUtils.parseTimeSize(mParameters.mDuration);
@@ -488,7 +490,13 @@ public class StressMasterBench extends Benchmark<MasterBenchTaskResult> {
           } else {
             path = new Path(mBasePath, Long.toString(counter));
           }
-          mFs.create(path).close();
+          long fileSize = FormatUtils.parseSpaceSize(mParameters.mCreateFileSize);
+          try (FSDataOutputStream stream = mFs.create(path)) {
+            for (long i = 0; i < fileSize; i += StressConstants.WRITE_FILE_ONCE_MAX_BYTES) {
+              stream.write(mFiledata, 0,
+                  (int) Math.min(StressConstants.WRITE_FILE_ONCE_MAX_BYTES, fileSize - i));
+            }
+          }
           break;
         case GET_BLOCK_LOCATIONS:
           counter = counter % mParameters.mFixedCount;
