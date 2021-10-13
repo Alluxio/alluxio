@@ -23,14 +23,14 @@ import java.util.HashSet;
 import java.util.Random;
 import java.util.Set;
 
-public class SingleCuckooTableTest {
+public class SimpleCuckooTableTest {
   static final int NUM_BUCKETS = 16;
   static final int TAGS_PER_BUCKET = 4;
   static final int BITS_PER_TAG = 8;
 
   CuckooTable createCuckooTable() {
     BitSet bits = new BuiltinBitSet(NUM_BUCKETS * BITS_PER_TAG * 4);
-    return new SingleCuckooTable(bits, NUM_BUCKETS, TAGS_PER_BUCKET, BITS_PER_TAG);
+    return new SimpleCuckooTable(bits, NUM_BUCKETS, TAGS_PER_BUCKET, BITS_PER_TAG);
   }
 
   @Test

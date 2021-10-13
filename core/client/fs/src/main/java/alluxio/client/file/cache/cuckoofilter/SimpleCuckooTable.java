@@ -20,7 +20,7 @@ import java.util.concurrent.ThreadLocalRandom;
 /**
  * A simple cuckoo table.
  */
-public class SingleCuckooTable implements CuckooTable {
+public class SimpleCuckooTable implements CuckooTable {
   private final int mTagsPerBucket;
   private final int mBitsPerTag;
   private final BitSet mBits;
@@ -34,7 +34,7 @@ public class SingleCuckooTable implements CuckooTable {
    * @param tagsPerBucket the number of slots each bucket has
    * @param bitsPerTag the number of bits each slot has
    */
-  public SingleCuckooTable(BitSet bitSet, int numBuckets, int tagsPerBucket, int bitsPerTag) {
+  public SimpleCuckooTable(BitSet bitSet, int numBuckets, int tagsPerBucket, int bitsPerTag) {
     Preconditions.checkArgument(bitSet.size() == numBuckets * tagsPerBucket * bitsPerTag);
     mBits = bitSet;
     mNumBuckets = numBuckets;
@@ -49,10 +49,8 @@ public class SingleCuckooTable implements CuckooTable {
     // TODO(iluoeli): Optimize me, since per bit operation is inefficient
     for (int k = 0; k < mBitsPerTag; k++) {
       // set corresponding bit in tag
-      int b = 0;
       if (mBits.get(tagStartIdx + k)) {
-        b = 1;
-        tag |= (b << k);
+        tag |= (1 << k);
       }
     }
     return tag;

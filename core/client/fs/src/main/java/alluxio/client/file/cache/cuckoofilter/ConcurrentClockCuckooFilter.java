@@ -153,19 +153,19 @@ public class ConcurrentClockCuckooFilter<T> implements ClockCuckooFilter<T>, Ser
     long numBits = numBuckets * TAGS_PER_BUCKET * bitsPerTag;
     // TODO(iluoeli): check numBits overflow (< INT_MAX)
     BitSet bits = new BuiltinBitSet((int) numBits);
-    CuckooTable table = new SingleCuckooTable(bits, (int) numBuckets, TAGS_PER_BUCKET, bitsPerTag);
+    CuckooTable table = new SimpleCuckooTable(bits, (int) numBuckets, TAGS_PER_BUCKET, bitsPerTag);
 
     BitSet clockBits = new BuiltinBitSet((int) (numBuckets * TAGS_PER_BUCKET * bitsPerClock));
     CuckooTable clockTable =
-        new SingleCuckooTable(clockBits, (int) numBuckets, TAGS_PER_BUCKET, bitsPerClock);
+        new SimpleCuckooTable(clockBits, (int) numBuckets, TAGS_PER_BUCKET, bitsPerClock);
 
     BitSet sizeBits = new BuiltinBitSet((int) (numBuckets * TAGS_PER_BUCKET * bitsPerSize));
     CuckooTable sizeTable =
-        new SingleCuckooTable(sizeBits, (int) numBuckets, TAGS_PER_BUCKET, bitsPerSize);
+        new SimpleCuckooTable(sizeBits, (int) numBuckets, TAGS_PER_BUCKET, bitsPerSize);
 
     BitSet scopeBits = new BuiltinBitSet((int) (numBuckets * TAGS_PER_BUCKET * bitsPerScope));
     CuckooTable scopeTable =
-        new SingleCuckooTable(scopeBits, (int) numBuckets, TAGS_PER_BUCKET, bitsPerScope);
+        new SimpleCuckooTable(scopeBits, (int) numBuckets, TAGS_PER_BUCKET, bitsPerScope);
     return new ConcurrentClockCuckooFilter<>(table, clockTable, sizeTable, scopeTable,
         slidingWindowType, windowSize, funnel, hasher);
   }
