@@ -37,6 +37,7 @@ public class ConcurrentClockCuckooFilter<T> implements Serializable {
   private static final long serialVersionUID = 1L;
 
   private static final double DEFAULT_FPP = 0.01;
+  // The default load factor is from "Cuckoo Filter: Practically Better Than Bloom" by Fan et al.
   private static final double DEFAULT_LOAD_FACTOR = 0.955;
   private static final int MAX_CUCKOO_COUNT = 500;
   private static final int TAGS_PER_BUCKET = 4;
