@@ -132,7 +132,7 @@ public class ListBucketResult {
    */
   private List<URIStatus> filterKeys(String prefix, List<URIStatus> children) throws S3Exception {
     final String marker;
-    if (isVision2()) {
+    if (isVersion2()) {
       marker = decodeToken(mContinuationToken);
     } else {
       marker = mMarker;
@@ -148,7 +148,7 @@ public class ListBucketResult {
             && ((mDelimiter != null && mDelimiter.equals(AlluxioURI.SEPARATOR))
             || !status.isFolder())
             //startAfter filter for listObjectV2
-            && (!isVision2() || status.getPath().compareTo(prefix + mStartAfter) > 0))
+            && (!isVersion2() || status.getPath().compareTo(prefix + mStartAfter) > 0))
         .limit(mMaxKeys)
         .collect(Collectors.toList());
   }
@@ -213,7 +213,7 @@ public class ListBucketResult {
     mIsTruncated = mKeyCount == mMaxKeys;
     if (mIsTruncated) {
       mNextMarker = keys.get(mKeyCount - 1).getPath();
-      if (isVision2()) {
+      if (isVersion2()) {
         mNextContinuationToken = encodeToken(mNextMarker);
         mNextMarker = "";
       }
@@ -223,7 +223,7 @@ public class ListBucketResult {
   /**
    * @return if listObjectV2 version
    */
-  public boolean isVision2() {
+  public boolean isVersion2() {
     return this.mListType != null && this.mListType == 2;
   }
 
