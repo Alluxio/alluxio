@@ -4379,9 +4379,10 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "a past time window, and measure the hit ratio if the working set fits the cache")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN).setScope(Scope.CLIENT).build();
   public static final PropertyKey USER_CLIENT_CACHE_SHADOW_TYPE =
-      new Builder(Name.USER_CLIENT_CACHE_SHADOW_TYPE).setDefaultValue("MBF")
+      new Builder(Name.USER_CLIENT_CACHE_SHADOW_TYPE).setDefaultValue("MultipleBloomFilter")
           .setDescription("The type of shadow cache to be used. "
-              + "Valid options are `MBF` (multiple bloom filter), `CCF` (clock cuckoo filter).")
+              + "Valid options are `MultipleBloomFilter` (which uses a chain of bloom filters), "
+              +    "`ClockCuckooFilter` (which uses cuckoo filter with extended field).")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN).setScope(Scope.CLIENT).build();
   public static final PropertyKey USER_CLIENT_CACHE_SHADOW_WINDOW =
       new Builder(Name.USER_CLIENT_CACHE_SHADOW_WINDOW).setDefaultValue("24h")

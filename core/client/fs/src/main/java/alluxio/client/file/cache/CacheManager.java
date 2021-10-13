@@ -108,10 +108,10 @@ public interface CacheManager extends AutoCloseable {
           ShadowCacheType shadowCacheType =
               conf.getEnum(PropertyKey.USER_CLIENT_CACHE_SHADOW_TYPE, ShadowCacheType.class);
           switch (shadowCacheType) {
-            case MBF:
+            case MultipleBloomFilter:
               return new NoExceptionCacheManager(
                   new CacheManagerWithCuckooShadowCache(LocalCacheManager.create(conf), conf));
-            case CCF:
+            case ClockCuckooFilter:
               return new NoExceptionCacheManager(
                   new CacheManagerWithShadowCache(LocalCacheManager.create(conf), conf));
             default:
