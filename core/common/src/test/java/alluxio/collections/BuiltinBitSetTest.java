@@ -9,7 +9,7 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.client.file.cache.cuckoofilter;
+package alluxio.collections;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;

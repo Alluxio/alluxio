@@ -9,7 +9,7 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.client.file.cache.cuckoofilter;
+package alluxio.collections;
 
 /**
  * This class is a wrapper of java's builtin BitSet.

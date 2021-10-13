@@ -14,6 +14,9 @@ package alluxio.client.file.cache.cuckoofilter;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
+import alluxio.collections.BitSet;
+import alluxio.collections.BuiltinBitSet;
+
 import org.junit.Test;
 
 import java.util.HashSet;

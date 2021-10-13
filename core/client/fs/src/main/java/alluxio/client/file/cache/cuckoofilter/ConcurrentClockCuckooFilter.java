@@ -12,6 +12,8 @@
 package alluxio.client.file.cache.cuckoofilter;
 
 import alluxio.Constants;
+import alluxio.collections.BitSet;
+import alluxio.collections.BuiltinBitSet;
 
 import com.google.common.base.Preconditions;
 import com.google.common.hash.Funnel;
