@@ -17,9 +17,9 @@ import static org.junit.Assert.assertTrue;
 import org.junit.Test;
 
 public class UtilsTest {
-  static final int NUM_BUCKETS = 16;
-  static final int TAGS_PER_BUCKET = 4;
-  static final int BITS_PER_TAG = 8;
+  private static final int NUM_BUCKETS = 16;
+  private static final int TAGS_PER_BUCKET = 4;
+  private static final int BITS_PER_TAG = 8;
 
   @Test
   public void testGenerateIndexAndTag() {
