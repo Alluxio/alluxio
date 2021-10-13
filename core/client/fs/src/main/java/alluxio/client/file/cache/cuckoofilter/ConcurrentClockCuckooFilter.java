@@ -92,7 +92,7 @@ public class ConcurrentClockCuckooFilter<T> implements Serializable {
    * @param funnel the funnel of T's that the constructed cuckoo filter will use
    * @param hasher the hash function the constructed cuckoo filter will use
    */
-  public ConcurrentClockCuckooFilter(CuckooTable table, CuckooTable clockTable,
+  private ConcurrentClockCuckooFilter(CuckooTable table, CuckooTable clockTable,
       CuckooTable sizeTable, CuckooTable scopeTable, SlidingWindowType slidingWindowType,
       long windowSize, Funnel<? super T> funnel, HashFunction hasher) {
     mTable = table;
