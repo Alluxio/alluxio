@@ -16,7 +16,7 @@ import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
 
-public class UtilsTest {
+public class CuckooUtilsTest {
   private static final int NUM_BUCKETS = 16;
   private static final int TAGS_PER_BUCKET = 4;
   private static final int BITS_PER_TAG = 8;
