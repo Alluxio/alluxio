@@ -16,11 +16,18 @@ package alluxio.client.file.cache;
  */
 public enum ShadowCacheType {
   /**
-   * A shadow cache with multiple bloom filter.
+   * A shadow cache with multiple bloom filter implementation. It creates a chain of bloom filters
+   * that support updating operation which updates one of them during each sub-window, and switch
+   * operation which switch to the least recently used BF and clear it on switching sub-window.
    */
-  MBF,
+  MultipleBloomFilter,
   /**
-   * A shadow cache with clock cuckoo filter.
+   * A shadow cache with clock cuckoo filter implementation. It creates a cuckoo filter with
+   * extended field (clock, size, etc.). Thanks to the deletable feature of cuckoo filter, it can
+   * adapt to dynamic workload more smoothly. Clock cuckoo filter will `aging` all entries
+   * periodically. Specifically, it scans all stored entries, decreases their clock value, and
+   * deletes the stale ones whose clock value are reduced to zero. This process is similar to the
+   * well-known CLOCK algorithm, which is why we name it clock cuckoo filter.
    */
-  CCF,
+  ClockCuckooFilter,
 }
