@@ -15,8 +15,30 @@ package alluxio.client.file.cache.cuckoofilter;
  * This class represents the status of tag position.
  */
 enum CuckooStatus {
-  OK(0), FAILURE(1), FAILURE_KEY_NOT_FOUND(2), FAILURE_KEY_DUPLICATED(3), FAILURE_TABLE_FULL(
-      4), UNDEFINED(5);
+  /**
+   * The status indicates success.
+   */
+  OK(0),
+  /**
+   * The status indicates failure.
+   */
+  FAILURE(1),
+  /**
+   * The status indicates failure, for the reason of key not found.
+   */
+  FAILURE_KEY_NOT_FOUND(2),
+  /**
+   * The status indicates failure, for the reason of key duplicated.
+   */
+  FAILURE_KEY_DUPLICATED(3),
+  /**
+   * The status indicates failure, for the reason of table full.
+   */
+  FAILURE_TABLE_FULL(4),
+  /**
+   * The status indicates an undefined state.
+   */
+  UNDEFINED(5);
 
   public final int mCode;
 
