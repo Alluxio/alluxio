@@ -1969,7 +1969,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey MASTER_METASTORE_INODE_ITERATION_CRAWLER_COUNT =
       new Builder(Name.MASTER_METASTORE_INODE_ITERATION_CRAWLER_COUNT)
-          .setDefaultSupplier(() -> Runtime.getRuntime().availableProcessors(),
+          .setDefaultSupplier(() -> Math.max(4, Runtime.getRuntime().availableProcessors()),
               "Use {CPU core count} for enumeration")
           .setDescription("The number of threads used during inode tree enumeration.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
@@ -2691,7 +2691,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey MASTER_METADATA_SYNC_EXECUTOR_POOL_SIZE =
       new Builder(Name.MASTER_METADATA_SYNC_EXECUTOR_POOL_SIZE)
-          .setDefaultSupplier(() -> Runtime.getRuntime().availableProcessors(),
+          .setDefaultSupplier(() -> Math.max(4, Runtime.getRuntime().availableProcessors()),
               "The total number of threads which can concurrently execute metadata sync "
                   + "operations.")
           .setDescription("The number of threads used to execute all metadata sync"
@@ -2709,7 +2709,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey MASTER_METADATA_SYNC_UFS_PREFETCH_POOL_SIZE =
       new Builder(Name.MASTER_METADATA_SYNC_UFS_PREFETCH_POOL_SIZE)
-          .setDefaultSupplier(() -> 10 * Runtime.getRuntime().availableProcessors(),
+          .setDefaultSupplier(() -> Math.max(20, 10 * Runtime.getRuntime().availableProcessors()),
               "The number of threads which can concurrently fetch metadata from UFSes during a "
                   + "metadata sync operations")
           .setDescription("The number of threads used to fetch UFS objects for all metadata sync"
@@ -2719,7 +2719,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey MASTER_RPC_EXECUTOR_PARALLELISM =
       new Builder(Name.MASTER_RPC_EXECUTOR_PARALLELISM)
-          .setDefaultSupplier(() -> 2 * Runtime.getRuntime().availableProcessors(),
+          .setDefaultSupplier(() -> Math.max(8, 2 * Runtime.getRuntime().availableProcessors()),
               "2 * {CPU core count}")
           .setDescription("The parallelism level of master RPC executor service .")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
@@ -3014,7 +3014,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey WORKER_MANAGEMENT_TASK_THREAD_COUNT =
       new Builder(Name.WORKER_MANAGEMENT_TASK_THREAD_COUNT)
-          .setDefaultSupplier(() -> Runtime.getRuntime().availableProcessors(),
+          .setDefaultSupplier(() -> Math.max(4, Runtime.getRuntime().availableProcessors()),
               "Use {CPU core count} threads for all management tasks")
           .setDescription("The number of threads for management task executor")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
@@ -3140,17 +3140,10 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey WORKER_NETWORK_ASYNC_CACHE_MANAGER_THREADS_MAX =
       new Builder(Name.WORKER_NETWORK_ASYNC_CACHE_MANAGER_THREADS_MAX)
-          .setDefaultSupplier(() -> {
-            int cpuCount = Runtime.getRuntime().availableProcessors();
-            // In container cpuCount is always 1. Use default value 8 otherwise worker won't start.
-            if (cpuCount == 1) {
-              return 8;
-            } else {
-              return 2 * cpuCount;
-            }
-          }, "2 * {CPU core count}, or 8 in case the count is 1 in container environment")
+          .setDefaultSupplier(() -> Math.max(2 * Runtime.getRuntime().availableProcessors(), 8),
+              "2 * {CPU core count}, or 8 if {CPU cour count} is less than 4")
           .setDescription("The maximum number of threads used to cache blocks asynchronously in "
-                  + "the data server.")
+              + "the data server.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
