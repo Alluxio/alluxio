@@ -72,6 +72,7 @@ public class CuckooUtils {
 
   /**
    * Compute the number of bits of each tag on given fpp.
+   * The equation is from "Cuckoo Filter: Practically Better Than Bloom" by Fan et al.
    *
    * @param fpp the false positive probability
    * @param loadFactor the load factor
