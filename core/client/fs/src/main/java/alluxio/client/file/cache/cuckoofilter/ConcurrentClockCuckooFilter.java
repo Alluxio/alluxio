@@ -33,7 +33,7 @@ import java.util.concurrent.atomic.AtomicLong;
  *
  * @param <T> the type of item
  */
-public class ConcurrentClockCuckooFilter<T> implements Serializable {
+public class ConcurrentClockCuckooFilter<T> implements ClockCuckooFilter<T>, Serializable {
   private static final long serialVersionUID = 1L;
 
   private static final double DEFAULT_FPP = 0.01;
@@ -259,14 +259,7 @@ public class ConcurrentClockCuckooFilter<T> implements Serializable {
         SlidingWindowType.NONE, -1, DEFAULT_FPP);
   }
 
-  /**
-   * Insert an item into cuckoo filter.
-   *
-   * @param item the object to be inserted
-   * @param size the size of this item
-   * @param scopeInfo the scope this item belongs to
-   * @return true if inserted successfully; false otherwise
-   */
+  @Override
   public boolean put(T item, int size, ScopeInfo scopeInfo) {
     // NOTE: zero size is not allowed in our clock filter, because we use zero size as
     // a special case to indicate an size overflow (size > mMaxSize), and all the
@@ -314,22 +307,12 @@ public class ConcurrentClockCuckooFilter<T> implements Serializable {
     return false;
   }
 
-  /**
-   * Check whether an item is in cuckoo filter (and reset its clock to MAX) or not.
-   *
-   * @param item the item to be checked
-   * @return true if item is in cuckoo filter; false otherwise
-   */
+  @Override
   public boolean mightContainAndResetClock(T item) {
     return mightContainAndOptionalResetClock(item, true);
   }
 
-  /**
-   * Check whether an item is in cuckoo filter or not. This method will not change item's clock.
-   *
-   * @param item the item to be checked
-   * @return true if item is in cuckoo filter; false otherwise
-   */
+  @Override
   public boolean mightContain(T item) {
     return mightContainAndOptionalResetClock(item, false);
   }
@@ -356,12 +339,7 @@ public class ConcurrentClockCuckooFilter<T> implements Serializable {
     return found;
   }
 
-  /**
-   * Delete an item from cuckoo filter.
-   *
-   * @param item the item to be deleted
-   * @return true if the item is deleted; false otherwise
-   */
+  @Override
   public boolean delete(T item) {
     IndexAndTag indexAndTag = generateIndexAndTag(item);
     int i1 = indexAndTag.mBucketIndex;
@@ -384,10 +362,7 @@ public class ConcurrentClockCuckooFilter<T> implements Serializable {
     return false;
   }
 
-  /**
-   * A thread-safe method to check aging progress of each segment. Should be called on each T/(2^C),
-   * where T is the window size and C is the bits number of the CLOCK field.
-   */
+  @Override
   public void aging() {
     int numSegments = mLocks.getNumLocks();
     int bucketsPerSegment = mLocks.getNumBucketsPerSegment();
@@ -440,43 +415,30 @@ public class ConcurrentClockCuckooFilter<T> implements Serializable {
             + getNumBuckets() * getTagsPerBucket() * mBitsPerScope / 8.0 / Constants.MB);
   }
 
-  /**
-   * @return the probability that {@linkplain #mightContain(Object)} will erroneously return {@code
-   * true} for an object that has not actually been put in the {@code ConcurrentCuckooFilter}.
-   */
+  @Override
   public double expectedFpp() {
     // TODO(iluoeli): compute real fpp
     return DEFAULT_FPP;
   }
 
-  /**
-   * @return the number of items in this cuckoo filter
-   */
-  public int getItemNumber() {
+  @Override
+  public long approximateElementCount() {
     return mNumItems.intValue();
   }
 
-  /**
-   * @param scopeInfo the scope to be queried
-   * @return the number of items of specified scope in this cuckoo filter
-   */
-  public int getItemNumber(ScopeInfo scopeInfo) {
+  @Override
+  public long approximateElementCount(ScopeInfo scopeInfo) {
     return mScopeToNumber[encodeScope(scopeInfo)].get();
   }
 
-  /**
-   * @return the size of items in this cuckoo filter
-   */
-  public int getItemSize() {
-    return mTotalBytes.intValue();
+  @Override
+  public long approximateElementSize() {
+    return mTotalBytes.get();
   }
 
-  /**
-   * @param scopeInfo the scope to be queried
-   * @return the size of items of specified scope in this cuckoo filter
-   */
-  public int getItemSize(ScopeInfo scopeInfo) {
-    return mScopeToSize[encodeScope(scopeInfo)].intValue();
+  @Override
+  public long approximateElementSize(ScopeInfo scopeInfo) {
+    return mScopeToSize[encodeScope(scopeInfo)].get();
   }
 
   /**

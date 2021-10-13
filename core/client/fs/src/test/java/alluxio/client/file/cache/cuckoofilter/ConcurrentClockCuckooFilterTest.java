@@ -85,7 +85,7 @@ public class ConcurrentClockCuckooFilterTest {
       int s = (1 << i) - 1;
       assertTrue(mClockFilter.put(i, s, SCOPE1));
       scope1Size += s;
-      assertEquals(scope1Size, mClockFilter.getItemSize(SCOPE1));
+      assertEquals(scope1Size, mClockFilter.approximateElementSize(SCOPE1));
     }
     // fill the filter, and expect reallocation to disturb original position
     for (int i = MAX_AGE + 1; i <= EXPECTED_INSERTIONS; i++) {
@@ -94,13 +94,13 @@ public class ConcurrentClockCuckooFilterTest {
       }
     }
     // delete some items and re-check the size of item 1~15
-    assertEquals(scope1Size, mClockFilter.getItemSize(SCOPE1));
+    assertEquals(scope1Size, mClockFilter.approximateElementSize(SCOPE1));
     for (int i = 1; i <= BITS_PER_SIZE; i++) {
       assertTrue(mClockFilter.mightContain(i));
       assertTrue(mClockFilter.delete(i));
       assertFalse(mClockFilter.mightContain(i));
       scope1Size -= ((1 << i) - 1);
-      assertEquals(scope1Size, mClockFilter.getItemSize(SCOPE1));
+      assertEquals(scope1Size, mClockFilter.approximateElementSize(SCOPE1));
     }
   }
 
@@ -115,13 +115,13 @@ public class ConcurrentClockCuckooFilterTest {
     // should handle an item with a maximum size correctly
     mClockFilter.put(1, maxSize, SCOPE1);
     mClockFilter.put(2, maxSize + 1, SCOPE1);
-    assertEquals(2, mClockFilter.getItemNumber(SCOPE1));
-    assertEquals(maxSize + maxSize, mClockFilter.getItemSize(SCOPE1));
+    assertEquals(2, mClockFilter.approximateElementCount(SCOPE1));
+    assertEquals(maxSize + maxSize, mClockFilter.approximateElementSize(SCOPE1));
     for (int i = 0; i <= MAX_AGE; i++) {
       mClockFilter.aging();
     }
-    assertEquals(0, mClockFilter.getItemNumber(SCOPE1));
-    assertEquals(0, mClockFilter.getItemSize(SCOPE1));
+    assertEquals(0, mClockFilter.approximateElementCount(SCOPE1));
+    assertEquals(0, mClockFilter.approximateElementSize(SCOPE1));
   }
 
   @Test
