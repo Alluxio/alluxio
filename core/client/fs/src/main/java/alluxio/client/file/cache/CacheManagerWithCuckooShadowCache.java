@@ -14,6 +14,7 @@ package alluxio.client.file.cache;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
 import alluxio.client.file.CacheContext;
+import alluxio.client.file.cache.cuckoofilter.ClockCuckooFilter;
 import alluxio.client.file.cache.cuckoofilter.ConcurrentClockCuckooFilter;
 import alluxio.client.file.cache.cuckoofilter.ScopeInfo;
 import alluxio.client.file.cache.cuckoofilter.SlidingWindowType;
@@ -47,7 +48,7 @@ public class CacheManagerWithCuckooShadowCache implements CacheManager {
   private final int mBitsPerClock;
   private final int mBitsPerSize;
   private final int mBitsPerScope;
-  private final ConcurrentClockCuckooFilter<PageId> mFilter;
+  private final ClockCuckooFilter<PageId> mFilter;
   private long mShadowCacheBytes = 0;
   private long mShadowCachePages = 0;
   private ScopeInfo mScope = new ScopeInfo("table1");
@@ -89,10 +90,10 @@ public class CacheManagerWithCuckooShadowCache implements CacheManager {
   @VisibleForTesting
   public void updateWorkingSetSize() {
     long oldPages = Metrics.SHADOW_CACHE_PAGES.getCount();
-    mShadowCachePages = mFilter.getItemNumber();
+    mShadowCachePages = mFilter.approximateElementCount();
     Metrics.SHADOW_CACHE_PAGES.inc(mShadowCachePages - oldPages);
     long oldBytes = Metrics.SHADOW_CACHE_BYTES.getCount();
-    mShadowCacheBytes = mFilter.getItemSize();
+    mShadowCacheBytes = mFilter.approximateElementSize();
     Metrics.SHADOW_CACHE_BYTES.inc(mShadowCacheBytes - oldBytes);
   }
 
