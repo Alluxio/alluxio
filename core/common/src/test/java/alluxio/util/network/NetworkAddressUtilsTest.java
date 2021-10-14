@@ -246,6 +246,9 @@ public class NetworkAddressUtilsTest {
       case MASTER_RPC:
         mConfiguration.set(PropertyKey.MASTER_RPC_PORT, "20000");
         break;
+      case MASTER_SERVICE_RPC:
+        mConfiguration.set(PropertyKey.MASTER_SERVICE_RPC_PORT, "20000");
+        break;
       case MASTER_WEB:
         mConfiguration.set(PropertyKey.MASTER_WEB_PORT, "20000");
         break;
