@@ -24,6 +24,7 @@ import alluxio.master.AlluxioMasterProcess;
 import alluxio.master.LocalAlluxioCluster;
 import alluxio.master.block.BlockMaster;
 import alluxio.testutils.LocalAlluxioClusterResource;
+import alluxio.util.CommonUtils;
 import alluxio.wire.WorkerNetAddress;
 
 import org.junit.Before;
@@ -58,6 +59,7 @@ public class BlockMasterJournalIntegrationTest {
     mCluster.stopMasters();
     mCluster.startMasters();
     AlluxioMasterProcess masterProcess = mCluster.getLocalAlluxioMaster().getMasterProcess();
+    CommonUtils.waitFor("Master up", () -> !masterProcess.isInSafeMode());
     assertNotNull(masterProcess.getMaster(BlockMaster.class).getBlockInfo(blockId));
   }
 
@@ -82,6 +84,7 @@ public class BlockMasterJournalIntegrationTest {
     mCluster.stopMasters();
     mCluster.startMasters();
     AlluxioMasterProcess masterProcess = mCluster.getLocalAlluxioMaster().getMasterProcess();
+    CommonUtils.waitFor("Master up", () -> !masterProcess.isInSafeMode());
     try {
       masterProcess.getMaster(BlockMaster.class).getBlockInfo(blockId);
       fail("Expected the block to be deleted after restart");
