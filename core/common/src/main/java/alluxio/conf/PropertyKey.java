@@ -3232,6 +3232,15 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
+  public static final PropertyKey WORKER_REGISTER_STREAMING =
+      new Builder(Name.WORKER_REGISTER_STREAMING)
+          .setDefaultValue("false")
+          .setDescription("When the worker registers with the master, whether the request should be"
+              + " broken into a stream of smaller chunks. This is useful when the worker's storage "
+              + "is large and we expect a large number of blocks. ")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.WORKER)
+          .build();
   public static final PropertyKey WORKER_REGISTER_BATCH_SIZE =
       new Builder(Name.WORKER_REGISTER_BATCH_SIZE)
           .setDefaultValue("1000")
@@ -6028,6 +6037,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.worker.network.shutdown.timeout";
     public static final String WORKER_NETWORK_ZEROCOPY_ENABLED =
         "alluxio.worker.network.zerocopy.enabled";
+    public static final String WORKER_REGISTER_STREAMING = "alluxio.worker.register.streaming";
     public static final String WORKER_REGISTER_BATCH_SIZE =
         "alluxio.worker.register.batch.size";
     public static final String WORKER_REMOTE_IO_SLOW_THRESHOLD =

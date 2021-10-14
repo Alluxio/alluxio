@@ -75,6 +75,9 @@ public final class BlockMasterSync implements HeartbeatExecutor {
   /** Last System.currentTimeMillis() timestamp when a heartbeat successfully completed. */
   private long mLastSuccessfulHeartbeatMs;
 
+  /** Whether to use streaming */
+  private boolean mIsStreaming;
+
   /**
    * Creates a new instance of {@link BlockMasterSync}.
    *
@@ -93,8 +96,13 @@ public final class BlockMasterSync implements HeartbeatExecutor {
     mHeartbeatTimeoutMs = (int) ServerConfiguration
         .getMs(PropertyKey.WORKER_BLOCK_HEARTBEAT_TIMEOUT_MS);
     mAsyncBlockRemover = new AsyncBlockRemover(mBlockWorker);
+    mIsStreaming = ServerConfiguration.getBoolean(PropertyKey.WORKER_REGISTER_STREAMING);
 
-    registerWithMaster();
+    if (mIsStreaming) {
+      registerWithMasterStream();
+    } else {
+      registerWithMaster();
+    }
     mLastSuccessfulHeartbeatMs = System.currentTimeMillis();
   }
 
@@ -199,7 +207,11 @@ public final class BlockMasterSync implements HeartbeatExecutor {
       // Master requests re-registration
       case Register:
         mWorkerId.set(mMasterClient.getId(mWorkerAddress));
-        registerWithMaster();
+        if (mIsStreaming) {
+          registerWithMasterStream();
+        } else {
+          registerWithMaster();
+        }
         break;
       // Unknown request
       case Unknown:
