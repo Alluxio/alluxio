@@ -60,8 +60,8 @@ public class SegmentedLockTest {
         for (int i = 0; i < NUM_BUCKETS; i++) {
           int r1 = ThreadLocalRandom.current().nextInt(NUM_BUCKETS);
           int r2 = ThreadLocalRandom.current().nextInt(NUM_BUCKETS);
-          mLocks.lockTwoWrite(r1, r2);
-          mLocks.unlockTwoWrite(r1, r2);
+          mLocks.writeLock(r1, r2);
+          mLocks.unlockWrite(r1, r2);
         }
       });
     }
