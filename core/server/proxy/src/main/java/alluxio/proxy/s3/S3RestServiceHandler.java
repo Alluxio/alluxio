@@ -477,6 +477,10 @@ public final class S3RestServiceHandler {
           } else {
             toRead = Integer.parseInt(contentLength);
           }
+          // overwrite existing object
+          if (fs.exists(objectURI)) {
+            fs.delete(objectURI, DeletePOptions.newBuilder().setUnchecked(true).build());
+          }
           FileOutStream os = fs.createFile(objectURI, dirOptions);
           try (DigestOutputStream digestOutputStream = new DigestOutputStream(os, md5)) {
             ByteStreams.copy(ByteStreams.limit(is, toRead), digestOutputStream);
