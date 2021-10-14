@@ -18,18 +18,19 @@ import alluxio.job.SelectExecutorsContext;
 import alluxio.job.plan.AbstractVoidPlanDefinition;
 import alluxio.job.plan.BatchedJobConfig;
 import alluxio.job.plan.PlanDefinition;
+import alluxio.job.plan.load.LoadDefinition;
+import alluxio.job.plan.migrate.MigrateDefinition;
+import alluxio.job.plan.persist.PersistDefinition;
 import alluxio.job.util.SerializableVoid;
 import alluxio.wire.WorkerInfo;
 
+import com.beust.jcommander.internal.Sets;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.MoreObjects;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -41,7 +42,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public final class BatchedJobDefinition
-    extends AbstractVoidPlanDefinition<BatchedJobConfig, ArrayList<BatchedJobDefinition.BatchedJobTask>> {
+    extends AbstractVoidPlanDefinition<BatchedJobConfig, BatchedJobDefinition.BatchedJobTask> {
   private static final Logger LOG = LoggerFactory.getLogger(BatchedJobDefinition.class);
 
   /**
@@ -51,38 +52,36 @@ public final class BatchedJobDefinition
   }
 
   @Override
-  public Set<Pair<WorkerInfo, ArrayList<BatchedJobTask>>> selectExecutors(BatchedJobConfig config,
+  public Set<Pair<WorkerInfo, BatchedJobTask>> selectExecutors(BatchedJobConfig config,
       List<WorkerInfo> jobWorkerInfoList, SelectExecutorsContext context)
       throws Exception {
     //get job type and config
     String jobType = config.getJobType();
-    Class<?> jobClass = Class.forName(jobType); // use enum for get class
-    PlanDefinition plan = (PlanDefinition) jobClass.newInstance();
+
+    PlanDefinition plan = JobDefinitionFactory.create(jobType);
     // convert map to config
     final ObjectMapper mapper = new ObjectMapper();
-    Class jobConfigClass = plan.getJobConfigClass();
-
-    JobConfig jobConfig = (JobConfig) mapper.convertValue(config.getJobConfigs(), jobConfigClass);
-
-
-    // call the specific PlanDefinition.selectExecutors
-    Set<Pair<WorkerInfo,?>> jobs = plan.selectExecutors(jobConfig, jobWorkerInfoList, context);
-    Map<WorkerInfo, List<?>> map = Collections.emptyMap();
-    for(Pair<WorkerInfo,?> job:jobs){
-      //put workerInfo as key and job as list of value
-
+    Class<?> jobConfigClass = plan.getJobConfigClass();
+    Set<Pair<WorkerInfo, BatchedJobTask>> allTasks = Sets.newHashSet();
+    for(Map<String,String> configMap:config.getJobConfigs()) {
+      JobConfig jobConfig = (JobConfig) mapper.convertValue(configMap, jobConfigClass);
+      Set<Pair<WorkerInfo,Serializable>> tasks = plan.selectExecutors(jobConfig, jobWorkerInfoList, context);
+      for(Pair<WorkerInfo,Serializable> task:tasks){
+        BatchedJobTask batchedTask = new BatchedJobTask(jobConfig, task.getSecond());
+        allTasks.add(new Pair<>(task.getFirst(),batchedTask));
+      }
     }
-    Set<Pair<WorkerInfo, ArrayList<BatchedJobTask>>> batchedJobs = new HashSet(map.values());
-    return batchedJobs;
+
+    return allTasks;
   }
 
 
   @Override
-  public SerializableVoid runTask(BatchedJobConfig config, ArrayList<BatchedJobTask> tasks,
+  public SerializableVoid runTask(BatchedJobConfig config, BatchedJobTask task,
       RunTaskContext context) throws Exception {
-    for(BatchedJobTask task:tasks) {
-      // do similar thing as selectExecutors but call the specific PlanDefinition.runTask
-    }
+    String jobType = config.getJobType();
+    @SuppressWarnings("rawtypes") PlanDefinition plan = JobDefinitionFactory.create(jobType);
+    plan.runTask(task.getJobConfig(),task.getJobTaskArgs(),context);
     return null;
   }
 
@@ -92,30 +91,47 @@ public final class BatchedJobDefinition
    */
   public static class BatchedJobTask implements Serializable {
     private static final long serialVersionUID = -3643377264144315329L;
-    final String mJobType;
-    final Map<String,String> mJobTaskArgs;
+    final Serializable mJobTaskArgs;
+    final JobConfig mJobConfig;
 
     /**
-     * @param jobType
      * @param jobTaskArgs
      */
-    public BatchedJobTask(String jobType, Map<String,String> jobTaskArgs) {
-      this.mJobType = jobType;
+    public BatchedJobTask(JobConfig config,Serializable jobTaskArgs) {
+      this.mJobConfig = config;
       this.mJobTaskArgs = jobTaskArgs;
     }
-
+    public Serializable getJobTaskArgs() {
+      return mJobTaskArgs;
+    }
+    public JobConfig getJobConfig() {
+      return mJobConfig;
+    }
 
     @Override
     public String toString() {
       return MoreObjects.toStringHelper(this)
-          .add("jobType", mJobType)
+          .add("jobConfig", mJobConfig)
           .add("jobTaskArgs", mJobTaskArgs)
           .toString();
     }
+
   }
 
   @Override
   public Class<BatchedJobConfig> getJobConfigClass() {
     return BatchedJobConfig.class;
+  }
+
+  public static class JobDefinitionFactory{
+    public static PlanDefinition create(String jobName){
+      switch (jobName){
+        case "Load":return new LoadDefinition();
+        case "Migrate":return new MigrateDefinition();
+        case "Persist":return new PersistDefinition();
+        default:
+          throw new IllegalStateException("Unknown job: " + jobName);
+      }
+    }
   }
 }
