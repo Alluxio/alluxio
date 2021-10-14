@@ -172,7 +172,6 @@ public final class S3RestServiceHandler {
    */
   @GET
   public Response listAllMyBuckets(@HeaderParam("Authorization") String authorization) {
-
     return S3RestUtils.call("", () -> {
       String user = getUserFromAuthorization(authorization);
 
@@ -428,12 +427,16 @@ public final class S3RestServiceHandler {
 
       CreateDirectoryPOptions options = CreateDirectoryPOptions.newBuilder()
           .setRecursive(true)
+          .setAllowExists(true)
           .build();
 
       if (objectPath.endsWith(AlluxioURI.SEPARATOR)) {
         // Need to create a folder
         try {
           fs.createDirectory(new AlluxioURI(objectPath), options);
+        } catch (FileAlreadyExistsException e) {
+          // ok if directory already exists the user wanted to create it anyway
+          LOG.warn("attempting to create dir which already exists");
         } catch (IOException | AlluxioException e) {
           throw toObjectS3Exception(e, objectPath);
         }
@@ -498,7 +501,8 @@ public final class S3RestServiceHandler {
         }
       } else {
         try (FileInStream in = fs.openFile(
-            new AlluxioURI(AlluxioURI.SEPARATOR + copySource));
+            new AlluxioURI(!copySource.startsWith(AlluxioURI.SEPARATOR) ?
+                AlluxioURI.SEPARATOR + copySource : copySource));
             FileOutStream out = fs.createFile(objectURI)) {
           MessageDigest md5 = MessageDigest.getInstance("MD5");
           try (DigestOutputStream digestOut = new DigestOutputStream(out, md5)) {
@@ -642,6 +646,9 @@ public final class S3RestServiceHandler {
 
       try {
         URIStatus status = fs.getStatus(objectURI);
+        if (status.isFolder()) {
+          throw new FileDoesNotExistException(status.getPath() + " is a directory");
+        }
         // TODO(cc): Consider how to respond with the object's ETag.
         return Response.ok().lastModified(new Date(status.getLastModificationTimeMs()))
             .header(S3Constants.S3_ETAG_HEADER, "\"" + status.getLastModificationTimeMs() + "\"")
