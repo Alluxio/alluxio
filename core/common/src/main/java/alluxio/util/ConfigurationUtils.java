@@ -152,6 +152,23 @@ public final class ConfigurationUtils {
   }
 
   /**
+   * Gets the service RPC addresses of all masters based on the configuration.
+   *
+   * @param conf the configuration to use
+   * @return the master service rpc addresses
+   */
+  public static List<InetSocketAddress> getMasterServiceRpcAddresses(AlluxioConfiguration conf) {
+    // First check whether rpc addresses are explicitly configured.
+    if (conf.isSet(PropertyKey.MASTER_SERVICE_RPC_ADDRESSES)) {
+      return parseInetSocketAddresses(conf.getList(PropertyKey.MASTER_SERVICE_RPC_ADDRESSES, ","));
+    }
+
+    // Fall back on server-side journal configuration.
+    int rpcPort = NetworkAddressUtils.getPort(ServiceType.MASTER_SERVICE_RPC, conf);
+    return overridePort(getEmbeddedJournalAddresses(conf, ServiceType.MASTER_RAFT), rpcPort);
+  }
+
+  /**
    * Gets the RPC addresses of all job masters based on the configuration.
    *
    * @param conf the configuration to use

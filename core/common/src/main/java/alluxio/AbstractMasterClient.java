@@ -36,7 +36,7 @@ public abstract class AbstractMasterClient extends AbstractClient {
    */
   public AbstractMasterClient(MasterClientContext clientConf) {
     super(clientConf, null);
-    mMasterInquireClient = clientConf.getMasterInquireClient();
+    mMasterInquireClient = getMasterInquireClient(clientConf);
   }
 
   /**
@@ -50,6 +50,11 @@ public abstract class AbstractMasterClient extends AbstractClient {
       Supplier<RetryPolicy> retryPolicySupplier) {
     super(clientConf, address, retryPolicySupplier);
     mMasterInquireClient = clientConf.getMasterInquireClient();
+  }
+
+  protected MasterInquireClient getMasterInquireClient(
+      MasterClientContext clientConf) {
+    return clientConf.getMasterInquireClient();
   }
 
   @Override

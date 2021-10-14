@@ -1862,6 +1862,15 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "addresses.")
           .setScope(Scope.ALL)
           .build();
+
+  public static final PropertyKey MASTER_SERVICE_RPC_ADDRESSES =
+      new Builder(Name.MASTER_SERVICE_RPC_ADDRESSES).setDescription(
+              "A list of comma-separated host:port RPC addresses where the client should look for "
+                  + "masters when using multiple masters without Zookeeper. This property is not "
+                  + "used when Zookeeper is enabled, since Zookeeper already stores the master "
+                  + "addresses.")
+          .setScope(Scope.ALL)
+          .build();
   public static final PropertyKey MASTER_FILE_ACCESS_TIME_JOURNAL_FLUSH_INTERVAL =
       new Builder(Name.MASTER_FILE_ACCESS_TIME_JOURNAL_FLUSH_INTERVAL)
           .setDefaultValue("1h")
@@ -2391,6 +2400,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDefaultValue(19998)
           .setDescription("The port for Alluxio master's RPC service.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.ALL)
+          .build();
+  public static final PropertyKey MASTER_SERVICE_RPC_PORT =
+      new Builder(Name.MASTER_SERVICE_RPC_PORT)
+          .setAlias("alluxio.master.service.port")
+          .setDefaultValue(19997)
+          .setDescription("The port for Alluxio master's service RPC service.")
           .setScope(Scope.ALL)
           .build();
   public static final PropertyKey MASTER_SERVING_THREAD_TIMEOUT =
@@ -5844,6 +5860,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.journal.tailer.shutdown.quiet.wait.time";
     public static final String MASTER_JOURNAL_TAILER_SLEEP_TIME_MS =
         "alluxio.master.journal.tailer.sleep.time";
+    public static final String MASTER_SERVICE_RPC_ADDRESSES =
+        "alluxio.master.service.rpc.addresses";
     public static final String MASTER_RPC_ADDRESSES = "alluxio.master.rpc.addresses";
     public static final String MASTER_EMBEDDED_JOURNAL_PROXY_HOST =
         "alluxio.master.embedded.journal.bind.host";
@@ -5941,6 +5959,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String MASTER_PRINCIPAL = "alluxio.master.principal";
     public static final String MASTER_REPLICATION_CHECK_INTERVAL_MS =
         "alluxio.master.replication.check.interval";
+    public static final String MASTER_SERVICE_RPC_PORT =
+        "alluxio.master.service.rpc.port";
     public static final String MASTER_RPC_PORT = "alluxio.master.rpc.port";
     public static final String MASTER_RPC_EXECUTOR_PARALLELISM =
         "alluxio.master.rpc.executor.parallelism";

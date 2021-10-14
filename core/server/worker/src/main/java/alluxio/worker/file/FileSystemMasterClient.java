@@ -22,6 +22,7 @@ import alluxio.grpc.GrpcUtils;
 import alluxio.grpc.ServiceType;
 import alluxio.grpc.UfsInfo;
 import alluxio.master.MasterClientContext;
+import alluxio.master.MasterInquireClient;
 import alluxio.wire.FileInfo;
 
 import org.slf4j.Logger;
@@ -50,6 +51,12 @@ public class FileSystemMasterClient extends AbstractMasterClient {
    */
   public FileSystemMasterClient(MasterClientContext conf) {
     super(conf);
+  }
+
+  @Override
+  protected MasterInquireClient getMasterInquireClient(
+      MasterClientContext clientConf) {
+    return clientConf.getMasterInquireClient();
   }
 
   @Override

@@ -55,7 +55,8 @@ public final class AlluxioWorker {
 
     CommonUtils.PROCESS_TYPE.set(CommonUtils.ProcessType.WORKER);
     MasterInquireClient masterInquireClient =
-        MasterInquireClient.Factory.create(ServerConfiguration.global(), ServerUserState.global());
+        MasterInquireClient.Factory.create(
+            ServerConfiguration.global(), ServerUserState.global(), true);
     try {
       RetryUtils.retry("load cluster default configuration with master", () -> {
         InetSocketAddress masterAddress = masterInquireClient.getPrimaryRpcAddress();

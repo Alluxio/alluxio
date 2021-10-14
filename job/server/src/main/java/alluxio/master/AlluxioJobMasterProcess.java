@@ -74,7 +74,8 @@ public class AlluxioJobMasterProcess extends MasterProcess {
   private UfsManager mUfsManager;
 
   AlluxioJobMasterProcess(JournalSystem journalSystem) {
-    super(journalSystem, ServiceType.JOB_MASTER_RPC, ServiceType.JOB_MASTER_WEB);
+    super(journalSystem, ServiceType.JOB_MASTER_RPC,
+        ServiceType.JOB_MASTER_WEB, ServiceType.JOB_MASTER_RPC);
     mRpcConnectAddress = NetworkAddressUtils.getConnectAddress(ServiceType.JOB_MASTER_RPC,
         ServerConfiguration.global());
     if (!ServerConfiguration.isSet(PropertyKey.JOB_MASTER_HOSTNAME)) {

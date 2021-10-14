@@ -54,6 +54,9 @@ public abstract class MasterProcess implements Process {
   /** Rpc server bind address. **/
   final InetSocketAddress mRpcBindAddress;
 
+  /** Rpc server bind address. **/
+  final InetSocketAddress mServiceRpcBindAddress;
+
   /** Web server bind address. **/
   final InetSocketAddress mWebBindAddress;
 
@@ -68,6 +71,8 @@ public abstract class MasterProcess implements Process {
 
   /** The RPC server. */
   protected GrpcServer mGrpcServer;
+  /** The RPC server. */
+  protected GrpcServer mServiceGrpcServer;
 
   /** The web ui server. */
   protected WebServer mWebServer;
@@ -78,11 +83,13 @@ public abstract class MasterProcess implements Process {
    * @param journalSystem the journaling system
    * @param rpcService the rpc service type
    * @param webService the web service type
+   * @param serviceRpcService the service rpc service type
    */
   public MasterProcess(JournalSystem journalSystem, ServiceType rpcService,
-      ServiceType webService) {
+      ServiceType webService, ServiceType serviceRpcService) {
     mJournalSystem = Preconditions.checkNotNull(journalSystem, "journalSystem");
     mRpcBindAddress = configureAddress(rpcService);
+    mServiceRpcBindAddress = configureAddress(serviceRpcService);
     mWebBindAddress = configureAddress(webService);
   }
 

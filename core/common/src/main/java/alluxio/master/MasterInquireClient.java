@@ -79,6 +79,12 @@ public interface MasterInquireClient {
      * @return a master inquire client
      */
     public static MasterInquireClient create(AlluxioConfiguration conf, UserState userState) {
+      return create(conf, userState, false);
+    }
+
+    public static MasterInquireClient create(
+        AlluxioConfiguration conf, UserState userState, boolean useServiceRpc) {
+      // SERVICE RPC DO NOT SUPPORT ZK MODE HA NOW
       if (conf.getBoolean(PropertyKey.ZOOKEEPER_ENABLED)) {
         return ZkMasterInquireClient.getClient(conf.get(PropertyKey.ZOOKEEPER_ADDRESS),
             conf.get(PropertyKey.ZOOKEEPER_ELECTION_PATH),
@@ -87,6 +93,9 @@ public interface MasterInquireClient {
             conf.getBoolean(PropertyKey.ZOOKEEPER_AUTH_ENABLED));
       } else {
         List<InetSocketAddress> addresses = ConfigurationUtils.getMasterRpcAddresses(conf);
+        if (useServiceRpc) {
+          addresses = ConfigurationUtils.getMasterServiceRpcAddresses(conf);
+        }
         if (addresses.size() > 1) {
           return new PollingMasterInquireClient(addresses, conf, userState);
         } else {
