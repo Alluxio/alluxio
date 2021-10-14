@@ -650,15 +650,19 @@ public final class S3RestServiceHandler {
 
       try {
         URIStatus status = fs.getStatus(objectURI);
-        if (status.isFolder()) {
+        if (status.isFolder() && !object.endsWith(AlluxioURI.SEPARATOR)) {
           throw new FileDoesNotExistException(status.getPath() + " is a directory");
         }
         // TODO(cc): Consider how to respond with the object's ETag.
-        return Response.ok().lastModified(new Date(status.getLastModificationTimeMs()))
+        return Response.ok()
+            .lastModified(new Date(status.getLastModificationTimeMs()))
             .header(S3Constants.S3_ETAG_HEADER, "\"" + status.getLastModificationTimeMs() + "\"")
-            .header(S3Constants.S3_CONTENT_LENGTH_HEADER, status.getLength()).build();
+            .header(S3Constants.S3_CONTENT_LENGTH_HEADER,
+                status.isFolder() ? 0 : status.getLength())
+            .build();
       } catch (FileDoesNotExistException e) {
-        return Response.status(404).build(); // does not exist should simply return a 404
+        // must be null entity (content length 0) for S3A Filesystem
+        return Response.status(404).entity(null).header("Content-Length", "0").build();
       } catch (Exception e) {
         throw toObjectS3Exception(e, objectPath);
       }
