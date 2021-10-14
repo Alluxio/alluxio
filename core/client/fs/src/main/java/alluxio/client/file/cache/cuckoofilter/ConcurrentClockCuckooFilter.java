@@ -300,10 +300,10 @@ public class ConcurrentClockCuckooFilter<T> implements ClockCuckooFilter<T>, Ser
       mNumItems.incrementAndGet();
       mTotalBytes.addAndGet(size);
       updateScopeStatistics(scope, 1, size);
-      mLocks.unlockTwoWrite(b1, b2);
+      mLocks.unlockWrite(b1, b2);
       return true;
     }
-    mLocks.unlockTwoWrite(b1, b2);
+    mLocks.unlockWrite(b1, b2);
     return false;
   }
 
@@ -328,14 +328,14 @@ public class ConcurrentClockCuckooFilter<T> implements ClockCuckooFilter<T>, Ser
     int b1 = indexAndTag.mBucketIndex;
     int tag = indexAndTag.mTag;
     int b2 = altIndex(b1, tag);
-    mLocks.lockTwoRead(b1, b2);
+    mLocks.readLock(b1, b2);
     TagPosition pos = new TagPosition();
     found = mTable.findTagInBuckets(b1, b2, tag, pos);
     if (found && shouldReset) {
       // set C to MAX
       mClockTable.writeTag(pos.getBucketIndex(), pos.getSlotIndex(), mMaxAge);
     }
-    mLocks.unlockTwoRead(b1, b2);
+    mLocks.unlockRead(b1, b2);
     return found;
   }
 
@@ -355,10 +355,10 @@ public class ConcurrentClockCuckooFilter<T> implements ClockCuckooFilter<T>, Ser
       updateScopeStatistics(scope, -1, -size);
       // Clear Clock
       mClockTable.writeTag(pos.getBucketIndex(), pos.getSlotIndex(), 0);
-      mLocks.unlockTwoWrite(i1, i2);
+      mLocks.unlockWrite(i1, i2);
       return true;
     }
-    mLocks.unlockTwoWrite(i1, i2);
+    mLocks.unlockWrite(i1, i2);
     return false;
   }
 
@@ -369,12 +369,12 @@ public class ConcurrentClockCuckooFilter<T> implements ClockCuckooFilter<T>, Ser
     for (int i = 0; i < numSegments; i++) {
       // TODO(iluoeli): avoid acquire locks here since it may be blocked
       // for a long time if this segment is contended by multiple users.
-      mLocks.lockOneSegmentWrite(i);
+      mLocks.writeLockSegment(i);
       if (mSegmentedAgingPointers[i] < bucketsPerSegment) {
         agingSegment(i, bucketsPerSegment);
       }
       mSegmentedAgingPointers[i] = 0;
-      mLocks.unlockOneSegmentWrite(i);
+      mLocks.unlockWriteSegment(i);
     }
   }
 
@@ -390,15 +390,15 @@ public class ConcurrentClockCuckooFilter<T> implements ClockCuckooFilter<T>, Ser
     int i1 = indexAndTag.mBucketIndex;
     int tag = indexAndTag.mTag;
     int i2 = altIndex(i1, tag);
-    mLocks.lockTwoRead(i1, i2);
+    mLocks.readLock(i1, i2);
     TagPosition pos = new TagPosition();
     found = mTable.findTagInBuckets(i1, i2, tag, pos);
     if (found) {
       int clock = mClockTable.readTag(pos.getBucketIndex(), pos.getSlotIndex());
-      mLocks.unlockTwoRead(i1, i2);
+      mLocks.unlockRead(i1, i2);
       return clock;
     }
-    mLocks.unlockTwoRead(i1, i2);
+    mLocks.unlockRead(i1, i2);
     return 0;
   }
 
@@ -655,7 +655,7 @@ public class ConcurrentClockCuckooFilter<T> implements ClockCuckooFilter<T>, Ser
    * @return true iff found an empty slot (stored in pos); false otherwise
    */
   private boolean runCuckoo(int b1, int b2, int fp, TagPosition pos) {
-    mLocks.unlockTwoWrite(b1, b2);
+    mLocks.unlockWrite(b1, b2);
     int maxPathLen = MAX_BFS_PATH_LEN;
     CuckooRecord[] cuckooPath = new CuckooRecord[maxPathLen];
     for (int i = 0; i < maxPathLen; i++) {
@@ -676,7 +676,7 @@ public class ConcurrentClockCuckooFilter<T> implements ClockCuckooFilter<T>, Ser
     if (!done) {
       // NOTE: since we assume holding the locks of two buckets before calling this method,
       // we keep this assumptions after return.
-      mLocks.lockTwoWrite(b1, b2);
+      mLocks.writeLock(b1, b2);
     }
     return done;
   }
@@ -709,27 +709,27 @@ public class ConcurrentClockCuckooFilter<T> implements ClockCuckooFilter<T>, Ser
       cuckooPath[0].mBucketIndex = b2;
     }
     {
-      mLocks.lockOneWrite(cuckooPath[0].mBucketIndex);
+      mLocks.writeLock(cuckooPath[0].mBucketIndex);
       int tag = mTable.readTag(cuckooPath[0].mBucketIndex, cuckooPath[0].mSlotIndex);
       if (tag == 0) {
-        mLocks.unlockOneWrite(cuckooPath[0].mBucketIndex);
+        mLocks.unlockWrite(cuckooPath[0].mBucketIndex);
         return 0;
       }
-      mLocks.unlockOneWrite(cuckooPath[0].mBucketIndex);
+      mLocks.unlockWrite(cuckooPath[0].mBucketIndex);
       cuckooPath[0].mFingerprint = tag;
     }
     for (int i = 1; i <= x.mDepth; i++) {
       CuckooRecord curr = cuckooPath[i];
       CuckooRecord prev = cuckooPath[i - 1];
       curr.mBucketIndex = altIndex(prev.mBucketIndex, prev.mFingerprint);
-      mLocks.lockOneWrite(curr.mBucketIndex);
+      mLocks.writeLock(curr.mBucketIndex);
       int tag = mTable.readTag(curr.mBucketIndex, curr.mSlotIndex);
       if (tag == 0) {
-        mLocks.unlockOneWrite(curr.mBucketIndex);
+        mLocks.unlockWrite(curr.mBucketIndex);
         return i;
       }
       curr.mFingerprint = tag;
-      mLocks.unlockOneWrite(curr.mBucketIndex);
+      mLocks.unlockWrite(curr.mBucketIndex);
     }
     return x.mDepth;
   }
@@ -749,7 +749,7 @@ public class ConcurrentClockCuckooFilter<T> implements ClockCuckooFilter<T>, Ser
     int maxPathLen = MAX_BFS_PATH_LEN;
     while (!queue.isEmpty()) {
       BFSEntry x = queue.poll();
-      mLocks.lockOneWrite(x.mBucketIndex);
+      mLocks.writeLock(x.mBucketIndex);
       // pick a random slot to start on
       int startingSlot = x.mPathcode % TAGS_PER_BUCKET;
       for (int i = 0; i < TAGS_PER_BUCKET; i++) {
@@ -757,7 +757,7 @@ public class ConcurrentClockCuckooFilter<T> implements ClockCuckooFilter<T>, Ser
         int tag = mTable.readTag(b1, slot);
         if (tag == 0) {
           x.mPathcode = x.mPathcode * TAGS_PER_BUCKET + slot;
-          mLocks.unlockOneWrite(x.mBucketIndex);
+          mLocks.unlockWrite(x.mBucketIndex);
           return x;
         }
         if (x.mDepth < maxPathLen - 1) {
@@ -765,7 +765,7 @@ public class ConcurrentClockCuckooFilter<T> implements ClockCuckooFilter<T>, Ser
               new BFSEntry(altIndex(b1, tag), x.mPathcode * TAGS_PER_BUCKET + slot, x.mDepth + 1));
         }
       }
-      mLocks.unlockOneWrite(x.mBucketIndex);
+      mLocks.unlockWrite(x.mBucketIndex);
     }
     return new BFSEntry(0, 0, -1);
   }
@@ -782,12 +782,12 @@ public class ConcurrentClockCuckooFilter<T> implements ClockCuckooFilter<T>, Ser
    */
   private boolean cuckooPathMove(int b1, int b2, int fp, CuckooRecord[] cuckooPath, int depth) {
     if (depth == 0) {
-      mLocks.lockTwoWrite(b1, b2);
+      mLocks.writeLock(b1, b2);
       if (mTable.readTag(cuckooPath[0].mBucketIndex, cuckooPath[0].mSlotIndex) == 0) {
-        mLocks.unlockTwoWrite(b1, b2);
+        mLocks.unlockWrite(b1, b2);
         return true;
       } else {
-        mLocks.unlockTwoWrite(b1, b2);
+        mLocks.unlockWrite(b1, b2);
         return false;
       }
     }
@@ -798,9 +798,9 @@ public class ConcurrentClockCuckooFilter<T> implements ClockCuckooFilter<T>, Ser
       if (depth == 1) {
         // NOTE: We must hold the locks of b1 and b2.
         // Or their slots may be preempted by another key if we released locks.
-        mLocks.lockThreeWrite(b1, b2, to.mBucketIndex);
+        mLocks.writeLock(b1, b2, to.mBucketIndex);
       } else {
-        mLocks.lockTwoWrite(from.mBucketIndex, to.mBucketIndex);
+        mLocks.writeLock(from.mBucketIndex, to.mBucketIndex);
       }
       int fromTag = mTable.readTag(from.mBucketIndex, from.mSlotIndex);
       // if `to` is nonempty, or `from` is not occupied by original tag,
@@ -819,10 +819,10 @@ public class ConcurrentClockCuckooFilter<T> implements ClockCuckooFilter<T>, Ser
       if (depth == 1) {
         // is it probable to.bucket is one of b1 and b2 ?
         if (to.mBucketIndex != b1 && to.mBucketIndex != b2) {
-          mLocks.unlockOneWrite(to.mBucketIndex);
+          mLocks.unlockWrite(to.mBucketIndex);
         }
       } else {
-        mLocks.unlockTwoWrite(from.mBucketIndex, to.mBucketIndex);
+        mLocks.unlockWrite(from.mBucketIndex, to.mBucketIndex);
       }
       depth--;
     }
@@ -882,7 +882,7 @@ public class ConcurrentClockCuckooFilter<T> implements ClockCuckooFilter<T>, Ser
    * @param b2 the second bucket
    */
   private void lockTwoWriteAndOpportunisticAging(int b1, int b2) {
-    mLocks.lockTwoWrite(b1, b2);
+    mLocks.writeLock(b1, b2);
     opportunisticAgingSegment(mLocks.getSegmentIndex(b1));
     opportunisticAgingSegment(mLocks.getSegmentIndex(b2));
   }
