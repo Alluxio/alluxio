@@ -6347,7 +6347,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String USER_FILE_INCLUDE_OPERATION_ID =
         "alluxio.user.file.include.operation.id";
     public static final String USER_FILE_WRITE_INIT_SLEEP_MIN =
-        "alluxio.user.file.write.init.sleep.base";
+        "alluxio.user.file.write.init.sleep.min";
     public static final String USER_FILE_WRITE_INIT_SLEEP_MAX =
         "alluxio.user.file.write.init.sleep.max";
     public static final String USER_FILE_WRITE_INIT_MAX_DURATION =

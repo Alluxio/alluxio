@@ -126,7 +126,7 @@ public final class RetryUtils {
 
   /**
    *
-   * Gives a ClientRetry based on the given parameters.
+   * Gives a RetryPolicy for initialization of writing a file.
    *
    * @param maxRetryDuration the maximum total duration to retry for
    * @param baseSleepMs initial sleep time in milliseconds
