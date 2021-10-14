@@ -286,7 +286,7 @@ public final class S3RestServiceHandler {
             try {
               AlluxioURI uri = new AlluxioURI(AlluxioURI.SEPARATOR + bucket)
                   .join(AlluxioURI.SEPARATOR + obj.getKey());
-              DeletePOptions options = DeletePOptions.newBuilder().setRecursive(true).build();
+              DeletePOptions options = DeletePOptions.newBuilder().build();
               mFileSystem.delete(uri, options);
               DeleteObjectsResult.DeletedObject del = new DeleteObjectsResult.DeletedObject();
               del.setKey(obj.getKey());
