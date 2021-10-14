@@ -75,7 +75,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThrows;
 
 public class RegisterIntegrationTest {
-  // TODO(jiacheng): use BlockMasterWorkerServiceHandler for testing?
   private BlockMaster mBlockMaster;
   private MasterRegistry mRegistry;
   private Clock mClock;
@@ -234,7 +233,7 @@ public class RegisterIntegrationTest {
     System.out.println("Stream completed on client side");
 
     // verify the worker is registered
-    assertEquals(100+200+300+1000+1500+2000, mBlockMaster.getBlockCount(workerId));
+    assertEquals(100+200+300+1000+1500+2000, mBlockMaster.getWorker(workerId).getBlockCount());
     assertEquals(1, mBlockMaster.getWorkerCount());
   }
 
@@ -338,7 +337,7 @@ public class RegisterIntegrationTest {
     }
 
     // verify the worker is registered
-    assertEquals(100+200+300+1000+1500+2000, mBlockMaster.getBlockCount(workerId));
+    assertEquals(100+200+300+1000+1500+2000, mBlockMaster.getWorker(workerId).getBlockCount());
     assertEquals(1, mBlockMaster.getWorkerCount());
   }
 
@@ -438,7 +437,7 @@ public class RegisterIntegrationTest {
     }
 
     // verify the worker is registered
-    assertEquals(100+200+300+1000+1500+2000, mBlockMaster.getBlockCount(workerId));
+    assertEquals(100+200+300+1000+1500+2000, mBlockMaster.getWorker(workerId).getBlockCount());
     assertEquals(1, mBlockMaster.getWorkerCount());
   }
 
@@ -564,7 +563,7 @@ public class RegisterIntegrationTest {
     }
 
     // verify the worker is registered
-    assertEquals(100+200+300+1000+1500+2000+2, mBlockMaster.getBlockCount(workerId));
+    assertEquals(100+200+300+1000+1500+2000+2, mBlockMaster.getWorker(workerId).getBlockCount());
     assertEquals(1, mBlockMaster.getWorkerCount());
   }
 
@@ -658,7 +657,7 @@ public class RegisterIntegrationTest {
     }
 
     // verify the worker is registered
-    assertEquals(100+200+300+1000+1500+2000, mBlockMaster.getBlockCount(workerId));
+    assertEquals(100+200+300+1000+1500+2000, mBlockMaster.getWorker(workerId).getBlockCount());
     assertEquals(1, mBlockMaster.getWorkerCount());
   }
 
@@ -720,7 +719,7 @@ public class RegisterIntegrationTest {
 
     // verify the worker is not
     assertEquals(1, brokenHandler.mErrors.size());
-    assertEquals(1000, mBlockMaster.getBlockCount(workerId));
+    assertEquals(1000, mBlockMaster.getWorker(workerId).getBlockCount());
     assertEquals(0, mBlockMaster.getWorkerCount());
 
     // This should be empty, unregistered worker is in the mTempWorkers, not mWorkers or mLostWorkers
@@ -740,7 +739,7 @@ public class RegisterIntegrationTest {
     System.out.println("Stream completed on client side");
 
     // verify the worker is registered
-    assertEquals(100+200+300+1000+1500+2000, mBlockMaster.getBlockCount(workerId));
+    assertEquals(100+200+300+1000+1500+2000, mBlockMaster.getWorker(workerId).getBlockCount());
     assertEquals(1, mBlockMaster.getWorkerCount());
   }
 
@@ -813,7 +812,7 @@ public class RegisterIntegrationTest {
     System.out.println("Stream completed on client side");
 
     // verify the worker is registered
-    assertEquals(100+200+300+1000+1500+2000, mBlockMaster.getBlockCount(workerId));
+    assertEquals(100+200+300+1000+1500+2000, mBlockMaster.getWorker(workerId).getBlockCount());
     assertEquals(1, mBlockMaster.getWorkerCount());
   }
 
@@ -927,12 +926,21 @@ public class RegisterIntegrationTest {
     System.out.println("Stream completed on client side");
 
     // verify the worker is registered
-    assertEquals(100+200+300+1000+1500+2000, mBlockMaster.getBlockCount(workerId));
+    assertEquals(100+200+300+1000+1500+2000, mBlockMaster.getWorker(workerId).getBlockCount());
     assertEquals(1, mBlockMaster.getWorkerCount());
   }
 
 
-  // TODO(jiacheng): kill master in streaming, what happens?
+  // TODO(jiacheng): kill master in streaming, the worker should see error
 
+  // TODO(jiacheng): fails in workerRegisterStart
+
+  // TODO(jiacheng): fails in workerRegisterStream
+
+  // TODO(jiacheng): fails in workerRegisterComplete
+
+  // TODO(jiacheng): re-register unforgotten worker
+
+  // TODO(jiacheng): re-register forgotten worker
 }
 
