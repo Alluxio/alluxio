@@ -26,6 +26,7 @@ import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.exception.BlockInfoException;
 import alluxio.exception.ExceptionMessage;
+import alluxio.exception.status.AlluxioStatusException;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.exception.status.NotFoundException;
 import alluxio.exception.status.UnavailableException;
@@ -102,10 +103,12 @@ import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.locks.Lock;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
@@ -227,6 +230,13 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
   /** Worker is not visualable until registration completes. */
   private final IndexedSet<MasterWorkerInfo> mTempWorkers =
       new IndexedSet<>(ID_INDEX, ADDRESS_INDEX);
+
+  // TODO(jiacheng): heartbeating thread checking if workers are alive
+  //  What is alive?
+  //  For every batch, update the live time
+  // TODO(jiacheng): How to close a stream?
+  //  assert the context is still up
+  private final Map<Long, WorkerRegisterContext> mOpenRegister = new ConcurrentHashMap<>();
 
   /** Listeners to call when lost workers are found. */
   private final List<Consumer<Address>> mLostWorkerFoundListeners
@@ -397,6 +407,35 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
         .concat(CommonUtils.singleElementIterator(getContainerIdJournalEntry()), blockIterator));
   }
 
+  private final class WorkerRegisterStreamGCHeartbeatExecutor implements HeartbeatExecutor {
+    private long mTimeout = ServerConfiguration.global().getMs(PropertyKey.MASTER_REGISTER_WORKER_STREAM_TIMEOUT);
+
+    public WorkerRegisterStreamGCHeartbeatExecutor() {
+      System.out.println("Worker register stream will be cancelled if longer than " + mTimeout);
+    }
+
+    @Override
+    public void heartbeat() {
+      System.out.println("Checking " + mOpenRegister.size() + " entries...");
+      for (Map.Entry<Long, WorkerRegisterContext> entry : mOpenRegister.entrySet()) {
+        WorkerRegisterContext context = entry.getValue();
+        final long lastUpdate = mClock.millis() - context.mLastUpdatedTime;
+        if (lastUpdate > mTimeout) {
+          System.out.println("Worker register stream hanging for more than " + mTimeout + " for worker " + context.mWorker.getId());
+          Exception e = new TimeoutException("Time out for worker register stream for more than " + mTimeout);
+          context.mResponseObserver.onError(AlluxioStatusException.fromThrowable(e).toGrpcStatusException());
+          // TODO(jiacheng): no need to close explicitly because that will happen in onError()?
+//            context.close();
+        }
+      }
+    }
+
+    @Override
+    public void close() {
+      // Nothing to clean up
+    }
+  }
+
   @Override
   public void start(Boolean isLeader) throws IOException {
     super.start(isLeader);
@@ -406,6 +445,12 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
           (int) ServerConfiguration.getMs(PropertyKey.MASTER_LOST_WORKER_DETECTION_INTERVAL),
           ServerConfiguration.global(), mMasterContext.getUserState()));
     }
+
+    getExecutorService().submit(new HeartbeatThread(
+          HeartbeatContext.MASTER_WORKER_REGISTER_SESSION_CLEANER,
+            new WorkerRegisterStreamGCHeartbeatExecutor(),
+            (int) ServerConfiguration.global().getMs(PropertyKey.MASTER_REGISTER_WORKER_STREAM_TIMEOUT),
+            ServerConfiguration.global(), mMasterContext.getUserState()));
   }
 
   @Override
@@ -1017,6 +1062,8 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
                                   Map<String, StorageList> lostStorage, RegisterWorkerStreamPOptions options)
           throws NotFoundException {
     MasterWorkerInfo worker = context.mWorker;
+    Preconditions.checkState(worker != null, "The context has null worker!");
+    mOpenRegister.put(worker.getId(), context);
 
     // The worker is locked so we can operate on its blocks without race conditions
     // We start with assuming all blocks in (mBlocks + mToRemoveBlocks) do not exist.
@@ -1059,6 +1106,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
   public void workerRegisterStream(WorkerRegisterContext context, Map<alluxio.proto.meta.Block.BlockLocation, List<Long>> currentBlocksOnLocation)
           throws NotFoundException {
     MasterWorkerInfo worker = context.mWorker;
+    Preconditions.checkState(worker != null, "The context has null worker!");
 
     // [NO NEED] Detect any lost blocks on this worker.
 //      Set<Long> removedBlocks = worker.register(mGlobalStorageTierAssoc, storageTiers,
@@ -1080,6 +1128,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
   @Override
   public void workerRegisterFinish(WorkerRegisterContext context) throws NotFoundException {
     MasterWorkerInfo worker = context.mWorker;
+    Preconditions.checkState(worker != null, "The context has null worker!");
 
     // [NEEDED] Detect any lost blocks on this worker.
     Set<Long> removedBlocks;
@@ -1118,6 +1167,8 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
     // Invalidate cache to trigger new build of worker info list
     mWorkerInfoCache.invalidate(WORKER_INFO_CACHE_KEY);
     LOG.info("workerRegisterFinish(): {}", worker);
+
+    mOpenRegister.remove(worker.getId());
   }
 
   @Override

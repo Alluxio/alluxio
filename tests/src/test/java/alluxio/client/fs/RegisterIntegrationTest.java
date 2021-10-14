@@ -3,6 +3,7 @@ package alluxio.client.fs;
 import alluxio.ClientContext;
 import alluxio.client.block.options.GetWorkerReportOptions;
 import alluxio.clock.ManualClock;
+import alluxio.clock.SystemClock;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.exception.status.InternalException;
@@ -23,6 +24,7 @@ import alluxio.grpc.RegisterWorkerPResponse;
 import alluxio.grpc.RegisterWorkerStreamPRequest;
 import alluxio.grpc.RegisterWorkerStreamPResponse;
 import alluxio.grpc.StorageList;
+import alluxio.util.CommonUtils;
 import alluxio.wire.WorkerInfo;
 import alluxio.master.CoreMasterContext;
 import alluxio.master.MasterClientContext;
@@ -53,6 +55,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.time.Clock;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -75,7 +78,7 @@ public class RegisterIntegrationTest {
   // TODO(jiacheng): use BlockMasterWorkerServiceHandler for testing?
   private BlockMaster mBlockMaster;
   private MasterRegistry mRegistry;
-  private ManualClock mClock;
+  private Clock mClock;
   private ExecutorService mExecutorService;
   private MetricsMaster mMetricsMaster;
   private BlockMasterWorkerServiceHandler mHandler;
@@ -107,10 +110,16 @@ public class RegisterIntegrationTest {
    */
   @Before
   public void before() throws Exception {
+    // Set the config properties
+    ServerConfiguration.set(PropertyKey.MASTER_REGISTER_WORKER_STREAM_TIMEOUT, "1s");
+
     mRegistry = new MasterRegistry();
     CoreMasterContext masterContext = MasterTestUtils.testMasterContext();
     mMetricsMaster = new MetricsMasterFactory().create(mRegistry, masterContext);
-    mClock = new ManualClock();
+    // TODO(jiacheng): Use a manual clock in the test
+//    mClock = new ManualClock();
+    mClock = new SystemClock();
+
     mExecutorService =
             Executors.newFixedThreadPool(2, ThreadFactoryUtils.build("TestBlockMaster-%d", true));
     mBlockMaster = new DefaultBlockMaster(mMetricsMaster, masterContext, mClock,
@@ -735,9 +744,78 @@ public class RegisterIntegrationTest {
     assertEquals(1, mBlockMaster.getWorkerCount());
   }
 
-
   // TODO(jiacheng): Client hangs, the worker is unlocked
+  @Test
+  public void hangingworker() throws Exception {
+    String hostname = NetworkAddressUtils.getLocalHostName(500);
+    WorkerNetAddress address = new WorkerNetAddress().setWebPort(0).setRpcPort(0).setDataPort(0).setHost(hostname);
 
+    long workerId = getWorkerId(address);
+
+    List<String> mTierAliases;
+    Map<String, Long> mCapacityMap;
+    Map<String, Long> mUsedMap;
+    String tierConfig = "100,200,300;1000,1500;2000";
+    mTierAliases = getTierAliases(convert(tierConfig));
+    mCapacityMap = Maps.toMap(mTierAliases, (tier) -> CAPACITY);
+    mUsedMap = Maps.toMap(mTierAliases, (tier) -> 0L);
+    // Generate block IDs heuristically
+    Map<BlockStoreLocation, List<Long>> blockMap =
+            RpcBenchPreparationUtils.generateBlockIdOnTiers(convert(tierConfig));
+
+    // Prepare the blocks on the master
+    prepareBlocksOnMaster(blockMap);
+
+    // Noop response observer
+    StreamObserver<RegisterWorkerStreamPResponse> noopResponseObserver =
+            new StreamObserver<RegisterWorkerStreamPResponse>() {
+              @Override
+              public void onNext(RegisterWorkerStreamPResponse response) {
+                System.out.format("Response %s%n", response);
+              }
+
+              @Override
+              public void onError(Throwable t) {
+                // TODO(jiacheng): If I receive an error, I should close on this side and stop sending more
+                System.out.format("Error " + t);
+              }
+
+              @Override
+              public void onCompleted() {
+                System.out.println("Completed");
+              }
+            };
+
+    StreamObserver<RegisterWorkerStreamPRequest> requestObserver =
+            mHandler.registerWorkerStream(noopResponseObserver);
+
+    // Send the chunks with the requestObserver
+    RegisterStream registerStream = new RegisterStream(null, null,
+            workerId, mTierAliases, mCapacityMap, mUsedMap, blockMap, LOST_STORAGE, EMPTY_CONFIG);
+
+    // Get chunks from the RegisterStream
+    List<RegisterWorkerStreamPRequest> requestChunks = ImmutableList.copyOf(registerStream);
+
+    // Feed the chunks into the requestObserver
+    for (RegisterWorkerStreamPRequest chunk : requestChunks) {
+      // TODO(jiacheng): rate limit this? ACK until the next send?
+      //  The 2nd chunk will receive an error, then keep sending should get rejected
+      requestObserver.onNext(chunk);
+
+
+
+      // TODO(jiacheng): timeout not triggered!
+      System.out.println("Sleep 5s on the client side, should trigger timeout");
+      CommonUtils.sleepMs(5000);
+    }
+    // TODO(jiacheng): This should be rejected too
+    requestObserver.onCompleted();
+    System.out.println("Stream completed on client side");
+
+    // verify the worker is registered
+    assertEquals(100+200+300+1000+1500+2000, mBlockMaster.getBlockCount(workerId));
+    assertEquals(1, mBlockMaster.getWorkerCount());
+  }
 
 
 
@@ -852,8 +930,6 @@ public class RegisterIntegrationTest {
     assertEquals(100+200+300+1000+1500+2000, mBlockMaster.getBlockCount(workerId));
     assertEquals(1, mBlockMaster.getWorkerCount());
   }
-
-
 
 
   // TODO(jiacheng): kill master in streaming, what happens?

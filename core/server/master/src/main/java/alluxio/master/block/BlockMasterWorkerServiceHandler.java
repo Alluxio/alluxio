@@ -42,6 +42,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
 
 /**
@@ -191,7 +192,7 @@ public final class BlockMasterWorkerServiceHandler extends
             mWorkerId = workerId;
             LOG.debug("Initializing context for {}", mWorkerId);
             try {
-              mContext = WorkerRegisterContext.create(mBlockMaster, mWorkerId);
+              mContext = WorkerRegisterContext.create(mBlockMaster, mWorkerId, this, responseObserver);
               LOG.debug("Context created for {}", mWorkerId);
             } catch (NotFoundException e) {
               LOG.error("Worker {} not found, failed to create context", mWorkerId);
@@ -201,6 +202,12 @@ public final class BlockMasterWorkerServiceHandler extends
               // TODO(jiacheng): what else to cleanup?
             }
           }
+        }
+
+        if (!mContext.isOpen()) {
+          IOException e = new IOException("Context is not open");
+          responseObserver.onError(AlluxioStatusException.fromIOException(e).toGrpcStatusException());
+          return;
         }
 
         if (isHead) {
@@ -247,6 +254,8 @@ public final class BlockMasterWorkerServiceHandler extends
           }
         }
 
+        mContext.updateTs();
+
         // Return an ACK to the worker so it sends the next batch
         responseObserver.onNext(RegisterWorkerStreamPResponse.newBuilder().build());
       }
@@ -260,6 +269,8 @@ public final class BlockMasterWorkerServiceHandler extends
         } catch (IOException e) {
           e.printStackTrace();
         }
+
+        // TODO(jiacheng): update TS here?
 
         // TODO(jiacheng): Pass the exception back like this?
         responseObserver.onError(AlluxioStatusException.fromThrowable(t).toGrpcStatusException());
@@ -288,6 +299,11 @@ public final class BlockMasterWorkerServiceHandler extends
       @Override
       public void onCompleted() {
         LOG.info("{} - Register stream completed on the client side", Thread.currentThread().getId());
+        if (!mContext.isOpen()) {
+          IOException e = new IOException("Context is not open");
+          responseObserver.onError(AlluxioStatusException.fromIOException(e).toGrpcStatusException());
+          return;
+        }
 
         // TODO(jiacheng): still needed?
         if (mWorkerId == -1) {
@@ -301,6 +317,9 @@ public final class BlockMasterWorkerServiceHandler extends
           responseObserver.onError(AlluxioStatusException.fromIOException(e).toGrpcStatusException());
           return;
         }
+
+        // TODO(jiacheng): update context TS here?
+        mContext.updateTs();
 
         // This will send the response back and complete the call
         RpcUtils.callAndNoReturn(LOG,

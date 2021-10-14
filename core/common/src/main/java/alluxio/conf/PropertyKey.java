@@ -2038,6 +2038,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
+  public static final PropertyKey MASTER_REGISTER_WORKER_STREAM_TIMEOUT =
+      new Builder(Name.MASTER_REGISTER_WORKER_STREAM_TIMEOUT)
+          .setDefaultValue("1min")
+          .setDescription("Timeout between 2 messages in a stream")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.MASTER)
+          .build();
   public static final PropertyKey MASTER_METRICS_HEAP_ENABLED =
       new Builder(Name.MASTER_METRICS_HEAP_ENABLED)
           .setDefaultValue(true)
@@ -5698,6 +5705,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.lost.worker.file.detection.interval";
     public static final String MASTER_HEARTBEAT_TIMEOUT =
         "alluxio.master.heartbeat.timeout";
+    public static final String MASTER_REGISTER_WORKER_STREAM_TIMEOUT =
+        "alluxio.master.register.worker.stream.timeout";
     public static final String MASTER_HOSTNAME = "alluxio.master.hostname";
     public static final String MASTER_LOCK_POOL_INITSIZE =
         "alluxio.master.lock.pool.initsize";
