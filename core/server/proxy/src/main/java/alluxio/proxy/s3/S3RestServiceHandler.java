@@ -295,7 +295,11 @@ public final class S3RestServiceHandler {
               DeleteObjectsResult.DeletedObject del = new DeleteObjectsResult.DeletedObject();
               del.setKey(obj.getKey());
               success.add(del);
-            } catch (FileDoesNotExistException e) {
+            } catch (FileDoesNotExistException | DirectoryNotEmptyException e) {
+              /*
+              FDNE - delete on FDNE should be counted as a success, as there's nothing to do
+              DNE - s3 has no concept dirs - if it _is_ a dir, nothing to delete.
+               */
               DeleteObjectsResult.DeletedObject del = new DeleteObjectsResult.DeletedObject();
               del.setKey(obj.getKey());
               success.add(del);
