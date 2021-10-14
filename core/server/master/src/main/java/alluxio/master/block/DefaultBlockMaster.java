@@ -1036,6 +1036,9 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
    */
   private void processWorkerRemovedBlocks(MasterWorkerInfo workerInfo,
       Collection<Long> removedBlockIds) {
+    Preconditions.checkState(workerInfo.checkLocks(EnumSet.of(
+        WorkerMetaLockSection.BLOCKS), false));
+
     for (long removedBlockId : removedBlockIds) {
       try (LockResource r = lockBlock(removedBlockId)) {
         Optional<BlockMeta> block = mBlockStore.getBlock(removedBlockId);
@@ -1064,6 +1067,9 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
    */
   private void processWorkerAddedBlocks(MasterWorkerInfo workerInfo,
       Map<BlockLocation, List<Long>> addedBlockIds) {
+    Preconditions.checkState(workerInfo.checkLocks(EnumSet.of(
+        WorkerMetaLockSection.BLOCKS), false));
+
     long invalidBlockCount = 0;
     for (Map.Entry<BlockLocation, List<Long>> entry : addedBlockIds.entrySet()) {
       for (long blockId : entry.getValue()) {
@@ -1102,6 +1108,9 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
    * @param workerInfo The worker metadata object
    */
   private void processWorkerOrphanedBlocks(MasterWorkerInfo workerInfo) {
+    Preconditions.checkState(workerInfo.checkLocks(EnumSet.of(
+        WorkerMetaLockSection.USAGE), true));
+
     long orphanedBlockCount = 0;
     for (long block : workerInfo.getBlocks()) {
       if (!mBlockStore.getBlock(block).isPresent()) {
@@ -1243,6 +1252,9 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
    * @param worker the worker metadata
    */
   private void processLostWorker(MasterWorkerInfo worker) {
+    Preconditions.checkState(worker.checkLocks(EnumSet.of(
+        WorkerMetaLockSection.BLOCKS), false));
+
     mLostWorkers.add(worker);
     mWorkers.remove(worker);
     WorkerNetAddress workerAddress = worker.getWorkerAddress();

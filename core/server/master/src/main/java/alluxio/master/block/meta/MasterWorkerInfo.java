@@ -21,6 +21,7 @@ import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.base.MoreObjects;
+import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Sets;
 import org.slf4j.Logger;
@@ -176,6 +177,11 @@ public final class MasterWorkerInfo {
   public Set<Long> register(final StorageTierAssoc globalStorageTierAssoc,
       final List<String> storageTierAliases, final Map<String, Long> totalBytesOnTiers,
       final Map<String, Long> usedBytesOnTiers, final Set<Long> blocks) {
+    Preconditions.checkState(checkLocks(EnumSet.of(
+        WorkerMetaLockSection.STATUS,
+        WorkerMetaLockSection.USAGE,
+        WorkerMetaLockSection.BLOCKS), false));
+
     mUsage.updateUsage(globalStorageTierAssoc, storageTierAliases,
             totalBytesOnTiers, usedBytesOnTiers);
 
@@ -208,6 +214,9 @@ public final class MasterWorkerInfo {
    * @param blockId the id of the block to be added
    */
   public void addBlock(long blockId) {
+    Preconditions.checkState(checkLocks(
+        EnumSet.of(WorkerMetaLockSection.BLOCKS), false));
+
     mBlocks.add(blockId);
   }
 
@@ -221,6 +230,9 @@ public final class MasterWorkerInfo {
    * @param blockId the id of the block to be removed
    */
   public void removeBlock(long blockId) {
+    Preconditions.checkState(checkLocks(
+        EnumSet.of(WorkerMetaLockSection.BLOCKS), false));
+
     mBlocks.remove(blockId);
     mToRemoveBlocks.remove(blockId);
   }
@@ -236,6 +248,9 @@ public final class MasterWorkerInfo {
    * @param dirPath the lost storage path
    */
   public void addLostStorage(String tierAlias, String dirPath) {
+    Preconditions.checkState(checkLocks(
+        EnumSet.of(WorkerMetaLockSection.USAGE), false));
+
     List<String> paths = mUsage.mLostStorage.getOrDefault(tierAlias, new ArrayList<>());
     paths.add(dirPath);
     mUsage.mLostStorage.put(tierAlias, paths);
@@ -251,6 +266,9 @@ public final class MasterWorkerInfo {
    * @param lostStorage the lost storage to add
    */
   public void addLostStorage(Map<String, StorageList> lostStorage) {
+    Preconditions.checkState(checkLocks(
+        EnumSet.of(WorkerMetaLockSection.USAGE), false));
+
     for (Map.Entry<String, StorageList> entry : lostStorage.entrySet()) {
       List<String> paths = mUsage.mLostStorage.getOrDefault(entry.getKey(), new ArrayList<>());
       paths.addAll(entry.getValue().getStorageList());
@@ -270,6 +288,9 @@ public final class MasterWorkerInfo {
    * @return generated worker information
    */
   public WorkerInfo generateWorkerInfo(Set<WorkerInfoField> fieldRange, boolean isLiveWorker) {
+    Preconditions.checkState(checkLocks(
+        EnumSet.of(WorkerMetaLockSection.USAGE), true));
+
     WorkerInfo info = new WorkerInfo();
     Set<WorkerInfoField> checkedFieldRange = fieldRange != null ? fieldRange :
         new HashSet<>(Arrays.asList(WorkerInfoField.values()));
@@ -334,6 +355,9 @@ public final class MasterWorkerInfo {
    * @return the available space of the worker in bytes
    */
   public long getAvailableBytes() {
+    Preconditions.checkState(checkLocks(
+        EnumSet.of(WorkerMetaLockSection.USAGE), true));
+
     return mUsage.getAvailableBytes();
   }
 
@@ -347,15 +371,25 @@ public final class MasterWorkerInfo {
    * @return ids of all blocks the worker contains
    */
   public Set<Long> getBlocks() {
+    Preconditions.checkState(checkLocks(
+        EnumSet.of(WorkerMetaLockSection.BLOCKS), true));
+
     return new HashSet<>(mBlocks);
   }
 
   /**
-   * Return the block count of this worker.
+   * You should lock externally with {@link MasterWorkerInfo#lockWorkerMeta(EnumSet, boolean)}
+   * with {@link WorkerMetaLockSection#BLOCKS} specified.
+   * A shared lock is required.
+   *
+   * Returns the block count of this worker.
    *
    * @return the block count of this worker
    */
   public long getBlockCount() {
+    Preconditions.checkState(checkLocks(
+        EnumSet.of(WorkerMetaLockSection.BLOCKS), true));
+
     return mBlocks.size();
   }
 
@@ -367,6 +401,9 @@ public final class MasterWorkerInfo {
    * @return the capacity of the worker in bytes
    */
   public long getCapacityBytes() {
+    Preconditions.checkState(checkLocks(
+        EnumSet.of(WorkerMetaLockSection.USAGE), true));
+
     return mUsage.mCapacityBytes;
   }
 
@@ -398,13 +435,23 @@ public final class MasterWorkerInfo {
    * @return ids of blocks the worker should remove
    */
   public List<Long> getToRemoveBlocks() {
+    Preconditions.checkState(checkLocks(
+        EnumSet.of(WorkerMetaLockSection.BLOCKS), true));
+
     return new ArrayList<>(mToRemoveBlocks);
   }
 
   /**
+   * You should lock externally with {@link MasterWorkerInfo#lockWorkerMeta(EnumSet, boolean)}
+   * with {@link WorkerMetaLockSection#USAGE} specified.
+   * A shared lock is required.
+   *
    * @return used space of the worker in bytes
    */
   public long getUsedBytes() {
+    Preconditions.checkState(checkLocks(
+        EnumSet.of(WorkerMetaLockSection.USAGE), true));
+
     return mUsage.mUsedBytes;
   }
 
@@ -416,6 +463,9 @@ public final class MasterWorkerInfo {
    * @return the storage tier mapping for the worker
    */
   public StorageTierAssoc getStorageTierAssoc() {
+    Preconditions.checkState(checkLocks(
+        EnumSet.of(WorkerMetaLockSection.USAGE), true));
+
     return mUsage.mStorageTierAssoc;
   }
 
@@ -427,6 +477,9 @@ public final class MasterWorkerInfo {
    * @return the total bytes on each storage tier
    */
   public Map<String, Long> getTotalBytesOnTiers() {
+    Preconditions.checkState(checkLocks(
+        EnumSet.of(WorkerMetaLockSection.USAGE), true));
+
     return mUsage.mTotalBytesOnTiers;
   }
 
@@ -438,6 +491,9 @@ public final class MasterWorkerInfo {
    * @return the used bytes on each storage tier
    */
   public Map<String, Long> getUsedBytesOnTiers() {
+    Preconditions.checkState(checkLocks(
+        EnumSet.of(WorkerMetaLockSection.USAGE), true));
+
     return mUsage.mUsedBytesOnTiers;
   }
 
@@ -458,6 +514,9 @@ public final class MasterWorkerInfo {
    * @return whether the worker has been registered yet
    */
   public boolean isRegistered() {
+    Preconditions.checkState(checkLocks(
+        EnumSet.of(WorkerMetaLockSection.STATUS), true));
+
     return mIsRegistered;
   }
 
@@ -469,6 +528,9 @@ public final class MasterWorkerInfo {
    * @return the free bytes on each storage tier
    */
   public Map<String, Long> getFreeBytesOnTiers() {
+    Preconditions.checkState(checkLocks(
+        EnumSet.of(WorkerMetaLockSection.USAGE), true));
+
     Map<String, Long> freeCapacityBytes = new HashMap<>();
     for (Map.Entry<String, Long> entry : mUsage.mTotalBytesOnTiers.entrySet()) {
       freeCapacityBytes.put(entry.getKey(),
@@ -487,6 +549,9 @@ public final class MasterWorkerInfo {
    * @return the map from tier alias to lost storage paths in this worker
    */
   public Map<String, List<String>> getLostStorage() {
+    Preconditions.checkState(checkLocks(
+        EnumSet.of(WorkerMetaLockSection.USAGE), true));
+
     return new HashMap<>(mUsage.mLostStorage);
   }
 
@@ -498,6 +563,9 @@ public final class MasterWorkerInfo {
    * @return true if this worker has lost storage, false otherwise
    */
   public boolean hasLostStorage() {
+    Preconditions.checkState(checkLocks(
+        EnumSet.of(WorkerMetaLockSection.USAGE), true));
+
     return mUsage.mLostStorage.size() > 0;
   }
 
@@ -541,6 +609,9 @@ public final class MasterWorkerInfo {
    * @param blockId the id of the block to be added or removed
    */
   public void updateToRemovedBlock(boolean add, long blockId) {
+    Preconditions.checkState(checkLocks(
+        EnumSet.of(WorkerMetaLockSection.BLOCKS), false));
+
     if (add) {
       if (mBlocks.contains(blockId)) {
         mToRemoveBlocks.add(blockId);
@@ -560,6 +631,9 @@ public final class MasterWorkerInfo {
    * @param capacityBytesOnTiers used bytes on each storage tier
    */
   public void updateCapacityBytes(Map<String, Long> capacityBytesOnTiers) {
+    Preconditions.checkState(checkLocks(
+        EnumSet.of(WorkerMetaLockSection.USAGE), false));
+
     long capacityBytes = 0;
     mUsage.mTotalBytesOnTiers = capacityBytesOnTiers;
     for (long t : mUsage.mTotalBytesOnTiers.values()) {
@@ -578,6 +652,9 @@ public final class MasterWorkerInfo {
    * @param usedBytesOnTiers used bytes on each storage tier
    */
   public void updateUsedBytes(Map<String, Long> usedBytesOnTiers) {
+    Preconditions.checkState(checkLocks(
+        EnumSet.of(WorkerMetaLockSection.USAGE), false));
+
     long usedBytes = 0;
     mUsage.mUsedBytesOnTiers = new HashMap<>(usedBytesOnTiers);
     for (long t : mUsage.mUsedBytesOnTiers.values()) {
@@ -597,6 +674,9 @@ public final class MasterWorkerInfo {
    * @param usedBytesOnTier used bytes on certain storage tier
    */
   public void updateUsedBytes(String tierAlias, long usedBytesOnTier) {
+    Preconditions.checkState(checkLocks(
+        EnumSet.of(WorkerMetaLockSection.USAGE), false));
+
     mUsage.mUsedBytes += usedBytesOnTier - mUsage.mUsedBytesOnTiers.get(tierAlias);
     mUsage.mUsedBytesOnTiers.put(tierAlias, usedBytesOnTier);
   }
@@ -622,5 +702,31 @@ public final class MasterWorkerInfo {
    */
   public LockResource lockWorkerMeta(EnumSet<WorkerMetaLockSection> lockTypes, boolean isShared) {
     return new LockResource(new WorkerMetaLock(lockTypes, isShared, this));
+  }
+
+  /**
+   * Verifies the specified locks are held.
+   *
+   * @param lockTypes the locks
+   * @param isShared whether the lock is a ReadLock or WriteLock
+   */
+  public boolean checkLocks(EnumSet<WorkerMetaLockSection> lockTypes, boolean isShared) {
+    for (WorkerMetaLockSection type : lockTypes) {
+      if (!isShared) {
+        if (!getLock(type).writeLock().isHeldByCurrentThread()) {
+          return false;
+        }
+      } else {
+        // There is intentionally no way to check read lock ownership
+        // https://bugs.java.com/bugdatabase/view_bug.do?bug_id=6207928
+        // So we can verify if a write lock is currently held by another thread
+        ReentrantReadWriteLock.ReadLock readLock = getLock(type).readLock();
+        if (!readLock.tryLock()) {
+          return false;
+        }
+        readLock.unlock();
+      }
+    }
+    return true;
   }
 }
