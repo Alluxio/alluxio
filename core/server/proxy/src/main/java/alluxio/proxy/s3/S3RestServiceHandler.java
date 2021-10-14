@@ -240,7 +240,7 @@ public final class S3RestServiceHandler {
 
       String path = parsePath(AlluxioURI.SEPARATOR + bucket);
       final FileSystem fs = getFileSystem(authorization);
-      final List<URIStatus> children;
+      List<URIStatus> children;
       try {
         if (delimiterParam != null && delimiterParam.equals(AlluxioURI.SEPARATOR)) {
           children = fs.listStatus(new AlluxioURI(path));
