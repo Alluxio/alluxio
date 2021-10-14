@@ -280,6 +280,24 @@ public final class S3ClientRestApiTest extends RestApiTest {
     assertEquals(0, expected.getContents().size());
     assertEquals(1, expected.getCommonPrefixes().size());
     assertEquals("folder0/f", expected.getCommonPrefixes().get(0).getPrefix());
+
+    //parameters with list-type=2 start-after="folder0/file0"
+    statuses = mFileSystem.listStatus(new AlluxioURI("/bucket"), options);
+
+    expected = new ListBucketResult("bucket", statuses,
+        ListBucketOptions.defaults().setListType(2).setStartAfter("file0"));
+
+    parameters.clear();
+    parameters.put("list-type", "2");
+    parameters.put("start-after", "file0");
+
+    new TestCase(mHostname, mPort, S3_SERVICE_PREFIX + "/bucket", parameters,
+        HttpMethod.GET, expected,
+        TestCaseOptions.defaults().setContentType(TestCaseOptions.XML_CONTENT_TYPE)).run();
+
+    assertEquals(3, expected.getContents().size());
+    assertEquals("folder0/file1", expected.getContents().get(2).getKey());
+    assertEquals(0, expected.getCommonPrefixes().size());
   }
 
   @Test
@@ -298,6 +316,7 @@ public final class S3ClientRestApiTest extends RestApiTest {
     ListStatusPOptions options  = ListStatusPOptions.newBuilder().setRecursive(true).build();
     List<URIStatus> statuses = mFileSystem.listStatus(new AlluxioURI("/bucket"), options);
 
+    //parameters with max-keys=1
     ListBucketResult expected = new ListBucketResult("bucket", statuses,
         ListBucketOptions.defaults().setMaxKeys(1));
     String nextMarker = expected.getNextMarker();
@@ -333,6 +352,54 @@ public final class S3ClientRestApiTest extends RestApiTest {
     expected = new ListBucketResult("bucket", statuses,
         ListBucketOptions.defaults().setMaxKeys(1).setMarker(nextMarker));
     nextMarker = expected.getNextMarker();
+
+    new TestCase(mHostname, mPort, S3_SERVICE_PREFIX + "/bucket", parameters,
+        HttpMethod.GET, expected,
+        TestCaseOptions.defaults().setContentType(TestCaseOptions.XML_CONTENT_TYPE)).run();
+
+    assertEquals("folder0/file0", expected.getContents().get(0).getKey());
+    assertEquals(0, expected.getCommonPrefixes().size());
+
+    //parameters with list-type=2 and max-key=1
+    expected = new ListBucketResult("bucket", statuses,
+        ListBucketOptions.defaults().setMaxKeys(1).setListType(2));
+    String nextContinuationToken = expected.getNextContinuationToken();
+    assertEquals(ListBucketResult.encodeToken("/bucket/file0"), nextContinuationToken);
+
+    parameters.remove("marker");
+    parameters.put("list-type", "2");
+
+    new TestCase(mHostname, mPort, S3_SERVICE_PREFIX + "/bucket", parameters,
+        HttpMethod.GET, expected,
+        TestCaseOptions.defaults().setContentType(TestCaseOptions.XML_CONTENT_TYPE)).run();
+
+    assertEquals("file0", expected.getContents().get(0).getKey());
+    assertEquals(0, expected.getCommonPrefixes().size());
+
+    parameters.put("continuation-token", nextContinuationToken);
+
+    expected = new ListBucketResult("bucket", statuses,
+        ListBucketOptions.defaults().setMaxKeys(1)
+            .setListType(2).setContinuationToken(nextContinuationToken));
+    nextContinuationToken = expected.getNextContinuationToken();
+    assertEquals(ListBucketResult.encodeToken("/bucket/file1"), nextContinuationToken);
+
+    assertEquals(1, expected.getContents().size());
+
+    new TestCase(mHostname, mPort, S3_SERVICE_PREFIX + "/bucket", parameters,
+        HttpMethod.GET, expected,
+        TestCaseOptions.defaults().setContentType(TestCaseOptions.XML_CONTENT_TYPE)).run();
+
+    assertEquals("file1", expected.getContents().get(0).getKey());
+    assertEquals(0, expected.getCommonPrefixes().size());
+
+    parameters.put("continuation-token", nextContinuationToken);
+
+    expected = new ListBucketResult("bucket", statuses,
+        ListBucketOptions.defaults().setMaxKeys(1)
+            .setListType(2).setContinuationToken(nextContinuationToken));
+    nextContinuationToken = expected.getNextContinuationToken();
+    assertEquals(ListBucketResult.encodeToken("/bucket/folder0/file0"), nextContinuationToken);
 
     new TestCase(mHostname, mPort, S3_SERVICE_PREFIX + "/bucket", parameters,
         HttpMethod.GET, expected,
