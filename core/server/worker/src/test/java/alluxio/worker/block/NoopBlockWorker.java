@@ -47,6 +47,11 @@ public class NoopBlockWorker implements BlockWorker {
   }
 
   @Override
+  public AtomicReference<String> getClusterId() {
+    return null;
+  }
+
+  @Override
   public void abortBlock(long sessionId, long blockId) throws BlockAlreadyExistsException,
       BlockDoesNotExistException, InvalidWorkerStateException, IOException {
     // noop

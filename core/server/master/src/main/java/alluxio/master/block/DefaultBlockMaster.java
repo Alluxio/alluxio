@@ -11,6 +11,7 @@
 
 package alluxio.master.block;
 
+import alluxio.ClientContext;
 import alluxio.annotation.SuppressFBWarnings;
 import alluxio.Constants;
 import alluxio.MasterStorageTierAssoc;
@@ -31,9 +32,11 @@ import alluxio.exception.status.NotFoundException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.Command;
 import alluxio.grpc.CommandType;
+import alluxio.grpc.PreRegisterCommand;
 import alluxio.grpc.ConfigProperty;
 import alluxio.grpc.GrpcService;
 import alluxio.grpc.GrpcUtils;
+import alluxio.grpc.PreRegisterCommandType;
 import alluxio.grpc.RegisterWorkerPOptions;
 import alluxio.grpc.ServiceType;
 import alluxio.grpc.StorageList;
@@ -43,10 +46,12 @@ import alluxio.heartbeat.HeartbeatExecutor;
 import alluxio.heartbeat.HeartbeatThread;
 import alluxio.master.CoreMaster;
 import alluxio.master.CoreMasterContext;
+import alluxio.master.MasterClientContext;
 import alluxio.master.block.meta.MasterWorkerInfo;
 import alluxio.master.block.meta.WorkerMetaLockSection;
 import alluxio.master.journal.JournalContext;
 import alluxio.master.journal.checkpoint.CheckpointName;
+import alluxio.master.meta.RetryHandlingMetaMasterMasterClient;
 import alluxio.master.metastore.BlockStore;
 import alluxio.master.metastore.BlockStore.Block;
 import alluxio.master.metrics.MetricsMaster;
@@ -104,6 +109,7 @@ import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.Lock;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
@@ -219,6 +225,9 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
   /** Keeps track of workers which are in communication with the master. */
   private final IndexedSet<MasterWorkerInfo> mWorkers =
       new IndexedSet<>(ID_INDEX, ADDRESS_INDEX);
+  /** Current cluster id. */
+  private final AtomicReference<String> mClusterId =
+      new AtomicReference<>(IdUtils.INVALID_CLUSTER_ID);
   /** Keeps track of workers which are no longer in communication with the master. */
   private final IndexedSet<MasterWorkerInfo> mLostWorkers =
       new IndexedSet<>(ID_INDEX, ADDRESS_INDEX);
@@ -909,6 +918,41 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
   }
 
   @Override
+  public String getClusterId(WorkerNetAddress workerNetAddress) throws IOException {
+    if (mClusterId.get().equals(IdUtils.INVALID_CLUSTER_ID)) {
+      RetryHandlingMetaMasterMasterClient metaMasterClient =
+          new RetryHandlingMetaMasterMasterClient(MasterClientContext
+              .newBuilder(ClientContext.create(ServerConfiguration.global())).build());
+      mClusterId.set(metaMasterClient.getClusterIdInternal());
+    }
+    return mClusterId.get();
+  }
+
+  @Override
+  public PreRegisterCommand workerPreRegister(String workerClusterId,
+      WorkerNetAddress workerNetAddress) throws IOException {
+    PreRegisterCommand mCommand = PreRegisterCommand.newBuilder()
+        .setPreRegisterCommandType(PreRegisterCommandType.Nothing).build();
+
+    String mClusterId = getClusterId(workerNetAddress);
+    if (workerClusterId.equals(IdUtils.INVALID_CLUSTER_ID)) {
+      mCommand = PreRegisterCommand.newBuilder()
+          .setPreRegisterCommandType(PreRegisterCommandType.Persist).setData(mClusterId).build();
+      LOG.info("New worker PreRegister");
+      return mCommand;
+    }
+
+    if (!workerClusterId.equals(mClusterId)) {
+      mCommand = PreRegisterCommand.newBuilder()
+          .setPreRegisterCommandType(PreRegisterCommandType.Reset).build();
+      LOG.info("Worker clusterId {} doesn't match expected {}", mClusterId, workerClusterId);
+      return mCommand;
+    }
+
+    return mCommand;
+  }
+
+  @Override
   public void workerRegister(long workerId, List<String> storageTiers,
       Map<String, Long> totalBytesOnTiers, Map<String, Long> usedBytesOnTiers,
       Map<BlockLocation, List<Long>> currentBlocksOnLocation,
@@ -969,6 +1013,10 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
       Map<BlockLocation, List<Long>> addedBlocks,
       Map<String, StorageList> lostStorage,
       List<Metric> metrics) {
+    //    if (clusterId.equals("")) { //todo
+//      LOG.warn("worker cluster id {} does not match expected {}.", workerId, clusterId);
+//      return Command.newBuilder().setCommandType(CommandType.Reset).build();
+//    }
     MasterWorkerInfo worker = mWorkers.getFirstByField(ID_INDEX, workerId);
     if (worker == null) {
       LOG.warn("Could not find worker id: {} for heartbeat.", workerId);

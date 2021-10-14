@@ -12,6 +12,8 @@
 package alluxio.master.meta;
 
 import alluxio.RpcUtils;
+import alluxio.grpc.GetClusterIdInternalPRequest;
+import alluxio.grpc.GetClusterIdInternalPResponse;
 import alluxio.grpc.GetMasterIdPRequest;
 import alluxio.grpc.GetMasterIdPResponse;
 import alluxio.grpc.MasterHeartbeatPRequest;
@@ -55,6 +57,15 @@ public final class MetaMasterMasterServiceHandler
       return GetMasterIdPResponse.newBuilder()
           .setMasterId(mMetaMaster.getMasterId(Address.fromProto(masterAddress))).build();
     }, "getMasterId", "request=%s", responseObserver, request);
+  }
+
+  @Override
+  public void getClusterIdInternal(GetClusterIdInternalPRequest request,
+      StreamObserver<GetClusterIdInternalPResponse> responseObserver) {
+    RpcUtils.call(LOG, (RpcUtils.RpcCallableThrowsIOException<GetClusterIdInternalPResponse>) () -> {
+      return GetClusterIdInternalPResponse.newBuilder()
+          .setClusterId(mMetaMaster.getClusterID()).build();
+    }, "getClusterIdInternal", "request=%s", responseObserver, request);
   }
 
   @Override

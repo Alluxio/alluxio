@@ -19,6 +19,7 @@ import alluxio.exception.status.NotFoundException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.Command;
 import alluxio.grpc.ConfigProperty;
+import alluxio.grpc.PreRegisterCommand;
 import alluxio.grpc.RegisterWorkerPOptions;
 import alluxio.grpc.StorageList;
 import alluxio.grpc.WorkerLostStorageInfo;
@@ -32,6 +33,7 @@ import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.annotations.VisibleForTesting;
 
+import java.io.IOException;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -175,6 +177,22 @@ public interface BlockMaster extends Master, ContainerIdGenerable {
    * @return the worker id for this worker
    */
   long getWorkerId(WorkerNetAddress workerNetAddress);
+
+  /**
+   * Returns a worker id for the given worker.
+   *
+   * @param workerNetAddress the worker {@link WorkerNetAddress}
+   * @return the worker id for this worker
+   */
+  String getClusterId(WorkerNetAddress workerNetAddress) throws IOException;
+
+  /**
+   * worker pre registers with the master.
+   *
+   * @param clusterId the cluster id of the worker registering
+   */
+  PreRegisterCommand workerPreRegister(String clusterId,
+      WorkerNetAddress workerNetAddress) throws IOException;
 
   /**
    * Updates metadata when a worker registers with the master.

@@ -31,6 +31,7 @@ import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.AsyncCacheRequest;
 import alluxio.grpc.CacheRequest;
 import alluxio.grpc.GrpcService;
+import alluxio.grpc.PreRegisterCommand;
 import alluxio.grpc.ServiceType;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatExecutor;
@@ -46,6 +47,7 @@ import alluxio.retry.TimeoutRetry;
 import alluxio.security.user.ServerUserState;
 import alluxio.underfs.UfsManager;
 import alluxio.util.executor.ExecutorServiceFactories;
+import alluxio.util.IdUtils;
 import alluxio.wire.BlockReadRequest;
 import alluxio.wire.FileInfo;
 import alluxio.wire.WorkerNetAddress;
@@ -137,11 +139,16 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
    * be updated by the block sync thread if the master requests re-registration.
    */
   private final AtomicReference<Long> mWorkerId;
+  private final AtomicReference<String> mClusterId;
 
   private final FileSystemContext mFsContext;
   private final CacheRequestManager mCacheManager;
   private final FuseManager mFuseManager;
   private final UfsManager mUfsManager;
+  private final BlockWorkerState mBlockWorkerState;
+  private static class StateKey {
+    final static String ClusterId = "ClusterId";
+  }
 
   /**
    * Constructs a default block worker.
@@ -177,6 +184,7 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
     mSessions = sessions;
     mLocalBlockStore = mResourceCloser.register(blockStore);
     mWorkerId = new AtomicReference<>(-1L);
+    mClusterId = new AtomicReference<>(IdUtils.INVALID_CLUSTER_ID);
     mLocalBlockStore.registerBlockStoreEventListener(mHeartbeatReporter);
     mLocalBlockStore.registerBlockStoreEventListener(mMetricsReporter);
     mUfsManager = ufsManager;
@@ -186,6 +194,7 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
         GrpcExecutors.CACHE_MANAGER_EXECUTOR, this, mFsContext);
     mFuseManager = mResourceCloser.register(new FuseManager(mFsContext));
     mUnderFileSystemBlockStore = new UnderFileSystemBlockStore(mLocalBlockStore, ufsManager);
+    mBlockWorkerState = new BlockWorkerState();
 
     Metrics.registerGauges(this);
   }
@@ -210,6 +219,39 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
     return mWorkerId;
   }
 
+  @Override
+  public AtomicReference<String> getClusterId() {
+    String mClusterId = mBlockWorkerState.get(StateKey.ClusterId);
+    if (mClusterId.isEmpty()) {
+      mClusterId = IdUtils.INVALID_CLUSTER_ID;
+    }
+    return new AtomicReference<>(mClusterId);
+  }
+
+  private void setClusterId(String clusterId) throws IOException {
+    mBlockWorkerState.set(StateKey.ClusterId, clusterId);
+  }
+
+  private void handlePreRegisterCommand(PreRegisterCommand cmd) throws IOException {
+    if (cmd == null) {
+      return;
+    }
+
+    switch (cmd.getPreRegisterCommandType()) {
+      case Nothing:
+        break; // worker normal restarted, state is as expected
+      case Persist:
+        setClusterId(cmd.getData()); // worker first time register, persisted some state info
+        break;
+      case Reset:
+        LOG.warn("PreRegister Master Command {}", cmd); // worker is not belonging the current cluster
+        // todo clean all block and reset status
+        break;
+      default:
+        throw new RuntimeException("PreRegister Un-recognized command from master " + cmd);
+    }
+  }
+
   /**
    * Runs the block worker. The thread must be called after all services (e.g., web, dataserver)
    * started.
@@ -221,8 +263,24 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
     super.start(address);
     mAddress = address;
 
-    // Acquire worker Id.
+    // preRegister, verify state info, such as that the worker belongs to the current cluster.
     BlockMasterClient blockMasterClient = mBlockMasterClientPool.acquire();
+    final AtomicReference<PreRegisterCommand> mCommandFromMaster =
+        new AtomicReference<>(PreRegisterCommand.getDefaultInstance());
+    try {
+      RetryUtils.retry("preRegister worker",
+          () -> mCommandFromMaster.set(blockMasterClient.preRegister(getClusterId().get())),
+          RetryUtils.defaultWorkerMasterClientRetry(ServerConfiguration
+              .getDuration(PropertyKey.WORKER_MASTER_CONNECT_RETRY_TIMEOUT)));
+    } catch (Exception e) {
+      throw new RuntimeException("Failed to preRegister from block master: " + e.getMessage());
+    } finally {
+      mBlockMasterClientPool.release(blockMasterClient);
+    }
+
+    handlePreRegisterCommand(mCommandFromMaster.get());
+
+    // Acquire worker Id.
     try {
       RetryUtils.retry("create worker id", () -> mWorkerId.set(blockMasterClient.getId(address)),
           RetryUtils.defaultWorkerMasterClientRetry(ServerConfiguration
@@ -235,11 +293,13 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
     }
 
     Preconditions.checkNotNull(mWorkerId, "mWorkerId");
+    Preconditions.checkNotNull(mClusterId, "mWorkerId");
     Preconditions.checkNotNull(mAddress, "mAddress");
 
     // Setup BlockMasterSync
     mBlockMasterSync = mResourceCloser
-        .register(new BlockMasterSync(this, mWorkerId, mAddress, mBlockMasterClientPool));
+        .register(new BlockMasterSync(this, mWorkerId, mClusterId,
+            mAddress, mBlockMasterClientPool));
     getExecutorService()
         .submit(new HeartbeatThread(HeartbeatContext.WORKER_BLOCK_SYNC, mBlockMasterSync,
             (int) ServerConfiguration.getMs(PropertyKey.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS),

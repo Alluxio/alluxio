@@ -14,6 +14,7 @@ package alluxio.worker.block;
 import alluxio.AbstractMasterClient;
 import alluxio.Constants;
 import alluxio.conf.PropertyKey;
+import alluxio.exception.status.AlluxioStatusException;
 import alluxio.grpc.BlockHeartbeatPOptions;
 import alluxio.grpc.BlockHeartbeatPRequest;
 import alluxio.grpc.BlockIdList;
@@ -24,10 +25,14 @@ import alluxio.grpc.CommitBlockInUfsPRequest;
 import alluxio.grpc.CommitBlockPRequest;
 import alluxio.grpc.ConfigProperty;
 import alluxio.grpc.GetWorkerIdPRequest;
+import alluxio.grpc.GetClusterIdPRequest;
 import alluxio.grpc.LocationBlockIdListEntry;
+import alluxio.grpc.MetaMasterMasterServiceGrpc;
 import alluxio.grpc.Metric;
+import alluxio.grpc.PreRegisterCommand;
 import alluxio.grpc.RegisterWorkerPOptions;
 import alluxio.grpc.RegisterWorkerPRequest;
+import alluxio.grpc.PreRegisterWorkerPRequest;
 import alluxio.grpc.ServiceType;
 import alluxio.grpc.StorageList;
 import alluxio.master.MasterClientContext;
@@ -56,6 +61,7 @@ import javax.annotation.concurrent.ThreadSafe;
 public class BlockMasterClient extends AbstractMasterClient {
   private static final Logger LOG = LoggerFactory.getLogger(BlockMasterClient.class);
   private BlockMasterWorkerServiceGrpc.BlockMasterWorkerServiceBlockingStub mClient = null;
+  private MetaMasterMasterServiceGrpc.MetaMasterMasterServiceBlockingStub mClient2 = null;
 
   /**
    * Creates a new instance of {@link BlockMasterClient} for the worker.
@@ -142,6 +148,20 @@ public class BlockMasterClient extends AbstractMasterClient {
   }
 
   /**
+   * Returns a cluster id for a workers.
+   *
+   * @param address the net address to get a worker id for
+   * @return a worker id
+   */
+  public String getClusterId(final WorkerNetAddress address) throws IOException {
+    return retryRPC(() -> {
+      GetClusterIdPRequest request =
+          GetClusterIdPRequest.newBuilder().setWorkerNetAddress(GrpcUtils.toProto(address)).build();
+      return mClient.getClusterId(request).getClusterId();
+    }, LOG, "GetClusterId", "address=%s", address);
+  }
+
+  /**
    * Converts the block list map to a proto list.
    * Because the list is flattened from a map, in the list no two {@link LocationBlockIdListEntry}
    * instances shall have the same {@link BlockStoreLocationProto}.
@@ -185,6 +205,7 @@ public class BlockMasterClient extends AbstractMasterClient {
    * The method the worker should periodically execute to heartbeat back to the master.
    *
    * @param workerId the worker id
+   * @param clusterId the cluster id
    * @param capacityBytesOnTiers a mapping from storage tier alias to capacity bytes
    * @param usedBytesOnTiers a mapping from storage tier alias to used bytes
    * @param removedBlocks a list of block removed from this worker
@@ -193,7 +214,7 @@ public class BlockMasterClient extends AbstractMasterClient {
    * @param metrics a list of worker metrics
    * @return an optional command for the worker to execute
    */
-  public synchronized Command heartbeat(final long workerId,
+  public synchronized Command heartbeat(final long workerId, final String clusterId,
       final Map<String, Long> capacityBytesOnTiers, final Map<String, Long> usedBytesOnTiers,
       final List<Long> removedBlocks, final Map<BlockStoreLocation, List<Long>> addedBlocks,
       final Map<String, List<String>> lostStorage, final List<Metric> metrics)
@@ -208,13 +229,22 @@ public class BlockMasterClient extends AbstractMasterClient {
             e -> StorageList.newBuilder().addAllStorage(e.getValue()).build()));
 
     final BlockHeartbeatPRequest request = BlockHeartbeatPRequest.newBuilder().setWorkerId(workerId)
-        .putAllUsedBytesOnTiers(usedBytesOnTiers).addAllRemovedBlockIds(removedBlocks)
-        .addAllAddedBlocks(entryList).setOptions(options)
+        .setClusterId(clusterId) .putAllUsedBytesOnTiers(usedBytesOnTiers)
+        .addAllRemovedBlockIds(removedBlocks) .addAllAddedBlocks(entryList).setOptions(options)
         .putAllLostStorage(lostStorageMap).build();
 
     return retryRPC(() -> mClient.withDeadlineAfter(mContext.getClusterConf()
         .getMs(PropertyKey.WORKER_MASTER_PERIODICAL_RPC_TIMEOUT), TimeUnit.MILLISECONDS)
-        .blockHeartbeat(request).getCommand(), LOG, "Heartbeat", "workerId=%d", workerId);
+        .blockHeartbeat(request).getCommand(), LOG, "Heartbeat",
+        "workerId=%d, clusterId=%s", workerId, clusterId);
+  }
+
+  public PreRegisterCommand preRegister(String clusterId) throws AlluxioStatusException {
+    final PreRegisterWorkerPRequest request = PreRegisterWorkerPRequest
+        .newBuilder().setClusterId(clusterId).build();
+
+    return retryRPC(() -> mClient.preRegisterWorker(request).getCommand(),
+        LOG, "preRegister", "clusterId=%s", clusterId);
   }
 
   /**

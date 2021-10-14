@@ -171,7 +171,7 @@ message BlockHeartbeatPOptions {
 }
 
 message LocationBlockIdListEntry {
-  optional BlockStoreLocationProto key= 1;
+  optional BlockStoreLocationProto key = 1;
   optional BlockIdList value = 2;
 }
 
@@ -189,6 +189,8 @@ message BlockHeartbeatPRequest {
   map<string, StorageList> lostStorage = 6;
   /** use repeated fields to represent mapping from BlockStoreLocationProto to TierList */
   repeated LocationBlockIdListEntry addedBlocks = 7;
+  /** the cluster id of the worker */
+  optional string clusterId = 8;
 }
 
 message BlockHeartbeatPResponse {
@@ -232,6 +234,42 @@ message GetWorkerIdPRequest {
 message GetWorkerIdPResponse {
   optional int64 workerId = 1;
 }
+
+message PreRegisterCommand {
+  optional PreRegisterCommandType preRegisterCommandType = 1;
+  optional string data = 2;
+}
+
+enum PreRegisterCommandType {
+  Unknown = 0;
+  Nothing = 1;
+  Persist = 2;
+  Reset = 3;
+  Exist = 4;
+}
+
+message GetClusterIdPOptions {}
+message GetClusterIdPRequest {
+  /** the worker network address */
+  optional grpc.WorkerNetAddress workerNetAddress = 1;
+  optional GetClusterIdPOptions options = 2;
+}
+message GetClusterIdPResponse {
+  optional string clusterId = 1;
+}
+
+message PreRegisterWorkerPOptions {}
+message PreRegisterWorkerPRequest {
+  optional string clusterId = 1;
+  optional grpc.WorkerNetAddress workerNetAddress = 2;
+  optional PreRegisterWorkerPOptions options = 3;
+}
+
+message PreRegisterWorkerPResponse {
+  optional grpc.WorkerNetAddress workerNetAddress = 1;
+  optional PreRegisterCommand command = 2;
+}
+
 
 message RegisterWorkerPOptions {
   repeated grpc.ConfigProperty configs = 1;
@@ -279,6 +317,16 @@ service BlockMasterWorkerService {
    * Returns a worker id for the given network address.
    */
   rpc GetWorkerId(GetWorkerIdPRequest) returns (GetWorkerIdPResponse);
+
+  /**
+ * Returns a cluster id.
+ */
+  rpc GetClusterId(GetClusterIdPRequest) returns (GetClusterIdPResponse);
+
+  /**
+ * preRegisters a worker.
+ */
+  rpc preRegisterWorker(PreRegisterWorkerPRequest) returns (PreRegisterWorkerPResponse);
 
   /**
    * Registers a worker.

@@ -159,7 +159,7 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
   private State mState;
 
   /** Value to be used for the cluster ID when not assigned. */
-  public static final String INVALID_CLUSTER_ID = "INVALID_CLUSTER_ID";
+  public static final String INVALID_CLUSTER_ID = IdUtils.INVALID_CLUSTER_ID;
 
   /** Used to manage backup role. */
   private BackupRole mBackupRole;
