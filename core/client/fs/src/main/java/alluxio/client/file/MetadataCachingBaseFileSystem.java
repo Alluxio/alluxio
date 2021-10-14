@@ -56,9 +56,9 @@ public class MetadataCachingBaseFileSystem extends BaseFileSystem {
   private static final int THREAD_TERMINATION_TIMEOUT_MS = 10000;
   private static final URIStatus NOT_FOUND_STATUS = new URIStatus(
       new FileInfo().setCompleted(true));
-  private static final String RESERVED_PATH_PREFIX = "/.client_metadata_reserved";
-  private static final String DROP_CACHE = "drop";
-  private static final String GET_SIZE = "size";
+  private static final String RESERVED_PATH_PREFIX = "/alluxio.metadatacache";
+  private static final String METADATACACHE_DROP = "drop";
+  private static final String METADATACACHE_SIZE = "size";
 
   private final MetadataCache mMetadataCache;
   private final ExecutorService mAccessTimeUpdater;
@@ -240,35 +240,35 @@ public class MetadataCachingBaseFileSystem extends BaseFileSystem {
     if (mMetadataCache.size() > 0) {
       mMetadataCache.invalidateAll();
     }
-    return new URIStatus(new FileInfo());
+    return new URIStatus(new FileInfo().setCompleted(true));
   }
 
   private URIStatus getMetadataCacheSize() {
-    // The 'ls -l' command will show metadata cache size in the <filesize> field.
-    FileInfo fi = new FileInfo().setLength(mMetadataCache.size());
+    // The 'ls -al' command will show metadata cache size in the <filesize> field.
+    FileInfo fi = new FileInfo().setLength(mMetadataCache.size()).setCompleted(true);
     return new URIStatus(fi);
   }
 
   /**
    * @param path include the client operation info, the info pattern as blows
-   *             reserved:cmd:args
+   *             alluxio.metadatacache.cmd.args
    * @return a mock RUIStatus object
    */
   public URIStatus clientMetadataCacheOPHandler(AlluxioURI path) {
     URIStatus status;
     String args = null;
-    String[] cmdInfo = path.getPath().split(":");
-    if (cmdInfo.length < 2 || cmdInfo.length > 3) {
+    String[] cmdInfo = path.getPath().split("\\.");
+    if (cmdInfo.length < 3 || cmdInfo.length > 4) {
+      LOG.error("Wrong number metadata cache operation parameters.");
       return new URIStatus(new FileInfo());
+    } else if (cmdInfo.length > 3) {
+      args = cmdInfo[3];
     }
-    if (cmdInfo.length == 3) {
-      args = cmdInfo[2];
-    }
-    switch (cmdInfo[1]) {
-      case DROP_CACHE:
+    switch (cmdInfo[2]) {
+      case METADATACACHE_DROP:
         status = dropMetadataCache(args);
         break;
-      case GET_SIZE:
+      case METADATACACHE_SIZE:
         status = getMetadataCacheSize();
         break;
       default:
