@@ -56,7 +56,6 @@ import java.util.stream.Collectors;
 public final class BlockMasterWorkerServiceHandler extends
     BlockMasterWorkerServiceGrpc.BlockMasterWorkerServiceImplBase {
   private static final Logger LOG = LoggerFactory.getLogger(BlockMasterWorkerServiceHandler.class);
-  private static final long UNINITIALIZED_WORKER_ID = -1;
 
   private final BlockMaster mBlockMaster;
 
@@ -204,7 +203,6 @@ public final class BlockMasterWorkerServiceHandler extends
             }
 
             Preconditions.checkState(mContext != null, "Stream message received from the client side but the context is not initialized");
-            Preconditions.checkState(mContext.mWorkerId != UNINITIALIZED_WORKER_ID, "Complete message received from the client side but workerId is still -1.");
             Preconditions.checkState(mContext.isOpen(), "Context is not open");
 
             if (isHead) {
@@ -269,7 +267,6 @@ public final class BlockMasterWorkerServiceHandler extends
             @Override
             public RegisterWorkerStreamPResponse call() throws Exception {
               Preconditions.checkState(mContext != null, "Complete message received from the client side but the context is not initialized");
-              Preconditions.checkState(mContext.mWorkerId != UNINITIALIZED_WORKER_ID, "Complete message received from the client side but workerId is still -1.");
               Preconditions.checkState(mContext.isOpen(), "Context is not open");
 
               mContext.updateTs();

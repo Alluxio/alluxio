@@ -106,7 +106,6 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
-import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.locks.Lock;
@@ -231,12 +230,8 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
   private final IndexedSet<MasterWorkerInfo> mTempWorkers =
       new IndexedSet<>(ID_INDEX, ADDRESS_INDEX);
 
-  // TODO(jiacheng): heartbeating thread checking if workers are alive
-  //  What is alive?
-  //  For every batch, update the live time
-  // TODO(jiacheng): How to close a stream?
-  //  assert the context is still up
-  private final Map<Long, WorkerRegisterContext> mOpenRegister = new ConcurrentHashMap<>();
+  /** Tracks the open register streams */
+  private final Map<Long, WorkerRegisterContext> mOpenRegisterStreams = new ConcurrentHashMap<>();
 
   /** Listeners to call when lost workers are found. */
   private final List<Consumer<Address>> mLostWorkerFoundListeners
@@ -407,25 +402,23 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
         .concat(CommonUtils.singleElementIterator(getContainerIdJournalEntry()), blockIterator));
   }
 
-  private final class WorkerRegisterStreamGCHeartbeatExecutor implements HeartbeatExecutor {
+  private final class WorkerRegisterStreamGCExecutor implements HeartbeatExecutor {
     private long mTimeout = ServerConfiguration.global().getMs(PropertyKey.MASTER_REGISTER_WORKER_STREAM_TIMEOUT);
 
-    public WorkerRegisterStreamGCHeartbeatExecutor() {
+    public WorkerRegisterStreamGCExecutor() {
       System.out.println("Worker register stream will be cancelled if longer than " + mTimeout);
     }
 
     @Override
     public void heartbeat() {
-      System.out.println("Checking " + mOpenRegister.size() + " entries...");
-      for (Map.Entry<Long, WorkerRegisterContext> entry : mOpenRegister.entrySet()) {
+      System.out.println("Checking " + mOpenRegisterStreams.size() + " entries...");
+      for (Map.Entry<Long, WorkerRegisterContext> entry : mOpenRegisterStreams.entrySet()) {
         WorkerRegisterContext context = entry.getValue();
         final long lastUpdate = mClock.millis() - context.mLastUpdatedTime;
         if (lastUpdate > mTimeout) {
           System.out.println("Worker register stream hanging for more than " + mTimeout + " for worker " + context.mWorker.getId());
           Exception e = new TimeoutException("Time out for worker register stream for more than " + mTimeout);
           context.mResponseObserver.onError(AlluxioStatusException.fromThrowable(e).toGrpcStatusException());
-          // TODO(jiacheng): no need to close explicitly because that will happen in onError()?
-//            context.close();
         }
       }
     }
@@ -450,7 +443,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
     // TODO(jiacheng): Potentially merge this with the lease timeout/recycle logic
     getExecutorService().submit(new HeartbeatThread(
           HeartbeatContext.MASTER_WORKER_REGISTER_SESSION_CLEANER,
-            new WorkerRegisterStreamGCHeartbeatExecutor(),
+            new WorkerRegisterStreamGCExecutor(),
             (int) ServerConfiguration.global().getMs(PropertyKey.MASTER_REGISTER_WORKER_STREAM_TIMEOUT),
             ServerConfiguration.global(), mMasterContext.getUserState()));
   }
@@ -1041,7 +1034,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
           throws NotFoundException {
     MasterWorkerInfo worker = context.mWorker;
     Preconditions.checkState(worker != null, "The context has null worker!");
-    mOpenRegister.put(worker.getId(), context);
+    mOpenRegisterStreams.put(worker.getId(), context);
 
     // The worker is locked so we can operate on its blocks without race conditions
     // We start with assuming all blocks in (mBlocks + mToRemoveBlocks) do not exist.
@@ -1152,7 +1145,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
     mWorkerInfoCache.invalidate(WORKER_INFO_CACHE_KEY);
     LOG.info("workerRegisterFinish(): {}", worker);
 
-    mOpenRegister.remove(worker.getId());
+    mOpenRegisterStreams.remove(worker.getId());
   }
 
   @Override
@@ -1293,7 +1286,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
    *
    * @param workerInfo The worker metadata object
    */
-  private void  processWorkerOrphanedBlocks(MasterWorkerInfo workerInfo) {
+  private void processWorkerOrphanedBlocks(MasterWorkerInfo workerInfo) {
     long orphanedBlockCount = 0;
     for (long block : workerInfo.getBlocks()) {
       if (!mBlockStore.getBlock(block).isPresent()) {

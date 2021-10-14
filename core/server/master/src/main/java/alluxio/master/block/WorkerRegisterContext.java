@@ -45,10 +45,9 @@ public class WorkerRegisterContext implements Closeable {
   }
 
   public static synchronized WorkerRegisterContext create(BlockMaster blockMaster, long workerId,
-                                                          StreamObserver<RegisterWorkerStreamPRequest> requestObserver,
-                                                          StreamObserver<RegisterWorkerStreamPResponse> responseObserver) throws NotFoundException {
+                      StreamObserver<RegisterWorkerStreamPRequest> requestObserver,
+                      StreamObserver<RegisterWorkerStreamPResponse> responseObserver) throws NotFoundException {
     MasterWorkerInfo info = blockMaster.getWorker(workerId);
-
     WorkerRegisterContext context = new WorkerRegisterContext(info, requestObserver, responseObserver);
     return context;
   }
@@ -64,7 +63,6 @@ public class WorkerRegisterContext implements Closeable {
   @Override
   public void close() throws IOException {
     Preconditions.checkState(mOpen.get(), "The context is already closed!");
-
     if (mWorkerLock != null) {
       mWorkerLock.close();
     }

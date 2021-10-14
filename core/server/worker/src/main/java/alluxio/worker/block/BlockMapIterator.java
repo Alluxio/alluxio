@@ -94,8 +94,6 @@ public class BlockMapIterator implements Iterator<List<LocationBlockIdListEntry>
       blockIdBatch.add(currentIterator.next());
       mCounter++;
     }
-//    LOG.info("{} blocks added to the batch", blockIdBatch.size());
-//    System.out.format("%s blocks added to the batch, counter now%s%n", blockIdBatch.size(), mCounter);
 
     // Initialize the LocationBlockIdListEntry
     BlockIdList blockIdList = BlockIdList.newBuilder().addAllBlockId(blockIdBatch).build();
@@ -103,7 +101,6 @@ public class BlockMapIterator implements Iterator<List<LocationBlockIdListEntry>
             .setKey(currentLoc).setValue(blockIdList).build();
     return listEntry;
   }
-
 
   @Override
   public List<LocationBlockIdListEntry> next() {
@@ -119,16 +116,12 @@ public class BlockMapIterator implements Iterator<List<LocationBlockIdListEntry>
       // Generate the next batch
       // This method does NOT progress the pointers
       int spaceLeft = targetCounter - mCounter;
-//      System.out.println("Space left: " + spaceLeft);
       LocationBlockIdListEntry batchFromThisTier = nextBatchFromTier(currentLoc, currentIterator, spaceLeft);
       result.add(batchFromThisTier);
 
       // Progress the iterator based on the break condition
       if (!currentIterator.hasNext()) {
-//        System.out.println("Tier has been consumed");
-//        LOG.info("Tier has been consumed.");
         // We keep filling in from the next tier
-        // Update the pointer and continue
         mCurrentBlockLocationIndex++;
         if (mCurrentBlockLocationIndex >= mBlockStoreLocationProtoList.size()) {
 //          System.out.format("Finished all iterators. %s blocks iterated.%n", mCounter);
@@ -138,11 +131,9 @@ public class BlockMapIterator implements Iterator<List<LocationBlockIdListEntry>
           LOG.info("Batch container {} tier entries", result.size());
           return result;
         }
-//        System.out.println("Continue with the next tier");
         LOG.info("Continue with the next tier {}", mBlockStoreLocationProtoList.get(mCurrentBlockLocationIndex));
         continue;
       } else {
-//        System.out.format("Batch has been filled, counter is %s%n", mCounter);
         LOG.info("Batch has been filled, now counter is {}", mCounter);
         return result;
       }

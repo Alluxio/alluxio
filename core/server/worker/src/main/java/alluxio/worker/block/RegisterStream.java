@@ -66,8 +66,6 @@ public class RegisterStream implements Iterator<RegisterWorkerStreamPRequest> {
           final List<ConfigProperty> configList) {
     this(client, asyncClient, workerId, storageTierAliases, totalBytesOnTiers, usedBytesOnTiers,
             currentBlocksOnLocation, lostStorage, configList,
-            // TODO(jiacheng): Decide what blocks to include
-            //  This is taking long to finish because of the copy in the constructor
             new BlockMapIterator(currentBlocksOnLocation));
   }
 
@@ -108,11 +106,9 @@ public class RegisterStream implements Iterator<RegisterWorkerStreamPRequest> {
     StreamObserver<RegisterWorkerStreamPResponse> responseObserver = new StreamObserver<RegisterWorkerStreamPResponse>() {
       @Override
       public void onNext(RegisterWorkerStreamPResponse res) {
-        LOG.info("Received response {}", res);
-        // TODO(jiacheng): If the master instructs the worker to wait， do this in a separate PR
-
+        LOG.debug("Received response {}", res);
         mBucket.release();
-        LOG.info("{} - batch finished, 1 token released", mWorkerId);
+        LOG.debug("{} - batch finished, 1 token released", mWorkerId);
       }
 
       @Override
@@ -124,16 +120,16 @@ public class RegisterStream implements Iterator<RegisterWorkerStreamPRequest> {
 
       @Override
       public void onCompleted() {
-        LOG.info("{} - Complete message received from the server. Closing latch", mWorkerId);
+        LOG.info("{} - Complete message received from the server. Closing stream", mWorkerId);
         mFinishLatch.countDown();
       }
     };
     mRequestObserver = mAsyncClient.registerWorkerStream(responseObserver);
 
-    LOG.info("{} - starting to register", mWorkerId);
+    LOG.debug("{} - starting to register", mWorkerId);
     registerInternal();
 
-    LOG.info("{} - register finished", mWorkerId);
+    LOG.debug("{} - register finished", mWorkerId);
   }
 
   public void registerInternal() throws InterruptedException, IOException {
@@ -142,20 +138,12 @@ public class RegisterStream implements Iterator<RegisterWorkerStreamPRequest> {
       while (hasNext()) {
         List<LocationBlockIdListEntry> blockBatch = mBlockListIterator.next();
 
-        // TODO(jiacheng): debug output
-        StringBuilder sb = new StringBuilder();
-        for (LocationBlockIdListEntry e : blockBatch) {
-          sb.append(String.format("%s, ", e.getKey()));
-        }
-        LOG.info("Sending batch {}: {}", iter, sb.toString());
-
         // Send a request when the master ACKs the previous one
-        LOG.info("{} - Acquiring one token", mWorkerId);
-        // TODO(jiacheng): timeout?
+        LOG.debug("{} - Acquiring one token", mWorkerId);
         Instant start = Instant.now();
         mBucket.acquire();
         Instant end = Instant.now();
-        LOG.info("{} - master ACK acquired in {}ms, sending next batch",
+        LOG.debug("{} - master ACK acquired in {}ms, sending next batch",
                 mWorkerId, Duration.between(start, end).toMillis());
 
         // Send the request
@@ -171,11 +159,9 @@ public class RegisterStream implements Iterator<RegisterWorkerStreamPRequest> {
         }
       }
     } catch (Throwable t) {
-      // TODO(jiacheng): throwable?
-      //  close the stream?
+      // TODO(jiacheng): throwable? close the stream?
       // Cancel RPC
       System.out.format("Error %s%n", t);
-      // TODO(jiacheng): calling its own onError?
       mRequestObserver.onError(t);
       throw t;
     }
@@ -185,8 +171,8 @@ public class RegisterStream implements Iterator<RegisterWorkerStreamPRequest> {
     mRequestObserver.onCompleted();
 
     // Receiving happens asynchronously
-    // TODO(jiacheng): configurable
     LOG.info("{} - Waiting on the latch", threadId);
+    // TODO(jiacheng): configure the deadline
     mFinishLatch.await();
     LOG.info("{} - Latch returned", threadId);
 
@@ -207,7 +193,6 @@ public class RegisterStream implements Iterator<RegisterWorkerStreamPRequest> {
     RegisterWorkerStreamPRequest request;
     List<LocationBlockIdListEntry> blockBatch = mBlockListIterator.next();
     if (mBatchNumber == 0) {
-//          System.out.println("Generating header request of the stream");
       request = RegisterWorkerStreamPRequest.newBuilder()
               .setIsHead(true)
               .setWorkerId(mWorkerId)

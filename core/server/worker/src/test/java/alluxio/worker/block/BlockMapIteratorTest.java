@@ -19,7 +19,6 @@ import static org.junit.Assert.assertTrue;
 public class BlockMapIteratorTest {
   @Test
   public void convertStream() {
-    // TODO(jiacheng)
     BlockStoreLocation memTier = new BlockStoreLocation("MEM", 0);
     BlockStoreLocation ssdTier = new BlockStoreLocation("SSD", 0);
     BlockStoreLocation hddTier = new BlockStoreLocation("HDD", 0);
@@ -53,10 +52,6 @@ public class BlockMapIteratorTest {
 
   @Test
   public void convertStreamMergedTiers() {
-    // TODO(jiacheng)
-    BlockStoreLocation memTier = new BlockStoreLocation("MEM", 0);
-    BlockStoreLocation ssdTier = new BlockStoreLocation("SSD", 0);
-    BlockStoreLocation hddTier = new BlockStoreLocation("HDD", 0);
     List<Integer> memList = ImmutableList.of(100,100);
     List<Integer> ssdList = ImmutableList.of(101,22);
     List<Integer> hddList = ImmutableList.of(10,20);
