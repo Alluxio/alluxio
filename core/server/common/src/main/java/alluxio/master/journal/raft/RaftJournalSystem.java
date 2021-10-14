@@ -451,7 +451,7 @@ public class RaftJournalSystem extends AbstractJournalSystem {
   @Override
   public synchronized void gainPrimacy() {
     mSnapshotAllowed.set(false);
-    LocalFirstRaftClient client = new LocalFirstRaftClient(mServer, this::createClient,
+    RaftJournalAppender client = new RaftJournalAppender(mServer, this::createClient,
         mRawClientId, ServerConfiguration.global());
 
     Runnable closeClient = () -> {
@@ -578,7 +578,7 @@ public class RaftJournalSystem extends AbstractJournalSystem {
   public synchronized void checkpoint() throws IOException {
     // TODO(feng): consider removing this once we can automatically propagate
     //             snapshots from secondary master
-    try (LocalFirstRaftClient client = new LocalFirstRaftClient(mServer, this::createClient,
+    try (RaftJournalAppender client = new RaftJournalAppender(mServer, this::createClient,
         mRawClientId, ServerConfiguration.global())) {
       mSnapshotAllowed.set(true);
       catchUp(mStateMachine, client);
@@ -611,7 +611,7 @@ public class RaftJournalSystem extends AbstractJournalSystem {
    *
    * The caller is responsible for detecting and responding to leadership changes.
    */
-  private void catchUp(JournalStateMachine stateMachine, LocalFirstRaftClient client)
+  private void catchUp(JournalStateMachine stateMachine, RaftJournalAppender client)
       throws TimeoutException, InterruptedException {
     long startTime = System.currentTimeMillis();
     long waitBeforeRetry = ServerConfiguration.global()
