@@ -241,13 +241,9 @@ public final class S3RestServiceHandler {
       String path = parsePath(AlluxioURI.SEPARATOR + bucket);
       final FileSystem fs = getFileSystem(authorization);
       List<URIStatus> children;
+      ListStatusPOptions options = ListStatusPOptions.newBuilder().setRecursive(true).build();
       try {
-        if (delimiterParam != null && delimiterParam.equals(AlluxioURI.SEPARATOR)) {
-          children = fs.listStatus(new AlluxioURI(path));
-        } else {
-          ListStatusPOptions options = ListStatusPOptions.newBuilder().setRecursive(true).build();
-          children = fs.listStatus(new AlluxioURI(path), options);
-        }
+        children = fs.listStatus(new AlluxioURI(path), options);
       } catch (FileDoesNotExistException e) {
         children = Collections.emptyList();
       } catch (IOException | AlluxioException e) {
@@ -509,8 +505,8 @@ public final class S3RestServiceHandler {
         }
       } else {
         try (FileInStream in = fs.openFile(
-            new AlluxioURI(!copySource.startsWith(AlluxioURI.SEPARATOR) ?
-                AlluxioURI.SEPARATOR + copySource : copySource));
+            new AlluxioURI(!copySource.startsWith(AlluxioURI.SEPARATOR)
+                ? AlluxioURI.SEPARATOR + copySource : copySource));
             FileOutStream out = fs.createFile(objectURI)) {
           MessageDigest md5 = MessageDigest.getInstance("MD5");
           try (DigestOutputStream digestOut = new DigestOutputStream(out, md5)) {
