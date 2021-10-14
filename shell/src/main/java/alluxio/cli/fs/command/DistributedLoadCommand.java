@@ -39,6 +39,7 @@ import javax.annotation.concurrent.ThreadSafe;
 @PublicApi
 public final class DistributedLoadCommand extends AbstractDistributedJobCommand {
   private static final int DEFAULT_REPLICATION = 1;
+  private static final int DEFAULT_BATCH_SIZE = 1;
   private static final Option REPLICATION_OPTION =
       Option.builder()
           .longOpt("replication")
@@ -181,6 +182,16 @@ public final class DistributedLoadCommand extends AbstractDistributedJobCommand 
               + " and it should not be set with 'hosts', 'host-file', 'locality'"
               + " and 'locality-file' together.")
           .build();
+  private static final Option BATCH_SIZE_OPTION =
+      Option.builder()
+          .longOpt("batch-size")
+          .required(false)
+          .hasArg(true)
+          .numberOfArgs(1)
+          .type(Number.class)
+          .argName("batch-size")
+          .desc("Number of files per request, default: " + DEFAULT_BATCH_SIZE)
+          .build();
 
   /**
    * Constructs a new instance to load a file or directory in Alluxio space.
@@ -234,6 +245,7 @@ public final class DistributedLoadCommand extends AbstractDistributedJobCommand 
 
     String[] args = cl.getArgs();
     int replication = FileSystemShellUtils.getIntArg(cl, REPLICATION_OPTION, DEFAULT_REPLICATION);
+    int batchSize = FileSystemShellUtils.getIntArg(cl, BATCH_SIZE_OPTION, DEFAULT_BATCH_SIZE);
     Set<String> workerSet = new HashSet<>();
     Set<String> excludedWorkerSet = new HashSet<>();
     Set<String> localityIds = new HashSet<>();
@@ -269,13 +281,13 @@ public final class DistributedLoadCommand extends AbstractDistributedJobCommand 
 
     if (!cl.hasOption(INDEX_FILE.getLongOpt())) {
       AlluxioURI path = new AlluxioURI(args[0]);
-      DistributedLoadUtils.distributedLoad(this, path, replication, workerSet,
+      DistributedLoadUtils.distributedLoad(this, path, replication, batchSize,workerSet,
           excludedWorkerSet, localityIds, excludedLocalityIds, true);
     } else {
       try (BufferedReader reader = new BufferedReader(new FileReader(args[0]))) {
         for (String filename; (filename = reader.readLine()) != null; ) {
           AlluxioURI path = new AlluxioURI(filename);
-          DistributedLoadUtils.distributedLoad(this, path, replication, workerSet,
+          DistributedLoadUtils.distributedLoad(this, path, replication, batchSize,workerSet,
               excludedWorkerSet, localityIds, excludedLocalityIds, true);
         }
       }
