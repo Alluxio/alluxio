@@ -3434,8 +3434,14 @@ public final class DefaultFileSystemMaster extends CoreMaster
 
   @Override
   public void update() {
-    mReplicationCheckHeartbeatThread.updateIntervalMs(
-        (int) ServerConfiguration.getMs(PropertyKey.MASTER_REPLICATION_CHECK_INTERVAL_MS));
+    if (mReplicationCheckHeartbeatThread != null) {
+      long newValue = ServerConfiguration.getMs(
+          PropertyKey.MASTER_REPLICATION_CHECK_INTERVAL_MS);
+      mReplicationCheckHeartbeatThread.updateIntervalMs(
+          (int) newValue);
+      LOG.info("The interval of {} updated to {}",
+          HeartbeatContext.MASTER_REPLICATION_CHECK, newValue);
+    }
   }
 
   @FunctionalInterface
