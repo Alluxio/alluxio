@@ -2165,7 +2165,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey MASTER_JOURNAL_FLUSH_BATCH_TIME_MS =
       new Builder(Name.MASTER_JOURNAL_FLUSH_BATCH_TIME_MS)
           .setAlias("alluxio.master.journal.flush.batch.time.ms")
-          .setDefaultValue("5ms")
+          .setDefaultValue("100ms")
           .setDescription("Time to wait for batching journal writes.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
@@ -4299,6 +4299,23 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
+  public static final PropertyKey USER_FILE_WRITE_INIT_SLEEP_MIN =
+          new Builder(Name.USER_FILE_WRITE_INIT_SLEEP_MIN)
+          .setDefaultValue("1sec")
+          .setScope(Scope.CLIENT)
+          .build();
+  public static final PropertyKey USER_FILE_WRITE_INIT_SLEEP_MAX =
+          new Builder(Name.USER_FILE_WRITE_INIT_SLEEP_MAX)
+          .setDefaultValue("5sec")
+          .setScope(Scope.CLIENT)
+          .build();
+  public static final PropertyKey USER_FILE_WRITE_INIT_MAX_DURATION =
+      new Builder(Name.USER_FILE_WRITE_INIT_MAX_DURATION)
+          .setDefaultValue("2min")
+          .setDescription("Controls how long to retry initialization of a file write, "
+              + "when Alluxio workers are required but not ready.")
+          .setScope(Scope.CLIENT)
+          .build();
   public static final PropertyKey USER_LOCAL_READER_CHUNK_SIZE_BYTES =
       new Builder(Name.USER_LOCAL_READER_CHUNK_SIZE_BYTES)
           .setDefaultValue("8MB")
@@ -6329,6 +6346,12 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.user.file.write.tier.default";
     public static final String USER_FILE_INCLUDE_OPERATION_ID =
         "alluxio.user.file.include.operation.id";
+    public static final String USER_FILE_WRITE_INIT_SLEEP_MIN =
+        "alluxio.user.file.write.init.sleep.min";
+    public static final String USER_FILE_WRITE_INIT_SLEEP_MAX =
+        "alluxio.user.file.write.init.sleep.max";
+    public static final String USER_FILE_WRITE_INIT_MAX_DURATION =
+        "alluxio.user.file.write.init.max.duration";
     public static final String USER_HOSTNAME = "alluxio.user.hostname";
     public static final String USER_LOCAL_READER_CHUNK_SIZE_BYTES =
         "alluxio.user.local.reader.chunk.size.bytes";

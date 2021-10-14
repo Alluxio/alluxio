@@ -20,6 +20,8 @@ import alluxio.client.block.policy.options.GetWorkerOptions;
 import alluxio.client.block.stream.BlockOutStream;
 import alluxio.client.block.stream.UnderFileSystemFileOutStream;
 import alluxio.client.file.options.OutStreamOptions;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.PreconditionMessage;
 import alluxio.exception.status.UnavailableException;
@@ -28,6 +30,8 @@ import alluxio.grpc.FileSystemMasterCommonPOptions;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.resource.CloseableResource;
+import alluxio.retry.RetryPolicy;
+import alluxio.retry.RetryUtils;
 import alluxio.util.CommonUtils;
 import alluxio.util.FileSystemOptions;
 import alluxio.wire.BlockInfo;
@@ -109,13 +113,22 @@ public class AlluxioFileOutStream extends FileOutStream {
       if (!mUnderStorageType.isSyncPersist()) {
         mUnderStorageOutputStream = null;
       } else { // Write is through to the under storage, create mUnderStorageOutputStream.
-        GetWorkerOptions getWorkerOptions = GetWorkerOptions.defaults()
-            .setBlockWorkerInfos(mContext.getCachedWorkers())
-            .setBlockInfo(new BlockInfo()
-                .setBlockId(-1)
-                .setLength(0)); // not storing data to Alluxio, so block size is 0
-        WorkerNetAddress workerNetAddress =
-            options.getLocationPolicy().getWorker(getWorkerOptions);
+        // Create retry policy for initializing write.
+        AlluxioConfiguration pathConf = mContext.getPathConf(path);
+        RetryPolicy initRetryPolicy = RetryUtils.defaultFileWriteInitRetry(
+                pathConf.getDuration(PropertyKey.USER_FILE_WRITE_INIT_MAX_DURATION),
+                pathConf.getDuration(PropertyKey.USER_FILE_WRITE_INIT_SLEEP_MIN),
+                pathConf.getDuration(PropertyKey.USER_FILE_WRITE_INIT_SLEEP_MAX));
+        // Try find a worker from policy.
+        WorkerNetAddress workerNetAddress = null;
+        while (workerNetAddress == null && initRetryPolicy.attempt()) {
+          GetWorkerOptions getWorkerOptions = GetWorkerOptions.defaults()
+                  .setBlockWorkerInfos(mContext.getCachedWorkers())
+                  .setBlockInfo(new BlockInfo()
+                  .setBlockId(-1)
+                  .setLength(0)); // not storing data to Alluxio, so block size is 0
+          workerNetAddress = options.getLocationPolicy().getWorker(getWorkerOptions);
+        }
         if (workerNetAddress == null) {
           // Assume no worker is available because block size is 0.
           throw new UnavailableException(ExceptionMessage.NO_WORKER_AVAILABLE.getMessage());

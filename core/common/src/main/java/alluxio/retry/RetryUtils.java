@@ -125,6 +125,25 @@ public final class RetryUtils {
   }
 
   /**
+   *
+   * Gives a RetryPolicy for initialization of writing a file.
+   *
+   * @param maxRetryDuration the maximum total duration to retry for
+   * @param baseSleepMs initial sleep time in milliseconds
+   * @param maxSleepMs max sleep time in milliseconds
+   * @return the default block-read retry
+   */
+  public static RetryPolicy defaultFileWriteInitRetry(Duration maxRetryDuration,
+      Duration baseSleepMs, Duration maxSleepMs) {
+    return ExponentialTimeBoundedRetry.builder()
+        .withMaxDuration(maxRetryDuration)
+        .withInitialSleep(baseSleepMs)
+        .withMaxSleep(maxSleepMs)
+        .withSkipInitialSleep()
+        .build();
+  }
+
+  /**
    * Interface for methods which return nothing and may throw IOException.
    */
   @FunctionalInterface
