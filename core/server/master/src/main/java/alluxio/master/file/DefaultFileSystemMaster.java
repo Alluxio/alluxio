@@ -468,8 +468,8 @@ public final class DefaultFileSystemMaster extends CoreMaster
     mPermissionChecker = new DefaultPermissionChecker(mInodeTree);
     mJobMasterClientPool = new JobMasterClientPool(JobMasterClientContext
         .newBuilder(ClientContext.create(ServerConfiguration.global())).build());
-    mPersistRequests = new java.util.concurrent.ConcurrentHashMap<>();
-    mPersistJobs = new java.util.concurrent.ConcurrentHashMap<>();
+    mPersistRequests = new ConcurrentHashMap<>();
+    mPersistJobs = new ConcurrentHashMap<>();
     mUfsAbsentPathCache = UfsAbsentPathCache.Factory.create(mMountTable);
     mUfsBlockLocationCache = UfsBlockLocationCache.Factory.create(mMountTable);
     mUfsSyncPathCache = new UfsSyncPathCache();
