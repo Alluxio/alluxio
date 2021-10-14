@@ -12,6 +12,9 @@
 package alluxio.master.block;
 
 import alluxio.RpcUtils;
+import alluxio.exception.BlockDoesNotExistException;
+import alluxio.exception.ExceptionMessage;
+import alluxio.exception.InvalidWorkerStateException;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.exception.status.NotFoundException;
 import alluxio.grpc.BlockHeartbeatPRequest;
@@ -21,10 +24,13 @@ import alluxio.grpc.CommitBlockInUfsPRequest;
 import alluxio.grpc.CommitBlockInUfsPResponse;
 import alluxio.grpc.CommitBlockPRequest;
 import alluxio.grpc.CommitBlockPResponse;
+import alluxio.grpc.CreateLocalBlockResponse;
 import alluxio.grpc.GetWorkerIdPRequest;
 import alluxio.grpc.GetWorkerIdPResponse;
+import alluxio.grpc.GrpcExceptionUtils;
 import alluxio.grpc.GrpcUtils;
 import alluxio.grpc.LocationBlockIdListEntry;
+import alluxio.grpc.OpenLocalBlockResponse;
 import alluxio.grpc.RegisterWorkerPOptions;
 import alluxio.grpc.RegisterWorkerPRequest;
 import alluxio.grpc.RegisterWorkerPResponse;
@@ -42,7 +48,6 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
 
 /**
@@ -179,100 +184,74 @@ public final class BlockMasterWorkerServiceHandler extends
                 workerId,
                 isHead);
 
-        synchronized (this) {
-          if (mWorkerId == -1) {
-            if (!isHead) {
-              // TODO(jiacheng): validate
-              IOException e = new NotFoundException(
+        // Pass to the StreamingRpcCallable lambda
+        // TODO(jiacheng): potential risk from 'this' ref escape?
+        io.grpc.stub.StreamObserver<alluxio.grpc.RegisterWorkerStreamPRequest> requestObserver = this;
+        String methodName = isHead ? "registerWorkerStart" : "registerWorkerStream";
+        RpcUtils.streamingRPCAndLog(LOG, new RpcUtils.StreamingRpcCallable<RegisterWorkerStreamPResponse>() {
+          @Override
+          public RegisterWorkerStreamPResponse call() throws Exception {
+            // Initialize the context on the 1st message
+            synchronized (this) {
+              // TODO(jiacheng): better precondition check
+              if (mWorkerId == -1) {
+                if (!isHead) {
+                  throw new NotFoundException(
                       String.format("The StreamObserver has no worker id but it's not the 1st chunk in stream: %s", this.toString()));
-              responseObserver.onError(AlluxioStatusException.fromIOException(e).toGrpcStatusException());
-              return;
+                }
+
+                mWorkerId = workerId;
+                LOG.debug("Initializing context for {}", mWorkerId);
+                mContext = WorkerRegisterContext.create(mBlockMaster, mWorkerId, requestObserver, responseObserver);
+                LOG.debug("Context created for {}", mWorkerId);
+              }
             }
 
-            mWorkerId = workerId;
-            LOG.debug("Initializing context for {}", mWorkerId);
-            try {
-              mContext = WorkerRegisterContext.create(mBlockMaster, mWorkerId, this, responseObserver);
-              LOG.debug("Context created for {}", mWorkerId);
-            } catch (NotFoundException e) {
-              LOG.error("Worker {} not found, failed to create context", mWorkerId);
-              // TODO(jiacheng): syntax sugar for this
-              responseObserver.onError(AlluxioStatusException.fromIOException(e).toGrpcStatusException());
-              return;
-              // TODO(jiacheng): what else to cleanup?
+            Preconditions.checkState(mWorkerId != -1, "Complete message received from the client side but workerId is still -1.");
+            Preconditions.checkState(mContext != null, "Complete message received from the client side but the context is not initialized");
+            Preconditions.checkState(mContext.isOpen(), "Context is not open");
+
+            if (isHead) {
+              final List<String> storageTiers = chunk.getStorageTiersList();
+              final Map<String, Long> totalBytesOnTiers = chunk.getTotalBytesOnTiersMap();
+              final Map<String, Long> usedBytesOnTiers = chunk.getUsedBytesOnTiersMap();
+              final Map<String, StorageList> lostStorageMap = chunk.getLostStorageMap();
+
+              final Map<Block.BlockLocation, List<Long>> currBlocksOnLocationMap =
+                      reconstructBlocksOnLocationMap(chunk.getCurrentBlocksList(), workerId);
+              printBlockMap(currBlocksOnLocationMap);
+              RegisterWorkerStreamPOptions options = chunk.getOptions();
+              mBlockMaster.workerRegisterStart(mContext, storageTiers, totalBytesOnTiers, usedBytesOnTiers,
+                      currBlocksOnLocationMap, lostStorageMap, options);
+            } else {
+              final Map<Block.BlockLocation, List<Long>> currBlocksOnLocationMap =
+                      reconstructBlocksOnLocationMap(chunk.getCurrentBlocksList(), workerId);
+              printBlockMap(currBlocksOnLocationMap);
+              mBlockMaster.workerRegisterStream(mContext, currBlocksOnLocationMap);
             }
+            mContext.updateTs();
+            // Return an ACK to the worker so it sends the next batch
+            return RegisterWorkerStreamPResponse.newBuilder().build();
           }
-        }
 
-        if (!mContext.isOpen()) {
-          IOException e = new IOException("Context is not open");
-          responseObserver.onError(AlluxioStatusException.fromIOException(e).toGrpcStatusException());
-          return;
-        }
-
-        if (isHead) {
-          try {
-            final List<String> storageTiers = chunk.getStorageTiersList();
-            final Map<String, Long> totalBytesOnTiers = chunk.getTotalBytesOnTiersMap();
-            final Map<String, Long> usedBytesOnTiers = chunk.getUsedBytesOnTiersMap();
-            final Map<String, StorageList> lostStorageMap = chunk.getLostStorageMap();
-
-            // TODO(jiacheng): If this goes wrong, the error is silenced and UNKNOWN error is received on the client side
-            //  the client is not able to know what went wrong
-            final Map<Block.BlockLocation, List<Long>> currBlocksOnLocationMap =
-                    reconstructBlocksOnLocationMap(chunk.getCurrentBlocksList(), workerId);
-            printBlockMap(currBlocksOnLocationMap);
-            RegisterWorkerStreamPOptions options = chunk.getOptions();
-            // TODO(jiacheng): what are the metrics?
-            RpcUtils.callAndNoReturn(LOG,
-                    () -> {
-                      mBlockMaster.workerRegisterStart(mContext, storageTiers, totalBytesOnTiers, usedBytesOnTiers,
-                              currBlocksOnLocationMap, lostStorageMap, options);
-                      return null;
-                    }, "registerWorkerStream", false,
-                    "what to put here?", responseObserver, chunk);
-          } catch (Throwable t) {
-            LOG.error("Throwable should be handled in stream start", t);
-            responseObserver.onError(AlluxioStatusException.fromThrowable(t).toGrpcStatusException());
-            return;
+          @Override
+          public void exceptionCaught(Throwable throwable) {
+            // onError will close the resources
+            responseObserver.onError(GrpcExceptionUtils.fromThrowable(throwable));
           }
-        } else {
-          try {
-            final Map<Block.BlockLocation, List<Long>> currBlocksOnLocationMap =
-                    reconstructBlocksOnLocationMap(chunk.getCurrentBlocksList(), workerId);
-            printBlockMap(currBlocksOnLocationMap);
-            RpcUtils.callAndNoReturn(LOG,
-                    () -> {
-                      mBlockMaster.workerRegisterStream(mContext, currBlocksOnLocationMap);
-                      return null;
-                    }, "registerWorkerStream", false,
-                    "what to put here?", responseObserver, chunk);
-          } catch (Throwable t) {
-            LOG.error("Throwable should be handled in stream", t);
-            responseObserver.onError(AlluxioStatusException.fromThrowable(t).toGrpcStatusException());
-            return;
-          }
-        }
-
-        mContext.updateTs();
-
-        // Return an ACK to the worker so it sends the next batch
-        responseObserver.onNext(RegisterWorkerStreamPResponse.newBuilder().build());
+        }, methodName, true, false, responseObserver, "Worker=%s", mWorkerId);
       }
 
       @Override
       public void onError(Throwable t) {
         LOG.error("Error receiving the streaming register call", t);
-//        System.out.format("Error receiving the streaming register call: %s%n", t);
         try {
           closeContext();
         } catch (IOException e) {
           e.printStackTrace();
         }
 
-        // TODO(jiacheng): update TS here?
-
-        // TODO(jiacheng): Pass the exception back like this?
+        // TODO(jiacheng): unit test on what exceptions are thrown
         responseObserver.onError(AlluxioStatusException.fromThrowable(t).toGrpcStatusException());
       }
 
@@ -280,10 +259,8 @@ public final class BlockMasterWorkerServiceHandler extends
         synchronized (this) {
           if (mContext!= null) {
             LOG.debug("Unlocking worker {}", mWorkerId);
-//            System.out.format("Destroying context for %s%n", mWorkerId);
             mContext.close();
             LOG.debug("Context closed");
-//            System.out.println("Context closed");
           }
         }
       }
@@ -299,46 +276,35 @@ public final class BlockMasterWorkerServiceHandler extends
       @Override
       public void onCompleted() {
         LOG.info("{} - Register stream completed on the client side", Thread.currentThread().getId());
-        if (!mContext.isOpen()) {
-          IOException e = new IOException("Context is not open");
-          responseObserver.onError(AlluxioStatusException.fromIOException(e).toGrpcStatusException());
-          return;
-        }
 
-        // TODO(jiacheng): still needed?
-        if (mWorkerId == -1) {
-          LOG.error("Complete message received from the client side but workerId is still -1.");
-          IOException e = new NotFoundException("Complete message received from the client side but workerId is still -1.");
-          responseObserver.onError(AlluxioStatusException.fromIOException(e).toGrpcStatusException());
-          return;
-        } else if (mContext == null) {
-          LOG.error("Complete message received from the client side but the context is not initialized");
-          IOException e = new NotFoundException("Complete message received from the client side but the context is not initialized");
-          responseObserver.onError(AlluxioStatusException.fromIOException(e).toGrpcStatusException());
-          return;
-        }
+        String methodName = "registerWorkerComplete";
+        RpcUtils.streamingRPCAndLog(LOG, new RpcUtils.StreamingRpcCallable<RegisterWorkerStreamPResponse>() {
+            @Override
+            public RegisterWorkerStreamPResponse call() throws Exception {
+              Preconditions.checkState(mWorkerId != -1, "Complete message received from the client side but workerId is still -1.");
+              Preconditions.checkState(mContext != null, "Complete message received from the client side but the context is not initialized");
+              Preconditions.checkState(mContext.isOpen(), "Context is not open");
 
-        // TODO(jiacheng): update context TS here?
-        mContext.updateTs();
+              mContext.updateTs();
+              mBlockMaster.workerRegisterFinish(mContext);
 
-        // This will send the response back and complete the call
-        RpcUtils.callAndNoReturn(LOG,
-                () -> {
-                  mBlockMaster.workerRegisterFinish(mContext);
-                  return null;
-                }, "registerWorkerStream", false, "workerId=%s", responseObserver, mWorkerId);
+              // Reclaim resources
+              try {
+                closeContext();
+              } catch (IOException e) {
+                e.printStackTrace();
+              }
 
-        // TODO(jiacheng): Will this block me from reclaiming resources?
-        // TODO(jiacheng): Send a response in the last one too?
-        responseObserver.onCompleted();
-        LOG.info("Completed server side");
+              // No response because sendResponse=false
+              return null;
+            }
 
-        // Reclaim resources
-        try {
-          closeContext();
-        } catch (IOException e) {
-          e.printStackTrace();
-        }
+            @Override
+            public void exceptionCaught(Throwable e) {
+              // onError will close the resources
+              responseObserver.onError(GrpcExceptionUtils.fromThrowable(e));
+            }
+          }, methodName, false, true, responseObserver, "WorkerId=%s", mWorkerId);
       }
     };
   }
