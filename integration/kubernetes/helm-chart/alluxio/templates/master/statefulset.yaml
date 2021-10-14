@@ -129,8 +129,7 @@ spec:
           envFrom:
           - configMapRef:
               name: {{ $fullName }}-config
-{{- $probePort := $isSingleMaster | ternary "rpc" "web" }}
-{{- $probePort = $isHaEmbedded | ternary "embedded" $probePort }}
+{{- $probePort := $isHaEmbedded | ternary "embedded" "rpc" }}
           readinessProbe:
             tcpSocket:
               port: {{ $probePort }}
@@ -219,8 +218,7 @@ spec:
           envFrom:
           - configMapRef:
               name: {{ $fullName }}-config
-{{- $jobProbePort := $isSingleMaster | ternary "job-rpc" "job-web" }}
-{{- $jobProbePort = $isHaEmbedded | ternary "job-embedded" $jobProbePort }}
+{{- $jobProbePort := $isHaEmbedded | ternary "job-embedded" "job-rpc" }}
           readinessProbe:
             tcpSocket:
               port: {{ $jobProbePort }}
