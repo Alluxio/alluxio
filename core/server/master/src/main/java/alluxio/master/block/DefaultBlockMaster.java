@@ -446,6 +446,8 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
           ServerConfiguration.global(), mMasterContext.getUserState()));
     }
 
+    // This periodically scans all open register streams and closes hanging ones
+    // TODO(jiacheng): Potentially merge this with the lease timeout/recycle logic
     getExecutorService().submit(new HeartbeatThread(
           HeartbeatContext.MASTER_WORKER_REGISTER_SESSION_CLEANER,
             new WorkerRegisterStreamGCHeartbeatExecutor(),
@@ -1017,30 +1019,6 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
   }
 
   @Override
-  public LockResource lockWorker(long workerId) throws NotFoundException {
-    MasterWorkerInfo worker = mWorkers.getFirstByField(ID_INDEX, workerId);
-
-    if (worker == null) {
-      worker = findUnregisteredWorker(workerId);
-    }
-
-    if (worker == null) {
-      throw new NotFoundException(ExceptionMessage.NO_WORKER_FOUND.getMessage(workerId));
-    }
-
-    return worker.lockWorkerMeta(EnumSet.of(
-            WorkerMetaLockSection.STATUS,
-            WorkerMetaLockSection.USAGE,
-            WorkerMetaLockSection.BLOCKS), false);
-  }
-
-  @Override
-  public void unlockWorker(LockResource r) {
-    r.close();
-    System.out.println("Worker unlocked");
-  }
-
-  @Override
   public MasterWorkerInfo getWorker(long workerId) throws NotFoundException {
     MasterWorkerInfo worker = mWorkers.getFirstByField(ID_INDEX, workerId);
 
@@ -1082,7 +1060,10 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
     // because we don't know what blocks are removed yet
 //      processWorkerRemovedBlocks(worker, removedBlocks);
 
-    // TODO(jiacheng): we do not want to add them to the block locations here
+    // [NEEDED]
+    // Even if we add the BlockLocation before the worker is fully registered,
+    // it should be fine because the block can be read on this worker.
+    // TODO(jiacheng): Make sure if the worker fails to register and get forgotten, the BlockLocations are cleaned up
     processWorkerAddedBlocks(worker, currentBlocksOnLocation);
 
     // [NEEDED]
@@ -1115,7 +1096,10 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
     // because we don't know what blocks are removed yet
 //      processWorkerRemovedBlocks(worker, removedBlocks);
 
-    // TODO(jiacheng): we do not want to add them to the block locations here
+    // [NEEDED]
+    // Even if we add the BlockLocation before the worker is fully registered,
+    // it should be fine because the block can be read on this worker.
+    // TODO(jiacheng): Make sure if the worker fails to register and get forgotten, the BlockLocations are cleaned up
     processWorkerAddedBlocks(worker, currentBlocksOnLocation);
 
     // If a block is not recognized then yes we need to mark it
@@ -1224,43 +1208,6 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
 
     return workerCommand;
   }
-
-  @Override
-  public int getBlockCount(long workerId) throws NotFoundException {
-    MasterWorkerInfo worker = mWorkers.getFirstByField(ID_INDEX, workerId);
-
-    if (worker == null) {
-      worker = findUnregisteredWorker(workerId);
-    }
-
-    if (worker == null) {
-      throw new NotFoundException(ExceptionMessage.NO_WORKER_FOUND.getMessage(workerId));
-    }
-
-    try (LockResource r = worker.lockWorkerMeta(
-            EnumSet.of(WorkerMetaLockSection.BLOCKS), true)) {
-      return worker.getBlockCount();
-    }
-  }
-
-  @Override
-  public int getToRemoveBlockCount(long workerId) throws NotFoundException {
-    MasterWorkerInfo worker = mWorkers.getFirstByField(ID_INDEX, workerId);
-
-    if (worker == null) {
-      worker = findUnregisteredWorker(workerId);
-    }
-
-    if (worker == null) {
-      throw new NotFoundException(ExceptionMessage.NO_WORKER_FOUND.getMessage(workerId));
-    }
-
-    try (LockResource r = worker.lockWorkerMeta(
-            EnumSet.of(WorkerMetaLockSection.BLOCKS), true)) {
-      return worker.getToRemoveBlockCount();
-    }
-  }
-
 
   private void processWorkerMetrics(String hostname, List<Metric> metrics) {
     if (metrics.isEmpty()) {

@@ -56,6 +56,7 @@ import java.util.stream.Collectors;
 public final class BlockMasterWorkerServiceHandler extends
     BlockMasterWorkerServiceGrpc.BlockMasterWorkerServiceImplBase {
   private static final Logger LOG = LoggerFactory.getLogger(BlockMasterWorkerServiceHandler.class);
+  private static final long UNINITIALIZED_WORKER_ID = -1;
 
   private final BlockMaster mBlockMaster;
 
@@ -169,9 +170,7 @@ public final class BlockMasterWorkerServiceHandler extends
   public io.grpc.stub.StreamObserver<alluxio.grpc.RegisterWorkerStreamPRequest> registerWorkerStream(
           io.grpc.stub.StreamObserver<alluxio.grpc.RegisterWorkerStreamPResponse> responseObserver) {
     return new StreamObserver<alluxio.grpc.RegisterWorkerStreamPRequest>() {
-      long mWorkerId = -1;
-
-      WorkerRegisterContext mContext;
+      private WorkerRegisterContext mContext;
 
       @Override
       public void onNext(alluxio.grpc.RegisterWorkerStreamPRequest chunk) {
@@ -188,27 +187,24 @@ public final class BlockMasterWorkerServiceHandler extends
         // TODO(jiacheng): potential risk from 'this' ref escape?
         io.grpc.stub.StreamObserver<alluxio.grpc.RegisterWorkerStreamPRequest> requestObserver = this;
         String methodName = isHead ? "registerWorkerStart" : "registerWorkerStream";
+        Preconditions.checkState(mContext != null, "Stream message received from the client side but the context is not initialized");
         RpcUtils.streamingRPCAndLog(LOG, new RpcUtils.StreamingRpcCallable<RegisterWorkerStreamPResponse>() {
           @Override
           public RegisterWorkerStreamPResponse call() throws Exception {
             // Initialize the context on the 1st message
             synchronized (this) {
-              // TODO(jiacheng): better precondition check
-              if (mWorkerId == -1) {
-                if (!isHead) {
-                  throw new NotFoundException(
-                      String.format("The StreamObserver has no worker id but it's not the 1st chunk in stream: %s", this.toString()));
-                }
+              if (mContext == null) {
+                LOG.debug("Initializing the WorkerRegisterContext on the 1st request");
+                Preconditions.checkState(isHead, "WorkerRegisterContext is not initialized but the request is not the 1st in a stream");
 
-                mWorkerId = workerId;
-                LOG.debug("Initializing context for {}", mWorkerId);
-                mContext = WorkerRegisterContext.create(mBlockMaster, mWorkerId, requestObserver, responseObserver);
-                LOG.debug("Context created for {}", mWorkerId);
+                LOG.debug("Initializing context for {}", workerId);
+                mContext = WorkerRegisterContext.create(mBlockMaster, workerId, requestObserver, responseObserver);
+                LOG.debug("Context created for {}", workerId);
               }
             }
 
-            Preconditions.checkState(mWorkerId != -1, "Complete message received from the client side but workerId is still -1.");
-            Preconditions.checkState(mContext != null, "Complete message received from the client side but the context is not initialized");
+            Preconditions.checkState(mContext != null, "Stream message received from the client side but the context is not initialized");
+            Preconditions.checkState(mContext.mWorkerId != UNINITIALIZED_WORKER_ID, "Complete message received from the client side but workerId is still -1.");
             Preconditions.checkState(mContext.isOpen(), "Context is not open");
 
             if (isHead) {
@@ -219,14 +215,12 @@ public final class BlockMasterWorkerServiceHandler extends
 
               final Map<Block.BlockLocation, List<Long>> currBlocksOnLocationMap =
                       reconstructBlocksOnLocationMap(chunk.getCurrentBlocksList(), workerId);
-              printBlockMap(currBlocksOnLocationMap);
               RegisterWorkerStreamPOptions options = chunk.getOptions();
               mBlockMaster.workerRegisterStart(mContext, storageTiers, totalBytesOnTiers, usedBytesOnTiers,
                       currBlocksOnLocationMap, lostStorageMap, options);
             } else {
               final Map<Block.BlockLocation, List<Long>> currBlocksOnLocationMap =
                       reconstructBlocksOnLocationMap(chunk.getCurrentBlocksList(), workerId);
-              printBlockMap(currBlocksOnLocationMap);
               mBlockMaster.workerRegisterStream(mContext, currBlocksOnLocationMap);
             }
             mContext.updateTs();
@@ -239,7 +233,7 @@ public final class BlockMasterWorkerServiceHandler extends
             // onError will close the resources
             responseObserver.onError(GrpcExceptionUtils.fromThrowable(throwable));
           }
-        }, methodName, true, false, responseObserver, "Worker=%s", mWorkerId);
+        }, methodName, true, false, responseObserver, "Worker=%s", mContext.mWorkerId);
       }
 
       @Override
@@ -258,19 +252,11 @@ public final class BlockMasterWorkerServiceHandler extends
       void closeContext() throws IOException {
         synchronized (this) {
           if (mContext!= null) {
-            LOG.debug("Unlocking worker {}", mWorkerId);
+            LOG.debug("Unlocking worker {}", mContext.mWorkerId);
             mContext.close();
             LOG.debug("Context closed");
           }
         }
-      }
-
-      void printBlockMap(Map<Block.BlockLocation, List<Long>> blockMap) {
-        StringBuilder sb = new StringBuilder();
-        for (Map.Entry<Block.BlockLocation, List<Long>> entry : blockMap.entrySet()) {
-          sb.append(String.format("<%s, %s blocks>,", entry.getKey(), entry.getValue().size()));
-        }
-        LOG.info("Blocks: {}", sb);
       }
 
       @Override
@@ -278,11 +264,12 @@ public final class BlockMasterWorkerServiceHandler extends
         LOG.info("{} - Register stream completed on the client side", Thread.currentThread().getId());
 
         String methodName = "registerWorkerComplete";
+        Preconditions.checkState(mContext != null, "Complete message received from the client side but the context is not initialized");
         RpcUtils.streamingRPCAndLog(LOG, new RpcUtils.StreamingRpcCallable<RegisterWorkerStreamPResponse>() {
             @Override
             public RegisterWorkerStreamPResponse call() throws Exception {
-              Preconditions.checkState(mWorkerId != -1, "Complete message received from the client side but workerId is still -1.");
               Preconditions.checkState(mContext != null, "Complete message received from the client side but the context is not initialized");
+              Preconditions.checkState(mContext.mWorkerId != UNINITIALIZED_WORKER_ID, "Complete message received from the client side but workerId is still -1.");
               Preconditions.checkState(mContext.isOpen(), "Context is not open");
 
               mContext.updateTs();
@@ -304,7 +291,7 @@ public final class BlockMasterWorkerServiceHandler extends
               // onError will close the resources
               responseObserver.onError(GrpcExceptionUtils.fromThrowable(e));
             }
-          }, methodName, false, true, responseObserver, "WorkerId=%s", mWorkerId);
+          }, methodName, false, true, responseObserver, "WorkerId=%s", mContext.mWorkerId);
       }
     };
   }

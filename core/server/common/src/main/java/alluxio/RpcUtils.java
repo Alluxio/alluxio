@@ -90,23 +90,6 @@ public final class RpcUtils {
   }
 
   /**
-   * The difference from {@link #call(Logger, RpcCallableThrowsIOException, String, boolean, String, StreamObserver, Object...)}
-   * is, this call does not send the response and completes the call.
-   * This is used for streaming, where we receive messages but responds with specific logic.
-   */
-  // TODO(jiacheng): use streamingRPCAndLog?
-  public static void callAndNoReturn(Logger logger, RpcCallableThrowsIOException<Void> callable,
-       String methodName, boolean failureOk, String description, StreamObserver responseObserver,
-       Object... args) {
-    try {
-      callAndReturn(logger, callable, methodName, failureOk, description, args);
-    } catch (StatusException e) {
-      responseObserver.onError(e);
-      return;
-    }
-  }
-
-  /**
    *
    * Calls the given {@link RpcCallableThrowsIOException} and returns its result. Exceptions are
    * logged, accounted for in metrics and then rethrown at the end.
@@ -164,8 +147,7 @@ public final class RpcUtils {
       logger.error("Exit (Error): {}: {}", methodName,
           String.format(description, processObjects(logger, args)), e);
       MetricsSystem.counter(getQualifiedFailureMetricName(methodName)).inc();
-      StatusException x = new InternalException(e).toGrpcStatusException();
-      throw x;
+      throw new InternalException(e).toGrpcStatusException();
     } finally {
       MetricsSystem.counter(getQualifiedInProgressMetricName(methodName)).dec();
     }

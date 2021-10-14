@@ -27,26 +27,29 @@ public class WorkerRegisterContext implements Closeable {
 
   long mLastUpdatedTime;
 
-  public static synchronized WorkerRegisterContext create(BlockMaster blockMaster, long workerId,
-                                                          StreamObserver<RegisterWorkerStreamPRequest> requestObserver,
-                                                          StreamObserver<RegisterWorkerStreamPResponse> responseObserver) throws NotFoundException {
-    WorkerRegisterContext context = new WorkerRegisterContext();
-    context.mBlockMaster = blockMaster;
-    context.mWorkerId = workerId;
-
-    MasterWorkerInfo info = blockMaster.getWorker(workerId);
-    context.mWorker = info;
-
-    System.out.println("Acquiring all worker locks for " + workerId);
-    context.mWorkerLock = info.lockWorkerMeta(EnumSet.of(
+  private WorkerRegisterContext(MasterWorkerInfo info,
+                        StreamObserver<RegisterWorkerStreamPRequest> requestObserver,
+                        StreamObserver<RegisterWorkerStreamPResponse> responseObserver) {
+    mWorker = info;
+    mWorkerId = info.getId();
+    mRequestObserver = requestObserver;
+    mResponseObserver = responseObserver;
+    System.out.println("Acquiring all worker locks for " + mWorkerId);
+    mWorkerLock = info.lockWorkerMeta(EnumSet.of(
             WorkerMetaLockSection.STATUS,
             WorkerMetaLockSection.USAGE,
             WorkerMetaLockSection.BLOCKS), false);
-    System.out.println("Acquired all worker locks for " + workerId);
+    System.out.println("Acquired all worker locks for " + mWorkerId);
 
-    context.mOpen = new AtomicBoolean(true);
-    context.mRequestObserver = requestObserver;
-    context.mResponseObserver = responseObserver;
+    mOpen = new AtomicBoolean(true);
+  }
+
+  public static synchronized WorkerRegisterContext create(BlockMaster blockMaster, long workerId,
+                                                          StreamObserver<RegisterWorkerStreamPRequest> requestObserver,
+                                                          StreamObserver<RegisterWorkerStreamPResponse> responseObserver) throws NotFoundException {
+    MasterWorkerInfo info = blockMaster.getWorker(workerId);
+
+    WorkerRegisterContext context = new WorkerRegisterContext(info, requestObserver, responseObserver);
     return context;
   }
 
@@ -62,8 +65,8 @@ public class WorkerRegisterContext implements Closeable {
   public void close() throws IOException {
     Preconditions.checkState(mOpen.get(), "The context is already closed!");
 
-    if (mBlockMaster != null && mWorkerLock != null) {
-      mBlockMaster.unlockWorker(mWorkerLock);
+    if (mWorkerLock != null) {
+      mWorkerLock.close();
     }
     mOpen.set(false);
   }

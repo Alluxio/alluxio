@@ -264,13 +264,8 @@ public interface BlockMaster extends Master, ContainerIdGenerable {
    */
   void registerNewWorkerConfListener(BiConsumer<Address, List<ConfigProperty>> function);
 
-  LockResource lockWorker(long workerId) throws NotFoundException;
-
-  void unlockWorker(LockResource r);
-
   MasterWorkerInfo getWorker(long workerId) throws NotFoundException;
 
-  // TODO(jiacheng): Separate the metadata and list registration calls
   void workerRegisterStart(WorkerRegisterContext context, List<String> storageTiers,
                            Map<String, Long> totalBytesOnTiers, Map<String, Long> usedBytesOnTiers,
                            Map<Block.BlockLocation, List<Long>> currentBlocksOnLocation,
@@ -281,8 +276,4 @@ public interface BlockMaster extends Master, ContainerIdGenerable {
           throws NotFoundException;
 
   void workerRegisterFinish(WorkerRegisterContext context) throws NotFoundException;
-
-  int getBlockCount(long workerId) throws NotFoundException;
-
-  int getToRemoveBlockCount(long workerId) throws NotFoundException;
 }
