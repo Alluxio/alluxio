@@ -2402,9 +2402,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.ALL)
           .build();
+  public static final PropertyKey MASTER_SERVICE_RPC_ENABLED =
+      new Builder(Name.MASTER_SERVICE_RPC_ENABLED)
+          .setDefaultValue(false)
+          .setDescription("Whether enable Alluxio master's service RPC service.")
+          .setScope(Scope.ALL)
+          .build();
   public static final PropertyKey MASTER_SERVICE_RPC_PORT =
       new Builder(Name.MASTER_SERVICE_RPC_PORT)
-          .setAlias("alluxio.master.service.port")
           .setDefaultValue(19997)
           .setDescription("The port for Alluxio master's service RPC service.")
           .setScope(Scope.ALL)
@@ -5860,8 +5865,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.journal.tailer.shutdown.quiet.wait.time";
     public static final String MASTER_JOURNAL_TAILER_SLEEP_TIME_MS =
         "alluxio.master.journal.tailer.sleep.time";
-    public static final String MASTER_SERVICE_RPC_ADDRESSES =
-        "alluxio.master.service.rpc.addresses";
     public static final String MASTER_RPC_ADDRESSES = "alluxio.master.rpc.addresses";
     public static final String MASTER_EMBEDDED_JOURNAL_PROXY_HOST =
         "alluxio.master.embedded.journal.bind.host";
@@ -5959,8 +5962,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String MASTER_PRINCIPAL = "alluxio.master.principal";
     public static final String MASTER_REPLICATION_CHECK_INTERVAL_MS =
         "alluxio.master.replication.check.interval";
-    public static final String MASTER_SERVICE_RPC_PORT =
-        "alluxio.master.service.rpc.port";
     public static final String MASTER_RPC_PORT = "alluxio.master.rpc.port";
     public static final String MASTER_RPC_EXECUTOR_PARALLELISM =
         "alluxio.master.rpc.executor.parallelism";
@@ -5972,6 +5973,12 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.rpc.executor.max.pool.size";
     public static final String MASTER_RPC_EXECUTOR_KEEPALIVE =
         "alluxio.master.rpc.executor.keepalive";
+    public static final String MASTER_SERVICE_RPC_ADDRESSES =
+        "alluxio.master.service.rpc.addresses";
+    public static final String MASTER_SERVICE_RPC_ENABLED =
+        "alluxio.master.service.rpc.enabled";
+    public static final String MASTER_SERVICE_RPC_PORT =
+        "alluxio.master.service.rpc.port";
     public static final String MASTER_SERVING_THREAD_TIMEOUT =
         "alluxio.master.serving.thread.timeout";
     public static final String MASTER_SKIP_ROOT_ACL_CHECK =

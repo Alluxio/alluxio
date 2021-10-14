@@ -72,9 +72,6 @@ public class AlluxioMasterProcess extends MasterProcess {
   /** The connect address for the rpc server. */
   final InetSocketAddress mRpcConnectAddress;
 
-  /** The connect address for the service rpc server. */
-  final InetSocketAddress mServiceRpcConnectAddress;
-
   /** The manager of safe mode state. */
   protected final SafeModeManager mSafeModeManager;
 
@@ -94,11 +91,10 @@ public class AlluxioMasterProcess extends MasterProcess {
    * Creates a new {@link AlluxioMasterProcess}.
    */
   AlluxioMasterProcess(JournalSystem journalSystem) {
-    super(journalSystem, ServiceType.MASTER_RPC, ServiceType.MASTER_WEB, ServiceType.MASTER_SERVICE_RPC);
+    super(journalSystem, ServiceType.MASTER_RPC,
+        ServiceType.MASTER_WEB, ServiceType.MASTER_SERVICE_RPC);
     mRpcConnectAddress = NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC,
         ServerConfiguration.global());
-    mServiceRpcConnectAddress = NetworkAddressUtils.getConnectAddress(
-        ServiceType.MASTER_SERVICE_RPC, ServerConfiguration.global());
     try {
       if (!mJournalSystem.isFormatted()) {
         throw new RuntimeException(
@@ -316,15 +312,21 @@ public class AlluxioMasterProcess extends MasterProcess {
     try {
       // Start serving.
       mGrpcServer.start();
-      mServiceGrpcServer.start();
+      if (mServiceGrpcServer != null) {
+        mServiceGrpcServer.start();
+      }
       mSafeModeManager.notifyRpcServerStarted();
       // Acquire and log bind port from newly started server.
       InetSocketAddress listeningAddress = InetSocketAddress
           .createUnresolved(mRpcBindAddress.getHostName(), mGrpcServer.getBindPort());
       LOG.info("gRPC server listening on: {}", listeningAddress);
-      InetSocketAddress listeningServiceAddress = InetSocketAddress
-          .createUnresolved(mServiceRpcBindAddress.getHostName(), mServiceGrpcServer.getBindPort());
-      LOG.info("service gRPC server listening on: {}", listeningServiceAddress);
+      if (mServiceGrpcServer != null) {
+        InetSocketAddress listeningServiceAddress = InetSocketAddress
+            .createUnresolved(mServiceRpcBindAddress.getHostName(),
+                mServiceGrpcServer.getBindPort());
+        LOG.info("service gRPC server listening on: {}",
+            listeningServiceAddress);
+      }
     } catch (IOException e) {
       LOG.error("gRPC serving failed.", e);
       throw new RuntimeException("gRPC serving failed");
@@ -375,6 +377,9 @@ public class AlluxioMasterProcess extends MasterProcess {
   }
 
   private GrpcServer createServiceRPCServer() {
+    if (!ServerConfiguration.getBoolean(PropertyKey.MASTER_SERVICE_RPC_ENABLED)) {
+      return null;
+    }
     // Create an executor for Master RPC server for worker.
     mServiceRPCExecutor =
         new ForkJoinPool(ServerConfiguration.getInt(PropertyKey.MASTER_RPC_EXECUTOR_PARALLELISM),
@@ -388,7 +393,7 @@ public class AlluxioMasterProcess extends MasterProcess {
         mServiceRPCExecutor::getQueuedSubmissionCount);
     // Create underlying gRPC server.
     GrpcServerBuilder builder = GrpcServerBuilder
-        .forAddress(GrpcServerAddress.create(mServiceRpcConnectAddress.getHostName(),
+        .forAddress(GrpcServerAddress.create(mRpcConnectAddress.getHostName(),
                 mServiceRpcBindAddress), ServerConfiguration.global(), ServerUserState.global())
         .executor(mServiceRPCExecutor)
         .flowControlWindow(
