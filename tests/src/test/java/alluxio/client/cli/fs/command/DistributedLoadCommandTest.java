@@ -72,24 +72,20 @@ public final class DistributedLoadCommandTest extends AbstractFileSystemShellTes
   public void loadIndexFile() throws IOException, AlluxioException {
     FileSystemTestUtils.createByteFile(sFileSystem, "/testFileA", WritePType.THROUGH, 10);
     FileSystemTestUtils.createByteFile(sFileSystem, "/testFileB", WritePType.THROUGH, 10);
-
     File testFile = mTempFolder.newFile("testFile");
     FileUtils.writeStringToFile(testFile, "/testFileA\n/testFileB\n", StandardCharsets.UTF_8);
-
     AlluxioURI uriA = new AlluxioURI("/testFileA");
     AlluxioURI uriB = new AlluxioURI("/testFileB");
     URIStatus statusA = sFileSystem.getStatus(uriA);
     URIStatus statusB = sFileSystem.getStatus(uriB);
     Assert.assertNotEquals(100, statusA.getInMemoryPercentage());
     Assert.assertNotEquals(100, statusB.getInMemoryPercentage());
-
     sFsShell.run("distributedLoad", "--index", testFile.getAbsolutePath());
     statusA = sFileSystem.getStatus(uriA);
     statusB = sFileSystem.getStatus(uriB);
     Assert.assertEquals(100, statusA.getInMemoryPercentage());
     Assert.assertEquals(100, statusB.getInMemoryPercentage());
   }
-
 
   @Test
   public void loadIndexFileInBatch() throws IOException, AlluxioException {
@@ -103,7 +99,6 @@ public final class DistributedLoadCommandTest extends AbstractFileSystemShellTes
     URIStatus statusB = sFileSystem.getStatus(uriB);
     Assert.assertNotEquals(100, statusA.getInMemoryPercentage());
     Assert.assertNotEquals(100, statusB.getInMemoryPercentage());
-
     sFsShell.run("distributedLoad", "--index", testFile.getAbsolutePath(), "--batch-size", "2");
     statusA = sFileSystem.getStatus(uriA);
     statusB = sFileSystem.getStatus(uriB);
