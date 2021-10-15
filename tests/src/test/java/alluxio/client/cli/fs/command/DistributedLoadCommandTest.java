@@ -110,4 +110,31 @@ public final class DistributedLoadCommandTest extends AbstractFileSystemShellTes
     Assert.assertEquals(100, statusA.getInMemoryPercentage());
     Assert.assertEquals(100, statusB.getInMemoryPercentage());
   }
+
+  @Test
+  public void loadDirInBatch() throws IOException, AlluxioException {
+    FileSystemTestUtils.createByteFile(sFileSystem, "/testRoot/testFileA", WritePType.THROUGH,
+        10);
+    FileSystemTestUtils
+        .createByteFile(sFileSystem, "/testRoot/testFileB", WritePType.THROUGH, 10);
+    FileSystemTestUtils
+        .createByteFile(sFileSystem, "/testRoot/testFileC", WritePType.THROUGH, 10);
+    AlluxioURI uriA = new AlluxioURI("/testRoot/testFileA");
+    AlluxioURI uriB = new AlluxioURI("/testRoot/testFileB");
+    AlluxioURI uriC = new AlluxioURI("/testRoot/testFileC");
+    URIStatus statusA = sFileSystem.getStatus(uriA);
+    URIStatus statusB = sFileSystem.getStatus(uriB);
+    URIStatus statusC = sFileSystem.getStatus(uriC);
+    Assert.assertNotEquals(100, statusA.getInMemoryPercentage());
+    Assert.assertNotEquals(100, statusB.getInMemoryPercentage());
+    Assert.assertNotEquals(100, statusC.getInMemoryPercentage());
+    // Testing loading of a directory
+    sFsShell.run("distributedLoad", "/testRoot", "--batch-size", "2");
+    statusA = sFileSystem.getStatus(uriA);
+    statusB = sFileSystem.getStatus(uriB);
+    statusC = sFileSystem.getStatus(uriC);
+    Assert.assertEquals(100, statusA.getInMemoryPercentage());
+    Assert.assertEquals(100, statusB.getInMemoryPercentage());
+    Assert.assertEquals(100, statusC.getInMemoryPercentage());
+  }
 }
