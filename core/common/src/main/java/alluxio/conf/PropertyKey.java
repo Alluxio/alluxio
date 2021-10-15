@@ -3248,6 +3248,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
+  public static final PropertyKey WORKER_REGISTER_STREAMING_DEADLINE =
+      new Builder(Name.WORKER_REGISTER_STREAMING_DEADLINE)
+          .setDefaultValue("15min")
+          .setDescription("Deadline for the worker register streaming. It will fail after this deadline and cancel the stream.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.WORKER)
+          .build();
   public static final PropertyKey WORKER_REMOTE_IO_SLOW_THRESHOLD =
       new Builder(Name.WORKER_REMOTE_IO_SLOW_THRESHOLD)
           .setDefaultValue("10s")
@@ -6040,6 +6047,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String WORKER_REGISTER_STREAMING = "alluxio.worker.register.streaming";
     public static final String WORKER_REGISTER_BATCH_SIZE =
         "alluxio.worker.register.batch.size";
+    public static final String WORKER_REGISTER_STREAMING_DEADLINE =
+            "alluxio.worker.register.streaming.deadline";
     public static final String WORKER_REMOTE_IO_SLOW_THRESHOLD =
         "alluxio.worker.remote.io.slow.threshold";
     public static final String WORKER_BLOCK_MASTER_CLIENT_POOL_SIZE =

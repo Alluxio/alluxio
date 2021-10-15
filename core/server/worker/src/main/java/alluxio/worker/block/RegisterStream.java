@@ -1,5 +1,7 @@
 package alluxio.worker.block;
 
+import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.BlockIdList;
 import alluxio.grpc.BlockMasterWorkerServiceGrpc;
 import alluxio.grpc.BlockStoreLocationProto;
@@ -18,6 +20,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.time.Duration;
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -124,7 +127,10 @@ public class RegisterStream implements Iterator<RegisterWorkerStreamPRequest> {
         mFinishLatch.countDown();
       }
     };
-    mRequestObserver = mAsyncClient.registerWorkerStream(responseObserver);
+    mRequestObserver = mAsyncClient
+            .withDeadlineAfter(
+                ServerConfiguration.getMs(PropertyKey.WORKER_REGISTER_STREAMING_DEADLINE), TimeUnit.MILLISECONDS)
+            .registerWorkerStream(responseObserver);
 
     LOG.debug("{} - starting to register", mWorkerId);
     registerInternal();
