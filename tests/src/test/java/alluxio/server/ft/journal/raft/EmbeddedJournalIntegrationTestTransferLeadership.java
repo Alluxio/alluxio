@@ -22,7 +22,6 @@ import alluxio.multi.process.PortCoordination;
 import org.junit.Assert;
 import org.junit.Test;
 
-import java.io.IOException;
 import java.util.concurrent.TimeoutException;
 
 public class EmbeddedJournalIntegrationTestTransferLeadership
