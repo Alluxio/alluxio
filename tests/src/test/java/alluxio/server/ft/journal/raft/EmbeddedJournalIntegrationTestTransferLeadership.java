@@ -98,13 +98,11 @@ public class EmbeddedJournalIntegrationTestTransferLeadership
     NetAddress netAddress = masterEBJAddr2NetAddr(newLeaderAddr);
 
     mCluster.getJournalMasterClientForMaster().transferLeadership(netAddress);
-    try {
       // this second call should throw an exception
-      mCluster.getJournalMasterClientForMaster().transferLeadership(netAddress);
-      Assert.fail("Should have thrown exception");
-    } catch (IOException ioe) {
-      // expected exception thrown
-    }
+    String transferId = mCluster.getJournalMasterClientForMaster().transferLeadership(netAddress);
+    String exceptionMessage = mCluster.getJournalMasterClientForMaster()
+            .getTransferLeaderMessage(transferId).getTransMsg().getMsg();
+    Assert.assertNotNull(exceptionMessage);
     mCluster.notifySuccess();
   }
 
