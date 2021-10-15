@@ -57,8 +57,10 @@ public class MetadataCachingBaseFileSystem extends BaseFileSystem {
   private static final int THREAD_TERMINATION_TIMEOUT_MS = 10000;
   private static final URIStatus NOT_FOUND_STATUS = new URIStatus(
       new FileInfo().setCompleted(true));
-  private static final String CLIENT_METADATACACHE_DROP = "drop";
-  private static final String CLIENT_METADATACACHE_SIZE = "size";
+  private static final String CLEAR_METADATACACHE_RESERVED = Constants.ALLUXIO_RESERVED_DIR
+      .concat(".metadatacache");
+  private static final String CLIENT_METADATACACHE_DROP = ".drop";
+  private static final String CLIENT_METADATACACHE_SIZE = ".size";
 
   private final MetadataCache mMetadataCache;
   private final ExecutorService mAccessTimeUpdater;
@@ -128,7 +130,7 @@ public class MetadataCachingBaseFileSystem extends BaseFileSystem {
     checkUri(path);
     if (mFsContext.getClusterConf().getBoolean(PropertyKey
         .USER_CLIENT_HANDLE_METADATA_CACHE_ENABLE) && path.getPath()
-        .startsWith(Constants.ALLUXIO_RESERVED_DIR)) {
+        .startsWith(CLEAR_METADATACACHE_RESERVED)) {
       return clientMetadataCacheOPHandler(path);
     }
     URIStatus status = mMetadataCache.get(path);
@@ -236,7 +238,7 @@ public class MetadataCachingBaseFileSystem extends BaseFileSystem {
     }
   }
 
-  private URIStatus dropMetadataCache(String args) {
+  private URIStatus dropMetadataCache() {
     if (mMetadataCache.size() > 0) {
       mMetadataCache.invalidateAll();
     }
@@ -256,17 +258,10 @@ public class MetadataCachingBaseFileSystem extends BaseFileSystem {
    */
   public URIStatus clientMetadataCacheOPHandler(AlluxioURI path) {
     URIStatus status;
-    String args = null;
-    String[] cmdInfo = path.getPath().split("\\.");
-    if (cmdInfo.length < 3 || cmdInfo.length > 4) {
-      LOG.error("Wrong number metadata cache operation parameters.");
-      return new URIStatus(new FileInfo());
-    } else if (cmdInfo.length > 3) {
-      args = cmdInfo[3];
-    }
-    switch (cmdInfo[2]) {
+    String cmdInfo = path.getPath().substring(CLEAR_METADATACACHE_RESERVED.length());
+    switch (cmdInfo) {
       case CLIENT_METADATACACHE_DROP:
-        status = dropMetadataCache(args);
+        status = dropMetadataCache();
         break;
       case CLIENT_METADATACACHE_SIZE:
         status = getMetadataCacheSize();
