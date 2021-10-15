@@ -284,15 +284,15 @@ public final class DistributedLoadCommand extends AbstractDistributedJobCommand 
     List<URIStatus> filePool = new ArrayList<>(batchSize);
     if (!cl.hasOption(INDEX_FILE.getLongOpt())) {
       AlluxioURI path = new AlluxioURI(args[0]);
-      DistributedLoadUtils.distributedLoad(this, filePool,path, replication, batchSize,workerSet,
+      DistributedLoadUtils.distributedLoad(this, filePool, batchSize, path, replication, workerSet,
           excludedWorkerSet, localityIds, excludedLocalityIds, true);
     } else {
       try (BufferedReader reader = new BufferedReader(new FileReader(args[0]))) {
-        for (String filename; (filename = reader.readLine()) != null; ) {
+        for (String filename; (filename = reader.readLine()) != null;) {
           AlluxioURI path = new AlluxioURI(filename);
 
-          DistributedLoadUtils.distributedLoad(this, filePool, path, replication, batchSize,workerSet,
-              excludedWorkerSet, localityIds, excludedLocalityIds, true);
+          DistributedLoadUtils.distributedLoad(this, filePool, batchSize, path, replication,
+              workerSet, excludedWorkerSet, localityIds, excludedLocalityIds, true);
         }
       }
     }
@@ -301,8 +301,7 @@ public final class DistributedLoadCommand extends AbstractDistributedJobCommand 
     return 0;
   }
 
-  private void readItemsFromOptionString(Set<String> localityIds,
-      String argOption) {
+  private void readItemsFromOptionString(Set<String> localityIds, String argOption) {
     for (String locality : StringUtils.split(argOption, ",")) {
       locality = locality.trim().toUpperCase();
       if (!locality.isEmpty()) {
@@ -311,10 +310,9 @@ public final class DistributedLoadCommand extends AbstractDistributedJobCommand 
     }
   }
 
-  private void readLinesToSet(Set<String> workerSet, String hostFile)
-      throws IOException {
+  private void readLinesToSet(Set<String> workerSet, String hostFile) throws IOException {
     try (BufferedReader reader = new BufferedReader(new FileReader(hostFile))) {
-      for (String worker; (worker = reader.readLine()) != null; ) {
+      for (String worker; (worker = reader.readLine()) != null;) {
         worker = worker.trim().toUpperCase();
         if (!worker.isEmpty()) {
           workerSet.add(worker);

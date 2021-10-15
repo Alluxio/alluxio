@@ -45,8 +45,9 @@ public final class DistributedLoadUtils {
 
   /**
    * Distributed loads a file or directory in Alluxio space, makes it resident in memory.
-   *  @param command The command to execute loading
-   * @param pool
+   * @param command The command to execute loading
+   * @param pool The pool for batched jobs
+   * @param batchSize size for batched jobs
    * @param filePath The {@link AlluxioURI} path to load into Alluxio memory
    * @param replication Number of block replicas of each loaded file
    * @param workerSet A set of worker hosts to load data
@@ -55,11 +56,11 @@ public final class DistributedLoadUtils {
    * @param excludedLocalityIds A set of worker locality identify can not to load data
    * @param printOut whether print out progress in console
    */
-  public static void distributedLoad(AbstractDistributedJobCommand command,
-      List<URIStatus> pool, AlluxioURI filePath, int replication, int batchSize, Set<String> workerSet, Set<String> excludedWorkerSet,
-      Set<String> localityIds, Set<String> excludedLocalityIds, boolean printOut)
-      throws AlluxioException, IOException {
-    load(command, pool,filePath, replication, batchSize, workerSet, excludedWorkerSet, localityIds,
+  public static void distributedLoad(AbstractDistributedJobCommand command, List<URIStatus> pool,
+      int batchSize, AlluxioURI filePath, int replication, Set<String> workerSet,
+      Set<String> excludedWorkerSet, Set<String> localityIds, Set<String> excludedLocalityIds,
+      boolean printOut) throws AlluxioException, IOException {
+    load(command, pool, batchSize, filePath, replication, workerSet, excludedWorkerSet, localityIds,
         excludedLocalityIds, printOut);
     // Wait remaining jobs to complete.
     command.drain();
@@ -69,7 +70,7 @@ public final class DistributedLoadUtils {
    * Loads a file or directory in Alluxio space, makes it resident in memory.
    *
    * @param command The command to execute loading
-   * @param pool
+   * @param pool The pool for batched jobs
    * @param filePath The {@link AlluxioURI} path to load into Alluxio memory
    * @param replication Number of block replicas of each loaded file
    * @param workerSet A set of worker hosts to load data
@@ -81,11 +82,10 @@ public final class DistributedLoadUtils {
    * @throws IOException when non-Alluxio exception occurs
    */
   private static void load(AbstractDistributedJobCommand command, List<URIStatus> pool,
-      AlluxioURI filePath, int replication, int batchSize, Set<String> workerSet, Set<String> excludedWorkerSet,
-      Set<String> localityIds, Set<String> excludedLocalityIds, boolean printOut)
-      throws IOException, AlluxioException {
+      int batchSize, AlluxioURI filePath, int replication, Set<String> workerSet,
+      Set<String> excludedWorkerSet, Set<String> localityIds, Set<String> excludedLocalityIds,
+      boolean printOut) throws IOException, AlluxioException {
     ListStatusPOptions options = ListStatusPOptions.newBuilder().setRecursive(true).build();
-
     command.mFileSystem.iterateStatus(filePath, options, uriStatus -> {
       if (!uriStatus.isFolder()) {
         AlluxioURI fileURI = new AlluxioURI(uriStatus.getPath());
@@ -98,42 +98,45 @@ public final class DistributedLoadUtils {
         }
         pool.add(uriStatus);
         if (pool.size() == batchSize) {
-          addJob(command, pool, batchSize,replication, workerSet, excludedWorkerSet, localityIds,
+          addJob(command, batchSize, pool, replication, workerSet, excludedWorkerSet, localityIds,
               excludedLocalityIds, printOut);
           pool.clear();
         }
       }
     });
     // add all the jobs left in the pool
-    addJob(command, pool, batchSize, replication, workerSet, excludedWorkerSet, localityIds,
-        excludedLocalityIds, printOut);
+    if (pool.size() > 0) {
+      addJob(command, batchSize, pool, replication, workerSet, excludedWorkerSet, localityIds,
+          excludedLocalityIds, printOut);
+    }
   }
 
-  private static void addJob(AbstractDistributedJobCommand command, List<URIStatus> statuses,
-      int batchSize, int replication, Set<String> workerSet, Set<String> excludedWorkerSet,
-      Set<String> localityIds, Set<String> excludedLocalityIds, boolean printOut) {
-
+  private static void addJob(AbstractDistributedJobCommand command, int batchSize,
+      List<URIStatus> statuses, int replication, Set<String> workerSet,
+      Set<String> excludedWorkerSet, Set<String> localityIds, Set<String> excludedLocalityIds,
+      boolean printOut) {
     if (command.mSubmittedJobAttempts.size() >= command.mActiveJobs) {
       // Wait one job to complete.
       command.waitJob();
     }
-    command.mSubmittedJobAttempts.add(newJob(command, statuses, batchSize,replication, workerSet,
+    command.mSubmittedJobAttempts.add(newJob(command, batchSize, statuses, replication, workerSet,
         excludedWorkerSet, localityIds, excludedLocalityIds, printOut));
   }
 
   /**
    * Creates a new job to load a file in Alluxio space, makes it resident in memory.
-   *  @param command The command to execute loading
+   * @param command The command to execute loading
+   * @param batchSize size for batched jobs
    * @param filePath The {@link AlluxioURI} path to load into Alluxio memory
-   * @param batchSize
    * @param replication The replication of file to load into Alluxio memory
    * @param printOut whether print out progress in console
    */
-  private static JobAttempt newJob(AbstractDistributedJobCommand command, List<URIStatus> filePath,
-      int batchSize, int replication, Set<String> workerSet, Set<String> excludedWorkerSet,
-      Set<String> localityIds, Set<String> excludedLocalityIds, boolean printOut) {
-    JobAttempt jobAttempt = LoadJobAttemptFactory.create(command, filePath, batchSize,replication, workerSet,
-        excludedWorkerSet, localityIds, excludedLocalityIds, printOut);
+  private static JobAttempt newJob(AbstractDistributedJobCommand command, int batchSize,
+      List<URIStatus> filePath, int replication, Set<String> workerSet,
+      Set<String> excludedWorkerSet, Set<String> localityIds, Set<String> excludedLocalityIds,
+      boolean printOut) {
+    JobAttempt jobAttempt = LoadJobAttemptFactory.create(command, batchSize, filePath, replication,
+        workerSet, excludedWorkerSet, localityIds, excludedLocalityIds, printOut);
     jobAttempt.run();
     return jobAttempt;
   }
@@ -166,8 +169,8 @@ public final class DistributedLoadUtils {
 
     @Override
     protected void logCompleted() {
-      System.out.printf("Successfully loaded path %s after %d attempts%n",
-          mJobConfig.getFilePath(), mRetryPolicy.getAttemptCount());
+      System.out.printf("Successfully loaded path %s after %d attempts%n", mJobConfig.getFilePath(),
+          mRetryPolicy.getAttemptCount());
     }
   }
 
@@ -218,8 +221,8 @@ public final class DistributedLoadUtils {
 
     @Override
     protected void logFailed() {
-      System.out.printf("Failed to complete loading %s after %d retries.%n",
-          mJobConfig, mRetryPolicy.getAttemptCount());
+      System.out.printf("Failed to complete loading %s after %d retries.%n", mJobConfig,
+          mRetryPolicy.getAttemptCount());
     }
 
     @Override
@@ -228,6 +231,7 @@ public final class DistributedLoadUtils {
           mJobConfig.getJobConfigs().stream(), mRetryPolicy.getAttemptCount());
     }
   }
+
   private static class SilentBatchedLoadJobAttempt extends JobAttempt {
     private final BatchedJobConfig mJobConfig;
 
@@ -251,11 +255,28 @@ public final class DistributedLoadUtils {
     @Override
     protected void logCompleted() {}
   }
-  public static class LoadJobAttemptFactory {
-    public static JobAttempt create(AbstractDistributedJobCommand command, List<URIStatus> filePath,
-        int batchSize, int replication, Set<String> workerSet, Set<String> excludedWorkerSet,
-        Set<String> localityIds, Set<String> excludedLocalityIds, boolean printOut) {
 
+  /**
+   * Factory class for creating different load job attempt.
+   */
+  public static class LoadJobAttemptFactory {
+    /**
+     * Loads a file or directory in Alluxio space, makes it resident in memory.
+     * @param command The command to execute loading
+     * @param batchSize size of batched job
+     * @param filePath The {@link AlluxioURI} path to load into Alluxio memory
+     * @param replication Number of block replicas of each loaded file
+     * @param workerSet A set of worker hosts to load data
+     * @param excludedWorkerSet A set of worker hosts can not to load data
+     * @param localityIds The locality identify set
+     * @param excludedLocalityIds A set of worker locality identify can not to load data
+     * @param printOut whether print out progress in console
+     * @return specific load job attempt
+     **/
+    public static JobAttempt create(AbstractDistributedJobCommand command, int batchSize,
+        List<URIStatus> filePath, int replication, Set<String> workerSet,
+        Set<String> excludedWorkerSet, Set<String> localityIds, Set<String> excludedLocalityIds,
+        boolean printOut) {
       JobAttempt jobAttempt;
       if (batchSize == 1) {
         LoadConfig config = new LoadConfig(filePath.iterator().next().getPath(), replication,
@@ -269,24 +290,20 @@ public final class DistributedLoadUtils {
         HashSet<Map<String, String>> configs = Sets.newHashSet();
         ObjectMapper oMapper = new ObjectMapper();
         for (URIStatus status : filePath) {
-          LoadConfig loadConfig =
-              new LoadConfig(status.getPath(), replication, workerSet, excludedWorkerSet,
-                  localityIds, excludedLocalityIds);
+          LoadConfig loadConfig = new LoadConfig(status.getPath(), replication, workerSet,
+              excludedWorkerSet, localityIds, excludedLocalityIds);
           Map<String, String> map = oMapper.convertValue(loadConfig, Map.class);
           configs.add(map);
         }
         BatchedJobConfig config = new BatchedJobConfig("Load", configs);
         if (printOut) {
-          //TODO (jianjian) need to update the retry logic if we want to retry on the batch job
-          jobAttempt = new BatchedLoadJobAttempt(command.mClient, config, new CountingRetry(0));
+          jobAttempt = new BatchedLoadJobAttempt(command.mClient, config, new CountingRetry(3));
         } else {
           jobAttempt =
-              new SilentBatchedLoadJobAttempt(command.mClient, config, new CountingRetry(0));
+              new SilentBatchedLoadJobAttempt(command.mClient, config, new CountingRetry(3));
         }
       }
-
       return jobAttempt;
     }
-
   }
 }

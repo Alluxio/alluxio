@@ -130,8 +130,8 @@ public class BatchedJobDefinitionTest {
     int batchSize = 2;
     HashSet<Map<String, String>> configs = Sets.newHashSet();
     for (int i = 0; i < batchSize; i++) {
-      createFileWithNoLocations(TEST_URI+i, numBlocks);
-      LoadConfig loadConfig = new LoadConfig(TEST_URI+i, replication, Collections.EMPTY_SET,
+      createFileWithNoLocations(TEST_URI + i, numBlocks);
+      LoadConfig loadConfig = new LoadConfig(TEST_URI + i, replication, Collections.EMPTY_SET,
           Collections.EMPTY_SET, Collections.EMPTY_SET, Collections.EMPTY_SET);
       ObjectMapper oMapper = new ObjectMapper();
       Map<String, String> map = oMapper.convertValue(loadConfig, Map.class);
@@ -139,17 +139,16 @@ public class BatchedJobDefinitionTest {
     }
     BatchedJobConfig config = new BatchedJobConfig("Load", configs);
     Set<Pair<WorkerInfo, BatchedJobDefinition.BatchedJobTask>> assignments =
-        new BatchedJobDefinition().selectExecutors(config,
-            JOB_WORKERS, new SelectExecutorsContext(1, mJobServerContext));
+        new BatchedJobDefinition().selectExecutors(config, JOB_WORKERS,
+            new SelectExecutorsContext(1, mJobServerContext));
     // Check that we are loading the right number of blocks.
     int totalBlockLoads = 0;
     for (Pair<WorkerInfo, BatchedJobDefinition.BatchedJobTask> assignment : assignments) {
       ArrayList<LoadTask> second = (ArrayList<LoadTask>) assignment.getSecond().getJobTaskArgs();
-      totalBlockLoads+=second.size();
+      totalBlockLoads += second.size();
     }
-    Assert.assertEquals(numBlocks * replication*batchSize, totalBlockLoads);
+    Assert.assertEquals(numBlocks * replication * batchSize, totalBlockLoads);
   }
-
 
   private FileInfo createFileWithNoLocations(String testFile, int numOfBlocks) throws Exception {
     FileInfo testFileInfo = new FileInfo();
@@ -157,7 +156,7 @@ public class BatchedJobDefinitionTest {
     List<FileBlockInfo> blockInfos = Lists.newArrayList();
     for (int i = 0; i < numOfBlocks; i++) {
       blockInfos.add(new FileBlockInfo()
-          .setBlockInfo(new BlockInfo().setLocations(Lists.<BlockLocation>newArrayList())));
+          .setBlockInfo(new BlockInfo().setLocations(Lists.newArrayList())));
     }
     testFileInfo.setFolder(false).setPath(testFile).setFileBlockInfos(blockInfos);
     Mockito.when(mMockFileSystem.listStatus(uri))
@@ -165,6 +164,7 @@ public class BatchedJobDefinitionTest {
     Mockito.when(mMockFileSystem.getStatus(uri)).thenReturn(new URIStatus(testFileInfo));
     return testFileInfo;
   }
+
   @Test
   public void batchPersist() throws Exception {
     AlluxioURI uri = new AlluxioURI("/test");
@@ -188,12 +188,11 @@ public class BatchedJobDefinitionTest {
     Mockito.when(mMockFileSystem.getStatus(uri)).thenReturn(new URIStatus(testFileInfo));
 
     Set<Pair<WorkerInfo, BatchedJobDefinition.BatchedJobTask>> result =
-        new BatchedJobDefinition().selectExecutors(batchedJobConfig,
-            Lists.newArrayList(workerInfo), new SelectExecutorsContext(1, mJobServerContext));
+        new BatchedJobDefinition().selectExecutors(batchedJobConfig, Lists.newArrayList(workerInfo),
+            new SelectExecutorsContext(1, mJobServerContext));
     System.out.println(result);
     Assert.assertNull(result.iterator().next().getSecond().getJobTaskArgs());
     Assert.assertEquals(1, result.size());
     Assert.assertEquals(workerInfo, result.iterator().next().getFirst());
   }
-
 }

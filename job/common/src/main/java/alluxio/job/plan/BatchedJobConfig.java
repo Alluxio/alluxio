@@ -15,11 +15,9 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
-import com.google.common.collect.ImmutableList;
 
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
@@ -33,18 +31,17 @@ public class BatchedJobConfig implements PlanConfig {
   public static final String NAME = "BatchedJob";
   private static final long serialVersionUID = -5482449086646391059L;
   private final String mJobType;
-  private final Set<Map<String,String>> mJobConfigs;
+  private final Set<Map<String, String>> mJobConfigs;
 
   /**
    * @param jobType the job type for batched job
    * @param jobConfigs the configs for each job in the batched job
    */
   public BatchedJobConfig(@JsonProperty("jobType") String jobType,
-      @JsonProperty("jobConfig") Set<Map<String,String>> jobConfigs) {
+      @JsonProperty("jobConfig") Set<Map<String, String>> jobConfigs) {
     mJobType = Preconditions.checkNotNull(jobType, "The file path cannot be null");
     mJobConfigs = Preconditions.checkNotNull(jobConfigs, "The job config cannot be null");
   }
-
 
   @Override
   public boolean equals(Object obj) {
@@ -84,10 +81,16 @@ public class BatchedJobConfig implements PlanConfig {
     return Collections.EMPTY_LIST;
   }
 
+  /**
+   * @return job type
+   */
   public String getJobType() {
     return mJobType;
   }
 
+  /**
+   * @return batch of job configs
+   */
   public Set<Map<String, String>> getJobConfigs() {
     return mJobConfigs;
   }

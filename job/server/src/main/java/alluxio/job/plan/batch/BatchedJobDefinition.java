@@ -48,14 +48,12 @@ public final class BatchedJobDefinition
   /**
    * Constructs a new {@link BatchedJobDefinition}.
    */
-  public BatchedJobDefinition() {
-  }
+  public BatchedJobDefinition() {}
 
   @Override
   public Set<Pair<WorkerInfo, BatchedJobTask>> selectExecutors(BatchedJobConfig config,
-      List<WorkerInfo> jobWorkerInfoList, SelectExecutorsContext context)
-      throws Exception {
-    //get job type and config
+      List<WorkerInfo> jobWorkerInfoList, SelectExecutorsContext context) throws Exception {
+    // get job type and config
     String jobType = config.getJobType();
 
     PlanDefinition plan = JobDefinitionFactory.create(jobType);
@@ -63,59 +61,64 @@ public final class BatchedJobDefinition
     final ObjectMapper mapper = new ObjectMapper();
     Class<?> jobConfigClass = plan.getJobConfigClass();
     Set<Pair<WorkerInfo, BatchedJobTask>> allTasks = Sets.newHashSet();
-    for(Map<String,String> configMap:config.getJobConfigs()) {
+    for (Map<String, String> configMap : config.getJobConfigs()) {
       JobConfig jobConfig = (JobConfig) mapper.convertValue(configMap, jobConfigClass);
-      Set<Pair<WorkerInfo,Serializable>> tasks = plan.selectExecutors(jobConfig, jobWorkerInfoList, context);
-      for(Pair<WorkerInfo,Serializable> task:tasks){
+      Set<Pair<WorkerInfo, Serializable>> tasks =
+          plan.selectExecutors(jobConfig, jobWorkerInfoList, context);
+      for (Pair<WorkerInfo, Serializable> task : tasks) {
         BatchedJobTask batchedTask = new BatchedJobTask(jobConfig, task.getSecond());
-        allTasks.add(new Pair<>(task.getFirst(),batchedTask));
+        allTasks.add(new Pair<>(task.getFirst(), batchedTask));
       }
     }
-
     return allTasks;
   }
-
 
   @Override
   public SerializableVoid runTask(BatchedJobConfig config, BatchedJobTask task,
       RunTaskContext context) throws Exception {
     String jobType = config.getJobType();
-    @SuppressWarnings("rawtypes") PlanDefinition plan = JobDefinitionFactory.create(jobType);
-    plan.runTask(task.getJobConfig(),task.getJobTaskArgs(),context);
+    @SuppressWarnings("rawtypes")
+    PlanDefinition plan = JobDefinitionFactory.create(jobType);
+    plan.runTask(task.getJobConfig(), task.getJobTaskArgs(), context);
     return null;
   }
-
 
   /**
    * A task representing loading a block into the memory of a worker.
    */
   public static class BatchedJobTask implements Serializable {
     private static final long serialVersionUID = -3643377264144315329L;
-    final Serializable mJobTaskArgs;
+    final Serializable mJobTasks;
     final JobConfig mJobConfig;
 
     /**
-     * @param jobTaskArgs
+     * @param config job config for specific job type
+     * @param jobTasks job tasks
      */
-    public BatchedJobTask(JobConfig config,Serializable jobTaskArgs) {
-      this.mJobConfig = config;
-      this.mJobTaskArgs = jobTaskArgs;
+    public BatchedJobTask(JobConfig config, Serializable jobTasks) {
+      mJobConfig = config;
+      mJobTasks = jobTasks;
     }
+
+    /**
+     * @return job tasks
+     */
     public Serializable getJobTaskArgs() {
-      return mJobTaskArgs;
+      return mJobTasks;
     }
+
+    /**
+     * @return job config
+     */
     public JobConfig getJobConfig() {
       return mJobConfig;
     }
 
     @Override
     public String toString() {
-      return MoreObjects.toStringHelper(this)
-          .add("jobConfig", mJobConfig)
-          .add("jobTaskArgs", mJobTaskArgs)
-          .toString();
+      return MoreObjects.toStringHelper(this).add("jobConfig", mJobConfig)
+          .add("jobTaskArgs", mJobTasks).toString();
     }
-
   }
 
   @Override
@@ -123,12 +126,22 @@ public final class BatchedJobDefinition
     return BatchedJobConfig.class;
   }
 
-  public static class JobDefinitionFactory{
-    public static PlanDefinition create(String jobName){
-      switch (jobName){
-        case "Load":return new LoadDefinition();
-        case "Migrate":return new MigrateDefinition();
-        case "Persist":return new PersistDefinition();
+  /**
+   * Factory class for get the specific job definition.
+   */
+  public static class JobDefinitionFactory {
+    /**
+     * @param jobName name of job
+     * @return job definition
+     */
+    public static PlanDefinition create(String jobName) {
+      switch (jobName) {
+        case "Load":
+          return new LoadDefinition();
+        case "Migrate":
+          return new MigrateDefinition();
+        case "Persist":
+          return new PersistDefinition();
         default:
           throw new IllegalStateException("Unknown job: " + jobName);
       }
