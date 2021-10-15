@@ -96,7 +96,6 @@ public class EmbeddedJournalIntegrationTestTransferLeadership
     // we can therefore access to the new leader's address this way
     MasterNetAddress newLeaderAddr = mCluster.getMasterAddresses().get(newLeaderIdx);
     NetAddress netAddress = masterEBJAddr2NetAddr(newLeaderAddr);
-
     mCluster.getJournalMasterClientForMaster().transferLeadership(netAddress);
       // this second call should throw an exception
     String transferId = mCluster.getJournalMasterClientForMaster().transferLeadership(netAddress);
