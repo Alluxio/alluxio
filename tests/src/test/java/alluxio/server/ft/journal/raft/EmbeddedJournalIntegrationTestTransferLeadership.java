@@ -123,9 +123,8 @@ public class EmbeddedJournalIntegrationTestTransferLeadership
 
     NetAddress netAddress = NetAddress.newBuilder().setHost("hostname").setRpcPort(0).build();
     String transferId = mCluster.getJournalMasterClientForMaster().transferLeadership(netAddress);
-    Assert.fail("Should have thrown exception");
     String exceptionMessage = mCluster.getJournalMasterClientForMaster()
-            .getTransferLeaderMessage(transferId).toString();
+            .getTransferLeaderMessage(transferId).getTransMsg().getMsg();
     Assert.assertTrue(exceptionMessage.startsWith(String.format("<%s:%d> is not part of the quorum",
             netAddress.getHost(), netAddress.getRpcPort())));
     for (MasterNetAddress address : mCluster.getMasterAddresses()) {

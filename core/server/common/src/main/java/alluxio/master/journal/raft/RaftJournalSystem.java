@@ -226,7 +226,6 @@ public class RaftJournalSystem extends AbstractJournalSystem {
   private final ClientId mRawClientId = ClientId.randomId();
   private RaftGroup mRaftGroup;
   private RaftPeerId mPeerId;
-  private List<TransferLeaderMessage> mTransferMsgs;
   private Map<String, TransferLeaderMessage> mErrorMessages;
 
   static long nextCallId() {
@@ -243,6 +242,7 @@ public class RaftJournalSystem extends AbstractJournalSystem {
     mTransferLeaderAllowed = new AtomicBoolean(false);
     mPrimarySelector = new RaftPrimarySelector();
     mAsyncJournalWriter = new AtomicReference<>();
+    mErrorMessages = new ConcurrentHashMap<>();
   }
 
   private void maybeMigrateOldJournal() {
@@ -949,6 +949,7 @@ public class RaftJournalSystem extends AbstractJournalSystem {
               + "leadership"));
       mErrorMessages.put(transferId, TransferLeaderMessage.newBuilder()
               .setMsg(exception.getMessage()).build());
+      return transferId;
     }
     InetSocketAddress serverAddress = InetSocketAddress
             .createUnresolved(newLeaderNetAddress.getHost(), newLeaderNetAddress.getRpcPort());
@@ -962,6 +963,7 @@ public class RaftJournalSystem extends AbstractJournalSystem {
               strAddr, oldPeers.stream().map(RaftPeer::getAddress).collect(Collectors.toList())));
       mErrorMessages.put(transferId, TransferLeaderMessage.newBuilder()
               .setMsg(exception.getMessage()).build());
+      return transferId;
     }
 
     RaftPeerId newLeaderPeerId = RaftJournalUtils.getPeerId(serverAddress);
