@@ -12,6 +12,7 @@
 package alluxio.fuse;
 
 import alluxio.AlluxioURI;
+import alluxio.Constants;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
@@ -153,6 +154,9 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
           public AlluxioURI load(String fusePath) {
             // fusePath is guaranteed to always be an absolute path (i.e., starts
             // with a fwd slash) - relative to the FUSE mount point
+            if (fusePath.startsWith(Constants.ALLUXIO_RESERVED_DIR)) {
+              return new AlluxioURI(fusePath);
+            }
             final String relPath = fusePath.substring(1);
             final Path tpath = mAlluxioRootPath.resolve(relPath);
             return new AlluxioURI(tpath.toString());

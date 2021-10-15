@@ -12,6 +12,7 @@
 package alluxio.client.file;
 
 import alluxio.AlluxioURI;
+import alluxio.Constants;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.AlluxioException;
@@ -56,9 +57,8 @@ public class MetadataCachingBaseFileSystem extends BaseFileSystem {
   private static final int THREAD_TERMINATION_TIMEOUT_MS = 10000;
   private static final URIStatus NOT_FOUND_STATUS = new URIStatus(
       new FileInfo().setCompleted(true));
-  private static final String RESERVED_PATH_PREFIX = "/alluxio.metadatacache";
-  private static final String METADATACACHE_DROP = "drop";
-  private static final String METADATACACHE_SIZE = "size";
+  private static final String CLIENT_METADATACACHE_DROP = "drop";
+  private static final String CLIENT_METADATACACHE_SIZE = "size";
 
   private final MetadataCache mMetadataCache;
   private final ExecutorService mAccessTimeUpdater;
@@ -128,7 +128,7 @@ public class MetadataCachingBaseFileSystem extends BaseFileSystem {
     checkUri(path);
     if (mFsContext.getClusterConf().getBoolean(PropertyKey
         .USER_CLIENT_HANDLE_METADATA_CACHE_ENABLE) && path.getPath()
-        .startsWith(RESERVED_PATH_PREFIX)) {
+        .startsWith(Constants.ALLUXIO_RESERVED_DIR)) {
       return clientMetadataCacheOPHandler(path);
     }
     URIStatus status = mMetadataCache.get(path);
@@ -265,10 +265,10 @@ public class MetadataCachingBaseFileSystem extends BaseFileSystem {
       args = cmdInfo[3];
     }
     switch (cmdInfo[2]) {
-      case METADATACACHE_DROP:
+      case CLIENT_METADATACACHE_DROP:
         status = dropMetadataCache(args);
         break;
-      case METADATACACHE_SIZE:
+      case CLIENT_METADATACACHE_SIZE:
         status = getMetadataCacheSize();
         break;
       default:
