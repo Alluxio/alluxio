@@ -15,7 +15,7 @@ import { createBrowserHistory, History, LocationState } from 'history';
 import React from 'react';
 import sinon from 'sinon';
 
-import { AllPropsConfigure } from '@alluxio/common-ui/src/components';
+import { AllProps } from '@alluxio/common-ui/src/components';
 import { initialState } from '../../../store';
 import { routePaths } from '../../../constants';
 import MasterLogs from './MasterLogs';
@@ -25,7 +25,7 @@ configure({ adapter: new Adapter() });
 
 describe('MasterLogs', () => {
   let history: History<LocationState>;
-  let props: AllPropsConfigure;
+  let props: AllProps;
 
   beforeAll(() => {
     history = createBrowserHistory({ keyLength: 0 });
