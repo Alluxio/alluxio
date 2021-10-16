@@ -100,7 +100,7 @@ public class EmbeddedJournalIntegrationTestTransferLeadership
     String transferId = mCluster.getJournalMasterClientForMaster().transferLeadership(netAddress);
     String exceptionMessage = mCluster.getJournalMasterClientForMaster()
             .getTransferLeaderMessage(transferId).getTransMsg().getMsg();
-    Assert.assertNotNull(exceptionMessage);
+    Assert.assertFalse(exceptionMessage.isEmpty());
     mCluster.notifySuccess();
   }
 
