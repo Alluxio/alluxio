@@ -4465,10 +4465,10 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       new Builder(Name.USER_CLIENT_HANDLE_METADATA_CACHE_ENABLE)
           .setDefaultValue(true)
           .setDescription("If this is enable, user can operate client metadata cache by "
-              + "executing 'ls' command, the path '/alluxio.metadatacache' is reserved to identify "
+              + "executing 'ls' command, the path '/.alluxio.reserved' is reserved to identify "
               + "the client metadata cache operations. For now, two operations 'drop' and 'size' "
-              + "are supported, 'ls /alluxio.metadatacache.drop' to clear metadata cache and "
-              + "'ls -al /.alluxio.metadatacache.size' to get metadata cache size.")
+              + "are supported, 'ls /.alluxio.reserved.metadatacache.drop' to clear metadata cache "
+              + "and 'ls -al /.alluxio.reserved.metadatacache.size' to get metadata cache size.")
           .setScope(Scope.CLIENT)
           .build();
   public static final PropertyKey USER_CLIENT_CACHE_STORE_OVERHEAD =
