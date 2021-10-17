@@ -14,6 +14,8 @@ package alluxio.client.file.cache.cuckoofilter;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
+import com.google.common.hash.Funnels;
+import com.google.common.hash.Hashing;
 import org.junit.Test;
 
 public class CuckooUtilsTest {
@@ -22,17 +24,18 @@ public class CuckooUtilsTest {
   private static final int BITS_PER_TAG = 8;
 
   @Test
-  public void testGenerateIndexAndTag() {
+  public void testIndexAndTagHash() {
     for (int i = 0; i < NUM_BUCKETS; i++) {
       for (int j = 0; j < TAGS_PER_BUCKET; j++) {
-        IndexAndTag indexAndTag =
-            CuckooUtils.generateIndexAndTag(i * NUM_BUCKETS + j, NUM_BUCKETS, BITS_PER_TAG);
-        assertTrue(0 <= indexAndTag.mBucketIndex && indexAndTag.mBucketIndex < NUM_BUCKETS);
-        assertTrue(0 < indexAndTag.mTag && indexAndTag.mTag <= ((1 << BITS_PER_TAG) - 1));
-        int altIndex =
-            CuckooUtils.altIndex(indexAndTag.mBucketIndex, indexAndTag.mTag, NUM_BUCKETS);
-        int altAltIndex = CuckooUtils.altIndex(altIndex, indexAndTag.mTag, NUM_BUCKETS);
-        assertEquals(indexAndTag.mBucketIndex, altAltIndex);
+        long hv = Hashing.murmur3_128().newHasher()
+            .putObject(i * NUM_BUCKETS + j, Funnels.integerFunnel()).hash().asLong();
+        int index = CuckooUtils.indexHash((int) (hv >> 32), NUM_BUCKETS);
+        int tag = CuckooUtils.tagHash((int) hv, BITS_PER_TAG);
+        assertTrue(0 <= index && index < NUM_BUCKETS);
+        assertTrue(0 < tag && tag <= ((1 << BITS_PER_TAG) - 1));
+        int altIndex = CuckooUtils.altIndex(index, tag, NUM_BUCKETS);
+        int altAltIndex = CuckooUtils.altIndex(altIndex, tag, NUM_BUCKETS);
+        assertEquals(index, altAltIndex);
       }
     }
   }

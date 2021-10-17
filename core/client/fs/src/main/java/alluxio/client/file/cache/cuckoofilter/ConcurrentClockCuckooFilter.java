@@ -17,7 +17,6 @@ import alluxio.collections.BuiltinBitSet;
 
 import com.google.common.base.Preconditions;
 import com.google.common.hash.Funnel;
-import com.google.common.hash.HashCode;
 import com.google.common.hash.HashFunction;
 import com.google.common.hash.Hashing;
 
@@ -267,10 +266,10 @@ public class ConcurrentClockCuckooFilter<T> implements ClockCuckooFilter<T>, Ser
     if (size <= 0) {
       return false;
     }
-    IndexAndTag indexAndTag = generateIndexAndTag(item);
-    int fp = indexAndTag.mTag;
-    int b1 = indexAndTag.mBucketIndex;
-    int b2 = altIndex(b1, fp);
+    long hv = hashValue(item);
+    int tag = tagHash(hv);
+    int b1 = indexHash(hv);
+    int b2 = altIndex(b1, tag);
     int scope = encodeScope(scopeInfo);
     size = encodeSize(size);
     TagPosition pos = new TagPosition();
@@ -281,7 +280,7 @@ public class ConcurrentClockCuckooFilter<T> implements ClockCuckooFilter<T>, Ser
     // This is because we expect cuckoo path search & move to be as fast as possible,
     // or it may be more possible to fail.
     lockTwoWriteAndOpportunisticAging(b1, b2);
-    boolean done = cuckooInsertLoop(b1, b2, fp, pos);
+    boolean done = cuckooInsertLoop(b1, b2, tag, pos);
     if (done && pos.mStatus == CuckooStatus.OK) {
       // b1 and b2 should be insertable for fp, which means:
       // 1. b1 or b2 have at least one empty slot (this is guaranteed until we unlock two buckets);
@@ -291,8 +290,8 @@ public class ConcurrentClockCuckooFilter<T> implements ClockCuckooFilter<T>, Ser
       Preconditions.checkElementIndex(pos.getBucketIndex(), mNumBuckets);
       Preconditions.checkElementIndex(pos.getSlotIndex(), TAGS_PER_BUCKET);
       Preconditions.checkState(mTable.readTag(pos.getBucketIndex(), pos.getSlotIndex()) == 0);
-      Preconditions.checkState(!mTable.findTagInBuckets(b1, b2, fp));
-      mTable.writeTag(pos.getBucketIndex(), pos.getSlotIndex(), fp);
+      Preconditions.checkState(!mTable.findTagInBuckets(b1, b2, tag));
+      mTable.writeTag(pos.getBucketIndex(), pos.getSlotIndex(), tag);
       mClockTable.writeTag(pos.getBucketIndex(), pos.getSlotIndex(), mMaxAge);
       mScopeTable.writeTag(pos.getBucketIndex(), pos.getSlotIndex(), scope);
       mSizeTable.writeTag(pos.getBucketIndex(), pos.getSlotIndex(), size);
@@ -324,9 +323,9 @@ public class ConcurrentClockCuckooFilter<T> implements ClockCuckooFilter<T>, Ser
    */
   private boolean mightContainAndOptionalResetClock(T item, boolean shouldReset) {
     boolean found;
-    IndexAndTag indexAndTag = generateIndexAndTag(item);
-    int b1 = indexAndTag.mBucketIndex;
-    int tag = indexAndTag.mTag;
+    long hv = hashValue(item);
+    int tag = tagHash(hv);
+    int b1 = indexHash(hv);
     int b2 = altIndex(b1, tag);
     mLocks.readLock(b1, b2);
     TagPosition pos = new TagPosition();
@@ -341,13 +340,13 @@ public class ConcurrentClockCuckooFilter<T> implements ClockCuckooFilter<T>, Ser
 
   @Override
   public boolean delete(T item) {
-    IndexAndTag indexAndTag = generateIndexAndTag(item);
-    int i1 = indexAndTag.mBucketIndex;
-    int tag = indexAndTag.mTag;
-    int i2 = altIndex(i1, tag);
-    lockTwoWriteAndOpportunisticAging(i1, i2);
+    long hv = hashValue(item);
+    int tag = tagHash(hv);
+    int b1 = indexHash(hv);
+    int b2 = altIndex(b1, tag);
+    lockTwoWriteAndOpportunisticAging(b1, b2);
     TagPosition pos = new TagPosition();
-    if (mTable.deleteTagFromBucket(i1, tag, pos) || mTable.deleteTagFromBucket(i2, tag, pos)) {
+    if (mTable.deleteTagFromBucket(b1, tag, pos) || mTable.deleteTagFromBucket(b2, tag, pos)) {
       mNumItems.decrementAndGet();
       int scope = mScopeTable.readTag(pos.getBucketIndex(), pos.getSlotIndex());
       int size = mSizeTable.readTag(pos.getBucketIndex(), pos.getSlotIndex());
@@ -355,10 +354,10 @@ public class ConcurrentClockCuckooFilter<T> implements ClockCuckooFilter<T>, Ser
       updateScopeStatistics(scope, -1, -size);
       // Clear Clock
       mClockTable.writeTag(pos.getBucketIndex(), pos.getSlotIndex(), 0);
-      mLocks.unlockWrite(i1, i2);
+      mLocks.unlockWrite(b1, b2);
       return true;
     }
-    mLocks.unlockWrite(i1, i2);
+    mLocks.unlockWrite(b1, b2);
     return false;
   }
 
@@ -386,19 +385,19 @@ public class ConcurrentClockCuckooFilter<T> implements ClockCuckooFilter<T>, Ser
    */
   public int getAge(T item) {
     boolean found;
-    IndexAndTag indexAndTag = generateIndexAndTag(item);
-    int i1 = indexAndTag.mBucketIndex;
-    int tag = indexAndTag.mTag;
-    int i2 = altIndex(i1, tag);
-    mLocks.readLock(i1, i2);
+    long hv = hashValue(item);
+    int tag = tagHash(hv);
+    int b1 = indexHash(hv);
+    int b2 = altIndex(b1, tag);
+    mLocks.readLock(b1, b2);
     TagPosition pos = new TagPosition();
-    found = mTable.findTagInBuckets(i1, i2, tag, pos);
+    found = mTable.findTagInBuckets(b1, b2, tag, pos);
     if (found) {
       int clock = mClockTable.readTag(pos.getBucketIndex(), pos.getSlotIndex());
-      mLocks.unlockRead(i1, i2);
+      mLocks.unlockRead(b1, b2);
       return clock;
     }
-    mLocks.unlockRead(i1, i2);
+    mLocks.unlockRead(b1, b2);
     return 0;
   }
 
@@ -492,14 +491,18 @@ public class ConcurrentClockCuckooFilter<T> implements ClockCuckooFilter<T>, Ser
     return mScopeTable.getBitsPerTag();
   }
 
+  private long hashValue(T item) {
+    return mHasher.newHasher().putObject(item, mFunnel).hash().asLong();
+  }
+
   /**
    * Compute the index from a hash value.
    *
    * @param hv the hash value used for computing
    * @return the bucket computed on given hash value
    */
-  private int indexHash(int hv) {
-    return CuckooUtils.indexHash(hv, mNumBuckets);
+  private int indexHash(long hv) {
+    return CuckooUtils.indexHash((int) (hv >> 32), mNumBuckets);
   }
 
   /**
@@ -508,8 +511,8 @@ public class ConcurrentClockCuckooFilter<T> implements ClockCuckooFilter<T>, Ser
    * @param hv the hash value used for computing
    * @return the fingerprint computed on given hash value
    */
-  private int tagHash(int hv) {
-    return CuckooUtils.tagHash(hv, mBitsPerTag);
+  private int tagHash(long hv) {
+    return CuckooUtils.tagHash((int) hv, mBitsPerTag);
   }
 
   /**
@@ -521,18 +524,6 @@ public class ConcurrentClockCuckooFilter<T> implements ClockCuckooFilter<T>, Ser
    */
   private int altIndex(int index, int tag) {
     return CuckooUtils.altIndex(index, tag, mNumBuckets);
-  }
-
-  /**
-   * Compute the index and tag for given item.
-   *
-   * @param item the item for computing
-   * @return the bucket and fingerprint of item
-   */
-  private IndexAndTag generateIndexAndTag(T item) {
-    HashCode hashCode = mHasher.newHasher().putObject(item, mFunnel).hash();
-    long hv = hashCode.asLong();
-    return CuckooUtils.generateIndexAndTag(hv, mNumBuckets, mBitsPerTag);
   }
 
   /**
