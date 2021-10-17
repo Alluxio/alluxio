@@ -57,22 +57,8 @@ public class CuckooUtils {
   }
 
   /**
-   * Compute the bucket and tag on given hash value.
-   *
-   * @param hv the hash value
-   * @param numBuckets the number of buckets
-   * @param bitsPerTag the number of bits each tag has
-   * @return the bucket and fingerprint
-   */
-  public static IndexAndTag generateIndexAndTag(long hv, int numBuckets, int bitsPerTag) {
-    int idx = CuckooUtils.indexHash((int) (hv >> 32), numBuckets);
-    int tag = CuckooUtils.tagHash((int) hv, bitsPerTag);
-    return new IndexAndTag(idx, tag);
-  }
-
-  /**
-   * Compute the number of bits of each tag on given fpp.
-   * The equation is from "Cuckoo Filter: Practically Better Than Bloom" by Fan et al.
+   * Compute the number of bits of each tag on given fpp. The equation is from "Cuckoo Filter:
+   * Practically Better Than Bloom" by Fan et al.
    *
    * @param fpp the false positive probability
    * @param loadFactor the load factor
