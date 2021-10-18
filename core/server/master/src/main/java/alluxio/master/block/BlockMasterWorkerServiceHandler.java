@@ -19,7 +19,6 @@ import alluxio.grpc.CommitBlockInUfsPRequest;
 import alluxio.grpc.CommitBlockInUfsPResponse;
 import alluxio.grpc.CommitBlockPRequest;
 import alluxio.grpc.CommitBlockPResponse;
-import alluxio.grpc.GetConfigReportPResponse;
 import alluxio.grpc.GetRegisterLeasePRequest;
 import alluxio.grpc.GetRegisterLeasePResponse;
 import alluxio.grpc.GetWorkerIdPRequest;
@@ -38,7 +37,6 @@ import io.grpc.stub.StreamObserver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -169,7 +167,7 @@ public final class BlockMasterWorkerServiceHandler extends
           // TODO(jiacheng): Then what to do?
           //  No lease -> Back to register, which acquires a lease again
           //  Consider old workers!
-          Preconditions.checkState(mBlockMaster.hasLease(workerId), "The worker does not have a lease.");
+          Preconditions.checkState(mBlockMaster.hasRegisterLease(workerId), "The worker does not have a lease.");
 
           // If the register is unsuccessful, the lease will be kept around until the expiry.
           // The worker can retry and use the existing lease.

@@ -180,7 +180,7 @@ public interface BlockMaster extends Master, ContainerIdGenerable {
 
   Optional<RegisterLease> tryAcquireRegisterLease(GetRegisterLeasePRequest request);
 
-  boolean hasLease(long workerId);
+  boolean hasRegisterLease(long workerId);
 
   void releaseRegisterLease(long workerId);
 

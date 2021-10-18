@@ -32,6 +32,7 @@ import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.Command;
 import alluxio.grpc.CommandType;
 import alluxio.grpc.ConfigProperty;
+import alluxio.grpc.GetRegisterLeasePRequest;
 import alluxio.grpc.GrpcService;
 import alluxio.grpc.GrpcUtils;
 import alluxio.grpc.RegisterWorkerPOptions;
@@ -911,13 +912,18 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
   }
 
   @Override
-  public Optional<RegisterLease> tryAcquireRegisterLease() {
-    return mRegisterLeaseManager.tryAcquireLease();
+  public Optional<RegisterLease> tryAcquireRegisterLease(GetRegisterLeasePRequest request) {
+    return mRegisterLeaseManager.tryAcquireLease(request);
   }
 
   @Override
-  public void releaseRegisterLease(){
-    mRegisterLeaseManager.releaseLease();
+  public boolean hasRegisterLease(long workerId) {
+    return mRegisterLeaseManager.checkLease(workerId);
+  }
+
+  @Override
+  public void releaseRegisterLease(long workerId){
+    mRegisterLeaseManager.releaseLease(workerId);
   }
 
   @Override

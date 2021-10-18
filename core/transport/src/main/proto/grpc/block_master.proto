@@ -235,8 +235,7 @@ message GetWorkerIdPResponse {
 
 message GetRegisterLeasePRequest {
   optional int64 workerId = 1;
-  /** this is not accurate because the worker can add/delete blocks */
-  // TODO(jiacheng): estimatedBlockCount?
+  /** This may not accurate because the worker can add/delete blocks before sending the RegisterWorkerPRequest */
   optional int64 blockCount = 2;
 }
 message GetRegisterLeasePOptions {}
@@ -299,7 +298,7 @@ service BlockMasterWorkerService {
   rpc RegisterWorker(RegisterWorkerPRequest) returns (RegisterWorkerPResponse);
 
   /**
-   * Requests a lease to register
+   * Requests a lease for registration
    */
    rpc RequestRegisterLease(GetRegisterLeasePRequest) returns (GetRegisterLeasePResponse);
 }
