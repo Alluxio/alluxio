@@ -55,6 +55,10 @@ public final class JobServiceBenchParameters extends Parameters {
           + "10000ms, etc.)")
   public String mWarmup = "30s";
 
+  @Parameter(names = {"--batch-size"},
+      description = "The batch size of operations")
+  public int mBatchSize = 1;
+
   /**
    * Converts from String to Operation instance.
    */
