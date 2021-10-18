@@ -22,7 +22,6 @@ import alluxio.multi.process.PortCoordination;
 import org.junit.Assert;
 import org.junit.Test;
 
-import java.io.IOException;
 import java.util.concurrent.TimeoutException;
 
 public class EmbeddedJournalIntegrationTestTransferLeadership
@@ -96,15 +95,12 @@ public class EmbeddedJournalIntegrationTestTransferLeadership
     // we can therefore access to the new leader's address this way
     MasterNetAddress newLeaderAddr = mCluster.getMasterAddresses().get(newLeaderIdx);
     NetAddress netAddress = masterEBJAddr2NetAddr(newLeaderAddr);
-
     mCluster.getJournalMasterClientForMaster().transferLeadership(netAddress);
-    try {
       // this second call should throw an exception
-      mCluster.getJournalMasterClientForMaster().transferLeadership(netAddress);
-      Assert.fail("Should have thrown exception");
-    } catch (IOException ioe) {
-      // expected exception thrown
-    }
+    String transferId = mCluster.getJournalMasterClientForMaster().transferLeadership(netAddress);
+    String exceptionMessage = mCluster.getJournalMasterClientForMaster()
+            .getTransferLeaderMessage(transferId).getTransMsg().getMsg();
+    Assert.assertFalse(exceptionMessage.isEmpty());
     mCluster.notifySuccess();
   }
 
@@ -122,19 +118,15 @@ public class EmbeddedJournalIntegrationTestTransferLeadership
     mCluster.start();
 
     NetAddress netAddress = NetAddress.newBuilder().setHost("hostname").setRpcPort(0).build();
-
-    try {
-      mCluster.getJournalMasterClientForMaster().transferLeadership(netAddress);
-      Assert.fail("Should have thrown exception");
-    } catch (IOException e) {
-      Assert.assertTrue(e.getMessage().startsWith(String.format("<%s:%d> is not part of the quorum",
-          netAddress.getHost(), netAddress.getRpcPort())));
-
-      for (MasterNetAddress address : mCluster.getMasterAddresses()) {
-        String host = address.getHostname();
-        int port = address.getEmbeddedJournalPort();
-        Assert.assertTrue(e.getMessage().contains(String.format("%s:%d", host, port)));
-      }
+    String transferId = mCluster.getJournalMasterClientForMaster().transferLeadership(netAddress);
+    String exceptionMessage = mCluster.getJournalMasterClientForMaster()
+            .getTransferLeaderMessage(transferId).getTransMsg().getMsg();
+    Assert.assertTrue(exceptionMessage.startsWith(String.format("<%s:%d> is not part of the quorum",
+            netAddress.getHost(), netAddress.getRpcPort())));
+    for (MasterNetAddress address : mCluster.getMasterAddresses()) {
+      String host = address.getHostname();
+      int port = address.getEmbeddedJournalPort();
+      Assert.assertTrue(exceptionMessage.contains(String.format("%s:%d", host, port)));
     }
     mCluster.notifySuccess();
   }

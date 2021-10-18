@@ -19,6 +19,7 @@ import alluxio.exception.ExceptionMessage;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.grpc.GetQuorumInfoPResponse;
+import alluxio.grpc.GetTransferLeaderMessagePResponse;
 import alluxio.grpc.NetAddress;
 import alluxio.grpc.QuorumServerInfo;
 import alluxio.util.CommonUtils;
@@ -64,11 +65,18 @@ public class QuorumElectCommand extends AbstractFsAdminCommand {
     String serverAddress = cl.getOptionValue(ADDRESS_OPTION_NAME);
     NetAddress address = QuorumCommand.stringToAddress(serverAddress);
     try {
-      jmClient.transferLeadership(address);
+      String transferId = jmClient.transferLeadership(address);
       // wait for confirmation of leadership transfer
       final int TIMEOUT_3MIN = 3 * 60 * 1000; // in milliseconds
       CommonUtils.waitFor("Waiting for election to finalize", () -> {
         try {
+          GetTransferLeaderMessagePResponse transferMsg =
+                  jmClient.getTransferLeaderMessage(transferId);
+          String errorMessage = transferMsg.getTransMsg().getMsg();
+          if (!errorMessage.isEmpty()) {
+            throw new IOException(
+                    String.format("caught an error when executing  transfer: %s", errorMessage));
+          }
           GetQuorumInfoPResponse quorumInfo = jmClient.getQuorumInfo();
 
           Optional<QuorumServerInfo>
@@ -77,7 +85,7 @@ public class QuorumElectCommand extends AbstractFsAdminCommand {
           NetAddress leaderAddress = leadingMasterInfoOpt.isPresent()
               ? leadingMasterInfoOpt.get().getServerAddress() : null;
           return address.equals(leaderAddress);
-        } catch (AlluxioStatusException e) {
+        } catch (IOException e) {
           return false;
         }
       }, WaitForOptions.defaults().setTimeoutMs(TIMEOUT_3MIN));
