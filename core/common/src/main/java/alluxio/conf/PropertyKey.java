@@ -1959,10 +1959,12 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.MASTER)
           .build();
+  // In Java8 in container environment Runtime.availableProcessors() always returns 1,
+  // which is not the actual number of cpus, so we set a safe default value 4.
   public static final PropertyKey MASTER_METASTORE_INODE_ITERATION_CRAWLER_COUNT =
       new Builder(Name.MASTER_METASTORE_INODE_ITERATION_CRAWLER_COUNT)
-          .setDefaultSupplier(() -> Runtime.getRuntime().availableProcessors(),
-              "Use {CPU core count} for enumeration")
+          .setDefaultSupplier(() -> Math.max(4, Runtime.getRuntime().availableProcessors()),
+              "Use {CPU core count} for enumeration.")
           .setDescription("The number of threads used during inode tree enumeration.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.MASTER)
@@ -2489,13 +2491,15 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
+  // In Java8 in container environment Runtime.availableProcessors() always returns 1,
+  // which is not the actual number of cpus, so we set a safe default value 2.
   public static final PropertyKey MASTER_UFS_ACTIVE_SYNC_THREAD_POOL_SIZE =
       new Builder(Name.MASTER_UFS_ACTIVE_SYNC_THREAD_POOL_SIZE)
           .setDefaultSupplier(() -> Math.max(2, Runtime.getRuntime().availableProcessors() / 2),
               "The number of threads used by the active sync provider process active sync events."
                   + " A higher number allow the master to use more CPU to process events from "
                   + "an event stream in parallel. If this value is too low, Alluxio may fall "
-                  + "behind processing events. Defaults to # of processors / 2")
+                  + "behind processing events. Defaults to # of processors / 2.")
           .setDescription("Max number of threads used to perform active sync")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
@@ -2681,9 +2685,11 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.MASTER)
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .build();
+  // In Java8 in container environment Runtime.availableProcessors() always returns 1,
+  // which is not the actual number of cpus, so we set a safe default value 4.
   public static final PropertyKey MASTER_METADATA_SYNC_EXECUTOR_POOL_SIZE =
       new Builder(Name.MASTER_METADATA_SYNC_EXECUTOR_POOL_SIZE)
-          .setDefaultSupplier(() -> Runtime.getRuntime().availableProcessors(),
+          .setDefaultSupplier(() -> Math.max(4, Runtime.getRuntime().availableProcessors()),
               "The total number of threads which can concurrently execute metadata sync "
                   + "operations.")
           .setDescription("The number of threads used to execute all metadata sync"
@@ -2699,19 +2705,23 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setIsHidden(true)
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .build();
+  // In Java8 in container environment Runtime.availableProcessors() always returns 1,
+  // which is not the actual number of cpus, so we set a safe default value 32.
   public static final PropertyKey MASTER_METADATA_SYNC_UFS_PREFETCH_POOL_SIZE =
       new Builder(Name.MASTER_METADATA_SYNC_UFS_PREFETCH_POOL_SIZE)
-          .setDefaultSupplier(() -> 10 * Runtime.getRuntime().availableProcessors(),
+          .setDefaultSupplier(() -> Math.max(32, 10 * Runtime.getRuntime().availableProcessors()),
               "The number of threads which can concurrently fetch metadata from UFSes during a "
-                  + "metadata sync operations")
+                  + "metadata sync operations.")
           .setDescription("The number of threads used to fetch UFS objects for all metadata sync"
               + "operations")
           .setScope(Scope.MASTER)
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .build();
+  // In Java8 in container environment Runtime.availableProcessors() always returns 1,
+  // which is not the actual number of cpus, so we set a safe default value 8.
   public static final PropertyKey MASTER_RPC_EXECUTOR_PARALLELISM =
       new Builder(Name.MASTER_RPC_EXECUTOR_PARALLELISM)
-          .setDefaultSupplier(() -> 2 * Runtime.getRuntime().availableProcessors(),
+          .setDefaultSupplier(() -> Math.max(8, 2 * Runtime.getRuntime().availableProcessors()),
               "2 * {CPU core count}")
           .setDescription("The parallelism level of master RPC executor service .")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
@@ -3004,18 +3014,22 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
+  // In Java8 in container environment Runtime.availableProcessors() always returns 1,
+  // which is not the actual number of cpus, so we set a safe default value 4.
   public static final PropertyKey WORKER_MANAGEMENT_TASK_THREAD_COUNT =
       new Builder(Name.WORKER_MANAGEMENT_TASK_THREAD_COUNT)
-          .setDefaultSupplier(() -> Runtime.getRuntime().availableProcessors(),
-              "Use {CPU core count} threads for all management tasks")
+          .setDefaultSupplier(() -> Math.max(4, Runtime.getRuntime().availableProcessors()),
+              "Use {CPU core count} threads for all management tasks.")
           .setDescription("The number of threads for management task executor")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
+  // In Java8 in container environment Runtime.availableProcessors() always returns 1,
+  // which is not the actual number of cpus, so we set a safe default value 2.
   public static final PropertyKey WORKER_MANAGEMENT_BLOCK_TRANSFER_CONCURRENCY_LIMIT =
       new Builder(Name.WORKER_MANAGEMENT_BLOCK_TRANSFER_CONCURRENCY_LIMIT)
-          .setDefaultSupplier(() -> Math.max(1, Runtime.getRuntime().availableProcessors() / 2),
-              "Use {CPU core count}/2 threads block transfer")
+          .setDefaultSupplier(() -> Math.max(2, Runtime.getRuntime().availableProcessors() / 2),
+              "Use {CPU core count}/2 threads block transfer.")
           .setDescription("Puts a limit to how many block transfers are "
               + "executed concurrently during management.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
@@ -3130,9 +3144,11 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
+  // In Java8 in container environment Runtime.availableProcessors() always returns 1,
+  // which is not the actual number of cpus, so we set a safe default value 8.
   public static final PropertyKey WORKER_NETWORK_ASYNC_CACHE_MANAGER_THREADS_MAX =
       new Builder(Name.WORKER_NETWORK_ASYNC_CACHE_MANAGER_THREADS_MAX)
-          .setDefaultSupplier(() -> 2 * Runtime.getRuntime().availableProcessors(),
+          .setDefaultSupplier(() -> Math.max(8, 2 * Runtime.getRuntime().availableProcessors()),
               "2 * {CPU core count}")
           .setDescription("The maximum number of threads used to cache blocks asynchronously in "
               + "the data server.")
