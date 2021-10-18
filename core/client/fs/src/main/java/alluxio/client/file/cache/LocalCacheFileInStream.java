@@ -149,10 +149,6 @@ public class LocalCacheFileInStream extends FileInStream {
         totalBytesRead += bytesRead;
         mPosition += bytesRead;
         Metrics.BYTES_READ_CACHE.mark(bytesRead);
-        if (cacheContext != null) {
-          cacheContext
-              .incrementCounter(MetricKey.CLIENT_CACHE_BYTES_READ_CACHE.getMetricName(), bytesRead);
-        }
       } else {
         // on local cache miss, read a complete page from external storage. This will always make
         // progress or throw an exception
@@ -162,10 +158,6 @@ public class LocalCacheFileInStream extends FileInStream {
           totalBytesRead += bytesLeftInPage;
           mPosition += bytesLeftInPage;
           Metrics.BYTES_REQUESTED_EXTERNAL.mark(bytesLeftInPage);
-          if (cacheContext != null) {
-            cacheContext.incrementCounter(
-                MetricKey.CLIENT_CACHE_BYTES_REQUESTED_EXTERNAL.getMetricName(), bytesLeftInPage);
-          }
           mCacheManager.put(pageId, page, mCacheScope, mCacheQuota);
         }
       }
