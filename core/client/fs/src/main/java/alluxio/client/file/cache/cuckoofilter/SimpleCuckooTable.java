@@ -69,80 +69,40 @@ public class SimpleCuckooTable implements CuckooTable {
   }
 
   @Override
-  public boolean findTagInBucket(int bucketIndex, int tag) {
+  public TagPosition findTagInBucket(int bucketIndex, int tag) {
     for (int slotIndex = 0; slotIndex < mTagsPerBucket; slotIndex++) {
       if (readTag(bucketIndex, slotIndex) == tag) {
-        return true;
+        return new TagPosition(bucketIndex, slotIndex, CuckooStatus.OK);
       }
     }
-    return false;
+    return new TagPosition(-1, -1, CuckooStatus.FAILURE_KEY_NOT_FOUND);
   }
 
   @Override
-  public boolean findTagInBucket(int bucketIndex, int tag, TagPosition position) {
-    for (int slotIndex = 0; slotIndex < mTagsPerBucket; slotIndex++) {
-      if (readTag(bucketIndex, slotIndex) == tag) {
-        position.setBucketIndex(bucketIndex);
-        position.setSlotIndex(slotIndex);
-        return true;
-      }
-    }
-    return false;
-  }
-
-  @Override
-  public boolean findTagInBuckets(int bucketIndex1, int bucketIndex2, int tag) {
-    for (int slotIndex = 0; slotIndex < mTagsPerBucket; slotIndex++) {
-      if (readTag(bucketIndex1, slotIndex) == tag || readTag(bucketIndex2, slotIndex) == tag) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  @Override
-  public boolean findTagInBuckets(int bucketIndex1, int bucketIndex2, int tag,
-      TagPosition position) {
+  public TagPosition findTagInBuckets(int bucketIndex1, int bucketIndex2, int tag) {
     for (int slotIndex = 0; slotIndex < mTagsPerBucket; slotIndex++) {
       if (readTag(bucketIndex1, slotIndex) == tag) {
-        position.setBucketIndex(bucketIndex1);
-        position.setSlotIndex(slotIndex);
-        return true;
+        return new TagPosition(bucketIndex1, slotIndex, CuckooStatus.OK);
       } else if (readTag(bucketIndex2, slotIndex) == tag) {
-        position.setBucketIndex(bucketIndex2);
-        position.setSlotIndex(slotIndex);
-        return true;
+        return new TagPosition(bucketIndex2, slotIndex, CuckooStatus.OK);
       }
     }
-    return false;
+    return new TagPosition(-1, -1, CuckooStatus.FAILURE_KEY_NOT_FOUND);
   }
 
   @Override
-  public boolean deleteTagFromBucket(int bucketIndex, int tag) {
+  public TagPosition deleteTagFromBucket(int bucketIndex, int tag) {
     for (int slotIndex = 0; slotIndex < mTagsPerBucket; slotIndex++) {
       if (readTag(bucketIndex, slotIndex) == tag) {
         writeTag(bucketIndex, slotIndex, 0);
-        return true;
+        return new TagPosition(bucketIndex, slotIndex, CuckooStatus.OK);
       }
     }
-    return false;
+    return new TagPosition(-1, -1, CuckooStatus.FAILURE_KEY_NOT_FOUND);
   }
 
   @Override
-  public boolean deleteTagFromBucket(int bucketIndex, int tag, TagPosition position) {
-    for (int slotIndex = 0; slotIndex < mTagsPerBucket; slotIndex++) {
-      if (readTag(bucketIndex, slotIndex) == tag) {
-        writeTag(bucketIndex, slotIndex, 0);
-        position.setBucketIndex(bucketIndex);
-        position.setSlotIndex(slotIndex);
-        return true;
-      }
-    }
-    return false;
-  }
-
-  @Override
-  public int insertOrKickoutOne(int bucketIndex, int tag) {
+  public int insertOrKickTag(int bucketIndex, int tag) {
     for (int slotIndex = 0; slotIndex < mTagsPerBucket; slotIndex++) {
       if (readTag(bucketIndex, slotIndex) == 0) {
         writeTag(bucketIndex, slotIndex, tag);
@@ -153,37 +113,6 @@ public class SimpleCuckooTable implements CuckooTable {
     int oldTag = readTag(bucketIndex, r);
     writeTag(bucketIndex, r, tag);
     return oldTag;
-  }
-
-  @Override
-  public int insertOrKickoutOne(int bucketIndex, int tag, TagPosition position) {
-    for (int slotIndex = 0; slotIndex < mTagsPerBucket; slotIndex++) {
-      if (readTag(bucketIndex, slotIndex) == 0) {
-        writeTag(bucketIndex, slotIndex, tag);
-        position.setBucketIndex(bucketIndex);
-        position.setSlotIndex(slotIndex);
-        return 0;
-      }
-    }
-    int r = ThreadLocalRandom.current().nextInt(mTagsPerBucket);
-    int oldTag = readTag(bucketIndex, r);
-    writeTag(bucketIndex, r, tag);
-    position.setBucketIndex(bucketIndex);
-    position.setSlotIndex(r);
-    return oldTag;
-  }
-
-  @Override
-  public boolean insert(int bucketIndex, int tag, TagPosition position) {
-    for (int slotIndex = 0; slotIndex < mTagsPerBucket; slotIndex++) {
-      if (readTag(bucketIndex, slotIndex) == 0) {
-        writeTag(bucketIndex, slotIndex, tag);
-        position.setBucketIndex(bucketIndex);
-        position.setSlotIndex(slotIndex);
-        return true;
-      }
-    }
-    return false;
   }
 
   @Override
