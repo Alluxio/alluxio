@@ -14,8 +14,11 @@ package alluxio.proxy.s3.logging;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.container.ContainerRequestContext;
-import javax.ws.rs.container.ContainerRequestFilter;
+import javax.ws.rs.container.ContainerResponseContext;
+import javax.ws.rs.container.ContainerResponseFilter;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.ext.Provider;
 import java.io.IOException;
 
@@ -24,17 +27,24 @@ import java.io.IOException;
  */
 @Logged
 @Provider
-public class RequestLoggingFilter implements ContainerRequestFilter {
+public class RequestLoggingFilter implements ContainerResponseFilter {
   private static final Logger LOG = LoggerFactory.getLogger(RequestLoggingFilter.class);
+  private static final String SERVER_LOG_DELIMITER = " - ";
+
+  @Context
+  private HttpServletRequest mRequest;
 
   @Override
-  public void filter(ContainerRequestContext context) throws IOException {
-    LOG.info("Method: " + context.getMethod());
-    LOG.info("Path: " + context.getUriInfo().getPath());
-    LOG.info("Query Parameters: " + context.getUriInfo().getQueryParameters());
-    LOG.info("Path Parameters: " + context.getUriInfo().getPathParameters());
-    LOG.info("Headers: " + context.getHeaders());
-    LOG.info("Media Type: " + context.getMediaType());
-    LOG.info("Request Message Body: " + context.getEntityStream());
+  public void filter(ContainerRequestContext req, ContainerResponseContext resp)
+          throws IOException {
+    StringBuilder builder = new StringBuilder();
+    builder.append(mRequest.getRemoteHost()).append(SERVER_LOG_DELIMITER)
+            .append(req.getMethod()).append(SERVER_LOG_DELIMITER)
+            .append(req.getUriInfo().getPath()).append(SERVER_LOG_DELIMITER)
+            .append(req.getLength()).append(SERVER_LOG_DELIMITER)
+            .append(resp.getStatus()).append(SERVER_LOG_DELIMITER)
+            .append(req.getUriInfo().getQueryParameters()).append(SERVER_LOG_DELIMITER)
+            .append(req.getHeaders());
+    LOG.info(builder.toString());
   }
 }
