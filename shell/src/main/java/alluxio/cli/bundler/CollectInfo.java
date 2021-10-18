@@ -27,7 +27,6 @@ import alluxio.util.io.FileUtils;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.io.Files;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
@@ -43,6 +42,7 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Field;
+import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -320,7 +320,10 @@ public class CollectInfo extends AbstractShell {
     }
 
     // Collect tarballs from where the SSH command completed
-    File tempDir = Files.createTempDir();
+    File tempDirBase = 
+             new File(System.getProperty("java.io.tmpdir"));
+    File tempDir = Files.createTempDirectory(
+                 tempDirBase.toPath(), System.currentTimeMillis() + "-").toFile();;
     List<File> filesFromHosts = new ArrayList<>();
     List<CompletableFuture<CommandReturn>> scpFutures =
             new ArrayList<>(allHosts.size());
