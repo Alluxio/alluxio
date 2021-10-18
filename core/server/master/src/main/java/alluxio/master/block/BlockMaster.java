@@ -19,6 +19,7 @@ import alluxio.exception.status.NotFoundException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.Command;
 import alluxio.grpc.ConfigProperty;
+import alluxio.grpc.GetRegisterLeasePRequest;
 import alluxio.grpc.RegisterWorkerPOptions;
 import alluxio.grpc.StorageList;
 import alluxio.grpc.WorkerLostStorageInfo;
@@ -177,9 +178,11 @@ public interface BlockMaster extends Master, ContainerIdGenerable {
    */
   long getWorkerId(WorkerNetAddress workerNetAddress);
 
-  Optional<RegisterLease> tryAcquireRegisterLease();
+  Optional<RegisterLease> tryAcquireRegisterLease(GetRegisterLeasePRequest request);
 
-  void releaseRegisterLease();
+  boolean hasLease(long workerId);
+
+  void releaseRegisterLease(long workerId);
 
   /**
    * Updates metadata when a worker registers with the master.

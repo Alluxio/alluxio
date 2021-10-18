@@ -112,14 +112,14 @@ public final class BlockMasterSync implements HeartbeatExecutor {
     boolean leaseAcquired = false;
     int iter = 0;
     while (!leaseAcquired) {
-      // TODO(jiacheng): Get lease first
-      LOG.info("Acquire lease from the master first, iter {}", iter);
+      LOG.info("Acquiring lease from the master first, iter {}", iter);
       GetRegisterLeasePResponse response =  mMasterClient.acquireRegisterLease(mWorkerId.get(), storeMeta.getNumberOfBlocks());
       // TODO(jiacheng): back off logic here
       // TODO(jiacheng): Add more logic after the test
       LOG.info("Lease response: {}", response);
       leaseAcquired = response.getAllowed();
       if (leaseAcquired) {
+        // TODO(jiacheng): exponential backoff
         CommonUtils.sleepMs(1000);
       }
       iter++;
@@ -130,6 +130,8 @@ public final class BlockMasterSync implements HeartbeatExecutor {
         storageTierAssoc.getOrderedStorageAliases(), storeMeta.getCapacityBytesOnTiers(),
         storeMeta.getUsedBytesOnTiers(), storeMeta.getBlockListByStorageLocation(),
         storeMeta.getLostStorage(), configList);
+    // If the worker registers with master successfully, the lease will be recycled on the master side.
+    // No need to manually request for recycle on the worker side.
   }
 
   /**

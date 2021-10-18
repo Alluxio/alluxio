@@ -2260,6 +2260,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
+  public static final PropertyKey MASTER_WORKER_REGISTER_LEASE_EXPIRY_TIMEOUT =
+      new Builder(Name.MASTER_WORKER_REGISTER_LEASE_EXPIRY_TIMEOUT)
+          .setDescription("How long the master will wait before taking back the lease, "
+              + "if the worker does not send the register request.")
+          .setDefaultValue("5min")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.MASTER)
+          .build();
   public static final PropertyKey MASTER_KEYTAB_KEY_FILE =
       new Builder(Name.MASTER_KEYTAB_KEY_FILE)
           .setDescription("Kerberos keytab file for Alluxio master.")
@@ -5904,6 +5912,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.journal.gc.threshold";
     public static final String MASTER_JOURNAL_TEMPORARY_FILE_GC_THRESHOLD_MS =
         "alluxio.master.journal.temporary.file.gc.threshold";
+    public static final String MASTER_WORKER_REGISTER_LEASE_EXPIRY_TIMEOUT =
+        "alluxio.master.worker.register.lease.expiry.timeout";
 
     //
     // File system master related properties

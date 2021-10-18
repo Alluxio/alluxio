@@ -135,7 +135,7 @@ public final class BlockMasterWorkerServiceHandler extends
   @Override
   public void requestRegisterLease(GetRegisterLeasePRequest request, StreamObserver<GetRegisterLeasePResponse> responseObserver) {
     RpcUtils.call(LOG, (RpcUtils.RpcCallableThrowsIOException<GetRegisterLeasePResponse>) () -> {
-      Optional<RegisterLease> lease = mBlockMaster.tryAcquireRegisterLease();
+      Optional<RegisterLease> lease = mBlockMaster.tryAcquireRegisterLease(request);
       if (lease.isPresent()) {
         RegisterLease l = lease.get();
         return GetRegisterLeasePResponse.newBuilder().setAllowed(true).setExpiryMs(l.mExpireTime.toEpochMilli()).build();
@@ -165,17 +165,18 @@ public final class BlockMasterWorkerServiceHandler extends
     RegisterWorkerPOptions options = request.getOptions();
     RpcUtils.call(LOG,
         (RpcUtils.RpcCallableThrowsIOException<RegisterWorkerPResponse>) () -> {
-          try {
-            mBlockMaster.workerRegister(workerId, storageTiers, totalBytesOnTiers, usedBytesOnTiers,
-                    currBlocksOnLocationMap, lostStorageMap, options);
-            LOG.info("Releasing lease here");
-            mBlockMaster.releaseRegisterLease();
-          } catch (IOException e) {
-            // TODO(jiacheng): This also does not make sense. The worker doesn't know it failed and will retry.
-            LOG.info("Releasing lease when an exception is met");
-            mBlockMaster.releaseRegisterLease();
-            throw e;
-          }
+
+          // TODO(jiacheng): Then what to do?
+          //  No lease -> Back to register, which acquires a lease again
+          //  Consider old workers!
+          Preconditions.checkState(mBlockMaster.hasLease(workerId), "The worker does not have a lease.");
+
+          // If the register is unsuccessful, the lease will be kept around until the expiry.
+          // The worker can retry and use the existing lease.
+          mBlockMaster.workerRegister(workerId, storageTiers, totalBytesOnTiers, usedBytesOnTiers,
+                  currBlocksOnLocationMap, lostStorageMap, options);
+          LOG.info("Releasing lease here");
+          mBlockMaster.releaseRegisterLease(workerId);
           return RegisterWorkerPResponse.getDefaultInstance();
         }, "registerWorker", "request=%s", responseObserver, request);
   }
