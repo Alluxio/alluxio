@@ -106,7 +106,7 @@ function mountAlluxioRootFSWithFuseOption {
 }
 
 function startCsiServer {
-  exec /local/bin/alluxio-csi "${@:2}"
+  exec /usr/local/bin/alluxio-csi "${@:1}"
 }
 
 # Sends a signal to each of the running background processes
@@ -262,7 +262,7 @@ function main {
       processes+=("logserver")
       ;;
     csiserver)
-      startCsiServer
+      startCsiServer "${@:2}"
       ;;
     *)
       printUsage
