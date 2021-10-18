@@ -14,6 +14,7 @@ package alluxio.resource;
 import io.netty.util.ResourceLeakDetector;
 import io.netty.util.ResourceLeakTracker;
 
+import javax.annotation.Nullable;
 import java.io.Closeable;
 
 /**
@@ -29,6 +30,8 @@ public abstract class CloseableResource<T> implements Closeable {
           .newResourceLeakDetector(CloseableResource.class);
 
   private final T mResource;
+
+  @Nullable
   private final ResourceLeakTracker<CloseableResource> mTracker;
 
   /**

@@ -42,6 +42,7 @@ public class LockResource implements Closeable {
   // attempting to downgrade locks (see RWLockResource).
   protected Lock mLock;
   private final Runnable mCloseAction;
+  @Nullable
   private ResourceLeakTracker<LockResource> mTracker;
 
   /**
@@ -94,11 +95,10 @@ public class LockResource implements Closeable {
           // threads had released the lock, that a final thread would never be able to acquire it.
           LockSupport.parkNanos(10000);
         }
-        mTracker = DETECTOR.track(this);
       } else {
         mLock.lock();
-        mTracker = DETECTOR.track(this);
       }
+      mTracker = DETECTOR.track(this);
     }
   }
 

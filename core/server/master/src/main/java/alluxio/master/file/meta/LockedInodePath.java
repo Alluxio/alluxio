@@ -79,6 +79,7 @@ public class LockedInodePath implements Closeable {
   /** Whether to use {@link Lock#tryLock()} or {@link Lock#lock()}. */
   private final boolean mUseTryLock;
   /** Tracker used for logging leaked resources. */
+  @Nullable
   private final ResourceLeakTracker<LockedInodePath> mTracker;
 
   /**

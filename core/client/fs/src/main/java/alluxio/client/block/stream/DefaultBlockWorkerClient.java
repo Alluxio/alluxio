@@ -52,6 +52,7 @@ import io.netty.util.ResourceLeakTracker;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nullable;
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 
@@ -75,6 +76,7 @@ public class DefaultBlockWorkerClient implements BlockWorkerClient {
   private BlockWorkerGrpc.BlockWorkerBlockingStub mRpcBlockingStub;
   private BlockWorkerGrpc.BlockWorkerStub mRpcAsyncStub;
 
+  @Nullable
   private final ResourceLeakTracker<DefaultBlockWorkerClient> mTracker;
 
   /**
