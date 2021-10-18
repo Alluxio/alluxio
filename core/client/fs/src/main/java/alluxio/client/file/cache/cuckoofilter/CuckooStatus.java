@@ -48,4 +48,11 @@ enum CuckooStatus {
   CuckooStatus(int code) {
     mCode = code;
   }
+
+  /**
+   * @return the type of status
+   */
+  public int getCode() {
+    return mCode;
+  }
 }
