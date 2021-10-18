@@ -285,12 +285,6 @@ public class ConcurrentClockCuckooFilter<T> implements ClockCuckooFilter<T>, Ser
       // b1 and b2 should be insertable for fp, which means:
       // 1. b1 or b2 have at least one empty slot (this is guaranteed until we unlock two buckets);
       // 2. b1 and b2 do not contain duplicated fingerprint.
-      // TODO(iluoeli): check arguments here is inefficient,try remove them once correctness is
-      // validated
-      Preconditions.checkElementIndex(pos.getBucketIndex(), mNumBuckets);
-      Preconditions.checkElementIndex(pos.getSlotIndex(), TAGS_PER_BUCKET);
-      Preconditions.checkState(mTable.readTag(pos.getBucketIndex(), pos.getSlotIndex()) == 0);
-      Preconditions.checkState(mTable.findTagInBuckets(b1, b2, tag).getStatus() != CuckooStatus.OK);
       mTable.writeTag(pos.getBucketIndex(), pos.getSlotIndex(), tag);
       mClockTable.writeTag(pos.getBucketIndex(), pos.getSlotIndex(), mMaxAge);
       mScopeTable.writeTag(pos.getBucketIndex(), pos.getSlotIndex(), scope);
@@ -697,7 +691,6 @@ public class ConcurrentClockCuckooFilter<T> implements ClockCuckooFilter<T>, Ser
     if (x.mPathcode == 0) {
       cuckooPath[0].mBucketIndex = b1;
     } else {
-      Preconditions.checkState(x.mPathcode == 1);
       cuckooPath[0].mBucketIndex = b2;
     }
     {
