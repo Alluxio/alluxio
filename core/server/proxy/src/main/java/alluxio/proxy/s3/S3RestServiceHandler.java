@@ -241,9 +241,13 @@ public final class S3RestServiceHandler {
       String path = parsePath(AlluxioURI.SEPARATOR + bucket);
       final FileSystem fs = getFileSystem(authorization);
       List<URIStatus> children;
-      ListStatusPOptions options = ListStatusPOptions.newBuilder().setRecursive(true).build();
       try {
-        children = fs.listStatus(new AlluxioURI(path), options);
+        if (prefix.length() == 0 && delimiterParam != null && delimiterParam.equals(AlluxioURI.SEPARATOR)) {
+          children = fs.listStatus(new AlluxioURI(path));
+        } else {
+          ListStatusPOptions options = ListStatusPOptions.newBuilder().setRecursive(true).build();
+          children = fs.listStatus(new AlluxioURI(path), options);
+        }
       } catch (FileDoesNotExistException e) {
         children = Collections.emptyList();
       } catch (IOException | AlluxioException e) {
