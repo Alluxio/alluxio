@@ -42,6 +42,8 @@ public class QuorumElectCommand extends AbstractFsAdminCommand {
 
   public static final String TRANSFER_SUCCESS = "Successfully elected %s as the new leader";
   public static final String TRANSFER_FAILED = "Failed to elect %s as the new leader: %s";
+  public static final String RESET_SUCCESS = "Quorum priorities were reset to 1";
+  public static final String RESET_FAILED = "Quorum priorities failed to be reset: %s";
 
   /**
    * @param context fsadmin command context
@@ -64,6 +66,7 @@ public class QuorumElectCommand extends AbstractFsAdminCommand {
     JournalMasterClient jmClient = mMasterJournalMasterClient;
     String serverAddress = cl.getOptionValue(ADDRESS_OPTION_NAME);
     NetAddress address = QuorumCommand.stringToAddress(serverAddress);
+    boolean success = true;
     try {
       String transferId = jmClient.transferLeadership(address);
       // wait for confirmation of leadership transfer
@@ -91,14 +94,24 @@ public class QuorumElectCommand extends AbstractFsAdminCommand {
       }, WaitForOptions.defaults().setTimeoutMs(TIMEOUT_3MIN));
 
       mPrintStream.println(String.format(TRANSFER_SUCCESS, serverAddress));
-      return 0;
     } catch (AlluxioStatusException e) {
       mPrintStream.println(String.format(TRANSFER_FAILED, serverAddress, e.getMessage()));
+      success = false;
     } catch (InterruptedException | TimeoutException e) {
       mPrintStream.println(String.format(TRANSFER_FAILED, serverAddress, "the election was "
               + "initiated but never completed"));
+      success = false;
     }
-    return -1;
+    // reset priorities regardless of transfer success
+    try {
+      jmClient.resetPriorities();
+      mPrintStream.println(RESET_SUCCESS);
+    } catch (IOException e) {
+      mPrintStream.println(String.format(RESET_FAILED, e));
+      success = false;
+    }
+
+    return success ? 0 : -1;
   }
 
   @Override
