@@ -15,11 +15,35 @@ package alluxio.client.file.cache.cuckoofilter;
  * This class represents the type of sliding window.
  */
 public enum SlidingWindowType {
-  COUNT_BASED(0), TIME_BASED(1), NONE(2);
+  /**
+   * The definition of count-based sliding window from "Sliding Sketches: A Framework using Time
+   * Zones for Data * Stream Processing in Sliding Windows" by Gou et al.: Given a data stream S, a
+   * count-based sliding window with length N means the union of the last N items.
+   *
+   */
+  COUNT_BASED(0),
+  /**
+   * The definition of count-based sliding window from "Sliding Sketches: A Framework using Time
+   * Zones for Data Stream Processing in Sliding Windows" by Gou et al.: Given a data stream S, a
+   * time-based sliding window with length N means the union of data items which arrive in the last
+   * N time units.
+   */
+  TIME_BASED(1),
+  /**
+   * NONE indicates that sliding window model is not used.
+   */
+  NONE(2);
 
-  public final int mType;
+  private final int mType;
 
   SlidingWindowType(int type) {
     mType = type;
+  }
+
+  /**
+   * @return the type of sliding window
+   */
+  public int getType() {
+    return mType;
   }
 }
