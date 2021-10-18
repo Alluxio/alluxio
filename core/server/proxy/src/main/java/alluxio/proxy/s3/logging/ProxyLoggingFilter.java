@@ -27,8 +27,8 @@ import java.io.IOException;
  */
 @Logged
 @Provider
-public class RequestLoggingFilter implements ContainerResponseFilter {
-  private static final Logger LOG = LoggerFactory.getLogger(RequestLoggingFilter.class);
+public class ProxyLoggingFilter implements ContainerResponseFilter {
+  private static final Logger LOG = LoggerFactory.getLogger(ProxyLoggingFilter.class);
   private static final String SERVER_LOG_DELIMITER = " - ";
 
   @Context
