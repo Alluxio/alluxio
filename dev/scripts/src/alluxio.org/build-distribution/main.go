@@ -19,7 +19,7 @@ import (
 )
 
 const (
-	generateTarball = "single"
+	generateTarball        = "single"
 	generateReleaseTarball = "release"
 )
 

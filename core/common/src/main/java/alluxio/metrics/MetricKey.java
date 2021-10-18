@@ -592,11 +592,11 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setMetricType(MetricType.GAUGE)
           .build();
   public static final MetricKey MASTER_AUDIT_LOG_ENTRIES_SIZE =
-          new Builder("Master.AuditLogEntriesSize")
-                  .setDescription("The size of the audit log entries blocking queue")
-                  .setMetricType(MetricType.GAUGE)
-                  .setIsClusterAggregated(false)
-                  .build();
+      new Builder("Master.AuditLogEntriesSize")
+          .setDescription("The size of the audit log entries blocking queue")
+          .setMetricType(MetricType.GAUGE)
+          .setIsClusterAggregated(false)
+          .build();
   // Journal metrics
   public static final MetricKey MASTER_EMBEDDED_JOURNAL_SNAPSHOT_GENERATE_TIMER =
       new Builder("Master.EmbeddedJournalSnapshotGenerateTimer")
@@ -663,10 +663,10 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setMetricType(MetricType.GAUGE)
           .build();
   public static final MetricKey MASTER_JOURNAL_LAST_APPLIED_COMMIT_INDEX =
-          new Builder("Master.JournalLastAppliedCommitIndex")
-                  .setDescription("The last raft log index which was applied to the state machine")
-                  .setMetricType(MetricType.GAUGE)
-                  .build();
+      new Builder("Master.JournalLastAppliedCommitIndex")
+          .setDescription("The last raft log index which was applied to the state machine")
+          .setMetricType(MetricType.GAUGE)
+          .build();
 
   public static final MetricKey MASTER_JOURNAL_GAIN_PRIMACY_TIMER =
       new Builder("Master.JournalGainPrimacyTimer")
@@ -1197,6 +1197,60 @@ public final class MetricKey implements Comparable<MetricKey> {
       new Builder("Worker.BlockRemoverRemovingBlocksSize")
           .setDescription("The size of blocks is being removed from this worker at a moment "
               + "by asynchronous block remover.")
+          .setMetricType(MetricType.GAUGE)
+          .setIsClusterAggregated(false)
+          .build();
+  public static final MetricKey WORKER_BLOCK_READER_THREAD_ACTIVELY_COUNT =
+      new Builder("Worker.BlockReaderThreadActivelyCount")
+          .setDescription("The approximate number of block read "
+              + "threads that are actively executing tasks in reader thread pool")
+          .setMetricType(MetricType.GAUGE)
+          .setIsClusterAggregated(false)
+          .build();
+  public static final MetricKey WORKER_BLOCK_READER_THREAD_CURRENT_COUNT =
+      new Builder("Worker.BlockReaderThreadCurrentCount")
+          .setDescription("The current number of read threads in the reader thread pool")
+          .setMetricType(MetricType.GAUGE)
+          .setIsClusterAggregated(false)
+          .build();
+  public static final MetricKey WORKER_BLOCK_READER_THREAD_MAX_COUNT =
+      new Builder("Worker.BlockReaderThreadMaxCount")
+          .setDescription("The maximum allowed number of block read "
+              + "thread in the reader thread pool")
+          .setMetricType(MetricType.GAUGE)
+          .setIsClusterAggregated(false)
+          .build();
+  public static final MetricKey WORKER_BLOCK_READER_COMPLETED_TASK_COUNT =
+      new Builder("Worker.BlockReaderCompleteTaskCount")
+          .setDescription("The approximate total number of block read tasks "
+              + "that have completed execution")
+          .setMetricType(MetricType.GAUGE)
+          .setIsClusterAggregated(false)
+          .build();
+  public static final MetricKey WORKER_BLOCK_WRITER_THREAD_ACTIVELY_COUNT =
+      new Builder("Worker.BlockWriterThreadActivelyCount")
+          .setDescription("The approximate number of block write "
+              + "threads that are actively executing tasks in writer thread pool")
+          .setMetricType(MetricType.GAUGE)
+          .setIsClusterAggregated(false)
+          .build();
+  public static final MetricKey WORKER_BLOCK_WRITER_THREAD_CURRENT_COUNT =
+      new Builder("Worker.BlockWriterThreadCurrentCount")
+          .setDescription("The current number of write threads in the writer thread pool")
+          .setMetricType(MetricType.GAUGE)
+          .setIsClusterAggregated(false)
+          .build();
+  public static final MetricKey WORKER_BLOCK_WRITER_THREAD_MAX_COUNT =
+      new Builder("Worker.BlockWriterThreadMaxCount")
+          .setDescription("The maximum allowed number of block write "
+              + "thread in the writer thread pool")
+          .setMetricType(MetricType.GAUGE)
+          .setIsClusterAggregated(false)
+          .build();
+  public static final MetricKey WORKER_BLOCK_WRITER_COMPLETED_TASK_COUNT =
+      new Builder("Worker.BlockWriterCompleteTaskCount")
+          .setDescription("The approximate total number of block write tasks "
+              + "that have completed execution")
           .setMetricType(MetricType.GAUGE)
           .setIsClusterAggregated(false)
           .build();

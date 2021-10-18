@@ -685,7 +685,8 @@ public final class DefaultFileSystemMaster extends CoreMaster
         mAsyncAuditLogWriter.start();
         MetricsSystem.registerGaugeIfAbsent(
             MetricKey.MASTER_AUDIT_LOG_ENTRIES_SIZE.getName(),
-            () -> mAsyncAuditLogWriter.getAuditLogEntriesSize());
+            () -> mAsyncAuditLogWriter != null
+                    ? mAsyncAuditLogWriter.getAuditLogEntriesSize() : -1);
       }
       if (ServerConfiguration.getBoolean(PropertyKey.UNDERFS_CLEANUP_ENABLED)) {
         getExecutorService().submit(

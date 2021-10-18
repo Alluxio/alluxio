@@ -576,7 +576,7 @@ public class StressClientIOBench extends Benchmark<ClientIOTaskResult> {
         case WRITE: {
           if (mOutStream == null) {
             mOutStream = mFs.createFile(new AlluxioURI(mFilePath.toString()),
-                CreateFilePOptions.newBuilder().setBlockSizeBytes(mBlockSize)
+                CreateFilePOptions.newBuilder().setBlockSizeBytes(mBlockSize).setRecursive(true)
                     .build());
           }
           int bytesToWrite = (int) Math.min(mFileSize - mOutStream.getBytesWritten(),

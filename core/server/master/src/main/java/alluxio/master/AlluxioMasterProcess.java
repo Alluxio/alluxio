@@ -292,7 +292,7 @@ public class AlluxioMasterProcess extends MasterProcess {
         mWebBindAddress);
     // Blocks until RPC server is shut down. (via #stopServing)
     mGrpcServer.awaitTermination();
-    LOG.info("Alluxio master ended{}", stopMessage);
+    LOG.info("Alluxio master ended {}", stopMessage);
   }
 
   /**

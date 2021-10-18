@@ -29,6 +29,7 @@ import alluxio.exception.InvalidPathException;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.DeletePOptions;
+import alluxio.grpc.ListStatusPOptions;
 import alluxio.grpc.WritePType;
 import alluxio.security.User;
 import alluxio.web.ProxyWebServer;
@@ -198,6 +199,9 @@ public final class S3RestServiceHandler {
    * @param delimiterParam the optional delimiter param
    * @param encodingTypeParam optional encoding type param
    * @param maxKeysParam the optional max keys param
+   * @param listTypeParam if listObjectV2 request
+   * @param continuationTokenParam the optional continuationToken param for listObjectV2
+   * @param startAfterParam  the optional startAfter param for listObjectV2
    * @return the response object
    */
   @GET
@@ -209,49 +213,39 @@ public final class S3RestServiceHandler {
                             @QueryParam("prefix") final String prefixParam,
                             @QueryParam("delimiter") final String delimiterParam,
                             @QueryParam("encoding-type") final String encodingTypeParam,
-                            @QueryParam("max-keys") final int maxKeysParam) {
+                            @QueryParam("max-keys") final int maxKeysParam,
+                            @QueryParam("list-type") final int listTypeParam,
+                            @QueryParam("continuation-token") final String continuationTokenParam,
+                            @QueryParam("start-after") final String startAfterParam) {
     return S3RestUtils.call(bucket, () -> {
       Preconditions.checkNotNull(bucket, "required 'bucket' parameter is missing");
 
-      String marker = markerParam;
-      if (marker == null) {
-        marker = "";
-      }
-
-      String prefix = prefixParam;
-      if (prefix == null) {
-        prefix = "";
-      }
-
-      String delimiter = delimiterParam;
-      if (delimiter == null) {
-        delimiter = AlluxioURI.SEPARATOR;
-      }
-
-      String encodingType = encodingTypeParam;
-      if (encodingType == null) {
-        encodingType = "url";
-      }
-
-      int maxKeys = maxKeysParam;
-      if (maxKeys <= 0) {
-        maxKeys = ListBucketOptions.DEFAULT_MAX_KEYS;
-      }
-
-      String path = parsePath(AlluxioURI.SEPARATOR + bucket, prefix, delimiter);
-
-      final FileSystem fs = getFileSystem(authorization);
-
-      List<URIStatus> children;
+      String marker = markerParam == null ? "" : markerParam;
+      String prefix = prefixParam == null ? "" : prefixParam;
+      String encodingType = encodingTypeParam == null ? "url" : encodingTypeParam;
+      int maxKeys = maxKeysParam <= 0 ? ListBucketOptions.DEFAULT_MAX_KEYS : maxKeysParam;
+      String continuationToken = continuationTokenParam == null ? "" : continuationTokenParam;
+      String startAfter = startAfterParam == null ? "" : startAfterParam;
       ListBucketOptions listBucketOptions = ListBucketOptions.defaults()
           .setMarker(marker)
           .setPrefix(prefix)
           .setMaxKeys(maxKeys)
-          .setDelimiter(delimiter)
+          .setDelimiter(delimiterParam)
           .setEncodingType(encodingType)
-          ;
+          .setListType(listTypeParam)
+          .setContinuationToken(continuationToken)
+          .setStartAfter(startAfter);
+
+      String path = parsePath(AlluxioURI.SEPARATOR + bucket);
+      final FileSystem fs = getFileSystem(authorization);
+      final List<URIStatus> children;
       try {
-        children = fs.listStatus(new AlluxioURI(path));
+        if (delimiterParam != null && delimiterParam.equals(AlluxioURI.SEPARATOR)) {
+          children = fs.listStatus(new AlluxioURI(path));
+        } else {
+          ListStatusPOptions options = ListStatusPOptions.newBuilder().setRecursive(true).build();
+          children = fs.listStatus(new AlluxioURI(path), options);
+        }
       } catch (IOException | AlluxioException e) {
         throw new RuntimeException(e);
       }
@@ -754,25 +748,8 @@ public final class S3RestServiceHandler {
   }
 
   private String parsePath(String bucketPath) throws S3Exception {
-    return parsePath(bucketPath, null, null);
-  }
-
-  private String parsePath(String bucketPath, String prefix, String delimiter) throws S3Exception {
-    if (prefix == null) {
-      prefix = "";
-    }
-
-    if (delimiter == null || delimiter.isEmpty()) {
-      delimiter = AlluxioURI.SEPARATOR;
-    }
-
     String normalizedBucket = bucketPath.replace(BUCKET_SEPARATOR, AlluxioURI.SEPARATOR);
-    String normalizedPrefix = prefix.replace(delimiter, AlluxioURI.SEPARATOR);
-
-    if (!normalizedPrefix.isEmpty()) {
-      normalizedPrefix = AlluxioURI.SEPARATOR + normalizedPrefix;
-    }
-    return normalizedBucket + normalizedPrefix;
+    return normalizedBucket;
   }
 
   private void checkPathIsAlluxioDirectory(FileSystem fs, String bucketPath) throws S3Exception {

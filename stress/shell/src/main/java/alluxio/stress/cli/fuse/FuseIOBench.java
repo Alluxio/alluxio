@@ -129,7 +129,8 @@ public class FuseIOBench extends Benchmark<FuseIOTaskResult> {
       // service. Nothing should be done, otherwise the bench will break.
       return;
     }
-    if (mParameters.mThreads > mParameters.mNumDirs) {
+    if (mParameters.mThreads > mParameters.mNumDirs
+        && mParameters.mOperation != FuseIOOperation.LIST_FILE) {
       throw new IllegalArgumentException(String.format(
           "Some of the threads are not being used. Please set the number of directories to "
               + "be at least the number of threads, preferably a multiple of it."
