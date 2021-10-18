@@ -53,6 +53,7 @@ function printUsage {
   echo -e " proxy                        \t Start Alluxio proxy"
   echo -e " fuse [--fuse-opts=opt1,...]  \t Start Alluxio FUSE file system, option --fuse-opts expects a list of fuse options separated by comma"
   echo -e " logserver                    \t Start Alluxio log server"
+  echo -e " csiserver                    \t Start Alluxio CSI server, need option --nodeid={NODE_ID} --endpoint={CSI_ENDPOINT}"
 }
 
 function writeConf {
@@ -102,6 +103,10 @@ function mountAlluxioRootFSWithFuseOption {
   ! umount ${MOUNT_POINT}
   #! integration/fuse/bin/alluxio-fuse unmount ${MOUNT_POINT}
   exec integration/fuse/bin/alluxio-fuse mount -n ${fuseOptions} ${MOUNT_POINT} /
+}
+
+function startCsiServer {
+  exec /local/bin/alluxio-csi "${@:2}"
 }
 
 # Sends a signal to each of the running background processes
@@ -255,6 +260,9 @@ function main {
       ;;
     logserver)
       processes+=("logserver")
+      ;;
+    csiserver)
+      startCsiServer
       ;;
     *)
       printUsage

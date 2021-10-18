@@ -537,8 +537,6 @@ logserver:
 # kubernetes CSI plugin
 csi:
   enabled: false
-  image: alluxio/alluxio
-  imageTag: 2.7.0-SNAPSHOT
   imagePullPolicy: IfNotPresent
   controllerPlugin:
     hostNetwork: true

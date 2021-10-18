@@ -200,3 +200,6 @@
 
 0.6.28
 - Fix Alluxio CSI docker image reference. Add CSI README.md instructions.
+
+0.6.29
+- Update CSI launch script
