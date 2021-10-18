@@ -820,12 +820,12 @@ public final class S3RestServiceHandler {
     String objectPath = bucketPath + AlluxioURI.SEPARATOR + object;
     DeletePOptions options = DeletePOptions.newBuilder().setAlluxioOnly(ServerConfiguration
         .get(PropertyKey.PROXY_S3_DELETE_TYPE).equals(Constants.S3_DELETE_IN_ALLUXIO_ONLY))
-        .setRecursive(true)
         .build();
     try {
       fs.delete(new AlluxioURI(objectPath), options);
-    } catch (FileDoesNotExistException e) {
-      // intentionally do nothing, this is ok.
+    } catch (FileDoesNotExistException | DirectoryNotEmptyException e) {
+      // intentionally do nothing, this is ok. It should result in a 204 error
+      // This is the same response behavior as AWS's S3.
     } catch (Exception e) {
       throw toObjectS3Exception(e, objectPath);
     }
