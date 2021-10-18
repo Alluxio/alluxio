@@ -248,12 +248,10 @@ public final class DistributedLoadCommand extends AbstractDistributedJobCommand 
         AbstractDistributedJobCommand.DEFAULT_ACTIVE_JOBS);
     System.out.format("Allow up to %s active jobs%n", mActiveJobs);
     String[] args = cl.getArgs();
-
     AlluxioConfiguration conf = mFsContext.getClusterConf();
-    int DEFAULT_BATCH_SIZE = conf.getInt(PropertyKey.JOB_REQUEST_BATCH_SIZE);
-
+    int defaultBatchSize = conf.getInt(PropertyKey.JOB_REQUEST_BATCH_SIZE);
     int replication = FileSystemShellUtils.getIntArg(cl, REPLICATION_OPTION, DEFAULT_REPLICATION);
-    int batchSize = FileSystemShellUtils.getIntArg(cl, BATCH_SIZE_OPTION, DEFAULT_BATCH_SIZE);
+    int batchSize = FileSystemShellUtils.getIntArg(cl, BATCH_SIZE_OPTION, defaultBatchSize);
     Set<String> workerSet = new HashSet<>();
     Set<String> excludedWorkerSet = new HashSet<>();
     Set<String> localityIds = new HashSet<>();
