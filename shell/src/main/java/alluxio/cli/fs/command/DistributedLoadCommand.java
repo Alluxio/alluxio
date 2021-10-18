@@ -17,6 +17,8 @@ import alluxio.cli.CommandUtils;
 import alluxio.cli.fs.FileSystemShellUtils;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.URIStatus;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.status.InvalidArgumentException;
 
@@ -42,7 +44,6 @@ import javax.annotation.concurrent.ThreadSafe;
 @PublicApi
 public final class DistributedLoadCommand extends AbstractDistributedJobCommand {
   private static final int DEFAULT_REPLICATION = 1;
-  private static final int DEFAULT_BATCH_SIZE = 1;
   private static final Option REPLICATION_OPTION =
       Option.builder()
           .longOpt("replication")
@@ -193,7 +194,7 @@ public final class DistributedLoadCommand extends AbstractDistributedJobCommand 
           .numberOfArgs(1)
           .type(Number.class)
           .argName("batch-size")
-          .desc("Number of files per request, default: " + DEFAULT_BATCH_SIZE)
+          .desc("Number of files per request")
           .build();
 
   /**
@@ -247,6 +248,10 @@ public final class DistributedLoadCommand extends AbstractDistributedJobCommand 
         AbstractDistributedJobCommand.DEFAULT_ACTIVE_JOBS);
     System.out.format("Allow up to %s active jobs%n", mActiveJobs);
     String[] args = cl.getArgs();
+
+    AlluxioConfiguration conf = mFsContext.getClusterConf();
+    int DEFAULT_BATCH_SIZE = conf.getInt(PropertyKey.JOB_REQUEST_BATCH_SIZE);
+
     int replication = FileSystemShellUtils.getIntArg(cl, REPLICATION_OPTION, DEFAULT_REPLICATION);
     int batchSize = FileSystemShellUtils.getIntArg(cl, BATCH_SIZE_OPTION, DEFAULT_BATCH_SIZE);
     Set<String> workerSet = new HashSet<>();

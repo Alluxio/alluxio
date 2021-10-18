@@ -5245,6 +5245,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDefaultValue(20002)
           .setScope(Scope.MASTER)
           .build();
+  public static final PropertyKey JOB_REQUEST_BATCH_SIZE =
+      new Builder(Name.JOB_REQUEST_BATCH_SIZE)
+          .setDescription("The batch size client uses to make requests to the "
+              + "job master.")
+          .setDefaultValue(1)
+          .setScope(Scope.CLIENT)
+          .build();
   public static final PropertyKey JOB_WORKER_BIND_HOST =
       new Builder(Name.JOB_WORKER_BIND_HOST)
           .setDescription("The host that the Alluxio job worker will bind to.")
@@ -6487,7 +6494,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.job.master.embedded.journal.addresses";
     public static final String JOB_MASTER_EMBEDDED_JOURNAL_PORT =
         "alluxio.job.master.embedded.journal.port";
-
+    public static final String JOB_REQUEST_BATCH_SIZE = "alluxio.job.request.batch.size";
     public static final String JOB_WORKER_BIND_HOST = "alluxio.job.worker.bind.host";
     public static final String JOB_WORKER_DATA_PORT = "alluxio.job.worker.data.port";
     public static final String JOB_WORKER_HOSTNAME = "alluxio.job.worker.hostname";
