@@ -242,7 +242,9 @@ public final class S3RestServiceHandler {
       final FileSystem fs = getFileSystem(authorization);
       List<URIStatus> children;
       try {
-        if (prefix.length() == 0 && delimiterParam != null && delimiterParam.equals(AlluxioURI.SEPARATOR)) {
+        if (prefix.length() == 0
+            && delimiterParam != null
+            && delimiterParam.equals(AlluxioURI.SEPARATOR)) {
           children = fs.listStatus(new AlluxioURI(path));
         } else {
           ListStatusPOptions options = ListStatusPOptions.newBuilder().setRecursive(true).build();
