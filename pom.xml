@@ -186,6 +186,7 @@
     <module>tests</module>
     <module>underfs</module>
     <module>webui</module>
+    <module>hub</module>
   </modules>
 
   <dependencyManagement>
@@ -210,6 +211,16 @@
         <groupId>com.amazonaws</groupId>
         <artifactId>aws-java-sdk-s3</artifactId>
         <version>${aws.amazonaws.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.fabric8</groupId>
+        <artifactId>kubernetes-client</artifactId>
+        <version>5.0.1</version>
+      </dependency>
+      <dependency>
+        <groupId>io.fabric8</groupId>
+        <artifactId>kubernetes-model</artifactId>
+        <version>5.0.1</version>
       </dependency>
       <dependency>
         <groupId>com.beust</groupId>
@@ -634,6 +645,11 @@
       <dependency>
         <groupId>org.eclipse.jetty</groupId>
         <artifactId>jetty-webapp</artifactId>
+        <version>${jetty.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.eclipse.jetty.websocket</groupId>
+        <artifactId>javax-websocket-server-impl</artifactId>
         <version>${jetty.version}</version>
       </dependency>
       <dependency>
