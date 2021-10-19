@@ -95,9 +95,18 @@ public class SegmentedLock {
   public void unlockRead(int b1, int b2) {
     int i1 = getSegmentIndex(b1);
     int i2 = getSegmentIndex(b2);
-    // Question: is unlock order important ?
-    mLocks[i1].tryUnlockRead();
+    // Unlock order will no cause deadlock here as discussed in
+    // https://stackoverflow.com/questions/1951275/would-you-explain-lock-ordering, but it's better
+    // to unlock in reverse order to lock order.
+    if (i1 > i2) {
+      int tmp = i1;
+      i1 = i2;
+      i2 = tmp;
+    }
     mLocks[i2].tryUnlockRead();
+    if (i1 != i2) {
+      mLocks[i1].tryUnlockRead();
+    }
   }
 
   /**
@@ -185,9 +194,15 @@ public class SegmentedLock {
   public void unlockWrite(int b1, int b2) {
     int i1 = getSegmentIndex(b1);
     int i2 = getSegmentIndex(b2);
-    // Question: is unlock order important ?
-    mLocks[i1].tryUnlockWrite();
+    if (i1 > i2) {
+      int tmp = i1;
+      i1 = i2;
+      i2 = tmp;
+    }
     mLocks[i2].tryUnlockWrite();
+    if (i1 != i2) {
+      mLocks[i1].tryUnlockWrite();
+    }
   }
 
   /**
