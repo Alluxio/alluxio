@@ -11,6 +11,8 @@
 
 package alluxio.client.file.cache.cuckoofilter;
 
+import alluxio.client.quota.CacheScope;
+
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -19,8 +21,8 @@ import java.util.concurrent.ConcurrentHashMap;
 public class ScopeEncoder {
   private final int mMaxNumScopes;
   private final int mScopeMask;
-  private final ConcurrentHashMap<ScopeInfo, Integer> mScopeToId;
-  private final ConcurrentHashMap<Integer, ScopeInfo> mIdToScope;
+  private final ConcurrentHashMap<CacheScope, Integer> mScopeToId;
+  private final ConcurrentHashMap<Integer, CacheScope> mIdToScope;
   private int mCount; // the next scope id
 
   /**
@@ -42,7 +44,7 @@ public class ScopeEncoder {
    * @param scopeInfo the scope will be encoded
    * @return the encoded scope
    */
-  public int encode(ScopeInfo scopeInfo) {
+  public int encode(CacheScope scopeInfo) {
     if (!mScopeToId.containsKey(scopeInfo)) {
       synchronized (this) {
         if (!mScopeToId.containsKey(scopeInfo)) {
@@ -52,7 +54,7 @@ public class ScopeEncoder {
           int id = mCount;
           mCount++;
           // the following bothersome code is to pass findbugs plugin
-          ScopeInfo oldScope = mIdToScope.putIfAbsent(id, scopeInfo);
+          CacheScope oldScope = mIdToScope.putIfAbsent(id, scopeInfo);
           if (scopeInfo.equals(oldScope)) {
             scopeInfo = oldScope;
           }
@@ -72,7 +74,7 @@ public class ScopeEncoder {
    * @param id the encoded scope id will be decoded
    * @return the decoded scope information
    */
-  public ScopeInfo decode(int id) {
+  public CacheScope decode(int id) {
     return mIdToScope.get(id);
   }
 }

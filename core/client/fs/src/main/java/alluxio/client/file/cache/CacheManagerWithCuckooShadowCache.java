@@ -16,8 +16,8 @@ import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import alluxio.client.file.CacheContext;
 import alluxio.client.file.cache.cuckoofilter.ClockCuckooFilter;
 import alluxio.client.file.cache.cuckoofilter.ConcurrentClockCuckooFilter;
-import alluxio.client.file.cache.cuckoofilter.ScopeInfo;
 import alluxio.client.file.cache.cuckoofilter.SlidingWindowType;
+import alluxio.client.quota.CacheScope;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.metrics.MetricKey;
@@ -51,7 +51,6 @@ public class CacheManagerWithCuckooShadowCache implements CacheManager {
   private final ClockCuckooFilter<PageId> mFilter;
   private long mShadowCacheBytes = 0;
   private long mShadowCachePages = 0;
-  private ScopeInfo mScope = new ScopeInfo("table1");
 
   /**
    * @param cacheManager the real cache manager
@@ -105,8 +104,9 @@ public class CacheManagerWithCuckooShadowCache implements CacheManager {
 
   private void updateClockCuckoo(PageId pageId, int pageLength, CacheContext cacheContext) {
     if (!mFilter.mightContainAndResetClock(pageId)) {
-      // TODO(iluoeli): get real scope
-      mFilter.put(pageId, pageLength, mScope);
+      CacheScope cacheScope =
+          (cacheContext == null) ? CacheScope.GLOBAL : cacheContext.getCacheScope();
+      mFilter.put(pageId, pageLength, cacheScope);
       updateFalsePositiveRatio();
       updateWorkingSetSize();
       if (cacheContext != null) {

@@ -14,6 +14,7 @@ package alluxio.client.file.cache.cuckoofilter;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
+import alluxio.client.quota.CacheScope;
 import alluxio.test.util.ConcurrencyUtils;
 
 import org.junit.Before;
@@ -26,7 +27,7 @@ import java.util.concurrent.ThreadLocalRandom;
 public class ScopeEncoderTest {
   private static final int BITS_PER_SCOPE = 8; // 256 scopes at most
   private static final int NUM_SCOPES = (1 << BITS_PER_SCOPE);
-  private static final ScopeInfo SCOPE1 = new ScopeInfo("table1");
+  private static final CacheScope SCOPE1 = CacheScope.create("schema1.table1");
 
   // concurrency configurations
   private static final int DEFAULT_THREAD_AMOUNT = 12;
@@ -53,7 +54,7 @@ public class ScopeEncoderTest {
       runnables.add(() -> {
         for (int i = 0; i < NUM_SCOPES * 16; i++) {
           int r = ThreadLocalRandom.current().nextInt(NUM_SCOPES);
-          ScopeInfo scopeInfo = new ScopeInfo("table" + r);
+          CacheScope scopeInfo = CacheScope.create("schema1.table" + r);
           int id = mScopeEncoder.encode(scopeInfo);
           assertEquals(scopeInfo, mScopeEncoder.decode(id));
           assertEquals(id, mScopeEncoder.encode(scopeInfo));
