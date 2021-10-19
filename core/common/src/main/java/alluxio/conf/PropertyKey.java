@@ -5563,15 +5563,15 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey HUB_MANAGER_AGENT_LOST_THRESHOLD_TIME =
           new Builder(Name.HUB_MANAGER_AGENT_LOST_THRESHOLD_TIME)
                   .setDefaultValue("30s")
-                  .setDescription("If an agent node hasn't sent a heartbeat for this amount of time, the "
-                          + "manager will consider it as lost.")
+                  .setDescription("If an agent node hasn't sent a heartbeat for this amount of "
+                          + "time, the manager will consider it as lost.")
                   .build();
   public static final PropertyKey HUB_MANAGER_AGENT_DELETE_THRESHOLD_TIME =
           new Builder(Name.HUB_MANAGER_AGENT_DELETE_THRESHOLD_TIME)
                   .setDefaultValue("1min")
-                  .setDescription("If an agent node hasn't sent a heartbeat for this amount of time, the "
-                          + "manager will consider it as gone and stop tracking the node as a part of the "
-                          + "cluster.")
+                  .setDescription("If an agent node hasn't sent a heartbeat for this amount of "
+                          + "time, the manager will consider it as gone and stop tracking the "
+                          + "node as a part of the cluster.")
                   .build();
   public static final PropertyKey HUB_MANAGER_EXECUTOR_THREADS_MIN =
           new Builder(Name.HUB_MANAGER_EXECUTOR_THREADS_MIN)
@@ -5586,13 +5586,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey HUB_MANAGER_REGISTER_RETRY_TIME =
           new Builder(Name.HUB_MANAGER_REGISTER_RETRY_TIME)
                   .setDefaultValue("2min")
-                  .setDescription("If the manager fails to register with the Hub in this amount of time, "
-                          + "the manager will need to be restarted to register again.")
+                  .setDescription("If the manager fails to register with the Hub in this amount "
+                          + " of time, the manager will need to be restarted to register again.")
                   .build();
   public static final PropertyKey HUB_MANAGER_RPC_HOSTNAME =
           new Builder(Name.HUB_MANAGER_RPC_HOSTNAME)
-                  .setDescription("The hostname (or IP address) that agents should use to connect to the "
-                          + "hub manager")
+                  .setDescription("The hostname (or IP address) that agents should use to connect "
+                           + "to the hub manager")
                   .setDefaultValue(String.format("${%s}", Name.MASTER_HOSTNAME))
                   .build();
   public static final PropertyKey HUB_MANAGER_RPC_BIND_HOST =
@@ -5607,8 +5607,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
                   .build();
   public static final PropertyKey HUB_HOSTED_RPC_HOSTNAME =
           new Builder(Name.HUB_HOSTED_RPC_HOSTNAME)
-                  .setDescription("The hostname (or IP address) that managers should use to connect to the "
-                          + "hosted hub")
+                  .setDescription("The hostname (or IP address) that managers should use to "
+                          + "connect to the hosted hub")
                   .setDefaultValue(String.format("${%s}", Name.MASTER_HOSTNAME))
                   .build();
   public static final PropertyKey HUB_HOSTED_RPC_BIND_HOST =
@@ -5649,16 +5649,16 @@ public final class PropertyKey implements Comparable<PropertyKey> {
                   .build();
   public static final PropertyKey HUB_NETWORK_TLS_ENABLED =
           new Builder(Name.HUB_NETWORK_TLS_ENABLED)
-                  .setDescription("If true, enables TLS on all network communication between hosted Hub "
-                          + "and manager.")
+                  .setDescription("If true, enables TLS on all network communication between "
+                          + "hosted Hub and manager.")
                   .setDefaultValue(false)
                   .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
                   .setScope(Scope.ALL)
                   .build();
   public static final PropertyKey HUB_PUBLIC_NETWORK_TLS_ENABLED =
           new Builder(Name.HUB_PUBLIC_NETWORK_TLS_ENABLED)
-                  .setDescription("If true, enables TLS on public network communication between hosted Hub "
-                          + "and manager.")
+                  .setDescription("If true, enables TLS on public network communication between "
+                          + "hosted Hub and manager.")
                   .setDefaultValue(false)
                   .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
                   .setScope(Scope.ALL)
@@ -6804,7 +6804,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String HUB_AGENT_RPC_HOSTNAME = "alluxio.hub.agent.rpc.hostname";
     public static final String HUB_AGENT_RPC_BIND_HOST = "alluxio.hub.agent.rpc.bind.host";
     public static final String HUB_AGENT_RPC_PORT = "alluxio.hub.agent.rpc.port";
-    
+
     ///
     /// Alluxio Hub Manager Properties
     ///
@@ -6835,7 +6835,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String HUB_NETWORK_ALLOW_SELF_SIGNED_CERTS =
             "alluxio.hub.network.allow.self.signed.certs";
     public static final String HUB_NETWORK_TLS_ENABLED = "alluxio.hub.network.tls.enabled";
-    public static final String HUB_PUBLIC_NETWORK_TLS_ENABLED = "alluxio.hub.public.network.tls.enabled";
+    public static final String HUB_PUBLIC_NETWORK_TLS_ENABLED =
+            "alluxio.hub.public.network.tls.enabled";
 
     private Name() {} // prevent instantiation
   }
