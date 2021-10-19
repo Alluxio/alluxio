@@ -607,7 +607,9 @@ public final class MetricsSystem {
    */
   private static synchronized List<alluxio.grpc.Metric> reportMetrics(InstanceType instanceType) {
     if (!sReported) {
-      initShouldReportMetrics(instanceType);
+      // Init for client and worker
+      initShouldReportMetrics(InstanceType.CLIENT);
+      initShouldReportMetrics(instanceType.WORKER);
       sReported = true;
     }
     List<alluxio.grpc.Metric> rpcMetrics = new ArrayList<>(20);
