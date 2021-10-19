@@ -205,7 +205,6 @@ public class BlockMasterClient extends AbstractMasterClient {
    * The method the worker should periodically execute to heartbeat back to the master.
    *
    * @param workerId the worker id
-   * @param clusterId the cluster id
    * @param capacityBytesOnTiers a mapping from storage tier alias to capacity bytes
    * @param usedBytesOnTiers a mapping from storage tier alias to used bytes
    * @param removedBlocks a list of block removed from this worker
@@ -214,7 +213,7 @@ public class BlockMasterClient extends AbstractMasterClient {
    * @param metrics a list of worker metrics
    * @return an optional command for the worker to execute
    */
-  public synchronized Command heartbeat(final long workerId, final String clusterId,
+  public synchronized Command heartbeat(final long workerId,
       final Map<String, Long> capacityBytesOnTiers, final Map<String, Long> usedBytesOnTiers,
       final List<Long> removedBlocks, final Map<BlockStoreLocation, List<Long>> addedBlocks,
       final Map<String, List<String>> lostStorage, final List<Metric> metrics)
@@ -229,14 +228,13 @@ public class BlockMasterClient extends AbstractMasterClient {
             e -> StorageList.newBuilder().addAllStorage(e.getValue()).build()));
 
     final BlockHeartbeatPRequest request = BlockHeartbeatPRequest.newBuilder().setWorkerId(workerId)
-        .setClusterId(clusterId) .putAllUsedBytesOnTiers(usedBytesOnTiers)
-        .addAllRemovedBlockIds(removedBlocks) .addAllAddedBlocks(entryList).setOptions(options)
+        .putAllUsedBytesOnTiers(usedBytesOnTiers).addAllRemovedBlockIds(removedBlocks)
+        .addAllAddedBlocks(entryList).setOptions(options)
         .putAllLostStorage(lostStorageMap).build();
 
     return retryRPC(() -> mClient.withDeadlineAfter(mContext.getClusterConf()
         .getMs(PropertyKey.WORKER_MASTER_PERIODICAL_RPC_TIMEOUT), TimeUnit.MILLISECONDS)
-        .blockHeartbeat(request).getCommand(), LOG, "Heartbeat",
-        "workerId=%d, clusterId=%s", workerId, clusterId);
+        .blockHeartbeat(request).getCommand(), LOG, "Heartbeat", "workerId=%d", workerId);
   }
 
   public PreRegisterCommand preRegister(String clusterId, final WorkerNetAddress address)

@@ -25,9 +25,6 @@ import alluxio.stress.CachingBlockMasterClient;
 import alluxio.stress.rpc.BlockMasterBenchParameters;
 import alluxio.stress.rpc.RpcTaskResult;
 import alluxio.util.FormatUtils;
-import alluxio.util.IdUtils;
-import alluxio.util.network.NetworkAddressUtils;
-import alluxio.wire.WorkerNetAddress;
 import alluxio.worker.block.BlockMasterClient;
 import alluxio.worker.block.BlockStoreLocation;
 
@@ -62,8 +59,6 @@ public class WorkerHeartbeatBench extends RpcBench<BlockMasterBenchParameters> {
   private final InstancedConfiguration mConf = InstancedConfiguration.defaults();
   // Worker IDs to use in the testing stage
   private Deque<Long> mWorkerPool = new ArrayDeque<>();
-  // Cluster IDs to use in the testing stage
-  private String mClusterId = IdUtils.INVALID_CLUSTER_ID;
   // The prepared RPC contents
   private List<LocationBlockIdListEntry> mLocationBlockIdList;
 
@@ -80,7 +75,6 @@ public class WorkerHeartbeatBench extends RpcBench<BlockMasterBenchParameters> {
       return result;
     }
     long workerId = mWorkerPool.poll();
-    long String = mWorkerPool.poll();
     LOG.info("Acquired worker ID {}", workerId);
 
     // Use a mocked client to save conversion
@@ -115,7 +109,7 @@ public class WorkerHeartbeatBench extends RpcBench<BlockMasterBenchParameters> {
     while (Instant.now().isBefore(endTime)) {
       Instant s = Instant.now();
       try {
-        Command cmd = client.heartbeat(workerId, mClusterId,
+        Command cmd = client.heartbeat(workerId,
             CAPACITY_MEM,
             USED_MEM_EMPTY,
             EMPTY_REMOVED_BLOCKS,
@@ -184,8 +178,6 @@ public class WorkerHeartbeatBench extends RpcBench<BlockMasterBenchParameters> {
     int numWorkers = mParameters.mConcurrency;
     LOG.info("Register {} simulated workers for the test", numWorkers);
     mWorkerPool = RpcBenchPreparationUtils.prepareWorkerIds(client, numWorkers);
-    String hostname = NetworkAddressUtils.getLocalHostName(500);
-    mClusterId = client.getClusterId(new WorkerNetAddress().setHost(hostname));
     Preconditions.checkState(mWorkerPool.size() == numWorkers,
         "Expecting %s workers but registered %s",
         numWorkers, mWorkerPool.size());

@@ -189,8 +189,6 @@ message BlockHeartbeatPRequest {
   map<string, StorageList> lostStorage = 6;
   /** use repeated fields to represent mapping from BlockStoreLocationProto to TierList */
   repeated LocationBlockIdListEntry addedBlocks = 7;
-  /** the cluster id of the worker */
-  optional string clusterId = 8;
 }
 
 message BlockHeartbeatPResponse {
