@@ -131,6 +131,7 @@ public final class BlockMasterSync implements HeartbeatExecutor {
     List<alluxio.grpc.Metric> metrics = MetricsSystem.reportWorkerMetrics();
 
     try {
+      // todo add the clusterId to heartbeat(), report the running period's clusterId to master
       cmdFromMaster = mMasterClient.heartbeat(mWorkerId.get(), mClusterId.get() ,
           storeMeta.getCapacityBytesOnTiers(), storeMeta.getUsedBytesOnTiers(),
           blockReport.getRemovedBlocks(), blockReport.getAddedBlocks(),

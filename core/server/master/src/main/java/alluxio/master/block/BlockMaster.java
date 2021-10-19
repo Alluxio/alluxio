@@ -179,10 +179,10 @@ public interface BlockMaster extends Master, ContainerIdGenerable {
   long getWorkerId(WorkerNetAddress workerNetAddress);
 
   /**
-   * Returns a worker id for the given worker.
+   * Returns a cluster id for the given worker.
    *
    * @param workerNetAddress the worker {@link WorkerNetAddress}
-   * @return the worker id for this worker
+   * @return the cluster id for this worker
    */
   String getClusterId(WorkerNetAddress workerNetAddress) throws IOException;
 

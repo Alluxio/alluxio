@@ -20,6 +20,7 @@ import alluxio.network.ChannelType;
 import alluxio.underfs.UfsManager;
 import alluxio.underfs.WorkerUfsManager;
 import alluxio.util.CommonUtils;
+import alluxio.util.IdUtils;
 import alluxio.util.JvmPauseMonitor;
 import alluxio.util.WaitForOptions;
 import alluxio.util.io.FileUtils;
@@ -251,7 +252,9 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
     }
 
     // Start serving RPC, this will block
-    LOG.info("Alluxio worker started. id={}, bindHost={}, connectHost={}, rpcPort={}, webPort={}",
+    LOG.info("Alluxio worker started. clusterId={}, workerId={}, bindHost={}, "
+            + "connectHost={}, rpcPort={}, webPort={}",
+        mRegistry.get(BlockWorker.class).getClusterId().get(),
         mRegistry.get(BlockWorker.class).getWorkerId(),
         NetworkAddressUtils.getBindHost(ServiceType.WORKER_RPC, ServerConfiguration.global()),
         NetworkAddressUtils.getConnectHost(ServiceType.WORKER_RPC, ServerConfiguration.global()),
@@ -314,6 +317,8 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
     try {
       CommonUtils.waitFor(this + " to start",
           () -> isServing() && mRegistry.get(BlockWorker.class).getWorkerId() != null
+              && !mRegistry.get(BlockWorker.class).getClusterId().get()
+              .equals(IdUtils.INVALID_CLUSTER_ID)
               && mWebServer != null && mWebServer.getServer().isRunning(),
           WaitForOptions.defaults().setTimeoutMs(timeoutMs));
       return true;

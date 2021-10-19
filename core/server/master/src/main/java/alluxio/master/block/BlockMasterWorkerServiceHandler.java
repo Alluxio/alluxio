@@ -148,11 +148,10 @@ public final class BlockMasterWorkerServiceHandler extends
     String clusterId = request.getClusterId();
     RpcUtils.call(LOG,
         (RpcUtils.RpcCallableThrowsIOException<PreRegisterWorkerPResponse>) () -> {
-          mBlockMaster.workerPreRegister(clusterId,
-              GrpcUtils.fromProto(request.getWorkerNetAddress()));
-          return PreRegisterWorkerPResponse.getDefaultInstance();
+          return PreRegisterWorkerPResponse.newBuilder().setCommand(
+              mBlockMaster.workerPreRegister(
+                  clusterId, GrpcUtils.fromProto(request.getWorkerNetAddress()))).build();
         }, "preRegisterWorker", "request=%s", responseObserver, request);
-
   }
 
   @Override

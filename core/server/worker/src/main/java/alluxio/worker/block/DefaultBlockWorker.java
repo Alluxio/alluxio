@@ -145,7 +145,8 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
   private final CacheRequestManager mCacheManager;
   private final FuseManager mFuseManager;
   private final UfsManager mUfsManager;
-  private final BlockWorkerState mBlockWorkerState;
+  private final BlockWorkerDB mBlockWorkerDB;
+
   private static class StateKey {
     final static String ClusterId = "ClusterId";
   }
@@ -194,7 +195,7 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
         GrpcExecutors.CACHE_MANAGER_EXECUTOR, this, mFsContext);
     mFuseManager = mResourceCloser.register(new FuseManager(mFsContext));
     mUnderFileSystemBlockStore = new UnderFileSystemBlockStore(mLocalBlockStore, ufsManager);
-    mBlockWorkerState = new BlockWorkerState();
+    mBlockWorkerDB = new DefaultBlockWorkerDB();
 
     Metrics.registerGauges(this);
   }
@@ -221,15 +222,16 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
 
   @Override
   public AtomicReference<String> getClusterId() {
-    String mClusterId = mBlockWorkerState.get(StateKey.ClusterId);
-    if (mClusterId.isEmpty()) {
-      mClusterId = IdUtils.INVALID_CLUSTER_ID;
-    }
+    /*
+    get worker cluster id from persistence storage, This can be an expensive operation.
+    If this is invoked frequently, you should refactoring this to support get clusterId
+     from variable */
+    String mClusterId = mBlockWorkerDB.getClusterId();
     return new AtomicReference<>(mClusterId);
   }
 
-  private void setClusterId(String clusterId) throws IOException {
-    mBlockWorkerState.set(StateKey.ClusterId, clusterId);
+  void setClusterId(String clusterId) throws IOException {
+    mBlockWorkerDB.setClusterId(clusterId);
   }
 
   private void handlePreRegisterCommand(PreRegisterCommand cmd) throws IOException {
@@ -239,13 +241,14 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
 
     switch (cmd.getPreRegisterCommandType()) {
       case Nothing:
-        break; // worker normal restarted, state is as expected
+        break; // worker normal restarted, state is in expected
       case Persist:
         setClusterId(cmd.getData()); // worker first time register, persisted some state info
         break;
       case Reset:
-        LOG.warn("PreRegister Master Command {}", cmd); // worker is not belonging the current cluster
+        LOG.warn("Master Command {}", cmd); // worker is not belonging the current cluster
         // todo clean all block and reset status
+        setClusterId(cmd.getData());
         break;
       default:
         throw new RuntimeException("PreRegister Un-recognized command from master " + cmd);
@@ -269,7 +272,7 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
         new AtomicReference<>(PreRegisterCommand.getDefaultInstance());
     try {
       RetryUtils.retry("preRegister worker",
-          () -> mCommandFromMaster.set(blockMasterClient.preRegister(getClusterId().get())),
+          () -> mCommandFromMaster.set(blockMasterClient.preRegister(getClusterId().get(), address)),
           RetryUtils.defaultWorkerMasterClientRetry(ServerConfiguration
               .getDuration(PropertyKey.WORKER_MASTER_CONNECT_RETRY_TIMEOUT)));
     } catch (Exception e) {

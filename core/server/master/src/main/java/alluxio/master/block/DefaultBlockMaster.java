@@ -919,6 +919,8 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
 
   @Override
   public String getClusterId(WorkerNetAddress workerNetAddress) throws IOException {
+    // assumed that the cluster will not change if no format the master,
+    // so invoke by RPC only first
     if (mClusterId.get().equals(IdUtils.INVALID_CLUSTER_ID)) {
       RetryHandlingMetaMasterMasterClient metaMasterClient =
           new RetryHandlingMetaMasterMasterClient(MasterClientContext
@@ -938,17 +940,19 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
     if (workerClusterId.equals(IdUtils.INVALID_CLUSTER_ID)) {
       mCommand = PreRegisterCommand.newBuilder()
           .setPreRegisterCommandType(PreRegisterCommandType.Persist).setData(mClusterId).build();
-      LOG.info("New worker PreRegister");
+      LOG.info("worker {} first PreRegister", workerNetAddress.getHost());
       return mCommand;
     }
 
     if (!workerClusterId.equals(mClusterId)) {
       mCommand = PreRegisterCommand.newBuilder()
-          .setPreRegisterCommandType(PreRegisterCommandType.Reset).build();
-      LOG.info("Worker clusterId {} doesn't match expected {}", mClusterId, workerClusterId);
+          .setPreRegisterCommandType(PreRegisterCommandType.Reset).setData(mClusterId).build();
+      LOG.info("Worker {} clusterId {} doesn't match expected {}",
+          workerNetAddress.getHost(), mClusterId, workerClusterId);
       return mCommand;
     }
 
+    LOG.debug("worker {} PreRegister", workerNetAddress.getHost());
     return mCommand;
   }
 

@@ -151,7 +151,7 @@ public class BlockMasterClient extends AbstractMasterClient {
    * Returns a cluster id for a workers.
    *
    * @param address the net address to get a worker id for
-   * @return a worker id
+   * @return a cluster id
    */
   public String getClusterId(final WorkerNetAddress address) throws IOException {
     return retryRPC(() -> {
@@ -239,9 +239,10 @@ public class BlockMasterClient extends AbstractMasterClient {
         "workerId=%d, clusterId=%s", workerId, clusterId);
   }
 
-  public PreRegisterCommand preRegister(String clusterId) throws AlluxioStatusException {
-    final PreRegisterWorkerPRequest request = PreRegisterWorkerPRequest
-        .newBuilder().setClusterId(clusterId).build();
+  public PreRegisterCommand preRegister(String clusterId, final WorkerNetAddress address)
+      throws AlluxioStatusException {
+    final PreRegisterWorkerPRequest request = PreRegisterWorkerPRequest.newBuilder()
+        .setClusterId(clusterId).setWorkerNetAddress(GrpcUtils.toProto(address)).build();
 
     return retryRPC(() -> mClient.preRegisterWorker(request).getCommand(),
         LOG, "preRegister", "clusterId=%s", clusterId);
