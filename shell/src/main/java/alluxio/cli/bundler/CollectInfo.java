@@ -320,10 +320,10 @@ public class CollectInfo extends AbstractShell {
     }
 
     // Collect tarballs from where the SSH command completed
-    File tempDirBase = 
+    File tempDirBase =
              new File(System.getProperty("java.io.tmpdir"));
     File tempDir = Files.createTempDirectory(
-                 tempDirBase.toPath(), System.currentTimeMillis() + "-").toFile();;
+                 tempDirBase.toPath(), System.currentTimeMillis() + "-").toFile();
     List<File> filesFromHosts = new ArrayList<>();
     List<CompletableFuture<CommandReturn>> scpFutures =
             new ArrayList<>(allHosts.size());
