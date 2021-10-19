@@ -5530,6 +5530,140 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
+  public static final PropertyKey HUB_AGENT_EXECUTOR_THREADS_MIN =
+          new Builder(Name.HUB_AGENT_EXECUTOR_THREADS_MIN)
+                  .setDefaultValue("2")
+                  .setDescription("The minimum number of threads used when scheduling tasks.")
+                  .build();
+  public static final PropertyKey HUB_AGENT_HEARTBEAT_INTERVAL =
+          new Builder(Name.HUB_AGENT_HEARTBEAT_INTERVAL)
+                  .setDefaultValue("10s")
+                  .setDescription("The interval in seconds that the Hub Agent sends a heartbeat "
+                          + "to the Hub Manager.")
+                  .build();
+  public static final PropertyKey HUB_AGENT_RPC_HOSTNAME =
+          new Builder(Name.HUB_AGENT_RPC_HOSTNAME)
+                  .setDescription("The hostname (or IP address) used to connect to the hub agent")
+                  .build();
+  public static final PropertyKey HUB_AGENT_RPC_BIND_HOST =
+          new Builder(Name.HUB_AGENT_RPC_BIND_HOST)
+                  .setDefaultValue("0.0.0.0")
+                  .setDescription("The host that the hub agent's RPC server should bind to")
+                  .build();
+  public static final PropertyKey HUB_AGENT_RPC_PORT =
+          new Builder(Name.HUB_AGENT_RPC_PORT)
+                  .setDefaultValue("30075")
+                  .setDescription("The port that the hub agent's RPC port should bind to")
+                  .build();
+  public static final PropertyKey HUB_CLUSTER_LABEL =
+          new Builder(Name.HUB_CLUSTER_LABEL)
+                  .setDefaultValue("Alluxio Hub")
+                  .setDescription("A user-defined label for the Hub cluster.")
+                  .build();
+  public static final PropertyKey HUB_MANAGER_AGENT_LOST_THRESHOLD_TIME =
+          new Builder(Name.HUB_MANAGER_AGENT_LOST_THRESHOLD_TIME)
+                  .setDefaultValue("30s")
+                  .setDescription("If an agent node hasn't sent a heartbeat for this amount of time, the "
+                          + "manager will consider it as lost.")
+                  .build();
+  public static final PropertyKey HUB_MANAGER_AGENT_DELETE_THRESHOLD_TIME =
+          new Builder(Name.HUB_MANAGER_AGENT_DELETE_THRESHOLD_TIME)
+                  .setDefaultValue("1min")
+                  .setDescription("If an agent node hasn't sent a heartbeat for this amount of time, the "
+                          + "manager will consider it as gone and stop tracking the node as a part of the "
+                          + "cluster.")
+                  .build();
+  public static final PropertyKey HUB_MANAGER_EXECUTOR_THREADS_MIN =
+          new Builder(Name.HUB_MANAGER_EXECUTOR_THREADS_MIN)
+                  .setDefaultValue("2")
+                  .setDescription("The minimum number of threads used when scheduling tasks.")
+                  .build();
+  public static final PropertyKey HUB_MANAGER_PRESTO_CONF_PATH =
+          new Builder(Name.HUB_MANAGER_PRESTO_CONF_PATH)
+                  .setDefaultValue("/etc/presto/conf/")
+                  .setDescription("The path to the presto configuration directory")
+                  .build();
+  public static final PropertyKey HUB_MANAGER_REGISTER_RETRY_TIME =
+          new Builder(Name.HUB_MANAGER_REGISTER_RETRY_TIME)
+                  .setDefaultValue("2min")
+                  .setDescription("If the manager fails to register with the Hub in this amount of time, "
+                          + "the manager will need to be restarted to register again.")
+                  .build();
+  public static final PropertyKey HUB_MANAGER_RPC_HOSTNAME =
+          new Builder(Name.HUB_MANAGER_RPC_HOSTNAME)
+                  .setDescription("The hostname (or IP address) that agents should use to connect to the "
+                          + "hub manager")
+                  .setDefaultValue(String.format("${%s}", Name.MASTER_HOSTNAME))
+                  .build();
+  public static final PropertyKey HUB_MANAGER_RPC_BIND_HOST =
+          new Builder(Name.HUB_MANAGER_RPC_BIND_HOST)
+                  .setDefaultValue("0.0.0.0")
+                  .setDescription("The host that the hub manager's RPC server should bind to")
+                  .build();
+  public static final PropertyKey HUB_MANAGER_RPC_PORT =
+          new Builder(Name.HUB_MANAGER_RPC_PORT)
+                  .setDefaultValue("30076")
+                  .setDescription("The port that the hub manager's RPC server should bind to")
+                  .build();
+  public static final PropertyKey HUB_HOSTED_RPC_HOSTNAME =
+          new Builder(Name.HUB_HOSTED_RPC_HOSTNAME)
+                  .setDescription("The hostname (or IP address) that managers should use to connect to the "
+                          + "hosted hub")
+                  .setDefaultValue(String.format("${%s}", Name.MASTER_HOSTNAME))
+                  .build();
+  public static final PropertyKey HUB_HOSTED_RPC_BIND_HOST =
+          new Builder(Name.HUB_HOSTED_RPC_BIND_HOST)
+                  .setDefaultValue("0.0.0.0")
+                  .setDescription("The host that the hosted hub's RPC server should bind to")
+                  .build();
+  public static final PropertyKey HUB_HOSTED_RPC_PORT =
+          new Builder(Name.HUB_HOSTED_RPC_PORT)
+                  .setDefaultValue("50051")
+                  .setDescription("The port that the hosted hub's RPC server should bind to")
+                  .build();
+  public static final PropertyKey HUB_MANAGER_WEB_BIND_HOST =
+          new Builder(Name.HUB_MANAGER_WEB_BIND_HOST)
+                  .setDefaultValue("0.0.0.0")
+                  .setDescription("The host that the hub manager's web server should bind to")
+                  .build();
+  public static final PropertyKey HUB_MANAGER_WEB_LOGIN_PASSWORD =
+          new Builder(Name.HUB_MANAGER_WEB_LOGIN_PASSWORD)
+                  .setDefaultValue("alluxio")
+                  .setDescription("The password used to log into the hub manager's web interface.")
+                  .setDisplayType(DisplayType.CREDENTIALS)
+                  .build();
+  public static final PropertyKey HUB_MANAGER_WEB_LOGIN_USERNAME =
+          new Builder(Name.HUB_MANAGER_WEB_LOGIN_USERNAME)
+                  .setDefaultValue("alluxio")
+                  .setDescription("The username used to log into the hub manager's web interface.")
+                  .build();
+  public static final PropertyKey HUB_MANAGER_WEB_PORT =
+          new Builder(Name.HUB_MANAGER_WEB_PORT)
+                  .setDefaultValue("30077")
+                  .setDescription("The port that the hub manager's web server should bind to")
+                  .build();
+  public static final PropertyKey HUB_NETWORK_ALLOW_SELF_SIGNED_CERTS =
+          new Builder(Name.HUB_NETWORK_ALLOW_SELF_SIGNED_CERTS)
+                  .setDescription("If true, allows self-signed certificates to be used ")
+                  .setDefaultValue(false)
+                  .build();
+  public static final PropertyKey HUB_NETWORK_TLS_ENABLED =
+          new Builder(Name.HUB_NETWORK_TLS_ENABLED)
+                  .setDescription("If true, enables TLS on all network communication between hosted Hub "
+                          + "and manager.")
+                  .setDefaultValue(false)
+                  .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+                  .setScope(Scope.ALL)
+                  .build();
+  public static final PropertyKey HUB_PUBLIC_NETWORK_TLS_ENABLED =
+          new Builder(Name.HUB_PUBLIC_NETWORK_TLS_ENABLED)
+                  .setDescription("If true, enables TLS on public network communication between hosted Hub "
+                          + "and manager.")
+                  .setDefaultValue(false)
+                  .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+                  .setScope(Scope.ALL)
+                  .setIsHidden(true)
+                  .build();
   public static final PropertyKey TABLE_UDB_HIVE_CLIENTPOOL_MIN =
       new Builder(Name.TABLE_UDB_HIVE_CLIENTPOOL_MIN)
           .setDefaultValue("16")
@@ -6659,6 +6793,49 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.table.udb.hive.clientpool.min";
     public static final String TABLE_UDB_HIVE_CLIENTPOOL_MAX =
         "alluxio.table.udb.hive.clientpool.MAX";
+
+    ///
+    /// Alluxio Hub Agent Properties
+    ///
+    public static final String HUB_AGENT_HEARTBEAT_INTERVAL =
+            "alluxio.hub.agent.heartbeat.interval";
+    public static final String HUB_AGENT_EXECUTOR_THREADS_MIN =
+            "alluxio.hub.agent.executor.threads.min";
+    public static final String HUB_AGENT_RPC_HOSTNAME = "alluxio.hub.agent.rpc.hostname";
+    public static final String HUB_AGENT_RPC_BIND_HOST = "alluxio.hub.agent.rpc.bind.host";
+    public static final String HUB_AGENT_RPC_PORT = "alluxio.hub.agent.rpc.port";
+    
+    ///
+    /// Alluxio Hub Manager Properties
+    ///
+    public static final String HUB_CLUSTER_LABEL =
+            "alluxio.hub.cluster.label";
+    public static final String HUB_MANAGER_AGENT_LOST_THRESHOLD_TIME =
+            "alluxio.hub.manager.agent.lost.threshold.time";
+    public static final String HUB_MANAGER_AGENT_DELETE_THRESHOLD_TIME =
+            "alluxio.hub.manager.agent.delete.threshold.time";
+    public static final String HUB_MANAGER_EXECUTOR_THREADS_MIN =
+            "alluxio.hub.manager.executor.threads.min";
+    public static final String HUB_MANAGER_PRESTO_CONF_PATH =
+            "alluxio.hub.manager.presto.conf.path";
+    public static final String HUB_MANAGER_REGISTER_RETRY_TIME =
+            "alluxio.hub.manager.register.retry.time";
+    public static final String HUB_MANAGER_RPC_HOSTNAME = "alluxio.hub.manager.rpc.hostname";
+    public static final String HUB_MANAGER_RPC_BIND_HOST = "alluxio.hub.manager.rpc.bind.host";
+    public static final String HUB_MANAGER_RPC_PORT = "alluxio.hub.manager.rpc.port";
+    public static final String HUB_HOSTED_RPC_HOSTNAME = "alluxio.hub.hosted.rpc.hostname";
+    public static final String HUB_HOSTED_RPC_BIND_HOST = "alluxio.hub.hosted.rpc.bind.host";
+    public static final String HUB_HOSTED_RPC_PORT = "alluxio.hub.hosted.rpc.port";
+    public static final String HUB_MANAGER_WEB_BIND_HOST = "alluxio.hub.manager.web.bind.host";
+    public static final String HUB_MANAGER_WEB_LOGIN_PASSWORD =
+            "alluxio.hub.manager.web.login.password";
+    public static final String HUB_MANAGER_WEB_LOGIN_USERNAME =
+            "alluxio.hub.manager.web.login.username";
+    public static final String HUB_MANAGER_WEB_PORT = "alluxio.hub.manager.web.port";
+    public static final String HUB_NETWORK_ALLOW_SELF_SIGNED_CERTS =
+            "alluxio.hub.network.allow.self.signed.certs";
+    public static final String HUB_NETWORK_TLS_ENABLED = "alluxio.hub.network.tls.enabled";
+    public static final String HUB_PUBLIC_NETWORK_TLS_ENABLED = "alluxio.hub.public.network.tls.enabled";
 
     private Name() {} // prevent instantiation
   }

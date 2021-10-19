@@ -22,6 +22,7 @@ import alluxio.util.network.tls.SslContextProvider;
 import com.google.common.base.Preconditions;
 import io.grpc.ConnectivityState;
 import io.grpc.ManagedChannel;
+import io.grpc.netty.GrpcSslContexts;
 import io.grpc.netty.NettyChannelBuilder;
 import io.netty.channel.Channel;
 import io.netty.channel.EventLoopGroup;
@@ -29,6 +30,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.concurrent.ThreadSafe;
+import javax.net.ssl.SSLException;
+
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.util.concurrent.ConcurrentHashMap;
@@ -213,6 +216,7 @@ public class GrpcConnectionPool {
     EventLoopGroup eventLoopGroup = acquireNetworkEventLoop(key, conf);
 
     // Update the builder.
+    channelBuilder.keepAliveWithoutCalls(true);
     channelBuilder.keepAliveTime(keepAliveTimeMs, TimeUnit.MILLISECONDS);
     channelBuilder.keepAliveTimeout(keepAliveTimeoutMs, TimeUnit.MILLISECONDS);
     channelBuilder.maxInboundMessageSize((int) inboundMessageSizeBytes);
@@ -229,6 +233,13 @@ public class GrpcConnectionPool {
       // Use shared TLS config for other network groups if enabled.
       channelBuilder.sslContext(getSslContextProvider(conf).getClientSslContext());
       channelBuilder.useTransportSecurity();
+    } else if (conf.getBoolean(alluxio.conf.PropertyKey.HUB_PUBLIC_NETWORK_TLS_ENABLED)) {
+      try {
+        channelBuilder.sslContext(GrpcSslContexts.forClient().build());
+        channelBuilder.useTransportSecurity();
+      } catch (SSLException e) {
+        LOG.error("Unable to create default SSL context {}", e);
+      }
     }
     return channelBuilder;
   }
