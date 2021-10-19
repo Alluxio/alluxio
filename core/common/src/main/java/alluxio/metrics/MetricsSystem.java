@@ -605,11 +605,11 @@ public final class MetricsSystem {
    *
    * The synchronized keyword is added for correctness with {@link #resetAllMetrics}
    */
-  private static synchronized List<alluxio.grpc.Metric> reportMetrics(InstanceType instanceType) {
+  private static synchronized List<alluxio.grpc.Metric> reportMetrics() {
     if (!sReported) {
       // Init for client and worker
       initShouldReportMetrics(InstanceType.CLIENT);
-      initShouldReportMetrics(instanceType.WORKER);
+      initShouldReportMetrics(InstanceType.WORKER);
       sReported = true;
     }
     List<alluxio.grpc.Metric> rpcMetrics = new ArrayList<>(20);
@@ -674,7 +674,7 @@ public final class MetricsSystem {
    */
   public static List<alluxio.grpc.Metric> reportWorkerMetrics() {
     long start = System.currentTimeMillis();
-    List<alluxio.grpc.Metric> metricsList = reportMetrics(InstanceType.WORKER);
+    List<alluxio.grpc.Metric> metricsList = reportMetrics();
     LOG.debug("Get the worker metrics list to report to leading master in {}ms",
         System.currentTimeMillis() - start);
     return metricsList;
@@ -685,7 +685,7 @@ public final class MetricsSystem {
    */
   public static List<alluxio.grpc.Metric> reportClientMetrics() {
     long start = System.currentTimeMillis();
-    List<alluxio.grpc.Metric> metricsList = reportMetrics(InstanceType.CLIENT);
+    List<alluxio.grpc.Metric> metricsList = reportMetrics();
     LOG.debug("Get the client metrics list to report to leading master in {}ms",
         System.currentTimeMillis() - start);
     return metricsList;
