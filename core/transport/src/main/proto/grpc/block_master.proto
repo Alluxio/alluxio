@@ -246,16 +246,6 @@ enum PreRegisterCommandType {
   Exist = 4;
 }
 
-message GetClusterIdPOptions {}
-message GetClusterIdPRequest {
-  /** the worker network address */
-  optional grpc.WorkerNetAddress workerNetAddress = 1;
-  optional GetClusterIdPOptions options = 2;
-}
-message GetClusterIdPResponse {
-  optional string clusterId = 1;
-}
-
 message PreRegisterWorkerPOptions {}
 message PreRegisterWorkerPRequest {
   optional string clusterId = 1;
@@ -315,11 +305,6 @@ service BlockMasterWorkerService {
    * Returns a worker id for the given network address.
    */
   rpc GetWorkerId(GetWorkerIdPRequest) returns (GetWorkerIdPResponse);
-
-  /**
- * Returns a cluster id.
- */
-  rpc GetClusterId(GetClusterIdPRequest) returns (GetClusterIdPResponse);
 
   /**
  * preRegisters a worker.

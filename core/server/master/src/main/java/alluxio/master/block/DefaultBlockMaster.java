@@ -1019,10 +1019,6 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
       Map<BlockLocation, List<Long>> addedBlocks,
       Map<String, StorageList> lostStorage,
       List<Metric> metrics) {
-    //    if (clusterId.equals("")) { //todo
-//      LOG.warn("worker cluster id {} does not match expected {}.", workerId, clusterId);
-//      return Command.newBuilder().setCommandType(CommandType.Reset).build();
-//    }
     MasterWorkerInfo worker = mWorkers.getFirstByField(ID_INDEX, workerId);
     if (worker == null) {
       LOG.warn("Could not find worker id: {} for heartbeat.", workerId);

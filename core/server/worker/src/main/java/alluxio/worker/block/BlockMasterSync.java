@@ -195,10 +195,8 @@ public final class BlockMasterSync implements HeartbeatExecutor {
         registerWithMaster();
         break;
       case Reset:
-        // todo clean all block
-        mClusterId.set(mMasterClient.getClusterId(mWorkerAddress));
+        // todo clean all block and save new clusterId
         mWorkerId.set(mMasterClient.getId(mWorkerAddress));
-        registerWithMaster();
         break;
       // Unknown request
       case Unknown:

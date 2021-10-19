@@ -25,7 +25,6 @@ import alluxio.grpc.CommitBlockInUfsPRequest;
 import alluxio.grpc.CommitBlockPRequest;
 import alluxio.grpc.ConfigProperty;
 import alluxio.grpc.GetWorkerIdPRequest;
-import alluxio.grpc.GetClusterIdPRequest;
 import alluxio.grpc.LocationBlockIdListEntry;
 import alluxio.grpc.MetaMasterMasterServiceGrpc;
 import alluxio.grpc.Metric;
@@ -145,20 +144,6 @@ public class BlockMasterClient extends AbstractMasterClient {
           GetWorkerIdPRequest.newBuilder().setWorkerNetAddress(GrpcUtils.toProto(address)).build();
       return mClient.getWorkerId(request).getWorkerId();
     }, LOG, "GetId", "address=%s", address);
-  }
-
-  /**
-   * Returns a cluster id for a workers.
-   *
-   * @param address the net address to get a worker id for
-   * @return a cluster id
-   */
-  public String getClusterId(final WorkerNetAddress address) throws IOException {
-    return retryRPC(() -> {
-      GetClusterIdPRequest request =
-          GetClusterIdPRequest.newBuilder().setWorkerNetAddress(GrpcUtils.toProto(address)).build();
-      return mClient.getClusterId(request).getClusterId();
-    }, LOG, "GetClusterId", "address=%s", address);
   }
 
   /**

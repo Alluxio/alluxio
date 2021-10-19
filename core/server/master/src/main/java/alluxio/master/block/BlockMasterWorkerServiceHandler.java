@@ -19,8 +19,6 @@ import alluxio.grpc.CommitBlockInUfsPRequest;
 import alluxio.grpc.CommitBlockInUfsPResponse;
 import alluxio.grpc.CommitBlockPRequest;
 import alluxio.grpc.CommitBlockPResponse;
-import alluxio.grpc.GetClusterIdPRequest;
-import alluxio.grpc.GetClusterIdPResponse;
 import alluxio.grpc.GetWorkerIdPRequest;
 import alluxio.grpc.GetWorkerIdPResponse;
 import alluxio.grpc.GrpcUtils;
@@ -129,16 +127,6 @@ public final class BlockMasterWorkerServiceHandler extends
           .setWorkerId(mBlockMaster.getWorkerId(GrpcUtils.fromProto(request.getWorkerNetAddress())))
           .build();
     }, "getWorkerId", "request=%s", responseObserver, request);
-  }
-
-  @Override
-  public void getClusterId(GetClusterIdPRequest request,
-                           StreamObserver<GetClusterIdPResponse> responseObserver) {
-    RpcUtils.call(LOG, (RpcUtils.RpcCallableThrowsIOException<GetClusterIdPResponse>) () -> {
-      return GetClusterIdPResponse.newBuilder()
-          .setClusterId(mBlockMaster.getClusterId(
-              GrpcUtils.fromProto(request.getWorkerNetAddress()))).build();
-    }, "getClusterId", "request=%s", responseObserver, request);
   }
 
   @Override
