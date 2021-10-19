@@ -3637,6 +3637,15 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
+  public static final PropertyKey WORKER_WHITELIST =
+          new Builder(Name.WORKER_WHITELIST)
+          .setDefaultValue("/")
+          .setDescription("A comma-separated list of prefixes of the paths which are "
+               + "cacheable, separated by semi-colons. Alluxio will try to cache the cacheable "
+               + "file when it is read for the first time.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.WORKER)
+          .build();
 
   //
   // Proxy related properties
@@ -6202,6 +6211,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.worker.ufs.instream.cache.enabled";
     public static final String WORKER_UFS_INSTREAM_CACHE_MAX_SIZE =
         "alluxio.worker.ufs.instream.cache.max.size";
+    public static final String WORKER_WHITELIST = "alluxio.worker.whitelist";
 
     //
     // Proxy related properties

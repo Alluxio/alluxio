@@ -12,7 +12,7 @@
 import axios from 'axios';
 import { all, AllEffect, fork, ForkEffect, takeLatest } from 'redux-saga/effects';
 
-import { getSagaRequest } from '@alluxio/common-ui/src/utilities';
+import { getSagaRequest } from '../../utilities';
 import { fetchError, fetchSuccess } from './actions';
 import { ConfigActionTypes } from './types';
 
