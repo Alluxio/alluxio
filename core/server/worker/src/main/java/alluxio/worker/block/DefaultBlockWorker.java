@@ -230,7 +230,14 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
     mBlockWorkerDB.setClusterId(clusterId);
   }
 
-  private void handlePreRegisterCommand(PreRegisterCommand cmd) throws IOException {
+  /**
+   * Handles a master preRegister command. The command is one of Nothing, Persist, Reset.
+   * This call will block until the command is complete.
+   *
+   * @param cmd the command to execute
+   * @throws IOException if I/O errors occur, such as setClusterId failed
+   */
+  void handlePreRegisterCommand(PreRegisterCommand cmd) throws IOException {
     if (cmd == null) {
       return;
     }
@@ -244,6 +251,7 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
       case Reset:
         LOG.warn("Master Command {}", cmd); // worker is not belonging the current cluster
         // todo clean all block and reset status
+        // Current behavior is the same as the cmd "Persist"
         setClusterId(cmd.getData());
         break;
       default:

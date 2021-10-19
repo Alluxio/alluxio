@@ -33,6 +33,8 @@ import alluxio.conf.ServerConfiguration;
 import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.WorkerOutOfSpaceException;
 import alluxio.exception.status.DeadlineExceededException;
+import alluxio.grpc.PreRegisterCommand;
+import alluxio.grpc.PreRegisterCommandType;
 import alluxio.grpc.ReadRequest;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.underfs.UfsManager;
@@ -55,6 +57,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.Set;
+import java.util.UUID;
 
 /**
  * Unit tests for {@link DefaultBlockWorker}.
@@ -385,6 +388,37 @@ public class DefaultBlockWorkerTest {
   }
 
   @Test
+  public void handlePreRegisterCommandNothing() throws IOException {
+    PreRegisterCommand cmd = PreRegisterCommand.newBuilder()
+        .setPreRegisterCommandType(PreRegisterCommandType.Nothing).build();
+    mBlockWorker.handlePreRegisterCommand(cmd);
+  }
+
+  @Test
+  public void handlePreRegisterCommandPersist() throws IOException {
+    String newClusterId = UUID.randomUUID().toString();
+    PreRegisterCommand cmd = PreRegisterCommand.newBuilder()
+        .setPreRegisterCommandType(PreRegisterCommandType.Persist)
+        .setData(newClusterId).build();
+
+    // the new cluster ID will be persisted
+    mBlockWorker.handlePreRegisterCommand(cmd);
+    assertEquals(newClusterId, mBlockWorker.getClusterId().get());
+  }
+
+  @Test
+  public void handlePreRegisterCommandReset() throws IOException {
+    // todo update this after add the function of "clean all block and reset status"
+    //  in PreRegisterCommand
+    String newClusterId = UUID.randomUUID().toString();
+    PreRegisterCommand cmd = PreRegisterCommand.newBuilder()
+        .setPreRegisterCommandType(PreRegisterCommandType.Persist)
+        .setData(newClusterId).build();
+    mBlockWorker.handlePreRegisterCommand(cmd);
+    assertEquals(newClusterId, mBlockWorker.getClusterId().get());
+  }
+
+  @Test
   public void getFileInfo() throws Exception {
     long fileId = mRandom.nextLong();
     mBlockWorker.getFileInfo(fileId);
@@ -408,7 +442,8 @@ public class DefaultBlockWorkerTest {
     mBlockStore.removeBlockInternal(sessionId, blockId, BlockStoreLocation.anyTier(), 10);
   }
 
-  @Test void setAndGetClusterId() throws IOException {
+  @Test
+  public void setAndGetClusterId() throws IOException {
     String mClusterID = java.util.UUID.randomUUID().toString();
     mBlockWorker.setClusterId(mClusterID);
     assertEquals(mClusterID, mBlockWorker.getClusterId().get());
