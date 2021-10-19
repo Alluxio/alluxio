@@ -38,13 +38,13 @@ import java.util.Properties;
  */
 @NotThreadSafe
 public class DefaultBlockWorkerDB implements BlockWorkerDB {
+  private static final String CLUSTER_ID_KEY = "clusterId";
   private static final Logger LOG = LoggerFactory.getLogger(MetricsConfig.class);
   /*Use Properties to persistence info */
   final Properties mProperties;
   /*Properties file path */
   final String mPath;
   boolean mIsInit;
-  final String mClusterIdKey = "clusterId";
 
   DefaultBlockWorkerDB(String path) {
     mProperties = new Properties();
@@ -58,13 +58,13 @@ public class DefaultBlockWorkerDB implements BlockWorkerDB {
 
   @Override
   public String getClusterId() {
-    String mClusterId = get(mClusterIdKey);
+    String mClusterId = get(CLUSTER_ID_KEY);
     return (mClusterId.isEmpty()) ? IdUtils.INVALID_CLUSTER_ID : mClusterId;
   }
 
   @Override
   public void setClusterId(String clusterId) throws IOException {
-    set(mClusterIdKey, clusterId);
+    set(CLUSTER_ID_KEY, clusterId);
   }
 
   /**
