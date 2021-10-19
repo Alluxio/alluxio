@@ -53,7 +53,7 @@ public class DefaultBlockWorkerDB implements BlockWorkerDB {
   }
 
   DefaultBlockWorkerDB() {
-    this(ServerConfiguration.get(PropertyKey.WORKER_PERSISTENCE_CLUSTER_ID_PATH));
+    this(ServerConfiguration.get(PropertyKey.WORKER_PERSISTENCE_CLUSTER_ID_FILE));
   }
 
   @Override

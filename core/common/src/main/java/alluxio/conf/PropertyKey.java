@@ -3629,8 +3629,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
-  public static final PropertyKey WORKER_PERSISTENCE_CLUSTER_ID_PATH =
-      new Builder(Name.WORKER_PERSISTENCE_CLUSTER_ID_PATH)
+  public static final PropertyKey WORKER_PERSISTENCE_CLUSTER_ID_FILE =
+      new Builder(Name.WORKER_PERSISTENCE_CLUSTER_ID_FILE)
           .setDefaultValue(String.format("${%s}/clusterid", Name.HOME))
           .setDescription("The file used to save the cluster ID which the worker belongs.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
@@ -6143,8 +6143,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.worker.ufs.instream.cache.enabled";
     public static final String WORKER_UFS_INSTREAM_CACHE_MAX_SIZE =
         "alluxio.worker.ufs.instream.cache.max.size";
-    public static final String WORKER_PERSISTENCE_CLUSTER_ID_PATH =
-        "alluxio.worker.persistence.cluster.id.path";
+    public static final String WORKER_PERSISTENCE_CLUSTER_ID_FILE =
+        "alluxio.worker.persistence.cluster.id.file";
 
     //
     // Proxy related properties
