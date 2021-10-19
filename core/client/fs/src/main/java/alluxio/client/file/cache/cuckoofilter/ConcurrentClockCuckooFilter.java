@@ -802,8 +802,12 @@ public class ConcurrentClockCuckooFilter<T> implements ClockCuckooFilter<T>, Ser
           mSizeTable.readTag(from.mBucketIndex, from.mSlotIndex));
       mTable.writeTag(from.mBucketIndex, from.mSlotIndex, 0);
       if (depth == 1) {
-        // is it probable to.bucket is one of b1 and b2 ?
-        if (to.mBucketIndex != b1 && to.mBucketIndex != b2) {
+        // if to.mBucketIndex share the same lock with one of b1 and b2, we should not release its
+        // lock
+        int seg1 = mLocks.getSegmentIndex(b1);
+        int seg2 = mLocks.getSegmentIndex(b2);
+        int seg3 = mLocks.getSegmentIndex(to.mBucketIndex);
+        if (seg3 != seg1 && seg3 != seg2) {
           mLocks.unlockWrite(to.mBucketIndex);
         }
       } else {
