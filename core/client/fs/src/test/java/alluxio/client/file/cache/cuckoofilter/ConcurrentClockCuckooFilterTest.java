@@ -17,6 +17,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import alluxio.Constants;
+import alluxio.client.quota.CacheScope;
 import alluxio.test.util.ConcurrencyUtils;
 
 import com.google.common.hash.Funnels;
@@ -35,8 +36,8 @@ public class ConcurrentClockCuckooFilterTest {
   private static final int BITS_PER_SIZE = 20;
   private static final int BITS_PER_SCOPE = 8;
 
-  private static final ScopeInfo SCOPE1 = new ScopeInfo("table1");
-  private static final ScopeInfo SCOPE2 = new ScopeInfo("table2");
+  private static final CacheScope SCOPE1 = CacheScope.create("schema1.table1");
+  private static final CacheScope SCOPE2 = CacheScope.create("schema1.table2");
 
   // concurrency configurations
   private static final int DEFAULT_THREAD_AMOUNT = 12;

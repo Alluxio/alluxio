@@ -12,6 +12,7 @@
 package alluxio.client.file.cache.cuckoofilter;
 
 import alluxio.Constants;
+import alluxio.client.quota.CacheScope;
 import alluxio.collections.BitSet;
 import alluxio.collections.BuiltinBitSet;
 
@@ -110,9 +111,11 @@ public class ConcurrentClockCuckooFilter<T> implements ClockCuckooFilter<T>, Ser
     mWindowSize = windowSize;
     mFunnel = funnel;
     mHasher = hasher;
-    mScopeEncoder = new ScopeEncoder(mBitsPerScope);
     mLocks = new SegmentedLock(Math.min(DEFAULT_NUM_LOCKS, mNumBuckets >> 1), mNumBuckets);
     // init scope statistics
+    // note that the GLOBAL scope is the default scope and is always encoded to zero
+    mScopeEncoder = new ScopeEncoder(mBitsPerScope);
+    mScopeEncoder.encode(CacheScope.GLOBAL);
     int maxNumScopes = (1 << mBitsPerScope);
     mScopeToNumber = new AtomicInteger[maxNumScopes];
     mScopeToSize = new AtomicLong[maxNumScopes];
@@ -259,7 +262,7 @@ public class ConcurrentClockCuckooFilter<T> implements ClockCuckooFilter<T>, Ser
   }
 
   @Override
-  public boolean put(T item, int size, ScopeInfo scopeInfo) {
+  public boolean put(T item, int size, CacheScope scopeInfo) {
     // NOTE: zero size is not allowed in our clock filter, because we use zero size as
     // a special case to indicate an size overflow (size > mMaxSize), and all the
     // overflowed size will be revised to mMaxSize in method encodeSize()
@@ -421,7 +424,7 @@ public class ConcurrentClockCuckooFilter<T> implements ClockCuckooFilter<T>, Ser
   }
 
   @Override
-  public long approximateElementCount(ScopeInfo scopeInfo) {
+  public long approximateElementCount(CacheScope scopeInfo) {
     return mScopeToNumber[encodeScope(scopeInfo)].get();
   }
 
@@ -431,7 +434,7 @@ public class ConcurrentClockCuckooFilter<T> implements ClockCuckooFilter<T>, Ser
   }
 
   @Override
-  public long approximateElementSize(ScopeInfo scopeInfo) {
+  public long approximateElementSize(CacheScope scopeInfo) {
     return mScopeToSize[encodeScope(scopeInfo)].get();
   }
 
@@ -522,12 +525,16 @@ public class ConcurrentClockCuckooFilter<T> implements ClockCuckooFilter<T>, Ser
   }
 
   /**
-   * Encode a scope information into a integer type.
+   * Encode a scope information into a integer type (storage type). We only store table-level or
+   * higher level scope information, so file-level (partition-level) scope will not be stored.
    *
    * @param scopeInfo the scope to be encoded
    * @return the encoded number of scope
    */
-  private int encodeScope(ScopeInfo scopeInfo) {
+  private int encodeScope(CacheScope scopeInfo) {
+    if (scopeInfo.level() == CacheScope.Level.PARTITION) {
+      return mScopeEncoder.encode(scopeInfo.parent());
+    }
     return mScopeEncoder.encode(scopeInfo);
   }
 

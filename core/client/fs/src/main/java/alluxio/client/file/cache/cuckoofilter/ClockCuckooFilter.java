@@ -11,6 +11,8 @@
 
 package alluxio.client.file.cache.cuckoofilter;
 
+import alluxio.client.quota.CacheScope;
+
 /**
  * This interface represents a clock cuckoo filter that supports Put/Get/Delete operations.
  *
@@ -38,7 +40,7 @@ public interface ClockCuckooFilter<T> {
    * @param scopeInfo the scope this item belongs to
    * @return true if inserted successfully; false otherwise
    */
-  boolean put(T item, int size, ScopeInfo scopeInfo);
+  boolean put(T item, int size, CacheScope scopeInfo);
 
   /**
    * Check whether an item is in cuckoo filter (and reset its clock to MAX) or not.
@@ -85,7 +87,7 @@ public interface ClockCuckooFilter<T> {
    * @param scopeInfo the scope to be queried
    * @return the number of items of specified scope in this cuckoo filter
    */
-  long approximateElementCount(ScopeInfo scopeInfo);
+  long approximateElementCount(CacheScope scopeInfo);
 
   /**
    * @return the size of items in this cuckoo filter
@@ -96,5 +98,5 @@ public interface ClockCuckooFilter<T> {
    * @param scopeInfo the scope to be queried
    * @return the size of items of specified scope in this cuckoo filter
    */
-  long approximateElementSize(ScopeInfo scopeInfo);
+  long approximateElementSize(CacheScope scopeInfo);
 }
