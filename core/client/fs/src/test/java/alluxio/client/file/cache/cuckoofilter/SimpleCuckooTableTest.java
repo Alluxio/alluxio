@@ -55,7 +55,7 @@ public class SimpleCuckooTableTest {
       for (int j = 0; j < TAGS_PER_BUCKET; j++) {
         int tag = random.nextInt(0xff);
         cuckooTable.writeTag(i, j, tag);
-        assertEquals(CuckooStatus.OK, cuckooTable.findTagInBucket(i, tag).getStatus());
+        assertEquals(CuckooStatus.OK, cuckooTable.findTag(i, tag).getStatus());
       }
     }
   }
@@ -68,7 +68,7 @@ public class SimpleCuckooTableTest {
       for (int j = 0; j < TAGS_PER_BUCKET; j++) {
         int tag = random.nextInt(0xff);
         cuckooTable.writeTag(i, j, tag);
-        assertEquals(CuckooStatus.OK, cuckooTable.deleteTagFromBucket(i, tag).getStatus());
+        assertEquals(CuckooStatus.OK, cuckooTable.deleteTag(i, tag).getStatus());
       }
     }
   }
@@ -81,10 +81,10 @@ public class SimpleCuckooTableTest {
       for (int j = 0; j < TAGS_PER_BUCKET; j++) {
         int tag = random.nextInt(0xff);
         cuckooTable.writeTag(i, j, tag);
-        assertEquals(CuckooStatus.OK, cuckooTable.deleteTagFromBucket(i, tag).getStatus());
+        assertEquals(CuckooStatus.OK, cuckooTable.deleteTag(i, tag).getStatus());
         int tag2 = random.nextInt(0xff);
         cuckooTable.writeTag(i, j, tag2);
-        assertEquals(CuckooStatus.OK, cuckooTable.deleteTagFromBucket(i, tag2).getStatus());
+        assertEquals(CuckooStatus.OK, cuckooTable.deleteTag(i, tag2).getStatus());
       }
     }
   }

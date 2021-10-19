@@ -69,7 +69,7 @@ public class SimpleCuckooTable implements CuckooTable {
   }
 
   @Override
-  public TagPosition findTagInBucket(int bucketIndex, int tag) {
+  public TagPosition findTag(int bucketIndex, int tag) {
     for (int slotIndex = 0; slotIndex < mTagsPerBucket; slotIndex++) {
       if (readTag(bucketIndex, slotIndex) == tag) {
         return new TagPosition(bucketIndex, slotIndex, CuckooStatus.OK);
@@ -79,7 +79,7 @@ public class SimpleCuckooTable implements CuckooTable {
   }
 
   @Override
-  public TagPosition findTagInBuckets(int bucketIndex1, int bucketIndex2, int tag) {
+  public TagPosition findTag(int bucketIndex1, int bucketIndex2, int tag) {
     for (int slotIndex = 0; slotIndex < mTagsPerBucket; slotIndex++) {
       if (readTag(bucketIndex1, slotIndex) == tag) {
         return new TagPosition(bucketIndex1, slotIndex, CuckooStatus.OK);
@@ -91,7 +91,7 @@ public class SimpleCuckooTable implements CuckooTable {
   }
 
   @Override
-  public TagPosition deleteTagFromBucket(int bucketIndex, int tag) {
+  public TagPosition deleteTag(int bucketIndex, int tag) {
     for (int slotIndex = 0; slotIndex < mTagsPerBucket; slotIndex++) {
       if (readTag(bucketIndex, slotIndex) == tag) {
         writeTag(bucketIndex, slotIndex, 0);

@@ -41,7 +41,7 @@ public interface CuckooTable {
    * @return the valid position of this tag if it is found; otherwise an invalid position indicates
    *         that tag is not found
    */
-  TagPosition findTagInBucket(int bucketIndex, int tag);
+  TagPosition findTag(int bucketIndex, int tag);
 
   /**
    * Find a tag in specified two buckets and return its position.
@@ -52,7 +52,7 @@ public interface CuckooTable {
    * @return the valid position of this tag if it is found; otherwise an invalid position indicates
    *         that tag is not found
    */
-  TagPosition findTagInBuckets(int bucketIndex1, int bucketIndex2, int tag);
+  TagPosition findTag(int bucketIndex1, int bucketIndex2, int tag);
 
   /**
    * Delete a tag in specified bucket and return its position.
@@ -62,7 +62,7 @@ public interface CuckooTable {
    * @return the valid position of this tag if it is found and deleted; otherwise an invalid
    *         position indicates that tag is not found
    */
-  TagPosition deleteTagFromBucket(int bucketIndex, int tag);
+  TagPosition deleteTag(int bucketIndex, int tag);
 
   /**
    * Insert a tag into specified bucket. If no empty slot found, it will kickout one randomly and

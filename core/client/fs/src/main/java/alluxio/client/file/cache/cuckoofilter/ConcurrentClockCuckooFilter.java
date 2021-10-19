@@ -324,7 +324,7 @@ public class ConcurrentClockCuckooFilter<T> implements ClockCuckooFilter<T>, Ser
     int b1 = indexHash(hv);
     int b2 = altIndex(b1, tag);
     mLocks.readLock(b1, b2);
-    TagPosition pos = mTable.findTagInBuckets(b1, b2, tag);
+    TagPosition pos = mTable.findTag(b1, b2, tag);
     boolean found = pos.getStatus() == CuckooStatus.OK;
     if (found && shouldReset) {
       // set C to MAX
@@ -342,9 +342,9 @@ public class ConcurrentClockCuckooFilter<T> implements ClockCuckooFilter<T>, Ser
     int b2 = altIndex(b1, tag);
     lockTwoWriteAndOpportunisticAging(b1, b2);
     TagPosition pos = new TagPosition();
-    pos = mTable.deleteTagFromBucket(b1, tag);
+    pos = mTable.deleteTag(b1, tag);
     if (pos.getStatus() != CuckooStatus.OK) {
-      pos = mTable.deleteTagFromBucket(b2, tag);
+      pos = mTable.deleteTag(b2, tag);
     }
     if (pos.getStatus() == CuckooStatus.OK) {
       mNumItems.decrementAndGet();
@@ -389,7 +389,7 @@ public class ConcurrentClockCuckooFilter<T> implements ClockCuckooFilter<T>, Ser
     int b1 = indexHash(hv);
     int b2 = altIndex(b1, tag);
     mLocks.readLock(b1, b2);
-    TagPosition pos = mTable.findTagInBuckets(b1, b2, tag);
+    TagPosition pos = mTable.findTag(b1, b2, tag);
     if (pos.getStatus() == CuckooStatus.OK) {
       int clock = mClockTable.readTag(pos.getBucketIndex(), pos.getSlotIndex());
       mLocks.unlockRead(b1, b2);
@@ -628,7 +628,7 @@ public class ConcurrentClockCuckooFilter<T> implements ClockCuckooFilter<T>, Ser
     boolean done = runCuckoo(b1, b2, fp, pos);
     if (done) {
       // avoid another duplicated key is inserted during runCuckoo.
-      if (mTable.findTagInBuckets(b1, b2, fp).getStatus() == CuckooStatus.OK) {
+      if (mTable.findTag(b1, b2, fp).getStatus() == CuckooStatus.OK) {
         pos.setStatus(CuckooStatus.FAILURE_KEY_DUPLICATED);
         return false;
       } else {
