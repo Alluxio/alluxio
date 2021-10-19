@@ -136,8 +136,8 @@ public final class BlockMasterWorkerServiceHandler extends
                            StreamObserver<GetClusterIdPResponse> responseObserver) {
     RpcUtils.call(LOG, (RpcUtils.RpcCallableThrowsIOException<GetClusterIdPResponse>) () -> {
       return GetClusterIdPResponse.newBuilder()
-          .setClusterId(mBlockMaster.getClusterId(GrpcUtils.fromProto(request.getWorkerNetAddress())))
-          .build();
+          .setClusterId(mBlockMaster.getClusterId(
+              GrpcUtils.fromProto(request.getWorkerNetAddress()))).build();
     }, "getClusterId", "request=%s", responseObserver, request);
   }
 

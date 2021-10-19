@@ -931,24 +931,26 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
   }
 
   @Override
-  public PreRegisterCommand workerPreRegister(String workerClusterId,
+  public PreRegisterCommand workerPreRegister(String clusterId,
       WorkerNetAddress workerNetAddress) throws IOException {
     PreRegisterCommand mCommand = PreRegisterCommand.newBuilder()
         .setPreRegisterCommandType(PreRegisterCommandType.Nothing).build();
 
     String mClusterId = getClusterId(workerNetAddress);
-    if (workerClusterId.equals(IdUtils.INVALID_CLUSTER_ID)) {
+    if (clusterId.equals(IdUtils.INVALID_CLUSTER_ID)) {
+      // a new worker just to save cluster ID
       mCommand = PreRegisterCommand.newBuilder()
           .setPreRegisterCommandType(PreRegisterCommandType.Persist).setData(mClusterId).build();
       LOG.info("worker {} first PreRegister", workerNetAddress.getHost());
       return mCommand;
     }
 
-    if (!workerClusterId.equals(mClusterId)) {
+    if (!clusterId.equals(mClusterId)) {
+      // the worker must to reset(remove all block) itself to prevent the conflicts.
       mCommand = PreRegisterCommand.newBuilder()
           .setPreRegisterCommandType(PreRegisterCommandType.Reset).setData(mClusterId).build();
       LOG.info("Worker {} clusterId {} doesn't match expected {}",
-          workerNetAddress.getHost(), mClusterId, workerClusterId);
+          workerNetAddress.getHost(), mClusterId, clusterId);
       return mCommand;
     }
 

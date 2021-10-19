@@ -36,7 +36,6 @@ import alluxio.exception.status.DeadlineExceededException;
 import alluxio.grpc.ReadRequest;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.underfs.UfsManager;
-import alluxio.util.IdUtils;
 import alluxio.util.io.BufferUtils;
 import alluxio.wire.BlockReadRequest;
 import alluxio.worker.block.io.BlockReader;
@@ -410,7 +409,7 @@ public class DefaultBlockWorkerTest {
   }
 
   @Test void setAndGetClusterId() throws IOException {
-    String mClusterID = IdUtils.createFileSystemContextId();
+    String mClusterID = java.util.UUID.randomUUID().toString();
     mBlockWorker.setClusterId(mClusterID);
     assertEquals(mClusterID, mBlockWorker.getClusterId().get());
   }

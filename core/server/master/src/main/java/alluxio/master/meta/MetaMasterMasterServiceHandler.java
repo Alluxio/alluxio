@@ -62,10 +62,11 @@ public final class MetaMasterMasterServiceHandler
   @Override
   public void getClusterIdInternal(GetClusterIdInternalPRequest request,
       StreamObserver<GetClusterIdInternalPResponse> responseObserver) {
-    RpcUtils.call(LOG, (RpcUtils.RpcCallableThrowsIOException<GetClusterIdInternalPResponse>) () -> {
-      return GetClusterIdInternalPResponse.newBuilder()
-          .setClusterId(mMetaMaster.getClusterID()).build();
-    }, "getClusterIdInternal", "request=%s", responseObserver, request);
+    RpcUtils.call(
+        LOG, (RpcUtils.RpcCallableThrowsIOException<GetClusterIdInternalPResponse>) () -> {
+        return GetClusterIdInternalPResponse.newBuilder().setClusterId(
+        mMetaMaster.getClusterID()).build();
+      }, "getClusterIdInternal", "request=%s", responseObserver, request);
   }
 
   @Override

@@ -147,10 +147,6 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
   private final UfsManager mUfsManager;
   private final BlockWorkerDB mBlockWorkerDB;
 
-  private static class StateKey {
-    final static String ClusterId = "ClusterId";
-  }
-
   /**
    * Constructs a default block worker.
    *
@@ -272,9 +268,9 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
         new AtomicReference<>(PreRegisterCommand.getDefaultInstance());
     try {
       RetryUtils.retry("preRegister worker",
-          () -> mCommandFromMaster.set(blockMasterClient.preRegister(getClusterId().get(), address)),
-          RetryUtils.defaultWorkerMasterClientRetry(ServerConfiguration
-              .getDuration(PropertyKey.WORKER_MASTER_CONNECT_RETRY_TIMEOUT)));
+          () -> mCommandFromMaster.set(blockMasterClient.preRegister(getClusterId().get(),
+              address)), RetryUtils.defaultWorkerMasterClientRetry(ServerConfiguration.getDuration(
+                      PropertyKey.WORKER_MASTER_CONNECT_RETRY_TIMEOUT)));
     } catch (Exception e) {
       throw new RuntimeException("Failed to preRegister from block master: " + e.getMessage());
     } finally {

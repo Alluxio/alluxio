@@ -92,7 +92,7 @@ public class DefaultBlockWorkerDB implements BlockWorkerDB {
   /**
    * persist a key-value to property file. If the file does not exist, it will be created.
    * @param key  the key to be persist into this file
-   * @param value  the value corresponding to key.
+   * @param value  the value corresponding to key
    * @throws IOException  I/O error if create or write file failed
    */
   void set(String key, String value) throws IOException {

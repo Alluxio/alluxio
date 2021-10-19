@@ -237,6 +237,13 @@ public class BlockMasterClient extends AbstractMasterClient {
         .blockHeartbeat(request).getCommand(), LOG, "Heartbeat", "workerId=%d", workerId);
   }
 
+  /**
+   * The method used to verify whether the worker can register with the current cluster.
+   * So, the method should execute before execute {@link #getId} and {@link #register}.
+   * @param clusterId the cluster id of the worker
+   * @param address the worker WorkerNetAddress
+   * @return an optional command for the worker to execute
+   */
   public PreRegisterCommand preRegister(String clusterId, final WorkerNetAddress address)
       throws AlluxioStatusException {
     final PreRegisterWorkerPRequest request = PreRegisterWorkerPRequest.newBuilder()

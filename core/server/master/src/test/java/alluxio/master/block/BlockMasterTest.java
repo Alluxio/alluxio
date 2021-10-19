@@ -18,6 +18,8 @@ import alluxio.Constants;
 import alluxio.clock.ManualClock;
 import alluxio.grpc.Command;
 import alluxio.grpc.CommandType;
+import alluxio.grpc.PreRegisterCommand;
+import alluxio.grpc.PreRegisterCommandType;
 import alluxio.grpc.RegisterWorkerPOptions;
 import alluxio.grpc.StorageList;
 import alluxio.grpc.WorkerLostStorageInfo;
@@ -33,6 +35,7 @@ import alluxio.master.metrics.MetricsMaster;
 import alluxio.master.metrics.MetricsMasterFactory;
 import alluxio.metrics.Metric;
 import alluxio.proto.meta.Block;
+import alluxio.util.IdUtils;
 import alluxio.util.ThreadFactoryUtils;
 import alluxio.util.executor.ExecutorServiceFactories;
 import alluxio.wire.BlockInfo;
@@ -245,6 +248,43 @@ public class BlockMasterTest {
     alluxio.grpc.Command heartBeat = mBlockMaster.workerHeartbeat(workerId, null,
         memUsage, NO_BLOCKS, NO_BLOCKS_ON_LOCATION, NO_LOST_STORAGE, mMetrics);
     assertEquals(orphanedBlocks, heartBeat.getDataList());
+  }
+
+  @Test
+  public void newWorkerPreregister() throws Exception {
+    String currentClusterId = mBlockMaster.getClusterId(NET_ADDRESS_1);
+    PreRegisterCommand command = mBlockMaster.workerPreRegister(
+        IdUtils.INVALID_CLUSTER_ID, NET_ADDRESS_1);
+
+    // the new worker need to Persist the cluster ID so workerPreRegister return Persist command
+    // the worker need to save cluster ID
+    assertEquals(command.getPreRegisterCommandType(), PreRegisterCommandType.Persist);
+    assertEquals(command.getData(), currentClusterId);
+  }
+
+  @Test
+  public void currentClusterWorkerPreregister() throws Exception {
+    String currentClusterId = mBlockMaster.getClusterId(NET_ADDRESS_1);
+    PreRegisterCommand command = mBlockMaster.workerPreRegister(currentClusterId, NET_ADDRESS_1);
+
+    // if the worker belongs to the current cluster,
+    // it will report the same cluster ID with current when invoke workerPreRegister().
+    // so workerPreRegister return Nothing command, the worker needn't to do anything
+    assertEquals(command.getPreRegisterCommandType(), PreRegisterCommandType.Nothing);
+  }
+
+  @Test
+  public void otherClusterWorkerPreregister() throws Exception {
+    String otherClusterId = java.util.UUID.randomUUID().toString();
+    String currentClusterId = mBlockMaster.getClusterId(NET_ADDRESS_1);
+    PreRegisterCommand command = mBlockMaster.workerPreRegister(otherClusterId, NET_ADDRESS_1);
+
+    // if the worker belongs to the other cluster,
+    // it will report the a different cluster ID than current one when invoke workerPreRegister().
+    // so workerPreRegister return Reset command,
+    // the worker must to reset itself to prevent the conflicts.
+    assertEquals(command.getPreRegisterCommandType(), PreRegisterCommandType.Reset);
+    assertEquals(command.getData(), currentClusterId);
   }
 
   @Test
