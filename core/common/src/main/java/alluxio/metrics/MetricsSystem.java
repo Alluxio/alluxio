@@ -673,8 +673,8 @@ public final class MetricsSystem {
   public static List<alluxio.grpc.Metric> reportWorkerMetrics() {
     long start = System.currentTimeMillis();
     List<alluxio.grpc.Metric> metricsList = reportMetrics(InstanceType.WORKER);
-    LOG.debug("Get the worker metrics list to report to leading master in {}ms",
-        System.currentTimeMillis() - start);
+    LOG.debug("Get the worker metrics list contains {} metrics to report to leading master in {}ms",
+        metricsList.size(), System.currentTimeMillis() - start);
     return metricsList;
   }
 
@@ -684,8 +684,8 @@ public final class MetricsSystem {
   public static List<alluxio.grpc.Metric> reportClientMetrics() {
     long start = System.currentTimeMillis();
     List<alluxio.grpc.Metric> metricsList = reportMetrics(InstanceType.CLIENT);
-    LOG.debug("Get the client metrics list to report to leading master in {}ms",
-        System.currentTimeMillis() - start);
+    LOG.debug("Get the client metrics list contains {} metrics to report to leading master in {}ms",
+        metricsList.size(), System.currentTimeMillis() - start);
     return metricsList;
   }
 

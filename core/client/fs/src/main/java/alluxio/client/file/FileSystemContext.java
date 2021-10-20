@@ -24,6 +24,7 @@ import alluxio.client.file.FileSystemContextReinitializer.ReinitBlockerResource;
 import alluxio.client.metrics.MetricsHeartbeatContext;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
+import alluxio.conf.ReconfigurableRegistry;
 import alluxio.conf.path.SpecificPathConfiguration;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.status.AlluxioStatusException;
@@ -385,6 +386,7 @@ public class FileSystemContext implements Closeable {
       LOG.debug("Reinitializing FileSystemContext: update cluster conf: {}, update path conf:"
           + " {}", updateClusterConf, updateClusterConf);
       closeContext();
+      ReconfigurableRegistry.update();
       initContext(getClientContext(), MasterInquireClient.Factory.create(getClusterConf(),
           getClientContext().getUserState()));
       LOG.debug("FileSystemContext re-initialized");
@@ -629,7 +631,7 @@ public class FileSystemContext implements Closeable {
    * @return the info of all block workers eligible for reads and writes
    */
   public synchronized List<BlockWorkerInfo> getCachedWorkers() throws IOException {
-    if (mWorkerInfoList == null || mWorkerRefreshPolicy.attempt()) {
+    if (mWorkerInfoList == null || mWorkerInfoList.isEmpty() || mWorkerRefreshPolicy.attempt()) {
       mWorkerInfoList = getAllWorkers();
     }
     return mWorkerInfoList;

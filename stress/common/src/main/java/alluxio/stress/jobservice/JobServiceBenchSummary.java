@@ -12,6 +12,7 @@
 package alluxio.stress.jobservice;
 
 import alluxio.collections.Pair;
+import alluxio.stress.common.GeneralBenchSummary;
 import alluxio.stress.Parameters;
 import alluxio.stress.Summary;
 import alluxio.stress.common.SummaryStatistics;
@@ -32,14 +33,11 @@ import java.util.zip.DataFormatException;
 /**
  * The summary for the job service stress tests.
  */
-public final class JobServiceBenchSummary implements Summary {
+public final class JobServiceBenchSummary extends GeneralBenchSummary {
   private long mDurationMs;
   private long mEndTimeMs;
   private JobServiceBenchParameters mParameters;
   private List<String> mNodes;
-  private Map<String, List<String>> mErrors;
-
-  private float mThroughput;
   private SummaryStatistics mStatistics;
   private Map<String, SummaryStatistics> mStatisticsPerMethod;
 
@@ -73,20 +71,6 @@ public final class JobServiceBenchSummary implements Summary {
     mThroughput = ((float) mStatistics.mNumSuccess / mDurationMs) * 1000.0f;
     mNodes = nodes;
     mErrors = errors;
-  }
-
-  /**
-   * @return the throughput
-   */
-  public float getThroughput() {
-    return mThroughput;
-  }
-
-  /**
-   * @param throughput the throughput
-   */
-  public void setThroughput(float throughput) {
-    mThroughput = throughput;
   }
 
   /**
@@ -129,20 +113,6 @@ public final class JobServiceBenchSummary implements Summary {
    */
   public void setNodes(List<String> nodes) {
     mNodes = nodes;
-  }
-
-  /**
-   * @return the errors
-   */
-  public Map<String, List<String>> getErrors() {
-    return mErrors;
-  }
-
-  /**
-   * @param errors the errors
-   */
-  public void setErrors(Map<String, List<String>> errors) {
-    mErrors = errors;
   }
 
   /**

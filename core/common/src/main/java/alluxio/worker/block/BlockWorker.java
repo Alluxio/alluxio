@@ -18,8 +18,10 @@ import alluxio.exception.InvalidWorkerStateException;
 import alluxio.exception.WorkerOutOfSpaceException;
 import alluxio.grpc.AsyncCacheRequest;
 import alluxio.grpc.CacheRequest;
+import alluxio.grpc.GetConfigurationPOptions;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.wire.BlockReadRequest;
+import alluxio.wire.Configuration;
 import alluxio.wire.FileInfo;
 import alluxio.worker.SessionCleanable;
 import alluxio.worker.Worker;
@@ -29,6 +31,7 @@ import alluxio.worker.block.meta.BlockMeta;
 import alluxio.worker.block.meta.TempBlockMeta;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -348,4 +351,15 @@ public interface BlockWorker extends Worker, SessionCleanable {
    * Clears the worker metrics.
    */
   void clearMetrics();
+
+  /**
+   * @param options method options
+   * @return configuration information list
+   */
+  Configuration getConfiguration(GetConfigurationPOptions options);
+
+  /**
+   * @return the white list
+   */
+  List<String> getWhiteList();
 }
