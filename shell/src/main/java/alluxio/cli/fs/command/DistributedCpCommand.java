@@ -19,6 +19,7 @@ import alluxio.cli.fs.command.job.JobAttempt;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.URIStatus;
 import alluxio.client.job.JobMasterClient;
+import alluxio.collections.Pair;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.AlluxioException;
@@ -27,17 +28,26 @@ import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.InvalidPathException;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.job.JobConfig;
+import alluxio.job.plan.BatchedJobConfig;
+import alluxio.job.plan.load.LoadConfig;
 import alluxio.job.plan.migrate.MigrateConfig;
 import alluxio.job.wire.JobInfo;
 import alluxio.retry.CountingRetry;
 import alluxio.retry.RetryPolicy;
 import alluxio.util.io.PathUtils;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.Sets;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -73,6 +83,17 @@ public class DistributedCpCommand extends AbstractDistributedJobCommand {
           .desc("Whether to overwrite the destination. Default is true.")
           .build();
 
+  private static final Option BATCH_SIZE_OPTION =
+      Option.builder()
+          .longOpt("batch-size")
+          .required(false)
+          .hasArg(true)
+          .numberOfArgs(1)
+          .type(Number.class)
+          .argName("batch-size")
+          .desc("Number of files per request")
+          .build();
+
   /**
    * @param fsContext the filesystem context of Alluxio
    */
@@ -88,7 +109,8 @@ public class DistributedCpCommand extends AbstractDistributedJobCommand {
   @Override
   public Options getOptions() {
     return new Options().addOption(ACTIVE_JOB_COUNT_OPTION)
-        .addOption(OVERWRITE_OPTION);
+        .addOption(OVERWRITE_OPTION)
+        .addOption(BATCH_SIZE_OPTION);
   }
 
   @Override
@@ -98,7 +120,7 @@ public class DistributedCpCommand extends AbstractDistributedJobCommand {
 
   @Override
   public String getUsage() {
-    return "distributedCp [--active-jobs <num>] <src> <dst>";
+    return "distributedCp [--active-jobs <num>] [--batch-size <num>] <src> <dst>";
   }
 
   @Override
@@ -109,9 +131,8 @@ public class DistributedCpCommand extends AbstractDistributedJobCommand {
   @Override
   public int run(CommandLine cl) throws AlluxioException, IOException {
     mActiveJobs = FileSystemShellUtils.getIntArg(cl, ACTIVE_JOB_COUNT_OPTION,
-            AbstractDistributedJobCommand.DEFAULT_ACTIVE_JOBS);
+        AbstractDistributedJobCommand.DEFAULT_ACTIVE_JOBS);
     System.out.format("Allow up to %s active jobs%n", mActiveJobs);
-
     boolean overwrite = FileSystemShellUtils.getBoolArg(cl, OVERWRITE_OPTION, true);
 
     String[] args = cl.getArgs();
@@ -119,33 +140,57 @@ public class DistributedCpCommand extends AbstractDistributedJobCommand {
     AlluxioURI dstPath = new AlluxioURI(args[1]);
 
     if (PathUtils.hasPrefix(dstPath.toString(), srcPath.toString())) {
-      throw new RuntimeException(ExceptionMessage.MIGRATE_CANNOT_BE_TO_SUBDIRECTORY.getMessage(
-          srcPath, dstPath));
+      throw new RuntimeException(
+          ExceptionMessage.MIGRATE_CANNOT_BE_TO_SUBDIRECTORY.getMessage(srcPath, dstPath));
     }
 
     AlluxioConfiguration conf = mFsContext.getPathConf(dstPath);
     mWriteType = conf.get(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT);
-
-    distributedCp(srcPath, dstPath, overwrite);
+    int defaultBatchSize = conf.getInt(PropertyKey.JOB_REQUEST_BATCH_SIZE);
+    int batchSize = FileSystemShellUtils.getIntArg(cl, BATCH_SIZE_OPTION, defaultBatchSize);
+    distributedCp(srcPath, dstPath, overwrite, batchSize);
     return 0;
   }
 
-  private CopyJobAttempt newJob(String srcPath, String dstPath, boolean overwrite) {
-    CopyJobAttempt jobAttempt = new CopyJobAttempt(mClient,
-        new MigrateConfig(srcPath, dstPath, mWriteType, overwrite),
-        new CountingRetry(3));
+  private JobAttempt newJob(List<Pair<String, String>> pool, boolean overwrite) {
 
+    JobAttempt jobAttempt = create(pool, overwrite);
     jobAttempt.run();
-
     return jobAttempt;
   }
 
-  private void distributedCp(AlluxioURI srcPath, AlluxioURI dstPath, boolean overwrite)
-      throws IOException, AlluxioException {
+  public JobAttempt create(List<Pair<String, String>> filePath, boolean overwrite) {
+    int poolSize = filePath.size();
+    JobAttempt jobAttempt;
+    if (poolSize == 1) {
+      Pair<String, String> pair = filePath.iterator().next();
+      jobAttempt = new CopyJobAttempt(mClient,
+          new MigrateConfig(pair.getFirst(), pair.getSecond(), mWriteType, overwrite),
+          new CountingRetry(3));
+    } else {
+      HashSet<Map<String, String>> configs = Sets.newHashSet();
+      ObjectMapper oMapper = new ObjectMapper();
+      for (Pair<String, String> pair : filePath) {
+        MigrateConfig config =
+            new MigrateConfig(pair.getFirst(), pair.getSecond(), mWriteType, overwrite);
+        Map<String, String> map = oMapper.convertValue(config, Map.class);
+        configs.add(map);
+      }
+      BatchedJobConfig config = new BatchedJobConfig("Migrate", configs);
+
+      jobAttempt = new BatchedCopyJobAttempt(mClient, config, new CountingRetry(3));
+
+    }
+    return jobAttempt;
+  }
+
+  private void distributedCp(AlluxioURI srcPath, AlluxioURI dstPath, boolean overwrite,
+      int batchSize) throws IOException, AlluxioException {
     if (mFileSystem.getStatus(srcPath).isFolder()) {
       createFolders(srcPath, dstPath);
     }
-    copy(srcPath, dstPath, overwrite);
+    List<Pair<String, String>> filePool = new ArrayList<>(batchSize);
+    copy(srcPath, dstPath, overwrite, batchSize, filePool);
     // Wait remaining jobs to complete.
     drain();
   }
@@ -164,34 +209,41 @@ public class DistributedCpCommand extends AbstractDistributedJobCommand {
 
     for (URIStatus srcInnerStatus : mFileSystem.listStatus(srcPath)) {
       if (srcInnerStatus.isFolder()) {
-        String dstInnerPath = computeTargetPath(srcInnerStatus.getPath(),
-            srcPath.getPath(), dstPath.getPath());
+        String dstInnerPath =
+            computeTargetPath(srcInnerStatus.getPath(), srcPath.getPath(), dstPath.getPath());
         createFolders(new AlluxioURI(srcInnerStatus.getPath()), new AlluxioURI(dstInnerPath));
       }
     }
   }
 
-  private void copy(AlluxioURI srcPath, AlluxioURI dstPath, boolean overwrite)
-      throws IOException, AlluxioException {
+  private void copy(AlluxioURI srcPath, AlluxioURI dstPath, boolean overwrite, int batchSize,
+      List<Pair<String, String>> pool) throws IOException, AlluxioException {
 
     for (URIStatus srcInnerStatus : mFileSystem.listStatus(srcPath)) {
-      String dstInnerPath = computeTargetPath(srcInnerStatus.getPath(),
-          srcPath.getPath(), dstPath.getPath());
+      String dstInnerPath =
+          computeTargetPath(srcInnerStatus.getPath(), srcPath.getPath(), dstPath.getPath());
       if (srcInnerStatus.isFolder()) {
-        copy(new AlluxioURI(srcInnerStatus.getPath()), new AlluxioURI(dstInnerPath), overwrite);
+        copy(new AlluxioURI(srcInnerStatus.getPath()), new AlluxioURI(dstInnerPath), overwrite,
+            batchSize, pool);
       } else {
-        addJob(srcInnerStatus.getPath(), dstInnerPath, overwrite);
+        pool.add(new Pair<>(srcInnerStatus.getPath(), dstInnerPath));
+        if (pool.size() == batchSize) {
+          addJob(pool, overwrite);
+          pool.clear();
+        }
       }
+    }
+    if (pool.size() > 0) {
+      addJob(pool, overwrite);
     }
   }
 
-  private void addJob(String srcPath, String dstPath, boolean overwrite) {
+  private void addJob(List<Pair<String, String>> pool, boolean overwrite) {
     if (mSubmittedJobAttempts.size() >= mActiveJobs) {
       // Wait one job to complete.
       waitJob();
     }
-    System.out.println("Copying " + srcPath + " to " + dstPath);
-    mSubmittedJobAttempts.add(newJob(srcPath, dstPath, overwrite));
+    mSubmittedJobAttempts.add(newJob(pool, overwrite));
   }
 
   private static String computeTargetPath(String path, String source, String destination)
@@ -231,6 +283,39 @@ public class DistributedCpCommand extends AbstractDistributedJobCommand {
     public void logCompleted() {
       System.out.println(String.format("Successfully copied %s to %s after %d attempts",
           mJobConfig.getSource(), mJobConfig.getDestination(), mRetryPolicy.getAttemptCount()));
+    }
+  }
+  private class BatchedCopyJobAttempt extends JobAttempt {
+    private BatchedJobConfig mJobConfig;
+
+    BatchedCopyJobAttempt(JobMasterClient client, BatchedJobConfig jobConfig,
+        RetryPolicy retryPolicy) {
+      super(client, retryPolicy);
+      mJobConfig = jobConfig;
+    }
+
+    @Override
+    protected JobConfig getJobConfig() {
+      return mJobConfig;
+    }
+
+    // TODO(jianjian) better print
+    @Override
+    public void logFailedAttempt(JobInfo jobInfo) {
+      System.out.println(String.format("Attempt %d to copy %s failed because: %s",
+          mRetryPolicy.getAttemptCount(), mJobConfig, jobInfo.getErrorMessage()));
+    }
+
+    @Override
+    protected void logFailed() {
+      System.out.println(String.format("Failed to complete copying %s after %d retries.",
+          mJobConfig, mRetryPolicy.getAttemptCount()));
+    }
+
+    @Override
+    public void logCompleted() {
+      System.out.println(String.format("Successfully copied %s after %d attempts", mJobConfig,
+          mRetryPolicy.getAttemptCount()));
     }
   }
 }
