@@ -105,18 +105,8 @@ public interface CacheManager extends AutoCloseable {
         boolean isShadowCacheEnabled =
             conf.getBoolean(PropertyKey.USER_CLIENT_CACHE_SHADOW_ENABLED);
         if (isShadowCacheEnabled) {
-          ShadowCacheType shadowCacheType =
-              conf.getEnum(PropertyKey.USER_CLIENT_CACHE_SHADOW_TYPE, ShadowCacheType.class);
-          switch (shadowCacheType) {
-            case MultipleBloomFilter:
-              return new NoExceptionCacheManager(
-                  new CacheManagerWithCuckooShadowCache(LocalCacheManager.create(conf), conf));
-            case ClockCuckooFilter:
-              return new NoExceptionCacheManager(
-                  new CacheManagerWithShadowCache(LocalCacheManager.create(conf), conf));
-            default:
-               // fall through intentionally
-          }
+          return new NoExceptionCacheManager(
+              new CacheManagerWithShadowCache(LocalCacheManager.create(conf), conf));
         }
         return new NoExceptionCacheManager(LocalCacheManager.create(conf));
       } catch (IOException e) {
@@ -188,8 +178,7 @@ public interface CacheManager extends AutoCloseable {
   }
 
   /**
-   * Reads a part of a page if the queried page is found in the cache, stores the result in
-   * buffer.
+   * Reads a part of a page if the queried page is found in the cache, stores the result in buffer.
    *
    * @param pageId page identifier
    * @param pageOffset offset into the page
@@ -204,8 +193,7 @@ public interface CacheManager extends AutoCloseable {
   }
 
   /**
-   * Reads a part of a page if the queried page is found in the cache, stores the result in
-   * buffer.
+   * Reads a part of a page if the queried page is found in the cache, stores the result in buffer.
    *
    * @param pageId page identifier
    * @param pageOffset offset into the page

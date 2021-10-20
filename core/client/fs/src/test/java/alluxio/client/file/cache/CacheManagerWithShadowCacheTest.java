@@ -32,7 +32,8 @@ import java.util.HashMap;
  */
 public final class CacheManagerWithShadowCacheTest {
   private static final int PAGE_SIZE_BYTES = Constants.KB;
-  private static final int BLOOMFILTER_NUM = 4;
+  private static final int MAX_AGE_BITS = 2;
+  private static final int MAX_AGE = (1 << MAX_AGE_BITS);
   private static final PageId PAGE_ID1 = new PageId("0L", 0L);
   private static final PageId PAGE_ID2 = new PageId("1L", 1L);
   private static final byte[] PAGE1 = BufferUtils.getIncreasingByteArray(PAGE_SIZE_BYTES);
@@ -43,8 +44,11 @@ public final class CacheManagerWithShadowCacheTest {
 
   @Before
   public void before() throws Exception {
+    mConf.set(PropertyKey.USER_CLIENT_CACHE_SHADOW_TYPE, ShadowCacheType.MULTIPLE_BLOOM_FILTER);
     mConf.set(PropertyKey.USER_CLIENT_CACHE_SHADOW_WINDOW, "20s");
-    mConf.set(PropertyKey.USER_CLIENT_CACHE_SHADOW_BLOOMFILTER_NUM, BLOOMFILTER_NUM);
+    mConf.set(PropertyKey.USER_CLIENT_CACHE_SHADOW_MEMORY_OVERHEAD, "1MB");
+    mConf.set(PropertyKey.USER_CLIENT_CACHE_SHADOW_BLOOMFILTER_NUM, MAX_AGE);
+    mConf.set(PropertyKey.USER_CLIENT_CACHE_SHADOW_CUCKOO_CLOCK_BITS, MAX_AGE_BITS);
     mCacheManager = new CacheManagerWithShadowCache(new KVCacheManager(), mConf);
     mCacheManager.stopUpdate();
   }
@@ -88,10 +92,9 @@ public final class CacheManagerWithShadowCacheTest {
     assertTrue(mCacheManager.put(PAGE_ID1, PAGE1));
     assertEquals(PAGE1.length, mCacheManager.get(PAGE_ID1, PAGE1.length, mBuf, 0));
     assertArrayEquals(PAGE1, mBuf);
-    mCacheManager.switchBloomFilter();
-    mCacheManager.switchBloomFilter();
-    mCacheManager.switchBloomFilter();
-    mCacheManager.switchBloomFilter();
+    for (int i = 0; i <= MAX_AGE; i++) {
+      mCacheManager.aging();
+    }
     mCacheManager.updateWorkingSetSize();
     assertEquals(mCacheManager.getShadowCachePages(), 0);
     assertEquals(mCacheManager.getShadowCacheBytes(), 0);
@@ -100,17 +103,19 @@ public final class CacheManagerWithShadowCacheTest {
   }
 
   @Test
-  public void BloomFilterExpireHalf() throws Exception {
+  public void filterExpireHalf() throws Exception {
     assertTrue(mCacheManager.put(PAGE_ID1, PAGE1));
     assertEquals(PAGE1.length, mCacheManager.get(PAGE_ID1, PAGE1.length, mBuf, 0));
     assertArrayEquals(PAGE1, mBuf);
-    mCacheManager.switchBloomFilter();
-    mCacheManager.switchBloomFilter();
+    for (int i = 0; i < MAX_AGE / 2; i++) {
+      mCacheManager.aging();
+    }
     assertTrue(mCacheManager.put(PAGE_ID2, PAGE2));
     assertEquals(PAGE2.length, mCacheManager.get(PAGE_ID2, PAGE2.length, mBuf, 0));
     assertArrayEquals(PAGE2, mBuf);
-    mCacheManager.switchBloomFilter();
-    mCacheManager.switchBloomFilter();
+    for (int i = 0; i <= MAX_AGE / 2; i++) {
+      mCacheManager.aging();
+    }
     mCacheManager.updateWorkingSetSize();
     assertEquals(mCacheManager.getShadowCachePages(), 1);
     assertEquals(mCacheManager.getShadowCacheBytes(), PAGE2.length);
@@ -141,15 +146,15 @@ public final class CacheManagerWithShadowCacheTest {
   @Test
   public void getExistInRollingWindow() throws Exception {
     mCacheManager.put(PAGE_ID1, PAGE1);
-    for (int i = 0; i < BLOOMFILTER_NUM; i++) {
-      mCacheManager.switchBloomFilter();
+    for (int i = 0; i <= MAX_AGE; i++) {
+      mCacheManager.aging();
     }
     mCacheManager.put(PAGE_ID2, PAGE1);
-    //PAGE_ID1 is evicted, only PAGE_ID2 in the shadow cache
+    // PAGE_ID1 is evicted, only PAGE_ID2 in the shadow cache
     assertEquals(mCacheManager.getShadowCacheBytes(), PAGE2.length);
-    //PAGE_ID1 is not in the shadow cache but still in the normal cache
+    // PAGE_ID1 is not in the shadow cache but still in the normal cache
     assertEquals(PAGE_SIZE_BYTES, mCacheManager.get(PAGE_ID1, PAGE1.length, mBuf, 0));
-    //PAGE_ID1 is added to the shadow cache again by 'get'
+    // PAGE_ID1 is added to the shadow cache again by 'get'
     assertEquals(mCacheManager.getShadowCacheBytes(), PAGE1.length + PAGE2.length);
   }
 
