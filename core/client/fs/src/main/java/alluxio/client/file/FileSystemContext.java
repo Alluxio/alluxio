@@ -505,7 +505,7 @@ public class FileSystemContext implements Closeable {
     try {
       return new CloseableResource<T>(pool.acquire()) {
         @Override
-        public void close() {
+        public void closeResource() {
           pool.release(get());
         }
       };
@@ -549,7 +549,7 @@ public class FileSystemContext implements Closeable {
         .acquire()) {
       // Save the reference to the original pool map.
       @Override
-      public void close() {
+      public void closeResource() {
         releaseBlockWorkerClient(workerNetAddress, get(), context, poolMap);
       }
     };

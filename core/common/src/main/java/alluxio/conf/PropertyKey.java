@@ -348,6 +348,26 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.ALL)
           .build();
+  public static final PropertyKey LEAK_DETECTOR_LEVEL =
+      new Builder(Name.LEAK_DETECTOR_LEVEL)
+          .setDefaultValue("DISABLED")
+          .setDescription("Set this to one of {DISABLED, SIMPLE, ADVANCED, PARANOID} to track "
+              + "resource leaks in the Alluxio codebase. DISABLED does not track any leaks. "
+              + "SIMPLE only samples resources, and doesn't track recent accesses, having a low "
+              + "overhead. ADVANCED is like simple, but tracks recent object accesses and has "
+              + "higher overhead. PARANOID tracks all objects and has the highest overhead. "
+              + "It is recommended to only use this value during testing.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
+          .setScope(Scope.ALL)
+          .build();
+  public static final PropertyKey LEAK_DETECTOR_EXIT_ON_LEAK =
+      new Builder(Name.LEAK_DETECTOR_EXIT_ON_LEAK)
+          .setDefaultValue(false)
+          .setDescription("If set to true, the JVM will exit as soon as a leak is detected. Use "
+              + "only in testing environments.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
+          .setScope(Scope.ALL)
+          .build();
   public static final PropertyKey LOGGER_TYPE =
       new Builder(Name.LOGGER_TYPE)
           .setDefaultValue("Console")
@@ -5559,6 +5579,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.integration.worker.resource.mem";
     public static final String INTEGRATION_YARN_WORKERS_PER_HOST_MAX =
         "alluxio.integration.yarn.workers.per.host.max";
+    public static final String LEAK_DETECTOR_LEVEL = "alluxio.leak.detector.level";
+    public static final String LEAK_DETECTOR_EXIT_ON_LEAK = "alluxio.leak.detector.exit.on.leak";
     public static final String LOGGER_TYPE = "alluxio.logger.type";
     public static final String LOGS_DIR = "alluxio.logs.dir";
     public static final String METRICS_CONF_FILE = "alluxio.metrics.conf.file";

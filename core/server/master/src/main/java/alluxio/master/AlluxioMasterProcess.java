@@ -172,7 +172,7 @@ public class AlluxioMasterProcess extends MasterProcess {
           UnderFileSystemConfiguration.defaults(ServerConfiguration.global()));
       ufsResource = new CloseableResource<UnderFileSystem>(ufs) {
         @Override
-        public void close() { }
+        public void closeResource() { }
       };
     } else {
       ufsResource = mUfsManager.getRoot().acquireUfsResource();

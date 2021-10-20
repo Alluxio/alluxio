@@ -71,7 +71,7 @@ public final class CloseableIteratorTest {
     }
 
     @Override
-    public void close() {
+    public void closeResource() {
       mClosed = true;
     }
 
