@@ -142,15 +142,13 @@ public class RegisterStream implements Iterator<RegisterWorkerStreamPRequest> {
     try {
       int iter = 0;
       while (hasNext()) {
-        List<LocationBlockIdListEntry> blockBatch = mBlockListIterator.next();
-
         // Send a request when the master ACKs the previous one
         LOG.debug("{} - Acquiring one token", mWorkerId);
         Instant start = Instant.now();
         mBucket.acquire();
         Instant end = Instant.now();
-        LOG.debug("{} - master ACK acquired in {}ms, sending next batch",
-                mWorkerId, Duration.between(start, end).toMillis());
+        LOG.debug("{} - master ACK acquired in {}ms, sending batch {}",
+                mWorkerId, Duration.between(start, end).toMillis(), iter);
 
         // Send the request
         RegisterWorkerStreamPRequest request = next();
@@ -163,6 +161,8 @@ public class RegisterStream implements Iterator<RegisterWorkerStreamPRequest> {
           LOG.error("The stream has not finished but the response has seen onError or onComplete");
           return;
         }
+
+        iter++;
       }
     } catch (Throwable t) {
       // TODO(jiacheng): throwable? close the stream?

@@ -37,6 +37,7 @@ import alluxio.grpc.RegisterWorkerPResponse;
 import alluxio.grpc.RegisterWorkerStreamPOptions;
 import alluxio.grpc.RegisterWorkerStreamPResponse;
 import alluxio.grpc.StorageList;
+import alluxio.master.block.meta.WorkerMetaLockSection;
 import alluxio.metrics.Metric;
 import alluxio.proto.meta.Block;
 
@@ -46,6 +47,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -186,7 +188,7 @@ public final class BlockMasterWorkerServiceHandler extends
         // TODO(jiacheng): potential risk from 'this' ref escape?
         io.grpc.stub.StreamObserver<alluxio.grpc.RegisterWorkerStreamPRequest> requestObserver = this;
         String methodName = isHead ? "registerWorkerStart" : "registerWorkerStream";
-        Preconditions.checkState(mContext != null, "Stream message received from the client side but the context is not initialized");
+
         RpcUtils.streamingRPCAndLog(LOG, new RpcUtils.StreamingRpcCallable<RegisterWorkerStreamPResponse>() {
           @Override
           public RegisterWorkerStreamPResponse call() throws Exception {
@@ -204,6 +206,8 @@ public final class BlockMasterWorkerServiceHandler extends
 
             Preconditions.checkState(mContext != null, "Stream message received from the client side but the context is not initialized");
             Preconditions.checkState(mContext.isOpen(), "Context is not open");
+
+            Preconditions.checkState(mContext.mWorker.checkLocks(EnumSet.of(WorkerMetaLockSection.STATUS, WorkerMetaLockSection.USAGE, WorkerMetaLockSection.BLOCKS), false));
 
             if (isHead) {
               final List<String> storageTiers = chunk.getStorageTiersList();
@@ -231,7 +235,7 @@ public final class BlockMasterWorkerServiceHandler extends
             // onError will close the resources
             responseObserver.onError(GrpcExceptionUtils.fromThrowable(throwable));
           }
-        }, methodName, true, false, responseObserver, "Worker=%s", mContext.mWorkerId);
+        }, methodName, true, false, responseObserver, "Worker=%s", workerId);
       }
 
       @Override
@@ -263,6 +267,9 @@ public final class BlockMasterWorkerServiceHandler extends
 
         String methodName = "registerWorkerComplete";
         Preconditions.checkState(mContext != null, "Complete message received from the client side but the context is not initialized");
+
+        Preconditions.checkState(mContext.mWorker.checkLocks(EnumSet.of(WorkerMetaLockSection.STATUS, WorkerMetaLockSection.USAGE, WorkerMetaLockSection.BLOCKS), false));
+
         RpcUtils.streamingRPCAndLog(LOG, new RpcUtils.StreamingRpcCallable<RegisterWorkerStreamPResponse>() {
             @Override
             public RegisterWorkerStreamPResponse call() throws Exception {

@@ -21,6 +21,7 @@ import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.base.MoreObjects;
+import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Sets;
 import org.slf4j.Logger;
@@ -36,6 +37,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.stream.Collectors;
@@ -125,6 +127,8 @@ public final class MasterWorkerInfo {
   /** Stores the mapping from WorkerMetaLockSection to the lock. */
   private final Map<WorkerMetaLockSection, ReentrantReadWriteLock> mLockTypeToLock;
 
+  private final Map<Long, WorkerMetaLock> mLockTracker;
+
   /**
    * Creates a new instance of {@link MasterWorkerInfo}.
    *
@@ -146,6 +150,8 @@ public final class MasterWorkerInfo {
         WorkerMetaLockSection.STATUS, mStatusLock,
         WorkerMetaLockSection.USAGE, mUsageLock,
         WorkerMetaLockSection.BLOCKS, mBlockListLock);
+
+    mLockTracker = new ConcurrentHashMap<>();
   }
 
   /**
@@ -624,7 +630,8 @@ public final class MasterWorkerInfo {
    * @return a {@link LockResource} of the {@link WorkerMetaLock}
    */
   public LockResource lockWorkerMeta(EnumSet<WorkerMetaLockSection> lockTypes, boolean isShared) {
-    return new LockResource(new WorkerMetaLock(lockTypes, isShared, this));
+    LockResource lr = new LockResource(new WorkerMetaLock(lockTypes, isShared, this));
+    return lr;
   }
 
   public int getToRemoveBlockCount() {
@@ -637,5 +644,29 @@ public final class MasterWorkerInfo {
 
   public void markAllBlocksToRemove() {
     mToRemoveBlocks.addAll(mBlocks);
+  }
+
+  public boolean checkLocks(EnumSet<WorkerMetaLockSection> lockSections, boolean isShared) {
+    long threadId = Thread.currentThread().getId();
+    System.out.println("Checking lock in thread " + threadId);
+    LOG.info("Checking lock in thread {}", threadId);
+    Preconditions.checkState(mLockTracker.containsKey(threadId));
+    WorkerMetaLock heldLock = mLockTracker.get(threadId);
+    return heldLock.equals(new WorkerMetaLock(lockSections, isShared, this));
+  }
+
+  public void trackLock(WorkerMetaLock lock) {
+    mLockTracker.put(Thread.currentThread().getId(), lock);
+    System.out.println("Tracked lock " + mLockTracker);
+    LOG.info("Tracked lock {}", mLockTracker);
+  }
+
+  public void untrackLock(WorkerMetaLock lock) {
+    long threadId = Thread.currentThread().getId();
+    Preconditions.checkState(mLockTracker.containsKey(threadId));
+    WorkerMetaLock trackedLock = mLockTracker.get(threadId);
+    Preconditions.checkState(lock == trackedLock);
+    LOG.info("Untracked lock {}", mLockTracker);
+    mLockTracker.remove(threadId);
   }
 }
