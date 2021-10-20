@@ -20,7 +20,7 @@ public enum ShadowCacheType {
    * that support updating operation which updates one of them during each sub-window, and switch
    * operation which switch to the least recently used BF and clear it on switching sub-window.
    */
-  MultipleBloomFilter,
+  MULTIPLE_BLOOM_FILTER,
   /**
    * A shadow cache with clock cuckoo filter implementation. It creates a cuckoo filter with
    * extended field (clock, size, etc.). Thanks to the deletable feature of cuckoo filter, it can
@@ -29,5 +29,5 @@ public enum ShadowCacheType {
    * deletes the stale ones whose clock value are reduced to zero. This process is similar to the
    * well-known CLOCK algorithm, which is why we name it clock cuckoo filter.
    */
-  ClockCuckooFilter,
+  CLOCK_CUCKOO_FILTER,
 }
