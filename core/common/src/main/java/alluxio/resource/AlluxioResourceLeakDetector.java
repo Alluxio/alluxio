@@ -27,6 +27,9 @@ import org.slf4j.LoggerFactory;
 public class AlluxioResourceLeakDetector<T> extends ResourceLeakDetector<T> {
   private static final Logger LOGGER = LoggerFactory.getLogger(AlluxioResourceLeakDetector.class);
 
+  private static final String DOC_URL = "https://docs.alluxio.io/os/user/stable/en/operation/"
+          + "Troubleshooting.html#resource-leak-detection";
+
   static {
     ResourceLeakDetector.Level lev = ResourceLeakDetector.Level.valueOf(
         ConfigurationUtils.getPropertyValue(PropertyKey.LEAK_DETECTOR_LEVEL));
@@ -54,8 +57,8 @@ public class AlluxioResourceLeakDetector<T> extends ResourceLeakDetector<T> {
   @Override
   protected void reportTracedLeak(String resourceType, String records) {
     LOGGER.error("LEAK: {}.close() was not called before resource is garbage-collected. "
-        + "See https://docs.alluxio.io/blah/blah/blah for more information about this message.{}",
-        resourceType, records);
+        + "See {} for more information about this message.{}",
+        resourceType, DOC_URL, records);
   }
 
   /**
@@ -67,7 +70,7 @@ public class AlluxioResourceLeakDetector<T> extends ResourceLeakDetector<T> {
   @Override
   protected void reportUntracedLeak(String resourceType) {
     LOGGER.error("LEAK: {}.close() was not called before resource is garbage-collected. "
-            + "See https://docs.alluxio.io/blah/blah/blah for more information about this message.",
-        resourceType);
+            + "See {} for more information about this message.",
+        resourceType, DOC_URL);
   }
 }

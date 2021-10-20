@@ -212,6 +212,34 @@ The parsable datetime formats include below:
 1. `--start-time <datetime>` specifies a datetime before with the log files can be ignored.
 A log file will be ignored if the last modified time is before this start time.
 
+## Resource Leak Detection
+
+If you are operating your Alluxio cluster it is possible you may notice a
+message in the logs like:
+
+```
+LEAK: <>.close() was not called before resource is garbage-collected. See https://docs.alluxio.io/os/user/stable/en/operation/Troubleshooting.html#resource-leak-detection for more information about this message.
+```
+
+Alluxio has a built-in detection mechanism to help identify potential resource
+leaks. This message indicates there is a bug in the Alluxio code which is
+causing a resource leak. If  this message appears during cluster operation,
+please [open a GitHub
+Issue](https://github.com/Alluxio/alluxio/issues/new/choose) as a bug report and
+share your log message and any relevant stack traces that are shared with it.
+
+By default, Alluxio samples a portion of some resource allocations when
+detecting these leaks, and for each tracked resource record the object's recent
+accesses. The sampling rate and access tracking will result in a resource and
+performance penalty. The amount of overhead introduced by the leak detector can
+be controlled through the property `alluxio.leak.detector.level`. Valid values
+are
+
+- `DISABLED`: no leak tracking or logging is performed, lowest overhead
+- `SIMPLE`: samples and tracks only leaks and does not log recent accesses. minimal overhead
+- `ADVANCED`: samples and tracks recent accesses, higher overhead
+- `PARANOID`: tracks for leaks on every resource allocation, highest overhead. 
+
 ## Setup FAQ
 
 ### Q: I'm new to Alluxio and cannot set up Alluxio on my local machine. What should I do?
