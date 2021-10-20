@@ -11,6 +11,8 @@
 
 package alluxio.master.block.meta;
 
+import alluxio.exception.status.InvalidArgumentException;
+import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 
 import java.util.Arrays;
@@ -41,29 +43,33 @@ public class WorkerMetaLock implements Lock {
   // The order for releasing locks
   private static final List<WorkerMetaLockSection> REVERSE_ORDER = Lists.reverse(NATURAL_ORDER);
 
-  private final EnumSet<WorkerMetaLockSection> mLockTypes;
-  private final boolean mIsShared;
+  private final EnumSet<WorkerMetaLockSection> mLockSections;
+  private final LockType mLockType;
   private final MasterWorkerInfo mWorker;
 
   /**
    * Constructor.
    *
-   * @param lockTypes each {@link WorkerMetaLockSection} corresponds to one section of metadata
-   * @param isShared if false, the lock is exclusive
+   * @param sections each {@link WorkerMetaLockSection} corresponds to one section of metadata
+   * @param type {@link LockType} specifying whether the lock is shared
    * @param worker the {@link MasterWorkerInfo} to lock
    */
-  WorkerMetaLock(EnumSet<WorkerMetaLockSection> lockTypes, boolean isShared,
+  WorkerMetaLock(EnumSet<WorkerMetaLockSection> sections, LockType type,
        MasterWorkerInfo worker) {
-    mLockTypes = lockTypes;
-    mIsShared = isShared;
+    // Validate the lock type at init time instead of runtime
+    Preconditions.checkState(type == LockType.SHARED || type == LockType.EXCLUSIVE,
+        "LockType should be either %s or %s. %s is unrecongnized.",
+        LockType.SHARED, LockType.EXCLUSIVE, type);
+    mLockSections = sections;
+    mLockType = type;
     mWorker = worker;
   }
 
   @Override
   public void lock() {
     for (WorkerMetaLockSection t : NATURAL_ORDER) {
-      if (mLockTypes.contains(t)) {
-        if (mIsShared) {
+      if (mLockSections.contains(t)) {
+        if (mLockType == LockType.SHARED) {
           mWorker.getLock(t).readLock().lock();
         } else {
           mWorker.getLock(t).writeLock().lock();
@@ -75,8 +81,8 @@ public class WorkerMetaLock implements Lock {
   @Override
   public void unlock() {
     for (WorkerMetaLockSection t : REVERSE_ORDER) {
-      if (mLockTypes.contains(t)) {
-        if (mIsShared) {
+      if (mLockSections.contains(t)) {
+        if (mLockType == LockType.SHARED) {
           mWorker.getLock(t).readLock().unlock();
         } else {
           mWorker.getLock(t).writeLock().unlock();

@@ -66,7 +66,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * As listed above, group 1 and 2 are thread safe and do not require external locking.
  * Group 3, 4, and 5 require external locking.
  *
- * Locking can be done with {@link #lockWorkerMeta(EnumSet, boolean)}.
+ * Locking can be done with {@link #lockWorkerMeta(EnumSet, LockType)}.
  * This method returns a {@link LockResource} which can be managed by try-finally.
  * Internally, {@link WorkerMetaLock} is used to manage the corresponding internal locks
  * with an order and unlocking them properly on close.
@@ -74,7 +74,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * If the fields are only read, shared locks should be acquired and released as below:
  * <blockquote><pre>
  *   try (LockResource r = lockWorkerMeta(
- *       EnumSet.of(WorkerMetaLockSection.USAGE), true)) {
+ *       EnumSet.of(WorkerMetaLockSection.USAGE), LockType.SHARED)) {
  *     ...
  *   }
  * </pre></blockquote>
@@ -85,7 +85,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  *       EnumSet.of(
  *           WorkerMetaLockSection.STATUS,
  *           WorkerMetaLockSection.USAGE,
- *           WorkerMetaLockSection.BLOCKS)), true)) {
+ *           WorkerMetaLockSection.BLOCKS)), LockType.EXCLUSIVE)) {
  *     ...
  *   }
  * </pre></blockquote>
@@ -154,14 +154,14 @@ public final class MasterWorkerInfo {
    * Write locks on {@link MasterWorkerInfo#mStatusLock}, {@link MasterWorkerInfo#mUsageLock}
    * and {@link MasterWorkerInfo#mBlockListLock} are required.
    *
-   * You should lock externally with {@link MasterWorkerInfo#lockWorkerMeta(EnumSet, boolean)}
+   * You should lock externally with {@link MasterWorkerInfo#lockWorkerMeta(EnumSet, LockType)}
    * with all three lock types specified:
    *
    * <blockquote><pre>
    *   try (LockResource r = worker.lockWorkerMeta(EnumSet.of(
    *       WorkerMetaLockSection.STATUS,
    *       WorkerMetaLockSection.USAGE,
-   *       WorkerMetaLockSection.BLOCKS), false)) {
+   *       WorkerMetaLockSection.BLOCKS), LockType.EXCLUSIVE)) {
    *     register(...);
    *   }
    * </pre></blockquote>
@@ -180,7 +180,7 @@ public final class MasterWorkerInfo {
     Preconditions.checkState(checkLocks(EnumSet.of(
         WorkerMetaLockSection.STATUS,
         WorkerMetaLockSection.USAGE,
-        WorkerMetaLockSection.BLOCKS), false));
+        WorkerMetaLockSection.BLOCKS), LockType.EXCLUSIVE));
 
     mUsage.updateUsage(globalStorageTierAssoc, storageTierAliases,
             totalBytesOnTiers, usedBytesOnTiers);
@@ -207,7 +207,7 @@ public final class MasterWorkerInfo {
   /**
    * Adds a block to the worker.
    *
-   * You should lock externally with {@link MasterWorkerInfo#lockWorkerMeta(EnumSet, boolean)}
+   * You should lock externally with {@link MasterWorkerInfo#lockWorkerMeta(EnumSet, LockType)}
    * with {@link WorkerMetaLockSection#BLOCKS} specified.
    * An exclusive lock is required.
    *
@@ -215,7 +215,7 @@ public final class MasterWorkerInfo {
    */
   public void addBlock(long blockId) {
     Preconditions.checkState(checkLocks(
-        EnumSet.of(WorkerMetaLockSection.BLOCKS), false));
+        EnumSet.of(WorkerMetaLockSection.BLOCKS), LockType.EXCLUSIVE));
 
     mBlocks.add(blockId);
   }
@@ -223,7 +223,7 @@ public final class MasterWorkerInfo {
   /**
    * Removes a block from the worker.
    *
-   * You should lock externally with {@link MasterWorkerInfo#lockWorkerMeta(EnumSet, boolean)}
+   * You should lock externally with {@link MasterWorkerInfo#lockWorkerMeta(EnumSet, LockType)}
    * with {@link WorkerMetaLockSection#BLOCKS} specified.
    * An exclusive lock is required.
    *
@@ -231,7 +231,7 @@ public final class MasterWorkerInfo {
    */
   public void removeBlock(long blockId) {
     Preconditions.checkState(checkLocks(
-        EnumSet.of(WorkerMetaLockSection.BLOCKS), false));
+        EnumSet.of(WorkerMetaLockSection.BLOCKS), LockType.EXCLUSIVE));
 
     mBlocks.remove(blockId);
     mToRemoveBlocks.remove(blockId);
@@ -240,7 +240,7 @@ public final class MasterWorkerInfo {
   /**
    * Adds a new worker lost storage path.
    *
-   * You should lock externally with {@link MasterWorkerInfo#lockWorkerMeta(EnumSet, boolean)}
+   * You should lock externally with {@link MasterWorkerInfo#lockWorkerMeta(EnumSet, LockType)}
    * with {@link WorkerMetaLockSection#USAGE} specified.
    * An exclusive lock is required.
    *
@@ -249,7 +249,7 @@ public final class MasterWorkerInfo {
    */
   public void addLostStorage(String tierAlias, String dirPath) {
     Preconditions.checkState(checkLocks(
-        EnumSet.of(WorkerMetaLockSection.USAGE), false));
+        EnumSet.of(WorkerMetaLockSection.USAGE), LockType.EXCLUSIVE));
 
     List<String> paths = mUsage.mLostStorage.getOrDefault(tierAlias, new ArrayList<>());
     paths.add(dirPath);
@@ -259,7 +259,7 @@ public final class MasterWorkerInfo {
   /**
    * Adds new worker lost storage paths.
    *
-   * You should lock externally with {@link MasterWorkerInfo#lockWorkerMeta(EnumSet, boolean)}
+   * You should lock externally with {@link MasterWorkerInfo#lockWorkerMeta(EnumSet, LockType)}
    * with {@link WorkerMetaLockSection#USAGE} specified.
    * An exclusive lock is required.
    *
@@ -267,7 +267,7 @@ public final class MasterWorkerInfo {
    */
   public void addLostStorage(Map<String, StorageList> lostStorage) {
     Preconditions.checkState(checkLocks(
-        EnumSet.of(WorkerMetaLockSection.USAGE), false));
+        EnumSet.of(WorkerMetaLockSection.USAGE), LockType.EXCLUSIVE));
 
     for (Map.Entry<String, StorageList> entry : lostStorage.entrySet()) {
       List<String> paths = mUsage.mLostStorage.getOrDefault(entry.getKey(), new ArrayList<>());
@@ -279,7 +279,7 @@ public final class MasterWorkerInfo {
   /**
    * Gets the selected field information for this worker.
    *
-   * You should lock externally with {@link MasterWorkerInfo#lockWorkerMeta(EnumSet, boolean)}
+   * You should lock externally with {@link MasterWorkerInfo#lockWorkerMeta(EnumSet, LockType)}
    * with {@link WorkerMetaLockSection#USAGE} specified.
    * A shared lock is required.
    *
@@ -289,7 +289,7 @@ public final class MasterWorkerInfo {
    */
   public WorkerInfo generateWorkerInfo(Set<WorkerInfoField> fieldRange, boolean isLiveWorker) {
     Preconditions.checkState(checkLocks(
-        EnumSet.of(WorkerMetaLockSection.USAGE), true));
+        EnumSet.of(WorkerMetaLockSection.USAGE), LockType.SHARED));
 
     WorkerInfo info = new WorkerInfo();
     Set<WorkerInfoField> checkedFieldRange = fieldRange != null ? fieldRange :
@@ -348,7 +348,7 @@ public final class MasterWorkerInfo {
   }
 
   /**
-   * You should lock externally with {@link MasterWorkerInfo#lockWorkerMeta(EnumSet, boolean)}
+   * You should lock externally with {@link MasterWorkerInfo#lockWorkerMeta(EnumSet, LockType)}
    * with {@link WorkerMetaLockSection#USAGE} specified.
    * A shared lock is required.
    *
@@ -356,13 +356,13 @@ public final class MasterWorkerInfo {
    */
   public long getAvailableBytes() {
     Preconditions.checkState(checkLocks(
-        EnumSet.of(WorkerMetaLockSection.USAGE), true));
+        EnumSet.of(WorkerMetaLockSection.USAGE), LockType.SHARED));
 
     return mUsage.getAvailableBytes();
   }
 
   /**
-   * You should lock externally with {@link MasterWorkerInfo#lockWorkerMeta(EnumSet, boolean)}
+   * You should lock externally with {@link MasterWorkerInfo#lockWorkerMeta(EnumSet, LockType)}
    * with {@link WorkerMetaLockSection#BLOCKS} specified.
    * A shared lock is required.
    *
@@ -372,13 +372,13 @@ public final class MasterWorkerInfo {
    */
   public Set<Long> getBlocks() {
     Preconditions.checkState(checkLocks(
-        EnumSet.of(WorkerMetaLockSection.BLOCKS), true));
+        EnumSet.of(WorkerMetaLockSection.BLOCKS), LockType.SHARED));
 
     return new HashSet<>(mBlocks);
   }
 
   /**
-   * You should lock externally with {@link MasterWorkerInfo#lockWorkerMeta(EnumSet, boolean)}
+   * You should lock externally with {@link MasterWorkerInfo#lockWorkerMeta(EnumSet, LockType)}
    * with {@link WorkerMetaLockSection#BLOCKS} specified.
    * A shared lock is required.
    *
@@ -388,13 +388,13 @@ public final class MasterWorkerInfo {
    */
   public long getBlockCount() {
     Preconditions.checkState(checkLocks(
-        EnumSet.of(WorkerMetaLockSection.BLOCKS), true));
+        EnumSet.of(WorkerMetaLockSection.BLOCKS), LockType.SHARED));
 
     return mBlocks.size();
   }
 
   /**
-   * You should lock externally with {@link MasterWorkerInfo#lockWorkerMeta(EnumSet, boolean)}
+   * You should lock externally with {@link MasterWorkerInfo#lockWorkerMeta(EnumSet, LockType)}
    * with {@link WorkerMetaLockSection#USAGE} specified.
    * A shared lock is required.
    *
@@ -402,7 +402,7 @@ public final class MasterWorkerInfo {
    */
   public long getCapacityBytes() {
     Preconditions.checkState(checkLocks(
-        EnumSet.of(WorkerMetaLockSection.USAGE), true));
+        EnumSet.of(WorkerMetaLockSection.USAGE), LockType.SHARED));
 
     return mUsage.mCapacityBytes;
   }
@@ -426,7 +426,7 @@ public final class MasterWorkerInfo {
   }
 
   /**
-   * You should lock externally with {@link MasterWorkerInfo#lockWorkerMeta(EnumSet, boolean)}
+   * You should lock externally with {@link MasterWorkerInfo#lockWorkerMeta(EnumSet, LockType)}
    * with {@link WorkerMetaLockSection#BLOCKS} specified.
    * A shared lock is required.
    *
@@ -436,13 +436,14 @@ public final class MasterWorkerInfo {
    */
   public List<Long> getToRemoveBlocks() {
     Preconditions.checkState(checkLocks(
-        EnumSet.of(WorkerMetaLockSection.BLOCKS), true));
+        EnumSet.of(WorkerMetaLockSection.BLOCKS), LockType.SHARED));
 
     return new ArrayList<>(mToRemoveBlocks);
   }
 
+  // TODO(jiacheng): update javadoc
   /**
-   * You should lock externally with {@link MasterWorkerInfo#lockWorkerMeta(EnumSet, boolean)}
+   * You should lock externally with {@link MasterWorkerInfo#lockWorkerMeta(EnumSet, LockType)}
    * with {@link WorkerMetaLockSection#USAGE} specified.
    * A shared lock is required.
    *
@@ -450,13 +451,13 @@ public final class MasterWorkerInfo {
    */
   public long getUsedBytes() {
     Preconditions.checkState(checkLocks(
-        EnumSet.of(WorkerMetaLockSection.USAGE), true));
+        EnumSet.of(WorkerMetaLockSection.USAGE), LockType.SHARED));
 
     return mUsage.mUsedBytes;
   }
 
   /**
-   * You should lock externally with {@link MasterWorkerInfo#lockWorkerMeta(EnumSet, boolean)}
+   * You should lock externally with {@link MasterWorkerInfo#lockWorkerMeta(EnumSet, LockType)}
    * with {@link WorkerMetaLockSection#USAGE} specified.
    * A shared lock is required.
    *
@@ -464,13 +465,13 @@ public final class MasterWorkerInfo {
    */
   public StorageTierAssoc getStorageTierAssoc() {
     Preconditions.checkState(checkLocks(
-        EnumSet.of(WorkerMetaLockSection.USAGE), true));
+        EnumSet.of(WorkerMetaLockSection.USAGE), LockType.SHARED));
 
     return mUsage.mStorageTierAssoc;
   }
 
   /**
-   * You should lock externally with {@link MasterWorkerInfo#lockWorkerMeta(EnumSet, boolean)}
+   * You should lock externally with {@link MasterWorkerInfo#lockWorkerMeta(EnumSet, LockType)}
    * with {@link WorkerMetaLockSection#USAGE} specified.
    * A shared lock is required.
    *
@@ -478,13 +479,13 @@ public final class MasterWorkerInfo {
    */
   public Map<String, Long> getTotalBytesOnTiers() {
     Preconditions.checkState(checkLocks(
-        EnumSet.of(WorkerMetaLockSection.USAGE), true));
+        EnumSet.of(WorkerMetaLockSection.USAGE), LockType.SHARED));
 
     return mUsage.mTotalBytesOnTiers;
   }
 
   /**
-   * You should lock externally with {@link MasterWorkerInfo#lockWorkerMeta(EnumSet, boolean)}
+   * You should lock externally with {@link MasterWorkerInfo#lockWorkerMeta(EnumSet, LockType)}
    * with {@link WorkerMetaLockSection#USAGE} specified.
    * A shared lock is required.
    *
@@ -492,7 +493,7 @@ public final class MasterWorkerInfo {
    */
   public Map<String, Long> getUsedBytesOnTiers() {
     Preconditions.checkState(checkLocks(
-        EnumSet.of(WorkerMetaLockSection.USAGE), true));
+        EnumSet.of(WorkerMetaLockSection.USAGE), LockType.SHARED));
 
     return mUsage.mUsedBytesOnTiers;
   }
@@ -507,7 +508,7 @@ public final class MasterWorkerInfo {
   }
 
   /**
-   * You should lock externally with {@link MasterWorkerInfo#lockWorkerMeta(EnumSet, boolean)}
+   * You should lock externally with {@link MasterWorkerInfo#lockWorkerMeta(EnumSet, LockType)}
    * with {@link WorkerMetaLockSection#STATUS} specified.
    * A shared lock is required.
    *
@@ -515,13 +516,13 @@ public final class MasterWorkerInfo {
    */
   public boolean isRegistered() {
     Preconditions.checkState(checkLocks(
-        EnumSet.of(WorkerMetaLockSection.STATUS), true));
+        EnumSet.of(WorkerMetaLockSection.STATUS), LockType.SHARED));
 
     return mIsRegistered;
   }
 
   /**
-   * You should lock externally with {@link MasterWorkerInfo#lockWorkerMeta(EnumSet, boolean)}
+   * You should lock externally with {@link MasterWorkerInfo#lockWorkerMeta(EnumSet, LockType)}
    * with {@link WorkerMetaLockSection#USAGE} specified.
    * A shared lock is required.
    *
@@ -529,7 +530,7 @@ public final class MasterWorkerInfo {
    */
   public Map<String, Long> getFreeBytesOnTiers() {
     Preconditions.checkState(checkLocks(
-        EnumSet.of(WorkerMetaLockSection.USAGE), true));
+        EnumSet.of(WorkerMetaLockSection.USAGE), LockType.SHARED));
 
     Map<String, Long> freeCapacityBytes = new HashMap<>();
     for (Map.Entry<String, Long> entry : mUsage.mTotalBytesOnTiers.entrySet()) {
@@ -540,7 +541,7 @@ public final class MasterWorkerInfo {
   }
 
   /**
-   * You should lock externally with {@link MasterWorkerInfo#lockWorkerMeta(EnumSet, boolean)}
+   * You should lock externally with {@link MasterWorkerInfo#lockWorkerMeta(EnumSet, LockType)}
    * with {@link WorkerMetaLockSection#USAGE} specified.
    * A shared lock is required.
    *
@@ -550,13 +551,13 @@ public final class MasterWorkerInfo {
    */
   public Map<String, List<String>> getLostStorage() {
     Preconditions.checkState(checkLocks(
-        EnumSet.of(WorkerMetaLockSection.USAGE), true));
+        EnumSet.of(WorkerMetaLockSection.USAGE), LockType.SHARED));
 
     return new HashMap<>(mUsage.mLostStorage);
   }
 
   /**
-   * You should lock externally with {@link MasterWorkerInfo#lockWorkerMeta(EnumSet, boolean)}
+   * You should lock externally with {@link MasterWorkerInfo#lockWorkerMeta(EnumSet, LockType)}
    * with {@link WorkerMetaLockSection#USAGE} specified.
    * A shared lock is required.
    *
@@ -564,7 +565,7 @@ public final class MasterWorkerInfo {
    */
   public boolean hasLostStorage() {
     Preconditions.checkState(checkLocks(
-        EnumSet.of(WorkerMetaLockSection.USAGE), true));
+        EnumSet.of(WorkerMetaLockSection.USAGE), LockType.SHARED));
 
     return mUsage.mLostStorage.size() > 0;
   }
@@ -601,7 +602,7 @@ public final class MasterWorkerInfo {
   /**
    * Adds or removes a block from the to-be-removed blocks set of the worker.
    *
-   * You should lock externally with {@link MasterWorkerInfo#lockWorkerMeta(EnumSet, boolean)}
+   * You should lock externally with {@link MasterWorkerInfo#lockWorkerMeta(EnumSet, LockType)}
    * with {@link WorkerMetaLockSection#BLOCKS} specified.
    * An exclusive lock is required.
    *
@@ -610,7 +611,7 @@ public final class MasterWorkerInfo {
    */
   public void updateToRemovedBlock(boolean add, long blockId) {
     Preconditions.checkState(checkLocks(
-        EnumSet.of(WorkerMetaLockSection.BLOCKS), false));
+        EnumSet.of(WorkerMetaLockSection.BLOCKS), LockType.EXCLUSIVE));
 
     if (add) {
       if (mBlocks.contains(blockId)) {
@@ -624,7 +625,7 @@ public final class MasterWorkerInfo {
   /**
    * Sets the capacity of the worker in bytes.
    *
-   * You should lock externally with {@link MasterWorkerInfo#lockWorkerMeta(EnumSet, boolean)}
+   * You should lock externally with {@link MasterWorkerInfo#lockWorkerMeta(EnumSet, LockType)}
    * with {@link WorkerMetaLockSection#USAGE} specified.
    * An exclusive lock is required.
    *
@@ -632,7 +633,7 @@ public final class MasterWorkerInfo {
    */
   public void updateCapacityBytes(Map<String, Long> capacityBytesOnTiers) {
     Preconditions.checkState(checkLocks(
-        EnumSet.of(WorkerMetaLockSection.USAGE), false));
+        EnumSet.of(WorkerMetaLockSection.USAGE), LockType.EXCLUSIVE));
 
     long capacityBytes = 0;
     mUsage.mTotalBytesOnTiers = capacityBytesOnTiers;
@@ -645,7 +646,7 @@ public final class MasterWorkerInfo {
   /**
    * Sets the used space of the worker in bytes.
    *
-   * You should lock externally with {@link MasterWorkerInfo#lockWorkerMeta(EnumSet, boolean)}
+   * You should lock externally with {@link MasterWorkerInfo#lockWorkerMeta(EnumSet, LockType)}
    * with {@link WorkerMetaLockSection#USAGE} specified.
    * An exclusive lock is required.
    *
@@ -653,7 +654,7 @@ public final class MasterWorkerInfo {
    */
   public void updateUsedBytes(Map<String, Long> usedBytesOnTiers) {
     Preconditions.checkState(checkLocks(
-        EnumSet.of(WorkerMetaLockSection.USAGE), false));
+        EnumSet.of(WorkerMetaLockSection.USAGE), LockType.EXCLUSIVE));
 
     long usedBytes = 0;
     mUsage.mUsedBytesOnTiers = new HashMap<>(usedBytesOnTiers);
@@ -666,7 +667,7 @@ public final class MasterWorkerInfo {
   /**
    * Sets the used space of the worker in bytes.
    *
-   * You should lock externally with {@link MasterWorkerInfo#lockWorkerMeta(EnumSet, boolean)}
+   * You should lock externally with {@link MasterWorkerInfo#lockWorkerMeta(EnumSet, LockType)}
    * with {@link WorkerMetaLockSection#USAGE} specified.
    * An exclusive lock is required.
    *
@@ -675,14 +676,14 @@ public final class MasterWorkerInfo {
    */
   public void updateUsedBytes(String tierAlias, long usedBytesOnTier) {
     Preconditions.checkState(checkLocks(
-        EnumSet.of(WorkerMetaLockSection.USAGE), false));
+        EnumSet.of(WorkerMetaLockSection.USAGE), LockType.EXCLUSIVE));
 
     mUsage.mUsedBytes += usedBytesOnTier - mUsage.mUsedBytesOnTiers.get(tierAlias);
     mUsage.mUsedBytesOnTiers.put(tierAlias, usedBytesOnTier);
   }
 
-  ReentrantReadWriteLock getLock(WorkerMetaLockSection lockType) {
-    return mLockTypeToLock.get(lockType);
+  ReentrantReadWriteLock getLock(WorkerMetaLockSection section) {
+    return mLockTypeToLock.get(section);
   }
 
   /**
@@ -696,31 +697,31 @@ public final class MasterWorkerInfo {
    * This returns a {@link LockResource} which can be managed by a try-finally block.
    * See javadoc for {@link WorkerMetaLock} for more details about the internals.
    *
-   * @param lockTypes the locks
-   * @param isShared if false, the locking is exclusive
+   * @param sections the locks
+   * @param type {@link LockType} specifying if the lock is shared
    * @return a {@link LockResource} of the {@link WorkerMetaLock}
    */
-  public LockResource lockWorkerMeta(EnumSet<WorkerMetaLockSection> lockTypes, boolean isShared) {
-    return new LockResource(new WorkerMetaLock(lockTypes, isShared, this));
+  public LockResource lockWorkerMeta(EnumSet<WorkerMetaLockSection> sections, LockType type) {
+    return new LockResource(new WorkerMetaLock(sections, type, this));
   }
 
   /**
    * Verifies the specified locks are held.
    *
-   * @param lockTypes the locks
-   * @param isShared whether the lock is a ReadLock or WriteLock
+   * @param lockSections the locks
+   * @param lockType a {@link LockResource} of the {@link WorkerMetaLock}
    */
-  public boolean checkLocks(EnumSet<WorkerMetaLockSection> lockTypes, boolean isShared) {
-    for (WorkerMetaLockSection type : lockTypes) {
-      if (!isShared) {
-        if (!getLock(type).writeLock().isHeldByCurrentThread()) {
+  public boolean checkLocks(EnumSet<WorkerMetaLockSection> lockSections, LockType lockType) {
+    for (WorkerMetaLockSection section : lockSections) {
+      if (lockType == LockType.EXCLUSIVE) {
+        if (!getLock(section).writeLock().isHeldByCurrentThread()) {
           return false;
         }
       } else {
         // There is intentionally no way to check read lock ownership
         // https://bugs.java.com/bugdatabase/view_bug.do?bug_id=6207928
         // So we can verify if a write lock is currently held by another thread
-        ReentrantReadWriteLock.ReadLock readLock = getLock(type).readLock();
+        ReentrantReadWriteLock.ReadLock readLock = getLock(section).readLock();
         if (!readLock.tryLock()) {
           return false;
         }

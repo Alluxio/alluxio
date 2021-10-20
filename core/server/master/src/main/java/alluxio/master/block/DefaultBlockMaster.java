@@ -43,6 +43,7 @@ import alluxio.heartbeat.HeartbeatExecutor;
 import alluxio.heartbeat.HeartbeatThread;
 import alluxio.master.CoreMaster;
 import alluxio.master.CoreMasterContext;
+import alluxio.master.block.meta.LockType;
 import alluxio.master.block.meta.MasterWorkerInfo;
 import alluxio.master.block.meta.WorkerMetaLockSection;
 import alluxio.master.journal.JournalContext;
@@ -431,7 +432,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
     long ret = 0;
     for (MasterWorkerInfo worker : mWorkers) {
       try (LockResource r = worker.lockWorkerMeta(
-          EnumSet.of(WorkerMetaLockSection.USAGE), true)) {
+          EnumSet.of(WorkerMetaLockSection.USAGE), LockType.SHARED)) {
         ret += worker.getCapacityBytes();
       }
     }
@@ -448,7 +449,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
     long ret = 0;
     for (MasterWorkerInfo worker : mWorkers) {
       try (LockResource r = worker.lockWorkerMeta(
-          EnumSet.of(WorkerMetaLockSection.USAGE), true)) {
+          EnumSet.of(WorkerMetaLockSection.USAGE), LockType.SHARED)) {
         ret += worker.getUsedBytes();
       }
     }
@@ -560,7 +561,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
   private WorkerInfo extractWorkerInfo(MasterWorkerInfo worker,
       Set<GetWorkerReportOptions.WorkerInfoField> fieldRange, boolean isLiveWorker) {
     try (LockResource r = worker.lockWorkerMeta(
-        EnumSet.of(WorkerMetaLockSection.USAGE), true)) {
+        EnumSet.of(WorkerMetaLockSection.USAGE), LockType.SHARED)) {
       return worker.generateWorkerInfo(fieldRange, isLiveWorker);
     }
   }
@@ -569,7 +570,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
   public List<WorkerLostStorageInfo> getWorkerLostStorage() {
     List<WorkerLostStorageInfo> workerLostStorageList = new ArrayList<>();
     for (MasterWorkerInfo worker : mWorkers) {
-      try (LockResource r = worker.lockWorkerMeta(EnumSet.of(WorkerMetaLockSection.USAGE), true)) {
+      try (LockResource r = worker.lockWorkerMeta(EnumSet.of(WorkerMetaLockSection.USAGE), LockType.SHARED)) {
         if (worker.hasLostStorage()) {
           Map<String, StorageList> lostStorage = worker.getLostStorage().entrySet()
               .stream().collect(Collectors.toMap(Map.Entry::getKey,
@@ -622,7 +623,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
           MasterWorkerInfo worker = mWorkers.getFirstByField(ID_INDEX, workerId);
           if (worker != null) {
             try (LockResource r = worker.lockWorkerMeta(
-                EnumSet.of(WorkerMetaLockSection.BLOCKS), false)) {
+                EnumSet.of(WorkerMetaLockSection.BLOCKS), LockType.EXCLUSIVE)) {
               worker.updateToRemovedBlock(true, blockId);
             }
           }
@@ -722,7 +723,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
       // Lock the worker metadata here to preserve the lock order
       // The worker metadata must be locked before the blocks
       try (LockResource lr = worker.lockWorkerMeta(
-          EnumSet.of(WorkerMetaLockSection.USAGE, WorkerMetaLockSection.BLOCKS), false)) {
+          EnumSet.of(WorkerMetaLockSection.USAGE, WorkerMetaLockSection.BLOCKS), LockType.EXCLUSIVE)) {
         try (LockResource r = lockBlock(blockId)) {
           Optional<BlockMeta> block = mBlockStore.getBlock(blockId);
           if (!block.isPresent() || block.get().getLength() != length) {
@@ -792,7 +793,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
   public Map<String, Long> getTotalBytesOnTiers() {
     Map<String, Long> ret = new HashMap<>();
     for (MasterWorkerInfo worker : mWorkers) {
-      try (LockResource r = worker.lockWorkerMeta(EnumSet.of(WorkerMetaLockSection.USAGE), true)) {
+      try (LockResource r = worker.lockWorkerMeta(EnumSet.of(WorkerMetaLockSection.USAGE), LockType.SHARED)) {
         for (Map.Entry<String, Long> entry : worker.getTotalBytesOnTiers().entrySet()) {
           Long total = ret.get(entry.getKey());
           ret.put(entry.getKey(), (total == null ? 0L : total) + entry.getValue());
@@ -807,7 +808,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
     Map<String, Long> ret = new HashMap<>();
     for (MasterWorkerInfo worker : mWorkers) {
       try (LockResource r = worker.lockWorkerMeta(
-          EnumSet.of(WorkerMetaLockSection.USAGE), true)) {
+          EnumSet.of(WorkerMetaLockSection.USAGE), LockType.SHARED)) {
         for (Map.Entry<String, Long> entry : worker.getUsedBytesOnTiers().entrySet()) {
           Long used = ret.get(entry.getKey());
           ret.put(entry.getKey(), (used == null ? 0L : used) + entry.getValue());
@@ -935,7 +936,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
     try (LockResource r = worker.lockWorkerMeta(EnumSet.of(
         WorkerMetaLockSection.STATUS,
         WorkerMetaLockSection.USAGE,
-        WorkerMetaLockSection.BLOCKS), false)) {
+        WorkerMetaLockSection.BLOCKS), LockType.EXCLUSIVE)) {
       // Detect any lost blocks on this worker.
       Set<Long> removedBlocks = worker.register(mGlobalStorageTierAssoc, storageTiers,
           totalBytesOnTiers, usedBytesOnTiers, blocks);
@@ -985,7 +986,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
 
     Command workerCommand = null;
     try (LockResource r = worker.lockWorkerMeta(
-        EnumSet.of(WorkerMetaLockSection.USAGE, WorkerMetaLockSection.BLOCKS), false)) {
+        EnumSet.of(WorkerMetaLockSection.USAGE, WorkerMetaLockSection.BLOCKS), LockType.EXCLUSIVE)) {
       worker.addLostStorage(lostStorage);
 
       if (capacityBytesOnTiers != null) {
@@ -1027,7 +1028,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
   /**
    * Updates the worker and block metadata for blocks removed from a worker.
    *
-   * You should lock externally with {@link MasterWorkerInfo#lockWorkerMeta(EnumSet, boolean)}
+   * You should lock externally with {@link MasterWorkerInfo#lockWorkerMeta(EnumSet, LockType)}
    * with {@link WorkerMetaLockSection#BLOCKS} specified.
    * An exclusive lock is required.
    *
@@ -1037,7 +1038,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
   private void processWorkerRemovedBlocks(MasterWorkerInfo workerInfo,
       Collection<Long> removedBlockIds) {
     Preconditions.checkState(workerInfo.checkLocks(EnumSet.of(
-        WorkerMetaLockSection.BLOCKS), false));
+        WorkerMetaLockSection.BLOCKS), LockType.EXCLUSIVE));
 
     for (long removedBlockId : removedBlockIds) {
       try (LockResource r = lockBlock(removedBlockId)) {
@@ -1058,7 +1059,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
   /**
    * Updates the worker and block metadata for blocks added to a worker.
    *
-   * You should lock externally with {@link MasterWorkerInfo#lockWorkerMeta(EnumSet, boolean)}
+   * You should lock externally with {@link MasterWorkerInfo#lockWorkerMeta(EnumSet, LockType)}
    * with {@link WorkerMetaLockSection#BLOCKS} specified.
    * An exclusive lock is required.
    *
@@ -1068,7 +1069,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
   private void processWorkerAddedBlocks(MasterWorkerInfo workerInfo,
       Map<BlockLocation, List<Long>> addedBlockIds) {
     Preconditions.checkState(workerInfo.checkLocks(EnumSet.of(
-        WorkerMetaLockSection.BLOCKS), false));
+        WorkerMetaLockSection.BLOCKS), LockType.EXCLUSIVE));
 
     long invalidBlockCount = 0;
     for (Map.Entry<BlockLocation, List<Long>> entry : addedBlockIds.entrySet()) {
@@ -1101,7 +1102,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
    * Checks the blocks on the worker. For blocks not present in Alluxio anymore,
    * they will be marked to-be-removed from the worker.
    *
-   * You should lock externally with {@link MasterWorkerInfo#lockWorkerMeta(EnumSet, boolean)}
+   * You should lock externally with {@link MasterWorkerInfo#lockWorkerMeta(EnumSet, LockType)}
    * with {@link WorkerMetaLockSection#USAGE} specified.
    * A shared lock is required.
    *
@@ -1109,7 +1110,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
    */
   private void processWorkerOrphanedBlocks(MasterWorkerInfo workerInfo) {
     Preconditions.checkState(workerInfo.checkLocks(EnumSet.of(
-        WorkerMetaLockSection.USAGE), true));
+        WorkerMetaLockSection.USAGE), LockType.SHARED));
 
     long orphanedBlockCount = 0;
     for (long block : workerInfo.getBlocks()) {
@@ -1211,7 +1212,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
       long masterWorkerTimeoutMs = ServerConfiguration.getMs(PropertyKey.MASTER_WORKER_TIMEOUT_MS);
       for (MasterWorkerInfo worker : mWorkers) {
         try (LockResource r = worker.lockWorkerMeta(
-            EnumSet.of(WorkerMetaLockSection.BLOCKS), false)) {
+            EnumSet.of(WorkerMetaLockSection.BLOCKS), LockType.EXCLUSIVE)) {
           // This is not locking because the field is atomic
           final long lastUpdate = mClock.millis() - worker.getLastUpdatedTimeMs();
           if (lastUpdate > masterWorkerTimeoutMs) {
@@ -1236,7 +1237,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
   public void forgetAllWorkers() {
     for (MasterWorkerInfo worker : mWorkers) {
       try (LockResource r = worker.lockWorkerMeta(
-          EnumSet.of(WorkerMetaLockSection.BLOCKS), false)) {
+          EnumSet.of(WorkerMetaLockSection.BLOCKS), LockType.EXCLUSIVE)) {
         processLostWorker(worker);
       }
     }
@@ -1245,7 +1246,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
   /**
    * Updates the metadata for the specified lost worker.
    *
-   * You should lock externally with {@link MasterWorkerInfo#lockWorkerMeta(EnumSet, boolean)}
+   * You should lock externally with {@link MasterWorkerInfo#lockWorkerMeta(EnumSet, LockType)}
    * with {@link WorkerMetaLockSection#BLOCKS} specified.
    * An exclusive lock is required.
    *
@@ -1253,7 +1254,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
    */
   private void processLostWorker(MasterWorkerInfo worker) {
     Preconditions.checkState(worker.checkLocks(EnumSet.of(
-        WorkerMetaLockSection.BLOCKS), false));
+        WorkerMetaLockSection.BLOCKS), LockType.EXCLUSIVE));
 
     mLostWorkers.add(worker);
     mWorkers.remove(worker);
