@@ -43,7 +43,7 @@ public class LockResource implements Closeable {
   protected Lock mLock;
   private final Runnable mCloseAction;
   @Nullable
-  private ResourceLeakTracker<LockResource> mTracker;
+  private ResourceLeakTracker<LockResource> mTracker = DETECTOR.track(this);
 
   /**
    * Creates a new instance of {@link LockResource} using the given lock.
@@ -98,7 +98,6 @@ public class LockResource implements Closeable {
       } else {
         mLock.lock();
       }
-      mTracker = DETECTOR.track(this);
     }
   }
 

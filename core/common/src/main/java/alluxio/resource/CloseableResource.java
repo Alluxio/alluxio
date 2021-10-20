@@ -32,7 +32,7 @@ public abstract class CloseableResource<T> implements Closeable {
   private final T mResource;
 
   @Nullable
-  private final ResourceLeakTracker<CloseableResource> mTracker;
+  private final ResourceLeakTracker<CloseableResource> mTracker = DETECTOR.track(this);
 
   /**
    * Creates a {@link CloseableResource} wrapper around the given resource. This resource will
@@ -42,7 +42,6 @@ public abstract class CloseableResource<T> implements Closeable {
    */
   public CloseableResource(T resource) {
     mResource = resource;
-    mTracker = DETECTOR.track(this);
   }
 
   /**

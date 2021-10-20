@@ -36,7 +36,7 @@ public class RefCountLockResource extends RWLockResource {
   private final AtomicInteger mRefCount;
 
   @Nullable
-  private final ResourceLeakTracker<RefCountLockResource> mTracker;
+  private final ResourceLeakTracker<RefCountLockResource> mTracker = DETECTOR.track(this);
 
   /**
    * Creates a new instance of {@link LockResource} using the given lock and reference counter. The
@@ -54,7 +54,6 @@ public class RefCountLockResource extends RWLockResource {
     super(lock, mode, acquireLock, useTryLock);
     mRefCount = Preconditions.checkNotNull(refCount,
         "Reference Counter can not be null");
-    mTracker = DETECTOR.track(this);
   }
 
   /**
