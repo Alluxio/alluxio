@@ -344,6 +344,18 @@ public final class FileUtils {
   }
 
   /**
+   * Creates a temporary directory like guava's Files.createTempDir().
+   *
+   * @return the created temporary directory
+   */
+  public static File createTempDir() throws IOException {
+    File tempDirBase =
+         new File(System.getProperty("java.io.tmpdir"));
+    return Files.createTempDirectory(
+         tempDirBase.toPath(), System.currentTimeMillis() + "-").toFile();
+  }
+
+  /**
    * Checks if a path exists.
    *
    * @param path the given path

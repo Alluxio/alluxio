@@ -42,7 +42,6 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Field;
-import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -320,10 +319,7 @@ public class CollectInfo extends AbstractShell {
     }
 
     // Collect tarballs from where the SSH command completed
-    File tempDirBase =
-             new File(System.getProperty("java.io.tmpdir"));
-    File tempDir = Files.createTempDirectory(
-                 tempDirBase.toPath(), System.currentTimeMillis() + "-").toFile();
+    File tempDir = FileUtils.createTempDir();
     List<File> filesFromHosts = new ArrayList<>();
     List<CompletableFuture<CommandReturn>> scpFutures =
             new ArrayList<>(allHosts.size());
