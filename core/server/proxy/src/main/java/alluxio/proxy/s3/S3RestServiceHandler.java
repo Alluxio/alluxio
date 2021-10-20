@@ -31,6 +31,7 @@ import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.DeletePOptions;
 import alluxio.grpc.ListStatusPOptions;
 import alluxio.grpc.WritePType;
+import alluxio.proxy.s3.logging.Logged;
 import alluxio.security.User;
 import alluxio.web.ProxyWebServer;
 
@@ -78,6 +79,7 @@ import javax.ws.rs.core.Response;
 @Path(S3RestServiceHandler.SERVICE_PREFIX)
 @Produces(MediaType.APPLICATION_XML)
 @Consumes({ MediaType.TEXT_XML, MediaType.APPLICATION_XML, MediaType.APPLICATION_OCTET_STREAM })
+@Logged
 public final class S3RestServiceHandler {
   private static final Logger LOG = LoggerFactory.getLogger(S3RestServiceHandler.class);
 
