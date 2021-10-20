@@ -14,7 +14,7 @@ import java.util.SortedMap;
  * This reviews the heap allocation status to decide whether a request should be
  * accepted.
  */
-public class JvmSpaceReviewer implements RegisterLeaseReviewer {
+public class JvmSpaceReviewer {
   private static final Logger LOG = LoggerFactory.getLogger(JvmSpaceReviewer.class);
 
   // It is observed in tests that if a RegisterWorkerPRequest contains 1 million blocks,
@@ -24,7 +24,6 @@ public class JvmSpaceReviewer implements RegisterLeaseReviewer {
 
   JvmSpaceReviewer() {}
 
-  @Override
   public boolean reviewLeaseRequest(GetRegisterLeasePRequest request) {
     long blockCount = request.getBlockCount();
     long bytesAvailable = getAvailableBytes();

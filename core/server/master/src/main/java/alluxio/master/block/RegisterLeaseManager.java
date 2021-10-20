@@ -27,10 +27,10 @@ public class RegisterLeaseManager {
   private static final Logger LOG = LoggerFactory.getLogger(RegisterLeaseManager.class);
 
   private final Semaphore mSemaphore;
-
-  Map<String, RegisterLeaseReviewer> mReviewerRegistry;
   // <WorkerId, ExpiryTime>
-  Map<Long, RegisterLease> mOpenStreams;
+  private final Map<Long, RegisterLease> mOpenStreams;
+
+  private JvmSpaceReviewer mJvmChecker;
 
   public RegisterLeaseManager() {
     int maxConcurrency = ServerConfiguration.global().getInt(PropertyKey.MASTER_REGISTER_MAX_CONCURRENCY);
@@ -38,10 +38,11 @@ public class RegisterLeaseManager {
         PropertyKey.MASTER_REGISTER_MAX_CONCURRENCY.toString());
     mSemaphore = new Semaphore(maxConcurrency);
 
-    mReviewerRegistry = new HashMap<>();
-    mReviewerRegistry.put(JvmSpaceReviewer.class.getName(), new JvmSpaceReviewer());
+    if (ServerConfiguration.getBoolean(PropertyKey.MASTER_REGISTER_CHECK_JVM_SPACE)) {
+      mJvmChecker = new JvmSpaceReviewer();
+    }
 
-    mOpenStreams = new ConcurrentHashMap();
+    mOpenStreams = new ConcurrentHashMap<>();
   }
 
   // If the lease exists, it will be returned
@@ -53,12 +54,10 @@ public class RegisterLeaseManager {
     }
 
     // If any of the reviewer rejects, the request will be rejected
-    for (Map.Entry<String, RegisterLeaseReviewer> entry : mReviewerRegistry.entrySet()) {
-      if (!entry.getValue().reviewLeaseRequest(request)) {
-        return Optional.empty();
-      }
+    if (mJvmChecker != null && !mJvmChecker.reviewLeaseRequest(request)) {
+      return Optional.empty();
     }
-    LOG.info("Passed all reviews");
+    LOG.info("Passed JVM space reviews");
 
     // Check for expired leases here instead of having a separate thread
     tryRecycleLease();

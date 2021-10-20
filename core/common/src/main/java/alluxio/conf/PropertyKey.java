@@ -2264,7 +2264,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       new Builder(Name.MASTER_WORKER_REGISTER_LEASE_EXPIRY_TIMEOUT)
           .setDescription("How long the master will wait before taking back the lease, "
               + "if the worker does not send the register request.")
-          .setDefaultValue("5min")
+          .setDefaultValue("1min")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
@@ -2348,10 +2348,16 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey MASTER_REGISTER_MAX_CONCURRENCY =
       new Builder(Name.MASTER_WORKER_REGISTER_MAX_CONCURRENCY)
-          .setDefaultValue("1")
+          .setDefaultValue("25")
           .setDescription("How many workers to register at the same time")
           .setScope(Scope.MASTER)
           .build();
+  public static final PropertyKey MASTER_REGISTER_CHECK_JVM_SPACE =
+      new Builder(Name.MASTER_REGISTER_CHECK_JVM_SPACE)
+              .setDefaultValue("true")
+              .setDescription("Whether the master heap usage is checked before accepting a worker to register")
+              .setScope(Scope.MASTER)
+              .build();
   public static final PropertyKey MASTER_PRINCIPAL = new Builder(Name.MASTER_PRINCIPAL)
       .setDescription("Kerberos principal for Alluxio master.")
       .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
@@ -5912,6 +5918,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.journal.temporary.file.gc.threshold";
     public static final String MASTER_WORKER_REGISTER_MAX_CONCURRENCY =
         "alluxio.master.worker.register.max.concurrency";
+    public static final String MASTER_REGISTER_CHECK_JVM_SPACE = "alluxio.master.register.check.jvm.space";
     public static final String MASTER_WORKER_REGISTER_LEASE_EXPIRY_TIMEOUT =
         "alluxio.master.worker.register.lease.expiry.timeout";
 
