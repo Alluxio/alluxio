@@ -133,7 +133,7 @@ public class ConcurrentClockCuckooFilter<T> implements ClockCuckooFilter<T>, Ser
    *
    * @param funnel the funnel of T's that the constructed cuckoo filter will use
    * @param expectedInsertions the number of expected insertions to the constructed {@code
-   *      BloomFilter}; must be positive
+   *      ConcurrentClockCuckooFilter}; must be positive
    * @param bitsPerClock the number of bits the clock field has
    * @param bitsPerSize the number of bits the size field has
    * @param bitsPerScope the number of bits the scope field has
@@ -177,7 +177,7 @@ public class ConcurrentClockCuckooFilter<T> implements ClockCuckooFilter<T>, Ser
    *
    * @param funnel the funnel of T's that the constructed {@code BloomFilter} will use
    * @param expectedInsertions the number of expected insertions to the constructed {@code
-   *      BloomFilter}; must be positive
+   *      ConcurrentClockCuckooFilter}; must be positive
    * @param bitsPerClock the number of bits the clock field has
    * @param bitsPerSize the number of bits the size field has
    * @param bitsPerScope the number of bits the scope field has
@@ -200,7 +200,7 @@ public class ConcurrentClockCuckooFilter<T> implements ClockCuckooFilter<T>, Ser
    *
    * @param funnel the funnel of T's that the constructed {@code BloomFilter} will use
    * @param expectedInsertions the number of expected insertions to the constructed {@code
-   *      BloomFilter}; must be positive
+   *      ConcurrentClockCuckooFilter}; must be positive
    * @param bitsPerClock the number of bits the clock field has
    * @param bitsPerSize the number of bits the size field has
    * @param bitsPerScope the number of bits the scope field has
@@ -222,7 +222,7 @@ public class ConcurrentClockCuckooFilter<T> implements ClockCuckooFilter<T>, Ser
    *
    * @param funnel the funnel of T's that the constructed {@code BloomFilter} will use
    * @param expectedInsertions the number of expected insertions to the constructed {@code
-   *      BloomFilter}; must be positive
+   *      ConcurrentClockCuckooFilter}; must be positive
    * @param bitsPerClock the number of bits the clock field has
    * @param bitsPerSize the number of bits the size field has
    * @param bitsPerScope the number of bits the scope field has
@@ -243,7 +243,7 @@ public class ConcurrentClockCuckooFilter<T> implements ClockCuckooFilter<T>, Ser
    *
    * @param funnel the funnel of T's that the constructed {@code BloomFilter} will use
    * @param expectedInsertions the number of expected insertions to the constructed {@code
-   *      BloomFilter}; must be positive
+   *      ConcurrentClockCuckooFilter}; must be positive
    * @param bitsPerClock the number of bits the clock field has
    * @param bitsPerSize the number of bits the size field has
    * @param bitsPerScope the number of bits the scope field has
