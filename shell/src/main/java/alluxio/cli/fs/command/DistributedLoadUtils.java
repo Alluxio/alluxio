@@ -98,7 +98,7 @@ public final class DistributedLoadUtils {
         }
         pool.add(uriStatus);
         if (pool.size() == batchSize) {
-          addJob(command, batchSize, pool, replication, workerSet, excludedWorkerSet, localityIds,
+          addJob(command, pool, replication, workerSet, excludedWorkerSet, localityIds,
               excludedLocalityIds, printOut);
           pool.clear();
         }
@@ -106,12 +106,12 @@ public final class DistributedLoadUtils {
     });
     // add all the jobs left in the pool
     if (pool.size() > 0) {
-      addJob(command, batchSize, pool, replication, workerSet, excludedWorkerSet, localityIds,
+      addJob(command, pool, replication, workerSet, excludedWorkerSet, localityIds,
           excludedLocalityIds, printOut);
     }
   }
 
-  private static void addJob(AbstractDistributedJobCommand command, int batchSize,
+  private static void addJob(AbstractDistributedJobCommand command,
       List<URIStatus> statuses, int replication, Set<String> workerSet,
       Set<String> excludedWorkerSet, Set<String> localityIds, Set<String> excludedLocalityIds,
       boolean printOut) {
@@ -119,23 +119,22 @@ public final class DistributedLoadUtils {
       // Wait one job to complete.
       command.waitJob();
     }
-    command.mSubmittedJobAttempts.add(newJob(command, batchSize, statuses, replication, workerSet,
+    command.mSubmittedJobAttempts.add(newJob(command, statuses, replication, workerSet,
         excludedWorkerSet, localityIds, excludedLocalityIds, printOut));
   }
 
   /**
    * Creates a new job to load a file in Alluxio space, makes it resident in memory.
    * @param command The command to execute loading
-   * @param batchSize size for batched jobs
    * @param filePath The {@link AlluxioURI} path to load into Alluxio memory
    * @param replication The replication of file to load into Alluxio memory
    * @param printOut whether print out progress in console
    */
-  private static JobAttempt newJob(AbstractDistributedJobCommand command, int batchSize,
+  private static JobAttempt newJob(AbstractDistributedJobCommand command,
       List<URIStatus> filePath, int replication, Set<String> workerSet,
       Set<String> excludedWorkerSet, Set<String> localityIds, Set<String> excludedLocalityIds,
       boolean printOut) {
-    JobAttempt jobAttempt = LoadJobAttemptFactory.create(command, batchSize, filePath, replication,
+    JobAttempt jobAttempt = LoadJobAttemptFactory.create(command, filePath, replication,
         workerSet, excludedWorkerSet, localityIds, excludedLocalityIds, printOut);
     jobAttempt.run();
     return jobAttempt;
@@ -204,7 +203,7 @@ public final class DistributedLoadUtils {
         RetryPolicy retryPolicy) {
       super(client, retryPolicy);
       mJobConfig = jobConfig;
-
+      // TODO(jianjian): better print
       System.out.println(jobConfig + " loading");
     }
 
@@ -263,7 +262,6 @@ public final class DistributedLoadUtils {
     /**
      * Loads a file or directory in Alluxio space, makes it resident in memory.
      * @param command The command to execute loading
-     * @param batchSize size of batched job
      * @param filePath The {@link AlluxioURI} path to load into Alluxio memory
      * @param replication Number of block replicas of each loaded file
      * @param workerSet A set of worker hosts to load data
@@ -273,12 +271,13 @@ public final class DistributedLoadUtils {
      * @param printOut whether print out progress in console
      * @return specific load job attempt
      **/
-    public static JobAttempt create(AbstractDistributedJobCommand command, int batchSize,
+    public static JobAttempt create(AbstractDistributedJobCommand command,
         List<URIStatus> filePath, int replication, Set<String> workerSet,
         Set<String> excludedWorkerSet, Set<String> localityIds, Set<String> excludedLocalityIds,
         boolean printOut) {
+      int poolSize = filePath.size();
       JobAttempt jobAttempt;
-      if (batchSize == 1) {
+      if (poolSize == 1) {
         LoadConfig config = new LoadConfig(filePath.iterator().next().getPath(), replication,
             workerSet, excludedWorkerSet, localityIds, excludedLocalityIds);
         if (printOut) {
