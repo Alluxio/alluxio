@@ -2047,7 +2047,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey MASTER_NETWORK_PERMIT_KEEPALIVE_TIME_MS =
       new Builder(Name.MASTER_NETWORK_PERMIT_KEEPALIVE_TIME_MS)
-          .setDefaultValue("60sec")
+          .setDefaultValue("30sec")
           .setDescription(
               "Specify the most aggressive keep-alive time clients are permitted to configure. "
                   + "The server will try to detect clients exceeding this rate and when detected "
@@ -3196,7 +3196,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey WORKER_NETWORK_PERMIT_KEEPALIVE_TIME_MS =
       new Builder(
           Name.WORKER_NETWORK_PERMIT_KEEPALIVE_TIME_MS)
-          .setDefaultValue("5m")
+          .setDefaultValue("30s")
           .setDescription(
               "Specify the most aggressive keep-alive time clients are permitted to configure. "
                   + "The server will try to detect clients exceeding this rate and when detected "
@@ -5336,6 +5336,47 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDefaultValue(20003)
           .setScope(Scope.ALL)
           .build();
+  public static final PropertyKey JOB_MASTER_NETWORK_MAX_INBOUND_MESSAGE_SIZE =
+      new Builder(Name.JOB_MASTER_NETWORK_MAX_INBOUND_MESSAGE_SIZE)
+          .setDefaultValue("100MB")
+          .setDescription("The maximum size of a message that can be sent to the Alluxio master")
+          .setScope(Scope.MASTER)
+          .build();
+  public static final PropertyKey JOB_MASTER_NETWORK_FLOWCONTROL_WINDOW =
+        new Builder(Name.JOB_MASTER_NETWORK_FLOWCONTROL_WINDOW)
+          .setDefaultValue("2MB")
+          .setDescription(
+              "The HTTP2 flow control window used by Alluxio job-master gRPC connections. Larger "
+                  + "value will allow more data to be buffered but will use more memory.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.MASTER)
+          .build();
+  public static final PropertyKey JOB_MASTER_NETWORK_KEEPALIVE_TIME_MS =
+      new Builder(Name.JOB_MASTER_NETWORK_KEEPALIVE_TIME_MS)
+          .setDefaultValue("2h")
+          .setDescription("The amount of time for Alluxio job-master gRPC server "
+              + "to wait for a response before pinging the client to see if it is still alive.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.MASTER)
+          .build();
+  public static final PropertyKey JOB_MASTER_NETWORK_KEEPALIVE_TIMEOUT_MS =
+      new Builder(Name.JOB_MASTER_NETWORK_KEEPALIVE_TIMEOUT_MS)
+          .setDefaultValue("30sec")
+          .setDescription("The maximum time for Alluxio job-master gRPC server "
+              + "to wait for a keepalive response before closing the connection.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.MASTER)
+          .build();
+  public static final PropertyKey JOB_MASTER_NETWORK_PERMIT_KEEPALIVE_TIME_MS =
+      new Builder(Name.JOB_MASTER_NETWORK_PERMIT_KEEPALIVE_TIME_MS)
+          .setDefaultValue("30sec")
+          .setDescription(
+              "Specify the most aggressive keep-alive time clients are permitted to configure. "
+                  + "The server will try to detect clients exceeding this rate and when detected "
+                  + "will forcefully close the connection.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.MASTER)
+          .build();
 
   public static final PropertyKey ZOOKEEPER_JOB_ELECTION_PATH =
       new Builder(Name.ZOOKEEPER_JOB_ELECTION_PATH)
@@ -6504,6 +6545,17 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.job.master.embedded.journal.addresses";
     public static final String JOB_MASTER_EMBEDDED_JOURNAL_PORT =
         "alluxio.job.master.embedded.journal.port";
+    // Job master RPC server related.
+    public static final String JOB_MASTER_NETWORK_MAX_INBOUND_MESSAGE_SIZE =
+        "alluxio.job.master.network.max.inbound.message.size";
+    public static final String JOB_MASTER_NETWORK_FLOWCONTROL_WINDOW =
+        "alluxio.job.master.network.flowcontrol.window";
+    public static final String JOB_MASTER_NETWORK_KEEPALIVE_TIME_MS =
+        "alluxio.job.master.network.keepalive.time";
+    public static final String JOB_MASTER_NETWORK_KEEPALIVE_TIMEOUT_MS =
+        "alluxio.job.master.network.keepalive.timeout";
+    public static final String JOB_MASTER_NETWORK_PERMIT_KEEPALIVE_TIME_MS =
+        "alluxio.job.master.network.permit.keepalive.time";
 
     public static final String JOB_WORKER_BIND_HOST = "alluxio.job.worker.bind.host";
     public static final String JOB_WORKER_DATA_PORT = "alluxio.job.worker.data.port";
