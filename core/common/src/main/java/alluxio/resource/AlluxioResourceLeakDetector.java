@@ -36,15 +36,20 @@ public class AlluxioResourceLeakDetector<T> extends ResourceLeakDetector<T> {
     ResourceLeakDetector.setLevel(lev);
   }
 
+  private final boolean mExitOnLeak;
+
   /**
    * Creates a new instance of the leak detector with the specific resource type and sampling
    * interval.
    *
    * @param resourceType the resource class
    * @param samplingInterval on average, how often a resource should be tracked
+   * @param exitOnLeak whether to exit the JVM when a leak is detected
    */
-  public AlluxioResourceLeakDetector(Class<?> resourceType, int samplingInterval) {
+  public AlluxioResourceLeakDetector(Class<?> resourceType, int samplingInterval,
+      boolean exitOnLeak) {
     super(resourceType, samplingInterval);
+    mExitOnLeak = exitOnLeak;
   }
 
   /**
@@ -59,6 +64,9 @@ public class AlluxioResourceLeakDetector<T> extends ResourceLeakDetector<T> {
     LOGGER.error("LEAK: {}.close() was not called before resource is garbage-collected. "
         + "See {} for more information about this message.{}",
         resourceType, DOC_URL, records);
+    if (mExitOnLeak) {
+      System.exit(1);
+    }
   }
 
   /**
@@ -72,5 +80,8 @@ public class AlluxioResourceLeakDetector<T> extends ResourceLeakDetector<T> {
     LOGGER.error("LEAK: {}.close() was not called before resource is garbage-collected. "
             + "See {} for more information about this message.",
         resourceType, DOC_URL);
+    if (mExitOnLeak) {
+      System.exit(1);
+    }
   }
 }
