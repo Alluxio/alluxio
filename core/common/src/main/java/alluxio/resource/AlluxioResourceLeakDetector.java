@@ -65,6 +65,8 @@ public class AlluxioResourceLeakDetector<T> extends ResourceLeakDetector<T> {
         + "See {} for more information about this message.{}",
         resourceType, DOC_URL, records);
     if (mExitOnLeak) {
+      LOGGER.error("Leak detected when {} set to true. Shutting down the JVM",
+          PropertyKey.Name.LEAK_DETECTOR_EXIT_ON_LEAK);
       System.exit(1);
     }
   }
@@ -81,6 +83,8 @@ public class AlluxioResourceLeakDetector<T> extends ResourceLeakDetector<T> {
             + "See {} for more information about this message.",
         resourceType, DOC_URL);
     if (mExitOnLeak) {
+      LOGGER.error("Leak detected when {} set to true. Shutting down the JVM",
+          PropertyKey.Name.LEAK_DETECTOR_EXIT_ON_LEAK);
       System.exit(1);
     }
   }
