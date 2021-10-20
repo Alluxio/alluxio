@@ -16,16 +16,23 @@ import static alluxio.stress.cli.RpcBenchPreparationUtils.EMPTY_CONFIG;
 import static alluxio.stress.cli.RpcBenchPreparationUtils.LOST_STORAGE;
 
 import alluxio.ClientContext;
+import alluxio.ProcessUtils;
 import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
+import alluxio.exception.FailedToAcquireRegisterLeaseException;
 import alluxio.grpc.GetRegisterLeasePResponse;
 import alluxio.grpc.LocationBlockIdListEntry;
 import alluxio.master.MasterClientContext;
+import alluxio.retry.ExponentialTimeBoundedRetry;
+import alluxio.retry.RetryPolicy;
 import alluxio.stress.CachingBlockMasterClient;
 import alluxio.stress.rpc.BlockMasterBenchParameters;
 import alluxio.stress.rpc.RpcTaskResult;
 import alluxio.stress.rpc.TierAlias;
 import alluxio.util.CommonUtils;
 import alluxio.worker.block.BlockMasterClient;
+import alluxio.worker.block.BlockMasterSync;
 import alluxio.worker.block.BlockStoreLocation;
 
 import com.beust.jcommander.ParametersDelegate;
@@ -38,6 +45,7 @@ import org.slf4j.LoggerFactory;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.List;
@@ -160,24 +168,9 @@ public class RegisterWorkerBench extends RpcBench<BlockMasterBenchParameters> {
     try {
       Instant s = Instant.now();
 
-      // TODO(jiacheng): Acquire the lease
-      boolean leaseAcquired = false;
-      int iter = 0;
-      while (!leaseAcquired) {
-        // TODO(jiacheng): Get lease first
-        LOG.info("Acquire lease from the master first, iter {}", iter);
-        GetRegisterLeasePResponse response =  client.acquireRegisterLease(workerId, mBlockCount);
-        // TODO(jiacheng): back off logic here
-        // TODO(jiacheng): Add more logic after the test
-        LOG.info("Lease response: {}", response);
-        leaseAcquired = response.getAllowed();
-        if (leaseAcquired) {
-          CommonUtils.sleepMs(1000);
-        }
-        iter++;
-      }
-
-      LOG.info("Lease acquired");
+      LOG.info("Acquiring lease for {}", workerId);
+      client.acquireRegisterLeaseWithBackoff(workerId, mBlockCount, BlockMasterSync.getDefaultRetryPolicy());
+      LOG.info("Lease acquired for {}", workerId);
 
       // TODO(jiacheng): The 1st reported RPC time is always very long, this does
       //  not match with the time recorded by Jaeger.
@@ -192,6 +185,7 @@ public class RegisterWorkerBench extends RpcBench<BlockMasterBenchParameters> {
               ImmutableMap.of(),
               LOST_STORAGE, // lost storage
               EMPTY_CONFIG); // extra config
+      LOG.info("Worker {} registered", workerId);
 
       Instant e = Instant.now();
       RpcTaskResult.Point p = new RpcTaskResult.Point(Duration.between(s, e).toMillis());

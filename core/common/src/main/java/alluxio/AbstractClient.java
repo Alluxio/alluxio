@@ -15,6 +15,7 @@ import alluxio.annotation.SuppressFBWarnings;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.PreconditionMessage;
+import alluxio.exception.RegisterLeaseExpiredException;
 import alluxio.exception.ServiceNotFoundException;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.exception.status.FailedPreconditionException;
@@ -404,11 +405,14 @@ public abstract class AbstractClient implements Client {
       try {
         return rpc.call();
       } catch (StatusRuntimeException e) {
+        LOG.error("Exception is ", e);
         AlluxioStatusException se = AlluxioStatusException.fromStatusRuntimeException(e);
         if (se.getStatusCode() == Status.Code.UNAVAILABLE
             || se.getStatusCode() == Status.Code.CANCELLED
             || se.getStatusCode() == Status.Code.UNAUTHENTICATED
+            || se.getStatusCode() == Status.Code.FAILED_PRECONDITION
             || e.getCause() instanceof UnresolvedAddressException) {
+          LOG.info("Caught exception and will retry", se);
           ex = se;
         } else {
           throw se;

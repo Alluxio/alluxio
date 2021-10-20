@@ -34,7 +34,8 @@ public class RegisterLeaseManager {
 
   public RegisterLeaseManager() {
     int maxConcurrency = ServerConfiguration.global().getInt(PropertyKey.MASTER_REGISTER_MAX_CONCURRENCY);
-    Preconditions.checkState(maxConcurrency > 0, "");
+    Preconditions.checkState(maxConcurrency > 0, "%s should be greater than 0",
+        PropertyKey.MASTER_REGISTER_MAX_CONCURRENCY.toString());
     mSemaphore = new Semaphore(maxConcurrency);
 
     mReviewerRegistry = new HashMap<>();
@@ -57,6 +58,7 @@ public class RegisterLeaseManager {
         return Optional.empty();
       }
     }
+    LOG.info("Passed all reviews");
 
     // Check for expired leases here instead of having a separate thread
     tryRecycleLease();
@@ -64,6 +66,7 @@ public class RegisterLeaseManager {
     if (mSemaphore.tryAcquire()) {
       RegisterLease lease = new RegisterLease();
       mOpenStreams.put(request.getWorkerId(), lease);
+      LOG.info("Granted lease to worker, now open streams are {}", mOpenStreams);
       return Optional.of(lease);
     }
 
@@ -74,8 +77,10 @@ public class RegisterLeaseManager {
     long now = CommonUtils.getCurrentMs();
 
     mOpenStreams.entrySet().removeIf(entry -> {
-      if (entry.getValue().mExpireTime.toEpochMilli() > now) {
-        LOG.info("Recycled expired lease for worker {}", entry.getKey());
+      long expiry = entry.getValue().mExpireTime.toEpochMilli();
+      LOG.info("Now is {}, expiry is {}.", now, expiry);
+      if (expiry < now) {
+        LOG.info("Now is {}, expiry is {}. Recycled expired lease for worker {}", now, expiry, entry.getKey());
         return true;
       }
       return false;
@@ -83,12 +88,16 @@ public class RegisterLeaseManager {
   }
 
   public boolean checkLease(long workerId) {
+    LOG.info("Checking lease for {} in {}", workerId, mOpenStreams);
     return mOpenStreams.containsKey(workerId);
   }
 
   public void releaseLease(long workerId) {
-    if (mOpenStreams.containsKey(workerId)) {
-      mSemaphore.release();
+    if (!mOpenStreams.containsKey(workerId)) {
+      LOG.info("Worker {}'s lease is not found. Most likely the lease has already been recycled.", workerId);
+      return;
     }
+    mOpenStreams.remove(workerId);
+    mSemaphore.release();
   }
 }

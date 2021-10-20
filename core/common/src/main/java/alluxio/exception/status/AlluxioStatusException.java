@@ -30,6 +30,7 @@ import alluxio.exception.InvalidFileSizeException;
 import alluxio.exception.InvalidPathException;
 import alluxio.exception.InvalidWorkerStateException;
 import alluxio.exception.JobDoesNotExistException;
+import alluxio.exception.RegisterLeaseExpiredException;
 import alluxio.exception.UfsBlockAccessTokenUnavailableException;
 import alluxio.exception.WorkerOutOfSpaceException;
 
@@ -37,6 +38,8 @@ import com.google.common.base.Preconditions;
 import io.grpc.Status;
 import io.grpc.StatusException;
 import io.grpc.StatusRuntimeException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.security.sasl.SaslException;
 import java.io.FileNotFoundException;
@@ -51,6 +54,8 @@ import java.nio.file.attribute.UserPrincipalNotFoundException;
  */
 public class AlluxioStatusException extends IOException {
   private static final long serialVersionUID = -7422144873058169662L;
+
+  private static final Logger LOG = LoggerFactory.getLogger(AlluxioStatusException.class);
 
   private final Status mStatus;
 
@@ -220,7 +225,10 @@ public class AlluxioStatusException extends IOException {
    * @return the converted {@link AlluxioStatusException}
    */
   public static AlluxioStatusException fromStatusRuntimeException(StatusRuntimeException e) {
-    return AlluxioStatusException.from(e.getStatus().withCause(e));
+    LOG.error("Status: {}", e.getStatus().withCause(e));
+    AlluxioStatusException converted = AlluxioStatusException.from(e.getStatus().withCause(e));
+    LOG.error("Converted to ", converted);
+    return converted;
   }
 
   /**
@@ -245,7 +253,7 @@ public class AlluxioStatusException extends IOException {
         | UfsBlockAccessTokenUnavailableException e) {
       return new UnavailableException(e);
     } catch (DependencyDoesNotExistException | DirectoryNotEmptyException
-        | InvalidWorkerStateException e) {
+        | InvalidWorkerStateException | RegisterLeaseExpiredException e) {
       return new FailedPreconditionException(e);
     } catch (WorkerOutOfSpaceException e) {
       return new ResourceExhaustedException(e);

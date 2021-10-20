@@ -240,9 +240,10 @@ message GetRegisterLeasePRequest {
 }
 message GetRegisterLeasePOptions {}
 message GetRegisterLeasePResponse {
-  optional bool allowed = 1;
-  optional int64 expiryMs = 2;
-  optional GetRegisterLeasePOptions options = 3;
+  optional int64 workerId = 1;
+  optional bool allowed = 2;
+  optional int64 expiryMs = 3;
+  optional GetRegisterLeasePOptions options = 4;
 }
 
 message RegisterWorkerPOptions {

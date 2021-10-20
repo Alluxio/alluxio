@@ -17,12 +17,16 @@ import alluxio.conf.PropertyKey;
 import alluxio.StorageTierAssoc;
 import alluxio.WorkerStorageTierAssoc;
 import alluxio.exception.ConnectionFailedException;
+import alluxio.exception.FailedToAcquireRegisterLeaseException;
 import alluxio.grpc.Command;
 import alluxio.grpc.ConfigProperty;
 import alluxio.grpc.GetRegisterLeasePResponse;
 import alluxio.grpc.Scope;
 import alluxio.heartbeat.HeartbeatExecutor;
 import alluxio.metrics.MetricsSystem;
+import alluxio.retry.ExponentialBackoffRetry;
+import alluxio.retry.ExponentialTimeBoundedRetry;
+import alluxio.retry.RetryPolicy;
 import alluxio.util.CommonUtils;
 import alluxio.util.ConfigurationUtils;
 import alluxio.wire.WorkerNetAddress;
@@ -31,6 +35,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.time.Duration;
+import java.time.temporal.ChronoUnit;
+import java.time.temporal.TemporalUnit;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -76,6 +83,13 @@ public final class BlockMasterSync implements HeartbeatExecutor {
   /** Last System.currentTimeMillis() timestamp when a heartbeat successfully completed. */
   private long mLastSuccessfulHeartbeatMs;
 
+  /** The base amount (exponential backoff) to sleep before retrying */
+  private static final int ACQUIRE_LEASE_WAIT_BASE_SLEEP_MS = 1000;
+  /** Maximum amount (exponential backoff) to sleep before retrying */
+  private static final int ACQUIRE_LEASE_WAIT_MAX_SLEEP_MS = 10000;
+  /** The maximum retries */
+  private static final int ACQUIRE_LEASE_WAIT_MAX_RETRIES = 360;
+
   /**
    * Creates a new instance of {@link BlockMasterSync}.
    *
@@ -99,6 +113,23 @@ public final class BlockMasterSync implements HeartbeatExecutor {
     mLastSuccessfulHeartbeatMs = System.currentTimeMillis();
   }
 
+  private static int getAcquireLeaseTimeout() {
+    int heartbeatTimeoutMs = (int) ServerConfiguration
+            .getMs(PropertyKey.WORKER_BLOCK_HEARTBEAT_TIMEOUT_MS);
+    return heartbeatTimeoutMs > 0 ? heartbeatTimeoutMs : 3_600_000;
+  }
+
+  public static RetryPolicy getDefaultRetryPolicy() {
+    int acquireLeaseTimeoutMs = getAcquireLeaseTimeout();
+    RetryPolicy retry = ExponentialTimeBoundedRetry.builder()
+            .withMaxDuration(Duration.of(acquireLeaseTimeoutMs, ChronoUnit.MILLIS))
+            .withInitialSleep(Duration.of(ACQUIRE_LEASE_WAIT_BASE_SLEEP_MS, ChronoUnit.MILLIS))
+            .withMaxSleep(Duration.of(ACQUIRE_LEASE_WAIT_MAX_SLEEP_MS, ChronoUnit.MILLIS))
+            .withSkipInitialSleep()
+            .build();
+    return retry;
+  }
+
   /**
    * Registers with the Alluxio master. This should be called before the continuous heartbeat thread
    * begins.
@@ -109,23 +140,17 @@ public final class BlockMasterSync implements HeartbeatExecutor {
     List<ConfigProperty> configList =
         ConfigurationUtils.getConfiguration(ServerConfiguration.global(), Scope.WORKER);
 
-    boolean leaseAcquired = false;
-    int iter = 0;
-    while (!leaseAcquired) {
-      LOG.info("Acquiring lease from the master first, iter {}", iter);
-      GetRegisterLeasePResponse response =  mMasterClient.acquireRegisterLease(mWorkerId.get(), storeMeta.getNumberOfBlocks());
-      // TODO(jiacheng): back off logic here
-      // TODO(jiacheng): Add more logic after the test
-      LOG.info("Lease response: {}", response);
-      leaseAcquired = response.getAllowed();
-      if (leaseAcquired) {
-        // TODO(jiacheng): exponential backoff
-        CommonUtils.sleepMs(1000);
+    int acquireLeaseTimeoutMs =  getAcquireLeaseTimeout();
+    try {
+      mMasterClient.acquireRegisterLeaseWithBackoff(mWorkerId.get(), storeMeta.getNumberOfBlocks(), getDefaultRetryPolicy());
+    } catch (FailedToAcquireRegisterLeaseException e) {
+      if (ServerConfiguration.getBoolean(PropertyKey.TEST_MODE)) {
+        throw new RuntimeException("Master register lease timeout exceeded: " + acquireLeaseTimeoutMs);
       }
-      iter++;
+      ProcessUtils.fatalError(LOG, "Master register lease timeout exceeded: %d",
+              acquireLeaseTimeoutMs);
     }
 
-    LOG.info("Lease acquired");
     mMasterClient.register(mWorkerId.get(),
         storageTierAssoc.getOrderedStorageAliases(), storeMeta.getCapacityBytesOnTiers(),
         storeMeta.getUsedBytesOnTiers(), storeMeta.getBlockListByStorageLocation(),

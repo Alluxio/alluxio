@@ -14,6 +14,7 @@ package alluxio.worker.block;
 import alluxio.AbstractMasterClient;
 import alluxio.Constants;
 import alluxio.conf.PropertyKey;
+import alluxio.exception.FailedToAcquireRegisterLeaseException;
 import alluxio.grpc.BlockHeartbeatPOptions;
 import alluxio.grpc.BlockHeartbeatPRequest;
 import alluxio.grpc.BlockIdList;
@@ -34,6 +35,8 @@ import alluxio.grpc.ServiceType;
 import alluxio.grpc.StorageList;
 import alluxio.master.MasterClientContext;
 import alluxio.grpc.GrpcUtils;
+import alluxio.retry.ExponentialBackoffRetry;
+import alluxio.retry.RetryPolicy;
 import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.annotations.VisibleForTesting;
@@ -227,6 +230,29 @@ public class BlockMasterClient extends AbstractMasterClient {
             }, LOG, "GetRegisterLease", "workerId=%d, estimatedBlockCount=%d", workerId, estimatedBlockCount);
   }
 
+  public void acquireRegisterLeaseWithBackoff(final long workerId, final int estimatedBlockCount, final RetryPolicy retry) throws IOException, FailedToAcquireRegisterLeaseException {
+    boolean leaseAcquired;
+    int iter = 0;
+    GetRegisterLeasePResponse response = null;
+    while (retry.attempt()) {
+      LOG.info("Worker {} acquiring lease from the master, iter {}", workerId, iter);
+      response = acquireRegisterLease(workerId, estimatedBlockCount);
+      LOG.info("Worker {} lease response: {}", workerId, response);
+      leaseAcquired = response.getAllowed();
+      if (leaseAcquired) {
+        break;
+      }
+      iter++;
+    }
+
+    if (response == null || !response.getAllowed()) {
+      throw new FailedToAcquireRegisterLeaseException(
+          String.format("Failed to acquire a register lease from master after %d attempts", retry.getAttemptCount()));
+    }
+
+    LOG.info("Lease acquired after {} attempts", retry.getAttemptCount());
+  }
+
   /**
    * The method the worker should execute to register with the block master.
    *
@@ -263,6 +289,8 @@ public class BlockMasterClient extends AbstractMasterClient {
         .setOptions(options).build();
 
     retryRPC(() -> {
+      // TODO(jiacheng): If the exception is RegisterLeaseExpiredException, just retry registerWorker()
+      //  which will acquire a new lease
       mClient.registerWorker(request);
       return null;
     }, LOG, "Register", "workerId=%d", workerId);

@@ -30,12 +30,12 @@ public class JvmSpaceReviewer implements RegisterLeaseReviewer {
     long bytesAvailable = getAvailableBytes();
     long estimatedSpace = blockCount * BLOCK_COUNT_MULTIPLIER;
     if (bytesAvailable > estimatedSpace) {
-      LOG.info("{} bytes available on master. The register request with {} blocks is estimated to"
-          + " need {} bytes. Lease granted.", bytesAvailable, blockCount, estimatedSpace);
+//      LOG.info("{} bytes available on master. The register request with {} blocks is estimated to"
+//          + " need {} bytes. Review passed.", bytesAvailable, blockCount, estimatedSpace);
       return true;
     } else {
       LOG.info("{} bytes available on master. The register request with {} blocks is estimated to"
-              + " need {} bytes. Lease rejected.", bytesAvailable, blockCount, estimatedSpace);
+              + " need {} bytes. Review rejected.", bytesAvailable, blockCount, estimatedSpace);
       return false;
     }
   }

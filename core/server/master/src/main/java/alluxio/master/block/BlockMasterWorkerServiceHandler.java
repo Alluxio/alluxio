@@ -12,6 +12,7 @@
 package alluxio.master.block;
 
 import alluxio.RpcUtils;
+import alluxio.exception.RegisterLeaseExpiredException;
 import alluxio.grpc.BlockHeartbeatPRequest;
 import alluxio.grpc.BlockHeartbeatPResponse;
 import alluxio.grpc.BlockMasterWorkerServiceGrpc;
@@ -136,9 +137,9 @@ public final class BlockMasterWorkerServiceHandler extends
       Optional<RegisterLease> lease = mBlockMaster.tryAcquireRegisterLease(request);
       if (lease.isPresent()) {
         RegisterLease l = lease.get();
-        return GetRegisterLeasePResponse.newBuilder().setAllowed(true).setExpiryMs(l.mExpireTime.toEpochMilli()).build();
+        return GetRegisterLeasePResponse.newBuilder().setWorkerId(request.getWorkerId()).setAllowed(true).setExpiryMs(l.mExpireTime.toEpochMilli()).build();
       }
-      return GetRegisterLeasePResponse.newBuilder().setAllowed(false).build();
+      return GetRegisterLeasePResponse.newBuilder().setWorkerId(request.getWorkerId()).setAllowed(false).build();
     }, "getRegisterLease", "request=%s", responseObserver, request);
   }
 
@@ -152,31 +153,33 @@ public final class BlockMasterWorkerServiceHandler extends
     }
 
     final long workerId = request.getWorkerId();
-    final List<String> storageTiers = request.getStorageTiersList();
-    final Map<String, Long> totalBytesOnTiers = request.getTotalBytesOnTiersMap();
-    final Map<String, Long> usedBytesOnTiers = request.getUsedBytesOnTiersMap();
-    final Map<String, StorageList> lostStorageMap = request.getLostStorageMap();
-
-    final Map<Block.BlockLocation, List<Long>> currBlocksOnLocationMap =
-        reconstructBlocksOnLocationMap(request.getCurrentBlocksList(), workerId);
-
     RegisterWorkerPOptions options = request.getOptions();
     RpcUtils.call(LOG,
         (RpcUtils.RpcCallableThrowsIOException<RegisterWorkerPResponse>) () -> {
+          // The exception will be propagated to the worker side and the worker should retry.
+          if (!mBlockMaster.hasRegisterLease(workerId)) {
+            // TODO(jiacheng): If this is thrown, the logger will log the warning tgt with
+            //  the request. This is very long!
+            throw new RegisterLeaseExpiredException("The worker does not have a lease or the lease has expired. "
+                    + "The worker should acquire a new lease and retry to register.");
+          }
 
-          // TODO(jiacheng): Then what to do?
-          //  No lease -> Back to register, which acquires a lease again
-          //  Consider old workers!
-          Preconditions.checkState(mBlockMaster.hasRegisterLease(workerId), "The worker does not have a lease.");
+          final List<String> storageTiers = request.getStorageTiersList();
+          final Map<String, Long> totalBytesOnTiers = request.getTotalBytesOnTiersMap();
+          final Map<String, Long> usedBytesOnTiers = request.getUsedBytesOnTiersMap();
+          final Map<String, StorageList> lostStorageMap = request.getLostStorageMap();
+
+          final Map<Block.BlockLocation, List<Long>> currBlocksOnLocationMap =
+                  reconstructBlocksOnLocationMap(request.getCurrentBlocksList(), workerId);
 
           // If the register is unsuccessful, the lease will be kept around until the expiry.
           // The worker can retry and use the existing lease.
           mBlockMaster.workerRegister(workerId, storageTiers, totalBytesOnTiers, usedBytesOnTiers,
                   currBlocksOnLocationMap, lostStorageMap, options);
-          LOG.info("Releasing lease here");
+          LOG.info("Worker {} finished registering, releasing its lease.", workerId);
           mBlockMaster.releaseRegisterLease(workerId);
           return RegisterWorkerPResponse.getDefaultInstance();
-        }, "registerWorker", "request=%s", responseObserver, request);
+        }, "registerWorker", "workerId=%s", responseObserver, workerId);
   }
 
   /**
