@@ -38,6 +38,7 @@ import alluxio.util.SleepUtils;
 import alluxio.util.ThreadFactoryUtils;
 import alluxio.util.executor.ExecutorServiceFactories;
 import alluxio.wire.RegisterLease;
+import alluxio.wire.WorkerNetAddress;
 import alluxio.worker.block.BlockStoreLocation;
 
 import com.google.common.collect.ImmutableList;
@@ -55,6 +56,9 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class BlockMasterWorkerServiceHandlerTest {
+  private static final WorkerNetAddress NET_ADDRESS_1 = new WorkerNetAddress().setHost("localhost")
+      .setRpcPort(80).setDataPort(81).setWebPort(82);
+
   private BlockMaster mBlockMaster;
   private MasterRegistry mRegistry;
   private ManualClock mClock;
@@ -67,10 +71,19 @@ public class BlockMasterWorkerServiceHandlerTest {
    */
   @Before
   public void before() throws Exception {
-    ServerConfiguration.set(PropertyKey.MASTER_WORKER_REGISTER_LEASE_EXPIRY_TIMEOUT, "3s");
-    // Tests on the JVM check logic will be done separately
-    ServerConfiguration.set(PropertyKey.MASTER_REGISTER_CHECK_JVM_SPACE, false);
-    ServerConfiguration.set(PropertyKey.MASTER_REGISTER_MAX_CONCURRENCY, 1);
+    initServiceHandler(true);
+  }
+
+  public void initServiceHandler(boolean leaseEnabled) throws Exception {
+    if (leaseEnabled) {
+      ServerConfiguration.set(PropertyKey.MASTER_WORKER_REGISTER_LEASE_ENABLED, true);
+      ServerConfiguration.set(PropertyKey.MASTER_WORKER_REGISTER_LEASE_TTL, "3s");
+      // Tests on the JVM check logic will be done separately
+      ServerConfiguration.set(PropertyKey.MASTER_REGISTER_CHECK_JVM_SPACE, false);
+      ServerConfiguration.set(PropertyKey.MASTER_REGISTER_MAX_CONCURRENCY, 1);
+    } else {
+      ServerConfiguration.set(PropertyKey.MASTER_WORKER_REGISTER_LEASE_ENABLED, false);
+    }
 
     mRegistry = new MasterRegistry();
     CoreMasterContext masterContext = MasterTestUtils.testMasterContext();
@@ -92,7 +105,7 @@ public class BlockMasterWorkerServiceHandlerTest {
 
   @Test
   public void registerWithNoLeaseIsRejected() {
-    long workerId = 1L;
+    long workerId = mBlockMaster.getWorkerId(NET_ADDRESS_1);;
 
     // Prepare LocationBlockIdListEntry objects
     BlockStoreLocation loc = new BlockStoreLocation("MEM", 0);
@@ -134,12 +147,12 @@ public class BlockMasterWorkerServiceHandlerTest {
     assertEquals(1, errors.size());
     Throwable t = errors.poll();
     Assert.assertThat(t.getMessage(),
-        containsString("The worker does not have a lease or the lease has expired."));
+        containsString("does not have a lease or the lease has expired."));
   }
 
   @Test
   public void registerWorkerFailsOnDuplicateBlockLocation() throws Exception {
-    long workerId = 1L;
+    long workerId = mBlockMaster.getWorkerId(NET_ADDRESS_1);;
 
     // Prepare LocationBlockIdListEntry objects
     BlockStoreLocation loc = new BlockStoreLocation("MEM", 0);
@@ -198,7 +211,7 @@ public class BlockMasterWorkerServiceHandlerTest {
 
   @Test
   public void registerLeaseExpired() {
-    long workerId = 1L;
+    long workerId = mBlockMaster.getWorkerId(NET_ADDRESS_1);
 
     // Prepare LocationBlockIdListEntry objects
     BlockStoreLocation loc = new BlockStoreLocation("MEM", 0);
@@ -259,14 +272,61 @@ public class BlockMasterWorkerServiceHandlerTest {
     assertEquals(1, errors.size());
     Throwable t = errors.poll();
     Assert.assertThat(t.getMessage(),
-        containsString("The worker does not have a lease or the lease has expired."));
+        containsString("does not have a lease or the lease has expired."));
 
     mBlockMaster.releaseRegisterLease(workerId + 1);
   }
 
   @Test
+  public void registerLeaseTurnedOff() throws Exception {
+    initServiceHandler(false);
+
+    long workerId = mBlockMaster.getWorkerId(NET_ADDRESS_1);
+
+    // Prepare LocationBlockIdListEntry objects
+    BlockStoreLocation loc = new BlockStoreLocation("MEM", 0);
+    BlockStoreLocationProto locationProto = BlockStoreLocationProto.newBuilder()
+            .setTierAlias(loc.tierAlias())
+            .setMediumType(loc.mediumType())
+            .build();
+
+    BlockIdList blockIdList1 = BlockIdList.newBuilder()
+            .addAllBlockId(ImmutableList.of(1L, 2L)).build();
+    LocationBlockIdListEntry listEntry1 = LocationBlockIdListEntry.newBuilder()
+            .setKey(locationProto).setValue(blockIdList1).build();
+
+    // No lease is acquired
+    RegisterWorkerPRequest request = RegisterWorkerPRequest.newBuilder()
+            .setWorkerId(workerId)
+            .addStorageTiers("MEM")
+            .putTotalBytesOnTiers("MEM", 1000L).putUsedBytesOnTiers("MEM", 0L)
+            .setOptions(RegisterWorkerPOptions.getDefaultInstance())
+            .addCurrentBlocks(listEntry1)
+            .build();
+
+    // Noop response observer
+    Queue<Throwable> errors = new ConcurrentLinkedDeque<>();
+    StreamObserver<RegisterWorkerPResponse> noopResponseObserver =
+            new StreamObserver<RegisterWorkerPResponse>() {
+              @Override
+              public void onNext(RegisterWorkerPResponse response) {}
+
+              @Override
+              public void onError(Throwable t) {
+                errors.offer(t);
+              }
+
+              @Override
+              public void onCompleted() {}
+            };
+
+    mHandler.registerWorker(request, noopResponseObserver);
+    assertEquals(0, errors.size());
+  }
+
+  @Test
   public void workerHeartbeatFailsOnDuplicateBlockLocation() throws Exception {
-    long workerId = 1L;
+    long workerId = mBlockMaster.getWorkerId(NET_ADDRESS_1);;
 
     // Prepare LocationBlockIdListEntry objects
     BlockStoreLocation loc = new BlockStoreLocation("MEM", 0);

@@ -18,7 +18,7 @@ import java.util.concurrent.Semaphore;
 
 public class RegisterLeaseManager {
   private static final Logger LOG = LoggerFactory.getLogger(RegisterLeaseManager.class);
-  private final static long LEASE_TTL_MS = ServerConfiguration.getMs(PropertyKey.MASTER_WORKER_REGISTER_LEASE_EXPIRY_TIMEOUT);
+  private final static long LEASE_TTL_MS = ServerConfiguration.getMs(PropertyKey.MASTER_WORKER_REGISTER_LEASE_TTL);
 
   private final Semaphore mSemaphore;
   // <WorkerId, ExpiryTime>
@@ -79,8 +79,7 @@ public class RegisterLeaseManager {
     });
   }
 
-  public boolean checkLease(long workerId) {
-    LOG.info("Checking lease for {} in {}", workerId, mOpenStreams);
+  public boolean hasLease(long workerId) {
     return mOpenStreams.containsKey(workerId);
   }
 

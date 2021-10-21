@@ -20,14 +20,11 @@ import alluxio.exception.ConnectionFailedException;
 import alluxio.exception.FailedToAcquireRegisterLeaseException;
 import alluxio.grpc.Command;
 import alluxio.grpc.ConfigProperty;
-import alluxio.grpc.GetRegisterLeasePResponse;
 import alluxio.grpc.Scope;
 import alluxio.heartbeat.HeartbeatExecutor;
 import alluxio.metrics.MetricsSystem;
-import alluxio.retry.ExponentialBackoffRetry;
 import alluxio.retry.ExponentialTimeBoundedRetry;
 import alluxio.retry.RetryPolicy;
-import alluxio.util.CommonUtils;
 import alluxio.util.ConfigurationUtils;
 import alluxio.wire.WorkerNetAddress;
 
@@ -37,7 +34,6 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
-import java.time.temporal.TemporalUnit;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -83,10 +79,14 @@ public final class BlockMasterSync implements HeartbeatExecutor {
   /** Last System.currentTimeMillis() timestamp when a heartbeat successfully completed. */
   private long mLastSuccessfulHeartbeatMs;
 
-  /** The base amount (exponential backoff) to sleep before retrying */
-  private static final int ACQUIRE_LEASE_WAIT_BASE_SLEEP_MS = 1000;
-  /** Maximum amount (exponential backoff) to sleep before retrying */
-  private static final int ACQUIRE_LEASE_WAIT_MAX_SLEEP_MS = 10000;
+  private static final boolean ACQUIRE_LEASE =
+      ServerConfiguration.getBoolean(PropertyKey.WORKER_REGISTER_LEASE_ENABLED);
+  private static final long ACQUIRE_LEASE_WAIT_BASE_SLEEP_MS =
+      ServerConfiguration.getMs(PropertyKey.WORKER_REGISTER_LEASE_RETRY_SLEEP_MIN);
+  private static final long ACQUIRE_LEASE_WAIT_MAX_SLEEP_MS =
+      ServerConfiguration.getMs(PropertyKey.WORKER_REGISTER_LEASE_RETRY_SLEEP_MAX);
+  private static final long ACQUIRE_LEASE_WAIT_MAX_DURATION =
+      ServerConfiguration.getMs(PropertyKey.WORKER_REGISTER_LEASE_RETRY_MAX_DURATION);
 
   /**
    * Creates a new instance of {@link BlockMasterSync}.
@@ -111,17 +111,9 @@ public final class BlockMasterSync implements HeartbeatExecutor {
     mLastSuccessfulHeartbeatMs = System.currentTimeMillis();
   }
 
-  private static int getAcquireLeaseTimeout() {
-    int heartbeatTimeoutMs = (int) ServerConfiguration
-            .getMs(PropertyKey.WORKER_BLOCK_HEARTBEAT_TIMEOUT_MS);
-    return heartbeatTimeoutMs > 0 ? heartbeatTimeoutMs : 3_600_000;
-  }
-
-  // TODO(jiacheng): parameterize these
   public static RetryPolicy getDefaultRetryPolicy() {
-    int acquireLeaseTimeoutMs = getAcquireLeaseTimeout();
     RetryPolicy retry = ExponentialTimeBoundedRetry.builder()
-        .withMaxDuration(Duration.of(acquireLeaseTimeoutMs, ChronoUnit.MILLIS))
+        .withMaxDuration(Duration.of(ACQUIRE_LEASE_WAIT_MAX_DURATION, ChronoUnit.MILLIS))
         .withInitialSleep(Duration.of(ACQUIRE_LEASE_WAIT_BASE_SLEEP_MS, ChronoUnit.MILLIS))
         .withMaxSleep(Duration.of(ACQUIRE_LEASE_WAIT_MAX_SLEEP_MS, ChronoUnit.MILLIS))
         .withSkipInitialSleep()
@@ -139,16 +131,19 @@ public final class BlockMasterSync implements HeartbeatExecutor {
     List<ConfigProperty> configList =
         ConfigurationUtils.getConfiguration(ServerConfiguration.global(), Scope.WORKER);
 
-    int acquireLeaseTimeoutMs =  getAcquireLeaseTimeout();
-    try {
-      mMasterClient.acquireRegisterLeaseWithBackoff(mWorkerId.get(), storeMeta.getNumberOfBlocks(), getDefaultRetryPolicy());
-    } catch (FailedToAcquireRegisterLeaseException e) {
-      mMasterClient.disconnect();
-      if (ServerConfiguration.getBoolean(PropertyKey.TEST_MODE)) {
-        throw new RuntimeException("Master register lease timeout exceeded: " + acquireLeaseTimeoutMs);
+    if (ACQUIRE_LEASE) {
+      try {
+        mMasterClient.acquireRegisterLeaseWithBackoff(mWorkerId.get(), storeMeta.getNumberOfBlocks(),
+            getDefaultRetryPolicy());
+      } catch (FailedToAcquireRegisterLeaseException e) {
+        mMasterClient.disconnect();
+        if (ServerConfiguration.getBoolean(PropertyKey.TEST_MODE)) {
+          throw new RuntimeException(String.format("Master register lease timeout exceeded: %dms",
+                  ACQUIRE_LEASE_WAIT_MAX_DURATION));
+        }
+        ProcessUtils.fatalError(LOG, "Master register lease timeout exceeded: %dms",
+                ACQUIRE_LEASE_WAIT_MAX_DURATION);
       }
-      ProcessUtils.fatalError(LOG, "Master register lease timeout exceeded: %d",
-              acquireLeaseTimeoutMs);
     }
 
     mMasterClient.register(mWorkerId.get(),
