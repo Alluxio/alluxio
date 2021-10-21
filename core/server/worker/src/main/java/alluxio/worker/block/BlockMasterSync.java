@@ -138,10 +138,12 @@ public final class BlockMasterSync implements HeartbeatExecutor {
         ConfigurationUtils.getConfiguration(ServerConfiguration.global(), Scope.WORKER);
 
     if (ACQUIRE_LEASE) {
+      LOG.info("Acquiring a RegisterLease from the master before registering");
       try {
         mMasterClient.acquireRegisterLeaseWithBackoff(mWorkerId.get(),
             storeMeta.getNumberOfBlocks(),
             getDefaultAcquireLeaseRetryPolicy());
+        LOG.info("Lease acquired");
       } catch (FailedToAcquireRegisterLeaseException e) {
         mMasterClient.disconnect();
         if (ServerConfiguration.getBoolean(PropertyKey.TEST_MODE)) {

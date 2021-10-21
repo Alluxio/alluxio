@@ -36,10 +36,9 @@ public class RegisterLeaseManager {
       ServerConfiguration.getMs(PropertyKey.MASTER_WORKER_REGISTER_LEASE_TTL);
 
   private final Semaphore mSemaphore;
-  // <WorkerId, ExpiryTime>
-  private final Map<Long, RegisterLease> mOpenStreams;
+  private final Map<Long, RegisterLease> mActiveLeases;
 
-  private JvmSpaceReviewer mJvmChecker;
+  private JvmSpaceReviewer mJvmChecker = null;
 
   /**
    * Constructor.
@@ -55,15 +54,15 @@ public class RegisterLeaseManager {
       mJvmChecker = new JvmSpaceReviewer(MetricsSystem.METRIC_REGISTRY);
     }
 
-    mOpenStreams = new ConcurrentHashMap<>();
+    mActiveLeases = new ConcurrentHashMap<>();
   }
 
   // If the lease exists, it will be returned
   Optional<RegisterLease> tryAcquireLease(GetRegisterLeasePRequest request) {
     long workerId = request.getWorkerId();
-    if (mOpenStreams.containsKey(workerId)) {
+    if (mActiveLeases.containsKey(workerId)) {
       LOG.info("Found existing lease for worker {}", workerId);
-      return Optional.of(mOpenStreams.get(workerId));
+      return Optional.of(mActiveLeases.get(workerId));
     }
 
     // If the JVM space does not allow, reject the request
@@ -79,8 +78,8 @@ public class RegisterLeaseManager {
 
     if (mSemaphore.tryAcquire()) {
       RegisterLease lease = new RegisterLease(LEASE_TTL_MS);
-      mOpenStreams.put(request.getWorkerId(), lease);
-      LOG.info("Granted lease to worker, now open streams are {}", mOpenStreams);
+      mActiveLeases.put(workerId, lease);
+      LOG.info("Granted lease to worker {}", workerId);
       return Optional.of(lease);
     }
 
@@ -90,7 +89,7 @@ public class RegisterLeaseManager {
   private void tryRecycleLease() {
     long now = CommonUtils.getCurrentMs();
 
-    mOpenStreams.entrySet().removeIf(entry -> {
+    mActiveLeases.entrySet().removeIf(entry -> {
       long expiry = entry.getValue().mExpiryTimeMs;
       if (expiry < now) {
         LOG.debug("Lease {} has expired and been recycled.", entry.getKey());
@@ -102,16 +101,16 @@ public class RegisterLeaseManager {
   }
 
   boolean hasLease(long workerId) {
-    return mOpenStreams.containsKey(workerId);
+    return mActiveLeases.containsKey(workerId);
   }
 
   void releaseLease(long workerId) {
-    if (!mOpenStreams.containsKey(workerId)) {
+    if (!mActiveLeases.containsKey(workerId)) {
       LOG.info("Worker {}'s lease is not found. Most likely the lease has already been recycled.",
           workerId);
       return;
     }
-    mOpenStreams.remove(workerId);
+    mActiveLeases.remove(workerId);
     mSemaphore.release();
   }
 }

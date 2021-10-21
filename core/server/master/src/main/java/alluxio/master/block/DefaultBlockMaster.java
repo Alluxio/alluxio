@@ -914,7 +914,6 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
 
   @Override
   public Optional<RegisterLease> tryAcquireRegisterLease(GetRegisterLeasePRequest request) {
-    // TODO(jiacheng): if lease is turned off, always return a lease here?
     return mRegisterLeaseManager.tryAcquireLease(request);
   }
 

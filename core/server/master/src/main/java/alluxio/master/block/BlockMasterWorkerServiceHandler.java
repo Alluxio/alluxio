@@ -180,7 +180,7 @@ public final class BlockMasterWorkerServiceHandler extends
           LOG.info("Worker {} finished registering, releasing its lease.", workerId);
           mBlockMaster.releaseRegisterLease(workerId);
           return RegisterWorkerPResponse.getDefaultInstance();
-        }, "registerWorker", true, "workerId=%s", responseObserver, workerId);
+        }, "registerWorker", true, "request=%s", responseObserver, workerId);
   }
 
   /**
