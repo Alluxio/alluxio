@@ -29,7 +29,6 @@ import alluxio.exception.InvalidPathException;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.job.JobConfig;
 import alluxio.job.plan.BatchedJobConfig;
-import alluxio.job.plan.load.LoadConfig;
 import alluxio.job.plan.migrate.MigrateConfig;
 import alluxio.job.wire.JobInfo;
 import alluxio.retry.CountingRetry;
@@ -47,7 +46,6 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -159,7 +157,7 @@ public class DistributedCpCommand extends AbstractDistributedJobCommand {
     return jobAttempt;
   }
 
-  public JobAttempt create(List<Pair<String, String>> filePath, boolean overwrite) {
+  private JobAttempt create(List<Pair<String, String>> filePath, boolean overwrite) {
     int poolSize = filePath.size();
     JobAttempt jobAttempt;
     if (poolSize == 1) {
@@ -177,9 +175,7 @@ public class DistributedCpCommand extends AbstractDistributedJobCommand {
         configs.add(map);
       }
       BatchedJobConfig config = new BatchedJobConfig("Migrate", configs);
-
       jobAttempt = new BatchedCopyJobAttempt(mClient, config, new CountingRetry(3));
-
     }
     return jobAttempt;
   }
@@ -285,6 +281,7 @@ public class DistributedCpCommand extends AbstractDistributedJobCommand {
           mJobConfig.getSource(), mJobConfig.getDestination(), mRetryPolicy.getAttemptCount()));
     }
   }
+
   private class BatchedCopyJobAttempt extends JobAttempt {
     private BatchedJobConfig mJobConfig;
 
