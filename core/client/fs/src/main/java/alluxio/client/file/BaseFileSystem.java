@@ -97,6 +97,15 @@ public class BaseFileSystem implements FileSystem {
   protected final AlluxioBlockStore mBlockStore;
 
   protected volatile boolean mClosed = false;
+  /**
+   * Define special commands prefix start with alluxio reserved dir. User can use "ls"
+   * command followed by a reserved path to complete special operation. For example,
+   * command "ls /.alluxiocli.metadatacache.drop" can clear client metadata cache "ls
+   * -la /.alluxiocli.metadatacache.size" will get metadata cache size in the file size area
+   * i
+   */
+  protected static final String CLEAR_METADATACACHE_RESERVED = Constants.ALLUXIO_RESERVED_DIR
+      .concat(".metadatacache");
 
   /**
    * Constructs a new base file system.

@@ -12,7 +12,6 @@
 package alluxio.client.file;
 
 import alluxio.AlluxioURI;
-import alluxio.Constants;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.AlluxioException;
@@ -57,14 +56,45 @@ public class MetadataCachingBaseFileSystem extends BaseFileSystem {
   private static final int THREAD_TERMINATION_TIMEOUT_MS = 10000;
   private static final URIStatus NOT_FOUND_STATUS = new URIStatus(
       new FileInfo().setCompleted(true));
-  private static final String CLEAR_METADATACACHE_RESERVED = Constants.ALLUXIO_RESERVED_DIR
-      .concat(".metadatacache");
-  private static final String CLIENT_METADATACACHE_DROP = ".drop";
-  private static final String CLIENT_METADATACACHE_SIZE = ".size";
 
   private final MetadataCache mMetadataCache;
   private final ExecutorService mAccessTimeUpdater;
   private final boolean mDisableUpdateFileAccessTime;
+
+  private enum MetadataCmd {
+    /**
+    * Not support command.
+    */
+    INVALID(""),
+    /**
+     * Drop client metadata cache.
+     */
+    METADATACACHE_DROP(".drop"),
+    /**
+     * Get metadata cache size, will be return in the filed filesize.
+     */
+    METADATACACHE_SIZE(".size");
+
+    private final String mValue;
+
+    MetadataCmd(final String v) {
+      mValue = v;
+    }
+
+    @Override
+    public String toString() {
+      return mValue;
+    }
+
+    public static MetadataCmd fromValue(final String value) {
+      for (MetadataCmd mc : MetadataCmd.values()) {
+        if (mc.mValue.equals(value)) {
+          return mc;
+        }
+      }
+      return INVALID;
+    }
+  }
 
   /**
    * @param context the fs context
@@ -129,7 +159,7 @@ public class MetadataCachingBaseFileSystem extends BaseFileSystem {
       throws FileDoesNotExistException, IOException, AlluxioException {
     checkUri(path);
     if (mFsContext.getClusterConf().getBoolean(PropertyKey
-        .USER_CLIENT_HANDLE_METADATA_CACHE_ENABLE) && path.getPath()
+        .USER_CLIENT_SPECIAL_COMMAND_ENABLED) && path.getPath()
         .startsWith(CLEAR_METADATACACHE_RESERVED)) {
       return clientMetadataCacheOPHandler(path);
     }
@@ -239,6 +269,7 @@ public class MetadataCachingBaseFileSystem extends BaseFileSystem {
   }
 
   private URIStatus dropMetadataCache() {
+    // TODO(bzheng) Allow input args to support clear specific path cache.
     if (mMetadataCache.size() > 0) {
       mMetadataCache.invalidateAll();
     }
@@ -253,17 +284,17 @@ public class MetadataCachingBaseFileSystem extends BaseFileSystem {
 
   /**
    * @param path include the client operation info, the info pattern as blows
-   *             alluxio.metadatacache.cmd.args
+   *             /.alluxiocli.metadatacache.cmd.[args]
    * @return a mock RUIStatus object
    */
   public URIStatus clientMetadataCacheOPHandler(AlluxioURI path) {
     URIStatus status;
     String cmdInfo = path.getPath().substring(CLEAR_METADATACACHE_RESERVED.length());
-    switch (cmdInfo) {
-      case CLIENT_METADATACACHE_DROP:
+    switch (MetadataCmd.fromValue(cmdInfo)) {
+      case METADATACACHE_DROP:
         status = dropMetadataCache();
         break;
-      case CLIENT_METADATACACHE_SIZE:
+      case METADATACACHE_SIZE:
         status = getMetadataCacheSize();
         break;
       default:
