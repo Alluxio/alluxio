@@ -26,6 +26,7 @@ import alluxio.retry.RetryPolicy;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Sets;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,6 +35,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Utilities Loads a file or directory in Alluxio space, makes it resident in memory.
@@ -198,13 +200,19 @@ public final class DistributedLoadUtils {
 
   private static class BatchedLoadJobAttempt extends JobAttempt {
     private final BatchedJobConfig mJobConfig;
+    private final String mfilesPathString;
 
     BatchedLoadJobAttempt(JobMasterClient client, BatchedJobConfig jobConfig,
         RetryPolicy retryPolicy) {
       super(client, retryPolicy);
       mJobConfig = jobConfig;
-      // TODO(jianjian): better print
-      System.out.println(jobConfig + " loading");
+      String pathString = jobConfig.getJobConfigs().stream().map(x -> x.get("filePath"))
+          .collect(Collectors.joining(","));
+      mfilesPathString = StringUtils.abbreviate(
+          pathString, 80);
+      System.out.printf("files: [%s]" + " loading", StringUtils.abbreviate(
+          mfilesPathString, 50));
+      
     }
 
     @Override
@@ -215,19 +223,19 @@ public final class DistributedLoadUtils {
     @Override
     protected void logFailedAttempt(JobInfo jobInfo) {
       System.out.printf("Attempt %d to load %s failed because: %s%n",
-          mRetryPolicy.getAttemptCount(), mJobConfig, jobInfo.getErrorMessage());
+          mRetryPolicy.getAttemptCount(), mfilesPathString, jobInfo.getErrorMessage());
     }
 
     @Override
     protected void logFailed() {
-      System.out.printf("Failed to complete loading %s after %d retries.%n", mJobConfig,
+      System.out.printf("Failed to complete loading %s after %d retries.%n", mfilesPathString,
           mRetryPolicy.getAttemptCount());
     }
 
     @Override
     protected void logCompleted() {
       System.out.printf("Successfully loaded path %s after %d attempts%n",
-          mJobConfig.getJobConfigs().stream(), mRetryPolicy.getAttemptCount());
+          mfilesPathString, mRetryPolicy.getAttemptCount());
     }
   }
 
@@ -306,3 +314,4 @@ public final class DistributedLoadUtils {
     }
   }
 }
+
