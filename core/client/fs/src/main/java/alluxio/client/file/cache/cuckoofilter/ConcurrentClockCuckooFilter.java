@@ -413,8 +413,9 @@ public class ConcurrentClockCuckooFilter<T> implements ClockCuckooFilter<T>, Ser
 
   @Override
   public double expectedFpp() {
-    // TODO(iluoeli): compute real fpp
-    return DEFAULT_FPP;
+    // equation from "Cuckoo Filter: Simplification and Analysis" by David Eppstein (Theorem 5.1)
+    return 2 * mNumItems.doubleValue()
+        / (mNumBuckets * TAGS_PER_BUCKET * ((1L << mBitsPerTag) - 1));
   }
 
   @Override
