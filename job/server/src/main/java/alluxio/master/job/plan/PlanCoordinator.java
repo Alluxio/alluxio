@@ -142,7 +142,6 @@ public final class PlanCoordinator {
       JobConfig config;
       if (mPlanInfo.getJobConfig() instanceof BatchedJobConfig) {
         BatchedJobConfig planConfig = (BatchedJobConfig) mPlanInfo.getJobConfig();
-        LOG.info("we turn job config into empty one here: " + planConfig);
         config = new BatchedJobConfig(planConfig.getJobType(), new HashSet<>());
       } else {
         config = mPlanInfo.getJobConfig();
