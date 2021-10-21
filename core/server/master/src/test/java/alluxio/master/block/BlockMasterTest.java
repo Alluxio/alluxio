@@ -54,7 +54,9 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
+import org.mockito.Mockito;
 
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -83,6 +85,7 @@ public class BlockMasterTest {
   private ExecutorService mClientExecutorService;
   private MetricsMaster mMetricsMaster;
   private List<Metric> mMetrics;
+  private String mCurrentClusterId;
 
   /** Rule to create a new temporary folder during each test. */
   @Rule
@@ -113,6 +116,7 @@ public class BlockMasterTest {
         ExecutorServiceFactories.constantExecutorServiceFactory(mExecutorService));
     mRegistry.add(BlockMaster.class, mBlockMaster);
     mRegistry.start(true);
+    mCurrentClusterId = java.util.UUID.randomUUID().toString();
   }
 
   /**
@@ -149,6 +153,13 @@ public class BlockMasterTest {
         mBlockMaster.getTotalBytesOnTiers());
     assertEquals(ImmutableMap.of(Constants.MEDIUM_MEM, 101L, Constants.MEDIUM_SSD, 202L),
         mBlockMaster.getUsedBytesOnTiers());
+  }
+
+  BlockMaster mockGetClusterId() throws IOException {
+    // the RPC will be called inner getClusterId(), so we should mock it
+    BlockMaster mockBlockMaster = Mockito.spy(mBlockMaster);
+    Mockito.doReturn(mCurrentClusterId).when(mockBlockMaster).getClusterId(NET_ADDRESS_1);
+    return mockBlockMaster;
   }
 
   @Test
@@ -252,39 +263,41 @@ public class BlockMasterTest {
 
   @Test
   public void newWorkerPreregister() throws Exception {
-    String currentClusterId = mBlockMaster.getClusterId(NET_ADDRESS_1);
-    PreRegisterCommand command = mBlockMaster.workerPreRegister(
+    BlockMaster mockBlockMaster = mockGetClusterId();
+    PreRegisterCommand exceptCommand = mockBlockMaster.workerPreRegister(
         IdUtils.INVALID_CLUSTER_ID, NET_ADDRESS_1);
 
     // the new worker need to Persist the cluster ID so workerPreRegister return Persist command
     // the worker need to save cluster ID
-    assertEquals(command.getPreRegisterCommandType(), PreRegisterCommandType.Persist);
-    assertEquals(command.getData(), currentClusterId);
+    assertEquals(exceptCommand.getPreRegisterCommandType(), PreRegisterCommandType.Persist);
+    assertEquals(exceptCommand.getData(), mCurrentClusterId);
   }
 
   @Test
   public void currentClusterWorkerPreregister() throws Exception {
-    String currentClusterId = mBlockMaster.getClusterId(NET_ADDRESS_1);
-    PreRegisterCommand command = mBlockMaster.workerPreRegister(currentClusterId, NET_ADDRESS_1);
+    BlockMaster mockBlockMaster = mockGetClusterId();
+    PreRegisterCommand exceptCommand = mockBlockMaster.workerPreRegister(
+        mCurrentClusterId, NET_ADDRESS_1);
 
     // if the worker belongs to the current cluster,
     // it will report the same cluster ID with current when invoke workerPreRegister().
     // so workerPreRegister return Nothing command, the worker needn't to do anything
-    assertEquals(command.getPreRegisterCommandType(), PreRegisterCommandType.Nothing);
+    assertEquals(exceptCommand.getPreRegisterCommandType(), PreRegisterCommandType.Nothing);
   }
 
   @Test
   public void otherClusterWorkerPreregister() throws Exception {
     String otherClusterId = java.util.UUID.randomUUID().toString();
-    String currentClusterId = mBlockMaster.getClusterId(NET_ADDRESS_1);
-    PreRegisterCommand command = mBlockMaster.workerPreRegister(otherClusterId, NET_ADDRESS_1);
+    BlockMaster mockBlockMaster = mockGetClusterId();
+    PreRegisterCommand exceptCommand =
+        mockBlockMaster.workerPreRegister(otherClusterId, NET_ADDRESS_1);
 
     // if the worker belongs to the other cluster,
     // it will report the a different cluster ID than current one when invoke workerPreRegister().
     // so workerPreRegister return Reset command,
     // the worker must to reset itself to prevent the conflicts.
-    assertEquals(command.getPreRegisterCommandType(), PreRegisterCommandType.Reset);
-    assertEquals(command.getData(), currentClusterId);
+    assertEquals(exceptCommand.getPreRegisterCommandType(), PreRegisterCommandType.Reset);
+    assertEquals(exceptCommand.getData(), mCurrentClusterId);
   }
 
   @Test
