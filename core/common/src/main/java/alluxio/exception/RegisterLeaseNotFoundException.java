@@ -12,18 +12,19 @@
 package alluxio.exception;
 
 /**
- * The exception thrown when the worker cannot acquire a registration lease after all
- * the retry attempts have been exhausted. The worker will shut down.
+ * The exception thrown when the worker attempts to register but there is no lease found.
+ * The worker might have acquired a lease but that has expired and been recycled.
+ * Or the worker did not acquire a lease at all.
  */
-public class FailedToAcquireRegisterLeaseException extends AlluxioException {
-  private static final long serialVersionUID = 8148784998226149671L;
+public class RegisterLeaseNotFoundException extends AlluxioException {
+  private static final long serialVersionUID = 8148784998226149670L;
 
   /**
    * Constructs a new exception with the specified detail message.
    *
    * @param message the detail message
    */
-  public FailedToAcquireRegisterLeaseException(String message) {
+  public RegisterLeaseNotFoundException(String message) {
     super(message);
   }
 
@@ -33,7 +34,7 @@ public class FailedToAcquireRegisterLeaseException extends AlluxioException {
    * @param message the detail message
    * @param cause the cause
    */
-  public FailedToAcquireRegisterLeaseException(String message, Throwable cause) {
+  public RegisterLeaseNotFoundException(String message, Throwable cause) {
     super(message, cause);
   }
 
@@ -43,7 +44,7 @@ public class FailedToAcquireRegisterLeaseException extends AlluxioException {
    * @param message the exception message
    * @param params the parameters
    */
-  public FailedToAcquireRegisterLeaseException(ExceptionMessage message, Object... params) {
+  public RegisterLeaseNotFoundException(ExceptionMessage message, Object... params) {
     this(message.getMessage(params));
   }
 
@@ -55,8 +56,8 @@ public class FailedToAcquireRegisterLeaseException extends AlluxioException {
    * @param cause the cause
    * @param params the parameters
    */
-  public FailedToAcquireRegisterLeaseException(ExceptionMessage message, Throwable cause,
-                                               Object... params) {
+  public RegisterLeaseNotFoundException(ExceptionMessage message, Throwable cause,
+                                        Object... params) {
     this(message.getMessage(params), cause);
   }
 }

@@ -667,10 +667,17 @@ public final class GrpcUtils {
         .setProperties(ufsInfo.getMountOptions()).build();
   }
 
-  public static alluxio.grpc.GetRegisterLeasePResponse toProto(long workerId, Optional<RegisterLease> lease) {
+  /**
+   * @param workerId the worker that requests a lease
+   * @param lease the lease decision from the master
+   * @return a {@link GetRegisterLeasePResponse}
+   */
+  public static alluxio.grpc.GetRegisterLeasePResponse toProto(long workerId,
+                                                               Optional<RegisterLease> lease) {
     if (lease.isPresent()) {
       RegisterLease l = lease.get();
-      return GetRegisterLeasePResponse.newBuilder().setWorkerId(workerId).setAllowed(true).setExpiryMs(l.mExpiryTimeMs).build();
+      return GetRegisterLeasePResponse.newBuilder()
+          .setWorkerId(workerId).setAllowed(true).setExpiryMs(l.mExpiryTimeMs).build();
     }
     return GetRegisterLeasePResponse.newBuilder().setWorkerId(workerId).setAllowed(false).build();
   }

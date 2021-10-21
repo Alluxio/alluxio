@@ -35,7 +35,6 @@ import alluxio.grpc.ServiceType;
 import alluxio.grpc.StorageList;
 import alluxio.master.MasterClientContext;
 import alluxio.grpc.GrpcUtils;
-import alluxio.retry.ExponentialBackoffRetry;
 import alluxio.retry.RetryPolicy;
 import alluxio.wire.WorkerNetAddress;
 
@@ -222,22 +221,40 @@ public class BlockMasterClient extends AbstractMasterClient {
         .blockHeartbeat(request).getCommand(), LOG, "Heartbeat", "workerId=%d", workerId);
   }
 
-  public GetRegisterLeasePResponse acquireRegisterLease(final long workerId, final int estimatedBlockCount) throws IOException {
+  private GetRegisterLeasePResponse acquireRegisterLease(
+      final long workerId, final int estimatedBlockCount) throws IOException {
     return retryRPC(() -> {
-              LOG.info("Requesting lease with workerId {}, blockCount {}", workerId, estimatedBlockCount);
-              return mClient.requestRegisterLease(GetRegisterLeasePRequest.newBuilder()
-                      .setWorkerId(workerId).setBlockCount(estimatedBlockCount).build());
-            }, LOG, "GetRegisterLease", "workerId=%d, estimatedBlockCount=%d", workerId, estimatedBlockCount);
+      LOG.info("Requesting lease with workerId {}, blockCount {}", workerId, estimatedBlockCount);
+      return mClient.requestRegisterLease(GetRegisterLeasePRequest.newBuilder()
+              .setWorkerId(workerId).setBlockCount(estimatedBlockCount).build());
+    }, LOG, "GetRegisterLease", "workerId=%d, estimatedBlockCount=%d",
+    workerId, estimatedBlockCount);
   }
 
-  public void acquireRegisterLeaseWithBackoff(final long workerId, final int estimatedBlockCount, final RetryPolicy retry) throws IOException, FailedToAcquireRegisterLeaseException {
+  /**
+   * Acquires a {@link alluxio.wire.RegisterLease} from the master with
+   * the {@link RetryPolicy} specified.
+   * If all the retry attempts have been exhaused, a {@link FailedToAcquireRegisterLeaseException}
+   * will be thrown.
+   *
+   * @param workerId the worker ID
+   * @param estimatedBlockCount the number of blocks this worker currently holds
+   *    There is a gap between acquiring a lease and generating the {@link RegisterWorkerPRequest}
+   *    so the real block count may be different. But this is a good hint for the master to
+   *    guess how much resource the registration will take.
+   * @param retry a retry policy
+   */
+  public void acquireRegisterLeaseWithBackoff(final long workerId, final int estimatedBlockCount,
+                                              final RetryPolicy retry)
+      throws IOException, FailedToAcquireRegisterLeaseException {
     boolean leaseAcquired;
     int iter = 0;
     GetRegisterLeasePResponse response = null;
     while (retry.attempt()) {
-      LOG.info("Worker {} attempting to grant registration lease from the master, iter {}", workerId, iter);
+      LOG.debug("Worker {} attempting to grant registration lease from the master, iter {}",
+          workerId, iter);
       response = acquireRegisterLease(workerId, estimatedBlockCount);
-      LOG.info("Worker {} lease response: {}", workerId, response);
+      LOG.debug("Worker {} lease response: {}", workerId, response);
       leaseAcquired = response.getAllowed();
       if (leaseAcquired) {
         break;
@@ -247,10 +264,12 @@ public class BlockMasterClient extends AbstractMasterClient {
 
     if (response == null || !response.getAllowed()) {
       throw new FailedToAcquireRegisterLeaseException(
-          String.format("Failed to acquire a register lease from master after %d attempts", retry.getAttemptCount()));
+          String.format("Failed to acquire a register lease from master after %d attempts",
+              retry.getAttemptCount()));
     }
 
-    LOG.info("Acquired lease after {} attempts: {}", retry.getAttemptCount(), response);
+    LOG.info("Worker {} acquired lease after {} attempts: {}",
+        workerId, retry.getAttemptCount(), response);
   }
 
   /**

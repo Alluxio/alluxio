@@ -14,7 +14,7 @@ package alluxio.master.block;
 import alluxio.RpcUtils;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
-import alluxio.exception.RegisterLeaseExpiredException;
+import alluxio.exception.RegisterLeaseNotFoundException;
 import alluxio.grpc.BlockHeartbeatPRequest;
 import alluxio.grpc.BlockHeartbeatPResponse;
 import alluxio.grpc.BlockMasterWorkerServiceGrpc;
@@ -136,10 +136,11 @@ public final class BlockMasterWorkerServiceHandler extends
   }
 
   @Override
-  public void requestRegisterLease(GetRegisterLeasePRequest request, StreamObserver<GetRegisterLeasePResponse> responseObserver) {
-    RpcUtils.call(LOG, (RpcUtils.RpcCallableThrowsIOException<GetRegisterLeasePResponse>) () -> {
-      return GrpcUtils.toProto(request.getWorkerId(), mBlockMaster.tryAcquireRegisterLease(request));
-    }, "getRegisterLease", "request=%s", responseObserver, request);
+  public void requestRegisterLease(GetRegisterLeasePRequest request,
+                                   StreamObserver<GetRegisterLeasePResponse> responseObserver) {
+    RpcUtils.call(LOG, (RpcUtils.RpcCallableThrowsIOException<GetRegisterLeasePResponse>) () ->
+        GrpcUtils.toProto(request.getWorkerId(), mBlockMaster.tryAcquireRegisterLease(request)),
+        "getRegisterLease", "request=%s", responseObserver, request);
   }
 
   @Override
@@ -157,10 +158,11 @@ public final class BlockMasterWorkerServiceHandler extends
         (RpcUtils.RpcCallableThrowsIOException<RegisterWorkerPResponse>) () -> {
           // The exception will be propagated to the worker side and the worker should retry.
           if (mRegisterLeaseOn && !mBlockMaster.hasRegisterLease(workerId)) {
-            String errorMsg = String.format("Worker %s does not have a lease or the lease has expired. "
-                + "The worker should acquire a new lease and retry to register.", workerId);
+            String errorMsg = String.format("Worker %s does not have a lease or the lease "
+                + "has expired. The worker should acquire a new lease and retry to register.",
+                workerId);
             LOG.warn(errorMsg);
-            throw new RegisterLeaseExpiredException(errorMsg);
+            throw new RegisterLeaseNotFoundException(errorMsg);
           }
           LOG.debug("Worker {} proceeding to register...", workerId);
           final List<String> storageTiers = request.getStorageTiersList();

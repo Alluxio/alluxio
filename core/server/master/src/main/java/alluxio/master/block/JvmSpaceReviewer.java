@@ -1,7 +1,18 @@
+/*
+ * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
+ * (the "License"). You may not use this work except in compliance with the License, which is
+ * available at www.apache.org/licenses/LICENSE-2.0
+ *
+ * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+ * either express or implied, as more fully set forth in the License.
+ *
+ * See the NOTICE file distributed with this work for information regarding copyright ownership.
+ */
+
 package alluxio.master.block;
 
 import alluxio.grpc.GetRegisterLeasePRequest;
-import alluxio.metrics.MetricsSystem;
+
 import com.codahale.metrics.Gauge;
 import com.codahale.metrics.Metric;
 import com.codahale.metrics.MetricFilter;
@@ -29,7 +40,11 @@ public class JvmSpaceReviewer {
     mMetricRegistry = metricRegistry;
   }
 
-  public boolean reviewLeaseRequest(GetRegisterLeasePRequest request) {
+  /**
+   * Checks the current JVM usage to see if the request can be accepted without over-committing
+   * the heap.
+   */
+  boolean reviewLeaseRequest(GetRegisterLeasePRequest request) {
     long blockCount = request.getBlockCount();
     long bytesAvailable = getAvailableBytes();
     long estimatedSpace = blockCount * BLOCK_COUNT_MULTIPLIER;
@@ -39,7 +54,8 @@ public class JvmSpaceReviewer {
       return true;
     } else {
       LOG.info("{} bytes available on master. The register request with {} blocks is estimated to"
-              + " need {} bytes. Rejected the request.", bytesAvailable, blockCount, estimatedSpace);
+              + " need {} bytes. Rejected the request.",
+          bytesAvailable, blockCount, estimatedSpace);
       return false;
     }
   }

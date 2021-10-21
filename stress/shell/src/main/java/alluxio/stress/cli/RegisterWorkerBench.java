@@ -16,21 +16,13 @@ import static alluxio.stress.cli.RpcBenchPreparationUtils.EMPTY_CONFIG;
 import static alluxio.stress.cli.RpcBenchPreparationUtils.LOST_STORAGE;
 
 import alluxio.ClientContext;
-import alluxio.ProcessUtils;
 import alluxio.conf.InstancedConfiguration;
-import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
-import alluxio.exception.FailedToAcquireRegisterLeaseException;
-import alluxio.grpc.GetRegisterLeasePResponse;
 import alluxio.grpc.LocationBlockIdListEntry;
 import alluxio.master.MasterClientContext;
-import alluxio.retry.ExponentialTimeBoundedRetry;
-import alluxio.retry.RetryPolicy;
 import alluxio.stress.CachingBlockMasterClient;
 import alluxio.stress.rpc.BlockMasterBenchParameters;
 import alluxio.stress.rpc.RpcTaskResult;
 import alluxio.stress.rpc.TierAlias;
-import alluxio.util.CommonUtils;
 import alluxio.worker.block.BlockMasterClient;
 import alluxio.worker.block.BlockMasterSync;
 import alluxio.worker.block.BlockStoreLocation;
@@ -45,7 +37,6 @@ import org.slf4j.LoggerFactory;
 
 import java.time.Duration;
 import java.time.Instant;
-import java.time.temporal.ChronoUnit;
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.List;
@@ -169,7 +160,8 @@ public class RegisterWorkerBench extends RpcBench<BlockMasterBenchParameters> {
       Instant s = Instant.now();
 
       LOG.info("Acquiring lease for {}", workerId);
-      client.acquireRegisterLeaseWithBackoff(workerId, mBlockCount, BlockMasterSync.getDefaultRetryPolicy());
+      client.acquireRegisterLeaseWithBackoff(workerId, mBlockCount,
+          BlockMasterSync.getDefaultAcquireLeaseRetryPolicy());
       LOG.info("Lease acquired for {}", workerId);
 
       // TODO(jiacheng): The 1st reported RPC time is always very long, this does

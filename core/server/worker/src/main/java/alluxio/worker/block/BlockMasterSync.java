@@ -111,7 +111,13 @@ public final class BlockMasterSync implements HeartbeatExecutor {
     mLastSuccessfulHeartbeatMs = System.currentTimeMillis();
   }
 
-  public static RetryPolicy getDefaultRetryPolicy() {
+  /**
+   * Gets the default retry policy for acquiring a {@link alluxio.wire.RegisterLease}
+   * from the BlockMaster.
+   *
+   * @return the policy to use
+   */
+  public static RetryPolicy getDefaultAcquireLeaseRetryPolicy() {
     RetryPolicy retry = ExponentialTimeBoundedRetry.builder()
         .withMaxDuration(Duration.of(ACQUIRE_LEASE_WAIT_MAX_DURATION, ChronoUnit.MILLIS))
         .withInitialSleep(Duration.of(ACQUIRE_LEASE_WAIT_BASE_SLEEP_MS, ChronoUnit.MILLIS))
@@ -122,8 +128,8 @@ public final class BlockMasterSync implements HeartbeatExecutor {
   }
 
   /**
-   * Registers with the Alluxio master. This should be called before the continuous heartbeat thread
-   * begins.
+   * Registers with the Alluxio master. This should be called before the
+   * continuous heartbeat thread begins.
    */
   private void registerWithMaster() throws IOException {
     BlockStoreMeta storeMeta = mBlockWorker.getStoreMetaFull();
@@ -133,8 +139,9 @@ public final class BlockMasterSync implements HeartbeatExecutor {
 
     if (ACQUIRE_LEASE) {
       try {
-        mMasterClient.acquireRegisterLeaseWithBackoff(mWorkerId.get(), storeMeta.getNumberOfBlocks(),
-            getDefaultRetryPolicy());
+        mMasterClient.acquireRegisterLeaseWithBackoff(mWorkerId.get(),
+            storeMeta.getNumberOfBlocks(),
+            getDefaultAcquireLeaseRetryPolicy());
       } catch (FailedToAcquireRegisterLeaseException e) {
         mMasterClient.disconnect();
         if (ServerConfiguration.getBoolean(PropertyKey.TEST_MODE)) {
@@ -150,8 +157,8 @@ public final class BlockMasterSync implements HeartbeatExecutor {
         storageTierAssoc.getOrderedStorageAliases(), storeMeta.getCapacityBytesOnTiers(),
         storeMeta.getUsedBytesOnTiers(), storeMeta.getBlockListByStorageLocation(),
         storeMeta.getLostStorage(), configList);
-    // If the worker registers with master successfully, the lease will be recycled on the master side.
-    // No need to manually request for recycle on the worker side.
+    // If the worker registers with master successfully, the lease will be recycled on the
+    // master side. No need to manually request for recycle on the worker side.
   }
 
   /**

@@ -924,7 +924,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
   }
 
   @Override
-  public void releaseRegisterLease(long workerId){
+  public void releaseRegisterLease(long workerId) {
     mRegisterLeaseManager.releaseLease(workerId);
   }
 

@@ -30,7 +30,7 @@ import alluxio.exception.InvalidFileSizeException;
 import alluxio.exception.InvalidPathException;
 import alluxio.exception.InvalidWorkerStateException;
 import alluxio.exception.JobDoesNotExistException;
-import alluxio.exception.RegisterLeaseExpiredException;
+import alluxio.exception.RegisterLeaseNotFoundException;
 import alluxio.exception.UfsBlockAccessTokenUnavailableException;
 import alluxio.exception.WorkerOutOfSpaceException;
 
@@ -250,7 +250,7 @@ public class AlluxioStatusException extends IOException {
     } catch (BlockInfoException | InvalidFileSizeException | InvalidPathException e) {
       return new InvalidArgumentException(e);
     } catch (ConnectionFailedException | FailedToCheckpointException
-        | UfsBlockAccessTokenUnavailableException | RegisterLeaseExpiredException e) {
+        | UfsBlockAccessTokenUnavailableException | RegisterLeaseNotFoundException e) {
       // TODO(jiacheng): test an exception is thrown
       return new UnavailableException(e);
     } catch (DependencyDoesNotExistException | DirectoryNotEmptyException

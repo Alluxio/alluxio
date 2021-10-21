@@ -179,10 +179,30 @@ public interface BlockMaster extends Master, ContainerIdGenerable {
    */
   long getWorkerId(WorkerNetAddress workerNetAddress);
 
+  /**
+   * Try to acquire a {@link RegisterLease} for the worker.
+   * If the lease is not granted, this will return empty immediately rather than blocking.
+   *
+   * @param request the request with all information for the master to make a decision with
+   * @return if empty, that means the lease is not granted
+   */
   Optional<RegisterLease> tryAcquireRegisterLease(GetRegisterLeasePRequest request);
 
+  /**
+   * Verifies if the worker currently holds a {@link RegisterLease}.
+   *
+   * @param workerId the worker ID
+   * @return whether a lease is found
+   */
   boolean hasRegisterLease(long workerId);
 
+  /**
+   * Releases the {@link RegisterLease} for the specified worker.
+   * If the worker currently does not hold a lease, return without throwing an error.
+   * The lease may have been recycled already.
+   *
+   * @param workerId the worker ID
+   */
   void releaseRegisterLease(long workerId);
 
   /**

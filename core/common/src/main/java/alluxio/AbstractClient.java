@@ -15,7 +15,6 @@ import alluxio.annotation.SuppressFBWarnings;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.PreconditionMessage;
-import alluxio.exception.RegisterLeaseExpiredException;
 import alluxio.exception.ServiceNotFoundException;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.exception.status.FailedPreconditionException;

@@ -19,7 +19,6 @@ import static org.junit.Assert.assertTrue;
 import alluxio.clock.ManualClock;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
-import alluxio.exception.ExceptionMessage;
 import alluxio.grpc.BlockHeartbeatPRequest;
 import alluxio.grpc.BlockHeartbeatPResponse;
 import alluxio.grpc.BlockIdList;
@@ -53,7 +52,6 @@ import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.atomic.AtomicReference;
 
 public class BlockMasterWorkerServiceHandlerTest {
   private static final WorkerNetAddress NET_ADDRESS_1 = new WorkerNetAddress().setHost("localhost")
@@ -90,9 +88,9 @@ public class BlockMasterWorkerServiceHandlerTest {
     mMetricsMaster = new MetricsMasterFactory().create(mRegistry, masterContext);
     mClock = new ManualClock();
     mExecutorService =
-            Executors.newFixedThreadPool(2, ThreadFactoryUtils.build("TestBlockMaster-%d", true));
+        Executors.newFixedThreadPool(2, ThreadFactoryUtils.build("TestBlockMaster-%d", true));
     mBlockMaster = new DefaultBlockMaster(mMetricsMaster, masterContext, mClock,
-            ExecutorServiceFactories.constantExecutorServiceFactory(mExecutorService));
+        ExecutorServiceFactories.constantExecutorServiceFactory(mExecutorService));
     mRegistry.add(BlockMaster.class, mBlockMaster);
     mRegistry.start(true);
     mHandler = new BlockMasterWorkerServiceHandler(mBlockMaster);
@@ -105,42 +103,42 @@ public class BlockMasterWorkerServiceHandlerTest {
 
   @Test
   public void registerWithNoLeaseIsRejected() {
-    long workerId = mBlockMaster.getWorkerId(NET_ADDRESS_1);;
+    long workerId = mBlockMaster.getWorkerId(NET_ADDRESS_1);
 
     // Prepare LocationBlockIdListEntry objects
     BlockStoreLocation loc = new BlockStoreLocation("MEM", 0);
     BlockStoreLocationProto locationProto = BlockStoreLocationProto.newBuilder()
-            .setTierAlias(loc.tierAlias())
-            .setMediumType(loc.mediumType())
-            .build();
+        .setTierAlias(loc.tierAlias())
+        .setMediumType(loc.mediumType())
+        .build();
 
     BlockIdList blockIdList1 = BlockIdList.newBuilder()
-            .addAllBlockId(ImmutableList.of(1L, 2L)).build();
+        .addAllBlockId(ImmutableList.of(1L, 2L)).build();
     LocationBlockIdListEntry listEntry1 = LocationBlockIdListEntry.newBuilder()
-            .setKey(locationProto).setValue(blockIdList1).build();
+        .setKey(locationProto).setValue(blockIdList1).build();
 
     RegisterWorkerPRequest request = RegisterWorkerPRequest.newBuilder()
-            .setWorkerId(workerId)
-            .addStorageTiers("MEM")
-            .putTotalBytesOnTiers("MEM", 1000L).putUsedBytesOnTiers("MEM", 0L)
-            .setOptions(RegisterWorkerPOptions.getDefaultInstance())
-            .addCurrentBlocks(listEntry1)
-            .build();
+        .setWorkerId(workerId)
+        .addStorageTiers("MEM")
+        .putTotalBytesOnTiers("MEM", 1000L).putUsedBytesOnTiers("MEM", 0L)
+        .setOptions(RegisterWorkerPOptions.getDefaultInstance())
+        .addCurrentBlocks(listEntry1)
+        .build();
 
     Queue<Throwable> errors = new ConcurrentLinkedDeque<>();
     StreamObserver<RegisterWorkerPResponse> noopResponseObserver =
-            new StreamObserver<RegisterWorkerPResponse>() {
-              @Override
-              public void onNext(RegisterWorkerPResponse response) {}
+        new StreamObserver<RegisterWorkerPResponse>() {
+          @Override
+          public void onNext(RegisterWorkerPResponse response) {}
 
-              @Override
-              public void onError(Throwable t) {
-                errors.offer(t);
-              }
+          @Override
+          public void onError(Throwable t) {
+            errors.offer(t);
+          }
 
-              @Override
-              public void onCompleted() {}
-            };
+          @Override
+          public void onCompleted() {}
+        };
 
     // The responseObserver should see an error
     mHandler.registerWorker(request, noopResponseObserver);
@@ -152,42 +150,42 @@ public class BlockMasterWorkerServiceHandlerTest {
 
   @Test
   public void registerWorkerFailsOnDuplicateBlockLocation() throws Exception {
-    long workerId = mBlockMaster.getWorkerId(NET_ADDRESS_1);;
+    long workerId = mBlockMaster.getWorkerId(NET_ADDRESS_1);
 
     // Prepare LocationBlockIdListEntry objects
     BlockStoreLocation loc = new BlockStoreLocation("MEM", 0);
     BlockStoreLocationProto locationProto = BlockStoreLocationProto.newBuilder()
-            .setTierAlias(loc.tierAlias())
-            .setMediumType(loc.mediumType())
-            .build();
+        .setTierAlias(loc.tierAlias())
+        .setMediumType(loc.mediumType())
+        .build();
 
     BlockIdList blockIdList1 = BlockIdList.newBuilder()
-            .addAllBlockId(ImmutableList.of(1L, 2L)).build();
+        .addAllBlockId(ImmutableList.of(1L, 2L)).build();
     LocationBlockIdListEntry listEntry1 = LocationBlockIdListEntry.newBuilder()
-            .setKey(locationProto).setValue(blockIdList1).build();
+        .setKey(locationProto).setValue(blockIdList1).build();
 
     BlockIdList blockIdList2 = BlockIdList.newBuilder()
-            .addAllBlockId(ImmutableList.of(3L, 4L)).build();
+        .addAllBlockId(ImmutableList.of(3L, 4L)).build();
     LocationBlockIdListEntry listEntry2 = LocationBlockIdListEntry.newBuilder()
-            .setKey(locationProto).setValue(blockIdList2).build();
+        .setKey(locationProto).setValue(blockIdList2).build();
 
     // Prepare a lease
     GetRegisterLeasePRequest leaseRequest = GetRegisterLeasePRequest.newBuilder()
-            .setWorkerId(workerId)
-            .setBlockCount(blockIdList1.getBlockIdCount() + blockIdList2.getBlockIdCount())
-            .build();
+        .setWorkerId(workerId)
+        .setBlockCount(blockIdList1.getBlockIdCount() + blockIdList2.getBlockIdCount())
+        .build();
     Optional<RegisterLease> lease = mBlockMaster.tryAcquireRegisterLease(leaseRequest);
     assertTrue(lease.isPresent());
 
     // The request is not deduplicated
     RegisterWorkerPRequest request = RegisterWorkerPRequest.newBuilder()
-            .setWorkerId(workerId)
-            .addStorageTiers("MEM")
-            .putTotalBytesOnTiers("MEM", 1000L).putUsedBytesOnTiers("MEM", 0L)
-            .setOptions(RegisterWorkerPOptions.getDefaultInstance())
-            .addCurrentBlocks(listEntry1)
-            .addCurrentBlocks(listEntry2)
-            .build();
+        .setWorkerId(workerId)
+        .addStorageTiers("MEM")
+        .putTotalBytesOnTiers("MEM", 1000L).putUsedBytesOnTiers("MEM", 0L)
+        .setOptions(RegisterWorkerPOptions.getDefaultInstance())
+        .addCurrentBlocks(listEntry1)
+        .addCurrentBlocks(listEntry2)
+        .build();
 
     // Noop response observer
     StreamObserver<RegisterWorkerPResponse> noopResponseObserver =
@@ -216,20 +214,20 @@ public class BlockMasterWorkerServiceHandlerTest {
     // Prepare LocationBlockIdListEntry objects
     BlockStoreLocation loc = new BlockStoreLocation("MEM", 0);
     BlockStoreLocationProto locationProto = BlockStoreLocationProto.newBuilder()
-            .setTierAlias(loc.tierAlias())
-            .setMediumType(loc.mediumType())
-            .build();
+        .setTierAlias(loc.tierAlias())
+        .setMediumType(loc.mediumType())
+        .build();
 
     BlockIdList blockIdList1 = BlockIdList.newBuilder()
-            .addAllBlockId(ImmutableList.of(1L, 2L)).build();
+        .addAllBlockId(ImmutableList.of(1L, 2L)).build();
     LocationBlockIdListEntry listEntry1 = LocationBlockIdListEntry.newBuilder()
-            .setKey(locationProto).setValue(blockIdList1).build();
+        .setKey(locationProto).setValue(blockIdList1).build();
 
     // Prepare a lease
     GetRegisterLeasePRequest leaseRequest = GetRegisterLeasePRequest.newBuilder()
-            .setWorkerId(workerId)
-            .setBlockCount(blockIdList1.getBlockIdCount())
-            .build();
+        .setWorkerId(workerId)
+        .setBlockCount(blockIdList1.getBlockIdCount())
+        .build();
     Optional<RegisterLease> lease = mBlockMaster.tryAcquireRegisterLease(leaseRequest);
     assertTrue(lease.isPresent());
 
@@ -238,35 +236,35 @@ public class BlockMasterWorkerServiceHandlerTest {
 
     // The lease is recycled and taken away
     GetRegisterLeasePRequest newLeaseRequest = GetRegisterLeasePRequest.newBuilder()
-            .setWorkerId(workerId + 1)
-            .setBlockCount(blockIdList1.getBlockIdCount())
-            .build();
+        .setWorkerId(workerId + 1)
+        .setBlockCount(blockIdList1.getBlockIdCount())
+        .build();
     Optional<RegisterLease> newLease = mBlockMaster.tryAcquireRegisterLease(newLeaseRequest);
     assertTrue(newLease.isPresent());
 
     RegisterWorkerPRequest request = RegisterWorkerPRequest.newBuilder()
-            .setWorkerId(workerId)
-            .addStorageTiers("MEM")
-            .putTotalBytesOnTiers("MEM", 1000L).putUsedBytesOnTiers("MEM", 0L)
-            .setOptions(RegisterWorkerPOptions.getDefaultInstance())
-            .addCurrentBlocks(listEntry1)
-            .build();
+        .setWorkerId(workerId)
+        .addStorageTiers("MEM")
+        .putTotalBytesOnTiers("MEM", 1000L).putUsedBytesOnTiers("MEM", 0L)
+        .setOptions(RegisterWorkerPOptions.getDefaultInstance())
+        .addCurrentBlocks(listEntry1)
+        .build();
 
     // Noop response observer
     Queue<Throwable> errors = new ConcurrentLinkedDeque<>();
     StreamObserver<RegisterWorkerPResponse> noopResponseObserver =
-            new StreamObserver<RegisterWorkerPResponse>() {
-              @Override
-              public void onNext(RegisterWorkerPResponse response) {}
+        new StreamObserver<RegisterWorkerPResponse>() {
+          @Override
+          public void onNext(RegisterWorkerPResponse response) {}
 
-              @Override
-              public void onError(Throwable t) {
-                errors.offer(t);
-              }
+          @Override
+          public void onError(Throwable t) {
+            errors.offer(t);
+          }
 
-              @Override
-              public void onCompleted() {}
-            };
+          @Override
+          public void onCompleted() {}
+        };
 
     mHandler.registerWorker(request, noopResponseObserver);
     assertEquals(1, errors.size());
@@ -286,39 +284,38 @@ public class BlockMasterWorkerServiceHandlerTest {
     // Prepare LocationBlockIdListEntry objects
     BlockStoreLocation loc = new BlockStoreLocation("MEM", 0);
     BlockStoreLocationProto locationProto = BlockStoreLocationProto.newBuilder()
-            .setTierAlias(loc.tierAlias())
-            .setMediumType(loc.mediumType())
-            .build();
+        .setTierAlias(loc.tierAlias())
+        .setMediumType(loc.mediumType())
+        .build();
 
     BlockIdList blockIdList1 = BlockIdList.newBuilder()
-            .addAllBlockId(ImmutableList.of(1L, 2L)).build();
+        .addAllBlockId(ImmutableList.of(1L, 2L)).build();
     LocationBlockIdListEntry listEntry1 = LocationBlockIdListEntry.newBuilder()
-            .setKey(locationProto).setValue(blockIdList1).build();
+        .setKey(locationProto).setValue(blockIdList1).build();
 
     // No lease is acquired
     RegisterWorkerPRequest request = RegisterWorkerPRequest.newBuilder()
-            .setWorkerId(workerId)
-            .addStorageTiers("MEM")
-            .putTotalBytesOnTiers("MEM", 1000L).putUsedBytesOnTiers("MEM", 0L)
-            .setOptions(RegisterWorkerPOptions.getDefaultInstance())
-            .addCurrentBlocks(listEntry1)
-            .build();
+        .setWorkerId(workerId)
+        .addStorageTiers("MEM")
+        .putTotalBytesOnTiers("MEM", 1000L).putUsedBytesOnTiers("MEM", 0L)
+        .setOptions(RegisterWorkerPOptions.getDefaultInstance())
+        .addCurrentBlocks(listEntry1)
+        .build();
 
-    // Noop response observer
     Queue<Throwable> errors = new ConcurrentLinkedDeque<>();
     StreamObserver<RegisterWorkerPResponse> noopResponseObserver =
-            new StreamObserver<RegisterWorkerPResponse>() {
-              @Override
-              public void onNext(RegisterWorkerPResponse response) {}
+        new StreamObserver<RegisterWorkerPResponse>() {
+          @Override
+          public void onNext(RegisterWorkerPResponse response) {}
 
-              @Override
-              public void onError(Throwable t) {
-                errors.offer(t);
-              }
+          @Override
+          public void onError(Throwable t) {
+            errors.offer(t);
+          }
 
-              @Override
-              public void onCompleted() {}
-            };
+          @Override
+          public void onCompleted() {}
+        };
 
     mHandler.registerWorker(request, noopResponseObserver);
     assertEquals(0, errors.size());
@@ -326,7 +323,7 @@ public class BlockMasterWorkerServiceHandlerTest {
 
   @Test
   public void workerHeartbeatFailsOnDuplicateBlockLocation() throws Exception {
-    long workerId = mBlockMaster.getWorkerId(NET_ADDRESS_1);;
+    long workerId = mBlockMaster.getWorkerId(NET_ADDRESS_1);
 
     // Prepare LocationBlockIdListEntry objects
     BlockStoreLocation loc = new BlockStoreLocation("MEM", 0);
