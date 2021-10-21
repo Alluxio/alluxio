@@ -126,6 +126,17 @@ public class ConcurrentClockCuckooFilterTest {
   }
 
   @Test
+  public void testComputeFpp() {
+    double epsilon = 1e-6;
+    assertEquals(0., mClockFilter.expectedFpp(), epsilon);
+    for (int i = 1; i <= EXPECTED_INSERTIONS; i++) {
+      mClockFilter.put(i, 1, SCOPE1);
+    }
+    // although cuckoo filter is nearly full, its fpp is still low
+    assertTrue(mClockFilter.expectedFpp() <= 0.01);
+  }
+
+  @Test
   public void testConcurrentPut() throws Exception {
     List<Runnable> runnables = new ArrayList<>();
     for (int k = 0; k < DEFAULT_THREAD_AMOUNT; k++) {
