@@ -3,6 +3,7 @@ package alluxio.master.block;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.GetRegisterLeasePRequest;
+import alluxio.metrics.MetricsSystem;
 import alluxio.util.CommonUtils;
 import alluxio.wire.RegisterLease;
 import com.google.common.base.Preconditions;
@@ -32,7 +33,7 @@ public class RegisterLeaseManager {
     mSemaphore = new Semaphore(maxConcurrency);
 
     if (ServerConfiguration.getBoolean(PropertyKey.MASTER_REGISTER_CHECK_JVM_SPACE)) {
-      mJvmChecker = new JvmSpaceReviewer();
+      mJvmChecker = new JvmSpaceReviewer(MetricsSystem.METRIC_REGISTRY);
     }
 
     mOpenStreams = new ConcurrentHashMap<>();
@@ -46,17 +47,16 @@ public class RegisterLeaseManager {
       return Optional.of(mOpenStreams.get(workerId));
     }
 
-    // If any of the reviewer rejects, the request will be rejected
+    // If the JVM space does not allow, reject the request
     if (mJvmChecker != null && !mJvmChecker.reviewLeaseRequest(request)) {
       return Optional.empty();
     }
-    LOG.info("Passed JVM space reviews");
 
     // Check for expired leases here instead of having a separate thread
     tryRecycleLease();
 
     if (mSemaphore.tryAcquire()) {
-      RegisterLease lease = new RegisterLease(LEASE_TTL_MS, ChronoUnit.MILLIS);
+      RegisterLease lease = new RegisterLease(LEASE_TTL_MS);
       mOpenStreams.put(request.getWorkerId(), lease);
       LOG.info("Granted lease to worker, now open streams are {}", mOpenStreams);
       return Optional.of(lease);
@@ -69,10 +69,10 @@ public class RegisterLeaseManager {
     long now = CommonUtils.getCurrentMs();
 
     mOpenStreams.entrySet().removeIf(entry -> {
-      long expiry = entry.getValue().mExpiryTimeMs.toEpochMilli();
-      LOG.info("Now is {}, expiry is {}.", now, expiry);
+      long expiry = entry.getValue().mExpiryTimeMs;
       if (expiry < now) {
-        LOG.info("Now is {}, expiry is {}. Recycled expired lease for worker {}", now, expiry, entry.getKey());
+        System.out.format("Now is %s, expiry is %s. Recycled expired lease for worker %s%n", now, expiry, entry.getKey());
+        mSemaphore.release();
         return true;
       }
       return false;

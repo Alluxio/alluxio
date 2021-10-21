@@ -87,8 +87,6 @@ public final class BlockMasterSync implements HeartbeatExecutor {
   private static final int ACQUIRE_LEASE_WAIT_BASE_SLEEP_MS = 1000;
   /** Maximum amount (exponential backoff) to sleep before retrying */
   private static final int ACQUIRE_LEASE_WAIT_MAX_SLEEP_MS = 10000;
-  /** The maximum retries */
-  private static final int ACQUIRE_LEASE_WAIT_MAX_RETRIES = 360;
 
   /**
    * Creates a new instance of {@link BlockMasterSync}.
@@ -119,14 +117,15 @@ public final class BlockMasterSync implements HeartbeatExecutor {
     return heartbeatTimeoutMs > 0 ? heartbeatTimeoutMs : 3_600_000;
   }
 
+  // TODO(jiacheng): parameterize these
   public static RetryPolicy getDefaultRetryPolicy() {
     int acquireLeaseTimeoutMs = getAcquireLeaseTimeout();
     RetryPolicy retry = ExponentialTimeBoundedRetry.builder()
-            .withMaxDuration(Duration.of(acquireLeaseTimeoutMs, ChronoUnit.MILLIS))
-            .withInitialSleep(Duration.of(ACQUIRE_LEASE_WAIT_BASE_SLEEP_MS, ChronoUnit.MILLIS))
-            .withMaxSleep(Duration.of(ACQUIRE_LEASE_WAIT_MAX_SLEEP_MS, ChronoUnit.MILLIS))
-            .withSkipInitialSleep()
-            .build();
+        .withMaxDuration(Duration.of(acquireLeaseTimeoutMs, ChronoUnit.MILLIS))
+        .withInitialSleep(Duration.of(ACQUIRE_LEASE_WAIT_BASE_SLEEP_MS, ChronoUnit.MILLIS))
+        .withMaxSleep(Duration.of(ACQUIRE_LEASE_WAIT_MAX_SLEEP_MS, ChronoUnit.MILLIS))
+        .withSkipInitialSleep()
+        .build();
     return retry;
   }
 
@@ -144,6 +143,7 @@ public final class BlockMasterSync implements HeartbeatExecutor {
     try {
       mMasterClient.acquireRegisterLeaseWithBackoff(mWorkerId.get(), storeMeta.getNumberOfBlocks(), getDefaultRetryPolicy());
     } catch (FailedToAcquireRegisterLeaseException e) {
+      mMasterClient.disconnect();
       if (ServerConfiguration.getBoolean(PropertyKey.TEST_MODE)) {
         throw new RuntimeException("Master register lease timeout exceeded: " + acquireLeaseTimeoutMs);
       }
