@@ -30,7 +30,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
 import javax.annotation.concurrent.NotThreadSafe;
@@ -126,7 +125,7 @@ public final class BlockMasterSync implements HeartbeatExecutor {
     StorageTierAssoc storageTierAssoc = new WorkerStorageTierAssoc();
     List<ConfigProperty> configList =
             ConfigurationUtils.getConfiguration(ServerConfiguration.global(), Scope.WORKER);
-    mMasterClient.registerStream(mWorkerId.get(),
+    mMasterClient.registerWithStream(mWorkerId.get(),
             storageTierAssoc.getOrderedStorageAliases(), storeMeta.getCapacityBytesOnTiers(),
             storeMeta.getUsedBytesOnTiers(), storeMeta.getBlockListByStorageLocation(),
             storeMeta.getLostStorage(), configList);

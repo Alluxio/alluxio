@@ -1,33 +1,24 @@
 package alluxio.client.fs;
 
-import alluxio.ClientContext;
 import alluxio.client.block.options.GetWorkerReportOptions;
-import alluxio.clock.ManualClock;
 import alluxio.clock.SystemClock;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.exception.status.InternalException;
 import alluxio.exception.status.NotFoundException;
 import alluxio.exception.status.UnavailableException;
-import alluxio.grpc.BlockIdList;
-import alluxio.grpc.BlockMasterWorkerServiceGrpc;
-import alluxio.grpc.BlockStoreLocationProto;
 import alluxio.grpc.Command;
 import alluxio.grpc.CommandType;
 import alluxio.grpc.ConfigProperty;
-import alluxio.grpc.GetWorkerIdPRequest;
 import alluxio.grpc.GetWorkerIdPResponse;
 import alluxio.grpc.LocationBlockIdListEntry;
 import alluxio.grpc.RegisterWorkerPOptions;
-import alluxio.grpc.RegisterWorkerPRequest;
-import alluxio.grpc.RegisterWorkerPResponse;
 import alluxio.grpc.RegisterWorkerStreamPRequest;
 import alluxio.grpc.RegisterWorkerStreamPResponse;
 import alluxio.grpc.StorageList;
 import alluxio.util.CommonUtils;
 import alluxio.wire.WorkerInfo;
 import alluxio.master.CoreMasterContext;
-import alluxio.master.MasterClientContext;
 import alluxio.master.MasterRegistry;
 import alluxio.master.MasterTestUtils;
 import alluxio.master.block.BlockMaster;
@@ -43,9 +34,8 @@ import alluxio.util.executor.ExecutorServiceFactories;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.wire.BlockInfo;
 import alluxio.wire.WorkerNetAddress;
-import alluxio.worker.block.BlockMasterClient;
 import alluxio.worker.block.BlockStoreLocation;
-import alluxio.worker.block.RegisterStream;
+import alluxio.worker.block.RegisterStreamer;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
@@ -66,7 +56,6 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.Collectors;
 
 import static alluxio.stress.cli.RpcBenchPreparationUtils.CAPACITY;
@@ -218,11 +207,11 @@ public class RegisterIntegrationTest {
             mHandler.registerWorkerStream(noopResponseObserver);
 
     // Send the chunks with the requestObserver
-    RegisterStream registerStream = new RegisterStream(null, null,
+    RegisterStreamer registerStreamer = new RegisterStreamer(null, null,
             workerId, mTierAliases, mCapacityMap, mUsedMap, blockMap, LOST_STORAGE, EMPTY_CONFIG);
 
-    // Get chunks from the RegisterStream
-    List<RegisterWorkerStreamPRequest> requestChunks = ImmutableList.copyOf(registerStream);
+    // Get chunks from the RegisterStreamer
+    List<RegisterWorkerStreamPRequest> requestChunks = ImmutableList.copyOf(registerStreamer);
 
     // Feed the chunks into the requestObserver
     for (RegisterWorkerStreamPRequest chunk : requestChunks) {
@@ -299,11 +288,11 @@ public class RegisterIntegrationTest {
             mHandler.registerWorkerStream(noopResponseObserver);
 
     // Send the chunks with the requestObserver
-    RegisterStream registerStream = new RegisterStream(null, null,
+    RegisterStreamer registerStreamer = new RegisterStreamer(null, null,
             workerId, mTierAliases, mCapacityMap, mUsedMap, blockMap, LOST_STORAGE, EMPTY_CONFIG);
 
-    // Get chunks from the RegisterStream
-    List<RegisterWorkerStreamPRequest> requestChunks = ImmutableList.copyOf(registerStream);
+    // Get chunks from the RegisterStreamer
+    List<RegisterWorkerStreamPRequest> requestChunks = ImmutableList.copyOf(registerStreamer);
 
     // Feed the chunks into the requestObserver
     RegisterWorkerStreamPRequest lastChunk = null;
@@ -398,11 +387,11 @@ public class RegisterIntegrationTest {
             mHandler.registerWorkerStream(noopResponseObserver);
 
     // Send the chunks with the requestObserver
-    RegisterStream registerStream = new RegisterStream(null, null,
+    RegisterStreamer registerStreamer = new RegisterStreamer(null, null,
             workerId, mTierAliases, mCapacityMap, mUsedMap, blockMap, LOST_STORAGE, EMPTY_CONFIG);
 
-    // Get chunks from the RegisterStream
-    List<RegisterWorkerStreamPRequest> requestChunks = ImmutableList.copyOf(registerStream);
+    // Get chunks from the RegisterStreamer
+    List<RegisterWorkerStreamPRequest> requestChunks = ImmutableList.copyOf(registerStreamer);
 
     // Feed the chunks into the requestObserver
     RegisterWorkerStreamPRequest lastChunk = null;
@@ -491,11 +480,11 @@ public class RegisterIntegrationTest {
             mHandler.registerWorkerStream(noopResponseObserver);
 
     // Send the chunks with the requestObserver
-    RegisterStream registerStream = new RegisterStream(null, null,
+    RegisterStreamer registerStreamer = new RegisterStreamer(null, null,
             workerId, mTierAliases, mCapacityMap, mUsedMap, blockMap, LOST_STORAGE, EMPTY_CONFIG);
 
-    // Get chunks from the RegisterStream
-    List<RegisterWorkerStreamPRequest> requestChunks = ImmutableList.copyOf(registerStream);
+    // Get chunks from the RegisterStreamer
+    List<RegisterWorkerStreamPRequest> requestChunks = ImmutableList.copyOf(registerStreamer);
 
     // Feed the chunks into the requestObserver
     RegisterWorkerStreamPRequest lastChunk = null;
@@ -618,11 +607,11 @@ public class RegisterIntegrationTest {
             mHandler.registerWorkerStream(noopResponseObserver);
 
     // Send the chunks with the requestObserver
-    RegisterStream registerStream = new RegisterStream(null, null,
+    RegisterStreamer registerStreamer = new RegisterStreamer(null, null,
             workerId, mTierAliases, mCapacityMap, mUsedMap, blockMap, LOST_STORAGE, EMPTY_CONFIG);
 
-    // Get chunks from the RegisterStream
-    List<RegisterWorkerStreamPRequest> requestChunks = ImmutableList.copyOf(registerStream);
+    // Get chunks from the RegisterStreamer
+    List<RegisterWorkerStreamPRequest> requestChunks = ImmutableList.copyOf(registerStreamer);
 
     // Feed the chunks into the requestObserver
     RegisterWorkerStreamPRequest lastChunk = null;
@@ -706,11 +695,11 @@ public class RegisterIntegrationTest {
             brokenHandler.registerWorkerStream(noopResponseObserver);
 
     // Send the chunks with the requestObserver
-    RegisterStream registerStream = new RegisterStream(null, null,
+    RegisterStreamer registerStreamer = new RegisterStreamer(null, null,
             workerId, mTierAliases, mCapacityMap, mUsedMap, blockMap, LOST_STORAGE, EMPTY_CONFIG);
 
-    // Get chunks from the RegisterStream
-    List<RegisterWorkerStreamPRequest> requestChunks = ImmutableList.copyOf(registerStream);
+    // Get chunks from the RegisterStreamer
+    List<RegisterWorkerStreamPRequest> requestChunks = ImmutableList.copyOf(registerStreamer);
 
     // Feed the chunks into the requestObserver
     requestObserver.onNext(requestChunks.get(0));
@@ -789,11 +778,11 @@ public class RegisterIntegrationTest {
             mHandler.registerWorkerStream(noopResponseObserver);
 
     // Send the chunks with the requestObserver
-    RegisterStream registerStream = new RegisterStream(null, null,
+    RegisterStreamer registerStreamer = new RegisterStreamer(null, null,
             workerId, mTierAliases, mCapacityMap, mUsedMap, blockMap, LOST_STORAGE, EMPTY_CONFIG);
 
-    // Get chunks from the RegisterStream
-    List<RegisterWorkerStreamPRequest> requestChunks = ImmutableList.copyOf(registerStream);
+    // Get chunks from the RegisterStreamer
+    List<RegisterWorkerStreamPRequest> requestChunks = ImmutableList.copyOf(registerStreamer);
 
     // Feed the chunks into the requestObserver
     for (RegisterWorkerStreamPRequest chunk : requestChunks) {
@@ -909,11 +898,11 @@ public class RegisterIntegrationTest {
             brokenHandler.registerWorkerStream(noopResponseObserver);
 
     // Send the chunks with the requestObserver
-    RegisterStream registerStream = new RegisterStream(null, null,
+    RegisterStreamer registerStreamer = new RegisterStreamer(null, null,
             workerId, mTierAliases, mCapacityMap, mUsedMap, blockMap, LOST_STORAGE, EMPTY_CONFIG);
 
-    // Get chunks from the RegisterStream
-    List<RegisterWorkerStreamPRequest> requestChunks = ImmutableList.copyOf(registerStream);
+    // Get chunks from the RegisterStreamer
+    List<RegisterWorkerStreamPRequest> requestChunks = ImmutableList.copyOf(registerStreamer);
 
     // Feed the chunks into the requestObserver
     for (RegisterWorkerStreamPRequest chunk : requestChunks) {

@@ -23,19 +23,16 @@ import alluxio.stress.CachingBlockMasterClient;
 import alluxio.stress.rpc.BlockMasterBenchParameters;
 import alluxio.stress.rpc.RpcTaskResult;
 import alluxio.stress.rpc.TierAlias;
-import alluxio.worker.block.BlockMapIterator;
 import alluxio.worker.block.BlockMasterClient;
 import alluxio.worker.block.BlockStoreLocation;
 
 import com.beust.jcommander.ParametersDelegate;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.xml.stream.Location;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayDeque;
@@ -163,11 +160,10 @@ public class StreamRegisterWorkerBench extends RpcBench<BlockMasterBenchParamete
     try {
       Instant s = Instant.now();
 
-      client.registerStream(workerId,
+      client.registerWithStream(workerId,
               mTierAliases,
               mCapacityMap,
               mUsedMap,
-              // TODO(jiacheng): The CachingBlockMasterClient need to cache blocks for this new api
               mBlockMap,
               LOST_STORAGE, // lost storage
               EMPTY_CONFIG); // extra config

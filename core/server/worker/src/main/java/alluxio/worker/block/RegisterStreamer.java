@@ -2,16 +2,13 @@ package alluxio.worker.block;
 
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
-import alluxio.grpc.BlockIdList;
 import alluxio.grpc.BlockMasterWorkerServiceGrpc;
-import alluxio.grpc.BlockStoreLocationProto;
 import alluxio.grpc.ConfigProperty;
 import alluxio.grpc.LocationBlockIdListEntry;
 import alluxio.grpc.RegisterWorkerStreamPOptions;
 import alluxio.grpc.RegisterWorkerStreamPRequest;
 import alluxio.grpc.RegisterWorkerStreamPResponse;
 import alluxio.grpc.StorageList;
-import alluxio.util.CommonUtils;
 import com.google.common.annotations.VisibleForTesting;
 import io.grpc.stub.StreamObserver;
 import org.slf4j.Logger;
@@ -20,13 +17,9 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.time.Duration;
 import java.time.Instant;
-import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
@@ -34,8 +27,8 @@ import java.util.stream.Collectors;
 
 import static com.esotericsoftware.minlog.Log.info;
 
-public class RegisterStream implements Iterator<RegisterWorkerStreamPRequest> {
-  private static final Logger LOG = LoggerFactory.getLogger(RegisterStream.class);
+public class RegisterStreamer implements Iterator<RegisterWorkerStreamPRequest> {
+  private static final Logger LOG = LoggerFactory.getLogger(RegisterStreamer.class);
   final BlockMasterWorkerServiceGrpc.BlockMasterWorkerServiceBlockingStub mClient;
   final BlockMasterWorkerServiceGrpc.BlockMasterWorkerServiceStub mAsyncClient;
 
@@ -52,14 +45,14 @@ public class RegisterStream implements Iterator<RegisterWorkerStreamPRequest> {
   Iterator<List<LocationBlockIdListEntry>> mBlockListIterator;
 
   // How many batches active in a stream
-  Semaphore mBucket = new Semaphore(1);
+  Semaphore mBucket = new Semaphore(2);
   Throwable mError = null;
 
   RegisterWorkerStreamPOptions mOptions;
   Map<String, StorageList> mLostStorageMap;
   int mBatchNumber;
 
-  public RegisterStream(
+  public RegisterStreamer(
           final BlockMasterWorkerServiceGrpc.BlockMasterWorkerServiceBlockingStub client,
           final BlockMasterWorkerServiceGrpc.BlockMasterWorkerServiceStub asyncClient,
           final long workerId, final List<String> storageTierAliases,
@@ -73,7 +66,7 @@ public class RegisterStream implements Iterator<RegisterWorkerStreamPRequest> {
   }
 
   @VisibleForTesting
-  public RegisterStream(
+  public RegisterStreamer(
           final BlockMasterWorkerServiceGrpc.BlockMasterWorkerServiceBlockingStub client,
           final BlockMasterWorkerServiceGrpc.BlockMasterWorkerServiceStub asyncClient,
           final long workerId, final List<String> storageTierAliases,

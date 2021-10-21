@@ -19,7 +19,7 @@ import alluxio.worker.block.BlockMapIterator;
 import alluxio.worker.block.BlockMasterClient;
 import alluxio.worker.block.BlockStoreLocation;
 
-import alluxio.worker.block.RegisterStream;
+import alluxio.worker.block.RegisterStreamer;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import org.slf4j.Logger;
@@ -112,15 +112,15 @@ public class CachingBlockMasterClient extends BlockMasterClient {
   }
 
   @Override
-  public void registerStream(final long workerId, final List<String> storageTierAliases,
-                             final Map<String, Long> totalBytesOnTiers, final Map<String, Long> usedBytesOnTiers,
-                             final Map<BlockStoreLocation, List<Long>> currentBlocksOnLocation,
-                             final Map<String, List<String>> lostStorage,
-                             final List<ConfigProperty> configList) throws IOException {
+  public void registerWithStream(final long workerId, final List<String> storageTierAliases,
+                                 final Map<String, Long> totalBytesOnTiers, final Map<String, Long> usedBytesOnTiers,
+                                 final Map<BlockStoreLocation, List<Long>> currentBlocksOnLocation,
+                                 final Map<String, List<String>> lostStorage,
+                                 final List<ConfigProperty> configList) throws IOException {
     AtomicReference<IOException> ioe = new AtomicReference<>();
     retryRPC(() -> {
       try {
-        RegisterStream stream = new RegisterStream(mClient, mAsyncClient, workerId, storageTierAliases, totalBytesOnTiers, usedBytesOnTiers,
+        RegisterStreamer stream = new RegisterStreamer(mClient, mAsyncClient, workerId, storageTierAliases, totalBytesOnTiers, usedBytesOnTiers,
                 currentBlocksOnLocation, lostStorage, configList, mBlockBatchIterator);
         stream.registerSync();
       } catch (IOException e) {

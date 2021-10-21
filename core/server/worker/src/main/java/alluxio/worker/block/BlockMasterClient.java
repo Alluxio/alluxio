@@ -14,7 +14,6 @@ package alluxio.worker.block;
 import alluxio.AbstractMasterClient;
 import alluxio.Constants;
 import alluxio.conf.PropertyKey;
-import alluxio.exception.status.AlluxioStatusException;
 import alluxio.grpc.BlockHeartbeatPOptions;
 import alluxio.grpc.BlockHeartbeatPRequest;
 import alluxio.grpc.BlockIdList;
@@ -262,15 +261,15 @@ public class BlockMasterClient extends AbstractMasterClient {
     }, LOG, "Register", "workerId=%d", workerId);
   }
 
-  public void registerStream(final long workerId, final List<String> storageTierAliases,
-                             final Map<String, Long> totalBytesOnTiers, final Map<String, Long> usedBytesOnTiers,
-                             final Map<BlockStoreLocation, List<Long>> currentBlocksOnLocation,
-                             final Map<String, List<String>> lostStorage,
-                             final List<ConfigProperty> configList) throws IOException {
+  public void registerWithStream(final long workerId, final List<String> storageTierAliases,
+                                 final Map<String, Long> totalBytesOnTiers, final Map<String, Long> usedBytesOnTiers,
+                                 final Map<BlockStoreLocation, List<Long>> currentBlocksOnLocation,
+                                 final Map<String, List<String>> lostStorage,
+                                 final List<ConfigProperty> configList) throws IOException {
     AtomicReference<IOException> ioe = new AtomicReference<>();
     retryRPC(() -> {
       try {
-        RegisterStream stream = new RegisterStream(
+        RegisterStreamer stream = new RegisterStreamer(
                 mClient, mAsyncClient,
                 workerId, storageTierAliases, totalBytesOnTiers, usedBytesOnTiers,
                 currentBlocksOnLocation, lostStorage, configList);
