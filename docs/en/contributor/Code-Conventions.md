@@ -243,8 +243,10 @@ LOG.error("Failed to do something due to an exception", e);
 ```
 
 ```java
-// Not recommended: stack trace will not be logged
+// Not recommended: wrong logging syntax
 LOG.error("Failed to do something due to an exception {}", e);
+// Not recommended: stack trace will not be logged
+LOG.error("Failed to do something due to an exception {}", e.toString());
 ```
 
 **When to Use**
@@ -268,15 +270,15 @@ trace may be found in debug level logs.
 ```java
 // Recommended
 LOG.warn("Failed to do something: {}", e.toString());
-// Recommended
-LOG.warn("Failed to do something: {}", e);
 ```
 
 ```java
-// Not recommended: this will print out the stack trace
+// Not recommended: wrong logging syntax 
+LOG.warn("Failed to do something: {}", e);
+// Not recommended: this will print out the stack trace, can be noisy
 LOG.warn("Failed to do something", e);
 // Not recommended: the exception class name is not included
-LOG.warn("Failed to do something", e.getMessage());
+LOG.warn("Failed to do something {}", e.getMessage());
 
 ```
 
