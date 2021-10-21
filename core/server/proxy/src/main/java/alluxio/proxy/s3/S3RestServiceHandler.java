@@ -469,17 +469,11 @@ public final class S3RestServiceHandler {
           // determine if it's encoded, and then which parts of the stream to read depending on
           // the encoding type.
           boolean isChunkedEncoding = decodedLength != null;
-          Integer toRead = null;
+          int toRead;
+          InputStream readStream = is;
           if (isChunkedEncoding) {
             toRead = Integer.parseInt(decodedLength);
-            int hexLen = Integer.toHexString(toRead).length();
-            // The chunk header format
-            // hexLen + ";chunk-signature".length() + signature.length + "\r\n".length();
-            // see https://docs.aws.amazon.com/AmazonS3/latest/API/sigv4-streaming.html for
-            // further information. Everything after the "hexLen" is unchanging
-            int chunkHeaderLen = hexLen + 83;
-            // TODO(zac): verify the chunk header
-            is.skip(chunkHeaderLen);
+            readStream = new ChunkedEncodingInputStream(is);
           } else {
             toRead = Integer.parseInt(contentLength);
           }
@@ -489,7 +483,12 @@ public final class S3RestServiceHandler {
           }
           FileOutStream os = fs.createFile(objectURI, dirOptions);
           try (DigestOutputStream digestOutputStream = new DigestOutputStream(os, md5)) {
-            ByteStreams.copy(ByteStreams.limit(is, toRead), digestOutputStream);
+            long read = ByteStreams.copy(ByteStreams.limit(readStream, toRead), digestOutputStream);
+            if (read < toRead) {
+              throw new IOException(String.format(
+                  "Failed to read all required bytes from the stream. Read %d/%d",
+                  read, toRead));
+            }
           }
 
           byte[] digest = md5.digest();
