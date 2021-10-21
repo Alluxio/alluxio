@@ -38,8 +38,6 @@ import com.google.common.base.Preconditions;
 import io.grpc.Status;
 import io.grpc.StatusException;
 import io.grpc.StatusRuntimeException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.security.sasl.SaslException;
 import java.io.FileNotFoundException;
@@ -54,8 +52,6 @@ import java.nio.file.attribute.UserPrincipalNotFoundException;
  */
 public class AlluxioStatusException extends IOException {
   private static final long serialVersionUID = -7422144873058169662L;
-
-  private static final Logger LOG = LoggerFactory.getLogger(AlluxioStatusException.class);
 
   private final Status mStatus;
 
@@ -225,10 +221,7 @@ public class AlluxioStatusException extends IOException {
    * @return the converted {@link AlluxioStatusException}
    */
   public static AlluxioStatusException fromStatusRuntimeException(StatusRuntimeException e) {
-    LOG.error("Status: {}", e.getStatus().withCause(e));
-    AlluxioStatusException converted = AlluxioStatusException.from(e.getStatus().withCause(e));
-    LOG.error("Converted to ", converted);
-    return converted;
+    return AlluxioStatusException.from(e.getStatus().withCause(e));
   }
 
   /**
@@ -251,7 +244,6 @@ public class AlluxioStatusException extends IOException {
       return new InvalidArgumentException(e);
     } catch (ConnectionFailedException | FailedToCheckpointException
         | UfsBlockAccessTokenUnavailableException | RegisterLeaseNotFoundException e) {
-      // TODO(jiacheng): test an exception is thrown
       return new UnavailableException(e);
     } catch (DependencyDoesNotExistException | DirectoryNotEmptyException
         | InvalidWorkerStateException e) {
