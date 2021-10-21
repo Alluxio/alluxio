@@ -143,7 +143,7 @@ public class BlockTransferExecutor {
                   .setUseReservedSpace(useReservedSpace));
         }
       } catch (Exception e) {
-        LOG.warn("Transfer-order: {} failed. ", transferInfo, e);
+        LOG.warn("Transfer-order: {} failed. {} ", transferInfo, e.toString());
         failCount++;
         if (exceptionHandler != null) {
           exceptionHandler.accept(e);
