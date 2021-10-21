@@ -66,7 +66,7 @@ public class ConcurrentClockCuckooFilter<T> implements ClockCuckooFilter<T>, Ser
   private final int mSizeMask;
   private final int mMaxAge;
   private final Funnel<? super T> mFunnel;
-  private final HashFunction mHasher;
+  private final HashFunction mHashFunction;
   private final ScopeEncoder mScopeEncoder;
   private final SegmentedLock mLocks;
   private final int[] mSegmentedAgingPointers;
@@ -75,10 +75,10 @@ public class ConcurrentClockCuckooFilter<T> implements ClockCuckooFilter<T>, Ser
   private final SlidingWindowType mSlidingWindowType;
   private final long mWindowSize;
   private final long mStartTime = System.currentTimeMillis();
-  private CuckooTable mTable;
-  private CuckooTable mClockTable;
-  private CuckooTable mSizeTable;
-  private CuckooTable mScopeTable;
+  private final CuckooTable mTable;
+  private final CuckooTable mClockTable;
+  private final CuckooTable mSizeTable;
+  private final CuckooTable mScopeTable;
 
   /**
    * The constructor of concurrent clock cuckoo filter.
@@ -110,7 +110,7 @@ public class ConcurrentClockCuckooFilter<T> implements ClockCuckooFilter<T>, Ser
     mSlidingWindowType = slidingWindowType;
     mWindowSize = windowSize;
     mFunnel = funnel;
-    mHasher = hasher;
+    mHashFunction = hasher;
     mLocks = new SegmentedLock(Math.min(DEFAULT_NUM_LOCKS, mNumBuckets >> 1), mNumBuckets);
     // init scope statistics
     // note that the GLOBAL scope is the default scope and is always encoded to zero
@@ -282,7 +282,7 @@ public class ConcurrentClockCuckooFilter<T> implements ClockCuckooFilter<T>, Ser
     // But We only execute opportunistic aging in put/delete.
     // This is because we expect cuckoo path search & move to be as fast as possible,
     // or it may be more possible to fail.
-    lockTwoWriteAndOpportunisticAging(b1, b2);
+    writeLockAndOpportunisticAging(b1, b2);
     boolean done = cuckooInsertLoop(b1, b2, tag, pos);
     if (done && pos.mStatus == CuckooStatus.OK) {
       // b1 and b2 should be insertable for fp, which means:
@@ -340,9 +340,8 @@ public class ConcurrentClockCuckooFilter<T> implements ClockCuckooFilter<T>, Ser
     int tag = tagHash(hv);
     int b1 = indexHash(hv);
     int b2 = altIndex(b1, tag);
-    lockTwoWriteAndOpportunisticAging(b1, b2);
-    TagPosition pos = new TagPosition();
-    pos = mTable.deleteTag(b1, tag);
+    writeLockAndOpportunisticAging(b1, b2);
+    TagPosition pos = mTable.deleteTag(b1, tag);
     if (pos.getStatus() != CuckooStatus.OK) {
       pos = mTable.deleteTag(b2, tag);
     }
@@ -490,7 +489,7 @@ public class ConcurrentClockCuckooFilter<T> implements ClockCuckooFilter<T>, Ser
   }
 
   private long hashValue(T item) {
-    return mHasher.newHasher().putObject(item, mFunnel).hash().asLong();
+    return mHashFunction.newHasher().putObject(item, mFunnel).hash().asLong();
   }
 
   /**
@@ -877,7 +876,7 @@ public class ConcurrentClockCuckooFilter<T> implements ClockCuckooFilter<T>, Ser
    * @param b1 the first bucket
    * @param b2 the second bucket
    */
-  private void lockTwoWriteAndOpportunisticAging(int b1, int b2) {
+  private void writeLockAndOpportunisticAging(int b1, int b2) {
     mLocks.writeLock(b1, b2);
     opportunisticAgingSegment(mLocks.getSegmentIndex(b1));
     opportunisticAgingSegment(mLocks.getSegmentIndex(b2));
