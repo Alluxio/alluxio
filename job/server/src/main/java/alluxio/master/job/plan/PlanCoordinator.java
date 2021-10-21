@@ -15,10 +15,12 @@ import alluxio.collections.Pair;
 import alluxio.exception.JobDoesNotExistException;
 import alluxio.job.ErrorUtils;
 import alluxio.job.JobConfig;
+import alluxio.job.plan.BatchedJobConfig;
 import alluxio.job.plan.PlanDefinition;
 import alluxio.job.plan.PlanDefinitionRegistry;
 import alluxio.job.JobServerContext;
 import alluxio.job.SelectExecutorsContext;
+import alluxio.job.plan.batch.BatchedJobDefinition;
 import alluxio.job.plan.meta.PlanInfo;
 import alluxio.job.wire.Status;
 import alluxio.job.wire.TaskInfo;
@@ -35,6 +37,7 @@ import org.slf4j.LoggerFactory;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -137,8 +140,17 @@ public final class PlanCoordinator {
       // create task
       mPlanInfo.addTask(taskId, pair.getFirst(), pair.getSecond());
       // submit commands
-      mCommandManager.submitRunTaskCommand(mPlanInfo.getId(), taskId, mPlanInfo.getJobConfig(),
-          pair.getSecond(), pair.getFirst().getId());
+      if (definition.getClass().isInstance(BatchedJobDefinition.class)) {
+        BatchedJobConfig planConfig = (BatchedJobConfig) mPlanInfo.getJobConfig();
+        LOG.info("we turn job config into empty one here: " + planConfig);
+        BatchedJobConfig emptyConfig =
+            new BatchedJobConfig(planConfig.getJobType(), new HashSet<>());
+        mCommandManager.submitRunTaskCommand(mPlanInfo.getId(), taskId, emptyConfig,
+            pair.getSecond(), pair.getFirst().getId());
+      } else {
+        mCommandManager.submitRunTaskCommand(mPlanInfo.getId(), taskId, mPlanInfo.getJobConfig(),
+            pair.getSecond(), pair.getFirst().getId());
+      }
       mTaskIdToWorkerInfo.put((long) taskId, pair.getFirst());
       mWorkerIdToTaskIds.putIfAbsent(pair.getFirst().getId(), Lists.newArrayList());
       mWorkerIdToTaskIds.get(pair.getFirst().getId()).add((long) taskId);
