@@ -2354,10 +2354,10 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey MASTER_REGISTER_CHECK_JVM_SPACE =
       new Builder(Name.MASTER_REGISTER_CHECK_JVM_SPACE)
-              .setDefaultValue("true")
-              .setDescription("Whether the master heap usage is checked before accepting a worker to register")
-              .setScope(Scope.MASTER)
-              .build();
+          .setDefaultValue("true")
+          .setDescription("Whether the master heap usage is checked before accepting a worker to register")
+          .setScope(Scope.MASTER)
+          .build();
   public static final PropertyKey MASTER_PRINCIPAL = new Builder(Name.MASTER_PRINCIPAL)
       .setDescription("Kerberos principal for Alluxio master.")
       .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)

@@ -70,6 +70,7 @@ import alluxio.util.executor.ExecutorServiceFactory;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.wire.Address;
 import alluxio.wire.BlockInfo;
+import alluxio.wire.RegisterLease;
 import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
 

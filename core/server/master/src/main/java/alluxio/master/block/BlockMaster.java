@@ -28,6 +28,7 @@ import alluxio.metrics.Metric;
 import alluxio.proto.meta.Block;
 import alluxio.wire.Address;
 import alluxio.wire.BlockInfo;
+import alluxio.wire.RegisterLease;
 import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
 

@@ -3,28 +3,21 @@ package alluxio.master.block;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.GetRegisterLeasePRequest;
-import alluxio.metrics.MetricsSystem;
 import alluxio.util.CommonUtils;
-import com.codahale.metrics.Gauge;
-import com.codahale.metrics.Metric;
-import com.codahale.metrics.MetricFilter;
+import alluxio.wire.RegisterLease;
 import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.time.temporal.TemporalUnit;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
-import java.util.SortedMap;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Semaphore;
-import java.util.concurrent.TimeUnit;
 
 public class RegisterLeaseManager {
   private static final Logger LOG = LoggerFactory.getLogger(RegisterLeaseManager.class);
+  private final static long LEASE_TTL_MS = ServerConfiguration.getMs(PropertyKey.MASTER_WORKER_REGISTER_LEASE_EXPIRY_TIMEOUT);
 
   private final Semaphore mSemaphore;
   // <WorkerId, ExpiryTime>
@@ -63,7 +56,7 @@ public class RegisterLeaseManager {
     tryRecycleLease();
 
     if (mSemaphore.tryAcquire()) {
-      RegisterLease lease = new RegisterLease();
+      RegisterLease lease = new RegisterLease(LEASE_TTL_MS, ChronoUnit.MILLIS);
       mOpenStreams.put(request.getWorkerId(), lease);
       LOG.info("Granted lease to worker, now open streams are {}", mOpenStreams);
       return Optional.of(lease);
@@ -76,7 +69,7 @@ public class RegisterLeaseManager {
     long now = CommonUtils.getCurrentMs();
 
     mOpenStreams.entrySet().removeIf(entry -> {
-      long expiry = entry.getValue().mExpireTime.toEpochMilli();
+      long expiry = entry.getValue().mExpiryTimeMs.toEpochMilli();
       LOG.info("Now is {}, expiry is {}.", now, expiry);
       if (expiry < now) {
         LOG.info("Now is {}, expiry is {}. Recycled expired lease for worker {}", now, expiry, entry.getKey());

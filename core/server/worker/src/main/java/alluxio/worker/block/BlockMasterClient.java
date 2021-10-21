@@ -235,7 +235,7 @@ public class BlockMasterClient extends AbstractMasterClient {
     int iter = 0;
     GetRegisterLeasePResponse response = null;
     while (retry.attempt()) {
-      LOG.info("Worker {} acquiring lease from the master, iter {}", workerId, iter);
+      LOG.info("Worker {} attempting to grant registration lease from the master, iter {}", workerId, iter);
       response = acquireRegisterLease(workerId, estimatedBlockCount);
       LOG.info("Worker {} lease response: {}", workerId, response);
       leaseAcquired = response.getAllowed();
@@ -250,7 +250,7 @@ public class BlockMasterClient extends AbstractMasterClient {
           String.format("Failed to acquire a register lease from master after %d attempts", retry.getAttemptCount()));
     }
 
-    LOG.info("Lease acquired after {} attempts", retry.getAttemptCount());
+    LOG.info("Acquired lease after {} attempts: {}", retry.getAttemptCount(), response);
   }
 
   /**
@@ -289,8 +289,6 @@ public class BlockMasterClient extends AbstractMasterClient {
         .setOptions(options).build();
 
     retryRPC(() -> {
-      // TODO(jiacheng): If the exception is RegisterLeaseExpiredException, just retry registerWorker()
-      //  which will acquire a new lease
       mClient.registerWorker(request);
       return null;
     }, LOG, "Register", "workerId=%d", workerId);

@@ -33,6 +33,7 @@ import alluxio.grpc.StorageList;
 import alluxio.metrics.Metric;
 import alluxio.proto.meta.Block;
 
+import alluxio.wire.RegisterLease;
 import com.google.common.base.Preconditions;
 import io.grpc.stub.StreamObserver;
 import org.slf4j.Logger;
@@ -134,12 +135,7 @@ public final class BlockMasterWorkerServiceHandler extends
   @Override
   public void requestRegisterLease(GetRegisterLeasePRequest request, StreamObserver<GetRegisterLeasePResponse> responseObserver) {
     RpcUtils.call(LOG, (RpcUtils.RpcCallableThrowsIOException<GetRegisterLeasePResponse>) () -> {
-      Optional<RegisterLease> lease = mBlockMaster.tryAcquireRegisterLease(request);
-      if (lease.isPresent()) {
-        RegisterLease l = lease.get();
-        return GetRegisterLeasePResponse.newBuilder().setWorkerId(request.getWorkerId()).setAllowed(true).setExpiryMs(l.mExpireTime.toEpochMilli()).build();
-      }
-      return GetRegisterLeasePResponse.newBuilder().setWorkerId(request.getWorkerId()).setAllowed(false).build();
+      return GrpcUtils.toProto(request.getWorkerId(), mBlockMaster.tryAcquireRegisterLease(request));
     }, "getRegisterLease", "request=%s", responseObserver, request);
   }
 

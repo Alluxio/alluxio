@@ -1,6 +1,7 @@
 package alluxio.master.block;
 
 import alluxio.grpc.GetRegisterLeasePRequest;
+import alluxio.wire.RegisterLease;
 import org.junit.Test;
 
 import java.util.Optional;

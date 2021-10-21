@@ -405,12 +405,12 @@ public abstract class AbstractClient implements Client {
       try {
         return rpc.call();
       } catch (StatusRuntimeException e) {
+        // TODO(jiacheng): remove debug outputs
         LOG.error("Exception is ", e);
         AlluxioStatusException se = AlluxioStatusException.fromStatusRuntimeException(e);
         if (se.getStatusCode() == Status.Code.UNAVAILABLE
             || se.getStatusCode() == Status.Code.CANCELLED
             || se.getStatusCode() == Status.Code.UNAUTHENTICATED
-            || se.getStatusCode() == Status.Code.FAILED_PRECONDITION
             || e.getCause() instanceof UnresolvedAddressException) {
           LOG.info("Caught exception and will retry", se);
           ex = se;

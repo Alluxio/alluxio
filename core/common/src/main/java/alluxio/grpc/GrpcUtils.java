@@ -30,6 +30,7 @@ import alluxio.wire.FileSystemCommand;
 import alluxio.wire.LoadMetadataType;
 import alluxio.wire.MountPointInfo;
 import alluxio.wire.PersistFile;
+import alluxio.wire.RegisterLease;
 import alluxio.wire.TieredIdentity;
 import alluxio.wire.UfsInfo;
 import alluxio.wire.WorkerInfo;
@@ -42,6 +43,7 @@ import com.google.protobuf.ByteString;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -663,6 +665,14 @@ public final class GrpcUtils {
   public static alluxio.grpc.UfsInfo toProto(UfsInfo ufsInfo) {
     return alluxio.grpc.UfsInfo.newBuilder().setUri(ufsInfo.getUri().toString())
         .setProperties(ufsInfo.getMountOptions()).build();
+  }
+
+  public static alluxio.grpc.GetRegisterLeasePResponse toProto(long workerId, Optional<RegisterLease> lease) {
+    if (lease.isPresent()) {
+      RegisterLease l = lease.get();
+      return GetRegisterLeasePResponse.newBuilder().setWorkerId(workerId).setAllowed(true).setExpiryMs(l.mExpiryTimeMs).build();
+    }
+    return GetRegisterLeasePResponse.newBuilder().setWorkerId(workerId).setAllowed(false).build();
   }
 
   /**
