@@ -5281,7 +5281,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       new Builder(Name.JOB_REQUEST_BATCH_SIZE)
           .setDescription("The batch size client uses to make requests to the "
               + "job master.")
-          .setDefaultValue(1)
+          .setDefaultValue(20)
           .setScope(Scope.CLIENT)
           .build();
   public static final PropertyKey JOB_WORKER_BIND_HOST =

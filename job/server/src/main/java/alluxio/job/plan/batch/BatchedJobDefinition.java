@@ -143,7 +143,8 @@ public final class BatchedJobDefinition
         case "Persist":
           return new PersistDefinition();
         default:
-          throw new IllegalStateException("Unknown job: " + jobName);
+          throw new IllegalStateException(
+              "Batched Job currently doesn't support this jobType: " + jobName);
       }
     }
   }
