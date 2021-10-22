@@ -147,6 +147,7 @@ public class S3AInputStream extends InputStream {
     String errorMessage = String.format("Failed to open key: %s bucket: %s", mKey, mBucketName);
     while (mRetryPolicy.attempt()) {
       try {
+        closeStream();
         mIn = mClient.getObject(getReq).getObjectContent();
         return;
       } catch (AmazonS3Exception e) {
