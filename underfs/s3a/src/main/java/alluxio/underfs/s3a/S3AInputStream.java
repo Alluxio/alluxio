@@ -94,6 +94,7 @@ public class S3AInputStream extends InputStream {
     int value = mIn.read();
     if (value != -1) { // valid data read
       mPos++;
+      mInPos++;
     }
     return value;
   }
@@ -112,6 +113,7 @@ public class S3AInputStream extends InputStream {
     int read = mIn.read(b, offset, length);
     if (read != -1) {
       mPos += read;
+      mInPos += read;
     }
     return read;
   }
@@ -139,6 +141,7 @@ public class S3AInputStream extends InputStream {
         try {
           //TODO(beinan): we might need check the max skip length
           if (skip == mIn.skip(skip)) {
+            mInPos += skip;
             return; //able to reuse the existing stream
           }
         } catch (IOException e) {
@@ -152,7 +155,6 @@ public class S3AInputStream extends InputStream {
 
   /**
    * Opens a new stream at mPos.
-   * @param length
    */
   private void openStream(int length) throws IOException {
     GetObjectRequest getReq = new GetObjectRequest(mBucketName, mKey);
