@@ -11,6 +11,9 @@
 
 package alluxio.worker.block;
 
+import alluxio.ConfigurationTestUtils;
+import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.util.IdUtils;
 import alluxio.util.io.PathUtils;
 
@@ -19,6 +22,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
+import java.io.File;
 import java.io.IOException;
 
 public class BlockWorkerDBTest {
@@ -26,7 +30,8 @@ public class BlockWorkerDBTest {
    * Sets up all dependencies before a test runs.
    */
   DefaultBlockWorkerDB mBlockWorkerDB;
-  final String mNotExistFile = "mNotExistFile";
+  final String mNotExistPath = "mNotExistPath";
+  final String mDBfile = "mDBfile";
   final String mKey1 = "key1";
   final String mValue1 = "value1";
 
@@ -36,14 +41,16 @@ public class BlockWorkerDBTest {
   @Rule
   public TemporaryFolder mTestFolder = new TemporaryFolder();
 
-  void createANotExistFile() {
+  void createANotExistPath() {
     mBlockWorkerDB =
-        new DefaultBlockWorkerDB(
-            PathUtils.concatPath(mTestFolder.getRoot().getAbsolutePath(), mNotExistFile));
+        new DefaultBlockWorkerDB(PathUtils.concatPath(mTestFolder.getRoot().getAbsolutePath(),
+            mNotExistPath, "clusterid"));
     reset();
   }
 
   void createDefault() {
+    InstancedConfiguration conf = ConfigurationTestUtils.defaults();
+    conf.set(PropertyKey.WORKER_PERSISTENCE_INFO_PATH, mTestFolder.getRoot().getAbsolutePath());
     mBlockWorkerDB = new DefaultBlockWorkerDB();
     reset();
   }
@@ -78,29 +85,29 @@ public class BlockWorkerDBTest {
   }
 
   @Test
-  public void testSetAndGetToExistFile() throws IOException {
+  public void testSetAndGetToExistPath() throws IOException {
     createDefault();
     mBlockWorkerDB.set(mKey1, mValue1);
     Assert.assertEquals(mValue1, mBlockWorkerDB.get(mKey1));
   }
 
   @Test
-  public void testSetAndGetToNotExistFile() throws IOException {
-    createANotExistFile();
+  public void testSetAndGetToNotExistPath() throws IOException {
+    createANotExistPath();
     // When writing info to a file that does not exist, the file will be created
     mBlockWorkerDB.set(mKey1, mValue1);
     Assert.assertEquals(mValue1, mBlockWorkerDB.get(mKey1));
   }
 
   @Test
-  public void testGetToNotExistFile() throws IOException {
-    createANotExistFile();
+  public void testGetToNotExistPath() throws IOException {
+    createANotExistPath();
     // The get will return an empty string rather than a null pointer if the key does not exist
     Assert.assertEquals("", mBlockWorkerDB.get(mKey1));
   }
 
   @Test
-  public void testResetStateExistFile() throws IOException {
+  public void testResetStateExistPath() throws IOException {
     createDefault();
     mBlockWorkerDB.set(mKey1, mValue1);
     mBlockWorkerDB.resetState();
@@ -109,10 +116,10 @@ public class BlockWorkerDBTest {
   }
 
   @Test
-  public void testResetStateNotExistFile() throws IOException {
+  public void testResetStateNotExistPath() throws IOException {
     mBlockWorkerDB =
         new DefaultBlockWorkerDB(
-            PathUtils.concatPath(mTestFolder.getRoot().getAbsolutePath(), mNotExistFile));
+            PathUtils.concatPath(mTestFolder.getRoot().getAbsolutePath(), mNotExistPath));
     // nothing to do if reset a not exist file
     mBlockWorkerDB.resetState();
   }

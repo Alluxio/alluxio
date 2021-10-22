@@ -3637,10 +3637,11 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
-  public static final PropertyKey WORKER_PERSISTENCE_CLUSTER_ID_FILE =
-      new Builder(Name.WORKER_PERSISTENCE_CLUSTER_ID_FILE)
-          .setDefaultValue(String.format("${%s}/clusterid", Name.HOME))
-          .setDescription("The file used to save the cluster ID which the worker belongs.")
+  public static final PropertyKey WORKER_PERSISTENCE_INFO_PATH =
+      new Builder(Name.WORKER_PERSISTENCE_INFO_PATH)
+          .setDefaultValue(String.format("${%s}/persist", Name.HOME))
+          .setDescription("The path used to save the info such as "
+              + "the cluster ID which the worker belongs.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
@@ -6218,8 +6219,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.worker.ufs.instream.cache.enabled";
     public static final String WORKER_UFS_INSTREAM_CACHE_MAX_SIZE =
         "alluxio.worker.ufs.instream.cache.max.size";
-    public static final String WORKER_PERSISTENCE_CLUSTER_ID_FILE =
-        "alluxio.worker.persistence.cluster.id.file";
+    public static final String WORKER_PERSISTENCE_INFO_PATH =
+        "alluxio.worker.persistence.info.path";
     public static final String WORKER_WHITELIST = "alluxio.worker.whitelist";
 
     //

@@ -255,13 +255,21 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
       case Nothing:
         break; // worker normal restarted, state is in expected
       case Persist:
-        setClusterId(cmd.getData()); // worker first time register, persisted some state info
+        try {
+          setClusterId(cmd.getData()); // worker first time register, persisted some state info
+        } catch (IOException e) {
+          LOG.error("Failed to set the clusterId", e);
+        }
         break;
       case Reset:
         LOG.warn("Master Command {}", cmd); // worker is not belonging the current cluster
         // todo clean all block and reset status
         // Current behavior is the same as the cmd "Persist"
-        setClusterId(cmd.getData());
+        try {
+          setClusterId(cmd.getData());
+        } catch (IOException e) {
+          LOG.error("Failed to set the clusterId", e); // todo add unit test for fail case
+        }
         break;
       default:
         throw new RuntimeException("PreRegister Un-recognized command from master " + cmd);
