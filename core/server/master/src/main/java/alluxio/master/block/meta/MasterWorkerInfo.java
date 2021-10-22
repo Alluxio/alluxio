@@ -127,8 +127,6 @@ public final class MasterWorkerInfo {
   /** Stores the mapping from WorkerMetaLockSection to the lock. */
   private final Map<WorkerMetaLockSection, ReentrantReadWriteLock> mLockTypeToLock;
 
-  private final Map<Long, WorkerMetaLock> mLockTracker;
-
   /**
    * Creates a new instance of {@link MasterWorkerInfo}.
    *
@@ -644,29 +642,5 @@ public final class MasterWorkerInfo {
 
   public void markAllBlocksToRemove() {
     mToRemoveBlocks.addAll(mBlocks);
-  }
-
-  public boolean checkLocks(EnumSet<WorkerMetaLockSection> lockSections, boolean isShared) {
-    long threadId = Thread.currentThread().getId();
-    System.out.println("Checking lock in thread " + threadId);
-    LOG.info("Checking lock in thread {}", threadId);
-    Preconditions.checkState(mLockTracker.containsKey(threadId));
-    WorkerMetaLock heldLock = mLockTracker.get(threadId);
-    return heldLock.equals(new WorkerMetaLock(lockSections, isShared, this));
-  }
-
-  public void trackLock(WorkerMetaLock lock) {
-    mLockTracker.put(Thread.currentThread().getId(), lock);
-    System.out.println("Tracked lock " + mLockTracker);
-    LOG.info("Tracked lock {}", mLockTracker);
-  }
-
-  public void untrackLock(WorkerMetaLock lock) {
-    long threadId = Thread.currentThread().getId();
-    Preconditions.checkState(mLockTracker.containsKey(threadId));
-    WorkerMetaLock trackedLock = mLockTracker.get(threadId);
-    Preconditions.checkState(lock == trackedLock);
-    LOG.info("Untracked lock {}", mLockTracker);
-    mLockTracker.remove(threadId);
   }
 }

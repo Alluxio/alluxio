@@ -72,9 +72,6 @@ public class WorkerMetaLock implements Lock {
         }
       }
     }
-
-    // TODO(jiacheng): track in MasterWorkerInfo
-    mWorker.trackLock(this);
   }
 
   @Override
@@ -88,8 +85,6 @@ public class WorkerMetaLock implements Lock {
         }
       }
     }
-
-    mWorker.untrackLock(this);
   }
 
   @Override

@@ -206,7 +206,6 @@ public final class BlockMasterWorkerServiceHandler extends
 
             Preconditions.checkState(mContext != null, "Stream message received from the client side but the context is not initialized");
             Preconditions.checkState(mContext.isOpen(), "Context is not open");
-            Preconditions.checkState(mContext.mWorker.checkLocks(EnumSet.of(WorkerMetaLockSection.STATUS, WorkerMetaLockSection.USAGE, WorkerMetaLockSection.BLOCKS), false));
 
             if (isHead) {
               mBlockMaster.workerRegisterStart(mContext, chunk);
@@ -257,14 +256,13 @@ public final class BlockMasterWorkerServiceHandler extends
         LOG.info("{} - Register stream completed on the client side", Thread.currentThread().getId());
 
         String methodName = "registerWorkerComplete";
-        Preconditions.checkState(mContext != null, "Complete message received from the client side but the context is not initialized");
-
-        Preconditions.checkState(mContext.mWorker.checkLocks(EnumSet.of(WorkerMetaLockSection.STATUS, WorkerMetaLockSection.USAGE, WorkerMetaLockSection.BLOCKS), false));
-
+        Preconditions.checkState(mContext != null,
+            "Complete message received from the client side but the context is not initialized");
         RpcUtils.streamingRPCAndLog(LOG, new RpcUtils.StreamingRpcCallable<RegisterWorkerStreamPResponse>() {
             @Override
             public RegisterWorkerStreamPResponse call() throws Exception {
-              Preconditions.checkState(mContext != null, "Complete message received from the client side but the context is not initialized");
+              Preconditions.checkState(mContext != null,
+                  "Complete message received from the client side but the context is not initialized");
               Preconditions.checkState(mContext.isOpen(), "Context is not open");
 
               mContext.updateTs();
