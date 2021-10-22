@@ -15,6 +15,7 @@ import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.metrics.MetricsConfig;
 import alluxio.util.IdUtils;
+import alluxio.util.io.PathUtils;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -53,7 +54,8 @@ public class DefaultBlockWorkerDB implements BlockWorkerDB {
   }
 
   DefaultBlockWorkerDB() {
-    this(ServerConfiguration.get(PropertyKey.WORKER_PERSISTENCE_INFO_PATH) + "clusterid");
+    this(PathUtils.concatPath(
+        ServerConfiguration.get(PropertyKey.WORKER_PERSISTENCE_INFO_PATH), "clusterid"));
   }
 
   @Override
