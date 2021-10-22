@@ -75,7 +75,7 @@ public final class BlockMasterSync implements HeartbeatExecutor {
   private long mLastSuccessfulHeartbeatMs;
 
   /** Whether to use streaming */
-  private boolean mIsStreaming;
+  private boolean mUseStreaming;
 
   /**
    * Creates a new instance of {@link BlockMasterSync}.
@@ -95,13 +95,9 @@ public final class BlockMasterSync implements HeartbeatExecutor {
     mHeartbeatTimeoutMs = (int) ServerConfiguration
         .getMs(PropertyKey.WORKER_BLOCK_HEARTBEAT_TIMEOUT_MS);
     mAsyncBlockRemover = new AsyncBlockRemover(mBlockWorker);
-    mIsStreaming = ServerConfiguration.getBoolean(PropertyKey.WORKER_REGISTER_STREAMING);
+    mUseStreaming = ServerConfiguration.getBoolean(PropertyKey.WORKER_REGISTER_STREAMING);
 
-    if (mIsStreaming) {
-      registerWithMasterStream();
-    } else {
-      registerWithMaster();
-    }
+    registerWithMaster();
     mLastSuccessfulHeartbeatMs = System.currentTimeMillis();
   }
 
@@ -114,22 +110,17 @@ public final class BlockMasterSync implements HeartbeatExecutor {
     StorageTierAssoc storageTierAssoc = new WorkerStorageTierAssoc();
     List<ConfigProperty> configList =
         ConfigurationUtils.getConfiguration(ServerConfiguration.global(), Scope.WORKER);
-    mMasterClient.register(mWorkerId.get(),
-        storageTierAssoc.getOrderedStorageAliases(), storeMeta.getCapacityBytesOnTiers(),
-        storeMeta.getUsedBytesOnTiers(), storeMeta.getBlockListByStorageLocation(),
-        storeMeta.getLostStorage(), configList);
-  }
-
-  private void registerWithMasterStream() throws IOException {
-    BlockStoreMeta storeMeta = mBlockWorker.getStoreMetaFull();
-    StorageTierAssoc storageTierAssoc = new WorkerStorageTierAssoc();
-    List<ConfigProperty> configList =
-            ConfigurationUtils.getConfiguration(ServerConfiguration.global(), Scope.WORKER);
-    mMasterClient.registerWithStream(mWorkerId.get(),
-            storageTierAssoc.getOrderedStorageAliases(), storeMeta.getCapacityBytesOnTiers(),
-            storeMeta.getUsedBytesOnTiers(), storeMeta.getBlockListByStorageLocation(),
-            storeMeta.getLostStorage(), configList);
-    LOG.info("Marking the register status to true so heartbeats can continue");
+    if (mUseStreaming) {
+      mMasterClient.registerWithStream(mWorkerId.get(),
+              storageTierAssoc.getOrderedStorageAliases(), storeMeta.getCapacityBytesOnTiers(),
+              storeMeta.getUsedBytesOnTiers(), storeMeta.getBlockListByStorageLocation(),
+              storeMeta.getLostStorage(), configList);
+    } else {
+      mMasterClient.register(mWorkerId.get(),
+              storageTierAssoc.getOrderedStorageAliases(), storeMeta.getCapacityBytesOnTiers(),
+              storeMeta.getUsedBytesOnTiers(), storeMeta.getBlockListByStorageLocation(),
+              storeMeta.getLostStorage(), configList);
+    }
   }
 
   /**
@@ -206,11 +197,7 @@ public final class BlockMasterSync implements HeartbeatExecutor {
       // Master requests re-registration
       case Register:
         mWorkerId.set(mMasterClient.getId(mWorkerAddress));
-        if (mIsStreaming) {
-          registerWithMasterStream();
-        } else {
-          registerWithMaster();
-        }
+        registerWithMaster();
         break;
       // Unknown request
       case Unknown:
