@@ -47,7 +47,11 @@ export class WorkersPresenter extends React.Component<AllProps> {
               <Table hover={true}>
                 <thead>
                   <tr>
-                    <th>Node Name</th>
+                    {workersData.normalNodeInfos.map((nodeInfo: INodeInfo) => (
+                      <th key={nodeInfo.workerId}>
+                        {nodeInfo.host.includes('(') ? 'Node Name(Container Host)' : 'Node Name'}
+                      </th>
+                    ))}
                     {initData.debug && (
                       <React.Fragment>
                         <th>[D]Worker Id</th>
