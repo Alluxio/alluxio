@@ -43,7 +43,7 @@ public final class ListBucketOptions {
     mMarker = "";
     mPrefix = "";
     mMaxKeys = DEFAULT_MAX_KEYS;
-    mDelimiter = "/";
+    mDelimiter = null;
     mEncodingType = "url";
   }
 

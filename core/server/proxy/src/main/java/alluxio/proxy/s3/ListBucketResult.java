@@ -11,6 +11,7 @@
 
 package alluxio.proxy.s3;
 
+import alluxio.AlluxioURI;
 import alluxio.client.file.URIStatus;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -26,6 +27,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import java.util.Objects;
 
 /**
  * Get bucket result defined in https://docs.aws.amazon.com/AmazonS3/latest/API/API_ListObjects.html
@@ -92,22 +94,45 @@ public class ListBucketResult {
     mDelimiter = options.getDelimiter();
     mEncodingType = options.getEncodingType();
 
-    children.sort(new URIStatusComparator());
+    children.sort(Comparator.comparing(URIStatus::getPath));
+
+    // contains both ends of "/" character
+    final String mNamePrefix = AlluxioURI.SEPARATOR + mName + AlluxioURI.SEPARATOR;
 
     final List<URIStatus> keys = children.stream()
-        .filter((status) -> status.getPath().compareTo(mMarker) > 0)
+        .filter((status) -> (status.getPath().compareTo(mMarker) > 0) //marker filter
+            && status.getPath().startsWith(mNamePrefix + mPrefix) //prefix filter
+            //folder filter
+            && ((mDelimiter != null && mDelimiter.equals(AlluxioURI.SEPARATOR))
+              || !status.isFolder()))
         .limit(mMaxKeys)
         .collect(Collectors.toList());
 
-    final Map<Boolean, List<URIStatus>> typeToStatus = keys.stream()
-        .collect(Collectors.groupingBy(URIStatus::isFolder));
-    final List<URIStatus> objectsList = typeToStatus.getOrDefault(false, Collections.emptyList());
-    final List<URIStatus> prefixList = typeToStatus.getOrDefault(true, Collections.emptyList());
+    final List<URIStatus> objectsList;
+    final List<URIStatus> prefixList;
+    if (mDelimiter == null) {
+      objectsList = keys;
+      prefixList = Collections.emptyList();
+    } else {
+      final Map<Boolean, List<URIStatus>> typeToStatus;
+      if (mDelimiter.equals(AlluxioURI.SEPARATOR)) {
+        typeToStatus = keys.stream()
+            .collect(Collectors.groupingBy(URIStatus::isFolder));
+      } else {
+        typeToStatus = keys.stream()
+            .collect(Collectors.groupingBy(
+                status -> status.getPath().substring(mNamePrefix.length()).contains(mDelimiter)
+            ));
+      }
+
+      objectsList = typeToStatus.getOrDefault(false, Collections.emptyList());
+      prefixList = typeToStatus.getOrDefault(true, Collections.emptyList());
+    }
 
     mContents = new ArrayList<>();
     for (URIStatus status : objectsList) {
       mContents.add(new Content(
-          status.getPath().substring(mName.length() + 2), // remove both ends of "/" character
+          status.getPath().substring(mNamePrefix.length()),
           S3RestUtils.toS3Date(status.getLastModificationTimeMs()),
           String.valueOf(status.getLength())
       ));
@@ -115,12 +140,30 @@ public class ListBucketResult {
 
     mCommonPrefixes = new ArrayList<>();
     for (URIStatus status : prefixList) {
-      final String path = status.getPath();
-      // remove both ends of "/" character
-      mCommonPrefixes.add(new CommonPrefixes(path.substring(mName.length() + 2) + mDelimiter));
+      final String path = status.getPath().substring(mNamePrefix.length());
+      if (mDelimiter.equals(AlluxioURI.SEPARATOR)) {
+        // "/" delimiter make sure prefix not repeat
+        mCommonPrefixes.add(new CommonPrefixes(path + mDelimiter));
+      } else {
+        /*
+         * Delimiter mean:
+         * https://docs.aws.amazon.com/AmazonS3/latest/API/API_ListObjects.html
+         * Causes keys that contain the same string between the prefix and the
+         * first occurrence of the delimiter to be rolled up into a single
+         * result element in the CommonPrefixes collection.
+         * These rolled-up keys are not returned elsewhere in the response.
+         * Each rolled-up result counts as only one return against the MaxKeys value.
+         */
+        final String delimiterKey = path.substring(mPrefix.length());
+        CommonPrefixes commonPrefixes = new CommonPrefixes(mPrefix
+            + delimiterKey.substring(0, delimiterKey.indexOf(mDelimiter) + mDelimiter.length()));
+        if (!mCommonPrefixes.contains(commonPrefixes)) {
+          mCommonPrefixes.add(commonPrefixes);
+        }
+      }
     }
 
-    mKeyCount = mContents.size() + mCommonPrefixes.size();
+    mKeyCount = objectsList.size() + prefixList.size();
     mIsTruncated = mKeyCount == mMaxKeys;
     if (mIsTruncated) {
       mNextMarker = keys.get(keys.size() - 1).getPath();
@@ -234,6 +277,23 @@ public class ListBucketResult {
     public String getPrefix() {
       return mPrefix;
     }
+
+    @Override
+    public boolean equals(Object o) {
+      if (this == o) {
+        return true;
+      }
+      if (!(o instanceof CommonPrefixes)) {
+        return false;
+      }
+      CommonPrefixes that = (CommonPrefixes) o;
+      return mPrefix.equals(that.mPrefix);
+    }
+
+    @Override
+    public int hashCode() {
+      return Objects.hash(mPrefix);
+    }
   }
 
   /**
@@ -283,18 +343,6 @@ public class ListBucketResult {
     public String getSize() {
       return mSize;
     }
-  }
-
-  private class URIStatusComparator implements Comparator<URIStatus> {
-    @Override
-    public int compare(URIStatus o1, URIStatus o2) {
-      return o1.getPath().compareTo(o2.getPath());
-    }
-
-    /**
-     * Constructs a new {@link URIStatusComparator}.
-     */
-    public URIStatusComparator() {}
   }
 }
 
