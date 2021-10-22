@@ -67,7 +67,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
 
   /**
    * The consistency check level to apply to a certain property key.
-   * User can run "alluxio validateEnv all cluster.conf.consistent" to validate the consistency of
+   * User can run "alluxio validateConf all cluster.conf.consistent" to validate the consistency of
    * configuration properties within the cluster. The command reads all Alluxio properties on
    * each node of the cluster and shows error or warning for properties that have inconsistent
    * values among the nodes. For example, it would show error if the Alluxio property for aws secret
