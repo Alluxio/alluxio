@@ -324,8 +324,8 @@ public class AlluxioMasterProcess extends MasterProcess {
 
   private GrpcServer createRPCServer() {
     // Create an executor for Master RPC server.
-    int nThreads = ServerConfiguration.getInt(PropertyKey.MASTER_RPC_EXECUTOR_PARALLELISM);
-    BlockingQueue<Runnable> taskQueue = new LinkedBlockingQueue<Runnable>();
+    int nThreads = ServerConfiguration.getInt(PropertyKey.MASTER_RPC_EXECUTOR_MAX_POOL_SIZE);
+    BlockingQueue<Runnable> taskQueue = new LinkedBlockingQueue<>();
     mRPCExecutor = new ThreadPoolExecutor(nThreads, nThreads,
         0L, TimeUnit.MILLISECONDS,
         taskQueue, ThreadFactoryUtils.build("master-rpc-pool-thread-%d", true));
