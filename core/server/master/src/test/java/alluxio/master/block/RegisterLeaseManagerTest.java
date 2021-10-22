@@ -35,10 +35,10 @@ public class RegisterLeaseManagerTest {
 
   @Before
   public void before() {
-    ServerConfiguration.set(PropertyKey.MASTER_REGISTER_MAX_CONCURRENCY, 2);
+    ServerConfiguration.set(PropertyKey.MASTER_WORKER_REGISTER_LEASE_COUNT, 2);
     ServerConfiguration.set(PropertyKey.MASTER_WORKER_REGISTER_LEASE_TTL, "3s");
     // Tests on the JVM check logic will be done separately
-    ServerConfiguration.set(PropertyKey.MASTER_REGISTER_CHECK_JVM_SPACE, false);
+    ServerConfiguration.set(PropertyKey.MASTER_WORKER_REGISTER_LEASE_RESPECT_JVM_SPACE, false);
 
     mLeaseManager = new RegisterLeaseManager();
   }

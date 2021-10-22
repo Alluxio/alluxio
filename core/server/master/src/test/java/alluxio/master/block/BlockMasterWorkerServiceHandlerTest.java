@@ -77,8 +77,8 @@ public class BlockMasterWorkerServiceHandlerTest {
       ServerConfiguration.set(PropertyKey.MASTER_WORKER_REGISTER_LEASE_ENABLED, true);
       ServerConfiguration.set(PropertyKey.MASTER_WORKER_REGISTER_LEASE_TTL, "3s");
       // Tests on the JVM check logic will be done separately
-      ServerConfiguration.set(PropertyKey.MASTER_REGISTER_CHECK_JVM_SPACE, false);
-      ServerConfiguration.set(PropertyKey.MASTER_REGISTER_MAX_CONCURRENCY, 1);
+      ServerConfiguration.set(PropertyKey.MASTER_WORKER_REGISTER_LEASE_RESPECT_JVM_SPACE, false);
+      ServerConfiguration.set(PropertyKey.MASTER_WORKER_REGISTER_LEASE_COUNT, 1);
     } else {
       ServerConfiguration.set(PropertyKey.MASTER_WORKER_REGISTER_LEASE_ENABLED, false);
     }

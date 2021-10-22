@@ -247,19 +247,14 @@ public class BlockMasterClient extends AbstractMasterClient {
   public void acquireRegisterLeaseWithBackoff(final long workerId, final int estimatedBlockCount,
                                               final RetryPolicy retry)
       throws IOException, FailedToAcquireRegisterLeaseException {
-    boolean leaseAcquired;
-    int iter = 0;
+    boolean leaseAcquired = false;
     GetRegisterLeasePResponse response = null;
-    while (retry.attempt()) {
+    while (!leaseAcquired && retry.attempt()) {
       LOG.debug("Worker {} attempting to grant registration lease from the master, iter {}",
-          workerId, iter);
+          workerId, retry.getAttemptCount());
       response = acquireRegisterLease(workerId, estimatedBlockCount);
       LOG.debug("Worker {} lease response: {}", workerId, response);
       leaseAcquired = response.getAllowed();
-      if (leaseAcquired) {
-        break;
-      }
-      iter++;
     }
 
     if (response == null || !response.getAllowed()) {

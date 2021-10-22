@@ -672,8 +672,8 @@ public final class GrpcUtils {
    * @param lease the lease decision from the master
    * @return a {@link GetRegisterLeasePResponse}
    */
-  public static alluxio.grpc.GetRegisterLeasePResponse toProto(long workerId,
-                                                               Optional<RegisterLease> lease) {
+  public static alluxio.grpc.GetRegisterLeasePResponse toProto(
+      long workerId, Optional<RegisterLease> lease) {
     if (lease.isPresent()) {
       RegisterLease l = lease.get();
       return GetRegisterLeasePResponse.newBuilder()

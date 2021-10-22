@@ -13,14 +13,9 @@ package alluxio.master.block;
 
 import alluxio.grpc.GetRegisterLeasePRequest;
 
-import com.codahale.metrics.Gauge;
-import com.codahale.metrics.Metric;
-import com.codahale.metrics.MetricFilter;
 import com.codahale.metrics.MetricRegistry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.SortedMap;
 
 /**
  * This reviews the heap allocation status to decide whether a request should be
@@ -28,6 +23,9 @@ import java.util.SortedMap;
  */
 public class JvmSpaceReviewer {
   private static final Logger LOG = LoggerFactory.getLogger(JvmSpaceReviewer.class);
+
+  private static final String GAUGE_HEAP_USED = "heap.used";
+  private static final String GAUGE_HEAP_MAX = "heap.max";
 
   // It is observed in tests that if a RegisterWorkerPRequest contains 1 million blocks,
   // processing the request will take 200M-400M heap allocation.
@@ -49,7 +47,7 @@ public class JvmSpaceReviewer {
     long bytesAvailable = getAvailableBytes();
     long estimatedSpace = blockCount * BLOCK_COUNT_MULTIPLIER;
     if (bytesAvailable > estimatedSpace) {
-      LOG.debug("{} bytes available on master. The register request with {} blocks is estimated to"
+      LOG.info("{} bytes available on master. The register request with {} blocks is estimated to"
           + " need {} bytes. ", bytesAvailable, blockCount, estimatedSpace);
       return true;
     } else {
@@ -61,17 +59,8 @@ public class JvmSpaceReviewer {
   }
 
   private long getAvailableBytes() {
-    SortedMap<String, Gauge> heapGauges =  mMetricRegistry.getGauges(new MetricFilter() {
-      @Override
-      public boolean matches(String name, Metric metric) {
-        return name.startsWith("heap.");
-      }
-    });
-
-    // The values are in bytes
-    long used = ((Gauge<Long>) heapGauges.get("heap.used")).getValue();
-    long max = ((Gauge<Long>) heapGauges.get("heap.max")).getValue();
-
-    return max - used;
+    Runtime runtime = Runtime.getRuntime();
+    // Ref: https://stackoverflow.com/a/18375641/4933827
+    return runtime.maxMemory() - (runtime.totalMemory() - runtime.freeMemory());
   }
 }

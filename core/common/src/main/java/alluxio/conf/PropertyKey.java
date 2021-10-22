@@ -2729,7 +2729,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + " that are actively registering.")
           .setScope(Scope.MASTER)
           .build();
-  public static final PropertyKey MASTER_REGISTER_MAX_CONCURRENCY =
+  public static final PropertyKey MASTER_WORKER_REGISTER_LEASE_COUNT =
       new Builder(Name.MASTER_WORKER_REGISTER_LEASE_COUNT)
           .setDefaultValue("25")
           .setDescription("The number of workers that can register at the same time. "
@@ -2738,7 +2738,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "tune down this parameter.")
           .setScope(Scope.MASTER)
           .build();
-  public static final PropertyKey MASTER_REGISTER_CHECK_JVM_SPACE =
+  public static final PropertyKey MASTER_WORKER_REGISTER_LEASE_RESPECT_JVM_SPACE =
       new Builder(Name.MASTER_WORKER_REGISTER_LEASE_RESPECT_JVM_SPACE)
           .setDefaultValue("true")
           .setDescription("Whether the master checks the availability on the JVM before granting"
@@ -2749,7 +2749,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey MASTER_WORKER_REGISTER_LEASE_TTL =
       new Builder(Name.MASTER_WORKER_REGISTER_LEASE_TTL)
           .setDefaultValue("1min")
-          .setDescription("The TTL for a RegisterLease granted to the worker. Leases older that "
+          .setDescription("The TTL for a RegisterLease granted to the worker. Leases that "
               + "exceed the TTL will be recycled and granted to other workers.")
           .setScope(Scope.MASTER)
           .build();

@@ -45,12 +45,13 @@ public class RegisterLeaseManager {
    */
   public RegisterLeaseManager() {
     int maxConcurrency =
-        ServerConfiguration.global().getInt(PropertyKey.MASTER_REGISTER_MAX_CONCURRENCY);
+        ServerConfiguration.global().getInt(PropertyKey.MASTER_WORKER_REGISTER_LEASE_COUNT);
     Preconditions.checkState(maxConcurrency > 0, "%s should be greater than 0",
-        PropertyKey.MASTER_REGISTER_MAX_CONCURRENCY.toString());
+        PropertyKey.MASTER_WORKER_REGISTER_LEASE_COUNT.toString());
     mSemaphore = new Semaphore(maxConcurrency);
 
-    if (ServerConfiguration.getBoolean(PropertyKey.MASTER_REGISTER_CHECK_JVM_SPACE)) {
+    if (ServerConfiguration.getBoolean(
+        PropertyKey.MASTER_WORKER_REGISTER_LEASE_RESPECT_JVM_SPACE)) {
       mJvmChecker = new JvmSpaceReviewer(MetricsSystem.METRIC_REGISTRY);
     }
 
