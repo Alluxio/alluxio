@@ -328,8 +328,7 @@ public class AlluxioMasterProcess extends MasterProcess {
     BlockingQueue<Runnable> taskQueue = new LinkedBlockingQueue<Runnable>();
     mRPCExecutor = new ThreadPoolExecutor(nThreads, nThreads,
         0L, TimeUnit.MILLISECONDS,
-        new LinkedBlockingQueue<Runnable>(),
-        ThreadFactoryUtils.build("grpc-rpc-%d", true))
+        taskQueue, ThreadFactoryUtils.build("grpc-rpc-%d", true));
 
     MetricsSystem.registerGaugeIfAbsent(MetricKey.MASTER_RPC_QUEUE_LENGTH.getName(),
         taskQueue::size);
