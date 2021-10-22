@@ -41,6 +41,8 @@ public class BlockMapIterator implements Iterator<List<LocationBlockIdListEntry>
     this(blockLocationMap, ServerConfiguration.global());
   }
 
+  // TODO(jiacheng): report the number of iters so we have a CountDownLatch to count ACKs
+
   // TODO(jiacheng): Lock while the constructor is running?
   public BlockMapIterator(Map<BlockStoreLocation, List<Long>> blockLocationMap, AlluxioConfiguration conf) {
     mConf = conf;

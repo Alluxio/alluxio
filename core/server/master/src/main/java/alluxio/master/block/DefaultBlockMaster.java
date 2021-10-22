@@ -37,6 +37,7 @@ import alluxio.grpc.GrpcService;
 import alluxio.grpc.GrpcUtils;
 import alluxio.grpc.RegisterWorkerPOptions;
 import alluxio.grpc.RegisterWorkerStreamPOptions;
+import alluxio.grpc.RegisterWorkerStreamPRequest;
 import alluxio.grpc.ServiceType;
 import alluxio.grpc.StorageList;
 import alluxio.grpc.WorkerLostStorageInfo;
@@ -231,7 +232,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
       new IndexedSet<>(ID_INDEX, ADDRESS_INDEX);
 
   /** Tracks the open register streams */
-  private final Map<Long, WorkerRegisterContext> mOpenRegisterStreams = new ConcurrentHashMap<>();
+  private final Map<Long, WorkerRegisterContext> mActiveRegisterContexts = new ConcurrentHashMap<>();
 
   /** Listeners to call when lost workers are found. */
   private final List<Consumer<Address>> mLostWorkerFoundListeners
@@ -411,10 +412,10 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
 
     @Override
     public void heartbeat() {
-      System.out.println("Checking " + mOpenRegisterStreams.size() + " entries...");
-      for (Map.Entry<Long, WorkerRegisterContext> entry : mOpenRegisterStreams.entrySet()) {
+      System.out.println("Checking " + mActiveRegisterContexts.size() + " entries...");
+      for (Map.Entry<Long, WorkerRegisterContext> entry : mActiveRegisterContexts.entrySet()) {
         WorkerRegisterContext context = entry.getValue();
-        final long lastUpdate = mClock.millis() - context.mLastUpdatedTime;
+        final long lastUpdate = mClock.millis() - context.getLastActivityTimeMs();
         if (lastUpdate > mTimeout) {
           System.out.println("Worker register stream hanging for more than " + mTimeout + " for worker " + context.mWorker.getId());
           Exception e = new TimeoutException("Time out for worker register stream for more than " + mTimeout);
@@ -1027,42 +1028,29 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
   }
 
   @Override
-  public void workerRegisterStart(WorkerRegisterContext context, List<String> storageTiers,
-                                  Map<String, Long> totalBytesOnTiers, Map<String, Long> usedBytesOnTiers,
-                                  Map<alluxio.proto.meta.Block.BlockLocation, List<Long>> currentBlocksOnLocation,
-                                  Map<String, StorageList> lostStorage, RegisterWorkerStreamPOptions options)
-          throws NotFoundException {
+  public void workerRegisterStart(WorkerRegisterContext context, RegisterWorkerStreamPRequest chunk) {
+    final List<String> storageTiers = chunk.getStorageTiersList();
+    final Map<String, Long> totalBytesOnTiers = chunk.getTotalBytesOnTiersMap();
+    final Map<String, Long> usedBytesOnTiers = chunk.getUsedBytesOnTiersMap();
+    final Map<String, StorageList> lostStorage = chunk.getLostStorageMap();
+
+    final Map<alluxio.proto.meta.Block.BlockLocation, List<Long>> currentBlocksOnLocation =
+            BlockMasterWorkerServiceHandler.reconstructBlocksOnLocationMap(chunk.getCurrentBlocksList(), context.mWorkerId);
+    RegisterWorkerStreamPOptions options = chunk.getOptions();
+
     MasterWorkerInfo worker = context.mWorker;
     Preconditions.checkState(worker != null, "The context has null worker!");
-    mOpenRegisterStreams.put(worker.getId(), context);
+    mActiveRegisterContexts.put(worker.getId(), context);
 
     // The worker is locked so we can operate on its blocks without race conditions
     // We start with assuming all blocks in (mBlocks + mToRemoveBlocks) do not exist.
     // With each batch we receive, we mark them not-to-be-removed.
     // Eventually what's left in the mToRemove will be the ones that do not exist anymore.
     worker.markAllBlocksToRemove();
-
-    // [NEEDED] update the usage
     worker.updateUsage(mGlobalStorageTierAssoc, storageTiers,
-            totalBytesOnTiers, usedBytesOnTiers);
-
-    // [NO NEED] Detect any lost blocks on this worker.
-//      Set<Long> removedBlocks = worker.register(mGlobalStorageTierAssoc, storageTiers,
-//              totalBytesOnTiers, usedBytesOnTiers, blocks);
-    // [NO NEED]: process removed blocks
-    // because we don't know what blocks are removed yet
-//      processWorkerRemovedBlocks(worker, removedBlocks);
-
-    // [NEEDED]
-    // Even if we add the BlockLocation before the worker is fully registered,
-    // it should be fine because the block can be read on this worker.
-    // TODO(jiacheng): Make sure if the worker fails to register and get forgotten, the BlockLocations are cleaned up
+        totalBytesOnTiers, usedBytesOnTiers);
     processWorkerAddedBlocks(worker, currentBlocksOnLocation);
-
-    // [NEEDED]
     processWorkerOrphanedBlocks(worker);
-
-    // [NEEDED]
     worker.addLostStorage(lostStorage);
 
     // TODO(jiacheng): This block can be moved to a non-locked section
@@ -1073,29 +1061,23 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
                 options.getConfigsList());
       }
     }
+
+    context.updateTs();
   }
 
   @Override
-  // This context is already locked
-  public void workerRegisterStream(WorkerRegisterContext context, Map<alluxio.proto.meta.Block.BlockLocation, List<Long>> currentBlocksOnLocation)
-          throws NotFoundException {
+  public void workerRegisterStream(WorkerRegisterContext context, RegisterWorkerStreamPRequest chunk) {
+    final Map<alluxio.proto.meta.Block.BlockLocation, List<Long>> currentBlocksOnLocation =
+            BlockMasterWorkerServiceHandler.reconstructBlocksOnLocationMap(chunk.getCurrentBlocksList(), context.mWorkerId);
     MasterWorkerInfo worker = context.mWorker;
     Preconditions.checkState(worker != null, "The context has null worker!");
 
-    // [NO NEED] Detect any lost blocks on this worker.
-//      Set<Long> removedBlocks = worker.register(mGlobalStorageTierAssoc, storageTiers,
-//              totalBytesOnTiers, usedBytesOnTiers, blocks);
-    // [NO NEED]: process removed blocks
-    // because we don't know what blocks are removed yet
-//      processWorkerRemovedBlocks(worker, removedBlocks);
-
-    // [NEEDED]
     // Even if we add the BlockLocation before the worker is fully registered,
     // it should be fine because the block can be read on this worker.
-    // TODO(jiacheng): Make sure if the worker fails to register and get forgotten, the BlockLocations are cleaned up
+    // If the stream fails in the middle, the blocks recorded on the MasterWorkerInfo
+    // will be removed by processLostWorker()
     processWorkerAddedBlocks(worker, currentBlocksOnLocation);
 
-    // If a block is not recognized then yes we need to mark it
     processWorkerOrphanedBlocks(worker);
 
     // Update the TS at the end of the process
@@ -1107,35 +1089,26 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
     MasterWorkerInfo worker = context.mWorker;
     Preconditions.checkState(worker != null, "The context has null worker!");
 
-    // [NEEDED] Detect any lost blocks on this worker.
+    // Detect any lost blocks on this worker.
     Set<Long> removedBlocks;
     if (worker.mIsRegistered) {
       // This is a re-register of an existing worker. Assume the new block ownership data is more
       // up-to-date and update the existing block information.
       LOG.info("re-registering an existing workerId: {}", worker.getId());
 
-      // The toRemoveBlocks field contains all the updates
+      // The toRemoveBlocks field now contains all the updates
+      // after all the blocks have been processed.
       removedBlocks = worker.getToRemoveBlocks();
     } else {
       LOG.info("registering a new worker: {}", worker.getId());
       removedBlocks = Collections.emptySet();
     }
     LOG.info("{} blocks to remove from the worker", removedBlocks.size());
-
-    // [NEEDED]: process removed blocks
-    // because we don't know what blocks are removed yet
     // TODO(jiacheng): ConcurrentModificationException here when register existing worker!
     processWorkerRemovedBlocks(worker, removedBlocks);
 
-    // [NO NEED] all blocks have been processed
-//      processWorkerAddedBlocks(worker, currentBlocksOnLocation);
-    // [NO NEED] all blocks have been processed
-//      processWorkerOrphanedBlocks(worker);
-
     // Mark registered successfully
     worker.mIsRegistered = true;
-
-    LOG.debug("{} - Marking worker usable", Thread.currentThread().getId());
     recordWorkerRegistration(worker.getId());
 
     // Update the TS at the end of the process
@@ -1145,7 +1118,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
     mWorkerInfoCache.invalidate(WORKER_INFO_CACHE_KEY);
     LOG.info("workerRegisterFinish(): {}", worker);
 
-    mOpenRegisterStreams.remove(worker.getId());
+    mActiveRegisterContexts.remove(worker.getId());
   }
 
   @Override

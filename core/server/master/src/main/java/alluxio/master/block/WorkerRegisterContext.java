@@ -1,6 +1,5 @@
 package alluxio.master.block;
 
-import alluxio.exception.ExceptionMessage;
 import alluxio.exception.status.NotFoundException;
 import alluxio.grpc.RegisterWorkerStreamPRequest;
 import alluxio.grpc.RegisterWorkerStreamPResponse;
@@ -20,12 +19,11 @@ public class WorkerRegisterContext implements Closeable {
   long mWorkerId;
   LockResource mWorkerLock;
   MasterWorkerInfo mWorker;
-  BlockMaster mBlockMaster;
   AtomicBoolean mOpen;
   StreamObserver<RegisterWorkerStreamPRequest> mRequestObserver;
   StreamObserver<RegisterWorkerStreamPResponse> mResponseObserver;
 
-  long mLastUpdatedTime;
+  long mLastActivityTimeMs;
 
   private WorkerRegisterContext(MasterWorkerInfo info,
                         StreamObserver<RegisterWorkerStreamPRequest> requestObserver,
@@ -57,7 +55,11 @@ public class WorkerRegisterContext implements Closeable {
   }
 
   public void updateTs() {
-    mLastUpdatedTime = Instant.now().toEpochMilli();
+    mLastActivityTimeMs = Instant.now().toEpochMilli();
+  }
+
+  public long getLastActivityTimeMs() {
+    return mLastActivityTimeMs;
   }
 
   @Override

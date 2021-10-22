@@ -21,6 +21,7 @@ import alluxio.grpc.Command;
 import alluxio.grpc.ConfigProperty;
 import alluxio.grpc.RegisterWorkerPOptions;
 import alluxio.grpc.RegisterWorkerStreamPOptions;
+import alluxio.grpc.RegisterWorkerStreamPRequest;
 import alluxio.grpc.StorageList;
 import alluxio.grpc.WorkerLostStorageInfo;
 import alluxio.master.Master;
@@ -266,14 +267,9 @@ public interface BlockMaster extends Master, ContainerIdGenerable {
 
   MasterWorkerInfo getWorker(long workerId) throws NotFoundException;
 
-  void workerRegisterStart(WorkerRegisterContext context, List<String> storageTiers,
-                           Map<String, Long> totalBytesOnTiers, Map<String, Long> usedBytesOnTiers,
-                           Map<Block.BlockLocation, List<Long>> currentBlocksOnLocation,
-                           Map<String, StorageList> lostStorage, RegisterWorkerStreamPOptions options)
-          throws NotFoundException;
+  void workerRegisterStart(WorkerRegisterContext context, RegisterWorkerStreamPRequest chunk);
 
-  void workerRegisterStream(WorkerRegisterContext context, Map<Block.BlockLocation, List<Long>> currentBlocksOnLocation)
-          throws NotFoundException;
+  void workerRegisterStream(WorkerRegisterContext context, RegisterWorkerStreamPRequest chunk);
 
   void workerRegisterFinish(WorkerRegisterContext context) throws NotFoundException;
 }

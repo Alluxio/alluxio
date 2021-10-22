@@ -41,6 +41,7 @@ public class RegisterStreamer implements Iterator<RegisterWorkerStreamPRequest> 
   final List<ConfigProperty> mConfigList;
 
   StreamObserver<RegisterWorkerStreamPRequest> mRequestObserver;
+  CountDownLatch mAckLatch;
   final CountDownLatch mFinishLatch;
   Iterator<List<LocationBlockIdListEntry>> mBlockListIterator;
 
@@ -140,7 +141,7 @@ public class RegisterStreamer implements Iterator<RegisterWorkerStreamPRequest> 
         Instant start = Instant.now();
         mBucket.acquire();
         Instant end = Instant.now();
-        LOG.debug("{} - master ACK acquired in {}ms, sending batch {}",
+        LOG.debug("{} - master ACK acquired in {}ms, sending the next iter {}",
                 mWorkerId, Duration.between(start, end).toMillis(), iter);
 
         // Send the request
@@ -164,6 +165,10 @@ public class RegisterStreamer implements Iterator<RegisterWorkerStreamPRequest> 
       mRequestObserver.onError(t);
       throw t;
     }
+    // TODO(jiacheng): All chunks have been streamed to the master, now wait for all ACKs
+    //  before closing the client side
+
+
     long threadId = Thread.currentThread().getId();
     // Mark the end of requests
     LOG.info("{} All requests have been sent. Completing the client side.", threadId);

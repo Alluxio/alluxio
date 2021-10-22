@@ -170,6 +170,7 @@ public final class BlockMasterWorkerServiceHandler extends
   @Override
   public io.grpc.stub.StreamObserver<alluxio.grpc.RegisterWorkerStreamPRequest> registerWorkerStream(
           io.grpc.stub.StreamObserver<alluxio.grpc.RegisterWorkerStreamPResponse> responseObserver) {
+    // TODO(jiacheng): Move to a separate class
     return new StreamObserver<alluxio.grpc.RegisterWorkerStreamPRequest>() {
       private WorkerRegisterContext mContext;
 
@@ -184,7 +185,6 @@ public final class BlockMasterWorkerServiceHandler extends
                 workerId,
                 isHead);
 
-        // Pass to the StreamingRpcCallable lambda
         // TODO(jiacheng): potential risk from 'this' ref escape?
         io.grpc.stub.StreamObserver<alluxio.grpc.RegisterWorkerStreamPRequest> requestObserver = this;
         String methodName = isHead ? "registerWorkerStart" : "registerWorkerStream";
@@ -193,7 +193,7 @@ public final class BlockMasterWorkerServiceHandler extends
           @Override
           public RegisterWorkerStreamPResponse call() throws Exception {
             // Initialize the context on the 1st message
-            synchronized (this) {
+            synchronized (requestObserver) {
               if (mContext == null) {
                 LOG.debug("Initializing the WorkerRegisterContext on the 1st request");
                 Preconditions.checkState(isHead, "WorkerRegisterContext is not initialized but the request is not the 1st in a stream");
@@ -206,24 +206,12 @@ public final class BlockMasterWorkerServiceHandler extends
 
             Preconditions.checkState(mContext != null, "Stream message received from the client side but the context is not initialized");
             Preconditions.checkState(mContext.isOpen(), "Context is not open");
-
             Preconditions.checkState(mContext.mWorker.checkLocks(EnumSet.of(WorkerMetaLockSection.STATUS, WorkerMetaLockSection.USAGE, WorkerMetaLockSection.BLOCKS), false));
 
             if (isHead) {
-              final List<String> storageTiers = chunk.getStorageTiersList();
-              final Map<String, Long> totalBytesOnTiers = chunk.getTotalBytesOnTiersMap();
-              final Map<String, Long> usedBytesOnTiers = chunk.getUsedBytesOnTiersMap();
-              final Map<String, StorageList> lostStorageMap = chunk.getLostStorageMap();
-
-              final Map<Block.BlockLocation, List<Long>> currBlocksOnLocationMap =
-                      reconstructBlocksOnLocationMap(chunk.getCurrentBlocksList(), workerId);
-              RegisterWorkerStreamPOptions options = chunk.getOptions();
-              mBlockMaster.workerRegisterStart(mContext, storageTiers, totalBytesOnTiers, usedBytesOnTiers,
-                      currBlocksOnLocationMap, lostStorageMap, options);
+              mBlockMaster.workerRegisterStart(mContext, chunk);
             } else {
-              final Map<Block.BlockLocation, List<Long>> currBlocksOnLocationMap =
-                      reconstructBlocksOnLocationMap(chunk.getCurrentBlocksList(), workerId);
-              mBlockMaster.workerRegisterStream(mContext, currBlocksOnLocationMap);
+              mBlockMaster.workerRegisterStream(mContext, chunk);
             }
             mContext.updateTs();
             // Return an ACK to the worker so it sends the next batch
@@ -231,9 +219,12 @@ public final class BlockMasterWorkerServiceHandler extends
           }
 
           @Override
-          public void exceptionCaught(Throwable throwable) {
+          public void exceptionCaught(Throwable e) {
             // onError will close the resources
-            responseObserver.onError(GrpcExceptionUtils.fromThrowable(throwable));
+            responseObserver.onError(GrpcExceptionUtils.fromThrowable(e));
+            Preconditions.checkState(!mContext.isOpen(),
+                "The WorkerRegisterContext is not properly closed after error %s "
+                    + "aborted the register stream!", e.getMessage());
           }
         }, methodName, true, false, responseObserver, "Worker=%s", workerId);
       }
@@ -244,7 +235,7 @@ public final class BlockMasterWorkerServiceHandler extends
         try {
           closeContext();
         } catch (IOException e) {
-          e.printStackTrace();
+          LOG.error("Failed to close the WorkerRegisterContext for {}: ", mContext.mWorkerId, e);
         }
 
         // TODO(jiacheng): unit test on what exceptions are thrown
@@ -294,6 +285,9 @@ public final class BlockMasterWorkerServiceHandler extends
             public void exceptionCaught(Throwable e) {
               // onError will close the resources
               responseObserver.onError(GrpcExceptionUtils.fromThrowable(e));
+              Preconditions.checkState(!mContext.isOpen(),
+                      "The WorkerRegisterContext is not properly closed after error %s "
+                              + "happened on completing the register stream!", e.getMessage());
             }
           }, methodName, false, true, responseObserver, "WorkerId=%s", mContext.mWorkerId);
       }
@@ -307,7 +301,7 @@ public final class BlockMasterWorkerServiceHandler extends
    * The key is {@link Block.BlockLocation}, where the hash code is determined by
    * tier alias and medium type.
    * */
-  private Map<Block.BlockLocation, List<Long>> reconstructBlocksOnLocationMap(
+  static Map<Block.BlockLocation, List<Long>> reconstructBlocksOnLocationMap(
           List<LocationBlockIdListEntry> entries, long workerId) {
     return entries.stream().collect(
         Collectors.toMap(
