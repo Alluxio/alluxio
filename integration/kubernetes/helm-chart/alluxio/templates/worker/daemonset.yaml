@@ -82,6 +82,9 @@ spec:
     {{- else if .Values.serviceAccount }}
       serviceAccountName: {{ .Values.serviceAccount }}
     {{- end }}
+      {{- if .Values.imagePullSecrets }}
+{{ include "alluxio.imagePullSecrets" . | indent 6 }}
+      {{- end}}
       containers:
         - name: alluxio-worker
           image: {{ .Values.image }}:{{ .Values.imageTag }}

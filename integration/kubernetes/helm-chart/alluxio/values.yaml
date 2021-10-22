@@ -30,6 +30,16 @@ fsGroup: 1000
 #   ServiceAccount used for the namespace
 serviceAccount:
 
+# Image Pull Secret
+#   The secrets will need to be created externally from
+#   this Helm chart, but you can configure the Alluxio
+#   Pods to use the following list of secrets
+# eg:
+# imagePullSecrets:
+#   - ecr
+#   - dev
+imagePullSecrets:
+
 # Site properties for all the components
 properties:
   # alluxio.user.metrics.collection.enabled: 'true'

@@ -87,6 +87,9 @@ spec:
     {{- else if .Values.serviceAccount }}
       serviceAccountName: {{ .Values.serviceAccount }}
     {{- end }}
+      {{- if .Values.imagePullSecrets }}
+{{ include "alluxio.imagePullSecrets" . | indent 6 }}
+      {{- end}}
       initContainers:
       {{- if .Values.journal.format.runFormat}}
       - name: journal-format
