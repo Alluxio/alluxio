@@ -41,9 +41,9 @@ public class RegisterStreamer implements Iterator<RegisterWorkerStreamPRequest> 
   final List<ConfigProperty> mConfigList;
 
   StreamObserver<RegisterWorkerStreamPRequest> mRequestObserver;
-  CountDownLatch mAckLatch;
+  final CountDownLatch mAckLatch;
   final CountDownLatch mFinishLatch;
-  Iterator<List<LocationBlockIdListEntry>> mBlockListIterator;
+  BlockMapIterator mBlockMapIterator;
 
   // How many batches active in a stream
   Semaphore mBucket = new Semaphore(2);
@@ -52,6 +52,8 @@ public class RegisterStreamer implements Iterator<RegisterWorkerStreamPRequest> 
   RegisterWorkerStreamPOptions mOptions;
   Map<String, StorageList> mLostStorageMap;
   int mBatchNumber;
+
+  // TODO(jiacheng): block count
 
   public RegisterStreamer(
           final BlockMasterWorkerServiceGrpc.BlockMasterWorkerServiceBlockingStub client,
@@ -75,7 +77,7 @@ public class RegisterStreamer implements Iterator<RegisterWorkerStreamPRequest> 
           final Map<BlockStoreLocation, List<Long>> currentBlocksOnLocation,
           final Map<String, List<String>> lostStorage,
           final List<ConfigProperty> configList,
-          Iterator<List<LocationBlockIdListEntry>> blockListIterator) {
+          BlockMapIterator blockListIterator) {
     mClient = client;
     mAsyncClient = asyncClient;
     mWorkerId = workerId;
@@ -96,16 +98,17 @@ public class RegisterStreamer implements Iterator<RegisterWorkerStreamPRequest> 
                     e -> StorageList.newBuilder().addAllStorage(e.getValue()).build()));
     mBatchNumber = 0;
 
-    mBlockListIterator = blockListIterator;
+    mBlockMapIterator = blockListIterator;
+    mAckLatch = new CountDownLatch(mBlockMapIterator.getBatchCount());
   }
 
   public void registerSync() throws InterruptedException, IOException {
     StreamObserver<RegisterWorkerStreamPResponse> responseObserver = new StreamObserver<RegisterWorkerStreamPResponse>() {
       @Override
       public void onNext(RegisterWorkerStreamPResponse res) {
-        LOG.debug("Received response {}", res);
+        LOG.debug("{} - Received ACK {}", mWorkerId, res);
         mBucket.release();
-        LOG.debug("{} - batch finished, 1 token released", mWorkerId);
+        mAckLatch.countDown();
       }
 
       @Override
@@ -150,9 +153,8 @@ public class RegisterStreamer implements Iterator<RegisterWorkerStreamPRequest> 
 
         // TODO(jiacheng): what to do here, mark as failed and restart?
         if (mFinishLatch.getCount() == 0) {
-          // RPC completed or errored before we finished sending.
-          // Sending further requests won't error, but they will just be thrown away.
           LOG.error("The stream has not finished but the response has seen onError or onComplete");
+          // TODO(jiacheng): throw an error here
           return;
         }
 
@@ -165,20 +167,24 @@ public class RegisterStreamer implements Iterator<RegisterWorkerStreamPRequest> 
       mRequestObserver.onError(t);
       throw t;
     }
-    // TODO(jiacheng): All chunks have been streamed to the master, now wait for all ACKs
-    //  before closing the client side
 
+    // If the master side is closed before the client side, there is a problem
+    if (mFinishLatch.getCount() == 0) {
+      LOG.error("The stream has not finished but the response has seen onError or onComplete");
+      // TODO(jiacheng): throw an error here
+      return;
+    }
 
+    // Wait for all batches have been ACK-ed by the master before completing the client side
+    // TODO(jiacheng): configurable deadline
+    mAckLatch.await();
     long threadId = Thread.currentThread().getId();
-    // Mark the end of requests
-    LOG.info("{} All requests have been sent. Completing the client side.", threadId);
+    LOG.info("{} - All requests have been sent. Completing the client side.", mWorkerId);
     mRequestObserver.onCompleted();
-
-    // Receiving happens asynchronously
-    LOG.info("{} - Waiting on the latch", threadId);
-    // TODO(jiacheng): configure the deadline
+    LOG.info("{} - Waiting on the master side to complete", threadId);
+    // TODO(jiacheng): configurable deadline
     mFinishLatch.await();
-    LOG.info("{} - Latch returned", threadId);
+    LOG.info("{} - Master completed", threadId);
 
     if (mError != null) {
       LOG.error("Received error in register");
@@ -188,14 +194,14 @@ public class RegisterStreamer implements Iterator<RegisterWorkerStreamPRequest> 
 
   @Override
   public boolean hasNext() {
-    return mBlockListIterator.hasNext();
+    return mBlockMapIterator.hasNext();
   }
 
   @Override
   public RegisterWorkerStreamPRequest next() {
     // If it is the 1st request, include metadata
     RegisterWorkerStreamPRequest request;
-    List<LocationBlockIdListEntry> blockBatch = mBlockListIterator.next();
+    List<LocationBlockIdListEntry> blockBatch = mBlockMapIterator.next();
     if (mBatchNumber == 0) {
       request = RegisterWorkerStreamPRequest.newBuilder()
               .setIsHead(true)
@@ -216,5 +222,9 @@ public class RegisterStreamer implements Iterator<RegisterWorkerStreamPRequest> 
     }
     mBatchNumber++;
     return request;
+  }
+
+  public int getBlockCount() {
+    return mBlockMapIterator.getBlockCount();
   }
 }

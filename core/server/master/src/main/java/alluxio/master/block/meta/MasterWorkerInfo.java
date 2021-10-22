@@ -148,8 +148,6 @@ public final class MasterWorkerInfo {
         WorkerMetaLockSection.STATUS, mStatusLock,
         WorkerMetaLockSection.USAGE, mUsageLock,
         WorkerMetaLockSection.BLOCKS, mBlockListLock);
-
-    mLockTracker = new ConcurrentHashMap<>();
   }
 
   /**

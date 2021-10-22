@@ -21,6 +21,7 @@ public class BlockMapIterator implements Iterator<List<LocationBlockIdListEntry>
 
   private AlluxioConfiguration mConf;
   private int mBatchSize;
+  private int mBlockCount;
 
   Map<BlockStoreLocation, List<Long>> mBlockLocationMap;
 
@@ -34,14 +35,15 @@ public class BlockMapIterator implements Iterator<List<LocationBlockIdListEntry>
 
   Map<BlockStoreLocationProto, List<Long>> mTierToBlocks;
 
+
   // Keep a global counter of how many blocks have been traversed
   int mCounter = 0;
+
+
 
   public BlockMapIterator(Map<BlockStoreLocation, List<Long>> blockLocationMap) {
     this(blockLocationMap, ServerConfiguration.global());
   }
-
-  // TODO(jiacheng): report the number of iters so we have a CountDownLatch to count ACKs
 
   // TODO(jiacheng): Lock while the constructor is running?
   public BlockMapIterator(Map<BlockStoreLocation, List<Long>> blockLocationMap, AlluxioConfiguration conf) {
@@ -73,10 +75,14 @@ public class BlockMapIterator implements Iterator<List<LocationBlockIdListEntry>
     mCurrentBlockLocationIndex = 0; // Corresponding to index in mBlockLocationKeyList
 
     mBlockLocationIteratorMap = new HashMap<>();
+
+    int totalCount = 0;
     // TODO: make sure this entrySet is still the same with when generating mBlockStoreLocationProtoList
     for (Map.Entry<BlockStoreLocationProto, List<Long>> entry : mTierToBlocks.entrySet()) {
+      totalCount += entry.getValue().size();
       mBlockLocationIteratorMap.put(entry.getKey(), entry.getValue().iterator());
     }
+    mBlockCount = totalCount;
 
     // Initialize the iteration status
     currentIterator = mBlockLocationIteratorMap.get(mBlockStoreLocationProtoList.get(0));
@@ -143,5 +149,13 @@ public class BlockMapIterator implements Iterator<List<LocationBlockIdListEntry>
 
     // Should never reach here
     return result;
+  }
+
+  public int getBlockCount() {
+    return mBlockCount;
+  }
+
+  public int getBatchCount() {
+    return (int) Math.ceil(mBlockCount / mBatchSize);
   }
 }
