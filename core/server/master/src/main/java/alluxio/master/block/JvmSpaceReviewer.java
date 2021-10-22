@@ -13,7 +13,6 @@ package alluxio.master.block;
 
 import alluxio.grpc.GetRegisterLeasePRequest;
 
-import com.codahale.metrics.MetricRegistry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -24,18 +23,15 @@ import org.slf4j.LoggerFactory;
 public class JvmSpaceReviewer {
   private static final Logger LOG = LoggerFactory.getLogger(JvmSpaceReviewer.class);
 
-  private static final String GAUGE_HEAP_USED = "heap.used";
-  private static final String GAUGE_HEAP_MAX = "heap.max";
-
   // It is observed in tests that if a RegisterWorkerPRequest contains 1 million blocks,
   // processing the request will take 200M-400M heap allocation.
   // Here we use the upper bound to do the estimation.
   public static final int BLOCK_COUNT_MULTIPLIER = 400;
 
-  private final MetricRegistry mMetricRegistry;
+  private final Runtime mRuntime;
 
-  JvmSpaceReviewer(MetricRegistry metricRegistry) {
-    mMetricRegistry = metricRegistry;
+  JvmSpaceReviewer(Runtime runtime) {
+    mRuntime = runtime;
   }
 
   /**
@@ -58,9 +54,11 @@ public class JvmSpaceReviewer {
     }
   }
 
+  /**
+   * Calculates the available space in the heap based on the runtime.
+   * Ref: https://stackoverflow.com/a/18375641/4933827
+   */
   private long getAvailableBytes() {
-    Runtime runtime = Runtime.getRuntime();
-    // Ref: https://stackoverflow.com/a/18375641/4933827
-    return runtime.maxMemory() - (runtime.totalMemory() - runtime.freeMemory());
+    return mRuntime.maxMemory() - (mRuntime.totalMemory() - mRuntime.freeMemory());
   }
 }

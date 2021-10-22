@@ -45,7 +45,13 @@ public class JvmSpaceReviewerTest {
     heapGauges.put("heap.max", maxSpaceGauge);
     when(mockRegistry.getGauges(any())).thenReturn(heapGauges);
 
-    JvmSpaceReviewer reviewer = new JvmSpaceReviewer(mockRegistry);
+    Runtime mockRuntime = mock(Runtime.class);
+    // max - (total - free) = 1000L
+    when(mockRuntime.maxMemory()).thenReturn(1200L);
+    when(mockRuntime.freeMemory()).thenReturn(0L);
+    when(mockRuntime.totalMemory()).thenReturn(200L);
+
+    JvmSpaceReviewer reviewer = new JvmSpaceReviewer(mockRuntime);
 
     // Determine how many blocks will be accepted
     long maxBlocks = (maxBytes - usedBytes) / JvmSpaceReviewer.BLOCK_COUNT_MULTIPLIER;

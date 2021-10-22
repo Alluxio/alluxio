@@ -14,7 +14,6 @@ package alluxio.master.block;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.GetRegisterLeasePRequest;
-import alluxio.metrics.MetricsSystem;
 import alluxio.util.CommonUtils;
 import alluxio.wire.RegisterLease;
 
@@ -52,7 +51,7 @@ public class RegisterLeaseManager {
 
     if (ServerConfiguration.getBoolean(
         PropertyKey.MASTER_WORKER_REGISTER_LEASE_RESPECT_JVM_SPACE)) {
-      mJvmChecker = new JvmSpaceReviewer(MetricsSystem.METRIC_REGISTRY);
+      mJvmChecker = new JvmSpaceReviewer(Runtime.getRuntime());
     }
 
     mActiveLeases = new ConcurrentHashMap<>();
@@ -62,8 +61,9 @@ public class RegisterLeaseManager {
   Optional<RegisterLease> tryAcquireLease(GetRegisterLeasePRequest request) {
     long workerId = request.getWorkerId();
     if (mActiveLeases.containsKey(workerId)) {
-      LOG.info("Found existing lease for worker {}", workerId);
-      return Optional.of(mActiveLeases.get(workerId));
+      RegisterLease lease = mActiveLeases.get(workerId);
+      LOG.info("Found existing lease for worker {}: {}", workerId, lease);
+      return Optional.of(lease);
     }
 
     // If the JVM space does not allow, reject the request
