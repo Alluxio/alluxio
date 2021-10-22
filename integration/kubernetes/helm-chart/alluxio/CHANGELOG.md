@@ -211,3 +211,7 @@
 0.6.29
 
 - Add startupProbe and checking for web port when using HA without embedded journal
+
+0.6.30
+
+- Add Master web & job-web port Ingresses
