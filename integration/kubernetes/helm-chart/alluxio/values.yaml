@@ -272,6 +272,7 @@ worker:
   #   failureThreshold: 2
   tolerations: []
   podAnnotations: {}
+  ingressAnnotations: {}
   # The ServiceAccount provided here will have precedence over
   # the global `serviceAccount`
   serviceAccount:
