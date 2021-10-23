@@ -2039,9 +2039,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey MASTER_REGISTER_WORKER_STREAM_TIMEOUT =
-      new Builder(Name.MASTER_REGISTER_WORKER_STREAM_TIMEOUT)
+      new Builder(Name.MASTER_WORKER_REGISTER_STREAM_RESPONSE_TIMEOUT)
           .setDefaultValue("1min")
-          .setDescription("Timeout between 2 messages in a stream")
+          .setDescription("When the worker registers the master with streaming, "
+              + "the worker will be sending messages to the master during the streaming."
+              + "During an active stream if the master have not heard from the worker "
+              + "for more than this timeout, the worker will be considered hanging "
+              + "and the stream will be closed.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
@@ -3232,26 +3236,51 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
-  public static final PropertyKey WORKER_REGISTER_STREAMING =
-      new Builder(Name.WORKER_REGISTER_STREAMING)
+  public static final PropertyKey WORKER_REGISTER_STREAM_ENABLED =
+      new Builder(Name.WORKER_REGISTER_STREAM_ENABLED)
           .setDefaultValue("false")
           .setDescription("When the worker registers with the master, whether the request should be"
-              + " broken into a stream of smaller chunks. This is useful when the worker's storage "
+              + " broken into a stream of smaller batches. This is useful when the worker's storage "
               + "is large and we expect a large number of blocks. ")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
-  public static final PropertyKey WORKER_REGISTER_BATCH_SIZE =
-      new Builder(Name.WORKER_REGISTER_BATCH_SIZE)
+  public static final PropertyKey WORKER_REGISTER_STREAM_BATCH_SIZE =
+      new Builder(Name.WORKER_REGISTER_STREAM_BATCH_SIZE)
           .setDefaultValue("1000")
-          .setDescription("When the worker register RPC comes in batches, the upper limit of a batch")
+          .setDescription("When the worker registers with the master using a stream, this defines "
+              + "the metadata of how many blocks should be send to the master in each batch.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
-  public static final PropertyKey WORKER_REGISTER_STREAMING_DEADLINE =
-      new Builder(Name.WORKER_REGISTER_STREAMING_DEADLINE)
+  public static final PropertyKey WORKER_REGISTER_STREAM_DEADLINE =
+      new Builder(Name.WORKER_REGISTER_STREAM_DEADLINE)
           .setDefaultValue("15min")
-          .setDescription("Deadline for the worker register streaming. It will fail after this deadline and cancel the stream.")
+          .setDescription("When the worker registers with the master using a stream, "
+              + "this defines the total deadline for the full stream to finish.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.WORKER)
+          .build();
+  public static final PropertyKey WORKER_REGISTER_STREAM_RESPONSE_TIMEOUT =
+      new Builder(Name.WORKER_REGISTER_STREAM_RESPONSE_TIMEOUT)
+          .setDefaultValue(String.format("${%s}", Name.MASTER_WORKER_REGISTER_STREAM_RESPONSE_TIMEOUT))
+          .setDescription("When the worker registers the master with streaming, "
+              + "the worker will be sending messages to the master during the streaming."
+              + "During an active stream if the master have not responded to the worker "
+              + "for more than this timeout, the worker will consider the master is "
+              + "hanging and close the stream.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.WORKER)
+          .build();
+  public static final PropertyKey WORKER_REGISTER_STREAM_COMPLETE_TIMEOUT =
+      new Builder(Name.WORKER_REGISTER_STREAM_COMPLETE_TIMEOUT)
+          .setDefaultValue("5min")
+          .setDescription("When the worker registers the master with streaming, "
+              + "after all messages have been sent to the master, the worker "
+              + "will wait for the registration to complete on the master side. "
+              + "If the master is unable to finish the registration and return "
+              + "success to the worker within this timeout, the worker will "
+              + "consider the registration failed.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
@@ -5721,8 +5750,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.lost.worker.file.detection.interval";
     public static final String MASTER_HEARTBEAT_TIMEOUT =
         "alluxio.master.heartbeat.timeout";
-    public static final String MASTER_REGISTER_WORKER_STREAM_TIMEOUT =
-        "alluxio.master.register.worker.stream.timeout";
     public static final String MASTER_HOSTNAME = "alluxio.master.hostname";
     public static final String MASTER_LOCK_POOL_INITSIZE =
         "alluxio.master.lock.pool.initsize";
@@ -5920,6 +5947,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.worker.connect.wait.time";
     public static final String MASTER_WORKER_INFO_CACHE_REFRESH_TIME
         = "alluxio.master.worker.info.cache.refresh.time";
+    public static final String MASTER_WORKER_REGISTER_STREAM_RESPONSE_TIMEOUT =
+        "alluxio.master.worker.register.stream.response.timeout";
     public static final String MASTER_WORKER_TIMEOUT_MS = "alluxio.master.worker.timeout";
     public static final String MASTER_JOURNAL_CHECKPOINT_PERIOD_ENTRIES =
         "alluxio.master.journal.checkpoint.period.entries";
@@ -6044,11 +6073,16 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.worker.network.shutdown.timeout";
     public static final String WORKER_NETWORK_ZEROCOPY_ENABLED =
         "alluxio.worker.network.zerocopy.enabled";
-    public static final String WORKER_REGISTER_STREAMING = "alluxio.worker.register.streaming";
-    public static final String WORKER_REGISTER_BATCH_SIZE =
-        "alluxio.worker.register.batch.size";
-    public static final String WORKER_REGISTER_STREAMING_DEADLINE =
-            "alluxio.worker.register.streaming.deadline";
+    public static final String WORKER_REGISTER_STREAM_ENABLED =
+        "alluxio.worker.register.stream.enabled";
+    public static final String WORKER_REGISTER_STREAM_BATCH_SIZE =
+        "alluxio.worker.register.stream.batch.size";
+    public static final String WORKER_REGISTER_STREAM_DEADLINE =
+        "alluxio.worker.register.stream.deadline";
+    public static final String WORKER_REGISTER_STREAM_RESPONSE_TIMEOUT =
+        "alluxio.worker.register.stream.response.timeout";
+    public static final String WORKER_REGISTER_STREAM_COMPLETE_TIMEOUT =
+        "alluxio.worker.register.stream.complete.timeout";
     public static final String WORKER_REMOTE_IO_SLOW_THRESHOLD =
         "alluxio.worker.remote.io.slow.threshold";
     public static final String WORKER_BLOCK_MASTER_CLIENT_POOL_SIZE =

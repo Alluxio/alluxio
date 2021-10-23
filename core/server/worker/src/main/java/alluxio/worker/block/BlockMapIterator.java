@@ -1,7 +1,6 @@
 package alluxio.worker.block;
 
 import alluxio.conf.AlluxioConfiguration;
-import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.BlockIdList;
@@ -46,7 +45,7 @@ public class BlockMapIterator implements Iterator<List<LocationBlockIdListEntry>
   // TODO(jiacheng): Lock while the constructor is running?
   public BlockMapIterator(Map<BlockStoreLocation, List<Long>> blockLocationMap, AlluxioConfiguration conf) {
     mConf = conf;
-    mBatchSize = mConf.getInt(PropertyKey.WORKER_REGISTER_BATCH_SIZE);
+    mBatchSize = mConf.getInt(PropertyKey.WORKER_REGISTER_STREAM_BATCH_SIZE);
 
     LOG.info("Worker register batch size is {}", mBatchSize);
     mBlockLocationMap = blockLocationMap;

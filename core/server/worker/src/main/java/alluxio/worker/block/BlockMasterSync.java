@@ -95,7 +95,7 @@ public final class BlockMasterSync implements HeartbeatExecutor {
     mHeartbeatTimeoutMs = (int) ServerConfiguration
         .getMs(PropertyKey.WORKER_BLOCK_HEARTBEAT_TIMEOUT_MS);
     mAsyncBlockRemover = new AsyncBlockRemover(mBlockWorker);
-    mUseStreaming = ServerConfiguration.getBoolean(PropertyKey.WORKER_REGISTER_STREAMING);
+    mUseStreaming = ServerConfiguration.getBoolean(PropertyKey.WORKER_REGISTER_STREAM_ENABLED);
 
     registerWithMaster();
     mLastSuccessfulHeartbeatMs = System.currentTimeMillis();

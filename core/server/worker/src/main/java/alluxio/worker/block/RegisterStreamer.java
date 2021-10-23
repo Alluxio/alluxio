@@ -15,24 +15,22 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.nio.channels.ClosedChannelException;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Queue;
-import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
-import static com.esotericsoftware.minlog.Log.info;
-
 public class RegisterStreamer implements Iterator<RegisterWorkerPRequest> {
   private static final Logger LOG = LoggerFactory.getLogger(RegisterStreamer.class);
+
+  private static final int MAX_BATCHES_IN_FLIGHT = 2;
+
   final BlockMasterWorkerServiceGrpc.BlockMasterWorkerServiceBlockingStub mClient;
   final BlockMasterWorkerServiceGrpc.BlockMasterWorkerServiceStub mAsyncClient;
 
@@ -50,12 +48,16 @@ public class RegisterStreamer implements Iterator<RegisterWorkerPRequest> {
   BlockMapIterator mBlockMapIterator;
 
   // How many batches active in a stream
-  Semaphore mBucket = new Semaphore(2);
+  Semaphore mBucket = new Semaphore(MAX_BATCHES_IN_FLIGHT);
   AtomicReference<Throwable> mError = new AtomicReference<>();
 
   RegisterWorkerPOptions mOptions;
   Map<String, StorageList> mLostStorageMap;
   int mBatchNumber;
+
+  int mResponseTimeoutMs = (int) ServerConfiguration.getMs(PropertyKey.WORKER_REGISTER_STREAM_RESPONSE_TIMEOUT);
+  int mDeadlineMs = (int) ServerConfiguration.getMs(PropertyKey.WORKER_REGISTER_STREAM_DEADLINE);
+  int mCompleteTimeoutMs = (int) ServerConfiguration.getMs(PropertyKey.WORKER_REGISTER_STREAM_COMPLETE_TIMEOUT);
 
   public RegisterStreamer(
           final BlockMasterWorkerServiceGrpc.BlockMasterWorkerServiceBlockingStub client,
@@ -131,8 +133,7 @@ public class RegisterStreamer implements Iterator<RegisterWorkerPRequest> {
     //             side and then close on the worker side, the master will handle necessary cleanup on its side
     // onCompleted() - complete on the client side when all the batches are sent and all ACKs are received
     mRequestObserver = mAsyncClient
-            .withDeadlineAfter(
-                ServerConfiguration.getMs(PropertyKey.WORKER_REGISTER_STREAMING_DEADLINE), TimeUnit.MILLISECONDS)
+            .withDeadlineAfter(mDeadlineMs, TimeUnit.MILLISECONDS)
             .registerWorkerStream(responseObserver);
 
     LOG.debug("{} - starting to register", mWorkerId);
@@ -149,8 +150,11 @@ public class RegisterStreamer implements Iterator<RegisterWorkerPRequest> {
         // Send a request when the master ACKs the previous one
         LOG.debug("{} - Acquiring one token", mWorkerId);
         Instant start = Instant.now();
-        // TODO(jiacheng): configurable deadline
-        mBucket.acquire();
+        if (!mBucket.tryAcquire(mResponseTimeoutMs, TimeUnit.MILLISECONDS)) {
+          throw new IOException(
+              String.format("No response from master for more than %dms during the stream!",
+                  mResponseTimeoutMs));
+        }
         Instant end = Instant.now();
         LOG.debug("{} - master ACK acquired in {}ms, sending the next iter {}",
                 mWorkerId, Duration.between(start, end).toMillis(), iter);
@@ -178,13 +182,21 @@ public class RegisterStreamer implements Iterator<RegisterWorkerPRequest> {
     }
 
     // Wait for all batches have been ACK-ed by the master before completing the client side
-    // TODO(jiacheng): configurable deadline
-    mAckLatch.await();
+    if (!mAckLatch.await(mResponseTimeoutMs * MAX_BATCHES_IN_FLIGHT, TimeUnit.MILLISECONDS)) {
+      long receivedCount = mBlockMapIterator.getBatchCount() - mAckLatch.getCount();
+      throw new IOException(
+          String.format("All batches have been sent to the master but only received %d ACKs!",
+              receivedCount));
+    }
     LOG.info("{} - All requests have been sent. Completing the client side.", mWorkerId);
     mRequestObserver.onCompleted();
     LOG.info("{} - Waiting on the master side to complete", mWorkerId);
-    // TODO(jiacheng): configurable deadline
-    mFinishLatch.await();
+    if (!mFinishLatch.await(mCompleteTimeoutMs, TimeUnit.MILLISECONDS)) {
+      throw new IOException(
+          String.format("All batches have been received by the master but the master failed to complete the "
+              + "registration in %dms!",
+          mCompleteTimeoutMs));
+    }
     LOG.info("{} - Master completed", mWorkerId);
 
     if (mError != null) {
