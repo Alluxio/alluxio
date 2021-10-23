@@ -20,15 +20,13 @@ import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.Command;
 import alluxio.grpc.ConfigProperty;
 import alluxio.grpc.RegisterWorkerPOptions;
-import alluxio.grpc.RegisterWorkerStreamPOptions;
-import alluxio.grpc.RegisterWorkerStreamPRequest;
+import alluxio.grpc.RegisterWorkerPRequest;
 import alluxio.grpc.StorageList;
 import alluxio.grpc.WorkerLostStorageInfo;
 import alluxio.master.Master;
 import alluxio.master.block.meta.MasterWorkerInfo;
 import alluxio.metrics.Metric;
 import alluxio.proto.meta.Block;
-import alluxio.resource.LockResource;
 import alluxio.wire.Address;
 import alluxio.wire.BlockInfo;
 import alluxio.wire.WorkerInfo;
@@ -267,9 +265,9 @@ public interface BlockMaster extends Master, ContainerIdGenerable {
 
   MasterWorkerInfo getWorker(long workerId) throws NotFoundException;
 
-  void workerRegisterStart(WorkerRegisterContext context, RegisterWorkerStreamPRequest chunk);
+  void workerRegisterStart(WorkerRegisterContext context, RegisterWorkerPRequest chunk);
 
-  void workerRegisterStream(WorkerRegisterContext context, RegisterWorkerStreamPRequest chunk);
+  void workerRegisterBatch(WorkerRegisterContext context, RegisterWorkerPRequest chunk);
 
   void workerRegisterFinish(WorkerRegisterContext context) throws NotFoundException;
 }

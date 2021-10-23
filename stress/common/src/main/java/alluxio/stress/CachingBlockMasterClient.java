@@ -11,6 +11,7 @@
 
 package alluxio.stress;
 
+import alluxio.conf.AlluxioConfiguration;
 import alluxio.grpc.BlockIdList;
 import alluxio.grpc.ConfigProperty;
 import alluxio.grpc.LocationBlockIdListEntry;
@@ -44,7 +45,8 @@ public class CachingBlockMasterClient extends BlockMasterClient {
 
   private List<LocationBlockIdListEntry> mLocationBlockIdList;
   public List<List<LocationBlockIdListEntry>> mBlockBatches;
-  private Iterator<List<LocationBlockIdListEntry>> mBlockBatchIterator;
+
+  private CachingBlockMapIterator mBlockBatchIterator;
 
   /**
    * Creates a new instance and caches the converted proto.
@@ -63,15 +65,7 @@ public class CachingBlockMasterClient extends BlockMasterClient {
                                   Map<BlockStoreLocation, List<Long>> blockMap) {
     super(conf);
     LOG.info("Init CachingBlockMasterClient for streaming");
-//    mLocationBlockIdList = locationBlockIdList;
-
-    BlockMapIterator iter = new BlockMapIterator(blockMap, conf.getClusterConf());
-
-    // Pre-generate the request batches
-    mBlockBatches = ImmutableList.copyOf(iter);
-    LOG.info("Prepared {} batches for requests", mBlockBatches.size());
-
-    mBlockBatchIterator = mBlockBatches.iterator();
+    mBlockBatchIterator = new CachingBlockMapIterator(blockMap, conf.getClusterConf());
   }
 
   @Override
@@ -122,7 +116,7 @@ public class CachingBlockMasterClient extends BlockMasterClient {
       try {
         RegisterStreamer stream = new RegisterStreamer(mClient, mAsyncClient, workerId, storageTierAliases, totalBytesOnTiers, usedBytesOnTiers,
                 currentBlocksOnLocation, lostStorage, configList, mBlockBatchIterator);
-        stream.registerSync();
+        stream.registerWithMaster();
       } catch (IOException e) {
         ioe.set(e);
       } catch (InterruptedException e) {
@@ -134,5 +128,35 @@ public class CachingBlockMasterClient extends BlockMasterClient {
     if (ioe.get() != null) {
       throw ioe.get();
     }
+  }
+
+  // TODO(jiacheng): test this
+  // Pre-generate the list of requests
+  public class CachingBlockMapIterator extends BlockMapIterator {
+    List<List<LocationBlockIdListEntry>> mBatches;
+    Iterator<List<LocationBlockIdListEntry>> mDelegate;
+
+    public CachingBlockMapIterator(Map<BlockStoreLocation, List<Long>> blockLocationMap) {
+      super(blockLocationMap);
+      mBatches = ImmutableList.copyOf(this);
+      mDelegate = mBatches.iterator();
+    }
+
+    public CachingBlockMapIterator(Map<BlockStoreLocation, List<Long>> blockLocationMap, AlluxioConfiguration conf) {
+      super(blockLocationMap, conf);
+      mBatches = ImmutableList.copyOf(this);
+      mDelegate = mBatches.iterator();
+    }
+
+    @Override
+    public boolean hasNext() {
+      return mDelegate.hasNext();
+    }
+
+    @Override
+    public List<LocationBlockIdListEntry> next() {
+      return mDelegate.next();
+    }
+
   }
 }

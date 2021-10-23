@@ -12,11 +12,6 @@
 package alluxio.master.block;
 
 import alluxio.RpcUtils;
-import alluxio.exception.BlockDoesNotExistException;
-import alluxio.exception.ExceptionMessage;
-import alluxio.exception.InvalidWorkerStateException;
-import alluxio.exception.status.AlluxioStatusException;
-import alluxio.exception.status.NotFoundException;
 import alluxio.grpc.BlockHeartbeatPRequest;
 import alluxio.grpc.BlockHeartbeatPResponse;
 import alluxio.grpc.BlockMasterWorkerServiceGrpc;
@@ -24,20 +19,15 @@ import alluxio.grpc.CommitBlockInUfsPRequest;
 import alluxio.grpc.CommitBlockInUfsPResponse;
 import alluxio.grpc.CommitBlockPRequest;
 import alluxio.grpc.CommitBlockPResponse;
-import alluxio.grpc.CreateLocalBlockResponse;
 import alluxio.grpc.GetWorkerIdPRequest;
 import alluxio.grpc.GetWorkerIdPResponse;
 import alluxio.grpc.GrpcExceptionUtils;
 import alluxio.grpc.GrpcUtils;
 import alluxio.grpc.LocationBlockIdListEntry;
-import alluxio.grpc.OpenLocalBlockResponse;
 import alluxio.grpc.RegisterWorkerPOptions;
 import alluxio.grpc.RegisterWorkerPRequest;
 import alluxio.grpc.RegisterWorkerPResponse;
-import alluxio.grpc.RegisterWorkerStreamPOptions;
-import alluxio.grpc.RegisterWorkerStreamPResponse;
 import alluxio.grpc.StorageList;
-import alluxio.master.block.meta.WorkerMetaLockSection;
 import alluxio.metrics.Metric;
 import alluxio.proto.meta.Block;
 
@@ -47,7 +37,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -168,30 +157,33 @@ public final class BlockMasterWorkerServiceHandler extends
   }
 
   @Override
-  public io.grpc.stub.StreamObserver<alluxio.grpc.RegisterWorkerStreamPRequest> registerWorkerStream(
-          io.grpc.stub.StreamObserver<alluxio.grpc.RegisterWorkerStreamPResponse> responseObserver) {
+  public io.grpc.stub.StreamObserver<alluxio.grpc.RegisterWorkerPRequest> registerWorkerStream(
+          io.grpc.stub.StreamObserver<alluxio.grpc.RegisterWorkerPResponse> responseObserver) {
     // TODO(jiacheng): Move to a separate class
-    return new StreamObserver<alluxio.grpc.RegisterWorkerStreamPRequest>() {
+    return new StreamObserver<alluxio.grpc.RegisterWorkerPRequest>() {
       private WorkerRegisterContext mContext;
 
-      @Override
-      public void onNext(alluxio.grpc.RegisterWorkerStreamPRequest chunk) {
-        final long workerId = chunk.getWorkerId();
-        final boolean isHead = chunk.getIsHead();
-        LOG.info("{} - Register worker request is {} bytes, containing {} LocationBlockIdListEntry. Worker {}, isHead {}",
-                Thread.currentThread().getId(),
-                chunk.getSerializedSize(),
-                chunk.getCurrentBlocksCount(),
-                workerId,
-                isHead);
+      boolean isFirstMessage(alluxio.grpc.RegisterWorkerPRequest chunk) {
+        return chunk.getStorageTiersCount() > 0;
+      }
 
-        // TODO(jiacheng): potential risk from 'this' ref escape?
-        io.grpc.stub.StreamObserver<alluxio.grpc.RegisterWorkerStreamPRequest> requestObserver = this;
+      @Override
+      public void onNext(alluxio.grpc.RegisterWorkerPRequest chunk) {
+        final long workerId = chunk.getWorkerId();
+        final boolean isHead = isFirstMessage(chunk);
+        LOG.info("{} - Register worker request is {} bytes, containing {} LocationBlockIdListEntry. Worker {}, isHead {}",
+            Thread.currentThread().getId(),
+            chunk.getSerializedSize(),
+            chunk.getCurrentBlocksCount(),
+            workerId,
+            isHead);
+
+        io.grpc.stub.StreamObserver<alluxio.grpc.RegisterWorkerPRequest> requestObserver = this;
         String methodName = isHead ? "registerWorkerStart" : "registerWorkerStream";
 
-        RpcUtils.streamingRPCAndLog(LOG, new RpcUtils.StreamingRpcCallable<RegisterWorkerStreamPResponse>() {
+        RpcUtils.streamingRPCAndLog(LOG, new RpcUtils.StreamingRpcCallable<RegisterWorkerPResponse>() {
           @Override
-          public RegisterWorkerStreamPResponse call() throws Exception {
+          public RegisterWorkerPResponse call() throws Exception {
             // Initialize the context on the 1st message
             synchronized (requestObserver) {
               if (mContext == null) {
@@ -210,45 +202,35 @@ public final class BlockMasterWorkerServiceHandler extends
             if (isHead) {
               mBlockMaster.workerRegisterStart(mContext, chunk);
             } else {
-              mBlockMaster.workerRegisterStream(mContext, chunk);
+              mBlockMaster.workerRegisterBatch(mContext, chunk);
             }
             mContext.updateTs();
             // Return an ACK to the worker so it sends the next batch
-            return RegisterWorkerStreamPResponse.newBuilder().build();
+            return RegisterWorkerPResponse.newBuilder().build();
           }
 
           @Override
+          // TODO(jiacheng): test this
           public void exceptionCaught(Throwable e) {
-            // onError will close the resources
+            // When an exception occurs on the master side, close the context and
+            // propagate the exception to the worker side.
+            cleanup();
             responseObserver.onError(GrpcExceptionUtils.fromThrowable(e));
-            Preconditions.checkState(!mContext.isOpen(),
-                "The WorkerRegisterContext is not properly closed after error %s "
-                    + "aborted the register stream!", e.getMessage());
           }
         }, methodName, true, false, responseObserver, "Worker=%s", workerId);
       }
 
       @Override
+      // This means the server side has received an error from the worker side, close the context.
+      // When an error occurs on the worker side so that it cannot proceed with the register logic,
+      // the worker will send the error to the master and close itself.
+      // The master will then receive the error, abort the stream and close itself.
+      // TODO(jiacheng): test this
       public void onError(Throwable t) {
-        LOG.error("Error receiving the streaming register call", t);
-        try {
-          closeContext();
-        } catch (IOException e) {
-          LOG.error("Failed to close the WorkerRegisterContext for {}: ", mContext.mWorkerId, e);
-        }
-
-        // TODO(jiacheng): unit test on what exceptions are thrown
-        responseObserver.onError(AlluxioStatusException.fromThrowable(t).toGrpcStatusException());
-      }
-
-      void closeContext() throws IOException {
-        synchronized (this) {
-          if (mContext!= null) {
-            LOG.debug("Unlocking worker {}", mContext.mWorkerId);
-            mContext.close();
-            LOG.debug("Context closed");
-          }
-        }
+        // TODO(jiacheng): Do not log the full exception, the full stacktrace should be found
+        //  on the worker and the master log should be clean with only a warning message
+        LOG.error("Received error from the worker side during the streaming register call", t);
+        cleanup();
       }
 
       @Override
@@ -258,9 +240,9 @@ public final class BlockMasterWorkerServiceHandler extends
         String methodName = "registerWorkerComplete";
         Preconditions.checkState(mContext != null,
             "Complete message received from the client side but the context is not initialized");
-        RpcUtils.streamingRPCAndLog(LOG, new RpcUtils.StreamingRpcCallable<RegisterWorkerStreamPResponse>() {
+        RpcUtils.streamingRPCAndLog(LOG, new RpcUtils.StreamingRpcCallable<RegisterWorkerPResponse>() {
             @Override
-            public RegisterWorkerStreamPResponse call() throws Exception {
+            public RegisterWorkerPResponse call() throws Exception {
               Preconditions.checkState(mContext != null,
                   "Complete message received from the client side but the context is not initialized");
               Preconditions.checkState(mContext.isOpen(), "Context is not open");
@@ -268,26 +250,36 @@ public final class BlockMasterWorkerServiceHandler extends
               mContext.updateTs();
               mBlockMaster.workerRegisterFinish(mContext);
 
-              // Reclaim resources
-              try {
-                closeContext();
-              } catch (IOException e) {
-                e.printStackTrace();
-              }
-
+              cleanup();
               // No response because sendResponse=false
               return null;
             }
 
             @Override
+            // TODO(jiacheng): test this
             public void exceptionCaught(Throwable e) {
-              // onError will close the resources
+              // When an exception occurs on the master side, close the context and
+              // propagate the exception to the worker side.
+              cleanup();
               responseObserver.onError(GrpcExceptionUtils.fromThrowable(e));
-              Preconditions.checkState(!mContext.isOpen(),
-                      "The WorkerRegisterContext is not properly closed after error %s "
-                              + "happened on completing the register stream!", e.getMessage());
             }
-          }, methodName, false, true, responseObserver, "WorkerId=%s", mContext.mWorkerId);
+            // TODO(jiacheng): log the request?
+          }, methodName, false, true, responseObserver, "WorkerId=%s", mContext.getWorkerId());
+      }
+
+      void cleanup() {
+        synchronized (this) {
+          if (mContext == null) {
+            LOG.debug("The stream is closed before the context is initialized. Nothing to clean up.");
+            return;
+          }
+          LOG.debug("Unlocking worker {}", mContext.getWorkerId());
+          mContext.close();
+          LOG.debug("Context closed");
+
+          Preconditions.checkState(!mContext.isOpen(),
+                  "Failed to properly close the WorkerRegisterContext!");
+        }
       }
     };
   }

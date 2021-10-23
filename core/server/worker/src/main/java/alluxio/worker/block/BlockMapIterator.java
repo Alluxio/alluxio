@@ -39,8 +39,6 @@ public class BlockMapIterator implements Iterator<List<LocationBlockIdListEntry>
   // Keep a global counter of how many blocks have been traversed
   int mCounter = 0;
 
-
-
   public BlockMapIterator(Map<BlockStoreLocation, List<Long>> blockLocationMap) {
     this(blockLocationMap, ServerConfiguration.global());
   }

@@ -36,8 +36,7 @@ import alluxio.grpc.ConfigProperty;
 import alluxio.grpc.GrpcService;
 import alluxio.grpc.GrpcUtils;
 import alluxio.grpc.RegisterWorkerPOptions;
-import alluxio.grpc.RegisterWorkerStreamPOptions;
-import alluxio.grpc.RegisterWorkerStreamPRequest;
+import alluxio.grpc.RegisterWorkerPRequest;
 import alluxio.grpc.ServiceType;
 import alluxio.grpc.StorageList;
 import alluxio.grpc.WorkerLostStorageInfo;
@@ -1028,15 +1027,15 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
   }
 
   @Override
-  public void workerRegisterStart(WorkerRegisterContext context, RegisterWorkerStreamPRequest chunk) {
+  public void workerRegisterStart(WorkerRegisterContext context, RegisterWorkerPRequest chunk) {
     final List<String> storageTiers = chunk.getStorageTiersList();
     final Map<String, Long> totalBytesOnTiers = chunk.getTotalBytesOnTiersMap();
     final Map<String, Long> usedBytesOnTiers = chunk.getUsedBytesOnTiersMap();
     final Map<String, StorageList> lostStorage = chunk.getLostStorageMap();
 
     final Map<alluxio.proto.meta.Block.BlockLocation, List<Long>> currentBlocksOnLocation =
-            BlockMasterWorkerServiceHandler.reconstructBlocksOnLocationMap(chunk.getCurrentBlocksList(), context.mWorkerId);
-    RegisterWorkerStreamPOptions options = chunk.getOptions();
+            BlockMasterWorkerServiceHandler.reconstructBlocksOnLocationMap(chunk.getCurrentBlocksList(), context.getWorkerId());
+    RegisterWorkerPOptions options = chunk.getOptions();
 
     MasterWorkerInfo worker = context.mWorker;
     Preconditions.checkState(worker != null, "The context has null worker!");
@@ -1066,9 +1065,9 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
   }
 
   @Override
-  public void workerRegisterStream(WorkerRegisterContext context, RegisterWorkerStreamPRequest chunk) {
+  public void workerRegisterBatch(WorkerRegisterContext context, RegisterWorkerPRequest chunk) {
     final Map<alluxio.proto.meta.Block.BlockLocation, List<Long>> currentBlocksOnLocation =
-            BlockMasterWorkerServiceHandler.reconstructBlocksOnLocationMap(chunk.getCurrentBlocksList(), context.mWorkerId);
+            BlockMasterWorkerServiceHandler.reconstructBlocksOnLocationMap(chunk.getCurrentBlocksList(), context.getWorkerId());
     MasterWorkerInfo worker = context.mWorker;
     Preconditions.checkState(worker != null, "The context has null worker!");
 
