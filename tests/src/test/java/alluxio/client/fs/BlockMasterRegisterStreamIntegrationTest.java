@@ -13,8 +13,8 @@ import alluxio.grpc.ConfigProperty;
 import alluxio.grpc.GetWorkerIdPResponse;
 import alluxio.grpc.LocationBlockIdListEntry;
 import alluxio.grpc.RegisterWorkerPOptions;
-import alluxio.grpc.RegisterWorkerStreamPRequest;
-import alluxio.grpc.RegisterWorkerStreamPResponse;
+import alluxio.grpc.RegisterWorkerPRequest;
+import alluxio.grpc.RegisterWorkerPResponse;
 import alluxio.grpc.StorageList;
 import alluxio.util.CommonUtils;
 import alluxio.wire.WorkerInfo;
@@ -63,7 +63,10 @@ import static alluxio.stress.rpc.TierAlias.MEM;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThrows;
 
-public class RegisterIntegrationTest {
+/**
+ * Integration tests for the server-side logic for the register stream.
+ */
+public class BlockMasterRegisterStreamIntegrationTest {
   private BlockMaster mBlockMaster;
   private MasterRegistry mRegistry;
   private Clock mClock;
@@ -185,10 +188,10 @@ public class RegisterIntegrationTest {
     prepareBlocksOnMaster(blockMap);
 
     // Noop response observer
-    StreamObserver<RegisterWorkerStreamPResponse> noopResponseObserver =
-            new StreamObserver<RegisterWorkerStreamPResponse>() {
+    StreamObserver<RegisterWorkerPResponse> noopResponseObserver =
+            new StreamObserver<RegisterWorkerPResponse>() {
               @Override
-              public void onNext(RegisterWorkerStreamPResponse response) {
+              public void onNext(RegisterWorkerPResponse response) {
                 System.out.format("Response %s%n", response);
               }
 
@@ -203,7 +206,7 @@ public class RegisterIntegrationTest {
               }
             };
 
-    StreamObserver<RegisterWorkerStreamPRequest> requestObserver =
+    StreamObserver<RegisterWorkerPRequest> requestObserver =
             mHandler.registerWorkerStream(noopResponseObserver);
 
     // Send the chunks with the requestObserver
@@ -211,10 +214,10 @@ public class RegisterIntegrationTest {
             workerId, mTierAliases, mCapacityMap, mUsedMap, blockMap, LOST_STORAGE, EMPTY_CONFIG);
 
     // Get chunks from the RegisterStreamer
-    List<RegisterWorkerStreamPRequest> requestChunks = ImmutableList.copyOf(registerStreamer);
+    List<RegisterWorkerPRequest> requestChunks = ImmutableList.copyOf(registerStreamer);
 
     // Feed the chunks into the requestObserver
-    for (RegisterWorkerStreamPRequest chunk : requestChunks) {
+    for (RegisterWorkerPRequest chunk : requestChunks) {
       // TODO(jiacheng): rate limit this? ACK until the next send?
       requestObserver.onNext(chunk);
     }
@@ -245,6 +248,7 @@ public class RegisterIntegrationTest {
   }
 
   @Test
+  // TODO(jiacheng): remove this
   public void registerWorkerStreamAndDeleteBlock() throws Exception {
     String hostname = NetworkAddressUtils.getLocalHostName(500);
     WorkerNetAddress address = new WorkerNetAddress().setWebPort(0).setRpcPort(0).setDataPort(0).setHost(hostname);
@@ -266,10 +270,10 @@ public class RegisterIntegrationTest {
     prepareBlocksOnMaster(blockMap);
 
     // Noop response observer
-    StreamObserver<RegisterWorkerStreamPResponse> noopResponseObserver =
-            new StreamObserver<RegisterWorkerStreamPResponse>() {
+    StreamObserver<RegisterWorkerPResponse> noopResponseObserver =
+            new StreamObserver<RegisterWorkerPResponse>() {
               @Override
-              public void onNext(RegisterWorkerStreamPResponse response) {
+              public void onNext(RegisterWorkerPResponse response) {
                 System.out.format("Response %s%n", response);
               }
 
@@ -284,7 +288,7 @@ public class RegisterIntegrationTest {
               }
             };
 
-    StreamObserver<RegisterWorkerStreamPRequest> requestObserver =
+    StreamObserver<RegisterWorkerPRequest> requestObserver =
             mHandler.registerWorkerStream(noopResponseObserver);
 
     // Send the chunks with the requestObserver
@@ -292,12 +296,12 @@ public class RegisterIntegrationTest {
             workerId, mTierAliases, mCapacityMap, mUsedMap, blockMap, LOST_STORAGE, EMPTY_CONFIG);
 
     // Get chunks from the RegisterStreamer
-    List<RegisterWorkerStreamPRequest> requestChunks = ImmutableList.copyOf(registerStreamer);
+    List<RegisterWorkerPRequest> requestChunks = ImmutableList.copyOf(registerStreamer);
 
     // Feed the chunks into the requestObserver
-    RegisterWorkerStreamPRequest lastChunk = null;
+    RegisterWorkerPRequest lastChunk = null;
     List<Long> removedBlocks = new ArrayList<>();
-    for (RegisterWorkerStreamPRequest chunk : requestChunks) {
+    for (RegisterWorkerPRequest chunk : requestChunks) {
       // TODO(jiacheng): rate limit this? ACK until the next send?
       requestObserver.onNext(chunk);
 
@@ -330,7 +334,7 @@ public class RegisterIntegrationTest {
     assertEquals(1, mBlockMaster.getWorkerCount());
   }
 
-  public long selectABlock(RegisterWorkerStreamPRequest request) {
+  public long selectABlock(RegisterWorkerPRequest request) {
     List<LocationBlockIdListEntry> entryList = request.getCurrentBlocksList();
     if (entryList.size() > 0) {
       LocationBlockIdListEntry entry = entryList.get(0);
@@ -342,8 +346,8 @@ public class RegisterIntegrationTest {
     return -1;
   }
 
-  // TODO(jiacheng): commit during stream register
   @Test
+  // TODO(jiacheng): remove this
   public void registerWorkerStreamAndCommitBlock() throws Exception {
     String hostname = NetworkAddressUtils.getLocalHostName(500);
     WorkerNetAddress address = new WorkerNetAddress().setWebPort(0).setRpcPort(0).setDataPort(0).setHost(hostname);
@@ -365,10 +369,10 @@ public class RegisterIntegrationTest {
     prepareBlocksOnMaster(blockMap);
 
     // Noop response observer
-    StreamObserver<RegisterWorkerStreamPResponse> noopResponseObserver =
-            new StreamObserver<RegisterWorkerStreamPResponse>() {
+    StreamObserver<RegisterWorkerPResponse> noopResponseObserver =
+            new StreamObserver<RegisterWorkerPResponse>() {
               @Override
-              public void onNext(RegisterWorkerStreamPResponse response) {
+              public void onNext(RegisterWorkerPResponse response) {
                 System.out.format("Response %s%n", response);
               }
 
@@ -383,7 +387,7 @@ public class RegisterIntegrationTest {
               }
             };
 
-    StreamObserver<RegisterWorkerStreamPRequest> requestObserver =
+    StreamObserver<RegisterWorkerPRequest> requestObserver =
             mHandler.registerWorkerStream(noopResponseObserver);
 
     // Send the chunks with the requestObserver
@@ -391,12 +395,12 @@ public class RegisterIntegrationTest {
             workerId, mTierAliases, mCapacityMap, mUsedMap, blockMap, LOST_STORAGE, EMPTY_CONFIG);
 
     // Get chunks from the RegisterStreamer
-    List<RegisterWorkerStreamPRequest> requestChunks = ImmutableList.copyOf(registerStreamer);
+    List<RegisterWorkerPRequest> requestChunks = ImmutableList.copyOf(registerStreamer);
 
     // Feed the chunks into the requestObserver
-    RegisterWorkerStreamPRequest lastChunk = null;
+    RegisterWorkerPRequest lastChunk = null;
     List<Long> committedBlocks = new ArrayList<>();
-    for (RegisterWorkerStreamPRequest chunk : requestChunks) {
+    for (RegisterWorkerPRequest chunk : requestChunks) {
       // TODO(jiacheng): rate limit this? ACK until the next send?
       requestObserver.onNext(chunk);
 
@@ -458,10 +462,10 @@ public class RegisterIntegrationTest {
 
     // Noop response observer
     // TODO(jiacheng): extract this
-    StreamObserver<RegisterWorkerStreamPResponse> noopResponseObserver =
-            new StreamObserver<RegisterWorkerStreamPResponse>() {
+    StreamObserver<RegisterWorkerPResponse> noopResponseObserver =
+            new StreamObserver<RegisterWorkerPResponse>() {
               @Override
-              public void onNext(RegisterWorkerStreamPResponse response) {
+              public void onNext(RegisterWorkerPResponse response) {
                 System.out.format("Response %s%n", response);
               }
 
@@ -476,7 +480,7 @@ public class RegisterIntegrationTest {
               }
             };
 
-    StreamObserver<RegisterWorkerStreamPRequest> requestObserver =
+    StreamObserver<RegisterWorkerPRequest> requestObserver =
             mHandler.registerWorkerStream(noopResponseObserver);
 
     // Send the chunks with the requestObserver
@@ -484,14 +488,14 @@ public class RegisterIntegrationTest {
             workerId, mTierAliases, mCapacityMap, mUsedMap, blockMap, LOST_STORAGE, EMPTY_CONFIG);
 
     // Get chunks from the RegisterStreamer
-    List<RegisterWorkerStreamPRequest> requestChunks = ImmutableList.copyOf(registerStreamer);
+    List<RegisterWorkerPRequest> requestChunks = ImmutableList.copyOf(registerStreamer);
 
     // Feed the chunks into the requestObserver
-    RegisterWorkerStreamPRequest lastChunk = null;
+    RegisterWorkerPRequest lastChunk = null;
     Collection<Long> committedBlocks = new ConcurrentLinkedDeque<>();
     CountDownLatch latch = new CountDownLatch(requestChunks.size() - 1 + 2);
     int iter = 0;
-    for (RegisterWorkerStreamPRequest chunk : requestChunks) {
+    for (RegisterWorkerPRequest chunk : requestChunks) {
       System.out.println("Iter " + iter);
       // TODO(jiacheng): rate limit this? ACK until the next send?
       requestObserver.onNext(chunk);
@@ -585,10 +589,10 @@ public class RegisterIntegrationTest {
     prepareBlocksOnMaster(blockMap);
 
     // Noop response observer
-    StreamObserver<RegisterWorkerStreamPResponse> noopResponseObserver =
-            new StreamObserver<RegisterWorkerStreamPResponse>() {
+    StreamObserver<RegisterWorkerPResponse> noopResponseObserver =
+            new StreamObserver<RegisterWorkerPResponse>() {
               @Override
-              public void onNext(RegisterWorkerStreamPResponse response) {
+              public void onNext(RegisterWorkerPResponse response) {
                 System.out.format("Response %s%n", response);
               }
 
@@ -603,7 +607,7 @@ public class RegisterIntegrationTest {
               }
             };
 
-    StreamObserver<RegisterWorkerStreamPRequest> requestObserver =
+    StreamObserver<RegisterWorkerPRequest> requestObserver =
             mHandler.registerWorkerStream(noopResponseObserver);
 
     // Send the chunks with the requestObserver
@@ -611,12 +615,12 @@ public class RegisterIntegrationTest {
             workerId, mTierAliases, mCapacityMap, mUsedMap, blockMap, LOST_STORAGE, EMPTY_CONFIG);
 
     // Get chunks from the RegisterStreamer
-    List<RegisterWorkerStreamPRequest> requestChunks = ImmutableList.copyOf(registerStreamer);
+    List<RegisterWorkerPRequest> requestChunks = ImmutableList.copyOf(registerStreamer);
 
     // Feed the chunks into the requestObserver
-    RegisterWorkerStreamPRequest lastChunk = null;
+    RegisterWorkerPRequest lastChunk = null;
     List<Long> committedBlocks = new ArrayList<>();
-    for (RegisterWorkerStreamPRequest chunk : requestChunks) {
+    for (RegisterWorkerPRequest chunk : requestChunks) {
       // TODO(jiacheng): rate limit this? ACK until the next send?
       requestObserver.onNext(chunk);
 
@@ -672,10 +676,10 @@ public class RegisterIntegrationTest {
     prepareBlocksOnMaster(blockMap);
 
     // Noop response observer
-    StreamObserver<RegisterWorkerStreamPResponse> noopResponseObserver =
-            new StreamObserver<RegisterWorkerStreamPResponse>() {
+    StreamObserver<RegisterWorkerPResponse> noopResponseObserver =
+            new StreamObserver<RegisterWorkerPResponse>() {
               @Override
-              public void onNext(RegisterWorkerStreamPResponse response) {
+              public void onNext(RegisterWorkerPResponse response) {
                 System.out.format("Response %s%n", response);
               }
 
@@ -691,7 +695,7 @@ public class RegisterIntegrationTest {
             };
 
     ErrorBlockMasterWorkerServiceHandler brokenHandler = new ErrorBlockMasterWorkerServiceHandler(mHandler);
-    StreamObserver<RegisterWorkerStreamPRequest> requestObserver =
+    StreamObserver<RegisterWorkerPRequest> requestObserver =
             brokenHandler.registerWorkerStream(noopResponseObserver);
 
     // Send the chunks with the requestObserver
@@ -699,7 +703,7 @@ public class RegisterIntegrationTest {
             workerId, mTierAliases, mCapacityMap, mUsedMap, blockMap, LOST_STORAGE, EMPTY_CONFIG);
 
     // Get chunks from the RegisterStreamer
-    List<RegisterWorkerStreamPRequest> requestChunks = ImmutableList.copyOf(registerStreamer);
+    List<RegisterWorkerPRequest> requestChunks = ImmutableList.copyOf(registerStreamer);
 
     // Feed the chunks into the requestObserver
     requestObserver.onNext(requestChunks.get(0));
@@ -720,7 +724,7 @@ public class RegisterIntegrationTest {
     requestObserver =
             mHandler.registerWorkerStream(noopResponseObserver);
 
-    for (RegisterWorkerStreamPRequest chunk : requestChunks) {
+    for (RegisterWorkerPRequest chunk : requestChunks) {
       // TODO(jiacheng): rate limit this? ACK until the next send?
       requestObserver.onNext(chunk);
     }
@@ -755,10 +759,10 @@ public class RegisterIntegrationTest {
     prepareBlocksOnMaster(blockMap);
 
     // Noop response observer
-    StreamObserver<RegisterWorkerStreamPResponse> noopResponseObserver =
-            new StreamObserver<RegisterWorkerStreamPResponse>() {
+    StreamObserver<RegisterWorkerPResponse> noopResponseObserver =
+            new StreamObserver<RegisterWorkerPResponse>() {
               @Override
-              public void onNext(RegisterWorkerStreamPResponse response) {
+              public void onNext(RegisterWorkerPResponse response) {
                 System.out.format("Response %s%n", response);
               }
 
@@ -774,7 +778,7 @@ public class RegisterIntegrationTest {
               }
             };
 
-    StreamObserver<RegisterWorkerStreamPRequest> requestObserver =
+    StreamObserver<RegisterWorkerPRequest> requestObserver =
             mHandler.registerWorkerStream(noopResponseObserver);
 
     // Send the chunks with the requestObserver
@@ -782,10 +786,10 @@ public class RegisterIntegrationTest {
             workerId, mTierAliases, mCapacityMap, mUsedMap, blockMap, LOST_STORAGE, EMPTY_CONFIG);
 
     // Get chunks from the RegisterStreamer
-    List<RegisterWorkerStreamPRequest> requestChunks = ImmutableList.copyOf(registerStreamer);
+    List<RegisterWorkerPRequest> requestChunks = ImmutableList.copyOf(registerStreamer);
 
     // Feed the chunks into the requestObserver
-    for (RegisterWorkerStreamPRequest chunk : requestChunks) {
+    for (RegisterWorkerPRequest chunk : requestChunks) {
       // TODO(jiacheng): rate limit this? ACK until the next send?
       //  The 2nd chunk will receive an error, then keep sending should get rejected
       requestObserver.onNext(chunk);
@@ -816,15 +820,15 @@ public class RegisterIntegrationTest {
       mDelegate = delegate;
     }
 
-    public io.grpc.stub.StreamObserver<alluxio.grpc.RegisterWorkerStreamPRequest> registerWorkerStream(
-            io.grpc.stub.StreamObserver<alluxio.grpc.RegisterWorkerStreamPResponse> responseObserver) {
-      io.grpc.stub.StreamObserver<alluxio.grpc.RegisterWorkerStreamPRequest> requestObserver = mDelegate.registerWorkerStream(responseObserver);
+    public io.grpc.stub.StreamObserver<alluxio.grpc.RegisterWorkerPRequest> registerWorkerStream(
+            io.grpc.stub.StreamObserver<alluxio.grpc.RegisterWorkerPResponse> responseObserver) {
+      io.grpc.stub.StreamObserver<alluxio.grpc.RegisterWorkerPRequest> requestObserver = mDelegate.registerWorkerStream(responseObserver);
 
-      return new StreamObserver<alluxio.grpc.RegisterWorkerStreamPRequest>() {
+      return new StreamObserver<alluxio.grpc.RegisterWorkerPRequest>() {
         private int batch = 0;
 
         @Override
-        public void onNext(alluxio.grpc.RegisterWorkerStreamPRequest chunk) {
+        public void onNext(alluxio.grpc.RegisterWorkerPRequest chunk) {
           requestObserver.onNext(chunk);
           if (batch == 2) {
             // TODO(jiacheng): A better exception from master side?
@@ -873,10 +877,10 @@ public class RegisterIntegrationTest {
     prepareBlocksOnMaster(blockMap);
 
     // Noop response observer
-    StreamObserver<RegisterWorkerStreamPResponse> noopResponseObserver =
-            new StreamObserver<RegisterWorkerStreamPResponse>() {
+    StreamObserver<RegisterWorkerPResponse> noopResponseObserver =
+            new StreamObserver<RegisterWorkerPResponse>() {
               @Override
-              public void onNext(RegisterWorkerStreamPResponse response) {
+              public void onNext(RegisterWorkerPResponse response) {
                 System.out.format("Response %s%n", response);
               }
 
@@ -894,7 +898,7 @@ public class RegisterIntegrationTest {
             };
 
     ErrorBlockMasterWorkerServiceHandler brokenHandler = new ErrorBlockMasterWorkerServiceHandler(mHandler);
-    StreamObserver<RegisterWorkerStreamPRequest> requestObserver =
+    StreamObserver<RegisterWorkerPRequest> requestObserver =
             brokenHandler.registerWorkerStream(noopResponseObserver);
 
     // Send the chunks with the requestObserver
@@ -902,10 +906,10 @@ public class RegisterIntegrationTest {
             workerId, mTierAliases, mCapacityMap, mUsedMap, blockMap, LOST_STORAGE, EMPTY_CONFIG);
 
     // Get chunks from the RegisterStreamer
-    List<RegisterWorkerStreamPRequest> requestChunks = ImmutableList.copyOf(registerStreamer);
+    List<RegisterWorkerPRequest> requestChunks = ImmutableList.copyOf(registerStreamer);
 
     // Feed the chunks into the requestObserver
-    for (RegisterWorkerStreamPRequest chunk : requestChunks) {
+    for (RegisterWorkerPRequest chunk : requestChunks) {
       // TODO(jiacheng): rate limit this? ACK until the next send?
       //  The 2nd chunk will receive an error, then keep sending should get rejected
       requestObserver.onNext(chunk);
@@ -919,17 +923,51 @@ public class RegisterIntegrationTest {
     assertEquals(1, mBlockMaster.getWorkerCount());
   }
 
+  /**
+   * Tests below cover the most normal cases.
+   */
+  // TODO(jiacheng): register an empty worker
 
-  // TODO(jiacheng): kill master in streaming, the worker should see error
-
-  // TODO(jiacheng): fails in workerRegisterStart
-
-  // TODO(jiacheng): fails in workerRegisterStream
-
-  // TODO(jiacheng): fails in workerRegisterComplete
+  // TODO(jiacheng): register a worker with batches of requests
 
   // TODO(jiacheng): re-register unforgotten worker
 
   // TODO(jiacheng): re-register forgotten worker
+
+
+  /**
+   * Tests below cover various failure cases.
+   */
+  // TODO(jiacheng): master fails in workerRegisterStart, worker should see an error, worker unlocked
+
+  // TODO(jiacheng): master fails in workerRegisterStream, worker should see an error, worker unlocked
+
+  // TODO(jiacheng): master fails in workerRegisterComplete, worker should see an error, worker unlocked
+
+  // TODO(jiacheng): worker hangs, session recycled, worker unlocked
+
+  // TODO(jiacheng): worker sends an error, session recycled, worker unlocked
+
+
+  /**
+   * Tests below cover the race conditions during concurrent executions.
+   *
+   * When the worker registers for the 1st time, no clients should know this worker.
+   * Therefore there is no concurrent client-incurred write operations on this worker.
+   * The races happen typically when the worker re-registers with the master,
+   * where some clients already know this worker and can direct invoke writes on the worker.
+   *
+   * Tests here verify the integrity of the master-side metadata.
+   * In other words, we assume those writers succeed on the worker, and the subsequent
+   * update on the master-side metadata should also succeed and be correct.
+   */
+  // TODO(jiacheng): support creating a writer and writes during the stream, the worker locks are
+  //  reentrant so that writer must be in another thread
+
+  // TODO(jiacheng): re-register stream concurrent with delete
+
+  // TODO(jiacheng): re-register stream concurrent with free
+
+  // TODO(jiacheng): re-register stream concurrent with commit
 }
 
