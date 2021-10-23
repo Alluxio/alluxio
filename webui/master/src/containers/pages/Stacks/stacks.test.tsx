@@ -29,6 +29,10 @@ describe('Stacks', () => {
       shallowWrapper = shallow(<StacksPresenter />);
     });
 
+    it('Renders without crashing', () => {
+      expect(shallowWrapper.length).toEqual(1);
+    });
+
     it('Matches snapshot', () => {
       expect(shallowWrapper).toMatchSnapshot();
     });

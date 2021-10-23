@@ -10,7 +10,7 @@
  */
 
 import React from 'react';
-import { compose } from 'redux';
+
 export class StacksPresenter extends React.Component {
   public render(): JSX.Element {
     return this.renderStacksView();
@@ -24,4 +24,4 @@ export class StacksPresenter extends React.Component {
     );
   }
 }
-export default compose(StacksPresenter) as typeof React.Component;
+export default StacksPresenter as typeof React.Component;
