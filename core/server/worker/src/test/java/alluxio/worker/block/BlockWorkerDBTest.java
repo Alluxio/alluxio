@@ -11,9 +11,8 @@
 
 package alluxio.worker.block;
 
-import alluxio.ConfigurationTestUtils;
-import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
 import alluxio.util.IdUtils;
 import alluxio.util.io.PathUtils;
 
@@ -30,7 +29,6 @@ public class BlockWorkerDBTest {
    */
   DefaultBlockWorkerDB mBlockWorkerDB;
   final String mNotExistPath = "mNotExistPath";
-  final String mDBfile = "mDBfile";
   final String mKey1 = "key1";
   final String mValue1 = "value1";
 
@@ -48,8 +46,10 @@ public class BlockWorkerDBTest {
   }
 
   void createDefault() {
-    InstancedConfiguration conf = ConfigurationTestUtils.defaults();
-    conf.set(PropertyKey.WORKER_PERSISTENCE_INFO_PATH, mTestFolder.getRoot().getAbsolutePath());
+    // write permission is required, ,
+    // so the default WORKER_PERSISTENCE_INFO_PATH is set to temporary folder
+    ServerConfiguration.set(PropertyKey.WORKER_PERSISTENCE_INFO_PATH,
+        mTestFolder.getRoot().getAbsolutePath());
     mBlockWorkerDB = new DefaultBlockWorkerDB();
     reset();
   }

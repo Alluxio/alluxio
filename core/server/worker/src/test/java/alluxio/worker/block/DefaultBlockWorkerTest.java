@@ -108,6 +108,7 @@ public class DefaultBlockWorkerTest {
     mSessions = mock(Sessions.class);
     mUfsManager = mock(UfsManager.class);
 
+    setPersistenceConf();
     mBlockWorker = new DefaultBlockWorker(mBlockMasterClientPool, mFileSystemMasterClient,
         mSessions, mBlockStore, mUfsManager);
   }
@@ -387,10 +388,19 @@ public class DefaultBlockWorkerTest {
     verify(mBlockStore).updatePinnedInodes(pinnedInodes);
   }
 
+  void setPersistenceConf() {
+    // write permission is required, ,
+    // so the default WORKER_PERSISTENCE_INFO_PATH is set to temporary folder
+    ServerConfiguration.set(PropertyKey.WORKER_PERSISTENCE_INFO_PATH,
+        mTestFolder.getRoot().getAbsolutePath());
+  }
+
   @Test
   public void handlePreRegisterCommandNothing() throws IOException {
     PreRegisterCommand cmd = PreRegisterCommand.newBuilder()
         .setPreRegisterCommandType(PreRegisterCommandType.Nothing).build();
+
+    // noting to do
     mBlockWorker.handlePreRegisterCommand(cmd);
   }
 
