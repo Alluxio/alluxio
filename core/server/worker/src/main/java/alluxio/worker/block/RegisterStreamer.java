@@ -2,6 +2,10 @@ package alluxio.worker.block;
 
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
+import alluxio.exception.status.AlluxioStatusException;
+import alluxio.exception.status.CancelledException;
+import alluxio.exception.status.DeadlineExceededException;
+import alluxio.exception.status.InternalException;
 import alluxio.grpc.BlockMasterWorkerServiceGrpc;
 import alluxio.grpc.ConfigProperty;
 import alluxio.grpc.LocationBlockIdListEntry;
@@ -54,9 +58,9 @@ public class RegisterStreamer implements Iterator<RegisterWorkerPRequest> {
   Semaphore mBucket = new Semaphore(MAX_BATCHES_IN_FLIGHT);
   AtomicReference<Throwable> mError = new AtomicReference<>();
 
-  int mResponseTimeoutMs = (int) ServerConfiguration.getMs(PropertyKey.WORKER_REGISTER_STREAM_RESPONSE_TIMEOUT);
-  int mDeadlineMs = (int) ServerConfiguration.getMs(PropertyKey.WORKER_REGISTER_STREAM_DEADLINE);
-  int mCompleteTimeoutMs = (int) ServerConfiguration.getMs(PropertyKey.WORKER_REGISTER_STREAM_COMPLETE_TIMEOUT);
+  private final int mResponseTimeoutMs;
+  private final int mDeadlineMs;
+  private final int mCompleteTimeoutMs;
 
   public final StreamObserver<RegisterWorkerPResponse> mResponseObserver;
   public final StreamObserver<RegisterWorkerPRequest> mRequestObserver;
@@ -103,6 +107,10 @@ public class RegisterStreamer implements Iterator<RegisterWorkerPRequest> {
     mAckLatch = new CountDownLatch(mBlockMapIterator.getBatchCount());
     mFinishLatch = new CountDownLatch(1);
 
+    mResponseTimeoutMs = (int) ServerConfiguration.getMs(PropertyKey.WORKER_REGISTER_STREAM_RESPONSE_TIMEOUT);
+    mDeadlineMs = (int) ServerConfiguration.getMs(PropertyKey.WORKER_REGISTER_STREAM_DEADLINE);
+    mCompleteTimeoutMs = (int) ServerConfiguration.getMs(PropertyKey.WORKER_REGISTER_STREAM_COMPLETE_TIMEOUT);
+
     mResponseObserver = new StreamObserver<RegisterWorkerPResponse>() {
       @Override
       public void onNext(RegisterWorkerPResponse res) {
@@ -113,6 +121,7 @@ public class RegisterStreamer implements Iterator<RegisterWorkerPRequest> {
 
       @Override
       public void onError(Throwable t) {
+        System.out.println("Received error from master " + t);
         LOG.error("register received error from server, closing latch: ", t);
         mError.set(t);
         mFinishLatch.countDown();
@@ -134,37 +143,50 @@ public class RegisterStreamer implements Iterator<RegisterWorkerPRequest> {
         .registerWorkerStream(mResponseObserver);
   }
 
-  public void registerWithMaster() throws InterruptedException, IOException {
+
+  public void registerWithMaster()
+      throws CancelledException, InternalException, DeadlineExceededException, InterruptedException {
     try {
-      int iter = 0;
-      while (hasNext()) {
-        // Send a request when the master ACKs the previous one
-        LOG.debug("{} - Acquiring one token", mWorkerId);
-        Instant start = Instant.now();
-        if (!mBucket.tryAcquire(mResponseTimeoutMs, TimeUnit.MILLISECONDS)) {
-          throw new IOException(
-              String.format("No response from master for more than %dms during the stream!",
-                  mResponseTimeoutMs));
-        }
-        Instant end = Instant.now();
-        LOG.debug("{} - master ACK acquired in {}ms, sending the next iter {}",
-                mWorkerId, Duration.between(start, end).toMillis(), iter);
-
-        // Send the request
-        RegisterWorkerPRequest request = next();
-        mRequestObserver.onNext(request);
-
-        if (mFinishLatch.getCount() == 0) {
-          abort();
-        }
-
-        iter++;
-      }
-    } catch (InterruptedException | IOException e) {
-      System.out.format("Error during stream %s%n", e);
-      // Propagates the error to the server and close the channel
+      registerWithInternal();
+    } catch (DeadlineExceededException | InterruptedException | CancelledException e) {
+      LOG.error("Error during the register stream, aborting now.", e);
+      // These exceptions are internal to the worker
+      // Propagate to the master side so it can clean up properly
       mRequestObserver.onError(e);
       throw e;
+    }
+    // The only exception that is not propagated to the master is InternalException.
+    // We assume that is from the master so there is no need to send it back again.
+  }
+
+  private void registerWithInternal()
+      throws InterruptedException, DeadlineExceededException, CancelledException, InternalException {
+    int iter = 0;
+    while (hasNext()) {
+      // Send a request when the master ACKs the previous one
+      LOG.debug("{} - Acquiring one token", mWorkerId);
+      Instant start = Instant.now();
+      System.out.println("Acquiring the token now " + start + " tokens free: " + mBucket.availablePermits());
+      if (!mBucket.tryAcquire(mResponseTimeoutMs, TimeUnit.MILLISECONDS)) {
+        throw new DeadlineExceededException(
+            String.format("No response from master for more than %dms during the stream!",
+                mResponseTimeoutMs));
+      }
+      Instant end = Instant.now();
+      System.out.format("%d - master ACK received in %dms, sending the next iter %d%n",
+              mWorkerId, Duration.between(start, end).toMillis(), iter);
+      LOG.debug("{} - master ACK received in {}ms, sending the next iter {}",
+              mWorkerId, Duration.between(start, end).toMillis(), iter);
+
+      // Send the request
+      RegisterWorkerPRequest request = next();
+      mRequestObserver.onNext(request);
+
+      if (mFinishLatch.getCount() == 0) {
+        abort();
+      }
+
+      iter++;
     }
 
     // If the master side is closed before the client side, there is a problem
@@ -175,7 +197,7 @@ public class RegisterStreamer implements Iterator<RegisterWorkerPRequest> {
     // Wait for all batches have been ACK-ed by the master before completing the client side
     if (!mAckLatch.await(mResponseTimeoutMs * MAX_BATCHES_IN_FLIGHT, TimeUnit.MILLISECONDS)) {
       long receivedCount = mBlockMapIterator.getBatchCount() - mAckLatch.getCount();
-      throw new IOException(
+      throw new DeadlineExceededException(
           String.format("All batches have been sent to the master but only received %d ACKs!",
               receivedCount));
     }
@@ -183,29 +205,29 @@ public class RegisterStreamer implements Iterator<RegisterWorkerPRequest> {
     mRequestObserver.onCompleted();
     LOG.info("{} - Waiting on the master side to complete", mWorkerId);
     if (!mFinishLatch.await(mCompleteTimeoutMs, TimeUnit.MILLISECONDS)) {
-      throw new IOException(
+      throw new DeadlineExceededException(
           String.format("All batches have been received by the master but the master failed to complete the "
               + "registration in %dms!",
           mCompleteTimeoutMs));
     }
-    LOG.info("{} - Master completed", mWorkerId);
-
-    if (mError != null) {
-      LOG.error("Received error in register");
-      throw new IOException(mError.get());
-    }
-  }
-
-  // TODO(jiacheng): better name
-  void abort() throws IOException {
+    // If the master failed in completing the request, there will also be an error
     if (mError.get() != null) {
       Throwable t = mError.get();
-      LOG.error("An error occurred during the stream", t);
-      throw new IOException(t);
+      LOG.error("Received an error from the master on completion", t);
+      throw new InternalException(t);
+    }
+    LOG.info("{} - Finished registration with a stream", mWorkerId);
+  }
+
+  private void abort() throws InternalException, CancelledException {
+    if (mError.get() != null) {
+      Throwable t = mError.get();
+      LOG.error("Received an error from the master", t);
+      throw new InternalException(t);
     } else {
       String msg = "The server side has been closed before all the batches are sent from the worker!";
       LOG.error(msg);
-      throw new IOException(msg);
+      throw new CancelledException(msg);
     }
   }
 

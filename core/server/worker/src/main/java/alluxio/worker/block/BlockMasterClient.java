@@ -267,6 +267,9 @@ public class BlockMasterClient extends AbstractMasterClient {
                                  final Map<String, List<String>> lostStorage,
                                  final List<ConfigProperty> configList) throws IOException {
     AtomicReference<IOException> ioe = new AtomicReference<>();
+    // The retry logic only takes care of connection issues.
+    // If the master side sends back an error,
+    // no retry will be attempted and the worker will quit.
     retryRPC(() -> {
         // The gRPC stream lifecycle is managed internal to the RegisterStreamer
         // When an exception is thrown, the stream has been closed and error propagated
@@ -274,7 +277,6 @@ public class BlockMasterClient extends AbstractMasterClient {
         RegisterStreamer stream = new RegisterStreamer(mAsyncClient,
                 workerId, storageTierAliases, totalBytesOnTiers, usedBytesOnTiers,
                 currentBlocksOnLocation, lostStorage, configList);
-        // TODO(jiacheng): For IOE, the worker will be aborted, change this!
         try {
           stream.registerWithMaster();
         } catch (IOException e) {
