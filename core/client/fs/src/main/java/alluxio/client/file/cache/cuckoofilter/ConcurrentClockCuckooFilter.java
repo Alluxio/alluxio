@@ -739,15 +739,15 @@ public class ConcurrentClockCuckooFilter<T> implements ClockCuckooFilter<T>, Ser
       int startingSlot = x.mPathcode % TAGS_PER_BUCKET;
       for (int i = 0; i < TAGS_PER_BUCKET; i++) {
         int slot = (startingSlot + i) % TAGS_PER_BUCKET;
-        int tag = mTable.readTag(b1, slot);
+        int tag = mTable.readTag(x.mBucketIndex, slot);
         if (tag == 0) {
           x.mPathcode = x.mPathcode * TAGS_PER_BUCKET + slot;
           mLocks.unlockWrite(x.mBucketIndex);
           return x;
         }
         if (x.mDepth < MAX_BFS_PATH_LEN - 1) {
-          queue.offer(
-              new BFSEntry(altIndex(b1, tag), x.mPathcode * TAGS_PER_BUCKET + slot, x.mDepth + 1));
+          queue.offer(new BFSEntry(altIndex(x.mBucketIndex, tag),
+              x.mPathcode * TAGS_PER_BUCKET + slot, x.mDepth + 1));
         }
       }
       mLocks.unlockWrite(x.mBucketIndex);
@@ -791,6 +791,13 @@ public class ConcurrentClockCuckooFilter<T> implements ClockCuckooFilter<T>, Ser
       // if `to` is nonempty, or `from` is not occupied by original tag,
       // in both cases, abort this insertion.
       if (mTable.readTag(to.mBucketIndex, to.mSlotIndex) != 0 || fromTag != from.mFingerprint) {
+        if (depth == 1) {
+          // NOTE: We must hold the locks of b1 and b2.
+          // Or their slots may be preempted by another key if we released locks.
+          mLocks.unlockWrite(b1, b2, to.mBucketIndex);
+        } else {
+          mLocks.unlockWrite(from.mBucketIndex, to.mBucketIndex);
+        }
         return false;
       }
       mTable.writeTag(to.mBucketIndex, to.mSlotIndex, fromTag);
