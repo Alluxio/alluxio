@@ -49,6 +49,8 @@ export class WorkersPresenter extends React.Component<AllProps> {
                   <tr>
                     {workersData.normalNodeInfos.map((nodeInfo: INodeInfo) => (
                       <th key={nodeInfo.workerId}>
+                        {/*When workers start with kubernetes. `nodeInfo.host` is `hostIp (podIp)`,
+                            So it should be displayed as Node Name(Container Host).*/}
                         {nodeInfo.host.includes('(') ? 'Node Name(Container Host)' : 'Node Name'}
                       </th>
                     ))}
