@@ -1099,6 +1099,7 @@ public class ConcurrentBlockMasterTest {
    * @param blockLength the block should have this length
    * @param workers the block should be on these workers
    */
+  // TODO(jiacheng): use the utils!
   private void verifyBlockOnWorkers(long blockId, long blockLength,
                                     List<WorkerInfo> workers) throws Exception {
     BlockInfo blockInfo = mBlockMaster.getBlockInfo(blockId);

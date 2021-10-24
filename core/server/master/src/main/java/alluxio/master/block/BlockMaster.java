@@ -269,5 +269,5 @@ public interface BlockMaster extends Master, ContainerIdGenerable {
 
   void workerRegisterBatch(WorkerRegisterContext context, RegisterWorkerPRequest chunk);
 
-  void workerRegisterFinish(WorkerRegisterContext context) throws NotFoundException;
+  void workerRegisterFinish(WorkerRegisterContext context);
 }

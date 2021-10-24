@@ -114,7 +114,7 @@ public class CachingBlockMasterClient extends BlockMasterClient {
     AtomicReference<IOException> ioe = new AtomicReference<>();
     retryRPC(() -> {
       try {
-        RegisterStreamer stream = new RegisterStreamer(mClient, mAsyncClient, workerId, storageTierAliases, totalBytesOnTiers, usedBytesOnTiers,
+        RegisterStreamer stream = new RegisterStreamer(mAsyncClient, workerId, storageTierAliases, totalBytesOnTiers, usedBytesOnTiers,
                 currentBlocksOnLocation, lostStorage, configList, mBlockBatchIterator);
         stream.registerWithMaster();
       } catch (IOException e) {

@@ -10,6 +10,7 @@ import alluxio.grpc.RegisterWorkerPRequest;
 import alluxio.grpc.RegisterWorkerPResponse;
 import alluxio.grpc.StorageList;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.ImmutableList;
 import io.grpc.stub.StreamObserver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,6 +18,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -31,7 +33,6 @@ public class RegisterStreamer implements Iterator<RegisterWorkerPRequest> {
 
   private static final int MAX_BATCHES_IN_FLIGHT = 2;
 
-  final BlockMasterWorkerServiceGrpc.BlockMasterWorkerServiceBlockingStub mClient;
   final BlockMasterWorkerServiceGrpc.BlockMasterWorkerServiceStub mAsyncClient;
 
   final long mWorkerId;
@@ -41,40 +42,39 @@ public class RegisterStreamer implements Iterator<RegisterWorkerPRequest> {
   final Map<BlockStoreLocation, List<Long>> mCurrentBlocksOnLocation;
   final Map<String, List<String>> mLostStorage;
   final List<ConfigProperty> mConfigList;
-
-  StreamObserver<RegisterWorkerPRequest> mRequestObserver;
-  final CountDownLatch mAckLatch;
-  final CountDownLatch mFinishLatch;
-  BlockMapIterator mBlockMapIterator;
-
-  // How many batches active in a stream
-  Semaphore mBucket = new Semaphore(MAX_BATCHES_IN_FLIGHT);
-  AtomicReference<Throwable> mError = new AtomicReference<>();
-
   RegisterWorkerPOptions mOptions;
   Map<String, StorageList> mLostStorageMap;
+
   int mBatchNumber;
+  BlockMapIterator mBlockMapIterator;
+
+  // For internal flow control and state mgmt
+  final CountDownLatch mAckLatch;
+  final CountDownLatch mFinishLatch;
+  Semaphore mBucket = new Semaphore(MAX_BATCHES_IN_FLIGHT);
+  AtomicReference<Throwable> mError = new AtomicReference<>();
 
   int mResponseTimeoutMs = (int) ServerConfiguration.getMs(PropertyKey.WORKER_REGISTER_STREAM_RESPONSE_TIMEOUT);
   int mDeadlineMs = (int) ServerConfiguration.getMs(PropertyKey.WORKER_REGISTER_STREAM_DEADLINE);
   int mCompleteTimeoutMs = (int) ServerConfiguration.getMs(PropertyKey.WORKER_REGISTER_STREAM_COMPLETE_TIMEOUT);
 
+  public final StreamObserver<RegisterWorkerPResponse> mResponseObserver;
+  public final StreamObserver<RegisterWorkerPRequest> mRequestObserver;
+
   public RegisterStreamer(
-          final BlockMasterWorkerServiceGrpc.BlockMasterWorkerServiceBlockingStub client,
           final BlockMasterWorkerServiceGrpc.BlockMasterWorkerServiceStub asyncClient,
           final long workerId, final List<String> storageTierAliases,
           final Map<String, Long> totalBytesOnTiers, final Map<String, Long> usedBytesOnTiers,
           final Map<BlockStoreLocation, List<Long>> currentBlocksOnLocation,
           final Map<String, List<String>> lostStorage,
           final List<ConfigProperty> configList) {
-    this(client, asyncClient, workerId, storageTierAliases, totalBytesOnTiers, usedBytesOnTiers,
+    this(asyncClient, workerId, storageTierAliases, totalBytesOnTiers, usedBytesOnTiers,
             currentBlocksOnLocation, lostStorage, configList,
             new BlockMapIterator(currentBlocksOnLocation));
   }
 
   @VisibleForTesting
   public RegisterStreamer(
-          final BlockMasterWorkerServiceGrpc.BlockMasterWorkerServiceBlockingStub client,
           final BlockMasterWorkerServiceGrpc.BlockMasterWorkerServiceStub asyncClient,
           final long workerId, final List<String> storageTierAliases,
           final Map<String, Long> totalBytesOnTiers, final Map<String, Long> usedBytesOnTiers,
@@ -82,7 +82,6 @@ public class RegisterStreamer implements Iterator<RegisterWorkerPRequest> {
           final Map<String, List<String>> lostStorage,
           final List<ConfigProperty> configList,
           BlockMapIterator blockListIterator) {
-    mClient = client;
     mAsyncClient = asyncClient;
     mWorkerId = workerId;
     mStorageTierAliases = storageTierAliases;
@@ -92,22 +91,19 @@ public class RegisterStreamer implements Iterator<RegisterWorkerPRequest> {
     mLostStorage = lostStorage;
     mConfigList = configList;
 
-    // Initialize the observer
-    mFinishLatch = new CountDownLatch(1);
-
     // Some extra conversions
+    // TODO(jiacheng): remove unnecessary conversions
     mOptions = RegisterWorkerPOptions.newBuilder().addAllConfigs(mConfigList).build();
     mLostStorageMap = mLostStorage.entrySet().stream()
             .collect(Collectors.toMap(Map.Entry::getKey,
                     e -> StorageList.newBuilder().addAllStorage(e.getValue()).build()));
     mBatchNumber = 0;
-
     mBlockMapIterator = blockListIterator;
-    mAckLatch = new CountDownLatch(mBlockMapIterator.getBatchCount());
-  }
 
-  public void registerWithMaster() throws InterruptedException, IOException {
-    StreamObserver<RegisterWorkerPResponse> responseObserver = new StreamObserver<RegisterWorkerPResponse>() {
+    mAckLatch = new CountDownLatch(mBlockMapIterator.getBatchCount());
+    mFinishLatch = new CountDownLatch(1);
+
+    mResponseObserver = new StreamObserver<RegisterWorkerPResponse>() {
       @Override
       public void onNext(RegisterWorkerPResponse res) {
         LOG.debug("{} - Received ACK {}", mWorkerId, res);
@@ -128,22 +124,17 @@ public class RegisterStreamer implements Iterator<RegisterWorkerPRequest> {
         mFinishLatch.countDown();
       }
     };
+
     // onNext() - send the request batches
     // onError() - when an error occurs on the worker side, propagate the error status to the master
     //             side and then close on the worker side, the master will handle necessary cleanup on its side
     // onCompleted() - complete on the client side when all the batches are sent and all ACKs are received
     mRequestObserver = mAsyncClient
-            .withDeadlineAfter(mDeadlineMs, TimeUnit.MILLISECONDS)
-            .registerWorkerStream(responseObserver);
-
-    LOG.debug("{} - starting to register", mWorkerId);
-    registerInternal();
-
-    LOG.debug("{} - register finished", mWorkerId);
+        .withDeadlineAfter(mDeadlineMs, TimeUnit.MILLISECONDS)
+        .registerWorkerStream(mResponseObserver);
   }
 
-  // TODO(jiacheng): what to do if deadlines are exceeded, retry?
-  public void registerInternal() throws InterruptedException, IOException {
+  public void registerWithMaster() throws InterruptedException, IOException {
     try {
       int iter = 0;
       while (hasNext()) {
@@ -220,14 +211,20 @@ public class RegisterStreamer implements Iterator<RegisterWorkerPRequest> {
 
   @Override
   public boolean hasNext() {
-    return mBlockMapIterator.hasNext();
+    // There will be at least 1 request even if the blocks are empty
+    return mBlockMapIterator.hasNext() || mBatchNumber == 0;
   }
 
   @Override
   public RegisterWorkerPRequest next() {
     RegisterWorkerPRequest request;
-    List<LocationBlockIdListEntry> blockBatch = mBlockMapIterator.next();
+    List<LocationBlockIdListEntry> blockBatch;
     if (mBatchNumber == 0) {
+      if (mBlockMapIterator.hasNext()) {
+        blockBatch = mBlockMapIterator.next();
+      } else {
+        blockBatch = Collections.emptyList();
+      }
       // If it is the 1st batch, include metadata
       request = RegisterWorkerPRequest.newBuilder()
               .setWorkerId(mWorkerId)
@@ -239,6 +236,7 @@ public class RegisterStreamer implements Iterator<RegisterWorkerPRequest> {
               .addAllCurrentBlocks(blockBatch)
               .build();
     } else {
+      blockBatch = mBlockMapIterator.next();
       // Following batches only include the block list
       request = RegisterWorkerPRequest.newBuilder()
               .setWorkerId(mWorkerId)

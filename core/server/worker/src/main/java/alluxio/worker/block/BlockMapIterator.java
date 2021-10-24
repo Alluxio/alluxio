@@ -6,10 +6,12 @@ import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.BlockIdList;
 import alluxio.grpc.BlockStoreLocationProto;
 import alluxio.grpc.LocationBlockIdListEntry;
+import com.google.common.collect.ImmutableList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -82,7 +84,11 @@ public class BlockMapIterator implements Iterator<List<LocationBlockIdListEntry>
     mBlockCount = totalCount;
 
     // Initialize the iteration status
-    currentIterator = mBlockLocationIteratorMap.get(mBlockStoreLocationProtoList.get(0));
+    if (mBlockStoreLocationProtoList.size() == 0) {
+      currentIterator = Collections.emptyIterator();
+    } else {
+      currentIterator = mBlockLocationIteratorMap.get(mBlockStoreLocationProtoList.get(0));
+    }
   }
 
   @Override

@@ -3238,7 +3238,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey WORKER_REGISTER_STREAM_ENABLED =
       new Builder(Name.WORKER_REGISTER_STREAM_ENABLED)
-          .setDefaultValue("false")
+          .setDefaultValue("true")
           .setDescription("When the worker registers with the master, whether the request should be"
               + " broken into a stream of smaller batches. This is useful when the worker's storage "
               + "is large and we expect a large number of blocks. ")

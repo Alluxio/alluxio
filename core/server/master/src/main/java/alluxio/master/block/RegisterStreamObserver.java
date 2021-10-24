@@ -38,7 +38,8 @@ public class RegisterStreamObserver implements StreamObserver<RegisterWorkerPReq
   }
 
   @Override
-  public void onNext(alluxio.grpc.RegisterWorkerPRequest chunk) {
+  public void onNext(RegisterWorkerPRequest chunk) {
+    System.out.println("handled by stream observer " + this);
     final long workerId = chunk.getWorkerId();
     final boolean isHead = isFirstMessage(chunk);
     LOG.info("{} - Register worker request is {} bytes, containing {} LocationBlockIdListEntry. Worker {}, isHead {}",
@@ -48,7 +49,7 @@ public class RegisterStreamObserver implements StreamObserver<RegisterWorkerPReq
             workerId,
             isHead);
 
-    io.grpc.stub.StreamObserver<alluxio.grpc.RegisterWorkerPRequest> requestObserver = this;
+    StreamObserver<RegisterWorkerPRequest> requestObserver = this;
     String methodName = isHead ? "registerWorkerStart" : "registerWorkerStream";
 
     RpcUtils.streamingRPCAndLog(LOG, new RpcUtils.StreamingRpcCallable<RegisterWorkerPResponse>() {
@@ -97,6 +98,9 @@ public class RegisterStreamObserver implements StreamObserver<RegisterWorkerPReq
   // The master will then receive the error, abort the stream and close itself.
   // TODO(jiacheng): test this
   public void onError(Throwable t) {
+    System.out.println("handled by stream observer " + this);
+
+    System.out.println("Received error from worker: " + t);
     // TODO(jiacheng): Do not log the full exception, the full stacktrace should be found
     //  on the worker and the master log should be clean with only a warning message
     LOG.error("Received error from the worker side during the streaming register call", t);
@@ -105,6 +109,8 @@ public class RegisterStreamObserver implements StreamObserver<RegisterWorkerPReq
 
   @Override
   public void onCompleted() {
+    System.out.println("handled by stream observer " + this);
+
     LOG.info("{} - Register stream completed on the client side", Thread.currentThread().getId());
 
     String methodName = "registerWorkerComplete";

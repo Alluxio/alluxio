@@ -271,10 +271,10 @@ public class BlockMasterClient extends AbstractMasterClient {
         // The gRPC stream lifecycle is managed internal to the RegisterStreamer
         // When an exception is thrown, the stream has been closed and error propagated
         // to the other side, so no extra handling is required here.
-        RegisterStreamer stream = new RegisterStreamer(
-                mClient, mAsyncClient,
+        RegisterStreamer stream = new RegisterStreamer(mAsyncClient,
                 workerId, storageTierAliases, totalBytesOnTiers, usedBytesOnTiers,
                 currentBlocksOnLocation, lostStorage, configList);
+        // TODO(jiacheng): For IOE, the worker will be aborted, change this!
         try {
           stream.registerWithMaster();
         } catch (IOException e) {

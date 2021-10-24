@@ -1084,7 +1084,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
   }
 
   @Override
-  public void workerRegisterFinish(WorkerRegisterContext context) throws NotFoundException {
+  public void workerRegisterFinish(WorkerRegisterContext context) {
     MasterWorkerInfo worker = context.mWorker;
     Preconditions.checkState(worker != null, "The context has null worker!");
 
@@ -1098,12 +1098,12 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
       // The toRemoveBlocks field now contains all the updates
       // after all the blocks have been processed.
       removedBlocks = worker.getToRemoveBlocks();
+      System.out.println("Found lost blocks " + removedBlocks);
     } else {
       LOG.info("registering a new worker: {}", worker.getId());
       removedBlocks = Collections.emptySet();
     }
     LOG.info("{} blocks to remove from the worker", removedBlocks.size());
-    // TODO(jiacheng): ConcurrentModificationException here when register existing worker!
     processWorkerRemovedBlocks(worker, removedBlocks);
 
     // Mark registered successfully
@@ -1347,7 +1347,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
   /**
    * Lost worker periodic check.
    */
-  private final class LostWorkerDetectionHeartbeatExecutor implements HeartbeatExecutor {
+  public final class LostWorkerDetectionHeartbeatExecutor implements HeartbeatExecutor {
 
     /**
      * Constructs a new {@link LostWorkerDetectionHeartbeatExecutor}.
