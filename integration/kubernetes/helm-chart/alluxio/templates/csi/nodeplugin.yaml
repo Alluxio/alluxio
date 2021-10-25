@@ -43,6 +43,9 @@ spec:
     spec:
       hostNetwork: {{ .Values.csi.nodePlugin.hostNetwork }}
       dnsPolicy: {{ .Values.csi.nodePlugin.dnsPolicy }}
+      {{- if .Values.imagePullSecrets }}
+{{ include "alluxio.imagePullSecrets" . | indent 6 }}
+      {{- end}}
       containers:
         - name: node-driver-registrar
           image: {{ .Values.csi.nodePlugin.driverRegistrar.image }}

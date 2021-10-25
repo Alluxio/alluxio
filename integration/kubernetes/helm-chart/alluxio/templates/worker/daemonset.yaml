@@ -82,6 +82,9 @@ spec:
     {{- else if .Values.serviceAccount }}
       serviceAccountName: {{ .Values.serviceAccount }}
     {{- end }}
+      {{- if .Values.imagePullSecrets }}
+{{ include "alluxio.imagePullSecrets" . | indent 6 }}
+      {{- end}}
       containers:
         - name: alluxio-worker
           image: {{ .Values.image }}:{{ .Values.imageTag }}
@@ -130,6 +133,7 @@ spec:
             periodSeconds: {{ .Values.worker.readinessProbe.periodSeconds }}
             timeoutSeconds: {{ .Values.worker.readinessProbe.timeoutSeconds }}
             failureThreshold: {{ .Values.worker.readinessProbe.failureThreshold }}
+            successThreshold: {{ .Values.worker.readinessProbe.successThreshold }}
           livenessProbe:
             tcpSocket:
               port: rpc
@@ -137,6 +141,15 @@ spec:
             periodSeconds: {{ .Values.worker.livenessProbe.periodSeconds }}
             timeoutSeconds: {{ .Values.worker.livenessProbe.timeoutSeconds }}
             failureThreshold: {{ .Values.worker.livenessProbe.failureThreshold }}
+          {{- if .Values.worker.startupProbe }}
+          startupProbe:
+            tcpSocket:
+              port: rpc
+            initialDelaySeconds: {{ .Values.worker.startupProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.worker.startupProbe.periodSeconds }}
+            timeoutSeconds: {{ .Values.worker.startupProbe.timeoutSeconds }}
+            failureThreshold: {{ .Values.worker.startupProbe.failureThreshold }}
+          {{- end}}
           ports:
           - containerPort: {{ .Values.worker.ports.rpc }}
             name: rpc
@@ -205,6 +218,7 @@ spec:
             periodSeconds: {{ .Values.jobWorker.readinessProbe.periodSeconds }}
             timeoutSeconds: {{ .Values.jobWorker.readinessProbe.timeoutSeconds }}
             failureThreshold: {{ .Values.jobWorker.readinessProbe.failureThreshold }}
+            successThreshold: {{ .Values.jobWorker.readinessProbe.successThreshold }}
           livenessProbe:
             tcpSocket:
               port: job-rpc
@@ -212,6 +226,15 @@ spec:
             periodSeconds: {{ .Values.jobWorker.livenessProbe.periodSeconds }}
             timeoutSeconds: {{ .Values.jobWorker.livenessProbe.timeoutSeconds }}
             failureThreshold: {{ .Values.jobWorker.livenessProbe.failureThreshold }}
+          {{- if .Values.jobWorker.startupProbe }}
+          startupProbe:
+            tcpSocket:
+              port: job-rpc
+            initialDelaySeconds: {{ .Values.jobWorker.startupProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.jobWorker.startupProbe.periodSeconds }}
+            timeoutSeconds: {{ .Values.jobWorker.startupProbe.timeoutSeconds }}
+            failureThreshold: {{ .Values.jobWorker.startupProbe.failureThreshold }}
+          {{- end}}
           ports:
           - containerPort: {{ .Values.jobWorker.ports.rpc }}
             name: job-rpc

@@ -24,6 +24,7 @@ import alluxio.client.file.FileSystemContextReinitializer.ReinitBlockerResource;
 import alluxio.client.metrics.MetricsHeartbeatContext;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
+import alluxio.conf.ReconfigurableRegistry;
 import alluxio.conf.path.SpecificPathConfiguration;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.status.AlluxioStatusException;
@@ -385,6 +386,7 @@ public class FileSystemContext implements Closeable {
       LOG.debug("Reinitializing FileSystemContext: update cluster conf: {}, update path conf:"
           + " {}", updateClusterConf, updateClusterConf);
       closeContext();
+      ReconfigurableRegistry.update();
       initContext(getClientContext(), MasterInquireClient.Factory.create(getClusterConf(),
           getClientContext().getUserState()));
       LOG.debug("FileSystemContext re-initialized");
@@ -503,7 +505,7 @@ public class FileSystemContext implements Closeable {
     try {
       return new CloseableResource<T>(pool.acquire()) {
         @Override
-        public void close() {
+        public void closeResource() {
           pool.release(get());
         }
       };
@@ -547,7 +549,7 @@ public class FileSystemContext implements Closeable {
         .acquire()) {
       // Save the reference to the original pool map.
       @Override
-      public void close() {
+      public void closeResource() {
         releaseBlockWorkerClient(workerNetAddress, get(), context, poolMap);
       }
     };
