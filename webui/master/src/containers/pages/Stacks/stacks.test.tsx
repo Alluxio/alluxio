@@ -14,7 +14,7 @@ import Adapter from 'enzyme-adapter-react-16';
 import React from 'react';
 import sinon from 'sinon';
 
-import { StacksPresenter } from './stacks';
+import { StacksPresenter } from './Stacks';
 
 configure({ adapter: new Adapter() });
 
