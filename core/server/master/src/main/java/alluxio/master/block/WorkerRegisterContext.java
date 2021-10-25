@@ -6,11 +6,9 @@ import alluxio.grpc.RegisterWorkerPResponse;
 import alluxio.master.block.meta.MasterWorkerInfo;
 import alluxio.master.block.meta.WorkerMetaLockSection;
 import alluxio.resource.LockResource;
-import com.google.common.base.Preconditions;
 import io.grpc.stub.StreamObserver;
 
 import java.io.Closeable;
-import java.io.IOException;
 import java.time.Instant;
 import java.util.EnumSet;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -28,7 +26,6 @@ public class WorkerRegisterContext implements Closeable {
    * stream and will be unlocked at the end.
    */
   LockResource mWorkerLock;
-  AtomicBoolean mShouldClose;
   AtomicBoolean mOpen;
   StreamObserver<RegisterWorkerPRequest> mRequestObserver;
   StreamObserver<RegisterWorkerPResponse> mResponseObserver;
@@ -49,7 +46,6 @@ public class WorkerRegisterContext implements Closeable {
     System.out.println("Acquired all worker locks for " + getWorkerId());
 
     mOpen = new AtomicBoolean(true);
-    mShouldClose = new AtomicBoolean(false);
   }
 
   public long getWorkerId() {
