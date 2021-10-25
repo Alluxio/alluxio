@@ -273,6 +273,7 @@ worker:
   tolerations: []
   podAnnotations: {}
   ingressAnnotations: {}
+  ingressClassName:
   # The ServiceAccount provided here will have precedence over
   # the global `serviceAccount`
   serviceAccount:

@@ -14,7 +14,9 @@
 {{- $name := include "alluxio.name" . }}
 {{- $fullName := include "alluxio.fullname" . }}
 {{- $chart := include "alluxio.chart" . }}
-{{- if .Capabilities.APIVersions.Has "networking.k8s.io/v1beta1" }}
+{{- $ingressBeta := .Capabilities.APIVersions.Has "networking.k8s.io/v1beta1" }}
+
+{{- if $ingressBeta }}
 apiVersion: networking.k8s.io/v1beta1
 {{- else }}
 apiVersion: networking.k8s.io/v1
@@ -33,6 +35,9 @@ metadata:
     {{- toYaml . | nindent 4 }}
   {{- end }}
 spec:
+  {{- if .Values.master.ingressClassName }}
+  ingressClassName: {{ .Values.master.ingressClassName }}
+  {{- end }}
   rules:
   - http:
       paths:
@@ -41,15 +46,25 @@ spec:
       - path: /{{ $fullName }}-{{ $masterName }}-web
         pathType: Prefix
         backend:
+        {{- if $ingressBeta }}
+          serviceName: {{ $fullName }}-{{ $masterName }}
+          servicePort: 19999
+        {{- else }}
           service:
             name: {{ $fullName }}-{{ $masterName }}
             port:
               number: 19999
+        {{- end }}
       - path: /{{ $fullName }}-{{ $masterName }}-job-web
         pathType: Prefix
         backend:
+        {{- if $ingressBeta }}
+          serviceName: {{ $fullName }}-{{ $masterName }}
+          servicePort: 20002
+        {{- else }}
           service:
             name: {{ $fullName }}-{{ $masterName }}
             port:
               number: 20002
+        {{- end }}
       {{- end }}
