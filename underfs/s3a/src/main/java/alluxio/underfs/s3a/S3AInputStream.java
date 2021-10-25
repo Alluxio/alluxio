@@ -44,6 +44,8 @@ public class S3AInputStream extends InputStream {
   protected long mPos;
   /** The current position of the S3 http source stream. */
   private long mInPos;
+  /** The end(inclusive) of the range of the S3 http source stream. */
+  private long mInPosEnd;
 
   /**
    * Policy determining the retry behavior in case the key does not exist. The key may not exist
@@ -96,6 +98,9 @@ public class S3AInputStream extends InputStream {
       mPos++;
       mInPos++;
     }
+    if (mPos > mInPosEnd) {
+      closeStream();
+    }
     return value;
   }
 
@@ -114,6 +119,9 @@ public class S3AInputStream extends InputStream {
     if (read != -1) {
       mPos += read;
       mInPos += read;
+    }
+    if (mPos > mInPosEnd) {
+      closeStream();
     }
     return read;
   }
@@ -158,10 +166,12 @@ public class S3AInputStream extends InputStream {
    */
   private void openStream(int length) throws IOException {
     GetObjectRequest getReq = new GetObjectRequest(mBucketName, mKey);
+    //mInPosEnd is inclusive, so minus one here
+    mInPosEnd = mPos + length - 1;
     // If the position is 0, setting range is redundant and causes an error if the file is 0 length
-    // TODO(beinan): what if pos is 0 but length is not 0 when the file is 0 length, we need check
-    if (mPos > 0 || length > 0) {
-      getReq.setRange(mPos, mPos + length);
+    if (mPos > 0 || mInPosEnd > 0) {
+      // TODO(beinan): what if pos is 0 but length is not 0 when the file is 0 length, we need check
+      getReq.setRange(mPos, mInPosEnd);
     }
     AmazonS3Exception lastException = null;
     String errorMessage = String.format("Failed to open key: %s bucket: %s, left retry:%d",
