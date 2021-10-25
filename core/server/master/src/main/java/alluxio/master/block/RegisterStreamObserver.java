@@ -12,6 +12,7 @@
 package alluxio.master.block;
 
 import alluxio.RpcUtils;
+import alluxio.exception.status.AlluxioStatusException;
 import alluxio.exception.status.CancelledException;
 import alluxio.grpc.GrpcExceptionUtils;
 import alluxio.grpc.RegisterWorkerPRequest;
@@ -21,15 +22,22 @@ import io.grpc.stub.StreamObserver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicReference;
 
+/**
+ * This class handles the master side logic of the register stream.
+ * The stream lifecycle is internal to the master.
+ * In other words, there should be no external control on the request/response
+ * observers external to this class.
+ */
 public class RegisterStreamObserver implements StreamObserver<RegisterWorkerPRequest> {
   private static final Logger LOG = LoggerFactory.getLogger(RegisterStreamObserver.class);
 
   private WorkerRegisterContext mContext;
-
-  final BlockMaster mBlockMaster;
-  final io.grpc.stub.StreamObserver<alluxio.grpc.RegisterWorkerPResponse> mResponseObserver;
+  private final BlockMaster mBlockMaster;
+  private final io.grpc.stub.StreamObserver<alluxio.grpc.RegisterWorkerPResponse> mResponseObserver;
+  // Records the error from the worker side, if any
   private AtomicReference<Throwable> mErrorReceived = new AtomicReference<>();
 
   RegisterStreamObserver(BlockMaster blockMaster, io.grpc.stub.StreamObserver<alluxio.grpc.RegisterWorkerPResponse> responseObserver) {
@@ -37,7 +45,7 @@ public class RegisterStreamObserver implements StreamObserver<RegisterWorkerPReq
     mResponseObserver = responseObserver;
   }
 
-  boolean isFirstMessage(alluxio.grpc.RegisterWorkerPRequest chunk) {
+  private boolean isFirstMessage(alluxio.grpc.RegisterWorkerPRequest chunk) {
     return chunk.getStorageTiersCount() > 0;
   }
 
@@ -111,6 +119,14 @@ public class RegisterStreamObserver implements StreamObserver<RegisterWorkerPReq
   // the worker will send the error to the master and close itself.
   // The master will then receive the error, abort the stream and close itself.
   public void onError(Throwable t) {
+    if (t instanceof TimeoutException) {
+      System.out.println("Timeout signal received from the WorkerRegisterStreamGCExecutor. "
+          + "Closing context for hanging worker.");
+      cleanup();
+      mResponseObserver.onError(AlluxioStatusException.fromThrowable(t).toGrpcStatusException());
+      return;
+    }
+    // Otherwise the exception is from the worker
     System.out.println("handled by stream observer " + this);
     mErrorReceived.set(t);
     System.out.println("Received error from worker: " + t);
@@ -168,7 +184,7 @@ public class RegisterStreamObserver implements StreamObserver<RegisterWorkerPReq
       LOG.debug("Context closed");
 
       Preconditions.checkState(!mContext.isOpen(),
-              "Failed to properly close the WorkerRegisterContext!");
+          "Failed to properly close the WorkerRegisterContext!");
     }
   }
 }

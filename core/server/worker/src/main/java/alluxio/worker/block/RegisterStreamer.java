@@ -29,6 +29,11 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
+/**
+ * This class oversees the logic of registering with the master using a stream of
+ * {@link RegisterWorkerPRequest}.
+ * The stream lifecycle management lives internal to this instance.
+ */
 public class RegisterStreamer implements Iterator<RegisterWorkerPRequest> {
   private static final Logger LOG = LoggerFactory.getLogger(RegisterStreamer.class);
 
@@ -38,8 +43,6 @@ public class RegisterStreamer implements Iterator<RegisterWorkerPRequest> {
   private final List<String> mStorageTierAliases;
   private final Map<String, Long> mTotalBytesOnTiers;
   private final Map<String, Long> mUsedBytesOnTiers;
-  private final Map<BlockStoreLocation, List<Long>> mCurrentBlocksOnLocation;
-  private final Map<String, List<String>> mLostStorage;
   private final RegisterWorkerPOptions mOptions;
   private final Map<String, StorageList> mLostStorageMap;
 
@@ -87,13 +90,9 @@ public class RegisterStreamer implements Iterator<RegisterWorkerPRequest> {
     mStorageTierAliases = storageTierAliases;
     mTotalBytesOnTiers = totalBytesOnTiers;
     mUsedBytesOnTiers = usedBytesOnTiers;
-    mCurrentBlocksOnLocation = currentBlocksOnLocation;
-    mLostStorage = lostStorage;
 
-    // Some extra conversions
-    // TODO(jiacheng): remove unnecessary conversions
     mOptions = RegisterWorkerPOptions.newBuilder().addAllConfigs(configList).build();
-    mLostStorageMap = mLostStorage.entrySet().stream()
+    mLostStorageMap = lostStorage.entrySet().stream()
             .collect(Collectors.toMap(Map.Entry::getKey,
                     e -> StorageList.newBuilder().addAllStorage(e.getValue()).build()));
     mBatchNumber = 0;

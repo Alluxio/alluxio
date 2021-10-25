@@ -25,8 +25,8 @@ public class WorkerRegisterContext implements Closeable {
    * Locks on the worker's metadata sections. The locks will be held throughout the
    * stream and will be unlocked at the end.
    */
-  LockResource mWorkerLock;
-  AtomicBoolean mOpen;
+  private LockResource mWorkerLock;
+  private AtomicBoolean mOpen;
   StreamObserver<RegisterWorkerPRequest> mRequestObserver;
   StreamObserver<RegisterWorkerPResponse> mResponseObserver;
 
@@ -70,6 +70,7 @@ public class WorkerRegisterContext implements Closeable {
       return;
     }
     if (mWorkerLock != null) {
+      // TODO(jiacheng): the heartbeater cannot close it because that thread does not own this lock
       mWorkerLock.close();
     }
     mOpen.set(false);
@@ -81,7 +82,6 @@ public class WorkerRegisterContext implements Closeable {
           StreamObserver<RegisterWorkerPRequest> requestObserver,
           StreamObserver<RegisterWorkerPResponse> responseObserver) throws NotFoundException {
     MasterWorkerInfo info = blockMaster.getWorker(workerId);
-    WorkerRegisterContext context = new WorkerRegisterContext(info, requestObserver, responseObserver);
-    return context;
+    return new WorkerRegisterContext(info, requestObserver, responseObserver);
   }
 }

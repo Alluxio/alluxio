@@ -17,31 +17,34 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Each iteration returns a list of {@link LocationBlockIdListEntry} which consists of
+ * blocks for one {@link alluxio.grpc.RegisterWorkerPRequest}.
+ * The number of blocks included in one iteration is specified by
+ * {@code PropertyKey.WORKER_REGISTER_STREAM_BATCH_SIZE}.
+ */
 public class BlockMapIterator implements Iterator<List<LocationBlockIdListEntry>> {
   private static final Logger LOG = LoggerFactory.getLogger(BlockMapIterator.class);
 
-  private AlluxioConfiguration mConf;
   private int mBatchSize;
   private int mBlockCount;
-
-  // Keep the order of iteration
-  List<BlockStoreLocationProto> mBlockStoreLocationProtoList;
-  Map<BlockStoreLocationProto, Iterator<Long>> mBlockLocationIteratorMap;
+  // Keeps the order of iteration
+  private List<BlockStoreLocationProto> mBlockStoreLocationProtoList;
+  private Map<BlockStoreLocationProto, Iterator<Long>> mBlockLocationIteratorMap;
   // Iteration states
-  int mCurrentBlockLocationIndex;
-  Iterator<Long> currentIterator;
-  // Keep a global counter of how many blocks have been traversed
-  int mCounter = 0;
+  private int mCurrentBlockLocationIndex;
+  private Iterator<Long> currentIterator;
+  // A global counter of how many blocks have been traversed
+  private int mCounter = 0;
 
   public BlockMapIterator(Map<BlockStoreLocation, List<Long>> blockLocationMap) {
     this(blockLocationMap, ServerConfiguration.global());
   }
 
-  public BlockMapIterator(Map<BlockStoreLocation, List<Long>> blockLocationMap, AlluxioConfiguration conf) {
-    mConf = conf;
-    mBatchSize = mConf.getInt(PropertyKey.WORKER_REGISTER_STREAM_BATCH_SIZE);
-
-    LOG.info("Worker register batch size is {}", mBatchSize);
+  public BlockMapIterator(
+      Map<BlockStoreLocation, List<Long>> blockLocationMap, AlluxioConfiguration conf) {
+    mBatchSize = conf.getInt(PropertyKey.WORKER_REGISTER_STREAM_BATCH_SIZE);
+    LOG.info("Worker register stream batch size is {}", mBatchSize);
 
     // The worker will merge the block lists from dirs on the same tier
     // because the master only wants one list for each tier.
@@ -85,9 +88,7 @@ public class BlockMapIterator implements Iterator<List<LocationBlockIdListEntry>
 
   @Override
   public boolean hasNext() {
-    // TODO(jiacheng): test multiple tiers/dirs are all empty
     return currentIterator.hasNext()
-        // at least 1 request if all tiers are empty
         || mCurrentBlockLocationIndex < mBlockStoreLocationProtoList.size();
   }
 

@@ -418,12 +418,14 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
         System.out.format("Current: %d, LastActivity: %d, Difference: %d, Timeout: %d%n",
                 mClock.millis(), context.getLastActivityTimeMs(), lastUpdate, mTimeout);
         if (lastUpdate > mTimeout) {
-          // TODO(jiacheng): The current thread is not the owner so cannot release it!
           System.out.println("Worker register stream hanging for more than " + mTimeout + " for worker " + context.mWorker.getId());
           Exception e = new TimeoutException("Time out for worker register stream for more than " + mTimeout);
           System.out.println("Closing context for worker " + context.mWorker.getId());
-          context.close();
-          context.mResponseObserver.onError(AlluxioStatusException.fromThrowable(e).toGrpcStatusException());
+          // TODO(jiacheng): The current thread is not the owner so cannot release it!
+          // context.close();
+          // We can only send an error to the requestObserver to invoke it
+          // so it can close the context.
+          context.mRequestObserver.onError(e);
           return true;
         }
         return false;
