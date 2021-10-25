@@ -24,18 +24,12 @@ public class BlockMapIterator implements Iterator<List<LocationBlockIdListEntry>
   private int mBatchSize;
   private int mBlockCount;
 
-  Map<BlockStoreLocation, List<Long>> mBlockLocationMap;
-
-  int mCurrentBlockLocationIndex;
+  // Keep the order of iteration
   List<BlockStoreLocationProto> mBlockStoreLocationProtoList;
-
-
   Map<BlockStoreLocationProto, Iterator<Long>> mBlockLocationIteratorMap;
-
+  // Iteration states
+  int mCurrentBlockLocationIndex;
   Iterator<Long> currentIterator;
-
-  Map<BlockStoreLocationProto, List<Long>> mTierToBlocks;
-
   // Keep a global counter of how many blocks have been traversed
   int mCounter = 0;
 
@@ -48,34 +42,34 @@ public class BlockMapIterator implements Iterator<List<LocationBlockIdListEntry>
     mBatchSize = mConf.getInt(PropertyKey.WORKER_REGISTER_STREAM_BATCH_SIZE);
 
     LOG.info("Worker register batch size is {}", mBatchSize);
-    mBlockLocationMap = blockLocationMap;
 
-    // TODO(jiacheng): Can this merging copy be avoided?
-    mTierToBlocks = new HashMap<>();
-    for (Map.Entry<BlockStoreLocation, List<Long>> entry : mBlockLocationMap.entrySet()) {
+    // The worker will merge the block lists from dirs on the same tier
+    // because the master only wants one list for each tier.
+    // TODO(jiacheng): try to avoid this merge copy
+    Map<BlockStoreLocationProto, List<Long>> tierToBlocks = new HashMap<>();
+    for (Map.Entry<BlockStoreLocation, List<Long>> entry : blockLocationMap.entrySet()) {
       BlockStoreLocation loc = entry.getKey();
       BlockStoreLocationProto locationProto = BlockStoreLocationProto.newBuilder()
               .setTierAlias(loc.tierAlias())
               .setMediumType(loc.mediumType())
               .build();
-      if (mTierToBlocks.containsKey(locationProto)) {
-        mTierToBlocks.get(locationProto).addAll(entry.getValue());
+      if (tierToBlocks.containsKey(locationProto)) {
+        tierToBlocks.get(locationProto).addAll(entry.getValue());
       } else {
         List<Long> blockList = new ArrayList<>(entry.getValue());
-        mTierToBlocks.put(locationProto, blockList);
+        tierToBlocks.put(locationProto, blockList);
       }
     }
-    LOG.info("Locations: {}", mTierToBlocks.keySet());
+    LOG.info("Locations: {}", tierToBlocks.keySet());
 
     // Initialize the iteration statuses
-    mBlockStoreLocationProtoList = new ArrayList<>(mTierToBlocks.keySet());
+    mBlockStoreLocationProtoList = new ArrayList<>(tierToBlocks.keySet());
     mCurrentBlockLocationIndex = 0; // Corresponding to index in mBlockLocationKeyList
 
+    // Find the iterator of each tier and calculate total block count
     mBlockLocationIteratorMap = new HashMap<>();
-
     int totalCount = 0;
-    // TODO: make sure this entrySet is still the same with when generating mBlockStoreLocationProtoList
-    for (Map.Entry<BlockStoreLocationProto, List<Long>> entry : mTierToBlocks.entrySet()) {
+    for (Map.Entry<BlockStoreLocationProto, List<Long>> entry : tierToBlocks.entrySet()) {
       totalCount += entry.getValue().size();
       mBlockLocationIteratorMap.put(entry.getKey(), entry.getValue().iterator());
     }
@@ -91,12 +85,14 @@ public class BlockMapIterator implements Iterator<List<LocationBlockIdListEntry>
 
   @Override
   public boolean hasNext() {
-    return mCurrentBlockLocationIndex < mBlockStoreLocationProtoList.size()
-            || currentIterator.hasNext();
+    // TODO(jiacheng): test multiple tiers/dirs are all empty
+    return currentIterator.hasNext()
+        // at least 1 request if all tiers are empty
+        || mCurrentBlockLocationIndex < mBlockStoreLocationProtoList.size();
   }
 
-  LocationBlockIdListEntry nextBatchFromTier(BlockStoreLocationProto currentLoc, Iterator<Long> currentIterator,
-                                             int spaceLeft) {
+  private LocationBlockIdListEntry nextBatchFromTier(
+      BlockStoreLocationProto currentLoc, Iterator<Long> currentIterator, int spaceLeft) {
     // Generate the next batch
     List<Long> blockIdBatch = new ArrayList<>(spaceLeft); // this hint may be incorrect for new worker
     while (blockIdBatch.size() < spaceLeft && currentIterator.hasNext()) {
@@ -107,7 +103,7 @@ public class BlockMapIterator implements Iterator<List<LocationBlockIdListEntry>
     // Initialize the LocationBlockIdListEntry
     BlockIdList blockIdList = BlockIdList.newBuilder().addAllBlockId(blockIdBatch).build();
     LocationBlockIdListEntry listEntry = LocationBlockIdListEntry.newBuilder()
-            .setKey(currentLoc).setValue(blockIdList).build();
+        .setKey(currentLoc).setValue(blockIdList).build();
     return listEntry;
   }
 
@@ -133,17 +129,12 @@ public class BlockMapIterator implements Iterator<List<LocationBlockIdListEntry>
         // We keep filling in from the next tier
         mCurrentBlockLocationIndex++;
         if (mCurrentBlockLocationIndex >= mBlockStoreLocationProtoList.size()) {
-//          System.out.format("Finished all iterators. %s blocks iterated.%n", mCounter);
-          LOG.info("Finished all iterators. {} blocks iterated.", mCounter);
           // We break out of the loop when the current iterator is exhausted
           // and all iterators have been exhausted
-          LOG.info("Batch container {} tier entries", result.size());
           return result;
         }
-        LOG.info("Continue with the next tier {}", mBlockStoreLocationProtoList.get(mCurrentBlockLocationIndex));
         continue;
       } else {
-        LOG.info("Batch has been filled, now counter is {}", mCounter);
         return result;
       }
     }
@@ -157,6 +148,6 @@ public class BlockMapIterator implements Iterator<List<LocationBlockIdListEntry>
   }
 
   public int getBatchCount() {
-    return (int) Math.ceil(mBlockCount / mBatchSize);
+    return (int) Math.ceil(mBlockCount / (double) mBatchSize);
   }
 }
