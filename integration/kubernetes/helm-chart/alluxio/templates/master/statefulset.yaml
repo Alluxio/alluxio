@@ -9,6 +9,8 @@
 # See the NOTICE file distributed with this work for information regarding copyright ownership.
 #
 
+{{- if not (eq .Values.master.enabled false) -}}
+
 {{- $masterCount := int .Values.master.count }}
 {{- $isSingleMaster := eq $masterCount 1 }}
 {{- $isEmbedded := (eq .Values.journal.type "EMBEDDED") }}
@@ -334,3 +336,4 @@ spec:
             storage: {{ .Values.metastore.size }}
     {{- end }}
   {{- end }}
+{{- end }}

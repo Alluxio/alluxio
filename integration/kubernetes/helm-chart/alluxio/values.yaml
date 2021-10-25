@@ -70,6 +70,7 @@ properties:
 ## Master ##
 
 master:
+  enabled: true
   count: 1 # Controls the number of StatefulSets. For multiMaster mode increase this to >1.
   replicas: 1 # Controls #replicas in a StatefulSet and should not be modified in the usual case.
   env:

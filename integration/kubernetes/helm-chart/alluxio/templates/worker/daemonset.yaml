@@ -9,13 +9,14 @@
 # See the NOTICE file distributed with this work for information regarding copyright ownership.
 #
 
+{{- if not (eq .Values.worker.enabled false) -}}
+
 {{- $shortCircuitEnabled := .Values.shortCircuit.enabled }}
 {{- $needDomainSocketVolume := and $shortCircuitEnabled (eq .Values.shortCircuit.policy "uuid") }}
 {{- $hostNetwork := .Values.worker.hostNetwork }}
 {{- $hostPID := .Values.worker.hostPID }}
 {{- $fullName := include "alluxio.fullname" . }}
 
-{{- if not (eq .Values.worker.enabled false) }}
 apiVersion: apps/v1
 kind: DaemonSet
 metadata:

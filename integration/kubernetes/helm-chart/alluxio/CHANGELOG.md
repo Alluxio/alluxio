@@ -222,4 +222,4 @@
 
 0.6.32
 
-- Add toggle to disable worker resource deployment
+- Add toggles to disable master/worker resource deployment
