@@ -368,6 +368,8 @@ public class BlockMasterRegisterStreamIntegrationTest {
    * Tests below cover various failure cases.
    */
   @Test
+  // TODO(jiacheng): The reqOb should receive a timeout from the heartbeat executor
+  //  how to demonstrate that?
   public void hangingWorkerSessionRecycled() throws Exception {
     long workerId = getWorkerId(NET_ADDRESS_1);
     List<RegisterWorkerPRequest> requestChunks = RegisterStreamTestUtils.generateRegisterStreamForWorker(workerId);
