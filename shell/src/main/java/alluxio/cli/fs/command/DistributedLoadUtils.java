@@ -200,7 +200,7 @@ public final class DistributedLoadUtils {
 
   private static class BatchedLoadJobAttempt extends JobAttempt {
     private final BatchedJobConfig mJobConfig;
-    private final String mfilesPathString;
+    private final String mFilesPathString;
 
     BatchedLoadJobAttempt(JobMasterClient client, BatchedJobConfig jobConfig,
         RetryPolicy retryPolicy) {
@@ -208,11 +208,8 @@ public final class DistributedLoadUtils {
       mJobConfig = jobConfig;
       String pathString = jobConfig.getJobConfigs().stream().map(x -> x.get("filePath"))
           .collect(Collectors.joining(","));
-      mfilesPathString = StringUtils.abbreviate(
-          pathString, 80);
-      System.out.printf("files: [%s]" + " loading", StringUtils.abbreviate(
-          mfilesPathString, 50));
-      
+      mFilesPathString = StringUtils.abbreviate(pathString, 80);
+      System.out.printf("files: [%s]" + " loading", StringUtils.abbreviate(mFilesPathString, 50));
     }
 
     @Override
@@ -223,19 +220,19 @@ public final class DistributedLoadUtils {
     @Override
     protected void logFailedAttempt(JobInfo jobInfo) {
       System.out.printf("Attempt %d to load %s failed because: %s%n",
-          mRetryPolicy.getAttemptCount(), mfilesPathString, jobInfo.getErrorMessage());
+          mRetryPolicy.getAttemptCount(), mFilesPathString, jobInfo.getErrorMessage());
     }
 
     @Override
     protected void logFailed() {
-      System.out.printf("Failed to complete loading %s after %d retries.%n", mfilesPathString,
+      System.out.printf("Failed to complete loading %s after %d retries.%n", mFilesPathString,
           mRetryPolicy.getAttemptCount());
     }
 
     @Override
     protected void logCompleted() {
-      System.out.printf("Successfully loaded path %s after %d attempts%n",
-          mfilesPathString, mRetryPolicy.getAttemptCount());
+      System.out.printf("Successfully loaded path %s after %d attempts%n", mFilesPathString,
+          mRetryPolicy.getAttemptCount());
     }
   }
 
