@@ -12,6 +12,7 @@
 package alluxio.master.block;
 
 import alluxio.RpcUtils;
+import alluxio.exception.status.CancelledException;
 import alluxio.grpc.GrpcExceptionUtils;
 import alluxio.grpc.RegisterWorkerPRequest;
 import alluxio.grpc.RegisterWorkerPResponse;
@@ -20,6 +21,8 @@ import io.grpc.stub.StreamObserver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.concurrent.atomic.AtomicReference;
+
 public class RegisterStreamObserver implements StreamObserver<RegisterWorkerPRequest> {
   private static final Logger LOG = LoggerFactory.getLogger(RegisterStreamObserver.class);
 
@@ -27,6 +30,7 @@ public class RegisterStreamObserver implements StreamObserver<RegisterWorkerPReq
 
   final BlockMaster mBlockMaster;
   final io.grpc.stub.StreamObserver<alluxio.grpc.RegisterWorkerPResponse> mResponseObserver;
+  private AtomicReference<Throwable> mErrorReceived = new AtomicReference<>();
 
   RegisterStreamObserver(BlockMaster blockMaster, io.grpc.stub.StreamObserver<alluxio.grpc.RegisterWorkerPResponse> responseObserver) {
     mBlockMaster = blockMaster;
@@ -58,6 +62,12 @@ public class RegisterStreamObserver implements StreamObserver<RegisterWorkerPReq
         // Initialize the context on the 1st message
         synchronized (requestObserver) {
           if (mContext == null) {
+            if (mErrorReceived.get() != null) {
+              // An error has been received before the context is initialized
+              CancelledException e = new CancelledException("Received error from worker before the stream was opened");
+              e.addSuppressed(mErrorReceived.get());
+              throw e;
+            }
             LOG.debug("Initializing the WorkerRegisterContext on the 1st request");
             Preconditions.checkState(isHead, "WorkerRegisterContext is not initialized but the request is not the 1st in a stream");
 
@@ -72,8 +82,10 @@ public class RegisterStreamObserver implements StreamObserver<RegisterWorkerPReq
 
         if (isHead) {
           mBlockMaster.workerRegisterStart(mContext, chunk);
+          System.out.println("WorkerRegisterStart finished, update TS");
         } else {
           mBlockMaster.workerRegisterBatch(mContext, chunk);
+          System.out.println("WorkerRegisterBatch finished, update TS");
         }
         mContext.updateTs();
         // Return an ACK to the worker so it sends the next batch
@@ -83,6 +95,8 @@ public class RegisterStreamObserver implements StreamObserver<RegisterWorkerPReq
       @Override
       // TODO(jiacheng): test this
       public void exceptionCaught(Throwable e) {
+        // Record the error received from worker
+        mErrorReceived.set(e);
         // When an exception occurs on the master side, close the context and
         // propagate the exception to the worker side.
         cleanup();
@@ -96,10 +110,9 @@ public class RegisterStreamObserver implements StreamObserver<RegisterWorkerPReq
   // When an error occurs on the worker side so that it cannot proceed with the register logic,
   // the worker will send the error to the master and close itself.
   // The master will then receive the error, abort the stream and close itself.
-  // TODO(jiacheng): test this
   public void onError(Throwable t) {
     System.out.println("handled by stream observer " + this);
-
+    mErrorReceived.set(t);
     System.out.println("Received error from worker: " + t);
     // TODO(jiacheng): Do not log the full exception, the full stacktrace should be found
     //  on the worker and the master log should be clean with only a warning message
@@ -114,17 +127,17 @@ public class RegisterStreamObserver implements StreamObserver<RegisterWorkerPReq
     LOG.info("{} - Register stream completed on the client side", Thread.currentThread().getId());
 
     String methodName = "registerWorkerComplete";
-    Preconditions.checkState(mContext != null,
-            "Complete message received from the client side but the context is not initialized");
     RpcUtils.streamingRPCAndLog(LOG, new RpcUtils.StreamingRpcCallable<RegisterWorkerPResponse>() {
       @Override
       public RegisterWorkerPResponse call() throws Exception {
+        // TODO(jiacheng): if mError, then propagate the information
         Preconditions.checkState(mContext != null,
                 "Complete message received from the client side but the context is not initialized");
         Preconditions.checkState(mContext.isOpen(), "Context is not open");
 
-        mContext.updateTs();
         mBlockMaster.workerRegisterFinish(mContext);
+        System.out.println("WorkerRegisterFinish finished, update TS");
+        mContext.updateTs();
 
         cleanup();
         // No response because sendResponse=false
@@ -139,8 +152,9 @@ public class RegisterStreamObserver implements StreamObserver<RegisterWorkerPReq
         cleanup();
         mResponseObserver.onError(GrpcExceptionUtils.fromThrowable(e));
       }
-      // TODO(jiacheng): log the request?
-    }, methodName, false, true, mResponseObserver, "WorkerId=%s", mContext.getWorkerId());
+      // TODO(jiacheng): log more information
+    }, methodName, false, true, mResponseObserver, "WorkerId=%s",
+            mContext == null ? "NONE" : mContext.getWorkerId());
   }
 
   void cleanup() {

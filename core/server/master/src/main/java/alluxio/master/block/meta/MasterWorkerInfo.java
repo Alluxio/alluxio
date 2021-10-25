@@ -225,9 +225,19 @@ public final class MasterWorkerInfo {
    *
    * @param blockId the id of the block to be removed
    */
-  public void removeBlock(long blockId) {
+  public void removeBlockFromWorkerMeta(long blockId) {
     mBlocks.remove(blockId);
     mToRemoveBlocks.remove(blockId);
+  }
+
+  /**
+   * Remove the block from the worker metadata and add to the to-remove list.
+   * The next worker heartbeat will issue the remove command to the worker
+   * so the block is deleted.
+   */
+  public void scheduleRemoveFromWorker(long blockId) {
+    mBlocks.remove(blockId);
+    mToRemoveBlocks.add(blockId);
   }
 
   /**

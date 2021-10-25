@@ -36,7 +36,6 @@ public class BlockMapIterator implements Iterator<List<LocationBlockIdListEntry>
 
   Map<BlockStoreLocationProto, List<Long>> mTierToBlocks;
 
-
   // Keep a global counter of how many blocks have been traversed
   int mCounter = 0;
 
@@ -44,7 +43,6 @@ public class BlockMapIterator implements Iterator<List<LocationBlockIdListEntry>
     this(blockLocationMap, ServerConfiguration.global());
   }
 
-  // TODO(jiacheng): Lock while the constructor is running?
   public BlockMapIterator(Map<BlockStoreLocation, List<Long>> blockLocationMap, AlluxioConfiguration conf) {
     mConf = conf;
     mBatchSize = mConf.getInt(PropertyKey.WORKER_REGISTER_STREAM_BATCH_SIZE);

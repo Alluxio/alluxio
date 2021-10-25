@@ -2,7 +2,6 @@ package alluxio.worker.block;
 
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
-import alluxio.exception.status.AlluxioStatusException;
 import alluxio.exception.status.CancelledException;
 import alluxio.exception.status.DeadlineExceededException;
 import alluxio.exception.status.InternalException;
@@ -14,12 +13,10 @@ import alluxio.grpc.RegisterWorkerPRequest;
 import alluxio.grpc.RegisterWorkerPResponse;
 import alluxio.grpc.StorageList;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.collect.ImmutableList;
 import io.grpc.stub.StreamObserver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Collections;
@@ -37,33 +34,32 @@ public class RegisterStreamer implements Iterator<RegisterWorkerPRequest> {
 
   private static final int MAX_BATCHES_IN_FLIGHT = 2;
 
-  final BlockMasterWorkerServiceGrpc.BlockMasterWorkerServiceStub mAsyncClient;
+  private final long mWorkerId;
+  private final List<String> mStorageTierAliases;
+  private final Map<String, Long> mTotalBytesOnTiers;
+  private final Map<String, Long> mUsedBytesOnTiers;
+  private final Map<BlockStoreLocation, List<Long>> mCurrentBlocksOnLocation;
+  private final Map<String, List<String>> mLostStorage;
+  private final RegisterWorkerPOptions mOptions;
+  private final Map<String, StorageList> mLostStorageMap;
 
-  final long mWorkerId;
-  final List<String> mStorageTierAliases;
-  final Map<String, Long> mTotalBytesOnTiers;
-  final Map<String, Long> mUsedBytesOnTiers;
-  final Map<BlockStoreLocation, List<Long>> mCurrentBlocksOnLocation;
-  final Map<String, List<String>> mLostStorage;
-  final List<ConfigProperty> mConfigList;
-  RegisterWorkerPOptions mOptions;
-  Map<String, StorageList> mLostStorageMap;
-
-  int mBatchNumber;
-  BlockMapIterator mBlockMapIterator;
+  private int mBatchNumber;
+  private BlockMapIterator mBlockMapIterator;
 
   // For internal flow control and state mgmt
-  final CountDownLatch mAckLatch;
-  final CountDownLatch mFinishLatch;
-  Semaphore mBucket = new Semaphore(MAX_BATCHES_IN_FLIGHT);
-  AtomicReference<Throwable> mError = new AtomicReference<>();
+  private final CountDownLatch mAckLatch;
+  private final CountDownLatch mFinishLatch;
+  private Semaphore mBucket = new Semaphore(MAX_BATCHES_IN_FLIGHT);
+  private AtomicReference<Throwable> mError = new AtomicReference<>();
 
   private final int mResponseTimeoutMs;
   private final int mDeadlineMs;
   private final int mCompleteTimeoutMs;
 
-  public final StreamObserver<RegisterWorkerPResponse> mResponseObserver;
-  public final StreamObserver<RegisterWorkerPRequest> mRequestObserver;
+  private final BlockMasterWorkerServiceGrpc.BlockMasterWorkerServiceStub mAsyncClient;
+  private final StreamObserver<RegisterWorkerPResponse> mResponseObserver;
+  // This cannot be final because it is created on registerWithMaster()
+  private StreamObserver<RegisterWorkerPRequest> mRequestObserver;
 
   public RegisterStreamer(
           final BlockMasterWorkerServiceGrpc.BlockMasterWorkerServiceStub asyncClient,
@@ -93,11 +89,10 @@ public class RegisterStreamer implements Iterator<RegisterWorkerPRequest> {
     mUsedBytesOnTiers = usedBytesOnTiers;
     mCurrentBlocksOnLocation = currentBlocksOnLocation;
     mLostStorage = lostStorage;
-    mConfigList = configList;
 
     // Some extra conversions
     // TODO(jiacheng): remove unnecessary conversions
-    mOptions = RegisterWorkerPOptions.newBuilder().addAllConfigs(mConfigList).build();
+    mOptions = RegisterWorkerPOptions.newBuilder().addAllConfigs(configList).build();
     mLostStorageMap = mLostStorage.entrySet().stream()
             .collect(Collectors.toMap(Map.Entry::getKey,
                     e -> StorageList.newBuilder().addAllStorage(e.getValue()).build()));
@@ -133,21 +128,19 @@ public class RegisterStreamer implements Iterator<RegisterWorkerPRequest> {
         mFinishLatch.countDown();
       }
     };
+  }
 
+  public void registerWithMaster()
+      throws CancelledException, InternalException, DeadlineExceededException, InterruptedException {
     // onNext() - send the request batches
     // onError() - when an error occurs on the worker side, propagate the error status to the master
     //             side and then close on the worker side, the master will handle necessary cleanup on its side
     // onCompleted() - complete on the client side when all the batches are sent and all ACKs are received
     mRequestObserver = mAsyncClient
-        .withDeadlineAfter(mDeadlineMs, TimeUnit.MILLISECONDS)
-        .registerWorkerStream(mResponseObserver);
-  }
-
-
-  public void registerWithMaster()
-      throws CancelledException, InternalException, DeadlineExceededException, InterruptedException {
+            .withDeadlineAfter(mDeadlineMs, TimeUnit.MILLISECONDS)
+            .registerWorkerStream(mResponseObserver);
     try {
-      registerWithInternal();
+      registerInternal();
     } catch (DeadlineExceededException | InterruptedException | CancelledException e) {
       LOG.error("Error during the register stream, aborting now.", e);
       // These exceptions are internal to the worker
@@ -159,7 +152,7 @@ public class RegisterStreamer implements Iterator<RegisterWorkerPRequest> {
     // We assume that is from the master so there is no need to send it back again.
   }
 
-  private void registerWithInternal()
+  private void registerInternal()
       throws InterruptedException, DeadlineExceededException, CancelledException, InternalException {
     int iter = 0;
     while (hasNext()) {
@@ -267,9 +260,5 @@ public class RegisterStreamer implements Iterator<RegisterWorkerPRequest> {
     }
     mBatchNumber++;
     return request;
-  }
-
-  public int getBlockCount() {
-    return mBlockMapIterator.getBlockCount();
   }
 }

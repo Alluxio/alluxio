@@ -28,6 +28,7 @@ public class WorkerRegisterContext implements Closeable {
    * stream and will be unlocked at the end.
    */
   LockResource mWorkerLock;
+  AtomicBoolean mShouldClose;
   AtomicBoolean mOpen;
   StreamObserver<RegisterWorkerPRequest> mRequestObserver;
   StreamObserver<RegisterWorkerPResponse> mResponseObserver;
@@ -48,6 +49,7 @@ public class WorkerRegisterContext implements Closeable {
     System.out.println("Acquired all worker locks for " + getWorkerId());
 
     mOpen = new AtomicBoolean(true);
+    mShouldClose = new AtomicBoolean(false);
   }
 
   public long getWorkerId() {
@@ -75,6 +77,7 @@ public class WorkerRegisterContext implements Closeable {
       mWorkerLock.close();
     }
     mOpen.set(false);
+    System.out.println("Context closed");
   }
 
   public static synchronized WorkerRegisterContext create(

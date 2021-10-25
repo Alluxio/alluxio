@@ -11,6 +11,7 @@ import alluxio.master.block.BlockMaster;
 import alluxio.proto.meta.Block;
 import alluxio.stress.cli.RpcBenchPreparationUtils;
 import alluxio.stress.rpc.TierAlias;
+import alluxio.wire.WorkerNetAddress;
 import alluxio.worker.block.BlockStoreLocation;
 import alluxio.worker.block.RegisterStreamer;
 import com.google.common.collect.ImmutableList;
@@ -47,6 +48,12 @@ public class RegisterStreamTestUtils {
   private static final Map<String, Long> MEM_USAGE_EMPTY = ImmutableMap.of("MEM", 0L);
   public static final long BLOCK_SIZE = ServerConfiguration.global().getBytes(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT);
 
+  static final WorkerNetAddress NET_ADDRESS_1 = new WorkerNetAddress().setHost("localhost")
+          .setRpcPort(80).setDataPort(81).setWebPort(82);
+  static final String TIER_CONFIG = "100,200,300;1000,1500;2000";
+  static final int TIER_BLOCK_TOTAL = 100+200+300+1000+1500+2000;
+  static final int BATCH_SIZE = 1000;
+
   public static void prepareBlocksOnMaster(BlockMaster blockMaster, Map<BlockStoreLocation, List<Long>> blockMap) throws UnavailableException {
     for (Map.Entry<BlockStoreLocation, List<Long>> entry : blockMap.entrySet()) {
       BlockStoreLocation loc = entry.getKey();
@@ -79,7 +86,7 @@ public class RegisterStreamTestUtils {
     return requestChunks;
   }
 
-  private static List<String> getTierAliases(Map<TierAlias, List<Integer>> tierConfig) {
+  static List<String> getTierAliases(Map<TierAlias, List<Integer>> tierConfig) {
     return tierConfig.keySet().stream().map(TierAlias::toString).collect(Collectors.toList());
   }
 

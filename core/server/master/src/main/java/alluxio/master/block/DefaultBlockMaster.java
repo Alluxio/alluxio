@@ -412,15 +412,22 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
     @Override
     public void heartbeat() {
       System.out.println("Checking " + mActiveRegisterContexts.size() + " entries...");
-      for (Map.Entry<Long, WorkerRegisterContext> entry : mActiveRegisterContexts.entrySet()) {
+      mActiveRegisterContexts.entrySet().removeIf((entry) -> {
         WorkerRegisterContext context = entry.getValue();
         final long lastUpdate = mClock.millis() - context.getLastActivityTimeMs();
+        System.out.format("Current: %d, LastActivity: %d, Difference: %d, Timeout: %d%n",
+                mClock.millis(), context.getLastActivityTimeMs(), lastUpdate, mTimeout);
         if (lastUpdate > mTimeout) {
+          // TODO(jiacheng): The current thread is not the owner so cannot release it!
           System.out.println("Worker register stream hanging for more than " + mTimeout + " for worker " + context.mWorker.getId());
           Exception e = new TimeoutException("Time out for worker register stream for more than " + mTimeout);
+          System.out.println("Closing context for worker " + context.mWorker.getId());
+          context.close();
           context.mResponseObserver.onError(AlluxioStatusException.fromThrowable(e).toGrpcStatusException());
+          return true;
         }
-      }
+        return false;
+      });
     }
 
     @Override
@@ -440,7 +447,6 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
     }
 
     // This periodically scans all open register streams and closes hanging ones
-    // TODO(jiacheng): Potentially merge this with the lease timeout/recycle logic
     getExecutorService().submit(new HeartbeatThread(
           HeartbeatContext.MASTER_WORKER_REGISTER_SESSION_CLEANER,
             new WorkerRegisterStreamGCExecutor(),
@@ -987,7 +993,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
       // Detect any lost blocks on this worker.
       Set<Long> removedBlocks = worker.register(mGlobalStorageTierAssoc, storageTiers,
           totalBytesOnTiers, usedBytesOnTiers, blocks);
-      processWorkerRemovedBlocks(worker, removedBlocks);
+      processWorkerRemovedBlocks(worker, removedBlocks, false);
       processWorkerAddedBlocks(worker, currentBlocksOnLocation);
       processWorkerOrphanedBlocks(worker);
       worker.addLostStorage(lostStorage);
@@ -1039,6 +1045,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
 
     MasterWorkerInfo worker = context.mWorker;
     Preconditions.checkState(worker != null, "The context has null worker!");
+    System.out.println("Record session for worker " + worker.getId());
     mActiveRegisterContexts.put(worker.getId(), context);
 
     // The worker is locked so we can operate on its blocks without race conditions
@@ -1060,8 +1067,6 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
                 options.getConfigsList());
       }
     }
-
-    context.updateTs();
   }
 
   @Override
@@ -1104,7 +1109,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
       removedBlocks = Collections.emptySet();
     }
     LOG.info("{} blocks to remove from the worker", removedBlocks.size());
-    processWorkerRemovedBlocks(worker, removedBlocks);
+    processWorkerRemovedBlocks(worker, removedBlocks, true);
 
     // Mark registered successfully
     worker.mIsRegistered = true;
@@ -1116,7 +1121,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
     // Invalidate cache to trigger new build of worker info list
     mWorkerInfoCache.invalidate(WORKER_INFO_CACHE_KEY);
     LOG.info("workerRegisterFinish(): {}", worker);
-
+    System.out.println("Unrecord session for worker " + worker.getId());
     mActiveRegisterContexts.remove(worker.getId());
   }
 
@@ -1154,7 +1159,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
       // detection can remove it. However, we are intentionally ignoring this race, since the worker
       // will just re-register regardless.
 
-      processWorkerRemovedBlocks(worker, removedBlockIds);
+      processWorkerRemovedBlocks(worker, removedBlockIds, false);
       processWorkerAddedBlocks(worker, addedBlocks);
       Set<Long> toRemoveBlocks = worker.getToRemoveBlocks();
       if (toRemoveBlocks.isEmpty()) {
@@ -1192,7 +1197,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
    * @param removedBlockIds A list of block ids removed from the worker
    */
   private void processWorkerRemovedBlocks(MasterWorkerInfo workerInfo,
-      Collection<Long> removedBlockIds) {
+      Collection<Long> removedBlockIds, boolean sendCommand) {
     for (long removedBlockId : removedBlockIds) {
       try (LockResource r = lockBlock(removedBlockId)) {
         Optional<BlockMeta> block = mBlockStore.getBlock(removedBlockId);
@@ -1204,7 +1209,11 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
           }
         }
         // Remove the block even if its metadata has been deleted already.
-        workerInfo.removeBlock(removedBlockId);
+        if (sendCommand) {
+          workerInfo.scheduleRemoveFromWorker(removedBlockId);
+        } else {
+          workerInfo.removeBlockFromWorkerMeta(removedBlockId);
+        }
       }
     }
   }
@@ -1236,6 +1245,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
             mLostBlocks.remove(blockId);
           } else {
             invalidBlockCount++;
+            System.out.println("Found invalid block " + blockId);
             LOG.debug("Invalid block: {} from worker {}.", blockId,
                 workerInfo.getWorkerAddress().getHost());
           }
@@ -1262,6 +1272,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
     long orphanedBlockCount = 0;
     for (long block : workerInfo.getBlocks()) {
       if (!mBlockStore.getBlock(block).isPresent()) {
+        System.out.println("Orphaned block " + block);
         orphanedBlockCount++;
         LOG.debug("Requesting delete for orphaned block: {} from worker {}.", block,
             workerInfo.getWorkerAddress().getHost());
@@ -1406,7 +1417,10 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
     for (Consumer<Address> function : mWorkerLostListeners) {
       function.accept(new Address(workerAddress.getHost(), workerAddress.getRpcPort()));
     }
-    processWorkerRemovedBlocks(worker, worker.getBlocks());
+    // We only remove the blocks from master locations but do not
+    // mark these blocks to-remove from the worker.
+    // So if the worker comes back again the blocks are kept.
+    processWorkerRemovedBlocks(worker, worker.getBlocks(), false);
   }
 
   LockResource lockBlock(long blockId) {
