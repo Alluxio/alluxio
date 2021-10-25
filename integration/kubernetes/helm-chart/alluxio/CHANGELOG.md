@@ -215,3 +215,6 @@
 0.6.30
 
 - Add ImagePullSecrets Pod spec option
+
+0.6.31
+- Update CSI launch script
