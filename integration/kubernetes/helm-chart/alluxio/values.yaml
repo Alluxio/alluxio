@@ -232,6 +232,7 @@ journal:
 ## Worker ##
 
 worker:
+  enabled: true
   env:
     # Extra environment variables for the worker pod
     # Example:

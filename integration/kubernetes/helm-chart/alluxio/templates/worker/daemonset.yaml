@@ -15,6 +15,7 @@
 {{- $hostPID := .Values.worker.hostPID }}
 {{- $fullName := include "alluxio.fullname" . }}
 
+{{- if not (eq .Values.worker.enabled false) }}
 apiVersion: apps/v1
 kind: DaemonSet
 metadata:
@@ -297,3 +298,4 @@ spec:
             path: {{ .Values.fuse.mountPath | dir }}
             type: Directory
         {{- end }}
+{{- end }}

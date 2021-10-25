@@ -11,7 +11,7 @@
 
 {{ $shortCircuitEnabled := .Values.shortCircuit.enabled -}}
 {{ $needDomainSocketVolume := and (and $shortCircuitEnabled (eq .Values.shortCircuit.policy "uuid")) (eq .Values.shortCircuit.volumeType "persistentVolumeClaim") -}}
-{{ if $needDomainSocketVolume -}}
+{{ if and (not (eq .Values.worker.enabled false)) ($needDomainSocketVolume) -}}
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
