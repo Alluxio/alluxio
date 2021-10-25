@@ -148,7 +148,6 @@ public final class DistributedLoadUtils {
     LoadJobAttempt(JobMasterClient client, LoadConfig jobConfig, RetryPolicy retryPolicy) {
       super(client, retryPolicy);
       mJobConfig = jobConfig;
-      System.out.println(jobConfig.getFilePath() + " loading");
     }
 
     @Override
@@ -286,6 +285,7 @@ public final class DistributedLoadUtils {
         LoadConfig config = new LoadConfig(filePath.iterator().next().getPath(), replication,
             workerSet, excludedWorkerSet, localityIds, excludedLocalityIds);
         if (printOut) {
+          System.out.println(config.getFilePath() + " loading");
           jobAttempt = new LoadJobAttempt(command.mClient, config, new CountingRetry(3));
         } else {
           jobAttempt = new SilentLoadJobAttempt(command.mClient, config, new CountingRetry(3));
@@ -296,6 +296,7 @@ public final class DistributedLoadUtils {
         for (URIStatus status : filePath) {
           LoadConfig loadConfig = new LoadConfig(status.getPath(), replication, workerSet,
               excludedWorkerSet, localityIds, excludedLocalityIds);
+          System.out.println(loadConfig.getFilePath() + " loading");
           Map<String, String> map = oMapper.convertValue(loadConfig, Map.class);
           configs.add(map);
         }

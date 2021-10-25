@@ -40,12 +40,14 @@ import com.google.common.collect.Sets;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
+import org.apache.commons.lang3.StringUtils;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -162,6 +164,7 @@ public class DistributedCpCommand extends AbstractDistributedJobCommand {
     JobAttempt jobAttempt;
     if (poolSize == 1) {
       Pair<String, String> pair = filePath.iterator().next();
+      System.out.println("Copying " + pair.getFirst() + " to " + pair.getSecond());
       jobAttempt = new CopyJobAttempt(mClient,
           new MigrateConfig(pair.getFirst(), pair.getSecond(), mWriteType, overwrite),
           new CountingRetry(3));
@@ -171,6 +174,7 @@ public class DistributedCpCommand extends AbstractDistributedJobCommand {
       for (Pair<String, String> pair : filePath) {
         MigrateConfig config =
             new MigrateConfig(pair.getFirst(), pair.getSecond(), mWriteType, overwrite);
+        System.out.println("Copying " + pair.getFirst() + " to " + pair.getSecond());
         Map<String, String> map = oMapper.convertValue(config, Map.class);
         configs.add(map);
       }
@@ -283,12 +287,16 @@ public class DistributedCpCommand extends AbstractDistributedJobCommand {
   }
 
   private class BatchedCopyJobAttempt extends JobAttempt {
-    private BatchedJobConfig mJobConfig;
+    private final BatchedJobConfig mJobConfig;
+    private final String mFilesPathString;
 
     BatchedCopyJobAttempt(JobMasterClient client, BatchedJobConfig jobConfig,
         RetryPolicy retryPolicy) {
       super(client, retryPolicy);
       mJobConfig = jobConfig;
+      String pathString = jobConfig.getJobConfigs().stream().map(x -> x.get("source"))
+          .collect(Collectors.joining(","));
+      mFilesPathString = StringUtils.abbreviate(pathString, 80);
     }
 
     @Override
@@ -296,22 +304,21 @@ public class DistributedCpCommand extends AbstractDistributedJobCommand {
       return mJobConfig;
     }
 
-    // TODO(jianjian) better print
     @Override
     public void logFailedAttempt(JobInfo jobInfo) {
       System.out.println(String.format("Attempt %d to copy %s failed because: %s",
-          mRetryPolicy.getAttemptCount(), mJobConfig, jobInfo.getErrorMessage()));
+          mRetryPolicy.getAttemptCount(), mFilesPathString, jobInfo.getErrorMessage()));
     }
 
     @Override
     protected void logFailed() {
       System.out.println(String.format("Failed to complete copying %s after %d retries.",
-          mJobConfig, mRetryPolicy.getAttemptCount()));
+          mFilesPathString, mRetryPolicy.getAttemptCount()));
     }
 
     @Override
     public void logCompleted() {
-      System.out.println(String.format("Successfully copied %s after %d attempts", mJobConfig,
+      System.out.println(String.format("Successfully copied %s after %d attempts", mFilesPathString,
           mRetryPolicy.getAttemptCount()));
     }
   }
