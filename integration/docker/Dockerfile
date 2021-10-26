@@ -53,7 +53,6 @@ ADD https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini /usr/
 RUN chmod +x /usr/local/bin/tini
 
 RUN apt-get update && apt-get install -y --no-install-recommends software-properties-common && \
-  add-apt-repository -y ppa:openjdk-r/ppa && \
   apt-get update && \
   apt-get install -y --no-install-recommends openjdk-8-jdk openjdk-8-jre-headless unzip vim && \
   apt-get clean && \
