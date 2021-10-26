@@ -207,7 +207,7 @@ public final class DistributedLoadUtils {
       mJobConfig = jobConfig;
       String pathString = jobConfig.getJobConfigs().stream().map(x -> x.get("filePath"))
           .collect(Collectors.joining(","));
-      mFilesPathString = String.format("[%s]",StringUtils.abbreviate(pathString, 80));
+      mFilesPathString = String.format("[%s]", StringUtils.abbreviate(pathString, 80));
       System.out.printf("files: %s" + " loading", mFilesPathString);
     }
 

@@ -295,7 +295,7 @@ public class DistributedCpCommand extends AbstractDistributedJobCommand {
       mJobConfig = jobConfig;
       String pathString = jobConfig.getJobConfigs().stream().map(x -> x.get("source"))
           .collect(Collectors.joining(","));
-      mFilesPathString = String.format("[%s]",StringUtils.abbreviate(pathString, 80));
+      mFilesPathString = String.format("[%s]", StringUtils.abbreviate(pathString, 80));
     }
 
     @Override
