@@ -15,6 +15,7 @@ import alluxio.master.CoreMasterContext;
 import alluxio.master.MasterRegistry;
 import alluxio.master.MasterTestUtils;
 import alluxio.master.block.BlockMaster;
+import alluxio.master.block.BlockMasterFactory;
 import alluxio.master.block.DefaultBlockMaster;
 import alluxio.master.metrics.MetricsMaster;
 import alluxio.master.metrics.MetricsMasterFactory;
@@ -98,6 +99,7 @@ public class BlockWorkerRegisterStreamIntegrationTest {
     mRegistry = new MasterRegistry();
     CoreMasterContext masterContext = MasterTestUtils.testMasterContext();
     mMetricsMaster = new MetricsMasterFactory().create(mRegistry, masterContext);
+    mRegistry.add(MetricsMaster.class, mMetricsMaster);
     mClock = new ManualClock();
 
     mExecutorService =

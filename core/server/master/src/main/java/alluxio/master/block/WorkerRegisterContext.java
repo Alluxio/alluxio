@@ -70,7 +70,6 @@ public class WorkerRegisterContext implements Closeable {
       return;
     }
     if (mWorkerLock != null) {
-      // TODO(jiacheng): the heartbeater cannot close it because that thread does not own this lock
       mWorkerLock.close();
     }
     mOpen.set(false);

@@ -13,7 +13,6 @@ package alluxio.master.block;
 
 import alluxio.RpcUtils;
 import alluxio.exception.status.AlluxioStatusException;
-import alluxio.exception.status.CancelledException;
 import alluxio.grpc.GrpcExceptionUtils;
 import alluxio.grpc.RegisterWorkerPRequest;
 import alluxio.grpc.RegisterWorkerPResponse;
@@ -45,10 +44,6 @@ public class RegisterStreamObserver implements StreamObserver<RegisterWorkerPReq
     mResponseObserver = responseObserver;
   }
 
-  private boolean isFirstMessage(alluxio.grpc.RegisterWorkerPRequest chunk) {
-    return chunk.getStorageTiersCount() > 0;
-  }
-
   @Override
   public void onNext(RegisterWorkerPRequest chunk) {
     System.out.println("handled by stream observer " + this);
@@ -67,15 +62,13 @@ public class RegisterStreamObserver implements StreamObserver<RegisterWorkerPReq
     RpcUtils.streamingRPCAndLog(LOG, new RpcUtils.StreamingRpcCallable<RegisterWorkerPResponse>() {
       @Override
       public RegisterWorkerPResponse call() throws Exception {
+        // If an error was received earlier, the stream is no longer open
+        Preconditions.checkState(mErrorReceived.get() == null,
+            "The stream has been closed due to an earlier error received: %s", mErrorReceived.get());
+
         // Initialize the context on the 1st message
         synchronized (requestObserver) {
           if (mContext == null) {
-            if (mErrorReceived.get() != null) {
-              // An error has been received before the context is initialized
-              CancelledException e = new CancelledException("Received error from worker before the stream was opened");
-              e.addSuppressed(mErrorReceived.get());
-              throw e;
-            }
             LOG.debug("Initializing the WorkerRegisterContext on the 1st request");
             Preconditions.checkState(isHead, "WorkerRegisterContext is not initialized but the request is not the 1st in a stream");
 
@@ -85,6 +78,7 @@ public class RegisterStreamObserver implements StreamObserver<RegisterWorkerPReq
           }
         }
 
+        // Verify the context is successfully initialized
         Preconditions.checkState(mContext != null, "Stream message received from the client side but the context is not initialized");
         Preconditions.checkState(mContext.isOpen(), "Context is not open");
 
@@ -101,16 +95,13 @@ public class RegisterStreamObserver implements StreamObserver<RegisterWorkerPReq
       }
 
       @Override
-      // TODO(jiacheng): test this
       public void exceptionCaught(Throwable e) {
-        // Record the error received from worker
-        mErrorReceived.set(e);
         // When an exception occurs on the master side, close the context and
         // propagate the exception to the worker side.
         cleanup();
         mResponseObserver.onError(GrpcExceptionUtils.fromThrowable(e));
       }
-    }, methodName, true, false, mResponseObserver, "Worker=%s", workerId);
+    }, methodName, true, false, mResponseObserver, "Request=%s", chunk);
   }
 
   @Override
@@ -119,7 +110,7 @@ public class RegisterStreamObserver implements StreamObserver<RegisterWorkerPReq
   // the worker will send the error to the master and close itself.
   // The master will then receive the error, abort the stream and close itself.
   public void onError(Throwable t) {
-    System.out.println(t);
+    System.out.println("Master received exception " + t);
     if (t instanceof TimeoutException) {
       System.out.println("Timeout signal received from the WorkerRegisterStreamGCExecutor. "
           + "Closing context for hanging worker.");
@@ -131,25 +122,22 @@ public class RegisterStreamObserver implements StreamObserver<RegisterWorkerPReq
     System.out.println("handled by stream observer " + this);
     mErrorReceived.set(t);
     System.out.println("Received error from worker: " + t);
-    // TODO(jiacheng): Do not log the full exception, the full stacktrace should be found
-    //  on the worker and the master log should be clean with only a warning message
-    LOG.error("Received error from the worker side during the streaming register call", t);
+    LOG.error("Received error from the worker side during the streaming register call: {}", t.getMessage());
     cleanup();
   }
 
   @Override
   public void onCompleted() {
-    System.out.println("handled by stream observer " + this);
-
     LOG.info("{} - Register stream completed on the client side", Thread.currentThread().getId());
 
     String methodName = "registerWorkerComplete";
     RpcUtils.streamingRPCAndLog(LOG, new RpcUtils.StreamingRpcCallable<RegisterWorkerPResponse>() {
       @Override
       public RegisterWorkerPResponse call() throws Exception {
-        // TODO(jiacheng): if mError, then propagate the information
+        Preconditions.checkState(mErrorReceived.get() == null,
+            "The stream has been closed due to an earlier error received: %s", mErrorReceived.get());
         Preconditions.checkState(mContext != null,
-                "Complete message received from the client side but the context is not initialized");
+            "Complete message received from the client side but the context is not initialized");
         Preconditions.checkState(mContext.isOpen(), "Context is not open");
 
         mBlockMaster.workerRegisterFinish(mContext);
@@ -162,19 +150,21 @@ public class RegisterStreamObserver implements StreamObserver<RegisterWorkerPReq
       }
 
       @Override
-      // TODO(jiacheng): test this
       public void exceptionCaught(Throwable e) {
         // When an exception occurs on the master side, close the context and
         // propagate the exception to the worker side.
         cleanup();
         mResponseObserver.onError(GrpcExceptionUtils.fromThrowable(e));
       }
-      // TODO(jiacheng): log more information
     }, methodName, false, true, mResponseObserver, "WorkerId=%s",
             mContext == null ? "NONE" : mContext.getWorkerId());
   }
 
-  void cleanup() {
+  private boolean isFirstMessage(alluxio.grpc.RegisterWorkerPRequest chunk) {
+    return chunk.getStorageTiersCount() > 0;
+  }
+
+  private void cleanup() {
     synchronized (this) {
       if (mContext == null) {
         LOG.debug("The stream is closed before the context is initialized. Nothing to clean up.");

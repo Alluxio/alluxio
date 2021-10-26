@@ -11,8 +11,6 @@
 
 package alluxio.master.block.meta;
 
-import com.google.common.base.MoreObjects;
-import com.google.common.base.Objects;
 import com.google.common.collect.Lists;
 
 import java.util.Arrays;
@@ -105,27 +103,5 @@ public class WorkerMetaLock implements Lock {
   @Override
   public Condition newCondition() {
     throw new UnsupportedOperationException("newCondition is not supported!");
-  }
-
-  @Override
-  public boolean equals(Object o) {
-    // TODO(jiacheng): compare MasterWorkerInfo obj!
-    if (!(o instanceof WorkerMetaLock)) {
-      return false;
-    }
-    WorkerMetaLock lock = (WorkerMetaLock) o;
-    return lock.mIsShared == this.mIsShared && lock.mLockTypes.equals(lock.mLockTypes);
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hashCode(mIsShared, mLockTypes);
-  }
-
-  @Override
-  public String toString() {
-    return MoreObjects.toStringHelper(this)
-            .add("mIsShared", mIsShared).add("mLockTypes", mLockTypes)
-            .add("workerId", mWorker.getId()).toString();
   }
 }

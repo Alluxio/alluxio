@@ -12,6 +12,7 @@ import alluxio.grpc.LocationBlockIdListEntry;
 import alluxio.grpc.RegisterWorkerPRequest;
 import alluxio.grpc.RegisterWorkerPResponse;
 import alluxio.grpc.StorageList;
+import alluxio.master.block.BlockMasterFactory;
 import alluxio.master.block.BlockMasterTestUtils;
 import alluxio.master.block.meta.MasterWorkerInfo;
 import alluxio.util.CommonUtils;
@@ -109,10 +110,13 @@ public class BlockMasterRegisterStreamIntegrationTest {
     mRegistry = new MasterRegistry();
     CoreMasterContext masterContext = MasterTestUtils.testMasterContext();
     mMetricsMaster = new MetricsMasterFactory().create(mRegistry, masterContext);
+    mRegistry.add(MetricsMaster.class, mMetricsMaster);
     mClock = new ManualClock();
 
     mExecutorService =
             Executors.newFixedThreadPool(10, ThreadFactoryUtils.build("TestBlockMaster-%d", true));
+//    public BlockMaster create(MasterRegistry registry, CoreMasterContext context) {}
+//    mBlockMaster = new BlockMasterFactory().create(mRegistry, masterContext);
     mBlockMaster = new DefaultBlockMaster(mMetricsMaster, masterContext, mClock,
             ExecutorServiceFactories.constantExecutorServiceFactory(mExecutorService));
     mRegistry.add(BlockMaster.class, mBlockMaster);
@@ -490,6 +494,9 @@ public class BlockMasterRegisterStreamIntegrationTest {
 
     verifyWorkerCanReregister(workerId, requestChunks, 100+200+300+1000+1500+2000);
   }
+
+  // TODO(jiacheng): master throws error on workerRegisterStart/Batch/Complete,
+  //  the worker can receive an error
 
   /**
    * Tests below cover the race conditions during concurrent executions.

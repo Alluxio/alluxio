@@ -275,9 +275,8 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
         ExecutorServiceFactories.cachedThreadPool(Constants.BLOCK_MASTER_NAME));
   }
 
-  @VisibleForTesting
-  DefaultBlockMaster(MetricsMaster metricsMaster, CoreMasterContext masterContext, Clock clock,
-      ExecutorServiceFactory executorServiceFactory, BlockStore blockStore) {
+  private DefaultBlockMaster(MetricsMaster metricsMaster, CoreMasterContext masterContext, Clock clock,
+                             ExecutorServiceFactory executorServiceFactory, BlockStore blockStore) {
     super(masterContext, clock, executorServiceFactory);
     Preconditions.checkNotNull(metricsMaster, "metricsMaster");
 
@@ -302,6 +301,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
 
   /**
    * Creates a new instance of {@link DefaultBlockMaster}.
+   * Used for tests where we manually control the clock.
    *
    * @param metricsMaster the metrics master
    * @param masterContext the context for Alluxio master
@@ -309,7 +309,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
    * @param executorServiceFactory a factory for creating the executor service to use for running
    *        maintenance threads
    */
-  // TODO(jiacheng): possible to make it not public?
+  @VisibleForTesting
   public DefaultBlockMaster(MetricsMaster metricsMaster, CoreMasterContext masterContext, Clock clock,
       ExecutorServiceFactory executorServiceFactory) {
     this(metricsMaster, masterContext, clock, executorServiceFactory,
