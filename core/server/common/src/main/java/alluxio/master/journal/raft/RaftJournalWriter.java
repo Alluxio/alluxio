@@ -49,7 +49,7 @@ public class RaftJournalWriter implements JournalWriter {
   private final AtomicLong mLastSubmittedSequenceNumber;
   private final AtomicLong mLastCommittedSequenceNumber;
 
-  private final LocalFirstRaftClient mClient;
+  private final RaftJournalAppender mClient;
 
   private volatile boolean mClosed;
   private JournalEntry.Builder mJournalEntryBuilder;
@@ -61,7 +61,7 @@ public class RaftJournalWriter implements JournalWriter {
    *               this client and is responsible for closing it
    */
   public RaftJournalWriter(long nextSequenceNumberToWrite,
-      LocalFirstRaftClient client) {
+      RaftJournalAppender client) {
     LOG.debug("Journal writer created starting at SN#{}", nextSequenceNumberToWrite);
     mNextSequenceNumberToWrite = new AtomicLong(nextSequenceNumberToWrite);
     mLastSubmittedSequenceNumber = new AtomicLong(-1);

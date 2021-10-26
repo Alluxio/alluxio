@@ -25,6 +25,8 @@ import alluxio.clock.SystemClock;
 import alluxio.collections.Pair;
 import alluxio.collections.PrefixList;
 import alluxio.conf.PropertyKey;
+import alluxio.conf.Reconfigurable;
+import alluxio.conf.ReconfigurableRegistry;
 import alluxio.conf.ServerConfiguration;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.AlluxioException;
@@ -223,7 +225,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe // TODO(jiri): make thread-safe (c.f. ALLUXIO-1664)
 public final class DefaultFileSystemMaster extends CoreMaster
-    implements FileSystemMaster, DelegatingJournaled {
+    implements FileSystemMaster, DelegatingJournaled, Reconfigurable {
   private static final Logger LOG = LoggerFactory.getLogger(DefaultFileSystemMaster.class);
   private static final Set<Class<? extends Server>> DEPS = ImmutableSet.of(BlockMaster.class);
 
@@ -414,6 +416,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
       ServerConfiguration.getInt(PropertyKey.MASTER_METADATA_SYNC_EXECUTOR_POOL_SIZE),
       1, TimeUnit.MINUTES, new LinkedBlockingQueue<>(),
       ThreadFactoryUtils.build("alluxio-ufs-active-sync-%d", false));
+  private HeartbeatThread mReplicationCheckHeartbeatThread;
 
   /**
    * Creates a new instance of {@link DefaultFileSystemMaster}.
@@ -468,8 +471,8 @@ public final class DefaultFileSystemMaster extends CoreMaster
     mPermissionChecker = new DefaultPermissionChecker(mInodeTree);
     mJobMasterClientPool = new JobMasterClientPool(JobMasterClientContext
         .newBuilder(ClientContext.create(ServerConfiguration.global())).build());
-    mPersistRequests = new java.util.concurrent.ConcurrentHashMap<>();
-    mPersistJobs = new java.util.concurrent.ConcurrentHashMap<>();
+    mPersistRequests = new ConcurrentHashMap<>();
+    mPersistJobs = new ConcurrentHashMap<>();
     mUfsAbsentPathCache = UfsAbsentPathCache.Factory.create(mMountTable);
     mUfsBlockLocationCache = UfsBlockLocationCache.Factory.create(mMountTable);
     mUfsSyncPathCache = new UfsSyncPathCache();
@@ -653,12 +656,14 @@ public final class DefaultFileSystemMaster extends CoreMaster
               (int) ServerConfiguration.getMs(PropertyKey
                   .MASTER_LOST_WORKER_FILE_DETECTION_INTERVAL),
               ServerConfiguration.global(), mMasterContext.getUserState()));
-      getExecutorService().submit(new HeartbeatThread(
+      mReplicationCheckHeartbeatThread = new HeartbeatThread(
           HeartbeatContext.MASTER_REPLICATION_CHECK,
           new alluxio.master.file.replication.ReplicationChecker(mInodeTree, mBlockMaster,
               mSafeModeManager, mJobMasterClientPool),
           (int) ServerConfiguration.getMs(PropertyKey.MASTER_REPLICATION_CHECK_INTERVAL_MS),
-          ServerConfiguration.global(), mMasterContext.getUserState()));
+          ServerConfiguration.global(), mMasterContext.getUserState());
+      ReconfigurableRegistry.register(this);
+      getExecutorService().submit(mReplicationCheckHeartbeatThread);
       getExecutorService().submit(
           new HeartbeatThread(HeartbeatContext.MASTER_PERSISTENCE_SCHEDULER,
               new PersistenceScheduler(),
@@ -685,7 +690,8 @@ public final class DefaultFileSystemMaster extends CoreMaster
         mAsyncAuditLogWriter.start();
         MetricsSystem.registerGaugeIfAbsent(
             MetricKey.MASTER_AUDIT_LOG_ENTRIES_SIZE.getName(),
-            () -> mAsyncAuditLogWriter.getAuditLogEntriesSize());
+            () -> mAsyncAuditLogWriter != null
+                    ? mAsyncAuditLogWriter.getAuditLogEntriesSize() : -1);
       }
       if (ServerConfiguration.getBoolean(PropertyKey.UNDERFS_CLEANUP_ENABLED)) {
         getExecutorService().submit(
@@ -737,6 +743,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
       Thread.currentThread().interrupt();
       LOG.warn("Failed to wait for active sync executor to shut down.");
     }
+    ReconfigurableRegistry.unregister(this);
   }
 
   @Override
@@ -3491,6 +3498,18 @@ public final class DefaultFileSystemMaster extends CoreMaster
         options, auditContext, auditContextSrcInodeFunc, permissionCheckOperation, isGetFileInfo,
         false, false, false);
     return sync.sync();
+  }
+
+  @Override
+  public void update() {
+    if (mReplicationCheckHeartbeatThread != null) {
+      long newValue = ServerConfiguration.getMs(
+          PropertyKey.MASTER_REPLICATION_CHECK_INTERVAL_MS);
+      mReplicationCheckHeartbeatThread.updateIntervalMs(
+          (int) newValue);
+      LOG.info("The interval of {} updated to {}",
+          HeartbeatContext.MASTER_REPLICATION_CHECK, newValue);
+    }
   }
 
   @FunctionalInterface
