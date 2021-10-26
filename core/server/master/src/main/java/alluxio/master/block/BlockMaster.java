@@ -61,6 +61,16 @@ public interface BlockMaster extends Master, ContainerIdGenerable {
   long getCapacityBytes();
 
   /**
+   * @return the unique block count on all workers of Alluxio
+   */
+  long getUniqueBlockCount();
+
+  /**
+   * @return the replica block count on all workers of Alluxio
+   */
+  long getBlockReplicaCount();
+
+  /**
    * @return the global storage tier mapping
    */
   StorageTierAssoc getGlobalStorageTierAssoc();
