@@ -12,6 +12,7 @@
 package alluxio.master.journal;
 
 import alluxio.grpc.GetQuorumInfoPResponse;
+import alluxio.grpc.GetTransferLeaderMessagePResponse;
 import alluxio.grpc.NetAddress;
 
 import java.io.IOException;
@@ -37,4 +38,27 @@ public interface JournalMaster {
    * @throws IOException if error occurs while performing the operation
    */
   void removeQuorumServer(NetAddress serverAddress) throws IOException;
+
+  /**
+   * Changes the leading master of the journal quorum. This method is supported only for
+   * {@link alluxio.master.journal.JournalType#EMBEDDED} journal.
+   *
+   * @param newLeaderAddress server address to remove from quorum
+   * @return the guid of transfer leader command
+   */
+  String transferLeadership(NetAddress newLeaderAddress);
+
+  /**
+   * Resets RaftPeer priorities.
+   *
+   * @throws IOException if error occurs while performing the operation
+   */
+  void resetPriorities() throws IOException;
+
+  /**
+   * Gets exception messages thrown when transferring the leader.
+   * @param transferId the guid of transferLeader command
+   * @return exception message
+   */
+  GetTransferLeaderMessagePResponse getTransferLeaderMessage(String transferId);
 }

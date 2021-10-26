@@ -14,6 +14,7 @@ package alluxio.master.file.contexts;
 import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.DeletePOptions;
 import alluxio.util.FileSystemOptions;
+import alluxio.wire.OperationId;
 
 import com.google.common.base.MoreObjects;
 
@@ -57,6 +58,14 @@ public class DeleteContext extends OperationContext<DeletePOptions.Builder, Dele
    */
   public static DeleteContext defaults() {
     return create(FileSystemOptions.deleteDefaults(ServerConfiguration.global()).toBuilder());
+  }
+
+  @Override
+  public OperationId getOperationId() {
+    if (getOptions().hasCommonOptions() && getOptions().getCommonOptions().hasOperationId()) {
+      return OperationId.fromFsProto(getOptions().getCommonOptions().getOperationId());
+    }
+    return super.getOperationId();
   }
 
   @Override

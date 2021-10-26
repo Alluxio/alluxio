@@ -1,0 +1,111 @@
+#
+# The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
+# (the "License"). You may not use this work except in compliance with the License, which is
+# available at www.apache.org/licenses/LICENSE-2.0
+#
+# This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+# either express or implied, as more fully set forth in the License.
+#
+# See the NOTICE file distributed with this work for information regarding copyright ownership.
+#
+
+# setup CSI
+# Make sure any changes to CSI installation are made in Dockerfile as well
+FROM golang:1.15.13-alpine AS dev
+ENV GO111MODULE=on
+RUN mkdir -p /alluxio-csi
+COPY ./csi /alluxio-csi
+RUN cd /alluxio-csi && \
+    CGO_ENABLED=0 go build -o /usr/local/bin/alluxio-csi
+
+# Use CentOS as base image for alluxio-dev image
+FROM centos:7 AS final
+
+# Note that downloads for *-SNAPSHOT tarballs are not available
+ARG ALLUXIO_TARBALL=http://downloads.alluxio.io/downloads/files/2.7.0-SNAPSHOT/alluxio-2.7.0-SNAPSHOT-bin.tar.gz
+# (Alert):It's not recommended to set this Argument to true, unless you know exactly what you are doing
+ARG ENABLE_DYNAMIC_USER=false
+
+ADD ${ALLUXIO_TARBALL} /opt/
+# If the tarball was remote, it needs to be untarred
+# Use ln -s instead of mv to avoid issues with Centos (see https://github.com/moby/moby/issues/27358)
+RUN cd /opt && \
+    (if ls | grep -q ".tar.gz"; then tar -xzf *.tar.gz && rm *.tar.gz; fi) && \
+    ln -s alluxio-* alluxio
+
+RUN if [ ${ENABLE_DYNAMIC_USER} = "true" ] ; then \
+       chmod -R 777 /opt/* ; \
+    fi
+
+ADD dockerfile-common.sh /
+
+# The following libfuse setup is modified from cheyang/fuse2:ubuntu1604-customize to be applied on centOS
+WORKDIR /
+
+ENV MAX_IDLE_THREADS "64"
+
+RUN \
+    yum update -y && yum upgrade -y && \
+    yum install -y kernel-devel ca-certificates pkgconfig wget udev git && \
+    yum install -y gcc gcc-c++ make cmake gettext-devel libtool autoconf && \
+    yum clean all && \
+    ./dockerfile-common.sh install-libfuse
+
+ENV LD_LIBRARY_PATH "/usr/local/lib:${LD_LIBRARY_PATH}"
+
+ARG ALLUXIO_USERNAME=alluxio
+ARG ALLUXIO_GROUP=alluxio
+ARG ALLUXIO_UID=1000
+ARG ALLUXIO_GID=1000
+ARG ENABLE_DYNAMIC_USER=true
+
+# Add Tini for alluxio helm charts (https://github.com/Alluxio/alluxio/pull/12233)
+# - https://github.com/krallin/tini
+ENV TINI_VERSION v0.18.0
+ADD https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini /usr/local/bin/tini
+RUN chmod +x /usr/local/bin/tini
+
+RUN \
+    yum install -y java-1.8.0-openjdk-devel java-1.8.0-openjdk && \
+    yum install -y java-11-openjdk-devel java-11-openjdk && \
+    yum install -y unzip vim && \
+    yum clean all
+
+# Install arthas(https://github.com/alibaba/arthas) for analyzing performance bottleneck
+RUN wget -qO /tmp/arthas.zip "https://github.com/alibaba/arthas/releases/download/arthas-all-3.4.6/arthas-bin.zip" && \
+    mkdir -p /opt/arthas && \
+    unzip /tmp/arthas.zip -d /opt/arthas && \
+    rm /tmp/arthas.zip
+
+# Install async-profiler(https://github.com/jvm-profiling-tools/async-profiler/releases/tag/v1.8.3)
+RUN wget -qO /tmp/async-profiler-1.8.3-linux-x64.tar.gz "https://github.com/jvm-profiling-tools/async-profiler/releases/download/v1.8.3/async-profiler-1.8.3-linux-x64.tar.gz" && \
+    tar -xvf /tmp/async-profiler-1.8.3-linux-x64.tar.gz -C /opt && \
+    mv /opt/async-profiler-* /opt/async-profiler && \
+    rm /tmp/async-profiler-1.8.3-linux-x64.tar.gz
+
+ENV JAVA_HOME /usr/lib/jvm/java-1.8.0-openjdk
+
+# Disable JVM DNS cache
+RUN echo "networkaddress.cache.ttl=0" >> ${JAVA_HOME}/jre/lib/security/java.security
+
+# Add the following for native libraries needed by rocksdb
+ENV LD_LIBRARY_PATH /lib64:${LD_LIBRARY_PATH}
+
+# If Alluxio user, group, gid, and uid aren't root|0, create the alluxio user and set file permissions accordingly
+RUN ./dockerfile-common.sh user-operation ${ALLUXIO_USERNAME} ${ALLUXIO_GROUP} ${ALLUXIO_UID} ${ALLUXIO_GID} centos
+
+# Docker 19.03+ required to expand variables in --chown argument
+# https://github.com/moby/buildkit/pull/926#issuecomment-503943557
+COPY --chown=${ALLUXIO_USERNAME}:${ALLUXIO_GROUP} conf /opt/alluxio/conf/
+COPY --chown=${ALLUXIO_USERNAME}:${ALLUXIO_GROUP} entrypoint.sh /
+COPY --from=dev /usr/local/bin/alluxio-csi /usr/local/bin/
+
+RUN ./dockerfile-common.sh enable-dynamic-user ${ENABLE_DYNAMIC_USER}
+
+USER ${ALLUXIO_UID}
+
+WORKDIR /opt/alluxio
+
+ENV PATH="/opt/alluxio/bin:${PATH}"
+
+ENTRYPOINT ["/entrypoint.sh"]

@@ -42,7 +42,7 @@ import java.util.concurrent.TimeUnit;
  * Unit tests for {@link RaftJournalWriter}.
  */
 public class RaftJournalWriterTest {
-  private LocalFirstRaftClient mClient;
+  private RaftJournalAppender mClient;
   private RaftJournalWriter mRaftJournalWriter;
 
   @After
@@ -51,7 +51,7 @@ public class RaftJournalWriterTest {
   }
 
   private void setupRaftJournalWriter() throws IOException  {
-    mClient = mock(LocalFirstRaftClient.class);
+    mClient = mock(RaftJournalAppender.class);
     RaftClientReply reply = RaftClientReply.newBuilder()
             .setClientId(ClientId.randomId())
             .setServerId(

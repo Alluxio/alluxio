@@ -12,6 +12,7 @@
 package alluxio.stress.master;
 
 import alluxio.stress.Parameters;
+import alluxio.stress.common.FileSystemParameters;
 
 import com.beust.jcommander.DynamicParameter;
 import com.beust.jcommander.IStringConverter;
@@ -24,7 +25,7 @@ import java.util.Map;
  * This holds all the parameters. All fields are public for easier json ser/de without all the
  * getters and setters.
  */
-public final class MasterBenchParameters extends Parameters {
+public final class MasterBenchParameters extends FileSystemParameters {
   /** The stop count value that is invalid. */
   public static final int STOP_COUNT_INVALID = -1;
 
@@ -95,6 +96,10 @@ public final class MasterBenchParameters extends Parameters {
           + "configuration values.")
 
   public Map<String, String> mConf = new HashMap<>();
+
+  @Parameter(names = {"--skip-prepare"},
+      description = "If true, skip the prepare.")
+  public boolean mSkipPrepare = false;
 
   /**
    * Converts from String to Operation instance.

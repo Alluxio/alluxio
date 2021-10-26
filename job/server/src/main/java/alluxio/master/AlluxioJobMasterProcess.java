@@ -17,6 +17,7 @@ import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
+import alluxio.grpc.GrpcServer;
 import alluxio.grpc.GrpcServerAddress;
 import alluxio.grpc.GrpcServerBuilder;
 import alluxio.grpc.GrpcService;
@@ -27,8 +28,6 @@ import alluxio.master.journal.JournalMasterClientServiceHandler;
 import alluxio.master.journal.JournalSystem;
 import alluxio.master.journal.JournalUtils;
 import alluxio.master.journal.raft.RaftJournalSystem;
-import alluxio.metrics.MetricsSystem;
-import alluxio.metrics.sink.MetricsServlet;
 import alluxio.security.user.ServerUserState;
 import alluxio.underfs.JobUfsManager;
 import alluxio.underfs.UfsManager;
@@ -46,6 +45,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.URI;
+import java.util.concurrent.TimeUnit;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
@@ -73,8 +73,6 @@ public class AlluxioJobMasterProcess extends MasterProcess {
   /** The manager for all ufs. */
   private UfsManager mUfsManager;
 
-  private final MetricsServlet mMetricsServlet = new MetricsServlet(MetricsSystem.METRIC_REGISTRY);
-
   AlluxioJobMasterProcess(JournalSystem journalSystem) {
     super(journalSystem, ServiceType.JOB_MASTER_RPC, ServiceType.JOB_MASTER_WEB);
     mRpcConnectAddress = NetworkAddressUtils.getConnectAddress(ServiceType.JOB_MASTER_RPC,
@@ -88,6 +86,9 @@ public class AlluxioJobMasterProcess extends MasterProcess {
     mFileSystem = FileSystem.Factory.create(mFsContext);
     mUfsManager = new JobUfsManager();
     try {
+      if (!mJournalSystem.isFormatted()) {
+        mJournalSystem.format();
+      }
       // Create master.
       mJobMaster = new JobMaster(
           new MasterContext(mJournalSystem, null, mUfsManager), mFileSystem, mFsContext,
@@ -180,21 +181,20 @@ public class AlluxioJobMasterProcess extends MasterProcess {
   protected void startServing(String startMessage, String stopMessage) {
     LOG.info("Alluxio job master web server version {} starting{}. webAddress={}",
         RuntimeConstants.VERSION, startMessage, mWebBindAddress);
+    startServingRPCServer();
     startServingWebServer();
     LOG.info(
         "Alluxio job master version {} started{}. bindAddress={}, connectAddress={}, webAddress={}",
         RuntimeConstants.VERSION, startMessage, mRpcBindAddress, mRpcConnectAddress,
         mWebBindAddress);
-
-    startServingRPCServer();
-    LOG.info("Alluxio job master ended");
+    mGrpcServer.awaitTermination();
+    LOG.info("Alluxio job master ended {}", stopMessage);
   }
 
   protected void startServingWebServer() {
     stopRejectingWebServer();
     mWebServer =
         new JobMasterWebServer(ServiceType.JOB_MASTER_WEB.getServiceName(), mWebBindAddress, this);
-    mWebServer.addHandler(mMetricsServlet.getHandler());
     mWebServer.start();
   }
 
@@ -203,27 +203,52 @@ public class AlluxioJobMasterProcess extends MasterProcess {
    * {@link Master}s and meta services.
    */
   protected void startServingRPCServer() {
+    stopRejectingRpcServer();
+
+    LOG.info("Starting gRPC server on address:{}", mRpcBindAddress);
+    mGrpcServer = createRPCServer();
+
     try {
-      stopRejectingRpcServer();
-      LOG.info("Starting Alluxio job master gRPC server on address {}", mRpcBindAddress);
-      GrpcServerBuilder serverBuilder = GrpcServerBuilder.forAddress(
-          GrpcServerAddress.create(mRpcConnectAddress.getHostName(), mRpcBindAddress),
-          ServerConfiguration.global(), ServerUserState.global());
-      registerServices(serverBuilder, mJobMaster.getServices());
-
-      // Add journal master client service.
-      serverBuilder.addService(alluxio.grpc.ServiceType.JOURNAL_MASTER_CLIENT_SERVICE,
-          new GrpcService(new JournalMasterClientServiceHandler(
-              new DefaultJournalMaster(JournalDomain.JOB_MASTER, mJournalSystem))));
-
-      mGrpcServer = serverBuilder.build().start();
-      LOG.info("Started Alluxio job master gRPC server on address {}", mRpcConnectAddress);
-
-      // Wait until the server is shut down.
-      mGrpcServer.awaitTermination();
+      // Start serving.
+      mGrpcServer.start();
+      // Acquire and log bind port from newly started server.
+      InetSocketAddress listeningAddress = InetSocketAddress
+          .createUnresolved(mRpcBindAddress.getHostName(), mGrpcServer.getBindPort());
+      LOG.info("gRPC server listening on: {}", listeningAddress);
     } catch (IOException e) {
-      throw new RuntimeException(e);
+      LOG.error("gRPC serving failed.", e);
+      throw new RuntimeException("gRPC serving failed");
     }
+  }
+
+  private GrpcServer createRPCServer() {
+    // Create underlying gRPC server.
+    GrpcServerBuilder builder = GrpcServerBuilder
+        .forAddress(GrpcServerAddress.create(mRpcConnectAddress.getHostName(), mRpcBindAddress),
+            ServerConfiguration.global(), ServerUserState.global())
+        .flowControlWindow(
+            (int) ServerConfiguration.getBytes(PropertyKey.JOB_MASTER_NETWORK_FLOWCONTROL_WINDOW))
+        .keepAliveTime(ServerConfiguration.getMs(PropertyKey.JOB_MASTER_NETWORK_KEEPALIVE_TIME_MS),
+            TimeUnit.MILLISECONDS)
+        .keepAliveTimeout(
+            ServerConfiguration.getMs(PropertyKey.JOB_MASTER_NETWORK_KEEPALIVE_TIMEOUT_MS),
+            TimeUnit.MILLISECONDS)
+        .permitKeepAlive(
+            ServerConfiguration.getMs(PropertyKey.JOB_MASTER_NETWORK_PERMIT_KEEPALIVE_TIME_MS),
+            TimeUnit.MILLISECONDS)
+        .maxInboundMessageSize((int) ServerConfiguration
+            .getBytes(PropertyKey.JOB_MASTER_NETWORK_MAX_INBOUND_MESSAGE_SIZE));
+    // Register job-master services.
+    registerServices(builder, mJobMaster.getServices());
+
+    // Bind manifest of Alluxio JournalMaster service.
+    // TODO(ggezer) Merge this with registerServices() logic.
+    builder.addService(alluxio.grpc.ServiceType.JOURNAL_MASTER_CLIENT_SERVICE,
+        new GrpcService(new JournalMasterClientServiceHandler(
+            new DefaultJournalMaster(JournalDomain.JOB_MASTER, mJournalSystem))));
+
+    // Builds a server that is not started yet.
+    return builder.build();
   }
 
   protected void stopServing() throws Exception {

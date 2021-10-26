@@ -29,7 +29,8 @@ import java.util.List;
  */
 public class RaftJournalConfiguration {
   private List<InetSocketAddress> mClusterAddresses;
-  private long mElectionTimeoutMs;
+  private long mMinElectionTimeoutMs;
+  private long mMaxElectionTimeoutMs;
   private InetSocketAddress mLocalAddress;
   private long mMaxLogSize;
   private File mPath;
@@ -42,8 +43,10 @@ public class RaftJournalConfiguration {
     return new RaftJournalConfiguration()
         .setClusterAddresses(ConfigurationUtils
             .getEmbeddedJournalAddresses(ServerConfiguration.global(), serviceType))
-        .setElectionTimeoutMs(
-            ServerConfiguration.getMs(PropertyKey.MASTER_EMBEDDED_JOURNAL_ELECTION_TIMEOUT))
+        .setElectionMinTimeoutMs(
+            ServerConfiguration.getMs(PropertyKey.MASTER_EMBEDDED_JOURNAL_MIN_ELECTION_TIMEOUT))
+        .setElectionMaxTimeoutMs(
+            ServerConfiguration.getMs(PropertyKey.MASTER_EMBEDDED_JOURNAL_MAX_ELECTION_TIMEOUT))
         .setLocalAddress(NetworkAddressUtils.getConnectAddress(serviceType,
             ServerConfiguration.global()))
         .setMaxLogSize(ServerConfiguration.getBytes(PropertyKey.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX))
@@ -57,9 +60,14 @@ public class RaftJournalConfiguration {
     Preconditions.checkState(getMaxLogSize() <= Integer.MAX_VALUE,
         "{} has value {} but must not exceed {}", PropertyKey.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX,
         getMaxLogSize(), Integer.MAX_VALUE);
-    Preconditions.checkState(getClusterAddresses().contains(getLocalAddress()),
+    Preconditions.checkState(getClusterAddresses().contains(getLocalAddress())
+            || NetworkAddressUtils.containsLocalIp(getClusterAddresses(),
+        ServerConfiguration.global()),
         "The cluster addresses (%s) must contain the local master address (%s)",
         getClusterAddresses(), getLocalAddress());
+    Preconditions.checkState(getMinElectionTimeoutMs() < getMaxElectionTimeoutMs(),
+        "min election timeout (%sms) should be less than max election timeout (%sms)",
+        getMinElectionTimeoutMs(), getMaxElectionTimeoutMs());
   }
 
   /**
@@ -70,10 +78,17 @@ public class RaftJournalConfiguration {
   }
 
   /**
-   * @return election timeout
+   * @return min election timeout
    */
-  public long getElectionTimeoutMs() {
-    return mElectionTimeoutMs;
+  public long getMinElectionTimeoutMs() {
+    return mMinElectionTimeoutMs;
+  }
+
+  /**
+   * @return max election timeout
+   */
+  public long getMaxElectionTimeoutMs() {
+    return mMaxElectionTimeoutMs;
   }
 
   /**
@@ -119,11 +134,20 @@ public class RaftJournalConfiguration {
   }
 
   /**
-   * @param electionTimeoutMs election timeout
+   * @param minElectionTimeoutMs min election timeout
    * @return the updated configuration
    */
-  public RaftJournalConfiguration setElectionTimeoutMs(long electionTimeoutMs) {
-    mElectionTimeoutMs = electionTimeoutMs;
+  public RaftJournalConfiguration setElectionMinTimeoutMs(long minElectionTimeoutMs) {
+    mMinElectionTimeoutMs = minElectionTimeoutMs;
+    return this;
+  }
+
+  /**
+   * @param maxElectionTimeoutMs max election timeout
+   * @return the updated configuration
+   */
+  public RaftJournalConfiguration setElectionMaxTimeoutMs(long maxElectionTimeoutMs) {
+    mMaxElectionTimeoutMs = maxElectionTimeoutMs;
     return this;
   }
 

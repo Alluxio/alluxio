@@ -103,10 +103,11 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
     long blockId = info.getBlockId();
     long blockSize = info.getLength();
 
-    if (dataSourceType == BlockInStreamSource.PROCESS_LOCAL
-        && dataSource.equals(context.getNodeLocalWorker())) {
+    if (dataSourceType == BlockInStreamSource.PROCESS_LOCAL) {
       // Interaction between the current client and the worker it embedded to should
       // go through worker internal communication directly without RPC involves
+      LOG.debug("Creating worker process local input stream for block {} @ {}",
+          blockId, dataSource);
       return createProcessLocalBlockInStream(context, dataSource, blockId, blockSize, options);
     }
 
@@ -135,8 +136,11 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
     }
 
     // gRPC
-    LOG.debug("Creating gRPC input stream for block {} @ {} from client {} reading through {}",
-        blockId, dataSource, NetworkAddressUtils.getClientHostName(alluxioConf), dataSource);
+    LOG.debug("Creating gRPC input stream for block {} @ {} from client {} reading through {} ("
+        + "data locates in the local worker {}, shortCircuitEnabled {}, "
+        + "shortCircuitPreferred {}, sourceSupportDomainSocket {})",
+        blockId, dataSource, NetworkAddressUtils.getClientHostName(alluxioConf), dataSource,
+        sourceIsLocal, shortCircuit, shortCircuitPreferred, sourceSupportsDomainSocket);
     return createGrpcBlockInStream(context, dataSource, dataSourceType, blockId,
         blockSize, options);
   }
@@ -307,6 +311,9 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
     if (len == 0) {
       return 0;
     }
+    if (mPos == mLength) {
+      return -1;
+    }
     readChunk();
     if (mCurrentChunk == null) {
       mEOF = true;
@@ -322,6 +329,10 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
     byteBuffer.position(off).limit(off + toRead);
     mCurrentChunk.readBytes(byteBuffer);
     mPos += toRead;
+    if (mPos == mLength) {
+      // a performance improvement introduced by https://github.com/Alluxio/alluxio/issues/14020
+      closeDataReader();
+    }
     return toRead;
   }
 
@@ -456,10 +467,11 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
   }
 
   /**
-   * @return whether the reader is reading data directly from a local file
+   * @return the underlying data reader factory
    */
-  public boolean isShortCircuit() {
-    return mDataReaderFactory.isShortCircuit();
+  @VisibleForTesting
+  public DataReader.Factory getDataReaderFactory() {
+    return mDataReaderFactory;
   }
 
   /**

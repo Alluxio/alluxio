@@ -21,6 +21,8 @@ enum JournalDomain {
 message QuorumServerInfo {
     optional NetAddress serverAddress = 1;
     optional QuorumServerState serverState = 2;
+    optional bool isLeader = 3;
+    optional int32 priority = 4;
 }
 
 // GetQuorumInfo API
@@ -41,6 +43,35 @@ message RemoveQuorumServerPRequest {
 }
 message RemoveQuorumServerPResponse {}
 
+// TransferLeadership API
+message TransferLeadershipPOptions {}
+message TransferLeadershipPRequest {
+    optional TransferLeadershipPOptions options = 1;
+    optional NetAddress serverAddress = 2;
+}
+message TransferLeadershipPResponse {
+    required string transferId = 1;
+}
+
+// ResetPriorities API
+message ResetPrioritiesPOptions {}
+message ResetPrioritiesPRequest {
+    optional ResetPrioritiesPOptions options = 1;
+}
+message ResetPrioritiesPResponse {}
+
+message TransferLeaderMessage {
+    optional string msg = 1;
+}
+// GetTransferLeaderMessage API
+message GetTransferLeaderMessageOptions {}
+message GetTransferLeaderMessagePRequest {
+    required string transferId = 1;
+}
+message GetTransferLeaderMessagePResponse{
+    required TransferLeaderMessage transMsg = 1;
+}
+
 /**
   * This interface contains journal master service endpoints for Alluxio clients.
   */
@@ -55,4 +86,19 @@ service JournalMasterClientService {
      * Removes a server from embedded journal quorum.
      */
     rpc RemoveQuorumServer(RemoveQuorumServerPRequest) returns (RemoveQuorumServerPResponse);
+
+    /**
+     * Transfers the leadership from the current leader to another designated leader.
+     */
+    rpc TransferLeadership(TransferLeadershipPRequest) returns (TransferLeadershipPResponse);
+
+    /**
+     * Reset all the RaftPeer priorities.
+     */
+    rpc ResetPriorities(ResetPrioritiesPRequest) returns (ResetPrioritiesPResponse);
+
+    /**
+     * Gets exception message throwing when transfer leader.
+     */
+    rpc GetTransferLeaderMessage(GetTransferLeaderMessagePRequest) returns (GetTransferLeaderMessagePResponse);
 }

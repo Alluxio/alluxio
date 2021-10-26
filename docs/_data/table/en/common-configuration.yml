@@ -1,5 +1,7 @@
 alluxio.conf.dir:
   'The directory containing files used to configure Alluxio. Note: overwriting this property will only work when it is passed as a JVM system property (e.g., appending &quot;-Dalluxio.conf.dir&quot;=&lt;NEW_VALUE&gt;&quot; to $ALLUXIO_JAVA_OPTS). Setting it in alluxio-site.properties will not work.'
+alluxio.conf.dynamic.update.enabled:
+  'Whether to support dynamic update property.'
 alluxio.debug:
   'Set to true to enable debug mode which has additional logging and info in the Web UI.'
 alluxio.extensions.dir:
@@ -28,6 +30,14 @@ alluxio.fuse.umount.timeout:
   'The timeout to wait for all in progress file read and write to finish before unmounting the Fuse filesystem. After the timeout, all in progress file read will be forced to stop and all in progress file write will be abandoned.'
 alluxio.fuse.user.group.translation.enabled:
   'Whether to translate Alluxio users and groups into Unix users and groups when exposing Alluxio files through the FUSE API. When this property is set to false, the user and group for all FUSE files will match the user who started the alluxio-fuse process.'
+alluxio.fuse.web.bind.host:
+  'The hostname Alluxio FUSE web UI binds to.'
+alluxio.fuse.web.enabled:
+  'Whether to enable FUSE web server.'
+alluxio.fuse.web.hostname:
+  'The hostname of Alluxio FUSE web UI.'
+alluxio.fuse.web.port:
+  'The port Alluxio FUSE web UI runs on.'
 alluxio.home:
   'Alluxio installation directory.'
 alluxio.job.master.bind.host:
@@ -234,6 +244,8 @@ alluxio.underfs.kodo.requests.max:
   'The maximum number of kodo connections.'
 alluxio.underfs.listing.length:
   'The maximum number of directory entries to list in a single query to under file system. If the total number of entries is greater than the specified length, multiple queries will be issued.'
+alluxio.underfs.local.skip.broken.symlinks:
+  'When set to true, any time the local underfs lists a broken symlink, it will treat the entry as if it didn''t exist at all.'
 alluxio.underfs.logging.threshold:
   'Logging a UFS API call when it takes more time than the threshold.'
 alluxio.underfs.object.store.breadcrumbs.enabled:
@@ -374,6 +386,14 @@ fs.kodo.accesskey:
   'The access key of Kodo bucket.'
 fs.kodo.secretkey:
   'The secret key of Kodo bucket.'
+fs.obs.accessKey:
+  'The access key of OBS bucket.'
+fs.obs.bucketType:
+  'The type of bucket (obs/pfs).'
+fs.obs.endpoint:
+  'The endpoint of OBS bucket.'
+fs.obs.secretKey:
+  'The secret key of OBS bucket.'
 fs.oss.accessKeyId:
   'The access key of OSS bucket.'
 fs.oss.accessKeySecret:

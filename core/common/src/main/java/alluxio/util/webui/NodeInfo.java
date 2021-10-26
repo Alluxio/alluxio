@@ -32,6 +32,7 @@ public final class NodeInfo implements Comparable<NodeInfo> {
   private final int mUsedPercent;
   private final String mUptimeClockTime;
   private final long mWorkerId;
+  private final long mBlockCount;
 
   /**
    * Instantiates a new Node info.
@@ -39,7 +40,12 @@ public final class NodeInfo implements Comparable<NodeInfo> {
    * @param workerInfo the worker info
    */
   public NodeInfo(WorkerInfo workerInfo) {
-    mHost = workerInfo.getAddress().getHost();
+    if (!workerInfo.getAddress().getContainerHost().equals("")) {
+      mHost = String.format("%s (%s)", workerInfo.getAddress().getHost(),
+              workerInfo.getAddress().getContainerHost());
+    } else {
+      mHost = workerInfo.getAddress().getHost();
+    }
     mWebPort = workerInfo.getAddress().getWebPort();
     mLastContactSec = Integer.toString(workerInfo.getLastContactSec());
     mWorkerState = workerInfo.getState();
@@ -55,6 +61,7 @@ public final class NodeInfo implements Comparable<NodeInfo> {
         CommonUtils.convertMsToClockTime(
             System.currentTimeMillis() - workerInfo.getStartTimeMs());
     mWorkerId = workerInfo.getId();
+    mBlockCount = workerInfo.getBlockCount();
   }
 
   /**
@@ -145,6 +152,15 @@ public final class NodeInfo implements Comparable<NodeInfo> {
    */
   public long getWorkerId() {
     return mWorkerId;
+  }
+
+  /**
+   * Gets worker block count.
+   *
+   * @return the worker block count
+   */
+  public long getBlockCount() {
+    return mBlockCount;
   }
 
   /**

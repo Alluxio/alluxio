@@ -16,6 +16,7 @@ import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.security.authorization.AclEntry;
 import alluxio.underfs.UfsStatus;
 import alluxio.util.FileSystemOptions;
+import alluxio.wire.OperationId;
 
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableList;
@@ -106,6 +107,14 @@ public class CreateDirectoryContext
    */
   public List<AclEntry> getDefaultAcl() {
     return mDefaultAcl;
+  }
+
+  @Override
+  public OperationId getOperationId() {
+    if (getOptions().hasCommonOptions() && getOptions().getCommonOptions().hasOperationId()) {
+      return OperationId.fromFsProto(getOptions().getCommonOptions().getOperationId());
+    }
+    return super.getOperationId();
   }
 
   @Override

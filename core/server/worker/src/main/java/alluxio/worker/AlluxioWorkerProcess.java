@@ -14,9 +14,8 @@ package alluxio.worker;
 import alluxio.Constants;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
+import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
-import alluxio.metrics.sink.MetricsServlet;
-import alluxio.metrics.sink.PrometheusMetricsServlet;
 import alluxio.network.ChannelType;
 import alluxio.underfs.UfsManager;
 import alluxio.underfs.WorkerUfsManager;
@@ -64,10 +63,6 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
 
   /** If started (i.e. not null), this server is used to serve local data transfer. */
   private DataServer mDomainSocketDataServer;
-
-  private final MetricsServlet mMetricsServlet = new MetricsServlet(MetricsSystem.METRIC_REGISTRY);
-  private final PrometheusMetricsServlet mPMetricsServlet = new PrometheusMetricsServlet(
-      MetricsSystem.METRIC_REGISTRY);
 
   /** The worker registry. */
   private WorkerRegistry mRegistry;
@@ -234,8 +229,6 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
     startWorkers();
 
     // Start serving the web server, this will not block.
-    mWebServer.addHandler(mMetricsServlet.getHandler());
-    mWebServer.addHandler(mPMetricsServlet.getHandler());
     mWebServer.start();
 
     // Start monitor jvm
@@ -246,6 +239,15 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
               ServerConfiguration.getMs(PropertyKey.JVM_MONITOR_WARN_THRESHOLD_MS),
               ServerConfiguration.getMs(PropertyKey.JVM_MONITOR_INFO_THRESHOLD_MS));
       mJvmPauseMonitor.start();
+      MetricsSystem.registerGaugeIfAbsent(
+              MetricsSystem.getMetricName(MetricKey.TOTAL_EXTRA_TIME.getName()),
+              mJvmPauseMonitor::getTotalExtraTime);
+      MetricsSystem.registerGaugeIfAbsent(
+              MetricsSystem.getMetricName(MetricKey.INFO_TIME_EXCEEDED.getName()),
+              mJvmPauseMonitor::getInfoTimeExceeded);
+      MetricsSystem.registerGaugeIfAbsent(
+              MetricsSystem.getMetricName(MetricKey.WARN_TIME_EXCEEDED.getName()),
+              mJvmPauseMonitor::getWarnTimeExceeded);
     }
 
     // Start serving RPC, this will block

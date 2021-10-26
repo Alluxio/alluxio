@@ -72,6 +72,11 @@ public final class NetworkAddressUtils {
    */
   public enum ServiceType {
     /**
+     * FUSE web service (Jetty).
+     */
+    FUSE_WEB("Alluxio FUSE Web service", PropertyKey.FUSE_WEB_HOSTNAME,
+        PropertyKey.FUSE_WEB_BIND_HOST, PropertyKey.FUSE_WEB_PORT),
+    /**
      * Job master Raft service (Netty). The bind and connect hosts are the same because the
      * underlying Raft implementation doesn't differentiate between bind and connect hosts.
      */
@@ -693,5 +698,29 @@ public final class NetworkAddressUtils {
     } finally {
       channel.shutdown();
     }
+  }
+
+  /**
+   * @param clusterAddresses addresses of all nodes in the Raft cluster
+   * @param conf Alluxio configuration
+   * @return true if the cluster addresses contain the local IP, false otherwise
+   */
+  public static boolean containsLocalIp(List<InetSocketAddress> clusterAddresses,
+      AlluxioConfiguration conf) {
+    String localAddressIp = getLocalIpAddress((int) conf.getMs(PropertyKey
+        .NETWORK_HOST_RESOLUTION_TIMEOUT_MS));
+    for (InetSocketAddress addr : clusterAddresses) {
+      String clusterNodeIp;
+      try {
+        clusterNodeIp = InetAddress.getByName(addr.getHostName()).getHostAddress();
+        if (clusterNodeIp.equals(localAddressIp)) {
+          return true;
+        }
+      } catch (UnknownHostException e) {
+        LOG.error("Get raft cluster node ip by hostname({}) failed",
+            addr.getHostName(), e);
+      }
+    }
+    return false;
   }
 }

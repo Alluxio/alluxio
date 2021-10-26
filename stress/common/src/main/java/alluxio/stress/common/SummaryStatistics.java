@@ -11,11 +11,10 @@
 
 package alluxio.stress.common;
 
+import alluxio.annotation.SuppressFBWarnings;
 import alluxio.stress.StressConstants;
 import alluxio.stress.graph.LineGraph;
 import alluxio.stress.master.MasterBenchSummary;
-
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
 import java.util.Arrays;
 

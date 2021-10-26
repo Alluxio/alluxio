@@ -955,7 +955,7 @@ public final class AlluxioFuseFileSystem extends FuseStubFS
   }
 
   @Override
-  public void umount() {
+  public void umount(boolean force) {
     LOG.info("Umount AlluxioFuseFileSystem");
     super.umount();
   }
