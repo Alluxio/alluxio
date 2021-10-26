@@ -295,8 +295,8 @@ of change in the UFS.
 We recommend to configure the sync interval exclusively. It is not recommended to consider
 configuring the metadata load type. However, do note the following equivalencies
 
-`alluxio.user.file.metadata.load.type=NEVER` is equivalent to `alluxio.user.metadata.sync.interval=-1`
-`alluxio.user.file.metadata.load.type=ALWAYS` is equivalent to `alluxio.user.metadata.sync.interval=0`
+`alluxio.user.file.metadata.load.type=NEVER` is equivalent to `alluxio.user.file.metadata.sync.interval=-1`
+`alluxio.user.file.metadata.load.type=ALWAYS` is equivalent to `alluxio.user.file.metadata.sync.interval=0`
 
 If the metadata sync interval is configured the metadata load type is ignored.
 
@@ -355,7 +355,7 @@ The system guarantees that we will start syncing a directory if it is "quiet", o
 For example, the following setting
 
 ```
-alluxio.master.ufs.active.sync.interval=30secs
+alluxio.master.ufs.active.sync.interval=30sec
 alluxio.master.ufs.active.sync.max.activities=100
 alluxio.master.ufs.active.sync.max.age=5
 ```

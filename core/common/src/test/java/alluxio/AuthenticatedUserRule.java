@@ -54,4 +54,12 @@ public final class AuthenticatedUserRule extends AbstractResourceRule {
       AuthenticatedClientUser.set(mPreviousUser.getName());
     }
   }
+
+  /**
+   * Used to reset user info on the calling thread.
+   * @throws Exception
+   */
+  public void resetUser() throws Exception {
+    before();
+  }
 }

@@ -39,6 +39,7 @@
     <module>swift</module>
     <module>wasb</module>
     <module>web</module>
+    <module>obs</module>
   </modules>
 
   <properties>

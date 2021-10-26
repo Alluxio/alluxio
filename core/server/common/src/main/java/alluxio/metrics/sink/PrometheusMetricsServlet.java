@@ -18,6 +18,8 @@ import io.prometheus.client.exporter.MetricsServlet;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
 
+import java.util.Properties;
+
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -38,8 +40,19 @@ public class PrometheusMetricsServlet implements Sink {
    * @param registry the metric registry to register
    */
   public PrometheusMetricsServlet(MetricRegistry registry) {
-    mCollectorRegistry = new CollectorRegistry();
+    mCollectorRegistry = CollectorRegistry.defaultRegistry;
     mCollectorRegistry.register(new DropwizardExports(registry));
+  }
+
+  /**
+   * Creates a new {@link alluxio.metrics.sink.PrometheusMetricsServlet} with a
+   * {@link MetricRegistry}.
+   *
+   * @param properties the properties, not used for now
+   * @param registry the metric registry to register
+   */
+  public PrometheusMetricsServlet(Properties properties, MetricRegistry registry) {
+    this(registry);
   }
 
   /**

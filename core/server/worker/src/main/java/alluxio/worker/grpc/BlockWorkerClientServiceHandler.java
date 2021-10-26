@@ -11,6 +11,7 @@
 
 package alluxio.worker.grpc;
 
+import alluxio.annotation.SuppressFBWarnings;
 import alluxio.RpcUtils;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
@@ -18,6 +19,8 @@ import alluxio.client.file.FileSystemContext;
 import alluxio.grpc.AsyncCacheRequest;
 import alluxio.grpc.AsyncCacheResponse;
 import alluxio.grpc.BlockWorkerGrpc;
+import alluxio.grpc.CacheRequest;
+import alluxio.grpc.CacheResponse;
 import alluxio.grpc.ClearMetricsRequest;
 import alluxio.grpc.ClearMetricsResponse;
 import alluxio.grpc.CreateLocalBlockRequest;
@@ -41,7 +44,6 @@ import alluxio.worker.WorkerProcess;
 import alluxio.worker.block.BlockWorker;
 
 import com.google.common.collect.ImmutableMap;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.grpc.MethodDescriptor;
 import io.grpc.Status;
 import io.grpc.stub.CallStreamObserver;
@@ -153,6 +155,14 @@ public class BlockWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorker
       mBlockWorker.asyncCache(request);
       return AsyncCacheResponse.getDefaultInstance();
     }, "asyncCache", "request=%s", responseObserver, request);
+  }
+
+  @Override
+  public void cache(CacheRequest request, StreamObserver<CacheResponse> responseObserver) {
+    RpcUtils.call(LOG, () -> {
+      mBlockWorker.cache(request);
+      return CacheResponse.getDefaultInstance();
+    }, "cache", "request=%s", responseObserver, request);
   }
 
   @Override

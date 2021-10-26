@@ -103,6 +103,11 @@ public class HeapBlockStore implements BlockStore {
   }
 
   @Override
+  public long size() {
+    return mBlocks.size();
+  }
+
+  @Override
   public List<BlockLocation> getLocations(long blockid) {
     if (!mBlockLocations.containsKey(blockid)) {
       return Collections.emptyList();

@@ -171,13 +171,15 @@ public final class BlockMasterWorkerServiceHandler extends
             /**
              * The merger function is invoked on key collisions to merge the values.
              * In fact this merger should never be invoked because the list is deduplicated
-             * by {@link BlockMasterClient#heartbeat} before sending to the master.
+             * by {@link BlockMasterClient} before sending to the master.
              * Therefore we just fail on merging.
              */
             (e1, e2) -> {
+              String entryReport = entries.stream().map((e) -> e.getKey().toString())
+                      .collect(Collectors.joining(","));
               throw new AssertionError(
-                String.format("Request contains two block id lists for the "
-                  + "same BlockLocation.%nExisting: %s%n New: %s", e1, e2));
+                String.format("Duplicate locations found for worker %s "
+                    + "with LocationBlockIdListEntry objects %s", workerId, entryReport));
             }));
   }
 }

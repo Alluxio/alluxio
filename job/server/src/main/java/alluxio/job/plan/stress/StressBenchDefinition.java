@@ -88,6 +88,7 @@ public final class StressBenchDefinition
     workerList = workerList.subList(0, clusterLimit);
 
     for (WorkerInfo worker : workerList) {
+      LOG.info("Generating job for worker {}", worker.getId());
       ArrayList<String> args = new ArrayList<>(2);
       // Add the worker hostname + worker id as the unique task id for each distributed task.
       // The worker id is used since there may be multiple workers on a single host.
@@ -186,9 +187,13 @@ public final class StressBenchDefinition
           try {
             return JsonSerializable.fromJson(entry.getValue().trim(), new TaskResult[0]);
           } catch (IOException | ClassNotFoundException e) {
-            error.set(new IOException(String
-                .format("Failed to parse task output from %s into result class",
-                    entry.getKey().getAddress().getHost()), e));
+            // add log here because the exception details are lost at the client side
+            LOG.warn("Failed to parse result into class {}", TaskResult.class, e);
+            error.set(new IOException(
+                String.format("Failed to parse task output from %s into result class %s: %s",
+                    entry.getKey().getAddress().getHost(), TaskResult.class,
+                    entry.getValue().trim()),
+                e));
           }
           return null;
         }).collect(Collectors.toList());

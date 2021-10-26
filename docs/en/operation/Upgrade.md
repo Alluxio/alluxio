@@ -59,3 +59,26 @@ and then start all the masters with the local backup file path.
 Alluxio 2.x makes significant changes in the RPC layer,
 so pre-2.0.0 clients do not work with post-2.0.0 servers, and vice-versa.
 Upgrade all applications to use the alluxio-2.x client.
+
+## Additional Options
+
+### Alluxio worker ramdisk cache persistence
+
+If you have configured Alluxio workers with ramdisk caches, you may
+persist and restore the contents of those caches using another storage
+medium (eg., the host machine's local disk).
+
+Use the `-c` flag with `alluxio-stop.sh` to specify a path for the workers to save
+the contents of their ramdisks to (workers will save contents to their own host's filesystems):
+```
+$ ./bin/alluxio-stop.sh workers -c ${CACHE_PATH}
+```
+- **WARNING:** This will overwrite and replace any existing contents in the provided `${CACHE_PATH}`
+
+Afterwards, use the `-c` flag with `alluxio-start.sh` to specify the directory containing
+the workers' ramdisk caches.
+```
+$ ./bin/alluxio-start.sh workers NoMount -c ${CACHE_PATH}
+```
+- **WARNING:** This will overwrite and replace any existing contents in
+the configured workers' ramdisk paths.

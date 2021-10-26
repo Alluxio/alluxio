@@ -11,6 +11,7 @@
 
 package alluxio;
 
+import alluxio.annotation.SuppressFBWarnings;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.PreconditionMessage;
@@ -31,11 +32,11 @@ import alluxio.metrics.MetricInfo;
 import alluxio.metrics.MetricsSystem;
 import alluxio.retry.RetryPolicy;
 import alluxio.retry.RetryUtils;
+import alluxio.util.CommonUtils;
 import alluxio.util.SecurityUtils;
 
 import com.codahale.metrics.Timer;
 import com.google.common.base.Preconditions;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.grpc.Status;
 import io.grpc.StatusRuntimeException;
 import org.slf4j.Logger;
@@ -58,9 +59,6 @@ public abstract class AbstractClient implements Client {
   private final Supplier<RetryPolicy> mRetryPolicySupplier;
 
   protected InetSocketAddress mAddress;
-
-  /** Address to load configuration, which may differ from {@code mAddress}. */
-  protected InetSocketAddress mConfAddress;
 
   /** Underlying channel to the target service. */
   protected GrpcChannel mChannel;
@@ -176,7 +174,7 @@ public abstract class AbstractClient implements Client {
       throws IOException {
     // Bootstrap once for clients
     if (!isConnected()) {
-      mContext.loadConfIfNotLoaded(mConfAddress);
+      mContext.loadConfIfNotLoaded(getConfAddress());
     }
   }
 
@@ -218,7 +216,6 @@ public abstract class AbstractClient implements Client {
       // failover).
       try {
         mAddress = getAddress();
-        mConfAddress = getConfAddress();
       } catch (UnavailableException e) {
         LOG.debug("Failed to determine {} rpc address ({}): {}",
             getServiceName(), retryPolicy.getAttemptCount(), e.toString());
@@ -326,9 +323,6 @@ public abstract class AbstractClient implements Client {
 
   @Override
   public synchronized InetSocketAddress getConfAddress() throws UnavailableException {
-    if (mConfAddress != null) {
-      return mConfAddress;
-    }
     return mAddress;
   }
 
@@ -384,7 +378,8 @@ public abstract class AbstractClient implements Client {
       logger.debug("Exit (OK): {}({}) in {} ms", rpcName, debugDesc, duration);
       if (duration >= mRpcThreshold) {
         logger.warn("{}({}) returned {} in {} ms (>={} ms)",
-            rpcName, String.format(description, args), ret, duration, mRpcThreshold);
+            rpcName, String.format(description, args),
+            CommonUtils.summarizeCollection(ret), duration, mRpcThreshold);
       }
       return ret;
     } catch (Exception e) {

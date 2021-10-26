@@ -151,7 +151,8 @@ public final class AlluxioMasterProcessTest {
     String ufsPath = PathUtils.concatPath(mFolder.getRoot(), "ufs");
     FileUtils.createDir(ufsPath);
     ufsPath = "http://other_ufs/";
-    ServerConfiguration.set(PropertyKey.MASTER_EMBEDDED_JOURNAL_ELECTION_TIMEOUT, "550");
+    ServerConfiguration.set(PropertyKey.MASTER_EMBEDDED_JOURNAL_MIN_ELECTION_TIMEOUT, "550");
+    ServerConfiguration.set(PropertyKey.MASTER_EMBEDDED_JOURNAL_MAX_ELECTION_TIMEOUT, "1100");
     ServerConfiguration.set(PropertyKey.MASTER_JOURNAL_INIT_FROM_BACKUP, backupPath);
     ServerConfiguration.set(PropertyKey.MASTER_JOURNAL_FOLDER, journalPath);
     ServerConfiguration.set(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS, ufsPath);
@@ -229,6 +230,10 @@ public final class AlluxioMasterProcessTest {
     waitForServing(ServiceType.MASTER_WEB);
     assertTrue(isBound(mRpcPort));
     assertTrue(isBound(mWebPort));
+    boolean testMode = ServerConfiguration.getBoolean(PropertyKey.TEST_MODE);
+    ServerConfiguration.set(PropertyKey.TEST_MODE, false);
+    master.waitForReady(5000);
+    ServerConfiguration.set(PropertyKey.TEST_MODE, testMode);
     master.stop();
     assertFalse(isBound(mRpcPort));
     assertFalse(isBound(mWebPort));
