@@ -943,72 +943,68 @@ public class RaftJournalSystem extends AbstractJournalSystem {
     final boolean allowed = mTransferLeaderAllowed.getAndSet(false);
     String transferId = UUID.randomUUID().toString();
     if (!allowed) {
-      IOException exception =
-              new IOException("transfer is not allowed at the moment because the master is "
-              + (mRaftJournalWriter == null ? "still gaining primacy" : "already transferring the "
-              + "leadership"));
-      mErrorMessages.put(transferId, TransferLeaderMessage.newBuilder()
-              .setMsg(exception.getMessage()).build());
+      String msg = "transfer is not allowed at the moment because the master is "
+          + (mRaftJournalWriter == null ? "still gaining primacy" : "already transferring the ")
+          + "leadership";
+      mErrorMessages.put(transferId, TransferLeaderMessage.newBuilder().setMsg(msg).build());
       return transferId;
     }
-    InetSocketAddress serverAddress = InetSocketAddress
-            .createUnresolved(newLeaderNetAddress.getHost(), newLeaderNetAddress.getRpcPort());
-    List<RaftPeer> oldPeers = new ArrayList<>(mRaftGroup.getPeers());
-    // The NetUtil function is used by Ratis to convert InetSocketAddress to string
-    String strAddr = NetUtils.address2String(serverAddress);
-    // if you cannot find the address in the quorum, throw exception.
-    if (oldPeers.stream().map(RaftPeer::getAddress).noneMatch(addr -> addr.equals(strAddr))) {
-      mTransferLeaderAllowed.set(true);
-      IOException exception = new IOException(String.format("<%s> is not part of the quorum <%s>.",
-              strAddr, oldPeers.stream().map(RaftPeer::getAddress).collect(Collectors.toList())));
-      mErrorMessages.put(transferId, TransferLeaderMessage.newBuilder()
-              .setMsg(exception.getMessage()).build());
-      return transferId;
-    }
+    try {
+      InetSocketAddress serverAddress = InetSocketAddress
+          .createUnresolved(newLeaderNetAddress.getHost(), newLeaderNetAddress.getRpcPort());
+      List<RaftPeer> oldPeers = new ArrayList<>(mRaftGroup.getPeers());
+      // The NetUtil function is used by Ratis to convert InetSocketAddress to string
+      String strAddr = NetUtils.address2String(serverAddress);
+      // if you cannot find the address in the quorum, throw exception.
+      if (oldPeers.stream().map(RaftPeer::getAddress).noneMatch(addr -> addr.equals(strAddr))) {
+        throw new IOException(String.format("<%s> is not part of the quorum <%s>.",
+                strAddr, oldPeers.stream().map(RaftPeer::getAddress).collect(Collectors.toList())));
+      }
 
-    RaftPeerId newLeaderPeerId = RaftJournalUtils.getPeerId(serverAddress);
-    /* update priorities to enable transfer */
-    List<RaftPeer> peersWithNewPriorities = new ArrayList<>();
-    for (RaftPeer peer : oldPeers) {
-      peersWithNewPriorities.add(
-              RaftPeer.newBuilder(peer)
-              .setPriority(peer.getId().equals(newLeaderPeerId) ? 2 : 1)
-              .build()
-      );
-    }
-    try (RaftClient client = createClient()) {
-      String stringPeers = "[" + peersWithNewPriorities.stream().map(RaftPeer::toString)
-                      .collect(Collectors.joining(", ")) + "]";
-      LOG.info("Applying new peer state before transferring leadership: {}", stringPeers);
-      RaftClientReply reply = client.admin().setConfiguration(peersWithNewPriorities);
-      processTransferLeaderReply(
-              reply, transferId, "failed to set master priorities before initiating election");
-      /* transfer leadership */
-      LOG.info("Transferring leadership to master with address <{}> and with RaftPeerId <{}>",
-              serverAddress, newLeaderPeerId);
-      // fire and forget: need to immediately return as the master will shut down its RPC servers
-      // once the TransferLeadershipRequest is initiated.
-      final int SLEEP_TIME_MS = 3_000;
-      final int TRANSFER_LEADER_WAIT_MS = 30_000;
-      new Thread(() -> {
-        try {
-          Thread.sleep(SLEEP_TIME_MS);
-          RaftClientReply reply1 = client.admin().transferLeadership(newLeaderPeerId,
-                  TRANSFER_LEADER_WAIT_MS);
-          processTransferLeaderReply(reply1, transferId, "election failed");
-        } catch (Throwable t) {
-          LOG.error("caught an error when executing transfer: {}", t.getMessage());
-          // we only allow transfers again if the transfer is unsuccessful: a success means it
-          // will soon lose primacy
-          mTransferLeaderAllowed.set(true);
-          mErrorMessages.put(transferId, TransferLeaderMessage.newBuilder()
-                  .setMsg(t.getMessage()).build());
-          /* checking the transfer happens in {@link QuorumElectCommand} */
-        }
-      }).start();
-      LOG.info("Transferring leadership initiated");
+      RaftPeerId newLeaderPeerId = RaftJournalUtils.getPeerId(serverAddress);
+      /* update priorities to enable transfer */
+      List<RaftPeer> peersWithNewPriorities = new ArrayList<>();
+      for (RaftPeer peer : oldPeers) {
+        peersWithNewPriorities.add(
+            RaftPeer.newBuilder(peer)
+                .setPriority(peer.getId().equals(newLeaderPeerId) ? 2 : 1)
+                .build()
+        );
+      }
+      try (RaftClient client = createClient()) {
+        String stringPeers = "[" + peersWithNewPriorities.stream().map(RaftPeer::toString)
+            .collect(Collectors.joining(", ")) + "]";
+        LOG.info("Applying new peer state before transferring leadership: {}", stringPeers);
+        RaftClientReply reply = client.admin().setConfiguration(peersWithNewPriorities);
+        processReply(reply, "failed to set master priorities before initiating election");
+        /* transfer leadership */
+        LOG.info("Transferring leadership to master with address <{}> and with RaftPeerId <{}>",
+            serverAddress, newLeaderPeerId);
+        // fire and forget: need to immediately return as the master will shut down its RPC servers
+        // once the TransferLeadershipRequest is initiated.
+        final int SLEEP_TIME_MS = 3_000;
+        final int TRANSFER_LEADER_WAIT_MS = 30_000;
+        new Thread(() -> {
+          try {
+            Thread.sleep(SLEEP_TIME_MS);
+            RaftClientReply reply1 = client.admin().transferLeadership(newLeaderPeerId,
+                TRANSFER_LEADER_WAIT_MS);
+            processReply(reply1, "election failed");
+          } catch (Throwable t) {
+            LOG.error("caught an error when executing transfer: {}", t.getMessage());
+            // we only allow transfers again if the transfer is unsuccessful: a success means it
+            // will soon lose primacy
+            mTransferLeaderAllowed.set(true);
+            mErrorMessages.put(transferId, TransferLeaderMessage.newBuilder()
+                .setMsg(t.getMessage()).build());
+            /* checking the transfer happens in {@link QuorumElectCommand} */
+          }
+        }).start();
+        LOG.info("Transferring leadership initiated");
+      }
     } catch (Throwable t) {
       mTransferLeaderAllowed.set(true);
+      LOG.warn(t.getMessage());
       mErrorMessages.put(transferId, TransferLeaderMessage.newBuilder()
               .setMsg(t.getMessage()).build());
     }
@@ -1026,22 +1022,6 @@ public class RaftJournalSystem extends AbstractJournalSystem {
               : new IOException(String.format("reply <%s> failed", reply));
       LOG.error("{}. Error: {}", msgToUser, ioe);
       throw new IOException(msgToUser);
-    }
-  }
-
-  /**
-   * @param reply from the ratis operation
-   * @param transferID the guid of transfer leader command
-   */
-  private void processTransferLeaderReply(
-          RaftClientReply reply, String transferID, String msgToUser) {
-    if (!reply.isSuccess()) {
-      IOException ioe = reply.getException() != null
-              ? reply.getException()
-              : new IOException(String.format("reply <%s> failed", reply));
-      LOG.error("{}. Error: {}", msgToUser, ioe);
-      mErrorMessages.put(transferID, TransferLeaderMessage.newBuilder()
-              .setMsg(msgToUser).build());
     }
   }
 
