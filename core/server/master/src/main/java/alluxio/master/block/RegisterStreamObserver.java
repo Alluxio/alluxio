@@ -12,7 +12,8 @@
 package alluxio.master.block;
 
 import alluxio.RpcUtils;
-import alluxio.exception.status.AlluxioStatusException;
+import alluxio.conf.PropertyKey;
+import alluxio.exception.status.DeadlineExceededException;
 import alluxio.grpc.GrpcExceptionUtils;
 import alluxio.grpc.RegisterWorkerPRequest;
 import alluxio.grpc.RegisterWorkerPResponse;
@@ -79,8 +80,12 @@ public class RegisterStreamObserver implements StreamObserver<RegisterWorkerPReq
         }
 
         // Verify the context is successfully initialized
-        Preconditions.checkState(mContext != null, "Stream message received from the client side but the context is not initialized");
-        Preconditions.checkState(mContext.isOpen(), "Context is not open");
+        Preconditions.checkState(mContext != null,
+            "Stream message received from the client side but the context was not initialized!");
+        Preconditions.checkState(mContext.isOpen(),
+            "WorkerRegisterContext has been closed before this message is received! "
+                + "Probably %s was exceeded!",
+            PropertyKey.MASTER_WORKER_REGISTER_STREAM_RESPONSE_TIMEOUT.toString());
 
         if (isHead) {
           mBlockMaster.workerRegisterStart(mContext, chunk);
@@ -98,6 +103,7 @@ public class RegisterStreamObserver implements StreamObserver<RegisterWorkerPReq
       public void exceptionCaught(Throwable e) {
         // When an exception occurs on the master side, close the context and
         // propagate the exception to the worker side.
+        LOG.error("Failed to process the RegisterWorkerPRequest in the stream: ", e);
         cleanup();
         mResponseObserver.onError(GrpcExceptionUtils.fromThrowable(e));
       }
@@ -115,7 +121,7 @@ public class RegisterStreamObserver implements StreamObserver<RegisterWorkerPReq
       System.out.println("Timeout signal received from the WorkerRegisterStreamGCExecutor. "
           + "Closing context for hanging worker.");
       cleanup();
-      mResponseObserver.onError(AlluxioStatusException.fromThrowable(t).toGrpcStatusException());
+      mResponseObserver.onError(new DeadlineExceededException(t).toGrpcStatusException());
       return;
     }
     // Otherwise the exception is from the worker
@@ -137,8 +143,11 @@ public class RegisterStreamObserver implements StreamObserver<RegisterWorkerPReq
         Preconditions.checkState(mErrorReceived.get() == null,
             "The stream has been closed due to an earlier error received: %s", mErrorReceived.get());
         Preconditions.checkState(mContext != null,
-            "Complete message received from the client side but the context is not initialized");
-        Preconditions.checkState(mContext.isOpen(), "Context is not open");
+            "Stream message received from the client side but the context was not initialized!");
+        Preconditions.checkState(mContext.isOpen(),
+            "WorkerRegisterContext has been closed before this stream is completed! "
+                + "Probably %s was exceeded!",
+            PropertyKey.MASTER_WORKER_REGISTER_STREAM_RESPONSE_TIMEOUT.toString());
 
         mBlockMaster.workerRegisterFinish(mContext);
         System.out.println("WorkerRegisterFinish finished, update TS");
@@ -153,6 +162,7 @@ public class RegisterStreamObserver implements StreamObserver<RegisterWorkerPReq
       public void exceptionCaught(Throwable e) {
         // When an exception occurs on the master side, close the context and
         // propagate the exception to the worker side.
+        LOG.error("Failed to complete the register worker stream: ", e);
         cleanup();
         mResponseObserver.onError(GrpcExceptionUtils.fromThrowable(e));
       }
@@ -160,6 +170,8 @@ public class RegisterStreamObserver implements StreamObserver<RegisterWorkerPReq
             mContext == null ? "NONE" : mContext.getWorkerId());
   }
 
+  // Only the 1st message in the stream has metadata.
+  // From the 2nd message on, it only contains the block list.
   private boolean isFirstMessage(alluxio.grpc.RegisterWorkerPRequest chunk) {
     return chunk.getStorageTiersCount() > 0;
   }

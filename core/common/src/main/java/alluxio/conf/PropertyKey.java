@@ -2038,7 +2038,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
-  public static final PropertyKey MASTER_REGISTER_WORKER_STREAM_TIMEOUT =
+  public static final PropertyKey MASTER_WORKER_REGISTER_STREAM_RESPONSE_TIMEOUT =
       new Builder(Name.MASTER_WORKER_REGISTER_STREAM_RESPONSE_TIMEOUT)
           .setDefaultValue("1min")
           .setDescription("When the worker registers the master with streaming, "

@@ -93,8 +93,8 @@ public class RegisterStreamer implements Iterator<RegisterWorkerPRequest> {
 
     mOptions = RegisterWorkerPOptions.newBuilder().addAllConfigs(configList).build();
     mLostStorageMap = lostStorage.entrySet().stream()
-            .collect(Collectors.toMap(Map.Entry::getKey,
-                    e -> StorageList.newBuilder().addAllStorage(e.getValue()).build()));
+        .collect(Collectors.toMap(Map.Entry::getKey,
+            e -> StorageList.newBuilder().addAllStorage(e.getValue()).build()));
     mBatchNumber = 0;
     mBlockMapIterator = blockListIterator;
 
@@ -241,21 +241,21 @@ public class RegisterStreamer implements Iterator<RegisterWorkerPRequest> {
       }
       // If it is the 1st batch, include metadata
       request = RegisterWorkerPRequest.newBuilder()
-              .setWorkerId(mWorkerId)
-              .addAllStorageTiers(mStorageTierAliases)
-              .putAllTotalBytesOnTiers(mTotalBytesOnTiers)
-              .putAllUsedBytesOnTiers(mUsedBytesOnTiers)
-              .putAllLostStorage(mLostStorageMap)
-              .setOptions(mOptions)
-              .addAllCurrentBlocks(blockBatch)
-              .build();
+          .setWorkerId(mWorkerId)
+          .addAllStorageTiers(mStorageTierAliases)
+          .putAllTotalBytesOnTiers(mTotalBytesOnTiers)
+          .putAllUsedBytesOnTiers(mUsedBytesOnTiers)
+          .putAllLostStorage(mLostStorageMap)
+          .setOptions(mOptions)
+          .addAllCurrentBlocks(blockBatch)
+          .build();
     } else {
       blockBatch = mBlockMapIterator.next();
       // Following batches only include the block list
       request = RegisterWorkerPRequest.newBuilder()
-              .setWorkerId(mWorkerId)
-              .addAllCurrentBlocks(blockBatch)
-              .build();
+          .setWorkerId(mWorkerId)
+          .addAllCurrentBlocks(blockBatch)
+          .build();
     }
     mBatchNumber++;
     return request;

@@ -7,12 +7,10 @@ import alluxio.exception.BlockInfoException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.Command;
 import alluxio.grpc.CommandType;
-import alluxio.grpc.ConfigProperty;
 import alluxio.grpc.LocationBlockIdListEntry;
 import alluxio.grpc.RegisterWorkerPRequest;
 import alluxio.grpc.RegisterWorkerPResponse;
 import alluxio.grpc.StorageList;
-import alluxio.master.block.BlockMasterFactory;
 import alluxio.master.block.BlockMasterTestUtils;
 import alluxio.master.block.meta.MasterWorkerInfo;
 import alluxio.util.CommonUtils;
@@ -25,14 +23,11 @@ import alluxio.master.block.BlockMasterWorkerServiceHandler;
 import alluxio.master.block.DefaultBlockMaster;
 import alluxio.master.metrics.MetricsMaster;
 import alluxio.master.metrics.MetricsMasterFactory;
-import alluxio.proto.meta.Block;
 import alluxio.stress.cli.RpcBenchPreparationUtils;
 import alluxio.stress.rpc.TierAlias;
 import alluxio.util.ThreadFactoryUtils;
 import alluxio.util.executor.ExecutorServiceFactories;
-import alluxio.util.network.NetworkAddressUtils;
 import alluxio.wire.BlockInfo;
-import alluxio.wire.WorkerNetAddress;
 import alluxio.worker.block.BlockStoreLocation;
 import alluxio.worker.block.RegisterStreamer;
 
@@ -47,7 +42,6 @@ import org.junit.Test;
 import java.io.IOException;
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
@@ -61,7 +55,10 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.stream.Collectors;
 
-import static alluxio.client.fs.RegisterStreamTestUtils.convert;
+import static alluxio.client.fs.RegisterStreamTestUtils.CAPACITY_MAP;
+import static alluxio.client.fs.RegisterStreamTestUtils.MEM_CAPACITY_BYTES;
+import static alluxio.client.fs.RegisterStreamTestUtils.USAGE_MAP;
+import static alluxio.client.fs.RegisterStreamTestUtils.parseTierConfig;
 import static alluxio.client.fs.RegisterStreamTestUtils.getErrorCapturingResponseObserver;
 import static alluxio.stress.cli.RpcBenchPreparationUtils.CAPACITY;
 import static alluxio.client.fs.RegisterStreamTestUtils.BATCH_SIZE;
@@ -87,8 +84,6 @@ public class BlockMasterRegisterStreamIntegrationTest {
 
   private static final long BLOCK_SIZE = ServerConfiguration.global().getBytes(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT);
   private static final Map<String, StorageList> NO_LOST_STORAGE = ImmutableMap.of();
-  private static final Map<String, Long> MEM_CAPACITY = ImmutableMap.of("MEM", 100L);
-  private static final Map<String, Long> MEM_USAGE_EMPTY = ImmutableMap.of("MEM", 0L);
   private static final Command EMPTY_CMD = Command.newBuilder()
           .setCommandType(CommandType.Nothing).build();
 
@@ -103,9 +98,7 @@ public class BlockMasterRegisterStreamIntegrationTest {
     ServerConfiguration.set(PropertyKey.WORKER_REGISTER_STREAM_ENABLED, true);
     ServerConfiguration.set(PropertyKey.WORKER_REGISTER_STREAM_BATCH_SIZE, BATCH_SIZE);
     ServerConfiguration.set(PropertyKey.MASTER_WORKER_TIMEOUT_MS, MASTER_WORKER_TIMEOUT);
-
-    // TODO(jiacheng): use a manual clock to better control
-    ServerConfiguration.set(PropertyKey.MASTER_REGISTER_WORKER_STREAM_TIMEOUT, "3s");
+    ServerConfiguration.set(PropertyKey.MASTER_WORKER_REGISTER_STREAM_RESPONSE_TIMEOUT, "1s");
 
     mRegistry = new MasterRegistry();
     CoreMasterContext masterContext = MasterTestUtils.testMasterContext();
@@ -114,11 +107,9 @@ public class BlockMasterRegisterStreamIntegrationTest {
     mClock = new ManualClock();
 
     mExecutorService =
-            Executors.newFixedThreadPool(10, ThreadFactoryUtils.build("TestBlockMaster-%d", true));
-//    public BlockMaster create(MasterRegistry registry, CoreMasterContext context) {}
-//    mBlockMaster = new BlockMasterFactory().create(mRegistry, masterContext);
+        Executors.newFixedThreadPool(10, ThreadFactoryUtils.build("TestBlockMaster-%d", true));
     mBlockMaster = new DefaultBlockMaster(mMetricsMaster, masterContext, mClock,
-            ExecutorServiceFactories.constantExecutorServiceFactory(mExecutorService));
+        ExecutorServiceFactories.constantExecutorServiceFactory(mExecutorService));
     mRegistry.add(BlockMaster.class, mBlockMaster);
     mRegistry.start(true);
     mHandler = new BlockMasterWorkerServiceHandler(mBlockMaster);
@@ -137,19 +128,18 @@ public class BlockMasterRegisterStreamIntegrationTest {
     long workerId = mBlockMaster.getWorkerId(NET_ADDRESS_1);
     List<RegisterWorkerPRequest> requestChunks = RegisterStreamTestUtils.generateRegisterStreamForEmptyWorker(workerId);
 
-    StreamObserver<RegisterWorkerPRequest> requestObserver =
-            mHandler.registerWorkerStream(RegisterStreamTestUtils.getNoopResponseObserver());
-
-    // Manually feed the chunks to the master side
-    for (RegisterWorkerPRequest chunk : requestChunks) {
-      requestObserver.onNext(chunk);
-    }
-    requestObserver.onCompleted();
-    System.out.println("Stream completed on client side");
+    Queue<Throwable> errorQueue = new ConcurrentLinkedQueue<>();
+    sendStreamToMaster(requestChunks, RegisterStreamTestUtils.getErrorCapturingResponseObserver(errorQueue));
 
     // Verify the worker is registered
-    assertEquals(0, mBlockMaster.getWorker(workerId).getBlockCount());
+    assertEquals(0, errorQueue.size());
     assertEquals(1, mBlockMaster.getWorkerCount());
+    MasterWorkerInfo worker = mBlockMaster.getWorker(workerId);
+    assertEquals(0, worker.getBlockCount());
+    assertEquals(0, worker.getToRemoveBlockCount());
+    assertEquals(MEM_CAPACITY_BYTES, worker.getCapacityBytes());
+    assertEquals(MEM_CAPACITY_BYTES, worker.getAvailableBytes());
+    assertEquals(0L, worker.getUsedBytes());
 
     // Verify the worker is readable and writable
     verifyWorkerWritable(workerId);
@@ -261,16 +251,14 @@ public class BlockMasterRegisterStreamIntegrationTest {
     assertEquals(0, worker.getToRemoveBlockCount());
 
     // Manually generate the blocks again and remove some
-    List<String> tierAliases = getTierAliases(convert(TIER_CONFIG));
-    Map<String, Long> capacityMap = Maps.toMap(tierAliases, (tier) -> CAPACITY);
-    Map<String, Long> usedMap = Maps.toMap(tierAliases, (tier) -> 0L);
+    List<String> tierAliases = getTierAliases(parseTierConfig(TIER_CONFIG));
     Map<BlockStoreLocation, List<Long>> blockMap =
-            RpcBenchPreparationUtils.generateBlockIdOnTiers(convert(TIER_CONFIG));
+            RpcBenchPreparationUtils.generateBlockIdOnTiers(parseTierConfig(TIER_CONFIG));
     Set<Long> lostBlocks = removeSomeBlocks(blockMap);
     System.out.println(lostBlocks + " blocks went lost");
     // Regenerate the requests
     RegisterStreamer newRegisterStreamer = new RegisterStreamer(null,
-            workerId, tierAliases, capacityMap, usedMap, blockMap, LOST_STORAGE, EMPTY_CONFIG);
+            workerId, tierAliases, CAPACITY_MAP, USAGE_MAP, blockMap, LOST_STORAGE, EMPTY_CONFIG);
     List<RegisterWorkerPRequest> newRequestChunks = ImmutableList.copyOf(newRegisterStreamer);
     int newExpectedBatchCount = (int) Math.ceil((TIER_BLOCK_TOTAL-lostBlocks.size())/(double)BATCH_SIZE);
     assertEquals(newExpectedBatchCount, newRequestChunks.size());
@@ -290,18 +278,9 @@ public class BlockMasterRegisterStreamIntegrationTest {
     assertEquals(lostBlocks.size(), updatedWorker.getToRemoveBlockCount());
 
     // The update is received during the registration so no command to send to the worker
-    // TODO(jiacheng): does this command make sense?
-    Command command = mBlockMaster.workerHeartbeat(workerId,
-        capacityMap,
-        usedMap,
-        // list of removed blockIds
-        ImmutableList.of(),
-        ImmutableMap.of(),
-        NO_LOST_STORAGE,
-        ImmutableList.of());
-    System.out.println(command);
+    Command command = sendHeartbeatToMaster(workerId);
     assertEquals(CommandType.Free, command.getCommandType());
-    assertEquals(lostBlocks.size(), command.getDataCount());
+    assertEquals(lostBlocks, new HashSet<>(command.getDataList()));
 
     // Verify the worker is readable and writable
     verifyWorkerWritable(workerId);
@@ -324,13 +303,13 @@ public class BlockMasterRegisterStreamIntegrationTest {
 
     // Generate block IDs in the same way but add some more
     Map<BlockStoreLocation, List<Long>> blockMap =
-        RpcBenchPreparationUtils.generateBlockIdOnTiers(convert(TIER_CONFIG));
+        RpcBenchPreparationUtils.generateBlockIdOnTiers(parseTierConfig(TIER_CONFIG));
     Set<Long> addedBlocks = addSomeBlocks(blockMap);
     // Make the master accept these blocks
     prepareBlocksOnMaster(addedBlocks);
 
     // Re-generate the request
-    List<String> tierAliases = getTierAliases(convert(TIER_CONFIG));
+    List<String> tierAliases = getTierAliases(parseTierConfig(TIER_CONFIG));
     Map<String, Long> capacityMap = Maps.toMap(tierAliases, (tier) -> CAPACITY);
     Map<String, Long> usedMap = Maps.toMap(tierAliases, (tier) -> 0L);
     System.out.println(addedBlocks + " blocks are added");
@@ -353,16 +332,7 @@ public class BlockMasterRegisterStreamIntegrationTest {
     assertEquals(0, updatedWorker.getToRemoveBlockCount());
 
     // No command from the master because the update is received during registration
-    Command command = mBlockMaster.workerHeartbeat(workerId,
-            capacityMap,
-            usedMap,
-            // list of removed blockIds
-            ImmutableList.of(),
-            ImmutableMap.of(),
-            NO_LOST_STORAGE,
-            ImmutableList.of());
-    System.out.println("Command is " + command);
-    assertEquals(EMPTY_CMD, command);
+    assertEquals(EMPTY_CMD, sendHeartbeatToMaster(workerId));
 
     // Verify the worker is readable and writable
     verifyWorkerWritable(workerId);
@@ -373,7 +343,7 @@ public class BlockMasterRegisterStreamIntegrationTest {
    */
   @Test
   public void hangingWorkerSessionRecycled() throws Exception {
-    long workerId = getWorkerId(NET_ADDRESS_1);
+    long workerId = mBlockMaster.getWorkerId(NET_ADDRESS_1);
     List<RegisterWorkerPRequest> requestChunks = RegisterStreamTestUtils.generateRegisterStreamForWorker(workerId);
     prepareBlocksOnMaster(requestChunks);
 
@@ -386,9 +356,12 @@ public class BlockMasterRegisterStreamIntegrationTest {
       RegisterWorkerPRequest chunk = requestChunks.get(i);
       // From the 2nd request on, the request will be rejected
       requestObserver.onNext(chunk);
-      // TODO(jiacheng): this time mgmt is terrible
-      CommonUtils.sleepMs(2000);
-      mClock.addTime(Duration.of(100_000_000, ChronoUnit.MILLIS));
+      if (i == 0) {
+        // Progress the clock so the worker stream expired
+        mClock.addTime(Duration.of(100_000_000, ChronoUnit.MILLIS));
+        // Sleep and wait for the stream recycler thread heartbeat
+        CommonUtils.sleepMs(3000);
+      }
     }
     // This will be rejected too
     requestObserver.onCompleted();
@@ -396,7 +369,12 @@ public class BlockMasterRegisterStreamIntegrationTest {
     System.out.println(errorQueue);
     // The 5 requests after expiry will be rejected
     // And the complete message will be rejected too
-    assertEquals(6, errorQueue.size());
+    System.out.println(requestChunks.size() + " requests sent");
+    // -1 because the 1st request was accepted
+    // +1 because master sends the TimeoutException to worker on timeout
+    // +count because all following requests are rejected
+    // +1 because the onComplete() is also rejected
+    assertEquals(requestChunks.size()-1+1+1, errorQueue.size());
 
     // Verify the session is recycled
     assertEquals(0, mBlockMaster.getWorkerCount());
@@ -408,7 +386,7 @@ public class BlockMasterRegisterStreamIntegrationTest {
 
   @Test
   public void workerSendsErrorOnStart() throws Exception {
-    long workerId = getWorkerId(NET_ADDRESS_1);
+    long workerId = mBlockMaster.getWorkerId(NET_ADDRESS_1);
     List<RegisterWorkerPRequest> requestChunks = RegisterStreamTestUtils.generateRegisterStreamForWorker(workerId);
     prepareBlocksOnMaster(requestChunks);
 
@@ -440,7 +418,7 @@ public class BlockMasterRegisterStreamIntegrationTest {
 
   @Test
   public void workerSendsErrorInStream() throws Exception {
-    long workerId = getWorkerId(NET_ADDRESS_1);
+    long workerId = mBlockMaster.getWorkerId(NET_ADDRESS_1);
     List<RegisterWorkerPRequest> requestChunks = RegisterStreamTestUtils.generateRegisterStreamForWorker(workerId);
     prepareBlocksOnMaster(requestChunks);
 
@@ -470,14 +448,14 @@ public class BlockMasterRegisterStreamIntegrationTest {
 
   @Test
   public void workerSendsErrorBeforeCompleting() throws Exception {
-    long workerId = getWorkerId(NET_ADDRESS_1);
+    long workerId = mBlockMaster.getWorkerId(NET_ADDRESS_1);
     List<RegisterWorkerPRequest> requestChunks = RegisterStreamTestUtils.generateRegisterStreamForWorker(workerId);
     prepareBlocksOnMaster(requestChunks);
 
     // Send the requests to the master
     Queue<Throwable> errorQueue = new ConcurrentLinkedQueue<>();
     StreamObserver<RegisterWorkerPRequest> requestObserver =
-            mHandler.registerWorkerStream(RegisterStreamTestUtils.getErrorCapturingResponseObserver(errorQueue));
+        mHandler.registerWorkerStream(RegisterStreamTestUtils.getErrorCapturingResponseObserver(errorQueue));
     for (RegisterWorkerPRequest chunk : requestChunks) {
       requestObserver.onNext(chunk);
     }
@@ -513,20 +491,24 @@ public class BlockMasterRegisterStreamIntegrationTest {
   @Test
   public void reregisterWithDelete() throws Exception {
     // Register the worker so the worker is marked active in master
-    long workerId = getWorkerId(NET_ADDRESS_1);
+    long workerId = mBlockMaster.getWorkerId(NET_ADDRESS_1);
     List<RegisterWorkerPRequest> requestChunks = RegisterStreamTestUtils.generateRegisterStreamForWorker(workerId);
     prepareBlocksOnMaster(requestChunks);
-    sendStreamToMaster(requestChunks, RegisterStreamTestUtils.getNoopResponseObserver());
+    Queue<Throwable> errorQueue = new ConcurrentLinkedQueue<>();
+    sendStreamToMaster(requestChunks, RegisterStreamTestUtils.getErrorCapturingResponseObserver(errorQueue));
+    assertEquals(0, errorQueue.size());
+    assertEquals(1, mBlockMaster.getWorkerCount());
 
+    // Find a block to remove
     long blockToRemove = findFirstBlock(requestChunks);
 
     // Register again
     System.out.println("Register again");
     CountDownLatch latch = new CountDownLatch(1);
-    Queue<Throwable> errorQueue = new ConcurrentLinkedQueue<>();
+    Queue<Throwable> newErrorQueue = new ConcurrentLinkedQueue<>();
     Future f = mExecutorService.submit(() -> {
       sendStreamToMasterAndSignal(requestChunks,
-          RegisterStreamTestUtils.getErrorCapturingResponseObserver(errorQueue), latch);
+          RegisterStreamTestUtils.getErrorCapturingResponseObserver(newErrorQueue), latch);
       System.out.println("register finished");
     });
 
@@ -549,7 +531,6 @@ public class BlockMasterRegisterStreamIntegrationTest {
     assertEquals(1, mBlockMaster.getWorkerCount());
     assertEquals(100+200+300+1000+1500+2000-1, worker.getBlockCount());
 
-    // TODO(jiacheng): usages are incorrect!
     // BlockMaster.removeBlocks() will first remove the block from master metadata
     // (with block lock) then update the block locations (with worker lock).
     // The worker lock is being held by the registering worker, but the 1st part
@@ -560,33 +541,30 @@ public class BlockMasterRegisterStreamIntegrationTest {
     // from the worker.
     // Even if the block is already removed on the worker it is fine,
     // because deletion of a not-found block is a noop.
-    Command command = mBlockMaster.workerHeartbeat(workerId,
-            MEM_CAPACITY,
-            MEM_USAGE_EMPTY,
-            // list of removed blockIds
-            ImmutableList.of(),
-            ImmutableMap.of(),
-            NO_LOST_STORAGE,
-            ImmutableList.of());
-    System.out.println(command);
+    Command command = sendHeartbeatToMaster(workerId);
     assertEquals(Command.newBuilder().addData(blockToRemove).setCommandType(CommandType.Free).build(), command);
   }
 
   @Test
   public void reregisterWithFree() throws Exception {
     // Register the worker so the worker is marked active in master
-    long workerId = getWorkerId(NET_ADDRESS_1);
+    long workerId = mBlockMaster.getWorkerId(NET_ADDRESS_1);
     List<RegisterWorkerPRequest> requestChunks = RegisterStreamTestUtils.generateRegisterStreamForWorker(workerId);
     prepareBlocksOnMaster(requestChunks);
-    sendStreamToMaster(requestChunks, RegisterStreamTestUtils.getNoopResponseObserver());
+    Queue<Throwable> errorQueue = new ConcurrentLinkedQueue<>();
+    sendStreamToMaster(requestChunks, RegisterStreamTestUtils.getErrorCapturingResponseObserver(errorQueue));
+    assertEquals(0, errorQueue.size());
+    assertEquals(1, mBlockMaster.getWorkerCount());
 
+    // Find a block to free
     long blockToRemove = findFirstBlock(requestChunks);
 
     // Register again
     System.out.println("Register again");
     CountDownLatch latch = new CountDownLatch(1);
+    Queue<Throwable> newErrorQueue = new ConcurrentLinkedQueue<>();
     mExecutorService.submit(() -> {
-      sendStreamToMasterAndSignal(requestChunks, RegisterStreamTestUtils.getNoopResponseObserver(), latch);
+      sendStreamToMasterAndSignal(requestChunks, RegisterStreamTestUtils.getErrorCapturingResponseObserver(newErrorQueue), latch);
       System.out.println("register finished");
     });
 
@@ -600,37 +578,22 @@ public class BlockMasterRegisterStreamIntegrationTest {
     BlockInfo info = mBlockMaster.getBlockInfo(blockToRemove);
     System.out.println(info);
     MasterWorkerInfo worker = mBlockMaster.getWorker(workerId);
+    assertEquals(0, newErrorQueue.size());
     assertEquals(1, mBlockMaster.getWorkerCount());
     // The block still exists on the worker but a command will be issued to remove it
-    assertEquals(100+200+300+1000+1500+2000, worker.getBlockCount());
+    assertEquals(TIER_BLOCK_TOTAL, worker.getBlockCount());
 
-    // TODO(jiacheng): usages are incorrect!
-    Command command = mBlockMaster.workerHeartbeat(workerId,
-            MEM_CAPACITY,
-            MEM_USAGE_EMPTY,
-            // list of removed blockIds
-            ImmutableList.of(),
-            ImmutableMap.of(),
-            NO_LOST_STORAGE,
-            ImmutableList.of());
-    System.out.println(command);
+    Command command = sendHeartbeatToMaster(workerId);
     assertEquals(Command.newBuilder().setCommandType(CommandType.Free).addData(blockToRemove).build(), command);
   }
 
-  // TODO(jiacheng): migrate these utility functions
-  public long getWorkerId(WorkerNetAddress address) throws Exception {
-    long workerId = mBlockMaster.getWorkerId(address);
-    System.out.println("Worker id " + workerId);
-    return workerId;
-  }
-
-  public void prepareBlocksOnMaster(Collection<Long> blockIds) throws UnavailableException {
+  private void prepareBlocksOnMaster(Collection<Long> blockIds) throws UnavailableException {
     for (long id : blockIds) {
       mBlockMaster.commitBlockInUFS(id, BLOCK_SIZE);
     }
   }
 
-  public void prepareBlocksOnMaster(List<RegisterWorkerPRequest> requestChunks) throws Exception{
+  private void prepareBlocksOnMaster(List<RegisterWorkerPRequest> requestChunks) throws Exception{
     for (RegisterWorkerPRequest chunk : requestChunks) {
       List<LocationBlockIdListEntry> entries = chunk.getCurrentBlocksList();
       for (LocationBlockIdListEntry entry : entries) {
@@ -653,9 +616,9 @@ public class BlockMasterRegisterStreamIntegrationTest {
   }
 
   private void sendStreamToMasterAndSignal(
-          List<RegisterWorkerPRequest> requestChunks,
-          StreamObserver<RegisterWorkerPResponse> responseObserver,
-          CountDownLatch latch) {
+      List<RegisterWorkerPRequest> requestChunks,
+      StreamObserver<RegisterWorkerPResponse> responseObserver,
+      CountDownLatch latch) {
     StreamObserver<RegisterWorkerPRequest> requestObserver =
             mHandler.registerWorkerStream(responseObserver);
     for (int i = 0; i < requestChunks.size(); i++) {
@@ -704,7 +667,6 @@ public class BlockMasterRegisterStreamIntegrationTest {
     return added;
   }
 
-
   // Verify the worker is writable by trying to commit a block in it
   private void verifyWorkerWritable(long workerId) throws Exception {
     // First see the worker usage
@@ -726,6 +688,7 @@ public class BlockMasterRegisterStreamIntegrationTest {
     return tierConfig.keySet().stream().map(TierAlias::toString).collect(Collectors.toList());
   }
 
+  // Verify a worker can reregister and have the correct final blocks
   private void verifyWorkerCanReregister(long workerId, List<RegisterWorkerPRequest> requestChunks, int expectedBlockCount) throws Exception {
     Queue<Throwable> errorQueue = new ConcurrentLinkedQueue<>();
     sendStreamToMaster(requestChunks, RegisterStreamTestUtils.getErrorCapturingResponseObserver(errorQueue));
@@ -733,6 +696,7 @@ public class BlockMasterRegisterStreamIntegrationTest {
     assertEquals(0, errorQueue.size());
     MasterWorkerInfo worker = mBlockMaster.getWorker(workerId);
     assertEquals(expectedBlockCount, worker.getBlockCount());
+    assertEquals(0, worker.getToRemoveBlockCount());
     assertEquals(1, mBlockMaster.getWorkerCount());
   }
 
@@ -740,5 +704,17 @@ public class BlockMasterRegisterStreamIntegrationTest {
     RegisterWorkerPRequest firstBatch = chunks.get(0);
     LocationBlockIdListEntry entry = firstBatch.getCurrentBlocks(0);
     return entry.getValue().getBlockId(0);
+  }
+
+  private Command sendHeartbeatToMaster(long workerId) {
+    Command command = mBlockMaster.workerHeartbeat(workerId,
+            CAPACITY_MAP,
+            USAGE_MAP,
+            // list of removed blockIds
+            ImmutableList.of(),
+            ImmutableMap.of(),
+            NO_LOST_STORAGE,
+            ImmutableList.of());
+    return command;
   }
 }

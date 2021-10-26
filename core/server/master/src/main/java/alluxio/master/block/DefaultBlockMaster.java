@@ -26,7 +26,6 @@ import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.exception.BlockInfoException;
 import alluxio.exception.ExceptionMessage;
-import alluxio.exception.status.AlluxioStatusException;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.exception.status.NotFoundException;
 import alluxio.exception.status.UnavailableException;
@@ -403,7 +402,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
   }
 
   private final class WorkerRegisterStreamGCExecutor implements HeartbeatExecutor {
-    private long mTimeout = ServerConfiguration.global().getMs(PropertyKey.MASTER_REGISTER_WORKER_STREAM_TIMEOUT);
+    private long mTimeout = ServerConfiguration.global().getMs(PropertyKey.MASTER_WORKER_REGISTER_STREAM_RESPONSE_TIMEOUT);
 
     public WorkerRegisterStreamGCExecutor() {
       System.out.println("Worker register stream will be cancelled if longer than " + mTimeout);
@@ -418,9 +417,12 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
         System.out.format("Current: %d, LastActivity: %d, Difference: %d, Timeout: %d%n",
                 mClock.millis(), context.getLastActivityTimeMs(), lastUpdate, mTimeout);
         if (lastUpdate > mTimeout) {
-          System.out.println("Worker register stream hanging for more than " + mTimeout + " for worker " + context.mWorker.getId());
-          Exception e = new TimeoutException("Time out for worker register stream for more than " + mTimeout);
-          System.out.println("Closing context for worker " + context.mWorker.getId());
+          String msg = String.format(
+              "Worker register stream hanging for more than %sms for worker %d!"
+                  + " Tune up %s if this is undesired.", mTimeout, context.mWorker.getId(),
+              PropertyKey.MASTER_WORKER_REGISTER_STREAM_RESPONSE_TIMEOUT.toString());
+          System.out.println(msg);
+          Exception e = new TimeoutException(msg);
           try {
             context.mRequestObserver.onError(e);
           } catch (Throwable t) {
@@ -455,7 +457,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
     getExecutorService().submit(new HeartbeatThread(
           HeartbeatContext.MASTER_WORKER_REGISTER_SESSION_CLEANER,
             new WorkerRegisterStreamGCExecutor(),
-            (int) ServerConfiguration.global().getMs(PropertyKey.MASTER_REGISTER_WORKER_STREAM_TIMEOUT),
+            (int) ServerConfiguration.global().getMs(PropertyKey.MASTER_WORKER_REGISTER_STREAM_RESPONSE_TIMEOUT),
             ServerConfiguration.global(), mMasterContext.getUserState()));
   }
 
