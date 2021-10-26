@@ -1849,6 +1849,11 @@ public final class DefaultFileSystemMaster extends CoreMaster
       // Alluxio URIs (and the reason for failure) which could not be deleted
       List<Pair<String, String>> failedUris = new ArrayList<>();
 
+      if (mSyncManager.isSyncPoint(inodePath.getUri())) {
+        mSyncManager.stopSyncAndJournal(RpcContext.NOOP, inodePath.getUri());
+      }
+
+
       // We go through each inode, removing it from its parent set and from mDelInodes. If it's a
       // file, we deal with the checkpoints and blocks as well.
       for (int i = inodesToDelete.size() - 1; i >= 0; i--) {
@@ -1856,6 +1861,17 @@ public final class DefaultFileSystemMaster extends CoreMaster
         Pair<AlluxioURI, LockedInodePath> inodePairToDelete = inodesToDelete.get(i);
         AlluxioURI alluxioUriToDelete = inodePairToDelete.getFirst();
         Inode inodeToDelete = inodePairToDelete.getSecond().getInode();
+
+        if (inodeToDelete.isFile()) {
+          long fileId = inodeToDelete.getId();
+          // Remove the file from the set of files to persist.
+          mPersistRequests.remove(fileId);
+          // Cancel any ongoing jobs.
+          PersistJob job = mPersistJobs.get(fileId);
+          if (job != null) {
+            job.setCancelState(PersistJob.CancelState.TO_BE_CANCELED);
+          }
+        }
 
         String failureReason = null;
         if (unsafeInodes.contains(inodeToDelete.getId())) {
@@ -1881,16 +1897,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
           }
         }
         if (failureReason == null) {
-          if (inodeToDelete.isFile()) {
-            long fileId = inodeToDelete.getId();
-            // Remove the file from the set of files to persist.
-            mPersistRequests.remove(fileId);
-            // Cancel any ongoing jobs.
-            PersistJob job = mPersistJobs.get(fileId);
-            if (job != null) {
-              job.setCancelState(PersistJob.CancelState.TO_BE_CANCELED);
-            }
-          }
+
           revisedInodesToDelete.add(new Pair<>(alluxioUriToDelete, inodePairToDelete.getSecond()));
         } else {
           unsafeInodes.add(inodeToDelete.getId());
@@ -1900,9 +1907,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
         }
       }
 
-      if (mSyncManager.isSyncPoint(inodePath.getUri())) {
-        mSyncManager.stopSyncAndJournal(RpcContext.NOOP, inodePath.getUri());
-      }
+
 
       // Delete Inodes
       for (Pair<AlluxioURI, LockedInodePath> delInodePair : revisedInodesToDelete) {
