@@ -421,11 +421,14 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
           System.out.println("Worker register stream hanging for more than " + mTimeout + " for worker " + context.mWorker.getId());
           Exception e = new TimeoutException("Time out for worker register stream for more than " + mTimeout);
           System.out.println("Closing context for worker " + context.mWorker.getId());
-          // TODO(jiacheng): The current thread is not the owner so cannot release it!
-          // context.close();
-          // We can only send an error to the requestObserver to invoke it
-          // so it can close the context.
-          context.mRequestObserver.onError(e);
+          try {
+            context.mRequestObserver.onError(e);
+          } catch (Throwable t) {
+            LOG.error("Failed to close an open register stream for worker {}. The stream has been open for {}ms.", context.getWorkerId(), t);
+            System.out.println("Failed to close context: " + t);
+            // Do not remove the entry so this will be retried
+            return false;
+          }
           return true;
         }
         return false;

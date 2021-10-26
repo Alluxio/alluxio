@@ -368,8 +368,6 @@ public class BlockMasterRegisterStreamIntegrationTest {
    * Tests below cover various failure cases.
    */
   @Test
-  // TODO(jiacheng): The reqOb should receive a timeout from the heartbeat executor
-  //  how to demonstrate that?
   public void hangingWorkerSessionRecycled() throws Exception {
     long workerId = getWorkerId(NET_ADDRESS_1);
     List<RegisterWorkerPRequest> requestChunks = RegisterStreamTestUtils.generateRegisterStreamForWorker(workerId);
@@ -382,19 +380,26 @@ public class BlockMasterRegisterStreamIntegrationTest {
     // Feed the chunks into the requestObserver
     for (int i = 0; i < requestChunks.size(); i++) {
       RegisterWorkerPRequest chunk = requestChunks.get(i);
+      // From the 2nd request on, the request will be rejected
       requestObserver.onNext(chunk);
       // TODO(jiacheng): this time mgmt is terrible
       CommonUtils.sleepMs(2000);
       mClock.addTime(Duration.of(100_000_000, ChronoUnit.MILLIS));
     }
-
-    // TODO(jiacheng): This should be rejected too
+    // This will be rejected too
     requestObserver.onCompleted();
     System.out.println("Stream completed on client side");
-
     System.out.println(errorQueue);
+    // The 5 requests after expiry will be rejected
+    // And the complete message will be rejected too
+    assertEquals(6, errorQueue.size());
 
     // Verify the session is recycled
+    assertEquals(0, mBlockMaster.getWorkerCount());
+
+    // Verify the worker can re-register and be operated, so the locks are managed correcly
+    verifyWorkerCanReregister(workerId, requestChunks, 100+200+300+1000+1500+2000);
+    verifyWorkerWritable(workerId);
   }
 
   @Test

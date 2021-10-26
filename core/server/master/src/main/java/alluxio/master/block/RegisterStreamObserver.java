@@ -119,6 +119,7 @@ public class RegisterStreamObserver implements StreamObserver<RegisterWorkerPReq
   // the worker will send the error to the master and close itself.
   // The master will then receive the error, abort the stream and close itself.
   public void onError(Throwable t) {
+    System.out.println(t);
     if (t instanceof TimeoutException) {
       System.out.println("Timeout signal received from the WorkerRegisterStreamGCExecutor. "
           + "Closing context for hanging worker.");

@@ -39,7 +39,9 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.concurrent.locks.StampedLock;
 import java.util.stream.Collectors;
 
 import javax.annotation.concurrent.GuardedBy;
@@ -107,13 +109,15 @@ public final class MasterWorkerInfo {
   @GuardedBy("mStatusLock")
   public boolean mIsRegistered;
   /** Locks the worker register status. */
-  private final ReentrantReadWriteLock mStatusLock;
+//  private final ReentrantReadWriteLock mStatusLock;
+  private final ReadWriteLock mStatusLock;
 
   /** Worker usage data. */
   @GuardedBy("mUsageLock")
   private final WorkerUsageMeta mUsage;
   /** Locks the worker usage data. */
-  private final ReentrantReadWriteLock mUsageLock;
+//  private final ReentrantReadWriteLock mUsageLock;
+  private final ReadWriteLock mUsageLock;
 
   /** Ids of blocks the worker contains. */
   @GuardedBy("mBlockListLock")
@@ -122,10 +126,11 @@ public final class MasterWorkerInfo {
   @GuardedBy("mBlockListLock")
   private final Set<Long> mToRemoveBlocks;
   /** Locks the 2 block sets above. */
-  private final ReentrantReadWriteLock mBlockListLock;
+//  private final ReentrantReadWriteLock mBlockListLock;
+  private final ReadWriteLock mBlockListLock;
 
   /** Stores the mapping from WorkerMetaLockSection to the lock. */
-  private final Map<WorkerMetaLockSection, ReentrantReadWriteLock> mLockTypeToLock;
+  private final Map<WorkerMetaLockSection, ReadWriteLock> mLockTypeToLock;
 
   /**
    * Creates a new instance of {@link MasterWorkerInfo}.
@@ -141,9 +146,12 @@ public final class MasterWorkerInfo {
     mLastUpdatedTimeMs = new AtomicLong(CommonUtils.getCurrentMs());
 
     // Init all locks
-    mStatusLock = new ReentrantReadWriteLock();
-    mUsageLock = new ReentrantReadWriteLock();
-    mBlockListLock = new ReentrantReadWriteLock();
+//    mStatusLock = new ReentrantReadWriteLock();
+//    mUsageLock = new ReentrantReadWriteLock();
+//    mBlockListLock = new ReentrantReadWriteLock();
+    mStatusLock = new StampedLock().asReadWriteLock();
+    mUsageLock = new StampedLock().asReadWriteLock();
+    mBlockListLock = new StampedLock().asReadWriteLock();
     mLockTypeToLock = ImmutableMap.of(
         WorkerMetaLockSection.STATUS, mStatusLock,
         WorkerMetaLockSection.USAGE, mUsageLock,
@@ -616,7 +624,7 @@ public final class MasterWorkerInfo {
     mUsage.mUsedBytesOnTiers.put(tierAlias, usedBytesOnTier);
   }
 
-  ReentrantReadWriteLock getLock(WorkerMetaLockSection lockType) {
+  ReadWriteLock getLock(WorkerMetaLockSection lockType) {
     return mLockTypeToLock.get(lockType);
   }
 
