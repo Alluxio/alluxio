@@ -11,11 +11,8 @@
 
 import React from 'react';
 
-export class StacksPresenter extends React.Component {
+export class Stacks extends React.Component {
   public render(): JSX.Element {
-    return this.renderStacksView();
-  }
-  private renderStacksView(): JSX.Element {
     const path = 'http://' + location.host + location.pathname;
     return (
       <div className="stacks-page" style={{ backgroundColor: 'white', minHeight: window.innerHeight }}>
@@ -24,4 +21,4 @@ export class StacksPresenter extends React.Component {
     );
   }
 }
-export default StacksPresenter as typeof React.Component;
+export default Stacks as typeof React.Component;

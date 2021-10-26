@@ -14,7 +14,7 @@ import Adapter from 'enzyme-adapter-react-16';
 import React from 'react';
 import sinon from 'sinon';
 
-import { StacksPresenter } from './Stacks';
+import { Stacks } from './Stacks';
 
 configure({ adapter: new Adapter() });
 
@@ -26,7 +26,7 @@ describe('Stacks', () => {
     let shallowWrapper: ShallowWrapper;
 
     beforeAll(() => {
-      shallowWrapper = shallow(<StacksPresenter />);
+      shallowWrapper = shallow(<Stacks />);
     });
 
     it('Renders without crashing', () => {
