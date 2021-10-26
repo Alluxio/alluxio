@@ -38,13 +38,10 @@ public class WorkerRegisterContext implements Closeable {
     mWorker = info;
     mRequestObserver = requestObserver;
     mResponseObserver = responseObserver;
-    System.out.println("Acquiring all worker locks for " + getWorkerId());
     mWorkerLock = info.lockWorkerMeta(EnumSet.of(
             WorkerMetaLockSection.STATUS,
             WorkerMetaLockSection.USAGE,
             WorkerMetaLockSection.BLOCKS), false);
-    System.out.println("Acquired all worker locks for " + getWorkerId());
-
     mOpen = new AtomicBoolean(true);
   }
 
@@ -73,7 +70,6 @@ public class WorkerRegisterContext implements Closeable {
       mWorkerLock.close();
     }
     mOpen.set(false);
-    System.out.println("Context closed");
   }
 
   public static synchronized WorkerRegisterContext create(

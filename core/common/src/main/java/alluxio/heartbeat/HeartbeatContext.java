@@ -62,8 +62,8 @@ public final class HeartbeatContext {
   public static final String WORKER_PIN_LIST_SYNC = "Worker Pin List Sync";
   public static final String WORKER_SPACE_RESERVER = "Worker Space Reserver";
   public static final String WORKER_STORAGE_HEALTH = "Worker Storage Health";
-
-  public static final String MASTER_WORKER_REGISTER_SESSION_CLEANER = "worker streaming cleaner";
+  public static final String MASTER_WORKER_REGISTER_SESSION_CLEANER =
+      "Worker register stream session cleaner";
 
   static {
     sTimerClasses = new HashMap<>();
@@ -97,7 +97,6 @@ public final class HeartbeatContext {
     sTimerClasses.put(WORKER_PIN_LIST_SYNC, SLEEPING_TIMER_CLASS);
     sTimerClasses.put(WORKER_SPACE_RESERVER, SLEEPING_TIMER_CLASS);
     sTimerClasses.put(WORKER_STORAGE_HEALTH, SLEEPING_TIMER_CLASS);
-
     sTimerClasses.put(MASTER_WORKER_REGISTER_SESSION_CLEANER, SLEEPING_TIMER_CLASS);
   }
 

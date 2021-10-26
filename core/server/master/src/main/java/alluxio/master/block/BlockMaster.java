@@ -263,11 +263,32 @@ public interface BlockMaster extends Master, ContainerIdGenerable {
    */
   void registerNewWorkerConfListener(BiConsumer<Address, List<ConfigProperty>> function);
 
+  /**
+   * Returns the internal {@link MasterWorkerInfo} object to the caller.
+   * This is specifically for the tests and the {@link WorkerRegisterContext}.
+   *
+   * Note that this operations on the object requires locking.
+   * See the javadoc of {@link MasterWorkerInfo} for how the locking should be carefully done.
+   * When in doubt, do not use this API. Find other methods in this class that exposes
+   * necessary information.
+   */
+  @VisibleForTesting
   MasterWorkerInfo getWorker(long workerId) throws NotFoundException;
 
+  /**
+   * Handles the 1st message in the worker registration stream.
+   * Only the 1st message will carry metadata other than the worker ID and the block list.
+   */
   void workerRegisterStart(WorkerRegisterContext context, RegisterWorkerPRequest chunk);
 
+  /**
+   * Handles the 2nd to last message in the worker registration stream.
+   * The message should only contain worker ID and the block list.
+   */
   void workerRegisterBatch(WorkerRegisterContext context, RegisterWorkerPRequest chunk);
 
+  /**
+   * Completes the worker registration stream.
+   */
   void workerRegisterFinish(WorkerRegisterContext context);
 }

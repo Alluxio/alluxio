@@ -30,6 +30,7 @@ import java.util.concurrent.atomic.AtomicReference;
  * The stream lifecycle is internal to the master.
  * In other words, there should be no external control on the request/response
  * observers external to this class.
+ * The only exception to this is the {@link DefaultBlockMaster.WorkerRegisterStreamGCExecutor}.
  */
 public class RegisterStreamObserver implements StreamObserver<RegisterWorkerPRequest> {
   private static final Logger LOG = LoggerFactory.getLogger(RegisterStreamObserver.class);
@@ -47,10 +48,10 @@ public class RegisterStreamObserver implements StreamObserver<RegisterWorkerPReq
 
   @Override
   public void onNext(RegisterWorkerPRequest chunk) {
-    System.out.println("handled by stream observer " + this);
     final long workerId = chunk.getWorkerId();
     final boolean isHead = isFirstMessage(chunk);
-    LOG.info("{} - Register worker request is {} bytes, containing {} LocationBlockIdListEntry. Worker {}, isHead {}",
+    LOG.info("{} - Register worker request is {} bytes, containing {} LocationBlockIdListEntry. " +
+                "Worker {}, isHead {}",
             Thread.currentThread().getId(),
             chunk.getSerializedSize(),
             chunk.getCurrentBlocksCount(),
@@ -89,10 +90,8 @@ public class RegisterStreamObserver implements StreamObserver<RegisterWorkerPReq
 
         if (isHead) {
           mBlockMaster.workerRegisterStart(mContext, chunk);
-          System.out.println("WorkerRegisterStart finished, update TS");
         } else {
           mBlockMaster.workerRegisterBatch(mContext, chunk);
-          System.out.println("WorkerRegisterBatch finished, update TS");
         }
         mContext.updateTs();
         // Return an ACK to the worker so it sends the next batch
@@ -116,18 +115,13 @@ public class RegisterStreamObserver implements StreamObserver<RegisterWorkerPReq
   // the worker will send the error to the master and close itself.
   // The master will then receive the error, abort the stream and close itself.
   public void onError(Throwable t) {
-    System.out.println("Master received exception " + t);
     if (t instanceof TimeoutException) {
-      System.out.println("Timeout signal received from the WorkerRegisterStreamGCExecutor. "
-          + "Closing context for hanging worker.");
       cleanup();
       mResponseObserver.onError(new DeadlineExceededException(t).toGrpcStatusException());
       return;
     }
     // Otherwise the exception is from the worker
-    System.out.println("handled by stream observer " + this);
     mErrorReceived.set(t);
-    System.out.println("Received error from worker: " + t);
     LOG.error("Received error from the worker side during the streaming register call: {}", t.getMessage());
     cleanup();
   }
@@ -150,7 +144,6 @@ public class RegisterStreamObserver implements StreamObserver<RegisterWorkerPReq
             PropertyKey.MASTER_WORKER_REGISTER_STREAM_RESPONSE_TIMEOUT.toString());
 
         mBlockMaster.workerRegisterFinish(mContext);
-        System.out.println("WorkerRegisterFinish finished, update TS");
         mContext.updateTs();
 
         cleanup();

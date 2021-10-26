@@ -401,39 +401,33 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
         .concat(CommonUtils.singleElementIterator(getContainerIdJournalEntry()), blockIterator));
   }
 
-  private final class WorkerRegisterStreamGCExecutor implements HeartbeatExecutor {
-    private long mTimeout = ServerConfiguration.global().getMs(PropertyKey.MASTER_WORKER_REGISTER_STREAM_RESPONSE_TIMEOUT);
-
-    public WorkerRegisterStreamGCExecutor() {
-      System.out.println("Worker register stream will be cancelled if longer than " + mTimeout);
-    }
+  final class WorkerRegisterStreamGCExecutor implements HeartbeatExecutor {
+    private final long mTimeout =
+        ServerConfiguration.global().getMs(PropertyKey.MASTER_WORKER_REGISTER_STREAM_RESPONSE_TIMEOUT);
 
     @Override
     public void heartbeat() {
-      System.out.println("Checking " + mActiveRegisterContexts.size() + " entries...");
       mActiveRegisterContexts.entrySet().removeIf((entry) -> {
         WorkerRegisterContext context = entry.getValue();
         final long lastUpdate = mClock.millis() - context.getLastActivityTimeMs();
-        System.out.format("Current: %d, LastActivity: %d, Difference: %d, Timeout: %d%n",
-                mClock.millis(), context.getLastActivityTimeMs(), lastUpdate, mTimeout);
-        if (lastUpdate > mTimeout) {
-          String msg = String.format(
-              "Worker register stream hanging for more than %sms for worker %d!"
-                  + " Tune up %s if this is undesired.", mTimeout, context.mWorker.getId(),
-              PropertyKey.MASTER_WORKER_REGISTER_STREAM_RESPONSE_TIMEOUT.toString());
-          System.out.println(msg);
-          Exception e = new TimeoutException(msg);
-          try {
-            context.mRequestObserver.onError(e);
-          } catch (Throwable t) {
-            LOG.error("Failed to close an open register stream for worker {}. The stream has been open for {}ms.", context.getWorkerId(), t);
-            System.out.println("Failed to close context: " + t);
-            // Do not remove the entry so this will be retried
-            return false;
-          }
-          return true;
+        if (lastUpdate < mTimeout) {
+          return false;
         }
-        return false;
+        String msg = String.format(
+            "Worker register stream hanging for more than %sms for worker %d!"
+                + " Tune up %s if this is undesired.",
+            mTimeout, context.mWorker.getId(),
+            PropertyKey.MASTER_WORKER_REGISTER_STREAM_RESPONSE_TIMEOUT.toString());
+        Exception e = new TimeoutException(msg);
+        try {
+          context.mRequestObserver.onError(e);
+        } catch (Throwable t) {
+          LOG.error("Failed to close an open register stream for worker {}. "
+              + "The stream has been open for {}ms.", context.getWorkerId(), t);
+          // Do not remove the entry so this will be retried
+          return false;
+        }
+        return true;
       });
     }
 
@@ -677,10 +671,8 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
         for (long workerId : workerIds) {
           MasterWorkerInfo worker = mWorkers.getFirstByField(ID_INDEX, workerId);
           if (worker != null) {
-            System.out.println("To remove block " + blockId + ", acquire worker block lock for " + workerId);
             try (LockResource r = worker.lockWorkerMeta(
                 EnumSet.of(WorkerMetaLockSection.BLOCKS), false)) {
-              System.out.println("For block " + blockId + " acquired worker block lock for " + workerId);
               worker.updateToRemovedBlock(true, blockId);
             }
           }
@@ -777,13 +769,10 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
     }
 
     try (JournalContext journalContext = createJournalContext()) {
-      System.out.println("Acquiring worker locks to commit block " + blockId + " on worker " + workerId);
       // Lock the worker metadata here to preserve the lock order
       // The worker metadata must be locked before the blocks
       try (LockResource lr = worker.lockWorkerMeta(
           EnumSet.of(WorkerMetaLockSection.USAGE, WorkerMetaLockSection.BLOCKS), false)) {
-        System.out.println("Acquired worker locks to commit block " + blockId + " on worker " + workerId);
-
         try (LockResource r = lockBlock(blockId)) {
           Optional<BlockMeta> block = mBlockStore.getBlock(blockId);
           if (!block.isPresent() || block.get().getLength() != length) {
@@ -1051,8 +1040,8 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
     RegisterWorkerPOptions options = chunk.getOptions();
 
     MasterWorkerInfo worker = context.mWorker;
-    Preconditions.checkState(worker != null, "The context has null worker!");
-    System.out.println("Record session for worker " + worker.getId());
+    Preconditions.checkState(worker != null,
+        "No worker metadata found in the WorkerRegisterContext!");
     mActiveRegisterContexts.put(worker.getId(), context);
 
     // The worker is locked so we can operate on its blocks without race conditions
@@ -1081,7 +1070,8 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
     final Map<alluxio.proto.meta.Block.BlockLocation, List<Long>> currentBlocksOnLocation =
             BlockMasterWorkerServiceHandler.reconstructBlocksOnLocationMap(chunk.getCurrentBlocksList(), context.getWorkerId());
     MasterWorkerInfo worker = context.mWorker;
-    Preconditions.checkState(worker != null, "The context has null worker!");
+    Preconditions.checkState(worker != null,
+        "No worker metadata found in the WorkerRegisterContext!");
 
     // Even if we add the BlockLocation before the worker is fully registered,
     // it should be fine because the block can be read on this worker.
@@ -1098,7 +1088,8 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
   @Override
   public void workerRegisterFinish(WorkerRegisterContext context) {
     MasterWorkerInfo worker = context.mWorker;
-    Preconditions.checkState(worker != null, "The context has null worker!");
+    Preconditions.checkState(worker != null,
+        "No worker metadata found in the WorkerRegisterContext!");
 
     // Detect any lost blocks on this worker.
     Set<Long> removedBlocks;
@@ -1110,9 +1101,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
       // The toRemoveBlocks field now contains all the updates
       // after all the blocks have been processed.
       removedBlocks = worker.getToRemoveBlocks();
-      System.out.println("Found lost blocks " + removedBlocks);
     } else {
-      LOG.info("registering a new worker: {}", worker.getId());
       removedBlocks = Collections.emptySet();
     }
     LOG.info("{} blocks to remove from the worker", removedBlocks.size());
@@ -1128,7 +1117,6 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
     // Invalidate cache to trigger new build of worker info list
     mWorkerInfoCache.invalidate(WORKER_INFO_CACHE_KEY);
     LOG.info("workerRegisterFinish(): {}", worker);
-    System.out.println("Unrecord session for worker " + worker.getId());
     mActiveRegisterContexts.remove(worker.getId());
   }
 
@@ -1252,7 +1240,6 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
             mLostBlocks.remove(blockId);
           } else {
             invalidBlockCount++;
-            System.out.println("Found invalid block " + blockId);
             LOG.debug("Invalid block: {} from worker {}.", blockId,
                 workerInfo.getWorkerAddress().getHost());
           }
@@ -1279,7 +1266,6 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
     long orphanedBlockCount = 0;
     for (long block : workerInfo.getBlocks()) {
       if (!mBlockStore.getBlock(block).isPresent()) {
-        System.out.println("Orphaned block " + block);
         orphanedBlockCount++;
         LOG.debug("Requesting delete for orphaned block: {} from worker {}.", block,
             workerInfo.getWorkerAddress().getHost());
