@@ -218,13 +218,13 @@ public final class DistributedLoadUtils {
 
     @Override
     protected void logFailedAttempt(JobInfo jobInfo) {
-      System.out.printf("Attempt %d to load [%s] failed because: %s%n",
+      System.out.printf("Attempt %d to load %s failed because: %s%n",
           mRetryPolicy.getAttemptCount(), mFilesPathString, jobInfo.getErrorMessage());
     }
 
     @Override
     protected void logFailed() {
-      System.out.printf("Failed to complete loading [%s] after %d retries.%n", mFilesPathString,
+      System.out.printf("Failed to complete loading %s after %d retries.%n", mFilesPathString,
           mRetryPolicy.getAttemptCount());
     }
 
