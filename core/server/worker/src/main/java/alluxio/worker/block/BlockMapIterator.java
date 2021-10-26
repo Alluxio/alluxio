@@ -44,7 +44,7 @@ public class BlockMapIterator implements Iterator<List<LocationBlockIdListEntry>
   public BlockMapIterator(
       Map<BlockStoreLocation, List<Long>> blockLocationMap, AlluxioConfiguration conf) {
     mBatchSize = conf.getInt(PropertyKey.WORKER_REGISTER_STREAM_BATCH_SIZE);
-    LOG.info("Worker register stream batch size is {}", mBatchSize);
+    LOG.info("Worker register stream batchSize={}", mBatchSize);
 
     // The worker will merge the block lists from dirs on the same tier
     // because the master only wants one list for each tier.
@@ -63,7 +63,7 @@ public class BlockMapIterator implements Iterator<List<LocationBlockIdListEntry>
         tierToBlocks.put(locationProto, blockList);
       }
     }
-    LOG.info("Locations: {}", tierToBlocks.keySet());
+    LOG.debug("Found blocks for tiers: {}", tierToBlocks.keySet());
 
     // Initialize the iteration statuses
     mBlockStoreLocationProtoList = new ArrayList<>(tierToBlocks.keySet());

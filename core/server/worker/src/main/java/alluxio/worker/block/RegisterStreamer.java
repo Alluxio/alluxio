@@ -108,15 +108,15 @@ public class RegisterStreamer implements Iterator<RegisterWorkerPRequest> {
     mResponseObserver = new StreamObserver<RegisterWorkerPResponse>() {
       @Override
       public void onNext(RegisterWorkerPResponse res) {
-        LOG.debug("{} - Received ACK {}", mWorkerId, res);
+        LOG.debug("Worker {} - Received ACK {}", mWorkerId, res);
         mBucket.release();
         mAckLatch.countDown();
       }
 
       @Override
       public void onError(Throwable t) {
-        System.out.println("Received error from master " + t);
-        LOG.error("register received error from server, closing latch: ", t);
+        LOG.error("Worker {} - received error from server, marking the stream as closed: ",
+            mWorkerId, t);
         mError.set(t);
         mFinishLatch.countDown();
       }
@@ -141,7 +141,7 @@ public class RegisterStreamer implements Iterator<RegisterWorkerPRequest> {
     try {
       registerInternal();
     } catch (DeadlineExceededException | InterruptedException | CancelledException e) {
-      LOG.error("Error during the register stream, aborting now.", e);
+      LOG.error("Worker {} - Error during the register stream, aborting now.", mWorkerId, e);
       // These exceptions are internal to the worker
       // Propagate to the master side so it can clean up properly
       mRequestObserver.onError(e);
@@ -156,18 +156,15 @@ public class RegisterStreamer implements Iterator<RegisterWorkerPRequest> {
     int iter = 0;
     while (hasNext()) {
       // Send a request when the master ACKs the previous one
-      LOG.debug("{} - Acquiring one token", mWorkerId);
+      LOG.debug("Worker {} - Acquiring one token", mWorkerId);
       Instant start = Instant.now();
-      System.out.println("Acquiring the token now " + start + " tokens free: " + mBucket.availablePermits());
       if (!mBucket.tryAcquire(mResponseTimeoutMs, TimeUnit.MILLISECONDS)) {
         throw new DeadlineExceededException(
             String.format("No response from master for more than %dms during the stream!",
                 mResponseTimeoutMs));
       }
       Instant end = Instant.now();
-      System.out.format("%d - master ACK received in %dms, sending the next iter %d%n",
-              mWorkerId, Duration.between(start, end).toMillis(), iter);
-      LOG.debug("{} - master ACK received in {}ms, sending the next iter {}",
+      LOG.debug("Worker {} - master ACK received in {}ms, sending the next iter {}",
               mWorkerId, Duration.between(start, end).toMillis(), iter);
 
       // Send the request
@@ -193,9 +190,9 @@ public class RegisterStreamer implements Iterator<RegisterWorkerPRequest> {
           String.format("All batches have been sent to the master but only received %d ACKs!",
               receivedCount));
     }
-    LOG.info("{} - All requests have been sent. Completing the client side.", mWorkerId);
+    LOG.info("Worker {} - All requests have been sent. Completing the client side.", mWorkerId);
     mRequestObserver.onCompleted();
-    LOG.info("{} - Waiting on the master side to complete", mWorkerId);
+    LOG.info("Worker {} - Waiting on the master side to complete", mWorkerId);
     if (!mFinishLatch.await(mCompleteTimeoutMs, TimeUnit.MILLISECONDS)) {
       throw new DeadlineExceededException(
           String.format("All batches have been received by the master but the master failed to complete the "
@@ -205,19 +202,20 @@ public class RegisterStreamer implements Iterator<RegisterWorkerPRequest> {
     // If the master failed in completing the request, there will also be an error
     if (mError.get() != null) {
       Throwable t = mError.get();
-      LOG.error("Received an error from the master on completion", t);
+      LOG.error("Worker {} - Received an error from the master on completion", mWorkerId, t);
       throw new InternalException(t);
     }
-    LOG.info("{} - Finished registration with a stream", mWorkerId);
+    LOG.info("Worker {} - Finished registration with a stream", mWorkerId);
   }
 
   private void abort() throws InternalException, CancelledException {
     if (mError.get() != null) {
       Throwable t = mError.get();
-      LOG.error("Received an error from the master", t);
+      LOG.error("Worker {} - Received an error from the master", mWorkerId, t);
       throw new InternalException(t);
     } else {
-      String msg = "The server side has been closed before all the batches are sent from the worker!";
+      String msg = String.format("Worker %s - The server side has been closed before "
+          + "all the batches are sent from the worker!", mWorkerId);
       LOG.error(msg);
       throw new CancelledException(msg);
     }

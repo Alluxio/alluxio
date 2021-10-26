@@ -50,13 +50,12 @@ public class RegisterStreamObserver implements StreamObserver<RegisterWorkerPReq
   public void onNext(RegisterWorkerPRequest chunk) {
     final long workerId = chunk.getWorkerId();
     final boolean isHead = isFirstMessage(chunk);
-    LOG.info("{} - Register worker request is {} bytes, containing {} LocationBlockIdListEntry. " +
-                "Worker {}, isHead {}",
-            Thread.currentThread().getId(),
-            chunk.getSerializedSize(),
-            chunk.getCurrentBlocksCount(),
-            workerId,
-            isHead);
+    LOG.debug("Received register worker request of {} bytes with {} LocationBlockIdListEntry. " +
+            "Worker {}, isHead {}",
+        chunk.getSerializedSize(),
+        chunk.getCurrentBlocksCount(),
+        workerId,
+        isHead);
 
     StreamObserver<RegisterWorkerPRequest> requestObserver = this;
     String methodName = isHead ? "registerWorkerStart" : "registerWorkerStream";
@@ -71,11 +70,11 @@ public class RegisterStreamObserver implements StreamObserver<RegisterWorkerPReq
         // Initialize the context on the 1st message
         synchronized (requestObserver) {
           if (mContext == null) {
-            LOG.debug("Initializing the WorkerRegisterContext on the 1st request");
-            Preconditions.checkState(isHead, "WorkerRegisterContext is not initialized but the request is not the 1st in a stream");
-
+            Preconditions.checkState(isHead,
+                "Context is not initialized but the request is not the 1st in a stream!");
             LOG.debug("Initializing context for {}", workerId);
-            mContext = WorkerRegisterContext.create(mBlockMaster, workerId, requestObserver, mResponseObserver);
+            mContext = WorkerRegisterContext.create(
+                mBlockMaster, workerId, requestObserver, mResponseObserver);
             LOG.debug("Context created for {}", workerId);
           }
         }
@@ -118,6 +117,8 @@ public class RegisterStreamObserver implements StreamObserver<RegisterWorkerPReq
     if (t instanceof TimeoutException) {
       cleanup();
       mResponseObserver.onError(new DeadlineExceededException(t).toGrpcStatusException());
+      LOG.warn("Worker {} register stream has timed out. Error sent to the worker.",
+          mContext.getWorkerId());
       return;
     }
     // Otherwise the exception is from the worker
@@ -128,7 +129,7 @@ public class RegisterStreamObserver implements StreamObserver<RegisterWorkerPReq
 
   @Override
   public void onCompleted() {
-    LOG.info("{} - Register stream completed on the client side", Thread.currentThread().getId());
+    LOG.info("Register stream completed on the client side");
 
     String methodName = "registerWorkerComplete";
     RpcUtils.streamingRPCAndLog(LOG, new RpcUtils.StreamingRpcCallable<RegisterWorkerPResponse>() {
@@ -177,10 +178,10 @@ public class RegisterStreamObserver implements StreamObserver<RegisterWorkerPReq
       }
       LOG.debug("Unlocking worker {}", mContext.getWorkerId());
       mContext.close();
-      LOG.debug("Context closed");
+      LOG.debug("Context closed for worker {}", mContext.getWorkerId());
 
       Preconditions.checkState(!mContext.isOpen(),
-          "Failed to properly close the WorkerRegisterContext!");
+        "Failed to properly close the WorkerRegisterContext!");
     }
   }
 }

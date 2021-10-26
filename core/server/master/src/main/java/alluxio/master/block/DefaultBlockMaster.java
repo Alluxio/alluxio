@@ -1104,7 +1104,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
     } else {
       removedBlocks = Collections.emptySet();
     }
-    LOG.info("{} blocks to remove from the worker", removedBlocks.size());
+    LOG.info("Found {} blocks to remove from the worker", removedBlocks.size());
     processWorkerRemovedBlocks(worker, removedBlocks, true);
 
     // Mark registered successfully
@@ -1116,7 +1116,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
 
     // Invalidate cache to trigger new build of worker info list
     mWorkerInfoCache.invalidate(WORKER_INFO_CACHE_KEY);
-    LOG.info("workerRegisterFinish(): {}", worker);
+    LOG.info("Worker successfully registered: {}", worker);
     mActiveRegisterContexts.remove(worker.getId());
   }
 
