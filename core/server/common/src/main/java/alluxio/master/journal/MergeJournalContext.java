@@ -52,7 +52,7 @@ public final class MergeJournalContext implements JournalContext {
 
   /**
    * Constructs a {@link MergeJournalContext}.
-   *  @param journalContext the journal context to wrap
+   * @param journalContext the journal context to wrap
    * @param uri Alluxio URI that needs merging
    * @param merger merging function which will merge multiple journal entries into one
    */
