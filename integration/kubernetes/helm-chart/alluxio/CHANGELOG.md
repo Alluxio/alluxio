@@ -217,4 +217,9 @@
 - Add ImagePullSecrets Pod spec option
 
 0.6.31
+
 - Update CSI launch script
+
+0.6.32
+
+- Add toggles to disable master/worker resource deployment

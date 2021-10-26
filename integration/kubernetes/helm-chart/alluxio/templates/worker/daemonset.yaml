@@ -9,6 +9,8 @@
 # See the NOTICE file distributed with this work for information regarding copyright ownership.
 #
 
+{{- if not (eq .Values.worker.enabled false) -}}
+
 {{- $shortCircuitEnabled := .Values.shortCircuit.enabled }}
 {{- $needDomainSocketVolume := and $shortCircuitEnabled (eq .Values.shortCircuit.policy "uuid") }}
 {{- $hostNetwork := .Values.worker.hostNetwork }}
@@ -297,3 +299,4 @@ spec:
             path: {{ .Values.fuse.mountPath | dir }}
             type: Directory
         {{- end }}
+{{- end }}
