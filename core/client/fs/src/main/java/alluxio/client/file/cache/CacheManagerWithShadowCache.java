@@ -79,8 +79,8 @@ public class CacheManagerWithShadowCache implements CacheManager {
     CacheScope cacheScope =
         (cacheContext == null) ? CacheScope.GLOBAL : cacheContext.getCacheScope();
     boolean seen = mShadowCacheManager.read(pageId, pageLength, cacheScope);
+    mShadowCacheManager.put(pageId, pageLength, cacheScope);
     if (!seen) {
-      mShadowCacheManager.put(pageId, pageLength, cacheScope);
       updateFalsePositiveRatio();
       updateWorkingSetSize();
       if (cacheContext != null) {
