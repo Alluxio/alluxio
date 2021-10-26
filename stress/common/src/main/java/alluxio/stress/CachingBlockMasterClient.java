@@ -44,9 +44,7 @@ public class CachingBlockMasterClient extends BlockMasterClient {
   private static final Logger LOG = LoggerFactory.getLogger(CachingBlockMasterClient.class);
 
   private List<LocationBlockIdListEntry> mLocationBlockIdList;
-  public List<List<LocationBlockIdListEntry>> mBlockBatches;
-
-  private CachingBlockMapIterator mBlockBatchIterator;
+  public CachingBlockMapIterator mBlockBatchIterator;
 
   /**
    * Creates a new instance and caches the converted proto.
@@ -75,36 +73,6 @@ public class CachingBlockMasterClient extends BlockMasterClient {
     return mLocationBlockIdList;
   }
 
-
-  List<List<LocationBlockIdListEntry>> prepareBlockBatchesForStreaming() {
-    // TODO(jiacheng): Avoid converting this back
-    List<List<LocationBlockIdListEntry>> result = new ArrayList<>();
-    for (LocationBlockIdListEntry entry : mLocationBlockIdList) {
-      int len = entry.getValue().getBlockIdCount();
-      // TODO(jiacheng): size configurable
-      if (len <= 1000) {
-        result.add(ImmutableList.of(entry));
-        continue;
-      }
-      // Partition the list into multiple
-      List<Long> list = entry.getValue().getBlockIdList();
-      List<List<Long>> sublists = Lists.partition(list, 1000);
-      LOG.info("Partitioned a LocationBlockIdListEntry of {} blocks into {} sublists", list.size(), sublists.size());
-      // Regenerate the protos
-      for (List<Long> sub : sublists) {
-        List<LocationBlockIdListEntry> newList = new ArrayList<>();
-        BlockIdList newBlockList = BlockIdList.newBuilder().addAllBlockId(sub).build();
-        LocationBlockIdListEntry newEntry = LocationBlockIdListEntry.newBuilder()
-                .setKey(entry.getKey()).setValue(newBlockList).build();
-        newList.add(newEntry);
-        result.add(newList);
-      }
-    }
-
-    LOG.info("Partitioned a list of {} into {} sublists", mLocationBlockIdList.size(), result.size());
-    return result;
-  }
-
   @Override
   public void registerWithStream(final long workerId, final List<String> storageTierAliases,
                                  final Map<String, Long> totalBytesOnTiers, final Map<String, Long> usedBytesOnTiers,
@@ -130,22 +98,21 @@ public class CachingBlockMasterClient extends BlockMasterClient {
     }
   }
 
-  // TODO(jiacheng): test this
-  // Pre-generate the list of requests
-  public class CachingBlockMapIterator extends BlockMapIterator {
+  /**
+   * Pre-generate the list so the RPC execution time does not include the conversion time.
+   */
+  public static class CachingBlockMapIterator extends BlockMapIterator {
     List<List<LocationBlockIdListEntry>> mBatches;
     Iterator<List<LocationBlockIdListEntry>> mDelegate;
 
-    public CachingBlockMapIterator(Map<BlockStoreLocation, List<Long>> blockLocationMap) {
-      super(blockLocationMap);
-      mBatches = ImmutableList.copyOf(this);
-      mDelegate = mBatches.iterator();
-    }
-
     public CachingBlockMapIterator(Map<BlockStoreLocation, List<Long>> blockLocationMap, AlluxioConfiguration conf) {
       super(blockLocationMap, conf);
-      mBatches = ImmutableList.copyOf(this);
+      mBatches = new ArrayList<>();
+      while (super.hasNext()) {
+        mBatches.add(super.next());
+      }
       mDelegate = mBatches.iterator();
+      System.out.println("Block list caches are ready");
     }
 
     @Override
@@ -157,6 +124,5 @@ public class CachingBlockMasterClient extends BlockMasterClient {
     public List<LocationBlockIdListEntry> next() {
       return mDelegate.next();
     }
-
   }
 }
