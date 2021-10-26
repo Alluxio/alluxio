@@ -108,8 +108,7 @@ public class DistributedCpCommand extends AbstractDistributedJobCommand {
 
   @Override
   public Options getOptions() {
-    return new Options().addOption(ACTIVE_JOB_COUNT_OPTION)
-        .addOption(OVERWRITE_OPTION)
+    return new Options().addOption(ACTIVE_JOB_COUNT_OPTION).addOption(OVERWRITE_OPTION)
         .addOption(BATCH_SIZE_OPTION);
   }
 
@@ -150,38 +149,6 @@ public class DistributedCpCommand extends AbstractDistributedJobCommand {
     int batchSize = FileSystemShellUtils.getIntArg(cl, BATCH_SIZE_OPTION, defaultBatchSize);
     distributedCp(srcPath, dstPath, overwrite, batchSize);
     return 0;
-  }
-
-  private JobAttempt newJob(List<Pair<String, String>> pool, boolean overwrite) {
-
-    JobAttempt jobAttempt = create(pool, overwrite);
-    jobAttempt.run();
-    return jobAttempt;
-  }
-
-  private JobAttempt create(List<Pair<String, String>> filePath, boolean overwrite) {
-    int poolSize = filePath.size();
-    JobAttempt jobAttempt;
-    if (poolSize == 1) {
-      Pair<String, String> pair = filePath.iterator().next();
-      System.out.println("Copying " + pair.getFirst() + " to " + pair.getSecond());
-      jobAttempt = new CopyJobAttempt(mClient,
-          new MigrateConfig(pair.getFirst(), pair.getSecond(), mWriteType, overwrite),
-          new CountingRetry(3));
-    } else {
-      HashSet<Map<String, String>> configs = Sets.newHashSet();
-      ObjectMapper oMapper = new ObjectMapper();
-      for (Pair<String, String> pair : filePath) {
-        MigrateConfig config =
-            new MigrateConfig(pair.getFirst(), pair.getSecond(), mWriteType, overwrite);
-        System.out.println("Copying " + pair.getFirst() + " to " + pair.getSecond());
-        Map<String, String> map = oMapper.convertValue(config, Map.class);
-        configs.add(map);
-      }
-      BatchedJobConfig config = new BatchedJobConfig("Migrate", configs);
-      jobAttempt = new BatchedCopyJobAttempt(mClient, config, new CountingRetry(3));
-    }
-    return jobAttempt;
   }
 
   private void distributedCp(AlluxioURI srcPath, AlluxioURI dstPath, boolean overwrite,
@@ -246,6 +213,38 @@ public class DistributedCpCommand extends AbstractDistributedJobCommand {
     mSubmittedJobAttempts.add(newJob(pool, overwrite));
   }
 
+  private JobAttempt newJob(List<Pair<String, String>> pool, boolean overwrite) {
+
+    JobAttempt jobAttempt = create(pool, overwrite);
+    jobAttempt.run();
+    return jobAttempt;
+  }
+
+  private JobAttempt create(List<Pair<String, String>> filePath, boolean overwrite) {
+    int poolSize = filePath.size();
+    JobAttempt jobAttempt;
+    if (poolSize == 1) {
+      Pair<String, String> pair = filePath.iterator().next();
+      System.out.println("Copying " + pair.getFirst() + " to " + pair.getSecond());
+      jobAttempt = new CopyJobAttempt(mClient,
+          new MigrateConfig(pair.getFirst(), pair.getSecond(), mWriteType, overwrite),
+          new CountingRetry(3));
+    } else {
+      HashSet<Map<String, String>> configs = Sets.newHashSet();
+      ObjectMapper oMapper = new ObjectMapper();
+      for (Pair<String, String> pair : filePath) {
+        MigrateConfig config =
+            new MigrateConfig(pair.getFirst(), pair.getSecond(), mWriteType, overwrite);
+        System.out.println("Copying " + pair.getFirst() + " to " + pair.getSecond());
+        Map<String, String> map = oMapper.convertValue(config, Map.class);
+        configs.add(map);
+      }
+      BatchedJobConfig config = new BatchedJobConfig("Migrate", configs);
+      jobAttempt = new BatchedCopyJobAttempt(mClient, config, new CountingRetry(3));
+    }
+    return jobAttempt;
+  }
+
   private static String computeTargetPath(String path, String source, String destination)
       throws InvalidPathException {
     String relativePath = PathUtils.subtractPaths(path, source);
@@ -296,7 +295,7 @@ public class DistributedCpCommand extends AbstractDistributedJobCommand {
       mJobConfig = jobConfig;
       String pathString = jobConfig.getJobConfigs().stream().map(x -> x.get("source"))
           .collect(Collectors.joining(","));
-      mFilesPathString = StringUtils.abbreviate(pathString, 80);
+      mFilesPathString = String.format("[%s]",StringUtils.abbreviate(pathString, 80));
     }
 
     @Override

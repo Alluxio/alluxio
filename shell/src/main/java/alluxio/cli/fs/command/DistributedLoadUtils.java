@@ -207,8 +207,8 @@ public final class DistributedLoadUtils {
       mJobConfig = jobConfig;
       String pathString = jobConfig.getJobConfigs().stream().map(x -> x.get("filePath"))
           .collect(Collectors.joining(","));
-      mFilesPathString = StringUtils.abbreviate(pathString, 80);
-      System.out.printf("files: [%s]" + " loading", StringUtils.abbreviate(mFilesPathString, 50));
+      mFilesPathString = String.format("[%s]",StringUtils.abbreviate(pathString, 80));
+      System.out.printf("files: %s" + " loading", mFilesPathString);
     }
 
     @Override
@@ -218,13 +218,13 @@ public final class DistributedLoadUtils {
 
     @Override
     protected void logFailedAttempt(JobInfo jobInfo) {
-      System.out.printf("Attempt %d to load %s failed because: %s%n",
+      System.out.printf("Attempt %d to load [%s] failed because: %s%n",
           mRetryPolicy.getAttemptCount(), mFilesPathString, jobInfo.getErrorMessage());
     }
 
     @Override
     protected void logFailed() {
-      System.out.printf("Failed to complete loading %s after %d retries.%n", mFilesPathString,
+      System.out.printf("Failed to complete loading [%s] after %d retries.%n", mFilesPathString,
           mRetryPolicy.getAttemptCount());
     }
 
