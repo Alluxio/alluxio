@@ -969,9 +969,6 @@ public class InodeTree implements DelegatingJournaled {
       } catch (InvalidPathException e) {
         // Child does not exist.
         continue;
-      } catch (Exception e) {
-        childPath.close();
-        throw e;
       }
       descendants.add(childPath);
       gatherDescendants(childPath, descendants);
