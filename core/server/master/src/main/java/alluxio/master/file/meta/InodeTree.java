@@ -964,11 +964,14 @@ public class InodeTree implements DelegatingJournaled {
     }
     for (Inode child : mInodeStore.getChildren(inode.asDirectory())) {
       LockedInodePath childPath;
-      try (LockedInodePath childPathRef = inodePath.lockChild(child, LockPattern.WRITE_EDGE)) {
-        childPath = childPathRef;
+      try {
+        childPath = inodePath.lockChild(child, LockPattern.WRITE_EDGE);
       } catch (InvalidPathException e) {
         // Child does not exist.
         continue;
+      } catch (Exception e) {
+        childPath.close();
+        throw e;
       }
       descendants.add(childPath);
       gatherDescendants(childPath, descendants);
