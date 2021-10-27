@@ -87,7 +87,7 @@ public class AlluxioMasterProcess extends MasterProcess {
   /** The manager of all ufs. */
   private final MasterUfsManager mUfsManager;
 
-  private ExecutorService mRPCExecutor = null;
+  private ThreadPoolExecutor mRPCExecutor = null;
 
   /**
    * Creates a new {@link AlluxioMasterProcess}.
@@ -324,12 +324,14 @@ public class AlluxioMasterProcess extends MasterProcess {
 
   private GrpcServer createRPCServer() {
     // Create an executor for Master RPC server.
-    int nThreads = ServerConfiguration.getInt(PropertyKey.MASTER_RPC_EXECUTOR_MAX_POOL_SIZE);
+    int coreThreads = ServerConfiguration.getInt(PropertyKey.MASTER_RPC_EXECUTOR_CORE_POOL_SIZE);
+    int maxThreads = ServerConfiguration.getInt(PropertyKey.MASTER_RPC_EXECUTOR_MAX_POOL_SIZE);
+    long keepAlive = ServerConfiguration.getMs(PropertyKey.MASTER_RPC_EXECUTOR_KEEPALIVE);
     BlockingQueue<Runnable> taskQueue = new LinkedBlockingQueue<>();
-    mRPCExecutor = new ThreadPoolExecutor(nThreads, nThreads,
-        0L, TimeUnit.MILLISECONDS,
+    mRPCExecutor = new ThreadPoolExecutor(coreThreads, maxThreads,
+        keepAlive, TimeUnit.MILLISECONDS,
         taskQueue, ThreadFactoryUtils.build("master-rpc-pool-thread-%d", true));
-
+    mRPCExecutor.allowCoreThreadTimeOut(true);
     MetricsSystem.registerGaugeIfAbsent(MetricKey.MASTER_RPC_QUEUE_LENGTH.getName(),
         taskQueue::size);
     // Create underlying gRPC server.
