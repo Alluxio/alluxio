@@ -112,7 +112,6 @@ public class CachingBlockMasterClient extends BlockMasterClient {
         mBatches.add(super.next());
       }
       mDelegate = mBatches.iterator();
-      System.out.println("Block list caches are ready");
     }
 
     @Override

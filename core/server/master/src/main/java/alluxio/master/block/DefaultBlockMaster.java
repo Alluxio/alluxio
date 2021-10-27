@@ -82,6 +82,7 @@ import com.google.common.cache.LoadingCache;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterators;
 import com.google.common.util.concurrent.Striped;
+import io.grpc.Context;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -407,9 +408,11 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
 
     @Override
     public void heartbeat() {
+      System.out.println("GC executor heartbeating");
       mActiveRegisterContexts.entrySet().removeIf((entry) -> {
         WorkerRegisterContext context = entry.getValue();
         final long lastUpdate = mClock.millis() - context.getLastActivityTimeMs();
+        System.out.println("Last update "+lastUpdate);
         if (lastUpdate < mTimeout) {
           return false;
         }
@@ -422,6 +425,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
         try {
           context.mRequestObserver.onError(e);
         } catch (Throwable t) {
+          t.printStackTrace();
           LOG.error("Failed to close an open register stream for worker {}. "
               + "The stream has been open for {}ms.", context.getWorkerId(), t);
           // Do not remove the entry so this will be retried

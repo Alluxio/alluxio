@@ -3240,8 +3240,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       new Builder(Name.WORKER_REGISTER_STREAM_ENABLED)
           .setDefaultValue("true")
           .setDescription("When the worker registers with the master, whether the request should be"
-              + " broken into a stream of smaller batches. This is useful when the worker's storage "
-              + "is large and we expect a large number of blocks. ")
+              + " broken into a stream of smaller batches. This is useful when the worker's storage"
+              + " is large and we expect a large number of blocks. ")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
@@ -3263,7 +3263,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey WORKER_REGISTER_STREAM_RESPONSE_TIMEOUT =
       new Builder(Name.WORKER_REGISTER_STREAM_RESPONSE_TIMEOUT)
-          .setDefaultValue(String.format("${%s}", Name.MASTER_WORKER_REGISTER_STREAM_RESPONSE_TIMEOUT))
+          .setDefaultValue(String.format("${%s}",
+              Name.MASTER_WORKER_REGISTER_STREAM_RESPONSE_TIMEOUT))
           .setDescription("When the worker registers the master with streaming, "
               + "the worker will be sending messages to the master during the streaming."
               + "During an active stream if the master have not responded to the worker "

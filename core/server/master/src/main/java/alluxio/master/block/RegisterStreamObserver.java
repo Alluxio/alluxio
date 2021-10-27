@@ -18,6 +18,8 @@ import alluxio.grpc.GrpcExceptionUtils;
 import alluxio.grpc.RegisterWorkerPRequest;
 import alluxio.grpc.RegisterWorkerPResponse;
 import com.google.common.base.Preconditions;
+import io.grpc.Context;
+import io.grpc.Deadline;
 import io.grpc.stub.StreamObserver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -50,6 +52,11 @@ public class RegisterStreamObserver implements StreamObserver<RegisterWorkerPReq
   public void onNext(RegisterWorkerPRequest chunk) {
     final long workerId = chunk.getWorkerId();
     final boolean isHead = isFirstMessage(chunk);
+    Deadline deadline = Context.current().getDeadline();
+    LOG.debug("onNext Thread {} Worker {} Cancellable {} has deadline {}",
+            Thread.currentThread().getId(), workerId,
+            Context.current() instanceof Context.CancellableContext, deadline);
+
     LOG.debug("Received register worker request of {} bytes with {} LocationBlockIdListEntry. " +
             "Worker {}, isHead {}",
         chunk.getSerializedSize(),
@@ -88,6 +95,7 @@ public class RegisterStreamObserver implements StreamObserver<RegisterWorkerPReq
             PropertyKey.MASTER_WORKER_REGISTER_STREAM_RESPONSE_TIMEOUT.toString());
 
         if (isHead) {
+          Context con = Context.current();
           mBlockMaster.workerRegisterStart(mContext, chunk);
         } else {
           mBlockMaster.workerRegisterBatch(mContext, chunk);
@@ -105,7 +113,7 @@ public class RegisterStreamObserver implements StreamObserver<RegisterWorkerPReq
         cleanup();
         mResponseObserver.onError(GrpcExceptionUtils.fromThrowable(e));
       }
-    }, methodName, true, false, mResponseObserver, "Request=%s", chunk);
+    }, methodName, true, false, mResponseObserver, "WorkerId=%s", chunk.getWorkerId());
   }
 
   @Override
@@ -114,6 +122,13 @@ public class RegisterStreamObserver implements StreamObserver<RegisterWorkerPReq
   // the worker will send the error to the master and close itself.
   // The master will then receive the error, abort the stream and close itself.
   public void onError(Throwable t) {
+    Preconditions.checkState(mContext != null,
+        "Error received from the client side but the context was not initialized!");
+    Deadline deadline = Context.current().getDeadline();
+    LOG.debug("onError Thread {} Worker {} Cancellable {} has deadline {}",
+            Thread.currentThread().getId(), mContext.getWorkerId(),
+            Context.current() instanceof Context.CancellableContext, deadline);
+
     if (t instanceof TimeoutException) {
       cleanup();
       mResponseObserver.onError(new DeadlineExceededException(t).toGrpcStatusException());
@@ -130,6 +145,10 @@ public class RegisterStreamObserver implements StreamObserver<RegisterWorkerPReq
   @Override
   public void onCompleted() {
     LOG.info("Register stream completed on the client side");
+    Deadline deadline = Context.current().getDeadline();
+    LOG.debug("onCompleted Thread {} Worker {} Cancellable {} has deadline {}",
+        Thread.currentThread().getId(), mContext.getWorkerId(),
+        Context.current() instanceof Context.CancellableContext, deadline);
 
     String methodName = "registerWorkerComplete";
     RpcUtils.streamingRPCAndLog(LOG, new RpcUtils.StreamingRpcCallable<RegisterWorkerPResponse>() {
