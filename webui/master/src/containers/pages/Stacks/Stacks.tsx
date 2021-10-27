@@ -9,15 +9,16 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-export const routePaths = {
-  root: '/',
-  overview: '/overview',
-  browse: '/browse',
-  config: '/config',
-  data: '/data',
-  logs: '/logs',
-  metrics: '/metrics',
-  workers: '/workers',
-  stacks: '/stacks',
-  mounttable: '/mounttable',
-};
+import React from 'react';
+
+export class Stacks extends React.Component {
+  public render(): JSX.Element {
+    const path = 'http://' + location.host + location.pathname;
+    return (
+      <div className="stacks-page" style={{ backgroundColor: 'white', minHeight: window.innerHeight }}>
+        <iframe style={{ width: '100%', height: window.innerHeight, overflow: 'visible' }} src={path} />
+      </div>
+    );
+  }
+}
+export default Stacks as typeof React.Component;
