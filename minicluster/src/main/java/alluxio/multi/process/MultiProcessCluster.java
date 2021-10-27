@@ -97,6 +97,7 @@ public final class MultiProcessCluster {
   public static final String ALLUXIO_USE_FIXED_TEST_PORTS = "ALLUXIO_USE_FIXED_TEST_PORTS";
   public static final int PORTS_PER_MASTER = 3;
   public static final int PORTS_PER_WORKER = 3;
+  public static final int START_BUFFER_MS = 500;
 
   private static final Logger LOG = LoggerFactory.getLogger(MultiProcessCluster.class);
   private static final File ARTIFACTS_DIR = new File(Constants.TEST_ARTIFACTS_DIR);
@@ -181,6 +182,7 @@ public final class MultiProcessCluster {
 
     for (int i = 0; i < mNumWorkers; i++) {
       createWorker(i).start();
+      Thread.sleep(START_BUFFER_MS);
     }
     LOG.info("Starting alluxio cluster in directory {}", mWorkDir.getAbsolutePath());
     int primaryMasterIndex = getPrimaryMasterIndex(WAIT_MASTER_SERVING_TIMEOUT_MS);
@@ -271,6 +273,7 @@ public final class MultiProcessCluster {
 
     for (int i = 0; i < count; i++) {
       createMaster(startIndex + i).start();
+      Thread.sleep(START_BUFFER_MS);
     }
     mFilesystemContext = null;
   }
