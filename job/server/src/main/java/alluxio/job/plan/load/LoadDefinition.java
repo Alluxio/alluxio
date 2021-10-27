@@ -139,8 +139,8 @@ public final class LoadDefinition
       for (int i = 0; i < neededReplicas; i++) {
         String address = workersWithoutBlock.get(i).getNetAddress().getHost();
         WorkerInfo jobWorker = jobWorkersByAddress.get(address);
-        assignments.put(jobWorker, new LoadTask(blockInfo.getBlockInfo().getBlockId(), null));
-            // workersWithoutBlock.get(i).getNetAddress()));
+        assignments.put(jobWorker, new LoadTask(blockInfo.getBlockInfo().getBlockId(),
+            workersWithoutBlock.get(i).getNetAddress()));
       }
     }
 
@@ -187,8 +187,8 @@ public final class LoadDefinition
     URIStatus status = context.getFileSystem().getStatus(new AlluxioURI(config.getFilePath()));
 
     for (LoadTask task : tasks) {
-      JobUtils.loadBlock(status, context.getFsContext(), task.getBlockId(), null);
-          //task.getWorkerNetAddress());
+      JobUtils.loadBlock(status, context.getFsContext(), task.getBlockId(),
+          task.getWorkerNetAddress());
       LOG.info("Loaded file " + config.getFilePath() + " block " + task.getBlockId());
     }
     return null;
