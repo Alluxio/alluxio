@@ -93,6 +93,7 @@ mkdir -p /tmp/alluxio-tmp/alluxio-2/journal
 ```console
   alluxio.home={alluxio.home}
   alluxio.master.hostname=localhost
+  alluxio.job.master.hostname=localhost
   alluxio.master.embedded.journal.addresses=localhost:19200,localhost:19201,localhost:19202
   alluxio.master.rpc.addresses=localhost:19998,localhost:19988,localhost:19978
 ```
@@ -101,8 +102,9 @@ mkdir -p /tmp/alluxio-tmp/alluxio-2/journal
 7. In Intellij, start Alluxio master 2 process by selecting `Run > Run > AlluxioMaster-2`
 8. Prepare the RamFS and format the Alluxio Worker with `bin/alluxio-mount.sh SudoMount && bin/alluxio formatWorker`
 9. In Intellij, start Alluxio worker process by selecting `Run > Run > AlluxioWorker`
-10. In Intellij, start Alluxio job worker process by selecting `Run > Run > AlluxioJobWorker`
-11. Verify the HA Alluxio cluster is up, Run`bin/alluxio fsadmin journal quorum info -domain MASTER`, and you will get message like this:
+10. In Intellij, start Alluxio job master process by selecting `Run > Run > AlluxioJobMaster`
+11. In Intellij, start Alluxio job worker process by selecting `Run > Run > AlluxioJobWorker`
+12. Verify the HA Alluxio cluster is up, Run`bin/alluxio fsadmin journal quorum info -domain MASTER`, and you will get message like this:
 ```console
 Journal domain	: MASTER
 Quorum size	: 3
