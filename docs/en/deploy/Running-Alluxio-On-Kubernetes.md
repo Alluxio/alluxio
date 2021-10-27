@@ -1622,51 +1622,6 @@ spec:
 {% endnavtab %}
 {% endnavtabs %}
 
-#### Ingress
-
-Currently, there is no support for Ingress definitions in the Alluxio Helm chart.
-Furthermore, support for proxy URLs to the Alluxio master & worker web servers
-is [still in progress](https://github.com/Alluxio/alluxio/issues/14227).
-So for now we provide a simple [Single-service Ingress](https://kubernetes.io/docs/concepts/services-networking/ingress/#single-service-ingress)
-definition to expose the Alluxio master web UI.
-
-{% navtabs ingress %}
-{% navtab Beta %}
-
-```properties
-apiVersion: networking.k8s.io/v1beta1
-kind: Ingress
-metadata:
-  name: alluxio-master-ingress
-spec:
-  backend:
-    serviceName: alluxio-master-0
-    servicePort: 19999
-```
-
-{% endnavtab %}
-{% navtab GA %}
-
-```properties
-apiVersion: networking.k8s.io/v1
-kind: Ingress
-metadata:
-  name: alluxio-master-ingress
-spec:
-  defaultBackend:
-    service:
-      name: alluxio-master-0
-      port:
-        number: 19999
-```
-
-{% endnavtab %}
-{% endnavtabs %}
-
-Please note, that your Kubernetes cluster will need to have an
-[Ingress Controller](https://kubernetes.io/docs/concepts/services-networking/ingress-controllers/)
-for the Ingress definition to be able to serve any traffic.
-
 ## Troubleshooting
 
 {% accordion worker_host %}
