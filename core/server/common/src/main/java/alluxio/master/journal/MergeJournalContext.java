@@ -32,7 +32,11 @@ import javax.annotation.concurrent.NotThreadSafe;
  * function. This prevents partial writes of these journal entries causing system to
  * be left in an inconsistent state. For example, createFile without completing the file.
  *
- * Note that these journal entries are not persisted and they will only be persisted
+ * This class will only merge the relevant inode entries for a particular URL.
+ * File operations to other URIs will be passed to the underlying JournalContext,
+ * and will not be buffered.
+ *
+ * Note that any buffered journal entries are not persisted and they will only be persisted
  * when close is called on them. Closing the MergeJournalContext will also not close
  * the enclosed journal context.
  */
@@ -68,6 +72,8 @@ public final class MergeJournalContext implements JournalContext {
   @Override
   public void append(JournalEntry entry) {
     boolean merge = false;
+    // We are merging these statements because they have the potential to leave incomplete files.
+    // We can add additional statement to be merged if necessary.
     if (entry.hasInodeFile() || entry.hasUpdateInode() || entry.hasUpdateInodeFile()) {
       if (entry.hasInodeFile() && entry.getInodeFile().getPath().equals(mUri.getPath())) {
         merge = true;
