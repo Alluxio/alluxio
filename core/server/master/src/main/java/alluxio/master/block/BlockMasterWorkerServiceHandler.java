@@ -158,7 +158,7 @@ public final class BlockMasterWorkerServiceHandler extends
 
   @Override
   public io.grpc.stub.StreamObserver<alluxio.grpc.RegisterWorkerPRequest> registerWorkerStream(
-          io.grpc.stub.StreamObserver<alluxio.grpc.RegisterWorkerPResponse> responseObserver) {
+      io.grpc.stub.StreamObserver<alluxio.grpc.RegisterWorkerPResponse> responseObserver) {
     return new RegisterStreamObserver(mBlockMaster, responseObserver);
   }
 

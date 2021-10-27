@@ -16,6 +16,7 @@ import alluxio.conf.ServerConfiguration;
 import alluxio.exception.status.DeadlineExceededException;
 import alluxio.exception.status.InternalException;
 import alluxio.exception.status.NotFoundException;
+import alluxio.grpc.ConfigProperty;
 import alluxio.grpc.GrpcExceptionUtils;
 import alluxio.grpc.LocationBlockIdListEntry;
 import alluxio.grpc.RegisterWorkerPRequest;
@@ -42,6 +43,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -168,7 +170,7 @@ public class BlockWorkerRegisterStreamIntegrationTest {
     when(asyncClient.withDeadlineAfter(anyLong(), any())).thenReturn(asyncClient);
     AtomicInteger receivedCount = new AtomicInteger();
     AtomicBoolean completed = new AtomicBoolean();
-    TestRequestObserver requestObserver = new TestRequestObserver(Mode.CORRECT, receivedCount, completed);
+    BrokenRegisterStreamObserver requestObserver = new BrokenRegisterStreamObserver(Mode.CORRECT, receivedCount, completed);
     when(asyncClient.registerWorkerStream(any())).thenReturn(requestObserver);
     RegisterStreamer registerStreamer = new RegisterStreamer(asyncClient,
             WORKER_ID, mTierAliases, mCapacityMap, mUsedMap, mBlockMap, LOST_STORAGE, EMPTY_CONFIG);
@@ -198,7 +200,7 @@ public class BlockWorkerRegisterStreamIntegrationTest {
     // Create the stream and control the request/response observers
     BlockMasterWorkerServiceStub asyncClient = PowerMockito.mock(BlockMasterWorkerServiceStub.class);
     when(asyncClient.withDeadlineAfter(anyLong(), any())).thenReturn(asyncClient);
-    TestRequestObserver requestObserver = new TestRequestObserver(Mode.FIRST_REQUEST);
+    BrokenRegisterStreamObserver requestObserver = new BrokenRegisterStreamObserver(Mode.FIRST_REQUEST);
     when(asyncClient.registerWorkerStream(any())).thenReturn(requestObserver);
     RegisterStreamer registerStreamer = new RegisterStreamer(asyncClient,
         WORKER_ID, mTierAliases, mCapacityMap, mUsedMap, mBlockMap, LOST_STORAGE, EMPTY_CONFIG);
@@ -216,7 +218,7 @@ public class BlockWorkerRegisterStreamIntegrationTest {
     // Create the stream and control the request/response observers
     BlockMasterWorkerServiceStub asyncClient = PowerMockito.mock(BlockMasterWorkerServiceStub.class);
     when(asyncClient.withDeadlineAfter(anyLong(), any())).thenReturn(asyncClient);
-    TestRequestObserver requestObserver = new TestRequestObserver(Mode.SECOND_REQUEST);
+    BrokenRegisterStreamObserver requestObserver = new BrokenRegisterStreamObserver(Mode.SECOND_REQUEST);
     when(asyncClient.registerWorkerStream(any())).thenReturn(requestObserver);
     RegisterStreamer registerStreamer = new RegisterStreamer(asyncClient,
         WORKER_ID, mTierAliases, mCapacityMap, mUsedMap, mBlockMap, LOST_STORAGE, EMPTY_CONFIG);
@@ -234,7 +236,7 @@ public class BlockWorkerRegisterStreamIntegrationTest {
     // Create the stream and control the request/response observers
     BlockMasterWorkerServiceStub asyncClient = PowerMockito.mock(BlockMasterWorkerServiceStub.class);
     when(asyncClient.withDeadlineAfter(anyLong(), any())).thenReturn(asyncClient);
-    TestRequestObserver requestObserver = new TestRequestObserver(Mode.ON_COMPLETED);
+    BrokenRegisterStreamObserver requestObserver = new BrokenRegisterStreamObserver(Mode.ON_COMPLETED);
     when(asyncClient.registerWorkerStream(any())).thenReturn(requestObserver);
     RegisterStreamer registerStreamer = new RegisterStreamer(asyncClient,
         WORKER_ID, mTierAliases, mCapacityMap, mUsedMap, mBlockMap, LOST_STORAGE, EMPTY_CONFIG);
@@ -252,7 +254,7 @@ public class BlockWorkerRegisterStreamIntegrationTest {
     // Create the stream and control the request/response observers
     BlockMasterWorkerServiceStub asyncClient = PowerMockito.mock(BlockMasterWorkerServiceStub.class);
     when(asyncClient.withDeadlineAfter(anyLong(), any())).thenReturn(asyncClient);
-    TestRequestObserver requestObserver = new TestRequestObserver(Mode.HANG_IN_STREAM);
+    BrokenRegisterStreamObserver requestObserver = new BrokenRegisterStreamObserver(Mode.HANG_IN_STREAM);
     when(asyncClient.registerWorkerStream(any())).thenReturn(requestObserver);
     RegisterStreamer registerStreamer = new RegisterStreamer(asyncClient,
         WORKER_ID, mTierAliases, mCapacityMap, mUsedMap, mBlockMap, LOST_STORAGE, EMPTY_CONFIG);
@@ -270,7 +272,7 @@ public class BlockWorkerRegisterStreamIntegrationTest {
     // Create the stream and control the request/response observers
     BlockMasterWorkerServiceStub asyncClient = PowerMockito.mock(BlockMasterWorkerServiceStub.class);
     when(asyncClient.withDeadlineAfter(anyLong(), any())).thenReturn(asyncClient);
-    TestRequestObserver requestObserver = new TestRequestObserver(Mode.HANG_ON_COMPLETED);
+    BrokenRegisterStreamObserver requestObserver = new BrokenRegisterStreamObserver(Mode.HANG_ON_COMPLETED);
     when(asyncClient.registerWorkerStream(any())).thenReturn(requestObserver);
     RegisterStreamer registerStreamer = new RegisterStreamer(asyncClient,
         WORKER_ID, mTierAliases, mCapacityMap, mUsedMap, mBlockMap, LOST_STORAGE, EMPTY_CONFIG);
@@ -309,7 +311,9 @@ public class BlockWorkerRegisterStreamIntegrationTest {
     CORRECT
   }
 
-  class TestRequestObserver implements StreamObserver<alluxio.grpc.RegisterWorkerPRequest> {
+  // A master side register stream handler that may return error on certain calls
+  class BrokenRegisterStreamObserver implements
+      StreamObserver<alluxio.grpc.RegisterWorkerPRequest> {
     private int batch = 0;
     Mode mMode;
     StreamObserver<RegisterWorkerPResponse> mResponseObserver;
@@ -317,11 +321,11 @@ public class BlockWorkerRegisterStreamIntegrationTest {
     AtomicInteger mReceivedCount = null;
     AtomicBoolean mCompleted = null;
 
-    TestRequestObserver(Mode mode) {
+    BrokenRegisterStreamObserver(Mode mode) {
       mMode = mode;
     }
 
-    TestRequestObserver(Mode mode, AtomicInteger receivedCount, AtomicBoolean completed) {
+    BrokenRegisterStreamObserver(Mode mode, AtomicInteger receivedCount, AtomicBoolean completed) {
       this(mode);
       mReceivedCount = receivedCount;
       mCompleted = completed;

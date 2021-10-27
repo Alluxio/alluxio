@@ -43,7 +43,7 @@ public class RegisterStreamObserver implements StreamObserver<RegisterWorkerPReq
   // Records the error from the worker side, if any
   private AtomicReference<Throwable> mErrorReceived = new AtomicReference<>();
 
-  RegisterStreamObserver(BlockMaster blockMaster, io.grpc.stub.StreamObserver<alluxio.grpc.RegisterWorkerPResponse> responseObserver) {
+  public RegisterStreamObserver(BlockMaster blockMaster, io.grpc.stub.StreamObserver<alluxio.grpc.RegisterWorkerPResponse> responseObserver) {
     mBlockMaster = blockMaster;
     mResponseObserver = responseObserver;
   }
@@ -146,9 +146,9 @@ public class RegisterStreamObserver implements StreamObserver<RegisterWorkerPReq
   public void onCompleted() {
     LOG.info("Register stream completed on the client side");
     Deadline deadline = Context.current().getDeadline();
-    LOG.debug("onCompleted Thread {} Worker {} Cancellable {} has deadline {}",
-        Thread.currentThread().getId(), mContext.getWorkerId(),
-        Context.current() instanceof Context.CancellableContext, deadline);
+//    LOG.debug("onCompleted Thread {} Worker {} Cancellable {} has deadline {}",
+//        Thread.currentThread().getId(), mContext.getWorkerId(),
+//        Context.current() instanceof Context.CancellableContext, deadline);
 
     String methodName = "registerWorkerComplete";
     RpcUtils.streamingRPCAndLog(LOG, new RpcUtils.StreamingRpcCallable<RegisterWorkerPResponse>() {

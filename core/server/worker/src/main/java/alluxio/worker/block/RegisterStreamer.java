@@ -76,27 +76,25 @@ public class RegisterStreamer implements Iterator<RegisterWorkerPRequest> {
   // This cannot be final because it is created on registerWithMaster()
   private StreamObserver<RegisterWorkerPRequest> mRequestObserver;
 
-  public RegisterStreamer(
-          final BlockMasterWorkerServiceGrpc.BlockMasterWorkerServiceStub asyncClient,
-          final long workerId, final List<String> storageTierAliases,
-          final Map<String, Long> totalBytesOnTiers, final Map<String, Long> usedBytesOnTiers,
-          final Map<BlockStoreLocation, List<Long>> currentBlocksOnLocation,
-          final Map<String, List<String>> lostStorage,
-          final List<ConfigProperty> configList) {
-    this(asyncClient, workerId, storageTierAliases, totalBytesOnTiers, usedBytesOnTiers,
-            currentBlocksOnLocation, lostStorage, configList,
-            new BlockMapIterator(currentBlocksOnLocation));
-  }
-
   @VisibleForTesting
   public RegisterStreamer(
-          final BlockMasterWorkerServiceGrpc.BlockMasterWorkerServiceStub asyncClient,
-          final long workerId, final List<String> storageTierAliases,
-          final Map<String, Long> totalBytesOnTiers, final Map<String, Long> usedBytesOnTiers,
-          final Map<BlockStoreLocation, List<Long>> currentBlocksOnLocation,
-          final Map<String, List<String>> lostStorage,
-          final List<ConfigProperty> configList,
-          BlockMapIterator blockListIterator) {
+      final BlockMasterWorkerServiceGrpc.BlockMasterWorkerServiceStub asyncClient,
+      final long workerId, final List<String> storageTierAliases,
+      final Map<String, Long> totalBytesOnTiers, final Map<String, Long> usedBytesOnTiers,
+      final Map<BlockStoreLocation, List<Long>> currentBlocksOnLocation,
+      final Map<String, List<String>> lostStorage,
+      final List<ConfigProperty> configList) {
+    this(asyncClient, workerId, storageTierAliases, totalBytesOnTiers, usedBytesOnTiers,
+        lostStorage, configList, new BlockMapIterator(currentBlocksOnLocation));
+  }
+
+  public RegisterStreamer(
+      final BlockMasterWorkerServiceGrpc.BlockMasterWorkerServiceStub asyncClient,
+      final long workerId, final List<String> storageTierAliases,
+      final Map<String, Long> totalBytesOnTiers, final Map<String, Long> usedBytesOnTiers,
+      final Map<String, List<String>> lostStorage,
+      final List<ConfigProperty> configList,
+      BlockMapIterator blockListIterator) {
     mAsyncClient = asyncClient;
     mWorkerId = workerId;
     mStorageTierAliases = storageTierAliases;

@@ -408,11 +408,9 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
 
     @Override
     public void heartbeat() {
-      System.out.println("GC executor heartbeating");
       mActiveRegisterContexts.entrySet().removeIf((entry) -> {
         WorkerRegisterContext context = entry.getValue();
         final long lastUpdate = mClock.millis() - context.getLastActivityTimeMs();
-        System.out.println("Last update "+lastUpdate);
         if (lastUpdate < mTimeout) {
           return false;
         }
@@ -1040,7 +1038,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
     final Map<String, StorageList> lostStorage = chunk.getLostStorageMap();
 
     final Map<alluxio.proto.meta.Block.BlockLocation, List<Long>> currentBlocksOnLocation =
-            BlockMasterWorkerServiceHandler.reconstructBlocksOnLocationMap(chunk.getCurrentBlocksList(), context.getWorkerId());
+        BlockMasterWorkerServiceHandler.reconstructBlocksOnLocationMap(chunk.getCurrentBlocksList(), context.getWorkerId());
     RegisterWorkerPOptions options = chunk.getOptions();
 
     MasterWorkerInfo worker = context.mWorker;

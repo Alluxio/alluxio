@@ -23,8 +23,11 @@ import alluxio.grpc.RegisterWorkerPRequest;
 import alluxio.grpc.RegisterWorkerPResponse;
 import alluxio.grpc.StorageList;
 import alluxio.master.block.BlockMasterTestUtils;
+import alluxio.master.block.RegisterStreamObserver;
+import alluxio.master.block.WorkerRegisterContext;
 import alluxio.master.block.meta.MasterWorkerInfo;
 import alluxio.util.CommonUtils;
+import alluxio.util.executor.ExecutorServiceFactory;
 import alluxio.wire.WorkerInfo;
 import alluxio.master.CoreMasterContext;
 import alluxio.master.MasterRegistry;
@@ -46,11 +49,13 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import io.grpc.stub.StreamObserver;
+import javolution.testing.AssertionException;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
 import java.io.IOException;
+import java.time.Clock;
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
 import java.util.Collection;
@@ -81,12 +86,16 @@ import static alluxio.client.fs.RegisterStreamTestUtils.TIER_BLOCK_TOTAL;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
 
 /**
  * Integration tests for the server-side logic for the register stream.
  */
 public class BlockMasterRegisterStreamIntegrationTest {
   private BlockMaster mBlockMaster;
+  private CoreMasterContext mMasterContext;
   private MasterRegistry mRegistry;
   private ManualClock mClock;
   private ExecutorService mExecutorService;
@@ -112,14 +121,14 @@ public class BlockMasterRegisterStreamIntegrationTest {
     ServerConfiguration.set(PropertyKey.MASTER_WORKER_REGISTER_STREAM_RESPONSE_TIMEOUT, "1s");
 
     mRegistry = new MasterRegistry();
-    CoreMasterContext masterContext = MasterTestUtils.testMasterContext();
-    mMetricsMaster = new MetricsMasterFactory().create(mRegistry, masterContext);
+    mMasterContext = MasterTestUtils.testMasterContext();
+    mMetricsMaster = new MetricsMasterFactory().create(mRegistry, mMasterContext);
     mRegistry.add(MetricsMaster.class, mMetricsMaster);
     mClock = new ManualClock();
 
     mExecutorService =
         Executors.newFixedThreadPool(10, ThreadFactoryUtils.build("TestBlockMaster-%d", true));
-    mBlockMaster = new DefaultBlockMaster(mMetricsMaster, masterContext, mClock,
+    mBlockMaster = new DefaultBlockMaster(mMetricsMaster, mMasterContext, mClock,
         ExecutorServiceFactories.constantExecutorServiceFactory(mExecutorService));
     mRegistry.add(BlockMaster.class, mBlockMaster);
     mRegistry.start(true);
@@ -486,6 +495,140 @@ public class BlockMasterRegisterStreamIntegrationTest {
 
   // TODO(jiacheng): master throws error on workerRegisterStart/Batch/Complete,
   //  the worker can receive an error
+  @Test
+  public void workerRegisterStartThrowsError() throws Exception {
+    // Hijack the block master so it throws errors
+    ErrorBlockMaster brokenBlockMaster = new ErrorBlockMaster(mMetricsMaster, mMasterContext, mClock,
+        ExecutorServiceFactories.constantExecutorServiceFactory(mExecutorService),
+        WorkerRegisterMode.START);
+    mBlockMaster = brokenBlockMaster;
+    mHandler = new BlockMasterWorkerServiceHandler(brokenBlockMaster);
+
+    long workerId = brokenBlockMaster.getWorkerId(NET_ADDRESS_1);
+    Queue<Throwable> errorQueue = new ConcurrentLinkedQueue<>();
+    RegisterStreamObserver streamOb = new RegisterStreamObserver(brokenBlockMaster, getErrorCapturingResponseObserver(errorQueue));
+
+    // Generate requests
+    List<RegisterWorkerPRequest> requestChunks = RegisterStreamTestUtils.generateRegisterStreamForWorker(workerId);
+    prepareBlocksOnMaster(requestChunks);
+    for (RegisterWorkerPRequest chunk : requestChunks) {
+      streamOb.onNext(chunk);
+    }
+    streamOb.onCompleted();
+    System.out.println(errorQueue);
+    // All requests + onCompleted should receive an error
+    assertEquals(requestChunks.size() + 1, errorQueue.size());
+
+    // The BlockMaster is not throwing error this time
+    brokenBlockMaster.setCorrect();
+    verifyWorkerCanReregister(workerId, requestChunks, TIER_BLOCK_TOTAL);
+  }
+
+  @Test
+  public void workerRegisterBatchThrowsError() throws Exception {
+    // Hijack the block master so it throws errors
+    ErrorBlockMaster brokenBlockMaster = new ErrorBlockMaster(mMetricsMaster, mMasterContext, mClock,
+        ExecutorServiceFactories.constantExecutorServiceFactory(mExecutorService),
+        WorkerRegisterMode.STREAM);
+    mBlockMaster = brokenBlockMaster;
+    mHandler = new BlockMasterWorkerServiceHandler(brokenBlockMaster);
+
+    long workerId = brokenBlockMaster.getWorkerId(NET_ADDRESS_1);
+    Queue<Throwable> errorQueue = new ConcurrentLinkedQueue<>();
+    RegisterStreamObserver streamOb = new RegisterStreamObserver(brokenBlockMaster, getErrorCapturingResponseObserver(errorQueue));
+
+    // Generate requests
+    List<RegisterWorkerPRequest> requestChunks = RegisterStreamTestUtils.generateRegisterStreamForWorker(workerId);
+    prepareBlocksOnMaster(requestChunks);
+    for (RegisterWorkerPRequest chunk : requestChunks) {
+      streamOb.onNext(chunk);
+    }
+    streamOb.onCompleted();
+    System.out.println(errorQueue);
+    // All requests except the 1st one + onCompleted should receive an error
+    assertEquals(requestChunks.size()-1+1, errorQueue.size());
+
+    // The BlockMaster is not throwing error this time
+    brokenBlockMaster.setCorrect();
+    verifyWorkerCanReregister(workerId, requestChunks, TIER_BLOCK_TOTAL);
+  }
+
+  @Test
+  public void workerRegisterCompleteThrowsError() throws Exception {
+    // Hijack the block master so it throws errors
+    ErrorBlockMaster brokenBlockMaster = new ErrorBlockMaster(mMetricsMaster, mMasterContext, mClock,
+        ExecutorServiceFactories.constantExecutorServiceFactory(mExecutorService),
+        WorkerRegisterMode.COMPLETE);
+    mBlockMaster = brokenBlockMaster;
+    mHandler = new BlockMasterWorkerServiceHandler(brokenBlockMaster);
+
+    long workerId = brokenBlockMaster.getWorkerId(NET_ADDRESS_1);
+    Queue<Throwable> errorQueue = new ConcurrentLinkedQueue<>();
+    RegisterStreamObserver streamOb = new RegisterStreamObserver(brokenBlockMaster, getErrorCapturingResponseObserver(errorQueue));
+
+    // Generate requests
+    List<RegisterWorkerPRequest> requestChunks = RegisterStreamTestUtils.generateRegisterStreamForWorker(workerId);
+    prepareBlocksOnMaster(requestChunks);
+    for (RegisterWorkerPRequest chunk : requestChunks) {
+      streamOb.onNext(chunk);
+    }
+    streamOb.onCompleted();
+    System.out.println(errorQueue);
+    // Only onCompleted should receive an error
+    assertEquals(1, errorQueue.size());
+
+    // The BlockMaster is not throwing error this time
+    brokenBlockMaster.setCorrect();
+    verifyWorkerCanReregister(workerId, requestChunks, TIER_BLOCK_TOTAL);
+  }
+
+  enum WorkerRegisterMode {
+    START,
+    STREAM,
+    COMPLETE,
+    CORRECT
+  }
+
+  // A BlockMaster that throws error on certain calls
+  class ErrorBlockMaster extends DefaultBlockMaster {
+    private WorkerRegisterMode mMode;
+
+    public ErrorBlockMaster(MetricsMaster metricsMaster, CoreMasterContext masterContext, Clock clock, ExecutorServiceFactory executorServiceFactory, WorkerRegisterMode mode) {
+      super(metricsMaster, masterContext, clock, executorServiceFactory);
+      mMode = mode;
+    }
+
+    public void setCorrect() {
+      mMode = WorkerRegisterMode.CORRECT;
+    }
+
+    @Override
+    public void workerRegisterStart(WorkerRegisterContext context, RegisterWorkerPRequest chunk) {
+      if (mMode == WorkerRegisterMode.START) {
+        RuntimeException e = new AssertionException("Error from workerRegisterStart");
+        throw e;
+      }
+      super.workerRegisterStart(context, chunk);
+    }
+
+    @Override
+    public void workerRegisterBatch(WorkerRegisterContext context, RegisterWorkerPRequest chunk) {
+      if (mMode == WorkerRegisterMode.STREAM) {
+        RuntimeException e = new AssertionException("Error from workerRegisterBatch");
+        throw e;
+      }
+      super.workerRegisterBatch(context, chunk);
+    }
+
+    @Override
+    public void workerRegisterFinish(WorkerRegisterContext context) {
+      if (mMode == WorkerRegisterMode.COMPLETE) {
+        RuntimeException e = new AssertionException("Error from workerRegisterBatch");
+        throw e;
+      }
+      super.workerRegisterFinish(context);
+    }
+  }
 
   /**
    * Tests below cover the race conditions during concurrent executions.
@@ -704,6 +847,9 @@ public class BlockMasterRegisterStreamIntegrationTest {
     Queue<Throwable> errorQueue = new ConcurrentLinkedQueue<>();
     sendStreamToMaster(requestChunks, RegisterStreamTestUtils.getErrorCapturingResponseObserver(errorQueue));
 
+    if (!errorQueue.isEmpty()) {
+      System.out.println(errorQueue);
+    }
     assertEquals(0, errorQueue.size());
     MasterWorkerInfo worker = mBlockMaster.getWorker(workerId);
     assertEquals(expectedBlockCount, worker.getBlockCount());
