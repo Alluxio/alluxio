@@ -149,7 +149,8 @@ public final class DistributedLoadCommandTest extends AbstractFileSystemShellTes
     FileSystemTestUtils.createByteFile(fs, "/testBatchFileA", WritePType.THROUGH, 10);
     FileSystemTestUtils.createByteFile(fs, "/testBatchFileB", WritePType.THROUGH, 10);
     File testFile = mTempFolder.newFile("testFile");
-    FileUtils.writeStringToFile(testFile, "/testBatchFileA\n/testBatchFileB\n", StandardCharsets.UTF_8);
+    FileUtils.writeStringToFile(testFile, "/testBatchFileA\n/testBatchFileB\n",
+        StandardCharsets.UTF_8);
     AlluxioURI uriA = new AlluxioURI("/testBatchFileA");
     AlluxioURI uriB = new AlluxioURI("/testBatchFileB");
     URIStatus statusA = fs.getStatus(uriA);
