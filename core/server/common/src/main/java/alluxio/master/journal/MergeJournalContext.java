@@ -52,7 +52,7 @@ public final class MergeJournalContext implements JournalContext {
   private final AlluxioURI mUri;
   private final UnaryOperator<List<JournalEntry>> mMergeOperator;
   private final List<JournalEntry> mJournalEntries;
-  private long mFileId = -1;
+  private long mFileId = INVALID_FILE_ID;
 
   /**
    * Constructs a {@link MergeJournalContext}.
