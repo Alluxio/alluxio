@@ -182,7 +182,7 @@ public final class MultiProcessCluster {
 
     for (int i = 0; i < mNumWorkers; i++) {
       createWorker(i).start();
-      Thread.sleep(START_BUFFER_MS);
+      wait(START_BUFFER_MS);
     }
     LOG.info("Starting alluxio cluster in directory {}", mWorkDir.getAbsolutePath());
     int primaryMasterIndex = getPrimaryMasterIndex(WAIT_MASTER_SERVING_TIMEOUT_MS);
@@ -273,7 +273,7 @@ public final class MultiProcessCluster {
 
     for (int i = 0; i < count; i++) {
       createMaster(startIndex + i).start();
-      Thread.sleep(START_BUFFER_MS);
+      wait(START_BUFFER_MS);
     }
     mFilesystemContext = null;
   }
