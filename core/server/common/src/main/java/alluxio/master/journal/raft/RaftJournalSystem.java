@@ -960,6 +960,9 @@ public class RaftJournalSystem extends AbstractJournalSystem {
         throw new IOException(String.format("<%s> is not part of the quorum <%s>.",
                 strAddr, oldPeers.stream().map(RaftPeer::getAddress).collect(Collectors.toList())));
       }
+      if (strAddr.equals(mRaftGroup.getPeer(mPeerId).getAddress())) {
+        throw new IOException(String.format("%s is already the leader", strAddr));
+      }
 
       RaftPeerId newLeaderPeerId = RaftJournalUtils.getPeerId(serverAddress);
       /* update priorities to enable transfer */
