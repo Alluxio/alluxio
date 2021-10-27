@@ -44,7 +44,6 @@ public final class DistributedLoadCommandTest extends AbstractFileSystemShellTes
         .createByteFile(sFileSystem, "/testRoot/testFileB", WritePType.MUST_CACHE, 10);
     AlluxioURI uriA = new AlluxioURI("/testRoot/testFileA");
     AlluxioURI uriB = new AlluxioURI("/testRoot/testFileB");
-
     URIStatus statusA = sFileSystem.getStatus(uriA);
     URIStatus statusB = sFileSystem.getStatus(uriB);
     Assert.assertNotEquals(100, statusA.getInMemoryPercentage());
@@ -73,21 +72,64 @@ public final class DistributedLoadCommandTest extends AbstractFileSystemShellTes
   public void loadIndexFile() throws IOException, AlluxioException {
     FileSystemTestUtils.createByteFile(sFileSystem, "/testFileA", WritePType.THROUGH, 10);
     FileSystemTestUtils.createByteFile(sFileSystem, "/testFileB", WritePType.THROUGH, 10);
-
     File testFile = mTempFolder.newFile("testFile");
     FileUtils.writeStringToFile(testFile, "/testFileA\n/testFileB\n", StandardCharsets.UTF_8);
-
     AlluxioURI uriA = new AlluxioURI("/testFileA");
     AlluxioURI uriB = new AlluxioURI("/testFileB");
     URIStatus statusA = sFileSystem.getStatus(uriA);
     URIStatus statusB = sFileSystem.getStatus(uriB);
     Assert.assertNotEquals(100, statusA.getInMemoryPercentage());
     Assert.assertNotEquals(100, statusB.getInMemoryPercentage());
-
     sFsShell.run("distributedLoad", "--index", testFile.getAbsolutePath());
     statusA = sFileSystem.getStatus(uriA);
     statusB = sFileSystem.getStatus(uriB);
     Assert.assertEquals(100, statusA.getInMemoryPercentage());
     Assert.assertEquals(100, statusB.getInMemoryPercentage());
+  }
+
+  @Test
+  public void loadIndexFileInBatch() throws IOException, AlluxioException {
+    FileSystemTestUtils.createByteFile(sFileSystem, "/testFileA", WritePType.THROUGH, 10);
+    FileSystemTestUtils.createByteFile(sFileSystem, "/testFileB", WritePType.THROUGH, 10);
+    File testFile = mTempFolder.newFile("testFile");
+    FileUtils.writeStringToFile(testFile, "/testFileA\n/testFileB\n", StandardCharsets.UTF_8);
+    AlluxioURI uriA = new AlluxioURI("/testFileA");
+    AlluxioURI uriB = new AlluxioURI("/testFileB");
+    URIStatus statusA = sFileSystem.getStatus(uriA);
+    URIStatus statusB = sFileSystem.getStatus(uriB);
+    Assert.assertNotEquals(100, statusA.getInMemoryPercentage());
+    Assert.assertNotEquals(100, statusB.getInMemoryPercentage());
+    sFsShell.run("distributedLoad", "--index", testFile.getAbsolutePath(), "--batch-size", "2");
+    statusA = sFileSystem.getStatus(uriA);
+    statusB = sFileSystem.getStatus(uriB);
+    Assert.assertEquals(100, statusA.getInMemoryPercentage());
+    Assert.assertEquals(100, statusB.getInMemoryPercentage());
+  }
+
+  @Test
+  public void loadDirInBatch() throws IOException, AlluxioException {
+    FileSystemTestUtils.createByteFile(sFileSystem, "/testRoot/testFileA", WritePType.THROUGH,
+        10);
+    FileSystemTestUtils
+        .createByteFile(sFileSystem, "/testRoot/testFileB", WritePType.THROUGH, 10);
+    FileSystemTestUtils
+        .createByteFile(sFileSystem, "/testRoot/testFileC", WritePType.THROUGH, 10);
+    AlluxioURI uriA = new AlluxioURI("/testRoot/testFileA");
+    AlluxioURI uriB = new AlluxioURI("/testRoot/testFileB");
+    AlluxioURI uriC = new AlluxioURI("/testRoot/testFileC");
+    URIStatus statusA = sFileSystem.getStatus(uriA);
+    URIStatus statusB = sFileSystem.getStatus(uriB);
+    URIStatus statusC = sFileSystem.getStatus(uriC);
+    Assert.assertNotEquals(100, statusA.getInMemoryPercentage());
+    Assert.assertNotEquals(100, statusB.getInMemoryPercentage());
+    Assert.assertNotEquals(100, statusC.getInMemoryPercentage());
+    // Testing loading of a directory
+    sFsShell.run("distributedLoad", "/testRoot", "--batch-size", "2");
+    statusA = sFileSystem.getStatus(uriA);
+    statusB = sFileSystem.getStatus(uriB);
+    statusC = sFileSystem.getStatus(uriC);
+    Assert.assertEquals(100, statusA.getInMemoryPercentage());
+    Assert.assertEquals(100, statusB.getInMemoryPercentage());
+    Assert.assertEquals(100, statusC.getInMemoryPercentage());
   }
 }

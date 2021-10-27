@@ -54,7 +54,11 @@ public final class JobServiceBenchParameters extends GeneralParameters {
           + "10000ms, etc.)")
   public String mWarmup = "30s";
 
-  @Override public Enum<?> operation() {
+  @Parameter(names = {"--batch-size"}, description = "The batch size of operations")
+  public int mBatchSize = 1;
+
+  @Override
+  public Enum<?> operation() {
     return mOperation;
   }
 
