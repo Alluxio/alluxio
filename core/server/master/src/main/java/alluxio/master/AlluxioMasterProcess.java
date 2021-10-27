@@ -50,7 +50,7 @@ import java.io.InputStream;
 import java.net.InetSocketAddress;
 import java.net.URI;
 import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.SynchronousQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
@@ -326,7 +326,7 @@ public class AlluxioMasterProcess extends MasterProcess {
     int coreThreads = ServerConfiguration.getInt(PropertyKey.MASTER_RPC_EXECUTOR_CORE_POOL_SIZE);
     int maxThreads = ServerConfiguration.getInt(PropertyKey.MASTER_RPC_EXECUTOR_MAX_POOL_SIZE);
     long keepAlive = ServerConfiguration.getMs(PropertyKey.MASTER_RPC_EXECUTOR_KEEPALIVE);
-    BlockingQueue<Runnable> taskQueue = new SynchronousQueue<>();
+    BlockingQueue<Runnable> taskQueue = new LinkedBlockingQueue<>();
     mRPCExecutor = new ThreadPoolExecutor(coreThreads, maxThreads,
         keepAlive, TimeUnit.MILLISECONDS,
         taskQueue, ThreadFactoryUtils.build("master-rpc-pool-thread-%d", true));
