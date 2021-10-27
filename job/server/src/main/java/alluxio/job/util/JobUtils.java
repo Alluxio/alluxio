@@ -159,6 +159,7 @@ public final class JobUtils {
         while (inputStream.read(sIgnoredReadBuf) != -1) {
         }
       }
+      return;
     }
 
     // TODO(bin): remove the following case when we consolidate tier and medium

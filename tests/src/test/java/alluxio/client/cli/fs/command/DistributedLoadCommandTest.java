@@ -45,7 +45,7 @@ public final class DistributedLoadCommandTest extends AbstractFileSystemShellTes
   public TemporaryFolder mTempFolder = new TemporaryFolder();
 
   @ClassRule
-  public static LocalAlluxioClusterResource mResource =
+  public static LocalAlluxioClusterResource sResource =
       new LocalAlluxioClusterResource.Builder()
           .setNumWorkers(4)
           .setProperty(PropertyKey.MASTER_PERSISTENCE_CHECKER_INTERVAL_MS, "10ms")
@@ -61,7 +61,7 @@ public final class DistributedLoadCommandTest extends AbstractFileSystemShellTes
 
   @BeforeClass
   public static void beforeClass() throws Exception {
-    sLocalAlluxioCluster = mResource.get();
+    sLocalAlluxioCluster = sResource.get();
     sLocalAlluxioJobCluster = new LocalAlluxioJobCluster();
     sLocalAlluxioJobCluster.start();
     sFileSystem = sLocalAlluxioCluster.getClient();
@@ -70,10 +70,9 @@ public final class DistributedLoadCommandTest extends AbstractFileSystemShellTes
     sFsShell = new FileSystemShell(ServerConfiguration.global());
   }
 
-
   @Test
   public void loadDir() throws IOException, AlluxioException {
-    FileSystem fs = mResource.get().getClient();
+    FileSystem fs = sResource.get().getClient();
     FileSystemTestUtils.createByteFile(fs, "/testRoot/testFileA", WritePType.THROUGH,
         10);
     FileSystemTestUtils
@@ -95,7 +94,7 @@ public final class DistributedLoadCommandTest extends AbstractFileSystemShellTes
 
   @Test
   public void loadFile() throws IOException, AlluxioException {
-    FileSystem fs = mResource.get().getClient();
+    FileSystem fs = sResource.get().getClient();
     FileSystemTestUtils.createByteFile(fs, "/testFileNew", WritePType.THROUGH, 10);
     AlluxioURI uri = new AlluxioURI("/testFileNew");
     URIStatus status = fs.getStatus(uri);
@@ -108,7 +107,7 @@ public final class DistributedLoadCommandTest extends AbstractFileSystemShellTes
 
   @Test
   public void loadFileMultiCopy() throws IOException, AlluxioException {
-    FileSystem fs = mResource.get().getClient();
+    FileSystem fs = sResource.get().getClient();
     FileSystemTestUtils.createByteFile(fs, "/testFile", WritePType.THROUGH, 10);
     AlluxioURI uri = new AlluxioURI("/testFile");
     URIStatus status = fs.getStatus(uri);
@@ -125,7 +124,7 @@ public final class DistributedLoadCommandTest extends AbstractFileSystemShellTes
 
   @Test
   public void loadIndexFile() throws IOException, AlluxioException {
-    FileSystem fs = mResource.get().getClient();
+    FileSystem fs = sResource.get().getClient();
     FileSystemTestUtils.createByteFile(fs, "/testFileA", WritePType.THROUGH, 10);
     FileSystemTestUtils.createByteFile(fs, "/testFileB", WritePType.THROUGH, 10);
 
