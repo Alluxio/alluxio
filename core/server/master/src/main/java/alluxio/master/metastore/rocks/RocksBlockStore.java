@@ -43,6 +43,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.atomic.LongAdder;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -64,6 +65,7 @@ public class RocksBlockStore implements BlockStore {
   private final AtomicReference<ColumnFamilyHandle> mBlockMetaColumn = new AtomicReference<>();
   private final AtomicReference<ColumnFamilyHandle> mBlockLocationsColumn = new AtomicReference<>();
   private final LongAdder mSize = new LongAdder();
+  private final ReentrantReadWriteLock mRocksStoreLock = new ReentrantReadWriteLock();
 
   /**
    * Creates and initializes a rocks block store.
@@ -105,9 +107,12 @@ public class RocksBlockStore implements BlockStore {
   public Optional<BlockMeta> getBlock(long id) {
     byte[] meta;
     try {
+      mRocksStoreLock.readLock().lock();
       meta = db().get(mBlockMetaColumn.get(), Longs.toByteArray(id));
     } catch (RocksDBException e) {
       throw new RuntimeException(e);
+    } finally {
+      mRocksStoreLock.readLock().unlock();
     }
     if (meta == null) {
       return Optional.empty();
@@ -122,6 +127,7 @@ public class RocksBlockStore implements BlockStore {
   @Override
   public void putBlock(long id, BlockMeta meta) {
     try {
+      mRocksStoreLock.readLock().lock();
       byte[] buf = db().get(mBlockMetaColumn.get(), Longs.toByteArray(id));
       // Overwrites the key if it already exists.
       db().put(mBlockMetaColumn.get(), mDisableWAL, Longs.toByteArray(id), meta.toByteArray());
@@ -131,12 +137,15 @@ public class RocksBlockStore implements BlockStore {
       }
     } catch (RocksDBException e) {
       throw new RuntimeException(e);
+    } finally {
+      mRocksStoreLock.readLock().unlock();
     }
   }
 
   @Override
   public void removeBlock(long id) {
     try {
+      mRocksStoreLock.readLock().lock();
       byte[] buf = db().get(mBlockMetaColumn.get(), Longs.toByteArray(id));
       db().delete(mBlockMetaColumn.get(), mDisableWAL, Longs.toByteArray(id));
       if (buf != null) {
@@ -145,13 +154,20 @@ public class RocksBlockStore implements BlockStore {
       }
     } catch (RocksDBException e) {
       throw new RuntimeException(e);
+    } finally {
+      mRocksStoreLock.readLock().unlock();
     }
   }
 
   @Override
   public void clear() {
     mSize.reset();
-    mRocksStore.clear();
+    try {
+      mRocksStoreLock.writeLock().lock();
+      mRocksStore.clear();
+    } finally {
+      mRocksStoreLock.writeLock().unlock();
+    }
   }
 
   @Override
@@ -162,7 +178,12 @@ public class RocksBlockStore implements BlockStore {
   @Override
   public void close() {
     mSize.reset();
-    mRocksStore.close();
+    try {
+      mRocksStoreLock.writeLock().lock();
+      mRocksStore.close();
+    } finally {
+      mRocksStoreLock.writeLock().unlock();
+    }
   }
 
   @Override
@@ -173,17 +194,22 @@ public class RocksBlockStore implements BlockStore {
     // Explicitly hold a reference to the ReadOptions object from the discussion in
     // https://groups.google.com/g/rocksdb/c/PwapmWwyBbc/m/ecl7oW3AAgAJ
     final ReadOptions readOptions = new ReadOptions().setIterateUpperBound(new Slice(endKey));
-    try (RocksIterator iter = db().newIterator(mBlockLocationsColumn.get(), readOptions)) {
-      iter.seek(startKey);
-      List<BlockLocation> locations = new ArrayList<>();
-      for (; iter.isValid(); iter.next()) {
-        try {
-          locations.add(BlockLocation.parseFrom(iter.value()));
-        } catch (Exception e) {
-          throw new RuntimeException(e);
+    try {
+      try (RocksIterator iter = db().newIterator(mBlockLocationsColumn.get(),
+          readOptions)) {
+        iter.seek(startKey);
+        List<BlockLocation> locations = new ArrayList<>();
+        for (; iter.isValid(); iter.next()) {
+          try {
+            locations.add(BlockLocation.parseFrom(iter.value()));
+          } catch (Exception e) {
+            throw new RuntimeException(e);
+          }
         }
+        return locations;
       }
-      return locations;
+    } finally {
+      mRocksStoreLock.readLock().unlock();
     }
   }
 
@@ -191,9 +217,12 @@ public class RocksBlockStore implements BlockStore {
   public void addLocation(long id, BlockLocation location) {
     byte[] key = RocksUtils.toByteArray(id, location.getWorkerId());
     try {
+      mRocksStoreLock.readLock().lock();
       db().put(mBlockLocationsColumn.get(), mDisableWAL, key, location.toByteArray());
     } catch (RocksDBException e) {
       throw new RuntimeException(e);
+    } finally {
+      mRocksStoreLock.readLock().unlock();
     }
   }
 
@@ -201,16 +230,25 @@ public class RocksBlockStore implements BlockStore {
   public void removeLocation(long blockId, long workerId) {
     byte[] key = RocksUtils.toByteArray(blockId, workerId);
     try {
+      mRocksStoreLock.readLock().lock();
       db().delete(mBlockLocationsColumn.get(), mDisableWAL, key);
     } catch (RocksDBException e) {
       throw new RuntimeException(e);
+    } finally {
+      mRocksStoreLock.readLock().unlock();
     }
   }
 
   @Override
   public Iterator<Block> iterator() {
-    return RocksUtils.createIterator(db().newIterator(mBlockMetaColumn.get(), mIteratorOption),
-        (iter) -> new Block(Longs.fromByteArray(iter.key()), BlockMeta.parseFrom(iter.value())));
+    try {
+      return RocksUtils.createIterator(
+          db().newIterator(mBlockMetaColumn.get(), mIteratorOption),
+          (iter) -> new Block(Longs.fromByteArray(iter.key()),
+              BlockMeta.parseFrom(iter.value())));
+    } finally {
+      mRocksStoreLock.readLock().unlock();
+    }
   }
 
   private RocksDB db() {
