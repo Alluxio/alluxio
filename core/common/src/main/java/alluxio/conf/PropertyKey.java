@@ -5615,54 +5615,20 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           new Builder(Name.HUB_HOSTED_RPC_BIND_HOST)
                   .setDefaultValue("0.0.0.0")
                   .setDescription("The host that the hosted hub's RPC server should bind to")
+                  .setIsHidden(true)
                   .build();
   public static final PropertyKey HUB_HOSTED_RPC_PORT =
           new Builder(Name.HUB_HOSTED_RPC_PORT)
                   .setDefaultValue("50051")
                   .setDescription("The port that the hosted hub's RPC server should bind to")
                   .build();
-  public static final PropertyKey HUB_MANAGER_WEB_BIND_HOST =
-          new Builder(Name.HUB_MANAGER_WEB_BIND_HOST)
-                  .setDefaultValue("0.0.0.0")
-                  .setDescription("The host that the hub manager's web server should bind to")
-                  .build();
-  public static final PropertyKey HUB_MANAGER_WEB_LOGIN_PASSWORD =
-          new Builder(Name.HUB_MANAGER_WEB_LOGIN_PASSWORD)
-                  .setDefaultValue("alluxio")
-                  .setDescription("The password used to log into the hub manager's web interface.")
-                  .setDisplayType(DisplayType.CREDENTIALS)
-                  .build();
-  public static final PropertyKey HUB_MANAGER_WEB_LOGIN_USERNAME =
-          new Builder(Name.HUB_MANAGER_WEB_LOGIN_USERNAME)
-                  .setDefaultValue("alluxio")
-                  .setDescription("The username used to log into the hub manager's web interface.")
-                  .build();
-  public static final PropertyKey HUB_MANAGER_WEB_PORT =
-          new Builder(Name.HUB_MANAGER_WEB_PORT)
-                  .setDefaultValue("30077")
-                  .setDescription("The port that the hub manager's web server should bind to")
-                  .build();
-  public static final PropertyKey HUB_NETWORK_ALLOW_SELF_SIGNED_CERTS =
-          new Builder(Name.HUB_NETWORK_ALLOW_SELF_SIGNED_CERTS)
-                  .setDescription("If true, allows self-signed certificates to be used ")
-                  .setDefaultValue(false)
-                  .build();
   public static final PropertyKey HUB_NETWORK_TLS_ENABLED =
           new Builder(Name.HUB_NETWORK_TLS_ENABLED)
                   .setDescription("If true, enables TLS on all network communication between "
                           + "hosted Hub and manager.")
-                  .setDefaultValue(false)
+                  .setDefaultValue(true)
                   .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
                   .setScope(Scope.ALL)
-                  .build();
-  public static final PropertyKey HUB_PUBLIC_NETWORK_TLS_ENABLED =
-          new Builder(Name.HUB_PUBLIC_NETWORK_TLS_ENABLED)
-                  .setDescription("If true, enables TLS on public network communication between "
-                          + "hosted Hub and manager.")
-                  .setDefaultValue(false)
-                  .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
-                  .setScope(Scope.ALL)
-                  .setIsHidden(true)
                   .build();
   public static final PropertyKey TABLE_UDB_HIVE_CLIENTPOOL_MIN =
       new Builder(Name.TABLE_UDB_HIVE_CLIENTPOOL_MIN)
@@ -6826,17 +6792,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String HUB_HOSTED_RPC_HOSTNAME = "alluxio.hub.hosted.rpc.hostname";
     public static final String HUB_HOSTED_RPC_BIND_HOST = "alluxio.hub.hosted.rpc.bind.host";
     public static final String HUB_HOSTED_RPC_PORT = "alluxio.hub.hosted.rpc.port";
-    public static final String HUB_MANAGER_WEB_BIND_HOST = "alluxio.hub.manager.web.bind.host";
-    public static final String HUB_MANAGER_WEB_LOGIN_PASSWORD =
-            "alluxio.hub.manager.web.login.password";
-    public static final String HUB_MANAGER_WEB_LOGIN_USERNAME =
-            "alluxio.hub.manager.web.login.username";
-    public static final String HUB_MANAGER_WEB_PORT = "alluxio.hub.manager.web.port";
-    public static final String HUB_NETWORK_ALLOW_SELF_SIGNED_CERTS =
-            "alluxio.hub.network.allow.self.signed.certs";
     public static final String HUB_NETWORK_TLS_ENABLED = "alluxio.hub.network.tls.enabled";
-    public static final String HUB_PUBLIC_NETWORK_TLS_ENABLED =
-            "alluxio.hub.public.network.tls.enabled";
 
     private Name() {} // prevent instantiation
   }

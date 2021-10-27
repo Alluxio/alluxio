@@ -33,6 +33,7 @@ import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.grpc.MountPOptions;
+import alluxio.hub.common.HubSslContextProvider;
 import alluxio.hub.common.HubUtil;
 import alluxio.hub.common.RpcClient;
 import alluxio.hub.manager.rpc.observer.RequestStreamObserver;
@@ -318,8 +319,10 @@ public class ManagerProcessContext implements AutoCloseable {
   private AlluxioConfiguration getConfWithHubTlsEnabled() {
     InstancedConfiguration modifiedConfig = InstancedConfiguration.defaults();
     Map<String, String> properties = new HashMap<>(mConf.toMap());
-    properties.put(PropertyKey.HUB_PUBLIC_NETWORK_TLS_ENABLED.getName(),
+    properties.put(PropertyKey.NETWORK_TLS_ENABLED.getName(),
             mConf.get(PropertyKey.HUB_NETWORK_TLS_ENABLED));
+    properties.put(PropertyKey.NETWORK_TLS_SSL_CONTEXT_PROVIDER_CLASSNAME.getName(),
+            HubSslContextProvider.class.getName());
     modifiedConfig.merge(properties, Source.RUNTIME);
     return modifiedConfig;
   }
@@ -327,7 +330,7 @@ public class ManagerProcessContext implements AutoCloseable {
   private HostedManagerServiceGrpc.HostedManagerServiceStub getHostedAsyncStub() {
     AlluxioConfiguration modifiedConfig = getConfWithHubTlsEnabled();
     LOG.debug("Connecting to hosted hub with TLS enabled={}", modifiedConfig
-          .getBoolean(PropertyKey.HUB_PUBLIC_NETWORK_TLS_ENABLED));
+          .getBoolean(PropertyKey.NETWORK_TLS_ENABLED));
     if (mHostedAsyncSub == null) {
       InetSocketAddress addr = NetworkAddressUtils
           .getConnectAddress(NetworkAddressUtils.ServiceType.HUB_HOSTED_RPC, modifiedConfig);
