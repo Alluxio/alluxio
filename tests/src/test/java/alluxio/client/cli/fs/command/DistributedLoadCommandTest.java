@@ -145,13 +145,13 @@ public final class DistributedLoadCommandTest extends AbstractFileSystemShellTes
 
   @Test
   public void loadIndexFileInBatch() throws IOException, AlluxioException {
-    FileSystem fs = mResource.get().getClient();
-    FileSystemTestUtils.createByteFile(fs, "/testFileA", WritePType.THROUGH, 10);
-    FileSystemTestUtils.createByteFile(fs, "/testFileB", WritePType.THROUGH, 10);
+    FileSystem fs = sResource.get().getClient();
+    FileSystemTestUtils.createByteFile(fs, "/testBatchFileA", WritePType.THROUGH, 10);
+    FileSystemTestUtils.createByteFile(fs, "/testBatchFileB", WritePType.THROUGH, 10);
     File testFile = mTempFolder.newFile("testFile");
-    FileUtils.writeStringToFile(testFile, "/testFileA\n/testFileB\n", StandardCharsets.UTF_8);
-    AlluxioURI uriA = new AlluxioURI("/testFileA");
-    AlluxioURI uriB = new AlluxioURI("/testFileB");
+    FileUtils.writeStringToFile(testFile, "/testBatchFileA\n/testBatchFileB\n", StandardCharsets.UTF_8);
+    AlluxioURI uriA = new AlluxioURI("/testBatchFileA");
+    AlluxioURI uriB = new AlluxioURI("/testBatchFileB");
     URIStatus statusA = fs.getStatus(uriA);
     URIStatus statusB = fs.getStatus(uriB);
     Assert.assertNotEquals(100, statusA.getInMemoryPercentage());
@@ -165,16 +165,16 @@ public final class DistributedLoadCommandTest extends AbstractFileSystemShellTes
 
   @Test
   public void loadDirInBatch() throws IOException, AlluxioException {
-    FileSystem fs = mResource.get().getClient();
-    FileSystemTestUtils.createByteFile(fs, "/testRoot/testFileA", WritePType.THROUGH,
+    FileSystem fs = sResource.get().getClient();
+    FileSystemTestUtils.createByteFile(fs, "/testBatchRoot/testBatchFileA", WritePType.THROUGH,
         10);
     FileSystemTestUtils
-        .createByteFile(fs, "/testRoot/testFileB", WritePType.THROUGH, 10);
+        .createByteFile(fs, "/testBatchRoot/testBatchFileB", WritePType.THROUGH, 10);
     FileSystemTestUtils
-        .createByteFile(fs, "/testRoot/testFileC", WritePType.THROUGH, 10);
-    AlluxioURI uriA = new AlluxioURI("/testRoot/testFileA");
-    AlluxioURI uriB = new AlluxioURI("/testRoot/testFileB");
-    AlluxioURI uriC = new AlluxioURI("/testRoot/testFileC");
+        .createByteFile(fs, "/testBatchRoot/testBatchFileC", WritePType.THROUGH, 10);
+    AlluxioURI uriA = new AlluxioURI("/testBatchRoot/testBatchFileA");
+    AlluxioURI uriB = new AlluxioURI("/testBatchRoot/testBatchFileB");
+    AlluxioURI uriC = new AlluxioURI("/testBatchRoot/testBatchFileC");
     URIStatus statusA = fs.getStatus(uriA);
     URIStatus statusB = fs.getStatus(uriB);
     URIStatus statusC = fs.getStatus(uriC);
@@ -182,7 +182,7 @@ public final class DistributedLoadCommandTest extends AbstractFileSystemShellTes
     Assert.assertNotEquals(100, statusB.getInMemoryPercentage());
     Assert.assertNotEquals(100, statusC.getInMemoryPercentage());
     // Testing loading of a directory
-    sFsShell.run("distributedLoad", "/testRoot", "--batch-size", "2");
+    sFsShell.run("distributedLoad", "/testBatchRoot", "--batch-size", "2");
     statusA = fs.getStatus(uriA);
     statusB = fs.getStatus(uriB);
     statusC = fs.getStatus(uriC);
