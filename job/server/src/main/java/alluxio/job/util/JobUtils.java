@@ -24,6 +24,9 @@ import alluxio.client.file.options.OutStreamOptions;
 import alluxio.collections.IndexDefinition;
 import alluxio.collections.IndexedSet;
 import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.AlluxioProperties;
+import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.ExceptionMessage;
@@ -46,8 +49,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentMap;
+import java.util.stream.Collectors;
 
 /**
  * Utility class to make it easier to write jobs.
@@ -106,19 +111,23 @@ public final class JobUtils {
    *  @param status the uriStatus
    * @param context filesystem context
    * @param blockId the id of the block to load
+   * @param address specify a worker to load into
    */
-  public static void loadBlock(URIStatus status, FileSystemContext context, long blockId)
+  public static void loadBlock(URIStatus status, FileSystemContext context, long blockId,
+      WorkerNetAddress address)
       throws AlluxioException, IOException {
-    AlluxioBlockStore blockStore = AlluxioBlockStore.create(context);
     AlluxioConfiguration conf = ServerConfiguration.global();
+    // Explicitly specified a worker to load
+    WorkerNetAddress localNetAddress = address;
     String localHostName = NetworkAddressUtils.getConnectHost(ServiceType.WORKER_RPC, conf);
-    WorkerNetAddress localNetAddress = null;
-    for (BlockWorkerInfo workerInfo : context.getCachedWorkers()) {
-      if (workerInfo.getNetAddress().getHost().equals(localHostName)) {
-        localNetAddress = workerInfo.getNetAddress();
-        break;
-      }
+    List<WorkerNetAddress> netAddress = context.getCachedWorkers()
+        .stream().map(BlockWorkerInfo::getNetAddress)
+        .filter(x -> Objects.equals(x.getHost(), localHostName)).collect(Collectors.toList());
+
+    if (localNetAddress == null && !netAddress.isEmpty()) {
+      localNetAddress = netAddress.get(0);
     }
+
     if (localNetAddress == null) {
       throw new NotFoundException(ExceptionMessage.NO_LOCAL_BLOCK_WORKER_REPLICATE_TASK
           .getMessage(blockId));
@@ -132,9 +141,16 @@ public final class JobUtils {
 
     // when the data to load is persisted, simply use local worker to load
     // from ufs (e.g. distributed load) or from a remote worker (e.g. setReplication)
-    if (pinnedLocation.isEmpty() && status.isPersisted()) {
+    // This does not work for remote worker unless we have passive cache on.
+    // Only use this read local first method to load if nearest worker is clear
+    if (netAddress.size() <= 1 && pinnedLocation.isEmpty() && status.isPersisted()) {
+      AlluxioProperties prop = context.getClusterConf().copyProperties();
+      prop.set(PropertyKey.USER_FILE_PASSIVE_CACHE_ENABLED, "true");
+      AlluxioConfiguration config = new InstancedConfiguration(prop);
+      FileSystemContext loadContext = FileSystemContext.create(config);
+      AlluxioBlockStore blockStore = AlluxioBlockStore.create(loadContext);
       OpenFilePOptions openOptions =
-          OpenFilePOptions.newBuilder().setReadType(ReadPType.CACHE_PROMOTE).build();
+          OpenFilePOptions.newBuilder().setReadType(ReadPType.CACHE).build();
       InStreamOptions inOptions = new InStreamOptions(status, openOptions, conf);
       inOptions.setUfsReadLocationPolicy(BlockLocationPolicy.Factory.create(
           LocalFirstPolicy.class.getCanonicalName(), conf));
@@ -142,10 +158,7 @@ public final class JobUtils {
       try (InputStream inputStream = blockStore.getInStream(info, inOptions, ImmutableMap.of())) {
         while (inputStream.read(sIgnoredReadBuf) != -1) {
         }
-      } catch (Throwable t) {
-        throw t;
       }
-      return;
     }
 
     // TODO(bin): remove the following case when we consolidate tier and medium
@@ -169,6 +182,7 @@ public final class JobUtils {
     BlockInfo blockInfo = status.getBlockInfo(blockId);
     Preconditions.checkNotNull(blockInfo, "Can not find block %s in status %s", blockId, status);
     long blockSize = blockInfo.getLength();
+    AlluxioBlockStore blockStore = AlluxioBlockStore.create(context);
     try (OutputStream outputStream =
         blockStore.getOutStream(blockId, blockSize, localNetAddress, outOptions)) {
       try (InputStream inputStream = blockStore.getInStream(blockId, inOptions)) {
