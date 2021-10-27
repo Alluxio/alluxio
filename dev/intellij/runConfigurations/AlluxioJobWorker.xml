@@ -11,10 +11,10 @@
 
 -->
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="AlluxioWorker" type="Application" factoryName="Application">
+  <configuration default="false" name="AlluxioJobWorker" type="Application" factoryName="Application" nameIsGenerated="true">
     <option name="INCLUDE_PROVIDED_SCOPE" value="true" />
-    <option name="MAIN_CLASS_NAME" value="alluxio.worker.AlluxioWorker" />
-    <module name="alluxio-core-server-worker" />
+    <option name="MAIN_CLASS_NAME" value="alluxio.worker.AlluxioJobWorker" />
+    <module name="alluxio-job-server" />
     <option name="VM_PARAMETERS" value="-Xbootclasspath/a:$PROJECT_DIR$/conf" />
     <extension name="coverage">
       <pattern>
