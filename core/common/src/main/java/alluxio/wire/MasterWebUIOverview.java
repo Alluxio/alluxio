@@ -47,13 +47,13 @@ public final class MasterWebUIOverview implements Serializable {
   private String mJournalCheckpointTimeWarning;
   private String mLiveWorkerNodes;
   private String mMasterNodeAddress;
+  private String mReplicaBlockCount;
   private String mStartTime;
+  private String mTotalPath;
   private String mUptime;
   private String mUsedCapacity;
-  private String mVersion;
-  private String mTotalPath;
   private String mUniqueBlockCount;
-  private String mReplicaBlockCount;
+  private String mVersion;
 
   /**
    * Creates a new instance of {@link MasterWebUIOverview}.
