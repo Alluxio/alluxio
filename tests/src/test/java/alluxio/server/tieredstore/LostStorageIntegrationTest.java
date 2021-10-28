@@ -35,6 +35,7 @@ import alluxio.worker.block.meta.DefaultStorageTier;
 import com.google.common.io.Files;
 import org.apache.commons.io.FileUtils;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -72,6 +73,7 @@ public class LostStorageIntegrationTest extends BaseIntegrationTest {
   private BlockMasterClient mBlockMasterClient = null;
 
   @Test
+  @Ignore
   public void reportLostStorageInWorkerRegister() throws Exception {
     File ssdDir = Files.createTempDir();
     String ssdPath = ssdDir.getAbsolutePath();
@@ -99,6 +101,7 @@ public class LostStorageIntegrationTest extends BaseIntegrationTest {
   }
 
   @Test
+  @Ignore
   public void reportLostStorageInHeartbeat() throws Exception {
     File ssdDir = Files.createTempDir();
     String ssdPath = ssdDir.getAbsolutePath();
@@ -116,6 +119,7 @@ public class LostStorageIntegrationTest extends BaseIntegrationTest {
   }
 
   @Test
+  @Ignore
   public void lostStorageWhenRestart() throws Exception {
     File ssdDir = Files.createTempDir();
     String ssdPath = ssdDir.getAbsolutePath();
