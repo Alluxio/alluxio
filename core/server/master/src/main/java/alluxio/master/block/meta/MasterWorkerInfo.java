@@ -14,7 +14,6 @@ package alluxio.master.block.meta;
 import alluxio.Constants;
 import alluxio.StorageTierAssoc;
 import alluxio.client.block.options.GetWorkerReportOptions.WorkerInfoField;
-import alluxio.grpc.RegisterWorkerPOptions;
 import alluxio.grpc.StorageList;
 import alluxio.master.block.DefaultBlockMaster;
 import alluxio.resource.LockResource;
@@ -22,8 +21,8 @@ import alluxio.util.CommonUtils;
 import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.MoreObjects;
-import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Sets;
 import org.slf4j.Logger;
@@ -38,12 +37,10 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.concurrent.locks.StampedLock;
-import java.util.stream.Collectors;
 
 import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.NotThreadSafe;
@@ -241,6 +238,7 @@ public final class MasterWorkerInfo {
 
   /**
    * Removes a block from the worker.
+   * This is typically called when we know the block has been removed from the worker.
    *
    * You should lock externally with {@link MasterWorkerInfo#lockWorkerMeta(EnumSet, boolean)}
    * with {@link WorkerMetaLockSection#BLOCKS} specified.
@@ -256,7 +254,13 @@ public final class MasterWorkerInfo {
   /**
    * Remove the block from the worker metadata and add to the to-remove list.
    * The next worker heartbeat will issue the remove command to the worker
-   * so the block is deleted.
+   * so the block is deleted later.
+   *
+   * You should lock externally with {@link MasterWorkerInfo#lockWorkerMeta(EnumSet, boolean)}
+   * with {@link WorkerMetaLockSection#BLOCKS} specified.
+   * An exclusive lock is required.
+   *
+   * @param blockId the block ID
    */
   public void scheduleRemoveFromWorker(long blockId) {
     mBlocks.remove(blockId);
@@ -656,14 +660,46 @@ public final class MasterWorkerInfo {
     return lr;
   }
 
+  /**
+   * Returns the number of blocks that should be removed from the worker.
+   *
+   * @return the count
+   */
+  @VisibleForTesting
   public int getToRemoveBlockCount() {
     return mToRemoveBlocks.size();
   }
 
-  public void updateUsage(StorageTierAssoc globalStorageTierAssoc, List<String> storageTiers, Map<String, Long> totalBytesOnTiers, Map<String, Long> usedBytesOnTiers) {
+  /**
+   * Updates the worker storage usage.
+   *
+   * You should lock externally with {@link MasterWorkerInfo#lockWorkerMeta(EnumSet, boolean)}
+   * with {@link WorkerMetaLockSection#USAGE} specified.
+   * An exclusive lock is required.
+   *
+   * @param globalStorageTierAssoc storage tier setup from configuration
+   * @param storageTiers the storage tiers
+   * @param totalBytesOnTiers the capacity of each tier
+   * @param usedBytesOnTiers the current usage of each tier
+   */
+  public void updateUsage(StorageTierAssoc globalStorageTierAssoc, List<String> storageTiers,
+      Map<String, Long> totalBytesOnTiers, Map<String, Long> usedBytesOnTiers) {
     mUsage.updateUsage(globalStorageTierAssoc, storageTiers, totalBytesOnTiers, usedBytesOnTiers);
   }
 
+  /**
+   * Marks all the blocks on the worker to be removed.
+   * This is called at the beginning of a register stream, where we do not know what blocks
+   * are no longer on the worker in {@link #mBlocks}.
+   * First all blocks will be marked to-be-removed, then in the stream when we see a block list,
+   * those blocks will be added to {@link #mBlocks} and removed from {@link #mToRemoveBlocks}.
+   * In this way, at the end of the stream, {@link #mToRemoveBlocks} contains only the blocks
+   * that no longer exist on the worker.
+   *
+   * You should lock externally with {@link MasterWorkerInfo#lockWorkerMeta(EnumSet, boolean)}
+   * with {@link WorkerMetaLockSection#BLOCKS} specified.
+   * An exclusive lock is required.
+   */
   public void markAllBlocksToRemove() {
     mToRemoveBlocks.addAll(mBlocks);
   }

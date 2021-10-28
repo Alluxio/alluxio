@@ -23,7 +23,7 @@ import alluxio.grpc.RegisterWorkerPOptions;
 import alluxio.grpc.RegisterWorkerPRequest;
 import alluxio.grpc.RegisterWorkerPResponse;
 import alluxio.grpc.StorageList;
-import alluxio.util.CommonUtils;
+
 import com.google.common.annotations.VisibleForTesting;
 import io.grpc.stub.StreamObserver;
 import org.slf4j.Logger;
@@ -72,10 +72,22 @@ public class RegisterStreamer implements Iterator<RegisterWorkerPRequest> {
   private final int mCompleteTimeoutMs;
 
   private final BlockMasterWorkerServiceGrpc.BlockMasterWorkerServiceStub mAsyncClient;
-  private final StreamObserver<RegisterWorkerPResponse> mResponseObserver;
+  private final StreamObserver<RegisterWorkerPResponse> mMasterResponseObserver;
   // This cannot be final because it is created on registerWithMaster()
-  private StreamObserver<RegisterWorkerPRequest> mRequestObserver;
+  private StreamObserver<RegisterWorkerPRequest> mWorkerRequestObserver;
 
+  /**
+   * Constructor.
+   *
+   * @param asyncClient the grpc client
+   * @param workerId the worker ID
+   * @param storageTierAliases storage/tier setup from the configuration
+   * @param totalBytesOnTiers the capacity of each tier
+   * @param usedBytesOnTiers the current usage of each tier
+   * @param currentBlocksOnLocation the blocks in each tier/dir
+   * @param lostStorage the lost storage paths
+   * @param configList the configuration properties
+   */
   @VisibleForTesting
   public RegisterStreamer(
       final BlockMasterWorkerServiceGrpc.BlockMasterWorkerServiceStub asyncClient,
@@ -88,6 +100,18 @@ public class RegisterStreamer implements Iterator<RegisterWorkerPRequest> {
         lostStorage, configList, new BlockMapIterator(currentBlocksOnLocation));
   }
 
+  /**
+   * Constructor.
+   *
+   * @param asyncClient the grpc client
+   * @param workerId the worker ID
+   * @param storageTierAliases storage/tier setup from the configuration
+   * @param totalBytesOnTiers the capacity of each tier
+   * @param usedBytesOnTiers the current usage of each tier
+   * @param lostStorage the lost storage paths
+   * @param configList the configuration properties
+   * @param blockListIterator an iterator used to iterate the blocks
+   */
   public RegisterStreamer(
       final BlockMasterWorkerServiceGrpc.BlockMasterWorkerServiceStub asyncClient,
       final long workerId, final List<String> storageTierAliases,
@@ -111,11 +135,14 @@ public class RegisterStreamer implements Iterator<RegisterWorkerPRequest> {
     mAckLatch = new CountDownLatch(mBlockMapIterator.getBatchCount());
     mFinishLatch = new CountDownLatch(1);
 
-    mResponseTimeoutMs = (int) ServerConfiguration.getMs(PropertyKey.WORKER_REGISTER_STREAM_RESPONSE_TIMEOUT);
-    mDeadlineMs = (int) ServerConfiguration.getMs(PropertyKey.WORKER_REGISTER_STREAM_DEADLINE);
-    mCompleteTimeoutMs = (int) ServerConfiguration.getMs(PropertyKey.WORKER_REGISTER_STREAM_COMPLETE_TIMEOUT);
+    mResponseTimeoutMs =
+        (int) ServerConfiguration.getMs(PropertyKey.WORKER_REGISTER_STREAM_RESPONSE_TIMEOUT);
+    mDeadlineMs =
+        (int) ServerConfiguration.getMs(PropertyKey.WORKER_REGISTER_STREAM_DEADLINE);
+    mCompleteTimeoutMs =
+        (int) ServerConfiguration.getMs(PropertyKey.WORKER_REGISTER_STREAM_COMPLETE_TIMEOUT);
 
-    mResponseObserver = new StreamObserver<RegisterWorkerPResponse>() {
+    mMasterResponseObserver = new StreamObserver<RegisterWorkerPResponse>() {
       @Override
       public void onNext(RegisterWorkerPResponse res) {
         LOG.debug("Worker {} - Received ACK {}", mWorkerId, res);
@@ -139,34 +166,40 @@ public class RegisterStreamer implements Iterator<RegisterWorkerPRequest> {
     };
   }
 
-  public void registerWithMaster()
-      throws CancelledException, InternalException, DeadlineExceededException, InterruptedException {
+  /**
+   * Manages the logic of registering with the master in a stream.
+   *
+   */
+  public void registerWithMaster() throws CancelledException, InternalException,
+      DeadlineExceededException, InterruptedException {
     // onNext() - send the request batches
-    // onError() - when an error occurs on the worker side, propagate the error status to the master
-    //             side and then close on the worker side, the master will handle necessary cleanup on its side
-    // onCompleted() - complete on the client side when all the batches are sent and all ACKs are received
-    mRequestObserver = mAsyncClient
-            .withDeadlineAfter(mDeadlineMs, TimeUnit.MILLISECONDS)
-            .registerWorkerStream(mResponseObserver);
+    // onError() - when an error occurs on the worker side, propagate the error status to
+    //             the master side and then close on the worker side, the master will
+    //             handle necessary cleanup on its side
+    // onCompleted() - complete on the client side when all the batches are sent
+    //                 and all ACKs are received
+    mWorkerRequestObserver = mAsyncClient
+        .withDeadlineAfter(mDeadlineMs, TimeUnit.MILLISECONDS)
+        .registerWorkerStream(mMasterResponseObserver);
     try {
       registerInternal();
     } catch (DeadlineExceededException | InterruptedException | CancelledException e) {
       LOG.error("Worker {} - Error during the register stream, aborting now.", mWorkerId, e);
       // These exceptions are internal to the worker
       // Propagate to the master side so it can clean up properly
-      mRequestObserver.onError(e);
+      mWorkerRequestObserver.onError(e);
       throw e;
     }
     // The only exception that is not propagated to the master is InternalException.
     // We assume that is from the master so there is no need to send it back again.
   }
 
-  private void registerInternal()
-      throws InterruptedException, DeadlineExceededException, CancelledException, InternalException {
+  private void registerInternal() throws InterruptedException, DeadlineExceededException,
+      CancelledException, InternalException {
     int iter = 0;
     while (hasNext()) {
       // Send a request when the master ACKs the previous one
-      LOG.debug("Worker {} - Acquiring one token", mWorkerId);
+      LOG.debug("Worker {} - Acquiring one token to send the next batch", mWorkerId);
       Instant start = Instant.now();
       if (!mBucket.tryAcquire(mResponseTimeoutMs, TimeUnit.MILLISECONDS)) {
         throw new DeadlineExceededException(
@@ -174,12 +207,12 @@ public class RegisterStreamer implements Iterator<RegisterWorkerPRequest> {
                 mResponseTimeoutMs));
       }
       Instant end = Instant.now();
-      LOG.debug("Worker {} - master ACK received in {}ms, sending the next iter {}",
-              mWorkerId, Duration.between(start, end).toMillis(), iter);
+      LOG.debug("Worker {} - master ACK received in {}ms, sending the next batch {}",
+          mWorkerId, Duration.between(start, end).toMillis(), iter);
 
       // Send the request
       RegisterWorkerPRequest request = next();
-      mRequestObserver.onNext(request);
+      mWorkerRequestObserver.onNext(request);
 
       if (mFinishLatch.getCount() == 0) {
         abort();
@@ -201,13 +234,12 @@ public class RegisterStreamer implements Iterator<RegisterWorkerPRequest> {
               receivedCount));
     }
     LOG.info("Worker {} - All requests have been sent. Completing the client side.", mWorkerId);
-    mRequestObserver.onCompleted();
+    mWorkerRequestObserver.onCompleted();
     LOG.info("Worker {} - Waiting on the master side to complete", mWorkerId);
     if (!mFinishLatch.await(mCompleteTimeoutMs, TimeUnit.MILLISECONDS)) {
       throw new DeadlineExceededException(
-          String.format("All batches have been received by the master but the master failed to complete the "
-              + "registration in %dms!",
-          mCompleteTimeoutMs));
+          String.format("All batches have been received by the master but the master failed"
+              + " to complete the registration in %dms!", mCompleteTimeoutMs));
     }
     // If the master failed in completing the request, there will also be an error
     if (mError.get() != null) {

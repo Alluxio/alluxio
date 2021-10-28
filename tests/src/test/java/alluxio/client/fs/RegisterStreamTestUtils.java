@@ -11,6 +11,11 @@
 
 package alluxio.client.fs;
 
+import static alluxio.stress.cli.RpcBenchPreparationUtils.CAPACITY;
+import static alluxio.stress.rpc.TierAlias.MEM;
+
+import static org.junit.Assert.assertEquals;
+
 import alluxio.grpc.ConfigProperty;
 import alluxio.grpc.LocationBlockIdListEntry;
 import alluxio.grpc.RegisterWorkerPRequest;
@@ -20,9 +25,9 @@ import alluxio.stress.rpc.TierAlias;
 import alluxio.wire.WorkerNetAddress;
 import alluxio.worker.block.BlockStoreLocation;
 import alluxio.worker.block.RegisterStreamer;
+
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Maps;
 import io.grpc.stub.StreamObserver;
 
 import java.util.Arrays;
@@ -30,10 +35,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Queue;
 import java.util.stream.Collectors;
-
-import static alluxio.stress.cli.RpcBenchPreparationUtils.CAPACITY;
-import static alluxio.stress.rpc.TierAlias.MEM;
-import static org.junit.Assert.assertEquals;
 
 public class RegisterStreamTestUtils {
   static final long MEM_CAPACITY_BYTES = 20_000_000L;
@@ -43,11 +44,11 @@ public class RegisterStreamTestUtils {
   static final WorkerNetAddress NET_ADDRESS_1 = new WorkerNetAddress()
       .setHost("localhost").setRpcPort(80).setDataPort(81).setWebPort(82);
   static final String TIER_CONFIG = "100,200,300;1000,1500;2000";
-  static final int TIER_BLOCK_TOTAL = 100+200+300+1000+1500+2000;
+  static final int TIER_BLOCK_TOTAL = 100 + 200 + 300 + 1000 + 1500 + 2000;
   static final int BATCH_SIZE = 1000;
-  static final long MEM_USAGE = 20_000L;
-  static final long SSD_USAGE = 500_000L;
-  static final long HDD_USAGE = 1_000_000L;
+  private static final long MEM_USAGE = 20_000L;
+  private static final long SSD_USAGE = 500_000L;
+  private static final long HDD_USAGE = 1_000_000L;
   static final Map<String, Long> USAGE_MAP = ImmutableMap.of("MEM", MEM_USAGE,
       "SSD", SSD_USAGE, "HDD", HDD_USAGE);
   static final Map<String, Long> CAPACITY_MAP = ImmutableMap.of("MEM", CAPACITY,
@@ -56,14 +57,15 @@ public class RegisterStreamTestUtils {
   static final Map<String, Long> MEM_CAPACITY = ImmutableMap.of("MEM", MEM_CAPACITY_BYTES);
   static final Map<String, Long> MEM_USAGE_EMPTY = ImmutableMap.of("MEM", 0L);
 
-  public static List<RegisterWorkerPRequest> generateRegisterStreamForEmptyWorker(long workerId) throws Exception {
+  public static List<RegisterWorkerPRequest> generateRegisterStreamForEmptyWorker(long workerId) {
     String tierConfig = "";
     // Generate block IDs heuristically
     Map<BlockStoreLocation, List<Long>> blockMap =
         RpcBenchPreparationUtils.generateBlockIdOnTiers(parseTierConfig(tierConfig));
 
     RegisterStreamer registerStreamer = new RegisterStreamer(null,
-        workerId, ImmutableList.of("MEM"), MEM_CAPACITY, MEM_USAGE_EMPTY, blockMap, LOST_STORAGE, EMPTY_CONFIG);
+        workerId, ImmutableList.of("MEM"), MEM_CAPACITY, MEM_USAGE_EMPTY,
+        blockMap, LOST_STORAGE, EMPTY_CONFIG);
 
     // For an empty worker there is only 1 request
     List<RegisterWorkerPRequest> requestChunks = ImmutableList.copyOf(registerStreamer);
@@ -76,7 +78,7 @@ public class RegisterStreamTestUtils {
     return tierConfig.keySet().stream().map(TierAlias::toString).collect(Collectors.toList());
   }
 
-  public static List<RegisterWorkerPRequest> generateRegisterStreamForWorker(long workerId) throws Exception {
+  public static List<RegisterWorkerPRequest> generateRegisterStreamForWorker(long workerId) {
     List<String> tierAliases = getTierAliases(parseTierConfig(TIER_CONFIG));
     // Generate block IDs heuristically
     Map<TierAlias, List<Integer>> tierConfigMap = parseTierConfig(TIER_CONFIG);
@@ -89,7 +91,7 @@ public class RegisterStreamTestUtils {
 
     // Get chunks from the RegisterStreamer
     List<RegisterWorkerPRequest> requestChunks = ImmutableList.copyOf(registerStreamer);
-    int expectedBatchCount = (int) Math.ceil((TIER_BLOCK_TOTAL)/(double)BATCH_SIZE);
+    int expectedBatchCount = (int) Math.ceil((TIER_BLOCK_TOTAL) / (double) BATCH_SIZE);
     assertEquals(expectedBatchCount, requestChunks.size());
 
     return requestChunks;

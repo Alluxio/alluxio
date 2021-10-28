@@ -261,6 +261,17 @@ public class BlockMasterClient extends AbstractMasterClient {
     }, LOG, "Register", "workerId=%d", workerId);
   }
 
+  /**
+   * Registers with the master in a stream.
+   *
+   * @param workerId the worker ID
+   * @param storageTierAliases storage/tier setup from the configuration
+   * @param totalBytesOnTiers the capacity of each tier
+   * @param usedBytesOnTiers the current usage of each tier
+   * @param currentBlocksOnLocation the blocks in each tier/dir
+   * @param lostStorage the lost storage paths
+   * @param configList the configuration properties
+   */
   public void registerWithStream(final long workerId, final List<String> storageTierAliases,
       final Map<String, Long> totalBytesOnTiers, final Map<String, Long> usedBytesOnTiers,
       final Map<BlockStoreLocation, List<Long>> currentBlocksOnLocation,
@@ -271,19 +282,19 @@ public class BlockMasterClient extends AbstractMasterClient {
     // If the master side sends back an error,
     // no retry will be attempted and the worker will quit.
     retryRPC(() -> {
-        // The gRPC stream lifecycle is managed internal to the RegisterStreamer
-        // When an exception is thrown, the stream has been closed and error propagated
-        // to the other side, so no extra handling is required here.
-        RegisterStreamer stream = new RegisterStreamer(mAsyncClient,
-                workerId, storageTierAliases, totalBytesOnTiers, usedBytesOnTiers,
-                currentBlocksOnLocation, lostStorage, configList);
-        try {
-          stream.registerWithMaster();
-        } catch (IOException e) {
-          ioe.set(e);
-        } catch (InterruptedException e) {
-          ioe.set(new IOException(e));
-        }
+      // The gRPC stream lifecycle is managed internal to the RegisterStreamer
+      // When an exception is thrown, the stream has been closed and error propagated
+      // to the other side, so no extra handling is required here.
+      RegisterStreamer stream = new RegisterStreamer(mAsyncClient,
+          workerId, storageTierAliases, totalBytesOnTiers, usedBytesOnTiers,
+          currentBlocksOnLocation, lostStorage, configList);
+      try {
+        stream.registerWithMaster();
+      } catch (IOException e) {
+        ioe.set(e);
+      } catch (InterruptedException e) {
+        ioe.set(new IOException(e));
+      }
       return null;
     }, LOG, "Register", "workerId=%d", workerId);
 

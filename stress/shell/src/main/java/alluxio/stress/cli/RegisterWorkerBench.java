@@ -63,7 +63,7 @@ public class RegisterWorkerBench extends RpcBench<BlockMasterBenchParameters> {
   @Override
   public String getBenchDescription() {
     return String.join("\n", ImmutableList.of(
-        "A benchmarking tool for the RegisterWorker RPC.",
+        "A benchmarking tool for the RegisterWorker unary RPC.",
         "The test will generate a specified number of blocks in the master (without associated "
             + "files). Then it will trigger the specified number of simulated workers to register "
             + "at once.",

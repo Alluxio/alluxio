@@ -63,21 +63,21 @@ public class StreamRegisterWorkerBench extends RpcBench<BlockMasterBenchParamete
   @Override
   public String getBenchDescription() {
     return String.join("\n", ImmutableList.of(
-            "A benchmarking tool for the RegisterWorker RPC.",
-            "The test will generate a specified number of blocks in the master (without associated "
-                    + "files). Then it will trigger the specified number of simulated workers to register "
-                    + "at once.",
-            "Each simulated worker will have the specified number of blocks, in order to incur "
-                    + "the controlled stress on the master side.",
-            "",
-            "Example:",
-            "# 2 job workers will be chosen to run the benchmark",
-            "# Each job worker runs 3 simulated workers",
-            "# Each simulated worker has 3000 blocks on tier 0 and 10000 on tier 1",
-            "# Each simulated worker sends the register RPC once",
-            "$ bin/alluxio runClass alluxio.stress.cli.RegisterWorkerBench --concurrency 3 \\",
-            "--cluster --cluster-limit 2 --tiers \"1000,1000,1000;5000,5000\"",
-            ""
+        "A benchmarking tool for the RegisterWorker streaming RPC.",
+        "The test will generate a specified number of blocks in the master (without associated "
+            + "files). Then it will trigger the specified number of simulated workers to register "
+            + "at once using the streaming API.",
+        "Each simulated worker will have the specified number of blocks, in order to incur "
+            + "the controlled stress on the master side.",
+        "",
+        "Example:",
+        "# 2 job workers will be chosen to run the benchmark",
+        "# Each job worker runs 3 simulated workers",
+        "# Each simulated worker has 3000 blocks on tier 0 and 10000 on tier 1",
+        "# Each simulated worker sends the register RPC once",
+        "$ bin/alluxio runClass alluxio.stress.cli.StreamRegisterWorkerBench --concurrency 3 \\",
+        "--cluster --cluster-limit 2 --tiers \"1000,1000,1000;5000,5000\"",
+        ""
     ));
   }
 
@@ -128,7 +128,7 @@ public class StreamRegisterWorkerBench extends RpcBench<BlockMasterBenchParamete
     mainInternal(args, new StreamRegisterWorkerBench());
   }
 
-  private RpcTaskResult simulateRegisterWorkerStream(alluxio.worker.block.BlockMasterClient client) {
+  private RpcTaskResult simulateRegisterWorkerStream(BlockMasterClient client) {
     RpcTaskResult result = new RpcTaskResult();
     long i = 0;
 

@@ -153,6 +153,9 @@ public class RpcBenchPreparationUtils {
    * Generates block IDs according to the storage tier/dir setup.
    * In order to avoid block ID colliding with existing blocks, this will generate IDs
    * decreasingly from the {@link Long#MAX_VALUE}.
+   *
+   * @param tiersConfig the tier/dir block counts
+   * @return a map of location to generated block lists
    */
   public static Map<BlockStoreLocation, List<Long>> generateBlockIdOnTiers(
           Map<TierAlias, List<Integer>> tiersConfig) {

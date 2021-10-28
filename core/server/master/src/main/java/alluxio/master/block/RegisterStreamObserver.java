@@ -17,9 +17,8 @@ import alluxio.exception.status.DeadlineExceededException;
 import alluxio.grpc.GrpcExceptionUtils;
 import alluxio.grpc.RegisterWorkerPRequest;
 import alluxio.grpc.RegisterWorkerPResponse;
+
 import com.google.common.base.Preconditions;
-import io.grpc.Context;
-import io.grpc.Deadline;
 import io.grpc.stub.StreamObserver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,13 +38,21 @@ public class RegisterStreamObserver implements StreamObserver<RegisterWorkerPReq
 
   private WorkerRegisterContext mContext;
   private final BlockMaster mBlockMaster;
-  private final io.grpc.stub.StreamObserver<alluxio.grpc.RegisterWorkerPResponse> mResponseObserver;
+  // Used to send responses to the worker
+  private final StreamObserver<RegisterWorkerPResponse> mMasterResponseObserver;
   // Records the error from the worker side, if any
   private AtomicReference<Throwable> mErrorReceived = new AtomicReference<>();
 
-  public RegisterStreamObserver(BlockMaster blockMaster, io.grpc.stub.StreamObserver<alluxio.grpc.RegisterWorkerPResponse> responseObserver) {
+  /**
+   * Constructor.
+   *
+   * @param blockMaster the block master
+   * @param responseObserver used to send response to the worker side
+   */
+  public RegisterStreamObserver(BlockMaster blockMaster,
+      StreamObserver<RegisterWorkerPResponse> responseObserver) {
     mBlockMaster = blockMaster;
-    mResponseObserver = responseObserver;
+    mMasterResponseObserver = responseObserver;
   }
 
   @Override
@@ -64,7 +71,8 @@ public class RegisterStreamObserver implements StreamObserver<RegisterWorkerPReq
       public RegisterWorkerPResponse call() throws Exception {
         // If an error was received earlier, the stream is no longer open
         Preconditions.checkState(mErrorReceived.get() == null,
-            "The stream has been closed due to an earlier error received: %s", mErrorReceived.get());
+            "The stream has been closed due to an earlier error received: %s",
+            mErrorReceived.get());
 
         // Initialize the context on the 1st message
         synchronized (workerRequestObserver) {
@@ -73,7 +81,7 @@ public class RegisterStreamObserver implements StreamObserver<RegisterWorkerPReq
                 "Context is not initialized but the request is not the 1st in a stream!");
             LOG.debug("Initializing context for {}", workerId);
             mContext = WorkerRegisterContext.create(
-                mBlockMaster, workerId, workerRequestObserver, mResponseObserver);
+                mBlockMaster, workerId, workerRequestObserver, mMasterResponseObserver);
             LOG.debug("Context created for {}", workerId);
           }
         }
@@ -98,9 +106,9 @@ public class RegisterStreamObserver implements StreamObserver<RegisterWorkerPReq
         // propagate the exception to the worker side.
         LOG.error("Failed to process the RegisterWorkerPRequest in the stream: ", e);
         cleanup();
-        mResponseObserver.onError(GrpcExceptionUtils.fromThrowable(e));
+        mMasterResponseObserver.onError(GrpcExceptionUtils.fromThrowable(e));
       }
-    }, methodName, true, false, mResponseObserver, "WorkerId=%s", chunk.getWorkerId());
+    }, methodName, true, false, mMasterResponseObserver, "WorkerId=%s", chunk.getWorkerId());
   }
 
   @Override
@@ -115,13 +123,14 @@ public class RegisterStreamObserver implements StreamObserver<RegisterWorkerPReq
 
     if (t instanceof TimeoutException) {
       cleanup();
-      mResponseObserver.onError(new DeadlineExceededException(t).toGrpcStatusException());
+      mMasterResponseObserver.onError(new DeadlineExceededException(t).toGrpcStatusException());
       LOG.warn("Worker {} register stream has timed out. Error sent to the worker.",
           mContext.getWorkerId());
       return;
     }
-    // Otherwise the exception is from the worker
-    LOG.error("Received error from the worker side during the streaming register call: {}", t.getMessage());
+    // Otherwise the exception is from the worker, we only log one line instead of the full trace.
+    LOG.error("Received error from the worker side during the streaming register call: {}",
+        t.getMessage());
     cleanup();
   }
 
@@ -133,7 +142,8 @@ public class RegisterStreamObserver implements StreamObserver<RegisterWorkerPReq
       @Override
       public RegisterWorkerPResponse call() throws Exception {
         Preconditions.checkState(mErrorReceived.get() == null,
-            "The stream has been closed due to an earlier error received: %s", mErrorReceived.get());
+            "The stream has been closed due to an earlier error received: %s",
+            mErrorReceived.get());
         Preconditions.checkState(mContext != null,
             "Stream message received from the client side but the context was not initialized!");
         Preconditions.checkState(mContext.isOpen(),
@@ -155,15 +165,15 @@ public class RegisterStreamObserver implements StreamObserver<RegisterWorkerPReq
         // propagate the exception to the worker side.
         LOG.error("Failed to complete the register worker stream: ", e);
         cleanup();
-        mResponseObserver.onError(GrpcExceptionUtils.fromThrowable(e));
+        mMasterResponseObserver.onError(GrpcExceptionUtils.fromThrowable(e));
       }
-    }, methodName, false, true, mResponseObserver, "WorkerId=%s",
+    }, methodName, false, true, mMasterResponseObserver, "WorkerId=%s",
             mContext == null ? "NONE" : mContext.getWorkerId());
   }
 
   // Only the 1st message in the stream has metadata.
-  // From the 2nd message on, it only contains the block list.
-  private boolean isFirstMessage(alluxio.grpc.RegisterWorkerPRequest chunk) {
+  // From the 2nd message on, it only contains the worker ID and block list.
+  private boolean isFirstMessage(RegisterWorkerPRequest chunk) {
     return chunk.getStorageTiersCount() > 0;
   }
 
@@ -178,7 +188,7 @@ public class RegisterStreamObserver implements StreamObserver<RegisterWorkerPReq
       LOG.debug("Context closed for worker {}", mContext.getWorkerId());
 
       Preconditions.checkState(!mContext.isOpen(),
-        "Failed to properly close the WorkerRegisterContext!");
+          "Failed to properly close the WorkerRegisterContext!");
     }
   }
 }

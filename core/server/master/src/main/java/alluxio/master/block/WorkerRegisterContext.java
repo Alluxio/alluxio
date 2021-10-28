@@ -17,6 +17,7 @@ import alluxio.grpc.RegisterWorkerPResponse;
 import alluxio.master.block.meta.MasterWorkerInfo;
 import alluxio.master.block.meta.WorkerMetaLockSection;
 import alluxio.resource.LockResource;
+
 import io.grpc.stub.StreamObserver;
 
 import java.io.Closeable;
@@ -30,8 +31,9 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * either completed or aborted.
  */
 public class WorkerRegisterContext implements Closeable {
-  /** Reference to the worker's metadata in the {@link BlockMaster} */
+  /** Reference to the worker's metadata in the {@link BlockMaster}. */
   MasterWorkerInfo mWorker;
+
   /**
    * Locks on the worker's metadata sections. The locks will be held throughout the
    * stream and will be unlocked at the end.
@@ -62,10 +64,22 @@ public class WorkerRegisterContext implements Closeable {
     mOpen = new AtomicBoolean(true);
   }
 
+  /**
+   * Getter for worker ID.
+   *
+   * @return worker ID
+   */
   public long getWorkerId() {
     return mWorker.getId();
   }
 
+  /**
+   * Checks whether the stream is still open.
+   * If not open, no more operation should be permitted on the stream,
+   * and this stream has been closed and all the locks have been released.
+   *
+   * @return whether the stream is still open
+   */
   public boolean isOpen() {
     return mOpen.get();
   }
@@ -93,11 +107,20 @@ public class WorkerRegisterContext implements Closeable {
     mOpen.set(false);
   }
 
+  /**
+   * Creates a new {@link WorkerRegisterContext}.
+   *
+   * @param blockMaster the block master
+   * @param workerId the worker ID
+   * @param workerRequestObserver receives requests from the worker
+   * @param masterResponseObserver sends responses to the worker
+   * @return a new {@link WorkerRegisterContext}
+   */
   public static synchronized WorkerRegisterContext create(
       BlockMaster blockMaster, long workerId,
-      StreamObserver<RegisterWorkerPRequest> requestObserver,
-      StreamObserver<RegisterWorkerPResponse> responseObserver) throws NotFoundException {
+      StreamObserver<RegisterWorkerPRequest> workerRequestObserver,
+      StreamObserver<RegisterWorkerPResponse> masterResponseObserver) throws NotFoundException {
     MasterWorkerInfo info = blockMaster.getWorker(workerId);
-    return new WorkerRegisterContext(info, requestObserver, responseObserver);
+    return new WorkerRegisterContext(info, workerRequestObserver, masterResponseObserver);
   }
 }

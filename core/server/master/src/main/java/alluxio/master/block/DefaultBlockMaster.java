@@ -82,7 +82,6 @@ import com.google.common.cache.LoadingCache;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterators;
 import com.google.common.util.concurrent.Striped;
-import io.grpc.Context;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -230,8 +229,13 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
   private final IndexedSet<MasterWorkerInfo> mTempWorkers =
       new IndexedSet<>(ID_INDEX, ADDRESS_INDEX);
 
-  /** Tracks the open register streams */
-  private final Map<Long, WorkerRegisterContext> mActiveRegisterContexts = new ConcurrentHashMap<>();
+  /**
+   * Tracks the open register streams.
+   * A stream will be closed if it is completed, aborted due to an error,
+   * or recycled due to inactivity by {@link WorkerRegisterStreamGCExecutor}.
+   */
+  private final Map<Long, WorkerRegisterContext> mActiveRegisterContexts =
+      new ConcurrentHashMap<>();
 
   /** Listeners to call when lost workers are found. */
   private final List<Consumer<Address>> mLostWorkerFoundListeners
@@ -275,8 +279,8 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
         ExecutorServiceFactories.cachedThreadPool(Constants.BLOCK_MASTER_NAME));
   }
 
-  private DefaultBlockMaster(MetricsMaster metricsMaster, CoreMasterContext masterContext, Clock clock,
-                             ExecutorServiceFactory executorServiceFactory, BlockStore blockStore) {
+  private DefaultBlockMaster(MetricsMaster metricsMaster, CoreMasterContext masterContext,
+      Clock clock, ExecutorServiceFactory executorServiceFactory, BlockStore blockStore) {
     super(masterContext, clock, executorServiceFactory);
     Preconditions.checkNotNull(metricsMaster, "metricsMaster");
 
@@ -310,8 +314,8 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
    *        maintenance threads
    */
   @VisibleForTesting
-  public DefaultBlockMaster(MetricsMaster metricsMaster, CoreMasterContext masterContext, Clock clock,
-      ExecutorServiceFactory executorServiceFactory) {
+  public DefaultBlockMaster(MetricsMaster metricsMaster, CoreMasterContext masterContext,
+      Clock clock, ExecutorServiceFactory executorServiceFactory) {
     this(metricsMaster, masterContext, clock, executorServiceFactory,
         masterContext.getBlockStoreFactory().get());
   }
@@ -402,9 +406,14 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
         .concat(CommonUtils.singleElementIterator(getContainerIdJournalEntry()), blockIterator));
   }
 
+  /**
+   * Periodically checks the open worker register streams.
+   * If a stream has been active for a while, close the stream, recycle resources and locks,
+   * and propagate an error to the worker side.
+   */
   public class WorkerRegisterStreamGCExecutor implements HeartbeatExecutor {
-    private final long mTimeout =
-        ServerConfiguration.global().getMs(PropertyKey.MASTER_WORKER_REGISTER_STREAM_RESPONSE_TIMEOUT);
+    private final long mTimeout = ServerConfiguration.global()
+        .getMs(PropertyKey.MASTER_WORKER_REGISTER_STREAM_RESPONSE_TIMEOUT);
 
     @Override
     public void heartbeat() {
@@ -452,7 +461,8 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
     getExecutorService().submit(new HeartbeatThread(
           HeartbeatContext.MASTER_WORKER_REGISTER_SESSION_CLEANER,
             new WorkerRegisterStreamGCExecutor(),
-            (int) ServerConfiguration.global().getMs(PropertyKey.MASTER_WORKER_REGISTER_STREAM_RESPONSE_TIMEOUT),
+            (int) ServerConfiguration.global().getMs(
+                PropertyKey.MASTER_WORKER_REGISTER_STREAM_RESPONSE_TIMEOUT),
             ServerConfiguration.global(), mMasterContext.getUserState()));
   }
 
@@ -1061,7 +1071,8 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
     final Map<String, StorageList> lostStorage = chunk.getLostStorageMap();
 
     final Map<alluxio.proto.meta.Block.BlockLocation, List<Long>> currentBlocksOnLocation =
-        BlockMasterWorkerServiceHandler.reconstructBlocksOnLocationMap(chunk.getCurrentBlocksList(), context.getWorkerId());
+        BlockMasterWorkerServiceHandler.reconstructBlocksOnLocationMap(
+            chunk.getCurrentBlocksList(), context.getWorkerId());
     RegisterWorkerPOptions options = chunk.getOptions();
 
     MasterWorkerInfo worker = context.mWorker;
@@ -1092,7 +1103,8 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
 
   protected void workerRegisterBatch(WorkerRegisterContext context, RegisterWorkerPRequest chunk) {
     final Map<alluxio.proto.meta.Block.BlockLocation, List<Long>> currentBlocksOnLocation =
-            BlockMasterWorkerServiceHandler.reconstructBlocksOnLocationMap(chunk.getCurrentBlocksList(), context.getWorkerId());
+            BlockMasterWorkerServiceHandler.reconstructBlocksOnLocationMap(
+                chunk.getCurrentBlocksList(), context.getWorkerId());
     MasterWorkerInfo worker = context.mWorker;
     Preconditions.checkState(worker != null,
         "No worker metadata found in the WorkerRegisterContext!");

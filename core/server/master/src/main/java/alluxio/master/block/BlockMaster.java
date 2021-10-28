@@ -281,24 +281,27 @@ public interface BlockMaster extends Master, ContainerIdGenerable {
    * See the javadoc of {@link MasterWorkerInfo} for how the locking should be carefully done.
    * When in doubt, do not use this API. Find other methods in this class that exposes
    * necessary information.
+   *
+   * @param workerId the worker ID
+   * @return the {@link MasterWorkerInfo} for the worker
    */
   @VisibleForTesting
   MasterWorkerInfo getWorker(long workerId) throws NotFoundException;
 
   /**
-   * Handles the 1st message in the worker registration stream.
-   * Only the 1st message will carry metadata other than the worker ID and the block list.
+   * Handles messages in a register stream.
+   *
+   * @param context the stream context that contains the worker information
+   * @param chunk the message in a stream
+   * @param isFirstMsg whether the message is the 1st in a stream
    */
-  void workerRegisterStream(WorkerRegisterContext context, RegisterWorkerPRequest chunk, boolean isFirstMsg);
-
-  /**
-   * Handles the 2nd to last message in the worker registration stream.
-   * The message should only contain worker ID and the block list.
-   */
-//  void workerRegisterBatch(WorkerRegisterContext context, RegisterWorkerPRequest chunk);
+  void workerRegisterStream(
+      WorkerRegisterContext context, RegisterWorkerPRequest chunk, boolean isFirstMsg);
 
   /**
    * Completes the worker registration stream.
+   *
+   * @param context the stream context to be closed
    */
   void workerRegisterFinish(WorkerRegisterContext context);
 }

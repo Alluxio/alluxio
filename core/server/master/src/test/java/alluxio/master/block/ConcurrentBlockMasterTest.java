@@ -775,10 +775,12 @@ public class ConcurrentBlockMasterTest {
             } else {
               // The master will issue commands to remove blocks on the next heartbeat
               // So now the locations are still there
-              verifyBlockOnWorkers(mBlockMaster, BLOCK1_ID, BLOCK1_LENGTH, ImmutableList.of(worker1Info));
+              verifyBlockOnWorkers(mBlockMaster, BLOCK1_ID, BLOCK1_LENGTH,
+                  ImmutableList.of(worker1Info));
             }
             // Block 2 is unaffected
-            verifyBlockOnWorkers(mBlockMaster, BLOCK2_ID, BLOCK2_LENGTH, ImmutableList.of(worker2Info));
+            verifyBlockOnWorkers(mBlockMaster, BLOCK2_ID, BLOCK2_LENGTH,
+                ImmutableList.of(worker2Info));
 
             // Regardless of whether the metadata is removed, the existing block will be freed
             Command worker1HeartbeatCmd = mBlockMaster.workerHeartbeat(worker1,
@@ -1013,7 +1015,8 @@ public class ConcurrentBlockMasterTest {
               verifyBlockNotExisting(mBlockMaster, BLOCK1_ID);
             } else {
               // The location is still on worker 1, until it is removed after the next heartbeat
-              verifyBlockOnWorkers(mBlockMaster, BLOCK1_ID, BLOCK1_LENGTH, ImmutableList.of(worker1Info));
+              verifyBlockOnWorkers(mBlockMaster, BLOCK1_ID, BLOCK1_LENGTH,
+                  ImmutableList.of(worker1Info));
             }
 
             // On the heartbeat worker 1 block will be removed
@@ -1085,7 +1088,8 @@ public class ConcurrentBlockMasterTest {
               verifyBlockNotExisting(mBlockMaster, BLOCK1_ID);
             } else {
               // Block 1 should still exist on worker 1 until the next heartbeat frees it
-              verifyBlockOnWorkers(mBlockMaster, BLOCK1_ID, BLOCK1_LENGTH, Arrays.asList(worker1Info));
+              verifyBlockOnWorkers(mBlockMaster, BLOCK1_ID, BLOCK1_LENGTH,
+                  Arrays.asList(worker1Info));
             }
 
             // No copies for block 2

@@ -74,7 +74,7 @@ public final class BlockMasterSync implements HeartbeatExecutor {
   /** Last System.currentTimeMillis() timestamp when a heartbeat successfully completed. */
   private long mLastSuccessfulHeartbeatMs;
 
-  /** Whether to use streaming */
+  /** Whether to use streaming. */
   private boolean mUseStreaming;
 
   /**
