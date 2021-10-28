@@ -491,6 +491,20 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
   }
 
   @Override
+  public long getUniqueBlockCount() {
+    return mBlockStore.size();
+  }
+
+  @Override
+  public long getBlockReplicaCount() {
+    long ret = 0;
+    for (MasterWorkerInfo worker : mWorkers) {
+      ret += worker.getBlockCount();
+    }
+    return ret;
+  }
+
+  @Override
   public StorageTierAssoc getGlobalStorageTierAssoc() {
     return mGlobalStorageTierAssoc;
   }
@@ -1495,7 +1509,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
           () -> master.getCapacityBytes() - master.getUsedBytes());
 
       MetricsSystem.registerGaugeIfAbsent(MetricKey.MASTER_UNIQUE_BLOCKS.getName(),
-          () -> master.mBlockStore.size());
+          () -> master.getUniqueBlockCount());
 
       MetricsSystem.registerGaugeIfAbsent(MetricKey.MASTER_TOTAL_BLOCK_REPLICA_COUNT.getName(),
           () -> master.getBlockReplicaCount());
@@ -1545,13 +1559,5 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
     }
 
     private Metrics() {} // prevent instantiation
-  }
-
-  private long getBlockReplicaCount() {
-    long ret = 0;
-    for (MasterWorkerInfo worker : mWorkers) {
-      ret += worker.getBlockCount();
-    }
-    return ret;
   }
 }

@@ -29,7 +29,6 @@ import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashMap;
@@ -98,7 +97,6 @@ public final class MasterWorkerInfo {
   private static final Logger LOG = LoggerFactory.getLogger(MasterWorkerInfo.class);
   private static final String LIVE_WORKER_STATE = "In Service";
   private static final String LOST_WORKER_STATE = "Out of Service";
-  private static final int BLOCK_SIZE_LIMIT = 100;
 
   /** Worker's last updated time in ms. */
   private final AtomicLong mLastUpdatedTimeMs;
@@ -527,21 +525,14 @@ public final class MasterWorkerInfo {
   @Override
   // TODO(jiacheng): Read lock on the conversion
   public String toString() {
-    Collection<Long> blocks = mBlocks;
-    String blockFieldName = "blocks";
-    // We truncate the list of block IDs to print, unless it is for DEBUG logs
-    if (!LOG.isDebugEnabled() && mBlocks.size() > BLOCK_SIZE_LIMIT) {
-      blockFieldName = "blocks-truncated";
-      blocks = mBlocks.stream().limit(BLOCK_SIZE_LIMIT).collect(Collectors.toList());
-    }
     return MoreObjects.toStringHelper(this)
         .add("id", mMeta.mId)
         .add("workerAddress", mMeta.mWorkerAddress)
         .add("capacityBytes", mUsage.mCapacityBytes)
         .add("usedBytes", mUsage.mUsedBytes)
         .add("lastUpdatedTimeMs", mLastUpdatedTimeMs.get())
-        .add("blockCount", mBlocks.size())
-        .add(blockFieldName, blocks)
+        // We only show the number of blocks unless it is for DEBUG logs
+        .add("blocks", LOG.isDebugEnabled() ? mBlocks : CommonUtils.summarizeCollection(mBlocks))
         .add("lostStorage", mUsage.mLostStorage).toString();
   }
 

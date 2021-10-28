@@ -275,6 +275,11 @@ public abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem
         .getBytes(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT);
   }
 
+  @Override
+  public String getCanonicalServiceName() {
+    return null;
+  }
+
   @Nullable
   @Override
   public BlockLocation[] getFileBlockLocations(FileStatus file, long start, long len)

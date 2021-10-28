@@ -30,6 +30,10 @@ export const headerNavigationData: INavigationData[] = [
     url: routePaths.metrics,
   },
   {
+    innerText: 'Configuration',
+    url: routePaths.config,
+  },
+  {
     innerText: 'Return to Master',
     url: ({ masterHostname, masterPort }): string => `${window.location.protocol}//${masterHostname}:${masterPort}`,
   },

@@ -14,6 +14,7 @@ package alluxio.master.file.contexts;
 import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.util.FileSystemOptions;
+import alluxio.wire.OperationId;
 
 import com.google.common.base.MoreObjects;
 
@@ -78,6 +79,14 @@ public class CreateFileContext
   public CreateFileContext setCacheable(boolean cacheable) {
     mCacheable = cacheable;
     return this;
+  }
+
+  @Override
+  public OperationId getOperationId() {
+    if (getOptions().hasCommonOptions() && getOptions().getCommonOptions().hasOperationId()) {
+      return OperationId.fromFsProto(getOptions().getCommonOptions().getOperationId());
+    }
+    return super.getOperationId();
   }
 
   @Override
