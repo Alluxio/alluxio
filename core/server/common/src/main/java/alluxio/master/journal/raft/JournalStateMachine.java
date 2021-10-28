@@ -161,6 +161,13 @@ public class JournalStateMachine extends BaseStateMachine {
     MetricsSystem.registerGaugeIfAbsent(
         MetricKey.MASTER_JOURNAL_LAST_APPLIED_COMMIT_INDEX.getName(),
         () -> mLastAppliedCommitIndex);
+    MetricsSystem.registerGaugeIfAbsent(
+        MetricKey.MASTER_JOURNAL_CHECKPOINT_WARN.getName(),
+        () -> getLastAppliedTermIndex().getIndex() - mSnapshotLastIndex
+              > ServerConfiguration.getLong(PropertyKey.MASTER_JOURNAL_CHECKPOINT_PERIOD_ENTRIES)
+              && System.currentTimeMillis() - mLastCheckPointTime > ServerConfiguration.getMs(
+              PropertyKey.MASTER_WEB_JOURNAL_CHECKPOINT_WARNING_THRESHOLD_TIME) ? 1 : 0
+    );
   }
 
   @Override
