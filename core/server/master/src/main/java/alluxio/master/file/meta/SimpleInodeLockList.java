@@ -208,7 +208,9 @@ public class SimpleInodeLockList implements InodeLockList {
   }
 
   private void lockAndAddInode(Inode inode, LockMode mode) {
-    addInodeLock(inode, mode, mInodeLockManager.lockInode(inode, mode, mUseTryLock));
+    try (RWLockResource lock = mInodeLockManager.lockInode(inode, mode, mUseTryLock)) {
+      addInodeLock(inode, mode, lock);
+    }
   }
 
   private void addEdgeLock(Edge edge, LockMode mode, RWLockResource lock) {
