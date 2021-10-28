@@ -13,7 +13,6 @@ package alluxio.master.block;
 
 import alluxio.exception.status.NotFoundException;
 import alluxio.grpc.RegisterWorkerPRequest;
-import alluxio.grpc.RegisterWorkerPResponse;
 import alluxio.master.block.meta.MasterWorkerInfo;
 import alluxio.master.block.meta.WorkerMetaLockSection;
 import alluxio.resource.LockResource;
@@ -41,7 +40,6 @@ public class WorkerRegisterContext implements Closeable {
   private LockResource mWorkerLock;
   private AtomicBoolean mOpen;
   private StreamObserver<RegisterWorkerPRequest> mWorkerRequestObserver;
-  private StreamObserver<RegisterWorkerPResponse> mMasterResponseObserver;
 
   /**
    * Keeps track of the last activity time on this stream.
@@ -52,11 +50,9 @@ public class WorkerRegisterContext implements Closeable {
 
   private WorkerRegisterContext(
       MasterWorkerInfo info,
-      StreamObserver<RegisterWorkerPRequest> workerRequestObserver,
-      StreamObserver<RegisterWorkerPResponse> masterResponseObserver) {
+      StreamObserver<RegisterWorkerPRequest> workerRequestObserver) {
     mWorker = info;
     mWorkerRequestObserver = workerRequestObserver;
-    mMasterResponseObserver = masterResponseObserver;
     mWorkerLock = info.lockWorkerMeta(EnumSet.of(
         WorkerMetaLockSection.STATUS,
         WorkerMetaLockSection.USAGE,
@@ -113,14 +109,12 @@ public class WorkerRegisterContext implements Closeable {
    * @param blockMaster the block master
    * @param workerId the worker ID
    * @param workerRequestObserver receives requests from the worker
-   * @param masterResponseObserver sends responses to the worker
    * @return a new {@link WorkerRegisterContext}
    */
   public static synchronized WorkerRegisterContext create(
       BlockMaster blockMaster, long workerId,
-      StreamObserver<RegisterWorkerPRequest> workerRequestObserver,
-      StreamObserver<RegisterWorkerPResponse> masterResponseObserver) throws NotFoundException {
+      StreamObserver<RegisterWorkerPRequest> workerRequestObserver) throws NotFoundException {
     MasterWorkerInfo info = blockMaster.getWorker(workerId);
-    return new WorkerRegisterContext(info, workerRequestObserver, masterResponseObserver);
+    return new WorkerRegisterContext(info, workerRequestObserver);
   }
 }

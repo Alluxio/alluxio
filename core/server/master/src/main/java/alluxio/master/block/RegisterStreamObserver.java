@@ -81,7 +81,7 @@ public class RegisterStreamObserver implements StreamObserver<RegisterWorkerPReq
                 "Context is not initialized but the request is not the 1st in a stream!");
             LOG.debug("Initializing context for {}", workerId);
             mContext = WorkerRegisterContext.create(
-                mBlockMaster, workerId, workerRequestObserver, mMasterResponseObserver);
+                mBlockMaster, workerId, workerRequestObserver);
             LOG.debug("Context created for {}", workerId);
           }
         }
