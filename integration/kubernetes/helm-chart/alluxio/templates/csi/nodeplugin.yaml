@@ -43,6 +43,9 @@ spec:
     spec:
       hostNetwork: {{ .Values.csi.nodePlugin.hostNetwork }}
       dnsPolicy: {{ .Values.csi.nodePlugin.dnsPolicy }}
+      {{- if .Values.imagePullSecrets }}
+{{ include "alluxio.imagePullSecrets" . | indent 6 }}
+      {{- end}}
       containers:
         - name: node-driver-registrar
           image: {{ .Values.csi.nodePlugin.driverRegistrar.image }}
@@ -98,10 +101,11 @@ spec:
               memory: {{ .Values.csi.nodePlugin.nodeserver.resources.requests.memory }}
             {{- end }}
           {{- end }}
-          image: {{ .Values.csi.image }}:{{ .Values.csi.imageTag }}
+          image: {{ .Values.image }}:{{ .Values.imageTag }}
           imagePullPolicy: {{ .Values.csi.imagePullPolicy }}
-          command: ["/usr/local/bin/alluxio-csi"]
+          command: ["tini", "--", "/entrypoint.sh"]
           args :
+            - csiserver
             - --v=5
             - "--nodeid=$(NODE_ID)"
             - "--endpoint=$(CSI_ENDPOINT)"

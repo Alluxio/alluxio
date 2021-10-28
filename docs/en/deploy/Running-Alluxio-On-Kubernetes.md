@@ -1362,6 +1362,18 @@ and `volumeMounts` of each container if existing.
 {% endnavtab %}
 {% endnavtabs %}
 
+### Toggle Master or Worker in Helm chart
+In use cases where you wish to install Alluxio masters and workers separately
+with the Helm chart, use the following respective toggles:
+
+```properties
+master:
+  enabled: false
+
+worker:
+  enabled: false
+```
+
 ### Kubernetes Configuration Options
 
 The following options are provided in our Helm chart as additional
@@ -1566,6 +1578,45 @@ spec:
     spec:
       strategy:
         type: Recreate
+```
+
+{% endnavtab %}
+{% endnavtabs %}
+
+#### ImagePullSecrets
+
+Kubernetes supports [accessing images from a Private Registry](https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/).
+After creating the registry credentials `Secret` in Kubernetes, you pass the secret
+to your Pods via `imagePullSecrets`.
+
+{% navtabs imagePullSecrets %}
+{% navtab helm %}
+
+The following value applies the specified `imagePullSecrets` to all
+Pods in the Helm chart.
+
+```properties
+imagePullSecrets:
+  - ecr
+  - dev
+```
+
+{% endnavtab %}
+{% navtab kubectl %}
+
+Add `imagePullSecrets` to your Pod specs. Eg:
+
+```properties
+apiVersion: v1
+kind: Pod
+metadata:
+  name: private-reg
+spec:
+  containers:
+  - name: private-reg-container
+    image: <your-private-image>
+  imagePullSecrets:
+  - name: regcred
 ```
 
 {% endnavtab %}
@@ -1870,5 +1921,35 @@ Kubernetes (due to Kubernetes distinguishing between "-bibytes").
 This is unlikely to cause `OOMKilled` errors unless you are operating on
 very tight memory margins.
 
+  {% endcollapsible %}
+  {% collapsible JVM not seeing correct memory limit from cgroup %}
+It is a known issue that in some early versions of Java 8, the JVM running in a container
+will determine its heap size(if not specified with `-Xmx` and `-Xms`) based on 
+the memory of the physical host instead of the container.
+In that case, the JVM may attempt to use more memory than the container
+resource limit and gets killed. You can find more detailed explanations 
+[here](https://developers.redhat.com/blog/2017/03/14/java-inside-docker).
+
+Since Java 8u131, some JVM flags can be turned on in order to correctly read the memory from cgroup.
+You can refer to our `values.yaml` from our Helm chart template, and uncomment the below options.
+These options will be added to the JVM options of all Alluxio containers, including the
+masters and workers etc. You can find more detailed explanations
+[here](https://www.atamanroman.dev/articles/jvm-memory-settings-container-environment/).
+```yaml
+# Recommended JVM Heap options for running in Docker
+# Ref: https://developers.redhat.com/blog/2017/03/14/java-inside-docker/
+# These JVM options are common to all Alluxio services
+jvmOptions:
+  - "-XX:+UnlockExperimentalVMOptions"
+  - "-XX:+UseCGroupMemoryLimitForHeap"
+  - "-XX:MaxRAMFraction=2"
+```
+
+From Java git 8u191 on, the container support works out-of-the-box.
+So you don't need to turn on the flags mentioned above any more.
+
+You should check the Java version in the container you are using to ensure the
+correct memory limits are respected. Also it is recommended to go to the 
+running container and double check the JVM process is running with the correct memory consumption.
   {% endcollapsible %}
 {% endaccordion %}

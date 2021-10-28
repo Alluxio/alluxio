@@ -13,6 +13,7 @@ package alluxio.client.journal;
 
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.grpc.GetQuorumInfoPResponse;
+import alluxio.grpc.GetTransferLeaderMessagePResponse;
 import alluxio.grpc.NetAddress;
 
 import java.io.Closeable;
@@ -41,8 +42,9 @@ public interface JournalMasterClient extends Closeable {
    *
    * @param newLeaderNetAddress server address of the prospective new leader
    * @throws AlluxioStatusException
+   * @return the guid of transfer leader command
    */
-  void transferLeadership(NetAddress newLeaderNetAddress) throws AlluxioStatusException;
+  String transferLeadership(NetAddress newLeaderNetAddress) throws AlluxioStatusException;
 
   /**
    * Resets RaftPeer priorities.
@@ -50,4 +52,12 @@ public interface JournalMasterClient extends Closeable {
    * @throws AlluxioStatusException
    */
   void resetPriorities() throws AlluxioStatusException;
+
+  /**
+   * Gets exception messages thrown when transferring the leader.
+   * @param transferId the guid of transferLeader command
+   * @return exception message thrown when transferring the leader
+   */
+  GetTransferLeaderMessagePResponse getTransferLeaderMessage(String transferId)
+          throws AlluxioStatusException;
 }

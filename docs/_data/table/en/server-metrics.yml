@@ -1,0 +1,6 @@
+Server.JvmPauseMonitorInfoTimeExceeded:
+  'The total number of times that JVM slept and the sleep period is larger than the info level threshold defined by alluxio.jvm.monitor.info.threshold'
+Server.JvmPauseMonitorTotalExtraTime:
+  'The total time that JVM slept and didn''t do GC'
+Server.JvmPauseMonitorWarnTimeExceeded:
+  'The total number of times that JVM slept and the sleep period is larger than the warn level threshold defined by alluxio.jvm.monitor.warn.threshold'

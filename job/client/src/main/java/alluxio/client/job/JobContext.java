@@ -123,7 +123,7 @@ public final class JobContext implements Closeable  {
   public CloseableResource<JobMasterClient> acquireMasterClientResource() {
     return new CloseableResource<JobMasterClient>(mJobMasterClientPool.acquire()) {
       @Override
-      public void close() {
+      public void closeResource() {
         mJobMasterClientPool.release(get());
       }
     };
