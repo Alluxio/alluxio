@@ -3927,6 +3927,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDescription("Preferred media type while storing file's blocks.")
           .setScope(Scope.CLIENT)
           .build();
+
+  public static final PropertyKey USER_BLOCK_SIZE_ENABLED =
+      new Builder(Name.USER_BLOCK_SIZE_ENABLED)
+          .setDefaultValue(false)
+          .setDescription("Use Default block size for Alluxio files.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.ALL)
+          .build();
   public static final PropertyKey USER_BLOCK_SIZE_BYTES_DEFAULT =
       new Builder(Name.USER_BLOCK_SIZE_BYTES_DEFAULT)
           .setDefaultValue("64MB")
@@ -6281,6 +6289,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.user.block.read.metrics.enabled";
     public static final String USER_BLOCK_REMOTE_READ_BUFFER_SIZE_BYTES =
         "alluxio.user.block.remote.read.buffer.size.bytes";
+    public static final String USER_BLOCK_SIZE_ENABLED =
+        "alluxio.user.block.size.enabled";
     public static final String USER_BLOCK_SIZE_BYTES_DEFAULT =
         "alluxio.user.block.size.bytes.default";
     public static final String USER_BLOCK_READ_RETRY_SLEEP_MIN =
