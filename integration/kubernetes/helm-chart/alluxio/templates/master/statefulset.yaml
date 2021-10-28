@@ -106,26 +106,26 @@ spec:
       shareProcessNamespace: true
       {{- end }}
       containers:
-        {{ if .Values.hub.enabled - }}
+        {{ if .Values.hub.enabled -}}
         - name: alluxio-hub
           image: {{ .Values.image }}:{{ .Values.imageTag }}
           imagePullPolicy: {{ .Values.imagePullPolicy }}
           securityContext:
             runAsUser: {{ .Values.user }}
             runAsGroup: {{ .Values.group }}
-          {{ - if .Values.hub.resources }}
+          {{- if .Values.hub.resources }}
 {{ include "alluxio.hub.resources" . | indent 10 }}
-          {{ - end }}
+          {{- end }}
         command: [ "tini", "--", "/entrypoint.sh" ]
-          {{ - if .Values.hub.agent.args }}
+          {{- if .Values.hub.agent.args }}
         args:
 {{ toYaml .Values.hub.agent.args | trim | indent 12 }}
-          {{ - end }}
+          {{- end }}
         env:
-          {{ - range $key, $value := .Values.hub.env }}
+          {{- range $key, $value := .Values.hub.env }}
           - name: "{{ $key }}"
             value: "{{ $value }}"
-            {{ - end }}
+            {{- end }}
           - name: ALLUXIO_HUB_AGENT_RPC_HOSTNAME
             valueFrom:
               fieldRef:
@@ -144,7 +144,7 @@ spec:
           - name: conf-volume
             mountPath: /opt/alluxio/conf
             readOnly: false
-          {{ - end }}
+          {{- end }}
         - name: alluxio-master
           image: {{ .Values.image }}:{{ .Values.imageTag }}
           imagePullPolicy: {{ .Values.imagePullPolicy }}
@@ -211,11 +211,11 @@ spec:
             name: embedded
           {{- end }}
           volumeMounts:
-            {{ - if .Values.hub.enabled }}
+            {{- if .Values.hub.enabled }}
             - name: conf-volume
               mountPath: /opt/alluxio/conf
               readOnly: false
-            {{ - end }}
+            {{- end }}
             {{- if .Values.metrics.enabled }}
             - name: {{ $fullName }}-metrics-volume
               mountPath: /config/metrics
@@ -305,11 +305,11 @@ spec:
             name: job-embedded
           {{- end }}
           volumeMounts:
-          {{ - if .Values.hub.enabled }}
+          {{- if .Values.hub.enabled }}
           - name: conf-volume
             mountPath: /opt/alluxio/conf
             readOnly: false
-          {{ - end }}
+          {{- end }}
           {{- if .Values.metrics.enabled }}
           - name: {{ $fullName }}-metrics-volume
             mountPath: /config/metrics
@@ -327,10 +327,10 @@ spec:
           {{- end }}
       restartPolicy: Always
       volumes:
-        {{ - if .Values.hub.enabled }}
+        {{- if .Values.hub.enabled }}
         - name: conf-volume
           emptyDir: {}
-        {{ - end }}
+        {{- end }}
         {{- if .Values.metrics.enabled }}
         - name: {{ $fullName }}-metrics-volume
           configMap:
