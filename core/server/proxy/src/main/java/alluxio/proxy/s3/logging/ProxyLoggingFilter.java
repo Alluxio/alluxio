@@ -31,7 +31,6 @@ public class ProxyLoggingFilter implements ContainerResponseFilter {
   private static final Logger LOG = LoggerFactory.getLogger(ProxyLoggingFilter.class);
   private static final String SERVER_LOG_DELIMITER = " - ";
 
-  @Context
   private HttpServletRequest mRequest;
 
   @Override
