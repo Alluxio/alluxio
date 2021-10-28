@@ -29,6 +29,7 @@ import alluxio.master.journal.sink.JournalSink;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.proto.journal.Journal.JournalEntry;
+import alluxio.resource.CloseableResource;
 import alluxio.retry.ExponentialTimeBoundedRetry;
 import alluxio.retry.RetryPolicy;
 import alluxio.underfs.UfsStatus;
@@ -151,10 +152,19 @@ public class UfsJournal implements Journal {
    */
   public UfsJournal(URI location, Master master, long quietPeriodMs,
       Supplier<Set<JournalSink>> journalSinks) {
-    this(location, master, master.getMasterContext().getUfsManager().getJournal(location)
-            .acquireUfsResource()
-            .get(),
-        quietPeriodMs, journalSinks);
+    try (CloseableResource<UnderFileSystem> ufs =
+             master.getMasterContext().getUfsManager().getJournal(location).acquireUfsResource()) {
+      mLocation = URIUtils.appendPathOrDie(location, VERSION);
+      mMaster = master;
+      mUfs = ufs.get();
+      mQuietPeriodMs = quietPeriodMs;
+
+      mLogDir = URIUtils.appendPathOrDie(mLocation, LOG_DIRNAME);
+      mCheckpointDir = URIUtils.appendPathOrDie(mLocation, CHECKPOINT_DIRNAME);
+      mTmpDir = URIUtils.appendPathOrDie(mLocation, TMP_DIRNAME);
+      mJournalSinks = journalSinks;
+      init();
+    }
   }
 
   /**
@@ -177,8 +187,12 @@ public class UfsJournal implements Journal {
     mLogDir = URIUtils.appendPathOrDie(mLocation, LOG_DIRNAME);
     mCheckpointDir = URIUtils.appendPathOrDie(mLocation, CHECKPOINT_DIRNAME);
     mTmpDir = URIUtils.appendPathOrDie(mLocation, TMP_DIRNAME);
-    mState.set(State.SECONDARY);
     mJournalSinks = journalSinks;
+    init();
+  }
+
+  protected void init() {
+    mState.set(State.SECONDARY);
     MetricsSystem.registerGaugeIfAbsent(
         MetricKey.MASTER_JOURNAL_ENTRIES_SINCE_CHECKPOINT.getName() + "." + mMaster.getName(),
         this::getEntriesSinceLastCheckPoint);

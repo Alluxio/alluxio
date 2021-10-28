@@ -60,7 +60,10 @@ enum HubStatus {
   MANAGER_STOP_CONNECTION = 1;
   MANAGER_NOT_CONNECTED = 2;
   MANAGER_CONNECTION_OK = 3;
+}
 
+enum AlluxioEdition {
+  ALLUXIO_COMMUNITY_EDITION = 0;
 }
 
 message AlluxioProcessStatus {
