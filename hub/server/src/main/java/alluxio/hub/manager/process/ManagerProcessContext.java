@@ -58,6 +58,7 @@ import alluxio.hub.proto.AgentWriteConfigurationSetResponse;
 import alluxio.hub.proto.AlluxioClusterHeartbeatRequest;
 import alluxio.hub.proto.AlluxioClusterHeartbeatResponse;
 import alluxio.hub.proto.AlluxioConfigurationSet;
+import alluxio.hub.proto.AlluxioEdition;
 import alluxio.hub.proto.AlluxioNodeType;
 import alluxio.hub.proto.ApplyMountPointRequest;
 import alluxio.hub.proto.ApplyMountPointResponse;
@@ -309,6 +310,7 @@ public class ManagerProcessContext implements AutoCloseable {
               .setAlluxioVersion(RuntimeConstants.VERSION)
               .setClusterId(clusterId)
               .setLabel(mConf.get(PropertyKey.HUB_CLUSTER_LABEL))
+              .setAlluxioEdition(AlluxioEdition.ALLUXIO_COMMUNITY_EDITION)
               .build();
     } catch (IOException e) {
       LogUtils.warnWithException(LOG, "Unable to get cluster id from Alluxio master", e);
