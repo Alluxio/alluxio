@@ -32,6 +32,7 @@ import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.Command;
 import alluxio.grpc.CommandType;
 import alluxio.grpc.ConfigProperty;
+import alluxio.grpc.GetRegisterLeasePRequest;
 import alluxio.grpc.GrpcService;
 import alluxio.grpc.GrpcUtils;
 import alluxio.grpc.RegisterWorkerPOptions;
@@ -69,6 +70,7 @@ import alluxio.util.executor.ExecutorServiceFactory;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.wire.Address;
 import alluxio.wire.BlockInfo;
+import alluxio.wire.RegisterLease;
 import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
 
@@ -256,6 +258,8 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
    * This cache only has a single key {@link  #WORKER_INFO_CACHE_KEY}.
    */
   private LoadingCache<String, List<WorkerInfo>> mWorkerInfoCache;
+
+  private RegisterLeaseManager mRegisterLeaseManager = new RegisterLeaseManager();
 
   /**
    * Creates a new instance of {@link DefaultBlockMaster}.
@@ -920,6 +924,21 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
 
     LOG.info("getWorkerId(): WorkerNetAddress: {} id: {}", workerNetAddress, workerId);
     return workerId;
+  }
+
+  @Override
+  public Optional<RegisterLease> tryAcquireRegisterLease(GetRegisterLeasePRequest request) {
+    return mRegisterLeaseManager.tryAcquireLease(request);
+  }
+
+  @Override
+  public boolean hasRegisterLease(long workerId) {
+    return mRegisterLeaseManager.hasLease(workerId);
+  }
+
+  @Override
+  public void releaseRegisterLease(long workerId) {
+    mRegisterLeaseManager.releaseLease(workerId);
   }
 
   @Override
