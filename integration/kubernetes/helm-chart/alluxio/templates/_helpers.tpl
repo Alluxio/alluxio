@@ -329,6 +329,28 @@ hostAliases:
 {{- end }}
 {{- end -}}
 
+{{- define "alluxio.hub.resources" -}}
+resources:
+  limits:
+    {{- if .Values.hub.resources.limits }}
+      {{- if .Values.hub.resources.limits.cpu  }}
+    cpu: {{ .Values.hub.resources.limits.cpu }}
+      {{- end }}
+      {{- if .Values.hub.resources.limits.memory  }}
+    memory: {{ .Values.hub.resources.limits.memory }}
+      {{- end }}
+    {{- end }}
+  requests:
+    {{- if .Values.hub.resources.requests }}
+      {{- if .Values.hub.resources.requests.cpu  }}
+    cpu: {{ .Values.hub.resources.requests.cpu }}
+      {{- end }}
+      {{- if .Values.hub.resources.requests.memory  }}
+    memory: {{ .Values.hub.resources.requests.memory }}
+      {{- end }}
+    {{- end }}
+{{- end -}}
+
 {{- define "alluxio.imagePullSecrets" -}}
 imagePullSecrets:
 {{- range $name := .Values.imagePullSecrets }}

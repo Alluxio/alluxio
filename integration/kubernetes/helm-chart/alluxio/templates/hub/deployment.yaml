@@ -1,0 +1,76 @@
+#
+# The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
+# (the "License"). You may not use this work except in compliance with the License, which is
+# available at www.apache.org/licenses/LICENSE-2.0
+#
+# This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+# either express or implied, as more fully set forth in the License.
+#
+# See the NOTICE file distributed with this work for information regarding copyright ownership.
+#
+
+{{ if .Values.hub.enabled -}}
+{{- $name := include "alluxio.name" . }}
+{{- $fullName := include "alluxio.fullname" . }}
+{{- $chart := include "alluxio.chart" . }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ $fullName }}-hub
+  labels:
+    name: {{ $fullName }}-hub
+    app: {{ $name }}
+    chart: {{ $chart }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+    role: alluxio-hub
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ $name }}
+      role: alluxio-hub
+      name: {{ $fullName }}-hub
+  template:
+    metadata:
+      labels:
+        name: {{ $fullName }}-hub
+        app: {{ $name }}
+        chart: {{ $chart }}
+        release: {{ .Release.Name }}
+        heritage: {{ .Release.Service }}
+        role: alluxio-hub
+    spec:
+      restartPolicy: Always
+      serviceAccountName: {{ .Values.hub.serviceAccount }}
+      containers:
+        - name: alluxio-hub
+          image: {{ .Values.image }}:{{ .Values.imageTag }}
+          imagePullPolicy: {{ .Values.imagePullPolicy }}
+          securityContext:
+            runAsUser: {{ .Values.user }}
+            runAsGroup: {{ .Values.group }}
+          {{- if .Values.hub.resources  }}
+{{ include "alluxio.hub.resources" . | indent 10 }}
+          {{- end }}
+          command: ["tini", "--", "/entrypoint.sh"]
+            {{- if .Values.hub.args }}
+          args:
+{{ toYaml .Values.hub.args | trim | indent 12 }}
+            {{- end }}
+          env:
+            {{- range $key, $value := .Values.hub.env }}
+          - name: "{{ $key }}"
+            value: "{{ $value }}"
+            {{- end }}
+          - name: ALLUXIO_HUB_CONFIG_MAP
+            value: "{{ $fullName }}-config"
+          envFrom:
+          - configMapRef:
+              name: {{ $fullName }}-config
+          ports:
+          - containerPort: {{ .Values.hub.ports.web }}
+            name: web
+          - containerPort: {{ .Values.hub.ports.rpc }}
+            name: rpc
+{{- end }}

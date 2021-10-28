@@ -258,6 +258,15 @@ public class NetworkAddressUtilsTest {
       case WORKER_WEB:
         mConfiguration.set(PropertyKey.WORKER_WEB_PORT, "20000");
         break;
+      case HUB_AGENT_RPC:
+        mConfiguration.set(PropertyKey.HUB_AGENT_RPC_PORT, "20000");
+        break;
+      case HUB_MANAGER_RPC:
+        mConfiguration.set(PropertyKey.HUB_MANAGER_RPC_PORT, "20000");
+        break;
+      case HUB_HOSTED_RPC:
+        mConfiguration.set(PropertyKey.HUB_HOSTED_RPC_PORT, "20000");
+        break;
       default:
         Assert.fail("Unrecognized service type: " + service.toString());
         break;
