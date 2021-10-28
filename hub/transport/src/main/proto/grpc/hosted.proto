@@ -51,6 +51,7 @@ message HubMetadata {
     optional string cluster_id = 1;
     optional string alluxio_version = 2;
     optional string label = 3;
+    optional AlluxioEdition alluxio_edition = 4;
 }
 
 message HubManagerObject {
