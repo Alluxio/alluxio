@@ -244,8 +244,8 @@ public class BlockMasterClient extends AbstractMasterClient {
    *    guess how much resource the registration will take.
    * @param retry a retry policy
    */
-  public void acquireRegisterLeaseWithBackoff(final long workerId, final int estimatedBlockCount,
-                                              final RetryPolicy retry)
+  public void acquireRegisterLeaseWithBackoff(
+      final long workerId, final int estimatedBlockCount, final RetryPolicy retry)
       throws IOException, FailedToAcquireRegisterLeaseException {
     boolean leaseAcquired = false;
     GetRegisterLeasePResponse response = null;
