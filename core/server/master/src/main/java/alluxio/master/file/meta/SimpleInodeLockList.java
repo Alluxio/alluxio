@@ -208,8 +208,12 @@ public class SimpleInodeLockList implements InodeLockList {
   }
 
   private void lockAndAddInode(Inode inode, LockMode mode) {
-    try (RWLockResource lock = mInodeLockManager.lockInode(inode, mode, mUseTryLock)) {
+    RWLockResource lock = mInodeLockManager.lockInode(inode, mode, mUseTryLock);
+    try {
       addInodeLock(inode, mode, lock);
+    } catch (Throwable t) {
+      lock.close();
+      throw t;
     }
   }
 
