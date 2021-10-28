@@ -127,19 +127,20 @@ public class BlockWorkerRegisterStreamIntegrationTest {
   public TemporaryFolder mTestFolder = new TemporaryFolder();
   @Rule
   public ConfigurationRule mConfigurationRule =
-          new ConfigurationRule(new ImmutableMap.Builder<PropertyKey, String>()
-                  .put(PropertyKey.WORKER_TIERED_STORE_LEVELS, "2")
-                  .put(PropertyKey.WORKER_TIERED_STORE_LEVEL0_ALIAS, Constants.MEDIUM_MEM)
-                  .put(PropertyKey.WORKER_TIERED_STORE_LEVEL0_DIRS_MEDIUMTYPE, Constants.MEDIUM_MEM)
-                  .put(PropertyKey.WORKER_TIERED_STORE_LEVEL0_DIRS_QUOTA, "1GB")
-                  .put(PropertyKey.WORKER_TIERED_STORE_LEVEL0_DIRS_PATH, mMemDir)
-                  .put(PropertyKey.WORKER_TIERED_STORE_LEVEL1_ALIAS, Constants.MEDIUM_HDD)
-                  .put(PropertyKey.WORKER_TIERED_STORE_LEVEL1_DIRS_MEDIUMTYPE, Constants.MEDIUM_HDD)
-                  .put(PropertyKey.WORKER_TIERED_STORE_LEVEL1_DIRS_QUOTA, "2GB")
-                  .put(PropertyKey.WORKER_TIERED_STORE_LEVEL1_DIRS_PATH, mHddDir)
-                  .put(PropertyKey.WORKER_RPC_PORT, "0")
-                  .put(PropertyKey.WORKER_MANAGEMENT_TIER_ALIGN_RESERVED_BYTES, "0")
-                  .build(), ServerConfiguration.global());
+      new ConfigurationRule(new ImmutableMap.Builder<PropertyKey, String>()
+          .put(PropertyKey.WORKER_TIERED_STORE_LEVELS, "2")
+          .put(PropertyKey.WORKER_TIERED_STORE_LEVEL0_ALIAS, Constants.MEDIUM_MEM)
+          .put(PropertyKey.WORKER_TIERED_STORE_LEVEL0_DIRS_MEDIUMTYPE, Constants.MEDIUM_MEM)
+          .put(PropertyKey.WORKER_TIERED_STORE_LEVEL0_DIRS_QUOTA, "1GB")
+          .put(PropertyKey.WORKER_TIERED_STORE_LEVEL0_DIRS_PATH, mMemDir)
+          .put(PropertyKey.WORKER_TIERED_STORE_LEVEL1_ALIAS, Constants.MEDIUM_HDD)
+          .put(PropertyKey.WORKER_TIERED_STORE_LEVEL1_DIRS_MEDIUMTYPE, Constants.MEDIUM_HDD)
+          .put(PropertyKey.WORKER_TIERED_STORE_LEVEL1_DIRS_QUOTA, "2GB")
+          .put(PropertyKey.WORKER_TIERED_STORE_LEVEL1_DIRS_PATH, mHddDir)
+          .put(PropertyKey.WORKER_RPC_PORT, "0")
+          .put(PropertyKey.WORKER_MANAGEMENT_TIER_ALIGN_RESERVED_BYTES, "0")
+          .put(PropertyKey.MASTER_WORKER_REGISTER_LEASE_ENABLED, "false")
+          .build(), ServerConfiguration.global());
 
   private ExecutorService mExecutorService;
 
@@ -407,7 +408,7 @@ public class BlockWorkerRegisterStreamIntegrationTest {
   public void deleteDuringRegisterStream() throws Exception {
     // Generate a request stream of blocks
     List<RegisterWorkerPRequest> requestChunks =
-            RegisterStreamTestUtils.generateRegisterStreamForWorker(WORKER_ID);
+          RegisterStreamTestUtils.generateRegisterStreamForWorker(WORKER_ID);
     // Select a block to remove concurrent with the stream
     long blockToRemove = findFirstBlock(requestChunks);
 

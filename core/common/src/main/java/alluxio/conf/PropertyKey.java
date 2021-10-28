@@ -2795,6 +2795,38 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
+  public static final PropertyKey MASTER_WORKER_REGISTER_LEASE_ENABLED =
+      new Builder(Name.MASTER_WORKER_REGISTER_LEASE_ENABLED)
+          .setDefaultValue("true")
+          .setDescription("Whether workers request for leases before they register. "
+              + "The RegisterLease is used by the master to control the concurrency of workers"
+              + " that are actively registering.")
+          .setScope(Scope.MASTER)
+          .build();
+  public static final PropertyKey MASTER_WORKER_REGISTER_LEASE_COUNT =
+      new Builder(Name.MASTER_WORKER_REGISTER_LEASE_COUNT)
+          .setDefaultValue("25")
+          .setDescription("The number of workers that can register at the same time. "
+              + "Others will wait and retry until they are granted a RegisterLease. "
+              + "If you observe pressure on the master when many workers start up and register, "
+              + "tune down this parameter.")
+          .setScope(Scope.MASTER)
+          .build();
+  public static final PropertyKey MASTER_WORKER_REGISTER_LEASE_RESPECT_JVM_SPACE =
+      new Builder(Name.MASTER_WORKER_REGISTER_LEASE_RESPECT_JVM_SPACE)
+          .setDefaultValue("true")
+          .setDescription("Whether the master checks the availability on the JVM before granting"
+              + " a lease to a worker. If the master determines the JVM does not have enough"
+              + " space to accept a new worker, the RegisterLease will not be granted.")
+          .setScope(Scope.MASTER)
+          .build();
+  public static final PropertyKey MASTER_WORKER_REGISTER_LEASE_TTL =
+      new Builder(Name.MASTER_WORKER_REGISTER_LEASE_TTL)
+          .setDefaultValue("1min")
+          .setDescription("The TTL for a RegisterLease granted to the worker. Leases that "
+              + "exceed the TTL will be recycled and granted to other workers.")
+          .setScope(Scope.MASTER)
+          .build();
 
   //
   // Secondary master related properties
@@ -3404,6 +3436,33 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
       .setScope(Scope.WORKER)
       .build();
+  public static final PropertyKey WORKER_REGISTER_LEASE_ENABLED =
+      new Builder(Name.WORKER_REGISTER_LEASE_ENABLED)
+          .setDefaultValue(String.format("${%s}", Name.MASTER_WORKER_REGISTER_LEASE_ENABLED))
+          .setDescription("Whether the worker requests a lease from the master before registering."
+              + "This should be consistent with " + Name.MASTER_WORKER_REGISTER_LEASE_ENABLED)
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.WORKER)
+          .build();
+  public static final PropertyKey WORKER_REGISTER_LEASE_RETRY_SLEEP_MIN =
+      new Builder(Name.WORKER_REGISTER_LEASE_RETRY_SLEEP_MIN)
+          .setDefaultValue("1sec")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.WORKER)
+          .build();
+  public static final PropertyKey WORKER_REGISTER_LEASE_RETRY_SLEEP_MAX =
+      new Builder(Name.WORKER_REGISTER_LEASE_RETRY_SLEEP_MAX)
+          .setDefaultValue("10sec")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.WORKER)
+          .build();
+  public static final PropertyKey WORKER_REGISTER_LEASE_RETRY_MAX_DURATION =
+      new Builder(Name.WORKER_REGISTER_LEASE_RETRY_MAX_DURATION)
+          .setDefaultValue(String.format("${%s}", Name.WORKER_MASTER_CONNECT_RETRY_TIMEOUT))
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.WORKER)
+          .build();
+
   public static final PropertyKey WORKER_REVIEWER_PROBABILISTIC_SOFTLIMIT_BYTES =
           new Builder(Name.WORKER_REVIEWER_PROBABILISTIC_SOFTLIMIT_BYTES)
           .setDefaultValue("256MB")
@@ -6246,6 +6305,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.journal.gc.threshold";
     public static final String MASTER_JOURNAL_TEMPORARY_FILE_GC_THRESHOLD_MS =
         "alluxio.master.journal.temporary.file.gc.threshold";
+    public static final String MASTER_WORKER_REGISTER_LEASE_ENABLED =
+        "alluxio.master.worker.register.lease.enabled";
+    public static final String MASTER_WORKER_REGISTER_LEASE_COUNT =
+        "alluxio.master.worker.register.lease.count";
+    public static final String MASTER_WORKER_REGISTER_LEASE_RESPECT_JVM_SPACE =
+        "alluxio.master.worker.register.lease.respect.jvm.space";
+    public static final String MASTER_WORKER_REGISTER_LEASE_TTL =
+        "alluxio.master.worker.register.lease.ttl";
 
     //
     // File system master related properties
@@ -6384,6 +6451,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.worker.block.master.client.pool.size";
     public static final String WORKER_PRINCIPAL = "alluxio.worker.principal";
     public static final String WORKER_RAMDISK_SIZE = "alluxio.worker.ramdisk.size";
+    public static final String WORKER_REGISTER_LEASE_ENABLED =
+        "alluxio.worker.register.lease.enabled";
+    public static final String WORKER_REGISTER_LEASE_RETRY_SLEEP_MIN =
+        "alluxio.worker.register.lease.retry.sleep.min";
+    public static final String WORKER_REGISTER_LEASE_RETRY_SLEEP_MAX =
+        "alluxio.worker.register.lease.retry.sleep.max";
+    public static final String WORKER_REGISTER_LEASE_RETRY_MAX_DURATION =
+        "alluxio.worker.register.lease.retry.max.duration";
     public static final String WORKER_REVIEWER_PROBABILISTIC_HARDLIMIT_BYTES =
             "alluxio.worker.reviewer.probabilistic.hardlimit.bytes";
     public static final String WORKER_REVIEWER_PROBABILISTIC_SOFTLIMIT_BYTES =

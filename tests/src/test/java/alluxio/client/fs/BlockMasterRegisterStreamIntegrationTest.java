@@ -116,6 +116,7 @@ public class BlockMasterRegisterStreamIntegrationTest {
     ServerConfiguration.set(PropertyKey.WORKER_REGISTER_STREAM_BATCH_SIZE, BATCH_SIZE);
     ServerConfiguration.set(PropertyKey.MASTER_WORKER_TIMEOUT_MS, MASTER_WORKER_TIMEOUT);
     ServerConfiguration.set(PropertyKey.MASTER_WORKER_REGISTER_STREAM_RESPONSE_TIMEOUT, "1s");
+    ServerConfiguration.set(PropertyKey.MASTER_WORKER_REGISTER_LEASE_ENABLED, "false");
 
     mRegistry = new MasterRegistry();
     mMasterContext = MasterTestUtils.testMasterContext();
