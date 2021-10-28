@@ -112,14 +112,14 @@ public final class BlockMasterSync implements HeartbeatExecutor {
         ConfigurationUtils.getConfiguration(ServerConfiguration.global(), Scope.WORKER);
     if (mUseStreaming) {
       mMasterClient.registerWithStream(mWorkerId.get(),
-              storageTierAssoc.getOrderedStorageAliases(), storeMeta.getCapacityBytesOnTiers(),
-              storeMeta.getUsedBytesOnTiers(), storeMeta.getBlockListByStorageLocation(),
-              storeMeta.getLostStorage(), configList);
+          storageTierAssoc.getOrderedStorageAliases(), storeMeta.getCapacityBytesOnTiers(),
+          storeMeta.getUsedBytesOnTiers(), storeMeta.getBlockListByStorageLocation(),
+          storeMeta.getLostStorage(), configList);
     } else {
       mMasterClient.register(mWorkerId.get(),
-              storageTierAssoc.getOrderedStorageAliases(), storeMeta.getCapacityBytesOnTiers(),
-              storeMeta.getUsedBytesOnTiers(), storeMeta.getBlockListByStorageLocation(),
-              storeMeta.getLostStorage(), configList);
+          storageTierAssoc.getOrderedStorageAliases(), storeMeta.getCapacityBytesOnTiers(),
+          storeMeta.getUsedBytesOnTiers(), storeMeta.getBlockListByStorageLocation(),
+          storeMeta.getLostStorage(), configList);
     }
   }
 
@@ -140,6 +140,8 @@ public final class BlockMasterSync implements HeartbeatExecutor {
       cmdFromMaster = mMasterClient.heartbeat(mWorkerId.get(), storeMeta.getCapacityBytesOnTiers(),
           storeMeta.getUsedBytesOnTiers(), blockReport.getRemovedBlocks(),
           blockReport.getAddedBlocks(), blockReport.getLostStorage(), metrics);
+      System.out.println("Heartbeat command is " + cmdFromMaster);
+
       handleMasterCommand(cmdFromMaster);
       mLastSuccessfulHeartbeatMs = System.currentTimeMillis();
     } catch (IOException | ConnectionFailedException e) {

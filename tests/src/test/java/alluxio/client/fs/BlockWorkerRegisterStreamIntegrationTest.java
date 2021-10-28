@@ -11,52 +11,83 @@
 
 package alluxio.client.fs;
 
+import alluxio.AlluxioTestDirectory;
+import alluxio.ClientContext;
+import alluxio.ConfigurationRule;
+import alluxio.Constants;
+import alluxio.Sessions;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.exception.status.DeadlineExceededException;
 import alluxio.exception.status.InternalException;
 import alluxio.exception.status.NotFoundException;
+import alluxio.grpc.Command;
 import alluxio.grpc.ConfigProperty;
 import alluxio.grpc.GrpcExceptionUtils;
 import alluxio.grpc.LocationBlockIdListEntry;
+import alluxio.grpc.Metric;
 import alluxio.grpc.RegisterWorkerPRequest;
 import alluxio.grpc.RegisterWorkerPResponse;
 import alluxio.grpc.StorageList;
+import alluxio.master.MasterClientContext;
 import alluxio.stress.cli.RpcBenchPreparationUtils;
+import alluxio.stress.rpc.TierAlias;
+import alluxio.underfs.UfsManager;
+import alluxio.util.ThreadFactoryUtils;
+import alluxio.worker.block.BlockMasterClient;
+import alluxio.worker.block.BlockMasterClientPool;
+import alluxio.worker.block.BlockMasterSync;
 import alluxio.worker.block.BlockStoreLocation;
+import alluxio.worker.block.DefaultBlockWorker;
 import alluxio.worker.block.RegisterStreamer;
 
+import alluxio.worker.block.TieredBlockStore;
+import alluxio.worker.file.FileSystemMasterClient;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import io.grpc.StatusException;
 import io.grpc.stub.StreamObserver;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
+import java.io.IOException;
 import java.lang.reflect.Field;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static alluxio.client.fs.RegisterStreamTestUtils.CAPACITY_MAP;
 import static alluxio.client.fs.RegisterStreamTestUtils.MEM_CAPACITY;
 import static alluxio.client.fs.RegisterStreamTestUtils.MEM_USAGE_EMPTY;
+import static alluxio.client.fs.RegisterStreamTestUtils.NET_ADDRESS_1;
 import static alluxio.client.fs.RegisterStreamTestUtils.USAGE_MAP;
+import static alluxio.client.fs.RegisterStreamTestUtils.findFirstBlock;
 import static alluxio.grpc.BlockMasterWorkerServiceGrpc.*;
 import static alluxio.stress.cli.RpcBenchPreparationUtils.CAPACITY;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
 import static alluxio.client.fs.RegisterStreamTestUtils.parseTierConfig;
@@ -80,6 +111,43 @@ public class BlockWorkerRegisterStreamIntegrationTest {
   Map<String, Long> mUsedMap;
   Map<BlockStoreLocation, List<Long>> mBlockMap;
 
+  private BlockMasterClient mBlockMasterClient;
+  private BlockMasterClientPool mBlockMasterClientPool;
+  private TieredBlockStore mBlockStore;
+  private DefaultBlockWorker mBlockWorker;
+  private FileSystemMasterClient mFileSystemMasterClient;
+  private Random mRandom;
+  private Sessions mSessions;
+  private UfsManager mUfsManager;
+  private String mMemDir =
+          AlluxioTestDirectory.createTemporaryDirectory(Constants.MEDIUM_MEM).getAbsolutePath();
+  private String mHddDir =
+          AlluxioTestDirectory.createTemporaryDirectory(Constants.MEDIUM_HDD).getAbsolutePath();
+
+
+  Map<String, Integer> mTierToIndex = ImmutableMap.of("MEM", 0, "SSD", 1, "HDD",2 );
+
+
+  @Rule
+  public TemporaryFolder mTestFolder = new TemporaryFolder();
+  @Rule
+  public ConfigurationRule mConfigurationRule =
+          new ConfigurationRule(new ImmutableMap.Builder<PropertyKey, String>()
+                  .put(PropertyKey.WORKER_TIERED_STORE_LEVELS, "2")
+                  .put(PropertyKey.WORKER_TIERED_STORE_LEVEL0_ALIAS, Constants.MEDIUM_MEM)
+                  .put(PropertyKey.WORKER_TIERED_STORE_LEVEL0_DIRS_MEDIUMTYPE, Constants.MEDIUM_MEM)
+                  .put(PropertyKey.WORKER_TIERED_STORE_LEVEL0_DIRS_QUOTA, "1GB")
+                  .put(PropertyKey.WORKER_TIERED_STORE_LEVEL0_DIRS_PATH, mMemDir)
+                  .put(PropertyKey.WORKER_TIERED_STORE_LEVEL1_ALIAS, Constants.MEDIUM_HDD)
+                  .put(PropertyKey.WORKER_TIERED_STORE_LEVEL1_DIRS_MEDIUMTYPE, Constants.MEDIUM_HDD)
+                  .put(PropertyKey.WORKER_TIERED_STORE_LEVEL1_DIRS_QUOTA, "2GB")
+                  .put(PropertyKey.WORKER_TIERED_STORE_LEVEL1_DIRS_PATH, mHddDir)
+                  .put(PropertyKey.WORKER_RPC_PORT, "0")
+                  .put(PropertyKey.WORKER_MANAGEMENT_TIER_ALIGN_RESERVED_BYTES, "0")
+                  .build(), ServerConfiguration.global());
+
+  private ExecutorService mExecutorService;
+
   /**
    * Sets up the dependencies before a test runs.
    */
@@ -96,6 +164,27 @@ public class BlockWorkerRegisterStreamIntegrationTest {
     mCapacityMap = Maps.toMap(mTierAliases, (tier) -> CAPACITY);
     mUsedMap = Maps.toMap(mTierAliases, (tier) -> 0L);
     mBlockMap = RpcBenchPreparationUtils.generateBlockIdOnTiers(parseTierConfig(TIER_CONFIG));
+
+    mExecutorService =
+        Executors.newFixedThreadPool(2, ThreadFactoryUtils.build("TestBlockWorker-%d", true));
+  }
+
+  public void initBlockWorker(RegisterStreamer registerStreamer) throws Exception {
+    // Prepare a block worker
+    mRandom = new Random();
+//    MasterClientContext context = MasterClientContext
+//        .newBuilder(ClientContext.create(ServerConfiguration.global())).build();
+//    mBlockMasterClient = new TestBlockMasterClient(context, registerStreamer);
+    mBlockMasterClientPool = spy(new BlockMasterClientPool());
+    when(mBlockMasterClientPool.createNewResource()).thenReturn(mBlockMasterClient);
+    when(mBlockMasterClientPool.acquire()).thenReturn(mBlockMasterClient);
+    mBlockStore = spy(new TieredBlockStore());
+    mFileSystemMasterClient = mock(FileSystemMasterClient.class);
+    mSessions = mock(Sessions.class);
+    mUfsManager = mock(UfsManager.class);
+
+    mBlockWorker = new DefaultBlockWorker(mBlockMasterClientPool, mFileSystemMasterClient,
+            mSessions, mBlockStore, mUfsManager);
   }
 
   /**
@@ -170,7 +259,7 @@ public class BlockWorkerRegisterStreamIntegrationTest {
     when(asyncClient.withDeadlineAfter(anyLong(), any())).thenReturn(asyncClient);
     AtomicInteger receivedCount = new AtomicInteger();
     AtomicBoolean completed = new AtomicBoolean();
-    BrokenRegisterStreamObserver requestObserver = new BrokenRegisterStreamObserver(Mode.CORRECT, receivedCount, completed);
+    ManualRegisterStreamObserver requestObserver = new ManualRegisterStreamObserver(MasterMode.COMPLETE_AND_REPORT, receivedCount, completed);
     when(asyncClient.registerWorkerStream(any())).thenReturn(requestObserver);
     RegisterStreamer registerStreamer = new RegisterStreamer(asyncClient,
             WORKER_ID, mTierAliases, mCapacityMap, mUsedMap, mBlockMap, LOST_STORAGE, EMPTY_CONFIG);
@@ -200,7 +289,7 @@ public class BlockWorkerRegisterStreamIntegrationTest {
     // Create the stream and control the request/response observers
     BlockMasterWorkerServiceStub asyncClient = PowerMockito.mock(BlockMasterWorkerServiceStub.class);
     when(asyncClient.withDeadlineAfter(anyLong(), any())).thenReturn(asyncClient);
-    BrokenRegisterStreamObserver requestObserver = new BrokenRegisterStreamObserver(Mode.FIRST_REQUEST);
+    ManualRegisterStreamObserver requestObserver = new ManualRegisterStreamObserver(MasterMode.FIRST_REQUEST);
     when(asyncClient.registerWorkerStream(any())).thenReturn(requestObserver);
     RegisterStreamer registerStreamer = new RegisterStreamer(asyncClient,
         WORKER_ID, mTierAliases, mCapacityMap, mUsedMap, mBlockMap, LOST_STORAGE, EMPTY_CONFIG);
@@ -218,7 +307,7 @@ public class BlockWorkerRegisterStreamIntegrationTest {
     // Create the stream and control the request/response observers
     BlockMasterWorkerServiceStub asyncClient = PowerMockito.mock(BlockMasterWorkerServiceStub.class);
     when(asyncClient.withDeadlineAfter(anyLong(), any())).thenReturn(asyncClient);
-    BrokenRegisterStreamObserver requestObserver = new BrokenRegisterStreamObserver(Mode.SECOND_REQUEST);
+    ManualRegisterStreamObserver requestObserver = new ManualRegisterStreamObserver(MasterMode.SECOND_REQUEST);
     when(asyncClient.registerWorkerStream(any())).thenReturn(requestObserver);
     RegisterStreamer registerStreamer = new RegisterStreamer(asyncClient,
         WORKER_ID, mTierAliases, mCapacityMap, mUsedMap, mBlockMap, LOST_STORAGE, EMPTY_CONFIG);
@@ -236,7 +325,7 @@ public class BlockWorkerRegisterStreamIntegrationTest {
     // Create the stream and control the request/response observers
     BlockMasterWorkerServiceStub asyncClient = PowerMockito.mock(BlockMasterWorkerServiceStub.class);
     when(asyncClient.withDeadlineAfter(anyLong(), any())).thenReturn(asyncClient);
-    BrokenRegisterStreamObserver requestObserver = new BrokenRegisterStreamObserver(Mode.ON_COMPLETED);
+    ManualRegisterStreamObserver requestObserver = new ManualRegisterStreamObserver(MasterMode.ON_COMPLETED);
     when(asyncClient.registerWorkerStream(any())).thenReturn(requestObserver);
     RegisterStreamer registerStreamer = new RegisterStreamer(asyncClient,
         WORKER_ID, mTierAliases, mCapacityMap, mUsedMap, mBlockMap, LOST_STORAGE, EMPTY_CONFIG);
@@ -254,7 +343,7 @@ public class BlockWorkerRegisterStreamIntegrationTest {
     // Create the stream and control the request/response observers
     BlockMasterWorkerServiceStub asyncClient = PowerMockito.mock(BlockMasterWorkerServiceStub.class);
     when(asyncClient.withDeadlineAfter(anyLong(), any())).thenReturn(asyncClient);
-    BrokenRegisterStreamObserver requestObserver = new BrokenRegisterStreamObserver(Mode.HANG_IN_STREAM);
+    ManualRegisterStreamObserver requestObserver = new ManualRegisterStreamObserver(MasterMode.HANG_IN_STREAM);
     when(asyncClient.registerWorkerStream(any())).thenReturn(requestObserver);
     RegisterStreamer registerStreamer = new RegisterStreamer(asyncClient,
         WORKER_ID, mTierAliases, mCapacityMap, mUsedMap, mBlockMap, LOST_STORAGE, EMPTY_CONFIG);
@@ -272,7 +361,7 @@ public class BlockWorkerRegisterStreamIntegrationTest {
     // Create the stream and control the request/response observers
     BlockMasterWorkerServiceStub asyncClient = PowerMockito.mock(BlockMasterWorkerServiceStub.class);
     when(asyncClient.withDeadlineAfter(anyLong(), any())).thenReturn(asyncClient);
-    BrokenRegisterStreamObserver requestObserver = new BrokenRegisterStreamObserver(Mode.HANG_ON_COMPLETED);
+    ManualRegisterStreamObserver requestObserver = new ManualRegisterStreamObserver(MasterMode.HANG_ON_COMPLETED);
     when(asyncClient.registerWorkerStream(any())).thenReturn(requestObserver);
     RegisterStreamer registerStreamer = new RegisterStreamer(asyncClient,
         WORKER_ID, mTierAliases, mCapacityMap, mUsedMap, mBlockMap, LOST_STORAGE, EMPTY_CONFIG);
@@ -294,41 +383,173 @@ public class BlockWorkerRegisterStreamIntegrationTest {
    * where some clients already know this worker and can direct invoke writes on the worker.
    *
    * Tests here verify the integrity of the worker-side metadata.
-   * In other words, even a commit/delete happens on the worker during the register stream,
+   * In other words, even a delete/move happens on the worker during the register stream,
    * the change should be successful and the update should be recorded correctly.
    * The update should later be reported to the master.
    */
-  // TODO(jiacheng): register streaming, a delete happened, check the following heartbeat
-  // TODO(jiacheng): register streaming, internal block movement happened, check the following heartbeat
+  @Test
+  public void deleteDuringRegisterStream() throws Exception {
+    // Generate a request stream of blocks
+    List<RegisterWorkerPRequest> requestChunks =
+            RegisterStreamTestUtils.generateRegisterStreamForWorker(WORKER_ID);
+    // Select a block to remove concurrent with the stream
+    long blockToRemove = findFirstBlock(requestChunks);
 
-  // Places where the master may throw an error
-  enum Mode {
+    // Manually create a stream and control the request/response observers
+    BlockMasterWorkerServiceStub asyncClient = PowerMockito.mock(BlockMasterWorkerServiceStub.class);
+    when(asyncClient.withDeadlineAfter(anyLong(), any())).thenReturn(asyncClient);
+    CountDownLatch signalLatch = new CountDownLatch(1);
+    ManualRegisterStreamObserver requestObserver = new ManualRegisterStreamObserver(MasterMode.SIGNAL_IN_STREAM, signalLatch);
+    when(asyncClient.registerWorkerStream(any())).thenReturn(requestObserver);
+    RegisterStreamer registerStreamer = new RegisterStreamer(asyncClient,
+        WORKER_ID, mTierAliases, mCapacityMap, mUsedMap, mBlockMap, LOST_STORAGE, EMPTY_CONFIG);
+    StreamObserver<RegisterWorkerPResponse> responseObserver = getResponseObserver(registerStreamer);
+    requestObserver.setResponseObserver(responseObserver);
+
+    // Prepare the block worker to use the overriden stream
+    MasterClientContext context = MasterClientContext
+            .newBuilder(ClientContext.create(ServerConfiguration.global())).build();
+    // On heartbeat, the expected values will be checked against
+    List<Long> expectedLostBlocks = ImmutableList.of(blockToRemove);
+    Map<BlockStoreLocation, List<Long>> expectedAddedBlocks = ImmutableMap.of();
+    mBlockMasterClient = new TestBlockMasterClient(context, registerStreamer,
+        expectedLostBlocks, expectedAddedBlocks);
+    initBlockWorker(registerStreamer);
+    // Prepare the blocks in the BlockWorker storage that match the register stream
+    prepareBlocksOnWorker(TIER_CONFIG);
+
+    // Let a delete job wait on the signal
+    AtomicReference<Throwable> error = new AtomicReference<>();
+    Future f = mExecutorService.submit(() -> {
+      try {
+        signalLatch.await();
+        mBlockWorker.removeBlock(1L, blockToRemove);
+      } catch (Exception e) {
+        error.set(e);
+      }
+    });
+
+    // Kick off the register stream
+    AtomicReference<Long> workerId = new AtomicReference<>(WORKER_ID);
+    BlockMasterSync sync = new BlockMasterSync(mBlockWorker, workerId, NET_ADDRESS_1, mBlockMasterClientPool);
+
+    // Check the next heartbeat to be sent to the master
+    f.get();
+    assertNull(error.get());
+    // Validation will happen on the heartbeat
+    sync.heartbeat();
+  }
+
+  // TODO(jiacheng): an internal block movement happens during register stream
+  //  verify the next heartbeat
+
+  // An overriden BlockMasterClient
+  class TestBlockMasterClient extends BlockMasterClient {
+    RegisterStreamer mStreamer;
+    List<Long> mRemovedBlocks;
+    Map<BlockStoreLocation, List<Long>> mAddedBlocks;
+
+    public TestBlockMasterClient(MasterClientContext conf, RegisterStreamer streamer,
+                                 final List<Long> removedBlocks, final Map<BlockStoreLocation, List<Long>> addedBlocks) {
+      super(conf);
+      mStreamer = streamer;
+      mRemovedBlocks = removedBlocks;
+      mAddedBlocks = addedBlocks;
+    }
+
+    // Just use the prepared stream
+    @Override
+    public void registerWithStream(
+        final long workerId, final List<String> storageTierAliases,
+        final Map<String, Long> totalBytesOnTiers, final Map<String, Long> usedBytesOnTiers,
+        final Map<BlockStoreLocation, List<Long>> currentBlocksOnLocation,
+        final Map<String, List<String>> lostStorage,
+        final List<ConfigProperty> configList) throws IOException {
+      AtomicReference<IOException> ioe = new AtomicReference<>();
+      try {
+        mStreamer.registerWithMaster();
+      } catch (IOException e) {
+        ioe.set(e);
+      } catch (InterruptedException e) {
+        ioe.set(new IOException(e));
+      }
+      if (ioe.get() != null) {
+        throw ioe.get();
+      }
+      return;
+    }
+
+    @Override
+    public synchronized Command heartbeat(
+        final long workerId, final Map<String, Long> capacityBytesOnTiers, final Map<String, Long> usedBytesOnTiers,
+        final List<Long> removedBlocks, final Map<BlockStoreLocation, List<Long>> addedBlocks,
+        final Map<String, List<String>> lostStorage, final List<Metric> metrics) throws IOException {
+      assertEquals(mRemovedBlocks, removedBlocks);
+      assertEquals(mAddedBlocks, addedBlocks);
+      return Command.getDefaultInstance();
+    }
+
+
+    @Override
+    public void commitBlock(final long workerId, final long usedBytesOnTier,
+                            final String tierAlias, final String mediumType,
+                            final long blockId, final long length) throws IOException {
+      // Noop because there is no master
+    }
+  }
+
+  private void prepareBlocksOnWorker(String tierConfig) throws Exception{
+    List<String> tierAliases = getTierAliases(parseTierConfig(tierConfig));
+    // Generate block IDs heuristically
+    Map<TierAlias, List<Integer>> tierConfigMap = parseTierConfig(tierConfig);
+    Map<BlockStoreLocation, List<Long>> blockMap =
+            RpcBenchPreparationUtils.generateBlockIdOnTiers(tierConfigMap);
+
+    for (Map.Entry<BlockStoreLocation, List<Long>> entry : blockMap.entrySet()) {
+      BlockStoreLocation loc = entry.getKey();
+      int tierIndex = mTierToIndex.get(loc.tierAlias());
+      for (long blockId : entry.getValue()) {
+        mBlockWorker.createBlock(1L, blockId, tierIndex, loc.tierAlias(), 1);
+        mBlockWorker.commitBlock(1L, blockId, false);
+      }
+    }
+  }
+
+  // Controls the behavior of the manually overriden master-side register stream observer
+  enum MasterMode {
     FIRST_REQUEST,
     SECOND_REQUEST,
     ON_COMPLETED,
     HANG_IN_STREAM,
     HANG_ON_COMPLETED,
-    CORRECT
+    COMPLETE_AND_REPORT,
+    SIGNAL_IN_STREAM
   }
 
   // A master side register stream handler that may return error on certain calls
-  class BrokenRegisterStreamObserver implements
+  class ManualRegisterStreamObserver implements
       StreamObserver<alluxio.grpc.RegisterWorkerPRequest> {
     private int batch = 0;
-    Mode mMode;
+    MasterMode mMasterMode;
     StreamObserver<RegisterWorkerPResponse> mResponseObserver;
     // Used to pass a signal back to the tester
     AtomicInteger mReceivedCount = null;
     AtomicBoolean mCompleted = null;
+    CountDownLatch mSignalLatch = null;
 
-    BrokenRegisterStreamObserver(Mode mode) {
-      mMode = mode;
+    ManualRegisterStreamObserver(MasterMode masterMode) {
+      mMasterMode = masterMode;
     }
 
-    BrokenRegisterStreamObserver(Mode mode, AtomicInteger receivedCount, AtomicBoolean completed) {
-      this(mode);
+    ManualRegisterStreamObserver(MasterMode masterMode, AtomicInteger receivedCount, AtomicBoolean completed) {
+      this(masterMode);
       mReceivedCount = receivedCount;
       mCompleted = completed;
+    }
+
+    ManualRegisterStreamObserver(MasterMode masterMode, CountDownLatch signalLatch) {
+      this(masterMode);
+      mSignalLatch = signalLatch;
     }
 
     void setResponseObserver(StreamObserver<RegisterWorkerPResponse> responseObserver) {
@@ -337,18 +558,16 @@ public class BlockWorkerRegisterStreamIntegrationTest {
 
     @Override
     public void onNext(alluxio.grpc.RegisterWorkerPRequest chunk) {
-      System.out.println("batch = " + batch + " master received request");
-      if (mMode == Mode.HANG_IN_STREAM) {
-        System.out.println("No response is equal to infinite waiting");
+      if (mMasterMode == MasterMode.HANG_IN_STREAM) {
         return;
       }
-      if (batch == 0 && mMode == Mode.FIRST_REQUEST) {
+      if (batch == 0 && mMasterMode == MasterMode.FIRST_REQUEST) {
         // Throw a checked exception that is the most likely at this stage
         mResponseObserver.onError(GrpcExceptionUtils.fromThrowable(new NotFoundException("Simulate worker is not found")));
         batch++;
         return;
       }
-      if (batch == 1 && mMode == Mode.SECOND_REQUEST) {
+      if (batch == 1 && mMasterMode == MasterMode.SECOND_REQUEST) {
         // There is no checked exception after the 1st request
         // It is probably because something is wrong on the master side
         StatusException x = new InternalException(new RuntimeException("Error on the server side")).toGrpcStatusException();
@@ -356,32 +575,33 @@ public class BlockWorkerRegisterStreamIntegrationTest {
         batch++;
         return;
       }
-      System.out.println("Master sending response for batch " + batch);
       mResponseObserver.onNext(RegisterWorkerPResponse.getDefaultInstance());
+      if (batch == 0 && mMasterMode == MasterMode.SIGNAL_IN_STREAM) {
+        // Send a signal and continue
+        mSignalLatch.countDown();
+      }
       batch++;
     }
 
     @Override
     public void onError(Throwable t) {
-      System.out.println("Master received error " + t);
       mResponseObserver.onError(t);
     }
 
     @Override
     public void onCompleted() {
-      System.out.println("Master received complete msg ");
-      if (mMode == Mode.HANG_ON_COMPLETED) {
-        System.out.println("No response is equal to infinite waiting");
+      if (mMasterMode == MasterMode.HANG_ON_COMPLETED) {
+        // No response is equal to infinite waiting
         return;
       }
-      if (mMode == Mode.ON_COMPLETED) {
+      if (mMasterMode == MasterMode.ON_COMPLETED) {
         // There is no checked exception after the 1st request
         // It is probably because something is wrong on the master side
         StatusException x = new InternalException(new RuntimeException("Error on completing the server side")).toGrpcStatusException();
         mResponseObserver.onError(GrpcExceptionUtils.fromThrowable(x));
         return;
       }
-      if (mMode == Mode.CORRECT) {
+      if (mMasterMode == MasterMode.COMPLETE_AND_REPORT) {
         mReceivedCount.set(batch);
         mCompleted.set(true);
       }

@@ -12,6 +12,7 @@
 package alluxio.client.fs;
 
 import alluxio.grpc.ConfigProperty;
+import alluxio.grpc.LocationBlockIdListEntry;
 import alluxio.grpc.RegisterWorkerPRequest;
 import alluxio.grpc.RegisterWorkerPResponse;
 import alluxio.stress.cli.RpcBenchPreparationUtils;
@@ -130,5 +131,11 @@ public class RegisterStreamTestUtils {
         System.out.println("Completed");
       }
     };
+  }
+
+  static long findFirstBlock(List<RegisterWorkerPRequest> chunks) {
+    RegisterWorkerPRequest firstBatch = chunks.get(0);
+    LocationBlockIdListEntry entry = firstBatch.getCurrentBlocks(0);
+    return entry.getValue().getBlockId(0);
   }
 }

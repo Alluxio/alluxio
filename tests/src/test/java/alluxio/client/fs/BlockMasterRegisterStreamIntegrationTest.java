@@ -654,7 +654,7 @@ public class BlockMasterRegisterStreamIntegrationTest {
     assertEquals(1, mBlockMaster.getWorkerCount());
 
     // Find a block to remove
-    long blockToRemove = findFirstBlock(requestChunks);
+    long blockToRemove = RegisterStreamTestUtils.findFirstBlock(requestChunks);
 
     // Register again
     System.out.println("Register again");
@@ -711,7 +711,7 @@ public class BlockMasterRegisterStreamIntegrationTest {
     assertEquals(1, mBlockMaster.getWorkerCount());
 
     // Find a block to free
-    long blockToRemove = findFirstBlock(requestChunks);
+    long blockToRemove = RegisterStreamTestUtils.findFirstBlock(requestChunks);
 
     // Register again
     System.out.println("Register again");
@@ -855,12 +855,6 @@ public class BlockMasterRegisterStreamIntegrationTest {
     assertEquals(expectedBlockCount, worker.getBlockCount());
     assertEquals(0, worker.getToRemoveBlockCount());
     assertEquals(1, mBlockMaster.getWorkerCount());
-  }
-
-  private long findFirstBlock(List<RegisterWorkerPRequest> chunks) {
-    RegisterWorkerPRequest firstBatch = chunks.get(0);
-    LocationBlockIdListEntry entry = firstBatch.getCurrentBlocks(0);
-    return entry.getValue().getBlockId(0);
   }
 
   private Command sendHeartbeatToMaster(long workerId) {

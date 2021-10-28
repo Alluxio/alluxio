@@ -83,7 +83,7 @@ public class CachingBlockMasterClient extends BlockMasterClient {
     retryRPC(() -> {
       try {
         RegisterStreamer stream = new RegisterStreamer(mAsyncClient, workerId, storageTierAliases, totalBytesOnTiers, usedBytesOnTiers,
-                currentBlocksOnLocation, lostStorage, configList, mBlockBatchIterator);
+            lostStorage, configList, mBlockBatchIterator);
         stream.registerWithMaster();
       } catch (IOException e) {
         ioe.set(e);
