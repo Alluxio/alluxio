@@ -44,7 +44,7 @@ spec:
       name: embedded
     - port: 20003
       name: job-embedded
-    - port: { { $hubAgentPort } }
+    - port: {{ $hubAgentPort }}
       name: hub-agent
   clusterIP: None
   selector:
