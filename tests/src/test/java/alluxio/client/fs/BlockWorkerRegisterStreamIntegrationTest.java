@@ -277,7 +277,7 @@ public class BlockWorkerRegisterStreamIntegrationTest {
   private StreamObserver<RegisterWorkerPResponse> getResponseObserver(
       RegisterStreamer stream) throws Exception {
     Field privateField
-        = RegisterStreamer.class.getDeclaredField("mResponseObserver");
+        = RegisterStreamer.class.getDeclaredField("mMasterResponseObserver");
     privateField.setAccessible(true);
     return (StreamObserver<RegisterWorkerPResponse>) privateField.get(stream);
   }

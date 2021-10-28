@@ -115,13 +115,10 @@ public class RegisterStreamTestUtils {
   }
 
   static StreamObserver<RegisterWorkerPResponse> getErrorCapturingResponseObserver(
-          Queue<Throwable> errorQueue
-  ) {
+      Queue<Throwable> errorQueue) {
     return new StreamObserver<RegisterWorkerPResponse>() {
       @Override
-      public void onNext(RegisterWorkerPResponse response) {
-        System.out.format("Response %s%n", response);
-      }
+      public void onNext(RegisterWorkerPResponse response) {}
 
       @Override
       public void onError(Throwable t) {
@@ -129,9 +126,7 @@ public class RegisterStreamTestUtils {
       }
 
       @Override
-      public void onCompleted() {
-        System.out.println("Completed");
-      }
+      public void onCompleted() {}
     };
   }
 

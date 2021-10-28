@@ -742,7 +742,6 @@ public class BlockMasterRegisterStreamIntegrationTest {
     mBlockMaster.removeBlocks(ImmutableList.of(blockToRemove), false);
 
     BlockInfo info = mBlockMaster.getBlockInfo(blockToRemove);
-    System.out.println(info);
     MasterWorkerInfo worker = mBlockMaster.getWorker(workerId);
     assertEquals(0, newErrorQueue.size());
     assertEquals(1, mBlockMaster.getWorkerCount());
@@ -858,9 +857,6 @@ public class BlockMasterRegisterStreamIntegrationTest {
     sendStreamToMaster(requestChunks,
         RegisterStreamTestUtils.getErrorCapturingResponseObserver(errorQueue));
 
-    if (!errorQueue.isEmpty()) {
-      System.out.println(errorQueue);
-    }
     assertEquals(0, errorQueue.size());
     MasterWorkerInfo worker = mBlockMaster.getWorker(workerId);
     assertEquals(expectedBlockCount, worker.getBlockCount());
