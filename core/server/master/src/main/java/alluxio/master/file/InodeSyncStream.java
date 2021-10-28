@@ -926,6 +926,7 @@ public class InodeSyncStream {
 
     try (LockedInodePath writeLockedPath = inodePath.lockFinalEdgeWrite();
          MergeJournalContext merger = new MergeJournalContext(rpcContext.getJournalContext(),
+             writeLockedPath.getUri(),
              InodeSyncStream::mergeCreateComplete)) {
       // We do not want to close this wrapRpcContext because it uses elements from another context
       RpcContext wrapRpcContext = new RpcContext(
