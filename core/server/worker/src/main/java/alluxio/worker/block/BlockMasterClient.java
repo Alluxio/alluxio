@@ -262,10 +262,10 @@ public class BlockMasterClient extends AbstractMasterClient {
   }
 
   public void registerWithStream(final long workerId, final List<String> storageTierAliases,
-                                 final Map<String, Long> totalBytesOnTiers, final Map<String, Long> usedBytesOnTiers,
-                                 final Map<BlockStoreLocation, List<Long>> currentBlocksOnLocation,
-                                 final Map<String, List<String>> lostStorage,
-                                 final List<ConfigProperty> configList) throws IOException {
+      final Map<String, Long> totalBytesOnTiers, final Map<String, Long> usedBytesOnTiers,
+      final Map<BlockStoreLocation, List<Long>> currentBlocksOnLocation,
+      final Map<String, List<String>> lostStorage,
+      final List<ConfigProperty> configList) throws IOException {
     AtomicReference<IOException> ioe = new AtomicReference<>();
     // The retry logic only takes care of connection issues.
     // If the master side sends back an error,

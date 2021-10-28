@@ -52,19 +52,11 @@ public class RegisterStreamObserver implements StreamObserver<RegisterWorkerPReq
   public void onNext(RegisterWorkerPRequest chunk) {
     final long workerId = chunk.getWorkerId();
     final boolean isHead = isFirstMessage(chunk);
-    Deadline deadline = Context.current().getDeadline();
-    LOG.debug("onNext Thread {} Worker {} Cancellable {} has deadline {}",
-            Thread.currentThread().getId(), workerId,
-            Context.current() instanceof Context.CancellableContext, deadline);
+    LOG.debug("Received register worker request of {} bytes with {} LocationBlockIdListEntry. "
+            + "Worker {}, isHead {}",
+        chunk.getSerializedSize(), chunk.getCurrentBlocksCount(), workerId, isHead);
 
-    LOG.debug("Received register worker request of {} bytes with {} LocationBlockIdListEntry. " +
-            "Worker {}, isHead {}",
-        chunk.getSerializedSize(),
-        chunk.getCurrentBlocksCount(),
-        workerId,
-        isHead);
-
-    StreamObserver<RegisterWorkerPRequest> requestObserver = this;
+    StreamObserver<RegisterWorkerPRequest> workerRequestObserver = this;
     String methodName = isHead ? "registerWorkerStart" : "registerWorkerStream";
 
     RpcUtils.streamingRPCAndLog(LOG, new RpcUtils.StreamingRpcCallable<RegisterWorkerPResponse>() {
@@ -75,13 +67,13 @@ public class RegisterStreamObserver implements StreamObserver<RegisterWorkerPReq
             "The stream has been closed due to an earlier error received: %s", mErrorReceived.get());
 
         // Initialize the context on the 1st message
-        synchronized (requestObserver) {
+        synchronized (workerRequestObserver) {
           if (mContext == null) {
             Preconditions.checkState(isHead,
                 "Context is not initialized but the request is not the 1st in a stream!");
             LOG.debug("Initializing context for {}", workerId);
             mContext = WorkerRegisterContext.create(
-                mBlockMaster, workerId, requestObserver, mResponseObserver);
+                mBlockMaster, workerId, workerRequestObserver, mResponseObserver);
             LOG.debug("Context created for {}", workerId);
           }
         }
@@ -94,12 +86,7 @@ public class RegisterStreamObserver implements StreamObserver<RegisterWorkerPReq
                 + "Probably %s was exceeded!",
             PropertyKey.MASTER_WORKER_REGISTER_STREAM_RESPONSE_TIMEOUT.toString());
 
-        if (isHead) {
-          Context con = Context.current();
-          mBlockMaster.workerRegisterStart(mContext, chunk);
-        } else {
-          mBlockMaster.workerRegisterBatch(mContext, chunk);
-        }
+        mBlockMaster.workerRegisterStream(mContext, chunk, isHead);
         mContext.updateTs();
         // Return an ACK to the worker so it sends the next batch
         return RegisterWorkerPResponse.newBuilder().build();
@@ -122,12 +109,9 @@ public class RegisterStreamObserver implements StreamObserver<RegisterWorkerPReq
   // the worker will send the error to the master and close itself.
   // The master will then receive the error, abort the stream and close itself.
   public void onError(Throwable t) {
+    mErrorReceived.set(t);
     Preconditions.checkState(mContext != null,
         "Error received from the client side but the context was not initialized!");
-    Deadline deadline = Context.current().getDeadline();
-    LOG.debug("onError Thread {} Worker {} Cancellable {} has deadline {}",
-            Thread.currentThread().getId(), mContext.getWorkerId(),
-            Context.current() instanceof Context.CancellableContext, deadline);
 
     if (t instanceof TimeoutException) {
       cleanup();
@@ -137,7 +121,6 @@ public class RegisterStreamObserver implements StreamObserver<RegisterWorkerPReq
       return;
     }
     // Otherwise the exception is from the worker
-    mErrorReceived.set(t);
     LOG.error("Received error from the worker side during the streaming register call: {}", t.getMessage());
     cleanup();
   }
@@ -145,11 +128,6 @@ public class RegisterStreamObserver implements StreamObserver<RegisterWorkerPReq
   @Override
   public void onCompleted() {
     LOG.info("Register stream completed on the client side");
-    Deadline deadline = Context.current().getDeadline();
-//    LOG.debug("onCompleted Thread {} Worker {} Cancellable {} has deadline {}",
-//        Thread.currentThread().getId(), mContext.getWorkerId(),
-//        Context.current() instanceof Context.CancellableContext, deadline);
-
     String methodName = "registerWorkerComplete";
     RpcUtils.streamingRPCAndLog(LOG, new RpcUtils.StreamingRpcCallable<RegisterWorkerPResponse>() {
       @Override

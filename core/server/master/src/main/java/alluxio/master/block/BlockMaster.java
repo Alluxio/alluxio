@@ -289,13 +289,13 @@ public interface BlockMaster extends Master, ContainerIdGenerable {
    * Handles the 1st message in the worker registration stream.
    * Only the 1st message will carry metadata other than the worker ID and the block list.
    */
-  void workerRegisterStart(WorkerRegisterContext context, RegisterWorkerPRequest chunk);
+  void workerRegisterStream(WorkerRegisterContext context, RegisterWorkerPRequest chunk, boolean isFirstMsg);
 
   /**
    * Handles the 2nd to last message in the worker registration stream.
    * The message should only contain worker ID and the block list.
    */
-  void workerRegisterBatch(WorkerRegisterContext context, RegisterWorkerPRequest chunk);
+//  void workerRegisterBatch(WorkerRegisterContext context, RegisterWorkerPRequest chunk);
 
   /**
    * Completes the worker registration stream.

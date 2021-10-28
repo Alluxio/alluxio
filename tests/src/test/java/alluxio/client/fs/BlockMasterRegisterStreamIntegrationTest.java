@@ -417,7 +417,9 @@ public class BlockMasterRegisterStreamIntegrationTest {
     // Instead of sending requests to the master, the worker is interrupted
     // around the beginning of the stream. The error propagated to the master.
     Exception e = new InterruptedException("Worker is interrupted");
-    requestObserver.onError(e);
+    assertThrows(IllegalStateException.class, () -> {
+      requestObserver.onError(e);
+    });
     System.out.println("Worker sends error before the 1st request");
 
     // After the requestObserver.onError(), no requests
@@ -493,8 +495,6 @@ public class BlockMasterRegisterStreamIntegrationTest {
     verifyWorkerCanReregister(workerId, requestChunks, 100+200+300+1000+1500+2000);
   }
 
-  // TODO(jiacheng): master throws error on workerRegisterStart/Batch/Complete,
-  //  the worker can receive an error
   @Test
   public void workerRegisterStartThrowsError() throws Exception {
     // Hijack the block master so it throws errors

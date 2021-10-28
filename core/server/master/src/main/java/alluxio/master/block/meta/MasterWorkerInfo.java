@@ -14,7 +14,9 @@ package alluxio.master.block.meta;
 import alluxio.Constants;
 import alluxio.StorageTierAssoc;
 import alluxio.client.block.options.GetWorkerReportOptions.WorkerInfoField;
+import alluxio.grpc.RegisterWorkerPOptions;
 import alluxio.grpc.StorageList;
+import alluxio.master.block.DefaultBlockMaster;
 import alluxio.resource.LockResource;
 import alluxio.util.CommonUtils;
 import alluxio.wire.WorkerInfo;
@@ -58,11 +60,11 @@ import javax.annotation.concurrent.NotThreadSafe;
  *  1. Metadata like ID, address etc, represented by a {@link StaticWorkerMeta} object.
  *     This group is thread safe, meaning no locking is required.
  *  2. Worker last updated timestamp. This is thread safe, meaning no locking is required.
- *  3. Worker register status. This is guarded by a {@link ReentrantReadWriteLock}.
+ *  3. Worker register status. This is guarded by a {@link StampedLock#asReadWriteLock()}.
  *  4. Worker resource usage, represented by a {@link WorkerUsageMeta} object.
- *     This is guarded by a {@link ReentrantReadWriteLock}.
+ *     This is guarded by a {@link StampedLock#asReadWriteLock()}.
  *  5. Worker block lists, including the present blocks and blocks to be removed from the worker.
- *     This is guarded by a {@link ReentrantReadWriteLock}.
+ *     This is guarded by a {@link StampedLock#asReadWriteLock()}.
  *
  * When accessing certain fields in this object, external locking is required.
  * As listed above, group 1 and 2 are thread safe and do not require external locking.
@@ -91,6 +93,27 @@ import javax.annotation.concurrent.NotThreadSafe;
  *     ...
  *   }
  * </pre></blockquote>
+ *
+ * The locks are internally {@link StampedLock} which are NOT reentrant!
+ * We chose {@link StampedLock} instead of {@link ReentrantReadWriteLock}
+ * because the latter does not allow the write lock to be grabbed in one thread
+ * but later released in another thread.
+ * This is undesirable because when the worker registers in a stream, the thread
+ * that handles the 1st message will acquire the lock and the thread that handles
+ * the complete signal will be responsible for releasing the lock.
+ * In the current gRPC architecture it is impossible to enforce the two threads
+ * to be the same.
+ *
+ * Because then locks are not reentrant, you must be extra careful NOT to
+ * acquire the lock while holding, because that will result in a deadlock!
+ * This is especially the case for write locks.
+ *
+ * The current write lock holders include the following:
+ * 1. In {@link DefaultBlockMaster}, the methods related to worker register/heartbeat,
+ *    and block removal/commit.
+ * 2. In {@link alluxio.master.block.WorkerRegisterContext},
+ *    the write locks are held throughout the lifecycle.
+ * 3. In {@link DefaultBlockMaster.LostWorkerDetectionHeartbeatExecutor#heartbeat()}
  */
 @NotThreadSafe
 public final class MasterWorkerInfo {
@@ -107,14 +130,12 @@ public final class MasterWorkerInfo {
   @GuardedBy("mStatusLock")
   public boolean mIsRegistered;
   /** Locks the worker register status. */
-//  private final ReentrantReadWriteLock mStatusLock;
   private final ReadWriteLock mStatusLock;
 
   /** Worker usage data. */
   @GuardedBy("mUsageLock")
   private final WorkerUsageMeta mUsage;
   /** Locks the worker usage data. */
-//  private final ReentrantReadWriteLock mUsageLock;
   private final ReadWriteLock mUsageLock;
 
   /** Ids of blocks the worker contains. */
@@ -124,7 +145,6 @@ public final class MasterWorkerInfo {
   @GuardedBy("mBlockListLock")
   private final Set<Long> mToRemoveBlocks;
   /** Locks the 2 block sets above. */
-//  private final ReentrantReadWriteLock mBlockListLock;
   private final ReadWriteLock mBlockListLock;
 
   /** Stores the mapping from WorkerMetaLockSection to the lock. */
@@ -144,9 +164,6 @@ public final class MasterWorkerInfo {
     mLastUpdatedTimeMs = new AtomicLong(CommonUtils.getCurrentMs());
 
     // Init all locks
-//    mStatusLock = new ReentrantReadWriteLock();
-//    mUsageLock = new ReentrantReadWriteLock();
-//    mBlockListLock = new ReentrantReadWriteLock();
     mStatusLock = new StampedLock().asReadWriteLock();
     mUsageLock = new StampedLock().asReadWriteLock();
     mBlockListLock = new StampedLock().asReadWriteLock();

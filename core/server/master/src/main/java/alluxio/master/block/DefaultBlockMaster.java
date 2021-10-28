@@ -402,7 +402,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
         .concat(CommonUtils.singleElementIterator(getContainerIdJournalEntry()), blockIterator));
   }
 
-  final class WorkerRegisterStreamGCExecutor implements HeartbeatExecutor {
+  public class WorkerRegisterStreamGCExecutor implements HeartbeatExecutor {
     private final long mTimeout =
         ServerConfiguration.global().getMs(PropertyKey.MASTER_WORKER_REGISTER_STREAM_RESPONSE_TIMEOUT);
 
@@ -421,9 +421,8 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
             PropertyKey.MASTER_WORKER_REGISTER_STREAM_RESPONSE_TIMEOUT.toString());
         Exception e = new TimeoutException(msg);
         try {
-          context.mRequestObserver.onError(e);
+          context.closeWithError(e);
         } catch (Throwable t) {
-          t.printStackTrace();
           LOG.error("Failed to close an open register stream for worker {}. "
               + "The stream has been open for {}ms.", context.getWorkerId(), t);
           // Do not remove the entry so this will be retried
@@ -1045,7 +1044,17 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
   }
 
   @Override
-  public void workerRegisterStart(WorkerRegisterContext context, RegisterWorkerPRequest chunk) {
+  public void workerRegisterStream(WorkerRegisterContext context,
+                                  RegisterWorkerPRequest chunk, boolean isFirstMsg) {
+    if (isFirstMsg) {
+      workerRegisterStart(context, chunk);
+    } else {
+      workerRegisterBatch(context, chunk);
+    }
+  }
+
+  protected void workerRegisterStart(WorkerRegisterContext context,
+      RegisterWorkerPRequest chunk) {
     final List<String> storageTiers = chunk.getStorageTiersList();
     final Map<String, Long> totalBytesOnTiers = chunk.getTotalBytesOnTiersMap();
     final Map<String, Long> usedBytesOnTiers = chunk.getUsedBytesOnTiersMap();
@@ -1081,8 +1090,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
     }
   }
 
-  @Override
-  public void workerRegisterBatch(WorkerRegisterContext context, RegisterWorkerPRequest chunk) {
+  protected void workerRegisterBatch(WorkerRegisterContext context, RegisterWorkerPRequest chunk) {
     final Map<alluxio.proto.meta.Block.BlockLocation, List<Long>> currentBlocksOnLocation =
             BlockMasterWorkerServiceHandler.reconstructBlocksOnLocationMap(chunk.getCurrentBlocksList(), context.getWorkerId());
     MasterWorkerInfo worker = context.mWorker;

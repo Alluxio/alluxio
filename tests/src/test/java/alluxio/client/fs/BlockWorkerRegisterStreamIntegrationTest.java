@@ -48,6 +48,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import io.grpc.StatusException;
 import io.grpc.stub.StreamObserver;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -106,27 +107,22 @@ import static alluxio.client.fs.RegisterStreamTestUtils.TIER_BLOCK_TOTAL;
 public class BlockWorkerRegisterStreamIntegrationTest {
   private static long WORKER_ID = 1L;
 
-  List<String> mTierAliases;
-  Map<String, Long> mCapacityMap;
-  Map<String, Long> mUsedMap;
-  Map<BlockStoreLocation, List<Long>> mBlockMap;
+  // Some fields for made-up data
+  private List<String> mTierAliases;
+  private Map<String, Long> mCapacityMap;
+  private Map<String, Long> mUsedMap;
+  private Map<BlockStoreLocation, List<Long>> mBlockMap;
+  private Map<String, Integer> mTierToIndex =
+      ImmutableMap.of("MEM", 0, "SSD", 1, "HDD",2 );
 
+  // Used to mock the block worker
   private BlockMasterClient mBlockMasterClient;
   private BlockMasterClientPool mBlockMasterClientPool;
-  private TieredBlockStore mBlockStore;
   private DefaultBlockWorker mBlockWorker;
-  private FileSystemMasterClient mFileSystemMasterClient;
-  private Random mRandom;
-  private Sessions mSessions;
-  private UfsManager mUfsManager;
   private String mMemDir =
-          AlluxioTestDirectory.createTemporaryDirectory(Constants.MEDIUM_MEM).getAbsolutePath();
+      AlluxioTestDirectory.createTemporaryDirectory(Constants.MEDIUM_MEM).getAbsolutePath();
   private String mHddDir =
-          AlluxioTestDirectory.createTemporaryDirectory(Constants.MEDIUM_HDD).getAbsolutePath();
-
-
-  Map<String, Integer> mTierToIndex = ImmutableMap.of("MEM", 0, "SSD", 1, "HDD",2 );
-
+      AlluxioTestDirectory.createTemporaryDirectory(Constants.MEDIUM_HDD).getAbsolutePath();
 
   @Rule
   public TemporaryFolder mTestFolder = new TemporaryFolder();
@@ -169,19 +165,20 @@ public class BlockWorkerRegisterStreamIntegrationTest {
         Executors.newFixedThreadPool(2, ThreadFactoryUtils.build("TestBlockWorker-%d", true));
   }
 
-  public void initBlockWorker(RegisterStreamer registerStreamer) throws Exception {
+  @After
+  public void after() throws Exception {
+    mExecutorService.shutdown();
+  }
+
+  public void initBlockWorker() throws Exception {
     // Prepare a block worker
-    mRandom = new Random();
-//    MasterClientContext context = MasterClientContext
-//        .newBuilder(ClientContext.create(ServerConfiguration.global())).build();
-//    mBlockMasterClient = new TestBlockMasterClient(context, registerStreamer);
     mBlockMasterClientPool = spy(new BlockMasterClientPool());
     when(mBlockMasterClientPool.createNewResource()).thenReturn(mBlockMasterClient);
     when(mBlockMasterClientPool.acquire()).thenReturn(mBlockMasterClient);
-    mBlockStore = spy(new TieredBlockStore());
-    mFileSystemMasterClient = mock(FileSystemMasterClient.class);
-    mSessions = mock(Sessions.class);
-    mUfsManager = mock(UfsManager.class);
+    TieredBlockStore mBlockStore = spy(new TieredBlockStore());
+    FileSystemMasterClient mFileSystemMasterClient = mock(FileSystemMasterClient.class);
+    Sessions mSessions = mock(Sessions.class);
+    UfsManager mUfsManager = mock(UfsManager.class);
 
     mBlockWorker = new DefaultBlockWorker(mBlockMasterClientPool, mFileSystemMasterClient,
             mSessions, mBlockStore, mUfsManager);
@@ -414,7 +411,7 @@ public class BlockWorkerRegisterStreamIntegrationTest {
     Map<BlockStoreLocation, List<Long>> expectedAddedBlocks = ImmutableMap.of();
     mBlockMasterClient = new TestBlockMasterClient(context, registerStreamer,
         expectedLostBlocks, expectedAddedBlocks);
-    initBlockWorker(registerStreamer);
+    initBlockWorker();
     // Prepare the blocks in the BlockWorker storage that match the register stream
     prepareBlocksOnWorker(TIER_CONFIG);
 

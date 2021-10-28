@@ -24,8 +24,9 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThrows;
 
 public class BlockMasterTestUtils {
-  public static void verifyBlockOnWorkers(BlockMaster blockMaster, long blockId, long blockLength,
-                                    List<WorkerInfo> workers) throws Exception {
+  public static void verifyBlockOnWorkers(
+      BlockMaster blockMaster, long blockId, long blockLength,
+      List<WorkerInfo> workers) throws Exception {
     BlockInfo blockInfo = blockMaster.getBlockInfo(blockId);
     assertEquals(blockLength, blockInfo.getLength());
     assertEquals(workers.size(), blockInfo.getLocations().size());

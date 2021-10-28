@@ -38,21 +38,27 @@ public class WorkerRegisterContext implements Closeable {
    */
   private LockResource mWorkerLock;
   private AtomicBoolean mOpen;
-  StreamObserver<RegisterWorkerPRequest> mRequestObserver;
-  StreamObserver<RegisterWorkerPResponse> mResponseObserver;
+  private StreamObserver<RegisterWorkerPRequest> mWorkerRequestObserver;
+  private StreamObserver<RegisterWorkerPResponse> mMasterResponseObserver;
 
-  long mLastActivityTimeMs;
+  /**
+   * Keeps track of the last activity time on this stream.
+   * Streams that have been inactive for some time will be recycled by
+   * {@link alluxio.master.block.DefaultBlockMaster.WorkerRegisterStreamGCExecutor}.
+   */
+  private long mLastActivityTimeMs;
 
-  private WorkerRegisterContext(MasterWorkerInfo info,
-                        StreamObserver<RegisterWorkerPRequest> requestObserver,
-                        StreamObserver<RegisterWorkerPResponse> responseObserver) {
+  private WorkerRegisterContext(
+      MasterWorkerInfo info,
+      StreamObserver<RegisterWorkerPRequest> workerRequestObserver,
+      StreamObserver<RegisterWorkerPResponse> masterResponseObserver) {
     mWorker = info;
-    mRequestObserver = requestObserver;
-    mResponseObserver = responseObserver;
+    mWorkerRequestObserver = workerRequestObserver;
+    mMasterResponseObserver = masterResponseObserver;
     mWorkerLock = info.lockWorkerMeta(EnumSet.of(
-            WorkerMetaLockSection.STATUS,
-            WorkerMetaLockSection.USAGE,
-            WorkerMetaLockSection.BLOCKS), false);
+        WorkerMetaLockSection.STATUS,
+        WorkerMetaLockSection.USAGE,
+        WorkerMetaLockSection.BLOCKS), false);
     mOpen = new AtomicBoolean(true);
   }
 
@@ -64,12 +70,16 @@ public class WorkerRegisterContext implements Closeable {
     return mOpen.get();
   }
 
-  public void updateTs() {
+  void updateTs() {
     mLastActivityTimeMs = Instant.now().toEpochMilli();
   }
 
-  public long getLastActivityTimeMs() {
+  long getLastActivityTimeMs() {
     return mLastActivityTimeMs;
+  }
+
+  void closeWithError(Exception e) {
+    mWorkerRequestObserver.onError(e);
   }
 
   @Override
@@ -84,9 +94,9 @@ public class WorkerRegisterContext implements Closeable {
   }
 
   public static synchronized WorkerRegisterContext create(
-          BlockMaster blockMaster, long workerId,
-          StreamObserver<RegisterWorkerPRequest> requestObserver,
-          StreamObserver<RegisterWorkerPResponse> responseObserver) throws NotFoundException {
+      BlockMaster blockMaster, long workerId,
+      StreamObserver<RegisterWorkerPRequest> requestObserver,
+      StreamObserver<RegisterWorkerPResponse> responseObserver) throws NotFoundException {
     MasterWorkerInfo info = blockMaster.getWorker(workerId);
     return new WorkerRegisterContext(info, requestObserver, responseObserver);
   }
