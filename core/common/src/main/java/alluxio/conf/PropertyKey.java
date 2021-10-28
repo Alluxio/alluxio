@@ -2761,11 +2761,10 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey MASTER_RPC_EXECUTOR_CORE_POOL_SIZE =
       new Builder(Name.MASTER_RPC_EXECUTOR_CORE_POOL_SIZE)
-          .setDefaultValue(0)
+          .setDefaultValue(500)
           .setDescription("the number of threads to keep in thread pool of master RPC executor "
               + "service. By default it is same as the parallelism level, but may be "
-              + "set to a larger value to reduce dynamic overhead if tasks regularly block. "
-              + "A smaller value (for example 0) is equivalent to the default.")
+              + "set to a larger value to reduce dynamic overhead if tasks regularly block. ")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
