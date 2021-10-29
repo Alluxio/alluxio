@@ -17,6 +17,7 @@ import static org.junit.Assert.assertTrue;
 import alluxio.Constants;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
+import alluxio.exception.status.UnavailableException;
 import alluxio.master.journal.noop.NoopJournalSystem;
 import alluxio.master.journal.raft.RaftJournalConfiguration;
 import alluxio.master.journal.raft.RaftJournalSystem;
@@ -28,9 +29,6 @@ import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
 
 import com.google.common.base.Preconditions;
-import org.apache.ratis.protocol.RaftGroupMemberId;
-import org.apache.ratis.protocol.RaftPeer;
-import org.apache.ratis.protocol.exceptions.NotLeaderException;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -47,7 +45,6 @@ import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.URL;
-import java.util.ArrayList;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -113,24 +110,21 @@ public final class AlluxioMasterProcessTest {
   }
 
   @Test
-  public void startMastersThrowsNotLeaderException() throws InterruptedException {
+  public void startMastersThrowsNotLeaderException() throws InterruptedException, IOException {
     ControllablePrimarySelector primarySelector = new ControllablePrimarySelector();
     primarySelector.setState(PrimarySelector.State.PRIMARY);
     ServerConfiguration.set(PropertyKey.MASTER_JOURNAL_EXIT_ON_DEMOTION, "true");
     FaultTolerantAlluxioMasterProcess master = new FaultTolerantAlluxioMasterProcess(
         new NoopJournalSystem(), primarySelector);
     FaultTolerantAlluxioMasterProcess spy = Mockito.spy(master);
-    RaftPeer raftPeer = Mockito.mock(RaftPeer.class);
-    RaftGroupMemberId groupMemberId = Mockito.mock(RaftGroupMemberId.class);
-    Mockito.doAnswer(invocation -> {
-      throw new NotLeaderException(groupMemberId, raftPeer, new ArrayList<>());
-    }).when(spy).startMasters(true);
+    Mockito.doAnswer(invocation -> { throw new UnavailableException("unavailable"); })
+        .when(spy).startMasters(true);
 
     AtomicBoolean success = new AtomicBoolean(true);
     Thread t = new Thread(() -> {
       try {
         spy.start();
-      } catch (NotLeaderException nle) {
+      } catch (UnavailableException ue) {
         success.set(false);
       } catch (Exception e) {
         throw new RuntimeException(e);

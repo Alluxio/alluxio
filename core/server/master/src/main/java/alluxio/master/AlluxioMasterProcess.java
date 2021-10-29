@@ -191,7 +191,7 @@ public class AlluxioMasterProcess extends MasterProcess {
    *
    * @param isLeader if the Master is leader
    */
-  protected void startMasters(boolean isLeader) {
+  protected void startMasters(boolean isLeader) throws IOException {
     try {
       if (isLeader) {
         if (ServerConfiguration.isSet(PropertyKey.MASTER_JOURNAL_INIT_FROM_BACKUP)) {

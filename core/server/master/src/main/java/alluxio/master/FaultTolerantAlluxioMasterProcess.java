@@ -15,6 +15,7 @@ import alluxio.Constants;
 import alluxio.ProcessUtils;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
+import alluxio.exception.status.UnavailableException;
 import alluxio.master.PrimarySelector.State;
 import alluxio.master.journal.JournalSystem;
 import alluxio.metrics.MetricKey;
@@ -144,7 +145,7 @@ final class FaultTolerantAlluxioMasterProcess extends AlluxioMasterProcess {
     }
     try {
       startMasters(true);
-    } catch (Exception e) {
+    } catch (UnavailableException e) {
       LOG.warn("Error starting masters: {}", e.toString());
       return false;
     }
