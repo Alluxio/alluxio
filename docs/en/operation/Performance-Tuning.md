@@ -98,17 +98,17 @@ The following parameters tune the behavior of the monitor thread:
 <tr><th>Property</th><th>Default</th><th>Description</th></tr>
 <tr>
   <td>alluxio.jvm.monitor.warn.threshold</td>
-  <td>10sec</td>
+  <td>10s</td>
   <td>Delay required to log at WARN level</td>
 </tr>
 <tr>
   <td>alluxio.jvm.monitor.info.threshold</td>
-  <td>1sec</td>
+  <td>1s</td>
   <td>Delay required to log at INFO level</td>
 </tr>
 <tr>
   <td>alluxio.jvm.monitor.sleep.interval</td>
-  <td>1sec</td>
+  <td>1s</td>
   <td>The time for the JVM monitor thread to sleep</td>
 </tr>
 </table>
@@ -168,7 +168,7 @@ If there is a drop in the hit ratio, consider boosting cache size or examine the
 </tr>
 <tr>
   <td>alluxio.master.journal.flush.timeout</td>
-  <td>5min</td>
+  <td>5m</td>
   <td>The amount of time to retry journal writes before giving up and shutting down the master</td>
 </tr>
 </table>
