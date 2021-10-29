@@ -7,6 +7,10 @@ option java_outer_classname = "RestProto";
 package alluxio.hub.proto;
 
 // Messages used in request/responses to the Hub Manager API
+message HubAuthentication {
+  optional string api_key = 1;
+  optional string secret_key = 2;
+}
 
 message Status {
   optional string uptime = 1;

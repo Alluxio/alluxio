@@ -32,10 +32,12 @@ import alluxio.exception.AlluxioException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
 import alluxio.exception.status.AlluxioStatusException;
+import alluxio.grpc.GrpcChannel;
 import alluxio.grpc.MountPOptions;
 import alluxio.hub.common.HubSslContextProvider;
 import alluxio.hub.common.HubUtil;
 import alluxio.hub.common.RpcClient;
+import alluxio.hub.manager.rpc.interceptor.HubAuthenticationInterceptor;
 import alluxio.hub.manager.rpc.observer.RequestStreamObserver;
 import alluxio.hub.manager.util.AlluxioCluster;
 import alluxio.hub.manager.util.HubCluster;
@@ -53,6 +55,8 @@ import alluxio.hub.proto.AgentRemoveFileRequest;
 import alluxio.hub.proto.AgentRemoveFileResponse;
 import alluxio.hub.proto.AgentSetPrestoConfRequest;
 import alluxio.hub.proto.AgentSetPrestoConfResponse;
+import alluxio.hub.proto.AgentShutdownRequest;
+import alluxio.hub.proto.AgentShutdownResponse;
 import alluxio.hub.proto.AgentWriteConfigurationSetRequest;
 import alluxio.hub.proto.AgentWriteConfigurationSetResponse;
 import alluxio.hub.proto.AlluxioClusterHeartbeatRequest;
@@ -72,6 +76,7 @@ import alluxio.hub.proto.GetConfigurationSetResponse;
 import alluxio.hub.proto.GetPrestoConfDirRequest;
 import alluxio.hub.proto.GetPrestoConfDirResponse;
 import alluxio.hub.proto.HostedManagerServiceGrpc;
+import alluxio.hub.proto.HubAuthentication;
 import alluxio.hub.proto.HubMetadata;
 import alluxio.hub.proto.HubStatus;
 import alluxio.hub.proto.ListCatalogRequest;
@@ -132,6 +137,8 @@ import io.fabric8.kubernetes.client.Config;
 import io.fabric8.kubernetes.client.ConfigBuilder;
 import io.fabric8.kubernetes.client.DefaultKubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClient;
+import io.grpc.Channel;
+import io.grpc.Status;
 import io.grpc.stub.StreamObserver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -246,10 +253,18 @@ public class ManagerProcessContext implements AutoCloseable {
     InetSocketAddress addr = NetworkAddressUtils
         .getConnectAddress(NetworkAddressUtils.ServiceType.HUB_HOSTED_RPC, modConf);
     mHostedClient = new RpcClient<>(modConf, addr,
-            HostedManagerServiceGrpc::newBlockingStub, () -> ExponentialTimeBoundedRetry.builder()
+        (Channel channel) -> {
+          ((GrpcChannel) channel).intercept(new HubAuthenticationInterceptor(
+                  HubAuthentication.newBuilder()
+                  .setApiKey(modConf.get(PropertyKey.HUB_AUTHENTICATION_API_KEY))
+                  .setSecretKey(modConf.get(PropertyKey.HUB_AUTHENTICATION_SECRET_KEY))
+                  .build()
+          ));
+          return HostedManagerServiceGrpc.newBlockingStub(channel);
+        }, () -> ExponentialTimeBoundedRetry.builder()
             .withSkipInitialSleep()
             .withMaxDuration(
-                    Duration.ofMillis(modConf.getMs(PropertyKey.HUB_AGENT_HEARTBEAT_INTERVAL)))
+                    Duration.ofMillis(modConf.getMs(PropertyKey.HUB_MANAGER_REGISTER_RETRY_TIME)))
             .build());
     LOG.info("Initialized manager context");
   }
@@ -273,7 +288,7 @@ public class ManagerProcessContext implements AutoCloseable {
                 .equals(HubStatus.MANAGER_START_CONNECTION),
             "Missing status in registerManager response");
       } catch (Throwable t) {
-        LogUtils.warnWithException(LOG, "Failed trying to register manager with Hosted Hub", t);
+        handleStatusRuntimeException("Failed trying to register manager with Hosted Hub", t);
         continue;
       }
       startPingManagerListener();
@@ -296,6 +311,31 @@ public class ManagerProcessContext implements AutoCloseable {
     }
     throw new Exception(String.format("Failed to connect to Hub after %s attempts",
             retry.getAttemptCount()));
+  }
+
+  private void handleStatusRuntimeException(String message, Throwable t) {
+    LogUtils.warnWithException(LOG, message, t);
+    if (Status.fromThrowable(t).getCode() == Status.UNAUTHENTICATED.getCode()) {
+      // shut down the Hub Manager and Agents
+      String msg = String.format("Shutting down the Hub Agent because the Hub Manager is "
+                      + "unauthenticated. Check %s, %s properties in the Hub Manager's "
+                      + "alluxio-site.properties.",
+              PropertyKey.Name.HUB_AUTHENTICATION_API_KEY,
+              PropertyKey.Name.HUB_AUTHENTICATION_SECRET_KEY);
+      AgentShutdownRequest req = AgentShutdownRequest.newBuilder()
+              .setLogMessage(msg).setExitCode(401).build();
+      Function<AgentManagerServiceGrpc.AgentManagerServiceBlockingStub,
+              AgentShutdownResponse> x = (client) -> {
+                AgentShutdownResponse resp = client.shutdown(req);
+                return resp;
+              };
+      execOnHub(x);
+      LOG.error(String.format("Shutting down the Hub manager because it is unauthenticated. "
+                      + "Check %s, %s properties in alluxio-site.properties.",
+              PropertyKey.Name.HUB_AUTHENTICATION_API_KEY,
+              PropertyKey.Name.HUB_AUTHENTICATION_SECRET_KEY));
+      System.exit(401);
+    }
   }
 
   private HubMetadata getHubMetadata() {
@@ -337,8 +377,13 @@ public class ManagerProcessContext implements AutoCloseable {
       InetSocketAddress addr = NetworkAddressUtils
           .getConnectAddress(NetworkAddressUtils.ServiceType.HUB_HOSTED_RPC, modifiedConfig);
       try {
+        GrpcChannel channel = RpcClient.createChannel(addr, modifiedConfig);
+        channel.intercept(new HubAuthenticationInterceptor(HubAuthentication.newBuilder()
+                .setApiKey(modifiedConfig.get(PropertyKey.HUB_AUTHENTICATION_API_KEY))
+                .setSecretKey(modifiedConfig.get(PropertyKey.HUB_AUTHENTICATION_SECRET_KEY))
+                .build()));
         mHostedAsyncSub =
-                HostedManagerServiceGrpc.newStub(RpcClient.createChannel(addr, modifiedConfig));
+                HostedManagerServiceGrpc.newStub(channel);
       } catch (AlluxioStatusException e) {
         LOG.error("Error connecting to hosted hub {}", e);
       }
@@ -377,6 +422,11 @@ public class ManagerProcessContext implements AutoCloseable {
         // needs to check if cluster id changed
         alluxioClusterHeartbeat(mAlluxioCluster.toProto());
       }
+
+      @Override
+      public void handleError(String message, Throwable t) {
+        handleStatusRuntimeException(message, t);
+      }
     };
     StreamObserver<PingManagerResponse> responseObserver =
             asyncStub.pingManager(requestObserver);
@@ -405,6 +455,11 @@ public class ManagerProcessContext implements AutoCloseable {
       @Override
       public void restart() {
         startProcessStatusChangeListener();
+      }
+
+      @Override
+      public void handleError(String message, Throwable t) {
+        handleStatusRuntimeException(message, t);
       }
     };
     StreamObserver<ProcessStatusChangeResponse> responseObserver =
@@ -435,6 +490,11 @@ public class ManagerProcessContext implements AutoCloseable {
       @Override
       public void restart() {
         startGetConfigurationSetListener();
+      }
+
+      @Override
+      public void handleError(String message, Throwable t) {
+        handleStatusRuntimeException(message, t);
       }
     };
     StreamObserver<GetConfigurationSetResponse> responseObserver =
@@ -467,6 +527,11 @@ public class ManagerProcessContext implements AutoCloseable {
       public void restart() {
         startWriteConfigurationSetListener();
       }
+
+      @Override
+      public void handleError(String message, Throwable t) {
+        handleStatusRuntimeException(message, t);
+      }
     };
     StreamObserver<WriteConfigurationSetResponse> responseObserver =
             asyncStub.writeConfigurationSet(requestObserver);
@@ -494,6 +559,11 @@ public class ManagerProcessContext implements AutoCloseable {
       public void restart() {
         startUploadFileListener();
       }
+
+      @Override
+      public void handleError(String message, Throwable t) {
+        handleStatusRuntimeException(message, t);
+      }
     };
     StreamObserver<UploadFileResponse> responseObserver = asyncStub.uploadFile(requestObserver);
     requestObserver.start(responseObserver,
@@ -518,6 +588,11 @@ public class ManagerProcessContext implements AutoCloseable {
       @Override
       public void restart() {
         startListFileListener();
+      }
+
+      @Override
+      public void handleError(String message, Throwable t) {
+        handleStatusRuntimeException(message, t);
       }
     };
     StreamObserver<ListFileResponse> responseObserver = asyncStub.listFile(requestObserver);
@@ -545,6 +620,11 @@ public class ManagerProcessContext implements AutoCloseable {
       public void restart() {
         startRemoveFileListener();
       }
+
+      @Override
+      public void handleError(String message, Throwable t) {
+        handleStatusRuntimeException(message, t);
+      }
     };
     StreamObserver<RemoveFileResponse> responseObserver = asyncStub.removeFile(requestObserver);
     requestObserver.start(responseObserver,
@@ -570,6 +650,11 @@ public class ManagerProcessContext implements AutoCloseable {
       @Override
       public void restart() {
         startDetectPrestoListener();
+      }
+
+      @Override
+      public void handleError(String message, Throwable t) {
+        handleStatusRuntimeException(message, t);
       }
     };
     StreamObserver<DetectPrestoResponse> responseObserver = asyncStub.detectPresto(requestObserver);
@@ -601,6 +686,11 @@ public class ManagerProcessContext implements AutoCloseable {
       public void restart() {
         startListCatalogListener();
       }
+
+      @Override
+      public void handleError(String message, Throwable t) {
+        handleStatusRuntimeException(message, t);
+      }
     };
     StreamObserver<ListCatalogResponse> responseObserver = asyncStub.listCatalog(requestObserver);
     requestObserver.start(responseObserver,
@@ -630,6 +720,11 @@ public class ManagerProcessContext implements AutoCloseable {
       public void restart() {
         startSetPrestoConfDirListener();
       }
+
+      @Override
+      public void handleError(String message, Throwable t) {
+        handleStatusRuntimeException(message, t);
+      }
     };
     StreamObserver<SetPrestoConfDirResponse> responseObserver = asyncStub
             .setPrestoConfDir(requestObserver);
@@ -657,6 +752,11 @@ public class ManagerProcessContext implements AutoCloseable {
       @Override
       public void restart() {
         startGetPrestoConfDirListener();
+      }
+
+      @Override
+      public void handleError(String message, Throwable t) {
+        handleStatusRuntimeException(message, t);
       }
     };
     StreamObserver<GetPrestoConfDirResponse> responseObserver = asyncStub
@@ -687,6 +787,11 @@ public class ManagerProcessContext implements AutoCloseable {
       public void restart() {
         startListMountPointsListener();
       }
+
+      @Override
+      public void handleError(String message, Throwable t) {
+        handleStatusRuntimeException(message, t);
+      }
     };
     StreamObserver<ListMountPointResponse> responseObserver = asyncStub
             .listMountPoint(requestObserver);
@@ -714,6 +819,11 @@ public class ManagerProcessContext implements AutoCloseable {
       @Override
       public void restart() {
         startApplyMountPointListener();
+      }
+
+      @Override
+      public void handleError(String message, Throwable t) {
+        handleStatusRuntimeException(message, t);
       }
     };
     StreamObserver<ApplyMountPointResponse> responseObserver = asyncStub
@@ -743,6 +853,11 @@ public class ManagerProcessContext implements AutoCloseable {
       public void restart() {
         startDeleteMountPointListener();
       }
+
+      @Override
+      public void handleError(String message, Throwable t) {
+        handleStatusRuntimeException(message, t);
+      }
     };
     StreamObserver<DeleteMountPointResponse> responseObserver = asyncStub
             .deleteMountPoint(requestObserver);
@@ -770,6 +885,11 @@ public class ManagerProcessContext implements AutoCloseable {
       public void restart() {
         startSpeedTestListener();
       }
+
+      @Override
+      public void handleError(String message, Throwable t) {
+        handleStatusRuntimeException(message, t);
+      }
     };
     StreamObserver<SpeedTestResponse> responseObserver = asyncStub.speedTest(requestObserver);
     requestObserver.start(responseObserver,
@@ -796,6 +916,19 @@ public class ManagerProcessContext implements AutoCloseable {
    */
   public HubCluster getHubCluster() {
     return mHubCluster;
+  }
+
+  /**
+   * Execute a function across all Hub agents.
+   *
+   * @param action a function that supplies a Hub agent client
+   * @param <T> the response type that is returned from the client action
+   * @return a mapping of responses from each hub agent the action was executed on to the
+   *         agent's address
+   */
+  public <T> Map<HubNodeAddress, T> execOnHub(
+          Function<AgentManagerServiceGrpc.AgentManagerServiceBlockingStub, T> action) {
+    return mHubCluster.exec(mHubCluster.allNodes(), mConf, action, mSvc);
   }
 
   /**
@@ -934,7 +1067,7 @@ public class ManagerProcessContext implements AutoCloseable {
         connectToHub(cluster);
       }
     } catch (Throwable t) {
-      LogUtils.warnWithException(LOG, "Failed during alluxio cluster heartbeat", t);
+      handleStatusRuntimeException("Failed during alluxio cluster heartbeat", t);
     }
   }
 
