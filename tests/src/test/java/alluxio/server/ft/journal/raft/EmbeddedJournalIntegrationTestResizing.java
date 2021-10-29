@@ -133,6 +133,9 @@ public class EmbeddedJournalIntegrationTestResizing extends EmbeddedJournalInteg
     // Wait until cluster registers unavailability of the shut down master.
     waitForQuorumPropertySize(info -> info.getServerState() == QuorumServerState.UNAVAILABLE, 1);
 
+    // Reacquire FS client after master re-election.
+    fs = mCluster.getFileSystemClient();
+
     // Verify cluster is still operational.
     assertTrue(fs.exists(testDir));
 
