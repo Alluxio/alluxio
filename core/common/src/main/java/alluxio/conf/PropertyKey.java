@@ -2737,41 +2737,26 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.MASTER)
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .build();
-  // In Java8 in container environment Runtime.availableProcessors() always returns 1,
-  // which is not the actual number of cpus, so we set a safe default value 8.
-  public static final PropertyKey MASTER_RPC_EXECUTOR_PARALLELISM =
-      new Builder(Name.MASTER_RPC_EXECUTOR_PARALLELISM)
-          .setDefaultSupplier(() -> Math.max(8, 2 * Runtime.getRuntime().availableProcessors()),
-              "2 * {CPU core count}")
-          .setDescription("The parallelism level of master RPC executor service .")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.MASTER)
-          .build();
-  public static final PropertyKey MASTER_RPC_EXECUTOR_MIN_RUNNABLE =
-      new Builder(Name.MASTER_RPC_EXECUTOR_MIN_RUNNABLE)
-          .setDefaultValue(1)
-          .setDescription("the minimum allowed number of core threads not blocked. "
-              + "To ensure progress, when too few unblocked threads exist and unexecuted tasks may "
-              + "exist, new threads are constructed up to the value of "
-              + Name.MASTER_RPC_EXECUTOR_MAX_POOL_SIZE
-              + ". A value of 1 ensures liveness. A larger value might improve "
-              + "throughput but might also increase overhead.")
+  public static final PropertyKey MASTER_RPC_EXECUTOR_TYPE =
+      new Builder(Name.MASTER_RPC_EXECUTOR_TYPE)
+          .setDefaultValue("ThreadPoolExecutor")
+          .setDescription("Type of ExecutorService for Alluxio master gRPC server. "
+              + "Supported values are ThreadPoolExecutor and ForkJoinPool.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey MASTER_RPC_EXECUTOR_CORE_POOL_SIZE =
       new Builder(Name.MASTER_RPC_EXECUTOR_CORE_POOL_SIZE)
           .setDefaultValue(500)
-          .setDescription("the number of threads to keep in thread pool of master RPC executor "
-              + "service. By default it is same as the parallelism level, but may be "
-              + "set to a larger value to reduce dynamic overhead if tasks regularly block. ")
+          .setDescription(
+              "The number of threads to keep in thread pool of master RPC ExecutorService.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey MASTER_RPC_EXECUTOR_MAX_POOL_SIZE =
       new Builder(Name.MASTER_RPC_EXECUTOR_MAX_POOL_SIZE)
           .setDefaultValue(500)
-          .setDescription("the maximum number of threads allowed for master RPC executor service."
+          .setDescription("The maximum number of threads allowed for master RPC ExecutorService."
               + " When the maximum is reached, attempts to replace blocked threads fail.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
@@ -2779,8 +2764,60 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey MASTER_RPC_EXECUTOR_KEEPALIVE =
       new Builder(Name.MASTER_RPC_EXECUTOR_KEEPALIVE)
           .setDefaultValue("60sec")
-          .setDescription("the keep alive time of a thread in master RPC executor service"
+          .setDescription("The keep alive time of a thread in master RPC ExecutorService"
               + "last used before this thread is terminated (and replaced if necessary).")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.MASTER)
+          .build();
+  public static final PropertyKey MASTER_RPC_EXECUTOR_TPE_QUEUE_TYPE =
+      new Builder(Name.MASTER_RPC_EXECUTOR_TPE_QUEUE_TYPE)
+          .setDefaultValue("LINKED_BLOCKING_QUEUE")
+          .setDescription(String.format(
+              "This property is effective when %s is set to TPE. "
+                  + "It specifies the internal task queue that's used by RPC ExecutorService. "
+                  + "Supported values are: LINKED_BLOCKING_QUEUE, LINKED_BLOCKING_QUEUE_WITH_CAP, "
+                  + "ARRAY_BLOCKING_QUEUE and SYNCHRONOUS_BLOCKING_QUEUE",
+              Name.MASTER_RPC_EXECUTOR_TYPE))
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.MASTER)
+          .build();
+  public static final PropertyKey MASTER_RPC_EXECUTOR_TPE_ALLOW_CORE_THREADS_TIMEOUT =
+      new Builder(Name.MASTER_RPC_EXECUTOR_TPE_ALLOW_CORE_THREADS_TIMEOUT)
+          .setDefaultValue(true)
+          .setDescription(String.format("This property is effective when %s is set to ThreadPoolExecutor. "
+              + "It controls whether core threads can timeout and terminate "
+              + "when there is no work.", Name.MASTER_RPC_EXECUTOR_TYPE))
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.MASTER)
+          .build();
+  public static final PropertyKey MASTER_RPC_EXECUTOR_FJP_PARALLELISM =
+      new Builder(Name.MASTER_RPC_EXECUTOR_FJP_PARALLELISM)
+          .setDefaultSupplier(() -> Math.max(8, 2 * Runtime.getRuntime().availableProcessors()),
+              "2 * {CPU core count}")
+          .setDescription(String.format("This property is effective when %s is set to ForkJoinPool. "
+              + "It controls the parallelism level (internal queue count) of master RPC ExecutorService.",
+              Name.MASTER_RPC_EXECUTOR_TYPE))
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.MASTER)
+          .build();
+  public static final PropertyKey MASTER_RPC_EXECUTOR_FJP_MIN_RUNNABLE =
+      new Builder(Name.MASTER_RPC_EXECUTOR_FJP_MIN_RUNNABLE)
+          .setDefaultValue(1)
+          .setDescription(String.format("This property is effective when %s is set to ForkJoinPool. "
+              + "It controls the minimum allowed number of core threads not blocked. "
+              + "A value of 1 ensures liveness. A larger value might improve "
+              + "throughput but might also increase overhead.", Name.MASTER_RPC_EXECUTOR_TYPE))
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.MASTER)
+          .build();
+  public static final PropertyKey MASTER_RPC_EXECUTOR_FJP_ASYNC =
+      new Builder(Name.MASTER_RPC_EXECUTOR_FJP_ASYNC)
+          .setDefaultValue(true)
+          .setDescription(String.format("This property is effective when %s is set to ForkJoinPool. "
+              + "if true, it establishes local first-in-first-out scheduling mode for forked tasks "
+              + "that are never joined. This mode may be more appropriate than default locally "
+              + "stack-based mode in applications in which worker threads only process event-style "
+              + "asynchronous tasks.", Name.MASTER_RPC_EXECUTOR_TYPE))
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
@@ -6163,16 +6200,23 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String MASTER_REPLICATION_CHECK_INTERVAL_MS =
         "alluxio.master.replication.check.interval";
     public static final String MASTER_RPC_PORT = "alluxio.master.rpc.port";
-    public static final String MASTER_RPC_EXECUTOR_PARALLELISM =
-        "alluxio.master.rpc.executor.parallelism";
-    public static final String MASTER_RPC_EXECUTOR_MIN_RUNNABLE =
-        "alluxio.master.rpc.executor.min.runnable";
+    public static final String MASTER_RPC_EXECUTOR_TYPE = "alluxio.master.rpc.executor.type";
     public static final String MASTER_RPC_EXECUTOR_CORE_POOL_SIZE =
         "alluxio.master.rpc.executor.core.pool.size";
     public static final String MASTER_RPC_EXECUTOR_MAX_POOL_SIZE =
         "alluxio.master.rpc.executor.max.pool.size";
     public static final String MASTER_RPC_EXECUTOR_KEEPALIVE =
-        "alluxio.master.rpc.executor.keepalive";
+        "alluxio.master.rpc.executor.keep.alive";
+    public static final String MASTER_RPC_EXECUTOR_TPE_QUEUE_TYPE =
+        "alluxio.master.rpc.executor.tpe.queue.type";
+    public static final String MASTER_RPC_EXECUTOR_TPE_ALLOW_CORE_THREADS_TIMEOUT =
+        "alluxio.master.rpc.executor.tpe.allow.core.threads.timeout";
+    public static final String MASTER_RPC_EXECUTOR_FJP_PARALLELISM =
+        "alluxio.master.rpc.executor.fjp.parallelism";
+    public static final String MASTER_RPC_EXECUTOR_FJP_MIN_RUNNABLE =
+        "alluxio.master.rpc.executor.fjp.min.runnable";
+    public static final String MASTER_RPC_EXECUTOR_FJP_ASYNC =
+        "alluxio.master.rpc.executor.fjp.async";
     public static final String MASTER_SERVING_THREAD_TIMEOUT =
         "alluxio.master.serving.thread.timeout";
     public static final String MASTER_SKIP_ROOT_ACL_CHECK =
@@ -6980,6 +7024,25 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio\\.user\\.network\\.(\\w+)\\.netty\\.worker\\.threads"),
     USER_NETWORK_MAX_CONNECTIONS("alluxio.user.network.%s.max.connections",
         "alluxio\\.user\\.network\\.(\\w+)\\.max\\.connections"),
+    RPC_EXECUTOR_TYPE("alluxio.%s.rpc.executor.type",
+        "alluxio\\.(\\w+)\\.rpc\\.executor\\.type"),
+    RPC_EXECUTOR_CORE_POOL_SIZE("alluxio.%s.rpc.executor.core.pool.size",
+        "alluxio\\.(\\w+)\\.rpc\\.executor\\.core\\.pool\\.size"),
+    RPC_EXECUTOR_MAX_POOL_SIZE("alluxio.%s.rpc.executor.max.pool.size",
+        "alluxio\\.(\\w+)\\.rpc\\.executor\\.max\\.pool\\.size"),
+    RPC_EXECUTOR_KEEPALIVE("alluxio.%s.rpc.executor.keep.alive",
+        "alluxio\\.(\\w+)\\.rpc\\.executor\\.keep\\.alive"),
+    RPC_EXECUTOR_TPE_QUEUE_TYPE("alluxio.%s.rpc.executor.tpe.queue.type",
+        "alluxio\\.(\\w+)\\.rpc\\.executor\\.tpe\\.queue\\.type"),
+    RPC_EXECUTOR_TPE_ALLOW_CORE_THREADS_TIMEOUT(
+        "alluxio.%s.rpc.executor.tpe.allow.core.threads.timeout",
+        "alluxio\\.(\\w+)\\.rpc\\.executor\\.tpe\\.allow\\.core\\.threads\\.timeout"),
+    RPC_EXECUTOR_FJP_PARALLELISM("alluxio.%s.rpc.executor.fjp.parallelism",
+        "alluxio\\.(\\w+)\\.rpc\\.executor\\.fjp\\.parallelism"),
+    RPC_EXECUTOR_FJP_MIN_RUNNABLE("alluxio.%s.rpc.executor.fjp.min.runnable",
+        "alluxio\\.(\\w+)\\.rpc\\.executor\\.fjp\\.min\\.runnable"),
+    RPC_EXECUTOR_FJP_ASYNC("alluxio.%s.rpc.executor.fjp.async",
+        "alluxio\\.(\\w+)\\.rpc\\.executor\\.fjp\\.async"),
 
     /**
      * @deprecated This template is always deprecated. It is used only for testing.

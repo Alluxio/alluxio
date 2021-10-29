@@ -105,8 +105,8 @@ public class PlanTracker {
     Preconditions.checkArgument(retentionMs >= 0);
     mRetentionMs = retentionMs;
     mMaxJobPurgeCount = maxJobPurgeCount <= 0 ? Long.MAX_VALUE : maxJobPurgeCount;
-    mCoordinators = new ConcurrentHashMap<>(0,
-        0.95f, ServerConfiguration.getInt(PropertyKey.MASTER_RPC_EXECUTOR_PARALLELISM));
+    mCoordinators = new ConcurrentHashMap<>(0, 0.95f,
+        Math.max(8, 2 * Runtime.getRuntime().availableProcessors()));
     mFailed = Collections.synchronizedSortedSet(new TreeSet<>((left, right) -> {
       long diffTime = right.getLastStatusChangeMs() - left.getLastStatusChangeMs();
       if (diffTime != 0) {
