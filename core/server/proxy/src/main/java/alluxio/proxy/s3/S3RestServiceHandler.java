@@ -49,7 +49,6 @@ import java.io.InputStream;
 import java.security.DigestOutputStream;
 import java.security.MessageDigest;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
@@ -178,8 +177,6 @@ public final class S3RestServiceHandler {
       List<URIStatus> objects;
       try {
         objects = getFileSystem(authorization).listStatus(new AlluxioURI("/"));
-      } catch (FileDoesNotExistException e) {
-        objects = Collections.emptyList();
       } catch (AlluxioException | IOException e) {
         throw new RuntimeException(e);
       }
@@ -251,7 +248,9 @@ public final class S3RestServiceHandler {
           children = fs.listStatus(new AlluxioURI(path), options);
         }
       } catch (FileDoesNotExistException e) {
-        children = Collections.emptyList();
+        // return the proper error code if the bucket doesn't exist. Previously a 500 error was
+        // returned which does not match the S3 response behavior
+        throw new S3Exception(e, bucket, S3ErrorCode.NO_SUCH_BUCKET);
       } catch (IOException | AlluxioException e) {
         throw new RuntimeException(e);
       }
