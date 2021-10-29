@@ -272,6 +272,7 @@ public final class MultiProcessCluster {
     for (int i = 0; i < count; i++) {
       createMaster(startIndex + i).start();
     }
+    mFilesystemContext = null;
   }
 
   /**
