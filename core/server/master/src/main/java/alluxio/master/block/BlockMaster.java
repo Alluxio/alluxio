@@ -19,6 +19,7 @@ import alluxio.exception.status.NotFoundException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.Command;
 import alluxio.grpc.ConfigProperty;
+import alluxio.grpc.GetRegisterLeasePRequest;
 import alluxio.grpc.RegisterWorkerPOptions;
 import alluxio.grpc.StorageList;
 import alluxio.grpc.WorkerLostStorageInfo;
@@ -27,6 +28,7 @@ import alluxio.metrics.Metric;
 import alluxio.proto.meta.Block;
 import alluxio.wire.Address;
 import alluxio.wire.BlockInfo;
+import alluxio.wire.RegisterLease;
 import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
 
@@ -35,6 +37,7 @@ import com.google.common.annotations.VisibleForTesting;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
@@ -59,6 +62,16 @@ public interface BlockMaster extends Master, ContainerIdGenerable {
    * @return the total capacity (in bytes) on all tiers, on all workers of Alluxio
    */
   long getCapacityBytes();
+
+  /**
+   * @return the unique block count on all workers of Alluxio
+   */
+  long getUniqueBlockCount();
+
+  /**
+   * @return the replica block count on all workers of Alluxio
+   */
+  long getBlockReplicaCount();
 
   /**
    * @return the global storage tier mapping
@@ -175,6 +188,32 @@ public interface BlockMaster extends Master, ContainerIdGenerable {
    * @return the worker id for this worker
    */
   long getWorkerId(WorkerNetAddress workerNetAddress);
+
+  /**
+   * Try to acquire a {@link RegisterLease} for the worker.
+   * If the lease is not granted, this will return empty immediately rather than blocking.
+   *
+   * @param request the request with all information for the master to make a decision with
+   * @return if empty, that means the lease is not granted
+   */
+  Optional<RegisterLease> tryAcquireRegisterLease(GetRegisterLeasePRequest request);
+
+  /**
+   * Verifies if the worker currently holds a {@link RegisterLease}.
+   *
+   * @param workerId the worker ID
+   * @return whether a lease is found
+   */
+  boolean hasRegisterLease(long workerId);
+
+  /**
+   * Releases the {@link RegisterLease} for the specified worker.
+   * If the worker currently does not hold a lease, return without throwing an error.
+   * The lease may have been recycled already.
+   *
+   * @param workerId the worker ID
+   */
+  void releaseRegisterLease(long workerId);
 
   /**
    * Updates metadata when a worker registers with the master.

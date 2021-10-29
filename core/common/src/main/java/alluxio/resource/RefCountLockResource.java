@@ -14,7 +14,10 @@ package alluxio.resource;
 import alluxio.concurrent.LockMode;
 
 import com.google.common.base.Preconditions;
+import io.netty.util.ResourceLeakDetector;
+import io.netty.util.ResourceLeakTracker;
 
+import javax.annotation.Nullable;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -25,7 +28,15 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
  * the lock reference count and unlocking when the resource is closed.
  */
 public class RefCountLockResource extends RWLockResource {
+
+  private static final ResourceLeakDetector<RefCountLockResource> DETECTOR =
+      AlluxioResourceLeakDetectorFactory.instance()
+          .newResourceLeakDetector(RefCountLockResource.class);
+
   private final AtomicInteger mRefCount;
+
+  @Nullable
+  private final ResourceLeakTracker<RefCountLockResource> mTracker = DETECTOR.track(this);
 
   /**
    * Creates a new instance of {@link LockResource} using the given lock and reference counter. The
@@ -41,7 +52,8 @@ public class RefCountLockResource extends RWLockResource {
   public RefCountLockResource(ReentrantReadWriteLock lock, LockMode mode, boolean acquireLock,
       AtomicInteger refCount, boolean useTryLock) {
     super(lock, mode, acquireLock, useTryLock);
-    mRefCount = Preconditions.checkNotNull(refCount, "Reference Counter can not be null");
+    mRefCount = Preconditions.checkNotNull(refCount,
+        "Reference Counter can not be null");
   }
 
   /**
@@ -51,6 +63,9 @@ public class RefCountLockResource extends RWLockResource {
   @Override
   public void close() {
     super.close();
+    if (mTracker != null) {
+      mTracker.close(this);
+    }
     mRefCount.decrementAndGet();
   }
 }

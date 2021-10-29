@@ -32,6 +32,7 @@ import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.Command;
 import alluxio.grpc.CommandType;
 import alluxio.grpc.ConfigProperty;
+import alluxio.grpc.GetRegisterLeasePRequest;
 import alluxio.grpc.GrpcService;
 import alluxio.grpc.GrpcUtils;
 import alluxio.grpc.RegisterWorkerPOptions;
@@ -69,6 +70,7 @@ import alluxio.util.executor.ExecutorServiceFactory;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.wire.Address;
 import alluxio.wire.BlockInfo;
+import alluxio.wire.RegisterLease;
 import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
 
@@ -257,6 +259,8 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
    */
   private LoadingCache<String, List<WorkerInfo>> mWorkerInfoCache;
 
+  private RegisterLeaseManager mRegisterLeaseManager = new RegisterLeaseManager();
+
   /**
    * Creates a new instance of {@link DefaultBlockMaster}.
    *
@@ -434,6 +438,20 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
           EnumSet.of(WorkerMetaLockSection.USAGE), true)) {
         ret += worker.getCapacityBytes();
       }
+    }
+    return ret;
+  }
+
+  @Override
+  public long getUniqueBlockCount() {
+    return mBlockStore.size();
+  }
+
+  @Override
+  public long getBlockReplicaCount() {
+    long ret = 0;
+    for (MasterWorkerInfo worker : mWorkers) {
+      ret += worker.getBlockCount();
     }
     return ret;
   }
@@ -909,6 +927,21 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
   }
 
   @Override
+  public Optional<RegisterLease> tryAcquireRegisterLease(GetRegisterLeasePRequest request) {
+    return mRegisterLeaseManager.tryAcquireLease(request);
+  }
+
+  @Override
+  public boolean hasRegisterLease(long workerId) {
+    return mRegisterLeaseManager.hasLease(workerId);
+  }
+
+  @Override
+  public void releaseRegisterLease(long workerId) {
+    mRegisterLeaseManager.releaseLease(workerId);
+  }
+
+  @Override
   public void workerRegister(long workerId, List<String> storageTiers,
       Map<String, Long> totalBytesOnTiers, Map<String, Long> usedBytesOnTiers,
       Map<BlockLocation, List<Long>> currentBlocksOnLocation,
@@ -1332,7 +1365,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
           () -> master.getCapacityBytes() - master.getUsedBytes());
 
       MetricsSystem.registerGaugeIfAbsent(MetricKey.MASTER_UNIQUE_BLOCKS.getName(),
-          () -> master.mBlockStore.size());
+          () -> master.getUniqueBlockCount());
 
       MetricsSystem.registerGaugeIfAbsent(MetricKey.MASTER_TOTAL_BLOCK_REPLICA_COUNT.getName(),
           () -> master.getBlockReplicaCount());
@@ -1382,13 +1415,5 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
     }
 
     private Metrics() {} // prevent instantiation
-  }
-
-  private long getBlockReplicaCount() {
-    long ret = 0;
-    for (MasterWorkerInfo worker : mWorkers) {
-      ret += worker.getBlockCount();
-    }
-    return ret;
   }
 }

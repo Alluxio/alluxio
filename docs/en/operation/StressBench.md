@@ -225,7 +225,7 @@ $ bin/alluxio runClass alluxio.stress.cli.fuse.FuseIOBench --operation LocalRead
 #### Demo
 Here is a sample usage demo, where the Alluxio master, worker,
 and client (standalone Fuse) are co-located on one machine:
-[![Watch the video](https://img.youtube.com/vi/pKaFQPFvuxo/maxresdefault.jpg)](https://youtu.be/pKaFQPFvuxo)
+<iframe width="800" height="350" src="https://www.youtube.com/embed/pKaFQPFvuxo" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
 
 By tweaking the setups, the reading performance under more scenarios can also be tested:
 * By using Fuse in worker process for reading, which needs to be configured in `${ALLUXIO_HOME}/conf/alluxio-site.properties`
@@ -256,7 +256,7 @@ In a cluster with 3 worker nodes, each worker nodes are written 30MB data. Each 
 In a cluster with 3 worker nodes, each worker node are written 30MB data. Each job worker will read 10MB data from each worker in `ClusterRead` operation.
 
 Here is a sample usage demo, where we have one master and three workers:
-[![Watch the video](https://img.youtube.com/vi/UqmQbYYR4NQ/maxresdefault.jpg)](https://youtu.be/UqmQbYYR4NQ)
+<iframe width="800" height="450" src="https://www.youtube.com/embed/cSF0SnL6LB4" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
 
 ### Limitations
 - Fuse IO Stress Bench only supports reading self-generated test files.
