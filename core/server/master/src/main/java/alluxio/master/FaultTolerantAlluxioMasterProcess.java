@@ -147,6 +147,7 @@ final class FaultTolerantAlluxioMasterProcess extends AlluxioMasterProcess {
       startMasters(true);
     } catch (UnavailableException e) {
       LOG.warn("Error starting masters: {}", e.toString());
+      stopMasters();
       return false;
     }
     mServingThread = new Thread(() -> {
