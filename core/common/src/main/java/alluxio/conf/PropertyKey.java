@@ -3374,7 +3374,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey WORKER_REGISTER_STREAM_BATCH_SIZE =
       new Builder(Name.WORKER_REGISTER_STREAM_BATCH_SIZE)
-          .setDefaultValue("500000")
+          .setDefaultValue("1000000")
           .setDescription("When the worker registers with the master using a stream, this defines "
               + "the metadata of how many blocks should be send to the master in each batch.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
