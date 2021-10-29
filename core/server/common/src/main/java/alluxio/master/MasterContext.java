@@ -40,6 +40,7 @@ public class MasterContext<T extends UfsManager> {
    * Creates a new master context, using the global server UserState.
    *
    * @param journalSystem the journal system to use for tracking master operations
+   * @param ufsManager the UFS manager
    */
   public MasterContext(JournalSystem journalSystem, T ufsManager) {
     this(journalSystem, null, ufsManager);
