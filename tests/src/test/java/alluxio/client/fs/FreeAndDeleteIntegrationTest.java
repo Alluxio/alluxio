@@ -136,7 +136,7 @@ public final class FreeAndDeleteIntegrationTest extends BaseIntegrationTest {
    * Tests that deleting a directory with number of files larger than maximum lock cache size will
    * not be blocked.
    */
-  @Test(timeout = 3000)
+  @Test(timeout = 10000)
   public void deleteDir() throws Exception {
     String uniqPath = PathUtils.uniqPath();
     for (int file = 0; file < 2 * LOCK_POOL_HIGH_WATERMARK; file++) {
