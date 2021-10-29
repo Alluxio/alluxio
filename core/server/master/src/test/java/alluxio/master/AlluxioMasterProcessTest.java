@@ -28,12 +28,17 @@ import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
 
 import com.google.common.base.Preconditions;
+import org.apache.ratis.protocol.RaftGroupMemberId;
+import org.apache.ratis.protocol.RaftPeer;
+import org.apache.ratis.protocol.exceptions.NotLeaderException;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
+import org.mockito.Mockito;
 
 import java.io.IOException;
 import java.net.BindException;
@@ -42,7 +47,9 @@ import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Tests for {@link AlluxioMasterProcess}.
@@ -103,6 +110,37 @@ public final class AlluxioMasterProcessTest {
     });
     t.start();
     startStopTest(master);
+  }
+
+  @Test
+  public void startMastersThrowsNotLeaderException() throws InterruptedException {
+    ControllablePrimarySelector primarySelector = new ControllablePrimarySelector();
+    primarySelector.setState(PrimarySelector.State.PRIMARY);
+    ServerConfiguration.set(PropertyKey.MASTER_JOURNAL_EXIT_ON_DEMOTION, "true");
+    FaultTolerantAlluxioMasterProcess master = new FaultTolerantAlluxioMasterProcess(
+        new NoopJournalSystem(), primarySelector);
+    FaultTolerantAlluxioMasterProcess spy = Mockito.spy(master);
+    RaftPeer raftPeer = Mockito.mock(RaftPeer.class);
+    RaftGroupMemberId groupMemberId = Mockito.mock(RaftGroupMemberId.class);
+    Mockito.doAnswer(invocation -> {
+      throw new NotLeaderException(groupMemberId, raftPeer, new ArrayList<>());
+    }).when(spy).startMasters(true);
+
+    AtomicBoolean success = new AtomicBoolean(true);
+    Thread t = new Thread(() -> {
+      try {
+        spy.start();
+      } catch (NotLeaderException nle) {
+        success.set(false);
+      } catch (Exception e) {
+        throw new RuntimeException(e);
+      }
+    });
+    t.start();
+    final int WAIT_TIME_TO_THROW_EXC = 500; // in ms
+    t.join(WAIT_TIME_TO_THROW_EXC);
+    t.interrupt();
+    Assert.assertTrue(success.get());
   }
 
   @Test

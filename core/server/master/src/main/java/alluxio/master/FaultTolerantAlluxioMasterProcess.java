@@ -142,7 +142,12 @@ final class FaultTolerantAlluxioMasterProcess extends AlluxioMasterProcess {
         return false;
       }
     }
-    startMasters(true);
+    try {
+      startMasters(true);
+    } catch (Exception e) {
+      LOG.warn("Error starting masters: {}", e.toString());
+      return false;
+    }
     mServingThread = new Thread(() -> {
       try {
         startServing(" (gained leadership)", " (lost leadership)");
