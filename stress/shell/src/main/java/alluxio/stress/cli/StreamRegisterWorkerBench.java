@@ -24,13 +24,11 @@ import alluxio.stress.rpc.BlockMasterBenchParameters;
 import alluxio.stress.rpc.RpcTaskResult;
 import alluxio.stress.rpc.TierAlias;
 import alluxio.worker.block.BlockMasterClient;
-import alluxio.worker.block.BlockMasterSync;
 import alluxio.worker.block.BlockStoreLocation;
 
 import com.beust.jcommander.ParametersDelegate;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -46,29 +44,29 @@ import java.util.stream.Collectors;
 /**
  * A benchmarking tool for the RegisterWorker RPC.
  */
-public class RegisterWorkerBench extends RpcBench<BlockMasterBenchParameters> {
-  private static final Logger LOG = LoggerFactory.getLogger(RegisterWorkerBench.class);
+public class StreamRegisterWorkerBench extends RpcBench<BlockMasterBenchParameters> {
+  private static final Logger LOG = LoggerFactory.getLogger(StreamRegisterWorkerBench.class);
 
   @ParametersDelegate
   private BlockMasterBenchParameters mParameters = new BlockMasterBenchParameters();
   private List<String> mTierAliases;
   private Map<String, Long> mCapacityMap;
   private Map<String, Long> mUsedMap;
+  private Map<BlockStoreLocation, List<Long>> mBlockMap;
 
   private final InstancedConfiguration mConf = InstancedConfiguration.defaults();
 
   private List<LocationBlockIdListEntry> mLocationBlockIdList;
-  private int mBlockCount;
 
   private Deque<Long> mWorkerPool = new ArrayDeque<>();
 
   @Override
   public String getBenchDescription() {
     return String.join("\n", ImmutableList.of(
-        "A benchmarking tool for the RegisterWorker unary RPC.",
+        "A benchmarking tool for the RegisterWorker streaming RPC.",
         "The test will generate a specified number of blocks in the master (without associated "
             + "files). Then it will trigger the specified number of simulated workers to register "
-            + "at once.",
+            + "at once using the streaming API.",
         "Each simulated worker will have the specified number of blocks, in order to incur "
             + "the controlled stress on the master side.",
         "",
@@ -77,7 +75,7 @@ public class RegisterWorkerBench extends RpcBench<BlockMasterBenchParameters> {
         "# Each job worker runs 3 simulated workers",
         "# Each simulated worker has 3000 blocks on tier 0 and 10000 on tier 1",
         "# Each simulated worker sends the register RPC once",
-        "$ bin/alluxio runClass alluxio.stress.cli.RegisterWorkerBench --concurrency 3 \\",
+        "$ bin/alluxio runClass alluxio.stress.cli.StreamRegisterWorkerBench --concurrency 3 \\",
         "--cluster --cluster-limit 2 --tiers \"1000,1000,1000;5000,5000\"",
         ""
     ));
@@ -94,17 +92,12 @@ public class RegisterWorkerBench extends RpcBench<BlockMasterBenchParameters> {
     mUsedMap = Maps.toMap(mTierAliases, (tier) -> 0L);
     // Generate block IDs heuristically
     Map<BlockStoreLocation, List<Long>> blockMap =
-        RpcBenchPreparationUtils.generateBlockIdOnTiers(mParameters.mTiers);
+            RpcBenchPreparationUtils.generateBlockIdOnTiers(mParameters.mTiers);
     BlockMasterClient client =
             new BlockMasterClient(MasterClientContext
                     .newBuilder(ClientContext.create(mConf))
                     .build());
-    mLocationBlockIdList = client.convertBlockListMapToProto(blockMap);
-    int blockCount = 0;
-    for (LocationBlockIdListEntry entry : mLocationBlockIdList) {
-      blockCount += entry.getValue().getBlockIdCount();
-    }
-    mBlockCount = blockCount;
+    mBlockMap = blockMap;
 
     // Prepare these block IDs concurrently
     LOG.info("Preparing blocks at the master");
@@ -115,19 +108,27 @@ public class RegisterWorkerBench extends RpcBench<BlockMasterBenchParameters> {
     int numWorkers = mParameters.mConcurrency;
     mWorkerPool = RpcBenchPreparationUtils.prepareWorkerIds(client, numWorkers);
     Preconditions.checkState(mWorkerPool.size() == numWorkers,
-        "Expecting %s workers but registered %s",
-        numWorkers, mWorkerPool.size());
+            "Expecting %s workers but registered %s",
+            numWorkers, mWorkerPool.size());
     LOG.info("Prepared worker IDs: {}", mWorkerPool);
+  }
+
+  private static void debriefBlockListProto(List<LocationBlockIdListEntry> entries) {
+    StringBuilder sb = new StringBuilder();
+    for (LocationBlockIdListEntry e : entries) {
+      sb.append(String.format("%s,", e.getKey()));
+    }
+    LOG.info("Generated locations: {}", sb.toString());
   }
 
   /**
    * @param args command-line arguments
    */
   public static void main(String[] args) {
-    mainInternal(args, new RegisterWorkerBench());
+    mainInternal(args, new StreamRegisterWorkerBench());
   }
 
-  private RpcTaskResult simulateRegisterWorker(alluxio.worker.block.BlockMasterClient client) {
+  private RpcTaskResult simulateRegisterWorkerStream(BlockMasterClient client) {
     RpcTaskResult result = new RpcTaskResult();
     long i = 0;
 
@@ -159,25 +160,13 @@ public class RegisterWorkerBench extends RpcBench<BlockMasterBenchParameters> {
     try {
       Instant s = Instant.now();
 
-      LOG.info("Acquiring lease for {}", workerId);
-      client.acquireRegisterLeaseWithBackoff(workerId, mBlockCount,
-          BlockMasterSync.getDefaultAcquireLeaseRetryPolicy());
-      LOG.info("Lease acquired for {}", workerId);
-
-      // TODO(jiacheng): The 1st reported RPC time is always very long, this does
-      //  not match with the time recorded by Jaeger.
-      //  I suspect it's the time spend in establishing the connection.
-      //  The easiest way out is just to ignore the 1st point.
-      client.register(workerId,
+      client.registerWithStream(workerId,
               mTierAliases,
               mCapacityMap,
               mUsedMap,
-              // Will use the prepared block list instead of converting on the fly
-              // So an empty block list will be used here
-              ImmutableMap.of(),
+              mBlockMap,
               LOST_STORAGE, // lost storage
               EMPTY_CONFIG); // extra config
-      LOG.info("Worker {} registered", workerId);
 
       Instant e = Instant.now();
       RpcTaskResult.Point p = new RpcTaskResult.Point(Duration.between(s, e).toMillis());
@@ -195,9 +184,9 @@ public class RegisterWorkerBench extends RpcBench<BlockMasterBenchParameters> {
     CachingBlockMasterClient client =
             new CachingBlockMasterClient(MasterClientContext
                     .newBuilder(ClientContext.create(mConf))
-                    .build(), mLocationBlockIdList);
+                    .build(), mBlockMap);
 
-    RpcTaskResult taskResult = simulateRegisterWorker(client);
+    RpcTaskResult taskResult = simulateRegisterWorkerStream(client);
     LOG.info("Received task result {}", taskResult);
     LOG.info("Run finished");
 
@@ -209,3 +198,4 @@ public class RegisterWorkerBench extends RpcBench<BlockMasterBenchParameters> {
     return mParameters;
   }
 }
+

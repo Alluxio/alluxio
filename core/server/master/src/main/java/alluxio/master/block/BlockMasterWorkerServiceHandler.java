@@ -183,6 +183,12 @@ public final class BlockMasterWorkerServiceHandler extends
         }, "registerWorker", true, "request=%s", responseObserver, workerId);
   }
 
+  @Override
+  public io.grpc.stub.StreamObserver<alluxio.grpc.RegisterWorkerPRequest> registerWorkerStream(
+      io.grpc.stub.StreamObserver<alluxio.grpc.RegisterWorkerPResponse> responseObserver) {
+    return new RegisterStreamObserver(mBlockMaster, responseObserver);
+  }
+
   /**
    * This converts the flattened list of block locations back to a map.
    * This relies on the unique guarantee from the worker-side serialization.
@@ -190,7 +196,7 @@ public final class BlockMasterWorkerServiceHandler extends
    * The key is {@link Block.BlockLocation}, where the hash code is determined by
    * tier alias and medium type.
    * */
-  private Map<Block.BlockLocation, List<Long>> reconstructBlocksOnLocationMap(
+  static Map<Block.BlockLocation, List<Long>> reconstructBlocksOnLocationMap(
           List<LocationBlockIdListEntry> entries, long workerId) {
     return entries.stream().collect(
         Collectors.toMap(

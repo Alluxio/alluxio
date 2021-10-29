@@ -21,9 +21,11 @@ import alluxio.grpc.Command;
 import alluxio.grpc.ConfigProperty;
 import alluxio.grpc.GetRegisterLeasePRequest;
 import alluxio.grpc.RegisterWorkerPOptions;
+import alluxio.grpc.RegisterWorkerPRequest;
 import alluxio.grpc.StorageList;
 import alluxio.grpc.WorkerLostStorageInfo;
 import alluxio.master.Master;
+import alluxio.master.block.meta.MasterWorkerInfo;
 import alluxio.metrics.Metric;
 import alluxio.proto.meta.Block;
 import alluxio.wire.Address;
@@ -299,4 +301,36 @@ public interface BlockMaster extends Master, ContainerIdGenerable {
    * @param function the function to register
    */
   void registerNewWorkerConfListener(BiConsumer<Address, List<ConfigProperty>> function);
+
+  /**
+   * Returns the internal {@link MasterWorkerInfo} object to the caller.
+   * This is specifically for the tests and the {@link WorkerRegisterContext}.
+   *
+   * Note that this operations on the object requires locking.
+   * See the javadoc of {@link MasterWorkerInfo} for how the locking should be carefully done.
+   * When in doubt, do not use this API. Find other methods in this class that exposes
+   * necessary information.
+   *
+   * @param workerId the worker ID
+   * @return the {@link MasterWorkerInfo} for the worker
+   */
+  @VisibleForTesting
+  MasterWorkerInfo getWorker(long workerId) throws NotFoundException;
+
+  /**
+   * Handles messages in a register stream.
+   *
+   * @param context the stream context that contains the worker information
+   * @param chunk the message in a stream
+   * @param isFirstMsg whether the message is the 1st in a stream
+   */
+  void workerRegisterStream(
+      WorkerRegisterContext context, RegisterWorkerPRequest chunk, boolean isFirstMsg);
+
+  /**
+   * Completes the worker registration stream.
+   *
+   * @param context the stream context to be closed
+   */
+  void workerRegisterFinish(WorkerRegisterContext context);
 }
