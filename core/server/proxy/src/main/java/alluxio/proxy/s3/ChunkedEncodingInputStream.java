@@ -27,7 +27,7 @@ public class ChunkedEncodingInputStream extends FilterInputStream {
   /** the current chunk's total length. */
   private int mCurrentChunkLength = -1;
   /** the index which we've read up to in the current chunk. */
-  private int mCurrentChunkIdx;
+  private int mCurrentChunkIdx = 0;
 
   /**
    * Creates a <code>FilterInputStream</code>
@@ -54,9 +54,17 @@ public class ChunkedEncodingInputStream extends FilterInputStream {
 
   @Override
   public int read(byte[] b, int off, int len) throws IOException {
-    // The general idea is to just read up to the next chunk header.
-    // If we're already at the end of a chunk in the stream, decode the next one, and then write
-    // as much as possible from the next chunk in the user's buffer.
+    /*
+    Sample chunk:
+    400;chunk-signature=0055627c9e194cb4542bae2aa5492e3c1575bbb81b612b7d234b86a503ef5497
+    <1024 bytes>
+    0;chunk-signature=b6c6ea8a5354eaf15b3cb7646744f4275b71ea724fed81ceb9323e279d449df9
+
+    ------
+     The general idea is for this method to just read up to the next chunk header.
+     If we're already at the end of a chunk in the stream, decode the next one, and then write
+     as much as possible from the next chunk in the user's buffer.
+     */
 
     // only copy up to the end of the buffer
     int bytesToRead = Math.min((b.length - off), len);
@@ -79,13 +87,16 @@ public class ChunkedEncodingInputStream extends FilterInputStream {
       return totalRead;
     } else {
       int totalRead = in.read(b, off, bytesToRead);
-      mCurrentChunkIdx += totalRead;
+      if (totalRead != -1) {
+        mCurrentChunkIdx += totalRead;
+      }
       return totalRead;
     }
   }
 
   /**
    * Decodes the chunk headers and advances the underlying input stream up to the next data.
+   * Returns immediately if the current chunk hasn't been fully read yet.
    *
    * @throws IOException an error is encountered interacting with the underlying IO stream
    */
@@ -101,7 +112,10 @@ public class ChunkedEncodingInputStream extends FilterInputStream {
     StringBuilder hexLen = new StringBuilder();
     int semi = ';';
     int read;
-    // slow, but is there a better way?
+    // slow, but is there a better way without reading over the chunk header and having to rewind
+    // on the stream? The length is generally only a few characters, so the performance impact
+    // should be minimal using read(). I've opted for code readability over performance in this
+    // particular case
     while ((read = in.read()) != semi) {
       switch (read) {
         case -1:
@@ -116,8 +130,13 @@ public class ChunkedEncodingInputStream extends FilterInputStream {
     mCurrentChunkLength = Integer.parseInt(hexLen.toString(), 16);
     mCurrentChunkIdx = 0;
 
+    // This is the constant size of the chunk header *after* hexLen described in the comments
+    // above.
     int chunkHeaderLen = 82;
     // TODO(zac): verify the chunk header
-    in.skip(chunkHeaderLen);
+    long totalSkipped = 0;
+    do {
+      totalSkipped += in.skip(chunkHeaderLen - totalSkipped);
+    } while (totalSkipped < chunkHeaderLen);
   }
 }
