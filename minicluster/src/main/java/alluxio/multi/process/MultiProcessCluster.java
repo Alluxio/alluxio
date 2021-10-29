@@ -274,6 +274,7 @@ public final class MultiProcessCluster {
       createMaster(startIndex + i).start();
       wait(MASTER_START_DELAY_MS);
     }
+    mFilesystemContext = null;
   }
 
   /**
