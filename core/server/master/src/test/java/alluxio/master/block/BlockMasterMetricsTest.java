@@ -29,7 +29,6 @@ import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.mockito.Mockito;
-import org.powermock.reflect.Whitebox;
 
 /**
  * Unit tests for {@link DefaultBlockMaster.Metrics}.
@@ -76,13 +75,9 @@ public final class BlockMasterMetricsTest {
         getGauge(MetricKey.CLUSTER_CAPACITY_FREE.getName() + MetricInfo.TIER + HDD));
   }
 
-  // TODO(david): ignore until we can test this through mocking other objects
-  @Ignore
   @Test
   public void testSize() {
-    BlockStore blockStore = Mockito.mock(BlockStore.class);
-    when(blockStore.size()).thenReturn(100L);
-    Whitebox.setInternalState(mBlockMaster, "mBlockStore", blockStore);
+    when(mBlockMaster.getUniqueBlockCount()).thenReturn(100L);
     assertEquals(100L, getGauge(MetricKey.MASTER_UNIQUE_BLOCKS.getName()));
   }
 
