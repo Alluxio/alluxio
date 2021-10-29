@@ -30,6 +30,7 @@ import com.amazonaws.AmazonClientException;
 import com.amazonaws.AmazonServiceException;
 import com.amazonaws.ClientConfiguration;
 import com.amazonaws.Protocol;
+import com.amazonaws.SdkClientException;
 import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.auth.AWSStaticCredentialsProvider;
 import com.amazonaws.auth.BasicAWSCredentials;
@@ -215,12 +216,24 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
       clientBuilder.withPathStyleAccessEnabled(true);
     }
 
+    boolean enableGlobalBucketAccess = true;
     AwsClientBuilder.EndpointConfiguration endpointConfiguration
         = createEndpointConfiguration(conf, clientConf);
     if (endpointConfiguration != null) {
       clientBuilder.withEndpointConfiguration(endpointConfiguration);
-    } else {
-      // access the bucket in non-default aws region
+      enableGlobalBucketAccess = false;
+    } else if (conf.isSet(PropertyKey.UNDERFS_S3_REGION)) {
+      try {
+        clientBuilder.withRegion(conf.get(PropertyKey.UNDERFS_S3_REGION));
+        enableGlobalBucketAccess = false;
+      } catch (SdkClientException e) {
+        LOG.error("S3 region {} cannot be recognized, "
+            + "fall back to use global bucket access with an extra HEAD request",
+            conf.get(PropertyKey.UNDERFS_S3_REGION), e);
+      }
+    }
+    if (enableGlobalBucketAccess) {
+      // access bucket without region information
       // at the cost of an extra HEAD request
       clientBuilder.withForceGlobalBucketAccessEnabled(true);
     }

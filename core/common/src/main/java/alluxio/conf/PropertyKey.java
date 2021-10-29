@@ -999,6 +999,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.SERVER)
           .build();
+  public static final PropertyKey UNDERFS_S3_REGION =
+      new Builder(Name.UNDERFS_S3_REGION)
+          .setDescription("Optionally, set the S3 bucket region. If not provided, "
+              + "will enable the global bucket access with extra requests")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.SERVER)
+          .build();
   public static final PropertyKey UNDERFS_S3_THREADS_MAX =
       new Builder(Name.UNDERFS_S3_THREADS_MAX)
           .setDefaultValue(40)
@@ -5887,6 +5894,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.underfs.s3.owner.id.to.username.mapping";
     public static final String UNDERFS_S3_PROXY_HOST = "alluxio.underfs.s3.proxy.host";
     public static final String UNDERFS_S3_PROXY_PORT = "alluxio.underfs.s3.proxy.port";
+    public static final String UNDERFS_S3_REGION = "alluxio.underfs.s3.region";
     public static final String UNDERFS_S3_THREADS_MAX = "alluxio.underfs.s3.threads.max";
     public static final String UNDERFS_S3_UPLOAD_THREADS_MAX =
         "alluxio.underfs.s3.upload.threads.max";
