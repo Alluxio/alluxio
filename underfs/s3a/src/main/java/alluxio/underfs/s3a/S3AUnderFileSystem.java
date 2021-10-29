@@ -36,6 +36,7 @@ import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.auth.DefaultAWSCredentialsProviderChain;
 import com.amazonaws.client.builder.AwsClientBuilder;
 import com.amazonaws.services.s3.AmazonS3;
+import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.amazonaws.services.s3.internal.Mimetypes;
 import com.amazonaws.services.s3.internal.ServiceUtils;
@@ -206,8 +207,7 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
       clientConf.setSignerOverride(conf.get(PropertyKey.UNDERFS_S3_SIGNER_ALGORITHM));
     }
 
-    AmazonS3ClientBuilder clientBuilder = AmazonS3ClientBuilder
-        .standard()
+    AmazonS3ClientBuilder clientBuilder = AmazonS3Client.builder()
         .withCredentials(credentials)
         .withClientConfiguration(clientConf);
 
@@ -219,6 +219,10 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
         = createEndpointConfiguration(conf, clientConf);
     if (endpointConfiguration != null) {
       clientBuilder.withEndpointConfiguration(endpointConfiguration);
+    } else {
+      // access the bucket in non-default aws region
+      // at the cost of an extra HEAD request
+      clientBuilder.withForceGlobalBucketAccessEnabled(true);
     }
 
     AmazonS3 amazonS3Client = clientBuilder.build();
