@@ -181,7 +181,7 @@ Presto 的 Hive 集成使用[`hive.max-split-size`](https://teradata.github.io/p
 
 ### 避免 Presto 读取大文件超时
 
- 建议将`alluxio.user.network.data.timeout`增加到较大的值（例如`10min`），以避免从远程的 worker 读取大文件时超时失败。
+ 建议将`alluxio.user.network.data.timeout`增加到较大的值（例如`10m`），以避免从远程的 worker 读取大文件时超时失败。
 
 ## 故障排除指南
 

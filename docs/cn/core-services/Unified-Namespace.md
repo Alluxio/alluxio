@@ -311,7 +311,7 @@ $ ./bin/alluxio fs getSyncPathList
 例如，以下设置
 
 ```
-alluxio.master.ufs.active.sync.interval=30sec
+alluxio.master.ufs.active.sync.interval=30s
 alluxio.master.ufs.active.sync.max.activities=100
 alluxio.master.ufs.active.sync.max.age=5
 ```

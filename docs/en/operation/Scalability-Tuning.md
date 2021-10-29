@@ -348,7 +348,7 @@ is sent before the worker determines the client is no longer alive and closes th
 The following properties tune RPC retry intervals:
 
 ```properties
-alluxio.user.rpc.retry.max.duration=2min
+alluxio.user.rpc.retry.max.duration=2m
 alluxio.user.rpc.retry.base.sleep=1s
 ```
 
