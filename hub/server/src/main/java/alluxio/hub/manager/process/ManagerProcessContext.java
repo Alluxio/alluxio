@@ -161,6 +161,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -178,6 +180,7 @@ public class ManagerProcessContext implements AutoCloseable {
   private static final String K8S_CONFIG_MAP_ENV_LOG4J = "ALLUXIO_LOG4J_PROPERTIES";
   private static final String K8S_CONFIG_MAP_ENV_SITE = "ALLUXIO_SITE_PROPERTIES";
 
+  private final Lock mLock = new ReentrantLock();
   private final RpcClient<HostedManagerServiceGrpc.HostedManagerServiceBlockingStub> mHostedClient;
   private HostedManagerServiceGrpc.HostedManagerServiceStub mHostedAsyncSub;
   private HubMetadata mHubMetadata;
@@ -316,6 +319,7 @@ public class ManagerProcessContext implements AutoCloseable {
   private void handleStatusRuntimeException(String message, Throwable t) {
     LogUtils.warnWithException(LOG, message, t);
     if (Status.fromThrowable(t).getCode() == Status.UNAUTHENTICATED.getCode()) {
+      mLock.lock();
       // shut down the Hub Manager and Agents
       String msg = String.format("Shutting down the Hub Agent because the Hub Manager is "
                       + "unauthenticated. Check %s, %s properties in the Hub Manager's "
@@ -329,11 +333,17 @@ public class ManagerProcessContext implements AutoCloseable {
                 AgentShutdownResponse resp = client.shutdown(req);
                 return resp;
               };
-      execOnHub(x);
+      try {
+        execOnHub(x);
+      } catch (Exception e) {
+        LogUtils.warnWithException(LOG, "Failed to call shutdown() on Hub Agent. "
+            + "Continuing with shutting down Hub Manager.", e);
+      }
       LOG.error(String.format("Shutting down the Hub manager because it is unauthenticated. "
                       + "Check %s, %s properties in alluxio-site.properties.",
               PropertyKey.Name.HUB_AUTHENTICATION_API_KEY,
               PropertyKey.Name.HUB_AUTHENTICATION_SECRET_KEY));
+      mLock.unlock();
       System.exit(401);
     }
   }
