@@ -319,31 +319,35 @@ public class ManagerProcessContext implements AutoCloseable {
   private void handleStatusRuntimeException(String message, Throwable t) {
     LogUtils.warnWithException(LOG, message, t);
     if (Status.fromThrowable(t).getCode() == Status.UNAUTHENTICATED.getCode()) {
-      mLock.lock();
-      // shut down the Hub Manager and Agents
-      String msg = String.format("Shutting down the Hub Agent because the Hub Manager is "
-                      + "unauthenticated. Check %s, %s properties in the Hub Manager's "
-                      + "alluxio-site.properties.",
-              PropertyKey.Name.HUB_AUTHENTICATION_API_KEY,
-              PropertyKey.Name.HUB_AUTHENTICATION_SECRET_KEY);
-      AgentShutdownRequest req = AgentShutdownRequest.newBuilder()
-              .setLogMessage(msg).setExitCode(401).build();
-      Function<AgentManagerServiceGrpc.AgentManagerServiceBlockingStub,
-              AgentShutdownResponse> x = (client) -> {
-                AgentShutdownResponse resp = client.shutdown(req);
-                return resp;
-              };
-      try {
-        execOnHub(x);
-      } catch (Exception e) {
-        LogUtils.warnWithException(LOG, "Failed to call shutdown() on Hub Agent. "
-            + "Continuing with shutting down Hub Manager.", e);
+      if (mLock.tryLock()) {
+        try {
+          // shut down the Hub Manager and Agents
+          String msg = String.format("Shutting down the Hub Agent because the Hub Manager is "
+                          + "unauthenticated. Check %s, %s properties in the Hub Manager's "
+                          + "alluxio-site.properties.",
+                  PropertyKey.Name.HUB_AUTHENTICATION_API_KEY,
+                  PropertyKey.Name.HUB_AUTHENTICATION_SECRET_KEY);
+          AgentShutdownRequest req = AgentShutdownRequest.newBuilder()
+                  .setLogMessage(msg).setExitCode(401).build();
+          Function<AgentManagerServiceGrpc.AgentManagerServiceBlockingStub,
+                  AgentShutdownResponse> x = (client) -> {
+                    AgentShutdownResponse resp = client.shutdown(req);
+                    return resp;
+                  };
+          try {
+            execOnHub(x);
+          } catch (Exception e) {
+            LogUtils.warnWithException(LOG, "Failed to call shutdown() on Hub Agent. "
+                    + "Continuing with shutting down Hub Manager.", e);
+          }
+        } finally {
+          mLock.unlock();
+        }
       }
       LOG.error(String.format("Shutting down the Hub manager because it is unauthenticated. "
                       + "Check %s, %s properties in alluxio-site.properties.",
               PropertyKey.Name.HUB_AUTHENTICATION_API_KEY,
               PropertyKey.Name.HUB_AUTHENTICATION_SECRET_KEY));
-      mLock.unlock();
       System.exit(401);
     }
   }
