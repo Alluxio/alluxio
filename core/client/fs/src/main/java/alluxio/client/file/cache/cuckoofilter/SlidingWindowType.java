@@ -23,7 +23,7 @@ public enum SlidingWindowType {
    */
   COUNT_BASED(0),
   /**
-   * The definition of count-based sliding window from "Sliding Sketches: A Framework using Time
+   * The definition of time-based sliding window from "Sliding Sketches: A Framework using Time
    * Zones for Data Stream Processing in Sliding Windows" by Gou et al.: Given a data stream S, a
    * time-based sliding window with length N means the union of data items which arrive in the last
    * N time units.

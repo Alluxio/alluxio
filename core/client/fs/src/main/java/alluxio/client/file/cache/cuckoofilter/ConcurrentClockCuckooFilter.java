@@ -364,7 +364,7 @@ public class ConcurrentClockCuckooFilter<T> implements ClockCuckooFilter<T>, Ser
     int bucketsPerSegment = mLocks.getNumBucketsPerSegment();
     for (int i = 0; i < numSegments; i++) {
       // TODO(iluoeli): avoid acquire locks here since it may be blocked
-      // for a long time if this segment is contended by multiple users.
+      //  for a long time if this segment is contended by multiple users.
       mLocks.writeLockSegment(i);
       if (mSegmentedAgingPointers[i] < bucketsPerSegment) {
         agingSegment(i, bucketsPerSegment);
