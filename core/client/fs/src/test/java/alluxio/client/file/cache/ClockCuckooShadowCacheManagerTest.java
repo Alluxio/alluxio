@@ -12,7 +12,6 @@
 package alluxio.client.file.cache;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import alluxio.ConfigurationTestUtils;
@@ -53,7 +52,7 @@ public final class ClockCuckooShadowCacheManagerTest {
   @Test
   public void putOne() throws Exception {
     assertTrue(mCacheManager.put(PAGE_ID1, PAGE1_BYTES, SCOPE1));
-    assertTrue(mCacheManager.read(PAGE_ID1, PAGE1_BYTES, SCOPE1));
+    assertEquals(PAGE1_BYTES, mCacheManager.get(PAGE_ID1, PAGE1_BYTES, SCOPE1));
     mCacheManager.updateWorkingSetSize();
     assertEquals(mCacheManager.getShadowCachePages(), 1);
     assertEquals(mCacheManager.getShadowCacheBytes(), PAGE1_BYTES);
@@ -63,8 +62,8 @@ public final class ClockCuckooShadowCacheManagerTest {
   public void putTwo() throws Exception {
     assertTrue(mCacheManager.put(PAGE_ID1, PAGE1_BYTES, SCOPE1));
     assertTrue(mCacheManager.put(PAGE_ID2, PAGE2_BYTES, SCOPE1));
-    assertTrue(mCacheManager.read(PAGE_ID1, PAGE1_BYTES, SCOPE1));
-    assertTrue(mCacheManager.read(PAGE_ID2, PAGE2_BYTES, SCOPE1));
+    assertEquals(PAGE1_BYTES, mCacheManager.get(PAGE_ID1, PAGE1_BYTES, SCOPE1));
+    assertEquals(PAGE2_BYTES, mCacheManager.get(PAGE_ID2, PAGE2_BYTES, SCOPE1));
     mCacheManager.updateWorkingSetSize();
     assertEquals(mCacheManager.getShadowCachePages(), 2);
     assertEquals(mCacheManager.getShadowCacheBytes(), PAGE1_BYTES + PAGE2_BYTES);
@@ -74,7 +73,7 @@ public final class ClockCuckooShadowCacheManagerTest {
   public void putExist() throws Exception {
     assertTrue(mCacheManager.put(PAGE_ID1, PAGE1_BYTES, SCOPE1));
     assertTrue(mCacheManager.put(PAGE_ID1, PAGE2_BYTES, SCOPE1));
-    assertTrue(mCacheManager.read(PAGE_ID1, PAGE1_BYTES, SCOPE1));
+    assertEquals(PAGE1_BYTES, mCacheManager.get(PAGE_ID1, PAGE1_BYTES, SCOPE1));
     mCacheManager.updateWorkingSetSize();
     assertEquals(mCacheManager.getShadowCachePages(), 1);
     assertEquals(mCacheManager.getShadowCacheBytes(), PAGE1_BYTES);
@@ -83,7 +82,7 @@ public final class ClockCuckooShadowCacheManagerTest {
   @Test
   public void cuckooFilterExpire() throws Exception {
     assertTrue(mCacheManager.put(PAGE_ID1, PAGE1_BYTES, SCOPE1));
-    assertTrue(mCacheManager.read(PAGE_ID1, PAGE1_BYTES, SCOPE1));
+    assertEquals(PAGE1_BYTES, mCacheManager.get(PAGE_ID1, PAGE1_BYTES, SCOPE1));
     for (int i = 0; i < MAX_AGE; i++) {
       mCacheManager.aging();
     }
@@ -91,18 +90,18 @@ public final class ClockCuckooShadowCacheManagerTest {
     mCacheManager.updateWorkingSetSize();
     assertEquals(mCacheManager.getShadowCachePages(), 0);
     assertEquals(mCacheManager.getShadowCacheBytes(), 0);
-    assertFalse(mCacheManager.read(PAGE_ID1, PAGE1_BYTES, SCOPE1));
+    assertEquals(0, mCacheManager.get(PAGE_ID1, PAGE1_BYTES, SCOPE1));
   }
 
   @Test
   public void CuckooFilterExpireHalf() throws Exception {
     assertTrue(mCacheManager.put(PAGE_ID1, PAGE1_BYTES, SCOPE1));
-    assertTrue(mCacheManager.read(PAGE_ID1, PAGE1_BYTES, SCOPE1));
+    assertEquals(PAGE1_BYTES, mCacheManager.get(PAGE_ID1, PAGE1_BYTES, SCOPE1));
     for (int i = 0; i < MAX_AGE / 2; i++) {
       mCacheManager.aging();
     }
     assertTrue(mCacheManager.put(PAGE_ID2, PAGE2_BYTES, SCOPE1));
-    assertTrue(mCacheManager.read(PAGE_ID2, PAGE2_BYTES, SCOPE1));
+    assertEquals(PAGE2_BYTES, mCacheManager.get(PAGE_ID2, PAGE2_BYTES, SCOPE1));
     for (int i = 0; i < MAX_AGE / 2; i++) {
       mCacheManager.aging();
     }
@@ -114,9 +113,9 @@ public final class ClockCuckooShadowCacheManagerTest {
   @Test
   public void delete() throws Exception {
     assertTrue(mCacheManager.put(PAGE_ID1, PAGE1_BYTES, SCOPE1));
-    assertTrue(mCacheManager.read(PAGE_ID1, PAGE1_BYTES, SCOPE1));
+    assertEquals(PAGE1_BYTES, mCacheManager.get(PAGE_ID1, PAGE1_BYTES, SCOPE1));
     assertTrue(mCacheManager.delete(PAGE_ID1));
-    assertFalse(mCacheManager.read(PAGE_ID1, PAGE1_BYTES, SCOPE1));
+    assertEquals(0, mCacheManager.get(PAGE_ID1, PAGE1_BYTES, SCOPE1));
     mCacheManager.updateWorkingSetSize();
     // cuckoo filter supports deleting, so PAGE_ID1 is really deleted
     assertEquals(0, mCacheManager.getShadowCachePages());
@@ -126,7 +125,7 @@ public final class ClockCuckooShadowCacheManagerTest {
   @Test
   public void getExistInWindow() throws Exception {
     mCacheManager.put(PAGE_ID1, PAGE1_BYTES, SCOPE1);
-    assertTrue(mCacheManager.read(PAGE_ID1, PAGE1_BYTES, SCOPE1));
+    assertEquals(PAGE1_BYTES, mCacheManager.get(PAGE_ID1, PAGE1_BYTES, SCOPE1));
     assertEquals(mCacheManager.getShadowCacheBytes(), PAGE1_BYTES);
   }
 
@@ -140,27 +139,27 @@ public final class ClockCuckooShadowCacheManagerTest {
     // PAGE_ID1 is evicted, only PAGE_ID2 in the shadow cache
     assertEquals(mCacheManager.getShadowCacheBytes(), PAGE2_BYTES);
     // PAGE_ID1 is not in the shadow cache and `read` will not add it to shadow cache
-    assertFalse(mCacheManager.read(PAGE_ID1, PAGE1_BYTES, SCOPE1));
+    assertEquals(0, mCacheManager.get(PAGE_ID1, PAGE1_BYTES, SCOPE1));
     // PAGE_ID1 is not added to the shadow cache again by 'read'
     assertEquals(mCacheManager.getShadowCacheBytes(), PAGE2_BYTES);
   }
 
   @Test
   public void getNotExist() throws Exception {
-    assertFalse(mCacheManager.read(PAGE_ID1, PAGE1_BYTES, SCOPE1));
+    assertEquals(0, mCacheManager.get(PAGE_ID1, PAGE1_BYTES, SCOPE1));
   }
 
   @Test
   public void getInScope() {
     // PAGE_ID1 in SCOPE1
     mCacheManager.put(PAGE_ID1, PAGE1_BYTES, SCOPE1);
-    assertTrue(mCacheManager.read(PAGE_ID1, PAGE1_BYTES, SCOPE1));
+    assertEquals(PAGE1_BYTES, mCacheManager.get(PAGE_ID1, PAGE1_BYTES, SCOPE1));
     assertEquals(1, mCacheManager.getShadowCachePages(SCOPE1));
     assertEquals(PAGE1_BYTES, mCacheManager.getShadowCacheBytes(SCOPE1));
 
     // PAGE_ID2 in SCOPE2
     mCacheManager.put(PAGE_ID2, PAGE2_BYTES, SCOPE2);
-    assertTrue(mCacheManager.read(PAGE_ID2, PAGE2_BYTES, SCOPE2));
+    assertEquals(PAGE2_BYTES, mCacheManager.get(PAGE_ID2, PAGE2_BYTES, SCOPE2));
     assertEquals(1, mCacheManager.getShadowCachePages(SCOPE2));
     assertEquals(PAGE2_BYTES, mCacheManager.getShadowCacheBytes(SCOPE2));
 

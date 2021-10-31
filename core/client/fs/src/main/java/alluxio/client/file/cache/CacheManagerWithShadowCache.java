@@ -22,8 +22,6 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.hash.Funnel;
 import com.google.common.hash.PrimitiveSink;
 
-import java.util.concurrent.atomic.AtomicLong;
-
 /**
  * A wrapper class of CacheManager with shadow cache.
  */
@@ -32,10 +30,6 @@ public class CacheManagerWithShadowCache implements CacheManager {
   private final ShadowCacheManager mShadowCacheManager;
   private long mShadowCachePages = 0;
   private long mShadowCacheBytes = 0;
-  private final AtomicLong mShadowCachePageRead = new AtomicLong(0);
-  private final AtomicLong mShadowCachePageHit = new AtomicLong(0);
-  private final AtomicLong mShadowCacheByteRead = new AtomicLong(0);
-  private final AtomicLong mShadowCacheByteHit = new AtomicLong(0);
 
   /**
    * @param cacheManager the real cache manager
@@ -55,17 +49,15 @@ public class CacheManagerWithShadowCache implements CacheManager {
   @Override
   public int get(PageId pageId, int pageOffset, int bytesToRead, byte[] buffer, int offsetInBuffer,
       CacheContext cacheContext) {
-    boolean seen = updateShadowCache(pageId, bytesToRead, cacheContext);
-    if (seen) {
+    int nread = mShadowCacheManager.get(pageId, bytesToRead, getCacheScope(cacheContext));
+    if (nread > 0) {
       Metrics.SHADOW_CACHE_PAGES_HIT.inc();
-      Metrics.SHADOW_CACHE_BYTES_HIT.inc(bytesToRead);
-      mShadowCachePageHit.getAndIncrement();
-      mShadowCacheByteHit.getAndAdd(bytesToRead);
+      Metrics.SHADOW_CACHE_BYTES_HIT.inc(nread);
+    } else {
+      updateShadowCache(pageId, bytesToRead, cacheContext);
     }
     Metrics.SHADOW_CACHE_PAGES_READ.inc();
     Metrics.SHADOW_CACHE_BYTES_READ.inc(bytesToRead);
-    mShadowCachePageRead.getAndIncrement();
-    mShadowCacheByteRead.getAndAdd(bytesToRead);
     return mCacheManager.get(pageId, pageOffset, bytesToRead, buffer, offsetInBuffer, cacheContext);
   }
 
@@ -73,14 +65,9 @@ public class CacheManagerWithShadowCache implements CacheManager {
    * @param pageId page identifier
    * @param pageLength length of this page
    * @param cacheContext cache related context
-   * @return true if it is an new page; false otherwise
    */
-  private boolean updateShadowCache(PageId pageId, int pageLength, CacheContext cacheContext) {
-    CacheScope cacheScope =
-        (cacheContext == null) ? CacheScope.GLOBAL : cacheContext.getCacheScope();
-    boolean seen = mShadowCacheManager.read(pageId, pageLength, cacheScope);
-    mShadowCacheManager.put(pageId, pageLength, cacheScope);
-    if (!seen) {
+  private void updateShadowCache(PageId pageId, int pageLength, CacheContext cacheContext) {
+    if (mShadowCacheManager.put(pageId, pageLength, getCacheScope(cacheContext))) {
       updateFalsePositiveRatio();
       updateWorkingSetSize();
       if (cacheContext != null) {
@@ -88,7 +75,14 @@ public class CacheManagerWithShadowCache implements CacheManager {
             pageLength);
       }
     }
-    return seen;
+  }
+
+  /**
+   * @param cacheContext cache related context
+   * @return the cache scope
+   */
+  private CacheScope getCacheScope(CacheContext cacheContext) {
+    return (cacheContext == null) ? CacheScope.GLOBAL : cacheContext.getCacheScope();
   }
 
   /**
@@ -162,28 +156,28 @@ public class CacheManagerWithShadowCache implements CacheManager {
    * @return ShadowCacheBytes
    */
   public long getShadowCachePageRead() {
-    return mShadowCachePageRead.get();
+    return mShadowCacheManager.getShadowCachePageRead();
   }
 
   /**
    * @return ShadowCacheBytes
    */
   public long getShadowCachePageHit() {
-    return mShadowCachePageHit.get();
+    return mShadowCacheManager.getShadowCachePageHit();
   }
 
   /**
    * @return ShadowCacheBytes
    */
   public long getShadowCacheByteRead() {
-    return mShadowCacheByteRead.get();
+    return mShadowCacheManager.getShadowCacheByteRead();
   }
 
   /**
    * @return ShadowCacheBytes
    */
   public long getShadowCacheByteHit() {
-    return mShadowCacheByteHit.get();
+    return mShadowCacheManager.getShadowCacheByteHit();
   }
 
   /**
