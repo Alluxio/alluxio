@@ -22,6 +22,7 @@ import com.google.common.hash.BloomFilter;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.atomic.AtomicIntegerArray;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicLongArray;
 import java.util.concurrent.atomic.AtomicReferenceArray;
 
@@ -42,6 +43,11 @@ public class MultipleBloomShadowCacheManager implements ShadowCacheManager {
   private long mShadowCachePages = 0;
   private long mShadowCacheBytes = 0;
   private double mAvgPageSize;
+
+  private final AtomicLong mShadowCachePageRead = new AtomicLong(0);
+  private final AtomicLong mShadowCachePageHit = new AtomicLong(0);
+  private final AtomicLong mShadowCacheByteRead = new AtomicLong(0);
+  private final AtomicLong mShadowCacheByteHit = new AtomicLong(0);
 
   /**
    * Create a MultipleBloomShadowCacheManager.
@@ -78,12 +84,18 @@ public class MultipleBloomShadowCacheManager implements ShadowCacheManager {
   }
 
   @Override
-  public boolean read(PageId pageId, int size, CacheScope scope) {
+  public int get(PageId pageId, int bytesToRead, CacheScope scope) {
     boolean seen = false;
     for (int i = 0; i < mSegmentBloomFilters.length(); ++i) {
       seen |= mSegmentBloomFilters.get(i).mightContain(pageId);
     }
-    return seen;
+    if (seen) {
+      mShadowCachePageHit.getAndIncrement();
+      mShadowCacheByteHit.getAndAdd(bytesToRead);
+    }
+    mShadowCachePageRead.getAndIncrement();
+    mShadowCacheByteRead.getAndAdd(bytesToRead);
+    return seen ? bytesToRead : 0;
   }
 
   /**
@@ -181,6 +193,26 @@ public class MultipleBloomShadowCacheManager implements ShadowCacheManager {
   @Override
   public long getShadowCacheBytes(CacheScope scope) {
     return 0;
+  }
+
+  @Override
+  public long getShadowCachePageRead() {
+    return mShadowCachePageRead.get();
+  }
+
+  @Override
+  public long getShadowCachePageHit() {
+    return mShadowCachePageHit.get();
+  }
+
+  @Override
+  public long getShadowCacheByteRead() {
+    return mShadowCacheByteRead.get();
+  }
+
+  @Override
+  public long getShadowCacheByteHit() {
+    return mShadowCacheByteHit.get();
   }
 
   @Override

@@ -22,6 +22,7 @@ import alluxio.conf.PropertyKey;
 
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * This class is a shadow cache with {@link ClockCuckooFilter} implementation.
@@ -34,6 +35,11 @@ public class ClockCuckooShadowCacheManager implements ShadowCacheManager {
   private final ClockCuckooFilter<PageId> mFilter;
   private long mShadowCacheBytes = 0;
   private long mShadowCachePages = 0;
+
+  private final AtomicLong mShadowCachePageRead = new AtomicLong(0);
+  private final AtomicLong mShadowCachePageHit = new AtomicLong(0);
+  private final AtomicLong mShadowCacheByteRead = new AtomicLong(0);
+  private final AtomicLong mShadowCacheByteHit = new AtomicLong(0);
 
   /**
    * Create a ClockCuckooShadowCacheManager.
@@ -79,8 +85,15 @@ public class ClockCuckooShadowCacheManager implements ShadowCacheManager {
   }
 
   @Override
-  public boolean read(PageId pageId, int size, CacheScope cacheScope) {
-    return mFilter.mightContainAndResetClock(pageId);
+  public int get(PageId pageId, int bytesToRead, CacheScope cacheScope) {
+    boolean seen = mFilter.mightContainAndResetClock(pageId);
+    if (seen) {
+      mShadowCachePageHit.getAndIncrement();
+      mShadowCacheByteHit.getAndAdd(bytesToRead);
+    }
+    mShadowCachePageRead.getAndIncrement();
+    mShadowCacheByteRead.getAndAdd(bytesToRead);
+    return seen ? bytesToRead : 0;
   }
 
   @Override
@@ -122,6 +135,26 @@ public class ClockCuckooShadowCacheManager implements ShadowCacheManager {
   @Override
   public long getShadowCacheBytes(CacheScope scope) {
     return mFilter.approximateElementSize(scope);
+  }
+
+  @Override
+  public long getShadowCachePageRead() {
+    return mShadowCachePageRead.get();
+  }
+
+  @Override
+  public long getShadowCachePageHit() {
+    return mShadowCachePageHit.get();
+  }
+
+  @Override
+  public long getShadowCacheByteRead() {
+    return mShadowCacheByteRead.get();
+  }
+
+  @Override
+  public long getShadowCacheByteHit() {
+    return mShadowCacheByteHit.get();
   }
 
   @Override

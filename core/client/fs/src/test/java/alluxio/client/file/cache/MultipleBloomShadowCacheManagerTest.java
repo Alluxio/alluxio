@@ -42,9 +42,6 @@ public final class MultipleBloomShadowCacheManagerTest {
 
   @Before
   public void before() {
-    // enlarge the sliding window to avoid the effect of opportunistic aging
-    mConf.set(PropertyKey.USER_CLIENT_CACHE_SHADOW_WINDOW, "1h");
-    mConf.set(PropertyKey.USER_CLIENT_CACHE_SHADOW_MEMORY_OVERHEAD, "1MB");
     mConf.set(PropertyKey.USER_CLIENT_CACHE_SHADOW_BLOOMFILTER_NUM, BLOOMFILTER_NUM);
     mCacheManager = new MultipleBloomShadowCacheManager(mConf);
     mCacheManager.stopUpdate();
@@ -53,7 +50,7 @@ public final class MultipleBloomShadowCacheManagerTest {
   @Test
   public void putOne() throws Exception {
     assertTrue(mCacheManager.put(PAGE_ID1, PAGE1_BYTES, SCOPE1));
-    assertTrue(mCacheManager.read(PAGE_ID1, PAGE1_BYTES, SCOPE1));
+    assertEquals(PAGE1_BYTES, mCacheManager.get(PAGE_ID1, PAGE1_BYTES, SCOPE1));
     mCacheManager.updateWorkingSetSize();
     assertEquals(mCacheManager.getShadowCachePages(), 1);
     assertEquals(mCacheManager.getShadowCacheBytes(), PAGE1_BYTES);
@@ -63,8 +60,8 @@ public final class MultipleBloomShadowCacheManagerTest {
   public void putTwo() throws Exception {
     assertTrue(mCacheManager.put(PAGE_ID1, PAGE1_BYTES, SCOPE1));
     assertTrue(mCacheManager.put(PAGE_ID2, PAGE2_BYTES, SCOPE1));
-    assertTrue(mCacheManager.read(PAGE_ID1, PAGE1_BYTES, SCOPE1));
-    assertTrue(mCacheManager.read(PAGE_ID2, PAGE2_BYTES, SCOPE1));
+    assertEquals(PAGE1_BYTES, mCacheManager.get(PAGE_ID1, PAGE1_BYTES, SCOPE1));
+    assertEquals(PAGE2_BYTES, mCacheManager.get(PAGE_ID2, PAGE2_BYTES, SCOPE1));
     mCacheManager.updateWorkingSetSize();
     assertEquals(mCacheManager.getShadowCachePages(), 2);
     assertEquals(mCacheManager.getShadowCacheBytes(), PAGE1_BYTES + PAGE2_BYTES);
@@ -74,7 +71,7 @@ public final class MultipleBloomShadowCacheManagerTest {
   public void putExist() throws Exception {
     assertTrue(mCacheManager.put(PAGE_ID1, PAGE1_BYTES, SCOPE1));
     assertTrue(mCacheManager.put(PAGE_ID1, PAGE2_BYTES, SCOPE1));
-    assertTrue(mCacheManager.read(PAGE_ID1, PAGE1_BYTES, SCOPE1));
+    assertEquals(PAGE1_BYTES, mCacheManager.get(PAGE_ID1, PAGE1_BYTES, SCOPE1));
     mCacheManager.updateWorkingSetSize();
     assertEquals(mCacheManager.getShadowCachePages(), 1);
     assertEquals(mCacheManager.getShadowCacheBytes(), PAGE1_BYTES);
@@ -83,7 +80,7 @@ public final class MultipleBloomShadowCacheManagerTest {
   @Test
   public void cuckooFilterExpire() throws Exception {
     assertTrue(mCacheManager.put(PAGE_ID1, PAGE1_BYTES, SCOPE1));
-    assertTrue(mCacheManager.read(PAGE_ID1, PAGE1_BYTES, SCOPE1));
+    assertEquals(PAGE1_BYTES, mCacheManager.get(PAGE_ID1, PAGE1_BYTES, SCOPE1));
     for (int i = 0; i < MAX_AGE; i++) {
       mCacheManager.aging();
     }
@@ -91,18 +88,18 @@ public final class MultipleBloomShadowCacheManagerTest {
     mCacheManager.updateWorkingSetSize();
     assertEquals(mCacheManager.getShadowCachePages(), 0);
     assertEquals(mCacheManager.getShadowCacheBytes(), 0);
-    assertFalse(mCacheManager.read(PAGE_ID1, PAGE1_BYTES, SCOPE1));
+    assertEquals(0, mCacheManager.get(PAGE_ID1, PAGE1_BYTES, SCOPE1));
   }
 
   @Test
   public void CuckooFilterExpireHalf() throws Exception {
     assertTrue(mCacheManager.put(PAGE_ID1, PAGE1_BYTES, SCOPE1));
-    assertTrue(mCacheManager.read(PAGE_ID1, PAGE1_BYTES, SCOPE1));
+    assertEquals(PAGE1_BYTES, mCacheManager.get(PAGE_ID1, PAGE1_BYTES, SCOPE1));
     for (int i = 0; i < MAX_AGE / 2; i++) {
       mCacheManager.aging();
     }
     assertTrue(mCacheManager.put(PAGE_ID2, PAGE2_BYTES, SCOPE1));
-    assertTrue(mCacheManager.read(PAGE_ID2, PAGE2_BYTES, SCOPE1));
+    assertEquals(PAGE2_BYTES, mCacheManager.get(PAGE_ID2, PAGE2_BYTES, SCOPE1));
     for (int i = 0; i < MAX_AGE / 2; i++) {
       mCacheManager.aging();
     }
@@ -114,9 +111,9 @@ public final class MultipleBloomShadowCacheManagerTest {
   @Test
   public void delete() throws Exception {
     assertTrue(mCacheManager.put(PAGE_ID1, PAGE1_BYTES, SCOPE1));
-    assertTrue(mCacheManager.read(PAGE_ID1, PAGE1_BYTES, SCOPE1));
+    assertEquals(PAGE1_BYTES, mCacheManager.get(PAGE_ID1, PAGE1_BYTES, SCOPE1));
     assertFalse(mCacheManager.delete(PAGE_ID1));
-    assertTrue(mCacheManager.read(PAGE_ID1, PAGE1_BYTES, SCOPE1));
+    assertEquals(PAGE1_BYTES, mCacheManager.get(PAGE_ID1, PAGE1_BYTES, SCOPE1));
     mCacheManager.updateWorkingSetSize();
     // bloom filter does not support deleting, so PAGE_ID1 is not deleted actually
     assertEquals(1, mCacheManager.getShadowCachePages());
@@ -126,7 +123,7 @@ public final class MultipleBloomShadowCacheManagerTest {
   @Test
   public void getExistInWindow() throws Exception {
     mCacheManager.put(PAGE_ID1, PAGE1_BYTES, SCOPE1);
-    assertTrue(mCacheManager.read(PAGE_ID1, PAGE1_BYTES, SCOPE1));
+    assertEquals(PAGE1_BYTES, mCacheManager.get(PAGE_ID1, PAGE1_BYTES, SCOPE1));
     assertEquals(mCacheManager.getShadowCacheBytes(), PAGE1_BYTES);
   }
 
@@ -140,13 +137,13 @@ public final class MultipleBloomShadowCacheManagerTest {
     // PAGE_ID1 is evicted, only PAGE_ID2 in the shadow cache
     assertEquals(mCacheManager.getShadowCacheBytes(), PAGE2_BYTES);
     // PAGE_ID1 is not in the shadow cache and `read` will not add it to shadow cache
-    assertFalse(mCacheManager.read(PAGE_ID1, PAGE1_BYTES, SCOPE1));
+    assertEquals(0, mCacheManager.get(PAGE_ID1, PAGE1_BYTES, SCOPE1));
     // PAGE_ID1 is not added to the shadow cache again by 'read'
     assertEquals(mCacheManager.getShadowCacheBytes(), PAGE2_BYTES);
   }
 
   @Test
   public void getNotExist() throws Exception {
-    assertFalse(mCacheManager.read(PAGE_ID1, PAGE1_BYTES, SCOPE1));
+    assertEquals(0, mCacheManager.get(PAGE_ID1, PAGE1_BYTES, SCOPE1));
   }
 }

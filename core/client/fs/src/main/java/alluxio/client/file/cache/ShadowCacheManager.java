@@ -52,9 +52,9 @@ public interface ShadowCacheManager {
    * @param pageId page identifier
    * @param bytesToRead number of bytes to read in this page
    * @param scope cache scope
-   * @return true if page is found, false otherwise
+   * @return the number of bytes read, 0 if page is not found, -1 on errors
    */
-  boolean read(PageId pageId, int bytesToRead, CacheScope scope);
+  int get(PageId pageId, int bytesToRead, CacheScope scope);
 
   /**
    * Deletes a page from the cache.
@@ -102,6 +102,26 @@ public interface ShadowCacheManager {
    * @return the number of bytes of given cache scope in this shadow cache
    */
   long getShadowCacheBytes(CacheScope scope);
+
+  /**
+   * @return the number of pages read in this shadow cache
+   */
+  long getShadowCachePageRead();
+
+  /**
+   * @return the number of pages hit in this shadow cache
+   */
+  long getShadowCachePageHit();
+
+  /**
+   * @return the number of bytes read in this shadow cache
+   */
+  long getShadowCacheByteRead();
+
+  /**
+   * @return the number of bytes hit in this shadow cache
+   */
+  long getShadowCacheByteHit();
 
   /**
    * @return the false positive ratio
