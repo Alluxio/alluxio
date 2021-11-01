@@ -26,7 +26,7 @@ Where ACTION is one of:
   secondary_master          \tStart the local secondary master on this node.
   masters                   \tStart masters on master nodes.
   hub_agent                 \tStart the local hub_agent.
-  hub_hosted                \tStart the hosted hub server.
+  hub_manager               \tStart the hub manager.
   proxy                     \tStart the proxy on this node.
   proxies                   \tStart proxies on master and worker nodes.
   safe                      \tScript will run continuously and start the master if it's not running.
