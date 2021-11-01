@@ -191,7 +191,7 @@ public final class JobMasterTest {
         PlanCoordinator.create(any(CommandManager.class), any(JobServerContext.class),
             anyList(), anyLong(), any(JobConfig.class), any(Consumer.class)))
         .thenReturn(coordinator);
-    SleepJobConfig config = new SleepJobConfig(100000);
+    SleepJobConfig config = new SleepJobConfig(10000);
     long jobId = mJobMaster.run(config);
     mJobMaster.cancel(jobId);
     verify(coordinator).cancel();
