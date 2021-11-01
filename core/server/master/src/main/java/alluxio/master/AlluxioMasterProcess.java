@@ -191,30 +191,26 @@ public class AlluxioMasterProcess extends MasterProcess {
    *
    * @param isLeader if the Master is leader
    */
-  protected void startMasters(boolean isLeader) {
-    try {
-      if (isLeader) {
-        if (ServerConfiguration.isSet(PropertyKey.MASTER_JOURNAL_INIT_FROM_BACKUP)) {
-          AlluxioURI backup =
-              new AlluxioURI(ServerConfiguration.get(PropertyKey.MASTER_JOURNAL_INIT_FROM_BACKUP));
-          if (mJournalSystem.isEmpty()) {
-            initFromBackup(backup);
-          } else {
-            LOG.info("The journal system is not freshly formatted, skipping restoring backup from "
-                + backup);
-          }
+  protected void startMasters(boolean isLeader) throws IOException {
+    if (isLeader) {
+      if (ServerConfiguration.isSet(PropertyKey.MASTER_JOURNAL_INIT_FROM_BACKUP)) {
+        AlluxioURI backup =
+            new AlluxioURI(ServerConfiguration.get(PropertyKey.MASTER_JOURNAL_INIT_FROM_BACKUP));
+        if (mJournalSystem.isEmpty()) {
+          initFromBackup(backup);
+        } else {
+          LOG.info("The journal system is not freshly formatted, skipping restoring backup from "
+              + backup);
         }
-        mSafeModeManager.notifyPrimaryMasterStarted();
-      } else {
-        startRejectingServers();
       }
-      mRegistry.start(isLeader);
-      // Signal state-lock-manager that masters are ready.
-      mContext.getStateLockManager().mastersStartedCallback();
-      LOG.info("All masters started");
-    } catch (IOException e) {
-      throw new RuntimeException(e);
+      mSafeModeManager.notifyPrimaryMasterStarted();
+    } else {
+      startRejectingServers();
     }
+    mRegistry.start(isLeader);
+    // Signal state-lock-manager that masters are ready.
+    mContext.getStateLockManager().mastersStartedCallback();
+    LOG.info("All masters started");
   }
 
   /**
