@@ -198,7 +198,14 @@ public class SimpleInodeLockList implements InodeLockList {
     if (!endsInWriteLock() && mode == LockMode.WRITE) {
       mFirstWriteLockIndex = mLocks.size();
     }
-    mLocks.add(lock);
+    try {
+      mLocks.add(lock);
+    } catch (OutOfMemoryError e) {
+      // If adding to mLocks fails due to OOM, this lock
+      // will not be tracked so we must close it manually
+      lock.close();
+      throw e;
+    }
   }
 
   private void addInodeLock(Inode inode, LockMode mode, RWLockResource lock) {
@@ -208,13 +215,7 @@ public class SimpleInodeLockList implements InodeLockList {
   }
 
   private void lockAndAddInode(Inode inode, LockMode mode) {
-    RWLockResource lock = mInodeLockManager.lockInode(inode, mode, mUseTryLock);
-    try {
-      addInodeLock(inode, mode, lock);
-    } catch (Throwable t) {
-      lock.close();
-      throw t;
-    }
+    addInodeLock(inode, mode, mInodeLockManager.lockInode(inode, mode, mUseTryLock));
   }
 
   private void addEdgeLock(Edge edge, LockMode mode, RWLockResource lock) {
@@ -223,13 +224,7 @@ public class SimpleInodeLockList implements InodeLockList {
   }
 
   private void lockAndAddEdge(Edge edge, LockMode mode) {
-    RWLockResource lock = mInodeLockManager.lockEdge(edge, mode, mUseTryLock);
-    try {
-      addEdgeLock(edge, mode, lock);
-    } catch (Throwable t) {
-      lock.close();
-      throw t;
-    }
+    addEdgeLock(edge, mode, mInodeLockManager.lockEdge(edge, mode, mUseTryLock));
   }
 
   /**
