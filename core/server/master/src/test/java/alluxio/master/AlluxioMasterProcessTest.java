@@ -54,8 +54,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 /**
  * Tests for {@link AlluxioMasterProcess}.
  */
-//@RunWith(PowerMockRunner.class) // annotations for `startMastersThrowsUnavailableException`
-//@PrepareForTest({FaultTolerantAlluxioMasterProcess.class})
+@RunWith(PowerMockRunner.class) // annotations for `startMastersThrowsUnavailableException`
+@PrepareForTest({FaultTolerantAlluxioMasterProcess.class})
 public final class AlluxioMasterProcessTest {
 
   @Rule
