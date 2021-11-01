@@ -36,7 +36,10 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
-import org.mockito.Mockito;
+import org.junit.runner.RunWith;
+import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.io.IOException;
 import java.net.BindException;
@@ -51,6 +54,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 /**
  * Tests for {@link AlluxioMasterProcess}.
  */
+//@RunWith(PowerMockRunner.class) // annotations for `startMastersThrowsUnavailableException`
+//@PrepareForTest({FaultTolerantAlluxioMasterProcess.class})
 public final class AlluxioMasterProcessTest {
 
   @Rule
@@ -110,14 +115,14 @@ public final class AlluxioMasterProcessTest {
   }
 
   @Test
-  public void startMastersThrowsNotLeaderException() throws InterruptedException, IOException {
+  public void startMastersThrowsUnavailableException() throws InterruptedException, IOException {
     ControllablePrimarySelector primarySelector = new ControllablePrimarySelector();
     primarySelector.setState(PrimarySelector.State.PRIMARY);
     ServerConfiguration.set(PropertyKey.MASTER_JOURNAL_EXIT_ON_DEMOTION, "true");
     FaultTolerantAlluxioMasterProcess master = new FaultTolerantAlluxioMasterProcess(
         new NoopJournalSystem(), primarySelector);
-    FaultTolerantAlluxioMasterProcess spy = Mockito.spy(master);
-    Mockito.doAnswer(invocation -> { throw new UnavailableException("unavailable"); })
+    FaultTolerantAlluxioMasterProcess spy = PowerMockito.spy(master);
+    PowerMockito.doAnswer(invocation -> { throw new UnavailableException("unavailable"); })
         .when(spy).startMasters(true);
 
     AtomicBoolean success = new AtomicBoolean(true);

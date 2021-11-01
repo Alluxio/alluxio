@@ -139,7 +139,11 @@ final class FaultTolerantAlluxioMasterProcess extends AlluxioMasterProcess {
       }
       // We only check unstable here because mJournalSystem.gainPrimacy() is the only slow method
       if (unstable.get()) {
-        losePrimacy();
+        if (ServerConfiguration.getBoolean(PropertyKey.MASTER_JOURNAL_EXIT_ON_DEMOTION)) {
+          stop();
+        } else {
+          losePrimacy();
+        }
         return false;
       }
     }
