@@ -1295,6 +1295,9 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
             mLostBlocks.remove(blockId);
           } else {
             invalidBlockCount++;
+            // The block is not recognized and should therefore be purged from the worker
+            // The file may have been removed when the worker was lost
+            workerInfo.scheduleRemoveFromWorker(blockId);
             LOG.debug("Invalid block: {} from worker {}.", blockId,
                 workerInfo.getWorkerAddress().getHost());
           }
