@@ -377,7 +377,7 @@ public class LockedInodePath implements Closeable {
 
     LockedInodePath newPath =
         new LockedInodePath(mUri, this, mPathComponents, LockPattern.WRITE_EDGE, mUseTryLock);
-    newPath.traverse();
+    newPath.traverseOrClose();
     return newPath;
   }
 
