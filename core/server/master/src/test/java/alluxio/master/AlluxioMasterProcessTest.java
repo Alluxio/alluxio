@@ -17,6 +17,7 @@ import static org.junit.Assert.assertTrue;
 import alluxio.Constants;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
+import alluxio.exception.status.UnavailableException;
 import alluxio.master.journal.noop.NoopJournalSystem;
 import alluxio.master.journal.raft.RaftJournalConfiguration;
 import alluxio.master.journal.raft.RaftJournalSystem;
@@ -28,12 +29,17 @@ import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
 
 import com.google.common.base.Preconditions;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
+import org.junit.runner.RunWith;
+import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.io.IOException;
 import java.net.BindException;
@@ -43,10 +49,13 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.URL;
 import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Tests for {@link AlluxioMasterProcess}.
  */
+@RunWith(PowerMockRunner.class) // annotations for `startMastersThrowsUnavailableException`
+@PrepareForTest({FaultTolerantAlluxioMasterProcess.class})
 public final class AlluxioMasterProcessTest {
 
   @Rule
@@ -103,6 +112,34 @@ public final class AlluxioMasterProcessTest {
     });
     t.start();
     startStopTest(master);
+  }
+
+  @Test
+  public void startMastersThrowsUnavailableException() throws InterruptedException, IOException {
+    ControllablePrimarySelector primarySelector = new ControllablePrimarySelector();
+    primarySelector.setState(PrimarySelector.State.PRIMARY);
+    ServerConfiguration.set(PropertyKey.MASTER_JOURNAL_EXIT_ON_DEMOTION, "true");
+    FaultTolerantAlluxioMasterProcess master = new FaultTolerantAlluxioMasterProcess(
+        new NoopJournalSystem(), primarySelector);
+    FaultTolerantAlluxioMasterProcess spy = PowerMockito.spy(master);
+    PowerMockito.doAnswer(invocation -> { throw new UnavailableException("unavailable"); })
+        .when(spy).startMasters(true);
+
+    AtomicBoolean success = new AtomicBoolean(true);
+    Thread t = new Thread(() -> {
+      try {
+        spy.start();
+      } catch (UnavailableException ue) {
+        success.set(false);
+      } catch (Exception e) {
+        throw new RuntimeException(e);
+      }
+    });
+    t.start();
+    final int WAIT_TIME_TO_THROW_EXC = 500; // in ms
+    t.join(WAIT_TIME_TO_THROW_EXC);
+    t.interrupt();
+    Assert.assertTrue(success.get());
   }
 
   @Test
