@@ -39,8 +39,6 @@ import alluxio.master.MasterContext;
 import alluxio.master.job.command.CommandManager;
 import alluxio.master.journal.noop.NoopJournalSystem;
 import alluxio.master.job.plan.PlanCoordinator;
-import alluxio.metrics.MetricKey;
-import alluxio.metrics.MetricsSystem;
 import alluxio.underfs.UfsManager;
 
 import com.google.common.collect.Lists;
@@ -105,22 +103,14 @@ public final class JobMasterTest {
         Lists.newArrayList(new DummyPlanConfig()), true);
 
     CompositeConfig jobConfig = new CompositeConfig(Lists.newArrayList(innerJobConfig), true);
-
     long jobId = mJobMaster.run(jobConfig);
-
     JobInfo status = mJobMaster.getStatus(jobId);
-
-    Assert.assertEquals(2,
-        MetricsSystem.counter(MetricKey.MASTER_JOB_CREATED.getName()).getCount());
-    Assert.assertEquals(2, MetricsSystem.counter(MetricKey.MASTER_JOB_COUNT.getName()).getCount());
     Assert.assertEquals(Status.FAILED, status.getStatus());
     List<JobInfo> children = status.getChildren();
     Assert.assertEquals(1, children.size());
     JobInfo child = children.get(0);
     Assert.assertEquals(Status.FAILED, child.getStatus());
     Assert.assertEquals(0, child.getChildren().size());
-    Assert.assertEquals(2, MetricsSystem.counter(MetricKey.MASTER_JOB_FAILED.getName()).getCount());
-    Assert.assertEquals(2, MetricsSystem.counter(MetricKey.MASTER_JOB_COUNT.getName()).getCount());
   }
 
   @Test
@@ -136,8 +126,6 @@ public final class JobMasterTest {
     for (long i = 0; i < TEST_JOB_MASTER_JOB_CAPACITY; i++) {
       jobIdList.add(mJobMaster.run(jobConfig));
     }
-    Assert.assertEquals(TEST_JOB_MASTER_JOB_CAPACITY,
-        MetricsSystem.counter(MetricKey.MASTER_JOB_RUNNING.getName()).getCount());
     final List<Long> list = mJobMaster.list(ListAllPOptions.getDefaultInstance());
     Assert.assertEquals(jobIdList, list);
     Assert.assertEquals(TEST_JOB_MASTER_JOB_CAPACITY,
@@ -203,12 +191,10 @@ public final class JobMasterTest {
         PlanCoordinator.create(any(CommandManager.class), any(JobServerContext.class),
             anyList(), anyLong(), any(JobConfig.class), any(Consumer.class)))
         .thenReturn(coordinator);
-    SleepJobConfig config = new SleepJobConfig(10000);
+    SleepJobConfig config = new SleepJobConfig(100000);
     long jobId = mJobMaster.run(config);
     mJobMaster.cancel(jobId);
     verify(coordinator).cancel();
-    Assert.assertEquals(1,
-        MetricsSystem.counter(MetricKey.MASTER_JOB_CANCELED.getName()).getCount());
   }
 
   private static class DummyPlanConfig implements PlanConfig {
