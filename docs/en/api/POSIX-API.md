@@ -342,11 +342,11 @@ Note that only one of the `allow_other` or `allow_root` could be set.
 Currently, most basic file system operations are supported. However, due to Alluxio implicit
 characteristics, please be aware that:
 
-* Files can be written only once and only sequentially, and never be modified.
+* Files can be written only once, only sequentially, and never be modified.
   That means overriding a file is not allowed, and an explicit combination of delete and then create
   is needed.
   For example, the `cp` command would fail when the destination file exists.
-  `vi` and `vim` commands would only succeed creating the file and any modification after the file is created would fail.
+  `vi` and `vim` commands would only succeed creating a file. Any modification after the file is created would fail.
 * Alluxio does not have hard-links or soft-links, so commands like `ln` are not supported.
   The hardlinks number is not displayed in `ll` output.
 * The user and group are mapped to the Unix user and group only when Alluxio POSIX API is configured
@@ -436,7 +436,7 @@ The following client options may affect the training performance or provides mor
     <tr>
         <td>alluxio.user.update.file.accesstime.disabled</td>
         <td>false</td>
-        <td>(Experimental) By default, a master RPC will be issued to Alluxio Master to update the file access time whenever a user accesses it. If this is enabled, the client doesn't update file access time which may improve the file access performance but causes issues for some applications.</td>
+        <td>(Experimental) By default, a master RPC will be issued to Alluxio Master to update the file access time whenever a user accesses it. If this is enabled, the client doesn't update file access time which may improve the file access performance but cause issues for some applications.</td>
     </tr>
     <tr>
         <td>alluxio.user.block.worker.client.pool.max</td>
