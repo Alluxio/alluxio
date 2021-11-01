@@ -13,6 +13,7 @@ package alluxio.master;
 
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
+
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -39,7 +40,7 @@ public class ExecutorServiceBuilderTest {
         "Cannot start Alluxio master gRPC thread pool with "
             + "%s=%s! The parallelism must be greater than 0!",
         PropertyKey.MASTER_RPC_EXECUTOR_FJP_PARALLELISM, 0));
-    ExecutorServiceBuilder.buildExecutorService(RpcExecutorHost.MASTER);
+    ExecutorServiceBuilder.buildExecutorService(ExecutorServiceBuilder.RpcExecutorHost.MASTER);
   }
 
   @Test
@@ -51,7 +52,7 @@ public class ExecutorServiceBuilderTest {
         "Cannot start Alluxio master gRPC thread pool with"
             + " %s=%s! The parallelism must be greater than 0!",
         PropertyKey.MASTER_RPC_EXECUTOR_FJP_PARALLELISM.toString(), -1));
-    ExecutorServiceBuilder.buildExecutorService(RpcExecutorHost.MASTER);
+    ExecutorServiceBuilder.buildExecutorService(ExecutorServiceBuilder.RpcExecutorHost.MASTER);
   }
 
   @Test
@@ -62,7 +63,7 @@ public class ExecutorServiceBuilderTest {
         "Cannot start Alluxio master gRPC thread pool with %s=%s. "
             + "The keepalive time must be greater than 0!",
         PropertyKey.MASTER_RPC_EXECUTOR_KEEPALIVE.toString(), 0));
-    ExecutorServiceBuilder.buildExecutorService(RpcExecutorHost.MASTER);
+    ExecutorServiceBuilder.buildExecutorService(ExecutorServiceBuilder.RpcExecutorHost.MASTER);
   }
 
   @Test
@@ -73,6 +74,29 @@ public class ExecutorServiceBuilderTest {
         "Cannot start Alluxio master gRPC thread pool with %s=%s. "
             + "The keepalive time must be greater than 0!",
         PropertyKey.MASTER_RPC_EXECUTOR_KEEPALIVE.toString(), -1));
-    ExecutorServiceBuilder.buildExecutorService(RpcExecutorHost.MASTER);
+    ExecutorServiceBuilder.buildExecutorService(ExecutorServiceBuilder.RpcExecutorHost.MASTER);
+  }
+
+  @Test
+  public void createTpeExecutor() {
+    ServerConfiguration.set(PropertyKey.MASTER_RPC_EXECUTOR_TYPE, "TPE");
+    ExecutorServiceBuilder.buildExecutorService(ExecutorServiceBuilder.RpcExecutorHost.MASTER);
+  }
+
+  @Test
+  public void createTpeExecutorWithCoreThreadsTimeout() {
+    ServerConfiguration.set(PropertyKey.MASTER_RPC_EXECUTOR_TYPE, "TPE");
+    ServerConfiguration.set(PropertyKey.MASTER_RPC_EXECUTOR_TPE_ALLOW_CORE_THREADS_TIMEOUT, true);
+    ExecutorServiceBuilder.buildExecutorService(ExecutorServiceBuilder.RpcExecutorHost.MASTER);
+  }
+
+  @Test
+  public void createTpeExecutorWithCustomQueues() {
+    ServerConfiguration.set(PropertyKey.MASTER_RPC_EXECUTOR_TYPE, "TPE");
+    for (ExecutorServiceBuilder.ThreadPoolExecutorQueueType queueType:
+        ExecutorServiceBuilder.ThreadPoolExecutorQueueType.values()) {
+      ServerConfiguration.set(PropertyKey.MASTER_RPC_EXECUTOR_TPE_QUEUE_TYPE, queueType);
+      ExecutorServiceBuilder.buildExecutorService(ExecutorServiceBuilder.RpcExecutorHost.MASTER);
+    }
   }
 }

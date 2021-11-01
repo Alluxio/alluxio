@@ -36,7 +36,6 @@ import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.util.CommonUtils.ProcessType;
 import alluxio.util.JvmPauseMonitor;
-import alluxio.util.ThreadFactoryUtils;
 import alluxio.util.URIUtils;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.web.MasterWebServer;
@@ -49,10 +48,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.InetSocketAddress;
 import java.net.URI;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 import javax.annotation.Nullable;
@@ -324,7 +319,8 @@ public class AlluxioMasterProcess extends MasterProcess {
 
   private GrpcServer createRPCServer() {
     // Create an executor for Master RPC server.
-    mRPCExecutor = ExecutorServiceBuilder.buildExecutorService(RpcExecutorHost.MASTER);
+    mRPCExecutor = ExecutorServiceBuilder.buildExecutorService(
+        ExecutorServiceBuilder.RpcExecutorHost.MASTER);
     MetricsSystem.registerGaugeIfAbsent(MetricKey.MASTER_RPC_QUEUE_LENGTH.getName(),
         mRPCExecutor::getRpcQueueLength);
     // Create underlying gRPC server.

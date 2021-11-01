@@ -27,95 +27,6 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 /**
- * Type of Alluxio process for generating RPC ExecutorServices.
- */
-enum RpcExecutorHost {
-  MASTER(0), JOB_MASTER(1), WORKER(2);
-
-  private final int mValue;
-
-  RpcExecutorHost(int value) {
-    mValue = value;
-  }
-
-  @Override
-  public String toString() {
-    switch (mValue) {
-      case 0:
-        return "master";
-      case 1:
-        return "job.master";
-      case 2:
-        return "worker";
-      default:
-        return null;
-    }
-  }
-}
-
-/**
- * RPC ExecutorService types.
- */
-enum RpcExecutorType {
-  ThreadPoolExecutor(0), // ThreadPoolExecutor
-  ForkJoinPool(1); // ForkJoinPool
-
-  private final int mValue;
-
-  RpcExecutorType(int value) {
-    mValue = value;
-  }
-
-  @Override
-  public String toString() {
-    switch (mValue) {
-      case 0:
-        return "tpe";
-      case 1:
-        return "fjp";
-      default:
-        return null;
-    }
-  }
-}
-
-/**
- * Internal task queue type for ThreadPoolExecutor:
- * -LINKED_BLOCKING_QUEUE
- * -LINKED_BLOCKING_QUEUE_WITH_CAP
- * -ARRAY_BLOCKING_QUEUE
- * -SYNCHRONOUS_BLOCKING_QUEUE
- */
-enum ThreadPoolExecutorQueueType {
-  LINKED_BLOCKING_QUEUE(0),
-  LINKED_BLOCKING_QUEUE_WITH_CAP(1),
-  ARRAY_BLOCKING_QUEUE(2),
-  SYNCHRONOUS_BLOCKING_QUEUE(3);
-
-  private final int mValue;
-
-  ThreadPoolExecutorQueueType(int value) {
-    mValue = value;
-  }
-
-  @Override
-  public String toString() {
-    switch (mValue) {
-      case 0:
-        return "LinkedBlockingQueue";
-      case 1:
-        return "LinkedBlockingQueue-WithCap";
-      case 2:
-        return "ArrayBlockingQueue";
-      case 3:
-        return "SynchronousBlockingQueue";
-      default:
-        return null;
-    }
-  }
-}
-
-/**
  * Used to create {@link ExecutorService} instances dynamically by configuration.
  */
 public class ExecutorServiceBuilder {
@@ -131,7 +42,8 @@ public class ExecutorServiceBuilder {
         PropertyKey.Template.RPC_EXECUTOR_TYPE.format(executorHost.toString()),
         RpcExecutorType.class);
     // Build thread name format.
-    String threadNameFormat = executorHost + "-rpc-executor-thread-%d";
+    String threadNameFormat =
+        String.format("%s-rpc-executor-%s-thread", executorHost, executorType) + "-%d";
     // Read shared configuration for all supported executors.
     int corePoolSize = ServerConfiguration
         .getInt(PropertyKey.Template.RPC_EXECUTOR_CORE_POOL_SIZE.format(executorHost.toString()));
@@ -148,7 +60,7 @@ public class ExecutorServiceBuilder {
 
     // Create the executor service.
     ExecutorService executorService = null;
-    if (executorType == RpcExecutorType.ForkJoinPool) {
+    if (executorType == RpcExecutorType.FJP) {
       // Read FJP specific configurations.
       int parallelism = ServerConfiguration.getInt(
           PropertyKey.Template.RPC_EXECUTOR_FJP_PARALLELISM.format(executorHost.toString()));
@@ -171,17 +83,9 @@ public class ExecutorServiceBuilder {
               PropertyKey.Template.RPC_EXECUTOR_FJP_PARALLELISM.format(executorHost.toString()),
               parallelism, PropertyKey.MASTER_RPC_EXECUTOR_MAX_POOL_SIZE.toString(), maxPoolSize));
       // Create ForkJoinPool.
-      executorService = new ForkJoinPool(
-          parallelism,
-          ThreadFactoryUtils.buildFjp(threadNameFormat, true), 
-          null,
-          isAsync, 
-          corePoolSize,
-          maxPoolSize, 
-          minRunnable, 
-          null, 
-          keepAliveMs, 
-          TimeUnit.MILLISECONDS);
+      executorService = new ForkJoinPool(parallelism,
+          ThreadFactoryUtils.buildFjp(threadNameFormat, true), null, isAsync, corePoolSize,
+          maxPoolSize, minRunnable, null, keepAliveMs, TimeUnit.MILLISECONDS);
     } else { // TPE
       // Read TPE specific configuration.
       boolean allowCoreThreadsTimeout = ServerConfiguration
@@ -207,19 +111,62 @@ public class ExecutorServiceBuilder {
           queue = new SynchronousQueue<>();
           break;
         default:
-          throw new IllegalArgumentException();
+          throw new IllegalArgumentException(
+              String.format("Unsupported internal queue type: %s", queueType));
       }
       // Create ThreadPoolExecutor.
-      executorService = new ThreadPoolExecutor(
-          corePoolSize, 
-          maxPoolSize, 
-          keepAliveMs,
-          TimeUnit.MILLISECONDS,
-          queue, 
-          ThreadFactoryUtils.build(threadNameFormat, true));
+      executorService = new ThreadPoolExecutor(corePoolSize, maxPoolSize, keepAliveMs,
+          TimeUnit.MILLISECONDS, queue, ThreadFactoryUtils.build(threadNameFormat, true));
       // Post settings.
       ((ThreadPoolExecutor) executorService).allowCoreThreadTimeOut(allowCoreThreadsTimeout);
     }
     return new AlluxioExecutorService(executorService);
+  }
+
+  /**
+   * Type of Alluxio process for generating RPC ExecutorServices.
+   */
+  enum RpcExecutorHost {
+    MASTER(0),
+    JOB_MASTER(1),
+    WORKER(2);
+
+    private final int mValue;
+
+    RpcExecutorHost(int value) {
+      mValue = value;
+    }
+
+    @Override
+    public String toString() {
+      switch (mValue) {
+        case 0:
+          return "master";
+        case 1:
+          return "job.master";
+        case 2:
+          return "worker";
+        default:
+          return null;
+      }
+    }
+  }
+
+  /**
+   * RPC ExecutorService types.
+   */
+  enum RpcExecutorType {
+    TPE, // ThreadPoolExecutor.
+    FJP  // ForkJoinPool.
+  }
+
+  /**
+   * Internal task queue type for ThreadPoolExecutor.
+   */
+  enum ThreadPoolExecutorQueueType {
+    LINKED_BLOCKING_QUEUE,          /** {@link LinkedBlockingQueue}. **/
+    LINKED_BLOCKING_QUEUE_WITH_CAP, /** {@link LinkedBlockingQueue}. **/
+    ARRAY_BLOCKING_QUEUE,           /** {@link ArrayBlockingQueue}. **/
+    SYNCHRONOUS_BLOCKING_QUEUE      /** {@link SynchronousQueue}. **/
   }
 }

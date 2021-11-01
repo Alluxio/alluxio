@@ -31,7 +31,7 @@ public class AlluxioExecutorService implements ExecutorService {
 
   /**
    * Creates Alluxio ExecutorService wrapper.
-   * 
+   *
    * @param executor underlying executor
    */
   public AlluxioExecutorService(ExecutorService executor) {
@@ -47,7 +47,8 @@ public class AlluxioExecutorService implements ExecutorService {
     } else if (mExecutor instanceof ForkJoinPool) {
       return ((ForkJoinPool) mExecutor).getQueuedSubmissionCount();
     } else {
-      throw new IllegalArgumentException("Executor is not supported.");
+      throw new IllegalArgumentException(
+          String.format("Not supported internal executor: %s", mExecutor.getClass().getName()));
     }
   }
 
