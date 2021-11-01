@@ -200,7 +200,7 @@ public class SimpleInodeLockList implements InodeLockList {
     }
     try {
       mLocks.add(lock);
-    } catch (OutOfMemoryError e) {
+    } catch (Error e) {
       // If adding to mLocks fails due to OOM, this lock
       // will not be tracked so we must close it manually
       lock.close();

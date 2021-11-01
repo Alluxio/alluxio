@@ -972,7 +972,7 @@ public class InodeTree implements DelegatingJournaled {
       }
       try {
         descendants.add(childPath);
-      } catch (OutOfMemoryError e) {
+      } catch (Error e) {
         // If adding to descendants fails due to OOM, this object
         // will not be tracked so we must close it manually
         childPath.close();
