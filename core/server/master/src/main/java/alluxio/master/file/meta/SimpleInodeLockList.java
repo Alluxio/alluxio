@@ -223,7 +223,13 @@ public class SimpleInodeLockList implements InodeLockList {
   }
 
   private void lockAndAddEdge(Edge edge, LockMode mode) {
-    addEdgeLock(edge, mode, mInodeLockManager.lockEdge(edge, mode, mUseTryLock));
+    RWLockResource lock = mInodeLockManager.lockEdge(edge, mode, mUseTryLock);
+    try {
+      addEdgeLock(edge, mode, lock);
+    } catch (Throwable t) {
+      lock.close();
+      throw t;
+    }
   }
 
   /**
