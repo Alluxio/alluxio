@@ -5680,6 +5680,16 @@ public final class PropertyKey implements Comparable<PropertyKey> {
                   .setDefaultValue("30075")
                   .setDescription("The port that the hub agent's RPC port should bind to")
                   .build();
+  public static final PropertyKey HUB_AUTHENTICATION_API_KEY =
+          new Builder(Name.HUB_AUTHENTICATION_API_KEY)
+                  .setDescription("The API key of Hub manager.")
+                  .setDisplayType(DisplayType.CREDENTIALS)
+                  .build();
+  public static final PropertyKey HUB_AUTHENTICATION_SECRET_KEY =
+          new Builder(Name.HUB_AUTHENTICATION_SECRET_KEY)
+                  .setDescription("The secret key of Hub Manager.")
+                  .setDisplayType(DisplayType.CREDENTIALS)
+                  .build();
   public static final PropertyKey HUB_CLUSTER_LABEL =
           new Builder(Name.HUB_CLUSTER_LABEL)
                   .setDefaultValue("Alluxio Hub")
@@ -6928,6 +6938,9 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     ///
     /// Alluxio Hub Manager Properties
     ///
+    public static final String HUB_AUTHENTICATION_API_KEY = "alluxio.hub.authentication.apiKey";
+    public static final String HUB_AUTHENTICATION_SECRET_KEY =
+            "alluxio.hub.authentication.secretKey";
     public static final String HUB_CLUSTER_LABEL =
             "alluxio.hub.cluster.label";
     public static final String HUB_MANAGER_AGENT_LOST_THRESHOLD_TIME =
