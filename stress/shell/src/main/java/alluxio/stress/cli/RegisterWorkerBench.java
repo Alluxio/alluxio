@@ -106,10 +106,14 @@ public class RegisterWorkerBench extends RpcBench<BlockMasterBenchParameters> {
     }
     mBlockCount = blockCount;
 
-    // Prepare these block IDs concurrently
-    LOG.info("Preparing blocks at the master");
-    RpcBenchPreparationUtils.prepareBlocksInMaster(blockMap, getPool(), mParameters.mConcurrency);
-    LOG.info("Created all blocks at the master");
+    // the preparation is done by the invoking client
+    // so skip preparation when running in job worker
+    if (!mBaseParameters.mDistributed) {
+      // Prepare these block IDs concurrently
+      LOG.info("Preparing blocks at the master");
+      RpcBenchPreparationUtils.prepareBlocksInMaster(blockMap);
+      LOG.info("Created all blocks at the master");
+    }
 
     // Prepare worker IDs
     int numWorkers = mParameters.mConcurrency;

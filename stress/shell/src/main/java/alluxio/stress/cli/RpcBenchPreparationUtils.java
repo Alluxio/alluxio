@@ -19,6 +19,7 @@ import alluxio.conf.PropertyKey;
 import alluxio.grpc.ConfigProperty;
 import alluxio.master.MasterClientContext;
 import alluxio.stress.rpc.TierAlias;
+import alluxio.util.executor.ExecutorServiceFactories;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.wire.WorkerNetAddress;
 import alluxio.worker.block.BlockMasterClient;
@@ -40,6 +41,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Utilities for the preparation step in RPC benchmark testing.
@@ -64,13 +66,10 @@ public class RpcBenchPreparationUtils {
    * Prepare all relevant block IDs on the master side concurrently.
    *
    * @param locToBlocks a map from block location to block IDs
-   * @param pool the thread pool to submit to
-   * @param concurrency number of threads/concurrent clients
    */
-  public static void prepareBlocksInMaster(Map<BlockStoreLocation, List<Long>> locToBlocks,
-                                           ExecutorService pool,
-                                           int concurrency) {
+  public static void prepareBlocksInMaster(Map<BlockStoreLocation, List<Long>> locToBlocks) throws InterruptedException {
     // Partition the wanted block IDs to smaller jobs in order to utilize concurrency
+    int concurrency = Runtime.getRuntime().availableProcessors() * 4;
     List<List<Long>> jobs = new ArrayList<>();
     for (Map.Entry<BlockStoreLocation, List<Long>> e : locToBlocks.entrySet()) {
       List<Long> v = e.getValue();
@@ -81,6 +80,8 @@ public class RpcBenchPreparationUtils {
     for (List<Long> job : jobs) {
       LOG.info("Block ids: [{},{}]", job.get(0), job.get(job.size() - 1));
     }
+    ExecutorService pool =
+        ExecutorServiceFactories.fixedThreadPool("rpc-bench-prepare", concurrency).create();
 
     long blockSize = sConf.getBytes(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT);
     CompletableFuture[] futures = new CompletableFuture[jobs.size()];
@@ -107,7 +108,12 @@ public class RpcBenchPreparationUtils {
     }
 
     LOG.info("Collect all results");
-    CompletableFuture.allOf(futures).join();
+    try {
+      CompletableFuture.allOf(futures).join();
+    } finally {
+      pool.shutdownNow();
+      pool.awaitTermination(30, TimeUnit.SECONDS);
+    }
   }
 
   /**

@@ -170,9 +170,14 @@ public class WorkerHeartbeatBench extends RpcBench<BlockMasterBenchParameters> {
                     .build());
     mLocationBlockIdList = client.convertBlockListMapToProto(blockMap);
 
-    // Prepare these block IDs concurrently
-    LOG.info("Preparing block IDs at the master");
-    RpcBenchPreparationUtils.prepareBlocksInMaster(blockMap, getPool(), mParameters.mConcurrency);
+    // the preparation is done by the invoking client
+    // so skip preparation when running in job worker
+    if (!mBaseParameters.mDistributed) {
+      // Prepare these block IDs concurrently
+      LOG.info("Preparing block IDs at the master");
+      RpcBenchPreparationUtils.prepareBlocksInMaster(blockMap);
+      LOG.info("Created all blocks at the master");
+    }
 
     // Prepare simulated workers
     int numWorkers = mParameters.mConcurrency;
