@@ -67,7 +67,8 @@ public class RpcBenchPreparationUtils {
    *
    * @param locToBlocks a map from block location to block IDs
    */
-  public static void prepareBlocksInMaster(Map<BlockStoreLocation, List<Long>> locToBlocks) throws InterruptedException {
+  public static void prepareBlocksInMaster(Map<BlockStoreLocation, List<Long>> locToBlocks)
+      throws InterruptedException {
     // Partition the wanted block IDs to smaller jobs in order to utilize concurrency
     int concurrency = Runtime.getRuntime().availableProcessors() * 4;
     List<List<Long>> jobs = new ArrayList<>();
