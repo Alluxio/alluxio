@@ -777,6 +777,30 @@ Be careful if you have persistent volumes or other important resources you want 
 {% endnavtab %}
 {% endnavtabs %}
 
+### Verify
+
+If using persistent volumes, the status of the volume(s) should change
+to `CLAIMED` and the status of the volume claims should be `BOUNDED`.
+You can validate the status of your PersistentVolume and PersistentVolumeClaims
+using the follow `kubectl` commands:
+```console
+$ kubectl get pv
+$ kubectl get pvc
+```
+- If you have unbound PersistentVolumeClaims, please ensure you have provisioned
+matching PersistentVolumes. See "(Optional) Provision a Persistent Volume" in
+[Basic Setup]({{ '/en/deploy/Running-Alluxio-On-Kubernetes.html' | relativize_url }}#basic-setup).
+
+Once ready, access the Alluxio CLI from the master Pod and run basic I/O tests.
+```console
+$ kubectl exec -ti alluxio-master-0 /bin/bash
+```
+
+From the master Pod, execute the following:
+```console
+$ alluxio runTests
+```
+
 ### Access the Web UI
 
 The Alluxio UI can be accessed from outside the kubernetes cluster using port forwarding.
@@ -813,25 +837,210 @@ with either `Ctrl + C` or `kill`.
 
 For more information about K8s port-forward see the [K8s doc](https://kubernetes.io/docs/reference/generated/kubectl/kubectl-commands#port-forward).
 
-### Verify
+## Advanced Setup
 
-Once ready, access the Alluxio CLI from the master Pod and run basic I/O tests.
-```console
-$ kubectl exec -ti alluxio-master-0 /bin/bash
+### Enable Short-circuit Access
+
+Short-circuit access enables clients to perform read and write operations directly against the
+worker bypassing the networking interface.
+For performance-critical applications it is recommended to enable short-circuit operations
+against Alluxio because it can increase a client's read and write throughput when co-located with
+an Alluxio worker.
+
+This feature is enabled by default (see next section to disable this feature), however requires extra configuration to work properly in
+Kubernetes environments.
+
+There are two modes for using short-circuit.
+
+#### Option1: Use local mode
+
+In this mode, the Alluxio client and local Alluxio worker recognize each other if the client hostname
+matches the worker hostname.
+This is called *Hostname Introspection*.
+In this mode, the Alluxio client and local Alluxio worker share the tiered storage of Alluxio worker.
+
+{% navtabs modes %}
+{% navtab helm %}
+
+You can use `local` policy by setting the properties as below:
+
+```properties
+shortCircuit:
+  enabled: true
+  policy: local
 ```
 
-From the master Pod, execute the following:
-```console
-$ alluxio runTests
+{% endnavtab %}
+{% navtab kubectl %}
+
+In your `alluxio-configmap.yaml` you should add the following properties to `ALLUXIO_WORKER_JAVA_OPTS`:
+
+```properties
+-Dalluxio.user.short.circuit.enabled=true \
+-Dalluxio.worker.data.server.domain.socket.as.uuid=false
 ```
 
-(Optional) If using persistent volumes for Alluxio master, the status of the volume(s) should change
-to `CLAIMED`, and the status of the volume claims should be `BOUNDED`.
-You can validate the status as below:
-```console
-$ kubectl get pv
-$ kubectl get pvc
+Also you should remove the property `-Dalluxio.worker.data.server.domain.socket.address`.
+
+{% endnavtab %}
+{% endnavtabs %}
+
+#### Option2: Use uuid (default)
+
+This is the **default** policy used for short-circuit in Kubernetes.
+
+If the client or worker container is using virtual networking, their hostnames may not match.
+In such a scenario, set the following property to use filesystem inspection to enable short-circuit
+operations and **make sure the client container mounts the directory specified as the domain socket
+path**.
+Short-circuit writes are then enabled if the worker UUID is located on the client filesystem.
+
+***Domain Socket Path.***
+The domain socket is a volume which should be mounted on:
+
+- All Alluxio workers
+- All application containers which intend to read/write through Alluxio
+
+This domain socket volume can be either a `PersistentVolumeClaim` or a `hostPath Volume`.
+
+***Use PersistentVolumeClaim.***
+By default, this domain socket volume is a `PersistentVolumeClaim`.
+You need to provision a `PersistentVolume` to this `PersistentVolumeClaim`.
+And this `PersistentVolume` should be either `local` or `hostPath`.
+
+{% navtabs domainSocketPVC %}
+{% navtab helm %}
+
+You can use `uuid` policy by setting the properties as below:
+
+```properties
+# These are the default configurations
+shortCircuit:
+  enabled: true
+  policy: uuid
+  size: 1Mi
+  # volumeType controls the type of shortCircuit volume.
+  # It can be "persistentVolumeClaim" or "hostPath"
+  volumeType: persistentVolumeClaim
+  # Attributes to use if the domain socket volume is PVC
+  pvcName: alluxio-worker-domain-socket
+  accessModes:
+    - ReadWriteOnce
+  storageClass: standard
 ```
+
+The field `shortCircuit.pvcName` defines the name of the `PersistentVolumeClaim` for domain socket.
+This PVC will be created as part of `helm install`.
+
+{% endnavtab %}
+{% navtab kubectl %}
+
+You should verify the following properties in `ALLUXIO_WORKER_JAVA_OPTS`.
+Actually they are set to these values by default:
+```properties
+-Dalluxio.worker.data.server.domain.socket.address=/opt/domain -Dalluxio.worker.data.server.domain.socket.as.uuid=true
+```
+
+Also you should make sure the worker Pods have domain socket defined in the `volumes`,
+and all relevant containers have the domain socket volume mounted.
+The domain socket volume is defined as below by default:
+```properties
+volumes:
+  - name: alluxio-domain
+    persistentVolumeClaim:
+      claimName: "alluxio-worker-domain-socket"
+```
+
+> Note: Compute application containers **MUST** mount the domain socket volume to the same path
+(`/opt/domain`) as configured for the Alluxio workers.
+
+The `PersistenceVolumeClaim` is defined in `worker/alluxio-worker-pvc.yaml.template`.
+
+{% endnavtab %}
+{% endnavtabs %}
+
+***Use hostPath Volume.***
+You can also directly define the workers to use a `hostPath Volume` for domain socket.
+
+{% navtabs domainSocketHostPath %}
+{% navtab helm %}
+
+You can switch to directly use a `hostPath` volume for the domain socket.
+This is done by changing the `shortCircuit.volumeType` field to `hostPath`.
+Note that you also need to define the path to use for the `hostPath` volume.
+
+```properties
+shortCircuit:
+  enabled: true
+  policy: uuid
+  size: 1Mi
+  # volumeType controls the type of shortCircuit volume.
+  # It can be "persistentVolumeClaim" or "hostPath"
+  volumeType: hostPath
+  # Attributes to use if the domain socket volume is hostPath
+  hostPath: "/tmp/alluxio-domain" # The hostPath directory to use
+```
+{% endnavtab %}
+{% navtab kubectl %}
+
+You should verify the properties in `ALLUXIO_WORKER_JAVA_OPTS` in the same way as using `PersistentVolumeClaim`.
+
+Also you should make sure the worker Pods have domain socket defined in the `volumes`,
+and all relevant containers have the domain socket volume mounted.
+The domain socket volume is defined as below by default:
+```properties
+volumes:
+  - name: alluxio-domain
+    hostPath:
+      path: /tmp/alluxio-domain
+      type: DirectoryOrCreate
+```
+
+> Note: Compute application containers **MUST** mount the domain socket volume to the same path
+(`/opt/domain`) as configured for the Alluxio workers.
+
+{% endnavtab %}
+{% endnavtabs %}
+
+### Verify Short-circuit Operations
+
+To verify short-circuit reads and writes monitor the metrics displayed under:
+1. the metrics tab of the web UI as `Domain Socket Alluxio Read` and `Domain Socket Alluxio Write`
+1. or, the [metrics json]({{ '/en/operation/Metrics-System.html' | relativize_url }}) as
+`cluster.BytesReadDomain` and `cluster.BytesWrittenDomain`
+1. or, the [fsadmin metrics CLI]({{ '/en/operation/Admin-CLI.html' | relativize_url }}) as
+`Short-circuit Read (Domain Socket)` and `Alluxio Write (Domain Socket)`
+
+### Disable Short-Circuit Operations
+To disable short-circuit operations, the operation depends on how you deploy Alluxio.
+
+> Note: As mentioned, disabling short-circuit access for Alluxio workers will result in
+worse I/O throughput
+
+{% navtabs shortCircuit %}
+{% navtab helm %}
+
+You can disable short circuit by setting the properties as below:
+
+```properties
+shortCircuit:
+  enabled: false
+```
+
+{% endnavtab %}
+{% navtab kubectl %}
+
+You should set the property `alluxio.user.short.circuit.enabled` to `false` in your
+`ALLUXIO_WORKER_JAVA_OPTS`.
+```properties
+-Dalluxio.user.short.circuit.enabled=false
+```
+
+You should also manually remove the volume `alluxio-domain` from `volumes` of the Pod definition
+and `volumeMounts` of each container if existing.
+
+{% endnavtab %}
+{% endnavtabs %}
 
 ### Enable remote logging
 
@@ -1039,8 +1248,6 @@ drwxr-sr-x    2 alluxio  bin           4096 Jan 12 03:14 worker
 drwxr-sr-x    2 alluxio  bin           4096 Jan 12 03:14 job_worker
 ```
 
-## Advanced Setup
-
 ### POSIX API
 
 Once Alluxio is deployed on Kubernetes, there are multiple ways in which a client application can
@@ -1173,209 +1380,6 @@ containers:
 [POSIX API docs]({{ '/en/api/POSIX-API.html' | relative_url }}) provides more details about how to configure Alluxio POSIX API.
   {% endcollapsible %}
 {% endaccordion %}
-
-{% endnavtab %}
-{% endnavtabs %}
-
-### Enable Short-circuit Access
-
-Short-circuit access enables clients to perform read and write operations directly against the
-worker bypassing the networking interface.
-For performance-critical applications it is recommended to enable short-circuit operations
-against Alluxio because it can increase a client's read and write throughput when co-located with
-an Alluxio worker.
-
-This feature is enabled by default (see next section to disable this feature), however requires extra configuration to work properly in
-Kubernetes environments.
-
-There are two modes for using short-circuit.
-
-#### Option1: Use local mode
-
-In this mode, the Alluxio client and local Alluxio worker recognize each other if the client hostname
-matches the worker hostname.
-This is called *Hostname Introspection*.
-In this mode, the Alluxio client and local Alluxio worker share the tiered storage of Alluxio worker.
-
-{% navtabs modes %}
-{% navtab helm %}
-
-You can use `local` policy by setting the properties as below:
-
-```properties
-shortCircuit:
-  enabled: true
-  policy: local
-```
-
-{% endnavtab %}
-{% navtab kubectl %}
-
-In your `alluxio-configmap.yaml` you should add the following properties to `ALLUXIO_WORKER_JAVA_OPTS`:
-
-```properties
--Dalluxio.user.short.circuit.enabled=true \
--Dalluxio.worker.data.server.domain.socket.as.uuid=false
-```
-
-Also you should remove the property `-Dalluxio.worker.data.server.domain.socket.address`.
-
-{% endnavtab %}
-{% endnavtabs %}
-
-#### Option2: Use uuid (default)
-
-This is the **default** policy used for short-circuit in Kubernetes.
-
-If the client or worker container is using virtual networking, their hostnames may not match.
-In such a scenario, set the following property to use filesystem inspection to enable short-circuit
-operations and **make sure the client container mounts the directory specified as the domain socket
-path**.
-Short-circuit writes are then enabled if the worker UUID is located on the client filesystem.
-
-***Domain Socket Path.***
-The domain socket is a volume which should be mounted on:
-
-- All Alluxio workers
-- All application containers which intend to read/write through Alluxio
-
-This domain socket volume can be either a `PersistentVolumeClaim` or a `hostPath Volume`.
-
-***Use PersistentVolumeClaim.***
-By default, this domain socket volume is a `PersistentVolumeClaim`.
-You need to provision a `PersistentVolume` to this `PersistentVolumeClaim`.
-And this `PersistentVolume` should be either `local` or `hostPath`.
-
-{% navtabs domainSocketPVC %}
-{% navtab helm %}
-
-You can use `uuid` policy by setting the properties as below:
-
-```properties
-# These are the default configurations
-shortCircuit:
-  enabled: true
-  policy: uuid
-  size: 1Mi
-  # volumeType controls the type of shortCircuit volume.
-  # It can be "persistentVolumeClaim" or "hostPath"
-  volumeType: persistentVolumeClaim
-  # Attributes to use if the domain socket volume is PVC
-  pvcName: alluxio-worker-domain-socket
-  accessModes:
-    - ReadWriteOnce
-  storageClass: standard
-```
-
-The field `shortCircuit.pvcName` defines the name of the `PersistentVolumeClaim` for domain socket.
-This PVC will be created as part of `helm install`.
-
-{% endnavtab %}
-{% navtab kubectl %}
-
-You should verify the following properties in `ALLUXIO_WORKER_JAVA_OPTS`.
-Actually they are set to these values by default:
-```properties
--Dalluxio.worker.data.server.domain.socket.address=/opt/domain -Dalluxio.worker.data.server.domain.socket.as.uuid=true
-```
-
-Also you should make sure the worker Pods have domain socket defined in the `volumes`,
-and all relevant containers have the domain socket volume mounted.
-The domain socket volume is defined as below by default:
-```properties
-volumes:
-  - name: alluxio-domain
-    persistentVolumeClaim:
-      claimName: "alluxio-worker-domain-socket"
-```
-
-> Note: Compute application containers **MUST** mount the domain socket volume to the same path
-(`/opt/domain`) as configured for the Alluxio workers.
-
-The `PersistenceVolumeClaim` is defined in `worker/alluxio-worker-pvc.yaml.template`.
-
-{% endnavtab %}
-{% endnavtabs %}
-
-***Use hostPath Volume.***
-You can also directly define the workers to use a `hostPath Volume` for domain socket.
-
-{% navtabs domainSocketHostPath %}
-{% navtab helm %}
-
-You can switch to directly use a `hostPath` volume for the domain socket.
-This is done by changing the `shortCircuit.volumeType` field to `hostPath`.
-Note that you also need to define the path to use for the `hostPath` volume.
-
-```properties
-shortCircuit:
-  enabled: true
-  policy: uuid
-  size: 1Mi
-  # volumeType controls the type of shortCircuit volume.
-  # It can be "persistentVolumeClaim" or "hostPath"
-  volumeType: hostPath
-  # Attributes to use if the domain socket volume is hostPath
-  hostPath: "/tmp/alluxio-domain" # The hostPath directory to use
-```
-{% endnavtab %}
-{% navtab kubectl %}
-
-You should verify the properties in `ALLUXIO_WORKER_JAVA_OPTS` in the same way as using `PersistentVolumeClaim`.
-
-Also you should make sure the worker Pods have domain socket defined in the `volumes`,
-and all relevant containers have the domain socket volume mounted.
-The domain socket volume is defined as below by default:
-```properties
-volumes:
-  - name: alluxio-domain
-    hostPath:
-      path: /tmp/alluxio-domain
-      type: DirectoryOrCreate
-```
-
-> Note: Compute application containers **MUST** mount the domain socket volume to the same path
-(`/opt/domain`) as configured for the Alluxio workers.
-
-{% endnavtab %}
-{% endnavtabs %}
-
-### Verify Short-circuit Operations
-
-To verify short-circuit reads and writes monitor the metrics displayed under:
-1. the metrics tab of the web UI as `Domain Socket Alluxio Read` and `Domain Socket Alluxio Write`
-1. or, the [metrics json]({{ '/en/operation/Metrics-System.html' | relativize_url }}) as
-`cluster.BytesReadDomain` and `cluster.BytesWrittenDomain`
-1. or, the [fsadmin metrics CLI]({{ '/en/operation/Admin-CLI.html' | relativize_url }}) as
-`Short-circuit Read (Domain Socket)` and `Alluxio Write (Domain Socket)`
-
-### Disable Short-Circuit Operations
-To disable short-circuit operations, the operation depends on how you deploy Alluxio.
-
-> Note: As mentioned, disabling short-circuit access for Alluxio workers will result in
-worse I/O throughput
-
-{% navtabs shortCircuit %}
-{% navtab helm %}
-
-You can disable short circuit by setting the properties as below:
-
-```properties
-shortCircuit:
-  enabled: false
-```
-
-{% endnavtab %}
-{% navtab kubectl %}
-
-You should set the property `alluxio.user.short.circuit.enabled` to `false` in your
-`ALLUXIO_WORKER_JAVA_OPTS`.
-```properties
--Dalluxio.user.short.circuit.enabled=false
-```
-
-You should also manually remove the volume `alluxio-domain` from `volumes` of the Pod definition
-and `volumeMounts` of each container if existing.
 
 {% endnavtab %}
 {% endnavtabs %}
