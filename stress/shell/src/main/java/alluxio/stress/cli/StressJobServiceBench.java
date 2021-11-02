@@ -43,6 +43,7 @@ import alluxio.worker.job.JobMasterClientContext;
 
 import com.beust.jcommander.ParametersDelegate;
 import com.google.common.base.Throwables;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.util.concurrent.RateLimiter;
 import org.HdrHistogram.Histogram;
@@ -95,7 +96,19 @@ public class StressJobServiceBench extends Benchmark<JobServiceBenchTaskResult> 
 
   @Override
   public String getBenchDescription() {
-    return "";
+    return String.join("\n", ImmutableList.of(
+        "A benchmarking tool for the job service.",
+        "This test will measure the different aspects of job service performance with different "
+            + "operations.",
+        "",
+        "Example:",
+        "# This invokes the DistributedLoad jobs to job master",
+        "# 256 requests would be sent concurrently to job master",
+        "# Each request contains 1000 files with file size 1k",
+        "$ bin/alluxio runClass alluxio.stress.cli.StressJobServiceBench --file-size 1k \\" 
+            + "--files-per-dir 1000 --threads 256 --operation DistributedLoad",
+        ""
+    ));
   }
 
   @Override
