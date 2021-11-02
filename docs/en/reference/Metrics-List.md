@@ -98,7 +98,7 @@ Dynamically generated master metrics:
 
 ## Worker Metrics
 
-Default master metrics:
+Default worker metrics:
 
 <table class="table table-striped">
 <tr><th>Name</th><th>Type</th><th>Description</th></tr>
@@ -111,7 +111,7 @@ Default master metrics:
 {% endfor %}
 </table>
 
-Dynamically generated master metrics:
+Dynamically generated worker metrics:
 
 | Metric Name | Description |
 |-------------------------|-----------------------------------------------------|
