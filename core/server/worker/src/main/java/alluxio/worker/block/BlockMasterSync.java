@@ -80,6 +80,9 @@ public final class BlockMasterSync implements HeartbeatExecutor {
   /** Last System.currentTimeMillis() timestamp when a heartbeat successfully completed. */
   private long mLastSuccessfulHeartbeatMs;
 
+  /** Whether to use streaming. */
+  private boolean mUseStreaming;
+
   private static final boolean ACQUIRE_LEASE =
       ServerConfiguration.getBoolean(PropertyKey.WORKER_REGISTER_LEASE_ENABLED);
   private static final long ACQUIRE_LEASE_WAIT_BASE_SLEEP_MS =
@@ -97,7 +100,7 @@ public final class BlockMasterSync implements HeartbeatExecutor {
    * @param workerAddress the net address of the worker
    * @param masterClientPool the Alluxio master client pool
    */
-  BlockMasterSync(BlockWorker blockWorker, AtomicReference<Long> workerId,
+  public BlockMasterSync(BlockWorker blockWorker, AtomicReference<Long> workerId,
       WorkerNetAddress workerAddress, BlockMasterClientPool masterClientPool) throws IOException {
     mBlockWorker = blockWorker;
     mWorkerId = workerId;
@@ -107,6 +110,7 @@ public final class BlockMasterSync implements HeartbeatExecutor {
     mHeartbeatTimeoutMs = (int) ServerConfiguration
         .getMs(PropertyKey.WORKER_BLOCK_HEARTBEAT_TIMEOUT_MS);
     mAsyncBlockRemover = new AsyncBlockRemover(mBlockWorker);
+    mUseStreaming = ServerConfiguration.getBoolean(PropertyKey.WORKER_REGISTER_STREAM_ENABLED);
 
     registerWithMaster();
     mLastSuccessfulHeartbeatMs = System.currentTimeMillis();
@@ -149,18 +153,25 @@ public final class BlockMasterSync implements HeartbeatExecutor {
         mMasterClient.disconnect();
         if (ServerConfiguration.getBoolean(PropertyKey.TEST_MODE)) {
           throw new RuntimeException(String.format("Master register lease timeout exceeded: %dms",
-                  ACQUIRE_LEASE_WAIT_MAX_DURATION));
+              ACQUIRE_LEASE_WAIT_MAX_DURATION));
         }
         ProcessUtils.fatalError(LOG, "Master register lease timeout exceeded: %dms",
-                ACQUIRE_LEASE_WAIT_MAX_DURATION);
+            ACQUIRE_LEASE_WAIT_MAX_DURATION);
       }
     }
 
-    mMasterClient.register(mWorkerId.get(),
-        storageTierAssoc.getOrderedStorageAliases(), storeMeta.getCapacityBytesOnTiers(),
-        storeMeta.getUsedBytesOnTiers(), storeMeta.getBlockListByStorageLocation(),
-        storeMeta.getLostStorage(), ProjectConstants.VERSION,
-        ProjectConstants.REVISION, configList);
+    if (mUseStreaming) {
+      mMasterClient.registerWithStream(mWorkerId.get(),
+          storageTierAssoc.getOrderedStorageAliases(), storeMeta.getCapacityBytesOnTiers(),
+          storeMeta.getUsedBytesOnTiers(), storeMeta.getBlockListByStorageLocation(),
+          storeMeta.getLostStorage(), configList);
+    } else {
+      mMasterClient.register(mWorkerId.get(),
+              storageTierAssoc.getOrderedStorageAliases(), storeMeta.getCapacityBytesOnTiers(),
+              storeMeta.getUsedBytesOnTiers(), storeMeta.getBlockListByStorageLocation(),
+              storeMeta.getLostStorage(), ProjectConstants.VERSION,
+              ProjectConstants.REVISION, configList);
+    }
     // If the worker registers with master successfully, the lease will be recycled on the
     // master side. No need to manually request for recycle on the worker side.
   }

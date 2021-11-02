@@ -734,13 +734,7 @@ public final class S3ClientRestApiTest extends RestApiTest {
     Assert.assertFalse(mFileSystemMaster
         .listStatus(dirUri, ListStatusContext.defaults()).isEmpty());
 
-    try {
-      deleteObjectRestCall(bucketName + AlluxioURI.SEPARATOR + objectName);
-    } catch (AssertionError e) {
-      // expected
-      return;
-    }
-    Assert.fail("delete non-empty directory as an object should fail");
+    deleteObjectRestCall(bucketName + AlluxioURI.SEPARATOR + objectName);
   }
 
   @Test
@@ -749,13 +743,7 @@ public final class S3ClientRestApiTest extends RestApiTest {
     createBucketRestCall(bucketName);
 
     String objectName = "non-existing-object";
-    try {
-      deleteObjectRestCall(bucketName + AlluxioURI.SEPARATOR + objectName);
-    } catch (AssertionError e) {
-      // expected
-      return;
-    }
-    Assert.fail("delete non-existing object should fail");
+    deleteObjectRestCall(bucketName + AlluxioURI.SEPARATOR + objectName);
   }
 
   @Test

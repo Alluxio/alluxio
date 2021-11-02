@@ -48,6 +48,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -59,7 +60,8 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public class BlockMasterClient extends AbstractMasterClient {
   private static final Logger LOG = LoggerFactory.getLogger(BlockMasterClient.class);
-  private BlockMasterWorkerServiceGrpc.BlockMasterWorkerServiceBlockingStub mClient = null;
+  public BlockMasterWorkerServiceGrpc.BlockMasterWorkerServiceBlockingStub mClient = null;
+  public BlockMasterWorkerServiceGrpc.BlockMasterWorkerServiceStub mAsyncClient = null;
 
   /**
    * Creates a new instance of {@link BlockMasterClient} for the worker.
@@ -88,6 +90,7 @@ public class BlockMasterClient extends AbstractMasterClient {
   @Override
   protected void afterConnect() throws IOException {
     mClient = BlockMasterWorkerServiceGrpc.newBlockingStub(mChannel);
+    mAsyncClient = BlockMasterWorkerServiceGrpc.newStub(mChannel);
   }
 
   /**
@@ -310,5 +313,47 @@ public class BlockMasterClient extends AbstractMasterClient {
       mClient.registerWorker(request);
       return null;
     }, LOG, "Register", "workerId=%d", workerId);
+  }
+
+  /**
+   * Registers with the master in a stream.
+   *
+   * @param workerId the worker ID
+   * @param storageTierAliases storage/tier setup from the configuration
+   * @param totalBytesOnTiers the capacity of each tier
+   * @param usedBytesOnTiers the current usage of each tier
+   * @param currentBlocksOnLocation the blocks in each tier/dir
+   * @param lostStorage the lost storage paths
+   * @param configList the configuration properties
+   */
+  public void registerWithStream(final long workerId, final List<String> storageTierAliases,
+      final Map<String, Long> totalBytesOnTiers, final Map<String, Long> usedBytesOnTiers,
+      final Map<BlockStoreLocation, List<Long>> currentBlocksOnLocation,
+      final Map<String, List<String>> lostStorage,
+      final List<ConfigProperty> configList) throws IOException {
+    AtomicReference<IOException> ioe = new AtomicReference<>();
+    // The retry logic only takes care of connection issues.
+    // If the master side sends back an error,
+    // no retry will be attempted and the worker will quit.
+    retryRPC(() -> {
+      // The gRPC stream lifecycle is managed internal to the RegisterStreamer
+      // When an exception is thrown, the stream has been closed and error propagated
+      // to the other side, so no extra handling is required here.
+      RegisterStreamer stream = new RegisterStreamer(mAsyncClient,
+          workerId, storageTierAliases, totalBytesOnTiers, usedBytesOnTiers,
+          currentBlocksOnLocation, lostStorage, configList);
+      try {
+        stream.registerWithMaster();
+      } catch (IOException e) {
+        ioe.set(e);
+      } catch (InterruptedException e) {
+        ioe.set(new IOException(e));
+      }
+      return null;
+    }, LOG, "Register", "workerId=%d", workerId);
+
+    if (ioe.get() != null) {
+      throw ioe.get();
+    }
   }
 }

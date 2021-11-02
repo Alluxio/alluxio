@@ -303,6 +303,11 @@ service BlockMasterWorkerService {
   rpc RegisterWorker(RegisterWorkerPRequest) returns (RegisterWorkerPResponse);
 
   /**
+   * Registers a worker in a streaming way
+   */
+  rpc RegisterWorkerStream(stream RegisterWorkerPRequest) returns (stream RegisterWorkerPResponse);
+
+  /**
    * Requests a lease for registration
    */
    rpc RequestRegisterLease(GetRegisterLeasePRequest) returns (GetRegisterLeasePResponse);
