@@ -263,3 +263,104 @@ Here is a sample usage demo, where we have one master and three workers:
 - The `Write` operation is only used for generating test files instead of measuring throughput.
 - To prevent caching affecting accuracy, each file is only read at most once by each worker. Therefore, the total size of the test files and duration
 need to be tested and tuned such that no thread finish reading its designated files before the test duration passed.
+
+## Job Service Stress Bench
+
+The Job Service Stress Bench is a tool to measure the performance of job service. Testing different aspect of job service performance through different operation.
+
+### Parameters
+The parameters for the Job Service Stress Bench are (other than common parameters for any stress bench):
+
+<table class="table table-striped">
+    <tr>
+        <td>Parameters</td>
+        <td>Default Value</td>
+        <td>Description</td>
+    </tr>
+    <tr>
+        <td>operation</td>
+        <td>Required. No default value.</td>
+        <td>The operation that is going to perform. Available operations are [DistributedLoad, CreateFiles, NoOp]</td>
+    </tr>
+    <tr>
+        <td>threads</td>
+        <td>256</td>
+        <td>The number of concurrent threads that is going to be used for the operation. For createFiles, it would create folders based on this number.</td>
+    </tr>
+    <tr>
+        <td>num-files-per-dir</td>
+        <td>1000</td>
+        <td>The number of files per directory.</td>
+    </tr>
+    <tr>
+        <td>file-size</td>
+        <td>1k</td>
+        <td>The files size for created files. (100k, 1m, 1g, etc.)</td>
+    </tr>
+    <tr>
+        <td>warmup</td>
+        <td>30s</td>
+        <td>The length of time to warmup before recording measurements. (1m, 10m, 60s, 10000ms, etc.)</td>
+    </tr>
+    <tr>
+        <td>duration</td>
+        <td>30s</td>
+        <td>The length of time to run the benchmark. (1m, 10m, 60s, 10000ms, etc.)</td>
+    </tr>
+    <tr>
+        <td>target-throughput</td>
+        <td>1000</td>
+        <td>The target throughput to issue operations. Used in maxThroughput test</td>
+    </tr>
+</table>
+
+### Single node testing with operation: DistributedLoad
+#### Prerequisite
+* A running Alluxio cluster with one master, and one worker. See [Building Alluxio From Source](https://docs.alluxio.io/os/user/edge/en/contributor/Building-Alluxio-From-Source.html) for more details.
+#### Notice
+`warmup`  and `duration` parameters are not valid in distributedLoad test since it's hard to measure the start time and end time of distributedLoad jobs. We just send all  distributedLoad jobs at the beginning and record the throughput when all jobs finishes.
+#### Create test files
+Write the test files by running the benchmark with `--operation CreateFiles` into the test directory
+```console
+$ bin/alluxio runClass alluxio.stress.cli.StressJobServiceBench --operation CreateFiles --base /path/to/test/directory ...
+```
+
+For example, we are creating 10 directories with 1000 files per directory.
+```console
+$ bin/alluxio runClass alluxio.stress.cli.StressJobServiceBench --base alluxio://somehost:port/stress-job-service-base --file-size 1k --files-per-dir 1000 --threads 10 --operation CreateFiles
+```
+
+#### DistributedLoad test files
+Load the test files written by running the benchmark with `--operation DistributedLoad` from the test directory. The parameter should be the same as CreateFiles operation. It would send distributedLoad requests concurrently(one directory per request)
+```console
+$ bin/alluxio runClass alluxio.stress.cli.StressJobServiceBench --base alluxio://somehost:port/stress-job-service-base --file-size 1k --files-per-dir 1000 --threads 10 --operation DistributedLoad
+```
+
+### Single node testing with operation: NoOp
+#### Notice
+NoOp is mainly for measuring the throughput of Job Master(job management capability) and doesn't involve any job worker. JobServiceMaxThroughput test is the recommended way to measure the performance of job master.
+
+#### Single Test
+Continuously Sending NoOp jobs and measure how many jobs can be finished within certain time range.
+```console
+$ bin/alluxio runClass alluxio.stress.cli.StressJobServiceBench --warmup 30s --duration 30s --threads 10 --operation NoOp
+```
+#### JobServiceMaxThroughput Test for NoOp operation
+JobServiceMaxThroughput is applying MaxThroughput algorithm to job service. Testing the job management capability of job master.
+Only NoOp operation is supported for JobServiceMaxThroughput.
+```console
+$ bin/alluxio runClass alluxio.stress.cli.suite.JobServiceMaxThroughput --duration 30S --threads 16 --warmup 30S --operation NoOp 
+```
+
+### Cluster testing
+#### Prerequisite
+- A running Alluxio cluster. Each worker node contains at least one worker, one job worker.
+- Configure Alluxio cluster with `alluxio.job.master.job.capacity = 1000000` and `alluxio.job.master.finished.job.retention.time = 10s` to allow large scale job service stress bench.
+- If you are running distributedLoad operation, make sure UFS has enough space to store the test data. The storage size is bigger than
+  `thread` * `num-files-per-dir` * `file-size` / `worker-number` / `alluxio.worker.tieredstore.levelX.watermark.low.ratio=0.7 by default`.
+
+#### Testing
+The cluster testing is similar to single node testing except that
+- `--cluster` argument needs to be added to each operation so that the bench jobs will be submitted to job master, distributed to job workers, and executed by job workers.
+  Each job worker executes one bench job. You can use `--cluster-limit` to specify how many bench jobs run. Cluster throughput is calculated by aggregating the throughput of each bench job.
+  
