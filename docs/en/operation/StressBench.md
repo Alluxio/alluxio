@@ -318,7 +318,7 @@ The parameters for the Job Service Stress Bench are (other than common parameter
 #### Prerequisite
 * A running Alluxio cluster with one master, and one worker. See [Building Alluxio From Source](https://docs.alluxio.io/os/user/edge/en/contributor/Building-Alluxio-From-Source.html) for more details.
 #### Notice
-`warmup`  and `duration` parameters are not valid in distributedLoad test since it's hard to measure the start time and end time of distributedLoad jobs. We just send all  distributedLoad jobs at the beginning and record the throughput when all jobs finishes.
+`warmup`  and `duration` parameters are not valid in distributedLoad test since it's hard to measure the actual start time and end time of distributedLoad jobs. We just send all  distributedLoad jobs at the beginning and record the throughput when all jobs finishes.
 #### Create test files
 Write the test files by running the benchmark with `--operation CreateFiles` into the test directory
 ```console
@@ -338,7 +338,7 @@ $ bin/alluxio runClass alluxio.stress.cli.StressJobServiceBench --base alluxio:/
 
 ### Single node testing with operation: NoOp
 #### Notice
-NoOp is mainly for measuring the throughput of Job Master(job management capability) and doesn't involve any job worker. JobServiceMaxThroughput test is the recommended way to measure the performance of job master.
+NoOp is mainly for measuring the throughput of Job Master(job management capability) and doesn't involve any job worker. JobServiceMaxThroughput test with NoOp operation is the recommended way to measure the performance of job master.
 
 #### Single Test
 Continuously Sending NoOp jobs and measure how many jobs can be finished within certain time range.
