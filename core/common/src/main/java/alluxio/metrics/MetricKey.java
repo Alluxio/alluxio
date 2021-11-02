@@ -393,9 +393,7 @@ public final class MetricKey implements Comparable<MetricKey> {
   public static final MetricKey MASTER_RPC_QUEUE_LENGTH =
       new Builder("Master.RpcQueueLength")
           .setDescription("Length of the master rpc queue. "
-              + "Use this metric to monitor the RPC pressure on master. "
-              + "This number keeps being high means the bottleneck is at "
-              + "master RPC server.")
+              + "Use this metric to monitor the RPC pressure on master.")
           .setMetricType(MetricType.GAUGE)
           .build();
   public static final MetricKey MASTER_HEARTBEAT_TRIGGERED_ACTIVE_JOB_SIZE =
