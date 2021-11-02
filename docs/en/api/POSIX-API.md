@@ -346,7 +346,8 @@ characteristics, please be aware that:
   That means overriding a file is not allowed, and an explicit combination of delete and then create
   is needed.
   For example, the `cp` command would fail when the destination file exists.
-  `vi` and `vim` commands may succeed depending on the operating system.
+  `vi` and `vim` commands will only succeed modifying files if the underlying operating system deletes 
+  the original file first and then creates a new file with modified content beneath.
 * Alluxio does not have hard-links or soft-links, so commands like `ln` are not supported.
   The hardlinks number is not displayed in `ll` output.
 * The user and group are mapped to the Unix user and group only when Alluxio POSIX API is configured
