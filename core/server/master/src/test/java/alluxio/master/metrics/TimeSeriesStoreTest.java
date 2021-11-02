@@ -73,7 +73,7 @@ public class TimeSeriesStoreTest {
     store.record(metric1, value1);
     CommonUtils.sleepMs(10); // To prevent the two records from being placed in the same ms.
     store.record(metric1, value2);
-    assertEquals(value1, store.getTimeSeries().get(0).getDataPoints().element().getValue(), 0);
-    assertEquals(value2, store.getTimeSeries().get(0).getDataPoints().element().getValue(), 0);
+    assertEquals(value1, store.getTimeSeries().get(0).getDataPoints().poll().getValue(), 0);
+    assertEquals(value2, store.getTimeSeries().get(0).getDataPoints().poll().getValue(), 0);
   }
 }
