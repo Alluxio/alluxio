@@ -147,7 +147,7 @@ public class ExecutorServiceBuilder {
         case 2:
           return "worker";
         default:
-          return null;
+          return "<unrecognized_rpc_host>";
       }
     }
   }
