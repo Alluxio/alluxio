@@ -94,23 +94,24 @@ public class RpcBenchPreparationUtils {
     AtomicInteger progress = new AtomicInteger(0);
     for (int i = 0; i < jobs.size(); i++) {
       List<Long> job = jobs.get(i);
-      final int batch = i;
+      final int batchIndex = i;
+      final int batchSize = job.size();
       CompletableFuture<Void> future = CompletableFuture.supplyAsync((Supplier<Void>) () -> {
-        LOG.info("Generating {}th batch of blocks", batch);
         BlockMasterClient client =
             new BlockMasterClient(MasterClientContext
                 .newBuilder(ClientContext.create(sConf))
                 .build());
-        long finishedCount = 0;
         for (Long blockId : job) {
           try {
             client.commitBlockInUfs(blockId, blockSize);
-            finishedCount = progress.incrementAndGet();
           } catch (IOException e) {
-            LOG.error("Failed to commitBlockInUfs, blockId={} finished={} total={}",
-                blockId, finishedCount, totalBlocksFinal, e);
+            LOG.error("Failed to commitBlockInUfs in batch {}, blockId={} total={}",
+                batchIndex, blockId, totalBlocksFinal, e);
           }
         }
+        long finishedCount = progress.addAndGet(batchSize);
+        LOG.info("Generated {}th batch of {} blocks, {}% completed",
+            batchIndex, batchSize, String.format("%.2f", 100.0 * finishedCount / totalBlocksFinal));
         return null;
       }, pool);
       futures[i] = (future);
