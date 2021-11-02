@@ -36,7 +36,6 @@ import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.util.CommonUtils.ProcessType;
 import alluxio.util.JvmPauseMonitor;
-import alluxio.util.ThreadFactoryUtils;
 import alluxio.util.URIUtils;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.web.MasterWebServer;
@@ -49,9 +48,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.InetSocketAddress;
 import java.net.URI;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 import javax.annotation.Nullable;
@@ -86,7 +82,7 @@ public class AlluxioMasterProcess extends MasterProcess {
   /** The manager of all ufs. */
   private final MasterUfsManager mUfsManager;
 
-  private ThreadPoolExecutor mRPCExecutor = null;
+  private AlluxioExecutorService mRPCExecutor = null;
 
   /**
    * Creates a new {@link AlluxioMasterProcess}.
@@ -319,16 +315,10 @@ public class AlluxioMasterProcess extends MasterProcess {
 
   private GrpcServer createRPCServer() {
     // Create an executor for Master RPC server.
-    int coreThreads = ServerConfiguration.getInt(PropertyKey.MASTER_RPC_EXECUTOR_CORE_POOL_SIZE);
-    int maxThreads = ServerConfiguration.getInt(PropertyKey.MASTER_RPC_EXECUTOR_MAX_POOL_SIZE);
-    long keepAlive = ServerConfiguration.getMs(PropertyKey.MASTER_RPC_EXECUTOR_KEEPALIVE);
-    BlockingQueue<Runnable> taskQueue = new LinkedBlockingQueue<>();
-    mRPCExecutor = new ThreadPoolExecutor(coreThreads, maxThreads,
-        keepAlive, TimeUnit.MILLISECONDS,
-        taskQueue, ThreadFactoryUtils.build("master-rpc-pool-thread-%d", true));
-    mRPCExecutor.allowCoreThreadTimeOut(true);
+    mRPCExecutor = ExecutorServiceBuilder.buildExecutorService(
+        ExecutorServiceBuilder.RpcExecutorHost.MASTER);
     MetricsSystem.registerGaugeIfAbsent(MetricKey.MASTER_RPC_QUEUE_LENGTH.getName(),
-        taskQueue::size);
+        mRPCExecutor::getRpcQueueLength);
     // Create underlying gRPC server.
     GrpcServerBuilder builder = GrpcServerBuilder
         .forAddress(GrpcServerAddress.create(mRpcConnectAddress.getHostName(), mRpcBindAddress),
@@ -395,26 +385,6 @@ public class AlluxioMasterProcess extends MasterProcess {
     return "Alluxio master @" + mRpcConnectAddress;
   }
 
-  private static void validateRPCExecutor() {
-    int parallelism = ServerConfiguration.getInt(PropertyKey.MASTER_RPC_EXECUTOR_PARALLELISM);
-    Preconditions.checkArgument(parallelism > 0,
-            String.format("Cannot start Alluxio master gRPC thread pool with %s=%s! "
-                            + "The parallelism must be greater than 0!",
-                    PropertyKey.MASTER_RPC_EXECUTOR_PARALLELISM.toString(), parallelism));
-    int maxPoolSize = ServerConfiguration.getInt(PropertyKey.MASTER_RPC_EXECUTOR_MAX_POOL_SIZE);
-    Preconditions.checkArgument(parallelism <= maxPoolSize,
-            String.format("Cannot start Alluxio master gRPC thread pool with "
-                            + "%s=%s greater than %s=%s!",
-                    PropertyKey.MASTER_RPC_EXECUTOR_PARALLELISM.toString(), parallelism,
-                    PropertyKey.MASTER_RPC_EXECUTOR_MAX_POOL_SIZE.toString(), maxPoolSize));
-    long keepAliveMs = ServerConfiguration.getMs(PropertyKey.MASTER_RPC_EXECUTOR_KEEPALIVE);
-    Preconditions.checkArgument(keepAliveMs > 0L,
-            String.format("Cannot start Alluxio master gRPC thread pool with %s=%s. "
-                            + "The keepalive time must be greater than 0!",
-                    PropertyKey.MASTER_RPC_EXECUTOR_KEEPALIVE.toString(),
-                    keepAliveMs));
-  }
-
   /**
    * Factory for creating {@link AlluxioMasterProcess}.
    */
@@ -426,7 +396,6 @@ public class AlluxioMasterProcess extends MasterProcess {
      * @return a new instance of {@link MasterProcess} using the given sockets for the master
      */
     public static AlluxioMasterProcess create() {
-      validateRPCExecutor();
       URI journalLocation = JournalUtils.getJournalLocation();
       JournalSystem journalSystem = new JournalSystem.Builder()
           .setLocation(journalLocation).build(ProcessType.MASTER);
