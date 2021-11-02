@@ -397,7 +397,7 @@ public final class DefaultStorageDir implements StorageDir {
     mAvailableBytes.getAndUpdate(oldAvailableBytes -> {
       Preconditions.checkState(size <= oldAvailableBytes + getReservedBytes(),
               "Available bytes should always be non-negative");
-      return Math.max(0, oldAvailableBytes - size);
+      return oldAvailableBytes - size;
     });
     if (committed) {
       mCommittedBytes.addAndGet(size);
