@@ -14,14 +14,16 @@ on Kubernetes using the specification included in the Alluxio Docker image or `h
 
 ## Prerequisites
 
-- A Kubernetes cluster (version >= 1.8). With the default specifications, Alluxio
-workers may use `emptyDir` volumes with a restricted size using the `sizeLimit`
-parameter. This is an alpha feature in Kubernetes 1.8.
-Please ensure the feature is enabled.
-- An Alluxio Docker image [alluxio/{{site.ALLUXIO_DOCKER_IMAGE}}](https://hub.docker.com/r/alluxio/{{site.ALLUXIO_DOCKER_IMAGE}}/).
-If using a private Docker registry, refer to the Kubernetes
+- A Kubernetes cluster (version 1.11+) with Beta feature gate APIs enabled
+  - The [Alluxio Helm chart](https://github.com/Alluxio/alluxio/tree/master/integration/kubernetes/helm-chart/alluxio)
+  which the Kubernetes resource specifications are built from supports
+  Kubernetes version 1.11+.
+  - Beta feature gates are [enabled by default](https://kubernetes.io/docs/reference/command-line-tools-reference/feature-gates/#feature-stages)
+  for Kubernetes cluster installations
+- Cluster access to an Alluxio Docker image [alluxio/{{site.ALLUXIO_DOCKER_IMAGE}}](https://hub.docker.com/r/alluxio/{{site.ALLUXIO_DOCKER_IMAGE}}/).
+If using a private Docker registry, refer to the Kubernetes private image registry
 [documentation](https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/).
-- Ensure the [Kubernetes Network Policy](https://kubernetes.io/docs/concepts/services-networking/network-policies/)
+- Ensure the cluster's [Kubernetes Network Policy](https://kubernetes.io/docs/concepts/services-networking/network-policies/)
 allows for connectivity between applications (Alluxio clients) and the Alluxio Pods on the defined
 ports.
 
@@ -38,32 +40,34 @@ used directly using native Kubernetes resource specifications.
 
 
 {% accordion setup %}
-  {% collapsible (Optional) Extract Kubernetes Specifications %}
-If hosting a private `helm` repository or using native Kubernetes specifications,
-extract the Kubernetes specifications required to deploy Alluxio from the Docker image.
+  {% collapsible (Optional) Copy the Alluxio Helm chart to a private Helm repository %}
+
+The Alluxio Helm chart source code is located [here](https://github.com/Alluxio/alluxio/tree/master/integration/kubernetes/helm-chart/alluxio).
+Alternatively, you can extract the Helm chart directory from the Alluxio Docker image:
 
 ```console
 $ id=$(docker create alluxio/{{site.ALLUXIO_DOCKER_IMAGE}}:{{site.ALLUXIO_VERSION_STRING}})
 $ docker cp $id:/opt/alluxio/integration/kubernetes/ - > kubernetes.tar
 $ docker rm -v $id 1>/dev/null
 $ tar -xvf kubernetes.tar
-$ cd kubernetes
+$ cd kubernetes/helm-chart/alluxio
 ```
   {% endcollapsible %}
   {% collapsible (Optional) Provision a Persistent Volume %}
-Note: [Embedded Journal]({{ '/en/operation/Journal.html' | relativize_url }}#embedded-journal-configuration)
+Depending on the configuration used to deploy Alluxio, you will likely
+need to provision [Persistent Volumes](https://kubernetes.io/docs/concepts/storage/persistent-volumes/).
+- [Embedded Journal]({{ '/en/operation/Journal.html' | relativize_url }}#embedded-journal-configuration)
 requires a Persistent Volume for each master Pod to be provisioned and is the preferred HA mechanism
-for Alluxio on Kubernetes.
-The volume, once claimed, is persisted across restarts of the master process.
-
-When using the [UFS Journal]({{ '/en/operation/Journal.html' | relativize_url }}#ufs-journal-configuration)
-an Alluxio master can also be configured to use a [persistent volume](https://kubernetes.io/docs/concepts/storage/persistent-volumes/)
-for storing the journal.
-If you are using UFS journal and use an external journal location like HDFS, the rest of this
-section can be skipped.
+for Alluxio on Kubernetes. The volume, once claimed, is persisted across restarts of the master process.
+- When using the [UFS Journal]({{ '/en/operation/Journal.html' | relativize_url }}#ufs-journal-configuration)
+an Alluxio master can also be configured to use a persistent volume for storing the journal.
+If Alluxio is configured to use a UFS journal and with an external journal location
+like HDFS, the rest of this section can be skipped.
+- When Alluxio workers have [short-circuit access]({{ '/en/deploy/Running-Alluxio-On-Kubernetes.html' | relativize_url }}#enable-short-circuit-access),
+you may need to use Volumes to mount the domain socket to the workers.
 
 There are multiple ways to create a PersistentVolume.
-This is an example which defines one with `hostPath`:
+This is an example which defines one with `hostPath` for the Alluxio Master journal:
 ```yaml
 # Name the file alluxio-master-journal-pv.yaml
 kind: PersistentVolume
@@ -96,8 +100,6 @@ Then create the persistent volume with `kubectl`:
 ```console
 $ kubectl create -f alluxio-master-journal-pv.yaml
 ```
-
-There are other ways to create Persistent Volumes as documented [here](https://kubernetes.io/docs/concepts/storage/persistent-volumes/).
   {% endcollapsible %}
 {% endaccordion %}
 
@@ -498,8 +500,20 @@ $ helm delete alluxio
 
 #### Choose the Sample YAML Template
 
-The specification directory contains a set of YAML templates for common deployment scenarios in
-the sub-directories: *singleMaster-localJournal*, *singleMaster-hdfsJournal* and
+First, extract the pre-templated Kubernetes specification YAMLs
+from the Alluxio docker image:
+
+```console
+$ id=$(docker create alluxio/{{site.ALLUXIO_DOCKER_IMAGE}}:{{site.ALLUXIO_VERSION_STRING}})
+$ docker cp $id:/opt/alluxio/integration/kubernetes/ - > kubernetes.tar
+$ docker rm -v $id 1>/dev/null
+$ tar -xvf kubernetes.tar
+$ cd kubernetes
+```
+
+The extracted directory contains a set of YAML templates generated from our Helm chart
+for common deployment scenarios in the sub-directories:
+*singleMaster-localJournal*, *singleMaster-hdfsJournal*, and
 *multiMaster-embeddedJournal*.
 > *singleMaster* means the templates generate 1 Alluxio master process, while *multiMaster* means 3.
 *embedded* and *ufs* are the 2 [journal modes]({{ '/en/operation/Journal.html' | relativize_url }})
@@ -514,6 +528,9 @@ Each Alluxio master writes journal to its own journal volume requested by `volum
 - *singleMaster-hdfsJournal* directory gives you the Kubernetes ConfigMap, 1 Alluxio master with a
 set of workers.
 The journal is in a shared UFS location. In this template we use HDFS as the UFS.
+
+For customized templated YAMLs, see the [README](https://github.com/Alluxio/alluxio/tree/master/integration/kubernetes#generate-kubectl-yaml-templates-from-helm-chart)
+for how to use `helm-generate.sh`. Otherwise you may manually write or modify YAML files as you see fit.
 
 #### Configuration
 
@@ -706,8 +723,9 @@ Make sure all the Pods have been terminated before you move on to the next step.
 
 **Step 3: Format journal and Alluxio storage if necessary**
 
-Check the Alluxio upgrade guide page for whether the Alluxio master journal has to be formatted.
-If no format is needed, you are ready to skip the rest of this section and move on to restart all
+Check the [Alluxio upgrade guide page]({{ '/en/operation/Upgrade' | relativize_url }})
+for whether the Alluxio master journal has to be formatted. If no format is needed,
+you are ready to skip the rest of this section and move on to restart all
 Alluxio master and worker Pods.
 
 You can follow [formatting journal with kubectl]({{ '/en/deploy/Running-Alluxio-On-Kubernetes.html#format-journal-1' | relativize_url }})
@@ -1607,16 +1625,19 @@ imagePullSecrets:
 Add `imagePullSecrets` to your Pod specs. Eg:
 
 ```properties
-apiVersion: v1
-kind: Pod
+apiVersion: apps/v1
+kind: StatefulSet
 metadata:
-  name: private-reg
+  name: alluxio-master
 spec:
-  containers:
-  - name: private-reg-container
-    image: <your-private-image>
-  imagePullSecrets:
-  - name: regcred
+  template:
+    spec:
+      containers:
+      - name: alluxio-master
+        image: private-registry/{{site.ALLUXIO_DOCKER_IMAGE}}:{{site.ALLUXIO_VERSION_STRING}}
+      imagePullSecrets:
+      - name: ecr
+      - name: dev
 ```
 
 {% endnavtab %}
@@ -1867,7 +1888,8 @@ spec:
 
 This results in the following nuances:
 - `sizeLimit` has no effect on the size of the allocated ramdisk unless
-the `SizeMemoryBackedVolumes` feature gate is enabled
+the `SizeMemoryBackedVolumes` feature gate is enabled (enabled by default
+as of Kubernetes 1.22).
 - As stated in [the Kubernetes emptyDir documentation](https://kubernetes.io/docs/concepts/storage/volumes/#emptydir),
 if no size is specified then memory-backed `emptyDir` volumes will have capacity
 allocated equal to **half the available memory on the host node**. This capacity
