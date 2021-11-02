@@ -1019,8 +1019,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
     if (worker == null) {
       throw new NotFoundException(ExceptionMessage.NO_WORKER_FOUND.getMessage(workerId));
     }
-    worker.setVersion(version);
-    worker.setRevision(revision);
+    worker.setVersionAndRevision(version, revision);
 
     // Gather all blocks on this worker.
     HashSet<Long> blocks = new HashSet<>();

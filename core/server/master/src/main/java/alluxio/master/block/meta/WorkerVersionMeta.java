@@ -12,25 +12,26 @@
 package alluxio.master.block.meta;
 
 /**
- *An object representation of the worker metadata.This class is not thread safe
- *so accessing or updating the fields need to use AtomicReference<WorkerTimeMeta>.
+ * An object representation of the worker metadata.This class is not thread safe
+ * so accessing or updating the fields need to use AtomicReference<WorkerTimeMeta>.
  */
-public class WorkerMeta {
-  /** the version of worker. */
+public class WorkerVersionMeta {
+  /** The version of worker. */
   private String mVersion;
-  /** the revision of worker. */
+  /** The revision of worker. */
   private String mRevision;
 
   /**
    * Constructor.
    *
    */
-  public WorkerMeta() {
+  public WorkerVersionMeta(String version, String revision) {
+    mVersion = version;
+    mRevision = revision;
   }
 
   /**
-   * Get the version of worker.
-   *
+   * Gets the version of worker.
    * @return the version of worker
    */
   public String getVersion() {
@@ -38,29 +39,10 @@ public class WorkerMeta {
   }
 
   /**
-   * Get the revision of worker.
-   *
+   * Gets the revision of worker.
    * @return the revision of worker
    */
   public String getRevision() {
     return mRevision;
-  }
-
-  /**
-   * Set the version time of worker.
-   *
-   * @param version the version of worker
-   */
-  public void setVersion(String version) {
-    mVersion = version;
-  }
-
-  /**
-   * Set the revision of worker.
-   *
-   * @param revision the revision of worker
-   */
-  public void setRevision(String revision) {
-    mRevision = revision;
   }
 }

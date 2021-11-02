@@ -166,7 +166,6 @@ public final class ReplicationCheckerTest {
       CreateFileContext.mergeFrom(CreateFilePOptions.newBuilder().setBlockSizeBytes(Constants.KB)
           .setMode(TEST_MODE.toProto())).setOwner(TEST_OWNER).setGroup(TEST_GROUP);
   private Set<Long> mKnownWorkers = Sets.newHashSet();
-  private long mStartTime;
 
   /** Rule to create a new temporary folder during each test. */
   @Rule
@@ -191,7 +190,6 @@ public final class ReplicationCheckerTest {
     journalSystem.start();
     journalSystem.gainPrimacy();
     mBlockMaster.start(true);
-    mStartTime = System.currentTimeMillis();
 
     ServerConfiguration.set(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "true");
     ServerConfiguration
