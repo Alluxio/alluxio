@@ -1248,7 +1248,6 @@
             <exclude>**/src/proto/**</exclude>
             <exclude>**/src/deb/**/*</exclude>
             <exclude>**/src/test/resources/**</exclude>
-            <exclude>**/dev/scripts/src/vendor/**</exclude>
             <exclude>**/vagrant/**/*</exclude>
             <exclude>**/\?/.java/**/*</exclude>
 
@@ -1260,6 +1259,8 @@
             <exclude>conf/masters</exclude>
             <exclude>conf/tiered_identity.sh</exclude>
             <exclude>conf/workers</exclude>
+            <exclude>dev/scripts/src/alluxio.org/go.mod</exclude>
+            <exclude>dev/scripts/src/alluxio.org/go.sum</exclude>
             <exclude>dev/scripts/tarballs/**/*</exclude>
             <exclude>dev/scripts/workdir/**/*</exclude>
             <exclude>generated/**</exclude>
@@ -1278,10 +1279,12 @@
             <exclude>docs/**/*</exclude>
             <exclude>LICENSE</exclude>
             <exclude>NOTICE</exclude>
+            <exclude>templates/*</exclude>
 
             <!-- Default Local File System Exclusions -->
-            <exclude>logs/*</exclude>
+            <exclude>logs/**/*</exclude>
             <exclude>journal/**/*</exclude>
+            <exclude>metastore/**/*</exclude>
             <exclude>underFSStorage/**/*</exclude>
           </excludes>
           <mapping>
