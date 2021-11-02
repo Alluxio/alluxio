@@ -106,8 +106,8 @@ public class RegisterWorkerBench extends RpcBench<BlockMasterBenchParameters> {
     }
     mBlockCount = blockCount;
 
-    // the preparation is done by the invoking client
-    // so skip preparation when running in job worker
+    // The preparation is done by the invoking shell process to ensure the preparation is only
+    // done once, so skip preparation when running in job worker
     if (!mBaseParameters.mDistributed) {
       // Prepare these block IDs concurrently
       LOG.info("Preparing blocks at the master");

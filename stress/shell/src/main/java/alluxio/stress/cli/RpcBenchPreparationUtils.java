@@ -42,6 +42,7 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Utilities for the preparation step in RPC benchmark testing.
@@ -69,39 +70,46 @@ public class RpcBenchPreparationUtils {
    */
   public static void prepareBlocksInMaster(Map<BlockStoreLocation, List<Long>> locToBlocks)
       throws InterruptedException {
-    // Partition the wanted block IDs to smaller jobs in order to utilize concurrency
+    // Since the task is I/O bound, set concurrency set to 4x CPUs
     int concurrency = Runtime.getRuntime().availableProcessors() * 4;
+    // Partition the wanted block IDs to smaller jobs in order to utilize concurrency
     List<List<Long>> jobs = new ArrayList<>();
+    long totalBlocks = 0;
     for (Map.Entry<BlockStoreLocation, List<Long>> e : locToBlocks.entrySet()) {
       List<Long> v = e.getValue();
+      totalBlocks += v.size();
       jobs.addAll(Lists.partition(v, Math.min(v.size() / concurrency, 1_000)));
     }
+    final long totalBlocksFinal = totalBlocks;
 
     LOG.info("Split block ID generation into {} jobs", jobs.size());
     for (List<Long> job : jobs) {
-      LOG.info("Block ids: [{},{}]", job.get(0), job.get(job.size() - 1));
+      LOG.debug("Block ids: [{},{}]", job.get(0), job.get(job.size() - 1));
     }
     ExecutorService pool =
         ExecutorServiceFactories.fixedThreadPool("rpc-bench-prepare", concurrency).create();
 
     long blockSize = sConf.getBytes(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT);
     CompletableFuture[] futures = new CompletableFuture[jobs.size()];
+    AtomicInteger progress = new AtomicInteger(0);
     for (int i = 0; i < jobs.size(); i++) {
       List<Long> job = jobs.get(i);
-      LOG.info("Generating block IDs in range {}", i);
+      final int batch = i;
       CompletableFuture<Void> future = CompletableFuture.supplyAsync((Supplier<Void>) () -> {
+        LOG.info("Generating {}th batch of blocks", batch);
         BlockMasterClient client =
             new BlockMasterClient(MasterClientContext
                 .newBuilder(ClientContext.create(sConf))
                 .build());
         long finishedCount = 0;
-        try {
-          for (Long blockId : job) {
+        for (Long blockId : job) {
+          try {
             client.commitBlockInUfs(blockId, blockSize);
-            finishedCount++;
+            finishedCount = progress.incrementAndGet();
+          } catch (IOException e) {
+            LOG.error("Failed to commitBlockInUfs, blockId={} finished={} total={}",
+                blockId, finishedCount, totalBlocksFinal, e);
           }
-        } catch (IOException e) {
-          LOG.error("Failed to commitBlockInUfs with finishedCount {}", finishedCount, e);
         }
         return null;
       }, pool);
