@@ -53,7 +53,7 @@ launch the proxy process. This can be changed by providing the Authorization Hea
 format is [defined by the AWS S3 Rest API reference](https://docs.aws.amazon.com/AmazonS3/latest/API/sigv4-auth-using-authorization-header.html)
 
 ```console
-$ curl -i -H "Authorization: AWS4-HMAC-SHA256 Credential=newuser/20211101/us-east-1/s3/aws4_request,SignedHeaders=host;range;x-amz-date,Signature=<sig>" \
+$ curl -i -H "Authorization: AWS4-HMAC-SHA256 Credential=newuser/20211101/us-east-1/s3/aws4_request SignedHeaders=host;range;x-amz-date Signature=<sig>" \
     -X PUT http://localhost:39999/api/v1/s3/testbucket0
 HTTP/1.1 200 OK
 Date: Tue, 02 Mar 2021 00:02:26 GMT
