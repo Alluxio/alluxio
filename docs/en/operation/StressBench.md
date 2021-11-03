@@ -269,7 +269,7 @@ need to be tested and tuned such that no thread finish reading its designated fi
 The Job Service Stress Bench is a tool to measure the performance of job service. Testing different aspect of job service performance through different operation.
 
 ### Parameters
-The parameters for the Job Service Stress Bench are (other than common parameters for any stress bench):
+The parameters for the Job Service Stress Bench(including JobServiceMaxThroughput) are (other than common parameters for any stress bench):
 
 <table class="table table-striped">
     <tr>
@@ -363,4 +363,276 @@ $ bin/alluxio runClass alluxio.stress.cli.suite.JobServiceMaxThroughput --durati
 The cluster testing is similar to single node testing except that
 - `--cluster` argument needs to be added to each operation so that the bench jobs will be submitted to job master, distributed to job workers, and executed by job workers.
   Each job worker executes one bench job. You can use `--cluster-limit` to specify how many bench jobs run. Cluster throughput is calculated by aggregating the throughput of each bench job.
+
+## Client IO Stress Bench
+
+The Client IO Stress Bench is a tool to measure the IO performance of Alluxio through the client.
+
+### Parameters
+The parameters for the Client IO Stress Bench are (other than common parameters for any stress bench):
+
+<table class="table table-striped">
+    <tr>
+        <td>Parameters</td>
+        <td>Default Value</td>
+        <td>Description</td>
+    </tr>
+    <tr>
+        <td>operation</td>
+        <td>Required. No default value.</td>
+        <td>The operation to perform. Options are [ReadArray, ReadByteBuffer, ReadFully, PosRead, PosReadFully]</td>
+    </tr>
+    <tr>
+        <td>client-type</td>
+        <td>AlluxioHDFS</td>
+        <td>The client API type. Alluxio native or hadoop compatible client</td>
+    </tr>
+    <tr>
+        <td>read-type</td>
+        <td>CACHE</td>
+        <td>The cache mechanism during read. Options are [NONE, CACHE, CACHE_PROMOTE]</td>
+    </tr>
+    <tr>
+        <td>clients</td>
+        <td>1</td>
+        <td>The number of fs client instances to use</td>
+    </tr>
+    <tr>
+        <td>threads</td>
+        <td>[1]</td>
+        <td>The comma-separated list of thread counts to test. The throughput for each thread count is benchmarked and measured separately.</td>
+    </tr>
+    <tr>
+        <td>base</td>
+        <td>alluxio://localhost:19998/stress-client-io-base</td>
+        <td>The base directory path URI to perform operations in. </td>
+    </tr>
+    <tr>
+        <td>base-alias</td>
+        <td></td>
+        <td>The alias for the base path, unused if empty</td>
+    </tr>
+    <tr>
+        <td>file-size</td>
+        <td>1g</td>
+        <td>The files size for IO operations. (100k, 1m, 1g, etc.)</td>
+    </tr>
+    <tr>
+        <td>buffer-size</td>
+        <td>64k</td>
+        <td>The buffer size for IO operations. (1k, 16k, etc.)</td>
+    </tr>
+    <tr>
+        <td>block-size</td>
+        <td>64m</td>
+        <td>The block size of files. (16k, 64m, etc.)</td>
+    </tr>
+    <tr>
+        <td>warmup</td>
+        <td>15s</td>
+        <td>The length of time to warmup before recording measurements. (1m, 10m, 60s, 10000ms, etc.)</td>
+    </tr>
+    <tr>
+        <td>duration</td>
+        <td>30s</td>
+        <td>The length of time to run the benchmark. (1m, 10m, 60s, 10000ms, etc.)</td>
+    </tr>
+    <tr>
+        <td>read-same-file</td>
+        <td>false</td>
+        <td>If true, all threads read from the same file. Otherwise, each thread reads "
+          + "from its own file.</td>
+    </tr>
+    <tr>
+        <td>read-random</td>
+        <td>false</td>
+        <td>If true, threads read the file from random offsets. For streaming operations, seek() is called to read random offsets. If false, the file is read sequentially.</td>
+    </tr>
+    <tr>
+        <td>write-num-workers</td>
+        <td>1</td>
+        <td>The number of workers to distribute the files to. The blocks of a written file will be round-robin across these number of workers.</td>
+    </tr>
+    <tr>
+        <td>conf</td>
+        <td>{}</td>
+        <td>Any HDFS client configuration key=value. Can repeat to provide multiple configuration values.</td>
+    </tr>
   
+</table>
+
+### Single node testing
+#### Prerequisite
+* A running Alluxio cluster with one master, and one worker. With property "alluxio.user.file.writetype.default" = MUST_CACHE
+
+#### Write test files
+Write the test files by running the benchmark with `--operation Write`
+```console
+$ bin/alluxio runClass alluxio.stress.cli.client.StressClientIOBench --operation Write --base /path/to/test/directory ...
+```
+
+For example,
+```console
+$ bin/alluxio runClass alluxio.stress.cli.client.StressClientIOBench --operation Write --base alluxio://localhost:19998/stress-client-io-base \
+--write-num-workers 100 --file-size 1m --threads 32
+```
+
+`warmup`  and `duration` parameters are not valid in writing. The `Write` operation always writes all the files needed for reading test.
+
+#### Read test files
+Read the test files written by running the benchmark with read operations. You can test different kinds of read operation here.
+```console
+$ bin/alluxio runClass alluxio.stress.cli.client.StressClientIOBench --operation ReadArray ...
+```
+
+For example,
+```console
+$ bin/alluxio runClass alluxio.stress.cli.client.StressClientIOBench --operation ReadArray --files-size 1m --buffer-size 512k --warmup 5s --duration 30s 
+```
+
+
+### Cluster testing
+#### Prerequisite
+- A running Alluxio cluster. Each worker node contains one worker, one job worker.
+- Each Alluxio worker has enough space to store the test data. 
+
+#### Testing
+The cluster testing is similar to single node testing except that
+- `--cluster` argument needs to be added to each operation so that the bench jobs will be submitted to job master, distributed to job workers, and executed by job workers.
+  Each job worker executes one bench job which reads from the co-located Fuse mount point and gets the local read throughput. Cluster throughput is calculated by aggregating the read throughput of each bench job.
+
+### Limitations
+- Client IO Stress Bench only supports reading self-generated test files.
+- The `Write` operation is only used for generating test files instead of measuring throughput.
+
+
+## Master Stress Bench
+
+The Master Stress Bench is a tool to measure the master performance of Alluxio. MaxThroughput is the recommended way to run the Master Stress Bench.
+
+### Parameters
+The parameters for the Master Stress Bench(including MaxThroughput) are (other than common parameters for any stress bench):
+
+<table class="table table-striped">
+    <tr>
+        <td>Parameters</td>
+        <td>Default Value</td>
+        <td>Description</td>
+    </tr>
+    <tr>
+        <td>operation</td>
+        <td>Required. No default value.</td>
+        <td>The operation to perform. Options are [CreateFile, GetBlockLocations, GetFileStatus, OpenFile, CreateDir, ListDir, ListDirLocated, RenameFile, DeleteFile]</td>
+    </tr>
+    <tr>
+        <td>client-type</td>
+        <td>AlluxioHDFS</td>
+        <td>The client API type. Alluxio native or hadoop compatible client</td>
+    </tr>
+    <tr>
+        <td>read-type</td>
+        <td>CACHE</td>
+        <td>The cache mechanism during read. Options are [NONE, CACHE, CACHE_PROMOTE]</td>
+    </tr>
+    <tr>
+        <td>clients</td>
+        <td>1</td>
+        <td>The number of fs client instances to use</td>
+    </tr>
+    <tr>
+        <td>threads</td>
+        <td>[1]</td>
+        <td>The comma-separated list of thread counts to test. The throughput for each thread count is benchmarked and measured separately.</td>
+    </tr>
+    <tr>
+        <td>base</td>
+        <td>alluxio://localhost:19998/stress-client-io-base</td>
+        <td>The base directory path URI to perform operations in. </td>
+    </tr>
+    <tr>
+        <td>base-alias</td>
+        <td></td>
+        <td>The alias for the base path, unused if empty</td>
+    </tr>
+    <tr>
+        <td>create-file-size</td>
+        <td>1g</td>
+        <td>The size of a file for the Create op, allowed to be 0. (0, 1m, 2k, 8k, etc.)</td>
+    </tr>
+    <tr>
+        <td>target-throughput</td>
+        <td>1000</td>
+        <td>The target throughput to issue operations. (ops / s)</td>
+    </tr>
+    <tr>
+        <td>stop-count</td>
+        <td>-1</td>
+        <td>The benchmark will stop after this number of paths. If -1, it is not used and the benchmark will stop after the duration. If this is used, duration will be ignored. This is typically used for creating files in preparation for another benchmark, since the results may not be reliable with a non-duration-based termination condition.</td>
+    </tr>
+    <tr>
+        <td>fixed-count</td>
+        <td>100</td>
+        <td>The number of paths in the fixed portion. Must be greater than 0. The first 'fixed-count' paths are in the fixed portion of the namespace. This means all tasks are guaranteed to have the same number of paths in the fixed portion. This is primarily useful for ensuring different tasks/threads perform an identically-sized operation. For example, if fixed-count is set to 1000, and CreateFile is run, each task will create files with exactly 1000 paths in the fixed directory. A subsequent ListDir task will list that directory, knowing every task/thread will always read a directory with exactly 1000 paths.</td>
+    </tr>
+    <tr>
+        <td>warmup</td>
+        <td>15s</td>
+        <td>The length of time to warmup before recording measurements. (1m, 10m, 60s, 10000ms, etc.)</td>
+    </tr>
+    <tr>
+        <td>duration</td>
+        <td>30s</td>
+        <td>The length of time to run the benchmark. (1m, 10m, 60s, 10000ms, etc.)</td>
+    </tr>
+    <tr>
+        <td>conf</td>
+        <td>{}</td>
+        <td>Any HDFS client configuration key=value. Can repeat to provide multiple configuration values.</td>
+    </tr>
+    <tr>
+        <td>skip-prepare</td>
+        <td>false</td>
+        <td>If true, skip the prepare.</td>
+    </tr>
+    
+
+</table>
+
+### Single node testing
+#### Prerequisite
+* A running Alluxio cluster with one master, and one worker.
+
+#### Single test
+Run the test with the operation you want to test.
+```console
+$ bin/alluxio runClass alluxio.stress.cli.StressMasterBench --operation ListDir ...
+```
+
+For example,
+```console
+$ bin/alluxio runClass alluxio.stress.cliStressMasterBench --operation ListDir --warmup 5s --duration 30s 
+```
+#### MaxThroughput test
+MaxThroughput test is the recommended way to test the master throughput for certain operation.
+```console
+$ bin/alluxio runClass alluxio.stress.cli.suit.MaxThroughput --operation CreateFile ...
+```
+
+For example, we are trying to get max throughput of CreateFile operation using hadoop compatible client.
+```console
+$ bin/alluxio runClass alluxio.stress.cli.suit.MaxThroughput --operation CreateFile --warmup 5s --duration 30s --client-type AlluxioHDFS
+```
+
+
+### Cluster testing
+#### Prerequisite
+- A running Alluxio cluster. Each worker node contains one worker, one job worker.
+- Each Alluxio worker has enough space to store the test data if you are testing operation contains file creation.
+
+#### Testing
+The cluster testing is similar to single node testing except that
+- `--cluster` argument needs to be added to each operation so that the bench jobs will be submitted to job master, distributed to job workers, and executed by job workers.
+  Each job worker executes one bench job. Cluster throughput is calculated by aggregating the read throughput of each bench job.
+
+### Limitations
+- Master Stress Bench only supports testing self-generated test files.
