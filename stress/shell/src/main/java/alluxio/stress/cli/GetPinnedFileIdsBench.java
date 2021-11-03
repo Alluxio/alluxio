@@ -86,8 +86,8 @@ public class GetPinnedFileIdsBench extends RpcBench<GetPinnedFileIdsParameters> 
     // So including that in the log can help associate the log to the run
     LOG.info("Task ID is {}", mBaseParameters.mId);
 
-    // the preparation is done by the invoking client
-    // so skip preparation when running in job worker
+    // The preparation is done by the invoking shell process to ensure the preparation is only
+    // done once, so skip preparation when running in job worker
     if (mBaseParameters.mDistributed) {
       LOG.info("Skipping preparation in distributed execution");
       return;
