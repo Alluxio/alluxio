@@ -122,18 +122,24 @@ public final class S3ClientRestApiTest extends RestApiTest {
 
     Subject subject = new Subject();
     subject.getPrincipals().add(new User("user0"));
-    sResource.get().getClient(FileSystemContext.create(subject, ServerConfiguration.global()))
-        .createDirectory(new AlluxioURI("/bucket0"));
+    AlluxioURI bucketPath = new AlluxioURI("/bucket0");
+    FileSystem fs1 = sResource.get().getClient(FileSystemContext.create(subject,
+            ServerConfiguration.global()));
+    fs1.createDirectory(bucketPath);
     SetAttributePOptions setAttributeOptions =
         SetAttributePOptions.newBuilder().setOwner("user0").build();
     mFileSystem.setAttribute(new AlluxioURI("/bucket0"), setAttributeOptions);
+    URIStatus bucket0Status = fs1.getStatus(bucketPath);
 
     subject = new Subject();
     subject.getPrincipals().add(new User("user1"));
-    sResource.get().getClient(FileSystemContext.create(subject, ServerConfiguration.global()))
-        .createDirectory(new AlluxioURI("/bucket1"));
+    AlluxioURI bucket1Path = new AlluxioURI("/bucket1");
+    FileSystem fs2 = sResource.get().getClient(FileSystemContext.create(subject,
+            ServerConfiguration.global()));
+    fs2.createDirectory(bucket1Path);
     setAttributeOptions = SetAttributePOptions.newBuilder().setOwner("user1").build();
     mFileSystem.setAttribute(new AlluxioURI("/bucket1"), setAttributeOptions);
+    URIStatus bucket1Status = fs2.getStatus(bucket1Path);
 
     ListAllMyBucketsResult expected = new ListAllMyBucketsResult(Collections.emptyList());
     final TestCaseOptions requestOptions = TestCaseOptions.defaults()
@@ -141,21 +147,15 @@ public final class S3ClientRestApiTest extends RestApiTest {
     new TestCase(mHostname, mPort, S3_SERVICE_PREFIX + "/", NO_PARAMS,
         HttpMethod.GET, expected, requestOptions).run();
 
-    expected = new ListAllMyBucketsResult(Lists.newArrayList(testStatus("bucket0")));
+    expected = new ListAllMyBucketsResult(Lists.newArrayList(bucket0Status));
     requestOptions.setAuthorization("AWS4-HMAC-SHA256 Credential=user0/20210631");
     new TestCase(mHostname, mPort, S3_SERVICE_PREFIX + "/", NO_PARAMS,
         HttpMethod.GET, expected, requestOptions).run();
 
-    expected = new ListAllMyBucketsResult(Lists.newArrayList(testStatus("bucket1")));
+    expected = new ListAllMyBucketsResult(Lists.newArrayList(bucket1Status));
     requestOptions.setAuthorization("AWS4-HMAC-SHA256 Credential=user1/20210631");
     new TestCase(mHostname, mPort, S3_SERVICE_PREFIX + "/", NO_PARAMS,
         HttpMethod.GET, expected, requestOptions).run();
-  }
-
-  private URIStatus testStatus(String name) {
-    FileInfo f = new FileInfo().setName(name)
-        .setCreationTimeMs(System.currentTimeMillis());
-    return new URIStatus(f);
   }
 
   @Test
