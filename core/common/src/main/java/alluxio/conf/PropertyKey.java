@@ -1559,14 +1559,16 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey MASTER_BACKUP_TRANSPORT_TIMEOUT =
       new Builder(Name.MASTER_BACKUP_TRANSPORT_TIMEOUT)
           .setDefaultValue("30sec")
-          .setDescription("Request timeout for backup messaging.")
+          .setDescription("Communication timeout for messaging between masters for "
+              + "coordinating backup.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey MASTER_BACKUP_HEARTBEAT_INTERVAL =
       new Builder(Name.MASTER_BACKUP_HEARTBEAT_INTERVAL)
           .setDefaultValue("2sec")
-          .setDescription("Interval at which follower updates the leader on ongoing backup.")
+          .setDescription("Interval at which stand-by master that is taking the backup will "
+              + "update the leading master with current backup status.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
           .setScope(Scope.MASTER)
           .build();
@@ -1588,7 +1590,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       new Builder(Name.MASTER_BACKUP_ABANDON_TIMEOUT)
           .setDefaultValue("1min")
           .setDescription("Duration after which leader will abandon the backup"
-              + " if not received heartbeat from backup-worker.")
+              + " if it has not received heartbeat from backup-worker.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
           .setScope(Scope.MASTER)
           .build();
@@ -1795,18 +1797,17 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey MASTER_EMBEDDED_JOURNAL_CATCHUP_RETRY_WAIT =
       new Builder(Name.MASTER_EMBEDDED_JOURNAL_CATCHUP_RETRY_WAIT)
           .setDefaultValue("1s")
-          .setDescription("Time for embedded journal leader to wait before retrying a catch up.")
+          .setDescription("Time for embedded journal leader to wait before retrying a catch up. "
+              + "This is added to avoid excessive retries when server is not ready.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey MASTER_EMBEDDED_JOURNAL_ENTRY_SIZE_MAX =
       new Builder(Name.MASTER_EMBEDDED_JOURNAL_ENTRY_SIZE_MAX)
           .setDefaultValue("10MB")
-          .setDescription(String.format(
-              "The maximum single journal entry size allowed to be flushed. "
-              + "This value should be smaller than 30MB. "
-              + "If you update this value, please also update the value of %s ",
-              Name.MASTER_EMBEDDED_JOURNAL_FLUSH_SIZE_MAX))
+          .setDescription("The maximum single journal entry size allowed to be flushed. "
+              + "This value should be smaller than 30MB. Set to a larger value to allow larger "
+              + "journal entries when using the Alluxio Catalog service.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
@@ -1861,7 +1862,9 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey MASTER_EMBEDDED_JOURNAL_TRANSPORT_REQUEST_TIMEOUT_MS =
       new Builder(Name.MASTER_EMBEDDED_JOURNAL_TRANSPORT_REQUEST_TIMEOUT_MS)
           .setDefaultValue("5sec")
-          .setDescription("Timeout for requests between embedded journal masters.")
+          .setDescription("The duration after which embedded journal masters will timeout "
+              + "messages sent between each other. Lower values might cause leadership "
+              + "instability when the network is slow.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
@@ -5536,11 +5539,12 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey JOB_MASTER_RPC_ADDRESSES =
       new Builder(Name.JOB_MASTER_RPC_ADDRESSES)
-          .setDescription(String.format("The list of RPC addresses to use for the job service "
-                  + "configured in non-zookeeper HA mode. If this property is not specifically "
-                  + "defined, it will first fall back to using %s, replacing those address "
-                  + "ports with the port defined by %s. Otherwise the addresses are inherited from "
-                  + "%s using the port defined in %s",
+          .setDescription(String.format("A list of comma-separated host:port RPC addresses where "
+                  + "the client should look for job masters when using multiple job masters "
+                  + "without Zookeeper. This property is not used "
+                  + "when Zookeeper is enabled, since Zookeeper already stores the job master "
+                  + "addresses. If property is not defined, clients will look for job masters "
+                  + "using [%s]:%s first, then for [%s]:%s.",
               Name.MASTER_RPC_ADDRESSES, Name.JOB_MASTER_RPC_PORT,
               Name.JOB_MASTER_EMBEDDED_JOURNAL_ADDRESSES, Name.JOB_MASTER_RPC_PORT))
           .setScope(Scope.ALL)
@@ -5555,8 +5559,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey JOB_MASTER_EMBEDDED_JOURNAL_PORT =
       new Builder(Name.JOB_MASTER_EMBEDDED_JOURNAL_PORT)
-          .setDescription(
-              "The port to use for embedded journal communication with other job masters.")
+          .setDescription("The port job masters use for embedded journal communications.")
           .setDefaultValue(20003)
           .setScope(Scope.ALL)
           .build();

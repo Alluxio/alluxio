@@ -52,35 +52,6 @@ this UFS storage must be shared among masters with reading and writing access.
 To get reasonable performance, the UFS journal requires a UFS that supports fast streaming writes,
 such as HDFS or NFS. In contrast, S3 is not recommended for the UFS journal.
 
-## Configuring UFS Journal
-
-The most important configuration value to set for the journal is
-`alluxio.master.journal.folder`. This must be set to a filesystem folder that is
-available to all masters. In single-master mode, use a local filesystem path for simplicity. 
-With multiple masters distributed across different machines, the folder must
-be in a distributed system where all masters can access it. The journal folder
-should be in a filesystem that supports flush such as HDFS or NFS. It is not
-recommended to put the journal in an object store like S3. With an object store, every
-metadata operation requires a new object to be created, which is
-prohibitively slow for most serious use cases.
-
-UFS journal options can be configured using the configuration prefix:
-
-`alluxio.master.journal.ufs.option.<some alluxio property>`
-
-**Configuration examples:**
-
-Use HDFS to store the journal:
-```
-alluxio.master.journal.folder=hdfs://[namenodeserver]:[namenodeport]/alluxio_journal
-alluxio.master.journal.ufs.option.alluxio.underfs.version=2.6
-```
-
-Use the local file system to store the journal:
-```
-alluxio.master.journal.folder=/opt/alluxio/journal
-```
-
 ## Configuring Embedded Journal
 
 ### Required configuration
@@ -118,13 +89,11 @@ in concurrent journal flushing (journal IO to standby masters and IO to local di
 * `alluxio.master.embedded.journal.snapshot.replication.chunk.size`: The stream chunk size used by masters to replicate snapshots. Default: `4MB`.
 * `alluxio.master.embedded.journal.transport.request.timeout.ms`: The duration after which embedded journal masters will timeout messages sent between each other.
  Lower values might cause leadership instability when the network is slow. Default: `5s`.
-* `alluxio.master.embedded.journal.transport.max.inbound.message.size`: Maximum allowed size for a network message between embedded journal masters.
-The configured value should allow for appending batches to all secondary masters. Default: `100MB`.
-* `alluxio.master.embedded.journal.write.local.first.enabled`: Whether the journal writer will attempt to write entry locally before falling back to a full remote raft client. 
- Disable local first write may impact the metadata performance under heavy load but less error-prone during network flakiness. Default: `true`.
+* `alluxio.master.embedded.journal.transport.max.inbound.message.size`: The maximum size of a message that can be sent to the
+embedded journal server node. Default: `100MB`.
 * `alluxio.master.embedded.journal.write.timeout`: Maximum time to wait for a write/flush on embedded journal. Default: `30sec`.
 
-### Configuring Job service
+### Configuring the Job service
 
 It is usually best not to set any of these - by default the job master will use the same hostnames as the Alluxio master,
 so it is enough to set only `alluxio.master.embedded.journal.addresses`. These properties only need to be set
@@ -135,8 +104,38 @@ when the job service runs independently of the rest of the system or using a non
 The format is `hostname1:port1,hostname2:port2,...`.
 * `alluxio.job.master.rpc.addresses`: A list of comma-separated host:port RPC addresses where the client should look for job masters
 when using multiple job masters without Zookeeper. This property is not used when Zookeeper is enabled,
-since Zookeeper already stores the job master addresses. If this is not set, clients will look for job masters using the hostnames
-from `alluxio.master.embedded.journal.addresses` and the job master rpc port.
+since Zookeeper already stores the job master addresses. If this property is not defined, clients will look for job masters using
+`[alluxio.master.rpc.addresses]:alluxio.job.master.rpc.port` addresses first, then for
+`[alluxio.job.master.embedded.journal.addresses]:alluxio.job.master.rpc.port`.
+
+## Configuring UFS Journal
+
+The most important configuration value to set for the journal is
+`alluxio.master.journal.folder`. This must be set to a filesystem folder that is
+available to all masters. In single-master mode, use a local filesystem path for simplicity. 
+With multiple masters distributed across different machines, the folder must
+be in a distributed system where all masters can access it. The journal folder
+should be in a filesystem that supports flush such as HDFS or NFS. It is not
+recommended to put the journal in an object store like S3. With an object store, every
+metadata operation requires a new object to be created, which is
+prohibitively slow for most serious use cases.
+
+UFS journal options can be configured using the configuration prefix:
+
+`alluxio.master.journal.ufs.option.<some alluxio property>`
+
+**Configuration examples:**
+
+Use HDFS to store the journal:
+```
+alluxio.master.journal.folder=hdfs://[namenodeserver]:[namenodeport]/alluxio_journal
+alluxio.master.journal.ufs.option.alluxio.underfs.version=2.6
+```
+
+Use the local file system to store the journal:
+```
+alluxio.master.journal.folder=/opt/alluxio/journal
+```
 
 ## Formatting the journal
 
@@ -211,9 +210,9 @@ Backup delegation can be configured with the below properties:
 
 Some advanced properties control the communication between Alluxio masters for coordinating the backup:
 - `alluxio.master.backup.transport.timeout`: Communication timeout for messaging between masters for coordinating backup. Default: `30sec`.
-- `alluxio.master.backup.connect.interval.min`: Minimum duration to sleep before retrying after unsuccessful handshake between stand-by master and leading master. Default: `1sec`.
-- `alluxio.master.backup.connect.interval.max`: Maximum duration to sleep before retrying after unsuccessful handshake between stand-by master and leading master. Default: `30sec`.
-- `alluxio.master.backup.abandon.timeout`: Specifies how long the leading master waits for a heart-beat before abandoning the backup. Default: `1min`.
+- `alluxio.master.backup.connect.interval.min`: Minimum delay between each connection attempt to backup-leader. Default: `1sec`.
+- `alluxio.master.backup.connect.interval.max`: Maximum delay between each connection attempt to backup-leader. Default: `30sec`.
+- `alluxio.master.backup.abandon.timeout`: Duration after which leader will abandon the backup if it has not received heartbeat from backup-worker. Default: `1min`.
 
 Since it is uncertain which host will take the backup, it is suggested to use shared paths for taking backups with backup delegation.
 
@@ -295,9 +294,9 @@ that the removed master is shown as `UNAVAILABLE`.
 $ ./bin/alluxio fsadmin journal quorum remove -domain <MASTER | JOB_MASTER> -address <HOSTNAME:PORT>
 ```
 
-3. Verify that the removed member is no longer shown in the quorum info.
+3. Verify that the removed member is no longer shown in the `quorum info`.
 
-##### Transferring leadership to a specific master
+##### Electing a specific master as leader
 To aid in debugging and to add flexibility, it is possible to manually change the leader of an embedded journal cluster.
 
 1. Check current quorum state:
@@ -305,9 +304,9 @@ To aid in debugging and to add flexibility, it is possible to manually change th
 $ ./bin/alluxio fsadmin journal quorum info -domain MASTER
 ```
 This will print out node status for all currently participating members of the embedded journal cluster. You should select one 
-of the `AVAILABLE` masters.
+of the `AVAILABLE` masters. The current leader is also displayed by this command. 
 
-2. Transfer the leadership to an available master:
+2. Elect an available master as leader:
 ```console
 $ ./bin/alluxio fsadmin journal quorum elect -address <HOSTNAME:PORT>
 ```
