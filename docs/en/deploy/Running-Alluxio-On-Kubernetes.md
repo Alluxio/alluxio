@@ -723,7 +723,7 @@ Make sure all the Pods have been terminated before you move on to the next step.
 
 **Step 3: Format journal and Alluxio storage if necessary**
 
-Check the [Alluxio upgrade guide page]({{ '/en/operation/Upgrade' | relativize_url }})
+Check the [Alluxio upgrade guide page]({{ '/en/operation/Upgrade.html' | relativize_url }})
 for whether the Alluxio master journal has to be formatted. If no format is needed,
 you are ready to skip the rest of this section and move on to restart all
 Alluxio master and worker Pods.
