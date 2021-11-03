@@ -20,13 +20,19 @@ configuration tuning for large scale deployments.
 {:toc}
 
 ## Metrics To Monitor
+This section discusses what metrics to monitor to understand the current cluster scale.
+On how to best integrate the metrics monitoring to your architecture, please see
+[Metrics System]({{ '/en/operation/Metrics-System.html' | relativize_url }}) for more information.
+
+Other than the most important metrics mentioned below, Alluxio provides observability on
+various other aspects like the cluster usage and throughput of each individual operation.
+A full list can be found at 
+[All Metric Keys]({{ '/en/reference/Metrics-List.html' | relativize_url }}).
 
 ### Number of Files in Alluxio
 
 In this section "files" refers to regular files and directories.
 The number of files in Alluxio can be monitored through the metric `Master.TotalPaths`.
-A third party metrics collector can be used to monitor the rate of
-change of this metric to determine how the number of files are growing over time.
 
 The number of files in Alluxio impacts the following:
 * Size of heap required by the master - Each file and its directory structure takes approximately 4KB. 
@@ -48,7 +54,7 @@ user experience unless the subtree is significantly large (> 10k files).
 Other metrics related to the number of files and the number of blocks
 * Master.TotalPath
 * Master.InodeHeapSize (Estimate only)
-* MMaster.UniqueBlocks and Master.BlockReplicaCount
+* Master.UniqueBlocks and Master.BlockReplicaCount
 * Master.BlockHeapSize 
 In addition to the total path, the total number of blocks also affects the heap usage, also to a lesser degree. 
 Be sure to monitor this metric if you expect your total data size to be very large or grow quickly.
@@ -67,10 +73,35 @@ Calculating concurrent clients requires estimating the number of Alluxio clients
 This can typically be attributed to the number of threads allowed in the compute frameworks used.
 For example, the number of tasks in a Presto job or the number of slots in a MapReduce node.
 
+#### Number of concurrent clients on the master
+
+The number of concurrent clients can not be directly observed, but can be found by monitoring
+on the following metrics.
+
+* Master.TotalRpcs
+* Master.RpcQueueLength
+
+#### Number of concurrent clients on a worker
+
+The number of concurrent clients that are actively reading from/writing to a worker can be found by:
+
+* Worker.ActiveClients
+
+You may also find other helpful information regarding the read/write performance associated with
+the current level of concurrency in metrics like:
+ 
+ * Worker.BytesReadDirectThroughput
+ * Worker.BytesReadRemoteThroughput
+ * Worker.BytesReadDomainThroughput
+ * Worker.BytesReadUfsThroughput
+ * and so on
+> Note: Which metrics best reflects the performance of your current workload heavily depends on
+> the nature of your workload.
+
 #### Master
 
 Client connections to the master are short lived, so we first estimate the number of concurrent
-clients and then convert to a operations/second metric
+clients and then convert it to a operations/second metric
 * 1 per Alluxio worker in the cluster
 * Max of
 	* Number of concurrent clients of the system as calculated above
@@ -79,16 +110,16 @@ clients and then convert to a operations/second metric
 
 For example, in a deployment with 2 users, 50 Presto worker nodes (with 200 task concurrency), and
 50 Alluxio nodes, the estimations would come out to the following
-* 50 (workers) + 2 (users) x 11 (block pool size) x 10 (file pool size) x 50 (services) = 11050
+* 50 (workers) + 2 (users) x (11 (block pool size) + 10 (file pool size)) x 50 (services) = 2150
 * 50 (workers) + 50 (Presto workers) x 200 (task concurrency) = 10050
 
-Yielding a max of 11050
+Yielding a max of 10050.
 
 Note based on the number of concurrent queries, add 1 more service for each to account for the
 Presto coordinator’s connections.
 
 If a maximum latency of 1 second is expected at absolute peak capacity, the master would need to
-support about 11050 operations per second. The typical operation to benchmark is `getFileInfo` for
+support about 10050 operations per second. The typical operation to benchmark is `getFileInfo` for
 OLAP frameworks. Note that although the number of potential concurrent clients are high, it is
 unlikely for all clients to simultaneously hit the master. The steady state number of concurrent
 clients to the master is generally much lower.
@@ -102,10 +133,11 @@ checked with the `ulimit` command.
 
 It is also important to monitor key timer metrics, as an abnormally high response rate would indicate the master is under stress.
 * Master.JournalFlushTimer 
-Journal can’t keep up with the flush, master request per second might be too high。 Consider using a more powerful master node.
+If the journal can’t keep up with the flush, master request per second might be too high. Consider using a more powerful master node.
 
 * Master.ListStatus Timer
-Any of the RPC timer statistics would help here. If the latency is abnormally high, master is under a lot of load.  It might be time for a more powerful master node.
+Any of the RPC timer statistics would help here. If the latency is abnormally high, master is under a lot of load. 
+It might be time for a more powerful master node.
 
 #### Worker
 
@@ -158,7 +190,8 @@ the Alluxio master and standby master processes to `256 GB`:
 ALLUXIO_MASTER_JAVA_OPTS+=" -Xms256g -Xmx256g "
 ```
 
-* As a rule of thumb set the min and max heap size equal to avoid heap resizing.
+* As a rule of thumb, manually set the min and max heap size equal to avoid heap resizing.
+Do not leave these blank and rely on the default values.
 * Each thread spawned by the master JVM requires off heap space determined by the thread stack size.
 When setting the heap size, ensure that there is enough memory allocated for off heap storage.
 For example, spawning `4000` threads with a default thread stack size of `1 MB` requires at least
@@ -166,8 +199,9 @@ For example, spawning `4000` threads with a default thread stack size of `1 MB` 
 * Network buffers are often allocated from a pool of direct memory in Java. 
 The configuration controlling the maximum size of direct memory allocated defaults to the `-Xmx` setting, 
 which can leave very little space for the other critical processes in the system. 
-We recommend setting it to 10GB for both Alluxio Master and Alluxio Workers in a typical deployment, and only increase it
-if the number of concurrent clients/RPC threads are increased.
+We recommend setting the direct memory to 10GB for both Alluxio Master and Alluxio Workers in a typical deployment, 
+and only increase it if the number of concurrent clients/RPC threads are increased and you see failure
+in allocating from direct memory.
 
 ```bash
 ALLUXIO_JAVA_OPTS+=" -XX:MaxDirectMemorySize=10g "
@@ -189,7 +223,7 @@ master. There are 32 clients. The journal is on HDFS.
 
 Because of the sensitivity of the Alluxio Master to CPU load and network load, we recommend a
 dedicated node for the Alluxio Master which does not run any other major processes aside from the
-Job Master.
+Alluxio Job Master.
 
 The minimum number of cores supportable is 4 and the suggested minimum number of cores is 32.
 
@@ -205,10 +239,12 @@ When using embedded journal, the disk space is proportional to the namespace siz
 of write operations within a snapshot period. We recommend at least 8 GB of disk space plus 8 GB for
 each 1 million files in the namespace. The read and write speed of the disk should be at least
 512 MB/s. We recommend a dedicated SSD for the embedded journal.
+See the [Journal Size Management]({{ '/en/operation/Journal.html#managing-the-journal-size' | relativize_url }})
+section for more information.
 
 When using RocksDB as the storage backend for the file system metadata, the disk space required is 
-proportional to the namespace size.
-We recommend 4 GB of disk space for each 1 million files in the name space.
+proportional to the namespace size. See the [RocksDB section]({{ '/en/operation/Metastore.html#rocksdb-metastore' | relativize_url }})
+for more information. We recommend 4 GB of disk space for each 1 million files in the name space.
 
 ### Operating System Limits
 
@@ -262,7 +298,27 @@ sysctl -w vm.zone_reclaim_mode=0
 
 The frequency with which the master checks for lost workers is set by the
 `alluxio.master.worker.heartbeat.interval` property, with a default value of `10s`.
-Increase the interval to reduce the number of heartbeat checks.
+If the master has not received a heartbeat from the worker for more than 
+`alluxio.master.worker.timeout`, the worker will be identified as lost. 
+The master will then know the cached blocks that are served by this worker
+are no longer available, and instruct the clients to not read or write on that worker.
+
+If a worker sends a heartbeat to the master after being identified as lost,
+the master will instruct the worker to register again and report all the blocks
+on the worker.
+
+On the master side, removing the worker from the locations of each block cache is an expensive operation. 
+Registering a worker which has many blocks later is also and expensive operation. 
+So it is ideal to avoid incorrectly identifying a worker as lost.
+You should set `alluxio.master.worker.timeout` to a value where you
+do not have false positives for this lost worker detection, 
+and still be able to tell a worker is lost with a reasonable delay.
+
+If you still see workers being identified as lost incorrectly, that suggests
+the master is unable to process the worker heartbeat requests in time.
+That means your Alluxio master process requires tuning.
+You should either increase the resources/concurrency allowed on the master,
+or reduce the pressure.
 
 ## Alluxio Worker Configuration
 
@@ -310,11 +366,16 @@ We recommend 8 GB + expected number of concurrent writers * max size of file wri
 stores disk space for writes to an object store. This disk should be a dedicated SSD supporting
 512 MB/s read and write.
 
-### Worker Storage
+### Worker Cache Storage
 
 The Alluxio worker needs storage space (memory, SSD, or HDD) to cache files. We recommend sizing the
 total aggregated worker storage to be at least 120% of the expected working set. If the expected
-working set is unknown, we recommend 33% of the total dataset.
+working set is unknown, we recommend starting with 33% of the total dataset.
+
+Note that if you have more than one replica for each block, you should adjust the cache
+size estimation accordingly. 
+See [Managing Data Replication in Alluxio]({{ '/en/core-services/Caching.html#managing-data-replication-in-alluxio' | relativize_url }})
+for more details.
 
 ### Heartbeat Intervals and Timeouts
 
@@ -323,9 +384,26 @@ The frequency with which a worker checks in with the master is set by the follow
 alluxio.worker.block.heartbeat.interval=1s
 ```
 
-`alluxio.worker.block.heartbeat.interval` controls the heartbeat interval for the block service in
-Alluxio.
-Again, increase the interval to reduce the number of heartbeat checks.
+`alluxio.worker.block.heartbeat.interval` controls the heartbeat interval for the block service in Alluxio.
+In each heartbeat, the worker will report the changes in blocks during the last heartbeat interval.
+If you have a large number of workers, or there are large numbers of operations so that each
+heartbeat carries a lot of updates, the master will experience significant pressure in handling the
+heartbeat requests. In that case, it is recommended to increase `alluxio.worker.block.heartbeat.interval`.
+
+`alluxio.worker.block.heartbeat.interval` affects how fast you see the block information update
+from workers. 
+For example, you issued an `alluxio fs free /path` command. The files and blocks will be marked
+as freed in Alluxio and when the worker that contains relevant blocks heartbeat to the master,
+the master will instruct it to remove the freed blocks.
+The worker will remove those block cache from its storage and report the change in the next heartbeat,
+as soon as the removal have completed.
+Therefore it takes at least two heartbeat cycles for the master to remove blocks,
+and subsequently update the worker storage percentage on the web UI. 
+
+Typically, having a longer heartbeat interval should not affect Alluxio performance and throughput except:
+1. How fast the master orders the workers to persist blocks written by `ASYNC_THROUGH`.
+1. The master will be less up-to-date on the worker's storage usage and block states for the asynchronously
+persisted blocks and freed blocks.
 
 ### Keepalive Time and Timeout
 
@@ -361,78 +439,279 @@ The Alluxio client can also be configured to check the health of connected worke
 pings.
 This is controlled by the following properties
 ```properties
-alluxio.user.network.keepalive.time=2h
-alluxio.user.network.keepalive.timeout=30s
+alluxio.user.network.streaming.keepalive.time=2h
+alluxio.user.network.streaming.keepalive.timeout=30s
 ```
-`alluxio.user.network.keepalive.time` controls the maximum wait time since a worker sent the last
+`alluxio.user.network.streaming.keepalive.time` controls the maximum wait time since a worker sent the last
 message before client issues a keepalive request.
-`alluxio.user.network.keepalive.timeout` controls the maximum wait time after a keepalive request is
+`alluxio.user.network.streaming.keepalive.timeout` controls the maximum wait time after a keepalive request is
 sent before the client determines the worker is no longer alive and closes the connection.
-This is disabled by default (the default value for `alluxio.user.network.keepalive.time` is
+This is disabled by default (the default value for `alluxio.user.network.streaming.keepalive.time` is
 `Long.MAX_VALUE` which effectively disables the keepalive) to minimize unintended performance impact
 to workers.
 You might want to enable it if you find that the Alluxio client is waiting a long time on dead
 workers.
-To enable it, set the property `alluxio.user.network.keepalive.time` to a desired interval.
+To enable it, set the property `alluxio.user.network.streaming.keepalive.time` to a desired interval.
 
-## Resource Sharing with Colocated Services
+## Resource Sharing with Co-located Services
 
 In many cases, Alluxio is not the only resource intensive service running on a node.
-Frequently, our users choose to colocate the computation framework such as Presto or Spark with Alluxio,
+In most cases, our users choose to co-locate the computation framework such as Presto or Spark with Alluxio,
 to fully take advantage of the data locality.
 Allocation of limited resources to different services such as Presto, Spark and Alluxio becomes an interesting challenge,
-and can have signficant impact on the performance of the tasks or queries.
+and can have significantly impact on the performance of the tasks or queries.
 Unbalanced resource allocation can even lead to query failures and processes exiting with an error.
+
+The optimal allocation depends heavily on the use case, architecture and the workflow.
+This section is not the silver bullet resource allocation manual.
+However, we recommend you to start with the best practices below.
 
 ### Memory Allocation between Compute with Alluxio
 
-When Presto or Spark is colocated with Alluxio, memory is often the most contentious resource.
+When Presto or Spark is co-located with Alluxio, memory is often the most contentious resource.
 Both Presto and Spark need a large amount of memory to be able to efficiently process queries.
-Alluxio also needs memory for caching and metadata management, unless SSD or HDD is used as the primary caching medium.
+Alluxio also needs memory for caching and metadata management.
 
-#### Colocated Coordinator and Master
+In a typical deployment setup, the Alluxio workers are co-located with the compute worker processes for the best data locality.
+Although in the ideal setup the Alluxio masters all have their dedicated nodes, 
+it is also not rare that the Alluxio masters are co-located with the compute coordinator processes for centralized management. 
+Since the memory usage patterns are different for these two kinds of nodes, they will be discussed separately.
 
-In many deployment settings, Presto coordinator or Spark master is running on the same node as the Alluxio master.
-They are good candidates to be colocated because Alluxio master consumes large amount of memory due to the metadata it keeps, but Presto coordinator and Spark masters are often less demanding on the memory compared to their workers.
+#### Co-located Coordinator and Master
 
-The total amount of memory consumed by these two applications are roughly
-Alluxio JVM size + Presto/Spark JVM size  + System resource memory size
-Linux also needs some memory for its own kernel data structures and other system programs as well.
-So it is recommended to leave at least 10-15GB for that purpose as well.
-If the sum of these values are near the system total available memory, Out-of-memory killer may be triggered.
-It will choose the process with the highest badness score (frequently the process using the most memory) and kill it.
-This would likely kill the Alluxio master and lead to system downtime.
+In many deployment settings, the Presto coordinators or the Spark drivers are running on the same node as the Alluxio masters.
+They are good candidates to be co-located because the Alluxio master consumes large amount of memory due to the metadata it keeps, 
+but Presto coordinator and Spark masters are often less demanding on the memory compared to their workers.
 
-If memory resource is constrained, Presto coordinator / Spark master needs sufficient memory to launch and complete queries. 
-So it would demand the highest priority. 
-If Alluxio metadata can not fit in the remaining memory, RocksDb-based offheap storage solution should be considered. 
-Then we consider memory required by the thread allocations and direct memory, this is dependent on the number of threads, so we leave it as the last priority.
+The total memory consumption can be roughly abstracted as follows: 
+```
+ALLUXIO_MASTER_JVM_SIZE + COMPUTE_JVM_SIZE  + SYSTEM_RESOURCE_REQUIREMENT
+```
+> Note: The JVM_SIZE means ALL the memory allocated to the JVM, including off-heap and metaspace.
 
-#### Colocated Workers
+If the sum of these values are near the system total available memory, the performance of your operating system will degrade.
+To make the matter worse, in certain architectures, the system resource manager may kill running processes
+to release some resources.
+It may choose the process with the highest badness score (frequently the process using the most memory) and kill it.
+This would likely kill the Alluxio master process and lead to system downtime.
 
-It is also natural to colocate the Presto / Spark workers with Alluxio workers. 
+System resources should have the top priority in resource estimation.
+The operating system needs some memory for its own kernel data structures and other system programs.
+So it is recommended to leave at least 10-15GB for that purpose.
+
+The Presto coordinator / Spark driver needs sufficient memory to launch and complete queries. 
+So sufficient `COMPUTE_JVM_SIZE` would demand the next highest priority.
+
+The Alluxio master's memory requirement depends on the amount of file metadata.
+See the [Master Heap Size Estimation](#heap-size) section for more details. 
+
+#### Co-located Workers
+
+It is also natural to colocate the Presto workers / Spark executors with the Alluxio workers. 
 However, both of them can require a large amount of memory, so it is important to prioritize their allocations.
-Similar to the master's case, the total memory consumption is 
-ALLUXIO_RAM_DISK_SIZE + ALLUXIO_WORKER_HEAP_SIZE + COMPUTE_WORKER_HEAP_SIZE + SYSTEM RESOURCE REQUIREMENT
+Similar to the master's case, the total memory consumption can be abstracted as follows:
+```
+ALLUXIO_RAMDISK_SIZE + ALLUXIO_WORKER_JVM_SIZE + COMPUTE_WORKER_JVM_SIZE + SYSTEM_RESOURCE_REQUIREMENT
+```
+> Note: The JVM_SIZE means ALL the memory allocated to the JVM, including off-heap and metaspace.
 
 When the worker memory is constrained, we recommend the following prioritization.
-System resources contains file descriptor tables and thread allocations, and are limited on the workers, because workers tend to have fewer concurrent accesses compared to master. But we recommend leaving 10-15 GB at least for this purpose as well.
-The next priority should be COMPUTE_WORKER_HEAP_SIZE.
-If the compute worker's heap is too small, some queries will simply fail.
+
+System resources contains file descriptor tables and thread allocations, and are limited on the workers, 
+because workers tend to have fewer concurrent accesses compared to master. 
+But we recommend leaving 10-15 GB at least for this purpose as well. 
+
+The next priority should be `COMPUTE_WORKER_JVM_SIZE`.
+If the compute worker's JVM is too small, some queries will simply fail.
 Unfortunately, it is difficult to know much memory a query will need unless you run it.
-Tools such as top can be used to monitor the peak memory consumptions of the presto process.
-ALLUXIO_WORKER_HEAP_SIZE does not need to be very large, but it is critical to ensure it is enough for the correct operation of the Alluxio worker.
-The last priority should be the RAMDISK_SIZE. 
-Uncached data will negatively impact the performance, but will not have any impact on query correctness.
-Alluxio also has the ability to cache on SSD and HDD, thus avoid using the valuable memory resource as ramdisks.
+So you should monitor the system while your normal workload runs, in order to get better
+estimations on how much resources the compute worker typically needs.
+Tools such as `top` can be used to monitor the memory consumption of a process.
+There are more advanced operating system level monitor tools and we recommend you to explore
+and find the one that is the most suitable to your architecture.
+Also, compute frameworks tend to have their own resource monitoring tools that can provide more insights.
+
+`ALLUXIO_WORKER_HEAP_SIZE` does not need to be very large, but it is critical to ensure 
+it is enough for the correct operation of the Alluxio worker.
+See [Worker Heap Size Estimation](#heap-size-1) for more details.
+
+The last priority should be the `ALLUXIO_RAMDISK_SIZE`. 
+Cache misses will negatively impact the performance, but will not have any impact on query correctness.
+Alluxio also has the ability to cache on SSD and HDD, thus reducing the memory demand.
+We recommend SSDs over HDDs.
 
 ### CPU Allocation between Compute and Alluxio
 
-Note that when we colocate compute with Alluxio, compute frameworks are also the clients to Alluxio system.
+Note that when we co-locate compute with Alluxio, compute frameworks are also the clients to the Alluxio system.
 This is important because the overall system performance depends on the clients supplying enough work that the Alluxio system can efficiently handle. 
 Given the fixed total system resource, giving too much resource to compute / clients will result in Alluxio not being able to handle such requests.
 Vice versa, giving too much resource to Alluxio will result in not enough requests being generated.
 
 This is usually not a huge issue because of dynamic CPU scheduling on these nodes. 
 However, when containers or strict CPU quotas are enforced, we may run into situations where we have too few or too many requests. 
-The correct balance is heavily dependent on the exact workload. We recommend looking at several metrics such as `Worker.BlocksEvictionRate` , `Cluster.BytesReadLocalThroughput`, and master RPC latency metrics to find clues whether your allocation is too compute heavy or too Alluxio heavy.
+The optimal balance is heavily dependent on the exact workload. 
+We recommend looking at several metrics such as `Worker.BlocksEvictionRate`, `Cluster.BytesReadLocalThroughput`, 
+and master RPC latency metrics to find clues whether your allocation is too compute heavy or too Alluxio heavy.
+
+## Alluxio Master-Worker Interactions
+
+Alluxio workers will register with the master and regularly send heartbeats. 
+The overhead of this worker state synchronization is linear to the number of workers
+in the cluster, and the amount of blocks each worker possesses.
+As your cluster scales up, this overhead become non-trivial and requires thoughts and tunings ahead.
+
+When the cluster scales up, this bottleneck is typically on the master side.
+In the extreme case, adding a worker to the cluster will slow down work,
+instead of providing more cache capabilities.
+This section will list the parts of this synchronization that are most resource demanding.
+When tuning towards a larger scale, start with these first.
+
+### Worker Registration
+
+When the worker registers with a master, it will report the below information:
+1. Some metadata about the worker itself, like the WorkerId.
+1. Metadata about the worker's tiered storage, like the capacity/usage of each tier.
+1. A full block list of all the blocks that are currently on the worker.
+
+Obviously, the size of the report is linear to the number of blocks.
+The serialized size of the report is roughly
+`(number of blocks) * 6 bytes + constant size for other metadata`.
+When processing the worker registration report, the master side will spend much more
+memory than the serialized size.
+During the process, the total master-side memory consumption is 200MB~400MB per 1 million blocks.
+If you have 20 workers that all register at the same time, each having 1 million blocks,
+the master-side memory demand will have the upper limit of
+```
+20 * 1 * 400MB = 8000MB
+``` 
+
+Allocating a large amount of memory from heap will take away the memory that are used to
+handle other requests, so when your workers are registering, the throughput for other
+workload will be hurt. You may also see the Alluxio master experience Full GC or OOM errors.
+
+Therefore, in Alluxio 2.7 we introduced two mechanisms below to perform better flow control.
+
+#### Worker Register Lease
+
+Workers now need to request a "lease" from the master before sending the register report messages.
+If rejected, the worker will back off exponentially and retry.
+
+```properties
+# Below are the default values
+alluxio.master.worker.register.lease.enabled=true
+alluxio.master.worker.register.lease.count=20
+```
+
+Now the master will only allow a certain number of workers to register at the same time.
+When the cluster scale is large, workers will queue up and register.
+The impact on the master side will be more smoothed out.
+The optimal number of leases depends on your cluster size and average number of
+blocks per worker node. You may find relevant information from the metrics
+or by looking at the storage on each worker, and follow the size estimation process
+above to make your best estimation. If your workers are currently empty, you may
+estimate based on the worker storage and the average file/block size.
+
+This feature is enabled by default. Typically you only need to tweak the 2 properties above.
+But you may find all relevant properties in the [Properties List]({{ '/en/reference/Properties-List.html' | relativize_url }})
+starting with `alluxio.master.worker.register.lease` and `alluxio.worker.register.lease`.
+
+When the register lease feature is turned on, you will see a delay when
+the workers attempt to register to the master. This is expected.
+
+#### Streaming Worker Registration
+
+In Alluxio 2.7, workers can send the register report to the master in a stream of smaller requests,
+instead of one single large request. Although the total master-side overhead of dealing with
+all the requests is larger, the master-side heap consumption spent on registering workers can be
+kept at a lower level overall. Smaller requests are also more GC-friendly so the master JVM has a higher throughput.
+
+```properties
+# Below are the default values
+alluxio.worker.register.stream.enabled=true
+alluxio.worker.register.stream.batch.size=100000
+alluxio.worker.register.stream.deadline=15min
+```
+
+As previously mentioned, the worker will send metadata and the full block list to the master
+when it registers. When streaming is used, the full request is broken into several smaller request.
+The 1st request will contain the metadata and the block list 
+(limited by `alluxio.worker.register.stream.batch.size`).
+The following requests will only contain the block list.
+Therefore, if your worker has fewer blocks than `alluxio.worker.register.stream.batch.size`,
+only 1 request will be sent and the performance should be identical.
+Thus we recommend to keep this enabled despite your worker storage size.
+
+This feature is enabled by default. Typically you only need to tune the 3 properties above.
+But you may find all relevant properties in the [Properties List]({{ '/en/reference/Properties-List.html' | relativize_url }})
+starting with `alluxio.master.worker.register.stream` and `alluxio.worker.register.stream`.
+
+### Master-Worker Heartbeat
+
+The workers and the master maintain regular heartbeats. Workers send the block state changes
+to the master, and the master replies with commands to persist/remove blocks.
+
+#### Master-side
+The frequency with which the master checks for lost workers is set by the
+`alluxio.master.worker.heartbeat.interval` property, with a default value of `10s`.
+If the master has not received a heartbeat from the worker for more than 
+`alluxio.master.worker.timeout`, the worker will be identified as lost. 
+The master will then know the cached blocks that are served by this worker
+are no longer available, and instruct the clients to not read or write on that worker.
+
+If a worker sends a heartbeat to the master after being identified as lost,
+the master will instruct the worker to register again and report all the blocks
+on the worker.
+
+On the master side, removing the worker from the locations of each block cache is an expensive operation. 
+Registering a worker which has many blocks later is also and expensive operation. 
+So it is ideal to avoid incorrectly identifying a worker as lost.
+You should set `alluxio.master.worker.timeout` to a value where you
+do not have false positives for this lost worker detection, 
+and still be able to tell a worker is lost with a reasonable delay.
+
+If you still see workers being identified as lost incorrectly, that suggests
+the master is unable to process the worker heartbeat requests in time.
+That means your Alluxio master process requires tuning.
+You should either increase the resources/concurrency allowed on the master,
+or reduce the pressure.
+
+#### Worker-side
+The frequency with which a worker checks in with the master is set by the following property:
+```properties
+alluxio.worker.block.heartbeat.interval=1s
+```
+
+`alluxio.worker.block.heartbeat.interval` controls the heartbeat interval for the block service in Alluxio.
+In each heartbeat, the worker will report the changes in blocks during the last heartbeat interval.
+If you have a large number of workers, or there are large numbers of operations so that each
+heartbeat carries a lot of updates, the master will experience significant pressure in handling the
+heartbeat requests. In that case, it is recommended to increase `alluxio.worker.block.heartbeat.interval`.
+
+`alluxio.worker.block.heartbeat.interval` affects how fast you see the block information update
+from workers. 
+For example, you issued an `alluxio fs free /path` command. The files and blocks will be marked
+as freed in Alluxio and when the worker that contains relevant blocks heartbeat to the master,
+the master will instruct it to remove the freed blocks.
+The worker will remove those block cache from its storage and report the change in the next heartbeat,
+as soon as the removal have completed.
+Therefore it takes at least two heartbeat cycles for the master to remove blocks,
+and subsequently update the worker storage percentage on the web UI. 
+
+Typically, having a longer heartbeat interval should not affect Alluxio performance and throughput except:
+1. How fast the master orders the workers to persist blocks written by `ASYNC_THROUGH`.
+1. The master will be less up-to-date on the worker's storage usage and block states for the asynchronously
+persisted blocks and freed blocks.
+
+### Master-Worker Pinned File List Sync
+The master periodically updates the worker on which files are currently pinned in the Alluxio namespace.
+The blocks that belong to pinned files cannot be evicted from the worker.
+In other words, if the worker storage is full, the worker will evict blocks that do not
+belong to pinned files.
+
+Currently the worker will sync with the master on the pinned file list once every 1 second.
+```properties
+alluxio.worker.block.heartbeat.interval.ms=1sec
+```
+
+If the cluster scale is large or there are many pinned files, this will create significant
+pressure on the master. In that case we recommend to increase this interval.
