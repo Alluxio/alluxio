@@ -6,7 +6,7 @@ Worker.ActiveRpcWriteCount:
   'The number of active write-RPCs managed by this worker'
 Worker.BlockReaderCompleteTaskCount:
   'The approximate total number of block read tasks that have completed execution'
-Worker.BlockReaderThreadActivelyCount:
+Worker.BlockReaderThreadActiveCount:
   'The approximate number of block read threads that are actively executing tasks in reader thread pool'
 Worker.BlockReaderThreadCurrentCount:
   'The current number of read threads in the reader thread pool'
@@ -22,7 +22,7 @@ Worker.BlockRemoverTryRemoveCount:
   'The total number of blocks this worker attempted to remove with asynchronous block remover.'
 Worker.BlockWriterCompleteTaskCount:
   'The approximate total number of block write tasks that have completed execution'
-Worker.BlockWriterThreadActivelyCount:
+Worker.BlockWriterThreadActiveCount:
   'The approximate number of block write threads that are actively executing tasks in writer thread pool'
 Worker.BlockWriterThreadCurrentCount:
   'The current number of write threads in the writer thread pool'

@@ -3,7 +3,7 @@ Worker.ActiveClients,COUNTER
 Worker.ActiveRpcReadCount,COUNTER
 Worker.ActiveRpcWriteCount,COUNTER
 Worker.BlockReaderCompleteTaskCount,GAUGE
-Worker.BlockReaderThreadActivelyCount,GAUGE
+Worker.BlockReaderThreadActiveCount,GAUGE
 Worker.BlockReaderThreadCurrentCount,GAUGE
 Worker.BlockReaderThreadMaxCount,GAUGE
 Worker.BlockRemoverBlocksRemovedCount,COUNTER
@@ -11,7 +11,7 @@ Worker.BlockRemoverRemovingBlocksSize,GAUGE
 Worker.BlockRemoverTryRemoveBlocksSize,GAUGE
 Worker.BlockRemoverTryRemoveCount,COUNTER
 Worker.BlockWriterCompleteTaskCount,GAUGE
-Worker.BlockWriterThreadActivelyCount,GAUGE
+Worker.BlockWriterThreadActiveCount,GAUGE
 Worker.BlockWriterThreadCurrentCount,GAUGE
 Worker.BlockWriterThreadMaxCount,GAUGE
 Worker.BlocksAccessed,COUNTER
