@@ -1362,6 +1362,18 @@ and `volumeMounts` of each container if existing.
 {% endnavtab %}
 {% endnavtabs %}
 
+### Toggle Master or Worker in Helm chart
+In use cases where you wish to install Alluxio masters and workers separately
+with the Helm chart, use the following respective toggles:
+
+```properties
+master:
+  enabled: false
+
+worker:
+  enabled: false
+```
+
 ### Kubernetes Configuration Options
 
 The following options are provided in our Helm chart as additional
@@ -1566,6 +1578,45 @@ spec:
     spec:
       strategy:
         type: Recreate
+```
+
+{% endnavtab %}
+{% endnavtabs %}
+
+#### ImagePullSecrets
+
+Kubernetes supports [accessing images from a Private Registry](https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/).
+After creating the registry credentials `Secret` in Kubernetes, you pass the secret
+to your Pods via `imagePullSecrets`.
+
+{% navtabs imagePullSecrets %}
+{% navtab helm %}
+
+The following value applies the specified `imagePullSecrets` to all
+Pods in the Helm chart.
+
+```properties
+imagePullSecrets:
+  - ecr
+  - dev
+```
+
+{% endnavtab %}
+{% navtab kubectl %}
+
+Add `imagePullSecrets` to your Pod specs. Eg:
+
+```properties
+apiVersion: v1
+kind: Pod
+metadata:
+  name: private-reg
+spec:
+  containers:
+  - name: private-reg-container
+    image: <your-private-image>
+  imagePullSecrets:
+  - name: regcred
 ```
 
 {% endnavtab %}

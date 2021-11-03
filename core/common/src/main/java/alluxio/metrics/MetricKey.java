@@ -392,7 +392,8 @@ public final class MetricKey implements Comparable<MetricKey> {
           .build();
   public static final MetricKey MASTER_RPC_QUEUE_LENGTH =
       new Builder("Master.RpcQueueLength")
-          .setDescription("Length of the master rpc queue")
+          .setDescription("Length of the master rpc queue. "
+              + "Use this metric to monitor the RPC pressure on master.")
           .setMetricType(MetricType.GAUGE)
           .build();
   public static final MetricKey MASTER_HEARTBEAT_TRIGGERED_ACTIVE_JOB_SIZE =
@@ -1612,7 +1613,10 @@ public final class MetricKey implements Comparable<MetricKey> {
           .build();
   public static final MetricKey FUSE_CACHED_PATH_COUNT =
       new Builder("Fuse.CachedPathCount")
-          .setDescription("Total number of Alluxio paths to cache for FUSE conversion.")
+          .setDescription(String
+              .format("Total number of Alluxio paths to cache for FUSE conversion. "
+                      + "This value will be smaller or equal to %s",
+              PropertyKey.FUSE_CACHED_PATHS_MAX.getName()))
           .setMetricType(MetricType.GAUGE)
           .setIsClusterAggregated(false)
           .build();

@@ -241,6 +241,37 @@ Date: Tue, 18 Jun 2019 21:32:08 GMT
 Server: Jetty(9.2.z-SNAPSHOT)
 ```
 
+## Delete Objects with a Single Request
+
+```console
+$ cat body.xml
+<Delete xmlns="http://s3.amazonaws.com/doc/2006-03-01/">
+   <Object>
+      <Key>sample1.txt</Key>
+   </Object>
+   <Object>
+      <Key>sample2.txt</Key>
+   </Object>
+   <Quiet>boolean</Quiet>
+</Delete>
+$ curl -i -X POST http://localhost:39999/api/v1/s3/testbucket?delete
+
+HTTP/1.1 200 Ok
+Date: Tue, 18 Jun 2019 21:32:08 GMT
+Server: Jetty(9.2.z-SNAPSHOT)
+<?xml version="1.0" encoding="UTF-8"?>
+<DeleteResult xmlns="http://s3.amazonaws.com/doc/2006-03-01/">
+  <Deleted>
+    <Key>sample1.txt</Key>
+  </Deleted>
+  <Error>
+  <Key>sample2.txt</Key>
+  <Code>AccessDenied</Code>
+  <Message>Access Denied</Message>
+  </Error>
+</DeleteResult>
+```
+
 #### Initiate a multipart upload
 Since we deleted the `testobject` in the previous command, you have to create another `testobject`
 before initiating a multipart upload.

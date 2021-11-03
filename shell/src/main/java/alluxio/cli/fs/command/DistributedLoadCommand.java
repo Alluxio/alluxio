@@ -16,6 +16,9 @@ import alluxio.annotation.PublicApi;
 import alluxio.cli.CommandUtils;
 import alluxio.cli.fs.FileSystemShellUtils;
 import alluxio.client.file.FileSystemContext;
+import alluxio.client.file.URIStatus;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.status.InvalidArgumentException;
 
@@ -27,6 +30,8 @@ import org.apache.commons.lang3.StringUtils;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 import java.util.HashSet;
 
@@ -181,6 +186,16 @@ public final class DistributedLoadCommand extends AbstractDistributedJobCommand 
               + " and it should not be set with 'hosts', 'host-file', 'locality'"
               + " and 'locality-file' together.")
           .build();
+  private static final Option BATCH_SIZE_OPTION =
+      Option.builder()
+          .longOpt("batch-size")
+          .required(false)
+          .hasArg(true)
+          .numberOfArgs(1)
+          .type(Number.class)
+          .argName("batch-size")
+          .desc("Number of files per request")
+          .build();
 
   /**
    * Constructs a new instance to load a file or directory in Alluxio space.
@@ -201,7 +216,8 @@ public final class DistributedLoadCommand extends AbstractDistributedJobCommand 
     return new Options().addOption(REPLICATION_OPTION).addOption(ACTIVE_JOB_COUNT_OPTION)
         .addOption(INDEX_FILE)
         .addOption(HOSTS_OPTION)
-        .addOption(HOST_FILE_OPTION);
+        .addOption(HOST_FILE_OPTION)
+        .addOption(BATCH_SIZE_OPTION);
   }
 
   @Override
@@ -211,8 +227,8 @@ public final class DistributedLoadCommand extends AbstractDistributedJobCommand 
 
   @Override
   public String getUsage() {
-    return "distributedLoad [--replication <num>] [--active-jobs <num>] [--index] "
-        + "[--hosts <host1>,<host2>,...,<hostN>] [--host-file <hostFilePath>] "
+    return "distributedLoad [--replication <num>] [--active-jobs <num>] [--batch-size <num>] "
+        + "[--index] [--hosts <host1>,<host2>,...,<hostN>] [--host-file <hostFilePath>] "
         + "[--excluded-hosts <host1>,<host2>,...,<hostN>] [--excluded-host-file <hostFilePath>] "
         + "[--locality <locality1>,<locality2>,...,<localityN>] "
         + "[--locality-file <localityFilePath>] "
@@ -231,9 +247,11 @@ public final class DistributedLoadCommand extends AbstractDistributedJobCommand 
     mActiveJobs = FileSystemShellUtils.getIntArg(cl, ACTIVE_JOB_COUNT_OPTION,
         AbstractDistributedJobCommand.DEFAULT_ACTIVE_JOBS);
     System.out.format("Allow up to %s active jobs%n", mActiveJobs);
-
     String[] args = cl.getArgs();
+    AlluxioConfiguration conf = mFsContext.getClusterConf();
+    int defaultBatchSize = conf.getInt(PropertyKey.JOB_REQUEST_BATCH_SIZE);
     int replication = FileSystemShellUtils.getIntArg(cl, REPLICATION_OPTION, DEFAULT_REPLICATION);
+    int batchSize = FileSystemShellUtils.getIntArg(cl, BATCH_SIZE_OPTION, defaultBatchSize);
     Set<String> workerSet = new HashSet<>();
     Set<String> excludedWorkerSet = new HashSet<>();
     Set<String> localityIds = new HashSet<>();
@@ -266,17 +284,18 @@ public final class DistributedLoadCommand extends AbstractDistributedJobCommand 
       String argOption = cl.getOptionValue(EXCLUDED_LOCALITY_OPTION.getLongOpt()).trim();
       readItemsFromOptionString(excludedLocalityIds, argOption);
     }
-
+    List<URIStatus> filePool = new ArrayList<>(batchSize);
     if (!cl.hasOption(INDEX_FILE.getLongOpt())) {
       AlluxioURI path = new AlluxioURI(args[0]);
-      DistributedLoadUtils.distributedLoad(this, path, replication, workerSet,
+      DistributedLoadUtils.distributedLoad(this, filePool, batchSize, path, replication, workerSet,
           excludedWorkerSet, localityIds, excludedLocalityIds, true);
     } else {
       try (BufferedReader reader = new BufferedReader(new FileReader(args[0]))) {
-        for (String filename; (filename = reader.readLine()) != null; ) {
+        for (String filename; (filename = reader.readLine()) != null;) {
           AlluxioURI path = new AlluxioURI(filename);
-          DistributedLoadUtils.distributedLoad(this, path, replication, workerSet,
-              excludedWorkerSet, localityIds, excludedLocalityIds, true);
+
+          DistributedLoadUtils.distributedLoad(this, filePool, batchSize, path, replication,
+              workerSet, excludedWorkerSet, localityIds, excludedLocalityIds, true);
         }
       }
     }
@@ -285,8 +304,7 @@ public final class DistributedLoadCommand extends AbstractDistributedJobCommand 
     return 0;
   }
 
-  private void readItemsFromOptionString(Set<String> localityIds,
-      String argOption) {
+  private void readItemsFromOptionString(Set<String> localityIds, String argOption) {
     for (String locality : StringUtils.split(argOption, ",")) {
       locality = locality.trim().toUpperCase();
       if (!locality.isEmpty()) {
@@ -295,10 +313,9 @@ public final class DistributedLoadCommand extends AbstractDistributedJobCommand 
     }
   }
 
-  private void readLinesToSet(Set<String> workerSet, String hostFile)
-      throws IOException {
+  private void readLinesToSet(Set<String> workerSet, String hostFile) throws IOException {
     try (BufferedReader reader = new BufferedReader(new FileReader(hostFile))) {
-      for (String worker; (worker = reader.readLine()) != null; ) {
+      for (String worker; (worker = reader.readLine()) != null;) {
         worker = worker.trim().toUpperCase();
         if (!worker.isEmpty()) {
           workerSet.add(worker);

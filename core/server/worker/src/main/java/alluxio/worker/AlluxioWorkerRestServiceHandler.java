@@ -25,9 +25,12 @@ import alluxio.collections.Pair;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.FileDoesNotExistException;
+import alluxio.grpc.ConfigProperty;
+import alluxio.grpc.GetConfigurationPOptions;
 import alluxio.master.block.BlockId;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
+import alluxio.util.ConfigurationUtils;
 import alluxio.util.FormatUtils;
 import alluxio.util.LogUtils;
 import alluxio.util.network.NetworkAddressUtils;
@@ -41,6 +44,7 @@ import alluxio.web.WorkerWebServer;
 import alluxio.wire.AlluxioWorkerInfo;
 import alluxio.wire.Capacity;
 import alluxio.wire.WorkerWebUIBlockInfo;
+import alluxio.wire.WorkerWebUIConfiguration;
 import alluxio.wire.WorkerWebUIInit;
 import alluxio.wire.WorkerWebUILogs;
 import alluxio.wire.WorkerWebUIMetrics;
@@ -53,9 +57,12 @@ import com.codahale.metrics.Counter;
 import com.codahale.metrics.Gauge;
 import com.codahale.metrics.Metric;
 import com.codahale.metrics.MetricRegistry;
+import com.google.common.collect.Sets;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.apache.commons.lang3.tuple.ImmutableTriple;
+import org.apache.commons.lang3.tuple.Triple;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -73,6 +80,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
+import java.util.TreeSet;
 
 import javax.annotation.concurrent.NotThreadSafe;
 import javax.servlet.ServletContext;
@@ -107,6 +115,7 @@ public final class AlluxioWorkerRestServiceHandler {
   public static final String WEBUI_LOGS = "webui_logs";
   public static final String WEBUI_BLOCKINFO = "webui_blockinfo";
   public static final String WEBUI_METRICS = "webui_metrics";
+  public static final String WEBUI_CONFIG = "webui_config";
 
   // queries
   public static final String QUERY_RAW_CONFIGURATION = "raw_configuration";
@@ -522,6 +531,37 @@ public final class AlluxioWorkerRestServiceHandler {
               "Error: File " + logFile + " is not available " + e.getMessage());
         }
       }
+
+      return response;
+    }, ServerConfiguration.global());
+  }
+
+  /**
+   * Gets Web UI ServerConfiguration page data.
+   *
+   * @return the response object
+   */
+  @GET
+  @Path(WEBUI_CONFIG)
+  public Response getWebUIConfiguration() {
+    return RestUtils.call(() -> {
+      WorkerWebUIConfiguration response = new WorkerWebUIConfiguration();
+      response.setWhitelist(mBlockWorker.getWhiteList());
+
+      TreeSet<Triple<String, String, String>> sortedProperties = new TreeSet<>();
+      Set<String> alluxioConfExcludes = Sets.newHashSet(PropertyKey.WORKER_WHITELIST.toString());
+      for (ConfigProperty configProperty : mBlockWorker
+              .getConfiguration(GetConfigurationPOptions.newBuilder().setRawValue(true).build())
+              .toProto().getClusterConfigsList()) {
+        String confName = configProperty.getName();
+        if (!alluxioConfExcludes.contains(confName)) {
+          sortedProperties.add(new ImmutableTriple<>(confName,
+                  ConfigurationUtils.valueAsString(configProperty.getValue()),
+                  configProperty.getSource()));
+        }
+      }
+
+      response.setConfiguration(sortedProperties);
 
       return response;
     }, ServerConfiguration.global());

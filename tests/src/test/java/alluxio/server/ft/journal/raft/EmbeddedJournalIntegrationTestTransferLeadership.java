@@ -12,6 +12,7 @@
 package alluxio.server.ft.journal.raft;
 
 import alluxio.conf.PropertyKey;
+import alluxio.grpc.GetTransferLeaderMessagePResponse;
 import alluxio.grpc.NetAddress;
 import alluxio.grpc.QuorumServerState;
 import alluxio.master.journal.JournalType;
@@ -22,7 +23,6 @@ import alluxio.multi.process.PortCoordination;
 import org.junit.Assert;
 import org.junit.Test;
 
-import java.io.IOException;
 import java.util.concurrent.TimeoutException;
 
 public class EmbeddedJournalIntegrationTestTransferLeadership
@@ -96,15 +96,12 @@ public class EmbeddedJournalIntegrationTestTransferLeadership
     // we can therefore access to the new leader's address this way
     MasterNetAddress newLeaderAddr = mCluster.getMasterAddresses().get(newLeaderIdx);
     NetAddress netAddress = masterEBJAddr2NetAddr(newLeaderAddr);
-
     mCluster.getJournalMasterClientForMaster().transferLeadership(netAddress);
-    try {
       // this second call should throw an exception
-      mCluster.getJournalMasterClientForMaster().transferLeadership(netAddress);
-      Assert.fail("Should have thrown exception");
-    } catch (IOException ioe) {
-      // expected exception thrown
-    }
+    String transferId = mCluster.getJournalMasterClientForMaster().transferLeadership(netAddress);
+    String exceptionMessage = mCluster.getJournalMasterClientForMaster()
+            .getTransferLeaderMessage(transferId).getTransMsg().getMsg();
+    Assert.assertFalse(exceptionMessage.isEmpty());
     mCluster.notifySuccess();
   }
 
@@ -122,19 +119,15 @@ public class EmbeddedJournalIntegrationTestTransferLeadership
     mCluster.start();
 
     NetAddress netAddress = NetAddress.newBuilder().setHost("hostname").setRpcPort(0).build();
-
-    try {
-      mCluster.getJournalMasterClientForMaster().transferLeadership(netAddress);
-      Assert.fail("Should have thrown exception");
-    } catch (IOException e) {
-      Assert.assertTrue(e.getMessage().startsWith(String.format("<%s:%d> is not part of the quorum",
-          netAddress.getHost(), netAddress.getRpcPort())));
-
-      for (MasterNetAddress address : mCluster.getMasterAddresses()) {
-        String host = address.getHostname();
-        int port = address.getEmbeddedJournalPort();
-        Assert.assertTrue(e.getMessage().contains(String.format("%s:%d", host, port)));
-      }
+    String transferId = mCluster.getJournalMasterClientForMaster().transferLeadership(netAddress);
+    String exceptionMessage = mCluster.getJournalMasterClientForMaster()
+            .getTransferLeaderMessage(transferId).getTransMsg().getMsg();
+    Assert.assertTrue(exceptionMessage.startsWith(String.format("<%s:%d> is not part of the quorum",
+            netAddress.getHost(), netAddress.getRpcPort())));
+    for (MasterNetAddress address : mCluster.getMasterAddresses()) {
+      String host = address.getHostname();
+      int port = address.getEmbeddedJournalPort();
+      Assert.assertTrue(exceptionMessage.contains(String.format("%s:%d", host, port)));
     }
     mCluster.notifySuccess();
   }
@@ -189,12 +182,73 @@ public class EmbeddedJournalIntegrationTestTransferLeadership
     mCluster.notifySuccess();
   }
 
-  private void transferAndWait(MasterNetAddress newLeaderAddr) throws Exception {
+  @Test
+  public void resetPriorities() throws Exception {
+    mCluster = MultiProcessCluster.newBuilder(PortCoordination.EMBEDDED_JOURNAL_UNAVAILABLE_MASTER)
+        .setClusterName("EmbeddedJournalTransferLeadership_transferLeadershipToUnavailableMaster")
+        .setNumMasters(NUM_MASTERS)
+        .setNumWorkers(NUM_WORKERS)
+        .addProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.EMBEDDED.toString())
+        .addProperty(PropertyKey.MASTER_JOURNAL_FLUSH_TIMEOUT_MS, "5min")
+        .addProperty(PropertyKey.MASTER_EMBEDDED_JOURNAL_MIN_ELECTION_TIMEOUT, "750ms")
+        .addProperty(PropertyKey.MASTER_EMBEDDED_JOURNAL_MAX_ELECTION_TIMEOUT, "1500ms")
+        .build();
+    mCluster.start();
+
+    boolean match = mCluster.getJournalMasterClientForMaster().getQuorumInfo().getServerInfoList()
+            .stream().allMatch(info -> info.getPriority() == 0);
+    Assert.assertTrue(match);
+
+    for (int i = 0; i < NUM_MASTERS; i++) {
+      int newLeaderIdx = (mCluster.getPrimaryMasterIndex(MASTER_INDEX_WAIT_TIME) + 1) % NUM_MASTERS;
+      // `getPrimaryMasterIndex` uses the same `mMasterAddresses` variable as getMasterAddresses
+      // we can therefore access to the new leader's address this way
+      MasterNetAddress newLeaderAddr = mCluster.getMasterAddresses().get(newLeaderIdx);
+      transferAndWait(newLeaderAddr);
+      match = mCluster.getJournalMasterClientForMaster().getQuorumInfo().getServerInfoList()
+          .stream().allMatch(info -> info.getPriority() == (info.getIsLeader() ? 2 : 1));
+      Assert.assertTrue(match);
+      mCluster.getJournalMasterClientForMaster().resetPriorities();
+      match = mCluster.getJournalMasterClientForMaster().getQuorumInfo().getServerInfoList()
+          .stream().allMatch(info -> info.getPriority() == 1);
+      Assert.assertTrue(match);
+    }
+    mCluster.notifySuccess();
+  }
+
+  @Test
+  public void transferToSelfThenToOther() throws Exception {
+    mCluster = MultiProcessCluster.newBuilder(PortCoordination.EMBEDDED_JOURNAL_UNAVAILABLE_MASTER)
+        .setClusterName("EmbeddedJournalTransferLeadership_transferLeadershipToUnavailableMaster")
+        .setNumMasters(NUM_MASTERS)
+        .setNumWorkers(NUM_WORKERS)
+        .addProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.EMBEDDED.toString())
+        .addProperty(PropertyKey.MASTER_JOURNAL_FLUSH_TIMEOUT_MS, "5min")
+        .addProperty(PropertyKey.MASTER_EMBEDDED_JOURNAL_MIN_ELECTION_TIMEOUT, "750ms")
+        .addProperty(PropertyKey.MASTER_EMBEDDED_JOURNAL_MAX_ELECTION_TIMEOUT, "1500ms")
+        .build();
+    mCluster.start();
+
+    int leaderIdx = mCluster.getPrimaryMasterIndex(MASTER_INDEX_WAIT_TIME);
+    MasterNetAddress leaderAddr = mCluster.getMasterAddresses().get(leaderIdx);
+    String transferId = transferAndWait(leaderAddr);
+    GetTransferLeaderMessagePResponse transferLeaderMessage =
+        mCluster.getJournalMasterClientForMaster().getTransferLeaderMessage(transferId);
+    Assert.assertFalse(transferLeaderMessage.getTransMsg().getMsg().isEmpty());
+
+    int newLeaderIdx = (leaderIdx + 1) % NUM_MASTERS;
+    MasterNetAddress newLeaderAddr = mCluster.getMasterAddresses().get(newLeaderIdx);
+    transferAndWait(newLeaderAddr);
+    mCluster.notifySuccess();
+  }
+
+  private String transferAndWait(MasterNetAddress newLeaderAddr) throws Exception {
     NetAddress netAddress = NetAddress.newBuilder().setHost(newLeaderAddr.getHostname())
         .setRpcPort(newLeaderAddr.getEmbeddedJournalPort()).build();
-    mCluster.getJournalMasterClientForMaster().transferLeadership(netAddress);
+    String transferId = mCluster.getJournalMasterClientForMaster().transferLeadership(netAddress);
 
     waitForQuorumPropertySize(info -> info.getIsLeader()
         && info.getServerAddress().equals(netAddress), 1);
+    return transferId;
   }
 }

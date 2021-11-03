@@ -45,7 +45,7 @@ public abstract class CloseableIterator<T> extends CloseableResource<Iterator<T>
   public static <T> CloseableIterator<T> noopCloseable(Iterator<? extends T> iterator) {
     return new CloseableIterator(iterator) {
       @Override
-      public void close() {
+      public void closeResource() {
         // no-op
       }
     };
@@ -76,7 +76,7 @@ public abstract class CloseableIterator<T> extends CloseableResource<Iterator<T>
         .iterator());
     return new CloseableIterator<T>(Iterators.concat(it)) {
       @Override
-      public void close() {
+      public void closeResource() {
         Closer c = Closer.create();
         iterators.forEach(c::register);
         try {

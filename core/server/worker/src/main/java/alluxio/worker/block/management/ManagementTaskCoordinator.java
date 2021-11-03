@@ -190,14 +190,14 @@ public class ManagementTaskCoordinator implements Closeable {
             Thread.sleep(mLoadDetectionCoolDownMs);
           }
         } catch (Exception e) {
-          LOG.error("Management task failed: {}. Error: {}", currentTask.getClass().getSimpleName(),
+          LOG.error("Management task failed: {}. Error: ", currentTask.getClass().getSimpleName(),
               e);
         }
       } catch (InterruptedException e) {
         Thread.currentThread().interrupt();
         break;
       } catch (Throwable t) {
-        LOG.error("Unexpected error during block management: {}", t);
+        LOG.error("Unexpected error during block management: ", t);
       }
     }
     LOG.debug("Block management coordinator exited.");

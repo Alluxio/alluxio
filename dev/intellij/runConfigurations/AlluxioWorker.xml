@@ -18,7 +18,7 @@
     <option name="VM_PARAMETERS" value="-Xbootclasspath/a:$PROJECT_DIR$/conf" />
     <extension name="coverage">
       <pattern>
-        <option name="PATTERN" value="alluxio.master.*" />
+        <option name="PATTERN" value="alluxio.worker.*" />
         <option name="ENABLED" value="true" />
       </pattern>
     </extension>
