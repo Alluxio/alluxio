@@ -16,7 +16,7 @@ that you can easily work with files stored in Alluxio.
 
 * Setup Java for Java 8 Update 161 or higher (8u161+), 64-bit.
 * Alluxio has been set up and is running.
-* Flink has been set up and is running.
+* Flink has been installed and set up.
 
 ## Configuration
 
