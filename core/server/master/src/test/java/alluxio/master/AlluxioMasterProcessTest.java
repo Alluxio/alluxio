@@ -149,6 +149,7 @@ public final class AlluxioMasterProcessTest {
     ServerConfiguration.set(PropertyKey.MASTER_JOURNAL_EXIT_ON_DEMOTION, "true");
     FaultTolerantAlluxioMasterProcess master = new FaultTolerantAlluxioMasterProcess(
         new NoopJournalSystem(), primarySelector);
+
     Thread t = new Thread(() -> {
       try {
         master.start();
@@ -162,10 +163,7 @@ public final class AlluxioMasterProcessTest {
     assertTrue(isBound(mRpcPort));
     assertTrue(isBound(mWebPort));
     primarySelector.setState(PrimarySelector.State.SECONDARY);
-    t.join(10000);
-    // make these two lines flake less
-    //assertFalse(isBound(mRpcPort));
-    //assertFalse(isBound(mWebPort));
+    t.join(120_000);
     assertFalse(master.isRunning());
   }
 
