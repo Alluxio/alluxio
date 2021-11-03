@@ -55,6 +55,7 @@ public class LocalCacheFileSystem extends org.apache.hadoop.fs.FileSystem {
     {
       add(Constants.SCHEME);
       add("ws");
+      add("hdfs");
     }
   };
 
