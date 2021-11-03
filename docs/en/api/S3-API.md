@@ -48,11 +48,13 @@ The Alluxio proxy is listening at port 39999 by default.
 
 #### Authorization
 
-By default, the user that is used to do any FileSystem operations is the user that was used to launch
-the proxy process. This can be changed by providing the Authorization Header.
+By default, the user that is used to do any FileSystem operations is the user that was used to
+launch the proxy process. This can be changed by providing the Authorization Header. The header
+format is [defined by the AWS S3 Rest API reference](https://docs.aws.amazon.com/AmazonS3/latest/API/sigv4-auth-using-authorization-header.html)
 
 ```console
-$ curl -i -H "Authorization: AWS testuser:" -X PUT http://localhost:39999/api/v1/s3/testbucket0
+$ curl -i -H "Authorization: AWS4-HMAC-SHA256 Credential=newuser/20211101/us-east-1/s3/aws4_request,SignedHeaders=host;range;x-amz-date,Signature=<sig>" \
+    -X PUT http://localhost:39999/api/v1/s3/testbucket0
 HTTP/1.1 200 OK
 Date: Tue, 02 Mar 2021 00:02:26 GMT
 Content-Length: 0
@@ -148,6 +150,7 @@ Server: Jetty(9.4.43.v20210629)
 ```
 
 #### Listing a bucket with multiple objects
+
 You can upload more files and use the `max-keys` and `marker` as the [GET bucket request parameter](https://docs.aws.amazon.com/AmazonS3/latest/API/API_ListObjects.html). For example:
 
 ```console
@@ -213,7 +216,25 @@ $ ./bin/alluxio fs ls -R /testbucket
 -rw-r--r--  alluxio        staff                    27040       PERSISTED 06-18-2019 14:24:33:029 100% /testbucket/testobject
 ```
 
-#### Delete objects
+#### Copy an Object
+
+```console
+$ curl -i -X PUT -H "x-amz-copy-source: /testbucket/key1" http://localhost:39999/api/v1/s3/testbucket/key2
+
+HTTP/1.1 200 OK
+Date: Wed, 02 Nov 2021 07:25:21 GMT
+Content-Type: application/xml
+Content-Length: 142
+Server: Jetty(9.4.43.v20210629)
+
+<CopyObjectResult>
+    <LastModified>2009-10-28T22:32:00</LastModified>
+    <ETag>"9b2cf535f27731c974343645a3985328"</ETag>
+<CopyObjectResult>
+```
+
+
+#### Delete Single Objects
 
 ```console
 $ curl -i -X DELETE http://localhost:39999/api/v1/s3/testbucket/key1
@@ -241,7 +262,7 @@ Date: Tue, 18 Jun 2019 21:32:08 GMT
 Server: Jetty(9.2.z-SNAPSHOT)
 ```
 
-## Delete Objects with a Single Request
+#### Delete Multiple Objects
 
 ```console
 $ cat body.xml
