@@ -333,7 +333,7 @@ $ bin/alluxio runClass alluxio.stress.cli.StressJobServiceBench --base alluxio:/
 #### DistributedLoad test files
 Load the test files written by running the benchmark with `--operation DistributedLoad` from the test directory. The parameter should be the same as CreateFiles operation. It would send distributedLoad requests concurrently(one directory per request)
 ```console
-$ bin/alluxio runClass alluxio.stress.cli.StressJobServiceBench --base alluxio://somehost:port/stress-job-service-base --file-size 1k --files-per-dir 1000 --threads 10 --operation DistributedLoad
+$ bin/alluxio runClass alluxio.stress.cli.StressJobServiceBench --base alluxio://localhost:19998/stress-job-service-base --file-size 1k --files-per-dir 1000 --threads 10 --operation DistributedLoad
 ```
 
 ### Single node testing with operation: NoOp
