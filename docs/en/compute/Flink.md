@@ -88,6 +88,7 @@ the write type, you should add the following to `{FLINK_HOME}/conf/flink-conf.ya
 ```yaml
 env.java.opts: -Dalluxio.user.file.writetype.default=CACHE_THROUGH
 ```
+Note: If there are running flink clusters, stop the flink clusters and restart them to apply the changes to the configuration.
 
 ## Using Alluxio with Flink
 
