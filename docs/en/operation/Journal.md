@@ -80,18 +80,17 @@ and the master rpc port (Default:`19998`).
 
 ### Advanced configuration
 
-* `alluxio.master.embedded.journal.catchup.retry.wait`: Time for embedded journal leader to wait before retrying a catch up.
- This is added to avoid excessive retries when server is not ready. Default: `1s`.
-* `alluxio.master.embedded.journal.entry.size.max`: The maximum single journal entry size allowed to be flushed.
-This value should be smaller than 30MB. Set to a larger value to allow larger journal entries when using the Alluxio Catalog service. Default: `10MB`.
-* `alluxio.master.embedded.journal.flush.size.max`: The maximum size in bytes of journal entries allowed
-in concurrent journal flushing (journal IO to standby masters and IO to local disks). Default: `160MB`.
-* `alluxio.master.embedded.journal.snapshot.replication.chunk.size`: The stream chunk size used by masters to replicate snapshots. Default: `4MB`.
-* `alluxio.master.embedded.journal.transport.request.timeout.ms`: The duration after which embedded journal masters will timeout messages sent between each other.
- Lower values might cause leadership instability when the network is slow. Default: `5s`.
-* `alluxio.master.embedded.journal.transport.max.inbound.message.size`: The maximum size of a message that can be sent to the
-embedded journal server node. Default: `100MB`.
-* `alluxio.master.embedded.journal.write.timeout`: Maximum time to wait for a write/flush on embedded journal. Default: `30sec`.
+<ul>
+{% for item in site.data.table.master-configuration %}
+    {% capture journal_properties %}{{ 'alluxio.master.embedded.journal.' }}{% endcapture %} 
+    {% assign journal_prop_size = journal_properties | size %}
+    {% assign result = item.propertyName | slice: 0, journal_prop_size %}
+    
+    {% if result == journal_properties %}
+        <li><code>{{ item.propertyName }}</code>: {{ site.data.table.en.master-configuration[item.propertyName] }} Default: <code>{{ item.defaultValue }}</code></li>
+    {% endif %}
+{% endfor %}
+</ul>
 
 ### Configuring the Job service
 
