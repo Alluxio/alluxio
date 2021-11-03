@@ -125,7 +125,7 @@ action from the `Navigate > Search Everywhere` dialog.
     ```
    The ports are defined in the run configurations.
 5. In Intellij, start the Alluxio master processes by selecting `Run > Run > 
-   AlluxioMaster-0`, `AlluxioMaster-1` and `AlluxioMaster-2`
+   AlluxioMaster-0`, `AlluxioMaster-1`, and `AlluxioMaster-2`
 6. Prepare the RamFS and format the Alluxio Worker with `bin/alluxio-mount.sh SudoMount && bin/alluxio formatWorker`
 7. In Intellij, start the Alluxio worker process by selecting `Run > Run > AlluxioWorker`
 8. In Intellij, start the Alluxio job master process by selecting `Run > Run > AlluxioJobMaster`
