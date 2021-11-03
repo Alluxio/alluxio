@@ -12,6 +12,7 @@
 package alluxio.hub.agent.rpc.service;
 
 import alluxio.RpcUtils;
+import alluxio.concurrent.jsr.CompletableFuture;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.hub.agent.process.AgentProcessContext;
 import alluxio.hub.proto.AgentDetectPrestoRequest;
@@ -31,6 +32,8 @@ import alluxio.hub.proto.AgentRemoveFileRequest;
 import alluxio.hub.proto.AgentRemoveFileResponse;
 import alluxio.hub.proto.AgentSetPrestoConfRequest;
 import alluxio.hub.proto.AgentSetPrestoConfResponse;
+import alluxio.hub.proto.AgentShutdownRequest;
+import alluxio.hub.proto.AgentShutdownResponse;
 import alluxio.hub.proto.AgentValidatePrestoConfRequest;
 import alluxio.hub.proto.AgentValidatePrestoConfResponse;
 import alluxio.hub.proto.AgentWriteConfigurationSetRequest;
@@ -56,6 +59,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Properties;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 /**
@@ -249,5 +253,18 @@ public class AgentManagerService extends AgentManagerServiceGrpc.AgentManagerSer
       return AgentValidatePrestoConfResponse.newBuilder().setResult(r.build()).build();
     }, "validatePrestoConfDir", "validate presto configuration parameters",
             responseObserver);
+  }
+
+  @Override
+  public void shutdown(AgentShutdownRequest request,
+      StreamObserver<AgentShutdownResponse> responseObserver) {
+    RpcUtils.call(LOG, () -> {
+      LOG.warn("Hub Agent is shutting down in 5 seconds!");
+      CompletableFuture.delayedExecutor(5, TimeUnit.SECONDS).execute(() -> {
+        LOG.info(request.getLogMessage());
+        System.exit(request.getExitCode());
+      });
+      return AgentShutdownResponse.newBuilder().build();
+    }, "shutdown", "shuts down the Hub Agent process", responseObserver);
   }
 }

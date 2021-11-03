@@ -19,6 +19,7 @@ service AgentManagerService {
   rpc ListCatalogs(AgentListCatalogRequest) returns (AgentListCatalogResponse);
   rpc SetPrestoConfDir(AgentSetPrestoConfRequest) returns (AgentSetPrestoConfResponse);
   rpc ValidatePrestoConfDir(AgentValidatePrestoConfRequest) returns (AgentValidatePrestoConfResponse);
+  rpc Shutdown(AgentShutdownRequest) returns (AgentShutdownResponse);
 }
 
 message AgentFileUploadRequest {
@@ -138,3 +139,10 @@ message AgentValidatePrestoConfRequest {
 message AgentValidatePrestoConfResponse {
   optional ValidationResult result = 1;
 }
+
+message AgentShutdownRequest {
+  optional string log_message = 1;
+  optional int32 exit_code = 2;
+}
+
+message AgentShutdownResponse {}

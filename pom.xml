@@ -131,7 +131,7 @@
     <grpc.version>1.37.0</grpc.version>
     <gson.version>2.8.6</gson.version>
     <netty.version>4.1.52.Final</netty.version>
-    <rocksdb.version>6.15.2</rocksdb.version>
+    <rocksdb.version>6.25.3</rocksdb.version>
     <hadoop.version>3.3.0</hadoop.version>
     <jacoco.version>0.8.5</jacoco.version>
     <java.version>1.8</java.version>
@@ -1248,7 +1248,6 @@
             <exclude>**/src/proto/**</exclude>
             <exclude>**/src/deb/**/*</exclude>
             <exclude>**/src/test/resources/**</exclude>
-            <exclude>**/dev/scripts/src/vendor/**</exclude>
             <exclude>**/vagrant/**/*</exclude>
             <exclude>**/\?/.java/**/*</exclude>
 
@@ -1260,6 +1259,8 @@
             <exclude>conf/masters</exclude>
             <exclude>conf/tiered_identity.sh</exclude>
             <exclude>conf/workers</exclude>
+            <exclude>dev/scripts/src/alluxio.org/go.mod</exclude>
+            <exclude>dev/scripts/src/alluxio.org/go.sum</exclude>
             <exclude>dev/scripts/tarballs/**/*</exclude>
             <exclude>dev/scripts/workdir/**/*</exclude>
             <exclude>generated/**</exclude>
@@ -1278,10 +1279,12 @@
             <exclude>docs/**/*</exclude>
             <exclude>LICENSE</exclude>
             <exclude>NOTICE</exclude>
+            <exclude>templates/*</exclude>
 
             <!-- Default Local File System Exclusions -->
-            <exclude>logs/*</exclude>
+            <exclude>logs/**/*</exclude>
             <exclude>journal/**/*</exclude>
+            <exclude>metastore/**/*</exclude>
             <exclude>underFSStorage/**/*</exclude>
           </excludes>
           <mapping>

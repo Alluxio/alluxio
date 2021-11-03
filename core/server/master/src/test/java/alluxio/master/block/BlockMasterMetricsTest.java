@@ -18,7 +18,6 @@ import alluxio.Constants;
 import alluxio.MasterStorageTierAssoc;
 import alluxio.StorageTierAssoc;
 import alluxio.master.block.DefaultBlockMaster.Metrics;
-import alluxio.master.metastore.BlockStore;
 import alluxio.metrics.MetricInfo;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
@@ -28,7 +27,6 @@ import com.google.common.collect.Lists;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
-import org.powermock.reflect.Whitebox;
 
 /**
  * Unit tests for {@link DefaultBlockMaster.Metrics}.
@@ -77,9 +75,7 @@ public final class BlockMasterMetricsTest {
 
   @Test
   public void testSize() {
-    BlockStore blockStore = Mockito.mock(BlockStore.class);
-    when(blockStore.size()).thenReturn(100L);
-    Whitebox.setInternalState(mBlockMaster, "mBlockStore", blockStore);
+    when(mBlockMaster.getUniqueBlockCount()).thenReturn(100L);
     assertEquals(100L, getGauge(MetricKey.MASTER_UNIQUE_BLOCKS.getName()));
   }
 

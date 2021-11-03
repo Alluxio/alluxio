@@ -170,7 +170,8 @@ public final class RpcUtils {
       String methodName, boolean sendResponse, boolean completeResponse,
       StreamObserver<T> responseObserver, String description, Object... args) {
     // avoid string format for better performance if debug is off
-    String debugDesc = logger.isDebugEnabled() ? String.format(description, args) : null;
+    String debugDesc = logger.isDebugEnabled() ? String.format(description,
+        processObjects(logger, args)) : null;
     try (Timer.Context ctx = MetricsSystem.timer(getQualifiedMetricName(methodName)).time()) {
       MetricsSystem.counter(getQualifiedInProgressMetricName(methodName)).inc();
       logger.debug("Enter(stream): {}: {}", methodName, debugDesc);

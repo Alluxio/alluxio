@@ -83,7 +83,7 @@ public final class MetricsSystem {
   private static final Pattern METRIC_NAME_PATTERN = Pattern.compile("^(.*?[.].*?)[.].*");
   // A flag telling whether metrics have been reported yet.
   // Using this prevents us from initializing {@link #SHOULD_REPORT_METRICS} more than once
-  private static boolean sReported = false;
+  private static Set<InstanceType> sReported = new HashSet<>();
   // The source of the metrics in this metrics system.
   // It can be set through property keys based on process types.
   // Local hostname will be used if no related property key founds.
@@ -640,9 +640,9 @@ public final class MetricsSystem {
    * The synchronized keyword is added for correctness with {@link #resetAllMetrics}
    */
   private static synchronized List<alluxio.grpc.Metric> reportMetrics(InstanceType instanceType) {
-    if (!sReported) {
+    if (!sReported.contains(instanceType)) {
       initShouldReportMetrics(instanceType);
-      sReported = true;
+      sReported.add(instanceType);
     }
     List<alluxio.grpc.Metric> rpcMetrics = new ArrayList<>(20);
     // Use the getMetrics() call instead of getGauges(),getCounters()... to avoid

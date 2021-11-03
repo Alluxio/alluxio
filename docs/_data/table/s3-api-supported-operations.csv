@@ -1,6 +1,7 @@
 S3Feature,Status
 "List Buckets",Supported
 "List Objects",Supported
+"List ObjectsV2",Supported
 "Delete Buckets",Supported
 "Create Bucket",Supported
 "Bucket Lifecycle","Not Supported"
@@ -12,6 +13,7 @@ S3Feature,Status
 "Get Bucket Info (HEAD)","Not Supported"
 "Put Object",Supported
 "Delete Object",Supported
+"Delete Objects",Supported
 "Get Object",Supported
 "Get Object Info (HEAD)",Supported
 "Get Object (Range Query)",Supported

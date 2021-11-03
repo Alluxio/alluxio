@@ -46,7 +46,7 @@ public abstract class RequestStreamObserver<ReqT, ResT> implements StreamObserve
    */
   @Override
   public void onError(Throwable t) {
-    LOG.error("Async listener error:", t);
+    handleError("Async listener error", t);
     LOG.info("Async listener connection canceled. Attempting to reconnect...");
     restart();
   }
@@ -82,4 +82,12 @@ public abstract class RequestStreamObserver<ReqT, ResT> implements StreamObserve
    * Handles restarting the request stream observer.
    */
   public abstract void restart();
+
+  /**
+   * Handles errors depending on the type.
+   *
+   * @param message message to log
+   * @param t Throwable object
+   */
+  public abstract void handleError(String message, Throwable t);
 }
