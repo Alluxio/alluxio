@@ -1613,7 +1613,7 @@ public final class MetricKey implements Comparable<MetricKey> {
   public static final MetricKey FUSE_CACHED_PATH_COUNT =
       new Builder("Fuse.CachedPathCount")
           .setDescription(String
-              .format("Total number of Alluxio paths to cache for FUSE conversion. "
+              .format("Total number of FUSE-to-Alluxio path mappings being cached. "
                       + "This value will be smaller or equal to %s",
               PropertyKey.FUSE_CACHED_PATHS_MAX.getName()))
           .setMetricType(MetricType.GAUGE)
