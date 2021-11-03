@@ -296,29 +296,7 @@ sysctl -w vm.zone_reclaim_mode=0
 
 ### Heartbeat Intervals and Timeouts
 
-The frequency with which the master checks for lost workers is set by the
-`alluxio.master.worker.heartbeat.interval` property, with a default value of `10s`.
-If the master has not received a heartbeat from the worker for more than 
-`alluxio.master.worker.timeout`, the worker will be identified as lost. 
-The master will then know the cached blocks that are served by this worker
-are no longer available, and instruct the clients to not read or write on that worker.
-
-If a worker sends a heartbeat to the master after being identified as lost,
-the master will instruct the worker to register again and report all the blocks
-on the worker.
-
-On the master side, removing the worker from the locations of each block cache is an expensive operation. 
-Registering a worker which has many blocks later is also and expensive operation. 
-So it is ideal to avoid incorrectly identifying a worker as lost.
-You should set `alluxio.master.worker.timeout` to a value where you
-do not have false positives for this lost worker detection, 
-and still be able to tell a worker is lost with a reasonable delay.
-
-If you still see workers being identified as lost incorrectly, that suggests
-the master is unable to process the worker heartbeat requests in time.
-That means your Alluxio master process requires tuning.
-You should either increase the resources/concurrency allowed on the master,
-or reduce the pressure.
+See [below section](#master-worker-heartbeat) for a detailed explanation.
 
 ## Alluxio Worker Configuration
 
@@ -379,31 +357,7 @@ for more details.
 
 ### Heartbeat Intervals and Timeouts
 
-The frequency with which a worker checks in with the master is set by the following property:
-```properties
-alluxio.worker.block.heartbeat.interval=1s
-```
-
-`alluxio.worker.block.heartbeat.interval` controls the heartbeat interval for the block service in Alluxio.
-In each heartbeat, the worker will report the changes in blocks during the last heartbeat interval.
-If you have a large number of workers, or there are large numbers of operations so that each
-heartbeat carries a lot of updates, the master will experience significant pressure in handling the
-heartbeat requests. In that case, it is recommended to increase `alluxio.worker.block.heartbeat.interval`.
-
-`alluxio.worker.block.heartbeat.interval` affects how fast you see the block information update
-from workers. 
-For example, you issued an `alluxio fs free /path` command. The files and blocks will be marked
-as freed in Alluxio and when the worker that contains relevant blocks heartbeat to the master,
-the master will instruct it to remove the freed blocks.
-The worker will remove those block cache from its storage and report the change in the next heartbeat,
-as soon as the removal have completed.
-Therefore it takes at least two heartbeat cycles for the master to remove blocks,
-and subsequently update the worker storage percentage on the web UI. 
-
-Typically, having a longer heartbeat interval should not affect Alluxio performance and throughput except:
-1. How fast the master orders the workers to persist blocks written by `ASYNC_THROUGH`.
-1. The master will be less up-to-date on the worker's storage usage and block states for the asynchronously
-persisted blocks and freed blocks.
+See [below section](#master-worker-heartbeat) for a detailed explanation.
 
 ### Keepalive Time and Timeout
 
@@ -590,6 +544,9 @@ handle other requests, so when your workers are registering, the throughput for 
 workload will be hurt. You may also see the Alluxio master experience Full GC or OOM errors.
 
 Therefore, in Alluxio 2.7 we introduced two mechanisms below to perform better flow control.
+
+If you are on older Alluxio versions which do not have the new flow control features,
+you can manually start workers in batches to have a similar effect.
 
 #### Worker Register Lease
 
