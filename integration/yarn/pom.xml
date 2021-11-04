@@ -82,7 +82,7 @@
               <rules>
                 <requireProperty>
                   <property>hadoop.version</property>
-                  <regex>[^12]\..*|2\.[4-9]\..*</regex>
+                  <regex>[^12]\..*|2\.[4-9]\..*|2\.10\..*</regex>
                   <regexMessage>
                     hadoop.version must be 2.4.0 or later to build yarn integration.
                   </regexMessage>
