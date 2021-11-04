@@ -23,7 +23,7 @@ The following benchmark suites are currently supported:
   * `WorkerHeartbeatBench` - for the `WorkerHeartbeat` RPC
 * `StressClientBench` - A benchmark tool measuring the IO performance of Alluxio through the client.
 * `StressMasterBench` - A benchmark tool measuring the master performance of Alluxio.
-* `StressWorkerBench` - A benchmark tool measuring the IO performance of Alluxio with single node.
+* `StressWorkerBench` - A benchmark tool measuring the IO performance of reading from Alluxio Worker.
 * `UfsIOBench` - A benchmark tool measuring the IO throughput between the Alluxio cluster and the UFS.
 
 ## Examples
@@ -316,9 +316,9 @@ The parameters for the Job Service Stress Bench(including JobServiceMaxThroughpu
 
 ### Single node testing with operation: DistributedLoad
 #### Prerequisite
-* A running Alluxio cluster with one master, and one worker. See [Building Alluxio From Source](https://docs.alluxio.io/os/user/edge/en/contributor/Building-Alluxio-From-Source.html) for more details.
+* A running Alluxio cluster with one master, and one worker.
 #### Notice
-`warmup`  and `duration` parameters are not valid in distributedLoad test since it's hard to measure the actual start time and end time of distributedLoad jobs. We just send all  distributedLoad jobs at the beginning and record the throughput when all jobs finishes.
+`warmup`  and `duration` parameters are not valid in distributedLoad test. We just send all distributedLoad jobs at the beginning and record the throughput when all jobs finishes.
 #### Create test files
 Write the test files by running the benchmark with `--operation CreateFiles` into the test directory
 ```console
@@ -327,7 +327,7 @@ $ bin/alluxio runClass alluxio.stress.cli.StressJobServiceBench --operation Crea
 
 For example, we are creating 10 directories with 1000 files per directory.
 ```console
-$ bin/alluxio runClass alluxio.stress.cli.StressJobServiceBench --base alluxio://somehost:port/stress-job-service-base --file-size 1k --files-per-dir 1000 --threads 10 --operation CreateFiles
+$ bin/alluxio runClass alluxio.stress.cli.StressJobServiceBench --base alluxio://localhost:19998/stress-job-service-base --file-size 1k --files-per-dir 1000 --threads 10 --operation CreateFiles
 ```
 
 #### DistributedLoad test files
@@ -341,7 +341,7 @@ $ bin/alluxio runClass alluxio.stress.cli.StressJobServiceBench --base alluxio:/
 NoOp is mainly for measuring the throughput of Job Master(job management capability) and doesn't involve any job worker. JobServiceMaxThroughput test with NoOp operation is the recommended way to measure the performance of job master.
 
 #### Single Test
-Continuously Sending NoOp jobs and measure how many jobs can be finished within certain time range.
+Continuously Sending NoOp jobs and measure the throughput within certain time range.
 ```console
 $ bin/alluxio runClass alluxio.stress.cli.StressJobServiceBench --warmup 30s --duration 30s --threads 10 --operation NoOp
 ```
@@ -356,7 +356,7 @@ $ bin/alluxio runClass alluxio.stress.cli.suite.JobServiceMaxThroughput --durati
 #### Prerequisite
 - A running Alluxio cluster. Each worker node contains at least one worker, one job worker.
 - Configure Alluxio cluster with `alluxio.job.master.job.capacity = 1000000` and `alluxio.job.master.finished.job.retention.time = 10s` to allow large scale job service stress bench.
-- If you are running distributedLoad operation, make sure UFS has enough space to store the test data. The storage size is bigger than
+- If you are running distributedLoad operation, make sure Alluxio worker and UFS has enough space to store the test data. The storage size is bigger than
   `thread` * `num-files-per-dir` * `file-size` / `worker-number` / `alluxio.worker.tieredstore.levelX.watermark.low.ratio=0.7 by default`.
 
 #### Testing
@@ -484,16 +484,15 @@ $ bin/alluxio runClass alluxio.stress.cli.client.StressClientIOBench --operation
 `warmup`  and `duration` parameters are not valid in writing. The `Write` operation always writes all the files needed for reading test.
 
 #### Read test files
-Read the test files written by running the benchmark with read operations. You can test different kinds of read operation here.
+Read the test files written by running the benchmark with read operations. You can test different kinds of read operation.
 ```console
 $ bin/alluxio runClass alluxio.stress.cli.client.StressClientIOBench --operation ReadArray ...
 ```
 
-For example,
+For example, we are testing Streaming read api, using byte buffers with buffer size 512k.
 ```console
-$ bin/alluxio runClass alluxio.stress.cli.client.StressClientIOBench --operation ReadArray --files-size 1m --buffer-size 512k --warmup 5s --duration 30s 
+$ bin/alluxio runClass alluxio.stress.cli.client.StressClientIOBench --operation ReadByteBuffer --files-size 1m --buffer-size 512k --warmup 5s --duration 30s 
 ```
-
 
 ### Cluster testing
 #### Prerequisite
@@ -593,8 +592,6 @@ The parameters for the Master Stress Bench(including MaxThroughput) are (other t
         <td>false</td>
         <td>If true, skip the prepare.</td>
     </tr>
-    
-
 </table>
 
 ### Single node testing
@@ -638,7 +635,7 @@ The cluster testing is similar to single node testing except that
 
 ## Worker Stress Bench
 
-The Worker Stress Bench is a tool to measure the IO performance of Alluxio with single node.
+The Worker Stress Bench is a tool to measure the IO performance of reading from Alluxio Worker.
 
 ### Parameters
 The parameters for the Worker Stress Bench are (other than common parameters for any stress bench):
@@ -699,8 +696,6 @@ The parameters for the Worker Stress Bench are (other than common parameters for
         <td>{}</td>
         <td>Any HDFS client configuration key=value. Can repeat to provide multiple configuration values.</td>
     </tr>
-
-
 </table>
 
 ### Single node testing
@@ -710,19 +705,14 @@ The parameters for the Worker Stress Bench are (other than common parameters for
 #### Single test
 Run the test with the operation you want to test.
 ```console
-$ bin/alluxio runClass alluxio.stress.cli.StressWorkerBench --operation ListDir ...
-```
-
-For example, 
-```console
-$ bin/alluxio runClass alluxio.stress.cliStressWorkerBench --operation ListDir --warmup 5s --duration 30s 
+$ bin/alluxio runClass alluxio.stress.cli.StressWorkerBench ...
 ```
 
 
 ### Cluster testing
 #### Prerequisite
 - A running Alluxio cluster. Each worker node contains one worker, one job worker.
-- Ufs has enough space to store the test data if you are testing operation contains file creation.
+- Workers have enough space to store the test data if you are testing operation contains file creation.
 
 #### Testing
 The cluster testing is similar to single node testing except that
@@ -734,7 +724,8 @@ The cluster testing is similar to single node testing except that
 
 ## Ufs IO Bench
 
-The Ufs IO Bench is a tool to measure the IO throughput between the Alluxio cluster and the UFS.This test will measure the I/O throughput between Alluxio workers and the specified UFS path. Each worker will create concurrent clients to first generate test files of the specified size then read those files. The write/read I/O throughput will be measured in the process.
+The Ufs IO Bench is a tool to measure the IO throughput between the Alluxio cluster and the UFS.This test will measure the I/O throughput between Alluxio workers and the specified UFS path. 
+Each worker will create concurrent clients to first generate test files of the specified size then read those files. The write/read I/O throughput will be measured in the process.
 
 ### Parameters
 The parameters for the Worker Stress Bench are (other than common parameters for any stress bench):
