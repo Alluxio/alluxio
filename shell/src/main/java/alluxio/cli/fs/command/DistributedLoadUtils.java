@@ -90,7 +90,7 @@ public final class DistributedLoadUtils {
     ListStatusPOptions options = ListStatusPOptions.newBuilder().setRecursive(true).build();
     command.mFileSystem.iterateStatus(filePath, options, uriStatus -> {
       if (!uriStatus.isFolder()) {
-        if(!uriStatus.isCompleted()) {
+        if (!uriStatus.isCompleted()) {
           return;
         }
         AlluxioURI fileURI = new AlluxioURI(uriStatus.getPath());
