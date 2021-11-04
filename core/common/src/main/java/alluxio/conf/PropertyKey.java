@@ -5128,7 +5128,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey FUSE_CACHED_PATHS_MAX =
       new Builder(Name.FUSE_CACHED_PATHS_MAX)
           .setDefaultValue(500)
-          .setDescription("Maximum number of Alluxio paths to cache for FUSE conversion.")
+          .setDescription("Maximum number of FUSE-to-Alluxio path mappings to cache "
+              + "for FUSE conversion.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
           .setScope(Scope.CLIENT)
           .build();
