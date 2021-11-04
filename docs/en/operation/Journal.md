@@ -122,7 +122,7 @@ in concurrent journal flushing (journal IO to standby masters and IO to local di
 The configured value should allow for appending batches to all secondary masters. Default: `100MB`.
 * `alluxio.master.embedded.journal.write.local.first.enabled`: Whether the journal writer will attempt to write entry locally before falling back to a full remote raft client. 
  Disable local first write may impact the metadata performance under heavy load but less error-prone during network flakiness. Default: `true`.
-* `alluxio.master.embedded.journal.write.timeout`: Maximum time to wait for a write/flush on embedded journal. Default: `30sec`.
+* `alluxio.master.embedded.journal.write.timeout`: Maximum time to wait for a write/flush on embedded journal. Default: `30s`.
 
 ### Configuring Job service
 
@@ -207,13 +207,13 @@ After configuring backup delegation, both manual and scheduled backups will run 
 
 Backup delegation can be configured with the below properties:
 - `alluxio.master.backup.delegation.enabled`: Whether to delegate backups to stand-by masters. Default: `false`.
-- `alluxio.master.backup.heartbeat.interval`: Interval at which stand-by master that is taking the backup will update the leading master with current backup status. Default: `2sec`.
+- `alluxio.master.backup.heartbeat.interval`: Interval at which stand-by master that is taking the backup will update the leading master with current backup status. Default: `2s`.
 
 Some advanced properties control the communication between Alluxio masters for coordinating the backup:
-- `alluxio.master.backup.transport.timeout`: Communication timeout for messaging between masters for coordinating backup. Default: `30sec`.
-- `alluxio.master.backup.connect.interval.min`: Minimum duration to sleep before retrying after unsuccessful handshake between stand-by master and leading master. Default: `1sec`.
-- `alluxio.master.backup.connect.interval.max`: Maximum duration to sleep before retrying after unsuccessful handshake between stand-by master and leading master. Default: `30sec`.
-- `alluxio.master.backup.abandon.timeout`: Specifies how long the leading master waits for a heart-beat before abandoning the backup. Default: `1min`.
+- `alluxio.master.backup.transport.timeout`: Communication timeout for messaging between masters for coordinating backup. Default: `30s`.
+- `alluxio.master.backup.connect.interval.min`: Minimum duration to sleep before retrying after unsuccessful handshake between stand-by master and leading master. Default: `1s`.
+- `alluxio.master.backup.connect.interval.max`: Maximum duration to sleep before retrying after unsuccessful handshake between stand-by master and leading master. Default: `30s`.
+- `alluxio.master.backup.abandon.timeout`: Specifies how long the leading master waits for a heart-beat before abandoning the backup. Default: `1m`.
 
 Since it is uncertain which host will take the backup, it is suggested to use shared paths for taking backups with backup delegation.
 

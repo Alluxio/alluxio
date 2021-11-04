@@ -355,7 +355,7 @@ The system guarantees that we will start syncing a directory if it is "quiet", o
 For example, the following setting
 
 ```
-alluxio.master.ufs.active.sync.interval=30sec
+alluxio.master.ufs.active.sync.interval=30s
 alluxio.master.ufs.active.sync.max.activities=100
 alluxio.master.ufs.active.sync.max.age=5
 ```

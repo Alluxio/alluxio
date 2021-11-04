@@ -225,5 +225,5 @@ For later Alluxio versions, this is no longer an issue because of Alluxio's asyn
 ### Avoid Trino timeouts when reading large files
 
 It is recommended to increase `alluxio.user.streaming.data.timeout` to a bigger value (e.g
-`10min`) to avoid a timeout failure when reading large files from remote workers.
+`10m`) to avoid a timeout failure when reading large files from remote workers.
 

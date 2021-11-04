@@ -405,7 +405,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey METRICS_CONTEXT_SHUTDOWN_TIMEOUT =
       new Builder(Name.METRICS_CONTEXT_SHUTDOWN_TIMEOUT)
-          .setDefaultValue("1sec")
+          .setDefaultValue("1s")
           .setDescription("Time to wait for the metrics context to shut down. The main purpose for "
               + "this property is to allow tests to shut down faster.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
@@ -414,7 +414,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey NETWORK_CONNECTION_AUTH_TIMEOUT =
       new Builder(Name.NETWORK_CONNECTION_AUTH_TIMEOUT)
-          .setDefaultValue("30sec")
+          .setDefaultValue("30s")
           .setDescription("Maximum time to wait for a connection (gRPC channel) to attempt to "
               + "receive an authentication response.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
@@ -423,7 +423,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey NETWORK_CONNECTION_HEALTH_CHECK_TIMEOUT =
       new Builder(Name.NETWORK_CONNECTION_HEALTH_CHECK_TIMEOUT)
           .setAlias("alluxio.network.connection.health.check.timeout.ms")
-          .setDefaultValue("5sec")
+          .setDefaultValue("5s")
           .setDescription("Allowed duration for checking health of client connections (gRPC "
               + "channels) before being assigned to a client. If a connection does not become "
               + "active  within configured time, it will be shut down and a new connection will be "
@@ -433,14 +433,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey NETWORK_CONNECTION_SERVER_SHUTDOWN_TIMEOUT =
       new Builder(Name.NETWORK_CONNECTION_SERVER_SHUTDOWN_TIMEOUT)
-          .setDefaultValue("60sec")
+          .setDefaultValue("60s")
           .setDescription("Maximum time to wait for gRPC server to stop on shutdown")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.SERVER)
           .build();
   public static final PropertyKey NETWORK_CONNECTION_SHUTDOWN_GRACEFUL_TIMEOUT =
       new Builder(Name.NETWORK_CONNECTION_SHUTDOWN_GRACEFUL_TIMEOUT)
-          .setDefaultValue("45sec")
+          .setDefaultValue("45s")
           .setDescription("Maximum time to wait for connections (gRPC channels) to stop on "
               + "shutdown")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
@@ -448,7 +448,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey NETWORK_CONNECTION_SHUTDOWN_TIMEOUT =
       new Builder(Name.NETWORK_CONNECTION_SHUTDOWN_TIMEOUT)
-          .setDefaultValue("15sec")
+          .setDefaultValue("15s")
           .setDescription("Maximum time to wait for connections (gRPC channels) to stop after "
               + "graceful shutdown attempt.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
@@ -457,7 +457,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey NETWORK_HOST_RESOLUTION_TIMEOUT_MS =
       new Builder(Name.NETWORK_HOST_RESOLUTION_TIMEOUT_MS)
           .setAlias("alluxio.network.host.resolution.timeout.ms")
-          .setDefaultValue("5sec")
+          .setDefaultValue("5s")
           .setDescription("During startup of the Master and Worker processes Alluxio needs to "
               + "ensure that they are listening on externally resolvable and reachable host "
               + "names. To do this, Alluxio will automatically attempt to select an "
@@ -661,7 +661,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey UNDERFS_CLEANUP_INTERVAL =
       new Builder(Name.UNDERFS_CLEANUP_INTERVAL)
-          .setDefaultValue("1day")
+          .setDefaultValue("1d")
           .setDescription("The interval for periodically cleaning all the "
               + " mounted under file storages.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
@@ -904,7 +904,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey UNDERFS_EVENTUAL_CONSISTENCY_RETRY_MAX_SLEEP_MS =
       new Builder(Name.UNDERFS_EVENTUAL_CONSISTENCY_RETRY_MAX_SLEEP_MS)
-          .setDefaultValue("30sec")
+          .setDefaultValue("30s")
           .setDescription("To handle eventually consistent storage semantics "
               + "for certain under storages, Alluxio will perform retries "
               + "when under storage metadata doesn't match Alluxio's expectations. "
@@ -923,7 +923,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey UNDERFS_OSS_CONNECT_TIMEOUT =
       new Builder(Name.UNDERFS_OSS_CONNECT_TIMEOUT)
           .setAlias("alluxio.underfs.oss.connection.timeout.ms")
-          .setDefaultValue("50sec")
+          .setDefaultValue("50s")
           .setDescription("The timeout when connecting to OSS.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.SERVER)
@@ -938,7 +938,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey UNDERFS_OSS_SOCKET_TIMEOUT =
       new Builder(Name.UNDERFS_OSS_SOCKET_TIMEOUT)
           .setAlias("alluxio.underfs.oss.socket.timeout.ms")
-          .setDefaultValue("50sec")
+          .setDefaultValue("50s")
           .setDescription("The timeout of OSS socket.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.SERVER)
@@ -1069,7 +1069,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey UNDERFS_S3_INTERMEDIATE_UPLOAD_CLEAN_AGE =
       new Builder(Name.UNDERFS_S3_INTERMEDIATE_UPLOAD_CLEAN_AGE)
           .setAlias("alluxio.underfs.s3a.intermediate.upload.clean.age")
-          .setDefaultValue("3day")
+          .setDefaultValue("3d")
           .setDescription("Streaming uploads may not have been completed/aborted correctly "
               + "and need periodical ufs cleanup. If ufs cleanup is enabled, "
               + "intermediate multipart uploads in all non-readonly S3 mount points "
@@ -1097,7 +1097,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey UNDERFS_S3_REQUEST_TIMEOUT =
       new Builder(Name.UNDERFS_S3_REQUEST_TIMEOUT)
           .setAlias("alluxio.underfs.s3a.request.timeout.ms", "alluxio.underfs.s3a.request.timeout")
-          .setDefaultValue("1min")
+          .setDefaultValue("1m")
           .setDescription("The timeout for a single request to S3. Infinity if set to 0. "
               + "Setting this property to a non-zero value can improve performance by "
               + "avoiding the long tail of requests to S3. For very slow connections to S3, "
@@ -1142,7 +1142,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey UNDERFS_S3_SOCKET_TIMEOUT =
       new Builder(Name.UNDERFS_S3_SOCKET_TIMEOUT)
           .setAlias("alluxio.underfs.s3a.socket.timeout.ms", "alluxio.underfs.s3a.socket.timeout")
-          .setDefaultValue("50sec")
+          .setDefaultValue("50s")
           .setDescription("Length of the socket timeout when communicating with S3.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.SERVER)
@@ -1175,7 +1175,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey UNDERFS_KODO_CONNECT_TIMEOUT =
       new Builder(Name.UNDERFS_KODO_CONNECT_TIMEOUT)
-          .setDefaultValue("50sec")
+          .setDefaultValue("50s")
           .setDescription("The connect timeout of kodo.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.SERVER)
@@ -1383,13 +1383,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey COS_CONNECTION_TIMEOUT =
       new Builder(Name.COS_CONNECTION_TIMEOUT)
-          .setDefaultValue("50sec")
+          .setDefaultValue("50s")
           .setDescription("The timeout of connecting to COS.")
           .setScope(Scope.SERVER)
           .build();
   public static final PropertyKey COS_SOCKET_TIMEOUT =
       new Builder(Name.COS_SOCKET_TIMEOUT)
-          .setDefaultValue("50sec")
+          .setDefaultValue("50s")
           .setDescription("The timeout of COS socket.")
           .setScope(Scope.SERVER)
           .build();
@@ -1558,35 +1558,35 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey MASTER_BACKUP_TRANSPORT_TIMEOUT =
       new Builder(Name.MASTER_BACKUP_TRANSPORT_TIMEOUT)
-          .setDefaultValue("30sec")
+          .setDefaultValue("30s")
           .setDescription("Request timeout for backup messaging.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey MASTER_BACKUP_HEARTBEAT_INTERVAL =
       new Builder(Name.MASTER_BACKUP_HEARTBEAT_INTERVAL)
-          .setDefaultValue("2sec")
+          .setDefaultValue("2s")
           .setDescription("Interval at which follower updates the leader on ongoing backup.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
           .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey MASTER_BACKUP_CONNECT_INTERVAL_MIN =
       new Builder(Name.MASTER_BACKUP_CONNECT_INTERVAL_MIN)
-          .setDefaultValue("1sec")
+          .setDefaultValue("1s")
           .setDescription("Minimum delay between each connection attempt to backup-leader.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
           .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey MASTER_BACKUP_CONNECT_INTERVAL_MAX =
       new Builder(Name.MASTER_BACKUP_CONNECT_INTERVAL_MAX)
-          .setDefaultValue("30sec")
+          .setDefaultValue("30s")
           .setDescription("Maximum delay between each connection attempt to backup-leader.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
           .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey MASTER_BACKUP_ABANDON_TIMEOUT =
       new Builder(Name.MASTER_BACKUP_ABANDON_TIMEOUT)
-          .setDefaultValue("1min")
+          .setDefaultValue("1m")
           .setDescription("Duration after which leader will abandon the backup"
               + " if not received heartbeat from backup-worker.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
@@ -1613,7 +1613,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey MASTER_BACKUP_STATE_LOCK_FORCED_DURATION =
       new Builder(Name.MASTER_BACKUP_STATE_LOCK_FORCED_DURATION)
-          .setDefaultValue("15min")
+          .setDefaultValue("15m")
           .setDescription("Exclusive locking of the state-lock will timeout after "
               + "this duration is spent on forced phase.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
@@ -1621,7 +1621,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey MASTER_BACKUP_STATE_LOCK_INTERRUPT_CYCLE_INTERVAL =
       new Builder(Name.MASTER_BACKUP_STATE_LOCK_INTERRUPT_CYCLE_INTERVAL)
-          .setDefaultValue("30sec")
+          .setDefaultValue("30s")
           .setDescription("The interval at which the RPCs that are waiting/holding state-lock "
               + "in shared-mode will be interrupted while state-lock is taken exclusively.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
@@ -1629,7 +1629,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey MASTER_BACKUP_SUSPEND_TIMEOUT =
       new Builder(Name.MASTER_BACKUP_SUSPEND_TIMEOUT)
-          .setDefaultValue("1min")
+          .setDefaultValue("1m")
           .setDescription("Timeout for when suspend request is not followed by a backup request.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
           .setScope(Scope.MASTER)
@@ -1743,7 +1743,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey MASTER_CLUSTER_METRICS_UPDATE_INTERVAL =
       new Builder(Name.MASTER_CLUSTER_METRICS_UPDATE_INTERVAL)
-          .setDefaultValue("1min")
+          .setDefaultValue("1m")
           .setDescription("The interval for periodically updating the cluster level metrics.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
@@ -1846,7 +1846,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey MASTER_EMBEDDED_JOURNAL_WRITE_TIMEOUT =
       new Builder(Name.MASTER_EMBEDDED_JOURNAL_WRITE_TIMEOUT)
-          .setDefaultValue("30sec")
+          .setDefaultValue("30s")
           .setDescription("Maximum time to wait for a write/flush on embedded journal.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
@@ -1860,7 +1860,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey MASTER_EMBEDDED_JOURNAL_TRANSPORT_REQUEST_TIMEOUT_MS =
       new Builder(Name.MASTER_EMBEDDED_JOURNAL_TRANSPORT_REQUEST_TIMEOUT_MS)
-          .setDefaultValue("5sec")
+          .setDefaultValue("5s")
           .setDescription("Timeout for requests between embedded journal masters.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
@@ -1905,7 +1905,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey MASTER_FILE_ACCESS_TIME_UPDATER_SHUTDOWN_TIMEOUT =
       new Builder(Name.MASTER_FILE_ACCESS_TIME_UPDATER_SHUTDOWN_TIMEOUT)
-          .setDefaultValue("1sec")
+          .setDefaultValue("1s")
           .setDescription("Maximum time to wait for access updater to stop on shutdown.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
@@ -1922,7 +1922,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey MASTER_STANDBY_HEARTBEAT_INTERVAL =
       new Builder(Name.MASTER_STANDBY_HEARTBEAT_INTERVAL)
-          .setDefaultValue("2min")
+          .setDefaultValue("2m")
           .setDescription("The heartbeat interval between Alluxio primary master and standby "
               + "masters.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
@@ -2029,7 +2029,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey MASTER_METRICS_TIME_SERIES_INTERVAL =
       new Builder(Name.MASTER_METRICS_TIME_SERIES_INTERVAL)
-          .setDefaultValue("5min")
+          .setDefaultValue("5m")
           .setDescription("Interval for which the master records metrics information. This affects "
               + "the granularity of the metrics graphed in the UI.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
@@ -2060,7 +2060,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey MASTER_NETWORK_KEEPALIVE_TIMEOUT_MS =
       new Builder(Name.MASTER_NETWORK_KEEPALIVE_TIMEOUT_MS)
-          .setDefaultValue("30sec")
+          .setDefaultValue("30s")
           .setDescription("The maximum time for Alluxio master gRPC server "
               + "to wait for a keepalive response before closing the connection.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
@@ -2068,7 +2068,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey MASTER_NETWORK_PERMIT_KEEPALIVE_TIME_MS =
       new Builder(Name.MASTER_NETWORK_PERMIT_KEEPALIVE_TIME_MS)
-          .setDefaultValue("30sec")
+          .setDefaultValue("30s")
           .setDescription(
               "Specify the most aggressive keep-alive time clients are permitted to configure. "
                   + "The server will try to detect clients exceeding this rate and when detected "
@@ -2078,7 +2078,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey MASTER_LOST_WORKER_FILE_DETECTION_INTERVAL =
       new Builder(Name.MASTER_LOST_WORKER_FILE_DETECTION_INTERVAL)
-          .setDefaultValue("5min")
+          .setDefaultValue("5m")
           .setDescription("The interval between Alluxio master detections to find lost "
               + "files based on updates from Alluxio workers.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
@@ -2086,7 +2086,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey MASTER_LOST_WORKER_DETECTION_INTERVAL =
       new Builder(Name.MASTER_LOST_WORKER_DETECTION_INTERVAL)
-          .setDefaultValue("10sec")
+          .setDefaultValue("10s")
           .setAlias("alluxio.master.worker.heartbeat.interval")
           .setDescription("The interval between Alluxio master detections to find lost workers "
               + "based on updates from Alluxio workers.")
@@ -2095,7 +2095,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey MASTER_HEARTBEAT_TIMEOUT =
       new Builder(Name.MASTER_HEARTBEAT_TIMEOUT)
-          .setDefaultValue("10min")
+          .setDefaultValue("10m")
           .setDescription("Timeout between leader master and standby master"
               + " indicating a lost master.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
@@ -2187,7 +2187,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey MASTER_UFS_JOURNAL_MAX_CATCHUP_TIME =
       new Builder(Name.MASTER_UFS_JOURNAL_MAX_CATCHUP_TIME)
-          .setDefaultValue("10min")
+          .setDefaultValue("10m")
           .setDescription("The maximum time to wait for ufs journal catching up "
               + "before listening to Zookeeper state change. This is added to prevent "
               + "frequently leadership transition during heavy journal replay stage.")
@@ -2205,7 +2205,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey MASTER_JOURNAL_FLUSH_TIMEOUT_MS =
       new Builder(Name.MASTER_JOURNAL_FLUSH_TIMEOUT_MS)
           .setAlias("alluxio.master.journal.flush.timeout.ms")
-          .setDefaultValue("5min")
+          .setDefaultValue("5m")
           .setDescription("The amount of time to keep retrying journal "
               + "writes before giving up and shutting down the master.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
@@ -2213,7 +2213,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey MASTER_JOURNAL_FLUSH_RETRY_INTERVAL =
       new Builder(Name.MASTER_JOURNAL_FLUSH_RETRY_INTERVAL)
-          .setDefaultValue("1sec")
+          .setDefaultValue("1s")
           .setDescription("The amount of time to sleep between retrying journal flushes")
           .setScope(Scope.MASTER)
           .build();
@@ -2276,7 +2276,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey MASTER_JOURNAL_SPACE_MONITOR_INTERVAL =
       new Builder(Name.MASTER_JOURNAL_SPACE_MONITOR_INTERVAL)
-      .setDefaultValue("10min")
+      .setDefaultValue("10m")
       .setDescription(String.format("How often to check and update information on space "
           + "utilization of the journal disk. This is currently only compatible with linux-based"
           + "systems and when %s is configured to EMBEDDED", Name.MASTER_JOURNAL_TYPE))
@@ -2286,7 +2286,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey MASTER_JOURNAL_TAILER_SHUTDOWN_QUIET_WAIT_TIME_MS =
       new Builder(Name.MASTER_JOURNAL_TAILER_SHUTDOWN_QUIET_WAIT_TIME_MS)
           .setAlias("alluxio.master.journal.tailer.shutdown.quiet.wait.time.ms")
-          .setDefaultValue("5sec")
+          .setDefaultValue("5s")
           .setDescription("Before the standby master shuts down its tailer thread, there "
               + "should be no update to the leader master's journal in this specified time "
               + "period.")
@@ -2296,7 +2296,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey MASTER_JOURNAL_TAILER_SLEEP_TIME_MS =
       new Builder(Name.MASTER_JOURNAL_TAILER_SLEEP_TIME_MS)
           .setAlias("alluxio.master.journal.tailer.sleep.time.ms")
-          .setDefaultValue("1sec")
+          .setDefaultValue("1s")
           .setDescription("Time for the standby master to sleep for when it "
               + "cannot find anything new in leader master's journal.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
@@ -2313,7 +2313,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey MASTER_JOURNAL_GC_PERIOD_MS =
       new Builder(Name.MASTER_JOURNAL_GC_PERIOD_MS)
           .setAlias("alluxio.master.journal.gc.period.ms")
-          .setDefaultValue("2min")
+          .setDefaultValue("2m")
           .setDescription("Frequency with which to scan for and delete stale journal checkpoints.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
@@ -2321,7 +2321,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey MASTER_JOURNAL_GC_THRESHOLD_MS =
       new Builder(Name.MASTER_JOURNAL_GC_THRESHOLD_MS)
           .setAlias("alluxio.master.journal.gc.threshold.ms")
-          .setDefaultValue("5min")
+          .setDefaultValue("5m")
           .setDescription("Minimum age for garbage collecting checkpoints.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
@@ -2330,7 +2330,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       new Builder(Name.MASTER_JOURNAL_TEMPORARY_FILE_GC_THRESHOLD_MS)
           .setAlias("alluxio.master.journal.temporary.file.gc.threshold.ms")
           .setDescription("Minimum age for garbage collecting temporary checkpoint files.")
-          .setDefaultValue("30min")
+          .setDefaultValue("30m")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
@@ -2356,7 +2356,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey MASTER_PERIODIC_BLOCK_INTEGRITY_CHECK_INTERVAL =
       new Builder(Name.MASTER_PERIODIC_BLOCK_INTEGRITY_CHECK_INTERVAL)
-          .setDefaultValue("1hr")
+          .setDefaultValue("1h")
           .setDescription("The period for the block integrity check, disabled if <= 0.")
           .setScope(Scope.MASTER)
           .build();
@@ -2376,14 +2376,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey MASTER_PERSISTENCE_MAX_INTERVAL_MS =
       new Builder(Name.MASTER_PERSISTENCE_MAX_INTERVAL_MS)
-          .setDefaultValue("1hr")
+          .setDefaultValue("1h")
           .setDescription("Max wait interval for master persistence checker persistence status "
               + "for files written using ASYNC_THROUGH")
           .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey MASTER_PERSISTENCE_MAX_TOTAL_WAIT_TIME_MS =
       new Builder(Name.MASTER_PERSISTENCE_MAX_TOTAL_WAIT_TIME_MS)
-          .setDefaultValue("1day")
+          .setDefaultValue("1d")
           .setDescription("Total wait time for master persistence checker persistence status "
               + "for files written using ASYNC_THROUGH")
           .setScope(Scope.MASTER)
@@ -2407,7 +2407,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey MASTER_REPLICATION_CHECK_INTERVAL_MS =
       new Builder(Name.MASTER_REPLICATION_CHECK_INTERVAL_MS)
-          .setDefaultValue("1min")
+          .setDefaultValue("1m")
           .setDescription("How often the master runs background process to check replication "
               + "level for files")
           .setScope(Scope.MASTER)
@@ -2492,7 +2492,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey MASTER_TTL_CHECKER_INTERVAL_MS =
       new Builder(Name.MASTER_TTL_CHECKER_INTERVAL_MS)
           .setAlias("alluxio.master.ttl.checker.interval.ms")
-          .setDefaultValue("1hour")
+          .setDefaultValue("1h")
           .setDescription("How often to periodically check and delete the files "
               + "with expired ttl value.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
@@ -2500,7 +2500,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey MASTER_UFS_ACTIVE_SYNC_INTERVAL =
       new Builder(Name.MASTER_UFS_ACTIVE_SYNC_INTERVAL)
-          .setDefaultValue("30sec")
+          .setDefaultValue("30s")
           .setDescription("Time interval to periodically actively sync UFS")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
@@ -2544,21 +2544,21 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey MASTER_UFS_ACTIVE_SYNC_POLL_TIMEOUT =
       new Builder(Name.MASTER_UFS_ACTIVE_SYNC_POLL_TIMEOUT)
-          .setDefaultValue("10sec")
+          .setDefaultValue("10s")
           .setDescription("Max time to wait before timing out a polling operation")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey MASTER_UFS_ACTIVE_SYNC_EVENT_RATE_INTERVAL =
       new Builder(Name.MASTER_UFS_ACTIVE_SYNC_EVENT_RATE_INTERVAL)
-          .setDefaultValue("60sec")
+          .setDefaultValue("60s")
           .setDescription("The time interval we use to estimate incoming event rate")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey MASTER_UFS_ACTIVE_SYNC_RETRY_TIMEOUT =
       new Builder(Name.MASTER_UFS_ACTIVE_SYNC_RETRY_TIMEOUT)
-          .setDefaultValue("10sec")
+          .setDefaultValue("10s")
           .setDescription("The max total duration to retry failed active sync operations."
               + "A large duration is useful to handle transient failures such as an "
               + "unresponsive under storage but can lock the inode tree being synced longer.")
@@ -2626,7 +2626,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey MASTER_UPDATE_CHECK_INTERVAL =
       new Builder(Name.MASTER_UPDATE_CHECK_INTERVAL)
-          .setDefaultValue("7day")
+          .setDefaultValue("7d")
           .setDescription("The interval to check for update availability.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.MASTER)
@@ -2688,7 +2688,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey MASTER_WORKER_CONNECT_WAIT_TIME =
       new Builder(Name.MASTER_WORKER_CONNECT_WAIT_TIME)
-          .setDefaultValue("5sec")
+          .setDefaultValue("5s")
           .setDescription("Alluxio master will wait a period of time after start up for "
               + "all workers to register, before it starts accepting client requests. "
               + "This property determines the wait time.")
@@ -2697,7 +2697,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               .build();
   public static final PropertyKey MASTER_WORKER_INFO_CACHE_REFRESH_TIME =
       new Builder(Name.MASTER_WORKER_INFO_CACHE_REFRESH_TIME)
-          .setDefaultValue("10sec")
+          .setDefaultValue("10s")
           .setDescription("The worker information list will be refreshed "
               + "after being cached for this time period. If the refresh time is too big, "
               + "operations on the job servers or clients may fail because of "
@@ -2710,7 +2710,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey MASTER_WORKER_TIMEOUT_MS =
       new Builder(Name.MASTER_WORKER_TIMEOUT_MS)
           .setAlias("alluxio.master.worker.timeout.ms")
-          .setDefaultValue("5min")
+          .setDefaultValue("5m")
           .setDescription("Timeout between master and worker indicating a lost worker.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
@@ -2781,7 +2781,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey MASTER_RPC_EXECUTOR_KEEPALIVE =
       new Builder(Name.MASTER_RPC_EXECUTOR_KEEPALIVE)
-          .setDefaultValue("60sec")
+          .setDefaultValue("60s")
           .setDescription("The keep alive time of a thread in master RPC ExecutorService"
               + "last used before this thread is terminated (and replaced if necessary).")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
@@ -2944,7 +2944,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey WORKER_BLOCK_HEARTBEAT_INTERVAL_MS =
       new Builder(Name.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS)
           .setAlias("alluxio.worker.block.heartbeat.interval.ms")
-          .setDefaultValue("1sec")
+          .setDefaultValue("1s")
           .setDescription("The interval between block workers' heartbeats to update "
               + "block status, storage health and other workers' information to Alluxio Master.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
@@ -3112,7 +3112,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey WORKER_MANAGEMENT_LOAD_DETECTION_COOL_DOWN_TIME =
       new Builder(Name.WORKER_MANAGEMENT_LOAD_DETECTION_COOL_DOWN_TIME)
-          .setDefaultValue("10sec")
+          .setDefaultValue("10s")
           .setDescription("Management tasks will not run for this long after load detected. "
               + "Any user I/O will still register as a load for this period of time after "
               + "it is finished. Short durations might cause interference between user I/O "
@@ -3199,7 +3199,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey WORKER_FREE_SPACE_TIMEOUT =
       new Builder(Name.WORKER_FREE_SPACE_TIMEOUT)
-          .setDefaultValue("10sec")
+          .setDefaultValue("10s")
           .setDescription("The duration for which a worker will wait for eviction to make space "
               + "available for a client write request.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
@@ -3217,12 +3217,12 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey WORKER_MASTER_CONNECT_RETRY_TIMEOUT =
       new Builder(Name.WORKER_MASTER_CONNECT_RETRY_TIMEOUT)
           .setDescription("Retry period before workers give up on connecting to master and exit.")
-          .setDefaultValue("1hour")
+          .setDefaultValue("1h")
           .setScope(Scope.WORKER)
           .build();
   public static final PropertyKey WORKER_MASTER_PERIODICAL_RPC_TIMEOUT =
       new Builder(Name.WORKER_MASTER_PERIODICAL_RPC_TIMEOUT)
-          .setDefaultValue("5min")
+          .setDefaultValue("5m")
           .setDescription("Timeout for periodical RPC between workers "
               + "and the leading master. This property is added to prevent workers "
               + "from hanging in periodical RPCs with previous leading master "
@@ -3302,7 +3302,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey WORKER_NETWORK_KEEPALIVE_TIME_MS =
       new Builder(Name.WORKER_NETWORK_KEEPALIVE_TIME_MS)
-          .setDefaultValue("30sec")
+          .setDefaultValue("30s")
           .setDescription("The amount of time for data server (for block reads and block writes) "
               + "to wait for a response before pinging the client to see if it is still alive.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
@@ -3310,7 +3310,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey WORKER_NETWORK_KEEPALIVE_TIMEOUT_MS =
       new Builder(Name.WORKER_NETWORK_KEEPALIVE_TIMEOUT_MS)
-          .setDefaultValue("30sec")
+          .setDefaultValue("30s")
           .setDescription("The maximum time for a data server (for block reads and block writes) "
               + "to wait for a keepalive response before closing the connection.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
@@ -3351,7 +3351,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey WORKER_NETWORK_NETTY_SHUTDOWN_QUIET_PERIOD =
       new Builder(Name.WORKER_NETWORK_NETTY_SHUTDOWN_QUIET_PERIOD)
-          .setDefaultValue("2sec")
+          .setDefaultValue("2s")
           .setDescription("The quiet period. When the netty server is shutting "
               + "down, it will ensure that no RPCs occur during the quiet period. If an RPC "
               + "occurs, then the quiet period will restart before shutting down the netty "
@@ -3403,7 +3403,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey WORKER_NETWORK_SHUTDOWN_TIMEOUT =
       new Builder(Name.WORKER_NETWORK_SHUTDOWN_TIMEOUT)
-          .setDefaultValue("15sec")
+          .setDefaultValue("15s")
           .setDescription("Maximum amount of time to wait until the worker gRPC server "
               + "is shutdown (regardless of the quiet period).")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
@@ -3567,7 +3567,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey WORKER_SESSION_TIMEOUT_MS =
       new Builder(Name.WORKER_SESSION_TIMEOUT_MS)
           .setAlias("alluxio.worker.session.timeout.ms")
-          .setDefaultValue("1min")
+          .setDefaultValue("1m")
           .setDescription("Timeout between worker and client connection "
               + "indicating a lost session connection.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
@@ -3797,7 +3797,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey WORKER_UFS_BLOCK_OPEN_TIMEOUT_MS =
       new Builder(Name.WORKER_UFS_BLOCK_OPEN_TIMEOUT_MS)
           .setAlias("alluxio.worker.ufs.block.open.timeout.ms")
-          .setDefaultValue("5min")
+          .setDefaultValue("5m")
           .setDescription("Timeout to open a block from UFS.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
@@ -3816,7 +3816,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey WORKER_UFS_INSTREAM_CACHE_EXPIRARTION_TIME =
       new Builder(Name.WORKER_UFS_INSTREAM_CACHE_EXPIRATION_TIME)
-          .setDefaultValue("5min")
+          .setDefaultValue("5m")
           .setDescription("Cached UFS instream expiration time.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
@@ -3874,7 +3874,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey PROXY_STREAM_CACHE_TIMEOUT_MS =
       new Builder(Name.PROXY_STREAM_CACHE_TIMEOUT_MS)
           .setAlias("alluxio.proxy.stream.cache.timeout.ms")
-          .setDefaultValue("1hour")
+          .setDefaultValue("1h")
           .setDescription("The timeout for the input and output streams cache eviction in the "
               + "proxy.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
@@ -4006,14 +4006,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey USER_BLOCK_MASTER_CLIENT_POOL_GC_INTERVAL_MS =
       new Builder(Name.USER_BLOCK_MASTER_CLIENT_POOL_GC_INTERVAL_MS)
-          .setDefaultValue("120sec")
+          .setDefaultValue("120s")
           .setDescription("The interval at which block master client GC checks occur.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
   public static final PropertyKey USER_BLOCK_MASTER_CLIENT_POOL_GC_THRESHOLD_MS =
       new Builder(Name.USER_BLOCK_MASTER_CLIENT_POOL_GC_THRESHOLD_MS)
-          .setDefaultValue("120sec")
+          .setDefaultValue("120s")
           .setDescription("A block master client is closed if it has been idle for more than this "
               + "threshold.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
@@ -4039,7 +4039,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey USER_BLOCK_WORKER_CLIENT_POOL_GC_THRESHOLD_MS =
       new Builder(Name.USER_BLOCK_WORKER_CLIENT_POOL_GC_THRESHOLD_MS)
-          .setDefaultValue("300sec")
+          .setDefaultValue("300s")
           .setDescription("A block worker client is closed if it has been idle for more than this "
               + "threshold.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
@@ -4056,7 +4056,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey USER_CONF_SYNC_INTERVAL =
       new Builder(Name.USER_CONF_SYNC_INTERVAL)
-          .setDefaultValue("1min")
+          .setDefaultValue("1m")
           .setDescription("The time period of client master heartbeat to "
               + "update the configuration if necessary from meta master.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
@@ -4112,12 +4112,12 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey USER_BLOCK_READ_RETRY_SLEEP_MAX =
           new Builder(Name.USER_BLOCK_READ_RETRY_SLEEP_MAX)
-          .setDefaultValue("2sec")
+          .setDefaultValue("2s")
           .setScope(Scope.CLIENT)
           .build();
   public static final PropertyKey USER_BLOCK_READ_RETRY_MAX_DURATION =
       new Builder(Name.USER_BLOCK_READ_RETRY_MAX_DURATION)
-          .setDefaultValue("2min")
+          .setDefaultValue("2m")
           .build();
   public static final PropertyKey USER_CONF_CLUSTER_DEFAULT_ENABLED =
       new Builder(Name.USER_CONF_CLUSTER_DEFAULT_ENABLED)
@@ -4182,14 +4182,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey USER_FILE_MASTER_CLIENT_POOL_GC_INTERVAL_MS =
       new Builder(Name.USER_FILE_MASTER_CLIENT_POOL_GC_INTERVAL_MS)
-          .setDefaultValue("120sec")
+          .setDefaultValue("120s")
           .setDescription("The interval at which file system master client GC checks occur.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
   public static final PropertyKey USER_FILE_MASTER_CLIENT_POOL_GC_THRESHOLD_MS =
       new Builder(Name.USER_FILE_MASTER_CLIENT_POOL_GC_THRESHOLD_MS)
-          .setDefaultValue("120sec")
+          .setDefaultValue("120s")
           .setDescription("A fs master client is closed if it has been idle for more than this "
               + "threshold.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
@@ -4265,7 +4265,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey USER_FILE_WAITCOMPLETED_POLL_MS =
       new Builder(Name.USER_FILE_WAITCOMPLETED_POLL_MS)
           .setAlias("alluxio.user.file.waitcompleted.poll.ms")
-          .setDefaultValue("1sec")
+          .setDefaultValue("1s")
           .setDescription("The time interval to poll a file for its completion status when "
               + "using waitCompleted.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
@@ -4509,17 +4509,17 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey USER_FILE_WRITE_INIT_SLEEP_MIN =
           new Builder(Name.USER_FILE_WRITE_INIT_SLEEP_MIN)
-          .setDefaultValue("1sec")
+          .setDefaultValue("1s")
           .setScope(Scope.CLIENT)
           .build();
   public static final PropertyKey USER_FILE_WRITE_INIT_SLEEP_MAX =
           new Builder(Name.USER_FILE_WRITE_INIT_SLEEP_MAX)
-          .setDefaultValue("5sec")
+          .setDefaultValue("5s")
           .setScope(Scope.CLIENT)
           .build();
   public static final PropertyKey USER_FILE_WRITE_INIT_MAX_DURATION =
       new Builder(Name.USER_FILE_WRITE_INIT_MAX_DURATION)
-          .setDefaultValue("2min")
+          .setDefaultValue("2m")
           .setDescription("Controls how long to retry initialization of a file write, "
               + "when Alluxio workers are required but not ready.")
           .setScope(Scope.CLIENT)
@@ -4547,7 +4547,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey USER_MASTER_POLLING_TIMEOUT =
       new Builder(Name.USER_MASTER_POLLING_TIMEOUT)
-          .setDefaultValue("30sec")
+          .setDefaultValue("30s")
           .setDescription("The maximum time for a rpc client to wait for master to respond.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
@@ -4573,7 +4573,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey USER_METADATA_CACHE_EXPIRATION_TIME =
       new Builder(Name.USER_METADATA_CACHE_EXPIRATION_TIME)
-          .setDefaultValue("10min")
+          .setDefaultValue("10m")
           .setDescription("Metadata will expire and be evicted after being cached for this time "
               + "period. Only valid if alluxio.user.metadata.cache.enabled is set to true.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
@@ -4589,7 +4589,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey USER_METRICS_HEARTBEAT_INTERVAL_MS =
       new Builder(Name.USER_METRICS_HEARTBEAT_INTERVAL_MS)
           .setAlias("alluxio.user.metrics.heartbeat.interval.ms")
-          .setDefaultValue("10sec")
+          .setDefaultValue("10s")
           .setDescription("The time period of client master heartbeat to "
               + "send the client-side metrics.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
@@ -4690,7 +4690,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       new Builder(Name.USER_STREAMING_WRITER_CLOSE_TIMEOUT)
           .setAlias("alluxio.user.network.writer.close.timeout.ms",
               Name.USER_NETWORK_WRITER_CLOSE_TIMEOUT)
-          .setDefaultValue("30min")
+          .setDefaultValue("30m")
           .setDescription("The timeout to close a writer client.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
@@ -4698,7 +4698,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey USER_STREAMING_WRITER_FLUSH_TIMEOUT =
       new Builder(Name.USER_STREAMING_WRITER_FLUSH_TIMEOUT)
           .setAlias(Name.USER_NETWORK_WRITER_FLUSH_TIMEOUT)
-          .setDefaultValue("30min")
+          .setDefaultValue("30m")
           .setDescription("The timeout to wait for flush to finish in a data writer.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
@@ -4873,7 +4873,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey USER_NETWORK_RPC_KEEPALIVE_TIME =
       new Builder(Name.USER_NETWORK_RPC_KEEPALIVE_TIME)
-          .setDefaultValue("30sec")
+          .setDefaultValue("30s")
           .setDescription("The amount of time for a rpc client "
               + "to wait for a response before pinging the server to see if it is still alive.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
@@ -4881,7 +4881,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey USER_NETWORK_RPC_KEEPALIVE_TIMEOUT =
       new Builder(Name.USER_NETWORK_RPC_KEEPALIVE_TIMEOUT)
-          .setDefaultValue("30sec")
+          .setDefaultValue("30s")
           .setDescription("The maximum time for a rpc client "
               + "to wait for a keepalive response before closing the connection.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
@@ -4940,7 +4940,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey USER_NETWORK_STREAMING_KEEPALIVE_TIMEOUT =
       new Builder(Name.USER_NETWORK_STREAMING_KEEPALIVE_TIMEOUT)
           .setAlias(Name.USER_NETWORK_KEEPALIVE_TIMEOUT)
-          .setDefaultValue("30sec")
+          .setDefaultValue("30s")
           .setDescription("The maximum time for a streaming client "
               + "to wait for a keepalive response before closing the connection.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
@@ -4993,7 +4993,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey USER_RPC_RETRY_MAX_DURATION =
       new Builder(Name.USER_RPC_RETRY_MAX_DURATION)
-          .setDefaultValue("2min")
+          .setDefaultValue("2m")
           .setDescription("Alluxio client RPCs automatically retry for transient errors with "
               + "an exponential backoff. This property determines the maximum duration to retry for"
               + " before giving up. Note that, this value is set to 5s for fs and fsadmin CLIs.")
@@ -5005,7 +5005,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey USER_WORKER_LIST_REFRESH_INTERVAL =
       new Builder(Name.USER_WORKER_LIST_REFRESH_INTERVAL)
-          .setDefaultValue("2min")
+          .setDefaultValue("2m")
           .setDescription("The interval used to refresh the live worker list on the client")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
@@ -5013,7 +5013,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey USER_RPC_RETRY_MAX_SLEEP_MS =
       new Builder(Name.USER_RPC_RETRY_MAX_SLEEP_MS)
           .setAlias("alluxio.user.rpc.retry.max.sleep.ms")
-          .setDefaultValue("3sec")
+          .setDefaultValue("3s")
           .setDescription("Alluxio client RPCs automatically retry for transient errors with "
               + "an exponential backoff. This property determines the maximum wait time "
               + "in the backoff.")
@@ -5181,7 +5181,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey FUSE_UMOUNT_TIMEOUT =
       new Builder(Name.FUSE_UMOUNT_TIMEOUT)
-          .setDefaultValue("1min")
+          .setDefaultValue("1m")
           .setDescription("The timeout to wait for all in progress file read and write to finish "
               + "before unmounting the Fuse filesystem. After the timeout, "
               + "all in progress file read will be forced to stop "
@@ -5274,7 +5274,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey SECURITY_GROUP_MAPPING_CACHE_TIMEOUT_MS =
       new Builder(Name.SECURITY_GROUP_MAPPING_CACHE_TIMEOUT_MS)
           .setAlias("alluxio.security.group.mapping.cache.timeout.ms")
-          .setDefaultValue("1min")
+          .setDefaultValue("1m")
           .setDescription("Time for cached group mapping to expire.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.ALL)
@@ -5311,7 +5311,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey AUTHENTICATION_INACTIVE_CHANNEL_REAUTHENTICATE_PERIOD =
       new Builder(Name.AUTHENTICATION_INACTIVE_CHANNEL_REAUTHENTICATE_PERIOD)
-          .setDefaultValue("3day")
+          .setDefaultValue("3d")
           .setDescription("Interval for which client channels that have been inactive "
                   + "will be regarded as unauthenticated. Such channels will reauthenticate with "
                   + "their target master upon being used for new RPCs.")
@@ -5409,7 +5409,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       new Builder(Name.JOB_MASTER_FINISHED_JOB_RETENTION_TIME)
           .setDescription("The length of time the Alluxio Job Master should save information about "
               + "completed jobs before they are discarded.")
-          .setDefaultValue("60sec")
+          .setDefaultValue("60s")
           .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey JOB_MASTER_JOB_CAPACITY =
@@ -5424,14 +5424,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       new Builder(Name.JOB_MASTER_WORKER_HEARTBEAT_INTERVAL)
           .setDescription("The amount of time that the Alluxio job worker should wait in between "
               + "heartbeats to the Job Master.")
-          .setDefaultValue("1sec")
+          .setDefaultValue("1s")
           .setScope(Scope.WORKER)
           .build();
   public static final PropertyKey JOB_MASTER_WORKER_TIMEOUT =
       new Builder(Name.JOB_MASTER_WORKER_TIMEOUT)
           .setDescription("The time period after which the job master will mark a worker as lost "
               + "without a subsequent heartbeat.")
-          .setDefaultValue("60sec")
+          .setDefaultValue("60s")
           .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey JOB_MASTER_BIND_HOST =
@@ -5449,7 +5449,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey JOB_MASTER_LOST_WORKER_INTERVAL =
       new Builder(Name.JOB_MASTER_LOST_WORKER_INTERVAL)
           .setDescription("The time interval the job master waits between checks for lost workers.")
-          .setDefaultValue("1sec")
+          .setDefaultValue("1s")
           .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey JOB_MASTER_RPC_PORT =
@@ -5585,7 +5585,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey JOB_MASTER_NETWORK_KEEPALIVE_TIMEOUT_MS =
       new Builder(Name.JOB_MASTER_NETWORK_KEEPALIVE_TIMEOUT_MS)
-          .setDefaultValue("30sec")
+          .setDefaultValue("30s")
           .setDescription("The maximum time for Alluxio job-master gRPC server "
               + "to wait for a keepalive response before closing the connection.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
@@ -5593,7 +5593,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey JOB_MASTER_NETWORK_PERMIT_KEEPALIVE_TIME_MS =
       new Builder(Name.JOB_MASTER_NETWORK_PERMIT_KEEPALIVE_TIME_MS)
-          .setDefaultValue("30sec")
+          .setDefaultValue("30s")
           .setDescription(
               "Specify the most aggressive keep-alive time clients are permitted to configure. "
                   + "The server will try to detect clients exceeding this rate and when detected "
@@ -5614,21 +5614,21 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   //
   public static final PropertyKey JVM_MONITOR_WARN_THRESHOLD_MS =
       new Builder(Name.JVM_MONITOR_WARN_THRESHOLD_MS)
-          .setDefaultValue("10sec")
+          .setDefaultValue("10s")
           .setDescription("When the JVM pauses for anything longer than this, log a WARN message.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.SERVER)
           .build();
   public static final PropertyKey JVM_MONITOR_INFO_THRESHOLD_MS =
       new Builder(Name.JVM_MONITOR_INFO_THRESHOLD_MS)
-          .setDefaultValue("1sec")
+          .setDefaultValue("1s")
           .setDescription("When the JVM pauses for anything longer than this, log an INFO message.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.SERVER)
           .build();
   public static final PropertyKey JVM_MONITOR_SLEEP_INTERVAL_MS =
       new Builder(Name.JVM_MONITOR_SLEEP_INTERVAL_MS)
-          .setDefaultValue("1sec")
+          .setDefaultValue("1s")
           .setDescription("The time for the JVM monitor thread to sleep.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.SERVER)
@@ -5694,7 +5694,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey TABLE_TRANSFORM_MANAGER_JOB_HISTORY_RETENTION_TIME =
       new Builder(Name.TABLE_TRANSFORM_MANAGER_JOB_HISTORY_RETENTION_TIME)
-          .setDefaultValue("300sec")
+          .setDefaultValue("300s")
           .setDescription("The length of time the Alluxio Table Master should keep information "
               + "about finished transformation jobs before they are discarded.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)

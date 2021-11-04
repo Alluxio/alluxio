@@ -452,18 +452,18 @@ properties:
     alluxio.user.block.avoid.eviction.policy.reserved.size.bytes: 2GB
     alluxio.master.journal.folder: /journal
     alluxio.master.journal.type: UFS
-    alluxio.user.block.master.client.pool.gc.threshold: 2day
+    alluxio.user.block.master.client.pool.gc.threshold: 2d
     alluxio.user.file.master.client.threads: 1024
     alluxio.user.block.master.client.threads: 1024
     alluxio.user.file.readtype.default: CACHE
     alluxio.security.stale.channel.purge.interval: 365d
     alluxio.user.metadata.cache.enabled: true
-    alluxio.user.metadata.cache.expiration.time: 2day
+    alluxio.user.metadata.cache.expiration.time: 2d
     alluxio.user.metadata.cache.max.size: "1000000"
     alluxio.user.direct.memory.io.enabled: true
     alluxio.fuse.cached.paths.max: "1000000"
     alluxio.job.worker.threadpool.size: 164
-    alluxio.user.worker.list.refresh.interval: 2min
+    alluxio.user.worker.list.refresh.interval: 2m
     alluxio.user.logging.threshold: 1000ms
     alluxio.fuse.logging.threshold: 1000ms
     alluxio.worker.block.master.client.pool.size: 1024

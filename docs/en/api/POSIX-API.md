@@ -395,7 +395,7 @@ Enable when the workload repeatedly getting information of numerous files.
     </tr>
     <tr>
         <td>alluxio.user.metadata.cache.expiration.time</td>
-        <td>10min</td>
+        <td>10m</td>
         <td>Metadata will expire and be evicted after being cached for this time period. Only valid if alluxio.user.metadata.cache.enabled is set to true.</td>
     </tr>
 </table>
