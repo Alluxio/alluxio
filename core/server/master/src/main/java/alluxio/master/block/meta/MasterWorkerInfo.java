@@ -157,7 +157,8 @@ public final class MasterWorkerInfo {
    */
   public MasterWorkerInfo(long id, WorkerNetAddress address) {
     mMeta = new StaticWorkerMeta(id, address);
-    mWorkerMeta = new AtomicReference<>(new WorkerVersionMeta("unknown version", "unknown revision"));
+    mWorkerMeta = new AtomicReference<>(
+            new WorkerVersionMeta("unknown version", "unknown revision"));
     mUsage = new WorkerUsageMeta();
     mBlocks = new HashSet<>();
     mToRemoveBlocks = new HashSet<>();

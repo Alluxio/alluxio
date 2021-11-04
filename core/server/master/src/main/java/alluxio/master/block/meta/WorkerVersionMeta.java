@@ -23,7 +23,8 @@ public class WorkerVersionMeta {
 
   /**
    * Constructor.
-   *
+   * @param version The version of worker
+   * @param revision The revision of worker
    */
   public WorkerVersionMeta(String version, String revision) {
     mVersion = version;
