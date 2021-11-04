@@ -1,12 +1,12 @@
 ---
 layout: global
-title: Filesystem API
+title: File System API
 nickname: Filesystem API
 group: Client APIs
 priority: 0
 ---
 
-Applications primarily interact with Alluxio through its Filesystem API. Java users
+Applications primarily interact with Alluxio through its File System API. Java users
 can either use the [Alluxio Java Client](#java-client), or the
 [Hadoop-Compatible Java Client](#hadoop-compatible-java-client), which
 wraps the Alluxio Java Client to implement the Hadoop API.
@@ -14,23 +14,25 @@ wraps the Alluxio Java Client to implement the Hadoop API.
 Alluxio also provides a [POSIX API]({{ '/en/api/POSIX-API.html' | relativize_url }}) after mounting
 Alluxio as a local FUSE volume.
 
-By setting up an Alluxio Proxy, users can also interact with Alluxio through a REST
-API similar to the Filesystem API. The REST API is currently used for the Go and Python language
+By setting up an Alluxio Proxy, users can also interact with Alluxio through a [REST
+API](#rest-api) similar to the File System API. The REST API is currently used for the Go and 
+Python language
 bindings.
 
-A fourth option is to interact with Alluxio through its S3 API. Users can interact
-using the same S3 clients used for AWS S3 operations. This makes it easy to change
-existing S3 workloads to use Alluxio.
+A fourth option is to interact with Alluxio through its 
+[S3 API]({{ '/en/api/S3-API.html' | relativize_url }}). 
+Users can interact using the same S3 clients used for AWS S3 operations. 
+This makes it easy to change existing S3 workloads to use Alluxio.
 
 * Table of Contents
 {:toc}
 
 ## Java Client
 
-Alluxio provides access to data through a filesystem interface. Files in Alluxio offer write-once
+Alluxio provides access to data through a file system interface. Files in Alluxio offer write-once
 semantics: they become immutable after they have been written in their entirety and cannot be read
 before being completed.
-Alluxio provides users two different Filesystem APIs to access the same file system:
+Alluxio provides users two different File System APIs to access the same file system:
 
 1. [Alluxio file system API](#alluxio-java-api) and
 1. [Hadoop compatible file system API](#hadoop-compatible-java-client)
@@ -72,9 +74,9 @@ All resources with the Alluxio Java API are specified through an
 [AlluxioURI](https://docs.alluxio.io/os/javadoc/{{site.ALLUXIO_MAJOR_VERSION}}/alluxio/AlluxioURI.html)
 which represents the path to the resource.
 
-#### Getting a Filesystem Client
+#### Getting a File System Client
 
-To obtain an Alluxio Filesystem client in Java code, use
+To obtain an Alluxio File System client in Java code, use
 [FileSystem.Factory#get()](https://docs.alluxio.io/os/javadoc/{{site.ALLUXIO_MAJOR_VERSION}}/alluxio/client/file/FileSystem.Factory.html#get--):
 
 ```java
@@ -188,7 +190,7 @@ over the under storage.
 {% endfor %}
 </table>
 
-Below is a table of the expected behaviors of `WriteType`
+Below is a table of the expected behaviors of `WriteType`.
 
 <table class="table table-striped">
 <tr><th>Write Type</th><th>Behavior</th>
@@ -283,7 +285,7 @@ Users can override the default policy class in the
 Alluxio supports custom policies, so you can also develop your own policy appropriate for your
 workload by implementing the interface `alluxio.client.block.policy.BlockLocationPolicy`. Note that a
 default policy must have a constructor which takes `alluxio.conf.AlluxioConfiguration`.
-To use `ASYNC_THROUGH` write type, all the blocks of a file must be written to the same worker.
+To use the `ASYNC_THROUGH` write type, all the blocks of a file must be written to the same worker.
 
 #### Write Tier
 
@@ -293,7 +295,9 @@ blocks to the highest tier.
 
 By default, data is written to the top tier. Users can modify the default setting through the
 `alluxio.user.file.write.tier.default` [configuration]({{ '/en/operation/Configuration.html' | relativize_url }})
-property or override it through an option to the `FileSystem#createFile(AlluxioURI)` API call.
+property or override it through an option to the 
+[`FileSystem#createFile(AlluxioURI, CreateFilePOptions)`](https://docs.alluxio.io/os/javadoc/{{site.ALLUXIO_MAJOR_VERSION}}/alluxio/client/file/FileSystem.html#createFile-alluxio.AlluxioURI-alluxio.grpc.CreateFilePOptions-)
+API call.
 
 #### Javadoc
 
@@ -302,17 +306,18 @@ For additional API information, please refer to the
 
 ### Hadoop-Compatible Java Client
 
-On top of [Alluxio file system](#java-client), Alluxio also has a convenience class
-`alluxio.hadoop.FileSystem` to provide applications a
+On top of the [Alluxio file system](#java-client), Alluxio also has a convenience class
+`alluxio.hadoop.FileSystem` that provides applications a
 [Hadoop compatible `FileSystem` interface](https://cwiki.apache.org/confluence/display/HADOOP2/HCFS).
 This client translates Hadoop file operations to Alluxio file system operations,
-allowing users to reuse previous code written for Hadoop without modification.
+allowing users to reuse existing code written for Hadoop without modification.
 Read its [javadoc](https://docs.alluxio.io/os/javadoc/{{site.ALLUXIO_MAJOR_VERSION}}/alluxio/hadoop/FileSystem.html)
 for more details.
 
 #### Example
 
-Here is a piece of example code to read ORC files from Alluxio file system using Hadoop interface.
+Here is a piece of example code to read ORC files from the Alluxio file system using the Hadoop 
+interface.
 
 ```java
 // create a new hadoop configuration
@@ -330,10 +335,11 @@ org.apache.orc.Reader orc = org.apache.orc.OrcFile.createReader(
 ## Rest API
 
 For portability with other languages, the [Alluxio API](#java-client) is also
-accessible via an HTTP proxy in the form of a REST API.
+accessible via an HTTP proxy in the form of a REST API. Alluxio's Python and Go clients rely on 
+this REST API to talk to Alluxio.
 
 The [REST API documentation](https://docs.alluxio.io/os/restdoc/{{site.ALLUXIO_MAJOR_VERSION}}/proxy/index.html)
-is generated as part of Alluxio build and accessible through
+is generated as part of the Alluxio build and accessible through
 `${ALLUXIO_HOME}/core/server/proxy/target/miredot/index.html`. The main difference between
 the REST API and the Alluxio Java API is in how streams are represented. While the Alluxio Java API
 can use in-memory streams, the REST API decouples the stream creation and access (see the
@@ -353,118 +359,11 @@ Alluxio has a [Python Client](https://github.com/Alluxio/alluxio-py) for interac
 [REST API](#rest-api). The Python client exposes an API similar to the [Alluxio Java API](#java-client).
 See the [doc](http://alluxio-py.readthedocs.io) for detailed documentation about all available
 methods. See the [example](https://github.com/Alluxio/alluxio-py/blob/master/example.py) on how to perform basic
-filesystem operations in Alluxio.
-
-### Alluxio Proxy dependency
-
-The Python client interacts with Alluxio through the REST API provided by the Alluxio proxy.
-
-The proxy is a standalone server that can be started using
-`${ALLUXIO_HOME}/bin/alluxio-start.sh proxy` and stopped using `${ALLUXIO_HOME}/bin/alluxio-stop.sh
-proxy`. By default, the REST API is available on port 39999.
-
-There are performance implications of using the HTTP proxy. In particular, using the proxy requires
-an extra hop. For optimal performance, it is recommended to run the proxy server and an Alluxio
-worker on each compute node.
+file system operations in Alluxio.
 
 ### Install Python Client Library
 ```console
 $ pip install alluxio
-```
-
-### Example Usage
-
-The following program includes examples of how to create directory, download, upload, check existence for,
-and list status for files in Alluxio.
-
-
-```python
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-
-import json
-import sys
-
-import alluxio
-from alluxio import option
-
-
-def colorize(code):
-    def _(text, bold=False):
-        c = code
-        if bold:
-            c = '1;%s' % c
-        return '\033[%sm%s\033[0m' % (c, text)
-    return _
-
-green = colorize('32')
-
-
-def info(s):
-    print green(s)
-
-
-def pretty_json(obj):
-    return json.dumps(obj, indent=2)
-
-
-def main():
-    py_test_root_dir = '/py-test-dir'
-    py_test_nested_dir = '/py-test-dir/nested'
-    py_test = py_test_nested_dir + '/py-test'
-    py_test_renamed = py_test_root_dir + '/py-test-renamed'
-
-    client = alluxio.Client('localhost', 39999)
-
-    info("creating directory %s" % py_test_nested_dir)
-    opt = option.CreateDirectory(recursive=True)
-    client.create_directory(py_test_nested_dir, opt)
-    info("done")
-
-    info("writing to %s" % py_test)
-    with client.open(py_test, 'w') as f:
-        f.write('Alluxio works with Python!\n')
-        with open(sys.argv[0]) as this_file:
-            f.write(this_file)
-    info("done")
-
-    info("getting status of %s" % py_test)
-    stat = client.get_status(py_test)
-    print pretty_json(stat.json())
-    info("done")
-
-    info("renaming %s to %s" % (py_test, py_test_renamed))
-    client.rename(py_test, py_test_renamed)
-    info("done")
-
-    info("getting status of %s" % py_test_renamed)
-    stat = client.get_status(py_test_renamed)
-    print pretty_json(stat.json())
-    info("done")
-
-    info("reading %s" % py_test_renamed)
-    with client.open(py_test_renamed, 'r') as f:
-        print f.read()
-    info("done")
-
-    info("listing status of paths under /")
-    root_stats = client.list_status('/')
-    for stat in root_stats:
-        print pretty_json(stat.json())
-    info("done")
-
-    info("deleting %s" % py_test_root_dir)
-    opt = option.Delete(recursive=True)
-    client.delete(py_test_root_dir, opt)
-    info("done")
-
-    info("asserting that %s is deleted" % py_test_root_dir)
-    assert not client.exists(py_test_root_dir)
-    info("done")
-
-
-if __name__ == '__main__':
-    main()
 ```
 
 ## Go
@@ -474,18 +373,6 @@ Alluxio has a [Go Client](https://github.com/Alluxio/alluxio-go) for interacting
 See the [godoc](http://godoc.org/github.com/Alluxio/alluxio-go) for detailed documentation about all available
 methods. The godoc includes examples of how to download, upload, check existence for, and list status for files in
 Alluxio.
-
-### Alluxio Proxy dependency
-
-The Go client talks to Alluxio through the REST API provided by the Alluxio proxy.
-
-The proxy is a standalone server that can be started using
-`${ALLUXIO_HOME}/bin/alluxio-start.sh proxy` and stopped using `${ALLUXIO_HOME}/bin/alluxio-stop.sh
-proxy`. By default, the REST API is available on port 39999.
-
-There are performance implications of using the HTTP proxy. In particular, using the proxy requires
-an extra hop. For optimal performance, it is recommended to run the proxy server and an Alluxio
-worker on each compute node.
 
 ### Install Go Client Library
 ```console
