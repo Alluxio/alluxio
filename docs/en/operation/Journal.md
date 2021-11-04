@@ -209,19 +209,9 @@ Backup delegation can be configured with the below properties:
 
 Some advanced properties control the communication between Alluxio masters for coordinating the backup:
 - `alluxio.master.backup.transport.timeout`: Communication timeout for messaging between masters for coordinating backup. Default: `30sec`.
-<<<<<<< HEAD
-- `alluxio.master.backup.connect.interval.min`: Minimum duration to sleep before retrying after unsuccessful handshake between standby master and leading master. Default: `1sec`.
-- `alluxio.master.backup.connect.interval.max`: Maximum duration to sleep before retrying after unsuccessful handshake between standby master and leading master. Default: `30sec`.
-- `alluxio.master.backup.abandon.timeout`: Specifies how long the leading master waits for a heart-beat before abandoning the backup. Default: `1min`.
-||||||| 219dde8ce3
-- `alluxio.master.backup.connect.interval.min`: Minimum duration to sleep before retrying after unsuccessful handshake between stand-by master and leading master. Default: `1sec`.
-- `alluxio.master.backup.connect.interval.max`: Maximum duration to sleep before retrying after unsuccessful handshake between stand-by master and leading master. Default: `30sec`.
-- `alluxio.master.backup.abandon.timeout`: Specifies how long the leading master waits for a heart-beat before abandoning the backup. Default: `1min`.
-=======
 - `alluxio.master.backup.connect.interval.min`: Minimum delay between each connection attempt to backup-leader. Default: `1sec`.
 - `alluxio.master.backup.connect.interval.max`: Maximum delay between each connection attempt to backup-leader. Default: `30sec`.
 - `alluxio.master.backup.abandon.timeout`: Duration after which leader will abandon the backup if it has not received heartbeat from backup-worker. Default: `1min`.
->>>>>>> upstream/master
 
 Since it is uncertain which host will take the backup, it is suggested to use shared paths for taking backups with backup delegation.
 
