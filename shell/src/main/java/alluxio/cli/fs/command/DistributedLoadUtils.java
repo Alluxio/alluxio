@@ -90,6 +90,9 @@ public final class DistributedLoadUtils {
     ListStatusPOptions options = ListStatusPOptions.newBuilder().setRecursive(true).build();
     command.mFileSystem.iterateStatus(filePath, options, uriStatus -> {
       if (!uriStatus.isFolder()) {
+        if(!uriStatus.isCompleted()) {
+          return;
+        }
         AlluxioURI fileURI = new AlluxioURI(uriStatus.getPath());
         if (uriStatus.getInAlluxioPercentage() == 100 && replication == 1) {
           // The file has already been fully loaded into Alluxio.
