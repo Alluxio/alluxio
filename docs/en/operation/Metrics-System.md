@@ -65,6 +65,16 @@ $ curl <WORKER_HOSTNAME>:<WORKER_WEB_PORT>/metrics/json
 $ curl 127.0.0.1:30000/metrics/json/
 ``` 
 
+Send an HTTP request to `/metrics/json/` to fuse web port to get fuse metrics.
+
+```console
+# Get the metrics in JSON format from an active Alluxio FUSE process.
+$ curl <FUSE_HOSTNAME>:<FUSE_WEB_PORT>/metrics/json
+
+# For example, get the metrics from fuse process running locally with default web port
+$ curl 127.0.0.1:49999/metrics/json/
+``` 
+
 ### CSV Sink Setup
 
 This section gives an example of writing collected metrics to CSV files.
