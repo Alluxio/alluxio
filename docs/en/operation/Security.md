@@ -304,7 +304,7 @@ If the property is set to `_HDFS_USER_`, the Alluxio client will connect to Allu
 Alluxio client user, but impersonate as the Hadoop client user when using the Hadoop compatible
 client. The default value is `_HDFS_USER_`.
 
-### Exceptions
+### Common Exceptions
 
 The most common impersonation error applications may see is something like
 ```
