@@ -35,9 +35,11 @@ import alluxio.security.user.ServerUserState;
 import alluxio.underfs.MasterUfsManager;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemConfiguration;
+import alluxio.util.CommonUtils;
 import alluxio.util.CommonUtils.ProcessType;
 import alluxio.util.JvmPauseMonitor;
 import alluxio.util.URIUtils;
+import alluxio.util.WaitForOptions;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.web.MasterWebServer;
 
@@ -50,6 +52,7 @@ import java.io.InputStream;
 import java.net.InetSocketAddress;
 import java.net.URI;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 import javax.annotation.concurrent.ThreadSafe;
@@ -158,9 +161,7 @@ public class AlluxioMasterProcess extends MasterProcess {
   public void stop() throws Exception {
     LOG.info("Stopping...");
     stopRejectingServers();
-    if (isServing()) {
-      stopServing();
-    }
+    stopServing();
     mJournalSystem.stop();
     closeMasters();
     LOG.info("Stopped.");
@@ -244,6 +245,8 @@ public class AlluxioMasterProcess extends MasterProcess {
    * server and starting web ui.
    */
   protected void startServingWebServer() {
+    LOG.info("Alluxio master web server version {}. webAddress={}",
+        RuntimeConstants.VERSION, mWebBindAddress);
     stopRejectingWebServer();
     mWebServer =
         new MasterWebServer(ServiceType.MASTER_WEB.getServiceName(), mWebBindAddress, this);
@@ -282,12 +285,14 @@ public class AlluxioMasterProcess extends MasterProcess {
    * @param stopMessage empty string or the message that the master loses the leadership
    */
   protected void startServing(String startMessage, String stopMessage) {
-    MetricsSystem.startSinks(ServerConfiguration.get(PropertyKey.METRICS_CONF_FILE));
-    startServingRPCServer();
-    LOG.info("Alluxio master web server version {} starting{}. webAddress={}",
-        RuntimeConstants.VERSION, startMessage, mWebBindAddress);
-    startServingWebServer();
+    // start all common services for non-ha master or leader master
+    startCommonServices(true, true);
     startJvmMonitorProcess();
+    startLeaderServing(startMessage, stopMessage);
+  }
+
+  protected void startLeaderServing(String startMessage, String stopMessage) {
+    startServingRPCServer();
     LOG.info(
         "Alluxio master version {} started{}. bindAddress={}, connectAddress={}, webAddress={}",
         RuntimeConstants.VERSION, startMessage, mRpcBindAddress, mRpcConnectAddress,
@@ -295,6 +300,18 @@ public class AlluxioMasterProcess extends MasterProcess {
     // Blocks until RPC server is shut down. (via #stopServing)
     mGrpcServer.awaitTermination();
     LOG.info("Alluxio master ended {}", stopMessage);
+  }
+
+  protected void startCommonServices(boolean force, boolean startIfEnabled) {
+    if (force || ServerConfiguration.getBoolean(
+        PropertyKey.STANDBY_MASTER_METRICS_SINK_ENABLED) == startIfEnabled) {
+      MetricsSystem.startSinks(
+          ServerConfiguration.get(PropertyKey.METRICS_CONF_FILE));
+    }
+    if (force || ServerConfiguration.getBoolean(
+        PropertyKey.STANDBY_MASTER_WEB_ENABLED) == startIfEnabled) {
+      startServingWebServer();
+    }
   }
 
   /**
@@ -358,11 +375,7 @@ public class AlluxioMasterProcess extends MasterProcess {
     return builder.build();
   }
 
-  /**
-   * Stops serving, trying stop RPC server and web ui server and letting {@link MetricsSystem} stop
-   * all the sinks.
-   */
-  protected void stopServing() throws Exception {
+  protected void stopLeaderServing() {
     if (isServing()) {
       if (!mGrpcServer.shutdown()) {
         LOG.warn("Alluxio master RPC server shutdown timed out.");
@@ -378,14 +391,56 @@ public class AlluxioMasterProcess extends MasterProcess {
         Thread.currentThread().interrupt();
       }
     }
-    if (mJvmPauseMonitor != null) {
-      mJvmPauseMonitor.stop();
+  }
+
+  protected void stopCommonServices(boolean force, boolean stopIfEnabled) throws Exception {
+    if (force || ServerConfiguration.getBoolean(
+        PropertyKey.STANDBY_MASTER_METRICS_SINK_ENABLED) == stopIfEnabled) {
+      MetricsSystem.stopSinks();
     }
+    if (force || ServerConfiguration.getBoolean(
+        PropertyKey.STANDBY_MASTER_WEB_ENABLED) == stopIfEnabled) {
+      stopServingWebServer();
+    }
+  }
+
+  /**
+   * Stops all services.
+   */
+  protected void stopServing() throws Exception {
+    stopLeaderServing();
+    stopCommonServices(true, true);
+    stopJvmMonitorProcess();
+  }
+
+  protected void stopServingWebServer() throws Exception {
     if (mWebServer != null) {
       mWebServer.stop();
       mWebServer = null;
     }
-    MetricsSystem.stopSinks();
+  }
+
+  protected void stopJvmMonitorProcess() {
+    if (mJvmPauseMonitor != null) {
+      mJvmPauseMonitor.stop();
+    }
+  }
+
+  public boolean waitForReadyWebService(int timeoutMs) {
+    try {
+      CommonUtils.waitFor(this + " to start",
+          this::isWebServerReady, WaitForOptions.defaults().setTimeoutMs(timeoutMs));
+      return true;
+    } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
+      return false;
+    } catch (TimeoutException e) {
+      return false;
+    }
+  }
+
+  protected boolean isWebServerReady() {
+    return mWebServer != null && mWebServer.getServer().isRunning();
   }
 
   @Override

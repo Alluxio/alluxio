@@ -78,6 +78,9 @@ final class FaultTolerantAlluxioMasterProcess extends AlluxioMasterProcess {
 
     startMasters(false);
 
+    startCommonServices(false, true);
+    startJvmMonitorProcess();
+
     // Perform the initial catchup before joining leader election,
     // to avoid potential delay if this master is selected as leader
     if (ServerConfiguration.getBoolean(PropertyKey.MASTER_JOURNAL_CATCHUP_PROTECT_ENABLED)) {
@@ -165,7 +168,9 @@ final class FaultTolerantAlluxioMasterProcess extends AlluxioMasterProcess {
     }
     mServingThread = new Thread(() -> {
       try {
-        startServing(" (gained leadership)", " (lost leadership)");
+        // Starts disabled services after gained primacy.
+        startCommonServices(false, false);
+        startLeaderServing(" (gained leadership)", " (lost leadership)");
       } catch (Throwable t) {
         Throwable root = Throwables.getRootCause(t);
         if ((root != null && (root instanceof InterruptedException)) || Thread.interrupted()) {
@@ -187,7 +192,8 @@ final class FaultTolerantAlluxioMasterProcess extends AlluxioMasterProcess {
   private void losePrimacy() throws Exception {
     LOG.info("Losing the leadership.");
     if (mServingThread != null) {
-      stopServing();
+      stopLeaderServing();
+      stopCommonServices(false, false);
     }
     // Put the journal in standby mode ASAP to avoid interfering with the new primary. This must
     // happen after stopServing because downgrading the journal system will reset master state,
@@ -224,6 +230,16 @@ final class FaultTolerantAlluxioMasterProcess extends AlluxioMasterProcess {
    */
   protected boolean isRunning() {
     return mRunning;
+  }
+
+  @Override
+  protected boolean isWebServerReady() {
+    // Ignore standby master web server checking if it is disabled.
+    if (!ServerConfiguration.getBoolean(PropertyKey.STANDBY_MASTER_WEB_ENABLED)
+        && mLeaderSelector.getState() == State.STANDBY) {
+      return true;
+    }
+    return super.isWebServerReady();
   }
 
   @Override

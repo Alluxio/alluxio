@@ -87,6 +87,7 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.apache.commons.lang3.tuple.ImmutableTriple;
 import org.apache.commons.lang3.tuple.Triple;
+import org.apache.ratis.proto.RaftProtos;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -353,6 +354,17 @@ public final class AlluxioMasterRestServiceHandler {
         }
       }
 
+      Gauge masterRoleIdGauge = MetricsSystem.METRIC_REGISTRY.getGauges()
+          .get(MetricKey.MASTER_ROLE_ID.getName());
+      Gauge leaderIdGauge = MetricsSystem.METRIC_REGISTRY.getGauges()
+          .get(MetricKey.CLUSTER_LEADER_ID.getName());
+      if (masterRoleIdGauge != null) {
+        response.setMasterRole(RaftProtos.RaftPeerRole.forNumber(
+            (Integer) masterRoleIdGauge.getValue()).name());
+      }
+      if (leaderIdGauge != null) {
+        response.setLeaderId((String) leaderIdGauge.getValue());
+      }
       return response;
     }, ServerConfiguration.global());
   }

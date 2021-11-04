@@ -264,6 +264,11 @@ public final class MetricsSystem {
     sSinks = null;
   }
 
+  @VisibleForTesting
+  public static synchronized boolean isStarted() {
+    return sSinks != null;
+  }
+
   /**
    * @return the number of sinks started
    */

@@ -31,6 +31,8 @@ import alluxio.master.journal.AbstractJournalSystem;
 import alluxio.master.journal.AsyncJournalWriter;
 import alluxio.master.journal.CatchupFuture;
 import alluxio.master.journal.Journal;
+import alluxio.metrics.MetricKey;
+import alluxio.metrics.MetricsSystem;
 import alluxio.metrics.sink.RatisDropwizardExports;
 import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.util.CommonUtils;
@@ -165,6 +167,7 @@ public class RaftJournalSystem extends AbstractJournalSystem {
   private static final AtomicLong CALL_ID_COUNTER = new AtomicLong();
   // Election timeout to use in a single master cluster.
   private static final long SINGLE_MASTER_ELECTION_TIMEOUT_MS = 500;
+  private static final String UNDEFINED_LEADER_ID = "UNDEFINED_LEADER_ID";
 
   /// Lifecycle: constant from when the journal system is constructed.
 
@@ -403,6 +406,16 @@ public class RaftJournalSystem extends AbstractJournalSystem {
         .setProperties(properties)
         .setParameters(parameters)
         .build();
+    super.registerMetrics();
+    MetricsSystem.registerGaugeIfAbsent(
+        MetricKey.CLUSTER_LEADER_INDEX.getName(),
+        () -> getLeaderIndex());
+    MetricsSystem.registerGaugeIfAbsent(
+        MetricKey.MASTER_ROLE_ID.getName(),
+        () -> getRoleId());
+    MetricsSystem.registerGaugeIfAbsent(
+        MetricKey.CLUSTER_LEADER_ID.getName(),
+        () -> getLeaderId());
   }
 
   /**
@@ -883,9 +896,9 @@ public class RaftJournalSystem extends AbstractJournalSystem {
   }
 
   private GroupInfoReply getGroupInfo() throws IOException {
-    GroupInfoRequest groupInfoRequest = new GroupInfoRequest(mRawClientId, mPeerId, RAFT_GROUP_ID,
-        nextCallId());
-    return mServer.getGroupInfo(groupInfoRequest);
+    GroupInfoRequest groupInfoRequest = new GroupInfoRequest(mRawClientId, getLocalPeerId(),
+        RAFT_GROUP_ID, nextCallId());
+    return getRaftServer().getGroupInfo(groupInfoRequest);
   }
 
   /**
@@ -1143,5 +1156,75 @@ public class RaftJournalSystem extends AbstractJournalSystem {
       LOG.info("Raft group updated: old {}, new {}", mRaftGroup, newGroup);
       mRaftGroup = newGroup;
     }
+  }
+
+  private RaftProtos.RoleInfoProto getRaftRoleInfo() {
+    GroupInfoReply groupInfo = null;
+    try {
+      groupInfo = getGroupInfo();
+    } catch (IOException e) {
+      LOG.error("Error while getting RAFT group info", e);
+    }
+    if (groupInfo == null || groupInfo.getException() != null) {
+      return null;
+    }
+    return groupInfo.getRoleInfoProto();
+  }
+
+  /**
+   * Get the role index. {@link RaftProtos.RaftPeerRole}.
+   *
+   * @return the role enum
+   */
+  public int getRoleId() {
+    RaftProtos.RoleInfoProto roleInfo = getRaftRoleInfo();
+    if (roleInfo != null) {
+      return roleInfo.getRoleValue();
+    } else {
+      return -1;
+    }
+  }
+
+  /**
+   * Get the leader id. {@link RaftProtos.RaftPeerRole}.
+   *
+   * @return the leader id
+   */
+  public String getLeaderId() {
+    RaftProtos.RoleInfoProto roleInfo = getRaftRoleInfo();
+    if (roleInfo == null) {
+      return UNDEFINED_LEADER_ID;
+    }
+    if (roleInfo.getRole() == RaftProtos.RaftPeerRole.LEADER) {
+      return getLocalPeerId().toString();
+    }
+    RaftProtos.FollowerInfoProto followerInfo = roleInfo.getFollowerInfo();
+    if (followerInfo == null) {
+      return UNDEFINED_LEADER_ID;
+    }
+    if (followerInfo.getLeaderInfo().getId() == null
+        || followerInfo.getLeaderInfo().getId().getId() == null) {
+      return UNDEFINED_LEADER_ID;
+    }
+    return followerInfo.getLeaderInfo().getId().getId().toStringUtf8();
+  }
+
+  /**
+   * Gets leader index. The return integer means the leader index of embedded journal addresses
+   * -1 stand for leader not found.
+   *
+   * @return the leader index
+   */
+  protected int getLeaderIndex() {
+    String leaderId = getLeaderId();
+    String leaderAddress = leaderId.replace('_', ':');
+    int index = 0;
+    for (InetSocketAddress address : mConf.getClusterAddresses()) {
+      if (address.toString().equals(leaderAddress)) {
+        return index;
+      }
+      index++;
+    }
+    return -1;
   }
 }

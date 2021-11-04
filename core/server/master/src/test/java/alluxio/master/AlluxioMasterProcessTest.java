@@ -21,6 +21,7 @@ import alluxio.exception.status.UnavailableException;
 import alluxio.master.journal.noop.NoopJournalSystem;
 import alluxio.master.journal.raft.RaftJournalConfiguration;
 import alluxio.master.journal.raft.RaftJournalSystem;
+import alluxio.metrics.MetricsSystem;
 import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
 import alluxio.util.io.FileUtils;
@@ -29,6 +30,7 @@ import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableMap;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -37,10 +39,12 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.modules.junit4.PowerMockRunner;
+import org.powermock.modules.junit4.PowerMockRunnerDelegate;
 
 import java.io.IOException;
 import java.net.BindException;
@@ -49,6 +53,9 @@ import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.URL;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Map;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -56,6 +63,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * Tests for {@link AlluxioMasterProcess}.
  */
 @RunWith(PowerMockRunner.class) // annotations for `startMastersThrowsUnavailableException`
+@PowerMockRunnerDelegate(Parameterized.class)
 @PrepareForTest({FaultTolerantAlluxioMasterProcess.class})
 @PowerMockIgnore({"javax.crypto.*"}) // https://stackoverflow.com/questions/7442875/generating-hmacsha256-signature-in-junit
 public final class AlluxioMasterProcessTest {
@@ -74,6 +82,31 @@ public final class AlluxioMasterProcessTest {
   private int mRpcPort;
   private int mWebPort;
 
+  @Parameterized.Parameters
+  public static Collection<Object[]> data() {
+    return Arrays.asList(new Object[][] {
+        {new ImmutableMap.Builder()
+            .put(PropertyKey.STANDBY_MASTER_WEB_ENABLED, "true")
+            .put(PropertyKey.STANDBY_MASTER_METRICS_SINK_ENABLED, "true")
+            .build()},
+        {new ImmutableMap.Builder()
+            .put(PropertyKey.STANDBY_MASTER_WEB_ENABLED, "false")
+            .put(PropertyKey.STANDBY_MASTER_METRICS_SINK_ENABLED, "false")
+            .build()},
+        {new ImmutableMap.Builder()
+            .put(PropertyKey.STANDBY_MASTER_WEB_ENABLED, "true")
+            .put(PropertyKey.STANDBY_MASTER_METRICS_SINK_ENABLED, "false")
+            .build()},
+        {new ImmutableMap.Builder()
+            .put(PropertyKey.STANDBY_MASTER_WEB_ENABLED, "false")
+            .put(PropertyKey.STANDBY_MASTER_METRICS_SINK_ENABLED, "true")
+            .build()},
+    });
+  }
+
+  @Parameterized.Parameter
+  public ImmutableMap<PropertyKey, String> mConfigMap;
+
   @Before
   public void before() throws Exception {
     ServerConfiguration.reset();
@@ -82,9 +115,13 @@ public final class AlluxioMasterProcessTest {
     ServerConfiguration.set(PropertyKey.MASTER_RPC_PORT, mRpcPort);
     ServerConfiguration.set(PropertyKey.MASTER_WEB_PORT, mWebPort);
     ServerConfiguration.set(PropertyKey.MASTER_METASTORE_DIR, mFolder.getRoot().getAbsolutePath());
+    ServerConfiguration.set(PropertyKey.USER_METRICS_COLLECTION_ENABLED, false);
     String journalPath = PathUtils.concatPath(mFolder.getRoot(), "journal");
     FileUtils.createDir(journalPath);
     ServerConfiguration.set(PropertyKey.MASTER_JOURNAL_FOLDER, journalPath);
+    for (Map.Entry<PropertyKey, String> entry : mConfigMap.entrySet()) {
+      ServerConfiguration.set(entry.getKey(), entry.getValue());
+    }
   }
 
   @Test
@@ -113,7 +150,9 @@ public final class AlluxioMasterProcessTest {
       }
     });
     t.start();
-    startStopTest(master);
+    startStopTest(master,
+        ServerConfiguration.getBoolean(PropertyKey.STANDBY_MASTER_WEB_ENABLED),
+        ServerConfiguration.getBoolean(PropertyKey.STANDBY_MASTER_METRICS_SINK_ENABLED));
   }
 
   @Test
@@ -163,6 +202,7 @@ public final class AlluxioMasterProcessTest {
     waitForServing(ServiceType.MASTER_WEB);
     assertTrue(isBound(mRpcPort));
     assertTrue(isBound(mWebPort));
+    Thread.sleep(2000);
     primarySelector.setState(PrimarySelector.State.STANDBY);
     t.join(10000);
     // make these two lines flake less
@@ -209,6 +249,11 @@ public final class AlluxioMasterProcessTest {
   }
 
   private void startStopTest(AlluxioMasterProcess master) throws Exception {
+    startStopTest(master, true, true);
+  }
+
+  private void startStopTest(AlluxioMasterProcess master,
+      boolean expectWebServiceStarted, boolean expectMetricsSinkStarted) throws Exception {
     waitForServing(ServiceType.MASTER_RPC);
     waitForServing(ServiceType.MASTER_WEB);
     assertTrue(isBound(mRpcPort));
@@ -216,7 +261,10 @@ public final class AlluxioMasterProcessTest {
     boolean testMode = ServerConfiguration.getBoolean(PropertyKey.TEST_MODE);
     ServerConfiguration.set(PropertyKey.TEST_MODE, false);
     master.waitForReady(5000);
+    master.waitForReadyWebService(5000);
     ServerConfiguration.set(PropertyKey.TEST_MODE, testMode);
+    assertTrue(expectWebServiceStarted == (master.getWebAddress() != null));
+    assertTrue(expectMetricsSinkStarted == MetricsSystem.isStarted());
     master.stop();
     assertFalse(isBound(mRpcPort));
     assertFalse(isBound(mWebPort));
