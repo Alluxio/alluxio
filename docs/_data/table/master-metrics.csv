@@ -6,6 +6,7 @@ Master.AuditLogEntriesSize,GAUGE
 Master.BlockHeapSize,GAUGE
 Master.BlockReplicaCount,GAUGE
 Master.CompleteFileOps,COUNTER
+Master.CompletedOperationRetryCount,COUNTER
 Master.CreateDirectoryOps,COUNTER
 Master.CreateFileOps,COUNTER
 Master.DeletePathOps,COUNTER
@@ -62,6 +63,7 @@ Master.ListingCacheMisses,COUNTER
 Master.ListingCacheSize,GAUGE
 Master.LostBlockCount,GAUGE
 Master.LostFileCount,GAUGE
+Master.MasterHeartbeatTriggeredActiveJobSize,GAUGE
 Master.MountOps,COUNTER
 Master.NewBlocksGot,COUNTER
 Master.PathsDeleted,COUNTER
