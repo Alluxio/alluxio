@@ -14,9 +14,8 @@ wraps the Alluxio Java Client to implement the Hadoop API.
 Alluxio also provides a [POSIX API]({{ '/en/api/POSIX-API.html' | relativize_url }}) after mounting
 Alluxio as a local FUSE volume.
 
-By setting up an Alluxio Proxy, users can also interact with Alluxio through a [REST
-API](#rest-api) similar to the File System API. The REST API is currently used for the Go and 
-Python language
+By setting up an Alluxio Proxy, users can also interact with Alluxio through a [REST API](#rest-api) 
+similar to the File System API. The REST API is currently used for the Go and Python language
 bindings.
 
 A fourth option is to interact with Alluxio through its 
