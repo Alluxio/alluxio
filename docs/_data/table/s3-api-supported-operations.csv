@@ -19,5 +19,5 @@ S3Feature,Status
 "Get Object (Range Query)",Supported
 "Object ACLs (Get, Put)","Not Supported"
 "POST Object","Not Supported"
-"Copy Object","Not Supported"
+"Copy Object","Supported"
 "Multipart Uploads","Supported"

@@ -18,7 +18,7 @@ By setting up an Alluxio Proxy, users can also interact with Alluxio through a R
 API similar to the Filesystem API. The REST API is currently used for the Go and Python language
 bindings.
 
-A fourth option is to interact with Alluxio through its S3 API. Users can interact
+A fourth option is to interact with Alluxio through its [S3 API]({{ '/en/api/S3-API.html' | relativize_url }}). Users can interact
 using the same S3 clients used for AWS S3 operations. This makes it easy to change
 existing S3 workloads to use Alluxio.
 
@@ -75,7 +75,7 @@ which represents the path to the resource.
 #### Getting a Filesystem Client
 
 To obtain an Alluxio Filesystem client in Java code, use
-[FileSystem.Factory#get()](https://docs.alluxio.io/os/javadoc/{{site.ALLUXIO_MAJOR_VERSION}}/alluxio/client/file/FileSystem.Factory.html#get--):
+[`FileSystem.Factory#get()`](https://docs.alluxio.io/os/javadoc/{{site.ALLUXIO_MAJOR_VERSION}}/alluxio/client/file/FileSystem.Factory.html#get--):
 
 ```java
 FileSystem fs = FileSystem.Factory.get();
@@ -86,7 +86,7 @@ FileSystem fs = FileSystem.Factory.get();
 All metadata operations as well as opening a file for reading or creating a file for writing are
 executed through the `FileSystem` object. Since Alluxio files are immutable once written, the
 idiomatic way to create files is to use
-[FileSystem#createFile(AlluxioURI)](https://docs.alluxio.io/os/javadoc/{{site.ALLUXIO_MAJOR_VERSION}}/alluxio/client/file/FileSystem.html#createFile-alluxio.AlluxioURI-),
+[`FileSystem#createFile(AlluxioURI)`](https://docs.alluxio.io/os/javadoc/{{site.ALLUXIO_MAJOR_VERSION}}/alluxio/client/file/FileSystem.html#createFile-alluxio.AlluxioURI-),
 which returns a stream object that can be used to write the file. For example:
 
 ```java
@@ -108,7 +108,7 @@ metadata (i.e. TTL or pin state) or getting an input stream to read the file.
 
 #### Reading Data
 
-Use [FileSystem#openFile(AlluxioURI)](https://docs.alluxio.io/os/javadoc/{{site.ALLUXIO_MAJOR_VERSION}}/alluxio/client/file/FileSystem.html#openFile-alluxio.AlluxioURI-)
+Use [`FileSystem#openFile(AlluxioURI)`](https://docs.alluxio.io/os/javadoc/{{site.ALLUXIO_MAJOR_VERSION}}/alluxio/client/file/FileSystem.html#openFile-alluxio.AlluxioURI-)
 to obtain a stream object that can be used to read a file. For example:
 
 ```java
@@ -131,7 +131,10 @@ users to specify non-default settings for the operation. For example:
 FileSystem fs = FileSystem.Factory.get();
 AlluxioURI path = new AlluxioURI("/myFile");
 // Generate options to set a custom blocksize of 64 MB
-CreateFilePOptions options = CreateFilePOptions.newBuilder().setBlockSizeBytes(64 * Constants.MB).build();
+CreateFilePOptions options = CreateFilePOptions
+                              .newBuilder()
+                              .setBlockSizeBytes(64 * Constants.MB)
+                              .build();
 FileOutStream out = fs.createFile(path, options);
 ```
 
@@ -344,8 +347,8 @@ The HTTP proxy is a standalone server that can be started using
 proxy`. By default, the REST API is available on port 39999.
 
 There are performance implications of using the HTTP proxy. In particular, using the proxy requires
-an extra hop. For optimal performance, it is recommended to run the proxy server and an Alluxio
-worker on each compute node.
+an extra network hop to perform filesystem operations. For optimal performance, it is recommended to
+run the proxy server and an Alluxio worker on each compute node.
 
 ## Python
 
@@ -484,8 +487,8 @@ The proxy is a standalone server that can be started using
 proxy`. By default, the REST API is available on port 39999.
 
 There are performance implications of using the HTTP proxy. In particular, using the proxy requires
-an extra hop. For optimal performance, it is recommended to run the proxy server and an Alluxio
-worker on each compute node.
+an extra network hop to perform filesystem operations. For optimal performance, it is recommended to
+run the proxy server and an Alluxio worker on each compute node.
 
 ### Install Go Client Library
 ```console
