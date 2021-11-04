@@ -136,7 +136,7 @@ public class BackupCommand extends AbstractFsAdminCommand {
 
   @Override
   public String getUsage() {
-    return "backup [directory] [--local]";
+    return "backup [directory] [--local] [--allow-leader]";
   }
 
   @Override
