@@ -1202,8 +1202,8 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setMetricType(MetricType.GAUGE)
           .setIsClusterAggregated(false)
           .build();
-  public static final MetricKey WORKER_BLOCK_READER_THREAD_ACTIVELY_COUNT =
-      new Builder("Worker.BlockReaderThreadActivelyCount")
+  public static final MetricKey WORKER_BLOCK_READER_THREAD_ACTIVE_COUNT =
+      new Builder("Worker.BlockReaderThreadActiveCount")
           .setDescription("The approximate number of block read "
               + "threads that are actively executing tasks in reader thread pool")
           .setMetricType(MetricType.GAUGE)
@@ -1229,8 +1229,8 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setMetricType(MetricType.GAUGE)
           .setIsClusterAggregated(false)
           .build();
-  public static final MetricKey WORKER_BLOCK_WRITER_THREAD_ACTIVELY_COUNT =
-      new Builder("Worker.BlockWriterThreadActivelyCount")
+  public static final MetricKey WORKER_BLOCK_WRITER_THREAD_ACTIVE_COUNT =
+      new Builder("Worker.BlockWriterThreadActiveCount")
           .setDescription("The approximate number of block write "
               + "threads that are actively executing tasks in writer thread pool")
           .setMetricType(MetricType.GAUGE)
