@@ -46,9 +46,9 @@ Each instance can report to zero or more sinks.
 * `GraphiteSink`: Sends metrics to a Graphite server.
 * `MetricsServlet`: Adds a servlet in Web UI to serve metrics data as JSON data.
 
-The metrics system is configured via a configuration file that Alluxio expects to be present at `$ALLUXIO_HOME/conf/metrics.properties`.
+The metrics system is configured via a configuration file that Alluxio expects to be present at `${ALLUXIO_HOME}/conf/metrics.properties`.
 A custom file location can be specified via the `alluxio.metrics.conf.file` configuration property.
-Refer to `$ALLUXIO_HOME/conf/metrics.properties.template` for all possible sink specific configurations.
+Refer to `${ALLUXIO_HOME}/conf/metrics.properties.template` for all possible sink specific configurations.
 
 The Alluxio leading master emits both its instance metrics and a summary of the cluster-wide aggregated metrics.
 
