@@ -88,3 +88,31 @@ spec:
     - entry_timeout=36000
     - attr_timeout=36000
 ```
+
+If you use inline volume provisioning, you can customize these options in `VolumeSource.csi.volumeAttributes`
+
+An example of creating POD using Alluxio inline volume Spec:
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: alluxio-nginx
+spec:
+  containers:
+  - image: nginx:latest
+    name: nginx
+    ports:
+    - containerPort: 80
+      protocol: TCP
+    volumeMounts:
+      - mountPath: /data
+        name: alluxio-inline-volume
+  volumes:
+  - name: alluxio-inline-volume
+    csi:
+      driver: alluxio
+      volumeAttributes:
+        alluxioPath: "/data"
+        javaOptions: "-Dalluxio.master.hostname=bar.com"
+        mountOptions: "kernel_cache,allow_otheri,entry_timeout=36000,attr_timeout=36000"
+```
