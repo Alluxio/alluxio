@@ -15,15 +15,16 @@ You can invoke the following command line utility to get all the subcommands:
 ```console
 $ ./bin/alluxio fsadmin
 Usage: alluxio fsadmin [generic options]
-	 [backup [directory] [--local]]
-	 [doctor [category]]
-	 [getBlockInfo [blockId]]
-	 [journal [checkpoint] [quorum]]
-	 [metrics [clear]]
-	 [pathConf [add] [show] [list] [remove]]
-	 [report [category] [category args]]
-	 [statelock]
-	 [ufs [--mode <noAccess/readOnly/readWrite>] <ufsPath>]
+	 [backup [directory] [--local]]                            
+	 [doctor [category]]                                       
+	 [getBlockInfo [blockId]]                                  
+	 [journal [checkpoint] [quorum]]                           
+	 [metrics [clear]]                                         
+	 [pathConf [add] [show] [list] [remove]]                   
+	 [report [category] [category args]]                       
+	 [statelock]                                               
+	 [ufs [--mode <noAccess/readOnly/readWrite>] <ufsPath>]    
+	 [updateConf key1=val1 [key2=val2 ...]]
 
 ```
 
