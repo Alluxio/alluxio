@@ -167,7 +167,7 @@ public final class PrimarySelectorClient extends AbstractPrimarySelector
    * Used to handle state change under STANDARD connection error policy.
    */
   private void handleStateChangeStandard(CuratorFramework client, ConnectionState newState) {
-    setState(State.SECONDARY);
+    setState(State.STANDBY);
   }
 
   /**
@@ -178,7 +178,7 @@ public final class PrimarySelectorClient extends AbstractPrimarySelector
     switch (newState) {
       case CONNECTED:
       case LOST:
-        setState(State.SECONDARY);
+        setState(State.STANDBY);
         break;
       case SUSPENDED:
         break;
@@ -197,7 +197,7 @@ public final class PrimarySelectorClient extends AbstractPrimarySelector
                   "Curator reconnected under a different session. "
                       + "Old sessionId: %x, New sessionId: %x",
                   mLeaderZkSessionId, reconnectSessionId));
-              setState(State.SECONDARY);
+              setState(State.STANDBY);
             } else {
               LOG.info(String.format(
                   "Retaining leader state after zookeeper reconnected with sessionId: %x.",
@@ -205,7 +205,7 @@ public final class PrimarySelectorClient extends AbstractPrimarySelector
             }
           } catch (Exception e) {
             LOG.warn("Cannot query session Id after session is reconnected.", e);
-            setState(State.SECONDARY);
+            setState(State.STANDBY);
           }
         }
         break;
@@ -228,7 +228,7 @@ public final class PrimarySelectorClient extends AbstractPrimarySelector
     try {
       mLeaderZkSessionId = client.getZookeeperClient().getZooKeeper().getSessionId();
       LOG.info(String.format("Taken leadership under session Id: %x", mLeaderZkSessionId));
-      waitForState(State.SECONDARY);
+      waitForState(State.STANDBY);
     } finally {
       LOG.warn("{} relinquishing leadership.", mName);
       LOG.info("The current leader is {}", mLeaderSelector.getLeader().getId());

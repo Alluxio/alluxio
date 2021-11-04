@@ -119,7 +119,7 @@ in concurrent journal flushing (journal IO to standby masters and IO to local di
 * `alluxio.master.embedded.journal.transport.request.timeout.ms`: The duration after which embedded journal masters will timeout messages sent between each other.
  Lower values might cause leadership instability when the network is slow. Default: `5s`.
 * `alluxio.master.embedded.journal.transport.max.inbound.message.size`: Maximum allowed size for a network message between embedded journal masters.
-The configured value should allow for appending batches to all secondary masters. Default: `100MB`.
+The configured value should allow for appending batches to all standby masters. Default: `100MB`.
 * `alluxio.master.embedded.journal.write.local.first.enabled`: Whether the journal writer will attempt to write entry locally before falling back to a full remote raft client. 
  Disable local first write may impact the metadata performance under heavy load but less error-prone during network flakiness. Default: `true`.
 * `alluxio.master.embedded.journal.write.timeout`: Maximum time to wait for a write/flush on embedded journal. Default: `30sec`.
@@ -202,23 +202,23 @@ Users can set this property to the number of backup files they want to keep in t
 ### Backup delegation on HA cluster
 
 Alluxio supports taking backup without causing service unavailability on a HA cluster configuration.
-When enabled, Alluxio leading master delegates backups to stand-by masters in the cluster.
+When enabled, Alluxio leading master delegates backups to standby masters in the cluster.
 After configuring backup delegation, both manual and scheduled backups will run in delegated mode.
 
 Backup delegation can be configured with the below properties:
-- `alluxio.master.backup.delegation.enabled`: Whether to delegate backups to stand-by masters. Default: `false`.
-- `alluxio.master.backup.heartbeat.interval`: Interval at which stand-by master that is taking the backup will update the leading master with current backup status. Default: `2sec`.
+- `alluxio.master.backup.delegation.enabled`: Whether to delegate backups to standby masters. Default: `false`.
+- `alluxio.master.backup.heartbeat.interval`: Interval at which standby master that is taking the backup will update the leading master with current backup status. Default: `2sec`.
 
 Some advanced properties control the communication between Alluxio masters for coordinating the backup:
 - `alluxio.master.backup.transport.timeout`: Communication timeout for messaging between masters for coordinating backup. Default: `30sec`.
-- `alluxio.master.backup.connect.interval.min`: Minimum duration to sleep before retrying after unsuccessful handshake between stand-by master and leading master. Default: `1sec`.
-- `alluxio.master.backup.connect.interval.max`: Maximum duration to sleep before retrying after unsuccessful handshake between stand-by master and leading master. Default: `30sec`.
+- `alluxio.master.backup.connect.interval.min`: Minimum duration to sleep before retrying after unsuccessful handshake between standby master and leading master. Default: `1sec`.
+- `alluxio.master.backup.connect.interval.max`: Maximum duration to sleep before retrying after unsuccessful handshake between standby master and leading master. Default: `30sec`.
 - `alluxio.master.backup.abandon.timeout`: Specifies how long the leading master waits for a heart-beat before abandoning the backup. Default: `1min`.
 
 Since it is uncertain which host will take the backup, it is suggested to use shared paths for taking backups with backup delegation.
 
-A backup attempt will fail if delegation fails to find a stand-by master, thus favoring service availability.
-For manual backups, you can pass `--allow-leader` option to allow the leading master to take a backup when there are no stand-by masters to delegate the backup.
+A backup attempt will fail if delegation fails to find a standby master, thus favoring service availability.
+For manual backups, you can pass `--allow-leader` option to allow the leading master to take a backup when there are no standby masters to delegate the backup.
 This will cause temporary service unavailability while the leading master is writing a backup.
 
 ### Restoring from a backup
@@ -407,12 +407,12 @@ See [here]({{ '/en/operation/User-CLI.html' | relativize_url }}#readjournal) for
 
 ### Exiting upon Demotion
 
-By default Alluxio will transition masters from primaries to secondaries.
+By default, Alluxio will transition masters from primaries to standbys.
 During this process the JVM is _not_ shut down at any point.
 This occasionally leaves behind resources and may lead to a bloated memory footprint.
 To avoid taking up too much memory this, there is a flag which forces a master JVM to exit once it
-has been demoted from a primary to a secondary.
-This moves the responsibility of restarting the process to join the quorum as a secondary to a
+has been demoted from a primary to a standby.
+This moves the responsibility of restarting the process to join the quorum as a standby to a
 process supervisor such as a Kubernetes cluster manager or systemd.
 
 To configure this behavior for an Alluxio master, set the following configuration inside of 

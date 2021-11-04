@@ -1552,7 +1552,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey MASTER_BACKUP_DELEGATION_ENABLED =
       new Builder(Name.MASTER_BACKUP_DELEGATION_ENABLED)
           .setDefaultValue(false)
-          .setDescription("Whether to delegate journals to stand-by masters in HA cluster.")
+          .setDescription("Whether to delegate journals to standby masters in HA cluster.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.MASTER)
           .build();
@@ -2177,8 +2177,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       new Builder(Name.MASTER_JOURNAL_EXIT_ON_DEMOTION)
           .setDefaultValue(false)
           .setDescription("(Experimental) When this flag is set to true, the master process may "
-              + "start as the primary or secondary in a quorum, but at any point in time after "
-              + "becoming a primary it is demoted to secondary, the process will shut down. This "
+              + "start as the primary or standby in a quorum, but at any point in time after "
+              + "becoming a primary it is demoted to standby, the process will shut down. This "
               + "leaves the responsibility of restarting the master to re-join the quorum (e.g. in"
               + " case of a journal failure on a particular node) to an external entity such as "
               + "kubernetes or systemd.")

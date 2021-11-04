@@ -14,7 +14,7 @@
 # In HA mode, Alluxio will use internal leader election or Zookeeper leader election
 # to decide which of the masters should act as the primary. In non-HA mode, the master started
 # on the host identified by the first entry in this file will act as the primary; the remaining hosts
-# will be used to start a secondary; which are responsible for journal compaction.
+# will be used to start a standby; which are responsible for journal compaction.
 #
 # The multi-master Zookeeper HA mode requires that all the masters can access
 # the same journal through a shared medium (e.g. HDFS or NFS).
