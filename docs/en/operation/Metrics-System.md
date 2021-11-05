@@ -166,21 +166,21 @@ The web page includes the following information:
 
 The nickname and original metric name corresponding are shown:
 
-| Nick Name | Original Metric Name |
-|-----------------------------------|------------------------------|
-| Local Alluxio (Domain Socket) Read | `cluster.BytesReadDomain` |
-| Local Alluxio (Domain Socket) Write | `cluster.BytesWrittenDomain` |
-| Local Alluxio (Short-circuit) Read | `cluster.BytesReadLocal` |
-| Local Alluxio (Short-circuit) Write | `cluster.BytesWrittenLocal` |
-| Remote Alluxio Read | `cluster.BytesReadRemote` |
-| Remote Alluxio Write | `cluster.BytesWrittenRemote` |
-| Under Filesystem Read | `cluster.BytesReadUfsAll `| 
-| Under Filesystem Write | `cluster.BytesWrittenUfsAll` |
+| Nick Name  | | Original Metric Name |
+|-----------------------------------|-|------------------------------|
+| Local Alluxio (Domain Socket) Read | | `Cluster.BytesReadDomain` |
+| Local Alluxio (Domain Socket) Write | | `Cluster.BytesWrittenDomain` |
+| Local Alluxio (Short-circuit) Read | | `Cluster.BytesReadLocal` |
+| Local Alluxio (Short-circuit) Write | | `Cluster.BytesWrittenLocal` |
+| Remote Alluxio Read | | `Cluster.BytesReadRemote` |
+| Remote Alluxio Write | | `Cluster.BytesWrittenRemote` |
+| Under Filesystem Read | | `Cluster.BytesReadUfsAll `| 
+| Under Filesystem Write | | `Cluster.BytesWrittenUfsAll` |
 
 Detailed descriptions of those metrics are in [cluster metrics]({{ '/en/reference/Metrics-List.html' | relativize_url }}#cluster-metrics).
 
-`Mounted Under FileSystem Read` shows the `cluster.BytesReadPerUfs.UFS:<UFS_ADDRESS>` of each Alluxio UFS.
-`Mounted Under FileSystem Write` shows the `cluster.BytesWrittenPerUfs.UFS:<UFS_ADDRESS>` of each Alluxio UFS.
+`Mounted Under FileSystem Read` shows the `Cluster.BytesReadPerUfs.UFS:<UFS_ADDRESS>` of each Alluxio UFS.
+`Mounted Under FileSystem Write` shows the `Cluster.BytesWrittenPerUfs.UFS:<UFS_ADDRESS>` of each Alluxio UFS.
 
 `Logical Operations` and `RPC Invocations` present parts of the [master metrics]({{ '/en/reference/Metrics-List.html' | relativize_url }}#master-metrics).
 
@@ -200,12 +200,12 @@ Grafana supports visualizing data from Prometheus. The following steps can help 
 4. Add the Prometheus data source to Grafana with a custom name, for example, *prometheus-alluxio*. Refer to the [toturial](https://grafana.com/docs/grafana/latest/datasources/add-a-data-source/#add-a-data-source) for help on importing a dashboard.
 5. Modify the variables in the dashboard/settings with instructions [here](https://grafana.com/docs/grafana/latest/variables/) and **save** your dashboard.
 
-   | Variable | Value |
-    	|------------------|------------------------------------------------------------|
-   | alluxio_datasource | Your prometheus datasource name (eg. *prometheus-alluxio* used in step 4) |
-   | masters            | Master 'job_name' configured in `prometheus.yml` (eg. *alluxio master*) |
-   | workers            | Worker 'job_name' configured in `prometheus.yml` (eg. *alluxio worker*) |
-   | alluxio_user       | The user used to start up Alluxio (eg. *alluxio*) |
+   | Variable | | Value |
+    	|------------------|-|------------------------------------------------------------|
+   | alluxio_datasource | | Your prometheus datasource name (eg. *prometheus-alluxio* used in step 4) |
+   | masters            | | Master 'job_name' configured in `prometheus.yml` (eg. *alluxio master*) |
+   | workers            | | Worker 'job_name' configured in `prometheus.yml` (eg. *alluxio worker*) |
+   | alluxio_user       | | The user used to start up Alluxio (eg. *alluxio*) |
 
 If your Grafana dashboard appears like the screenshot below, you have built your monitoring successfully. Of course, you can modify the JSON file or just operate on the dashboard to design your monitoring.
 
@@ -220,17 +220,17 @@ The following steps can help you to build your Alluxio monitoring based on Datad
 2. Modify the `conf.d/openmetrics.d/conf.yaml` file (which you can locate using
    [this resource](https://docs.datadoghq.com/agent/guide/agent-configuration-files/?tab=agentv6v7#agent-configuration-directory)).
    Here is a sample `conf.yaml` file:
-```yaml
-init_config:
-
-instances:
-  - prometheus_url: 'http://<LEADING_MASTER_HOSTNAME>:<MASTER_WEB_PORT>/metrics/prometheus/'
-    namespace: 'alluxioMaster'
-    metrics: [ "<Master metric 1>", "<Master metric 2>" ]
-  - prometheus_url: 'http://<WORKER_HOSTNAME>:<WORKER_WEB_PORT>/metrics/prometheus/'
-    namespace: 'alluxioWorker'
-    metrics: [ "<Worker metric 1>", "<Worker metric 2>" ]
-```
+   ```yaml
+   init_config:
+   
+   instances:
+     - prometheus_url: 'http://<LEADING_MASTER_HOSTNAME>:<MASTER_WEB_PORT>/metrics/prometheus/'
+       namespace: 'alluxioMaster'
+       metrics: [ "<Master metric 1>", "<Master metric 2>" ]
+     - prometheus_url: 'http://<WORKER_HOSTNAME>:<WORKER_WEB_PORT>/metrics/prometheus/'
+       namespace: 'alluxioWorker'
+       metrics: [ "<Worker metric 1>", "<Worker metric 2>" ]
+   ```
 3. Restart the Datadog agent (instructions [here](https://docs.datadoghq.com/agent/guide/agent-commands/?tab=agentv6v7#restart-the-agent)).
 
 The metrics emitted by Alluxio should now display on the Datadog web interface.
