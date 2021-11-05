@@ -69,7 +69,7 @@ $ curl 127.0.0.1:19999/metrics/json/
 $ curl 127.0.0.1:30000/metrics/json/
 ``` 
 docs/en/api/POSIX-API.md
-Send an HTTP request to `/metrics/json/` to fuse web port to get fuse metrics. Check out the [Fuse metrics doc]({{ '/en/api/POSIX-API.html' | relativize_url }}) for how to enable fuse metrics.
+Send an HTTP request to `/metrics/json/` to fuse web port to get fuse metrics. Check out the [Fuse metrics doc]({{ '/en/api/POSIX-API.html' | relativize_url }}#fuse-metrics) for how to enable fuse metrics.
 
 ```console
 # Get the metrics in JSON format from an active Alluxio FUSE process.
