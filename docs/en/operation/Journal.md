@@ -255,7 +255,7 @@ masters requires keeping this quorum in a consistent state.
 ##### Adding a new master
 
 To prevent inconsistencies in the cluster configuration across masters, only a single master
-should be added to an existing embedded journal cluster.
+should be added to an existing embedded journal cluster at a time.
 
 Below are the steps to add a new master to a live cluster:
 * Prepare the new master.
