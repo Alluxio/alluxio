@@ -79,16 +79,6 @@ $ curl <FUSE_HOSTNAME>:<FUSE_WEB_PORT>/metrics/json
 $ curl 127.0.0.1:49999/metrics/json/
 ``` 
 
-### CSV Sink Setup
-
-This section gives an example of writing collected metrics to CSV files.
-
-First, create the polling directory for `CsvSink` (if it does not already exist):
-
-```console
-$ mkdir /tmp/alluxio-metrics
-```
-
 ### Prometheus Sink Setup
 
 [Prometheus](https://prometheus.io/) is a monitoring tool that can help to monitor Alluxio metrics changes.
