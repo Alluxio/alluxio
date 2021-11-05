@@ -391,7 +391,7 @@ $ cd ${ALLUXIO_HOME}
 $ ./bin/alluxio fs mount /demo file:///tmp/alluxio-demo
 Mounted file:///tmp/alluxio-demo at /demo
 $ ./bin/alluxio fs ls -R /
-... # note that the output should show /demo 
+... # note that the output should show /demo and /demo/hello
 ```
 
 Verify that the metadata for content not created through Alluxio is loaded into Alluxio the first time it is accessed:
