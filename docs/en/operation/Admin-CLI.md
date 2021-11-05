@@ -24,6 +24,7 @@ Usage: alluxio fsadmin [generic options]
 	 [report [category] [category args]]
 	 [statelock]
 	 [ufs [--mode <noAccess/readOnly/readWrite>] <ufsPath>]
+	 [updateConf key1=val1 [key2=val2 ...]]
 
 ```
 
@@ -300,3 +301,13 @@ $ ./bin/alluxio fsadmin ufs --mode readOnly hdfs://ns
 
 The `fsadmin ufs` subcommand takes a UFS URI as an argument. The argument should be a root
 UFS URI like `hdfs://<name-service>/`, and not `hdfs://<name-service>/<folder>`.
+
+### updateConf
+
+The `updateConf` command provides a way to update config for current running services, the request is sent to alluxio master directly,
+but the other services like worker, fuse, s3 proxy or some other clients will aware the config changed and sync the config.
+
+```console
+$ ./bin/alluxio fsadmin updateConf key1=val1 key2=val2
+Updated 2 configs
+```
