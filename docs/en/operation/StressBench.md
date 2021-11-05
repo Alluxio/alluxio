@@ -18,9 +18,6 @@ The following benchmark suites are currently supported:
 
 * `FuseIOBench` - A benchmark tool measuring the IO performance of Alluxio through Fuse interface.
 * `RpcBench` - A set of benchmark tools which simulate RPCs with a specified load and concurrency.
-  * `GetPinnedFileIdsBench` - for the `GetPinnedFileIds` RPC
-  * `RegisterWorkerBench` - for the `RegisterWorker` RPC
-  * `WorkerHeartbeatBench` - for the `WorkerHeartbeat` RPC
 * `StressClientBench` - A benchmark tool measuring the IO performance of Alluxio through the client.
 * `StressMasterBench` - A benchmark tool measuring the master performance of Alluxio.
 * `StressWorkerBench` - A benchmark tool measuring the IO performance of reading from Alluxio Worker.
@@ -45,6 +42,7 @@ To test RPC throughput of Alluxio master (e.g., for certain RPCs):
 $ bin/alluxio runClass alluxio.stress.cli.GetPinnedFileIdsBench
 $ bin/alluxio runClass alluxio.stress.cli.RegisterWorkerBench
 $ bin/alluxio runClass alluxio.stress.cli.WorkerHeartbeatBench
+$ bin/allixio runClass alluxio.stress.cli.StreamRegisterWorkerBench
 ```
 
 To benchmark Alluxio FUSE performance
@@ -65,6 +63,8 @@ Here is the list of common options that all benchmarks accept:
 * `--cluster`: run the benchmark with job service.
 * `--cluster-limit`: specify how many job workers are used to run the benchmark in parallel. 
   Omit to use all available job workers.
+  > Note this limit must not be greater than the number of currently running job workers, or the 
+  > benchmark will fail.
 * `--cluster-start-delay`: specify the start delay before starting the benchmark, used to synchronize jobs.
 * `--java-opt`: specify additional JVM options
 * `--help`: print usage, description and benchmark-specific options of a benchmark
@@ -791,3 +791,152 @@ The cluster testing is similar to single node testing except that
 
 ### Limitations
 - Ufs IO Bench only supports testing self-generated test files.
+
+## RPC Stress Bench
+
+The RPC Stress Bench is a set of benchmarks designed to measure the RPC performance of the 
+master under heavy load of concurrent client requests.
+
+Similar to the Fuse IO Stress Bench, the RPC benchmarks support running in a single node mode, 
+or in a cluster mode. 
+
+In the single node mode, the node running the benchmark uses multiple threads to simulate many 
+clients which send concurrent RPC request to the master.
+
+In the cluster mode, the benchmarks leverage the job service to create simulated clients. Each 
+job worker hosts many simulated clients on many threads, so with this mode it's possible to 
+achieve higher number of parallel RPC requests, as opposed to the single node mode where the 
+parallelism width is limited by the number of cores available on that node.
+
+Use the common option `--cluster` to specify the cluster mode, otherwise omit it to use the 
+single node mode. Use the `--cluster-limit` option to further specify how many job workers 
+should be used to run the benchmark job in parallel. Notes that 
+
+Each individual RPC benchmark tests a specific RPC service offered by the master. A benchmark 
+may perform necessary preparations that simulate real use cases before the measurement 
+begins. Then the benchmark sends the RPC requests to the master (once or repeatedly, depending on 
+the benchmark), and waits for the response. If the benchmark sends RPC repeatedly, it will stop 
+when the specified measurement duration has been reached. 
+One successful RPC request results in one data point that records the round trip time of the RPC.
+For example, the `GetPinnedFileIdsBench` measures the RPC throughput of the `GetPinnedFileIds` RPC. 
+It creates test files in a temporary directory in Alluxio and pins them. Then it repeatedly calls 
+the RPC and waits for the pinned file list, records and outputs the data points and some statistics
+of the data.
+
+### Common Parameters
+
+These common parameters are available to all RPC benchmarks:
+
+<table class="table table-striped">
+    <tr>
+        <th>Parameters</th>
+        <th>Default Value</th>
+        <th>Description</th>
+    </tr>
+    <tr>
+        <td>concurrency</td>
+        <td>2</td>
+        <td>The number of simulated clients on each node. Typically benchmarks use 1 thread for 1 
+        simulated client.</td>
+    </tr>
+    <tr>
+        <td>duration</td>
+        <td>5s</td>
+        <td>How long the benchmark should be recording measurements for.</td>
+    </tr>
+</table>
+
+### Available benchmarks
+
+These RPC benchmarks are currently available:
+
+- [`GetPinnedFileIdsBench`](#getpinnedfileidsbench)
+- [`RegisterWorkerBench`](#registerworkerbench)
+- [`WorkerHeartbeatBench`](#workerheartbeatbench)
+- [`StreamRegisterWorkerBench`](#streamregisterworkerbench)
+
+#### `GetPinnedFileIdsBench`
+
+For the `GetPinnedFileIds` RPC.
+
+This benchmark calls the RPC repeatedly until duration is reached.
+
+`GetPinnedFileIds` is periodically called by block workers on every heartbeat to poll the 
+pinned file list. It can be expensive if the pinned file list is huge. 
+
+Parameters:
+
+<table class="table table-striped">
+    <tr>
+        <th>Parameters</th>
+        <th>Default Value</th>
+        <th>Description</th>
+    </tr>
+    <tr>
+        <td>num-files</td>
+        <td>100</td>
+        <td>Number of pinned files. Use this parameter to adjust the load incurred by the RPC. 
+            Higher numbers incur higher loads.</td>
+    </tr>
+    <tr>
+        <td>base-dir</td>
+        <td>/get-pin-list-bench-base</td>
+        <td>The temporary directory to contain the test files.</td>
+    </tr>
+</table>
+
+#### `RegisterWorkerBench` 
+
+For the `RegisterWorker` RPC and the `RequestRegisterLease` RPC.
+
+This benchmark calls the RPC only once.
+
+This benchmark measures the performance of the process of new worker registration. 
+The`RegisterWorker` RPC carries a list of blocks that is currently stored in the worker's storage. 
+This RPC can be expensive if the list is huge. 
+The `RequestRegisterLease` RPC is part of the mechanism that the master uses to 
+control the number of concurrently registering clients so that it does not exceed the master's 
+processing capacity.
+
+Parameters:
+
+<table class="table table-striped">
+    <tr>
+        <th>Parameters</th>
+        <th>Default Value</th>
+        <th>Description</th>
+    </tr>
+    <tr>
+        <td>tiers</td>
+        <td>n/a</td>
+        <td>A semicolon-separated list of storage tiers. Each tier is a comma-separated 
+            list of numbers of blocks in directories on that tier. At most 3 tiers are supported. 
+            Example: `100,200,300;1000,1500;2000`</td>
+    </tr>
+</table>
+
+#### `WorkerHeartbeatBench`
+
+For the `WorkerHeartbeat` RPC.
+
+`WorkerHeartbeat` is called on every worker heartbeat. Similar to the `RegisterWorker` RPC, this 
+RPC carries a block list, and can be expensive if that list is huge.
+
+This benchmark calls the RPC repeatedly until duration is reached.
+
+Parameters:
+
+Same as [`RegisterWorkerBench`](#registerworkerbench).
+
+#### `StreamRegisterWorkerBench`
+
+For the `RegisterWorkerStream` RPC.
+
+This benchmark calls the RPC only once.
+
+`RegisterWorkerStream` is similar to `RegisterWorker`, except that this RPC allows streaming of 
+the huge block list. 
+
+Parameters:
+
+Same as [`RegisterWorkerBench`](#registerworkerbench).
