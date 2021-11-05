@@ -181,10 +181,10 @@ public class JournalContextTest {
   public void journalClosedTest() throws Exception {
     // Secondary journals will be closed for operation.
     mJournalSystem.losePrimacy();
-    // Validate that createJournalContext fails for secondary journals.
+    // Validate that createJournalContext fails for standby journals.
     try {
       mBlockMaster.createJournalContext();
-      fail("journal context creation should fail in secondary journal.");
+      fail("journal context creation should fail in standby journal.");
     } catch (UnavailableException e) {
       // expected.
     }

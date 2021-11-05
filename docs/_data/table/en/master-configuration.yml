@@ -9,7 +9,7 @@ alluxio.master.backup.connect.interval.max:
 alluxio.master.backup.connect.interval.min:
   'Minimum delay between each connection attempt to backup-leader.'
 alluxio.master.backup.delegation.enabled:
-  'Whether to delegate journals to stand-by masters in HA cluster.'
+  'Whether to delegate journals to standby masters in HA cluster.'
 alluxio.master.backup.directory:
   'Default directory for writing master metadata backups. This path is an absolute path of the root UFS. For example, if the root ufs directory is hdfs://host:port/alluxio/data, the default backup directory will be hdfs://host:port/alluxio_backups.'
 alluxio.master.backup.entry.buffer.count:
@@ -91,7 +91,7 @@ alluxio.master.journal.catchup.protect.enabled:
 alluxio.master.journal.checkpoint.period.entries:
   'The number of journal entries to write before creating a new journal checkpoint.'
 alluxio.master.journal.exit.on.demotion:
-  '(Experimental) When this flag is set to true, the master process may start as the primary or secondary in a quorum, but at any point in time after becoming a primary it is demoted to secondary, the process will shut down. This leaves the responsibility of restarting the master to re-join the quorum (e.g. in case of a journal failure on a particular node) to an external entity such as kubernetes or systemd.'
+  '(Experimental) When this flag is set to true, the master process may start as the primary or standby in a quorum, but at any point in time after becoming a primary it is demoted to standby, the process will shut down. This leaves the responsibility of restarting the master to re-join the quorum (e.g. in case of a journal failure on a particular node) to an external entity such as kubernetes or systemd.'
 alluxio.master.journal.flush.batch.time:
   'Time to wait for batching journal writes.'
 alluxio.master.journal.flush.timeout:

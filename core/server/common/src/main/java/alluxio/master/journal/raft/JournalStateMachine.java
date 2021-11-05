@@ -636,7 +636,7 @@ public class JournalStateMachine extends BaseStateMachine {
   /**
    * Upgrades the journal state machine to primary mode.
    *
-   * @return the last sequence number read while in secondary mode
+   * @return the last sequence number read while in standby mode
    */
   public synchronized long upgrade() {
     // Resume the journal applier if was suspended.

@@ -100,9 +100,9 @@ public final class AlluxioMasterProcessTest {
   }
 
   @Test
-  public void startStopSecondary() throws Exception {
+  public void startStopStandby() throws Exception {
     FaultTolerantAlluxioMasterProcess master = new FaultTolerantAlluxioMasterProcess(
-        new NoopJournalSystem(), new AlwaysSecondaryPrimarySelector());
+        new NoopJournalSystem(), new AlwaysStandbyPrimarySelector());
     Thread t = new Thread(() -> {
       try {
         master.start();
@@ -143,7 +143,7 @@ public final class AlluxioMasterProcessTest {
   }
 
   @Test
-  public void stopAfterSecondaryTransition() throws Exception {
+  public void stopAfterStandbyTransition() throws Exception {
     ControllablePrimarySelector primarySelector = new ControllablePrimarySelector();
     primarySelector.setState(PrimarySelector.State.PRIMARY);
     ServerConfiguration.set(PropertyKey.MASTER_JOURNAL_EXIT_ON_DEMOTION, "true");
@@ -161,7 +161,7 @@ public final class AlluxioMasterProcessTest {
     waitForServing(ServiceType.MASTER_WEB);
     assertTrue(isBound(mRpcPort));
     assertTrue(isBound(mWebPort));
-    primarySelector.setState(PrimarySelector.State.SECONDARY);
+    primarySelector.setState(PrimarySelector.State.STANDBY);
     t.join(10000);
     // make these two lines flake less
     //assertFalse(isBound(mRpcPort));
