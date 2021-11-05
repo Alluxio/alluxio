@@ -9,7 +9,7 @@ priority: 8
 * Table of Contents
 {:toc}
 
-This document goes over various tips and configuration to tune Alluxio performance.
+This document goes over various tips and configurations to tune Alluxio performance.
 
 ## Common Performance Issues
 
@@ -151,7 +151,7 @@ The latter part uses the bytes Alluxio reads from the UFS and divide by all the 
 This computes the cache miss rate. 
 1 - cache miss rate gives us cache hit rate. 
 
-In Alluxio versions after 2.6, we included an additional metric `Cluster.CacheHitRatio`, which indicates the cache hit ratio. 
+In Alluxio versions after 2.6, we included an additional metric `Cluster.CacheHitRate`, which indicates the cache hit ratio. 
 Here the cache hit ratio means the percentage of data that is accessed and already in Alluxio storage.
 If there is a drop in the hit ratio, consider boosting cache size or examine the recent access pattern to see why data accesses are going to the ufs.
 
@@ -455,6 +455,6 @@ adjust
  * Check `dmesg -T | egrep -i 'killed process'`
  * This will show which process (if any) got killed by OOM killer
 If confirmed OOM issue, start by increasing xmx, directmemory setting of the relevant process
- *  Sometimes the log will show an Out Of Memory exception, this is a Java reported OOM. 
+ * Sometimes the log will show an Out Of Memory exception, this is a Java reported OOM. 
  * This is typically caused by not enough system resources, such as ulimit, thread stack space etc.  
 
