@@ -680,7 +680,7 @@ public final class MasterWebUIMetrics implements Serializable {
    * @return the updated masterWebUIMetrics object
    */
   public MasterWebUIMetrics setTimeSeriesMetrics(List<TimeSeries> timeSeries) {
-    mTimeSeriesMetrics = timeSeries.subList(Math.max(timeSeries.size() - 20, 0), timeSeries.size());
+    mTimeSeriesMetrics = timeSeries;
     return this;
   }
 

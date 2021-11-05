@@ -382,6 +382,6 @@ respective under file system, such as HDFS transparent encryption or Linux disk 
 ## Deployment
 
 It is required to start Alluxio masters and workers using the same operating system user.
-In the case where there is a user mismatch, secondary master health check,
+In the case where there is a user mismatch, standby master health check,
 the command `alluxio-start.sh all`, and certain file operations may fail because of
 permission checks.
