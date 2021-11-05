@@ -35,6 +35,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 /**
@@ -88,9 +89,13 @@ public final class DistributedLoadUtils {
       Set<String> excludedWorkerSet, Set<String> localityIds, Set<String> excludedLocalityIds,
       boolean printOut) throws IOException, AlluxioException {
     ListStatusPOptions options = ListStatusPOptions.newBuilder().setRecursive(true).build();
+    AtomicInteger incompleteCount = new AtomicInteger();
     command.mFileSystem.iterateStatus(filePath, options, uriStatus -> {
       if (!uriStatus.isFolder()) {
         if (!uriStatus.isCompleted()) {
+          incompleteCount.getAndIncrement();
+          System.out.printf("Attempt load failed because: %s is in incomplete status",
+                  uriStatus.getPath());
           return;
         }
         AlluxioURI fileURI = new AlluxioURI(uriStatus.getPath());
@@ -109,6 +114,9 @@ public final class DistributedLoadUtils {
         }
       }
     });
+    System.out.printf("%d paths load failed because they are in incomplete status",
+            incompleteCount.get());
+
     // add all the jobs left in the pool
     if (pool.size() > 0) {
       addJob(command, pool, replication, workerSet, excludedWorkerSet, localityIds,
