@@ -94,7 +94,7 @@ public final class DistributedLoadUtils {
       if (!uriStatus.isFolder()) {
         if (!uriStatus.isCompleted()) {
           incompleteCount.getAndIncrement();
-          System.out.printf("Attempt load failed because: %s is in incomplete status",
+          System.out.printf("Ignored load because: %s is in incomplete status",
                   uriStatus.getPath());
           return;
         }
@@ -114,8 +114,10 @@ public final class DistributedLoadUtils {
         }
       }
     });
-    System.out.printf("%d paths load failed because they are in incomplete status",
-            incompleteCount.get());
+    if (incompleteCount.get() > 0) {
+      System.out.printf("Ignore load %d paths because they are in incomplete status",
+              incompleteCount.get());
+    }
 
     // add all the jobs left in the pool
     if (pool.size() > 0) {
