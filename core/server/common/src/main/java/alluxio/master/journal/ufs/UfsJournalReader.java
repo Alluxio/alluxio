@@ -38,7 +38,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * Implementation of {@link JournalReader} that reads journal entries from a UFS. It can optionally
  * read after a given sequence number. By default, it starts from 0 sequence number.
  * If this reader runs in a primary master, it reads the incomplete log.
- * If this reader runs in a secondary master, it does not read the incomplete log.
+ * If this reader runs in a standby master, it does not read the incomplete log.
  */
 @NotThreadSafe
 public final class UfsJournalReader implements JournalReader {
