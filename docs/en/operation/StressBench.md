@@ -795,7 +795,7 @@ The cluster testing is similar to single node testing except that
 ## RPC Stress Bench
 
 The RPC Stress Bench is a set of benchmarks designed to measure the RPC performance of the 
-master under heavy load of concurrent client requests.
+master under heavy load of concurrent client/worker requests.
 
 Similar to the Fuse IO Stress Bench, the RPC benchmarks support running in a single node mode, 
 or in a cluster mode. 
@@ -803,21 +803,23 @@ or in a cluster mode.
 In the single node mode, the node running the benchmark uses multiple threads to simulate many 
 clients which send concurrent RPC request to the master.
 
-In the cluster mode, the benchmarks leverage the job service to create simulated clients. Each 
-job worker hosts many simulated clients on many threads, so with this mode it's possible to 
-achieve higher number of parallel RPC requests, as opposed to the single node mode where the 
-parallelism width is limited by the number of cores available on that node.
+In the cluster mode, the benchmarks leverage the job service to create simulated clients/workers. 
+Each job worker hosts many simulated clients/workers on many threads, so with this mode it's 
+possible to achieve higher number of parallel RPC requests, as opposed to the single node mode 
+where the parallelism width is limited by the number of cores available on that node.
 
 Use the common option `--cluster` to specify the cluster mode, otherwise omit it to use the 
 single node mode. Use the `--cluster-limit` option to further specify how many job workers 
-should be used to run the benchmark job in parallel. Notes that 
+should be used to run the benchmark job in parallel.
 
 Each individual RPC benchmark tests a specific RPC service offered by the master. A benchmark 
 may perform necessary preparations that simulate real use cases before the measurement 
-begins. Then the benchmark sends the RPC requests to the master (once or repeatedly, depending on 
-the benchmark), and waits for the response. If the benchmark sends RPC repeatedly, it will stop 
-when the specified measurement duration has been reached. 
+begins. Then the benchmark sends the RPC request(s) to the master once or repeatedly, depending on 
+the benchmark, and waits for the response(s). If the benchmark calls RPCs repeatedly, it will stop 
+when the specified measurement duration has been reached. Otherwise, it stops as soon as the 
+response is received.
 One successful RPC request results in one data point that records the round trip time of the RPC.
+
 For example, the `GetPinnedFileIdsBench` measures the RPC throughput of the `GetPinnedFileIds` RPC. 
 It creates test files in a temporary directory in Alluxio and pins them. Then it repeatedly calls 
 the RPC and waits for the pinned file list, records and outputs the data points and some statistics
@@ -829,7 +831,7 @@ These common parameters are available to all RPC benchmarks:
 
 <table class="table table-striped">
     <tr>
-        <th>Parameters</th>
+        <th>Parameter</th>
         <th>Default Value</th>
         <th>Description</th>
     </tr>
@@ -868,7 +870,7 @@ Parameters:
 
 <table class="table table-striped">
     <tr>
-        <th>Parameters</th>
+        <th>Parameter</th>
         <th>Default Value</th>
         <th>Description</th>
     </tr>
@@ -902,7 +904,7 @@ Parameters:
 
 <table class="table table-striped">
     <tr>
-        <th>Parameters</th>
+        <th>Parameter</th>
         <th>Default Value</th>
         <th>Description</th>
     </tr>
