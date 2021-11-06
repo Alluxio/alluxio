@@ -397,9 +397,11 @@ public final class MetricKey implements Comparable<MetricKey> {
               + "Use this metric to monitor the RPC pressure on master.")
           .setMetricType(MetricType.GAUGE)
           .build();
-  public static final MetricKey MASTER_HEARTBEAT_TRIGGERED_ACTIVE_JOB_SIZE =
-      new Builder("Master.MasterHeartbeatTriggeredActiveJobSize")
-          .setDescription("Active job size started by master")
+  public static final MetricKey MASTER_REPLICA_MGMT_ACTIVE_JOB_SIZE =
+      new Builder("Master.ReplicaMgmtActiveJobSize")
+          .setDescription("Number of active block replication/eviction jobs. "
+              + "These jobs are created by the master to maintain the block replica factor. "
+              + "The value is an estimate with lag. ")
           .setMetricType(MetricType.GAUGE)
           .setIsClusterAggregated(false)
           .build();
