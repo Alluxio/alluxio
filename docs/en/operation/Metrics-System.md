@@ -67,7 +67,17 @@ $ curl <WORKER_HOSTNAME>:<WORKER_WEB_PORT>/metrics/json/
 $ curl 127.0.0.1:19999/metrics/json/
 # Get the local worker metrics with its default web port 30000
 $ curl 127.0.0.1:30000/metrics/json/
-```
+``` 
+
+Send an HTTP request to `/metrics/json/` to fuse web port to get fuse metrics. Check out the [Fuse metrics doc]({{ '/en/api/POSIX-API.html' | relativize_url }}#fuse-metrics) for how to enable fuse metrics.
+
+```console
+# Get the metrics in JSON format from an active Alluxio FUSE process.
+$ curl <FUSE_HOSTNAME>:<FUSE_WEB_PORT>/metrics/json
+
+# For example, get the metrics from fuse process running locally with default web port
+$ curl 127.0.0.1:49999/metrics/json/
+``` 
 
 ### Prometheus Sink Setup
 
