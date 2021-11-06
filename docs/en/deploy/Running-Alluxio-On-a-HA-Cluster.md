@@ -430,8 +430,8 @@ Alternatively, one benefit of running Alluxio in HA mode is to use rolling resta
 to minimize downtime when updating configurations:
 
 1. Update the master configuration on all the master nodes without restarting any master.
-2. Restart standby masters one by one (the cluster [cannot survive more than `floor(n/2)` simultaneous restarts](http://localhost:4000/en/operation/Journal.html#embedded-journal-vs-ufs-journal)).
-3. Elect a standby master as the leading master (tutorial [here](http://localhost:4000/en/operation/Journal.html#electing-a-specific-master-as-leader)).
+2. Restart standby masters one by one (the cluster [cannot survive more than `floor(n/2)` simultaneous restarts]( {{ '/en/operation/Journal.html#embedded-journal-vs-ufs-journal' | relativize_url }})).
+3. Elect a standby master as the leading master (tutorial [here]({{ '/en/operation/Journal.html#electing-a-specific-master-as-leader' | relativize_url }})).
 4. Restart the old leading master that is now a standby master.
 5. Verify the configuration update.
 
