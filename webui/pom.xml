@@ -42,8 +42,8 @@
             </goals>
             <phase>process-sources</phase>
             <configuration>
-              <nodeVersion>v10.11.0</nodeVersion>
-              <npmVersion>6.4.1</npmVersion>
+              <nodeVersion>v10.24.1</nodeVersion>
+              <npmVersion>6.14.13</npmVersion>
             </configuration>
           </execution>
           <execution>
