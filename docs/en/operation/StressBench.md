@@ -357,7 +357,7 @@ $ bin/alluxio runClass alluxio.stress.cli.suite.JobServiceMaxThroughput --durati
 - A running Alluxio cluster. Each worker node contains at least one worker, one job worker.
 - Configure Alluxio cluster with `alluxio.job.master.job.capacity = 1000000` and `alluxio.job.master.finished.job.retention.time = 10s` to allow large scale job service stress bench.
 - If you are running distributedLoad operation, make sure UFS has enough space to store the test data. The storage size is bigger than
-  `thread` * `num-files-per-dir` * `file-size` / `worker-number` / `alluxio.worker.tieredstore.levelX.watermark.low.ratio=0.7 by default`.
+  `thread` * `num-files-per-dir` * `file-size` / `worker-number` / `alluxio.worker.tieredstore.levelX.watermark.low.ratio` which is `0.7` by default.
 
 #### Testing
 The cluster testing is similar to single node testing except that
