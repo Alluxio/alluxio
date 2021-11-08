@@ -712,7 +712,7 @@ $ bin/alluxio runClass alluxio.stress.cli.StressWorkerBench ...
 ### Cluster testing
 #### Prerequisite
 - A running Alluxio cluster. Each worker node contains one worker, one job worker.
-- Workers have enough space to store the test data if you are testing operation contains file creation.
+- Workers and UFS has enough space to store the test data if you are testing operations that involve file creation.
 
 #### Testing
 The cluster testing is similar to single node testing except that
@@ -784,8 +784,7 @@ $ bin/alluxio runUfsIOTest --path hdfs://<hdfs-address> --io-size 512m --threads
 ### Cluster testing
 #### Prerequisite
 - A running Alluxio cluster. Each worker node contains at least one worker, one job worker.
-- Ufs has enough space to store the test data if you are testing operation contains file creation.
-
+- UFS has enough space to store the test data if you are testing operations that involve file creation.
 #### Testing
 The cluster testing is similar to single node testing except that
 - `--cluster` argument needs to be added to each operation so that the bench jobs will be submitted to job master, distributed to job workers, and executed by job workers.
