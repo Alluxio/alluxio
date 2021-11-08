@@ -100,6 +100,18 @@ export class OverviewPresenter extends React.Component<AllProps> {
                   {data.diskFreeCapacity} / {data.diskUsedCapacity}
                 </td>
               </tr>
+              <tr>
+                <th scope="row">Total Paths</th>
+                <td>{data.totalPath}</td>
+              </tr>
+              <tr>
+                <th scope="row">Unique Block Count</th>
+                <td>{data.uniqueBlockCount}</td>
+              </tr>
+              <tr>
+                <th scope="row">Replica Block Count</th>
+                <td>{data.replicaBlockCount}</td>
+              </tr>
             </tbody>
           </Table>
         </div>

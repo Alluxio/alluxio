@@ -73,7 +73,7 @@ $ export HADOOP_CLASSPATH={{site.ALLUXIO_CLIENT_JAR_PATH}}
 ```yaml
 env.java.opts: -Dalluxio.user.file.writetype.default=CACHE_THROUGH
 ```
-
+注意：如果有正在运行的Flink集群，需要将该集群停止并重新运行以应用更改后的配置。
 ## 在Flink中使用Alluxio
 
 Flink中使用Alluxio，指定路径时使用`alluxio://`前缀。

@@ -269,9 +269,12 @@ public final class MultiProcessCluster {
     writeConf();
     ServerConfiguration.merge(mProperties, Source.RUNTIME);
 
+    final int MASTER_START_DELAY_MS = 500; // in ms
     for (int i = 0; i < count; i++) {
       createMaster(startIndex + i).start();
+      wait(MASTER_START_DELAY_MS);
     }
+    mFilesystemContext = null;
   }
 
   /**

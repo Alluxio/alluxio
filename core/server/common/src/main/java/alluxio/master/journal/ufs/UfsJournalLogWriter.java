@@ -46,7 +46,7 @@ import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Class for writing journal edit log entries from the primary master. It marks the current log
- * complete (so that it is visible to the secondary masters) when the current log is large enough.
+ * complete (so that it is visible to the standby masters) when the current log is large enough.
  *
  * When a new journal writer is created, it also marks the current log complete if there is one.
  *
