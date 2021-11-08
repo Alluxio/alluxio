@@ -273,9 +273,9 @@ The parameters for the Job Service Stress Bench(including JobServiceMaxThroughpu
 
 <table class="table table-striped">
     <tr>
-        <td>Parameters</td>
-        <td>Default Value</td>
-        <td>Description</td>
+        <th>Parameter</th>
+        <th>Default Value</th>
+        <th>Description</th>
     </tr>
     <tr>
         <td>operation</td>
