@@ -1,10 +1,12 @@
 metricName,metricType
-Master.AbsentCacheHits,COUNTER
-Master.AbsentCacheInvalidations,COUNTER
-Master.AbsentCacheMisses,COUNTER
+Master.AbsentCacheHits,GAUGE
+Master.AbsentCacheMisses,GAUGE
 Master.AbsentCacheSize,GAUGE
+Master.AuditLogEntriesSize,GAUGE
 Master.BlockHeapSize,GAUGE
+Master.BlockReplicaCount,GAUGE
 Master.CompleteFileOps,COUNTER
+Master.CompletedOperationRetryCount,COUNTER
 Master.CreateDirectoryOps,COUNTER
 Master.CreateFileOps,COUNTER
 Master.DeletePathOps,COUNTER
@@ -36,7 +38,6 @@ Master.GetNewBlockOps,COUNTER
 Master.InodeCacheEvictions,GAUGE
 Master.InodeCacheHitRatio,GAUGE
 Master.InodeCacheHits,GAUGE
-Master.InodeCacheLoadTimer,TIMER
 Master.InodeCacheLoadTimes,GAUGE
 Master.InodeCacheMisses,GAUGE
 Master.InodeCacheSize,GAUGE
@@ -48,6 +49,7 @@ Master.JournalFlushTimer,TIMER
 Master.JournalFreeBytes,GAUGE
 Master.JournalFreePercent,GAUGE
 Master.JournalGainPrimacyTimer,TIMER
+Master.JournalLastAppliedCommitIndex,GAUGE
 Master.JournalLastCheckPointTime,GAUGE
 Master.JournalSequenceNumber,GAUGE
 Master.LastBackupEntriesCount,GAUGE
@@ -59,6 +61,9 @@ Master.ListingCacheHits,COUNTER
 Master.ListingCacheLoadTimes,COUNTER
 Master.ListingCacheMisses,COUNTER
 Master.ListingCacheSize,GAUGE
+Master.LostBlockCount,GAUGE
+Master.LostFileCount,GAUGE
+Master.MasterHeartbeatTriggeredActiveJobSize,GAUGE
 Master.MountOps,COUNTER
 Master.NewBlocksGot,COUNTER
 Master.PathsDeleted,COUNTER
@@ -66,11 +71,13 @@ Master.PathsMounted,COUNTER
 Master.PathsRenamed,COUNTER
 Master.PathsUnmounted,COUNTER
 Master.RenamePathOps,COUNTER
+Master.RpcQueueLength,GAUGE
 Master.SetAclOps,COUNTER
 Master.SetAttributeOps,COUNTER
-Master.TotalBlocks,COUNTER
 Master.TotalPaths,GAUGE
+Master.TotalRpcs,TIMER
 Master.UfsJournalCatchupTimer,TIMER
 Master.UfsJournalFailureRecoverTimer,TIMER
 Master.UfsJournalInitialReplayTimeMs,GAUGE
+Master.UniqueBlocks,GAUGE
 Master.UnmountOps,COUNTER

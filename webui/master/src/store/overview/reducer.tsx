@@ -29,6 +29,7 @@ export const initialOverviewState: IOverviewState = {
     journalDiskWarnings: [],
     liveWorkerNodes: 0,
     masterNodeAddress: '',
+    replicaBlockCount: '',
     startTime: '',
     storageTierInfos: [
       {
@@ -40,6 +41,8 @@ export const initialOverviewState: IOverviewState = {
         usedSpacePercent: 100,
       },
     ],
+    totalPath: '',
+    uniqueBlockCount: '',
     uptime: '',
     usedCapacity: '',
     version: '',

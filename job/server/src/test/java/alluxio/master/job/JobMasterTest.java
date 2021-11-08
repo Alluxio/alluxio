@@ -36,6 +36,7 @@ import alluxio.job.wire.JobInfo;
 import alluxio.job.wire.Status;
 import alluxio.job.workflow.composite.CompositeConfig;
 import alluxio.master.MasterContext;
+import alluxio.master.NoopUfsManager;
 import alluxio.master.job.command.CommandManager;
 import alluxio.master.journal.noop.NoopJournalSystem;
 import alluxio.master.job.plan.PlanCoordinator;
@@ -75,7 +76,7 @@ public final class JobMasterTest {
   public void before() throws Exception {
     // Can't use ConfigurationRule due to conflicts with PowerMock.
     ServerConfiguration.set(PropertyKey.JOB_MASTER_JOB_CAPACITY, TEST_JOB_MASTER_JOB_CAPACITY);
-    mJobMaster = new JobMaster(new MasterContext(new NoopJournalSystem()),
+    mJobMaster = new JobMaster(new MasterContext<>(new NoopJournalSystem(), new NoopUfsManager()),
         mock(FileSystem.class), mock(FileSystemContext.class), mock(UfsManager.class));
     mJobMaster.start(true);
   }

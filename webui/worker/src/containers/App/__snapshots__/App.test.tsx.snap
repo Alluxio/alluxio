@@ -56,6 +56,10 @@ exports[`App Shallow component Matches snapshot 1`] = `
               "url": "/metrics",
             },
             Object {
+              "innerText": "Configuration",
+              "url": "/config",
+            },
+            Object {
               "innerText": "Return to Master",
               "url": [Function],
             },
@@ -110,6 +114,11 @@ exports[`App Shallow component Matches snapshot 1`] = `
         <Route
           exact={true}
           path="/metrics"
+          render={[Function]}
+        />
+        <Route
+          exact={true}
+          path="/config"
           render={[Function]}
         />
         <Route

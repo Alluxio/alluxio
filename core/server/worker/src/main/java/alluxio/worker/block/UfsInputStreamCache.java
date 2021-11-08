@@ -19,6 +19,7 @@ import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.OpenOptions;
 import alluxio.util.IdUtils;
 import alluxio.util.executor.ExecutorServiceFactories;
+import alluxio.util.logging.SamplingLogger;
 import alluxio.worker.block.io.BlockReader;
 
 import com.google.common.base.Preconditions;
@@ -50,6 +51,7 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public final class UfsInputStreamCache {
   private static final Logger LOG = LoggerFactory.getLogger(UfsInputStreamCache.class);
+  private static final Logger SAMPLING_LOG = new SamplingLogger(LOG, 10L * Constants.MINUTE_MS);
   private static final boolean CACHE_ENABLED =
       ServerConfiguration.getBoolean(PropertyKey.WORKER_UFS_INSTREAM_CACHE_ENABLED);
 
@@ -176,7 +178,11 @@ public final class UfsInputStreamCache {
     }
 
     // explicit cache cleanup
-    mStreamCache.cleanUp();
+    try {
+      mStreamCache.cleanUp();
+    } catch (Throwable error) {
+      SAMPLING_LOG.warn("Explicit cache removal failed.", error);
+    }
 
     StreamIdSet streamIds = mFileIdToStreamIds.compute(fileId, (key, value) -> {
       if (value != null) {

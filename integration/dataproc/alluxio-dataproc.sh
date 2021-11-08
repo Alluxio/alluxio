@@ -139,7 +139,7 @@ expose_alluxio_client_jar() {
 
 configure_alluxio_systemd_services() {
   if [[ "${ROLE}" == "Master" ]]; then
-    # The master role runs 2 daemons: AlluxioMaster and AlluxioJobMaster
+    # The master role runs 3 daemons: AlluxioMaster and AlluxioJobMaster and HubManager
     # Service for AlluxioMaster JVM
     cat >"/etc/systemd/system/alluxio-master.service" <<- EOF
 [Unit]
@@ -170,6 +170,21 @@ Restart=no
 WantedBy=multi-user.target
 EOF
     systemctl enable alluxio-job-master
+    # Service for HubManager JVM
+    cat >"/etc/systemd/system/hub-manager.service" <<- EOF
+[Unit]
+Description=Alluxio Hub Manager
+After=default.target
+[Service]
+Type=simple
+User=alluxio
+WorkingDirectory=${ALLUXIO_HOME}
+ExecStart=${ALLUXIO_HOME}/bin/launch-process hub_manager -c
+Restart=on-failure
+[Install]
+WantedBy=multi-user.target
+EOF
+    systemctl enable hub-manager
   else
     # The worker role runs 2 daemons: AlluxioWorker and AlluxioJobWorker
     # Service for AlluxioWorker JVM
@@ -203,6 +218,22 @@ WantedBy=multi-user.target
 EOF
     systemctl enable alluxio-job-worker
   fi
+    # Launch hub agent on all nodes
+    # Service for HubAgent JVM
+    cat >"/etc/systemd/system/hub-agent.service" <<- EOF
+[Unit]
+Description=Alluxio Hub Agent
+After=default.target
+[Service]
+Type=simple
+User=root
+WorkingDirectory=${ALLUXIO_HOME}
+ExecStart=${ALLUXIO_HOME}/bin/launch-process hub_agent -c
+Restart=on-failure
+[Install]
+WantedBy=multi-user.target
+EOF
+    systemctl enable hub-agent
 }
 
 configure_alluxio_root_mount() {
@@ -372,7 +403,7 @@ configure_alluxio() {
 start_alluxio() {
   if [[ "${ROLE}" == "Master" ]]; then
     doas alluxio "${ALLUXIO_HOME}/bin/alluxio formatMaster"
-    systemctl restart alluxio-master alluxio-job-master
+    systemctl restart alluxio-master alluxio-job-master hub-manager hub-agent
 
     local -r sync_list=$(/usr/share/google/get_metadata_value attributes/alluxio_sync_list || true)
     local path_delimiter=";"
@@ -387,7 +418,7 @@ start_alluxio() {
       ${ALLUXIO_HOME}/bin/alluxio-mount.sh SudoMount local
     fi
     doas alluxio "${ALLUXIO_HOME}/bin/alluxio formatWorker"
-    systemctl restart alluxio-worker alluxio-job-worker
+    systemctl restart alluxio-worker alluxio-job-worker hub-agent
   fi
 }
 

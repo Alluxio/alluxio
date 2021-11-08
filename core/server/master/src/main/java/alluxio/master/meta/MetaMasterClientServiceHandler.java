@@ -86,6 +86,9 @@ public final class MetaMasterClientServiceHandler
       for (MasterInfoField field : options.getFilterCount() > 0 ? options.getFilterList()
           : Arrays.asList(MasterInfoField.values())) {
         switch (field) {
+          case CLUSTER_ID:
+            masterInfo.setClusterId(mMetaMaster.getClusterID());
+            break;
           case LEADER_MASTER_ADDRESS:
             masterInfo.setLeaderMasterAddress(mMetaMaster.getRpcAddress().toString());
             break;

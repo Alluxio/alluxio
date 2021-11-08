@@ -1,3 +1,6 @@
 metricName,metricType
 Fuse.BytesRead,COUNTER
 Fuse.BytesToRead,COUNTER
+Fuse.CachedPathCount,GAUGE
+Fuse.ReadingFileCount,GAUGE
+Fuse.WritingFileCount,GAUGE

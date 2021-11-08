@@ -66,7 +66,18 @@ export class WorkersPresenter extends React.Component<AllProps> {
                   {workersData.normalNodeInfos.map((nodeInfo: INodeInfo) => (
                     <tr key={nodeInfo.workerId}>
                       <td>
-                        <a href={`//${nodeInfo.host}:${initData.workerPort}`} rel="noopener noreferrer" target="_blank">
+                        <a
+                          href={
+                            // When workers start with kubernetes. `nodeInfo.host` is `hostIp (podIp)`
+                            nodeInfo.host.includes('(')
+                              ? `//${nodeInfo.host.substring(0, nodeInfo.host.indexOf('(')).trim()}:${
+                                  initData.workerPort
+                                }`
+                              : `//${nodeInfo.host}:${initData.workerPort}`
+                          }
+                          rel="noopener noreferrer"
+                          target="_blank"
+                        >
                           {nodeInfo.host}
                         </a>
                       </td>
