@@ -3503,18 +3503,21 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey WORKER_REGISTER_LEASE_RETRY_SLEEP_MIN =
       new Builder(Name.WORKER_REGISTER_LEASE_RETRY_SLEEP_MIN)
           .setDefaultValue("1sec")
+          .setDescription("The minimum time to sleep before retrying to get a register lease.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
   public static final PropertyKey WORKER_REGISTER_LEASE_RETRY_SLEEP_MAX =
       new Builder(Name.WORKER_REGISTER_LEASE_RETRY_SLEEP_MAX)
           .setDefaultValue("10sec")
+          .setDescription("The maximum time to sleep before retrying to get a register lease.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
   public static final PropertyKey WORKER_REGISTER_LEASE_RETRY_MAX_DURATION =
       new Builder(Name.WORKER_REGISTER_LEASE_RETRY_MAX_DURATION)
           .setDefaultValue(String.format("${%s}", Name.WORKER_MASTER_CONNECT_RETRY_TIMEOUT))
+          .setDescription("The total time on retrying to get a register lease, before giving up.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
