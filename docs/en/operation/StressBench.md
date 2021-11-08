@@ -127,9 +127,9 @@ The parameters for the Fuse IO Stress Bench are (other than common parameters fo
 
 <table class="table table-striped">
     <tr>
-        <td>Parameters</td>
-        <td>Default Value</td>
-        <td>Description</td>
+        <th>Parameter</th>
+        <th>Default Value</th>
+        <th>Description</th>
     </tr>
     <tr>
         <td>operation</td>
@@ -377,9 +377,9 @@ The parameters for the Client IO Stress Bench are (other than common parameters 
 
 <table class="table table-striped">
     <tr>
-        <td>Parameters</td>
-        <td>Default Value</td>
-        <td>Description</td>
+        <th>Parameter</th>
+        <th>Default Value</th>
+        <th>Description</th>
     </tr>
     <tr>
         <td>operation</td>
@@ -518,9 +518,9 @@ The parameters for the Master Stress Bench(including MaxThroughput) are (other t
 
 <table class="table table-striped">
     <tr>
-        <td>Parameters</td>
-        <td>Default Value</td>
-        <td>Description</td>
+        <th>Parameter</th>
+        <th>Default Value</th>
+        <th>Description</th>
     </tr>
     <tr>
         <td>operation</td>
@@ -642,9 +642,9 @@ The parameters for the Worker Stress Bench are (other than common parameters for
 
 <table class="table table-striped">
     <tr>
-        <td>Parameters</td>
-        <td>Default Value</td>
-        <td>Description</td>
+        <th>Parameter</th>
+        <th>Default Value</th>
+        <th>Description</th>
     </tr>
     <tr>
         <td>client-type</td>
@@ -722,7 +722,7 @@ The cluster testing is similar to single node testing except that
 ### Limitations
 - Worker Stress Bench only supports testing self-generated test files.
 
-## Ufs IO Bench
+## UFS IO Bench
 
 The UFS IO Bench is a tool to measure the IO throughput between the Alluxio cluster and the UFS.This test will measure the I/O throughput between Alluxio workers and the specified UFS path. 
 Each worker will create concurrent clients to first generate test files of the specified size then read those files. The write/read I/O throughput will be measured in the process.
@@ -732,9 +732,9 @@ The parameters for the Worker Stress Bench are (other than common parameters for
 
 <table class="table table-striped">
     <tr>
-        <td>Parameters</td>
-        <td>Default Value</td>
-        <td>Description</td>
+        <th>Parameter</th>
+        <th>Default Value</th>
+        <th>Description</th>
     </tr>
     <tr>
         <td>threads</td>
@@ -749,12 +749,12 @@ The parameters for the Worker Stress Bench are (other than common parameters for
     <tr>
         <td>path</td>
         <td>No default, Required</td>
-        <td>the Ufs Path to write temporary data in</td>
+        <td>the UFS Path to write temporary data in</td>
     </tr>
     <tr>
         <td>use-mount-conf</td>
         <td>false</td>
-        <td>If true, attempt to load the ufs configuration from an existing mount point to read/write to the base path, it will override the configuration specified through --conf parameter</td>
+        <td>If true, attempt to load the UFS configuration from an existing mount point to read/write to the base path, it will override the configuration specified through --conf parameter</td>
     </tr>
     <tr>
         <td>conf</td>
