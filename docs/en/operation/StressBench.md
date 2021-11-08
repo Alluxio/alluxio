@@ -784,7 +784,7 @@ Run the test with the operation you want to test.
 $ bin/alluxio runClass alluxio.stress.cli.UfsIOBench --io-size 1G ...
 ```
 
-For example,This invokes the I/O benchmark to HDFS in the Alluxio cluster which each thread is writing and then reading 512m of data
+For example, this runs the UFS I/O benchmark in the Alluxio cluster, where each thread is writing and then reading 512MB of data from HDFS:
 ```console
 $ bin/alluxio runUfsIOTest --path hdfs://<hdfs-address> --io-size 512m --threads 2 
 ```
