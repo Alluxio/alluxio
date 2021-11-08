@@ -17,6 +17,7 @@ import static alluxio.stress.cli.RpcBenchPreparationUtils.LOST_STORAGE;
 
 import alluxio.ClientContext;
 import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.grpc.LocationBlockIdListEntry;
 import alluxio.master.MasterClientContext;
 import alluxio.stress.CachingBlockMasterClient;
@@ -163,10 +164,12 @@ public class RegisterWorkerBench extends RpcBench<BlockMasterBenchParameters> {
     try {
       Instant s = Instant.now();
 
-      LOG.info("Acquiring lease for {}", workerId);
-      client.acquireRegisterLeaseWithBackoff(workerId, mBlockCount,
-          BlockMasterSync.getDefaultAcquireLeaseRetryPolicy());
-      LOG.info("Lease acquired for {}", workerId);
+      if (mConf.getBoolean(PropertyKey.WORKER_REGISTER_LEASE_ENABLED)) {
+        LOG.info("Acquiring lease for {}", workerId);
+        client.acquireRegisterLeaseWithBackoff(workerId, mBlockCount,
+            BlockMasterSync.getDefaultAcquireLeaseRetryPolicy());
+        LOG.info("Lease acquired for {}", workerId);
+      }
 
       // TODO(jiacheng): The 1st reported RPC time is always very long, this does
       //  not match with the time recorded by Jaeger.
