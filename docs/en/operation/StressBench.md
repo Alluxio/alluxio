@@ -467,7 +467,7 @@ The parameters for the Client IO Stress Bench are (other than common parameters 
 
 ### Single node testing
 #### Prerequisite
-* A running Alluxio cluster with one master, and one worker. With property "alluxio.user.file.writetype.default" = MUST_CACHE
+* A running Alluxio cluster with one master, and one worker, with property `alluxio.user.file.writetype.default` set to `MUST_CACHE`
 
 #### Write test files
 Write the test files by running the benchmark with `--operation Write`
