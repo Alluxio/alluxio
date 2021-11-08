@@ -1578,7 +1578,7 @@ public final class MetricKey implements Comparable<MetricKey> {
   public static final MetricKey CLIENT_META_DATA_CACHE_SIZE =
       new Builder("Client.MetadataCacheSize")
           .setDescription("The total number of files and directories whose metadata is cached "
-              + "on the client-side. Only valid if the filesystem is"
+              + "on the client-side. Only valid if the filesystem is "
               + "alluxio.client.file.MetadataCachingBaseFileSystem.")
           .setMetricType(MetricType.GAUGE)
           .setIsClusterAggregated(false)
