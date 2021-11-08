@@ -349,7 +349,7 @@ $ bin/alluxio runClass alluxio.stress.cli.StressJobServiceBench --warmup 30s --d
 JobServiceMaxThroughput is applying MaxThroughput algorithm to job service. Testing the job management capability of job master.
 Only NoOp operation is supported for JobServiceMaxThroughput.
 ```console
-$ bin/alluxio runClass alluxio.stress.cli.suite.JobServiceMaxThroughput --duration 30S --threads 16 --warmup 30S --operation NoOp 
+$ bin/alluxio runClass alluxio.stress.cli.suite.JobServiceMaxThroughput --duration 30s --threads 16 --warmup 30s --operation NoOp 
 ```
 
 ### Cluster testing
