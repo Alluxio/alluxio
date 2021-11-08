@@ -58,8 +58,6 @@ public class StreamRegisterWorkerBench extends RpcBench<BlockMasterBenchParamete
 
   private final InstancedConfiguration mConf = InstancedConfiguration.defaults();
 
-  private int mBlockCount;
-
   private Deque<Long> mWorkerPool = new ArrayDeque<>();
 
   @Override
@@ -100,11 +98,6 @@ public class StreamRegisterWorkerBench extends RpcBench<BlockMasterBenchParamete
                     .newBuilder(ClientContext.create(mConf))
                     .build());
     mBlockMap = blockMap;
-    int blockCount = 0;
-    for (Map.Entry<BlockStoreLocation, List<Long>> entry : blockMap.entrySet()) {
-      blockCount += entry.getValue().size();
-    }
-    mBlockCount = blockCount;
 
     // The preparation is done by the invoking shell process to ensure the preparation is only
     // done once, so skip preparation when running in job worker
@@ -173,7 +166,11 @@ public class StreamRegisterWorkerBench extends RpcBench<BlockMasterBenchParamete
 
       if (mConf.getBoolean(PropertyKey.WORKER_REGISTER_LEASE_ENABLED)) {
         LOG.info("Acquiring lease for {}", workerId);
-        client.acquireRegisterLeaseWithBackoff(workerId, mBlockCount,
+        int blockCount = 0;
+        for (Map.Entry<BlockStoreLocation, List<Long>> entry : mBlockMap.entrySet()) {
+          blockCount += entry.getValue().size();
+        }
+        client.acquireRegisterLeaseWithBackoff(workerId, blockCount,
             BlockMasterSync.getDefaultAcquireLeaseRetryPolicy());
         LOG.info("Lease acquired for {}", workerId);
       }
