@@ -304,10 +304,28 @@ UFS URI like `hdfs://<name-service>/`, and not `hdfs://<name-service>/<folder>`.
 
 ### updateConf
 
-The `updateConf` command provides a way to update config for current running services, the request is sent to alluxio master directly,
-but the other services like worker, fuse, s3 proxy or some other clients will aware the config changed and sync the config.
+The `updateConf` command provides a way to update config for current running services if set `alluxio.conf.dynamic.update.enabled` to true
+to enable dynamic update config feature. The request is sent to alluxio master directly,
+but the other services like worker, fuse, s3 proxy or some other clients can also aware the config changed and sync the config.
 
 ```console
 $ ./bin/alluxio fsadmin updateConf key1=val1 key2=val2
 Updated 2 configs
+```
+
+In fact, all the config keys can be updated value dynamically except the following keys.
+
+```
+alluxio.security.authentication.type
+alluxio.security.authorization.permission.enabled
+```
+
+But only the following config keys are tested the running service can use the updated value.
+
+```
+alluxio.master.unsafe.direct.persist.object.enabled
+alluxio.master.worker.timeout
+alluxio.master.audit.logging.enabled
+alluxio.master.ufs.managed.blocking.enabled
+alluxio.master.metastore.inode.inherit.owner.and.group
 ```
