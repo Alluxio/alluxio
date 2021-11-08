@@ -11,6 +11,7 @@
 
 package alluxio.grpc;
 
+import alluxio.annotation.SuppressFBWarnings;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.security.authentication.AuthenticatedUserInjector;
@@ -21,7 +22,6 @@ import alluxio.util.SecurityUtils;
 import alluxio.util.network.tls.SslContextProvider;
 
 import com.google.common.io.Closer;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.grpc.ServerInterceptor;
 import io.grpc.ServerInterceptors;
 import io.grpc.ServerServiceDefinition;
@@ -129,7 +129,7 @@ public final class GrpcServerBuilder {
   }
 
   /**
-   * Sets the keep alive time.
+   * Sets the server keep-alive time.
    *
    * @param keepAliveTime the time to wait after idle before pinging client
    * @param timeUnit unit of the time
@@ -141,7 +141,7 @@ public final class GrpcServerBuilder {
   }
 
   /**
-   * Sets the keep alive timeout.
+   * Sets the server keep-alive timeout.
    *
    * @param keepAliveTimeout time to wait after pinging client before closing the connection
    * @param timeUnit unit of the timeout
@@ -149,6 +149,19 @@ public final class GrpcServerBuilder {
    */
   public GrpcServerBuilder keepAliveTimeout(long keepAliveTimeout, TimeUnit timeUnit) {
     mNettyServerBuilder = mNettyServerBuilder.keepAliveTimeout(keepAliveTimeout, timeUnit);
+    return this;
+  }
+
+  /**
+   * Sets the high-bar for client-side keep-alive frequency.
+   * Clients pushing this bar will be held back by closing their connections.
+   *
+   * @param permitKeepAlive permitted client-side keep-alive time
+   * @param timeUnit unit of the timeout
+   * @return an updated instance of this {@link GrpcServerBuilder}
+   */
+  public GrpcServerBuilder permitKeepAlive(long permitKeepAlive, TimeUnit timeUnit) {
+    mNettyServerBuilder = mNettyServerBuilder.permitKeepAliveTime(permitKeepAlive, timeUnit);
     return this;
   }
 

@@ -293,15 +293,16 @@ $ ${ALLUXIO_HOME}/integration/fuse/bin/alluxio-fuse mount \
 A special mount option is the `max_idle_threads=N` which defines the maximum number of idle fuse daemon threads allowed.
 If the value is too small, FUSE may frequently create and destroy threads which will introduce extra performance overhead.
 Note that, libfuse introduce this mount option in 3.2 while JNI-Fuse supports 2.9.X during experimental stage.
-The Alluxio Fuse docker image [alluxio/{{site.ALLUXIO_DOCKER_IMAGE}}-fuse](https://hub.docker.com/r/alluxio/{{site.ALLUXIO_DOCKER_IMAGE}}-fuse/)
+The Alluxio docker image [alluxio/{{site.ALLUXIO_DOCKER_IMAGE}}](https://hub.docker.com/r/alluxio/{{site.ALLUXIO_DOCKER_IMAGE}}/)
 enables this property by modifying the [libfuse source code](https://github.com/cheyang/libfuse/tree/fuse_2_9_5_customize_multi_threads_v2).
 
-If you are using alluxio fuse docker image, set the `MAX_IDLE_THREADS` via environment variable:
+In alluxio docker image, the default value for `MAX_IDLE_THREADS` is 64. If you want to use another value in your container,
+you could set it via environment variable at container start time:
 ```console
 $ docker run -d --rm \
     ...
-    --env MAX_IDLE_THREADS=64 \
-    alluxio/{{site.ALLUXIO_DOCKER_IMAGE}}-fuse fuse
+    --env MAX_IDLE_THREADS=128 \
+    alluxio/{{site.ALLUXIO_DOCKER_IMAGE}} fuse
 ```
   {% endcollapsible %}
 {% endaccordion %}
@@ -318,7 +319,7 @@ or allow root to access the mounted folder:
 user_allow_other
 ```
 
-This option allow non-root users to specify the `allow_other` or `allow_root` mount options.
+Only after this step that non-root users have the permisson to specify the `allow_other` or `allow_root` mount options.
 
 For MacOS, follow the [osxfuse allow_other instructions](https://github.com/osxfuse/osxfuse/wiki/Mount-options)
 to allow other users to use the `allow_other` and `allow_root` mount options.
@@ -344,9 +345,9 @@ characteristics, please be aware that:
 * Files can be written only once, only sequentially, and never be modified.
   That means overriding a file is not allowed, and an explicit combination of delete and then create
   is needed.
-  For example, the `cp` command will fail when the destination file exists.
-  `vi` and `vim` commands will succeed because the underlying system do create, delete, and rename
-  operation combinations.
+  For example, the `cp` command would fail when the destination file exists.
+  `vi` and `vim` commands will only succeed modifying files if the underlying operating system deletes 
+  the original file first and then creates a new file with modified content beneath.
 * Alluxio does not have hard-links or soft-links, so commands like `ln` are not supported.
   The hardlinks number is not displayed in `ll` output.
 * The user and group are mapped to the Unix user and group only when Alluxio POSIX API is configured
@@ -390,12 +391,12 @@ Enable when the workload repeatedly getting information of numerous files.
     <tr>
         <td>alluxio.user.metadata.cache.max.size</td>
         <td>100000</td>
-        <td>Maximum number of paths with cached metadata. Only valid if the filesystem is alluxio.client.file.MetadataCachingBaseFileSystem.</td>
+        <td>Maximum number of paths with cached metadata. Only valid if alluxio.user.metadata.cache.enabled is set to true.</td>
     </tr>
     <tr>
         <td>alluxio.user.metadata.cache.expiration.time</td>
         <td>10min</td>
-        <td>Metadata will expire and be evicted after being cached for this time period. Only valid if the filesystem is alluxio.client.file.MetadataCachingBaseFileSystem.</td>
+        <td>Metadata will expire and be evicted after being cached for this time period. Only valid if alluxio.user.metadata.cache.enabled is set to true.</td>
     </tr>
 </table>
 
@@ -405,7 +406,7 @@ alluxio.user.metadata.cache.enabled=true
 alluxio.user.metadata.cache.max.size=1000000
 alluxio.user.metadata.cache.expiration.time=1h
 ```
-The metadata size of 1 million files usually is around 25MB to 100MB.
+The metadata size of 1 million files is usually between 25MB and 100MB.
 Enable metadata cache may also introduce some overhead, but may not be as big as client data cache.
 
 ### Other Performance or Debugging Tips
@@ -436,7 +437,7 @@ The following client options may affect the training performance or provides mor
     <tr>
         <td>alluxio.user.update.file.accesstime.disabled</td>
         <td>false</td>
-        <td>(Experimental) By default, a master RPC will be issued to Alluxio Master to update the file access time whenever a user accesses it. If this is enabled, the clients doesn't update file access time which may improve the file access performance but cause issues for some applications.</td>
+        <td>(Experimental) By default, a master RPC will be issued to Alluxio Master to update the file access time whenever a user accesses it. If this is enabled, the client doesn't update file access time which may improve the file access performance but cause issues for some applications.</td>
     </tr>
     <tr>
         <td>alluxio.user.block.worker.client.pool.max</td>
@@ -462,3 +463,147 @@ When encountering the out of direct memory issue, add the following JVM opts to 
 ```bash
 ALLUXIO_FUSE_JAVA_OPTS+=" -XX:MaxDirectMemorySize=8G"
 ```
+
+## Troubleshooting
+
+This section talks about how to troubleshoot issues related to Alluxio POSIX API.
+Note that the errors or problems of Alluxio POSIX API may come from the underlying Alluxio system.
+For general guideline in troubleshooting, please refer to [troubleshooting documentation]({{ '/en/operation/Troubleshooting.html' | relativize_url }})
+
+### Input/output error
+
+Unlike Alluxio CLI which may show more detailed error messages, user operations via Alluxio Fuse mount point will only receive error code on failures with the pre-defined error code message by FUSE.
+For exmaple, once an error happens, it is common to see:
+
+```console
+$ ls /mnt/alluxio-fuse/try.txt
+ls: /mnt/alluxio-fuse/try.txt: Input/output error
+```
+
+In this case, check Alluxio Fuse logs for the actual error message.
+The logs are in `logs/fuse.log` (deployed via standalone fuse process) or `logs/worker.log` (deployed via fuse in worker process).
+```
+2021-08-30 12:07:52,489 ERROR AlluxioJniFuseFileSystem - Failed to getattr /:
+alluxio.exception.status.UnavailableException: Failed to connect to master (localhost:19998) after 44 attempts.Please check if Alluxio master is currently running on "localhost:19998". Service="FileSystemMasterClient"
+        at alluxio.AbstractClient.connect(AbstractClient.java:279)
+```
+
+### Check FUSE operations in Debug Log
+
+Each I/O operation by users can be translated into a sequence of Fuse operations.
+Sometimes the error comes from unexpected Fuse operation combinations.
+In this case, enabling debug logging in FUSE operations helps understand the sequence and shows time elapsed of each Fuse operation.
+
+For example, a typical flow to write a file seen by FUSE is an initial `Fuse.create` which creates a file,
+followed by a sequence of `Fuse.write` to write data to that file,
+and lastly a `Fuse.release` to close file to commit a file written to Alluxio file system.
+
+To understand this sequence seen and executed by FUSE, 
+one can modify `${ALLUXIO_HOME}/conf/log4j.properties` to customize logging levels and restart corresponding server processes.
+For example, set `alluxio.fuse.AlluxioJniFuseFileSystem` to `DEBUG`
+```
+alluxio.fuse.AlluxioJniFuseFileSystem=DEBUG
+```
+Then you will see the detailed Fuse operation sequence shown in debug logs.
+
+If Fuse is deployed in the worker process, one can modify server logging at runtime.
+For example, you can update the log level of all classes in `alluxio.fuse` package in all workers to `DEBUG` with the following command:
+```console
+$ ./bin/alluxio logLevel --logName=alluxio.fuse --target=workers --level=DEBUG
+```
+
+For more information about logging, please check out [this page]({{ '/en/operation/Basic-Logging.html' | relativize_url }}).
+
+### Fuse metrics
+To monitor Fuse-related metrics for standalone Fuse process, setting `alluxio.fuse.web.enabled` to `true` in `${ALLUXIO_HOME}/conf/alluxio-site.properties`
+before launching the standalone Fuse process.
+Check out the [Fuse metrics doc]({{ '/en/reference/Metrics-List.html' | relativize_url }}#fuse-metrics) for how to get Fuse metrics for
+both standalone Fuse process and Fuse on worker process, and what each metric is used for.
+
+## Performance Tuning
+
+The following diagram shows the stack when using Alluxio POSIX API:
+![Fuse components]({{ '/img/fuse.png' | relativize_url }})
+
+Essentially, Alluxio POSIX API is implemented as as FUSE integration which is simply a long-running Alluxio client.
+In the following stack, the performance overhead can be introduced in one or more components among 
+ 
+- Application
+- Fuse library
+- Alluxio related components
+
+### Application Level
+
+It is very helpful to understand the following questions with respect to how the applications interact with Alluxio POSIX API:
+
+- How is the applications accessing Alluxio POSIX API? Is it mostly read or write or a mixed workload?
+- Is the access heavy in data or metadata?
+- Is the concurrency level sufficient to sustain high throughput?
+- Is there any lock contention?
+
+### Fuse Level
+
+Fuse, especially the libfuse and FUSE kernel code, may also introduce performance overhead.
+
+#### libfuse worker threads
+
+The concurrency on Alluxio POSIX API is the joint effort of
+- The concurrency of application operations interacting with Fuse kernel code and libfuse
+- The concurrency of libfuse worker threads interacting with Alluxio POSIX API limited by `MAX_IDLE_THREADS` [libfuse configuration](#configure-mount-point-options).
+
+Enlarge the `MAX_IDLE_THRAEDS` to make sure it's not the performance bottleneck. One can use `jstack` or `visualvm` to see how many libfuse threads exist
+and whether the libfuse threads keep being created/destroyed.
+
+
+### Alluxio Level
+
+[Alluxio general performance tuning]({{ '/en/operation/Performance-Tuning.html' | relativize_url }}) provides
+more information about how to investigate and tune the performance of Alluxio Java client and servers.
+
+#### Clock time tracing
+
+Tracing is a good method to understand which operation consumes most of the clock time.
+
+From the `Fuse.<FUSE_OPERATION_NAME>` metrics documented in the [Fuse metrics doc]({{ '/en/reference/Metrics-List.html' | relativize_url }}#fuse-metrics),
+we can know how long each operation consumes and which operation(s) dominate the time spent in Alluxio.
+For example, if the application is metadata heavy, `Fuse.getattr` or `Fuse.readdir` may have much longer total duration compared to other operations.
+If the application is data heavy, `Fuse.read` or `Fuse.write` may consume most of the clock time.
+Fuse metrics help us to narrow down the performance investigation target.
+
+If `Fuse.read` consumes most of the clock time, enables the Alluxio property `alluxio.user.block.read.metrics.enabled=true` and Alluxio metric `Client.BlockReadChunkRemote` will be recorded.
+This metric shows the duration statistics of reading data from remote workers via gRPC.
+
+If the application spends relatively long time in RPC calls, try enlarging the client pool sizes Alluxio properties based on the workload.
+```
+# How many concurrent gRPC threads allowed to communicate from client to worker for data operations
+alluxio.user.block.worker.client.pool.max
+# How many concurrent gRPC threads allowed to communicate from client to master for block metadata operations
+alluxio.user.block.master.client.pool.size.max
+# How many concurrent gRPC threads allowed to communicate from client to master for file metadata operations
+alluxio.user.file.master.client.pool.size.max
+# How many concurrent gRPC threads allowed to communicate from worker to master for block metadata operations
+alluxio.worker.block.master.client.pool.size
+```
+If thread pool size is not the limitation, try enlarging the CPU/memory resources. GRPC threads consume CPU resources.
+
+One can follow the [Alluxio opentelemetry doc](https://github.com/Alluxio/alluxio/blob/ea36bb385d24769e079248015c8e490b6e46e6ed/integration/metrics/README.md)
+to trace the gRPC calls. If some gRPC calls take extremely long time and only a small amount of time is used to do actual work, there may be too many concurrent gRPC calls or high resource contention.
+If a long time is spent in fulfilling the gRPC requests, we can jump to the server side to see where the slowness come from.
+
+#### CPU/memory/lock tracing
+
+[Async Profiler](https://github.com/jvm-profiling-tools/async-profiler) can trace the following kinds of events:
+- CPU cycles
+- Allocations in Java Heap
+- Contented lock attempts, including both Java object monitors and ReentrantLocks
+
+Install async profiler and run the following commands to get the information of target Alluxio process
+
+```console
+$ cd async-profiler && ./profiler.sh -e alloc -d 30 -f mem.svg `jps | grep AlluxioWorker | awk '{print $1}'`
+$ cd async-profiler && ./profiler.sh -e cpu -d 30 -f cpu.svg `jps | grep AlluxiWorker | awk '{print $1}'`
+$ cd async-profiler && ./profiler.sh -e lock -d 30 -f lock.txt `jps | grep AlluxioWorker | awk '{print $1}'`
+```
+- `-d` define the duration. Try to cover the whole POSIX API testing duration
+- `-e` define the profiling target
+- `-f` define the file name to dump the profile information to

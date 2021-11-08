@@ -31,9 +31,14 @@ import { IOverviewState } from './overview/types';
 import { IInitState } from './init/types';
 import { initialInitState, initReducer } from './init/reducer';
 import { initSaga } from './init/sagas';
+import { IConfigState } from '@alluxio/common-ui/src/store/config/types';
+import { configReducer } from '@alluxio/common-ui/src/store/config/reducer';
+import { initialConfigState } from '@alluxio/common-ui/src/store/config/reducer';
+import { configSaga } from '@alluxio/common-ui/src/store/config/sagas';
 
 export interface IApplicationState {
   blockInfo: IBlockInfoState;
+  config: IConfigState;
   init: IInitState;
   logs: ILogsState;
   metrics: IMetricsState;
@@ -45,6 +50,7 @@ export interface IApplicationState {
 export const rootReducer = (history: History): Reducer<IApplicationState> =>
   combineReducers<IApplicationState>({
     blockInfo: blockInfoReducer,
+    config: configReducer,
     init: initReducer,
     logs: logsReducer,
     metrics: metricsReducer,
@@ -54,11 +60,19 @@ export const rootReducer = (history: History): Reducer<IApplicationState> =>
   });
 
 export const rootSaga = function*(): IterableIterator<AllEffect<ForkEffect>> {
-  yield all([fork(blockInfoSaga), fork(initSaga), fork(logsSaga), fork(metricsSaga), fork(overviewSaga)]);
+  yield all([
+    fork(blockInfoSaga),
+    fork(configSaga),
+    fork(initSaga),
+    fork(logsSaga),
+    fork(metricsSaga),
+    fork(overviewSaga),
+  ]);
 };
 
 export const initialState: IApplicationState = {
   blockInfo: initialBlockInfoState,
+  config: initialConfigState,
   init: initialInitState,
   logs: initialLogsState,
   metrics: initialMetricsState,

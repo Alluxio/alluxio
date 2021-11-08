@@ -49,7 +49,7 @@ public class RaftJournalWriter implements JournalWriter {
   private final AtomicLong mLastSubmittedSequenceNumber;
   private final AtomicLong mLastCommittedSequenceNumber;
 
-  private final LocalFirstRaftClient mClient;
+  private final RaftJournalAppender mClient;
 
   private volatile boolean mClosed;
   private JournalEntry.Builder mJournalEntryBuilder;
@@ -61,7 +61,7 @@ public class RaftJournalWriter implements JournalWriter {
    *               this client and is responsible for closing it
    */
   public RaftJournalWriter(long nextSequenceNumberToWrite,
-      LocalFirstRaftClient client) {
+      RaftJournalAppender client) {
     LOG.debug("Journal writer created starting at SN#{}", nextSequenceNumberToWrite);
     mNextSequenceNumberToWrite = new AtomicLong(nextSequenceNumberToWrite);
     mLastSubmittedSequenceNumber = new AtomicLong(-1);
@@ -83,7 +83,7 @@ public class RaftJournalWriter implements JournalWriter {
     if (mClosed) {
       throw new JournalClosedException("Cannot write to journal. Journal writer has been closed");
     }
-    Preconditions.checkState(entry.getAllFields().size() <= 1,
+    Preconditions.checkState(entry.getAllFields().size() <= 2,
         "Raft journal entries should never set multiple fields, but found %s", entry);
     if (mCurrentJournalEntrySize.get() > mFlushBatchBytes) {
       flush();

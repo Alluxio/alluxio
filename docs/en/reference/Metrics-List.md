@@ -54,6 +54,21 @@ The values of bytes throughput metrics equal to bytes metrics counter value divi
 {% endfor %}
 </table>
 
+## Server Metrics
+
+Metrics shared by the Alluxio server processes.
+
+<table class="table table-striped">
+<tr><th>Name</th><th>Type</th><th>Description</th></tr>
+{% for item in site.data.table.server-metrics %}
+  <tr>
+    <td><a class="anchor" name="{{ item.metricName }}"></a> {{ item.metricName }}</td>
+    <td>{{ item.metricType }}</td>
+    <td>{{ site.data.table.en.server-metrics[item.metricName] }}</td>
+  </tr>
+{% endfor %}
+</table>
+
 ## Master Metrics
 
 Default master metrics:
@@ -83,7 +98,7 @@ Dynamically generated master metrics:
 
 ## Worker Metrics
 
-Default master metrics:
+Default worker metrics:
 
 <table class="table table-striped">
 <tr><th>Name</th><th>Type</th><th>Description</th></tr>
@@ -96,7 +111,7 @@ Default master metrics:
 {% endfor %}
 </table>
 
-Dynamically generated master metrics:
+Dynamically generated worker metrics:
 
 | Metric Name | Description |
 |-------------------------|-----------------------------------------------------|
@@ -126,6 +141,8 @@ Depending on the launching ways, Fuse metrics show as
 * client metrics when Fuse client is launching in a standalone AlluxioFuse process.
 * worker metrics when Fuse client is embedded in the AlluxioWorker process.
 
+Fuse metrics includes:
+
 <table class="table table-striped">
 <tr><th>Name</th><th>Type</th><th>Description</th></tr>
 {% for item in site.data.table.fuse-metrics %}
@@ -137,12 +154,16 @@ Depending on the launching ways, Fuse metrics show as
 {% endfor %}
 </table>
 
+Fuse reading/writing file count can be used as the indicator for Fuse application pressure.
+If a large amount of concurrent read/write occur in a short period of time, each of the read/write operations may take longer time to finish.
+
 When a user or an application runs a filesystem command under Fuse mount point, 
 this command will be processed and translated by operating system which will trigger the related Fuse operations
 exposed in [AlluxioFuse](https://github.com/Alluxio/alluxio/blob/db01aae966849e88d342a71609ab3d910215afeb/integration/fuse/src/main/java/alluxio/fuse/AlluxioJniFuseFileSystem.java).
 The count of how many times each operation is called, and the duration of each call will be recorded with metrics name `Fuse.<FUSE_OPERATION_NAME>` dynamically.
 
 The important Fuse metrics include:
+
 | Metric Name | Description |
 |-------------------------|-----------------------------------------------------|
 | Fuse.readdir | The duration metrics of listing a directory |

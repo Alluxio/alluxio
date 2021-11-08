@@ -11,15 +11,14 @@
 
 package alluxio.metrics;
 
-import java.util.LinkedList;
-import java.util.List;
+import com.google.common.collect.EvictingQueue;
 
 /**
  * Represents a time series which can be graphed in the UI.
  */
 public class TimeSeries {
   private final String mName;
-  private final List<DataPoint> mDataPoints;
+  private final EvictingQueue<DataPoint> mDataPoints;
 
   /**
    * Create a new time series with the given name and no data.
@@ -27,7 +26,7 @@ public class TimeSeries {
    */
   public TimeSeries(String name) {
     mName = name;
-    mDataPoints = new LinkedList<>();
+    mDataPoints = EvictingQueue.create(20);
   }
 
   /**
@@ -48,7 +47,7 @@ public class TimeSeries {
   /**
    * @return the data of the time series
    */
-  public List<DataPoint> getDataPoints() {
+  public EvictingQueue<DataPoint> getDataPoints() {
     return mDataPoints;
   }
 

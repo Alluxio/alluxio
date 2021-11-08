@@ -17,6 +17,7 @@ import static org.junit.Assert.assertTrue;
 import alluxio.Constants;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
+import alluxio.exception.status.UnavailableException;
 import alluxio.master.journal.noop.NoopJournalSystem;
 import alluxio.master.journal.raft.RaftJournalConfiguration;
 import alluxio.master.journal.raft.RaftJournalSystem;
@@ -28,12 +29,17 @@ import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
 
 import com.google.common.base.Preconditions;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
+import org.junit.runner.RunWith;
+import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.io.IOException;
 import java.net.BindException;
@@ -43,10 +49,13 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.URL;
 import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Tests for {@link AlluxioMasterProcess}.
  */
+@RunWith(PowerMockRunner.class) // annotations for `startMastersThrowsUnavailableException`
+@PrepareForTest({FaultTolerantAlluxioMasterProcess.class})
 public final class AlluxioMasterProcessTest {
 
   @Rule
@@ -91,9 +100,9 @@ public final class AlluxioMasterProcessTest {
   }
 
   @Test
-  public void startStopSecondary() throws Exception {
+  public void startStopStandby() throws Exception {
     FaultTolerantAlluxioMasterProcess master = new FaultTolerantAlluxioMasterProcess(
-        new NoopJournalSystem(), new AlwaysSecondaryPrimarySelector());
+        new NoopJournalSystem(), new AlwaysStandbyPrimarySelector());
     Thread t = new Thread(() -> {
       try {
         master.start();
@@ -106,7 +115,35 @@ public final class AlluxioMasterProcessTest {
   }
 
   @Test
-  public void stopAfterSecondaryTransition() throws Exception {
+  public void startMastersThrowsUnavailableException() throws InterruptedException, IOException {
+    ControllablePrimarySelector primarySelector = new ControllablePrimarySelector();
+    primarySelector.setState(PrimarySelector.State.PRIMARY);
+    ServerConfiguration.set(PropertyKey.MASTER_JOURNAL_EXIT_ON_DEMOTION, "true");
+    FaultTolerantAlluxioMasterProcess master = new FaultTolerantAlluxioMasterProcess(
+        new NoopJournalSystem(), primarySelector);
+    FaultTolerantAlluxioMasterProcess spy = PowerMockito.spy(master);
+    PowerMockito.doAnswer(invocation -> { throw new UnavailableException("unavailable"); })
+        .when(spy).startMasters(true);
+
+    AtomicBoolean success = new AtomicBoolean(true);
+    Thread t = new Thread(() -> {
+      try {
+        spy.start();
+      } catch (UnavailableException ue) {
+        success.set(false);
+      } catch (Exception e) {
+        throw new RuntimeException(e);
+      }
+    });
+    t.start();
+    final int WAIT_TIME_TO_THROW_EXC = 500; // in ms
+    t.join(WAIT_TIME_TO_THROW_EXC);
+    t.interrupt();
+    Assert.assertTrue(success.get());
+  }
+
+  @Test
+  public void stopAfterStandbyTransition() throws Exception {
     ControllablePrimarySelector primarySelector = new ControllablePrimarySelector();
     primarySelector.setState(PrimarySelector.State.PRIMARY);
     ServerConfiguration.set(PropertyKey.MASTER_JOURNAL_EXIT_ON_DEMOTION, "true");
@@ -124,7 +161,7 @@ public final class AlluxioMasterProcessTest {
     waitForServing(ServiceType.MASTER_WEB);
     assertTrue(isBound(mRpcPort));
     assertTrue(isBound(mWebPort));
-    primarySelector.setState(PrimarySelector.State.SECONDARY);
+    primarySelector.setState(PrimarySelector.State.STANDBY);
     t.join(10000);
     // make these two lines flake less
     //assertFalse(isBound(mRpcPort));
@@ -151,7 +188,8 @@ public final class AlluxioMasterProcessTest {
     String ufsPath = PathUtils.concatPath(mFolder.getRoot(), "ufs");
     FileUtils.createDir(ufsPath);
     ufsPath = "http://other_ufs/";
-    ServerConfiguration.set(PropertyKey.MASTER_EMBEDDED_JOURNAL_ELECTION_TIMEOUT, "550");
+    ServerConfiguration.set(PropertyKey.MASTER_EMBEDDED_JOURNAL_MIN_ELECTION_TIMEOUT, "550");
+    ServerConfiguration.set(PropertyKey.MASTER_EMBEDDED_JOURNAL_MAX_ELECTION_TIMEOUT, "1100");
     ServerConfiguration.set(PropertyKey.MASTER_JOURNAL_INIT_FROM_BACKUP, backupPath);
     ServerConfiguration.set(PropertyKey.MASTER_JOURNAL_FOLDER, journalPath);
     ServerConfiguration.set(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS, ufsPath);
@@ -168,67 +206,15 @@ public final class AlluxioMasterProcessTest {
     startStopTest(master);
   }
 
-  @Test
-  public void startZeroParallelism() {
-    ServerConfiguration.set(PropertyKey.MASTER_RPC_EXECUTOR_PARALLELISM, "0");
-    mException.expect(IllegalArgumentException.class);
-    mException.expectMessage(String.format("Cannot start Alluxio master gRPC thread pool with "
-                    + "%s=%s! The parallelism must be greater than 0!",
-            PropertyKey.MASTER_RPC_EXECUTOR_PARALLELISM.toString(), 0));
-    AlluxioMasterProcess.Factory.create();
-  }
-
-  @Test
-  public void startNegativeParallelism() {
-    ServerConfiguration.set(PropertyKey.MASTER_RPC_EXECUTOR_PARALLELISM, "-1");
-    mException.expect(IllegalArgumentException.class);
-    mException.expectMessage(String.format("Cannot start Alluxio master gRPC thread pool with"
-                    + " %s=%s! The parallelism must be greater than 0!",
-            PropertyKey.MASTER_RPC_EXECUTOR_PARALLELISM.toString(), -1));
-    AlluxioMasterProcess.Factory.create();
-  }
-
-  @Test
-  public void startInvalidMaxPoolSize() {
-    ServerConfiguration.set(PropertyKey.MASTER_RPC_EXECUTOR_PARALLELISM, "4");
-    ServerConfiguration.set(PropertyKey.MASTER_RPC_EXECUTOR_MAX_POOL_SIZE, "3");
-    mException.expect(IllegalArgumentException.class);
-    mException.expectMessage(String.format("Cannot start Alluxio master gRPC thread pool with "
-                    + "%s=%s greater than %s=%s!",
-            PropertyKey.MASTER_RPC_EXECUTOR_PARALLELISM.toString(), 4,
-            PropertyKey.MASTER_RPC_EXECUTOR_MAX_POOL_SIZE.toString(), 3));
-    AlluxioMasterProcess.Factory.create();
-  }
-
-  @Test
-  public void startZeroKeepAliveTime() {
-    ServerConfiguration.set(PropertyKey.MASTER_RPC_EXECUTOR_KEEPALIVE, "0");
-    mException.expect(IllegalArgumentException.class);
-    mException.expectMessage(
-            String.format("Cannot start Alluxio master gRPC thread pool with %s=%s. "
-                    + "The keepalive time must be greater than 0!",
-            PropertyKey.MASTER_RPC_EXECUTOR_KEEPALIVE.toString(),
-            0));
-    AlluxioMasterProcess.Factory.create();
-  }
-
-  @Test
-  public void startNegativeKeepAliveTime() {
-    ServerConfiguration.set(PropertyKey.MASTER_RPC_EXECUTOR_KEEPALIVE, "-1");
-    mException.expect(IllegalArgumentException.class);
-    mException.expectMessage(
-            String.format("Cannot start Alluxio master gRPC thread pool with %s=%s. "
-                            + "The keepalive time must be greater than 0!",
-                    PropertyKey.MASTER_RPC_EXECUTOR_KEEPALIVE.toString(),
-                    -1));
-    AlluxioMasterProcess.Factory.create();
-  }
-
   private void startStopTest(AlluxioMasterProcess master) throws Exception {
     waitForServing(ServiceType.MASTER_RPC);
     waitForServing(ServiceType.MASTER_WEB);
     assertTrue(isBound(mRpcPort));
     assertTrue(isBound(mWebPort));
+    boolean testMode = ServerConfiguration.getBoolean(PropertyKey.TEST_MODE);
+    ServerConfiguration.set(PropertyKey.TEST_MODE, false);
+    master.waitForReady(5000);
+    ServerConfiguration.set(PropertyKey.TEST_MODE, testMode);
     master.stop();
     assertFalse(isBound(mRpcPort));
     assertFalse(isBound(mWebPort));

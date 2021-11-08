@@ -89,13 +89,14 @@ public final class BaseFileSystemTest {
    */
   @Before
   public void before() {
+    mConf.set(PropertyKey.USER_FILE_INCLUDE_OPERATION_ID, false);
     mClientContext = ClientContext.create(mConf);
     mFileContext = PowerMockito.mock(FileSystemContext.class);
     mFileSystemMasterClient = PowerMockito.mock(FileSystemMasterClient.class);
     when(mFileContext.acquireMasterClientResource()).thenReturn(
         new CloseableResource<FileSystemMasterClient>(mFileSystemMasterClient) {
           @Override
-          public void close() {
+          public void closeResource() {
             // Noop.
           }
         });

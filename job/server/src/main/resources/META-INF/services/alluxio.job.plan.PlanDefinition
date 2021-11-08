@@ -1,3 +1,4 @@
+alluxio.job.plan.batch.BatchedJobDefinition
 alluxio.job.plan.load.LoadDefinition
 alluxio.job.plan.migrate.MigrateDefinition
 alluxio.job.plan.persist.PersistDefinition
@@ -6,3 +7,4 @@ alluxio.job.plan.replicate.MoveDefinition
 alluxio.job.plan.replicate.ReplicateDefinition
 alluxio.job.plan.stress.StressBenchDefinition
 alluxio.job.plan.transform.CompactDefinition
+alluxio.job.plan.NoopPlanDefinition

@@ -483,8 +483,13 @@ public class LocalCacheFileInStreamTest {
     );
     LocalCacheFileInStream stream =
         new LocalCacheFileInStream(fs.getStatus(testFileName),
-            (status) -> fs.openFile(status, OpenFilePOptions.getDefaultInstance()), manager, sConf,
-            Stopwatch.createUnstarted(timeSource));
+            (status) -> fs.openFile(status, OpenFilePOptions.getDefaultInstance()), manager,
+            sConf) {
+          @Override
+          protected Stopwatch createUnstartedStopwatch() {
+            return Stopwatch.createUnstarted(timeSource);
+          }
+        };
 
     Assert.assertArrayEquals(testData, ByteStreams.toByteArray(stream));
     long timeReadCache = recordedMetrics.get(

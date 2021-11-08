@@ -11,11 +11,13 @@
 
 package alluxio.client.journal;
 
-import alluxio.AbstractMasterClient;
+import alluxio.AbstractJobMasterClient;
 import alluxio.Constants;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.grpc.GetQuorumInfoPRequest;
 import alluxio.grpc.GetQuorumInfoPResponse;
+import alluxio.grpc.GetTransferLeaderMessagePRequest;
+import alluxio.grpc.GetTransferLeaderMessagePResponse;
 import alluxio.grpc.JournalMasterClientServiceGrpc;
 import alluxio.grpc.NetAddress;
 import alluxio.grpc.RemoveQuorumServerPRequest;
@@ -29,8 +31,9 @@ import org.slf4j.LoggerFactory;
 
 /**
  * A wrapper for the gRPC client to interact with the journal master, used by alluxio clients.
+ * It would talk to both JobMaster and Master, so it should inherit AbstractJobMasterClient
  */
-public class RetryHandlingJournalMasterClient extends AbstractMasterClient
+public class RetryHandlingJournalMasterClient extends AbstractJobMasterClient
     implements JournalMasterClient {
   private static final Logger RPC_LOG = LoggerFactory.getLogger(JournalMasterClient.class);
   private JournalMasterClientServiceGrpc.JournalMasterClientServiceBlockingStub mClient = null;
@@ -78,9 +81,10 @@ public class RetryHandlingJournalMasterClient extends AbstractMasterClient
   }
 
   @Override
-  public void transferLeadership(NetAddress newLeaderNetAddress) throws AlluxioStatusException {
-    retryRPC(() -> mClient.transferLeadership(
-        TransferLeadershipPRequest.newBuilder().setServerAddress(newLeaderNetAddress).build()),
+  public String transferLeadership(NetAddress newLeaderNetAddress) throws AlluxioStatusException {
+    return retryRPC(() -> mClient.transferLeadership(
+        TransferLeadershipPRequest.newBuilder()
+        .setServerAddress(newLeaderNetAddress).build()).getTransferId(),
         RPC_LOG, "TransferLeadership", "serverAddress=%s", newLeaderNetAddress);
   }
 
@@ -88,5 +92,14 @@ public class RetryHandlingJournalMasterClient extends AbstractMasterClient
   public void resetPriorities() throws AlluxioStatusException {
     retryRPC(() -> mClient.resetPriorities(ResetPrioritiesPRequest.getDefaultInstance()),
             RPC_LOG, "ResetPriorities", "");
+  }
+
+  @Override
+  public GetTransferLeaderMessagePResponse getTransferLeaderMessage(String transferId)
+          throws AlluxioStatusException {
+    return retryRPC(() ->
+        mClient.getTransferLeaderMessage(
+           GetTransferLeaderMessagePRequest.newBuilder().setTransferId(transferId).build()),
+        RPC_LOG, "GetTransferLeaderMessage",  "");
   }
 }

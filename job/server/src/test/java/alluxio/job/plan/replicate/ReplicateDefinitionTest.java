@@ -117,6 +117,8 @@ public final class ReplicateDefinitionTest {
     mMockFileSystemContext = PowerMockito.mock(FileSystemContext.class);
     when(mMockFileSystemContext.getClientContext())
         .thenReturn(ClientContext.create(ServerConfiguration.global()));
+    when(mMockFileSystemContext.getClusterConf())
+        .thenReturn(ServerConfiguration.global());
     mMockBlockStore = PowerMockito.mock(AlluxioBlockStore.class);
     mMockFileSystem = mock(FileSystem.class);
     mMockUfsManager = mock(UfsManager.class);
@@ -175,7 +177,7 @@ public final class ReplicateDefinitionTest {
         .thenReturn(mTestBlockInfo
             .setLocations(Lists.newArrayList(new BlockLocation().setWorkerAddress(ADDRESS_1))));
     PowerMockito.mockStatic(AlluxioBlockStore.class);
-    when(AlluxioBlockStore.create(mMockFileSystemContext)).thenReturn(mMockBlockStore);
+    when(AlluxioBlockStore.create(any(FileSystemContext.class))).thenReturn(mMockBlockStore);
 
     ReplicateConfig config = new ReplicateConfig(TEST_PATH, TEST_BLOCK_ID, 1 /* value not used */);
     ReplicateDefinition definition = new ReplicateDefinition();

@@ -21,7 +21,7 @@ Cluster.BytesReadRemote:
 Cluster.BytesReadRemoteThroughput:
   'Bytes read per minute throughput from Alluxio storage or underlying UFS if data does not exist in Alluxio storage reported by all workers. This does not include short-circuit local reads and domain socket reads'
 Cluster.BytesReadUfsAll:
-  'Total number of bytes read from a all Alluxio UFSes by all workers'
+  'Total number of bytes read from all Alluxio UFSes by all workers'
 Cluster.BytesReadUfsThroughput:
   'Bytes read per minute throughput from all Alluxio UFSes by all workers'
 Cluster.BytesWrittenDomain:
@@ -42,6 +42,8 @@ Cluster.BytesWrittenUfsAll:
   'Total number of bytes written to all Alluxio UFSes by all workers'
 Cluster.BytesWrittenUfsThroughput:
   'Bytes write per minute throughput to all Alluxio UFSes by all workers'
+Cluster.CacheHitRate:
+  'Cache hit rate: (# bytes read from cache) / (# bytes requested)'
 Cluster.CapacityFree:
   'Total free bytes on all tiers, on all workers of Alluxio'
 Cluster.CapacityTotal:

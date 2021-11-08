@@ -22,6 +22,7 @@
 {{- /*         ALLUXIO_JAVA_OPTS             */}}
 {{- /* ===================================== */}}
 {{- $alluxioJavaOpts := list }}
+{{- $alluxioJavaOpts = print "-Dalluxio.hub.agent.rpc.hostname=${ALLUXIO_HUB_AGENT_RPC_HOSTNAME}" | append $alluxioJavaOpts }}
 {{- /* Specify master hostname if single master */}}
 {{- if $isSingleMaster }}
   {{- $alluxioJavaOpts = printf "-Dalluxio.master.hostname=%v-%v" $fullName $defaultMasterName | append $alluxioJavaOpts }}
@@ -79,6 +80,20 @@
 {{- $workerJavaOpts = print "-Dalluxio.worker.hostname=${ALLUXIO_WORKER_HOSTNAME}" | append $workerJavaOpts }}
 {{- $workerJavaOpts = printf "-Dalluxio.worker.rpc.port=%v" .Values.worker.ports.rpc | append $workerJavaOpts }}
 {{- $workerJavaOpts = printf "-Dalluxio.worker.web.port=%v" .Values.worker.ports.web | append $workerJavaOpts }}
+
+{{- /* Worker Fuse configurations */}}
+{{- if eq .Values.worker.fuseEnabled true}}
+  {{- $workerJavaOpts = print "-Dalluxio.worker.fuse.enabled=true" | append $workerJavaOpts }}
+  {{- $workerJavaOpts = print "-Dalluxio.worker.fuse.mount.alluxio.path=/" | append $workerJavaOpts }}
+  {{- $workerJavaOpts = printf "-Dalluxio.worker.fuse.mount.point=%v" .Values.fuse.mountPath | append $workerJavaOpts }}
+  {{- if .Values.fuse.mountOptions }}
+  {{- $workerJavaOpts = printf "-Dalluxiuo.worker.fuse.mount.options=%v" .Values.fuse.mountOptions | append $workerJavaOpts }}
+  {{- end }}
+  {{- $workerJavaOpts = print "-Dalluxio.user.hostname=${ALLUXIO_CLIENT_HOSTNAME}" | append $workerJavaOpts }}
+  {{- if .Values.fuse.jvmOptions }}
+    {{- $workerJavaOpts = concat $workerJavaOpts .Values.fuse.jvmOptions }}
+  {{- end }}
+{{- end }}
 
 {{- /* Short circuit configuration */}}
 {{- if eq .Values.shortCircuit.enabled false}}
@@ -152,12 +167,14 @@
 {{- /*        ALLUXIO_FUSE_JAVA_OPTS         */}}
 {{- /* ===================================== */}}
 {{- $fuseJavaOpts := list }}
-{{- $fuseJavaOpts = print "-Dalluxio.user.hostname=${ALLUXIO_CLIENT_HOSTNAME}" | append $fuseJavaOpts }}
-{{- range $key, $val := .Values.fuse.properties }}
-  {{- $fuseJavaOpts = printf "-D%v=%v" $key $val | append $fuseJavaOpts }}
-{{- end }}
-{{- if .Values.fuse.jvmOptions }}
-  {{- $fuseJavaOpts = concat $fuseJavaOpts .Values.fuse.jvmOptions }}
+{{- if eq .Values.worker.fuseEnabled false }}
+  {{- $fuseJavaOpts = print "-Dalluxio.user.hostname=${ALLUXIO_CLIENT_HOSTNAME}" | append $fuseJavaOpts }}
+  {{- range $key, $val := .Values.fuse.properties }}
+    {{- $fuseJavaOpts = printf "-D%v=%v" $key $val | append $fuseJavaOpts }}
+  {{- end }}
+  {{- if .Values.fuse.jvmOptions }}
+    {{- $fuseJavaOpts = concat $fuseJavaOpts .Values.fuse.jvmOptions }}
+  {{- end }}
 {{- end }}
 apiVersion: v1
 kind: ConfigMap
@@ -188,13 +205,14 @@ data:
   ALLUXIO_JOB_WORKER_JAVA_OPTS: |-
     {{- /* Format ALLUXIO_JOB_WORKER_JAVA_OPTS list to one line */}}
     {{ range $key := $jobWorkerJavaOpts }}{{ printf "%v " $key }}{{ end }}
+  {{- if eq .Values.worker.fuseEnabled false }}
   ALLUXIO_FUSE_JAVA_OPTS: |-
     {{- /* Format ALLUXIO_FUSE_JAVA_OPTS list to one line */}}
     {{ range $key := $fuseJavaOpts }}{{ printf "%v " $key }}{{ end }}
+  {{- end }}
   ALLUXIO_WORKER_TIEREDSTORE_LEVEL0_DIRS_PATH: /dev/shm
   {{- if .Values.logserver.enabled }}
   ALLUXIO_LOGSERVER_HOSTNAME: {{ $fullName }}-logserver
   {{- /* Note: The value must be a string or kubectl will fail to read it */}}
   ALLUXIO_LOGSERVER_PORT: {{ quote .Values.logserver.ports.logging }}
   {{- end }}
-

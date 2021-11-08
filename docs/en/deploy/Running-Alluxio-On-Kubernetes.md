@@ -14,14 +14,16 @@ on Kubernetes using the specification included in the Alluxio Docker image or `h
 
 ## Prerequisites
 
-- A Kubernetes cluster (version >= 1.8). With the default specifications, Alluxio
-workers may use `emptyDir` volumes with a restricted size using the `sizeLimit`
-parameter. This is an alpha feature in Kubernetes 1.8.
-Please ensure the feature is enabled.
-- An Alluxio Docker image [alluxio/{{site.ALLUXIO_DOCKER_IMAGE}}](https://hub.docker.com/r/alluxio/{{site.ALLUXIO_DOCKER_IMAGE}}/).
-If using a private Docker registry, refer to the Kubernetes
+- A Kubernetes cluster (version 1.11+) with Beta feature gate APIs enabled
+  - The [Alluxio Helm chart](https://github.com/Alluxio/alluxio/tree/master/integration/kubernetes/helm-chart/alluxio)
+  which the Kubernetes resource specifications are built from supports
+  Kubernetes version 1.11+.
+  - Beta feature gates are [enabled by default](https://kubernetes.io/docs/reference/command-line-tools-reference/feature-gates/#feature-stages)
+  for Kubernetes cluster installations
+- Cluster access to an Alluxio Docker image [alluxio/{{site.ALLUXIO_DOCKER_IMAGE}}](https://hub.docker.com/r/alluxio/{{site.ALLUXIO_DOCKER_IMAGE}}/).
+If using a private Docker registry, refer to the Kubernetes private image registry
 [documentation](https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/).
-- Ensure the [Kubernetes Network Policy](https://kubernetes.io/docs/concepts/services-networking/network-policies/)
+- Ensure the cluster's [Kubernetes Network Policy](https://kubernetes.io/docs/concepts/services-networking/network-policies/)
 allows for connectivity between applications (Alluxio clients) and the Alluxio Pods on the defined
 ports.
 
@@ -38,32 +40,34 @@ used directly using native Kubernetes resource specifications.
 
 
 {% accordion setup %}
-  {% collapsible (Optional) Extract Kubernetes Specifications %}
-If hosting a private `helm` repository or using native Kubernetes specifications,
-extract the Kubernetes specifications required to deploy Alluxio from the Docker image.
+  {% collapsible (Optional) Copy the Alluxio Helm chart to a private Helm repository %}
+
+The Alluxio Helm chart source code is located [here](https://github.com/Alluxio/alluxio/tree/master/integration/kubernetes/helm-chart/alluxio).
+Alternatively, you can extract the Helm chart directory from the Alluxio Docker image:
 
 ```console
 $ id=$(docker create alluxio/{{site.ALLUXIO_DOCKER_IMAGE}}:{{site.ALLUXIO_VERSION_STRING}})
 $ docker cp $id:/opt/alluxio/integration/kubernetes/ - > kubernetes.tar
 $ docker rm -v $id 1>/dev/null
 $ tar -xvf kubernetes.tar
-$ cd kubernetes
+$ cd kubernetes/helm-chart/alluxio
 ```
   {% endcollapsible %}
   {% collapsible (Optional) Provision a Persistent Volume %}
-Note: [Embedded Journal]({{ '/en/operation/Journal.html' | relativize_url }}#embedded-journal-configuration)
+Depending on the configuration used to deploy Alluxio, you will likely
+need to provision [Persistent Volumes](https://kubernetes.io/docs/concepts/storage/persistent-volumes/).
+- [Embedded Journal]({{ '/en/operation/Journal.html' | relativize_url }}#embedded-journal-configuration)
 requires a Persistent Volume for each master Pod to be provisioned and is the preferred HA mechanism
-for Alluxio on Kubernetes.
-The volume, once claimed, is persisted across restarts of the master process.
-
-When using the [UFS Journal]({{ '/en/operation/Journal.html' | relativize_url }}#ufs-journal-configuration)
-an Alluxio master can also be configured to use a [persistent volume](https://kubernetes.io/docs/concepts/storage/persistent-volumes/)
-for storing the journal.
-If you are using UFS journal and use an external journal location like HDFS, the rest of this
-section can be skipped.
+for Alluxio on Kubernetes. The volume, once claimed, is persisted across restarts of the master process.
+- When using the [UFS Journal]({{ '/en/operation/Journal.html' | relativize_url }}#ufs-journal-configuration)
+an Alluxio master can also be configured to use a persistent volume for storing the journal.
+If Alluxio is configured to use a UFS journal and with an external journal location
+like HDFS, the rest of this section can be skipped.
+- When Alluxio workers have [short-circuit access]({{ '/en/deploy/Running-Alluxio-On-Kubernetes.html' | relativize_url }}#enable-short-circuit-access),
+you may need to use Volumes to mount the domain socket to the workers.
 
 There are multiple ways to create a PersistentVolume.
-This is an example which defines one with `hostPath`:
+This is an example which defines one with `hostPath` for the Alluxio Master journal:
 ```yaml
 # Name the file alluxio-master-journal-pv.yaml
 kind: PersistentVolume
@@ -96,8 +100,6 @@ Then create the persistent volume with `kubectl`:
 ```console
 $ kubectl create -f alluxio-master-journal-pv.yaml
 ```
-
-There are other ways to create Persistent Volumes as documented [here](https://kubernetes.io/docs/concepts/storage/persistent-volumes/).
   {% endcollapsible %}
 {% endaccordion %}
 
@@ -498,8 +500,20 @@ $ helm delete alluxio
 
 #### Choose the Sample YAML Template
 
-The specification directory contains a set of YAML templates for common deployment scenarios in
-the sub-directories: *singleMaster-localJournal*, *singleMaster-hdfsJournal* and
+First, extract the pre-templated Kubernetes specification YAMLs
+from the Alluxio docker image:
+
+```console
+$ id=$(docker create alluxio/{{site.ALLUXIO_DOCKER_IMAGE}}:{{site.ALLUXIO_VERSION_STRING}})
+$ docker cp $id:/opt/alluxio/integration/kubernetes/ - > kubernetes.tar
+$ docker rm -v $id 1>/dev/null
+$ tar -xvf kubernetes.tar
+$ cd kubernetes
+```
+
+The extracted directory contains a set of YAML templates generated from our Helm chart
+for common deployment scenarios in the sub-directories:
+*singleMaster-localJournal*, *singleMaster-hdfsJournal*, and
 *multiMaster-embeddedJournal*.
 > *singleMaster* means the templates generate 1 Alluxio master process, while *multiMaster* means 3.
 *embedded* and *ufs* are the 2 [journal modes]({{ '/en/operation/Journal.html' | relativize_url }})
@@ -514,6 +528,9 @@ Each Alluxio master writes journal to its own journal volume requested by `volum
 - *singleMaster-hdfsJournal* directory gives you the Kubernetes ConfigMap, 1 Alluxio master with a
 set of workers.
 The journal is in a shared UFS location. In this template we use HDFS as the UFS.
+
+For customized templated YAMLs, see the [README](https://github.com/Alluxio/alluxio/tree/master/integration/kubernetes#generate-kubectl-yaml-templates-from-helm-chart)
+for how to use `helm-generate.sh`. Otherwise you may manually write or modify YAML files as you see fit.
 
 #### Configuration
 
@@ -706,8 +723,9 @@ Make sure all the Pods have been terminated before you move on to the next step.
 
 **Step 3: Format journal and Alluxio storage if necessary**
 
-Check the Alluxio upgrade guide page for whether the Alluxio master journal has to be formatted.
-If no format is needed, you are ready to skip the rest of this section and move on to restart all
+Check the [Alluxio upgrade guide page]({{ '/en/operation/Upgrade.html' | relativize_url }})
+for whether the Alluxio master journal has to be formatted. If no format is needed,
+you are ready to skip the rest of this section and move on to restart all
 Alluxio master and worker Pods.
 
 You can follow [formatting journal with kubectl]({{ '/en/deploy/Running-Alluxio-On-Kubernetes.html#format-journal-1' | relativize_url }})
@@ -759,6 +777,30 @@ Be careful if you have persistent volumes or other important resources you want 
 {% endnavtab %}
 {% endnavtabs %}
 
+### Verify
+
+If using persistent volumes, the status of the volume(s) should change
+to `CLAIMED` and the status of the volume claims should be `BOUNDED`.
+You can validate the status of your PersistentVolume and PersistentVolumeClaims
+using the follow `kubectl` commands:
+```console
+$ kubectl get pv
+$ kubectl get pvc
+```
+- If you have unbound PersistentVolumeClaims, please ensure you have provisioned
+matching PersistentVolumes. See "(Optional) Provision a Persistent Volume" in
+[Basic Setup]({{ '/en/deploy/Running-Alluxio-On-Kubernetes.html' | relativize_url }}#basic-setup).
+
+Once ready, access the Alluxio CLI from the master Pod and run basic I/O tests.
+```console
+$ kubectl exec -ti alluxio-master-0 /bin/bash
+```
+
+From the master Pod, execute the following:
+```console
+$ alluxio runTests
+```
+
 ### Access the Web UI
 
 The Alluxio UI can be accessed from outside the kubernetes cluster using port forwarding.
@@ -795,25 +837,210 @@ with either `Ctrl + C` or `kill`.
 
 For more information about K8s port-forward see the [K8s doc](https://kubernetes.io/docs/reference/generated/kubectl/kubectl-commands#port-forward).
 
-### Verify
+## Advanced Setup
 
-Once ready, access the Alluxio CLI from the master Pod and run basic I/O tests.
-```console
-$ kubectl exec -ti alluxio-master-0 /bin/bash
+### Enable Short-circuit Access
+
+Short-circuit access enables clients to perform read and write operations directly against the
+worker bypassing the networking interface.
+For performance-critical applications it is recommended to enable short-circuit operations
+against Alluxio because it can increase a client's read and write throughput when co-located with
+an Alluxio worker.
+
+This feature is enabled by default (see next section to disable this feature), however requires extra configuration to work properly in
+Kubernetes environments.
+
+There are two modes for using short-circuit.
+
+#### Option1: Use local mode
+
+In this mode, the Alluxio client and local Alluxio worker recognize each other if the client hostname
+matches the worker hostname.
+This is called *Hostname Introspection*.
+In this mode, the Alluxio client and local Alluxio worker share the tiered storage of Alluxio worker.
+
+{% navtabs modes %}
+{% navtab helm %}
+
+You can use `local` policy by setting the properties as below:
+
+```properties
+shortCircuit:
+  enabled: true
+  policy: local
 ```
 
-From the master Pod, execute the following:
-```console
-$ alluxio runTests
+{% endnavtab %}
+{% navtab kubectl %}
+
+In your `alluxio-configmap.yaml` you should add the following properties to `ALLUXIO_WORKER_JAVA_OPTS`:
+
+```properties
+-Dalluxio.user.short.circuit.enabled=true \
+-Dalluxio.worker.data.server.domain.socket.as.uuid=false
 ```
 
-(Optional) If using persistent volumes for Alluxio master, the status of the volume(s) should change
-to `CLAIMED`, and the status of the volume claims should be `BOUNDED`.
-You can validate the status as below:
-```console
-$ kubectl get pv
-$ kubectl get pvc
+Also you should remove the property `-Dalluxio.worker.data.server.domain.socket.address`.
+
+{% endnavtab %}
+{% endnavtabs %}
+
+#### Option2: Use uuid (default)
+
+This is the **default** policy used for short-circuit in Kubernetes.
+
+If the client or worker container is using virtual networking, their hostnames may not match.
+In such a scenario, set the following property to use filesystem inspection to enable short-circuit
+operations and **make sure the client container mounts the directory specified as the domain socket
+path**.
+Short-circuit writes are then enabled if the worker UUID is located on the client filesystem.
+
+***Domain Socket Path.***
+The domain socket is a volume which should be mounted on:
+
+- All Alluxio workers
+- All application containers which intend to read/write through Alluxio
+
+This domain socket volume can be either a `PersistentVolumeClaim` or a `hostPath Volume`.
+
+***Use PersistentVolumeClaim.***
+By default, this domain socket volume is a `PersistentVolumeClaim`.
+You need to provision a `PersistentVolume` to this `PersistentVolumeClaim`.
+And this `PersistentVolume` should be either `local` or `hostPath`.
+
+{% navtabs domainSocketPVC %}
+{% navtab helm %}
+
+You can use `uuid` policy by setting the properties as below:
+
+```properties
+# These are the default configurations
+shortCircuit:
+  enabled: true
+  policy: uuid
+  size: 1Mi
+  # volumeType controls the type of shortCircuit volume.
+  # It can be "persistentVolumeClaim" or "hostPath"
+  volumeType: persistentVolumeClaim
+  # Attributes to use if the domain socket volume is PVC
+  pvcName: alluxio-worker-domain-socket
+  accessModes:
+    - ReadWriteOnce
+  storageClass: standard
 ```
+
+The field `shortCircuit.pvcName` defines the name of the `PersistentVolumeClaim` for domain socket.
+This PVC will be created as part of `helm install`.
+
+{% endnavtab %}
+{% navtab kubectl %}
+
+You should verify the following properties in `ALLUXIO_WORKER_JAVA_OPTS`.
+Actually they are set to these values by default:
+```properties
+-Dalluxio.worker.data.server.domain.socket.address=/opt/domain -Dalluxio.worker.data.server.domain.socket.as.uuid=true
+```
+
+Also you should make sure the worker Pods have domain socket defined in the `volumes`,
+and all relevant containers have the domain socket volume mounted.
+The domain socket volume is defined as below by default:
+```properties
+volumes:
+  - name: alluxio-domain
+    persistentVolumeClaim:
+      claimName: "alluxio-worker-domain-socket"
+```
+
+> Note: Compute application containers **MUST** mount the domain socket volume to the same path
+(`/opt/domain`) as configured for the Alluxio workers.
+
+The `PersistenceVolumeClaim` is defined in `worker/alluxio-worker-pvc.yaml.template`.
+
+{% endnavtab %}
+{% endnavtabs %}
+
+***Use hostPath Volume.***
+You can also directly define the workers to use a `hostPath Volume` for domain socket.
+
+{% navtabs domainSocketHostPath %}
+{% navtab helm %}
+
+You can switch to directly use a `hostPath` volume for the domain socket.
+This is done by changing the `shortCircuit.volumeType` field to `hostPath`.
+Note that you also need to define the path to use for the `hostPath` volume.
+
+```properties
+shortCircuit:
+  enabled: true
+  policy: uuid
+  size: 1Mi
+  # volumeType controls the type of shortCircuit volume.
+  # It can be "persistentVolumeClaim" or "hostPath"
+  volumeType: hostPath
+  # Attributes to use if the domain socket volume is hostPath
+  hostPath: "/tmp/alluxio-domain" # The hostPath directory to use
+```
+{% endnavtab %}
+{% navtab kubectl %}
+
+You should verify the properties in `ALLUXIO_WORKER_JAVA_OPTS` in the same way as using `PersistentVolumeClaim`.
+
+Also you should make sure the worker Pods have domain socket defined in the `volumes`,
+and all relevant containers have the domain socket volume mounted.
+The domain socket volume is defined as below by default:
+```properties
+volumes:
+  - name: alluxio-domain
+    hostPath:
+      path: /tmp/alluxio-domain
+      type: DirectoryOrCreate
+```
+
+> Note: Compute application containers **MUST** mount the domain socket volume to the same path
+(`/opt/domain`) as configured for the Alluxio workers.
+
+{% endnavtab %}
+{% endnavtabs %}
+
+### Verify Short-circuit Operations
+
+To verify short-circuit reads and writes monitor the metrics displayed under:
+1. the metrics tab of the web UI as `Domain Socket Alluxio Read` and `Domain Socket Alluxio Write`
+1. or, the [metrics json]({{ '/en/operation/Metrics-System.html' | relativize_url }}) as
+`cluster.BytesReadDomain` and `cluster.BytesWrittenDomain`
+1. or, the [fsadmin metrics CLI]({{ '/en/operation/Admin-CLI.html' | relativize_url }}) as
+`Short-circuit Read (Domain Socket)` and `Alluxio Write (Domain Socket)`
+
+### Disable Short-Circuit Operations
+To disable short-circuit operations, the operation depends on how you deploy Alluxio.
+
+> Note: As mentioned, disabling short-circuit access for Alluxio workers will result in
+worse I/O throughput
+
+{% navtabs shortCircuit %}
+{% navtab helm %}
+
+You can disable short circuit by setting the properties as below:
+
+```properties
+shortCircuit:
+  enabled: false
+```
+
+{% endnavtab %}
+{% navtab kubectl %}
+
+You should set the property `alluxio.user.short.circuit.enabled` to `false` in your
+`ALLUXIO_WORKER_JAVA_OPTS`.
+```properties
+-Dalluxio.user.short.circuit.enabled=false
+```
+
+You should also manually remove the volume `alluxio-domain` from `volumes` of the Pod definition
+and `volumeMounts` of each container if existing.
+
+{% endnavtab %}
+{% endnavtabs %}
 
 ### Enable remote logging
 
@@ -1021,8 +1248,6 @@ drwxr-sr-x    2 alluxio  bin           4096 Jan 12 03:14 worker
 drwxr-sr-x    2 alluxio  bin           4096 Jan 12 03:14 job_worker
 ```
 
-## Advanced Setup
-
 ### POSIX API
 
 Once Alluxio is deployed on Kubernetes, there are multiple ways in which a client application can
@@ -1159,208 +1384,17 @@ containers:
 {% endnavtab %}
 {% endnavtabs %}
 
-### Enable Short-circuit Access
-
-Short-circuit access enables clients to perform read and write operations directly against the
-worker bypassing the networking interface.
-For performance-critical applications it is recommended to enable short-circuit operations
-against Alluxio because it can increase a client's read and write throughput when co-located with
-an Alluxio worker.
-
-This feature is enabled by default (see next section to disable this feature), however requires extra configuration to work properly in
-Kubernetes environments.
-
-There are two modes for using short-circuit.
-
-#### Option1: Use local mode
-
-In this mode, the Alluxio client and local Alluxio worker recognize each other if the client hostname
-matches the worker hostname.
-This is called *Hostname Introspection*.
-In this mode, the Alluxio client and local Alluxio worker share the tiered storage of Alluxio worker.
-
-{% navtabs modes %}
-{% navtab helm %}
-
-You can use `local` policy by setting the properties as below:
+### Toggle Master or Worker in Helm chart
+In use cases where you wish to install Alluxio masters and workers separately
+with the Helm chart, use the following respective toggles:
 
 ```properties
-shortCircuit:
-  enabled: true
-  policy: local
-```
+master:
+  enabled: false
 
-{% endnavtab %}
-{% navtab kubectl %}
-
-In your `alluxio-configmap.yaml` you should add the following properties to `ALLUXIO_WORKER_JAVA_OPTS`:
-
-```properties
--Dalluxio.user.short.circuit.enabled=true \
--Dalluxio.worker.data.server.domain.socket.as.uuid=false
-```
-
-Also you should remove the property `-Dalluxio.worker.data.server.domain.socket.address`.
-
-{% endnavtab %}
-{% endnavtabs %}
-
-#### Option2: Use uuid (default)
-
-This is the **default** policy used for short-circuit in Kubernetes.
-
-If the client or worker container is using virtual networking, their hostnames may not match.
-In such a scenario, set the following property to use filesystem inspection to enable short-circuit
-operations and **make sure the client container mounts the directory specified as the domain socket
-path**.
-Short-circuit writes are then enabled if the worker UUID is located on the client filesystem.
-
-***Domain Socket Path.***
-The domain socket is a volume which should be mounted on:
-
-- All Alluxio workers
-- All application containers which intend to read/write through Alluxio
-
-This domain socket volume can be either a `PersistentVolumeClaim` or a `hostPath Volume`.
-
-***Use PersistentVolumeClaim.***
-By default, this domain socket volume is a `PersistentVolumeClaim`.
-You need to provision a `PersistentVolume` to this `PersistentVolumeClaim`.
-And this `PersistentVolume` should be either `local` or `hostPath`.
-
-{% navtabs domainSocketPVC %}
-{% navtab helm %}
-
-You can use `uuid` policy by setting the properties as below:
-
-```properties
-# These are the default configurations
-shortCircuit:
-  enabled: true
-  policy: uuid
-  size: 1Mi
-  # volumeType controls the type of shortCircuit volume.
-  # It can be "persistentVolumeClaim" or "hostPath"
-  volumeType: persistentVolumeClaim
-  # Attributes to use if the domain socket volume is PVC
-  pvcName: alluxio-worker-domain-socket
-  accessModes:
-    - ReadWriteOnce
-  storageClass: standard
-```
-
-The field `shortCircuit.pvcName` defines the name of the `PersistentVolumeClaim` for domain socket.
-This PVC will be created as part of `helm install`.
-
-{% endnavtab %}
-{% navtab kubectl %}
-
-You should verify the following properties in `ALLUXIO_WORKER_JAVA_OPTS`.
-Actually they are set to these values by default:
-```properties
--Dalluxio.worker.data.server.domain.socket.address=/opt/domain -Dalluxio.worker.data.server.domain.socket.as.uuid=true
-```
-
-Also you should make sure the worker Pods have domain socket defined in the `volumes`,
-and all relevant containers have the domain socket volume mounted.
-The domain socket volume is defined as below by default:
-```properties
-volumes:
-  - name: alluxio-domain
-    persistentVolumeClaim:
-      claimName: "alluxio-worker-domain-socket"
-```
-
-> Note: Compute application containers **MUST** mount the domain socket volume to the same path
-(`/opt/domain`) as configured for the Alluxio workers.
-
-The `PersistenceVolumeClaim` is defined in `worker/alluxio-worker-pvc.yaml.template`.
-
-{% endnavtab %}
-{% endnavtabs %}
-
-***Use hostPath Volume.***
-You can also directly define the workers to use a `hostPath Volume` for domain socket.
-
-{% navtabs domainSocketHostPath %}
-{% navtab helm %}
-
-You can switch to directly use a `hostPath` volume for the domain socket.
-This is done by changing the `shortCircuit.volumeType` field to `hostPath`.
-Note that you also need to define the path to use for the `hostPath` volume.
-
-```properties
-shortCircuit:
-  enabled: true
-  policy: uuid
-  size: 1Mi
-  # volumeType controls the type of shortCircuit volume.
-  # It can be "persistentVolumeClaim" or "hostPath"
-  volumeType: hostPath
-  # Attributes to use if the domain socket volume is hostPath
-  hostPath: "/tmp/alluxio-domain" # The hostPath directory to use
-```
-{% endnavtab %}
-{% navtab kubectl %}
-
-You should verify the properties in `ALLUXIO_WORKER_JAVA_OPTS` in the same way as using `PersistentVolumeClaim`.
-
-Also you should make sure the worker Pods have domain socket defined in the `volumes`,
-and all relevant containers have the domain socket volume mounted.
-The domain socket volume is defined as below by default:
-```properties
-volumes:
-  - name: alluxio-domain
-    hostPath:
-      path: /tmp/alluxio-domain
-      type: DirectoryOrCreate
-```
-
-> Note: Compute application containers **MUST** mount the domain socket volume to the same path
-(`/opt/domain`) as configured for the Alluxio workers.
-
-{% endnavtab %}
-{% endnavtabs %}
-
-### Verify Short-circuit Operations
-
-To verify short-circuit reads and writes monitor the metrics displayed under:
-1. the metrics tab of the web UI as `Domain Socket Alluxio Read` and `Domain Socket Alluxio Write`
-1. or, the [metrics json]({{ '/en/operation/Metrics-System.html' | relativize_url }}) as
-`cluster.BytesReadDomain` and `cluster.BytesWrittenDomain`
-1. or, the [fsadmin metrics CLI]({{ '/en/operation/Admin-CLI.html' | relativize_url }}) as
-`Short-circuit Read (Domain Socket)` and `Alluxio Write (Domain Socket)`
-
-### Disable Short-Circuit Operations
-To disable short-circuit operations, the operation depends on how you deploy Alluxio.
-
-> Note: As mentioned, disabling short-circuit access for Alluxio workers will result in
-worse I/O throughput
-
-{% navtabs shortCircuit %}
-{% navtab helm %}
-
-You can disable short circuit by setting the properties as below:
-
-```properties
-shortCircuit:
+worker:
   enabled: false
 ```
-
-{% endnavtab %}
-{% navtab kubectl %}
-
-You should set the property `alluxio.user.short.circuit.enabled` to `false` in your
-`ALLUXIO_WORKER_JAVA_OPTS`.
-```properties
--Dalluxio.user.short.circuit.enabled=false
-```
-
-You should also manually remove the volume `alluxio-domain` from `volumes` of the Pod definition
-and `volumeMounts` of each container if existing.
-
-{% endnavtab %}
-{% endnavtabs %}
 
 ### Kubernetes Configuration Options
 
@@ -1571,6 +1605,48 @@ spec:
 {% endnavtab %}
 {% endnavtabs %}
 
+#### ImagePullSecrets
+
+Kubernetes supports [accessing images from a Private Registry](https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/).
+After creating the registry credentials `Secret` in Kubernetes, you pass the secret
+to your Pods via `imagePullSecrets`.
+
+{% navtabs imagePullSecrets %}
+{% navtab helm %}
+
+The following value applies the specified `imagePullSecrets` to all
+Pods in the Helm chart.
+
+```properties
+imagePullSecrets:
+  - ecr
+  - dev
+```
+
+{% endnavtab %}
+{% navtab kubectl %}
+
+Add `imagePullSecrets` to your Pod specs. Eg:
+
+```properties
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: alluxio-master
+spec:
+  template:
+    spec:
+      containers:
+      - name: alluxio-master
+        image: private-registry/{{site.ALLUXIO_DOCKER_IMAGE}}:{{site.ALLUXIO_VERSION_STRING}}
+      imagePullSecrets:
+      - name: ecr
+      - name: dev
+```
+
+{% endnavtab %}
+{% endnavtabs %}
+
 ## Troubleshooting
 
 {% accordion worker_host %}
@@ -1688,5 +1764,218 @@ If this is the case, set the following properties to limit the path length:
 
 > Note: You may see performance degradation due to lack of node locality.
 
+  {% endcollapsible %}
+  {% collapsible Worker Pods get OOMKilled by the Kubernetes scheduler %}
+This is most likely caused due to the Kubernetes configured
+[Pod resource limits](https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/#requests-and-limits)
+having the `limits.memory` set too low.
+
+Firstly, double check the configured values for your Alluxio worker Pod `limits.memory`.
+**Note that the Pod consists of two containers, each with their own resource limits.**
+
+Check the configured resource requests and limits using `kubectl describe pod`,
+`kubectl get pod`, or equivalent Kube API requests. eg.,
+
+```
+$ kubectl get po -o json alluxio-worker-xxxxx | jq '.spec.containers[].resources'
+{
+  "limits": {
+    "cpu": "4",
+    "memory": "4G"
+  },
+  "requests": {
+    "cpu": "1",
+    "memory": "2G"
+  }
+}
+{
+  "limits": {
+    "cpu": "4",
+    "memory": "4G"
+  },
+  "requests": {
+    "cpu": "1",
+    "memory": "1G"
+  }
+}
+```
+
+If you used the Helm chart,
+[the default values](https://github.com/Alluxio/alluxio/blob/master/integration/kubernetes/helm-chart/alluxio/values.yaml)
+are:
+
+```
+worker:
+  resources:
+    limits:
+      cpu: "4"
+      memory: "4G"
+    requests:
+      cpu: "1"
+      memory: "2G"
+
+jobWorker:
+  resources:
+    limits:
+      cpu: "4"
+      memory: "4G"
+    requests:
+      cpu: "1"
+      memory: "1G"
+```
+
+- Even if you did not configure any values with Helm, you may still have resource limits in
+  place due to a [LimitRange](https://kubernetes.io/docs/concepts/policy/limit-range/)
+  applied to your namespace
+
+Next, ensure that the nodes that the Alluxio worker pods are running on have
+sufficient resources matching your configured values. You can check that the nodes
+you intend to schedule Alluxio worker Pods on have sufficient resources to meet
+your requests using `kubectl describe node`, `kubectl get node`, or equivalent Kube API requests. eg.,
+```
+$ kubectl get no -o json k8sworkernode-0 | jq '.status.allocatable'
+{
+  "cpu": "8",
+  "ephemeral-storage": "123684658586",
+  "hugepages-1Gi": "0",
+  "hugepages-2Mi": "0",
+  "memory": "64886128Ki",
+  "pods": "110"
+}
+```
+
+Isolating Alluxio worker Pods from other Pods in your Kubernetes cluster can be accomplished
+with the help of [node selectors](https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/#nodeselector)
+and [node taints + tolerations](https://kubernetes.io/docs/concepts/scheduling-eviction/taint-and-toleration/).
+- Keep in mind that the Alluxio worker Pod definition uses a
+  [DaemonSet](https://kubernetes.io/docs/concepts/workloads/controllers/daemonset/),
+  so there will be worker Pods assigned to all eligible nodes
+
+Next, verify the Alluxio workers' configured ramdisk sizes (if any).
+See [the list of Alluxio configuration properties]({{ '/en/reference/Properties-List.html' | relativize_url }})
+for additional details.
+- If you used the Helm chart, the Alluxio site properties are configured using `properties`. eg.,
+
+```
+properties:
+  alluxio.worker.ramdisk.size: 2G
+  alluxio.worker.tieredstore.levels: 1
+  alluxio.worker.tieredstore.level0.alias: MEM
+  alluxio.worker.tieredstore.level0.dirs.mediumtype: MEM
+  alluxio.worker.tieredstore.level0.dirs.path: /dev/shm
+  alluxio.worker.tieredstore.level0.dirs.quota: 2G
+```
+
+- Otherwise, you can view and modify the site properties in the `alluxio-config` ConfigMap. eg.,
+
+```
+$ kubectl get cm -o json alluxio-config | jq '.data.ALLUXIO_WORKER_JAVA_OPTS'
+"-Dalluxio.worker.ramdisk.size=2G
+-Dalluxio.worker.tieredstore.levels=1
+-Dalluxio.worker.tieredstore.level0.alias=MEM
+-Dalluxio.worker.tieredstore.level0.dirs.mediumtype=MEM
+-Dalluxio.worker.tieredstore.level0.dirs.path=/dev/shm
+-Dalluxio.worker.tieredstore.level0.dirs.quota=2G "
+```
+
+**NOTE: Our `DaemonSet` uses `emptyDir` volumes as the Alluxio worker Pod's ramdisk in Kubernetes.**
+```
+spec:
+  template:
+    spec:
+      volumes:
+        - name: mem
+          emptyDir:
+            medium: "Memory"
+            sizeLimit: 1G
+```
+
+This results in the following nuances:
+- `sizeLimit` has no effect on the size of the allocated ramdisk unless
+the `SizeMemoryBackedVolumes` feature gate is enabled (enabled by default
+as of Kubernetes 1.22).
+- As stated in [the Kubernetes emptyDir documentation](https://kubernetes.io/docs/concepts/storage/volumes/#emptydir),
+if no size is specified then memory-backed `emptyDir` volumes will have capacity
+allocated equal to **half the available memory on the host node**. This capacity
+is reflected inside of your containers (for example when running `df -u`). However
+if the combined size of your ramdisk and container memory usage exceeds the pod's
+`limits.memory` then the Kubernetes scheduler will trigger an `OOMKilled` on that pod.
+**This is a very likely overlooked source of memory consumption in Alluxio worker Pods.**
+
+Lastly, verify the Alluxio worker JVM heap and off-heap maximum capacities. These are
+configured with the JVM flags `-Xmx`/`-XX:MaxHeapSize` and `-XX:MaxDirectMemorySize` respectively.
+- See [the Oracle Java documentation](https://docs.oracle.com/javase/8/docs/technotes/tools/windows/java.html)
+for more details.
+
+To adjust those values, you would have to manually update the
+`(...)_JAVA_OPTS` environment variables in the `alluxio-config` ConfigMap.
+For example:
+```
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: alluxio-config
+data:
+  ALLUXIO_JAVA_OPTS: |-
+    -Xmx2g -Dalluxio.master.hostname=alluxio-master-0 ...
+  ALLUXIO_MASTER_JAVA_OPTS: |-
+    -Dalluxio.master.hostname=${ALLUXIO_MASTER_HOSTNAME}
+  ALLUXIO_JOB_MASTER_JAVA_OPTS: |-
+    -Dalluxio.master.hostname=${ALLUXIO_MASTER_HOSTNAME}
+  ALLUXIO_WORKER_JAVA_OPTS: |-
+    -XX:MaxDirectMemorySize=2g -Dalluxio.worker.hostname=${ALLUXIO_WORKER_HOSTNAME} ...
+  ALLUXIO_JOB_WORKER_JAVA_OPTS: |-
+    -XX:MaxDirectMemorySize=1g -Dalluxio.worker.hostname=${ALLUXIO_WORKER_HOSTNAME} ...
+  ALLUXIO_FUSE_JAVA_OPTS: |-
+    -Dalluxio.user.hostname=${ALLUXIO_CLIENT_HOSTNAME} -XX:MaxDirectMemorySize=2g
+  ALLUXIO_WORKER_TIEREDSTORE_LEVEL0_DIRS_PATH: /dev/shm
+```
+
+Thus to avoid worker Pods running into `OOMKilled` errors,
+1. Verify that the nodes your Alluxio worker Pods are scheduled on have
+sufficient memory to satisfy all the `limits.memory` specifications assigned.
+2. Ensure you have configured `alluxio.worker.ramdisk.size` and
+`alluxio.worker.tieredstore.level0.dirs.quota` low enough such that
+the memory consumed by the ramdisk combined with the JVM memory options
+(`-Xmx`, `-XX:MaxDirectMemorySize`) do not exceed the Pod's `limits.memory`.
+It is recommended to allow for some overhead as memory may be consumed
+by other processes as well.
+
+**Aside:** There is currently an [open issue](https://github.com/Alluxio/alluxio/issues/12277)
+in Alluxio where Alluxio's interpretation of byte sizes differs from
+Kubernetes (due to Kubernetes distinguishing between "-bibytes").
+This is unlikely to cause `OOMKilled` errors unless you are operating on
+very tight memory margins.
+
+  {% endcollapsible %}
+  {% collapsible JVM not seeing correct memory limit from cgroup %}
+It is a known issue that in some early versions of Java 8, the JVM running in a container
+will determine its heap size(if not specified with `-Xmx` and `-Xms`) based on 
+the memory of the physical host instead of the container.
+In that case, the JVM may attempt to use more memory than the container
+resource limit and gets killed. You can find more detailed explanations 
+[here](https://developers.redhat.com/blog/2017/03/14/java-inside-docker).
+
+Since Java 8u131, some JVM flags can be turned on in order to correctly read the memory from cgroup.
+You can refer to our `values.yaml` from our Helm chart template, and uncomment the below options.
+These options will be added to the JVM options of all Alluxio containers, including the
+masters and workers etc. You can find more detailed explanations
+[here](https://www.atamanroman.dev/articles/jvm-memory-settings-container-environment/).
+```yaml
+# Recommended JVM Heap options for running in Docker
+# Ref: https://developers.redhat.com/blog/2017/03/14/java-inside-docker/
+# These JVM options are common to all Alluxio services
+jvmOptions:
+  - "-XX:+UnlockExperimentalVMOptions"
+  - "-XX:+UseCGroupMemoryLimitForHeap"
+  - "-XX:MaxRAMFraction=2"
+```
+
+From Java git 8u191 on, the container support works out-of-the-box.
+So you don't need to turn on the flags mentioned above any more.
+
+You should check the Java version in the container you are using to ensure the
+correct memory limits are respected. Also it is recommended to go to the 
+running container and double check the JVM process is running with the correct memory consumption.
   {% endcollapsible %}
 {% endaccordion %}

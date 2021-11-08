@@ -126,4 +126,13 @@ public final class HeartbeatThread implements Runnable {
       mExecutor.close();
     }
   }
+
+  /**
+   * Updates the heartbeat interval.
+   *
+   * @param intervalMs the heartbeat interval in ms
+   */
+  public void updateIntervalMs(long intervalMs) {
+    mTimer.setIntervalMs(intervalMs);
+  }
 }

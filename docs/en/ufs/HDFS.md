@@ -178,7 +178,7 @@ set, add a group to this property where your Alluxio running user is a member of
 group.
 
 The user set above is only the identity that starts Alluxio master and worker
-processes. Once Alluxio servers started, it is **unnecessary** to run your Alluxio client
+processes. Once Alluxio servers are started, it is **unnecessary** to run your Alluxio client
 applications using this user.
 
 ### Connect to Secure HDFS
@@ -196,7 +196,7 @@ alluxio.worker.principal=hdfs/<_HOST>@<REALM>
 ```
 
 If connecting to secure HDFS, run `kinit` on all Alluxio nodes.
-Use the principal `hdfs` and the keytab that you configured earlier in `alluxio-site.properties`
+Use the principal `hdfs` and the keytab that you configured earlier in `alluxio-site.properties`.
 A known limitation is that the Kerberos TGT may expire after
 the max renewal lifetime. You can work around this by renewing the TGT periodically. Otherwise you
 may see `No valid credentials provided (Mechanism level: Failed to find any Kerberos tgt)`
@@ -237,7 +237,7 @@ For example, the following commands mount two HDFS deployments—one is HDFS 2.2
 ```console
 $ ./bin/alluxio fs mount \
   --option alluxio.underfs.version=2.2 \
-  /mnt/hdfs12 hdfs://namenode1:8020/
+  /mnt/hdfs22 hdfs://namenode1:8020/
 $ ./bin/alluxio fs mount \
   --option alluxio.underfs.version=2.7 \
   /mnt/hdfs27 hdfs://namenode2:8020/

@@ -11,6 +11,7 @@
 
 package alluxio.stress.cli;
 
+import alluxio.annotation.SuppressFBWarnings;
 import alluxio.client.job.JobGrpcClientUtils;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.InstancedConfiguration;
@@ -22,6 +23,7 @@ import alluxio.stress.StressConstants;
 import alluxio.stress.TaskResult;
 import alluxio.stress.job.StressBenchConfig;
 import alluxio.util.ConfigurationUtils;
+import alluxio.util.FormatUtils;
 import alluxio.util.ShellUtils;
 
 import com.beust.jcommander.JCommander;
@@ -29,7 +31,6 @@ import com.beust.jcommander.ParametersDelegate;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.exc.MismatchedInputException;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.HdrHistogram.Histogram;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -118,7 +119,8 @@ public abstract class Benchmark<T extends TaskResult> {
     commandArgs.addAll(mBaseParameters.mJavaOpts.stream().map(String::trim)
         .collect(Collectors.toList()));
     String className = this.getClass().getCanonicalName();
-    return new StressBenchConfig(className, commandArgs, 10000, mBaseParameters.mClusterLimit);
+    long startDelay = FormatUtils.parseTimeSize(mBaseParameters.mClusterStartDelay);
+    return new StressBenchConfig(className, commandArgs, startDelay, mBaseParameters.mClusterLimit);
   }
 
   /**

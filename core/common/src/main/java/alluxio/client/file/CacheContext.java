@@ -11,6 +11,7 @@
 
 package alluxio.client.file;
 
+import alluxio.client.hive.HiveCacheContext;
 import alluxio.client.quota.CacheQuota;
 import alluxio.client.quota.CacheScope;
 
@@ -26,8 +27,13 @@ import javax.annotation.Nullable;
 public class CacheContext {
   /** Used in Prestodb to indicate the cache quota for a file. */
   private CacheQuota mCacheQuota = CacheQuota.UNLIMITED;
+
   /** Used in Prestodb to indicate the cache scope. */
   private CacheScope mCacheScope = CacheScope.GLOBAL;
+
+  /** Used in Prestodb to indicate the hiveContext for a file. */
+  private HiveCacheContext mHiveCacheContext = null;
+
   /**
    * Used in Prestodb to uniquely identify a file in Alluxio local cache.
    * Note that, though the filePath can be a unique identifier, it can be a long string
@@ -60,6 +66,14 @@ public class CacheContext {
   @Nullable
   public String getCacheIdentifier() {
     return mCacheIdentifier;
+  }
+
+  /**
+   * @return the hive cache context
+   */
+  @Nullable
+  public HiveCacheContext getHiveCacheContext() {
+    return mHiveCacheContext;
   }
 
   /**
@@ -104,6 +118,15 @@ public class CacheContext {
   }
 
   /**
+   * @param hiveCacheContext the hive cache context
+   * @return the updated {@code CacheContext}
+   */
+  public CacheContext setHiveCacheContext(HiveCacheContext hiveCacheContext) {
+    mHiveCacheContext = hiveCacheContext;
+    return this;
+  }
+
+  /**
    * Increments the counter {@code name} by {@code value}.
    * <p>
    * Default implementation does nothing. Subclass can implement its own tracking mechanism.
@@ -125,13 +148,14 @@ public class CacheContext {
     }
     CacheContext that = (CacheContext) o;
     return Objects.equals(mCacheIdentifier, that.mCacheIdentifier)
+        && Objects.equals(mHiveCacheContext, that.mHiveCacheContext)
         && Objects.equals(mCacheQuota, that.mCacheQuota)
         && Objects.equals(mCacheScope, that.mCacheScope);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(mCacheQuota, mCacheScope, mCacheIdentifier);
+    return Objects.hash(mCacheQuota, mCacheScope, mCacheIdentifier, mHiveCacheContext);
   }
 
   @Override
@@ -140,6 +164,7 @@ public class CacheContext {
         .add("cacheIdentifier", mCacheIdentifier)
         .add("cacheQuota", mCacheQuota)
         .add("cacheScope", mCacheScope)
+        .add("hiveCacheContext", mHiveCacheContext)
         .toString();
   }
 }

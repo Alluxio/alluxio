@@ -18,7 +18,11 @@ set -eux
 
 SCRIPT_DIR=$(cd "$( dirname "$( readlink "$0" || echo "$0" )" )"; pwd)
 
-GOPATH="${SCRIPT_DIR}" go run "${SCRIPT_DIR}/src/alluxio.org/check-docs/main.go"
+(cd ${SCRIPT_DIR}/src/alluxio.org/ && GO111MODULE=on go build -o checkdocs "check-docs/main.go")
+
+${SCRIPT_DIR}/src/alluxio.org/checkdocs $@
+
+rm ${SCRIPT_DIR}/src/alluxio.org/checkdocs
 
 cd "${SCRIPT_DIR}"/../../docs && jekyll build --trace
 

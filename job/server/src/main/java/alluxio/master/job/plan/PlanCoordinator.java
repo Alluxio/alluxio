@@ -15,10 +15,11 @@ import alluxio.collections.Pair;
 import alluxio.exception.JobDoesNotExistException;
 import alluxio.job.ErrorUtils;
 import alluxio.job.JobConfig;
-import alluxio.job.plan.PlanDefinition;
-import alluxio.job.plan.PlanDefinitionRegistry;
 import alluxio.job.JobServerContext;
 import alluxio.job.SelectExecutorsContext;
+import alluxio.job.plan.BatchedJobConfig;
+import alluxio.job.plan.PlanDefinition;
+import alluxio.job.plan.PlanDefinitionRegistry;
 import alluxio.job.plan.meta.PlanInfo;
 import alluxio.job.wire.Status;
 import alluxio.job.wire.TaskInfo;
@@ -35,6 +36,7 @@ import org.slf4j.LoggerFactory;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -137,8 +139,15 @@ public final class PlanCoordinator {
       // create task
       mPlanInfo.addTask(taskId, pair.getFirst(), pair.getSecond());
       // submit commands
-      mCommandManager.submitRunTaskCommand(mPlanInfo.getId(), taskId, mPlanInfo.getJobConfig(),
-          pair.getSecond(), pair.getFirst().getId());
+      JobConfig config;
+      if (mPlanInfo.getJobConfig() instanceof BatchedJobConfig) {
+        BatchedJobConfig planConfig = (BatchedJobConfig) mPlanInfo.getJobConfig();
+        config = new BatchedJobConfig(planConfig.getJobType(), new HashSet<>());
+      } else {
+        config = mPlanInfo.getJobConfig();
+      }
+      mCommandManager.submitRunTaskCommand(mPlanInfo.getId(), taskId, config, pair.getSecond(),
+          pair.getFirst().getId());
       mTaskIdToWorkerInfo.put((long) taskId, pair.getFirst());
       mWorkerIdToTaskIds.putIfAbsent(pair.getFirst().getId(), Lists.newArrayList());
       mWorkerIdToTaskIds.get(pair.getFirst().getId()).add((long) taskId);
@@ -224,8 +233,10 @@ public final class PlanCoordinator {
         }
         taskInfo.setStatus(Status.FAILED);
         taskInfo.setErrorType("JobWorkerLost");
-        taskInfo.setErrorMessage("Job worker was lost before the task could complete");
+        taskInfo.setErrorMessage(String.format("Job worker(%s) was lost before "
+                + "the task(%d) could complete", taskInfo.getWorkerHost(), taskId));
         statusChanged = true;
+        break;
       }
       if (statusChanged) {
         updateStatus();
