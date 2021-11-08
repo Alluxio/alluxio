@@ -46,7 +46,7 @@ ENV MAX_IDLE_THREADS "64"
 
 RUN \
     yum update -y && yum upgrade -y && \
-    yum install -y kernel-devel ca-certificates pkgconfig wget udev git && \
+    yum install -y ca-certificates pkgconfig wget udev git && \
     yum install -y gcc gcc-c++ make cmake gettext-devel libtool autoconf && \
     yum clean all && \
     ./dockerfile-common.sh install-libfuse

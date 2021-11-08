@@ -198,7 +198,14 @@ public class SimpleInodeLockList implements InodeLockList {
     if (!endsInWriteLock() && mode == LockMode.WRITE) {
       mFirstWriteLockIndex = mLocks.size();
     }
-    mLocks.add(lock);
+    try {
+      mLocks.add(lock);
+    } catch (Error e) {
+      // If adding to mLocks fails due to OOM, this lock
+      // will not be tracked so we must close it manually
+      lock.close();
+      throw e;
+    }
   }
 
   private void addInodeLock(Inode inode, LockMode mode, RWLockResource lock) {

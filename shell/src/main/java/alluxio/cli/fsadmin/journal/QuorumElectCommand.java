@@ -16,10 +16,8 @@ import alluxio.cli.fsadmin.command.Context;
 import alluxio.client.journal.JournalMasterClient;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.exception.ExceptionMessage;
-import alluxio.exception.status.AlluxioStatusException;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.grpc.GetQuorumInfoPResponse;
-import alluxio.grpc.GetTransferLeaderMessagePResponse;
 import alluxio.grpc.NetAddress;
 import alluxio.grpc.QuorumServerInfo;
 import alluxio.util.CommonUtils;
@@ -31,7 +29,7 @@ import org.apache.commons.cli.Options;
 
 import java.io.IOException;
 import java.util.Optional;
-import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * Command for transferring the leadership to another master within a quorum.
@@ -73,21 +71,18 @@ public class QuorumElectCommand extends AbstractFsAdminCommand {
     try {
       mPrintStream.println(String.format(TRANSFER_INIT, serverAddress));
       String transferId = jmClient.transferLeadership(address);
+      AtomicReference<String> errorMessage = new AtomicReference<>("");
       // wait for confirmation of leadership transfer
       final int TIMEOUT_3MIN = 3 * 60 * 1000; // in milliseconds
-      CommonUtils.waitFor("Waiting for election to finalize", () -> {
+      CommonUtils.waitFor("election to finalize.", () -> {
         try {
-          GetTransferLeaderMessagePResponse transferMsg =
-                  jmClient.getTransferLeaderMessage(transferId);
-          String errorMessage = transferMsg.getTransMsg().getMsg();
-          if (!errorMessage.isEmpty()) {
-            throw new IOException(
-                    String.format("caught an error when executing  transfer: %s", errorMessage));
+          errorMessage.set(jmClient.getTransferLeaderMessage(transferId).getTransMsg().getMsg());
+          if (!errorMessage.get().isEmpty()) {
+            // if an error is reported, end the retry immediately
+            return true;
           }
           GetQuorumInfoPResponse quorumInfo = jmClient.getQuorumInfo();
-
-          Optional<QuorumServerInfo>
-              leadingMasterInfoOpt = quorumInfo.getServerInfoList().stream()
+          Optional<QuorumServerInfo> leadingMasterInfoOpt = quorumInfo.getServerInfoList().stream()
               .filter(QuorumServerInfo::getIsLeader).findFirst();
           NetAddress leaderAddress = leadingMasterInfoOpt.isPresent()
               ? leadingMasterInfoOpt.get().getServerAddress() : null;
@@ -97,13 +92,13 @@ public class QuorumElectCommand extends AbstractFsAdminCommand {
         }
       }, WaitForOptions.defaults().setTimeoutMs(TIMEOUT_3MIN));
 
+      if (!errorMessage.get().isEmpty()) {
+        throw new Exception(errorMessage.get());
+      }
       mPrintStream.println(String.format(TRANSFER_SUCCESS, serverAddress));
       success = true;
-    } catch (AlluxioStatusException e) {
+    } catch (Exception e) {
       mPrintStream.println(String.format(TRANSFER_FAILED, serverAddress, e.getMessage()));
-    } catch (InterruptedException | TimeoutException e) {
-      mPrintStream.println(String.format(TRANSFER_FAILED, serverAddress, "the election was "
-              + "initiated but never completed"));
     }
     // reset priorities regardless of transfer success
     try {

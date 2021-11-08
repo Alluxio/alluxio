@@ -128,7 +128,7 @@ public final class MasterWorkerInfoTest {
     mInfo.addBlock(3L);
     assertTrue(mInfo.getBlocks().contains(3L));
     // remove block
-    mInfo.removeBlock(3L);
+    mInfo.removeBlockFromWorkerMeta(3L);
     assertFalse(mInfo.getBlocks().contains(3L));
   }
 
@@ -162,7 +162,7 @@ public final class MasterWorkerInfoTest {
     assertTrue(mInfo.getToRemoveBlocks().isEmpty());
     // actually remove 1 for real
     mInfo.updateToRemovedBlock(true, 1L);
-    mInfo.removeBlock(1L);
+    mInfo.removeBlockFromWorkerMeta(1L);
     assertTrue(mInfo.getToRemoveBlocks().isEmpty());
   }
 

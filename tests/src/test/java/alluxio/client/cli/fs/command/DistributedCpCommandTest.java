@@ -43,6 +43,23 @@ public final class DistributedCpCommandTest extends AbstractFileSystemShellTest 
     assertEquals("hello", mOutput.toString());
   }
 
+  @Test
+  public void crossMountCopyWithBatch() throws Exception {
+    File file = mFolder.newFile();
+    File file2 = mFolder.newFile();
+    Files.write("hello".getBytes(), file);
+    Files.write("world".getBytes(), file2);
+    run("mount", "/cross", mFolder.getRoot().getAbsolutePath());
+    run("ls", "-f", "/cross");
+    run("distributedCp", "--batch-size", "2", "/cross", "/copied");
+    mOutput.reset();
+    run("cat", PathUtils.concatPath("/copied", file.getName()));
+    assertEquals("hello", mOutput.toString());
+    mOutput.reset();
+    run("cat", PathUtils.concatPath("/copied", file2.getName()));
+    assertEquals("world", mOutput.toString());
+  }
+
   private void run(String ...args) {
     if (sFsShell.run(args) != 0) {
       throw new RuntimeException(

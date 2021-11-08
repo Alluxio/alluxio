@@ -85,6 +85,8 @@ RUN ./dockerfile-common.sh user-operation ${ALLUXIO_USERNAME} ${ALLUXIO_GROUP} $
 COPY --chown=${ALLUXIO_USERNAME}:${ALLUXIO_GROUP} conf /opt/alluxio/conf/
 COPY --chown=${ALLUXIO_USERNAME}:${ALLUXIO_GROUP} entrypoint.sh /
 COPY --from=dev /usr/local/bin/alluxio-csi /usr/local/bin/
+# W/ Hub on K8s, conf dir is a volumeMount and is overwritten
+RUN cp /opt/alluxio/conf/log4j.properties /tmp/log4j.properties
 
 RUN ./dockerfile-common.sh enable-dynamic-user ${ENABLE_DYNAMIC_USER}
 
