@@ -626,7 +626,7 @@ $ bin/alluxio runClass alluxio.stress.cli.suit.MaxThroughput --operation CreateF
 ### Cluster testing
 #### Prerequisite
 - A running Alluxio cluster. Each worker node contains at least one worker, one job worker.
-- Ufs has enough space to store the test data if you are testing operation contains file creation.
+- UFS has enough space to store the test data if you are testing operations that involve file creation.
 
 #### Testing
 The cluster testing is similar to single node testing except that
