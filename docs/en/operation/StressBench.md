@@ -734,7 +734,7 @@ The cluster testing is similar to single node testing except that
 
 ## Ufs IO Bench
 
-The Ufs IO Bench is a tool to measure the IO throughput between the Alluxio cluster and the UFS.This test will measure the I/O throughput between Alluxio workers and the specified UFS path. Each worker will create concurrent clients to first generate test files of the specified size then read those files. The write/read I/O throughput will be measured in the process.
+The UFS IO Bench is a tool to measure the IO throughput between the Alluxio cluster and the UFS. This test will measure the I/O throughput between Alluxio workers and the specified UFS path. Each worker will create concurrent clients to first generate test files of the specified size then read those files. The write/read I/O throughput will be measured in the process.
 
 ### Parameters
 The parameters for the Worker Stress Bench are (other than common parameters for any stress bench):
