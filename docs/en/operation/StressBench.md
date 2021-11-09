@@ -444,8 +444,7 @@ The parameters for the Client IO Stress Bench are (other than common parameters 
     <tr>
         <td>read-same-file</td>
         <td>false</td>
-        <td>If true, all threads read from the same file. Otherwise, each thread reads "
-          + "from its own file.</td>
+        <td>If true, all threads read from the same file. Otherwise, each thread reads from its own file.</td>
     </tr>
     <tr>
         <td>read-random</td>
