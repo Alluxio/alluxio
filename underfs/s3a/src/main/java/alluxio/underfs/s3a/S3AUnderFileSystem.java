@@ -86,6 +86,9 @@ import javax.annotation.Nullable;
 public class S3AUnderFileSystem extends ObjectUnderFileSystem {
   private static final Logger LOG = LoggerFactory.getLogger(S3AUnderFileSystem.class);
 
+  /** The special S3 region which can be used to talk to any bucket. */
+  private static final String S3_DEFAULT_REGION = "us-east-1";
+
   /** Static hash for a directory's empty contents. */
   private static final String DIR_HASH;
 
@@ -236,6 +239,7 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
       // access bucket without region information
       // at the cost of an extra HEAD request
       clientBuilder.withForceGlobalBucketAccessEnabled(true);
+      clientBuilder.setRegion(S3_DEFAULT_REGION);
     }
 
     AmazonS3 amazonS3Client = clientBuilder.build();
