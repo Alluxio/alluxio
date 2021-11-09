@@ -101,4 +101,4 @@ Client.CacheStorePutTimeout:
 Client.CacheStoreThreadsRejected:
   'Number of rejection of I/O threads on submitting tasks to thread pool, likely due to unresponsive local file system.'
 Client.MetadataCacheSize:
-  'The total number of files and directories whose metadata is cached on the client-side. Only valid if the filesystem isalluxio.client.file.MetadataCachingBaseFileSystem.'
+  'The total number of files and directories whose metadata is cached on the client-side. Only valid if the filesystem is alluxio.client.file.MetadataCachingBaseFileSystem.'
