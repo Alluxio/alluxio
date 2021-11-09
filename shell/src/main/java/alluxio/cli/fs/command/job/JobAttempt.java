@@ -51,7 +51,7 @@ public abstract class JobAttempt {
         int retryCount = mRetryPolicy.getAttemptCount();
         System.out.println(String.format("Retry %d Failed to start job with error: %s",
             retryCount, e.getMessage()));
-        LOG.warn("Retry {} Failed to get status for job (jobId={})", retryCount, mJobId, e);
+        LOG.warn("Retry {} Failed to get status for job (jobId={}) {}", retryCount, mJobId, e);
         continue;
         // Do nothing. This will be counted as a failed attempt
       }
