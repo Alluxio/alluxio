@@ -227,8 +227,10 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
       enableGlobalBucketAccess = false;
     } else if (conf.isSet(PropertyKey.UNDERFS_S3_REGION)) {
       try {
-        clientBuilder.withRegion(conf.get(PropertyKey.UNDERFS_S3_REGION));
+        String region = conf.get(PropertyKey.UNDERFS_S3_REGION);
+        clientBuilder.withRegion(region);
         enableGlobalBucketAccess = false;
+        LOG.debug("Set S3 region {} to {}", PropertyKey.UNDERFS_S3_REGION.getName(), region);
       } catch (SdkClientException e) {
         LOG.error("S3 region {} cannot be recognized, "
             + "fall back to use global bucket access with an extra HEAD request",
@@ -240,6 +242,9 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
       // at the cost of an extra HEAD request
       clientBuilder.withForceGlobalBucketAccessEnabled(true);
       clientBuilder.setRegion(S3_DEFAULT_REGION);
+      LOG.debug("Cannot find S3 endpoint or s3 region in Alluxio configuration, "
+          + "set region to {} and enable global bucket access with extra overhead",
+          S3_DEFAULT_REGION);
     }
 
     AmazonS3 amazonS3Client = clientBuilder.build();
