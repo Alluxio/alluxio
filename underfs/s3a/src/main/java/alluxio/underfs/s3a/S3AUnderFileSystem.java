@@ -36,6 +36,7 @@ import com.amazonaws.auth.AWSStaticCredentialsProvider;
 import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.auth.DefaultAWSCredentialsProviderChain;
 import com.amazonaws.client.builder.AwsClientBuilder;
+import com.amazonaws.regions.Regions;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
@@ -85,9 +86,6 @@ import javax.annotation.Nullable;
 @ThreadSafe
 public class S3AUnderFileSystem extends ObjectUnderFileSystem {
   private static final Logger LOG = LoggerFactory.getLogger(S3AUnderFileSystem.class);
-
-  /** The special S3 region which can be used to talk to any bucket. */
-  private static final String S3_DEFAULT_REGION = "us-east-1";
 
   /** Static hash for a directory's empty contents. */
   private static final String DIR_HASH;
@@ -241,10 +239,13 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
       // access bucket without region information
       // at the cost of an extra HEAD request
       clientBuilder.withForceGlobalBucketAccessEnabled(true);
-      clientBuilder.setRegion(S3_DEFAULT_REGION);
+      // The special S3 region which can be used to talk to any bucket
+      // Region is required even if global bucket access enabled
+      String defaultRegion = Regions.US_EAST_1.getName();
+      clientBuilder.setRegion(defaultRegion);
       LOG.debug("Cannot find S3 endpoint or s3 region in Alluxio configuration, "
           + "set region to {} and enable global bucket access with extra overhead",
-          S3_DEFAULT_REGION);
+          defaultRegion);
     }
 
     AmazonS3 amazonS3Client = clientBuilder.build();
