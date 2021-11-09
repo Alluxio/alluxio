@@ -35,7 +35,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.LongAdder;
 import java.util.stream.Collectors;
 
 /**
@@ -89,11 +89,11 @@ public final class DistributedLoadUtils {
       Set<String> excludedWorkerSet, Set<String> localityIds, Set<String> excludedLocalityIds,
       boolean printOut) throws IOException, AlluxioException {
     ListStatusPOptions options = ListStatusPOptions.newBuilder().setRecursive(true).build();
-    AtomicInteger incompleteCount = new AtomicInteger();
+    LongAdder incompleteCount = new LongAdder();
     command.mFileSystem.iterateStatus(filePath, options, uriStatus -> {
       if (!uriStatus.isFolder()) {
         if (!uriStatus.isCompleted()) {
-          incompleteCount.getAndIncrement();
+          incompleteCount.increment();
           System.out.printf("Ignored load because: %s is in incomplete status",
                   uriStatus.getPath());
           return;
@@ -114,9 +114,9 @@ public final class DistributedLoadUtils {
         }
       }
     });
-    if (incompleteCount.get() > 0) {
+    if (incompleteCount.longValue() > 0) {
       System.out.printf("Ignore load %d paths because they are in incomplete status",
-              incompleteCount.get());
+              incompleteCount.longValue());
     }
 
     // add all the jobs left in the pool
