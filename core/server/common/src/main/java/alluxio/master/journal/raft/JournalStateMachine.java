@@ -65,8 +65,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionException;
+import java.util.concurrent.*;
 
 import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.ThreadSafe;
@@ -106,6 +105,8 @@ public class JournalStateMachine extends BaseStateMachine {
   private volatile long mNextSequenceNumberToRead = 0;
   private volatile boolean mSnapshotting = false;
   private volatile boolean mIsLeader = false;
+
+  ExecutorService journalPool = Executors.newFixedThreadPool(400);
 
   /**
    * This callback is used for interrupting someone who suspends the journal applier to work on
@@ -303,7 +304,7 @@ public class JournalStateMachine extends BaseStateMachine {
   @Override
   public void notifyTermIndexUpdated(long term, long index) {
     super.notifyTermIndexUpdated(term, index);
-    CompletableFuture.runAsync(mJournalSystem::updateGroup);
+    CompletableFuture.runAsync(mJournalSystem::updateGroup,journalPool);
   }
 
   private long getNextIndex() {
