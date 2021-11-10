@@ -81,25 +81,6 @@ on the following metrics.
 * Master.TotalRpcs
 * Master.RpcQueueLength
 
-#### Number of concurrent clients on a worker
-
-The number of concurrent clients that are actively reading from/writing to a worker can be found by:
-
-* Worker.ActiveClients
-
-You may also find other helpful information regarding the read/write performance associated with
-the current level of concurrency in metrics like:
- 
- * Worker.BytesReadDirectThroughput
- * Worker.BytesReadRemoteThroughput
- * Worker.BytesReadDomainThroughput
- * Worker.BytesReadUfsThroughput
- * and so on
-> Note: Which metrics best reflects the performance of your current workload heavily depends on
-> the nature of your workload.
-
-#### Master
-
 Client connections to the master are typically short lived.
 Note that although the number of potential concurrent clients are high, it is
 unlikely for all clients to simultaneously hit the master. The steady state number of concurrent
@@ -121,15 +102,29 @@ If the journal can’t keep up with the flush, master might report request count
 Any of the RPC timer statistics would help here. If the latency is abnormally high, master might be under a lot of load. 
 Consider using a more powerful master node.
 
-#### Worker
+#### Number of concurrent clients on a worker
+
+The number of concurrent clients that are actively reading from/writing to a worker can be found by:
+
+* Worker.ActiveClients
+
+You may also find other helpful information regarding the read/write performance associated with
+the current level of concurrency in metrics like:
+ 
+ * Worker.BytesReadDirectThroughput
+ * Worker.BytesReadRemoteThroughput
+ * Worker.BytesReadDomainThroughput
+ * Worker.BytesReadUfsThroughput
+ * and so on
+
+> Note: Which metrics best reflects the performance of your current workload heavily depends on
+> the nature of your workload.
 
 Client connections to the worker are long lived, lasting the duration of a block read. Therefore,
 the number of concurrent clients should be used to estimate the resource requirements, as opposed to
 converting to operations per second like the master.
 
-Concurrent clients can be estimated with the same formula.
-
-Using the same example as the master, in a deployment with 2 users, 50 Presto worker nodes
+Concurrent clients can be estimated as below. In a deployment with 2 users, 50 Presto worker nodes
 (with 200 task concurrency), and 50 Alluxio nodes, the estimations would come out to the following
 * 50 (Presto workers) x 200 (task concurrency) / (50 (workers) x 0.5 (distribution)) = 400
 
@@ -147,7 +142,8 @@ clients.
 client. This resource is less important if a majority of tasks have locality and use short circuit.
 
 The metric Worker.BlocksEvictionRate is an important measure of how full the Alluxio cache is. 
-When this rate is high, it is a warning sign that the working set is significantly larger than what we can cache, or the access pattern is unfriendly to caching.  Consider increasing the cache size per worker or number of workers.
+When this rate is high, it is a warning sign that the working set is significantly larger than what we can cache, 
+or the access pattern is unfriendly to caching. Consider increasing the cache size per worker or number of workers.
 
 
 ## Alluxio Master Configuration
