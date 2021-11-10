@@ -18,7 +18,6 @@ import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.FileDoesNotExistException;
-import alluxio.exception.InvalidPathException;
 import alluxio.grpc.DeletePOptions;
 
 import org.slf4j.Logger;
@@ -259,8 +258,8 @@ public class MultipartUploadCleaner {
         }
       } catch (IOException | AlluxioException e) {
         mRetryCount++;
-        LOG.error("Failed abort multipart upload {} in bucket {} with uploadId {} after {} retries with error {}.",
-            mObject, mBucket, mUploadId, mRetryCount, e);
+        LOG.error("Failed abort multipart upload {} in bucket {} with uploadId {} "
+                + "after {} retries with error {}.", mObject, mBucket, mUploadId, mRetryCount, e);
         e.printStackTrace();
         if (canRetry(this)) {
           apply(this, mRetryDelay);
