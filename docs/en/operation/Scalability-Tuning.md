@@ -137,7 +137,7 @@ If the journal can’t keep up with the flush, master might report request count
 
 * Master.ListStatus Timer
 Any of the RPC timer statistics would help here. If the latency is abnormally high, master might be under a lot of load. 
-It might be time for a more powerful master node.
+Consider using a more powerful master node.
 
 #### Worker
 
