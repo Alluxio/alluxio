@@ -157,6 +157,11 @@ public class DistributedCpCommand extends AbstractDistributedJobCommand {
     }
     List<Pair<String, String>> filePool = new ArrayList<>(batchSize);
     copy(srcPath, dstPath, overwrite, batchSize, filePool);
+    // // add all the jobs left in the pool
+    if (filePool.size() > 0) {
+      addJob(filePool, overwrite);
+      filePool.clear();
+    }
     // Wait remaining jobs to complete.
     drain();
   }
@@ -184,7 +189,6 @@ public class DistributedCpCommand extends AbstractDistributedJobCommand {
 
   private void copy(AlluxioURI srcPath, AlluxioURI dstPath, boolean overwrite, int batchSize,
       List<Pair<String, String>> pool) throws IOException, AlluxioException {
-
     for (URIStatus srcInnerStatus : mFileSystem.listStatus(srcPath)) {
       String dstInnerPath =
           computeTargetPath(srcInnerStatus.getPath(), srcPath.getPath(), dstPath.getPath());
@@ -198,9 +202,6 @@ public class DistributedCpCommand extends AbstractDistributedJobCommand {
           pool.clear();
         }
       }
-    }
-    if (pool.size() > 0) {
-      addJob(pool, overwrite);
     }
   }
 

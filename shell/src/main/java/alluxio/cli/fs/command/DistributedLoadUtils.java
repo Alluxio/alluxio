@@ -65,6 +65,11 @@ public final class DistributedLoadUtils {
       boolean printOut) throws AlluxioException, IOException {
     load(command, pool, batchSize, filePath, replication, workerSet, excludedWorkerSet, localityIds,
         excludedLocalityIds, printOut);
+    // add all the jobs left in the pool
+    if (pool.size() > 0) {
+      addJob(command, pool, replication, workerSet, excludedWorkerSet, localityIds,
+          excludedLocalityIds, printOut);
+      pool.clear();}
     // Wait remaining jobs to complete.
     command.drain();
   }
@@ -117,12 +122,6 @@ public final class DistributedLoadUtils {
     if (incompleteCount.longValue() > 0) {
       System.out.printf("Ignore load %d paths because they are in incomplete status",
               incompleteCount.longValue());
-    }
-
-    // add all the jobs left in the pool
-    if (pool.size() > 0) {
-      addJob(command, pool, replication, workerSet, excludedWorkerSet, localityIds,
-          excludedLocalityIds, printOut);
     }
   }
 
