@@ -457,6 +457,9 @@ public final class S3RestServiceHandler {
       }
       AlluxioURI objectURI = new AlluxioURI(objectPath);
 
+      // remove exist object
+      deleteExistObject(fs, objectURI);
+
       CreateFilePOptions dirOptions =
           CreateFilePOptions.newBuilder().setRecursive(true).setWriteType(getS3WriteType()).build();
       // not copying from an existing file
@@ -475,10 +478,6 @@ public final class S3RestServiceHandler {
             readStream = new ChunkedEncodingInputStream(is);
           } else {
             toRead = Integer.parseInt(contentLength);
-          }
-          // overwrite existing object
-          if (fs.exists(objectURI)) {
-            fs.delete(objectURI, DeletePOptions.newBuilder().setUnchecked(true).build());
           }
           FileOutStream os = fs.createFile(objectURI, dirOptions);
           try (DigestOutputStream digestOutputStream = new DigestOutputStream(os, md5)) {
@@ -573,6 +572,12 @@ public final class S3RestServiceHandler {
       String objectPath = bucketPath + AlluxioURI.SEPARATOR + object;
       AlluxioURI multipartTemporaryDir =
           new AlluxioURI(S3RestUtils.getMultipartTemporaryDirForObject(bucketPath, object));
+
+      // remove exist object
+      deleteExistObject(fs, new AlluxioURI(objectPath));
+      // remove exist multipartTemporaryDir
+      deleteExistObject(fs, multipartTemporaryDir, true);
+
       CreateDirectoryPOptions options = CreateDirectoryPOptions.newBuilder()
           .setRecursive(true).setWriteType(getS3WriteType()).build();
       try {
@@ -828,6 +833,40 @@ public final class S3RestServiceHandler {
       // This is the same response behavior as AWS's S3.
     } catch (Exception e) {
       throw toObjectS3Exception(e, objectPath);
+    }
+  }
+
+  /**
+   * Delete an existing key.
+   *
+   * @param fs instance of {@link FileSystem}
+   * @param objectURI the key uri
+   */
+  private void deleteExistObject(final FileSystem fs, AlluxioURI objectURI)
+      throws S3Exception {
+    deleteExistObject(fs, objectURI, false);
+  }
+
+  /**
+   * Delete an existing key.
+   *
+   * @param fs instance of {@link FileSystem}
+   * @param objectURI the key uri
+   * @param recursive if delete option is recursive
+   */
+  private void deleteExistObject(final FileSystem fs, AlluxioURI objectURI, Boolean recursive)
+      throws S3Exception {
+    try {
+      if (fs.exists(objectURI)) {
+        if (recursive) {
+          fs.delete(objectURI, DeletePOptions.newBuilder().setRecursive(true).build());
+        } else {
+          fs.delete(objectURI);
+        }
+        LOG.info("Remove exist object: {} for overwrite.", objectURI.getPath());
+      }
+    } catch (IOException | AlluxioException e) {
+      throw toObjectS3Exception(e, objectURI.getPath());
     }
   }
 
