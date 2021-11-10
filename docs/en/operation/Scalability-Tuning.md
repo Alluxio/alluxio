@@ -133,7 +133,7 @@ checked with the `ulimit` command.
 
 It is also important to monitor key timer metrics, as an abnormally high response rate would indicate the master is under stress.
 * Master.JournalFlushTimer 
-If the journal can’t keep up with the flush, master request per second might be too high. Consider using a more powerful master node.
+If the journal can’t keep up with the flush, master might report request count per second that is higher than initiated by clients. Consider using a more powerful master node.
 
 * Master.ListStatus Timer
 Any of the RPC timer statistics would help here. If the latency is abnormally high, master is under a lot of load. 
