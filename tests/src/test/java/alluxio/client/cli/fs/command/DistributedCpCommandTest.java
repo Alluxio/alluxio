@@ -54,7 +54,7 @@ public final class DistributedCpCommandTest extends AbstractFileSystemShellTest 
     Files.write("world".getBytes(), file2);
     run("mount", "/cross", mFolder.getRoot().getAbsolutePath());
     run("ls", "-f", "/cross");
-    run("distributedCp", "--batch-size", "2", "/cross", "/copied");
+    run("distributedCp", "--batch-size", "3", "/cross", "/copied");
     mOutput.reset();
     run("cat", PathUtils.concatPath("/copied", file.getName()));
     assertEquals("hello", mOutput.toString());
@@ -76,12 +76,11 @@ public final class DistributedCpCommandTest extends AbstractFileSystemShellTest 
     run("mount", "/cross", mFolder.getRoot().getAbsolutePath());
     run("ls", "-f", "/cross");
     run("distributedCp", "--batch-size", "2", "/cross", "/copied");
-    mOutput.reset();
-    run("cat", PathUtils.concatPath("/copied", file.getName()));
-    assertEquals("hello", mOutput.toString());
-    mOutput.reset();
-    run("cat", PathUtils.concatPath("/copied", file2.getName()));
-    assertEquals("world", mOutput.toString());
+    for (int i = 0; i < fileSize; i++) {
+      mOutput.reset();
+      run("cat", PathUtils.concatPath("/copied", files.get(i).getName()));
+      assertEquals("hello" + i, mOutput.toString());
+    }
   }
 
   private void run(String ...args) {
