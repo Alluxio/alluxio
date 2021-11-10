@@ -3710,14 +3710,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey PROXY_S3_MULTIPART_UPLOAD_CLEANER_RETRY_COUNT =
       new Builder(Name.PROXY_S3_MULTIPART_UPLOAD_CLEANER_RETRY_COUNT)
           .setDefaultValue(3)
-          .setDescription("The retry count when abort multipart upload failed.")
+          .setDescription("The retry count when aborting a multipart upload fails.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.SERVER)
           .build();
   public static final PropertyKey PROXY_S3_MULTIPART_UPLOAD_CLEANER_RETRY_DELAY =
       new Builder(Name.PROXY_S3_MULTIPART_UPLOAD_CLEANER_RETRY_DELAY)
           .setDefaultValue("10sec")
-          .setDescription("The retry delay time when abort multipart upload failed.")
+          .setDescription("The retry delay time when aborting a multipart upload fails.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.SERVER)
           .build();

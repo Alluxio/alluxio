@@ -24,6 +24,7 @@ import alluxio.grpc.DeletePOptions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nullable;
 import java.io.IOException;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
@@ -76,7 +77,12 @@ public class MultipartUploadCleaner {
     // Use schedule pool do everyThing.
     long delay = tryAbortMultipartUpload(bucket, object, null);
     if (delay > 0) {
-      long uploadId = getMultipartUploadId(bucket, object);
+      Long uploadId = getMultipartUploadId(bucket, object);
+      if (uploadId == null) {
+        LOG.warn("Can not add abort task, because of object {} in bucket {} does not exist.",
+            object, bucket);
+        return false;
+      }
       return apply(new AbortTask(bucket, object, uploadId), 0);
     }
     return false;
@@ -95,6 +101,11 @@ public class MultipartUploadCleaner {
     // Use schedule pool do everyThing.
     if (uploadId == null) {
       uploadId = getMultipartUploadId(bucket, object);
+      if (uploadId == null) {
+        LOG.warn("Can not add abort task, because of object {} in bucket {} does not exist.",
+            object, bucket);
+        return false;
+      }
     }
     return apply(new AbortTask(bucket, object, uploadId), 0);
   }
@@ -199,6 +210,7 @@ public class MultipartUploadCleaner {
    * @param bucket the bucket name
    * @param object the object name
    */
+  @Nullable
   private Long getMultipartUploadId(String bucket, String object)
       throws IOException, AlluxioException {
     final String bucketPath = AlluxioURI.SEPARATOR  + bucket;
@@ -207,7 +219,7 @@ public class MultipartUploadCleaner {
     try {
       URIStatus status = mFs.getStatus(new AlluxioURI(multipartTemporaryDir));
       return status.getFileId();
-    } catch (FileDoesNotExistException | InvalidPathException e) {
+    } catch (FileDoesNotExistException e) {
       return null;
     }
   }
@@ -247,8 +259,8 @@ public class MultipartUploadCleaner {
         }
       } catch (IOException | AlluxioException e) {
         mRetryCount++;
-        LOG.error("Failed abort multipart upload {} in bucket {} with uploadId {} with error {}"
-            + " after retry {} count.", mObject, mBucket, mUploadId, e, mRetryCount);
+        LOG.error("Failed abort multipart upload {} in bucket {} with uploadId {} after {} retries with error {}.",
+            mObject, mBucket, mUploadId, mRetryCount, e);
         e.printStackTrace();
         if (canRetry(this)) {
           apply(this, mRetryDelay);
