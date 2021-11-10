@@ -100,29 +100,11 @@ the current level of concurrency in metrics like:
 
 #### Master
 
-Client connections to the master are short lived, so we first estimate the number of concurrent
-clients and then convert it to a operations/second metric
-* 1 per Alluxio worker in the cluster
-* Max of
-	* Number of concurrent clients of the system as calculated above
-	* (`alluxio.worker.block.master.client.pool.size` + `alluxio.user.file.master.client.pool.size.max`)
-	per user per service using the Alluxio client
-
-For example, in a deployment with 2 users, 50 Presto worker nodes (with 200 task concurrency), and
-50 Alluxio nodes, the estimations would come out to the following
-* 50 (workers) + 2 (users) x (11 (block pool size) + 10 (file pool size)) x 50 (services) = 2150
-* 50 (workers) + 50 (Presto workers) x 200 (task concurrency) = 10050
-
-Yielding a max of 10050.
-
-Note based on the number of concurrent queries, add 1 more service for each to account for the
-Presto coordinator’s connections.
-
-If a maximum latency of 1 second is expected at absolute peak capacity, the master would need to
-support about 10050 operations per second. The typical operation to benchmark is `getFileInfo` for
-OLAP frameworks. Note that although the number of potential concurrent clients are high, it is
+Client connections to the master are typically short lived.
+Note that although the number of potential concurrent clients are high, it is
 unlikely for all clients to simultaneously hit the master. The steady state number of concurrent
-clients to the master is generally much lower.
+clients to the master is generally lower than the master-side thread pool size defined by
+`alluxio.master.rpc.executor.max.pool.size`.
 
 The number of concurrent clients to the master impacts the following
 * Number of cores required by the master - We recommend 8 clients per core, or to determine the
