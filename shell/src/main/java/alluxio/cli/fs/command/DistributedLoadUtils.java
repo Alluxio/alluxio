@@ -69,7 +69,8 @@ public final class DistributedLoadUtils {
     if (pool.size() > 0) {
       addJob(command, pool, replication, workerSet, excludedWorkerSet, localityIds,
           excludedLocalityIds, printOut);
-      pool.clear();}
+      pool.clear();
+    }
     // Wait remaining jobs to complete.
     command.drain();
   }

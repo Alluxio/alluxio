@@ -23,6 +23,9 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * Tests for cross-mount {@link alluxio.cli.fs.command.DistributedCpCommand}.
@@ -49,6 +52,27 @@ public final class DistributedCpCommandTest extends AbstractFileSystemShellTest 
     File file2 = mFolder.newFile();
     Files.write("hello".getBytes(), file);
     Files.write("world".getBytes(), file2);
+    run("mount", "/cross", mFolder.getRoot().getAbsolutePath());
+    run("ls", "-f", "/cross");
+    run("distributedCp", "--batch-size", "2", "/cross", "/copied");
+    mOutput.reset();
+    run("cat", PathUtils.concatPath("/copied", file.getName()));
+    assertEquals("hello", mOutput.toString());
+    mOutput.reset();
+    run("cat", PathUtils.concatPath("/copied", file2.getName()));
+    assertEquals("world", mOutput.toString());
+  }
+
+  @Test
+  public void crossMountCopyWithSmallBatchSize() throws Exception {
+    int fileSize = 20;
+    ArrayList<File> files = new ArrayList<>(fileSize);
+    for (int i = 0; i < 100; i++) {
+      File file = mFolder.newFile();
+      String content = "hello" + i;
+      Files.write(content.getBytes(), file);
+      files.add(file);
+    }
     run("mount", "/cross", mFolder.getRoot().getAbsolutePath());
     run("ls", "-f", "/cross");
     run("distributedCp", "--batch-size", "2", "/cross", "/copied");
