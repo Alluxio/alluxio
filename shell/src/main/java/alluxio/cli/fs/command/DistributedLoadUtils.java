@@ -112,11 +112,6 @@ public final class DistributedLoadUtils {
         }
       }
     });
-    // add all the jobs left in the pool
-    if (pool.size() > 0) {
-      addJob(command, pool, replication, workerSet, excludedWorkerSet, localityIds,
-          excludedLocalityIds, printOut);
-    }
   }
 
   private static void addJob(AbstractDistributedJobCommand command,
