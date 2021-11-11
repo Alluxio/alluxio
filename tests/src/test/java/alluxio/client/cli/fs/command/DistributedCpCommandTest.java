@@ -24,7 +24,6 @@ import org.junit.rules.TemporaryFolder;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 /**
@@ -90,7 +89,7 @@ public final class DistributedCpCommandTest extends AbstractFileSystemShellTest 
     List<File> subFolderFiles = new ArrayList<>(fileSize);
     List<File> subSubFolderFiles = new ArrayList<>(fileSize);
     File subDir = mFolder.newFolder("subFolder");
-    File subSubDir = mFolder.newFolder("subFolder","subSubFolder");
+    File subSubDir = mFolder.newFolder("subFolder", "subSubFolder");
     for (int i = 0; i < fileSize; i++) {
       File file = mFolder.newFile();
       String content = "hello" + i;
@@ -117,8 +116,8 @@ public final class DistributedCpCommandTest extends AbstractFileSystemShellTest 
           PathUtils.concatPath("/copied", subDir.getName(), subFolderFiles.get(i).getName()));
       assertEquals("world" + i, mOutput.toString());
       mOutput.reset();
-      run("cat",
-          PathUtils.concatPath("/copied", subDir.getName(), subSubDir.getName(), subSubFolderFiles.get(i).getName()));
+      run("cat", PathUtils.concatPath("/copied", subDir.getName(), subSubDir.getName(),
+          subSubFolderFiles.get(i).getName()));
       assertEquals("game" + i, mOutput.toString());
     }
   }
