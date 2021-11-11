@@ -65,7 +65,7 @@ public final class DistributedCpCommandTest extends AbstractFileSystemShellTest 
 
   @Test
   public void crossMountCopyLotsFilesWithSmallBatchSize() throws Exception {
-    int fileSize = 100;
+    int fileSize = 1000;
     List<File> files = new ArrayList<>(fileSize);
     for (int i = 0; i < 100; i++) {
       File file = mFolder.newFile();
@@ -75,7 +75,7 @@ public final class DistributedCpCommandTest extends AbstractFileSystemShellTest 
     }
     run("mount", "/cross", mFolder.getRoot().getAbsolutePath());
     run("ls", "-f", "/cross");
-    run("distributedCp", "--batch-size", "2", "/cross", "/copied");
+    run("distributedCp", "--batch-size", "3", "/cross", "/copied");
     for (int i = 0; i < fileSize; i++) {
       mOutput.reset();
       run("cat", PathUtils.concatPath("/copied", files.get(i).getName()));

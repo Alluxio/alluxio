@@ -194,9 +194,9 @@ public final class DistributedLoadCommandTest extends AbstractFileSystemShellTes
     Assert.assertEquals(100, statusC.getInMemoryPercentage());
   }
   @Test
-  public void loadDirWithManyFilesInBatch() throws IOException, AlluxioException {
+  public void loadDirWithLotsFilesInBatch() throws IOException, AlluxioException {
     FileSystem fs = sResource.get().getClient();
-    int fileSize = 100;
+    int fileSize = 1000;
     List<AlluxioURI> uris = new ArrayList<>(fileSize);
     for (int i = 0; i < fileSize; i++) {
       FileSystemTestUtils.createByteFile(fs, "/testBatchRoot/testBatchFile"+i, WritePType.THROUGH,
