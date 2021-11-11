@@ -101,9 +101,16 @@ public final class DistributedCpCommandTest extends AbstractFileSystemShellTest 
       Files.write(content.getBytes(), file);
       subFolderFiles.add(file);
     }
+    File subSubDir = mFolder.newFolder("subFolder","subSubFolder");
+    for (int i = 0; i < fileSize; i++) {
+      File file = new File(subSubDir, "file" + i);
+      String content = "game" + i;
+      Files.write(content.getBytes(), file);
+      subFolderFiles.add(file);
+    }
     run("mount", "/cross", mFolder.getRoot().getAbsolutePath());
     run("ls", "-f", "/cross");
-    run("distributedCp", "--batch-size", "3", "/cross", "/copied");
+    run("distributedCp", "--batch-size", "13", "/cross", "/copied");
     for (int i = 0; i < fileSize; i++) {
       mOutput.reset();
       run("cat", PathUtils.concatPath("/copied", files.get(i).getName()));
@@ -114,6 +121,12 @@ public final class DistributedCpCommandTest extends AbstractFileSystemShellTest 
       run("cat",
           PathUtils.concatPath("/copied", subDir.getName(), subFolderFiles.get(i).getName()));
       assertEquals("world" + i, mOutput.toString());
+    }
+    for (int i = 0; i < fileSize; i++) {
+      mOutput.reset();
+      run("cat",
+          PathUtils.concatPath("/copied", subDir.getName(), subSubDir.getName(), subFolderFiles.get(i).getName()));
+      assertEquals("game" + i, mOutput.toString());
     }
   }
 
