@@ -821,6 +821,7 @@ Options:
 * `--active-jobs`: Limits how many jobs can be submitted to the Alluxio job service at the same time.
 Later jobs must wait until some earlier jobs to finish. The default value is `3000`.
 A lower value means slower execution but also being nicer to the other users of the job service.
+* `--overwrite`: Whether to overwrite the destination. Default is true.
 * `--batch-size`: Specifies how many files to be batched into one request. The default value is `20`. Notice that if some task failed in the batched job, the whole batched job would fail with some completed tasks and some failed tasks.
 ```console
 $ ./bin/alluxio fs distributedCp --active-jobs 2000 /data/1023 /data/1024
