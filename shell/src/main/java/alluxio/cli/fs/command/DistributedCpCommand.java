@@ -158,7 +158,7 @@ public class DistributedCpCommand extends AbstractDistributedJobCommand {
     }
     List<Pair<String, String>> filePool = new ArrayList<>(batchSize);
     copy(srcPath, dstPath, overwrite, batchSize, filePool);
-    // // add all the jobs left in the pool
+    // add all the jobs left in the pool
     if (filePool.size() > 0) {
       addJob(filePool, overwrite);
       filePool.clear();
