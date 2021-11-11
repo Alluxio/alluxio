@@ -153,8 +153,8 @@ public class AlluxioJobMasterProcess extends MasterProcess {
     if (isServing()) {
       stopServing();
     }
-    stopMaster();
     mJournalSystem.stop();
+    stopMaster();
   }
 
   protected void startMaster(boolean isLeader) {
