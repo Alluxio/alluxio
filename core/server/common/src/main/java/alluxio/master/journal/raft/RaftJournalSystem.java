@@ -422,6 +422,7 @@ public class RaftJournalSystem extends AbstractJournalSystem {
 
   @Override
   public synchronized void gainPrimacy() {
+    LOG.info("Gaining primacy.");
     mSnapshotAllowed.set(false);
     LocalFirstRaftClient client = new LocalFirstRaftClient(mServer, this::createClient,
         mRawClientId, ServerConfiguration.global());
@@ -450,10 +451,18 @@ public class RaftJournalSystem extends AbstractJournalSystem {
     mRaftJournalWriter = new RaftJournalWriter(nextSN, client);
     mAsyncJournalWriter
         .set(new AsyncJournalWriter(mRaftJournalWriter, () -> getJournalSinks(null)));
+<<<<<<< HEAD
+||||||| parent of 9cee247e54 (Add more logs for FT and journaling)
+    mTransferLeaderAllowed.set(true);
+=======
+    mTransferLeaderAllowed.set(true);
+    LOG.info("Gained primacy.");
+>>>>>>> 9cee247e54 (Add more logs for FT and journaling)
   }
 
   @Override
   public synchronized void losePrimacy() {
+    LOG.info("Losing primacy.");
     if (mServer.getLifeCycleState() != LifeCycle.State.RUNNING) {
       // Avoid duplicate shut down Ratis server
       return;
@@ -493,7 +502,7 @@ public class RaftJournalSystem extends AbstractJournalSystem {
           mConf.getClusterAddresses()), e);
     }
 
-    LOG.info("Raft server successfully restarted");
+    LOG.info("Raft server successfully restarted and lost primacy");
   }
 
   @Override

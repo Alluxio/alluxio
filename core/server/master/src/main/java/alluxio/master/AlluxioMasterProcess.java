@@ -154,6 +154,7 @@ public class AlluxioMasterProcess extends MasterProcess {
 
   @Override
   public void start() throws Exception {
+    LOG.info("Starting...");
     mJournalSystem.start();
     mJournalSystem.gainPrimacy();
     startMasters(true);
@@ -162,12 +163,14 @@ public class AlluxioMasterProcess extends MasterProcess {
 
   @Override
   public void stop() throws Exception {
+    LOG.info("Stopping...");
     stopRejectingServers();
     if (isServing()) {
       stopServing();
     }
     closeMasters();
     mJournalSystem.stop();
+    LOG.info("Stopped.");
   }
 
   private void initFromBackup(AlluxioURI backup) throws IOException {
@@ -194,6 +197,7 @@ public class AlluxioMasterProcess extends MasterProcess {
    *
    * @param isLeader if the Master is leader
    */
+<<<<<<< HEAD
   protected void startMasters(boolean isLeader) {
     try {
       if (isLeader) {
@@ -206,6 +210,30 @@ public class AlluxioMasterProcess extends MasterProcess {
             LOG.info("The journal system is not freshly formatted, skipping restoring backup from "
                 + backup);
           }
+||||||| parent of 9cee247e54 (Add more logs for FT and journaling)
+  protected void startMasters(boolean isLeader) throws IOException {
+    if (isLeader) {
+      if (ServerConfiguration.isSet(PropertyKey.MASTER_JOURNAL_INIT_FROM_BACKUP)) {
+        AlluxioURI backup =
+            new AlluxioURI(ServerConfiguration.get(PropertyKey.MASTER_JOURNAL_INIT_FROM_BACKUP));
+        if (mJournalSystem.isEmpty()) {
+          initFromBackup(backup);
+        } else {
+          LOG.info("The journal system is not freshly formatted, skipping restoring backup from "
+              + backup);
+=======
+  protected void startMasters(boolean isLeader) throws IOException {
+    LOG.info("Starting all masters as: %s.", (isLeader) ? "leader" : "follower");
+    if (isLeader) {
+      if (ServerConfiguration.isSet(PropertyKey.MASTER_JOURNAL_INIT_FROM_BACKUP)) {
+        AlluxioURI backup =
+            new AlluxioURI(ServerConfiguration.get(PropertyKey.MASTER_JOURNAL_INIT_FROM_BACKUP));
+        if (mJournalSystem.isEmpty()) {
+          initFromBackup(backup);
+        } else {
+          LOG.info("The journal system is not freshly formatted, skipping restoring backup from "
+              + backup);
+>>>>>>> 9cee247e54 (Add more logs for FT and journaling)
         }
         mSafeModeManager.notifyPrimaryMasterStarted();
       } else {
@@ -218,6 +246,18 @@ public class AlluxioMasterProcess extends MasterProcess {
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
+<<<<<<< HEAD
+||||||| parent of 9cee247e54 (Add more logs for FT and journaling)
+    mRegistry.start(isLeader);
+    // Signal state-lock-manager that masters are ready.
+    mContext.getStateLockManager().mastersStartedCallback();
+    LOG.info("All masters started");
+=======
+    mRegistry.start(isLeader);
+    // Signal state-lock-manager that masters are ready.
+    mContext.getStateLockManager().mastersStartedCallback();
+    LOG.info("All masters started.");
+>>>>>>> 9cee247e54 (Add more logs for FT and journaling)
   }
 
   /**
@@ -225,7 +265,9 @@ public class AlluxioMasterProcess extends MasterProcess {
    */
   protected void stopMasters() {
     try {
+      LOG.info("Stopping all masters.");
       mRegistry.stop();
+      LOG.info("All masters stopped.");
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
@@ -236,7 +278,9 @@ public class AlluxioMasterProcess extends MasterProcess {
    */
   protected void closeMasters() {
     try {
+      LOG.info("Closing all masters.");
       mRegistry.close();
+      LOG.info("Closed all masters.");
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
