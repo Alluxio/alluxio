@@ -64,7 +64,7 @@ public final class DistributedCpCommandTest extends AbstractFileSystemShellTest 
   }
 
   @Test
-  public void crossMountCopyWithSmallBatchSize() throws Exception {
+  public void crossMountCopyLotsFilesWithSmallBatchSize() throws Exception {
     int fileSize = 100;
     List<File> files = new ArrayList<>(fileSize);
     for (int i = 0; i < 100; i++) {
