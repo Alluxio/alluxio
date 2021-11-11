@@ -36,6 +36,8 @@ import org.junit.rules.TemporaryFolder;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Test for {@link DistributedLoadCommand}.
@@ -190,5 +192,27 @@ public final class DistributedLoadCommandTest extends AbstractFileSystemShellTes
     Assert.assertEquals(100, statusA.getInMemoryPercentage());
     Assert.assertEquals(100, statusB.getInMemoryPercentage());
     Assert.assertEquals(100, statusC.getInMemoryPercentage());
+  }
+  @Test
+  public void loadDirWithManyFilesInBatch() throws IOException, AlluxioException {
+    FileSystem fs = sResource.get().getClient();
+    int fileSize = 100;
+    List<AlluxioURI> uris = new ArrayList<>(fileSize);
+    for (int i = 0; i < fileSize; i++) {
+      FileSystemTestUtils.createByteFile(fs, "/testBatchRoot/testBatchFile"+i, WritePType.THROUGH,
+          10);
+
+      AlluxioURI uri = new AlluxioURI("/testBatchRoot/testBatchFile"+i);
+      uris.add(uri);
+      URIStatus status = fs.getStatus(uri);
+      Assert.assertNotEquals(100, status.getInMemoryPercentage());
+    }
+
+    // Testing loading of a directory
+    sFsShell.run("distributedLoad", "/testBatchRoot", "--batch-size", "3");
+    for (AlluxioURI uri:uris) {
+      URIStatus status = fs.getStatus(uri);
+      Assert.assertEquals(100, status.getInMemoryPercentage());
+    }
   }
 }
