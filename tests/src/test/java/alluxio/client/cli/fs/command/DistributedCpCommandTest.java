@@ -83,6 +83,39 @@ public final class DistributedCpCommandTest extends AbstractFileSystemShellTest 
     }
   }
 
+  @Test
+  public void crossMountCopyNestedFilesWithBatch() throws Exception {
+    int fileSize = 100;
+    List<File> files = new ArrayList<>(fileSize);
+    List<File> subFolderFiles = new ArrayList<>(fileSize);
+    for (int i = 0; i < fileSize; i++) {
+      File file = mFolder.newFile();
+      String content = "hello" + i;
+      Files.write(content.getBytes(), file);
+      files.add(file);
+    }
+    File subDir = mFolder.newFolder("subFolder");
+    for (int i = 0; i < fileSize; i++) {
+      File file = new File(subDir, "file"+i);
+      String content = "world" + i;
+      Files.write(content.getBytes(), file);
+      subFolderFiles.add(file);
+    }
+    run("mount", "/cross", mFolder.getRoot().getAbsolutePath());
+    run("ls", "-f", "/cross");
+    run("distributedCp", "--batch-size", "3", "/cross", "/copied");
+    for (int i = 0; i < fileSize; i++) {
+      mOutput.reset();
+      run("cat", PathUtils.concatPath("/copied", files.get(i).getName()));
+      assertEquals("hello" + i, mOutput.toString());
+    }
+    for (int i = 0; i < fileSize; i++) {
+      mOutput.reset();
+      run("cat", PathUtils.concatPath("/copied",subDir.getName(), subFolderFiles.get(i).getName()));
+      assertEquals("world" + i, mOutput.toString());
+    }
+  }
+
   private void run(String ...args) {
     if (sFsShell.run(args) != 0) {
       throw new RuntimeException(
