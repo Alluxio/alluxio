@@ -186,7 +186,7 @@ final class FaultTolerantAlluxioMasterProcess extends AlluxioMasterProcess {
   }
 
   private void losePrimacy() throws Exception {
-    LOG.info("Loosing the leadership.");
+    LOG.info("Losing the leadership.");
     if (mServingThread != null) {
       stopServing();
     }

@@ -488,7 +488,7 @@ public class RaftJournalSystem extends AbstractJournalSystem {
 
   @Override
   public synchronized void losePrimacy() {
-    LOG.info("Loosing primacy.");
+    LOG.info("Losing primacy.");
     if (mServer.getLifeCycleState() != LifeCycle.State.RUNNING) {
       // Avoid duplicate shut down Ratis server
       return;
