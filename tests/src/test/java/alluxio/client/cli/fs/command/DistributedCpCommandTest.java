@@ -96,7 +96,7 @@ public final class DistributedCpCommandTest extends AbstractFileSystemShellTest 
     }
     File subDir = mFolder.newFolder("subFolder");
     for (int i = 0; i < fileSize; i++) {
-      File file = new File(subDir, "file"+i);
+      File file = new File(subDir, "file" + i);
       String content = "world" + i;
       Files.write(content.getBytes(), file);
       subFolderFiles.add(file);
@@ -111,7 +111,8 @@ public final class DistributedCpCommandTest extends AbstractFileSystemShellTest 
     }
     for (int i = 0; i < fileSize; i++) {
       mOutput.reset();
-      run("cat", PathUtils.concatPath("/copied",subDir.getName(), subFolderFiles.get(i).getName()));
+      run("cat",
+          PathUtils.concatPath("/copied", subDir.getName(), subFolderFiles.get(i).getName()));
       assertEquals("world" + i, mOutput.toString());
     }
   }
