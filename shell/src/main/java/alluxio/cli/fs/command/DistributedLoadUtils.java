@@ -309,7 +309,6 @@ public final class DistributedLoadUtils {
         for (URIStatus status : filePath) {
           LoadConfig loadConfig = new LoadConfig(status.getPath(), replication, workerSet,
               excludedWorkerSet, localityIds, excludedLocalityIds);
-          System.out.println(loadConfig.getFilePath() + " loading");
           Map<String, String> map = oMapper.convertValue(loadConfig, Map.class);
           configs.add(map);
         }
