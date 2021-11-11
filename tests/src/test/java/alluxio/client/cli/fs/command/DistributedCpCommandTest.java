@@ -54,7 +54,7 @@ public final class DistributedCpCommandTest extends AbstractFileSystemShellTest 
     Files.write("world".getBytes(), file2);
     run("mount", "/cross", mFolder.getRoot().getAbsolutePath());
     run("ls", "-f", "/cross");
-    run("distributedCp", "--batch-size", "3", "/cross", "/copied");
+    run("distributedCp", "--batch-size", "2", "/cross", "/copied");
     mOutput.reset();
     run("cat", PathUtils.concatPath("/copied", file.getName()));
     assertEquals("hello", mOutput.toString());
