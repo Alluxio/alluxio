@@ -102,6 +102,7 @@ public final class RocksStore implements Closeable {
     } catch (RocksDBException e) {
       throw new RuntimeException(e);
     }
+    LOG.info("Cleared store at %s", mDbPath);
   }
 
   private void resetDb() throws RocksDBException {
@@ -217,5 +218,6 @@ public final class RocksStore implements Closeable {
   @Override
   public synchronized void close() {
     stopDb();
+    LOG.info("Closed store at %s", mDbPath);
   }
 }
