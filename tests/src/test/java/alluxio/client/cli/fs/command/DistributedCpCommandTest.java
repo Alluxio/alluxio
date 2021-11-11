@@ -88,25 +88,22 @@ public final class DistributedCpCommandTest extends AbstractFileSystemShellTest 
     int fileSize = 100;
     List<File> files = new ArrayList<>(fileSize);
     List<File> subFolderFiles = new ArrayList<>(fileSize);
+    List<File> subSubFolderFiles = new ArrayList<>(fileSize);
+    File subDir = mFolder.newFolder("subFolder");
+    File subSubDir = mFolder.newFolder("subFolder","subSubFolder");
     for (int i = 0; i < fileSize; i++) {
       File file = mFolder.newFile();
       String content = "hello" + i;
       Files.write(content.getBytes(), file);
       files.add(file);
-    }
-    File subDir = mFolder.newFolder("subFolder");
-    for (int i = 0; i < fileSize; i++) {
-      File file = new File(subDir, "file" + i);
-      String content = "world" + i;
+      file = new File(subDir, "subFile" + i);
+      content = "world" + i;
       Files.write(content.getBytes(), file);
       subFolderFiles.add(file);
-    }
-    File subSubDir = mFolder.newFolder("subFolder","subSubFolder");
-    for (int i = 0; i < fileSize; i++) {
-      File file = new File(subSubDir, "file" + i);
-      String content = "game" + i;
+      file = new File(subSubDir, "subSubFile" + i);
+      content = "game" + i;
       Files.write(content.getBytes(), file);
-      subFolderFiles.add(file);
+      subSubFolderFiles.add(file);
     }
     run("mount", "/cross", mFolder.getRoot().getAbsolutePath());
     run("ls", "-f", "/cross");
@@ -115,17 +112,13 @@ public final class DistributedCpCommandTest extends AbstractFileSystemShellTest 
       mOutput.reset();
       run("cat", PathUtils.concatPath("/copied", files.get(i).getName()));
       assertEquals("hello" + i, mOutput.toString());
-    }
-    for (int i = 0; i < fileSize; i++) {
       mOutput.reset();
       run("cat",
           PathUtils.concatPath("/copied", subDir.getName(), subFolderFiles.get(i).getName()));
       assertEquals("world" + i, mOutput.toString());
-    }
-    for (int i = 0; i < fileSize; i++) {
       mOutput.reset();
       run("cat",
-          PathUtils.concatPath("/copied", subDir.getName(), subSubDir.getName(), subFolderFiles.get(i).getName()));
+          PathUtils.concatPath("/copied", subDir.getName(), subSubDir.getName(), subSubFolderFiles.get(i).getName()));
       assertEquals("game" + i, mOutput.toString());
     }
   }
