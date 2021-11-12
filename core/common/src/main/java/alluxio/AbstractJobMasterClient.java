@@ -25,7 +25,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * The base class for job master clients.
  */
 @ThreadSafe
-public abstract class AbstractJobMasterClient extends AbstractMasterClient{
+public abstract class AbstractJobMasterClient extends AbstractMasterClient {
   /** Address to load configuration, which may differ from {@code mAddress}. */
   protected InetSocketAddress mConfAddress;
 
