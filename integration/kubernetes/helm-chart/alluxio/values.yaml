@@ -44,6 +44,7 @@ imagePullSecrets:
 properties:
   # alluxio.user.metrics.collection.enabled: 'true'
   alluxio.security.stale.channel.purge.interval: 365d
+  alluxio.hub.manager.rpc.hostname: alluxio-hub
 
 # Recommended JVM Heap options for running in Docker
 # Ref: https://developers.redhat.com/blog/2017/03/14/java-inside-docker/
@@ -664,3 +665,27 @@ csi:
     - attr_timeout=36000
     - max_readahead=0
   javaOptions: "-Dalluxio.user.metadata.cache.enabled=true "
+
+hub:
+  enabled: false
+  env:
+  # Example:
+  # JAVA_HOME: /opt/java
+  args: # Arguments to Docker entrypoint
+    - hub-manager
+  resources:
+    limits:
+      cpu: "1"
+      memory: "1G"
+    requests:
+      cpu: "1"
+      memory: "1G"
+  ports:
+    web: 30077
+    rpc: 30076
+  agent:
+    args: # Arguments to Docker entrypoint
+      - hub-agent
+    ports:
+      rpc: 30075
+  serviceAccount: default

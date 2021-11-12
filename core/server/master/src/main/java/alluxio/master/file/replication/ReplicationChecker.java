@@ -120,7 +120,7 @@ public final class ReplicationChecker implements HeartbeatExecutor {
         (int) (ServerConfiguration.getInt(PropertyKey.JOB_MASTER_JOB_CAPACITY) * 0.1));
     mActiveJobToInodeID = HashBiMap.create();
     MetricsSystem.registerCachedGaugeIfAbsent(
-        MetricsSystem.getMetricName(MetricKey.MASTER_HEARTBEAT_TRIGGERED_ACTIVE_JOB_SIZE.getName()),
+        MetricsSystem.getMetricName(MetricKey.MASTER_REPLICA_MGMT_ACTIVE_JOB_SIZE.getName()),
         mActiveJobToInodeID::size);
   }
 

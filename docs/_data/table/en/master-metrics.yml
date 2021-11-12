@@ -12,6 +12,8 @@ Master.BlockReplicaCount:
   'Total number of block replicas in Alluxio'
 Master.CompleteFileOps:
   'Total number of the CompleteFile operations'
+Master.CompletedOperationRetryCount:
+  'Total number of completed operations that has been retried by client.'
 Master.CreateDirectoryOps:
   'Total number of the CreateDirectory operations'
 Master.CreateFileOps:
@@ -124,6 +126,8 @@ Master.LostBlockCount:
   'Count of lost unique blocks'
 Master.LostFileCount:
   'Count of lost files'
+Master.MasterHeartbeatTriggeredActiveJobSize:
+  'Active job size started by master'
 Master.MountOps:
   'Total number of Mount operations'
 Master.NewBlocksGot:
@@ -139,7 +143,7 @@ Master.PathsUnmounted:
 Master.RenamePathOps:
   'Total number of Rename operations'
 Master.RpcQueueLength:
-  'Length of the master rpc queue'
+  'Length of the master rpc queue. Use this metric to monitor the RPC pressure on master.'
 Master.SetAclOps:
   'Total number of SetAcl operations'
 Master.SetAttributeOps:

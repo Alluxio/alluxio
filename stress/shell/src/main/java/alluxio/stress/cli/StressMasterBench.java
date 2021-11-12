@@ -35,6 +35,7 @@ import alluxio.util.executor.ExecutorServiceFactories;
 import alluxio.util.io.PathUtils;
 
 import com.beust.jcommander.ParametersDelegate;
+import com.google.common.collect.ImmutableList;
 import com.google.common.util.concurrent.RateLimiter;
 import org.HdrHistogram.Histogram;
 import org.apache.hadoop.conf.Configuration;
@@ -90,8 +91,17 @@ public class StressMasterBench extends Benchmark<MasterBenchTaskResult> {
 
   @Override
   public String getBenchDescription() {
-    // TODO(David) Fill in description
-    return "";
+    return String.join("\n", ImmutableList.of(
+        "A benchmarking tool to measure the master performance of Alluxio",
+        "MaxThroughput is the recommended way to run the Master Stress Bench.",
+        "",
+        "Example:",
+        "# this would continuously run `ListDir` opeartion for 30s and record the throughput after "
+            + "5s warmup.",
+        "$ bin/alluxio runClass alluxio.stress.cli.StressMasterBench --operation ListDir \\",
+        "--warmup 5s --duration 30s",
+        ""
+    ));
   }
 
   @Override

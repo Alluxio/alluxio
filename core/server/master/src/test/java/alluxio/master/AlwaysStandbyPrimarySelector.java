@@ -18,9 +18,9 @@ import java.net.InetSocketAddress;
 import java.util.function.Consumer;
 
 /**
- * A primary selector which is always secondary.
+ * A primary selector which is always standby.
  */
-public final class AlwaysSecondaryPrimarySelector implements PrimarySelector {
+public final class AlwaysStandbyPrimarySelector implements PrimarySelector {
   @Override
   public void start(InetSocketAddress localAddress) throws IOException {
     // Nothing to do.
@@ -33,7 +33,7 @@ public final class AlwaysSecondaryPrimarySelector implements PrimarySelector {
 
   @Override
   public State getState() {
-    return State.SECONDARY;
+    return State.STANDBY;
   }
 
   @Override
@@ -49,7 +49,7 @@ public final class AlwaysSecondaryPrimarySelector implements PrimarySelector {
         // Never happening
         Thread.sleep(Long.MAX_VALUE);
         break;
-      case SECONDARY:
+      case STANDBY:
         return;
       default:
         throw new IllegalStateException("Unknown primary selector state: " + state);

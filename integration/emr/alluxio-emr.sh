@@ -717,6 +717,8 @@ IN
       doas alluxio "${ALLUXIO_HOME}/bin/alluxio-start.sh -a ${args} master"
       doas alluxio "${ALLUXIO_HOME}/bin/alluxio-start.sh -a job_master"
       doas alluxio "${ALLUXIO_HOME}/bin/alluxio-start.sh -a proxy"
+      doas alluxio "${ALLUXIO_HOME}/bin/alluxio-start.sh -a hub_manager"
+      doas root "${ALLUXIO_HOME}/bin/alluxio-start.sh -a hub_agent"
       if [[ "${backup_uri}" ]]; then
         register_backup_on_shutdown "${backup_uri}"
       fi
@@ -741,6 +743,7 @@ IN
       doas alluxio "${ALLUXIO_HOME}/bin/alluxio-start.sh -a worker"
       doas alluxio "${ALLUXIO_HOME}/bin/alluxio-start.sh -a job_worker"
       doas alluxio "${ALLUXIO_HOME}/bin/alluxio-start.sh -a proxy"
+      doas root "${ALLUXIO_HOME}/bin/alluxio-start.sh -a hub_agent"
     fi
   fi
 

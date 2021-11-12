@@ -970,7 +970,14 @@ public class InodeTree implements DelegatingJournaled {
         // Child does not exist.
         continue;
       }
-      descendants.add(childPath);
+      try {
+        descendants.add(childPath);
+      } catch (Error e) {
+        // If adding to descendants fails due to OOM, this object
+        // will not be tracked so we must close it manually
+        childPath.close();
+        throw e;
+      }
       gatherDescendants(childPath, descendants);
     }
   }

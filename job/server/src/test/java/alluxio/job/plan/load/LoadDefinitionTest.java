@@ -183,7 +183,7 @@ public class LoadDefinitionTest {
       Assert.fail();
     } catch (Exception e) {
       Assert.assertThat(e.getMessage(),
-          CoreMatchers.containsString("Available workers without the block: [host0]"));
+          CoreMatchers.containsString("Available workers without the block"));
       Assert.assertThat(e.getMessage(),
           CoreMatchers.containsString("The following workers could not be used because "
               + "they have no local job workers: [otherhost]"));

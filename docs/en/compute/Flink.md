@@ -16,7 +16,7 @@ that you can easily work with files stored in Alluxio.
 
 * Setup Java for Java 8 Update 161 or higher (8u161+), 64-bit.
 * Alluxio has been set up and is running.
-* Flink has been set up and is running.
+* Flink has been installed and set up.
 
 ## Configuration
 
@@ -88,6 +88,7 @@ the write type, you should add the following to `{FLINK_HOME}/conf/flink-conf.ya
 ```yaml
 env.java.opts: -Dalluxio.user.file.writetype.default=CACHE_THROUGH
 ```
+Note: If there are running flink clusters, stop the flink clusters and restart them to apply the changes to the configuration.
 
 ## Using Alluxio with Flink
 

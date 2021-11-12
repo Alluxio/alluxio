@@ -31,10 +31,10 @@ import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.DeletePOptions;
 import alluxio.grpc.ListStatusPOptions;
 import alluxio.grpc.WritePType;
-import alluxio.proxy.s3.logging.Logged;
 import alluxio.security.User;
 import alluxio.web.ProxyWebServer;
 
+import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import com.google.common.io.BaseEncoding;
@@ -79,7 +79,6 @@ import javax.ws.rs.core.Response;
 @Path(S3RestServiceHandler.SERVICE_PREFIX)
 @Produces(MediaType.APPLICATION_XML)
 @Consumes({ MediaType.TEXT_XML, MediaType.APPLICATION_XML, MediaType.APPLICATION_OCTET_STREAM })
-@Logged
 public final class S3RestServiceHandler {
   private static final Logger LOG = LoggerFactory.getLogger(S3RestServiceHandler.class);
 
@@ -99,6 +98,7 @@ public final class S3RestServiceHandler {
 
   private final FileSystem mFileSystem;
   private final InstancedConfiguration mSConf;
+  private MultipartUploadCleaner mCleaner;
 
   /**
    * Constructs a new {@link S3RestServiceHandler}.
@@ -110,6 +110,7 @@ public final class S3RestServiceHandler {
         (FileSystem) context.getAttribute(ProxyWebServer.FILE_SYSTEM_SERVLET_RESOURCE_KEY);
     mSConf = (InstancedConfiguration)
         context.getAttribute(ProxyWebServer.SERVER_CONFIGURATION_RESOURCE_KEY);
+    mCleaner = new MultipartUploadCleaner(mFileSystem);
   }
 
   /**
@@ -172,7 +173,6 @@ public final class S3RestServiceHandler {
    */
   @GET
   public Response listAllMyBuckets(@HeaderParam("Authorization") String authorization) {
-
     return S3RestUtils.call("", () -> {
       String user = getUserFromAuthorization(authorization);
 
@@ -208,7 +208,6 @@ public final class S3RestServiceHandler {
    */
   @GET
   @Path(BUCKET_PARAM)
-  //@ReturnType("alluxio.proxy.s3.ListBucketResult")
   public Response getBucket(@HeaderParam("Authorization") String authorization,
                             @PathParam("bucket") final String bucket,
                             @QueryParam("marker") final String markerParam,
@@ -240,14 +239,20 @@ public final class S3RestServiceHandler {
 
       String path = parsePath(AlluxioURI.SEPARATOR + bucket);
       final FileSystem fs = getFileSystem(authorization);
-      final List<URIStatus> children;
+      List<URIStatus> children;
       try {
-        if (delimiterParam != null && delimiterParam.equals(AlluxioURI.SEPARATOR)) {
+        if (prefix.length() == 0
+            && delimiterParam != null
+            && delimiterParam.equals(AlluxioURI.SEPARATOR)) {
           children = fs.listStatus(new AlluxioURI(path));
         } else {
           ListStatusPOptions options = ListStatusPOptions.newBuilder().setRecursive(true).build();
           children = fs.listStatus(new AlluxioURI(path), options);
         }
+      } catch (FileDoesNotExistException e) {
+        // return the proper error code if the bucket doesn't exist. Previously a 500 error was
+        // returned which does not match the S3 response behavior
+        throw new S3Exception(e, bucket, S3ErrorCode.NO_SUCH_BUCKET);
       } catch (IOException | AlluxioException e) {
         throw new RuntimeException(e);
       }
@@ -259,6 +264,73 @@ public final class S3RestServiceHandler {
   }
 
   /**
+   * Currently implements the DeleteObjects request type if the query parameter "delete" exists.
+   *
+   * @param bucket the bucket name
+   * @param delete the delete query parameter. Existence indicates to run the DeleteObjects impl
+   * @param contentLength body content length
+   * @param is the input stream to read the request
+   *
+   * @return a {@link DeleteObjectsResult} if this was a DeleteObjects request
+   */
+  @POST
+  @Path(BUCKET_PARAM)
+  public Response postBucket(@PathParam("bucket") final String bucket,
+                             @QueryParam("delete") String delete,
+                             @HeaderParam("Content-Length") int contentLength,
+                             final InputStream is) {
+    return S3RestUtils.call(bucket, () -> {
+      if (delete != null) {
+        try {
+          DeleteObjectsRequest request = new XmlMapper().readerFor(DeleteObjectsRequest.class)
+              .readValue(is);
+          List<DeleteObjectsRequest.DeleteObject> objs =
+               request.getToDelete();
+          List<DeleteObjectsResult.DeletedObject> success = new ArrayList<>();
+          List<DeleteObjectsResult.ErrorObject> errored = new ArrayList<>();
+          objs.sort(Comparator.comparingInt(x -> -1 * x.getKey().length()));
+          objs.forEach(obj -> {
+            try {
+              AlluxioURI uri = new AlluxioURI(AlluxioURI.SEPARATOR + bucket)
+                  .join(AlluxioURI.SEPARATOR + obj.getKey());
+              DeletePOptions options = DeletePOptions.newBuilder().build();
+              mFileSystem.delete(uri, options);
+              DeleteObjectsResult.DeletedObject del = new DeleteObjectsResult.DeletedObject();
+              del.setKey(obj.getKey());
+              success.add(del);
+            } catch (FileDoesNotExistException | DirectoryNotEmptyException e) {
+              /*
+              FDNE - delete on FDNE should be counted as a success, as there's nothing to do
+              DNE - s3 has no concept dirs - if it _is_ a dir, nothing to delete.
+               */
+              DeleteObjectsResult.DeletedObject del = new DeleteObjectsResult.DeletedObject();
+              del.setKey(obj.getKey());
+              success.add(del);
+            } catch (IOException | AlluxioException e) {
+              DeleteObjectsResult.ErrorObject err = new DeleteObjectsResult.ErrorObject();
+              err.setKey(obj.getKey());
+              err.setMessage(e.getMessage());
+              errored.add(err);
+            }
+          });
+
+          DeleteObjectsResult result = new DeleteObjectsResult();
+          if (!request.getQuiet()) {
+            result.setDeleted(success);
+          }
+          result.setErrored(errored);
+          return result;
+        } catch (IOException e) {
+          LOG.debug("Failed to parse DeleteObjects request:", e);
+          return Response.Status.BAD_REQUEST;
+        }
+      } else {
+        return Response.Status.OK;
+      }
+    });
+  }
+
+  /**
    * @summary creates a bucket
    * @param authorization header parameter authorization
    * @param bucket the bucket name
@@ -266,7 +338,6 @@ public final class S3RestServiceHandler {
    */
   @PUT
   @Path(BUCKET_PARAM)
-  //@ReturnType("java.lang.Void")
   public Response createBucket(@HeaderParam("Authorization") String authorization,
                                @PathParam("bucket") final String bucket) {
     return S3RestUtils.call(bucket, () -> {
@@ -295,7 +366,6 @@ public final class S3RestServiceHandler {
    */
   @DELETE
   @Path(BUCKET_PARAM)
-  //@ReturnType("java.lang.Void")
   public Response deleteBucket(@HeaderParam("Authorization") String authorization,
                                @PathParam("bucket") final String bucket) {
     return S3RestUtils.call(bucket, () -> {
@@ -323,6 +393,8 @@ public final class S3RestServiceHandler {
    * @param authorization header parameter authorization
    * @param contentMD5 the optional Base64 encoded 128-bit MD5 digest of the object
    * @param copySource the source path to copy the new file from
+   * @param decodedLength the length of the content when in aws-chunked encoding
+   * @param contentLength the total length of the request body
    * @param bucket the bucket name
    * @param object the object name
    * @param partNumber the identification of the part of the object in multipart upload,
@@ -337,6 +409,9 @@ public final class S3RestServiceHandler {
   public Response createObjectOrUploadPart(@HeaderParam("Authorization") String authorization,
                                            @HeaderParam("Content-MD5") final String contentMD5,
                                            @HeaderParam("x-amz-copy-source") String copySource,
+                                           @HeaderParam("x-amz-decoded-content-length") String
+                                               decodedLength,
+                                           @HeaderParam("Content-Length") String contentLength,
                                            @PathParam("bucket") final String bucket,
                                            @PathParam("object") final String object,
                                            @QueryParam("partNumber") final Integer partNumber,
@@ -357,10 +432,18 @@ public final class S3RestServiceHandler {
 
       String objectPath = bucketPath + AlluxioURI.SEPARATOR + object;
 
+      CreateDirectoryPOptions options = CreateDirectoryPOptions.newBuilder()
+          .setRecursive(true)
+          .setAllowExists(true)
+          .build();
+
       if (objectPath.endsWith(AlluxioURI.SEPARATOR)) {
         // Need to create a folder
         try {
-          fs.createDirectory(new AlluxioURI(objectPath));
+          fs.createDirectory(new AlluxioURI(objectPath), options);
+        } catch (FileAlreadyExistsException e) {
+          // ok if directory already exists the user wanted to create it anyway
+          LOG.warn("attempting to create dir which already exists");
         } catch (IOException | AlluxioException e) {
           throw toObjectS3Exception(e, objectPath);
         }
@@ -376,16 +459,37 @@ public final class S3RestServiceHandler {
       }
       AlluxioURI objectURI = new AlluxioURI(objectPath);
 
-      CreateFilePOptions options =
+      CreateFilePOptions dirOptions =
           CreateFilePOptions.newBuilder().setRecursive(true).setWriteType(getS3WriteType()).build();
       // not copying from an existing file
       if (copySource == null) {
         try {
           MessageDigest md5 = MessageDigest.getInstance("MD5");
-          FileOutStream os = fs.createFile(objectURI, options);
 
+          // The request body can be in the aws-chunked encoding format, or not encoded at all
+          // determine if it's encoded, and then which parts of the stream to read depending on
+          // the encoding type.
+          boolean isChunkedEncoding = decodedLength != null;
+          int toRead;
+          InputStream readStream = is;
+          if (isChunkedEncoding) {
+            toRead = Integer.parseInt(decodedLength);
+            readStream = new ChunkedEncodingInputStream(is);
+          } else {
+            toRead = Integer.parseInt(contentLength);
+          }
+          // overwrite existing object
+          if (fs.exists(objectURI)) {
+            fs.delete(objectURI, DeletePOptions.newBuilder().setUnchecked(true).build());
+          }
+          FileOutStream os = fs.createFile(objectURI, dirOptions);
           try (DigestOutputStream digestOutputStream = new DigestOutputStream(os, md5)) {
-            ByteStreams.copy(is, digestOutputStream);
+            long read = ByteStreams.copy(ByteStreams.limit(readStream, toRead), digestOutputStream);
+            if (read < toRead) {
+              throw new IOException(String.format(
+                  "Failed to read all required bytes from the stream. Read %d/%d",
+                  read, toRead));
+            }
           }
 
           byte[] digest = md5.digest();
@@ -393,7 +497,7 @@ public final class S3RestServiceHandler {
           if (contentMD5 != null && !contentMD5.equals(base64Digest)) {
             // The object may be corrupted, delete the written object and return an error.
             try {
-              fs.delete(objectURI);
+              fs.delete(objectURI, DeletePOptions.newBuilder().setRecursive(true).build());
             } catch (Exception e2) {
               // intend to continue and return BAD_DIGEST S3Exception.
             }
@@ -407,7 +511,8 @@ public final class S3RestServiceHandler {
         }
       } else {
         try (FileInStream in = fs.openFile(
-            new AlluxioURI(AlluxioURI.SEPARATOR + copySource));
+            new AlluxioURI(!copySource.startsWith(AlluxioURI.SEPARATOR)
+                ? AlluxioURI.SEPARATOR + copySource : copySource));
             FileOutStream out = fs.createFile(objectURI)) {
           MessageDigest md5 = MessageDigest.getInstance("MD5");
           try (DigestOutputStream digestOut = new DigestOutputStream(out, md5)) {
@@ -470,12 +575,20 @@ public final class S3RestServiceHandler {
       String objectPath = bucketPath + AlluxioURI.SEPARATOR + object;
       AlluxioURI multipartTemporaryDir =
           new AlluxioURI(S3RestUtils.getMultipartTemporaryDirForObject(bucketPath, object));
+
       CreateDirectoryPOptions options = CreateDirectoryPOptions.newBuilder()
           .setRecursive(true).setWriteType(getS3WriteType()).build();
       try {
+        if (fs.exists(multipartTemporaryDir)) {
+          if (mCleaner.apply(bucket, object)) {
+            throw new S3Exception(multipartTemporaryDir.getPath(),
+                S3ErrorCode.UPLOAD_ALREADY_EXISTS);
+          }
+        }
         fs.createDirectory(multipartTemporaryDir, options);
         // Use the file ID of multipartTemporaryDir as the upload ID.
         long uploadId = fs.getStatus(multipartTemporaryDir).getFileId();
+        mCleaner.apply(bucket, object, uploadId);
         return new InitiateMultipartUploadResult(bucket, object, Long.toString(uploadId));
       } catch (Exception e) {
         throw toObjectS3Exception(e, objectPath);
@@ -517,7 +630,7 @@ public final class S3RestServiceHandler {
 
         fs.delete(multipartTemporaryDir,
             DeletePOptions.newBuilder().setRecursive(true).build());
-
+        mCleaner.cancelAbort(bucket, object, uploadId);
         String entityTag = Hex.encodeHexString(md5.digest());
         return new CompleteMultipartUploadResult(objectPath, bucket, object, entityTag);
       } catch (Exception e) {
@@ -551,12 +664,19 @@ public final class S3RestServiceHandler {
 
       try {
         URIStatus status = fs.getStatus(objectURI);
+        if (status.isFolder() && !object.endsWith(AlluxioURI.SEPARATOR)) {
+          throw new FileDoesNotExistException(status.getPath() + " is a directory");
+        }
         // TODO(cc): Consider how to respond with the object's ETag.
         return Response.ok()
             .lastModified(new Date(status.getLastModificationTimeMs()))
             .header(S3Constants.S3_ETAG_HEADER, "\"" + status.getLastModificationTimeMs() + "\"")
-            .header(S3Constants.S3_CONTENT_LENGTH_HEADER, status.getLength())
+            .header(S3Constants.S3_CONTENT_LENGTH_HEADER,
+                status.isFolder() ? 0 : status.getLength())
             .build();
+      } catch (FileDoesNotExistException e) {
+        // must be null entity (content length 0) for S3A Filesystem
+        return Response.status(404).entity(null).header("Content-Length", "0").build();
       } catch (Exception e) {
         throw toObjectS3Exception(e, objectPath);
       }
@@ -709,9 +829,13 @@ public final class S3RestServiceHandler {
     // Delete the object.
     String objectPath = bucketPath + AlluxioURI.SEPARATOR + object;
     DeletePOptions options = DeletePOptions.newBuilder().setAlluxioOnly(ServerConfiguration
-        .get(PropertyKey.PROXY_S3_DELETE_TYPE).equals(Constants.S3_DELETE_IN_ALLUXIO_ONLY)).build();
+        .get(PropertyKey.PROXY_S3_DELETE_TYPE).equals(Constants.S3_DELETE_IN_ALLUXIO_ONLY))
+        .build();
     try {
       fs.delete(new AlluxioURI(objectPath), options);
+    } catch (FileDoesNotExistException | DirectoryNotEmptyException e) {
+      // intentionally do nothing, this is ok. It should result in a 204 error
+      // This is the same response behavior as AWS's S3.
     } catch (Exception e) {
       throw toObjectS3Exception(e, objectPath);
     }

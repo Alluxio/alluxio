@@ -115,6 +115,12 @@
       <groupId>org.reflections</groupId>
       <artifactId>reflections</artifactId>
     </dependency>
+    <!-- Determine version with the table here: https://github.com/grpc/grpc-java/blob/master/SECURITY.md-->
+    <dependency>
+      <groupId>io.netty</groupId>
+      <artifactId>netty-tcnative-boringssl-static</artifactId>
+      <version>2.0.26.Final</version>
+    </dependency>
 
     <!-- Internal dependencies -->
     <dependency>
