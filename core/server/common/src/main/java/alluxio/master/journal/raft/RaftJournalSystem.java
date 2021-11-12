@@ -139,7 +139,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * <h3> Avoid incorrectly applying entries</h3>
  * <p>
  * Entries can never be double-applied to a primary's state because as long as it is the primary, it
- * will ignore all entries, and once it becomes secondary, it will completely reset its state and
+ * will ignore all entries, and once it becomes standby, it will completely reset its state and
  * rejoin the cluster.
  *
  * <h1>Snapshot control</h1>
@@ -211,7 +211,7 @@ public class RaftJournalSystem extends AbstractJournalSystem {
   private RaftJournalWriter mRaftJournalWriter;
   /**
    * Reference to the journal writer shared by all journals. When RPCs create journal contexts, they
-   * will use the writer within this reference. The writer is null when the journal is in secondary
+   * will use the writer within this reference. The writer is null when the journal is in standby
    * mode.
    */
   private final AtomicReference<AsyncJournalWriter> mAsyncJournalWriter;
@@ -453,6 +453,7 @@ public class RaftJournalSystem extends AbstractJournalSystem {
 
   @Override
   public synchronized void gainPrimacy() {
+    LOG.info("Gaining primacy.");
     mSnapshotAllowed.set(false);
     RaftJournalAppender client = new RaftJournalAppender(mServer, this::createClient,
         mRawClientId, ServerConfiguration.global());
@@ -482,10 +483,12 @@ public class RaftJournalSystem extends AbstractJournalSystem {
     mAsyncJournalWriter
         .set(new AsyncJournalWriter(mRaftJournalWriter, () -> getJournalSinks(null)));
     mTransferLeaderAllowed.set(true);
+    LOG.info("Gained primacy.");
   }
 
   @Override
   public synchronized void losePrimacy() {
+    LOG.info("Losing primacy.");
     if (mServer.getLifeCycleState() != LifeCycle.State.RUNNING) {
       // Avoid duplicate shut down Ratis server
       return;
@@ -526,7 +529,7 @@ public class RaftJournalSystem extends AbstractJournalSystem {
           mConf.getClusterAddresses()), e);
     }
 
-    LOG.info("Raft server successfully restarted");
+    LOG.info("Raft server successfully restarted and lost primacy");
   }
 
   @Override
@@ -580,7 +583,7 @@ public class RaftJournalSystem extends AbstractJournalSystem {
   @Override
   public synchronized void checkpoint() throws IOException {
     // TODO(feng): consider removing this once we can automatically propagate
-    //             snapshots from secondary master
+    //             snapshots from standby master
     try (RaftJournalAppender client = new RaftJournalAppender(mServer, this::createClient,
         mRawClientId, ServerConfiguration.global())) {
       mSnapshotAllowed.set(true);
@@ -1117,7 +1120,7 @@ public class RaftJournalSystem extends AbstractJournalSystem {
    */
   public void notifyLeadershipStateChanged(boolean isLeader) {
     mPrimarySelector.notifyStateChanged(
-        isLeader ? PrimarySelector.State.PRIMARY : PrimarySelector.State.SECONDARY);
+        isLeader ? PrimarySelector.State.PRIMARY : PrimarySelector.State.STANDBY);
   }
 
   @VisibleForTesting

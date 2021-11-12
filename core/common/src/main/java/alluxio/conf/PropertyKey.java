@@ -1552,21 +1552,23 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey MASTER_BACKUP_DELEGATION_ENABLED =
       new Builder(Name.MASTER_BACKUP_DELEGATION_ENABLED)
           .setDefaultValue(false)
-          .setDescription("Whether to delegate journals to stand-by masters in HA cluster.")
+          .setDescription("Whether to delegate journals to standby masters in HA cluster.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey MASTER_BACKUP_TRANSPORT_TIMEOUT =
       new Builder(Name.MASTER_BACKUP_TRANSPORT_TIMEOUT)
           .setDefaultValue("30sec")
-          .setDescription("Request timeout for backup messaging.")
+          .setDescription("Communication timeout for messaging between masters for "
+              + "coordinating backup.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey MASTER_BACKUP_HEARTBEAT_INTERVAL =
       new Builder(Name.MASTER_BACKUP_HEARTBEAT_INTERVAL)
           .setDefaultValue("2sec")
-          .setDescription("Interval at which follower updates the leader on ongoing backup.")
+          .setDescription("Interval at which stand-by master that is taking the backup will "
+              + "update the leading master with current backup status.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
           .setScope(Scope.MASTER)
           .build();
@@ -1588,7 +1590,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       new Builder(Name.MASTER_BACKUP_ABANDON_TIMEOUT)
           .setDefaultValue("1min")
           .setDescription("Duration after which leader will abandon the backup"
-              + " if not received heartbeat from backup-worker.")
+              + " if it has not received heartbeat from backup-worker.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
           .setScope(Scope.MASTER)
           .build();
@@ -1795,18 +1797,17 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey MASTER_EMBEDDED_JOURNAL_CATCHUP_RETRY_WAIT =
       new Builder(Name.MASTER_EMBEDDED_JOURNAL_CATCHUP_RETRY_WAIT)
           .setDefaultValue("1s")
-          .setDescription("Time for embedded journal leader to wait before retrying a catch up.")
+          .setDescription("Time for embedded journal leader to wait before retrying a catch up. "
+              + "This is added to avoid excessive retries when server is not ready.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey MASTER_EMBEDDED_JOURNAL_ENTRY_SIZE_MAX =
       new Builder(Name.MASTER_EMBEDDED_JOURNAL_ENTRY_SIZE_MAX)
           .setDefaultValue("10MB")
-          .setDescription(String.format(
-              "The maximum single journal entry size allowed to be flushed. "
-              + "This value should be smaller than 30MB. "
-              + "If you update this value, please also update the value of %s ",
-              Name.MASTER_EMBEDDED_JOURNAL_FLUSH_SIZE_MAX))
+          .setDescription("The maximum single journal entry size allowed to be flushed. "
+              + "This value should be smaller than 30MB. Set to a larger value to allow larger "
+              + "journal entries when using the Alluxio Catalog service.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
@@ -1861,7 +1862,9 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey MASTER_EMBEDDED_JOURNAL_TRANSPORT_REQUEST_TIMEOUT_MS =
       new Builder(Name.MASTER_EMBEDDED_JOURNAL_TRANSPORT_REQUEST_TIMEOUT_MS)
           .setDefaultValue("5sec")
-          .setDescription("Timeout for requests between embedded journal masters.")
+          .setDescription("The duration after which embedded journal masters will timeout "
+              + "messages sent between each other. Lower values might cause leadership "
+              + "instability when the network is slow.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
@@ -2177,8 +2180,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       new Builder(Name.MASTER_JOURNAL_EXIT_ON_DEMOTION)
           .setDefaultValue(false)
           .setDescription("(Experimental) When this flag is set to true, the master process may "
-              + "start as the primary or secondary in a quorum, but at any point in time after "
-              + "becoming a primary it is demoted to secondary, the process will shut down. This "
+              + "start as the primary or standby in a quorum, but at any point in time after "
+              + "becoming a primary it is demoted to standby, the process will shut down. This "
               + "leaves the responsibility of restarting the master to re-join the quorum (e.g. in"
               + " case of a journal failure on a particular node) to an external entity such as "
               + "kubernetes or systemd.")
@@ -3500,18 +3503,21 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey WORKER_REGISTER_LEASE_RETRY_SLEEP_MIN =
       new Builder(Name.WORKER_REGISTER_LEASE_RETRY_SLEEP_MIN)
           .setDefaultValue("1sec")
+          .setDescription("The minimum time to sleep before retrying to get a register lease.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
   public static final PropertyKey WORKER_REGISTER_LEASE_RETRY_SLEEP_MAX =
       new Builder(Name.WORKER_REGISTER_LEASE_RETRY_SLEEP_MAX)
           .setDefaultValue("10sec")
+          .setDescription("The maximum time to sleep before retrying to get a register lease.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
   public static final PropertyKey WORKER_REGISTER_LEASE_RETRY_MAX_DURATION =
       new Builder(Name.WORKER_REGISTER_LEASE_RETRY_MAX_DURATION)
           .setDefaultValue(String.format("${%s}", Name.WORKER_MASTER_CONNECT_RETRY_TIMEOUT))
+          .setDescription("The total time on retrying to get a register lease, before giving up.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
@@ -3868,6 +3874,34 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       new Builder(Name.PROXY_S3_MULTIPART_TEMPORARY_DIR_SUFFIX)
           .setDefaultValue(Constants.S3_MULTIPART_TEMPORARY_DIR_SUFFIX)
           .setDescription("Suffix for the directory which holds parts during a multipart upload.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.SERVER)
+          .build();
+  public static final PropertyKey PROXY_S3_MULTIPART_UPLOAD_TIMEOUT =
+      new Builder(Name.PROXY_S3_MULTIPART_UPLOAD_TIMEOUT)
+          .setDefaultValue("10min")
+          .setDescription("The timeout for aborting proxy s3 multipart upload automatically.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.SERVER)
+          .build();
+  public static final PropertyKey PROXY_S3_MULTIPART_UPLOAD_CLEANER_RETRY_COUNT =
+      new Builder(Name.PROXY_S3_MULTIPART_UPLOAD_CLEANER_RETRY_COUNT)
+          .setDefaultValue(3)
+          .setDescription("The retry count when aborting a multipart upload fails.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.SERVER)
+          .build();
+  public static final PropertyKey PROXY_S3_MULTIPART_UPLOAD_CLEANER_RETRY_DELAY =
+      new Builder(Name.PROXY_S3_MULTIPART_UPLOAD_CLEANER_RETRY_DELAY)
+          .setDefaultValue("10sec")
+          .setDescription("The retry delay time when aborting a multipart upload fails.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.SERVER)
+          .build();
+  public static final PropertyKey PROXY_S3_MULTIPART_UPLOAD_CLEANER_POOL_SIZE =
+      new Builder(Name.PROXY_S3_MULTIPART_UPLOAD_CLEANER_POOL_SIZE)
+          .setDefaultValue(1)
+          .setDescription("The abort multipart upload cleaner pool size.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.SERVER)
           .build();
@@ -5128,7 +5162,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey FUSE_CACHED_PATHS_MAX =
       new Builder(Name.FUSE_CACHED_PATHS_MAX)
           .setDefaultValue(500)
-          .setDescription("Maximum number of Alluxio paths to cache for FUSE conversion.")
+          .setDescription("Maximum number of FUSE-to-Alluxio path mappings to cache "
+              + "for FUSE conversion.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
           .setScope(Scope.CLIENT)
           .build();
@@ -5536,11 +5571,12 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey JOB_MASTER_RPC_ADDRESSES =
       new Builder(Name.JOB_MASTER_RPC_ADDRESSES)
-          .setDescription(String.format("The list of RPC addresses to use for the job service "
-                  + "configured in non-zookeeper HA mode. If this property is not specifically "
-                  + "defined, it will first fall back to using %s, replacing those address "
-                  + "ports with the port defined by %s. Otherwise the addresses are inherited from "
-                  + "%s using the port defined in %s",
+          .setDescription(String.format("A list of comma-separated host:port RPC addresses where "
+                  + "the client should look for job masters when using multiple job masters "
+                  + "without Zookeeper. This property is not used "
+                  + "when Zookeeper is enabled, since Zookeeper already stores the job master "
+                  + "addresses. If property is not defined, clients will look for job masters "
+                  + "using [%s]:%s first, then for [%s]:%s.",
               Name.MASTER_RPC_ADDRESSES, Name.JOB_MASTER_RPC_PORT,
               Name.JOB_MASTER_EMBEDDED_JOURNAL_ADDRESSES, Name.JOB_MASTER_RPC_PORT))
           .setScope(Scope.ALL)
@@ -5555,8 +5591,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey JOB_MASTER_EMBEDDED_JOURNAL_PORT =
       new Builder(Name.JOB_MASTER_EMBEDDED_JOURNAL_PORT)
-          .setDescription(
-              "The port to use for embedded journal communication with other job masters.")
+          .setDescription("The port job masters use for embedded journal communications.")
           .setDefaultValue(20003)
           .setScope(Scope.ALL)
           .build();
@@ -6565,6 +6600,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String PROXY_S3_DELETE_TYPE = "alluxio.proxy.s3.deletetype";
     public static final String PROXY_S3_MULTIPART_TEMPORARY_DIR_SUFFIX =
         "alluxio.proxy.s3.multipart.temporary.dir.suffix";
+    public static final String PROXY_S3_MULTIPART_UPLOAD_TIMEOUT =
+        "alluxio.proxy.s3.multipart.upload.timeout";
+    public static final String PROXY_S3_MULTIPART_UPLOAD_CLEANER_RETRY_COUNT =
+        "alluxio.proxy.s3.multipart.upload.cleaner.retry.count";
+    public static final String PROXY_S3_MULTIPART_UPLOAD_CLEANER_RETRY_DELAY =
+        "alluxio.proxy.s3.multipart.upload.cleaner.retry.delay";
+    public static final String PROXY_S3_MULTIPART_UPLOAD_CLEANER_POOL_SIZE =
+        "alluxio.proxy.s3.multipart.upload.cleaner.pool.size";
     public static final String PROXY_STREAM_CACHE_TIMEOUT_MS =
         "alluxio.proxy.stream.cache.timeout";
     public static final String PROXY_WEB_BIND_HOST = "alluxio.proxy.web.bind.host";

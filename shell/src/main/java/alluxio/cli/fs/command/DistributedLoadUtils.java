@@ -35,6 +35,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.atomic.LongAdder;
 import java.util.stream.Collectors;
 
 /**
@@ -64,6 +65,12 @@ public final class DistributedLoadUtils {
       boolean printOut) throws AlluxioException, IOException {
     load(command, pool, batchSize, filePath, replication, workerSet, excludedWorkerSet, localityIds,
         excludedLocalityIds, printOut);
+    // add all the jobs left in the pool
+    if (pool.size() > 0) {
+      addJob(command, pool, replication, workerSet, excludedWorkerSet, localityIds,
+          excludedLocalityIds, printOut);
+      pool.clear();
+    }
     // Wait remaining jobs to complete.
     command.drain();
   }
@@ -88,8 +95,15 @@ public final class DistributedLoadUtils {
       Set<String> excludedWorkerSet, Set<String> localityIds, Set<String> excludedLocalityIds,
       boolean printOut) throws IOException, AlluxioException {
     ListStatusPOptions options = ListStatusPOptions.newBuilder().setRecursive(true).build();
+    LongAdder incompleteCount = new LongAdder();
     command.mFileSystem.iterateStatus(filePath, options, uriStatus -> {
       if (!uriStatus.isFolder()) {
+        if (!uriStatus.isCompleted()) {
+          incompleteCount.increment();
+          System.out.printf("Ignored load because: %s is in incomplete status",
+                  uriStatus.getPath());
+          return;
+        }
         AlluxioURI fileURI = new AlluxioURI(uriStatus.getPath());
         if (uriStatus.getInAlluxioPercentage() == 100 && replication == 1) {
           // The file has already been fully loaded into Alluxio.
@@ -106,10 +120,9 @@ public final class DistributedLoadUtils {
         }
       }
     });
-    // add all the jobs left in the pool
-    if (pool.size() > 0) {
-      addJob(command, pool, replication, workerSet, excludedWorkerSet, localityIds,
-          excludedLocalityIds, printOut);
+    if (incompleteCount.longValue() > 0) {
+      System.out.printf("Ignore load %d paths because they are in incomplete status",
+              incompleteCount.longValue());
     }
   }
 
@@ -296,7 +309,6 @@ public final class DistributedLoadUtils {
         for (URIStatus status : filePath) {
           LoadConfig loadConfig = new LoadConfig(status.getPath(), replication, workerSet,
               excludedWorkerSet, localityIds, excludedLocalityIds);
-          System.out.println(loadConfig.getFilePath() + " loading");
           Map<String, String> map = oMapper.convertValue(loadConfig, Map.class);
           configs.add(map);
         }

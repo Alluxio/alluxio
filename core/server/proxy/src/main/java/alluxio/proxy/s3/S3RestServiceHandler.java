@@ -98,6 +98,7 @@ public final class S3RestServiceHandler {
 
   private final FileSystem mFileSystem;
   private final InstancedConfiguration mSConf;
+  private MultipartUploadCleaner mCleaner;
 
   /**
    * Constructs a new {@link S3RestServiceHandler}.
@@ -109,6 +110,7 @@ public final class S3RestServiceHandler {
         (FileSystem) context.getAttribute(ProxyWebServer.FILE_SYSTEM_SERVLET_RESOURCE_KEY);
     mSConf = (InstancedConfiguration)
         context.getAttribute(ProxyWebServer.SERVER_CONFIGURATION_RESOURCE_KEY);
+    mCleaner = new MultipartUploadCleaner(mFileSystem);
   }
 
   /**
@@ -573,12 +575,20 @@ public final class S3RestServiceHandler {
       String objectPath = bucketPath + AlluxioURI.SEPARATOR + object;
       AlluxioURI multipartTemporaryDir =
           new AlluxioURI(S3RestUtils.getMultipartTemporaryDirForObject(bucketPath, object));
+
       CreateDirectoryPOptions options = CreateDirectoryPOptions.newBuilder()
           .setRecursive(true).setWriteType(getS3WriteType()).build();
       try {
+        if (fs.exists(multipartTemporaryDir)) {
+          if (mCleaner.apply(bucket, object)) {
+            throw new S3Exception(multipartTemporaryDir.getPath(),
+                S3ErrorCode.UPLOAD_ALREADY_EXISTS);
+          }
+        }
         fs.createDirectory(multipartTemporaryDir, options);
         // Use the file ID of multipartTemporaryDir as the upload ID.
         long uploadId = fs.getStatus(multipartTemporaryDir).getFileId();
+        mCleaner.apply(bucket, object, uploadId);
         return new InitiateMultipartUploadResult(bucket, object, Long.toString(uploadId));
       } catch (Exception e) {
         throw toObjectS3Exception(e, objectPath);
@@ -620,7 +630,7 @@ public final class S3RestServiceHandler {
 
         fs.delete(multipartTemporaryDir,
             DeletePOptions.newBuilder().setRecursive(true).build());
-
+        mCleaner.cancelAbort(bucket, object, uploadId);
         String entityTag = Hex.encodeHexString(md5.digest());
         return new CompleteMultipartUploadResult(objectPath, bucket, object, entityTag);
       } catch (Exception e) {
