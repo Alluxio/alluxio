@@ -296,11 +296,12 @@ Note that, libfuse introduce this mount option in 3.2 while JNI-Fuse supports 2.
 The Alluxio docker image [alluxio/{{site.ALLUXIO_DOCKER_IMAGE}}](https://hub.docker.com/r/alluxio/{{site.ALLUXIO_DOCKER_IMAGE}}/)
 enables this property by modifying the [libfuse source code](https://github.com/cheyang/libfuse/tree/fuse_2_9_5_customize_multi_threads_v2).
 
-If you are using alluxio fuse docker image, set the `MAX_IDLE_THREADS` via environment variable:
+In alluxio docker image, the default value for `MAX_IDLE_THREADS` is 64. If you want to use another value in your container,
+you could set it via environment variable at container start time:
 ```console
 $ docker run -d --rm \
     ...
-    --env MAX_IDLE_THREADS=64 \
+    --env MAX_IDLE_THREADS=128 \
     alluxio/{{site.ALLUXIO_DOCKER_IMAGE}} fuse
 ```
   {% endcollapsible %}
@@ -318,7 +319,7 @@ or allow root to access the mounted folder:
 user_allow_other
 ```
 
-This option allow non-root users to specify the `allow_other` or `allow_root` mount options.
+Only after this step that non-root users have the permisson to specify the `allow_other` or `allow_root` mount options.
 
 For MacOS, follow the [osxfuse allow_other instructions](https://github.com/osxfuse/osxfuse/wiki/Mount-options)
 to allow other users to use the `allow_other` and `allow_root` mount options.
@@ -344,9 +345,9 @@ characteristics, please be aware that:
 * Files can be written only once, only sequentially, and never be modified.
   That means overriding a file is not allowed, and an explicit combination of delete and then create
   is needed.
-  For example, the `cp` command will fail when the destination file exists.
-  `vi` and `vim` commands will succeed because the underlying system do create, delete, and rename
-  operation combinations.
+  For example, the `cp` command would fail when the destination file exists.
+  `vi` and `vim` commands will only succeed modifying files if the underlying operating system deletes 
+  the original file first and then creates a new file with modified content beneath.
 * Alluxio does not have hard-links or soft-links, so commands like `ln` are not supported.
   The hardlinks number is not displayed in `ll` output.
 * The user and group are mapped to the Unix user and group only when Alluxio POSIX API is configured
@@ -390,12 +391,12 @@ Enable when the workload repeatedly getting information of numerous files.
     <tr>
         <td>alluxio.user.metadata.cache.max.size</td>
         <td>100000</td>
-        <td>Maximum number of paths with cached metadata. Only valid if the filesystem is alluxio.client.file.MetadataCachingBaseFileSystem.</td>
+        <td>Maximum number of paths with cached metadata. Only valid if alluxio.user.metadata.cache.enabled is set to true.</td>
     </tr>
     <tr>
         <td>alluxio.user.metadata.cache.expiration.time</td>
         <td>10min</td>
-        <td>Metadata will expire and be evicted after being cached for this time period. Only valid if the filesystem is alluxio.client.file.MetadataCachingBaseFileSystem.</td>
+        <td>Metadata will expire and be evicted after being cached for this time period. Only valid if alluxio.user.metadata.cache.enabled is set to true.</td>
     </tr>
 </table>
 
@@ -405,7 +406,7 @@ alluxio.user.metadata.cache.enabled=true
 alluxio.user.metadata.cache.max.size=1000000
 alluxio.user.metadata.cache.expiration.time=1h
 ```
-The metadata size of 1 million files usually is around 25MB to 100MB.
+The metadata size of 1 million files is usually between 25MB and 100MB.
 Enable metadata cache may also introduce some overhead, but may not be as big as client data cache.
 
 ### Other Performance or Debugging Tips
@@ -436,7 +437,7 @@ The following client options may affect the training performance or provides mor
     <tr>
         <td>alluxio.user.update.file.accesstime.disabled</td>
         <td>false</td>
-        <td>(Experimental) By default, a master RPC will be issued to Alluxio Master to update the file access time whenever a user accesses it. If this is enabled, the clients doesn't update file access time which may improve the file access performance but cause issues for some applications.</td>
+        <td>(Experimental) By default, a master RPC will be issued to Alluxio Master to update the file access time whenever a user accesses it. If this is enabled, the client doesn't update file access time which may improve the file access performance but cause issues for some applications.</td>
     </tr>
     <tr>
         <td>alluxio.user.block.worker.client.pool.max</td>
@@ -480,7 +481,7 @@ ls: /mnt/alluxio-fuse/try.txt: Input/output error
 ```
 
 In this case, check Alluxio Fuse logs for the actual error message.
-The log can be `logs/fuse.log` (deployed via standalone fuse process) or `logs/worker.log` (deployed via fuse in worker process).
+The logs are in `logs/fuse.log` (deployed via standalone fuse process) or `logs/worker.log` (deployed via fuse in worker process).
 ```
 2021-08-30 12:07:52,489 ERROR AlluxioJniFuseFileSystem - Failed to getattr /:
 alluxio.exception.status.UnavailableException: Failed to connect to master (localhost:19998) after 44 attempts.Please check if Alluxio master is currently running on "localhost:19998". Service="FileSystemMasterClient"
@@ -514,9 +515,10 @@ $ ./bin/alluxio logLevel --logName=alluxio.fuse --target=workers --level=DEBUG
 For more information about logging, please check out [this page]({{ '/en/operation/Basic-Logging.html' | relativize_url }}).
 
 ### Fuse metrics
-
-Check out the [Fuse metrics doc]({{ '/en/reference/Metrics-List.html' | relativize_url }}#fuse-metrics) for how to get Fuse metrics
-and what each metric uses for.
+To monitor Fuse-related metrics for standalone Fuse process, setting `alluxio.fuse.web.enabled` to `true` in `${ALLUXIO_HOME}/conf/alluxio-site.properties`
+before launching the standalone Fuse process.
+Check out the [Fuse metrics doc]({{ '/en/reference/Metrics-List.html' | relativize_url }}#fuse-metrics) for how to get Fuse metrics for
+both standalone Fuse process and Fuse on worker process, and what each metric is used for.
 
 ## Performance Tuning
 
@@ -526,8 +528,8 @@ The following diagram shows the stack when using Alluxio POSIX API:
 Essentially, Alluxio POSIX API is implemented as as FUSE integration which is simply a long-running Alluxio client.
 In the following stack, the performance overhead can be introduced in one or more components among 
  
- - Application
-- Fuse libray
+- Application
+- Fuse library
 - Alluxio related components
 
 ### Application Level
@@ -586,7 +588,7 @@ If thread pool size is not the limitation, try enlarging the CPU/memory resource
 
 One can follow the [Alluxio opentelemetry doc](https://github.com/Alluxio/alluxio/blob/ea36bb385d24769e079248015c8e490b6e46e6ed/integration/metrics/README.md)
 to trace the gRPC calls. If some gRPC calls take extremely long time and only a small amount of time is used to do actual work, there may be too many concurrent gRPC calls or high resource contention.
-If a long time spent in fulfilling the gRPC requests, we can jump to the server side to see where the slowness come from.
+If a long time is spent in fulfilling the gRPC requests, we can jump to the server side to see where the slowness come from.
 
 #### CPU/memory/lock tracing
 

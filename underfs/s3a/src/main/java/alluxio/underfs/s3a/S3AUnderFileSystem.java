@@ -30,12 +30,15 @@ import com.amazonaws.AmazonClientException;
 import com.amazonaws.AmazonServiceException;
 import com.amazonaws.ClientConfiguration;
 import com.amazonaws.Protocol;
+import com.amazonaws.SdkClientException;
 import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.auth.AWSStaticCredentialsProvider;
 import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.auth.DefaultAWSCredentialsProviderChain;
 import com.amazonaws.client.builder.AwsClientBuilder;
+import com.amazonaws.regions.Regions;
 import com.amazonaws.services.s3.AmazonS3;
+import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.amazonaws.services.s3.internal.Mimetypes;
 import com.amazonaws.services.s3.internal.ServiceUtils;
@@ -206,8 +209,7 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
       clientConf.setSignerOverride(conf.get(PropertyKey.UNDERFS_S3_SIGNER_ALGORITHM));
     }
 
-    AmazonS3ClientBuilder clientBuilder = AmazonS3ClientBuilder
-        .standard()
+    AmazonS3ClientBuilder clientBuilder = AmazonS3Client.builder()
         .withCredentials(credentials)
         .withClientConfiguration(clientConf);
 
@@ -215,10 +217,35 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
       clientBuilder.withPathStyleAccessEnabled(true);
     }
 
+    boolean enableGlobalBucketAccess = true;
     AwsClientBuilder.EndpointConfiguration endpointConfiguration
         = createEndpointConfiguration(conf, clientConf);
     if (endpointConfiguration != null) {
       clientBuilder.withEndpointConfiguration(endpointConfiguration);
+      enableGlobalBucketAccess = false;
+    } else if (conf.isSet(PropertyKey.UNDERFS_S3_REGION)) {
+      try {
+        String region = conf.get(PropertyKey.UNDERFS_S3_REGION);
+        clientBuilder.withRegion(region);
+        enableGlobalBucketAccess = false;
+        LOG.debug("Set S3 region {} to {}", PropertyKey.UNDERFS_S3_REGION.getName(), region);
+      } catch (SdkClientException e) {
+        LOG.error("S3 region {} cannot be recognized, "
+            + "fall back to use global bucket access with an extra HEAD request",
+            conf.get(PropertyKey.UNDERFS_S3_REGION), e);
+      }
+    }
+    if (enableGlobalBucketAccess) {
+      // access bucket without region information
+      // at the cost of an extra HEAD request
+      clientBuilder.withForceGlobalBucketAccessEnabled(true);
+      // The special S3 region which can be used to talk to any bucket
+      // Region is required even if global bucket access enabled
+      String defaultRegion = Regions.US_EAST_1.getName();
+      clientBuilder.setRegion(defaultRegion);
+      LOG.debug("Cannot find S3 endpoint or s3 region in Alluxio configuration, "
+          + "set region to {} and enable global bucket access with extra overhead",
+          defaultRegion);
     }
 
     AmazonS3 amazonS3Client = clientBuilder.build();

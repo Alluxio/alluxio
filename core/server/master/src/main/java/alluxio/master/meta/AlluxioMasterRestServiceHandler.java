@@ -251,7 +251,6 @@ public final class AlluxioMasterRestServiceHandler {
   public Response getWebUIOverview() {
     return RestUtils.call(() -> {
       MasterWebUIOverview response = new MasterWebUIOverview();
-
       response.setDebug(ServerConfiguration.getBoolean(PropertyKey.DEBUG))
           .setMasterNodeAddress(mMasterProcess.getRpcAddress().toString()).setUptime(CommonUtils
           .convertMsToClockTime(System.currentTimeMillis() - mMetaMaster.getStartTimeMs()))
@@ -261,6 +260,9 @@ public final class AlluxioMasterRestServiceHandler {
           .setLiveWorkerNodes(Integer.toString(mBlockMaster.getWorkerCount()))
           .setCapacity(FormatUtils.getSizeFromBytes(mBlockMaster.getCapacityBytes()))
           .setClusterId(mMetaMaster.getClusterID())
+          .setReplicaBlockCount(Long.toString(mBlockMaster.getBlockReplicaCount()))
+          .setUniqueBlockCount(Long.toString(mBlockMaster.getUniqueBlockCount()))
+          .setTotalPath(Long.toString(mFileSystemMaster.getInodeCount()))
           .setUsedCapacity(FormatUtils.getSizeFromBytes(mBlockMaster.getUsedBytes()))
           .setFreeCapacity(FormatUtils
               .getSizeFromBytes(mBlockMaster.getCapacityBytes() - mBlockMaster.getUsedBytes()));

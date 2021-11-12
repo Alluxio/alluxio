@@ -1,0 +1,24 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Stacks Shallow component Matches snapshot 1`] = `
+<div
+  className="stacks-page"
+  style={
+    Object {
+      "backgroundColor": "white",
+      "minHeight": 768,
+    }
+  }
+>
+  <iframe
+    src="http://localhost/"
+    style={
+      Object {
+        "height": 768,
+        "overflow": "visible",
+        "width": "100%",
+      }
+    }
+  />
+</div>
+`;
