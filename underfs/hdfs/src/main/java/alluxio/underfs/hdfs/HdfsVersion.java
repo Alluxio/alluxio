@@ -27,6 +27,7 @@ public enum HdfsVersion {
   HADOOP_2_7("hadoop-2.7", "(hadoop-?2\\.7(\\.(\\d+))?|2\\.7(\\.(\\d+)(-.*)?)?)"),
   HADOOP_2_8("hadoop-2.8", "(hadoop-?2\\.8(\\.(\\d+))?|2\\.8(\\.(\\d+)(-.*)?)?)"),
   HADOOP_2_9("hadoop-2.9", "(hadoop-?2\\.9(\\.(\\d+))?|2\\.9(\\.(\\d+)(-.*)?)?)"),
+  HADOOP_2_10("hadoop-2.10", "(hadoop-?2\\.10(\\.(\\d+))?|2\\.10(\\.(\\d+)(-.*)?)?)"),
   HADOOP_3_0("hadoop-3.0", "(hadoop-?3\\.0(\\.(\\d+))?|3\\.0(\\.(\\d+)(-.*)?)?)"),
   HADOOP_3_1("hadoop-3.1", "(hadoop-?3\\.1(\\.(\\d+))?|3\\.1(\\.(\\d+)(-.*)?)?)"),
   HADOOP_3_2("hadoop-3.2", "(hadoop-?3\\.2(\\.(\\d+))?|3\\.2(\\.(\\d+)(-.*)?)?)"),
@@ -70,8 +71,9 @@ public enum HdfsVersion {
     if (versionA.equals(versionB)) {
       return true;
     }
-    if (HdfsVersion.find(versionA) != null
-        && HdfsVersion.find(versionA) == HdfsVersion.find(versionB)) {
+    HdfsVersion hdfsVersionA = HdfsVersion.find(versionA);
+    if (hdfsVersionA != null
+            && hdfsVersionA == HdfsVersion.find(versionB)) {
       return true;
     }
     return false;
