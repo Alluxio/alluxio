@@ -71,9 +71,8 @@ public enum HdfsVersion {
     if (versionA.equals(versionB)) {
       return true;
     }
-    HdfsVersion hdfsVersionA = HdfsVersion.find(versionA);
-    if (hdfsVersionA != null
-            && hdfsVersionA == HdfsVersion.find(versionB)) {
+    if (HdfsVersion.find(versionA) != null
+        && HdfsVersion.find(versionA) == HdfsVersion.find(versionB)) {
       return true;
     }
     return false;
