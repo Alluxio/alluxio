@@ -26,7 +26,7 @@
     <!-- The build path need to be defined here as well as in the parent pom so that mvn can -->
     <!-- run properly from sub-project directories -->
     <build.path>${project.parent.parent.basedir}/build</build.path>
-    <ufs.ozone.version>1.0.0</ufs.ozone.version>
+    <ufs.ozone.version>1.1.0</ufs.ozone.version>
     <shading.prefix>alluxio.shaded.ozone</shading.prefix>
   </properties>
 

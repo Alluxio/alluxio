@@ -6,7 +6,7 @@ group: Storage Integrations
 priority: 10
 ---
 
-本指南介绍了如何将[Ozone](https://hadoop.apache.org/ozone)配置为Alluxio的底层存储系统。 
+本指南介绍了如何将[Ozone](https://ozone.apache.org/)配置为Alluxio的底层存储系统。 
 Ozone是用于Hadoop的可扩展，冗余和分布式对象存储。除了可以扩展到数十亿个大小不同的对象外， 
 Ozone可以在容器化环境(例如Kubernetes和YARN)中有效运行。
 
@@ -17,9 +17,8 @@ Ozone可以在容器化环境(例如Kubernetes和YARN)中有效运行。
 具有正确的Hadoop版本(推荐))，或 
 [从Alluxio源代码编译二进制文件]({{ '/en/contributor/Building-Alluxio-From-Source.html' | relativize_url}})(适用于高级用户)。
 
-在准备Ozone与Alluxio一起使用时，请遵循[Ozone本地安装](https://hadoop.apache.org/ozone/docs/1.0.0/start/onprem.html)
-安装Ozone集群，并遵循[卷命令](https://hadoop.apache.org/ozone/docs/1.0.0/shell/volumecommands.html)和 
-[桶命令](https://hadoop.apache.org/ozone/docs/1.0.0/shell/bucketcommands.html)创建Ozone集群的卷和存储桶。
+在准备Ozone与Alluxio一起使用时，请遵循[Ozone本地安装](https://ozone.apache.org/docs/1.1.0/start/onprem.html)
+安装Ozone集群，并遵循[Cli命令](https://ozone.apache.org/docs/1.1.0/interface/cli.html)创建Ozone集群的卷和存储桶。
 
 ## 基本设置
 
@@ -91,7 +90,7 @@ $ ./bin/alluxio fs mount \
   </property>
   <property>
     <name>fs.AbstractFileSystem.o3fs.impl</name>
-    <value>org.apache.hadoop.fs.ozone.BasicOzFs</value>
+    <value>org.apache.hadoop.fs.ozone.OzFs</value>
   </property>
 </configuration>
 ```
