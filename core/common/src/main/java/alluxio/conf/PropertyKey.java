@@ -7354,7 +7354,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
    * @param input string of property key
    * @return corresponding property
    */
-  public static PropertyKey fromString(String input) {
+  public static synchronized PropertyKey fromString(String input) {
     // First try to parse it as default key
     PropertyKey key = DEFAULT_KEYS_MAP.get(input);
     if (key != null) {
