@@ -939,11 +939,8 @@ You may use this command to simulate the pressure when the workers start at once
 
 The`RegisterWorker` RPC carries a list of blocks that is currently stored in the worker's storage.
 This RPC can be expensive if the list is huge.
-The `RequestRegisterLease` RPC is part of the mechanism that the master uses to
-control the number of concurrently registering workers so that it does not exceed the master's
-processing capacity.
 
-Note that Alluxio 2.7 introduced the [register lease]({{'/en/reference/Properties-List.html' | relativize_url }}#alluxio.master.worker.register.lease.enabled)
+Note that Alluxio 2.7 introduced the [register lease]({{'/en/operation/Scalability-Tuning.html' | relativize_url }}#worker-register-lease)
 for the master to perform registration flow control.
 If you enable that, the same flow control will be effective in this test too. 
 
@@ -992,7 +989,7 @@ Simulates concurrent worker registration using the streaming RPC implementation 
 Alluxio 2.7).
 You may use this command to simulate the pressure when the workers start at once at your scale.
 
-Note that Alluxio 2.7 introduced the [register lease]({{'/en/reference/Properties-List.html' | relativize_url }}#alluxio.master.worker.register.lease.enabled)
+Note that Alluxio 2.7 introduced the [register lease]({{'/en/operation/Scalability-Tuning.html' | relativize_url }}#streaming-worker-registration)
 for the master to perform registration flow control. If you enable that, the same flow control
 will be effective in this test too. 
 
