@@ -797,11 +797,13 @@ The cluster testing is similar to single node testing except that
 The RPC Stress Bench is a set of benchmarks designed to measure the RPC performance of the 
 master under heavy load of concurrent client/worker requests.
 
+### Single node mode VS cluster mode
+
 Similar to the Fuse IO Stress Bench, the RPC benchmarks support running in a single node mode, 
 or in a cluster mode. 
 
 In the single node mode, the node running the benchmark uses multiple threads to simulate many 
-clients which send concurrent RPC request to the master.
+clients/workers which send concurrent RPC requests to the master.
 
 In the cluster mode, the benchmarks leverage the job service to create simulated clients/workers. 
 Each job worker hosts many simulated clients/workers on many threads, so with this mode it's 
@@ -812,18 +814,59 @@ Use the common option `--cluster` to specify the cluster mode, otherwise omit it
 single node mode. Use the `--cluster-limit` option to further specify how many job workers 
 should be used to run the benchmark job in parallel.
 
+For example, this runs the `RegisterWorkerBench` in the single node mode, with a total of 8
+simulated workers:
+
+```console
+$ bin/alluxio runClass alluxio.stress.cli.RegisterWorkerBench --concurrency 8 --tiers "5000,5000"
+```
+
+This runs the same benchmark in the cluster mode, on 2 job workers each simulating 4 workers,
+so the total number of simulated workers is also 8:
+
+```console
+$ bin/alluxio runClass alluxio.stress.cli.RegisterWorkerBench --concurrency 4 --cluster 
+--cluster-limit 2 --tiers "5000,5000"
+```
+
+### Preparing & Sending RPCs
+
 Each individual RPC benchmark tests a specific RPC service offered by the master. A benchmark 
-may perform necessary preparations that simulate real use cases before the measurement 
-begins. Then the benchmark sends the RPC request(s) to the master once or repeatedly, depending on 
+may perform necessary preparations to create an environment that simulates real use cases before 
+the measurement begins.
+
+Then the benchmark sends the RPC request(s) to the master once or repeatedly, depending on 
 the benchmark, and waits for the response(s). If the benchmark calls RPCs repeatedly, it will stop 
 when the specified measurement duration has been reached. Otherwise, it stops as soon as the 
 response is received.
 One successful RPC request results in one data point that records the round trip time of the RPC.
 
 For example, the `GetPinnedFileIdsBench` measures the RPC throughput of the `GetPinnedFileIds` RPC. 
-It creates test files in a temporary directory in Alluxio and pins them. Then it repeatedly calls 
+It creates test files in a temporary directory in Alluxio and pins them. Then the simulated workers repeatedly call 
 the RPC and waits for the pinned file list, records and outputs the data points and some statistics
-of the data.
+of the data, until the duration has been reached. The number of data points in the result is 
+therefore linear to the duration of the benchmark.
+
+On the other hand, the `RegisterWorkerBench` only calls the RPC once. It first prepares the 
+metadata for many fake blocks on the master. Then the simulated workers register themselves with 
+the master, reporting the fake blocks in its storage. 
+Each worker sends the registration RPC only once. Therefore, the duration parameter is irrelevant 
+for this benchmark, and the number of data points is equal to the number of workers (if no 
+errors occur).
+
+### Output & Logging
+
+The benchmarks output the results in JSON to stdout.
+
+The benchmarks log progress and errors to
+`${alluxio.user.logs.dir}/user_${user.name}.log` by default. 
+You can redirect the logs to a different file each time a benchmark is run, 
+by setting the following options on the command line when invoking the benchmarks. For example:
+
+```console
+$ bin/alluxio runClass <path.to.bench.class> \
+    -Dlog4j.appender.USER_LOGGER.File=/path/to/benchmark/results/run1.log [other options]
+```
 
 ### Common Parameters
 
@@ -859,9 +902,8 @@ These RPC benchmarks are currently available:
 
 #### `GetPinnedFileIdsBench`
 
-For the `GetPinnedFileIds` RPC.
-
-This benchmark calls the RPC repeatedly until duration is reached.
+Simulates workload for the `GetPinnedFileIds` RPC, and calls the RPC repeatedly 
+until duration is reached.
 
 `GetPinnedFileIds` is periodically called by block workers on every heartbeat to poll the 
 pinned file list. It can be expensive if the pinned file list is huge. 
@@ -889,16 +931,25 @@ Parameters:
 
 #### `RegisterWorkerBench` 
 
-For the `RegisterWorker` RPC and the `RequestRegisterLease` RPC.
+Simulates workload for the `RegisterWorker` RPC.
+
+This benchmark simulates concurrent worker registration using the unary RPC implementation (default 
+before Alluxio 2.7).
+You may use this command to simulate the pressure when the workers start at once at your scale.
+
+The`RegisterWorker` RPC carries a list of blocks that is currently stored in the worker's storage.
+This RPC can be expensive if the list is huge.
+The `RequestRegisterLease` RPC is part of the mechanism that the master uses to
+control the number of concurrently registering workers so that it does not exceed the master's
+processing capacity.
+
+Note that Alluxio 2.7 introduced the [register lease]({{'/en/reference/Properties-List.html' | relativize_url }}#alluxio.master.worker.register.lease.enabled)
+for the master to perform registration flow control.
+If you enable that, the same flow control will be effective in this test too. 
 
 This benchmark calls the RPC only once.
 
-This benchmark measures the performance of the process of new worker registration. 
-The`RegisterWorker` RPC carries a list of blocks that is currently stored in the worker's storage. 
-This RPC can be expensive if the list is huge. 
-The `RequestRegisterLease` RPC is part of the mechanism that the master uses to 
-control the number of concurrently registering clients so that it does not exceed the master's 
-processing capacity.
+See also: [StreamRegisterWorkerBench](#streamregisterworkerbench).
 
 Parameters:
 
@@ -921,8 +972,9 @@ Parameters:
 
 For the `WorkerHeartbeat` RPC.
 
-`WorkerHeartbeat` is called on every worker heartbeat. Similar to the `RegisterWorker` RPC, this 
-RPC carries a block list, and can be expensive if that list is huge.
+`WorkerHeartbeat` is called on every worker heartbeat. This RPC carries the block update on this 
+worker since the last heartbeat. If the workers at your scale are under high load, the heartbeat 
+message will also be large and incurs significant overhead on the master side.
 
 This benchmark calls the RPC repeatedly until duration is reached.
 
@@ -936,8 +988,15 @@ For the `RegisterWorkerStream` RPC.
 
 This benchmark calls the RPC only once.
 
-`RegisterWorkerStream` is similar to `RegisterWorker`, except that this RPC allows streaming of 
-the huge block list. 
+Simulates concurrent worker registration using the streaming RPC implementation (default since 
+Alluxio 2.7).
+You may use this command to simulate the pressure when the workers start at once at your scale.
+
+Note that Alluxio 2.7 introduced the [register lease]({{'/en/reference/Properties-List.html' | relativize_url }}#alluxio.master.worker.register.lease.enabled)
+for the master to perform registration flow control. If you enable that, the same flow control
+will be effective in this test too. 
+
+See also: [RegisterWorkerBench](#registerworkerbench).
 
 Parameters:
 
