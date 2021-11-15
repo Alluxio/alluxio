@@ -85,10 +85,12 @@ public final class FreeCommand extends AbstractFileSystemCommand {
             // but 'free' on an empty file should be a no-op
             return true;
           }
-          if (fileStatus.getInAlluxioPercentage() >= 0) {
+          if (fileStatus.getInAlluxioPercentage() > 0) {
             mFileSystem.free(path, options);
+            return fileStatus.getInAlluxioPercentage() == 0;
+          } else {
+            return true;
           }
-          return fileStatus.getInAlluxioPercentage() == 0;
         } catch (Exception e) {
           Throwables.propagateIfPossible(e);
           throw new RuntimeException(e);
