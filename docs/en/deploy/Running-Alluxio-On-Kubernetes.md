@@ -1390,9 +1390,36 @@ Other than using Alluxio FUSE daemon, you could also use CSI to mount the Alluxi
 In order to use CSI, you need a Kubernetes cluster with version at least 1.17, 
 with [RBAC](https://kubernetes.io/docs/reference/access-authn-authz/rbac/) enabled in API Server.
 
-**Step 1: Generate templates**
+**Step 1: Customize configurations and generate templates**
 
-Please use `helm-generate.sh` (see [here](https://github.com/Alluxio/alluxio/tree/master/integration/kubernetes#generate-kubectl-yaml-templates-from-helm-chart) for usage)
+You can either use the default CSI configurations provided in
+[here](https://github.com/Alluxio/alluxio/blob/master/integration/kubernetes/helm-chart/alluxio/values.yaml)
+under the csi section, or you can customize them to make it suitable for your workload.
+Here are some common properties that you can customize:
+<table class="table table-striped">
+  <tr>
+    <th>property name</th>
+    <th>Description</th>
+  </tr>
+  <tr>
+    <td>alluxioPath</td>
+    <td>The path in Alluxio which will be mounted</td>
+  </tr>
+  <tr>
+    <td>mountPath</td>
+    <td>The path that Alluxio will be mounted to in the application container</td>
+  </tr>
+  <tr>
+    <td>javaOptions</td>
+    <td>The customized options which will be passes to fuse daemon</td>
+  </tr>
+  <tr>
+    <td>mountOptions</td>
+    <td>Alluxio Fuse mount options</td>
+  </tr>
+</table>
+
+Then please use `helm-generate.sh` (see [here](https://github.com/Alluxio/alluxio/tree/master/integration/kubernetes#generate-kubectl-yaml-templates-from-helm-chart) for usage)
 to generate related templates. All CSI related templates will be under `${ALLUXIO_HOME}/integration/kubernetes/<deploy-mode>/csi`.
 
 **Step 2: Deploy CSI services**
