@@ -18,12 +18,12 @@ import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.FileDoesNotExistException;
-import alluxio.exception.InvalidPathException;
 import alluxio.grpc.DeletePOptions;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nullable;
 import java.io.IOException;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
@@ -249,6 +249,7 @@ public class MultipartUploadCleaner {
    * @param bucket the bucket name
    * @param object the object name
    */
+  @Nullable
   private Long getMultipartUploadId(FileSystem fs, String bucket, String object)
       throws IOException, AlluxioException {
     final String bucketPath = AlluxioURI.SEPARATOR  + bucket;
@@ -257,7 +258,7 @@ public class MultipartUploadCleaner {
     try {
       URIStatus status = fs.getStatus(new AlluxioURI(multipartTemporaryDir));
       return status.getFileId();
-    } catch (FileDoesNotExistException | InvalidPathException e) {
+    } catch (FileDoesNotExistException e) {
       return null;
     }
   }
@@ -302,8 +303,8 @@ public class MultipartUploadCleaner {
         }
       } catch (IOException | AlluxioException e) {
         mRetryCount++;
-        LOG.error("Failed abort multipart upload {} in bucket {} with uploadId {} with error {}"
-            + " after retry {} count.", mObject, mBucket, mUploadId, e, mRetryCount);
+        LOG.error("Failed abort multipart upload {} in bucket {} with uploadId {} "
+                + "after {} retries with error {}.", mObject, mBucket, mUploadId, mRetryCount, e);
         e.printStackTrace();
         if (mCleaner.canRetry(this)) {
           mCleaner.apply(this, mCleaner.getRetryDelay());
