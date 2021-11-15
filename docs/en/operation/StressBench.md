@@ -985,12 +985,12 @@ For the `RegisterWorkerStream` RPC.
 
 This benchmark calls the RPC only once.
 
-Simulates concurrent worker registration using the streaming RPC implementation (default since 
-Alluxio 2.7).
+Simulates concurrent worker registration using the 
+[streaming RPC implementation]({{ '/en/operation/Scalability-Tuning.html' | relativize_url }}#streaming-worker-registration)
+(default since Alluxio 2.7).
 You may use this command to simulate the pressure when the workers start at once at your scale.
 
-Note that Alluxio 2.7 introduced the [register lease]({{ '/en/operation/Scalability-Tuning.html' 
-| relativize_url }}#streaming-worker-registration)
+Note that Alluxio 2.7 introduced the [register lease]({{ '/en/operation/Scalability-Tuning.html' | relativize_url }}#worker-register-lease)
 for the master to perform registration flow control. If you enable that, the same flow control
 will be effective in this test too. 
 
