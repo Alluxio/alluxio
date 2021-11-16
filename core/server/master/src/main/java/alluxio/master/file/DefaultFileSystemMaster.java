@@ -935,7 +935,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
       try {
         fileInfo.setFileBlockInfos(getFileBlockInfoListInternal(inodePath));
       } catch (InvalidPathException e) {
-        throw new FileDoesNotExistException(e.getMessage(), e);
+        throw new FileDoesNotExistException(e.toString(), e);
       }
     }
     // Rehydrate missing block-infos for persisted files.
@@ -965,7 +965,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
     try {
       resolution = mMountTable.resolve(uri);
     } catch (InvalidPathException e) {
-      throw new FileDoesNotExistException(e.getMessage(), e);
+      throw new FileDoesNotExistException(e.toString(), e);
     }
     AlluxioURI resolvedUri = resolution.getUri();
     fileInfo.setUfsPath(resolvedUri.toString());
@@ -1084,7 +1084,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
             try {
               resolution = mMountTable.resolve(path);
             } catch (InvalidPathException e) {
-              throw new FileDoesNotExistException(e.getMessage(), e);
+              throw new FileDoesNotExistException(e.toString(), e);
             }
             listStatusInternal(context, rpcContext, inodePath, auditContext,
                 descendantTypeForListStatus, resultStream, 0,
@@ -1766,7 +1766,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
                   mMountTable.checkUnderWritableMountPoint(childPath.getUri());
                 }
               } catch (AccessControlException e) {
-                failedChildren.add(e.getMessage());
+                failedChildren.add(e.toString());
               }
             }
             if (failedChildren.size() > 0) {
@@ -1882,7 +1882,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
                 // In case ufs is not writable, we will still attempt to delete other entries
                 // if any as they may be from a different mount point
                 LOG.warn("Failed to delete {}: {}", alluxioUriToDelete, e.toString());
-                failureReason = e.getMessage();
+                failureReason = e.toString();
               }
             }
           }
@@ -4589,7 +4589,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
               UnderFileSystem ufs = ufsResource.get();
               return ufs.getSpace(ufsDataFolder, UnderFileSystem.SpaceType.SPACE_TOTAL);
             } catch (IOException e) {
-              LOG.error(e.getMessage(), e);
+              LOG.error(e.toString(), e);
               return Stream.empty();
             }
           });
@@ -4601,7 +4601,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
               UnderFileSystem ufs = ufsResource.get();
               return ufs.getSpace(ufsDataFolder, UnderFileSystem.SpaceType.SPACE_USED);
             } catch (IOException e) {
-              LOG.error(e.getMessage(), e);
+              LOG.error(e.toString(), e);
               return Stream.empty();
             }
           });
@@ -4614,7 +4614,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
               UnderFileSystem ufs = ufsResource.get();
               ret = ufs.getSpace(ufsDataFolder, UnderFileSystem.SpaceType.SPACE_FREE);
             } catch (IOException e) {
-              LOG.error(e.getMessage(), e);
+              LOG.error(e.toString(), e);
             }
             return ret;
           });

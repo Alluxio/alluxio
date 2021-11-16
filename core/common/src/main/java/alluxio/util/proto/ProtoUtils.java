@@ -83,7 +83,7 @@ public final class ProtoUtils {
     } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException ee) {
       throw new RuntimeException(ee);
     }
-    return e.getMessage().equals(truncatedMessage);
+    return e.toString().equals(truncatedMessage);
   }
 
   /**

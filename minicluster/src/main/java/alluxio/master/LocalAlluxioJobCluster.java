@@ -168,7 +168,7 @@ public final class LocalAlluxioJobCluster {
         try {
           mMaster.start();
         } catch (Exception e) {
-          throw new RuntimeException(e + " \n Start Master Error \n" + e.getMessage(), e);
+          throw new RuntimeException(e + " \n Start Master Error \n" + e.toString(), e);
         }
       }
     };
@@ -190,7 +190,7 @@ public final class LocalAlluxioJobCluster {
         try {
           mWorker.start();
         } catch (Exception e) {
-          throw new RuntimeException(e + " \n Start Worker Error \n" + e.getMessage(), e);
+          throw new RuntimeException(e + " \n Start Worker Error \n" + e.toString(), e);
         }
       }
     };

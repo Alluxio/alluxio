@@ -126,7 +126,7 @@ public class WorkerHeartbeatBench extends RpcBench<BlockMasterBenchParameters> {
         result.addPoint(p);
       } catch (Exception e) {
         LOG.error("Failed to run blockHeartbeat {}", i, e);
-        result.addError(e.getMessage());
+        result.addError(e.toString());
         // Keep trying even when an exception is met
       }
     }

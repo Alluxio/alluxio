@@ -65,7 +65,7 @@ public final class LogUtils {
           org.apache.log4j.Logger log4jLogger = (org.apache.log4j.Logger) field.get(logger);
           process(log4jLogger, level, result);
         } catch (NoSuchFieldException | IllegalAccessException e) {
-          result.setMessage(e.getMessage());
+          result.setMessage(e.toString());
         }
       } else {
         result.setMessage("Sorry, " + log.getClass() + " not supported.");

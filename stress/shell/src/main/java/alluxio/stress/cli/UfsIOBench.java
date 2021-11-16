@@ -220,7 +220,7 @@ public class UfsIOBench extends Benchmark<IOTaskResult> {
               inStream.close();
             } catch (IOException e) {
               LOG.warn("Failed to close read stream {}", filePath, e);
-              result.addError(e.getMessage());
+              result.addError(e.toString());
             }
           }
         }
@@ -304,14 +304,14 @@ public class UfsIOBench extends Benchmark<IOTaskResult> {
           LOG.debug("Write task finished {}", p);
         } catch (Exception e) {
           LOG.error("Failed to write to UFS: ", e);
-          result.addError(e.getMessage());
+          result.addError(e.toString());
         } finally {
           if (outStream != null) {
             try {
               outStream.close();
             } catch (IOException e) {
               LOG.warn("Failed to close stream to UFS: ", e);
-              result.addError(e.getMessage());
+              result.addError(e.toString());
             }
           }
         }

@@ -190,7 +190,7 @@ public class RegisterWorkerBench extends RpcBench<BlockMasterBenchParameters> {
       LOG.debug("Iter {} took {}ns", i, p.mDurationMs);
     } catch (Exception e) {
       LOG.error("Failed to run iter {}", i, e);
-      result.addError(e.getMessage());
+      result.addError(e.toString());
     }
   }
 

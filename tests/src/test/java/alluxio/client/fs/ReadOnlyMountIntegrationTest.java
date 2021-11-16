@@ -101,7 +101,7 @@ public class ReadOnlyMountIntegrationTest extends BaseIntegrationTest {
       mFileSystem.createFile(uri, writeBoth).close();
       Assert.fail("createFile should not succeed under a readonly mount.");
     } catch (AccessControlException e) {
-      Assert.assertThat(e.getMessage(),
+      Assert.assertThat(e.toString(),
           containsString(ExceptionMessage.MOUNT_READONLY.getMessage(uri, MOUNT_PATH)));
     }
 
@@ -110,7 +110,7 @@ public class ReadOnlyMountIntegrationTest extends BaseIntegrationTest {
       mFileSystem.createFile(uri, writeBoth).close();
       Assert.fail("createFile should not succeed under a readonly mount.");
     } catch (AccessControlException e) {
-      Assert.assertThat(e.getMessage(),
+      Assert.assertThat(e.toString(),
           containsString(ExceptionMessage.MOUNT_READONLY.getMessage(uri, MOUNT_PATH)));
     }
   }
@@ -122,7 +122,7 @@ public class ReadOnlyMountIntegrationTest extends BaseIntegrationTest {
       mFileSystem.createDirectory(uri);
       Assert.fail("createDirectory should not succeed under a readonly mount.");
     } catch (AccessControlException e) {
-      Assert.assertThat(e.getMessage(),
+      Assert.assertThat(e.toString(),
           containsString(ExceptionMessage.MOUNT_READONLY.getMessage(uri, MOUNT_PATH)));
     }
 
@@ -131,7 +131,7 @@ public class ReadOnlyMountIntegrationTest extends BaseIntegrationTest {
       mFileSystem.createDirectory(uri);
       Assert.fail("createDirectory should not succeed under a readonly mount.");
     } catch (AccessControlException e) {
-      Assert.assertThat(e.getMessage(),
+      Assert.assertThat(e.toString(),
           containsString(ExceptionMessage.MOUNT_READONLY.getMessage(uri, MOUNT_PATH)));
     }
   }
@@ -143,7 +143,7 @@ public class ReadOnlyMountIntegrationTest extends BaseIntegrationTest {
       mFileSystem.delete(fileUri);
       Assert.fail("deleteFile should not succeed under a readonly mount.");
     } catch (AccessControlException e) {
-      Assert.assertThat(e.getMessage(),
+      Assert.assertThat(e.toString(),
           containsString(ExceptionMessage.MOUNT_READONLY.getMessage(fileUri, MOUNT_PATH)));
     }
     Assert.assertTrue(mFileSystem.exists(fileUri));
@@ -154,7 +154,7 @@ public class ReadOnlyMountIntegrationTest extends BaseIntegrationTest {
       mFileSystem.delete(fileUri);
       Assert.fail("deleteFile should not succeed under a readonly mount.");
     } catch (AccessControlException e) {
-      Assert.assertThat(e.getMessage(),
+      Assert.assertThat(e.toString(),
           containsString(ExceptionMessage.MOUNT_READONLY.getMessage(fileUri, MOUNT_PATH)));
     }
     Assert.assertTrue(mFileSystem.exists(fileUri));
@@ -178,7 +178,7 @@ public class ReadOnlyMountIntegrationTest extends BaseIntegrationTest {
       mFileSystem.rename(srcUri, dstUri);
       Assert.fail("rename should not succeed under a readonly mount.");
     } catch (AccessControlException e) {
-      Assert.assertThat(e.getMessage(),
+      Assert.assertThat(e.toString(),
           containsString(ExceptionMessage.MOUNT_READONLY.getMessage(srcUri, MOUNT_PATH)));
     }
 
@@ -188,7 +188,7 @@ public class ReadOnlyMountIntegrationTest extends BaseIntegrationTest {
       mFileSystem.rename(srcUri, dstUri);
       Assert.fail("rename should not succeed under a readonly mount.");
     } catch (AccessControlException e) {
-      Assert.assertThat(e.getMessage(),
+      Assert.assertThat(e.toString(),
           containsString(ExceptionMessage.MOUNT_READONLY.getMessage(srcUri, MOUNT_PATH)));
     }
   }
@@ -201,7 +201,7 @@ public class ReadOnlyMountIntegrationTest extends BaseIntegrationTest {
       mFileSystem.rename(srcUri, dstUri);
       Assert.fail("rename should not succeed under a readonly mount.");
     } catch (AccessControlException e) {
-      Assert.assertThat(e.getMessage(),
+      Assert.assertThat(e.toString(),
           containsString(ExceptionMessage.MOUNT_READONLY.getMessage(dstUri, MOUNT_PATH)));
     }
 
@@ -210,7 +210,7 @@ public class ReadOnlyMountIntegrationTest extends BaseIntegrationTest {
       mFileSystem.rename(srcUri, dstUri);
       Assert.fail("rename should not succeed under a readonly mount.");
     } catch (AccessControlException e) {
-      Assert.assertThat(e.getMessage(),
+      Assert.assertThat(e.toString(),
           containsString(ExceptionMessage.MOUNT_READONLY.getMessage(dstUri, MOUNT_PATH)));
     }
   }
@@ -223,7 +223,7 @@ public class ReadOnlyMountIntegrationTest extends BaseIntegrationTest {
       mFileSystem.rename(srcUri, dstUri);
       Assert.fail("rename should not succeed under a readonly mount.");
     } catch (AccessControlException e) {
-      Assert.assertThat(e.getMessage(),
+      Assert.assertThat(e.toString(),
           containsString(ExceptionMessage.MOUNT_READONLY.getMessage(srcUri, MOUNT_PATH)));
     }
 
@@ -232,7 +232,7 @@ public class ReadOnlyMountIntegrationTest extends BaseIntegrationTest {
       mFileSystem.rename(srcUri, dstUri);
       Assert.fail("rename should not succeed under a readonly mount.");
     } catch (AccessControlException e) {
-      Assert.assertThat(e.getMessage(),
+      Assert.assertThat(e.toString(),
           containsString(ExceptionMessage.MOUNT_READONLY.getMessage(srcUri, MOUNT_PATH)));
     }
   }
@@ -245,7 +245,7 @@ public class ReadOnlyMountIntegrationTest extends BaseIntegrationTest {
       mFileSystem.rename(srcUri, dstUri);
       Assert.fail("renameDirectory should not succeed under a readonly mount.");
     } catch (AccessControlException e) {
-      Assert.assertThat(e.getMessage(),
+      Assert.assertThat(e.toString(),
           containsString(ExceptionMessage.MOUNT_READONLY.getMessage(srcUri, MOUNT_PATH)));
     }
   }
@@ -259,7 +259,7 @@ public class ReadOnlyMountIntegrationTest extends BaseIntegrationTest {
       Assert.fail("File should not exist before loading metadata.");
     } catch (FileDoesNotExistException e) {
       Assert
-          .assertEquals(e.getMessage(), ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(FILE_PATH));
+          .assertEquals(e.toString(), ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(FILE_PATH));
     }
     Assert.assertNotNull(mFileSystem.getStatus(fileUri));
 
@@ -269,7 +269,7 @@ public class ReadOnlyMountIntegrationTest extends BaseIntegrationTest {
           .setLoadMetadataType(LoadMetadataPType.NEVER).build());
       Assert.fail("File should not exist before loading metadata.");
     } catch (FileDoesNotExistException e) {
-      Assert.assertEquals(e.getMessage(),
+      Assert.assertEquals(e.toString(),
           ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(SUB_FILE_PATH));
     }
     Assert.assertNotNull(mFileSystem.getStatus(fileUri));
@@ -307,7 +307,7 @@ public class ReadOnlyMountIntegrationTest extends BaseIntegrationTest {
           SetAttributePOptions.newBuilder().setMode(new Mode((short) 0555).toProto()).build());
       Assert.fail("chomd should not succeed under a readonly mount.");
     } catch (AccessControlException e) {
-      Assert.assertThat(e.getMessage(),
+      Assert.assertThat(e.toString(),
           containsString(ExceptionMessage.MOUNT_READONLY.getMessage(uri, MOUNT_PATH)));
     }
   }
@@ -320,7 +320,7 @@ public class ReadOnlyMountIntegrationTest extends BaseIntegrationTest {
           SetAttributePOptions.newBuilder().setGroup("foo").build());
       Assert.fail("chgrp should not succeed under a readonly mount.");
     } catch (AccessControlException e) {
-      Assert.assertThat(e.getMessage(),
+      Assert.assertThat(e.toString(),
           containsString(ExceptionMessage.MOUNT_READONLY.getMessage(uri, MOUNT_PATH)));
     }
   }
@@ -333,7 +333,7 @@ public class ReadOnlyMountIntegrationTest extends BaseIntegrationTest {
           SetAttributePOptions.newBuilder().setOwner("foo").build());
       Assert.fail("chown should not succeed under a readonly mount.");
     } catch (AccessControlException e) {
-      Assert.assertThat(e.getMessage(),
+      Assert.assertThat(e.toString(),
           containsString(ExceptionMessage.MOUNT_READONLY.getMessage(uri, MOUNT_PATH)));
     }
   }

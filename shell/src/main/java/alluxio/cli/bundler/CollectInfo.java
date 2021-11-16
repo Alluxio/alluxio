@@ -138,7 +138,7 @@ public class CollectInfo extends AbstractShell {
         }
       } catch (IllegalAccessException e) {
         LOG.warn("Failed to load OPTIONS from class {}: {}",
-                cls.getCanonicalName(), e.getMessage());
+                cls.getCanonicalName(), e.toString());
       }
     }
     return options;
@@ -497,7 +497,7 @@ public class CollectInfo extends AbstractShell {
       results = collectAllFutures(futureList).get();
       System.out.format("Results collected from %d hosts%n", results.size());
     } catch (InterruptedException | ExecutionException e) {
-      System.err.format("Failed to collect the results. Error is %s%n", e.getMessage());
+      System.err.format("Failed to collect the results. Error is %s%n", e.toString());
       LOG.error("Error: %s", e);
       return Collections.EMPTY_LIST;
     }

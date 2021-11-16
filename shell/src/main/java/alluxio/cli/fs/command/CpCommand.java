@@ -279,7 +279,7 @@ public final class CpCommand extends AbstractFileSystemCommand {
     }
 
     private String messageAndCause(Exception e) {
-      return e.getMessage() + ": " + e.getCause().getMessage();
+      return e.toString() + ": " + e.getCause().getMessage();
     }
 
     private String stacktrace(Exception e) {
@@ -455,7 +455,7 @@ public final class CpCommand extends AbstractFileSystemCommand {
         copy(srcPath, new AlluxioURI(dstPath.getScheme(), dstPath.getAuthority(),
             PathUtils.concatPath(dstPath.getPath(), srcPath.getName())), recursive);
       } catch (AlluxioException | IOException e) {
-        errorMessages.add(e.getMessage());
+        errorMessages.add(e.toString());
       }
     }
     if (errorMessages.size() != 0) {
@@ -521,7 +521,7 @@ public final class CpCommand extends AbstractFileSystemCommand {
               new AlluxioURI(dstPath.getScheme(), dstPath.getAuthority(),
                   PathUtils.concatPath(dstPath.getPath(), status.getName())), recursive);
         } catch (IOException e) {
-          errorMessages.add(e.getMessage());
+          errorMessages.add(e.toString());
         }
       }
 
@@ -697,7 +697,7 @@ public final class CpCommand extends AbstractFileSystemCommand {
         copyToLocal(srcPath,
             new AlluxioURI(dstPath.getScheme(), dstPath.getAuthority(), dstSubFile.getPath()));
       } catch (IOException e) {
-        errorMessages.add(e.getMessage());
+        errorMessages.add(e.toString());
       }
     }
     if (errorMessages.size() != 0) {
@@ -729,7 +729,7 @@ public final class CpCommand extends AbstractFileSystemCommand {
       try {
         statuses = mFileSystem.listStatus(srcPath);
       } catch (AlluxioException e) {
-        throw new IOException(e.getMessage());
+        throw new IOException(e.toString());
       }
 
       List<String> errorMessages = new ArrayList<>();
@@ -740,7 +740,7 @@ public final class CpCommand extends AbstractFileSystemCommand {
               new AlluxioURI(srcPath.getScheme(), srcPath.getAuthority(), status.getPath()),
               new AlluxioURI(dstPath.getScheme(), dstPath.getAuthority(), subDstFile.getPath()));
         } catch (IOException e) {
-          errorMessages.add(e.getMessage());
+          errorMessages.add(e.toString());
         }
       }
 

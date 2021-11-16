@@ -69,7 +69,7 @@ public class SimpleUserState extends BaseUserState {
               new LoginModuleConfiguration(), new AppLoginModule.AppCallbackHandler(username));
       loginContext.login();
     } catch (LoginException e) {
-      throw new UnauthenticatedException("Failed to login: " + e.getMessage(), e);
+      throw new UnauthenticatedException("Failed to login: " + e.toString(), e);
     }
 
     LOG.debug("login subject: {}", mSubject);

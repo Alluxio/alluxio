@@ -573,14 +573,14 @@ public class BaseFileSystem implements FileSystem {
       client.get().connect();
       return fn.call(client.get());
     } catch (NotFoundException e) {
-      throw new FileDoesNotExistException(e.getMessage());
+      throw new FileDoesNotExistException(e.toString());
     } catch (AlreadyExistsException e) {
-      throw new FileAlreadyExistsException(e.getMessage());
+      throw new FileAlreadyExistsException(e.toString());
     } catch (InvalidArgumentException e) {
-      throw new InvalidPathException(e.getMessage());
+      throw new InvalidPathException(e.toString());
     } catch (FailedPreconditionException e) {
       // A little sketchy, but this should be the only case that throws FailedPrecondition.
-      throw new DirectoryNotEmptyException(e.getMessage());
+      throw new DirectoryNotEmptyException(e.toString());
     } catch (UnavailableException e) {
       throw e;
     } catch (UnauthenticatedException e) {

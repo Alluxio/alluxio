@@ -87,7 +87,7 @@ public final class UserLimitValidationTask extends AbstractValidationTask {
       }
     } catch (IOException e) {
       msg.append(String.format("Unable to check user limit for %s: %s. ",
-              getName(), e.getMessage()));
+              getName(), e.toString()));
       msg.append(ValidationUtils.getErrorInfo(e));
       return new ValidationTaskResult(ValidationUtils.State.FAILED, getName(),
               msg.toString(), advice.toString());

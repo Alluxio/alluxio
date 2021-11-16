@@ -270,10 +270,10 @@ public class WorkflowTracker {
       try {
         mJobMaster.run(childJobConfig, childJobId);
       } catch (JobDoesNotExistException | ResourceExhaustedException e) {
-        LOG.warn(e.getMessage());
+        LOG.warn(e.toString());
         final String errorType = ErrorUtils.getErrorType(e);
-        workflowExecution.stop(Status.FAILED, errorType, e.getMessage());
-        stop(jobId, Status.FAILED, errorType, e.getMessage());
+        workflowExecution.stop(Status.FAILED, errorType, e.toString());
+        stop(jobId, Status.FAILED, errorType, e.toString());
       }
     }
   }

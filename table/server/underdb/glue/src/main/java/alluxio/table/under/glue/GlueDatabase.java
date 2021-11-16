@@ -141,7 +141,7 @@ public class GlueDatabase implements UnderDatabase {
     } catch (EntityNotFoundException e) {
       throw new IOException("Cannot find glue database: " + mGlueDbName
           + "Catalog ID: " + mGlueConfiguration.get(Property.CATALOG_ID)
-          + ". " + e.getMessage(), e);
+          + ". " + e.toString(), e);
     }
   }
 
@@ -230,7 +230,7 @@ public class GlueDatabase implements UnderDatabase {
       } while (nextToken != null);
       return tableNames;
     } catch (EntityNotFoundException e) {
-      throw new IOException("Failed to get glue tables: " + e.getMessage()
+      throw new IOException("Failed to get glue tables: " + e.toString()
           + " in Database: " + mGlueDbName
           + "; with Catalog ID: " + mGlueConfiguration.get(Property.CATALOG_ID) + ".", e);
     }
@@ -308,7 +308,7 @@ public class GlueDatabase implements UnderDatabase {
       throw new IOException(
           "Failed to mount table location. tableName: " + tableName
               + " glueUfsLocation: " + glueUfsUri
-              + " AlluxioLocation: " + alluxioUri + " error: " + e.getMessage(), e);
+              + " AlluxioLocation: " + alluxioUri + " error: " + e.toString(), e);
     }
   }
 
@@ -465,12 +465,12 @@ public class GlueDatabase implements UnderDatabase {
       throw new IOException("Failed to get table: " + tableName
           + " in Database: " + mGlueDbName
           + "; Catalog ID: " + mGlueConfiguration.get(Property.CATALOG_ID)
-          + " with validation error: " + e.getMessage(), e);
+          + " with validation error: " + e.toString(), e);
     } catch (GlueEncryptionException e) {
       throw new IOException("Failed to get table: " + tableName
           + " in Database: " + mGlueDbName
           + "; Catalog ID: " + mGlueConfiguration.get(Property.CATALOG_ID)
-          + " error: " + e.getMessage(), e);
+          + " error: " + e.toString(), e);
     }
   }
 
@@ -509,7 +509,7 @@ public class GlueDatabase implements UnderDatabase {
       throw new IOException("Cannot get partition information for table: " + tableName
           + " in Database: " + mGlueDbName
           + "; Catalog ID: " + mGlueConfiguration.get(Property.CATALOG_ID)
-          + ". error: " + e.getMessage(), e);
+          + ". error: " + e.toString(), e);
     }
   }
 

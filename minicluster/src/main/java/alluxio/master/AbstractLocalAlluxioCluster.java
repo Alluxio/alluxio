@@ -119,7 +119,7 @@ public abstract class AbstractLocalAlluxioCluster {
       } catch (Exception e) {
         // Log the exception as the RuntimeException will be caught and handled silently by JUnit
         LOG.error("Start proxy error", e);
-        throw new RuntimeException(e + " \n Start Proxy Error \n" + e.getMessage(), e);
+        throw new RuntimeException(e + " \n Start Proxy Error \n" + e.toString(), e);
       }
     };
 
@@ -148,7 +148,7 @@ public abstract class AbstractLocalAlluxioCluster {
           // Log the exception as the RuntimeException will be caught and handled silently by
           // JUnit
           LOG.error("Start worker error", e);
-          throw new RuntimeException(e + " \n Start Worker Error \n" + e.getMessage(), e);
+          throw new RuntimeException(e + " \n Start Worker Error \n" + e.toString(), e);
         }
       };
       Thread thread = new Thread(runWorker);

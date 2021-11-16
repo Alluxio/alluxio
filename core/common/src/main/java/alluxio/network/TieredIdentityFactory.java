@@ -129,7 +129,7 @@ public final class TieredIdentityFactory {
       return fromString(identityString, conf);
     } catch (IOException e) {
       throw new RuntimeException(
-          String.format("Failed to parse output of running %s: %s", script, e.getMessage()), e);
+          String.format("Failed to parse output of running %s: %s", script, e.toString()), e);
     }
   }
 

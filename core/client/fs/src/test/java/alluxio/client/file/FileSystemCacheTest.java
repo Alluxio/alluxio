@@ -123,7 +123,7 @@ public class FileSystemCacheTest {
       assertTrue(fs1.isClosed());
       fs1.listStatus(new AlluxioURI("/"));
     });
-    assertTrue(e.getMessage()
+    assertTrue(e.toString()
         .contains(FileSystemCache.InstanceCachingFileSystem.CLOSED_FS_ERROR_MESSAGE));
   }
 

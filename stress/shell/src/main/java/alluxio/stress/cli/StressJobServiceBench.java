@@ -175,7 +175,7 @@ public class StressJobServiceBench extends Benchmark<JobServiceBenchTaskResult> 
       try {
         mResult.merge(threadResult);
       } catch (Exception e) {
-        mResult.addErrorMessage(e.getMessage());
+        mResult.addErrorMessage(e.toString());
       }
     }
 
@@ -225,7 +225,7 @@ public class StressJobServiceBench extends Benchmark<JobServiceBenchTaskResult> 
       try {
         runInternal();
       } catch (Exception e) {
-        mResult.addErrorMessage(e.getMessage());
+        mResult.addErrorMessage(e.toString());
       }
       // Update local thread result
       mResult.setEndMs(CommonUtils.getCurrentMs());

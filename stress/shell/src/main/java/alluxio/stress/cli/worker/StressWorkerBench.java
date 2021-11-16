@@ -195,7 +195,7 @@ public class StressWorkerBench extends Benchmark<WorkerBenchTaskResult> {
       try {
         mResult.merge(threadResult);
       } catch (Exception e) {
-        mResult.addErrorMessage(e.getMessage());
+        mResult.addErrorMessage(e.toString());
       }
     }
 
@@ -228,7 +228,7 @@ public class StressWorkerBench extends Benchmark<WorkerBenchTaskResult> {
         runInternal();
       } catch (Exception e) {
         LOG.error(Thread.currentThread().getName() + ": failed", e);
-        mResult.addErrorMessage(e.getMessage());
+        mResult.addErrorMessage(e.toString());
       } finally {
         closeInStream();
       }
@@ -287,7 +287,7 @@ public class StressWorkerBench extends Benchmark<WorkerBenchTaskResult> {
           mInStream.close();
         }
       } catch (IOException e) {
-        mResult.addErrorMessage(e.getMessage());
+        mResult.addErrorMessage(e.toString());
       } finally {
         mInStream = null;
       }

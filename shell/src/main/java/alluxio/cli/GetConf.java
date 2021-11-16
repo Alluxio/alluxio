@@ -165,7 +165,7 @@ public final class GetConf {
     try {
       cmd = parser.parse(OPTIONS, args, true /* stopAtNonOption */);
     } catch (ParseException e) {
-      printHelp("Unable to parse input args: " + e.getMessage());
+      printHelp("Unable to parse input args: " + e.toString());
       return 1;
     }
     args = cmd.getArgs();
@@ -178,7 +178,7 @@ public final class GetConf {
             .setIgnorePathConf(true).build()).getClusterConf().forEach(
               prop -> confMap.put(prop.getName(), prop.toProto()));
       } catch (IOException e) {
-        System.out.println("Unable to get master-side configuration: " + e.getMessage());
+        System.out.println("Unable to get master-side configuration: " + e.toString());
         return -1;
       }
     } else {

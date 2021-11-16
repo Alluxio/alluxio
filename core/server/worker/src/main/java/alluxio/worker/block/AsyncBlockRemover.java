@@ -147,7 +147,7 @@ public class AsyncBlockRemover {
         } catch (Exception e) {
           LOG.warn("Failed to remove block {} instructed by master. This is best-effort and "
               + "will be tried later. threadName {}, error {}", blockToBeRemoved,
-              threadName, e.getMessage());
+              threadName, e.toString());
         } finally {
           if (blockToBeRemoved != null) {
             mRemovingBlocks.remove(blockToBeRemoved);

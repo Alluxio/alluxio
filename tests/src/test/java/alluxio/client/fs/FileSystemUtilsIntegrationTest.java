@@ -89,7 +89,7 @@ public class FileSystemUtilsIntegrationTest extends BaseIntegrationTest {
           completed = sFileSystem.getStatus(uri).isCompleted();
           assertTrue(completed);
         } catch (Exception e) {
-          Assert.fail(e.getMessage());
+          Assert.fail(e.toString());
         }
       }
     };
@@ -104,7 +104,7 @@ public class FileSystemUtilsIntegrationTest extends BaseIntegrationTest {
           assertTrue(completed);
         } catch (Exception e) {
           e.printStackTrace();
-          Assert.fail(e.getMessage());
+          Assert.fail(e.toString());
         }
       }
     };
@@ -141,7 +141,7 @@ public class FileSystemUtilsIntegrationTest extends BaseIntegrationTest {
           completed = sFileSystem.getStatus(uri).isCompleted();
           assertTrue(completed);
         } catch (Exception e) {
-          Assert.fail(e.getMessage());
+          Assert.fail(e.toString());
         }
       }
     };
@@ -166,7 +166,7 @@ public class FileSystemUtilsIntegrationTest extends BaseIntegrationTest {
           }
         } catch (Exception e) {
           e.printStackTrace();
-          Assert.fail(e.getMessage());
+          Assert.fail(e.toString());
         }
       }
     };

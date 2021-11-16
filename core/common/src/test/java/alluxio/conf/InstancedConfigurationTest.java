@@ -962,7 +962,7 @@ public class InstancedConfigurationTest {
       mConfiguration.validate();
       fail("Should have thrown a runtime exception when validating with a removed key");
     } catch (RuntimeException e) {
-      assertTrue(e.getMessage().contains(
+      assertTrue(e.toString().contains(
           String.format("%s is no longer a valid property",
               RemovedKey.Name.TEST_REMOVED_KEY)));
     }
@@ -972,7 +972,7 @@ public class InstancedConfigurationTest {
       mConfiguration.validate();
       fail("Should have thrown a runtime exception when validating with a removed key");
     } catch (RuntimeException e) {
-      assertTrue(e.getMessage().contains(
+      assertTrue(e.toString().contains(
           String.format("%s is no longer a valid property",
               RemovedKey.Name.TEST_REMOVED_KEY)));
     }
@@ -1002,7 +1002,7 @@ public class InstancedConfigurationTest {
         mConfiguration.validate();
         fail("Should have thrown a runtime exception when using an unknown tier alias");
       } catch (RuntimeException e) {
-        assertTrue(e.getMessage().contains(
+        assertTrue(e.toString().contains(
             String.format("Alias \"%s\" on tier 0 on worker (configured by %s) is not found "
                 + "in global tiered", alias, Template.WORKER_TIERED_STORE_LEVEL_ALIAS.format(0))
         ));
@@ -1019,7 +1019,7 @@ public class InstancedConfigurationTest {
       mConfiguration.validate();
       fail("Should have thrown a runtime exception when setting an unknown tier level");
     } catch (RuntimeException e) {
-      assertTrue(e.getMessage().contains(
+      assertTrue(e.toString().contains(
           String.format("%s tiers on worker (configured by %s), larger than global %s tiers "
                   + "(configured by %s) ", 2, PropertyKey.WORKER_TIERED_STORE_LEVELS, 1,
               PropertyKey.MASTER_TIERED_STORE_GLOBAL_LEVELS)));

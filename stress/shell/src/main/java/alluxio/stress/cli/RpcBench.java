@@ -86,7 +86,7 @@ public abstract class RpcBench<T extends RpcBenchParameters> extends Benchmark<R
             return threadResult;
           } catch (Exception e) {
             LOG.error("Failed to execute RPC", e);
-            threadResult.addError(e.getMessage());
+            threadResult.addError(e.toString());
             return threadResult;
           }
         }, getPool());
@@ -108,7 +108,7 @@ public abstract class RpcBench<T extends RpcBenchParameters> extends Benchmark<R
       RpcTaskResult result = new RpcTaskResult();
       result.setBaseParameters(mBaseParameters);
       result.setParameters(rpcBenchParameters);
-      result.addError(e.getMessage());
+      result.addError(e.toString());
       return result;
     }
   }

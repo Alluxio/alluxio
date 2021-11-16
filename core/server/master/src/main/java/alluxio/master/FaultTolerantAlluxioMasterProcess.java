@@ -90,7 +90,7 @@ final class FaultTolerantAlluxioMasterProcess extends AlluxioMasterProcess {
       LOG.info("Starting leader selector.");
       mLeaderSelector.start(getRpcAddress());
     } catch (IOException e) {
-      LOG.error(e.getMessage(), e);
+      LOG.error(e.toString(), e);
       throw new RuntimeException(e);
     }
 

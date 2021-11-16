@@ -315,7 +315,7 @@ public class AlluxioFileOutStream extends FileOutStream {
     LOG.warn("Failed to write into AlluxioStore, canceling write attempt.", e);
     if (!mUnderStorageType.isSyncPersist()) {
       mCanceled = true;
-      throw new IOException(ExceptionMessage.FAILED_CACHE.getMessage(e.getMessage()), e);
+      throw new IOException(ExceptionMessage.FAILED_CACHE.getMessage(e.toString()), e);
     }
 
     if (mCurrentBlockOutStream != null) {

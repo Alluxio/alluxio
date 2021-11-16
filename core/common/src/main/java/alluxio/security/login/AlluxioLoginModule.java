@@ -145,7 +145,7 @@ public final class AlluxioLoginModule implements LoginModule {
           (Class<? extends Principal>) loader.loadClass(className);
       clazz = tmpClazz;
     } catch (ClassNotFoundException e) {
-      throw new LoginException("Unable to find JAAS principal class:" + e.getMessage());
+      throw new LoginException("Unable to find JAAS principal class:" + e.toString());
     }
 
     // find corresponding user based on the principal

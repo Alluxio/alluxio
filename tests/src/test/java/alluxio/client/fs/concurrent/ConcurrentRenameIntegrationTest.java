@@ -508,7 +508,7 @@ public class ConcurrentRenameIntegrationTest extends BaseIntegrationTest {
             mFileSystem.rename(file, dst);
             mFileSystem.delete(dst);
           } catch (Exception e) {
-            Assert.fail(e.getMessage());
+            Assert.fail(e.toString());
           }
         }
       });
@@ -526,7 +526,7 @@ public class ConcurrentRenameIntegrationTest extends BaseIntegrationTest {
             // AlluxioException - if the file is renamed while the thread waits for the lock.
             // FileDoesNotExistException - if the file is fully renamed before the getFileInfo call.
           } catch (Exception e) {
-            Assert.fail(e.getMessage());
+            Assert.fail(e.toString());
           }
         }
       });

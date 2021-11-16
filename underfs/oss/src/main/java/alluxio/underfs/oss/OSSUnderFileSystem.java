@@ -285,7 +285,7 @@ public class OSSUnderFileSystem extends ObjectUnderFileSystem {
       return new OSSInputStream(mBucketName, key, mClient, options.getOffset(), retryPolicy,
           mUfsConf.getBytes(PropertyKey.UNDERFS_OBJECT_STORE_MULTI_RANGE_CHUNK_SIZE));
     } catch (ServiceException e) {
-      throw new IOException(e.getMessage());
+      throw new IOException(e.toString());
     }
   }
 }

@@ -272,7 +272,7 @@ public final class ValidateEnv {
       process.waitFor();
       return process.exitValue() == 0;
     } catch (IOException e) {
-      System.err.format("Unable to validate on node %s: %s.%n", node, e.getMessage());
+      System.err.format("Unable to validate on node %s: %s.%n", node, e.toString());
       return false;
     }
   }
@@ -434,7 +434,7 @@ public final class ValidateEnv {
     try {
       cmd = parseArgsAndOptions(OPTIONS, args);
     } catch (InvalidArgumentException e) {
-      System.err.format("Invalid argument: %s.%n", e.getMessage());
+      System.err.format("Invalid argument: %s.%n", e.toString());
       return -1;
     }
     if (command.equals("list")) {

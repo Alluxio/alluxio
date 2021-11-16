@@ -60,7 +60,7 @@ public final class UfsDirectoryValidationTask extends AbstractValidationTask {
               msg.toString(), advice.toString());
     } catch (Exception e) {
       msg.append(String.format("Unable to access under file system path %s: %s. ", mPath,
-              e.getMessage()));
+              e.toString()));
       msg.append(ValidationUtils.getErrorInfo(e));
       advice.append(String.format("Please verify your path %s is correct.%n", mPath));
       return new ValidationTaskResult(ValidationUtils.State.FAILED, getName(),

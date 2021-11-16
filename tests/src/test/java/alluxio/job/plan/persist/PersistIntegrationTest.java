@@ -176,7 +176,7 @@ public final class PersistIntegrationTest extends JobIntegrationTest {
     } catch (Exception e) {
       // expected
       Assert.assertTrue("Failure expected to be about incomplete files",
-          e.getMessage().toLowerCase().contains("incomplete"));
+          e.toString().toLowerCase().contains("incomplete"));
     }
   }
 

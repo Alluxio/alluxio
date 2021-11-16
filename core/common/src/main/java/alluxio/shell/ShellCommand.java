@@ -90,7 +90,7 @@ public class ShellCommand {
         }
       } catch (IOException e) {
         LOG.warn(String.format("Error while closing the input stream of process %s: %s",
-                process, e.getMessage()));
+                process, e.toString()));
       }
       process.destroy();
     }
@@ -143,7 +143,7 @@ public class ShellCommand {
       throw new IOException(e);
     } catch (Exception e) {
       return new CommandReturn(1, String.format("Command %s failed, exception is %s",
-              Arrays.toString(mCommand), e.getMessage()));
+              Arrays.toString(mCommand), e.toString()));
     } finally {
       if (inReader != null) {
         inReader.close();

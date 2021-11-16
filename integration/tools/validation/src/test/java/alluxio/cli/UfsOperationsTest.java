@@ -34,7 +34,7 @@ public class UfsOperationsTest {
       UnderFileSystemContractTest
           .main(new String[] {"--path", "file://" + ufsPath.getAbsolutePath()});
     } catch (Throwable e) {
-      fail("UFS contract failed: " + e.getMessage());
+      fail("UFS contract failed: " + e.toString());
     }
   }
 }

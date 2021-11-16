@@ -81,7 +81,7 @@ public final class DefaultHiveClientPool extends AbstractHiveClientPool {
       // HiveMetaStoreClient throws a NPE if the uri is not a uri for hive metastore
       throw new IOException(String
           .format("Failed to create client to hive metastore: %s. error: %s", mConnectionUri,
-              e.getMessage()), e);
+              e.toString()), e);
     } finally {
       Thread.currentThread().setContextClassLoader(currentClassLoader);
     }

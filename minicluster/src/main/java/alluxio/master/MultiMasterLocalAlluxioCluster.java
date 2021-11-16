@@ -164,7 +164,7 @@ public final class MultiMasterLocalAlluxioCluster extends AbstractLocalAlluxioCl
           mMasters.get(k).stop();
           LOG.info("master {} stopped.", k);
         } catch (Exception e) {
-          LOG.error(e.getMessage(), e);
+          LOG.error(e.toString(), e);
           return false;
         }
         return true;
@@ -186,7 +186,7 @@ public final class MultiMasterLocalAlluxioCluster extends AbstractLocalAlluxioCl
           mMasters.get(k).stop();
           LOG.info("master {} stopped.", k);
         } catch (Exception e) {
-          LOG.error(e.getMessage(), e);
+          LOG.error(e.toString(), e);
           return false;
         }
         return true;

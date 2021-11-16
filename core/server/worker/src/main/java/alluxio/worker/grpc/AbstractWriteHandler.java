@@ -243,7 +243,7 @@ abstract class AbstractWriteHandler<T extends WriteRequestContext<?>> {
       mSemaphore.acquire();
     } catch (InterruptedException e) {
       LOG.warn("write data request {} is interrupted: {}",
-          mContext == null ? "unknown" : mContext.getRequest(), e.getMessage());
+          mContext == null ? "unknown" : mContext.getRequest(), e.toString());
       abort(new Error(AlluxioStatusException.fromThrowable(e), true));
       Thread.currentThread().interrupt();
       return false;

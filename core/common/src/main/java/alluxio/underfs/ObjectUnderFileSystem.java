@@ -305,12 +305,12 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
           LOG.warn(
               "{}: Interrupted while waiting for the result of batch operation. UFS and Alluxio "
                   + "state may be inconsistent. Error: {}",
-              getClass().getName(), e.getMessage());
+              getClass().getName(), e.toString());
         } catch (ExecutionException e) {
           // If operation failed to execute do not add to successfully deleted list
           LOG.warn(
               "{}: A batch operation failed. UFS and Alluxio state may be inconsistent. Error: {}",
-              getClass().getName(), e.getMessage());
+              getClass().getName(), e.toString());
         }
       }
       return result;

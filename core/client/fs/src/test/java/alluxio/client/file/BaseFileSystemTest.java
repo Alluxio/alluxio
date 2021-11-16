@@ -574,7 +574,7 @@ public final class BaseFileSystemTest {
       mFileSystem.createDirectory(uri);
       fail("Should have failed on bad host and port");
     } catch (IllegalArgumentException e) {
-      assertThat(e.getMessage(), containsString("Scheme hdfs:// in AlluxioURI is invalid"));
+      assertThat(e.toString(), containsString("Scheme hdfs:// in AlluxioURI is invalid"));
     }
   }
 
@@ -636,7 +636,7 @@ public final class BaseFileSystemTest {
       useUriWithAuthority(authority);
       fail(failureMessage);
     } catch (IllegalArgumentException e) {
-      assertThat(e.getMessage(), containsString("does not match"));
+      assertThat(e.toString(), containsString("does not match"));
     }
   }
 

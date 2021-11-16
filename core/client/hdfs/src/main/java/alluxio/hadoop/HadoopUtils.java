@@ -88,7 +88,7 @@ public final class HadoopUtils {
     try {
       locs = fs.getLocations();
     } catch (IOException e) {
-      LOG.error(e.getMessage());
+      LOG.error(e.toString());
       locs = new String[] {};
     }
     for (String loc : locs) {

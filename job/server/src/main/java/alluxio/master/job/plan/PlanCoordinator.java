@@ -125,7 +125,7 @@ public final class PlanCoordinator {
     } catch (Exception e) {
       LOG.warn("Failed to select executor. {})", e.toString());
       LOG.info("Exception: ", e);
-      setJobAsFailed(ErrorUtils.getErrorType(e), e.getMessage());
+      setJobAsFailed(ErrorUtils.getErrorType(e), e.toString());
       return;
     }
     if (taskAddressToArgs.isEmpty()) {
@@ -297,7 +297,7 @@ public final class PlanCoordinator {
       } catch (Exception e) {
         LOG.warn("Job error when joining tasks Job Id={} Config={}",
             mPlanInfo.getId(), mPlanInfo.getJobConfig(), e);
-        setJobAsFailed(ErrorUtils.getErrorType(e), e.getMessage());
+        setJobAsFailed(ErrorUtils.getErrorType(e), e.toString());
       }
     }
   }

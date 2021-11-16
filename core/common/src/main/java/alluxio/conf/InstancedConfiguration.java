@@ -144,7 +144,7 @@ public class InstancedConfiguration implements AlluxioConfiguration {
         value = lookup(value);
       } catch (UnresolvablePropertyException e) {
         throw new RuntimeException("Could not resolve key \""
-            + key.getName() + "\": " + e.getMessage(), e);
+            + key.getName() + "\": " + e.toString(), e);
       }
     }
     if (options.shouldUseDisplayValue()) {

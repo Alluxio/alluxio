@@ -74,7 +74,7 @@ public final class MountTableTest {
     } catch (FileAlreadyExistsException e) {
       // Exception expected
       Assert.assertEquals(ExceptionMessage.MOUNT_POINT_ALREADY_EXISTS.getMessage("/mnt/foo"),
-          e.getMessage());
+          e.toString());
     }
 
     try {
@@ -84,7 +84,7 @@ public final class MountTableTest {
     } catch (InvalidPathException e) {
       // Exception expected
       Assert.assertEquals(ExceptionMessage.MOUNT_POINT_PREFIX_OF_ANOTHER
-          .getMessage("hdfs://localhost", "hdfs://localhost"), e.getMessage());
+          .getMessage("hdfs://localhost", "hdfs://localhost"), e.toString());
     }
 
     // Test resolve()
@@ -157,7 +157,7 @@ public final class MountTableTest {
     } catch (InvalidPathException e) {
       // Exception expected
       Assert.assertEquals(ExceptionMessage.MOUNT_POINT_PREFIX_OF_ANOTHER
-          .getMessage("s3a://localhost", "s3a://localhost"), e.getMessage());
+          .getMessage("s3a://localhost", "s3a://localhost"), e.toString());
     }
   }
 
@@ -247,7 +247,7 @@ public final class MountTableTest {
     } catch (FileAlreadyExistsException e) {
       // Exception expected
       Assert.assertEquals(ExceptionMessage.MOUNT_POINT_ALREADY_EXISTS.getMessage("/mnt/foo"),
-          e.getMessage());
+          e.toString());
     }
 
     addMount("alluxio://localhost:1234/mnt/bar/baz", "hdfs://localhost:5678/baz", 5);
@@ -317,7 +317,7 @@ public final class MountTableTest {
     } catch (AccessControlException e) {
       // Exception expected
       Assert.assertEquals(ExceptionMessage.MOUNT_READONLY.getMessage(alluxioUri, mountPath),
-          e.getMessage());
+          e.toString());
     }
 
     try {
@@ -328,7 +328,7 @@ public final class MountTableTest {
     } catch (AccessControlException e) {
       // Exception expected
       Assert.assertEquals(ExceptionMessage.MOUNT_READONLY.getMessage(alluxioUri, mountPath),
-          e.getMessage());
+          e.toString());
     }
   }
 

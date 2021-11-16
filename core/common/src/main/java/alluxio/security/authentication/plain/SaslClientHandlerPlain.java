@@ -88,7 +88,7 @@ public class SaslClientHandlerPlain extends AbstractSaslClientHandler {
           impersonationUser, null, null, new HashMap<String, String>(),
           new PlainSaslClientCallbackHandler(username, password));
     } catch (SaslException e) {
-      throw new UnauthenticatedException(e.getMessage(), e);
+      throw new UnauthenticatedException(e.toString(), e);
     }
   }
 }

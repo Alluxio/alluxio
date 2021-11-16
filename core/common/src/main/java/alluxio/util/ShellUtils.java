@@ -179,7 +179,7 @@ public final class ShellUtils {
       }
       return false;
     } catch (IOException e) {
-      System.err.format("Unable to check Alluxio status: %s.%n", e.getMessage());
+      System.err.format("Unable to check Alluxio status: %s.%n", e.toString());
       return false;
     }
   }

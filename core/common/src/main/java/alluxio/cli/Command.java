@@ -76,7 +76,7 @@ public interface Command extends Closeable {
       cmdline = parser.parse(opts, args);
     } catch (ParseException e) {
       throw new InvalidArgumentException(
-          String.format("Failed to parse args for %s: %s", getCommandName(), e.getMessage()), e);
+          String.format("Failed to parse args for %s: %s", getCommandName(), e.toString()), e);
     }
     validateArgs(cmdline);
     return cmdline;

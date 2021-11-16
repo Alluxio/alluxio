@@ -41,7 +41,7 @@ public final class ChecksumCommandIntegrationTest extends AbstractFileSystemShel
       String expectedMd5 = DigestUtils.md5Hex(data);
       Assert.assertEquals(splitString[1], expectedMd5);
     } catch (Exception e) {
-      Assert.fail("md5cksum failure not expected: " + e.getMessage());
+      Assert.fail("md5cksum failure not expected: " + e.toString());
     }
   }
 
@@ -64,7 +64,7 @@ public final class ChecksumCommandIntegrationTest extends AbstractFileSystemShel
       Assert.assertEquals(splitString[1], expectedMd5);
       Assert.assertEquals(splitString[3], expectedMd5);
     } catch (Exception e) {
-      Assert.fail("md5cksum failure not expected: " + e.getMessage());
+      Assert.fail("md5cksum failure not expected: " + e.toString());
     }
   }
 

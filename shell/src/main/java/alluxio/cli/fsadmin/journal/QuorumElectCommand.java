@@ -98,7 +98,7 @@ public class QuorumElectCommand extends AbstractFsAdminCommand {
       mPrintStream.println(String.format(TRANSFER_SUCCESS, serverAddress));
       success = true;
     } catch (Exception e) {
-      mPrintStream.println(String.format(TRANSFER_FAILED, serverAddress, e.getMessage()));
+      mPrintStream.println(String.format(TRANSFER_FAILED, serverAddress, e.toString()));
     }
     // reset priorities regardless of transfer success
     try {

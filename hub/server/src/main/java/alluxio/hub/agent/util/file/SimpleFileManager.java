@@ -42,7 +42,7 @@ public class SimpleFileManager extends AbstractFileManager {
     try {
       verifyFileName(fileName);
     } catch (AlluxioException e) {
-      throw new InvalidPathException(fileName, e.getMessage());
+      throw new InvalidPathException(fileName, e.toString());
     }
     return PathUtils.concatPath(mRootDir, fileName);
   }

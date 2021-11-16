@@ -402,7 +402,7 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
     } catch (DirectoryNotEmptyException e) {
       Assert.assertEquals(
           ExceptionMessage.DELETE_NONEMPTY_DIRECTORY_NONRECURSIVE.getMessage("testFolder2"),
-          e.getMessage());
+          e.toString());
     }
     Assert.assertEquals(fileId, mFsMaster.getFileId(new AlluxioURI("/testFolder/testFile")));
     Assert.assertEquals(fileId2,
@@ -433,7 +433,7 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
     } catch (DirectoryNotEmptyException e) {
       Assert.assertEquals(
           ExceptionMessage.DELETE_NONEMPTY_DIRECTORY_NONRECURSIVE.getMessage("testFolder"),
-          e.getMessage());
+          e.toString());
     }
     Assert.assertEquals(fileId, mFsMaster.getFileId(new AlluxioURI("/testFolder/testFile")));
   }

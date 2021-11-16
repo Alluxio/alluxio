@@ -290,14 +290,14 @@ public final class AlluxioWorkerRestServiceHandler {
           response.setFileBlocksOnTier(fileBlocksOnTier)
               .setBlockSizeBytes(uiFileInfo.getBlockSizeBytes()).setPath(requestPath);
         } catch (FileDoesNotExistException e) {
-          response.setFatalError("Error: Invalid Path " + e.getMessage());
+          response.setFatalError("Error: Invalid Path " + e.toString());
         } catch (IOException e) {
           response.setInvalidPathError(
-              "Error: File " + requestPath + " is not available " + e.getMessage());
+              "Error: File " + requestPath + " is not available " + e.toString());
         } catch (BlockDoesNotExistException e) {
-          response.setFatalError("Error: block not found. " + e.getMessage());
+          response.setFatalError("Error: block not found. " + e.toString());
         } catch (AlluxioException e) {
-          response.setFatalError("Error: alluxio exception. " + e.getMessage());
+          response.setFatalError("Error: alluxio exception. " + e.toString());
         }
       }
 
@@ -528,7 +528,7 @@ public final class AlluxioWorkerRestServiceHandler {
           response.setFileData(fileData).setViewingOffset(offset);
         } catch (IOException e) {
           response.setInvalidPathError(
-              "Error: File " + logFile + " is not available " + e.getMessage());
+              "Error: File " + logFile + " is not available " + e.toString());
         }
       }
 

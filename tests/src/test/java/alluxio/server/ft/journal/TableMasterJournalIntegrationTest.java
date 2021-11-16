@@ -155,7 +155,7 @@ public class TableMasterJournalIntegrationTest {
       tableMaster.getDatabase(DB_NAME);
       fail();
     } catch (IOException e) {
-      assertEquals("Database " + DB_NAME + " does not exist", e.getMessage());
+      assertEquals("Database " + DB_NAME + " does not exist", e.toString());
     }
     genTable(1, 2, true);
     tableMaster

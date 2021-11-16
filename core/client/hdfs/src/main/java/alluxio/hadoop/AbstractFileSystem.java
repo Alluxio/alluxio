@@ -364,7 +364,7 @@ public abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem
     try {
       fileStatus = mFileSystem.getStatus(uri);
     } catch (FileDoesNotExistException e) {
-      throw new FileNotFoundException(e.getMessage());
+      throw new FileNotFoundException(e.toString());
     } catch (AlluxioException e) {
       throw new IOException(e);
     }

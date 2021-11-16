@@ -276,7 +276,7 @@ LOG.warn("Failed to do something: {}", e);
 // Not recommended: this will print out the stack trace
 LOG.warn("Failed to do something", e);
 // Not recommended: the exception class name is not included
-LOG.warn("Failed to do something", e.getMessage());
+LOG.warn("Failed to do something", e.toString());
 
 ```
 

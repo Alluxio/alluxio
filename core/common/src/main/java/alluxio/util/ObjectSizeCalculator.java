@@ -278,10 +278,10 @@ public class ObjectSizeCalculator {
           mClassInfos.getUnchecked(clazz).visit(obj, this);
         } catch (ExecutionError e) {
           if (!(e.getCause() instanceof NoClassDefFoundError)) {
-            LOG.info("Exception occurred while calculating heap size: " + e.getMessage());
+            LOG.info("Exception occurred while calculating heap size: " + e.toString());
           } else {
             LOG.debug("ClassNotFound Exception occurred while calculating heap size: "
-                + e.getMessage());
+                + e.toString());
           }
         }
       }
@@ -398,7 +398,7 @@ public class ObjectSizeCalculator {
           }
         }
       } catch (UnsupportedOperationException e) {
-        LOG.info(e.getMessage());
+        LOG.info(e.toString());
       }
       for (Object elem : mArray) {
         if (elem != null) {

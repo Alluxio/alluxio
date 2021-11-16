@@ -134,7 +134,7 @@ public class HiveDatabase implements UnderDatabase {
           hiveDb.getDescription(), hiveDb.getParameters());
     } catch (TException  e) {
       throw new IOException("Failed to get hive database " + mHiveDbName
-          + ". " + e.getMessage(), e);
+          + ". " + e.toString(), e);
     }
   }
 
@@ -153,7 +153,7 @@ public class HiveDatabase implements UnderDatabase {
     try (CloseableResource<IMetaStoreClient> client = mClientPool.acquireClientResource()) {
       return client.get().getAllTables(mHiveDbName);
     } catch (TException  e) {
-      throw new IOException("Failed to get hive tables: " + e.getMessage(), e);
+      throw new IOException("Failed to get hive tables: " + e.toString(), e);
     }
   }
 
@@ -219,7 +219,7 @@ public class HiveDatabase implements UnderDatabase {
           "Failed to mount table location. tableName: " + tableName
               + " hiveUfsLocation: " + hiveUfsUri
               + " AlluxioLocation: " + alluxioUri
-              + " error: " + e.getMessage(), e);
+              + " error: " + e.toString(), e);
     }
   }
 
@@ -318,7 +318,7 @@ public class HiveDatabase implements UnderDatabase {
     } catch (NoSuchObjectException e) {
       throw new NotFoundException("Table " + tableName + " does not exist.", e);
     } catch (TException e) {
-      throw new IOException("Failed to get table: " + tableName + " error: " + e.getMessage(), e);
+      throw new IOException("Failed to get table: " + tableName + " error: " + e.toString(), e);
     }
   }
 }

@@ -296,7 +296,7 @@ public final class InodeTreeTest {
       fail("createPath should throw FileAlreadyExistsException");
     } catch (FileAlreadyExistsException e) {
       assertEquals("Not allowed to create directory because path already exists: " + NESTED_URI,
-          e.getMessage());
+          e.toString());
     }
 
     // create a file
@@ -316,7 +316,7 @@ public final class InodeTreeTest {
       fail("createPath should throw FileAlreadyExistsException");
     } catch (FileAlreadyExistsException e) {
       assertEquals("Not allowed to create file because path already exists: " + NESTED_FILE_URI,
-          e.getMessage());
+          e.toString());
     }
   }
 

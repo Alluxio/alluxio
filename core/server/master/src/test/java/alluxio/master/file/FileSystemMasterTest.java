@@ -291,7 +291,7 @@ public final class FileSystemMasterTest {
           DeleteContext.mergeFrom(DeletePOptions.newBuilder().setRecursive(true)));
       fail("Should not have been able to delete the root");
     } catch (InvalidPathException e) {
-      assertEquals(ExceptionMessage.DELETE_ROOT_DIRECTORY.getMessage(), e.getMessage());
+      assertEquals(ExceptionMessage.DELETE_ROOT_DIRECTORY.getMessage(), e.toString());
     }
 
     // delete the file
@@ -352,7 +352,7 @@ public final class FileSystemMasterTest {
     } catch (DirectoryNotEmptyException e) {
       String expectedMessage =
           ExceptionMessage.DELETE_NONEMPTY_DIRECTORY_NONRECURSIVE.getMessage(dirName);
-      assertEquals(expectedMessage, e.getMessage());
+      assertEquals(expectedMessage, e.toString());
     }
 
     // Now delete with recursive set to true.
@@ -454,7 +454,7 @@ public final class FileSystemMasterTest {
     } catch (AccessControlException e) {
       String expectedChildMessage = ExceptionMessage.PERMISSION_DENIED
           .getMessage("user=userA, access=-w-, path=" + NESTED_FILE_URI + ": failed at file");
-      assertTrue(e.getMessage().startsWith(ExceptionMessage.DELETE_FAILED_DIR_CHILDREN
+      assertTrue(e.toString().startsWith(ExceptionMessage.DELETE_FAILED_DIR_CHILDREN
           .getMessage(NESTED_URI, expectedChildMessage)));
     }
     assertNotEquals(IdUtils.INVALID_FILE_ID, mFileSystemMaster.getFileId(NESTED_URI));
@@ -1556,7 +1556,7 @@ public final class FileSystemMasterTest {
       removeAcl(NESTED_URI, maskEntry);
       fail("Expected removing the mask from an extended ACL to fail");
     } catch (IOException e) {
-      assertThat(e.getMessage(), containsString("mask"));
+      assertThat(e.toString(), containsString("mask"));
     }
 
     // Remove the extended ACL
@@ -1582,7 +1582,7 @@ public final class FileSystemMasterTest {
       removeAcl(NESTED_URI, maskEntry);
       fail("Expected removing the mask from an extended ACL to fail");
     } catch (IOException e) {
-      assertThat(e.getMessage(), containsString("mask"));
+      assertThat(e.toString(), containsString("mask"));
     }
 
     // Remove the extended ACL
@@ -2054,7 +2054,7 @@ public final class FileSystemMasterTest {
       mFileSystemMaster.rename(NESTED_FILE_URI, ROOT_URI, RenameContext.defaults());
       fail("Renaming to root should fail.");
     } catch (InvalidPathException e) {
-      assertEquals(ExceptionMessage.RENAME_CANNOT_BE_TO_ROOT.getMessage(), e.getMessage());
+      assertEquals(ExceptionMessage.RENAME_CANNOT_BE_TO_ROOT.getMessage(), e.toString());
     }
 
     // move root to another path
@@ -2062,7 +2062,7 @@ public final class FileSystemMasterTest {
       mFileSystemMaster.rename(ROOT_URI, TEST_URI, RenameContext.defaults());
       fail("Should not be able to rename root");
     } catch (InvalidPathException e) {
-      assertEquals(ExceptionMessage.ROOT_CANNOT_BE_RENAMED.getMessage(), e.getMessage());
+      assertEquals(ExceptionMessage.ROOT_CANNOT_BE_RENAMED.getMessage(), e.toString());
     }
 
     // move to existing path
@@ -2072,7 +2072,7 @@ public final class FileSystemMasterTest {
     } catch (FileAlreadyExistsException e) {
       assertEquals(String
           .format("Cannot rename because destination already exists. src: %s dst: %s",
-              NESTED_FILE_URI.getPath(), NESTED_URI.getPath()), e.getMessage());
+              NESTED_FILE_URI.getPath(), NESTED_URI.getPath()), e.toString());
     }
 
     // move a nested file to a root file

@@ -173,7 +173,7 @@ public class GetPinnedFileIdsBench extends RpcBench<GetPinnedFileIdsParameters> 
             new RpcTaskResult.Point(mPointStopwatch.get().elapsed(TimeUnit.MILLISECONDS)));
       } catch (Exception e) {
         LOG.error("Failed when running", e);
-        result.addError(e.getMessage());
+        result.addError(e.toString());
       }
     }
     return result;

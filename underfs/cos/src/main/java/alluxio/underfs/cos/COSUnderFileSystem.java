@@ -304,7 +304,7 @@ public class COSUnderFileSystem extends ObjectUnderFileSystem {
       return new COSInputStream(mBucketNameInternal, key, mClient, options.getOffset(), retryPolicy,
           mUfsConf.getBytes(PropertyKey.UNDERFS_OBJECT_STORE_MULTI_RANGE_CHUNK_SIZE));
     } catch (CosClientException e) {
-      throw new IOException(e.getMessage());
+      throw new IOException(e.toString());
     }
   }
 }

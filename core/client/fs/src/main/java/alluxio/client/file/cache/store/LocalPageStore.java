@@ -83,7 +83,7 @@ public class LocalPageStore implements PageStore {
       }
     } catch (Exception e) {
       Files.deleteIfExists(p);
-      if (e.getMessage().contains(ERROR_NO_SPACE_LEFT)) {
+      if (e.toString().contains(ERROR_NO_SPACE_LEFT)) {
         throw new ResourceExhaustedException(
             String.format("%s is full, configured with %d bytes", mRoot, mCapacity), e);
       }

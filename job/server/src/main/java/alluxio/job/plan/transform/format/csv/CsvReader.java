@@ -124,7 +124,7 @@ public final class CsvReader implements TableReader {
     try {
       return mReader.hasNext() ? new CsvRow(mSchema, mReader.next()) : null;
     } catch (Throwable e) {
-      throw new IOException(e.getMessage(), e.getCause());
+      throw new IOException(e.toString(), e.getCause());
     }
   }
 

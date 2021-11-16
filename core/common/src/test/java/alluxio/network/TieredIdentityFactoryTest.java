@@ -151,8 +151,8 @@ public class TieredIdentityFactoryTest {
         runScriptWithOutput(badOutput);
         fail("Expected an exception to be thrown");
       } catch (Exception e) {
-        assertThat(e.getMessage(), containsString("Failed to parse"));
-        assertThat(e.getMessage(), containsString(badOutput));
+        assertThat(e.toString(), containsString("Failed to parse"));
+        assertThat(e.toString(), containsString(badOutput));
       }
     }
   }
@@ -166,8 +166,8 @@ public class TieredIdentityFactoryTest {
       try {
         TieredIdentity identity = TieredIdentityFactory.create(mConfiguration);
       } catch (RuntimeException e) {
-        assertThat(e.getMessage(), containsString(script.getAbsolutePath()));
-        assertThat(e.getMessage(), containsString("Permission denied"));
+        assertThat(e.toString(), containsString(script.getAbsolutePath()));
+        assertThat(e.toString(), containsString("Permission denied"));
       }
     }
   }

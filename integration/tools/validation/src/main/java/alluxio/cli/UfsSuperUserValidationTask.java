@@ -75,7 +75,7 @@ public final class UfsSuperUserValidationTask extends AbstractValidationTask {
       }
     } catch (Exception e) {
       msg.append(String.format("Unable to access under file system path %s: %s.", mPath,
-          e.getMessage()));
+          e.toString()));
       msg.append(ValidationUtils.getErrorInfo(e));
       return new ValidationTaskResult(ValidationUtils.State.FAILED, getName(),
               msg.toString(), advice.toString());
@@ -87,7 +87,7 @@ public final class UfsSuperUserValidationTask extends AbstractValidationTask {
               msg.toString(), advice.toString());
     } catch (IOException e) {
       msg.append(String.format("Unable to set owner of under file system path %s: %s. ",
-              mPath, e.getMessage()));
+              mPath, e.toString()));
       advice.append("Please check if Alluxio is super user on the file system. ");
       return new ValidationTaskResult(ValidationUtils.State.WARNING, getName(),
               msg.toString(), advice.toString());

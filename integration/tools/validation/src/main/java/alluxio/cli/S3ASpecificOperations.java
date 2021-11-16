@@ -149,7 +149,7 @@ public final class S3ASpecificOperations {
     try {
       outputStream.close();
     } catch (IOException e) {
-      if (e.getMessage().contains("Part upload failed")) {
+      if (e.toString().contains("Part upload failed")) {
         // The in progress multipart upload has been aborted
         getS3ExpectedError = true;
       } else {

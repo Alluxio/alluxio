@@ -56,7 +56,7 @@ public class UfsMutableJournal extends UfsJournal implements MutableJournal {
           try {
             childPath = URIUtils.appendPath(mLocation, p.getName());
           } catch (URISyntaxException e) {
-            throw new RuntimeException(e.getMessage());
+            throw new RuntimeException(e.toString());
           }
           boolean failedToDelete;
           if (p.isDirectory()) {
@@ -80,7 +80,7 @@ public class UfsMutableJournal extends UfsJournal implements MutableJournal {
                 + System.currentTimeMillis())
             .toString());
       } catch (URISyntaxException e) {
-        throw new RuntimeException(e.getMessage());
+        throw new RuntimeException(e.toString());
       }
     }
   }

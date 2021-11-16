@@ -316,20 +316,20 @@ public final class PathUtilsTest {
       PathUtils.subtractPaths("", "/");
       fail("\"\" should throw an InvalidPathException");
     } catch (InvalidPathException e) {
-      assertEquals(ExceptionMessage.PATH_INVALID.getMessage(""), e.getMessage());
+      assertEquals(ExceptionMessage.PATH_INVALID.getMessage(""), e.toString());
     }
     try {
       PathUtils.subtractPaths("/", "noslash");
       fail("noslash should be an invalid path");
     } catch (InvalidPathException e) {
-      assertEquals(ExceptionMessage.PATH_INVALID.getMessage("noslash"), e.getMessage());
+      assertEquals(ExceptionMessage.PATH_INVALID.getMessage("noslash"), e.toString());
     }
     try {
       PathUtils.subtractPaths("/a", "/not/a/prefix");
       fail("subtractPaths should complain about the prefix not being a prefix");
     } catch (RuntimeException e) {
       String expectedMessage = "Cannot subtract /not/a/prefix from /a because it is not a prefix";
-      assertEquals(expectedMessage, e.getMessage());
+      assertEquals(expectedMessage, e.toString());
     }
   }
 

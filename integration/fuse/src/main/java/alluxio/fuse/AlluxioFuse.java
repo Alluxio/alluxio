@@ -230,7 +230,7 @@ public final class AlluxioFuse {
 
       return new FuseMountOptions(mntPointValue, alluxioRootValue, fuseDebug, fuseOpts);
     } catch (ParseException e) {
-      System.err.println("Error while parsing CLI: " + e.getMessage());
+      System.err.println("Error while parsing CLI: " + e.toString());
       final HelpFormatter fmt = new HelpFormatter();
       fmt.printHelp(AlluxioFuse.class.getName(), OPTIONS);
       return null;

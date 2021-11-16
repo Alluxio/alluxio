@@ -101,7 +101,7 @@ public final class PropertyKeyTest {
         PropertyKey.fromString(key);
         Assert.fail();
       } catch (IllegalArgumentException e) {
-        assertEquals(e.getMessage(),
+        assertEquals(e.toString(),
             ExceptionMessage.INVALID_CONFIGURATION_KEY.getMessage(key));
       }
     }
@@ -212,7 +212,7 @@ public final class PropertyKeyTest {
         PropertyKey.fromString(key);
         Assert.fail();
       } catch (IllegalArgumentException e) {
-        assertEquals(e.getMessage(),
+        assertEquals(e.toString(),
             ExceptionMessage.INVALID_CONFIGURATION_KEY.getMessage(key));
       }
     }

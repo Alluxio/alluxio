@@ -156,7 +156,7 @@ public final class HeartbeatThreadTest {
 
         assertEquals("The executor counter is wrong.", numIterations, executor.getCounter());
       } catch (Exception e) {
-        throw new RuntimeException(e.getMessage());
+        throw new RuntimeException(e.toString());
       }
       return null;
     }

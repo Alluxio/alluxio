@@ -309,7 +309,7 @@ public final class S3RestServiceHandler {
             } catch (IOException | AlluxioException e) {
               DeleteObjectsResult.ErrorObject err = new DeleteObjectsResult.ErrorObject();
               err.setKey(obj.getKey());
-              err.setMessage(e.getMessage());
+              err.setMessage(e.toString());
               errored.add(err);
             }
           });

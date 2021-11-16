@@ -612,7 +612,7 @@ public final class AlluxioFileInStreamTest {
       mTestStream.read();
       fail("block store should throw exception");
     } catch (IOException e) {
-      assertEquals("test exception", e.getMessage());
+      assertEquals("test exception", e.toString());
     }
   }
 
@@ -636,7 +636,7 @@ public final class AlluxioFileInStreamTest {
       fail("the buffer read of invalid offset/length should fail");
     } catch (IllegalArgumentException e) {
       assertEquals(String.format(PreconditionMessage.ERR_BUFFER_STATE.toString(), 10, 5, 6),
-          e.getMessage());
+          e.toString());
     }
   }
 
@@ -650,7 +650,7 @@ public final class AlluxioFileInStreamTest {
       fail("seeking negative position should fail");
     } catch (IllegalArgumentException e) {
       assertEquals(String.format(PreconditionMessage.ERR_SEEK_NEGATIVE.toString(), -1),
-          e.getMessage());
+          e.toString());
     }
   }
 
@@ -664,7 +664,7 @@ public final class AlluxioFileInStreamTest {
       fail("seeking past the end of the stream should fail");
     } catch (IllegalArgumentException e) {
       assertEquals(String.format(PreconditionMessage.ERR_SEEK_PAST_END_OF_FILE.toString(),
-          mFileSize + 1), e.getMessage());
+          mFileSize + 1), e.toString());
     }
   }
 

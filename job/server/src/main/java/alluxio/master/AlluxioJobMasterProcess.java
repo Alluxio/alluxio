@@ -164,7 +164,7 @@ public class AlluxioJobMasterProcess extends MasterProcess {
       }
       mJobMaster.start(isLeader);
     } catch (IOException e) {
-      LOG.error(e.getMessage(), e);
+      LOG.error(e.toString(), e);
       throw Throwables.propagate(e);
     }
   }

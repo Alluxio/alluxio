@@ -105,7 +105,7 @@ public final class PersistDefinitionTest {
       new PersistDefinition().selectExecutors(config,
           Lists.newArrayList(new WorkerInfo()), new SelectExecutorsContext(1, mJobServerContext));
     } catch (Exception e) {
-      Assert.assertEquals("Block " + blockId + " does not exist", e.getMessage());
+      Assert.assertEquals("Block " + blockId + " does not exist", e.toString());
     }
   }
 }

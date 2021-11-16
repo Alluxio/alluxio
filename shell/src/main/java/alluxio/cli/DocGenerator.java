@@ -58,7 +58,7 @@ public class DocGenerator {
       try {
         cmd = parser.parse(OPTIONS, args, true /* stopAtNonOption */);
       } catch (ParseException e) {
-        printHelp("Unable to parse input args: " + e.getMessage());
+        printHelp("Unable to parse input args: " + e.toString());
         return;
       }
       if (cmd.hasOption(METRIC_OPTION_NAME)) {

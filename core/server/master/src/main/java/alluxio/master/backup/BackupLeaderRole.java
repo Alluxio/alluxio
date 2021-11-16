@@ -261,7 +261,7 @@ public class BackupLeaderRole extends AbstractBackupRole {
       } catch (Exception e) {
         LOG.error("Local backup failed at the backup-leader.", e);
         mBackupTracker.updateError(
-            new BackupException(String.format("Local backup failed: %s", e.getMessage()), e));
+            new BackupException(String.format("Local backup failed: %s", e.toString()), e));
       }
     });
   }

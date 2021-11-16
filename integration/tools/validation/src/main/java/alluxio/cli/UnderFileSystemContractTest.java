@@ -336,7 +336,7 @@ public final class UnderFileSystemContractTest {
     try {
       jc.parse(args);
     } catch (Exception e) {
-      System.out.println(e.getMessage());
+      System.out.println(e.toString());
       jc.usage();
       System.out.println(getHelpMessage());
       System.exit(1);

@@ -80,7 +80,7 @@ public class KodoInputStream extends MultiRangeObjectInputStream {
       } catch (NotFoundException e) {
         errorMessage = String
             .format("Failed to open key: %s attempts: %s error: %s", mKey,
-                mRetryPolicy.getAttemptCount(), e.getMessage());
+                mRetryPolicy.getAttemptCount(), e.toString());
         // Key does not exist
         lastException = e;
       }

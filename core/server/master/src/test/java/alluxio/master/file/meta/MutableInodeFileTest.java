@@ -101,14 +101,14 @@ public final class MutableInodeFileTest extends AbstractInodeTest {
       Assert.fail();
     } catch (BlockInfoException e) {
       assertEquals(String.format("blockIndex -1 is out of range. File blocks: %d",
-          NUM_BLOCKS), e.getMessage());
+          NUM_BLOCKS), e.toString());
     }
     try {
       inodeFile.getBlockIdByIndex(NUM_BLOCKS);
       Assert.fail();
     } catch (BlockInfoException e) {
       assertEquals(String.format("blockIndex %d is out of range. File blocks: %d",
-          NUM_BLOCKS, NUM_BLOCKS), e.getMessage());
+          NUM_BLOCKS, NUM_BLOCKS), e.toString());
     }
   }
 

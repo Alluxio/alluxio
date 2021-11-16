@@ -83,7 +83,7 @@ public class LocalFileBlockReaderTest {
     Exception e = assertThrows(IllegalArgumentException.class, () -> {
       mReader.read(TEST_BLOCK_SIZE - 1, 2);
     });
-    assertTrue(e.getMessage().contains("exceeding fileSize"));
+    assertTrue(e.toString().contains("exceeding fileSize"));
   }
 
   /**

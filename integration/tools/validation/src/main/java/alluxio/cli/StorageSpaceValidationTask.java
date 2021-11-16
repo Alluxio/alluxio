@@ -130,7 +130,7 @@ public final class StorageSpaceValidationTask extends AbstractValidationTask {
         }
       } catch (IOException e) {
         msg.append(String.format("Tier %d: Unable to validate available space - %s.%n",
-            level, e.getMessage()));
+            level, e.toString()));
         msg.append(ValidationUtils.getErrorInfo(e));
         advice.append(String.format("Please check your path for tier %s.%n", level));
         success = false;

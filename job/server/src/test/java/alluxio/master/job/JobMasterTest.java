@@ -94,7 +94,7 @@ public final class JobMasterTest {
       Assert.fail("cannot run non-existing job");
     } catch (JobDoesNotExistException e) {
       Assert.assertEquals(ExceptionMessage.JOB_DEFINITION_DOES_NOT_EXIST.getMessage("dummy"),
-          e.getMessage());
+          e.toString());
     }
   }
 
@@ -173,7 +173,7 @@ public final class JobMasterTest {
     } catch (ResourceExhaustedException e) {
       Assert.assertEquals(ExceptionMessage.JOB_MASTER_FULL_CAPACITY
           .getMessage(ServerConfiguration.get(PropertyKey.JOB_MASTER_JOB_CAPACITY)),
-          e.getMessage());
+          e.toString());
     }
   }
 
@@ -183,7 +183,7 @@ public final class JobMasterTest {
       mJobMaster.cancel(1);
       Assert.fail("cannot cancel non-existing job");
     } catch (JobDoesNotExistException e) {
-      Assert.assertEquals(ExceptionMessage.JOB_DOES_NOT_EXIST.getMessage(1), e.getMessage());
+      Assert.assertEquals(ExceptionMessage.JOB_DOES_NOT_EXIST.getMessage(1), e.toString());
     }
   }
 

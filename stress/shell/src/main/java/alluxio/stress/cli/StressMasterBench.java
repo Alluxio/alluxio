@@ -341,7 +341,7 @@ public class StressMasterBench extends Benchmark<MasterBenchTaskResult> {
       try {
         mResult.merge(threadResult);
       } catch (Exception e) {
-        mResult.addErrorMessage(e.getMessage());
+        mResult.addErrorMessage(e.toString());
       }
     }
 
@@ -402,7 +402,7 @@ public class StressMasterBench extends Benchmark<MasterBenchTaskResult> {
       try {
         runInternal();
       } catch (Exception e) {
-        mResult.addErrorMessage(e.getMessage());
+        mResult.addErrorMessage(e.toString());
       }
 
       // Update local thread result

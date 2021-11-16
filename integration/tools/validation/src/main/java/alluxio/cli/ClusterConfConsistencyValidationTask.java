@@ -84,9 +84,9 @@ public final class ClusterConfConsistencyValidationTask extends AbstractValidati
         allProperties.put(node, props);
         propertyNames.addAll(props.stringPropertyNames());
       } catch (IOException e) {
-        System.err.format("Unable to retrieve configuration for %s: %s.", node, e.getMessage());
+        System.err.format("Unable to retrieve configuration for %s: %s.", node, e.toString());
         msg.append(String.format("Unable to retrieve configuration for %s: %s.",
-                node, e.getMessage()));
+                node, e.toString()));
         advice.append(String.format("Please check the connection from node %s. ", node));
         ex = e;
         state = ValidationUtils.State.FAILED;

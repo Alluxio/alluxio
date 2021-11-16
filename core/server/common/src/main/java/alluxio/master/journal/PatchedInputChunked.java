@@ -36,7 +36,7 @@ public class PatchedInputChunked extends InputChunked {
     try {
       return super.fill(buffer, offset, count);
     } catch (KryoException e) {
-      if (e.getMessage().equals("Buffer underflow.")) {
+      if (e.toString().equals("Buffer underflow.")) {
         return -1;
       }
       throw e;

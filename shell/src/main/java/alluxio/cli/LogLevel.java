@@ -326,7 +326,7 @@ public final class LogLevel {
       logLevel(args, new InstancedConfiguration(ConfigurationUtils.defaults()));
       exitCode = 0;
     } catch (ParseException e) {
-      printHelp("Unable to parse input args: " + e.getMessage());
+      printHelp("Unable to parse input args: " + e.toString());
     } catch (IOException e) {
       System.err.println("Failed to set log level:");
       e.printStackTrace();

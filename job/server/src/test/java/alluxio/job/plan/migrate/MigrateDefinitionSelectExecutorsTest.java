@@ -103,7 +103,7 @@ public final class MigrateDefinitionSelectExecutorsTest extends SelectExecutorsT
     } catch (RuntimeException e) {
       Assert.assertEquals(
           ExceptionMessage.MIGRATE_CANNOT_BE_TO_SUBDIRECTORY.getMessage("/src", "/src/dst"),
-          e.getMessage());
+          e.toString());
     }
   }
 
@@ -114,7 +114,7 @@ public final class MigrateDefinitionSelectExecutorsTest extends SelectExecutorsT
       assignMigratesFail("/notExist", "/dst");
     } catch (FileDoesNotExistException e) {
       Assert.assertEquals(ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage("/notExist"),
-          e.getMessage());
+          e.toString());
     }
   }
 

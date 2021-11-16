@@ -143,7 +143,7 @@ public final class GrpcBlockingStreamTest {
     mResponseObserver.onError(Status.UNAUTHENTICATED.asRuntimeException());
     Exception e = assertThrows(UnauthenticatedException.class,
         () -> mStream.send(WriteRequest.newBuilder().build(), TIMEOUT));
-    assertTrue(e.getMessage().contains(TEST_MESSAGE));
+    assertTrue(e.toString().contains(TEST_MESSAGE));
   }
 
   /**
@@ -154,7 +154,7 @@ public final class GrpcBlockingStreamTest {
     mStream.close();
     Exception e = assertThrows(CancelledException.class,
         () -> mStream.send(WriteRequest.newBuilder().build(), TIMEOUT));
-    assertTrue(e.getMessage().contains(TEST_MESSAGE));
+    assertTrue(e.toString().contains(TEST_MESSAGE));
   }
 
   /**
@@ -165,7 +165,7 @@ public final class GrpcBlockingStreamTest {
     mStream.cancel();
     Exception e = assertThrows(CancelledException.class, () ->
             mStream.send(WriteRequest.newBuilder().build(), TIMEOUT));
-    assertTrue(e.getMessage().contains(TEST_MESSAGE));
+    assertTrue(e.toString().contains(TEST_MESSAGE));
   }
 
   /**
@@ -176,7 +176,7 @@ public final class GrpcBlockingStreamTest {
     mStream.cancel();
     Exception e = assertThrows(CancelledException.class, () ->
         mStream.receive(TIMEOUT));
-    assertTrue(e.getMessage().contains(TEST_MESSAGE));
+    assertTrue(e.toString().contains(TEST_MESSAGE));
   }
 
   /**
@@ -187,7 +187,7 @@ public final class GrpcBlockingStreamTest {
     mResponseObserver.onError(Status.UNAUTHENTICATED.asRuntimeException());
     Exception e = assertThrows(UnauthenticatedException.class, () ->
         mStream.receive(TIMEOUT));
-    assertTrue(e.getMessage().contains(TEST_MESSAGE));
+    assertTrue(e.toString().contains(TEST_MESSAGE));
   }
 
   /**
@@ -198,7 +198,7 @@ public final class GrpcBlockingStreamTest {
     when(mRequestObserver.isReady()).thenReturn(false);
     Exception e = assertThrows(DeadlineExceededException.class, () ->
         mStream.send(WriteRequest.newBuilder().build(), SHORT_TIMEOUT));
-    assertTrue(e.getMessage().contains(TEST_MESSAGE));
+    assertTrue(e.toString().contains(TEST_MESSAGE));
   }
 
   /**
@@ -208,7 +208,7 @@ public final class GrpcBlockingStreamTest {
   public void receiveFailsAfterTimeout() throws Exception {
     Exception e = assertThrows(DeadlineExceededException.class, () ->
         mStream.receive(SHORT_TIMEOUT));
-    assertTrue(e.getMessage().contains(TEST_MESSAGE));
+    assertTrue(e.toString().contains(TEST_MESSAGE));
   }
 
   /**
@@ -299,7 +299,7 @@ public final class GrpcBlockingStreamTest {
         assertEquals(response, actualResponse);
       }
     });
-    assertTrue(e.getMessage().contains(TEST_MESSAGE));
+    assertTrue(e.toString().contains(TEST_MESSAGE));
   }
 
   /**
@@ -356,6 +356,6 @@ public final class GrpcBlockingStreamTest {
 
     Exception e = assertThrows(DeadlineExceededException.class, () ->
         mStream.waitForComplete(SHORT_TIMEOUT));
-    assertTrue(e.getMessage().contains(TEST_MESSAGE));
+    assertTrue(e.toString().contains(TEST_MESSAGE));
   }
 }

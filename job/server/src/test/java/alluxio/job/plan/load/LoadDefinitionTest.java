@@ -163,7 +163,7 @@ public class LoadDefinitionTest {
           new SelectExecutorsContext(1, mJobServerContext));
       Assert.fail();
     } catch (Exception e) {
-      Assert.assertThat(e.getMessage(), CoreMatchers.containsString(
+      Assert.assertThat(e.toString(), CoreMatchers.containsString(
           "Failed to find enough block workers to replicate to. Needed 5 but only found 4."));
     }
   }
@@ -182,9 +182,9 @@ public class LoadDefinitionTest {
           JOB_WORKERS, new SelectExecutorsContext(1, mJobServerContext));
       Assert.fail();
     } catch (Exception e) {
-      Assert.assertThat(e.getMessage(),
+      Assert.assertThat(e.toString(),
           CoreMatchers.containsString("Available workers without the block"));
-      Assert.assertThat(e.getMessage(),
+      Assert.assertThat(e.toString(),
           CoreMatchers.containsString("The following workers could not be used because "
               + "they have no local job workers: [otherhost]"));
     }

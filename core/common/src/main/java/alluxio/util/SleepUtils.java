@@ -48,7 +48,7 @@ public final class SleepUtils {
     } catch (InterruptedException e) {
       Thread.currentThread().interrupt();
       if (logger != null) {
-        logger.warn(e.getMessage(), e);
+        logger.warn(e.toString(), e);
       }
     }
   }

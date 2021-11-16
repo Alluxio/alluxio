@@ -105,7 +105,7 @@ public class OSSInputStream extends MultiRangeObjectInputStream {
       } catch (OSSException e) {
         errorMessage = String
             .format("Failed to open key: %s bucket: %s attempts: %d error: %s", mKey, mBucketName,
-                mRetryPolicy.getAttemptCount(), e.getMessage());
+                mRetryPolicy.getAttemptCount(), e.toString());
         if (!e.getErrorCode().equals("NoSuchKey")) {
           throw new IOException(errorMessage, e);
         }

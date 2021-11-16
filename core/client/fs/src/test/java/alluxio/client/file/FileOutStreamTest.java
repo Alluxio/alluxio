@@ -302,7 +302,7 @@ public class FileOutStreamTest {
       mTestStream.write(7);
       fail("the test should fail");
     } catch (IOException e) {
-      assertEquals(ExceptionMessage.FAILED_CACHE.getMessage("test error"), e.getMessage());
+      assertEquals(ExceptionMessage.FAILED_CACHE.getMessage("test error"), e.toString());
     }
   }
 
@@ -349,7 +349,7 @@ public class FileOutStreamTest {
       fail("buffer write with invalid offset/length should fail");
     } catch (IllegalArgumentException e) {
       assertEquals(String.format(PreconditionMessage.ERR_BUFFER_STATE.toString(), 10, 5, 6),
-          e.getMessage());
+          e.toString());
     }
   }
 
@@ -362,7 +362,7 @@ public class FileOutStreamTest {
       mTestStream.write(null);
       fail("writing null should fail");
     } catch (IllegalArgumentException e) {
-      assertEquals(PreconditionMessage.ERR_WRITE_BUFFER_NULL.toString(), e.getMessage());
+      assertEquals(PreconditionMessage.ERR_WRITE_BUFFER_NULL.toString(), e.toString());
     }
   }
 
@@ -375,7 +375,7 @@ public class FileOutStreamTest {
       mTestStream.write(null, 0, 0);
       fail("writing null should fail");
     } catch (IllegalArgumentException e) {
-      assertEquals(PreconditionMessage.ERR_WRITE_BUFFER_NULL.toString(), e.getMessage());
+      assertEquals(PreconditionMessage.ERR_WRITE_BUFFER_NULL.toString(), e.toString());
     }
   }
 
@@ -456,7 +456,7 @@ public class FileOutStreamTest {
         .setWriteType(WriteType.CACHE_THROUGH);
     Exception e = assertThrows(UnavailableException.class,
         () -> mTestStream = createTestStream(FILE_NAME, options));
-    assertTrue(e.getMessage().contains(ExceptionMessage.NO_WORKER_AVAILABLE.getMessage()));
+    assertTrue(e.toString().contains(ExceptionMessage.NO_WORKER_AVAILABLE.getMessage()));
   }
 
   private void verifyIncreasingBytesWritten(int len) {

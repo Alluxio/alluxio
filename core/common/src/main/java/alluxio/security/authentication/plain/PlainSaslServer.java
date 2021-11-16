@@ -103,7 +103,7 @@ public final class PlainSaslServer implements SaslServer {
       }
       mAuthorizationId = authCallback.getAuthorizedID();
     } catch (Exception e) {
-      throw new SaslException("Plain authentication failed: " + e.getMessage(), e);
+      throw new SaslException("Plain authentication failed: " + e.toString(), e);
     }
     mCompleted = true;
     return null;

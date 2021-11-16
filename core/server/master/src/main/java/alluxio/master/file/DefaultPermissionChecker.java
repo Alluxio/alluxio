@@ -165,7 +165,7 @@ public class DefaultPermissionChecker implements PermissionChecker {
       return CommonUtils.getGroups(user, ServerConfiguration.global());
     } catch (IOException e) {
       throw new AccessControlException(
-          ExceptionMessage.PERMISSION_DENIED.getMessage(e.getMessage()));
+          ExceptionMessage.PERMISSION_DENIED.getMessage(e.toString()));
     }
   }
 

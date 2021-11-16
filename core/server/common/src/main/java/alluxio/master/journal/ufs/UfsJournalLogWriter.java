@@ -137,7 +137,7 @@ final class UfsJournalLogWriter implements JournalWriter {
       mNeedsRecovery = true;
       throw new IOException(ExceptionMessage.JOURNAL_WRITE_FAILURE
           .getMessageWithUrl(RuntimeConstants.ALLUXIO_DEBUG_DOCS_URL,
-              mJournalOutputStream.currentLog(), e.getMessage()), e);
+              mJournalOutputStream.currentLog(), e.toString()), e);
     }
   }
 
@@ -192,7 +192,7 @@ final class UfsJournalLogWriter implements JournalWriter {
             } catch (IOException e) {
               throw new IOException(ExceptionMessage.JOURNAL_WRITE_FAILURE
                   .getMessageWithUrl(RuntimeConstants.ALLUXIO_DEBUG_DOCS_URL,
-                      mJournalOutputStream.currentLog(), e.getMessage()), e);
+                      mJournalOutputStream.currentLog(), e.toString()), e);
             }
           }
         }
@@ -379,7 +379,7 @@ final class UfsJournalLogWriter implements JournalWriter {
       mJournalOutputStream = null;
       throw new IOException(ExceptionMessage.JOURNAL_FLUSH_FAILURE
           .getMessageWithUrl(RuntimeConstants.ALLUXIO_DEBUG_DOCS_URL,
-              currentLog, e.getMessage()), e);
+              currentLog, e.toString()), e);
     }
     boolean overSize = mJournalOutputStream.bytesWritten() >= mMaxLogSize;
     if (overSize || !mUfs.supportsFlush()) {

@@ -630,7 +630,7 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
       } catch (IOException e) {
         LOG.warn("{} try to open {} : {}", retryPolicy.getAttemptCount(), path, e.toString());
         te = e;
-        if (options.getRecoverFailedOpen() && dfs != null && e.getMessage().toLowerCase()
+        if (options.getRecoverFailedOpen() && dfs != null && e.toString().toLowerCase()
             .startsWith("cannot obtain block length for")) {
           // This error can occur when an Alluxio journal file was not properly closed by Alluxio.
           // In this scenario, the HDFS lease must be recovered in order for the file to be

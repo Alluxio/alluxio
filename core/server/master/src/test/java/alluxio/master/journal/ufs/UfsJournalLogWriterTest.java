@@ -473,7 +473,7 @@ public final class UfsJournalLogWriterTest {
       writer.write(newEntry(nextSN));
       Assert.fail("Should not reach here.");
     } catch (IOException e) {
-      Assert.assertThat(e.getMessage(), containsString(INJECTED_IO_ERROR_MESSAGE));
+      Assert.assertThat(e.toString(), containsString(INJECTED_IO_ERROR_MESSAGE));
     }
   }
 
@@ -487,7 +487,7 @@ public final class UfsJournalLogWriterTest {
       writer.flush();
       Assert.fail("Should not reach here.");
     } catch (IOException e) {
-      Assert.assertThat(e.getMessage(), containsString(INJECTED_IO_ERROR_MESSAGE));
+      Assert.assertThat(e.toString(), containsString(INJECTED_IO_ERROR_MESSAGE));
     }
   }
 

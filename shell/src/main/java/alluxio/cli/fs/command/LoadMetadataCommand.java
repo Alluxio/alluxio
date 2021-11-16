@@ -101,7 +101,7 @@ public class LoadMetadataCommand extends AbstractFileSystemCommand {
       }
       mFileSystem.loadMetadata(path, options);
     } catch (AlluxioException e) {
-      throw new IOException(e.getMessage());
+      throw new IOException(e.toString());
     }
   }
 

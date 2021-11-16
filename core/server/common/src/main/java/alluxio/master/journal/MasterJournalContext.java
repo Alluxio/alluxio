@@ -79,7 +79,7 @@ public final class MasterJournalContext implements JournalContext {
         return;
       } catch (NotLeaderException | JournalClosedException e) {
         throw new UnavailableException(String.format("Failed to complete request: %s",
-            e.getMessage()), e);
+            e.toString()), e);
       } catch (AlluxioStatusException e) {
         // Note that we cannot actually cancel the journal flush because it could be partially
         // written already
@@ -92,7 +92,7 @@ public final class MasterJournalContext implements JournalContext {
         if (e instanceof AlluxioStatusException
             && ((AlluxioStatusException) e).getStatusCode() == Status.Code.CANCELLED) {
           throw new UnavailableException(String.format("Failed to complete request: %s",
-              e.getMessage()), e);
+              e.toString()), e);
         }
         LOG.warn("Journal flush failed. retrying...", e);
       } catch (Throwable e) {

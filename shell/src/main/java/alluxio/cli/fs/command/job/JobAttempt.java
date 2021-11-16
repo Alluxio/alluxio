@@ -49,7 +49,7 @@ public abstract class JobAttempt {
         mJobId = mClient.run(getJobConfig());
       } catch (IOException e) {
         LOG.warn("Failed to start job", e);
-        System.out.println(String.format("Failed to start job with error: %s", e.getMessage()));
+        System.out.println(String.format("Failed to start job with error: %s", e.toString()));
         // Do nothing. This will be counted as a failed attempt
       }
       return true;

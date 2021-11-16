@@ -315,7 +315,7 @@ public class StressClientIOBench extends Benchmark<ClientIOTaskResult> {
         try {
           mThreadCountResult.merge(threadResult);
         } catch (Exception e) {
-          mThreadCountResult.addErrorMessage(e.getMessage());
+          mThreadCountResult.addErrorMessage(e.toString());
         }
       }
     }
@@ -370,7 +370,7 @@ public class StressClientIOBench extends Benchmark<ClientIOTaskResult> {
         runInternal();
       } catch (Exception e) {
         LOG.error(Thread.currentThread().getName() + ": failed", e);
-        mThreadCountResult.addErrorMessage(e.getMessage());
+        mThreadCountResult.addErrorMessage(e.toString());
       } finally {
         closeInStream();
       }
@@ -509,7 +509,7 @@ public class StressClientIOBench extends Benchmark<ClientIOTaskResult> {
           mInStream.close();
         }
       } catch (IOException e) {
-        mThreadCountResult.addErrorMessage(e.getMessage());
+        mThreadCountResult.addErrorMessage(e.toString());
       } finally {
         mInStream = null;
       }
@@ -600,7 +600,7 @@ public class StressClientIOBench extends Benchmark<ClientIOTaskResult> {
           mInStream.close();
         }
       } catch (IOException e) {
-        mThreadCountResult.addErrorMessage(e.getMessage());
+        mThreadCountResult.addErrorMessage(e.toString());
       } finally {
         mInStream = null;
       }

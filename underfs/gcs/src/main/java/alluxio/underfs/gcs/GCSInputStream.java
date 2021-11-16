@@ -165,7 +165,7 @@ public final class GCSInputStream extends InputStream {
       } catch (ServiceException e) {
         errorMessage = String
             .format("Failed to open key: %s bucket: %s attempts: %d error: %s", mKey, mBucketName,
-                mRetryPolicy.getAttemptCount(), e.getMessage());
+                mRetryPolicy.getAttemptCount(), e.toString());
         if (e.getResponseCode() != HttpStatus.SC_NOT_FOUND) {
           throw new IOException(errorMessage, e);
         }

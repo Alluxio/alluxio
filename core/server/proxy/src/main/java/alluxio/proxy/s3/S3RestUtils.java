@@ -114,7 +114,7 @@ public final class S3RestUtils {
       return Response.ok(mapper.writeValueAsString(object)).build();
     } catch (JsonProcessingException e) {
       return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-          .entity("Failed to encode XML: " + e.getMessage()).build();
+          .entity("Failed to encode XML: " + e.toString()).build();
     }
   }
 

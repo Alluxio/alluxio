@@ -46,7 +46,7 @@ public class RetryUtilsTest {
       }, new CountingRetry(10));
       fail("Expected an exception to be thrown");
     } catch (IOException e) {
-      assertEquals("11", e.getMessage());
+      assertEquals("11", e.toString());
     }
     assertEquals(11, count.get());
   }

@@ -1300,10 +1300,10 @@ public class ManagerProcessContext implements AutoCloseable {
         mountPoints.add(builder.build());
       }
     } catch (AlluxioException e) {
-      LOG.debug("getMountTable failed due to " + e.getMessage());
+      LOG.debug("getMountTable failed due to " + e.toString());
       return ListMountPointResponse.Payload.getDefaultInstance();
     } catch (IOException e) {
-      LOG.debug("RPC to get mount table failed due to " + e.getMessage());
+      LOG.debug("RPC to get mount table failed due to " + e.toString());
       return ListMountPointResponse.Payload.getDefaultInstance();
     }
 
@@ -1439,7 +1439,7 @@ public class ManagerProcessContext implements AutoCloseable {
   }
 
   private static boolean exceptionMatchesPattern(Exception e, String regex) {
-    return e.getMessage().toLowerCase().matches(regex);
+    return e.toString().toLowerCase().matches(regex);
   }
 
   /**
@@ -1641,7 +1641,7 @@ public class ManagerProcessContext implements AutoCloseable {
       getFileSystem().unmount(new AlluxioURI(mountPointInfo.getAlluxioPath()));
     } catch (IOException | AlluxioException e) {
       return DeleteMountPointResponse.Payload.newBuilder()
-              .setDeleted(false).addError(e.getMessage()).build();
+              .setDeleted(false).addError(e.toString()).build();
     }
     return DeleteMountPointResponse.Payload.newBuilder().setDeleted(true).build();
   }

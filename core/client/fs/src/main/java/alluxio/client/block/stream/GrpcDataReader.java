@@ -175,7 +175,7 @@ public final class GrpcDataReader implements DataReader {
     } catch (Exception e) {
       // nothing is done as the receipt is sent at best effort
       LOG.debug("Failed to send receipt of data to worker {} for request {}: {}.", mAddress,
-          mReadRequest, e.getMessage());
+          mReadRequest, e.toString());
     }
     Preconditions.checkState(mPosToRead - mReadRequest.getOffset() <= mReadRequest.getLength());
     return buffer;

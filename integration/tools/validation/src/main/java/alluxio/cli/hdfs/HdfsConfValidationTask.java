@@ -231,12 +231,12 @@ public class HdfsConfValidationTask extends AbstractValidationTask {
       mMsg.append(String.format("Successfully loaded %s. %n", path));
     } catch (IOException e) {
       mState = ValidationUtils.State.FAILED;
-      mMsg.append(String.format("Failed to read %s. %s.%n", path, e.getMessage()));
+      mMsg.append(String.format("Failed to read %s. %s.%n", path, e.toString()));
       mMsg.append(ValidationUtils.getErrorInfo(e));
       mAdvice.append(String.format("Please check your %s.%n", path));
     } catch (RuntimeException e) {
       mState = ValidationUtils.State.FAILED;
-      mMsg.append(String.format("Failed to parse %s. %s.%n", path, e.getMessage()));
+      mMsg.append(String.format("Failed to parse %s. %s.%n", path, e.toString()));
       mMsg.append(ValidationUtils.getErrorInfo(e));
       mAdvice.append(String.format("Failed to parse %s as valid XML. Please check that the file "
           + "path is correct and the content is valid XML.%n", path));

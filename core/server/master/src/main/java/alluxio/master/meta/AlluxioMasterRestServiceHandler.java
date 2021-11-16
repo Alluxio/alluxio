@@ -495,21 +495,21 @@ public final class AlluxioMasterRestServiceHandler {
 
         filesInfo = mFileSystemMaster.listStatus(currentPath, ListStatusContext.defaults());
       } catch (FileDoesNotExistException e) {
-        response.setInvalidPathError("Error: Invalid Path " + e.getMessage());
+        response.setInvalidPathError("Error: Invalid Path " + e.toString());
         return response;
       } catch (InvalidPathException e) {
         response.setInvalidPathError("Error: Invalid Path " + e.getLocalizedMessage());
         return response;
       } catch (UnavailableException e) {
-        response.setInvalidPathError("The service is temporarily unavailable. " + e.getMessage());
+        response.setInvalidPathError("The service is temporarily unavailable. " + e.toString());
         return response;
       } catch (IOException e) {
         response.setInvalidPathError(
-            "Error: File " + currentPath + " is not available " + e.getMessage());
+            "Error: File " + currentPath + " is not available " + e.toString());
         return response;
       } catch (AccessControlException e) {
         response.setInvalidPathError(
-            "Error: File " + currentPath + " cannot be accessed " + e.getMessage());
+            "Error: File " + currentPath + " cannot be accessed " + e.toString());
         return response;
       }
 
@@ -533,14 +533,14 @@ public final class AlluxioMasterRestServiceHandler {
             toAdd.setFileLocations(locations);
           }
         } catch (FileDoesNotExistException e) {
-          response.setFileDoesNotExistException("Error: non-existing file " + e.getMessage());
+          response.setFileDoesNotExistException("Error: non-existing file " + e.toString());
           return response;
         } catch (InvalidPathException e) {
-          response.setInvalidPathException("Error: invalid path " + e.getMessage());
+          response.setInvalidPathException("Error: invalid path " + e.toString());
           return response;
         } catch (AccessControlException e) {
           response.setAccessControlException(
-              "Error: File " + currentPath + " cannot be accessed " + e.getMessage());
+              "Error: File " + currentPath + " cannot be accessed " + e.toString());
           return response;
         }
         fileInfos.add(toAdd);
@@ -616,7 +616,7 @@ public final class AlluxioMasterRestServiceHandler {
           return response;
         } catch (AccessControlException e) {
           response
-              .setPermissionError("Error: File " + file + " cannot be accessed " + e.getMessage());
+              .setPermissionError("Error: File " + file + " cannot be accessed " + e.toString());
           return response;
         }
       }
@@ -774,7 +774,7 @@ public final class AlluxioMasterRestServiceHandler {
           response.setFileData(fileData).setViewingOffset(offset);
         } catch (IOException e) {
           response.setInvalidPathError(
-              "Error: File " + logFile + " is not available " + e.getMessage());
+              "Error: File " + logFile + " is not available " + e.toString());
         }
       }
 

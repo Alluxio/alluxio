@@ -654,7 +654,7 @@ public class AbstractFileSystemTest {
       fail("append() of existing file is expected to fail");
     } catch (IOException e) {
       assertEquals("append() to existing Alluxio path is currently not supported: " + path,
-          e.getMessage());
+          e.toString());
     }
   }
 
@@ -673,7 +673,7 @@ public class AbstractFileSystemTest {
       fail("create() of existing file is expected to fail");
     } catch (IOException e) {
       assertEquals("Not allowed to create() (overwrite=false) for existing Alluxio path: " + path,
-          e.getMessage());
+          e.toString());
     }
   }
 

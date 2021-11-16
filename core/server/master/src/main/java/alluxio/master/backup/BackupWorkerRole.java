@@ -263,7 +263,7 @@ public class BackupWorkerRole extends AbstractBackupRole {
       } catch (Exception e) {
         LOG.error("Backup failed at worker", e);
         mBackupTracker.updateError(
-            new BackupException(String.format("Backup failed at worker: %s", e.getMessage()), e));
+            new BackupException(String.format("Backup failed at worker: %s", e.toString()), e));
       } finally {
         enforceResumeJournals();
       }

@@ -96,7 +96,7 @@ public final class PrimarySelectorClient extends AbstractPrimarySelector
       mLeaderSelector.close();
     } catch (IllegalStateException e) {
       // TODO(hy): This should not happen in unit tests.
-      if (!e.getMessage().equals("Already closed or has not been started")) {
+      if (!e.toString().equals("Already closed or has not been started")) {
         throw e;
       }
     }
@@ -126,7 +126,7 @@ public final class PrimarySelectorClient extends AbstractPrimarySelector
       }
       return results;
     } catch (Exception e) {
-      LOG.error(e.getMessage(), e);
+      LOG.error(e.toString(), e);
       return null;
     }
   }
@@ -158,7 +158,7 @@ public final class PrimarySelectorClient extends AbstractPrimarySelector
           LOG.info("The current leader is {}", leaderId);
         }
       } catch (Exception e) {
-        LOG.error(e.getMessage(), e);
+        LOG.error(e.toString(), e);
       }
     }
   }

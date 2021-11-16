@@ -339,7 +339,7 @@ public class UfsFallbackLocalFileDataWriterTest {
             try {
               writer.writeChunk(buf);
             } catch (Exception e) {
-              fail(e.getMessage());
+              fail(e.toString());
               throw e;
             }
             remaining -= bytesToWrite;
@@ -351,7 +351,7 @@ public class UfsFallbackLocalFileDataWriterTest {
           return new WriteSummary(length, checksum);
         } catch (Throwable throwable) {
           LOG.error("Failed to write file.", throwable);
-          fail("Failed to write file." + throwable.getMessage());
+          fail("Failed to write file." + throwable.toString());
           throw throwable;
         }
       }
@@ -397,7 +397,7 @@ public class UfsFallbackLocalFileDataWriterTest {
           }
           return new WriteSummary(len, checksum);
         } catch (Throwable throwable) {
-          fail("Failed to verify write requests." + throwable.getMessage());
+          fail("Failed to verify write requests." + throwable.toString());
           throw throwable;
         }
       }

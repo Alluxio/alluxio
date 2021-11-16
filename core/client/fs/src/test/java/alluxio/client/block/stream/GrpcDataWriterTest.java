@@ -244,7 +244,7 @@ public final class GrpcDataWriterTest {
             try {
               writer.writeChunk(buf);
             } catch (Exception e) {
-              fail(e.getMessage());
+              fail(e.toString());
               throw e;
             }
             remaining -= bytesToWrite;

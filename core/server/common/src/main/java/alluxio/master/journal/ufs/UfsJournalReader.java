@@ -158,7 +158,7 @@ public final class UfsJournalReader implements JournalReader {
       } catch (IOException e) {
         throw new IOException(String
             .format("Failed to read from journal: %s error: %s", mJournal.getLocation(),
-                e.getMessage()), e);
+                e.toString()), e);
       }
       if (entry == null) {
         return;

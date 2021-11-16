@@ -350,7 +350,7 @@ public final class UfsJournalWriter implements JournalWriter {
       } catch (IOException e) {
         mRotateLogForNextWrite = true;
         throw new IOException(ExceptionMessage.JOURNAL_WRITE_FAILURE.getMessageWithUrl(
-            RuntimeConstants.ALLUXIO_DEBUG_DOCS_URL, mCurrentLog, e.getMessage()), e);
+            RuntimeConstants.ALLUXIO_DEBUG_DOCS_URL, mCurrentLog, e.toString()), e);
       }
     }
 
@@ -378,7 +378,7 @@ public final class UfsJournalWriter implements JournalWriter {
       } catch (IOException e) {
         mRotateLogForNextWrite = true;
         throw new IOException(ExceptionMessage.JOURNAL_FLUSH_FAILURE.getMessageWithUrl(
-            RuntimeConstants.ALLUXIO_DEBUG_DOCS_URL, mCurrentLog, e.getMessage()), e);
+            RuntimeConstants.ALLUXIO_DEBUG_DOCS_URL, mCurrentLog, e.toString()), e);
       }
       boolean overSize = mDataOutputStream.size() >= mMaxLogSize;
       if (overSize || !mUfs.supportsFlush()) {

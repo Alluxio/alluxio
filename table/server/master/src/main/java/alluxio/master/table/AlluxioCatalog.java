@@ -133,7 +133,7 @@ public class AlluxioCatalog implements Journaled {
         LOG.error(String.format("Sync (during attach) failed for db '%s'.", dbName), e);
         throw new IOException(String
             .format("Failed to connect underDb for Alluxio db '%s': %s", dbName,
-                e.getMessage()), e);
+                e.toString()), e);
       } finally {
         if (syncError && !ignoreSyncErrors) {
           applyAndJournal(journalContext, Journal.JournalEntry.newBuilder().setDetachDb(
@@ -159,7 +159,7 @@ public class AlluxioCatalog implements Journaled {
       // log the error and stack
       LOG.error(String.format("Sync failed for db '%s'.", dbName), e);
       throw new IOException(
-          String.format("Sync failed for db '%s'. error: %s", dbName, e.getMessage()), e);
+          String.format("Sync failed for db '%s'. error: %s", dbName, e.toString()), e);
     }
   }
 

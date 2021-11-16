@@ -113,7 +113,7 @@ public class AlluxioCatalogTest {
       mCatalog.getDatabase(dbName);
       fail();
     } catch (IOException e) {
-      assertEquals("Database " + dbName + " does not exist", e.getMessage());
+      assertEquals("Database " + dbName + " does not exist", e.toString());
     }
 
     mCatalog.attachDatabase(NoopJournalContext.INSTANCE,

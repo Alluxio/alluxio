@@ -190,7 +190,7 @@ public class LocalUnderFileSystem extends ConsistentUnderFileSystem
       return new UfsDirectoryStatus(path, attr.owner().getName(), attr.group().getName(),
           FileUtils.translatePosixPermissionToMode(attr.permissions()), file.lastModified());
     } catch (FileSystemException e) {
-      throw new FileNotFoundException(e.getMessage());
+      throw new FileNotFoundException(e.toString());
     }
   }
 
@@ -224,7 +224,7 @@ public class LocalUnderFileSystem extends ConsistentUnderFileSystem
           FileUtils.translatePosixPermissionToMode(attr.permissions()),
           mUfsConf.getBytes(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT));
     } catch (FileSystemException e) {
-      throw new FileNotFoundException(e.getMessage());
+      throw new FileNotFoundException(e.toString());
     }
   }
 
@@ -264,7 +264,7 @@ public class LocalUnderFileSystem extends ConsistentUnderFileSystem
       return new UfsDirectoryStatus(path, attr.owner().getName(), attr.group().getName(),
           FileUtils.translatePosixPermissionToMode(attr.permissions()), file.lastModified());
     } catch (FileSystemException e) {
-      throw new FileNotFoundException(e.getMessage());
+      throw new FileNotFoundException(e.toString());
     }
   }
 

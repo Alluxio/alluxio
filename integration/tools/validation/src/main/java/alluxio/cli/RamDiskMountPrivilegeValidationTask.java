@@ -115,7 +115,7 @@ public final class RamDiskMountPrivilegeValidationTask extends AbstractValidatio
       }
     } catch (IOException e) {
       msg.append(String.format("Failed to validate ram disk mounting privilege at %s: %s.%n",
-          path, e.getMessage()));
+          path, e.toString()));
       msg.append(ValidationUtils.getErrorInfo(e));
       ValidationTaskResult result =
               new ValidationTaskResult(ValidationUtils.State.FAILED, getName(),

@@ -249,7 +249,7 @@ public class CollectLogCommand  extends AbstractCollectInfoCommand {
         File targetFile = new File(mWorkingDirPath, relativePath);
         FileUtils.copyFile(f, targetFile, true);
       } catch (IOException e) {
-        System.err.format("ERROR: file %s not found %s%n", f.getCanonicalPath(), e.getMessage());
+        System.err.format("ERROR: file %s not found %s%n", f.getCanonicalPath(), e.toString());
       }
     }
 

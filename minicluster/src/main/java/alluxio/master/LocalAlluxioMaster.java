@@ -110,7 +110,7 @@ public final class LocalAlluxioMaster {
         } catch (Exception e) {
           // Log the exception as the RuntimeException will be caught and handled silently by JUnit
           LOG.error("Start master error", e);
-          throw new RuntimeException(e + " \n Start Master Error \n" + e.getMessage(), e);
+          throw new RuntimeException(e + " \n Start Master Error \n" + e.toString(), e);
         }
       }
     };
@@ -138,7 +138,7 @@ public final class LocalAlluxioMaster {
         } catch (Exception e) {
           // Log the exception as the RuntimeException will be caught and handled silently by JUnit
           LOG.error("Start secondary master error", e);
-          throw new RuntimeException(e + " \n Start Secondary Master Error \n" + e.getMessage(), e);
+          throw new RuntimeException(e + " \n Start Secondary Master Error \n" + e.toString(), e);
         }
       }
     };

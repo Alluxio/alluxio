@@ -316,7 +316,7 @@ public class FuseIOBench extends Benchmark<FuseIOTaskResult> {
         try {
           mFuseIOTaskResult.merge(threadResult);
         } catch (Exception e) {
-          mFuseIOTaskResult.addErrorMessage(e.getMessage());
+          mFuseIOTaskResult.addErrorMessage(e.toString());
         }
       }
     }
@@ -357,7 +357,7 @@ public class FuseIOBench extends Benchmark<FuseIOTaskResult> {
         runInternal();
       } catch (Exception e) {
         LOG.error(Thread.currentThread().getName() + ": failed", e);
-        mFuseIOTaskResult.addErrorMessage(e.getMessage());
+        mFuseIOTaskResult.addErrorMessage(e.toString());
       } finally {
         closeInStream();
         closeOutStream();
@@ -536,7 +536,7 @@ public class FuseIOBench extends Benchmark<FuseIOTaskResult> {
           mInStream.close();
         }
       } catch (IOException e) {
-        mFuseIOTaskResult.addErrorMessage(e.getMessage());
+        mFuseIOTaskResult.addErrorMessage(e.toString());
       } finally {
         mInStream = null;
       }
@@ -548,7 +548,7 @@ public class FuseIOBench extends Benchmark<FuseIOTaskResult> {
           mOutStream.close();
         }
       } catch (IOException e) {
-        mFuseIOTaskResult.addErrorMessage(e.getMessage());
+        mFuseIOTaskResult.addErrorMessage(e.toString());
       } finally {
         mOutStream = null;
       }

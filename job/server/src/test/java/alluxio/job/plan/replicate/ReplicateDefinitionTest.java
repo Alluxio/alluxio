@@ -315,7 +315,7 @@ public final class ReplicateDefinitionTest {
       runTaskReplicateTestHelper(Lists.newArrayList(localBlockWorker), mockInStream, mockOutStream);
       fail("Expected the task to throw and IOException");
     } catch (IOException e) {
-      assertEquals("test", e.getMessage());
+      assertEquals("test", e.toString());
     }
     verify(mockOutStream).cancel();
   }
