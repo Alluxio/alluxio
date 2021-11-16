@@ -15,6 +15,8 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
+import java.util.Objects;
+
 /**
  * Result returned after requests for completing a multipart upload.
  * It is defined in http://docs.aws.amazon.com/AmazonS3/latest/API/mpUploadComplete.html.
@@ -167,5 +169,42 @@ public class CompleteMultipartUploadResult {
   @JacksonXmlProperty(localName = "Message")
   public void setMessage(String message) {
     mMessage = message;
+  }
+
+  @Override
+  public String toString() {
+    return "CompleteMultipartUploadResult{"
+        + "mLocation='" + mLocation + '\''
+        + ", mBucket='" + mBucket + '\''
+        + ", mKey='" + mKey + '\''
+        + ", mETag='" + mETag + '\''
+        + ", mCode='" + mCode + '\''
+        + ", mMessage='" + mMessage + '\''
+        + '}';
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+    CompleteMultipartUploadResult result = (CompleteMultipartUploadResult) o;
+    return Objects.equals(mLocation, result.mLocation)
+        && Objects.equals(mBucket, result.mBucket)
+        && Objects.equals(mKey, result.mKey)
+        && Objects.equals(mETag, result.mETag)
+        && Objects.equals(mCode, result.mCode)
+        && Objects.equals(mMessage, result.mMessage);
+  }
+
+  @Override
+  public int hashCode() {
+    if (mCode == null) {
+      return Objects.hash(mLocation, mBucket, mKey, mETag);
+    }
+    return Objects.hash(mCode, mMessage);
   }
 }
