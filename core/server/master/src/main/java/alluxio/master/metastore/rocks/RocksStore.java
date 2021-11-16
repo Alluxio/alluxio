@@ -39,7 +39,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
-import javax.annotation.concurrent.ThreadSafe;
+import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * Class for managing a rocksdb database. This class handles common functionality such as
@@ -47,7 +47,7 @@ import javax.annotation.concurrent.ThreadSafe;
  *
  * Thread safety is achieved by synchronizing all public methods.
  */
-@ThreadSafe
+@NotThreadSafe
 public final class RocksStore implements Closeable {
   private static final Logger LOG = LoggerFactory.getLogger(RocksStore.class);
   public static final int ROCKS_OPEN_RETRY_TIMEOUT = 20 * Constants.SECOND_MS;
