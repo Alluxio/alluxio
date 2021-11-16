@@ -62,8 +62,6 @@ import java.util.stream.Collectors;
  * Utility class to make it easier to write jobs.
  */
 public final class JobUtils {
-  // a read buffer that should be ignored
-  private static byte[] sIgnoredReadBuf = new byte[8 * Constants.MB];
   private static final IndexDefinition<BlockWorkerInfo, WorkerNetAddress> WORKER_ADDRESS_INDEX =
       new IndexDefinition<BlockWorkerInfo, WorkerNetAddress>(true) {
         @Override
