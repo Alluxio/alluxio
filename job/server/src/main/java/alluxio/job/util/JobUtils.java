@@ -17,22 +17,26 @@ import alluxio.client.block.AlluxioBlockStore;
 import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.block.policy.BlockLocationPolicy;
 import alluxio.client.block.policy.LocalFirstPolicy;
+import alluxio.client.block.stream.BlockInStream;
+import alluxio.client.block.stream.BlockWorkerClient;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.URIStatus;
 import alluxio.client.file.options.InStreamOptions;
 import alluxio.client.file.options.OutStreamOptions;
 import alluxio.collections.IndexDefinition;
 import alluxio.collections.IndexedSet;
+import alluxio.collections.Pair;
 import alluxio.conf.AlluxioConfiguration;
-import alluxio.conf.AlluxioProperties;
 import alluxio.conf.InstancedConfiguration;
-import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.status.NotFoundException;
+import alluxio.grpc.CacheRequest;
 import alluxio.grpc.OpenFilePOptions;
 import alluxio.grpc.ReadPType;
+import alluxio.proto.dataserver.Protocol;
+import alluxio.resource.CloseableResource;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
 import alluxio.wire.BlockInfo;
@@ -129,7 +133,7 @@ public final class JobUtils {
     }
 
     if (localNetAddress == null) {
-      throw new NotFoundException(ExceptionMessage.NO_LOCAL_BLOCK_WORKER_REPLICATE_TASK
+      throw new NotFoundException(ExceptionMessage.NO_LOCAL_BLOCK_WORKER_LOAD_TASK
           .getMessage(blockId));
     }
 
@@ -141,23 +145,37 @@ public final class JobUtils {
 
     // when the data to load is persisted, simply use local worker to load
     // from ufs (e.g. distributed load) or from a remote worker (e.g. setReplication)
-    // This does not work for remote worker unless we have passive cache on.
     // Only use this read local first method to load if nearest worker is clear
     if (netAddress.size() <= 1 && pinnedLocation.isEmpty() && status.isPersisted()) {
-      AlluxioProperties prop = context.getClusterConf().copyProperties();
-      prop.set(PropertyKey.USER_FILE_PASSIVE_CACHE_ENABLED, "true");
-      AlluxioConfiguration config = new InstancedConfiguration(prop);
+      AlluxioConfiguration config = new InstancedConfiguration(context.getClusterConf());
       FileSystemContext loadContext = FileSystemContext.create(config);
       AlluxioBlockStore blockStore = AlluxioBlockStore.create(loadContext);
       OpenFilePOptions openOptions =
           OpenFilePOptions.newBuilder().setReadType(ReadPType.CACHE).build();
       InStreamOptions inOptions = new InStreamOptions(status, openOptions, conf);
-      inOptions.setUfsReadLocationPolicy(BlockLocationPolicy.Factory.create(
-          LocalFirstPolicy.class.getCanonicalName(), conf));
+      BlockLocationPolicy policy =
+          BlockLocationPolicy.Factory.create(LocalFirstPolicy.class.getCanonicalName(), conf);
+      inOptions.setUfsReadLocationPolicy(policy);
+      Protocol.OpenUfsBlockOptions openUfsBlockOptions = inOptions.getOpenUfsBlockOptions(blockId);
       BlockInfo info = Preconditions.checkNotNull(status.getBlockInfo(blockId));
-      try (InputStream inputStream = blockStore.getInStream(info, inOptions, ImmutableMap.of())) {
-        while (inputStream.read(sIgnoredReadBuf) != -1) {
-        }
+      long blockLength = info.getLength();
+      Pair<WorkerNetAddress, BlockInStream.BlockInStreamSource> dataSourceAndType = blockStore
+          .getDataSourceAndType(status.getBlockInfo(blockId), status, policy, ImmutableMap.of());
+      WorkerNetAddress dataSource = dataSourceAndType.getFirst();
+      String host = dataSource.getHost();
+      // issues#11172: If the worker is in a container, use the container hostname
+      // to establish the connection.
+      if (!dataSource.getContainerHost().equals("")) {
+        host = dataSource.getContainerHost();
+      }
+      CacheRequest request = CacheRequest.newBuilder().setBlockId(blockId).setLength(blockLength)
+          .setOpenUfsBlockOptions(openUfsBlockOptions).setSourceHost(host)
+          .setSourcePort(dataSource.getDataPort()).build();
+      try (CloseableResource<BlockWorkerClient> blockWorker =
+          loadContext.acquireBlockWorkerClient(localNetAddress)) {
+        blockWorker.get().cache(request);
+      } catch (Exception e) {
+        throw new IOException(e);
       }
       return;
     }
