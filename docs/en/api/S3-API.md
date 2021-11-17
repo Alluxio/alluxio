@@ -36,6 +36,10 @@ The following table describes the support status for current Amazon S3 functiona
 {% endfor %}
 </table>
 
+### Limitation
+In Alluxio, we use / as reserved separator, so don't create the S3 directory with /, like
+s3://example-bucket//.
+
 ## Language support
 Alluxio S3 client supports various programming languages, such as C++, Java, Python, Golang, and Ruby.
 In this documentation, we use curl REST calls and python S3 client as usage examples.
