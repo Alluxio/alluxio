@@ -8,7 +8,9 @@ Cluster.BytesReadDomainThroughput,GAUGE
 Cluster.BytesReadLocal,COUNTER
 Cluster.BytesReadLocalThroughput,GAUGE
 Cluster.BytesReadPerUfs,COUNTER
-Cluster.BytesReadRemote,COUNTER
+Cluster.BytesReadRemote,GAUGE
+Cluster.BytesReadRemoteUfs,COUNTER
+Cluster.BytesReadRemoteAlluxio,COUNTER
 Cluster.BytesReadRemoteThroughput,GAUGE
 Cluster.BytesReadUfsAll,COUNTER
 Cluster.BytesReadUfsThroughput,GAUGE

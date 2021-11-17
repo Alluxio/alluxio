@@ -57,8 +57,8 @@ public class MetricsStore {
   /**
    * A map from the cluster counter key representing the metrics to be aggregated
    * to the corresponding aggregated cluster Counter.
-   * For example, Counter of cluster.BytesReadRemote is aggregated from
-   * the worker reported worker.BytesReadRemote.
+   * For example, Counter of cluster.BytesReadRemoteUfs is aggregated from
+   * the worker reported worker.BytesReadRemoteUfs.
    *
    * Exceptions are the BytesRead/WrittenUfs metrics which records
    * the actual cluster metrics name to its Counter directly.
@@ -178,11 +178,14 @@ public class MetricsStore {
     try (LockResource r = new LockResource(mLock.readLock())) {
       // worker metrics
       mClusterCounters.putIfAbsent(new ClusterCounterKey(InstanceType.WORKER,
-              MetricKey.WORKER_BYTES_READ_DIRECT.getMetricName()),
+          MetricKey.WORKER_BYTES_READ_DIRECT.getMetricName()),
           MetricsSystem.counter(MetricKey.CLUSTER_BYTES_READ_DIRECT.getName()));
       mClusterCounters.putIfAbsent(new ClusterCounterKey(InstanceType.WORKER,
-          MetricKey.WORKER_BYTES_READ_REMOTE.getMetricName()),
-          MetricsSystem.counter(MetricKey.CLUSTER_BYTES_READ_REMOTE.getName()));
+          MetricKey.WORKER_BYTES_READ_REMOTE_UFS.getMetricName()),
+          MetricsSystem.counter(MetricKey.CLUSTER_BYTES_READ_REMOTE_UFS.getName()));
+      mClusterCounters.putIfAbsent(new ClusterCounterKey(InstanceType.WORKER,
+          MetricKey.WORKER_BYTES_READ_REMOTE_ALLUXIO.getMetricName()),
+          MetricsSystem.counter(MetricKey.CLUSTER_BYTES_READ_REMOTE_ALLUXIO.getName()));
       mClusterCounters.putIfAbsent(new ClusterCounterKey(InstanceType.WORKER,
           MetricKey.WORKER_BYTES_READ_DOMAIN.getMetricName()),
           MetricsSystem.counter(MetricKey.CLUSTER_BYTES_READ_DOMAIN.getName()));
@@ -217,13 +220,23 @@ public class MetricsStore {
           MetricsSystem.counter(MetricKey.CLUSTER_BYTES_WRITTEN_UFS_ALL.getName()));
 
       MetricsSystem.registerGaugeIfAbsent(
+          MetricsSystem.getMetricName(MetricKey.CLUSTER_BYTES_READ_REMOTE.getName()),
+          () -> {
+            long ufs = MetricsSystem.counter(MetricKey.CLUSTER_BYTES_READ_REMOTE_UFS.getName())
+                .getCount();
+            long alluxio = MetricsSystem.counter(
+                MetricKey.CLUSTER_BYTES_READ_REMOTE_ALLUXIO.getName()).getCount();
+            return ufs + alluxio;
+          });
+
+      MetricsSystem.registerGaugeIfAbsent(
           MetricsSystem.getMetricName(MetricKey.CLUSTER_CACHE_HIT_RATE.getName()),
           () -> {
             long cacheMisses = MetricsSystem.counter(MetricKey.CLUSTER_BYTES_READ_UFS_ALL.getName())
                 .getCount();
-            long total =
-                MetricsSystem.counter(MetricKey.CLUSTER_BYTES_READ_DIRECT.getName()).getCount()
-                + MetricsSystem.counter(MetricKey.CLUSTER_BYTES_READ_REMOTE.getName()).getCount()
+            long total = cacheMisses
+                + MetricsSystem.counter(
+                   MetricKey.CLUSTER_BYTES_READ_REMOTE_ALLUXIO.getName()).getCount()
                 + MetricsSystem.counter(MetricKey.CLUSTER_BYTES_READ_DOMAIN.getName()).getCount()
                 + MetricsSystem.counter(MetricKey.CLUSTER_BYTES_READ_LOCAL.getName()).getCount();
             if (total > 0) {

@@ -733,6 +733,21 @@ public final class MetricKey implements Comparable<MetricKey> {
               + "or underlying UFS if data does not exist in Alluxio storage "
               + "reported by all workers. This does not include "
               + "short-circuit local reads and domain socket reads")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey CLUSTER_BYTES_READ_REMOTE_UFS =
+      new Builder("Cluster.BytesReadRemoteUfs")
+          .setDescription("Total number of bytes read from "
+              + "underlying UFS if data does not exist in Alluxio storage "
+              + "reported by all workers. This does not include "
+              + "short-circuit local reads and domain socket reads")
+          .setMetricType(MetricType.COUNTER)
+          .build();
+  public static final MetricKey CLUSTER_BYTES_READ_REMOTE_ALLUXIO =
+      new Builder("Cluster.BytesReadRemoteAlluxio")
+          .setDescription("Total number of bytes read from Alluxio storage "
+              + "reported by all workers. This does not include "
+              + "short-circuit local reads and domain socket reads")
           .setMetricType(MetricType.COUNTER)
           .build();
   public static final MetricKey CLUSTER_BYTES_READ_REMOTE_THROUGHPUT =
@@ -1008,10 +1023,18 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setMetricType(MetricType.METER)
           .setIsClusterAggregated(false)
           .build();
-  public static final MetricKey WORKER_BYTES_READ_REMOTE =
-      new Builder("Worker.BytesReadRemote")
+  public static final MetricKey WORKER_BYTES_READ_REMOTE_UFS =
+      new Builder("Worker.BytesReadRemoteUfs")
+          .setDescription("Total number of bytes read from "
+              + "underlying UFS if data cannot be found in the Alluxio storage "
+              + "via external RPC channel. This does not include "
+              + "short-circuit local reads and domain socket reads.")
+          .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggregated(true)
+          .build();
+  public static final MetricKey WORKER_BYTES_READ_REMOTE_ALLUXIO =
+      new Builder("Worker.BytesReadRemoteAlluxio")
           .setDescription("Total number of bytes read from Alluxio storage managed by this worker "
-              + "and underlying UFS if data cannot be found in the Alluxio storage "
               + "via external RPC channel. This does not include "
               + "short-circuit local reads and domain socket reads.")
           .setMetricType(MetricType.COUNTER)

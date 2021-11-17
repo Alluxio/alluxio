@@ -223,10 +223,10 @@ public final class AlluxioMasterRestServiceHandler {
       String proxyHostname = NetworkAddressUtils
           .getConnectHost(NetworkAddressUtils.ServiceType.PROXY_WEB, ServerConfiguration.global());
       int proxyPort = ServerConfiguration.getInt(PropertyKey.PROXY_WEB_PORT);
-      Map<String, String> proxyDowloadFileApiUrl = new HashMap<>();
-      proxyDowloadFileApiUrl
+      Map<String, String> proxyDownloadFileApiUrl = new HashMap<>();
+      proxyDownloadFileApiUrl
           .put("prefix", "http://" + proxyHostname + ":" + proxyPort + "/api/v1/paths/");
-      proxyDowloadFileApiUrl.put("suffix", "/download-file/");
+      proxyDownloadFileApiUrl.put("suffix", "/download-file/");
 
       response.setDebug(ServerConfiguration.getBoolean(PropertyKey.DEBUG))
           .setNewerVersionAvailable(mMetaMaster.getNewerVersionAvailable())
@@ -235,7 +235,7 @@ public final class AlluxioMasterRestServiceHandler {
               ServerConfiguration.getBoolean(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_ENABLED))
           .setWorkerPort(ServerConfiguration.getInt(PropertyKey.WORKER_WEB_PORT))
           .setRefreshInterval((int) ServerConfiguration.getMs(PropertyKey.WEB_REFRESH_INTERVAL))
-          .setProxyDownloadFileApiUrl(proxyDowloadFileApiUrl);
+          .setProxyDownloadFileApiUrl(proxyDownloadFileApiUrl);
 
       return response;
     }, ServerConfiguration.global());
@@ -916,24 +916,28 @@ public final class AlluxioMasterRestServiceHandler {
       // cluster read size
       Long bytesReadLocal = counters.get(
           MetricKey.CLUSTER_BYTES_READ_LOCAL.getName()).getCount();
-      Long bytesReadRemote = counters.get(
-          MetricKey.CLUSTER_BYTES_READ_REMOTE.getName()).getCount();
+      Long bytesReadRemoteUfs = counters.get(
+          MetricKey.CLUSTER_BYTES_READ_REMOTE_UFS.getName()).getCount();
+      Long bytesReadRemoteAlluxio = counters.get(
+          MetricKey.CLUSTER_BYTES_READ_REMOTE_ALLUXIO.getName()).getCount();
       Long bytesReadDomainSocket = counters.get(
           MetricKey.CLUSTER_BYTES_READ_DOMAIN.getName()).getCount();
       Long bytesReadUfs = counters.get(
           MetricKey.CLUSTER_BYTES_READ_UFS_ALL.getName()).getCount();
       response.setTotalBytesReadLocal(FormatUtils.getSizeFromBytes(bytesReadLocal))
           .setTotalBytesReadDomainSocket(FormatUtils.getSizeFromBytes(bytesReadDomainSocket))
-          .setTotalBytesReadRemote(FormatUtils.getSizeFromBytes(bytesReadRemote))
+          .setTotalBytesReadRemote(FormatUtils.getSizeFromBytes(
+              bytesReadRemoteUfs + bytesReadRemoteAlluxio))
           .setTotalBytesReadUfs(FormatUtils.getSizeFromBytes(bytesReadUfs));
 
       // cluster cache hit and miss
-      long bytesReadTotal = bytesReadLocal + bytesReadRemote + bytesReadDomainSocket;
+      long bytesReadTotal = bytesReadLocal + bytesReadUfs
+          + bytesReadDomainSocket + bytesReadRemoteAlluxio;
       double cacheHitLocalPercentage =
           (bytesReadTotal > 0)
               ? (100D * (bytesReadLocal + bytesReadDomainSocket) / bytesReadTotal) : 0;
       double cacheHitRemotePercentage =
-          (bytesReadTotal > 0) ? (100D * (bytesReadRemote - bytesReadUfs) / bytesReadTotal) : 0;
+          (bytesReadTotal > 0) ? (100D * bytesReadRemoteAlluxio / bytesReadTotal) : 0;
       double cacheMissPercentage =
           (bytesReadTotal > 0) ? (100D * bytesReadUfs / bytesReadTotal) : 0;
       response.setCacheHitLocal(String.format("%.2f", cacheHitLocalPercentage))

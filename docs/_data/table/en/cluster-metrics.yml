@@ -18,6 +18,10 @@ Cluster.BytesReadPerUfs:
   'Total number of bytes read from a specific UFS by all workers'
 Cluster.BytesReadRemote:
   'Total number of bytes read from Alluxio storage or underlying UFS if data does not exist in Alluxio storage reported by all workers. This does not include short-circuit local reads and domain socket reads'
+Cluster.BytesReadRemoteUfs:
+  'Total number of bytes read from underlying UFS if data does not exist in Alluxio storage reported by all workers. This does not include short-circuit local reads and domain socket reads'
+Cluster.BytesReadRemoteAlluxio:
+  'Total number of bytes read from Alluxio storage reported by all workers. This does not include short-circuit local reads and domain socket reads'
 Cluster.BytesReadRemoteThroughput:
   'Bytes read per minute throughput from Alluxio storage or underlying UFS if data does not exist in Alluxio storage reported by all workers. This does not include short-circuit local reads and domain socket reads'
 Cluster.BytesReadUfsAll:

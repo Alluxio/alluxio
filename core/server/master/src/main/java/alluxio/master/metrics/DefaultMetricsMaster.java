@@ -107,7 +107,8 @@ public class DefaultMetricsMaster extends CoreMaster implements MetricsMaster, N
     // worker metrics
     registerThroughputGauge(MetricKey.CLUSTER_BYTES_READ_DIRECT.getName(),
         MetricKey.CLUSTER_BYTES_READ_DIRECT_THROUGHPUT.getName());
-    registerThroughputGauge(MetricKey.CLUSTER_BYTES_READ_REMOTE.getName(),
+    registerThroughputGauge(MetricKey.CLUSTER_BYTES_READ_REMOTE_UFS.getName(),
+        MetricKey.CLUSTER_BYTES_READ_REMOTE_ALLUXIO.getName(),
         MetricKey.CLUSTER_BYTES_READ_REMOTE_THROUGHPUT.getName());
     registerThroughputGauge(MetricKey.CLUSTER_BYTES_READ_DOMAIN.getName(),
         MetricKey.CLUSTER_BYTES_READ_DOMAIN_THROUGHPUT.getName());
@@ -149,6 +150,33 @@ public class DefaultMetricsMaster extends CoreMaster implements MetricsMaster, N
             long uptime = (mClock.millis() - lastClearTime)
                 / Constants.MINUTE_MS;
             long value = MetricsSystem.counter(counterName).getCount();
+            // The value is bytes per minute
+            return uptime <= 0 ? value : value / uptime;
+          }
+        });
+  }
+
+  /**
+   * Registers the corresponding throughput of the given counter.
+   *
+   * @param counterName1 the counter to get value of
+   * @param counterName2 the counter to get value of
+   * @param throughputName the gauge throughput name to be registered
+   */
+  @VisibleForTesting
+  protected void registerThroughputGauge(String counterName1, String counterName2,
+                                         String throughputName) {
+    MetricsSystem.registerGaugeIfAbsent(throughputName,
+        new Gauge<Object>() {
+          @Override
+          public Object getValue() {
+            // Divide into two lines so uptime is always zero or positive
+            long lastClearTime = mMetricsStore.getLastClearTime();
+            long uptime = (mClock.millis() - lastClearTime)
+                / Constants.MINUTE_MS;
+            long value1 = MetricsSystem.counter(counterName1).getCount();
+            long value2 = MetricsSystem.counter(counterName2).getCount();
+            long value = value1 + value2;
             // The value is bytes per minute
             return uptime <= 0 ? value : value / uptime;
           }

@@ -30,7 +30,9 @@ import alluxio.util.LogUtils;
 import alluxio.util.logging.SamplingLogger;
 import alluxio.wire.BlockReadRequest;
 import alluxio.worker.block.BlockWorker;
+import alluxio.worker.block.UnderFileSystemBlockReader;
 import alluxio.worker.block.io.BlockReader;
+import alluxio.worker.block.io.DelegatingBlockReader;
 
 import com.codahale.metrics.Counter;
 import com.codahale.metrics.Meter;
@@ -280,7 +282,8 @@ public class BlockReadHandler implements StreamObserver<alluxio.grpc.ReadRequest
       context.setMeter(MetricsSystem
           .meter(MetricKey.WORKER_BYTES_READ_DOMAIN_THROUGHPUT.getName()));
     } else {
-      context.setCounter(MetricsSystem.counter(MetricKey.WORKER_BYTES_READ_REMOTE.getName()));
+      context.setCounter(MetricsSystem
+          .counter(MetricKey.WORKER_BYTES_READ_REMOTE_ALLUXIO.getName()));
       context.setMeter(MetricsSystem
           .meter(MetricKey.WORKER_BYTES_READ_REMOTE_THROUGHPUT.getName()));
     }
@@ -416,6 +419,7 @@ public class BlockReadHandler implements StreamObserver<alluxio.grpc.ReadRequest
 
           if (chunk != null) {
             DataBuffer finalChunk = chunk;
+            final BlockReader blockReader = mContext.getBlockReader();
             mSerializingExecutor.execute(() -> {
               try {
                 ReadResponse response = ReadResponse.newBuilder().setChunk(Chunk.newBuilder()
@@ -426,6 +430,12 @@ public class BlockReadHandler implements StreamObserver<alluxio.grpc.ReadRequest
                       .onNext(new DataMessage<>(response, finalChunk));
                 } else {
                   mResponse.onNext(response);
+                }
+                if (blockReader instanceof DelegatingBlockReader
+                    && ((DelegatingBlockReader) blockReader).getDelegate()
+                     instanceof UnderFileSystemBlockReader) {
+                  mContext.setCounter(MetricsSystem.counter(
+                          MetricKey.WORKER_BYTES_READ_REMOTE_UFS.getName()));
                 }
                 incrementMetrics(finalChunk.getLength());
               } catch (Exception e) {

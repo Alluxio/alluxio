@@ -78,7 +78,7 @@ public class MetricsMasterTest {
   public void testThroughputGauge() throws Exception {
     String counterName = "Master.counter";
     String throughputName = "Cluster.counterThroughput";
-    mMetricsMaster.registerThroughputGauge("Master.counter", "Cluster.counterThroughput");
+    mMetricsMaster.registerThroughputGauge(counterName, throughputName);
     Metric metric = MetricsSystem.getMetricValue(throughputName);
     assertNotNull(metric);
     assertEquals(0, (long) metric.getValue());
@@ -91,8 +91,31 @@ public class MetricsMasterTest {
 
     masterCounter.inc(200);
     mClock.addTimeMs(2 * Constants.MINUTE_MS);
-    System.out.println(gauge.getValue());
     assertEquals(150, (long) gauge.getValue());
+  }
+
+  @Test
+  public void testThroughputGauge2() throws Exception {
+    String counterName1 = "Master.counter1";
+    String counterName2 = "Master.counter2";
+    String throughputName = "Cluster.counterThroughput";
+    mMetricsMaster.registerThroughputGauge(counterName1, counterName2, throughputName);
+    Metric metric = MetricsSystem.getMetricValue(throughputName);
+    assertNotNull(metric);
+    assertEquals(0, (long) metric.getValue());
+
+    Counter masterCounter1 = MetricsSystem.counter(counterName1);
+    masterCounter1.inc(100);
+    Counter masterCounter2 = MetricsSystem.counter(counterName1);
+    masterCounter2.inc(100);
+    Gauge gauge = MetricsSystem.METRIC_REGISTRY.getGauges().get(throughputName);
+    assertNotNull(gauge);
+    assertEquals(200, (long) gauge.getValue());
+
+    masterCounter1.inc(200);
+    masterCounter2.inc(200);
+    mClock.addTimeMs(2 * Constants.MINUTE_MS);
+    assertEquals(300, (long) gauge.getValue());
   }
 
   @Test
