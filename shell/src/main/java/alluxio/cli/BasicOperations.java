@@ -71,8 +71,7 @@ public class BasicOperations implements Callable<Boolean> {
     return readFile(fs);
   }
 
-  private void writeFile(FileSystem fileSystem)
-    throws IOException, AlluxioException {
+  private void writeFile(FileSystem fileSystem) throws IOException, AlluxioException {
     ByteBuffer buf = ByteBuffer.allocate(NUMBERS * 4);
     buf.order(ByteOrder.nativeOrder());
     for (int k = 0; k < NUMBERS; k++) {

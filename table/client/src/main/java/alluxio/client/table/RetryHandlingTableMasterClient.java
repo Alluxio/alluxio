@@ -184,7 +184,7 @@ public final class RetryHandlingTableMasterClient extends AbstractMasterClient
         "databaseName=%s,tableName=%s,partitionNames=%s,columnNames=%s",
         databaseName, tableName, partitionNames, columnNames)
         .entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey,
-            e->e.getValue().getStatisticsList(), (e1, e2) -> e1));
+            e -> e.getValue().getStatisticsList(), (e1, e2) -> e1));
   }
 
   @Override

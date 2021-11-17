@@ -80,26 +80,26 @@ public class CollectLogCommand  extends AbstractCollectInfoCommand {
   // and "XX" parses to the timezone, which is "+0800".
   // The datetime parsing works only when the string matches exactly to the format.
   private static final Map<DateTimeFormatter, Integer> FORMATTERS =
-          new LinkedHashMap<DateTimeFormatter, Integer>(){
-    {
-      // "2020-01-03 12:10:11,874"
-      put(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss,SSS"), 23);
-      // "2020-01-03 12:10:11"
-      put(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"), 19);
-      // "2020-01-03 12:10"
-      put(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"), 16);
-      // "20/01/03 12:10:11"
-      put(DateTimeFormatter.ofPattern("yy/MM/dd HH:mm:ss"), 17);
-      // "20/01/03 12:10"
-      put(DateTimeFormatter.ofPattern("yy/MM/dd HH:mm"), 14);
-      // 2020-01-03T12:10:11.874+0800
-      put(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSXX"), 28);
-      // 2020-01-03T12:10:11
-      put(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss"), 19);
-      // 2020-01-03T12:10
-      put(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm"), 16);
-    }
-  };
+          new LinkedHashMap<DateTimeFormatter, Integer>() {
+        {
+          // "2020-01-03 12:10:11,874"
+          put(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss,SSS"), 23);
+          // "2020-01-03 12:10:11"
+          put(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"), 19);
+          // "2020-01-03 12:10"
+          put(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"), 16);
+          // "20/01/03 12:10:11"
+          put(DateTimeFormatter.ofPattern("yy/MM/dd HH:mm:ss"), 17);
+          // "20/01/03 12:10"
+          put(DateTimeFormatter.ofPattern("yy/MM/dd HH:mm"), 14);
+          // 2020-01-03T12:10:11.874+0800
+          put(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSXX"), 28);
+          // 2020-01-03T12:10:11
+          put(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss"), 19);
+          // 2020-01-03T12:10
+          put(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm"), 16);
+        }
+      };
 
   private String mLogDirPath;
   private File mLogDir;

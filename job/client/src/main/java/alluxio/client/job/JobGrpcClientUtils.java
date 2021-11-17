@@ -103,7 +103,7 @@ public final class JobGrpcClientUtils {
     try (final JobMasterClient client =
         JobMasterClient.Factory.create(JobMasterClientContext
             .newBuilder(ClientContext.create(alluxioConf)).build())) {
-      return CommonUtils.waitForResult("Job to finish", ()-> {
+      return CommonUtils.waitForResult("Job to finish", () -> {
         try {
           return client.getJobStatus(jobId);
         } catch (Exception e) {

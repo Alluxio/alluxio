@@ -46,7 +46,7 @@ import java.util.List;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({MasterInquireClient.Factory.class, JobMasterClient.Factory.class,
-        FileSystemContext.class})
+    FileSystemContext.class})
 public class LogLevelTest {
   // Configure the web port to use special numbers to make sure the config is taking effect
   private static final int MASTER_WEB_PORT = 45699;
