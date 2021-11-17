@@ -18,8 +18,8 @@ import alluxio.grpc.MasterInfo;
 import alluxio.grpc.MasterInfoField;
 import alluxio.util.CommonUtils;
 import alluxio.util.FormatUtils;
-import alluxio.wire.BlockMasterInfo;
 import alluxio.wire.BlockMasterInfo.BlockMasterInfoField;
+import alluxio.wire.BlockMasterInfo;
 
 import com.google.common.base.Strings;
 

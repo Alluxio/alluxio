@@ -12,13 +12,13 @@
 package alluxio.worker.grpc;
 
 import alluxio.client.file.FileSystemContext;
-import alluxio.conf.ServerConfiguration;
 import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
+import alluxio.grpc.GrpcSerializationUtils;
 import alluxio.grpc.GrpcServer;
 import alluxio.grpc.GrpcServerAddress;
 import alluxio.grpc.GrpcServerBuilder;
 import alluxio.grpc.GrpcService;
-import alluxio.grpc.GrpcSerializationUtils;
 import alluxio.grpc.ServiceType;
 import alluxio.network.ChannelType;
 import alluxio.security.user.ServerUserState;
@@ -40,7 +40,6 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.util.concurrent.TimeUnit;
-
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**

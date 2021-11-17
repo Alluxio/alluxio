@@ -43,8 +43,8 @@ import alluxio.master.file.contexts.SetAttributeContext;
 import alluxio.master.file.meta.Inode;
 import alluxio.master.file.meta.InodeFile;
 import alluxio.master.file.meta.InodeLockManager;
-import alluxio.master.file.meta.InodeTree;
 import alluxio.master.file.meta.InodeTree.LockPattern;
+import alluxio.master.file.meta.InodeTree;
 import alluxio.master.file.meta.LockedInodePath;
 import alluxio.master.file.meta.LockingScheme;
 import alluxio.master.file.meta.MountTable;
@@ -94,7 +94,6 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.function.Function;
-
 import javax.annotation.Nullable;
 
 /**

@@ -13,8 +13,8 @@ package alluxio.cli;
 
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.util.ShellUtils;
-import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
+import alluxio.util.network.NetworkAddressUtils;
 
 import java.io.IOException;
 import java.net.ServerSocket;

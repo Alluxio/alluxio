@@ -24,7 +24,6 @@ import com.google.common.collect.Lists;
 
 import java.util.List;
 import java.util.stream.Collectors;
-
 import javax.annotation.concurrent.ThreadSafe;
 /**
  * A policy that returns the local worker first, and if the local worker doesn't

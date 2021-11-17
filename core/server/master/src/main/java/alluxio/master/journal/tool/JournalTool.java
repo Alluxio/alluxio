@@ -11,8 +11,8 @@
 
 package alluxio.master.journal.tool;
 
-import alluxio.annotation.SuppressFBWarnings;
 import alluxio.RuntimeConstants;
+import alluxio.annotation.SuppressFBWarnings;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.master.journal.JournalType;
@@ -27,7 +27,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**

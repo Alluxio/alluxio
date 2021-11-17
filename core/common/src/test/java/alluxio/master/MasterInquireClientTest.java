@@ -20,8 +20,8 @@ import alluxio.master.MasterInquireClient.ConnectDetails;
 import alluxio.master.SingleMasterInquireClient.SingleMasterConnectDetails;
 import alluxio.master.ZkMasterInquireClient.ZkMasterConnectDetails;
 import alluxio.util.ConfigurationUtils;
-import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
+import alluxio.util.network.NetworkAddressUtils;
 
 import org.junit.Before;
 import org.junit.Test;

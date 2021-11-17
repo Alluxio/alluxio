@@ -15,8 +15,8 @@ import alluxio.RuntimeConstants;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.exception.ExceptionMessage;
-import alluxio.exception.JournalClosedException;
 import alluxio.exception.JournalClosedException.IOJournalClosedException;
+import alluxio.exception.JournalClosedException;
 import alluxio.master.journal.JournalEntryStreamReader;
 import alluxio.master.journal.JournalWriter;
 import alluxio.metrics.MetricKey;
@@ -41,7 +41,6 @@ import java.net.URI;
 import java.util.ArrayDeque;
 import java.util.List;
 import java.util.Queue;
-
 import javax.annotation.concurrent.ThreadSafe;
 
 /**

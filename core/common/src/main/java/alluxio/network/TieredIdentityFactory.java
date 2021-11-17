@@ -13,12 +13,12 @@ package alluxio.network;
 
 import alluxio.Constants;
 import alluxio.conf.AlluxioConfiguration;
-import alluxio.conf.PropertyKey;
 import alluxio.conf.PropertyKey.Template;
+import alluxio.conf.PropertyKey;
 import alluxio.util.ShellUtils;
 import alluxio.util.network.NetworkAddressUtils;
-import alluxio.wire.TieredIdentity;
 import alluxio.wire.TieredIdentity.LocalityTier;
+import alluxio.wire.TieredIdentity;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
@@ -36,7 +36,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.GuardedBy;
 

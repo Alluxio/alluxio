@@ -76,9 +76,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.function.Supplier;
-
-import javax.annotation.concurrent.ThreadSafe;
 import javax.annotation.Nullable;
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * S3 {@link UnderFileSystem} implementation based on the aws-java-sdk-s3 library.

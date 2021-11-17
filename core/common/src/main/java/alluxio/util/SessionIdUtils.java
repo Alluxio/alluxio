@@ -12,7 +12,6 @@
 package alluxio.util;
 
 import java.security.SecureRandom;
-
 import javax.annotation.concurrent.ThreadSafe;
 
 /**

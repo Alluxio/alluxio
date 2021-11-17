@@ -24,7 +24,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.locks.Lock;
 import java.util.stream.Collectors;
-
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**

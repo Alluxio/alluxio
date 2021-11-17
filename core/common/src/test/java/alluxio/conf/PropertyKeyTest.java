@@ -17,9 +17,9 @@ import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertTrue;
 
 import alluxio.DefaultSupplier;
-import alluxio.conf.PropertyKey;
 import alluxio.conf.PropertyKey.Builder;
 import alluxio.conf.PropertyKey.Template;
+import alluxio.conf.PropertyKey;
 import alluxio.conf.RemovedKey;
 import alluxio.exception.ExceptionMessage;
 

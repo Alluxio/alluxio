@@ -11,8 +11,8 @@
 
 package alluxio.master.file;
 
-import static alluxio.master.file.InodeSyncStream.SyncStatus.NOT_NEEDED;
 import static alluxio.master.file.InodeSyncStream.SyncStatus.FAILED;
+import static alluxio.master.file.InodeSyncStream.SyncStatus.NOT_NEEDED;
 import static alluxio.metrics.MetricInfo.UFS_OP_SAVED_PREFIX;
 
 import alluxio.AlluxioURI;
@@ -65,7 +65,6 @@ import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatThread;
 import alluxio.job.plan.persist.PersistConfig;
 import alluxio.job.wire.JobInfo;
-import alluxio.master.file.contexts.CallTracker;
 import alluxio.master.CoreMaster;
 import alluxio.master.CoreMasterContext;
 import alluxio.master.ProtobufUtils;
@@ -74,6 +73,7 @@ import alluxio.master.audit.AuditContext;
 import alluxio.master.block.BlockId;
 import alluxio.master.block.BlockMaster;
 import alluxio.master.file.activesync.ActiveSyncManager;
+import alluxio.master.file.contexts.CallTracker;
 import alluxio.master.file.contexts.CheckAccessContext;
 import alluxio.master.file.contexts.CheckConsistencyContext;
 import alluxio.master.file.contexts.CompleteFileContext;
@@ -100,8 +100,8 @@ import alluxio.master.file.meta.InodeDirectoryView;
 import alluxio.master.file.meta.InodeFile;
 import alluxio.master.file.meta.InodeLockManager;
 import alluxio.master.file.meta.InodePathPair;
-import alluxio.master.file.meta.InodeTree;
 import alluxio.master.file.meta.InodeTree.LockPattern;
+import alluxio.master.file.meta.InodeTree;
 import alluxio.master.file.meta.LockedInodePath;
 import alluxio.master.file.meta.LockedInodePathList;
 import alluxio.master.file.meta.LockingScheme;
@@ -125,13 +125,13 @@ import alluxio.metrics.MetricInfo;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.metrics.TimeSeries;
-import alluxio.proto.journal.File;
 import alluxio.proto.journal.File.NewBlockEntry;
 import alluxio.proto.journal.File.RenameEntry;
 import alluxio.proto.journal.File.SetAclEntry;
 import alluxio.proto.journal.File.UpdateInodeEntry;
-import alluxio.proto.journal.File.UpdateInodeFileEntry;
 import alluxio.proto.journal.File.UpdateInodeFileEntry.Builder;
+import alluxio.proto.journal.File.UpdateInodeFileEntry;
+import alluxio.proto.journal.File;
 import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.resource.CloseableResource;
 import alluxio.resource.LockResource;
@@ -216,7 +216,6 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 

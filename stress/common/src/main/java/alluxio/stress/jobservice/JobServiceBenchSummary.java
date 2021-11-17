@@ -12,9 +12,9 @@
 package alluxio.stress.jobservice;
 
 import alluxio.collections.Pair;
-import alluxio.stress.common.GeneralBenchSummary;
 import alluxio.stress.Parameters;
 import alluxio.stress.Summary;
+import alluxio.stress.common.GeneralBenchSummary;
 import alluxio.stress.common.SummaryStatistics;
 import alluxio.stress.graph.BarGraph;
 import alluxio.stress.graph.Graph;

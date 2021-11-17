@@ -19,8 +19,8 @@ import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
 import alluxio.cli.Format;
 import alluxio.client.block.RetryHandlingBlockMasterClient;
-import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystem.Factory;
+import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.RetryHandlingFileSystemMasterClient;
 import alluxio.client.journal.JournalMasterClient;
@@ -58,24 +58,24 @@ import org.apache.curator.test.TestingServer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.Nullable;
-import javax.annotation.concurrent.ThreadSafe;
 import java.io.Closeable;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.lang.Process;
 import java.lang.ProcessBuilder.Redirect;
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Map;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
-import java.lang.Process;
+import javax.annotation.Nullable;
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Class for starting, stopping, and interacting with an Alluxio cluster where each master and

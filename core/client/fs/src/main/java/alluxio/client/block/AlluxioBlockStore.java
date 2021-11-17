@@ -17,8 +17,8 @@ import static java.util.stream.Collectors.toSet;
 import alluxio.client.WriteType;
 import alluxio.client.block.policy.BlockLocationPolicy;
 import alluxio.client.block.policy.options.GetWorkerOptions;
-import alluxio.client.block.stream.BlockInStream;
 import alluxio.client.block.stream.BlockInStream.BlockInStreamSource;
+import alluxio.client.block.stream.BlockInStream;
 import alluxio.client.block.stream.BlockOutStream;
 import alluxio.client.block.stream.DataWriter;
 import alluxio.client.block.util.BlockLocationUtils;
@@ -52,7 +52,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-
 import javax.annotation.concurrent.ThreadSafe;
 
 // TODO(jianjian): rename AlluxioBlockStore since it would get confused by BlockStore

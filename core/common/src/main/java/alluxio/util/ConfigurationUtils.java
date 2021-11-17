@@ -37,8 +37,8 @@ import alluxio.grpc.GrpcUtils;
 import alluxio.grpc.MetaMasterConfigurationServiceGrpc;
 import alluxio.grpc.Scope;
 import alluxio.util.io.PathUtils;
-import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
+import alluxio.util.network.NetworkAddressUtils;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Splitter;
@@ -58,11 +58,10 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.Properties;
+import java.util.Set;
 import java.util.function.BiFunction;
 import java.util.stream.Collectors;
-
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.GuardedBy;
 

@@ -23,8 +23,8 @@ import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.PositionedReadable;
 import org.apache.hadoop.io.LongWritable;
-import org.apache.hadoop.io.SequenceFile;
 import org.apache.hadoop.io.SequenceFile.CompressionType;
+import org.apache.hadoop.io.SequenceFile;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.io.compress.CompressionCodec;
 import org.apache.hadoop.mapred.FileInputFormat;
@@ -64,7 +64,6 @@ import java.net.URI;
 import java.util.Date;
 import java.util.Random;
 import java.util.StringTokenizer;
-
 import javax.annotation.Nullable;
 
 /**

@@ -31,8 +31,8 @@ import alluxio.underfs.options.OpenOptions;
 import alluxio.util.UnderFileSystemUtils;
 import alluxio.util.io.FileUtils;
 import alluxio.util.io.PathUtils;
-import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
+import alluxio.util.network.NetworkAddressUtils;
 
 import com.google.common.base.Strings;
 import com.google.common.io.ByteStreams;
@@ -55,7 +55,6 @@ import java.nio.file.attribute.PosixFileAttributes;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Stack;
-
 import javax.annotation.concurrent.ThreadSafe;
 
 /**

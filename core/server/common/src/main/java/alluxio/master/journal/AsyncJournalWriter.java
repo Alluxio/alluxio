@@ -11,8 +11,8 @@
 
 package alluxio.master.journal;
 
-import alluxio.annotation.SuppressFBWarnings;
 import alluxio.Constants;
+import alluxio.annotation.SuppressFBWarnings;
 import alluxio.collections.ConcurrentHashSet;
 import alluxio.concurrent.ForkJoinPoolHelper;
 import alluxio.concurrent.jsr.ForkJoinPool;
@@ -44,7 +44,6 @@ import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Supplier;
-
 import javax.annotation.concurrent.ThreadSafe;
 
 /**

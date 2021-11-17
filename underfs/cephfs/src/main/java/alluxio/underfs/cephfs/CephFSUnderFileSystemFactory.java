@@ -19,12 +19,11 @@ import alluxio.underfs.UnderFileSystemFactory;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.concurrent.ThreadSafe;
 import java.io.IOException;
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Factory for creating {@link CephFSUnderFileSystem}.

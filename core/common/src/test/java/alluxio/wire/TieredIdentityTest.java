@@ -19,10 +19,10 @@ import static org.junit.Assume.assumeTrue;
 
 import alluxio.ConfigurationTestUtils;
 import alluxio.conf.InstancedConfiguration;
+import alluxio.grpc.GrpcUtils;
 import alluxio.network.TieredIdentityFactory;
 import alluxio.util.CommonUtils;
 import alluxio.util.TieredIdentityUtils;
-import alluxio.grpc.GrpcUtils;
 import alluxio.wire.TieredIdentity.LocalityTier;
 
 import com.fasterxml.jackson.databind.ObjectMapper;

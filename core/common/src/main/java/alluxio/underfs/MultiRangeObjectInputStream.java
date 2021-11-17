@@ -15,7 +15,6 @@ import alluxio.exception.ExceptionMessage;
 
 import java.io.IOException;
 import java.io.InputStream;
-
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**

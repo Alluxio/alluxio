@@ -11,19 +11,19 @@
 
 package alluxio.job.plan.replicate;
 
-import alluxio.collections.Pair;
-import alluxio.conf.ServerConfiguration;
 import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.block.stream.BlockWorkerClient;
+import alluxio.collections.Pair;
+import alluxio.conf.ServerConfiguration;
 import alluxio.exception.status.NotFoundException;
 import alluxio.grpc.MoveBlockRequest;
-import alluxio.job.plan.AbstractVoidPlanDefinition;
 import alluxio.job.RunTaskContext;
 import alluxio.job.SelectExecutorsContext;
+import alluxio.job.plan.AbstractVoidPlanDefinition;
 import alluxio.job.util.SerializableVoid;
 import alluxio.resource.CloseableResource;
-import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
+import alluxio.util.network.NetworkAddressUtils;
 import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
 
@@ -35,7 +35,6 @@ import org.slf4j.LoggerFactory;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
-
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**

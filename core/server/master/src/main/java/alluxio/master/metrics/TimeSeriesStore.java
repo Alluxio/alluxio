@@ -15,10 +15,10 @@ import alluxio.metrics.TimeSeries;
 
 import com.google.common.collect.ImmutableList;
 
-import javax.annotation.concurrent.ThreadSafe;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * An in-memory time series store for Alluxio metrics.

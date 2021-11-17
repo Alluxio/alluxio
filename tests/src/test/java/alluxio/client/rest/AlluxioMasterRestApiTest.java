@@ -32,8 +32,8 @@ import alluxio.testutils.underfs.UnderFileSystemTestUtils;
 import alluxio.util.CommonUtils;
 import alluxio.util.FormatUtils;
 import alluxio.util.WaitForOptions;
-import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
+import alluxio.util.network.NetworkAddressUtils;
 import alluxio.wire.AlluxioMasterInfo;
 import alluxio.wire.Capacity;
 import alluxio.wire.MountPointInfo;
@@ -49,7 +49,6 @@ import org.junit.rules.TestRule;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
 import javax.ws.rs.HttpMethod;
 
 /**

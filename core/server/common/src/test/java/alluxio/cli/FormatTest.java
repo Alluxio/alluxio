@@ -11,13 +11,13 @@
 
 package alluxio.cli;
 
-import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
-import alluxio.conf.ServerConfiguration;
 import alluxio.ConfigurationRule;
 import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
 import alluxio.util.CommonUtils;
 import alluxio.util.io.FileUtils;
 import alluxio.util.io.PathUtils;

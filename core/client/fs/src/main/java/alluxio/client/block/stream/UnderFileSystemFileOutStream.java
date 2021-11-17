@@ -17,7 +17,6 @@ import alluxio.grpc.RequestType;
 import alluxio.wire.WorkerNetAddress;
 
 import java.io.IOException;
-
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**

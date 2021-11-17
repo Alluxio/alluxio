@@ -15,8 +15,8 @@ import alluxio.grpc.MetricType;
 import alluxio.metrics.Metric;
 import alluxio.metrics.MetricInfo;
 import alluxio.metrics.MetricKey;
-import alluxio.metrics.MetricsSystem;
 import alluxio.metrics.MetricsSystem.InstanceType;
+import alluxio.metrics.MetricsSystem;
 import alluxio.resource.LockResource;
 
 import com.codahale.metrics.Counter;
@@ -28,7 +28,6 @@ import java.time.Clock;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
-
 import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.ThreadSafe;
 

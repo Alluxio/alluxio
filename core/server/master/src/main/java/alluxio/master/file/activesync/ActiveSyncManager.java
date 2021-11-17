@@ -24,14 +24,14 @@ import alluxio.master.file.FileSystemMaster;
 import alluxio.master.file.RpcContext;
 import alluxio.master.file.meta.MountTable;
 import alluxio.master.file.meta.options.MountInfo;
-import alluxio.master.journal.checkpoint.CheckpointName;
 import alluxio.master.journal.JournalContext;
 import alluxio.master.journal.Journaled;
-import alluxio.proto.journal.File;
+import alluxio.master.journal.checkpoint.CheckpointName;
 import alluxio.proto.journal.File.AddSyncPointEntry;
 import alluxio.proto.journal.File.RemoveSyncPointEntry;
-import alluxio.proto.journal.Journal;
+import alluxio.proto.journal.File;
 import alluxio.proto.journal.Journal.JournalEntry;
+import alluxio.proto.journal.Journal;
 import alluxio.resource.CloseableIterator;
 import alluxio.resource.CloseableResource;
 import alluxio.resource.LockResource;
@@ -64,7 +64,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Supplier;
-
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**

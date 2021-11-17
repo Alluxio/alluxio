@@ -19,12 +19,12 @@ import static org.junit.Assert.fail;
 import alluxio.ConfigurationRule;
 import alluxio.ConfigurationTestUtils;
 import alluxio.conf.InstancedConfiguration;
-import alluxio.conf.PropertyKey;
 import alluxio.conf.PropertyKey.Template;
+import alluxio.conf.PropertyKey;
 import alluxio.test.util.CommonUtils;
 import alluxio.util.network.NetworkAddressUtils;
-import alluxio.wire.TieredIdentity;
 import alluxio.wire.TieredIdentity.LocalityTier;
+import alluxio.wire.TieredIdentity;
 
 import com.google.common.collect.ImmutableMap;
 import org.apache.commons.io.FileUtils;

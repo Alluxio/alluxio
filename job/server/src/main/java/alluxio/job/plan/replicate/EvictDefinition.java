@@ -11,20 +11,20 @@
 
 package alluxio.job.plan.replicate;
 
-import alluxio.collections.Pair;
-import alluxio.conf.ServerConfiguration;
 import alluxio.client.block.AlluxioBlockStore;
 import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.block.stream.BlockWorkerClient;
+import alluxio.collections.Pair;
+import alluxio.conf.ServerConfiguration;
 import alluxio.exception.status.NotFoundException;
 import alluxio.grpc.RemoveBlockRequest;
-import alluxio.job.plan.AbstractVoidPlanDefinition;
 import alluxio.job.RunTaskContext;
 import alluxio.job.SelectExecutorsContext;
+import alluxio.job.plan.AbstractVoidPlanDefinition;
 import alluxio.job.util.SerializableVoid;
 import alluxio.resource.CloseableResource;
-import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
+import alluxio.util.network.NetworkAddressUtils;
 import alluxio.wire.BlockInfo;
 import alluxio.wire.BlockLocation;
 import alluxio.wire.WorkerInfo;
@@ -39,7 +39,6 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**

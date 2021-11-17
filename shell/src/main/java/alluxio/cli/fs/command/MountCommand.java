@@ -28,7 +28,6 @@ import org.apache.commons.cli.Options;
 import java.io.IOException;
 import java.util.Map;
 import java.util.Properties;
-
 import javax.annotation.concurrent.ThreadSafe;
 
 /**

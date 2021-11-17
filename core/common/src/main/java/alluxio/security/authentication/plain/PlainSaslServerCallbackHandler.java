@@ -18,7 +18,6 @@ import alluxio.security.authentication.ImpersonationAuthenticator;
 import com.google.common.base.Preconditions;
 
 import java.io.IOException;
-
 import javax.security.auth.callback.Callback;
 import javax.security.auth.callback.CallbackHandler;
 import javax.security.auth.callback.NameCallback;

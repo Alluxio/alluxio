@@ -19,8 +19,8 @@ import alluxio.ConfigurationRule;
 import alluxio.ConfigurationTestUtils;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
-import alluxio.util.CommonUtils;
 import alluxio.util.CommonUtils.ProcessType;
+import alluxio.util.CommonUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
 import alluxio.wire.WorkerNetAddress;
 

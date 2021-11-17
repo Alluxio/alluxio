@@ -23,8 +23,8 @@ import alluxio.grpc.DeletePOptions;
 import alluxio.master.journal.JournalType;
 import alluxio.testutils.BaseIntegrationTest;
 import alluxio.testutils.LocalAlluxioClusterResource;
-import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystem.Factory;
+import alluxio.underfs.UnderFileSystem;
 import alluxio.util.CommonUtils;
 import alluxio.util.io.PathUtils;
 

@@ -11,9 +11,9 @@
 
 package alluxio.cli.hdfs;
 
+import alluxio.cli.ApplicableUfsType;
 import alluxio.cli.ValidationTaskResult;
 import alluxio.cli.ValidationUtils;
-import alluxio.cli.ApplicableUfsType;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.util.ShellUtils;

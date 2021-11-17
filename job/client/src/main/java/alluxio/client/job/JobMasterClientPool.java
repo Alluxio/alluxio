@@ -18,7 +18,6 @@ import alluxio.worker.job.JobMasterClientContext;
 import java.io.IOException;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
-
 import javax.annotation.concurrent.ThreadSafe;
 
 /**

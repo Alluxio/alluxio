@@ -33,7 +33,6 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.concurrent.Callable;
-
 import javax.annotation.concurrent.ThreadSafe;
 
 /**

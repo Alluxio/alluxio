@@ -20,8 +20,8 @@ import alluxio.master.file.contexts.CreateFileContext;
 import alluxio.proto.journal.File.InodeFileEntry;
 import alluxio.proto.journal.File.UpdateInodeFileEntry;
 import alluxio.proto.journal.Journal.JournalEntry;
-import alluxio.proto.meta.InodeMeta;
 import alluxio.proto.meta.InodeMeta.InodeOrBuilder;
+import alluxio.proto.meta.InodeMeta;
 import alluxio.security.authorization.AccessControlList;
 import alluxio.security.authorization.DefaultAccessControlList;
 import alluxio.util.CommonUtils;
@@ -33,7 +33,6 @@ import com.google.common.base.Preconditions;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
-
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**

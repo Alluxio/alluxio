@@ -24,7 +24,6 @@ import org.apache.commons.cli.ParseException;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.IOException;
-
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**

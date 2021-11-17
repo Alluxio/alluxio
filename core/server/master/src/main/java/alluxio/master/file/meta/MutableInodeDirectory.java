@@ -17,17 +17,16 @@ import alluxio.master.file.contexts.CreateDirectoryContext;
 import alluxio.proto.journal.File.InodeDirectoryEntry;
 import alluxio.proto.journal.File.UpdateInodeDirectoryEntry;
 import alluxio.proto.journal.Journal.JournalEntry;
-import alluxio.proto.meta.InodeMeta;
 import alluxio.proto.meta.InodeMeta.InodeOrBuilder;
+import alluxio.proto.meta.InodeMeta;
 import alluxio.security.authorization.AccessControlList;
 import alluxio.security.authorization.DefaultAccessControlList;
 import alluxio.util.CommonUtils;
 import alluxio.util.proto.ProtoUtils;
 import alluxio.wire.FileInfo;
 
-import javax.annotation.concurrent.NotThreadSafe;
-
 import java.util.HashSet;
+import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * Alluxio file system's directory representation in the file system master.

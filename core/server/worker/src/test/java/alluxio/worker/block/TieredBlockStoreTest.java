@@ -33,14 +33,14 @@ import alluxio.retry.RetryPolicy;
 import alluxio.test.util.ConcurrencyUtils;
 import alluxio.util.CommonUtils;
 import alluxio.util.io.FileUtils;
+import alluxio.worker.block.annotator.BlockIterator;
 import alluxio.worker.block.evictor.EvictionPlan;
-import alluxio.worker.block.evictor.Evictor;
 import alluxio.worker.block.evictor.Evictor.Mode;
+import alluxio.worker.block.evictor.Evictor;
 import alluxio.worker.block.meta.DefaultBlockMeta;
 import alluxio.worker.block.meta.DefaultTempBlockMeta;
 import alluxio.worker.block.meta.StorageDir;
 import alluxio.worker.block.meta.TempBlockMeta;
-import alluxio.worker.block.annotator.BlockIterator;
 
 import com.google.common.collect.Sets;
 import org.junit.Before;

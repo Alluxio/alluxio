@@ -9,7 +9,7 @@ def import_filter(line: str):
   return line.startswith("import ")
 
 def static_filter(line: str):
-  return line.startswith("static import ")
+  return line.startswith("import static ")
 
 def special_filter(line: str):
   return line.startswith("import alluxio")
@@ -52,7 +52,10 @@ def main(argv):
           imports_sorted += items[:] + ["\n"]
 
         start = find_first(lines, import_filter)
-        end = len(lines) - find_first(reversed(lines), import_filter)
+        try:
+          end = len(lines) - find_first(reversed(lines), import_filter)
+        except:
+          continue
         newlines = lines[:start] + imports_sorted[:-1] + lines[end:]
 
       with open(os.path.join(root, file), 'w') as f:

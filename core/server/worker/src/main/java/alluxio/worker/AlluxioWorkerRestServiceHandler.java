@@ -12,16 +12,16 @@
 package alluxio.worker;
 
 import alluxio.AlluxioURI;
-import alluxio.conf.ServerConfiguration;
-import alluxio.conf.ConfigurationValueOptions;
 import alluxio.Constants;
-import alluxio.conf.PropertyKey;
 import alluxio.RestUtils;
 import alluxio.RuntimeConstants;
 import alluxio.WorkerStorageTierAssoc;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
 import alluxio.collections.Pair;
+import alluxio.conf.ConfigurationValueOptions;
+import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.FileDoesNotExistException;
@@ -81,7 +81,6 @@ import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.TreeSet;
-
 import javax.annotation.concurrent.NotThreadSafe;
 import javax.servlet.ServletContext;
 import javax.ws.rs.DefaultValue;

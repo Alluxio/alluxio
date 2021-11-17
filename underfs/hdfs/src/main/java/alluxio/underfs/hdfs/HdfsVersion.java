@@ -12,7 +12,6 @@
 package alluxio.underfs.hdfs;
 
 import java.util.regex.Pattern;
-
 import javax.annotation.Nullable;
 
 /** The set of supported Hdfs versions. */

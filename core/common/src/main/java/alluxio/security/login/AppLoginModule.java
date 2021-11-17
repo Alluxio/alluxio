@@ -16,7 +16,6 @@ import alluxio.security.User;
 
 import java.io.IOException;
 import java.util.Map;
-
 import javax.annotation.concurrent.NotThreadSafe;
 import javax.security.auth.Subject;
 import javax.security.auth.callback.Callback;

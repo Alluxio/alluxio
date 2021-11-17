@@ -19,12 +19,11 @@ import alluxio.master.ZkMasterInquireClient.ZkMasterConnectDetails;
 import alluxio.security.user.UserState;
 import alluxio.uri.Authority;
 import alluxio.util.ConfigurationUtils;
-import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
+import alluxio.util.network.NetworkAddressUtils;
 
 import java.net.InetSocketAddress;
 import java.util.List;
-
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -117,6 +116,7 @@ public interface MasterInquireClient {
         }
       }
     }
+
     /**
      * @param conf configuration for creating the master inquire client
      * @return the connect string represented by the configuration

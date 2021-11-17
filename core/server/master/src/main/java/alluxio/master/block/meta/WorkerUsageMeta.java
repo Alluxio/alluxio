@@ -14,11 +14,11 @@ package alluxio.master.block.meta;
 import alluxio.StorageTierAssoc;
 import alluxio.WorkerStorageTierAssoc;
 
-import javax.annotation.concurrent.NotThreadSafe;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * An object representation of fields relevant to worker usage and capacity.

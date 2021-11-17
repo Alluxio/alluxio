@@ -14,10 +14,10 @@ package alluxio.client.cli.fs;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
-import alluxio.conf.ServerConfiguration;
-import alluxio.conf.PropertyKey;
 import alluxio.cli.docgen.ConfigurationDocGenerator;
 import alluxio.collections.Pair;
+import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
 import alluxio.util.io.PathUtils;
 
 import com.google.common.base.Joiner;
@@ -25,10 +25,10 @@ import org.apache.commons.lang3.StringUtils;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
-import org.junit.runners.Parameterized.Parameters;
 import org.junit.rules.TemporaryFolder;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized.Parameters;
+import org.junit.runners.Parameterized;
 
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;

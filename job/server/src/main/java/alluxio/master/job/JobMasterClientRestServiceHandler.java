@@ -30,7 +30,6 @@ import io.swagger.annotations.ApiOperation;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
-
 import javax.servlet.ServletContext;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;

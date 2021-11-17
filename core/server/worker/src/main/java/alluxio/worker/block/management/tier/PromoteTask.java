@@ -19,6 +19,7 @@ import alluxio.worker.block.BlockMetadataEvictorView;
 import alluxio.worker.block.BlockMetadataManager;
 import alluxio.worker.block.BlockStore;
 import alluxio.worker.block.BlockStoreLocation;
+import alluxio.worker.block.annotator.BlockOrder;
 import alluxio.worker.block.evictor.BlockTransferInfo;
 import alluxio.worker.block.management.AbstractBlockManagementTask;
 import alluxio.worker.block.management.BlockManagementTaskResult;
@@ -28,7 +29,6 @@ import alluxio.worker.block.management.ManagementTaskCoordinator;
 import alluxio.worker.block.management.StoreLoadTracker;
 import alluxio.worker.block.meta.BlockMeta;
 import alluxio.worker.block.meta.StorageTier;
-import alluxio.worker.block.annotator.BlockOrder;
 
 import com.google.common.base.Preconditions;
 import org.slf4j.Logger;

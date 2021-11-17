@@ -14,7 +14,6 @@ package alluxio.hub.agent.util.file;
 import alluxio.collections.Pair;
 import alluxio.util.io.PathUtils;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -22,6 +21,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import javax.annotation.Nullable;
 
 /**
  * Versioned File Manager.

@@ -215,7 +215,9 @@
       <property name="format" value="^\s*this\."/>
       <property name="message" value="keyword this is not needed"/>
     </module>
-    <module name="MissingDeprecated"/>
+    <module name="MissingDeprecated">
+      <property name="violateExecutionOnNonTightHtml" value="false"/>
+    </module>
     <module name="EqualsHashCode"/>
 
     <!-- Checks the Javadoc of a public method or constructor. Only applies to production code. -->

@@ -11,8 +11,8 @@
 
 package alluxio.master.journalv0.ufs;
 
-import alluxio.conf.ServerConfiguration;
 import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
 import alluxio.master.journalv0.JournalWriter;
 import alluxio.master.journalv0.MutableJournal;
 import alluxio.underfs.UfsStatus;
@@ -28,7 +28,6 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
-
 import javax.annotation.concurrent.ThreadSafe;
 
 /**

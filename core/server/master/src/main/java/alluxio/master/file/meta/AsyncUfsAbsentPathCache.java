@@ -13,8 +13,8 @@ package alluxio.master.file.meta;
 
 import alluxio.AlluxioURI;
 import alluxio.collections.Pair;
-import alluxio.conf.ServerConfiguration;
 import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
 import alluxio.exception.InvalidPathException;
 import alluxio.master.file.meta.options.MountInfo;
 import alluxio.metrics.MetricKey;
@@ -42,7 +42,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
-
 import javax.annotation.concurrent.ThreadSafe;
 
 /**

@@ -28,11 +28,9 @@ import com.qiniu.storage.Configuration;
 import com.qiniu.storage.model.FileInfo;
 import com.qiniu.storage.model.FileListing;
 import com.qiniu.util.Auth;
-
 import okhttp3.Dispatcher;
-import okhttp3.OkHttpClient;
 import okhttp3.OkHttpClient.Builder;
-
+import okhttp3.OkHttpClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -40,7 +38,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.concurrent.TimeUnit;
-
 import javax.annotation.Nullable;
 
 /**

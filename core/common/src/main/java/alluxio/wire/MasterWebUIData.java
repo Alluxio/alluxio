@@ -17,7 +17,6 @@ import com.google.common.base.MoreObjects;
 
 import java.io.Serializable;
 import java.util.List;
-
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**

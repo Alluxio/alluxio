@@ -11,10 +11,10 @@
 
 package alluxio.client.block.stream;
 
-import alluxio.conf.AlluxioConfiguration;
 import alluxio.client.ReadType;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.options.InStreamOptions;
+import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.grpc.OpenLocalBlockRequest;
 import alluxio.grpc.OpenLocalBlockResponse;
@@ -32,7 +32,6 @@ import com.google.common.base.Preconditions;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.file.Paths;
-
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**

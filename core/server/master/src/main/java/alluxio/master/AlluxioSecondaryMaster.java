@@ -19,8 +19,8 @@ import alluxio.conf.ServerConfiguration;
 import alluxio.master.journal.JournalSystem;
 import alluxio.master.journal.JournalUtils;
 import alluxio.underfs.MasterUfsManager;
-import alluxio.util.CommonUtils;
 import alluxio.util.CommonUtils.ProcessType;
+import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
 
 import org.slf4j.Logger;
@@ -30,7 +30,6 @@ import java.io.IOException;
 import java.net.URI;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeoutException;
-
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**

@@ -16,11 +16,10 @@ import alluxio.security.authentication.AuthType;
 
 import java.util.HashMap;
 import java.util.Map;
-
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
-import javax.security.auth.login.AppConfigurationEntry;
 import javax.security.auth.login.AppConfigurationEntry.LoginModuleControlFlag;
+import javax.security.auth.login.AppConfigurationEntry;
 import javax.security.auth.login.Configuration;
 
 /**

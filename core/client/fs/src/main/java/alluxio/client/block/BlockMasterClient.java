@@ -16,14 +16,13 @@ import alluxio.client.block.options.GetWorkerReportOptions;
 import alluxio.grpc.WorkerLostStorageInfo;
 import alluxio.master.MasterClientContext;
 import alluxio.wire.BlockInfo;
-import alluxio.wire.BlockMasterInfo;
 import alluxio.wire.BlockMasterInfo.BlockMasterInfoField;
+import alluxio.wire.BlockMasterInfo;
 import alluxio.wire.WorkerInfo;
 
 import java.io.IOException;
 import java.util.List;
 import java.util.Set;
-
 import javax.annotation.concurrent.ThreadSafe;
 
 /**

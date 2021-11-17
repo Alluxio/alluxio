@@ -21,13 +21,13 @@ import alluxio.grpc.GetCapacityBytesPOptions;
 import alluxio.grpc.GetUsedBytesPOptions;
 import alluxio.grpc.GetWorkerInfoListPOptions;
 import alluxio.grpc.GetWorkerLostStoragePOptions;
+import alluxio.grpc.GrpcUtils;
 import alluxio.grpc.ServiceType;
 import alluxio.grpc.WorkerLostStorageInfo;
 import alluxio.master.MasterClientContext;
-import alluxio.grpc.GrpcUtils;
 import alluxio.wire.BlockInfo;
-import alluxio.wire.BlockMasterInfo;
 import alluxio.wire.BlockMasterInfo.BlockMasterInfoField;
+import alluxio.wire.BlockMasterInfo;
 import alluxio.wire.WorkerInfo;
 
 import org.slf4j.Logger;
@@ -38,7 +38,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
-
 import javax.annotation.concurrent.ThreadSafe;
 
 /**

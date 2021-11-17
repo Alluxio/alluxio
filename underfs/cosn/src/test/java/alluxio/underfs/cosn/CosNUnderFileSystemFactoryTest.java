@@ -11,10 +11,10 @@
 
 package alluxio.underfs.cosn;
 
-import alluxio.underfs.UnderFileSystemFactory;
-import alluxio.underfs.UnderFileSystemFactoryRegistry;
 import alluxio.ConfigurationTestUtils;
 import alluxio.conf.AlluxioConfiguration;
+import alluxio.underfs.UnderFileSystemFactory;
+import alluxio.underfs.UnderFileSystemFactoryRegistry;
 
 import org.junit.Assert;
 import org.junit.Test;

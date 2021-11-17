@@ -42,7 +42,6 @@ import org.apache.commons.cli.Options;
 
 import java.io.IOException;
 import java.util.List;
-
 import javax.annotation.concurrent.ThreadSafe;
 
 /**

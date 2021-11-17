@@ -45,10 +45,10 @@ import alluxio.job.workflow.WorkflowConfig;
 import alluxio.master.AbstractMaster;
 import alluxio.master.MasterContext;
 import alluxio.master.job.command.CommandManager;
-import alluxio.master.job.workflow.WorkflowTracker;
-import alluxio.master.journal.NoopJournaled;
 import alluxio.master.job.plan.PlanCoordinator;
 import alluxio.master.job.plan.PlanTracker;
+import alluxio.master.job.workflow.WorkflowTracker;
+import alluxio.master.journal.NoopJournaled;
 import alluxio.resource.LockResource;
 import alluxio.underfs.UfsManager;
 import alluxio.util.CommonUtils;
@@ -74,7 +74,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.stream.Collectors;
-
 import javax.annotation.concurrent.ThreadSafe;
 
 /**

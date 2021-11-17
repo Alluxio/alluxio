@@ -23,8 +23,8 @@ import alluxio.conf.PropertyKey;
 import alluxio.job.wire.JobWorkerHealth;
 import alluxio.util.ConfigurationUtils;
 import alluxio.util.network.HttpUtils;
-import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
+import alluxio.util.network.NetworkAddressUtils;
 import alluxio.wire.LogInfo;
 import alluxio.wire.WorkerNetAddress;
 import alluxio.worker.job.JobMasterClientContext;
@@ -49,7 +49,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
-
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**

@@ -18,7 +18,6 @@ import alluxio.worker.job.JobMasterClient;
 
 import java.io.IOException;
 import java.util.concurrent.atomic.AtomicLong;
-
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**

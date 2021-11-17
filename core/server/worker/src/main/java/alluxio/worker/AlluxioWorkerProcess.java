@@ -25,8 +25,8 @@ import alluxio.util.WaitForOptions;
 import alluxio.util.io.FileUtils;
 import alluxio.util.io.PathUtils;
 import alluxio.util.network.NettyUtils;
-import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
+import alluxio.util.network.NetworkAddressUtils;
 import alluxio.web.WebServer;
 import alluxio.web.WorkerWebServer;
 import alluxio.wire.TieredIdentity;
@@ -46,7 +46,6 @@ import java.util.ServiceLoader;
 import java.util.UUID;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeoutException;
-
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**

@@ -18,8 +18,8 @@ import alluxio.grpc.TtlAction;
 import alluxio.master.ProtobufUtils;
 import alluxio.proto.journal.File.UpdateInodeEntry;
 import alluxio.proto.journal.Journal;
-import alluxio.proto.meta.InodeMeta;
 import alluxio.proto.meta.InodeMeta.InodeOrBuilder;
+import alluxio.proto.meta.InodeMeta;
 import alluxio.security.authorization.AccessControlList;
 import alluxio.security.authorization.AclAction;
 import alluxio.security.authorization.AclActions;
@@ -40,7 +40,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 

@@ -11,8 +11,8 @@
 
 package alluxio.master.journal.checkpoint;
 
-import alluxio.proto.meta.InodeMeta;
 import alluxio.proto.meta.InodeMeta.Inode;
+import alluxio.proto.meta.InodeMeta;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;

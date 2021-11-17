@@ -19,6 +19,8 @@ import alluxio.ConfigurationRule;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.FileSystemMasterClientServiceGrpc;
+import alluxio.grpc.GrpcChannel;
+import alluxio.grpc.GrpcChannelBuilder;
 import alluxio.grpc.GrpcServerAddress;
 import alluxio.grpc.ListStatusPRequest;
 import alluxio.master.journal.JournalType;
@@ -28,8 +30,6 @@ import alluxio.multi.process.PortCoordination;
 import alluxio.testutils.AlluxioOperationThread;
 import alluxio.testutils.BaseIntegrationTest;
 import alluxio.util.CommonUtils;
-import alluxio.grpc.GrpcChannel;
-import alluxio.grpc.GrpcChannelBuilder;
 
 import com.google.common.collect.ImmutableMap;
 import org.junit.After;
