@@ -50,7 +50,7 @@ metadata:
   name: alluxio-csi-provisioner-binding
 subjects:
   - kind: ServiceAccount
-    name: si-controller-sa
+    name: csi-controller-sa
     namespace: default
 roleRef:
   kind: ClusterRole
