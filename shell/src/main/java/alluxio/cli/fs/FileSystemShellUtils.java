@@ -24,8 +24,8 @@ import alluxio.exception.AlluxioException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.util.FormatUtils;
 import alluxio.util.io.PathUtils;
-import alluxio.util.network.NetworkAddressUtils.ServiceType;
 import alluxio.util.network.NetworkAddressUtils;
+import alluxio.util.network.NetworkAddressUtils.ServiceType;
 
 import com.google.common.collect.Lists;
 import org.apache.commons.cli.CommandLine;

@@ -33,9 +33,9 @@ import alluxio.wire.WorkerInfo;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameter;
 import org.junit.runners.Parameterized.Parameters;
-import org.junit.runners.Parameterized;
 
 import java.util.List;
 

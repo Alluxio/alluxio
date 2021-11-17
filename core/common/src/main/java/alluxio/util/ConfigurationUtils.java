@@ -37,8 +37,8 @@ import alluxio.grpc.GrpcUtils;
 import alluxio.grpc.MetaMasterConfigurationServiceGrpc;
 import alluxio.grpc.Scope;
 import alluxio.util.io.PathUtils;
-import alluxio.util.network.NetworkAddressUtils.ServiceType;
 import alluxio.util.network.NetworkAddressUtils;
+import alluxio.util.network.NetworkAddressUtils.ServiceType;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Splitter;

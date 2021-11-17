@@ -19,8 +19,8 @@ import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.master.journal.JournalType;
 import alluxio.util.io.FileUtils;
-import alluxio.util.network.NetworkAddressUtils.ServiceType;
 import alluxio.util.network.NetworkAddressUtils;
+import alluxio.util.network.NetworkAddressUtils.ServiceType;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

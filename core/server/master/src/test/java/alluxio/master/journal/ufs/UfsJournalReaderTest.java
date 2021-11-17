@@ -17,8 +17,8 @@ import static org.junit.Assert.assertTrue;
 
 import alluxio.conf.ServerConfiguration;
 import alluxio.master.NoopMaster;
-import alluxio.master.journal.JournalReader.State;
 import alluxio.master.journal.JournalReader;
+import alluxio.master.journal.JournalReader.State;
 import alluxio.master.journal.checkpoint.CheckpointOutputStream;
 import alluxio.master.journal.checkpoint.CheckpointType;
 import alluxio.proto.journal.Journal;

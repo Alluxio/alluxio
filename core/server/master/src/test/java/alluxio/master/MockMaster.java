@@ -16,8 +16,8 @@ import alluxio.grpc.GrpcService;
 import alluxio.grpc.ServiceType;
 import alluxio.master.journal.JournalContext;
 import alluxio.master.journal.checkpoint.CheckpointName;
-import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.proto.journal.Journal;
+import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.resource.CloseableIterator;
 
 import java.util.ArrayDeque;

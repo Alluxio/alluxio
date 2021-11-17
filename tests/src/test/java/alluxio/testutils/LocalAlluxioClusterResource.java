@@ -34,8 +34,8 @@ import java.lang.annotation.Annotation;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.util.HashMap;
-import java.util.Map.Entry;
 import java.util.Map;
+import java.util.Map.Entry;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**

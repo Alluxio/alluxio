@@ -14,8 +14,8 @@ package alluxio.client.cli.fsadmin;
 import static org.junit.Assert.assertEquals;
 
 import alluxio.AlluxioTestDirectory;
-import alluxio.conf.PropertyKey.Name;
 import alluxio.conf.PropertyKey;
+import alluxio.conf.PropertyKey.Name;
 import alluxio.conf.ServerConfiguration;
 import alluxio.testutils.LocalAlluxioClusterResource;
 

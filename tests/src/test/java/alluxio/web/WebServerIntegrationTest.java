@@ -16,8 +16,8 @@ import alluxio.client.rest.TestCaseOptions;
 import alluxio.conf.ServerConfiguration;
 import alluxio.testutils.BaseIntegrationTest;
 import alluxio.testutils.LocalAlluxioClusterResource;
-import alluxio.util.network.NetworkAddressUtils.ServiceType;
 import alluxio.util.network.NetworkAddressUtils;
+import alluxio.util.network.NetworkAddressUtils.ServiceType;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -34,8 +34,8 @@ import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.HashMap;
-import java.util.Map.Entry;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Scanner;
 import javax.ws.rs.HttpMethod;
 

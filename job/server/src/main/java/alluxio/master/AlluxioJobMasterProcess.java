@@ -33,8 +33,8 @@ import alluxio.underfs.JobUfsManager;
 import alluxio.underfs.UfsManager;
 import alluxio.util.CommonUtils.ProcessType;
 import alluxio.util.URIUtils;
-import alluxio.util.network.NetworkAddressUtils.ServiceType;
 import alluxio.util.network.NetworkAddressUtils;
+import alluxio.util.network.NetworkAddressUtils.ServiceType;
 import alluxio.web.JobMasterWebServer;
 
 import com.google.common.base.Preconditions;

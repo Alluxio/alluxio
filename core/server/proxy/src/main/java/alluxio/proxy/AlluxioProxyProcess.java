@@ -16,8 +16,8 @@ import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
-import alluxio.util.network.NetworkAddressUtils.ServiceType;
 import alluxio.util.network.NetworkAddressUtils;
+import alluxio.util.network.NetworkAddressUtils.ServiceType;
 import alluxio.web.ProxyWebServer;
 import alluxio.web.WebServer;
 

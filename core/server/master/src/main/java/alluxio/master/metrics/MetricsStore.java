@@ -15,8 +15,8 @@ import alluxio.grpc.MetricType;
 import alluxio.metrics.Metric;
 import alluxio.metrics.MetricInfo;
 import alluxio.metrics.MetricKey;
-import alluxio.metrics.MetricsSystem.InstanceType;
 import alluxio.metrics.MetricsSystem;
+import alluxio.metrics.MetricsSystem.InstanceType;
 import alluxio.resource.LockResource;
 
 import com.codahale.metrics.Counter;

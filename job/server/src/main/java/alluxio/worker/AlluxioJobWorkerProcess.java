@@ -25,8 +25,8 @@ import alluxio.underfs.JobUfsManager;
 import alluxio.underfs.UfsManager;
 import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
-import alluxio.util.network.NetworkAddressUtils.ServiceType;
 import alluxio.util.network.NetworkAddressUtils;
+import alluxio.util.network.NetworkAddressUtils.ServiceType;
 import alluxio.web.JobWorkerWebServer;
 import alluxio.wire.WorkerNetAddress;
 

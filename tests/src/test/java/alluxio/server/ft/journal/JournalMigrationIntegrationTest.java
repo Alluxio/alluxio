@@ -25,8 +25,8 @@ import alluxio.grpc.BackupPOptions;
 import alluxio.grpc.BackupPRequest;
 import alluxio.master.MasterClientContext;
 import alluxio.master.journal.JournalType;
-import alluxio.multi.process.MultiProcessCluster.DeployMode;
 import alluxio.multi.process.MultiProcessCluster;
+import alluxio.multi.process.MultiProcessCluster.DeployMode;
 import alluxio.multi.process.PortCoordination;
 import alluxio.testutils.BaseIntegrationTest;
 

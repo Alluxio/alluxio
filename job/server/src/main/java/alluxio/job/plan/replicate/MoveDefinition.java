@@ -22,8 +22,8 @@ import alluxio.job.SelectExecutorsContext;
 import alluxio.job.plan.AbstractVoidPlanDefinition;
 import alluxio.job.util.SerializableVoid;
 import alluxio.resource.CloseableResource;
-import alluxio.util.network.NetworkAddressUtils.ServiceType;
 import alluxio.util.network.NetworkAddressUtils;
+import alluxio.util.network.NetworkAddressUtils.ServiceType;
 import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
 

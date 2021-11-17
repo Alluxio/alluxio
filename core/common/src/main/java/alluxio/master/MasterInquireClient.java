@@ -19,8 +19,8 @@ import alluxio.master.ZkMasterInquireClient.ZkMasterConnectDetails;
 import alluxio.security.user.UserState;
 import alluxio.uri.Authority;
 import alluxio.util.ConfigurationUtils;
-import alluxio.util.network.NetworkAddressUtils.ServiceType;
 import alluxio.util.network.NetworkAddressUtils;
+import alluxio.util.network.NetworkAddressUtils.ServiceType;
 
 import java.net.InetSocketAddress;
 import java.util.List;

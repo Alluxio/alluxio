@@ -21,8 +21,8 @@ import alluxio.conf.ServerConfiguration;
 import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.testutils.underfs.delegating.DelegatingUnderFileSystem;
 import alluxio.testutils.underfs.delegating.DelegatingUnderFileSystemFactory;
-import alluxio.underfs.UnderFileSystem.Factory;
 import alluxio.underfs.UnderFileSystem;
+import alluxio.underfs.UnderFileSystem.Factory;
 import alluxio.util.CommonUtils;
 
 import com.google.common.io.Files;

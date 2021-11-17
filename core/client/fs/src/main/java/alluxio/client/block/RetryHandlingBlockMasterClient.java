@@ -26,8 +26,8 @@ import alluxio.grpc.ServiceType;
 import alluxio.grpc.WorkerLostStorageInfo;
 import alluxio.master.MasterClientContext;
 import alluxio.wire.BlockInfo;
-import alluxio.wire.BlockMasterInfo.BlockMasterInfoField;
 import alluxio.wire.BlockMasterInfo;
+import alluxio.wire.BlockMasterInfo.BlockMasterInfoField;
 import alluxio.wire.WorkerInfo;
 
 import org.slf4j.Logger;

@@ -11,8 +11,8 @@
 
 package alluxio.multi.process;
 
-import com.google.common.collect.ImmutableList.Builder;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableList.Builder;
 
 import java.util.Arrays;
 import java.util.HashSet;

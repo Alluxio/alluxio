@@ -13,8 +13,8 @@ package alluxio.client.fs;
 
 import alluxio.AlluxioURI;
 import alluxio.client.block.AlluxioBlockStore;
-import alluxio.client.block.stream.BlockInStream.BlockInStreamSource;
 import alluxio.client.block.stream.BlockInStream;
+import alluxio.client.block.stream.BlockInStream.BlockInStreamSource;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;

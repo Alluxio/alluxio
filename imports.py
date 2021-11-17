@@ -48,7 +48,7 @@ def main(argv):
           items: list = list(filter(filtre, imports))
           if not items:
             continue
-          items.sort()
+          items.sort(key=(lambda x : x[:-2]))
           imports_sorted += items[:] + ["\n"]
 
         start = find_first(lines, import_filter)

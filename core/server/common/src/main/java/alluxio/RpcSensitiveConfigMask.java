@@ -21,8 +21,8 @@ import alluxio.grpc.UpdateMountPRequest;
 
 import org.slf4j.Logger;
 
-import java.util.Map.Entry;
 import java.util.Map;
+import java.util.Map.Entry;
 
 /**
  * RpcSensitiveConfigMask is going to mask the credential RPC messages.

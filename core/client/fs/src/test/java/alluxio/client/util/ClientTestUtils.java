@@ -15,8 +15,8 @@ import alluxio.Constants;
 import alluxio.client.block.BlockWorkerInfo;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
-import alluxio.wire.TieredIdentity.LocalityTier;
 import alluxio.wire.TieredIdentity;
+import alluxio.wire.TieredIdentity.LocalityTier;
 import alluxio.wire.WorkerNetAddress;
 
 import java.io.IOException;

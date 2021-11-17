@@ -21,8 +21,8 @@ import alluxio.master.MasterClientContext;
 import alluxio.master.SingleMasterInquireClient;
 import alluxio.testutils.BaseIntegrationTest;
 import alluxio.testutils.LocalAlluxioClusterResource;
-import alluxio.util.network.NetworkAddressUtils.ServiceType;
 import alluxio.util.network.NetworkAddressUtils;
+import alluxio.util.network.NetworkAddressUtils.ServiceType;
 import alluxio.wire.WorkerNetAddress;
 
 import org.junit.Assert;

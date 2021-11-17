@@ -29,8 +29,8 @@ import com.qiniu.storage.model.FileInfo;
 import com.qiniu.storage.model.FileListing;
 import com.qiniu.util.Auth;
 import okhttp3.Dispatcher;
-import okhttp3.OkHttpClient.Builder;
 import okhttp3.OkHttpClient;
+import okhttp3.OkHttpClient.Builder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
