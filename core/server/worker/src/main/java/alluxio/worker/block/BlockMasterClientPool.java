@@ -12,8 +12,8 @@
 package alluxio.worker.block;
 
 import alluxio.ClientContext;
-import alluxio.conf.ServerConfiguration;
 import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
 import alluxio.master.MasterClientContext;
 import alluxio.resource.ResourcePool;
 
@@ -22,7 +22,6 @@ import com.google.common.io.Closer;
 import java.io.IOException;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
-
 import javax.annotation.concurrent.ThreadSafe;
 
 /**

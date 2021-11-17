@@ -16,9 +16,8 @@ import alluxio.util.io.PathUtils;
 
 import com.google.common.base.Preconditions;
 import com.qcloud.cos.COSClient;
-import com.qcloud.cos.model.ObjectMetadata;
 import com.qcloud.cos.exception.CosClientException;
-
+import com.qcloud.cos.model.ObjectMetadata;
 import org.apache.commons.codec.binary.Base64;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,7 +35,6 @@ import java.security.NoSuchAlgorithmException;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
-
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**

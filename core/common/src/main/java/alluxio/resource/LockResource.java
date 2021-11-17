@@ -17,10 +17,10 @@ import io.netty.util.ResourceLeakTracker;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.Nullable;
 import java.io.Closeable;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.LockSupport;
+import javax.annotation.Nullable;
 
 /**
  * A resource lock that makes it possible to acquire and release locks using the following idiom:

@@ -17,7 +17,6 @@ import alluxio.worker.block.BlockStoreLocation;
 import com.google.common.base.Preconditions;
 
 import java.io.File;
-
 import javax.annotation.concurrent.ThreadSafe;
 
 /**

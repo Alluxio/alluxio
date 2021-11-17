@@ -13,9 +13,9 @@ package alluxio.client.fs;
 
 import alluxio.AlluxioURI;
 import alluxio.ClientContext;
-import alluxio.conf.PropertyKey;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemMasterClient;
+import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.status.NotFoundException;

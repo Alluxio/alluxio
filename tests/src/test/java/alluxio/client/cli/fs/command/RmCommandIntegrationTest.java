@@ -12,10 +12,10 @@
 package alluxio.client.cli.fs.command;
 
 import alluxio.AlluxioURI;
-import alluxio.exception.AlluxioException;
-import alluxio.exception.ExceptionMessage;
 import alluxio.client.cli.fs.AbstractFileSystemShellTest;
 import alluxio.client.cli.fs.FileSystemShellUtilsTest;
+import alluxio.exception.AlluxioException;
+import alluxio.exception.ExceptionMessage;
 
 import org.junit.Assert;
 import org.junit.Test;

@@ -14,8 +14,8 @@ package alluxio.master;
 import alluxio.Server;
 import alluxio.grpc.GrpcService;
 import alluxio.grpc.ServiceType;
-import alluxio.master.journal.checkpoint.CheckpointName;
 import alluxio.master.journal.JournalContext;
+import alluxio.master.journal.checkpoint.CheckpointName;
 import alluxio.proto.journal.Journal;
 import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.resource.CloseableIterator;
@@ -24,7 +24,6 @@ import java.util.ArrayDeque;
 import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
-
 import javax.annotation.Nullable;
 
 /**

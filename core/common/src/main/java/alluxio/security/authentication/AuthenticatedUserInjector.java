@@ -22,8 +22,8 @@ import io.grpc.Status;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.concurrent.ThreadSafe;
 import java.util.UUID;
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Server side interceptor for setting authenticated user in {@link AuthenticatedClientUser}. This

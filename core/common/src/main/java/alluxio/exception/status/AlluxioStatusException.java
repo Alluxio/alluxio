@@ -39,12 +39,12 @@ import io.grpc.Status;
 import io.grpc.StatusException;
 import io.grpc.StatusRuntimeException;
 
-import javax.security.sasl.SaslException;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.nio.channels.ClosedChannelException;
 import java.nio.file.attribute.UserPrincipalNotFoundException;
+import javax.security.sasl.SaslException;
 
 /**
  * An exception thrown by Alluxio. {@link #getStatusCode()} can be used to determine the represented

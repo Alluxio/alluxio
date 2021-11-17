@@ -27,7 +27,7 @@ import org.slf4j.LoggerFactory;
 /**
  * A command which can be used to sync a database with the underlying udb.
  */
-public class SyncDatabaseCommand extends AbstractTableCommand{
+public class SyncDatabaseCommand extends AbstractTableCommand {
   private static final Logger LOG = LoggerFactory.getLogger(SyncDatabaseCommand.class);
   private static final int PRINT_MAX_ERRORS = 10;
 

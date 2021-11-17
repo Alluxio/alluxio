@@ -13,7 +13,6 @@ package alluxio.client.fs;
 
 import static alluxio.stress.cli.RpcBenchPreparationUtils.CAPACITY;
 import static alluxio.stress.rpc.TierAlias.MEM;
-
 import static org.junit.Assert.assertEquals;
 
 import alluxio.grpc.ConfigProperty;

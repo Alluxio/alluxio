@@ -17,8 +17,8 @@ import alluxio.util.CommonUtils;
 
 import com.google.common.base.Preconditions;
 
-import javax.annotation.Nullable;
 import java.util.Set;
+import javax.annotation.Nullable;
 
 /**
  * Execution details of a workflow.

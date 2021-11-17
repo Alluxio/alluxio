@@ -16,7 +16,6 @@ import alluxio.Constants;
 import com.google.common.base.Preconditions;
 
 import java.text.MessageFormat;
-
 import javax.annotation.concurrent.ThreadSafe;
 
 /**

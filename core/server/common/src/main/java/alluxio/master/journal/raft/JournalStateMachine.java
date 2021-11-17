@@ -11,9 +11,9 @@
 
 package alluxio.master.journal.raft;
 
-import alluxio.annotation.SuppressFBWarnings;
 import alluxio.Constants;
 import alluxio.ProcessUtils;
+import alluxio.annotation.SuppressFBWarnings;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.exception.status.UnavailableException;
@@ -67,7 +67,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
-
 import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.ThreadSafe;
 

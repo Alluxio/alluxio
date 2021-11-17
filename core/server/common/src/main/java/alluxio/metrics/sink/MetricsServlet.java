@@ -20,7 +20,6 @@ import org.eclipse.jetty.servlet.ServletHolder;
 import java.io.IOException;
 import java.util.Properties;
 import java.util.concurrent.TimeUnit;
-
 import javax.annotation.concurrent.NotThreadSafe;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;

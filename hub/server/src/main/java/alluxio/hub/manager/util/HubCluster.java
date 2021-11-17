@@ -27,8 +27,6 @@ import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.concurrent.ThreadSafe;
-
 import java.net.InetSocketAddress;
 import java.util.Iterator;
 import java.util.Map;
@@ -42,6 +40,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * A class representing a set of Hub Agent nodes registered with the manager.
@@ -219,7 +218,7 @@ public class HubCluster implements ProtoConverter<alluxio.hub.proto.HubCluster>,
         .map(e -> {
           RpcClient<AgentManagerServiceGrpc.AgentManagerServiceBlockingStub> c =
               mClients.computeIfAbsent(e.getKey(), (hubNode) -> new RpcClient<>(conf,
-              new InetSocketAddress(hubNode.getHostname(), hubNode.getRpcPort()),
+                  new InetSocketAddress(hubNode.getHostname(), hubNode.getRpcPort()),
               AgentManagerServiceGrpc::newBlockingStub, () -> new CountingRetry(2)));
           return new Pair<>(e.getKey(), c);
         })

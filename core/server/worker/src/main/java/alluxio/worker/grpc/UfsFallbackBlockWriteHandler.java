@@ -37,7 +37,6 @@ import org.slf4j.LoggerFactory;
 import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**

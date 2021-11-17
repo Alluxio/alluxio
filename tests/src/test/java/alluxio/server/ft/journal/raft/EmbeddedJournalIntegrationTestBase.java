@@ -20,7 +20,6 @@ import alluxio.grpc.QuorumServerInfo;
 import alluxio.multi.process.MasterNetAddress;
 import alluxio.multi.process.MultiProcessCluster;
 import alluxio.testutils.BaseIntegrationTest;
-
 import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
 

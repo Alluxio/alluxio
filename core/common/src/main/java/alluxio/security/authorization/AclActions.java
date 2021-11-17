@@ -18,7 +18,6 @@ import com.google.common.collect.ImmutableSet;
 import java.io.Serializable;
 import java.util.BitSet;
 import java.util.Set;
-
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**

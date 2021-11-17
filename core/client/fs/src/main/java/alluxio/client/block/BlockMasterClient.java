@@ -23,7 +23,6 @@ import alluxio.wire.WorkerInfo;
 import java.io.IOException;
 import java.util.List;
 import java.util.Set;
-
 import javax.annotation.concurrent.ThreadSafe;
 
 /**

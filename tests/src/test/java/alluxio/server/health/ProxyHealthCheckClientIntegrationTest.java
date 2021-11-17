@@ -13,11 +13,11 @@ package alluxio.server.health;
 
 import alluxio.HealthCheckClient;
 import alluxio.conf.ServerConfiguration;
-import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.master.LocalAlluxioCluster;
 import alluxio.proxy.ProxyHealthCheckClient;
 import alluxio.retry.CountingRetry;
 import alluxio.testutils.BaseIntegrationTest;
+import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.util.network.NetworkAddressUtils;
 
 import org.junit.Assert;

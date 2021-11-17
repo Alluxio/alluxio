@@ -11,10 +11,10 @@
 
 package alluxio.stress.cli;
 
+import alluxio.AlluxioURI;
 import alluxio.ClientContext;
 import alluxio.Constants;
 import alluxio.annotation.SuppressFBWarnings;
-import alluxio.AlluxioURI;
 import alluxio.cli.fs.command.DistributedLoadCommand;
 import alluxio.cli.fs.command.DistributedLoadUtils;
 import alluxio.client.file.FileOutStream;

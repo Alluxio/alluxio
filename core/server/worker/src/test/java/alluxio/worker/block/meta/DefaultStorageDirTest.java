@@ -11,8 +11,8 @@
 
 package alluxio.worker.block.meta;
 
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 
@@ -94,7 +94,7 @@ public final class DefaultStorageDirTest {
    * Create a storage directory with given testDir file identifier.
    *
    * @param testDir test directory file identifier
-   * @return
+   * @return {@link StorageDir}
    * @throws Exception
    */
   private StorageDir newStorageDir(File testDir) throws Exception {

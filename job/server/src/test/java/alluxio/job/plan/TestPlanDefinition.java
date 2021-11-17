@@ -20,7 +20,6 @@ import alluxio.wire.WorkerInfo;
 
 import java.util.List;
 import java.util.Set;
-
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**

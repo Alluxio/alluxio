@@ -11,12 +11,12 @@
 
 package alluxio.worker.job.task;
 
+import alluxio.exception.JobDoesNotExistException;
 import alluxio.grpc.RunTaskCommand;
 import alluxio.job.JobConfig;
+import alluxio.job.RunTaskContext;
 import alluxio.job.plan.PlanDefinition;
 import alluxio.job.plan.PlanDefinitionRegistry;
-import alluxio.exception.JobDoesNotExistException;
-import alluxio.job.RunTaskContext;
 import alluxio.job.util.SerializationUtils;
 
 import com.google.common.base.Preconditions;
@@ -25,7 +25,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.Serializable;
-
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**

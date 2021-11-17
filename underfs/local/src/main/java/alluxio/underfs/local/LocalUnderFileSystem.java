@@ -55,7 +55,6 @@ import java.nio.file.attribute.PosixFileAttributes;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Stack;
-
 import javax.annotation.concurrent.ThreadSafe;
 
 /**

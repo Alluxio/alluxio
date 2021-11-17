@@ -34,7 +34,6 @@ import alluxio.util.ConfigurationUtils;
 
 import com.google.common.collect.Lists;
 import io.grpc.StatusRuntimeException;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -44,7 +43,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
-
 import javax.annotation.Nullable;
 
 /**

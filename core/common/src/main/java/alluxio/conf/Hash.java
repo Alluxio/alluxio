@@ -18,7 +18,6 @@ import java.security.NoSuchAlgorithmException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
-
 import javax.annotation.concurrent.ThreadSafe;
 
 /**

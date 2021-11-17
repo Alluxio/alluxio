@@ -18,11 +18,11 @@ import alluxio.worker.block.BlockMetadataEvictorView;
 import alluxio.worker.block.BlockMetadataManager;
 import alluxio.worker.block.BlockStore;
 import alluxio.worker.block.BlockStoreLocation;
+import alluxio.worker.block.annotator.BlockOrder;
 import alluxio.worker.block.management.BlockManagementTask;
 import alluxio.worker.block.management.ManagementTaskProvider;
 import alluxio.worker.block.management.StoreLoadTracker;
 import alluxio.worker.block.meta.StorageTier;
-import alluxio.worker.block.annotator.BlockOrder;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

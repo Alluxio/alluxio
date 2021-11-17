@@ -15,7 +15,6 @@ import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.jmx.JmxReporter;
 
 import java.util.Properties;
-
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
