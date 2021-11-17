@@ -63,7 +63,7 @@ public final class MasterClientAuthenticationIntegrationTest extends BaseIntegra
   @Test
   @LocalAlluxioClusterResource.Config(
       confParams = {PropertyKey.Name.SECURITY_AUTHENTICATION_TYPE, "NOSASL",
-      PropertyKey.Name.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "false"})
+        PropertyKey.Name.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "false"})
   public void noAuthenticationOpenClose() throws Exception {
     authenticationOperationTest("/file-nosasl");
   }

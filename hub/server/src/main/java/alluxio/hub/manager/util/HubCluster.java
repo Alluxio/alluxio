@@ -218,7 +218,7 @@ public class HubCluster implements ProtoConverter<alluxio.hub.proto.HubCluster>,
         .map(e -> {
           RpcClient<AgentManagerServiceGrpc.AgentManagerServiceBlockingStub> c =
               mClients.computeIfAbsent(e.getKey(), (hubNode) -> new RpcClient<>(conf,
-              new InetSocketAddress(hubNode.getHostname(), hubNode.getRpcPort()),
+                  new InetSocketAddress(hubNode.getHostname(), hubNode.getRpcPort()),
               AgentManagerServiceGrpc::newBlockingStub, () -> new CountingRetry(2)));
           return new Pair<>(e.getKey(), c);
         })

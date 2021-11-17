@@ -128,6 +128,7 @@ public final class JobServiceBenchSummary extends GeneralBenchSummary {
   public void setEndTimeMs(long endTimeMs) {
     mEndTimeMs = endTimeMs;
   }
+
   /**
    * @return the statistics
    */

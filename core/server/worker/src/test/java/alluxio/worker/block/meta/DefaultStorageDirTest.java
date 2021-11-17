@@ -94,7 +94,7 @@ public final class DefaultStorageDirTest {
    * Create a storage directory with given testDir file identifier.
    *
    * @param testDir test directory file identifier
-   * @return
+   * @return {@link StorageDir}
    * @throws Exception
    */
   private StorageDir newStorageDir(File testDir) throws Exception {

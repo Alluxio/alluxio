@@ -48,6 +48,7 @@ public class ConfigurationDocGeneratorTest {
     CSV,
     YML,
   }
+
   /**
    * Rule to create a new temporary folder during each test.
    */

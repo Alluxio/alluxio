@@ -291,7 +291,7 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
         // TODO(chaomin): support creating HDFS files with specified block size and replication.
         OutputStream outputStream = new HdfsUnderFileOutputStream(
             FileSystem.create(hdfs, new Path(path),
-            new FsPermission(options.getMode().toShort())));
+              new FsPermission(options.getMode().toShort())));
         if (options.getAcl() != null) {
           setAclEntries(path, options.getAcl().getEntries());
         }

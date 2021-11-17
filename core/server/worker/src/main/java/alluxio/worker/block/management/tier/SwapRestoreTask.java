@@ -100,7 +100,7 @@ public class SwapRestoreTask extends AbstractBlockManagementTask {
   }
 
   /**
-   * @return the pair of <blocks-to-remove, blocks-to-transfer> for swap-restore plan
+   * @return the pair of &lt;blocks-to-remove, blocks-to-transfer&gt; for swap-restore plan
    */
   private Pair<List<Long>, List<BlockTransferInfo>> getSwapRestorePlan() {
     StorageTierAssoc storageTierAssoc = mMetadataManager.getStorageTierAssoc();

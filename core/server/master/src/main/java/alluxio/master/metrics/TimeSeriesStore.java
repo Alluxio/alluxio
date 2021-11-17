@@ -25,7 +25,7 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public class TimeSeriesStore {
-  /** <MetricName, TimeSeries>. **/
+  /** &lt;MetricName, TimeSeries&gt;. **/
   private final Map<String, TimeSeries> mTimeSeries;
 
   /**

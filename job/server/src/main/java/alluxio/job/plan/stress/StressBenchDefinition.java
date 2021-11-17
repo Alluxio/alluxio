@@ -49,8 +49,8 @@ import java.util.stream.Collectors;
 /**
  * The definition for the stress bench job, which runs distributed benchmarks.
  *
- * {@link StressBenchConfig} is the configuration class, each task takes a List<String> as a list of
- * command-line arguments to the benchmark command, and each task returns the string output.
+ * {@link StressBenchConfig} is the configuration class, each task takes a List&lt;String&gt; as a
+ * list of command-line arguments to the benchmark command, and each task returns the string output.
  */
 public final class StressBenchDefinition
     implements PlanDefinition<StressBenchConfig, ArrayList<String>, String> {

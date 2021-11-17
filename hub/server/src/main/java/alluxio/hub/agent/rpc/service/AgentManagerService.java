@@ -97,7 +97,7 @@ public class AgentManagerService extends AgentManagerServiceGrpc.AgentManagerSer
       return AgentProcessStatusChangeResponse.newBuilder().setRequest(request).setSuccess(true)
               .build();
     }, "processStatusChange",
-       "attempts to change the state of an Alluxio process", responseObserver, request);
+        "attempts to change the state of an Alluxio process", responseObserver, request);
   }
 
   @Override

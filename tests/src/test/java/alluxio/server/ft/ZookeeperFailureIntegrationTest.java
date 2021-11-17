@@ -166,6 +166,7 @@ public class ZookeeperFailureIntegrationTest extends BaseIntegrationTest {
 
     return primaryIndex.get();
   }
+
   /*
    * This method uses a client with an explicit master address to ensure that the master has shut
    * down its rpc service.

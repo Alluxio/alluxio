@@ -256,12 +256,12 @@
 
     <!-- Checks that there is whitespace after various tokens. -->
     <module name="WhitespaceAfter"/>
+  </module>
 
-    <!-- Disables checkstyle for particular lines of codes. -->
-    <module name="SuppressionCommentFilter">
-      <property name="offCommentFormat" value="CHECKSTYLE.OFF\: ([\w\|]+)"/>
-      <property name="onCommentFormat" value="CHECKSTYLE.ON\: ([\w\|]+)"/>
-    </module>
+  <!-- Disables checkstyle for particular lines of codes. -->
+  <module name="SuppressWithPlainTextCommentFilter">
+    <property name="offCommentFormat" value="CHECKSTYLE.OFF\: ([\w\|]+)"/>
+    <property name="onCommentFormat" value="CHECKSTYLE.ON\: ([\w\|]+)"/>
   </module>
 
   <!-- always use Unix-style line separators -->

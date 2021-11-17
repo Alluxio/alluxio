@@ -34,7 +34,8 @@ import javax.annotation.concurrent.NotThreadSafe;
  *
  * <pre>
  * java -cp \
- *   assembly/server/target/alluxio-assembly-server-<ALLUXIO-VERSION>-jar-with-dependencies.jar \
+ *   assembly/server/target/alluxio-assembly-server-&lt;ALLUXIO-VERSION&gt;
+ *   -jar-with-dependencies.jar \
  *   alluxio.master.journal.JournalTool -master FileSystemMaster -outputDir my-journal
  * </pre>
  */

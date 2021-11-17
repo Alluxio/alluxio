@@ -130,8 +130,8 @@ public final class FileSystemContextReinitIntegrationTest extends BaseIntegratio
     // Cannot use mLocalAlluxioClusterResource.get().getClient(mContext) here because the clients
     // will be closed when restarting local masters, which in turn will close the contexts.
     try (FileSystem client = FileSystem.Factory.create(mContext);
-      FileOutStream os = client.createFile(PATH_TO_UPDATE, CreateFilePOptions.newBuilder()
-          .setRecursive(true).build())) {
+        FileOutStream os = client.createFile(PATH_TO_UPDATE, CreateFilePOptions.newBuilder()
+            .setRecursive(true).build())) {
       checkClusterConfBeforeUpdate();
       checkPathConfBeforeUpdate();
       updateClusterConf();

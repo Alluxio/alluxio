@@ -33,6 +33,7 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public final class CephFSUnderFileSystemFactory implements UnderFileSystemFactory {
   private static final Logger LOG = LoggerFactory.getLogger(CephFSUnderFileSystemFactory.class);
+
   /**
    * Constructs a new {@link CephFSUnderFileSystemFactory}.
    */

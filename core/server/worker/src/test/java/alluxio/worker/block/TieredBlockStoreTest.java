@@ -377,7 +377,7 @@ public final class TieredBlockStoreTest {
           CommonUtils.sleepMs(20);
           return new EvictionPlan(new ArrayList<>(), new ArrayList<>());
         }
-      );
+        );
     for (int i = 0; i < threadAmount; i++) {
       runnables.add(() -> {
         try {

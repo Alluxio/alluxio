@@ -56,7 +56,7 @@ public class WorkerUsageMeta {
    *
    * Example:
    * <blockquote><pre>
-   *   EnumSet<WorkerMetaLockSection> lockTypes =
+   *   EnumSet&lt;WorkerMetaLockSection&gt; lockTypes =
    *       EnumSet.of(WorkerMetaLockSection.USAGE_LOCK);
    *   worker.lock(lockTypes, false);
    *   try {
@@ -112,7 +112,7 @@ public class WorkerUsageMeta {
    *
    * Example:
    * <blockquote><pre>
-   *   EnumSet<WorkerMetaLockSection> lockTypes =
+   *   EnumSet&lt;WorkerMetaLockSection&gt; lockTypes =
    *       EnumSet.of(WorkerMetaLockSection.USAGE_LOCK);
    *   worker.lock(lockTypes, true);
    *   try {
