@@ -279,13 +279,16 @@ public class BlockMasterClient extends AbstractMasterClient {
    * @param usedBytesOnTiers mapping from storage tier alias to used bytes
    * @param currentBlocksOnLocation mapping from storage tier alias to the list of list of blocks
    * @param lostStorage mapping from storage tier alias to the list of lost storage paths
-   * @param configList a list of configurations
+   * @param configList a list of configuration
+   * @param version the version of worker
+   * @param revision the revision of worker
    */
   // TODO(yupeng): rename to workerBlockReport or workerInitialize?
   public void register(final long workerId, final List<String> storageTierAliases,
       final Map<String, Long> totalBytesOnTiers, final Map<String, Long> usedBytesOnTiers,
       final Map<BlockStoreLocation, List<Long>> currentBlocksOnLocation,
       final Map<String, List<String>> lostStorage,
+      final String version, final String revision,
       final List<ConfigProperty> configList) throws IOException {
 
     final RegisterWorkerPOptions options =
@@ -303,6 +306,7 @@ public class BlockMasterClient extends AbstractMasterClient {
         .putAllUsedBytesOnTiers(usedBytesOnTiers)
         .addAllCurrentBlocks(currentBlocks)
         .putAllLostStorage(lostStorageMap)
+        .setVersion(version).setRevision(revision)
         .setOptions(options).build();
 
     retryRPC(() -> {

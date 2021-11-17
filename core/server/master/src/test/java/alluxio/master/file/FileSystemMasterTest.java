@@ -28,6 +28,7 @@ import alluxio.AuthenticatedClientUserResource;
 import alluxio.AuthenticatedUserRule;
 import alluxio.ConfigurationRule;
 import alluxio.Constants;
+import alluxio.ProjectConstants;
 import alluxio.client.WriteType;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
@@ -2720,7 +2721,8 @@ public final class FileSystemMasterTest {
             Constants.MEDIUM_SSD, (long) Constants.MB),
         ImmutableMap.of(Constants.MEDIUM_MEM, (long) Constants.KB,
             Constants.MEDIUM_SSD, (long) Constants.KB), ImmutableMap.of(),
-        new HashMap<String, StorageList>(), RegisterWorkerPOptions.getDefaultInstance());
+        new HashMap<String, StorageList>(), ProjectConstants.VERSION,
+        ProjectConstants.REVISION, RegisterWorkerPOptions.getDefaultInstance());
     mWorkerId2 = mBlockMaster.getWorkerId(
         new WorkerNetAddress().setHost("remote").setRpcPort(80).setDataPort(81).setWebPort(82));
     mBlockMaster.workerRegister(mWorkerId2,
@@ -2730,7 +2732,8 @@ public final class FileSystemMasterTest {
         ImmutableMap.of(Constants.MEDIUM_MEM, (long) Constants.KB,
             Constants.MEDIUM_SSD, (long) Constants.KB),
         ImmutableMap.of(), new HashMap<String, StorageList>(),
-        RegisterWorkerPOptions.getDefaultInstance());
+        ProjectConstants.VERSION,
+        ProjectConstants.REVISION, RegisterWorkerPOptions.getDefaultInstance());
   }
 
   private void stopServices() throws Exception {

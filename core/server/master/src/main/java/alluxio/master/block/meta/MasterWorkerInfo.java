@@ -38,6 +38,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.concurrent.locks.StampedLock;
@@ -122,6 +123,7 @@ public final class MasterWorkerInfo {
   private final AtomicLong mLastUpdatedTimeMs;
   /** Worker metadata, this field is thread safe. */
   private final StaticWorkerMeta mMeta;
+  private final AtomicReference<WorkerVersionMeta> mWorkerMeta;
 
   /** If true, the worker is considered registered. */
   @GuardedBy("mStatusLock")
@@ -155,6 +157,8 @@ public final class MasterWorkerInfo {
    */
   public MasterWorkerInfo(long id, WorkerNetAddress address) {
     mMeta = new StaticWorkerMeta(id, address);
+    mWorkerMeta = new AtomicReference<>(
+            new WorkerVersionMeta("unknown version", "unknown revision"));
     mUsage = new WorkerUsageMeta();
     mBlocks = new HashSet<>();
     mToRemoveBlocks = new HashSet<>();
@@ -702,5 +706,32 @@ public final class MasterWorkerInfo {
    */
   public void markAllBlocksToRemove() {
     mToRemoveBlocks.addAll(mBlocks);
+  }
+
+  /**
+   * Sets the version and revision of worker.
+   * @param version the version of worker
+   * @param revision the revision of worker
+   */
+  public void setVersionAndRevision(String version, String revision) {
+    mWorkerMeta.set(new WorkerVersionMeta(version, revision));
+  }
+
+  /**
+   * Gets the version of worker.
+   *
+   * @return the version of worker
+   */
+  public String getVersion() {
+    return mWorkerMeta.get().getVersion();
+  }
+
+  /**
+   * Gets the revision of worker.
+   *
+   * @return the version of worker
+   */
+  public String getRevision() {
+    return mWorkerMeta.get().getRevision();
   }
 }

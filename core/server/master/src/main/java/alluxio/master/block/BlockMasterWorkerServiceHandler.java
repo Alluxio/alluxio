@@ -173,10 +173,12 @@ public final class BlockMasterWorkerServiceHandler extends
           final Map<Block.BlockLocation, List<Long>> currBlocksOnLocationMap =
                   reconstructBlocksOnLocationMap(request.getCurrentBlocksList(), workerId);
 
+          final String version = request.getVersion();
+          final String revision = request.getRevision();
           // If the register is unsuccessful, the lease will be kept around until the expiry.
           // The worker can retry and use the existing lease.
           mBlockMaster.workerRegister(workerId, storageTiers, totalBytesOnTiers, usedBytesOnTiers,
-                  currBlocksOnLocationMap, lostStorageMap, options);
+              currBlocksOnLocationMap, lostStorageMap, version, revision, options);
           LOG.info("Worker {} finished registering, releasing its lease.", workerId);
           mBlockMaster.releaseRegisterLease(workerId);
           return RegisterWorkerPResponse.getDefaultInstance();

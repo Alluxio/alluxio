@@ -16,6 +16,7 @@ import static alluxio.stress.cli.RpcBenchPreparationUtils.EMPTY_CONFIG;
 import static alluxio.stress.cli.RpcBenchPreparationUtils.LOST_STORAGE;
 
 import alluxio.ClientContext;
+import alluxio.ProjectConstants;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.grpc.LocationBlockIdListEntry;
@@ -181,6 +182,8 @@ public class RegisterWorkerBench extends RpcBench<BlockMasterBenchParameters> {
               // So an empty block list will be used here
               ImmutableMap.of(),
               LOST_STORAGE, // lost storage
+              ProjectConstants.VERSION,
+              ProjectConstants.REVISION,
               EMPTY_CONFIG); // extra config
       LOG.info("Worker {} registered", workerId);
 

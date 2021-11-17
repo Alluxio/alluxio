@@ -11,6 +11,7 @@
 
 package alluxio.worker.block;
 
+import alluxio.ProjectConstants;
 import alluxio.conf.ServerConfiguration;
 import alluxio.ProcessUtils;
 import alluxio.conf.PropertyKey;
@@ -166,9 +167,10 @@ public final class BlockMasterSync implements HeartbeatExecutor {
           storeMeta.getLostStorage(), configList);
     } else {
       mMasterClient.register(mWorkerId.get(),
-          storageTierAssoc.getOrderedStorageAliases(), storeMeta.getCapacityBytesOnTiers(),
-          storeMeta.getUsedBytesOnTiers(), storeMeta.getBlockListByStorageLocation(),
-          storeMeta.getLostStorage(), configList);
+              storageTierAssoc.getOrderedStorageAliases(), storeMeta.getCapacityBytesOnTiers(),
+              storeMeta.getUsedBytesOnTiers(), storeMeta.getBlockListByStorageLocation(),
+              storeMeta.getLostStorage(), ProjectConstants.VERSION,
+              ProjectConstants.REVISION, configList);
     }
     // If the worker registers with master successfully, the lease will be recycled on the
     // master side. No need to manually request for recycle on the worker side.

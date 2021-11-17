@@ -15,6 +15,7 @@ import static org.mockito.Mockito.mock;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
+import alluxio.ProjectConstants;
 import alluxio.collections.Pair;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
@@ -261,6 +262,7 @@ public final class ReplicationCheckerTest {
       mBlockMaster.workerRegister(workerId, ImmutableList.of(Constants.MEDIUM_MEM),
           ImmutableMap.of(Constants.MEDIUM_MEM, 100L),
           ImmutableMap.of(Constants.MEDIUM_MEM, 0L), NO_BLOCKS_ON_LOCATION, NO_LOST_STORAGE,
+          ProjectConstants.VERSION, ProjectConstants.REVISION,
           RegisterWorkerPOptions.getDefaultInstance());
       mKnownWorkers.add(workerId);
     }
@@ -387,7 +389,8 @@ public final class ReplicationCheckerTest {
     mBlockMaster.workerRegister(workerId, Collections.singletonList(Constants.MEDIUM_MEM),
         ImmutableMap.of(Constants.MEDIUM_MEM, 100L),
         ImmutableMap.of(Constants.MEDIUM_MEM, 0L), NO_BLOCKS_ON_LOCATION,
-        NO_LOST_STORAGE, RegisterWorkerPOptions.getDefaultInstance());
+        NO_LOST_STORAGE, ProjectConstants.VERSION,
+        ProjectConstants.REVISION, RegisterWorkerPOptions.getDefaultInstance());
     mBlockMaster.commitBlock(workerId, 50L,
         Constants.MEDIUM_MEM, Constants.MEDIUM_MEM, blockId, 20L);
 

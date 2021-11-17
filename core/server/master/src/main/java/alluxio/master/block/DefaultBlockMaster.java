@@ -1006,7 +1006,8 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
   public void workerRegister(long workerId, List<String> storageTiers,
       Map<String, Long> totalBytesOnTiers, Map<String, Long> usedBytesOnTiers,
       Map<BlockLocation, List<Long>> currentBlocksOnLocation,
-      Map<String, StorageList> lostStorage, RegisterWorkerPOptions options)
+      Map<String, StorageList> lostStorage, String version,
+      String revision, RegisterWorkerPOptions options)
       throws NotFoundException {
 
     MasterWorkerInfo worker = mWorkers.getFirstByField(ID_INDEX, workerId);
@@ -1018,6 +1019,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
     if (worker == null) {
       throw new NotFoundException(ExceptionMessage.NO_WORKER_FOUND.getMessage(workerId));
     }
+    worker.setVersionAndRevision(version, revision);
 
     // Gather all blocks on this worker.
     HashSet<Long> blocks = new HashSet<>();
