@@ -37,8 +37,7 @@ The following table describes the support status for current Amazon S3 functiona
 </table>
 
 ### Limitation
-In Alluxio, we use / as reserved separator, so don't create the S3 directory with /, like
-s3://example-bucket//.
+In Alluxio, we use `/` as a reserved separator. Therefore any S3 directory with an object named `/` (eg: `s3://example-bucket//`) will conflict and behave incorrectly.
 
 ## Language support
 Alluxio S3 client supports various programming languages, such as C++, Java, Python, Golang, and Ruby.
