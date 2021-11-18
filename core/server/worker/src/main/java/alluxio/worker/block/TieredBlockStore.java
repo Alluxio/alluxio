@@ -11,6 +11,8 @@
 
 package alluxio.worker.block;
 
+import alluxio.StorageTierAssoc;
+import alluxio.WorkerStorageTierAssoc;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.exception.BlockAlreadyExistsException;
@@ -114,6 +116,9 @@ public class TieredBlockStore implements BlockStore {
 
   /** Management task coordinator. */
   private ManagementTaskCoordinator mTaskCoordinator;
+
+  /** An object storing the mapping of tier aliases to ordinals. */
+  private final StorageTierAssoc mStorageTierAssoc = new WorkerStorageTierAssoc();
 
   /**
    * Creates a new instance of {@link TieredBlockStore}.
@@ -772,6 +777,7 @@ public class TieredBlockStore implements BlockStore {
 
     int blocksIterated = 0;
     int blocksRemoved = 0;
+    int blocksMoved = 0;
     int spaceFreed = 0;
 
     // List of all dirs that belong to the given location.
@@ -809,6 +815,31 @@ public class TieredBlockStore implements BlockStore {
       if (evictorView.isBlockEvictable(blockToDelete)) {
         try {
           BlockMeta blockMeta = mMetaManager.getBlockMeta(blockToDelete);
+
+          int tirLevel = mStorageTierAssoc.getOrdinal(blockMeta.getBlockLocation().tierAlias());
+          LOG.warn("block [{}] to delete or move, cur tier level [{}]", blockMeta.getBlockId(),
+              tirLevel);
+          if (mStorageTierAssoc.size() > tirLevel + 1) {
+            LOG.warn("block [{}] move to tier level [{}]", blockMeta.getBlockId(), tirLevel + 1);
+            BlockStoreLocation loc = BlockStoreLocation
+                .anyDirInTier(mStorageTierAssoc.getAlias(tirLevel + 1));
+            MoveBlockResult result = moveBlockInternal(sessionId, blockMeta.getBlockId(),
+                BlockStoreLocation.anyTier(), AllocateOptions.forMove(loc));
+            if (result.getSuccess()) {
+              for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
+                synchronized (listener) {
+                  listener.onMoveBlockByClient(sessionId, blockMeta.getBlockId(),
+                      result.getSrcLocation(), result.getDstLocation());
+                }
+              }
+              blocksMoved++;
+              spaceFreed += blockMeta.getBlockSize();
+              continue;
+            }
+            LOG.warn("block [{}] move to tier level [{}] failed.", blockMeta.getBlockId(),
+                tirLevel + 1);
+          }
+
           removeBlockFileAndMeta(blockMeta);
           blocksRemoved++;
           for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
@@ -822,6 +853,13 @@ public class TieredBlockStore implements BlockStore {
         } catch (BlockDoesNotExistException e) {
           LOG.warn("Failed to evict blockId {}, it could be already deleted", blockToDelete);
           continue;
+        } catch (InvalidWorkerStateException e) {
+          LOG.warn("Failed to evict blockId {}, error happened.", blockToDelete);
+          LOG.warn("Failed to evict blockId, exception:", e);
+          continue;
+        } catch (BlockAlreadyExistsException e) {
+          LOG.warn("Failed to evict blockId {}, it could be already moved", blockToDelete);
+          continue;
         }
       }
     }
@@ -830,9 +868,9 @@ public class TieredBlockStore implements BlockStore {
       throw new WorkerOutOfSpaceException(
           String.format("Failed to free %d bytes space at location %s. "
                   + "Min contiguous requested: %d, Min available requested: %d, "
-                  + "Blocks iterated: %d, Blocks removed: %d, Space freed: %d",
+                  + "Blocks iterated: %d, Blocks removed: %d, Blocks moved: %d, Space freed: %d",
               minAvailableBytes, location.tierAlias(), minContiguousBytes, minAvailableBytes,
-              blocksIterated, blocksRemoved, spaceFreed));
+              blocksIterated, blocksRemoved, blocksMoved, spaceFreed));
     }
   }
 
