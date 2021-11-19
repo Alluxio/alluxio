@@ -690,6 +690,20 @@ public class JournalStateMachine extends BaseStateMachine {
   }
 
   /**
+   * This function is triggered when the state machine becomes CANDIDATE.
+   */
+  @Override
+  public void notifyExtendedNoLeader(RaftProtos.RoleInfoProto roleInfoProto) {
+    long lastLeaderElapsedTimeMs = roleInfoProto.getCandidateInfo().getLastLeaderElapsedTimeMs();
+    if (roleInfoProto.getRole() == RaftProtos.RaftPeerRole.CANDIDATE) {
+      LOG.info("Transitioned to CANDIDATE, last leader was {}ms ago", lastLeaderElapsedTimeMs);
+      mJournalSystem.setLastLeaderTime(System.currentTimeMillis() - lastLeaderElapsedTimeMs);
+    } else {
+      LOG.warn("Triggered notifyExtendedNoLeader when role is {}", roleInfoProto.getRole());
+    }
+  }
+
+  /**
    * @return the snapshot replication manager
    */
   public SnapshotReplicationManager getSnapshotReplicationManager() {

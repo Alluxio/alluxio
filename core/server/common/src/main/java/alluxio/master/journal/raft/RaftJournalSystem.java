@@ -226,6 +226,8 @@ public class RaftJournalSystem extends AbstractJournalSystem {
   private RaftGroup mRaftGroup;
   private RaftPeerId mPeerId;
   private Map<String, TransferLeaderMessage> mErrorMessages;
+  /** Keeps track of the last time a leader was seen during elections. */
+  private long mLastLeaderTimeMs = -1;
 
   static long nextCallId() {
     return CALL_ID_COUNTER.getAndIncrement() & Long.MAX_VALUE;
@@ -387,6 +389,13 @@ public class RaftJournalSystem extends AbstractJournalSystem {
     RaftServerConfigKeys.LeaderElection.setLeaderStepDownWaitTime(properties,
         TimeDuration.valueOf(Long.MAX_VALUE, TimeUnit.MILLISECONDS));
 
+    /* Setting this TimeDuration to 0 notifies the state machine every time the state machine
+     * transitions from FOLLOWER to CANDIDATE. We can then measure the totality of the time taken
+     *  for a leader election.
+     */
+    RaftServerConfigKeys.Notification.setNoLeaderTimeout(properties,
+        TimeDuration.valueOf(1, TimeUnit.NANOSECONDS));
+
     long messageSize = ServerConfiguration.global().getBytes(
         PropertyKey.MASTER_EMBEDDED_JOURNAL_TRANSPORT_MAX_INBOUND_MESSAGE_SIZE);
     GrpcConfigKeys.setMessageSizeMax(properties,
@@ -450,6 +459,21 @@ public class RaftJournalSystem extends AbstractJournalSystem {
     return journal;
   }
 
+  /**
+   * Sets the last time a leader was seen. Triggered during failover.
+   * @param lastLeaderTimeMs the last time the leader was seen in ms
+   */
+  public void setLastLeaderTime(long lastLeaderTimeMs) {
+    mLastLeaderTimeMs = lastLeaderTimeMs;
+  }
+
+  /**
+   * @return the last time a leader was seen during failover
+   */
+  public long getLastLeaderTime() {
+    return mLastLeaderTimeMs;
+  }
+
   @Override
   public synchronized void gainPrimacy() {
     LOG.info("Gaining primacy.");
@@ -482,7 +506,14 @@ public class RaftJournalSystem extends AbstractJournalSystem {
     mAsyncJournalWriter
         .set(new AsyncJournalWriter(mRaftJournalWriter, () -> getJournalSinks(null)));
     mTransferLeaderAllowed.set(true);
-    LOG.info("Gained primacy.");
+
+    if (getLastLeaderTime() == -1) {
+      LOG.info("Gained primacy at cluster launch.");
+    } else {
+      LOG.info("Gained primacy after {}ms long election.",
+          System.currentTimeMillis() - getLastLeaderTime());
+    }
+    setLastLeaderTime(-1);
   }
 
   @Override
