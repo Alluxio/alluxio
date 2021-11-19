@@ -93,9 +93,9 @@ public final class ReplicationChecker implements HeartbeatExecutor {
    * @param jobMasterClientPool job master client pool
    */
   public ReplicationChecker(InodeTree inodeTree, BlockMaster blockMaster,
-      SafeModeManager safeModeManager, JobMasterClientPool jobMasterClientPool) {
+                            SafeModeManager safeModeManager, JobMasterClientPool jobMasterClientPool) {
     this(inodeTree, blockMaster, safeModeManager,
-        new DefaultReplicationHandler(jobMasterClientPool));
+            new DefaultReplicationHandler(jobMasterClientPool));
   }
 
   /**
@@ -108,7 +108,7 @@ public final class ReplicationChecker implements HeartbeatExecutor {
    * @param replicationHandler handler to replicate blocks
    */
   public ReplicationChecker(InodeTree inodeTree, BlockMaster blockMaster,
-      SafeModeManager safeModeManager, ReplicationHandler replicationHandler) {
+                            SafeModeManager safeModeManager, ReplicationHandler replicationHandler) {
     mInodeTree = inodeTree;
     mBlockMaster = blockMaster;
     mSafeModeManager = safeModeManager;
@@ -116,11 +116,11 @@ public final class ReplicationChecker implements HeartbeatExecutor {
 
     // Do not use more than 10% of the job service
     mMaxActiveJobs = Math.max(1,
-        (int) (ServerConfiguration.getInt(PropertyKey.JOB_MASTER_JOB_CAPACITY) * 0.1));
+            (int) (ServerConfiguration.getInt(PropertyKey.JOB_MASTER_JOB_CAPACITY) * 0.1));
     mActiveJobToInodeID = HashBiMap.create();
     MetricsSystem.registerCachedGaugeIfAbsent(
-        MetricsSystem.getMetricName(MetricKey.MASTER_REPLICA_MGMT_ACTIVE_JOB_SIZE.getName()),
-        mActiveJobToInodeID::size);
+            MetricsSystem.getMetricName(MetricKey.MASTER_REPLICA_MGMT_ACTIVE_JOB_SIZE.getName()),
+            mActiveJobToInodeID::size);
   }
 
   /**
@@ -144,14 +144,14 @@ public final class ReplicationChecker implements HeartbeatExecutor {
     try {
       if (!mActiveJobToInodeID.isEmpty()) {
         final List<Long> activeEvictJobIds =
-            mReplicationHandler.findJobs("Evict",
-                ImmutableSet.of(Status.RUNNING, Status.CREATED));
+                mReplicationHandler.findJobs("Evict",
+                        ImmutableSet.of(Status.RUNNING, Status.CREATED));
         final List<Long> activeMoveJobIds =
-            mReplicationHandler.findJobs("Move",
-                ImmutableSet.of(Status.RUNNING, Status.CREATED));
+                mReplicationHandler.findJobs("Move",
+                        ImmutableSet.of(Status.RUNNING, Status.CREATED));
         final List<Long> activeReplicateJobIds =
-            mReplicationHandler.findJobs("Replicate",
-                ImmutableSet.of(Status.RUNNING, Status.CREATED));
+                mReplicationHandler.findJobs("Replicate",
+                        ImmutableSet.of(Status.RUNNING, Status.CREATED));
 
         activeJobIds.addAll(activeEvictJobIds);
         activeJobIds.addAll(activeMoveJobIds);
@@ -194,7 +194,7 @@ public final class ReplicationChecker implements HeartbeatExecutor {
    * @return a map that maps from workerHost to desired medium
    */
   private Map<String, String> findMisplacedBlock(
-      InodeFile file, BlockInfo blockInfo) {
+          InodeFile file, BlockInfo blockInfo) {
     Set<String> pinnedMediumTypes = file.getMediumTypes();
     if (pinnedMediumTypes.isEmpty()) {
       // nothing needs to be moved
@@ -232,7 +232,7 @@ public final class ReplicationChecker implements HeartbeatExecutor {
   }
 
   private void checkMisreplicated(Set<Long> inodes, ReplicationHandler handler)
-      throws InterruptedException {
+          throws InterruptedException {
     for (long inodeId : inodes) {
       if (mActiveJobToInodeID.size() >= mMaxActiveJobs) {
         return;
@@ -267,16 +267,16 @@ public final class ReplicationChecker implements HeartbeatExecutor {
           }
 
           for (Map.Entry<String, String> entry
-              : findMisplacedBlock(file, blockInfo).entrySet()) {
+                  : findMisplacedBlock(file, blockInfo).entrySet()) {
             try {
               final long jobId =
-                  handler.migrate(inodePath.getUri(), blockId, entry.getKey(), entry.getValue());
+                      handler.migrate(inodePath.getUri(), blockId, entry.getKey(), entry.getValue());
               mActiveJobToInodeID.put(jobId, inodeId);
             } catch (Exception e) {
               LOG.warn(
-                  "Unexpected exception encountered when starting a migration job (uri={},"
-                      + " block ID={}, workerHost= {}) : {}",
-                  inodePath.getUri(), blockId, entry.getKey(), e.toString());
+                      "Unexpected exception encountered when starting a migration job (uri={},"
+                              + " block ID={}, workerHost= {}) : {}",
+                      inodePath.getUri(), blockId, entry.getKey(), e.toString());
               LOG.debug("Exception: ", e);
             }
           }
@@ -288,7 +288,7 @@ public final class ReplicationChecker implements HeartbeatExecutor {
   }
 
   private Set<Long> check(Set<Long> inodes, ReplicationHandler handler, Mode mode)
-      throws InterruptedException {
+          throws InterruptedException {
     Set<Long> processedFileIds = new HashSet<>();
     for (long inodeId : inodes) {
       if (mActiveJobToInodeID.size() >= mMaxActiveJobs) {
@@ -326,18 +326,18 @@ public final class ReplicationChecker implements HeartbeatExecutor {
             case EVICT:
               int maxReplicas = file.getReplicationMax();
               if (file.getPersistenceState() == PersistenceState.TO_BE_PERSISTED
-                  && file.getReplicationDurable() > maxReplicas) {
+                      && file.getReplicationDurable() > maxReplicas) {
                 maxReplicas = file.getReplicationDurable();
               }
               if (currentReplicas > maxReplicas) {
                 requests.add(new ImmutableTriple<>(inodePath.getUri(), blockId,
-                    currentReplicas - maxReplicas));
+                        currentReplicas - maxReplicas));
               }
               break;
             case REPLICATE:
               int minReplicas = file.getReplicationMin();
               if (file.getPersistenceState() == PersistenceState.TO_BE_PERSISTED
-                  && file.getReplicationDurable() > minReplicas) {
+                      && file.getReplicationDurable() > minReplicas) {
                 minReplicas = file.getReplicationDurable();
               }
               if (currentReplicas < minReplicas) {
@@ -346,7 +346,7 @@ public final class ReplicationChecker implements HeartbeatExecutor {
                   continue;
                 }
                 requests.add(new ImmutableTriple<>(inodePath.getUri(), blockId,
-                    minReplicas - currentReplicas));
+                        minReplicas - currentReplicas));
               }
               break;
             default:
@@ -383,9 +383,9 @@ public final class ReplicationChecker implements HeartbeatExecutor {
           return processedFileIds;
         } catch (Exception e) {
           SAMPLING_LOG.warn(
-              "Unexpected exception encountered when starting a {} job (uri={},"
-                  + " block ID={}, num replicas={}) : {}",
-              mode, uri, blockId, numReplicas, e.toString());
+                  "Unexpected exception encountered when starting a {} job (uri={},"
+                          + " block ID={}, num replicas={}) : {}",
+                  mode, uri, blockId, numReplicas, e.toString());
           LOG.debug("Job service unexpected exception: ", e);
         }
       }
