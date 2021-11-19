@@ -700,6 +700,7 @@ public final class DefaultFileSystemMaster extends CoreMaster
       }
       mAccessTimeUpdater.start();
       mSyncManager.start();
+
     }
   }
 
