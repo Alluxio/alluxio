@@ -28,6 +28,7 @@ import java.util.List;
 public final class GetWorkerOptions {
   private List<BlockWorkerInfo> mBlockWorkerInfos;
   private BlockInfo mBlockInfo;
+  public static  Long CLIENT_MAX_SIZE;
 
   /**
    * @return the default {@link GetWorkerOptions}

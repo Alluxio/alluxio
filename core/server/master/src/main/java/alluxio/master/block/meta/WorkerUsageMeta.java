@@ -41,6 +41,10 @@ public class WorkerUsageMeta {
   /** Mapping from tier alias to lost storage paths. */
   Map<String, List<String>> mLostStorage;
 
+  long mUsedDirectoryMemory;
+  long mCapacityDirectoryMemory;
+  long mUsedWorkerNettyMemoryCount;
+
   /**
    * Constructor.
    */
@@ -69,7 +73,7 @@ public class WorkerUsageMeta {
   void updateUsage(final StorageTierAssoc globalStorageTierAssoc,
                    final List<String> storageTierAliases,
                    final Map<String, Long> totalBytesOnTiers,
-                   final Map<String, Long> usedBytesOnTiers)
+                   final Map<String, Long> usedBytesOnTiers,final Long usedDirectoryMemory,final  Long capacityDirectoryMemory,final Long usedWorkerNettyMemoryCount )
       throws IllegalArgumentException {
     // If the storage aliases do not have strictly increasing ordinal value based on the total
     // ordering, throw an error
@@ -105,6 +109,16 @@ public class WorkerUsageMeta {
     for (long bytes : mUsedBytesOnTiers.values()) {
       mUsedBytes += bytes;
     }
+    mCapacityDirectoryMemory=capacityDirectoryMemory;
+    mUsedDirectoryMemory=usedDirectoryMemory;
+    mUsedWorkerNettyMemoryCount=usedWorkerNettyMemoryCount;
+  }
+
+  void updateUsage(final Long usedDirectoryMemory,final  Long capacityDirectoryMemory ,final Long usedWorkerNettyMemoryCount)
+          throws IllegalArgumentException {
+    mCapacityDirectoryMemory=capacityDirectoryMemory;
+    mUsedDirectoryMemory=usedDirectoryMemory;
+    mUsedWorkerNettyMemoryCount=usedWorkerNettyMemoryCount;
   }
 
   /**

@@ -32,6 +32,8 @@ import alluxio.master.file.meta.InodeTree;
 import alluxio.master.file.meta.InodeTree.LockPattern;
 import alluxio.master.file.meta.LockedInodePath;
 import alluxio.master.file.meta.PersistenceState;
+import alluxio.metrics.MetricKey;
+import alluxio.metrics.MetricsSystem;
 import alluxio.util.logging.SamplingLogger;
 import alluxio.wire.BlockInfo;
 import alluxio.wire.BlockLocation;
@@ -117,6 +119,9 @@ public final class ReplicationChecker implements HeartbeatExecutor {
     mMaxActiveJobs = Math.max(1,
         (int) (ServerConfiguration.getInt(PropertyKey.JOB_MASTER_JOB_CAPACITY) * 0.1));
     mActiveJobToInodeID = HashBiMap.create();
+    MetricsSystem.registerCachedGaugeIfAbsent(
+        MetricsSystem.getMetricName(MetricKey.MASTER_REPLICA_MGMT_ACTIVE_JOB_SIZE.getName()),
+        mActiveJobToInodeID::size);
   }
 
   /**
@@ -242,6 +247,9 @@ public final class ReplicationChecker implements HeartbeatExecutor {
       }
       try (LockedInodePath inodePath = mInodeTree.lockFullInodePath(inodeId, LockPattern.READ)) {
         InodeFile file = inodePath.getInodeFile();
+        if(!file.isCompleted()){
+          return;
+        }
         for (long blockId : file.getBlockIds()) {
           BlockInfo blockInfo = null;
           try {
@@ -300,6 +308,9 @@ public final class ReplicationChecker implements HeartbeatExecutor {
       // locking the entire path but just the inode file since this access is read-only.
       try (LockedInodePath inodePath = mInodeTree.lockFullInodePath(inodeId, LockPattern.READ)) {
         InodeFile file = inodePath.getInodeFile();
+        if(!file.isCompleted()){
+          break;
+        }
         for (long blockId : file.getBlockIds()) {
           BlockInfo blockInfo = null;
           try {

@@ -20,16 +20,22 @@ import alluxio.client.block.policy.options.GetWorkerOptions;
 import alluxio.client.block.stream.BlockOutStream;
 import alluxio.client.block.stream.UnderFileSystemFileOutStream;
 import alluxio.client.file.options.OutStreamOptions;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.PreconditionMessage;
 import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.CompleteFilePOptions;
+import alluxio.grpc.FileSystemMasterCommonPOptions;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.resource.CloseableResource;
+import alluxio.retry.RetryPolicy;
+import alluxio.retry.RetryUtils;
 import alluxio.util.CommonUtils;
 import alluxio.util.FileSystemOptions;
 import alluxio.wire.BlockInfo;
+import alluxio.wire.OperationId;
 import alluxio.wire.WorkerNetAddress;
 
 import com.codahale.metrics.Counter;
@@ -41,6 +47,8 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
+import java.util.concurrent.Semaphore;
 
 import javax.annotation.concurrent.NotThreadSafe;
 import javax.annotation.concurrent.ThreadSafe;
@@ -72,6 +80,7 @@ public class AlluxioFileOutStream extends FileOutStream {
   private boolean mShouldCacheCurrentBlock;
   private BlockOutStream mCurrentBlockOutStream;
   private final List<BlockOutStream> mPreviousBlockOutStreams;
+  private Semaphore mSemaphore;
 
   protected final AlluxioURI mUri;
 
@@ -106,13 +115,76 @@ public class AlluxioFileOutStream extends FileOutStream {
       if (!mUnderStorageType.isSyncPersist()) {
         mUnderStorageOutputStream = null;
       } else { // Write is through to the under storage, create mUnderStorageOutputStream.
-        GetWorkerOptions getWorkerOptions = GetWorkerOptions.defaults()
-            .setBlockWorkerInfos(mContext.getCachedWorkers())
-            .setBlockInfo(new BlockInfo()
-                .setBlockId(-1)
-                .setLength(0)); // not storing data to Alluxio, so block size is 0
-        WorkerNetAddress workerNetAddress =
-            options.getLocationPolicy().getWorker(getWorkerOptions);
+        // Create retry policy for initializing write.
+        AlluxioConfiguration pathConf = mContext.getPathConf(path);
+        RetryPolicy initRetryPolicy = RetryUtils.defaultFileWriteInitRetry(
+                pathConf.getDuration(PropertyKey.USER_FILE_WRITE_INIT_MAX_DURATION),
+                pathConf.getDuration(PropertyKey.USER_FILE_WRITE_INIT_SLEEP_MIN),
+                pathConf.getDuration(PropertyKey.USER_FILE_WRITE_INIT_SLEEP_MAX));
+        // Try find a worker from policy.
+        WorkerNetAddress workerNetAddress = null;
+        while (workerNetAddress == null && initRetryPolicy.attempt()) {
+          GetWorkerOptions getWorkerOptions = GetWorkerOptions.defaults()
+                  .setBlockWorkerInfos(mContext.getCachedWorkers())
+                  .setBlockInfo(new BlockInfo()
+                  .setBlockId(-1)
+                  .setLength(0)); // not storing data to Alluxio, so block size is 0
+          workerNetAddress = options.getLocationPolicy().getWorker(getWorkerOptions);
+          System.out.println("workerNetAddress"+workerNetAddress);
+        }
+        if (workerNetAddress == null) {
+          // Assume no worker is available because block size is 0.
+          throw new UnavailableException(ExceptionMessage.NO_WORKER_AVAILABLE.getMessage());
+        }
+        mUnderStorageOutputStream = mCloser
+            .register(UnderFileSystemFileOutStream.create(mContext, workerNetAddress, mOptions));
+      }
+    } catch (Throwable t) {
+      throw CommonUtils.closeAndRethrow(mCloser, t);
+    }
+  }
+
+  public AlluxioFileOutStream(AlluxioURI path, OutStreamOptions options, FileSystemContext context, Semaphore semaphore)
+          throws IOException {
+    mCloser = Closer.create();
+    mSemaphore =semaphore;
+    // Acquire a resource to block FileSystemContext reinitialization, this needs to be done before
+    // using mContext.
+    // The resource will be released in close().
+    mContext = context;
+    mCloser.register(mContext.blockReinit());
+    try {
+      mUri = Preconditions.checkNotNull(path, "path");
+      mBlockSize = options.getBlockSizeBytes();
+      mAlluxioStorageType = options.getAlluxioStorageType();
+      mUnderStorageType = options.getUnderStorageType();
+      mOptions = options;
+      mBlockStore = AlluxioBlockStore.create(mContext);
+      mPreviousBlockOutStreams = new ArrayList<>();
+      mClosed = false;
+      mCanceled = false;
+      mShouldCacheCurrentBlock = mAlluxioStorageType.isStore();
+      mBytesWritten = 0;
+
+      if (!mUnderStorageType.isSyncPersist()) {
+        mUnderStorageOutputStream = null;
+      } else { // Write is through to the under storage, create mUnderStorageOutputStream.
+        // Create retry policy for initializing write.
+        AlluxioConfiguration pathConf = mContext.getPathConf(path);
+        RetryPolicy initRetryPolicy = RetryUtils.defaultFileWriteInitRetry(
+                pathConf.getDuration(PropertyKey.USER_FILE_WRITE_INIT_MAX_DURATION),
+                pathConf.getDuration(PropertyKey.USER_FILE_WRITE_INIT_SLEEP_MIN),
+                pathConf.getDuration(PropertyKey.USER_FILE_WRITE_INIT_SLEEP_MAX));
+        // Try find a worker from policy.
+        WorkerNetAddress workerNetAddress = null;
+        while (workerNetAddress == null && initRetryPolicy.attempt()) {
+          GetWorkerOptions getWorkerOptions = GetWorkerOptions.defaults()
+                  .setBlockWorkerInfos(mContext.getCachedWorkers())
+                  .setBlockInfo(new BlockInfo()
+                  .setBlockId(-1)
+                  .setLength(0)); // not storing data to Alluxio, so block size is 0
+          workerNetAddress = options.getLocationPolicy().getWorker(getWorkerOptions);
+        }
         if (workerNetAddress == null) {
           // Assume no worker is available because block size is 0.
           throw new UnavailableException(ExceptionMessage.NO_WORKER_AVAILABLE.getMessage());
@@ -127,6 +199,7 @@ public class AlluxioFileOutStream extends FileOutStream {
 
   @Override
   public void cancel() throws IOException {
+    mSemaphore.release();
     mCanceled = true;
     close();
   }
@@ -142,6 +215,8 @@ public class AlluxioFileOutStream extends FileOutStream {
       }
 
       CompleteFilePOptions.Builder optionsBuilder = CompleteFilePOptions.newBuilder();
+      optionsBuilder.setCommonOptions(FileSystemMasterCommonPOptions.newBuilder()
+          .setOperationId(new OperationId(UUID.randomUUID()).toFsProto()).buildPartial());
       if (mUnderStorageType.isSyncPersist()) {
         if (mCanceled) {
           mUnderStorageOutputStream.cancel();
@@ -189,6 +264,7 @@ public class AlluxioFileOutStream extends FileOutStream {
       throw mCloser.rethrow(e); // IOException will be thrown as-is.
     } finally {
       mClosed = true;
+      mSemaphore.release();
       mCloser.close();
     }
   }
@@ -279,6 +355,7 @@ public class AlluxioFileOutStream extends FileOutStream {
       mPreviousBlockOutStreams.add(mCurrentBlockOutStream);
     }
 
+//    todo 去初始化获取block
     if (mAlluxioStorageType.isStore()) {
       mCurrentBlockOutStream =
           mBlockStore.getOutStream(getNextBlockId(), mBlockSize, mOptions);

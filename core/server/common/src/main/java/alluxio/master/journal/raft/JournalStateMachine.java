@@ -65,8 +65,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionException;
+import java.util.concurrent.*;
 
 import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.ThreadSafe;
@@ -106,6 +105,8 @@ public class JournalStateMachine extends BaseStateMachine {
   private volatile long mNextSequenceNumberToRead = 0;
   private volatile boolean mSnapshotting = false;
   private volatile boolean mIsLeader = false;
+
+  private ExecutorService journalPool ;
 
   /**
    * This callback is used for interrupting someone who suspends the journal applier to work on
@@ -158,8 +159,35 @@ public class JournalStateMachine extends BaseStateMachine {
     MetricsSystem.registerGaugeIfAbsent(
         MetricKey.MASTER_JOURNAL_LAST_CHECKPOINT_TIME.getName(),
         () -> mLastCheckPointTime);
+    MetricsSystem.registerGaugeIfAbsent(
+        MetricKey.MASTER_JOURNAL_LAST_APPLIED_COMMIT_INDEX.getName(),
+        () -> mLastAppliedCommitIndex);
   }
 
+  public JournalStateMachine(Map<String, RaftJournal> journals, RaftJournalSystem journalSystem,Integer maxConcurrencyPoolSize) {
+    journalPool = Executors.newFixedThreadPool(maxConcurrencyPoolSize);
+    LOG.info("Ihe max concurrency for notifyTermIndexUpdated is loading with max threads {}", maxConcurrencyPoolSize);
+    mJournals = journals;
+    mJournalApplier = new BufferedJournalApplier(journals,
+            () -> journalSystem.getJournalSinks(null));
+    resetState();
+    LOG.info("Initialized new journal state machine");
+    mJournalSystem = journalSystem;
+    mSnapshotManager = new SnapshotReplicationManager(journalSystem, mStorage);
+
+    MetricsSystem.registerGaugeIfAbsent(
+            MetricKey.MASTER_EMBEDDED_JOURNAL_SNAPSHOT_LAST_INDEX.getName(),
+            () -> mSnapshotLastIndex);
+    MetricsSystem.registerGaugeIfAbsent(
+            MetricKey.MASTER_JOURNAL_ENTRIES_SINCE_CHECKPOINT.getName(),
+            () -> getLastAppliedTermIndex().getIndex() - mSnapshotLastIndex);
+    MetricsSystem.registerGaugeIfAbsent(
+            MetricKey.MASTER_JOURNAL_LAST_CHECKPOINT_TIME.getName(),
+            () -> mLastCheckPointTime);
+    MetricsSystem.registerGaugeIfAbsent(
+            MetricKey.MASTER_JOURNAL_LAST_APPLIED_COMMIT_INDEX.getName(),
+            () -> mLastAppliedCommitIndex);
+  }
   @Override
   public void initialize(RaftServer server, RaftGroupId groupId,
       RaftStorage raftStorage) throws IOException {
@@ -195,6 +223,7 @@ public class JournalStateMachine extends BaseStateMachine {
       resetState();
       setLastAppliedTermIndex(snapshot.getTermIndex());
       install(snapshotFile);
+      mSnapshotLastIndex = getLatestSnapshot() != null ? getLatestSnapshot().getIndex() : -1;
     } catch (Exception e) {
       throw new IOException(String.format("Failed to load snapshot %s", snapshot), e);
     }
@@ -299,7 +328,7 @@ public class JournalStateMachine extends BaseStateMachine {
   @Override
   public void notifyTermIndexUpdated(long term, long index) {
     super.notifyTermIndexUpdated(term, index);
-    CompletableFuture.runAsync(mJournalSystem::updateGroup);
+    CompletableFuture.runAsync(mJournalSystem::updateGroup,journalPool);
   }
 
   private long getNextIndex() {
@@ -399,8 +428,8 @@ public class JournalStateMachine extends BaseStateMachine {
    */
   private void applyEntry(JournalEntry entry) {
     Preconditions.checkState(
-        entry.getAllFields().size() <= 1
-            || (entry.getAllFields().size() == 2 && entry.hasSequenceNumber()),
+        entry.getAllFields().size() <= 2
+            || (entry.getAllFields().size() == 3 && entry.hasSequenceNumber()),
         "Raft journal entries should never set multiple fields in addition to sequence "
             + "number, but found %s",
         entry);
@@ -632,7 +661,7 @@ public class JournalStateMachine extends BaseStateMachine {
   /**
    * Upgrades the journal state machine to primary mode.
    *
-   * @return the last sequence number read while in secondary mode
+   * @return the last sequence number read while in standby mode
    */
   public synchronized long upgrade() {
     // Resume the journal applier if was suspended.

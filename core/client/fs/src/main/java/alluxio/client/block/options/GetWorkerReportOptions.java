@@ -187,6 +187,7 @@ public final class GetWorkerReportOptions implements Serializable {
    */
   public static enum WorkerInfoField {
     ADDRESS,
+    BLOCK_COUNT,
     WORKER_CAPACITY_BYTES,
     WORKER_CAPACITY_BYTES_ON_TIERS,
     ID,
@@ -194,7 +195,11 @@ public final class GetWorkerReportOptions implements Serializable {
     START_TIME_MS,
     STATE,
     WORKER_USED_BYTES,
-    WORKER_USED_BYTES_ON_TIERS;
+    WORKER_USED_BYTES_ON_TIERS,
+    WORKER_USED_DIRECTORY_MEMORY,
+    WORKER_CAPACITY_DIRECTORY_MEMORY,
+    WORKER_USED_WORKER_NETTY_MEMORY_COUNT,
+    ;
 
     /**
      * @return the proto representation of this worker info fields

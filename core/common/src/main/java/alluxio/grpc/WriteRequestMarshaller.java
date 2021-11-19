@@ -88,6 +88,8 @@ public class WriteRequestMarshaller extends DataMessageMarshaller<WriteRequest> 
       int chunkSize = ProtoUtils.readRawVarint32(is);
       Preconditions.checkState(chunkSize == buffer.readableBytes());
       WriteRequest request = WriteRequest.newBuilder().build();
+// todo bytebuf+1,usedWorkerNettyMemoryCount+1,attention threadSafe automicLong,or consider longAdder,it maybe also okay
+// todo usedWorkerNettyMemoryCount-1 when this buffer has released
       ByteBuf bytebuf = GrpcSerializationUtils.getByteBufFromReadableBuffer(buffer);
       if (bytebuf != null) {
         offerBuffer(new NettyDataBuffer(bytebuf), request);

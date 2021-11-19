@@ -30,8 +30,8 @@ public interface PrimarySelector {
   enum State {
     /** The current process is primary. */
     PRIMARY,
-    /** The current process is secondary. */
-    SECONDARY,
+    /** The current process is standby. */
+    STANDBY,
   }
 
   /**

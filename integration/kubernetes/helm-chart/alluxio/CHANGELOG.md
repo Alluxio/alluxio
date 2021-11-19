@@ -181,19 +181,45 @@
 - Change logserver PVC default selectors to empty, so dynamic provisioning works by default configuration.
 
 0.6.22
+
 - Enable configuring logserver Deployment strategy to address [#13422](https://github.com/Alluxio/alluxio/issues/13422)
 
 0.6.23
+
 - Add Alluxio CSI support
 
 0.6.24
+
 - Fix Alluxio CSI `nodeplugin.yaml` indentation
 
 0.6.25
-- Fix Alluxio CSI `nodeplugin.yaml` indentation, add support for dns plocy & change CSI log level
+
+- Fix Alluxio CSI `nodeplugin.yaml` indentation, add support for dns policy & change CSI log level
 
 0.6.26
+
 - Add livenessProbe and readinessProbe to values.yaml to allow for overriding
 
 0.6.27
+
 - Enable Fuse process embedded in worker process
+
+0.6.28
+
+- Fix Alluxio CSI docker image reference. Add CSI README.md instructions.
+
+0.6.29
+
+- Add startupProbe and checking for web port when using HA without embedded journal
+
+0.6.30
+
+- Add ImagePullSecrets Pod spec option
+
+0.6.31
+
+- Update CSI launch script
+
+0.6.32
+
+- Add toggles to disable master/worker resource deployment

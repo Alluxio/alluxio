@@ -19,6 +19,9 @@ import alluxio.wire.WorkerNetAddress;
 import com.google.common.base.MoreObjects;
 
 import javax.annotation.concurrent.ThreadSafe;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Random;
 
 /**
  * A policy that returns the worker with the most available bytes.
@@ -40,12 +43,20 @@ public final class MostAvailableFirstPolicy implements BlockLocationPolicy {
   public WorkerNetAddress getWorker(GetWorkerOptions options) {
     long mostAvailableBytes = -1;
     WorkerNetAddress result = null;
+//    there actully two places,one is that block will be put into workers average
+//    check ->only worker under pressure,then it it okay to write
+    ArrayList<BlockWorkerInfo> tmpWorkerAddress=new ArrayList<>();
     for (BlockWorkerInfo workerInfo : options.getBlockWorkerInfos()) {
-      if (workerInfo.getCapacityBytes() - workerInfo.getUsedBytes() > mostAvailableBytes) {
+      if (workerInfo.getCapacityBytes() - workerInfo.getUsedBytes() > mostAvailableBytes &&
+              GetWorkerOptions.CLIENT_MAX_SIZE < workerInfo.getmUsedWorkerNettyMemoryCount()) {
         mostAvailableBytes = workerInfo.getCapacityBytes() - workerInfo.getUsedBytes();
-        result = workerInfo.getNetAddress();
+        tmpWorkerAddress.add(new BlockWorkerInfo(workerInfo.getNetAddress(),workerInfo.getmUsedWorkerNettyMemoryCount()));
       }
     }
+    if(tmpWorkerAddress.size() > 0){
+      result=tmpWorkerAddress.get(new Random().nextInt(tmpWorkerAddress.size())).getNetAddress();
+    }
+    tmpWorkerAddress.clear();
     return result;
   }
 

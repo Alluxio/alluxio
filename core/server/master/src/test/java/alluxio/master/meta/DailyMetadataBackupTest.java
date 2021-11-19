@@ -76,7 +76,7 @@ public class DailyMetadataBackupTest {
     mUfsClient = Mockito.mock(UfsManager.UfsClient.class);
     when(mUfsClient.acquireUfsResource()).thenReturn(new CloseableResource<UnderFileSystem>(mUfs) {
       @Override
-      public void close() {
+      public void closeResource() {
         // Noop
       }
     });

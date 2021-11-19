@@ -311,6 +311,9 @@ public final class AlluxioBlockStore {
     GetWorkerOptions workerOptions = GetWorkerOptions.defaults()
         .setBlockInfo(new BlockInfo().setBlockId(blockId).setLength(blockSize))
         .setBlockWorkerInfos(new ArrayList<>(mContext.getCachedWorkers()));
+//    todo CLIENT_MAX_SIZE is the max WorkerNettyMemoryCount from config
+//   I simple set 100,it should be read from configuration
+    GetWorkerOptions.CLIENT_MAX_SIZE=100L;
 
     // The number of initial copies depends on the write type: if ASYNC_THROUGH, it is the property
     // "alluxio.user.file.replication.durable" before data has been persisted; otherwise
@@ -321,6 +324,7 @@ public final class AlluxioBlockStore {
     if (initialReplicas <= 1) {
       address = locationPolicy.getWorker(workerOptions);
       if (address == null) {
+//        todo 这里需要添加一个retry的逻辑,因为在限流的情况下,无法获得worker的情况会变得很正常
         if (mContext.getCachedWorkers().isEmpty()) {
           throw new UnavailableException(ExceptionMessage.NO_WORKER_AVAILABLE.getMessage());
         }

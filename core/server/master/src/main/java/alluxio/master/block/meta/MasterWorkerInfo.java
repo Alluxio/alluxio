@@ -15,11 +15,13 @@ import alluxio.Constants;
 import alluxio.StorageTierAssoc;
 import alluxio.client.block.options.GetWorkerReportOptions.WorkerInfoField;
 import alluxio.grpc.StorageList;
+import alluxio.master.block.DefaultBlockMaster;
 import alluxio.resource.LockResource;
 import alluxio.util.CommonUtils;
 import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Sets;
@@ -28,7 +30,6 @@ import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashMap;
@@ -37,8 +38,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
-import java.util.stream.Collectors;
+import java.util.concurrent.locks.StampedLock;
 
 import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.NotThreadSafe;
@@ -55,11 +57,11 @@ import javax.annotation.concurrent.NotThreadSafe;
  *  1. Metadata like ID, address etc, represented by a {@link StaticWorkerMeta} object.
  *     This group is thread safe, meaning no locking is required.
  *  2. Worker last updated timestamp. This is thread safe, meaning no locking is required.
- *  3. Worker register status. This is guarded by a {@link ReentrantReadWriteLock}.
+ *  3. Worker register status. This is guarded by a {@link StampedLock#asReadWriteLock()}.
  *  4. Worker resource usage, represented by a {@link WorkerUsageMeta} object.
- *     This is guarded by a {@link ReentrantReadWriteLock}.
+ *     This is guarded by a {@link StampedLock#asReadWriteLock()}.
  *  5. Worker block lists, including the present blocks and blocks to be removed from the worker.
- *     This is guarded by a {@link ReentrantReadWriteLock}.
+ *     This is guarded by a {@link StampedLock#asReadWriteLock()}.
  *
  * When accessing certain fields in this object, external locking is required.
  * As listed above, group 1 and 2 are thread safe and do not require external locking.
@@ -88,13 +90,60 @@ import javax.annotation.concurrent.NotThreadSafe;
  *     ...
  *   }
  * </pre></blockquote>
+ *
+ * The locks are internally {@link StampedLock} which are NOT reentrant!
+ * We chose {@link StampedLock} instead of {@link ReentrantReadWriteLock}
+ * because the latter does not allow the write lock to be grabbed in one thread
+ * but later released in another thread.
+ * This is undesirable because when the worker registers in a stream, the thread
+ * that handles the 1st message will acquire the lock and the thread that handles
+ * the complete signal will be responsible for releasing the lock.
+ * In the current gRPC architecture it is impossible to enforce the two threads
+ * to be the same.
+ *
+ * Because then locks are not reentrant, you must be extra careful NOT to
+ * acquire the lock while holding, because that will result in a deadlock!
+ * This is especially the case for write locks.
+ *
+ * The current write lock holders include the following:
+ * 1. In {@link DefaultBlockMaster}, the methods related to worker register/heartbeat,
+ *    and block removal/commit.
+ * 2. In {@link alluxio.master.block.WorkerRegisterContext},
+ *    the write locks are held throughout the lifecycle.
+ * 3. In {@link DefaultBlockMaster.LostWorkerDetectionHeartbeatExecutor#heartbeat()}
  */
 @NotThreadSafe
-public final class MasterWorkerInfo {
+public  class MasterWorkerInfo {
   private static final Logger LOG = LoggerFactory.getLogger(MasterWorkerInfo.class);
   private static final String LIVE_WORKER_STATE = "In Service";
   private static final String LOST_WORKER_STATE = "Out of Service";
-  private static final int BLOCK_SIZE_LIMIT = 100;
+  private  Long capacityDirectoryMemory;
+  private  Long usedDirectoryMemory;
+  private Long usedWorkerNettyMemoryCount;
+
+  public  Long getCapacityDirectoryMemory() {
+    return capacityDirectoryMemory;
+  }
+
+  public  void setCapacityDirectoryMemory(Long capacityDirectoryMemory) {
+    this.capacityDirectoryMemory = capacityDirectoryMemory;
+  }
+
+  public Long getUsedWorkerNettyMemoryCount() {
+    return usedWorkerNettyMemoryCount;
+  }
+
+  public void setUsedWorkerNettyMemoryCount(Long usedWorkerNettyMemoryCount) {
+    this.usedWorkerNettyMemoryCount = usedWorkerNettyMemoryCount;
+  }
+
+  public  Long getUsedDirectoryMemory() {
+    return usedDirectoryMemory;
+  }
+
+  public  void setUsedDirectoryMemory(Long usedDirectoryMemory) {
+    this.usedDirectoryMemory = usedDirectoryMemory;
+  }
 
   /** Worker's last updated time in ms. */
   private final AtomicLong mLastUpdatedTimeMs;
@@ -105,13 +154,13 @@ public final class MasterWorkerInfo {
   @GuardedBy("mStatusLock")
   public boolean mIsRegistered;
   /** Locks the worker register status. */
-  private final ReentrantReadWriteLock mStatusLock;
+  private final ReadWriteLock mStatusLock;
 
   /** Worker usage data. */
   @GuardedBy("mUsageLock")
   private final WorkerUsageMeta mUsage;
   /** Locks the worker usage data. */
-  private final ReentrantReadWriteLock mUsageLock;
+  private final ReadWriteLock mUsageLock;
 
   /** Ids of blocks the worker contains. */
   @GuardedBy("mBlockListLock")
@@ -120,10 +169,10 @@ public final class MasterWorkerInfo {
   @GuardedBy("mBlockListLock")
   private final Set<Long> mToRemoveBlocks;
   /** Locks the 2 block sets above. */
-  private final ReentrantReadWriteLock mBlockListLock;
+  private final ReadWriteLock mBlockListLock;
 
   /** Stores the mapping from WorkerMetaLockSection to the lock. */
-  private final Map<WorkerMetaLockSection, ReentrantReadWriteLock> mLockTypeToLock;
+  private final Map<WorkerMetaLockSection, ReadWriteLock> mLockTypeToLock;
 
   /**
    * Creates a new instance of {@link MasterWorkerInfo}.
@@ -139,9 +188,9 @@ public final class MasterWorkerInfo {
     mLastUpdatedTimeMs = new AtomicLong(CommonUtils.getCurrentMs());
 
     // Init all locks
-    mStatusLock = new ReentrantReadWriteLock();
-    mUsageLock = new ReentrantReadWriteLock();
-    mBlockListLock = new ReentrantReadWriteLock();
+    mStatusLock = new StampedLock().asReadWriteLock();
+    mUsageLock = new StampedLock().asReadWriteLock();
+    mBlockListLock = new StampedLock().asReadWriteLock();
     mLockTypeToLock = ImmutableMap.of(
         WorkerMetaLockSection.STATUS, mStatusLock,
         WorkerMetaLockSection.USAGE, mUsageLock,
@@ -171,13 +220,15 @@ public final class MasterWorkerInfo {
    * @param totalBytesOnTiers mapping from storage tier alias to total bytes
    * @param usedBytesOnTiers mapping from storage tier alias to used byes
    * @param blocks set of block ids on this worker
+   * @param usedDirectoryMemory
+   * @param capacityDirectoryMemory
    * @return A Set of blocks removed (or lost) from this worker
    */
   public Set<Long> register(final StorageTierAssoc globalStorageTierAssoc,
-      final List<String> storageTierAliases, final Map<String, Long> totalBytesOnTiers,
-      final Map<String, Long> usedBytesOnTiers, final Set<Long> blocks) {
+                            final List<String> storageTierAliases, final Map<String, Long> totalBytesOnTiers,
+                            final Map<String, Long> usedBytesOnTiers, final Set<Long> blocks, long usedDirectoryMemory, long capacityDirectoryMemory,long usedWorkerNettyMemoryCount) {
     mUsage.updateUsage(globalStorageTierAssoc, storageTierAliases,
-            totalBytesOnTiers, usedBytesOnTiers);
+            totalBytesOnTiers, usedBytesOnTiers,usedDirectoryMemory,capacityDirectoryMemory,usedWorkerNettyMemoryCount);
 
     Set<Long> removedBlocks;
     if (mIsRegistered) {
@@ -198,6 +249,11 @@ public final class MasterWorkerInfo {
     return removedBlocks;
   }
 
+  public void updateDirectoryMemory(long usedDirectoryMemory, long capacityDirectoryMemory,long mUsedWorkerNettyMemoryCount){
+    mUsage.updateUsage(usedDirectoryMemory,capacityDirectoryMemory,mUsedWorkerNettyMemoryCount);
+  }
+
+
   /**
    * Adds a block to the worker.
    *
@@ -209,10 +265,14 @@ public final class MasterWorkerInfo {
    */
   public void addBlock(long blockId) {
     mBlocks.add(blockId);
+    // This step is added because in the beginning of a stream register
+    // we mark all blocks to be removed
+    mToRemoveBlocks.remove(blockId);
   }
 
   /**
    * Removes a block from the worker.
+   * This is typically called when we know the block has been removed from the worker.
    *
    * You should lock externally with {@link MasterWorkerInfo#lockWorkerMeta(EnumSet, boolean)}
    * with {@link WorkerMetaLockSection#BLOCKS} specified.
@@ -220,9 +280,25 @@ public final class MasterWorkerInfo {
    *
    * @param blockId the id of the block to be removed
    */
-  public void removeBlock(long blockId) {
+  public void removeBlockFromWorkerMeta(long blockId) {
     mBlocks.remove(blockId);
     mToRemoveBlocks.remove(blockId);
+  }
+
+  /**
+   * Remove the block from the worker metadata and add to the to-remove list.
+   * The next worker heartbeat will issue the remove command to the worker
+   * so the block is deleted later.
+   *
+   * You should lock externally with {@link MasterWorkerInfo#lockWorkerMeta(EnumSet, boolean)}
+   * with {@link WorkerMetaLockSection#BLOCKS} specified.
+   * An exclusive lock is required.
+   *
+   * @param blockId the block ID
+   */
+  public void scheduleRemoveFromWorker(long blockId) {
+    mBlocks.remove(blockId);
+    mToRemoveBlocks.add(blockId);
   }
 
   /**
@@ -278,6 +354,9 @@ public final class MasterWorkerInfo {
         case ADDRESS:
           info.setAddress(mMeta.mWorkerAddress);
           break;
+        case BLOCK_COUNT:
+          info.setBlockCount(getBlockCount());
+          break;
         case WORKER_CAPACITY_BYTES:
           info.setCapacityBytes(mUsage.mCapacityBytes);
           break;
@@ -307,6 +386,14 @@ public final class MasterWorkerInfo {
         case WORKER_USED_BYTES_ON_TIERS:
           info.setUsedBytesOnTiers(mUsage.mUsedBytesOnTiers);
           break;
+        case WORKER_USED_DIRECTORY_MEMORY:
+          info.setUsedDirectoryMemory(mUsage.mUsedDirectoryMemory);
+          break;
+        case WORKER_CAPACITY_DIRECTORY_MEMORY:
+          info.setCapacityDirectoryMemory(mUsage.mCapacityDirectoryMemory);
+          break;
+        case WORKER_USED_WORKER_NETTY_MEMORY_COUNT:
+          info.setUsedWorkerNettyMemoryCount(mUsage.mUsedWorkerNettyMemoryCount);
         default:
           LOG.warn("Unrecognized worker info field: " + field);
       }
@@ -352,7 +439,7 @@ public final class MasterWorkerInfo {
    *
    * @return the block count of this worker
    */
-  public long getBlockCount() {
+  public int getBlockCount() {
     return mBlocks.size();
   }
 
@@ -394,8 +481,8 @@ public final class MasterWorkerInfo {
    *
    * @return ids of blocks the worker should remove
    */
-  public List<Long> getToRemoveBlocks() {
-    return new ArrayList<>(mToRemoveBlocks);
+  public Set<Long> getToRemoveBlocks() {
+    return new HashSet<>(mToRemoveBlocks);
   }
 
   /**
@@ -501,21 +588,16 @@ public final class MasterWorkerInfo {
   @Override
   // TODO(jiacheng): Read lock on the conversion
   public String toString() {
-    Collection<Long> blocks = mBlocks;
-    String blockFieldName = "blocks";
-    // We truncate the list of block IDs to print, unless it is for DEBUG logs
-    if (!LOG.isDebugEnabled() && mBlocks.size() > BLOCK_SIZE_LIMIT) {
-      blockFieldName = "blocks-truncated";
-      blocks = mBlocks.stream().limit(BLOCK_SIZE_LIMIT).collect(Collectors.toList());
-    }
     return MoreObjects.toStringHelper(this)
         .add("id", mMeta.mId)
         .add("workerAddress", mMeta.mWorkerAddress)
         .add("capacityBytes", mUsage.mCapacityBytes)
         .add("usedBytes", mUsage.mUsedBytes)
         .add("lastUpdatedTimeMs", mLastUpdatedTimeMs.get())
-        .add("blockCount", mBlocks.size())
-        .add(blockFieldName, blocks)
+        .add("usedDirectMemory",mUsage.mUsedDirectoryMemory)
+        .add("usedCapacityMemory",mUsage.mCapacityDirectoryMemory)
+        // We only show the number of blocks unless it is for DEBUG logs
+        .add("blocks", LOG.isDebugEnabled() ? mBlocks : CommonUtils.summarizeCollection(mBlocks))
         .add("lostStorage", mUsage.mLostStorage).toString();
   }
 
@@ -598,7 +680,7 @@ public final class MasterWorkerInfo {
     mUsage.mUsedBytesOnTiers.put(tierAlias, usedBytesOnTier);
   }
 
-  ReentrantReadWriteLock getLock(WorkerMetaLockSection lockType) {
+  ReadWriteLock getLock(WorkerMetaLockSection lockType) {
     return mLockTypeToLock.get(lockType);
   }
 
@@ -618,6 +700,52 @@ public final class MasterWorkerInfo {
    * @return a {@link LockResource} of the {@link WorkerMetaLock}
    */
   public LockResource lockWorkerMeta(EnumSet<WorkerMetaLockSection> lockTypes, boolean isShared) {
-    return new LockResource(new WorkerMetaLock(lockTypes, isShared, this));
+    LockResource lr = new LockResource(new WorkerMetaLock(lockTypes, isShared, this));
+    return lr;
+  }
+
+  /**
+   * Returns the number of blocks that should be removed from the worker.
+   *
+   * @return the count
+   */
+  @VisibleForTesting
+  public int getToRemoveBlockCount() {
+    return mToRemoveBlocks.size();
+  }
+
+  /**
+   * Updates the worker storage usage.
+   *
+   * You should lock externally with {@link MasterWorkerInfo#lockWorkerMeta(EnumSet, boolean)}
+   * with {@link WorkerMetaLockSection#USAGE} specified.
+   * An exclusive lock is required.
+   *  @param globalStorageTierAssoc storage tier setup from configuration
+   * @param storageTiers the storage tiers
+   * @param totalBytesOnTiers the capacity of each tier
+   * @param usedBytesOnTiers the current usage of each tier
+   * @param usedDirectoryMemory
+   * @param capacityDirectoryMemory
+   */
+  public void updateUsage(StorageTierAssoc globalStorageTierAssoc, List<String> storageTiers,
+                          Map<String, Long> totalBytesOnTiers, Map<String, Long> usedBytesOnTiers, long usedDirectoryMemory, long capacityDirectoryMemory,long usedWorkerNettyMemoryCount) {
+    mUsage.updateUsage(globalStorageTierAssoc, storageTiers, totalBytesOnTiers, usedBytesOnTiers,usedDirectoryMemory,capacityDirectoryMemory,usedWorkerNettyMemoryCount);
+  }
+
+  /**
+   * Marks all the blocks on the worker to be removed.
+   * This is called at the beginning of a register stream, where we do not know what blocks
+   * are no longer on the worker in {@link #mBlocks}.
+   * First all blocks will be marked to-be-removed, then in the stream when we see a block list,
+   * those blocks will be added to {@link #mBlocks} and removed from {@link #mToRemoveBlocks}.
+   * In this way, at the end of the stream, {@link #mToRemoveBlocks} contains only the blocks
+   * that no longer exist on the worker.
+   *
+   * You should lock externally with {@link MasterWorkerInfo#lockWorkerMeta(EnumSet, boolean)}
+   * with {@link WorkerMetaLockSection#BLOCKS} specified.
+   * An exclusive lock is required.
+   */
+  public void markAllBlocksToRemove() {
+    mToRemoveBlocks.addAll(mBlocks);
   }
 }

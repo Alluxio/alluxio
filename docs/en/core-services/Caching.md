@@ -423,6 +423,9 @@ If the data is already in a UFS, use
 $ ./bin/alluxio fs load ${PATH_TO_FILE}
 ```
 
+To speed up the loading process for files or directories, use the [distributedLoad command]({{ '/en/operation/User-CLI.html#distributedLoad' | relativize_url }})
+instead of load command.
+
 To load data from the local file system, use the command
 [`alluxio fs copyFromLocal`]({{ '/en/operation/User-CLI.html#copyfromlocal' | relativize_url
 }}).

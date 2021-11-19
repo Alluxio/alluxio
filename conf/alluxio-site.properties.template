@@ -29,3 +29,11 @@
 # User properties
 # alluxio.user.file.readtype.default=CACHE
 # alluxio.user.file.writetype.default=ASYNC_THROUGH
+
+alluxio.master.hostname=localhost
+alluxio.master.journal.type=UFS
+
+alluxio.worker.ramdisk.size=10GB
+alluxio.worker.tieredstore.levels=1
+alluxio.worker.tieredstore.level0.alias=MEM
+alluxio.worker.tieredstore.level0.dirs.path=/Users/zhoupeijie/Desktop/alluxio

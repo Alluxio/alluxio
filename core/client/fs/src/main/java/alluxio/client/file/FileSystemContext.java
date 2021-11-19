@@ -24,6 +24,7 @@ import alluxio.client.file.FileSystemContextReinitializer.ReinitBlockerResource;
 import alluxio.client.metrics.MetricsHeartbeatContext;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
+import alluxio.conf.ReconfigurableRegistry;
 import alluxio.conf.path.SpecificPathConfiguration;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.status.AlluxioStatusException;
@@ -57,7 +58,7 @@ import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.annotation.Nullable;
@@ -92,6 +93,9 @@ import javax.security.auth.Subject;
 public class FileSystemContext implements Closeable {
   private static final Logger LOG = LoggerFactory.getLogger(FileSystemContext.class);
 
+  public static  final Integer writeThread=100;
+
+
   /**
    * Unique ID for each FileSystemContext.
    * One example usage is to uniquely identify the heartbeat thread for ConfigHashSync.
@@ -109,6 +113,9 @@ public class FileSystemContext implements Closeable {
    * in the context like clients and thread pools.
    */
   private AtomicBoolean mClosed = new AtomicBoolean(false);
+
+
+  private ScheduledExecutorService executorService = Executors.newScheduledThreadPool(1);
 
   @GuardedBy("this")
   private boolean mMetricsEnabled;
@@ -159,9 +166,9 @@ public class FileSystemContext implements Closeable {
   @GuardedBy("this")
   private volatile List<BlockWorkerInfo> mWorkerInfoList = null;
 
-  /** The policy to refresh workers list. */
-  @GuardedBy("this")
-  private final RefreshPolicy mWorkerRefreshPolicy;
+//  /** The policy to refresh workers list. */
+//  @GuardedBy("this")
+//  private final RefreshPolicy mWorkerRefreshPolicy;
 
   /**
    * Creates a {@link FileSystemContext} with a null subject
@@ -199,8 +206,22 @@ public class FileSystemContext implements Closeable {
         MasterInquireClient.Factory.create(ctx.getClusterConf(), ctx.getUserState());
     FileSystemContext context = new FileSystemContext(ctx.getClusterConf(), blockWorker);
     context.init(ctx, inquireClient);
-    return context;
-  }
+//    context.executorService.scheduleAtFixedRate(new Runnable() {
+//      @Override
+//      public void run() {
+//        try {
+//          try {
+//            context.refreshCachedWorkers();
+//          } catch (InterruptedException e) {
+//            e.printStackTrace();
+//          }
+//        } catch (IOException e) {
+//          e.printStackTrace();
+//        }
+//      }
+//    }, 1, 1, TimeUnit.SECONDS);
+    return  context;
+  };
 
   /**
    * @param clientContext the {@link alluxio.ClientContext} containing the subject and configuration
@@ -242,8 +263,8 @@ public class FileSystemContext implements Closeable {
   private FileSystemContext(AlluxioConfiguration conf, @Nullable BlockWorker blockWorker) {
     mId = IdUtils.createFileSystemContextId();
     mBlockWorker = blockWorker;
-    mWorkerRefreshPolicy =
-        new TimeoutRefresh(conf.getMs(PropertyKey.USER_WORKER_LIST_REFRESH_INTERVAL));
+//    mWorkerRefreshPolicy =
+//        new TimeoutRefresh(conf.getMs(PropertyKey.USER_WORKER_LIST_REFRESH_INTERVAL));
     LOG.debug("Created context with id: {}, with local block worker: {}",
         mId, mBlockWorker == null);
   }
@@ -385,6 +406,7 @@ public class FileSystemContext implements Closeable {
       LOG.debug("Reinitializing FileSystemContext: update cluster conf: {}, update path conf:"
           + " {}", updateClusterConf, updateClusterConf);
       closeContext();
+      ReconfigurableRegistry.update();
       initContext(getClientContext(), MasterInquireClient.Factory.create(getClusterConf(),
           getClientContext().getUserState()));
       LOG.debug("FileSystemContext re-initialized");
@@ -503,7 +525,7 @@ public class FileSystemContext implements Closeable {
     try {
       return new CloseableResource<T>(pool.acquire()) {
         @Override
-        public void close() {
+        public void closeResource() {
           pool.release(get());
         }
       };
@@ -547,7 +569,7 @@ public class FileSystemContext implements Closeable {
         .acquire()) {
       // Save the reference to the original pool map.
       @Override
-      public void close() {
+      public void closeResource() {
         releaseBlockWorkerClient(workerNetAddress, get(), context, poolMap);
       }
     };
@@ -629,11 +651,25 @@ public class FileSystemContext implements Closeable {
    * @return the info of all block workers eligible for reads and writes
    */
   public synchronized List<BlockWorkerInfo> getCachedWorkers() throws IOException {
-    if (mWorkerInfoList == null || mWorkerRefreshPolicy.attempt()) {
+//    改为每次都去获取worker
+//    if (mWorkerInfoList == null || mWorkerInfoList.isEmpty() || mWorkerRefreshPolicy.attempt()) {
       mWorkerInfoList = getAllWorkers();
-    }
+//    }
     return mWorkerInfoList;
   }
+
+  /**
+   * Gets the cached worker information list.
+   * @return
+   * @throws IOException
+   */
+//  public List<BlockWorkerInfo> refreshCachedWorkers() throws IOException, InterruptedException {
+//    mWorkerInfoList = getAllWorkers();
+//    for (BlockWorkerInfo k : mWorkerInfoList) {
+//      LOG.info("count now {}", k.getmUsedWorkerNettyMemoryCount());
+//    }
+//    return mWorkerInfoList;
+//  }
 
   /**
    * Gets the worker information list.
@@ -646,8 +682,10 @@ public class FileSystemContext implements Closeable {
     try (CloseableResource<BlockMasterClient> masterClientResource =
              acquireBlockMasterClientResource()) {
       return masterClientResource.get().getWorkerInfoList().stream()
-          .map(w -> new BlockWorkerInfo(w.getAddress(), w.getCapacityBytes(), w.getUsedBytes()))
-          .collect(toList());
+              .map(w -> {
+                return new BlockWorkerInfo(w.getAddress(), w.getCapacityBytes(), w.getUsedBytes(),w.getCapacityDirectoryMemory(),w.getUsedDirectoryMemory(),w.getUsedWorkerNettyMemoryCount());
+              })
+              .collect(toList());
     }
   }
 

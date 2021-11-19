@@ -39,6 +39,55 @@ public final class WorkerInfo implements Serializable {
   private long mStartTimeMs;
   private Map<String, Long> mCapacityBytesOnTiers;
   private Map<String, Long> mUsedBytesOnTiers;
+  private long mBlockCount;
+
+//  public long getmUsedWorkerNettyMemoryCount() {
+//    return mUsedWorkerNettyMemoryCount;
+//  }
+//
+//  public void setmUsedWorkerNettyMemoryCount(long mUsedWorkerNettyMemoryCount) {
+//    this.mUsedWorkerNettyMemoryCount = mUsedWorkerNettyMemoryCount;
+//  }
+
+  private long mCapacityDirectoryMemory;
+  private long mUsedWorkerNettyMemoryCount;
+
+  @ApiModelProperty(value = "worker netty count in use")
+  public long getUsedWorkerNettyMemoryCount() {
+    return mUsedWorkerNettyMemoryCount;
+  }
+
+  @ApiModelProperty(value = "worker netty count in use")
+  public WorkerInfo setUsedWorkerNettyMemoryCount(long mUsedWorkerNettyMemoryCount) {
+    this.mUsedWorkerNettyMemoryCount = mUsedWorkerNettyMemoryCount;
+    return this;
+  }
+
+
+  @ApiModelProperty(value = "capacity directory memory")
+  public long getCapacityDirectoryMemory() {
+    return mCapacityDirectoryMemory;
+  }
+
+  @ApiModelProperty(value = "capacity directory memory")
+  public WorkerInfo setCapacityDirectoryMemory(long mCapacityDirectoryMemory) {
+    this.mCapacityDirectoryMemory = mCapacityDirectoryMemory;
+    return this;
+  }
+
+  @ApiModelProperty(value = "used directory memory")
+  public long getUsedDirectoryMemory() {
+    return mUsedDirectoryMemory;
+  }
+
+  @ApiModelProperty(value = "used directory memory")
+  public WorkerInfo setUsedDirectoryMemory(long mUsedDirectoryMemory) {
+    this.mUsedDirectoryMemory = mUsedDirectoryMemory;
+    return  this;
+  }
+
+  private long mUsedDirectoryMemory;
+
 
   /**
    * Creates a new instance of {@link WorkerInfo}.
@@ -218,6 +267,23 @@ public final class WorkerInfo implements Serializable {
   }
 
   /**
+   * @param blockCount the worker block count
+   * @return the worker information
+   */
+  public WorkerInfo setBlockCount(long blockCount) {
+    mBlockCount = blockCount;
+    return this;
+  }
+
+  /**
+   * @return the worker block count
+   */
+  @ApiModelProperty(value = "Number of worker block count")
+  public long getBlockCount() {
+    return mBlockCount;
+  }
+
+  /**
    * Determine order from most recently contacted to least recently contacted.
    */
   public static final class LastContactSecComparator implements Comparator<WorkerInfo>,
@@ -247,6 +313,10 @@ public final class WorkerInfo implements Serializable {
         .add("lastContactSec", mLastContactSec).add("state", mState)
         .add("capacityBytes", mCapacityBytes).add("usedBytes", mUsedBytes)
         .add("startTimeMs", mStartTimeMs).add("capacityBytesOnTiers", mCapacityBytesOnTiers)
-        .add("usedBytesOnTiers", mUsedBytesOnTiers).toString();
+        .add("usedBytesOnTiers", mUsedBytesOnTiers)
+        .add("usedDirectoryMemory",mUsedDirectoryMemory)
+        .add("capacityDirectoryMemory",mCapacityDirectoryMemory)
+        .add("usedWorkerNettyMemoryCount",mUsedWorkerNettyMemoryCount)
+        .toString();
   }
 }

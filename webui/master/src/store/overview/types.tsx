@@ -28,10 +28,14 @@ export interface IOverview {
   journalDiskWarnings: string[];
   liveWorkerNodes: number;
   masterNodeAddress: string;
+  replicaBlockCount: string;
   startTime: string;
   storageTierInfos: IStorageTierInfo[];
+  totalPath: string;
+  uniqueBlockCount: string;
   uptime: string;
   usedCapacity: string;
+
   version: string;
 }
 

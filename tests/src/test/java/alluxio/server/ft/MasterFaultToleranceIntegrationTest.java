@@ -67,6 +67,11 @@ public class MasterFaultToleranceIntegrationTest extends BaseIntegrationTest {
   private static final int BLOCK_SIZE = 30;
   private static final int MASTERS = 5;
 
+  private static final long WORKER1_USED_DIRECT_MEMORY = 1L ;
+  private static final long WORKER1_CAPACITY_DIRECT_MEMORY = 1L;
+  private static final long WORKER2_USED_DIRECT_MEMORY    =1L ;
+  private static final long WORKER2_CAPACITY_DIRECT_MEMORY = 1L;
+
   private MultiMasterLocalAlluxioCluster mMultiMasterLocalAlluxioCluster = null;
   private FileSystem mFileSystem = null;
 
@@ -299,14 +304,14 @@ public class MasterFaultToleranceIntegrationTest extends BaseIntegrationTest {
           blockMaster1.getWorkerId(new alluxio.wire.WorkerNetAddress().setHost("host1"));
       blockMaster1.workerRegister(workerId1a, Collections.EMPTY_LIST, Collections.EMPTY_MAP,
           Collections.EMPTY_MAP, Collections.EMPTY_MAP, Collections.EMPTY_MAP,
-          RegisterWorkerPOptions.getDefaultInstance());
+          RegisterWorkerPOptions.getDefaultInstance(), WORKER1_USED_DIRECT_MEMORY, WORKER1_CAPACITY_DIRECT_MEMORY);
 
       // Register worker 2
       long workerId2a =
           blockMaster1.getWorkerId(new alluxio.wire.WorkerNetAddress().setHost("host2"));
       blockMaster1.workerRegister(workerId2a, Collections.EMPTY_LIST, Collections.EMPTY_MAP,
           Collections.EMPTY_MAP, Collections.EMPTY_MAP, Collections.EMPTY_MAP,
-          RegisterWorkerPOptions.getDefaultInstance());
+          RegisterWorkerPOptions.getDefaultInstance(), WORKER1_USED_DIRECT_MEMORY, WORKER1_CAPACITY_DIRECT_MEMORY);
 
       assertEquals(2, blockMaster1.getWorkerCount());
       // Worker heartbeats should return "Nothing"
@@ -336,7 +341,7 @@ public class MasterFaultToleranceIntegrationTest extends BaseIntegrationTest {
           blockMaster2.getWorkerId(new alluxio.wire.WorkerNetAddress().setHost("host2"));
       blockMaster2.workerRegister(workerId2b, Collections.EMPTY_LIST, Collections.EMPTY_MAP,
           Collections.EMPTY_MAP, Collections.EMPTY_MAP, Collections.EMPTY_MAP,
-          RegisterWorkerPOptions.getDefaultInstance());
+          RegisterWorkerPOptions.getDefaultInstance(), WORKER1_USED_DIRECT_MEMORY, WORKER1_CAPACITY_DIRECT_MEMORY);
 
       // Worker 1 tries to heartbeat (with original id), and should get "Register" in response.
       assertEquals(CommandType.Register,
@@ -349,7 +354,7 @@ public class MasterFaultToleranceIntegrationTest extends BaseIntegrationTest {
           blockMaster2.getWorkerId(new alluxio.wire.WorkerNetAddress().setHost("host1"));
       blockMaster2.workerRegister(workerId1b, Collections.EMPTY_LIST, Collections.EMPTY_MAP,
           Collections.EMPTY_MAP, Collections.EMPTY_MAP, Collections.EMPTY_MAP,
-          RegisterWorkerPOptions.getDefaultInstance());
+          RegisterWorkerPOptions.getDefaultInstance(), WORKER1_USED_DIRECT_MEMORY, WORKER1_CAPACITY_DIRECT_MEMORY);
     } finally {
       if (cluster != null) {
         cluster.stop();

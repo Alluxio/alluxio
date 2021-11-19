@@ -83,7 +83,7 @@ public final class MetricsSystem {
   private static final Pattern METRIC_NAME_PATTERN = Pattern.compile("^(.*?[.].*?)[.].*");
   // A flag telling whether metrics have been reported yet.
   // Using this prevents us from initializing {@link #SHOULD_REPORT_METRICS} more than once
-  private static boolean sReported = false;
+  private static Set<InstanceType> sReported = new HashSet<>();
   // The source of the metrics in this metrics system.
   // It can be set through property keys based on process types.
   // Local hostname will be used if no related property key founds.
@@ -94,13 +94,16 @@ public final class MetricsSystem {
    * An enum of supported instance type.
    */
   public enum InstanceType {
-    JOB_MASTER("JobMaster"),
-    JOB_WORKER("JobWorker"),
+    HUB_AGENT("HubAgent"),
+    HUB_MANAGER("HubManager"),
+    CLUSTER("Cluster"),
+    SERVER("Server"),
     MASTER("Master"),
     WORKER("Worker"),
-    CLUSTER("Cluster"),
-    CLIENT("Client"),
+    JOB_MASTER("JobMaster"),
+    JOB_WORKER("JobWorker"),
     PROXY("Proxy"),
+    CLIENT("Client"),
     FUSE("Fuse");
 
     private String mValue;
@@ -147,7 +150,6 @@ public final class MetricsSystem {
     METRIC_REGISTRY.registerAll(new MemoryUsageGaugeSet());
     METRIC_REGISTRY.registerAll(new ClassLoadingGaugeSet());
     METRIC_REGISTRY.registerAll(new CachedThreadStatesGaugeSet(5, TimeUnit.SECONDS));
-    METRIC_REGISTRY.registerAll(new LogStateCounterSet());
     METRIC_REGISTRY.registerAll(new OperationSystemGaugeSet());
   }
 
@@ -275,6 +277,17 @@ public final class MetricsSystem {
   }
 
   /**
+   * Get metrics name based on class.
+   *
+   * @param obj object for the resource pool
+   * @return metrics string
+   */
+  public static String getResourcePoolMetricName(Object obj) {
+    return MetricsSystem.getMetricName("ResourcePool." + obj.getClass().getName() + "."
+        + Integer.toHexString(System.identityHashCode(obj)));
+  }
+
+  /**
    * Converts a simple string to a qualified metric name based on the process type.
    *
    * @param name the name of the metric
@@ -297,6 +310,10 @@ public final class MetricsSystem {
         return getJobMasterMetricName(name);
       case JOB_WORKER:
         return getJobWorkerMetricName(name);
+      case HUB_AGENT:
+        return getHubAgentMetricName(name);
+      case HUB_MANAGER:
+        return getHubManagerMetricName(name);
       default:
         throw new IllegalStateException("Unknown process type");
     }
@@ -391,6 +408,34 @@ public final class MetricsSystem {
    */
   public static String getJobWorkerMetricName(String name) {
     return getMetricNameWithUniqueId(InstanceType.JOB_WORKER, name);
+  }
+
+  /**
+   * Builds metric registry name for hub agent instance. The pattern is
+   * instance.uniqueId.metricName.
+   *
+   * @param name the metric name
+   * @return the metric registry name
+   */
+  public static String getHubAgentMetricName(String name) {
+    if (name.startsWith(InstanceType.HUB_AGENT.toString())) {
+      return name;
+    }
+    return Joiner.on(".").join(InstanceType.HUB_AGENT, name);
+  }
+
+  /**
+   * Builds metric registry name for hub manager instance. The pattern is
+   * instance.uniqueId.metricName.
+   *
+   * @param name the metric name
+   * @return the metric registry name
+   */
+  public static String getHubManagerMetricName(String name) {
+    if (name.startsWith(InstanceType.HUB_MANAGER.toString())) {
+      return name;
+    }
+    return Joiner.on(".").join(InstanceType.HUB_MANAGER, name);
   }
 
   /**
@@ -594,9 +639,9 @@ public final class MetricsSystem {
    * The synchronized keyword is added for correctness with {@link #resetAllMetrics}
    */
   private static synchronized List<alluxio.grpc.Metric> reportMetrics(InstanceType instanceType) {
-    if (!sReported) {
+    if (!sReported.contains(instanceType)) {
       initShouldReportMetrics(instanceType);
-      sReported = true;
+      sReported.add(instanceType);
     }
     List<alluxio.grpc.Metric> rpcMetrics = new ArrayList<>(20);
     // Use the getMetrics() call instead of getGauges(),getCounters()... to avoid
@@ -661,8 +706,8 @@ public final class MetricsSystem {
   public static List<alluxio.grpc.Metric> reportWorkerMetrics() {
     long start = System.currentTimeMillis();
     List<alluxio.grpc.Metric> metricsList = reportMetrics(InstanceType.WORKER);
-    LOG.debug("Get the worker metrics list to report to leading master in {}ms",
-        System.currentTimeMillis() - start);
+    LOG.debug("Get the worker metrics list contains {} metrics to report to leading master in {}ms",
+        metricsList.size(), System.currentTimeMillis() - start);
     return metricsList;
   }
 
@@ -672,8 +717,8 @@ public final class MetricsSystem {
   public static List<alluxio.grpc.Metric> reportClientMetrics() {
     long start = System.currentTimeMillis();
     List<alluxio.grpc.Metric> metricsList = reportMetrics(InstanceType.CLIENT);
-    LOG.debug("Get the client metrics list to report to leading master in {}ms",
-        System.currentTimeMillis() - start);
+    LOG.debug("Get the client metrics list contains {} metrics to report to leading master in {}ms",
+        metricsList.size(), System.currentTimeMillis() - start);
     return metricsList;
   }
 

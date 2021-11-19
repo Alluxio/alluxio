@@ -29,6 +29,7 @@ import alluxio.ConfigurationTestUtils;
 import alluxio.TestLoggerRule;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
+import alluxio.exception.AlluxioException;
 import alluxio.grpc.Bits;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
@@ -54,8 +55,14 @@ import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
 * Unit test for functionality in {@link BaseFileSystem}.
@@ -89,13 +96,14 @@ public final class BaseFileSystemTest {
    */
   @Before
   public void before() {
+    mConf.set(PropertyKey.USER_FILE_INCLUDE_OPERATION_ID, false);
     mClientContext = ClientContext.create(mConf);
     mFileContext = PowerMockito.mock(FileSystemContext.class);
     mFileSystemMasterClient = PowerMockito.mock(FileSystemMasterClient.class);
     when(mFileContext.acquireMasterClientResource()).thenReturn(
         new CloseableResource<FileSystemMasterClient>(mFileSystemMasterClient) {
           @Override
-          public void close() {
+          public void closeResource() {
             // Noop.
           }
         });
@@ -134,6 +142,62 @@ public final class BaseFileSystemTest {
 
     verifyFilesystemContextAcquiredAndReleased();
   }
+
+  @Test
+  public void createFileMuti() throws Exception {
+    URIStatus status = new URIStatus(new FileInfo());
+    AlluxioURI      file            = new AlluxioURI("/file");
+    ExecutorService fixedThreadPool = Executors.newFixedThreadPool(10);
+    for (int i = 0; i < 10; i++) {
+      fixedThreadPool.execute(() -> {
+        AlluxioURI path = new AlluxioURI("/dd/" +System.currentTimeMillis()+Math.random());
+        FileOutStream   out       = null;
+        try {
+          out = mFileSystem.createFile(path);
+        } catch (IOException e) {
+          e.printStackTrace();
+        } catch (AlluxioException e) {
+          e.printStackTrace();
+        }
+        byte[]          buffer    = new byte[10240];
+        int             size      = 0;
+        String          localPath = "/Users/zhoupeijie/Downloads/spark.zip";
+        File            tmpFile   = new File(localPath);
+        FileInputStream fis       = null;
+        try {
+          fis = new FileInputStream(tmpFile);
+        } catch (FileNotFoundException e) {
+          e.printStackTrace();
+        }
+        while (true) {
+          try {
+            if (!((size = fis.read(buffer)) != -1)) break;
+          } catch (IOException e) {
+            e.printStackTrace();
+          }
+          try {
+            out.write(buffer, 0, size);
+          } catch (IOException e) {
+            e.printStackTrace();
+          }
+        }
+        try {
+          out.flush();
+        } catch (IOException e) {
+          e.printStackTrace();
+        }
+        try {
+          out.close();
+        } catch (IOException e) {
+          e.printStackTrace();
+        }
+      });
+
+    }
+
+  }
+
+
 
   /**
    * Ensures that an exception is propagated correctly when creating a file system.
