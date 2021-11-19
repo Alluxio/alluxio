@@ -340,10 +340,13 @@ public class BlockMasterClient extends AbstractMasterClient {
   }
 
   public void reportDirectoryMemory(Long workerId) throws IOException {
+//   todo  actually the UsedWorkerNettyMemoryCount should be from the
+//   actually netty used ,I simple set this to 5.
     final MasterWorkerDirectoryMemoryPRequest request = MasterWorkerDirectoryMemoryPRequest
             .newBuilder()
             .setCapacityDirectoryMemory(PlatformDependent.maxDirectMemory())
             .setUsedDirectoryMemory(PlatformDependent.usedDirectMemory())
+            .setUsedWorkerNettyMemoryCount(5)
             .setWorkerId(workerId)
             .build();
     retryRPC(() -> {

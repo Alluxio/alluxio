@@ -999,7 +999,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
   public void workerRegister(long workerId, List<String> storageTiers,
                              Map<String, Long> totalBytesOnTiers, Map<String, Long> usedBytesOnTiers,
                              Map<BlockLocation, List<Long>> currentBlocksOnLocation,
-                             Map<String, StorageList> lostStorage, RegisterWorkerPOptions options, long usedDirectoryMemory, long capacityDirectoryMemory)
+                             Map<String, StorageList> lostStorage, RegisterWorkerPOptions options, long usedDirectoryMemory, long capacityDirectoryMemory,long usedWorkerNettyMemoryCount)
       throws NotFoundException {
 
     MasterWorkerInfo worker = mWorkers.getFirstByField(ID_INDEX, workerId);
@@ -1025,7 +1025,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
         WorkerMetaLockSection.BLOCKS), false)) {
       // Detect any lost blocks on this worker.register worker
       Set<Long> removedBlocks = worker.register(mGlobalStorageTierAssoc, storageTiers,
-          totalBytesOnTiers, usedBytesOnTiers, blocks,usedDirectoryMemory,capacityDirectoryMemory);
+          totalBytesOnTiers, usedBytesOnTiers, blocks,usedDirectoryMemory,capacityDirectoryMemory,usedWorkerNettyMemoryCount);
       processWorkerRemovedBlocks(worker, removedBlocks, false);
       processWorkerAddedBlocks(worker, currentBlocksOnLocation);
       processWorkerOrphanedBlocks(worker);
@@ -1068,7 +1068,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
   @Override
   public void workerRegisterStream(WorkerRegisterContext context,
                                   RegisterWorkerPRequest chunk, boolean isFirstMsg) {
-    LOG.info("master begin to get worker direct memory(): capacity max: {} used: {}", chunk.getCapacityDirectoryMemory(), chunk.getUsedDirectoryMemory());
+    LOG.info("master begin to get worker direct memory(): capacity max: {} used: {},{}", chunk.getCapacityDirectoryMemory(), chunk.getUsedDirectoryMemory(),chunk.getUsedWorkerNettyMemoryCount());
     if (isFirstMsg) {
       workerRegisterStart(context, chunk);
     } else {
@@ -1101,7 +1101,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
     // Eventually what's left in the mToRemove will be the ones that do not exist anymore.
     worker.markAllBlocksToRemove();
     worker.updateUsage(mGlobalStorageTierAssoc, storageTiers,
-        totalBytesOnTiers, usedBytesOnTiers,chunk.getUsedDirectoryMemory(),chunk.getCapacityDirectoryMemory());
+        totalBytesOnTiers, usedBytesOnTiers,chunk.getUsedDirectoryMemory(),chunk.getCapacityDirectoryMemory(),chunk.getUsedWorkerNettyMemoryCount());
     processWorkerAddedBlocks(worker, currentBlocksOnLocation);
     processWorkerOrphanedBlocks(worker);
     worker.addLostStorage(lostStorage);
@@ -1175,7 +1175,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
   public void refreshWorkerDirectoryMemory(MasterWorkerDirectoryMemoryPRequest request) {
     long             workerId = request.getWorkerId();
     MasterWorkerInfo tmpWorker = mWorkers.getFirstByField(ID_INDEX, workerId);
-    tmpWorker.updateDirectoryMemory(request.getUsedDirectoryMemory(),request.getCapacityDirectoryMemory());
+    tmpWorker.updateDirectoryMemory(request.getUsedDirectoryMemory(),request.getCapacityDirectoryMemory(),request.getUsedWorkerNettyMemoryCount());
     mWorkers.removeByField(ID_INDEX,workerId);
     mWorkers.add(tmpWorker);
     mWorkerInfoCache.invalidate(WORKER_INFO_CACHE_KEY);

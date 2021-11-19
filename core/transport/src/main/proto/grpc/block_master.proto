@@ -68,6 +68,7 @@ message WorkerInfo {
   map<string, int64> usedBytesOnTiers = 9;
   optional int64 capacityDirectoryMemory = 10;
   optional int64 usedDirectoryMemory = 11;
+  optional int64 usedWorkerNettyMemoryCount = 12;
 }
 
 enum WorkerRange {
@@ -89,6 +90,7 @@ enum WorkerInfoField {
   WORKER_USED_BYTES_ON_TIERS = 9;
   WORKER_CAPACITY_DIRECTORY_MEMORY=10;
   WORKER_USED_DIRECTORY_MEMORY=11;
+  WORKER_USED_WORKER_NETTY_MEMORY_COUNT=12;
 }
 
 message GetWorkerReportPOptions {
@@ -184,6 +186,7 @@ message MasterWorkerDirectoryMemoryPRequest{
   optional int64 capacityDirectoryMemory = 1;
   optional int64 usedDirectoryMemory = 2;
   optional int64 workerId = 3;
+  optional int64 usedWorkerNettyMemoryCount = 4;
 }
 
 message BlockHeartbeatPRequest {
@@ -279,6 +282,7 @@ message RegisterWorkerPRequest {
   optional int64 usedDirectoryMemory = 9;
   /** use repeated fields to represent mapping from BlockStoreLocationProto to TierList */
   repeated LocationBlockIdListEntry currentBlocks = 10;
+  optional int64 usedWorkerNettyMemoryCount = 11;
 }
 message RegisterWorkerPResponse {}
 

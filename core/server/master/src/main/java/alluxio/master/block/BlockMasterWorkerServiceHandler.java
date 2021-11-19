@@ -170,7 +170,7 @@ public final class BlockMasterWorkerServiceHandler extends
           // If the register is unsuccessful, the lease will be kept around until the expiry.
           // The worker can retry and use the existing lease.
           mBlockMaster.workerRegister(workerId, storageTiers, totalBytesOnTiers, usedBytesOnTiers,
-                  currBlocksOnLocationMap, lostStorageMap, options,request.getUsedDirectoryMemory(),request.getCapacityDirectoryMemory());
+                  currBlocksOnLocationMap, lostStorageMap, options,request.getUsedDirectoryMemory(),request.getCapacityDirectoryMemory(),request.getUsedWorkerNettyMemoryCount());
           LOG.info("Worker {} finished registering, releasing its lease.", workerId);
           mBlockMaster.releaseRegisterLease(workerId);
           return RegisterWorkerPResponse.getDefaultInstance();

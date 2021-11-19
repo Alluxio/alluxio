@@ -327,7 +327,8 @@ public final class GrpcUtils {
         .setUsedBytes(workerInfo.getUsedBytes())
         .setUsedBytesOnTiers(workerInfo.getUsedBytesOnTiersMap())
         .setUsedDirectoryMemory(workerInfo.getUsedDirectoryMemory())
-        .setCapacityDirectoryMemory(workerInfo.getCapacityDirectoryMemory());
+        .setCapacityDirectoryMemory(workerInfo.getCapacityDirectoryMemory())
+        .setUsedWorkerNettyMemoryCount(workerInfo.getUsedWorkerNettyMemoryCount());
   }
 
   /**
@@ -606,6 +607,7 @@ public final class GrpcUtils {
         .setStartTimeMs(workerInfo.getStartTimeMs())
         .setCapacityDirectoryMemory(workerInfo.getCapacityDirectoryMemory())
         .setUsedDirectoryMemory(workerInfo.getUsedDirectoryMemory())
+        .setUsedWorkerNettyMemoryCount(workerInfo.getUsedWorkerNettyMemoryCount())
         .putAllCapacityBytesOnTiers(workerInfo.getCapacityBytesOnTiers())
         .putAllUsedBytesOnTiers(workerInfo.getUsedBytesOnTiers()).build();
   }

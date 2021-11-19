@@ -166,9 +166,9 @@ public class FileSystemContext implements Closeable {
   @GuardedBy("this")
   private volatile List<BlockWorkerInfo> mWorkerInfoList = null;
 
-  /** The policy to refresh workers list. */
-  @GuardedBy("this")
-  private final RefreshPolicy mWorkerRefreshPolicy;
+//  /** The policy to refresh workers list. */
+//  @GuardedBy("this")
+//  private final RefreshPolicy mWorkerRefreshPolicy;
 
   /**
    * Creates a {@link FileSystemContext} with a null subject
@@ -206,20 +206,20 @@ public class FileSystemContext implements Closeable {
         MasterInquireClient.Factory.create(ctx.getClusterConf(), ctx.getUserState());
     FileSystemContext context = new FileSystemContext(ctx.getClusterConf(), blockWorker);
     context.init(ctx, inquireClient);
-    context.executorService.scheduleAtFixedRate(new Runnable() {
-      @Override
-      public void run() {
-        try {
-          try {
-            context.refreshCachedWorkers();
-          } catch (InterruptedException e) {
-            e.printStackTrace();
-          }
-        } catch (IOException e) {
-          e.printStackTrace();
-        }
-      }
-    }, 1, 1, TimeUnit.SECONDS);
+//    context.executorService.scheduleAtFixedRate(new Runnable() {
+//      @Override
+//      public void run() {
+//        try {
+//          try {
+//            context.refreshCachedWorkers();
+//          } catch (InterruptedException e) {
+//            e.printStackTrace();
+//          }
+//        } catch (IOException e) {
+//          e.printStackTrace();
+//        }
+//      }
+//    }, 1, 1, TimeUnit.SECONDS);
     return  context;
   };
 
@@ -263,8 +263,8 @@ public class FileSystemContext implements Closeable {
   private FileSystemContext(AlluxioConfiguration conf, @Nullable BlockWorker blockWorker) {
     mId = IdUtils.createFileSystemContextId();
     mBlockWorker = blockWorker;
-    mWorkerRefreshPolicy =
-        new TimeoutRefresh(conf.getMs(PropertyKey.USER_WORKER_LIST_REFRESH_INTERVAL));
+//    mWorkerRefreshPolicy =
+//        new TimeoutRefresh(conf.getMs(PropertyKey.USER_WORKER_LIST_REFRESH_INTERVAL));
     LOG.debug("Created context with id: {}, with local block worker: {}",
         mId, mBlockWorker == null);
   }
@@ -651,6 +651,7 @@ public class FileSystemContext implements Closeable {
    * @return the info of all block workers eligible for reads and writes
    */
   public synchronized List<BlockWorkerInfo> getCachedWorkers() throws IOException {
+//    改为每次都去获取worker
 //    if (mWorkerInfoList == null || mWorkerInfoList.isEmpty() || mWorkerRefreshPolicy.attempt()) {
       mWorkerInfoList = getAllWorkers();
 //    }
@@ -662,29 +663,13 @@ public class FileSystemContext implements Closeable {
    * @return
    * @throws IOException
    */
-  public List<BlockWorkerInfo> refreshCachedWorkers() throws IOException, InterruptedException {
-    mWorkerInfoList = getAllWorkers();
-    int totalSize=mWorkerInfoList.size();
-    int busyWorkerSize=0;
-    for (BlockWorkerInfo k : mWorkerInfoList) {
-      System.out.println(k.getmUsedDirectoryMemory());
-      System.out.println("radio"+String.format("%.1f",k.getmUsedDirectoryMemory()*1.0 / k.getmCapacityDirectoryMemory()));
-      if (k.getmUsedDirectoryMemory()*1.0 / k.getmCapacityDirectoryMemory() > 0.3) {
-        busyWorkerSize = busyWorkerSize + 1;
-      }
-    }
-    if(busyWorkerSize>0){
-      System.out.println("busyWorkerSize"+busyWorkerSize);
-    }
-//    if(busyWorkerSize==totalSize){
-////      节点繁忙,停止写入
-//      semaphore.tryAcquire(writeThread,1,TimeUnit.SECONDS);
-//    } else if(busyWorkerSize/totalSize>0.3){
-////      大多数节点繁忙,每次去获取一个信号量
-//      semaphore.acquire(writeThread/2);
+//  public List<BlockWorkerInfo> refreshCachedWorkers() throws IOException, InterruptedException {
+//    mWorkerInfoList = getAllWorkers();
+//    for (BlockWorkerInfo k : mWorkerInfoList) {
+//      LOG.info("count now {}", k.getmUsedWorkerNettyMemoryCount());
 //    }
-    return mWorkerInfoList;
-  }
+//    return mWorkerInfoList;
+//  }
 
   /**
    * Gets the worker information list.
@@ -698,7 +683,7 @@ public class FileSystemContext implements Closeable {
              acquireBlockMasterClientResource()) {
       return masterClientResource.get().getWorkerInfoList().stream()
               .map(w -> {
-                return new BlockWorkerInfo(w.getAddress(), w.getCapacityBytes(), w.getUsedBytes(),w.getCapacityDirectoryMemory(),w.getUsedDirectoryMemory());
+                return new BlockWorkerInfo(w.getAddress(), w.getCapacityBytes(), w.getUsedBytes(),w.getCapacityDirectoryMemory(),w.getUsedDirectoryMemory(),w.getUsedWorkerNettyMemoryCount());
               })
               .collect(toList());
     }

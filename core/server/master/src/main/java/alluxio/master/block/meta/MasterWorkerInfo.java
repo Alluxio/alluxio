@@ -119,6 +119,7 @@ public  class MasterWorkerInfo {
   private static final String LOST_WORKER_STATE = "Out of Service";
   private  Long capacityDirectoryMemory;
   private  Long usedDirectoryMemory;
+  private Long usedWorkerNettyMemoryCount;
 
   public  Long getCapacityDirectoryMemory() {
     return capacityDirectoryMemory;
@@ -126,6 +127,14 @@ public  class MasterWorkerInfo {
 
   public  void setCapacityDirectoryMemory(Long capacityDirectoryMemory) {
     this.capacityDirectoryMemory = capacityDirectoryMemory;
+  }
+
+  public Long getUsedWorkerNettyMemoryCount() {
+    return usedWorkerNettyMemoryCount;
+  }
+
+  public void setUsedWorkerNettyMemoryCount(Long usedWorkerNettyMemoryCount) {
+    this.usedWorkerNettyMemoryCount = usedWorkerNettyMemoryCount;
   }
 
   public  Long getUsedDirectoryMemory() {
@@ -217,9 +226,9 @@ public  class MasterWorkerInfo {
    */
   public Set<Long> register(final StorageTierAssoc globalStorageTierAssoc,
                             final List<String> storageTierAliases, final Map<String, Long> totalBytesOnTiers,
-                            final Map<String, Long> usedBytesOnTiers, final Set<Long> blocks, long usedDirectoryMemory, long capacityDirectoryMemory) {
+                            final Map<String, Long> usedBytesOnTiers, final Set<Long> blocks, long usedDirectoryMemory, long capacityDirectoryMemory,long usedWorkerNettyMemoryCount) {
     mUsage.updateUsage(globalStorageTierAssoc, storageTierAliases,
-            totalBytesOnTiers, usedBytesOnTiers,usedDirectoryMemory,capacityDirectoryMemory);
+            totalBytesOnTiers, usedBytesOnTiers,usedDirectoryMemory,capacityDirectoryMemory,usedWorkerNettyMemoryCount);
 
     Set<Long> removedBlocks;
     if (mIsRegistered) {
@@ -240,8 +249,8 @@ public  class MasterWorkerInfo {
     return removedBlocks;
   }
 
-  public void updateDirectoryMemory(long usedDirectoryMemory, long capacityDirectoryMemory){
-    mUsage.updateUsage(usedDirectoryMemory,capacityDirectoryMemory);
+  public void updateDirectoryMemory(long usedDirectoryMemory, long capacityDirectoryMemory,long mUsedWorkerNettyMemoryCount){
+    mUsage.updateUsage(usedDirectoryMemory,capacityDirectoryMemory,mUsedWorkerNettyMemoryCount);
   }
 
 
@@ -383,6 +392,8 @@ public  class MasterWorkerInfo {
         case WORKER_CAPACITY_DIRECTORY_MEMORY:
           info.setCapacityDirectoryMemory(mUsage.mCapacityDirectoryMemory);
           break;
+        case WORKER_USED_WORKER_NETTY_MEMORY_COUNT:
+          info.setUsedWorkerNettyMemoryCount(mUsage.mUsedWorkerNettyMemoryCount);
         default:
           LOG.warn("Unrecognized worker info field: " + field);
       }
@@ -717,8 +728,8 @@ public  class MasterWorkerInfo {
    * @param capacityDirectoryMemory
    */
   public void updateUsage(StorageTierAssoc globalStorageTierAssoc, List<String> storageTiers,
-                          Map<String, Long> totalBytesOnTiers, Map<String, Long> usedBytesOnTiers, long usedDirectoryMemory, long capacityDirectoryMemory) {
-    mUsage.updateUsage(globalStorageTierAssoc, storageTiers, totalBytesOnTiers, usedBytesOnTiers,usedDirectoryMemory,capacityDirectoryMemory);
+                          Map<String, Long> totalBytesOnTiers, Map<String, Long> usedBytesOnTiers, long usedDirectoryMemory, long capacityDirectoryMemory,long usedWorkerNettyMemoryCount) {
+    mUsage.updateUsage(globalStorageTierAssoc, storageTiers, totalBytesOnTiers, usedBytesOnTiers,usedDirectoryMemory,capacityDirectoryMemory,usedWorkerNettyMemoryCount);
   }
 
   /**

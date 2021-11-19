@@ -283,9 +283,11 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
       mFuseManager.start();
     }
 
-    //setup manager
-    ScheduledExecutorService scheduledThreadPool = Executors.newScheduledThreadPool(5);
+    //TODO report too frequently may cause problem,better set by user.
+    ScheduledExecutorService scheduledThreadPool = Executors.newScheduledThreadPool(1);
 
+//    TODO ,better has a configuration to close rate limit and if user don't
+//    need rate limit,this task should not submit to scheduledThreadPool
     scheduledThreadPool.scheduleAtFixedRate(new Runnable() {
       @Override
       public void run() {

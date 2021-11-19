@@ -26,9 +26,24 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public final class BlockWorkerInfo {
   private final WorkerNetAddress mNetAddress;
-  private final long mCapacityBytes;
-  private final long mUsedBytes;
-  private  long mUsedDirectoryMemory;
+  private  long mCapacityBytes;
+  private  long mUsedBytes;
+  private long mUsedDirectoryMemory;
+
+  public BlockWorkerInfo(WorkerNetAddress netAddress, long getmUsedWorkerNettyMemoryCount) {
+    mNetAddress=netAddress;
+    mUsedWorkerNettyMemoryCount=getmUsedWorkerNettyMemoryCount;
+  }
+
+  public long getmUsedWorkerNettyMemoryCount() {
+    return mUsedWorkerNettyMemoryCount;
+  }
+
+  public void setmUsedWorkerNettyMemoryCount(long mUsedWorkerNettyMemoryCount) {
+    this.mUsedWorkerNettyMemoryCount = mUsedWorkerNettyMemoryCount;
+  }
+
+  private long mUsedWorkerNettyMemoryCount;
 
   public long getmUsedDirectoryMemory() {
     return mUsedDirectoryMemory;
@@ -62,12 +77,13 @@ public final class BlockWorkerInfo {
   }
 
 
-  public BlockWorkerInfo(WorkerNetAddress netAddress, long capacityBytes, long usedBytes,long capacityDirectoryMemory,long usedDirectoryMemory) {
+  public BlockWorkerInfo(WorkerNetAddress netAddress, long capacityBytes, long usedBytes,long capacityDirectoryMemory,long usedDirectoryMemory,long usedWorkerNettyMemoryCount) {
     mNetAddress = Preconditions.checkNotNull(netAddress, "netAddress");
     mCapacityBytes = capacityBytes;
     mUsedBytes = usedBytes;
     mCapacityDirectoryMemory = capacityDirectoryMemory;
     mUsedDirectoryMemory = usedDirectoryMemory;
+    mUsedWorkerNettyMemoryCount = usedWorkerNettyMemoryCount;
   }
 
   /**
@@ -99,6 +115,7 @@ public final class BlockWorkerInfo {
         .add("usedBytes", mUsedBytes)
         .add("capacityDirectoryMemory", mCapacityDirectoryMemory)
         .add("usedDirectoryMemory", mUsedDirectoryMemory)
+        .add("usedWorkerNettyMemoryCount",mUsedWorkerNettyMemoryCount)
         .toString();
   }
 }

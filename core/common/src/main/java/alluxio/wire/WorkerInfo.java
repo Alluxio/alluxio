@@ -40,7 +40,29 @@ public final class WorkerInfo implements Serializable {
   private Map<String, Long> mCapacityBytesOnTiers;
   private Map<String, Long> mUsedBytesOnTiers;
   private long mBlockCount;
+
+//  public long getmUsedWorkerNettyMemoryCount() {
+//    return mUsedWorkerNettyMemoryCount;
+//  }
+//
+//  public void setmUsedWorkerNettyMemoryCount(long mUsedWorkerNettyMemoryCount) {
+//    this.mUsedWorkerNettyMemoryCount = mUsedWorkerNettyMemoryCount;
+//  }
+
   private long mCapacityDirectoryMemory;
+  private long mUsedWorkerNettyMemoryCount;
+
+  @ApiModelProperty(value = "worker netty count in use")
+  public long getUsedWorkerNettyMemoryCount() {
+    return mUsedWorkerNettyMemoryCount;
+  }
+
+  @ApiModelProperty(value = "worker netty count in use")
+  public WorkerInfo setUsedWorkerNettyMemoryCount(long mUsedWorkerNettyMemoryCount) {
+    this.mUsedWorkerNettyMemoryCount = mUsedWorkerNettyMemoryCount;
+    return this;
+  }
+
 
   @ApiModelProperty(value = "capacity directory memory")
   public long getCapacityDirectoryMemory() {
@@ -294,6 +316,7 @@ public final class WorkerInfo implements Serializable {
         .add("usedBytesOnTiers", mUsedBytesOnTiers)
         .add("usedDirectoryMemory",mUsedDirectoryMemory)
         .add("capacityDirectoryMemory",mCapacityDirectoryMemory)
+        .add("usedWorkerNettyMemoryCount",mUsedWorkerNettyMemoryCount)
         .toString();
   }
 }

@@ -281,8 +281,10 @@ public class RegisterStreamer implements Iterator<RegisterWorkerPRequest> {
         blockBatch = Collections.emptyList();
       }
 
-      LOG.info("worker begin to report direct memory(): capacity max: {} used: {}",PlatformDependent.maxDirectMemory(),PlatformDependent.usedDirectMemory());
+      LOG.info("worker begin to report direct memory(): capacity max: {} used: {}",PlatformDependent.maxDirectMemory(),PlatformDependent.usedDirectMemory(),5);
 
+//      TODO setUsedWorkerNettyMemoryCount should be actually from the used netty
+//      buffer count
       // If it is the 1st batch, include metadata
       request = RegisterWorkerPRequest.newBuilder()
           .setWorkerId(mWorkerId)
@@ -294,6 +296,7 @@ public class RegisterStreamer implements Iterator<RegisterWorkerPRequest> {
           .addAllCurrentBlocks(blockBatch)
           .setCapacityDirectoryMemory(PlatformDependent.maxDirectMemory())
           .setUsedDirectoryMemory(PlatformDependent.usedDirectMemory())
+          .setUsedWorkerNettyMemoryCount(5)
           .build();
     } else {
       blockBatch = mBlockMapIterator.next();

@@ -230,7 +230,7 @@ public interface BlockMaster extends Master, ContainerIdGenerable {
   void workerRegister(long workerId, List<String> storageTiers,
                       Map<String, Long> totalBytesOnTiers, Map<String, Long> usedBytesOnTiers,
                       Map<Block.BlockLocation, List<Long>> currentBlocksOnLocation,
-                      Map<String, StorageList> lostStorage, RegisterWorkerPOptions options, long usedDirectoryMemory, long capacityDirectoryMemory)
+                      Map<String, StorageList> lostStorage, RegisterWorkerPOptions options, long usedDirectoryMemory, long capacityDirectoryMemory,long usedWorkerNettyMemoryCount)
       throws NotFoundException;
 
   /**
