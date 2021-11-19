@@ -106,7 +106,7 @@ public class JournalStateMachine extends BaseStateMachine {
   private volatile boolean mSnapshotting = false;
   private volatile boolean mIsLeader = false;
 
-  ExecutorService journalPool = Executors.newFixedThreadPool(400);
+  private ExecutorService journalPool ;
 
   /**
    * This callback is used for interrupting someone who suspends the journal applier to work on
@@ -164,6 +164,30 @@ public class JournalStateMachine extends BaseStateMachine {
         () -> mLastAppliedCommitIndex);
   }
 
+  public JournalStateMachine(Map<String, RaftJournal> journals, RaftJournalSystem journalSystem,Integer maxConcurrencyPoolSize) {
+    journalPool = Executors.newFixedThreadPool(maxConcurrencyPoolSize);
+    LOG.info("Ihe max concurrency for notifyTermIndexUpdated is loading with max threads {}", maxConcurrencyPoolSize);
+    mJournals = journals;
+    mJournalApplier = new BufferedJournalApplier(journals,
+            () -> journalSystem.getJournalSinks(null));
+    resetState();
+    LOG.info("Initialized new journal state machine");
+    mJournalSystem = journalSystem;
+    mSnapshotManager = new SnapshotReplicationManager(journalSystem, mStorage);
+
+    MetricsSystem.registerGaugeIfAbsent(
+            MetricKey.MASTER_EMBEDDED_JOURNAL_SNAPSHOT_LAST_INDEX.getName(),
+            () -> mSnapshotLastIndex);
+    MetricsSystem.registerGaugeIfAbsent(
+            MetricKey.MASTER_JOURNAL_ENTRIES_SINCE_CHECKPOINT.getName(),
+            () -> getLastAppliedTermIndex().getIndex() - mSnapshotLastIndex);
+    MetricsSystem.registerGaugeIfAbsent(
+            MetricKey.MASTER_JOURNAL_LAST_CHECKPOINT_TIME.getName(),
+            () -> mLastCheckPointTime);
+    MetricsSystem.registerGaugeIfAbsent(
+            MetricKey.MASTER_JOURNAL_LAST_APPLIED_COMMIT_INDEX.getName(),
+            () -> mLastAppliedCommitIndex);
+  }
   @Override
   public void initialize(RaftServer server, RaftGroupId groupId,
       RaftStorage raftStorage) throws IOException {
