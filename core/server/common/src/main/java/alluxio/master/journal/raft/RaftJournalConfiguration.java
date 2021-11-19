@@ -181,6 +181,9 @@ public class RaftJournalConfiguration {
     return this;
   }
 
+  /**
+   * @return the maxConcurrencyPoolSize
+   */
   public Integer getMaxConcurrencyPoolSize() {
     return mMaxConcurrencyPoolSize;
   }
