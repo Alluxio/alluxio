@@ -79,6 +79,9 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
 import javax.annotation.Nullable;
@@ -279,6 +282,22 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
     if (ServerConfiguration.getBoolean(PropertyKey.WORKER_FUSE_ENABLED)) {
       mFuseManager.start();
     }
+
+    //setup manager
+    ScheduledExecutorService scheduledThreadPool = Executors.newScheduledThreadPool(5);
+
+    scheduledThreadPool.scheduleAtFixedRate(new Runnable() {
+      @Override
+      public void run() {
+        BlockMasterClient blockMasterClient = mBlockMasterClientPool.acquire();
+        try {
+          blockMasterClient.reportDirectoryMemory(mWorkerId.get());
+        } catch (IOException e) {
+          e.printStackTrace();
+        }
+        mBlockMasterClientPool.release(blockMasterClient);
+      }
+    }, 1, 1, TimeUnit.SECONDS);
   }
 
   /**

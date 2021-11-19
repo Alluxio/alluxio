@@ -50,6 +50,11 @@ public final class MasterWorkerInfoTest {
   private static final Set<Long> NEW_BLOCKS = Sets.newHashSet(1L, 2L);
   private MasterWorkerInfo mInfo;
 
+  private static final long WORKER1_USED_DIRECT_MEMORY = 1L ;
+  private static final long WORKER1_CAPACITY_DIRECT_MEMORY = 1L;
+  private static final long WORKER2_USED_DIRECT_MEMORY    =1L ;
+  private static final long WORKER2_CAPACITY_DIRECT_MEMORY = 1L;
+
   /** The exception exptected to be thrown. */
   @Rule
   public ExpectedException mThrown = ExpectedException.none();
@@ -62,11 +67,11 @@ public final class MasterWorkerInfoTest {
     // register
     mInfo = new MasterWorkerInfo(0, new WorkerNetAddress());
     mInfo.register(GLOBAL_STORAGE_TIER_ASSOC, STORAGE_TIER_ALIASES, TOTAL_BYTES_ON_TIERS,
-        USED_BYTES_ON_TIERS, NEW_BLOCKS);
+        USED_BYTES_ON_TIERS, NEW_BLOCKS, WORKER1_USED_DIRECT_MEMORY, WORKER1_CAPACITY_DIRECT_MEMORY);
   }
 
   /**
-   * Tests the {@link MasterWorkerInfo#register(StorageTierAssoc, List, Map, Map, Set)} method.
+   * Tests the {@link MasterWorkerInfo#register(StorageTierAssoc, List, Map, Map, Set, long, long)} method.
    */
   @Test
   public void register() {
@@ -89,20 +94,20 @@ public final class MasterWorkerInfoTest {
 
   /**
    * Tests that re-registering via
-   * {@link MasterWorkerInfo#register(StorageTierAssoc, List, Map, Map, Set)} works.
+   * {@link MasterWorkerInfo#register(StorageTierAssoc, List, Map, Map, Set, long, long)} works.
    */
   @Test
   public void registerAgain() {
     Set<Long> newBlocks = Sets.newHashSet(3L);
     Set<Long> removedBlocks = mInfo.register(GLOBAL_STORAGE_TIER_ASSOC, STORAGE_TIER_ALIASES,
-        TOTAL_BYTES_ON_TIERS, USED_BYTES_ON_TIERS, newBlocks);
+        TOTAL_BYTES_ON_TIERS, USED_BYTES_ON_TIERS, newBlocks, WORKER1_USED_DIRECT_MEMORY, WORKER1_CAPACITY_DIRECT_MEMORY);
     assertEquals(NEW_BLOCKS, removedBlocks);
     assertEquals(newBlocks, mInfo.getBlocks());
   }
 
   /**
    * Tests that an exception is thrown when trying to use the
-   * {@link MasterWorkerInfo#register(StorageTierAssoc, List, Map, Map, Set)} method with a
+   * {@link MasterWorkerInfo#register(StorageTierAssoc, List, Map, Map, Set, long, long)} method with a
    * different number of tiers.
    */
   @Test
@@ -113,7 +118,7 @@ public final class MasterWorkerInfoTest {
         + " totalBytesOnTiers has 2 tiers and usedBytesOnTiers has 1 tiers");
 
     mInfo.register(GLOBAL_STORAGE_TIER_ASSOC, STORAGE_TIER_ALIASES, TOTAL_BYTES_ON_TIERS,
-        ImmutableMap.of(Constants.MEDIUM_SSD, (long) Constants.KB), NEW_BLOCKS);
+        ImmutableMap.of(Constants.MEDIUM_SSD, (long) Constants.KB), NEW_BLOCKS, WORKER1_USED_DIRECT_MEMORY, WORKER1_CAPACITY_DIRECT_MEMORY);
   }
 
   /**

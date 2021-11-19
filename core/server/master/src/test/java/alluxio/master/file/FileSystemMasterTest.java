@@ -173,6 +173,10 @@ public final class FileSystemMasterTest {
 
   private String mJournalFolder;
   private String mUnderFS;
+  private static final long WORKER1_USED_DIRECT_MEMORY = 1L ;
+  private static final long WORKER1_CAPACITY_DIRECT_MEMORY = 1L;
+  private static final long WORKER2_USED_DIRECT_MEMORY    =1L ;
+  private static final long WORKER2_CAPACITY_DIRECT_MEMORY = 1L;
 
   @Rule
   public TemporaryFolder mTestFolder = new TemporaryFolder();
@@ -2720,7 +2724,7 @@ public final class FileSystemMasterTest {
             Constants.MEDIUM_SSD, (long) Constants.MB),
         ImmutableMap.of(Constants.MEDIUM_MEM, (long) Constants.KB,
             Constants.MEDIUM_SSD, (long) Constants.KB), ImmutableMap.of(),
-        new HashMap<String, StorageList>(), RegisterWorkerPOptions.getDefaultInstance());
+        new HashMap<String, StorageList>(), RegisterWorkerPOptions.getDefaultInstance(), WORKER1_USED_DIRECT_MEMORY, WORKER1_CAPACITY_DIRECT_MEMORY);
     mWorkerId2 = mBlockMaster.getWorkerId(
         new WorkerNetAddress().setHost("remote").setRpcPort(80).setDataPort(81).setWebPort(82));
     mBlockMaster.workerRegister(mWorkerId2,
@@ -2730,7 +2734,7 @@ public final class FileSystemMasterTest {
         ImmutableMap.of(Constants.MEDIUM_MEM, (long) Constants.KB,
             Constants.MEDIUM_SSD, (long) Constants.KB),
         ImmutableMap.of(), new HashMap<String, StorageList>(),
-        RegisterWorkerPOptions.getDefaultInstance());
+        RegisterWorkerPOptions.getDefaultInstance(), WORKER1_USED_DIRECT_MEMORY, WORKER1_CAPACITY_DIRECT_MEMORY);
   }
 
   private void stopServices() throws Exception {

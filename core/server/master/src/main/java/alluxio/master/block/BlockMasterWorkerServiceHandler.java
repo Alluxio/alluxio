@@ -15,23 +15,7 @@ import alluxio.RpcUtils;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.exception.RegisterLeaseNotFoundException;
-import alluxio.grpc.BlockHeartbeatPRequest;
-import alluxio.grpc.BlockHeartbeatPResponse;
-import alluxio.grpc.BlockMasterWorkerServiceGrpc;
-import alluxio.grpc.CommitBlockInUfsPRequest;
-import alluxio.grpc.CommitBlockInUfsPResponse;
-import alluxio.grpc.CommitBlockPRequest;
-import alluxio.grpc.CommitBlockPResponse;
-import alluxio.grpc.GetRegisterLeasePRequest;
-import alluxio.grpc.GetRegisterLeasePResponse;
-import alluxio.grpc.GetWorkerIdPRequest;
-import alluxio.grpc.GetWorkerIdPResponse;
-import alluxio.grpc.GrpcUtils;
-import alluxio.grpc.LocationBlockIdListEntry;
-import alluxio.grpc.RegisterWorkerPOptions;
-import alluxio.grpc.RegisterWorkerPRequest;
-import alluxio.grpc.RegisterWorkerPResponse;
-import alluxio.grpc.StorageList;
+import alluxio.grpc.*;
 import alluxio.metrics.Metric;
 import alluxio.proto.meta.Block;
 
@@ -144,6 +128,16 @@ public final class BlockMasterWorkerServiceHandler extends
   }
 
   @Override
+  public void reportWorkerDirectMemory(MasterWorkerDirectoryMemoryPRequest request,
+              StreamObserver<alluxio.grpc.MasterWorkerDirectoryMemoryPResponse> responseObserver){
+      mBlockMaster.refreshWorkerDirectoryMemory(request);
+      RpcUtils.call(LOG, () -> MasterWorkerDirectoryMemoryPResponse.newBuilder().build(),
+              "ReportDirectoryMemory", "request=%s", responseObserver, request);
+  }
+
+
+  //注册worker到master
+  @Override
   public void registerWorker(RegisterWorkerPRequest request,
       StreamObserver<RegisterWorkerPResponse> responseObserver) {
     if (LOG.isDebugEnabled()) {
@@ -176,7 +170,7 @@ public final class BlockMasterWorkerServiceHandler extends
           // If the register is unsuccessful, the lease will be kept around until the expiry.
           // The worker can retry and use the existing lease.
           mBlockMaster.workerRegister(workerId, storageTiers, totalBytesOnTiers, usedBytesOnTiers,
-                  currBlocksOnLocationMap, lostStorageMap, options);
+                  currBlocksOnLocationMap, lostStorageMap, options,request.getUsedDirectoryMemory(),request.getCapacityDirectoryMemory());
           LOG.info("Worker {} finished registering, releasing its lease.", workerId);
           mBlockMaster.releaseRegisterLease(workerId);
           return RegisterWorkerPResponse.getDefaultInstance();

@@ -113,10 +113,28 @@ import javax.annotation.concurrent.NotThreadSafe;
  * 3. In {@link DefaultBlockMaster.LostWorkerDetectionHeartbeatExecutor#heartbeat()}
  */
 @NotThreadSafe
-public final class MasterWorkerInfo {
+public  class MasterWorkerInfo {
   private static final Logger LOG = LoggerFactory.getLogger(MasterWorkerInfo.class);
   private static final String LIVE_WORKER_STATE = "In Service";
   private static final String LOST_WORKER_STATE = "Out of Service";
+  private  Long capacityDirectoryMemory;
+  private  Long usedDirectoryMemory;
+
+  public  Long getCapacityDirectoryMemory() {
+    return capacityDirectoryMemory;
+  }
+
+  public  void setCapacityDirectoryMemory(Long capacityDirectoryMemory) {
+    this.capacityDirectoryMemory = capacityDirectoryMemory;
+  }
+
+  public  Long getUsedDirectoryMemory() {
+    return usedDirectoryMemory;
+  }
+
+  public  void setUsedDirectoryMemory(Long usedDirectoryMemory) {
+    this.usedDirectoryMemory = usedDirectoryMemory;
+  }
 
   /** Worker's last updated time in ms. */
   private final AtomicLong mLastUpdatedTimeMs;
@@ -193,13 +211,15 @@ public final class MasterWorkerInfo {
    * @param totalBytesOnTiers mapping from storage tier alias to total bytes
    * @param usedBytesOnTiers mapping from storage tier alias to used byes
    * @param blocks set of block ids on this worker
+   * @param usedDirectoryMemory
+   * @param capacityDirectoryMemory
    * @return A Set of blocks removed (or lost) from this worker
    */
   public Set<Long> register(final StorageTierAssoc globalStorageTierAssoc,
-      final List<String> storageTierAliases, final Map<String, Long> totalBytesOnTiers,
-      final Map<String, Long> usedBytesOnTiers, final Set<Long> blocks) {
+                            final List<String> storageTierAliases, final Map<String, Long> totalBytesOnTiers,
+                            final Map<String, Long> usedBytesOnTiers, final Set<Long> blocks, long usedDirectoryMemory, long capacityDirectoryMemory) {
     mUsage.updateUsage(globalStorageTierAssoc, storageTierAliases,
-            totalBytesOnTiers, usedBytesOnTiers);
+            totalBytesOnTiers, usedBytesOnTiers,usedDirectoryMemory,capacityDirectoryMemory);
 
     Set<Long> removedBlocks;
     if (mIsRegistered) {
@@ -219,6 +239,11 @@ public final class MasterWorkerInfo {
     mIsRegistered = true;
     return removedBlocks;
   }
+
+  public void updateDirectoryMemory(long usedDirectoryMemory, long capacityDirectoryMemory){
+    mUsage.updateUsage(usedDirectoryMemory,capacityDirectoryMemory);
+  }
+
 
   /**
    * Adds a block to the worker.
@@ -351,6 +376,12 @@ public final class MasterWorkerInfo {
           break;
         case WORKER_USED_BYTES_ON_TIERS:
           info.setUsedBytesOnTiers(mUsage.mUsedBytesOnTiers);
+          break;
+        case WORKER_USED_DIRECTORY_MEMORY:
+          info.setUsedDirectoryMemory(mUsage.mUsedDirectoryMemory);
+          break;
+        case WORKER_CAPACITY_DIRECTORY_MEMORY:
+          info.setCapacityDirectoryMemory(mUsage.mCapacityDirectoryMemory);
           break;
         default:
           LOG.warn("Unrecognized worker info field: " + field);
@@ -552,6 +583,8 @@ public final class MasterWorkerInfo {
         .add("capacityBytes", mUsage.mCapacityBytes)
         .add("usedBytes", mUsage.mUsedBytes)
         .add("lastUpdatedTimeMs", mLastUpdatedTimeMs.get())
+        .add("usedDirectMemory",mUsage.mUsedDirectoryMemory)
+        .add("usedCapacityMemory",mUsage.mCapacityDirectoryMemory)
         // We only show the number of blocks unless it is for DEBUG logs
         .add("blocks", LOG.isDebugEnabled() ? mBlocks : CommonUtils.summarizeCollection(mBlocks))
         .add("lostStorage", mUsage.mLostStorage).toString();
@@ -676,15 +709,16 @@ public final class MasterWorkerInfo {
    * You should lock externally with {@link MasterWorkerInfo#lockWorkerMeta(EnumSet, boolean)}
    * with {@link WorkerMetaLockSection#USAGE} specified.
    * An exclusive lock is required.
-   *
-   * @param globalStorageTierAssoc storage tier setup from configuration
+   *  @param globalStorageTierAssoc storage tier setup from configuration
    * @param storageTiers the storage tiers
    * @param totalBytesOnTiers the capacity of each tier
    * @param usedBytesOnTiers the current usage of each tier
+   * @param usedDirectoryMemory
+   * @param capacityDirectoryMemory
    */
   public void updateUsage(StorageTierAssoc globalStorageTierAssoc, List<String> storageTiers,
-      Map<String, Long> totalBytesOnTiers, Map<String, Long> usedBytesOnTiers) {
-    mUsage.updateUsage(globalStorageTierAssoc, storageTiers, totalBytesOnTiers, usedBytesOnTiers);
+                          Map<String, Long> totalBytesOnTiers, Map<String, Long> usedBytesOnTiers, long usedDirectoryMemory, long capacityDirectoryMemory) {
+    mUsage.updateUsage(globalStorageTierAssoc, storageTiers, totalBytesOnTiers, usedBytesOnTiers,usedDirectoryMemory,capacityDirectoryMemory);
   }
 
   /**

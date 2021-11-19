@@ -58,7 +58,7 @@ import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.annotation.Nullable;
@@ -93,6 +93,9 @@ import javax.security.auth.Subject;
 public class FileSystemContext implements Closeable {
   private static final Logger LOG = LoggerFactory.getLogger(FileSystemContext.class);
 
+  public static  final Integer writeThread=100;
+
+
   /**
    * Unique ID for each FileSystemContext.
    * One example usage is to uniquely identify the heartbeat thread for ConfigHashSync.
@@ -110,6 +113,9 @@ public class FileSystemContext implements Closeable {
    * in the context like clients and thread pools.
    */
   private AtomicBoolean mClosed = new AtomicBoolean(false);
+
+
+  private ScheduledExecutorService executorService = Executors.newScheduledThreadPool(1);
 
   @GuardedBy("this")
   private boolean mMetricsEnabled;
@@ -200,8 +206,22 @@ public class FileSystemContext implements Closeable {
         MasterInquireClient.Factory.create(ctx.getClusterConf(), ctx.getUserState());
     FileSystemContext context = new FileSystemContext(ctx.getClusterConf(), blockWorker);
     context.init(ctx, inquireClient);
-    return context;
-  }
+    context.executorService.scheduleAtFixedRate(new Runnable() {
+      @Override
+      public void run() {
+        try {
+          try {
+            context.refreshCachedWorkers();
+          } catch (InterruptedException e) {
+            e.printStackTrace();
+          }
+        } catch (IOException e) {
+          e.printStackTrace();
+        }
+      }
+    }, 1, 1, TimeUnit.SECONDS);
+    return  context;
+  };
 
   /**
    * @param clientContext the {@link alluxio.ClientContext} containing the subject and configuration
@@ -631,9 +651,38 @@ public class FileSystemContext implements Closeable {
    * @return the info of all block workers eligible for reads and writes
    */
   public synchronized List<BlockWorkerInfo> getCachedWorkers() throws IOException {
-    if (mWorkerInfoList == null || mWorkerInfoList.isEmpty() || mWorkerRefreshPolicy.attempt()) {
+//    if (mWorkerInfoList == null || mWorkerInfoList.isEmpty() || mWorkerRefreshPolicy.attempt()) {
       mWorkerInfoList = getAllWorkers();
+//    }
+    return mWorkerInfoList;
+  }
+
+  /**
+   * Gets the cached worker information list.
+   * @return
+   * @throws IOException
+   */
+  public List<BlockWorkerInfo> refreshCachedWorkers() throws IOException, InterruptedException {
+    mWorkerInfoList = getAllWorkers();
+    int totalSize=mWorkerInfoList.size();
+    int busyWorkerSize=0;
+    for (BlockWorkerInfo k : mWorkerInfoList) {
+      System.out.println(k.getmUsedDirectoryMemory());
+      System.out.println("radio"+String.format("%.1f",k.getmUsedDirectoryMemory()*1.0 / k.getmCapacityDirectoryMemory()));
+      if (k.getmUsedDirectoryMemory()*1.0 / k.getmCapacityDirectoryMemory() > 0.3) {
+        busyWorkerSize = busyWorkerSize + 1;
+      }
     }
+    if(busyWorkerSize>0){
+      System.out.println("busyWorkerSize"+busyWorkerSize);
+    }
+//    if(busyWorkerSize==totalSize){
+////      节点繁忙,停止写入
+//      semaphore.tryAcquire(writeThread,1,TimeUnit.SECONDS);
+//    } else if(busyWorkerSize/totalSize>0.3){
+////      大多数节点繁忙,每次去获取一个信号量
+//      semaphore.acquire(writeThread/2);
+//    }
     return mWorkerInfoList;
   }
 
@@ -648,8 +697,10 @@ public class FileSystemContext implements Closeable {
     try (CloseableResource<BlockMasterClient> masterClientResource =
              acquireBlockMasterClientResource()) {
       return masterClientResource.get().getWorkerInfoList().stream()
-          .map(w -> new BlockWorkerInfo(w.getAddress(), w.getCapacityBytes(), w.getUsedBytes()))
-          .collect(toList());
+              .map(w -> {
+                return new BlockWorkerInfo(w.getAddress(), w.getCapacityBytes(), w.getUsedBytes(),w.getCapacityDirectoryMemory(),w.getUsedDirectoryMemory());
+              })
+              .collect(toList());
     }
   }
 

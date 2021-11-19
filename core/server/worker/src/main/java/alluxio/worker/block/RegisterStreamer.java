@@ -26,6 +26,7 @@ import alluxio.grpc.StorageList;
 
 import com.google.common.annotations.VisibleForTesting;
 import io.grpc.stub.StreamObserver;
+import io.netty.util.internal.PlatformDependent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -279,6 +280,9 @@ public class RegisterStreamer implements Iterator<RegisterWorkerPRequest> {
       } else {
         blockBatch = Collections.emptyList();
       }
+
+      LOG.info("worker begin to report direct memory(): capacity max: {} used: {}",PlatformDependent.maxDirectMemory(),PlatformDependent.usedDirectMemory());
+
       // If it is the 1st batch, include metadata
       request = RegisterWorkerPRequest.newBuilder()
           .setWorkerId(mWorkerId)
@@ -288,6 +292,8 @@ public class RegisterStreamer implements Iterator<RegisterWorkerPRequest> {
           .putAllLostStorage(mLostStorageMap)
           .setOptions(mOptions)
           .addAllCurrentBlocks(blockBatch)
+          .setCapacityDirectoryMemory(PlatformDependent.maxDirectMemory())
+          .setUsedDirectoryMemory(PlatformDependent.usedDirectMemory())
           .build();
     } else {
       blockBatch = mBlockMapIterator.next();

@@ -92,6 +92,11 @@ public class ConcurrentBlockMasterTest {
   private MetricsMaster mMetricsMaster;
   private CoreMasterContext mMasterContext;
 
+  private static final long WORKER1_USED_DIRECT_MEMORY = 1L ;
+  private static final long WORKER1_CAPACITY_DIRECT_MEMORY = 1L;
+  private static final long WORKER2_USED_DIRECT_MEMORY    =1L ;
+  private static final long WORKER2_CAPACITY_DIRECT_MEMORY = 1L;
+
   /** Rule to create a new temporary folder during each test. */
   @Rule
   public TemporaryFolder mTestFolder = new TemporaryFolder();
@@ -331,7 +336,7 @@ public class ConcurrentBlockMasterTest {
               ImmutableMap.of(newBlockLocationOnWorkerMemTier(worker2),
                   ImmutableList.of(BLOCK1_ID)),
               NO_LOST_STORAGE,
-              RegisterWorkerPOptions.getDefaultInstance());
+              RegisterWorkerPOptions.getDefaultInstance(), WORKER1_USED_DIRECT_MEMORY, WORKER1_CAPACITY_DIRECT_MEMORY);
           return null;
         },
         // Verifier
@@ -376,7 +381,7 @@ public class ConcurrentBlockMasterTest {
               ImmutableMap.of(newBlockLocationOnWorkerMemTier(worker2),
                   ImmutableList.of(BLOCK2_ID)),
               NO_LOST_STORAGE,
-              RegisterWorkerPOptions.getDefaultInstance());
+              RegisterWorkerPOptions.getDefaultInstance(), WORKER1_USED_DIRECT_MEMORY, WORKER1_CAPACITY_DIRECT_MEMORY);
           return null;
         },
         // Verifier
@@ -646,7 +651,7 @@ public class ConcurrentBlockMasterTest {
                 ImmutableMap.of(newBlockLocationOnWorkerMemTier(worker2),
                     ImmutableList.of(BLOCK1_ID)),
                 NO_LOST_STORAGE,
-                RegisterWorkerPOptions.getDefaultInstance());
+                RegisterWorkerPOptions.getDefaultInstance(), WORKER1_USED_DIRECT_MEMORY, WORKER1_CAPACITY_DIRECT_MEMORY);
             return null;
           },
           // Verifier
@@ -754,7 +759,7 @@ public class ConcurrentBlockMasterTest {
                 ImmutableMap.of(newBlockLocationOnWorkerMemTier(worker2),
                     ImmutableList.of(BLOCK2_ID)),
                 NO_LOST_STORAGE,
-                RegisterWorkerPOptions.getDefaultInstance());
+                RegisterWorkerPOptions.getDefaultInstance(), WORKER1_USED_DIRECT_MEMORY, WORKER1_CAPACITY_DIRECT_MEMORY);
             return null;
           },
           // Verifier
@@ -871,7 +876,7 @@ public class ConcurrentBlockMasterTest {
     long workerId = mBlockMaster.getWorkerId(address);
     mBlockMaster.workerRegister(workerId, Arrays.asList("MEM"), MEM_CAPACITY,
         MEM_USAGE_EMPTY, NO_BLOCKS_ON_LOCATION, NO_LOST_STORAGE,
-        RegisterWorkerPOptions.getDefaultInstance());
+        RegisterWorkerPOptions.getDefaultInstance(), WORKER1_USED_DIRECT_MEMORY, WORKER1_CAPACITY_DIRECT_MEMORY);
     return workerId;
   }
 

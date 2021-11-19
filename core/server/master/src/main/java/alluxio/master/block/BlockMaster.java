@@ -17,13 +17,7 @@ import alluxio.exception.BlockInfoException;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.exception.status.NotFoundException;
 import alluxio.exception.status.UnavailableException;
-import alluxio.grpc.Command;
-import alluxio.grpc.ConfigProperty;
-import alluxio.grpc.GetRegisterLeasePRequest;
-import alluxio.grpc.RegisterWorkerPOptions;
-import alluxio.grpc.RegisterWorkerPRequest;
-import alluxio.grpc.StorageList;
-import alluxio.grpc.WorkerLostStorageInfo;
+import alluxio.grpc.*;
 import alluxio.master.Master;
 import alluxio.master.block.meta.MasterWorkerInfo;
 import alluxio.metrics.Metric;
@@ -87,6 +81,7 @@ public interface BlockMaster extends Master, ContainerIdGenerable {
 
   /**
    * @return a list of {@link WorkerInfo} objects representing the live workers in Alluxio
+   * 返回worker list
    */
   List<WorkerInfo> getWorkerInfoList() throws UnavailableException;
 
@@ -228,12 +223,14 @@ public interface BlockMaster extends Master, ContainerIdGenerable {
    * @param currentBlocksOnLocation a mapping from storage tier alias to a list of blocks
    * @param lostStorage a mapping from storage tier alias to a list of lost storage paths
    * @param options the options that may contain worker configuration
+   * @param usedDirectoryMemory
+   * @param capacityDirectoryMemory
    * @throws NotFoundException if workerId cannot be found
    */
   void workerRegister(long workerId, List<String> storageTiers,
-      Map<String, Long> totalBytesOnTiers, Map<String, Long> usedBytesOnTiers,
-      Map<Block.BlockLocation, List<Long>> currentBlocksOnLocation,
-      Map<String, StorageList> lostStorage, RegisterWorkerPOptions options)
+                      Map<String, Long> totalBytesOnTiers, Map<String, Long> usedBytesOnTiers,
+                      Map<Block.BlockLocation, List<Long>> currentBlocksOnLocation,
+                      Map<String, StorageList> lostStorage, RegisterWorkerPOptions options, long usedDirectoryMemory, long capacityDirectoryMemory)
       throws NotFoundException;
 
   /**
@@ -333,4 +330,6 @@ public interface BlockMaster extends Master, ContainerIdGenerable {
    * @param context the stream context to be closed
    */
   void workerRegisterFinish(WorkerRegisterContext context);
+
+  void refreshWorkerDirectoryMemory(MasterWorkerDirectoryMemoryPRequest request);
 }

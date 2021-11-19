@@ -103,6 +103,10 @@ public final class AlluxioMasterRestServiceHandlerTest {
   private static final Map<String, Long> WORKER2_USED_BYTES_ON_TIERS =
       ImmutableMap.of(Constants.MEDIUM_MEM, 100L,
       Constants.MEDIUM_SSD, 200L);
+  private static final long WORKER1_USED_DIRECT_MEMORY = 1L ;
+  private static final long WORKER1_CAPACITY_DIRECT_MEMORY = 1L;
+  private static final long WORKER2_USED_DIRECT_MEMORY    =1L ;
+  private static final long WORKER2_CAPACITY_DIRECT_MEMORY = 1L;
 
   private AlluxioMasterProcess mMasterProcess;
   private BlockMaster mBlockMaster;
@@ -145,10 +149,10 @@ public final class AlluxioMasterRestServiceHandlerTest {
 
     mBlockMaster.workerRegister(worker1, tiers, WORKER1_TOTAL_BYTES_ON_TIERS,
         WORKER1_USED_BYTES_ON_TIERS, NO_BLOCKS_ON_LOCATIONS, NO_LOST_STORAGE,
-        RegisterWorkerPOptions.getDefaultInstance());
+        RegisterWorkerPOptions.getDefaultInstance(), WORKER1_USED_DIRECT_MEMORY, WORKER1_CAPACITY_DIRECT_MEMORY);
     mBlockMaster.workerRegister(worker2, tiers, WORKER2_TOTAL_BYTES_ON_TIERS,
         WORKER2_USED_BYTES_ON_TIERS, NO_BLOCKS_ON_LOCATIONS, NO_LOST_STORAGE,
-        RegisterWorkerPOptions.getDefaultInstance());
+        RegisterWorkerPOptions.getDefaultInstance(), WORKER2_USED_DIRECT_MEMORY, WORKER2_CAPACITY_DIRECT_MEMORY);
 
     String filesPinnedProperty = MetricKey.MASTER_FILES_PINNED.getName();
     MetricsSystem.METRIC_REGISTRY.remove(filesPinnedProperty);

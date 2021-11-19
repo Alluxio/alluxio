@@ -29,17 +29,7 @@ import alluxio.exception.ExceptionMessage;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.exception.status.NotFoundException;
 import alluxio.exception.status.UnavailableException;
-import alluxio.grpc.Command;
-import alluxio.grpc.CommandType;
-import alluxio.grpc.ConfigProperty;
-import alluxio.grpc.GetRegisterLeasePRequest;
-import alluxio.grpc.GrpcService;
-import alluxio.grpc.GrpcUtils;
-import alluxio.grpc.RegisterWorkerPOptions;
-import alluxio.grpc.RegisterWorkerPRequest;
-import alluxio.grpc.ServiceType;
-import alluxio.grpc.StorageList;
-import alluxio.grpc.WorkerLostStorageInfo;
+import alluxio.grpc.*;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatExecutor;
 import alluxio.heartbeat.HeartbeatThread;
@@ -293,6 +283,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
     mMetricsMaster = metricsMaster;
     Metrics.registerGauges(this);
 
+    // 初始化builder
     mWorkerInfoCache = CacheBuilder.newBuilder()
         .refreshAfterWrite(ServerConfiguration
             .getMs(PropertyKey.MASTER_WORKER_INFO_CACHE_REFRESH_TIME), TimeUnit.MILLISECONDS)
@@ -534,6 +525,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
     return ret;
   }
 
+  //todo 获取worker列表
   @Override
   public List<WorkerInfo> getWorkerInfoList() throws UnavailableException {
     if (mSafeModeManager.isInSafeMode()) {
@@ -546,6 +538,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
     }
   }
 
+  //构造 生成worker列表
   private List<WorkerInfo> constructWorkerInfoList() {
     List<WorkerInfo> workerInfoList = new ArrayList<>(mWorkers.size());
     for (MasterWorkerInfo worker : mWorkers) {
@@ -1004,9 +997,9 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
 
   @Override
   public void workerRegister(long workerId, List<String> storageTiers,
-      Map<String, Long> totalBytesOnTiers, Map<String, Long> usedBytesOnTiers,
-      Map<BlockLocation, List<Long>> currentBlocksOnLocation,
-      Map<String, StorageList> lostStorage, RegisterWorkerPOptions options)
+                             Map<String, Long> totalBytesOnTiers, Map<String, Long> usedBytesOnTiers,
+                             Map<BlockLocation, List<Long>> currentBlocksOnLocation,
+                             Map<String, StorageList> lostStorage, RegisterWorkerPOptions options, long usedDirectoryMemory, long capacityDirectoryMemory)
       throws NotFoundException {
 
     MasterWorkerInfo worker = mWorkers.getFirstByField(ID_INDEX, workerId);
@@ -1030,9 +1023,9 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
         WorkerMetaLockSection.STATUS,
         WorkerMetaLockSection.USAGE,
         WorkerMetaLockSection.BLOCKS), false)) {
-      // Detect any lost blocks on this worker.
+      // Detect any lost blocks on this worker.register worker
       Set<Long> removedBlocks = worker.register(mGlobalStorageTierAssoc, storageTiers,
-          totalBytesOnTiers, usedBytesOnTiers, blocks);
+          totalBytesOnTiers, usedBytesOnTiers, blocks,usedDirectoryMemory,capacityDirectoryMemory);
       processWorkerRemovedBlocks(worker, removedBlocks, false);
       processWorkerAddedBlocks(worker, currentBlocksOnLocation);
       processWorkerOrphanedBlocks(worker);
@@ -1075,6 +1068,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
   @Override
   public void workerRegisterStream(WorkerRegisterContext context,
                                   RegisterWorkerPRequest chunk, boolean isFirstMsg) {
+    LOG.info("master begin to get worker direct memory(): capacity max: {} used: {}", chunk.getCapacityDirectoryMemory(), chunk.getUsedDirectoryMemory());
     if (isFirstMsg) {
       workerRegisterStart(context, chunk);
     } else {
@@ -1082,6 +1076,8 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
     }
   }
 
+
+//  开始注册worker
   protected void workerRegisterStart(WorkerRegisterContext context,
       RegisterWorkerPRequest chunk) {
     final List<String> storageTiers = chunk.getStorageTiersList();
@@ -1105,7 +1101,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
     // Eventually what's left in the mToRemove will be the ones that do not exist anymore.
     worker.markAllBlocksToRemove();
     worker.updateUsage(mGlobalStorageTierAssoc, storageTiers,
-        totalBytesOnTiers, usedBytesOnTiers);
+        totalBytesOnTiers, usedBytesOnTiers,chunk.getUsedDirectoryMemory(),chunk.getCapacityDirectoryMemory());
     processWorkerAddedBlocks(worker, currentBlocksOnLocation);
     processWorkerOrphanedBlocks(worker);
     worker.addLostStorage(lostStorage);
@@ -1174,6 +1170,17 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
     LOG.info("Worker successfully registered: {}", worker);
     mActiveRegisterContexts.remove(worker.getId());
   }
+
+  @Override
+  public void refreshWorkerDirectoryMemory(MasterWorkerDirectoryMemoryPRequest request) {
+    long             workerId = request.getWorkerId();
+    MasterWorkerInfo tmpWorker = mWorkers.getFirstByField(ID_INDEX, workerId);
+    tmpWorker.updateDirectoryMemory(request.getUsedDirectoryMemory(),request.getCapacityDirectoryMemory());
+    mWorkers.removeByField(ID_INDEX,workerId);
+    mWorkers.add(tmpWorker);
+    mWorkerInfoCache.invalidate(WORKER_INFO_CACHE_KEY);
+  }
+
 
   @Override
   public Command workerHeartbeat(long workerId, Map<String, Long> capacityBytesOnTiers,

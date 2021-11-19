@@ -40,6 +40,32 @@ public final class WorkerInfo implements Serializable {
   private Map<String, Long> mCapacityBytesOnTiers;
   private Map<String, Long> mUsedBytesOnTiers;
   private long mBlockCount;
+  private long mCapacityDirectoryMemory;
+
+  @ApiModelProperty(value = "capacity directory memory")
+  public long getCapacityDirectoryMemory() {
+    return mCapacityDirectoryMemory;
+  }
+
+  @ApiModelProperty(value = "capacity directory memory")
+  public WorkerInfo setCapacityDirectoryMemory(long mCapacityDirectoryMemory) {
+    this.mCapacityDirectoryMemory = mCapacityDirectoryMemory;
+    return this;
+  }
+
+  @ApiModelProperty(value = "used directory memory")
+  public long getUsedDirectoryMemory() {
+    return mUsedDirectoryMemory;
+  }
+
+  @ApiModelProperty(value = "used directory memory")
+  public WorkerInfo setUsedDirectoryMemory(long mUsedDirectoryMemory) {
+    this.mUsedDirectoryMemory = mUsedDirectoryMemory;
+    return  this;
+  }
+
+  private long mUsedDirectoryMemory;
+
 
   /**
    * Creates a new instance of {@link WorkerInfo}.
@@ -265,6 +291,9 @@ public final class WorkerInfo implements Serializable {
         .add("lastContactSec", mLastContactSec).add("state", mState)
         .add("capacityBytes", mCapacityBytes).add("usedBytes", mUsedBytes)
         .add("startTimeMs", mStartTimeMs).add("capacityBytesOnTiers", mCapacityBytesOnTiers)
-        .add("usedBytesOnTiers", mUsedBytesOnTiers).toString();
+        .add("usedBytesOnTiers", mUsedBytesOnTiers)
+        .add("usedDirectoryMemory",mUsedDirectoryMemory)
+        .add("capacityDirectoryMemory",mCapacityDirectoryMemory)
+        .toString();
   }
 }

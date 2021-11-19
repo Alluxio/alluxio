@@ -325,7 +325,9 @@ public final class GrpcUtils {
         .setLastContactSec(workerInfo.getLastContactSec())
         .setStartTimeMs(workerInfo.getStartTimeMs()).setState(workerInfo.getState())
         .setUsedBytes(workerInfo.getUsedBytes())
-        .setUsedBytesOnTiers(workerInfo.getUsedBytesOnTiersMap());
+        .setUsedBytesOnTiers(workerInfo.getUsedBytesOnTiersMap())
+        .setUsedDirectoryMemory(workerInfo.getUsedDirectoryMemory())
+        .setCapacityDirectoryMemory(workerInfo.getCapacityDirectoryMemory());
   }
 
   /**
@@ -602,6 +604,8 @@ public final class GrpcUtils {
         .setLastContactSec(workerInfo.getLastContactSec()).setState(workerInfo.getState())
         .setCapacityBytes(workerInfo.getCapacityBytes()).setUsedBytes(workerInfo.getUsedBytes())
         .setStartTimeMs(workerInfo.getStartTimeMs())
+        .setCapacityDirectoryMemory(workerInfo.getCapacityDirectoryMemory())
+        .setUsedDirectoryMemory(workerInfo.getUsedDirectoryMemory())
         .putAllCapacityBytesOnTiers(workerInfo.getCapacityBytesOnTiers())
         .putAllUsedBytesOnTiers(workerInfo.getUsedBytesOnTiers()).build();
   }

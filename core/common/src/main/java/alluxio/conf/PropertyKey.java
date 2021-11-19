@@ -3287,6 +3287,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
+  public static final PropertyKey WORKER_NETWORK_BLOCK_WRITER_CONCURRENCY_MAX =
+          new Builder(Name.WORKER_NETWORK_BLOCK_WRITER_CONCURRENCY_MAX)
+                  .setDefaultValue(1024)
+                  .setDescription("The maximum number of threads used to write blocks in the data server concurrently,only take effect if flow limiting is allowed.")
+                  .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+                  .setScope(Scope.WORKER)
+                  .build();
   public static final PropertyKey WORKER_NETWORK_WRITER_BUFFER_SIZE_MESSAGES =
       new Builder(Name.WORKER_NETWORK_WRITER_BUFFER_SIZE_MESSAGES)
           .setDefaultValue(8)
@@ -3843,6 +3850,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
+
+  public static final PropertyKey WORKER_CLIENT_WRITE_FLOW_LIMITING_ENABLE =
+          new Builder(Name.WORKER_CLIENT_WRITE_FLOW_LIMITING_ENABLE)
+           .setDefaultValue(false)
+           .setDescription("Ture will open flow limiting")
+           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+           .setScope(Scope.WORKER)
+           .build();
 
   //
   // Proxy related properties
@@ -4936,6 +4951,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.CLIENT)
           .setDefaultValue("EPOLL")
           .build();
+  public static final PropertyKey USER_FILE_WRITE_CONCURRENCY_MAX =
+          new Builder(Name.USER_FILE_WRITE_CONCURRENCY_MAX)
+                  .setDescription("The max connection client can use write file per client")
+                  .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+                  .setScope(Scope.CLIENT)
+                  .setDefaultValue(Integer.MAX_VALUE)
+                  .build();
   public static final PropertyKey USER_NETWORK_RPC_NETTY_WORKER_THREADS =
       new Builder(Name.USER_NETWORK_RPC_NETTY_WORKER_THREADS)
           .setDefaultValue(0)
@@ -6508,6 +6530,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.worker.network.block.reader.threads.max";
     public static final String WORKER_NETWORK_BLOCK_WRITER_THREADS_MAX =
         "alluxio.worker.network.block.writer.threads.max";
+    public static final String WORKER_NETWORK_BLOCK_WRITER_CONCURRENCY_MAX =
+        "alluxio.worker.network.block.writer.concurrency.max";
     public static final String WORKER_NETWORK_WRITER_BUFFER_SIZE_MESSAGES =
         "alluxio.worker.network.writer.buffer.size.messages";
     public static final String WORKER_NETWORK_FLOWCONTROL_WINDOW =
@@ -6592,6 +6616,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String WORKER_UFS_INSTREAM_CACHE_MAX_SIZE =
         "alluxio.worker.ufs.instream.cache.max.size";
     public static final String WORKER_WHITELIST = "alluxio.worker.whitelist";
+    public static final String WORKER_CLIENT_WRITE_FLOW_LIMITING_ENABLE= "alluxio.worker.client.write.flow.limiting.enable";
 
     //
     // Proxy related properties
@@ -6758,6 +6783,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.user.file.write.init.sleep.max";
     public static final String USER_FILE_WRITE_INIT_MAX_DURATION =
         "alluxio.user.file.write.init.max.duration";
+    public static final String USER_FILE_WRITE_CONCURRENCY_MAX=
+        "alluxio.user.file.write.concurrency.max";
     public static final String USER_HOSTNAME = "alluxio.user.hostname";
     public static final String USER_LOCAL_READER_CHUNK_SIZE_BYTES =
         "alluxio.user.local.reader.chunk.size.bytes";

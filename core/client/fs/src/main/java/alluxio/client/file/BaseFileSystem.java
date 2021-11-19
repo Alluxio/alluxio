@@ -80,6 +80,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.Semaphore;
 import java.util.function.Consumer;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -96,6 +97,10 @@ public class BaseFileSystem implements FileSystem {
   private final Closer mCloser = Closer.create();
   protected final FileSystemContext mFsContext;
   protected final AlluxioBlockStore mBlockStore;
+  /** Max thread can write to worker per client,if not set,it will be Integer.Max_Value */
+  protected final Semaphore mFileWriteConcurrencyMax;
+
+//  final Semaphore semp = new Semaphore(3);
 
   protected volatile boolean mClosed = false;
 
@@ -107,6 +112,7 @@ public class BaseFileSystem implements FileSystem {
   public BaseFileSystem(FileSystemContext fsContext) {
     mFsContext = fsContext;
     mBlockStore = AlluxioBlockStore.create(fsContext);
+    mFileWriteConcurrencyMax=new Semaphore(fsContext.getClusterConf().getInt(PropertyKey.USER_FILE_WRITE_CONCURRENCY_MAX));
     mCloser.register(mFsContext);
   }
 
@@ -161,6 +167,11 @@ public class BaseFileSystem implements FileSystem {
   @Override
   public FileOutStream createFile(AlluxioURI path, CreateFilePOptions options)
       throws FileAlreadyExistsException, InvalidPathException, IOException, AlluxioException {
+    try {
+      mFileWriteConcurrencyMax.acquire();
+    } catch (InterruptedException e) {
+      LOG.debug("Create file {} interrupt", path.getPath());
+    }
     checkUri(path);
     return rpc(client -> {
       CreateFilePOptions mergedOptions = FileSystemOptions.createFileDefaults(
@@ -174,7 +185,7 @@ public class BaseFileSystem implements FileSystem {
       outStreamOptions.setMountId(status.getMountId());
       outStreamOptions.setAcl(status.getAcl());
       try {
-        return new AlluxioFileOutStream(path, outStreamOptions, mFsContext);
+        return new AlluxioFileOutStream(path, outStreamOptions, mFsContext,mFileWriteConcurrencyMax);
       } catch (Exception e) {
         delete(path);
         throw e;

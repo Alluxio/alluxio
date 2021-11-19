@@ -90,6 +90,11 @@ public final class ReplicationCheckerTest {
   private static final Map<String, StorageList> NO_LOST_STORAGE = ImmutableMap.of();
   private static final Map EMPTY = ImmutableMap.of();
 
+  private static final long WORKER1_USED_DIRECT_MEMORY = 1L ;
+  private static final long WORKER1_CAPACITY_DIRECT_MEMORY = 1L;
+  private static final long WORKER2_USED_DIRECT_MEMORY    =1L ;
+  private static final long WORKER2_CAPACITY_DIRECT_MEMORY = 1L;
+
   /**
    * A mock class of AdjustReplicationHandler, used to test the output of ReplicationChecker.
    */
@@ -261,7 +266,7 @@ public final class ReplicationCheckerTest {
       mBlockMaster.workerRegister(workerId, ImmutableList.of(Constants.MEDIUM_MEM),
           ImmutableMap.of(Constants.MEDIUM_MEM, 100L),
           ImmutableMap.of(Constants.MEDIUM_MEM, 0L), NO_BLOCKS_ON_LOCATION, NO_LOST_STORAGE,
-          RegisterWorkerPOptions.getDefaultInstance());
+          RegisterWorkerPOptions.getDefaultInstance(), WORKER1_USED_DIRECT_MEMORY, WORKER1_CAPACITY_DIRECT_MEMORY);
       mKnownWorkers.add(workerId);
     }
     return workerId;
@@ -387,7 +392,7 @@ public final class ReplicationCheckerTest {
     mBlockMaster.workerRegister(workerId, Collections.singletonList(Constants.MEDIUM_MEM),
         ImmutableMap.of(Constants.MEDIUM_MEM, 100L),
         ImmutableMap.of(Constants.MEDIUM_MEM, 0L), NO_BLOCKS_ON_LOCATION,
-        NO_LOST_STORAGE, RegisterWorkerPOptions.getDefaultInstance());
+        NO_LOST_STORAGE, RegisterWorkerPOptions.getDefaultInstance(), WORKER1_USED_DIRECT_MEMORY, WORKER1_CAPACITY_DIRECT_MEMORY);
     mBlockMaster.commitBlock(workerId, 50L,
         Constants.MEDIUM_MEM, Constants.MEDIUM_MEM, blockId, 20L);
 
