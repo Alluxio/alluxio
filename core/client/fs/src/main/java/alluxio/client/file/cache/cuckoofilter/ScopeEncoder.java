@@ -44,6 +44,7 @@ public class ScopeEncoder {
    * @param scopeInfo the scope will be encoded
    * @return the encoded scope
    */
+  @edu.umd.cs.findbugs.annotations.SuppressFBWarnings("RV_RETURN_VALUE_OF_PUTIFABSENT_IGNORED")
   public int encode(CacheScope scopeInfo) {
     if (!mScopeToId.containsKey(scopeInfo)) {
       synchronized (this) {
@@ -53,15 +54,8 @@ public class ScopeEncoder {
           // we may read a null scope info in decode.
           int id = mCount;
           mCount++;
-          // the following bothersome code is to pass findbugs plugin
-          CacheScope oldScope = mIdToScope.putIfAbsent(id, scopeInfo);
-          if (scopeInfo.equals(oldScope)) {
-            scopeInfo = oldScope;
-          }
-          Integer oldId = mScopeToId.putIfAbsent(scopeInfo, id);
-          if (oldId != null) {
-            return oldId & mScopeMask;
-          }
+          mIdToScope.putIfAbsent(id, scopeInfo);
+          mScopeToId.putIfAbsent(scopeInfo, id);
         }
       }
     }

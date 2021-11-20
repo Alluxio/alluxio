@@ -809,6 +809,14 @@
         <version>1.4.18</version>
         <scope>test</scope>
       </dependency>
+
+      <!-- Compile scope -->
+      <dependency>
+        <groupId>com.google.code.findbugs</groupId>
+        <artifactId>annotations</artifactId>
+        <version>3.0.1</version>
+        <scope>compile</scope>
+      </dependency>
     </dependencies>
   </dependencyManagement>
 
