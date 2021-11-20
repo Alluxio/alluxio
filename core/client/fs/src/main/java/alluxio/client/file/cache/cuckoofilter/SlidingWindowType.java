@@ -21,29 +21,16 @@ public enum SlidingWindowType {
    * count-based sliding window with length N means the union of the last N items.
    *
    */
-  COUNT_BASED(0),
+  COUNT_BASED,
   /**
    * The definition of time-based sliding window from "Sliding Sketches: A Framework using Time
    * Zones for Data Stream Processing in Sliding Windows" by Gou et al.: Given a data stream S, a
    * time-based sliding window with length N means the union of data items which arrive in the last
    * N time units.
    */
-  TIME_BASED(1),
+  TIME_BASED,
   /**
    * NONE indicates that sliding window model is not used.
    */
-  NONE(2);
-
-  private final int mType;
-
-  SlidingWindowType(int type) {
-    mType = type;
-  }
-
-  /**
-   * @return the type of sliding window
-   */
-  public int getType() {
-    return mType;
-  }
+  NONE;
 }

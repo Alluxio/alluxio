@@ -59,6 +59,7 @@ public class ConcurrentClockCuckooFilter<T> implements ClockCuckooFilter<T>, Ser
 
   private final AtomicInteger[] mScopeToNumber;
   private final AtomicLong[] mScopeToSize;
+  // cuckoo filter's bucket number should be a power of 2
   private final int mNumBuckets;
   private final int mBitsPerTag;
   private final int mBitsPerClock;
@@ -133,7 +134,7 @@ public class ConcurrentClockCuckooFilter<T> implements ClockCuckooFilter<T>, Ser
    *
    * @param funnel the funnel of T's that the constructed cuckoo filter will use
    * @param expectedInsertions the number of expected insertions to the constructed {@code
-   *      ConcurrentClockCuckooFilter}; must be positive
+   *      ConcurrentClockCuckooFilter}; must be positive; must be a power of 2
    * @param bitsPerClock the number of bits the clock field has
    * @param bitsPerSize the number of bits the size field has
    * @param bitsPerScope the number of bits the scope field has
@@ -176,7 +177,7 @@ public class ConcurrentClockCuckooFilter<T> implements ClockCuckooFilter<T>, Ser
    *
    * @param funnel the funnel of T's that the constructed {@code BloomFilter} will use
    * @param expectedInsertions the number of expected insertions to the constructed {@code
-   *      ConcurrentClockCuckooFilter}; must be positive
+   *      ConcurrentClockCuckooFilter}; must be positive; must be a power of 2
    * @param bitsPerClock the number of bits the clock field has
    * @param bitsPerSize the number of bits the size field has
    * @param bitsPerScope the number of bits the scope field has
@@ -199,7 +200,7 @@ public class ConcurrentClockCuckooFilter<T> implements ClockCuckooFilter<T>, Ser
    *
    * @param funnel the funnel of T's that the constructed {@code BloomFilter} will use
    * @param expectedInsertions the number of expected insertions to the constructed {@code
-   *      ConcurrentClockCuckooFilter}; must be positive
+   *      ConcurrentClockCuckooFilter}; must be positive; must be a power of 2
    * @param bitsPerClock the number of bits the clock field has
    * @param bitsPerSize the number of bits the size field has
    * @param bitsPerScope the number of bits the scope field has
@@ -221,7 +222,7 @@ public class ConcurrentClockCuckooFilter<T> implements ClockCuckooFilter<T>, Ser
    *
    * @param funnel the funnel of T's that the constructed {@code BloomFilter} will use
    * @param expectedInsertions the number of expected insertions to the constructed {@code
-   *      ConcurrentClockCuckooFilter}; must be positive
+   *      ConcurrentClockCuckooFilter}; must be positive; must be a power of 2
    * @param bitsPerClock the number of bits the clock field has
    * @param bitsPerSize the number of bits the size field has
    * @param bitsPerScope the number of bits the scope field has
@@ -242,7 +243,7 @@ public class ConcurrentClockCuckooFilter<T> implements ClockCuckooFilter<T>, Ser
    *
    * @param funnel the funnel of T's that the constructed {@code BloomFilter} will use
    * @param expectedInsertions the number of expected insertions to the constructed {@code
-   *      ConcurrentClockCuckooFilter}; must be positive
+   *      ConcurrentClockCuckooFilter}; must be positive; must be a power of 2
    * @param bitsPerClock the number of bits the clock field has
    * @param bitsPerSize the number of bits the size field has
    * @param bitsPerScope the number of bits the scope field has
@@ -272,7 +273,6 @@ public class ConcurrentClockCuckooFilter<T> implements ClockCuckooFilter<T>, Ser
     int tag = tagHash(hv);
     int b1 = indexHash(hv);
     int b2 = altIndex(b1, tag);
-    int scope = encodeScope(scopeInfo);
     size = encodeSize(size);
     // Generally, we will hold write locks in two places:
     // 1) put/delete;
@@ -282,10 +282,11 @@ public class ConcurrentClockCuckooFilter<T> implements ClockCuckooFilter<T>, Ser
     // or it may be more possible to fail.
     writeLockAndOpportunisticAging(b1, b2);
     TagPosition pos = cuckooInsertLoop(b1, b2, tag);
-    if (pos.mStatus == CuckooStatus.OK) {
+    if (pos.getStatus() == CuckooStatus.OK) {
       // b1 and b2 should be insertable for fp, which means:
       // 1. b1 or b2 have at least one empty slot (this is guaranteed until we unlock two buckets);
       // 2. b1 and b2 do not contain duplicated fingerprint.
+      int scope = encodeScope(scopeInfo);
       mTable.writeTag(pos.getBucketIndex(), pos.getSlotIndex(), tag);
       mClockTable.writeTag(pos.getBucketIndex(), pos.getSlotIndex(), mMaxAge);
       mScopeTable.writeTag(pos.getBucketIndex(), pos.getSlotIndex(), scope);
@@ -585,12 +586,9 @@ public class ConcurrentClockCuckooFilter<T> implements ClockCuckooFilter<T>, Ser
    *         indicating failure
    */
   private TagPosition cuckooInsertLoop(int b1, int b2, int fp) {
-    int maxRetryNum = 1;
-    while (maxRetryNum-- > 0) {
-      TagPosition pos = cuckooInsert(b1, b2, fp);
-      if (pos.getStatus() == CuckooStatus.OK) {
-        return pos;
-      }
+    TagPosition pos = cuckooInsert(b1, b2, fp);
+    if (pos.getStatus() == CuckooStatus.OK) {
+      return pos;
     }
     return new TagPosition(-1, -1, CuckooStatus.FAILURE);
   }

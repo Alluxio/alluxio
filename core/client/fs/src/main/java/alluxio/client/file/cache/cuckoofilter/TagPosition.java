@@ -15,26 +15,9 @@ package alluxio.client.file.cache.cuckoofilter;
  * This class represents a position of a tag.
  */
 public class TagPosition {
-  public int mBucketIndex;
-  public int mSlotIndex;
-  public CuckooStatus mStatus;
-
-  /**
-   * Create a tag position with default parameter.
-   */
-  public TagPosition() {
-    this(-1, -1, CuckooStatus.UNDEFINED);
-  }
-
-  /**
-   * Create a tag position with given position.
-   *
-   * @param bucketIndex the bucket index
-   * @param slotIndex the slot
-   */
-  public TagPosition(int bucketIndex, int slotIndex) {
-    this(bucketIndex, slotIndex, CuckooStatus.UNDEFINED);
-  }
+  private int mBucketIndex;
+  private int mSlotIndex;
+  private CuckooStatus mStatus;
 
   /**
    * Create a tag position with given position and status.
@@ -47,13 +30,6 @@ public class TagPosition {
     mBucketIndex = bucketIndex;
     mSlotIndex = slotIndex;
     mStatus = status;
-  }
-
-  /**
-   * @return true is this tag position represents a valid position
-   */
-  boolean valid() {
-    return mBucketIndex >= 0 && mSlotIndex >= 0;
   }
 
   /**

@@ -40,6 +40,7 @@ public class CuckooUtils {
    * @return the alternative bucket index computed
    */
   public static int altIndex(int index, int tag, int numBuckets) {
+    // 0x5bd1e995 is the hash constant from MurmurHash2
     return CuckooUtils.indexHash((int) (index ^ (tag * 0x5bd1e995)), numBuckets);
   }
 
