@@ -36,7 +36,9 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.util.EnumSet;
 import javax.annotation.concurrent.NotThreadSafe;
+import javax.servlet.DispatcherType;
 
 /**
  * Class that bootstraps and starts a web server.
@@ -45,6 +47,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 public abstract class WebServer {
   private static final Logger LOG = LoggerFactory.getLogger(WebServer.class);
   private static final String DISABLED_METHODS = "TRACE,OPTIONS";
+  private static final String THREAD_DUMP_PATH = "/api/v1/common/thread_dump";
 
   private final Server mServer;
   private final String mServiceName;
@@ -105,8 +108,10 @@ public abstract class WebServer {
     for (String s : DISABLED_METHODS.split(",")) {
       disableMethod(s);
     }
-
-    mServletContextHandler.addServlet(StacksServlet.class, "/stacks");
+    mServletContextHandler.addServlet(StacksServlet.class, THREAD_DUMP_PATH);
+    mServletContextHandler.addFilter(CORSFilter.class, "/*",
+        EnumSet.of(DispatcherType.REQUEST, DispatcherType.FORWARD, DispatcherType.INCLUDE,
+            DispatcherType.ASYNC, DispatcherType.ERROR));
     HandlerList handlers = new HandlerList();
     handlers.setHandlers(new Handler[] {mMetricsServlet.getHandler(), mPMetricsServlet.getHandler(),
         mServletContextHandler, new DefaultHandler()});

@@ -9,12 +9,17 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-export const routePaths = {
-  root: '/',
-  overview: '/overview',
-  blockInfo: '/blockInfo',
-  logs: '/logs',
-  metrics: '/metrics',
-  stacks: '/stacks',
-  config: '/config',
-};
+import { AxiosResponse } from 'axios';
+
+export enum StacksActionTypes {
+  FETCH_REQUEST = '@@stacks/FETCH_REQUEST',
+  FETCH_SUCCESS = '@@stacks/FETCH_SUCCESS',
+  FETCH_ERROR = '@@stacks/FETCH_ERROR',
+}
+
+export interface IStacksState {
+  readonly data: string;
+  readonly errors?: AxiosResponse;
+  readonly loading: boolean;
+  readonly response?: AxiosResponse;
+}

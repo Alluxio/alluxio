@@ -9,16 +9,40 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
+import { createBrowserHistory, History, LocationState } from 'history';
 import { configure, shallow, ShallowWrapper } from 'enzyme';
 import Adapter from 'enzyme-adapter-react-16';
 import React from 'react';
 import sinon from 'sinon';
 
-import { Stacks } from './Stacks';
+import WorkerStacks from './WorkerStacks';
+import { AllStacksProps } from '@alluxio/common-ui/src/components/Stacks/Stacks';
+import { routePaths } from '../../../constants';
+import { initialState } from '../../../store';
+import { createAlertErrors } from '@alluxio/common-ui/src/utilities';
 
 configure({ adapter: new Adapter() });
 
-describe('Stacks', () => {
+describe('Worker Stacks', () => {
+  let history: History<LocationState>;
+  let props: AllStacksProps;
+
+  beforeAll(() => {
+    history = createBrowserHistory({ keyLength: 0 });
+    history.push(routePaths.stacks);
+    props = {
+      location: { search: '' },
+      history: history,
+      fetchRequest: sinon.spy(() => {}),
+      stackData: initialState.stacks.data,
+      refresh: initialState.refresh.data,
+      request: {},
+      queryStringSuffix: '',
+      errors: createAlertErrors(false),
+      loading: false,
+      class: '',
+    };
+  });
   afterEach(() => {
     sinon.restore();
   });
@@ -26,7 +50,7 @@ describe('Stacks', () => {
     let shallowWrapper: ShallowWrapper;
 
     beforeAll(() => {
-      shallowWrapper = shallow(<Stacks />);
+      shallowWrapper = shallow(<WorkerStacks {...props} />);
     });
 
     it('Renders without crashing', () => {
