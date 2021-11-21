@@ -11,6 +11,7 @@
 
 package alluxio.client.file.cache.cuckoofilter;
 
+import alluxio.annotation.SuppressFBWarnings;
 import alluxio.client.quota.CacheScope;
 
 import java.util.concurrent.ConcurrentHashMap;
@@ -44,24 +45,18 @@ public class ScopeEncoder {
    * @param scopeInfo the scope will be encoded
    * @return the encoded scope
    */
+  @SuppressFBWarnings(value = "RV_RETURN_VALUE_OF_PUTIFABSENT_IGNORED")
   public int encode(CacheScope scopeInfo) {
     if (!mScopeToId.containsKey(scopeInfo)) {
       synchronized (this) {
         if (!mScopeToId.containsKey(scopeInfo)) {
           // TODO(iluoeli): make sure scope id is smaller than mMaxNumScopes
-          // Question: If update mScopeToId ahead of updating mIdToScope,
+          // NOTE: If update mScopeToId ahead of updating mIdToScope,
           // we may read a null scope info in decode.
           int id = mCount;
           mCount++;
-          // the following bothersome code is to pass findbugs plugin
-          CacheScope oldScope = mIdToScope.putIfAbsent(id, scopeInfo);
-          if (scopeInfo.equals(oldScope)) {
-            scopeInfo = oldScope;
-          }
-          Integer oldId = mScopeToId.putIfAbsent(scopeInfo, id);
-          if (oldId != null) {
-            return oldId & mScopeMask;
-          }
+          mIdToScope.putIfAbsent(id, scopeInfo);
+          mScopeToId.putIfAbsent(scopeInfo, id);
         }
       }
     }
