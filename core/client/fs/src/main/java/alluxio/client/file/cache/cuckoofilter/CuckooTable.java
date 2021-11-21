@@ -12,7 +12,7 @@
 package alluxio.client.file.cache.cuckoofilter;
 
 /**
- * The cuckoo table that supports to store and access data from <bucket, slot>.
+ * The cuckoo table that supports to store and access data positioned by a specific bucket and slot.
  */
 public interface CuckooTable {
   /**
