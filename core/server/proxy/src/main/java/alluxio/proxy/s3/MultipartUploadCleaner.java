@@ -23,13 +23,13 @@ import alluxio.grpc.DeletePOptions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.Nullable;
 import java.io.IOException;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import javax.annotation.Nullable;
 
 /**
  * A lazy method (not scan the whole fileSystem to find tmp directory) to
@@ -45,6 +45,7 @@ public class MultipartUploadCleaner {
   private final ConcurrentHashMap<AbortTask, ScheduledFuture<?>> mTasks;
 
   private static MultipartUploadCleaner sInstance = null;
+
   /**
    * Creates a new instance of {@link MultipartUploadCleaner}.
    */

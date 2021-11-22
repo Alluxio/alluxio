@@ -16,8 +16,8 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import alluxio.Constants;
-import alluxio.client.meta.MetaMasterClient;
 import alluxio.client.block.BlockMasterClient;
+import alluxio.client.meta.MetaMasterClient;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;

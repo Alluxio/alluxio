@@ -427,7 +427,7 @@ public class AbstractFileSystemTest {
       Path path = new Path("/ALLUXIO-2036");
       alluxio.client.file.FileSystem alluxioFs = mock(alluxio.client.file.FileSystem.class);
       when(alluxioFs.listStatus(new AlluxioURI(HadoopUtils.getPathWithoutScheme(path))))
-        .thenThrow(new FileNotFoundException("ALLUXIO-2036 not Found"));
+          .thenThrow(new FileNotFoundException("ALLUXIO-2036 not Found"));
       alluxioHadoopFs = new FileSystem(alluxioFs);
       FileStatus[] fileStatuses = alluxioHadoopFs.listStatus(path);
       // if we reach here, FileNotFoundException is not thrown hence Fail the test case

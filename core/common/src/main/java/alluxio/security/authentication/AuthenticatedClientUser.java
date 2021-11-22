@@ -19,7 +19,6 @@ import alluxio.security.authentication.plain.PlainSaslServer;
 import alluxio.util.SecurityUtils;
 
 import java.io.IOException;
-
 import javax.annotation.concurrent.ThreadSafe;
 
 /**

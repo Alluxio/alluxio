@@ -32,7 +32,7 @@ import org.apache.commons.io.IOUtils;
  *
  * If the above assumptions are met, you can run the example using:
  *
- * ./bin/alluxio runClass alluxio.examples.MultiMount <HDFS_URL>
+ * ./bin/alluxio runClass alluxio.examples.MultiMount &lt;HDFS_URL&gt;
  */
 public final class MultiMount {
 

@@ -11,11 +11,11 @@
 
 package alluxio.master.block;
 
-import alluxio.annotation.SuppressFBWarnings;
 import alluxio.Constants;
 import alluxio.MasterStorageTierAssoc;
 import alluxio.Server;
 import alluxio.StorageTierAssoc;
+import alluxio.annotation.SuppressFBWarnings;
 import alluxio.client.block.options.GetWorkerReportOptions;
 import alluxio.client.block.options.GetWorkerReportOptions.WorkerRange;
 import alluxio.clock.SystemClock;
@@ -114,7 +114,6 @@ import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.NotThreadSafe;

@@ -17,10 +17,10 @@ import static org.junit.Assert.assertThat;
 
 import alluxio.AlluxioURI;
 import alluxio.client.file.FileSystem;
+import alluxio.grpc.SetAclAction;
 import alluxio.master.backcompat.FsTestOp;
 import alluxio.master.backcompat.Version;
 import alluxio.security.authorization.AclEntry;
-import alluxio.grpc.SetAclAction;
 
 import java.util.Arrays;
 

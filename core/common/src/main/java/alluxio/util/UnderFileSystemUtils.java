@@ -17,7 +17,6 @@ import alluxio.underfs.options.DeleteOptions;
 
 import java.io.IOException;
 import java.io.OutputStream;
-
 import javax.annotation.concurrent.ThreadSafe;
 
 /**

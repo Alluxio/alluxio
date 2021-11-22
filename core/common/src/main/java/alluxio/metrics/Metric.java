@@ -12,7 +12,6 @@
 package alluxio.metrics;
 
 import alluxio.grpc.MetricType;
-
 import alluxio.util.CommonUtils;
 
 import com.google.common.base.MoreObjects;

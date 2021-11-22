@@ -11,16 +11,15 @@
 
 package alluxio.wire;
 
-import alluxio.util.webui.StorageTierInfo;
 import alluxio.grpc.ConfigStatus;
 import alluxio.grpc.Scope;
+import alluxio.util.webui.StorageTierInfo;
 
 import com.google.common.base.MoreObjects;
 
 import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
-
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**

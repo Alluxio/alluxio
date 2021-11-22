@@ -232,6 +232,7 @@ public final class MountTableTest {
     Assert.assertFalse(deleteMount("/mnt/foo"));
     Assert.assertFalse(deleteMount("/"));
   }
+
   /**
    * Tests the different methods of the {@link MountTable} class with a URI.
    */

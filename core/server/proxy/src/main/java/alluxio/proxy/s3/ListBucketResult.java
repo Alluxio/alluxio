@@ -31,8 +31,8 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 /**
  * Get bucket result defined in https://docs.aws.amazon.com/AmazonS3/latest/API/API_ListObjects.html
@@ -130,7 +130,8 @@ public class ListBucketResult {
    * @param children a list of {@link URIStatus}, representing the objects and common prefixes
    * @return A list of {@link URIStatus} after filtering
    */
-  private List<URIStatus> filterKeys(String prefix, List<URIStatus> children) throws S3Exception {
+  private List<URIStatus> filterKeys(String bucketPrefix, List<URIStatus> children)
+      throws S3Exception {
     final String marker;
     if (isVersion2()) {
       marker = decodeToken(mContinuationToken);
@@ -143,12 +144,9 @@ public class ListBucketResult {
         //marker filter
         .filter((status) -> (status.getPath().compareTo(marker) > 0)
             //prefix filter
-            && status.getPath().startsWith(prefix + mPrefix)
-            //folder filter
-            && ((mDelimiter != null && mDelimiter.equals(AlluxioURI.SEPARATOR))
-            || !status.isFolder())
+            && status.getPath().startsWith(bucketPrefix + mPrefix)
             //startAfter filter for listObjectV2
-            && (!isVersion2() || status.getPath().compareTo(prefix + mStartAfter) > 0))
+            && (!isVersion2() || status.getPath().compareTo(bucketPrefix + mStartAfter) > 0))
         .limit(mMaxKeys)
         .collect(Collectors.toList());
   }

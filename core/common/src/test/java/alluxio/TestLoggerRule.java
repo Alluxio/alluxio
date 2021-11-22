@@ -22,7 +22,6 @@ import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Pattern;
-
 import javax.annotation.concurrent.GuardedBy;
 
 public class TestLoggerRule extends AbstractResourceRule {

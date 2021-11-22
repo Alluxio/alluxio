@@ -37,7 +37,6 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Comparator;
 import java.util.Date;
-
 import javax.ws.rs.core.Response;
 
 /**
@@ -51,7 +50,7 @@ public final class S3RestUtils {
    * the bucket separator must be used as the separator in the bucket name, for example,
    * mount:point:bucket represents Alluxio directory /mount/point/bucket.
    */
-  private static final String BUCKET_SEPARATOR = ":";
+  public static final String BUCKET_SEPARATOR = ":";
 
   /**
    * Calls the given {@link S3RestUtils.RestCallable} and handles any exceptions thrown.

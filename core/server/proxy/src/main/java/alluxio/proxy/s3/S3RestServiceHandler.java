@@ -12,14 +12,14 @@
 package alluxio.proxy.s3;
 
 import alluxio.AlluxioURI;
-import alluxio.conf.InstancedConfiguration;
-import alluxio.conf.ServerConfiguration;
 import alluxio.Constants;
 import alluxio.conf.PropertyKey;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
+import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.ServerConfiguration;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.DirectoryNotEmptyException;
 import alluxio.exception.FileAlreadyExistsException;
@@ -50,7 +50,6 @@ import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
-
 import javax.annotation.concurrent.NotThreadSafe;
 import javax.security.auth.Subject;
 import javax.servlet.ServletContext;
@@ -229,9 +228,9 @@ public final class S3RestServiceHandler {
       final FileSystem fs = getFileSystem(authorization);
       List<URIStatus> children;
       try {
-        if (prefix.length() == 0
-            && delimiterParam != null
-            && delimiterParam.equals(AlluxioURI.SEPARATOR)) {
+        // only list the direct children if delimiter is not null
+        if (delimiterParam != null) {
+          path = parsePath(path, prefix, delimiterParam);
           children = fs.listStatus(new AlluxioURI(path));
         } else {
           ListStatusPOptions options = ListStatusPOptions.newBuilder().setRecursive(true).build();
@@ -828,5 +827,35 @@ public final class S3RestServiceHandler {
     } catch (Exception e) {
       throw S3RestUtils.toObjectS3Exception(e, objectPath);
     }
+  }
+
+  private String parsePath(String bucketPath, String prefix, String delimiter) throws S3Exception {
+    // Alluxio only support use / as delimiter
+    if (!delimiter.equals(AlluxioURI.SEPARATOR)) {
+      throw new S3Exception("Alluxio S3 API only support / as delimiter.",
+          S3ErrorCode.PRECONDITION_FAILED);
+    }
+    char delim = AlluxioURI.SEPARATOR.charAt(0);
+    String normalizedBucket =
+        bucketPath.replace(S3RestUtils.BUCKET_SEPARATOR, AlluxioURI.SEPARATOR);
+    String normalizedPrefix = normalizeS3Prefix(prefix, delim);
+
+    if (!normalizedPrefix.isEmpty() && !normalizedPrefix.startsWith(AlluxioURI.SEPARATOR)) {
+      normalizedPrefix = AlluxioURI.SEPARATOR + normalizedPrefix;
+    }
+    return normalizedBucket + normalizedPrefix;
+  }
+
+  /**
+   * Normalize the prefix from S3 request.
+   **/
+  private String normalizeS3Prefix(String prefix, char delimiter) {
+    if (prefix != null) {
+      int pos = prefix.lastIndexOf(delimiter);
+      if (pos >= 0) {
+        return prefix.substring(0, pos + 1);
+      }
+    }
+    return "";
   }
 }

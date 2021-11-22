@@ -11,10 +11,10 @@
 
 package alluxio.worker;
 
-import alluxio.conf.ServerConfiguration;
 import alluxio.ProcessUtils;
-import alluxio.conf.PropertyKey;
 import alluxio.RuntimeConstants;
+import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
 import alluxio.master.MasterInquireClient;
 import alluxio.retry.RetryUtils;
 import alluxio.security.user.ServerUserState;
@@ -26,7 +26,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
-
 import javax.annotation.concurrent.ThreadSafe;
 
 /**

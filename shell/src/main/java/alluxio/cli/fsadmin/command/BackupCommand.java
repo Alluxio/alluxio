@@ -51,6 +51,7 @@ public class BackupCommand extends AbstractFsAdminCommand {
           .desc("whether to allow leader to take the backup when"
               + " HA cluster has no standby master.")
           .build();
+
   /**
    * @param context fsadmin command context
    * @param alluxioConf Alluxio configuration

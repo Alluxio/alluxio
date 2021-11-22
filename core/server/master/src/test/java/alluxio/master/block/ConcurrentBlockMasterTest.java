@@ -11,10 +11,9 @@
 
 package alluxio.master.block;
 
-import static alluxio.master.block.BlockMasterTestUtils.verifyBlockOnWorkers;
-import static alluxio.master.block.BlockMasterTestUtils.verifyBlockNotExisting;
 import static alluxio.master.block.BlockMasterTestUtils.findWorkerInfo;
-
+import static alluxio.master.block.BlockMasterTestUtils.verifyBlockNotExisting;
+import static alluxio.master.block.BlockMasterTestUtils.verifyBlockOnWorkers;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;

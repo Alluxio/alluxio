@@ -144,7 +144,7 @@ public class ServerConfigurationChecker {
 
   /**
    * Generates the configuration map to find wrong configuration.
-   * The map is of format Map<PropertyKey, Map<Value, List<Host:Port>>.
+   * The map is of format Map&lt;PropertyKey, Map&lt;Value, List&lt;Host:Port&gt;&gt;&gt;.
    *
    * @return the generated configuration map
    */

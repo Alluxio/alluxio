@@ -24,7 +24,6 @@ import alluxio.util.network.NetworkAddressUtils.ServiceType;
 
 import java.net.InetSocketAddress;
 import java.util.List;
-
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -117,6 +116,7 @@ public interface MasterInquireClient {
         }
       }
     }
+
     /**
      * @param conf configuration for creating the master inquire client
      * @return the connect string represented by the configuration

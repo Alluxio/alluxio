@@ -223,3 +223,7 @@
 0.6.32
 
 - Add toggles to disable master/worker resource deployment
+
+0.6.33
+
+- Fix CSI typo. Upgrade CSI driver and provisioner. Improve CSI static pvc template.

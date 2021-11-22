@@ -31,15 +31,13 @@ import alluxio.util.OSUtils;
 import alluxio.util.ShellUtils;
 import alluxio.util.WaitForOptions;
 
-import ru.serce.jnrfuse.ErrorCodes;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import ru.serce.jnrfuse.ErrorCodes;
 
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-
 import javax.annotation.concurrent.ThreadSafe;
 
 /**

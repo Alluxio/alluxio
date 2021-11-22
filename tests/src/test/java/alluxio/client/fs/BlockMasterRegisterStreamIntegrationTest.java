@@ -11,19 +11,18 @@
 
 package alluxio.client.fs;
 
-import static alluxio.client.fs.RegisterStreamTestUtils.CAPACITY_MAP;
-import static alluxio.client.fs.RegisterStreamTestUtils.MEM_CAPACITY_BYTES;
-import static alluxio.client.fs.RegisterStreamTestUtils.USAGE_MAP;
-import static alluxio.client.fs.RegisterStreamTestUtils.parseTierConfig;
-import static alluxio.client.fs.RegisterStreamTestUtils.getErrorCapturingResponseObserver;
-import static alluxio.stress.cli.RpcBenchPreparationUtils.CAPACITY;
 import static alluxio.client.fs.RegisterStreamTestUtils.BATCH_SIZE;
+import static alluxio.client.fs.RegisterStreamTestUtils.CAPACITY_MAP;
 import static alluxio.client.fs.RegisterStreamTestUtils.EMPTY_CONFIG;
 import static alluxio.client.fs.RegisterStreamTestUtils.LOST_STORAGE;
+import static alluxio.client.fs.RegisterStreamTestUtils.MEM_CAPACITY_BYTES;
 import static alluxio.client.fs.RegisterStreamTestUtils.NET_ADDRESS_1;
-import static alluxio.client.fs.RegisterStreamTestUtils.TIER_CONFIG;
 import static alluxio.client.fs.RegisterStreamTestUtils.TIER_BLOCK_TOTAL;
-
+import static alluxio.client.fs.RegisterStreamTestUtils.TIER_CONFIG;
+import static alluxio.client.fs.RegisterStreamTestUtils.USAGE_MAP;
+import static alluxio.client.fs.RegisterStreamTestUtils.getErrorCapturingResponseObserver;
+import static alluxio.client.fs.RegisterStreamTestUtils.parseTierConfig;
+import static alluxio.stress.cli.RpcBenchPreparationUtils.CAPACITY;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThrows;
 
@@ -38,26 +37,26 @@ import alluxio.grpc.LocationBlockIdListEntry;
 import alluxio.grpc.RegisterWorkerPRequest;
 import alluxio.grpc.RegisterWorkerPResponse;
 import alluxio.grpc.StorageList;
-import alluxio.master.block.BlockMasterTestUtils;
-import alluxio.master.block.RegisterStreamObserver;
-import alluxio.master.block.WorkerRegisterContext;
-import alluxio.master.block.meta.MasterWorkerInfo;
-import alluxio.util.CommonUtils;
-import alluxio.util.executor.ExecutorServiceFactory;
-import alluxio.wire.WorkerInfo;
 import alluxio.master.CoreMasterContext;
 import alluxio.master.MasterRegistry;
 import alluxio.master.MasterTestUtils;
 import alluxio.master.block.BlockMaster;
+import alluxio.master.block.BlockMasterTestUtils;
 import alluxio.master.block.BlockMasterWorkerServiceHandler;
 import alluxio.master.block.DefaultBlockMaster;
+import alluxio.master.block.RegisterStreamObserver;
+import alluxio.master.block.WorkerRegisterContext;
+import alluxio.master.block.meta.MasterWorkerInfo;
 import alluxio.master.metrics.MetricsMaster;
 import alluxio.master.metrics.MetricsMasterFactory;
 import alluxio.stress.cli.RpcBenchPreparationUtils;
 import alluxio.stress.rpc.TierAlias;
+import alluxio.util.CommonUtils;
 import alluxio.util.ThreadFactoryUtils;
 import alluxio.util.executor.ExecutorServiceFactories;
+import alluxio.util.executor.ExecutorServiceFactory;
 import alluxio.wire.BlockInfo;
+import alluxio.wire.WorkerInfo;
 import alluxio.worker.block.BlockStoreLocation;
 import alluxio.worker.block.RegisterStreamer;
 

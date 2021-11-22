@@ -11,11 +11,11 @@
 
 package alluxio.stress.cli.fuse;
 
-import alluxio.annotation.SuppressFBWarnings;
 import alluxio.ClientContext;
+import alluxio.Constants;
+import alluxio.annotation.SuppressFBWarnings;
 import alluxio.client.job.JobMasterClient;
 import alluxio.conf.InstancedConfiguration;
-import alluxio.Constants;
 import alluxio.stress.BaseParameters;
 import alluxio.stress.StressConstants;
 import alluxio.stress.cli.Benchmark;
@@ -42,12 +42,12 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.TimeUnit;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 /**

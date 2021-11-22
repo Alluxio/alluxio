@@ -31,6 +31,7 @@ public final class JobServiceBenchTaskResult implements TaskResult {
   private List<String> mErrors;
   private JobServiceBenchTaskResultStatistics mStatistics;
   private Map<String, JobServiceBenchTaskResultStatistics> mStatisticsPerMethod;
+
   /**
    * Creates an instance.
    */
@@ -102,6 +103,7 @@ public final class JobServiceBenchTaskResult implements TaskResult {
   public void setParameters(JobServiceBenchParameters parameters) {
     mParameters = parameters;
   }
+
   /**
    * @return the array of max response times (in ns)
    */

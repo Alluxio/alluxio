@@ -942,11 +942,6 @@
           <version>2.3</version>
         </plugin>
         <plugin>
-          <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-checkstyle-plugin</artifactId>
-          <version>2.17</version>
-        </plugin>
-        <plugin>
           <artifactId>maven-clean-plugin</artifactId>
           <version>3.0.0</version>
         </plugin>
@@ -1205,6 +1200,14 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-checkstyle-plugin</artifactId>
+        <version>3.1.2</version>
+        <dependencies>
+          <dependency>
+            <groupId>com.puppycrawl.tools</groupId>
+            <artifactId>checkstyle</artifactId>
+            <version>9.0.1</version>
+          </dependency>
+        </dependencies>
         <configuration>
           <configLocation>${build.path}/checkstyle/alluxio_checks.xml</configLocation>
           <suppressionsLocation>${build.path}/checkstyle/suppressions.xml</suppressionsLocation>

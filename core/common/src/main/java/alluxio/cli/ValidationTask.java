@@ -35,7 +35,7 @@ public interface ValidationTask {
   /**
    * Runs the validation task.
    *
-   * @param optionMap contains string representation of <key, value> pairs
+   * @param optionMap contains string representation of &lt;key, value&gt; pairs
    * @return the result of validation task
    */
   ValidationTaskResult validate(Map<String, String> optionMap) throws InterruptedException;
