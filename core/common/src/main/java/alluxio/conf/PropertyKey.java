@@ -535,62 +535,10 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.SERVER)
           .build();
-  public static final PropertyKey WEB_CORS_ALLOW_CREDENTIAL =
-      new Builder(Name.WEB_CORS_ALLOW_CREDENTIAL)
-          .setDefaultValue("false")
-          .setDescription("Enable request include credential.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.SERVER)
-          .build();
-  public static final PropertyKey WEB_CORS_ALLOW_HEADERS =
-      new Builder(Name.WEB_CORS_ALLOW_HEADERS)
-          .setDefaultValue("*")
-          .setDescription("Which headers is allowed for cors. use * allow all any header.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.SERVER)
-          .build();
-  public static final PropertyKey WEB_CORS_ALLOW_METHODS =
-      new Builder(Name.WEB_CORS_ALLOW_METHODS)
-          .setDefaultValue("*")
-          .setDescription("Which methods is allowed for cors. use * allow all any method.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.SERVER)
-          .build();
-  public static final PropertyKey WEB_CORS_ALLOW_ORIGINS =
-      new Builder(Name.WEB_CORS_ALLOW_ORIGINS)
-          .setDefaultValue("*")
-          .setDescription("Which origins is allowed for cors. use * allow all any origin.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.SERVER)
-          .build();
   public static final PropertyKey WEB_CORS_ENABLED =
       new Builder(Name.WEB_CORS_ENABLED)
           .setDefaultValue(false)
           .setDescription("Set to true to enable Cross-Origin Resource Sharing for Web UI.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.SERVER)
-          .build();
-  public static final PropertyKey WEB_CORS_EXPOSED_HEADERS =
-      new Builder(Name.WEB_CORS_EXPOSED_HEADERS)
-          .setDefaultValue("*")
-          .setDescription("Which headers are allowed to set in response when access "
-              + "cross-origin resource. use * allow all any header.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.SERVER)
-          .build();
-  public static final PropertyKey WEB_CORS_MAX_AGE =
-      new Builder(Name.WEB_CORS_MAX_AGE)
-          .setDefaultValue("-1")
-          .setDescription("Maximum number of seconds the results can be cached. "
-              + "-1 means no cache.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.SERVER)
-          .build();
-  public static final PropertyKey WEB_REFRESH_INTERVAL =
-      new Builder(Name.WEB_REFRESH_INTERVAL)
-          .setDefaultValue("15s")
-          .setDescription("The amount of time to await before refreshing the Web UI if it is set "
-              + "to auto refresh.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.SERVER)
           .build();
@@ -5979,13 +5927,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String WEB_FILE_INFO_ENABLED = "alluxio.web.file.info.enabled";
     public static final String WEB_RESOURCES = "alluxio.web.resources";
     public static final String WEB_THREADS = "alluxio.web.threads";
-    public static final String WEB_CORS_ALLOW_CREDENTIAL = "alluxio.web.cors.allow.credential";
-    public static final String WEB_CORS_ALLOW_HEADERS = "alluxio.web.cors.allow.headers";
-    public static final String WEB_CORS_ALLOW_METHODS = "alluxio.web.cors.allow.methods";
-    public static final String WEB_CORS_ALLOW_ORIGINS = "alluxio.web.cors.allow.origins";
     public static final String WEB_CORS_ENABLED = "alluxio.web.cors.enabled";
-    public static final String WEB_CORS_EXPOSED_HEADERS = "alluxio.web.cors.exposed.headers";
-    public static final String WEB_CORS_MAX_AGE = "alluxio.web.cors.max.age";
     public static final String WEB_REFRESH_INTERVAL = "alluxio.web.refresh.interval";
     public static final String WEB_THREAD_DUMP_TO_LOG = "alluxio.web.threaddump.log.enabled";
     public static final String WEB_UI_ENABLED = "alluxio.web.ui.enabled";
