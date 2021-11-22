@@ -16,6 +16,7 @@ import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 
 import java.nio.file.Path;
+import java.util.List;
 
 /**
  * Options used to instantiate a {@link alluxio.client.file.cache.PageStore}.
@@ -32,18 +33,12 @@ public abstract class PageStoreOptions {
         PropertyKey.USER_CLIENT_CACHE_STORE_TYPE, PageStoreType.class);
     switch (storeType) {
       case LOCAL: {
-        Path rootDir = PageStore.getStorePath(storeType,
-            conf.get(PropertyKey.USER_CLIENT_CACHE_DIR));
         options = new LocalPageStoreOptions()
-            .setFileBuckets(conf.getInt(PropertyKey.USER_CLIENT_CACHE_LOCAL_STORE_FILE_BUCKETS))
-            .setRootDir(rootDir.toString());
+            .setFileBuckets(conf.getInt(PropertyKey.USER_CLIENT_CACHE_LOCAL_STORE_FILE_BUCKETS));
         break;
       }
       case ROCKS: {
-        Path rootDir = PageStore.getStorePath(storeType,
-                conf.get(PropertyKey.USER_CLIENT_CACHE_DIR));
         options = new RocksPageStoreOptions();
-        options.setRootDir(rootDir.toString());
         break;
       }
       case MEM:
@@ -53,8 +48,10 @@ public abstract class PageStoreOptions {
         throw new IllegalArgumentException(String.format("Unrecognized store type %s",
             storeType.name()));
     }
-
-    options.setPageSize(conf.getBytes(PropertyKey.USER_CLIENT_CACHE_PAGE_SIZE))
+    List<Path> rootDir = PageStore.getStorePath(
+        storeType, conf.get(PropertyKey.USER_CLIENT_CACHE_DIR));
+    options.setRootDirs(rootDir)
+        .setPageSize(conf.getBytes(PropertyKey.USER_CLIENT_CACHE_PAGE_SIZE))
         .setCacheSize(conf.getBytes(PropertyKey.USER_CLIENT_CACHE_SIZE))
         .setAlluxioVersion(conf.get(PropertyKey.VERSION))
         .setTimeoutDuration(conf.getMs(PropertyKey.USER_CLIENT_CACHE_TIMEOUT_DURATION))
@@ -82,7 +79,7 @@ public abstract class PageStoreOptions {
   /**
    * Root directory where the data is stored.
    */
-  protected String mRootDir;
+  protected List<Path> mRootDirs;
 
   /**
    * Page size for the data.
@@ -117,19 +114,19 @@ public abstract class PageStoreOptions {
   protected double mOverheadRatio;
 
   /**
-   * @param rootDir the root directory where pages are stored
+   * @param rootDirs the root directories where pages are stored
    * @return the updated options
    */
-  public PageStoreOptions setRootDir(String rootDir) {
-    mRootDir = rootDir;
+  public PageStoreOptions setRootDirs(List<Path> rootDirs) {
+    mRootDirs = rootDirs;
     return this;
   }
 
   /**
-   * @return the root directory where pages are stored
+   * @return the root directories where pages are stored
    */
-  public String getRootDir() {
-    return mRootDir;
+  public List<Path> getRootDirs() {
+    return mRootDirs;
   }
 
   /**
