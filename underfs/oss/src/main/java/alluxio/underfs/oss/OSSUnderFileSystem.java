@@ -23,9 +23,9 @@ import alluxio.underfs.options.OpenOptions;
 import alluxio.util.UnderFileSystemUtils;
 import alluxio.util.io.PathUtils;
 
+import com.aliyun.oss.ClientBuilderConfiguration;
 import com.aliyun.oss.OSS;
 import com.aliyun.oss.OSSClientBuilder;
-import com.aliyun.oss.ClientBuilderConfiguration;
 import com.aliyun.oss.ServiceException;
 import com.aliyun.oss.model.ListObjectsRequest;
 import com.aliyun.oss.model.OSSObjectSummary;
@@ -40,7 +40,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.List;
-
 import javax.annotation.concurrent.ThreadSafe;
 
 /**

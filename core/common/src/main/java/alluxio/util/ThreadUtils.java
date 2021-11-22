@@ -14,7 +14,6 @@ package alluxio.util;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.concurrent.GuardedBy;
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
 import java.io.PrintWriter;
@@ -26,6 +25,7 @@ import java.lang.management.ThreadMXBean;
 import java.nio.charset.Charset;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
+import javax.annotation.concurrent.GuardedBy;
 
 /**
  * Utility method for working with threads.

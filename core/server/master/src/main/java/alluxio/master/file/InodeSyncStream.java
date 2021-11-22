@@ -94,7 +94,6 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.function.Function;
-
 import javax.annotation.Nullable;
 
 /**
@@ -925,6 +924,7 @@ public class InodeSyncStream {
 
     try (LockedInodePath writeLockedPath = inodePath.lockFinalEdgeWrite();
          MergeJournalContext merger = new MergeJournalContext(rpcContext.getJournalContext(),
+             writeLockedPath.getUri(),
              InodeSyncStream::mergeCreateComplete)) {
       // We do not want to close this wrapRpcContext because it uses elements from another context
       RpcContext wrapRpcContext = new RpcContext(

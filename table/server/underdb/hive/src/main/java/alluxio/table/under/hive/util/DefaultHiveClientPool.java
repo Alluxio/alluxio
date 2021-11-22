@@ -29,7 +29,6 @@ import org.apache.thrift.TException;
 import java.io.IOException;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
-
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -104,7 +103,7 @@ public final class DefaultHiveClientPool extends AbstractHiveClientPool {
   public CloseableResource<IMetaStoreClient> acquireClientResource() throws IOException {
     return new CloseableResource<IMetaStoreClient>(acquire()) {
       @Override
-      public void close() {
+      public void closeResource() {
         release(get());
       }
     };

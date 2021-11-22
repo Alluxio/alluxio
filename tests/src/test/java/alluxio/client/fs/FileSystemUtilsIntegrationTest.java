@@ -15,12 +15,12 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import alluxio.AlluxioURI;
-import alluxio.client.file.FileSystemTestUtils;
-import alluxio.conf.ServerConfiguration;
-import alluxio.conf.PropertyKey;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
+import alluxio.client.file.FileSystemTestUtils;
 import alluxio.client.file.FileSystemUtils;
+import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
 import alluxio.exception.AlluxioException;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.WritePType;

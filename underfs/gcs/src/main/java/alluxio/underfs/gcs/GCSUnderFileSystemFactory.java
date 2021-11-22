@@ -14,10 +14,10 @@ package alluxio.underfs.gcs;
 import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.conf.PropertyKey;
-import alluxio.underfs.gcs.v2.GCSV2UnderFileSystem;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.underfs.UnderFileSystemFactory;
+import alluxio.underfs.gcs.v2.GCSV2UnderFileSystem;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
@@ -26,7 +26,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-
 import javax.annotation.concurrent.ThreadSafe;
 
 /**

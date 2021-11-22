@@ -177,7 +177,7 @@ public class MasterHealthCheckClient implements HealthCheckClient {
 
   /**
    * Runnable for checking if the AlluxioMaster process are running in all the masters hosts.
-   * This include both primary and stand-by masters.
+   * This includes both primary and standby masters.
    */
   public final class ProcessCheckRunnable implements Runnable {
     private String mAlluxioMasterName;

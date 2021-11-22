@@ -32,7 +32,7 @@ public abstract class AbstractValidationTask implements ValidationTask {
   /**
    * validate a test and return the result.
    *
-   * @param optionMap contains string representation of <key, value> pairs
+   * @param optionMap contains string representation of &lt;key, value&gt; pairs
    * @return return test result
    */
   public ValidationTaskResult validate(Map<String, String> optionMap)

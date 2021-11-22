@@ -12,6 +12,9 @@
 package alluxio.client.block.stream;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.when;
@@ -19,13 +22,14 @@ import static org.mockito.Mockito.when;
 import alluxio.ClientContext;
 import alluxio.ConfigurationRule;
 import alluxio.ConfigurationTestUtils;
-import alluxio.conf.InstancedConfiguration;
-import alluxio.conf.PropertyKey;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.URIStatus;
 import alluxio.client.file.options.InStreamOptions;
+import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.grpc.OpenLocalBlockRequest;
 import alluxio.grpc.OpenLocalBlockResponse;
+import alluxio.util.io.BufferUtils;
 import alluxio.util.network.NettyUtils;
 import alluxio.wire.BlockInfo;
 import alluxio.wire.FileInfo;
@@ -85,6 +89,35 @@ public class BlockInStreamTest {
     mInfo = new BlockInfo().setBlockId(1);
     mOptions = new InStreamOptions(new URIStatus(new FileInfo().setBlockIds(Collections
         .singletonList(1L))), mConf);
+  }
+
+  @Test
+  public void closeReaderAfterReadingAllData() throws Exception {
+    int chunkSize = 512;
+    TestDataReader.Factory factory = new TestDataReader.Factory(
+        chunkSize, BufferUtils.getIncreasingByteArray(2 * chunkSize));
+    BlockInStream stream = new BlockInStream(factory, mConf, new WorkerNetAddress(),
+        BlockInStream.BlockInStreamSource.PROCESS_LOCAL, -1, 1024);
+
+    byte[] res = new byte[chunkSize];
+    int read;
+    read = stream.read(res, 0, chunkSize);
+    TestDataReader reader = factory.getDataReader();
+    assertEquals(chunkSize, read);
+    assertNotNull(reader);
+    assertFalse(reader.isClosed());
+
+    // close data reader after reading all data
+    read = stream.read(res, 0, chunkSize);
+    assertEquals(chunkSize, read);
+    assertTrue(reader.isClosed());
+
+    read = stream.read(res, 0, chunkSize);
+    assertEquals(-1, read);
+    assertTrue(reader.isClosed());
+
+    stream.close();
+    assertTrue(reader.isClosed());
   }
 
   @Test

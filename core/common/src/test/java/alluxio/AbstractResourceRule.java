@@ -15,7 +15,6 @@ import com.google.common.base.Throwables;
 import org.junit.rules.ExternalResource;
 
 import java.io.Closeable;
-
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**

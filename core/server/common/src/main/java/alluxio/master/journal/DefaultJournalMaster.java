@@ -12,6 +12,7 @@
 package alluxio.master.journal;
 
 import alluxio.grpc.GetQuorumInfoPResponse;
+import alluxio.grpc.GetTransferLeaderMessagePResponse;
 import alluxio.grpc.JournalDomain;
 import alluxio.grpc.NetAddress;
 import alluxio.master.journal.raft.RaftJournalSystem;
@@ -61,8 +62,22 @@ public class DefaultJournalMaster implements JournalMaster {
   }
 
   @Override
-  public void transferLeadership(NetAddress newLeaderAddress) throws IOException {
+  public String transferLeadership(NetAddress newLeaderAddress) {
     checkQuorumOpSupported();
-    ((RaftJournalSystem) mJournalSystem).transferLeadership(newLeaderAddress);
+    return ((RaftJournalSystem) mJournalSystem).transferLeadership(newLeaderAddress);
+  }
+
+  @Override
+  public void resetPriorities() throws IOException {
+    checkQuorumOpSupported();
+    ((RaftJournalSystem) mJournalSystem).resetPriorities();
+  }
+
+  @Override
+  public GetTransferLeaderMessagePResponse getTransferLeaderMessage(String transferId) {
+    checkQuorumOpSupported();
+    return GetTransferLeaderMessagePResponse.newBuilder()
+           .setTransMsg(((RaftJournalSystem) mJournalSystem).getTransferLeaderMessage(transferId))
+           .build();
   }
 }

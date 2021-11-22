@@ -6,8 +6,8 @@ package alluxio.concurrent.jsr;
 
 
 import java.lang.Thread.UncaughtExceptionHandler;
-import java.security.AccessController;
 import java.security.AccessControlContext;
+import java.security.AccessController;
 import java.security.Permission;
 import java.security.Permissions;
 import java.security.PrivilegedAction;

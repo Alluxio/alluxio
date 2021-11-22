@@ -14,7 +14,7 @@ package alluxio.client.block.stream;
 import alluxio.resource.CloseableResource;
 
 /**
- * A closable resource that does nothing when {@link #close()} is called.
+ * A closable resource that does nothing when {@link #closeResource()} is called.
  *
  * @param <T> closable type
  */
@@ -31,6 +31,6 @@ public class NoopClosableResource<T> extends CloseableResource<T> {
   }
 
   @Override
-  public void close() {
+  public void closeResource() {
   }
 }

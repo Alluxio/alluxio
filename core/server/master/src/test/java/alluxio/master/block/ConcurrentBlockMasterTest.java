@@ -11,6 +11,9 @@
 
 package alluxio.master.block;
 
+import static alluxio.master.block.BlockMasterTestUtils.findWorkerInfo;
+import static alluxio.master.block.BlockMasterTestUtils.verifyBlockNotExisting;
+import static alluxio.master.block.BlockMasterTestUtils.verifyBlockOnWorkers;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
@@ -49,7 +52,6 @@ import org.junit.rules.TemporaryFolder;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
@@ -223,7 +225,7 @@ public class ConcurrentBlockMasterTest {
               assertEquals(BLOCK1_LENGTH, worker.getUsedBytes());
 
               // If the block is removed already, a BlockInfoException will be thrown
-              verifyBlockOnWorkers(BLOCK1_ID, BLOCK1_LENGTH, workerInfoList);
+              verifyBlockOnWorkers(mBlockMaster, BLOCK1_ID, BLOCK1_LENGTH, workerInfoList);
             } catch (BlockInfoException e) {
               // If the block has been removed, this exception is expected
               // There is nothing more to test here
@@ -342,7 +344,7 @@ public class ConcurrentBlockMasterTest {
           WorkerInfo worker2Info = findWorkerInfo(workerInfoList, worker2);
           assertEquals(BLOCK1_LENGTH, worker2Info.getUsedBytes());
 
-          verifyBlockOnWorkers(BLOCK1_ID, BLOCK1_LENGTH, workerInfoList);
+          verifyBlockOnWorkers(mBlockMaster, BLOCK1_ID, BLOCK1_LENGTH, workerInfoList);
 
           return null;
         });
@@ -391,8 +393,8 @@ public class ConcurrentBlockMasterTest {
           assertEquals(BLOCK2_LENGTH, worker2Info.getUsedBytes());
 
           // Verify the block metadata
-          verifyBlockOnWorkers(BLOCK1_ID, BLOCK1_LENGTH, Arrays.asList(worker1Info));
-          verifyBlockNotExisting(BLOCK2_ID);
+          verifyBlockOnWorkers(mBlockMaster, BLOCK1_ID, BLOCK1_LENGTH, Arrays.asList(worker1Info));
+          verifyBlockNotExisting(mBlockMaster, BLOCK2_ID);
           return null;
         });
   }
@@ -440,7 +442,7 @@ public class ConcurrentBlockMasterTest {
           assertEquals(0L, worker1Info.getUsedBytes());
 
           // The block has no locations now because the last location is removed
-          verifyBlockOnWorkers(BLOCK1_ID, BLOCK1_LENGTH, Arrays.asList());
+          verifyBlockOnWorkers(mBlockMaster, BLOCK1_ID, BLOCK1_LENGTH, Arrays.asList());
 
           return null;
         });
@@ -489,7 +491,7 @@ public class ConcurrentBlockMasterTest {
           WorkerInfo worker1Info = findWorkerInfo(workerInfoList, worker1);
           assertEquals(0L, worker1Info.getUsedBytes());
 
-          verifyBlockOnWorkers(BLOCK1_ID, BLOCK1_LENGTH, workerInfoList);
+          verifyBlockOnWorkers(mBlockMaster, BLOCK1_ID, BLOCK1_LENGTH, workerInfoList);
           return null;
         });
   }
@@ -543,7 +545,7 @@ public class ConcurrentBlockMasterTest {
           assertEquals(0L, worker2Info.getUsedBytes());
 
           // The block has 1 location on worker 1
-          verifyBlockOnWorkers(BLOCK1_ID, BLOCK1_LENGTH, Arrays.asList(worker1Info));
+          verifyBlockOnWorkers(mBlockMaster, BLOCK1_ID, BLOCK1_LENGTH, Arrays.asList(worker1Info));
 
           return null;
         });
@@ -605,10 +607,10 @@ public class ConcurrentBlockMasterTest {
           assertEquals(0L, worker2Info.getUsedBytes());
 
           // Block 1 should exist on master 1
-          verifyBlockOnWorkers(BLOCK1_ID, BLOCK1_LENGTH, Arrays.asList(worker1Info));
+          verifyBlockOnWorkers(mBlockMaster, BLOCK1_ID, BLOCK1_LENGTH, Arrays.asList(worker1Info));
 
           // Block 2 should exist on master 1
-          verifyBlockOnWorkers(BLOCK2_ID, BLOCK2_LENGTH, Arrays.asList(worker1Info));
+          verifyBlockOnWorkers(mBlockMaster, BLOCK2_ID, BLOCK2_LENGTH, Arrays.asList(worker1Info));
           return null;
         });
   }
@@ -666,7 +668,7 @@ public class ConcurrentBlockMasterTest {
             } else {
               // The master will issue commands to remove blocks on the next heartbeat
               // So now the locations are still there
-              verifyBlockOnWorkers(BLOCK1_ID, BLOCK1_LENGTH, workerInfoList);
+              verifyBlockOnWorkers(mBlockMaster, BLOCK1_ID, BLOCK1_LENGTH, workerInfoList);
             }
 
             // Verify the heartbeat from worker will get a command to remove the block
@@ -768,14 +770,16 @@ public class ConcurrentBlockMasterTest {
 
             // Verify the block metadata
             if (deleteMetadata) {
-              verifyBlockNotExisting(BLOCK1_ID);
+              verifyBlockNotExisting(mBlockMaster, BLOCK1_ID);
             } else {
               // The master will issue commands to remove blocks on the next heartbeat
               // So now the locations are still there
-              verifyBlockOnWorkers(BLOCK1_ID, BLOCK1_LENGTH, ImmutableList.of(worker1Info));
+              verifyBlockOnWorkers(mBlockMaster, BLOCK1_ID, BLOCK1_LENGTH,
+                  ImmutableList.of(worker1Info));
             }
             // Block 2 is unaffected
-            verifyBlockOnWorkers(BLOCK2_ID, BLOCK2_LENGTH, ImmutableList.of(worker2Info));
+            verifyBlockOnWorkers(mBlockMaster, BLOCK2_ID, BLOCK2_LENGTH,
+                ImmutableList.of(worker2Info));
 
             // Regardless of whether the metadata is removed, the existing block will be freed
             Command worker1HeartbeatCmd = mBlockMaster.workerHeartbeat(worker1,
@@ -851,10 +855,10 @@ public class ConcurrentBlockMasterTest {
             assertEquals(0L, worker1Info.getUsedBytes());
 
             if (deleteMetadata) {
-              verifyBlockNotExisting(BLOCK1_ID);
+              verifyBlockNotExisting(mBlockMaster, BLOCK1_ID);
             } else {
               // The block has no locations now because the last location is removed
-              verifyBlockOnWorkers(BLOCK1_ID, BLOCK1_LENGTH, Arrays.asList());
+              verifyBlockOnWorkers(mBlockMaster, BLOCK1_ID, BLOCK1_LENGTH, Arrays.asList());
             }
 
             return null;
@@ -929,12 +933,12 @@ public class ConcurrentBlockMasterTest {
             assertEquals(BLOCK1_LENGTH, worker1Info.getUsedBytes());
 
             if (deleteMetadata) {
-              verifyBlockNotExisting(BLOCK1_ID);
+              verifyBlockNotExisting(mBlockMaster, BLOCK1_ID);
             } else {
               // All locations of block 1 are freed in metadata
-              verifyBlockOnWorkers(BLOCK1_ID, BLOCK1_LENGTH, workerInfoList);
+              verifyBlockOnWorkers(mBlockMaster, BLOCK1_ID, BLOCK1_LENGTH, workerInfoList);
             }
-            verifyBlockOnWorkers(BLOCK2_ID, BLOCK2_LENGTH, ImmutableList.of());
+            verifyBlockOnWorkers(mBlockMaster, BLOCK2_ID, BLOCK2_LENGTH, ImmutableList.of());
 
             // If the 1st heartbeat does not see the free command
             // This heartbeat should definitely see it,
@@ -1007,10 +1011,11 @@ public class ConcurrentBlockMasterTest {
             assertEquals(0L, worker2Info.getUsedBytes());
 
             if (deleteMetadata) {
-              verifyBlockNotExisting(BLOCK1_ID);
+              verifyBlockNotExisting(mBlockMaster, BLOCK1_ID);
             } else {
               // The location is still on worker 1, until it is removed after the next heartbeat
-              verifyBlockOnWorkers(BLOCK1_ID, BLOCK1_LENGTH, ImmutableList.of(worker1Info));
+              verifyBlockOnWorkers(mBlockMaster, BLOCK1_ID, BLOCK1_LENGTH,
+                  ImmutableList.of(worker1Info));
             }
 
             // On the heartbeat worker 1 block will be removed
@@ -1079,60 +1084,18 @@ public class ConcurrentBlockMasterTest {
             assertEquals(0L, worker2Info.getUsedBytes());
 
             if (deleteMetadata) {
-              verifyBlockNotExisting(BLOCK1_ID);
+              verifyBlockNotExisting(mBlockMaster, BLOCK1_ID);
             } else {
               // Block 1 should still exist on worker 1 until the next heartbeat frees it
-              verifyBlockOnWorkers(BLOCK1_ID, BLOCK1_LENGTH, Arrays.asList(worker1Info));
+              verifyBlockOnWorkers(mBlockMaster, BLOCK1_ID, BLOCK1_LENGTH,
+                  Arrays.asList(worker1Info));
             }
 
             // No copies for block 2
-            verifyBlockOnWorkers(BLOCK2_ID, BLOCK2_LENGTH, Arrays.asList());
+            verifyBlockOnWorkers(mBlockMaster, BLOCK2_ID, BLOCK2_LENGTH, Arrays.asList());
             return null;
           });
     }
-  }
-
-  /**
-   * Verifies the {@link BlockInfo} including the length and locations.
-   *
-   * @param blockId the target block id
-   * @param blockLength the block should have this length
-   * @param workers the block should be on these workers
-   */
-  private void verifyBlockOnWorkers(long blockId, long blockLength,
-                                    List<WorkerInfo> workers) throws Exception {
-    BlockInfo blockInfo = mBlockMaster.getBlockInfo(blockId);
-    assertEquals(blockLength, blockInfo.getLength());
-    assertEquals(workers.size(), blockInfo.getLocations().size());
-
-    List<BlockLocation> expectedLocations = new ArrayList<>();
-    for (WorkerInfo w : workers) {
-      expectedLocations.add(new BlockLocation()
-          .setWorkerAddress(w.getAddress())
-          .setWorkerId(w.getId())
-          .setMediumType("MEM")
-          .setTierAlias("MEM"));
-    }
-
-    assertEquals(blockLength, blockInfo.getLength());
-    assertEquals(expectedLocations.size(), blockInfo.getLocations().size());
-    assertEquals(new HashSet<>(expectedLocations), new HashSet<>(blockInfo.getLocations()));
-  }
-
-  private void verifyBlockNotExisting(long blockId) {
-    assertThrows(BlockInfoException.class, () -> {
-      mBlockMaster.getBlockInfo(blockId);
-    });
-  }
-
-  private WorkerInfo findWorkerInfo(List<WorkerInfo> list, long workerId) {
-    for (WorkerInfo worker : list) {
-      if (workerId == worker.getId()) {
-        return worker;
-      }
-    }
-    throw new AssertionError(String.format(
-        "Failed to find workerId %s in the worker list %s", workerId, list));
   }
 
   /**
@@ -1146,10 +1109,8 @@ public class ConcurrentBlockMasterTest {
    * @param w2 writer 2
    * @param verifier the verifier of the final state
    */
-  private void concurrentWriterWithWriter(CountDownLatch w1Latch,
-                                          Callable w1,
-                                          Callable w2,
-                                          Callable verifier) throws Exception {
+  private void concurrentWriterWithWriter(
+      CountDownLatch w1Latch, Callable w1, Callable w2, Callable verifier) throws Exception {
     // This thread count is intentionally larger than the client thread pool
     // In the hope that even if the first batch of clients all read the state before
     // the commit really happens

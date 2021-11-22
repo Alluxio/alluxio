@@ -11,11 +11,11 @@
 
 package alluxio.worker;
 
+import alluxio.RuntimeConstants;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
-import alluxio.conf.ServerConfiguration;
 import alluxio.conf.PropertyKey;
-import alluxio.RuntimeConstants;
+import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.GrpcServer;
 import alluxio.grpc.GrpcServerAddress;
 import alluxio.grpc.GrpcServerBuilder;
@@ -39,7 +39,6 @@ import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.util.Map;
 import java.util.concurrent.TimeoutException;
-
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**

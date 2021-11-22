@@ -14,8 +14,8 @@ package alluxio.client.block.stream;
 import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.network.protocol.databuffer.NioDataBuffer;
 
+import java.io.IOException;
 import java.nio.ByteBuffer;
-
 import javax.annotation.Nullable;
 
 /**
@@ -25,10 +25,12 @@ public class TestDataReader implements DataReader {
   private final byte[] mData;
   private long mPos;
   private long mEnd;
-  private long mChunkSize = 128;
+  private long mChunkSize;
+  private boolean mClosed = false;
 
-  public TestDataReader(byte[] data, long offset, long length) {
+  public TestDataReader(byte[] data, long chunkSize, long offset, long length) {
     mData = data;
+    mChunkSize = chunkSize;
     mPos = offset;
     mEnd = offset + length;
   }
@@ -52,5 +54,35 @@ public class TestDataReader implements DataReader {
   }
 
   @Override
-  public void close() { }
+  public void close() {
+    mClosed = true;
+  }
+
+  public boolean isClosed() {
+    return mClosed;
+  }
+
+  public static class Factory implements DataReader.Factory {
+    long mChunkSize;
+    byte[] mData;
+    TestDataReader mReader;
+
+    public Factory(long chunkSize, byte[] data) {
+      mChunkSize = chunkSize;
+      mData = data;
+    }
+
+    @Override
+    public DataReader create(long offset, long len) throws IOException {
+      mReader = new TestDataReader(mData, mChunkSize, offset, len);
+      return mReader;
+    }
+
+    @Override
+    public void close() throws IOException {}
+
+    public TestDataReader getDataReader() {
+      return mReader;
+    }
+  }
 }

@@ -11,7 +11,8 @@
 
 package alluxio.client.block.stream;
 
-import alluxio.grpc.AsyncCacheRequest;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.grpc.CacheRequest;
 import alluxio.grpc.ClearMetricsRequest;
 import alluxio.grpc.ClearMetricsResponse;
 import alluxio.grpc.CreateLocalBlockRequest;
@@ -21,7 +22,6 @@ import alluxio.grpc.MoveBlockRequest;
 import alluxio.grpc.MoveBlockResponse;
 import alluxio.grpc.OpenLocalBlockRequest;
 import alluxio.grpc.OpenLocalBlockResponse;
-import alluxio.conf.AlluxioConfiguration;
 import alluxio.grpc.ReadRequest;
 import alluxio.grpc.ReadResponse;
 import alluxio.grpc.RemoveBlockRequest;
@@ -30,8 +30,8 @@ import alluxio.grpc.WriteRequest;
 import alluxio.grpc.WriteResponse;
 import alluxio.security.user.UserState;
 
-import io.grpc.stub.StreamObserver;
 import io.grpc.StatusRuntimeException;
+import io.grpc.stub.StreamObserver;
 
 import java.io.Closeable;
 import java.io.IOException;
@@ -143,9 +143,10 @@ public interface BlockWorkerClient extends Closeable {
   ClearMetricsResponse clearMetrics(ClearMetricsRequest request);
 
   /**
-   * Caches a block asynchronously.
+   * Caches a block.
    *
-   * @param request the async cache request
+   * @param request the cache request
+   * @throws StatusRuntimeException if any error occurs
    */
-  void asyncCache(AsyncCacheRequest request);
+  void cache(CacheRequest request);
 }

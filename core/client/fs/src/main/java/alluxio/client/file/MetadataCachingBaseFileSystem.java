@@ -25,6 +25,8 @@ import alluxio.grpc.DeletePOptions;
 import alluxio.grpc.GetStatusPOptions;
 import alluxio.grpc.ListStatusPOptions;
 import alluxio.grpc.RenamePOptions;
+import alluxio.metrics.MetricKey;
+import alluxio.metrics.MetricsSystem;
 import alluxio.util.FileSystemOptions;
 import alluxio.util.ThreadUtils;
 import alluxio.wire.FileInfo;
@@ -42,7 +44,6 @@ import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
-
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -78,6 +79,9 @@ public class MetadataCachingBaseFileSystem extends BaseFileSystem {
     // asynchronously update access time.
     mAccessTimeUpdater = new ThreadPoolExecutor(0, masterClientThreads, THREAD_KEEPALIVE_SECOND,
         TimeUnit.SECONDS, new SynchronousQueue<>());
+    MetricsSystem.registerCachedGaugeIfAbsent(
+        MetricsSystem.getMetricName(MetricKey.CLIENT_META_DATA_CACHE_SIZE.getName()),
+        mMetadataCache::size);
   }
 
   @Override

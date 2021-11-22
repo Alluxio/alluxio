@@ -56,6 +56,7 @@ import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.MkdirsOptions;
 import alluxio.util.CommonUtils;
 import alluxio.util.interfaces.Scoped;
+import alluxio.wire.OperationId;
 
 import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
@@ -72,7 +73,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.locks.Lock;
 import java.util.function.Supplier;
-
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -220,6 +220,24 @@ public class InodeTree implements DelegatingJournaled {
     mContainerIdGenerator = containerIdGenerator;
     mDirectoryIdGenerator = directoryIdGenerator;
     mMountTable = mountTable;
+  }
+
+  /**
+   * Whether given operation is still cached in retry-cache.
+   *
+   * @param opId the operation id
+   * @return {@code true} if given op is marked complete
+   */
+  public boolean isOperationComplete(@Nullable OperationId opId) {
+    return mState.isOperationComplete(opId);
+  }
+
+  /**
+   * Used to mark an operation as complete in retry-cache.
+   * @param opId the operation id
+   */
+  public void cacheOperation(@Nullable OperationId opId) {
+    mState.cacheOperation(opId);
   }
 
   /**
@@ -951,7 +969,14 @@ public class InodeTree implements DelegatingJournaled {
         // Child does not exist.
         continue;
       }
-      descendants.add(childPath);
+      try {
+        descendants.add(childPath);
+      } catch (Error e) {
+        // If adding to descendants fails due to OOM, this object
+        // will not be tracked so we must close it manually
+        childPath.close();
+        throw e;
+      }
       gatherDescendants(childPath, descendants);
     }
   }

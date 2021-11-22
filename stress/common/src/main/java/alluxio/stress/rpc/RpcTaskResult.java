@@ -20,10 +20,10 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.MoreObjects;
 
-import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import javax.annotation.Nullable;
 
 /**
  * This object holds the results from one RPC benchmark test run, containing all

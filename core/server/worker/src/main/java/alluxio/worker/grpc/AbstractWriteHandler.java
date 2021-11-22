@@ -38,7 +38,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.concurrent.Semaphore;
-
 import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -163,20 +162,28 @@ abstract class AbstractWriteHandler<T extends WriteRequestContext<?>> {
       write(request);
       return;
     }
-    Preconditions.checkState(!request.hasCommand(),
-        "write request command should not come with data buffer");
-    Preconditions.checkState(buffer.readableBytes() > 0,
-        "invalid data size from write request message");
-    if (!tryAcquireSemaphore()) {
-      return;
-    }
-    mSerializingExecutor.execute(() -> {
-      try {
-        writeData(buffer);
-      } finally {
-        mSemaphore.release();
+    boolean releaseBuf = true;
+    try {
+      Preconditions.checkState(!request.hasCommand(),
+          "write request command should not come with data buffer");
+      Preconditions.checkState(buffer.readableBytes() > 0,
+          "invalid data size from write request message");
+      if (!tryAcquireSemaphore()) {
+        return;
       }
-    });
+      releaseBuf = false;
+      mSerializingExecutor.execute(() -> {
+        try {
+          writeData(buffer);
+        } finally {
+          mSemaphore.release();
+        }
+      });
+    } finally {
+      if (releaseBuf) {
+        buffer.release();
+      }
+    }
   }
 
   /**

@@ -23,6 +23,7 @@ import alluxio.client.block.stream.BlockOutStream;
 import alluxio.client.block.stream.DataWriter;
 import alluxio.client.block.util.BlockLocationUtils;
 import alluxio.client.file.FileSystemContext;
+import alluxio.client.file.URIStatus;
 import alluxio.client.file.options.InStreamOptions;
 import alluxio.client.file.options.OutStreamOptions;
 import alluxio.collections.Pair;
@@ -51,9 +52,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-
 import javax.annotation.concurrent.ThreadSafe;
 
+// TODO(jianjian): rename AlluxioBlockStore since it would get confused by BlockStore
 /**
  * Alluxio Block Store client. This is an internal client for all block level operations in Alluxio.
  * An instance of this class can be obtained via {@link AlluxioBlockStore} constructors.
@@ -143,13 +144,42 @@ public final class AlluxioBlockStore {
    */
   public BlockInStream getInStream(BlockInfo info, InStreamOptions options,
       Map<WorkerNetAddress, Long> failedWorkers) throws IOException {
+    Pair<WorkerNetAddress, BlockInStreamSource> dataSourceAndType = getDataSourceAndType(info,
+        options.getStatus(), options.getUfsReadLocationPolicy(), failedWorkers);
+    WorkerNetAddress dataSource = dataSourceAndType.getFirst();
+    BlockInStreamSource dataSourceType = dataSourceAndType.getSecond();
+    try {
+      return BlockInStream.create(mContext, info, dataSource, dataSourceType, options);
+    } catch (UnavailableException e) {
+      //When BlockInStream created failed, it will update the passed-in failedWorkers
+      //to attempt to avoid reading from this failed worker in next try.
+      failedWorkers.put(dataSource, System.currentTimeMillis());
+      throw e;
+    }
+  }
+
+  /**
+   * Gets the data source and type of data source of a block. This method is primarily responsible
+   * for determining the data source and type of data source. It takes a map of failed workers and
+   * their most recently failed time and tries to update it when BlockInStream created failed,
+   * attempting to avoid reading from a recently failed worker.
+   *
+   * @param info the info of the block to read
+   * @param status the URIStatus associated with the read request
+   * @param policy the policy determining the Alluxio worker location
+   * @param failedWorkers the map of workers address to most recent failure time
+   * @return the data source and type of data source of the block
+   */
+  public Pair<WorkerNetAddress, BlockInStreamSource> getDataSourceAndType(BlockInfo info,
+      URIStatus status, BlockLocationPolicy policy, Map<WorkerNetAddress, Long> failedWorkers)
+      throws IOException {
     List<BlockLocation> locations = info.getLocations();
     List<BlockWorkerInfo> blockWorkerInfo = Collections.EMPTY_LIST;
     // Initial target workers to read the block given the block locations.
     Set<WorkerNetAddress> workerPool;
     // Note that, it is possible that the blocks have been written as UFS blocks
-    if (options.getStatus().isPersisted()
-        || options.getStatus().getPersistenceState().equals("TO_BE_PERSISTED")) {
+    if (status.isPersisted()
+        || status.getPersistenceState().equals("TO_BE_PERSISTED")) {
       blockWorkerInfo = mContext.getCachedWorkers();
       if (blockWorkerInfo.isEmpty()) {
         throw new UnavailableException(ExceptionMessage.NO_WORKER_AVAILABLE.getMessage());
@@ -168,7 +198,7 @@ public final class AlluxioBlockStore {
     }
     // Workers to read the block, after considering failed workers.
     Set<WorkerNetAddress> workers = handleFailedWorkers(workerPool, failedWorkers);
-    // TODO(calvin): Consider containing these two variables in one object
+    // TODO(calvin, jianjian): Consider containing these two variables in one object
     BlockInStreamSource dataSourceType = null;
     WorkerNetAddress dataSource = null;
     locations = locations.stream()
@@ -192,8 +222,7 @@ public final class AlluxioBlockStore {
     // Can't get data from Alluxio, get it from the UFS instead
     if (dataSource == null) {
       dataSourceType = BlockInStreamSource.UFS;
-      BlockLocationPolicy policy =
-          Preconditions.checkNotNull(options.getUfsReadLocationPolicy(),
+      Preconditions.checkNotNull(policy,
               PreconditionMessage.UFS_READ_LOCATION_POLICY_UNSPECIFIED);
       blockWorkerInfo = blockWorkerInfo.stream()
           .filter(workerInfo -> workers.contains(workerInfo.getNetAddress())).collect(toList());
@@ -224,15 +253,7 @@ public final class AlluxioBlockStore {
     if (dataSource == null) {
       throw new UnavailableException(ExceptionMessage.NO_WORKER_AVAILABLE.getMessage());
     }
-
-    try {
-      return BlockInStream.create(mContext, info, dataSource, dataSourceType, options);
-    } catch (UnavailableException e) {
-      //When BlockInStream created failed, it will update the passed-in failedWorkers
-      //to attempt to avoid reading from this failed worker in next try.
-      failedWorkers.put(dataSource, System.currentTimeMillis());
-      throw e;
-    }
+    return new Pair<>(dataSource, dataSourceType);
   }
 
   private Set<WorkerNetAddress> handleFailedWorkers(Set<WorkerNetAddress> workers,

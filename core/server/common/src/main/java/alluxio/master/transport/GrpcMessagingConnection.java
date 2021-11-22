@@ -11,9 +11,9 @@
 
 package alluxio.master.transport;
 
-import alluxio.grpc.TransportMessage;
 import alluxio.grpc.MessagingRequestHeader;
 import alluxio.grpc.MessagingResponseHeader;
+import alluxio.grpc.TransportMessage;
 import alluxio.resource.LockResource;
 
 import com.google.common.base.MoreObjects;

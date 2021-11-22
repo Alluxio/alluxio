@@ -11,8 +11,8 @@
 
 package alluxio.table.common.transform.action;
 
-import javax.annotation.Nullable;
 import java.util.Properties;
+import javax.annotation.Nullable;
 
 /**
  * The action factory interface.

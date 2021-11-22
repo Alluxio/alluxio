@@ -138,7 +138,7 @@ public final class AlluxioFileInStreamTest {
     mConf.set(PropertyKey.USER_BLOCK_READ_RETRY_MAX_DURATION, "1s");
 
     BlockWorkerClient client = mock(BlockWorkerClient.class);
-    doNothing().when(client).asyncCache(any());
+    doNothing().when(client).cache(any());
 
     mContext = mock(FileSystemContext.class);
     when(mContext.getClientContext()).thenReturn(ClientContext.create(mConf));
@@ -149,7 +149,7 @@ public final class AlluxioFileInStreamTest {
     when(mContext.acquireBlockWorkerClient(any()))
         .thenReturn(new CloseableResource<BlockWorkerClient>(client) {
           @Override
-          public void close() {}
+          public void closeResource() {}
         });
     mBlockStore = mock(AlluxioBlockStore.class);
     PowerMockito.mockStatic(AlluxioBlockStore.class);

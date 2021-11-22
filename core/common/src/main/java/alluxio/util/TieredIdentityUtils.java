@@ -20,7 +20,6 @@ import alluxio.wire.TieredIdentity;
 import java.net.UnknownHostException;
 import java.util.List;
 import java.util.Optional;
-
 import javax.annotation.concurrent.ThreadSafe;
 
 /**

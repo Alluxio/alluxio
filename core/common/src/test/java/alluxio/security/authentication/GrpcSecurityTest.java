@@ -35,10 +35,10 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.powermock.reflect.Whitebox;
 
-import javax.security.auth.Subject;
-import javax.security.sasl.AuthenticationException;
 import java.net.InetSocketAddress;
 import java.util.UUID;
+import javax.security.auth.Subject;
+import javax.security.sasl.AuthenticationException;
 
 /**
  * Unit test for {@link alluxio.grpc.GrpcChannelBuilder} and {@link alluxio.grpc.GrpcServerBuilder}.

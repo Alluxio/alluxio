@@ -39,9 +39,12 @@ To set up Docker after provisioning the instance, which will be referred as the 
 
 ```console
 $ sudo yum install -y docker
-$ sudo service docker start
+# Create docker group
+$ sudo groupadd docker
 # Add the current user to the docker group
 $ sudo usermod -a -G docker $(id -u -n)
+# Start docker service
+$ sudo service docker start
 # Log out and log back in again to pick up the group changes
 $ exit
 ```
@@ -283,6 +286,14 @@ for line in textFile_RDD.collect():
 Congratulations, you've deployed a basic Dockerized Alluxio cluster! Read on to learn more about how to manage the cluster and make is production-ready.
 
 ## Advanced Setup
+
+### Launch Alluxio with the development image
+
+Starting from v2.6.2, a new docker image, `alluxio-dev`, is available in Dockerhub for development usage. Unlike the default `alluxio/alluxio` image that 
+only contains packages needed for Alluxio service to run, this `alluxio-dev` image installs more development tools, including gcc, make, async-profiler, etc., 
+making it easier for users to deploy more services in the container along with Alluxio. 
+
+To use the development image, simply replace `alluxio/alluxio` with `alluxio/alluxio-dev` in the container launching process.
 
 ### Set server configuration
 

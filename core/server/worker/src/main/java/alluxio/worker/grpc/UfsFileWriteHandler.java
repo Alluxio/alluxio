@@ -14,9 +14,9 @@ package alluxio.worker.grpc;
 import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.WriteRequest;
 import alluxio.grpc.WriteResponse;
+import alluxio.metrics.MetricInfo;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
-import alluxio.metrics.MetricInfo;
 import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.resource.CloseableResource;
@@ -33,7 +33,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -47,7 +46,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * For more information about the implementation of the client side writer, see
  * UnderFileSystemFileOutStream.
  */
-@edu.umd.cs.findbugs.annotations.SuppressFBWarnings(
+@alluxio.annotation.SuppressFBWarnings(
     value = "BC_UNCONFIRMED_CAST_OF_RETURN_VALUE",
     justification = "false positive with superclass generics, "
         + "see more description in https://sourceforge.net/p/findbugs/bugs/1242/")

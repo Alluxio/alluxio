@@ -30,10 +30,19 @@ enum LoadMetadataPType {
   ALWAYS = 2;  // Always load metadata.
 }
 
+/**
+ * Unique operation id.
+ */
+message FsOpPId {
+    optional int64 mostSignificantBits = 1;
+    optional int64 leastSignificantBits = 2;
+}
+
 message FileSystemMasterCommonPOptions {
   optional int64 syncIntervalMs = 1;
   optional int64 ttl = 2;
   optional grpc.TtlAction ttlAction = 3;
+  optional FsOpPId operationId = 4;
 }
 
 message CheckAccessPRequest {

@@ -36,6 +36,9 @@ The following table describes the support status for current Amazon S3 functiona
 {% endfor %}
 </table>
 
+### Limitation
+In Alluxio, we use `/` as a reserved separator. Therefore any S3 directory with an object named `/` (eg: `s3://example-bucket//`) will conflict and behave incorrectly.
+
 ## Language support
 Alluxio S3 client supports various programming languages, such as C++, Java, Python, Golang, and Ruby.
 In this documentation, we use curl REST calls and python S3 client as usage examples.
@@ -48,11 +51,13 @@ The Alluxio proxy is listening at port 39999 by default.
 
 #### Authorization
 
-By default, the user that is used to do any FileSystem operations is the user that was used to launch
-the proxy process. This can be changed by providing the Authorization Header.
+By default, the user that is used to do any FileSystem operations is the user that was used to
+launch the proxy process. This can be changed by providing the Authorization Header. The header
+format is [defined by the AWS S3 Rest API reference](https://docs.aws.amazon.com/AmazonS3/latest/API/sigv4-auth-using-authorization-header.html)
 
 ```console
-$ curl -i -H "Authorization: AWS testuser:" -X PUT http://localhost:39999/api/v1/s3/testbucket0
+$ curl -i -H "Authorization: AWS4-HMAC-SHA256 Credential=newuser/20211101/us-east-1/s3/aws4_request SignedHeaders=host;range;x-amz-date Signature=<sig>" \
+    -X PUT http://localhost:39999/api/v1/s3/testbucket0
 HTTP/1.1 200 OK
 Date: Tue, 02 Mar 2021 00:02:26 GMT
 Content-Length: 0
@@ -95,12 +100,12 @@ Server: Jetty(9.4.31.v20200723)
 $ curl -i -X GET http://localhost:39999/api/v1/s3/testbucket
 
 HTTP/1.1 200 OK
-Date: Tue, 18 Jun 2019 21:23:56 GMT
+Date: Wed, 22 Sep 2021 07:13:37 GMT
 Content-Type: application/xml
-Content-Length: 191
-Server: Jetty(9.2.z-SNAPSHOT)
+Content-Length: 193
+Server: Jetty(9.4.43.v20210629)
 
-<ListBucketResult><Name>/testbucket</Name><Prefix/><ContinuationToken/><NextContinuationToken/><KeyCount>0</KeyCount><MaxKeys>1000</MaxKeys><IsTruncated>false</IsTruncated></ListBucketResult>
+<ListBucketResult><KeyCount>0</KeyCount><MaxKeys>1000</MaxKeys><Delimiter>/</Delimiter><EncodingType>url</EncodingType><IsTruncated>false</IsTruncated><Name>testbucket</Name></ListBucketResult>
 ```
 
 #### Put an object
@@ -139,16 +144,17 @@ Server: Jetty(9.2.z-SNAPSHOT)
 $ curl -i -X GET http://localhost:39999/api/v1/s3/testbucket
 
 HTTP/1.1 200 OK
-Date: Tue, 18 Jun 2019 21:25:27 GMT
+Date: Wed, 22 Sep 2021 07:15:19 GMT
 Content-Type: application/xml
-Content-Length: 354
-Server: Jetty(9.2.z-SNAPSHOT)
+Content-Length: 306
+Server: Jetty(9.4.43.v20210629)
 
-<ListBucketResult><Name>/testbucket</Name><Prefix/><ContinuationToken/><NextContinuationToken/><KeyCount>1</KeyCount><MaxKeys>1000</MaxKeys><IsTruncated>false</IsTruncated><Contents><Key>testobject</Key><LastModified>2019-06-18T14:24:33.029Z</LastModified><ETag></ETag><Size>27040</Size><StorageClass>STANDARD</StorageClass></Contents></ListBucketResult>
+<ListBucketResult><Contents><LastModified>2021-09-22T15:14:40.754Z</LastModified><Key>testobject</Key><Size>27040</Size></Contents><KeyCount>1</KeyCount><MaxKeys>1000</MaxKeys><Delimiter>/</Delimiter><EncodingType>url</EncodingType><IsTruncated>false</IsTruncated><Name>testbucket</Name></ListBucketResult>
 ```
 
 #### Listing a bucket with multiple objects
-You can upload more files and use the `max-keys` and `continuation-token` as the [GET bucket request parameter](https://docs.aws.amazon.com/AmazonS3/latest/API/v2-RESTBucketGET.html). For example:
+
+You can upload more files and use the `max-keys` and `marker` as the [GET bucket request parameter](https://docs.aws.amazon.com/AmazonS3/latest/API/API_ListObjects.html). For example:
 
 ```console
 $ curl -i -X PUT -T "LICENSE" http://localhost:39999/api/v1/s3/testbucket/key1
@@ -184,22 +190,22 @@ Server: Jetty(9.2.z-SNAPSHOT)
 $ curl -i -X GET http://localhost:39999/api/v1/s3/testbucket\?max-keys\=2
 
 HTTP/1.1 200 OK
-Date: Tue, 18 Jun 2019 21:26:57 GMT
+Date: Wed, 22 Sep 2021 07:18:18 GMT
 Content-Type: application/xml
-Content-Length: 528
-Server: Jetty(9.2.z-SNAPSHOT)
+Content-Length: 444
+Server: Jetty(9.4.43.v20210629)
 
-<ListBucketResult><Name>/testbucket</Name><Prefix/><ContinuationToken/><NextContinuationToken>key3</NextContinuationToken><KeyCount>2</KeyCount><MaxKeys>2</MaxKeys><IsTruncated>true</IsTruncated><Contents><Key>key1</Key><LastModified>2019-06-18T14:26:05.694Z</LastModified><ETag></ETag><Size>27040</Size><StorageClass>STANDARD</StorageClass></Contents><Contents><Key>key2</Key><LastModified>2019-06-18T14:26:28.153Z</LastModified><ETag></ETag><Size>27040</Size><StorageClass>STANDARD</StorageClass></Contents></ListBucketResult>
+<ListBucketResult><Contents><LastModified>2021-09-22T15:17:39.579Z</LastModified><Key>key1</Key><Size>27040</Size></Contents><Contents><LastModified>2021-09-22T15:17:41.463Z</LastModified><Key>key2</Key><Size>27040</Size></Contents><KeyCount>2</KeyCount><MaxKeys>2</MaxKeys><Delimiter>/</Delimiter><EncodingType>url</EncodingType><NextMarker>/testbucket/key2</NextMarker><IsTruncated>true</IsTruncated><Name>testbucket</Name></ListBucketResult>
 
-$ curl -i -X GET http://localhost:39999/api/v1/s3/testbucket\?max-keys\=2\&continuation-token\=key3
+$ curl -i -X GET http://localhost:39999/api/v1/s3/testbucket\?max-keys\=2\&marker\=\/testbucket\/key2
 
 HTTP/1.1 200 OK
-Date: Tue, 18 Jun 2019 21:28:14 GMT
+Date: Wed, 22 Sep 2021 07:25:21 GMT
 Content-Type: application/xml
-Content-Length: 531
-Server: Jetty(9.2.z-SNAPSHOT)
+Content-Length: 477
+Server: Jetty(9.4.43.v20210629)
 
-<ListBucketResult><Name>/testbucket</Name><Prefix/><ContinuationToken>key3</ContinuationToken><NextContinuationToken/><KeyCount>2</KeyCount><MaxKeys>2</MaxKeys><IsTruncated>false</IsTruncated><Contents><Key>key3</Key><LastModified>2019-06-18T14:26:43.081Z</LastModified><ETag></ETag><Size>27040</Size><StorageClass>STANDARD</StorageClass></Contents><Contents><Key>testobject</Key><LastModified>2019-06-18T14:24:33.029Z</LastModified><ETag></ETag><Size>27040</Size><StorageClass>STANDARD</StorageClass></Contents></ListBucketResult>
+<ListBucketResult><Contents><LastModified>2021-09-22T15:17:39.579Z</LastModified><Key>key1</Key><Size>27040</Size></Contents><Contents><LastModified>2021-09-22T15:17:41.463Z</LastModified><Key>key2</Key><Size>27040</Size></Contents><Marker>/testbucekt/key2</Marker><KeyCount>2</KeyCount><MaxKeys>2</MaxKeys><Delimiter>/</Delimiter><EncodingType>url</EncodingType><NextMarker>/testbucket/key2</NextMarker><IsTruncated>true</IsTruncated><Name>testbucket</Name></ListBucketResult>
 ```
 
 You can also verify those objects are represented as Alluxio files, under `/testbucket` directory.
@@ -213,7 +219,25 @@ $ ./bin/alluxio fs ls -R /testbucket
 -rw-r--r--  alluxio        staff                    27040       PERSISTED 06-18-2019 14:24:33:029 100% /testbucket/testobject
 ```
 
-#### Delete objects
+#### Copy an Object
+
+```console
+$ curl -i -X PUT -H "x-amz-copy-source: /testbucket/key1" http://localhost:39999/api/v1/s3/testbucket/key2
+
+HTTP/1.1 200 OK
+Date: Wed, 02 Nov 2021 07:25:21 GMT
+Content-Type: application/xml
+Content-Length: 142
+Server: Jetty(9.4.43.v20210629)
+
+<CopyObjectResult>
+    <LastModified>2009-10-28T22:32:00</LastModified>
+    <ETag>"9b2cf535f27731c974343645a3985328"</ETag>
+<CopyObjectResult>
+```
+
+
+#### Delete Single Objects
 
 ```console
 $ curl -i -X DELETE http://localhost:39999/api/v1/s3/testbucket/key1
@@ -239,6 +263,37 @@ $ curl -i -X DELETE http://localhost:39999/api/v1/s3/testbucket/testobject
 HTTP/1.1 204 No Content
 Date: Tue, 18 Jun 2019 21:32:08 GMT
 Server: Jetty(9.2.z-SNAPSHOT)
+```
+
+#### Delete Multiple Objects
+
+```console
+$ cat body.xml
+<Delete xmlns="http://s3.amazonaws.com/doc/2006-03-01/">
+   <Object>
+      <Key>sample1.txt</Key>
+   </Object>
+   <Object>
+      <Key>sample2.txt</Key>
+   </Object>
+   <Quiet>boolean</Quiet>
+</Delete>
+$ curl -i -X POST http://localhost:39999/api/v1/s3/testbucket?delete
+
+HTTP/1.1 200 Ok
+Date: Tue, 18 Jun 2019 21:32:08 GMT
+Server: Jetty(9.2.z-SNAPSHOT)
+<?xml version="1.0" encoding="UTF-8"?>
+<DeleteResult xmlns="http://s3.amazonaws.com/doc/2006-03-01/">
+  <Deleted>
+    <Key>sample1.txt</Key>
+  </Deleted>
+  <Error>
+  <Key>sample2.txt</Key>
+  <Code>AccessDenied</Code>
+  <Message>Access Denied</Message>
+  </Error>
+</DeleteResult>
 ```
 
 #### Initiate a multipart upload

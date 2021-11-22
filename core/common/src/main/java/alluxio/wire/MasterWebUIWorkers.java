@@ -16,7 +16,6 @@ import alluxio.util.webui.NodeInfo;
 import com.google.common.base.MoreObjects;
 
 import java.io.Serializable;
-
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**

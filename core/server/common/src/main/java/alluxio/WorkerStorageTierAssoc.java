@@ -11,11 +11,10 @@
 
 package alluxio;
 
-import alluxio.conf.ServerConfiguration;
 import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
 
 import java.util.List;
-
 import javax.annotation.concurrent.ThreadSafe;
 
 /**

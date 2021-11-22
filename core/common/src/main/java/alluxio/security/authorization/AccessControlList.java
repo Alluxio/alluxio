@@ -30,7 +30,6 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -499,7 +498,7 @@ public class AccessControlList implements Serializable {
      * Deserialize an AccessControlList object.
      * @param jsonParser the json parser
      * @param deserializationContext deserializationcontext
-     * @return
+     * @return {@link AccessControlList}
      * @throws IOException
      * @throws JsonProcessingException
      */

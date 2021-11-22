@@ -22,7 +22,6 @@ import alluxio.grpc.TtlAction;
 
 import java.io.IOException;
 import java.util.List;
-
 import javax.annotation.concurrent.ThreadSafe;
 
 /**

@@ -16,6 +16,7 @@ import static java.util.stream.Collectors.joining;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.status.AlluxioStatusException;
+import alluxio.exception.status.CancelledException;
 import alluxio.exception.status.DeadlineExceededException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.GetServiceVersionPRequest;
@@ -29,17 +30,19 @@ import alluxio.retry.RetryUtils;
 import alluxio.security.user.UserState;
 import alluxio.uri.Authority;
 import alluxio.uri.MultiMasterAuthority;
+import alluxio.util.ConfigurationUtils;
 
+import com.google.common.collect.Lists;
 import io.grpc.StatusRuntimeException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.net.InetSocketAddress;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
-
 import javax.annotation.Nullable;
 
 /**
@@ -117,7 +120,16 @@ public class PollingMasterInquireClient implements MasterInquireClient {
   @Nullable
   private InetSocketAddress getAddress() {
     // Iterate over the masters and try to connect to each of their RPC ports.
-    for (InetSocketAddress address : mConnectDetails.getAddresses()) {
+    List<InetSocketAddress> addresses;
+    if (mConfiguration.getBoolean(PropertyKey.USER_RPC_SHUFFLE_MASTERS_ENABLED)) {
+      addresses =
+          Lists.newArrayList(mConnectDetails.getAddresses());
+      Collections.shuffle(addresses);
+    } else {
+      addresses = mConnectDetails.getAddresses();
+    }
+
+    for (InetSocketAddress address : addresses) {
       try {
         LOG.debug("Checking whether {} is listening for RPCs", address);
         pingMetaService(address);
@@ -128,6 +140,9 @@ public class PollingMasterInquireClient implements MasterInquireClient {
         continue;
       } catch (DeadlineExceededException e) {
         LOG.debug("Timeout while connecting to {}", address);
+        continue;
+      } catch (CancelledException e) {
+        LOG.debug("Cancelled while connecting to {}", address);
         continue;
       } catch (AlluxioStatusException e) {
         LOG.error("Error while connecting to {}. {}", address, e);
@@ -148,8 +163,8 @@ public class PollingMasterInquireClient implements MasterInquireClient {
         ServiceVersionClientServiceGrpc.newBlockingStub(channel)
             .withDeadlineAfter(mConfiguration.getMs(PropertyKey.USER_MASTER_POLLING_TIMEOUT),
                 TimeUnit.MILLISECONDS);
-    ServiceType serviceType
-        = address.getPort() == mConfiguration.getInt(PropertyKey.JOB_MASTER_RPC_PORT)
+    List<InetSocketAddress> addresses = ConfigurationUtils.getJobMasterRpcAddresses(mConfiguration);
+    ServiceType serviceType = addresses.contains(address)
         ? ServiceType.JOB_MASTER_CLIENT_SERVICE : ServiceType.META_MASTER_CLIENT_SERVICE;
     try {
       versionClient.getServiceVersion(GetServiceVersionPRequest.newBuilder()

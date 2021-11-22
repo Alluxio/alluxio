@@ -18,7 +18,6 @@ import alluxio.proto.meta.Block.BlockMeta;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Supplier;
-
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -82,6 +81,11 @@ public interface BlockStore extends Iterable<Block> {
    * Closes the block store and releases all resources.
    */
   void close();
+
+  /**
+   * @return size of the block store
+   */
+  long size();
 
   /**
    * Block metadata.

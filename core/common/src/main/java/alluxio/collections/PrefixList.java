@@ -17,8 +17,8 @@ import org.apache.commons.lang3.Validate;
 
 import java.util.ArrayList;
 import java.util.List;
-
 import javax.annotation.concurrent.ThreadSafe;
+
 /**
  * Prefix list is used to do file filtering.
  */

@@ -61,7 +61,6 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
-
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -376,7 +375,7 @@ public final class CpCommand extends AbstractFileSystemCommand {
           srcPaths.add(srcPath);
         }
       }
-      if (srcPaths.size() == 1) {
+      if (srcPaths.size() == 1 && !(new File(srcPaths.get(0).getPath())).isDirectory()) {
         copyFromLocalFile(srcPaths.get(0), dstPath);
       } else {
         CopyThreadPoolExecutor pool = new CopyThreadPoolExecutor(mThread, System.out, System.err,

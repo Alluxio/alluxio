@@ -23,6 +23,7 @@ import alluxio.util.executor.ExecutorServiceFactories;
 import alluxio.util.io.PathUtils;
 
 import com.beust.jcommander.ParametersDelegate;
+import com.google.common.collect.ImmutableList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -55,8 +56,22 @@ public class UfsIOBench extends Benchmark<IOTaskResult> {
 
   @Override
   public String getBenchDescription() {
-    // TODO(Jiacheng) Fill in description
-    return "";
+    return String.join("\n", ImmutableList.of(
+        "A benchmarking tool for the I/O between Alluxio and UFS.",
+        "This test will measure the I/O throughput between Alluxio workers and "
+            + "the specified UFS path. Each worker will create concurrent clients to "
+            + "first generate test files of the specified size then read those files. "
+            + "The write/read I/O throughput will be measured in the process.",
+        "",
+        "Example:",
+        "# This invokes the I/O benchmark to HDFS in the Alluxio cluster",
+        "# 2 workers will be used",
+        "# 2 concurrent clients will be created on each worker",
+        "# Each thread is writing then reading 512m of data",
+        "$ bin/alluxio runUfsIOTest --path hdfs://<hdfs-address> --cluster --cluster-limit 2 \\",
+        " --io-size 512m --threads 2",
+        ""
+    ));
   }
 
   @Override

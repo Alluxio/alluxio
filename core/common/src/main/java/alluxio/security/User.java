@@ -12,7 +12,6 @@
 package alluxio.security;
 
 import java.security.Principal;
-
 import javax.annotation.concurrent.ThreadSafe;
 
 /**

@@ -67,13 +67,15 @@ public class GetPinnedFileIdsBench extends RpcBench<GetPinnedFileIdsParameters> 
         "A benchmarking tool for the GetPinnedFileIds RPC.",
         "The test will generate a specified number of test files and pin them. "
             + "Then it will keep calling the GetPinnedFileIds RPC by the specified load until the "
-            + "specified duration has elapsed.",
+            + "specified duration has elapsed. The test files will be cleaned up in the end.",
         "",
         "Example:",
-        "4 simulated workers running on 2 job workers, requesting a total number of 100k pinned "
-            + "files for a total of 5 seconds:",
-        "$ bin/alluxio runClass alluxio.stress.cli.GetPinnedFileIdsBench --concurrency 2 "
-            + "--cluster-limit 2 --num-files 100000 --duration 5s",
+        "# 2 job workers will be chosen to run the benchmark",
+        "# Each job worker runs 3 simulated clients",
+        "# Each client keeps requesting a total number of 10k pinned files for "
+            + "a total of 100 milliseconds",
+        "$ bin/alluxio runClass alluxio.stress.cli.GetPinnedFileIdsBench --concurrency 3 \\",
+        "--cluster --cluster-limit 2 --num-files 10000 --duration 100ms",
         ""
     ));
   }
@@ -83,6 +85,13 @@ public class GetPinnedFileIdsBench extends RpcBench<GetPinnedFileIdsParameters> 
     // The task ID is different for local and cluster executions
     // So including that in the log can help associate the log to the run
     LOG.info("Task ID is {}", mBaseParameters.mId);
+
+    // The preparation is done by the invoking shell process to ensure the preparation is only
+    // done once, so skip preparation when running in job worker
+    if (mBaseParameters.mDistributed) {
+      LOG.info("Skipping preparation in distributed execution");
+      return;
+    }
 
     AlluxioURI baseUri = new AlluxioURI(mParameters.mBasePath);
     try (CloseableResource<alluxio.client.file.FileSystemMasterClient> client =
@@ -124,13 +133,18 @@ public class GetPinnedFileIdsBench extends RpcBench<GetPinnedFileIdsParameters> 
 
   @Override
   public void cleanup() throws Exception {
-    AlluxioURI baseUri = new AlluxioURI(mParameters.mBasePath);
-    try (CloseableResource<alluxio.client.file.FileSystemMasterClient> client =
-             mFileSystemContext.acquireMasterClientResource()) {
-      LOG.info("Deleting test directory {}", baseUri);
-      client.get().delete(baseUri, DeletePOptions.newBuilder().setRecursive(true).build());
-    } catch (AlluxioStatusException e) {
-      LOG.warn("Failed to delete test directory {}, manual cleanup needed", baseUri, e);
+    // skip cleanup in job worker as the test files are to be cleaned up by the client
+    if (mBaseParameters.mDistributed) {
+      LOG.info("Skipping cleanup in distributed execution");
+    } else {
+      AlluxioURI baseUri = new AlluxioURI(mParameters.mBasePath);
+      try (CloseableResource<FileSystemMasterClient> client =
+               mFileSystemContext.acquireMasterClientResource()) {
+        LOG.info("Deleting test directory {}", baseUri);
+        client.get().delete(baseUri, DeletePOptions.newBuilder().setRecursive(true).build());
+      } catch (AlluxioStatusException e) {
+        LOG.warn("Failed to delete test directory {}, manual cleanup needed", baseUri, e);
+      }
     }
     super.cleanup();
   }
@@ -150,8 +164,6 @@ public class GetPinnedFileIdsBench extends RpcBench<GetPinnedFileIdsParameters> 
 
         mPointStopwatch.get().stop();
 
-        // TODO(bowen): assertion may fail when running in cluster mode due to
-        //  unwanted extra runs of prepare()
         if (numPinnedFiles != mParameters.mNumFiles) {
           result.addError(String.format("Unexpected number of files: %d, expected %d",
               numPinnedFiles, mParameters.mNumFiles));

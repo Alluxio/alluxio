@@ -11,11 +11,10 @@
 
 package alluxio;
 
-import javax.annotation.concurrent.NotThreadSafe;
-
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.util.function.Consumer;
+import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * A rule for redirecting an output stream during a test suite. It sets

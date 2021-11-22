@@ -11,13 +11,12 @@
 
 package alluxio.master.audit;
 
-import alluxio.conf.ServerConfiguration;
 import alluxio.conf.PropertyKey;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import alluxio.conf.ServerConfiguration;
 
 import com.google.common.base.Preconditions;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.concurrent.LinkedBlockingQueue;
 import javax.annotation.concurrent.ThreadSafe;
@@ -101,6 +100,14 @@ public final class AsyncUserAccessAuditLogWriter {
       return false;
     }
     return true;
+  }
+
+  /**
+   * Gets the size of audit log entries.
+   * @return the size of the audit log blocking queue
+   */
+  public long getAuditLogEntriesSize() {
+    return mAuditLogEntries.size();
   }
 
   /**

@@ -16,8 +16,8 @@ import static org.hamcrest.core.StringContains.containsString;
 import static org.junit.Assert.assertEquals;
 
 import alluxio.cli.ValidationTaskResult;
-import alluxio.cli.ValidationUtils;
 import alluxio.cli.ValidationTestUtils;
+import alluxio.cli.ValidationUtils;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 

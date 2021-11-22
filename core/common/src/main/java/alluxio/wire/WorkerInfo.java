@@ -20,7 +20,6 @@ import java.io.Serializable;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
-
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -39,6 +38,7 @@ public final class WorkerInfo implements Serializable {
   private long mStartTimeMs;
   private Map<String, Long> mCapacityBytesOnTiers;
   private Map<String, Long> mUsedBytesOnTiers;
+  private long mBlockCount;
 
   /**
    * Creates a new instance of {@link WorkerInfo}.
@@ -215,6 +215,23 @@ public final class WorkerInfo implements Serializable {
         && mStartTimeMs == that.mStartTimeMs
         && Objects.equal(mCapacityBytesOnTiers, that.mCapacityBytesOnTiers)
         && Objects.equal(mUsedBytesOnTiers, that.mUsedBytesOnTiers);
+  }
+
+  /**
+   * @param blockCount the worker block count
+   * @return the worker information
+   */
+  public WorkerInfo setBlockCount(long blockCount) {
+    mBlockCount = blockCount;
+    return this;
+  }
+
+  /**
+   * @return the worker block count
+   */
+  @ApiModelProperty(value = "Number of worker block count")
+  public long getBlockCount() {
+    return mBlockCount;
   }
 
   /**

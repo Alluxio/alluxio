@@ -33,7 +33,6 @@ import java.nio.charset.Charset;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 import java.util.stream.Stream;
-
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 

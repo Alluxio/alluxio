@@ -40,6 +40,7 @@ import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -49,7 +50,6 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.function.Supplier;
-
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 import javax.annotation.concurrent.ThreadSafe;
@@ -427,6 +427,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
       LOG.warn("Unable to delete {} because listInternal returns null", path);
       return false;
     }
+    Arrays.sort(pathsToDelete, Comparator.comparing(UfsStatus::getName).reversed());
     for (UfsStatus pathToDelete : pathsToDelete) {
       String pathKey = stripPrefixIfPresent(PathUtils.concatPath(path, pathToDelete.getName()));
       if (pathToDelete.isDirectory()) {

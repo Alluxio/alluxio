@@ -25,4 +25,5 @@ spec:
     - key: name
       operator: In
       values: ["alluxio-pv"]
+  storageClassName: ""
 {{- end }}

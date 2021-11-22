@@ -11,8 +11,8 @@
 
 package alluxio.yarn;
 
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.mock;
 
 import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;

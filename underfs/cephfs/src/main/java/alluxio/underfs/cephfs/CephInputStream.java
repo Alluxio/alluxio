@@ -13,11 +13,10 @@ package alluxio.underfs.cephfs;
 
 import com.ceph.fs.CephMount;
 
-import javax.annotation.concurrent.NotThreadSafe;
-
-import java.io.InputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.concurrent.atomic.AtomicBoolean;
+import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * A stream for reading a file from CephFS.

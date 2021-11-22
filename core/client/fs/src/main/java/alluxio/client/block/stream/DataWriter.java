@@ -11,12 +11,12 @@
 
 package alluxio.client.block.stream;
 
-import alluxio.conf.AlluxioConfiguration;
-import alluxio.conf.PropertyKey;
 import alluxio.client.Cancelable;
 import alluxio.client.WriteType;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.options.OutStreamOptions;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.grpc.RequestType;
 import alluxio.util.CommonUtils;
 import alluxio.util.network.NettyUtils;
@@ -29,7 +29,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.Closeable;
 import java.io.IOException;
-
 import javax.annotation.concurrent.ThreadSafe;
 
 /**

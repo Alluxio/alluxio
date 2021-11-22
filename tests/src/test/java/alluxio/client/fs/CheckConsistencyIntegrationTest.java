@@ -13,8 +13,8 @@ package alluxio.client.fs;
 
 import alluxio.AlluxioURI;
 import alluxio.AuthenticatedUserRule;
-import alluxio.conf.PropertyKey;
 import alluxio.client.file.FileSystem;
+import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;

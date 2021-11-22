@@ -52,7 +52,6 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.stream.Stream;
-
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.ThreadSafe;
@@ -466,13 +465,11 @@ public class LocalCacheManager implements CacheManager {
       Metrics.GET_ERRORS.inc();
       return -1;
     }
-    boolean hasPage;
     ReadWriteLock pageLock = getPageLock(pageId);
     try (LockResource r = new LockResource(pageLock.readLock())) {
       try (LockResource r2 = new LockResource(mMetaLock.readLock())) {
-        hasPage = mMetaStore.hasPage(pageId);
-      }
-      if (!hasPage) {
+        mMetaStore.getPageInfo(pageId); //check if page exists and refresh LRU items
+      } catch (PageNotFoundException e) {
         LOG.debug("get({},pageOffset={}) fails due to page not found", pageId, pageOffset);
         return 0;
       }

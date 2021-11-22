@@ -12,6 +12,7 @@
 package alluxio.stress.client;
 
 import alluxio.stress.Parameters;
+import alluxio.stress.common.FileSystemParameters;
 
 import com.beust.jcommander.DynamicParameter;
 import com.beust.jcommander.IStringConverter;
@@ -26,7 +27,7 @@ import java.util.Map;
  * This holds all the parameters. All fields are public for easier json ser/de without all the
  * getters and setters.
  */
-public final class ClientIOParameters extends Parameters {
+public final class ClientIOParameters extends FileSystemParameters {
   /** This must match the member name. */
   public static final String FIELD_READ_RANDOM = "mReadRandom";
 

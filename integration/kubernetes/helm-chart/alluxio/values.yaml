@@ -17,7 +17,7 @@ fullnameOverride: alluxio
 
 # Docker Image
 image: alluxio/alluxio
-imageTag: 2.7.0-SNAPSHOT
+imageTag: 2.8.0-SNAPSHOT
 imagePullPolicy: IfNotPresent
 
 # Security Context
@@ -30,10 +30,21 @@ fsGroup: 1000
 #   ServiceAccount used for the namespace
 serviceAccount:
 
+# Image Pull Secret
+#   The secrets will need to be created externally from
+#   this Helm chart, but you can configure the Alluxio
+#   Pods to use the following list of secrets
+# eg:
+# imagePullSecrets:
+#   - ecr
+#   - dev
+imagePullSecrets:
+
 # Site properties for all the components
 properties:
   # alluxio.user.metrics.collection.enabled: 'true'
   alluxio.security.stale.channel.purge.interval: 365d
+  alluxio.hub.manager.rpc.hostname: alluxio-hub
 
 # Recommended JVM Heap options for running in Docker
 # Ref: https://developers.redhat.com/blog/2017/03/14/java-inside-docker/
@@ -60,6 +71,7 @@ properties:
 ## Master ##
 
 master:
+  enabled: true
   count: 1 # Controls the number of StatefulSets. For multiMaster mode increase this to >1.
   replicas: 1 # Controls #replicas in a StatefulSet and should not be modified in the usual case.
   env:
@@ -95,6 +107,45 @@ master:
   # JVM options specific to the master container
   jvmOptions:
   nodeSelector: {}
+  # When using HA Alluxio masters, the expected startup time
+  # can take over 2-3 minutes (depending on leader elections,
+  # journal catch-up, etc). In that case it is recommended
+  # to allow for up to at least 3 minutes with the readinessProbe,
+  # though higher values may be desired for some leniancy.
+  # - Note that the livenessProbe does not wait for the
+  #   readinessProbe to succeed first
+  #
+  # eg: 3 minute startupProbe and readinessProbe
+  # readinessProbe:
+  #   initialDelaySeconds: 30
+  #   periodSeconds: 10
+  #   timeoutSeconds: 1
+  #   failureThreshold: 15
+  #   successThreshold: 3
+  # startupProbe:
+  #   initialDelaySeconds: 60
+  #   periodSeconds: 30
+  #   timeoutSeconds: 5
+  #   failureThreshold: 4
+  readinessProbe:
+    initialDelaySeconds: 10
+    periodSeconds: 10
+    timeoutSeconds: 1
+    failureThreshold: 3
+    successThreshold: 1
+  livenessProbe:
+    initialDelaySeconds: 15
+    periodSeconds: 30
+    timeoutSeconds: 5
+    failureThreshold: 2
+  # If you are using Kubernetes 1.18+ or have the feature gate
+  # for it enabled, use startupProbe to prevent the livenessProbe
+  # from running until the startupProbe has succeeded
+  # startupProbe:
+  #   initialDelaySeconds: 15
+  #   periodSeconds: 30
+  #   timeoutSeconds: 5
+  #   failureThreshold: 2
   tolerations: []
   podAnnotations: {}
   # The ServiceAccount provided here will have precedence over
@@ -119,6 +170,25 @@ jobMaster:
     web: 20002
   # JVM options specific to the jobMaster container
   jvmOptions:
+  readinessProbe:
+    initialDelaySeconds: 10
+    periodSeconds: 10
+    timeoutSeconds: 1
+    failureThreshold: 3
+    successThreshold: 1
+  livenessProbe:
+    initialDelaySeconds: 15
+    periodSeconds: 30
+    timeoutSeconds: 5
+    failureThreshold: 2
+  # If you are using Kubernetes 1.18+ or have the feature gate
+  # for it enabled, use startupProbe to prevent the livenessProbe
+  # from running until the startupProbe has succeeded
+  # startupProbe:
+  #   initialDelaySeconds: 15
+  #   periodSeconds: 30
+  #   timeoutSeconds: 5
+  #   failureThreshold: 2
 
 # Alluxio supports journal type of UFS and EMBEDDED
 # UFS journal with HDFS example
@@ -164,6 +234,7 @@ journal:
 ## Worker ##
 
 worker:
+  enabled: true
   env:
     # Extra environment variables for the worker pod
     # Example:
@@ -193,11 +264,35 @@ worker:
   # JVM options specific to the worker container
   jvmOptions:
   nodeSelector: {}
+  readinessProbe:
+    initialDelaySeconds: 10
+    periodSeconds: 10
+    timeoutSeconds: 1
+    failureThreshold: 3
+    successThreshold: 1
+  livenessProbe:
+    initialDelaySeconds: 15
+    periodSeconds: 30
+    timeoutSeconds: 5
+    failureThreshold: 2
+  # If you are using Kubernetes 1.18+ or have the feature gate
+  # for it enabled, use startupProbe to prevent the livenessProbe
+  # from running until the startupProbe has succeeded
+  # startupProbe:
+  #   initialDelaySeconds: 15
+  #   periodSeconds: 30
+  #   timeoutSeconds: 5
+  #   failureThreshold: 2
   tolerations: []
   podAnnotations: {}
   # The ServiceAccount provided here will have precedence over
   # the global `serviceAccount`
   serviceAccount:
+  # Setting fuseEnabled to true will embed Fuse in worker process. The worker pods will
+  # launch the Alluxio workers using privileged containers with `SYS_ADMIN` capability.
+  # Be sure to give root access to the pod by setting the global user/group/fsGroup
+  # values to `0` to turn on Fuse in worker.
+  fuseEnabled: false
 
 jobWorker:
   args:
@@ -217,6 +312,25 @@ jobWorker:
     web: 30003
   # JVM options specific to the jobWorker container
   jvmOptions:
+  readinessProbe:
+    initialDelaySeconds: 10
+    periodSeconds: 10
+    timeoutSeconds: 1
+    failureThreshold: 3
+    successThreshold: 1
+  livenessProbe:
+    initialDelaySeconds: 15
+    periodSeconds: 30
+    timeoutSeconds: 5
+    failureThreshold: 2
+  # If you are using Kubernetes 1.18+ or have the feature gate
+  # for it enabled, use startupProbe to prevent the livenessProbe
+  # from running until the startupProbe has succeeded
+  # startupProbe:
+  #   initialDelaySeconds: 15
+  #   periodSeconds: 30
+  #   timeoutSeconds: 5
+  #   failureThreshold: 2
 
 # Tiered Storage
 # emptyDir example
@@ -306,9 +420,12 @@ fuse:
   user: 0
   group: 0
   fsGroup: 0
+  # fuse args specific to standalone fuse
   args:
     - fuse
     - --fuse-opts=allow_other
+  # fuse options specific to fuse embedded in the worker process, separated by comma without whitespace
+  mountOptions: allow_other
   # Mount path in the host
   mountPath: /mnt/alluxio-fuse
   resources:
@@ -486,18 +603,16 @@ logserver:
 #     - "example1.com"
 #     - "example2.com"
 
-# kubernates CSI plugin
+# kubernetes CSI plugin
 csi:
   enabled: false
-  image: alluxio/alluxio-csi
-  imageTag: 2.6.0-SNAPSHOT
   imagePullPolicy: IfNotPresent
   controllerPlugin:
     hostNetwork: true
     dnsPolicy: ClusterFirstWithHostNet
     provisioner:
-      # for kubernates 1.13 or above
-      image: quay.io/k8scsi/csi-provisioner:v1.4.0
+      # for kubernetes 1.17 or above
+      image: k8s.gcr.io/sig-storage/csi-provisioner:v2.0.5
       resources:
         limits:
           cpu: 100m
@@ -527,7 +642,7 @@ csi:
           cpu: "1"
           memory: "1G"
     driverRegistrar:
-      image: quay.io/k8scsi/csi-node-driver-registrar:v1.0.2
+      image: k8s.gcr.io/sig-storage/csi-node-driver-registrar:v2.0.0
       resources:
         limits:
           cpu: 100m
@@ -550,3 +665,27 @@ csi:
     - attr_timeout=36000
     - max_readahead=0
   javaOptions: "-Dalluxio.user.metadata.cache.enabled=true "
+
+hub:
+  enabled: false
+  env:
+  # Example:
+  # JAVA_HOME: /opt/java
+  args: # Arguments to Docker entrypoint
+    - hub-manager
+  resources:
+    limits:
+      cpu: "1"
+      memory: "1G"
+    requests:
+      cpu: "1"
+      memory: "1G"
+  ports:
+    web: 30077
+    rpc: 30076
+  agent:
+    args: # Arguments to Docker entrypoint
+      - hub-agent
+    ports:
+      rpc: 30075
+  serviceAccount: default

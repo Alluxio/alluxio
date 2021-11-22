@@ -20,7 +20,6 @@ import java.io.Serializable;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
-
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -187,6 +186,7 @@ public final class GetWorkerReportOptions implements Serializable {
    */
   public static enum WorkerInfoField {
     ADDRESS,
+    BLOCK_COUNT,
     WORKER_CAPACITY_BYTES,
     WORKER_CAPACITY_BYTES_ON_TIERS,
     ID,

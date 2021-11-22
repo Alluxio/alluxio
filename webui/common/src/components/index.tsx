@@ -23,3 +23,4 @@ export * from './FileView/FileView';
 export * from './Paginator/Paginator';
 export * from './LineGraph/LineGraph';
 export * from './SlackButton/SlackButton';
+export * from './Configuration/Configuration';

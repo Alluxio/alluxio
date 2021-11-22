@@ -13,9 +13,9 @@ package alluxio.server.health;
 
 import alluxio.HealthCheckClient;
 import alluxio.conf.ServerConfiguration;
+import alluxio.master.LocalAlluxioJobCluster;
 import alluxio.master.MasterHealthCheckClient;
 import alluxio.master.job.JobMasterRpcHealthCheckClient;
-import alluxio.master.LocalAlluxioJobCluster;
 import alluxio.retry.CountingRetry;
 import alluxio.testutils.BaseIntegrationTest;
 import alluxio.testutils.LocalAlluxioClusterResource;

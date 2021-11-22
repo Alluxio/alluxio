@@ -18,6 +18,7 @@ import alluxio.grpc.ListAllPOptions;
 import alluxio.job.JobConfig;
 import alluxio.job.ServiceConstants;
 import alluxio.job.wire.JobInfo;
+import alluxio.job.wire.Status;
 import alluxio.master.AlluxioJobMasterProcess;
 import alluxio.web.JobMasterWebServer;
 
@@ -27,7 +28,8 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 
 import java.util.List;
-
+import java.util.Objects;
+import java.util.stream.Collectors;
 import javax.servlet.ServletContext;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
@@ -127,16 +129,29 @@ public final class JobMasterClientRestServiceHandler {
 
   /**
    * Lists all the jobs in the history.
+   * @param statusList the target status of jobs
+   * @param name the name of jobs
    *
    * @return the response of the names of all the jobs
    */
   @GET
   @Path(ServiceConstants.LIST)
-  public Response list() {
+  public Response list(@QueryParam("status") final List<String> statusList,
+      @QueryParam("name") final String name) {
     return RestUtils.call(new RestUtils.RestCallable<List<Long>>() {
       @Override
       public List<Long> call() throws Exception {
-        return mJobMaster.list(ListAllPOptions.getDefaultInstance());
+        if (statusList != null) {
+          return mJobMaster.list(ListAllPOptions.newBuilder()
+              .addAllStatus(statusList.stream()
+                  .map(Status::valueOf)
+                  .map(Status::toProto)
+                  .collect(Collectors.toList()))
+              .setName(Objects.toString(name, ""))
+              .build());
+        } else {
+          return mJobMaster.list(ListAllPOptions.getDefaultInstance());
+        }
       }
     }, ServerConfiguration.global());
   }

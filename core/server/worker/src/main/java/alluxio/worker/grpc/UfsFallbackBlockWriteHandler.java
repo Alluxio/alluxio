@@ -37,14 +37,13 @@ import org.slf4j.LoggerFactory;
 import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * This handler handles UFS block write request. Instead of writing a block to tiered storage, this
  * handler writes the block into UFS .
  */
-@edu.umd.cs.findbugs.annotations.SuppressFBWarnings(value = "BC_UNCONFIRMED_CAST_OF_RETURN_VALUE",
+@alluxio.annotation.SuppressFBWarnings(value = "BC_UNCONFIRMED_CAST_OF_RETURN_VALUE",
     justification = "false positive with superclass generics, "
         + "see more description in https://sourceforge.net/p/findbugs/bugs/1242/")
 @NotThreadSafe

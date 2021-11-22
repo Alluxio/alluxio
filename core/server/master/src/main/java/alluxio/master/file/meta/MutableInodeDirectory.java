@@ -25,9 +25,8 @@ import alluxio.util.CommonUtils;
 import alluxio.util.proto.ProtoUtils;
 import alluxio.wire.FileInfo;
 
-import javax.annotation.concurrent.NotThreadSafe;
-
 import java.util.HashSet;
+import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * Alluxio file system's directory representation in the file system master.

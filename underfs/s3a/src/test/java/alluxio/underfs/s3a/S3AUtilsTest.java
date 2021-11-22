@@ -16,7 +16,6 @@ import com.amazonaws.services.s3.model.CanonicalGrantee;
 import com.amazonaws.services.s3.model.GroupGrantee;
 import com.amazonaws.services.s3.model.Owner;
 import com.amazonaws.services.s3.model.Permission;
-
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;

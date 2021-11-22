@@ -14,9 +14,13 @@ package alluxio.master.journal;
 import alluxio.RpcUtils;
 import alluxio.grpc.GetQuorumInfoPRequest;
 import alluxio.grpc.GetQuorumInfoPResponse;
+import alluxio.grpc.GetTransferLeaderMessagePRequest;
+import alluxio.grpc.GetTransferLeaderMessagePResponse;
 import alluxio.grpc.JournalMasterClientServiceGrpc;
 import alluxio.grpc.RemoveQuorumServerPRequest;
 import alluxio.grpc.RemoveQuorumServerPResponse;
+import alluxio.grpc.ResetPrioritiesPRequest;
+import alluxio.grpc.ResetPrioritiesPResponse;
 import alluxio.grpc.TransferLeadershipPRequest;
 import alluxio.grpc.TransferLeadershipPResponse;
 
@@ -63,8 +67,24 @@ public class JournalMasterClientServiceHandler
   public void transferLeadership(TransferLeadershipPRequest request,
       StreamObserver<TransferLeadershipPResponse> responseObserver) {
     RpcUtils.call(LOG, () -> {
-      mJournalMaster.transferLeadership(request.getServerAddress());
-      return TransferLeadershipPResponse.getDefaultInstance();
+      String transferId = mJournalMaster.transferLeadership(request.getServerAddress());
+      return TransferLeadershipPResponse.newBuilder().setTransferId(transferId).build();
     }, "transferLeadership", "request=%s", responseObserver, request);
+  }
+
+  @Override
+  public void resetPriorities(ResetPrioritiesPRequest request,
+      StreamObserver<ResetPrioritiesPResponse> responseObserver) {
+    RpcUtils.call(LOG, () -> {
+      mJournalMaster.resetPriorities();
+      return ResetPrioritiesPResponse.getDefaultInstance();
+    }, "resetPriorities", "request=%s", responseObserver, request);
+  }
+
+  @Override
+  public void getTransferLeaderMessage(GetTransferLeaderMessagePRequest request,
+      StreamObserver<GetTransferLeaderMessagePResponse> responseObserver) {
+    RpcUtils.call(LOG, () -> mJournalMaster.getTransferLeaderMessage(request.getTransferId()),
+            "GetTransferLeaderMessage", "request=%s", responseObserver, request);
   }
 }

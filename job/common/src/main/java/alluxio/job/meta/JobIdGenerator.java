@@ -14,7 +14,6 @@ package alluxio.job.meta;
 import alluxio.util.CommonUtils;
 
 import java.util.concurrent.atomic.AtomicLong;
-
 import javax.annotation.concurrent.ThreadSafe;
 
 /**

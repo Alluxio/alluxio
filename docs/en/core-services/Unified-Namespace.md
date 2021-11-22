@@ -295,8 +295,8 @@ of change in the UFS.
 We recommend to configure the sync interval exclusively. It is not recommended to consider
 configuring the metadata load type. However, do note the following equivalencies
 
-`alluxio.user.file.metadata.load.type=NEVER` is equivalent to `alluxio.user.metadata.sync.interval=-1`
-`alluxio.user.file.metadata.load.type=ALWAYS` is equivalent to `alluxio.user.metadata.sync.interval=0`
+`alluxio.user.file.metadata.load.type=NEVER` is equivalent to `alluxio.user.file.metadata.sync.interval=-1`
+`alluxio.user.file.metadata.load.type=ALWAYS` is equivalent to `alluxio.user.file.metadata.sync.interval=0`
 
 If the metadata sync interval is configured the metadata load type is ignored.
 
@@ -355,7 +355,7 @@ The system guarantees that we will start syncing a directory if it is "quiet", o
 For example, the following setting
 
 ```
-alluxio.master.ufs.active.sync.interval=30secs
+alluxio.master.ufs.active.sync.interval=30sec
 alluxio.master.ufs.active.sync.max.activities=100
 alluxio.master.ufs.active.sync.max.age=5
 ```
@@ -391,7 +391,7 @@ $ cd ${ALLUXIO_HOME}
 $ ./bin/alluxio fs mount /demo file:///tmp/alluxio-demo
 Mounted file:///tmp/alluxio-demo at /demo
 $ ./bin/alluxio fs ls -R /
-... # note that the output should show /demo but not /demo/hello
+... # note that the output should show /demo and /demo/hello
 ```
 
 Verify that the metadata for content not created through Alluxio is loaded into Alluxio the first time it is accessed:

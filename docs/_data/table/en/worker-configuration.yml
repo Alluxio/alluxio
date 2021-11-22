@@ -100,6 +100,8 @@ alluxio.worker.network.netty.watermark.low:
   'Once the high watermark limit is reached, the queue must be flushed down to the low watermark before switching back to writable.'
 alluxio.worker.network.netty.worker.threads:
   'How many threads to use for processing requests. Zero defaults to #cpuCores * 2.'
+alluxio.worker.network.permit.keepalive.time:
+  'Specify the most aggressive keep-alive time clients are permitted to configure. The server will try to detect clients exceeding this rate and when detected will forcefully close the connection.'
 alluxio.worker.network.reader.buffer.size:
   'When a client reads from a remote worker, the maximum amount of data not received by client allowed before the worker pauses sending more data. If this value is lower than read chunk size, read performance may be impacted as worker waits more often for buffer to free up. Higher value will increase the memory consumed by each read request.'
 alluxio.worker.network.reader.max.chunk.size.bytes:
@@ -113,7 +115,25 @@ alluxio.worker.network.zerocopy.enabled:
 alluxio.worker.principal:
   'Kerberos principal for Alluxio worker.'
 alluxio.worker.ramdisk.size:
-  'Memory capacity of each worker node. It is recommended to set this value explicitly.'
+  'The allocated memory for each worker node''s ramdisk(s). It is recommended to set this value explicitly.'
+alluxio.worker.register.lease.enabled:
+  'Whether the worker requests a lease from the master before registering.This should be consistent with alluxio.master.worker.register.lease.enabled'
+alluxio.worker.register.lease.retry.max.duration:
+  'N/A'
+alluxio.worker.register.lease.retry.sleep.max:
+  'N/A'
+alluxio.worker.register.lease.retry.sleep.min:
+  'N/A'
+alluxio.worker.register.stream.batch.size:
+  'When the worker registers with the master using a stream, this defines the metadata of how many blocks should be send to the master in each batch.'
+alluxio.worker.register.stream.complete.timeout:
+  'When the worker registers the master with streaming, after all messages have been sent to the master, the worker will wait for the registration to complete on the master side. If the master is unable to finish the registration and return success to the worker within this timeout, the worker will consider the registration failed.'
+alluxio.worker.register.stream.deadline:
+  'When the worker registers with the master using a stream, this defines the total deadline for the full stream to finish.'
+alluxio.worker.register.stream.enabled:
+  'When the worker registers with the master, whether the request should be broken into a stream of smaller batches. This is useful when the worker''s storage is large and we expect a large number of blocks. '
+alluxio.worker.register.stream.response.timeout:
+  'When the worker registers the master with streaming, the worker will be sending messages to the master during the streaming.During an active stream if the master have not responded to the worker for more than this timeout, the worker will consider the master is hanging and close the stream.'
 alluxio.worker.remote.io.slow.threshold:
   'The time threshold for when a worker remote IO (read or write) of a single buffer is considered slow. When slow IO occurs, it is logged by a sampling logger.'
 alluxio.worker.reviewer.class:
@@ -137,11 +157,11 @@ alluxio.worker.tieredstore.free.ahead.bytes:
 alluxio.worker.tieredstore.level0.alias:
   'The alias of the top storage tier on this worker. It must match one of the global storage tiers from the master configuration. We disable placing an alias lower in the global hierarchy before an alias with a higher position on the worker hierarchy. So by default, SSD cannot come before MEM on any worker.'
 alluxio.worker.tieredstore.level0.dirs.mediumtype:
-  'A list of media types (e.g., &quot;MEM,SSD,SSD&quot;) for each storage directory on the top storage tier specified by alluxio.worker.tieredstore.level0.dirs.path.'
+  'A comma-separated list of media types (e.g., &quot;MEM,MEM,SSD&quot;) for each storage directory on the top storage tier specified by alluxio.worker.tieredstore.level0.dirs.path.'
 alluxio.worker.tieredstore.level0.dirs.path:
-  'The path of storage directory for the top storage tier. Note for MacOS the value should be `/Volumes/`.'
+  'A comma-separated list of paths (eg., /mnt/ramdisk1,/mnt/ramdisk2,/mnt/ssd/alluxio/cache1) of storage directories for the top storage tier. Note that for MacOS, the root directory should be `/Volumes/` and not `/mnt/`.'
 alluxio.worker.tieredstore.level0.dirs.quota:
-  'The capacity of the top storage tier.'
+  'A comma-separated list of capacities (e.g., &quot;500MB,500MB,5GB&quot;) for each storage directory on the top storage tier specified by alluxio.worker.tieredstore.level0.dirs.path. For any &quot;MEM&quot;-type media (i.e, the ramdisks), this value should be set equivalent to the value specified by alluxio.worker.ramdisk.size.'
 alluxio.worker.tieredstore.level0.watermark.high.ratio:
   'The high watermark of the space in the top storage tier (a value between 0 and 1).'
 alluxio.worker.tieredstore.level0.watermark.low.ratio:
@@ -149,11 +169,11 @@ alluxio.worker.tieredstore.level0.watermark.low.ratio:
 alluxio.worker.tieredstore.level1.alias:
   'The alias of the second storage tier on this worker.'
 alluxio.worker.tieredstore.level1.dirs.mediumtype:
-  'A list of media types (e.g., &quot;MEM,SSD,SSD&quot;) for each storage directory on the second storage tier specified by alluxio.worker.tieredstore.level1.dirs.path.'
+  'A list of media types (e.g., &quot;SSD,SSD,HDD&quot;) for each storage directory on the second storage tier specified by alluxio.worker.tieredstore.level1.dirs.path.'
 alluxio.worker.tieredstore.level1.dirs.path:
-  'The path of storage directory for the second storage tier.'
+  'A comma-separated list of paths (eg., /mnt/ssd/alluxio/cache2,/mnt/ssd/alluxio/cache3,/mnt/hdd/alluxio/cache1) of storage directories for the second storage tier.'
 alluxio.worker.tieredstore.level1.dirs.quota:
-  'The capacity of the second storage tier.'
+  'A comma-separated list of capacities (e.g., &quot;5GB,5GB,50GB&quot;) for each storage directory on the second storage tier specified by alluxio.worker.tieredstore.level1.dirs.path.'
 alluxio.worker.tieredstore.level1.watermark.high.ratio:
   'The high watermark of the space in the second storage tier (a value between 0 and 1).'
 alluxio.worker.tieredstore.level1.watermark.low.ratio:
@@ -161,11 +181,11 @@ alluxio.worker.tieredstore.level1.watermark.low.ratio:
 alluxio.worker.tieredstore.level2.alias:
   'The alias of the third storage tier on this worker.'
 alluxio.worker.tieredstore.level2.dirs.mediumtype:
-  'A list of media types (e.g., &quot;MEM,SSD,SSD&quot;) for each storage directory on the third storage tier specified by alluxio.worker.tieredstore.level2.dirs.path.'
+  'A list of media types (e.g., &quot;SSD,HDD,HDD&quot;) for each storage directory on the third storage tier specified by alluxio.worker.tieredstore.level2.dirs.path.'
 alluxio.worker.tieredstore.level2.dirs.path:
-  'The path of storage directory for the third storage tier.'
+  'A comma-separated list of paths (eg., /mnt/ssd/alluxio/cache4,/mnt/hdd/alluxio/cache2,/mnt/hdd/alluxio/cache3) of storage directories for the third storage tier.'
 alluxio.worker.tieredstore.level2.dirs.quota:
-  'The capacity of the third storage tier.'
+  'A comma-separated list of capacities (e.g., &quot;5GB,50GB,50GB&quot;) for each storage directory on the third storage tier specified by alluxio.worker.tieredstore.level2.dirs.path.'
 alluxio.worker.tieredstore.level2.watermark.high.ratio:
   'The high watermark of the space in the third storage tier (a value between 0 and 1).'
 alluxio.worker.tieredstore.level2.watermark.low.ratio:
@@ -186,3 +206,5 @@ alluxio.worker.web.hostname:
   'The hostname Alluxio worker''s web UI binds to.'
 alluxio.worker.web.port:
   'The port Alluxio worker''s web UI runs on.'
+alluxio.worker.whitelist:
+  'A comma-separated list of prefixes of the paths which are cacheable, separated by semi-colons. Alluxio will try to cache the cacheable file when it is read for the first time.'

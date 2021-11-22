@@ -11,10 +11,12 @@
 
 package alluxio;
 
+import alluxio.conf.SensitiveConfigMask;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.exception.status.InternalException;
 import alluxio.metrics.Metric;
+import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.security.User;
 import alluxio.security.authentication.AuthenticatedClientUser;
@@ -35,6 +37,9 @@ import java.io.IOException;
  */
 public final class RpcUtils {
   private RpcUtils() {} // prevent instantiation
+
+  public static final SensitiveConfigMask SENSITIVE_CONFIG_MASKER =
+      RpcSensitiveConfigMask.CREDENTIAL_FIELD_MASKER;
 
   /**
    * Calls the given {@link RpcCallableThrowsIOException} and handles any exceptions thrown. If the
@@ -107,8 +112,10 @@ public final class RpcUtils {
       String methodName, boolean failureOk, String description, Object... args)
       throws StatusException {
     // avoid string format for better performance if debug is off
-    String debugDesc = logger.isDebugEnabled() ? String.format(description, args) : null;
-    try (Timer.Context ctx = MetricsSystem.timer(getQualifiedMetricName(methodName)).time()) {
+    String debugDesc = logger.isDebugEnabled() ? String.format(description,
+        processObjects(logger, args)) : null;
+    try (MetricsSystem.MultiTimerContext ctx = new MetricsSystem.MultiTimerContext(
+        Metrics.TOTAL_RPCS, MetricsSystem.timer(getQualifiedMetricName(methodName)))) {
       MetricsSystem.counter(getQualifiedInProgressMetricName(methodName)).inc();
       logger.debug("Enter: {}: {}", methodName, debugDesc);
       T res = callable.call();
@@ -120,7 +127,8 @@ public final class RpcUtils {
         MetricsSystem.counter(getQualifiedFailureMetricName(methodName)).inc();
         if (!logger.isDebugEnabled()) {
           logger.warn("Exit (Error): {}: {}, Error={}", methodName,
-              String.format(description, args), e.toString());
+              String.format(description, processObjects(logger, args)),
+              e.toString());
         }
       }
       throw AlluxioStatusException.fromAlluxioException(e).toGrpcStatusException();
@@ -130,12 +138,14 @@ public final class RpcUtils {
         MetricsSystem.counter(getQualifiedFailureMetricName(methodName)).inc();
         if (!logger.isDebugEnabled()) {
           logger.warn("Exit (Error): {}: {}, Error={}", methodName,
-              String.format(description, args), e.toString());
+              String.format(description, processObjects(logger, args)),
+              e.toString());
         }
       }
       throw AlluxioStatusException.fromIOException(e).toGrpcStatusException();
     } catch (RuntimeException e) {
-      logger.error("Exit (Error): {}: {}", methodName, String.format(description, args), e);
+      logger.error("Exit (Error): {}: {}", methodName,
+          String.format(description, processObjects(logger, args)), e);
       MetricsSystem.counter(getQualifiedFailureMetricName(methodName)).inc();
       throw new InternalException(e).toGrpcStatusException();
     } finally {
@@ -160,7 +170,8 @@ public final class RpcUtils {
       String methodName, boolean sendResponse, boolean completeResponse,
       StreamObserver<T> responseObserver, String description, Object... args) {
     // avoid string format for better performance if debug is off
-    String debugDesc = logger.isDebugEnabled() ? String.format(description, args) : null;
+    String debugDesc = logger.isDebugEnabled() ? String.format(description,
+        processObjects(logger, args)) : null;
     try (Timer.Context ctx = MetricsSystem.timer(getQualifiedMetricName(methodName)).time()) {
       MetricsSystem.counter(getQualifiedInProgressMetricName(methodName)).inc();
       logger.debug("Enter(stream): {}: {}", methodName, debugDesc);
@@ -183,6 +194,11 @@ public final class RpcUtils {
     } finally {
       MetricsSystem.counter(getQualifiedInProgressMetricName(methodName)).dec();
     }
+  }
+
+  protected static Object[] processObjects(Logger logger, Object... args) {
+    return SENSITIVE_CONFIG_MASKER == null
+        ? args : SENSITIVE_CONFIG_MASKER.maskObjects(logger, args);
   }
 
   private static String getQualifiedMetricName(String methodName) {
@@ -238,5 +254,11 @@ public final class RpcUtils {
      * @param throwable the exception
      */
     void exceptionCaught(Throwable throwable);
+  }
+
+  private static final class Metrics {
+    /** RPC throughput. */
+    private static final Timer TOTAL_RPCS =
+        MetricsSystem.timer(MetricKey.MASTER_TOTAL_RPCS.getName());
   }
 }

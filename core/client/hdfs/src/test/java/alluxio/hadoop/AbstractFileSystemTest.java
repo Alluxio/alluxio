@@ -15,6 +15,7 @@ import static java.util.stream.Collectors.toList;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.eq;
@@ -46,6 +47,7 @@ import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.collect.Lists;
 import com.google.common.net.HostAndPort;
+import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.BlockLocation;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.Path;
@@ -91,7 +93,6 @@ public class AbstractFileSystemTest {
   private static final Logger LOG = LoggerFactory.getLogger(AbstractFileSystemTest.class);
 
   private InstancedConfiguration mConfiguration = ConfigurationTestUtils.defaults();
-  private FileSystemContext mMockFileSystemContext = mock(FileSystemContext.class);
 
   /**
    * Sets up the configuration before a test runs.
@@ -142,6 +143,64 @@ public class AbstractFileSystemTest {
     assertTrue(hfs.mFileSystem.getConf().getBoolean(PropertyKey.ZOOKEEPER_ENABLED));
     assertEquals("host1:2181,host2:2181,host3:2181",
         hfs.mFileSystem.getConf().get(PropertyKey.ZOOKEEPER_ADDRESS));
+  }
+
+  @Test
+  public void fsShouldSetPropertyConfWithLogicalUriConfig() throws Exception {
+    URI uri = URI.create("alluxio://ebj@logical/path");
+    Configuration conf = getConf();
+    conf.set(PropertyKey.Template.MASTER_LOGICAL_NAMESERVICES.format("logical").getName(),
+        "master1,master2,master3");
+    conf.set(
+        PropertyKey.Template.MASTER_LOGICAL_RPC_ADDRESS.format("logical", "master1").getName(),
+        "host1:19998");
+    conf.set(
+        PropertyKey.Template.MASTER_LOGICAL_RPC_ADDRESS.format("logical", "master2").getName(),
+        "host2:19998");
+    conf.set(
+        PropertyKey.Template.MASTER_LOGICAL_RPC_ADDRESS.format("logical", "master3").getName(),
+        "host3:19998");
+    AbstractFileSystem afs = new alluxio.hadoop.FileSystem();
+    afs.initialize(uri, conf);
+    assertEquals("host1:19998,host2:19998,host3:19998",
+        afs.mFileSystem.getConf().get(PropertyKey.MASTER_RPC_ADDRESSES));
+    assertFalse(afs.mFileSystem.getConf().getBoolean(PropertyKey.ZOOKEEPER_ENABLED));
+  }
+
+  @Test
+  public void fsShouldTriggersExceptionWithUnknownLogicalUriWith() throws Exception {
+    URI uri = URI.create("alluxio://ebj@logical/path");
+    AbstractFileSystem afs = new alluxio.hadoop.FileSystem();
+    assertThrows(Exception.class, () -> afs.initialize(uri, getConf()));
+  }
+
+  @Test
+  public void fsShouldSetPropertyConfWithZkLogicalUriConfig() throws Exception {
+    URI uri = URI.create("alluxio://zk@logical/path");
+    Configuration conf = getConf();
+    conf.set(PropertyKey.Template.MASTER_LOGICAL_ZOOKEEPER_NAMESERVICES.format("logical").getName(),
+        "node1,node2,node3");
+    conf.set(
+        PropertyKey.Template.MASTER_LOGICAL_ZOOKEEPER_ADDRESS.format("logical", "node1").getName(),
+        "host1:2181");
+    conf.set(
+        PropertyKey.Template.MASTER_LOGICAL_ZOOKEEPER_ADDRESS.format("logical", "node2").getName(),
+        "host2:2181");
+    conf.set(
+        PropertyKey.Template.MASTER_LOGICAL_ZOOKEEPER_ADDRESS.format("logical", "node3").getName(),
+        "host3:2181");
+    AbstractFileSystem afs = new alluxio.hadoop.FileSystem();
+    afs.initialize(uri, conf);
+    assertEquals("host1:2181,host2:2181,host3:2181",
+        afs.mFileSystem.getConf().get(PropertyKey.ZOOKEEPER_ADDRESS));
+    assertTrue(afs.mFileSystem.getConf().getBoolean(PropertyKey.ZOOKEEPER_ENABLED));
+  }
+
+  @Test
+  public void fsShouldTriggersExceptionWithUnknownZkLogicalUriWith() {
+    URI uri = URI.create("alluxio://zk@logical/path");
+    AbstractFileSystem afs = new alluxio.hadoop.FileSystem();
+    assertThrows(Exception.class, () -> afs.initialize(uri, getConf()));
   }
 
   @Test
@@ -368,7 +427,7 @@ public class AbstractFileSystemTest {
       Path path = new Path("/ALLUXIO-2036");
       alluxio.client.file.FileSystem alluxioFs = mock(alluxio.client.file.FileSystem.class);
       when(alluxioFs.listStatus(new AlluxioURI(HadoopUtils.getPathWithoutScheme(path))))
-        .thenThrow(new FileNotFoundException("ALLUXIO-2036 not Found"));
+          .thenThrow(new FileNotFoundException("ALLUXIO-2036 not Found"));
       alluxioHadoopFs = new FileSystem(alluxioFs);
       FileStatus[] fileStatuses = alluxioHadoopFs.listStatus(path);
       // if we reach here, FileNotFoundException is not thrown hence Fail the test case
