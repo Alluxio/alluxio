@@ -65,10 +65,12 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -146,7 +148,9 @@ public class JournalStateMachine extends BaseStateMachine {
    */
   public JournalStateMachine(Map<String, RaftJournal> journals, RaftJournalSystem journalSystem,
                              Integer maxConcurrencyPoolSize) {
-    mJournalPool = Executors.newFixedThreadPool(maxConcurrencyPoolSize);
+    ArrayBlockingQueue<Runnable> boundedQ = new ArrayBlockingQueue<>(maxConcurrencyPoolSize * 2);
+    mJournalPool = new ThreadPoolExecutor(maxConcurrencyPoolSize / 2, maxConcurrencyPoolSize, 0L,
+        TimeUnit.MILLISECONDS, boundedQ);
     LOG.info("Ihe max concurrency for notifyTermIndexUpdated is loading with max threads {}",
         maxConcurrencyPoolSize);
     mJournals = journals;
