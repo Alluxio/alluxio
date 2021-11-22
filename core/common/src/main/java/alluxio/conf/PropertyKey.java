@@ -538,7 +538,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey WEB_CORS_ENABLED =
       new Builder(Name.WEB_CORS_ENABLED)
           .setDefaultValue(false)
-          .setDescription("Set to true to enable Cross-Origin Resource Sharing for Web UI.")
+          .setDescription("Set to true to enable Cross-Origin Resource Sharing for RESTful API"
+              + "endpoints.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.SERVER)
           .build();
