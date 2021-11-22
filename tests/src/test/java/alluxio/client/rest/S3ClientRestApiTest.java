@@ -308,7 +308,7 @@ public final class S3ClientRestApiTest extends RestApiTest {
         HttpMethod.GET, expected,
         TestCaseOptions.defaults().setContentType(TestCaseOptions.XML_CONTENT_TYPE)).run();
 
-    assertEquals("folder0", expected.getContents().get(0).getKey());
+    assertEquals("folder0/", expected.getContents().get(0).getKey());
     assertEquals(0, expected.getCommonPrefixes().size());
 
     //parameters with list-type=2 and max-key=1
@@ -356,7 +356,7 @@ public final class S3ClientRestApiTest extends RestApiTest {
         HttpMethod.GET, expected,
         TestCaseOptions.defaults().setContentType(TestCaseOptions.XML_CONTENT_TYPE)).run();
 
-    assertEquals("folder0", expected.getContents().get(0).getKey());
+    assertEquals("folder0/", expected.getContents().get(0).getKey());
     assertEquals(0, expected.getCommonPrefixes().size());
   }
 
