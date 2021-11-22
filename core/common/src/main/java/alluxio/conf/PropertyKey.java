@@ -542,6 +542,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.SERVER)
           .build();
+  public static final PropertyKey WEB_REFRESH_INTERVAL =
+      new Builder(Name.WEB_REFRESH_INTERVAL)
+          .setDefaultValue("15s")
+          .setDescription("The amount of time to await before refreshing the Web UI if it is set "
+              + "to auto refresh.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.SERVER)
+          .build();
   public static final PropertyKey WEB_THREAD_DUMP_TO_LOG =
       new Builder(Name.WEB_THREAD_DUMP_TO_LOG)
           .setDefaultValue(true)
