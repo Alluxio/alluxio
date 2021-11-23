@@ -8,4 +8,6 @@
     <!-- Suppresses files in the src/main folder. To be used for rules which only apply to test
          code. -->
     <suppress files="[\\/]src[\\/]main[\\/].*|[\\/]generated-sources[\\/].*" id="TestScope" />
+    <!--  Suppress specific file  -->
+    <suppress files="hub/server/src/main/java/alluxio/hub/manager/process/ManagerProcessContext.java" checks="Indentation" />
 </suppressions>

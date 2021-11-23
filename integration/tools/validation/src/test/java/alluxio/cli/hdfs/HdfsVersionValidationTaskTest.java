@@ -11,9 +11,9 @@
 
 package alluxio.cli.hdfs;
 
+import static org.hamcrest.core.StringContains.containsString;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
-import static org.hamcrest.core.StringContains.containsString;
 
 import alluxio.cli.ValidationTaskResult;
 import alluxio.cli.ValidationUtils;

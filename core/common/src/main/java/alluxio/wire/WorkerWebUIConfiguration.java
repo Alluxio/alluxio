@@ -14,10 +14,10 @@ package alluxio.wire;
 import com.google.common.base.MoreObjects;
 import org.apache.commons.lang3.tuple.Triple;
 
-import javax.annotation.concurrent.NotThreadSafe;
 import java.io.Serializable;
 import java.util.List;
 import java.util.TreeSet;
+import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * Alluxio WebUI configuration information.

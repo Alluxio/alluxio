@@ -38,7 +38,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
-
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -102,6 +101,7 @@ public final class RocksStore implements Closeable {
     } catch (RocksDBException e) {
       throw new RuntimeException(e);
     }
+    LOG.info("Cleared store at %s", mDbPath);
   }
 
   private void resetDb() throws RocksDBException {
@@ -217,5 +217,6 @@ public final class RocksStore implements Closeable {
   @Override
   public synchronized void close() {
     stopDb();
+    LOG.info("Closed store at %s", mDbPath);
   }
 }

@@ -11,11 +11,11 @@
 
 package alluxio.client.cli.fsadmin.command;
 
-import alluxio.conf.ServerConfiguration;
 import alluxio.ProjectConstants;
-import alluxio.conf.PropertyKey;
 import alluxio.cli.fsadmin.command.ReportCommand;
 import alluxio.client.cli.fsadmin.AbstractFsAdminShellTest;
+import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
 import alluxio.util.network.NetworkAddressUtils;
 
 import org.hamcrest.CoreMatchers;

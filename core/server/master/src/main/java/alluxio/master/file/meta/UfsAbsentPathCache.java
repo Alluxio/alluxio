@@ -12,8 +12,8 @@
 package alluxio.master.file.meta;
 
 import alluxio.AlluxioURI;
-import alluxio.conf.ServerConfiguration;
 import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

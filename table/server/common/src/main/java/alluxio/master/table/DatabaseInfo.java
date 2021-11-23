@@ -15,11 +15,10 @@ import alluxio.grpc.table.PrincipalType;
 
 import com.google.common.base.MoreObjects;
 
-import javax.annotation.Nullable;
-
 import java.util.Collections;
 import java.util.Map;
 import java.util.Objects;
+import javax.annotation.Nullable;
 
 /**
  * The database information class.

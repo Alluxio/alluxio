@@ -12,7 +12,6 @@
 package alluxio.master.journal;
 
 import alluxio.RpcUtils;
-
 import alluxio.grpc.GetQuorumInfoPRequest;
 import alluxio.grpc.GetQuorumInfoPResponse;
 import alluxio.grpc.GetTransferLeaderMessagePRequest;

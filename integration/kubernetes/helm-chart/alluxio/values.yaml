@@ -17,7 +17,7 @@ fullnameOverride: alluxio
 
 # Docker Image
 image: alluxio/alluxio
-imageTag: 2.7.0-SNAPSHOT
+imageTag: 2.8.0-SNAPSHOT
 imagePullPolicy: IfNotPresent
 
 # Security Context
@@ -611,8 +611,8 @@ csi:
     hostNetwork: true
     dnsPolicy: ClusterFirstWithHostNet
     provisioner:
-      # for kubernetes 1.13 or above
-      image: quay.io/k8scsi/csi-provisioner:v1.4.0
+      # for kubernetes 1.17 or above
+      image: k8s.gcr.io/sig-storage/csi-provisioner:v2.0.5
       resources:
         limits:
           cpu: 100m
@@ -642,7 +642,7 @@ csi:
           cpu: "1"
           memory: "1G"
     driverRegistrar:
-      image: quay.io/k8scsi/csi-node-driver-registrar:v1.0.2
+      image: k8s.gcr.io/sig-storage/csi-node-driver-registrar:v2.0.0
       resources:
         limits:
           cpu: 100m

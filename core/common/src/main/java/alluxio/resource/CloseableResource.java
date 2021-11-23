@@ -14,8 +14,8 @@ package alluxio.resource;
 import io.netty.util.ResourceLeakDetector;
 import io.netty.util.ResourceLeakTracker;
 
-import javax.annotation.Nullable;
 import java.io.Closeable;
+import javax.annotation.Nullable;
 
 /**
  * A {@code CloseableResource<T>} is a wrapper around a resource of type {@code T} which must do

@@ -20,8 +20,8 @@ import javax.annotation.concurrent.ThreadSafe;
  * "id" field, we would define an index like so:
  *
  * <pre>
- * public class IndexDefinition<Inode, Long>() {
- *   @Override
+ * public class IndexDefinition&lt;Inode, Long&gt;() {
+ *   &commat;Override
  *   Long getFieldValue(Inode) {
  *     return Inode.getId();
  *   }

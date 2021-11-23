@@ -20,7 +20,6 @@ import alluxio.conf.Source;
 
 import java.util.HashMap;
 import java.util.Map;
-
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**

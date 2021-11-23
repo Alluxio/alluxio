@@ -33,7 +33,6 @@ import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.StringJoiner;
-
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**

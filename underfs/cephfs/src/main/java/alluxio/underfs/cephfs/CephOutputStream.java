@@ -13,12 +13,10 @@ package alluxio.underfs.cephfs;
 
 import com.ceph.fs.CephMount;
 
-import javax.annotation.concurrent.NotThreadSafe;
-
 import java.io.IOException;
 import java.io.OutputStream;
-
 import java.util.concurrent.atomic.AtomicBoolean;
+import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * A stream for writing a file into CephFS. The data will be persisted to a temporary

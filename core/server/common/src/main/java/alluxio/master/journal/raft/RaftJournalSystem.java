@@ -40,6 +40,7 @@ import alluxio.util.WaitForOptions;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import com.google.common.net.HostAndPort;
+import org.apache.commons.io.FileUtils;
 import org.apache.ratis.RaftConfigKeys;
 import org.apache.ratis.client.RaftClient;
 import org.apache.ratis.client.RaftClientConfigKeys;
@@ -71,7 +72,6 @@ import org.apache.ratis.util.SizeInBytes;
 import org.apache.ratis.util.TimeDuration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.apache.commons.io.FileUtils;
 
 import java.io.File;
 import java.io.IOException;
@@ -102,7 +102,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
-
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -453,6 +452,7 @@ public class RaftJournalSystem extends AbstractJournalSystem {
 
   @Override
   public synchronized void gainPrimacy() {
+    LOG.info("Gaining primacy.");
     mSnapshotAllowed.set(false);
     RaftJournalAppender client = new RaftJournalAppender(mServer, this::createClient,
         mRawClientId, ServerConfiguration.global());
@@ -482,10 +482,12 @@ public class RaftJournalSystem extends AbstractJournalSystem {
     mAsyncJournalWriter
         .set(new AsyncJournalWriter(mRaftJournalWriter, () -> getJournalSinks(null)));
     mTransferLeaderAllowed.set(true);
+    LOG.info("Gained primacy.");
   }
 
   @Override
   public synchronized void losePrimacy() {
+    LOG.info("Losing primacy.");
     if (mServer.getLifeCycleState() != LifeCycle.State.RUNNING) {
       // Avoid duplicate shut down Ratis server
       return;
@@ -526,7 +528,7 @@ public class RaftJournalSystem extends AbstractJournalSystem {
           mConf.getClusterAddresses()), e);
     }
 
-    LOG.info("Raft server successfully restarted");
+    LOG.info("Raft server successfully restarted and lost primacy");
   }
 
   @Override

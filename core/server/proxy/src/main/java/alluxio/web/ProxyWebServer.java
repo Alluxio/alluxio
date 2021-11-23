@@ -11,12 +11,12 @@
 
 package alluxio.web;
 
-import alluxio.conf.InstancedConfiguration;
-import alluxio.conf.ServerConfiguration;
 import alluxio.Constants;
-import alluxio.conf.PropertyKey;
-import alluxio.client.file.FileSystem;
 import alluxio.StreamCache;
+import alluxio.client.file.FileSystem;
+import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
 import alluxio.proxy.ProxyProcess;
 import alluxio.util.io.PathUtils;
 
@@ -25,7 +25,6 @@ import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.servlet.ServletContainer;
 
 import java.net.InetSocketAddress;
-
 import javax.annotation.concurrent.NotThreadSafe;
 import javax.servlet.ServletException;
 

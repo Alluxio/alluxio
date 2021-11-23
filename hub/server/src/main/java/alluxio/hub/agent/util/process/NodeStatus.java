@@ -21,12 +21,12 @@ import alluxio.proxy.AlluxioProxy;
 import alluxio.worker.AlluxioJobWorker;
 import alluxio.worker.AlluxioWorker;
 
-import javax.annotation.Nullable;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import javax.annotation.Nullable;
 
 /**
  * A new instance of this class will reflect the current status of each type of the

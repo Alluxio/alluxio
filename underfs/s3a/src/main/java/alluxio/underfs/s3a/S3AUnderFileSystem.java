@@ -76,9 +76,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.function.Supplier;
-
-import javax.annotation.concurrent.ThreadSafe;
 import javax.annotation.Nullable;
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * S3 {@link UnderFileSystem} implementation based on the aws-java-sdk-s3 library.
@@ -209,8 +208,41 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
       clientConf.setSignerOverride(conf.get(PropertyKey.UNDERFS_S3_SIGNER_ALGORITHM));
     }
 
+    AwsClientBuilder.EndpointConfiguration endpointConfiguration
+        = createEndpointConfiguration(conf, clientConf);
+
+    AmazonS3 amazonS3Client
+        = createAmazonS3(credentials, clientConf, endpointConfiguration, conf);
+
+    ExecutorService service = ExecutorServiceFactories
+        .fixedThreadPool("alluxio-s3-transfer-manager-worker",
+            numTransferThreads).create();
+
+    TransferManager transferManager = TransferManagerBuilder.standard()
+        .withS3Client(createAmazonS3(credentials, clientConf, endpointConfiguration, conf))
+        .withExecutorFactory(() -> service)
+        .withMultipartCopyThreshold(MULTIPART_COPY_THRESHOLD)
+        .build();
+
+    return new S3AUnderFileSystem(uri, amazonS3Client, bucketName,
+        service, transferManager, conf, streamingUploadEnabled);
+  }
+
+  /**
+   * Create an AmazonS3 client.
+   *
+   * @param credentialsProvider the credential provider
+   * @param clientConf the client config
+   * @param endpointConfiguration the endpoint config
+   * @param conf the Ufs config
+   * @return the AmazonS3 client
+   */
+  public static AmazonS3 createAmazonS3(AWSCredentialsProvider credentialsProvider,
+      ClientConfiguration clientConf,
+      AwsClientBuilder.EndpointConfiguration endpointConfiguration,
+      UnderFileSystemConfiguration conf) {
     AmazonS3ClientBuilder clientBuilder = AmazonS3Client.builder()
-        .withCredentials(credentials)
+        .withCredentials(credentialsProvider)
         .withClientConfiguration(clientConf);
 
     if (conf.getBoolean(PropertyKey.UNDERFS_S3_DISABLE_DNS_BUCKETS)) {
@@ -218,8 +250,6 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
     }
 
     boolean enableGlobalBucketAccess = true;
-    AwsClientBuilder.EndpointConfiguration endpointConfiguration
-        = createEndpointConfiguration(conf, clientConf);
     if (endpointConfiguration != null) {
       clientBuilder.withEndpointConfiguration(endpointConfiguration);
       enableGlobalBucketAccess = false;
@@ -235,6 +265,7 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
             conf.get(PropertyKey.UNDERFS_S3_REGION), e);
       }
     }
+
     if (enableGlobalBucketAccess) {
       // access bucket without region information
       // at the cost of an extra HEAD request
@@ -247,20 +278,7 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
           + "set region to {} and enable global bucket access with extra overhead",
           defaultRegion);
     }
-
-    AmazonS3 amazonS3Client = clientBuilder.build();
-
-    ExecutorService service = ExecutorServiceFactories
-        .fixedThreadPool("alluxio-s3-transfer-manager-worker",
-            numTransferThreads).create();
-
-    TransferManager transferManager = TransferManagerBuilder.standard()
-        .withS3Client(clientBuilder.build()).withExecutorFactory(() -> service)
-        .withMultipartCopyThreshold(MULTIPART_COPY_THRESHOLD)
-        .build();
-
-    return new S3AUnderFileSystem(uri, amazonS3Client, bucketName,
-        service, transferManager, conf, streamingUploadEnabled);
+    return clientBuilder.build();
   }
 
   /**

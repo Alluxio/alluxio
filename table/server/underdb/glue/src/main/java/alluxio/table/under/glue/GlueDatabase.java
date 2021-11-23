@@ -184,7 +184,7 @@ public class GlueDatabase implements UnderDatabase {
     if (!config.get(Property.AWS_GLUE_ACCESS_KEY).isEmpty()
         && !config.get(Property.AWS_GLUE_SECRET_KEY).isEmpty()) {
       return new AWSStaticCredentialsProvider(
-        new BasicAWSCredentials(
+          new BasicAWSCredentials(
           config.get(Property.AWS_GLUE_ACCESS_KEY),
           config.get(Property.AWS_GLUE_SECRET_KEY)));
     }

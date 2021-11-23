@@ -14,16 +14,15 @@ package alluxio.underfs.swift;
 import alluxio.retry.RetryPolicy;
 import alluxio.underfs.MultiRangeObjectInputStream;
 
+import org.javaswift.joss.exception.NotFoundException;
 import org.javaswift.joss.instructions.DownloadInstructions;
 import org.javaswift.joss.model.Account;
 import org.javaswift.joss.model.StoredObject;
-import org.javaswift.joss.exception.NotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
-
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**

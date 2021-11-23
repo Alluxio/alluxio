@@ -16,7 +16,6 @@ import alluxio.grpc.BlockStoreLocationProto;
 import com.google.common.base.MoreObjects;
 
 import java.util.Objects;
-
 import javax.annotation.concurrent.ThreadSafe;
 
 /**

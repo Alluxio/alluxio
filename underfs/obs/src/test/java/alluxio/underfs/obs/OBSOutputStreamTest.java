@@ -68,7 +68,7 @@ public class OBSOutputStreamTest {
   }
 
   /**
-   * Tests to ensure IOException is thrown if {@link FileOutputStream()} throws an IOException.
+   * Tests to ensure IOException is thrown if {@link FileOutputStream}() throws an IOException.
    */
   @Test
   @PrepareForTest(OBSOutputStream.class)

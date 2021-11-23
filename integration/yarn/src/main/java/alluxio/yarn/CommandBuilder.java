@@ -14,7 +14,6 @@ package alluxio.yarn;
 import com.google.common.base.Preconditions;
 
 import java.util.Vector;
-
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**

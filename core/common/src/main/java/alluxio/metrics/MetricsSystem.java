@@ -51,7 +51,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.ThreadSafe;
@@ -150,7 +149,6 @@ public final class MetricsSystem {
     METRIC_REGISTRY.registerAll(new MemoryUsageGaugeSet());
     METRIC_REGISTRY.registerAll(new ClassLoadingGaugeSet());
     METRIC_REGISTRY.registerAll(new CachedThreadStatesGaugeSet(5, TimeUnit.SECONDS));
-    METRIC_REGISTRY.registerAll(new LogStateCounterSet());
     METRIC_REGISTRY.registerAll(new OperationSystemGaugeSet());
   }
 

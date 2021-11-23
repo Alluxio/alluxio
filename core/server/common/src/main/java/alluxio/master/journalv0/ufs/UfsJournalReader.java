@@ -23,7 +23,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.URI;
-
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**

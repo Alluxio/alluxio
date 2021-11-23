@@ -13,7 +13,6 @@ package alluxio.master;
 
 import alluxio.Registry;
 import alluxio.Server;
-
 import alluxio.grpc.GrpcService;
 import alluxio.grpc.ServiceType;
 
@@ -29,7 +28,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
 import javax.annotation.Nullable;
 
 public final class RegistryTest {
