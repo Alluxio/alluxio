@@ -252,7 +252,8 @@ public final class S3RestUtils {
     try {
       URIStatus status = fs.getStatus(new AlluxioURI(bucketPath));
       if (!status.isFolder()) {
-        throw new InvalidPathException("Bucket name is not a valid Alluxio directory.");
+        throw new InvalidPathException(
+            String.format("Bucket %s is not a valid Alluxio directory.", bucketPath));
       }
     } catch (Exception e) {
       throw toBucketS3Exception(e, bucketPath);

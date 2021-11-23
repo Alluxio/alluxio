@@ -37,7 +37,12 @@ The following table describes the support status for current Amazon S3 functiona
 </table>
 
 ### Limitation
-In Alluxio, we use `/` as a reserved separator. Therefore any S3 directory with an object named `/` (eg: `s3://example-bucket//`) will conflict and behave incorrectly.
+In Alluxio, we use `/` as a reserved separator. Therefore, any S3 directory with an object named `/` (eg: `s3://example-bucket//`) will conflict and behave incorrectly.
+
+### Bucket
+Bucket must be a directory directly under a mount point.   
+If it is under a non-root mount point, the bucket separator must be used as the separator in the bucket name.   
+For example, mount:point:bucket represents Alluxio directory /mount/point/bucket.  
 
 ## Language support
 Alluxio S3 client supports various programming languages, such as C++, Java, Python, Golang, and Ruby.

@@ -49,8 +49,8 @@ import java.util.concurrent.Callable;
 public class CompleteMultipartUploadHandler extends AbstractHandler {
   private static final Logger LOG = LoggerFactory.getLogger(CompleteMultipartUploadHandler.class);
 
-  private final String mS3Prefix = Constants.REST_API_PREFIX + "/"
-      + S3RestServiceHandler.SERVICE_PREFIX + "/";
+  private final String mS3Prefix = Constants.REST_API_PREFIX + AlluxioURI.SEPARATOR
+      + S3RestServiceHandler.SERVICE_PREFIX + AlluxioURI.SEPARATOR;
 
   private final FileSystem mFileSystem;
   private final ExecutorService mExecutor;
@@ -64,8 +64,8 @@ public class CompleteMultipartUploadHandler extends AbstractHandler {
     mFileSystem = fs;
     mExecutor = Executors.newFixedThreadPool(ServerConfiguration.getInt(
         PropertyKey.PROXY_S3_COMPLETE_MULTIPART_UPLOAD_POOL_SIZE));
-    mKeepAliveTime =
-        ServerConfiguration.getMs(PropertyKey.PROXY_S3_COMPLETE_MULTIPART_UPLOAD_KEEPALIVE_TIME);
+    mKeepAliveTime = ServerConfiguration.getMs(
+        PropertyKey.PROXY_S3_COMPLETE_MULTIPART_UPLOAD_KEEPALIVE_TIME_INTERVAL);
   }
 
   /**
@@ -79,8 +79,8 @@ public class CompleteMultipartUploadHandler extends AbstractHandler {
         && request.getMethod().equals("POST")
         && request.getParameter("uploadId") != null) {
 
-      final String bucket = s.substring(mS3Prefix.length(), s.lastIndexOf("/"));
-      final String object = s.substring(s.lastIndexOf("/") + 1);
+      final String bucket = s.substring(mS3Prefix.length(), s.lastIndexOf(AlluxioURI.SEPARATOR));
+      final String object = s.substring(s.lastIndexOf(AlluxioURI.SEPARATOR) + 1);
       final Long uploadId = Long.valueOf(request.getParameter("uploadId"));
       httpServletResponse.setStatus(HttpServletResponse.SC_OK);
       httpServletResponse.setContentType("text/xml");
@@ -93,6 +93,7 @@ public class CompleteMultipartUploadHandler extends AbstractHandler {
         } catch (InterruptedException e) {
           e.printStackTrace();
         }
+        //periodically sends white space characters to keep the connection from timing out
         httpServletResponse.getWriter().print(" ");
         httpServletResponse.getWriter().flush();
       }
