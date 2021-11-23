@@ -12,10 +12,10 @@
 package alluxio.fuse;
 
 import alluxio.AlluxioURI;
-import alluxio.Constants;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
+import alluxio.client.file.MetadataCachingBaseFileSystem;
 import alluxio.client.file.URIStatus;
 import alluxio.collections.IndexDefinition;
 import alluxio.collections.IndexedSet;
@@ -154,9 +154,6 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
           public AlluxioURI load(String fusePath) {
             // fusePath is guaranteed to always be an absolute path (i.e., starts
             // with a fwd slash) - relative to the FUSE mount point
-            if (fusePath.startsWith(Constants.ALLUXIO_RESERVED_DIR)) {
-              return new AlluxioURI(fusePath);
-            }
             final String relPath = fusePath.substring(1);
             final Path tpath = mAlluxioRootPath.resolve(relPath);
             return new AlluxioURI(tpath.toString());
@@ -232,7 +229,14 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
   private int getattrInternal(String path, FileStat stat) {
     final AlluxioURI uri = mPathResolverCache.getUnchecked(path);
     try {
-      URIStatus status = mFileSystem.getStatus(uri);
+      URIStatus status = null;
+      // Handle special metadata cache operation
+      if (mConf.getBoolean(PropertyKey.USER_CLIENT_SPECIAL_COMMAND_ENABLED)
+          && mConf.getBoolean(PropertyKey.USER_METADATA_CACHE_ENABLED)) {
+        status = ((MetadataCachingBaseFileSystem) mFileSystem)
+            .clientMetadataCacheOPHandler(uri);
+      }
+      status = (status == null) ? mFileSystem.getStatus(uri) : status;
       if (!status.isCompleted()) {
         // Always block waiting for file to be completed except when the file is writing
         // We do not want to block the writing process

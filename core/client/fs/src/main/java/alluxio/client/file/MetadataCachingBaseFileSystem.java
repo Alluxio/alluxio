@@ -69,11 +69,11 @@ public class MetadataCachingBaseFileSystem extends BaseFileSystem {
     /**
      * Drop client metadata cache.
      */
-    METADATACACHE_DROP(".drop"),
+    METADATACACHE_DROP("drop"),
     /**
      * Get metadata cache size, will be return in the filed filesize.
      */
-    METADATACACHE_SIZE(".size");
+    METADATACACHE_SIZE("size");
 
     private final String mValue;
 
@@ -158,11 +158,6 @@ public class MetadataCachingBaseFileSystem extends BaseFileSystem {
   public URIStatus getStatus(AlluxioURI path, GetStatusPOptions options)
       throws FileDoesNotExistException, IOException, AlluxioException {
     checkUri(path);
-    if (mFsContext.getClusterConf().getBoolean(PropertyKey
-        .USER_CLIENT_SPECIAL_COMMAND_ENABLED) && path.getPath()
-        .startsWith(CLEAR_METADATACACHE_RESERVED)) {
-      return clientMetadataCacheOPHandler(path);
-    }
     URIStatus status = mMetadataCache.get(path);
     if (status == null || !status.isCompleted()) {
       try {
@@ -268,10 +263,20 @@ public class MetadataCachingBaseFileSystem extends BaseFileSystem {
     }
   }
 
-  private URIStatus dropMetadataCache() {
-    // TODO(bzheng) Allow input args to support clear specific path cache.
-    if (mMetadataCache.size() > 0) {
+  /**
+   * @param path the path need to drop metadata cache
+   * @return a mock RUIStatus object
+   */
+  private URIStatus dropMetadataCache(String path, String arg) {
+    if ((arg != null && arg.equals("all") && mMetadataCache.size() > 0) || path.equals("/")) {
       mMetadataCache.invalidateAll();
+    } else {
+      AlluxioURI uri = new AlluxioURI(path);
+      URIStatus status = mMetadataCache.get(uri);
+      if (status != null) {
+        mMetadataCache.invalidate(uri.getParent());
+        mMetadataCache.invalidate(uri);
+      }
     }
     return new URIStatus(new FileInfo().setCompleted(true));
   }
@@ -283,16 +288,31 @@ public class MetadataCachingBaseFileSystem extends BaseFileSystem {
   }
 
   /**
-   * @param path include the client operation info, the info pattern as blows
-   *             /.alluxiocli.metadatacache.cmd.[args]
+   * @param uri include the client metadata cache operation info, the info pattern as blows
+   *             /path/.alluxiocli.metadatacache.cmd.[args]
+   *            the args field is for future using.
    * @return a mock RUIStatus object
    */
-  public URIStatus clientMetadataCacheOPHandler(AlluxioURI path) {
+  public URIStatus clientMetadataCacheOPHandler(AlluxioURI uri) {
     URIStatus status;
-    String cmdInfo = path.getPath().substring(CLEAR_METADATACACHE_RESERVED.length());
-    switch (MetadataCmd.fromValue(cmdInfo)) {
+    int index = uri.getPath().lastIndexOf(CLEAR_METADATACACHE_RESERVED);
+    if (index == -1) {
+      return null;
+    }
+    String operInfo = uri.getPath().substring(index);
+    String path = uri.getPath().substring(0, index);
+    String [] cmdInfo = operInfo.split("\\.");
+    String arg = null;
+    if (cmdInfo.length < 4) {
+      LOG.error("Invalid metadata cache operation {}", uri.getPath());
+      return null;
+    }
+    if (cmdInfo.length == 5) {
+      arg = cmdInfo[4];
+    }
+    switch (MetadataCmd.fromValue(cmdInfo[3])) {
       case METADATACACHE_DROP:
-        status = dropMetadataCache();
+        status = dropMetadataCache(path, arg);
         break;
       case METADATACACHE_SIZE:
         status = getMetadataCacheSize();
