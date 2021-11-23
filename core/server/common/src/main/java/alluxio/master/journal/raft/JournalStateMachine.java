@@ -683,6 +683,9 @@ public class JournalStateMachine extends BaseStateMachine {
     if (mRaftGroupId == groupMemberId.getGroupId()) {
       mIsLeader = groupMemberId.getPeerId() == raftPeerId;
       if (!mIsLeader) {
+        // If this state machine wins an election right after starting or right after losing
+        // another election, it will not trigger notifyExtendedNoLeader. This is therefore the
+        // last point of contact with another leader.
         mJournalSystem.setLastLeaderTime(System.currentTimeMillis());
       }
       mJournalSystem.notifyLeadershipStateChanged(mIsLeader);
@@ -693,7 +696,9 @@ public class JournalStateMachine extends BaseStateMachine {
   }
 
   /**
-   * This function is triggered when the state machine becomes CANDIDATE.
+   * This function is triggered when the state machine becomes CANDIDATE. This function's
+   * activation is regulated by the RaftServerConfigKeys.Notification.setNoLeaderTimeout() call
+   * in RaftJournalSystem.
    */
   @Override
   public void notifyExtendedNoLeader(RaftProtos.RoleInfoProto roleInfoProto) {

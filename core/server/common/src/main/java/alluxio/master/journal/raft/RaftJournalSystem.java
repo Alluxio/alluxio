@@ -389,7 +389,7 @@ public class RaftJournalSystem extends AbstractJournalSystem {
     RaftServerConfigKeys.LeaderElection.setLeaderStepDownWaitTime(properties,
         TimeDuration.valueOf(Long.MAX_VALUE, TimeUnit.MILLISECONDS));
 
-    /* Setting this TimeDuration to 0 notifies the state machine every time the state machine
+    /* Setting this TimeDuration to 1ms notifies the state machine every time the state machine
      * transitions from FOLLOWER to CANDIDATE. We can then measure the totality of the time taken
      *  for a leader election.
      */
@@ -507,12 +507,8 @@ public class RaftJournalSystem extends AbstractJournalSystem {
         .set(new AsyncJournalWriter(mRaftJournalWriter, () -> getJournalSinks(null)));
     mTransferLeaderAllowed.set(true);
 
-    if (getLastLeaderTime() == -1) {
-      LOG.info("Gained primacy at cluster launch.");
-    } else {
-      LOG.info("Gained primacy after {}ms long election.",
-          System.currentTimeMillis() - getLastLeaderTime());
-    }
+    LOG.info("Gained primacy after {}ms long election.",
+        System.currentTimeMillis() - getLastLeaderTime());
     setLastLeaderTime(-1);
   }
 
