@@ -682,6 +682,9 @@ public class JournalStateMachine extends BaseStateMachine {
   public void notifyLeaderChanged(RaftGroupMemberId groupMemberId, RaftPeerId raftPeerId) {
     if (mRaftGroupId == groupMemberId.getGroupId()) {
       mIsLeader = groupMemberId.getPeerId() == raftPeerId;
+      if (!mIsLeader) {
+        mJournalSystem.setLastLeaderTime(System.currentTimeMillis());
+      }
       mJournalSystem.notifyLeadershipStateChanged(mIsLeader);
     } else {
       LOG.warn("Received notification for unrecognized group {}, current group is {}",

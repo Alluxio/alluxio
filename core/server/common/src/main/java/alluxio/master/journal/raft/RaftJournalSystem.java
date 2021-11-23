@@ -394,7 +394,7 @@ public class RaftJournalSystem extends AbstractJournalSystem {
      *  for a leader election.
      */
     RaftServerConfigKeys.Notification.setNoLeaderTimeout(properties,
-        TimeDuration.valueOf(1, TimeUnit.NANOSECONDS));
+        TimeDuration.valueOf(1, TimeUnit.MILLISECONDS));
 
     long messageSize = ServerConfiguration.global().getBytes(
         PropertyKey.MASTER_EMBEDDED_JOURNAL_TRANSPORT_MAX_INBOUND_MESSAGE_SIZE);
