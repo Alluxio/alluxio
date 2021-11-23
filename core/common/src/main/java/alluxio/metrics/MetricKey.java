@@ -878,6 +878,12 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setDescription("Total number of lost workers inside the cluster")
           .setMetricType(MetricType.GAUGE)
           .build();
+  public static final MetricKey CLUSTER_RAFT_FAILOVER_DURATION =
+      new Builder("Cluster.RaftFailoverDuration")
+          .setDescription("The time taken during the last failover operation when using the "
+              + "Embedded Journal")
+          .setMetricType(MetricType.GAUGE)
+          .build();
 
   // Server metrics shared by Master, Worker and other Alluxio servers
   public static final MetricKey TOTAL_EXTRA_TIME =

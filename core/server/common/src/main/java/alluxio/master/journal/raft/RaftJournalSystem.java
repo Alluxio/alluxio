@@ -31,6 +31,8 @@ import alluxio.master.journal.AbstractJournalSystem;
 import alluxio.master.journal.AsyncJournalWriter;
 import alluxio.master.journal.CatchupFuture;
 import alluxio.master.journal.Journal;
+import alluxio.metrics.MetricKey;
+import alluxio.metrics.MetricsSystem;
 import alluxio.metrics.sink.RatisDropwizardExports;
 import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.util.CommonUtils;
@@ -227,7 +229,8 @@ public class RaftJournalSystem extends AbstractJournalSystem {
   private RaftPeerId mPeerId;
   private Map<String, TransferLeaderMessage> mErrorMessages;
   /** Keeps track of the last time a leader was seen during elections. */
-  private long mLastLeaderTimeMs = -1;
+  private long mLastLeaderTime = -1;
+  private long mLastFailoverDurationMs = -1;
 
   static long nextCallId() {
     return CALL_ID_COUNTER.getAndIncrement() & Long.MAX_VALUE;
@@ -461,17 +464,17 @@ public class RaftJournalSystem extends AbstractJournalSystem {
 
   /**
    * Sets the last time a leader was seen. Triggered during failover.
-   * @param lastLeaderTimeMs the last time the leader was seen in ms
+   * @param lastLeaderTime the last time the leader was seen in ms
    */
-  public void setLastLeaderTime(long lastLeaderTimeMs) {
-    mLastLeaderTimeMs = lastLeaderTimeMs;
+  public void setLastLeaderTime(long lastLeaderTime) {
+    mLastLeaderTime = lastLeaderTime;
   }
 
   /**
    * @return the last time a leader was seen during failover
    */
   public long getLastLeaderTime() {
-    return mLastLeaderTimeMs;
+    return mLastLeaderTime;
   }
 
   @Override
@@ -507,8 +510,8 @@ public class RaftJournalSystem extends AbstractJournalSystem {
         .set(new AsyncJournalWriter(mRaftJournalWriter, () -> getJournalSinks(null)));
     mTransferLeaderAllowed.set(true);
 
-    LOG.info("Gained primacy after {}ms long election.",
-        System.currentTimeMillis() - getLastLeaderTime());
+    mLastFailoverDurationMs = System.currentTimeMillis() - getLastLeaderTime();
+    LOG.info("Gained primacy after {}ms long election.", mLastFailoverDurationMs);
     setLastLeaderTime(-1);
   }
 
@@ -763,6 +766,10 @@ public class RaftJournalSystem extends AbstractJournalSystem {
     mRaftGroup = RaftGroup.valueOf(RAFT_GROUP_ID, peers);
     initServer();
     super.registerMetrics();
+    MetricsSystem.registerGaugeIfAbsent(
+        MetricKey.CLUSTER_RAFT_FAILOVER_DURATION.getName(),
+        () -> mLastFailoverDurationMs);
+
     List<InetSocketAddress> clusterAddresses = mConf.getClusterAddresses();
     LOG.info("Starting Raft journal system. Cluster addresses: {}. Local address: {}",
         clusterAddresses, mConf.getLocalAddress());
