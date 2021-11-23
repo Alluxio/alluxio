@@ -151,13 +151,16 @@ public final class LocalFileDataReader implements DataReader {
         OpenLocalBlockResponse response = mStream.receive(mDataTimeoutMs);
         Preconditions.checkState(response.hasPath());
         mPath = response.getPath();
-        if (!Files.exists(Paths.get(mPath))) {
-          throw new NotFoundException(String.format(
-                  "LocalFileDataReader can not find the path:%s", mPath));
-        }
       } catch (Exception e) {
         mBlockWorker.close();
         throw e;
+      }
+
+      if (!Files.exists(Paths.get(mPath))) {
+        mStream.close();
+        mBlockWorker.close();
+        throw new NotFoundException(String.format(
+            "LocalFileDataReader can not find the path:%s", mPath));
       }
     }
 
