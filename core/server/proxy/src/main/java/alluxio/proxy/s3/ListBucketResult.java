@@ -176,9 +176,10 @@ public class ListBucketResult {
     mContents = new ArrayList<>();
     for (URIStatus status : objectsList) {
       mContents.add(new Content(
-          status.getPath().substring(prefix.length()),
+          status.isFolder() ? status.getPath().substring(prefix.length())
+              + AlluxioURI.SEPARATOR : status.getPath().substring(prefix.length()),
           S3RestUtils.toS3Date(status.getLastModificationTimeMs()),
-          String.valueOf(status.getLength())
+          status.isFolder() ? "0" : String.valueOf(status.getLength())
       ));
     }
 
