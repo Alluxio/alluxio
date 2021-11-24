@@ -30,7 +30,6 @@ import alluxio.util.network.NettyUtils;
 import alluxio.worker.DataServer;
 import alluxio.worker.WorkerProcess;
 
-import io.grpc.netty.NettyServerBuilder;
 import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
@@ -191,10 +190,10 @@ public final class GrpcDataServer implements DataServer {
       mRPCExecutor.shutdownNow();
       try {
         mRPCExecutor.awaitTermination(
-          ServerConfiguration.getMs(PropertyKey.NETWORK_CONNECTION_SERVER_SHUTDOWN_TIMEOUT),
-          TimeUnit.MILLISECONDS);
+            ServerConfiguration.getMs(PropertyKey.NETWORK_CONNECTION_SERVER_SHUTDOWN_TIMEOUT),
+            TimeUnit.MILLISECONDS);
       } catch (InterruptedException ie) {
-          Thread.currentThread().interrupt();
+        Thread.currentThread().interrupt();
       }
     }
   }
