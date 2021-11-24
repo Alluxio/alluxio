@@ -670,7 +670,15 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setDescription("The last raft log index which was applied to the state machine")
           .setMetricType(MetricType.GAUGE)
           .build();
-
+  public static final MetricKey MASTER_JOURNAL_CHECKPOINT_WARN =
+      new Builder("Master.JournalCheckpointWarn")
+          .setDescription(String.format("If the raft log index exceeds %s, and the "
+              + "last checkpoint exceeds %s, it returns 1 to indicate that a warning"
+              + " is required, otherwise it returns 0",
+              PropertyKey.MASTER_JOURNAL_CHECKPOINT_PERIOD_ENTRIES.getName(),
+              PropertyKey.MASTER_WEB_JOURNAL_CHECKPOINT_WARNING_THRESHOLD_TIME.getName()))
+         .setMetricType(MetricType.GAUGE)
+         .build();
   public static final MetricKey MASTER_JOURNAL_GAIN_PRIMACY_TIMER =
       new Builder("Master.JournalGainPrimacyTimer")
           .setDescription("The timer statistics of journal gain primacy")
