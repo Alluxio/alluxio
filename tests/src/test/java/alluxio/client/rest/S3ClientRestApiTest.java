@@ -183,10 +183,10 @@ public final class S3ClientRestApiTest extends RestApiTest {
     assertEquals(6, expected.getContents().size());
     assertEquals("file0", expected.getContents().get(0).getKey());
     assertEquals("file1", expected.getContents().get(1).getKey());
-    assertEquals("folder0", expected.getContents().get(2).getKey());
+    assertEquals("folder0/", expected.getContents().get(2).getKey());
     assertEquals("folder0/file0", expected.getContents().get(3).getKey());
     assertEquals("folder0/file1", expected.getContents().get(4).getKey());
-    assertEquals("folder1", expected.getContents().get(5).getKey());
+    assertEquals("folder1/", expected.getContents().get(5).getKey());
     assertEquals(0, expected.getCommonPrefixes().size());
 
     //parameters with delimiter="/"
@@ -223,7 +223,7 @@ public final class S3ClientRestApiTest extends RestApiTest {
         TestCaseOptions.defaults().setContentType(TestCaseOptions.XML_CONTENT_TYPE)).run();
 
     assertEquals(3, expected.getContents().size());
-    assertEquals("folder0", expected.getContents().get(0).getKey());
+    assertEquals("folder0/", expected.getContents().get(0).getKey());
     assertEquals("folder0/file0", expected.getContents().get(1).getKey());
     assertEquals("folder0/file1", expected.getContents().get(2).getKey());
     assertEquals(0, expected.getCommonPrefixes().size());
@@ -244,10 +244,10 @@ public final class S3ClientRestApiTest extends RestApiTest {
 
     assertEquals(5, expected.getContents().size());
     assertEquals("file1", expected.getContents().get(0).getKey());
-    assertEquals("folder0", expected.getContents().get(1).getKey());
+    assertEquals("folder0/", expected.getContents().get(1).getKey());
     assertEquals("folder0/file0", expected.getContents().get(2).getKey());
     assertEquals("folder0/file1", expected.getContents().get(3).getKey());
-    assertEquals("folder1", expected.getContents().get(4).getKey());
+    assertEquals("folder1/", expected.getContents().get(4).getKey());
     assertEquals(0, expected.getCommonPrefixes().size());
   }
 
@@ -308,7 +308,7 @@ public final class S3ClientRestApiTest extends RestApiTest {
         HttpMethod.GET, expected,
         TestCaseOptions.defaults().setContentType(TestCaseOptions.XML_CONTENT_TYPE)).run();
 
-    assertEquals("folder0", expected.getContents().get(0).getKey());
+    assertEquals("folder0/", expected.getContents().get(0).getKey());
     assertEquals(0, expected.getCommonPrefixes().size());
 
     //parameters with list-type=2 and max-key=1
@@ -356,7 +356,7 @@ public final class S3ClientRestApiTest extends RestApiTest {
         HttpMethod.GET, expected,
         TestCaseOptions.defaults().setContentType(TestCaseOptions.XML_CONTENT_TYPE)).run();
 
-    assertEquals("folder0", expected.getContents().get(0).getKey());
+    assertEquals("folder0/", expected.getContents().get(0).getKey());
     assertEquals(0, expected.getCommonPrefixes().size());
   }
 

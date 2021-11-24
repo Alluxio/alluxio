@@ -23,6 +23,13 @@ Alluxio proxy, introducing an extra hop. For optimal performance, it is recommen
 server and an Alluxio worker on each compute node. It is also recommended to put all the proxy
 servers behind a load balancer.
 
+As described in the Aws s3 document [Aws PutObject](https://docs.aws.amazon.com/AmazonS3/latest/API/API_PutObject.html):  
+> _Amazon S3 is a distributed system. If it receives multiple write requests for the same object simultaneously, it overwrites all but the last object written._  
+> _Amazon S3 does not provide object locking; if you need this, make sure to build it into your application layer or use versioning instead._  
+
+Alluxio s3 will overwrite the existing key and the temporary directory for multipart upload. 
+
+
 ## Features support
 The following table describes the support status for current Amazon S3 functional features:
 

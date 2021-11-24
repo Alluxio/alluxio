@@ -43,13 +43,16 @@ public abstract class JobAttempt {
    * @return true if an attempt was made, false if attempts ran out
    */
   public boolean run() {
-    if (mRetryPolicy.attempt()) {
+    while (mRetryPolicy.attempt()) {
       mJobId = null;
       try {
         mJobId = mClient.run(getJobConfig());
       } catch (IOException e) {
-        LOG.warn("Failed to start job", e);
-        System.out.println(String.format("Failed to start job with error: %s", e.getMessage()));
+        int retryCount = mRetryPolicy.getAttemptCount();
+        System.out.println(String.format("Retry %d Failed to start job with error: %s",
+            retryCount, e.getMessage()));
+        LOG.warn("Retry {} Failed to get status for job (jobId={}) {}", retryCount, mJobId, e);
+        continue;
         // Do nothing. This will be counted as a failed attempt
       }
       return true;
