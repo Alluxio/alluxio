@@ -451,13 +451,7 @@ public class RaftJournalSystem extends AbstractJournalSystem {
     mRaftJournalWriter = new RaftJournalWriter(nextSN, client);
     mAsyncJournalWriter
         .set(new AsyncJournalWriter(mRaftJournalWriter, () -> getJournalSinks(null)));
-<<<<<<< HEAD
-||||||| parent of 9cee247e54 (Add more logs for FT and journaling)
-    mTransferLeaderAllowed.set(true);
-=======
-    mTransferLeaderAllowed.set(true);
     LOG.info("Gained primacy.");
->>>>>>> 9cee247e54 (Add more logs for FT and journaling)
   }
 
   @Override

@@ -77,12 +77,6 @@ final class FaultTolerantAlluxioMasterProcess extends AlluxioMasterProcess {
     mJournalSystem.start();
 
     startMasters(false);
-<<<<<<< HEAD
-    LOG.info("Secondary started");
-||||||| parent of 9cee247e54 (Add more logs for FT and journaling)
-    LOG.info("Standby started");
-=======
->>>>>>> 9cee247e54 (Add more logs for FT and journaling)
 
     // Perform the initial catchup before joining leader election,
     // to avoid potential delay if this master is selected as leader
@@ -153,22 +147,8 @@ final class FaultTolerantAlluxioMasterProcess extends AlluxioMasterProcess {
       }
       // We only check unstable here because mJournalSystem.gainPrimacy() is the only slow method
       if (unstable.get()) {
-<<<<<<< HEAD
-        losePrimacy();
-||||||| parent of 9cee247e54 (Add more logs for FT and journaling)
-        if (ServerConfiguration.getBoolean(PropertyKey.MASTER_JOURNAL_EXIT_ON_DEMOTION)) {
-          stop();
-        } else {
-          losePrimacy();
-        }
-=======
         LOG.info("Terminating an unstable attempt to become a leader.");
-        if (ServerConfiguration.getBoolean(PropertyKey.MASTER_JOURNAL_EXIT_ON_DEMOTION)) {
-          stop();
-        } else {
-          losePrimacy();
-        }
->>>>>>> 9cee247e54 (Add more logs for FT and journaling)
+        losePrimacy();
         return false;
       }
     }
