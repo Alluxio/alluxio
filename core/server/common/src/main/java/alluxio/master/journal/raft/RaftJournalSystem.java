@@ -230,7 +230,7 @@ public class RaftJournalSystem extends AbstractJournalSystem {
   private Map<String, TransferLeaderMessage> mErrorMessages;
   /** Keeps track of the last time a leader was seen during elections. */
   private long mLastLeaderTime = -1;
-  private long mLastFailoverDurationMs = -1;
+  private final AtomicLong mLastFailoverDurationMs = new AtomicLong(-1);
 
   static long nextCallId() {
     return CALL_ID_COUNTER.getAndIncrement() & Long.MAX_VALUE;
@@ -510,8 +510,8 @@ public class RaftJournalSystem extends AbstractJournalSystem {
         .set(new AsyncJournalWriter(mRaftJournalWriter, () -> getJournalSinks(null)));
     mTransferLeaderAllowed.set(true);
 
-    mLastFailoverDurationMs = System.currentTimeMillis() - getLastLeaderTime();
-    LOG.info("Gained primacy after {}ms long election.", mLastFailoverDurationMs);
+    mLastFailoverDurationMs.set(System.currentTimeMillis() - getLastLeaderTime());
+    LOG.info("Gained primacy after {}ms long election.", mLastFailoverDurationMs.get());
     setLastLeaderTime(-1);
   }
 
@@ -768,7 +768,7 @@ public class RaftJournalSystem extends AbstractJournalSystem {
     super.registerMetrics();
     MetricsSystem.registerGaugeIfAbsent(
         MetricKey.CLUSTER_RAFT_FAILOVER_DURATION.getName(),
-        () -> mLastFailoverDurationMs);
+        mLastFailoverDurationMs::get);
 
     List<InetSocketAddress> clusterAddresses = mConf.getClusterAddresses();
     LOG.info("Starting Raft journal system. Cluster addresses: {}. Local address: {}",
