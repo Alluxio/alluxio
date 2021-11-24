@@ -20,12 +20,17 @@ import alluxio.grpc.GrpcServerAddress;
 import alluxio.grpc.GrpcServerBuilder;
 import alluxio.grpc.GrpcService;
 import alluxio.grpc.ServiceType;
+import alluxio.ExecutorServiceBuilder;
+import alluxio.master.AlluxioExecutorService;
+import alluxio.metrics.MetricKey;
+import alluxio.metrics.MetricsSystem;
 import alluxio.network.ChannelType;
 import alluxio.security.user.ServerUserState;
 import alluxio.util.network.NettyUtils;
 import alluxio.worker.DataServer;
 import alluxio.worker.WorkerProcess;
 
+import io.grpc.netty.NettyServerBuilder;
 import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
@@ -71,6 +76,8 @@ public final class GrpcDataServer implements DataServer {
   private GrpcServer mServer;
   /** non-null when the server is used with domain socket address.  */
   private DomainSocketAddress mDomainSocketAddress = null;
+
+  private AlluxioExecutorService mRPCExecutor = null;
 
   private final FileSystemContext mFsContext =
       FileSystemContext.create(ServerConfiguration.global());
@@ -119,9 +126,16 @@ public final class GrpcDataServer implements DataServer {
 
   private GrpcServerBuilder createServerBuilder(String hostName,
       SocketAddress bindAddress, ChannelType type) {
-    GrpcServerBuilder builder =
-        GrpcServerBuilder.forAddress(GrpcServerAddress.create(hostName, bindAddress),
-            ServerConfiguration.global(), ServerUserState.global());
+    // Create an executor for Worker RPC server.
+    mRPCExecutor = ExecutorServiceBuilder.buildExecutorService(
+            ExecutorServiceBuilder.RpcExecutorHost.WORKER);
+    MetricsSystem.registerGaugeIfAbsent(MetricKey.WORKER_RPC_QUEUE_LENGTH.getName(),
+            mRPCExecutor::getRpcQueueLength);
+    // Create underlying gRPC server.
+    GrpcServerBuilder builder = GrpcServerBuilder
+        .forAddress(GrpcServerAddress.create(hostName, bindAddress),
+            ServerConfiguration.global(), ServerUserState.global())
+        .executor(mRPCExecutor);
     int bossThreadCount = ServerConfiguration.getInt(PropertyKey.WORKER_NETWORK_NETTY_BOSS_THREADS);
 
     // If number of worker threads is 0, Netty creates (#processors * 2) threads by default.
@@ -171,6 +185,16 @@ public final class GrpcDataServer implements DataServer {
           .awaitUninterruptibly(mTimeoutMs);
       if (!completed) {
         LOG.warn("Forced worker group shutdown because graceful shutdown timed out.");
+      }
+    }
+    if (mRPCExecutor != null) {
+      mRPCExecutor.shutdownNow();
+      try {
+        mRPCExecutor.awaitTermination(
+          ServerConfiguration.getMs(PropertyKey.NETWORK_CONNECTION_SERVER_SHUTDOWN_TIMEOUT),
+          TimeUnit.MILLISECONDS);
+      } catch (InterruptedException ie) {
+          Thread.currentThread().interrupt();
       }
     }
   }

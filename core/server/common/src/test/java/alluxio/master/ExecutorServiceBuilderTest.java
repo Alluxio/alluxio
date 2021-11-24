@@ -11,6 +11,7 @@
 
 package alluxio.master;
 
+import alluxio.ExecutorServiceBuilder;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 
