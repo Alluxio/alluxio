@@ -314,7 +314,7 @@ public class StressJobServiceBench extends Benchmark<JobServiceBenchTaskResult> 
       try {
         DistributedLoadUtils.distributedLoad(cmd, pool, mParameters.mBatchSize,
             new AlluxioURI(dirPath), numReplication, new HashSet<>(), new HashSet<>(),
-            new HashSet<>(), new HashSet<>(), false);
+            new HashSet<>(), new HashSet<>(), false, false);
       } finally {
         mResult.incrementNumSuccess((long) cmd.getCompletedCount() * mParameters.mBatchSize);
       }
