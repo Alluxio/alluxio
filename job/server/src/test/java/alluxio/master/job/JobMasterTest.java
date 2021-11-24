@@ -104,11 +104,8 @@ public final class JobMasterTest {
         Lists.newArrayList(new DummyPlanConfig()), true);
 
     CompositeConfig jobConfig = new CompositeConfig(Lists.newArrayList(innerJobConfig), true);
-
     long jobId = mJobMaster.run(jobConfig);
-
     JobInfo status = mJobMaster.getStatus(jobId);
-
     Assert.assertEquals(Status.FAILED, status.getStatus());
     List<JobInfo> children = status.getChildren();
     Assert.assertEquals(1, children.size());
