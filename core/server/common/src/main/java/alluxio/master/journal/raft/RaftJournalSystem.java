@@ -301,7 +301,7 @@ public class RaftJournalSystem extends AbstractJournalSystem {
     if (mStateMachine != null) {
       mStateMachine.close();
     }
-    mStateMachine = new JournalStateMachine(mJournals, this);
+    mStateMachine = new JournalStateMachine(mJournals, this,mConf.getMaxConcurrencyPoolSize());
 
     RaftProperties properties = new RaftProperties();
     Parameters parameters = new Parameters();
