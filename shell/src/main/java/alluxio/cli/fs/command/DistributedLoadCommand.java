@@ -196,12 +196,13 @@ public final class DistributedLoadCommand extends AbstractDistributedJobCommand 
           .argName("batch-size")
           .desc("Number of files per request")
           .build();
-  private static final Option DIRECT_CACHE_OPTION =
+  private static final Option PASSIVE_CACHE_OPTION =
       Option.builder()
-          .longOpt("direct-cache")
+          .longOpt("passive-cache")
           .required(false)
           .hasArg(false)
-          .desc("Use passive-cache or direct cache request, default to use direct cache request")
+          .desc("Use passive-cache or direct cache request,"
+              + " turn on if you want to use the old passive cache implementation")
           .build();
 
   /**
@@ -224,7 +225,7 @@ public final class DistributedLoadCommand extends AbstractDistributedJobCommand 
         .addOption(INDEX_FILE)
         .addOption(HOSTS_OPTION)
         .addOption(HOST_FILE_OPTION)
-        .addOption(DIRECT_CACHE_OPTION)
+        .addOption(PASSIVE_CACHE_OPTION)
         .addOption(BATCH_SIZE_OPTION);
   }
 
@@ -260,7 +261,7 @@ public final class DistributedLoadCommand extends AbstractDistributedJobCommand 
     int defaultBatchSize = conf.getInt(PropertyKey.JOB_REQUEST_BATCH_SIZE);
     int replication = FileSystemShellUtils.getIntArg(cl, REPLICATION_OPTION, DEFAULT_REPLICATION);
     int batchSize = FileSystemShellUtils.getIntArg(cl, BATCH_SIZE_OPTION, defaultBatchSize);
-    boolean directCache = cl.hasOption(DIRECT_CACHE_OPTION.getLongOpt());
+    boolean directCache = !cl.hasOption(PASSIVE_CACHE_OPTION.getLongOpt());
     Set<String> workerSet = new HashSet<>();
     Set<String> excludedWorkerSet = new HashSet<>();
     Set<String> localityIds = new HashSet<>();
