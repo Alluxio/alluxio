@@ -114,7 +114,12 @@ public final class ZkMasterInquireClient implements MasterInquireClient, Closeab
     curatorBuilder.connectString(connectDetails.getZkAddress());
     curatorBuilder.retryPolicy(new ExponentialBackoffRetry(Constants.SECOND_MS, 3));
     curatorBuilder.zookeeperFactory(new AlluxioZookeeperFactory(authEnabled));
+    // Force compatibility mode to support writing to 3.4.x servers.
     curatorBuilder.zk34CompatibilityMode(true);
+    // Prevent using container parents as it breaks compatibility with 3.4.x servers.
+    // This is only required if the client is used to write data to zookeeper.
+    curatorBuilder.dontUseContainerParents();
+
     mClient = curatorBuilder.build();
 
     mInquireRetryCount = inquireRetryCount;
