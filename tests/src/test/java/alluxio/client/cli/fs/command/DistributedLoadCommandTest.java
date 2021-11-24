@@ -213,4 +213,41 @@ public final class DistributedLoadCommandTest extends AbstractFileSystemShellTes
       Assert.assertEquals(100, status.getInMemoryPercentage());
     }
   }
+
+  @Test
+  public void loadDirWithDirectCache() throws IOException, AlluxioException {
+    FileSystem fs = sResource.get().getClient();
+    FileSystemTestUtils.createByteFile(fs, "/testRoot/testFileD", WritePType.THROUGH,
+        10);
+    AlluxioURI uriD = new AlluxioURI("/testRoot/testFileD");
+
+    URIStatus status = fs.getStatus(uriD);
+    Assert.assertNotEquals(100, status.getInMemoryPercentage());
+    // Testing loading of a directory
+    sFsShell.run("distributedLoad", "/testRoot", "--direct-cache");
+    status = fs.getStatus(uriD);
+    Assert.assertEquals(100, status.getInMemoryPercentage());
+  }
+
+  @Test
+  public void loadDirWithDirectCacheInBatch() throws IOException, AlluxioException {
+    FileSystem fs = sResource.get().getClient();
+    int fileSize = 20;
+    List<AlluxioURI> uris = new ArrayList<>(fileSize);
+    for (int i = 0; i < fileSize; i++) {
+      FileSystemTestUtils.createByteFile(fs, "/testBatchRoot/testBatchFile" + i, WritePType.THROUGH,
+          10);
+
+      AlluxioURI uri = new AlluxioURI("/testBatchRoot/testBatchFile" + i);
+      uris.add(uri);
+      URIStatus status = fs.getStatus(uri);
+      Assert.assertNotEquals(100, status.getInMemoryPercentage());
+    }
+    // Testing loading of a directory
+    sFsShell.run("distributedLoad", "/testBatchRoot", "--batch-size", "3", "--direct-cache");
+    for (AlluxioURI uri : uris) {
+      URIStatus status = fs.getStatus(uri);
+      Assert.assertEquals(100, status.getInMemoryPercentage());
+    }
+  }
 }
