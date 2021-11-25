@@ -29,7 +29,7 @@ public class CompactionTaskResult implements TaskResult, Summary {
   private BaseParameters mBaseParameters;
   private CompactionParameters mParameters;
   private List<String> mErrors;
-  private final CompactionTaskResultStatistics mStatistics;
+  private CompactionTaskResultStatistics mStatistics;
 
   public CompactionTaskResult() {
     mErrors = new ArrayList<>();
@@ -96,8 +96,12 @@ public class CompactionTaskResult implements TaskResult, Summary {
     mStatistics.mNumSuccess += 1;
   }
 
-  public TaskResultStatistics getStatistics() {
+  public CompactionTaskResultStatistics getStatistics() {
     return mStatistics;
+  }
+
+  public void setStatistics(CompactionTaskResultStatistics statistics) {
+    mStatistics = statistics;
   }
 
   @Override

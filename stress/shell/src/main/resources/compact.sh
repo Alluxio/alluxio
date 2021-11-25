@@ -27,9 +27,11 @@ do
     --id "$i" > /dev/null
 done
 
+echo "Compacting files"
 ./bin/alluxio runClass alluxio.stress.cli.client.Compaction \
   --source-base alluxio://localhost:19998/stress-master-base/files \
   --output-base alluxio://localhost:19998/stress-master-base/files \
   --output-in-place \
   --threads 2 \
-  --compact-ratio 10
+  --compact-ratio 10 \
+  --cluster
