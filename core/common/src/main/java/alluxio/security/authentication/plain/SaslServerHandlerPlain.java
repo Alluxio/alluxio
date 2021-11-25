@@ -13,12 +13,16 @@ package alluxio.security.authentication.plain;
 
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
+import alluxio.exception.AccessControlException;
 import alluxio.security.authentication.AbstractSaslServerHandler;
 import alluxio.security.authentication.AuthType;
+import alluxio.security.authentication.AuthenticatedClientUser;
 import alluxio.security.authentication.AuthenticatedUserInfo;
 import alluxio.security.authentication.AuthenticationProvider;
 import alluxio.security.authentication.ImpersonationAuthenticator;
 import alluxio.security.authentication.SaslServerHandler;
+import alluxio.util.SecurityUtils;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -63,6 +67,14 @@ public class SaslServerHandlerPlain extends AbstractSaslServerHandler {
 
   @Override
   public AuthenticatedUserInfo getAuthenticatedUserInfo() {
+    if (SecurityUtils.isAuthenticationEnabled(ServerConfiguration.global())) {
+      try {
+        return new AuthenticatedUserInfo(mSaslServer.getAuthorizationID(),
+                AuthenticatedClientUser.getConnectionUser(ServerConfiguration.global()));
+      } catch (AccessControlException e) {
+        // do nothing
+      }
+    }
     return new AuthenticatedUserInfo(mSaslServer.getAuthorizationID());
   }
 }

@@ -4642,13 +4642,18 @@ public final class DefaultFileSystemMaster extends CoreMaster
         new FileSystemMasterAuditContext(auditLogWriter);
     if (auditLogWriter != null) {
       String user = null;
+      String connectionUser = null;
       String ugi = "";
       try {
         user = AuthenticatedClientUser.getClientUser(ServerConfiguration.global());
+        connectionUser = AuthenticatedClientUser.getConnectionUser(ServerConfiguration.global());
       } catch (AccessControlException e) {
         ugi = "N/A";
       }
       if (user != null) {
+        if (connectionUser != null && !connectionUser.equals(user)) {
+          user = connectionUser + " (auth=PROXY) via " + user;
+        }
         try {
           String primaryGroup = CommonUtils.getPrimaryGroupName(user, ServerConfiguration.global());
           ugi = user + "," + primaryGroup;

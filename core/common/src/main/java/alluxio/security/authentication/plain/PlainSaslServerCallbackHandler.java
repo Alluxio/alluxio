@@ -84,6 +84,8 @@ public final class PlainSaslServerCallbackHandler implements CallbackHandler {
 
       // After verification succeeds, a user with this authz id will be set to a Threadlocal.
       AuthenticatedClientUser.set(ac.getAuthorizedID());
+      // The user who is connecting to the alluxio's server will be set to a Threadlocal too.
+      AuthenticatedClientUser.setConnectionUser(username);
     }
   }
 }
