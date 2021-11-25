@@ -168,8 +168,8 @@ public class AlluxioMasterProcess extends MasterProcess {
     if (isServing()) {
       stopServing();
     }
-    closeMasters();
     mJournalSystem.stop();
+    closeMasters();
     LOG.info("Stopped.");
   }
 
