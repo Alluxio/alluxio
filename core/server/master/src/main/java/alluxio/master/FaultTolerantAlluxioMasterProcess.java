@@ -67,23 +67,26 @@ final class FaultTolerantAlluxioMasterProcess extends AlluxioMasterProcess {
     mLeaderSelector = Preconditions.checkNotNull(leaderSelector, "leaderSelector");
     mServingThread = null;
     mRunning = false;
+    LOG.info("New process created.");
   }
 
   @Override
   public void start() throws Exception {
+    LOG.info("Process starting.");
     mRunning = true;
     mJournalSystem.start();
 
     startMasters(false);
-    LOG.info("Secondary started");
 
     // Perform the initial catchup before joining leader election,
     // to avoid potential delay if this master is selected as leader
     if (ServerConfiguration.getBoolean(PropertyKey.MASTER_JOURNAL_CATCHUP_PROTECT_ENABLED)) {
+      LOG.info("Waiting for journals to catch up.");
       mJournalSystem.waitForCatchup();
     }
 
     try {
+      LOG.info("Starting leader selector.");
       mLeaderSelector.start(getRpcAddress());
     } catch (IOException e) {
       LOG.error(e.getMessage(), e);
@@ -92,11 +95,15 @@ final class FaultTolerantAlluxioMasterProcess extends AlluxioMasterProcess {
 
     while (!Thread.interrupted()) {
       if (!mRunning) {
+        LOG.info("FT is not running. Breaking out");
         break;
       }
       if (ServerConfiguration.getBoolean(PropertyKey.MASTER_JOURNAL_CATCHUP_PROTECT_ENABLED)) {
+        LOG.info("Waiting for journals to catch up.");
         mJournalSystem.waitForCatchup();
       }
+
+      LOG.info("Started in stand-by mode.");
       mLeaderSelector.waitForState(State.PRIMARY);
       if (!mRunning) {
         break;
@@ -124,10 +131,12 @@ final class FaultTolerantAlluxioMasterProcess extends AlluxioMasterProcess {
    * @return whether the master successfully upgraded to primary
    */
   private boolean gainPrimacy() throws Exception {
+    LOG.info("Becoming a leader.");
     // Don't upgrade if this master's primacy is unstable.
     AtomicBoolean unstable = new AtomicBoolean(false);
     try (Scoped scoped = mLeaderSelector.onStateChange(state -> unstable.set(true))) {
       if (mLeaderSelector.getState() != State.PRIMARY) {
+        LOG.info("Lost leadership while becoming a leader.");
         unstable.set(true);
       }
       stopMasters();
@@ -138,6 +147,7 @@ final class FaultTolerantAlluxioMasterProcess extends AlluxioMasterProcess {
       }
       // We only check unstable here because mJournalSystem.gainPrimacy() is the only slow method
       if (unstable.get()) {
+        LOG.info("Terminating an unstable attempt to become a leader.");
         losePrimacy();
         return false;
       }
@@ -154,6 +164,7 @@ final class FaultTolerantAlluxioMasterProcess extends AlluxioMasterProcess {
         ProcessUtils.fatalError(LOG, t, "Exception thrown in main serving thread");
       }
     }, "MasterServingThread");
+    LOG.info("Starting a server thread.");
     mServingThread.start();
     if (!waitForReady(10 * Constants.MINUTE_MS)) {
       ThreadUtils.logAllThreads();
@@ -164,6 +175,7 @@ final class FaultTolerantAlluxioMasterProcess extends AlluxioMasterProcess {
   }
 
   private void losePrimacy() throws Exception {
+    LOG.info("Losing the leadership.");
     if (mServingThread != null) {
       stopServing();
     }
@@ -189,6 +201,7 @@ final class FaultTolerantAlluxioMasterProcess extends AlluxioMasterProcess {
 
   @Override
   public void stop() throws Exception {
+    LOG.info("Stopping...");
     mRunning = false;
     super.stop();
     if (mLeaderSelector != null) {

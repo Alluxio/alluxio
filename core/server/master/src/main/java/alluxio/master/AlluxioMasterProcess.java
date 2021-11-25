@@ -154,6 +154,7 @@ public class AlluxioMasterProcess extends MasterProcess {
 
   @Override
   public void start() throws Exception {
+    LOG.info("Starting...");
     mJournalSystem.start();
     mJournalSystem.gainPrimacy();
     startMasters(true);
@@ -162,12 +163,14 @@ public class AlluxioMasterProcess extends MasterProcess {
 
   @Override
   public void stop() throws Exception {
+    LOG.info("Stopping...");
     stopRejectingServers();
     if (isServing()) {
       stopServing();
     }
     closeMasters();
     mJournalSystem.stop();
+    LOG.info("Stopped.");
   }
 
   private void initFromBackup(AlluxioURI backup) throws IOException {
@@ -195,6 +198,7 @@ public class AlluxioMasterProcess extends MasterProcess {
    * @param isLeader if the Master is leader
    */
   protected void startMasters(boolean isLeader) {
+    LOG.info("Starting all masters as: %s.", (isLeader) ? "leader" : "follower");
     try {
       if (isLeader) {
         if (ServerConfiguration.isSet(PropertyKey.MASTER_JOURNAL_INIT_FROM_BACKUP)) {
@@ -214,7 +218,7 @@ public class AlluxioMasterProcess extends MasterProcess {
       mRegistry.start(isLeader);
       // Signal state-lock-manager that masters are ready.
       mContext.getStateLockManager().mastersStartedCallback();
-      LOG.info("All masters started");
+      LOG.info("All masters started.");
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
@@ -225,7 +229,9 @@ public class AlluxioMasterProcess extends MasterProcess {
    */
   protected void stopMasters() {
     try {
+      LOG.info("Stopping all masters.");
       mRegistry.stop();
+      LOG.info("All masters stopped.");
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
@@ -236,7 +242,9 @@ public class AlluxioMasterProcess extends MasterProcess {
    */
   protected void closeMasters() {
     try {
+      LOG.info("Closing all masters.");
       mRegistry.close();
+      LOG.info("Closed all masters.");
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
