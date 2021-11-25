@@ -115,6 +115,7 @@ public final class ZkMasterInquireClient implements MasterInquireClient, Closeab
     curatorBuilder.connectString(connectDetails.getZkAddress());
     curatorBuilder.retryPolicy(new ExponentialBackoffRetry(Constants.SECOND_MS, 3));
     curatorBuilder.zookeeperFactory(new AlluxioZookeeperFactory(authEnabled));
+    curatorBuilder.zk34CompatibilityMode(true);
     mClient = curatorBuilder.build();
 
     mInquireRetryCount = inquireRetryCount;
