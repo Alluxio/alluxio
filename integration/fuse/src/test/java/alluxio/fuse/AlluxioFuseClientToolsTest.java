@@ -34,6 +34,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.util.HashMap;
@@ -43,6 +44,7 @@ import java.util.Map;
  * Isolation tests for {@link AlluxioFuseClientToolsTest}.
  */
 @RunWith(PowerMockRunner.class)
+@PrepareForTest({FileSystemContext.class})
 public class AlluxioFuseClientToolsTest {
   private AlluxioFuseClientTools mAlluxioFuseClientTools;
   private Map<AlluxioURI, URIStatus> mFileStatusMap;
@@ -70,7 +72,7 @@ public class AlluxioFuseClientToolsTest {
     when(mFileContext.acquireMasterClientResource())
         .thenReturn(new CloseableResource<FileSystemMasterClient>(mFileSystemMasterClient) {
           @Override
-          public void close() {
+          public void closeResource() {
             // Noop.
           }
         });
@@ -122,7 +124,7 @@ public class AlluxioFuseClientToolsTest {
     assertEquals(null, mAlluxioFuseClientTools.runCommand(reservedPath));
   }
 
-  class GetStatusFileSystemMasterClient extends MockFileSystemMasterClient {
+  class GetStatusFileSystemMasterClient extends MockFuseFileSystemMasterClient {
     GetStatusFileSystemMasterClient() {
     }
 

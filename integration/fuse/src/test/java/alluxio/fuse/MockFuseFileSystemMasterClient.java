@@ -46,7 +46,7 @@ import java.util.function.Consumer;
 /**
  * A mock filesystem master client for tests.
  */
-class MockFileSystemMasterClient implements FileSystemMasterClient {
+class MockFuseFileSystemMasterClient implements FileSystemMasterClient {
   @Override
   public List<AlluxioURI> checkConsistency(AlluxioURI path, CheckConsistencyPOptions options)
       throws AlluxioStatusException {
