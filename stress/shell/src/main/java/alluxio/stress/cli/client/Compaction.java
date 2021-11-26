@@ -28,6 +28,7 @@ import alluxio.stress.cli.Benchmark;
 import alluxio.stress.client.CompactionParameters;
 import alluxio.stress.client.CompactionTaskResult;
 import alluxio.util.ConfigurationUtils;
+import alluxio.util.FormatUtils;
 import alluxio.util.executor.ExecutorServiceFactories;
 import alluxio.util.io.PathUtils;
 
@@ -52,8 +53,6 @@ import java.util.stream.Collectors;
 
 public class Compaction extends Benchmark<CompactionTaskResult> {
   private static final Logger LOG = LoggerFactory.getLogger(Compaction.class);
-  // TODO(bowen): set according to Alluxio configuration
-  private static final int BUF_SIZE = 4096;
 
   protected ExecutorService mPool = null;
   @ParametersDelegate
@@ -100,8 +99,13 @@ public class Compaction extends Benchmark<CompactionTaskResult> {
             .collect(Collectors.toMap(
                 src -> src,
                 src -> mParameters.mOutputInPlace ? src : destBaseUri));
-        BenchThread thread = new BenchThread(mCachedFs[i], srcDestDirMap, mParameters.mCompactRatio,
-            mParameters.mDelayMs, mParameters.mPreserveSource);
+        BenchThread thread = new BenchThread(
+            mCachedFs[i],
+            srcDestDirMap,
+            mParameters.mCompactRatio,
+            FormatUtils.parseTimeSize(mParameters.mDelayMs),
+            (int) FormatUtils.parseSpaceSize(mParameters.mBufSize),
+            mParameters.mPreserveSource);
         CompletableFuture<CompactionTaskResult> future = CompletableFuture.supplyAsync(() -> {
           CompactionTaskResult result;
           try {
@@ -208,19 +212,22 @@ public class Compaction extends Benchmark<CompactionTaskResult> {
     /* input dir to output dir mapping */
     private final Map<AlluxioURI, AlluxioURI> mSrcDestMap;
     private final int mCompactRatio;
-    private final int mDelayMs;
+    private final long mDelayMs;
+    private final int mBufSize;
     private final boolean mPreserveSource;
-    private CompactionTaskResult mResult;
-    private Histogram mRawRecords;
+    private final CompactionTaskResult mResult;
+    private final Histogram mRawRecords;
 
     public BenchThread(FileSystem fs, Map<AlluxioURI, AlluxioURI> dirMap,
-                       int compactRatio, int delayMs, boolean preserveSource) {
+                       int compactRatio, long delayMs, int bufSize, boolean preserveSource) {
       Preconditions.checkArgument(compactRatio >= 1, "compactRatio should be 1 or greater");
       Preconditions.checkArgument(delayMs >= 0, "delayMs should be 0 or greater");
+      Preconditions.checkArgument(bufSize > 0, "buffer size should be greater than 0");
       mFs = fs;
       mSrcDestMap = dirMap;
       mCompactRatio = compactRatio;
       mDelayMs = delayMs;
+      mBufSize = bufSize;
       mPreserveSource = preserveSource;
       mResult = new CompactionTaskResult();
       mRawRecords = new Histogram(StressConstants.TIME_HISTOGRAM_MAX,
@@ -277,7 +284,7 @@ public class Compaction extends Benchmark<CompactionTaskResult> {
                     + "renaming failed after 5 attempts", outputFileName));
           }
 
-          Compactor compactor = new Compactor(inputs.iterator(), output, BUF_SIZE);
+          Compactor compactor = new Compactor(inputs.iterator(), output, mBufSize);
 
           LOG.info("Starting batch {}/{}", i, batches.size());
           try {

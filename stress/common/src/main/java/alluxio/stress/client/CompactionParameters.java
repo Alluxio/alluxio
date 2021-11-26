@@ -35,14 +35,18 @@ public class CompactionParameters extends Parameters {
   public int mThreads = 1;
 
   @Parameter(names = {"--delay"},
-      description = "Milliseconds to wait after the last job is done and before the next job "
+      description = "Time to wait after the last job is done and before the next job "
           + "is started on one thread.")
-  public int mDelayMs = 0;
+  public String mDelayMs = "0s";
 
   @Parameter(names = {"--compact-ratio"},
       description = "Ratio of source files to output compacted files. E.g. 10 means every 10 "
           + "source files get compacted into 1 big file.")
   public int mCompactRatio = 10;
+
+  @Parameter(names = {"--read-buf-size"},
+      description = "Size of the buffer for reading from the source files in one read call.")
+  public String mBufSize = "4kb";
 
   @Parameter(names = {"--preserve-source"},
       description = "Set this flag to preserve the source files after the output is written.")
