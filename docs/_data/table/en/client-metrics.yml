@@ -88,6 +88,8 @@ Client.CacheSpaceAvailable:
   'Amount of bytes available in the client cache.'
 Client.CacheSpaceUsed:
   'Amount of bytes used by the client cache.'
+Client.CachePageSize:
+  'Amount of pages used by the client cache.'
 Client.CacheSpaceUsedCount:
   'Amount of bytes used by the client cache as a counter.'
 Client.CacheState:
