@@ -15,7 +15,6 @@ import alluxio.AlluxioURI;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
-import alluxio.client.file.MetadataCachingBaseFileSystem;
 import alluxio.client.file.URIStatus;
 import alluxio.collections.IndexDefinition;
 import alluxio.collections.IndexedSet;
@@ -87,7 +86,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
   private final AtomicLong mNextOpenFileId = new AtomicLong(0);
 
   private final Map<Long, FileInStream> mOpenFileEntries = new ConcurrentHashMap<>();
-
+  private final AlluxioFuseClientTools mFuseCLientTools;
   private static final IndexDefinition<CreateFileEntry<FileOutStream>, Long>
       ID_INDEX =
       new IndexDefinition<CreateFileEntry<FileOutStream>, Long>(true) {
@@ -147,6 +146,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
     mConf = conf;
     mAlluxioRootPath = Paths.get(opts.getAlluxioRoot());
     mMountPoint = opts.getMountPoint();
+    mFuseCLientTools = new AlluxioFuseClientTools(fs, conf);
     mPathResolverCache = CacheBuilder.newBuilder()
         .maximumSize(conf.getInt(PropertyKey.FUSE_CACHED_PATHS_MAX))
         .build(new CacheLoader<String, AlluxioURI>() {
@@ -231,10 +231,9 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
     try {
       URIStatus status = null;
       // Handle special metadata cache operation
-      if (mConf.getBoolean(PropertyKey.USER_CLIENT_SPECIAL_COMMAND_ENABLED)
-          && mConf.getBoolean(PropertyKey.USER_METADATA_CACHE_ENABLED)) {
-        status = ((MetadataCachingBaseFileSystem) mFileSystem)
-            .clientMetadataCacheOPHandler(uri);
+      if (mConf.getBoolean(PropertyKey.FUSE_SPECIAL_COMMAND_ENABLED)
+          && mFuseCLientTools.isReservedPath(uri)) {
+        status = mFuseCLientTools.runCommand(uri);
       }
       status = (status == null) ? mFileSystem.getStatus(uri) : status;
       if (!status.isCompleted()) {

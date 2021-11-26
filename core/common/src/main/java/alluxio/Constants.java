@@ -56,7 +56,6 @@ public final class Constants {
   public static final String NO_SCHEME = "alluxio-noop";
   public static final String SCHEME = "alluxio";
   public static final String HEADER = SCHEME + "://";
-  public static final String ALLUXIO_RESERVED_DIR = ".alluxiocli";
 
   // Under Filesystem URI Schemes
   public static final String HEADER_ABFS = "abfs://";

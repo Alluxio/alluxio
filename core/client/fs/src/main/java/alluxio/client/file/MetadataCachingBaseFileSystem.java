@@ -61,41 +61,6 @@ public class MetadataCachingBaseFileSystem extends BaseFileSystem {
   private final ExecutorService mAccessTimeUpdater;
   private final boolean mDisableUpdateFileAccessTime;
 
-  private enum MetadataCmd {
-    /**
-    * Not support command.
-    */
-    INVALID(""),
-    /**
-     * Drop client metadata cache.
-     */
-    METADATACACHE_DROP("drop"),
-    /**
-     * Get metadata cache size, will be return in the filed filesize.
-     */
-    METADATACACHE_SIZE("size");
-
-    private final String mValue;
-
-    MetadataCmd(final String v) {
-      mValue = v;
-    }
-
-    @Override
-    public String toString() {
-      return mValue;
-    }
-
-    public static MetadataCmd fromValue(final String value) {
-      for (MetadataCmd mc : MetadataCmd.values()) {
-        if (mc.mValue.equals(value)) {
-          return mc;
-        }
-      }
-      return INVALID;
-    }
-  }
-
   /**
    * @param context the fs context
    */
@@ -264,62 +229,37 @@ public class MetadataCachingBaseFileSystem extends BaseFileSystem {
   }
 
   /**
-   * @param path the path need to drop metadata cache
+   * @param uri the uri need to drop metadata cache
    * @return a mock RUIStatus object
    */
-  private URIStatus dropMetadataCache(String path, String arg) {
-    if ((arg != null && arg.equals("all") && mMetadataCache.size() > 0) || path.equals("/")) {
-      mMetadataCache.invalidateAll();
-    } else {
-      AlluxioURI uri = new AlluxioURI(path);
-      URIStatus status = mMetadataCache.get(uri);
-      if (status != null) {
+  public URIStatus dropMetadataCache(AlluxioURI uri) {
+
+    URIStatus status = mMetadataCache.get(uri);
+    if (status != null) {
+      if (!uri.getPath().equals("/")) {
         mMetadataCache.invalidate(uri.getParent());
-        mMetadataCache.invalidate(uri);
       }
+      mMetadataCache.invalidate(uri);
     }
     return new URIStatus(new FileInfo().setCompleted(true));
   }
 
-  private URIStatus getMetadataCacheSize() {
-    // The 'ls -al' command will show metadata cache size in the <filesize> field.
-    FileInfo fi = new FileInfo().setLength(mMetadataCache.size()).setCompleted(true);
-    return new URIStatus(fi);
+  /**
+   * @return a mock RUIStatus object
+   */
+  public URIStatus dropMetadataCacheAll() {
+    if (mMetadataCache.size() > 0) {
+      mMetadataCache.invalidateAll();
+    }
+    return new URIStatus(new FileInfo().setCompleted(true));
   }
 
   /**
-   * @param uri include the client metadata cache operation info, the info pattern as blows
-   *             /path/.alluxiocli.metadatacache.cmd.[args]
-   *            the args field is for future using.
    * @return a mock RUIStatus object
    */
-  public URIStatus clientMetadataCacheOPHandler(AlluxioURI uri) {
-    URIStatus status;
-    int index = uri.getPath().lastIndexOf(CLEAR_METADATACACHE_RESERVED);
-    if (index == -1) {
-      return null;
-    }
-    String operInfo = uri.getPath().substring(index);
-    String path = uri.getPath().substring(0, index);
-    String [] cmdInfo = operInfo.split("\\.");
-    String arg = null;
-    if (cmdInfo.length < 4) {
-      LOG.error("Invalid metadata cache operation {}", uri.getPath());
-      return null;
-    }
-    if (cmdInfo.length == 5) {
-      arg = cmdInfo[4];
-    }
-    switch (MetadataCmd.fromValue(cmdInfo[3])) {
-      case METADATACACHE_DROP:
-        status = dropMetadataCache(path, arg);
-        break;
-      case METADATACACHE_SIZE:
-        status = getMetadataCacheSize();
-        break;
-      default:
-        status = new URIStatus(new FileInfo());
-    }
-    return status;
+  public URIStatus getMetadataCacheSize() {
+    // The 'ls -al' command will show metadata cache size in the <filesize> field.
+    FileInfo fi = new FileInfo().setLength(mMetadataCache.size()).setCompleted(true);
+    return new URIStatus(fi);
   }
 }

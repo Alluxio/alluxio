@@ -4461,13 +4461,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
-  public static final PropertyKey USER_CLIENT_SPECIAL_COMMAND_ENABLED =
-      new Builder(Name.USER_CLIENT_SPECIAL_COMMAND_ENABLED)
-          .setDefaultValue(false)
-          .setDescription("If this enable, user can do special operation by using 'ls' command "
-              + "from client side, such as clear metadata cache and get metadata cache size.")
-          .setScope(Scope.CLIENT)
-          .build();
   public static final PropertyKey USER_CLIENT_CACHE_STORE_OVERHEAD =
       new Builder(Name.USER_CLIENT_CACHE_STORE_OVERHEAD)
           .setDescription("A fraction value representing the storage overhead writing to disk. "
@@ -5269,6 +5262,20 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       new Builder(Name.FUSE_WEB_PORT)
           .setDefaultValue(49999)
           .setDescription("The port Alluxio FUSE web UI runs on.")
+          .setScope(Scope.CLIENT)
+          .build();
+  public static final PropertyKey FUSE_SPECIAL_COMMAND_ENABLED =
+      new Builder(Name.FUSE_SPECIAL_COMMAND_ENABLED)
+          .setDefaultValue(false)
+          .setDescription("If this enable, user can do special operation by using 'ls -l' "
+              + "command from fuse client side, such as clear metadata cache and get metadata "
+              + "cache size. For example, the fuse mount point is /tmp/alluxio_fuse, then "
+              + "'ls -l /tmp/alluxio_fuse/.alluxiocli.metadatacache.dropAll' will drop all the "
+              + "user metadata cache. "
+              + "'ls -l /tmp/alluxio_fuse/.alluxiocli.metadatacache.size' will get the cache size "
+              + ", the size value will be show in the output's filesize field. "
+              + "'ls -l /tmp/alluxio_fuse/dir/.alluxiocli.metadatacache.drop' will drop the cache "
+              + "path of /tmp/alluxio_fuse/dir")
           .setScope(Scope.CLIENT)
           .build();
 
@@ -6721,8 +6728,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.user.client.cache.timeout.duration";
     public static final String USER_CLIENT_CACHE_TIMEOUT_THREADS =
         "alluxio.user.client.cache.timeout.threads";
-    public static final String USER_CLIENT_SPECIAL_COMMAND_ENABLED =
-        "alluxio.user.client.invalid.metadata.cache.enable";
     public static final String USER_CONF_CLUSTER_DEFAULT_ENABLED =
         "alluxio.user.conf.cluster.default.enabled";
     public static final String USER_CONF_SYNC_INTERVAL = "alluxio.user.conf.sync.interval";
@@ -6923,6 +6928,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String FUSE_WEB_BIND_HOST = "alluxio.fuse.web.bind.host";
     public static final String FUSE_WEB_HOSTNAME = "alluxio.fuse.web.hostname";
     public static final String FUSE_WEB_PORT = "alluxio.fuse.web.port";
+    public static final String FUSE_SPECIAL_COMMAND_ENABLED =
+        "alluxio.fuse.special.command.enable";
 
     //
     // Security related properties
