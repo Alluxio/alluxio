@@ -1417,8 +1417,8 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setMetricType(MetricType.GAUGE)
           .setIsClusterAggregated(false)
           .build();
-  public static final MetricKey CLIENT_CACHE_PAGE_SIZE =
-      new Builder("Client.CachePageSize")
+  public static final MetricKey CLIENT_CACHE_PAGE_COUNT =
+      new Builder("Client.CachePageCount")
           .setDescription("Amount of pages used by the client cache.")
           .setMetricType(MetricType.GAUGE)
           .setIsClusterAggregated(false)

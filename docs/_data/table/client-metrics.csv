@@ -44,7 +44,7 @@ Client.CacheShadowCachePagesHit,COUNTER
 Client.CacheShadowCachePagesRead,COUNTER
 Client.CacheSpaceAvailable,GAUGE
 Client.CacheSpaceUsed,GAUGE
-Client.CachePageSize,GAUGE
+Client.CachePageCount,GAUGE
 Client.CacheSpaceUsedCount,COUNTER
 Client.CacheState,COUNTER
 Client.CacheStoreDeleteTimeout,COUNTER

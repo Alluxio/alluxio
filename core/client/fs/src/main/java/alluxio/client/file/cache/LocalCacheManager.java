@@ -723,7 +723,7 @@ public class LocalCacheManager implements CacheManager {
           MetricsSystem.getMetricName(MetricKey.CLIENT_CACHE_SPACE_USED.getName()),
           metaStore::bytes);
       MetricsSystem.registerGaugeIfAbsent(
-          MetricsSystem.getMetricName(MetricKey.CLIENT_CACHE_PAGE_SIZE.getName()),
+          MetricsSystem.getMetricName(MetricKey.CLIENT_CACHE_PAGE_COUNT.getName()),
           metaStore::pages);
     }
   }
