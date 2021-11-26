@@ -14,9 +14,12 @@ package alluxio.job.plan.meta;
 import alluxio.job.JobConfig;
 import alluxio.job.wire.Status;
 import alluxio.job.wire.TaskInfo;
+import alluxio.metrics.MetricKey;
+import alluxio.metrics.MetricsSystem;
 import alluxio.util.CommonUtils;
 import alluxio.wire.WorkerInfo;
 
+import com.codahale.metrics.Counter;
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
@@ -60,6 +63,7 @@ public final class PlanInfo implements Comparable<PlanInfo> {
     mErrorType = "";
     mErrorMessage = "";
     mStatus = Status.CREATED;
+    Metrics.JOB_CREATED.inc();
     mStatusChangeCallback = statusChangeCallback;
   }
 
@@ -218,6 +222,8 @@ public final class PlanInfo implements Comparable<PlanInfo> {
         if (mStatusChangeCallback != null) {
           mStatusChangeCallback.accept(this);
         }
+        Metrics.counter(oldStatus).dec();
+        Metrics.counter(status).inc();
       }
     }
   }
@@ -267,5 +273,36 @@ public final class PlanInfo implements Comparable<PlanInfo> {
   @Override
   public int hashCode() {
     return Objects.hashCode(mId);
+  }
+
+  @ThreadSafe
+  private static final class Metrics {
+    private static final Counter JOB_CANCELED =
+        MetricsSystem.counter(MetricKey.MASTER_JOB_CANCELED.getName());
+    private static final Counter JOB_COMPLETED =
+        MetricsSystem.counter(MetricKey.MASTER_JOB_COMPLETED.getName());
+    private static final Counter JOB_CREATED =
+        MetricsSystem.counter(MetricKey.MASTER_JOB_CREATED.getName());
+    private static final Counter JOB_FAILED =
+        MetricsSystem.counter(MetricKey.MASTER_JOB_FAILED.getName());
+    private static final Counter JOB_RUNNING =
+        MetricsSystem.counter(MetricKey.MASTER_JOB_RUNNING.getName());
+
+    private Metrics() {} // prevent instantiation
+
+    private static Counter counter(Status status) {
+      switch (status) {
+        case CREATED:
+          return JOB_CREATED;
+        case CANCELED:
+          return JOB_CANCELED;
+        case FAILED:
+          return JOB_FAILED;
+        case RUNNING:
+          return JOB_RUNNING;
+        default:
+          return JOB_COMPLETED;
+      }
+    }
   }
 }

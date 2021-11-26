@@ -33,14 +33,14 @@ public class S3AInputStream extends InputStream {
   private static final Logger LOG = LoggerFactory.getLogger(S3AInputStream.class);
 
   /** Client for operations with s3. */
-  private final AmazonS3 mClient;
+  protected AmazonS3 mClient;
   /** Name of the bucket the object resides in. */
   private final String mBucketName;
   /** The path of the object to read. */
   private final String mKey;
 
   /** The backing input stream from s3. */
-  private S3ObjectInputStream mIn;
+  protected S3ObjectInputStream mIn;
   /** The current position of the stream. */
   private long mPos;
 
@@ -146,7 +146,7 @@ public class S3AInputStream extends InputStream {
     String errorMessage = String.format("Failed to open key: %s bucket: %s", mKey, mBucketName);
     while (mRetryPolicy.attempt()) {
       try {
-        mIn = mClient.getObject(getReq).getObjectContent();
+        mIn = getClient().getObject(getReq).getObjectContent();
         return;
       } catch (AmazonS3Exception e) {
         errorMessage = String
@@ -161,6 +161,13 @@ public class S3AInputStream extends InputStream {
     }
     // Failed after retrying key does not exist
     throw new IOException(errorMessage, lastException);
+  }
+
+  /**
+   * @return the client
+   */
+  protected AmazonS3 getClient() {
+    return mClient;
   }
 
   /**

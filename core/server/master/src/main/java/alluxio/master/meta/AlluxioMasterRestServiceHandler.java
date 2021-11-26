@@ -1009,12 +1009,12 @@ public final class AlluxioMasterRestServiceHandler {
         if (metricName.contains(MetricKey.CLUSTER_BYTES_READ_UFS.getName())) {
           String ufs = alluxio.metrics.Metric.getTagUfsValueFromFullName(metricName);
           if (ufs != null && isMounted(ufs)) {
-            ufsReadSizeMap.put(ufs, FormatUtils.getSizeFromBytes(value));
+            ufsReadSizeMap.put(MetricsSystem.unescape(ufs), FormatUtils.getSizeFromBytes(value));
           }
         } else if (metricName.contains(MetricKey.CLUSTER_BYTES_WRITTEN_UFS.getName())) {
           String ufs = alluxio.metrics.Metric.getTagUfsValueFromFullName(metricName);
           if (ufs != null && isMounted(ufs)) {
-            ufsWriteSizeMap.put(ufs, FormatUtils.getSizeFromBytes(value));
+            ufsWriteSizeMap.put(MetricsSystem.unescape(ufs), FormatUtils.getSizeFromBytes(value));
           }
         } else if (metricName.endsWith("Ops")) {
           rpcInvocations
