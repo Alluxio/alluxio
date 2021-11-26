@@ -17,13 +17,25 @@ import com.beust.jcommander.Parameter;
 
 public class CompactionParameters extends Parameters {
   @Parameter(names = {"--source-base"},
-      description = "URI of the base directory where each subdirectory contains source files "
+      description = "Path of the base directory where each subdirectory contains source files "
           + "to compact")
-  public String mSourceBase = "alluxio://localhost:19998/compaction-source";
+  public String mSourceBase = "/compaction-base/source";
+
+  @Parameter(names = {"--source-dirs"},
+      description = "Number of directories containing source files to compact.")
+  public int mNumSourceDirs = 100;
+
+  @Parameter(names = {"--source-files"},
+      description = "Number of files to compact in each subdirectories.")
+  public int mNumSourceFiles = 100;
+
+  @Parameter(names = {"--source-file-size"},
+      description = "Size of the source files.")
+  public String mSourceFileSize = "8kb";
 
   @Parameter(names = {"--output-base"},
-      description = "URI of the base directory where compacted output will be written to.")
-  public String mOutputBase = "alluxio://localhost:19998/compaction-output";
+      description = "Path of the base directory where compacted output will be written to.")
+  public String mOutputBase = "/compaction-base/output";
 
   @Parameter(names = {"--output-in-place"},
       description = "Whether to output each compacted file in the same directory of its "
@@ -47,6 +59,10 @@ public class CompactionParameters extends Parameters {
   @Parameter(names = {"--read-buf-size"},
       description = "Size of the buffer for reading from the source files in one read call.")
   public String mBufSize = "4kb";
+
+  @Parameter(names = {"--skip-prepare"},
+      description = "Skip re-creating test directories and files.")
+  public boolean mSkipPrepare = false;
 
   @Parameter(names = {"--preserve-source"},
       description = "Set this flag to preserve the source files after the output is written.")

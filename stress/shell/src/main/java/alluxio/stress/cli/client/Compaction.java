@@ -12,6 +12,7 @@
 package alluxio.stress.cli.client;
 
 import alluxio.AlluxioURI;
+import alluxio.Constants;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
@@ -19,7 +20,9 @@ import alluxio.client.file.URIStatus;
 import alluxio.conf.AlluxioProperties;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
+import alluxio.exception.AlluxioException;
 import alluxio.exception.FileAlreadyExistsException;
+import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.ListStatusPOptions;
 import alluxio.retry.CountingRetry;
 import alluxio.retry.RetryPolicy;
@@ -42,6 +45,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -49,6 +53,7 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 public class Compaction extends Benchmark<CompactionTaskResult> {
@@ -58,6 +63,7 @@ public class Compaction extends Benchmark<CompactionTaskResult> {
   @ParametersDelegate
   protected final CompactionParameters mParameters = new CompactionParameters();
   protected FileSystem[] mCachedFs;
+  protected byte[] mFileData;
 
   /**
    * @param args command-line arguments
@@ -143,16 +149,78 @@ public class Compaction extends Benchmark<CompactionTaskResult> {
   @Override
   public void prepare() throws Exception {
     Preconditions.checkArgument(mParameters.mThreads > 0, "mThreads");
-
-    if (!mBaseParameters.mDistributed) {
+    // only do preparation in the original calling process
+    // not in the forked local process or the job workers
+    if (!mBaseParameters.mDistributed && !mBaseParameters.mInProcess) {
       AlluxioProperties properties = ConfigurationUtils.defaults();
       properties.set(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, "CACHE_THROUGH");
       FileSystem prepareFs = FileSystem.Factory.create(new InstancedConfiguration(properties));
+
       // Make sure the destination dir exists
       if (!mParameters.mOutputInPlace) {
         try {
-          prepareFs.createDirectory(new AlluxioURI(mParameters.mOutputBase));
+          prepareFs.createDirectory(new AlluxioURI(mParameters.mOutputBase),
+              CreateDirectoryPOptions.newBuilder().setRecursive(true).build());
         } catch (FileAlreadyExistsException ignored) {}
+      }
+
+      if (mParameters.mSkipPrepare) {
+        return;
+      }
+      // Prepare directory structure and files for tests
+      final int filesize = (int) FormatUtils.parseSpaceSize(mParameters.mSourceFileSize);
+      // cap to 1 MB as the assumption is the source files are small
+      mFileData = new byte[Math.min(filesize, Constants.MB)];
+      Arrays.fill(mFileData, (byte) 0x7A);
+
+      // Create the source dir if is does not already exist
+      final AlluxioURI sourceBaseUri = new AlluxioURI(mParameters.mSourceBase);
+      try {
+        prepareFs.createDirectory(sourceBaseUri,
+            CreateDirectoryPOptions.newBuilder().setRecursive(true).build());
+      } catch (FileAlreadyExistsException ignored) {}
+
+      final AtomicInteger numDirsCreated = new AtomicInteger();
+      int createFilesParallelism = Runtime.getRuntime().availableProcessors() * 2;
+      ExecutorService pool = ExecutorServiceFactories
+          .fixedThreadPool("compact-bench-prepare-thread", createFilesParallelism)
+          .create();
+      List<CompletableFuture<Exception>> futures = new ArrayList<>(createFilesParallelism);
+      for (int i = 0; i < createFilesParallelism; i++) {
+        CompletableFuture<Exception> future = CompletableFuture.supplyAsync(() -> {
+          try {
+            int localNumDirsCreated;
+            while ((localNumDirsCreated = numDirsCreated.getAndIncrement())
+                < mParameters.mNumSourceDirs) {
+              AlluxioURI dir = sourceBaseUri.join(Integer.toString(localNumDirsCreated));
+              try {
+                prepareFs.createDirectory(dir);
+              } catch (FileAlreadyExistsException ignored) {}
+
+              for (int f = 0; f < mParameters.mNumSourceFiles; f++) {
+                AlluxioURI path = dir.join(Integer.toString(f));
+                try (FileOutStream stream = prepareFs.createFile(path)) {
+                  for (long offset = 0; offset < filesize; offset += mFileData.length) {
+                    stream.write(mFileData, 0, (int) Math.min(mFileData.length, filesize - offset));
+                  }
+                }
+              }
+              LOG.info("{}/{} directories created",
+                  localNumDirsCreated, mParameters.mNumSourceDirs);
+            }
+          } catch (IOException | AlluxioException e) {
+            return e;
+          }
+          return null;
+        }, pool);
+        futures.add(future);
+      }
+      for (CompletableFuture<Exception> future : futures) {
+        Exception e = future.join();
+        if (e != null) {
+          LOG.error("Failed to prepare test directory and files", e);
+          throw e;
+        }
       }
     }
   }
@@ -267,26 +335,25 @@ public class Compaction extends Benchmark<CompactionTaskResult> {
           }
           RetryPolicy retry = new CountingRetry(5);
           FileOutStream output = null;
-          String outputFileName = String.format("compact_output_%d_%s", i, srcDir.getName());
+          String outputFileName = String.format("compact_output_part%d_dir%s", i, srcDir.getName());
+          String nameSuffix = "";
           while (retry.attempt()) {
             try {
               output = mFs.createFile(
-                  new AlluxioURI(PathUtils.concatPath(destDir, outputFileName)));
+                  new AlluxioURI(PathUtils.concatPath(destDir, outputFileName + nameSuffix)));
               break;
             } catch (FileAlreadyExistsException ignored) {
-              outputFileName = String.format("compact_output_%d_%s_%d",
-                  i, srcDir.getName(), retry.getAttemptCount());
+              nameSuffix = "_" + retry.getAttemptCount();
             }
           }
           if (output == null) {
             throw new FileAlreadyExistsException(
                 String.format("Output file %s already exists, "
-                    + "renaming failed after 5 attempts", outputFileName));
+                    + "renaming failed after %d attempts", outputFileName, retry.getAttemptCount()));
           }
 
           Compactor compactor = new Compactor(inputs.iterator(), output, mBufSize);
 
-          LOG.info("Starting batch {}/{}", i, batches.size());
           try {
             stopwatch.reset();
             stopwatch.start();
@@ -298,6 +365,7 @@ public class Compaction extends Benchmark<CompactionTaskResult> {
             LOG.warn("Batch {} in dir {} failed", i, e);
             mResult.addError(e.getMessage());
           }
+          LOG.info("Batch {}/{} in dir {} finished", i, batches.size(), srcDir);
           // Sleep as needed
           Thread.sleep(mDelayMs);
         }

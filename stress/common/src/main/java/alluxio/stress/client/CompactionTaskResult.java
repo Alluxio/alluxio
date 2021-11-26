@@ -15,17 +15,21 @@ import alluxio.stress.BaseParameters;
 import alluxio.stress.GraphGenerator;
 import alluxio.stress.Summary;
 import alluxio.stress.TaskResult;
+import alluxio.stress.common.SummaryStatistics;
 import alluxio.stress.common.TaskResultStatistics;
 import alluxio.stress.rpc.RpcTaskResult;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.zip.DataFormatException;
 
 import javax.annotation.Nullable;
 
-public class CompactionTaskResult implements TaskResult, Summary {
+public class CompactionTaskResult implements TaskResult {
   private BaseParameters mBaseParameters;
   private CompactionParameters mParameters;
   private List<String> mErrors;
@@ -34,6 +38,17 @@ public class CompactionTaskResult implements TaskResult, Summary {
   public CompactionTaskResult() {
     mErrors = new ArrayList<>();
     mStatistics = new CompactionTaskResultStatistics();
+  }
+
+  /**
+   * Copy constructor.
+   * @param from instance to copy from
+   */
+  public CompactionTaskResult(CompactionTaskResult from) {
+    mBaseParameters = from.mBaseParameters;
+    mParameters = from.mParameters;
+    mErrors = from.mErrors;
+    mStatistics = from.mStatistics;
   }
 
   /**
@@ -111,21 +126,42 @@ public class CompactionTaskResult implements TaskResult, Summary {
 
   private static final class Aggregator implements TaskResult.Aggregator<CompactionTaskResult> {
     @Override
-    public CompactionTaskResult aggregate(Iterable<CompactionTaskResult> results) throws Exception {
+    public CompactionSummary aggregate(Iterable<CompactionTaskResult> results) throws Exception {
       Iterator<CompactionTaskResult> iterator = results.iterator();
       if (!iterator.hasNext()) {
-        return new CompactionTaskResult();
+        return new CompactionSummary(new CompactionTaskResult());
       }
-      CompactionTaskResult aggreResult = iterator.next();
+      CompactionTaskResult mergedResult = new CompactionTaskResult(iterator.next());
       while (iterator.hasNext()) {
-        aggreResult.merge(iterator.next());
+        mergedResult.merge(iterator.next());
       }
-      return aggreResult;
+      return new CompactionSummary(mergedResult);
     }
   }
 
-  @Override
-  public GraphGenerator graphGenerator() {
-    return null;
+  public static class CompactionSummary implements Summary {
+    @JsonProperty("baseParameters")
+    private final BaseParameters mBaseParameters;
+    @JsonProperty("parameters")
+    private final CompactionParameters mParameters;
+    @JsonProperty("numSuccess")
+    private final long mNumSuccess;
+    @JsonProperty("errors")
+    private final List<String> mErrors;
+    @JsonProperty("statistics")
+    private final SummaryStatistics mSummaryStatistics;
+
+    public CompactionSummary(CompactionTaskResult mergedResult) throws DataFormatException {
+      mBaseParameters = mergedResult.getBaseParameters();
+      mParameters = mergedResult.getParameters();
+      mNumSuccess = mergedResult.getStatistics().mNumSuccess;
+      mErrors = mergedResult.getErrors();
+      mSummaryStatistics = mergedResult.getStatistics().toBenchSummaryStatistics();
+    }
+
+    @Override
+    public GraphGenerator graphGenerator() {
+      return null;
+    }
   }
 }
