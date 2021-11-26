@@ -114,6 +114,7 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
     boolean shortCircuit = alluxioConf.getBoolean(PropertyKey.USER_SHORT_CIRCUIT_ENABLED);
     boolean shortCircuitPreferred =
         alluxioConf.getBoolean(PropertyKey.USER_SHORT_CIRCUIT_PREFERRED);
+    boolean shortCircuitSecure = alluxioConf.getBoolean(PropertyKey.USER_SECURE_SHORT_CIRCUIT_READ_ENABLED);
     boolean sourceSupportsDomainSocket = NettyUtils.isDomainSocketSupported(dataSource);
     boolean sourceIsLocal = dataSourceType == BlockInStreamSource.NODE_LOCAL;
 
@@ -122,10 +123,11 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
     // 2. alluxio.user.short.circuit.enabled is true
     // 3. the worker's domain socket is not configured
     //      OR alluxio.user.short.circuit.preferred is true
-    if (sourceIsLocal && shortCircuit && (shortCircuitPreferred || !sourceSupportsDomainSocket)) {
+    //      OR alluxio.user.secure.short.circuit.read.enabled is true
+    if (sourceIsLocal && shortCircuit && (shortCircuitPreferred || !sourceSupportsDomainSocket || shortCircuitSecure)) {
       LOG.debug("Creating short circuit input stream for block {} @ {}", blockId, dataSource);
       try {
-        return createLocalBlockInStream(context, dataSource, blockId, blockSize, options);
+        return createLocalBlockInStream(context, dataSource, blockId, blockSize, options, shortCircuitSecure);
       } catch (NotFoundException e) {
         // Failed to do short circuit read because the block is not available in Alluxio.
         // We will try to read via gRPC. So this exception is ignored.
@@ -174,14 +176,21 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
    * @param blockId the block ID
    * @param length the block length
    * @param options the in stream options
+   * @param shortCircuitSecure whether use secure shortcircuit read or not
    * @return the {@link BlockInStream} created
    */
   private static BlockInStream createLocalBlockInStream(FileSystemContext context,
-      WorkerNetAddress address, long blockId, long length, InStreamOptions options)
+      WorkerNetAddress address, long blockId, long length, InStreamOptions options, boolean shortCircuitSecure)
       throws IOException {
     AlluxioConfiguration conf = context.getClusterConf();
     long chunkSize = conf.getBytes(
         PropertyKey.USER_LOCAL_READER_CHUNK_SIZE_BYTES);
+    
+    if (shortCircuitSecure) {
+      return new BlockInStream(
+          new LocalFileSecureDataReader.Factory(context, blockId, chunkSize, options),
+          conf, address, BlockInStreamSource.NODE_LOCAL, blockId, length);
+    }
     return new BlockInStream(
         new LocalFileDataReader.Factory(context, address, blockId, chunkSize, options),
         conf, address, BlockInStreamSource.NODE_LOCAL, blockId, length);

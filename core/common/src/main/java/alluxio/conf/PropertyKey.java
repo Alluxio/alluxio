@@ -5138,6 +5138,21 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
+  public static final PropertyKey USER_SECURE_SHORT_CIRCUIT_READ_ENABLED =
+      new Builder(Name.USER_SECURE_SHORT_CIRCUIT_READ_ENABLED)
+          .setDefaultValue(false)
+          .setDescription("If this is enabled, the clients fetch file descriptor but not file path " 
+              + "from worker, called secure shortcircuit read ie. ")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.CLIENT)
+          .build();
+  
+  public static final PropertyKey WORKER_SECURE_SHORT_CIRCUIT_READ_DOMAIN_SOCKET_ADDRESS =
+      new Builder(Name.WORKER_SECURE_SHORT_CIRCUIT_READ_DOMAIN_SOCKET_ADDRESS)
+          .setDescription("The domain socket path used for secure shortcircuit read")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.ALL)
+          .build();
 
   //
   // FUSE integration related properties
@@ -6462,6 +6477,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.worker.data.server.domain.socket.address";
     public static final String WORKER_DATA_SERVER_DOMAIN_SOCKET_AS_UUID =
         "alluxio.worker.data.server.domain.socket.as.uuid";
+    public static final String WORKER_SECURE_SHORT_CIRCUIT_READ_DOMAIN_SOCKET_ADDRESS =
+        "alluxio.worker.secure.shortcircuit.read.domain.socket.address";
     public static final String WORKER_DATA_TMP_FOLDER = "alluxio.worker.data.folder.tmp";
     public static final String WORKER_DATA_TMP_SUBDIR_MAX = "alluxio.worker.data.tmp.subdir.max";
     public static final String WORKER_EVICTOR_CLASS = "alluxio.worker.evictor.class";
@@ -6887,6 +6904,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String USER_SHORT_CIRCUIT_ENABLED = "alluxio.user.short.circuit.enabled";
     public static final String USER_SHORT_CIRCUIT_PREFERRED =
         "alluxio.user.short.circuit.preferred";
+    public static final String USER_SECURE_SHORT_CIRCUIT_READ_ENABLED = 
+        "alluxio.user.secure.short.circuit.read.enabled";
     public static final String USER_WORKER_LIST_REFRESH_INTERVAL =
         "alluxio.user.worker.list.refresh.interval";
 
