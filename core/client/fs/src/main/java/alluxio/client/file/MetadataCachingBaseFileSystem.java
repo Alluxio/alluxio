@@ -230,10 +230,8 @@ public class MetadataCachingBaseFileSystem extends BaseFileSystem {
 
   /**
    * @param uri the uri need to drop metadata cache
-   * @return a mock RUIStatus object
    */
-  public URIStatus dropMetadataCache(AlluxioURI uri) {
-
+  public void dropMetadataCache(AlluxioURI uri) {
     URIStatus status = mMetadataCache.get(uri);
     if (status != null) {
       if (!uri.getPath().equals("/")) {
@@ -241,25 +239,21 @@ public class MetadataCachingBaseFileSystem extends BaseFileSystem {
       }
       mMetadataCache.invalidate(uri);
     }
-    return new URIStatus(new FileInfo().setCompleted(true));
   }
 
   /**
-   * @return a mock RUIStatus object
+   * Drop all metadata cache.
    */
-  public URIStatus dropMetadataCacheAll() {
+  public void dropMetadataCacheAll() {
     if (mMetadataCache.size() > 0) {
       mMetadataCache.invalidateAll();
     }
-    return new URIStatus(new FileInfo().setCompleted(true));
   }
 
   /**
-   * @return a mock RUIStatus object
+   * @return metadata cache size
    */
-  public URIStatus getMetadataCacheSize() {
-    // The 'ls -al' command will show metadata cache size in the <filesize> field.
-    FileInfo fi = new FileInfo().setLength(mMetadataCache.size()).setCompleted(true);
-    return new URIStatus(fi);
+  public long getMetadataCacheSize() {
+    return mMetadataCache.size();
   }
 }

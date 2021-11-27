@@ -17,6 +17,7 @@ import alluxio.client.file.MetadataCachingBaseFileSystem;
 import alluxio.client.file.URIStatus;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
+import alluxio.wire.FileInfo;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -113,13 +114,17 @@ public final class AlluxioFuseClientTools {
     }
     switch (cmd) {
       case "dropAll":
-        status = ((MetadataCachingBaseFileSystem) mFileSystem).dropMetadataCacheAll();
+        ((MetadataCachingBaseFileSystem) mFileSystem).dropMetadataCacheAll();
+        status = new URIStatus(new FileInfo().setCompleted(true));
         break;
       case "drop":
-        status = ((MetadataCachingBaseFileSystem) mFileSystem).dropMetadataCache(path);
+        ((MetadataCachingBaseFileSystem) mFileSystem).dropMetadataCache(path);
+        status = new URIStatus(new FileInfo().setCompleted(true));
         break;
       case "size":
-        status = ((MetadataCachingBaseFileSystem) mFileSystem).getMetadataCacheSize();
+        // The 'ls -al' command will show metadata cache size in the <filesize> field.
+        long size = ((MetadataCachingBaseFileSystem) mFileSystem).getMetadataCacheSize();
+        status = new URIStatus(new FileInfo().setLength(size).setCompleted(true));
         break;
       default:
         LOG.error("Unsupported metadata cache command {}", cmd);
