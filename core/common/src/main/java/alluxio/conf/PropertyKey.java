@@ -3877,6 +3877,34 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.SERVER)
           .build();
+  public static final PropertyKey PROXY_S3_MULTIPART_UPLOAD_TIMEOUT =
+      new Builder(Name.PROXY_S3_MULTIPART_UPLOAD_TIMEOUT)
+          .setDefaultValue("10min")
+          .setDescription("The timeout for aborting proxy s3 multipart upload automatically.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.SERVER)
+          .build();
+  public static final PropertyKey PROXY_S3_MULTIPART_UPLOAD_CLEANER_RETRY_COUNT =
+      new Builder(Name.PROXY_S3_MULTIPART_UPLOAD_CLEANER_RETRY_COUNT)
+          .setDefaultValue(3)
+          .setDescription("The retry count when aborting a multipart upload fails.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.SERVER)
+          .build();
+  public static final PropertyKey PROXY_S3_MULTIPART_UPLOAD_CLEANER_RETRY_DELAY =
+      new Builder(Name.PROXY_S3_MULTIPART_UPLOAD_CLEANER_RETRY_DELAY)
+          .setDefaultValue("10sec")
+          .setDescription("The retry delay time when aborting a multipart upload fails.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.SERVER)
+          .build();
+  public static final PropertyKey PROXY_S3_MULTIPART_UPLOAD_CLEANER_POOL_SIZE =
+      new Builder(Name.PROXY_S3_MULTIPART_UPLOAD_CLEANER_POOL_SIZE)
+          .setDefaultValue(1)
+          .setDescription("The abort multipart upload cleaner pool size.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.SERVER)
+          .build();
   public static final PropertyKey PROXY_STREAM_CACHE_TIMEOUT_MS =
       new Builder(Name.PROXY_STREAM_CACHE_TIMEOUT_MS)
           .setAlias("alluxio.proxy.stream.cache.timeout.ms")
@@ -6572,6 +6600,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String PROXY_S3_DELETE_TYPE = "alluxio.proxy.s3.deletetype";
     public static final String PROXY_S3_MULTIPART_TEMPORARY_DIR_SUFFIX =
         "alluxio.proxy.s3.multipart.temporary.dir.suffix";
+    public static final String PROXY_S3_MULTIPART_UPLOAD_TIMEOUT =
+        "alluxio.proxy.s3.multipart.upload.timeout";
+    public static final String PROXY_S3_MULTIPART_UPLOAD_CLEANER_RETRY_COUNT =
+        "alluxio.proxy.s3.multipart.upload.cleaner.retry.count";
+    public static final String PROXY_S3_MULTIPART_UPLOAD_CLEANER_RETRY_DELAY =
+        "alluxio.proxy.s3.multipart.upload.cleaner.retry.delay";
+    public static final String PROXY_S3_MULTIPART_UPLOAD_CLEANER_POOL_SIZE =
+        "alluxio.proxy.s3.multipart.upload.cleaner.pool.size";
     public static final String PROXY_STREAM_CACHE_TIMEOUT_MS =
         "alluxio.proxy.stream.cache.timeout";
     public static final String PROXY_WEB_BIND_HOST = "alluxio.proxy.web.bind.host";
