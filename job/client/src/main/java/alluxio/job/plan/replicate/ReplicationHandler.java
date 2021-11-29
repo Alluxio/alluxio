@@ -44,7 +44,7 @@ public interface ReplicationHandler {
    *
    * @param uri URI of the file the block belongs to
    * @param blockId ID of the block
-   * @param numReplicas how many replicas to remove
+   * @param numReplicas target number of replicas to evict down to
    * @return the ID of the replicate job
    * @throws AlluxioException if an Alluxio error is encountered
    * @throws IOException if a non-Alluxio error is encountered

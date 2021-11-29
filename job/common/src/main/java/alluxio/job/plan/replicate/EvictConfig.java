@@ -48,7 +48,7 @@ public final class EvictConfig implements PlanConfig {
    *
    * @param path alluxio path involved in this eviction
    * @param blockId id of the block to evict
-   * @param replicas number of replicas to evict
+   * @param replicas target number of replicas to evict down to
    */
   @JsonCreator
   public EvictConfig(@JsonProperty("path") String path,

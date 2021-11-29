@@ -325,7 +325,7 @@ public final class ReplicationChecker implements HeartbeatExecutor {
               }
               if (currentReplicas > maxReplicas) {
                 requests.add(new ImmutableTriple<>(inodePath.getUri(), blockId,
-                    currentReplicas - maxReplicas));
+                    maxReplicas));
               }
               break;
             case REPLICATE:
