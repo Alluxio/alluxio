@@ -5267,7 +5267,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey FUSE_SPECIAL_COMMAND_ENABLED =
       new Builder(Name.FUSE_SPECIAL_COMMAND_ENABLED)
           .setDefaultValue(false)
-          .setDescription("If this enable, user can do special operation by using 'ls -l' "
+          .setDescription("If enabled, user can do special operation by using 'ls -l' "
               + "command from fuse client side, such as clear metadata cache and get metadata "
               + "cache size. For example, the fuse mount point is /tmp/alluxio_fuse, then "
               + "'ls -l /tmp/alluxio_fuse/.alluxiocli.metadatacache.dropAll' will drop all the "
