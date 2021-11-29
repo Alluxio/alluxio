@@ -62,8 +62,10 @@ public final class MetadataCacheCommand {
         ((MetadataCachingBaseFileSystem) mFileSystem).dropMetadataCache(path);
         return new URIStatus(new FileInfo().setCompleted(true));
       case "size":
-      default:
         return getMetadataCacheSize();
+      default:
+        throw new InvalidArgumentException(String
+            .format("%s is not a valid subcommand for command metadatacache", cmd));
     }
   }
 

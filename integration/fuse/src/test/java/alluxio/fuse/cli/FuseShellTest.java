@@ -102,6 +102,13 @@ public class FuseShellTest {
   }
 
   @Test
+  public  void runMetadataCacheCommand() throws InvalidArgumentException {
+    AlluxioURI reservedPath = new AlluxioURI("/dir/.alluxiocli.metadatacache");
+    URIStatus status = mFuseShell.runCommand(reservedPath);
+    assertEquals(2, status.getFileInfo().getLength());
+  }
+
+  @Test
   public void runDropMetadataCacheCommand() throws Exception {
     AlluxioURI reservedPath = new AlluxioURI("/dir/.alluxiocli.metadatacache.drop");
     // Drop the specific path cache, the other one will remain.

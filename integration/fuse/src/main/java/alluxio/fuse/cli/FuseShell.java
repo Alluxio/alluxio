@@ -66,18 +66,18 @@ public final class FuseShell {
     String cmdsInfo = uri.getPath().substring(index);
     String [] cmds = cmdsInfo.split("\\.");
 
-    if (cmds.length <= 1) {
+    if (cmds.length <= 2) {
       logUsage();
-      throw new InvalidArgumentException("Command is needed");
+      throw new InvalidArgumentException("Command is needed in Fuse shell");
     }
 
-    String cmdType = cmds[1];
+    String cmdType = cmds[2];
     switch (CommandType.fromValue(cmdType)) {
       case METADATA_CACHE:
         MetadataCacheCommand command = new MetadataCacheCommand(mFileSystem, mConf);
-        return command.run(path, Arrays.copyOfRange(cmds, 2, cmds.length - 1));
+        return command.run(path, Arrays.copyOfRange(cmds, 3, cmds.length));
       default:
-        throw new InvalidArgumentException("Command not found");
+        throw new InvalidArgumentException("Fuse shell command not found");
     }
   }
 
