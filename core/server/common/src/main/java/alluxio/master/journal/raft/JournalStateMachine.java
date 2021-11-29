@@ -65,12 +65,8 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
 import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -110,8 +106,6 @@ public class JournalStateMachine extends BaseStateMachine {
   private volatile boolean mSnapshotting = false;
   private volatile boolean mIsLeader = false;
 
-  private final ExecutorService mJournalPool;
-
   /**
    * This callback is used for interrupting someone who suspends the journal applier to work on
    * the states. It helps prevent dirty read/write of the states when the journal is reloading.
@@ -144,15 +138,8 @@ public class JournalStateMachine extends BaseStateMachine {
    * @param journals      master journals; these journals are still owned by the caller, not by the
    *                      journal state machine
    * @param journalSystem the raft journal system
-   * @param maxConcurrencyPoolSize the maximum concurrency for notifyTermIndexUpdated
    */
-  public JournalStateMachine(Map<String, RaftJournal> journals, RaftJournalSystem journalSystem,
-                             Integer maxConcurrencyPoolSize) {
-    ArrayBlockingQueue<Runnable> boundedQ = new ArrayBlockingQueue<>(maxConcurrencyPoolSize * 2);
-    mJournalPool = new ThreadPoolExecutor(maxConcurrencyPoolSize / 2, maxConcurrencyPoolSize, 0L,
-        TimeUnit.MILLISECONDS, boundedQ);
-    LOG.info("Ihe max concurrency for notifyTermIndexUpdated is loading with max threads {}",
-        maxConcurrencyPoolSize);
+  public JournalStateMachine(Map<String, RaftJournal> journals, RaftJournalSystem journalSystem) {
     mJournals = journals;
     mJournalApplier = new BufferedJournalApplier(journals,
         () -> journalSystem.getJournalSinks(null));
@@ -322,7 +309,7 @@ public class JournalStateMachine extends BaseStateMachine {
   @Override
   public void notifyTermIndexUpdated(long term, long index) {
     super.notifyTermIndexUpdated(term, index);
-    CompletableFuture.runAsync(mJournalSystem::updateGroup, mJournalPool);
+    CompletableFuture.runAsync(mJournalSystem::updateGroup);
   }
 
   private long getNextIndex() {

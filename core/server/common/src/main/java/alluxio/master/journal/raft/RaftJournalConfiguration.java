@@ -34,7 +34,6 @@ public class RaftJournalConfiguration {
   private InetSocketAddress mLocalAddress;
   private long mMaxLogSize;
   private File mPath;
-  private Integer mMaxConcurrencyPoolSize;
 
   /**
    * @param serviceType either master raft service or job master raft service
@@ -51,9 +50,7 @@ public class RaftJournalConfiguration {
         .setLocalAddress(NetworkAddressUtils.getConnectAddress(serviceType,
             ServerConfiguration.global()))
         .setMaxLogSize(ServerConfiguration.getBytes(PropertyKey.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX))
-        .setPath(new File(JournalUtils.getJournalLocation().getPath()))
-        .setMaxConcurrencyPoolSize(
-            ServerConfiguration.getInt(PropertyKey.MASTER_JOURNAL_LOG_CONCURRENCY_MAX));
+        .setPath(new File(JournalUtils.getJournalLocation().getPath()));
   }
 
   /**
@@ -178,22 +175,6 @@ public class RaftJournalConfiguration {
    */
   public RaftJournalConfiguration setPath(File path) {
     mPath = path;
-    return this;
-  }
-
-  /**
-   * @return the maxConcurrencyPoolSize
-   */
-  public Integer getMaxConcurrencyPoolSize() {
-    return mMaxConcurrencyPoolSize;
-  }
-
-  /**
-   * @param maxConcurrencyPoolSize max thread size for notifyTermIndexUpdated method
-   * @return the updated configuration
-   */
-  public RaftJournalConfiguration setMaxConcurrencyPoolSize(Integer maxConcurrencyPoolSize) {
-    mMaxConcurrencyPoolSize = maxConcurrencyPoolSize;
     return this;
   }
 }
