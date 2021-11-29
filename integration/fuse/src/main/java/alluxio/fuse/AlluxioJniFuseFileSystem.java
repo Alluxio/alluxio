@@ -25,6 +25,7 @@ import alluxio.exception.FileIncompleteException;
 import alluxio.fuse.auth.AuthPolicy;
 import alluxio.fuse.auth.AuthPolicyFactory;
 import alluxio.fuse.auth.SystemUserGroupAuthPolicy;
+import alluxio.fuse.cli.FuseShell;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.SetAttributePOptions;
@@ -86,7 +87,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
   private final AtomicLong mNextOpenFileId = new AtomicLong(0);
 
   private final Map<Long, FileInStream> mOpenFileEntries = new ConcurrentHashMap<>();
-  private final AlluxioFuseClientTools mFuseCLientTools;
+  private final FuseShell mFuseShell;
   private static final IndexDefinition<CreateFileEntry<FileOutStream>, Long>
       ID_INDEX =
       new IndexDefinition<CreateFileEntry<FileOutStream>, Long>(true) {
@@ -146,7 +147,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
     mConf = conf;
     mAlluxioRootPath = Paths.get(opts.getAlluxioRoot());
     mMountPoint = opts.getMountPoint();
-    mFuseCLientTools = new AlluxioFuseClientTools(fs, conf);
+    mFuseShell = new FuseShell(fs, conf);
     mPathResolverCache = CacheBuilder.newBuilder()
         .maximumSize(conf.getInt(PropertyKey.FUSE_CACHED_PATHS_MAX))
         .build(new CacheLoader<String, AlluxioURI>() {
@@ -232,10 +233,12 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
       URIStatus status = null;
       // Handle special metadata cache operation
       if (mConf.getBoolean(PropertyKey.FUSE_SPECIAL_COMMAND_ENABLED)
-          && mFuseCLientTools.isReservedPath(uri)) {
-        status = mFuseCLientTools.runCommand(uri);
+          && mFuseShell.isFuseSpecialCommand(uri)) {
+        // TODO(lu) add cache for isFuseSpecialCommand if needed
+        status = mFuseShell.runCommand(uri);
+      } else {
+        status = mFileSystem.getStatus(uri);
       }
-      status = (status == null) ? mFileSystem.getStatus(uri) : status;
       if (!status.isCompleted()) {
         // Always block waiting for file to be completed except when the file is writing
         // We do not want to block the writing process

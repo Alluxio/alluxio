@@ -9,7 +9,7 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.fuse;
+package alluxio.fuse.cli;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
@@ -26,6 +26,7 @@ import alluxio.client.file.URIStatus;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.status.AlluxioStatusException;
+import alluxio.exception.status.InvalidArgumentException;
 import alluxio.grpc.GetStatusPOptions;
 import alluxio.resource.CloseableResource;
 import alluxio.wire.FileInfo;
@@ -41,12 +42,12 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Isolation tests for {@link AlluxioFuseClientToolsTest}.
+ * Isolation tests for {@link FuseShell}.
  */
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({FileSystemContext.class})
-public class AlluxioFuseClientToolsTest {
-  private AlluxioFuseClientTools mAlluxioFuseClientTools;
+public class FuseShellTest {
+  private FuseShell mFuseShell;
   private Map<AlluxioURI, URIStatus> mFileStatusMap;
   private FileSystem mFileSystem;
   private InstancedConfiguration mConf = ConfigurationTestUtils.defaults();
@@ -81,7 +82,7 @@ public class AlluxioFuseClientToolsTest {
     when(mFileContext.getPathConf(any())).thenReturn(mConf);
     when(mFileContext.getUriValidationEnabled()).thenReturn(true);
     mFileSystem = new MetadataCachingBaseFileSystem(mFileContext);
-    mAlluxioFuseClientTools = new AlluxioFuseClientTools(mFileSystem, mConf);
+    mFuseShell = new FuseShell(mFileSystem, mConf);
     mFileStatusMap = new HashMap<>();
     mFileStatusMap.put(FILE, FILE_STATUS);
     mFileStatusMap.put(DIR, DIR_STATUS);
@@ -96,7 +97,7 @@ public class AlluxioFuseClientToolsTest {
   @Test
   public void runGetMetadataCacheSizeCommand() throws Exception {
     AlluxioURI reservedPath = new AlluxioURI("/.alluxiocli.metadatacache.size");
-    URIStatus status = mAlluxioFuseClientTools.runCommand(reservedPath);
+    URIStatus status = mFuseShell.runCommand(reservedPath);
     assertEquals(2, status.getFileInfo().getLength());
   }
 
@@ -104,7 +105,7 @@ public class AlluxioFuseClientToolsTest {
   public void runDropMetadataCacheCommand() throws Exception {
     AlluxioURI reservedPath = new AlluxioURI("/dir/.alluxiocli.metadatacache.drop");
     // Drop the specific path cache, the other one will remain.
-    mAlluxioFuseClientTools.runCommand(reservedPath);
+    mFuseShell.runCommand(reservedPath);
     assertEquals(NOT_FOUND_STATUS, mFileSystem.getStatus(DIR));
     assertEquals(FILE_STATUS, mFileSystem.getStatus(FILE));
   }
@@ -113,15 +114,15 @@ public class AlluxioFuseClientToolsTest {
   public void runDropAllMetadataCacheCommand() throws Exception {
     AlluxioURI reservedPath = new AlluxioURI("/dir/.alluxiocli.metadatacache.dropAll");
     // All cache will be dropped.
-    mAlluxioFuseClientTools.runCommand(reservedPath);
+    mFuseShell.runCommand(reservedPath);
     assertEquals(NOT_FOUND_STATUS, mFileSystem.getStatus(DIR));
     assertEquals(NOT_FOUND_STATUS, mFileSystem.getStatus(FILE));
   }
 
-  @Test
-  public  void runNoneExistCommand() {
+  @Test(expected = InvalidArgumentException.class)
+  public  void runNoneExistCommand() throws InvalidArgumentException {
     AlluxioURI reservedPath = new AlluxioURI("/dir/.alluxiocli.metadatacache.None");
-    assertEquals(null, mAlluxioFuseClientTools.runCommand(reservedPath));
+    mFuseShell.runCommand(reservedPath);
   }
 
   class GetStatusFileSystemMasterClient extends MockFuseFileSystemMasterClient {

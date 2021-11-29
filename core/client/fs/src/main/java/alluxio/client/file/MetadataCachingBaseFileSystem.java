@@ -229,15 +229,18 @@ public class MetadataCachingBaseFileSystem extends BaseFileSystem {
   }
 
   /**
+   * Drops metadata cache of a given uri and all its parents.
+   *
    * @param uri the uri need to drop metadata cache
    */
   public void dropMetadataCache(AlluxioURI uri) {
-    URIStatus status = mMetadataCache.get(uri);
-    if (status != null) {
-      if (!uri.getPath().equals("/")) {
-        mMetadataCache.invalidate(uri.getParent());
+    mMetadataCache.invalidate(uri);
+    LOG.debug("Invalidated metadata cache for path {}", uri);
+    if (!uri.isRoot()) {
+      AlluxioURI parentUri = uri.getParent();
+      if (parentUri != null) {
+        dropMetadataCache(parentUri);
       }
-      mMetadataCache.invalidate(uri);
     }
   }
 
@@ -247,6 +250,7 @@ public class MetadataCachingBaseFileSystem extends BaseFileSystem {
   public void dropMetadataCacheAll() {
     if (mMetadataCache.size() > 0) {
       mMetadataCache.invalidateAll();
+      LOG.debug("Invalidated all metadata cache");
     }
   }
 
