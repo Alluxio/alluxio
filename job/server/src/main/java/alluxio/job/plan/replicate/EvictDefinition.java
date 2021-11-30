@@ -72,19 +72,29 @@ public final class EvictDefinition
 
     AlluxioBlockStore blockStore = AlluxioBlockStore.create(context.getFsContext());
     BlockInfo blockInfo = blockStore.getInfo(blockId);
-
+    int currentNumReplicas = blockInfo.getLocations().size();
+    Set<Pair<WorkerInfo, SerializableVoid>> result = Sets.newHashSet();
+    if (numReplicas == currentNumReplicas) {
+      LOG.warn("Evict target has already been satisfied for job:{}", config);
+      return result;
+    }
+    if (numReplicas > currentNumReplicas) {
+      LOG.warn("Evict target is larger than current number of replicas for job:{}", config);
+      return result;
+    }
+    int numToEvict = currentNumReplicas - numReplicas;
     Set<String> hosts = new HashSet<>();
     for (BlockLocation blockLocation : blockInfo.getLocations()) {
       hosts.add(blockLocation.getWorkerAddress().getHost());
     }
-    Set<Pair<WorkerInfo, SerializableVoid>> result = Sets.newHashSet();
+    
 
     Collections.shuffle(jobWorkerInfoList);
     for (WorkerInfo workerInfo : jobWorkerInfoList) {
       // Select job workers that have this block locally to evict
       if (hosts.contains(workerInfo.getAddress().getHost())) {
         result.add(new Pair<>(workerInfo, null));
-        if (result.size() >= numReplicas) {
+        if (result.size() >= numToEvict) {
           break;
         }
       }
