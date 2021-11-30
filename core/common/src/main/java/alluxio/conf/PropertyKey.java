@@ -5264,6 +5264,20 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDescription("The port Alluxio FUSE web UI runs on.")
           .setScope(Scope.CLIENT)
           .build();
+  public static final PropertyKey FUSE_SPECIAL_COMMAND_ENABLED =
+      new Builder(Name.FUSE_SPECIAL_COMMAND_ENABLED)
+          .setDefaultValue(false)
+          .setDescription("If enabled, user can issue special FUSE commands by using "
+              + "'ls -l /path/to/fuse_mount/.alluxiocli.<command_name>.<subcommand_name>', "
+              + "For example, when the Alluxio is mounted at local path /mnt/alluxio-fuse, "
+              + "'ls -l /mnt/alluxio-fuse/.alluxiocli.metadatacache.dropAll' will drop all the "
+              + "user metadata cache. 'ls -l /mnt/alluxio-fuse/.alluxiocli.metadatacache.size' "
+              + "will get the metadata cache size， "
+              + "the size value will be show in the output's filesize field. "
+              + "'ls -l /mnt/alluxio-fuse/path/to/be/cleaned/.alluxiocli.metadatacache.drop' "
+              + "will drop the metadata cache of path '/mnt/alluxio-fuse/path/to/be/cleaned/'")
+          .setScope(Scope.CLIENT)
+          .build();
 
   //
   // Security related properties
@@ -6914,6 +6928,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String FUSE_WEB_BIND_HOST = "alluxio.fuse.web.bind.host";
     public static final String FUSE_WEB_HOSTNAME = "alluxio.fuse.web.hostname";
     public static final String FUSE_WEB_PORT = "alluxio.fuse.web.port";
+    public static final String FUSE_SPECIAL_COMMAND_ENABLED =
+        "alluxio.fuse.special.command.enabled";
 
     //
     // Security related properties
