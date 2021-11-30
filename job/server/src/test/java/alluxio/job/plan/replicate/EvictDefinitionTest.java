@@ -162,4 +162,22 @@ public final class EvictDefinitionTest {
     // Expect both workers having this block should be selected
     Assert.assertEquals(expected, result);
   }
+
+  @Test
+  public void selectExecutorsTargetLargerThanNumBlocks() throws Exception {
+    Set<Pair<WorkerInfo, SerializableVoid>> result = selectExecutorsTestHelper(
+        Lists.newArrayList(new BlockLocation().setWorkerAddress(ADDRESS_1)), 2,
+        Lists.newArrayList(WORKER_INFO_1, WORKER_INFO_2, WORKER_INFO_3));
+    Set<Pair<WorkerInfo, SerializableVoid>> expected = Sets.newHashSet();
+    Assert.assertEquals(EMPTY, result);
+  }
+
+  @Test
+  public void selectExecutorsTargetEqualNumBlocks() throws Exception {
+    Set<Pair<WorkerInfo, SerializableVoid>> result = selectExecutorsTestHelper(
+        Lists.newArrayList(new BlockLocation().setWorkerAddress(ADDRESS_1)), 1,
+        Lists.newArrayList(WORKER_INFO_1, WORKER_INFO_2, WORKER_INFO_3));
+    Set<Pair<WorkerInfo, SerializableVoid>> expected = Sets.newHashSet();
+    Assert.assertEquals(EMPTY, result);
+  }
 }
