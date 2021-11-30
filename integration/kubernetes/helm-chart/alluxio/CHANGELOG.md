@@ -227,3 +227,5 @@
 0.6.33
 
 - Fix CSI typo. Upgrade CSI driver and provisioner. Improve CSI static pvc template.
+- Fix typo in specifying fuse mount options.
+
