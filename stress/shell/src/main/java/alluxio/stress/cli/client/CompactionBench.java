@@ -63,7 +63,7 @@ public class CompactionBench extends Benchmark<CompactionTaskResult> {
   @ParametersDelegate
   protected final CompactionParameters mParameters = new CompactionParameters();
   protected FileSystem[] mCachedFs;
-  protected byte[] mFileData;
+  private AlluxioURI mRealSourceBase;
 
   /**
    * @param args command-line arguments
@@ -85,14 +85,13 @@ public class CompactionBench extends Benchmark<CompactionTaskResult> {
       mCachedFs[i] = FileSystem.Factory.create(new InstancedConfiguration(properties));
     }
     FileSystem fs = mCachedFs[0];
-    AlluxioURI srcBaseUri = new AlluxioURI(mParameters.mSourceBase);
     AlluxioURI destBaseUri = new AlluxioURI(mParameters.mOutputBase);
     // Scan base dir to get all subdirectories that contain files to compact
     List<AlluxioURI> subDirs =
-        fs.listStatus(srcBaseUri)
+        fs.listStatus(mRealSourceBase)
             .stream()
             .filter(URIStatus::isFolder)
-            .map(uri -> new AlluxioURI(srcBaseUri, uri.getPath(), false))
+            .map(uri -> new AlluxioURI(mRealSourceBase, uri.getPath(), false))
             .collect(Collectors.toList());
     // Partition them into batches and each thread will work on one batch
     List<List<AlluxioURI>> partitions = exactPartition(subDirs, mParameters.mThreads);
@@ -149,69 +148,117 @@ public class CompactionBench extends Benchmark<CompactionTaskResult> {
   @Override
   public void prepare() throws Exception {
     Preconditions.checkArgument(mParameters.mThreads > 0, "mThreads");
-    // only do preparation in the original calling process
-    // not in the forked local process or the job workers
-    if (!mBaseParameters.mDistributed && !mBaseParameters.mInProcess) {
-      FileSystem prepareFs = FileSystem.Factory.create(InstancedConfiguration.defaults());
-      // Make sure the destination dir exists
-      if (!mParameters.mOutputInPlace) {
-        try {
-          prepareFs.createDirectory(new AlluxioURI(mParameters.mOutputBase),
-              CreateDirectoryPOptions.newBuilder().setRecursive(true).build());
-        } catch (FileAlreadyExistsException ignored) { /* ignored */ }
-      }
 
-      if (mParameters.mSkipPrepare) {
-        return;
-      }
-      // Prepare directory structure and files for tests
-      final int filesize = (int) FormatUtils.parseSpaceSize(mParameters.mSourceFileSize);
-      // cap to 1 MB as the assumption is the source files are small
-      mFileData = new byte[Math.min(filesize, Constants.MB)];
-      Arrays.fill(mFileData, (byte) 0x7A);
+    FileSystem prepareFs = FileSystem.Factory.create(InstancedConfiguration.defaults());
 
-      // Create the source dir if is does not already exist
-      final AlluxioURI sourceBaseUri = new AlluxioURI(mParameters.mSourceBase);
+    // flags:
+    // distributed    cluster   in-process    run type
+    //  1              1         any             n/a
+    //  1              0         1               at job worker
+    //  1              0         0               n/a
+    //  0              1         1               n/a
+    //  0              1         0               at the local process invoking the benchmark
+    //                                             and will continue to run at job worker
+    //  0              0         1               at the local forked process
+    //  0              0         0               at the local process invoking the benchmark
+    //                                             and will continue to run in forked process
+
+    int flags = Boolean.compare(mBaseParameters.mDistributed, false) << 2
+        | Boolean.compare(mBaseParameters.mCluster, false) << 1
+        | Boolean.compare(mBaseParameters.mInProcess, false);
+    switch (flags) {
+      case 0b000:
+      case 0b010:
+        if (!mParameters.mSkipPrepare) {
+          prepareSourceBaseDir(prepareFs);
+          prepareOutputBaseDir(prepareFs);
+        }
+        break;
+      case 0b001:
+        // set real base to "local"
+        mRealSourceBase = new AlluxioURI(mParameters.mSourceBase).join("local");
+        if (!mParameters.mSkipPrepare) {
+          prepareSourceFiles(prepareFs);
+        }
+        break;
+      case 0b101:
+        // set real base to the id of the job worker, to avoid sharing the same base
+        // path with other job workers
+        mRealSourceBase = new AlluxioURI(mParameters.mSourceBase).join(mBaseParameters.mId);
+        if (!mParameters.mSkipPrepare) {
+          prepareSourceFiles(prepareFs);
+        }
+        break;
+      default:
+        throw new IllegalStateException(String.format("Unknown combination of flags: %s",
+            Integer.toBinaryString(flags)));
+    }
+  }
+
+  private void prepareOutputBaseDir(FileSystem fs) throws IOException, AlluxioException {
+    if (!mParameters.mOutputInPlace) {
       try {
-        prepareFs.createDirectory(sourceBaseUri,
+        fs.createDirectory(new AlluxioURI(mParameters.mOutputBase),
             CreateDirectoryPOptions.newBuilder().setRecursive(true).build());
       } catch (FileAlreadyExistsException ignored) { /* ignored */ }
+    }
+  }
 
-      final AtomicInteger numDirsCreated = new AtomicInteger();
-      int createFilesParallelism = Runtime.getRuntime().availableProcessors() * 2;
-      ExecutorService pool = ExecutorServiceFactories
-          .fixedThreadPool("compact-bench-prepare-thread", createFilesParallelism)
-          .create();
-      List<CompletableFuture<Exception>> futures = new ArrayList<>(createFilesParallelism);
-      for (int i = 0; i < createFilesParallelism; i++) {
-        CompletableFuture<Exception> future = CompletableFuture.supplyAsync(() -> {
-          try {
-            int localNumDirsCreated;
-            while ((localNumDirsCreated = numDirsCreated.getAndIncrement())
-                < mParameters.mNumSourceDirs) {
-              AlluxioURI dir = sourceBaseUri.join(Integer.toString(localNumDirsCreated));
-              try {
-                prepareFs.createDirectory(dir);
-              } catch (FileAlreadyExistsException ignored) { /* ignored */ }
+  private void prepareSourceBaseDir(FileSystem fs) throws IOException, AlluxioException {
+    try {
+      fs.createDirectory(new AlluxioURI(mParameters.mSourceBase),
+          CreateDirectoryPOptions.newBuilder().setRecursive(true).build());
+    } catch (FileAlreadyExistsException ignored) { /* ignored */ }
+  }
 
-              for (int f = 0; f < mParameters.mNumSourceFiles; f++) {
-                AlluxioURI path = dir.join(Integer.toString(f));
-                try (FileOutStream stream = prepareFs.createFile(path)) {
-                  for (long offset = 0; offset < filesize; offset += mFileData.length) {
-                    stream.write(mFileData, 0, (int) Math.min(mFileData.length, filesize - offset));
-                  }
+  private void prepareSourceFiles(FileSystem fs) throws Exception {
+    final int fileSize = (int) FormatUtils.parseSpaceSize(mParameters.mSourceFileSize);
+    // cap to 1 MB as the assumption is the source files are small
+    final byte[] fileData = new byte[Math.min(fileSize, Constants.MB)];
+    Arrays.fill(fileData, (byte) 0x7A);
+    try {
+      fs.createDirectory(mRealSourceBase);
+    } catch (FileAlreadyExistsException ignored) { /* ignored */ }
+
+    final AtomicInteger numDirsCreated = new AtomicInteger();
+    int createFilesParallelism = Runtime.getRuntime().availableProcessors() * 2;
+    ExecutorService pool = ExecutorServiceFactories
+        .fixedThreadPool("compact-bench-prepare-thread", createFilesParallelism)
+        .create();
+    List<CompletableFuture<Exception>> futures = new ArrayList<>(createFilesParallelism);
+    for (int i = 0; i < createFilesParallelism; i++) {
+      CompletableFuture<Exception> future = CompletableFuture.supplyAsync(() -> {
+        try {
+          int localNumDirsCreated;
+          while ((localNumDirsCreated = numDirsCreated.getAndIncrement())
+              < mParameters.mNumSourceDirs) {
+            AlluxioURI dir = mRealSourceBase.join(Integer.toString(localNumDirsCreated));
+            try {
+              fs.createDirectory(dir);
+            } catch (FileAlreadyExistsException ignored) { /* ignored */ }
+
+            for (int f = 0; f < mParameters.mNumSourceFiles; f++) {
+              AlluxioURI path = dir.join(Integer.toString(f));
+              try (FileOutStream stream = fs.createFile(path)) {
+                for (long offset = 0; offset < fileSize; offset += fileData.length) {
+                  stream.write(fileData, 0, (int) Math.min(fileData.length, fileSize - offset));
                 }
+              } catch (FileAlreadyExistsException e) {
+                fs.delete(path);
+                f--; // retry
               }
-              LOG.info("{}/{} directories created",
-                  localNumDirsCreated, mParameters.mNumSourceDirs);
             }
-          } catch (IOException | AlluxioException e) {
-            return e;
+            LOG.info("{}/{} directories created",
+                localNumDirsCreated, mParameters.mNumSourceDirs);
           }
-          return null;
-        }, pool);
-        futures.add(future);
-      }
+        } catch (IOException | AlluxioException e) {
+          return e;
+        }
+        return null;
+      }, pool);
+      futures.add(future);
+    }
+    try {
       for (CompletableFuture<Exception> future : futures) {
         Exception e = future.join();
         if (e != null) {
@@ -219,6 +266,9 @@ public class CompactionBench extends Benchmark<CompactionTaskResult> {
           throw e;
         }
       }
+    } finally {
+      pool.shutdownNow();
+      pool.awaitTermination(30, TimeUnit.SECONDS);
     }
   }
 

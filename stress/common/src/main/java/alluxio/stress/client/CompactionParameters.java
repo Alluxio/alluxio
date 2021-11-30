@@ -22,7 +22,8 @@ public class CompactionParameters extends Parameters {
   public String mSourceBase = "/compaction-base/source";
 
   @Parameter(names = {"--source-dirs"},
-      description = "Number of directories containing source files to compact.")
+      description = "Number of directories containing source files to compact. "
+      + "In cluster mode, each job worker will create this many directories.")
   public int mNumSourceDirs = 100;
 
   @Parameter(names = {"--source-files"},
